@@ -3,7 +3,9 @@
 # found in the LICENSE file.
 
 from master import master_config
-from master.factory import skia_factory
+
+# import from local scripts/ directory
+import skia_factory
 
 defaults = {}
 

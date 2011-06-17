@@ -35,7 +35,7 @@ USE_LAUNCHD := \
 
 start:
 ifneq ($(USE_LAUNCHD),1)
-	PYTHONPATH=..:$(CHROMIUM_BUILDBOT)/third_party/buildbot_8_3p1:$(CHROMIUM_BUILDBOT)/third_party/twisted_10_2:$(CHROMIUM_BUILDBOT)/third_party/jinja2:$(CHROMIUM_BUILDBOT)/scripts:$(THIRDPARTY):$(CHROMIUM_BUILDBOT)/site_config:. python $(CHROMIUM_BUILDBOT)/scripts/common/twistd --no_save -y buildbot.tac
+	PYTHONPATH=..:../scripts:$(CHROMIUM_BUILDBOT)/third_party/buildbot_8_3p1:$(CHROMIUM_BUILDBOT)/third_party/twisted_10_2:$(CHROMIUM_BUILDBOT)/third_party/jinja2:$(CHROMIUM_BUILDBOT)/scripts:$(THIRDPARTY):$(CHROMIUM_BUILDBOT)/site_config:. python $(CHROMIUM_BUILDBOT)/scripts/common/twistd --no_save -y buildbot.tac
 else
 	launchctl start org.chromium.buildbot.$(MASTERPATH)
 endif
