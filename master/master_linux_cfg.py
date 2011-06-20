@@ -24,7 +24,8 @@ defaults['category'] = 'linux'
 #
 # TODO(epoger): consider changing to reuse existing config.Master.perf_base_url,
 # config.Master.perf_report_url_suffix, etc.
-perf_output_dir = '/home/epoger/www/skia-perf'
+perf_output_dir = os.path.join(
+    os.path.dirname(__file__), os.path.pardir, 'perfdata')
 
 
 #
