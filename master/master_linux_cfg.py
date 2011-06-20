@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
+
 from master import master_config
 
 # import from local scripts/ directory
@@ -18,6 +20,13 @@ S = helper.Scheduler
 defaults['category'] = 'linux'
 
 
+# Directory where we want to record performance data
+#
+# TODO(epoger): consider changing to reuse existing config.Master.perf_base_url,
+# config.Master.perf_report_url_suffix, etc.
+perf_output_dir = '/home/epoger/www/skia-perf'
+
+
 #
 # Main Scheduler for Skia
 #
@@ -27,33 +36,44 @@ S('skia_rel', branch='trunk', treeStableTimer=60)
 #
 # Linux Release Builder
 #
-B('Skia Linux Fixed Debug', 'f_skia_linux_fixed_debug',
+# Don't put spaces or 'funny characters' within the builder names, so that
+# we can safely use the builder name as part of a filepath.
+#
+# TODO(epoger): for now, I am manually adding the builder name to each
+# perf_output_dir below. This should be automatic, because when we generate
+# the graphs we require that they were assembled with builder name.
+#
+B('Skia_Linux_Fixed_Debug', 'f_skia_linux_fixed_debug',
   scheduler='skia_rel')
 F('f_skia_linux_fixed_debug', skia_factory.SkiaFactory(
     build_subdir='Skia', target_platform='linux',
     buildtype='Debug', additional_gyp_args='-Dskia_scalar=fixed',
     gm_image_subdir='base-linux-fixed',
+    perf_output_dir=None, # no perf measurement for debug builds
     ).Build())
-B('Skia Linux Fixed NoDebug', 'f_skia_linux_fixed_nodebug',
+B('Skia_Linux_Fixed_NoDebug', 'f_skia_linux_fixed_nodebug',
   scheduler='skia_rel')
 F('f_skia_linux_fixed_nodebug', skia_factory.SkiaFactory(
     build_subdir='Skia', target_platform='linux',
     buildtype='Release', additional_gyp_args='-Dskia_scalar=fixed',
     gm_image_subdir='base-linux-fixed',
+    perf_output_dir=os.path.join(perf_output_dir, 'Skia_Linux_Fixed_NoDebug'),
     ).Build())
-B('Skia Linux Float Debug', 'f_skia_linux_float_debug',
+B('Skia_Linux_Float_Debug', 'f_skia_linux_float_debug',
   scheduler='skia_rel')
 F('f_skia_linux_float_debug', skia_factory.SkiaFactory(
     build_subdir='Skia', target_platform='linux',
     buildtype='Debug', additional_gyp_args='-Dskia_scalar=float',
     gm_image_subdir='base-linux',
+    perf_output_dir=None, # no perf measurement for debug builds
     ).Build())
-B('Skia Linux Float NoDebug', 'f_skia_linux_float_nodebug',
+B('Skia_Linux_Float_NoDebug', 'f_skia_linux_float_nodebug',
   scheduler='skia_rel')
 F('f_skia_linux_float_nodebug', skia_factory.SkiaFactory(
     build_subdir='Skia', target_platform='linux',
     buildtype='Release', additional_gyp_args='-Dskia_scalar=float',
     gm_image_subdir='base-linux',
+    perf_output_dir=os.path.join(perf_output_dir, 'Skia_Linux_Float_NoDebug'),
     ).Build())
 
 
