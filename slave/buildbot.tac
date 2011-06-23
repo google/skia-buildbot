@@ -29,7 +29,7 @@ ActiveMaster = site_config.Master.Skia
 # Slave properties:
 slavename = None
 password = site_config.Master.GetBotPassword()
-host = 'c128.i.corp.google.com'
+host = ActiveMaster.master_host
 port = None
 basedir = None
 keepalive = 600

@@ -18,18 +18,14 @@ class Master(config.Master):
   def GetBotPassword():
     return 'epoger-temp-password'
 
-  # epoger: for now, copied from build_internal/site_config/config_private.py
-  class _Master3(object):
-    """Client master."""
-    master_host = 'master3.golo.chromium.org'
-    is_production_host = socket.getfqdn() == 'master3.golo.chromium.org'
-    tree_closing_notification_recipients = []
-    from_address = 'buildbot@chromium.org'
-
-  # epoger: for now, copied from build_internal/site_config/config_private.py
-  class Skia(_Master3):
+  class Skia(object):
     project_name = 'Skia'
+    project_url = 'http://skia.googlecode.com'
+    # For now, this is epoger's Ubiquity instance.
+    master_host = 'wpgntat-ubiq141.hot.corp.google.com'
+    is_production_host = socket.getfqdn() == master_host
     master_port = 8041
     slave_port = 8141
     master_port_alt = 8241
-    project_url = 'http://skia.googlecode.com'
+    tree_closing_notification_recipients = []
+    from_address = 'skia-buildbot@google.com'
