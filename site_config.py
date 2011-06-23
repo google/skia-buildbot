@@ -6,7 +6,6 @@
 locally appropriate values.
 """
 
-import os
 import socket
 
 # import base class from third_party/chromium_buildbot/site_config/
@@ -34,7 +33,3 @@ class Master(config.Master):
     slave_port = 8141
     master_port_alt = 8241
     project_url = 'http://skia.googlecode.com'
-    # Directory where we want to record performance data
-    # TODO(epoger): consider changing to reuse existing
-    # config.Master.perf_base_url, config.Master.perf_report_url_suffix, etc.
-    perf_output_dir = os.path.join(os.path.dirname(__file__), 'perfdata')
