@@ -53,14 +53,10 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self._factory = self.BaseFactory(factory_properties=None)
     self._gm_image_subdir = gm_image_subdir
 
-    # If we are going to store performance output, prepare its directories.
+    # Figure out where we are going to store performance output.
     if perf_output_dir:
       self._perf_data_dir = os.path.join(perf_output_dir, 'data')
-      if not os.path.exists(self._perf_data_dir):
-        os.makedirs(self._perf_data_dir)
       self._perf_graphs_dir = os.path.join(perf_output_dir, 'graphs')
-      if not os.path.exists(self._perf_graphs_dir):
-        os.makedirs(self._perf_graphs_dir)
     else:
       self._perf_data_dir = None
       self._perf_graphs_dir = None
@@ -69,8 +65,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
     # this target_platform.
     self._skia_cmd_obj = skia_commands.CreateSkiaCommands(
         target_platform=target_platform, factory=self._factory,
-        configuration=configuration, build_subdir=build_subdir, target_arch=None,
-        default_timeout=default_timeout,
+        configuration=configuration, build_subdir=build_subdir,
+        target_arch=None, default_timeout=default_timeout,
         environment_variables=environment_variables)
 
   def Build(self, clobber=False):
@@ -80,6 +76,9 @@ class SkiaFactory(gclient_factory.GClientFactory):
     """
     if clobber:
       self._skia_cmd_obj.AddClean()
+
+    # Do all the build steps first, so we will find out about build breakages
+    # as soon as possible.
     self._skia_cmd_obj.AddRun(
         run_command='make core BUILDTYPE=%s' % self._configuration,
         description='BuildCore')
@@ -87,26 +86,30 @@ class SkiaFactory(gclient_factory.GClientFactory):
         run_command='make tests BUILDTYPE=%s' % self._configuration,
         description='BuildTests')
     self._skia_cmd_obj.AddRun(
-        run_command='out/%s/tests' % self._configuration,
-        description='RunTests')
-    self._skia_cmd_obj.AddRun(
         run_command='make gm BUILDTYPE=%s' % self._configuration,
         description='BuildGM')
+    self._skia_cmd_obj.AddRun(
+        run_command='make bench BUILDTYPE=%s' % self._configuration,
+        description='BuildBench')
+    self._skia_cmd_obj.AddRun(
+        run_command='make all BUILDTYPE=%s' % self._configuration,
+        description='BuildAllOtherTargets')
+
+    self._skia_cmd_obj.AddRun(
+        run_command='out/%s/tests' % self._configuration,
+        description='RunTests')
     self._skia_cmd_obj.AddRun(
         run_command='out/%s/gm -r gm/%s' % (
             self._configuration, self._gm_image_subdir),
         description='RunGM')
 
-    # Build and run "bench", piping the output somewhere so we can graph
+    # Run "bench", piping the output somewhere so we can graph
     # results over time.
     #
     # TODO(epoger): Currently this is a hack--we just tell the slave to
-    # pipe the output to a directory on local disk.  This assumes that all
-    # slaves are running on the same system.
+    # pipe the output to a directory on local disk.
     # Eventually, we will want the master to capture the output and store it.
-    self._skia_cmd_obj.AddRun(
-        run_command='make bench BUILDTYPE=%s' % self._configuration,
-        description='BuildBench')
+    #
     # Running bench can be quite slow, so run it fewer times if we aren't
     # recording the output.
     if self._perf_data_dir:
@@ -145,8 +148,4 @@ class SkiaFactory(gclient_factory.GClientFactory):
       self._skia_cmd_obj.AddRun(
           run_command=command, description='GenerateBenchGraphs')
 
-    # Build all remaining targets, just to make sure they compile.
-    self._skia_cmd_obj.AddRun(
-        run_command='make all BUILDTYPE=%s' % self._configuration,
-        description='BuildAllOtherTargets')
     return self._factory
