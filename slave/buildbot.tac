@@ -8,6 +8,7 @@
 # Chrome Buildbot slave configuration
 
 import os
+import socket
 import sys
 
 from twisted.application import service
@@ -26,9 +27,9 @@ ActiveMaster = site_config.Master.Skia
 
 
 # Slave properties:
-slavename = 'localhost'
+slavename = None
 password = site_config.Master.GetBotPassword()
-host = 'localhost'
+host = 'c128.i.corp.google.com'
 port = None
 basedir = None
 keepalive = 600
@@ -37,9 +38,9 @@ umask = None
 
 
 if slavename is None:
-    # Automatically determine the host name.
-    import socket
-    slavename = socket.getfqdn().split('.')[0].lower()
+    # Automatically determine the slavename.
+    # slavename = socket.getfqdn().split('.')[0].lower()
+    slavename = '%s-slave' % sys.platform
 
 if password is None:
     msg = '*** No password configured in %s.\n' % repr(__file__)

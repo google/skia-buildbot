@@ -21,19 +21,20 @@ BENCH_GRAPH_FIRST_REVISION = 1642
 BENCH_GRAPH_X = 1024
 BENCH_GRAPH_Y = 768
 
+# TODO(epoger): I can probably get rid of target_platform now.
+
 class SkiaFactory(gclient_factory.GClientFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""
 
-  def __init__(self, build_subdir, target_platform=None, buildtype='Default',
-               additional_gyp_args='', default_timeout=600,
+  def __init__(self, build_subdir, target_platform=None, configuration='Debug',
+               default_timeout=600,
                environment_variables=None, gm_image_subdir=None,
                perf_output_dir=None):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     build_subdir: string indicating path within slave directory
     target_platform: a string such as skia_commands.TARGET_PLATFORM_LINUX
-    buildtype: 'Debug' or 'Release'
-    additional_gyp_args: a string to append to the gyp command line
+    configuration: 'Debug' or 'Release'
     default_timeout: default timeout for each command, in seconds
     environment_variables: dictionary of environment variables that should
         be passed to all commands
@@ -48,8 +49,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     gclient_factory.GClientFactory.__init__(
         self, build_dir='', solutions=[gclient_solution],
         target_platform=target_platform)
-    self._additional_gyp_args = additional_gyp_args
-    self._buildtype = buildtype
+    self._configuration = configuration
     self._factory = self.BaseFactory(factory_properties=None)
     self._gm_image_subdir = gm_image_subdir
 
@@ -69,7 +69,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     # this target_platform.
     self._skia_cmd_obj = skia_commands.CreateSkiaCommands(
         target_platform=target_platform, factory=self._factory,
-        target=buildtype, build_subdir=build_subdir, target_arch=None,
+        configuration=configuration, build_subdir=build_subdir, target_arch=None,
         default_timeout=default_timeout,
         environment_variables=environment_variables)
 
@@ -79,25 +79,22 @@ class SkiaFactory(gclient_factory.GClientFactory):
     clobber: boolean indicating whether we should clean before building
     """
     if clobber:
-      self._skia_cmd_obj.AddRun(
-          run_command='rm -rf out', description='Clean')
+      self._skia_cmd_obj.AddClean()
     self._skia_cmd_obj.AddRun(
-        run_command='./gyp_skia %s' % self._additional_gyp_args,
-        description='Gyp')
-    self._skia_cmd_obj.AddRun(
-        run_command='make -C out core BUILDTYPE=%s' % self._buildtype,
+        run_command='make core BUILDTYPE=%s' % self._configuration,
         description='BuildCore')
     self._skia_cmd_obj.AddRun(
-        run_command='make -C out tests BUILDTYPE=%s' % self._buildtype,
+        run_command='make tests BUILDTYPE=%s' % self._configuration,
         description='BuildTests')
     self._skia_cmd_obj.AddRun(
-        run_command='out/%s/tests' % self._buildtype, description='RunTests')
+        run_command='out/%s/tests' % self._configuration,
+        description='RunTests')
     self._skia_cmd_obj.AddRun(
-        run_command='make -C out gm BUILDTYPE=%s' % self._buildtype,
+        run_command='make gm BUILDTYPE=%s' % self._configuration,
         description='BuildGM')
     self._skia_cmd_obj.AddRun(
         run_command='out/%s/gm -r gm/%s' % (
-            self._buildtype, self._gm_image_subdir),
+            self._configuration, self._gm_image_subdir),
         description='RunGM')
 
     # Build and run "bench", piping the output somewhere so we can graph
@@ -108,7 +105,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     # slaves are running on the same system.
     # Eventually, we will want the master to capture the output and store it.
     self._skia_cmd_obj.AddRun(
-        run_command='make -C out bench BUILDTYPE=%s' % self._buildtype,
+        run_command='make bench BUILDTYPE=%s' % self._configuration,
         description='BuildBench')
     # Running bench can be quite slow, so run it fewer times if we aren't
     # recording the output.
@@ -117,7 +114,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     else:
       count = 2
     base_command = 'out/%s/bench -repeat %d -timers wcg' % (
-        self._buildtype, count)
+        self._configuration, count)
     if self._perf_data_dir:
       # The WithProperties() stuff is very touchy and mysterious.
       # With trial and error, I was able to get it to assemble a filename
@@ -150,6 +147,6 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
     # Build all remaining targets, just to make sure they compile.
     self._skia_cmd_obj.AddRun(
-        run_command='make -C out all BUILDTYPE=%s' % self._buildtype,
+        run_command='make all BUILDTYPE=%s' % self._configuration,
         description='BuildAllOtherTargets')
     return self._factory
