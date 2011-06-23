@@ -33,9 +33,11 @@ USE_LAUNCHD := \
           [ "$$(pwd -P)" = "/b/build/masters/$(MASTERPATH)" ] && \
           echo 1)
 
+export PYTHONPATH=..:../scripts:$(CHROMIUM_BUILDBOT)/third_party/buildbot_8_3p1:$(CHROMIUM_BUILDBOT)/third_party/twisted_10_2:$(CHROMIUM_BUILDBOT)/third_party/jinja2:$(CHROMIUM_BUILDBOT)/scripts:$(THIRDPARTY):$(CHROMIUM_BUILDBOT)/site_config:.
+
 start:
 ifneq ($(USE_LAUNCHD),1)
-	PYTHONPATH=..:../scripts:$(CHROMIUM_BUILDBOT)/third_party/buildbot_8_3p1:$(CHROMIUM_BUILDBOT)/third_party/twisted_10_2:$(CHROMIUM_BUILDBOT)/third_party/jinja2:$(CHROMIUM_BUILDBOT)/scripts:$(THIRDPARTY):$(CHROMIUM_BUILDBOT)/site_config:. python $(CHROMIUM_BUILDBOT)/scripts/common/twistd --no_save -y buildbot.tac
+	python $(CHROMIUM_BUILDBOT)/scripts/common/twistd --no_save -y buildbot.tac
 else
 	launchctl start org.chromium.buildbot.$(MASTERPATH)
 endif
@@ -58,5 +60,5 @@ wait:
 
 restart: stop wait start log
 
-upgrade_db:
-	PYTHONPATH=..:$(CHROMIUM_BUILDBOT)/third_party/buildbot_8_3p1:$(CHROMIUM_BUILDBOT)/third_party/twisted_10_2:$(CHROMIUM_BUILDBOT)/third_party/jinja2:$(CHROMIUM_BUILDBOT)/scripts:$(THIRDPARTY):$(CHROMIUM_BUILDBOT)/site_config:. python buildbot upgrade-master .
+upgrade:
+	python buildbot upgrade-master .
