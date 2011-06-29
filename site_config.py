@@ -14,6 +14,9 @@ import config
 class Master(config.Master):
   googlecode_revlinktmpl = 'http://code.google.com/p/%s/source/browse?r=%s'
 
+  # domains to which we will send blame emails
+  permitted_domains = ['google.com', 'chromium.org']
+
   @staticmethod
   def GetBotPassword():
     return 'epoger-temp-password'
