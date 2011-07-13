@@ -32,3 +32,4 @@ class Master(config.Master):
     master_port_alt = 8241
     tree_closing_notification_recipients = []
     from_address = 'skia-buildbot@google.com'
+    buildbot_url = 'http://%s:%d/' % (master_host, master_port)
