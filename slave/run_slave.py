@@ -106,6 +106,7 @@ def main():
         'USERNAME',
         'USERDOMAIN',
         'USERPROFILE',
+        'VS100COMNTOOLS',
         'WINDIR',
     ]
 

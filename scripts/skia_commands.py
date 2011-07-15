@@ -10,46 +10,24 @@ This is based on commands.py and adds skia-specific commands."""
 from buildbot.steps import shell
 
 from master.factory import commands
-
-# TODO(epoger): My intent is to make the build steps identical on all platforms
-# and thus remove the need for the whole target_platform parameter.
-TARGET_PLATFORM_LINUX = 'linux'
-TARGET_PLATFORM_MAC = 'mac'
-
-
-def CreateSkiaCommands(target_platform, factory, configuration,
-                       build_subdir, target_arch, default_timeout,
-                       environment_variables):
-  """Instantiates subclass of SkiaCommands appropriate for this target_platform.
-
-  Callers outside of this file should use this 'factory method' rather than
-  calling any of the below constructors directly.
-
-  target_platform: a string such as TARGET_PLATFORM_LINUX
-  factory: a BaseFactory
-  configuration: 'Debug' or 'Release'
-  build_subdir: string indicating path within slave directory
-  target_arch: string such as 'x64'
-  default_timeout: default timeout for each command, in seconds
-  environment_variables: dictionary of environment variables that should
-      be passed to all commands
-  """
-  # TODO(epoger): for now, we always make a Linux command structure.
-  # Hopefully it will be the same for all platforms anyway.
-  return SkiaCommandsLinux(factory=factory, configuration=configuration,
-                           build_subdir=build_subdir, target_arch=target_arch,
-                           default_timeout=default_timeout,
-                           environment_variables=environment_variables)
-
+import skia_factory
 
 class SkiaCommands(commands.FactoryCommands):
-  """Base class that gets extended for each target_platform.
 
-  Callers outside of this file should use the CreateSkiaCommands
-  'factory method' rather than instantiating this directly."""
-
-  def __init__(self, factory, configuration, build_subdir, target_arch,
+  def __init__(self, factory, configuration, workdir, target_arch,
                default_timeout, target_platform, environment_variables):
+    """Instantiates subclass of FactoryCommands appropriate for Skia.
+
+    factory: a BaseFactory
+    configuration: 'Debug' or 'Release'
+    workdir: string indicating path within slave directory
+    target_arch: string such as 'x64'
+    default_timeout: default timeout for each command, in seconds
+    target_platform: a string such as skia_factory.TARGET_PLATFORM_LINUX,
+        to be passed into FactoryCommands.__init__()
+    environment_variables: dictionary of environment variables that should
+        be passed to all commands
+    """
     commands.FactoryCommands.__init__(
         self, factory=factory, target=configuration,
         build_dir='', target_platform=target_platform)
@@ -58,21 +36,7 @@ class SkiaCommands(commands.FactoryCommands):
     self.environment_variables = environment_variables
     self.factory = factory
     self.target_arch = target_arch
-    self.workdir = 'build/%s' % build_subdir
-
-class SkiaCommandsLinux(SkiaCommands):
-  """Implementation of SkiaCommand for TARGET_PLATFORM_LINUX.
-
-  Callers outside of this file should use the CreateSkiaCommands
-  'factory method' rather than instantiating this directly."""
-
-  def __init__(self, factory, configuration, build_subdir, target_arch,
-               default_timeout, environment_variables):
-    SkiaCommands.__init__(self, factory=factory, configuration=configuration,
-                          build_subdir=build_subdir, target_arch=target_arch,
-                          default_timeout=default_timeout,
-                          target_platform=TARGET_PLATFORM_LINUX,
-                          environment_variables=environment_variables)
+    self.workdir = workdir
 
   def AddClean(self, build_target='clean', description='Clean', timeout=None):
     """Does a 'make clean'"""
