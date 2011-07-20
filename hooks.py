@@ -6,26 +6,37 @@
 """Hooks to run after gclient sync if any files have been updated.
 """
 
-import distutils.spawn
 import os
 
 def FindPath(name):
-  """Returns the full path to the executable with this name.
+  """Returns the full path to the executable with this name, or None if not
+  found
   """
-  return distutils.spawn.find_executable(name)
+  for trydir in os.environ["PATH"].split(os.pathsep):
+    trypath = os.path.join(trydir, name)
+    if os.path.exists(trypath):
+      return trypath
+  return None
 
 
 # cd to the directory where this script lives.
 os.chdir(os.path.dirname(__file__))
 
 # Work around http://code.google.com/p/chromium/issues/detail?id=89900 :
-# on Windows, use already-installed gclient.bat .
+# on Windows, redirect local gclient.bat to already-installed gclient.bat .
+batchfile = 'gclient.bat'
 internal_gclient_path = os.path.abspath(os.path.join(
-    'third_party', 'depot_tools', 'gclient.bat'))
-os.remove(internal_gclient_path)  # remove it now so FindPath won't find it
-external_gclient_path = os.path.abspath(FindPath('gclient.bat'))
-print 'replacing %s with redirect to %s' % (
-    internal_gclient_path, external_gclient_path)
-f = open(internal_gclient_path, 'w')
-f.write('"%s" %%*' % external_gclient_path)
-f.close()
+    'third_party', 'depot_tools', batchfile))
+external_gclient_path = FindPath(batchfile)
+if not external_gclient_path:
+  raise OSError('could not find external version of %s' % batchfile)
+elif internal_gclient_path == external_gclient_path:
+  print ('internal_gclient_path == external_gclient_path == "%s"' %
+         external_gclient_path)
+else:
+  os.remove(internal_gclient_path)
+  print 'replacing %s with redirect to %s' % (
+      internal_gclient_path, external_gclient_path)
+  f = open(internal_gclient_path, 'w')
+  f.write('"%s" %%*' % external_gclient_path)
+  f.close()
