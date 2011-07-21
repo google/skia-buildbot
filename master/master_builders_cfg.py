@@ -136,7 +136,7 @@ F('f_skia_win32_fixed_debug', skia_factory.SkiaFactory(
     build_subdir='Skia', target_platform=skia_factory.TARGET_PLATFORM_WIN32,
     configuration='Debug',
     environment_variables={'GYP_DEFINES': 'skia_scalar=fixed'},
-    gm_image_subdir='base-win',
+    gm_image_subdir='base-win-fixed',
     perf_output_dir=None, # no perf measurement for debug builds
     ).Build())
 B('Skia_Win32_Fixed_NoDebug', 'f_skia_win32_fixed_nodebug',
@@ -145,7 +145,7 @@ F('f_skia_win32_fixed_nodebug', skia_factory.SkiaFactory(
     build_subdir='Skia', target_platform=skia_factory.TARGET_PLATFORM_WIN32,
     configuration='Release',
     environment_variables={'GYP_DEFINES': 'skia_scalar=fixed'},
-    gm_image_subdir='base-win',
+    gm_image_subdir='base-win-fixed',
     perf_output_dir=None, # TODO(epoger): no perf measurement for Windows builds
     ).Build())
 B('Skia_Win32_Float_Debug', 'f_skia_win32_float_debug',
@@ -154,7 +154,7 @@ F('f_skia_win32_float_debug', skia_factory.SkiaFactory(
     build_subdir='Skia', target_platform=skia_factory.TARGET_PLATFORM_WIN32,
     configuration='Debug',
     environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-    gm_image_subdir='base-win-fixed',
+    gm_image_subdir='base-win',
     perf_output_dir=None, # no perf measurement for debug builds
     ).Build())
 B('Skia_Win32_Float_NoDebug', 'f_skia_win32_float_nodebug',
@@ -163,7 +163,7 @@ F('f_skia_win32_float_nodebug', skia_factory.SkiaFactory(
     build_subdir='Skia', target_platform=skia_factory.TARGET_PLATFORM_WIN32,
     configuration='Release',
     environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-    gm_image_subdir='base-win-fixed',
+    gm_image_subdir='base-win',
     perf_output_dir=None, # TODO(epoger): no perf measurement for Windows builds
     ).Build())
 
