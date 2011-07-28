@@ -33,7 +33,7 @@ USE_LAUNCHD := \
           [ "$$(pwd -P)" = "/b/build/masters/$(MASTERPATH)" ] && \
           echo 1)
 
-export PYTHONPATH=..:../scripts:$(CHROMIUM_BUILDBOT)/third_party/buildbot_8_3p1:$(CHROMIUM_BUILDBOT)/third_party/twisted_10_2:$(CHROMIUM_BUILDBOT)/third_party/jinja2:$(CHROMIUM_BUILDBOT)/scripts:$(THIRDPARTY):$(CHROMIUM_BUILDBOT)/site_config:.
+export PYTHONPATH=..:../scripts:$(CHROMIUM_BUILDBOT)/third_party/buildbot_8_4p1:$(CHROMIUM_BUILDBOT)/third_party/twisted_10_2:$(CHROMIUM_BUILDBOT)/third_party/jinja2:$(CHROMIUM_BUILDBOT)/third_party/sqlalchemy_0_7_1:$(CHROMIUM_BUILDBOT)/third_party/sqlalchemy_migrate_0_7_1:$(CHROMIUM_BUILDBOT)/third_party/tempita_0_5:$(CHROMIUM_BUILDBOT)/third_party/decorator_3_3_1:$(CHROMIUM_BUILDBOT)/scripts:$(THIRDPARTY):$(CHROMIUM_BUILDBOT)/site_config:.
 
 start:
 ifneq ($(USE_LAUNCHD),1)
