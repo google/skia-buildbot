@@ -10,6 +10,8 @@
 
 THIRDPARTY := ../third_party
 CHROMIUM_BUILDBOT := $(THIRDPARTY)/chromium_buildbot
+PUBLIC_CONFIG := $(CHROMIUM_BUILDBOT)/site_config
+PRIVATE_CONFIG := ../site_config
 
 # On the Mac, the buildbot is started via the launchd mechanism as a
 # LaunchAgent to give the slave a proper Mac UI environment for tests.  In
@@ -31,7 +33,7 @@ USE_LAUNCHD := \
           [ "$$(pwd -P)" = "/b/build/slave" ] && \
           echo 1)
 
-export PYTHONPATH=..:$(CHROMIUM_BUILDBOT)/third_party/buildbot_7_12:$(CHROMIUM_BUILDBOT)/third_party/twisted_8_1
+export PYTHONPATH=$(CHROMIUM_BUILDBOT)/third_party/buildbot_7_12:$(CHROMIUM_BUILDBOT)/third_party/twisted_8_1:$(PUBLIC_CONFIG):$(PRIVATE_CONFIG)
 
 start:
 ifneq ($(USE_LAUNCHD),1)

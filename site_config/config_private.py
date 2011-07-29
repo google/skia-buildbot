@@ -2,16 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Subclass of chromium_buildbot/site_config/config.py to override with
-locally appropriate values.
-"""
-
 import socket
 
 # import base class from third_party/chromium_buildbot/site_config/
-import config
+import config_default
 
-class Master(config.Master):
+class Master(config_default.Master):
   googlecode_revlinktmpl = 'http://code.google.com/p/%s/source/browse?r=%s'
 
   # domains to which we will send blame emails
@@ -33,3 +29,12 @@ class Master(config.Master):
     tree_closing_notification_recipients = []
     from_address = 'skia-buildbot@google.com'
     buildbot_url = 'http://%s:%d/' % (master_host, master_port)
+
+class Installer(config_default.Installer):
+    bogus_var = 'bogus_value'
+
+class Archive(config_default.Archive):
+    bogus_var = 'bogus_value'
+
+class Distributed(config_default.Distributed):
+    bogus_var = 'bogus_value'
