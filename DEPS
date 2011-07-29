@@ -7,6 +7,8 @@ vars = {
 
 deps = {
   # Chromium buildbot code and its dependencies
+  "scripts/slave":
+    Var("chromium_trunk") + "/tools/build/scripts/slave@" + Var("chromium_revision"),
   "third_party/chromium_buildbot":
     Var("chromium_trunk") + "/tools/build@" + Var("chromium_revision"),
   "third_party/depot_tools":
