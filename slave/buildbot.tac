@@ -19,7 +19,7 @@ from slave import chromium_commands
 from slave import slave_utils
 
 # Load default settings.
-import config_private as config
+import config
 
 
 # Determines the slave type:

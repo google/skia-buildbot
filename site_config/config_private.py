@@ -13,10 +13,6 @@ class Master(config_default.Master):
   # domains to which we will send blame emails
   permitted_domains = ['google.com', 'chromium.org']
 
-  @staticmethod
-  def GetBotPassword():
-    return 'epoger-temp-password'
-
   class Skia(object):
     project_name = 'Skia'
     project_url = 'http://skia.googlecode.com'
