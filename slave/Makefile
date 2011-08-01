@@ -38,12 +38,12 @@ export PYTHONPATH=$(CHROMIUM_BUILDBOT)/third_party/buildbot_7_12:$(CHROMIUM_BUIL
 # TODO(epoger): change master.client.skia/Makefile so that we can add to its
 # PYTHONPATH rather than copying the file.
 #
-# TODO(epoger): figure out how to properly override Master.bot_password in
-# the main config.py, rather than writing the fake password into a file.
+# TODO(epoger): figure out how to properly override Master.bot_password in the
+# main config.py, rather than copying it from $(PRIVATE_CONFIG)/bot_password
 #
 start:
-	cp ../site_config/config_private.py $(CHROMIUM_BUILDBOT)/site_config
-	echo epoger-temp-password >$(CHROMIUM_BUILDBOT)/site_config/.bot_password
+	cp $(PRIVATE_CONFIG)/config_private.py $(PUBLIC_CONFIG)
+	cp $(PRIVATE_CONFIG)/bot_password $(PUBLIC_CONFIG)/.bot_password
 ifneq ($(USE_LAUNCHD),1)
 	python run_slave.py --no_save -y buildbot.tac
 else
