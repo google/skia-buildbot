@@ -1,6 +1,10 @@
 # -*- makefile -*-
 
-CHROMIUM_BUILDBOT := ../third_party/chromium_buildbot
+THIRDPARTY := ../third_party
+CHROMIUM_BUILDBOT := $(THIRDPARTY)/chromium_buildbot
+PUBLIC_CONFIG := $(CHROMIUM_BUILDBOT)/site_config
+PRIVATE_CONFIG := ../site_config
+
 ALL_TARGETS := start stop reconfig log wait restart upgrade
 
 # TODO(epoger): change master.client.skia/Makefile so that we can add to its
