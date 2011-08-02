@@ -1,7 +1,15 @@
-# This DEPS file should be used by developers who wish to make changes to
-# the Skia buildbot source within these two repositories:
-#  - https://skia.googlecode.com/svn/buildbot
-#  - svn://svn.chromium.org/chrome/trunk/tools/build
+# This DEPS file checks out a writable copy of the Chromium buildbot code at
+# HEAD, rather than the read-only copy at a known-good revision (as checked out
+# by the default DEPS file).
+#
+# Thus, this DEPS file is useful for:
+#  - developers who wish to make changes to the underlying Chromium buildbot
+#    repository and see their effects on the Skia buildbot
+#
+# To check out the Skia buildbot code using this DEPS-developer file, run:
+#  gclient config https://skia.googlecode.com/svn/buildbot \
+#          --deps-file=DEPS-developer
+#  gclient sync
 
 use_relative_paths = True
 
@@ -22,6 +30,6 @@ deps = {
 hooks = [
   {
     "pattern": ".",
-    "action": ["python", "buildbot/hooks.py"],
+    "action": ["python", "buildbot/hooks-developer.py"],
   },
 ]
