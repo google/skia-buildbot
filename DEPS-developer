@@ -1,0 +1,27 @@
+# This DEPS file should be used by developers who wish to make changes to
+# the Skia buildbot source within these two repositories:
+#  - https://skia.googlecode.com/svn/buildbot
+#  - svn://svn.chromium.org/chrome/trunk/tools/build
+
+use_relative_paths = True
+
+vars = {
+  "chromium_trunk": "svn://svn.chromium.org/chrome/trunk",
+}
+
+deps = {
+  # Chromium buildbot code and its dependencies
+  "scripts/slave":
+    Var("chromium_trunk") + "/tools/build/scripts/slave"
+  "third_party/chromium_buildbot":
+    Var("chromium_trunk") + "/tools/build"
+  "third_party/depot_tools":
+    Var("chromium_trunk") + "/tools/depot_tools"
+}
+
+hooks = [
+  {
+    "pattern": ".",
+    "action": ["python", "buildbot/hooks.py"],
+  },
+]
