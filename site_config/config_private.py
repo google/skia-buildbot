@@ -9,6 +9,7 @@ import config_default
 
 class Master(config_default.Master):
   googlecode_revlinktmpl = 'http://code.google.com/p/%s/source/browse?r=%s'
+  bot_password = 'epoger-temp-password'
 
   # domains to which we will send blame emails
   permitted_domains = ['google.com', 'chromium.org']
