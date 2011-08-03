@@ -10,8 +10,8 @@
 
 THIRDPARTY := ../third_party
 CHROMIUM_BUILDBOT := $(THIRDPARTY)/chromium_buildbot
-PUBLIC_CONFIG := $(CHROMIUM_BUILDBOT)/site_config
-PRIVATE_CONFIG := ../site_config
+PUBLICCONFIG_DIR := $(CHROMIUM_BUILDBOT)/site_config
+PRIVATECONFIG_DIR ?= ../site_config
 
 # On the Mac, the buildbot is started via the launchd mechanism as a
 # LaunchAgent to give the slave a proper Mac UI environment for tests.  In
@@ -33,17 +33,9 @@ USE_LAUNCHD := \
           [ "$$(pwd -P)" = "/b/build/slave" ] && \
           echo 1)
 
-export PYTHONPATH=$(CHROMIUM_BUILDBOT)/third_party/buildbot_7_12:$(CHROMIUM_BUILDBOT)/third_party/twisted_8_1:$(PUBLIC_CONFIG):$(PRIVATE_CONFIG)
+export PYTHONPATH=$(CHROMIUM_BUILDBOT)/third_party/buildbot_7_12:$(CHROMIUM_BUILDBOT)/third_party/twisted_8_1:$(PUBLICCONFIG_DIR):$(PRIVATECONFIG_DIR)
 
-# TODO(epoger): change master.client.skia/Makefile so that we can add to its
-# PYTHONPATH rather than copying the file.
-#
-# TODO(epoger): figure out how to properly override Master.bot_password in the
-# main config.py, rather than copying it from $(PRIVATE_CONFIG)/bot_password
-#
 start:
-	cp $(PRIVATE_CONFIG)/config_private.py $(PUBLIC_CONFIG)
-	cp $(PRIVATE_CONFIG)/bot_password $(PUBLIC_CONFIG)/.bot_password
 ifneq ($(USE_LAUNCHD),1)
 	python run_slave.py --no_save -y buildbot.tac
 else
