@@ -14,7 +14,7 @@ use_relative_paths = True
 
 vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
-  "chromium_revision": "95300",
+  "chromium_revision": "95417",
 }
 
 deps = {
