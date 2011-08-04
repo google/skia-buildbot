@@ -14,17 +14,22 @@ use_relative_paths = True
 
 vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
-  "chromium_revision": "95417",
+  "chromium_revision": "95437",
 }
 
 deps = {
   # Chromium buildbot code and its dependencies
-  "scripts/slave":
-    Var("chromium_trunk") + "/tools/build/scripts/slave@" + Var("chromium_revision"),
   "third_party/chromium_buildbot":
     Var("chromium_trunk") + "/tools/build@" + Var("chromium_revision"),
   "third_party/depot_tools":
     Var("chromium_trunk") + "/tools/depot_tools@" + Var("chromium_revision"),
+
+  # Also, each slave needs its own scripts/slave directory alongside
+  # (due to hard-coded paths in the buildbot, argh)
+  "scripts/slave":
+    Var("chromium_trunk") + "/tools/build/scripts/slave@" + Var("chromium_revision"),
+  "configs/chromium/scripts/slave":
+    Var("chromium_trunk") + "/tools/build/scripts/slave@" + Var("chromium_revision"),
 }
 
 hooks = [
