@@ -11,6 +11,9 @@ class Master(config_default.Master):
   googlecode_revlinktmpl = 'http://code.google.com/p/%s/source/browse?r=%s'
   bot_password = 'epoger-temp-password'
 
+  trunk_internal_url = 'svn://svn.chromium.org/chrome-internal/trunk'
+  trunk_internal_url_src = trunk_internal_url + '/src-internal'
+
   # domains to which we will send blame emails
   permitted_domains = []
 
