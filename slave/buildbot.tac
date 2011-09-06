@@ -39,8 +39,8 @@ umask = None
 
 if slavename is None:
     # Automatically determine the slavename.
-    # slavename = socket.getfqdn().split('.')[0].lower()
-    slavename = '%s-slave' % sys.platform
+    slavename = socket.getfqdn().split('.')[0].lower()
+    # slavename = '%s-slave' % sys.platform
 
 if password is None:
     msg = '*** No password configured in %s.\n' % repr(__file__)
