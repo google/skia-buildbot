@@ -18,12 +18,10 @@ def FindPath(name):
       return trypath
   return None
 
-def Main():
-  # cd to the directory where this script lives.
-  os.chdir(os.path.dirname(__file__))
-
-  # Work around http://code.google.com/p/chromium/issues/detail?id=89900 :
-  # on Windows, redirect local gclient.bat to already-installed gclient.bat .
+def RedirectGclientBat():
+  """Work around http://code.google.com/p/chromium/issues/detail?id=89900 :
+  on Windows, redirect local gclient.bat to already-installed gclient.bat .
+  """
   batchfile = 'gclient.bat'
   internal_gclient_path = os.path.abspath(os.path.join(
       'third_party', 'depot_tools', batchfile))
@@ -40,6 +38,12 @@ def Main():
     f = open(internal_gclient_path, 'w')
     f.write('"%s" %%*' % external_gclient_path)
     f.close()
+
+def Main():
+  # cd to the directory where this script lives.
+  os.chdir(os.path.dirname(__file__))
+  if os.name == 'nt':
+    RedirectGclientBat()
 
 if __name__ == '__main__':
   Main()
