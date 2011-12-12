@@ -21,6 +21,8 @@ deps = {
   # Chromium buildbot code and its dependencies
   "third_party/chromium_buildbot":
     Var("chromium_trunk") + "/tools/build@" + Var("chromium_revision"),
+  "third_party/chromium_buildbot/scripts/command_wrapper/bin":
+    Var("chromium_trunk") + "/tools/command_wrapper/bin",
   "third_party/depot_tools":
     Var("chromium_trunk") + "/tools/depot_tools@" + Var("chromium_revision"),
 
