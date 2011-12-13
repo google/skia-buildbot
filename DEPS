@@ -18,13 +18,21 @@ vars = {
 }
 
 deps = {
-  # Chromium buildbot code and its dependencies
+  # Chromium buildbot code.
   "third_party/chromium_buildbot":
     Var("chromium_trunk") + "/tools/build@" + Var("chromium_revision"),
   "third_party/chromium_buildbot/scripts/command_wrapper/bin":
-    Var("chromium_trunk") + "/tools/command_wrapper/bin",
+    Var("chromium_trunk") + "/tools/command_wrapper/bin@" + Var("chromium_revision"),
   "third_party/depot_tools":
     Var("chromium_trunk") + "/tools/depot_tools@" + Var("chromium_revision"),
+
+  # Dependencies of the Chromium buildbot code.
+  # I tried to use From() to link to Chromium's /tools/build/DEPS dependencies,
+  # but I couldn't get it to work... so I have hard-coded these dependencies.
+  "third_party/chromium_buildbot/third_party/gsutil":
+    "svn://svn.chromium.org/gsutil/trunk/src@145",
+  "third_party/chromium_buildbot/third_party/gsutil/boto":
+    "svn://svn.chromium.org/boto@3",
 
   # Also, each slave needs its own scripts/slave directory alongside
   # (due to hard-coded paths in the buildbot, argh)
