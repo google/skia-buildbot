@@ -28,9 +28,6 @@ class Master(config_default.Master):
     from_address = 'skia-buildbot@google.com'
     buildbot_url = 'http://%s:%d/' % (master_host, master_port)
 
-class Installer(config_default.Installer):
-    bogus_var = 'bogus_value'
-
 class Archive(config_default.Archive):
     bogus_var = 'bogus_value'
 
