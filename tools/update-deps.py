@@ -1,29 +1,26 @@
 #!/usr/bin/python
-# Copyright (c) 2011 The Chromium Authors. All rights reserved.
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""DEPS-developer will run this after gclient sync if any files have been
-   updated.
+"""Run this script to update chromium_revision within the buildbot DEPS file.
 """
 
 import os
 import re
 import subprocess
 
-# local
-import hooks
-
-def GetSvnRevision(file):
-  """Returns the revision of this file within its Subversion repository.
-     Raises IOError if unable to find the revision of this file.
+def GetSvnRevision(file_or_url):
+  """Returns the revision of this file within its Subversion repository
+     (or the latest revision of a given Subversion repository).
+     Raises IOError if unable to find the revision of this file/URL.
   """
-  command = ['svn', 'info', file]
+  command = ['svn', 'info', file_or_url]
   popen = subprocess.Popen(command, stdout=subprocess.PIPE, shell=False)
   output = popen.stdout.read()
   matches = re.findall('Revision: (\d+)$', output, re.MULTILINE)
   if not matches:
-    raise IOError('could not find revision of file %s' % file)
+    raise IOError('could not find revision of file_or_url %s' % file_or_url)
   return matches[0]
 
 def ReplaceDepsVar(file, variable_name, value):
@@ -40,15 +37,12 @@ def ReplaceDepsVar(file, variable_name, value):
     file_handle.write(contents_new)
 
 def Main():
-  # cd to the directory where this script lives.
-  os.chdir(os.path.dirname(__file__))
+  # cd to the root directory of this checkout.
+  os.chdir(os.path.join(os.path.dirname(__file__), os.path.pardir))
 
   # Update chromium_revision in standard DEPS file.
-  chromium_rev = GetSvnRevision('third_party/chromium_buildbot/DEPS')
+  chromium_rev = GetSvnRevision('http://src.chromium.org/svn/trunk')
   ReplaceDepsVar('DEPS', 'chromium_revision', chromium_rev)
-
-  # Chain to the standard hooks (as run by the standard DEPS file).
-  hooks.Main()
 
 if __name__ == '__main__':
   Main()
