@@ -203,8 +203,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
           self._perf_data_dir, 'bench_r%%(%s:-)s_data' % 'revision')
 
       if self._target_platform == TARGET_PLATFORM_WIN32:
-        command = WithProperties('mkdir %s && %s > %s' % (
-            self._perf_data_dir, base_command, data_file))
+        command = WithProperties('if not exist %s mkdir %s && %s > %s' % (
+            self._perf_data_dir, self._perf_data_dir, base_command, data_file))
       else:
         # TODO(epoger): added ugly chmod to make the data files world-readable
         command = WithProperties('mkdir -p %s && %s | tee %s && chmod a+r %s' % (
@@ -223,7 +223,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
       graph_filepath = self.TargetPathJoin(
           self._perf_graphs_dir, 'graph-%s.xhtml' % self._builder_name)
       if self._target_platform == TARGET_PLATFORM_WIN32:
-        mkdir_command = 'mkdir %s' % self._perf_graphs_dir
+        mkdir_command = 'if not exist %s mkdir %s' % (
+            self._perf_graphs_dir, self._perf_graphs_dir)
       else:
         mkdir_command = 'mkdir -p %s' % self._perf_graphs_dir
       gen_command = 'python %s -d %s -r -%d -f -%d -x %d -y %d -l %s > %s' % (
