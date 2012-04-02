@@ -33,13 +33,6 @@ deps = {
     "svn://svn.chromium.org/gsutil/trunk/src@145",
   "third_party/chromium_buildbot/third_party/gsutil/boto":
     "svn://svn.chromium.org/boto@3",
-
-  # Also, each slave needs its own scripts/slave directory alongside
-  # (due to hard-coded paths in the buildbot, argh)
-  "scripts/slave":
-    Var("chromium_trunk") + "/tools/build/scripts/slave@" + Var("chromium_revision"),
-  "configs/chromium/scripts/slave":
-    Var("chromium_trunk") + "/tools/build/scripts/slave@" + Var("chromium_revision"),
 }
 
 hooks = [
