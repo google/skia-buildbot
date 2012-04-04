@@ -123,32 +123,32 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
     # Do all the build steps first, so we will find out about build breakages
     # as soon as possible.
-    self._skia_cmd_obj.AddRun(
-        run_command='make core %s' % self._make_flags,
+    self._skia_cmd_obj.AddRunCommand(
+        command='make core %s' % self._make_flags,
         description='BuildCore')
-    self._skia_cmd_obj.AddRun(
-        run_command='make tests %s' % self._make_flags,
+    self._skia_cmd_obj.AddRunCommand(
+        command='make tests %s' % self._make_flags,
         description='BuildTests')
-    self._skia_cmd_obj.AddRun(
-        run_command='make gm %s' % self._make_flags,
+    self._skia_cmd_obj.AddRunCommand(
+        command='make gm %s' % self._make_flags,
         description='BuildGM')
-    self._skia_cmd_obj.AddRun(
-        run_command='make bench %s' % self._make_flags,
+    self._skia_cmd_obj.AddRunCommand(
+        command='make bench %s' % self._make_flags,
         description='BuildBench')
-    self._skia_cmd_obj.AddRun(
-        run_command='make all %s' % self._make_flags,
+    self._skia_cmd_obj.AddRunCommand(
+        command='make all %s' % self._make_flags,
         description='BuildAllOtherTargets')
 
-    self._skia_cmd_obj.AddRun(
-        run_command=self.TargetPathJoin('out', self._configuration, 'tests'),
+    self._skia_cmd_obj.AddRunCommand(
+        command=self.TargetPathJoin('out', self._configuration, 'tests'),
         description='RunTests')
 
     # Run the "GM" tool, comparing actual results against the baselines in
     # _gm_image_subdir.
     path_to_gm = self.TargetPathJoin('out', self._configuration, 'gm')
     path_to_image_subdir = self.TargetPathJoin('gm', self._gm_image_subdir)
-    self._skia_cmd_obj.AddRun(
-        run_command='%s -r %s' % (path_to_gm, path_to_image_subdir),
+    self._skia_cmd_obj.AddRunCommand(
+        command='%s -r %s' % (path_to_gm, path_to_image_subdir),
         description='RunGM')
 
     # Rerun GM, uploading actual results to the skia-autogen SVN repository
@@ -160,13 +160,19 @@ class SkiaFactory(gclient_factory.GClientFactory):
     gm_output_dir = self.TargetPathJoin(
         self._gm_actual_dir, self._gm_image_subdir)
     if self._target_platform == TARGET_PLATFORM_WIN32:
-      command = 'rmdir /s /q %s && mkdir %s && %s -w %s' % (
-          gm_output_dir, gm_output_dir, path_to_gm, gm_output_dir)
+      command_list = [
+          'rmdir /s /q %s' % gm_output_dir,
+          'mkdir %s' % gm_output_dir,
+          '%s -w %s' % (path_to_gm, gm_output_dir),
+          ]
     else:
-      command = 'rm -rf %s && mkdir -p %s && %s -w %s' % (
-          gm_output_dir, gm_output_dir, path_to_gm, gm_output_dir)
-    self._skia_cmd_obj.AddRun(
-        run_command=command, description='GenerateGMResults')
+      command_list = [
+          'rm -rf %s' % gm_output_dir,
+          'mkdir -p %s' % gm_output_dir,
+          '%s -w %s' % (path_to_gm, gm_output_dir),
+          ]
+    self._skia_cmd_obj.AddRunCommandList(
+        command_list=command_list, description='GenerateGMResults')
     if self._do_upload_results:
       self._skia_cmd_obj.AddMergeIntoSvn(
           source_dir_path=gm_output_dir,
@@ -196,23 +202,27 @@ class SkiaFactory(gclient_factory.GClientFactory):
     base_command = '%s -repeat %d -timers wcg' % (
         path_to_bench, count)
     if self._perf_data_dir:
-      # The WithProperties() stuff is very touchy and mysterious.
-      # With trial and error, I was able to get it to assemble a filename
-      # including the revision as follows...
+      # TODO(epoger): For now, this relies on AddRunCommandList() wrapping all
+      # command in WithProperties().
       data_file = self.TargetPathJoin(
           self._perf_data_dir, 'bench_r%%(%s:-)s_data' % 'revision')
 
       if self._target_platform == TARGET_PLATFORM_WIN32:
-        command = WithProperties('if not exist %s mkdir %s && %s > %s' % (
-            self._perf_data_dir, self._perf_data_dir, base_command, data_file))
+        command_list = [
+            'if not exist %s mkdir %s' % (
+                self._perf_data_dir, self._perf_data_dir),
+            '%s > %s' % (base_command, data_file),
+            ]
       else:
-        # TODO(epoger): added ugly chmod to make the data files world-readable
-        command = WithProperties('mkdir -p %s && %s | tee %s && chmod a+r %s' % (
-            self._perf_data_dir, base_command, data_file, data_file))
+        command_list = [
+            'mkdir -p %s' % self._perf_data_dir,
+            '%s | tee %s' % (base_command, data_file),
+            'chmod a+r %s' % data_file,
+            ]
     else:
-      command = base_command
-    self._skia_cmd_obj.AddRun(
-        run_command=command, description='RunBench', timeout=1200)
+      command_list = [base_command]
+    self._skia_cmd_obj.AddRunCommandList(
+        command_list=command_list, description='RunBench', timeout=1200)
 
     # Generate and upload bench performance graphs (but only if we have been
     # recording bench output for this build type).
@@ -231,9 +241,9 @@ class SkiaFactory(gclient_factory.GClientFactory):
           path_to_bench_graph_svg, self._perf_data_dir,
           BENCH_GRAPH_NUM_REVISIONS, BENCH_GRAPH_NUM_REVISIONS,
           BENCH_GRAPH_X, BENCH_GRAPH_Y, graph_title, graph_filepath)
-      total_command = '%s && %s' % (mkdir_command, gen_command)
-      self._skia_cmd_obj.AddRun(
-          run_command=total_command, description='GenerateBenchGraphs')
+      command_list = [mkdir_command, gen_command]
+      self._skia_cmd_obj.AddRunCommandList(
+          command_list=command_list, description='GenerateBenchGraphs')
       if self._do_upload_results:
         self._skia_cmd_obj.AddUploadToBucket(
             source_filepath=graph_filepath, description='UploadBenchGraphs')

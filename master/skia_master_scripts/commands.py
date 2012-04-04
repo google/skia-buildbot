@@ -6,6 +6,7 @@
 
 This is based on commands.py and adds skia-specific commands."""
 
+from buildbot.process.properties import WithProperties
 from buildbot.steps import shell
 
 from master.factory import commands
@@ -96,10 +97,23 @@ class SkiaCommands(commands.FactoryCommands):
                          timeout=timeout, command=cmd, workdir=self.workdir,
                          env=self.environment_variables)
 
-  def AddRun(self, run_command, description='Run', timeout=None):
-    """Runs something we built."""
+  def AddRunCommand(self, command, description='Run', timeout=None):
+    """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
       timeout = self.default_timeout
     self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=run_command,
+                         timeout=timeout, command=command,
                          workdir=self.workdir, env=self.environment_variables)
+
+  def AddRunCommandList(self, command_list, description='Run', timeout=None):
+    """Runs a list of arbitrary commands."""
+    # TODO(epoger): Change this so that build-step output shows each command
+    # in the list separately--that will be a lot easier to follow.
+    #
+    # TODO(epoger): For now, this wraps the total command with WithProperties()
+    # because *some* callers need it, and we can't use the string.join() command
+    # to concatenate strings that have already been wrapped with
+    # WithProperties().  Once I figure out how to make the build-step output
+    # show each command separately, maybe I can remove this wrapper.
+    self.AddRunCommand(command=WithProperties(' && '.join(command_list)),
+                       description=description, timeout=timeout)
