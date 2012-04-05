@@ -37,16 +37,24 @@ class AndroidFactory(skia_factory.SkiaFactory):
     binary_name: which binary to run on the device
     description: text description (e.g., 'RunTests')
     timeout: timeout in seconds, or None to use the default timeout
+
+    The shell command (running on the buildbot slave) will exit with a nonzero
+    return code if and only if the command running on the Android device
+    exits with a nonzero return code... so a nonzero return code from the
+    command running on the Android device will turn the buildbot red.
     """
     path_to_adb = self.TargetPathJoin('..', 'android', 'bin', 'linux', 'adb')
     command_list = [
         '%s root' % path_to_adb,
         '%s remount' % path_to_adb,
-        '%s push out/%s/%s /system/bin/%s' % (
+        '%s push out/%s/%s /system/bin/skia_%s' % (
             path_to_adb, self._configuration, binary_name, binary_name),
         '%s logcat -c' % path_to_adb,
-        '%s shell %s' % (path_to_adb, binary_name),
+        'STDOUT=$(%s shell "skia_%s && echo ADB_SHELL_SUCCESS")' % (
+            path_to_adb, binary_name),
+        'echo $STDOUT',
         '%s logcat -d' % path_to_adb,
+        'echo $STDOUT | grep ADB_SHELL_SUCCESS',
         ]
     self._skia_cmd_obj.AddRunCommandList(
         command_list=command_list, description=description)
