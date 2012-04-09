@@ -233,7 +233,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
       graph_filepath = self.TargetPathJoin(
           self._perf_graphs_dir, 'graph-%s.xhtml' % self._builder_name)
       if self._target_platform == TARGET_PLATFORM_WIN32:
-        mkdir_command = 'if not exist %s mkdir %s' % (
+        mkdir_command = '(if not exist %s (mkdir %s))' % (
             self._perf_graphs_dir, self._perf_graphs_dir)
       else:
         mkdir_command = 'mkdir -p %s' % self._perf_graphs_dir
