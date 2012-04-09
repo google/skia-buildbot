@@ -209,7 +209,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
       if self._target_platform == TARGET_PLATFORM_WIN32:
         command_list = [
-            'if not exist %s mkdir %s' % (
+            '(if not exist %s (mkdir %s))' % (
                 self._perf_data_dir, self._perf_data_dir),
             '%s > %s' % (base_command, data_file),
             ]
