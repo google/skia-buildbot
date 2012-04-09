@@ -27,14 +27,20 @@ class AndroidFactory(skia_factory.SkiaFactory):
         description='BuildAll')
 
     self.PushBinaryToDeviceAndRun(binary_name='tests', description='RunTests')
+    self.PushBinaryToDeviceAndRun(binary_name='gm',
+                                  arguments='--nopdf --noreplay',
+                                  description='RunGM')
+    self.PushBinaryToDeviceAndRun(binary_name='bench', description='RunBench')
 
     return self._factory
 
-  def PushBinaryToDeviceAndRun(self, binary_name, description, timeout=None):
+  def PushBinaryToDeviceAndRun(self, binary_name, arguments='',
+                               description=None, timeout=None):
     """Adds a build step: push a binary file to the USB-connected Android
     device and run it.
 
     binary_name: which binary to run on the device
+    arguments: additional arguments to pass to the binary when running it
     description: text description (e.g., 'RunTests')
     timeout: timeout in seconds, or None to use the default timeout
 
@@ -43,6 +49,8 @@ class AndroidFactory(skia_factory.SkiaFactory):
     exits with a nonzero return code... so a nonzero return code from the
     command running on the Android device will turn the buildbot red.
     """
+    if not description:
+      description = 'Run %s' % binary_name
     path_to_adb = self.TargetPathJoin('..', 'android', 'bin', 'linux', 'adb')
     command_list = [
         '%s root' % path_to_adb,
@@ -50,8 +58,8 @@ class AndroidFactory(skia_factory.SkiaFactory):
         '%s push out/%s/%s /system/bin/skia_%s' % (
             path_to_adb, self._configuration, binary_name, binary_name),
         '%s logcat -c' % path_to_adb,
-        'STDOUT=$(%s shell "skia_%s && echo ADB_SHELL_SUCCESS")' % (
-            path_to_adb, binary_name),
+        'STDOUT=$(%s shell "skia_%s %s && echo ADB_SHELL_SUCCESS")' % (
+            path_to_adb, binary_name, arguments),
         'echo $STDOUT',
         '%s logcat -d' % path_to_adb,
         'echo $STDOUT | grep ADB_SHELL_SUCCESS',
