@@ -151,6 +151,11 @@ class SkiaFactory(gclient_factory.GClientFactory):
         command='%s -r %s' % (path_to_gm, path_to_image_subdir),
         description='RunGM')
 
+    # Run the "GM" tool in "debug GL" mode, without comparing against baselines.
+    self._skia_cmd_obj.AddRunCommand(
+        command='%s --debuggl' % path_to_gm,
+        description='RunGM-DebugGL')
+
     # Rerun GM, uploading actual results to the skia-autogen SVN repository
     # to aid in rebaselining.
     #
@@ -197,7 +202,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     if self._perf_data_dir:
       count = BENCH_REPEAT_COUNT
     else:
-      count = 2
+      count = 1
     path_to_bench = self.TargetPathJoin('out', self._configuration, 'bench')
     base_command = '%s -repeat %d -timers wcg' % (
         path_to_bench, count)
