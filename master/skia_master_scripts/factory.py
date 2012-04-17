@@ -143,32 +143,41 @@ class SkiaFactory(gclient_factory.GClientFactory):
         command=self.TargetPathJoin('out', self._configuration, 'tests'),
         description='RunTests')
 
-    # Run the "GM" tool, both reading from disk and writing to disk...
-    # - compare actual results against the baselines in _gm_image_subdir
-    # - upload actual results to the skia-autogen SVN repository to aid in
-    #   rebaselining
+    # Run the "GM" tool, comparing actual results against the baselines in
+    # _gm_image_subdir.
+    path_to_gm = self.TargetPathJoin('out', self._configuration, 'gm')
+    path_to_image_subdir = self.TargetPathJoin('gm', self._gm_image_subdir)
+    self._skia_cmd_obj.AddRunCommand(
+        command='%s -r %s' % (path_to_gm, path_to_image_subdir),
+        description='RunGM')
+
+    # Run the "GM" tool in "debug GL" mode, without comparing against baselines.
+    self._skia_cmd_obj.AddRunCommand(
+        command='%s --debuggl' % path_to_gm,
+        description='RunGM-DebugGL')
+
+    # Rerun GM, uploading actual results to the skia-autogen SVN repository
+    # to aid in rebaselining.
     #
     # TODO: bungeman suggests: if any other files changed, add a text file
     # with the Skia revision number that was used to generate these baselines.
     # Then we can see which Skia revision number triggered the baseline changes.
-    path_to_gm = self.TargetPathJoin('out', self._configuration, 'gm')
-    gm_input_dir = self.TargetPathJoin('gm', self._gm_image_subdir)
     gm_output_dir = self.TargetPathJoin(
         self._gm_actual_dir, self._gm_image_subdir)
     if self._target_platform == TARGET_PLATFORM_WIN32:
       command_list = [
           'rmdir /s /q %s' % gm_output_dir,
           'mkdir %s' % gm_output_dir,
-          '%s -r %s -w %s' % (path_to_gm, gm_input_dir, gm_output_dir),
+          '%s -w %s' % (path_to_gm, gm_output_dir),
           ]
     else:
       command_list = [
           'rm -rf %s' % gm_output_dir,
           'mkdir -p %s' % gm_output_dir,
-          '%s -r %s -w %s' % (path_to_gm, gm_input_dir, gm_output_dir),
+          '%s -w %s' % (path_to_gm, gm_output_dir),
           ]
     self._skia_cmd_obj.AddRunCommandList(
-        command_list=command_list, description='RunGM')
+        command_list=command_list, description='GenerateGMResults')
     if self._do_upload_results:
       self._skia_cmd_obj.AddMergeIntoSvn(
           source_dir_path=gm_output_dir,
@@ -180,11 +189,6 @@ class SkiaFactory(gclient_factory.GClientFactory):
               'UploadGMResults of r%%(%s:-)s on %s' % (
                   'revision', self._builder_name)),
           description='UploadGMResults')
-
-    # Run the "GM" tool in "debug GL" mode, without comparing against baselines.
-    self._skia_cmd_obj.AddRunCommand(
-        command='%s --debuggl' % path_to_gm,
-        description='RunGM-DebugGL')
 
     # Run "bench", piping the output somewhere so we can graph
     # results over time.
