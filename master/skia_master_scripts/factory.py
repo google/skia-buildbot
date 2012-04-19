@@ -181,11 +181,6 @@ class SkiaFactory(gclient_factory.GClientFactory):
                   'revision', self._builder_name)),
           description='UploadGMResults')
 
-    # Run the "GM" tool in "debug GL" mode, without comparing against baselines.
-    self._skia_cmd_obj.AddRunCommand(
-        command='%s --debuggl' % path_to_gm,
-        description='RunGM-DebugGL')
-
     # Run "bench", piping the output somewhere so we can graph
     # results over time.
     #
