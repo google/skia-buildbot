@@ -14,7 +14,7 @@ use_relative_paths = True
 
 vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
-  "chromium_revision": "129685",
+  "chromium_revision": "133257",
 }
 
 deps = {
@@ -32,7 +32,7 @@ deps = {
   "third_party/chromium_buildbot/third_party/gsutil":
     "svn://svn.chromium.org/gsutil/trunk/src@145",
   "third_party/chromium_buildbot/third_party/gsutil/boto":
-    "svn://svn.chromium.org/boto@3",
+    "svn://svn.chromium.org/boto@4",
 }
 
 hooks = [
