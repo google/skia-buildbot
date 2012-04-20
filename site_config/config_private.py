@@ -2,6 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# These buildbot configurations are "private" in the sense that they are
+# specific to Skia buildbots (not shared by other Chromium buildbots).
+# But this file is stored within a public SVN repository, so don't put any
+# secrets in here.
+
+# system-level imports
 import socket
 
 # import base class from third_party/chromium_buildbot/site_config/
