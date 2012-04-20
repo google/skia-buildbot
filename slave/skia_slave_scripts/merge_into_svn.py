@@ -75,7 +75,10 @@ def MergeIntoSvn(options):
   svn_password = ReadFirstLineOfFileAsString(svn_password_path).rstrip()
   tempdir = tempfile.mkdtemp()
   repo = svn.CreateCheckout(repo_url=options.dest_svn_url, local_dir=tempdir,
-                            username=svn_username, password=svn_password)
+                            username=svn_username, password=svn_password,
+                            additional_svn_flags=[
+                                '--trust-server-cert', '--no-auth-cache',
+                                '--non-interactive'])
 
   # Copy in all the files we want to update/add to the repository.
   CopyAllFiles(source_dir=options.source_dir_path, dest_dir=tempdir)
