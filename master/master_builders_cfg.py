@@ -58,7 +58,7 @@ def Update(config, active_master, c):
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=fixed skia_mesa=1'},
       gm_image_subdir='base-linux-fixed',
-      perf_output_basedir=perf_output_basedir_linux,
+      perf_output_basedir=None, # no perf measurement for fixed-point builds
       builder_name='Skia_Linux_Fixed_NoDebug',
       ).Build())
   B('Skia_Linux_Float_Debug', 'f_skia_linux_float_debug',
@@ -128,7 +128,7 @@ def Update(config, active_master, c):
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=fixed skia_mesa=1'},
       gm_image_subdir='base-macmini-fixed',
-      perf_output_basedir=perf_output_basedir_mac,
+      perf_output_basedir=None, # no perf measurement for fixed-point builds
       builder_name='Skia_Mac_Fixed_NoDebug',
       ).Build())
   B('Skia_Mac_Float_Debug', 'f_skia_mac_float_debug',
@@ -175,7 +175,7 @@ def Update(config, active_master, c):
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=fixed skia_mesa=1'},
       gm_image_subdir='base-macmini-lion-fixed',
-      perf_output_basedir=perf_output_basedir_mac,
+      perf_output_basedir=None, # no perf measurement for fixed-point builds
       builder_name='Skia_MacMiniLion_Fixed_NoDebug',
       ).Build())
   B('Skia_MacMiniLion_Float_Debug', 'f_skia_MacMiniLion_float_debug',
@@ -222,7 +222,7 @@ def Update(config, active_master, c):
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=fixed'},
       gm_image_subdir='base-win-fixed',
-      perf_output_basedir=perf_output_basedir_windows,
+      perf_output_basedir=None, # no perf measurement for fixed-point builds
       builder_name='Skia_Win32_Fixed_NoDebug',
       ).Build())
   B('Skia_Win32_Float_Debug', 'f_skia_win32_float_debug',
