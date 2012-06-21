@@ -201,7 +201,7 @@ def Update(config, active_master, c):
       builder_name='Skia_MacMiniLion_Float_NoDebug',
       ).Build())
 
-  # Windows...
+  # Original Windows bot...
   defaults['category'] = 'windows'
   B('Skia_Win32_Fixed_Debug', 'f_skia_win32_fixed_debug',
       scheduler='skia_rel')
@@ -246,6 +246,53 @@ def Update(config, active_master, c):
       gm_image_subdir='base-win',
       perf_output_basedir=perf_output_basedir_windows,
       builder_name='Skia_Win32_Float_NoDebug',
+      ).Build())
+
+  # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
+  defaults['category'] = 'Shuttle_Win7_Intel'
+  B('Skia_Shuttle_Win7_Intel_Fixed_Debug', 'f_skia_shuttle_win7_intel_fixed_debug',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_win7_intel_fixed_debug', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
+      configuration='Debug',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed'},
+      gm_image_subdir='base-shuttle-win7-intel-fixed',
+      perf_output_basedir=None, # no perf measurement for debug builds
+      builder_name='Skia_Shuttle_Win7_Intel_Fixed_Debug',
+      ).Build())
+  B('Skia_Shuttle_Win7_Intel_Fixed_Release', 'f_skia_shuttle_win7_intel_fixed_release',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_win7_intel_fixed_release', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
+      configuration='Release',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed'},
+      gm_image_subdir='base-shuttle-win7-intel-fixed',
+      perf_output_basedir=None, # no perf measurement for fixed-point builds
+      builder_name='Skia_Shuttle_Win7_Intel_Fixed_Release',
+      ).Build())
+  B('Skia_Shuttle_Win7_Intel_Float_Debug', 'f_skia_shuttle_win7_intel_float_debug',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_win7_intel_float_debug', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
+      configuration='Debug',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir='base-shuttle-win7-intel-float',
+      perf_output_basedir=None, # no perf measurement for debug builds
+      builder_name='Skia_Shuttle_Win7_Intel_Float_Debug',
+      ).Build())
+  B('Skia_Shuttle_Win7_Intel_Float_Release', 'f_skia_shuttle_win7_intel_float_release',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_win7_intel_float_release', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
+      configuration='Release',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir='base-shuttle-win7-intel-float',
+      perf_output_basedir=perf_output_basedir_windows,
+      builder_name='Skia_Shuttle_Win7_Intel_Float_Release',
       ).Build())
 
   return helper.Update(c)
