@@ -156,7 +156,11 @@ class SkiaFactory(gclient_factory.GClientFactory):
     gm_output_dir = self.TargetPathJoin(
         self._gm_actual_dir, self._gm_image_subdir)
     if self._target_platform == TARGET_PLATFORM_WIN32:
+      # This ridiculous hack is the simplest way I could think of to
+      # consistently create an empty directory (whether it already existed
+      # or not) on the Windows command line.
       command_list = [
+          'mkdir %s' % self.TargetPathJoin(gm_output_dir, 'bogus-subdir'),
           'rmdir /s /q %s' % gm_output_dir,
           'mkdir %s' % gm_output_dir,
           '%s -r %s -w %s' % (path_to_gm, gm_input_dir, gm_output_dir),
