@@ -11,10 +11,11 @@ from skia_master_scripts import factory as skia_factory
 class AndroidFactory(skia_factory.SkiaFactory):
   """Overrides for Android builds."""
 
-  def Build(self, clobber=None):
+  def Build(self, clobber=None, device='nexus_s'):
     """Build and return the complete BuildFactory.
 
     clobber: boolean indicating whether we should clean before building
+    device: string indicating which Android device we are targeting
     """
     if clobber is None:
       clobber = self._default_clobber
@@ -22,7 +23,7 @@ class AndroidFactory(skia_factory.SkiaFactory):
       self._skia_cmd_obj.AddClean()
 
     self._skia_cmd_obj.AddRunCommand(
-        command='../android/bin/android_make all -d nexus_s %s' % (
+        command='../android/bin/android_make all -d %s %s' % (device,
             self._make_flags),
         description='BuildAll')
 
