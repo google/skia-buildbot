@@ -237,7 +237,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
             self._perf_graphs_dir, self._perf_graphs_dir)
       else:
         mkdir_command = 'mkdir -p %s' % self._perf_graphs_dir
-      gen_command = 'python %s -d %s -r -%d -f -%d -x %d -y %d -l %s > %s' % (
+      gen_command = 'python %s -d %s -r -%d -f -%d -x %d -y %d -l %s -o %s' % (
           path_to_bench_graph_svg, self._perf_data_dir,
           BENCH_GRAPH_NUM_REVISIONS, BENCH_GRAPH_NUM_REVISIONS,
           BENCH_GRAPH_X, BENCH_GRAPH_Y, graph_title, graph_filepath)
