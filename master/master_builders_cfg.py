@@ -86,26 +86,6 @@ def Update(config, active_master, c):
 
   # Android (runs on a Linux buildbot slave)...
   defaults['category'] = 'android'
-  B('Skia_NexusS_4-0_Float_Debug', 'f_skia_nexus_s_4-0_float_debug',
-      scheduler='skia_rel')
-  F('f_skia_nexus_s_4-0_float_debug', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
-      other_subdirs=['android'],
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      builder_name='Skia_NexusS_4-0_Float_Debug',
-      ).Build(device='nexus_s'))
-  B('Skia_NexusS_4-0_Float_Release', 'f_skia_nexus_s_4-0_float_release',
-      scheduler='skia_rel')
-  F('f_skia_nexus_s_4-0_float_release', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
-      other_subdirs=['android'],
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      builder_name='Skia_NexusS_4-0_Float_Release',
-      ).Build(device='nexus_s'))
   B('Skia_NexusS_4-1_Float_Debug', 'f_skia_nexus_s_4-1_float_debug',
       scheduler='skia_rel')
   F('f_skia_nexus_s_4-1_float_debug', android_factory.AndroidFactory(
