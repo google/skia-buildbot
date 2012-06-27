@@ -20,8 +20,27 @@ import sys
 from slave import slave_utils
 
 
+def get_abs_path(relative_path):
+    """My own implementation of os.path.abspath() that better handles paths
+    which approach Window's 260-character limit.
+    See https://code.google.com/p/skia/issues/detail?id=674
+
+    This implementation adds path components one at a time, resolving the
+    absolute path each time, to take advantage of any chdirs into outer
+    directories that will shorten the total path length.
+
+    TODO: share a single implementation with bench_graph_svg.py, instead
+    of pasting this same code into both files."""
+    if os.path.isabs(relative_path):
+        return relative_path
+    path_parts = relative_path.split(os.sep)
+    abs_path = os.path.abspath('.')
+    for path_part in path_parts:
+        abs_path = os.path.abspath(os.path.join(abs_path, path_part))
+    return abs_path
+
 def upload_to_bucket(source_filepath, dest_gsbase):
-  abs_source_filepath = os.path.abspath(source_filepath)
+  abs_source_filepath = get_abs_path(source_filepath)
   print 'translated source_filepath %s to absolute path %s' % (
       source_filepath, abs_source_filepath)
   if not os.path.exists(abs_source_filepath):
