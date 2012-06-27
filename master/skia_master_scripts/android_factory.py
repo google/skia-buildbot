@@ -52,18 +52,4 @@ class AndroidFactory(skia_factory.SkiaFactory):
     """
     if not description:
       description = 'Run %s' % binary_name
-    path_to_adb = self.TargetPathJoin('..', 'android', 'bin', 'linux', 'adb')
-    command_list = [
-        '%s root' % path_to_adb,
-        '%s remount' % path_to_adb,
-        '%s push out/%s/%s /system/bin/skia_%s' % (
-            path_to_adb, self._configuration, binary_name, binary_name),
-        '%s logcat -c' % path_to_adb,
-        'STDOUT=$(%s shell "skia_%s %s && echo ADB_SHELL_SUCCESS")' % (
-            path_to_adb, binary_name, arguments),
-        'echo $STDOUT',
-        '%s logcat -d' % path_to_adb,
-        'echo $STDOUT | grep ADB_SHELL_SUCCESS',
-        ]
-    self._skia_cmd_obj.AddRunCommandList(
-        command_list=command_list, description=description)
+    self._skia_cmd_obj.AddRunAndroid(binary_name, arguments, description=description)

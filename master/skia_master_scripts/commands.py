@@ -97,6 +97,18 @@ class SkiaCommands(commands.FactoryCommands):
                          timeout=timeout, command=cmd, workdir=self.workdir,
                          env=self.environment_variables)
 
+  def AddRunAndroid(self, binary_name, args, description='RunAndroid', timeout=None):
+    path_to_script = self.PathJoin(
+        self._local_slave_script_dir, 'run_android.py')
+    cmd = ['python', path_to_script,
+           '--binary_name', binary_name,
+           '--args', args]
+    if not timeout:
+      timeout = self.default_timeout
+    self.factory.addStep(shell.ShellCommand, description=description,
+                         timeout=timeout, command=cmd, workdir=self.workdir,
+                         env=self.environment_variables)
+
   def AddRunCommand(self, command, description='Run', timeout=None):
     """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
