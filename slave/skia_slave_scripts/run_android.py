@@ -24,6 +24,11 @@ import sys
 import threading
 import time
 
+PROCESS_MONITOR_INTERVAL = 5.0 # Seconds
+SUBPROCESS_TIMEOUT = 30.0
+PATH_TO_ADB = os.path.join('..', 'android', 'bin', 'linux', 'adb')
+SKIA_RUNNING = 'running'
+
 """ Run 'cmd' in a shell and return True iff the 'cmd' succeeded. (Blocking) """
 def Bash(cmd, echo=True):
   if echo:
@@ -36,6 +41,16 @@ def BashGet(cmd, echo=True):
     print(cmd)
   return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).communicate()[0]
 
+""" Run 'cmd' in a shell and return the exit code.  Blocks until the command is
+finished or the timeout expires. """
+def BashGetTimeout(cmd, echo=True, timeout=SUBPROCESS_TIMEOUT):
+  proc = BashAsync(cmd, echo=echo)
+  t_0 = time.time()
+  t_elapsed = 0.0
+  while not proc.poll() and t_elapsed < timeout:
+    t_elapsed = time.time() - t_0
+  return proc.poll(), proc.communicate()[0]
+
 """ Run 'cmd' in a subprocess, returning a handle to that process.
 (Non-blocking) """
 def BashAsync(cmd, echo=True):
@@ -43,35 +58,27 @@ def BashAsync(cmd, echo=True):
     print cmd
   return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT)
 
-""" Wrapper class to hold the return code of the Skia program. """
-class ReturnCode(object):
-  def __init__(self, retcode):
-    self._retcode = retcode
-  
-  def get(self):
-    return self._retcode
-  
-  def set(self, retcode):
-    self._retcode = retcode
-
-path_to_adb = os.path.join('..', 'android', 'bin', 'linux', 'adb')
-
 """ Run WatchLog in a new thread to record the logcat output from SkiaAndroid. 
 Returns iff a 'SKIA_RETURN_CODE' appears in the log, setting the return code
 appropriately.  Note that this will not terminate if the SkiaAndroid process
 does not finish normally, so we need to periodically check that the process is
 still running and terminate this thread if the process has died without printing
 a 'SKIA_RETURN_CODE'. """
-def WatchLog(retcode):
-  logger = BashAsync('%s logcat' % path_to_adb, echo=False)
-  while True:
-    line = logger.stdout.readline()
-    if line != '':
-      print line.rstrip('\r\n')
-      if 'SKIA_RETURN_CODE' in line:
-        retcode.set(shlex.split(line)[-1])
-        logger.terminate()
-        return
+class WatchLog(threading.Thread):
+  def __init__(self):
+    threading.Thread.__init__(self)
+    self.retcode = SKIA_RUNNING
+
+  def run(self):
+    logger = BashAsync('%s logcat' % PATH_TO_ADB, echo=False)
+    while True:
+      line = logger.stdout.readline()
+      if line != '':
+        print line.rstrip('\r\n')
+        if 'SKIA_RETURN_CODE' in line:
+          self.retcode = shlex.split(line)[-1]
+          logger.terminate()
+          return
 
 """ Run 'binary_name' with 'arguments'.  This function sets and runs the Skia
 APK on a connected device.  We launch WatchLog in a new thread and then keep
@@ -83,30 +90,32 @@ when either:
 
 We then return success or failure. """
 def Run(errors, binary_name, arguments=''):
-  if not (Bash('%s root' % path_to_adb) and \
-          Bash('%s remount' % path_to_adb)):
+  if not (Bash('%s root' % PATH_TO_ADB) and \
+          Bash('%s remount' % PATH_TO_ADB)):
     errors.append('Unable to root and remount device.')
     return False
-  Bash('%s uninstall com.skia' % path_to_adb)
+  Bash('%s uninstall com.skia' % PATH_TO_ADB)
   path_to_apk = os.path.join('out', 'android', 'bin', 'SkiaAndroid.apk')
-  if not (Bash('%s install %s' % (path_to_adb, path_to_apk)) and \
-          Bash('%s logcat -c' % path_to_adb)):
+  if not (Bash('%s install %s' % (PATH_TO_ADB, path_to_apk)) and \
+          Bash('%s logcat -c' % PATH_TO_ADB)):
     errors.append('Could not install APK to device.')
     return False
-  retcode = ReturnCode('')
-  logger = threading.Thread(target=WatchLog, args=(retcode,));
-  logger.start()
-  if not Bash('%s shell am broadcast -a com.skia.intent.action.LAUNCH_SKIA -n com.skia/.SkiaReceiver -e args "%s %s"' % (path_to_adb, binary_name, arguments)):
+  if not Bash('%s shell am broadcast -a com.skia.intent.action.LAUNCH_SKIA -n com.skia/.SkiaReceiver -e args "%s %s"' % (PATH_TO_ADB, binary_name, arguments)):
     return False
-  process_monitor_interval = 5.0 # Seconds
-  while logger.isAlive():
-    time.sleep(process_monitor_interval)
-    still_running = BashGet('%s shell ps | grep skia_native' % path_to_adb, echo=False)
-    if still_running == '' and retcode.get() == '':
-      retcode.set('-1')
+  logger = WatchLog()
+  logger.start()
+  while logger.isAlive() and logger.retcode == SKIA_RUNNING:
+    time.sleep(PROCESS_MONITOR_INTERVAL)
+    # adb does not always return in a timely fashion.  Don't wait for it.
+    monitor = BashGetTimeout('%s shell ps | grep skia_native' % PATH_TO_ADB, echo=False)
+    if not monitor[0]: # adb timed out
+      continue
+    # No SKIA_RETURN_CODE printed, but the process isn't running
+    if monitor[1] == '' and logger.retcode == '':
+      logger.retcode = -1
       errors.append('Skia process died while executing %s' % binary_name)
       break
-  if retcode.get() == '0':
+  if logger.retcode == '0':
     return True
   else:
     errors.append('Failure in %s' % binary_name)
