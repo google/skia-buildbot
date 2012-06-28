@@ -68,5 +68,5 @@
 {%- endmacro %} 
 
 {% macro box_contents(who, url, pageTitle, revision) -%}
-<a href="{{ url }}" title="{{ pageTitle|e }}">{{ who|user }}</a><br>r{{ revision }}
+<a href="{{ url }}" title="{{ pageTitle|e }}">{{ who|user }}</a><br><a href='https://code.google.com/p/skia/source/detail?r={{ revision }}'>r{{ revision }}</a>
 {%- endmacro %}

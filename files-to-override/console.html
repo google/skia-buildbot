@@ -183,7 +183,7 @@ function checkMouseLeave(element, event) {
 
   <tr>
     <td class='DevRev {{ alt }}' width="1%">
-      {{ r.id|shortrev(r.repository) }}
+      <a href='https://code.google.com/p/skia/source/detail?r={{ r.id|shortrev(r.repository) }}'>{{ r.id|shortrev(r.repository) }}</a>
     </td>
     <td class='DevName {{ alt }}' width="1%">
       {{ r.who|user }}
