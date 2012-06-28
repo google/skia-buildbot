@@ -7,6 +7,8 @@
 """
 
 import os
+import shutil
+
 
 def FindPath(name):
   """Returns the full path to the executable with this name, or None if not
@@ -17,6 +19,7 @@ def FindPath(name):
     if os.path.exists(trypath):
       return trypath
   return None
+
 
 def RedirectGclientBat():
   """Work around http://code.google.com/p/chromium/issues/detail?id=89900 :
@@ -39,11 +42,24 @@ def RedirectGclientBat():
     f.write('"%s" %%*' % external_gclient_path)
     f.close()
 
+
+def CopyCustomFiles():
+  shutil.copyfile(
+      'files-to-override/change_macros.html',
+      'third_party/chromium_buildbot/third_party/buildbot_8_4p1/buildbot/' +
+      'status/web/templates/change_macros.html')
+  shutil.copyfile(
+      'files-to-override/console.html',
+      'third_party/chromium_buildbot/third_party/buildbot_8_4p1/buildbot/' +
+      'status/web/templates/console.html')
+
+
 def Main():
   # cd to the directory where this script lives.
   os.chdir(os.path.dirname(__file__))
   if os.name == 'nt':
     RedirectGclientBat()
+  CopyCustomFiles()
 
 if __name__ == '__main__':
   Main()
