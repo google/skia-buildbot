@@ -30,6 +30,13 @@ TARGET_PLATFORM_LINUX = 'linux'
 TARGET_PLATFORM_MAC = 'mac'
 TARGET_PLATFORM_WIN32 = 'win32'
 
+# TODO: This is a workaround for https://code.google.com/p/skia/issues/detail?id=685
+# ('gsutil upload fails with "BotoServerError: 500 Internal Server Error", but
+# only for certain destination filenames').
+# Modify this value to generate graphs with a new filename that will upload
+# successfully, when uploading the old filename starts to fail.
+GRAPH_PATH_MODIFIER = '-2'
+
 class SkiaFactory(gclient_factory.GClientFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""
 
@@ -231,7 +238,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
           'bench', 'bench_graph_svg.py')
       graph_title = 'Bench_Performance_for_%s' % self._builder_name
       graph_filepath = self.TargetPathJoin(
-          self._perf_graphs_dir, 'graph-%s.xhtml' % self._builder_name)
+          self._perf_graphs_dir, 'graph-%s%s.xhtml' % (
+              self._builder_name, GRAPH_PATH_MODIFIER))
       if self._target_platform == TARGET_PLATFORM_WIN32:
         mkdir_command = '(if not exist %s (mkdir %s))' % (
             self._perf_graphs_dir, self._perf_graphs_dir)
