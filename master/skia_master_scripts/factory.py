@@ -206,7 +206,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     else:
       count = 1
     path_to_bench = self.TargetPathJoin('out', self._configuration, 'bench')
-    base_command = '%s -repeat %d -timers wcg' % (
+    base_command = '%s -repeat %d -timers wcg -logPerIter 1' % (
         path_to_bench, count)
     if self._perf_data_dir:
       # TODO(epoger): For now, this relies on AddRunCommandList() wrapping all
