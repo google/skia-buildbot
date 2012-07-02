@@ -11,11 +11,11 @@ from skia_master_scripts import factory as skia_factory
 class AndroidFactory(skia_factory.SkiaFactory):
   """Overrides for Android builds."""
 
-  def Build(self, clobber=None, device='nexus_s'):
+  def Build(self, device, clobber=None):
     """Build and return the complete BuildFactory.
 
+    device: string indicating which Android device type we are targeting
     clobber: boolean indicating whether we should clean before building
-    device: string indicating which Android device we are targeting
     """
     if clobber is None:
       clobber = self._default_clobber
@@ -27,19 +27,22 @@ class AndroidFactory(skia_factory.SkiaFactory):
             self._make_flags),
         description='BuildAll')
 
-    self.PushBinaryToDeviceAndRun(binary_name='tests', description='RunTests')
-    self.PushBinaryToDeviceAndRun(binary_name='gm',
+    self.PushBinaryToDeviceAndRun(device=device, binary_name='tests',
+                                  description='RunTests')
+    self.PushBinaryToDeviceAndRun(device=device, binary_name='gm',
                                   arguments='--nopdf --noreplay',
                                   description='RunGM')
-    self.PushBinaryToDeviceAndRun(binary_name='bench', description='RunBench')
+    self.PushBinaryToDeviceAndRun(device=device, binary_name='bench',
+                                  description='RunBench')
 
     return self._factory
 
-  def PushBinaryToDeviceAndRun(self, binary_name, arguments='',
+  def PushBinaryToDeviceAndRun(self, device, binary_name, arguments='',
                                description=None, timeout=None):
     """Adds a build step: push a binary file to the USB-connected Android
     device and run it.
 
+    device: string indicating which Android device type we are targeting
     binary_name: which binary to run on the device
     arguments: additional arguments to pass to the binary when running it
     description: text description (e.g., 'RunTests')
@@ -52,4 +55,5 @@ class AndroidFactory(skia_factory.SkiaFactory):
     """
     if not description:
       description = 'Run %s' % binary_name
-    self._skia_cmd_obj.AddRunAndroid(binary_name, arguments, description=description)
+    self._skia_cmd_obj.AddRunAndroid(device=device, binary_name=binary_name,
+                                     args=arguments, description=description)
