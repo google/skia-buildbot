@@ -108,7 +108,7 @@ def GetSerial(device_type):
     name_line = BashGet('%s -s %s shell cat /system/build.prop | grep "ro.product.device="' % (PATH_TO_ADB, id), echo=False)
     name = name_line.split('=')[-1].rstrip()
     # Just return the first attached device of the requested model.
-    if name == device_name:
+    if device_name in name:
       return id
   print 'No %s device attached!' % device_name
   return None
