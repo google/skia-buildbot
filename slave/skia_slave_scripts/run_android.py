@@ -17,53 +17,16 @@ For example:
 """
 
 import optparse
-import os
 import shlex
-import subprocess
+import skia_slave_utils
 import sys
 import threading
-import time
 
 PROCESS_MONITOR_INTERVAL = 5.0 # Seconds
-SUBPROCESS_TIMEOUT = 30.0
-PATH_TO_ADB = os.path.join('..', 'android', 'bin', 'linux', 'adb')
-PATH_TO_APK = os.path.join('out', 'android', 'bin', 'SkiaAndroid.apk')
 SKIA_RUNNING = 'running'
-DEVICE_LOOKUP = {'nexus_s': 'crespo',
-                 'xoom': 'stingray'}
-
-def Bash(cmd, echo=True):
-  """ Run 'cmd' in a shell and return True iff the 'cmd' succeeded.
-  (Blocking) """
-  if echo:
-    print cmd
-  return subprocess.call(shlex.split(cmd)) == 0;
-
-def BashGet(cmd, echo=True):
-  """ Run 'cmd' in a shell and return the exit code. (Blocking) """
-  if echo:
-    print(cmd)
-  return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).communicate()[0]
-
-def BashGetTimeout(cmd, echo=True, timeout=SUBPROCESS_TIMEOUT):
-  """ Run 'cmd' in a shell and return the exit code.  Blocks until the command
-  is finished or the timeout expires. """
-  proc = BashAsync(cmd, echo=echo)
-  t_0 = time.time()
-  t_elapsed = 0.0
-  while not proc.poll() and t_elapsed < timeout:
-    t_elapsed = time.time() - t_0
-  return proc.poll(), proc.communicate()[0]
-
-def BashAsync(cmd, echo=True):
-  """ Run 'cmd' in a subprocess, returning a handle to that process.
-  (Non-blocking) """
-  if echo:
-    print cmd
-  return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT)
 
 class WatchLog(threading.Thread):
-  """ Run WatchLog in a new thread to record the logcat output from SkiaAndroid. 
+  """ Run WatchLog in a new thread to record the logcat output from SkiaAndroid.
   Returns iff a 'SKIA_RETURN_CODE' appears in the log, setting the return code
   appropriately.  Note that this will not terminate if the SkiaAndroid process
   does not finish normally, so we need to periodically check that the process is
@@ -75,7 +38,8 @@ class WatchLog(threading.Thread):
     self.serial = serial
 
   def run(self):
-    logger = BashAsync('%s -s %s logcat' % (PATH_TO_ADB, self.serial), echo=False)
+    logger = skia_slave_utils.BashAsync('%s -s %s logcat' % (
+        skia_slave_utils.PATH_TO_ADB, self.serial), echo=False)
     while True:
       line = logger.stdout.readline()
       if line != '':
@@ -85,6 +49,8 @@ class WatchLog(threading.Thread):
           logger.terminate()
           return
 
+<<<<<<< .mine
+=======
 def GetSerial(device_type):
   """ Determine the serial number of the *first* connected device with the
   specified type.  The ordering of 'adb devices' is not documented, and the
@@ -113,6 +79,7 @@ def GetSerial(device_type):
   print 'No %s device attached!' % device_name
   return None
 
+>>>>>>> .r4481
 def Run(errors, device, binary_name, arguments=''):
   """ Run 'binary_name' with 'arguments'.  This function sets and runs the Skia
   APK on a connected device.  We launch WatchLog in a new thread and then keep
@@ -123,27 +90,40 @@ def Run(errors, device, binary_name, arguments=''):
   2. WatchLog has not set a value in 'retcode' and the Skia process has died.
   
   We then return success or failure. """
-  serial = GetSerial(device)
+  serial = skia_slave_utils.GetSerial(device)
   if not serial:
     errors.append('Could not find device!')
     return False
-  if not (Bash('%s -s %s root' % (PATH_TO_ADB, serial)) and \
-          Bash('%s -s %s remount' % (PATH_TO_ADB, serial))):
+  # TODO(borenet): Do we still need to root and remount?
+  if not (skia_slave_utils.Bash('%s -s %s root' % (
+              skia_slave_utils.PATH_TO_ADB, serial)) and \
+          skia_slave_utils.Bash('%s -s %s remount' % (
+              skia_slave_utils.PATH_TO_ADB, serial))):
     errors.append('Unable to root and remount device.')
     return False
-  Bash('%s -s %s uninstall com.skia' % (PATH_TO_ADB, serial))
-  if not (Bash('%s -s %s install %s' % (PATH_TO_ADB, serial, PATH_TO_APK)) and \
-          Bash('%s -s %s logcat -c' % (PATH_TO_ADB, serial))):
+  skia_slave_utils.Bash('%s -s %s uninstall com.skia' % (
+      skia_slave_utils.PATH_TO_ADB, serial))
+  if not (skia_slave_utils.Bash('%s -s %s install %s' % (
+              skia_slave_utils.PATH_TO_ADB, serial,
+              skia_slave_utils.PATH_TO_APK)) and \
+          skia_slave_utils.Bash('%s -s %s logcat -c' % (
+              skia_slave_utils.PATH_TO_ADB, serial))):
     errors.append('Could not install APK to device.')
     return False
-  if not Bash('%s -s %s shell am broadcast -a com.skia.intent.action.LAUNCH_SKIA -n com.skia/.SkiaReceiver -e args "%s %s"' % (PATH_TO_ADB, serial, binary_name, arguments)):
+  if not skia_slave_utils.Bash(
+      '%s -s %s shell am broadcast -a com.skia.intent.action.LAUNCH_SKIA -n '
+      'com.skia/.SkiaReceiver -e args "%s %s"' % (
+          skia_slave_utils.PATH_TO_ADB, serial, binary_name, arguments)):
     return False
   logger = WatchLog(serial)
   logger.start()
   while logger.isAlive() and logger.retcode == SKIA_RUNNING:
     time.sleep(PROCESS_MONITOR_INTERVAL)
     # adb does not always return in a timely fashion.  Don't wait for it.
-    monitor = BashGetTimeout('%s -s %s shell ps | grep skia_native' % (PATH_TO_ADB, serial), echo=False)
+    monitor = skia_slave_utils.BashGetTimeout(
+        '%s -s %s shell ps | grep skia_native' % (
+            skia_slave_utils.PATH_TO_ADB, serial),
+        echo=False)
     if not monitor[0]: # adb timed out
       continue
     # No SKIA_RETURN_CODE printed, but the process isn't running
@@ -156,18 +136,6 @@ def Run(errors, device, binary_name, arguments=''):
   else:
     errors.append('Failure in %s' % binary_name)
     return False
-
-""" TODO(borenet): This is copy/pasted from merge_into_svn.py.  We should
-refactor to share this code. """
-def ConfirmOptionsSet(name_value_dict):
-  """Raise an exception if any of the given command-line options were not set.
-
-  @param name_value_dict dictionary mapping option names to option values
-  """
-  for (name, value) in name_value_dict.iteritems():
-    if value is None:
-      raise Exception('missing command-line option %s; rerun with --help' %
-                      name)
 
 def main(argv):
   """ Verify that the command-line options are set and then call Run() to
@@ -185,10 +153,13 @@ def main(argv):
   (options, args) = option_parser.parse_args()
   if len(args) != 0:
     raise Exception('bogus command-line argument; rerun with --help')
-  ConfirmOptionsSet({'--binary_name': options.binary_name})
-  ConfirmOptionsSet({'--device': options.device})
+  skia_slave_utils.ConfirmOptionsSet({
+      '--binary_name': options.binary_name,
+      '--device': options.device,
+      })
   errors = []
-  success = Run(errors, options.device, options.binary_name, arguments=options.args)
+  success = Run(errors, options.device, options.binary_name,
+      arguments=options.args)
   if errors or not success:
     for e in errors:
       print 'ERROR: %s' % e

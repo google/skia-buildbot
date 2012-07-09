@@ -27,6 +27,7 @@ To test:
 import optparse
 import os
 import shutil
+import skia_slave_utils
 import sys
 import tempfile
 
@@ -93,16 +94,6 @@ def MergeIntoSvn(options):
   shutil.rmtree(tempdir, ignore_errors=True)
   return 0
 
-def ConfirmOptionsSet(name_value_dict):
-  """Raise an exception if any of the given command-line options were not set.
-
-  @param name_value_dict dictionary mapping option names to option values
-  """
-  for (name, value) in name_value_dict.iteritems():
-    if value is None:
-      raise Exception('missing command-line option %s; rerun with --help' %
-                      name)
-
 def main(argv):
   option_parser = optparse.OptionParser()
   option_parser.add_option(
@@ -123,11 +114,12 @@ def main(argv):
   (options, args) = option_parser.parse_args()
   if len(args) != 0:
     raise Exception('bogus command-line argument; rerun with --help')
-  ConfirmOptionsSet({'--source_dir_path': options.source_dir_path,
-                     '--dest_svn_url': options.dest_svn_url,
-                     '--svn_username_file': options.svn_username_file,
-                     '--svn_password_file': options.svn_password_file,
-                     })
+  skia_slave_utils.ConfirmOptionsSet({
+      '--source_dir_path': options.source_dir_path,
+      '--dest_svn_url': options.dest_svn_url,
+      '--svn_username_file': options.svn_username_file,
+      '--svn_password_file': options.svn_password_file,
+      })
   return MergeIntoSvn(options)
 
 if '__main__' == __name__:
