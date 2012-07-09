@@ -21,6 +21,7 @@ import shlex
 import skia_slave_utils
 import sys
 import threading
+import time
 
 PROCESS_MONITOR_INTERVAL = 5.0 # Seconds
 SKIA_RUNNING = 'running'
