@@ -49,37 +49,6 @@ class WatchLog(threading.Thread):
           logger.terminate()
           return
 
-<<<<<<< .mine
-=======
-def GetSerial(device_type):
-  """ Determine the serial number of the *first* connected device with the
-  specified type.  The ordering of 'adb devices' is not documented, and the
-  connected devices do not appear to be ordered by serial number.  Therefore,
-  we have to assume that, in the case of multiple devices of the same type being
-  connected to one host, we cannot predict which device will be chosen. """
-  if not device_type in DEVICE_LOOKUP:
-    print 'Unknown device: %s!' % device_type
-    return None
-  device_name = DEVICE_LOOKUP[device_type]
-  output = BashGet('%s devices' % PATH_TO_ADB, echo=False)
-  lines = output.split('\n')
-  # Header line is garbage
-  lines.pop(0)
-  device_ids = []
-  for line in lines:
-    if line != '':
-      device_ids.append(line.split('\t')[0])
-  for id in device_ids:
-    # Get device name
-    name_line = BashGet('%s -s %s shell cat /system/build.prop | grep "ro.product.device="' % (PATH_TO_ADB, id), echo=False)
-    name = name_line.split('=')[-1].rstrip()
-    # Just return the first attached device of the requested model.
-    if device_name in name:
-      return id
-  print 'No %s device attached!' % device_name
-  return None
-
->>>>>>> .r4481
 def Run(errors, device, binary_name, arguments=''):
   """ Run 'binary_name' with 'arguments'.  This function sets and runs the Skia
   APK on a connected device.  We launch WatchLog in a new thread and then keep
