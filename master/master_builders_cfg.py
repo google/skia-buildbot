@@ -39,28 +39,6 @@ def Update(config, active_master, c):
 
   # Linux...
   defaults['category'] = 'linux'
-  B('Skia_Linux_Fixed_Debug', 'f_skia_linux_fixed_debug',
-      scheduler='skia_rel')
-  F('f_skia_linux_fixed_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed skia_mesa=1'},
-      gm_image_subdir='base-linux-fixed',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Linux_Fixed_Debug',
-      ).Build())
-  B('Skia_Linux_Fixed_NoDebug', 'f_skia_linux_fixed_nodebug',
-      scheduler='skia_rel')
-  F('f_skia_linux_fixed_nodebug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed skia_mesa=1'},
-      gm_image_subdir='base-linux-fixed',
-      perf_output_basedir=None, # no perf measurement for fixed-point builds
-      builder_name='Skia_Linux_Fixed_NoDebug',
-      ).Build())
   B('Skia_Linux_Float_Debug', 'f_skia_linux_float_debug',
       scheduler='skia_rel')
   F('f_skia_linux_float_debug', skia_factory.SkiaFactory(
@@ -109,28 +87,6 @@ def Update(config, active_master, c):
 
   # Mac 10.6 (SnowLeopard) ...
   defaults['category'] = 'mac-10.6'
-  B('Skia_Mac_Fixed_Debug', 'f_skia_mac_fixed_debug',
-      scheduler='skia_rel')
-  F('f_skia_mac_fixed_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed skia_mesa=1'},
-      gm_image_subdir='base-macmini-fixed',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Mac_Fixed_Debug',
-      ).Build())
-  B('Skia_Mac_Fixed_NoDebug', 'f_skia_mac_fixed_nodebug',
-      scheduler='skia_rel')
-  F('f_skia_mac_fixed_nodebug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed skia_mesa=1'},
-      gm_image_subdir='base-macmini-fixed',
-      perf_output_basedir=None, # no perf measurement for fixed-point builds
-      builder_name='Skia_Mac_Fixed_NoDebug',
-      ).Build())
   B('Skia_Mac_Float_Debug', 'f_skia_mac_float_debug',
       scheduler='skia_rel')
   F('f_skia_mac_float_debug', skia_factory.SkiaFactory(
@@ -156,28 +112,6 @@ def Update(config, active_master, c):
 
   # Mac 10.7 (Lion) ...
   defaults['category'] = 'mac-10.7'
-  B('Skia_MacMiniLion_Fixed_Debug', 'f_skia_MacMiniLion_fixed_debug',
-      scheduler='skia_rel')
-  F('f_skia_MacMiniLion_fixed_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed skia_mesa=1'},
-      gm_image_subdir='base-macmini-lion-fixed',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_MacMiniLion_Fixed_Debug',
-      ).Build())
-  B('Skia_MacMiniLion_Fixed_NoDebug', 'f_skia_MacMiniLion_fixed_nodebug',
-      scheduler='skia_rel')
-  F('f_skia_MacMiniLion_fixed_nodebug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed skia_mesa=1'},
-      gm_image_subdir='base-macmini-lion-fixed',
-      perf_output_basedir=None, # no perf measurement for fixed-point builds
-      builder_name='Skia_MacMiniLion_Fixed_NoDebug',
-      ).Build())
   B('Skia_MacMiniLion_Float_Debug', 'f_skia_MacMiniLion_float_debug',
       scheduler='skia_rel')
   F('f_skia_MacMiniLion_float_debug', skia_factory.SkiaFactory(
@@ -203,28 +137,6 @@ def Update(config, active_master, c):
 
   # Original Windows bot...
   defaults['category'] = 'windows'
-  B('Skia_Win32_Fixed_Debug', 'f_skia_win32_fixed_debug',
-      scheduler='skia_rel')
-  F('f_skia_win32_fixed_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed'},
-      gm_image_subdir='base-win-fixed',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Win32_Fixed_Debug',
-      ).Build())
-  B('Skia_Win32_Fixed_NoDebug', 'f_skia_win32_fixed_nodebug',
-      scheduler='skia_rel')
-  F('f_skia_win32_fixed_nodebug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed'},
-      gm_image_subdir='base-win-fixed',
-      perf_output_basedir=None, # no perf measurement for fixed-point builds
-      builder_name='Skia_Win32_Fixed_NoDebug',
-      ).Build())
   B('Skia_Win32_Float_Debug', 'f_skia_win32_float_debug',
       scheduler='skia_rel')
   F('f_skia_win32_float_debug', skia_factory.SkiaFactory(
@@ -250,28 +162,6 @@ def Update(config, active_master, c):
 
   # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
   defaults['category'] = 'Shuttle_Win7_Intel'
-  B('Skia_Shuttle_Win7_Intel_Fixed_Debug', 'f_skia_shuttle_win7_intel_fixed_debug',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_fixed_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed'},
-      gm_image_subdir='base-shuttle-win7-intel-fixed',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Shuttle_Win7_Intel_Fixed_Debug',
-      ).Build())
-  B('Skia_Shuttle_Win7_Intel_Fixed_Release', 'f_skia_shuttle_win7_intel_fixed_release',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_fixed_release', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=fixed'},
-      gm_image_subdir='base-shuttle-win7-intel-fixed',
-      perf_output_basedir=None, # no perf measurement for fixed-point builds
-      builder_name='Skia_Shuttle_Win7_Intel_Fixed_Release',
-      ).Build())
   B('Skia_Shuttle_Win7_Intel_Float_Debug', 'f_skia_shuttle_win7_intel_float_debug',
       scheduler='skia_rel')
   F('f_skia_shuttle_win7_intel_float_debug', skia_factory.SkiaFactory(
