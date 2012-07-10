@@ -48,16 +48,25 @@ def ReadFirstLineOfFileAsString(filename):
     f.close()
   return contents
 
-def CopyAllFiles(source_dir, dest_dir):
+def _CopyAllFiles(source_dir, dest_dir):
   """Copy all files from source_dir into dest_dir.
+
+  Recursively copies files from directories as well.
+  Skips .svn directories.
 
   @param source_dir
   @param dest_dir
   """
   basenames = os.listdir(source_dir)
   for basename in basenames:
-    shutil.copyfile(os.path.join(source_dir, basename),
-                    os.path.join(dest_dir, basename))
+    source_path = os.path.join(source_dir, basename)
+    dest_path = os.path.join(dest_dir, basename)
+    if basename == '.svn':
+      continue
+    if os.path.isdir(source_path):
+      _CopyAllFiles(source_path, dest_path)
+    else:
+      shutil.copyfile(source_path, dest_path)
 
 def MergeIntoSvn(options):
   """Update an SVN repository with any new/modified files from a directory.
@@ -82,7 +91,7 @@ def MergeIntoSvn(options):
                                 '--non-interactive'])
 
   # Copy in all the files we want to update/add to the repository.
-  CopyAllFiles(source_dir=options.source_dir_path, dest_dir=tempdir)
+  _CopyAllFiles(source_dir=options.source_dir_path, dest_dir=tempdir)
 
   # Make sure all files are added to SVN and have the correct properties set.
   repo.AddFiles(repo.GetNewFiles())
