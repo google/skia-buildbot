@@ -44,7 +44,10 @@ def _PostGM(serial, dir_name):
   gm_actual_dir = os.path.join('..', '..', 'gm', 'actual', dir_name)
   # Here we make the assumption that nobody else is messing with this area of
   # the file system.
-  shutil.rmtree(gm_actual_dir)
+  try:
+    shutil.rmtree(gm_actual_dir)
+  except:
+    pass
   os.makedirs(gm_actual_dir)
   skia_slave_utils.RunADB(serial, 'pull %s%s %s' % (
       DEVICE_PATH, dir_name, gm_actual_dir))
