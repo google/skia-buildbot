@@ -97,6 +97,20 @@ class SkiaCommands(commands.FactoryCommands):
                          timeout=timeout, command=cmd, workdir=self.workdir,
                          env=self.environment_variables)
 
+  def AddAndroidRunGM(self, device, description='RunGM', arguments='',
+                      timeout=None):
+    """ Runs GM on the device and pulls the output images to the host. """
+    path_to_script = self.PathJoin(
+        self._local_slave_script_dir, 'android_run_gm.py')
+    cmd = ['python', path_to_script,
+           '--device', device,
+           '--args', arguments]
+    if not timeout:
+      timeout = self.default_timeout
+    self.factory.addStep(shell.ShellCommand, description=description,
+                         timeout=timeout, command=cmd, workdir=self.workdir,
+                         env=self.environment_variables)
+
   def AddRunAndroid(self, device, binary_name, args, description='RunAndroid',
                     timeout=None):
     """Runs any of the Skia binaries, provided that they have already been

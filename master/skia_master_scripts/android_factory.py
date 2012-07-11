@@ -29,9 +29,8 @@ class AndroidFactory(skia_factory.SkiaFactory):
 
     self.PushBinaryToDeviceAndRun(device=device, binary_name='tests',
                                   description='RunTests')
-    self.PushBinaryToDeviceAndRun(device=device, binary_name='gm',
-                                  arguments='--nopdf --noreplay',
-                                  description='RunGM')
+    self._skia_cmd_obj.AddAndroidRunGM(device=device,
+                                       arguments='--nopdf --noreplay')
     self.PushBinaryToDeviceAndRun(device=device, binary_name='bench',
                                   description='RunBench')
 
