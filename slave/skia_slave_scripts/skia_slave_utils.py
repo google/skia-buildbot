@@ -119,22 +119,22 @@ class _WatchLog(threading.Thread):
     threading.Thread.__init__(self)
     self.retcode = SKIA_RUNNING
     self.serial = serial
-    self._stop = False
+    self._stopped = False
 
   def stop(self):
-    self._stop = True
+    self._stopped = True
     self._logger.terminate()
 
   def run(self):
     self._logger = BashAsync('%s -s %s logcat' % (
         PATH_TO_ADB, self.serial), echo=False)
-    while not self._stop:
+    while not self._stopped:
       line = self._logger.stdout.readline()
       if line != '':
         print line.rstrip('\r\n')
         if 'SKIA_RETURN_CODE' in line:
           self.retcode = shlex.split(line)[-1]
-          self._logger.terminate()
+          self.stop()
           return
 
 def Run(serial, binary_name, arguments=''):
