@@ -7,6 +7,7 @@
 from master import master_config
 from skia_master_scripts import android_factory
 from skia_master_scripts import factory as skia_factory
+from skia_master_scripts import housekeeping_factory
 
 # Directory where we want to record performance data
 #
@@ -183,6 +184,18 @@ def Update(config, active_master, c):
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=perf_output_basedir_windows,
       builder_name='Skia_Shuttle_Win7_Intel_Float_Release',
+      ).Build())
+
+  # House Keeping
+  defaults['category'] = 'housekeeping'
+  B('Skia_House_Keeping', 'f_skia_house_keeping',
+      scheduler='skia_rel')
+  F('f_skia_house_keeping', housekeeping_factory.HouseKeepingFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration='HouseKeeping',
+      perf_output_basedir=None, # no perf measurement for housekeeping builds
+      builder_name='Skia_House_Keeping',
       ).Build())
 
   return helper.Update(c)
