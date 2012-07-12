@@ -50,6 +50,7 @@ def BashGetTimeout(cmd, echo=True, timeout=SUBPROCESS_TIMEOUT):
   t_0 = time.time()
   t_elapsed = 0.0
   while not proc.poll() and t_elapsed < timeout:
+    time.sleep(1)
     t_elapsed = time.time() - t_0
   return proc.poll(), proc.communicate()[0]
 
@@ -118,17 +119,22 @@ class _WatchLog(threading.Thread):
     threading.Thread.__init__(self)
     self.retcode = SKIA_RUNNING
     self.serial = serial
+    self._stop = False
+
+  def stop(self):
+    self._stop = True
+    self._logger.terminate()
 
   def run(self):
-    logger = BashAsync('%s -s %s logcat' % (
+    self._logger = BashAsync('%s -s %s logcat' % (
         PATH_TO_ADB, self.serial), echo=False)
-    while True:
-      line = logger.stdout.readline()
+    while not self._stop:
+      line = self._logger.stdout.readline()
       if line != '':
         print line.rstrip('\r\n')
         if 'SKIA_RETURN_CODE' in line:
           self.retcode = shlex.split(line)[-1]
-          logger.terminate()
+          self._logger.terminate()
           return
 
 def Run(serial, binary_name, arguments=''):
@@ -166,8 +172,8 @@ def Run(serial, binary_name, arguments=''):
     if not monitor[0]: # adb timed out
       continue
     # No SKIA_RETURN_CODE printed, but the process isn't running
-    if monitor[1] == '' and logger.retcode == '':
-      logger.retcode = -1
+    if monitor[1] == '' and logger.retcode == SKIA_RUNNING:
+      logger.stop()
       raise Exception('Skia process died while executing %s' % binary_name)
   if not logger.retcode == '0':
     raise Exception('Failure in %s' % binary_name)
