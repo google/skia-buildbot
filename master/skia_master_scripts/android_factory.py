@@ -22,9 +22,10 @@ class AndroidFactory(skia_factory.SkiaFactory):
     if clobber:
       self._skia_cmd_obj.AddClean()
 
+    environment = 'ANDROID_SDK_ROOT=/home/chrome-bot/android-sdk-linux'
     self._skia_cmd_obj.AddRunCommand(
-        command='../android/bin/android_make all -d %s %s' % (device,
-            self._make_flags),
+        command='%s ../android/bin/android_make all -d %s %s' % (
+                    environment, device, self._make_flags),
         description='BuildAll')
 
     self.PushBinaryToDeviceAndRun(device=device, binary_name='tests',
