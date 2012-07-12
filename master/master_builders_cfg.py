@@ -207,7 +207,7 @@ def Update(config, active_master, c):
       ).Build())
 
   # House Keeping
-  defaults['category'] = 'housekeeping'
+  defaults['category'] = ' housekeeping'
   B('Skia_House_Keeping', 'f_skia_house_keeping',
       scheduler='skia_rel')
   F('f_skia_house_keeping', housekeeping_factory.HouseKeepingFactory(
