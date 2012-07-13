@@ -16,20 +16,40 @@ from skia_master_scripts import factory as skia_factory
 class HouseKeepingFactory(skia_factory.SkiaFactory):
   """Overrides for HouseKeeping builds."""
 
-  def Build(self):
-    """Build and return the complete BuildFactory."""
+  def Build(self, clobber=None):
+    """Build and return the complete BuildFactory.
 
-    # Figure out where we are going to store updated Doxygen files.
+    clobber: boolean indicating whether we should clean before building
+    """
+    if clobber is None:
+      clobber = self._default_clobber
+    if clobber:
+      self._skia_cmd_obj.AddClean()
+
+    # Build tools and run their unittests.
+    # TODO: this runs a shell script, so would break on Windows. For now, we
+    # rely on the fact that the housekeeping bot always runs on a Linux machine.
+    self._skia_cmd_obj.AddRunCommand(
+        command='make tools %s' % self._make_flags,
+        description='BuildTools')
+    self._skia_cmd_obj.AddRunCommand(
+        command=self.TargetPathJoin('tools', 'tests', 'run.sh'),
+        description='RunToolSelfTests')
+
+    # Generate and upload Doxygen documentation.
+    # TODO: this runs a shell script, so would break on Windows. For now, we
+    # rely on the fact that the housekeeping bot always runs on a Linux machine.
     doxygen_actual_svn_baseurl = '%s/%s' % (
         skia_factory.AUTOGEN_SVN_BASEURL, 'docs')
     update_doxygen_path = self.TargetPathJoin('tools', 'update-doxygen.sh')
+    # TODO: the following line creates a temporary directory on the MASTER,
+    # and then uses its path on the SLAVE.  We should fix that.
     doxygen_working_dir = tempfile.mkdtemp()
-
     try:
       self._skia_cmd_obj.AddRunCommand(
           command='DOXYGEN_TEMPDIR=%s DOXYGEN_COMMIT=false bash %s' % (
               doxygen_working_dir, update_doxygen_path),
-          description='Update Doxygen')
+          description='UpdateDoxygen')
       if self._do_upload_results:
         # Upload Doxygen
         self._skia_cmd_obj.AddMergeIntoSvn(
@@ -41,9 +61,8 @@ class HouseKeepingFactory(skia_factory.SkiaFactory):
             commit_message=WithProperties(
                 'UploadDoxygen of r%%(%s:-)s on %s' % (
                     'revision', self._builder_name)),
-            description='Upload Doxygen')
+            description='UploadDoxygen')
     finally:
       shutil.rmtree(doxygen_working_dir)
 
     return self._factory
-

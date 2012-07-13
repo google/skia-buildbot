@@ -213,8 +213,6 @@ def Update(config, active_master, c):
   F('f_skia_house_keeping', housekeeping_factory.HouseKeepingFactory(
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='HouseKeeping',
-      perf_output_basedir=None, # no perf measurement for housekeeping builds
       builder_name='Skia_House_Keeping',
       ).Build())
 
