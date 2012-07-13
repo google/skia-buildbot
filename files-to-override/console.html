@@ -147,7 +147,7 @@ function checkMouseLeave(element, event) {
   {% for c in categories %}
       <td class='DevStatus {{ alt_class.next() }} {{ "first" if loop.first else '' }} {{ "last" if loop.last else '' }}' width='{{ c.size }}%'>
         {% if slaves %}
-          <a href='http://c128.i.corp.google.com:8041/waterfall?show={{ slaves[c.name][0].builderName }}{% for s in slaves[c.name][1:] %}&show={{ s.builderName }}{% endfor %}'>{{ c.name|e }}</a>
+          <a href='/waterfall?show={{ slaves[c.name][0].builderName }}{% for s in slaves[c.name][1:] %}&show={{ s.builderName }}{% endfor %}'>{{ c.name|e }}</a>
         {% else %}
           {{ c.name|e }}
         {% endif %}
