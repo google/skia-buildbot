@@ -73,6 +73,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir='base-android-nexus-s',
       builder_name='Skia_NexusS_4-1_Float_Debug',
       ).Build(device='nexus_s'))
   B('Skia_NexusS_4-1_Float_Release', 'f_skia_nexus_s_4-1_float_release',
@@ -83,6 +84,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir='base-android-nexus-s',
       builder_name='Skia_NexusS_4-1_Float_Release',
       ).Build(device='nexus_s'))
   B('Skia_Xoom_4-1_Float_Debug', 'f_skia_xoom_4-1_float_debug',
@@ -93,6 +95,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir='base-android-xoom',
       builder_name='Skia_Xoom_4-1_Float_Debug',
       ).Build(device='xoom'))
   B('Skia_Xoom_4-1_Float_Release', 'f_skia_xoom_4-1_float_release',
@@ -103,6 +106,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir='base-android-xoom',
       builder_name='Skia_Xoom_4-1_Float_Release',
       ).Build(device='xoom'))
 

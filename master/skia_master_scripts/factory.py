@@ -118,18 +118,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
         target_arch=None, default_timeout=default_timeout,
         environment_variables=environment_variables)
 
-  def Build(self, clobber=None):
-    """Build and return the complete BuildFactory.
-
-    clobber: boolean indicating whether we should clean before building
-    """
-    if clobber is None:
-      clobber = self._default_clobber
-    if clobber:
-      self._skia_cmd_obj.AddClean()
-
-    # Do all the build steps first, so we will find out about build breakages
-    # as soon as possible.
+  def Compile(self):
+    """Compile step.  Build everything. """
     self._skia_cmd_obj.AddRunCommand(
         command='make core %s' % self._make_flags,
         description='BuildCore')
@@ -149,15 +139,14 @@ class SkiaFactory(gclient_factory.GClientFactory):
         command='make all %s' % self._make_flags,
         description='BuildAllOtherTargets')
 
+  def RunTests(self):
+    """ Run the unit tests. """
     self._skia_cmd_obj.AddRunCommand(
         command=self.TargetPathJoin('out', self._configuration, 'tests'),
         description='RunTests')
 
-    # Run the "GM" tool and upload actual results to the skia-autogen SVN
-    # repository to aid in rebaselining.
-    path_to_gm = self.TargetPathJoin('out', self._configuration, 'gm')
-    gm_actual_dir = self.TargetPathJoin(
-        self._gm_actual_basedir, self._gm_image_subdir)
+  def PrepForGM(self, path_to_gm, gm_actual_dir):
+    """ Ensure that the output image directory for GM exists and is empty. """
     if self._target_platform == TARGET_PLATFORM_WIN32:
       # This ridiculous hack is the simplest way I could think of to
       # consistently create an empty directory (whether it already existed
@@ -166,18 +155,26 @@ class SkiaFactory(gclient_factory.GClientFactory):
           'mkdir %s' % self.TargetPathJoin(gm_actual_dir, 'bogus-subdir'),
           'rmdir /s /q %s' % gm_actual_dir,
           'mkdir %s' % gm_actual_dir,
-          '%s -w %s' % (path_to_gm, gm_actual_dir),
           ]
     else:
       command_list = [
           'rm -rf %s' % gm_actual_dir,
           'mkdir -p %s' % gm_actual_dir,
-          '%s -w %s' % (path_to_gm, gm_actual_dir),
           ]
     self._skia_cmd_obj.AddRunCommandList(
-        command_list=command_list, description='GenerateGMs')
-    if self._do_upload_results:
-      self._skia_cmd_obj.AddMergeIntoSvn(
+        command_list=command_list, description='PrepForGM')
+
+  def RunGM(self, path_to_gm, gm_actual_dir):
+    """ Run the "GM" tool, saving the images to disk. """
+    gm_command = '%s -w %s' % (path_to_gm, gm_actual_dir)
+    self._skia_cmd_obj.AddRunCommand(
+        command=gm_command,
+        description='GenerateGMs')
+
+  def UploadGMResults(self, gm_actual_dir):
+    """ Upload actual GM results to the skia-autogen SVN repository to aid in
+    rebaselining. """
+    self._skia_cmd_obj.AddMergeIntoSvn(
           source_dir_path=gm_actual_dir,
           dest_svn_url='%s/%s' % (
               self._gm_actual_svn_baseurl, self._gm_image_subdir),
@@ -188,8 +185,9 @@ class SkiaFactory(gclient_factory.GClientFactory):
                   'revision', self._builder_name)),
           description='UploadGMResults')
 
-    # Run the "skdiff" tool to compare the "actual" GM images we just generated
-    # above to the baselines in _gm_image_subdir.
+  def CompareGMs(self, gm_actual_dir):
+    """ Run the "skdiff" tool to compare the "actual" GM images we just
+    generated to the baselines in _gm_image_subdir. """
     path_to_skdiff = self.TargetPathJoin('out', self._configuration, 'skdiff')
     gm_expected_dir = self.TargetPathJoin('gm', self._gm_image_subdir)
     self._skia_cmd_obj.AddRunCommand(
@@ -200,9 +198,10 @@ class SkiaFactory(gclient_factory.GClientFactory):
                 ' %s %s' % (path_to_skdiff, gm_expected_dir, gm_actual_dir),
         description='CompareGMs')
 
-    # Run "bench", piping the output somewhere so we can graph
-    # results over time.
-    #
+  def RunBench(self):
+    """ Run "bench", piping the output somewhere so we can graph
+    results over time. """
+
     # TODO(epoger): Currently this is a hack--we just tell the slave to
     # pipe the output to a directory on local disk.
     # Eventually, we will want the master to capture the output and store it.
@@ -239,8 +238,9 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self._skia_cmd_obj.AddRunCommandList(
         command_list=command_list, description='RunBench', timeout=1200)
 
-    # Generate and upload bench performance graphs (but only if we have been
-    # recording bench output for this build type).
+  def BenchGraphs(self):
+    """ Generate and upload bench performance graphs (but only if we have been
+    recording bench output for this build type). """
     if self._perf_data_dir:
       path_to_bench_graph_svg = self.TargetPathJoin(
           'bench', 'bench_graph_svg.py')
@@ -263,5 +263,29 @@ class SkiaFactory(gclient_factory.GClientFactory):
       if self._do_upload_results:
         self._skia_cmd_obj.AddUploadToBucket(
             source_filepath=graph_filepath, description='UploadBenchGraphs')
+
+  def Build(self, clobber=None):
+    """Build and return the complete BuildFactory.
+
+    clobber: boolean indicating whether we should clean before building
+    """
+    # Do all the build steps first, so we will find out about build breakages
+    # as soon as possible.
+    if clobber is None:
+      clobber = self._default_clobber
+    if clobber:
+      self._skia_cmd_obj.AddClean()
+    self.Compile()
+    self.RunTests()
+    path_to_gm = self.TargetPathJoin('out', self._configuration, 'gm')
+    gm_actual_dir = self.TargetPathJoin(
+        self._gm_actual_basedir, self._gm_image_subdir)
+    self.PrepForGM(path_to_gm, gm_actual_dir)
+    self.RunGM(path_to_gm, gm_actual_dir)
+    if self._do_upload_results:
+      self.UploadGMResults(gm_actual_dir)
+    self.CompareGMs(gm_actual_dir)
+    self.RunBench()
+    self.BenchGraphs()
 
     return self._factory

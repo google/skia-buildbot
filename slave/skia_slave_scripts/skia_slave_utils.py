@@ -72,6 +72,19 @@ def RunADB(serial, cmd):
     raise Exception('ADB command failed')
   return True
 
+def ADBKill(serial, process):
+  """ Kill a process running on an Android device.
+  
+  serial: string indicating the serial number of the target device
+  process: string indicating the name of the process to kill
+  """ 
+  stdout = BashGet('%s -s %s shell ps | grep %s' % (
+                       PATH_TO_ADB, serial, process)
+                  )
+  if stdout != '':
+    pid = shlex.split(stdout)[1]
+    RunADB(serial, 'shell kill %s' % pid)
+
 def GetSerial(device_type):
   """ Determine the serial number of the *first* connected device with the
   specified type.  The ordering of 'adb devices' is not documented, and the
@@ -137,6 +150,13 @@ class _WatchLog(threading.Thread):
           self.stop()
           return
 
+def Install(serial):
+  try:
+    RunADB(serial, 'uninstall com.skia')
+  except:
+    pass
+  RunADB(serial, 'install %s' % PATH_TO_APK)
+
 def Run(serial, binary_name, arguments=''):
   """ Run 'binary_name', on the device with id 'serial', with 'arguments'.  This
   function sets and runs the Skia APK on a connected device.  We launch WatchLog
@@ -152,11 +172,10 @@ def Run(serial, binary_name, arguments=''):
   binary_name: string indicating name of the program to run on the device
   arguments: string containing the arguments to pass to the program
   """
-  try:
-    RunADB(serial, 'uninstall com.skia')
-  except:
-    pass
-  RunADB(serial, 'install %s' % PATH_TO_APK)
+  # First, kill any running instances of the app.
+  ADBKill(serial, 'skia_native')
+  ADBKill(serial, 'skia')
+
   RunADB(serial, 'logcat -c')
   RunADB(serial,
       'shell am broadcast -a com.skia.intent.action.LAUNCH_SKIA -n '

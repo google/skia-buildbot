@@ -12,7 +12,7 @@ Where BINARY is the name of the Skia binary to run, eg. gm or tests
 And ARGS are any command line arguments to pass to that binary.
 
 For example:
-  python /path/to/slave/scripts/run_android -- binary_name gm --args --nopdf
+  python /path/to/slave/scripts/run_android --binary_name gm --args --nopdf
 
 """
 
@@ -21,8 +21,7 @@ import skia_slave_utils
 import sys
 
 def main(argv):
-  """ Verify that the command-line options are set and then call Run() to
-  install and run the APK. """
+  """ Verify that the command-line options are set and then run the APK. """
   option_parser = optparse.OptionParser()
   option_parser.add_option(
       '--binary_name',

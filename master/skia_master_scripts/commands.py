@@ -111,10 +111,22 @@ class SkiaCommands(commands.FactoryCommands):
                          timeout=timeout, command=cmd, workdir=self.workdir,
                          env=self.environment_variables)
 
+  def AddInstallAndroid(self, device, description='InstallAPK', timeout=None):
+    """ Installs the Skia APK to the requested device. """
+    path_to_script = self.PathJoin(
+        self._local_slave_script_dir, 'install_android.py')
+    cmd = ['python', path_to_script,
+           '--device', device]
+    if not timeout:
+      timeout = self.default_timeout
+    self.factory.addStep(shell.ShellCommand, description=description,
+                         timeout=timeout, command=cmd, workdir=self.workdir,
+                         env=self.environment_variables)
+
   def AddRunAndroid(self, device, binary_name, args, description='RunAndroid',
                     timeout=None):
     """Runs any of the Skia binaries, provided that they have already been
-    built."""
+    built and the APK has been installed."""
     path_to_script = self.PathJoin(
         self._local_slave_script_dir, 'run_android.py')
     cmd = ['python', path_to_script,

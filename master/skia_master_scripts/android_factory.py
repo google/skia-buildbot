@@ -11,31 +11,53 @@ from skia_master_scripts import factory as skia_factory
 class AndroidFactory(skia_factory.SkiaFactory):
   """Overrides for Android builds."""
 
+  def Compile(self):
+    """Compile step.  Build everything. """
+    environment = 'ANDROID_SDK_ROOT=/home/chrome-bot/android-sdk-linux'
+    self._skia_cmd_obj.AddRunCommand(
+        command='%s ../android/bin/android_make all -d %s %s' % (
+                    environment, self._device, self._make_flags),
+        description='BuildAll')
+    # Install the app onto the device, so that it can be used in later steps.
+    self._skia_cmd_obj.AddInstallAndroid(device=self._device)
+
+  def RunTests(self):
+    """ Run the unit tests. """
+    self.PushBinaryToDeviceAndRun(device=self._device, binary_name='tests',
+                                  description='RunTests')
+
+  def RunGM(self, path_to_gm, gm_actual_dir):
+    """ Run the "GM" tool, saving the images to disk. """
+    self._skia_cmd_obj.AddAndroidRunGM(device=self._device,
+                                       arguments='--nopdf --noreplay')
+
+  def CompareGMs(self, gm_actual_dir):
+    """ Run the "skdiff" tool to compare the "actual" GM images we just
+    generated to the baselines in _gm_image_subdir. """
+    command_list = [
+        'make clean',
+        'make tools %s' % self._make_flags,
+        ]
+    self._skia_cmd_obj.AddRunCommandList(
+        command_list=command_list, description='BuildSkDiff')
+    skia_factory.SkiaFactory.CompareGMs(self, gm_actual_dir)
+
+  def RunBench(self):
+    """ Run "bench", piping the output somewhere so we can graph
+    results over time. """
+    # TODO(borenet): Actually pipe the output somewhere, or update the master to
+    # capture the output.
+    self.PushBinaryToDeviceAndRun(device=self._device, binary_name='bench',
+                                  description='RunBench')
+
   def Build(self, device, clobber=None):
     """Build and return the complete BuildFactory.
 
     device: string indicating which Android device type we are targeting
     clobber: boolean indicating whether we should clean before building
     """
-    if clobber is None:
-      clobber = self._default_clobber
-    if clobber:
-      self._skia_cmd_obj.AddClean()
-
-    environment = 'ANDROID_SDK_ROOT=/home/chrome-bot/android-sdk-linux'
-    self._skia_cmd_obj.AddRunCommand(
-        command='%s ../android/bin/android_make all -d %s %s' % (
-                    environment, device, self._make_flags),
-        description='BuildAll')
-
-    self.PushBinaryToDeviceAndRun(device=device, binary_name='tests',
-                                  description='RunTests')
-    self._skia_cmd_obj.AddAndroidRunGM(device=device,
-                                       arguments='--nopdf --noreplay')
-    self.PushBinaryToDeviceAndRun(device=device, binary_name='bench',
-                                  description='RunBench')
-
-    return self._factory
+    self._device = device
+    return super(AndroidFactory, self).Build(clobber)
 
   def PushBinaryToDeviceAndRun(self, device, binary_name, arguments='',
                                description=None, timeout=None):
