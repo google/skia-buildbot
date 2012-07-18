@@ -125,8 +125,8 @@ class SkiaCommands(commands.FactoryCommands):
                          timeout=timeout, command=cmd, workdir=self.workdir,
                          env=self.environment_variables)
 
-  def AddRunAndroid(self, device, binary_name, args, description='RunAndroid',
-                    timeout=None):
+  def AddRunAndroid(self, device, binary_name, description='RunAndroid',
+                    args='', timeout=None):
     """Runs any of the Skia binaries, provided that they have already been
     built and the APK has been installed."""
     path_to_script = self.PathJoin(
