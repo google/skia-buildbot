@@ -74,7 +74,7 @@ class SkiaCommands(commands.FactoryCommands):
                          timeout=timeout, command=cmd, workdir=self.workdir,
                          env=self.environment_variables)
 
-  def AddMergeIntoSvn(self, source_dir_path, dest_svn_url,
+  def AddMergeIntoSvn(self, source_dir_path, dest_svn_url, merge_dir_path,
                       svn_username_file, svn_password_file,
                       commit_message=None, description='MergeIntoSvn',
                       timeout=None):
@@ -86,11 +86,13 @@ class SkiaCommands(commands.FactoryCommands):
     path_to_upload_script = self.PathJoin(
         self._local_slave_script_dir, 'merge_into_svn.py')
     cmd = ['python', path_to_upload_script,
-           '--source_dir_path', source_dir_path,
+           '--commit_message', commit_message,
            '--dest_svn_url', dest_svn_url,
-           '--svn_username_file', svn_username_file,
+           '--merge_dir_path', merge_dir_path,
+           '--source_dir_path', source_dir_path,
            '--svn_password_file', svn_password_file,
-           '--commit_message', commit_message]
+           '--svn_username_file', svn_username_file,
+           ]
     if not timeout:
       timeout = self.default_timeout
     self.factory.addStep(shell.ShellCommand, description=description,
