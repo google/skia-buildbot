@@ -148,8 +148,6 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
   def PrepForGM(self, path_to_gm, gm_actual_dir):
     """ Ensure that the output image directory for GM exists and is empty. """
-    gm_merge_dir = self.TargetPathJoin(
-        self._gm_merge_basedir, self._gm_image_subdir)
     if self._target_platform == TARGET_PLATFORM_WIN32:
       # This ridiculous hack is the simplest way I could think of to
       # consistently create an empty directory (whether it already existed
@@ -177,6 +175,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
   def UploadGMResults(self, gm_actual_dir):
     """ Upload actual GM results to the skia-autogen SVN repository to aid in
     rebaselining. """
+    gm_merge_dir = self.TargetPathJoin(
+        self._gm_merge_basedir, self._gm_image_subdir)
     self._skia_cmd_obj.AddMergeIntoSvn(
           source_dir_path=gm_actual_dir,
           dest_svn_url='%s/%s' % (

@@ -6,6 +6,7 @@
 
 Overrides SkiaFactory with any Android-specific steps."""
 
+import os
 import tempfile
 import shutil
 
@@ -56,6 +57,7 @@ class HouseKeepingFactory(skia_factory.SkiaFactory):
             source_dir_path=self.TargetPathJoin(
                 doxygen_working_dir, 'docs'),
             dest_svn_url=doxygen_actual_svn_baseurl,
+            merge_dir_path=os.path.join(doxygen_working_dir, 'merge'),
             svn_username_file=self._autogen_svn_username_file,
             svn_password_file=self._autogen_svn_password_file,
             commit_message=WithProperties(
