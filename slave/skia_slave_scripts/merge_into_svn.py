@@ -9,14 +9,15 @@ To test:
   cd .../buildbot/slave/skia_slave_scripts
   echo "SvnUsername" >../../site_config/.svnusername
   echo "SvnPassword" >../../site_config/.svnpassword
-  rm -rf /tmp/svnmerge
-  mkdir -p /tmp/svnmerge
-  date >/tmp/svnmerge/date.png
-  date >/tmp/svnmerge/date.txt
+  rm -rf /tmp/svn-source-dir
+  mkdir -p /tmp/svn-source-dir
+  date >/tmp/svn-source-dir/date.png
+  date >/tmp/svn-source-dir/date.txt
   CR_BUILDBOT_PATH=../../third_party/chromium_buildbot
   PYTHONPATH=$CR_BUILDBOT_PATH/scripts:$CR_BUILDBOT_PATH/site_config \
    python merge_into_svn.py \
-   --source_dir_path=/tmp/svnmerge \
+   --source_dir_path=/tmp/svn-source-dir \
+   --merge_dir_path=/tmp/svn-merge-dir \
    --dest_svn_url=https://skia-autogen.googlecode.com/svn/gm-actual/test \
    --svn_username_file=.svnusername --svn_password_file=.svnpassword
   # and check
@@ -68,6 +69,48 @@ def _CopyAllFiles(source_dir, dest_dir):
     else:
       shutil.copyfile(source_path, dest_path)
 
+def _DeleteDirectoryContents(dir):
+  """Delete all contents (recursively) within dir, but don't delete the
+  directory itself.
+
+  @param dir directory whose contents to delete
+  """
+  basenames = os.listdir(dir)
+  for basename in basenames:
+    path = os.path.join(dir, basename)
+    if os.path.isdir(path):
+      shutil.rmtree(path)
+    else:
+      os.unlink(path)
+
+# TODO: We should either add an Update() command to svn.py, or make its
+# _RunSvnCommand() method public; in the meanwhile, abuse its private
+# _RunSvnCommand() method.
+# See https://code.google.com/p/skia/issues/detail?id=713
+def _SvnUpdate(repo, additional_svn_flags=[]):
+  return repo._RunSvnCommand(['update'] + additional_svn_flags)
+
+# TODO: We should either add an Import() command to svn.py, or make its
+# _RunSvnCommand() method public; in the meanwhile, abuse its private
+# _RunSvnCommand() method.
+# See https://code.google.com/p/skia/issues/detail?id=713
+def _SvnImport(repo, path, url, message, additional_svn_flags=[]):
+  return repo._RunSvnCommand(['import', path, url, '--message', message]
+                             + additional_svn_flags)
+
+# TODO: We should either add a command like this to svn.py, or make its
+# _RunSvnCommand() method public; in the meanwhile, abuse its private
+# _RunSvnCommand() method.
+# See https://code.google.com/p/skia/issues/detail?id=713
+def _SvnDoesUrlExist(repo, url):
+  try:
+    repo._RunSvnCommand(['ls', url])
+    return True
+  except Exception:
+    # TODO: this will treat *any* exception in "svn ls" as signalling that
+    # the URL does not exist.  Should we look for something more specific?
+    return False
+
 def MergeIntoSvn(options):
   """Update an SVN repository with any new/modified files from a directory.
 
@@ -96,14 +139,20 @@ def MergeIntoSvn(options):
                      '--trust-server-cert', '--no-auth-cache',
                      '--non-interactive'])
 
+  # If this repo hasn't been created yet, create it, and clear out the mergedir
+  # (just in case there is old stuff in there) to match the newly created repo.
+  if not _SvnDoesUrlExist(repo=repo, url=options.dest_svn_url):
+    _DeleteDirectoryContents(mergedir)
+    print _SvnImport(
+        repo=repo, url=options.dest_svn_url, path='.',
+        message='automatic initial creation by merge_into_svn.py')
+
   # If we have already checked out this workspace, just update it (resolving
   # any conflicts in favor of the repository HEAD) rather than pulling a
   # fresh checkout.
   if os.path.isdir(os.path.join(mergedir, '.svn')):
-    # TODO: We should either add an Update() command to svn.py, or make its
-    # _RunSvnCommand() method public; in the meanwhile, abuse its private
-    # _RunSvnCommand() method.
-    print repo._RunSvnCommand(['update', '--accept', 'theirs-full'])
+    print _SvnUpdate(repo=repo,
+                     additional_svn_flags=['--accept', 'theirs-full'])
   else:
     print repo.Checkout(url=options.dest_svn_url, path='.')
 
