@@ -198,7 +198,6 @@ class SkiaFactory(gclient_factory.GClientFactory):
         command='%s --listfilenames --nodiffs --nomatch README'
                 ' --failonresult DifferentPixels --failonresult DifferentSizes'
                 ' --failonresult DifferentOther  --failonresult Unknown'
-                ' --failonresult ComparisonMissing'
                 ' %s %s' % (path_to_skdiff, gm_expected_dir, gm_actual_dir),
         description='CompareGMs')
 
