@@ -63,6 +63,31 @@ def Update(config, active_master, c):
       builder_name='Skia_Linux_Float_NoDebug',
       ).Build())
 
+  # Linux (Ubuntu12) on Shuttle with ATI5770 graphics card
+  defaults['category'] = 'Shuttle_Ubuntu12_ATI5770'
+  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug', 'f_skia_shuttle_ubuntu12_ati5770_float_debug',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_ubuntu12_ati5770_float_debug', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration='Debug',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
+      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
+      perf_output_basedir=None, # no perf measurement for debug builds
+      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug',
+      ).Build())
+  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Release', 'f_skia_shuttle_ubuntu12_ati5770_float_release',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_ubuntu12_ati5770_float_release', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration='Release',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
+      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
+      perf_output_basedir=perf_output_basedir_linux,
+      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Release',
+      ).Build())
+
   # Android (runs on a Linux buildbot slave)...
   defaults['category'] = 'android'
   B('Skia_NexusS_4-1_Float_Debug', 'f_skia_nexus_s_4-1_float_debug',
