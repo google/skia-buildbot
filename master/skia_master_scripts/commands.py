@@ -74,6 +74,31 @@ class SkiaCommands(commands.FactoryCommands):
                          timeout=timeout, command=cmd, workdir=self.workdir,
                          env=self.environment_variables)
 
+  def AddMergeIntoSvn(self, source_dir_path, dest_svn_url, merge_dir_path,
+                      svn_username_file, svn_password_file,
+                      commit_message=None, description='MergeIntoSvn',
+                      timeout=None):
+    """Adds a step that commits all files within a directory to a special
+    SVN repository."""
+    if not commit_message:
+      commit_message = 'automated svn commit of %s step' % description
+
+    path_to_upload_script = self.PathJoin(
+        self._local_slave_script_dir, 'merge_into_svn.py')
+    cmd = ['python', path_to_upload_script,
+           '--commit_message', commit_message,
+           '--dest_svn_url', dest_svn_url,
+           '--merge_dir_path', merge_dir_path,
+           '--source_dir_path', source_dir_path,
+           '--svn_password_file', svn_password_file,
+           '--svn_username_file', svn_username_file,
+           ]
+    if not timeout:
+      timeout = self.default_timeout
+    self.factory.addStep(shell.ShellCommand, description=description,
+                         timeout=timeout, command=cmd, workdir=self.workdir,
+                         env=self.environment_variables)
+
   def AddUploadGMResults(self, gm_image_subdir, builder_name,
                          description='UploadGMResults', timeout=None):
     """Adds a step that calls upload_gm_results.py on the slave."""
