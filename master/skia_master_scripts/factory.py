@@ -172,23 +172,6 @@ class SkiaFactory(gclient_factory.GClientFactory):
         command=gm_command,
         description='GenerateGMs')
 
-  def UploadGMResults(self, gm_actual_dir):
-    """ Upload actual GM results to the skia-autogen SVN repository to aid in
-    rebaselining. """
-    gm_merge_dir = self.TargetPathJoin(
-        self._gm_merge_basedir, self._gm_image_subdir)
-    self._skia_cmd_obj.AddMergeIntoSvn(
-          source_dir_path=gm_actual_dir,
-          dest_svn_url='%s/%s' % (
-              self._gm_actual_svn_baseurl, self._gm_image_subdir),
-          merge_dir_path=gm_merge_dir,
-          svn_username_file=self._autogen_svn_username_file,
-          svn_password_file=self._autogen_svn_password_file,
-          commit_message=WithProperties(
-              'UploadGMResults of r%%(%s:-)s on %s' % (
-                  'revision', self._builder_name)),
-          description='UploadGMResults')
-
   def CompareGMs(self, gm_actual_dir):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
     generated to the baselines in _gm_image_subdir. """
@@ -286,7 +269,9 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self.PrepForGM(path_to_gm, gm_actual_dir)
     self.RunGM(path_to_gm, gm_actual_dir)
     if self._do_upload_results:
-      self.UploadGMResults(gm_actual_dir)
+      self._skia_cmd_obj.AddUploadGMResults(
+          gm_image_subdir=self._gm_image_subdir,
+          builder_name=self._builder_name)
     self.CompareGMs(gm_actual_dir)
     self.RunBench()
     self.BenchGraphs()
