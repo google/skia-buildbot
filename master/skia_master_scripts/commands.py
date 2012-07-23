@@ -44,118 +44,72 @@ class SkiaCommands(commands.FactoryCommands):
 
   def AddClean(self, build_target='clean', description='Clean', timeout=None):
     """Does a 'make clean'"""
-    cmd = 'make %s' % build_target
-    if not timeout:
-      timeout = self.default_timeout
-    self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=cmd, workdir=self.workdir,
-                         env=self.environment_variables)
+    self.AddRunCommand(command='make %s' % build_target, description=description, timeout=timeout)
 
-  def AddBuild(self, build_target, description='Build', timeout=None):
-    """Adds a compile step to the build."""
-    cmd = 'make %s' % build_target
-    if not timeout:
-      timeout = self.default_timeout
-    self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=cmd, workdir=self.workdir,
-                         env=self.environment_variables)
-
-  def AddUploadToBucket(self, source_filepath,
-                        dest_gsbase='gs://chromium-skia-gm',
+  def AddUploadToBucket(self, source_filepath, dest_gsbase='gs://chromium-skia-gm',
                         description='Upload', timeout=None):
     """Adds a step that uploads a file to a Google Storage Bucket."""
-    path_to_upload_script = self.PathJoin(
-        self._local_slave_script_dir, 'upload_to_bucket.py')
-    cmd = 'python %s --source_filepath=%s --dest_gsbase=%s' % (
-        path_to_upload_script, source_filepath, dest_gsbase)
-    if not timeout:
-      timeout = self.default_timeout
-    self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=cmd, workdir=self.workdir,
-                         env=self.environment_variables)
+    args = ['--source_filepath', source_filepath,
+            '--dest_gsbase', dest_gsbase,
+            ]
+    self.AddSlaveScript(script='upload_to_bucket.py', args=args,
+                        description=description, timeout=timeout)
 
   def AddMergeIntoSvn(self, source_dir_path, dest_svn_url, merge_dir_path,
                       svn_username_file, svn_password_file,
                       commit_message=None, description='MergeIntoSvn',
                       timeout=None):
-    """Adds a step that commits all files within a directory to a special
-    SVN repository."""
+    """Adds a step that commits all files within a directory to a special SVN repository."""
     if not commit_message:
       commit_message = 'automated svn commit of %s step' % description
-
-    path_to_upload_script = self.PathJoin(
-        self._local_slave_script_dir, 'merge_into_svn.py')
-    cmd = ['python', path_to_upload_script,
-           '--commit_message', commit_message,
-           '--dest_svn_url', dest_svn_url,
-           '--merge_dir_path', merge_dir_path,
-           '--source_dir_path', source_dir_path,
-           '--svn_password_file', svn_password_file,
-           '--svn_username_file', svn_username_file,
-           ]
-    if not timeout:
-      timeout = self.default_timeout
-    self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=cmd, workdir=self.workdir,
-                         env=self.environment_variables)
+    args = ['--commit_message', commit_message,
+            '--dest_svn_url', dest_svn_url,
+            '--merge_dir_path', merge_dir_path,
+            '--source_dir_path', source_dir_path,
+            '--svn_password_file', svn_password_file,
+            '--svn_username_file', svn_username_file,
+            ]
+    self.AddSlaveScript(script='merge_into_svn.py', args=args,
+                        description=description, timeout=timeout)
 
   def AddUploadGMResults(self, gm_image_subdir, builder_name,
                          description='UploadGMResults', timeout=None):
     """Adds a step that calls upload_gm_results.py on the slave."""
-    path_to_script = self.PathJoin(
-        self._local_slave_script_dir, 'upload_gm_results.py')
-    cmd = ['python', path_to_script,
-           '--gm_image_subdir', gm_image_subdir,
-           '--builder_name', builder_name,
-           '--got_revision', WithProperties('%(got_revision)s'),
-           ]
-    if not timeout:
-      timeout = self.default_timeout
-    self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=cmd, workdir=self.workdir,
-                         env=self.environment_variables)
+    args = ['--gm_image_subdir', gm_image_subdir,
+            '--builder_name', builder_name,
+            '--got_revision', WithProperties('%(got_revision)s'),
+            ]
+    self.AddSlaveScript(script='upload_gm_results.py', args=args,
+                        description=description, timeout=timeout)
 
-  def AddAndroidRunGM(self, device, description='RunGM', arguments='',
-                      timeout=None):
+  def AddAndroidRunGM(self, device, description='RunGM', arguments='', timeout=None):
     """ Runs GM on the device and pulls the output images to the host. """
-    path_to_script = self.PathJoin(
-        self._local_slave_script_dir, 'android_run_gm.py')
-    cmd = ['python', path_to_script,
-           '--device', device,
-           '--args', arguments]
-    if not timeout:
-      timeout = self.default_timeout
-    self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=cmd, workdir=self.workdir,
-                         env=self.environment_variables)
+    args = ['--device', device,
+            '--args', arguments]
+    self.AddSlaveScript(script='android_run_gm.py', args=args,
+                        description=description, timeout=timeout)
 
   def AddInstallAndroid(self, device, description='InstallAPK', timeout=None):
     """ Installs the Skia APK to the requested device. """
-    path_to_script = self.PathJoin(
-        self._local_slave_script_dir, 'install_android.py')
-    cmd = ['python', path_to_script,
-           '--device', device]
-    if not timeout:
-      timeout = self.default_timeout
-    self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=cmd, workdir=self.workdir,
-                         env=self.environment_variables)
+    args = ['--device', device]
+    self.AddSlaveScript(script='install_android.py', args=args,
+                        description=description, timeout=timeout)
 
   def AddRunAndroid(self, device, binary_name, description='RunAndroid',
                     args='', timeout=None):
     """Runs any of the Skia binaries, provided that they have already been
     built and the APK has been installed."""
-    path_to_script = self.PathJoin(
-        self._local_slave_script_dir, 'run_android.py')
-    cmd = ['python', path_to_script,
-           '--binary_name', binary_name,
-           '--device', device,
-           '--args', args]
-    if not timeout:
-      timeout = self.default_timeout
-    self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=cmd, workdir=self.workdir,
-                         env=self.environment_variables)
+    args = ['--binary_name', binary_name,
+            '--device', device,
+            '--args', args]
+    self.AddSlaveScript(script='run_android.py', args=args,
+                        description=description, timeout=timeout)
+
+  def AddSlaveScript(self, script, args, description, timeout=None):
+    """Run a slave-side Python script as its own build step."""
+    path_to_script = self.PathJoin(self._local_slave_script_dir, script)
+    self.AddRunCommand(command=['python', path_to_script] + args,
+                       description=description, timeout=timeout)
 
   def AddRunCommand(self, command, description='Run', timeout=None):
     """Runs an arbitrary command, perhaps a binary we built."""

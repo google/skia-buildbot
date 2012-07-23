@@ -119,26 +119,19 @@ class SkiaFactory(gclient_factory.GClientFactory):
         target_arch=None, default_timeout=default_timeout,
         environment_variables=environment_variables)
 
+  def _Make(self, target, description):
+    """Build a single target."""
+    self._skia_cmd_obj.AddRunCommand(command='make %s %s' % (target, self._make_flags),
+                                     description=description)
+
   def Compile(self):
     """Compile step.  Build everything. """
-    self._skia_cmd_obj.AddRunCommand(
-        command='make core %s' % self._make_flags,
-        description='BuildCore')
-    self._skia_cmd_obj.AddRunCommand(
-        command='make tests %s' % self._make_flags,
-        description='BuildTests')
-    self._skia_cmd_obj.AddRunCommand(
-        command='make gm %s' % self._make_flags,
-        description='BuildGM')
-    self._skia_cmd_obj.AddRunCommand(
-        command='make tools %s' % self._make_flags,
-        description='BuildTools')
-    self._skia_cmd_obj.AddRunCommand(
-        command='make bench %s' % self._make_flags,
-        description='BuildBench')
-    self._skia_cmd_obj.AddRunCommand(
-        command='make all %s' % self._make_flags,
-        description='BuildAllOtherTargets')
+    self._Make('core',  'BuildCore')
+    self._Make('tests', 'BuildTests')
+    self._Make('gm',    'BuildGM')
+    self._Make('tools', 'BuildTools')
+    self._Make('bench', 'BuildBench')
+    self._Make('all',   'BuildAllOtherTargets')
 
   def RunTests(self):
     """ Run the unit tests. """
