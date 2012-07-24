@@ -6,14 +6,14 @@
 """Commit all files within a directory to an SVN repository.
 
 To test:
-  cd .../buildbot/slave/skia_slave_scripts
-  echo "SvnUsername" >../../site_config/.svnusername
-  echo "SvnPassword" >../../site_config/.svnpassword
+  cd .../buildbot/slave/skia_slave_scripts/utils
+  echo "SvnUsername" >../../../site_config/.svnusername
+  echo "SvnPassword" >../../../site_config/.svnpassword
   rm -rf /tmp/svn-source-dir
   mkdir -p /tmp/svn-source-dir
   date >/tmp/svn-source-dir/date.png
   date >/tmp/svn-source-dir/date.txt
-  CR_BUILDBOT_PATH=../../third_party/chromium_buildbot
+  CR_BUILDBOT_PATH=../../../third_party/chromium_buildbot
   PYTHONPATH=$CR_BUILDBOT_PATH/scripts:$CR_BUILDBOT_PATH/site_config \
    python merge_into_svn.py \
    --source_dir_path=/tmp/svn-source-dir \
@@ -25,10 +25,10 @@ To test:
 
 """
 
+import misc
 import optparse
 import os
 import shutil
-import skia_slave_utils
 import sys
 import tempfile
 
@@ -118,8 +118,8 @@ def MergeIntoSvn(options):
   """
   # Get path to SVN username and password files.
   # (Patterned after slave_utils.py's logic to find the .boto file.)
-  site_config_path = os.path.join(os.path.dirname(__file__),
-                                  '..', '..', 'site_config')
+  site_config_path = os.path.join(
+      os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, 'site_config')
   svn_username_path = os.path.join(site_config_path, options.svn_username_file)
   svn_password_path = os.path.join(site_config_path, options.svn_password_file)
   svn_username = ReadFirstLineOfFileAsString(svn_username_path).rstrip()
@@ -199,7 +199,7 @@ def main(argv):
   (options, args) = option_parser.parse_args()
   if len(args) != 0:
     raise Exception('bogus command-line argument; rerun with --help')
-  skia_slave_utils.ConfirmOptionsSet({
+  misc.ConfirmOptionsSet({
       '--dest_svn_url': options.dest_svn_url,
       '--source_dir_path': options.source_dir_path,
       '--svn_password_file': options.svn_password_file,

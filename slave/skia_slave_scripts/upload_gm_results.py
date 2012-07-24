@@ -5,8 +5,6 @@
 
 """ Upload actual GM results to the skia-autogen SVN repository to aid in rebaselining.
 
-TODO: Move per-buildstep scripts like this into their own "steps" directory.
-
 To test:
   cd .../buildbot/slave/skia_slave_scripts
   echo "SvnUsername" >../../site_config/.autogen_svn_username
@@ -28,7 +26,7 @@ To test:
 
 """
 
-import merge_into_svn
+from utils import merge_into_svn
 import optparse
 import os
 import skia_slave_utils

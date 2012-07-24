@@ -52,7 +52,7 @@ class SkiaCommands(commands.FactoryCommands):
     args = ['--source_filepath', source_filepath,
             '--dest_gsbase', dest_gsbase,
             ]
-    self.AddSlaveScript(script='upload_to_bucket.py', args=args,
+    self.AddSlaveScript(script=self.PathJoin('utils', 'upload_to_bucket.py'), args=args,
                         description=description, timeout=timeout)
 
   def AddMergeIntoSvn(self, source_dir_path, dest_svn_url, merge_dir_path,
@@ -69,7 +69,7 @@ class SkiaCommands(commands.FactoryCommands):
             '--svn_password_file', svn_password_file,
             '--svn_username_file', svn_username_file,
             ]
-    self.AddSlaveScript(script='merge_into_svn.py', args=args,
+    self.AddSlaveScript(script=self.PathJoin('utils', 'merge_into_svn.py'), args=args,
                         description=description, timeout=timeout)
 
   def AddUploadGMResults(self, gm_image_subdir, builder_name,

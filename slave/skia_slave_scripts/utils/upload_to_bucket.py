@@ -6,11 +6,11 @@
 """Upload a single file to a Google Storage Bucket.
 
 To test:
-  cd .../buildbot/slave/skia_slave_scripts
-  CR_BUILDBOT_PATH=../../third_party/chromium_buildbot
+  cd .../buildbot/slave/skia_slave_scripts/utils
+  CR_BUILDBOT_PATH=../../../third_party/chromium_buildbot
   PYTHONPATH=$CR_BUILDBOT_PATH/scripts:$CR_BUILDBOT_PATH/site_config \
   python upload_to_bucket.py \
-    --source_filepath=../../DEPS --dest_gsbase=gs://chromium-skia-gm
+    --source_filepath=../../../DEPS --dest_gsbase=gs://chromium-skia-gm
 """
 
 import optparse
