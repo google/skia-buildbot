@@ -134,6 +134,28 @@ def Update(config, active_master, c):
       gm_image_subdir='base-android-xoom',
       builder_name='Skia_Xoom_4-1_Float_Release',
       ).Build(device='xoom'))
+  B('Skia_GalaxyNexus_4-1_Float_Debug', 'f_skia_galaxy_nexus_4-1_float_debug',
+      scheduler='skia_rel')
+  F('f_skia_galaxy_nexus_4-1_float_debug', android_factory.AndroidFactory(
+      do_upload_results=do_upload_results,
+      other_subdirs=['android'],
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration='Debug',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir='base-android-galaxy-nexus',
+      builder_name='Skia_GalaxyNexus_4-1_Float_Debug',
+      ).Build(device='galaxy_nexus'))
+  B('Skia_GalaxyNexus_4-1_Float_Release', 'f_skia_galaxy_nexus_4-1_float_release',
+      scheduler='skia_rel')
+  F('f_skia_galaxy_nexus_4-1_float_release', android_factory.AndroidFactory(
+      do_upload_results=do_upload_results,
+      other_subdirs=['android'],
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration='Release',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir='base-android-galaxy_nexus',
+      builder_name='Skia_GalaxyNexus_4-1_Float_Release',
+      ).Build(device='galaxy_nexus'))
 
   # Mac 10.6 (SnowLeopard) ...
   defaults['category'] = 'mac-10.6'

@@ -14,10 +14,14 @@ class AndroidFactory(skia_factory.SkiaFactory):
   def Compile(self):
     """Compile step.  Build everything. """
     environment = 'ANDROID_SDK_ROOT=/home/chrome-bot/android-sdk-linux'
-    self._skia_cmd_obj.AddRunCommand(
-        command='%s ../android/bin/android_make all -d %s %s' % (
-                    environment, self._device, self._make_flags),
-        description='BuildAll')
+    command_list = [
+        'if [ -z "$ANDROID_SDK_ROOT" ]; then export'
+        ' ANDROID_SDK_ROOT=/home/chrome-bot/android-sdk-linux; fi',
+        '../android/bin/android_make all -d %s %s' % (
+            self._device, self._make_flags),
+        ]
+    self._skia_cmd_obj.AddRunCommandList(
+        command_list=command_list, description='BuildAll')
     # Install the app onto the device, so that it can be used in later steps.
     self._skia_cmd_obj.AddInstallAndroid(device=self._device)
 
