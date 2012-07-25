@@ -26,7 +26,7 @@ class Master(config_default.Master):
     project_url = 'http://skia.googlecode.com'
     # The master host runs in Google Compute Engine.
     master_host = '70.32.156.51'
-    is_production_host = socket.getfqdn() == master_host
+    is_production_host = socket.getfqdn() == 'skia-master.c.skia-buildbots.google.com.internal'
     master_port = 10115
     slave_port = 10116
     master_port_alt = 10117
