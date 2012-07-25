@@ -24,12 +24,12 @@ class Master(config_default.Master):
   class Skia(object):
     project_name = 'Skia'
     project_url = 'http://skia.googlecode.com'
-    # For now, this is epoger's Ubiquity instance.
-    master_host = 'wpgntat-ubiq141.hot.corp.google.com'
+    # The master host runs in Google Compute Engine.
+    master_host = '70.32.156.51'
     is_production_host = socket.getfqdn() == master_host
-    master_port = 8041
-    slave_port = 8141
-    master_port_alt = 8241
+    master_port = 10115
+    slave_port = 10116
+    master_port_alt = 10117
     tree_closing_notification_recipients = []
     from_address = 'skia-buildbot@google.com'
     buildbot_url = 'http://%s:%d/' % (master_host, master_port)
