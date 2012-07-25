@@ -4,13 +4,29 @@
       Skia Buildbot
     </title>
     <link rel="icon" href="favicon.ico">
+
+    <script language="JavaScript">
+    function setExternalView() {
+      document.all.external.checked = true;
+      document.all.content.src="http://70.32.156.51:10117/console?reload=40";
+    }
+    function setInternalView() {
+      document.all.internal.checked = true;
+      document.all.content.src="http://70.32.156.51:10115/console?reload=40";
+    }
+    </script>
+
   </head>
-  <body>
+  <body onload="setExternalView()">
 
 <table border="0" width="100%"><tr valign="top">
 
 <td width="20%">
 <h2>Skia Buildbot</h2>
+<form name="unused">
+<input type="radio" name="internal_external" value="external" id="external" onClick="setExternalView()">external view<br>
+<input type="radio" name="internal_external" value="internal" id="internal" onClick="setInternalView()">internal view<br>
+</form>
 </td>
 
 <td width="80%" align="right"><table border="1" width="100%">
@@ -46,7 +62,7 @@
 <a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots">current build-breaking bugs</a>
 </center>
 
-<iframe width="100%" height="100%" src="http://70.32.156.51:10117/console?reload=40"></iframe>
+<iframe id="content" width="100%" height="100%" src="about:blank"></iframe>
 
  </body>
 </html>
