@@ -17,7 +17,8 @@ PATH_TO_APK = os.path.join('out', 'android', 'bin', 'SkiaAndroid.apk')
 PROCESS_MONITOR_INTERVAL = 5.0 # Seconds
 SKIA_RUNNING = 'running'
 DEVICE_LOOKUP = {'nexus_s': 'crespo',
-                 'xoom': 'stingray'}
+                 'xoom': 'stingray',
+                 'galaxy_nexus': 'toro'}
 
 def ConfirmOptionsSet(name_value_dict):
   """Raise an exception if any of the given command-line options were not set.

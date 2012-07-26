@@ -27,9 +27,9 @@ To test:
 """
 
 from utils import merge_into_svn
+from utils import misc
 import optparse
 import os
-import skia_slave_utils
 import sys
 
 # Class we can set attributes on, to emulate optparse-parsed options.
@@ -68,7 +68,7 @@ def main(argv):
   (options, args) = option_parser.parse_args()
   if len(args) != 0:
     raise Exception('bogus command-line argument; rerun with --help')
-  skia_slave_utils.ConfirmOptionsSet({
+  misc.ConfirmOptionsSet({
       '--builder_name': options.builder_name,
       '--gm_image_subdir': options.gm_image_subdir,
       '--got_revision': options.got_revision,
