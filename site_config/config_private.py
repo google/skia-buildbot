@@ -31,7 +31,7 @@ class Master(config_default.Master):
     slave_port = 10116
     master_port_alt = 10117
     tree_closing_notification_recipients = []
-    from_address = 'skia-buildbot@pogerlabs.com'
+    from_address = 'skia-buildbot@google.com'
     buildbot_url = 'http://%s:%d/' % (master_host, master_port)
 
 class Archive(config_default.Archive):
