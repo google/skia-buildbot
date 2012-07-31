@@ -153,7 +153,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir='base-android-galaxy_nexus',
+      gm_image_subdir='base-android-galaxy-nexus',
       builder_name='Skia_GalaxyNexus_4-1_Float_Release',
       ).Build(device='galaxy_nexus'))
 
