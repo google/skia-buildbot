@@ -18,7 +18,8 @@ PROCESS_MONITOR_INTERVAL = 5.0 # Seconds
 SKIA_RUNNING = 'running'
 DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'xoom': 'stingray',
-                 'galaxy_nexus': 'toro'}
+                 'galaxy_nexus': 'toro',
+                 'nexus_7': 'grouper'}
 
 def ConfirmOptionsSet(name_value_dict):
   """Raise an exception if any of the given command-line options were not set.
@@ -96,8 +97,7 @@ def GetSerial(device_type):
   device_type: string indicating the 'common name' for the target device
   """
   if not device_type in DEVICE_LOOKUP:
-    print 'Unknown device: %s!' % device_type
-    return None
+    raise ValueError('Unknown device: %s!' % device_type)
   device_name = DEVICE_LOOKUP[device_type]
   output = BashGet('%s devices' % PATH_TO_ADB, echo=True)
   print output
