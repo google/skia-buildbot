@@ -289,4 +289,18 @@ def Update(config, active_master, c):
       builder_name='Skia_House_Keeping',
       ).Build())
 
+  # "Special" bots, running on Linux
+  defaults['category'] = 'Linux-Special'
+  B('Skia_Linux_NoGPU', 'f_skia_linux_no_gpu',
+      scheduler='skia_rel')
+  F('f_skia_linux_no_gpu', skia_factory.SkiaFactory(
+      do_upload_results=False,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration='Debug',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_gpu=0'},
+      gm_image_subdir='base-linux',
+      perf_output_basedir=None, # no perf measurement for debug builds
+      builder_name='Skia_Linux_NoGPU',
+      ).Build())
+
   return helper.Update(c)
