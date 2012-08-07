@@ -3,12 +3,12 @@
 # found in the LICENSE file.
 
 from buildbot.changes import svnpoller
-
 from master import build_utils
+from skia_master_scripts import utils
 
 def SkiaFileSplitter(path):
   """split_file for Skia."""
-  projects = ['trunk']
+  projects = utils.SKIA_PRIMARY_SUBDIRS
   return build_utils.SplitPath(projects, path)
 
 def Update(config, active_master, c):

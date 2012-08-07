@@ -8,6 +8,7 @@ from master import master_config
 from skia_master_scripts import android_factory
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import housekeeping_factory
+from skia_master_scripts import utils
 
 # Directory where we want to record performance data
 #
@@ -20,15 +21,14 @@ perf_output_basedir_windows = '..\\..\\..\\..\\perfdata'
 defaults = {}
 
 def Update(config, active_master, c):
-  helper = master_config.Helper(defaults)
+  helper = utils.SkiaHelper(defaults)
   B = helper.Builder
   F = helper.Factory
-  S = helper.Scheduler
 
   #
   # Main Scheduler for Skia
   #
-  S('skia_rel', branch='trunk', treeStableTimer=60)
+  helper.AnyBranchScheduler('skia_rel', branches=utils.SKIA_PRIMARY_SUBDIRS)
 
   #
   # Set up all the builders.
