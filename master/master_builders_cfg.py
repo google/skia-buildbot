@@ -298,7 +298,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_gpu=0'},
-      gm_image_subdir='base-linux',
+      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
       perf_output_basedir=None, # no perf measurement for debug builds
       builder_name='Skia_Linux_NoGPU',
       ).Build())
