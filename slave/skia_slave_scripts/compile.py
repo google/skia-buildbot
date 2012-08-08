@@ -7,6 +7,7 @@
 
 from utils import misc
 from build_step import BuildStep
+import os
 import shlex
 import sys
 
