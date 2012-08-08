@@ -93,6 +93,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
+    self._builder_name = builder_name
 
     self._common_args = ['--autogen_svn_baseurl', AUTOGEN_SVN_BASEURL,
                          '--configuration', configuration,
