@@ -16,7 +16,7 @@ class UploadBenchGraphs(BuildStep):
   def __init__(self, args, attempts=5):
     super(UploadBenchGraphs, self).__init__(args, attempts)
 
-  def Run(self, args):
+  def _Run(self, args):
     graph_filepath = bench_common.GraphFilePath(self._perf_graphs_dir,
                                                 self._builder_name)
     upload_to_bucket.upload_to_bucket(source_filepath=graph_filepath,
