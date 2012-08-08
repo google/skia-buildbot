@@ -48,6 +48,7 @@ class UploadGMResults(BuildStep):
     merge_options.svn_password_file = autogen_svn_password_file
     merge_options.svn_username_file = autogen_svn_username_file
     merge_into_svn.MergeIntoSvn(merge_options)
+    return True
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(UploadGMResults))
