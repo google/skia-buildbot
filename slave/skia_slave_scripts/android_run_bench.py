@@ -33,7 +33,7 @@ class AndroidRunBench(AndroidBuildStep, RunBench):
       misc.RunADB(serial, ['shell', 'rm', '-r', ANDROID_PERF_DIR])
       return True
     else:
-      misc.Run(serial, 'bench', arguments=(['-repeat', args['repeats']]))
+      misc.Run(serial, 'bench')
       return True
 
 if '__main__' == __name__:
