@@ -28,8 +28,8 @@ class UploadGMResults(BuildStep):
     gm_merge_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'merge')
     autogen_svn_baseurl = 'https://skia-autogen.googlecode.com/svn'
     gm_actual_svn_baseurl = '%s/%s' % (autogen_svn_baseurl, 'gm-actual')
-    autogen_svn_username_file = '.autogen_svn_username'
-    autogen_svn_password_file = '.autogen_svn_password'
+    autogen_svn_username_file = args['autogen_svn_username_file']
+    autogen_svn_password_file = args['autogen_svn_password_file']
   
     # Call MergeIntoSvn to actually perform the work.
     # TODO: We should do something a bit more sophisticated, to address
