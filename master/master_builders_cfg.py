@@ -38,31 +38,6 @@ def Update(config, active_master, c):
   #
   do_upload_results = active_master.is_production_host
 
-  # Linux...
-  defaults['category'] = 'linux'
-  B('Skia_Linux_Float_Debug', 'f_skia_linux_float_debug',
-      scheduler='skia_rel')
-  F('f_skia_linux_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
-      gm_image_subdir='base-linux',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Linux_Float_Debug',
-      ).Build())
-  B('Skia_Linux_Float_NoDebug', 'f_skia_linux_float_nodebug',
-      scheduler='skia_rel')
-  F('f_skia_linux_float_nodebug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
-      gm_image_subdir='base-linux',
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Linux_Float_NoDebug',
-      ).Build())
-
   # Linux (Ubuntu12) on Shuttle with ATI5770 graphics card
   defaults['category'] = 'Shuttle_Ubuntu12_ATI5770'
   B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug', 'f_skia_shuttle_ubuntu12_ati5770_float_debug',
@@ -227,31 +202,6 @@ def Update(config, active_master, c):
       gm_image_subdir='base-macmini-lion-float',
       perf_output_basedir=perf_output_basedir_mac,
       builder_name='Skia_MacMiniLion_Float_NoDebug',
-      ).Build())
-
-  # Original Windows bot...
-  defaults['category'] = 'windows'
-  B('Skia_Win32_Float_Debug', 'f_skia_win32_float_debug',
-      scheduler='skia_rel')
-  F('f_skia_win32_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir='base-win',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Win32_Float_Debug',
-      ).Build())
-  B('Skia_Win32_Float_NoDebug', 'f_skia_win32_float_nodebug',
-      scheduler='skia_rel')
-  F('f_skia_win32_float_nodebug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir='base-win',
-      perf_output_basedir=perf_output_basedir_windows,
-      builder_name='Skia_Win32_Float_NoDebug',
       ).Build())
 
   # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
