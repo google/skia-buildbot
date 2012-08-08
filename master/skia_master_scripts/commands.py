@@ -42,19 +42,6 @@ class SkiaCommands(commands.FactoryCommands):
     self._local_slave_script_dir = self.PathJoin(
         '..', '..', '..', '..', '..', '..', 'slave', 'skia_slave_scripts')
 
-  def AddClean(self, build_target='clean', description='Clean', timeout=None):
-    """Does a 'make clean'"""
-    self.AddRunCommand(command='make %s' % build_target, description=description, timeout=timeout)
-
-  def AddUploadToBucket(self, source_filepath, dest_gsbase='gs://chromium-skia-gm',
-                        description='Upload', timeout=None):
-    """Adds a step that uploads a file to a Google Storage Bucket."""
-    args = ['--source_filepath', source_filepath,
-            '--dest_gsbase', dest_gsbase,
-            ]
-    self.AddSlaveScript(script=self.PathJoin('utils', 'upload_to_bucket.py'), args=args,
-                        description=description, timeout=timeout)
-
   def AddMergeIntoSvn(self, source_dir_path, dest_svn_url, merge_dir_path,
                       svn_username_file, svn_password_file,
                       commit_message=None, description='MergeIntoSvn',
@@ -70,39 +57,6 @@ class SkiaCommands(commands.FactoryCommands):
             '--svn_username_file', svn_username_file,
             ]
     self.AddSlaveScript(script=self.PathJoin('utils', 'merge_into_svn.py'), args=args,
-                        description=description, timeout=timeout)
-
-  def AddUploadGMResults(self, gm_image_subdir, builder_name,
-                         description='UploadGMResults', timeout=None):
-    """Adds a step that calls upload_gm_results.py on the slave."""
-    args = ['--gm_image_subdir', gm_image_subdir,
-            '--builder_name', builder_name,
-            '--got_revision', WithProperties('%(got_revision)s'),
-            ]
-    self.AddSlaveScript(script='upload_gm_results.py', args=args,
-                        description=description, timeout=timeout)
-
-  def AddAndroidRunGM(self, device, description='RunGM', arguments='', timeout=None):
-    """ Runs GM on the device and pulls the output images to the host. """
-    args = ['--device', device,
-            '--args', arguments]
-    self.AddSlaveScript(script='android_run_gm.py', args=args,
-                        description=description, timeout=timeout)
-
-  def AddInstallAndroid(self, device, description='InstallAPK', timeout=None):
-    """ Installs the Skia APK to the requested device. """
-    args = ['--device', device]
-    self.AddSlaveScript(script='install_android.py', args=args,
-                        description=description, timeout=timeout)
-
-  def AddRunAndroid(self, device, binary_name, description='RunAndroid',
-                    args='', timeout=None):
-    """Runs any of the Skia binaries, provided that they have already been
-    built and the APK has been installed."""
-    args = ['--binary_name', binary_name,
-            '--device', device,
-            '--args', args]
-    self.AddSlaveScript(script='run_android.py', args=args,
                         description=description, timeout=timeout)
 
   def AddSlaveScript(self, script, args, description, timeout=None):

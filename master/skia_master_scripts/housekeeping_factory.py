@@ -25,7 +25,7 @@ class HouseKeepingFactory(skia_factory.SkiaFactory):
     if clobber is None:
       clobber = self._default_clobber
     if clobber:
-      self._skia_cmd_obj.AddClean()
+      self.AddSlaveScript(script='clean.py', args=[], description='Clean')
 
     # Build tools and run their unittests.
     # TODO: this runs a shell script, so would break on Windows. For now, we

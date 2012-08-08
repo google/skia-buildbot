@@ -21,6 +21,21 @@ DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'galaxy_nexus': 'toro',
                  'nexus_7': 'grouper'}
 
+def ArgsToDict(argv):
+  """ Collect command-line arguments of the form '--key value' into a
+  dictionary.  Fail if the arguments do not fit this format. """
+  dict = {}
+  PREFIX = '--'
+  # Expect the first arg to be the path to the script, which we don't want.
+  argv = argv[1:]
+  while argv:
+    if argv[0].startswith(PREFIX):
+      dict[argv[0][len(PREFIX):]] = argv[1]
+      argv = argv[2:]
+    else:
+      raise Exception('Malformed input: %s' % argv)
+  return dict
+
 def ConfirmOptionsSet(name_value_dict):
   """Raise an exception if any of the given command-line options were not set.
 
@@ -36,10 +51,10 @@ def Bash(cmd, echo=True):
   (Blocking) """
   if echo:
     print cmd
-  return subprocess.call(shlex.split(cmd)) == 0;
+  return subprocess.call(cmd) == 0;
 
 def BashGet(cmd, echo=True):
-  """ Run 'cmd' in a shell and return the exit code. (Blocking) """
+  """ Run 'cmd' in a shell and return stdout. (Blocking) """
   if echo:
     print(cmd)
   return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True
@@ -64,15 +79,19 @@ def BashAsync(cmd, echo=True):
   return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                           stderr=subprocess.STDOUT)
 
-def RunADB(serial, cmd):
+def RunADB(serial, cmd, attempts=1):
   """ Run 'cmd' on an Android device, using ADB
   
   serial: string indicating the serial number of the target device
   cmd: string; the command to issue on the device
+  attempts: number of times to attempt the command
   """
-  if not Bash('%s -s %s %s' % (PATH_TO_ADB, serial, cmd)):
-    raise Exception('ADB command failed')
-  return True
+  adb_cmd = [PATH_TO_ADB, '-s', serial]
+  adb_cmd += cmd
+  for attempt in range(attempts):
+    if Bash(adb_cmd):
+      return True
+  raise Exception('ADB command failed')
 
 def ADBKill(serial, process):
   """ Kill a process running on an Android device.
@@ -80,12 +99,12 @@ def ADBKill(serial, process):
   serial: string indicating the serial number of the target device
   process: string indicating the name of the process to kill
   """ 
-  stdout = BashGet('%s -s %s shell ps | grep %s' % (
-                       PATH_TO_ADB, serial, process)
-                  )
+  cmd = '%s -s %s shell ps | grep %s' % (PATH_TO_ADB, serial, process)
+  stdout = BashGet(cmd)
   if stdout != '':
     pid = shlex.split(stdout)[1]
-    RunADB(serial, 'shell kill %s' % pid)
+    kill_cmd = ['shell', 'kill', pid]
+    RunADB(serial, kill_cmd)
 
 def GetSerial(device_type):
   """ Determine the serial number of the *first* connected device with the
@@ -129,11 +148,12 @@ class _WatchLog(threading.Thread):
   does not finish normally, so we need to periodically check that the process is
   still running and terminate this thread if the process has died without
   printing a 'SKIA_RETURN_CODE'. """
-  def __init__(self, serial):
+  def __init__(self, serial, logfile=None):
     threading.Thread.__init__(self)
     self.retcode = SKIA_RUNNING
     self.serial = serial
     self._stopped = False
+    self._logfile = logfile
 
   def stop(self):
     self._stopped = True
@@ -145,6 +165,8 @@ class _WatchLog(threading.Thread):
     while not self._stopped:
       line = self._logger.stdout.readline()
       if line != '':
+        if self._logfile:
+          self._logfile.write(line)
         print line.rstrip('\r\n')
         if 'SKIA_RETURN_CODE' in line:
           self.retcode = shlex.split(line)[-1]
@@ -153,12 +175,12 @@ class _WatchLog(threading.Thread):
 
 def Install(serial):
   try:
-    RunADB(serial, 'uninstall com.skia')
+    RunADB(serial, ['uninstall', 'com.skia'])
   except:
     pass
-  RunADB(serial, 'install %s' % PATH_TO_APK)
+  RunADB(serial, ['install', PATH_TO_APK])
 
-def Run(serial, binary_name, arguments=''):
+def Run(serial, binary_name, arguments=[], logfile=None):
   """ Run 'binary_name', on the device with id 'serial', with 'arguments'.  This
   function sets and runs the Skia APK on a connected device.  We launch WatchLog
   in a new thread and then keep polling the device to make sure that the process
@@ -177,11 +199,17 @@ def Run(serial, binary_name, arguments=''):
   ADBKill(serial, 'skia_native')
   ADBKill(serial, 'skia')
 
-  RunADB(serial, 'logcat -c')
-  RunADB(serial,
-      'shell am broadcast -a com.skia.intent.action.LAUNCH_SKIA -n '
-      'com.skia/.SkiaReceiver -e args "%s %s"' % (binary_name, arguments))
-  logger = _WatchLog(serial)
+  RunADB(serial, ['logcat', '-c'])
+
+  cmd_line = binary_name
+  for arg in arguments:
+    cmd_line = '%s %s' % (cmd_line, arg)
+  cmd_line = '"%s"' % cmd_line
+  RunADB(serial, ['shell', 'am', 'broadcast',
+                  '-a', 'com.skia.intent.action.LAUNCH_SKIA',
+                  '-n', 'com.skia/.SkiaReceiver',
+                  '-e', 'args'] + shlex.split(cmd_line))
+  logger = _WatchLog(serial, logfile=logfile)
   logger.start()
   while logger.isAlive() and logger.retcode == SKIA_RUNNING:
     time.sleep(PROCESS_MONITOR_INTERVAL)
