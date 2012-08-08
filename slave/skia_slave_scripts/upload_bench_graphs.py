@@ -10,6 +10,7 @@ from utils import misc
 from utils import upload_to_bucket
 import optparse
 import os
+import sys
 
 class UploadBenchGraphs(BuildStep):
   def __init__(self, args, attempts=5):

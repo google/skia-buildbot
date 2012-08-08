@@ -91,6 +91,9 @@ class SkiaFactory(gclient_factory.GClientFactory):
     if not perf_output_basedir:
       perf_output_basedir = 'None'
 
+    if not gm_image_subdir:
+      gm_image_subdir = 'None'
+
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._builder_name = builder_name

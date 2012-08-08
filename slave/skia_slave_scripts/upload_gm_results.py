@@ -11,6 +11,7 @@ from utils import merge_into_svn
 from utils import misc
 import optparse
 import os
+import sys
 
 # Class we can set attributes on, to emulate optparse-parsed options.
 # TODO: Remove the need for this by passing parameters into MergeIntoSvn() some
