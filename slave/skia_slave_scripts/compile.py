@@ -12,7 +12,10 @@ import sys
 
 class Compile(BuildStep):
   def _Run(self, args):
-    cmd = ['make',
+    make_cmd = 'make'
+    if os.name == 'nt':
+      make_cmd = 'make.bat'
+    cmd = [make_cmd,
            args['target'],
            'BUILDTYPE=%s' % self._configuration,
            ]

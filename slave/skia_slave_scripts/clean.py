@@ -11,7 +11,10 @@ import sys
 
 class Clean(BuildStep):
   def _Run(self, args):
-    return misc.Bash(['make', 'clean'])
+    make_cmd = 'make'
+    if os.name == 'nt':
+      make_cmd = 'make.bat'
+    return misc.Bash([make_cmd, 'clean'])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(Clean))
