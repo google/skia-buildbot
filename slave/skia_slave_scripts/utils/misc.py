@@ -13,7 +13,6 @@ import time
 
 SUBPROCESS_TIMEOUT = 30.0
 PATH_TO_ADB = os.path.join('..', 'android', 'bin', 'linux', 'adb')
-PATH_TO_APK = os.path.join('out', 'android', 'bin', 'SkiaAndroid.apk')
 PROCESS_MONITOR_INTERVAL = 5.0 # Seconds
 SKIA_RUNNING = 'running'
 DEVICE_LOOKUP = {'nexus_s': 'crespo',
@@ -173,12 +172,12 @@ class _WatchLog(threading.Thread):
           self.stop()
           return
 
-def Install(serial):
+def Install(serial, path_to_apk):
   try:
     RunADB(serial, ['uninstall', 'com.skia'])
   except:
     pass
-  RunADB(serial, ['install', PATH_TO_APK])
+  RunADB(serial, ['install', path_to_apk])
 
 def Run(serial, binary_name, arguments=[], logfile=None):
   """ Run 'binary_name', on the device with id 'serial', with 'arguments'.  This

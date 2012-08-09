@@ -8,12 +8,15 @@
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from utils import misc
+import os
 import sys
 
 class AndroidInstallAPK(AndroidBuildStep):
   def _Run(self, args):
     serial = misc.GetSerial(self._device)
-    misc.Install(serial)
+    path_to_apk = os.path.join('out', self._configuration, 'android', 'bin',
+                               'SkiaAndroid.apk')
+    misc.Install(serial, path_to_apk)
     return True
 
 if '__main__' == __name__:
