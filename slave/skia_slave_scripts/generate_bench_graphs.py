@@ -27,8 +27,8 @@ class GenerateBenchGraphs(BuildStep):
                                                 self._builder_name)
     cmd = ['python', path_to_bench_graph_svg,
            '-d', self._perf_data_dir,
-           '-r', '%d' % bench_common.BENCH_GRAPH_NUM_REVISIONS,
-           '-f', '%d' % bench_common.BENCH_GRAPH_NUM_REVISIONS,
+           '-r', '-%d' % bench_common.BENCH_GRAPH_NUM_REVISIONS,
+           '-f', '-%d' % bench_common.BENCH_GRAPH_NUM_REVISIONS,
            '-x', '%d' % bench_common.BENCH_GRAPH_X,
            '-y', '%d' % bench_common.BENCH_GRAPH_Y,
            '-l', graph_title,
