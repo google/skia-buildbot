@@ -15,7 +15,7 @@ class Clean(BuildStep):
     make_cmd = 'make'
     if os.name == 'nt':
       make_cmd = 'make.bat'
-    return misc.Bash([make_cmd, 'clean'])
+    misc.Bash([make_cmd, 'clean'])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(Clean))

@@ -56,7 +56,6 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
                                                    self._gm_image_subdir)]
     misc.Run(serial, BINARY_NAME, arguments)
     self._PullImages(serial)
-    return True
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidRunGM))

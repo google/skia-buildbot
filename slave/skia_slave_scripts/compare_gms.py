@@ -22,7 +22,7 @@ class CompareGMs(BuildStep):
            self._gm_expected_dir,
            self._gm_actual_dir,
            ]
-    return misc.Bash(cmd)
+    misc.Bash(cmd)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(CompareGMs))

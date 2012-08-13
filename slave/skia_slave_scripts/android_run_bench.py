@@ -31,10 +31,8 @@ class AndroidRunBench(AndroidBuildStep, RunBench):
                            self._BuildDataFile(ANDROID_PERF_DIR),
                            self._perf_data_dir])
       misc.RunADB(serial, ['shell', 'rm', '-r', ANDROID_PERF_DIR])
-      return True
     else:
       misc.Run(serial, 'bench')
-      return True
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidRunBench))

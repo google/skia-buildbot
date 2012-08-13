@@ -17,7 +17,6 @@ class AndroidInstallAPK(AndroidBuildStep):
     path_to_apk = os.path.join('out', self._configuration, 'android', 'bin',
                                'SkiaAndroid.apk')
     misc.Install(serial, path_to_apk)
-    return True
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidInstallAPK))

@@ -7,6 +7,7 @@
 from utils import misc
 import os
 import sys
+import traceback
 
 class BuildStep(object):
   def __init__(self, args, attempts=1):
@@ -41,6 +42,13 @@ class BuildStep(object):
     return os.path.join('out', self._configuration, binary)
 
   def _Run(self, args):
+    """ Code to be run in a given BuildStep.  No return value; throws exception
+    on failure.  Override this method in subclasses.
+  
+    args: Dictionary containing arguments passed to the BuildStep.  Any
+        arguments passed from the build master and not consumed in __init__ will
+        reside in this dictionary.
+    """
     raise Exception('Cannot instantiate abstract BuildStep')
 
   @staticmethod
@@ -50,6 +58,9 @@ class BuildStep(object):
     for attempt in range(step._attempts):
       if (step._attempts > 1):
         print '**** %s, attempt %d ****' % (StepType.__name__, attempt + 1)
-      if step._Run(args):
+      try:
+        step._Run(args)
         return 0
+      except:
+        print traceback.format_exc()
     raise Exception('%s failed' % StepType.__name__)

@@ -14,7 +14,6 @@ class AndroidRunTests(AndroidBuildStep):
   def _Run(self, args):
     serial = misc.GetSerial(self._device)
     misc.Run(serial, 'tests')
-    return True
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidRunTests))

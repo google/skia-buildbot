@@ -34,7 +34,7 @@ class GenerateBenchGraphs(BuildStep):
            '-l', graph_title,
            '-o', graph_filepath,
            ]
-    return misc.Bash(cmd)
+    misc.Bash(cmd)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(GenerateBenchGraphs))

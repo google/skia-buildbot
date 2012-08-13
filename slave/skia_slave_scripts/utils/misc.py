@@ -46,22 +46,29 @@ def ConfirmOptionsSet(name_value_dict):
                       name)
 
 def Bash(cmd, echo=True):
-  """ Run 'cmd' in a shell and return True iff the 'cmd' succeeded.
-  (Blocking) """
+  """ Run 'cmd' in a shell (Blocking).  Throws an exception if the command
+  exits with non-zero code. """
   if echo:
     print cmd
-  return subprocess.call(cmd) == 0;
+  code = subprocess.call(cmd)
+  if code != 0:
+    raise Exception('Command failed with code %d' % code)
 
 def BashGet(cmd, echo=True):
-  """ Run 'cmd' in a shell and return stdout. (Blocking) """
+  """ Run 'cmd' in a shell and return stdout (Blocking).  Throws an exception if
+  the command exits with non-zero code. """
   if echo:
     print(cmd)
-  return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True
-                          ).communicate()[0]
+  proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+  code = proc.wait()
+  if code != 0:
+    raise Exception('Command failed with code %d.' % code)
+  return proc.communicate()[0]
 
 def BashGetTimeout(cmd, echo=True, timeout=SUBPROCESS_TIMEOUT):
-  """ Run 'cmd' in a shell and return the exit code.  Blocks until the command
-  is finished or the timeout expires. """
+  """ Run 'cmd' in a shell and return the tuple consisting of the exit code (if
+  the command finished, or None if the command did not finish) and the content
+  of stdout.  Blocks until the command is finished or the timeout expires. """
   proc = BashAsync(cmd, echo=echo)
   t_0 = time.time()
   t_elapsed = 0.0
@@ -79,7 +86,8 @@ def BashAsync(cmd, echo=True):
                           stderr=subprocess.STDOUT)
 
 def RunADB(serial, cmd, attempts=1):
-  """ Run 'cmd' on an Android device, using ADB
+  """ Run 'cmd' on an Android device, using ADB.  No return value; throws an
+  exception if the command fails more than the allotted number of attempts.
   
   serial: string indicating the serial number of the target device
   cmd: string; the command to issue on the device
@@ -88,8 +96,12 @@ def RunADB(serial, cmd, attempts=1):
   adb_cmd = [PATH_TO_ADB, '-s', serial]
   adb_cmd += cmd
   for attempt in range(attempts):
-    if Bash(adb_cmd):
-      return True
+    try:
+      Bash(adb_cmd)
+      return
+    except:
+      if attempt < attempts:
+        print 'ADB command failed.  Retrying.'
   raise Exception('ADB command failed')
 
 def ADBKill(serial, process):
@@ -99,7 +111,10 @@ def ADBKill(serial, process):
   process: string indicating the name of the process to kill
   """ 
   cmd = '%s -s %s shell ps | grep %s' % (PATH_TO_ADB, serial, process)
-  stdout = BashGet(cmd)
+  try:
+    stdout = BashGet(cmd)
+  except:
+    return
   if stdout != '':
     pid = shlex.split(stdout)[1]
     kill_cmd = ['shell', 'kill', pid]

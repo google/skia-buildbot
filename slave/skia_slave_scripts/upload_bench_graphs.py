@@ -22,7 +22,6 @@ class UploadBenchGraphs(BuildStep):
                                                 self._builder_name)
     upload_to_bucket.upload_to_bucket(source_filepath=graph_filepath,
                                       dest_gsbase='gs://chromium-skia-gm')
-    return True
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(UploadBenchGraphs))

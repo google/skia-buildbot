@@ -33,7 +33,7 @@ class RunGM(BuildStep):
     cmd = [self._PathToBinary('gm'),
            '-w', self._gm_actual_dir,
            ]
-    return misc.Bash(cmd)
+    misc.Bash(cmd)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(RunGM))
