@@ -4,10 +4,48 @@
 
 """Miscellaneous utilities needed by the Skia buildbot master."""
 
+import httplib2
+
+# requires Google APIs client library for Python; see
+# https://code.google.com/p/google-api-python-client/wiki/Installation
+from apiclient.discovery import build
 from buildbot.scheduler import AnyBranchScheduler
 from buildbot.scheduler import Scheduler
 from buildbot.util import NotABranch
 from master import master_config
+from oauth2client.client import SignedJwtAssertionCredentials
+
+def _AssertValidString(var, varName='[unknown]'):
+  """Raises an exception if a var is not a valid string.
+  
+  A string is considered valid if it is not None, is not the empty string and is
+  not just whitespace.
+
+  Args:
+    var: the variable to validate
+    varName: name of the variable, for error reporting
+  """
+  if not isinstance(var, str):
+    raise Exception('variable "%s" is not a string' % varName)
+  if not var:
+    raise Exception('variable "%s" is empty' % varName)
+  if var.isspace():
+    raise Exception('variable "%s" is whitespace' % varName)
+
+def _AssertValidStringList(var, varName='[unknown]'):
+  """Raises an exception if var is not a list of valid strings.
+  
+  A list is considered valid if it is either empty or if it contains at
+  least one item and each item it contains is also a valid string.
+
+  Args:
+    var: the variable to validate
+    varName: name of the variable, for error reporting
+  """
+  if not isinstance(var, list):
+    raise Exception('variable "%s" is not a list' % varName)
+  for index, item in zip(range(len(var)), var):
+    _AssertValidString(item, '%s[%d]' % (varName, index))
 
 def FileBug(summary, description, owner=None, ccs=[], labels=[]):
   """Files a bug to the Skia issue tracker.
@@ -18,15 +56,69 @@ def FileBug(summary, description, owner=None, ccs=[], labels=[]):
     owner: email address of the issue owner (as a string), or None if unknown
     ccs: email addresses (list of strings) to CC on the bug
     labels: labels (list of strings) to apply to the bug
+
+  Returns: 
+    A representation of the issue tracker issue that was filed or raises an
+    exception if there was a problem.
   """
-  # TODO: for now, this is a skeletal implementation to aid discussion of
-  # https://code.google.com/p/skia/issues/detail?id=726
-  # ('buildbot: automatically file bug report when the build goes red')
-  tracker_base_url = 'https://code.google.com/p/skia/issues'
-  reporter = 'user@domain.com'  # I guess we'll need to set up an account for this purpose
-  credentials = None    # presumably we will need credentials to log in as reporter;
-                        # note that the credentials should not be included in the source code!
-  # Code goes here...
+  project_id = 'skia' # This is the project name: skia
+  key_file = 'key.p12' # Key file from the API console, renamed to key.p12
+  service_acct = ('352371350305-b3u8jq5sotdh964othi9ntg9d0pelu77'
+                  '@developer.gserviceaccount.com') # Created with the key
+  result = {} 
+  
+  if owner is not None:  # owner can be None
+    _AssertValidString(owner, 'owner')
+  _AssertValidString(summary, 'summary')
+  _AssertValidString(description, 'description')
+  _AssertValidStringList(ccs, 'ccs')
+  _AssertValidStringList(labels, 'labels')
+
+  f = file(key_file, 'rb')
+  key = f.read()
+  f.close()
+
+  # Create an httplib2.Http object to handle the HTTP requests and authorize
+  # it with the credentials.
+  credentials = SignedJwtAssertionCredentials(
+      service_acct,
+      key,
+      scope='https://www.googleapis.com/auth/projecthosting')
+  http = httplib2.Http()
+  http = credentials.authorize(http)
+
+  service = build("projecthosting", "v2", http=http)
+
+  # Insert a new issue into the project.
+  body = {
+    'summary': summary,
+    'description': description
+  }
+  
+  insertparams = {
+    'projectId': project_id,
+    'sendEmail': 'true'
+  }
+
+  if owner is not None:
+    owner_value = {
+      'name': owner
+    }
+    body['owner'] = owner_value
+
+  cc_values = []
+  for cc in ccs:
+    cc_values.append({'name': cc})  
+  body['cc'] = cc_values
+  
+  body['labels'] = labels
+
+  insertparams['body'] = body
+   
+  request = service.issues().insert(**insertparams)
+  result = request.execute()
+
+  return result
 
 # Branches for which we trigger rebuilds on the primary builders
 SKIA_PRIMARY_SUBDIRS = ['android', 'buildbot', 'trunk']
