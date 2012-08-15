@@ -13,7 +13,7 @@ import os
 import sys
 
 class GenerateBenchGraphs(BuildStep):
-  def _Run(self, args):
+  def _RunInternal(self, representation):
     try:
       os.makedirs(self._perf_graphs_dir)
     except OSError as e:
@@ -24,7 +24,8 @@ class GenerateBenchGraphs(BuildStep):
     path_to_bench_graph_svg = os.path.join('bench', 'bench_graph_svg.py')
     graph_title = 'Bench_Performance_for_%s' % self._builder_name
     graph_filepath = bench_common.GraphFilePath(self._perf_graphs_dir,
-                                                self._builder_name)
+                                                self._builder_name,
+                                                representation)
     cmd = ['python', path_to_bench_graph_svg,
            '-d', self._perf_data_dir,
            '-r', '-%d' % bench_common.BENCH_GRAPH_NUM_REVISIONS,
@@ -32,9 +33,14 @@ class GenerateBenchGraphs(BuildStep):
            '-x', '%d' % bench_common.BENCH_GRAPH_X,
            '-y', '%d' % bench_common.BENCH_GRAPH_Y,
            '-l', graph_title,
+           '-m', representation,
            '-o', graph_filepath,
            ]
     misc.Bash(cmd)
+
+  def _Run(self, args):
+    for rep in ['avg', 'min', 'med']:
+      self._RunInternal(rep)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(GenerateBenchGraphs))

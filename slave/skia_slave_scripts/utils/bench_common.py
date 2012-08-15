@@ -17,8 +17,8 @@ BENCH_GRAPH_Y = 768
 # only for certain destination filenames').
 # Modify this value to generate graphs with a new filename that will upload
 # successfully, when uploading the old filename starts to fail.
-GRAPH_PATH_MODIFIER = '-2'
+GRAPH_PATH_MODIFIER = '2'
 
-def GraphFilePath(perf_graphs_dir, builder_name):
-  return os.path.join(perf_graphs_dir, 'graph-%s%s.xhtml' % (builder_name,
-      GRAPH_PATH_MODIFIER))
+def GraphFilePath(perf_graphs_dir, builder_name, representation='default'):
+  return os.path.join(perf_graphs_dir, 'graph-%s-%s-%s.xhtml' % (
+      builder_name, representation, GRAPH_PATH_MODIFIER))

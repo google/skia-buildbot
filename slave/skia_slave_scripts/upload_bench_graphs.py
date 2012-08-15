@@ -17,11 +17,16 @@ class UploadBenchGraphs(BuildStep):
   def __init__(self, args, attempts=5):
     super(UploadBenchGraphs, self).__init__(args, attempts)
 
-  def _Run(self, args):
+  def _RunInternal(self, representation):
     graph_filepath = bench_common.GraphFilePath(self._perf_graphs_dir,
-                                                self._builder_name)
+                                                self._builder_name,
+                                                representation)
     upload_to_bucket.upload_to_bucket(source_filepath=graph_filepath,
                                       dest_gsbase='gs://chromium-skia-gm')
+
+  def _Run(self, args):
+    for rep in ['avg', 'min', 'med']:
+      self._RunInternal(rep)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(UploadBenchGraphs))
