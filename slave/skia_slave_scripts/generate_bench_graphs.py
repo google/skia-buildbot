@@ -39,7 +39,7 @@ class GenerateBenchGraphs(BuildStep):
     misc.Bash(cmd)
 
   def _Run(self, args):
-    for rep in ['avg', 'min', 'med']:
+    for rep in ['avg', 'min', 'med', '25th']:
       self._RunInternal(rep)
 
 if '__main__' == __name__:

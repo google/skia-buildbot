@@ -25,7 +25,7 @@ class UploadBenchGraphs(BuildStep):
                                       dest_gsbase='gs://chromium-skia-gm')
 
   def _Run(self, args):
-    for rep in ['avg', 'min', 'med']:
+    for rep in ['avg', 'min', 'med', '25th']:
       self._RunInternal(rep)
 
 if '__main__' == __name__:
