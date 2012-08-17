@@ -29,6 +29,7 @@ import misc
 import optparse
 import os
 import shutil
+import stat
 import sys
 import tempfile
 
@@ -111,6 +112,15 @@ def _SvnDoesUrlExist(repo, url):
     # the URL does not exist.  Should we look for something more specific?
     return False
 
+def _OnRmtreeError(function, path, excinfo):
+  """ onerror function for shutil.rmtree.  If a file is read-only, rmtree will
+  fail on Windows.  This function handles the read-only case. """
+  if not os.access(path, os.W_OK):
+    os.chmod(path, stat.S_IWUSR)
+    function(path)
+  else:
+    raise
+
 def MergeIntoSvn(options):
   """Update an SVN repository with any new/modified files from a directory.
 
@@ -162,7 +172,7 @@ def MergeIntoSvn(options):
         # First, clear the existing directory
         print 'The remote repository UUID has changed.  Removing the existing \
               checkout and checking out again to update with the new UUID'
-        shutil.rmtree(mergedir)
+        shutil.rmtree(mergedir, onerror=_OnRmtreeError)
         os.makedirs(mergedir)
         # Then, check out the repo again.
         print repo.Checkout(url=options.dest_svn_url, path='.')
