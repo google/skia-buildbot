@@ -36,6 +36,8 @@ class GenerateBenchGraphs(BuildStep):
            '-m', representation,
            '-o', graph_filepath,
            ]
+    if self._builder_name.find('_Win') >= 0:
+      cmd.extend(['-i', 'c'])  # Ignore cpu time for Windows.
     misc.Bash(cmd)
 
   def _Run(self, args):
