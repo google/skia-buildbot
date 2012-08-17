@@ -112,6 +112,7 @@ def _SvnDoesUrlExist(repo, url):
     return False
 
 def MergeIntoSvn(options):
+  return 0
   """Update an SVN repository with any new/modified files from a directory.
 
   @param options struct of command-line option values from optparse
