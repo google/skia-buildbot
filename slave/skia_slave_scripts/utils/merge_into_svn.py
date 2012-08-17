@@ -158,7 +158,7 @@ def MergeIntoSvn(options):
       # We occasionally have to reset the repository due to space constraints.
       # In this case, the UUID will change and we have to check out again.
       # Bug: http://code.google.com/p/skia/issues/detail?id=792
-      if "doesn't match expected UUID" in e.strerror:
+      if "doesn't match expected UUID" in ("%s" % e):
         # First, clear the existing directory
         print 'The remote repository UUID has changed.  Removing the existing \
               checkout and checking out again to update with the new UUID'
