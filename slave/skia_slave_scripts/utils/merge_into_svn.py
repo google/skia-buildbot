@@ -112,7 +112,6 @@ def _SvnDoesUrlExist(repo, url):
     return False
 
 def MergeIntoSvn(options):
-  return 0
   """Update an SVN repository with any new/modified files from a directory.
 
   @param options struct of command-line option values from optparse
@@ -152,8 +151,23 @@ def MergeIntoSvn(options):
   # any conflicts in favor of the repository HEAD) rather than pulling a
   # fresh checkout.
   if os.path.isdir(os.path.join(mergedir, '.svn')):
-    print _SvnUpdate(repo=repo,
-                     additional_svn_flags=['--accept', 'theirs-full'])
+    try:
+      print _SvnUpdate(repo=repo,
+                       additional_svn_flags=['--accept', 'theirs-full'])
+    except Exception as e:
+      # We occasionally have to reset the repository due to space constraints.
+      # In this case, the UUID will change and we have to check out again.
+      # Bug: http://code.google.com/p/skia/issues/detail?id=792
+      if "doesn't match expected UUID" in e.strerror:
+        # First, clear the existing directory
+        print 'The remote repository UUID has changed.  Removing the existing \
+              checkout and checking out again to update with the new UUID'
+        shutil.rmtree(mergedir)
+        os.mkdirs(mergedir)
+        # Then, check out the repo again.
+        print repo.Checkout(url=options.dest_svn_url, path='.')
+      else:
+        raise e
   else:
     print repo.Checkout(url=options.dest_svn_url, path='.')
 
