@@ -163,7 +163,7 @@ def MergeIntoSvn(options):
         print 'The remote repository UUID has changed.  Removing the existing \
               checkout and checking out again to update with the new UUID'
         shutil.rmtree(mergedir)
-        os.mkdirs(mergedir)
+        os.makedirs(mergedir)
         # Then, check out the repo again.
         print repo.Checkout(url=options.dest_svn_url, path='.')
       else:
