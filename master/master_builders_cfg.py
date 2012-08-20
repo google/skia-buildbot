@@ -275,7 +275,7 @@ def Update(config, active_master, c):
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=perf_output_basedir_windows,
       builder_name='Skia_Shuttle_Win7_Intel_Float_Release_64',
