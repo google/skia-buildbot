@@ -51,16 +51,27 @@ def Update(config, active_master, c):
       perf_output_basedir=None, # no perf measurement for debug builds
       builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug',
       ).Build())
-  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Release', 'f_skia_shuttle_ubuntu12_ati5770_float_release',
+  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32', 'f_skia_shuttle_ubuntu12_ati5770_float_release_32',
       scheduler='skia_rel')
-  F('f_skia_shuttle_ubuntu12_ati5770_float_release', skia_factory.SkiaFactory(
+  F('f_skia_shuttle_ubuntu12_ati5770_float_release_32', skia_factory.SkiaFactory(
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=32'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
       perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Release',
+      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32',
+      ).Build())
+  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64', 'f_skia_shuttle_ubuntu12_ati5770_float_release_64',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_ubuntu12_ati5770_float_release_64', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration='Release',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=64'},
+      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
+      perf_output_basedir=perf_output_basedir_linux,
+      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64',
       ).Build())
 
   # Android (runs on a Linux buildbot slave)...
@@ -175,16 +186,27 @@ def Update(config, active_master, c):
       perf_output_basedir=None, # no perf measurement for debug builds
       builder_name='Skia_Mac_Float_Debug',
       ).Build())
-  B('Skia_Mac_Float_NoDebug', 'f_skia_mac_float_nodebug',
+  B('Skia_Mac_Float_NoDebug_32', 'f_skia_mac_float_nodebug_32',
       scheduler='skia_rel')
-  F('f_skia_mac_float_nodebug', skia_factory.SkiaFactory(
+  F('f_skia_mac_float_nodebug_32', skia_factory.SkiaFactory(
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini',
       perf_output_basedir=perf_output_basedir_mac,
-      builder_name='Skia_Mac_Float_NoDebug',
+      builder_name='Skia_Mac_Float_NoDebug_32',
+      ).Build())
+  B('Skia_Mac_Float_NoDebug_64', 'f_skia_mac_float_nodebug_64',
+      scheduler='skia_rel')
+  F('f_skia_mac_float_nodebug_64', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_MAC,
+      configuration='Release',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
+      gm_image_subdir='base-macmini',
+      perf_output_basedir=perf_output_basedir_mac,
+      builder_name='Skia_Mac_Float_NoDebug_64',
       ).Build())
 
   # Mac 10.7 (Lion) ...
@@ -200,16 +222,27 @@ def Update(config, active_master, c):
       perf_output_basedir=None, # no perf measurement for debug builds
       builder_name='Skia_MacMiniLion_Float_Debug',
       ).Build())
-  B('Skia_MacMiniLion_Float_NoDebug', 'f_skia_MacMiniLion_float_nodebug',
+  B('Skia_MacMiniLion_Float_NoDebug_32', 'f_skia_MacMiniLion_float_nodebug_32',
       scheduler='skia_rel')
-  F('f_skia_MacMiniLion_float_nodebug', skia_factory.SkiaFactory(
+  F('f_skia_MacMiniLion_float_nodebug_32', skia_factory.SkiaFactory(
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini-lion-float',
       perf_output_basedir=perf_output_basedir_mac,
-      builder_name='Skia_MacMiniLion_Float_NoDebug',
+      builder_name='Skia_MacMiniLion_Float_NoDebug_32',
+      ).Build())
+  B('Skia_MacMiniLion_Float_NoDebug_64', 'f_skia_MacMiniLion_float_nodebug_64',
+      scheduler='skia_rel')
+  F('f_skia_MacMiniLion_float_nodebug_64', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_MAC,
+      configuration='Release',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
+      gm_image_subdir='base-macmini-lion-float',
+      perf_output_basedir=perf_output_basedir_mac,
+      builder_name='Skia_MacMiniLion_Float_NoDebug_64',
       ).Build())
 
   # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
@@ -225,16 +258,27 @@ def Update(config, active_master, c):
       perf_output_basedir=None, # no perf measurement for debug builds
       builder_name='Skia_Shuttle_Win7_Intel_Float_Debug',
       ).Build())
-  B('Skia_Shuttle_Win7_Intel_Float_Release', 'f_skia_shuttle_win7_intel_float_release',
+  B('Skia_Shuttle_Win7_Intel_Float_Release_32', 'f_skia_shuttle_win7_intel_float_release_32',
       scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_float_release', skia_factory.SkiaFactory(
+  F('f_skia_shuttle_win7_intel_float_release_32', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
+      configuration='Release',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
+      gm_image_subdir='base-shuttle-win7-intel-float',
+      perf_output_basedir=perf_output_basedir_windows,
+      builder_name='Skia_Shuttle_Win7_Intel_Float_Release_32',
+      ).Build())
+  B('Skia_Shuttle_Win7_Intel_Float_Release_64', 'f_skia_shuttle_win7_intel_float_release_64',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_win7_intel_float_release_64', skia_factory.SkiaFactory(
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=perf_output_basedir_windows,
-      builder_name='Skia_Shuttle_Win7_Intel_Float_Release',
+      builder_name='Skia_Shuttle_Win7_Intel_Float_Release_64',
       ).Build())
 
   # House Keeping
