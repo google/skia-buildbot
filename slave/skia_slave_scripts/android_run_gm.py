@@ -18,7 +18,7 @@ import sys
 
 BINARY_NAME = 'gm'
 DEVICE_PATH = '/sdcard/gm/'
-ANDROID_GM_ARGS = ['--nopdf', '--noreplay']
+ANDROID_GM_ARGS = ['--nopdf']
 
 class AndroidRunGM(AndroidBuildStep, RunGM):
   def _PullImages(self, serial):
