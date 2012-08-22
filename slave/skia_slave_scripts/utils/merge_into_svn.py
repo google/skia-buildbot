@@ -189,6 +189,8 @@ def MergeIntoSvn(options):
         # locked working copy and are unable to update.  In this case, run
         # svn cleanup.
         _SvnCleanup(repo)
+        print _SvnUpdate(repo=repo,
+                         additional_svn_flags=['--accept', 'theirs-full'])
       else:
         raise e
   else:
