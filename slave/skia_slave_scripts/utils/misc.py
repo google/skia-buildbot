@@ -177,8 +177,11 @@ class _WatchLog(threading.Thread):
     self._logger = BashAsync('%s -s %s logcat' % (
         PATH_TO_ADB, self.serial), echo=False)
     while not self._stopped:
+      print '--- attempting to read a line from the adb process'
       line = self._logger.stdout.readline()
+      print '--- got a line from the adb process'
       if line != '':
+        print '--- non-empty line from adb process:'
         if self._logfile:
           self._logfile.write(line)
         print line.rstrip('\r\n')
