@@ -117,8 +117,7 @@ def _SvnDoesUrlExist(repo, url):
 # _RunSvnCommand() method.
 # See https://code.google.com/p/skia/issues/detail?id=713
 def _SvnCleanup(repo):
-  if not repo._RunSvnCommand(['cleanup']):
-    raise Exception('Could not run "svn cleanup"')
+  repo._RunSvnCommand(['cleanup'])
 
 def _OnRmtreeError(function, path, excinfo):
   """ onerror function for shutil.rmtree.  If a file is read-only, rmtree will
