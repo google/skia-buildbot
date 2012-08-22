@@ -43,7 +43,7 @@ def Update(config, active_master, c):
   B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug', 'f_skia_shuttle_ubuntu12_ati5770_float_debug',
       scheduler='skia_rel')
   F('f_skia_shuttle_ubuntu12_ati5770_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
@@ -54,7 +54,7 @@ def Update(config, active_master, c):
   B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32', 'f_skia_shuttle_ubuntu12_ati5770_float_release_32',
       scheduler='skia_rel')
   F('f_skia_shuttle_ubuntu12_ati5770_float_release_32', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=32'},
@@ -79,7 +79,7 @@ def Update(config, active_master, c):
   B('Skia_NexusS_4-1_Float_Debug', 'f_skia_nexus_s_4-1_float_debug',
       scheduler='skia_rel')
   F('f_skia_nexus_s_4-1_float_debug', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
@@ -103,7 +103,7 @@ def Update(config, active_master, c):
   B('Skia_Xoom_4-1_Float_Debug', 'f_skia_xoom_4-1_float_debug',
       scheduler='skia_rel')
   F('f_skia_xoom_4-1_float_debug', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
@@ -127,7 +127,7 @@ def Update(config, active_master, c):
   B('Skia_GalaxyNexus_4-1_Float_Debug', 'f_skia_galaxy_nexus_4-1_float_debug',
       scheduler='skia_rel')
   F('f_skia_galaxy_nexus_4-1_float_debug', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
@@ -151,7 +151,7 @@ def Update(config, active_master, c):
   B('Skia_Nexus7_4-1_Float_Debug', 'f_skia_nexus7_4-1_float_debug',
       scheduler='skia_rel')
   F('f_skia_nexus7_4-1_float_debug', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
@@ -178,7 +178,7 @@ def Update(config, active_master, c):
   B('Skia_Mac_Float_Debug', 'f_skia_mac_float_debug',
       scheduler='skia_rel')
   F('f_skia_mac_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Debug',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
@@ -189,7 +189,7 @@ def Update(config, active_master, c):
   B('Skia_Mac_Float_NoDebug_32', 'f_skia_mac_float_nodebug_32',
       scheduler='skia_rel')
   F('f_skia_mac_float_nodebug_32', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
@@ -214,7 +214,7 @@ def Update(config, active_master, c):
   B('Skia_MacMiniLion_Float_Debug', 'f_skia_MacMiniLion_float_debug',
       scheduler='skia_rel')
   F('f_skia_MacMiniLion_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Debug',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
@@ -225,7 +225,7 @@ def Update(config, active_master, c):
   B('Skia_MacMiniLion_Float_NoDebug_32', 'f_skia_MacMiniLion_float_nodebug_32',
       scheduler='skia_rel')
   F('f_skia_MacMiniLion_float_nodebug_32', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
@@ -250,7 +250,7 @@ def Update(config, active_master, c):
   B('Skia_Shuttle_Win7_Intel_Float_Debug', 'f_skia_shuttle_win7_intel_float_debug',
       scheduler='skia_rel')
   F('f_skia_shuttle_win7_intel_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Debug',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
@@ -261,7 +261,7 @@ def Update(config, active_master, c):
   B('Skia_Shuttle_Win7_Intel_Float_Release_32', 'f_skia_shuttle_win7_intel_float_release_32',
       scheduler='skia_rel')
   F('f_skia_shuttle_win7_intel_float_release_32', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
