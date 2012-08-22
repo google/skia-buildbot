@@ -112,6 +112,14 @@ def _SvnDoesUrlExist(repo, url):
     # the URL does not exist.  Should we look for something more specific?
     return False
 
+# TODO: We should either add a command like this to svn.py, or make its
+# _RunSvnCommand() method public; in the meanwhile, abuse its private
+# _RunSvnCommand() method.
+# See https://code.google.com/p/skia/issues/detail?id=713
+def _SvnCleanup(repo):
+  if not repo._RunSvnCommand(['cleanup']):
+    raise Exception('Could not run "svn cleanup"')
+
 def _OnRmtreeError(function, path, excinfo):
   """ onerror function for shutil.rmtree.  If a file is read-only, rmtree will
   fail on Windows.  This function handles the read-only case. """
@@ -165,10 +173,10 @@ def MergeIntoSvn(options):
       print _SvnUpdate(repo=repo,
                        additional_svn_flags=['--accept', 'theirs-full'])
     except Exception as e:
-      # We occasionally have to reset the repository due to space constraints.
-      # In this case, the UUID will change and we have to check out again.
-      # Bug: http://code.google.com/p/skia/issues/detail?id=792
-      if "doesn't match expected UUID" in ("%s" % e):
+      if 'doesn\'t match expected UUID' in ('%s' % e):
+        # We occasionally have to reset the repository due to space constraints.
+        # In this case, the UUID will change and we have to check out again.
+        # Bug: http://code.google.com/p/skia/issues/detail?id=792
         # First, clear the existing directory
         print 'The remote repository UUID has changed.  Removing the existing \
               checkout and checking out again to update with the new UUID'
@@ -176,6 +184,11 @@ def MergeIntoSvn(options):
         os.makedirs(mergedir)
         # Then, check out the repo again.
         print repo.Checkout(url=options.dest_svn_url, path='.')
+      elif 'svn cleanup' in ('%s' % e):
+        # If a previous commit did not go through, we sometimes end up with a
+        # locked working copy and are unable to update.  In this case, run
+        # svn cleanup.
+        _SvnCleanup(repo)
       else:
         raise e
   else:
