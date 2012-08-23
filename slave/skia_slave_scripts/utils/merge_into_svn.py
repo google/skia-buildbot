@@ -127,13 +127,11 @@ def _OnRmtreeError(function, path, excinfo):
   -  There is a path-length limitation on Windows.  If we exceed that (common),
      then rmtree (and other functions) will fail.
   """
-  # Attempt to shorten the path
-  path = misc.GetAbsPath(path)
-  if not os.access(path, os.W_OK):
-    os.chmod(path, stat.S_IWUSR)
-    function(path)
-  else:
-    raise
+  abs_path = misc.GetAbsPath(path)
+  if not os.access(abs_path, os.W_OK):
+    # Change the path to be writeable and try again.
+    os.chmod(abs_path, stat.S_IWUSR)
+  function(abs_path)
 
 def MergeIntoSvn(options):
   """Update an SVN repository with any new/modified files from a directory.
