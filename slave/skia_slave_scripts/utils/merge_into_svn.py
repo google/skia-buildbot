@@ -204,7 +204,9 @@ def MergeIntoSvn(options):
   _CopyAllFiles(source_dir=options.source_dir_path, dest_dir=mergedir)
 
   # Make sure all files are added to SVN and have the correct properties set.
-  repo.AddFiles(repo.GetNewFiles())
+  new_files = repo.GetNewFiles()
+  for new_file in new_files:
+    repo.AddFiles([new_file])
   repo.SetPropertyByFilenamePattern('*.png', 'svn:mime-type', 'image/png')
   repo.SetPropertyByFilenamePattern('*.pdf', 'svn:mime-type', 'application/pdf')
 
