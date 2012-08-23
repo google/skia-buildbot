@@ -186,12 +186,6 @@ class _WatchLog(threading.Thread):
           self.retcode = shlex.split(line)[-1]
           self.stop()
           return
-      else:
-        print '--- Warning: restarting logcat!!!'
-        self._logger.terminate()
-        RunADB(self.serial, ['logcat', '-c'])
-        self._logger = BashAsync('%s -s %s logcat' % (
-            PATH_TO_ADB, self.serial), echo=False)
 
 def Install(serial, path_to_apk):
   try:
