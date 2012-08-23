@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" This module contains tools used by the Android buildbot scripts. """
+""" This module contains tools used by the buildbot scripts. """
 
 import os
 import shlex
@@ -119,6 +119,25 @@ def ADBKill(serial, process):
     pid = shlex.split(stdout)[1]
     kill_cmd = ['shell', 'kill', pid]
     RunADB(serial, kill_cmd)
+
+def GetAbsPath(relative_path):
+    """My own implementation of os.path.abspath() that better handles paths
+    which approach Window's 260-character limit.
+    See https://code.google.com/p/skia/issues/detail?id=674
+
+    This implementation adds path components one at a time, resolving the
+    absolute path each time, to take advantage of any chdirs into outer
+    directories that will shorten the total path length.
+
+    TODO: share a single implementation with bench_graph_svg.py, instead
+    of pasting this same code into both files."""
+    if os.path.isabs(relative_path):
+        return relative_path
+    path_parts = relative_path.split(os.sep)
+    abs_path = os.path.abspath('.')
+    for path_part in path_parts:
+        abs_path = os.path.abspath(os.path.join(abs_path, path_part))
+    return abs_path
 
 def GetSerial(device_type):
   """ Determine the serial number of the *first* connected device with the
