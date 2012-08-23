@@ -80,7 +80,7 @@ def _DeleteDirectoryContents(dir):
   for basename in basenames:
     path = os.path.join(dir, basename)
     if os.path.isdir(path):
-      shutil.rmtree(path)
+      shutil.rmtree(path, onerror=_OnRmtreeError)
     else:
       os.unlink(path)
 
