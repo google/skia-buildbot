@@ -123,7 +123,7 @@ def _OnRmtreeError(function, path, excinfo):
   """ onerror function for shutil.rmtree.  If a file is read-only, rmtree will
   fail on Windows.  This function handles the read-only case. """
   if not os.access(path, os.W_OK):
-    os.chmod(path, stat.S_IWUSR)
+    os.chmod(path, stat.S_IWRITE)
     function(path)
   else:
     raise
