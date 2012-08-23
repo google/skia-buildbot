@@ -122,6 +122,7 @@ def _SvnCleanup(repo):
 def _OnRmtreeError(function, path, excinfo):
   """ onerror function for shutil.rmtree.  If a file is read-only, rmtree will
   fail on Windows.  This function handles the read-only case. """
+  print 'Failed to remove a path of length %d' % len(path)
   if not os.access(path, os.W_OK):
     os.chmod(path, stat.S_IWRITE)
     function(path)
