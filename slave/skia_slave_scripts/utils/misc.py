@@ -78,8 +78,8 @@ def BashGetTimeout(cmd, echo=True, timeout=SUBPROCESS_TIMEOUT):
   return proc.poll(), proc.communicate()[0]
 
 def BashAsync(cmd, echo=True):
-  """ Run 'cmd' in a subprocess, returning a handle to that process.
-  (Non-blocking) """
+  """ Run 'cmd' in a subprocess, returning a Popen class instance referring to
+  that process.  (Non-blocking) """
   if echo:
     print cmd
   return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
@@ -162,30 +162,57 @@ class _WatchLog(threading.Thread):
   does not finish normally, so we need to periodically check that the process is
   still running and terminate this thread if the process has died without
   printing a 'SKIA_RETURN_CODE'. """
-  def __init__(self, serial, logfile=None):
+  def __init__(self, serial, log_file=None):
     threading.Thread.__init__(self)
     self.retcode = SKIA_RUNNING
     self.serial = serial
     self._stopped = False
-    self._logfile = logfile
+    self._log_file = log_file
+    self._log_process = None
+    self._mutex = threading.Lock()
+
+  def _restart(self):
+    self._mutex.acquire()
+    try:
+      if self._log_process:
+        self._log_process.terminate()
+        self._log_process = None
+      self._stopped = False
+      # Clear the log so we don't see a bunch of old data
+      BashGet('%s -s %s logcat -c' % (PATH_TO_ADB, self.serial), echo=False)
+      self._log_process = BashAsync('%s -s %s logcat' % (
+          PATH_TO_ADB, self.serial), echo=False)
+    finally:
+      self._mutex.release()
 
   def stop(self):
-    self._stopped = True
-    self._logger.terminate()
+    self._mutex.acquire()
+    try:
+      self._stopped = True
+      self._log_process.terminate()
+      self._log_process = None
+    finally:
+      self._mutex.release()
 
   def run(self):
-    self._logger = BashAsync('%s -s %s logcat' % (
-        PATH_TO_ADB, self.serial), echo=False)
+    self._restart()
     while not self._stopped:
-      line = self._logger.stdout.readline()
+      line = self._log_process.stdout.readline()
       if line != '':
-        if self._logfile:
-          self._logfile.write(line)
+        if self._log_file:
+          self._log_file.write(line)
         print line.rstrip('\r\n')
         if 'SKIA_RETURN_CODE' in line:
           self.retcode = shlex.split(line)[-1]
           self.stop()
           return
+      elif not self._stopped:
+        """ We only get an empty string from readline() when the logcat process
+        has stopped running.  Otherwise, readline() blocks while waiting for
+        data.  If the logcat process has died but we didn't kill it, we need to
+        restart it. """
+        print '**** Logcat process has died; restarting. ***'
+        self._restart()
 
 def Install(serial, path_to_apk):
   try:
@@ -213,8 +240,8 @@ def Run(serial, binary_name, arguments=[], logfile=None):
   ADBKill(serial, 'skia_native')
   ADBKill(serial, 'skia')
 
-  RunADB(serial, ['logcat', '-c'])
-
+  logger = _WatchLog(serial, log_file=logfile)
+  logger.start()
   cmd_line = binary_name
   for arg in arguments:
     cmd_line = '%s %s' % (cmd_line, arg)
@@ -223,8 +250,6 @@ def Run(serial, binary_name, arguments=[], logfile=None):
                   '-a', 'com.skia.intent.action.LAUNCH_SKIA',
                   '-n', 'com.skia/.SkiaReceiver',
                   '-e', 'args'] + shlex.split(cmd_line))
-  logger = _WatchLog(serial, logfile=logfile)
-  logger.start()
   while logger.isAlive() and logger.retcode == SKIA_RUNNING:
     time.sleep(PROCESS_MONITOR_INTERVAL)
     # adb does not always return in a timely fashion.  Don't wait for it.
