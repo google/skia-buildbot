@@ -189,7 +189,7 @@ def Update(config, active_master, c):
   B('Skia_Mac_Float_NoDebug_32', 'f_skia_mac_float_nodebug_32',
       scheduler='skia_rel')
   F('f_skia_mac_float_nodebug_32', skia_factory.SkiaFactory(
-      do_upload_results=False,
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
@@ -200,7 +200,7 @@ def Update(config, active_master, c):
   B('Skia_Mac_Float_NoDebug_64', 'f_skia_mac_float_nodebug_64',
       scheduler='skia_rel')
   F('f_skia_mac_float_nodebug_64', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
@@ -225,7 +225,7 @@ def Update(config, active_master, c):
   B('Skia_MacMiniLion_Float_NoDebug_32', 'f_skia_MacMiniLion_float_nodebug_32',
       scheduler='skia_rel')
   F('f_skia_MacMiniLion_float_nodebug_32', skia_factory.SkiaFactory(
-      do_upload_results=False,
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
@@ -236,7 +236,7 @@ def Update(config, active_master, c):
   B('Skia_MacMiniLion_Float_NoDebug_64', 'f_skia_MacMiniLion_float_nodebug_64',
       scheduler='skia_rel')
   F('f_skia_MacMiniLion_float_nodebug_64', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
@@ -261,7 +261,7 @@ def Update(config, active_master, c):
   B('Skia_Shuttle_Win7_Intel_Float_Release_32', 'f_skia_shuttle_win7_intel_float_release_32',
       scheduler='skia_rel')
   F('f_skia_shuttle_win7_intel_float_release_32', skia_factory.SkiaFactory(
-      do_upload_results=False,
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
@@ -272,7 +272,7 @@ def Update(config, active_master, c):
   B('Skia_Shuttle_Win7_Intel_Float_Release_64', 'f_skia_shuttle_win7_intel_float_release_64',
       scheduler='skia_rel')
   F('f_skia_shuttle_win7_intel_float_release_64', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
+      do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
