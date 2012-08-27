@@ -15,6 +15,7 @@ SUBPROCESS_TIMEOUT = 30.0
 PATH_TO_ADB = os.path.join('..', 'android', 'bin', 'linux', 'adb')
 PROCESS_MONITOR_INTERVAL = 5.0 # Seconds
 SKIA_RUNNING = 'running'
+SKIA_RETURN_CODE_REPEATS = 10
 DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'xoom': 'stingray',
                  'galaxy_nexus': 'toro',
@@ -268,7 +269,8 @@ def Run(serial, binary_name, arguments=[], logfile=None):
   RunADB(serial, ['shell', 'am', 'broadcast',
                   '-a', 'com.skia.intent.action.LAUNCH_SKIA',
                   '-n', 'com.skia/.SkiaReceiver',
-                  '-e', 'args'] + shlex.split(cmd_line))
+                  '-e', 'args'] + shlex.split(cmd_line) +
+                  '--ei', 'returnRepeats', SKIA_RETURN_CODE_REPEATS)
   while logger.isAlive() and logger.retcode == SKIA_RUNNING:
     time.sleep(PROCESS_MONITOR_INTERVAL)
     # adb does not always return in a timely fashion.  Don't wait for it.
