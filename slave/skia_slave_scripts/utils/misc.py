@@ -270,7 +270,7 @@ def Run(serial, binary_name, arguments=[], logfile=None):
                   '-a', 'com.skia.intent.action.LAUNCH_SKIA',
                   '-n', 'com.skia/.SkiaReceiver',
                   '-e', 'args'] + shlex.split(cmd_line) +
-                 ['--ei', 'returnRepeats', SKIA_RETURN_CODE_REPEATS])
+                 ['--ei', 'returnRepeats', '%d' % SKIA_RETURN_CODE_REPEATS])
   while logger.isAlive() and logger.retcode == SKIA_RUNNING:
     time.sleep(PROCESS_MONITOR_INTERVAL)
     # adb does not always return in a timely fashion.  Don't wait for it.
