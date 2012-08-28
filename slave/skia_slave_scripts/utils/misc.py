@@ -86,7 +86,7 @@ def BashAsync(cmd, echo=True):
   return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                           stderr=subprocess.STDOUT)
 
-def RunADB(serial, cmd, attempts=1):
+def RunADB(serial, cmd, attempts=5, secs_between_attempts=10):
   """ Run 'cmd' on an Android device, using ADB.  No return value; throws an
   exception if the command fails more than the allotted number of attempts.
   
@@ -96,14 +96,17 @@ def RunADB(serial, cmd, attempts=1):
   """
   adb_cmd = [PATH_TO_ADB, '-s', serial]
   adb_cmd += cmd
-  for attempt in range(attempts):
+  attempt = 1
+  while True:
     try:
       Bash(adb_cmd)
       return
     except:
-      if attempt < attempts:
-        print 'ADB command failed.  Retrying.'
-  raise Exception('ADB command failed')
+      if attempt >= attempts:
+        raise
+    print 'Command failed. Retrying in %d seconds...' % secs_between_attempts
+    time.sleep(secs_between_attempts)
+    attempt += 1
 
 def ADBKill(serial, process):
   """ Kill a process running on an Android device.

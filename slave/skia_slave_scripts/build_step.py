@@ -7,6 +7,7 @@
 from utils import misc
 import os
 import sys
+import time
 import traceback
 
 class BuildStep(object):
@@ -51,16 +52,33 @@ class BuildStep(object):
     """
     raise Exception('Cannot instantiate abstract BuildStep')
 
+  def _WaitFunc(self, attempt):
+    """ Waits a number of seconds depending upon the attempt number of a
+    retry-able BuildStep before making the next attempt.  This can be overridden
+    by subclasses and should be defined for attempt in [0, self._attempts - 1]
+
+    This default implementation is exponential; we double the wait time with
+    each attempt, starting with a 15-second pause between the first and second
+    attempts.
+    """
+    base_secs = 15
+    wait = base_secs * (2 ** attempt)
+    print 'Retrying in %d seconds...' % wait
+    time.sleep(wait)
+
   @staticmethod
   def Run(StepType):
     args = misc.ArgsToDict(sys.argv)
     step = StepType(args)
-    for attempt in range(step._attempts):
-      if (step._attempts > 1):
-        print '**** %s, attempt %d ****' % (StepType.__name__, attempt + 1)
+    attempt = 0
+    while True:
       try:
         step._Run(args)
         return 0
       except:
         print traceback.format_exc()
-    raise Exception('%s failed' % StepType.__name__)
+        if attempt + 1 >= step._attempts:
+          raise
+      step._WaitFunc(attempt)
+      attempt += 1
+      print '**** %s, attempt %d ****' % (StepType.__name__, attempt)
