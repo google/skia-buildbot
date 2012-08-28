@@ -55,10 +55,13 @@ class SkiaFactory(gclient_factory.GClientFactory):
     # and other directories we also wish to check out.
     solutions = [gclient_factory.GClientSolution(
         svn_url=config.Master.skia_url + build_subdir, name=build_subdir)]
-    if other_subdirs:
-      for other_subdir in other_subdirs:
-        solutions.append(gclient_factory.GClientSolution(
-            svn_url=config.Master.skia_url + other_subdir, name=other_subdir))
+    if not other_subdirs:
+      other_subdirs = []
+    if gm_image_subdir:
+      other_subdirs += ['gm-expected']
+    for other_subdir in other_subdirs:
+      solutions.append(gclient_factory.GClientSolution(
+          svn_url=config.Master.skia_url + other_subdir, name=other_subdir))
     gclient_factory.GClientFactory.__init__(
         self, build_dir='', solutions=solutions,
         target_platform=target_platform)
