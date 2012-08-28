@@ -7,9 +7,8 @@
 This is based on commands.py and adds skia-specific commands."""
 
 from buildbot.process.properties import WithProperties
-from buildbot.steps import shell
-
 from master.factory import commands
+from master.log_parser import retcode_command
 
 class SkiaCommands(commands.FactoryCommands):
 
@@ -69,9 +68,10 @@ class SkiaCommands(commands.FactoryCommands):
     """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
       timeout = self.default_timeout
-    self.factory.addStep(shell.ShellCommand, description=description,
-                         timeout=timeout, command=command,
-                         workdir=self.workdir, env=self.environment_variables)
+    self.factory.addStep(retcode_command.ReturnCodeCommand,
+                         description=description, timeout=timeout,
+                         command=command, workdir=self.workdir,
+                         env=self.environment_variables)
 
   def AddRunCommandList(self, command_list, description='Run', timeout=None):
     """Runs a list of arbitrary commands."""

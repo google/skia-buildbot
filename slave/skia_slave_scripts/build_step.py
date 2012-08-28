@@ -5,10 +5,14 @@
 """Base class for all slave-side build steps. """
 
 from utils import misc
+import config
 import os
 import sys
 import time
 import traceback
+
+class BuildStepWarning(Exception):
+  pass
 
 class BuildStep(object):
   def __init__(self, args, attempts=1):
@@ -75,6 +79,9 @@ class BuildStep(object):
       try:
         step._Run(args)
         return 0
+      except BuildStepWarning:
+        # A warning is considered to be an acceptable finishing state.
+        return config.Master.retcode_warnings
       except:
         print traceback.format_exc()
         if attempt + 1 >= step._attempts:
