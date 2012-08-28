@@ -121,7 +121,7 @@ def FileBug(summary, description, owner=None, ccs=[], labels=[]):
   return result
 
 # Branches for which we trigger rebuilds on the primary builders
-SKIA_PRIMARY_SUBDIRS = ['android', 'buildbot', 'trunk']
+SKIA_PRIMARY_SUBDIRS = ['android', 'buildbot', 'gm-expected', 'trunk']
 
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
