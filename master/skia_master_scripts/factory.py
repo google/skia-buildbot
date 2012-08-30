@@ -34,7 +34,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
                target_platform=None, configuration='Debug',
                default_timeout=600,
                environment_variables=None, gm_image_subdir=None,
-               perf_output_basedir=None, builder_name=None):
+               perf_output_basedir=None, builder_name=None, make_flags=[],
+               test_args=[], gm_args=[], bench_args=[]):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     do_upload_results: whether we should upload bench/gm results
@@ -50,6 +51,10 @@ class SkiaFactory(gclient_factory.GClientFactory):
     perf_output_basedir: path to directory under which to store performance
         data, or None if we don't want to store performance data
     builder_name: name of the builder associated with this factory
+    make_flags: list of extra flags to pass to the compile step
+    test_args: list of extra flags to pass to the 'tests' executable
+    gm_args: list of extra flags to pass to the 'gm' executable
+    bench_args: list of extra flags to pass to the 'bench' executable
     """
     # Create gclient solutions corresponding to the main build_subdir
     # and other directories we also wish to check out.
@@ -71,13 +76,13 @@ class SkiaFactory(gclient_factory.GClientFactory):
     # Set _default_clobber based on config.Master
     self._default_clobber = getattr(config.Master, 'default_clobber', False)
 
+    self._make_flags = make_flags
     # Platform-specific stuff.
     if target_platform == TARGET_PLATFORM_WIN32:
       self.TargetPathJoin = ntpath.join
-      self._make_flags = ''
     else:
       self.TargetPathJoin = posixpath.join
-      self._make_flags = '--jobs --max-load=4.0'
+      self._make_flags += ['--jobs', '--max-load=4.0']
 
     self._do_upload_results = do_upload_results
     self._make_bench_graphs = perf_output_basedir != None
@@ -108,6 +113,10 @@ class SkiaFactory(gclient_factory.GClientFactory):
                          '--target_platform', target_platform,
                          '--revision', WithProperties('%(got_revision)s'),
                          '--perf_output_basedir', perf_output_basedir,
+                         '--make_flags', ' '.join(self._make_flags),
+                         '--test_args', ' '.join(test_args),
+                         '--gm_args', ' '.join(gm_args),
+                         '--bench_args', ' '.join(bench_args),
                          ]
 
   def AddSlaveScript(self, script, description, args=[], timeout=None):
@@ -118,9 +127,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
   def Make(self, target, description):
     """Build a single target."""
-    args = ['--target', target,
-            '--make_flags', '"%s"' % self._make_flags,
-            ]
+    args = ['--target', target]
     self.AddSlaveScript(script='compile.py', args=args,
                         description=description, timeout=1200)
 

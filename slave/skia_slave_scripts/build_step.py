@@ -7,6 +7,7 @@
 from utils import misc
 import config
 import os
+import shlex
 import sys
 import time
 import traceback
@@ -32,7 +33,11 @@ class BuildStep(object):
                                              'gm-actual')
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
-    
+    self._make_flags = shlex.split(args['make_flags'])
+    self._test_args = shlex.split(args['test_args'])
+    self._gm_args = shlex.split(args['gm_args'])
+    self._bench_args = shlex.split(args['bench_args'])
+
     # Figure out where we are going to store performance output.
     if args['perf_output_basedir'] != 'None':
       self._perf_data_dir = os.path.join(args['perf_output_basedir'],

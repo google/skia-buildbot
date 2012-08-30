@@ -38,9 +38,7 @@ class RunBench(BuildStep):
       self._PreBench()
       cmd += self._BuildArgs(self.BENCH_REPEAT_COUNT,
                              self._BuildDataFile(self._perf_data_dir))
-      misc.Bash(cmd)
-    else:
-      misc.Bash(cmd)
+    misc.Bash(cmd + self._bench_args)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(RunBench))

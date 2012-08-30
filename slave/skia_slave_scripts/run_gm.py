@@ -32,7 +32,7 @@ class RunGM(BuildStep):
     self._PreGM()
     cmd = [self._PathToBinary('gm'),
            '-w', self._gm_actual_dir,
-           ]
+           ] + self._gm_args
     misc.Bash(cmd)
 
 if '__main__' == __name__:

@@ -24,7 +24,7 @@ class AndroidCompile(AndroidBuildStep):
            '-d', self._device,
            'BUILDTYPE=%s' % self._configuration,
            ]
-    cmd += shlex.split(args['make_flags'].replace('\"', ''))
+    cmd += self._make_flags
     misc.Bash(cmd)
 
 if '__main__' == __name__:

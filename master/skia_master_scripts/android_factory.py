@@ -13,9 +13,7 @@ class AndroidFactory(skia_factory.SkiaFactory):
 
   def Compile(self):
     """Compile step.  Build everything. """
-    args = ['--target', 'all',
-            '--make_flags', '"%s"' % self._make_flags
-            ]
+    args = ['--target', 'all']
     self.AddSlaveScript(script='android_compile.py', args=args,
                         description='BuildAll')
     # Install the app onto the device, so that it can be used in later steps.

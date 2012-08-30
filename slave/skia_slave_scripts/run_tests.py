@@ -11,7 +11,7 @@ import sys
 
 class RunTests(BuildStep):
   def _Run(self, args):
-    misc.Bash([self._PathToBinary('tests')])
+    misc.Bash([self._PathToBinary('tests')] + self._test_args)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(RunTests))
