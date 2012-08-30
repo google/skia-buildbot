@@ -113,10 +113,10 @@ class SkiaFactory(gclient_factory.GClientFactory):
                          '--target_platform', target_platform,
                          '--revision', WithProperties('%(got_revision)s'),
                          '--perf_output_basedir', perf_output_basedir,
-                         '--make_flags', ' '.join(self._make_flags),
-                         '--test_args', ' '.join(test_args),
-                         '--gm_args', ' '.join(gm_args),
-                         '--bench_args', ' '.join(bench_args),
+                         '--make_flags', '"%s"' % ' '.join(self._make_flags),
+                         '--test_args', '"%s"' % ' '.join(test_args),
+                         '--gm_args', '"%s"' % ' '.join(gm_args),
+                         '--bench_args', '"%s"' % ' '.join(bench_args),
                          ]
 
   def AddSlaveScript(self, script, description, args=[], timeout=None):
