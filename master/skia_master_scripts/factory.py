@@ -34,8 +34,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
                target_platform=None, configuration='Debug',
                default_timeout=600,
                environment_variables=None, gm_image_subdir=None,
-               perf_output_basedir=None, builder_name=None, make_flags=[],
-               test_args=[], gm_args=[], bench_args=[]):
+               perf_output_basedir=None, builder_name=None, make_flags=None,
+               test_args=None, gm_args=None, bench_args=None):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     do_upload_results: whether we should upload bench/gm results
@@ -76,6 +76,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
     # Set _default_clobber based on config.Master
     self._default_clobber = getattr(config.Master, 'default_clobber', False)
 
+    if not make_flags:
+      make_flags = []
     self._make_flags = make_flags
     # Platform-specific stuff.
     if target_platform == TARGET_PLATFORM_WIN32:
@@ -106,6 +108,12 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._builder_name = builder_name
 
+    if not test_args:
+      test_args = []
+    if not gm_args:
+      gm_args = []
+    if not bench_args:
+      bench_args = []
     self._common_args = ['--autogen_svn_baseurl', AUTOGEN_SVN_BASEURL,
                          '--configuration', configuration,
                          '--gm_image_subdir', gm_image_subdir,
