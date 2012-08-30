@@ -36,6 +36,9 @@ import tempfile
 from slave import svn
 
 
+SUBDIRS_TO_IGNORE = ['.svn', 'third_party']
+
+
 def ReadFirstLineOfFileAsString(filename):
   """Safely return the first line of a file as a string.
   If there is an exception, it will be raised to the caller, but we will
@@ -54,7 +57,7 @@ def _CopyAllFiles(source_dir, dest_dir):
   """Copy all files from source_dir into dest_dir.
 
   Recursively copies files from directories as well.
-  Skips .svn directories.
+  Skips directories specified in SUBDIRS_TO_IGNORE.
 
   @param source_dir
   @param dest_dir
@@ -63,7 +66,7 @@ def _CopyAllFiles(source_dir, dest_dir):
   for basename in basenames:
     source_path = os.path.join(source_dir, basename)
     dest_path = os.path.join(dest_dir, basename)
-    if basename == '.svn':
+    if basename in SUBDIRS_TO_IGNORE:
       continue
     if os.path.isdir(source_path):
       _CopyAllFiles(source_path, dest_path)
