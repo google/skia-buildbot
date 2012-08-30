@@ -15,6 +15,8 @@ from master.factory import gclient_factory
 from skia_master_scripts import commands as skia_commands
 import config
 
+
+SKIA_SVN_BASEURL = 'https://skia.googlecode.com/svn'
 AUTOGEN_SVN_BASEURL = 'https://skia-autogen.googlecode.com/svn'
 
 # TODO(epoger): My intent is to make the build steps identical on all platforms
@@ -25,6 +27,7 @@ AUTOGEN_SVN_BASEURL = 'https://skia-autogen.googlecode.com/svn'
 TARGET_PLATFORM_LINUX = 'linux'
 TARGET_PLATFORM_MAC = 'mac'
 TARGET_PLATFORM_WIN32 = 'win32'
+
 
 class SkiaFactory(gclient_factory.GClientFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""
@@ -104,6 +107,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
     if not gm_image_subdir:
       gm_image_subdir = 'None'
 
+    self._skia_svn_username_file = '.skia_svn_username'
+    self._skia_svn_password_file = '.skia_svn_password'
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._builder_name = builder_name

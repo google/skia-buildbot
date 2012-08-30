@@ -11,6 +11,7 @@ import httplib2
 from apiclient.discovery import build
 from buildbot.scheduler import AnyBranchScheduler
 from buildbot.scheduler import Scheduler
+from buildbot.schedulers import timed
 from buildbot.util import NotABranch
 from master import master_config
 from oauth2client.client import SignedJwtAssertionCredentials
@@ -143,16 +144,49 @@ class SkiaHelper(master_config.Helper):
                               'builders': [],
                               'categories': categories}
 
+  def PeriodicScheduler(self, name, branch, minute=0, hour='*', dayOfMonth='*',
+                        month='*', dayOfWeek='*'):
+    """Configures the periodic build scheduler.
+
+    The timezone the PeriodicScheduler is run in is the timezone of the buildbot
+    master. Currently this is EST because it runs in Atlanta.
+    """
+    if name in self._schedulers:
+      raise ValueError('Scheduler %s already exist' % name)
+    self._schedulers[name] = {'type': 'PeriodicScheduler',
+                              'branch': branch,
+                              'builders': [],
+                              'minute': minute,
+                              'hour': hour,
+                              'dayOfMonth': dayOfMonth,
+                              'month': month,
+                              'dayOfWeek': dayOfWeek}
+
   def Update(self, c):
     super(SkiaHelper, self).Update(c)
     for s_name in self._schedulers:
       scheduler = self._schedulers[s_name]
+      instance = None
       if scheduler['type'] == 'AnyBranchScheduler':
         instance = AnyBranchScheduler(name=s_name,
                                       branch=NotABranch,
                                       branches=scheduler['branches'],
-                                      treeStableTimer=scheduler['treeStableTimer'],
+                                      treeStableTimer=
+                                          scheduler['treeStableTimer'],
                                       builderNames=scheduler['builders'],
                                       categories=scheduler['categories'])
-        scheduler['instance'] = instance
-        c['schedulers'].append(instance)
+      elif scheduler['type'] == 'PeriodicScheduler':
+        instance = timed.Nightly(name=s_name,
+                                 branch=scheduler['branch'],
+                                 builderNames=scheduler['builders'],
+                                 minute=scheduler['minute'],
+                                 hour=scheduler['hour'],
+                                 dayOfMonth=scheduler['dayOfMonth'],
+                                 month=scheduler['month'],
+                                 dayOfWeek=scheduler['dayOfWeek'])
+      else:
+        raise ValueError(
+            'The scheduler type is unrecognized %s' % scheduler['type'])
+      scheduler['instance'] = instance
+      c['schedulers'].append(instance)
+

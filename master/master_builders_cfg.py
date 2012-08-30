@@ -26,9 +26,16 @@ def Update(config, active_master, c):
   F = helper.Factory
 
   #
-  # Main Scheduler for Skia
+  # Main (per-commit) Scheduler for Skia
   #
   helper.AnyBranchScheduler('skia_rel', branches=utils.SKIA_PRIMARY_SUBDIRS)
+
+  #
+  # Periodic Scheduler for Skia. The timezone the PeriodicScheduler is run in is
+  # the timezone of the buildbot master. Currently this is EST because it runs
+  # in Atlanta.
+  #
+  helper.PeriodicScheduler('skia_periodic', branch='trunk', minute=0, hour=2)
 
   #
   # Set up all the builders.
@@ -283,12 +290,19 @@ def Update(config, active_master, c):
 
   # House Keeping
   defaults['category'] = ' housekeeping'
-  B('Skia_House_Keeping', 'f_skia_house_keeping',
+  B('Skia_PerCommit_House_Keeping', 'f_skia_percommit_house_keeping',
       scheduler='skia_rel')
-  F('f_skia_house_keeping', housekeeping_factory.HouseKeepingFactory(
+  F('f_skia_percommit_house_keeping', housekeeping_factory.HouseKeepingFactory(
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      builder_name='Skia_House_Keeping',
+      builder_name='Skia_PerCommit_House_Keeping',
+      ).Build())
+  B('Skia_Periodic_House_Keeping', 'f_skia_periodic_house_keeping',
+      scheduler='skia_periodic')
+  F('f_skia_periodic_house_keeping', housekeeping_factory.HouseKeepingFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      builder_name='Skia_Periodic_House_Keeping',
       ).Build())
 
   # "Special" bots, running on Linux
