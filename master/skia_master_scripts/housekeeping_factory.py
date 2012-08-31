@@ -25,18 +25,16 @@ class HouseKeepingFactory(skia_factory.SkiaFactory):
     if clobber is None:
       clobber = self._default_clobber
     if clobber:
-      self.AddSlaveScript(script='clean.py', args=[], description='Clean')
+      self.AddSlaveScript(script='clean.py', description='Clean')
 
     # Check for source files with missing newlines at the end.
-    self._skia_cmd_obj.AddSlaveScript(
-        script='newline_checker.py', args=[], description='NewlineChecker')
+    self.AddSlaveScript(script='newline_checker.py',
+                        description='NewlineChecker')
 
     # Build tools and run their unittests.
+    self.Make('tools', 'BuildTools')
     # TODO: this runs a shell script, so would break on Windows. For now, we
     # rely on the fact that the housekeeping bot always runs on a Linux machine.
-    self._skia_cmd_obj.AddRunCommand(
-        command='make tools %s' % self._make_flags,
-        description='BuildTools')
     self._skia_cmd_obj.AddRunCommand(
         command=self.TargetPathJoin('tools', 'tests', 'run.sh'),
         description='RunToolSelfTests')
