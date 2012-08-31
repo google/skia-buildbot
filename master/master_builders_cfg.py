@@ -7,7 +7,8 @@
 from master import master_config
 from skia_master_scripts import android_factory
 from skia_master_scripts import factory as skia_factory
-from skia_master_scripts import housekeeping_factory
+from skia_master_scripts import housekeeping_percommit_factory
+from skia_master_scripts import housekeeping_periodic_factory
 from skia_master_scripts import utils
 
 # Directory where we want to record performance data
@@ -292,17 +293,19 @@ def Update(config, active_master, c):
   defaults['category'] = ' housekeeping'
   B('Skia_PerCommit_House_Keeping', 'f_skia_percommit_house_keeping',
       scheduler='skia_rel')
-  F('f_skia_percommit_house_keeping', housekeeping_factory.HouseKeepingFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      builder_name='Skia_PerCommit_House_Keeping',
+  F('f_skia_percommit_house_keeping',
+      housekeeping_percommit_factory.HouseKeepingPerCommitFactory(
+        do_upload_results=do_upload_results,
+        target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+        builder_name='Skia_PerCommit_House_Keeping',
       ).Build())
   B('Skia_Periodic_House_Keeping', 'f_skia_periodic_house_keeping',
       scheduler='skia_periodic')
-  F('f_skia_periodic_house_keeping', housekeeping_factory.HouseKeepingFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      builder_name='Skia_Periodic_House_Keeping',
+  F('f_skia_periodic_house_keeping',
+      housekeeping_periodic_factory.HouseKeepingPeriodicFactory(
+        do_upload_results=do_upload_results,
+        target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+        builder_name='Skia_Periodic_House_Keeping',
       ).Build())
 
   # "Special" bots, running on Linux
