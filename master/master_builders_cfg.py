@@ -288,6 +288,19 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_windows,
       builder_name='Skia_Shuttle_Win7_Intel_Float_Release_64',
       ).Build())
+  B('Skia_Shuttle_Win7_Intel_ANGLE', 'f_skia_shuttle_win7_intel_angle',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_win7_intel_angle', skia_factory.SkiaFactory(
+      do_upload_results=False,
+      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
+      configuration='Release',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir='base-shuttle-win7-intel-angle',
+      perf_output_basedir=perf_output_basedir_windows,
+      gm_args=['--config', 'angle'],
+      bench_args=['-config', 'ANGLE'],
+      builder_name='Skia_Shuttle_Win7_Intel_ANGLE',
+      ).Build())
   B('Skia_Shuttle_Win7_Intel_Float_DirectWrite', 'f_skia_shuttle_win7_intel_float_directwrite',
       scheduler='skia_rel')
   F('f_skia_shuttle_win7_intel_float_directwrite', skia_factory.SkiaFactory(
