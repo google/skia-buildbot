@@ -66,7 +66,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     if not other_subdirs:
       other_subdirs = []
     if gm_image_subdir:
-      other_subdirs += ['gm-expected']
+      other_subdirs += ['gm-expected', 'skp']
     for other_subdir in other_subdirs:
       solutions.append(gclient_factory.GClientSolution(
           svn_url=config.Master.skia_url + other_subdir, name=other_subdir))
@@ -161,6 +161,11 @@ class SkiaFactory(gclient_factory.GClientFactory):
     """ Run the "GM" tool, saving the images to disk. """
     self.AddSlaveScript(script='run_gm.py', description='GenerateGMs')
 
+  def RenderPictures(self):
+    """ Run the "render_pictures" tool to generate images from .skp's. """
+    self.AddSlaveScript(script='render_pictures.py',
+                        description='RenderPictures')
+
   def CompareGMs(self):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
     generated to the baselines in _gm_image_subdir. """
@@ -171,6 +176,11 @@ class SkiaFactory(gclient_factory.GClientFactory):
     results over time. """
     self.AddSlaveScript(script='run_bench.py', description='RunBench',
                         timeout=1200)
+
+  def BenchPictures(self):
+    """ Run "bench_pictures" """
+    self.AddSlaveScript(script='bench_pictures.py',
+                        description='BenchPictures')
 
   def BenchGraphs(self):
     """ Generate and upload bench performance graphs (but only if we have been
@@ -202,10 +212,12 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self.Compile()
     self.RunTests()
     self.RunGM()
+    self.RenderPictures()
     if self._do_upload_results:
       self.UploadGMResults()
     self.CompareGMs()
     self.RunBench()
+    self.BenchPictures()
     if self._make_bench_graphs:
       self.BenchGraphs()
 
