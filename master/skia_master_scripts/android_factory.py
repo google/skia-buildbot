@@ -28,6 +28,11 @@ class AndroidFactory(skia_factory.SkiaFactory):
     """ Run the "GM" tool, saving the images to disk. """
     self.AddSlaveScript(script='android_run_gm.py', description='GenerateGMs')
 
+  def RenderPictures(self):
+    """ Run the "render_pictures" tool to generate images from .skp's. """
+    self.AddSlaveScript(script='android_render_pictures.py',
+                        description='RenderPictures')
+
   def CompareGMs(self):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
     generated to the baselines in _gm_image_subdir. """
@@ -39,6 +44,11 @@ class AndroidFactory(skia_factory.SkiaFactory):
     """ Run "bench", piping the output somewhere so we can graph
     results over time. """
     self.AddSlaveScript(script='android_run_bench.py', description='RunBench')
+
+  def BenchPictures(self):
+    """ Run "bench_pictures" """
+    self.AddSlaveScript(script='android_bench_pictures.py',
+                        description='BenchPictures')
 
   def Build(self, device, clobber=None):
     """Build and return the complete BuildFactory.
