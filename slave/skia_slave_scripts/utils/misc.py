@@ -16,6 +16,7 @@ PATH_TO_ADB = os.path.join('..', 'android', 'bin', 'linux', 'adb')
 PROCESS_MONITOR_INTERVAL = 5.0 # Seconds
 SKIA_RUNNING = 'running'
 SKIA_RETURN_CODE_REPEATS = 10
+DEFAULT_SECS_BETWEEN_ATTEMPTS = 10
 DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'xoom': 'stingray',
                  'galaxy_nexus': 'toro',
@@ -66,6 +67,36 @@ def BashGet(cmd, echo=True):
     raise Exception('Command failed with code %d.' % code)
   return proc.communicate()[0]
 
+def _RetryableBashCmd(cmd, CmdFunc, echo=True, attempts=1,
+                      secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS):
+  """ Wrapper for any Bash command which makes multiple attempts until either
+  the command succeeds or the maximum number of attempts is reached. """
+  attempt = 1
+  while True:
+    try:
+      return CmdFunc(cmd, echo=echo)
+    except:
+      if attempt >= attempts:
+        raise
+    print 'Command failed. Retrying in %d seconds...' % secs_between_attempts
+    time.sleep(secs_between_attempts)
+    attempt += 1
+
+def BashRetry(cmd, echo=True, attempts=1,
+              secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS):
+  """ Wrapper for Bash() which makes multiple attempts until either the command
+  succeeds or the maximum number of attempts is reached. """
+  return _RetryableBashCmd(cmd=cmd, CmdFunc=Bash, echo=echo, attempts=attempts,
+                           secs_between_attempts=secs_between_attempts)
+
+def BashGetRetry(cmd, echo=True, attempts=1,
+                 secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS):
+  """ Wrapper for BashGet() which makes multiple attempts until either the
+  command succeeds or the maximum number of attempts is reached. """
+  return _RetryableBashCmd(cmd=cmd, CmdFunc=BashGet, echo=echo,
+                           attempts=attempts,
+                           secs_between_attempts=secs_between_attempts)
+
 def BashGetTimeout(cmd, echo=True, timeout=SUBPROCESS_TIMEOUT):
   """ Run 'cmd' in a shell and return the tuple consisting of the exit code (if
   the command finished, or None if the command did not finish) and the content
@@ -96,17 +127,7 @@ def RunADB(serial, cmd, attempts=5, secs_between_attempts=10):
   """
   adb_cmd = [PATH_TO_ADB, '-s', serial]
   adb_cmd += cmd
-  attempt = 1
-  while True:
-    try:
-      Bash(adb_cmd)
-      return
-    except:
-      if attempt >= attempts:
-        raise
-    print 'Command failed. Retrying in %d seconds...' % secs_between_attempts
-    time.sleep(secs_between_attempts)
-    attempt += 1
+  BashRetry(adb_cmd)
 
 def ADBKill(serial, process):
   """ Kill a process running on an Android device.
@@ -155,7 +176,7 @@ def GetSerial(device_type):
   if not device_type in DEVICE_LOOKUP:
     raise ValueError('Unknown device: %s!' % device_type)
   device_name = DEVICE_LOOKUP[device_type]
-  output = BashGet('%s devices' % PATH_TO_ADB, echo=True)
+  output = BashGetRetry('%s devices' % PATH_TO_ADB, attempts=5)
   print output
   lines = output.split('\n')
   device_ids = []
@@ -167,10 +188,9 @@ def GetSerial(device_type):
   for id in device_ids:
     print 'Finding type for id %s' % id
     # Get device name
-    name_line = BashGet(
+    name_line = BashGetRetry(
         '%s -s %s shell cat /system/build.prop | grep "ro.product.device="' % (
-            PATH_TO_ADB, id),
-        echo=True)
+            PATH_TO_ADB, id), attempts=5)
     print name_line
     name = name_line.split('=')[-1].rstrip()
     # Just return the first attached device of the requested model.
