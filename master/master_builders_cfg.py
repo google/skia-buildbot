@@ -288,6 +288,17 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_windows,
       builder_name='Skia_Shuttle_Win7_Intel_Float_Release_64',
       ).Build())
+  B('Skia_Shuttle_Win7_Intel_Float_DirectWrite', 'f_skia_shuttle_win7_intel_float_directwrite',
+      scheduler='skia_rel')
+  F('f_skia_shuttle_win7_intel_float_directwrite', skia_factory.SkiaFactory(
+      do_upload_results=False,
+      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
+      configuration='Debug',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_directwrite=1'},
+      gm_image_subdir='base-shuttle-win7-intel-float',
+      perf_output_basedir=perf_output_basedir_windows,
+      builder_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite',
+      ).Build())
 
   # House Keeping
   defaults['category'] = ' housekeeping'
