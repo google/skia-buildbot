@@ -13,6 +13,13 @@ import socket
 # import base class from third_party/chromium_buildbot/site_config/
 import config_default
 
+
+# The public master which is visible to everyone.
+SKIA_PUBLIC_MASTER = 'skia-masterb.c.skia-buildbots.google.com.internal'
+# The private master which is visible only to Google corp.
+SKIA_PRIVATE_MASTER = 'skia-privatemasterb.c.skia-buildbots.google.com.internal'
+
+
 class Master(config_default.Master):
   googlecode_revlinktmpl = 'http://code.google.com/p/%s/source/browse?r=%s'
   bot_password = 'epoger-temp-password'
@@ -26,16 +33,32 @@ class Master(config_default.Master):
     project_url = 'http://skia.googlecode.com'
     # The master host runs in Google Compute Engine.
     master_host = '70.32.156.53'
-    is_production_host = socket.getfqdn() == 'skia-masterb.c.skia-buildbots.google.com.internal'
+    is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER
     master_port = 10115
     slave_port = 10116
     master_port_alt = 10117
     tree_closing_notification_recipients = []
     from_address = 'skia-buildbot@pogerlabs.com'
     buildbot_url = 'http://%s:%d/' % (master_host, master_port)
+    is_publicly_visible = True
+
+  class PrivateSkia(object):
+    project_name = 'PrivateSkia'
+    project_url = 'http://skia.googlecode.com'
+    # The private master host runs in Google Compute Engine.
+    master_host = '70.32.159.65'
+    is_production_host = socket.getfqdn() == SKIA_PRIVATE_MASTER
+    master_port = 8041
+    slave_port = 8141
+    master_port_alt = 8241
+    tree_closing_notification_recipients = []
+    from_address = 'skia-buildbot@pogerlabs.com'
+    is_publicly_visible = False
+  
 
 class Archive(config_default.Archive):
     bogus_var = 'bogus_value'
+
 
 class Distributed(config_default.Distributed):
     bogus_var = 'bogus_value'
