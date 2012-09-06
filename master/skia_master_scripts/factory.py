@@ -207,20 +207,20 @@ class SkiaFactory(gclient_factory.GClientFactory):
     """
     # Do all the build steps first, so we will find out about build breakages
     # as soon as possible.
-#    if clobber is None:
-#      clobber = self._default_clobber
-#    if clobber:
-#      self.AddSlaveScript(script='clean.py', description='Clean')
+    if clobber is None:
+      clobber = self._default_clobber
+    if clobber:
+      self.AddSlaveScript(script='clean.py', description='Clean')
     self.Compile()
-#    self.RunTests()
-#    self.RunGM()
+    self.RunTests()
+    self.RunGM()
     self.RenderPictures()
-#    if self._do_upload_results:
-#      self.UploadGMResults()
-#    self.CompareGMs()
-    #self.RunBench()
+    if self._do_upload_results:
+      self.UploadGMResults()
+    self.CompareGMs()
+    self.RunBench()
     self.BenchPictures()
-#    if self._make_bench_graphs:
-#      self.BenchGraphs()
+    if self._make_bench_graphs:
+      self.BenchGraphs()
 
     return self._factory
