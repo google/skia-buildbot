@@ -59,25 +59,6 @@ class SkiaFactory(gclient_factory.GClientFactory):
     gm_args: list of extra flags to pass to the 'gm' executable
     bench_args: list of extra flags to pass to the 'bench' executable
     """
-    # Create gclient solutions corresponding to the main build_subdir
-    # and other directories we also wish to check out.
-    solutions = [gclient_factory.GClientSolution(
-        svn_url=config.Master.skia_url + build_subdir, name=build_subdir)]
-    if not other_subdirs:
-      other_subdirs = []
-    if gm_image_subdir:
-      other_subdirs += ['gm-expected', 'skp']
-    for other_subdir in other_subdirs:
-      solutions.append(gclient_factory.GClientSolution(
-          svn_url=config.Master.skia_url + other_subdir, name=other_subdir))
-    gclient_factory.GClientFactory.__init__(
-        self, build_dir='', solutions=solutions,
-        target_platform=target_platform)
-
-    self._factory = self.BaseFactory(factory_properties=None)
-
-    # Set _default_clobber based on config.Master
-    self._default_clobber = getattr(config.Master, 'default_clobber', False)
 
     if not make_flags:
       make_flags = []
@@ -88,6 +69,27 @@ class SkiaFactory(gclient_factory.GClientFactory):
     else:
       self.TargetPathJoin = posixpath.join
       self._make_flags += ['--jobs', '--max-load=4.0']
+
+    # Create gclient solutions corresponding to the main build_subdir
+    # and other directories we also wish to check out.
+    solutions = [gclient_factory.GClientSolution(
+        svn_url=config.Master.skia_url + build_subdir, name=build_subdir)]
+    if not other_subdirs:
+      other_subdirs = []
+    if gm_image_subdir:
+      other_subdirs += ['gm-expected/%s' % gm_image_subdir, 'skp']
+    for other_subdir in other_subdirs:
+      solutions.append(gclient_factory.GClientSolution(
+          svn_url=config.Master.skia_url + other_subdir,
+          name=self.TargetPathJoin(*other_subdir.split('/'))))
+    gclient_factory.GClientFactory.__init__(
+        self, build_dir='', solutions=solutions,
+        target_platform=target_platform)
+
+    self._factory = self.BaseFactory(factory_properties=None)
+
+    # Set _default_clobber based on config.Master
+    self._default_clobber = getattr(config.Master, 'default_clobber', False)
 
     self._do_upload_results = do_upload_results
     self._make_bench_graphs = perf_output_basedir != None
@@ -205,20 +207,20 @@ class SkiaFactory(gclient_factory.GClientFactory):
     """
     # Do all the build steps first, so we will find out about build breakages
     # as soon as possible.
-    if clobber is None:
-      clobber = self._default_clobber
-    if clobber:
-      self.AddSlaveScript(script='clean.py', description='Clean')
+#    if clobber is None:
+#      clobber = self._default_clobber
+#    if clobber:
+#      self.AddSlaveScript(script='clean.py', description='Clean')
     self.Compile()
-    self.RunTests()
-    self.RunGM()
+#    self.RunTests()
+#    self.RunGM()
     self.RenderPictures()
-    if self._do_upload_results:
-      self.UploadGMResults()
-    self.CompareGMs()
-    self.RunBench()
+#    if self._do_upload_results:
+#      self.UploadGMResults()
+#    self.CompareGMs()
+    #self.RunBench()
     self.BenchPictures()
-    if self._make_bench_graphs:
-      self.BenchGraphs()
+#    if self._make_bench_graphs:
+#      self.BenchGraphs()
 
     return self._factory
