@@ -81,7 +81,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     for other_subdir in other_subdirs:
       solutions.append(gclient_factory.GClientSolution(
           svn_url=config.Master.skia_url + other_subdir,
-          name=self.TargetPathJoin(*other_subdir.split('/'))))
+          name=other_subdir))
     gclient_factory.GClientFactory.__init__(
         self, build_dir='', solutions=solutions,
         target_platform=target_platform)
