@@ -48,21 +48,21 @@ def Update(config, active_master, c):
 
   # Linux (Ubuntu12) on Shuttle with ATI5770 graphics card
   defaults['category'] = 'Shuttle_Ubuntu12_ATI5770'
-  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug', 'f_skia_shuttle_ubuntu12_ati5770_float_debug',
+  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_64', 'f_skia_shuttle_ubuntu12_ati5770_float_debug_64',
       scheduler='skia_rel')
-  F('f_skia_shuttle_ubuntu12_ati5770_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=False,
+  F('f_skia_shuttle_ubuntu12_ati5770_float_debug_64', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=64'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
       perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug',
+      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_64',
       ).Build())
   B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32', 'f_skia_shuttle_ubuntu12_ati5770_float_release_32',
       scheduler='skia_rel')
   F('f_skia_shuttle_ubuntu12_ati5770_float_release_32', skia_factory.SkiaFactory(
-      do_upload_results=False,
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=32'},
@@ -84,115 +84,115 @@ def Update(config, active_master, c):
 
   # Android (runs on a Linux buildbot slave)...
   defaults['category'] = 'android'
-  B('Skia_NexusS_4-1_Float_Debug', 'f_skia_nexus_s_4-1_float_debug',
+  B('Skia_NexusS_4-1_Float_Debug_32', 'f_skia_nexus_s_4-1_float_debug_32',
       scheduler='skia_rel')
-  F('f_skia_nexus_s_4-1_float_debug', android_factory.AndroidFactory(
-      do_upload_results=False,
+  F('f_skia_nexus_s_4-1_float_debug_32', android_factory.AndroidFactory(
+      do_upload_results=do_upload_results,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-android-nexus-s',
       perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_NexusS_4-1_Float_Debug',
+      builder_name='Skia_NexusS_4-1_Float_Debug_32',
       ).Build(device='nexus_s'))
-  B('Skia_NexusS_4-1_Float_Release', 'f_skia_nexus_s_4-1_float_release',
+  B('Skia_NexusS_4-1_Float_Release_32', 'f_skia_nexus_s_4-1_float_release_32',
       scheduler='skia_rel')
-  F('f_skia_nexus_s_4-1_float_release', android_factory.AndroidFactory(
+  F('f_skia_nexus_s_4-1_float_release_32', android_factory.AndroidFactory(
       do_upload_results=do_upload_results,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-android-nexus-s',
       perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_NexusS_4-1_Float_Release',
+      builder_name='Skia_NexusS_4-1_Float_Release_32',
       ).Build(device='nexus_s'))
-  B('Skia_Xoom_4-1_Float_Debug', 'f_skia_xoom_4-1_float_debug',
+  B('Skia_Xoom_4-1_Float_Debug_32', 'f_skia_xoom_4-1_float_debug_32',
       scheduler='skia_rel')
-  F('f_skia_xoom_4-1_float_debug', android_factory.AndroidFactory(
-      do_upload_results=False,
+  F('f_skia_xoom_4-1_float_debug_32', android_factory.AndroidFactory(
+      do_upload_results=do_upload_results,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-android-xoom',
       perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Xoom_4-1_Float_Debug',
+      builder_name='Skia_Xoom_4-1_Float_Debug_32',
       ).Build(device='xoom'))
-  B('Skia_Xoom_4-1_Float_Release', 'f_skia_xoom_4-1_float_release',
+  B('Skia_Xoom_4-1_Float_Release_32', 'f_skia_xoom_4-1_float_release_32',
       scheduler='skia_rel')
-  F('f_skia_xoom_4-1_float_release', android_factory.AndroidFactory(
+  F('f_skia_xoom_4-1_float_release_32', android_factory.AndroidFactory(
       do_upload_results=do_upload_results,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-android-xoom',
       perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Xoom_4-1_Float_Release',
+      builder_name='Skia_Xoom_4-1_Float_Release_32',
       ).Build(device='xoom'))
-  B('Skia_GalaxyNexus_4-1_Float_Debug', 'f_skia_galaxy_nexus_4-1_float_debug',
+  B('Skia_GalaxyNexus_4-1_Float_Debug_32', 'f_skia_galaxy_nexus_4-1_float_debug_32',
       scheduler='skia_rel')
-  F('f_skia_galaxy_nexus_4-1_float_debug', android_factory.AndroidFactory(
-      do_upload_results=False,
+  F('f_skia_galaxy_nexus_4-1_float_debug_32', android_factory.AndroidFactory(
+      do_upload_results=do_upload_results,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-android-galaxy-nexus',
       perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_GalaxyNexus_4-1_Float_Debug',
+      builder_name='Skia_GalaxyNexus_4-1_Float_Debug_32',
       ).Build(device='galaxy_nexus'))
-  B('Skia_GalaxyNexus_4-1_Float_Release', 'f_skia_galaxy_nexus_4-1_float_release',
+  B('Skia_GalaxyNexus_4-1_Float_Release_32', 'f_skia_galaxy_nexus_4-1_float_release_32',
       scheduler='skia_rel')
-  F('f_skia_galaxy_nexus_4-1_float_release', android_factory.AndroidFactory(
+  F('f_skia_galaxy_nexus_4-1_float_release_32', android_factory.AndroidFactory(
       do_upload_results=do_upload_results,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-android-galaxy-nexus',
       perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_GalaxyNexus_4-1_Float_Release',
+      builder_name='Skia_GalaxyNexus_4-1_Float_Release_32',
       ).Build(device='galaxy_nexus'))
-  B('Skia_Nexus7_4-1_Float_Debug', 'f_skia_nexus7_4-1_float_debug',
+  B('Skia_Nexus7_4-1_Float_Debug_32', 'f_skia_nexus7_4-1_float_debug_32',
       scheduler='skia_rel')
-  F('f_skia_nexus7_4-1_float_debug', android_factory.AndroidFactory(
-      do_upload_results=False,
+  F('f_skia_nexus7_4-1_float_debug_32', android_factory.AndroidFactory(
+      do_upload_results=do_upload_results,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-android-nexus-7',
       perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Nexus7_4-1_Float_Debug',
+      builder_name='Skia_Nexus7_4-1_Float_Debug_32',
       ).Build(device='nexus_7'))
-  B('Skia_Nexus7_4-1_Float_Release', 'f_skia_nexus7_4-1_float_release',
+  B('Skia_Nexus7_4-1_Float_Release_32', 'f_skia_nexus7_4-1_float_release_32',
       scheduler='skia_rel')
-  F('f_skia_nexus7_4-1_float_release', android_factory.AndroidFactory(
+  F('f_skia_nexus7_4-1_float_release_32', android_factory.AndroidFactory(
       do_upload_results=do_upload_results,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-android-nexus-7',
       perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Nexus7_4-1_Float_Release',
+      builder_name='Skia_Nexus7_4-1_Float_Release_32',
       ).Build(device='nexus_7'))
 
   # Mac 10.6 (SnowLeopard) ...
   defaults['category'] = 'mac-10.6'
-  B('Skia_Mac_Float_Debug', 'f_skia_mac_float_debug',
+  B('Skia_Mac_Float_Debug_32', 'f_skia_mac_float_debug_32',
       scheduler='skia_rel')
-  F('f_skia_mac_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=False,
+  F('f_skia_mac_float_debug_32', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini',
       perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Mac_Float_Debug',
+      builder_name='Skia_Mac_Float_Debug_32',
       ).Build())
   B('Skia_Mac_Float_NoDebug_32', 'f_skia_mac_float_nodebug_32',
       scheduler='skia_rel')
@@ -208,7 +208,7 @@ def Update(config, active_master, c):
   B('Skia_Mac_Float_NoDebug_64', 'f_skia_mac_float_nodebug_64',
       scheduler='skia_rel')
   F('f_skia_mac_float_nodebug_64', skia_factory.SkiaFactory(
-      do_upload_results=False,
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
@@ -219,16 +219,16 @@ def Update(config, active_master, c):
 
   # Mac 10.7 (Lion) ...
   defaults['category'] = 'mac-10.7'
-  B('Skia_MacMiniLion_Float_Debug', 'f_skia_MacMiniLion_float_debug',
+  B('Skia_MacMiniLion_Float_Debug_32', 'f_skia_MacMiniLion_float_debug_32',
       scheduler='skia_rel')
-  F('f_skia_MacMiniLion_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=False,
+  F('f_skia_MacMiniLion_float_debug_32', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini-lion-float',
       perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_MacMiniLion_Float_Debug',
+      builder_name='Skia_MacMiniLion_Float_Debug_32',
       ).Build())
   B('Skia_MacMiniLion_Float_NoDebug_32', 'f_skia_MacMiniLion_float_nodebug_32',
       scheduler='skia_rel')
@@ -244,7 +244,7 @@ def Update(config, active_master, c):
   B('Skia_MacMiniLion_Float_NoDebug_64', 'f_skia_MacMiniLion_float_nodebug_64',
       scheduler='skia_rel')
   F('f_skia_MacMiniLion_float_nodebug_64', skia_factory.SkiaFactory(
-      do_upload_results=False,
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
@@ -255,16 +255,16 @@ def Update(config, active_master, c):
 
   # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
   defaults['category'] = 'Shuttle_Win7_Intel'
-  B('Skia_Shuttle_Win7_Intel_Float_Debug', 'f_skia_shuttle_win7_intel_float_debug',
+  B('Skia_Shuttle_Win7_Intel_Float_Debug_32', 'f_skia_shuttle_win7_intel_float_debug_32',
       scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_float_debug', skia_factory.SkiaFactory(
-      do_upload_results=False,
+  F('f_skia_shuttle_win7_intel_float_debug_32', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Shuttle_Win7_Intel_Float_Debug',
+      builder_name='Skia_Shuttle_Win7_Intel_Float_Debug_32',
       ).Build())
   B('Skia_Shuttle_Win7_Intel_Float_Release_32', 'f_skia_shuttle_win7_intel_float_release_32',
       scheduler='skia_rel')
@@ -280,7 +280,7 @@ def Update(config, active_master, c):
   B('Skia_Shuttle_Win7_Intel_Float_Release_64', 'f_skia_shuttle_win7_intel_float_release_64',
       scheduler='skia_rel')
   F('f_skia_shuttle_win7_intel_float_release_64', skia_factory.SkiaFactory(
-      do_upload_results=False,
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
@@ -288,29 +288,29 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_windows,
       builder_name='Skia_Shuttle_Win7_Intel_Float_Release_64',
       ).Build())
-  B('Skia_Shuttle_Win7_Intel_ANGLE', 'f_skia_shuttle_win7_intel_angle',
+  B('Skia_Shuttle_Win7_Intel_ANGLE_32', 'f_skia_shuttle_win7_intel_angle_32',
       scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_angle', skia_factory.SkiaFactory(
-      do_upload_results=False,
+  F('f_skia_shuttle_win7_intel_angle_32', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_angle=1'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_angle=1 skia_arch_width=32'},
       gm_image_subdir='base-shuttle-win7-intel-angle',
       perf_output_basedir=perf_output_basedir_windows,
       gm_args=['--config', 'angle'],
       bench_args=['-config', 'ANGLE'],
-      builder_name='Skia_Shuttle_Win7_Intel_ANGLE',
+      builder_name='Skia_Shuttle_Win7_Intel_ANGLE_32',
       ).Build())
-  B('Skia_Shuttle_Win7_Intel_Float_DirectWrite', 'f_skia_shuttle_win7_intel_float_directwrite',
+  B('Skia_Shuttle_Win7_Intel_Float_DirectWrite_32', 'f_skia_shuttle_win7_intel_float_directwrite_32',
       scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_float_directwrite', skia_factory.SkiaFactory(
-      do_upload_results=False,
+  F('f_skia_shuttle_win7_intel_float_directwrite_32', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_directwrite=1'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_directwrite=1 skia_arch_width=32'},
       gm_image_subdir='base-shuttle-win7-intel-directwrite',
       perf_output_basedir=perf_output_basedir_windows,
-      builder_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite',
+      builder_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite_32',
       ).Build())
 
   # House Keeping
@@ -337,10 +337,10 @@ def Update(config, active_master, c):
   B('Skia_Linux_NoGPU', 'f_skia_linux_no_gpu',
       scheduler='skia_rel')
   F('f_skia_linux_no_gpu', skia_factory.SkiaFactory(
-      do_upload_results=False,
+      do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_gpu=0'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_gpu=0 skia_arch_width=64'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
       perf_output_basedir=None, # no perf measurement for debug builds
       builder_name='Skia_Linux_NoGPU',

@@ -198,7 +198,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     args = ['--autogen_svn_username_file', self._autogen_svn_username_file,
             '--autogen_svn_password_file', self._autogen_svn_password_file]
     self.AddSlaveScript(script='upload_gm_results.py', args=args,
-                        description='UploadGMResults', timeout=1200)
+                        description='UploadGMResults', timeout=2400)
 
   def Build(self, clobber=None):
     """Build and return the complete BuildFactory.
