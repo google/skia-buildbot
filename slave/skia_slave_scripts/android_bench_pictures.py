@@ -5,16 +5,37 @@
 
 """ Run the Skia bench_pictures executable. """
 
-from utils import misc
+from android_build_step import AndroidBuildStep
+from bench_pictures import BenchPictures
 from build_step import BuildStep
+from utils import misc
 import os
 import sys
 
-class BenchPictures(BuildStep):
+class AndroidBenchPictures(AndroidBuildStep, BenchPictures):
   def _Run(self, args):
-    # Do nothing until we can run bench_pictures on Android
-    pass
+    serial = misc.GetSerial(self._device)
+    # TODO(borenet): Share logic with RunBench, since much is duplicated
+    if self._perf_data_dir:
+      self._PreBench()
+      misc.RunADB(serial, ['root'])
+      misc.RunADB(serial, ['remount'])
+      try:
+        misc.RunADB(serial, ['shell', 'rm', '-r', self._android_skp_perf_dir])
+      except:
+        pass
+      misc.RunADB(serial, ['shell', 'mkdir', '-p', self._android_skp_perf_dir])
+      cmd_args = [self._android_skp_dir]
+      cmd_args += self._BuildArgs(self.BENCH_REPEAT_COUNT,
+                                 self._BuildDataFile(self._android_skp_perf_dir))
+      misc.Run(serial, 'bench_pictures', arguments=cmd_args)
+      misc.RunADB(serial, ['pull',
+                           self._BuildDataFile(ANDROID_SKP_PERF_DIR),
+                           self._perf_data_dir])
+      misc.RunADB(serial, ['shell', 'rm', '-r', self._android_skp_perf_dir])
+    else:
+      misc.Run(serial, 'bench_pictures')
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(BenchPictures))
+  sys.exit(BuildStep.Run(AndroidBenchPictures))
 

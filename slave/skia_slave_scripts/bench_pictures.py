@@ -7,15 +7,24 @@
 
 from utils import misc
 from build_step import BuildStep
+from run_bench import RunBench
 import os
 import sys
 
-class BenchPictures(BuildStep):
+class BenchPictures(RunBench):
+  def _BuildArgs(self, repeats, data_file):
+    return ['--repeat', '%d' % repeats, '--logFile', data_file]
+
+  def _BuildDataFile(self, perf_dir):
+    return '%s_skp' % super(BenchPictures, self)._BuildDataFile(perf_dir)
+
   def _Run(self, args):
-    cmd = [self._PathToBinary('bench_pictures'),
-           os.path.join(os.pardir, 'skp')]
+    cmd = [self._PathToBinary('bench_pictures'), self._skp_dir]
+    if self._perf_data_dir:
+      self._PreBench()
+      cmd += self._BuildArgs(self.BENCH_REPEAT_COUNT,
+                             self._BuildDataFile(self._perf_data_dir))
     misc.Bash(cmd)
-    # TODO(borenet): Grab the output and prepare it for GenerateBenchGraphs
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(BenchPictures))

@@ -31,6 +31,7 @@ class BuildStep(object):
                                        self._gm_image_subdir)
     self._gm_actual_svn_baseurl = '%s/%s' % (args['autogen_svn_baseurl'],
                                              'gm-actual')
+    self._skp_dir = os.path.join(os.pardir, 'skp')
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._make_flags = shlex.split(args['make_flags'].replace('"', ''))

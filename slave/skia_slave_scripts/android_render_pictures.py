@@ -5,18 +5,56 @@
 
 """ Run the Skia bench_pictures executable. """
 
-from utils import misc
+from android_build_step import AndroidBuildStep
 from build_step import BuildStep
+from utils import misc
+import glob
 import os
 import shutil
 import sys
 import tempfile
 
-class RenderPictures(BuildStep):
+BINARY_NAME = 'render_pictures'
+
+class AndroidRenderPictures(AndroidBuildStep):
+  def _PushSKPSources(self, serial):
+    """ Push the skp directory full of .skp's to the Android device.
+
+    serial: string indicating the serial number of the target device.
+    """
+    misc.RunADB(serial, ['root'])
+    misc.RunADB(serial, ['remount'])
+    try:
+      misc.RunADB(serial, ['shell', 'rm', '-r', '%s' % self._android_skp_dir])
+    except:
+      pass
+    try:
+      misc.RunADB(serial,
+                  ['shell', 'rm', '-r', '%s' % self._android_skp_out_dir])
+    except:
+      pass
+    misc.RunADB(serial, ['shell', 'mkdir', '-p', '%s' % self._android_skp_dir])
+    misc.RunADB(serial,
+                ['shell', 'mkdir', '-p', '%s' % self._android_skp_out_dir])
+    # Push each skp individually, since adb doesn't let us use wildcards
+    for skp in glob.glob(os.path.join(self._skp_dir, '*.skp')):
+      misc.RunADB(serial, ['push', skp, self._android_skp_dir])
+
+  def _PullSKPResults(self, serial):
+    misc.RunADB(serial, ['pull', self._android_skp_out_dir,
+                         self._gm_actual_dir])
+
   def _Run(self, args):
-    # Do nothing until we can run render_pictures on Android.
-    pass
+    # For this step, we assume that we run *after* RunGM and *before*
+    # UploadGMResults.  This needs to be the case, because RunGM clears the
+    # output directory before it begins, and because we want the results from
+    # this step to be uploaded with the GM results.
+    serial = misc.GetSerial(self._device)
+    self._PushSKPSources(serial)
+    arguments = [self._android_skp_dir, self._android_skp_out_dir]
+    misc.Run(serial, BINARY_NAME, arguments)
+    self._PullSKPResults(serial)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(RenderPictures))
+  sys.exit(BuildStep.Run(AndroidRenderPictures))
 
