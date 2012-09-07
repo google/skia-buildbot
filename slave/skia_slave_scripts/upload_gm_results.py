@@ -39,8 +39,9 @@ class UploadGMResults(BuildStep):
     merge_options = Options()
     merge_options.commit_message = 'UploadGMResults of r%s on %s' % (
         self._revision, args['builder_name'])
-    merge_options.dest_svn_url = '%s/%s' % (gm_actual_svn_baseurl,
-                                            args['gm_image_subdir'])
+    merge_options.dest_svn_url = '%s/%s/%s/%s' % (
+        gm_actual_svn_baseurl, args['gm_image_subdir'], args['builder_name'],
+        args['gm_image_subdir'])
     merge_options.merge_dir_path = os.path.join(gm_merge_basedir,
                                                 args['gm_image_subdir'])
     merge_options.source_dir_path = os.path.join(gm_actual_basedir,
