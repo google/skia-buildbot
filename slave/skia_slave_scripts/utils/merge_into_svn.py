@@ -32,6 +32,7 @@ import shutil
 import stat
 import sys
 import tempfile
+import traceback
 
 from slave import svn
 
@@ -212,8 +213,16 @@ def MergeIntoSvn(options):
     # Add one file at a time, because otherwise Windows can choke on a command
     # line that's too long (if there are lots of files).
     repo.AddFiles([new_file])
-  repo.SetPropertyByFilenamePattern('*.png', 'svn:mime-type', 'image/png')
-  repo.SetPropertyByFilenamePattern('*.pdf', 'svn:mime-type', 'application/pdf')
+  # We have to try/except here, since we aren't guaranteed that both filetypes
+  # will be created on a every bot.
+  try:
+    repo.SetPropertyByFilenamePattern('*.png', 'svn:mime-type', 'image/png')
+  except Exception:
+    print traceback.format_exc()
+  try:
+    repo.SetPropertyByFilenamePattern('*.pdf', 'svn:mime-type', 'application/pdf')
+  except Exception:
+    print traceback.format_exc()
 
   # Commit changes to the SVN repository and clean up.
   print repo.Commit(message=options.commit_message)

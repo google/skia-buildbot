@@ -30,11 +30,11 @@ class AndroidBenchPictures(AndroidBuildStep, BenchPictures):
                                  self._BuildDataFile(self._android_skp_perf_dir))
       misc.Run(serial, 'bench_pictures', arguments=cmd_args)
       misc.RunADB(serial, ['pull',
-                           self._BuildDataFile(ANDROID_SKP_PERF_DIR),
+                           self._BuildDataFile(self._android_skp_perf_dir),
                            self._perf_data_dir])
       misc.RunADB(serial, ['shell', 'rm', '-r', self._android_skp_perf_dir])
     else:
-      misc.Run(serial, 'bench_pictures')
+      misc.Run(serial, 'bench_pictures', self._android_skp_dir)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidBenchPictures))
