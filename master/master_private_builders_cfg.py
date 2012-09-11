@@ -44,9 +44,21 @@ def Update(config, active_master, c):
   do_upload_results = active_master.is_production_host
 
   ########## LIST ALL PRIVATELY VISIBLE BUILDERS HERE ##########
-  B('Skia_Private_Builder_001', 'f_skia_private_builder_001',
+  B('Skia_Private_Builder_Debug_001', 'f_skia_private_builder_debug_001',
       scheduler='skia_rel')
-  F('f_skia_private_builder_001', android_factory.AndroidFactory(
+  F('f_skia_private_builder_debug_001', android_factory.AndroidFactory(
+      do_upload_results=False,
+      other_subdirs=['android'],
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration='Debug',
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      gm_image_subdir=None,
+      perf_output_basedir=None,
+      builder_name='Skia_Private_Builder_Debug_001',
+      ).Build(serial='5D327F9B4103E10F', device='nexus_s'))
+  B('Skia_Private_Builder_Release_001', 'f_skia_private_builder_release_001',
+      scheduler='skia_rel')
+  F('f_skia_private_builder_release_001', android_factory.AndroidFactory(
       do_upload_results=False,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
@@ -54,8 +66,7 @@ def Update(config, active_master, c):
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir=None,
       perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Private_Builder_001',
+      builder_name='Skia_Private_Builder_Release_001',
       ).Build(serial='5D327F9B4103E10F', device='nexus_s'))
-
   return helper.Update(c)
 
