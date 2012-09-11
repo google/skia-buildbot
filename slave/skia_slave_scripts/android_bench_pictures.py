@@ -14,27 +14,31 @@ import sys
 
 class AndroidBenchPictures(AndroidBuildStep, BenchPictures):
   def _Run(self, args):
-    serial = misc.GetSerial(self._device)
+    cmd_args = [self._android_skp_dir]
     # TODO(borenet): Share logic with RunBench, since much is duplicated
     if self._perf_data_dir:
       self._PreBench()
-      misc.RunADB(serial, ['root'])
-      misc.RunADB(serial, ['remount'])
+      misc.RunADB(self._serial, ['root'])
+      misc.RunADB(self._serial, ['remount'])
       try:
-        misc.RunADB(serial, ['shell', 'rm', '-r', self._android_skp_perf_dir])
+        misc.RunADB(self._serial, ['shell', 'rm', '-r',
+                                   self._android_skp_perf_dir])
       except:
         pass
-      misc.RunADB(serial, ['shell', 'mkdir', '-p', self._android_skp_perf_dir])
-      cmd_args = [self._android_skp_dir]
+      misc.RunADB(self._serial, ['shell', 'mkdir', '-p',
+                                 self._android_skp_perf_dir])
       cmd_args += self._BuildArgs(self.BENCH_REPEAT_COUNT,
-                                 self._BuildDataFile(self._android_skp_perf_dir))
-      misc.Run(serial, 'bench_pictures', arguments=cmd_args)
-      misc.RunADB(serial, ['pull',
-                           self._BuildDataFile(self._android_skp_perf_dir),
-                           self._perf_data_dir])
-      misc.RunADB(serial, ['shell', 'rm', '-r', self._android_skp_perf_dir])
+                                  self._BuildDataFile(
+                                     self._android_skp_perf_dir))
+      misc.Run(self._serial, 'bench_pictures', arguments=cmd_args)
+      misc.RunADB(self._serial, ['pull',
+                                 self._BuildDataFile(
+                                     self._android_skp_perf_dir),
+                                 self._perf_data_dir])
+      misc.RunADB(self._serial, ['shell', 'rm', '-r',
+                                 self._android_skp_perf_dir])
     else:
-      misc.Run(serial, 'bench_pictures', self._android_skp_dir)
+      misc.Run(self._serial, 'bench_pictures', cmd_args)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidBenchPictures))
