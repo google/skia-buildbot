@@ -15,24 +15,23 @@ ANDROID_PERF_DIR = '/sdcard/skia_perf'
 
 class AndroidRunBench(AndroidBuildStep, RunBench):
   def _Run(self, args):
-    serial = misc.GetSerial(self._device)
     if self._perf_data_dir:
       self._PreBench()
-      misc.RunADB(serial, ['root'])
-      misc.RunADB(serial, ['remount'])
+      misc.RunADB(self._serial, ['root'])
+      misc.RunADB(self._serial, ['remount'])
       try:
-        misc.RunADB(serial, ['shell', 'rm', '-r', ANDROID_PERF_DIR])
+        misc.RunADB(self._serial, ['shell', 'rm', '-r', ANDROID_PERF_DIR])
       except:
         pass
-      misc.RunADB(serial, ['shell', 'mkdir', '-p', ANDROID_PERF_DIR])
-      misc.Run(serial, 'bench', arguments=self._BuildArgs(
+      misc.RunADB(self._serial, ['shell', 'mkdir', '-p', ANDROID_PERF_DIR])
+      misc.Run(self._serial, 'bench', arguments=self._BuildArgs(
           self.BENCH_REPEAT_COUNT, self._BuildDataFile(ANDROID_PERF_DIR)))
-      misc.RunADB(serial, ['pull',
-                           self._BuildDataFile(ANDROID_PERF_DIR),
-                           self._perf_data_dir])
-      misc.RunADB(serial, ['shell', 'rm', '-r', ANDROID_PERF_DIR])
+      misc.RunADB(self._serial, ['pull',
+                                 self._BuildDataFile(ANDROID_PERF_DIR),
+                                 self._perf_data_dir])
+      misc.RunADB(self._serial, ['shell', 'rm', '-r', ANDROID_PERF_DIR])
     else:
-      misc.Run(serial, 'bench')
+      misc.Run(self._serial, 'bench')
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidRunBench))

@@ -50,12 +50,12 @@ def Update(config, active_master, c):
       do_upload_results=False,
       other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
+      configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir=None,
-      perf_output_basedir=None, # no perf measurement for debug builds
+      perf_output_basedir=perf_output_basedir_linux,
       builder_name='Skia_Private_Builder_001',
-      ).Build(device='nexus_s'))
+      ).Build(serial='5D327F9B4103E10F', device='nexus_s'))
 
   return helper.Update(c)
 

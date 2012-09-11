@@ -50,12 +50,17 @@ class AndroidFactory(skia_factory.SkiaFactory):
     self.AddSlaveScript(script='android_bench_pictures.py',
                         description='BenchPictures')
 
-  def Build(self, device, clobber=None):
+  def Build(self, device, serial=None, clobber=None):
     """Build and return the complete BuildFactory.
 
     device: string indicating which Android device type we are targeting
+    serial: optional, string indicating the serial number of a specific Android
+            device to target.  If this is None, the builder will use the first
+            attached device whose description matches the device parameter.
     clobber: boolean indicating whether we should clean before building
     """
     self._device = device
-    self._common_args += ['--device', self._device]
+    self._serial = serial or 'None'
+    self._common_args += ['--device', self._device,
+                          '--serial', self._serial]
     return super(AndroidFactory, self).Build(clobber)

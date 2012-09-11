@@ -24,8 +24,7 @@ def main(argv):
   if len(args) != 0:
     raise Exception('bogus command-line argument; rerun with --help')
   misc.ConfirmOptionsSet({'--device': options.device})
-  serial = misc.GetSerial(options.device)
-  misc.Install(serial)
+  misc.Install(self._serial)
   return 0
 
 if '__main__' == __name__:

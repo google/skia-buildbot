@@ -11,7 +11,6 @@ from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from run_gm import RunGM
 from utils import misc
-import optparse
 import os
 import shutil
 import sys
@@ -42,20 +41,21 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
 
   def _Run(self, args):
     self._PreGM()
-    serial = misc.GetSerial(self._device)
-    misc.RunADB(serial, ['root'])
-    misc.RunADB(serial, ['remount'])
+    misc.RunADB(self._serial, ['root'])
+    misc.RunADB(self._serial, ['remount'])
     try:
-      misc.RunADB(serial, ['shell', 'rm', '-r',
-                           '%s%s' % (DEVICE_GM_PATH, self._gm_image_subdir)])
+      misc.RunADB(self._serial, ['shell', 'rm', '-r',
+                                 '%s%s' % (DEVICE_GM_PATH,
+                                           self._gm_image_subdir)])
     except:
       pass
-    misc.RunADB(serial, ['shell', 'mkdir', '-p',
-                         '%s%s' % (DEVICE_GM_PATH, self._gm_image_subdir)])
+    misc.RunADB(self._serial, ['shell', 'mkdir', '-p',
+                               '%s%s' % (DEVICE_GM_PATH,
+                                         self._gm_image_subdir)])
     arguments = ANDROID_GM_ARGS + ['-w', '%s%s' % (DEVICE_GM_PATH,
                                                    self._gm_image_subdir)]
-    misc.Run(serial, BINARY_NAME, arguments)
-    self._PullImages(serial)
+    misc.Run(self._serial, BINARY_NAME, arguments)
+    self._PullImages(self._serial)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidRunGM))

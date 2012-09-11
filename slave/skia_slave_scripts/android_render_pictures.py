@@ -49,11 +49,10 @@ class AndroidRenderPictures(AndroidBuildStep):
     # UploadGMResults.  This needs to be the case, because RunGM clears the
     # output directory before it begins, and because we want the results from
     # this step to be uploaded with the GM results.
-    serial = misc.GetSerial(self._device)
-    self._PushSKPSources(serial)
+    self._PushSKPSources(self._serial)
     arguments = [self._android_skp_dir, self._android_skp_out_dir]
-    misc.Run(serial, BINARY_NAME, arguments)
-    self._PullSKPResults(serial)
+    misc.Run(self._serial, BINARY_NAME, arguments)
+    self._PullSKPResults(self._serial)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidRenderPictures))

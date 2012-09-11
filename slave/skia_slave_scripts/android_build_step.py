@@ -5,10 +5,14 @@
 """ Subclass for all slave-side Android build steps. """
 
 from build_step import BuildStep
+from utils import misc
 
 class AndroidBuildStep(BuildStep):
   def __init__(self, args, attempts=1):
     self._device = args['device']
+    self._serial = args['serial']
+    if self._serial == 'None':
+      self._serial = misc.GetSerial(self._device)
     self._android_skp_dir = '/sdcard/skia_skp'
     self._android_skp_perf_dir = '/sdcard/skia_skp_perf'
     self._android_skp_out_dir = '/sdcard/skia_skp_out'
