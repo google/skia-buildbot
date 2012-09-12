@@ -298,7 +298,7 @@ def Update(config, active_master, c):
       gm_image_subdir='base-shuttle-win7-intel-angle',
       perf_output_basedir=perf_output_basedir_windows,
       gm_args=['--config', 'angle'],
-      bench_args=['-config', 'ANGLE'],
+      bench_args=['--config', 'ANGLE'],
       builder_name='Skia_Shuttle_Win7_Intel_ANGLE_32',
       ).Build())
   B('Skia_Shuttle_Win7_Intel_Float_DirectWrite_32', 'f_skia_shuttle_win7_intel_float_directwrite_32',

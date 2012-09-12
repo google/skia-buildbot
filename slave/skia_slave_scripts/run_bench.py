@@ -29,8 +29,8 @@ class RunBench(BuildStep):
     return os.path.join(perf_dir, 'bench_r%s_data' % self._revision)
 
   def _BuildArgs(self, repeats, data_file):
-    return ['-repeat', '%d' % repeats, '-timers', 'wcg', '-logPerIter', '%d' %1,
-            '-logFile', data_file]
+    return ['--repeat', '%d' % repeats, '--timers', 'wcg', '--logPerIter',
+            '%d' %1, '--logFile', data_file]
   
   def _Run(self, args):
     cmd = [self._PathToBinary('bench')]

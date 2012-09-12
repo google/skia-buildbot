@@ -12,9 +12,6 @@ import os
 import sys
 
 class BenchPictures(RunBench):
-  def _BuildArgs(self, repeats, data_file):
-    return ['--repeat', '%d' % repeats, '--logFile', data_file]
-
   def _BuildDataFile(self, perf_dir):
     return '%s_skp' % super(BenchPictures, self)._BuildDataFile(perf_dir)
 
