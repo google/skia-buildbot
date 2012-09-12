@@ -23,7 +23,7 @@ class RenderPictures(BuildStep):
     filepaths = os.listdir(temp_dir)
     for filepath in filepaths:
       if not os.path.isdir(filepath):
-        out_file = os.path.join(self._gm_actual_dir, 'skp_' + filepath)
+        out_file = os.path.join(self._gm_actual_dir, filepath)
         shutil.copyfile(os.path.join(temp_dir, filepath), out_file)
     shutil.rmtree(temp_dir)
 
