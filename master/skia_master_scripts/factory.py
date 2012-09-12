@@ -77,7 +77,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
     if not other_subdirs:
       other_subdirs = []
     if gm_image_subdir:
-      other_subdirs += ['gm-expected/%s' % gm_image_subdir, 'skp']
+      other_subdirs.append('gm-expected/%s' % gm_image_subdir)
+    other_subdirs.append('skp')
     for other_subdir in other_subdirs:
       solutions.append(gclient_factory.GClientSolution(
           svn_url=config.Master.skia_url + other_subdir,
