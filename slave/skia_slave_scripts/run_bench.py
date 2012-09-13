@@ -44,7 +44,7 @@ class RunBench(BuildStep):
   def _Run(self, args):
     cmd = [self._PathToBinary('bench')]
     if self._perf_data_dir:
-      self._PreBench(self._perf_data_dir)
+      PreBench(self._perf_data_dir)
       cmd += BuildArgs(self.BENCH_REPEAT_COUNT,
                        self._BuildDataFile(self._perf_data_dir))
     misc.Bash(cmd + self._bench_args)

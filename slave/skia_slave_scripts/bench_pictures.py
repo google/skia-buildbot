@@ -8,6 +8,7 @@
 from utils import misc
 from build_step import BuildStep
 from run_bench import RunBench
+from run_bench import PreBench
 import os
 import sys
 
@@ -20,7 +21,7 @@ class BenchPictures(RunBench):
     cmd = [self._PathToBinary('bench_pictures'), self._skp_dir,
            '--device', config]
     if self._perf_data_dir:
-      self._PreBench()
+      PreBench(self._perf_data_dir)
       cmd += self._BuildArgs(self.BENCH_REPEAT_COUNT,
                              self._BuildDataFile(self._perf_data_dir, config))
     misc.Bash(cmd)
