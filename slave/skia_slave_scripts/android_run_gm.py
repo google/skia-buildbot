@@ -16,7 +16,6 @@ import shutil
 import sys
 
 BINARY_NAME = 'gm'
-DEVICE_GM_PATH = '/sdcard/skia_gm/'
 ANDROID_GM_ARGS = ['--nopdf']
 
 class AndroidRunGM(AndroidBuildStep, RunGM):
@@ -34,10 +33,10 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
       pass
     os.makedirs(self._gm_actual_dir)
     misc.RunADB(serial, ['pull',
-                         '%s%s' % (DEVICE_GM_PATH, self._gm_image_subdir),
+                         '%s/%s' % (self._android_gm_dir, self._gm_image_subdir),
                          self._gm_actual_dir])
     misc.RunADB(serial, ['shell', 'rm', '-r',
-                         '%s%s' % (DEVICE_GM_PATH, self._gm_image_subdir)])
+                         '%s/%s' % (self._android_gm_dir, self._gm_image_subdir)])
 
   def _Run(self, args):
     self._PreGM()
@@ -45,12 +44,12 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
     misc.RunADB(self._serial, ['remount'])
     try:
       misc.RunADB(self._serial, ['shell', 'rm', '-r',
-                                 '%s%s' % (DEVICE_GM_PATH,
+                                 '%s/%s' % (self._android_gm_dir,
                                            self._gm_image_subdir)])
     except:
       pass
     misc.RunADB(self._serial, ['shell', 'mkdir', '-p',
-                               '%s%s' % (DEVICE_GM_PATH,
+                               '%s/%s' % (self._android_gm_dir,
                                          self._gm_image_subdir)])
     arguments = (ANDROID_GM_ARGS +
                  ['-w', '%s/%s' % (self._android_gm_dir, self._gm_image_subdir)]
