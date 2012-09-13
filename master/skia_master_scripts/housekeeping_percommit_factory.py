@@ -39,6 +39,11 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
         command=self.TargetPathJoin('tools', 'tests', 'run.sh'),
         description='RunToolSelfTests')
 
+    # Compile using clang.
+    self._skia_cmd_obj.AddRunCommand(
+        command='CXX=`which clang++` CC=`which clang` make -j30',
+        description='ClangCompile')
+
     # Generate and upload Doxygen documentation.
     doxygen_actual_svn_baseurl = '%s/%s' % (
         skia_factory.AUTOGEN_SVN_BASEURL, 'docs')
