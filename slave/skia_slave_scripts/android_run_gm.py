@@ -54,8 +54,10 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
     arguments = (ANDROID_GM_ARGS +
                  ['-w', '%s/%s' % (self._android_gm_dir, self._gm_image_subdir)]
                  + self._gm_args)
-    misc.Run(self._serial, BINARY_NAME, arguments)
-    self._PullImages(self._serial)
+    try:
+      misc.Run(self._serial, BINARY_NAME, arguments)
+    finally:
+      self._PullImages(self._serial)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidRunGM))

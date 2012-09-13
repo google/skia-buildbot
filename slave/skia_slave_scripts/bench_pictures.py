@@ -7,6 +7,7 @@
 
 from utils import misc
 from build_step import BuildStep
+from run_bench import BuildArgs
 from run_bench import RunBench
 from run_bench import PreBench
 import os
@@ -22,17 +23,13 @@ class BenchPictures(RunBench):
            '--device', config]
     if self._perf_data_dir:
       PreBench(self._perf_data_dir)
-      cmd += self._BuildArgs(self.BENCH_REPEAT_COUNT,
-                             self._BuildDataFile(self._perf_data_dir, config))
+      cmd += BuildArgs(self.BENCH_REPEAT_COUNT,
+                       self._BuildDataFile(self._perf_data_dir, config))
     misc.Bash(cmd)
 
   def _Run(self, args):
     self._DoBenchPictures('bitmap')
-    gyp_defines = ''
-    try:
-      gyp_defines = os.environ['GYP_DEFINES']
-    except KeyError:
-      pass
+    gyp_defines = os.environ.get('GYP_DEFINES', '')
     if 'skia_gpu=0' not in gyp_defines:
       self._DoBenchPictures('gpu')
 
