@@ -12,32 +12,41 @@ import os
 import shlex
 import sys
 
+def BuildArgs(repeats, data_file):
+  """ Builds a list containing arguments to pass to bench.
+
+  repeats: integer indicating the number of times to repeat each benchmark
+  data_file: filepath to store the log output
+  """
+  return ['--repeat', '%d' % repeats, '--timers', 'wcg', '--logPerIter',
+          '%d' %1, '--logFile', data_file]
+
+def PreBench(perf_data_dir):
+  """ Creates perf_data_dir if it doesn't exist.
+
+  perf_data_dir: path to create
+  """
+  try:
+    os.makedirs(perf_data_dir)
+  except OSError as e:
+    if e.errno == errno.EEXIST:
+      pass
+    else:
+      raise e
+
 class RunBench(BuildStep):
 
   BENCH_REPEAT_COUNT = 20
 
-  def _PreBench(self):
-    try:
-      os.makedirs(self._perf_data_dir)
-    except OSError as e:
-      if e.errno == errno.EEXIST:
-        pass
-      else:
-        raise e
-
   def _BuildDataFile(self, perf_dir):
     return os.path.join(perf_dir, 'bench_r%s_data' % self._revision)
 
-  def _BuildArgs(self, repeats, data_file):
-    return ['--repeat', '%d' % repeats, '--timers', 'wcg', '--logPerIter',
-            '%d' %1, '--logFile', data_file]
-  
   def _Run(self, args):
     cmd = [self._PathToBinary('bench')]
     if self._perf_data_dir:
-      self._PreBench()
-      cmd += self._BuildArgs(self.BENCH_REPEAT_COUNT,
-                             self._BuildDataFile(self._perf_data_dir))
+      self._PreBench(self._perf_data_dir)
+      cmd += BuildArgs(self.BENCH_REPEAT_COUNT,
+                       self._BuildDataFile(self._perf_data_dir))
     misc.Bash(cmd + self._bench_args)
 
 if '__main__' == __name__:

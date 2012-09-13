@@ -12,16 +12,23 @@ import os
 import sys
 
 class BenchPictures(RunBench):
-  def _BuildDataFile(self, perf_dir):
-    return '%s_skp' % super(BenchPictures, self)._BuildDataFile(perf_dir)
+  def _BuildDataFile(self, perf_dir, config):
+    return '%s_skp_%s' % (super(BenchPictures, self)._BuildDataFile(perf_dir),
+                          config)
 
-  def _Run(self, args):
-    cmd = [self._PathToBinary('bench_pictures'), self._skp_dir]
+  def _DoBenchPictures(self, config):
+    cmd = [self._PathToBinary('bench_pictures'), self._skp_dir,
+           '--device', config]
     if self._perf_data_dir:
       self._PreBench()
       cmd += self._BuildArgs(self.BENCH_REPEAT_COUNT,
-                             self._BuildDataFile(self._perf_data_dir))
+                             self._BuildDataFile(self._perf_data_dir, config))
     misc.Bash(cmd)
+
+  def _Run(self, args):
+    self._DoBenchPictures('bitmap')
+    self._DoBenchPictures('gpu')
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(BenchPictures))
