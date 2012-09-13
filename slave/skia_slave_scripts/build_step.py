@@ -37,6 +37,7 @@ class BuildStep(object):
     self._make_flags = shlex.split(args['make_flags'].replace('"', ''))
     self._test_args = shlex.split(args['test_args'].replace('"', ''))
     self._gm_args = shlex.split(args['gm_args'].replace('"', ''))
+    self._gm_args.append('--serialize')
     self._bench_args = shlex.split(args['bench_args'].replace('"', ''))
 
     # Figure out where we are going to store performance output.

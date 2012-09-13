@@ -52,8 +52,9 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
     misc.RunADB(self._serial, ['shell', 'mkdir', '-p',
                                '%s%s' % (DEVICE_GM_PATH,
                                          self._gm_image_subdir)])
-    arguments = ANDROID_GM_ARGS + ['-w', '%s%s' % (DEVICE_GM_PATH,
-                                                   self._gm_image_subdir)]
+    arguments = (ANDROID_GM_ARGS +
+                 ['-w', '%s/%s' % (self._android_gm_dir, self._gm_image_subdir)]
+                 + self._gm_args)
     misc.Run(self._serial, BINARY_NAME, arguments)
     self._PullImages(self._serial)
 
