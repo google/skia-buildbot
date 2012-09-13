@@ -14,8 +14,9 @@ class AndroidBuildStep(BuildStep):
     if self._serial == 'None':
       self._serial = misc.GetSerial(self._device)
     self._android_scratch_dir = '%s/skiabot' % misc.BashGet(
-        "%s shell echo \$EXTERNAL_STORAGE" % misc.PATH_TO_ADB, echo=True
-                                                            ).rstrip()
+        "%s -s %s shell echo \$EXTERNAL_STORAGE" %
+            (misc.PATH_TO_ADB, self._serial),
+        echo=True).rstrip()
     self._android_gm_dir = '%s/skia_gm' % self._android_scratch_dir
     self._android_perf_dir = '%s/skia_perf' % self._android_scratch_dir
     self._android_skp_dir = '%s/skia_skp' % self._android_scratch_dir

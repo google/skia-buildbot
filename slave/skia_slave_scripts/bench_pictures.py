@@ -28,7 +28,13 @@ class BenchPictures(RunBench):
 
   def _Run(self, args):
     self._DoBenchPictures('bitmap')
-    self._DoBenchPictures('gpu')
+    gyp_defines = ''
+    try:
+      gyp_defines = os.environ['GYP_DEFINES']
+    except KeyError:
+      pass
+    if 'skia_gpu=0' not in gyp_defines:
+      self._DoBenchPictures('gpu')
 
 
 if '__main__' == __name__:
