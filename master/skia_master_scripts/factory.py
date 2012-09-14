@@ -182,8 +182,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
   def BenchPictures(self):
     """ Run "bench_pictures" """
-    self.AddSlaveScript(script='bench_pictures.py',
-                        description='BenchPictures')
+    self.AddSlaveScript(script='bench_pictures.py', description='BenchPictures',
+                        timeout=1200)
 
   def BenchGraphs(self):
     """ Generate and upload bench performance graphs (but only if we have been
