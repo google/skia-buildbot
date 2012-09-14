@@ -11,6 +11,9 @@ import subprocess
 import threading
 import time
 
+if 'nt' in os.name:
+  import ctypes
+
 SUBPROCESS_TIMEOUT = 30.0
 PATH_TO_ADB = os.path.join('..', 'android', 'bin', 'linux', 'adb')
 PROCESS_MONITOR_INTERVAL = 5.0 # Seconds
@@ -47,21 +50,37 @@ def ConfirmOptionsSet(name_value_dict):
       raise Exception('missing command-line option %s; rerun with --help' %
                       name)
 
+def BashAsync(cmd, echo=True, shell=False, pipe_stdout=False):
+  """ Run 'cmd' in a subprocess, returning a Popen class instance referring to
+  that process.  (Non-blocking) """
+  if echo:
+    print cmd
+  if 'nt' in os.name:
+    # Windows has a bad habit of opening a dialog when a console program
+    # crashes, rather than just letting it crash.  Therefore, when a program
+    # crashes on Windows, we don't find out until the build step times out.
+    # This code prevents the dialog from appearing, so that we find out
+    # immediately and don't waste time waiting around.
+    SEM_NOGPFAULTERRORBOX = 0x0002
+    ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
+    flags = 0x8000000 # CREATE_NO_WINDOW
+  else:
+    flags = 0
+  return subprocess.Popen(cmd, stdout=(subprocess.PIPE if pipe_stdout else None), shell=shell,
+                          stderr=subprocess.STDOUT, creationflags=flags)
+
 def Bash(cmd, echo=True):
   """ Run 'cmd' in a shell (Blocking).  Throws an exception if the command
   exits with non-zero code. """
-  if echo:
-    print cmd
-  code = subprocess.call(cmd)
+  proc = BashAsync(cmd, echo=echo)
+  code = proc.wait()
   if code != 0:
     raise Exception('Command failed with code %d' % code)
 
 def BashGet(cmd, echo=True):
   """ Run 'cmd' in a shell and return stdout (Blocking).  Throws an exception if
   the command exits with non-zero code. """
-  if echo:
-    print(cmd)
-  proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+  proc = BashAsync(cmd, echo=echo, shell=True, pipe_stdout=True)
   code = proc.wait()
   if code != 0:
     raise Exception('Command failed with code %d.' % code)
@@ -101,21 +120,13 @@ def BashGetTimeout(cmd, echo=True, timeout=SUBPROCESS_TIMEOUT):
   """ Run 'cmd' in a shell and return the tuple consisting of the exit code (if
   the command finished, or None if the command did not finish) and the content
   of stdout.  Blocks until the command is finished or the timeout expires. """
-  proc = BashAsync(cmd, echo=echo)
+  proc = BashAsync(cmd, echo=echo, shell=True, pipe_stdout=True)
   t_0 = time.time()
   t_elapsed = 0.0
   while not proc.poll() and t_elapsed < timeout:
     time.sleep(1)
     t_elapsed = time.time() - t_0
   return proc.poll(), proc.communicate()[0]
-
-def BashAsync(cmd, echo=True):
-  """ Run 'cmd' in a subprocess, returning a Popen class instance referring to
-  that process.  (Non-blocking) """
-  if echo:
-    print cmd
-  return subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
-                          stderr=subprocess.STDOUT)
 
 def RunADB(serial, cmd, attempts=5, secs_between_attempts=10):
   """ Run 'cmd' on an Android device, using ADB.  No return value; throws an
@@ -224,7 +235,7 @@ class _WatchLog(threading.Thread):
       # Clear the log so we don't see a bunch of old data
       BashGet('%s -s %s logcat -c' % (PATH_TO_ADB, self.serial), echo=False)
       self._log_process = BashAsync('%s -s %s logcat' % (
-          PATH_TO_ADB, self.serial), echo=False)
+          PATH_TO_ADB, self.serial), echo=False, shell=True, pipe_stdout=True)
     finally:
       self._mutex.release()
 
