@@ -22,12 +22,14 @@ class GenerateBenchGraphs(BuildStep):
       else:
         raise e
     path_to_bench_graph_svg = os.path.join('bench', 'bench_graph_svg.py')
+    path_to_bench_expectations = os.path.join('bench', 'bench_expectations.txt')
     graph_title = 'Bench_Performance_for_%s' % self._builder_name
     graph_filepath = bench_common.GraphFilePath(self._perf_graphs_dir,
                                                 self._builder_name,
                                                 representation)
     cmd = ['python', path_to_bench_graph_svg,
            '-d', self._perf_data_dir,
+           '-e', path_to_bench_expectations,
            '-r', '-%d' % bench_common.BENCH_GRAPH_NUM_REVISIONS,
            '-f', '-%d' % bench_common.BENCH_GRAPH_NUM_REVISIONS,
            '-x', '%d' % bench_common.BENCH_GRAPH_X,
