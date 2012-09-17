@@ -6,7 +6,7 @@
 """ Upload actual GM results to the skia-autogen SVN repository to aid in
 rebaselining. """
 
-from build_step import BuildStep
+from build_step import BuildStep, BuildStepWarning
 from utils import merge_into_svn
 from utils import misc
 import optparse
@@ -48,7 +48,10 @@ class UploadGMResults(BuildStep):
                                                  args['gm_image_subdir'])
     merge_options.svn_password_file = autogen_svn_password_file
     merge_options.svn_username_file = autogen_svn_username_file
-    merge_into_svn.MergeIntoSvn(merge_options)
+    try:
+      merge_into_svn.MergeIntoSvn(merge_options)
+    except Exception as e:
+      raise BuildStepWarning(e)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(UploadGMResults))
