@@ -40,8 +40,6 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
 
   def _Run(self, args):
     self._PreGM()
-    misc.RunADB(self._serial, ['root'])
-    misc.RunADB(self._serial, ['remount'])
     try:
       misc.RunADB(self._serial, ['shell', 'rm', '-r',
                                  '%s/%s' % (self._android_gm_dir,

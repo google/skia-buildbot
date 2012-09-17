@@ -6,6 +6,7 @@
 """ This module contains tools used by the buildbot scripts. """
 
 import os
+import re
 import shlex
 import subprocess
 import threading
@@ -24,6 +25,7 @@ DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'xoom': 'stingray',
                  'galaxy_nexus': 'toro',
                  'nexus_7': 'grouper'}
+CPU_SCALING_MODES = ['performance', 'interactive']
 
 def ArgsToDict(argv):
   """ Collect command-line arguments of the form '--key value' into a
@@ -128,7 +130,7 @@ def BashGetTimeout(cmd, echo=True, timeout=SUBPROCESS_TIMEOUT):
     t_elapsed = time.time() - t_0
   return proc.poll(), proc.communicate()[0]
 
-def RunADB(serial, cmd, attempts=5, secs_between_attempts=10):
+def RunADB(serial, cmd, echo=True, attempts=5, secs_between_attempts=10):
   """ Run 'cmd' on an Android device, using ADB.  No return value; throws an
   exception if the command fails more than the allotted number of attempts.
   
@@ -138,7 +140,8 @@ def RunADB(serial, cmd, attempts=5, secs_between_attempts=10):
   """
   adb_cmd = [PATH_TO_ADB, '-s', serial]
   adb_cmd += cmd
-  BashRetry(adb_cmd)
+  BashRetry(adb_cmd, echo=echo, attempts=attempts,
+            secs_between_attempts=secs_between_attempts)
 
 def ADBKill(serial, process):
   """ Kill a process running on an Android device.
@@ -208,6 +211,48 @@ def GetSerial(device_type):
     if device_name in name:
       return id
   raise Exception('No %s device attached!' % device_name)
+
+def SetCPUScalingMode(serial, mode):
+  """ Set the CPU scaling governor for the device with the given serial number
+  to the given mode.
+
+  serial: string indicating the serial number of the device whose scaling mode
+          is to be modified
+  mode:   string indicating the desired CPU scaling mode.  Acceptable values
+          are listed in CPU_SCALING_MODES.
+  """
+  if mode not in CPU_SCALING_MODES:
+    raise ValueError('mode must be one of: %s' % CPU_SCALING_MODES)
+  cpu_dirs = BashGet('%s -s %s shell ls /sys/devices/system/cpu' % (
+      PATH_TO_ADB, serial), echo=False)
+  cpu_dirs_list = cpu_dirs.split('\n')
+  regex = re.compile('cpu\d')
+  for dir in cpu_dirs_list:
+    cpu_dir = dir.rstrip()
+    if regex.match(cpu_dir):
+      path = '/sys/devices/system/cpu/%s/cpufreq/scaling_governor' % cpu_dir
+      path_found = BashGet('%s -s %s shell ls %s' % (PATH_TO_ADB, serial, path),
+                           echo=False).rstrip()
+      if path_found == path:
+        # Unfortunately, we can't directly change the scaling_governor file over
+        # ADB. Instead, we write a script to do so, push it to the device, and
+        # run it.
+        old_mode = BashGet('%s -s %s shell cat %s' % (PATH_TO_ADB,
+                                                      serial, path),
+                           echo=False).rstrip()
+        print 'Current scaling mode for %s is: %s' % (cpu_dir, old_mode)
+        filename = 'skia_cpuscale.sh'
+        with open(filename, 'w') as script_file:
+          script_file.write('echo %s > %s\n' % (mode, path))
+        os.chmod(filename, 0777)
+        RunADB(serial, ['push', filename, '/system/bin'], echo=False)
+        RunADB(serial, ['shell', filename], echo=True)
+        RunADB(serial, ['shell', 'rm', '/system/bin/%s' % filename], echo=False)
+        os.remove(filename)
+        new_mode = BashGet('%s -s %s shell cat %s' % (PATH_TO_ADB,
+                                                      serial, path),
+                           echo=False).rstrip()
+        print 'New scaling mode for %s is: %s' % (cpu_dir, new_mode)
 
 class _WatchLog(threading.Thread):
   """ Run WatchLog in a new thread to record the logcat output from SkiaAndroid.

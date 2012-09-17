@@ -28,8 +28,6 @@ def DoBench(serial, executable, perf_data_dir, android_perf_dir, data_file,
   cmd_args = extra_args or []
   if perf_data_dir:
     PreBench(perf_data_dir)
-    misc.RunADB(serial, ['root'])
-    misc.RunADB(serial, ['remount'])
     try:
       misc.RunADB(serial, ['shell', 'rm', '-r', android_perf_dir])
     except:

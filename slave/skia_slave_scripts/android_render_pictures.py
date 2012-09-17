@@ -22,8 +22,6 @@ class AndroidRenderPictures(AndroidBuildStep):
 
     serial: string indicating the serial number of the target device.
     """
-    misc.RunADB(serial, ['root'])
-    misc.RunADB(serial, ['remount'])
     try:
       misc.RunADB(serial, ['shell', 'rm', '-r', '%s' % self._android_skp_dir])
     except:

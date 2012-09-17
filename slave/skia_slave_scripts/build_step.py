@@ -16,6 +16,9 @@ class BuildStepWarning(Exception):
   pass
 
 class BuildStep(object):
+  def _PreRun(self):
+    pass
+
   def __init__(self, args, attempts=1):
     self._configuration = args['configuration']
     self._gm_image_subdir = args['gm_image_subdir']
@@ -84,6 +87,7 @@ class BuildStep(object):
     attempt = 0
     while True:
       try:
+        step._PreRun()
         step._Run(args)
         return 0
       except BuildStepWarning:

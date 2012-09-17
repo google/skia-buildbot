@@ -8,6 +8,11 @@ from build_step import BuildStep
 from utils import misc
 
 class AndroidBuildStep(BuildStep):
+  def _PreRun(self):
+    misc.RunADB(self._serial, ['root'])
+    misc.RunADB(self._serial, ['remount'])
+    misc.SetCPUScalingMode(self._serial, 'performance')
+
   def __init__(self, args, attempts=1):
     self._device = args['device']
     self._serial = args['serial']
