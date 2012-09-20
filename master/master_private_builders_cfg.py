@@ -103,7 +103,7 @@ def Update(config, active_master, c):
       gm_image_subdir=None,
       perf_output_basedir=None,
       builder_name='Skia_Private_Builder_Debug_003',
-      ).Build(serial='B6E7F6341038B13', device='nexus_s'))
+      ).Build(serial='R32C801B5LH', device='nexus_s'))
   B('Skia_Private_Builder_Release_003', 'f_skia_private_builder_release_003',
       scheduler='skia_rel')
   F('f_skia_private_builder_release_003', android_factory.AndroidFactory(
@@ -115,6 +115,6 @@ def Update(config, active_master, c):
       gm_image_subdir=None,
       perf_output_basedir=perf_output_basedir_linux,
       builder_name='Skia_Private_Builder_Release_003',
-      ).Build(serial='B6E7F6341038B13', device='nexus_s'))
+      ).Build(serial='R32C801B5LH', device='nexus_s'))
   return helper.Update(c)
 
