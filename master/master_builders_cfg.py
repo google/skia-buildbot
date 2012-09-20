@@ -5,11 +5,11 @@
 # Sets up all the builders we want this buildbot master to run.
 
 from master import master_config
-from skia_master_scripts import android_factory
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import housekeeping_percommit_factory
 from skia_master_scripts import housekeeping_periodic_factory
 from skia_master_scripts import utils
+from skia_master_scripts.utils import MakeBuilderSet, MakeAndroidBuilderSet
 
 # Directory where we want to record performance data
 #
@@ -48,270 +48,161 @@ def Update(config, active_master, c):
 
   # Linux (Ubuntu12) on Shuttle with ATI5770 graphics card
   defaults['category'] = 'Shuttle_Ubuntu12_ATI5770'
-  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_64', 'f_skia_shuttle_ubuntu12_ati5770_float_debug_64',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_ubuntu12_ati5770_float_debug_64', skia_factory.SkiaFactory(
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=64'},
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=64'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_64',
-      ).Build())
-  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32', 'f_skia_shuttle_ubuntu12_ati5770_float_release_32',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_ubuntu12_ati5770_float_release_32', skia_factory.SkiaFactory(
+      perf_output_basedir=perf_output_basedir_linux)
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=32'},
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=32'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32',
-      ).Build())
-  B('Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64', 'f_skia_shuttle_ubuntu12_ati5770_float_release_64',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_ubuntu12_ati5770_float_release_64', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=64'},
-      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64',
-      ).Build())
+      perf_output_basedir=perf_output_basedir_linux)
 
   # Android (runs on a Linux buildbot slave)...
   defaults['category'] = 'android'
-  B('Skia_NexusS_4-1_Float_Debug_32', 'f_skia_nexus_s_4-1_float_debug_32',
-      scheduler='skia_rel')
-  F('f_skia_nexus_s_4-1_float_debug_32', android_factory.AndroidFactory(
+  MakeAndroidBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_NexusS_4-1_Float_%s_32',
+      device='nexus_s',
       do_upload_results=do_upload_results,
-      other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-s',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_NexusS_4-1_Float_Debug_32',
-      ).Build(device='nexus_s'))
-  B('Skia_NexusS_4-1_Float_Release_32', 'f_skia_nexus_s_4-1_float_release_32',
-      scheduler='skia_rel')
-  F('f_skia_nexus_s_4-1_float_release_32', android_factory.AndroidFactory(
+      perf_output_basedir=perf_output_basedir_linux)
+  MakeAndroidBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Xoom_4-1_Float_%s_32',
+      device='xoom',
       do_upload_results=do_upload_results,
-      other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir='base-android-nexus-s',
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_NexusS_4-1_Float_Release_32',
-      ).Build(device='nexus_s'))
-  B('Skia_Xoom_4-1_Float_Debug_32', 'f_skia_xoom_4-1_float_debug_32',
-      scheduler='skia_rel')
-  F('f_skia_xoom_4-1_float_debug_32', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
-      other_subdirs=['android'],
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-xoom',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Xoom_4-1_Float_Debug_32',
-      ).Build(device='xoom'))
-  B('Skia_Xoom_4-1_Float_Release_32', 'f_skia_xoom_4-1_float_release_32',
-      scheduler='skia_rel')
-  F('f_skia_xoom_4-1_float_release_32', android_factory.AndroidFactory(
+      perf_output_basedir=perf_output_basedir_linux)
+  MakeAndroidBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_GalaxyNexus_4-1_Float_%s_32',
+      device='galaxy_nexus',
       do_upload_results=do_upload_results,
-      other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir='base-android-xoom',
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Xoom_4-1_Float_Release_32',
-      ).Build(device='xoom'))
-  B('Skia_GalaxyNexus_4-1_Float_Debug_32', 'f_skia_galaxy_nexus_4-1_float_debug_32',
-      scheduler='skia_rel')
-  F('f_skia_galaxy_nexus_4-1_float_debug_32', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
-      other_subdirs=['android'],
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-galaxy-nexus',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_GalaxyNexus_4-1_Float_Debug_32',
-      ).Build(device='galaxy_nexus'))
-  B('Skia_GalaxyNexus_4-1_Float_Release_32', 'f_skia_galaxy_nexus_4-1_float_release_32',
-      scheduler='skia_rel')
-  F('f_skia_galaxy_nexus_4-1_float_release_32', android_factory.AndroidFactory(
+      perf_output_basedir=perf_output_basedir_linux)
+  MakeAndroidBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Nexus7_4-1_Float_%s_32',
+      device='nexus_7',
       do_upload_results=do_upload_results,
-      other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir='base-android-galaxy-nexus',
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_GalaxyNexus_4-1_Float_Release_32',
-      ).Build(device='galaxy_nexus'))
-  B('Skia_Nexus7_4-1_Float_Debug_32', 'f_skia_nexus7_4-1_float_debug_32',
-      scheduler='skia_rel')
-  F('f_skia_nexus7_4-1_float_debug_32', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
-      other_subdirs=['android'],
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-7',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Nexus7_4-1_Float_Debug_32',
-      ).Build(device='nexus_7'))
-  B('Skia_Nexus7_4-1_Float_Release_32', 'f_skia_nexus7_4-1_float_release_32',
-      scheduler='skia_rel')
-  F('f_skia_nexus7_4-1_float_release_32', android_factory.AndroidFactory(
-      do_upload_results=do_upload_results,
-      other_subdirs=['android'],
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir='base-android-nexus-7',
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Nexus7_4-1_Float_Release_32',
-      ).Build(device='nexus_7'))
+      perf_output_basedir=perf_output_basedir_linux)
 
   # Mac 10.6 (SnowLeopard) ...
   defaults['category'] = 'mac-10.6'
-  B('Skia_Mac_Float_Debug_32', 'f_skia_mac_float_debug_32',
-      scheduler='skia_rel')
-  F('f_skia_mac_float_debug_32', skia_factory.SkiaFactory(
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Mac_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Mac_Float_Debug_32',
-      ).Build())
-  B('Skia_Mac_Float_NoDebug_32', 'f_skia_mac_float_nodebug_32',
-      scheduler='skia_rel')
-  F('f_skia_mac_float_nodebug_32', skia_factory.SkiaFactory(
+      perf_output_basedir=perf_output_basedir_mac)
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Mac_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
       gm_image_subdir='base-macmini',
-      perf_output_basedir=perf_output_basedir_mac,
-      builder_name='Skia_Mac_Float_NoDebug_32',
-      ).Build())
-  B('Skia_Mac_Float_NoDebug_64', 'f_skia_mac_float_nodebug_64',
-      scheduler='skia_rel')
-  F('f_skia_mac_float_nodebug_64', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
-      gm_image_subdir='base-macmini',
-      perf_output_basedir=perf_output_basedir_mac,
-      builder_name='Skia_Mac_Float_NoDebug_64',
-      ).Build())
+      perf_output_basedir=perf_output_basedir_mac)
 
   # Mac 10.7 (Lion) ...
   defaults['category'] = 'mac-10.7'
-  B('Skia_MacMiniLion_Float_Debug_32', 'f_skia_MacMiniLion_float_debug_32',
-      scheduler='skia_rel')
-  F('f_skia_MacMiniLion_float_debug_32', skia_factory.SkiaFactory(
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_MacMiniLion_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini-lion-float',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_MacMiniLion_Float_Debug_32',
-      ).Build())
-  B('Skia_MacMiniLion_Float_NoDebug_32', 'f_skia_MacMiniLion_float_nodebug_32',
-      scheduler='skia_rel')
-  F('f_skia_MacMiniLion_float_nodebug_32', skia_factory.SkiaFactory(
+      perf_output_basedir=perf_output_basedir_mac)
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_MacMiniLion_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
       gm_image_subdir='base-macmini-lion-float',
-      perf_output_basedir=perf_output_basedir_mac,
-      builder_name='Skia_MacMiniLion_Float_NoDebug_32',
-      ).Build())
-  B('Skia_MacMiniLion_Float_NoDebug_64', 'f_skia_MacMiniLion_float_nodebug_64',
-      scheduler='skia_rel')
-  F('f_skia_MacMiniLion_float_nodebug_64', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
-      gm_image_subdir='base-macmini-lion-float',
-      perf_output_basedir=perf_output_basedir_mac,
-      builder_name='Skia_MacMiniLion_Float_NoDebug_64',
-      ).Build())
+      perf_output_basedir=perf_output_basedir_mac)
 
   # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
   defaults['category'] = 'Shuttle_Win7_Intel'
-  B('Skia_Shuttle_Win7_Intel_Float_Debug_32', 'f_skia_shuttle_win7_intel_float_debug_32',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_float_debug_32', skia_factory.SkiaFactory(
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-shuttle-win7-intel-float',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Shuttle_Win7_Intel_Float_Debug_32',
-      ).Build())
-  B('Skia_Shuttle_Win7_Intel_Float_Release_32', 'f_skia_shuttle_win7_intel_float_release_32',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_float_release_32', skia_factory.SkiaFactory(
+      perf_output_basedir=perf_output_basedir_windows)
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
       gm_image_subdir='base-shuttle-win7-intel-float',
-      perf_output_basedir=perf_output_basedir_windows,
-      builder_name='Skia_Shuttle_Win7_Intel_Float_Release_32',
-      ).Build())
-  B('Skia_Shuttle_Win7_Intel_Float_Release_64', 'f_skia_shuttle_win7_intel_float_release_64',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_float_release_64', skia_factory.SkiaFactory(
+      perf_output_basedir=perf_output_basedir_windows)
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Shuttle_Win7_Intel_Float_ANGLE_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
-      gm_image_subdir='base-shuttle-win7-intel-float',
-      perf_output_basedir=perf_output_basedir_windows,
-      builder_name='Skia_Shuttle_Win7_Intel_Float_Release_64',
-      ).Build())
-  B('Skia_Shuttle_Win7_Intel_ANGLE_32', 'f_skia_shuttle_win7_intel_angle_32',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_angle_32', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_angle=1 skia_arch_width=32'},
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_angle=1 skia_arch_width=32'},
       gm_image_subdir='base-shuttle-win7-intel-angle',
       perf_output_basedir=perf_output_basedir_windows,
       gm_args=['--config', 'angle'],
-      bench_args=['--config', 'ANGLE'],
-      builder_name='Skia_Shuttle_Win7_Intel_ANGLE_32',
-      ).Build())
-  B('Skia_Shuttle_Win7_Intel_Float_DirectWrite_32', 'f_skia_shuttle_win7_intel_float_directwrite_32',
-      scheduler='skia_rel')
-  F('f_skia_shuttle_win7_intel_float_directwrite_32', skia_factory.SkiaFactory(
+      bench_args=['--config', 'ANGLE'])
+  MakeBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_directwrite=1 skia_arch_width=32'},
+      environment_variables=
+          {'GYP_DEFINES':
+           'skia_scalar=float skia_directwrite=1 skia_arch_width=32'},
       gm_image_subdir='base-shuttle-win7-intel-directwrite',
-      perf_output_basedir=perf_output_basedir_windows,
-      builder_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite_32',
-      ).Build())
+      perf_output_basedir=perf_output_basedir_windows)
 
   # House Keeping
   defaults['category'] = ' housekeeping'
@@ -339,8 +230,9 @@ def Update(config, active_master, c):
   F('f_skia_linux_no_gpu', skia_factory.SkiaFactory(
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_gpu=0 skia_arch_width=64'},
+      configuration=skia_factory.CONFIG_DEBUG,
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_gpu=0 skia_arch_width=64'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
       perf_output_basedir=None, # no perf measurement for debug builds
       builder_name='Skia_Linux_NoGPU',

@@ -15,6 +15,10 @@ from buildbot.schedulers import timed
 from buildbot.util import NotABranch
 from master import master_config
 from oauth2client.client import SignedJwtAssertionCredentials
+from skia_master_scripts import android_factory
+from skia_master_scripts import factory as skia_factory
+from skia_master_scripts.perf_only_factory import PerfOnlyFactory, AndroidPerfOnlyFactory
+from skia_master_scripts.no_perf_factory import NoPerfFactory, AndroidNoPerfFactory
 
 def _AssertValidString(var, varName='[unknown]'):
   """Raises an exception if a var is not a valid string.
@@ -190,3 +194,146 @@ class SkiaHelper(master_config.Helper):
       scheduler['instance'] = instance
       c['schedulers'].append(instance)
 
+def MakeBuilderName(builder_base_name, config):
+  """ Inserts config into builder_base_name at '%s', or if builder_base_name
+  does not contain '%s', appends config to the end of builder_base_name,
+  separated by an underscore. """
+  try:
+    return builder_base_name % config
+  except TypeError:
+    # If builder_base_name does not contain '%s'
+    return '%s_%s' % (builder_base_name, config)
+
+def MakeDebugBuilderName(builder_base_name):
+  return MakeBuilderName(builder_base_name, skia_factory.CONFIG_DEBUG)
+
+def MakeReleaseBuilderName(builder_base_name):
+  return MakeBuilderName(builder_base_name, skia_factory.CONFIG_RELEASE)
+
+def MakeBenchBuilderName(builder_base_name):
+  return MakeBuilderName(builder_base_name, skia_factory.CONFIG_BENCH)
+
+def MakeBuilderSet(helper, scheduler, builder_base_name, do_upload_results,
+                   target_platform, environment_variables, gm_image_subdir,
+                   perf_output_basedir, test_args=None, gm_args=None,
+                   bench_args=None):
+  """ Creates a trio of builders for a given platform:
+  1. Debug mode builder which runs all steps
+  2. Release mode builder which runs all steps EXCEPT benchmarks
+  3. Release mode builder which runs ONLY benchmarks.
+  """
+  B = helper.Builder
+  F = helper.Factory
+
+  debug_builder_name   = MakeDebugBuilderName(builder_base_name)
+  no_perf_builder_name = MakeReleaseBuilderName(builder_base_name)
+  perf_builder_name    = MakeBenchBuilderName(builder_base_name)
+
+  B(debug_builder_name, 'f_%s' % debug_builder_name,
+      scheduler=scheduler)
+  F('f_%s' % debug_builder_name, skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      target_platform=target_platform,
+      configuration=skia_factory.CONFIG_DEBUG,
+      environment_variables=environment_variables,
+      gm_image_subdir=gm_image_subdir,
+      perf_output_basedir=None, # no perf measurement for debug builds
+      builder_name=debug_builder_name,
+      test_args=test_args,
+      gm_args=gm_args,
+      bench_args=bench_args,
+      ).Build())
+  B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
+      scheduler=scheduler)
+  F('f_%s' % no_perf_builder_name,  NoPerfFactory(
+      do_upload_results=do_upload_results,
+      target_platform=target_platform,
+      configuration=skia_factory.CONFIG_RELEASE,
+      environment_variables=environment_variables,
+      gm_image_subdir=gm_image_subdir,
+      perf_output_basedir=None,
+      builder_name=no_perf_builder_name,
+      test_args=test_args,
+      gm_args=gm_args,
+      bench_args=bench_args,
+      ).Build())
+  B(perf_builder_name, 'f_%s' % perf_builder_name,
+      scheduler=scheduler)
+  F('f_%s' % perf_builder_name, PerfOnlyFactory(
+      do_upload_results=do_upload_results,
+      target_platform=target_platform,
+      configuration=skia_factory.CONFIG_RELEASE,
+      environment_variables=environment_variables,
+      gm_image_subdir=gm_image_subdir,
+      perf_output_basedir=perf_output_basedir,
+      builder_name=perf_builder_name,
+      test_args=test_args,
+      gm_args=gm_args,
+      bench_args=bench_args,
+      ).Build())
+
+def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
+                          do_upload_results, target_platform, 
+                          environment_variables, gm_image_subdir,
+                          perf_output_basedir, serial=None, test_args=None,
+                          gm_args=None, bench_args=None):
+  """ Creates a trio of builders for Android:
+  1. Debug mode builder which runs all steps
+  2. Release mode builder which runs all steps EXCEPT benchmarks
+  3. Release mode builder which runs ONLY benchmarks.
+  """
+  B = helper.Builder
+  F = helper.Factory
+
+  debug_builder_name   = MakeDebugBuilderName(builder_base_name)
+  no_perf_builder_name = MakeReleaseBuilderName(builder_base_name)
+  perf_builder_name    = MakeBenchBuilderName(builder_base_name)
+
+  B(debug_builder_name, 'f_%s' % debug_builder_name,
+      scheduler=scheduler)
+  F('f_%s' % debug_builder_name, android_factory.AndroidFactory(
+      device=device,
+      serial=serial,
+      do_upload_results=do_upload_results,
+      target_platform=target_platform,
+      configuration=skia_factory.CONFIG_DEBUG,
+      environment_variables=environment_variables,
+      gm_image_subdir=gm_image_subdir,
+      perf_output_basedir=None, # no perf measurement for debug builds
+      builder_name=debug_builder_name,
+      test_args=test_args,
+      gm_args=gm_args,
+      bench_args=bench_args,
+      ).Build())
+  B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
+      scheduler=scheduler)
+  F('f_%s' % no_perf_builder_name,  AndroidNoPerfFactory(
+      device=device,
+      serial=serial,
+      do_upload_results=do_upload_results,
+      target_platform=target_platform,
+      configuration=skia_factory.CONFIG_RELEASE,
+      environment_variables=environment_variables,
+      gm_image_subdir=gm_image_subdir,
+      perf_output_basedir=None,
+      builder_name=no_perf_builder_name,
+      test_args=test_args,
+      gm_args=gm_args,
+      bench_args=bench_args,
+      ).Build())
+  B(perf_builder_name, 'f_%s' % perf_builder_name,
+      scheduler=scheduler)
+  F('f_%s' % perf_builder_name, AndroidPerfOnlyFactory(
+      device=device,
+      serial=serial,
+      do_upload_results=do_upload_results,
+      target_platform=target_platform,
+      configuration=skia_factory.CONFIG_RELEASE,
+      environment_variables=environment_variables,
+      gm_image_subdir=gm_image_subdir,
+      perf_output_basedir=perf_output_basedir,
+      builder_name=perf_builder_name,
+      test_args=test_args,
+      gm_args=gm_args,
+      bench_args=bench_args,
+      ).Build())

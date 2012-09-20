@@ -6,182 +6,149 @@
     <link rel="icon" href="favicon.ico">
 
     <script language="JavaScript">
-    function setExternalView() {
-      document.all.external.checked = true;
-      document.all.content.src="http://70.32.156.53:10117/console?reload=40";
+    var nonbench_builders = [];
+    var bench_builders = [];
+    var all_builders = [];
+
+    var display_builders = "nonbench";
+    var display_builders_list = nonbench_builders;
+    var display_view = "external";
+    var display_page = "console";
+    var internalport = "10115";
+    var externalport = "10117";
+    var port = externalport;
+    var host = "http://70.32.156.53";
+
+    // Return a string of the form: "&builder=x&builder=y..." with all of those
+    // contained in the given array of builders.
+    function getBuilderString(builders) {
+      var builder_string = "";
+      for (i = 0; i < builders.length; i++) {
+        builder_string = builder_string.concat("&builder=", builders[i]);
+      }
+      return builder_string;
     }
-    function setInternalView() {
-      document.all.internal.checked = true;
-      document.all.content.src="http://70.32.156.53:10115/console?reload=40";
+
+    // Reload the buildbot console page in the iframe with whatever options we
+    // have set.
+    function updateView() {
+      port = externalport;
+      document.all.external.checked = true;
+      if (display_view == "internal") {
+        port = internalport;
+        document.all.internal.checked = true;
+      }
+      var url = host + ":" + port + "/" + display_page +
+                "?reload=40" + getBuilderString(display_builders_list);
+      document.all.content.src = url
+      var id = display_builders + "_" + display_page;
+      document.getElementById(id).checked = true;
+    }
+
+    // Parse the variables in the URL and return a key/value dictionary.
+    function parseArgs()
+    {
+      var args = [];
+      var dict = window.location.search.slice(1).split('&');
+      for(var i = 0; i < dict.length; i++) {
+        var split = dict[i].split('=');
+        args.push(split[0]);
+        args[split[0]] = split[1];
+      }
+      
+      return args;
+    }
+
+    // Reload this page, setting the given variables in the URL.
+    function reloadWithOptions(view, builders, page) {
+      location.href = "?view=" + view + "&builders=" + builders + "&page=" +
+          page;
+    }
+
+    // Obtain the list of all builders from the buildbot master and load them
+    // into the global arrays of builders.
+    function getBuilderLists() {
+      try {
+        var request = new XMLHttpRequest();
+      } catch (error) {
+        alert(error);
+      }
+      request.open("GET", host + ":" + port + "/json/builders", false);
+      request.send(null);
+      // We *should* use a JSON parser, but since we trust the buildbot master
+      // server, we allow this unsafe call 
+      var builders_json = eval("(" + request.responseText + ")");
+      nonbench_builders = [];
+      bench_builders = [];
+      all_builders = [];
+      for (var builder in builders_json) {
+        all_builders.push(builder);
+        if (builder.indexOf("Bench") != -1) {
+          bench_builders.push(builder);
+        } else {
+          nonbench_builders.push(builder);
+        }
+      }
+    }
+
+    // Function to call on page load.  Sets all global variables and updates the
+    // iframe view of the buildbot page.
+    function init() {
+      getBuilderLists();
+      args = parseArgs();
+      display_builders = args["builders"];
+      if (!display_builders) {
+        display_builders = "nonbench";
+      }
+      if (display_builders == "bench") {
+        display_builders_list = bench_builders;
+      } else if (display_builders == "all") {
+        display_builders_list = all_builders;
+      } else {
+        display_builders = "nonbench";
+        display_builders_list = nonbench_builders;
+      }
+      display_view = args["view"];
+      if (!display_view)
+        display_view = "external";
+      display_page = args["page"];
+      if (!display_page)
+        display_page = "console";
+      updateView();
     }
     </script>
 
   </head>
-  <body onload="setExternalView()">
+  <body onload="init()" style="background-color: #fff;">
+    <div id="heading" style="font-size:2.5em; text-align:center;">Skia Buildbots</div>
 
-<table border="0" width="100%"><tr valign="top">
+    <div style="position:absolute; left:10; top:25;">
+    <form name="unused">
+      <input type="radio" name="internal_external" value="external" id="external" onClick="reloadWithOptions('external', display_builders, display_page);">external view<br>
+      <input type="radio" name="internal_external" value="internal" id="internal" onClick="reloadWithOptions('internal', display_builders, display_page);">internal view
+    </form>
+    </div>
 
-<td width="20%">
-<font size="4"><b>Skia Buildbot</b></font>
-<form name="unused">
-<input type="radio" name="internal_external" value="external" id="external" onClick="setExternalView()">external view<br>
-<input type="radio" name="internal_external" value="internal" id="internal" onClick="setInternalView()">internal view
-</form>
-</td>
+    <div style="position:absolute; right:10; top:15;">
+    <a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/>
+    <a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/>
+    <a href="bench_graphs.html" target="_blank">Bench Graphs</a>
+    </div>
+    <div style="text-align:center;">
+      <form name="unused2">
+        <input type="radio" id="nonbench_console" value="nonbench_console" onClick="javascript:reloadWithOptions(display_view, 'nonbench', 'console');">Non-Bench Builders
+        <input type="radio" id="bench_console" value="bench_console" onClick="javascript:reloadWithOptions(display_view, 'bench', 'console');">Bench Builders
+        <input type="radio" id="all_console" value="all_console" onClick="javascript:reloadWithOptions(display_view, 'all', 'console');">All Builders
+      </form>
+    </div>
+   <!-- Waterfall: 
+    <a href="javascript:reloadWithOptions(display_view, 'nonbench', 'waterfall');">Non-Bench Builders</a>
+    |
+    <a href="javascript:reloadWithOptions(display_view, 'bench', 'waterfall');">Bench Builders</a>
+    |
+    <a href="javascript:reloadWithOptions(display_view, 'all', 'waterfall');">All Builders</a>-->
 
-<td width="80%" align="right"><table border="1" width="100%">
+    <iframe id="content" width="100%" height="4650px" src="about:blank" frameborder="0""></iframe>
 
-<tr valign="top">
-<td>Performance Graphs</td>
-<td align="center">Shuttle_Ubuntu12_ATI5770</td>
-<td align="center">Shuttle_Win7_Intel</td>
-<td align="center">NexusS</td>
-<td align="center">Xoom</td>
-<td align="center">GalaxyNexus</td>
-<td align="center">Nexus7</td>
-<td align="center">mac-10.6</td>
-<td align="center">mac-10.7</td>
-</tr>
-
-<tr valign="top">
-<td align="right">Average</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32-avg-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64-avg-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Win7_Intel_Float_Release_32-avg-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Win7_Intel_Float_Release_64-avg-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_NexusS_4-1_Float_Release_32-avg-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Xoom_4-1_Float_Release_32-avg-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_GalaxyNexus_4-1_Float_Release_32-avg-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Nexus7_4-1_Float_Release_32-avg-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Mac_Float_NoDebug_32-avg-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Mac_Float_NoDebug_64-avg-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_MacMiniLion_Float_NoDebug_32-avg-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_MacMiniLion_Float_NoDebug_64-avg-2.xhtml">64-bit</a>
-</td>
-</tr>
-
-<tr valign="top">
-<td align="right">Median</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32-med-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64-med-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Win7_Intel_Float_Release_32-med-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Win7_Intel_Float_Release_64-med-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_NexusS_4-1_Float_Release_32-med-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Xoom_4-1_Float_Release_32-med-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_GalaxyNexus_4-1_Float_Release_32-med-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Nexus7_4-1_Float_Release_32-med-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Mac_Float_NoDebug_32-med-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Mac_Float_NoDebug_64-med-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_MacMiniLion_Float_NoDebug_32-med-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_MacMiniLion_Float_NoDebug_64-med-2.xhtml">64-bit</a>
-</td>
-</tr>
-
-<tr valign="top">
-<td align="right">Minimum</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32-min-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64-min-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Win7_Intel_Float_Release_32-min-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Win7_Intel_Float_Release_64-min-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_NexusS_4-1_Float_Release_32-min-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Xoom_4-1_Float_Release_32-min-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_GalaxyNexus_4-1_Float_Release_32-min-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Nexus7_4-1_Float_Release_32-min-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Mac_Float_NoDebug_32-min-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Mac_Float_NoDebug_64-min-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_MacMiniLion_Float_NoDebug_32-min-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_MacMiniLion_Float_NoDebug_64-min-2.xhtml">64-bit</a>
-</td>
-</tr>
-
-<tr valign="top">
-<td align="right">25th Percentile</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32-25th-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64-25th-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Win7_Intel_Float_Release_32-25th-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Shuttle_Win7_Intel_Float_Release_64-25th-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_NexusS_4-1_Float_Release-25th-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Xoom_4-1_Float_Release-25th-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_GalaxyNexus_4-1_Float_Release-25th-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Nexus7_4-1_Float_Release-25th-2.xhtml">link</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Mac_Float_NoDebug_32-25th-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_Mac_Float_NoDebug_64-25th-2.xhtml">64-bit</a>
-</td>
-<td align="center">
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_MacMiniLion_Float_NoDebug_32-25th-2.xhtml">32-bit</a> |
-  <a href="http://chromium-skia-gm.commondatastorage.googleapis.com/graph-Skia_MacMiniLion_Float_NoDebug_64-25th-2.xhtml">64-bit</a>
-</td>
-</tr>
-
-</table>
-<center>
-<a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview">full Skia documentation</a>
-|
-<a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots">current build-breaking bugs</a>
-</center>
-
-</td></tr>
-</table>
-
-<iframe id="content" width="100%" height="100%" src="about:blank"></iframe>
-
- </body>
+  </body>
 </html>

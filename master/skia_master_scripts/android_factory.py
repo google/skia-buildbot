@@ -11,6 +11,44 @@ from skia_master_scripts import factory as skia_factory
 class AndroidFactory(skia_factory.SkiaFactory):
   """Overrides for Android builds."""
 
+  def __init__(self, device, serial=None, do_upload_results=False,
+               build_subdir='trunk', other_subdirs=None,
+               target_platform=None, configuration=skia_factory.CONFIG_DEBUG,
+               default_timeout=600,
+               environment_variables=None, gm_image_subdir=None,
+               perf_output_basedir=None, builder_name=None, make_flags=None,
+               test_args=None, gm_args=None, bench_args=None):
+    """ Instantiates an AndroidFactory with properties and build steps specific
+    to Android devices.
+
+    device: string indicating which Android device type we are targeting
+    serial: optional, string indicating the serial number of a specific Android
+            device to target.  If this is None, the builder will use the first
+            attached device whose description matches the device parameter.
+    """
+    if not other_subdirs:
+      other_subdirs = []
+    other_subdirs.append('android')
+    super(AndroidFactory, self).__init__(
+        do_upload_results = do_upload_results,
+        build_subdir=build_subdir,
+        other_subdirs=other_subdirs,
+        target_platform=target_platform,
+        configuration=configuration,
+        default_timeout=default_timeout,
+        environment_variables=environment_variables,
+        gm_image_subdir=gm_image_subdir,
+        perf_output_basedir=perf_output_basedir,
+        builder_name=builder_name,
+        make_flags=make_flags,
+        test_args=test_args,
+        gm_args=gm_args,
+        bench_args=bench_args)
+    self._device = device
+    self._serial = serial or 'None'
+    self._common_args += ['--device', self._device,
+                          '--serial', self._serial]
+    
   def Compile(self):
     """Compile step.  Build everything. """
     args = ['--target', 'all']
@@ -49,18 +87,3 @@ class AndroidFactory(skia_factory.SkiaFactory):
     """ Run "bench_pictures" """
     self.AddSlaveScript(script='android_bench_pictures.py',
                         description='BenchPictures')
-
-  def Build(self, device, serial=None, clobber=None):
-    """Build and return the complete BuildFactory.
-
-    device: string indicating which Android device type we are targeting
-    serial: optional, string indicating the serial number of a specific Android
-            device to target.  If this is None, the builder will use the first
-            attached device whose description matches the device parameter.
-    clobber: boolean indicating whether we should clean before building
-    """
-    self._device = device
-    self._serial = serial or 'None'
-    self._common_args += ['--device', self._device,
-                          '--serial', self._serial]
-    return super(AndroidFactory, self).Build(clobber)

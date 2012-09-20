@@ -28,13 +28,17 @@ TARGET_PLATFORM_LINUX = 'linux'
 TARGET_PLATFORM_MAC = 'mac'
 TARGET_PLATFORM_WIN32 = 'win32'
 
+CONFIG_DEBUG = 'Debug'
+CONFIG_RELEASE = 'Release'
+CONFIG_BENCH = 'Bench'
+CONFIGURATIONS = [CONFIG_DEBUG, CONFIG_RELEASE]
 
 class SkiaFactory(gclient_factory.GClientFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""
 
   def __init__(self, do_upload_results=False,
                build_subdir='trunk', other_subdirs=None,
-               target_platform=None, configuration='Debug',
+               target_platform=None, configuration=CONFIG_DEBUG,
                default_timeout=600,
                environment_variables=None, gm_image_subdir=None,
                perf_output_basedir=None, builder_name=None, make_flags=None,
@@ -104,11 +108,12 @@ class SkiaFactory(gclient_factory.GClientFactory):
         target_arch=None, default_timeout=default_timeout,
         environment_variables=environment_variables)
 
-    if not perf_output_basedir:
-      perf_output_basedir = 'None'
+    self._perf_output_basedir = perf_output_basedir
 
-    if not gm_image_subdir:
-      gm_image_subdir = 'None'
+    self._configuration = configuration
+    if self._configuration not in CONFIGURATIONS:
+      raise ValueError('Invalid configuration %s.  Must be one of: %s' % (
+          self._configuration, CONFIGURATIONS))
 
     self._skia_svn_username_file = '.skia_svn_username'
     self._skia_svn_password_file = '.skia_svn_password'
@@ -124,11 +129,11 @@ class SkiaFactory(gclient_factory.GClientFactory):
       bench_args = []
     self._common_args = ['--autogen_svn_baseurl', AUTOGEN_SVN_BASEURL,
                          '--configuration', configuration,
-                         '--gm_image_subdir', gm_image_subdir,
+                         '--gm_image_subdir', gm_image_subdir or 'None',
                          '--builder_name', builder_name,
                          '--target_platform', target_platform,
                          '--revision', WithProperties('%(got_revision)s'),
-                         '--perf_output_basedir', perf_output_basedir,
+                         '--perf_output_basedir', perf_output_basedir or 'None',
                          '--make_flags', '"%s"' % ' '.join(self._make_flags),
                          '--test_args', '"%s"' % ' '.join(test_args),
                          '--gm_args', '"%s"' % ' '.join(gm_args),

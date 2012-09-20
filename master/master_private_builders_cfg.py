@@ -7,7 +7,7 @@
 from skia_master_scripts import utils
 from skia_master_scripts import android_factory
 from skia_master_scripts import factory as skia_factory
-
+from skia_master_scripts.utils import MakeAndroidBuilderSet
 # Directory where we want to record performance data
 #
 # TODO(epoger): consider changing to reuse existing config.Master.perf_base_url,
@@ -44,77 +44,38 @@ def Update(config, active_master, c):
   do_upload_results = active_master.is_production_host
 
   ########## LIST ALL PRIVATELY VISIBLE BUILDERS HERE ##########
-  B('Skia_Private_Builder_Debug_001', 'f_skia_private_builder_debug_001',
-      scheduler='skia_rel')
-  F('f_skia_private_builder_debug_001', android_factory.AndroidFactory(
+  MakeAndroidBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Private_Builder_%s_001',
+      device='nexus_s',
+      serial='5D327F9B4103E10F',
       do_upload_results=False,
-      other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir=None,
-      perf_output_basedir=None,
-      builder_name='Skia_Private_Builder_Debug_001',
-      ).Build(serial='5D327F9B4103E10F', device='nexus_s'))
-  B('Skia_Private_Builder_Release_001', 'f_skia_private_builder_release_001',
-      scheduler='skia_rel')
-  F('f_skia_private_builder_release_001', android_factory.AndroidFactory(
+      perf_output_basedir=perf_output_basedir_linux)
+  MakeAndroidBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Private_Builder_%s_002',
+      device='nexus_s',
+      serial='0012746f51cea6b9',
       do_upload_results=False,
-      other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir=None,
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Private_Builder_Release_001',
-      ).Build(serial='5D327F9B4103E10F', device='nexus_s'))
-  B('Skia_Private_Builder_Debug_002', 'f_skia_private_builder_debug_002',
-      scheduler='skia_rel')
-  F('f_skia_private_builder_debug_002', android_factory.AndroidFactory(
+      perf_output_basedir=perf_output_basedir_linux)
+  MakeAndroidBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
+      builder_base_name='Skia_Private_Builder_%s_002',
+      device='nexus_s',
+      serial='B6E7F6341038B13',
       do_upload_results=False,
-      other_subdirs=['android'],
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir=None,
-      perf_output_basedir=None,
-      builder_name='Skia_Private_Builder_Debug_002',
-      ).Build(serial='0012746f51cea6b9', device='nexus_s'))
-  B('Skia_Private_Builder_Release_002', 'f_skia_private_builder_release_002',
-      scheduler='skia_rel')
-  F('f_skia_private_builder_release_002', android_factory.AndroidFactory(
-      do_upload_results=False,
-      other_subdirs=['android'],
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir=None,
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Private_Builder_Release_002',
-      ).Build(serial='0012746f51cea6b9', device='nexus_s'))
-  B('Skia_Private_Builder_Debug_003', 'f_skia_private_builder_debug_003',
-      scheduler='skia_rel')
-  F('f_skia_private_builder_debug_003', android_factory.AndroidFactory(
-      do_upload_results=False,
-      other_subdirs=['android'],
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Debug',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir=None,
-      perf_output_basedir=None,
-      builder_name='Skia_Private_Builder_Debug_003',
-      ).Build(serial='R32C801B5LH', device='nexus_s'))
-  B('Skia_Private_Builder_Release_003', 'f_skia_private_builder_release_003',
-      scheduler='skia_rel')
-  F('f_skia_private_builder_release_003', android_factory.AndroidFactory(
-      do_upload_results=False,
-      other_subdirs=['android'],
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration='Release',
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
-      gm_image_subdir=None,
-      perf_output_basedir=perf_output_basedir_linux,
-      builder_name='Skia_Private_Builder_Release_003',
-      ).Build(serial='R32C801B5LH', device='nexus_s'))
+      perf_output_basedir=perf_output_basedir_linux)
   return helper.Update(c)
 
