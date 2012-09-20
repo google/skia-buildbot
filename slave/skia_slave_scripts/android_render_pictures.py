@@ -10,9 +10,7 @@ from build_step import BuildStep
 from utils import misc
 import glob
 import os
-import shutil
 import sys
-import tempfile
 
 BINARY_NAME = 'render_pictures'
 
@@ -48,8 +46,9 @@ class AndroidRenderPictures(AndroidBuildStep):
     # output directory before it begins, and because we want the results from
     # this step to be uploaded with the GM results.
     self._PushSKPSources(self._serial)
-    arguments = [self._android_skp_dir, self._android_skp_out_dir]
-    misc.Run(self._serial, BINARY_NAME, arguments)
+    args = self._PictureArgs(self._android_skp_dir, self._android_skp_out_dir,
+                             'bitmap')
+    misc.Run(self._serial, BINARY_NAME, args)
     self._PullSKPResults(self._serial)
 
 if '__main__' == __name__:

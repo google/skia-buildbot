@@ -8,7 +8,7 @@
 from utils import misc
 from build_step import BuildStep
 from build_step import BuildStepWarning
-from run_bench import BuildArgs
+from run_bench import BenchArgs
 from run_bench import RunBench
 from run_bench import PreBench
 import os
@@ -19,12 +19,16 @@ class BenchPictures(RunBench):
     return '%s_skp_%s' % (super(BenchPictures, self)._BuildDataFile(perf_dir),
                           config)
 
+  def _PictureArgs(self, skp_dir, config):
+    return [skp_dir, '--device', config,
+           '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
+
   def _DoBenchPictures(self, config):
-    cmd = [self._PathToBinary('bench_pictures'), self._skp_dir,
-           '--device', config]
+    args = self._PictureArgs(self._skp_dir, config)
+    cmd = [self._PathToBinary('bench_pictures')] + args
     if self._perf_data_dir:
       PreBench(self._perf_data_dir)
-      cmd += BuildArgs(self.BENCH_REPEAT_COUNT,
+      cmd += BenchArgs(self.BENCH_REPEAT_COUNT,
                        self._BuildDataFile(self._perf_data_dir, config))
     misc.Bash(cmd)
 

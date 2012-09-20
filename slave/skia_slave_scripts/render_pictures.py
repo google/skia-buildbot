@@ -13,11 +13,16 @@ import sys
 import tempfile
 
 class RenderPictures(BuildStep):
+  def _PictureArgs(self, skp_dir, out_dir, config):
+    return [skp_dir, out_dir, '--device', config,
+            '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
+
   def _Run(self, args):
     # Render the pictures into a temporary directory.
     temp_dir = tempfile.mkdtemp()
     skp_dir = os.path.join(os.pardir, 'skp')
-    cmd = [self._PathToBinary('render_pictures'), skp_dir, temp_dir]
+    args = self._PictureArgs(skp_dir, temp_dir, 'bitmap')
+    cmd = [self._PathToBinary('render_pictures')] + args
     misc.Bash(cmd)
     # Copy the files into gm_actual_dir, prepending 'skp_' to the filename
     filepaths = os.listdir(temp_dir)

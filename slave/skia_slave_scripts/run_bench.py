@@ -9,10 +9,9 @@ from utils import misc
 from build_step import BuildStep
 import errno
 import os
-import shlex
 import sys
 
-def BuildArgs(repeats, data_file):
+def BenchArgs(repeats, data_file):
   """ Builds a list containing arguments to pass to bench.
 
   repeats: integer indicating the number of times to repeat each benchmark
@@ -45,7 +44,7 @@ class RunBench(BuildStep):
     cmd = [self._PathToBinary('bench')]
     if self._perf_data_dir:
       PreBench(self._perf_data_dir)
-      cmd += BuildArgs(self.BENCH_REPEAT_COUNT,
+      cmd += BenchArgs(self.BENCH_REPEAT_COUNT,
                        self._BuildDataFile(self._perf_data_dir))
     misc.Bash(cmd + self._bench_args)
 

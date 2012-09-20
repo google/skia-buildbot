@@ -7,7 +7,7 @@
 
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
-from run_bench import BuildArgs
+from run_bench import BenchArgs
 from run_bench import PreBench
 from run_bench import RunBench
 from utils import misc
@@ -34,7 +34,7 @@ def DoBench(serial, executable, perf_data_dir, android_perf_dir, data_file,
       pass
     misc.RunADB(serial, ['shell', 'mkdir', '-p', android_perf_dir])
     
-    cmd_args += BuildArgs(RunBench.BENCH_REPEAT_COUNT, data_file)
+    cmd_args += BenchArgs(RunBench.BENCH_REPEAT_COUNT, data_file)
     misc.Run(serial, executable, arguments=cmd_args)
     misc.RunADB(serial, ['pull', data_file, perf_data_dir])
     misc.RunADB(serial, ['shell', 'rm', '-r', android_perf_dir])

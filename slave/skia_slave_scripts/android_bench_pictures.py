@@ -9,16 +9,14 @@ from android_build_step import AndroidBuildStep
 from android_run_bench import DoBench
 from bench_pictures import BenchPictures
 from build_step import BuildStep
-from utils import misc
-import os
 import sys
 
 class AndroidBenchPictures(BenchPictures, AndroidBuildStep):
   def _DoBenchPictures(self, config):
     data_file = self._BuildDataFile(self._android_skp_perf_dir, config)
+    args = self._PictureArgs(self._android_skp_dir, config)
     DoBench(self._serial, 'bench_pictures', self._perf_data_dir,
-            self._android_skp_perf_dir, data_file,
-            [self._android_skp_dir, '--device', config])
+            self._android_skp_perf_dir, data_file, args)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(AndroidBenchPictures))

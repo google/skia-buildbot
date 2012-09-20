@@ -20,6 +20,10 @@ class BuildStep(object):
     pass
 
   def __init__(self, args, attempts=1):
+    # Dimensions for BuildSteps which use tiling
+    self.TILE_X = 256
+    self.TILE_Y = 256
+
     self._configuration = args['configuration']
     self._gm_image_subdir = args['gm_image_subdir']
     self._builder_name = args['builder_name']
