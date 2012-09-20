@@ -32,11 +32,12 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
     except:
       pass
     os.makedirs(self._gm_actual_dir)
-    misc.RunADB(serial, ['pull',
-                         '%s/%s' % (self._android_gm_dir, self._gm_image_subdir),
+    misc.RunADB(serial, ['pull', '%s/%s' % (self._android_gm_dir,
+                                            self._gm_image_subdir),
                          self._gm_actual_dir])
-    misc.RunADB(serial, ['shell', 'rm', '-r',
-                         '%s/%s' % (self._android_gm_dir, self._gm_image_subdir)])
+    misc.RunADB(serial, ['shell', 'rm', '-r', '%s/%s' % (self._android_gm_dir,
+                                                         self._gm_image_subdir)
+                         ])
 
   def _Run(self, args):
     self._PreGM()
@@ -48,7 +49,10 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
       pass
     misc.RunADB(self._serial, ['shell', 'mkdir', '-p',
                                '%s/%s' % (self._android_gm_dir,
-                                         self._gm_image_subdir)])
+                                          self._gm_image_subdir)])
+    misc.RunADB(self._serial, ['shell', 'chmod', '777',
+                               '%s/%s' % (self._android_gm_dir,
+                                          self._gm_image_subdir)])
     arguments = (ANDROID_GM_ARGS +
                  ['-w', '%s/%s' % (self._android_gm_dir, self._gm_image_subdir)]
                  + self._gm_args)

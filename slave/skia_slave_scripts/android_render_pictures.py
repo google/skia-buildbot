@@ -33,6 +33,8 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
     misc.RunADB(serial, ['shell', 'mkdir', '-p', '%s' % self._android_skp_dir])
     misc.RunADB(serial,
                 ['shell', 'mkdir', '-p', '%s' % self._android_skp_out_dir])
+    misc.RunADB(serial, ['shell', 'chmod', '777',
+                         '%s' % self._android_skp_out_dir])
     # Push each skp individually, since adb doesn't let us use wildcards
     for skp in glob.glob(os.path.join(self._skp_dir, '*.skp')):
       misc.RunADB(serial, ['push', skp, self._android_skp_dir])
