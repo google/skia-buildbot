@@ -69,7 +69,7 @@ def Update(config, active_master, c):
   MakeAndroidBuilderSet(
       helper=helper,
       scheduler='skia_rel',
-      builder_base_name='Skia_Private_Builder_%s_002',
+      builder_base_name='Skia_Private_Builder_%s_003',
       device='nexus_s',
       serial='B6E7F6341038B13',
       do_upload_results=False,
