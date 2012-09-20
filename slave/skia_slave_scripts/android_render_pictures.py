@@ -7,6 +7,7 @@
 
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
+from render_pictures import RenderPictures
 from utils import misc
 import glob
 import os
@@ -14,7 +15,7 @@ import sys
 
 BINARY_NAME = 'render_pictures'
 
-class AndroidRenderPictures(AndroidBuildStep):
+class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
   def _PushSKPSources(self, serial):
     """ Push the skp directory full of .skp's to the Android device.
 
