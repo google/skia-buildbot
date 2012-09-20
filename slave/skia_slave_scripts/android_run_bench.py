@@ -33,8 +33,7 @@ def DoBench(serial, executable, perf_data_dir, android_perf_dir, data_file,
     except:
       pass
     misc.RunADB(serial, ['shell', 'mkdir', '-p', android_perf_dir])
-    misc.RunADB(serial, ['shell', 'chmod', '777',
-                         '%s' % self._android_perf_dir])
+    misc.RunADB(serial, ['shell', 'chmod', '777', android_perf_dir])
     
     cmd_args += BenchArgs(RunBench.BENCH_REPEAT_COUNT, data_file)
     misc.Run(serial, executable, arguments=cmd_args)
