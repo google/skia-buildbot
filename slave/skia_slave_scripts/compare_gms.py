@@ -26,10 +26,15 @@ class CompareGMs(BuildStep):
     # Temporary list of builders who are allowed to fail this step without the
     # bot turning red.
     may_fail_with_warning = [
+        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_32',
         'Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32',
+        'Skia_Shuttle_Win7_Intel_Float_Debug_64',
         'Skia_Shuttle_Win7_Intel_Float_Release_64',
-        'Skia_Mac_Float_NoDebug_64',
-        'Skia_MacMiniLion_Float_NoDebug_64']
+        'Skia_Mac_Float_Debug_64',
+        'Skia_Mac_Float_Release_64',
+        'Skia_MacMiniLion_Float_Debug_64',
+        'Skia_MacMiniLion_Float_Release_64'
+        ]
     try:
       misc.Bash(cmd)
     except Exception as e:
