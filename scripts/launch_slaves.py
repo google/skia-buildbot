@@ -34,8 +34,12 @@ def StartSlave(slavename):
     proc = subprocess.Popen(cmd)
     if proc.wait() != 0:
       raise Exception('Could not map %c' % drive_letter)
-    cmd = '%c:' % drive_letter
     os.chdir(os.path.join('%c:' % drive_letter))
+    # Because of weirdness in gclient, we can't run "gclient sync" in a drive
+    # root.  So, we inject a minimal extra level.
+    subdir_path = 'b'
+    os.mkdir(subdir_path)
+    os.chdir(subdir_path)
     print os.path.realpath(os.curdir)
   if os.name == 'nt':
     gclient = 'gclient.bat'
