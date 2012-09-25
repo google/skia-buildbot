@@ -25,18 +25,18 @@ def StartSlave(slavename):
     print 'Creating directory: %s' % slave_dir
     os.makedirs(slave_dir)
     os.chdir(slave_dir)
-    if os.name == 'nt' and DRIVE_MAPPING:
-      drive_letter = GetFirstFreeDriveLetter()
-      print 'Mapping %c' % drive_letter
-      cmd = 'net use %c: \\\\localhost\%s' % (drive_letter,
-                                              slave_dir.replace(':', '$'))
-      print 'Running cmd: %s' % cmd
-      proc = subprocess.Popen(cmd)
-      if proc.wait() != 0:
-        raise Exception('Could not map %c' % drive_letter)
-      cmd = '%c:' % drive_letter
-      os.chdir(os.path.join('%c:' % drive_letter))
-      print os.path.realpath(os.curdir)
+  if os.name == 'nt' and DRIVE_MAPPING:
+    drive_letter = GetFirstFreeDriveLetter()
+    print 'Mapping %c' % drive_letter
+    cmd = 'net use %c: \\\\localhost\%s' % (drive_letter,
+                                            slave_dir.replace(':', '$'))
+    print 'Running cmd: %s' % cmd
+    proc = subprocess.Popen(cmd)
+    if proc.wait() != 0:
+      raise Exception('Could not map %c' % drive_letter)
+    cmd = '%c:' % drive_letter
+    os.chdir(os.path.join('%c:' % drive_letter))
+    print os.path.realpath(os.curdir)
   if os.name == 'nt':
     gclient = 'gclient.bat'
   else:
