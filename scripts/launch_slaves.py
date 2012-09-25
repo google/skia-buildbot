@@ -38,7 +38,8 @@ def StartSlave(slavename):
     # Because of weirdness in gclient, we can't run "gclient sync" in a drive
     # root.  So, we inject a minimal extra level.
     subdir_path = 'b'
-    os.mkdir(subdir_path)
+    if not os.path.isdir(subdir_path):
+      os.mkdir(subdir_path)
     os.chdir(subdir_path)
     print os.path.realpath(os.curdir)
   if os.name == 'nt':
