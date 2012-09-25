@@ -71,7 +71,7 @@ def Update(config, active_master, c):
       scheduler='skia_rel',
       builder_base_name='Skia_Private_Builder_%s_003',
       device='nexus_s',
-      serial='B6E7F6341038B13',
+      serial='R32C801B5LH',
       do_upload_results=False,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
