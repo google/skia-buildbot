@@ -25,27 +25,7 @@ def StartSlave(slavename):
     print 'Creating directory: %s' % slave_dir
     os.makedirs(slave_dir)
     os.chdir(slave_dir)
-    if os.name == 'nt':
-      gclient = 'gclient.bat'
-    else:
-      gclient = 'gclient'
-    proc = subprocess.Popen([gclient, 'config', SVN_URL])
-    if proc.wait() != 0:
-      raise Exception('Could not successfully configure gclient.')
-    print 'configured.'
-    proc = subprocess.Popen([gclient, 'sync'])
-    if proc.wait() != 0:
-      raise Exception('Sync failed.')
-
-  try:
-    os.remove(os.path.join(slave_dir, 'buildbot', 'third_party',
-                           'chromium_buildbot', 'slave', 'twistd.pid'))
-  except:
-    pass
-
-  if os.name == 'nt':
-    # We run different commands for the Windows shell
-    if DRIVE_MAPPING:
+    if os.name == 'nt' and DRIVE_MAPPING:
       drive_letter = GetFirstFreeDriveLetter()
       print 'Mapping %c' % drive_letter
       cmd = 'net use %c: \\\\localhost\%s' % (drive_letter,
@@ -57,6 +37,25 @@ def StartSlave(slavename):
       cmd = '%c:' % drive_letter
       os.chdir(os.path.join('%c:' % drive_letter))
       print os.path.realpath(os.curdir)
+  if os.name == 'nt':
+    gclient = 'gclient.bat'
+  else:
+    gclient = 'gclient'
+  proc = subprocess.Popen([gclient, 'config', SVN_URL])
+  if proc.wait() != 0:
+    raise Exception('Could not successfully configure gclient.')
+  proc = subprocess.Popen([gclient, 'sync'])
+  if proc.wait() != 0:
+    raise Exception('Sync failed.')
+
+  try:
+    os.remove(os.path.join(slave_dir, 'buildbot', 'third_party',
+                           'chromium_buildbot', 'slave', 'twistd.pid'))
+  except:
+    pass
+
+  if os.name == 'nt':
+    # We run different commands for the Windows shell
     os.chdir(os.path.join('buildbot', 'slave'))
     cmd = 'setlocal&&'
     if slavename != DEFAULT_SLAVENAME:
