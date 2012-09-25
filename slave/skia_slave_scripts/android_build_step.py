@@ -7,6 +7,26 @@
 from build_step import BuildStep
 from utils import misc
 
+class AndroidDirs(object):
+  def __init__(self, path_prefix):
+    self._path_prefix = path_prefix + '/skiabot/skia_'
+
+  def GMDir(self):
+    return self._path_prefix + 'gm'
+
+  def PerfDir(self):
+    return self._path_prefix + 'perf'
+
+  def SKPDir(self):
+    return self._path_prefix + 'skp'
+
+  def SKPPerfDir(self):
+    return self._path_prefix + 'skp_perf'
+
+  def SKPOutDir(self):
+    return self._path_prefix + 'skp_out'
+
+
 class AndroidBuildStep(BuildStep):
   def _PreRun(self):
     misc.RunADB(self._serial, ['root'])
@@ -18,13 +38,11 @@ class AndroidBuildStep(BuildStep):
     self._serial = args['serial']
     if self._serial == 'None':
       self._serial = misc.GetSerial(self._device)
-    self._android_scratch_dir = '%s/skiabot' % misc.BashGet(
-        "%s -s %s shell echo \$EXTERNAL_STORAGE" %
-            (misc.PATH_TO_ADB, self._serial),
-        echo=True).rstrip()
-    self._android_gm_dir = '%s/skia_gm' % self._android_scratch_dir
-    self._android_perf_dir = '%s/skia_perf' % self._android_scratch_dir
-    self._android_skp_dir = '%s/skia_skp' % self._android_scratch_dir
-    self._android_skp_perf_dir = '%s/skia_skp_perf' % self._android_scratch_dir
-    self._android_skp_out_dir = '%s/skia_skp_out' % self._android_scratch_dir
+    # ADB has a different view of the device filesystem than the Android app,
+    # so we need to use two paths to 'skiabot' and its subdirectories.
+    adb_scratch_dir = misc.BashGet("%s -s %s shell echo \$EXTERNAL_STORAGE" % (
+                                       misc.PATH_TO_ADB, self._serial), 
+                                   echo=True).rstrip()
+    self._app_dirs = AndroidDirs('/sdcard')
+    self._adb_dirs = AndroidDirs(adb_scratch_dir)
     super(AndroidBuildStep, self).__init__(args, attempts)
