@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+""" Launch multiple buildbot slave instances on a single machine.  This script
+is intended to be run at boot time. """
+
 import optparse
 import os
 if os.name == 'nt':
@@ -12,12 +20,17 @@ DRIVE_MAPPING=True
 
 if os.name == 'nt':
   def GetFirstFreeDriveLetter():
+    """ Returns the first unused Windows drive letter in [A, Z] """
     all_possible = [c for c in string.uppercase]
     in_use = win32api.GetLogicalDriveStrings()
     free = list(set(all_possible) - set(in_use))
     return free[0]
 
 def StartSlave(slavename):
+  """ Launch a single slave, checking out the buildbot tree if necessary.
+
+  slavename: string indicating the hostname of the build slave to launch
+  """
   print 'Starting slave: %s' % slavename
   slave_dir = os.path.join(os.path.realpath(os.curdir),
                            slavename)
@@ -49,7 +62,7 @@ def StartSlave(slavename):
   proc = subprocess.Popen([gclient, 'config', SVN_URL])
   if proc.wait() != 0:
     raise Exception('Could not successfully configure gclient.')
-  proc = subprocess.Popen([gclient, 'sync'])
+  proc = subprocess.Popen([gclient, 'sync', '-j1'])
   if proc.wait() != 0:
     raise Exception('Sync failed.')
 
@@ -76,6 +89,7 @@ def StartSlave(slavename):
   subprocess.Popen(cmd, shell=True)
 
 def LoadConfigFile(config_file):
+  """ Loads build slave hostnames from the given config_file. """
   f = open(config_file, 'r')
   slaves = []
   for line in f:
