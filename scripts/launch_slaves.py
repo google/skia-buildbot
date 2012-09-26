@@ -32,8 +32,8 @@ def StartSlave(slavename):
   slavename: string indicating the hostname of the build slave to launch
   """
   print 'Starting slave: %s' % slavename
-  slave_dir = os.path.join(os.path.realpath(os.curdir),
-                           slavename)
+  start_dir = os.path.realpath(os.curdir)
+  slave_dir = os.path.join(start_dir, slavename)
   if not os.path.isdir(slave_dir):
     print 'Creating directory: %s' % slave_dir
     os.makedirs(slave_dir)
@@ -87,6 +87,7 @@ def StartSlave(slavename):
     cmd += 'make -C %s restart' % os.path.join(slave_dir, 'buildbot', 'slave')
   print 'Running cmd: %s' % cmd
   subprocess.Popen(cmd, shell=True)
+  os.chdir(start_dir)
 
 def LoadConfigFile(config_file):
   """ Loads build slave hostnames from the given config_file. """
