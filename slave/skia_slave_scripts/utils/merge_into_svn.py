@@ -70,6 +70,8 @@ def _CopyAllFiles(source_dir, dest_dir):
     if basename in SUBDIRS_TO_IGNORE:
       continue
     if os.path.isdir(source_path):
+      if not os.path.isdir(dest_path):
+        os.makedirs(dest_path)
       _CopyAllFiles(source_path, dest_path)
     else:
       shutil.copyfile(source_path, dest_path)
