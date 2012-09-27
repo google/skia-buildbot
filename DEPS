@@ -32,7 +32,7 @@ deps = {
   "third_party/chromium_buildbot/third_party/gsutil":
     "svn://svn.chromium.org/gsutil/trunk/src@261",
   "third_party/chromium_buildbot/third_party/gsutil/boto":
-    "svn://svn.chromium.org/boto@6",
+    "svn://svn.chromium.org/boto@7",
 }
 
 hooks = [
