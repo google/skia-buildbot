@@ -30,9 +30,9 @@ deps = {
   # I tried to use From() to link to Chromium's /tools/build/DEPS dependencies,
   # but I couldn't get it to work... so I have hard-coded these dependencies.
   "third_party/chromium_buildbot/third_party/gsutil":
-    "svn://svn.chromium.org/gsutil/trunk/src@145",
+    "svn://svn.chromium.org/gsutil/trunk/src@261",
   "third_party/chromium_buildbot/third_party/gsutil/boto":
-    "svn://svn.chromium.org/boto@4",
+    "svn://svn.chromium.org/boto@6",
 }
 
 hooks = [
