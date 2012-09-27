@@ -53,10 +53,10 @@ class AndroidFactory(skia_factory.SkiaFactory):
     """Compile step.  Build everything. """
     args = ['--target', 'all']
     self.AddSlaveScript(script='android_compile.py', args=args,
-                        description='BuildAll')
+                        description='BuildAll', halt_on_failure=True)
     # Install the app onto the device, so that it can be used in later steps.
     self.AddSlaveScript(script='android_install_apk.py',
-                        description='InstallAPK')
+                        description='InstallAPK', halt_on_failure=True)
 
   def RunTests(self):
     """ Run the unit tests. """

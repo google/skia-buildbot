@@ -140,17 +140,20 @@ class SkiaFactory(gclient_factory.GClientFactory):
                          '--bench_args', '"%s"' % ' '.join(bench_args),
                          ]
 
-  def AddSlaveScript(self, script, description, args=[], timeout=None):
+  def AddSlaveScript(self, script, description, args=[], timeout=None,
+                     halt_on_failure=False):
     self._skia_cmd_obj.AddSlaveScript(script=script,
                                       args=self._common_args + args,
                                       description=description,
-                                      timeout=timeout)
+                                      timeout=timeout,
+                                      halt_on_failure=halt_on_failure)
 
   def Make(self, target, description):
     """Build a single target."""
     args = ['--target', target]
     self.AddSlaveScript(script='compile.py', args=args,
-                        description=description, timeout=1200)
+                        description=description, timeout=1200,
+                        halt_on_failure=True)
 
   def Compile(self):
     """Compile step.  Build everything. """

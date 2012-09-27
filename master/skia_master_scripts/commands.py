@@ -45,7 +45,8 @@ class SkiaCommands(commands.FactoryCommands):
                       svn_username_file, svn_password_file,
                       commit_message=None, description='MergeIntoSvn',
                       timeout=None):
-    """Adds a step that commits all files within a directory to a special SVN repository."""
+    """Adds a step that commits all files within a directory to a special SVN
+    repository."""
     if not commit_message:
       commit_message = 'automated svn commit of %s step' % description
     args = ['--commit_message', commit_message,
@@ -55,25 +56,30 @@ class SkiaCommands(commands.FactoryCommands):
             '--svn_password_file', svn_password_file,
             '--svn_username_file', svn_username_file,
             ]
-    self.AddSlaveScript(script=self.PathJoin('utils', 'merge_into_svn.py'), args=args,
-                        description=description, timeout=timeout)
+    self.AddSlaveScript(script=self.PathJoin('utils', 'merge_into_svn.py'),
+                        args=args, description=description, timeout=timeout)
 
-  def AddSlaveScript(self, script, args, description, timeout=None):
+  def AddSlaveScript(self, script, args, description, timeout=None,
+                     halt_on_failure=False):
     """Run a slave-side Python script as its own build step."""
     path_to_script = self.PathJoin(self._local_slave_script_dir, script)
     self.AddRunCommand(command=['python', path_to_script] + args,
-                       description=description, timeout=timeout)
+                       description=description, timeout=timeout,
+                       halt_on_failure=halt_on_failure)
 
-  def AddRunCommand(self, command, description='Run', timeout=None):
+  def AddRunCommand(self, command, description='Run', timeout=None,
+                    halt_on_failure=False):
     """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
       timeout = self.default_timeout
     self.factory.addStep(retcode_command.ReturnCodeCommand,
                          description=description, timeout=timeout,
                          command=command, workdir=self.workdir,
-                         env=self.environment_variables)
+                         env=self.environment_variables,
+                         haltOnFailure=halt_on_failure)
 
-  def AddRunCommandList(self, command_list, description='Run', timeout=None):
+  def AddRunCommandList(self, command_list, description='Run', timeout=None,
+                        halt_on_failure=False):
     """Runs a list of arbitrary commands."""
     # TODO(epoger): Change this so that build-step output shows each command
     # in the list separately--that will be a lot easier to follow.
@@ -84,4 +90,5 @@ class SkiaCommands(commands.FactoryCommands):
     # WithProperties().  Once I figure out how to make the build-step output
     # show each command separately, maybe I can remove this wrapper.
     self.AddRunCommand(command=WithProperties(' && '.join(command_list)),
-                       description=description, timeout=timeout)
+                       description=description, timeout=timeout,
+                       halt_on_failure=halt_on_failure)
