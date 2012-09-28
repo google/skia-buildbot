@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+  :invalid {
+    background-color: #ff4444;
+  }
+  input {
+    font-family: monospace;
+  }
+  input[type="number"] {
+    text-align: right;
+  }
+  </style>
+</head>
+
+<body>
+  <h1>Skia Buildbot Monitor Options</h1>
+  <form id="form">
+    <div>Check interval [sec]: 
+      <input id="interval" name="interval" type=number min=30 step=1 required>
+    </div>
+      <table border=0>
+        <tr><td style="vertical-align:top;">Core builder patterns:
+          <td>
+            <div id="patternParent"></div>
+            <div id="addPatternContainer">
+              <button type=button id="add">
+                Add another pattern
+              </button>
+            </div>
+          </tr></table>
+
+          <div>
+            <input type=submit value="Save options" id="save">
+            <input type=button value="Reset to default" id="reset">
+          </div>
+          <div id="message"></div>
+        </form>
+
+        <script src="options.js"></script>
+      </body>
+      </html>
