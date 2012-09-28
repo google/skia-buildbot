@@ -91,7 +91,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
         self, build_dir='', solutions=solutions,
         target_platform=target_platform)
 
-    self._factory = self.BaseFactory(factory_properties=None)
+    self._factory = self.BaseFactory(factory_properties={'no_kill':True})
 
     # Set _default_clobber based on config.Master
     self._default_clobber = getattr(config.Master, 'default_clobber', False)
