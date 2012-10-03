@@ -31,7 +31,7 @@ def upload_to_bucket(source_filepath, dest_gsbase):
   if status != 0:
     raise Exception('ERROR: GSUtilCopyFile error %d. "%s" -> "%s"' % (
         status, abs_source_filepath, dest_gsbase))
-  (status, _output) = slave_utils.GSUtilListBucket(dest_gsbase)
+  (status, _output) = slave_utils.GSUtilListBucket(dest_gsbase, ['-l'])
   if status != 0:
     raise Exception('ERROR: failed to get list of %s, exiting' % dest_gsbase)
   return 0
