@@ -39,7 +39,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
   def __init__(self, do_upload_results=False,
                build_subdir='trunk', other_subdirs=None,
                target_platform=None, configuration=CONFIG_DEBUG,
-               default_timeout=600,
+               default_timeout=2400,
                environment_variables=None, gm_image_subdir=None,
                perf_output_basedir=None, builder_name=None, make_flags=None,
                test_args=None, gm_args=None, bench_args=None):
@@ -152,8 +152,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     """Build a single target."""
     args = ['--target', target]
     self.AddSlaveScript(script='compile.py', args=args,
-                        description=description, timeout=1200,
-                        halt_on_failure=True)
+                        description=description, halt_on_failure=True)
 
   def Compile(self):
     """Compile step.  Build everything. """
@@ -185,13 +184,11 @@ class SkiaFactory(gclient_factory.GClientFactory):
   def RunBench(self):
     """ Run "bench", piping the output somewhere so we can graph
     results over time. """
-    self.AddSlaveScript(script='run_bench.py', description='RunBench',
-                        timeout=1200)
+    self.AddSlaveScript(script='run_bench.py', description='RunBench')
 
   def BenchPictures(self):
     """ Run "bench_pictures" """
-    self.AddSlaveScript(script='bench_pictures.py', description='BenchPictures',
-                        timeout=1200)
+    self.AddSlaveScript(script='bench_pictures.py', description='BenchPictures')
 
   def BenchGraphs(self):
     """ Generate and upload bench performance graphs (but only if we have been
@@ -207,7 +204,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     args = ['--autogen_svn_username_file', self._autogen_svn_username_file,
             '--autogen_svn_password_file', self._autogen_svn_password_file]
     self.AddSlaveScript(script='upload_gm_results.py', args=args,
-                        description='UploadGMResults', timeout=2400)
+                        description='UploadGMResults')
 
   def Build(self, clobber=None):
     """Build and return the complete BuildFactory.
