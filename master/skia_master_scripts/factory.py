@@ -156,7 +156,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
   def Compile(self):
     """Compile step.  Build everything. """
-    self.Make('core',  'BuildCore')
+    self.Make('skia_base_libs',  'BuildSkiaBaseLibs')
     self.Make('tests', 'BuildTests')
     self.Make('gm',    'BuildGM')
     self.Make('tools', 'BuildTools')
