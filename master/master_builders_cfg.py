@@ -6,6 +6,7 @@
 
 from master import master_config
 from skia_master_scripts import factory as skia_factory
+from skia_master_scripts import ios_factory
 from skia_master_scripts import housekeeping_percommit_factory
 from skia_master_scripts import housekeeping_periodic_factory
 from skia_master_scripts import utils
@@ -203,6 +204,18 @@ def Update(config, active_master, c):
            'skia_scalar=float skia_directwrite=1 skia_arch_width=32'},
       gm_image_subdir='base-shuttle-win7-intel-directwrite',
       perf_output_basedir=perf_output_basedir_windows)
+
+  defaults['category'] = 'iOS'
+  B('Skia_iOS_32', 'f_skia_ios_32', scheduler='skia_rel')
+  F('f_skia_ios_32', ios_factory.iOSFactory(
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_MAC,
+      configuration=skia_factory.CONFIG_DEBUG,
+      environment_variables={'GYP_DEFINES': 'skia_os=ios'},
+      gm_image_subdir=None,
+      perf_output_basedir=None,
+      builder_name='Skia_iOS_32',
+      ).Build())
 
   # House Keeping
   defaults['category'] = ' housekeeping'
