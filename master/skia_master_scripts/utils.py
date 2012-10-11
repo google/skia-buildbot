@@ -138,6 +138,13 @@ SKIA_PRIMARY_SUBDIRS = ['android', 'buildbot', 'gm-expected', 'trunk']
 # TODO(borenet): modify this code upstream so that we don't need this override.	
 # BUG: http://code.google.com/p/skia/issues/detail?id=761
 class SkiaHelper(master_config.Helper):
+  def Builder(self, name, factory, gatekeeper=None, scheduler=None,
+              builddir=None, auto_reboot=False, notify_on_missing=False):
+    super(SkiaHelper, self).Builder(name=name, factory=factory,
+                                    gatekeeper=gatekeeper, scheduler=scheduler,
+                                    builddir=builddir, auto_reboot=auto_reboot,
+                                    notify_on_missing=notify_on_missing)
+
   def AnyBranchScheduler(self, name, branches, treeStableTimer=60,
                          categories=None):
     if name in self._schedulers:
