@@ -15,9 +15,9 @@ import config_default
 
 
 # The public master which is visible to everyone.
-SKIA_PUBLIC_MASTER = 'skia-masterb.c.skia-buildbots.google.com.internal'
+SKIA_PUBLIC_MASTER = 'skia-master-a.c.skia-buildbots.google.com.internal'
 # The private master which is visible only to Google corp.
-SKIA_PRIVATE_MASTER = 'skia-privatemasterb.c.skia-buildbots.google.com.internal'
+SKIA_PRIVATE_MASTER = 'skia-private-master-a.c.skia-buildbots.google.com.internal'
 
 
 class Master(config_default.Master):
@@ -32,7 +32,7 @@ class Master(config_default.Master):
     project_name = 'Skia'
     project_url = 'http://skia.googlecode.com'
     # The master host runs in Google Compute Engine.
-    master_host = '70.32.156.53'
+    master_host = '70.32.156.51'
     is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER
     master_port = 10115
     slave_port = 10116
@@ -46,7 +46,7 @@ class Master(config_default.Master):
     project_name = 'PrivateSkia'
     project_url = 'http://skia.googlecode.com'
     # The private master host runs in Google Compute Engine.
-    master_host = '70.32.159.65'
+    master_host = '70.32.159.66'
     is_production_host = socket.getfqdn() == SKIA_PRIVATE_MASTER
     master_port = 8041
     slave_port = 8141
