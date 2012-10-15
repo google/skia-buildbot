@@ -97,7 +97,8 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self._default_clobber = getattr(config.Master, 'default_clobber', False)
 
     self._do_upload_results = do_upload_results
-    self._make_bench_graphs = perf_output_basedir != None
+    self._do_upload_bench_results = do_upload_results and \
+        perf_output_basedir != None
 
     # Get an implementation of SkiaCommands as appropriate for
     # this target_platform.
@@ -233,10 +234,9 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self.CompareGMs()
     self.RunBench()
     self.BenchPictures()
-    if self._do_upload_results:
+    if self._do_upload_bench_results:
       self.UploadBenchResults()
-      if self._make_bench_graphs:
-        self.BenchGraphs()
-        self.UploadBenchGraphs()
+      self.BenchGraphs()
+      self.UploadBenchGraphs()
 
     return self._factory

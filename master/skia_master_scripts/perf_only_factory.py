@@ -26,11 +26,10 @@ class PerfOnlyFactory(SkiaFactory):
     self.Compile()
     self.RunBench()
     self.BenchPictures()
-    if self._do_upload_results:
+    if self._do_upload_bench_results:
       self.UploadBenchResults()
-      if self._make_bench_graphs:
-        self.BenchGraphs()
-        self.UploadBenchGraphs()
+      self.BenchGraphs()
+      self.UploadBenchGraphs()
     return self._factory
 
 class AndroidPerfOnlyFactory(AndroidFactory, PerfOnlyFactory):
