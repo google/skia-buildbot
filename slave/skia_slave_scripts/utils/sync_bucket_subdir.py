@@ -25,7 +25,8 @@ import re
 import sys
 
 DEFAULT_PERFDATA_GS_BASE = 'gs://chromium-skia-gm'
-KNOWN_FILENAMES=r'^bench_r(\d+)_data.*'
+KNOWN_FILENAMES=r'^bench_r(\d*)_data.*'
+IGNORE_UPLOAD_FILENAMES=('.DS_Store')
 
 def SyncBucketSubdir(dir, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
     do_upload=True, do_download=True, filenames_filter=KNOWN_FILENAMES,
@@ -84,11 +85,14 @@ def SyncBucketSubdir(dir, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
   if do_upload:
     to_upload = local_files.difference(cloud_files)
     for file_name in to_upload:
-      match=re.search(filenames_filter, file_name)
-      if not match:
-        raise Exception('ERROR: %s trying to upload unknown file name.' % (
-                            file_name))
-      upload_to_bucket.upload_to_bucket(os.path.join(dir, file_name),
-                                        dest_gsbase,
-                                        subdir)
+      if file_name not in IGNORE_UPLOAD_FILENAMES:
+        match=re.search(filenames_filter, file_name)
+        if not match:
+          raise Exception('ERROR: %s trying to upload unknown file name.' % (
+                          file_name))
+        # Ignore force builds without a revision number.
+        if match.group(1) != '':
+          upload_to_bucket.upload_to_bucket(os.path.join(dir, file_name),
+                                            dest_gsbase,
+                                            subdir)
   return 0
