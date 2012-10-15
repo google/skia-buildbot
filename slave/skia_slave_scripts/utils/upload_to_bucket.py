@@ -20,20 +20,18 @@ import sys
 
 from slave import slave_utils
 
-def upload_to_bucket(source_filepath, dest_gsbase):
+def upload_to_bucket(source_filepath, dest_gsbase, subdir=None):
   abs_source_filepath = misc.GetAbsPath(source_filepath)
   print 'translated source_filepath %s to absolute path %s' % (
       source_filepath, abs_source_filepath)
   if not os.path.exists(abs_source_filepath):
     raise Exception('ERROR: file not found: %s' % abs_source_filepath)
   status = slave_utils.GSUtilCopyFile(abs_source_filepath, dest_gsbase,
+                                      subdir=subdir,
                                       gs_acl='public-read')
   if status != 0:
     raise Exception('ERROR: GSUtilCopyFile error %d. "%s" -> "%s"' % (
         status, abs_source_filepath, dest_gsbase))
-  (status, _output) = slave_utils.GSUtilListBucket(dest_gsbase, ['-l'])
-  if status != 0:
-    raise Exception('ERROR: failed to get list of %s, exiting' % dest_gsbase)
   return 0
 
 
@@ -44,10 +42,15 @@ def main(argv):
       help='full path of the file we wish to upload')
   option_parser.add_option(
       '', '--dest_gsbase',
-      help='gs:// url indicating where to upload the file')
+      help='gs:// bucket_name, the bucket to upload the file to')
+  option_parser.add_option(
+      '', '--subdir',
+      help='optional subdirectory within the bucket',
+      default=None)
   (options, _args) = option_parser.parse_args()
   return upload_to_bucket(source_filepath=options.source_filepath,
-                          dest_gsbase=options.dest_gsbase)
+                          dest_gsbase=options.dest_gsbase,
+                          subdir=options.subdir)
 
 
 if '__main__' == __name__:
