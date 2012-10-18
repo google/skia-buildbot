@@ -162,7 +162,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self.Make('gm',    'BuildGM')
     self.Make('tools', 'BuildTools')
     self.Make('bench', 'BuildBench')
-    self.Make('all',   'BuildAllOtherTargets')
+    self.Make('most',  'BuildMost')
 
   def RunTests(self):
     """ Run the unit tests. """
