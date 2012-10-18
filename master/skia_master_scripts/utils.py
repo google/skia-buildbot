@@ -282,7 +282,7 @@ def MakeBuilderSet(helper, scheduler, builder_base_name, do_upload_results,
 def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
                           do_upload_results, target_platform, 
                           environment_variables, gm_image_subdir,
-                          perf_output_basedir, serial=None, test_args=None,
+                          perf_output_basedir, test_args=None,
                           gm_args=None, bench_args=None):
   """ Creates a trio of builders for Android:
   1. Debug mode builder which runs all steps
@@ -300,7 +300,6 @@ def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
       scheduler=scheduler)
   F('f_%s' % debug_builder_name, android_factory.AndroidFactory(
       device=device,
-      serial=serial,
       do_upload_results=do_upload_results,
       target_platform=target_platform,
       configuration=skia_factory.CONFIG_DEBUG,
@@ -316,7 +315,6 @@ def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
       scheduler=scheduler)
   F('f_%s' % no_perf_builder_name,  AndroidNoPerfFactory(
       device=device,
-      serial=serial,
       do_upload_results=do_upload_results,
       target_platform=target_platform,
       configuration=skia_factory.CONFIG_RELEASE,
@@ -332,7 +330,6 @@ def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
       scheduler=scheduler)
   F('f_%s' % perf_builder_name, AndroidPerfOnlyFactory(
       device=device,
-      serial=serial,
       do_upload_results=do_upload_results,
       target_platform=target_platform,
       configuration=skia_factory.CONFIG_RELEASE,

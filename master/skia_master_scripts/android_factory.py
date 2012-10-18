@@ -7,11 +7,12 @@
 Overrides SkiaFactory with any Android-specific steps."""
 
 from skia_master_scripts import factory as skia_factory
+from buildbot.process.properties import WithProperties
 
 class AndroidFactory(skia_factory.SkiaFactory):
   """Overrides for Android builds."""
 
-  def __init__(self, device, serial=None, do_upload_results=False,
+  def __init__(self, device, do_upload_results=False,
                build_subdir='trunk', other_subdirs=None,
                target_platform=None, configuration=skia_factory.CONFIG_DEBUG,
                default_timeout=600,
@@ -45,10 +46,9 @@ class AndroidFactory(skia_factory.SkiaFactory):
         gm_args=gm_args,
         bench_args=bench_args)
     self._device = device
-    self._serial = serial or 'None'
     self._common_args += ['--device', self._device,
-                          '--serial', self._serial]
-    
+                          '--serial', WithProperties('%(serial:-None)s')]
+
   def Compile(self):
     """Compile step.  Build everything. """
     args = ['--target', 'all']
