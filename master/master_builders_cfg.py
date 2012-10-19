@@ -181,6 +181,9 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=perf_output_basedir_windows)
+
+  # Special-purpose Win7 builders
+  defaults['category'] = 'Win7-Special'
   MakeBuilderSet(
       helper=helper,
       scheduler='skia_rel',
