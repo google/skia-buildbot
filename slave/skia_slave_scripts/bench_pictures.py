@@ -36,8 +36,11 @@ class BenchPictures(RunBench):
     misc.Bash(cmd)
 
   def _Run(self, args):
-    for threads in [0, 2, 4]:
-      self._DoBenchPictures('bitmap', threads)
+    # Skipping multithreaded bench_pictures for now, since it's crashing
+    #for threads in [0, 2, 4]:
+    #  self._DoBenchPictures('bitmap', threads)
+    self._DoBenchPictures('bitmap', 0)
+
     gyp_defines = os.environ.get('GYP_DEFINES', '')
     if ('skia_gpu=0' not in gyp_defines):
       self._DoBenchPictures('gpu', 0)
