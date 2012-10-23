@@ -38,8 +38,8 @@ class RunGM(BuildStep):
     subprocesses = []
     retcodes = []
     for idx in range(GM_CONCURRENT_PROCESSES):
-      cmd += ['--modulo', str(idx), str(GM_CONCURRENT_PROCESSES)]
-      subprocesses.append(misc.BashAsync(cmd))
+      subprocesses.append(misc.BashAsync(cmd + ['--modulo', str(idx),
+                                                str(GM_CONCURRENT_PROCESSES)]))
     for proc in subprocesses:
       retcodes.append(proc.wait())
     for retcode in retcodes:
