@@ -46,6 +46,9 @@ class BuildStepLogger(object):
   def __del__(self):
     sys.stdout = self.stdout
 
+  def fileno(self):
+    return self.stdout.fileno()
+
   def write(self, data):
     build_step_stdout_has_written.value = INT_TRUE
     self.stdout.write(data)

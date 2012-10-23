@@ -29,8 +29,8 @@ class UploadGMResults(BuildStep):
     gm_merge_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'merge')
     autogen_svn_baseurl = 'https://skia-autogen.googlecode.com/svn'
     gm_actual_svn_baseurl = '%s/%s' % (autogen_svn_baseurl, 'gm-actual')
-    autogen_svn_username_file = args['autogen_svn_username_file']
-    autogen_svn_password_file = args['autogen_svn_password_file']
+    autogen_svn_username_file = self._args['autogen_svn_username_file']
+    autogen_svn_password_file = self._args['autogen_svn_password_file']
   
     # Call MergeIntoSvn to actually perform the work.
     # TODO: We should do something a bit more sophisticated, to address
@@ -38,14 +38,14 @@ class UploadGMResults(BuildStep):
     # should be skipped when re-running old revisions of the buildbot')
     merge_options = Options()
     merge_options.commit_message = 'UploadGMResults of r%s on %s' % (
-        self._revision, args['builder_name'])
+        self._revision, self._args['builder_name'])
     merge_options.dest_svn_url = '%s/%s/%s/%s' % (
-        gm_actual_svn_baseurl, args['gm_image_subdir'], args['builder_name'],
-        args['gm_image_subdir'])
+        gm_actual_svn_baseurl, self._args['gm_image_subdir'],
+        self._args['builder_name'], self._args['gm_image_subdir'])
     merge_options.merge_dir_path = os.path.join(gm_merge_basedir,
-                                                args['gm_image_subdir'])
+                                                self._args['gm_image_subdir'])
     merge_options.source_dir_path = os.path.join(gm_actual_basedir,
-                                                 args['gm_image_subdir'])
+                                                 self._args['gm_image_subdir'])
     merge_options.svn_password_file = autogen_svn_password_file
     merge_options.svn_username_file = autogen_svn_username_file
     merge_into_svn.MergeIntoSvn(merge_options)
