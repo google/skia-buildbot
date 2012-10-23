@@ -42,7 +42,7 @@ class AndroidBuildStep(BuildStep):
     # so we need to use two paths to 'skiabot' and its subdirectories.
     adb_scratch_dir = misc.Bash("%s -s %s shell echo \$EXTERNAL_STORAGE" % (
                                        misc.PATH_TO_ADB, self._serial), 
-                                echo=True).rstrip()
+                                echo=True, shell=True).rstrip()
     self._app_dirs = AndroidDirs('/sdcard')
     self._adb_dirs = AndroidDirs(adb_scratch_dir)
     super(AndroidBuildStep, self).__init__(args, attempts)
