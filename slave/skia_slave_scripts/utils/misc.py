@@ -72,13 +72,14 @@ def BashAsync(cmd, echo=True, shell=False):
   return subprocess.Popen(cmd, shell=shell, stderr=subprocess.STDOUT,
                           stdout=subprocess.PIPE, creationflags=flags)
 
-def LogProcessToCompletion(proc, echo=True, timeout=None):
+def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
   """ Log the output of proc until it completes. Return a tuple containing the
   exit code of proc and the contents of stdout.
 
   proc: an instance of Popen referring to a running subprocess.
   echo: boolean indicating whether to print the output received from proc.stdout
   timeout: number of seconds allotted for the process to run
+  log_file: an open file for writing output
   """
   all_output = []
   t_0 = time.time()
@@ -95,8 +96,12 @@ def LogProcessToCompletion(proc, echo=True, timeout=None):
       if echo:
         sys.stdout.write(output)
         sys.stdout.flush()
+      if log_file:
+        log_file.write(output)
+        log_file.flush()
       all_output.append(output)
     if timeout and time.time() - t_0 > timeout:
+      proc.terminate()
       break
   return (code, ''.join(all_output))
 
@@ -298,23 +303,7 @@ class _WatchLog(threading.Thread):
 
   def run(self):
     self._restart()
-    while not self._stopped:
-      line = self._log_process.stdout.readline()
-      if line != '':
-        if self._log_file:
-          self._log_file.write(line)
-        print line.rstrip('\r\n')
-        if 'SKIA_RETURN_CODE' in line:
-          self.retcode = shlex.split(line)[-1]
-          self.stop()
-          return
-      elif not self._stopped:
-        """ We only get an empty string from readline() when the logcat process
-        has stopped running.  Otherwise, readline() blocks while waiting for
-        data.  If the logcat process has died but we didn't kill it, we need to
-        restart it. """
-        print '**** Logcat process has died; restarting. ***'
-        self._restart()
+    LogProcessToCompletion(self._log_process, log_file=self._log_file)
 
 def Install(serial, path_to_apk):
   try:
