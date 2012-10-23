@@ -12,7 +12,7 @@ import os
 import shutil
 import sys
 
-GM_CONCURRENT_PROCESSES = 4
+GM_CONCURRENT_PROCESSES = 1
 
 class RunGM(BuildStep):
   def _PreGM(self,):
