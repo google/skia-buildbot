@@ -281,7 +281,7 @@ class _WatchLog(threading.Thread):
         self._log_process = None
       self._stopped = False
       # Clear the log so we don't see a bunch of old data
-      RunADB(serial, ['logcat', '-c'], echo=False)
+      RunADB(self.serial, ['logcat', '-c'], echo=False)
       self._log_process = BashAsync('%s -s %s logcat' % (
           PATH_TO_ADB, self.serial), echo=False, shell=True)
     finally:
