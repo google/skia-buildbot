@@ -23,7 +23,7 @@ class UploadGMResults(BuildStep):
   def __init__(self, args, attempts=5):
     super(UploadGMResults, self).__init__(args, attempts)
 
-  def _Run(self, args):
+  def _Run(self):
     # TODO these constants should actually be shared by multiple build steps
     gm_actual_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'actual')
     gm_merge_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'merge')
@@ -51,4 +51,4 @@ class UploadGMResults(BuildStep):
     merge_into_svn.MergeIntoSvn(merge_options)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(UploadGMResults))
+  sys.exit(BuildStep.RunBuildStep(UploadGMResults))

@@ -9,6 +9,7 @@ import os
 import re
 import shlex
 import subprocess
+import sys
 import threading
 import time
 
@@ -52,7 +53,7 @@ def ConfirmOptionsSet(name_value_dict):
       raise Exception('missing command-line option %s; rerun with --help' %
                       name)
 
-def BashAsync(cmd, echo=True, shell=False, pipe_stdout=False):
+def BashAsync(cmd, echo=True, shell=False):
   """ Run 'cmd' in a subprocess, returning a Popen class instance referring to
   that process.  (Non-blocking) """
   if echo:
@@ -68,67 +69,71 @@ def BashAsync(cmd, echo=True, shell=False, pipe_stdout=False):
     flags = 0x8000000 # CREATE_NO_WINDOW
   else:
     flags = 0
-  return subprocess.Popen(cmd, stdout=(subprocess.PIPE if pipe_stdout else None), shell=shell,
-                          stderr=subprocess.STDOUT, creationflags=flags)
+  return subprocess.Popen(cmd, shell=shell, stderr=subprocess.STDOUT,
+                          stdout=subprocess.PIPE, creationflags=flags)
 
-def Bash(cmd, echo=True):
-  """ Run 'cmd' in a shell (Blocking).  Throws an exception if the command
-  exits with non-zero code. """
-  proc = BashAsync(cmd, echo=echo)
-  code = proc.wait()
-  if code != 0:
-    raise Exception('Command failed with code %d' % code)
+def LogProcessToCompletion(proc, echo=True, timeout=None):
+  """ Log the output of proc until it completes. Return a tuple containing the
+  exit code of proc and the contents of stdout.
 
-def BashGet(cmd, echo=True):
-  """ Run 'cmd' in a shell and return stdout (Blocking).  Throws an exception if
-  the command exits with non-zero code. """
-  proc = BashAsync(cmd, echo=echo, shell=True, pipe_stdout=True)
-  code = proc.wait()
-  if code != 0:
-    raise Exception('Command failed with code %d.' % code)
-  return proc.communicate()[0]
+  proc: an instance of Popen referring to a running subprocess.
+  echo: boolean indicating whether to print the output received from proc.stdout
+  timeout: number of seconds allotted for the process to run
+  """
+  all_output = []
+  t_0 = time.time()
+  while True:
+    code = proc.poll()
+    output = proc.stdout.read(1)
+    # stdout.read(1) returns an empty string if there is nothing to read. This
+    # may occur because the program has not written to stdout since the last
+    # read, or because the program has finished running. The loop ends when the
+    # subprocess has completed *and* we have read all of its output.
+    if output == '' and code != None:
+      break
+    else:
+      if echo:
+        sys.stdout.write(output)
+        sys.stdout.flush()
+      all_output.append(output)
+    if timeout and time.time() - t_0 > timeout:
+      break
+  return (code, ''.join(all_output))
 
-def _RetryableBashCmd(cmd, CmdFunc, echo=True, attempts=1,
-                      secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS):
-  """ Wrapper for any Bash command which makes multiple attempts until either
-  the command succeeds or the maximum number of attempts is reached. """
+def Bash(cmd, echo=True, shell=False, timeout=None):
+  """ Run 'cmd' in a shell and return the combined contents of stdout and
+  stderr (Blocking).  Throws an exception if the command exits non-zero.
+  
+  cmd: list of strings (or single string, iff shell==True) indicating the
+      command to run
+  echo: boolean indicating whether we should print the command and log output
+  shell: boolean indicating whether we are using advanced shell features. Use
+      only when absolutely necessary, since this allows a lot more freedom which
+      could be exploited by malicious code. See the warning here:
+      http://docs.python.org/library/subprocess.html#popen-constructor
+  timeout: optional, integer indicating the maximum elapsed time in seconds
+  """
+  proc = BashAsync(cmd, echo=echo, shell=shell)
+  (returncode, output) = LogProcessToCompletion(proc, echo=echo,
+                                                timeout=timeout)
+  if returncode != 0:
+    raise Exception('Command failed with code %d' % returncode)
+  return output
+
+def BashRetry(cmd, echo=True, shell=False, attempts=1,
+              secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS):
+  """ Wrapper for Bash() which makes multiple attempts until either the command
+  succeeds or the maximum number of attempts is reached. """
   attempt = 1
   while True:
     try:
-      return CmdFunc(cmd, echo=echo)
+      return Bash(cmd, echo=echo, shell=shell)
     except:
       if attempt >= attempts:
         raise
     print 'Command failed. Retrying in %d seconds...' % secs_between_attempts
     time.sleep(secs_between_attempts)
     attempt += 1
-
-def BashRetry(cmd, echo=True, attempts=1,
-              secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS):
-  """ Wrapper for Bash() which makes multiple attempts until either the command
-  succeeds or the maximum number of attempts is reached. """
-  return _RetryableBashCmd(cmd=cmd, CmdFunc=Bash, echo=echo, attempts=attempts,
-                           secs_between_attempts=secs_between_attempts)
-
-def BashGetRetry(cmd, echo=True, attempts=1,
-                 secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS):
-  """ Wrapper for BashGet() which makes multiple attempts until either the
-  command succeeds or the maximum number of attempts is reached. """
-  return _RetryableBashCmd(cmd=cmd, CmdFunc=BashGet, echo=echo,
-                           attempts=attempts,
-                           secs_between_attempts=secs_between_attempts)
-
-def BashGetTimeout(cmd, echo=True, timeout=SUBPROCESS_TIMEOUT):
-  """ Run 'cmd' in a shell and return the tuple consisting of the exit code (if
-  the command finished, or None if the command did not finish) and the content
-  of stdout.  Blocks until the command is finished or the timeout expires. """
-  proc = BashAsync(cmd, echo=echo, shell=True, pipe_stdout=True)
-  t_0 = time.time()
-  t_elapsed = 0.0
-  while not proc.poll() and t_elapsed < timeout:
-    time.sleep(1)
-    t_elapsed = time.time() - t_0
-  return proc.poll(), proc.communicate()[0]
 
 def RunADB(serial, cmd, echo=True, attempts=5, secs_between_attempts=10):
   """ Run 'cmd' on an Android device, using ADB.  No return value; throws an
@@ -151,7 +156,7 @@ def ADBKill(serial, process):
   """ 
   cmd = '%s -s %s shell ps | grep %s' % (PATH_TO_ADB, serial, process)
   try:
-    stdout = BashGet(cmd)
+    stdout = Bash(cmd)
   except:
     return
   if stdout != '':
@@ -190,7 +195,7 @@ def GetSerial(device_type):
   if not device_type in DEVICE_LOOKUP:
     raise ValueError('Unknown device: %s!' % device_type)
   device_name = DEVICE_LOOKUP[device_type]
-  output = BashGetRetry('%s devices' % PATH_TO_ADB, attempts=5)
+  output = BashRetry('%s devices' % PATH_TO_ADB, attempts=5)
   print output
   lines = output.split('\n')
   device_ids = []
@@ -202,7 +207,7 @@ def GetSerial(device_type):
   for id in device_ids:
     print 'Finding type for id %s' % id
     # Get device name
-    name_line = BashGetRetry(
+    name_line = BashRetry(
         '%s -s %s shell cat /system/build.prop | grep "ro.product.device="' % (
             PATH_TO_ADB, id), attempts=5)
     print name_line
@@ -223,23 +228,22 @@ def SetCPUScalingMode(serial, mode):
   """
   if mode not in CPU_SCALING_MODES:
     raise ValueError('mode must be one of: %s' % CPU_SCALING_MODES)
-  cpu_dirs = BashGet('%s -s %s shell ls /sys/devices/system/cpu' % (
-      PATH_TO_ADB, serial), echo=False)
+  cpu_dirs = Bash('%s -s %s shell ls /sys/devices/system/cpu' % (
+      PATH_TO_ADB, serial), echo=False, shell=True)
   cpu_dirs_list = cpu_dirs.split('\n')
   regex = re.compile('cpu\d')
   for dir in cpu_dirs_list:
     cpu_dir = dir.rstrip()
     if regex.match(cpu_dir):
       path = '/sys/devices/system/cpu/%s/cpufreq/scaling_governor' % cpu_dir
-      path_found = BashGet('%s -s %s shell ls %s' % (PATH_TO_ADB, serial, path),
-                           echo=False).rstrip()
+      path_found = Bash('%s -s %s shell ls %s' % (PATH_TO_ADB, serial, path),
+                        echo=False, shell=True).rstrip()
       if path_found == path:
         # Unfortunately, we can't directly change the scaling_governor file over
         # ADB. Instead, we write a script to do so, push it to the device, and
         # run it.
-        old_mode = BashGet('%s -s %s shell cat %s' % (PATH_TO_ADB,
-                                                      serial, path),
-                           echo=False).rstrip()
+        old_mode = Bash('%s -s %s shell cat %s' % (PATH_TO_ADB, serial, path),
+                        echo=False, shell=True).rstrip()
         print 'Current scaling mode for %s is: %s' % (cpu_dir, old_mode)
         filename = 'skia_cpuscale.sh'
         with open(filename, 'w') as script_file:
@@ -249,9 +253,8 @@ def SetCPUScalingMode(serial, mode):
         RunADB(serial, ['shell', filename], echo=True)
         RunADB(serial, ['shell', 'rm', '/system/bin/%s' % filename], echo=False)
         os.remove(filename)
-        new_mode = BashGet('%s -s %s shell cat %s' % (PATH_TO_ADB,
-                                                      serial, path),
-                           echo=False).rstrip()
+        new_mode = Bash('%s -s %s shell cat %s' % (PATH_TO_ADB, serial, path),
+                        echo=False, shell=True).rstrip()
         print 'New scaling mode for %s is: %s' % (cpu_dir, new_mode)
 
 class _WatchLog(threading.Thread):
@@ -278,9 +281,9 @@ class _WatchLog(threading.Thread):
         self._log_process = None
       self._stopped = False
       # Clear the log so we don't see a bunch of old data
-      BashGet('%s -s %s logcat -c' % (PATH_TO_ADB, self.serial), echo=False)
+      Bash('%s -s %s logcat -c' % (PATH_TO_ADB, self.serial), echo=False)
       self._log_process = BashAsync('%s -s %s logcat' % (
-          PATH_TO_ADB, self.serial), echo=False, shell=True, pipe_stdout=True)
+          PATH_TO_ADB, self.serial), echo=False, shell=True)
     finally:
       self._mutex.release()
 
@@ -353,9 +356,9 @@ def Run(serial, binary_name, arguments=[], logfile=None):
   while logger.isAlive() and logger.retcode == SKIA_RUNNING:
     time.sleep(PROCESS_MONITOR_INTERVAL)
     # adb does not always return in a timely fashion.  Don't wait for it.
-    monitor = BashGetTimeout(
+    monitor = Bash(
         '%s -s %s shell ps | grep skia_native' % (PATH_TO_ADB, serial),
-        echo=False)
+        echo=False, timeout=SUBPROCESS_TIMEOUT)
     if not monitor[0]: # adb timed out
       continue
     # No SKIA_RETURN_CODE printed, but the process isn't running

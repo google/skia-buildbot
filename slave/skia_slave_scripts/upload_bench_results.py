@@ -24,8 +24,8 @@ class UploadBenchResults(BuildStep):
                do_upload=True,
                do_download=False)
 
-  def _Run(self, args):
+  def _Run(self):
     self._RunInternal()
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(UploadBenchResults))
+  sys.exit(BuildStep.RunBuildStep(UploadBenchResults))

@@ -6,20 +6,72 @@
 
 from utils import misc
 import config
+import multiprocessing
 import os
 import shlex
+import signal
+import subprocess
 import sys
+import threading
 import time
 import traceback
+
+DEFAULT_TIMEOUT = 2400
+DEFAULT_NO_OUTPUT_TIMEOUT=1800
+
+# multiprocessing.Value doesn't accept boolean types, so we have to use an int.
+INT_TRUE = 1
+INT_FALSE = 0
+build_step_stdout_has_written = multiprocessing.Value('i', INT_FALSE)
 
 class BuildStepWarning(Exception):
   pass
 
-class BuildStep(object):
+class BuildStepFailure(Exception):
+  pass
+
+class BuildStepTimeout(Exception):
+  pass
+
+class BuildStepLogger(object):
+  """ Override stdout so that we can keep track of when anything has been
+  logged.  This enables timeouts based on how long the process has gone without
+  writing output.
+  """
+  def __init__(self):
+    self.stdout = sys.stdout
+    sys.stdout = self
+    build_step_stdout_has_written.value = INT_FALSE
+
+  def __del__(self):
+    sys.stdout = self.stdout
+
+  def write(self, data):
+    build_step_stdout_has_written.value = INT_TRUE
+    self.stdout.write(data)
+
+  def flush(self):
+    self.stdout.flush()
+
+class BuildStep(multiprocessing.Process):
   def _PreRun(self):
+    """ Optional preprocessing step for BuildSteps to override. """
     pass
 
-  def __init__(self, args, attempts=1):
+  def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT,
+               no_output_timeout=DEFAULT_NO_OUTPUT_TIMEOUT):
+    """ Constructs a BuildStep instance.
+    
+    args: dictionary containing arguments to this BuildStep.
+    attempts: how many times to try this BuildStep before giving up.
+    timeout: maximum time allowed for this BuildStep.
+    no_output_timeout: maximum time allowed for this BuildStep to run without
+        any output.
+    """
+    multiprocessing.Process.__init__(self)
+    self._args = args
+    self._timeout = timeout
+    self._no_output_timeout = no_output_timeout
     # Dimensions for BuildSteps which use tiling
     self.TILE_X = 256
     self.TILE_Y = 256
@@ -58,17 +110,29 @@ class BuildStep(object):
       self._perf_graphs_dir = None
 
   def _PathToBinary(self, binary):
+    """ Returns the path to the given built executable. """
     return os.path.join('out', self._configuration, binary)
 
-  def _Run(self, args):
+  def _Run(self):
     """ Code to be run in a given BuildStep.  No return value; throws exception
     on failure.  Override this method in subclasses.
-  
-    args: Dictionary containing arguments passed to the BuildStep.  Any
-        arguments passed from the build master and not consumed in __init__ will
-        reside in this dictionary.
     """
     raise Exception('Cannot instantiate abstract BuildStep')
+
+  def run(self):
+    """ Internal method used by multiprocess.Process. _Run is provided to be
+    overridden instead of this method to ensure that this implementation always
+    runs.
+    """
+    # If a BuildStep has exceeded its allotted time, the parent process needs to
+    # be able to kill the BuildStep process AND any which it has spawned,
+    # without harming itself. On posix platforms, the terminate() method is
+    # insufficient; it fails to kill the subprocesses launched by this process.
+    # So, we use use the setpgrp() function to set a new process group for the
+    # BuildStep process and its children and call os.killpg() to kill the group.
+    if os.name == 'posix':
+      os.setpgrp()
+    self._Run()
 
   def _WaitFunc(self, attempt):
     """ Waits a number of seconds depending upon the attempt number of a
@@ -85,15 +149,58 @@ class BuildStep(object):
     time.sleep(wait)
 
   @staticmethod
-  def Run(StepType):
+  def KillBuildStep(step):
+    """ Kills a running BuildStep.
+
+    step: the running BuildStep instance to kill.
+    """
+    # On posix platforms, the terminate() method is insufficient; it fails to
+    # kill the subprocesses launched by this process. So, we use use the
+    # setpgrp() function to set a new process group for the BuildStep process
+    # and its children and call os.killpg() to kill the group.
+    if os.name == 'posix':
+      os.killpg(os.getpgid(step.pid), signal.SIGTERM)
+    elif os.name == 'nt':
+      subprocess.call(['taskkill', '/F', '/T', '/PID', str(step.pid)])
+    else:
+      step.terminate()
+
+  @staticmethod
+  def RunBuildStep(StepType):
+    """ Run a BuildStep, possibly making multiple attempts and handling
+    timeouts.
+    
+    StepType: class type which subclasses BuildStep, indicating what step should
+        be run. StepType should override _Run().
+    """
+    logger = BuildStepLogger()
     args = misc.ArgsToDict(sys.argv)
-    step = StepType(args)
     attempt = 0
     while True:
+      step = StepType(args)
       try:
+        start_time = time.time()
+        last_written_time = start_time
         step._PreRun()
-        step._Run(args)
-        return 0
+        step.start()
+        while step.is_alive():
+          current_time = time.time()
+          if current_time - start_time > step._timeout:
+            BuildStep.KillBuildStep(step)
+            raise BuildStepTimeout('Build step exceeded timeout of %d seconds' %
+                                   step._timeout)
+          elif current_time - last_written_time > step._no_output_timeout:
+            BuildStep.KillBuildStep(step)
+            raise BuildStepTimeout(
+                'Build step exceeded %d seconds with no output' %
+                step._no_output_timeout)
+          time.sleep(1)
+          if build_step_stdout_has_written.value == INT_TRUE:
+            last_written_time = time.time()
+        if step.exitcode == 0:
+          return 0
+        else:
+          raise BuildStepFailure('Build step failed.')
       except BuildStepWarning:
         # A warning is considered to be an acceptable finishing state.
         return config.Master.retcode_warnings
@@ -103,4 +210,4 @@ class BuildStep(object):
           raise
       step._WaitFunc(attempt)
       attempt += 1
-      print '**** %s, attempt %d ****' % (StepType.__name__, attempt)
+      print '**** %s, attempt %d ****' % (StepType.__name__, attempt + 1)

@@ -30,7 +30,7 @@ class RunGM(BuildStep):
       else:
         raise e
 
-  def _Run(self, args):
+  def _Run(self):
     self._PreGM()
     cmd = [self._PathToBinary('gm'),
            '-w', self._gm_actual_dir,
@@ -47,4 +47,4 @@ class RunGM(BuildStep):
         raise Exception('Command failed with code %d.' % retcode)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(RunGM))
+  sys.exit(BuildStep.RunBuildStep(RunGM))

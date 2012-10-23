@@ -16,11 +16,11 @@ ENV_VAR = 'ANDROID_SDK_ROOT'
 ANDROID_SDK_ROOT = '/home/chrome-bot/android-sdk-linux'
 
 class AndroidCompile(AndroidBuildStep):
-  def _Run(self, args):
+  def _Run(self):
     if not ENV_VAR in os.environ.keys():
       os.environ[ENV_VAR] = ANDROID_SDK_ROOT
     cmd = [os.path.join(os.pardir, 'android', 'bin', 'android_make'),
-           args['target'],
+           self._args['target'],
            '-d', self._device,
            'BUILDTYPE=%s' % self._configuration,
            ]
@@ -28,4 +28,4 @@ class AndroidCompile(AndroidBuildStep):
     misc.Bash(cmd)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(AndroidCompile))
+  sys.exit(BuildStep.RunBuildStep(AndroidCompile))

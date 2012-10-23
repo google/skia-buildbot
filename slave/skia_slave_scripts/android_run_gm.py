@@ -39,7 +39,7 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
                                                          self._gm_image_subdir)
                          ])
 
-  def _Run(self, args):
+  def _Run(self):
     self._PreGM()
     try:
       misc.RunADB(self._serial, ['shell', 'rm', '-r',
@@ -60,4 +60,4 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
       self._PullImages(self._serial)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(AndroidRunGM))
+  sys.exit(BuildStep.RunBuildStep(AndroidRunGM))

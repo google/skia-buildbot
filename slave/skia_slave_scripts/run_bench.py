@@ -40,7 +40,7 @@ class RunBench(BuildStep):
   def _BuildDataFile(self, perf_dir):
     return os.path.join(perf_dir, 'bench_r%s_data' % self._revision)
 
-  def _Run(self, args):
+  def _Run(self):
     cmd = [self._PathToBinary('bench')]
     if self._perf_data_dir:
       PreBench(self._perf_data_dir)
@@ -49,4 +49,4 @@ class RunBench(BuildStep):
     misc.Bash(cmd + self._bench_args)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(RunBench))
+  sys.exit(BuildStep.RunBuildStep(RunBench))

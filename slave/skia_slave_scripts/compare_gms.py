@@ -10,7 +10,7 @@ from build_step import BuildStep, BuildStepWarning
 import sys
 
 class CompareGMs(BuildStep):
-  def _Run(self, args):
+  def _Run(self):
     cmd = [self._PathToBinary('skdiff'),
            '--listfilenames',
            '--nodiffs',
@@ -44,4 +44,4 @@ class CompareGMs(BuildStep):
         raise
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(CompareGMs))
+  sys.exit(BuildStep.RunBuildStep(CompareGMs))

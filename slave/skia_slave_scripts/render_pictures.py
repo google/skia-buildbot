@@ -17,7 +17,7 @@ class RenderPictures(BuildStep):
     return [skp_dir, out_dir, '--device', config,
             '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
 
-  def _Run(self, args):
+  def _Run(self):
     # Render the pictures into a temporary directory.
     temp_dir = tempfile.mkdtemp()
     skp_dir = os.path.join(os.pardir, 'skp')
@@ -33,5 +33,5 @@ class RenderPictures(BuildStep):
     shutil.rmtree(temp_dir)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(RenderPictures))
+  sys.exit(BuildStep.RunBuildStep(RenderPictures))
 

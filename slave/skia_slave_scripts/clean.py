@@ -11,11 +11,11 @@ import os
 import sys
 
 class Clean(BuildStep):
-  def _Run(self, args):
+  def _Run(self):
     make_cmd = 'make'
     if os.name == 'nt':
       make_cmd = 'make.bat'
     misc.Bash([make_cmd, 'clean'])
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(Clean))
+  sys.exit(BuildStep.RunBuildStep(Clean))

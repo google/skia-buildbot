@@ -42,7 +42,7 @@ def DoBench(serial, executable, perf_data_dir, adb_perf_dir, app_data_file,
     misc.Run(serial, executable, arguments=cmd_args)
 
 class AndroidRunBench(RunBench, AndroidBuildStep):
-  def _Run(self, args):
+  def _Run(self):
     app_data_file = self._BuildDataFile(self._app_dirs.PerfDir())
     adb_data_file = self._BuildDataFile(self._adb_dirs.PerfDir())
     DoBench(serial=self._serial,
@@ -53,4 +53,4 @@ class AndroidRunBench(RunBench, AndroidBuildStep):
             adb_data_file=adb_data_file)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(AndroidRunBench))
+  sys.exit(BuildStep.RunBuildStep(AndroidRunBench))

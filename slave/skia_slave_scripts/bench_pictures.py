@@ -35,7 +35,7 @@ class BenchPictures(RunBench):
                        self._BuildDataFile(self._perf_data_dir, config))
     misc.Bash(cmd)
 
-  def _Run(self, args):
+  def _Run(self):
     # Skipping multithreaded bench_pictures for now, since it's crashing
     #for threads in [0, 2, 4]:
     #  self._DoBenchPictures('bitmap', threads)
@@ -47,4 +47,4 @@ class BenchPictures(RunBench):
 
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(BenchPictures))
+  sys.exit(BuildStep.RunBuildStep(BenchPictures))

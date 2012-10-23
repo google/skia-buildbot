@@ -54,9 +54,9 @@ class GenerateBenchGraphs(BuildStep):
       cmd.extend(['-i', 'c'])  # Ignore cpu time for Windows.
     misc.Bash(cmd)
 
-  def _Run(self, args):
+  def _Run(self):
     for rep in ['avg', 'min', 'med', '25th']:
       self._RunInternal(rep)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(GenerateBenchGraphs))
+  sys.exit(BuildStep.RunBuildStep(GenerateBenchGraphs))

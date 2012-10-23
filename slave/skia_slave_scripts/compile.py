@@ -12,16 +12,16 @@ import shlex
 import sys
 
 class Compile(BuildStep):
-  def _Run(self, args):
+  def _Run(self):
     make_cmd = 'make'
     if os.name == 'nt':
       make_cmd = 'make.bat'
     cmd = [make_cmd,
-           args['target'],
+           self._args['target'],
            'BUILDTYPE=%s' % self._configuration,
            ]
     cmd += self._make_flags
     misc.Bash(cmd)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(Compile))
+  sys.exit(BuildStep.RunBuildStep(Compile))

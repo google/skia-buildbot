@@ -10,8 +10,8 @@ from build_step import BuildStep
 import sys
 
 class RunTests(BuildStep):
-  def _Run(self, args):
+  def _Run(self):
     misc.Bash([self._PathToBinary('tests')] + self._test_args)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(RunTests))
+  sys.exit(BuildStep.RunBuildStep(RunTests))

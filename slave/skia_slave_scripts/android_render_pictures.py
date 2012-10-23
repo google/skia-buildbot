@@ -42,7 +42,7 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
     misc.RunADB(serial,
                 ['pull', self._adb_dirs.SKPOutDir(), self._gm_actual_dir])
 
-  def _Run(self, args):
+  def _Run(self):
     # For this step, we assume that we run *after* RunGM and *before*
     # UploadGMResults.  This needs to be the case, because RunGM clears the
     # output directory before it begins, and because we want the results from
@@ -55,5 +55,5 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
     self._PullSKPResults(self._serial)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(AndroidRenderPictures))
+  sys.exit(BuildStep.RunBuildStep(AndroidRenderPictures))
 

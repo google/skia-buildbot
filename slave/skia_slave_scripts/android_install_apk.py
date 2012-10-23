@@ -12,10 +12,10 @@ import os
 import sys
 
 class AndroidInstallAPK(AndroidBuildStep):
-  def _Run(self, args):
+  def _Run(self):
     path_to_apk = os.path.join('out', self._configuration, 'android', 'bin',
                                'SkiaAndroid.apk')
     misc.Install(self._serial, path_to_apk)
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.Run(AndroidInstallAPK))
+  sys.exit(BuildStep.RunBuildStep(AndroidInstallAPK))
