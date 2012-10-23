@@ -195,7 +195,7 @@ def GetSerial(device_type):
   if not device_type in DEVICE_LOOKUP:
     raise ValueError('Unknown device: %s!' % device_type)
   device_name = DEVICE_LOOKUP[device_type]
-  output = BashRetry('%s devices' % PATH_TO_ADB, attempts=5)
+  output = BashRetry('%s devices' % PATH_TO_ADB, shell=True, attempts=5)
   print output
   lines = output.split('\n')
   device_ids = []
@@ -209,7 +209,7 @@ def GetSerial(device_type):
     # Get device name
     name_line = BashRetry(
         '%s -s %s shell cat /system/build.prop | grep "ro.product.device="' % (
-            PATH_TO_ADB, id), attempts=5)
+            PATH_TO_ADB, id), shell=True, attempts=5)
     print name_line
     name = name_line.split('=')[-1].rstrip()
     # Just return the first attached device of the requested model.
@@ -281,7 +281,7 @@ class _WatchLog(threading.Thread):
         self._log_process = None
       self._stopped = False
       # Clear the log so we don't see a bunch of old data
-      Bash('%s -s %s logcat -c' % (PATH_TO_ADB, self.serial), echo=False)
+      RunADB(serial, ['logcat', '-c'], echo=False)
       self._log_process = BashAsync('%s -s %s logcat' % (
           PATH_TO_ADB, self.serial), echo=False, shell=True)
     finally:
@@ -358,7 +358,7 @@ def Run(serial, binary_name, arguments=[], logfile=None):
     # adb does not always return in a timely fashion.  Don't wait for it.
     monitor = Bash(
         '%s -s %s shell ps | grep skia_native' % (PATH_TO_ADB, serial),
-        echo=False, timeout=SUBPROCESS_TIMEOUT)
+        echo=False, shell=True, timeout=SUBPROCESS_TIMEOUT)
     if not monitor[0]: # adb timed out
       continue
     # No SKIA_RETURN_CODE printed, but the process isn't running
