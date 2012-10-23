@@ -41,7 +41,12 @@ class RunGM(BuildStep):
       subprocesses.append(misc.BashAsync(cmd + ['--modulo', str(idx),
                                                 str(GM_CONCURRENT_PROCESSES)]))
     for proc in subprocesses:
-      retcodes.append(proc.wait())
+      retcode = 0
+      try:
+        misc.LogProcessToCompletion(proc)
+      except:
+        retcode = 1
+      retcodes.append(retcode)
     for retcode in retcodes:
       if retcode != 0:
         raise Exception('Command failed with code %d.' % retcode)
