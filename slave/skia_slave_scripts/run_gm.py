@@ -12,6 +12,8 @@ import os
 import shutil
 import sys
 
+GM_CONCURRENT_PROCESSES = 4
+
 class RunGM(BuildStep):
   def _PreGM(self,):
     print 'Removing %s' % self._gm_actual_dir
@@ -33,7 +35,16 @@ class RunGM(BuildStep):
     cmd = [self._PathToBinary('gm'),
            '-w', self._gm_actual_dir,
            ] + self._gm_args
-    misc.Bash(cmd)
+    subprocesses = []
+    retcodes = []
+    for idx in range(GM_CONCURRENT_PROCESSES):
+      cmd += ['--modulo', str(idx), str(GM_CONCURRENT_PROCESSES)]
+      subprocesses.append(misc.BashAsync(cmd))
+    for proc in subprocesses:
+      retcodes.append(proc.wait())
+    for retcode in retcodes:
+      if retcode != 0:
+        raise Exception('Command failed with code %d.' % retcode)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.Run(RunGM))
