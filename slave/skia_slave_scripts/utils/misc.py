@@ -326,7 +326,7 @@ def StartShell(serial):
 def IsSkiaAndroidAppInstalled(serial):
   """ Determine whether the Skia Android app is installed. """
   return bool('com.skia' in ADBShell(serial, ['pm', 'list', 'packages'],
-                                     shell=False))
+                                     echo=False))
 
 def Install(serial, path_to_apk):
   """ Install an Android app to the device with the given serial number.
