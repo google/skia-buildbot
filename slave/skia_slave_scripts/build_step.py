@@ -202,11 +202,11 @@ class BuildStep(multiprocessing.Process):
             last_written_time = time.time()
         if step.exitcode == 0:
           return 0
+        elif step.exitcode == config.Master.retcode_warnings:
+          # A warning is considered to be an acceptable finishing state.
+          return config.Master.retcode_warnings
         else:
           raise BuildStepFailure('Build step failed.')
-      except BuildStepWarning:
-        # A warning is considered to be an acceptable finishing state.
-        return config.Master.retcode_warnings
       except:
         print traceback.format_exc()
         if attempt + 1 >= step._attempts:
