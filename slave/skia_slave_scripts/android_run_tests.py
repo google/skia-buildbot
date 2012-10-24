@@ -12,7 +12,7 @@ import sys
 
 class AndroidRunTests(AndroidBuildStep):
   def _Run(self):
-    misc.Run(self._serial, 'tests')
+    misc.RunShell(self._serial, ['tests'])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidRunTests))

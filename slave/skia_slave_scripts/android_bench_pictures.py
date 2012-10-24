@@ -12,16 +12,14 @@ from build_step import BuildStep
 import sys
 
 class AndroidBenchPictures(BenchPictures, AndroidRenderPictures):
-  def _DoBenchPictures(self, config):
-    app_data_file = self._BuildDataFile(self._app_dirs.SKPPerfDir(), config)
-    adb_data_file = self._BuildDataFile(self._adb_dirs.SKPPerfDir(), config)
-    args = self._PictureArgs(self._app_dirs.SKPDir(), config)
+  def _DoBenchPictures(self, config, threads):
+    data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), config)
+    args = self._PictureArgs(self._device_dirs.SKPDir(), config, threads)
     DoBench(serial=self._serial,
             executable='bench_pictures',
             perf_data_dir=self._perf_data_dir,
-            adb_perf_dir=self._adb_dirs.SKPPerfDir(),
-            app_data_file=app_data_file,
-            adb_data_file=adb_data_file,
+            device_perf_dir=self._device_dirs.SKPPerfDir(),
+            data_file=data_file,
             extra_args=args)
 
   def _Run(self):

@@ -22,25 +22,25 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
     serial: string indicating the serial number of the target device.
     """
     try:
-      misc.RunADB(serial, ['shell', 'rm', '-r', '%s' % self._adb_dirs.SKPDir()])
+      misc.RunADB(serial, ['shell', 'rm', '-r', '%s' % self._device_dirs.SKPDir()])
     except:
       pass
     try:
       misc.RunADB(serial,
-                  ['shell', 'rm', '-r', '%s' % self._adb_dirs.SKPOutDir()])
+                  ['shell', 'rm', '-r', '%s' % self._device_dirs.SKPOutDir()])
     except:
       pass
     misc.RunADB(serial,
-                ['shell', 'mkdir', '-p','%s' % self._adb_dirs.SKPDir()])
+                ['shell', 'mkdir', '-p','%s' % self._device_dirs.SKPDir()])
     misc.RunADB(serial,
-                ['shell', 'mkdir', '-p', '%s' % self._adb_dirs.SKPOutDir()])
+                ['shell', 'mkdir', '-p', '%s' % self._device_dirs.SKPOutDir()])
     # Push each skp individually, since adb doesn't let us use wildcards
     for skp in glob.glob(os.path.join(self._skp_dir, '*.skp')):
-      misc.RunADB(serial, ['push', skp, self._adb_dirs.SKPDir()])
+      misc.RunADB(serial, ['push', skp, self._device_dirs.SKPDir()])
 
   def _PullSKPResults(self, serial):
     misc.RunADB(serial,
-                ['pull', self._adb_dirs.SKPOutDir(), self._gm_actual_dir])
+                ['pull', self._device_dirs.SKPOutDir(), self._gm_actual_dir])
 
   def _Run(self):
     # For this step, we assume that we run *after* RunGM and *before*
@@ -48,11 +48,13 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
     # output directory before it begins, and because we want the results from
     # this step to be uploaded with the GM results.
     self._PushSKPSources(self._serial)
-    args = self._PictureArgs(self._app_dirs.SKPDir(),
-                             self._app_dirs.SKPOutDir(),
+    args = self._PictureArgs(self._device_dirs.SKPDir(),
+                             self._device_dirs.SKPOutDir(),
                              'bitmap')
-    misc.Run(self._serial, BINARY_NAME, args)
-    self._PullSKPResults(self._serial)
+    try:
+      misc.RunShell(self._serial, [BINARY_NAME] + args)
+    finally:
+      self._PullSKPResults(self._serial)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidRenderPictures))

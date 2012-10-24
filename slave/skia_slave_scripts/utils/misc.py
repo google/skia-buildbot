@@ -136,13 +136,14 @@ def Bash(cmd, echo=True, shell=False, timeout=None):
   return output
 
 def BashRetry(cmd, echo=True, shell=False, attempts=1,
-              secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS):
+              secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS,
+              timeout=None):
   """ Wrapper for Bash() which makes multiple attempts until either the command
   succeeds or the maximum number of attempts is reached. """
   attempt = 1
   while True:
     try:
-      return Bash(cmd, echo=echo, shell=shell)
+      return Bash(cmd, echo=echo, shell=shell, timeout=timeout)
     except:
       if attempt >= attempts:
         raise
@@ -150,18 +151,40 @@ def BashRetry(cmd, echo=True, shell=False, attempts=1,
     time.sleep(secs_between_attempts)
     attempt += 1
 
-def RunADB(serial, cmd, echo=True, attempts=5, secs_between_attempts=10):
+def RunADB(serial, cmd, echo=True, attempts=5, secs_between_attempts=10,
+           timeout=None):
   """ Run 'cmd' on an Android device, using ADB.  No return value; throws an
   exception if the command fails more than the allotted number of attempts.
   
   serial: string indicating the serial number of the target device
   cmd: string; the command to issue on the device
   attempts: number of times to attempt the command
+  secs_between_attempts: number of seconds to wait between attempts
+  timeout: optional, integer indicating the maximum elapsed time in seconds
   """
   adb_cmd = [PATH_TO_ADB, '-s', serial]
   adb_cmd += cmd
   BashRetry(adb_cmd, echo=echo, attempts=attempts,
             secs_between_attempts=secs_between_attempts)
+
+def ADBShell(serial, cmd, echo=True):
+  """ Runs 'cmd' in the ADB shell on an Android device and returns the exit
+  code.
+
+  serial: string indicating the serial number of the target device
+  cmd: string; the command to issue on the device
+  """
+  # ADB doesn't exit with the exit code of the command we ran. It only exits
+  # non-zero when ADB itself encountered a problem. Therefore, we have to use
+  # the shell to print the exit code for the command and parse that from stdout.
+  adb_cmd = '%s -s %s shell "%s; echo \$?"' % (PATH_TO_ADB, serial,
+                                               ' '.join(cmd))
+  output = Bash(adb_cmd, shell=True, echo=echo)
+  output_lines = output.splitlines()
+  real_exitcode = int(output_lines[-1].rstrip())
+  if real_exitcode != 0:
+    raise Exception('Command failed with code %s' % real_exitcode)
+  return '\n'.join(output_lines[:-1])
 
 def ADBKill(serial, process):
   """ Kill a process running on an Android device.
@@ -169,15 +192,13 @@ def ADBKill(serial, process):
   serial: string indicating the serial number of the target device
   process: string indicating the name of the process to kill
   """ 
-  cmd = '%s -s %s shell ps | grep %s' % (PATH_TO_ADB, serial, process)
   try:
-    stdout = Bash(cmd)
+    stdout = ADBShell(serial, ['ps | grep %s' % process])
   except:
     return
   if stdout != '':
     pid = shlex.split(stdout)[1]
-    kill_cmd = ['shell', 'kill', pid]
-    RunADB(serial, kill_cmd)
+    ADBShell(serial, ['kill', pid])
 
 def GetAbsPath(relative_path):
     """My own implementation of os.path.abspath() that better handles paths
@@ -272,97 +293,70 @@ def SetCPUScalingMode(serial, mode):
                         echo=False, shell=True).rstrip()
         print 'New scaling mode for %s is: %s' % (cpu_dir, new_mode)
 
-class _WatchLog(threading.Thread):
-  """ Run WatchLog in a new thread to record the logcat output from SkiaAndroid.
-  Returns iff a 'SKIA_RETURN_CODE' appears in the log, setting the return code
-  appropriately.  Note that this will not terminate if the SkiaAndroid process
-  does not finish normally, so we need to periodically check that the process is
-  still running and terminate this thread if the process has died without
-  printing a 'SKIA_RETURN_CODE'. """
-  def __init__(self, serial, log_file=None):
-    threading.Thread.__init__(self)
-    self.retcode = SKIA_RUNNING
-    self.serial = serial
-    self._stopped = False
-    self._log_file = log_file
-    self._log_process = None
-    self._mutex = threading.Lock()
+def IsAndroidShellRunning(serial):
+  """ Find the status of the Android shell for the device with the given serial
+  number. Returns True if the shell is running and False otherwise.
 
-  def _restart(self):
-    self._mutex.acquire()
-    try:
-      if self._log_process:
-        self._log_process.terminate()
-        self._log_process = None
-      self._stopped = False
-      # Clear the log so we don't see a bunch of old data
-      RunADB(self.serial, ['logcat', '-c'], echo=False)
-      self._log_process = BashAsync('%s -s %s logcat' % (
-          PATH_TO_ADB, self.serial), echo=False, shell=True)
-    finally:
-      self._mutex.release()
+  serial: string indicating the serial number of the target device.
+  """
+  if 'Error:' in ADBShell(serial, ['pm', 'path', 'android'], echo=False):
+    return False
+  return True
 
-  def stop(self):
-    self._mutex.acquire()
-    try:
-      self._stopped = True
-      self._log_process.terminate()
-      self._log_process = None
-    finally:
-      self._mutex.release()
+def StopShell(serial):
+  """ Halt the Android runtime on the device with the given serial number.
+  Blocks until the shell reports that it has stopped.
 
-  def run(self):
-    self._restart()
-    LogProcessToCompletion(self._log_process, log_file=self._log_file)
+  serial: string indicating the serial number of the target device.
+  """
+  ADBShell(serial, ['stop'])
+  while IsAndroidShellRunning(serial):
+    time.sleep(1)
+
+def StartShell(serial):
+  """ Start the Android runtime on the device with the given serial number.
+  Blocks until the shell reports that it has started.
+
+  serial: string indicating the serial number of the target device.
+  """
+  ADBShell(serial, ['start'])
+  while not IsAndroidShellRunning(serial):
+    time.sleep(1)
+
+def IsSkiaAndroidAppInstalled(serial):
+  """ Determine whether the Skia Android app is installed. """
+  return bool('com.skia' in ADBShell(serial, ['pm', 'list', 'packages'],
+                                     shell=False))
 
 def Install(serial, path_to_apk):
+  """ Install an Android app to the device with the given serial number.
+
+  serial: string indicating the serial number of the target device.
+  path_to_apk: app to install on the device.
+  """
+  # The shell must be running to install/uninstall apps
+  StartShell(serial)
   try:
     RunADB(serial, ['uninstall', 'com.skia'])
   except:
     pass
-  RunADB(serial, ['install', path_to_apk])
+  if IsSkiaAndroidAppInstalled(serial):
+    raise Exception('Failed to uninstall Skia Android app.')
 
-def Run(serial, binary_name, arguments=[], logfile=None):
-  """ Run 'binary_name', on the device with id 'serial', with 'arguments'.  This
-  function sets and runs the Skia APK on a connected device.  We launch WatchLog
-  in a new thread and then keep polling the device to make sure that the process
-  is still running.  We are done when either:
-  
-  1. WatchLog sets a value in 'retcode'
-  2. WatchLog has not set a value in 'retcode' and the Skia process has died.
-  
-  We then return success or failure.
-  
-  serial: string indicating the serial number of the target device
-  binary_name: string indicating name of the program to run on the device
-  arguments: string containing the arguments to pass to the program
+  RunADB(serial, ['install', path_to_apk], attempts=5, timeout=180)
+  if not IsSkiaAndroidAppInstalled(serial):
+    raise Exception('Failed to install Skia Android app.')
+
+def RunShell(serial, cmd):
+  """ Run the given command through skia_launcher on a given device.
+
+  serial: string indicating the serial number of the target device.
+  cmd: list of strings; the command to run
   """
-  # First, kill any running instances of the app.
-  ADBKill(serial, 'skia_native')
-  ADBKill(serial, 'skia')
-
-  logger = _WatchLog(serial, log_file=logfile)
-  logger.start()
-  cmd_line = binary_name
-  for arg in arguments:
-    cmd_line = '%s %s' % (cmd_line, arg)
-  cmd_line = '"%s"' % cmd_line
-  RunADB(serial, ['shell', 'am', 'broadcast',
-                  '-a', 'com.skia.intent.action.LAUNCH_SKIA',
-                  '-n', 'com.skia/.SkiaReceiver',
-                  '-e', 'args'] + shlex.split(cmd_line) +
-                 ['--ei', 'returnRepeats', '%d' % SKIA_RETURN_CODE_REPEATS])
-  while logger.isAlive() and logger.retcode == SKIA_RUNNING:
-    time.sleep(PROCESS_MONITOR_INTERVAL)
-    # adb does not always return in a timely fashion.  Don't wait for it.
-    monitor = Bash(
-        '%s -s %s shell ps | grep skia_native' % (PATH_TO_ADB, serial),
-        echo=False, shell=True, timeout=SUBPROCESS_TIMEOUT)
-    if not monitor[0]: # adb timed out
-      continue
-    # No SKIA_RETURN_CODE printed, but the process isn't running
-    if monitor[1] == '' and logger.retcode == SKIA_RUNNING:
-      logger.stop()
-      raise Exception('Skia process died while executing %s' % binary_name)
-  if not logger.retcode == '0':
-    raise Exception('Failure in %s' % binary_name)
+  # Ensure that the shell is stopped
+  StopShell(serial)
+  RunADB(serial, ['logcat', '-c'])
+  try:
+    ADBShell(serial, ['skia_launcher'] + cmd)
+  finally:
+    RunADB(serial, ['logcat', '-d', '-v', 'time'])

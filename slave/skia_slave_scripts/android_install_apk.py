@@ -16,6 +16,9 @@ class AndroidInstallAPK(AndroidBuildStep):
     path_to_apk = os.path.join('out', self._configuration, 'android', 'bin',
                                'SkiaAndroid.apk')
     misc.Install(self._serial, path_to_apk)
+    # Also push the skia_launcher executable to the device.
+    misc.RunADB(self._serial, ['push', self._PathToBinary('skia_launcher'),
+                               '/system/bin/'])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidInstallAPK))
