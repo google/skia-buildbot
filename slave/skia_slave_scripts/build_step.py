@@ -135,7 +135,11 @@ class BuildStep(multiprocessing.Process):
     # BuildStep process and its children and call os.killpg() to kill the group.
     if os.name == 'posix':
       os.setpgrp()
-    self._Run()
+    try:
+      self._Run()
+    except BuildStepWarning as e:
+      print e
+      sys.exit(config.Master.retcode_warnings)
 
   def _WaitFunc(self, attempt):
     """ Waits a number of seconds depending upon the attempt number of a
