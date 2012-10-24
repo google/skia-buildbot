@@ -103,6 +103,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
     if timeout and time.time() - t_0 > timeout:
       proc.terminate()
       break
+    time.sleep(0.1)
   return (code, ''.join(all_output))
 
 def Bash(cmd, echo=True, shell=False, timeout=None):
