@@ -27,6 +27,7 @@ DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'galaxy_nexus': 'toro',
                  'nexus_7': 'grouper'}
 CPU_SCALING_MODES = ['performance', 'interactive']
+STDOUT_READ_BUFSIZE = 4096
 
 def ArgsToDict(argv):
   """ Collect command-line arguments of the form '--key value' into a
@@ -85,7 +86,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
   t_0 = time.time()
   while True:
     code = proc.poll()
-    output = proc.stdout.read(1)
+    output = proc.stdout.read(STDOUT_READ_BUFSIZE)
     # stdout.read(1) returns an empty string if there is nothing to read. This
     # may occur because the program has not written to stdout since the last
     # read, or because the program has finished running. The loop ends when the
@@ -103,7 +104,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
     if timeout and time.time() - t_0 > timeout:
       proc.terminate()
       break
-    time.sleep(0.01)
+    time.sleep(0.2)
   return (code, ''.join(all_output))
 
 def Bash(cmd, echo=True, shell=False, timeout=None):
