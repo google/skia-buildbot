@@ -6,6 +6,7 @@
 """ This module contains tools used by the buildbot scripts. """
 
 import os
+import Queue
 import re
 import shlex
 import subprocess
@@ -27,7 +28,6 @@ DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'galaxy_nexus': 'toro',
                  'nexus_7': 'grouper'}
 CPU_SCALING_MODES = ['performance', 'interactive']
-STDOUT_READ_BUFSIZE = 4096
 
 def ArgsToDict(argv):
   """ Collect command-line arguments of the form '--key value' into a
@@ -71,7 +71,8 @@ def BashAsync(cmd, echo=True, shell=False):
   else:
     flags = 0
   return subprocess.Popen(cmd, shell=shell, stderr=subprocess.STDOUT,
-                          stdout=subprocess.PIPE, creationflags=flags)
+                          stdout=subprocess.PIPE, creationflags=flags,
+                          bufsize=1)
 
 def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
   """ Log the output of proc until it completes. Return a tuple containing the
@@ -82,18 +83,21 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
   timeout: number of seconds allotted for the process to run
   log_file: an open file for writing output
   """
+
+  def Enqueue(stdout, queue):
+    for line in iter(stdout.readline, ''):
+      queue.put(line)
+
+  stdout_queue = Queue.Queue()
+  log_thread = threading.Thread(target=Enqueue,
+                                args=(proc.stdout, stdout_queue))
+  log_thread.start()
   all_output = []
   t_0 = time.time()
   while True:
     code = proc.poll()
-    output = proc.stdout.read(STDOUT_READ_BUFSIZE)
-    # stdout.read(1) returns an empty string if there is nothing to read. This
-    # may occur because the program has not written to stdout since the last
-    # read, or because the program has finished running. The loop ends when the
-    # subprocess has completed *and* we have read all of its output.
-    if output == '' and code != None:
-      break
-    else:
+    try:
+      output = stdout_queue.get_nowait()
       if echo:
         sys.stdout.write(output)
         sys.stdout.flush()
@@ -101,10 +105,14 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
         log_file.write(output)
         log_file.flush()
       all_output.append(output)
+    except Queue.Empty:
+      if code != None: # proc has finished running
+        break
+      time.sleep(0.5)
     if timeout and time.time() - t_0 > timeout:
       proc.terminate()
       break
-    time.sleep(0.2)
+  log_thread.join()
   return (code, ''.join(all_output))
 
 def Bash(cmd, echo=True, shell=False, timeout=None):
