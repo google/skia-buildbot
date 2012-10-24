@@ -35,21 +35,7 @@ class RunGM(BuildStep):
     cmd = [self._PathToBinary('gm'),
            '-w', self._gm_actual_dir,
            ] + self._gm_args
-    subprocesses = []
-    retcodes = []
-    for idx in range(GM_CONCURRENT_PROCESSES):
-      subprocesses.append(misc.BashAsync(cmd + ['--modulo', str(idx),
-                                                str(GM_CONCURRENT_PROCESSES)]))
-    for proc in subprocesses:
-      retcode = 0
-      try:
-        misc.LogProcessToCompletion(proc)
-      except:
-        retcode = 1
-      retcodes.append(retcode)
-    for retcode in retcodes:
-      if retcode != 0:
-        raise Exception('Command failed with code %d.' % retcode)
+    misc.Bash(cmd)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RunGM))
