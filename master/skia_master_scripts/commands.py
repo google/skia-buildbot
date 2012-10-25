@@ -60,15 +60,16 @@ class SkiaCommands(commands.FactoryCommands):
                         args=args, description=description, timeout=timeout)
 
   def AddSlaveScript(self, script, args, description, timeout=None,
-                     halt_on_failure=False):
+                     halt_on_failure=False, doStepIf=True):
     """Run a slave-side Python script as its own build step."""
     path_to_script = self.PathJoin(self._local_slave_script_dir, script)
     self.AddRunCommand(command=['python', path_to_script] + args,
                        description=description, timeout=timeout,
-                       halt_on_failure=halt_on_failure)
+                       halt_on_failure=halt_on_failure,
+                       doStepIf=doStepIf)
 
   def AddRunCommand(self, command, description='Run', timeout=None,
-                    halt_on_failure=False):
+                    halt_on_failure=False, doStepIf=True):
     """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
       timeout = self.default_timeout
@@ -76,7 +77,8 @@ class SkiaCommands(commands.FactoryCommands):
                          description=description, timeout=timeout,
                          command=command, workdir=self.workdir,
                          env=self.environment_variables,
-                         haltOnFailure=halt_on_failure)
+                         haltOnFailure=halt_on_failure,
+                         doStepIf=doStepIf)
 
   def AddRunCommandList(self, command_list, description='Run', timeout=None,
                         halt_on_failure=False):
