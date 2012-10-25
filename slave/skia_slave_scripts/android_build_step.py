@@ -4,7 +4,7 @@
 
 """ Subclass for all slave-side Android build steps. """
 
-from build_step import BuildStep
+from build_step import BuildStep, DEFAULT_TIMEOUT
 from utils import misc
 
 class AndroidDirs(object):
@@ -32,7 +32,7 @@ class AndroidBuildStep(BuildStep):
     misc.RunADB(self._serial, ['remount'])
     misc.SetCPUScalingMode(self._serial, 'performance')
 
-  def __init__(self, args, attempts=1):
+  def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT):
     self._device = args['device']
     self._serial = args['serial']
     if self._serial == 'None':
@@ -41,4 +41,5 @@ class AndroidBuildStep(BuildStep):
                                        misc.PATH_TO_ADB, self._serial), 
                                    echo=True, shell=True).rstrip()
     self._device_dirs = AndroidDirs(device_scratch_dir)
-    super(AndroidBuildStep, self).__init__(args, attempts)
+    super(AndroidBuildStep, self).__init__(args, attempts=attempts,
+                                           timeout=timeout)
