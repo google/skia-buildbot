@@ -49,8 +49,16 @@ class AndroidFactory(skia_factory.SkiaFactory):
     self._common_args += ['--device', self._device,
                           '--serial', WithProperties('%(serial:-None)s')]
 
-  def Compile(self):
-    """Compile step.  Build everything. """
+  def Compile(self, clobber=None):
+    """Compile step. Build everything.
+
+    clobber: optional boolean which tells us whether to 'clean' before building.
+    """
+    if clobber is None:
+      clobber = self._default_clobber
+    if clobber:
+      self.AddSlaveScript(script='clean.py', description='Clean')
+
     args = ['--target', 'all']
     self.AddSlaveScript(script='android_compile.py', args=args,
                         description='BuildAll', halt_on_failure=True)

@@ -155,8 +155,15 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self.AddSlaveScript(script='compile.py', args=args,
                         description=description, halt_on_failure=True)
 
-  def Compile(self):
-    """Compile step.  Build everything. """
+  def Compile(self, clobber=None):
+    """Compile step. Build everything.
+
+    clobber: optional boolean which tells us whether to 'clean' before building.
+    """
+    if clobber is None:
+      clobber = self._default_clobber
+    if clobber:
+      self.AddSlaveScript(script='clean.py', description='Clean')
     self.Make('skia_base_libs',  'BuildSkiaBaseLibs')
     self.Make('tests', 'BuildTests')
     self.Make('gm',    'BuildGM')
@@ -214,29 +221,31 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self.AddSlaveScript(script='upload_gm_results.py', args=args,
                         description='UploadGMResults', timeout=5400)
 
-  def Build(self, clobber=None):
-    """Build and return the complete BuildFactory.
-
-    clobber: boolean indicating whether we should clean before building
-    """
-    # Do all the build steps first, so we will find out about build breakages
-    # as soon as possible.
-    if clobber is None:
-      clobber = self._default_clobber
-    if clobber:
-      self.AddSlaveScript(script='clean.py', description='Clean')
-    self.Compile()
+  def NonPerfSteps(self):
+    """ Add correctness testing BuildSteps. """
     self.RunTests()
     self.RunGM()
     self.RenderPictures()
     if self._do_upload_results:
       self.UploadGMResults()
     self.CompareGMs()
+
+  def PerfSteps(self):
+    """ Add performance testing BuildSteps. """
     self.RunBench()
     self.BenchPictures()
     if self._do_upload_bench_results:
       self.UploadBenchResults()
       self.BenchGraphs()
       self.UploadBenchGraphs()
+
+  def Build(self, clobber=None):
+    """Build and return the complete BuildFactory.
+
+    clobber: boolean indicating whether we should clean before building
+    """
+    self.Compile(clobber)
+    self.NonPerfSteps()
+    self.PerfSteps()
 
     return self._factory

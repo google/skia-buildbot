@@ -7,9 +7,5 @@ from factory import SkiaFactory
 class iOSFactory(SkiaFactory):
   """ Subclass of Factory which runs on iOS. """
   def Build(self, clobber=None):
-    if clobber is None:
-      clobber = self._default_clobber
-    if clobber:
-      self.AddSlaveScript(script='clean.py', description='Clean')
-    self.Compile()
+    self.Compile(clobber)
     return self._factory

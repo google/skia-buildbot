@@ -8,7 +8,16 @@ from factory import SkiaFactory, CONFIG_RELEASE
 class PerfOnlyFactory(SkiaFactory):
   """Subclass of Factory which only runs benchmarking steps. Designed to
   complement NoPerfFactory. """
-  def Compile(self):
+
+  def Compile(self, clobber):
+    """Compile step. Build everything.
+
+    clobber: optional boolean which tells us whether to 'clean' before building.
+    """
+    if clobber is None:
+      clobber = self._default_clobber
+    if clobber:
+      self.AddSlaveScript(script='clean.py', description='Clean')
     self.Make('bench','BuildBench')
     self.Make('tools','BuildTools')
 
@@ -19,17 +28,8 @@ class PerfOnlyFactory(SkiaFactory):
     if self._configuration != CONFIG_RELEASE:
       raise ValueError('PerfOnlyFactory should run in %s configuration.' %
                            CONFIG_RELEASE)
-    if clobber is None:
-      clobber = self._default_clobber
-    if clobber:
-      self.AddSlaveScript(script='clean.py', description='Clean')
-    self.Compile()
-    self.RunBench()
-    self.BenchPictures()
-    if self._do_upload_bench_results:
-      self.UploadBenchResults()
-      self.BenchGraphs()
-      self.UploadBenchGraphs()
+    self.Compile(clobber)
+    self.PerfSteps()
     return self._factory
 
 class AndroidPerfOnlyFactory(AndroidFactory, PerfOnlyFactory):

@@ -14,17 +14,8 @@ class NoPerfFactory(SkiaFactory):
     if self._perf_output_basedir:
       raise ValueError('NoPerfFactory does not run benchmarking steps and '
                        'therefore perf_output_basedir should not be defined.')
-    if clobber is None:
-      clobber = self._default_clobber
-    if clobber:
-      self.AddSlaveScript(script='clean.py', description='Clean')
-    self.Compile()
-    self.RunTests()
-    self.RunGM()
-    self.RenderPictures()
-    if self._do_upload_results:
-      self.UploadGMResults()
-    self.CompareGMs()
+    self.Compile(clobber)
+    self.NonPerfSteps()
     return self._factory
 
 class AndroidNoPerfFactory(AndroidFactory, NoPerfFactory):
