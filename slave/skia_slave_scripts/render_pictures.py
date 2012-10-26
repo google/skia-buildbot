@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Run the Skia bench_pictures executable. """
+""" Run the Skia render_pictures executable. """
 
 from utils import misc
 from build_step import BuildStep
@@ -14,7 +14,7 @@ import tempfile
 
 class RenderPictures(BuildStep):
   def _PictureArgs(self, skp_dir, out_dir, config):
-    return [skp_dir, out_dir, '--device', config,
+    return [skp_dir, '--device', config,
             '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
 
   def _Run(self):
@@ -34,4 +34,3 @@ class RenderPictures(BuildStep):
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RenderPictures))
-
