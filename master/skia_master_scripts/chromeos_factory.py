@@ -43,10 +43,10 @@ class ChromeOSFactory(skia_factory.SkiaFactory):
     self._common_args += ['--ssh_host', ssh_host,
                           '--ssh_port', ssh_port]
 
-  def Compile(self):
+  def Compile(self, clobber=None):
     """Compile step.  Build everything. """
     args = ['--target', 'all']
-    super(ChromeOSFactory, self).Compile()
+    super(ChromeOSFactory, self).Compile(clobber)
     # Copy the executables to the device
     self.AddSlaveScript(script='chromeos_send_files.py',
                         description='SendExecutables', halt_on_failure=True)
