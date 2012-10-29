@@ -31,6 +31,7 @@ class AndroidBuildStep(BuildStep):
     misc.RunADB(self._serial, ['root'])
     misc.RunADB(self._serial, ['remount'])
     misc.SetCPUScalingMode(self._serial, 'performance')
+    misc.ADBKill(self._serial, 'skia')
 
   def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT):
     self._device = args['device']

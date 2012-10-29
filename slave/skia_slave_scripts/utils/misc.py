@@ -193,12 +193,18 @@ def ADBKill(serial, process):
   process: string indicating the name of the process to kill
   """ 
   try:
-    stdout = ADBShell(serial, ['ps | grep %s' % process])
+    stdout = Bash('%s -s %s shell ps | grep %s' % (PATH_TO_ADB, serial,
+                                                   process),
+                  shell=True)
   except:
     return
-  if stdout != '':
-    pid = shlex.split(stdout)[1]
-    ADBShell(serial, ['kill', pid])
+  for line in stdout.split('\n'):
+    if line != '':
+      split = shlex.split(line)
+      if len(split) < 2:
+        continue
+      pid = split[1]
+      ADBShell(serial, ['kill', pid])
 
 def GetAbsPath(relative_path):
     """My own implementation of os.path.abspath() that better handles paths

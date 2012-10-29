@@ -19,6 +19,8 @@ import traceback
 DEFAULT_TIMEOUT = 2400
 DEFAULT_NO_OUTPUT_TIMEOUT=1800
 
+DEFAULT_NUM_CORES = 2
+
 # multiprocessing.Value doesn't accept boolean types, so we have to use an int.
 INT_TRUE = 1
 INT_FALSE = 0
@@ -101,6 +103,10 @@ class BuildStep(multiprocessing.Process):
     self._gm_args = shlex.split(args['gm_args'].replace('"', ''))
     self._gm_args.append('--serialize')
     self._bench_args = shlex.split(args['bench_args'].replace('"', ''))
+    if args.get('num_cores') != 'None':
+      self._num_cores = int(args.get('num_cores'))
+    else:
+      self._num_cores = DEFAULT_NUM_CORES
 
     # Figure out where we are going to store performance output.
     if args['perf_output_basedir'] != 'None':
