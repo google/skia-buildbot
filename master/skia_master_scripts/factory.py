@@ -153,7 +153,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
                          '--test_args', '"%s"' % ' '.join(test_args),
                          '--gm_args', '"%s"' % ' '.join(gm_args),
                          '--bench_args', '"%s"' % ' '.join(bench_args),
-                         '--num_cores', WithProperties('%(num_cores)s'),
+                         '--num_cores', WithProperties('%(num_cores:-None)s'),
                          ]
 
   def AddSlaveScript(self, script, description, args=[], timeout=None,
