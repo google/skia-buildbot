@@ -61,10 +61,12 @@ class AndroidFactory(skia_factory.SkiaFactory):
 
     args = ['--target', 'all']
     self.AddSlaveScript(script='android_compile.py', args=args,
-                        description='BuildAll', halt_on_failure=True)
+                        description='BuildAll', halt_on_failure=True,
+                        is_rebaseline_step=True)
     # Install the app onto the device, so that it can be used in later steps.
     self.AddSlaveScript(script='android_install_apk.py',
-                        description='InstallAPK', halt_on_failure=True)
+                        description='InstallAPK', halt_on_failure=True,
+                        is_rebaseline_step=True)
 
   def RunTests(self):
     """ Run the unit tests. """
@@ -72,7 +74,8 @@ class AndroidFactory(skia_factory.SkiaFactory):
 
   def RunGM(self):
     """ Run the "GM" tool, saving the images to disk. """
-    self.AddSlaveScript(script='android_run_gm.py', description='GenerateGMs')
+    self.AddSlaveScript(script='android_run_gm.py', description='GenerateGMs',
+                        is_rebaseline_step=True)
 
   def RenderPictures(self):
     """ Run the "render_pictures" tool to generate images from .skp's. """
@@ -82,8 +85,9 @@ class AndroidFactory(skia_factory.SkiaFactory):
   def CompareGMs(self):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
     generated to the baselines in _gm_image_subdir. """
-    self.AddSlaveScript(script='clean.py', description='Clean')
-    self.Make('tools', 'BuildSkDiff')
+    self.AddSlaveScript(script='clean.py', description='Clean',
+                        is_rebaseline_step=True)
+    self.Make('tools', 'BuildSkDiff', is_rebaseline_step=True)
     super(AndroidFactory, self).CompareGMs()
 
   def RunBench(self):

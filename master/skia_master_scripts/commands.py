@@ -10,6 +10,75 @@ from buildbot.process.properties import WithProperties
 from master.factory import commands
 from master.log_parser import retcode_command
 
+
+class SkiaBuildStep(retcode_command.ReturnCodeCommand):
+  """ BuildStep wrapper for Skia. Allows us to define properties of BuildSteps
+  to be used by ShouldDoStep. This is necessary because the properties referred
+  to by BuildStep.getProperty() are scoped for the entire duration of the build.
+  """
+  def __init__(self, is_upload_step=False, is_rebaseline_step=False, **kwargs):
+    self._is_upload_step = is_upload_step
+    self._is_rebaseline_step = is_rebaseline_step
+    return retcode_command.ReturnCodeCommand.__init__(self, **kwargs)
+
+  def IsUploadStep(self):
+    return self._is_upload_step
+
+  def IsRebaselineStep(self):
+    return self._is_rebaseline_step
+
+
+def _HasProperty(step, property):
+  """ Helper used by ShouldDoStep. Determine whether the given BuildStep has
+  the requested property.
+
+  step: an instance of BuildStep
+  property: string, the property to test
+  """
+  try:
+    step.getProperty(property)
+    return True
+  except:
+    return False
+
+
+def ShouldDoStep(step):
+  """ At build time, use build properties to determine whether or not a step
+  should be run or skipped.
+
+  step: an instance of BuildStep which we may or may not run.
+  """
+  print step.build.getProperties()
+  if not isinstance(step, SkiaBuildStep):
+    return True
+
+  # If this step uploads results (and thus overwrites the most recently uploaded
+  # results), only run it on scheduled builds (i.e. most recent revision) or if
+  # the "force_upload" property was set.
+  if step.IsUploadStep() and \
+      not _HasProperty(step, 'scheduler') and \
+      not _HasProperty(step, 'force_upload'):
+    return False
+
+  # When a commit consists of only new baseline images, we only need to run the
+  # BuildSteps necessary for image verification, and only for the platform(s)
+  # for which new baselines are provided.
+  if  _HasProperty(step, 'branch') and \
+      step.getProperty('branch') == 'gm-expected':
+    if step.IsRebaselineStep():
+      # This step is required for rebaselines, but do the associated commits
+      # affect our platform?
+      if _HasProperty(step, 'gm_image_subdir'):
+        for change in step.build.allChanges():
+          for file in change.asDict()['files']:
+            if step.getProperty('gm_image_subdir') in file['name']:
+              return True
+    return False
+
+  # Unless we have determined otherwise, run the step.
+  return True
+
+
 class SkiaCommands(commands.FactoryCommands):
 
   def __init__(self, factory, configuration, workdir, target_arch,
@@ -44,7 +113,7 @@ class SkiaCommands(commands.FactoryCommands):
   def AddMergeIntoSvn(self, source_dir_path, dest_svn_url, merge_dir_path,
                       svn_username_file, svn_password_file,
                       commit_message=None, description='MergeIntoSvn',
-                      timeout=None):
+                      timeout=None, is_rebaseline_step=False):
     """Adds a step that commits all files within a directory to a special SVN
     repository."""
     if not commit_message:
@@ -57,31 +126,39 @@ class SkiaCommands(commands.FactoryCommands):
             '--svn_username_file', svn_username_file,
             ]
     self.AddSlaveScript(script=self.PathJoin('utils', 'merge_into_svn.py'),
-                        args=args, description=description, timeout=timeout)
+                        args=args, description=description, timeout=timeout,
+                        is_upload_step=True,
+                        is_rebaseline_step=is_rebaseline_step)
 
   def AddSlaveScript(self, script, args, description, timeout=None,
-                     halt_on_failure=False, doStepIf=True):
+                     halt_on_failure=False, is_upload_step=False,
+                     is_rebaseline_step=False):
     """Run a slave-side Python script as its own build step."""
     path_to_script = self.PathJoin(self._local_slave_script_dir, script)
     self.AddRunCommand(command=['python', path_to_script] + args,
                        description=description, timeout=timeout,
                        halt_on_failure=halt_on_failure,
-                       doStepIf=doStepIf)
+                       is_upload_step=is_upload_step,
+                       is_rebaseline_step=is_rebaseline_step)
 
   def AddRunCommand(self, command, description='Run', timeout=None,
-                    halt_on_failure=False, doStepIf=True):
+                    halt_on_failure=False, is_upload_step=False,
+                    is_rebaseline_step=False):
     """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
       timeout = self.default_timeout
-    self.factory.addStep(retcode_command.ReturnCodeCommand,
+    self.factory.addStep(SkiaBuildStep,
+                         is_upload_step=is_upload_step,
+                         is_rebaseline_step=is_rebaseline_step,
                          description=description, timeout=timeout,
                          command=command, workdir=self.workdir,
                          env=self.environment_variables,
                          haltOnFailure=halt_on_failure,
-                         doStepIf=doStepIf)
+                         doStepIf=ShouldDoStep)
 
   def AddRunCommandList(self, command_list, description='Run', timeout=None,
-                        halt_on_failure=False):
+                        halt_on_failure=False, is_upload_step=False,
+                        is_rebaseline_step=False):
     """Runs a list of arbitrary commands."""
     # TODO(epoger): Change this so that build-step output shows each command
     # in the list separately--that will be a lot easier to follow.
@@ -93,4 +170,6 @@ class SkiaCommands(commands.FactoryCommands):
     # show each command separately, maybe I can remove this wrapper.
     self.AddRunCommand(command=WithProperties(' && '.join(command_list)),
                        description=description, timeout=timeout,
-                       halt_on_failure=halt_on_failure)
+                       halt_on_failure=halt_on_failure,
+                       is_upload_step=is_upload_step,
+                       is_rebaseline_step=is_rebaseline_step)
