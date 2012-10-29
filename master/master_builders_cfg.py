@@ -5,6 +5,7 @@
 # Sets up all the builders we want this buildbot master to run.
 
 from master import master_config
+from skia_master_scripts import chromeos_factory
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import ios_factory
 from skia_master_scripts import housekeeping_percommit_factory
@@ -252,6 +253,22 @@ def Update(config, active_master, c):
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
       perf_output_basedir=None, # no perf measurement for debug builds
       builder_name='Skia_Linux_NoGPU',
+      ).Build())
+
+  defaults['category'] = 'ChromeOS'
+  B('Skia_ChromeOS_Alex_Debug_32', 'f_skia_chromeos_alex_debug_32',
+      scheduler='skia_rel')
+  F('f_skia_chromeos_alex_debug_32', chromeos_factory.ChromeOSFactory(
+      ssh_host='192.168.1.134',
+      ssh_port='22',
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration=skia_factory.CONFIG_DEBUG,
+      environment_variables=
+          {'GYP_DEFINES': 'skia_arch_width=32'},
+      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
+      perf_output_basedir=None, # no perf measurement for debug builds
+      builder_name='Skia_ChromeOS_Alex_Debug_32',
       ).Build())
 
   return helper.Update(c)
