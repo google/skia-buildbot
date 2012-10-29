@@ -45,7 +45,7 @@ class AndroidBuildStep(BuildStep):
     super(AndroidBuildStep, self).__init__(args, attempts=attempts,
                                            timeout=timeout)
     # Temporarily set num_cores on Android only
-    if args.get('num_cores') != 'None':
+    if args.get('num_cores') != 'None' and self._device != 'nexus_s':
       self._num_cores = int(args.get('num_cores'))
     else:
-      self._num_cores = DEFAULT_NUM_CORES
+      self._num_cores = 1
