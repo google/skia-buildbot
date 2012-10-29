@@ -61,7 +61,7 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
              'gm'] + arguments
       self._RunModulo(cmd)
     finally:
-      misc.RunADB(self._serial, ['logcat', '-d', '-v', '-time'])
+      misc.RunADB(self._serial, ['logcat', '-d', '-v', 'time'])
       self._PullImages(self._serial)
 
 if '__main__' == __name__:
