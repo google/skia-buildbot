@@ -103,10 +103,13 @@ class BuildStep(multiprocessing.Process):
     self._gm_args = shlex.split(args['gm_args'].replace('"', ''))
     self._gm_args.append('--serialize')
     self._bench_args = shlex.split(args['bench_args'].replace('"', ''))
-    if args.get('num_cores') != 'None':
-      self._num_cores = int(args.get('num_cores'))
-    else:
-      self._num_cores = DEFAULT_NUM_CORES
+    
+    # Temporarily disable multi-process GM
+    self._num_cores = 1
+    #if args.get('num_cores') != 'None':
+    #  self._num_cores = int(args.get('num_cores'))
+    #else:
+    #  self._num_cores = DEFAULT_NUM_CORES
 
     # Figure out where we are going to store performance output.
     if args['perf_output_basedir'] != 'None':
