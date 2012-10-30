@@ -54,10 +54,8 @@ class AndroidFactory(skia_factory.SkiaFactory):
 
     clobber: optional boolean which tells us whether to 'clean' before building.
     """
-    if clobber is None:
-      clobber = self._default_clobber
-    if clobber:
-      self.AddSlaveScript(script='clean.py', description='Clean')
+    self.AddSlaveScript(script='clean.py', description='Clean',
+                        is_rebaseline_step=True)
 
     args = ['--target', 'all']
     self.AddSlaveScript(script='android_compile.py', args=args,
