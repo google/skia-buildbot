@@ -20,7 +20,9 @@ PID_TIMEOUT = 10.0
 
 def _SyncSources():
   """ Run 'gclient sync' on the buildbot sources. """
-  cmd = ['gclient', 'sync']
+  path_to_gclient = os.path.join(os.pardir, os.pardir, 'depot_tools',
+                                 'gclient.py')
+  cmd = ['python', path_to_gclient, 'sync']
   if not subprocess.call(cmd) == 0:
     # Don't throw an exception or quit, since we want to keep the master running
     print 'WARNING: Failed to update sources.'
