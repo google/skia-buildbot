@@ -40,7 +40,8 @@ def _LaunchMaster(private=False):
   # Launch the master
   cmd = ['make', 'start']
   env = dict(os.environ)
-  env['PRIVATE_MASTER'] = 'True' if private else 'False'
+  if private:
+    env['PRIVATE_MASTER'] = 'True'
   launch_proc = subprocess.Popen(cmd, env=env)
   launch_proc.wait()
 
