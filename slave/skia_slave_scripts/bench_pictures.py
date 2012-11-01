@@ -14,9 +14,12 @@ import os
 import sys
 
 class BenchPictures(RunBench):
-  def _BuildDataFile(self, perf_dir, config):
-    return '%s_skp_%s' % (super(BenchPictures, self)._BuildDataFile(perf_dir),
-                          config)
+  def _BuildDataFile(self, perf_dir, config, threads):
+    data_file = '%s_skp_%s' % (
+        super(BenchPictures, self)._BuildDataFile(perf_dir), config)
+    if threads > 0:
+      data_file += '_%dthreads' % threads
+    return data_file
 
   def _PictureArgs(self, skp_dir, config, threads):
     args = [skp_dir,
@@ -32,7 +35,8 @@ class BenchPictures(RunBench):
     if self._perf_data_dir:
       PreBench(self._perf_data_dir)
       cmd += BenchArgs(self.BENCH_REPEAT_COUNT,
-                       self._BuildDataFile(self._perf_data_dir, config))
+                       self._BuildDataFile(self._perf_data_dir, config,
+                                           threads))
     misc.Bash(cmd)
 
   def _Run(self):

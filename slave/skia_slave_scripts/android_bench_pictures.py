@@ -13,7 +13,8 @@ import sys
 
 class AndroidBenchPictures(BenchPictures, AndroidRenderPictures):
   def _DoBenchPictures(self, config, threads):
-    data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), config)
+    data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), config,
+                                    threads)
     args = self._PictureArgs(self._device_dirs.SKPDir(), config, threads)
     DoBench(serial=self._serial,
             executable='bench_pictures',
