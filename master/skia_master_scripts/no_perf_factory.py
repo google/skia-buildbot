@@ -22,4 +22,8 @@ class NoPerfFactory(SkiaFactory):
 class AndroidNoPerfFactory(AndroidFactory, NoPerfFactory):
   """ Android-specific subclass of NoPerfFactory.  Inherits __init__() from
   AndroidFactory and Build() from NoPerfFactory. """
-  pass
+  def __init__(self, **kwargs):
+    AndroidFactory.__init__(self, **kwargs)
+
+  def Build(self, **kwargs):
+    return NoPerfFactory.Build(self, **kwargs)

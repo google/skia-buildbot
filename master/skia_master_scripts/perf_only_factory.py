@@ -36,4 +36,8 @@ class PerfOnlyFactory(SkiaFactory):
 class AndroidPerfOnlyFactory(AndroidFactory, PerfOnlyFactory):
   """ Android-specific subclass of PerfOnlyFactory.  Inherits __init__() from
   AndroidFactory and Build() from PerfOnlyFactory. """
-  pass
+  def __init__(self, **kwargs):
+    AndroidFactory.__init__(self, **kwargs)
+
+  def Build(self, **kwargs):
+    return PerfOnlyFactory.Build(self, **kwargs)
