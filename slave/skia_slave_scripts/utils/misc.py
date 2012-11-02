@@ -26,7 +26,8 @@ DEFAULT_SECS_BETWEEN_ATTEMPTS = 10
 DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'xoom': 'stingray',
                  'galaxy_nexus': 'toro',
-                 'nexus_7': 'grouper'}
+                 'nexus_7': 'grouper',
+                 'nexus_10': 'manta'}
 CPU_SCALING_MODES = ['performance', 'interactive']
 
 def ArgsToDict(argv):
