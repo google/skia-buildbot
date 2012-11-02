@@ -18,7 +18,12 @@ class UpdateScripts(BuildStep):
   def _Run(self):
     buildbot_dir = os.path.join(*[os.pardir for i in range(BUILD_DIR_DEPTH)])
     os.chdir(buildbot_dir)
-    misc.Bash(['gclient', 'sync'])
+    if os.name == 'nt':
+      gclient = 'gclient.bat'
+    else:
+      gclient = 'gclient'
+
+    misc.Bash([gclient, 'sync'])
 
 
 if '__main__' == __name__:

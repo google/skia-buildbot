@@ -19,6 +19,11 @@ class Update(BuildStep):
     build_dir = os.path.abspath(os.curdir)
     os.chdir(os.pardir)
 
+    if os.name == 'nt':
+      gclient = 'gclient.bat'
+    else:
+      gclient = 'gclient'
+
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
     # into a list of strings.
@@ -35,7 +40,7 @@ class Update(BuildStep):
     gclient_spec += ']'
 
     # Run "gclient config" with the spec we just built.
-    misc.Bash(['gclient', 'config', '--spec=%s' % gclient_spec])
+    misc.Bash([gclient, 'config', '--spec=%s' % gclient_spec])
 
     # Construct an argument list for "gclient sync".
     sync_args = ['--verbose', '--manually_grab_svn_rev', '--force',
@@ -48,7 +53,7 @@ class Update(BuildStep):
                                                self._revision)]
 
     # Run "gclient sync" with the argument list we just constructed.
-    misc.Bash(['gclient', 'sync'] + sync_args)
+    misc.Bash([gclient, 'sync'] + sync_args)
 
     # Determine what revision we actually got. If it differs from what was
     # requested, this step fails.
