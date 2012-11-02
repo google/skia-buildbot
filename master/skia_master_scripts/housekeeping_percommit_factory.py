@@ -24,6 +24,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
 
     clobber: boolean indicating whether we should clean before building
     """
+    self.UpdateSteps()
     if clobber is None:
       clobber = self._default_clobber
     if clobber:
@@ -70,5 +71,5 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
                   'revision', self._builder_name)),
           description='UploadDoxygen')
 
-    return self._factory
+    return self
 

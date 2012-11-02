@@ -28,9 +28,10 @@ class PerfOnlyFactory(SkiaFactory):
     if self._configuration != CONFIG_RELEASE:
       raise ValueError('PerfOnlyFactory should run in %s configuration.' %
                            CONFIG_RELEASE)
+    self.UpdateSteps()
     self.Compile(clobber)
     self.PerfSteps()
-    return self._factory
+    return self
 
 class AndroidPerfOnlyFactory(AndroidFactory, PerfOnlyFactory):
   """ Android-specific subclass of PerfOnlyFactory.  Inherits __init__() from

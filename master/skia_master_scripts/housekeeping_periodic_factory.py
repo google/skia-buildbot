@@ -23,6 +23,7 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
 
     clobber: boolean indicating whether we should clean before building
     """
+    self.UpdateSteps()
     if clobber is None:
       clobber = self._default_clobber
     if clobber:
@@ -52,5 +53,5 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
           commit_message=WithProperties(
               'Sanitizing source files in %s' % self._builder_name),
           description='UploadSanitizedFiles')
-    return self._factory
+    return self
 

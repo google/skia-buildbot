@@ -36,7 +36,7 @@ class GenerateBenchGraphs(BuildStep):
         subdir=posixpath.join('perfdata', self._builder_name),
         do_upload=False,
         do_download=True,
-        min_download_revision=self._revision -
+        min_download_revision=self._got_revision -
             bench_common.BENCH_GRAPH_NUM_REVISIONS)
 
     cmd = ['python', path_to_bench_graph_svg,

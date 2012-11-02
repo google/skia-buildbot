@@ -38,7 +38,7 @@ class RunBench(BuildStep):
   BENCH_REPEAT_COUNT = 20
 
   def _BuildDataFile(self, perf_dir):
-    return os.path.join(perf_dir, 'bench_r%s_data' % self._revision)
+    return os.path.join(perf_dir, 'bench_r%s_data' % self._got_revision)
 
   def _Run(self):
     cmd = [self._PathToBinary('bench')]

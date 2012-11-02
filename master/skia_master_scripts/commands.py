@@ -7,8 +7,11 @@
 This is based on commands.py and adds skia-specific commands."""
 
 from buildbot.process.properties import WithProperties
+from buildbot.status.logfile import STDOUT
 from master.factory import commands
 from master.log_parser import retcode_command
+
+import re
 
 
 class SkiaBuildStep(retcode_command.ReturnCodeCommand):
@@ -16,9 +19,28 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
   to be used by ShouldDoStep. This is necessary because the properties referred
   to by BuildStep.getProperty() are scoped for the entire duration of the build.
   """
-  def __init__(self, is_upload_step=False, is_rebaseline_step=False, **kwargs):
+  def __init__(self, is_upload_step=False, is_rebaseline_step=False,
+               get_props_from_stdout=None, **kwargs):
+    """ Instantiates a new SkiaBuildStep.
+
+    is_upload_step: boolean indicating whether this step should be skipped when
+        the buildbot is not performing uploads.
+    is_rebaseline_step: boolean indicating whether this step is required for
+        rebaseline-only builds.
+    get_props_from_stdout: optional dictionary. Keys are strings indicating
+        build properties to set based on the output of this step. Values are
+        strings containing regular expressions for parsing the property from
+        the output of the step. 
+    """
     self._is_upload_step = is_upload_step
     self._is_rebaseline_step = is_rebaseline_step
+    self._get_props_from_stdout = get_props_from_stdout
+
+    # self._changed_props will be a dictionary containing the build properties
+    # which were updated by this BuildStep. Those properties will be displayed
+    # in the label for this step.
+    self._changed_props = None
+
     return retcode_command.ReturnCodeCommand.__init__(self, **kwargs)
 
   def IsUploadStep(self):
@@ -27,6 +49,33 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
   def IsRebaselineStep(self):
     return self._is_rebaseline_step
 
+  def commandComplete(self, cmd):
+    """ Override of BuildStep's commandComplete method which allows us to parse
+    build properties from the output of this step. """
+    if self._get_props_from_stdout and cmd.rc == 0:
+      log = cmd.logs['stdio']
+      stdout = ''.join(log.getChunks([STDOUT], onlyText=True))
+      self._changed_props = {}
+      for property, regex in self._get_props_from_stdout.iteritems():
+        matches = re.search(regex, stdout)
+        if not matches:
+          raise Exception('Unable to parse %s from stdout.' % property)
+        groups = matches.groups()
+        if len(groups) != 1:
+          raise Exception('Multiple matches for "%s"' % regex)
+        prop_value = groups[0]
+        self.setProperty(property, prop_value, ''.join(self.description))
+        self._changed_props[property] = prop_value
+    retcode_command.ReturnCodeCommand.commandComplete(self, cmd)
+
+  def getText(self, cmd, results):
+    """ Override of BuildStep's getText method which appends any changed build
+    properties to the description of the BuildStep. """
+    text = self.description
+    if self._changed_props:
+      text.extend(['%s: %s' % (
+          key, self._changed_props.get(key)) for key in self._changed_props])
+    return text
 
 def _HasProperty(step, property):
   """ Helper used by ShouldDoStep. Determine whether the given BuildStep has
@@ -132,24 +181,26 @@ class SkiaCommands(commands.FactoryCommands):
 
   def AddSlaveScript(self, script, args, description, timeout=None,
                      halt_on_failure=False, is_upload_step=False,
-                     is_rebaseline_step=False):
+                     is_rebaseline_step=False, get_props_from_stdout=None):
     """Run a slave-side Python script as its own build step."""
     path_to_script = self.PathJoin(self._local_slave_script_dir, script)
     self.AddRunCommand(command=['python', path_to_script] + args,
                        description=description, timeout=timeout,
                        halt_on_failure=halt_on_failure,
                        is_upload_step=is_upload_step,
-                       is_rebaseline_step=is_rebaseline_step)
+                       is_rebaseline_step=is_rebaseline_step,
+                       get_props_from_stdout=get_props_from_stdout)
 
   def AddRunCommand(self, command, description='Run', timeout=None,
                     halt_on_failure=False, is_upload_step=False,
-                    is_rebaseline_step=False):
+                    is_rebaseline_step=False, get_props_from_stdout=None):
     """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
       timeout = self.default_timeout
     self.factory.addStep(SkiaBuildStep,
                          is_upload_step=is_upload_step,
                          is_rebaseline_step=is_rebaseline_step,
+                         get_props_from_stdout=get_props_from_stdout,
                          description=description, timeout=timeout,
                          command=command, workdir=self.workdir,
                          env=self.environment_variables,

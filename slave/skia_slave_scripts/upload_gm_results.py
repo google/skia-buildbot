@@ -38,7 +38,7 @@ class UploadGMResults(BuildStep):
     # should be skipped when re-running old revisions of the buildbot')
     merge_options = Options()
     merge_options.commit_message = 'UploadGMResults of r%s on %s' % (
-        self._revision, self._args['builder_name'])
+        self._got_revision, self._args['builder_name'])
     merge_options.dest_svn_url = '%s/%s/%s/%s' % (
         gm_actual_svn_baseurl, self._args['gm_image_subdir'],
         self._args['builder_name'], self._args['gm_image_subdir'])

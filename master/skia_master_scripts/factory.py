@@ -11,6 +11,7 @@ import posixpath
 
 from buildbot.process.properties import Property, WithProperties
 from master.factory import gclient_factory
+from master.factory.build_factory import BuildFactory
 
 from skia_master_scripts import commands as skia_commands
 import config
@@ -33,7 +34,7 @@ CONFIG_RELEASE = 'Release'
 CONFIG_BENCH = 'Bench'
 CONFIGURATIONS = [CONFIG_DEBUG, CONFIG_RELEASE]
 
-class SkiaFactory(gclient_factory.GClientFactory):
+class SkiaFactory(BuildFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""
 
   def __init__(self, do_upload_results=False,
@@ -63,6 +64,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     gm_args: list of extra flags to pass to the 'gm' executable
     bench_args: list of extra flags to pass to the 'bench' executable
     """
+    properties = {}
 
     if not make_flags:
       make_flags = []
@@ -76,24 +78,21 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
     # Create gclient solutions corresponding to the main build_subdir
     # and other directories we also wish to check out.
-    solutions = [gclient_factory.GClientSolution(
-        svn_url=config.Master.skia_url + build_subdir, name=build_subdir)]
+    self._gclient_solutions = [gclient_factory.GClientSolution(
+        svn_url=config.Master.skia_url + build_subdir, name=build_subdir
+        ).GetSpec()]
     if not other_subdirs:
       other_subdirs = []
     if gm_image_subdir:
       other_subdirs.append('gm-expected/%s' % gm_image_subdir)
     other_subdirs.append('skp')
     for other_subdir in other_subdirs:
-      solutions.append(gclient_factory.GClientSolution(
+      self._gclient_solutions.append(gclient_factory.GClientSolution(
           svn_url=config.Master.skia_url + other_subdir,
-          name=other_subdir))
-    gclient_factory.GClientFactory.__init__(
-        self, build_dir='', solutions=solutions,
-        target_platform=target_platform)
+          name=other_subdir).GetSpec())
 
-    self._factory = self.BaseFactory(
-        factory_properties={'no_kill':True},
-        build_properties={'gm_image_subdir': gm_image_subdir or 'None'})
+    if gm_image_subdir:
+      properties['gm_image_subdir'] = gm_image_subdir
 
     # Set _default_clobber based on config.Master
     self._default_clobber = getattr(config.Master, 'default_clobber', False)
@@ -106,7 +105,7 @@ class SkiaFactory(gclient_factory.GClientFactory):
     # this target_platform.
     workdir = self.TargetPathJoin('build', build_subdir)
     self._skia_cmd_obj = skia_commands.SkiaCommands(
-        target_platform=target_platform, factory=self._factory,
+        target_platform=target_platform, factory=self,
         configuration=configuration, workdir=workdir,
         target_arch=None, default_timeout=default_timeout,
         environment_variables=environment_variables)
@@ -130,40 +129,65 @@ class SkiaFactory(gclient_factory.GClientFactory):
       gm_args = []
     if not bench_args:
       bench_args = []
-    self._common_args = ['--autogen_svn_baseurl', AUTOGEN_SVN_BASEURL,
-                         '--configuration', configuration,
-                         '--gm_image_subdir', gm_image_subdir or 'None',
-                         '--builder_name', builder_name,
-                         '--target_platform', target_platform,
-                         '--revision', WithProperties('%(got_revision)s'),
-                         '--perf_output_basedir', perf_output_basedir or 'None',
-                         '--make_flags', '"%s"' % ' '.join(self._make_flags),
-                         '--test_args', '"%s"' % ' '.join(test_args),
-                         '--gm_args', '"%s"' % ' '.join(gm_args),
-                         '--bench_args', '"%s"' % ' '.join(bench_args),
-                         '--num_cores', WithProperties('%(num_cores:-None)s'),
-                         ]
+    self._common_args = [
+        '--autogen_svn_baseurl', AUTOGEN_SVN_BASEURL,
+        '--configuration', configuration,
+        '--gm_image_subdir', gm_image_subdir or 'None',
+        '--builder_name', builder_name,
+        '--target_platform', target_platform,
+        '--revision', WithProperties('%(revision:-None)s'),
+        '--got_revision', WithProperties('%(got_revision:-None)s'),
+        '--perf_output_basedir', perf_output_basedir or 'None',
+        '--make_flags', '"%s"' % ' '.join(self._make_flags),
+        '--test_args', '"%s"' % ' '.join(test_args),
+        '--gm_args', '"%s"' % ' '.join(gm_args),
+        '--bench_args', '"%s"' % ' '.join(bench_args),
+        '--num_cores', WithProperties('%(num_cores:-None)s'),
+        ]
+    BuildFactory.__init__(self, build_factory_properties=properties)
 
-  def AddSlaveScript(self, script, description, args=[], timeout=None,
+  def AddSlaveScript(self, script, description, args=None, timeout=None,
                      halt_on_failure=False, is_upload_step=False,
-                     is_rebaseline_step=False):
-    self._skia_cmd_obj.AddSlaveScript(script=script,
-                                      args=self._common_args + args,
-                                      description=description,
-                                      timeout=timeout,
-                                      halt_on_failure=halt_on_failure,
-                                      is_upload_step=is_upload_step,
-                                      is_rebaseline_step=is_rebaseline_step)
+                     is_rebaseline_step=False, get_props_from_stdout=None):
+    """ Add a BuildStep consisting of a python script.
+
+    script: which slave-side python script to run.
+    description: string briefly describing the BuildStep.
+    args: optional list of strings; arguments to pass to the script.
+    timeout: optional integer; maximum time for the BuildStep to complete.
+    halt_on_failure: boolean indicating whether to continue the build if this
+        step fails.
+    is_upload_step: boolean indicating whether this step should be skipped when
+        the buildbot is not performing uploads.
+    is_rebaseline_step: boolean indicating whether this step is required for
+        rebaseline-only builds.
+    get_props_from_stdout: optional dictionary. Keys are strings indicating
+        build properties to set based on the output of this step. Values are
+        strings containing regular expressions for parsing the property from
+        the output of the step.
+    """
+    arguments = self._common_args
+    if args:
+      arguments += args
+    self._skia_cmd_obj.AddSlaveScript(
+        script=script,
+        args=arguments,
+        description=description,
+        timeout=timeout,
+        halt_on_failure=halt_on_failure,
+        is_upload_step=is_upload_step,
+        is_rebaseline_step=is_rebaseline_step,
+        get_props_from_stdout=get_props_from_stdout)
 
   def Make(self, target, description, is_rebaseline_step=False):
-    """Build a single target."""
+    """ Build a single target."""
     args = ['--target', target]
     self.AddSlaveScript(script='compile.py', args=args,
                         description=description, halt_on_failure=True,
                         is_rebaseline_step=is_rebaseline_step)
 
   def Compile(self, clobber=None):
-    """Compile step. Build everything.
+    """ Compile step. Build everything.
 
     clobber: optional boolean which tells us whether to 'clean' before building.
     """
@@ -212,6 +236,22 @@ class SkiaFactory(gclient_factory.GClientFactory):
     self.AddSlaveScript(script='generate_bench_graphs.py',
                         description='GenerateBenchGraphs')
 
+  def UpdateSteps(self):
+    """ Update the Skia sources. """
+    self.AddSlaveScript(script='update_scripts.py',
+                        description='UpdateScripts',
+                        halt_on_failure=True)
+    args = ['--gclient_solutions', '"%s"' % self._gclient_solutions]
+    self.AddSlaveScript(
+        script='update.py',
+        description='Update',
+        args=args,
+        timeout=None,
+        halt_on_failure=True,
+        is_upload_step=False,
+        is_rebaseline_step=True,
+        get_props_from_stdout={'got_revision':'Skia updated to revision (\d+)'})
+
   def UploadBenchGraphs(self):
     """ Upload bench performance graphs (but only if we have been
     recording bench output for this build type). """
@@ -254,8 +294,9 @@ class SkiaFactory(gclient_factory.GClientFactory):
 
     clobber: boolean indicating whether we should clean before building
     """
+    self.UpdateSteps()
     self.Compile(clobber)
     self.NonPerfSteps()
     self.PerfSteps()
 
-    return self._factory
+    return self

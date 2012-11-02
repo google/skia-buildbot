@@ -14,9 +14,10 @@ class NoPerfFactory(SkiaFactory):
     if self._perf_output_basedir:
       raise ValueError('NoPerfFactory does not run benchmarking steps and '
                        'therefore perf_output_basedir should not be defined.')
+    self.UpdateSteps()
     self.Compile(clobber)
     self.NonPerfSteps()
-    return self._factory
+    return self
 
 class AndroidNoPerfFactory(AndroidFactory, NoPerfFactory):
   """ Android-specific subclass of NoPerfFactory.  Inherits __init__() from

@@ -30,8 +30,9 @@ class AndroidFactory(skia_factory.SkiaFactory):
     if not other_subdirs:
       other_subdirs = []
     other_subdirs.append('android')
-    super(AndroidFactory, self).__init__(
-        do_upload_results = do_upload_results,
+    skia_factory.SkiaFactory.__init__(
+        self,
+        do_upload_results=do_upload_results,
         build_subdir=build_subdir,
         other_subdirs=other_subdirs,
         target_platform=target_platform,
@@ -86,7 +87,7 @@ class AndroidFactory(skia_factory.SkiaFactory):
     self.AddSlaveScript(script='clean.py', description='Clean',
                         is_rebaseline_step=True)
     self.Make('tools', 'BuildSkDiff', is_rebaseline_step=True)
-    super(AndroidFactory, self).CompareGMs()
+    skia_factory.SkiaFactory.CompareGMs(self)
 
   def RunBench(self):
     """ Run "bench", piping the output somewhere so we can graph
