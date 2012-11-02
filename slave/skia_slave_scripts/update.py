@@ -52,6 +52,9 @@ class Update(BuildStep):
         sync_args += ['--revision', '%s@%d' % (solution['name'],
                                                self._revision)]
 
+    if os.name == 'nt':
+      sync_args += ['-j', '1']
+
     # Run "gclient sync" with the argument list we just constructed.
     misc.Bash([gclient, 'sync'] + sync_args)
 
