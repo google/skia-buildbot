@@ -85,7 +85,8 @@ class BuildStep(multiprocessing.Process):
     self._gm_image_subdir = args['gm_image_subdir']
     self._builder_name = args['builder_name']
     self._target_platform = args['target_platform']
-    self._revision = None if args['revision'] == '' else int(args['revision'])
+    self._revision = \
+        None if args['revision'] == 'None' else int(args['revision'])
     self._got_revision = \
         None if args['got_revision'] == 'None' else int(args['got_revision'])
     self._attempts = attempts

@@ -123,6 +123,20 @@ class SkiaFactory(BuildFactory):
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._builder_name = builder_name
 
+    def _DetermineRevision(build):
+      """ Get the 'revision' property at build time. WithProperties returns the
+      empty string if 'revision' is not defined, which causes failures when we
+      try to pass the revision over a command line, so we use the string "None"
+      to indicate that the revision is not defined.
+
+      build: instance of Build for the current build.
+      """
+      props = build.getProperties().asDict()
+      if props.has_key('revision'):
+        if props['revision'][0]:
+          return props['revision'][0]
+      return 'None'
+
     if not test_args:
       test_args = []
     if not gm_args:
@@ -135,7 +149,7 @@ class SkiaFactory(BuildFactory):
         '--gm_image_subdir', gm_image_subdir or 'None',
         '--builder_name', builder_name,
         '--target_platform', target_platform,
-        '--revision', WithProperties('%(revision:-None)s'),
+        '--revision', WithProperties('%(rev)s', rev=_DetermineRevision),
         '--got_revision', WithProperties('%(got_revision:-None)s'),
         '--perf_output_basedir', perf_output_basedir or 'None',
         '--make_flags', '"%s"' % ' '.join(self._make_flags),
