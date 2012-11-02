@@ -59,7 +59,11 @@ class Update(BuildStep):
     # requested, this step fails.
     os.chdir(build_dir)
     try:
-      got_revision = int(misc.Bash(['svnversion', '.'], echo=False))
+      if os.name == 'nt':
+        svnversion = 'svnversion.bat'
+      else:
+        svnversion = 'svnversion'
+      got_revision = int(misc.Bash([svnversion, '.'], echo=False))
     except:
       raise BuildStepFailure('Working copy is dirty!')
 
