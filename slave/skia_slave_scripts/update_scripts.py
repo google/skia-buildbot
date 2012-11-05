@@ -23,11 +23,7 @@ class UpdateScripts(BuildStep):
     else:
       gclient = 'gclient'
 
-    sync_args = []
-    if os.name == 'nt':
-      sync_args += ['-j', '1']
-
-    misc.Bash([gclient, 'sync'] + sync_args)
+    misc.Bash([gclient, 'sync'])
 
 
 if '__main__' == __name__:

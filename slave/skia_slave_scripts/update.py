@@ -10,6 +10,7 @@ from build_step import BuildStep, BuildStepFailure
 import ast
 import os
 import re
+import shutil
 import sys
 
 
@@ -18,6 +19,12 @@ class Update(BuildStep):
     # Move up one level from trunk so that we can check out sibling directories.
     build_dir = os.path.abspath(os.curdir)
     os.chdir(os.pardir)
+
+    # Since our working directory is automatically created for us, we sometimes
+    # have conflicts when checking out into it. If it has been created but the
+    # initial checkout hasn't taken place, delete it.
+    if not os.path.isdir(os.path.join(build_dir, '.svn')):
+      shutil.rmtree(build_dir)
 
     if os.name == 'nt':
       gclient = 'gclient.bat'
@@ -51,9 +58,6 @@ class Update(BuildStep):
       for solution in solution_dicts:
         sync_args += ['--revision', '%s@%d' % (solution['name'],
                                                self._revision)]
-
-    if os.name == 'nt':
-      sync_args += ['-j', '1']
 
     # Run "gclient sync" with the argument list we just constructed.
     misc.Bash([gclient, 'sync'] + sync_args)
