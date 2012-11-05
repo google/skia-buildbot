@@ -98,7 +98,6 @@ def ShouldDoStep(step):
 
   step: an instance of BuildStep which we may or may not run.
   """
-  #return False
   print step.build.getProperties()
   if not isinstance(step, SkiaBuildStep):
     return True
@@ -212,7 +211,7 @@ class SkiaCommands(commands.FactoryCommands):
                          is_rebaseline_step=is_rebaseline_step,
                          get_props_from_stdout=get_props_from_stdout,
                          description=description, timeout=timeout,
-                         command=command, workdir=workdir,
+                         command=command, workdir=workdir or self.workdir,
                          env=self.environment_variables,
                          haltOnFailure=halt_on_failure,
                          doStepIf=ShouldDoStep)
