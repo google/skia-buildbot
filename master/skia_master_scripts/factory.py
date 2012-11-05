@@ -162,7 +162,8 @@ class SkiaFactory(BuildFactory):
 
   def AddSlaveScript(self, script, description, args=None, timeout=None,
                      halt_on_failure=False, is_upload_step=False,
-                     is_rebaseline_step=False, get_props_from_stdout=None):
+                     is_rebaseline_step=False, get_props_from_stdout=None,
+                     workdir=None):
     """ Add a BuildStep consisting of a python script.
 
     script: which slave-side python script to run.
@@ -179,6 +180,9 @@ class SkiaFactory(BuildFactory):
         build properties to set based on the output of this step. Values are
         strings containing regular expressions for parsing the property from
         the output of the step.
+    workdir: optional string indicating the working directory in which to run
+        the script. If this is provided, then the script must be given relative
+        to this directory.
     """
     arguments = self._common_args
     if args:
@@ -191,7 +195,8 @@ class SkiaFactory(BuildFactory):
         halt_on_failure=halt_on_failure,
         is_upload_step=is_upload_step,
         is_rebaseline_step=is_rebaseline_step,
-        get_props_from_stdout=get_props_from_stdout)
+        get_props_from_stdout=get_props_from_stdout,
+        workdir=workdir)
 
   def Make(self, target, description, is_rebaseline_step=False):
     """ Build a single target."""
@@ -252,19 +257,25 @@ class SkiaFactory(BuildFactory):
 
   def UpdateSteps(self):
     """ Update the Skia sources. """
-    self.AddSlaveScript(script='update_scripts.py',
+    self.AddSlaveScript(script=self.TargetPathJoin('..', '..', '..', '..', '..',
+                                                   'slave',
+                                                   'skia_slave_scripts',
+                                                   'update_scripts.py'),
                         description='UpdateScripts',
-                        halt_on_failure=True)
+                        halt_on_failure=True,
+                        workdir='build')
     args = ['--gclient_solutions', '"%s"' % self._gclient_solutions]
     self.AddSlaveScript(
-        script='update.py',
+        script=self.TargetPathJoin('..', '..', '..', '..', '..', 'slave',
+                                   'skia_slave_scripts', 'update.py'),
         description='Update',
         args=args,
         timeout=None,
         halt_on_failure=True,
         is_upload_step=False,
         is_rebaseline_step=True,
-        get_props_from_stdout={'got_revision':'Skia updated to revision (\d+)'})
+        get_props_from_stdout={'got_revision':'Skia updated to revision (\d+)'},
+        workdir='build')
 
   def UploadBenchGraphs(self):
     """ Upload bench performance graphs (but only if we have been

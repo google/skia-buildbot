@@ -16,16 +16,6 @@ import sys
 
 class Update(BuildStep):
   def _Run(self):
-    # Move up one level from trunk so that we can check out sibling directories.
-    build_dir = os.path.abspath(os.curdir)
-    os.chdir(os.pardir)
-
-    # Since our working directory is automatically created for us, we sometimes
-    # have conflicts when checking out into it. If it has been created but the
-    # initial checkout hasn't taken place, delete it.
-    if not os.path.isdir(os.path.join(build_dir, '.svn')):
-      shutil.rmtree(build_dir)
-
     if os.name == 'nt':
       gclient = 'gclient.bat'
     else:
@@ -64,7 +54,7 @@ class Update(BuildStep):
 
     # Determine what revision we actually got. If it differs from what was
     # requested, this step fails.
-    os.chdir(build_dir)
+    os.chdir(solution_dicts[0]['name'])
     try:
       if os.name == 'nt':
         svnversion = 'svnversion.bat'

@@ -43,6 +43,7 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
 
     return retcode_command.ReturnCodeCommand.__init__(self, **kwargs)
 
+
   def IsUploadStep(self):
     return self._is_upload_step
 
@@ -97,6 +98,7 @@ def ShouldDoStep(step):
 
   step: an instance of BuildStep which we may or may not run.
   """
+  #return False
   print step.build.getProperties()
   if not isinstance(step, SkiaBuildStep):
     return True
@@ -181,19 +183,27 @@ class SkiaCommands(commands.FactoryCommands):
 
   def AddSlaveScript(self, script, args, description, timeout=None,
                      halt_on_failure=False, is_upload_step=False,
-                     is_rebaseline_step=False, get_props_from_stdout=None):
+                     is_rebaseline_step=False, get_props_from_stdout=None,
+                     workdir=None):
     """Run a slave-side Python script as its own build step."""
-    path_to_script = self.PathJoin(self._local_slave_script_dir, script)
+    if workdir:
+      path_to_script = script
+      use_workdir = workdir
+    else:
+      path_to_script = self.PathJoin(self._local_slave_script_dir, script)
+      use_workdir = self.workdir
     self.AddRunCommand(command=['python', path_to_script] + args,
                        description=description, timeout=timeout,
                        halt_on_failure=halt_on_failure,
                        is_upload_step=is_upload_step,
                        is_rebaseline_step=is_rebaseline_step,
-                       get_props_from_stdout=get_props_from_stdout)
+                       get_props_from_stdout=get_props_from_stdout,
+                       workdir=use_workdir)
 
   def AddRunCommand(self, command, description='Run', timeout=None,
                     halt_on_failure=False, is_upload_step=False,
-                    is_rebaseline_step=False, get_props_from_stdout=None):
+                    is_rebaseline_step=False, get_props_from_stdout=None,
+                    workdir=None):
     """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
       timeout = self.default_timeout
@@ -202,7 +212,7 @@ class SkiaCommands(commands.FactoryCommands):
                          is_rebaseline_step=is_rebaseline_step,
                          get_props_from_stdout=get_props_from_stdout,
                          description=description, timeout=timeout,
-                         command=command, workdir=self.workdir,
+                         command=command, workdir=workdir,
                          env=self.environment_variables,
                          haltOnFailure=halt_on_failure,
                          doStepIf=ShouldDoStep)

@@ -11,7 +11,7 @@ import os
 import sys
 
 
-BUILD_DIR_DEPTH = 6
+BUILD_DIR_DEPTH = 5
 
 
 class UpdateScripts(BuildStep):
