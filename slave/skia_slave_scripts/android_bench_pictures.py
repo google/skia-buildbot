@@ -16,10 +16,17 @@ class AndroidBenchPictures(BenchPictures, AndroidRenderPictures):
     super(AndroidBenchPictures, self).__init__(args, attempts=attempts,
                                                timeout=timeout)
 
-  def _DoBenchPictures(self, config, threads):
-    data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), config,
-                                    threads)
-    args = self._PictureArgs(self._device_dirs.SKPDir(), config, threads)
+  def _DoBenchPictures(self, config, mode, threads, rtree=False):
+    data_file = self._BuildDataFile(perf_dir=self._device_dirs.SKPPerfDir(),
+                                    config=config,
+                                    mode=mode,
+                                    threads=threads,
+                                    rtree=rtree)
+    args = self._PictureArgs(skp_dir=self._device_dirs.SKPDir(),
+                             config=config,
+                             mode=mode,
+                             threads=threads,
+                             rtree=rtree)
     DoBench(serial=self._serial,
             executable='bench_pictures',
             perf_data_dir=self._perf_data_dir,
