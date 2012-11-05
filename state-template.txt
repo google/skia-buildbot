@@ -1,0 +1,164 @@
+BEGIN TRANSACTION;
+CREATE TABLE migrate_version (
+	repository_id VARCHAR(250) NOT NULL, 
+	repository_path TEXT, 
+	version INTEGER, 
+	PRIMARY KEY (repository_id)
+);
+INSERT INTO "migrate_version" VALUES('Buildbot','../../third_party/buildbot_8_4p1/buildbot/db/migrate',8);
+CREATE TABLE change_links (
+	changeid INTEGER NOT NULL, 
+	link VARCHAR(1024) NOT NULL, 
+	FOREIGN KEY(changeid) REFERENCES changes (changeid)
+);
+CREATE TABLE scheduler_changes (
+	schedulerid INTEGER, 
+	changeid INTEGER, 
+	important SMALLINT, 
+	FOREIGN KEY(schedulerid) REFERENCES schedulers (schedulerid), 
+	FOREIGN KEY(changeid) REFERENCES changes (changeid)
+);
+CREATE TABLE change_properties (
+	changeid INTEGER NOT NULL, 
+	property_name VARCHAR(256) NOT NULL, 
+	property_value VARCHAR(1024) NOT NULL, 
+	FOREIGN KEY(changeid) REFERENCES changes (changeid)
+);
+CREATE TABLE change_files (
+	changeid INTEGER NOT NULL, 
+	filename VARCHAR(1024) NOT NULL, 
+	FOREIGN KEY(changeid) REFERENCES changes (changeid)
+);
+CREATE TABLE sourcestamp_changes (
+	sourcestampid INTEGER NOT NULL, 
+	changeid INTEGER NOT NULL, 
+	FOREIGN KEY(sourcestampid) REFERENCES sourcestamps (id), 
+	FOREIGN KEY(changeid) REFERENCES changes (changeid)
+);
+CREATE TABLE buildset_properties (
+	buildsetid INTEGER NOT NULL, 
+	property_name VARCHAR(256) NOT NULL, 
+	property_value VARCHAR(1024) NOT NULL, 
+	FOREIGN KEY(buildsetid) REFERENCES buildsets (id)
+);
+CREATE TABLE scheduler_upstream_buildsets (
+	buildsetid INTEGER, 
+	schedulerid INTEGER, 
+	active SMALLINT, 
+	FOREIGN KEY(buildsetid) REFERENCES buildsets (id), 
+	FOREIGN KEY(schedulerid) REFERENCES schedulers (schedulerid)
+);
+CREATE TABLE schedulers (
+	schedulerid INTEGER NOT NULL, 
+	name VARCHAR(128) NOT NULL, 
+	state VARCHAR(1024) NOT NULL, 
+	class_name VARCHAR(128) NOT NULL, 
+	PRIMARY KEY (schedulerid)
+);
+CREATE TABLE builds (
+	id INTEGER NOT NULL, 
+	number INTEGER NOT NULL, 
+	brid INTEGER NOT NULL, 
+	start_time INTEGER NOT NULL, 
+	finish_time INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(brid) REFERENCES buildrequests (id)
+);
+CREATE TABLE changes (
+	changeid INTEGER NOT NULL, 
+	author VARCHAR(256) NOT NULL, 
+	comments VARCHAR(1024) NOT NULL, 
+	is_dir SMALLINT NOT NULL, 
+	branch VARCHAR(256), 
+	revision VARCHAR(256), 
+	revlink VARCHAR(256), 
+	when_timestamp INTEGER NOT NULL, 
+	category VARCHAR(256), 
+	repository TEXT DEFAULT '' NOT NULL, 
+	project TEXT DEFAULT '' NOT NULL, 
+	PRIMARY KEY (changeid)
+);
+CREATE TABLE buildrequests (
+	id INTEGER NOT NULL, 
+	buildsetid INTEGER NOT NULL, 
+	buildername VARCHAR NOT NULL, 
+	priority INTEGER DEFAULT '0' NOT NULL, 
+	claimed_at INTEGER DEFAULT '0', 
+	claimed_by_name VARCHAR, 
+	claimed_by_incarnation VARCHAR, 
+	complete INTEGER DEFAULT '0', 
+	results SMALLINT, 
+	submitted_at INTEGER NOT NULL, 
+	complete_at INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(buildsetid) REFERENCES buildsets (id)
+);
+CREATE TABLE buildsets (
+	id INTEGER NOT NULL, 
+	external_idstring VARCHAR(256), 
+	reason VARCHAR(256), 
+	sourcestampid INTEGER NOT NULL, 
+	submitted_at INTEGER NOT NULL, 
+	complete SMALLINT DEFAULT '0' NOT NULL, 
+	complete_at INTEGER, 
+	results SMALLINT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(sourcestampid) REFERENCES sourcestamps (id)
+);
+CREATE TABLE patches (
+	id INTEGER NOT NULL, 
+	patchlevel INTEGER NOT NULL, 
+	patch_base64 TEXT NOT NULL, 
+	subdir TEXT, 
+	PRIMARY KEY (id)
+);
+CREATE TABLE sourcestamps (
+	id INTEGER NOT NULL, 
+	branch VARCHAR(256), 
+	revision VARCHAR(256), 
+	patchid INTEGER, 
+	repository TEXT DEFAULT '' NOT NULL, 
+	project TEXT DEFAULT '' NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(patchid) REFERENCES patches (id)
+);
+CREATE TABLE objects (
+	id INTEGER NOT NULL, 
+	name VARCHAR(128) NOT NULL, 
+	class_name VARCHAR(128) NOT NULL, 
+	PRIMARY KEY (id), 
+	CONSTRAINT object_identity UNIQUE (name, class_name)
+);
+CREATE TABLE object_state (
+	objectid INTEGER NOT NULL, 
+	name VARCHAR(256) NOT NULL, 
+	value_json TEXT NOT NULL, 
+	CONSTRAINT name_per_object UNIQUE (objectid, name), 
+	FOREIGN KEY(objectid) REFERENCES objects (id)
+);
+CREATE INDEX buildrequests_buildsetid ON buildrequests (buildsetid);
+CREATE INDEX buildrequests_buildername ON buildrequests (buildername);
+CREATE INDEX buildrequests_complete ON buildrequests (complete);
+CREATE INDEX buildrequests_claimed_at ON buildrequests (claimed_at);
+CREATE INDEX buildrequests_claimed_by_name ON buildrequests (claimed_by_name);
+CREATE INDEX builds_number ON builds (number);
+CREATE INDEX builds_brid ON builds (brid);
+CREATE INDEX buildsets_complete ON buildsets (complete);
+CREATE INDEX buildsets_submitted_at ON buildsets (submitted_at);
+CREATE INDEX buildset_properties_buildsetid ON buildset_properties (buildsetid);
+CREATE INDEX changes_branch ON changes (branch);
+CREATE INDEX changes_revision ON changes (revision);
+CREATE INDEX changes_author ON changes (author);
+CREATE INDEX changes_category ON changes (category);
+CREATE INDEX changes_when_timestamp ON changes (when_timestamp);
+CREATE INDEX change_files_changeid ON change_files (changeid);
+CREATE INDEX change_links_changeid ON change_links (changeid);
+CREATE INDEX change_properties_changeid ON change_properties (changeid);
+CREATE INDEX scheduler_changes_schedulerid ON scheduler_changes (schedulerid);
+CREATE INDEX scheduler_changes_changeid ON scheduler_changes (changeid);
+CREATE INDEX scheduler_upstream_buildsets_buildsetid ON scheduler_upstream_buildsets (buildsetid);
+CREATE INDEX scheduler_upstream_buildsets_schedulerid ON scheduler_upstream_buildsets (schedulerid);
+CREATE INDEX scheduler_upstream_buildsets_active ON scheduler_upstream_buildsets (active);
+CREATE INDEX sourcestamp_changes_sourcestampid ON sourcestamp_changes (sourcestampid);
+CREATE UNIQUE INDEX scheduler_changes_unique ON scheduler_changes (schedulerid, changeid);
+COMMIT;
