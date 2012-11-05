@@ -12,6 +12,10 @@ from build_step import BuildStep
 import sys
 
 class AndroidBenchPictures(BenchPictures, AndroidRenderPictures):
+  def __init__(self, args, attempts=1, timeout=4800):
+    super(AndroidBenchPictures, self).__init__(args, attempts=attempts,
+                                               timeout=timeout)
+
   def _DoBenchPictures(self, config, threads):
     data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), config,
                                     threads)
