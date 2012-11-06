@@ -46,7 +46,9 @@ class BenchPictures(RunBench):
                        data_file=self._BuildDataFile(
                            perf_dir=self._perf_data_dir,
                            config=config,
-                           threads=threads))
+                           mode=mode,
+                           threads=threads,
+                           rtree=rtree))
     misc.Bash(cmd)
 
   def _Run(self):
