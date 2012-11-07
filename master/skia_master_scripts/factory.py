@@ -12,9 +12,9 @@ import posixpath
 from buildbot.process.properties import Property, WithProperties
 from master.factory import gclient_factory
 from master.factory.build_factory import BuildFactory
-
 from skia_master_scripts import commands as skia_commands
 import config
+import skia_build
 
 
 SKIA_SVN_BASEURL = 'https://skia.googlecode.com/svn'
@@ -122,6 +122,9 @@ class SkiaFactory(BuildFactory):
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._builder_name = builder_name
+
+    # The class to use when creating builds in build_factory.BuildFactory
+    self.buildClass = skia_build.SkiaBuild
 
     def _DetermineRevision(build):
       """ Get the 'revision' property at build time. WithProperties returns the
