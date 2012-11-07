@@ -34,10 +34,13 @@ class SkiaBuild(Build):
     # Note that this only affects the success/failure status of the overall
     # build; the individual step will still be shown as SKIPPED, since we don't
     # modify step.result.
-    if self.builder.builder_status.buildstepstatuses.has_key(step.name):
-      previous_result = self.builder.builder_status.buildstepstatuses[step.name]
-      if step_result == SKIPPED:
-        step_result = previous_result
+    try:
+      if self.builder.builder_status.buildstepstatuses.has_key(step.name):
+        previous_result = self.builder.builder_status.buildstepstatuses[step.name]
+        if step_result == SKIPPED:
+          step_result = previous_result
+    except AttributeError:
+      self.builder.builder_status.buildstepstatuses = {}
     if step_result != SKIPPED:
       self.builder.builder_status.buildstepstatuses[step.name] = step_result
 
