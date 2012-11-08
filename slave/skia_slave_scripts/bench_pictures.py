@@ -79,7 +79,7 @@ class BenchPictures(RunBench):
                                               str(self.TILE_Y)])
 
     # Run with alternate tile sizes
-    for tile_x, tile_y in [(512, 512), (256, 1024), (64, 1024)]:
+    for tile_x, tile_y in [(512, 512), (1024, 256), (1024, 64)]:
       self._DoBenchPictures(['--device', 'bitmap',
                              '--mode', 'tile', str(tile_x),
                                                str(tile_y)])
