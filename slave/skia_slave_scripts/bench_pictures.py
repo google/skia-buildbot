@@ -13,59 +13,94 @@ from run_bench import PreBench
 import os
 import sys
 
+# Skipping these for now to avoid excessively long cycle times.
+RUNNING_ALL_CONFIGURATIONS = False
+
 class BenchPictures(RunBench):
-  def _BuildDataFile(self, perf_dir, config, mode, threads, rtree=False):
-    data_file = '%s_skp_%s_%s' % (
-        super(BenchPictures, self)._BuildDataFile(perf_dir), config, mode)
-    if threads > 0:
-      data_file += '_%dthreads' % threads
-    if rtree:
-      data_file += '_rtree'
+  def __init__(self, args, attempts=1, timeout=16800):
+    super(BenchPictures, self).__init__(args, attempts=attempts,
+                                        timeout=timeout)
+
+  def _BuildDataFile(self, perf_dir, args):
+    data_file = '%s_skp_%s' % (
+        super(BenchPictures, self)._BuildDataFile(perf_dir),
+        '_'.join(args).replace('-', '').replace(':', '-'))
     return data_file
 
-  def _PictureArgs(self, skp_dir, config, mode, threads, rtree=False):
-    args = [skp_dir, '--device', config, '--mode', mode]
-    if mode == 'tile':
-      args.extend([str(self.TILE_X), str(self.TILE_Y)])
-    if threads > 0:
-      args.extend(['--multi', str(threads)])
-    if rtree:
-      args.extend(['--bbh', 'rtree'])
-    return args
-
-  def _DoBenchPictures(self, config, mode, threads, rtree=False):
-    args = self._PictureArgs(skp_dir=self._skp_dir,
-                             config=config,
-                             mode=mode,
-                             threads=threads,
-                             rtree=rtree)
-    cmd = [self._PathToBinary('bench_pictures')] + args
+  def _DoBenchPictures(self, args):
+    cmd = [self._PathToBinary('bench_pictures'), self._skp_dir] + args
     if self._perf_data_dir:
       PreBench(self._perf_data_dir)
       cmd += BenchArgs(repeats=self.BENCH_REPEAT_COUNT,
-                       data_file=self._BuildDataFile(
-                           perf_dir=self._perf_data_dir,
-                           config=config,
-                           mode=mode,
-                           threads=threads,
-                           rtree=rtree))
+                       data_file=self._BuildDataFile(self._perf_data_dir, args))
     misc.Bash(cmd)
 
   def _Run(self):
+    # Default mode: tiled bitmap
+    self._DoBenchPictures(['--device', 'bitmap',
+                           '--mode', 'tile', str(self.TILE_X),
+                                             str(self.TILE_Y)])
+
     # Run bitmap in tiled mode, in different numbers of threads
-    for threads in [0, 2, 4]:
-      self._DoBenchPictures(config='bitmap', mode='tile', threads=threads)
+    for threads in [2, 3, 4]:
+      self._DoBenchPictures(['--device', 'bitmap',
+                             '--mode', 'tile', str(self.TILE_X),
+                                               str(self.TILE_Y),
+                             '--multi', str(threads)])
 
     # Maybe run gpu config
     gyp_defines = os.environ.get('GYP_DEFINES', '')
     if ('skia_gpu=0' not in gyp_defines):
-      self._DoBenchPictures(config='gpu', mode='tile', threads=0)
+      self._DoBenchPictures(['--device', 'gpu',
+                             '--mode', 'tile', str(self.TILE_X),
+                                               str(self.TILE_Y)])
 
-    # Run bitmap in record config without rtree
-    self._DoBenchPictures(config='bitmap', mode='record', threads=0,
-                          rtree=False)
-    # Run bitmap in record config with rtree
-    self._DoBenchPictures(config='bitmap', mode='record', threads=0, rtree=True)
+    # copyTiles mode
+    self._DoBenchPictures(['--device', 'bitmap',
+                           '--mode', 'copyTile', str(self.TILE_X),
+                                                 str(self.TILE_Y)])
+
+    # Record mode
+    self._DoBenchPictures(['--device', 'bitmap',
+                           '--mode', 'record'])
+
+    # Run with different bounding box heirarchies
+    for mode in ['tile', 'record', 'playbackCreation']:
+      self._DoBenchPictures(['--device', 'bitmap',
+                             '--mode', mode] +
+                            ([str(self.TILE_X), str(self.TILE_Y)] \
+                             if mode == 'tile' else []) +
+                            ['--bbh', 'rtree'])
+      self._DoBenchPictures(['--device', 'bitmap',
+                             '--mode', mode] +
+                            ([str(self.TILE_X), str(self.TILE_Y)] \
+                             if mode == 'tile' else []) +
+                            ['--bbh', 'grid', str(self.TILE_X),
+                                              str(self.TILE_Y)])
+
+    # Run with alternate tile sizes
+    for tile_x, tile_y in [(512, 512), (256, 1024), (64, 1024)]:
+      self._DoBenchPictures(['--device', 'bitmap',
+                             '--mode', 'tile', str(tile_x),
+                                               str(tile_y)])
+
+    # Run through a set of filters
+    if RUNNING_ALL_CONFIGURATIONS:
+      filter_types = ['paint', 'point', 'line', 'bitmap', 'rect', 'path', 'text',
+                      'all']
+      filter_flags = ['antiAlias', 'filterBitmap', 'dither', 'underlineText',
+                      'strikeThruText', 'fakeBoldText', 'linearText',
+                      'subpixelText', 'devKernText', 'LCDRenderText',
+                      'embeddedBitmapText', 'autoHinting', 'verticalText',
+                      'genA8FromLCD', 'blur', 'lowBlur', 'hinting',
+                      'slightHinting', 'AAClip']
+      for filter_type in filter_types:
+        for filter_flag in filter_flags:
+          self._DoBenchPictures(['--device', 'bitmap',
+                                 '--mode', 'tile', str(self.TILE_X),
+                                                   str(self.TILE_Y),
+                                 '--filter', '%s:%s' % (filter_type,
+                                                        filter_flag)])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(BenchPictures))

@@ -14,10 +14,8 @@ import sys
 
 
 class ChromeOSBenchPictures(BenchPictures, ChromeOSRenderPictures):
-  def _DoBenchPictures(self, config, threads):
-    data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), config,
-                                    threads)
-    args = self._PictureArgs(self._device_dirs.SKPDir(), config, threads)
+  def _DoBenchPictures(self, args):
+    data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), args)
     DoBench(executable='skia_bench_pictures',
             perf_data_dir=self._perf_data_dir,
             device_perf_dir=self._device_dirs.SKPPerfDir(),
