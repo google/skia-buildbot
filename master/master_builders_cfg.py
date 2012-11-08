@@ -106,6 +106,16 @@ def Update(config, active_master, c):
   MakeAndroidBuilderSet(
       helper=helper,
       scheduler='skia_rel',
+      builder_base_name='Skia_Nexus4_4-1_Float_%s_32',
+      device='nexus_4',
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
+      gm_image_subdir='base-android-nexus-4',
+      perf_output_basedir=perf_output_basedir_linux)
+  MakeAndroidBuilderSet(
+      helper=helper,
+      scheduler='skia_rel',
       builder_base_name='Skia_Nexus7_4-1_Float_%s_32',
       device='nexus_7',
       do_upload_results=do_upload_results,
