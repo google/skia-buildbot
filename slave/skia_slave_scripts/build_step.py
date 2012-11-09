@@ -4,7 +4,6 @@
 
 """Base class for all slave-side build steps. """
 
-from utils import misc
 import config
 import multiprocessing
 import os
@@ -16,6 +15,11 @@ import threading
 import time
 import traceback
 
+from playback_dirs import LocalSkpPlaybackDirs
+from playback_dirs import StorageSkpPlaybackDirs
+from utils import misc
+
+
 DEFAULT_TIMEOUT = 2400
 DEFAULT_NO_OUTPUT_TIMEOUT=1800
 
@@ -25,6 +29,10 @@ DEFAULT_NUM_CORES = 2
 INT_TRUE = 1
 INT_FALSE = 0
 build_step_stdout_has_written = multiprocessing.Value('i', INT_FALSE)
+
+# The canned acl to use while copying playback files to Google Storage.
+PLAYBACK_CANNED_ACL = 'project-private'
+
 
 class BuildStepWarning(Exception):
   pass
@@ -106,7 +114,13 @@ class BuildStep(multiprocessing.Process):
     self._gm_args = shlex.split(args['gm_args'].replace('"', ''))
     self._gm_args.append('--serialize')
     self._bench_args = shlex.split(args['bench_args'].replace('"', ''))
-    
+
+    # Adding the playback directory transfer objects.
+    self._local_playback_dirs = LocalSkpPlaybackDirs(
+        self._builder_name, self._gm_image_subdir, args['perf_output_basedir'])
+    self._storage_playback_dirs = StorageSkpPlaybackDirs(
+        self._builder_name, self._gm_image_subdir, args['perf_output_basedir'])
+
     # Temporarily disable multi-process GM
     self._num_cores = 1
     #if args.get('num_cores') != 'None':

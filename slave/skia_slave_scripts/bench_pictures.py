@@ -27,12 +27,19 @@ class BenchPictures(RunBench):
         '_'.join(args).replace('-', '').replace(':', '-'))
     return data_file
 
+  def _GetSkpDir(self):
+    return self._skp_dir
+
+  def _GetPerfDataDir(self):
+    return self._perf_data_dir
+
   def _DoBenchPictures(self, args):
-    cmd = [self._PathToBinary('bench_pictures'), self._skp_dir] + args
-    if self._perf_data_dir:
-      PreBench(self._perf_data_dir)
+    cmd = [self._PathToBinary('bench_pictures'), self._GetSkpDir()] + args
+    if self._GetPerfDataDir():
+      PreBench(self._GetPerfDataDir())
       cmd += BenchArgs(repeats=self.BENCH_REPEAT_COUNT,
-                       data_file=self._BuildDataFile(self._perf_data_dir, args))
+                       data_file=self._BuildDataFile(self._GetPerfDataDir(),
+                                                     args))
     misc.Bash(cmd)
 
   def _Run(self):
