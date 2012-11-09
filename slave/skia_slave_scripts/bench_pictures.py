@@ -72,7 +72,11 @@ class BenchPictures(RunBench):
                            '--mode', 'record'])
 
     # Run with different bounding box heirarchies
-    for mode in ['tile', 'record', 'playbackCreation']:
+    configs_to_run_bbh = ['tile', 'record']
+    # Don't run playbackCreation on Android
+    if not hasattr(self, '_device'): 
+      configs_to_run_bbh.append('playbackCreation')
+    for mode in configs_to_run_bbh:
       self._DoBenchPictures(['--device', 'bitmap',
                              '--mode', mode] +
                             ([str(self.TILE_X), str(self.TILE_Y)] \
