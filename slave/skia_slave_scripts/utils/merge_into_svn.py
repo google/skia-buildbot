@@ -38,6 +38,7 @@ from slave import svn
 
 
 SUBDIRS_TO_IGNORE = ['.svn', 'third_party']
+FILES_CHUNK = 50
 
 
 def ReadFirstLineOfFileAsString(filename):
@@ -53,6 +54,7 @@ def ReadFirstLineOfFileAsString(filename):
   finally:
     f.close()
   return contents
+
 
 def _CopyAllFiles(source_dir, dest_dir):
   """Copy all files from source_dir into dest_dir.
@@ -76,6 +78,7 @@ def _CopyAllFiles(source_dir, dest_dir):
     else:
       shutil.copyfile(source_path, dest_path)
 
+
 def _DeleteDirectoryContents(dir):
   """Delete all contents (recursively) within dir, but don't delete the
   directory itself.
@@ -90,12 +93,14 @@ def _DeleteDirectoryContents(dir):
     else:
       os.unlink(path)
 
+
 # TODO: We should either add an Update() command to svn.py, or make its
 # _RunSvnCommand() method public; in the meanwhile, abuse its private
 # _RunSvnCommand() method.
 # See https://code.google.com/p/skia/issues/detail?id=713
 def _SvnUpdate(repo, additional_svn_flags=[]):
   return repo._RunSvnCommand(['update'] + additional_svn_flags)
+
 
 # TODO: We should either add an Import() command to svn.py, or make its
 # _RunSvnCommand() method public; in the meanwhile, abuse its private
@@ -104,6 +109,7 @@ def _SvnUpdate(repo, additional_svn_flags=[]):
 def _SvnImport(repo, path, url, message, additional_svn_flags=[]):
   return repo._RunSvnCommand(['import', path, url, '--message', message]
                              + additional_svn_flags)
+
 
 # TODO: We should either add a command like this to svn.py, or make its
 # _RunSvnCommand() method public; in the meanwhile, abuse its private
@@ -118,12 +124,14 @@ def _SvnDoesUrlExist(repo, url):
     # the URL does not exist.  Should we look for something more specific?
     return False
 
+
 # TODO: We should either add a command like this to svn.py, or make its
 # _RunSvnCommand() method public; in the meanwhile, abuse its private
 # _RunSvnCommand() method.
 # See https://code.google.com/p/skia/issues/detail?id=713
 def _SvnCleanup(repo):
   repo._RunSvnCommand(['cleanup'])
+
 
 def _OnRmtreeError(function, path, excinfo):
   """ onerror function for shutil.rmtree.
@@ -138,6 +146,7 @@ def _OnRmtreeError(function, path, excinfo):
     # Change the path to be writeable and try again.
     os.chmod(abs_path, stat.S_IWUSR)
   function(abs_path)
+
 
 def MergeIntoSvn(options):
   """Update an SVN repository with any new/modified files from a directory.
@@ -215,16 +224,16 @@ def MergeIntoSvn(options):
     # Add one file at a time, because otherwise Windows can choke on a command
     # line that's too long (if there are lots of files).
     repo.AddFiles([new_file])
-  # We have to try/except here, since we aren't guaranteed that both filetypes
-  # will be created on a every bot.
-  try:
-    repo.SetPropertyByFilenamePattern('*.png', 'svn:mime-type', 'image/png')
-  except Exception:
-    print traceback.format_exc()
-  try:
-    repo.SetPropertyByFilenamePattern('*.pdf', 'svn:mime-type', 'application/pdf')
-  except Exception:
-    print traceback.format_exc()
+ 
+  # Set required svn properties on certain file extensions. 
+  _SetProperty(_FindFiles(mergedir, '.png'), 'svn:mime-type', 'image/png', repo)
+  _SetProperty(_FindFiles(mergedir, '.pdf'), 'svn:mime-type',
+               'application/pdf', repo)
+  _SetProperty(_FindFiles(mergedir, '.cpp'), 'svn:eol-style', 'LF', repo)
+  _SetProperty(_FindFiles(mergedir, '.h'), 'svn:eol-style', 'LF', repo)
+  _SetProperty(_FindFiles(mergedir, '.c'), 'svn:eol-style', 'LF', repo)
+  _SetProperty(_FindFiles(mergedir, '.gyp'), 'svn:eol-style', 'LF', repo)
+  _SetProperty(_FindFiles(mergedir, '.gypi'), 'svn:eol-style', 'LF', repo)
 
   # Commit changes to the SVN repository and clean up.
   print repo.Commit(message=options.commit_message)
@@ -232,6 +241,49 @@ def MergeIntoSvn(options):
     print 'deleting mergedir %s' % mergedir
     shutil.rmtree(mergedir, ignore_errors=True)
   return 0
+
+
+def _SetProperty(files, property_name, property_value, repo):
+  """Calls repo.SetProperty() with some special handling.
+
+  The special handling needed by merge_into_svn is:
+
+  1. Split up the file array into chunks no longer than FILES_CHUNK so that we
+     don't run into http://code.google.com/p/skia/issues/detail?id=582
+     ('buildbot UploadGMResults step failing: "The command line is too long"')
+
+  2. If repo.SetProperty() raises an Exception, log it and continue.
+     TODO: Instead, allow some or all exceptions to propagate?
+     We started catching them in https://codereview.appspot.com/6501112
+     (merge_into_svn was failing on ANGLE bot because no pdf's were created).
+     Maybe we can find a better way to handle that case.
+  """
+  try:
+    for files_chunk in _GetChunks(files, FILES_CHUNK):
+      repo.SetProperty(files_chunk, property_name, property_value)
+  except Exception:
+    print traceback.format_exc()
+
+
+def _GetChunks(seq, n):
+  """"Yield successive n-sized chunks from the specified sequence."""
+  for i in xrange(0, len(seq), n):
+    yield seq[i:i+n]
+
+
+def _FindFiles(root, file_pattern):
+  """Finds all files below the specified dir that match the pattern."""
+  ret_files = []
+  for directory, subdirs, files in os.walk(root):
+    for subdir_to_ignore in SUBDIRS_TO_IGNORE:
+      if subdir_to_ignore in directory:
+        break
+    else:
+      for filename in files:
+        if filename.endswith(file_pattern):
+          ret_files.append(os.path.join(root, directory, filename))
+  return ret_files
+
 
 def main(argv):
   option_parser = optparse.OptionParser()
@@ -268,6 +320,7 @@ def main(argv):
       '--svn_username_file': options.svn_username_file,
       })
   return MergeIntoSvn(options)
+
 
 if '__main__' == __name__:
   sys.exit(main(None))
