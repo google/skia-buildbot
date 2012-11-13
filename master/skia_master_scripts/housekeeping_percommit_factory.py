@@ -40,6 +40,12 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
         command=self.TargetPathJoin('tools', 'tests', 'run.sh'),
         description='RunToolSelfTests')
 
+    # Build GM and run its unittests.
+    self.Make('gm', 'BuildGM')
+    self._skia_cmd_obj.AddRunCommand(
+        command=self.TargetPathJoin('gm', 'tests', 'run.sh'),
+        description='RunGmSelfTests')
+
     # Compile using clang.
     self._skia_cmd_obj.AddRunCommand(
         command='CXX=`which clang++` CC=`which clang` make -j30',
