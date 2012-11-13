@@ -126,7 +126,7 @@ def FileBug(summary, description, owner=None, ccs=[], labels=[]):
   return result
 
 # Branches for which we trigger rebuilds on the primary builders
-SKIA_PRIMARY_SUBDIRS = ['android', 'buildbot', 'gm-expected', 'trunk']
+SKIA_PRIMARY_SUBDIRS = ['android', 'buildbot', 'gm-expected', 'skp', 'trunk']
 
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
@@ -341,3 +341,50 @@ def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
       gm_args=gm_args,
       bench_args=bench_args,
       ).Build())
+
+
+def CanMergeBuildRequests(req1, req2):
+  """ Determine whether or not two BuildRequests can be merged. Note that the
+  call to buildbot.sourcestamp.SourceStamp.canBeMergedWith() is conspicuously
+  missing. This is because that method verifies that:
+  1. req1.source.repository == req2.source.repository
+  2. req1.source.project == req2.source.project
+  3. req1.source.branch == req2.source.branch
+  4. req1.patch == None and req2.patch = None
+  5. (req1.source.changes and req2.source.changes) or \
+     (not req1.source.changes and not req2.source.changes and \
+      req1.source.revision == req2.source.revision) 
+
+  Of the above, we want 1, 2, 4, and 5. Instead of 3, we want to merge requests
+  if both branches are the same or both are listed in SKIA_PRIMARY_SUBDIRS. So
+  we duplicate most of that logic here. """
+  # Verify that the repositories are the same (#1 above).
+  if req1.source.repository != req2.source.repository:
+    return False
+
+  # Verify that the projects are the same (#2 above).
+  if req1.source.project != req2.source.project:
+    return False
+
+  # Verify that the branches are the same OR that both requests are from primary
+  # branches (modification of #3 above).
+  if req1.source.branch != req2.source.branch:
+    if req1.source.branch not in SKIA_PRIMARY_SUBDIRS or \
+       req2.source.branch not in SKIA_PRIMARY_SUBDIRS:
+      return False
+
+  # If either is a try request, don't merge (#4 above).
+  if req1.source.patch or req2.source.patch:
+    return False
+
+  # Verify that either: both requests are associated with changes OR neither
+  # request is associated with a change but the revisions match (#5 above).
+  if req1.source.changes and not req2.source.changes:
+    return False
+  if not req1.source.changes and req2.source.changes:
+    return False
+  if not (req1.source.changes and req2.source.changes):
+    if req1.source.revision != req2.source.revision:
+      return False
+  
+  return True

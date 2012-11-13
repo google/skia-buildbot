@@ -8,6 +8,7 @@
 from buildbot.status.logfile import STDOUT
 from master.log_parser import retcode_command
 import re
+import utils
 
 
 class SkiaBuildStep(retcode_command.ReturnCodeCommand):
@@ -89,6 +90,29 @@ def _HasProperty(step, property):
     return False
 
 
+def _CheckRebaselineChanges(changes, gm_image_subdir):
+  """ Determine whether a set of changes consists of only files in 'gm-expected'
+  and whether any of those files are in the given gm_image_subdir. Returns a
+  tuple consisting of two booleans: whether or not the commit consists of only
+  new baseline images, and whether or not baselines changed for the given
+  platform.
+
+  changes: a list of the changelists which are part of this build.
+  gm_image_subdir: the subdirectory inside gm-expected which corresponds to this
+      build slave's platform.
+  """
+  commit_is_only_baselines = True
+  platform_changed = False
+  for change in changes:
+    for file in change.asDict()['files']:
+      for subdir in utils.SKIA_PRIMARY_SUBDIRS:
+        if subdir != 'gm-expected' and subdir in file['name']:
+          commit_is_only_baselines = False
+      if gm_image_subdir in file:
+        platform_changed = True
+  return commit_is_only_baselines, platform_changed
+
+
 def ShouldDoStep(step):
   """ At build time, use build properties to determine whether or not a step
   should be run or skipped.
@@ -112,15 +136,25 @@ def ShouldDoStep(step):
   # for which new baselines are provided.
   if  _HasProperty(step, 'branch') and \
       step.getProperty('branch') == 'gm-expected':
-    if step.IsRebaselineStep():
-      # This step is required for rebaselines, but do the associated commits
-      # affect our platform?
-      if _HasProperty(step, 'gm_image_subdir'):
-        for change in step.build.allChanges():
-          for file in change.asDict()['files']:
-            if step.getProperty('gm_image_subdir') in file['name']:
-              return True
-    return False
+    if _HasProperty(step, 'gm_image_subdir'):
+      gm_image_subdir = step.getProperty('gm_image_subdir')
+    else:
+      gm_image_subdir = ''
+    commit_is_only_baselines, platform_changed = \
+        _CheckRebaselineChanges(step.build.allChanges(), gm_image_subdir)
+    if commit_is_only_baselines: # This commit consists of only baseline images
+      if gm_image_subdir == '':
+        # There aren't baselines for this platform, so we don't care about
+        # baselines for this build.
+        return False
+      if not step.IsRebaselineStep():
+        # If the commit consists of only new baselines and this step isn't
+        # required for baseline-only commits, then we skip it.
+        return False
+      if not platform_changed:
+        # This step is required for baseline-only commits, but there are no new
+        # baselines for our platform.
+        return False
 
   # Unless we have determined otherwise, run the step.
   return True
