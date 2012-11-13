@@ -40,7 +40,8 @@ class AndroidBuildStep(BuildStep):
       self._serial = misc.GetSerial(self._device)
     device_scratch_dir = misc.Bash("%s -s %s shell echo \$EXTERNAL_STORAGE" % (
                                        misc.PATH_TO_ADB, self._serial), 
-                                   echo=True, shell=True).rstrip()
+                                   echo=True,
+                                   shell=True).rstrip().split('\n')[-1]
     self._device_dirs = AndroidDirs(device_scratch_dir)
     super(AndroidBuildStep, self).__init__(args, attempts=attempts,
                                            timeout=timeout)
