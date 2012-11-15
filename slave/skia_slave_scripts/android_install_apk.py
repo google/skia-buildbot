@@ -7,18 +7,21 @@
 
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
-from utils import misc
+from utils import android_utils
 import os
 import sys
+
 
 class AndroidInstallAPK(AndroidBuildStep):
   def _Run(self):
     path_to_apk = os.path.join('out', self._configuration, 'android', 'bin',
                                'SkiaAndroid.apk')
-    misc.Install(self._serial, path_to_apk)
+    android_utils.Install(self._serial, path_to_apk)
     # Also push the skia_launcher executable to the device.
-    misc.RunADB(self._serial, ['push', self._PathToBinary('skia_launcher'),
-                               '/system/bin/'])
+    android_utils.RunADB(self._serial, ['push',
+                                        self._PathToBinary('skia_launcher'),
+                                        '/system/bin/'])
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidInstallAPK))

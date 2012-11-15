@@ -5,12 +5,13 @@
 
 """ Run the Skia GM executable. """
 
-from utils import misc
+from utils import shell_utils
 from build_step import BuildStep
 import errno
 import os
 import shutil
 import sys
+
 
 class RunGM(BuildStep):
   def _PreGM(self,):
@@ -33,12 +34,12 @@ class RunGM(BuildStep):
     subprocesses = []
     retcodes = []
     for idx in range(self._num_cores):
-      subprocesses.append(misc.BashAsync(cmd + ['--modulo', str(idx),
-                                                str(self._num_cores)]))
+      subprocesses.append(shell_utils.BashAsync(cmd + ['--modulo', str(idx),
+                                                       str(self._num_cores)]))
     for proc in subprocesses:
       retcode = 0
       try:
-        misc.LogProcessToCompletion(proc)
+        shell_utils.LogProcessToCompletion(proc)
       except:
         retcode = 1
       retcodes.append(retcode)
@@ -52,6 +53,7 @@ class RunGM(BuildStep):
            '-w', self._gm_actual_dir,
            ] + self._gm_args
     self._RunModulo(cmd)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RunGM))

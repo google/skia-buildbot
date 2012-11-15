@@ -5,13 +5,15 @@
 
 """ Run the Skia tests executable. """
 
-from utils import misc
+from utils import shell_utils
 from build_step import BuildStep
 import sys
 
+
 class RunTests(BuildStep):
   def _Run(self):
-    misc.Bash([self._PathToBinary('tests')] + self._test_args)
+    shell_utils.Bash([self._PathToBinary('tests')] + self._test_args)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RunTests))

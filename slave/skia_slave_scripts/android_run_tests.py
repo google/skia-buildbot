@@ -7,12 +7,14 @@
 
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
-from utils import misc
+from utils import android_utils
 import sys
+
 
 class AndroidRunTests(AndroidBuildStep):
   def _Run(self):
-    misc.RunShell(self._serial, ['tests'])
+    android_utils.RunShell(self._serial, ['tests'])
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidRunTests))

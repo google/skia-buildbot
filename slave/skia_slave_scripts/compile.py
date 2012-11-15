@@ -5,11 +5,12 @@
 
 """ Compile step """
 
-from utils import misc
+from utils import shell_utils
 from build_step import BuildStep
 import os
 import shlex
 import sys
+
 
 class Compile(BuildStep):
   def _Run(self):
@@ -21,7 +22,8 @@ class Compile(BuildStep):
            'BUILDTYPE=%s' % self._configuration,
            ]
     cmd += self._make_flags
-    misc.Bash(cmd)
+    shell_utils.Bash(cmd)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(Compile))

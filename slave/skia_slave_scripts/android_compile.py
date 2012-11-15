@@ -7,13 +7,15 @@
 
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
-from utils import misc
+from utils import shell_utils
 import os
 import shlex
 import sys
 
+
 ENV_VAR = 'ANDROID_SDK_ROOT'
 ANDROID_SDK_ROOT = '/home/chrome-bot/android-sdk-linux'
+
 
 class AndroidCompile(AndroidBuildStep):
   def _Run(self):
@@ -25,7 +27,8 @@ class AndroidCompile(AndroidBuildStep):
            'BUILDTYPE=%s' % self._configuration,
            ]
     cmd += self._make_flags
-    misc.Bash(cmd)
+    shell_utils.Bash(cmd)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidCompile))

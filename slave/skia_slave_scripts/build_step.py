@@ -22,13 +22,14 @@ from utils import misc
 
 DEFAULT_TIMEOUT = 2400
 DEFAULT_NO_OUTPUT_TIMEOUT=1800
-
 DEFAULT_NUM_CORES = 2
+
 
 # multiprocessing.Value doesn't accept boolean types, so we have to use an int.
 INT_TRUE = 1
 INT_FALSE = 0
 build_step_stdout_has_written = multiprocessing.Value('i', INT_FALSE)
+
 
 # The canned acl to use while copying playback files to Google Storage.
 PLAYBACK_CANNED_ACL = 'project-private'
@@ -37,11 +38,14 @@ PLAYBACK_CANNED_ACL = 'project-private'
 class BuildStepWarning(Exception):
   pass
 
+
 class BuildStepFailure(Exception):
   pass
 
+
 class BuildStepTimeout(Exception):
   pass
+
 
 class BuildStepLogger(object):
   """ Override stdout so that we can keep track of when anything has been
@@ -65,6 +69,7 @@ class BuildStepLogger(object):
 
   def flush(self):
     self.stdout.flush()
+
 
 class BuildStep(multiprocessing.Process):
   def _PreRun(self):

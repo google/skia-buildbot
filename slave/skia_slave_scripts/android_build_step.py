@@ -5,7 +5,10 @@
 """ Subclass for all slave-side Android build steps. """
 
 from build_step import BuildStep, DEFAULT_TIMEOUT
+from utils import android_utils
 from utils import misc
+from utils import shell_utils
+
 
 class AndroidDirs(object):
   def __init__(self, path_prefix):
@@ -26,22 +29,23 @@ class AndroidDirs(object):
   def SKPOutDir(self):
     return self._path_prefix + 'skp_out'
 
+
 class AndroidBuildStep(BuildStep):
   def _PreRun(self):
-    misc.RunADB(self._serial, ['root'])
-    misc.RunADB(self._serial, ['remount'])
-    misc.SetCPUScalingMode(self._serial, 'performance')
-    misc.ADBKill(self._serial, 'skia')
+    android_utils.RunADB(self._serial, ['root'])
+    android_utils.RunADB(self._serial, ['remount'])
+    android_utils.SetCPUScalingMode(self._serial, 'performance')
+    android_utils.ADBKill(self._serial, 'skia')
 
   def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT):
     self._device = args['device']
     self._serial = args['serial']
     if self._serial == 'None':
-      self._serial = misc.GetSerial(self._device)
-    device_scratch_dir = misc.Bash("%s -s %s shell echo \$EXTERNAL_STORAGE" % (
-                                       misc.PATH_TO_ADB, self._serial), 
-                                   echo=True,
-                                   shell=True).rstrip().split('\n')[-1]
+      self._serial = android_utils.GetSerial(self._device)
+    device_scratch_dir = shell_utils.Bash(
+        '%s -s %s shell echo \$EXTERNAL_STORAGE' % (
+            android_utils.PATH_TO_ADB, self._serial), 
+        echo=True, shell=True).rstrip().split('\n')[-1]
     self._device_dirs = AndroidDirs(device_scratch_dir)
     super(AndroidBuildStep, self).__init__(args, attempts=attempts,
                                            timeout=timeout)

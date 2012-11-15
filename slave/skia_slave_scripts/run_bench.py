@@ -5,11 +5,12 @@
 
 """ Run the Skia benchmarking executable. """
 
-from utils import misc
+from utils import shell_utils
 from build_step import BuildStep
 import errno
 import os
 import sys
+
 
 def BenchArgs(repeats, data_file):
   """ Builds a list containing arguments to pass to bench.
@@ -19,6 +20,7 @@ def BenchArgs(repeats, data_file):
   """
   return ['--repeat', '%d' % repeats, '--timers', 'wcg', '--logPerIter',
           '%d' %1, '--logFile', data_file]
+
 
 def PreBench(perf_data_dir):
   """ Creates perf_data_dir if it doesn't exist.
@@ -33,6 +35,7 @@ def PreBench(perf_data_dir):
     else:
       raise e
 
+
 class RunBench(BuildStep):
 
   BENCH_REPEAT_COUNT = 20
@@ -46,7 +49,8 @@ class RunBench(BuildStep):
       PreBench(self._perf_data_dir)
       cmd += BenchArgs(self.BENCH_REPEAT_COUNT,
                        self._BuildDataFile(self._perf_data_dir))
-    misc.Bash(cmd + self._bench_args)
+    shell_utils.Bash(cmd + self._bench_args)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RunBench))

@@ -10,8 +10,9 @@ from build_step import BuildStep
 from run_bench import BenchArgs
 from run_bench import PreBench
 from run_bench import RunBench
-from utils import misc
+from utils import android_utils
 import sys
+
 
 def DoBench(serial, executable, perf_data_dir, device_perf_dir, data_file,
             extra_args=None):
@@ -29,16 +30,17 @@ def DoBench(serial, executable, perf_data_dir, device_perf_dir, data_file,
   if perf_data_dir:
     PreBench(perf_data_dir)
     try:
-      misc.RunADB(serial, ['shell', 'rm', '-r', device_perf_dir])
+      android_utils.RunADB(serial, ['shell', 'rm', '-r', device_perf_dir])
     except:
       pass
-    misc.RunADB(serial, ['shell', 'mkdir', '-p', device_perf_dir])
+    android_utils.RunADB(serial, ['shell', 'mkdir', '-p', device_perf_dir])
     cmd_args += BenchArgs(RunBench.BENCH_REPEAT_COUNT, data_file)
-    misc.RunShell(serial, [executable] + cmd_args)
-    misc.RunADB(serial, ['pull', data_file, perf_data_dir])
-    misc.RunADB(serial, ['shell', 'rm', '-r', device_perf_dir])
+    android_utils.RunShell(serial, [executable] + cmd_args)
+    android_utils.RunADB(serial, ['pull', data_file, perf_data_dir])
+    android_utils.RunADB(serial, ['shell', 'rm', '-r', device_perf_dir])
   else:
-    misc.RunShell(serial, [executable] + cmd_args)
+    android_utils.RunShell(serial, [executable] + cmd_args)
+
 
 class AndroidRunBench(RunBench, AndroidBuildStep):
   def __init__(self, args, attempts=1, timeout=4800):
@@ -52,6 +54,7 @@ class AndroidRunBench(RunBench, AndroidBuildStep):
             perf_data_dir=self._perf_data_dir,
             device_perf_dir=self._device_dirs.PerfDir(),
             data_file=data_file)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidRunBench))

@@ -10,9 +10,11 @@ To run:
 
 """
 
+from utils import android_utils
 from utils import misc
 import optparse
 import sys
+
 
 def main(argv):
   """ Verify that the command-line options are set and then install the APK. """
@@ -24,8 +26,9 @@ def main(argv):
   if len(args) != 0:
     raise Exception('bogus command-line argument; rerun with --help')
   misc.ConfirmOptionsSet({'--device': options.device})
-  misc.Install(self._serial)
+  android_utils.Install(self._serial)
   return 0
+
 
 if '__main__' == __name__:
   sys.exit(main(None))

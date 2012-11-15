@@ -5,9 +5,10 @@
 
 """ Compare the generated GM images to the baselines """
 
-from utils import misc
+from utils import shell_utils
 from build_step import BuildStep, BuildStepWarning
 import sys
+
 
 class CompareGMs(BuildStep):
   def _Run(self):
@@ -36,12 +37,13 @@ class CompareGMs(BuildStep):
         'Skia_MacMiniLion_Float_Release_64'
         ]
     try:
-      misc.Bash(cmd)
+      shell_utils.Bash(cmd)
     except Exception as e:
       if self._builder_name in may_fail_with_warning:
         raise BuildStepWarning(e)
       else:
         raise
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(CompareGMs))

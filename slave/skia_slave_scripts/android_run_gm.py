@@ -10,13 +10,15 @@ run GM, and then we pull the output images from the device to the host. """
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from run_gm import RunGM
-from utils import misc
+from utils import android_utils
 import os
 import shutil
 import sys
 
+
 BINARY_NAME = 'gm'
 ANDROID_GM_ARGS = ['--nopdf']
+
 
 class AndroidRunGM(AndroidBuildStep, RunGM):
   def _PullImages(self, serial):
@@ -32,37 +34,39 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
     except:
       pass
     os.makedirs(self._gm_actual_dir)
-    misc.RunADB(serial, ['pull', '%s/%s' % (self._device_dirs.GMDir(),
-                                            self._gm_image_subdir),
-                         self._gm_actual_dir])
-    misc.RunADB(serial, ['shell', 'rm', '-r', '%s/%s' % (self._device_dirs.GMDir(),
-                                                         self._gm_image_subdir)
-                         ])
+    android_utils.RunADB(serial, ['pull', '%s/%s' % (self._device_dirs.GMDir(),
+                                                     self._gm_image_subdir),
+                                  self._gm_actual_dir])
+    android_utils.RunADB(serial, ['shell', 'rm', '-r', '%s/%s' % (
+                                      self._device_dirs.GMDir(),
+                                      self._gm_image_subdir)
+                                  ])
 
   def _Run(self):
     self._PreGM()
     try:
-      misc.RunADB(self._serial, ['shell', 'rm', '-r',
-                                 '%s/%s' % (self._device_dirs.GMDir(),
-                                            self._gm_image_subdir)])
+      android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
+                                          '%s/%s' % (self._device_dirs.GMDir(),
+                                                     self._gm_image_subdir)])
     except:
       pass
-    misc.RunADB(self._serial, ['shell', 'mkdir', '-p',
-                               '%s/%s' % (self._device_dirs.GMDir(),
-                                          self._gm_image_subdir)])
+    android_utils.RunADB(self._serial, ['shell', 'mkdir', '-p',
+                                        '%s/%s' % (self._device_dirs.GMDir(),
+                                                   self._gm_image_subdir)])
     arguments = (ANDROID_GM_ARGS +
                  ['-w', '%s/%s' % (self._device_dirs.GMDir(),
                                    self._gm_image_subdir)]
                  + self._gm_args)
     try:
-      misc.StopShell(self._serial)
-      misc.RunADB(self._serial, ['logcat', '-c'])
-      cmd = [misc.PATH_TO_ADB, '-s', self._serial, 'shell', 'skia_launcher',
-             'gm'] + arguments
+      android_utils.StopShell(self._serial)
+      android_utils.RunADB(self._serial, ['logcat', '-c'])
+      cmd = [android_utils.PATH_TO_ADB, '-s', self._serial, 'shell',
+             'skia_launcher', 'gm'] + arguments
       self._RunModulo(cmd)
     finally:
-      misc.RunADB(self._serial, ['logcat', '-d', '-v', 'time'])
+      android_utils.RunADB(self._serial, ['logcat', '-d', '-v', 'time'])
       self._PullImages(self._serial)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidRunGM))

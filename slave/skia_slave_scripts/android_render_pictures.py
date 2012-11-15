@@ -8,12 +8,14 @@
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from render_pictures import RenderPictures
-from utils import misc
+from utils import android_utils
 import glob
 import os
 import sys
 
+
 BINARY_NAME = 'render_pictures'
+
 
 class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
   def _PushSKPSources(self, serial):
@@ -22,25 +24,26 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
     serial: string indicating the serial number of the target device.
     """
     try:
-      misc.RunADB(serial, ['shell', 'rm', '-r', '%s' % self._device_dirs.SKPDir()])
+      android_utils.RunADB(serial, ['shell', 'rm', '-r', '%s' % \
+                                    self._device_dirs.SKPDir()])
     except:
       pass
     try:
-      misc.RunADB(serial,
-                  ['shell', 'rm', '-r', '%s' % self._device_dirs.SKPOutDir()])
+      android_utils.RunADB(serial, ['shell', 'rm', '-r', '%s' % \
+                                    self._device_dirs.SKPOutDir()])
     except:
       pass
-    misc.RunADB(serial,
-                ['shell', 'mkdir', '-p','%s' % self._device_dirs.SKPDir()])
-    misc.RunADB(serial,
-                ['shell', 'mkdir', '-p', '%s' % self._device_dirs.SKPOutDir()])
+    android_utils.RunADB(serial, ['shell', 'mkdir', '-p','%s' % \
+                                  self._device_dirs.SKPDir()])
+    android_utils.RunADB(serial, ['shell', 'mkdir', '-p', '%s' % \
+                                  self._device_dirs.SKPOutDir()])
     # Push each skp individually, since adb doesn't let us use wildcards
     for skp in glob.glob(os.path.join(self._skp_dir, '*.skp')):
-      misc.RunADB(serial, ['push', skp, self._device_dirs.SKPDir()])
+      android_utils.RunADB(serial, ['push', skp, self._device_dirs.SKPDir()])
 
   def _PullSKPResults(self, serial):
-    misc.RunADB(serial,
-                ['pull', self._device_dirs.SKPOutDir(), self._gm_actual_dir])
+    android_utils.RunADB(serial, ['pull', self._device_dirs.SKPOutDir(),
+                                  self._gm_actual_dir])
 
   def _Run(self):
     # For this step, we assume that we run *after* RunGM and *before*
@@ -52,9 +55,10 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
                              self._device_dirs.SKPOutDir(),
                              'bitmap')
     try:
-      misc.RunShell(self._serial, [BINARY_NAME] + args)
+      android_utils.RunShell(self._serial, [BINARY_NAME] + args)
     finally:
       self._PullSKPResults(self._serial)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidRenderPictures))

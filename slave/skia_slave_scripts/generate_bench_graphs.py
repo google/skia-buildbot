@@ -8,8 +8,8 @@
 from build_step import BuildStep, BuildStepWarning
 from slave import slave_utils
 from utils import bench_common
+from utils import shell_utils
 from utils import gs_utils
-from utils import misc
 from utils import sync_bucket_subdir
 
 import errno
@@ -68,9 +68,9 @@ class GenerateBenchGraphs(BuildStep):
            ]
     if self._builder_name.find('_Win') >= 0:
       cmd.extend(['-i', 'c'])  # Ignore cpu time for Windows.
-    
+
     try:
-      misc.Bash(cmd)
+      shell_utils.Bash(cmd)
     except Exception as e:
       print e
       print 'Not enough revisions created yet to generate graphs with!'

@@ -5,7 +5,7 @@
 
 """ Check out the Skia buildbot scripts. """
 
-from utils import misc
+from utils import shell_utils
 from build_step import BuildStep
 import os
 import sys
@@ -23,7 +23,7 @@ class UpdateScripts(BuildStep):
     else:
       gclient = 'gclient'
 
-    misc.Bash([gclient, 'sync'])
+    shell_utils.Bash([gclient, 'sync'])
 
 
 if '__main__' == __name__:

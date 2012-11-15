@@ -5,7 +5,7 @@
 
 """ Run the Skia bench_pictures executable. """
 
-from utils import misc
+from utils import shell_utils
 from build_step import BuildStep
 from run_bench import BenchArgs
 from run_bench import RunBench
@@ -13,8 +13,10 @@ from run_bench import PreBench
 import os
 import sys
 
+
 # Skipping these for now to avoid excessively long cycle times.
 RUNNING_ALL_CONFIGURATIONS = False
+
 
 class BenchPictures(RunBench):
   def __init__(self, args, attempts=1, timeout=16800):
@@ -40,7 +42,7 @@ class BenchPictures(RunBench):
       cmd += BenchArgs(repeats=self.BENCH_REPEAT_COUNT,
                        data_file=self._BuildDataFile(self._GetPerfDataDir(),
                                                      args))
-    misc.Bash(cmd)
+    shell_utils.Bash(cmd)
 
   def _Run(self):
     # Default mode: tiled bitmap

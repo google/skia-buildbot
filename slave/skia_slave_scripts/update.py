@@ -5,7 +5,7 @@
 
 """ Check out the Skia sources. """
 
-from utils import misc
+from utils import shell_utils
 from build_step import BuildStep, BuildStepFailure
 import ast
 import os
@@ -37,7 +37,7 @@ class Update(BuildStep):
     gclient_spec += ']'
 
     # Run "gclient config" with the spec we just built.
-    misc.Bash([gclient, 'config', '--spec=%s' % gclient_spec])
+    shell_utils.Bash([gclient, 'config', '--spec=%s' % gclient_spec])
 
     # Construct an argument list for "gclient sync".
     sync_args = ['--verbose', '--manually_grab_svn_rev', '--force',
@@ -50,7 +50,7 @@ class Update(BuildStep):
                                                self._revision)]
 
     # Run "gclient sync" with the argument list we just constructed.
-    misc.Bash([gclient, 'sync'] + sync_args)
+    shell_utils.Bash([gclient, 'sync'] + sync_args)
 
     # Determine what revision we actually got. If it differs from what was
     # requested, this step fails.
@@ -60,7 +60,7 @@ class Update(BuildStep):
         svnversion = 'svnversion.bat'
       else:
         svnversion = 'svnversion'
-      got_revision = int(misc.Bash([svnversion, '.'], echo=False))
+      got_revision = int(shell_utils.Bash([svnversion, '.'], echo=False))
     except:
       raise BuildStepFailure('Working copy is dirty!')
 
