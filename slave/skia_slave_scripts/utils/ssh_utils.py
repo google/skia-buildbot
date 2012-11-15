@@ -5,7 +5,7 @@
 
 """ This module contains tools related to ssh used by the buildbot scripts. """
 
-import misc
+import shell_utils
 
 def PutSCP(local_path, remote_path, username, host, port, recurse=False):
   """ Send a file to the given host over SCP. Assumes that public key
@@ -23,7 +23,7 @@ def PutSCP(local_path, remote_path, username, host, port, recurse=False):
   if recurse:
     cmd += ['-r']
   cmd += ['-P', port, local_path, '%s@%s:%s' % (username, host, remote_path)]
-  misc.Bash(cmd)
+  shell_utils.Bash(cmd)
 
 def GetSCP(local_path, remote_path, username, host, port, recurse=False):
   """ Retrieve a file from the given host over SCP. Assumes that public key
@@ -41,7 +41,7 @@ def GetSCP(local_path, remote_path, username, host, port, recurse=False):
   if recurse:
     cmd += ['-r']
   cmd += ['-P', port, '%s@%s:%s' % (username, host, remote_path), local_path]
-  misc.Bash(cmd)
+  shell_utils.Bash(cmd)
 
 def RunSSH(username, host, port, command, echo=True):
   """ Login to the given host and run the given command.
@@ -52,5 +52,6 @@ def RunSSH(username, host, port, command, echo=True):
   command: command to run on the server in list format
   """
   # TODO: This will hang for a while if the host does not recognize the client
-  return misc.Bash(['ssh', '-p', port, '%s@%s' % (username, host),
-                    '%s' % (' '.join(command).replace('"', '\"'))], echo=echo)
+  return shell_utils.Bash(['ssh', '-p', port, '%s@%s' % (username, host),
+                           '%s' % (' '.join(command).replace('"', '\"'))],
+                          echo=echo)

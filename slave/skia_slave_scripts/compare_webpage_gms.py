@@ -21,7 +21,7 @@ python ../../../../../../slave/skia_slave_scripts/compare_webpage_gms.py \
 
 """
 
-from utils import misc
+from utils import shell_utils
 from build_step import BuildStep, BuildStepWarning
 import sys
 
@@ -54,7 +54,7 @@ class CompareWebpageGMs(BuildStep):
         ]
 
     try:
-      misc.Bash(cmd)
+      shell_utils.Bash(cmd)
     except Exception as e:
       if self._builder_name in may_fail_with_warning:
         raise BuildStepWarning(e)

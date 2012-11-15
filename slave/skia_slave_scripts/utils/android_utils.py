@@ -9,6 +9,7 @@ import os
 import re
 import shell_utils
 import shlex
+import time
 
 
 PATH_TO_ADB = os.path.join('..', 'android', 'bin', 'linux', 'adb')

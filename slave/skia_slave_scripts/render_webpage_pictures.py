@@ -34,7 +34,7 @@ from slave import slave_utils
 from utils import file_utils
 from utils import gs_utils
 from utils import sync_bucket_subdir
-from utils import misc
+from utils import shell_utils
 
 import build_step
 
@@ -82,7 +82,7 @@ class RenderWebpagePictures(build_step.BuildStep):
         self._local_playback_dirs.PlaybackGmActualDir(),
         RENDER_PICTURES_DEVICE)
     render_cmd = [self._PathToBinary('render_pictures')] + render_args
-    misc.Bash(render_cmd)
+    shell_utils.Bash(render_cmd)
 
     # Copy images to expected directory if gm-expected has not been created in
     # Storage yet.
