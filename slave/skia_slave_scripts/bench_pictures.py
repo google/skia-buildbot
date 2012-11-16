@@ -59,7 +59,8 @@ class BenchPictures(RunBench):
 
     # Maybe run gpu config
     gyp_defines = os.environ.get('GYP_DEFINES', '')
-    if ('skia_gpu=0' not in gyp_defines):
+    if ('skia_gpu=0' not in gyp_defines and \
+        (not hasattr(self, '_device') or self._device != 'nexus_s')):
       self._DoBenchPictures(['--device', 'gpu',
                              '--mode', 'tile', str(self.TILE_X),
                                                str(self.TILE_Y)])
