@@ -39,7 +39,7 @@ class RunGM(BuildStep):
     for proc in subprocesses:
       retcode = 0
       try:
-        shell_utils.LogProcessToCompletion(proc)
+        retcode = shell_utils.LogProcessToCompletion(proc)[0]
       except:
         retcode = 1
       retcodes.append(retcode)
