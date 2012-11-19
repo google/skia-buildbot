@@ -42,16 +42,21 @@ import build_step
 # The device to use for render_pictures.
 RENDER_PICTURES_DEVICE = 'bitmap'
 
+SKP_TIMEOUT_MULTIPLIER = 5
+
 
 class RenderWebpagePictures(build_step.BuildStep):
 
-  def __init__(self, args, attempts=1, timeout=build_step.DEFAULT_TIMEOUT,
+  def __init__(self, args, attempts=1,
+               timeout=build_step.DEFAULT_TIMEOUT * SKP_TIMEOUT_MULTIPLIER,
                no_output_timeout=build_step.DEFAULT_NO_OUTPUT_TIMEOUT):
     """Constructs a RenderWebpagePictures BuildStep instance.
 
     args: dictionary containing arguments to this BuildStep.
     attempts: how many times to try this BuildStep before giving up.
-    timeout: maximum time allowed for this BuildStep.
+    timeout: maximum time allowed for this BuildStep. The default value here is
+             increased because there could be a lot of skps' whose images have
+             to be copied over to Google Storage.
     no_output_timeout: maximum time allowed for this BuildStep to run without
         any output.
     """

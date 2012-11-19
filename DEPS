@@ -14,15 +14,15 @@ use_relative_paths = True
 
 vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
-  "chromium_revision": "163587",
+  "chromium_revision": "167915",
 }
 
 deps = {
   # Chromium trunk code for run_skpicture_printer.
   "third_party/chromium_trunk/tools/perf":
     Var("chromium_trunk") + "/src/tools/perf@" + Var("chromium_revision"),
-  "third_party/chromium_trunk/tools/chrome_remote_control":
-    Var("chromium_trunk") + "/src/tools/chrome_remote_control@" + Var("chromium_revision"),
+  "third_party/chromium_trunk/tools/telemetry":
+    Var("chromium_trunk") + "/src/tools/telemetry@" + Var("chromium_revision"),
   "third_party/chromium_trunk/chrome/test/functional":
     Var("chromium_trunk") + "/src/chrome/test/functional@" + Var("chromium_revision"),
   "third_party/chromium_trunk/build/android/pylib":
@@ -34,7 +34,7 @@ deps = {
   
   # chrome_remote_control/replay_server.py requires webpagereplay to be in src/third_party.
   "third_party/src/third_party/webpagereplay":
-    "http://web-page-replay.googlecode.com/svn/trunk/@494",
+    "http://web-page-replay.googlecode.com/svn/trunk/@501",
   
   # Chromium buildbot code.
   "third_party/chromium_buildbot":

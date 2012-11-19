@@ -9,6 +9,8 @@ To archive webpages and store skp files (will be run rarely):
 
 cd ../buildbot/slave/skia_slave_scripts
 PYTHONPATH=../../third_party/chromium_trunk/tools/perf:\
+../../third_party/src/third_party/webpagereplay:\
+../../third_party/chromium_trunk/tools/telemetry:\
 ../../third_party/chromium_buildbot/scripts:\
 ../../third_party/chromium_buildbot/site_config \
 python webpages_playback.py --dest_gsbase=gs://rmistry \
@@ -20,21 +22,26 @@ SkPicture.PICTURE_VERSION changes):
 
 cd ../buildbot/slave/skia_slave_scripts
 PYTHONPATH=../../third_party/chromium_trunk/tools/perf:\
+../../third_party/src/third_party/webpagereplay:\
+../../third_party/chromium_trunk/tools/telemetry:\
 ../../third_party/chromium_buildbot/scripts:\
 ../../third_party/chromium_buildbot/site_config \
 python webpages_playback.py --dest_gsbase=gs://rmistry
 
 """
 
+import cPickle
 import optparse
 import os
 import posixpath
 import shutil
 import sys
 import tempfile
+import traceback
 
-from perf_tools import multipage_benchmark_runner
+from perf_tools import skpicture_printer
 from slave import slave_utils
+from telemetry import multi_page_benchmark_runner
 from utils import file_utils
 from utils import gs_utils
 
@@ -53,6 +60,9 @@ LOCAL_RECORD_WEBPAGES_ARCHIVE_DIR = os.path.join(
 LOCAL_SKP_DIR = os.path.join(
     tempfile.gettempdir(), ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
 
+# Number of times should we retry webpagereply if there is a problem.
+NUM_TIMES_TO_RETRY = 3
+
 
 class SkPicturePlayback(object):
   """Class that archives or replays webpages and creates skps."""
@@ -66,6 +76,7 @@ class SkPicturePlayback(object):
 
   def Run(self):
     """Run the SkPicturePlayback BuildStep."""
+
     # Delete the local root directory if it already exists.
     if os.path.exists(LOCAL_PLAYBACK_ROOT_DIR):
       shutil.rmtree(LOCAL_PLAYBACK_ROOT_DIR)
@@ -81,10 +92,31 @@ class SkPicturePlayback(object):
     # the skpicture_printer benchmark.
     self._SetupArgsForSkPrinter()
 
-    # Run the skpicture_printer script which:
-    # Creates an archive of the specified webpages if '--record' is specified.
-    # Saves all webpages in the page_set as skp files.
-    multipage_benchmark_runner.Main()
+    # Adding retries to workaround the bug
+    # https://code.google.com/p/chromium/issues/detail?id=161244.
+    num_times_retried = 0
+    retry = True
+    while retry:
+      # Run the skpicture_printer script which:
+      # Creates an archive of the specified webpages if '--record' is specified.
+      # Saves all webpages in the page_set as skp files.
+      benchmark_dir = os.path.join(
+          os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir,
+          'third_party', 'chromium_trunk', 'tools', 'perf', 'perf_tools',)
+      multi_page_benchmark_runner.Main(benchmark_dir)
+
+      try:
+        cPickle.load(open(os.path.join(
+            LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, self._wpr_file_name), 'rb'))
+        retry = False
+      except EOFError, e:
+        traceback.print_exc()
+        num_times_retried += 1
+        if num_times_retried > NUM_TIMES_TO_RETRY:
+          print 'Exceeded number of times to retry!'
+          raise e
+        else:
+          print 'Retrying!'
 
     if self._record:
       # Move over the created archive into the local webpages archive directory.
@@ -94,9 +126,6 @@ class SkPicturePlayback(object):
 
     # Rename generated skp files into more descriptive names.
     self._RenameSkpFiles()
-
-    # Delete the local wpr now that we are done with it.
-    shutil.rmtree(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR)
 
     # Delete the skp directory on Google Storage since it will be replaced.
     gs_utils.DeleteStorageObject(
@@ -130,10 +159,23 @@ class SkPicturePlayback(object):
         filename_parts = filename.split('.')
         extension = filename_parts[1]
         integer = filename_parts[0].split('_')[1]
-        new_filename = '%s_%s.%s' % (basename, integer, extension)
+        if integer != '0':
+          # We only care about layer 0s.
+          continue
+        new_filename = '%s.%s' % (basename.strip('_'), extension)
         shutil.move(os.path.join(dirpath, filename),
                     os.path.join(LOCAL_SKP_DIR, new_filename))
       shutil.rmtree(dirpath)
+
+  def AddSkPicturePrinterOptions(self, parser):
+    """Temporary workaround for a chromium bug.
+    
+    skpicture_printer.SkPicturePrinter has AddOptions but it should instead have
+    AddCommandLineOptions so it can override
+    page_test.PageTest.AddCommandLineOptions.
+    """
+    parser.add_option('-o', '--outdir', help='Output directory',
+                      default=LOCAL_SKP_DIR)
 
   def _SetupArgsForSkPrinter(self):
     """Setup arguments for the skpicture_printer script.
@@ -151,7 +193,9 @@ class SkPicturePlayback(object):
     # Use the system browser.
     sys.argv.append('--browser=system')
     # Output skp files to skpictures_dir.
-    sys.argv.append('--outdir=' + LOCAL_SKP_DIR)
+    skpicture_printer.SkPicturePrinter.AddCommandLineOptions = (
+      self.AddSkPicturePrinterOptions)
+    
     # Point to the skpicture_printer benchmark.
     sys.argv.append('skpicture_printer')
     # Point to the top 25 webpages page set.
@@ -159,7 +203,6 @@ class SkPicturePlayback(object):
 
   def _CreateLocalStorageDirs(self):
     """Creates required local storage directories for this script."""
-    file_utils.CreateCleanLocalDir(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR)
     file_utils.CreateCleanLocalDir(LOCAL_RECORD_WEBPAGES_ARCHIVE_DIR)
     file_utils.CreateCleanLocalDir(LOCAL_SKP_DIR)
 
@@ -186,7 +229,8 @@ if '__main__' == __name__:
       default=False)
   option_parser.add_option(
       '', '--dest_gsbase',
-      help='gs:// bucket_name, the bucket to upload the file to')
+      help='gs:// bucket_name, the bucket to upload the file to',
+      default='gs://chromium-skia-gm')
   options, unused_args = option_parser.parse_args()
 
   playback = SkPicturePlayback(options)

@@ -13,7 +13,7 @@
             "scroll_is_infinite": true
         },
         {
-            "url": "http://www.youtube.com",
+            "url": "http://www.youtube.com/watch?v=PC57z-oDPLs",
             "why": "#3 (Alexa global)"
         },
         {
@@ -27,14 +27,33 @@
             "why": "#18 (Alexa global), Picked an interesting post"
         },
         {
+            "name": "Facebook",
+            "url": "http://www.facebook.com/barackobama",
+            "why": "top social,Public profile",
+            "credentials": "facebook",
+            "scroll_is_infinite": true,
+            "stress_memory": {
+                "action": "compound_interaction",
+                "actions": [
+                    {
+                        "action": "click_to_navigate_interaction",
+                        "selector": "a[href=\"http://www.facebook.com/WomenforObama\"]"
+                    },
+                    {
+                        "action": "click_to_navigate_interaction",
+                        "selector": "a[href=\"http://www.facebook.com/WomenforObama/info\"]"
+                    },
+                    {
+                        "action": "click_to_navigate_interaction",
+                        "selector": "a[href=\"http://www.facebook.com/?ref=tn_tnmn\"]"
+                    }
+                ]
+            }
+        },
+        {
             "name": "LinkedIn",
             "url": "http://www.linkedin.com/in/linustorvalds",
             "why": "#12 (Alexa global),Public profile"
-        },
-        {
-            "name": "Wikipedia (1 tab)",
-            "url": "http://en.wikipedia.org/wiki/Wikipedia",
-            "why": "#6 (Alexa) most visited worldwide,Picked an interesting page"
         },
         {
             "name": "Twitter",
@@ -58,7 +77,7 @@
             "why": "#1 news worldwide (Alexa global)"
         },
         {
-            "url": "http://www.cnn.com",
+            "url": "http://www.cnn.com/2012/10/03/politics/michelle-obama-debate/index.html",
             "why": "#2 news worldwide"
         },
         {
@@ -69,10 +88,6 @@
         {
             "url": "http://www.amazon.com",
             "why": "#1 world commerce website by visits; #3 commerce in the US by time spent"
-        },
-        {
-            "url": "http://www.ebay.com",
-            "why": "#1 commerce website by time spent by users in US"
         },
         {
             "url": "http://games.yahoo.com",
@@ -93,6 +108,132 @@
         {
             "url": "http://techcrunch.com",
             "why": "top tech blog"
+        },
+        {
+            "url": "http://br.337.com/pages/196/DDTank",
+            "why": "from Tom W's list"
+        },
+        {
+            "url": "http://www.androidpolice.com/2012/10/03/rumor-evidence-mounts-that-an-lg-optimus-g-nexus-is-coming-along-with-a-nexus-phone-certification-program/",
+            "why": "for Clank CY"
+        },
+        {
+            "url": "http://culturalsolutions.co.uk/",
+            "why": "from parallax scrolling thread"
+        },
+        {
+            "url": "http://cuteoverload.com/",
+            "why": "for Clank CY"
+        },
+        {
+            "url": "http://digg.com/",
+            "why": "for Clank CY"
+        },
+        {
+            "url": "http://www.frantzen-lindeberg.com/se/",
+            "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
+        },
+        {
+            "url": "http://game.deksiam.in.th/",
+            "why": "from Tom W’s list"
+        },
+        {
+            "url": "https://mail.google.com/mail/",
+            "why": "productivity, top google properties",
+            "credentials": "google",
+            "wait_for_javascript_expression": "window.gmonkey !== undefined && document.getElementById('gb') !== null",
+            "scrollable_element_function": "function(callback) { gmonkey.load('2.0', function(api) { callback(api.getScrollableElement()); }); }"
+        },
+        {
+            "url": "https://www.google.com/calendar/",
+            "why": "productivity, top google properties",
+            "credentials": "google",
+            "scrollable_element_function": "function(callback) { callback(document.getElementById('scrolltimedeventswk')); }"
+        },
+        {
+            "url": "http://googleblog.blogspot.co.uk/",
+            "why": "for Clank CY"
+        },
+        {
+            "url": "http://www.gsp.ro/click-less-think-more",
+            "why": "for Clank CY"
+        },
+        {
+            "url": "http://www.hs.fi/",
+            "why": "for Clank CY"
+        },
+        {
+            "url": "http://mlb.mlb.com/index.jsp",
+            "why": "from Arrow scrolling thread"
+        },
+        {
+            "url": "http://nofolo.com/",
+            "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
+        },
+        {
+            "url": "http://www.nytimes.com/",
+            "why": "for Clank CY"
+        },
+        {
+            "url": "http://planet.mozilla.org/",
+            "why": ""
+        },
+        {
+            "name": "Wikipedia (1 tab)",
+            "url": "http://en.wikipedia.org/wiki/List_of_Pok%C3%A9mon",
+            "why": "#6 (Alexa) most visited worldwide,Picked an interesting page"
+        },
+        {
+            "url": "http://www.pravda.ru/",
+            "why": "cyrillic font test case"
+        },
+        {
+            "url": "http://www.sahadan.com/",
+            "why": "from Tom W's list"
+        },
+        {
+            "url": "http://www.sfgate.com/",
+            "why": "from Arrow scrolling thread"
+        },
+        {
+            "url": "http://slashdot.org/",
+            "why": ""
+        },
+        {
+            "url": "http://www.theverge.com/",
+            "why": "for Clank CY"
+        },
+        {
+            "url": "http://www.transformice.com/",
+            "why": "from Tom W's list"
+        },
+        {
+            "url": "http://uk.wsj.com/home-page",
+            "why": "for Clank CY"
+        },
+        {
+            "url": "http://vnexpress.net/",
+            "why": "from Tom W's list"
+        },
+        {
+            "url": "http://worldjournal.com/",
+            "why": "Chinese font test case"
+        },
+        {
+            "url": "http://www.wowwiki.com/World_of_Warcraft:_Mists_of_Pandaria",
+            "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
+        },
+        {
+            "url": "http://online.wsj.com/home-page",
+            "why": ""
+        },
+        {
+            "url": "http://www.deviantart.com/",
+            "why": "Cary asked to add it"
+        },
+        {
+            "url": "http://www.baidu.com/s?wd=barack+obama&rsv_bp=0&rsv_spt=3&rsv_sug3=9&rsv_sug=0&rsv_sug4=3824&rsv_sug1=3&inputT=4920",
+            "why": "#5 (Alexa) most visited worldwide"
         }
     ]
 }
