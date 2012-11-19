@@ -8,8 +8,11 @@ from skia_master_scripts import utils
 
 def SkiaFileSplitter(path):
   """split_file for Skia."""
-  projects = utils.SKIA_PRIMARY_SUBDIRS
-  return build_utils.SplitPath(projects, path)
+  subdirs = utils.skia_all_subdirs
+  for subdir in subdirs:
+    if path.startswith(subdir):
+      return (subdir, path[len(subdir)+1:])
+  return None
 
 def Update(config, active_master, c):
   skia_url = config.Master.skia_url

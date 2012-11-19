@@ -29,7 +29,8 @@ def Update(config, active_master, c):
   F = helper.Factory
 
   #
-  # Main (per-commit) Scheduler for Skia
+  # Default (per-commit) Scheduler for Skia. Only use this for builders which
+  # do not care about commits outside of SKIA_PRIMARY_SUBDIRS.
   #
   helper.AnyBranchScheduler('skia_rel', branches=utils.SKIA_PRIMARY_SUBDIRS)
 
@@ -52,7 +53,6 @@ def Update(config, active_master, c):
   defaults['category'] = 'Shuttle_Ubuntu12_ATI5770'
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
@@ -62,7 +62,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_linux)
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
@@ -75,7 +74,6 @@ def Update(config, active_master, c):
   defaults['category'] = 'android'
   MakeAndroidBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_NexusS_4-1_Float_%s_32',
       device='nexus_s',
       do_upload_results=do_upload_results,
@@ -85,7 +83,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Xoom_4-1_Float_%s_32',
       device='xoom',
       do_upload_results=do_upload_results,
@@ -95,7 +92,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_GalaxyNexus_4-1_Float_%s_32',
       device='galaxy_nexus',
       do_upload_results=do_upload_results,
@@ -105,7 +101,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Nexus4_4-1_Float_%s_32',
       device='nexus_4',
       do_upload_results=do_upload_results,
@@ -115,7 +110,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Nexus7_4-1_Float_%s_32',
       device='nexus_7',
       do_upload_results=do_upload_results,
@@ -125,7 +119,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Nexus10_4-1_Float_%s_32',
       device='nexus_10',
       do_upload_results=do_upload_results,
@@ -138,7 +131,6 @@ def Update(config, active_master, c):
   defaults['category'] = 'mac-10.6'
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Mac_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -148,7 +140,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_mac)
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Mac_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -161,7 +152,6 @@ def Update(config, active_master, c):
   defaults['category'] = 'mac-10.7'
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_MacMiniLion_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -171,7 +161,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_mac)
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_MacMiniLion_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -184,7 +173,6 @@ def Update(config, active_master, c):
   defaults['category'] = 'Shuttle_Win7_Intel'
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
@@ -194,7 +182,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_windows)
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
@@ -207,7 +194,6 @@ def Update(config, active_master, c):
   defaults['category'] = 'Win7-Special'
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_ANGLE_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
@@ -219,7 +205,6 @@ def Update(config, active_master, c):
       bench_args=['--config', 'ANGLE'])
   MakeBuilderSet(
       helper=helper,
-      scheduler='skia_rel',
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
@@ -262,8 +247,14 @@ def Update(config, active_master, c):
 
   # "Special" bots, running on Linux
   defaults['category'] = 'Linux-Special'
+
+  # Use the Ubuntu12_ATI5770 scheduler created by MakeBuilderSet so that this
+  # builder will be triggered by commits inside the
+  # 'gm-expected/base-shuttle_ubuntu12_ati5770' directory. This is a bit of a
+  # hack, since we shouldn't know the names of the schedulers created inside
+  # MakeBuilderSet, but it lets us avoid creating a redundant scheduler here.
   B('Skia_Linux_NoGPU', 'f_skia_linux_no_gpu',
-      scheduler='skia_rel')
+    scheduler='Skia_Shuttle_Ubuntu12_ATI5770_Float_Scheduler_64')
   F('f_skia_linux_no_gpu', skia_factory.SkiaFactory(
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
@@ -286,7 +277,7 @@ def Update(config, active_master, c):
       configuration=skia_factory.CONFIG_DEBUG,
       environment_variables=
           {'GYP_DEFINES': 'skia_arch_width=32'},
-      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
+      gm_image_subdir=None,
       perf_output_basedir=None, # no perf measurement for debug builds
       builder_name='Skia_ChromeOS_Alex_Debug_32',
       ).Build())

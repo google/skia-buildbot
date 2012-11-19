@@ -125,8 +125,10 @@ def FileBug(summary, description, owner=None, ccs=[], labels=[]):
 
   return result
 
-# Branches for which we trigger rebuilds on the primary builders
-SKIA_PRIMARY_SUBDIRS = ['android', 'buildbot', 'gm-expected', 'skp', 'trunk']
+# Base set of branches for which we trigger rebuilds on all builders. Schedulers
+# may trigger builds on a superset of this list to include, for example, the
+# 'android' branch or a subfolder of 'gm-expected'.
+SKIA_PRIMARY_SUBDIRS = ['buildbot', 'skp', 'trunk']
 
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
@@ -175,6 +177,7 @@ class SkiaHelper(master_config.Helper):
 
   def Update(self, c):
     super(SkiaHelper, self).Update(c)
+    all_subdirs = SKIA_PRIMARY_SUBDIRS
     for s_name in self._schedulers:
       scheduler = self._schedulers[s_name]
       instance = None
@@ -201,6 +204,25 @@ class SkiaHelper(master_config.Helper):
       scheduler['instance'] = instance
       c['schedulers'].append(instance)
 
+      # Find the union of all sets of subdirectories the builders care about.
+      if scheduler.has_key('branch'):
+        if not scheduler['branch'] in all_subdirs:
+          all_subdirs.append(scheduler['branch'])
+      if scheduler.has_key('branches'):
+        for branch in scheduler['branches']:
+          if not branch in all_subdirs:
+            all_subdirs.append(branch)
+
+    # Export the set to be used externally, making sure that it hasn't already
+    # been defined.
+    global skia_all_subdirs
+    try:
+      if skia_all_subdirs:
+        raise Exception('skia_all_subdirs has already been defined!')
+    except NameError:
+      skia_all_subdirs = all_subdirs
+
+
 def MakeBuilderName(builder_base_name, config):
   """ Inserts config into builder_base_name at '%s', or if builder_base_name
   does not contain '%s', appends config to the end of builder_base_name,
@@ -211,19 +233,27 @@ def MakeBuilderName(builder_base_name, config):
     # If builder_base_name does not contain '%s'
     return '%s_%s' % (builder_base_name, config)
 
+
 def MakeDebugBuilderName(builder_base_name):
   return MakeBuilderName(builder_base_name, skia_factory.CONFIG_DEBUG)
+
 
 def MakeReleaseBuilderName(builder_base_name):
   return MakeBuilderName(builder_base_name, skia_factory.CONFIG_RELEASE)
 
+
 def MakeBenchBuilderName(builder_base_name):
   return MakeBuilderName(builder_base_name, skia_factory.CONFIG_BENCH)
 
-def MakeBuilderSet(helper, scheduler, builder_base_name, do_upload_results,
+
+def MakeSchedulerName(builder_base_name):
+  return MakeBuilderName(builder_base_name, 'Scheduler')
+
+
+def MakeBuilderSet(helper, builder_base_name, do_upload_results,
                    target_platform, environment_variables, gm_image_subdir,
                    perf_output_basedir, test_args=None, gm_args=None,
-                   bench_args=None):
+                   bench_args=None, extra_branches=None):
   """ Creates a trio of builders for a given platform:
   1. Debug mode builder which runs all steps
   2. Release mode builder which runs all steps EXCEPT benchmarks
@@ -232,12 +262,19 @@ def MakeBuilderSet(helper, scheduler, builder_base_name, do_upload_results,
   B = helper.Builder
   F = helper.Factory
 
+  scheduler_name       = MakeSchedulerName(builder_base_name)
   debug_builder_name   = MakeDebugBuilderName(builder_base_name)
   no_perf_builder_name = MakeReleaseBuilderName(builder_base_name)
   perf_builder_name    = MakeBenchBuilderName(builder_base_name)
 
+  if not extra_branches:
+    extra_branches = []
+  branches = SKIA_PRIMARY_SUBDIRS + ['gm-expected/%s' % gm_image_subdir] + \
+      extra_branches
+  helper.AnyBranchScheduler(scheduler_name, branches=branches)
+
   B(debug_builder_name, 'f_%s' % debug_builder_name,
-      scheduler=scheduler)
+      scheduler=scheduler_name)
   F('f_%s' % debug_builder_name, skia_factory.SkiaFactory(
       do_upload_results=do_upload_results,
       target_platform=target_platform,
@@ -251,7 +288,7 @@ def MakeBuilderSet(helper, scheduler, builder_base_name, do_upload_results,
       bench_args=bench_args,
       ).Build())
   B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
-      scheduler=scheduler)
+      scheduler=scheduler_name)
   F('f_%s' % no_perf_builder_name,  NoPerfFactory(
       do_upload_results=do_upload_results,
       target_platform=target_platform,
@@ -265,7 +302,7 @@ def MakeBuilderSet(helper, scheduler, builder_base_name, do_upload_results,
       bench_args=bench_args,
       ).Build())
   B(perf_builder_name, 'f_%s' % perf_builder_name,
-      scheduler=scheduler)
+      scheduler=scheduler_name)
   F('f_%s' % perf_builder_name, PerfOnlyFactory(
       do_upload_results=do_upload_results,
       target_platform=target_platform,
@@ -279,11 +316,12 @@ def MakeBuilderSet(helper, scheduler, builder_base_name, do_upload_results,
       bench_args=bench_args,
       ).Build())
 
-def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
+
+def MakeAndroidBuilderSet(helper, builder_base_name, device,
                           do_upload_results, target_platform, 
                           environment_variables, gm_image_subdir,
                           perf_output_basedir, test_args=None,
-                          gm_args=None, bench_args=None):
+                          gm_args=None, bench_args=None, extra_branches=None):
   """ Creates a trio of builders for Android:
   1. Debug mode builder which runs all steps
   2. Release mode builder which runs all steps EXCEPT benchmarks
@@ -292,12 +330,19 @@ def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
   B = helper.Builder
   F = helper.Factory
 
+  scheduler_name       = MakeSchedulerName(builder_base_name)
   debug_builder_name   = MakeDebugBuilderName(builder_base_name)
   no_perf_builder_name = MakeReleaseBuilderName(builder_base_name)
   perf_builder_name    = MakeBenchBuilderName(builder_base_name)
 
+  if not extra_branches:
+    extra_branches = []
+  branches = SKIA_PRIMARY_SUBDIRS + ['gm-expected/%s' % gm_image_subdir,
+                                     'android'] + extra_branches
+  helper.AnyBranchScheduler(scheduler_name, branches=branches)
+
   B(debug_builder_name, 'f_%s' % debug_builder_name,
-      scheduler=scheduler)
+      scheduler=scheduler_name)
   F('f_%s' % debug_builder_name, android_factory.AndroidFactory(
       device=device,
       do_upload_results=do_upload_results,
@@ -312,7 +357,7 @@ def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
       bench_args=bench_args,
       ).Build())
   B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
-      scheduler=scheduler)
+      scheduler=scheduler_name)
   F('f_%s' % no_perf_builder_name,  AndroidNoPerfFactory(
       device=device,
       do_upload_results=do_upload_results,
@@ -327,7 +372,7 @@ def MakeAndroidBuilderSet(helper, scheduler, builder_base_name, device,
       bench_args=bench_args,
       ).Build())
   B(perf_builder_name, 'f_%s' % perf_builder_name,
-      scheduler=scheduler)
+      scheduler=scheduler_name)
   F('f_%s' % perf_builder_name, AndroidPerfOnlyFactory(
       device=device,
       do_upload_results=do_upload_results,
@@ -356,8 +401,8 @@ def CanMergeBuildRequests(req1, req2):
       req1.source.revision == req2.source.revision) 
 
   Of the above, we want 1, 2, 4, and 5. Instead of 3, we want to merge requests
-  if both branches are the same or both are listed in SKIA_PRIMARY_SUBDIRS. So
-  we duplicate most of that logic here. """
+  if both branches are the same or both are listed in skia_all_subdirs. So we
+  duplicate most of that logic here. """
   # Verify that the repositories are the same (#1 above).
   if req1.source.repository != req2.source.repository:
     return False
@@ -366,11 +411,11 @@ def CanMergeBuildRequests(req1, req2):
   if req1.source.project != req2.source.project:
     return False
 
-  # Verify that the branches are the same OR that both requests are from primary
-  # branches (modification of #3 above).
+  # Verify that the branches are the same OR that both requests are from
+  # branches we deem mergeable (modification of #3 above).
   if req1.source.branch != req2.source.branch:
-    if req1.source.branch not in SKIA_PRIMARY_SUBDIRS or \
-       req2.source.branch not in SKIA_PRIMARY_SUBDIRS:
+    if req1.source.branch not in skia_all_subdirs or \
+       req2.source.branch not in skia_all_subdirs:
       return False
 
   # If either is a try request, don't merge (#4 above).

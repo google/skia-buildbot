@@ -131,30 +131,5 @@ def ShouldDoStep(step):
       not _HasProperty(step, 'force_upload'):
     return False
 
-  # When a commit consists of only new baseline images, we only need to run the
-  # BuildSteps necessary for image verification, and only for the platform(s)
-  # for which new baselines are provided.
-  if  _HasProperty(step, 'branch') and \
-      step.getProperty('branch') == 'gm-expected':
-    if _HasProperty(step, 'gm_image_subdir'):
-      gm_image_subdir = step.getProperty('gm_image_subdir')
-    else:
-      gm_image_subdir = ''
-    commit_is_only_baselines, platform_changed = \
-        _CheckRebaselineChanges(step.build.allChanges(), gm_image_subdir)
-    if commit_is_only_baselines: # This commit consists of only baseline images
-      if gm_image_subdir == '':
-        # There aren't baselines for this platform, so we don't care about
-        # baselines for this build.
-        return False
-      if not step.IsRebaselineStep():
-        # If the commit consists of only new baselines and this step isn't
-        # required for baseline-only commits, then we skip it.
-        return False
-      if not platform_changed:
-        # This step is required for baseline-only commits, but there are no new
-        # baselines for our platform.
-        return False
-
   # Unless we have determined otherwise, run the step.
   return True
