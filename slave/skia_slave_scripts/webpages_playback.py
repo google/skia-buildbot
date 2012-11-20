@@ -63,6 +63,9 @@ LOCAL_SKP_DIR = os.path.join(
 # Number of times we retry telemetry if there is a problem.
 NUM_TIMES_TO_RETRY = 5
 
+# The max base name length of Skp files.
+MAX_SKP_BASE_NAME_LEN = 79
+
 
 class SkPicturePlayback(object):
   """Class that archives or replays webpages and creates skps."""
@@ -162,7 +165,11 @@ class SkPicturePlayback(object):
         if integer != '0':
           # We only care about layer 0s.
           continue
-        new_filename = '%s.%s' % (basename.strip('_'), extension)
+        basename = basename.rstrip('_')
+        # Ensure the basename is not too long.
+        if len(basename) > MAX_SKP_BASE_NAME_LEN:
+          basename = basename[0:MAX_SKP_BASE_NAME_LEN]
+        new_filename = '%s.%s' % (basename, extension)
         shutil.move(os.path.join(dirpath, filename),
                     os.path.join(LOCAL_SKP_DIR, new_filename))
       shutil.rmtree(dirpath)
