@@ -32,7 +32,7 @@ build_step_stdout_has_written = multiprocessing.Value('i', INT_FALSE)
 
 
 # The canned acl to use while copying playback files to Google Storage.
-PLAYBACK_CANNED_ACL = 'project-private'
+PLAYBACK_CANNED_ACL = 'private'
 
 
 class BuildStepWarning(Exception):

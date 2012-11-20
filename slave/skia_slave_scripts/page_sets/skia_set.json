@@ -4,6 +4,18 @@
     "credentials_path": "data/credentials.json",
     "pages": [
         {
+            "url": "http://www.engadget.com/",
+            "why": "from klobag"
+        },
+        {
+            "url": "http://techmeme.com/",
+            "why": "from klobag"
+        },
+        {
+            "url": "http://www.cnet.com/",
+            "why": "from klobag"
+        },
+        {
             "url": "https://www.google.com/#hl=en&q=barack+obama",
             "why": "top google property; a google tab is often open"
         },
@@ -229,7 +241,7 @@
         },
         {
             "url": "http://www.deviantart.com/",
-            "why": "Cary asked to add it"
+            "why": "from caryclark"
         },
         {
             "url": "http://www.baidu.com/s?wd=barack+obama&rsv_bp=0&rsv_spt=3&rsv_sug3=9&rsv_sug=0&rsv_sug4=3824&rsv_sug1=3&inputT=4920",

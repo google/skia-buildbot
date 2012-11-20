@@ -60,8 +60,8 @@ LOCAL_RECORD_WEBPAGES_ARCHIVE_DIR = os.path.join(
 LOCAL_SKP_DIR = os.path.join(
     tempfile.gettempdir(), ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
 
-# Number of times should we retry webpagereply if there is a problem.
-NUM_TIMES_TO_RETRY = 3
+# Number of times we retry telemetry if there is a problem.
+NUM_TIMES_TO_RETRY = 5
 
 
 class SkPicturePlayback(object):
