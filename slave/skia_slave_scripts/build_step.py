@@ -21,7 +21,7 @@ from utils import misc
 
 
 DEFAULT_TIMEOUT = 2400
-DEFAULT_NO_OUTPUT_TIMEOUT=1800
+DEFAULT_NO_OUTPUT_TIMEOUT=3600
 DEFAULT_NUM_CORES = 2
 
 
@@ -249,3 +249,4 @@ class BuildStep(multiprocessing.Process):
       step._WaitFunc(attempt)
       attempt += 1
       print '**** %s, attempt %d ****' % (StepType.__name__, attempt + 1)
+
