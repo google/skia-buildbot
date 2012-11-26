@@ -226,6 +226,12 @@ def MergeIntoSvn(options):
     repo.AddFiles([new_file])
  
   # Set required svn properties on certain file extensions. 
+  _SetProperty(_FindFiles(mergedir, '.html'), 'svn:mime-type',
+               'text/html', repo)
+  _SetProperty(_FindFiles(mergedir, '.css'), 'svn:mime-type', 'text/css', repo)
+  _SetProperty(_FindFiles(mergedir, '.js'), 'svn:mime-type',
+               'text/javascript', repo)
+  _SetProperty(_FindFiles(mergedir, '.gif'), 'svn:mime-type', 'image/gif', repo)
   _SetProperty(_FindFiles(mergedir, '.png'), 'svn:mime-type', 'image/png', repo)
   _SetProperty(_FindFiles(mergedir, '.pdf'), 'svn:mime-type',
                'application/pdf', repo)
