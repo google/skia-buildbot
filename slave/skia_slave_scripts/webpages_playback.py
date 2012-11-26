@@ -64,7 +64,7 @@ LOCAL_SKP_DIR = os.path.join(
 NUM_TIMES_TO_RETRY = 5
 
 # The max base name length of Skp files.
-MAX_SKP_BASE_NAME_LEN = 79
+MAX_SKP_BASE_NAME_LEN = 35
 
 
 class SkPicturePlayback(object):
@@ -184,6 +184,13 @@ class SkPicturePlayback(object):
     parser.add_option('-o', '--outdir', help='Output directory',
                       default=LOCAL_SKP_DIR)
 
+  def CustomizeBrowserOptions(self, options):
+    """Specifying Skia specific browser options."""
+    options.extra_browser_args.extend(['--enable-gpu-benchmarking',
+                                       '--no-sandbox',
+                                       '--force-compositing-mode'])
+    
+
   def _SetupArgsForSkPrinter(self):
     """Setup arguments for the skpicture_printer script.
 
@@ -199,9 +206,12 @@ class SkPicturePlayback(object):
       sys.argv.append('--record')
     # Use the system browser.
     sys.argv.append('--browser=system')
+    # Specify extra browser args needed for Skia.
+    skpicture_printer.SkPicturePrinter.CustomizeBrowserOptions = (
+        self.CustomizeBrowserOptions)
     # Output skp files to skpictures_dir.
     skpicture_printer.SkPicturePrinter.AddCommandLineOptions = (
-      self.AddSkPicturePrinterOptions)
+        self.AddSkPicturePrinterOptions)
     
     # Point to the skpicture_printer benchmark.
     sys.argv.append('skpicture_printer')
