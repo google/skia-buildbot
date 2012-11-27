@@ -50,18 +50,13 @@ class Update(BuildStep):
         sync_args += ['--revision', '%s@%d' % (solution['name'],
                                                self._revision)]
 
+    # Sometimes the build slaves "forget" the svn server. To prevent this from
+    # occurring, use "svn ls" with --trust-server-cert.
+    shell_utils.Bash(['svn', 'ls', config.Master.skia_url,
+                      '--non-interactive', '--trust-server-cert'], echo=False)
+
     # Run "gclient sync" with the argument list we just constructed.
-    try:
-      output = shell_utils.Bash([gclient, 'sync'] + sync_args)
-    except Exception:
-      if 'Server certificate verification failed' in output:
-        # Sometimes the build slaves "forget" the svn server. If the sync step
-        # failed for this reason, use "svn ls" to refresh the slave's memory.
-        shell_utils.Bash(['svn', 'ls', config.Master.skia_url,
-                          '--non-interactive', '--trust-server-cert'])
-        shell_utils.Bash([gclient, 'sync'])
-      else:
-        raise
+    shell_utils.Bash([gclient, 'sync'] + sync_args)
 
     # Determine what revision we actually got. If it differs from what was
     # requested, this step fails.
