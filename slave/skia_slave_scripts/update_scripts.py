@@ -21,12 +21,14 @@ class UpdateScripts(BuildStep):
     os.chdir(buildbot_dir)
     if os.name == 'nt':
       gclient = 'gclient.bat'
+      svn = 'svn.bat'
     else:
       gclient = 'gclient'
+      svn = 'svn'
 
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
-    shell_utils.Bash(['svn', 'ls', config.Master.skia_url,
+    shell_utils.Bash([svn, 'ls', config.Master.skia_url,
                       '--non-interactive', '--trust-server-cert'], echo=False)
     shell_utils.Bash([gclient, 'sync'])
 

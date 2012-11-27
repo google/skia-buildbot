@@ -19,8 +19,10 @@ class Update(BuildStep):
   def _Run(self):
     if os.name == 'nt':
       gclient = 'gclient.bat'
+      svn = 'svn.bat'
     else:
       gclient = 'gclient'
+      svn = 'svn'
 
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
@@ -52,7 +54,7 @@ class Update(BuildStep):
 
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
-    shell_utils.Bash(['svn', 'ls', config.Master.skia_url,
+    shell_utils.Bash([svn, 'ls', config.Master.skia_url,
                       '--non-interactive', '--trust-server-cert'], echo=False)
 
     # Run "gclient sync" with the argument list we just constructed.
