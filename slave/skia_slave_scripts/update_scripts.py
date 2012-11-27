@@ -7,6 +7,7 @@
 
 from utils import shell_utils
 from build_step import BuildStep
+import config
 import os
 import sys
 
@@ -23,7 +24,17 @@ class UpdateScripts(BuildStep):
     else:
       gclient = 'gclient'
 
-    shell_utils.Bash([gclient, 'sync'])
+    try:
+      output = shell_utils.Bash([gclient, 'sync'])
+    except Exception:
+      if 'Server certificate verification failed' in output:
+        # Sometimes the build slaves "forget" the svn server. If the sync step
+        # failed for this reason, use "svn ls" to refresh the slave's memory.
+        shell_utils.Bash(['svn', 'ls', config.Master.skia_url,
+                          '--non-interactive', '--trust-server-cert'])
+        shell_utils.Bash([gclient, 'sync'])
+      else:
+        raise
 
 
 if '__main__' == __name__:
