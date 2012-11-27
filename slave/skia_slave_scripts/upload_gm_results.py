@@ -24,7 +24,6 @@ class UploadGMResults(BuildStep):
     super(UploadGMResults, self).__init__(args, attempts)
 
   def _Run(self):
-    return
     # TODO these constants should actually be shared by multiple build steps
     gm_actual_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'actual')
     gm_merge_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'merge')

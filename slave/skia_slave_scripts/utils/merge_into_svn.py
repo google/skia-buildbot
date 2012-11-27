@@ -278,7 +278,10 @@ def _FindFiles(root, file_pattern):
     else:
       for filename in files:
         if filename.endswith(file_pattern):
-          ret_files.append(os.path.join(root, directory, filename))
+          file = os.path.join(directory, filename)
+          if file.startswith(root):
+            file = file[len(root) + 1:]
+          ret_files.append(file)
   return ret_files
 
 
