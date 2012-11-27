@@ -254,21 +254,12 @@ def _SetProperty(files, property_name, property_value, repo):
 
   The special handling needed by merge_into_svn is:
 
-  1. Split up the file array into chunks no longer than FILES_CHUNK so that we
+  -  Split up the file array into chunks no longer than FILES_CHUNK so that we
      don't run into http://code.google.com/p/skia/issues/detail?id=582
      ('buildbot UploadGMResults step failing: "The command line is too long"')
-
-  2. If repo.SetProperty() raises an Exception, log it and continue.
-     TODO: Instead, allow some or all exceptions to propagate?
-     We started catching them in https://codereview.appspot.com/6501112
-     (merge_into_svn was failing on ANGLE bot because no pdf's were created).
-     Maybe we can find a better way to handle that case.
   """
-  try:
-    for files_chunk in _GetChunks(files, FILES_CHUNK):
-      repo.SetProperty(files_chunk, property_name, property_value)
-  except Exception:
-    print traceback.format_exc()
+  for files_chunk in _GetChunks(files, FILES_CHUNK):
+    repo.SetProperty(files_chunk, property_name, property_value)
 
 
 def _GetChunks(seq, n):
