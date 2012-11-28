@@ -198,22 +198,22 @@ def IsSkiaAndroidAppInstalled(serial):
                                      echo=False))
 
 
-def Install(serial, path_to_apk):
+def Install(serial, release_mode=False):
   """ Install an Android app to the device with the given serial number.
 
   serial: string indicating the serial number of the target device.
-  path_to_apk: app to install on the device.
+  release_mode: bool; whether the app was build in Release mode.
   """
   # The shell must be running to install/uninstall apps
   StartShell(serial)
-  try:
-    RunADB(serial, ['uninstall', 'com.skia'])
-  except:
-    pass
-  if IsSkiaAndroidAppInstalled(serial):
-    raise Exception('Failed to uninstall Skia Android app.')
-
-  RunADB(serial, ['install', path_to_apk], attempts=5, timeout=180)
+  # Assuming we're in the 'trunk' directory.
+  cmd = [os.path.join(os.pardir, 'android', 'bin', 'android_install_skia'),
+         '-f',
+         '--install-launcher',
+         '-s', serial]
+  if release_mode:
+    cmd.append('--release')
+  shell_utils.Bash(' '.join(cmd), shell=True)
   if not IsSkiaAndroidAppInstalled(serial):
     raise Exception('Failed to install Skia Android app.')
 
