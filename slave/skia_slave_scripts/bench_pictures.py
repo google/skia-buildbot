@@ -50,6 +50,9 @@ class BenchPictures(RunBench):
                            '--mode', 'tile', str(self.TILE_X),
                                              str(self.TILE_Y)])
 
+    if self._configuration == 'Debug':
+      return
+
     # Run bitmap in tiled mode, in different numbers of threads
     for threads in [2, 3, 4]:
       self._DoBenchPictures(['--device', 'bitmap',
