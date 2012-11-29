@@ -149,6 +149,7 @@ class SkiaFactory(BuildFactory):
     self._common_args = [
         '--autogen_svn_baseurl', AUTOGEN_SVN_BASEURL,
         '--configuration', configuration,
+        '--do_upload_results', str(self._do_upload_results),
         '--gm_image_subdir', gm_image_subdir or 'None',
         '--builder_name', builder_name,
         '--target_platform', target_platform,
