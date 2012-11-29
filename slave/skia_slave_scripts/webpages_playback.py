@@ -64,7 +64,7 @@ LOCAL_SKP_DIR = os.path.join(
 NUM_TIMES_TO_RETRY = 5
 
 # The max base name length of Skp files.
-MAX_SKP_BASE_NAME_LEN = 35
+MAX_SKP_BASE_NAME_LEN = 31
 
 
 class SkPicturePlayback(object):
@@ -144,6 +144,14 @@ class SkPicturePlayback(object):
           'ERROR: GSUtilCopyDir error %d. "%s" -> "%s/%s"' % (
               gs_status, LOCAL_PLAYBACK_ROOT_DIR, self._dest_gsbase,
               ROOT_PLAYBACK_DIR_NAME))
+    
+    # Add a TIMESTAMP file to the skp directory in Google Storage so we can use
+    # directory level rsync like functionality.
+    gs_utils.WriteCurrentTimeStamp(
+        gs_base=self._dest_gsbase,
+        dest_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME),
+        gs_acl=PLAYBACK_CANNED_ACL)
+    
     return 0
 
   def _RenameSkpFiles(self):

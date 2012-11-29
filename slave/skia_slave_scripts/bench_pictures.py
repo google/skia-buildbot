@@ -35,6 +35,10 @@ class BenchPictures(RunBench):
   def _GetPerfDataDir(self):
     return self._perf_data_dir
 
+  def _PopulateSkpDir(self):
+    # The skp dir comes from skia repository, nothing to do here.
+    pass
+
   def _DoBenchPictures(self, args):
     cmd = [self._PathToBinary('bench_pictures'), self._GetSkpDir()] + args
     if self._GetPerfDataDir():
@@ -45,6 +49,8 @@ class BenchPictures(RunBench):
     shell_utils.Bash(cmd)
 
   def _Run(self):
+    self._PopulateSkpDir()
+    
     # Default mode: tiled bitmap
     self._DoBenchPictures(['--device', 'bitmap',
                            '--mode', 'tile', str(self.TILE_X),

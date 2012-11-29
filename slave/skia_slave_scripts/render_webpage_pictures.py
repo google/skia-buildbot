@@ -21,13 +21,15 @@ python ../../../../../../slave/skia_slave_scripts/render_webpage_pictures.py \
 --bench_args "" --num_cores 8 --perf_output_basedir "" \
 --builder_name Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64 \
 --got_revision 0 --gm_image_subdir base-shuttle_ubuntu12_ati5770 \
---dest_gsbase gs://rmistry
+--do_upload_results True --dest_gsbase gs://rmistry
 
 """
 
+import os
 import posixpath
 import shutil
 import sys
+import tempfile
 
 from build_step import PLAYBACK_CANNED_ACL
 from slave import slave_utils
@@ -72,9 +74,6 @@ class RenderWebpagePictures(build_step.BuildStep):
                        self._storage_playback_dirs.PlaybackGmExpectedDir()))
 
   def _Run(self):
-    # Clean and recreate the local root directory.
-    file_utils.CreateCleanLocalDir(self._local_playback_dirs.PlaybackRootDir())
-
     # Create the required local storage directories.
     self._CreateLocalStorageDirs()
 
@@ -82,6 +81,7 @@ class RenderWebpagePictures(build_step.BuildStep):
     self._DownloadSkpsFromStorage()
 
     # Render pictures.
+    print '\n\n=========Rendering Pictures=========\n\n'
     render_args = self._GetRenderPictureArgs(
         self._local_playback_dirs.PlaybackSkpDir(),
         self._local_playback_dirs.PlaybackGmActualDir(),
@@ -89,39 +89,81 @@ class RenderWebpagePictures(build_step.BuildStep):
     render_cmd = [self._PathToBinary('render_pictures')] + render_args
     shell_utils.Bash(render_cmd)
 
-    # Copy images to expected directory if gm-expected has not been created in
-    # Storage yet.
     if not self._gm_expected_exists_on_storage:
+      # Copy images to expected directory if gm-expected has not been created in
+      # Storage yet.
+      print '\n\n=========Copying gm-actual to gm-expected locally=========\n\n'
+      shutil.rmtree(self._local_playback_dirs.PlaybackGmExpectedDir())
       shutil.copytree(self._local_playback_dirs.PlaybackGmActualDir(),
                       self._local_playback_dirs.PlaybackGmExpectedDir())
-
-    # Copy actual images to Google Storage.
-    gs_utils.CopyStorageDirectory(
-        src_dir=self._local_playback_dirs.PlaybackGmActualDir(),
-        dest_dir=posixpath.join(
-            self._dest_gsbase,
-            self._storage_playback_dirs.PlaybackGmActualDir()),
-        gs_acl=PLAYBACK_CANNED_ACL)
-
-    if not self._gm_expected_exists_on_storage:
-      # Copy expected images to Google Storage since they do not exist yet.
+    elif not gs_utils.AreTimeStampsEqual(
+        local_dir=self._local_playback_dirs.PlaybackGmExpectedDir(),
+        gs_base=self._dest_gsbase,
+        gs_relative_dir=self._storage_playback_dirs.PlaybackGmExpectedDir()):
+      file_utils.CreateCleanLocalDir(
+          self._local_playback_dirs.PlaybackGmExpectedDir())
+      # Copy expected images from Google Storage to the local directory.
+      print '\n\n=======Downloading gm-expected from Google Storage=======\n\n'
       gs_utils.CopyStorageDirectory(
-          src_dir=self._local_playback_dirs.PlaybackGmExpectedDir(),
+          src_dir=posixpath.join(
+              self._dest_gsbase,
+              self._storage_playback_dirs.PlaybackGmExpectedDir(),
+              '*'),
+          dest_dir=self._local_playback_dirs.PlaybackGmExpectedDir(),
+          gs_acl=PLAYBACK_CANNED_ACL)
+
+    if self._do_upload_results:
+      # Copy actual images to Google Storage.
+      print '\n\n=========Uploading gm-actual to Google Storage=========\n\n'
+      gs_utils.CopyStorageDirectory(
+          src_dir=self._local_playback_dirs.PlaybackGmActualDir(),
           dest_dir=posixpath.join(
               self._dest_gsbase,
-              self._storage_playback_dirs.PlaybackGmExpectedDir()),
+              self._storage_playback_dirs.PlaybackGmActualDir()),
           gs_acl=PLAYBACK_CANNED_ACL)
+      # Add a TIMESTAMP file to the gm-actual directory in Google Storage so
+      # that rebaselining will be a simple directory copy from gm-actual to
+      # gm-expected.
+      print '\n\n=========Adding TIMESTAMP for gm-actual=========\n\n'
+      gs_utils.WriteCurrentTimeStamp(
+          gs_base=self._dest_gsbase,
+          dest_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
+          gs_acl=PLAYBACK_CANNED_ACL)
+
+      if not self._gm_expected_exists_on_storage:
+        # Copy expected images to Google Storage since they do not exist yet.
+        print '\n\n========Uploading gm-expected to Google Storage========\n\n'
+        gs_utils.CopyStorageDirectory(
+            src_dir=self._local_playback_dirs.PlaybackGmExpectedDir(),
+            dest_dir=posixpath.join(
+                self._dest_gsbase,
+                self._storage_playback_dirs.PlaybackGmExpectedDir()),
+            gs_acl=PLAYBACK_CANNED_ACL)
+
+        # Add a TIMESTAMP file to the gm-expected directory in Google Storage so
+        # we can use directory level rsync like functionality.
+        print '\n\n=========Adding TIMESTAMP for gm-expected=========\n\n'
+        gs_utils.WriteCurrentTimeStamp(
+            gs_base=self._dest_gsbase,
+            dest_dir=self._storage_playback_dirs.PlaybackGmExpectedDir(),
+            gs_acl=PLAYBACK_CANNED_ACL)
 
   def _DownloadSkpsFromStorage(self):
     """Download Skps from Google Storage."""
-    skps_source = posixpath.join(
-        self._dest_gsbase, self._storage_playback_dirs.PlaybackSkpDir(), '*')
-    slave_utils.GSUtilDownloadFile(
-        src=skps_source, dst=self._local_playback_dirs.PlaybackSkpDir())
+    if not gs_utils.AreTimeStampsEqual(
+        local_dir=self._local_playback_dirs.PlaybackSkpDir(),
+        gs_base=self._dest_gsbase,
+        gs_relative_dir=self._storage_playback_dirs.PlaybackSkpDir()):
+      print '\n\n========Downloading skp files from Google Storage========\n\n'
+      skps_source = posixpath.join(
+          self._dest_gsbase, self._storage_playback_dirs.PlaybackSkpDir(), '*')
+      slave_utils.GSUtilDownloadFile(
+          src=skps_source, dst=self._local_playback_dirs.PlaybackSkpDir())
 
   def _CreateLocalStorageDirs(self):
     """Creates required local storage directories for this script."""
-    file_utils.CreateCleanLocalDir(self._local_playback_dirs.PlaybackSkpDir())
+    if not os.path.exists(self._local_playback_dirs.PlaybackSkpDir()):
+      os.makedirs(self._local_playback_dirs.PlaybackSkpDir())
     file_utils.CreateCleanLocalDir(
         self._local_playback_dirs.PlaybackGmActualDir())
 
@@ -134,3 +176,4 @@ class RenderWebpagePictures(build_step.BuildStep):
 
 if '__main__' == __name__:
   sys.exit(build_step.BuildStep.RunBuildStep(RenderWebpagePictures))
+

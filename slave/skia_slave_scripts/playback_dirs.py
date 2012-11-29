@@ -10,9 +10,9 @@ import posixpath
 
 # The playback root directory name will be used both locally and on Google
 # Storage.
-ROOT_PLAYBACK_DIR_NAME = 'webpages_playback'
+ROOT_PLAYBACK_DIR_NAME = 'playback'
 # The skpictures directory name will be used both locally and on Google Storage.
-SKPICTURES_DIR_NAME = 'skpictures'
+SKPICTURES_DIR_NAME = 'skps'
 
 
 class SkpPlaybackDirs(object):
@@ -51,9 +51,8 @@ class LocalSkpPlaybackDirs(SkpPlaybackDirs):
     SkpPlaybackDirs.__init__(self, builder_name, gm_image_subdir,
                              perf_output_basedir)
 
-    self._local_playback_root_dir = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir,
-        ROOT_PLAYBACK_DIR_NAME)    
+    self._local_playback_root_dir = os.path.abspath(
+        os.path.join(os.pardir, ROOT_PLAYBACK_DIR_NAME))
 
   def PlaybackRootDir(self):
     """Returns the local playback root directory."""
@@ -68,7 +67,7 @@ class LocalSkpPlaybackDirs(SkpPlaybackDirs):
     """Returns the local playback gm-actual directory."""
     return os.path.join(
         self._local_playback_root_dir, 'gm-actual',
-        self._gm_image_subdir, self._builder_name, self._gm_image_subdir)
+        self._builder_name)
 
   def PlaybackGmExpectedDir(self):
     """Returns the local playback gm-expected directory."""
@@ -77,15 +76,15 @@ class LocalSkpPlaybackDirs(SkpPlaybackDirs):
 
   def PlaybackPerfDataDir(self):
     """Returns the local playback perf data directory."""
-    return os.path.join(
-        self._perf_output_basedir, ROOT_PLAYBACK_DIR_NAME, 'perfdata',
-        self._builder_name, 'data')
+    return os.path.abspath(os.path.join(
+        self._perf_output_basedir, ROOT_PLAYBACK_DIR_NAME,
+        self._builder_name, 'data')) if self._perf_output_basedir else None
 
   def PlaybackPerfGraphsDir(self):
     """Returns the local playback perf graphs directory."""
-    return os.path.join(
-        self._perf_output_basedir, ROOT_PLAYBACK_DIR_NAME, 'perfdata',
-        self._builder_name, 'graphs')
+    return os.path.abspath(os.path.join(
+        self._perf_output_basedir, ROOT_PLAYBACK_DIR_NAME,
+        self._builder_name, 'graphs')) if self._perf_output_basedir else None
 
 
 class StorageSkpPlaybackDirs(SkpPlaybackDirs):
