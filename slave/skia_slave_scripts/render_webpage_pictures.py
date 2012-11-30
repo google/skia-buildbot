@@ -96,6 +96,7 @@ class RenderWebpagePictures(build_step.BuildStep):
       shutil.rmtree(self._local_playback_dirs.PlaybackGmExpectedDir())
       shutil.copytree(self._local_playback_dirs.PlaybackGmActualDir(),
                       self._local_playback_dirs.PlaybackGmExpectedDir())
+      os.listdir(self._local_playback_dirs.PlaybackGmExpectedDir())
     elif not gs_utils.AreTimeStampsEqual(
         local_dir=self._local_playback_dirs.PlaybackGmExpectedDir(),
         gs_base=self._dest_gsbase,
