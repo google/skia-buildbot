@@ -42,6 +42,8 @@ import traceback
 from perf_tools import skpicture_printer
 from slave import slave_utils
 from telemetry import multi_page_benchmark_runner
+from telemetry import wpr_modes
+from telemetry import user_agent
 from utils import file_utils
 from utils import gs_utils
 
@@ -65,6 +67,20 @@ NUM_TIMES_TO_RETRY = 5
 
 # The max base name length of Skp files.
 MAX_SKP_BASE_NAME_LEN = 31
+
+# Add Nexus10 to the UA_TYPE_MAPPING list in telemetry.user_agent.
+user_agent.UA_TYPE_MAPPING['nexus10'] = (
+    'Mozilla/5.0 (Linux; Android 4.2; Nexus 10 Build/JOP40C) '
+    'AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 '
+    'Safari/535.19')
+
+# Dictionary of page_sets to platform prefixes for skp files to help identify
+# which platform they were generated for.
+PAGE_SET_TO_PLATFORM_PREFIX = {
+    'skia_desktop_set.json': 'desk',
+    'skia_galaxynexus_set.json': 'mobi',
+    'skia_nexus10_set.json': 'tabl',
+}
 
 
 class SkPicturePlayback(object):
@@ -130,11 +146,6 @@ class SkPicturePlayback(object):
     # Rename generated skp files into more descriptive names.
     self._RenameSkpFiles()
 
-    # Delete the skp directory on Google Storage since it will be replaced.
-    gs_utils.DeleteStorageObject(
-        posixpath.join(self._dest_gsbase, ROOT_PLAYBACK_DIR_NAME,
-        SKPICTURES_DIR_NAME))
-
     # Copy the directory structure in the root directory into Google Storage.
     gs_status = slave_utils.GSUtilCopyDir(
         src_dir=LOCAL_PLAYBACK_ROOT_DIR, gs_base=self._dest_gsbase,
@@ -174,6 +185,13 @@ class SkPicturePlayback(object):
           # We only care about layer 0s.
           continue
         basename = basename.rstrip('_')
+
+        # Replace the prefix http/https with the platform prefix.
+        basename = basename.replace(
+            basename.split('_')[0],
+            PAGE_SET_TO_PLATFORM_PREFIX[self._page_set.split('/')[-1]],
+            1)
+
         # Ensure the basename is not too long.
         if len(basename) > MAX_SKP_BASE_NAME_LEN:
           basename = basename[0:MAX_SKP_BASE_NAME_LEN]
@@ -189,6 +207,9 @@ class SkPicturePlayback(object):
     AddCommandLineOptions so it can override
     page_test.PageTest.AddCommandLineOptions.
     """
+    parser.add_option('--record', action='store_const',
+                      dest='wpr_mode', const=wpr_modes.WPR_RECORD,
+                      help='Record to the page set archive')
     parser.add_option('-o', '--outdir', help='Output directory',
                       default=LOCAL_SKP_DIR)
 
@@ -220,7 +241,7 @@ class SkPicturePlayback(object):
     # Output skp files to skpictures_dir.
     skpicture_printer.SkPicturePrinter.AddCommandLineOptions = (
         self.AddSkPicturePrinterOptions)
-    
+
     # Point to the skpicture_printer benchmark.
     sys.argv.append('skpicture_printer')
     # Point to the top 25 webpages page set.
@@ -247,7 +268,7 @@ if '__main__' == __name__:
       help='Specifies the page set to use to archive.',
       default=(
           os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                       'page_sets', 'skia_set.json')))
+                       'page_sets', 'skia_desktop_set.json')))
   option_parser.add_option(
       '', '--record',
       help='Specifies whether a new website archive should be created.',
