@@ -4,7 +4,7 @@
 
 """ Subclass for all slave-side Android build steps. """
 
-from build_step import BuildStep, DEFAULT_TIMEOUT
+from build_step import BuildStep, DEFAULT_TIMEOUT, DEFAULT_NO_OUTPUT_TIMEOUT
 from utils import android_utils
 from utils import misc
 from utils import shell_utils
@@ -37,7 +37,8 @@ class AndroidBuildStep(BuildStep):
     android_utils.SetCPUScalingMode(self._serial, 'performance')
     android_utils.ADBKill(self._serial, 'skia')
 
-  def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT):
+  def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT,
+               no_output_timeout=DEFAULT_NO_OUTPUT_TIMEOUT):
     self._device = args['device']
     self._serial = args['serial']
     if self._serial == 'None':
@@ -47,5 +48,6 @@ class AndroidBuildStep(BuildStep):
             android_utils.PATH_TO_ADB, self._serial), 
         echo=True, shell=True).rstrip().split('\n')[-1]
     self._device_dirs = AndroidDirs(device_scratch_dir)
-    super(AndroidBuildStep, self).__init__(args, attempts=attempts,
-                                           timeout=timeout)
+    super(AndroidBuildStep, self).__init__(
+        args, attempts=attempts,
+        timeout=timeout, no_output_timeout=no_output_timeout)
