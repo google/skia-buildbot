@@ -31,6 +31,7 @@ import sys
 from utils import file_utils
 from utils import gs_utils
 from utils import shell_utils
+from utils import sync_bucket_subdir
 from build_step import PLAYBACK_CANNED_ACL
 from build_step import BuildStep, BuildStepWarning
 
