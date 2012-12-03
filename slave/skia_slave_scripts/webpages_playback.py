@@ -161,6 +161,7 @@ class SkPicturePlayback(object):
     gs_utils.WriteCurrentTimeStamp(
         gs_base=self._dest_gsbase,
         dest_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME),
+        local_dir=LOCAL_PLAYBACK_ROOT_DIR,
         gs_acl=PLAYBACK_CANNED_ACL)
     
     return 0

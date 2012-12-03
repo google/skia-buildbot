@@ -32,9 +32,24 @@ from slave import slave_utils
 from utils import gs_utils
 from utils import sync_bucket_subdir
 
+import build_step
+import compare_and_upload_webpage_gms
+
 
 class BenchWebpagePictures(BenchPictures):
   """Runs the bench_pictures executable on skp files from archived webpages."""
+
+  def __init__(
+      self, args, attempts=1,
+      timeout=(
+          build_step.DEFAULT_TIMEOUT *
+          compare_and_upload_webpage_gms.SKP_TIMEOUT_MULTIPLIER),
+      no_output_timeout=(
+          build_step.DEFAULT_NO_OUTPUT_TIMEOUT *
+          compare_and_upload_webpage_gms.SKP_TIMEOUT_MULTIPLIER)):
+    super(BenchWebpagePictures, self).__init__(
+        args, attempts=attempts, timeout=timeout,
+        no_output_timeout=no_output_timeout)
 
   def _GetSkpDir(self):
     """Points to the local playback skp directory."""

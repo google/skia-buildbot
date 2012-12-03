@@ -40,7 +40,7 @@ class SkiaFactory(BuildFactory):
   def __init__(self, do_upload_results=False,
                build_subdir='trunk', other_subdirs=None,
                target_platform=None, configuration=CONFIG_DEBUG,
-               default_timeout=2400,
+               default_timeout=8*60*60,
                environment_variables=None, gm_image_subdir=None,
                perf_output_basedir=None, builder_name=None, make_flags=None,
                test_args=None, gm_args=None, bench_args=None):

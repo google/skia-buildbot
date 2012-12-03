@@ -66,6 +66,9 @@ class TestGSUtils(unittest.TestCase):
         else:
           return TEST_TIMESTAMP_2
 
+      def read(self, arg1):
+        pass
+
       def close(self):
         pass
 
@@ -110,6 +113,7 @@ class TestGSUtils(unittest.TestCase):
     self._test_gs_acl = 'private'
     gs_utils.WriteCurrentTimeStamp(
         gs_base=self._test_gs_base, dest_dir=self._test_destdir,
+        local_dir=tempfile.mkdtemp(),
         gs_acl=self._test_gs_acl)
 
   def test_AreTimeStampsEqual(self):

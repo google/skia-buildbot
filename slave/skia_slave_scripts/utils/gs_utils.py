@@ -7,6 +7,7 @@
 
 import os
 import posixpath
+import shutil
 import tempfile
 import time
 
@@ -44,7 +45,7 @@ def DoesStorageObjectExist(object_name):
   return chromium_utils.RunCommand(command) == 0
 
 
-def WriteCurrentTimeStamp(gs_base, dest_dir, gs_acl):
+def WriteCurrentTimeStamp(gs_base, dest_dir, local_dir, gs_acl):
   """Adds a TIMESTAMP file to a Google Storage directory.
   
   The goal of WriteCurrentTimeStamp and ReadTimeStamp is to attempt to replicate
@@ -57,6 +58,7 @@ def WriteCurrentTimeStamp(gs_base, dest_dir, gs_acl):
     f.write(str(time.time()))
   finally:
     f.close()
+  shutil.copyfile(timestamp_file, os.path.join(local_dir, 'TIMESTAMP'))
   slave_utils.GSUtilCopyFile(filename=timestamp_file, gs_base=gs_base,
                              subdir=dest_dir, gs_acl=gs_acl)
 

@@ -31,7 +31,6 @@ import shutil
 import sys
 import tempfile
 
-from build_step import PLAYBACK_CANNED_ACL
 from slave import slave_utils
 from utils import file_utils
 from utils import gs_utils
@@ -44,34 +43,8 @@ import build_step
 # The device to use for render_pictures.
 RENDER_PICTURES_DEVICE = 'bitmap'
 
-SKP_TIMEOUT_MULTIPLIER = 5
-
 
 class RenderWebpagePictures(build_step.BuildStep):
-
-  def __init__(self, args, attempts=1,
-               timeout=build_step.DEFAULT_TIMEOUT * SKP_TIMEOUT_MULTIPLIER,
-               no_output_timeout=build_step.DEFAULT_NO_OUTPUT_TIMEOUT):
-    """Constructs a RenderWebpagePictures BuildStep instance.
-
-    args: dictionary containing arguments to this BuildStep.
-    attempts: how many times to try this BuildStep before giving up.
-    timeout: maximum time allowed for this BuildStep. The default value here is
-             increased because there could be a lot of skps' whose images have
-             to be copied over to Google Storage.
-    no_output_timeout: maximum time allowed for this BuildStep to run without
-        any output.
-    """
-    build_step.BuildStep.__init__(self, args, attempts, timeout,
-                                  no_output_timeout)
-
-    self._dest_gsbase = (self._args.get('dest_gsbase') or
-                         sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
-
-    # Check if gm-expected exists on Google Storage.
-    self._gm_expected_exists_on_storage = gs_utils.DoesStorageObjectExist(
-        posixpath.join(self._dest_gsbase,
-                       self._storage_playback_dirs.PlaybackGmExpectedDir()))
 
   def _Run(self):
     # Create the required local storage directories.
@@ -89,75 +62,17 @@ class RenderWebpagePictures(build_step.BuildStep):
     render_cmd = [self._PathToBinary('render_pictures')] + render_args
     shell_utils.Bash(render_cmd)
 
-    if not self._gm_expected_exists_on_storage:
-      # Copy images to expected directory if gm-expected has not been created in
-      # Storage yet.
-      print '\n\n=========Copying gm-actual to gm-expected locally=========\n\n'
-      shutil.rmtree(self._local_playback_dirs.PlaybackGmExpectedDir())
-      shutil.copytree(self._local_playback_dirs.PlaybackGmActualDir(),
-                      self._local_playback_dirs.PlaybackGmExpectedDir())
-      os.listdir(self._local_playback_dirs.PlaybackGmExpectedDir())
-    elif not gs_utils.AreTimeStampsEqual(
-        local_dir=self._local_playback_dirs.PlaybackGmExpectedDir(),
-        gs_base=self._dest_gsbase,
-        gs_relative_dir=self._storage_playback_dirs.PlaybackGmExpectedDir()):
-      file_utils.CreateCleanLocalDir(
-          self._local_playback_dirs.PlaybackGmExpectedDir())
-      # Copy expected images from Google Storage to the local directory.
-      print '\n\n=======Downloading gm-expected from Google Storage=======\n\n'
-      gs_utils.CopyStorageDirectory(
-          src_dir=posixpath.join(
-              self._dest_gsbase,
-              self._storage_playback_dirs.PlaybackGmExpectedDir(),
-              '*'),
-          dest_dir=self._local_playback_dirs.PlaybackGmExpectedDir(),
-          gs_acl=PLAYBACK_CANNED_ACL)
-
-    if self._do_upload_results:
-      # Copy actual images to Google Storage.
-      print '\n\n=========Uploading gm-actual to Google Storage=========\n\n'
-      gs_utils.CopyStorageDirectory(
-          src_dir=self._local_playback_dirs.PlaybackGmActualDir(),
-          dest_dir=posixpath.join(
-              self._dest_gsbase,
-              self._storage_playback_dirs.PlaybackGmActualDir()),
-          gs_acl=PLAYBACK_CANNED_ACL)
-      # Add a TIMESTAMP file to the gm-actual directory in Google Storage so
-      # that rebaselining will be a simple directory copy from gm-actual to
-      # gm-expected.
-      print '\n\n=========Adding TIMESTAMP for gm-actual=========\n\n'
-      gs_utils.WriteCurrentTimeStamp(
-          gs_base=self._dest_gsbase,
-          dest_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
-          gs_acl=PLAYBACK_CANNED_ACL)
-
-      if not self._gm_expected_exists_on_storage:
-        # Copy expected images to Google Storage since they do not exist yet.
-        print '\n\n========Uploading gm-expected to Google Storage========\n\n'
-        gs_utils.CopyStorageDirectory(
-            src_dir=self._local_playback_dirs.PlaybackGmExpectedDir(),
-            dest_dir=posixpath.join(
-                self._dest_gsbase,
-                self._storage_playback_dirs.PlaybackGmExpectedDir()),
-            gs_acl=PLAYBACK_CANNED_ACL)
-
-        # Add a TIMESTAMP file to the gm-expected directory in Google Storage so
-        # we can use directory level rsync like functionality.
-        print '\n\n=========Adding TIMESTAMP for gm-expected=========\n\n'
-        gs_utils.WriteCurrentTimeStamp(
-            gs_base=self._dest_gsbase,
-            dest_dir=self._storage_playback_dirs.PlaybackGmExpectedDir(),
-            gs_acl=PLAYBACK_CANNED_ACL)
-
   def _DownloadSkpsFromStorage(self):
     """Download Skps from Google Storage."""
+    gs_base = (self._args.get('dest_gsbase') or
+               sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
     if not gs_utils.AreTimeStampsEqual(
         local_dir=self._local_playback_dirs.PlaybackSkpDir(),
-        gs_base=self._dest_gsbase,
+        gs_base=gs_base,
         gs_relative_dir=self._storage_playback_dirs.PlaybackSkpDir()):
       print '\n\n========Downloading skp files from Google Storage========\n\n'
       skps_source = posixpath.join(
-          self._dest_gsbase, self._storage_playback_dirs.PlaybackSkpDir(), '*')
+          gs_base, self._storage_playback_dirs.PlaybackSkpDir(), '*')
       slave_utils.GSUtilDownloadFile(
           src=skps_source, dst=self._local_playback_dirs.PlaybackSkpDir())
 
@@ -177,4 +92,3 @@ class RenderWebpagePictures(build_step.BuildStep):
 
 if '__main__' == __name__:
   sys.exit(build_step.BuildStep.RunBuildStep(RenderWebpagePictures))
-
