@@ -1,0 +1,404 @@
+<html>
+  <head>
+  <title>Skia Buildbot Self-Analysis</title>
+  <link rel="icon" href="favicon.ico">
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script language="JavaScript">
+  var internalport = "10115";
+  var externalport = "10117";
+  var port = externalport;
+  var host = "http://70.32.156.51";
+
+  var builds_to_load = 100;
+  var display_builders = [];
+
+  var line_chart = null;
+  var line_chart_range_filter = null;
+  var line_chart_cols_per_builder = null;
+  var bar_chart = null;
+
+  var builder_data = null;
+  var all_builders = [];
+  var all_revs = [];
+  var data = {};
+  var got_data = {};
+
+  var selected_builder = null;
+  var selected_rev = null;
+
+  var longest_build_time = -1;
+
+  // Load the Visualization API
+  google.load("visualization", "1.0", {"packages":["corechart", "controls"]});
+
+  // Set a callback to run when the Google Visualization API is loaded.
+  google.setOnLoadCallback(init);
+
+  function setMessage(msg) {
+    document.getElementById("logging_div").innerHTML = msg;
+  }
+
+  function setRightContent(content) {
+    document.getElementById("right_content_div").innerHTML = content;
+  }
+
+  function clearCharts() {
+    document.getElementById("line_chart_div").innerHTML = "";
+    document.getElementById("line_chart_range_filter_div").innerHTML = "";
+    document.getElementById("bar_chart_div").innerHTML = "";
+  }
+
+  function populateBuilderMenu(builders) {
+    var menu = document.getElementById("builder_menu");
+    menu.options.length = 0;
+    for (var i = 0; i < builders.length; i++) {
+      var builder = builders[i];
+      var new_option = document.createElement("option");
+      new_option.text = builder;
+      new_option.value = builder;
+      menu.options.add(new_option);
+    }
+  }
+
+  function lineChartSelectHandler() {
+    var selected = line_chart.getSelection()[0];
+    if (selected && selected.column != undefined && selected.row != undefined) {
+      var builder = null;
+      var builder_idx = Math.floor(
+          (selected.column - 1) / line_chart_cols_per_builder);
+      for (var i = 0; i < display_builders.length; i++) {
+        if (i == builder_idx) {
+          builder = display_builders[i];
+          break;
+        }
+      }
+      var rev_idx = builds_to_load - selected.row
+      var rev = all_revs[all_revs.length - rev_idx];
+      selected_builder = builder;
+      selected_rev = rev;
+      console.log("Selected: " + selected_builder + " @ " + selected_rev);
+      drawBarChart();
+    }
+  }
+
+  function formatTime(seconds) {
+    var seconds = Math.round(seconds);
+    var hours = Math.floor(seconds / 3600);
+    seconds -= hours * 3600;
+    var minutes = Math.floor((seconds - (hours * 36000)) / 60);
+    seconds -= minutes * 60;
+    var total_time = "";
+    if (seconds > 9) {
+      total_time = seconds;
+    } else {
+      total_time = "0" + seconds;
+    }
+    if (minutes > 9) {
+      total_time = minutes + ":" + total_time;
+    } else {
+      total_time = "0" + minutes + ":" + total_time;
+    }
+    if (hours > 9) {
+      total_time = hours + ":" + total_time;
+    } else {
+      total_time = "0" + hours + ":" + total_time;
+    }
+    return total_time;
+  }
+
+  function drawLineChart() {
+    var table = new google.visualization.DataTable();
+    table.addColumn("number", "Revision");
+    for (var i = 0; i < display_builders.length; i++) {
+      table.addColumn("number", display_builders[i]);
+      table.addColumn({"type": "string", "role": "annotation"});
+    }
+    line_chart_cols_per_builder = 2;
+    longest_build_time = -1;
+    var rows = [];
+    for (var i = 0; i < builds_to_load; i++) {
+      var rev = all_revs[all_revs.length - builds_to_load + i];
+      var row = [rev];
+      for (j = 0; j < display_builders.length; j++) {
+        var builder = display_builders[j];
+        try {
+          time = data[rev][builder]["time"];
+          if (time > longest_build_time) {
+            longest_build_time = time;
+          }
+          row.push(time);
+          if (data[rev][builder]["result"] != 0) {
+            row.push("failed");
+          } else {
+            row.push(null);
+          }
+        } catch (e) {
+          row.push(null);
+          row.push(null);
+        }
+      }
+      rows.push(row);
+    }
+    table.addRows(rows);
+
+    var options = {"title": "Build Times",
+                   "width": 900,
+                   "height": 400,
+                   "chartArea": {left: 80, top: 80, width: "50%",
+                                 height: "70%"},
+                   "interpolateNulls": true,
+                   "hAxis": {"title": "Revision"},
+                   "vAxis": {"title": "Build Time (s)"},
+                   "legend": {"textStyle": {"fontSize": 12}},
+                   };
+    line_chart = new google.visualization.LineChart(document.getElementById(
+        "line_chart_div"));
+    google.visualization.events.addListener(line_chart, 'select',
+                                            lineChartSelectHandler);
+    line_chart.draw(table, options);
+
+    first_rev = all_revs[0];
+    last_rev = all_revs[all_revs.length - 1];
+    line_chart_range_filter = new google.visualization.ChartRangeFilter(
+        document.getElementById("line_chart_range_filter_div"));
+    google.visualization.events.addListener(line_chart_range_filter,
+        "statechange",
+        function() {
+          var range = line_chart_range_filter.getState().range;
+          options.hAxis.viewWindow = {min: range.start, max: range.end};
+          line_chart.draw(table, options);
+        });
+    line_chart_range_filter.draw(table,
+        {
+            "filterColumnIndex": 0,
+            "ui": {
+                "chartType": "AreaChart",
+                "minRangeSize": 1,
+                "chartOptions": {
+                    "chartArea": {"width": "50%",
+                                  "left": 80,
+                                  "height": "75%"},
+                    "width": 900,
+                    "height": 100,
+                    "colors": ["grey"],
+                    "hAxis": {"baselineColor": "none"},
+                    "vAxis": {"baselineColor": "none"},
+                    "interpolateNulls": true,
+                },
+            },
+        },
+        {"range": {"start": first_rev, "end": last_rev}});
+  }
+
+  function drawBarChart() {
+    var table = new google.visualization.DataTable();
+    table.addColumn("string", "Step");
+    table.addColumn("number", "Time");
+    table.addColumn({"type": "string", "role": "tooltip", "p": {"html": true}});
+    var build_data = data[selected_rev][selected_builder];
+    for (var i = 0; i < build_data["steps"].length; i++) {
+      var step = build_data["steps"][i];
+      var step_name = step["name"];
+      var time = step["time"];
+      var stdio = step["stdio"];
+      var result = step["result"];
+      var percent = time / build_data["time"] * 100.0;
+      table.addRow();
+      table.setValue(i, 0, step_name);
+      table.setValue(i, 1, time);
+      var tooltip = "<div style=\"font-family:Arial;font-size:14px;"
+                  + "padding:10px;\">" + step_name;
+      if (result != 0) {
+        tooltip += " <span style=\"background-color:red;\">Failed</span>";
+      }
+      tooltip += "<br/>" + formatTime(time) + " (" + percent.toFixed(2)
+              + "%)<br/>Log: <a href=\"" + stdio
+              + "\" target=\"_blank\">stdout</a></div>";
+      table.setFormattedValue(i, 2, tooltip);
+    }
+
+    // Set chart options
+    var options = {"title": selected_builder + ": Build #" +
+                       build_data["build_num"],
+                   "width": 1000,
+                   "height": 500,
+                   "chartArea": {left: 150, top: 80, width: "65%", height: "70%"},
+                   "hAxis": {"title": "Time (s)",
+                             "viewWindow": {"max": longest_build_time}},
+                   "vAxis": {"title": "Build Step"},
+                   "tooltip": {"isHtml": true},
+                   "legend": {"position": "none"},
+                   };
+  
+    // Instantiate and draw our chart, passing in some options.
+    bar_chart = new google.visualization.BarChart(
+        document.getElementById("bar_chart_div"));
+    bar_chart.draw(table, options);
+  }
+
+  function selectBuilders() {
+    display_builders = [];
+    var msg = "<p style=\"font-size:0.8em;\">Loading builds for builders:<ul>";
+    var menu = document.getElementById("builder_menu");
+    for (var i = 0; i < menu.options.length; i++) {
+      if (menu.options[i].selected) {
+        var builder = menu.options[i].text;
+        if (display_builders.indexOf(builder) == -1) {
+          display_builders.push(builder);
+          msg += "<li style=\"font-size:0.8em;\">" + builder;
+        }
+      }
+    }
+    msg += "</ul></p>";
+    clearCharts();
+    setMessage(msg);
+    setTimeout(function(){
+      for (var i = 0; i < display_builders.length; i++) {
+        var builder = display_builders[i];
+        if (!got_data[builder] || got_data[builder] == undefined) {
+          loadDataForBuilder(builder);
+        }
+      }
+      drawLineChart();
+      setMessage("");
+    }, 0);
+  }
+
+  function loadDataForBuild(builder, build) {
+    try {
+      var request = new XMLHttpRequest();
+    } catch (error) {
+      alert(error);
+    }
+    request.open("GET", host + ":" + port + "/json/builders/" + builder +
+                 "/builds/" + build + "/steps", false);
+    request.send(null);
+    // We *should* use a JSON parser, but since we trust the buildbot master
+    // server, we allow this unsafe call 
+    var build_data = eval("(" + request.responseText + ")");
+    var build_dict = {"build_num": build};
+    var steps = [];
+    var total_time = 0.0;
+    var result = 0;
+    var got_revision_str = "got_revision: ";
+    for (var step in build_data) {
+      var step_data = build_data[step];
+      if (step_data["isStarted"] && !step_data["isFinished"]) {
+        // If the build isn't finished, ignore it
+        return null;
+      }
+      if (!step_data["isStarted"]) {
+        continue;
+      }
+      if (step_data["name"] == "Update") {
+        if (!(step_data["isStarted"] && step_data["isFinished"] &&
+              step_data["results"][0] == 0)) {
+          // If the Update step failed, we can't attach a revision, so we have
+          // to ignore this build.
+          return null;
+        }
+        build_dict["revision"] = parseInt(step_data["text"][1].substring(
+            got_revision_str.length));
+      }
+      var times = step_data["times"];
+      var step_time = times[1] - times[0];
+      total_time += step_time;
+      try {
+        stdout = step_data["logs"][0][1];
+      } catch(e) {
+        stdout = "None";
+      }
+
+      var step_dict = {};
+      step_dict["name"] = step_data["name"];
+      step_dict["time"] = step_time;
+      step_dict["stdio"] = stdout;
+      step_dict["result"] = step_data["results"][0];
+      steps.push(step_dict);
+
+      if (step_dict["result"] != 0) {
+        result++;
+      }
+    }
+    if (build_dict["revision"] == undefined) {
+      return null;
+    }
+    if (total_time < 0) {
+      total_time = 0;
+    }
+    build_dict["result"] = result;
+    build_dict["steps"] = steps;
+    build_dict["time"] = total_time;
+    return build_dict;
+  }
+
+  function loadDataForBuilder(builder) {
+    console.log("Loading builds for " + builder + "...");
+    var builds = builder_data[builder]['cachedBuilds'];
+    for (i = 1; i <= builds_to_load; i++) {
+      if (builds.length - i < 0) { continue; }
+      var build_data = loadDataForBuild(builder, builds[builds.length - i]);
+      if (null == build_data) { continue; }
+      var rev = build_data["revision"];
+      if (rev == undefined) { continue; }
+      if (data[rev] == undefined) {
+        data[rev] = {}
+        all_revs.push(rev);
+      }
+      data[rev][builder] = build_data;
+    }
+    all_revs.sort();
+    got_data[builder] = true;
+    console.log("Loaded builds for " + builder + ".");
+  }
+
+  function loadData() {
+    console.log("Loading builder data...");
+    try {
+      var request = new XMLHttpRequest();
+    } catch (error) {
+      alert(error);
+    }
+    request.open("GET", host + ":" + port + "/json/builders", false);
+    request.send(null);
+    // We *should* use a JSON parser, but since we trust the buildbot master
+    // server, we allow this unsafe call 
+    builder_data = eval("(" + request.responseText + ")");
+    for (var builder in builder_data) {
+      all_builders.push(builder);
+      got_data[builder] = false;
+    }
+    populateBuilderMenu(all_builders);
+    console.log("Loaded builder data.");
+    setMessage("Select one or more builders.");
+  }
+
+  function init() {
+    setMessage("Loading builders...");
+    setTimeout(function() { loadData(); }, 0);
+  }
+  </script>
+  </head>
+  <body>
+    <div id="heading" style="font-size:2.5em; text-align:center;">
+      Skia Buildbots Self-Analysis
+    </div>
+    <div id="main_content_area">
+      <div id="builder_menu_div" style="float:left;">
+        Builders:<br/>
+        <select id="builder_menu" size="30" multiple="multiple"
+            style="width:400px;"></select>
+        <br/>
+        <input type="button" onClick="selectBuilders()"
+            value="Update Selection"/>
+      </div>
+      <div id="charts_div" style="float:left;">
+        <div id="line_chart_div"></div>
+        <div id="line_chart_range_filter_div"></div>
+        <div id="bar_chart_div"></div>
+        <div id="logging_div"></div>
+      </div>
+      <div id="right_content_div" style="float:right;"></div>
+    </div>
+  </body>
+</html>
