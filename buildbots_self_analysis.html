@@ -76,7 +76,13 @@
       var rev = all_revs[all_revs.length - rev_idx];
       selected_builder = builder;
       selected_rev = rev;
+      var build_num = data[selected_rev][selected_builder]["build_num"];
       console.log("Selected: " + selected_builder + " @ " + selected_rev);
+      var url = host + ":" + port + "/builders/" + selected_builder + "/builds/"
+              + build_num;
+      var right_content = "<iframe style=\"width:100%;height:100%;padding:0px;margin=0px;overflow:scroll;\" src=\"" + url
+                        + "\"></iframe>";
+      setRightContent(right_content);
       drawBarChart();
     }
   }
@@ -142,14 +148,15 @@
     table.addRows(rows);
 
     var options = {"title": "Build Times",
-                   "width": 900,
-                   "height": 400,
-                   "chartArea": {left: 80, top: 80, width: "50%",
+                   "width": "100%",
+                   "height": "100%",
+                   "chartArea": {left: "9%", top: "9%", width: "86%",
                                  height: "70%"},
                    "interpolateNulls": true,
                    "hAxis": {"title": "Revision"},
                    "vAxis": {"title": "Build Time (s)"},
-                   "legend": {"textStyle": {"fontSize": 12}},
+                   "legend": {"textStyle": {"fontSize": 12},
+                              "position": "bottom"},
                    };
     line_chart = new google.visualization.LineChart(document.getElementById(
         "line_chart_div"));
@@ -175,11 +182,12 @@
                 "chartType": "AreaChart",
                 "minRangeSize": 1,
                 "chartOptions": {
-                    "chartArea": {"width": "50%",
-                                  "left": 80,
-                                  "height": "75%"},
-                    "width": 900,
-                    "height": 100,
+                    "chartArea": {"width": "86%",
+                                  "height": "75%",
+                                  "left": "9%",
+                                  "right": "6%"},
+                    "width": "100%",
+                    "height": "100%",
                     "colors": ["grey"],
                     "hAxis": {"baselineColor": "none"},
                     "vAxis": {"baselineColor": "none"},
@@ -188,6 +196,7 @@
             },
         },
         {"range": {"start": first_rev, "end": last_rev}});
+    setRightContent("");
   }
 
   function drawBarChart() {
@@ -195,6 +204,7 @@
     table.addColumn("string", "Step");
     table.addColumn("number", "Time");
     table.addColumn({"type": "string", "role": "tooltip", "p": {"html": true}});
+    var failed_steps = [];
     var build_data = data[selected_rev][selected_builder];
     for (var i = 0; i < build_data["steps"].length; i++) {
       var step = build_data["steps"][i];
@@ -202,6 +212,9 @@
       var time = step["time"];
       var stdio = step["stdio"];
       var result = step["result"];
+      if (result != 0) {
+        failed_steps.push(step_name);
+      }
       var percent = time / build_data["time"] * 100.0;
       table.addRow();
       table.setValue(i, 0, step_name);
@@ -219,10 +232,10 @@
 
     // Set chart options
     var options = {"title": selected_builder + ": Build #" +
-                       build_data["build_num"],
-                   "width": 1000,
-                   "height": 500,
-                   "chartArea": {left: 150, top: 80, width: "65%", height: "70%"},
+                       build_data["build_num"] + ", r" + selected_rev,
+                   "width": "100%",
+                   "height": "100%",
+                   "chartArea": {left: "17%", top: "9%", width: "65%", height: "70%"},
                    "hAxis": {"title": "Time (s)",
                              "viewWindow": {"max": longest_build_time}},
                    "vAxis": {"title": "Build Step"},
@@ -380,25 +393,26 @@
   </script>
   </head>
   <body>
-    <div id="heading" style="font-size:2.5em; text-align:center;">
+    <div id="heading" style="font-size:2.5em; text-align:center; height:7%;">
       Skia Buildbots Self-Analysis
     </div>
-    <div id="main_content_area">
-      <div id="builder_menu_div" style="float:left;">
+    <div id="main_content_area" style="width:100%; height:90%; padding:0px; margin:0px;">
+      <div id="builder_menu_div" style="float:left; width:18%; height:100%; padding:0px; margin:0px;">
         Builders:<br/>
-        <select id="builder_menu" size="30" multiple="multiple"
-            style="width:400px;"></select>
+        <select id="builder_menu" multiple="multiple"
+            style="width:100%; height:95%; margin:0px; padding:0px;">
+            </select>
         <br/>
         <input type="button" onClick="selectBuilders()"
             value="Update Selection"/>
       </div>
-      <div id="charts_div" style="float:left;">
-        <div id="line_chart_div"></div>
-        <div id="line_chart_range_filter_div"></div>
-        <div id="bar_chart_div"></div>
-        <div id="logging_div"></div>
+      <div id="charts_div" style="float:left; width:51%; padding:0px; margin:0px">
+        <div id="logging_div" style="width:100%; padding:0px; margin:0px"></div>
+        <div id="line_chart_div" style="width:100%; height: 40%; padding:0px; margin:0px"></div>
+        <div id="line_chart_range_filter_div" style="width:100%; height: 10%; padding:0px; margin:0px"></div>
+        <div id="bar_chart_div" style="width:100%; height: 50%; padding:0px; margin:0px"></div>
       </div>
-      <div id="right_content_div" style="float:right;"></div>
+      <div id="right_content_div" style="float:right; width:31%; height:100%"></div>
     </div>
   </body>
 </html>
