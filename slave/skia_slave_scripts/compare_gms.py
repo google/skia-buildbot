@@ -18,8 +18,9 @@ class CompareGMs(BuildStep):
            '--nomatch', 'README',
            '--failonresult', 'DifferentPixels',
            '--failonresult', 'DifferentSizes',
-           '--failonresult', 'DifferentOther',
            '--failonresult', 'Unknown',
+           '--failonstatus', 'CouldNotDecode,CouldNotRead', 'any',
+           '--failonstatus', 'any', 'CouldNotDecode,CouldNotRead',
            self._gm_expected_dir,
            self._gm_actual_dir,
            ]
