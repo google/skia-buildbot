@@ -71,6 +71,7 @@ class RenderWebpagePictures(build_step.BuildStep):
         gs_base=gs_base,
         gs_relative_dir=self._storage_playback_dirs.PlaybackSkpDir()):
       print '\n\n========Downloading skp files from Google Storage========\n\n'
+      file_utils.CreateCleanLocalDir(self._local_playback_dirs.PlaybackSkpDir())
       skps_source = posixpath.join(
           gs_base, self._storage_playback_dirs.PlaybackSkpDir(), '*')
       slave_utils.GSUtilDownloadFile(

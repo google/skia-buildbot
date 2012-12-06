@@ -102,7 +102,6 @@ class CompareAndUploadWebpageGMs(BuildStep):
         shutil.rmtree(self._local_playback_dirs.PlaybackGmExpectedDir())
       shutil.copytree(self._local_playback_dirs.PlaybackGmActualDir(),
                       self._local_playback_dirs.PlaybackGmExpectedDir())
-      print os.listdir(self._local_playback_dirs.PlaybackGmExpectedDir())
       if self._do_upload_results:
         # Copy expected images to Google Storage since they do not exist yet.
         print '\n\n========Uploading gm-expected to Google Storage========\n\n'
@@ -140,7 +139,25 @@ class CompareAndUploadWebpageGMs(BuildStep):
 
     else:
       print '\n\n=======Local gm-expected directory is current=======\n\n'
-      print os.listdir(self._local_playback_dirs.PlaybackGmExpectedDir())
+
+    # Debugging statements.
+    expected_contents = os.listdir(
+        self._local_playback_dirs.PlaybackGmExpectedDir())
+    print 'Contents of gm-expected:'
+    print expected_contents
+    print len(expected_contents)
+
+    actual_contents = os.listdir(
+        self._local_playback_dirs.PlaybackGmActualDir())
+    print '\n\nContents of gm-actual:'
+    print actual_contents
+    print len(actual_contents)
+
+    skp_contents = os.listdir(
+        self._local_playback_dirs.PlaybackSkpDir())
+    print '\n\nContents of skp dir:'
+    print skp_contents
+    print len(skp_contents)
 
     try:
       print '\n\n=========Running GM Comparision=========\n\n'
@@ -148,24 +165,31 @@ class CompareAndUploadWebpageGMs(BuildStep):
     except Exception as e:
       print '\n\n=========GM Comparision Failed!=========\n\n'
       if self._do_upload_results:
-        # Copy actual images to Google Storage.
-        print '\n\n=========Uploading gm-actual to Google Storage=========\n\n'
-        gs_utils.CopyStorageDirectory(
-            src_dir=os.path.join(
-                self._local_playback_dirs.PlaybackGmActualDir(), '*'),
-            dest_dir=posixpath.join(
-                self._dest_gsbase,
-                self._storage_playback_dirs.PlaybackGmActualDir()),
-            gs_acl=PLAYBACK_CANNED_ACL)
-        # Add a TIMESTAMP file to the gm-actual directory in Google Storage so
-        # that rebaselining will be a simple directory copy from gm-actual to
-        # gm-expected.
-        print '\n\n=========Adding TIMESTAMP for gm-actual=========\n\n'
-        gs_utils.WriteCurrentTimeStamp(
-            gs_base=self._dest_gsbase,
-            dest_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
+        # Copy actual images to Google Storage only if the TIMESTAMPS are
+        # different.
+        if not gs_utils.AreTimeStampsEqual(
             local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
-            gs_acl=PLAYBACK_CANNED_ACL)      
+            gs_base=self._dest_gsbase,
+            gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir()):
+          print '\n\n=========Uploading gm-actual to Google Storage========\n\n'
+          gs_utils.CopyStorageDirectory(
+              src_dir=os.path.join(
+                  self._local_playback_dirs.PlaybackGmActualDir(), '*'),
+              dest_dir=posixpath.join(
+                  self._dest_gsbase,
+                  self._storage_playback_dirs.PlaybackGmActualDir()),
+              gs_acl=PLAYBACK_CANNED_ACL)
+          # Add a TIMESTAMP file to the gm-actual directory in Google Storage so
+          # that rebaselining will be a simple directory copy from gm-actual to
+          # gm-expected.
+          print '\n\n=========Adding TIMESTAMP for gm-actual=========\n\n'
+          gs_utils.WriteCurrentTimeStamp(
+              gs_base=self._dest_gsbase,
+              dest_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
+              local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
+              gs_acl=PLAYBACK_CANNED_ACL)
+        else:
+          print '\n\n=======Storage gm-actual directory is current=======\n\n'
       if self._builder_name in may_fail_with_warning:
         raise BuildStepWarning(e)
       else:
