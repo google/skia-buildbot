@@ -1,0 +1,413 @@
+<html>
+  <head>
+  <title>Skia Buildslave Idle Time Analysis</title>
+  <link rel="icon" href="favicon.ico">
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script language="JavaScript">
+  var internalport = "10115";
+  var externalport = "10117";
+  var port = externalport;
+  var host = "http://70.32.156.51";
+
+  var display_slaves = [];
+
+  var data = null;
+  var all_slaves = [];
+  var got_data = {};
+
+  var line_chart = null;
+  var line_chart_range_filter = null;
+
+  var line_chart_resolution = 1; // seconds
+  var line_chart_range_secs = 86400;
+  var current_time = Math.ceil(new Date().getTime() / 1000);
+  var line_chart_range_max = current_time;
+  var line_chart_range_min = current_time - line_chart_range_secs;
+
+  // Load the Visualization API
+  google.load("visualization", "1.0", {"packages":["corechart", "controls"]});
+
+  // Set a callback to run when the Google Visualization API is loaded.
+  google.setOnLoadCallback(init);
+
+  function setMessage(msg) {
+    document.getElementById("logging_div").innerHTML = msg;
+  }
+
+  function setRightContent(content) {
+    document.getElementById("right_content_div").innerHTML = content;
+  }
+
+  function clearCharts() {
+    document.getElementById("line_chart_div").innerHTML = "";
+    document.getElementById("line_chart_range_filter_div").innerHTML = "";
+    document.getElementById("pie_chart_div").innerHTML = "";
+  }
+
+  function populateSlaveMenu(slaves) {
+    var menu = document.getElementById("slave_menu");
+    menu.options.length = 0;
+    for (var i = 0; i < slaves.length; i++) {
+      var slave = slaves[i];
+      var new_option = document.createElement("option");
+      new_option.text = slave;
+      new_option.value = slave;
+      menu.options.add(new_option);
+    }
+  }
+
+  function drawLineChart() {
+    var table = new google.visualization.DataTable();
+    table.addColumn("datetime", "Time");
+    var date_min = new Date(line_chart_range_min * 1000);
+    var date_max = new Date(line_chart_range_max * 1000);
+    var times = [line_chart_range_min];
+    var current_build = {};
+    for (var i = 0; i < display_slaves.length; i++) {
+      var slave = display_slaves[i];
+      table.addColumn("number", display_slaves[i]);
+      table.addColumn({"type": "string", "role": "tooltip", "p": {"html": true}});
+      var slave_data = data[slave];
+      current_build[slave] = null;
+      for (var j = 0; j < slave_data["all_builds"].length; j++) {
+        build = slave_data["all_builds"][j];
+        if (build[2] > line_chart_range_min && build[2] < line_chart_range_max) {
+          times.push(Math.round(build[2] - 1));
+          times.push(Math.round(build[2] + 1));
+          if (current_build[slave] == null) {
+            current_build[slave] = j;
+          }
+        }
+        if (build[3] > line_chart_range_min && build[3] < line_chart_range_max) {
+          times.push(Math.round(build[3] - 1));
+          times.push(Math.round(build[3] + 1));
+          if (current_build[slave] == null) {
+            current_build[slave] = j;
+          }
+        }
+      }
+    }
+    times.push(line_chart_range_max);
+    times.sort();
+    var rows = [];
+    for (var i = 0; i < times.length; i++) {
+      time = times[i];
+      var row = [new Date(time * 1000)];
+      for (j = 0; j < display_slaves.length; j++) {
+        var slave = display_slaves[j];
+        var val = null;
+        var tooltip = null;
+        if (null != current_build[slave]) {
+          var build_idx = current_build[slave];
+          var build_data = data[slave]["all_builds"][build_idx]
+          var min = build_data[2];
+          var max = build_data[3];
+          if (time >= min) {
+            if (time <= max) {
+              val = j + 1;
+              tooltip = slave + ": " + build_data[0] + " Build #"
+                      + build_data[1];
+            } else {
+              if (data[slave]["all_builds"].length > current_build[slave] + 1) {
+                current_build[slave]++;
+              } else {
+                current_build[slave] = null;
+              }
+            }
+          }
+        }
+        row.push(val);
+        row.push(tooltip);
+      }
+      rows.push(row);
+    }
+    table.addRows(rows);
+
+    var options = {"title": "Buildslave Busy Times",
+                   "width": "100%",
+                   "height": "100%",
+                   "chartArea": {left: "9%", top: "9%", width: "86%",
+                                 height: "70%"},
+                   "hAxis": {"viewWindow": {"min": date_min,
+                                            "max": date_max}},
+                   "vAxis": {"gridlines": {"count": 0},
+                             "viewWindow": {"min": 0,
+                                            "max": display_slaves.length + 1}},
+                   "legend": {"textStyle": {"fontSize": 12},
+                              "position": "bottom"},
+                   "lineWidth": 20,
+                   };
+    line_chart = new google.visualization.LineChart(document.getElementById(
+        "line_chart_div"));
+    //google.visualization.events.addListener(line_chart, 'select',
+    //                                        lineChartSelectHandler);
+    line_chart.draw(table, options);
+
+    line_chart_range_filter = new google.visualization.ChartRangeFilter(
+        document.getElementById("line_chart_range_filter_div"));
+    google.visualization.events.addListener(line_chart_range_filter,
+        "statechange",
+        function() {
+          var range = line_chart_range_filter.getState().range;
+          options.hAxis.viewWindow = {min: range.start, max: range.end};
+          line_chart.draw(table, options);
+          if (display_slaves.length == 1) {
+            drawPieChart(data[display_slaves[0]]["all_builds"],
+                         range.start.getTime() / 1000,
+                         range.end.getTime() / 1000);
+          }
+        });
+    line_chart_range_filter.draw(table,
+        {
+            "filterColumnIndex": 0,
+            "ui": {
+                "chartType": "LineChart",
+                "minRangeSize": line_chart_resolution,
+                "chartOptions": {
+                    "chartArea": {"width": "86%",
+                                  "height": "75%",
+                                  "left": "9%",
+                                  "right": "6%"},
+                    "width": "100%",
+                    "height": "100%",
+                    "colors": ["grey"],
+                    "hAxis": {"baselineColor": "none",
+                              "viewWindow": {"min": date_min,
+                                             "max": date_max}},
+                    "vAxis": {"baselineColor": "none"},
+                },
+            },
+        },
+        {"range": {"start": date_min, "end": date_max}});
+    if (display_slaves.length == 1) {
+      drawPieChart(data[display_slaves[0]]["all_builds"], line_chart_range_min,
+                   line_chart_range_max);
+    }
+    setRightContent("");
+  }
+
+  function drawPieChart(builds, range_min, range_max) {
+    var busy_time = 0;
+    for (var i = 0; i < builds.length; i++) {
+      var build = builds[i];
+      var build_start = build[2];
+      var build_end = build[3];
+      if (build_end < range_min || build_start > range_max) {
+        continue;
+      }
+      if (build_start < range_min) {
+        build_start = range_min;
+      }
+      if (build_end > range_max) {
+        build_end = range_max;
+      }
+      busy_time += build_end - build_start;
+    }
+    var idle_time = range_max - range_min - busy_time;
+    var table = new google.visualization.arrayToDataTable([
+      ["Busy/Idle", "Time"],
+      ["Busy", busy_time],
+      ["Idle", idle_time],
+    ]);
+
+    // Set chart options
+    var options = {"title": "Busy/Idle Time"};
+  
+    // Instantiate and draw our chart, passing in some options.
+    pie_chart = new google.visualization.PieChart(
+        document.getElementById("pie_chart_div"));
+    pie_chart.draw(table, options);
+  }
+
+  function selectSlaves() {
+    display_slaves = [];
+    var msg = "<p style=\"font-size:0.8em;\">Loading builds for slaves:<ul>";
+    var menu = document.getElementById("slave_menu");
+    for (var i = 0; i < menu.options.length; i++) {
+      if (menu.options[i].selected) {
+        var slave = menu.options[i].text;
+        if (display_slaves.indexOf(slave) == -1) {
+          display_slaves.push(slave);
+          msg += "<li style=\"font-size:0.8em;\">" + slave;
+        }
+      }
+    }
+    msg += "</ul></p>";
+    clearCharts();
+    setMessage(msg);
+    setTimeout(function(){
+      for (var i = 0; i < display_slaves.length; i++) {
+        var slave = display_slaves[i];
+        if (!got_data[slave] || got_data[slave] == undefined) {
+          loadDataForSlave(slave);
+        }
+      }
+      drawLineChart();
+      setMessage("");
+    }, 0);
+  }
+
+  function loadDataForBuild(builder, build, load_unfinished) {
+    try {
+      var request = new XMLHttpRequest();
+    } catch (error) {
+      alert(error);
+    }
+    request.open("GET", host + ":" + port + "/json/builders/" + builder +
+                 "/builds/" + build + "/steps", false);
+    request.send(null);
+    // We *should* use a JSON parser, but since we trust the buildbot master
+    // server, we allow this unsafe call 
+    var build_data = eval("(" + request.responseText + ")");
+    var build_dict = {"build_num": build};
+    var steps = [];
+    var result = 0;
+    var start_time = 0;
+    var end_time = 0;
+    var got_revision_str = "got_revision: ";
+    for (var step in build_data) {
+      var step_data = build_data[step];
+      if (step_data["isStarted"] && !step_data["isFinished"]) {
+        // If the build isn't finished, ignore it
+        return null;
+      }
+      if (!step_data["isStarted"]) {
+        continue;
+      }
+      if (step_data["name"] == "Update") {
+        if (!(step_data["isStarted"] && step_data["isFinished"] &&
+              step_data["results"][0] == 0) && !load_unfinished) {
+          // If the Update step failed, we can't attach a revision, so we have
+          // to ignore this build.
+          console.log("Update step failed in build #" + build + ". Skipping.");
+          return null;
+        }
+        build_dict["revision"] = parseInt(step_data["text"][1].substring(
+            got_revision_str.length));
+      }
+      var times = step_data["times"];
+      var step_time = times[1] - times[0];
+      if (start_time == 0) {
+        start_time = times[0];
+      }
+      end_time = times[1];
+      try {
+        stdout = step_data["logs"][0][1];
+      } catch(e) {
+        stdout = "None";
+      }
+
+      var step_dict = {};
+      step_dict["name"] = step_data["name"];
+      step_dict["time"] = step_time;
+      step_dict["stdio"] = stdout;
+      step_dict["result"] = step_data["results"][0];
+      steps.push(step_dict);
+
+      if (step_dict["result"] != 0) {
+        result++;
+      }
+    }
+    if (build_dict["revision"] == undefined) {
+      console.log("Warning: could not find a revision for build #" + build);
+    }
+    build_dict["result"] = result;
+    build_dict["steps"] = steps;
+    build_dict["start_time"] = start_time;
+    build_dict["end_time"] = end_time;
+    build_dict["time"] = end_time - start_time;
+    return build_dict;
+  }
+
+  function loadDataForSlave(slave) {
+    console.log("Loading builds for " + slave + "...");
+    var builders = data[slave]["builders"];
+    data[slave]["range_min"] = Number.POSITIVE_INFINITY;
+    data[slave]["range_max"] = Number.NEGATIVE_INFINITY;
+    data[slave]["all_builds"] = [];
+    for (var builder in builders) {
+      console.log("  " + builder);
+      var builds = builders[builder];
+      for (var i = 0; i < builds.length; i++) {
+        var build = builds[i];
+        var build_data = loadDataForBuild(builder, build, true);
+        if (build_data) {
+          data[slave]["all_builds"].push([builder, build_data["build_num"],
+              build_data["start_time"], build_data["end_time"]]);
+          if (build_data["start_time"] < data[slave]["range_min"]) {
+            data[slave]["range_min"] = build_data["start_time"];
+          }
+          if (build_data["end_time"] > data[slave]["range_max"]) {
+            data[slave]["range_max"] = build_data["end_time"];
+          }
+          if (build_data["end_time"] < line_chart_range_min ||
+              build_data["start_time"] < line_chart_range_min) {
+            break;
+          }
+        }
+      }
+    }
+    var current_builds = data[slave]["runningBuilds"];
+    for (var i = 0; i < current_builds.length; i++) {
+      var build = current_builds[i];
+      data[slave]["all_builds"].push([build["builderName"], build["number"],
+                                      build["times"][0], current_time + 1]);
+    }
+    data[slave]["all_builds"].sort(function(a, b) {
+      return a[2] - b[2];
+    });
+    got_data[slave] = true;
+    console.log("Loaded builds for " + slave + ".");
+  }
+
+  function loadData() {
+    console.log("Loading buildslave data...");
+    try {
+      var request = new XMLHttpRequest();
+    } catch (error) {
+      alert(error);
+    }
+    request.open("GET", host + ":" + port + "/json/slaves", false);
+    request.send(null);
+    // We *should* use a JSON parser, but since we trust the buildbot master
+    // server, we allow this unsafe call 
+    data = eval("(" + request.responseText + ")");
+    for (var slave in data) {
+      //console.log(slave);
+      all_slaves.push(slave);
+      got_data[slave] = false;
+    }
+    populateSlaveMenu(all_slaves);
+    console.log("Loaded buildslave data.");
+  }
+
+  function init() {
+    console.log("Loading buildslaves...");
+    setTimeout(function() { loadData(); }, 0);
+  }
+  </script>
+  </head>
+  <body>
+    <div id="heading" style="font-size:2.5em; text-align:center; height:7%;">
+      Skia Buildslave Idle Time Analysis
+    </div>
+    <div id="main_content_area" style="width:100%; height:90%; padding:0px; margin:0px;">
+      <div id="slave_menu_div" style="float:left; width:18%; height:100%; padding:0px; margin:0px;">
+        Buildslaves:<br/>
+        <select id="slave_menu" multiple="multiple"
+            style="width:100%; height:95%; margin:0px; padding:0px;">
+            </select>
+        <br/>
+        <input type="button" onClick="selectSlaves()"
+            value="Update Selection"/>
+      </div>
+      <div id="charts_div" style="float:left; width:51%; padding:0px; margin:0px">
+        <div id="logging_div" style="width:100%; padding:0px; margin:0px"></div>
+        <div id="line_chart_div" style="width:100%; height: 40%; padding:0px; margin:0px"></div>
+        <div id="line_chart_range_filter_div" style="width:100%; height: 10%; padding:0px; margin:0px"></div>
+        <div id="pie_chart_div" style="width:100%; height: 50%; padding:0px; margin:0px"></div>
+      </div>
+      <div id="right_content_div" style="float:right; width:31%; height:100%"></div>
+    </div>
+  </body>
+</html>
