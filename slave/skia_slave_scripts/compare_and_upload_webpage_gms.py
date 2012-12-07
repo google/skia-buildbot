@@ -194,6 +194,14 @@ class CompareAndUploadWebpageGMs(BuildStep):
         raise BuildStepWarning(e)
       else:
         raise
+    else:
+      print '\n\n=========GM Comparision Succeeded!=========\n\n'
+      print 'Update the gm-actual local TIMESTAMP'
+      gs_utils.WriteCurrentTimeStamp(
+          gs_base=None,
+          dest_dir=None,
+          local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
+          gs_acl=None)
 
 
 if '__main__' == __name__:

@@ -81,8 +81,17 @@ class RenderWebpagePictures(build_step.BuildStep):
     """Creates required local storage directories for this script."""
     if not os.path.exists(self._local_playback_dirs.PlaybackSkpDir()):
       os.makedirs(self._local_playback_dirs.PlaybackSkpDir())
-    file_utils.CreateCleanLocalDir(
-        self._local_playback_dirs.PlaybackGmActualDir())
+
+    if os.path.exists(self._local_playback_dirs.PlaybackGmActualDir()):
+      # Delete everything except the TIMESTAMP file.
+      for path, unused_dirs, files in os.walk(
+          self._local_playback_dirs.PlaybackGmActualDir()):
+        if 'TIMESTAMP' in files:
+          files.remove('TIMESTAMP')
+        for gm_actual_file in files:
+          os.remove(os.path.join(path, gm_actual_file))
+    else:
+      os.makedirs(self._local_playback_dirs.PlaybackGmActualDir())
 
   def _GetRenderPictureArgs(self, skp_dir, out_dir, config):
     """Returns the arguments to use when invoking render_pictures."""

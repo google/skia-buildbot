@@ -45,9 +45,14 @@ def DoesStorageObjectExist(object_name):
   return chromium_utils.RunCommand(command) == 0
 
 
-def WriteCurrentTimeStamp(gs_base, dest_dir, local_dir, gs_acl):
-  """Adds a TIMESTAMP file to a Google Storage directory.
+def WriteCurrentTimeStamp(gs_base=None, dest_dir=None, local_dir=None,
+                          gs_acl=None):
+  """Adds a TIMESTAMP file to a Google Storage and/or a Local Directory.
   
+  If gs_base, dest_dir and gs_acl are provided then the TIMESTAMP is written to
+  Google Storage. If local_dir is provided then the TIMESTAMP is written to a
+  local directory.
+
   The goal of WriteCurrentTimeStamp and ReadTimeStamp is to attempt to replicate
   directory level rsync functionality to the Google Storage directories we care
   about.
@@ -58,9 +63,11 @@ def WriteCurrentTimeStamp(gs_base, dest_dir, local_dir, gs_acl):
     f.write(str(time.time()))
   finally:
     f.close()
-  shutil.copyfile(timestamp_file, os.path.join(local_dir, 'TIMESTAMP'))
-  slave_utils.GSUtilCopyFile(filename=timestamp_file, gs_base=gs_base,
-                             subdir=dest_dir, gs_acl=gs_acl)
+  if local_dir:
+    shutil.copyfile(timestamp_file, os.path.join(local_dir, 'TIMESTAMP'))
+  if gs_base and dest_dir and gs_acl:
+    slave_utils.GSUtilCopyFile(filename=timestamp_file, gs_base=gs_base,
+                               subdir=dest_dir, gs_acl=gs_acl)
 
 
 def AreTimeStampsEqual(local_dir, gs_base, gs_relative_dir):
