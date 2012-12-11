@@ -32,6 +32,20 @@ def RecursiveDelete(directory):
   shutil.rmtree(directory, onerror=_OnRmtreeError)
 
 
+def ClearDirectory(directory):
+  """ Attempt to clear the contents of a directory. This should only be used
+  when the directory itself cannot be removed for some reason. Otherwise,
+  RecursiveDelete or CreateCleanLocalDir should be preferred. """
+  for path in os.listdir(path):
+    if os.path.isdir(path):
+      RecursiveDelete(os.path.join(directory, path))
+    else:
+      if not os.access(path, os.W_OK):
+        # Change the path to be writeable
+        os.chmod(path, stat.S_IWUSR)
+      os.remove(path)
+
+
 def CreateCleanLocalDir(directory):
   """If directory already exists, it is deleted and recreated."""
   if os.path.exists(directory):

@@ -66,7 +66,7 @@ class Update(BuildStep):
       build_dir = os.path.abspath(os.curdir)
       os.chdir(os.pardir)
       print 'Deleting checkout and starting over...'
-      file_utils.RecursiveDelete(build_dir)
+      file_utils.ClearDirectory(build_dir)
       os.mkdir(build_dir)
       os.chdir(build_dir)
       shell_utils.Bash([gclient, 'config', '--spec=%s' % gclient_spec])
