@@ -5,6 +5,7 @@
 
 """ Check out the Skia sources. """
 
+from utils import file_utils
 from utils import shell_utils
 from build_step import BuildStep, BuildStepFailure
 import ast
@@ -57,8 +58,19 @@ class Update(BuildStep):
     shell_utils.Bash([svn, 'ls', config.Master.skia_url,
                       '--non-interactive', '--trust-server-cert'], echo=False)
 
-    # Run "gclient sync" with the argument list we just constructed.
-    shell_utils.Bash([gclient, 'sync'] + sync_args)
+    try:
+      # Run "gclient sync" with the argument list we just constructed.
+      shell_utils.Bash([gclient, 'sync'] + sync_args)
+    except:
+      # If the sync failed, remove the entire build directory and start over.
+      build_dir = os.path.abspath(os.curdir)
+      os.chdir(os.pardir)
+      print 'Deleting checkout and starting over...'
+      file_utils.RecursiveDelete(build_dir)
+      os.mkdir(build_dir)
+      os.chdir(build_dir)
+      shell_utils.Bash([gclient, 'config', '--spec=%s' % gclient_spec])
+      shell_utils.Bash([gclient, 'sync'] + sync_args)
 
     # Determine what revision we actually got. If it differs from what was
     # requested, this step fails.

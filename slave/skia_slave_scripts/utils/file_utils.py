@@ -5,13 +5,36 @@
 
 """This module contains utilities related to file/directory manipulations."""
 
+import misc
 import os
 import shutil
+import stat
+
+
+def RecursiveDelete(directory):
+  """ Recursively remove a directory tree. Wrapper for shutil.rmtree which
+  provides an onerror function in case of permission problems. """
+
+  def _OnRmtreeError(function, path, excinfo):
+    """ onerror function for shutil.rmtree.
+  
+    Reasons we might end up here:
+    -  If a file is read-only, rmtree will fail on Windows.
+    -  There is a path-length limitation on Windows.  If we exceed that (common),
+       then rmtree (and other functions) will fail.
+    """
+    abs_path = misc.GetAbsPath(path)
+    if not os.access(abs_path, os.W_OK):
+      # Change the path to be writeable and try again.
+      os.chmod(abs_path, stat.S_IWUSR)
+    function(abs_path)
+
+  shutil.rmtree(directory, onerror=_OnRmtreeError)
 
 
 def CreateCleanLocalDir(directory):
   """If directory already exists, it is deleted and recreated."""
   if os.path.exists(directory):
-    shutil.rmtree(directory)
+    RecursiveDelete(directory)
   print 'Creating directory: %s' % directory
   os.makedirs(directory)

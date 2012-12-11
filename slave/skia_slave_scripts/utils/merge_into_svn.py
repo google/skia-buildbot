@@ -25,11 +25,11 @@ To test:
 
 """
 
+import file_utils
 import misc
 import optparse
 import os
 import shutil
-import stat
 import sys
 import tempfile
 import traceback
@@ -89,7 +89,7 @@ def _DeleteDirectoryContents(dir):
   for basename in basenames:
     path = os.path.join(dir, basename)
     if os.path.isdir(path):
-      shutil.rmtree(path, onerror=_OnRmtreeError)
+      file_utils.RecursiveDelete(path)
     else:
       os.unlink(path)
 
@@ -131,21 +131,6 @@ def _SvnDoesUrlExist(repo, url):
 # See https://code.google.com/p/skia/issues/detail?id=713
 def _SvnCleanup(repo):
   repo._RunSvnCommand(['cleanup'])
-
-
-def _OnRmtreeError(function, path, excinfo):
-  """ onerror function for shutil.rmtree.
-
-  Reasons we might end up here:
-  -  If a file is read-only, rmtree will fail on Windows.
-  -  There is a path-length limitation on Windows.  If we exceed that (common),
-     then rmtree (and other functions) will fail.
-  """
-  abs_path = misc.GetAbsPath(path)
-  if not os.access(abs_path, os.W_OK):
-    # Change the path to be writeable and try again.
-    os.chmod(abs_path, stat.S_IWUSR)
-  function(abs_path)
 
 
 def MergeIntoSvn(options):
@@ -199,7 +184,7 @@ def MergeIntoSvn(options):
         # First, clear the existing directory
         print 'The remote repository UUID has changed.  Removing the existing \
               checkout and checking out again to update with the new UUID'
-        shutil.rmtree(mergedir, onerror=_OnRmtreeError)
+        file_utils.RecursiveDelete(mergedir)
         os.makedirs(mergedir)
         # Then, check out the repo again.
         print repo.Checkout(url=options.dest_svn_url, path='.')
@@ -245,7 +230,7 @@ def MergeIntoSvn(options):
   print repo.Commit(message=options.commit_message)
   if not options.merge_dir_path:
     print 'deleting mergedir %s' % mergedir
-    shutil.rmtree(mergedir, ignore_errors=True)
+    file_utils.RecursiveDelete(mergedir)
   return 0
 
 
