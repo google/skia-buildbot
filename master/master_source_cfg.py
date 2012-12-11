@@ -2,11 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-
 from buildbot.changes import svnpoller
 from master import build_utils
 from skia_master_scripts import utils
-
 
 def SkiaFileSplitter(path):
   """split_file for Skia."""
@@ -15,7 +13,6 @@ def SkiaFileSplitter(path):
     if path.startswith(subdir):
       return (subdir, path[len(subdir)+1:])
   return None
-
 
 def Update(config, active_master, c):
   skia_url = config.Master.skia_url

@@ -14,8 +14,6 @@ from buildbot.scheduler import Scheduler
 from buildbot.schedulers import timed
 from buildbot.util import NotABranch
 from master import master_config
-from master.builders_pools import BuildersPools
-from master.try_job_svn import TryJobSubversion
 from oauth2client.client import SignedJwtAssertionCredentials
 from skia_master_scripts import android_factory
 from skia_master_scripts import factory as skia_factory
@@ -177,13 +175,6 @@ class SkiaHelper(master_config.Helper):
                               'month': month,
                               'dayOfWeek': dayOfWeek}
 
-  def TryScheduler(self, name):
-    """ Adds a try scheduler. """
-    if name in self._schedulers:
-      raise ValueError('Scheduler %s already exists' % name)
-    self._schedulers[name] = {'type': 'TryJobSubversion',
-                              'builders': []}
-
   def Update(self, c):
     super(SkiaHelper, self).Update(c)
     all_subdirs = SKIA_PRIMARY_SUBDIRS
@@ -207,15 +198,6 @@ class SkiaHelper(master_config.Helper):
                                  dayOfMonth=scheduler['dayOfMonth'],
                                  month=scheduler['month'],
                                  dayOfWeek=scheduler['dayOfWeek'])
-      elif scheduler['type'] == 'TryJobSubversion':
-        pools = BuildersPools(s_name)
-        pools[s_name].extend(scheduler['builders'])
-        instance = TryJobSubversion(
-            name=s_name,
-            svn_url='https://skia-try.googlecode.com/svn',
-            last_good_urls={'skia': None},
-            code_review_sites={'skia': 'http://codereview.appspot.com'},
-            pools=pools)
       else:
         raise ValueError(
             'The scheduler type is unrecognized %s' % scheduler['type'])

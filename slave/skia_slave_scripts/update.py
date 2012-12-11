@@ -52,10 +52,6 @@ class Update(BuildStep):
         sync_args += ['--revision', '%s@%d' % (solution['name'],
                                                self._revision)]
 
-    # Clean our checkout
-    print 'Cleaning checkout...'
-    shell_utils.Bash([gclient, 'revert'])
-
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
     shell_utils.Bash([svn, 'ls', config.Master.skia_url,
