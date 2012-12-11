@@ -8,7 +8,8 @@
     <script language="JavaScript">
     var nonbench_builders = [];
     var bench_builders = [];
-    var all_builders = [];
+    var normal_builders = [];
+    var try_builders = [];
 
     var display_builders = "nonbench";
     var display_builders_list = nonbench_builders;
@@ -80,13 +81,18 @@
       var builders_json = eval("(" + request.responseText + ")");
       nonbench_builders = [];
       bench_builders = [];
-      all_builders = [];
+      normal_builders = [];
+      try_builders = [];
       for (var builder in builders_json) {
-        all_builders.push(builder);
-        if (builder.indexOf("Bench") != -1) {
-          bench_builders.push(builder);
+        if (builder.indexOf("Trybot") != -1) {
+          try_builders.push(builder)
         } else {
-          nonbench_builders.push(builder);
+          normal_builders.push(builder);
+          if (builder.indexOf("Bench") != -1) {
+            bench_builders.push(builder);
+          } else {
+            nonbench_builders.push(builder);
+          }
         }
       }
     }
@@ -103,7 +109,9 @@
       if (display_builders == "bench") {
         display_builders_list = bench_builders;
       } else if (display_builders == "all") {
-        display_builders_list = all_builders;
+        display_builders_list = normal_builders;
+      } else if (display_builders == "try") {
+        display_builders_list = try_builders;
       } else {
         display_builders = "nonbench";
         display_builders_list = nonbench_builders;
@@ -140,6 +148,7 @@
         <input type="radio" id="nonbench_console" value="nonbench_console" onClick="javascript:reloadWithOptions(display_view, 'nonbench', 'console');">Non-Bench Builders
         <input type="radio" id="bench_console" value="bench_console" onClick="javascript:reloadWithOptions(display_view, 'bench', 'console');">Bench Builders
         <input type="radio" id="all_console" value="all_console" onClick="javascript:reloadWithOptions(display_view, 'all', 'console');">All Builders
+        <input type="radio" id="try_waterfall" value="try_waterfall" onClick="javascript:reloadWithOptions(display_view, 'try', 'waterfall');">Trybots
       </form>
     </div>
    <!-- Waterfall: 
