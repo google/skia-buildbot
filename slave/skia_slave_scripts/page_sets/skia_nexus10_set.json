@@ -5,6 +5,11 @@
     "user_agent_type": "nexus10",
     "pages": [
         {
+            "url": "http://www.sahadan.com/default.aspx",
+            "wait_time_after_navigate": 15.0,
+            "why": "from Tom W's list"
+        },
+        {
             "url": "http://techmeme.com/",
             "wait_time_after_navigate": 5.0,
             "why": "from klobag"
@@ -26,7 +31,7 @@
         },
         {
             "url": "http://www.cnn.com/2012/10/03/politics/michelle-obama-debate/index.html",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 15.0,
             "why": "#2 news worldwide"
         },
         {
@@ -46,7 +51,7 @@
         },
         {
             "url": "http://www.frantzen-lindeberg.com/se/",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 15.0,
             "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
         },
         {
@@ -107,11 +112,6 @@
             "url": "http://www.pravda.ru/",
             "wait_time_after_navigate": 5.0,
             "why": "cyrillic font test case"
-        },
-        {
-            "url": "http://www.sahadan.com/",
-            "wait_time_after_navigate": 5.0,
-            "why": "from Tom W's list"
         },
         {
             "url": "http://www.sfgate.com/",

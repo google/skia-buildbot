@@ -4,6 +4,11 @@
     "credentials_path": "data/credentials.json",
     "pages": [
         {
+            "url": "http://ie.microsoft.com/testdrive/Performance/Chalkboard/Images/Chalkboard.svg",
+            "wait_time_after_navigate": 15.0,
+            "why": "from fmalita"
+        },
+        {
             "url": "https://www.google.com/#hl=en&q=barack+obama",
             "wait_time_after_navigate": 5.0,
             "why": "top google property; a google tab is often open"
