@@ -14,6 +14,11 @@ import time
 from common import chromium_utils
 from slave import slave_utils
 
+import file_utils
+
+TIMESTAMP_STARTED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_STARTED'
+TIMESTAMP_COMPLETED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_COMPLETED'
+
 
 def DeleteStorageObject(object_name):
   """Delete an object on Google Storage."""
@@ -45,55 +50,118 @@ def DoesStorageObjectExist(object_name):
   return chromium_utils.RunCommand(command) == 0
 
 
-def WriteCurrentTimeStamp(gs_base=None, dest_dir=None, local_dir=None,
-                          gs_acl=None):
-  """Adds a TIMESTAMP file to a Google Storage and/or a Local Directory.
-  
-  If gs_base, dest_dir and gs_acl are provided then the TIMESTAMP is written to
-  Google Storage. If local_dir is provided then the TIMESTAMP is written to a
-  local directory.
+def DownloadDirectoryContentsIfChanged(gs_base, gs_relative_dir, local_dir):
+  """Compares the TIMESTAMP_LAST_UPLOAD_COMPLETED and downloads if different.
 
-  The goal of WriteCurrentTimeStamp and ReadTimeStamp is to attempt to replicate
-  directory level rsync functionality to the Google Storage directories we care
-  about.
+  The goal of DownloadDirectoryContentsIfChanged and
+  UploadDirectoryContentsIfChanged is to attempt to replicate directory level
+  rsync functionality to the Google Storage directories we care about.
   """
-  timestamp_file = os.path.join(tempfile.gettempdir(), 'TIMESTAMP')
-  f = open(timestamp_file, 'w')
-  try:
-    f.write(str(time.time()))
-  finally:
-    f.close()
-  if local_dir:
-    shutil.copyfile(timestamp_file, os.path.join(local_dir, 'TIMESTAMP'))
-  if gs_base and dest_dir and gs_acl:
-    slave_utils.GSUtilCopyFile(filename=timestamp_file, gs_base=gs_base,
-                               subdir=dest_dir, gs_acl=gs_acl)
+  if _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
+    print '\n\n=======Local directory is current=======\n\n'
+  else:
+    file_utils.CreateCleanLocalDir(local_dir)
+    gs_source = posixpath.join(gs_base, gs_relative_dir, '*')
+    slave_utils.GSUtilDownloadFile(src=gs_source, dst=local_dir)
 
 
-def AreTimeStampsEqual(local_dir, gs_base, gs_relative_dir):
-  """Compares the local TIMESTAMP with the TIMESTAMP from Google Storage.
-  
-  The goal of WriteCurrentTimeStamp and ReadTimeStamp is to attempt to replicate
-  directory level rsync functionality to the Google Storage directories we care
-  about.
+def UploadDirectoryContentsIfChanged(gs_base, gs_relative_dir, gs_acl,
+                                     local_dir, force_upload=False):
+  """Compares the TIMESTAMP_LAST_UPLOAD_COMPLETED and uploads if different.
+
+  The goal of DownloadDirectoryContentsIfChanged and
+  UploadDirectoryContentsIfChanged is to attempt to replicate directory level
+  rsync functionality to the Google Storage directories we care about.
+
+  Returns True if contents were uploaded, else returns False.
   """
+  if not force_upload and _AreTimeStampsEqual(gs_base, gs_relative_dir,
+                                              local_dir):
+    print '\n\n=======Local directory is current=======\n\n'
+    return False
+  else:
+    local_src = os.path.join(local_dir, '*')
+    gs_dest = posixpath.join(gs_base, gs_relative_dir)
+    timestamp_value = time.time()
+    
+    print '\n\n=======Delete Storage directory before uploading=======\n\n'
+    DeleteStorageObject(gs_dest)
 
-  local_timestamp_file = os.path.join(local_dir, 'TIMESTAMP')
+    print '\n\n=======Writing new TIMESTAMP_LAST_UPLOAD_STARTED=======\n\n'
+    WriteTimeStampFile(
+        timestamp_file_name=TIMESTAMP_STARTED_FILENAME,
+        timestamp_value=timestamp_value, gs_base=gs_base,
+        gs_relative_dir=gs_relative_dir, local_dir=local_dir, gs_acl=gs_acl)
+
+    slave_utils.GSUtilDownloadFile(src=local_src, dst=gs_dest)
+
+    print '\n\n=======Writing new TIMESTAMP_LAST_UPLOAD_COMPLETED=======\n\n'
+    WriteTimeStampFile(
+        timestamp_file_name=TIMESTAMP_COMPLETED_FILENAME,
+        timestamp_value=timestamp_value, gs_base=gs_base,
+        gs_relative_dir=gs_relative_dir, local_dir=local_dir, gs_acl=gs_acl)
+    return True
+
+
+def _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
+  """Compares the local TIMESTAMP with the TIMESTAMP from Google Storage."""
+
+  local_timestamp_file = os.path.join(local_dir, TIMESTAMP_COMPLETED_FILENAME)
   # Make sure that the local TIMESTAMP file exists.
   if not os.path.exists(local_timestamp_file):
     return False
 
   # Get the timestamp file from Google Storage.
-  src = posixpath.join(gs_base, gs_relative_dir, 'TIMESTAMP')
-  temp_file = os.path.join(tempfile.gettempdir(), 'TIMESTAMP')
+  src = posixpath.join(gs_base, gs_relative_dir, TIMESTAMP_COMPLETED_FILENAME)
+  temp_file = tempfile.mkstemp()[1]
   slave_utils.GSUtilDownloadFile(src=src, dst=temp_file)
 
   local_file_obj = open(local_timestamp_file, 'r')
   storage_file_obj = open(temp_file, 'r')
   try:
-    local_timestamp = local_file_obj.read()
-    storage_timestamp = storage_file_obj.read()
+    local_timestamp = local_file_obj.read().strip()
+    storage_timestamp = storage_file_obj.read().strip()
     return local_timestamp == storage_timestamp
   finally:
     local_file_obj.close()
     storage_file_obj.close()
+
+
+def ReadTimeStampCompletedFile(gs_base, gs_relative_dir):
+  """Reads the TIMESTAMP_LAST_UPLOAD_COMPLETED from the specified GS dir.
+
+  Returns 0 if the file is empty or does not exist.
+  """
+  src = posixpath.join(gs_base, gs_relative_dir, TIMESTAMP_COMPLETED_FILENAME)
+  temp_file = tempfile.mkstemp()[1]
+  slave_utils.GSUtilDownloadFile(src=src, dst=temp_file)
+
+  storage_file_obj = open(temp_file, 'r')
+  try:
+    timestamp_value = storage_file_obj.read().strip()
+    return timestamp_value if timestamp_value else "0"
+  finally:
+    storage_file_obj.close()
+
+
+def WriteTimeStampFile(
+    timestamp_file_name, timestamp_value, gs_base=None, gs_relative_dir=None,
+    gs_acl=None, local_dir=None):
+  """Adds a timestamp file to a Google Storage and/or a Local Directory.
+  
+  If gs_base, gs_relative_dir and gs_acl are provided then the timestamp is
+  written to Google Storage. If local_dir is provided then the timestamp is
+  written to a local directory.
+  """
+  timestamp_file = os.path.join(tempfile.gettempdir(), timestamp_file_name)
+  f = open(timestamp_file, 'w')
+  try:
+    f.write(str(timestamp_value))
+  finally:
+    f.close()
+  if local_dir:
+    shutil.copyfile(timestamp_file,
+                    os.path.join(local_dir, timestamp_file_name))
+  if gs_base and gs_relative_dir and gs_acl:
+    slave_utils.GSUtilCopyFile(filename=timestamp_file, gs_base=gs_base,
+                               subdir=gs_relative_dir, gs_acl=gs_acl)

@@ -106,15 +106,18 @@ class TestGSUtils(unittest.TestCase):
     self._expected_command = ('%s ls superman' % GSUTIL_LOCATION)
     gs_utils.DoesStorageObjectExist('superman')
 
-  def test_WriteCurrentTimeStamp(self):
+  def test_WriteTimeStampFile(self):
     self._test_temp_file = os.path.join(tempfile.gettempdir(), 'TIMESTAMP')
     self._test_gs_base = 'gs://test'
     self._test_destdir = 'testdir'
     self._test_gs_acl = 'private'
-    gs_utils.WriteCurrentTimeStamp(
-        gs_base=self._test_gs_base, dest_dir=self._test_destdir,
-        local_dir=tempfile.mkdtemp(),
-        gs_acl=self._test_gs_acl)
+    gs_utils.WriteTimeStampFile(
+        timestamp_file_name='TIMESTAMP',
+        timestamp_value=time.time(),
+        gs_base=self._test_gs_base,
+        gs_relative_dir=self._test_destdir,
+        gs_acl=self._test_gs_acl,
+        local_dir=tempfile.mkdtemp())
 
   def test_AreTimeStampsEqual(self):
     self._test_gs_base = 'gs://test'
@@ -124,7 +127,7 @@ class TestGSUtils(unittest.TestCase):
  
     # Will be false because the tmp directory will have no TIMESTAMP in it.
     self.assertFalse(
-        gs_utils.AreTimeStampsEqual(
+        gs_utils._AreTimeStampsEqual(
             local_dir=local_dir,
             gs_base=self._test_gs_base,
             gs_relative_dir=self._test_destdir))
@@ -133,7 +136,7 @@ class TestGSUtils(unittest.TestCase):
   
     # Will be false because the timestamps are different.
     self.assertFalse(
-        gs_utils.AreTimeStampsEqual(
+        gs_utils._AreTimeStampsEqual(
             local_dir=local_dir,
             gs_base=self._test_gs_base,
             gs_relative_dir=self._test_destdir))

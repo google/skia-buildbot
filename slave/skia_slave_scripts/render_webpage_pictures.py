@@ -38,6 +38,7 @@ from utils import sync_bucket_subdir
 from utils import shell_utils
 
 import build_step
+import compare_and_upload_webpage_gms
 
 
 # The device to use for render_pictures.
@@ -66,16 +67,11 @@ class RenderWebpagePictures(build_step.BuildStep):
     """Download Skps from Google Storage."""
     gs_base = (self._args.get('dest_gsbase') or
                sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
-    if not gs_utils.AreTimeStampsEqual(
-        local_dir=self._local_playback_dirs.PlaybackSkpDir(),
+    print '\n\n========Downloading skp files from Google Storage========\n\n'
+    gs_utils.DownloadDirectoryContentsIfChanged(
         gs_base=gs_base,
-        gs_relative_dir=self._storage_playback_dirs.PlaybackSkpDir()):
-      print '\n\n========Downloading skp files from Google Storage========\n\n'
-      file_utils.CreateCleanLocalDir(self._local_playback_dirs.PlaybackSkpDir())
-      skps_source = posixpath.join(
-          gs_base, self._storage_playback_dirs.PlaybackSkpDir(), '*')
-      slave_utils.GSUtilDownloadFile(
-          src=skps_source, dst=self._local_playback_dirs.PlaybackSkpDir())
+        gs_relative_dir=self._storage_playback_dirs.PlaybackSkpDir(),
+        local_dir=self._local_playback_dirs.PlaybackSkpDir())
 
   def _CreateLocalStorageDirs(self):
     """Creates required local storage directories for this script."""
@@ -83,11 +79,13 @@ class RenderWebpagePictures(build_step.BuildStep):
       os.makedirs(self._local_playback_dirs.PlaybackSkpDir())
 
     if os.path.exists(self._local_playback_dirs.PlaybackGmActualDir()):
-      # Delete everything except the TIMESTAMP file.
+      # Delete everything except the timestamp and last comparison files.
       for path, unused_dirs, files in os.walk(
           self._local_playback_dirs.PlaybackGmActualDir()):
-        if 'TIMESTAMP' in files:
-          files.remove('TIMESTAMP')
+        if gs_utils.TIMESTAMP_COMPLETED_FILENAME in files:
+          files.remove(gs_utils.TIMESTAMP_COMPLETED_FILENAME)
+        if compare_and_upload_webpage_gms.LAST_COMPARISON_FILENAME in files:
+          files.remove(compare_and_upload_webpage_gms.LAST_COMPARISON_FILENAME)
         for gm_actual_file in files:
           os.remove(os.path.join(path, gm_actual_file))
     else:

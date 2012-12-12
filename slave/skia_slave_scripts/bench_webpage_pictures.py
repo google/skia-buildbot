@@ -63,17 +63,11 @@ class BenchWebpagePictures(BenchPictures):
     """Copies over skp files from Google Storage if the timestamps differ."""
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
-    if not gs_utils.AreTimeStampsEqual(
-            local_dir=self._local_playback_dirs.PlaybackSkpDir(),
-            gs_base=dest_gsbase,
-            gs_relative_dir=self._storage_playback_dirs.PlaybackSkpDir()):
-      print '\n\n========Downloading skp files from Google Storage========\n\n'
-      if not os.path.exists(self._local_playback_dirs.PlaybackSkpDir()):
-            os.makedirs(self._local_playback_dirs.PlaybackSkpDir())
-      skps_source = posixpath.join(
-          dest_gsbase, self._storage_playback_dirs.PlaybackSkpDir(), '*')
-      slave_utils.GSUtilDownloadFile(
-          src=skps_source, dst=self._local_playback_dirs.PlaybackSkpDir())
+    print '\n\n========Downloading skp files from Google Storage========\n\n'
+    gs_utils.DownloadDirectoryContentsIfChanged(
+        gs_base=dest_gsbase,
+        gs_relative_dir=self._storage_playback_dirs.PlaybackSkpDir(),
+        local_dir=self._local_playback_dirs.PlaybackSkpDir())
 
 
 if '__main__' == __name__:

@@ -37,6 +37,7 @@ import posixpath
 import shutil
 import sys
 import tempfile
+import time
 import traceback
 
 from perf_tools import skpicture_printer
@@ -156,13 +157,16 @@ class SkPicturePlayback(object):
               gs_status, LOCAL_PLAYBACK_ROOT_DIR, self._dest_gsbase,
               ROOT_PLAYBACK_DIR_NAME))
     
-    # Add a TIMESTAMP file to the skp directory in Google Storage so we can use
+    # Add a timestamp file to the skp directory in Google Storage so we can use
     # directory level rsync like functionality.
-    gs_utils.WriteCurrentTimeStamp(
+    gs_utils.WriteTimeStampFile(
+        timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+        timestamp_value=time.time(),
         gs_base=self._dest_gsbase,
-        dest_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME),
-        local_dir=LOCAL_PLAYBACK_ROOT_DIR,
-        gs_acl=PLAYBACK_CANNED_ACL)
+        gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME,
+                                       SKPICTURES_DIR_NAME),
+        gs_acl=PLAYBACK_CANNED_ACL,
+        local_dir=LOCAL_PLAYBACK_ROOT_DIR)
     
     return 0
 
