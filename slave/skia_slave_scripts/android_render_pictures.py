@@ -46,6 +46,7 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
                                   self._gm_actual_dir])
 
   def _Run(self):
+    return
     # For this step, we assume that we run *after* RunGM and *before*
     # UploadGMResults.  This needs to be the case, because RunGM clears the
     # output directory before it begins, and because we want the results from
