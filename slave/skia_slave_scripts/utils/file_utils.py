@@ -36,7 +36,7 @@ def ClearDirectory(directory):
   """ Attempt to clear the contents of a directory. This should only be used
   when the directory itself cannot be removed for some reason. Otherwise,
   RecursiveDelete or CreateCleanLocalDir should be preferred. """
-  for path in os.listdir(path):
+  for path in os.listdir(directory):
     if os.path.isdir(path):
       RecursiveDelete(os.path.join(directory, path))
     else:
