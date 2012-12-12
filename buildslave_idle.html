@@ -3,14 +3,14 @@
   <title>Skia Buildslave Idle Time Analysis</title>
   <link rel="icon" href="favicon.ico">
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-  <script type="text/javascript" src="common_dashboard_tools.js"></script>
+  <script type="text/javascript" src="skia_tools.js"></script>
   <script language="JavaScript">
   var data = null;
-  var got_data = {};
+  var gotData = {};
 
-  var range_secs = 86400;
-  var current_time = Math.ceil(new Date().getTime() / 1000);
-  var min_time = current_time - range_secs;
+  var RANGE_SECS = 86400;
+  var CURRENT_TIME = Math.ceil(new Date().getTime() / 1000);
+  var MIN_TIME = CURRENT_TIME - RANGE_SECS;
 
   // Load the Visualization API
   google.load("visualization", "1.0", {"packages":["corechart", "controls"]});
@@ -33,64 +33,63 @@
     document.getElementById("pie_chart_div").innerHTML = "";
   }
 
-  function drawLineChart(display_slaves, range_min, range_max) {
+  function drawLineChart(displaySlaves, rangeMin, rangeMax) {
     var table = new google.visualization.DataTable();
     table.addColumn("datetime", "Time");
-    var date_min = new Date(range_min * 1000);
-    var date_max = new Date(range_max * 1000);
-    var times = [range_min];
-    var current_build = {};
-    for (var i = 0; i < display_slaves.length; i++) {
-      var slave = display_slaves[i];
-      table.addColumn("number", display_slaves[i]);
+    var dateMin = new Date(rangeMin * 1000);
+    var dateMax = new Date(rangeMax * 1000);
+    var times = [rangeMin];
+    var currentBuild = {};
+    for (var i = 0; i < displaySlaves.length; i++) {
+      var slave = displaySlaves[i];
+      table.addColumn("number", displaySlaves[i]);
       table.addColumn({"type": "string",
                        "role": "tooltip",
                        "p": {"html": true}});
-      var slave_data = data[slave];
-      current_build[slave] = null;
-      for (var j = 0; j < slave_data["all_builds"].length; j++) {
-        build = slave_data["all_builds"][j];
-        if (build[2] > range_min && build[2] < range_max) {
+      var slaveData = data[slave];
+      currentBuild[slave] = null;
+      for (var j = 0; j < slaveData["allBuilds"].length; j++) {
+        build = slaveData["allBuilds"][j];
+        if (build[2] > rangeMin && build[2] < rangeMax) {
           times.push(Math.round(build[2] - 1));
           times.push(Math.round(build[2] + 1));
-          if (current_build[slave] == null) {
-            current_build[slave] = j;
+          if (currentBuild[slave] == null) {
+            currentBuild[slave] = j;
           }
         }
-        if (build[3] > range_min && build[3] < range_max) {
+        if (build[3] > rangeMin && build[3] < rangeMax) {
           times.push(Math.round(build[3] - 1));
           times.push(Math.round(build[3] + 1));
-          if (current_build[slave] == null) {
-            current_build[slave] = j;
+          if (currentBuild[slave] == null) {
+            currentBuild[slave] = j;
           }
         }
       }
     }
-    times.push(range_max);
+    times.push(rangeMax);
     times.sort();
     var rows = [];
     for (var i = 0; i < times.length; i++) {
       time = times[i];
       var row = [new Date(time * 1000)];
-      for (j = 0; j < display_slaves.length; j++) {
-        var slave = display_slaves[j];
+      for (j = 0; j < displaySlaves.length; j++) {
+        var slave = displaySlaves[j];
         var val = null;
         var tooltip = null;
-        if (null != current_build[slave]) {
-          var build_idx = current_build[slave];
-          var build_data = data[slave]["all_builds"][build_idx]
-          var min = build_data[2];
-          var max = build_data[3];
+        if (null != currentBuild[slave]) {
+          var buildIdx = currentBuild[slave];
+          var buildData = data[slave]["allBuilds"][buildIdx]
+          var min = buildData[2];
+          var max = buildData[3];
           if (time >= min) {
             if (time <= max) {
               val = j + 1;
-              tooltip = slave + ": " + build_data[0] + " Build #"
-                      + build_data[1];
+              tooltip = slave + ": " + buildData[0] + " Build #" + buildData[1];
             } else {
-              if (data[slave]["all_builds"].length > current_build[slave] + 1) {
-                current_build[slave]++;
+              if (data[slave]["allBuilds"].length > currentBuild[slave] + 1) {
+                currentBuild[slave]++;
               } else {
-                current_build[slave] = null;
+                currentBuild[slave] = null;
               }
             }
           }
@@ -107,36 +106,36 @@
                    "height": "100%",
                    "chartArea": {left: "9%", top: "9%", width: "86%",
                                  height: "70%"},
-                   "hAxis": {"viewWindow": {"min": date_min,
-                                            "max": date_max}},
+                   "hAxis": {"viewWindow": {"min": dateMin,
+                                            "max": dateMax}},
                    "vAxis": {"gridlines": {"count": 0},
                              "viewWindow": {"min": 0,
-                                            "max": display_slaves.length + 1}},
+                                            "max": displaySlaves.length + 1}},
                    "legend": {"textStyle": {"fontSize": 12},
                               "position": "bottom"},
                    "lineWidth": 20,
                    };
-    var line_chart = new google.visualization.LineChart(document.getElementById(
+    var lineChart = new google.visualization.LineChart(document.getElementById(
         "line_chart_div"));
-    //google.visualization.events.addListener(line_chart, 'select',
+    //google.visualization.events.addListener(lineChart, 'select',
     //                                        lineChartSelectHandler);
-    line_chart.draw(table, options);
+    lineChart.draw(table, options);
 
-    var line_chart_range_filter = new google.visualization.ChartRangeFilter(
+    var lineChartRangeFilter = new google.visualization.ChartRangeFilter(
         document.getElementById("line_chart_range_filter_div"));
-    google.visualization.events.addListener(line_chart_range_filter,
+    google.visualization.events.addListener(lineChartRangeFilter,
         "statechange",
         function() {
-          var range = line_chart_range_filter.getState().range;
+          var range = lineChartRangeFilter.getState().range;
           options.hAxis.viewWindow = {min: range.start, max: range.end};
-          line_chart.draw(table, options);
-          if (display_slaves.length == 1) {
-            drawPieChart(data[display_slaves[0]]["all_builds"],
+          lineChart.draw(table, options);
+          if (displaySlaves.length == 1) {
+            drawPieChart(data[displaySlaves[0]]["allBuilds"],
                          range.start.getTime() / 1000,
                          range.end.getTime() / 1000);
           }
         });
-    line_chart_range_filter.draw(table,
+    lineChartRangeFilter.draw(table,
         {
             "filterColumnIndex": 0,
             "ui": {
@@ -151,62 +150,62 @@
                     "height": "100%",
                     "colors": ["grey"],
                     "hAxis": {"baselineColor": "none",
-                              "viewWindow": {"min": date_min,
-                                             "max": date_max}},
+                              "viewWindow": {"min": dateMin,
+                                             "max": dateMax}},
                     "vAxis": {"baselineColor": "none"},
                 },
             },
         },
-        {"range": {"start": date_min, "end": date_max}});
-    if (display_slaves.length == 1) {
-      drawPieChart(data[display_slaves[0]]["all_builds"], range_min,
-                   range_max);
+        {"range": {"start": dateMin, "end": dateMax}});
+    if (displaySlaves.length == 1) {
+      drawPieChart(data[displaySlaves[0]]["allBuilds"], rangeMin,
+                   rangeMax);
     }
     setRightContent("");
   }
 
-  function drawPieChart(builds, range_min, range_max) {
-    var busy_time = 0;
+  function drawPieChart(builds, rangeMin, rangeMax) {
+    var busyTime = 0;
     for (var i = 0; i < builds.length; i++) {
       var build = builds[i];
-      var build_start = build[2];
-      var build_end = build[3];
-      if (build_end < range_min || build_start > range_max) {
+      var buildStart = build[2];
+      var buildEnd = build[3];
+      if (buildEnd < rangeMin || buildStart > rangeMax) {
         continue;
       }
-      if (build_start < range_min) {
-        build_start = range_min;
+      if (buildStart < rangeMin) {
+        buildStart = rangeMin;
       }
-      if (build_end > range_max) {
-        build_end = range_max;
+      if (buildEnd > rangeMax) {
+        buildEnd = rangeMax;
       }
-      busy_time += build_end - build_start;
+      busyTime += buildEnd - buildStart;
     }
-    var idle_time = range_max - range_min - busy_time;
+    var idleTime = rangeMax - rangeMin - busyTime;
     var table = new google.visualization.arrayToDataTable([
       ["Busy/Idle", "Time"],
-      ["Busy", busy_time],
-      ["Idle", idle_time],
+      ["Busy", busyTime],
+      ["Idle", idleTime],
     ]);
 
     // Set chart options
     var options = {"title": "Busy/Idle Time"};
   
     // Instantiate and draw our chart, passing in some options.
-    pie_chart = new google.visualization.PieChart(
+    pieChart = new google.visualization.PieChart(
         document.getElementById("pie_chart_div"));
-    pie_chart.draw(table, options);
+    pieChart.draw(table, options);
   }
 
   function selectSlaves() {
-    var display_slaves = [];
+    var displaySlaves = [];
     var msg = "<p style=\"font-size:0.8em;\">Loading builds for slaves:<ul>";
     var menu = document.getElementById("slave_menu");
     for (var i = 0; i < menu.options.length; i++) {
       if (menu.options[i].selected) {
         var slave = menu.options[i].text;
-        if (display_slaves.indexOf(slave) == -1) {
-          display_slaves.push(slave);
+        if (displaySlaves.indexOf(slave) == -1) {
+          displaySlaves.push(slave);
           msg += "<li style=\"font-size:0.8em;\">" + slave;
         }
       }
@@ -215,17 +214,16 @@
     clearCharts();
     setMessage(msg);
     setTimeout(function(){
-      for (var i = 0; i < display_slaves.length; i++) {
-        var slave = display_slaves[i];
-        if (!got_data[slave] || got_data[slave] == undefined) {
+      for (var i = 0; i < displaySlaves.length; i++) {
+        var slave = displaySlaves[i];
+        if (!gotData[slave] || gotData[slave] == undefined) {
           console.log("Loading builds for " + slave + "...");
-          loadDataForSlave(slave, data[slave], min_time,
-                           current_time);
-          got_data[slave] = true;
+          skiaTools.loadDataForSlave(data[slave], MIN_TIME, CURRENT_TIME);
+          gotData[slave] = true;
           console.log("Loaded builds for " + slave + ".");
         }
       }
-      drawLineChart(display_slaves, min_time, current_time);
+      drawLineChart(displaySlaves, MIN_TIME, CURRENT_TIME);
       setMessage("");
     }, 0);
   }
@@ -233,12 +231,12 @@
   function init() {
     setMessage("Loading buildslaves...");
     setTimeout(function() {
-      var all_slaves = [];
-      data = loadSlaves(all_slaves);
-      for (var i = 0; i < all_slaves.length; i++) {
-        got_data[all_slaves[i]] = false;
+      var allSlaves = [];
+      data = skiaTools.loadSlaves(allSlaves);
+      for (var i = 0; i < allSlaves.length; i++) {
+        gotData[allSlaves[i]] = false;
       }
-      populateMenu("slave_menu", all_slaves);
+      skiaTools.populateMenu("slave_menu", allSlaves);
       setMessage("Loaded buildslaves.");
       setMessage("Select one or more buildslaves.");
     }, 0);

@@ -3,13 +3,13 @@
   <title>Skia Buildbot Self-Analysis</title>
   <link rel="icon" href="favicon.ico">
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-  <script type="text/javascript" src="common_dashboard_tools.js"></script>
+  <script type="text/javascript" src="skia_tools.js"></script>
   <script language="JavaScript">
-  var builds_to_load = 100;
+  var BUILDS_TO_LOAD = 100;
 
-  var builder_data = null;
+  var builderData = null;
   var data = {};
-  var got_data = {};
+  var gotData = {};
 
   // Load the Visualization API
   google.load("visualization", "1.0", {"packages":["corechart", "controls"]});
@@ -38,44 +38,44 @@
     seconds -= hours * 3600;
     var minutes = Math.floor((seconds - (hours * 36000)) / 60);
     seconds -= minutes * 60;
-    var total_time = "";
+    var totalTime = "";
     if (seconds > 9) {
-      total_time = seconds;
+      totalTime = seconds;
     } else {
-      total_time = "0" + seconds;
+      totalTime = "0" + seconds;
     }
     if (minutes > 9) {
-      total_time = minutes + ":" + total_time;
+      totalTime = minutes + ":" + totalTime;
     } else {
-      total_time = "0" + minutes + ":" + total_time;
+      totalTime = "0" + minutes + ":" + totalTime;
     }
     if (hours > 9) {
-      total_time = hours + ":" + total_time;
+      totalTime = hours + ":" + totalTime;
     } else {
-      total_time = "0" + hours + ":" + total_time;
+      totalTime = "0" + hours + ":" + totalTime;
     }
-    return total_time;
+    return totalTime;
   }
 
-  function drawLineChart(display_builders, all_revs) {
+  function drawLineChart(displayBuilders, allRevs) {
     var table = new google.visualization.DataTable();
     table.addColumn("number", "Revision");
-    for (var i = 0; i < display_builders.length; i++) {
-      table.addColumn("number", display_builders[i]);
+    for (var i = 0; i < displayBuilders.length; i++) {
+      table.addColumn("number", displayBuilders[i]);
       table.addColumn({"type": "string", "role": "annotation"});
     }
-    var line_chart_cols_per_builder = 2;
-    var longest_build_time = -1;
+    var lineChartColsPerBuilder = 2;
+    var longestBuildTime = -1;
     var rows = [];
-    for (var i = 0; i < builds_to_load; i++) {
-      var rev = all_revs[all_revs.length - builds_to_load + i];
+    for (var i = 0; i < BUILDS_TO_LOAD; i++) {
+      var rev = allRevs[allRevs.length - BUILDS_TO_LOAD + i];
       var row = [rev];
-      for (j = 0; j < display_builders.length; j++) {
-        var builder = display_builders[j];
+      for (j = 0; j < displayBuilders.length; j++) {
+        var builder = displayBuilders[j];
         try {
           time = data[rev][builder]["time"];
-          if (time > longest_build_time) {
-            longest_build_time = time;
+          if (time > longestBuildTime) {
+            longestBuildTime = time;
           }
           row.push(time);
           if (data[rev][builder]["result"] != 0) {
@@ -103,48 +103,49 @@
                    "legend": {"textStyle": {"fontSize": 12},
                               "position": "bottom"},
                    };
-    var line_chart = new google.visualization.LineChart(document.getElementById(
+    var lineChart = new google.visualization.LineChart(document.getElementById(
         "line_chart_div"));
-    google.visualization.events.addListener(line_chart, 'select',
+    google.visualization.events.addListener(lineChart, 'select',
                                             function() {
-      var selected = line_chart.getSelection()[0];
+      var selected = lineChart.getSelection()[0];
       if (selected && selected.column != undefined &&
           selected.row != undefined) {
         var builder = null;
-        var builder_idx = Math.floor(
-            (selected.column - 1) / line_chart_cols_per_builder);
-        for (var i = 0; i < display_builders.length; i++) {
-          if (i == builder_idx) {
-            builder = display_builders[i];
+        var builderIdx = Math.floor(
+            (selected.column - 1) / lineChartColsPerBuilder);
+        for (var i = 0; i < displayBuilders.length; i++) {
+          if (i == builderIdx) {
+            builder = displayBuilders[i];
             break;
           }
         }
-        var rev_idx = builds_to_load - selected.row
-        var rev = all_revs[all_revs.length - rev_idx];
-        var build_num = data[rev][builder]["build_num"];
+        var revIdx = BUILDS_TO_LOAD - selected.row
+        var rev = allRevs[allRevs.length - revIdx];
+        var buildNum = data[rev][builder]["buildNum"];
         console.log("Selected: " + builder + " @ " + rev);
-        var url = host + ":" + port + "/builders/" + builder +
-            "/builds/" + build_num;
-        var right_content = "<iframe style=\"width:100%;height:100%;padding:0px;margin=0px;overflow:scroll;\" src=\"" + url
-                          + "\"></iframe>";
-        setRightContent(right_content);
-        drawBarChart(builder, rev, longest_build_time);
+        var url = skiaTools.HOST + ":" + skiaTools.PORT + "/builders/" + builder
+            + "/builds/" + buildNum;
+        var rightContent = "<iframe style=\"width:100%; height:100%; "
+                         + "padding:0px; margin=0px; overflow:scroll;\" src=\""
+                         + url + "\"></iframe>";
+        setRightContent(rightContent);
+        drawBarChart(builder, rev, longestBuildTime);
       }
     });
-    line_chart.draw(table, options);
+    lineChart.draw(table, options);
 
-    first_rev = all_revs[0];
-    last_rev = all_revs[all_revs.length - 1];
-    var line_chart_range_filter = new google.visualization.ChartRangeFilter(
+    firstRev = allRevs[0];
+    lastRev = allRevs[allRevs.length - 1];
+    var lineChartRangeFilter = new google.visualization.ChartRangeFilter(
         document.getElementById("line_chart_range_filter_div"));
-    google.visualization.events.addListener(line_chart_range_filter,
+    google.visualization.events.addListener(lineChartRangeFilter,
         "statechange",
         function() {
-          var range = line_chart_range_filter.getState().range;
+          var range = lineChartRangeFilter.getState().range;
           options.hAxis.viewWindow = {min: range.start, max: range.end};
-          line_chart.draw(table, options);
+          lineChart.draw(table, options);
         });
-    line_chart_range_filter.draw(table,
+    lineChartRangeFilter.draw(table,
         {
             "filterColumnIndex": 0,
             "ui": {
@@ -164,32 +165,28 @@
                 },
             },
         },
-        {"range": {"start": first_rev, "end": last_rev}});
+        {"range": {"start": firstRev, "end": lastRev}});
     setRightContent("");
   }
 
-  function drawBarChart(builder, revision, view_window_max) {
+  function drawBarChart(builder, revision, viewWindowMax) {
     var table = new google.visualization.DataTable();
     table.addColumn("string", "Step");
     table.addColumn("number", "Time");
     table.addColumn({"type": "string", "role": "tooltip", "p": {"html": true}});
-    var failed_steps = [];
-    var build_data = data[revision][builder];
-    for (var i = 0; i < build_data["steps"].length; i++) {
-      var step = build_data["steps"][i];
-      var step_name = step["name"];
+    var buildData = data[revision][builder];
+    for (var i = 0; i < buildData["steps"].length; i++) {
+      var step = buildData["steps"][i];
+      var stepName = step["name"];
       var time = step["time"];
       var stdio = step["stdio"];
       var result = step["result"];
-      if (result != 0) {
-        failed_steps.push(step_name);
-      }
-      var percent = time / build_data["time"] * 100.0;
+      var percent = time / buildData["time"] * 100.0;
       table.addRow();
-      table.setValue(i, 0, step_name);
+      table.setValue(i, 0, stepName);
       table.setValue(i, 1, time);
       var tooltip = "<div style=\"font-family:Arial;font-size:14px;"
-                  + "padding:10px;\">" + step_name;
+                  + "padding:10px;\">" + stepName;
       if (result != 0) {
         tooltip += " <span style=\"background-color:red;\">Failed</span>";
       }
@@ -201,32 +198,32 @@
 
     // Set chart options
     var options = {"title": builder + ": Build #" +
-                       build_data["build_num"] + ", r" + revision,
+                       buildData["buildNum"] + ", r" + revision,
                    "width": "100%",
                    "height": "100%",
                    "chartArea": {left: "17%", top: "9%", width: "65%", height: "70%"},
                    "hAxis": {"title": "Time (s)",
-                             "viewWindow": {"max": view_window_max}},
+                             "viewWindow": {"max": viewWindowMax}},
                    "vAxis": {"title": "Build Step"},
                    "tooltip": {"isHtml": true},
                    "legend": {"position": "none"},
                    };
   
     // Instantiate and draw our chart, passing in some options.
-    var bar_chart = new google.visualization.BarChart(
+    var barChart = new google.visualization.BarChart(
         document.getElementById("bar_chart_div"));
-    bar_chart.draw(table, options);
+    barChart.draw(table, options);
   }
 
   function selectBuilders() {
-    var display_builders = [];
+    var displayBuilders = [];
     var msg = "<p style=\"font-size:0.8em;\">Loading builds for builders:<ul>";
     var menu = document.getElementById("builder_menu");
     for (var i = 0; i < menu.options.length; i++) {
       if (menu.options[i].selected) {
         var builder = menu.options[i].text;
-        if (display_builders.indexOf(builder) == -1) {
-          display_builders.push(builder);
+        if (displayBuilders.indexOf(builder) == -1) {
+          displayBuilders.push(builder);
           msg += "<li style=\"font-size:0.8em;\">" + builder;
         }
       }
@@ -235,19 +232,19 @@
     clearCharts();
     setMessage(msg);
     setTimeout(function(){
-      var all_revs = [];
-      for (var i = 0; i < display_builders.length; i++) {
-        var builder = display_builders[i];
-        if (!got_data[builder] || got_data[builder] == undefined) {
+      var allRevs = [];
+      for (var i = 0; i < displayBuilders.length; i++) {
+        var builder = displayBuilders[i];
+        if (!gotData[builder] || gotData[builder] == undefined) {
           console.log("Loading builds for " + builder + "...");
-          loadDataForBuilder(builder, builder_data[builder], builds_to_load,
-                             all_revs, data);
-          got_data[builder] = true;
+          skiaTools.loadDataForBuilder(builder, builderData[builder],
+                                       BUILDS_TO_LOAD, allRevs, data);
+          gotData[builder] = true;
           console.log("Loaded builds for " + builder + ".");
         }
       }
-      all_revs.sort();
-      drawLineChart(display_builders, all_revs);
+      allRevs.sort();
+      drawLineChart(displayBuilders, allRevs);
       setMessage("");
     }, 0);
   }
@@ -255,12 +252,12 @@
   function init() {
     setMessage("Loading builders...");
     setTimeout(function() {
-      var all_builders = [];
-      builder_data = loadBuilders(all_builders);
-      for (var i = 0; i < all_builders.length; i++) {
-        got_data[all_builders[i]] = false;
+      var allBuilders = [];
+      builderData = skiaTools.loadBuilders(allBuilders);
+      for (var i = 0; i < allBuilders.length; i++) {
+        gotData[allBuilders[i]] = false;
       }
-      populateMenu("builder_menu", all_builders);
+      skiaTools.populateMenu("builder_menu", allBuilders);
       setMessage("Loaded builders.");
       setMessage("Select one or more builders.");
     }, 0);
