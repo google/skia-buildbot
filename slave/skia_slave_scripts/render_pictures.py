@@ -19,7 +19,6 @@ class RenderPictures(BuildStep):
             '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
 
   def _Run(self):
-    return
     # Render the pictures into a temporary directory.
     temp_dir = tempfile.mkdtemp()
     skp_dir = os.path.join(os.pardir, 'skp')

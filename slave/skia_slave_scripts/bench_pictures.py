@@ -50,7 +50,6 @@ class BenchPictures(RunBench):
     shell_utils.Bash(cmd)
 
   def _Run(self):
-    return
     self._PopulateSkpDir()
     
     # Default mode: tiled bitmap
