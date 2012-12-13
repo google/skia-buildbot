@@ -17,6 +17,9 @@ import sys
 
 
 class Update(BuildStep):
+  def __init__(self, args, timeout=4800, **kwargs):
+    super(Update, self).__init__(args, timeout=timeout, **kwargs)
+
   def _Run(self):
     if os.name == 'nt':
       gclient = 'gclient.bat'
