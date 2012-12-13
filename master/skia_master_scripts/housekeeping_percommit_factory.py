@@ -30,10 +30,6 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     if clobber:
       self.AddSlaveScript(script='clean.py', description='Clean')
 
-    # Check for source files with missing newlines at the end.
-    self.AddSlaveScript(script='newline_checker.py',
-                        description='NewlineChecker')
-
     # Build tools and run their unittests.
     self.Make('tools', 'BuildTools')
     self._skia_cmd_obj.AddRunCommand(
