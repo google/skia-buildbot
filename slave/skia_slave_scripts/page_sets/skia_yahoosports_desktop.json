@@ -1,0 +1,12 @@
+{
+    "description": "Yahoo Sports for Skia Desktop.",
+    "archive_path": "data/skia_yahoosports_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "http://sports.yahoo.com/",
+            "wait_time_after_navigate": 5.0,
+            "why": "#1 Alexa sports"
+        }
+    ]
+}

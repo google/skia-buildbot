@@ -1,0 +1,13 @@
+{
+    "description": "ESPN for Skia Desktop.",
+    "archive_path": "data/skia_espn_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "name": "ESPN",
+            "url": "http://espn.go.com",
+            "wait_time_after_navigate": 5.0,
+            "why": "#1 sports"
+        }
+    ]
+}

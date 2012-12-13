@@ -5,6 +5,11 @@
     "user_agent_type": "nexus10",
     "pages": [
         {
+            "url": "http://game.deksiam.in.th/",
+            "wait_time_after_navigate": 30.0,
+            "why": "from Tom W’s list"
+        },
+        {
             "url": "http://www.sahadan.com/default.aspx",
             "wait_time_after_navigate": 15.0,
             "why": "from Tom W's list"
@@ -53,11 +58,6 @@
             "url": "http://www.frantzen-lindeberg.com/se/",
             "wait_time_after_navigate": 15.0,
             "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
-        },
-        {
-            "url": "http://game.deksiam.in.th/",
-            "wait_time_after_navigate": 30.0,
-            "why": "from Tom W’s list"
         },
         {
             "url": "https://mail.google.com/mail/",

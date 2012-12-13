@@ -1,0 +1,13 @@
+{
+    "description": "hs.fi for Skia for Nexus10.",
+    "archive_path": "data/skia_hsfi_nexus10.wpr",
+    "credentials_path": "data/credentials.json",
+    "user_agent_type": "nexus10",
+    "pages": [
+        {
+            "url": "http://www.hs.fi/",
+            "wait_time_after_navigate": 5.0,
+            "why": "for Clank CY"
+        }
+    ]
+}

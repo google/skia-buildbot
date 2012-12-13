@@ -1,0 +1,13 @@
+{
+    "description": "Blogger for Skia Desktop.",
+    "archive_path": "data/skia_blogger_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "name": "Blogger",
+            "url": "http://googlewebmastercentral.blogspot.com/",
+            "wait_time_after_navigate": 5.0,
+            "why": "#11 (Alexa global), google property; some blogger layouts have infinite scroll but more interesting"
+        }
+    ]
+}

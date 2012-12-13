@@ -1,0 +1,13 @@
+{
+    "description": "uk.wsj.com for Skia for Nexus10.",
+    "archive_path": "data/skia_ukwsj_nexus10.wpr",
+    "credentials_path": "data/credentials.json",
+    "user_agent_type": "nexus10",
+    "pages": [
+        {
+            "url": "http://uk.wsj.com/home-page",
+            "wait_time_after_navigate": 5.0,
+            "why": "for Clank CY"
+        }
+    ]
+}

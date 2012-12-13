@@ -1,0 +1,13 @@
+{
+    "description": "CNN for Skia for Nexus10.",
+    "archive_path": "data/skia_cnn_nexus10.wpr",
+    "credentials_path": "data/credentials.json",
+    "user_agent_type": "nexus10",
+    "pages": [
+        {
+            "url": "http://www.cnn.com/2012/10/03/politics/michelle-obama-debate/index.html",
+            "wait_time_after_navigate": 15.0,
+            "why": "#2 news worldwide"
+        }
+    ]
+}

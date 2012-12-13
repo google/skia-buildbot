@@ -1,0 +1,13 @@
+{
+    "description": "wowwiki for Skia for Nexus10.",
+    "archive_path": "data/skia_wowwiki_nexus10.wpr",
+    "credentials_path": "data/credentials.json",
+    "user_agent_type": "nexus10",
+    "pages": [
+        {
+            "url": "http://www.wowwiki.com/World_of_Warcraft:_Mists_of_Pandaria",
+            "wait_time_after_navigate": 5.0,
+            "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
+        }
+    ]
+}

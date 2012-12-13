@@ -1,0 +1,13 @@
+{
+    "description": "MLB for Skia for Nexus10.",
+    "archive_path": "data/skia_mlb_nexus10.wpr",
+    "credentials_path": "data/credentials.json",
+    "user_agent_type": "nexus10",
+    "pages": [
+        {
+            "url": "http://mlb.mlb.com/index.jsp",
+            "wait_time_after_navigate": 5.0,
+            "why": "from Arrow scrolling thread"
+        }
+    ]
+}

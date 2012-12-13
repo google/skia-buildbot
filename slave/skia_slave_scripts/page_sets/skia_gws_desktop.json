@@ -1,0 +1,12 @@
+{
+    "description": "GWS for Skia Desktop.",
+    "archive_path": "data/skia_gws_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "https://www.google.com/#hl=en&q=barack+obama",
+            "wait_time_after_navigate": 5.0,
+            "why": "top google property; a google tab is often open"
+        }
+    ]
+}

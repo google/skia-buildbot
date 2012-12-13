@@ -1,0 +1,14 @@
+{
+    "description": "Twitter for Skia Desktop.",
+    "archive_path": "data/skia_twitter_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "name": "Twitter",
+            "url": "http://twitter.com/katyperry",
+            "why": "#8 (Alexa global),Picked an interesting page",
+            "wait_time_after_navigate": 5.0,
+            "scroll_is_infinite": true
+        }
+    ]
+}

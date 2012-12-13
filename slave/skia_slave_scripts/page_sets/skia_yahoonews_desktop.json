@@ -1,0 +1,12 @@
+{
+    "description": "Yahoo News for Skia Desktop.",
+    "archive_path": "data/skia_yahoonews_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "http://news.yahoo.com",
+            "wait_time_after_navigate": 5.0,
+            "why": "#1 news worldwide (Alexa global)"
+        }
+    ]
+}

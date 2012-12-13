@@ -1,0 +1,13 @@
+{
+    "description": "gsp.ro for Skia for Nexus10.",
+    "archive_path": "data/skia_gspro_nexus10.wpr",
+    "credentials_path": "data/credentials.json",
+    "user_agent_type": "nexus10",
+    "pages": [
+        {
+            "url": "http://www.gsp.ro/click-less-think-more",
+            "wait_time_after_navigate": 5.0,
+            "why": "for Clank CY"
+        }
+    ]
+}

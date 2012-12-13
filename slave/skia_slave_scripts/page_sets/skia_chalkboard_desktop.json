@@ -1,0 +1,12 @@
+{
+    "description": "Chalkboard for Skia Desktop.",
+    "archive_path": "data/skia_chalkboard_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "http://ie.microsoft.com/testdrive/Performance/Chalkboard/Images/Chalkboard.svg",
+            "wait_time_after_navigate": 15.0,
+            "why": "from fmalita"
+        }
+    ]
+}
