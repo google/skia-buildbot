@@ -263,6 +263,7 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_scalar=float skia_gpu=0 skia_arch_width=64'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
       perf_output_basedir=None, # no perf measurement for debug builds
+      bench_pictures_cfg='no_gpu',
       builder_name='Skia_Linux_NoGPU',
       ).Build())
 
@@ -276,9 +277,10 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       configuration=skia_factory.CONFIG_DEBUG,
       environment_variables=
-          {'GYP_DEFINES': 'skia_arch_width=32'},
+          {'GYP_DEFINES': 'skia_arch_width=32 skia_gpu=0'},
       gm_image_subdir=None,
       perf_output_basedir=None, # no perf measurement for debug builds
+      bench_pictures_cfg='no_gpu',
       builder_name='Skia_ChromeOS_Alex_Debug_32',
       ).Build())
 

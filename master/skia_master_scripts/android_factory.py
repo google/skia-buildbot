@@ -31,7 +31,7 @@ class AndroidFactory(skia_factory.SkiaFactory):
       other_subdirs = []
     other_subdirs.append('android')
     skia_factory.SkiaFactory.__init__(
-        self,
+        self, bench_pictures_cfg=device,
         do_upload_results=do_upload_results,
         build_subdir=build_subdir,
         other_subdirs=other_subdirs,

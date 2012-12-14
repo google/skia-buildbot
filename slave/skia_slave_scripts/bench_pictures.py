@@ -51,80 +51,41 @@ class BenchPictures(RunBench):
 
   def _Run(self):
     self._PopulateSkpDir()
-    
-    # Default mode: tiled bitmap
-    self._DoBenchPictures(['--device', 'bitmap',
-                           '--mode', 'tile', str(self.TILE_X),
-                                             str(self.TILE_Y)])
 
+    # Determine which configs to run
     if self._configuration == 'Debug':
-      return
+      cfg_name = 'debug'
+    else:
+      cfg_name = self._args['bench_pictures_cfg']
 
-    # Run bitmap in tiled mode, in different numbers of threads
-    for threads in [2, 3, 4]:
-      self._DoBenchPictures(['--device', 'bitmap',
-                             '--mode', 'tile', str(self.TILE_X),
-                                               str(self.TILE_Y),
-                             '--multi', str(threads)])
+    vars = {'import_path': path_to_configs}
+    execfile(os.path.join('tools', 'bench_pictures.cfg'), vars)
+    bench_pictures_cfg = vars['bench_pictures_cfg']
+    if bench_pictures_cfg.has_key(cfg_name):
+      my_configs = bench_pictures_cfg[cfg_name]
+    else:
+      my_configs = bench_pictures_cfg['default']
+      print 'Warning: no bench_pictures_cfg found for %s! ' \
+            'Using default.' % cfg_name
 
-    # Maybe run gpu config
-    gyp_defines = os.environ.get('GYP_DEFINES', '')
-    if ('skia_gpu=0' not in gyp_defines and \
-        (not hasattr(self, '_device') or self._device != 'nexus_s')):
-      self._DoBenchPictures(['--device', 'gpu',
-                             '--mode', 'tile', str(self.TILE_X),
-                                               str(self.TILE_Y)])
+    # Run each config
+    errors = []
+    for config in my_configs:
+      args = []
+      for key, value in config.iteritems():
+        args.append('--' + key)
+        if type(value).__name__ == 'list':
+          args.extend(value)
+        else:
+          args.append(value)
+      try:
+        self._DoBenchPictures(args)
+      except Exception as e:
+        print e
+        errors.append(e)
+    if errors:
+      raise errors[0]
 
-    # copyTiles mode
-    self._DoBenchPictures(['--device', 'bitmap',
-                           '--mode', 'copyTile', str(self.TILE_X),
-                                                 str(self.TILE_Y)])
-
-    # Record mode
-    self._DoBenchPictures(['--device', 'bitmap',
-                           '--mode', 'record'])
-
-    # Run with different bounding box heirarchies
-    configs_to_run_bbh = ['tile', 'record']
-    # Don't run playbackCreation on Android
-    if not hasattr(self, '_device'): 
-      configs_to_run_bbh.append('playbackCreation')
-    for mode in configs_to_run_bbh:
-      self._DoBenchPictures(['--device', 'bitmap',
-                             '--mode', mode] +
-                            ([str(self.TILE_X), str(self.TILE_Y)] \
-                             if mode == 'tile' else []) +
-                            ['--bbh', 'rtree'])
-      self._DoBenchPictures(['--device', 'bitmap',
-                             '--mode', mode] +
-                            ([str(self.TILE_X), str(self.TILE_Y)] \
-                             if mode == 'tile' else []) +
-                            ['--bbh', 'grid', str(self.TILE_X),
-                                              str(self.TILE_Y)])
-
-    # Run with alternate tile sizes
-    for tile_x, tile_y in [(512, 512), (1024, 256), (1024, 64)]:
-      self._DoBenchPictures(['--device', 'bitmap',
-                             '--mode', 'tile', str(tile_x),
-                                               str(tile_y)])
-
-    # Run through a set of filters
-    if RUNNING_ALL_CONFIGURATIONS:
-      filter_types = ['paint', 'point', 'line', 'bitmap', 'rect', 'path', 'text',
-                      'all']
-      filter_flags = ['antiAlias', 'filterBitmap', 'dither', 'underlineText',
-                      'strikeThruText', 'fakeBoldText', 'linearText',
-                      'subpixelText', 'devKernText', 'LCDRenderText',
-                      'embeddedBitmapText', 'autoHinting', 'verticalText',
-                      'genA8FromLCD', 'blur', 'lowBlur', 'hinting',
-                      'slightHinting', 'AAClip']
-      for filter_type in filter_types:
-        for filter_flag in filter_flags:
-          self._DoBenchPictures(['--device', 'bitmap',
-                                 '--mode', 'tile', str(self.TILE_X),
-                                                   str(self.TILE_Y),
-                                 '--filter', '%s:%s' % (filter_type,
-                                                        filter_flag)])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(BenchPictures))

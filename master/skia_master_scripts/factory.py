@@ -43,7 +43,8 @@ class SkiaFactory(BuildFactory):
                default_timeout=8*60*60,
                environment_variables=None, gm_image_subdir=None,
                perf_output_basedir=None, builder_name=None, make_flags=None,
-               test_args=None, gm_args=None, bench_args=None):
+               test_args=None, gm_args=None, bench_args=None,
+               bench_pictures_cfg='default'):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     do_upload_results: whether we should upload bench/gm results
@@ -63,6 +64,7 @@ class SkiaFactory(BuildFactory):
     test_args: list of extra flags to pass to the 'tests' executable
     gm_args: list of extra flags to pass to the 'gm' executable
     bench_args: list of extra flags to pass to the 'bench' executable
+    bench_pictures_cfg: config name to use for bench_pictures
     """
     properties = {}
 
@@ -146,6 +148,7 @@ class SkiaFactory(BuildFactory):
       gm_args = []
     if not bench_args:
       bench_args = []
+
     self._common_args = [
         '--autogen_svn_baseurl', AUTOGEN_SVN_BASEURL,
         '--configuration', configuration,
@@ -161,6 +164,7 @@ class SkiaFactory(BuildFactory):
         '--gm_args', '"%s"' % ' '.join(gm_args),
         '--bench_args', '"%s"' % ' '.join(bench_args),
         '--num_cores', WithProperties('%(num_cores:-None)s'),
+        '--bench_pictures_cfg', bench_pictures_cfg,
         ]
     BuildFactory.__init__(self, build_factory_properties=properties)
 
