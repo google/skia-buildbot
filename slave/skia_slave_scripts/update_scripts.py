@@ -29,7 +29,7 @@ class UpdateScripts(BuildStep):
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
     shell_utils.Bash([svn, 'ls', config.Master.skia_url,
-                      '--non-interactive', '--trust-server-cert'], echo=False)
+                      '--non-interactive', '--trust-server-cert'])
     shell_utils.Bash([gclient, 'sync'])
 
 
