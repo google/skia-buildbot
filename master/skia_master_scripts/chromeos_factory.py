@@ -18,7 +18,8 @@ class ChromeOSFactory(skia_factory.SkiaFactory):
                configuration=skia_factory.CONFIG_DEBUG, default_timeout=600,
                environment_variables=None, gm_image_subdir=None,
                perf_output_basedir=None, builder_name=None, make_flags=None,
-               test_args=None, gm_args=None, bench_args=None):
+               test_args=None, gm_args=None, bench_args=None,
+               bench_pictures_cfg='default'):
     """ Instantiates a ChromeOSFactory with properties and build steps specific
     to ChromeOS devices.
 
@@ -40,7 +41,8 @@ class ChromeOSFactory(skia_factory.SkiaFactory):
         make_flags=make_flags,
         test_args=test_args,
         gm_args=gm_args,
-        bench_args=bench_args)
+        bench_args=bench_args,
+        bench_pictures_cfg=bench_pictures_cfg)
     self._common_args += ['--ssh_host', ssh_host,
                           '--ssh_port', ssh_port]
 
