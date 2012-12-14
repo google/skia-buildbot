@@ -58,7 +58,7 @@ class BenchPictures(RunBench):
     else:
       cfg_name = self._args['bench_pictures_cfg']
 
-    vars = {'import_path': path_to_configs}
+    vars = {'import_path': 'tools'}
     execfile(os.path.join('tools', 'bench_pictures.cfg'), vars)
     bench_pictures_cfg = vars['bench_pictures_cfg']
     if bench_pictures_cfg.has_key(cfg_name):
