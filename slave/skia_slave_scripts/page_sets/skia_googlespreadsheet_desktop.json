@@ -1,0 +1,13 @@
+{
+    "description": "Google Empty Spreadsheet for Skia Desktop.",
+    "archive_path": "data/skia_googlespreadsheet_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "name": "Google Empty Spreadsheet",
+            "url": "https://docs.google.com/spreadsheet/ccc?key=0ApnDjttF0gt9dEJYRE9HdmYtRklNYUc1Q0NJOFpvUFE#gid=0",
+            "wait_time_after_navigate": 15.0,
+            "why": "from Tom W's list"
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "description": "GMail thread for Skia for Desktop.",
+    "archive_path": "data/skia_gmailthread_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "https://mail.google.com/mail/?shva=1#inbox/13ba91194d0b8a2e",
+            "wait_time_after_navigate": 30.0,
+            "why": "productivity, top google properties, long email thread",
+            "credentials": "google",
+            "scrollable_element_function": "function(callback) { gmonkey.load('2.0', function(api) { callback(api.getScrollableElement()); }); }"
+        }
+    ]
+}
