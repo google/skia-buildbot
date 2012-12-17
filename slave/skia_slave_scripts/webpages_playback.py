@@ -67,6 +67,7 @@ from telemetry import wpr_modes
 from telemetry import user_agent
 from utils import file_utils
 from utils import gs_utils
+from utils import misc
 
 from build_step import PLAYBACK_CANNED_ACL
 from playback_dirs import ROOT_PLAYBACK_DIR_NAME
@@ -83,6 +84,9 @@ LOCAL_RECORD_WEBPAGES_ARCHIVE_DIR = os.path.join(
 LOCAL_SKP_DIR = os.path.join(
     tempfile.gettempdir(), ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
 TMP_SKP_DIR = tempfile.mkdtemp()
+
+# Directory containing MultiPageBenchmarks.
+BENCHMARK_DIR = misc.GetAbsPath(os.path.dirname(skpicture_printer.__file__))
 
 # Number of times we retry telemetry if there is a problem.
 NUM_TIMES_TO_RETRY = 5
@@ -161,10 +165,7 @@ class SkPicturePlayback(object):
           # Creates an archive of the specified webpages if '--record' is
           # specified.
           # Saves all webpages in the page_set as skp files.
-          benchmark_dir = os.path.join(
-              os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir,
-              'third_party', 'chromium_trunk', 'tools', 'perf', 'perf_tools',)
-          multi_page_benchmark_runner.Main(benchmark_dir)
+          multi_page_benchmark_runner.Main(BENCHMARK_DIR)
 
           try:
             cPickle.load(open(os.path.join(
