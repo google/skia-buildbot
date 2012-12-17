@@ -19,9 +19,11 @@ import sys
 import time
 
 from build_step import PLAYBACK_CANNED_ACL
+from slave import slave_utils
 from utils import gs_utils
 from utils import sync_bucket_subdir
 
+import compare_and_upload_webpage_gms
 import playback_dirs
 
 
@@ -90,19 +92,32 @@ for gm_image_subdir in gm_images_seq:
   gm_expected_dir = posixpath.join(
       dest_gsbase, storage_playback_dirs.PlaybackGmExpectedDir())
 
-  print '\n\nVerify both directories exist, throw an Exception if they do not'
-  for storage_object in (gm_actual_dir, gm_expected_dir):
-    if not gs_utils.DoesStorageObjectExist(storage_object):
-      raise Exception("%s does not exist in Google Storage!" % storage_object)
+  print '\n\nThrow an Exception if gm_actual_dir does not exist'
+  if not gs_utils.DoesStorageObjectExist(gm_actual_dir):
+    raise Exception("%s does not exist in Google Storage!" % gm_actual_dir)
 
   print '\n\nDelete contents of gm_expected_dir'
   gs_utils.DeleteStorageObject(gm_expected_dir)
 
   print '\n\nCopy all contents from gm_actual_dir to gm_expected_dir'
-  gs_utils.CopyStorageDirectory(
-    src_dir=gm_actual_dir,
-    dest_dir=gm_expected_dir,
-    gs_acl=PLAYBACK_CANNED_ACL)
+  gm_actual_contents = slave_utils.GSUtilListBucket(
+                           gm_actual_dir, [])[1].split()
+  # Do not copy the TIMESTAMP_* and COMPARISON files.
+  for file_to_remove in (
+      gs_utils.TIMESTAMP_STARTED_FILENAME,
+      gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+      compare_and_upload_webpage_gms.LAST_COMPARISON_FILENAME):
+    gs_file_to_remove = posixpath.join(gm_actual_dir, file_to_remove)
+    if gs_file_to_remove in gm_actual_contents:
+      gm_actual_contents.remove(gs_file_to_remove)
+  # Copy all other files to gm_expected_dir.
+  for gm_actual_file in gm_actual_contents:
+    gm_expected_file = posixpath.join(gm_expected_dir,
+                                      os.path.basename(gm_actual_file))
+    gs_utils.CopyStorageDirectory(
+        src_dir=gm_actual_file,
+        dest_dir=gm_expected_file,
+        gs_acl=PLAYBACK_CANNED_ACL)
 
   print '\n\nUpdate gm_expected_dir timestamp'
   gs_utils.WriteTimeStampFile(
