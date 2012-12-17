@@ -44,6 +44,10 @@ page_sets/skia_wikipedia_galaxynexus.json
 The --dryrun=True flag will not upload to Google Storage (default value is
 'False').
 
+The --debugger flag if specified will allow you to preview the captured skp
+before proceeding to the next step. It needs to point to the built debugger. Eg:
+trunk/out/Debug/debugger
+
 """
 
 import cPickle
@@ -93,7 +97,7 @@ user_agent.UA_TYPE_MAPPING['nexus10'] = (
     'Safari/535.19')
 
 # Dictionary of device to platform prefixes for skp files.
-PAGE_SET_TO_PLATFORM_PREFIX = {
+DEVICE_TO_PLATFORM_PREFIX = {
     'desktop': 'desk',
     'galaxynexus': 'mobi',
     'nexus10': 'tabl'
@@ -108,8 +112,8 @@ class SkPicturePlayback(object):
     self._page_sets = self._ParsePageSets(parse_options.page_sets)
     self._dest_gsbase = parse_options.dest_gsbase
     self._record = parse_options.record
+    self._debugger = parse_options.debugger
     self._dryrun = parse_options.dryrun
-    # self._wpr_file_name = self._page_set.split('/')[-1].split('.')[0] + '.wpr'
 
   def _ParsePageSets(self, page_sets):
     if not page_sets:
@@ -145,31 +149,47 @@ class SkPicturePlayback(object):
       # the skpicture_printer benchmark.
       self._SetupArgsForSkPrinter(page_set)
 
-      # Adding retries to workaround the bug
-      # https://code.google.com/p/chromium/issues/detail?id=161244.
-      num_times_retried = 0
-      retry = True
-      while retry:
-        # Run the skpicture_printer script which:
-        # Creates an archive of the specified webpages if '--record' is specified.
-        # Saves all webpages in the page_set as skp files.
-        benchmark_dir = os.path.join(
-            os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir,
-            'third_party', 'chromium_trunk', 'tools', 'perf', 'perf_tools',)
-        multi_page_benchmark_runner.Main(benchmark_dir)
+      accept_skp = False
 
-        try:
-          cPickle.load(open(os.path.join(
-              LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, wpr_file_name), 'rb'))
-          retry = False
-        except EOFError, e:
-          traceback.print_exc()
-          num_times_retried += 1
-          if num_times_retried > NUM_TIMES_TO_RETRY:
-            print 'Exceeded number of times to retry!'
-            raise e
-          else:
-            print '======================Retrying!======================'
+      while not accept_skp:
+        # Adding retries to workaround the bug
+        # https://code.google.com/p/chromium/issues/detail?id=161244.
+        num_times_retried = 0
+        retry = True
+        while retry:
+          # Run the skpicture_printer script which:
+          # Creates an archive of the specified webpages if '--record' is
+          # specified.
+          # Saves all webpages in the page_set as skp files.
+          benchmark_dir = os.path.join(
+              os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir,
+              'third_party', 'chromium_trunk', 'tools', 'perf', 'perf_tools',)
+          multi_page_benchmark_runner.Main(benchmark_dir)
+
+          try:
+            cPickle.load(open(os.path.join(
+                LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, wpr_file_name), 'rb'))
+            retry = False
+          except EOFError, e:
+            traceback.print_exc()
+            num_times_retried += 1
+            if num_times_retried > NUM_TIMES_TO_RETRY:
+              print 'Exceeded number of times to retry!'
+              raise e
+            else:
+              print '======================Retrying!======================'
+
+        if self._debugger:
+          cwd = os.getcwd()
+          os.chdir(TMP_SKP_DIR)
+          print 'Skp files are in: %s' % TMP_SKP_DIR
+          os.system(self._debugger)
+          os.chdir(cwd)
+          user_input = raw_input("Would you like to recapture the skp? [y,n]")
+          accept_skp = False if user_input == 'y' else True
+        else:
+          # Always accept skps if debugger is not provided to preview.
+          accept_skp = True
 
       if self._record:
         # Move over the created archive into the local webpages archive directory.
@@ -228,7 +248,7 @@ class SkPicturePlayback(object):
         # Gets the platform prefix for the page set.
         # Eg: for 'skia_yahooanswers_desktop.json' it gets 'desktop'.
         device = (page_set.split('/')[-1].split('_')[-1].split('.')[0])
-        platform_prefix = PAGE_SET_TO_PLATFORM_PREFIX[device]
+        platform_prefix = DEVICE_TO_PLATFORM_PREFIX[device]
 
         # Replace the prefix http/https with the platform prefix.
         basename = basename.replace(basename.split('_')[0], platform_prefix, 1)
@@ -319,6 +339,11 @@ if '__main__' == __name__:
       '', '--dest_gsbase',
       help='gs:// bucket_name, the bucket to upload the file to.',
       default='gs://chromium-skia-gm')
+  option_parser.add_option(
+      '', '--debugger',
+      help=('Path to a debugger. You can preview a captured skp if a debugger '
+            'is specified.'),
+      default=None)
   option_parser.add_option(
       '', '--dryrun',
       help='Does not upload to Google Storage if this is true.',
