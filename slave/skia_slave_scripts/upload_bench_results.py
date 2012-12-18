@@ -5,7 +5,7 @@
 
 """ Upload benchmark performance data results. """
 
-from build_step import BuildStep
+from build_step import BuildStep, BuildStepWarning
 from utils import bench_common
 from utils import misc
 from utils import sync_bucket_subdir
@@ -38,6 +38,9 @@ class UploadBenchResults(BuildStep):
                do_download=False)
 
   def _Run(self):
+    if self._is_try:
+      raise BuildStepWarning('Not yet uploading results for try jobs.') # TODO
+
     self._RunInternal()
 
 

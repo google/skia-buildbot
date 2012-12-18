@@ -6,7 +6,7 @@
 """ Upload actual GM results to the skia-autogen SVN repository to aid in
 rebaselining. """
 
-from build_step import BuildStep
+from build_step import BuildStep, BuildStepWarning
 from utils import merge_into_svn
 from utils import misc
 import optparse
@@ -24,6 +24,9 @@ class UploadGMResults(BuildStep):
     super(UploadGMResults, self).__init__(args, attempts)
 
   def _Run(self):
+    if self._is_try:
+      raise BuildStepWarning('Not yet uploading results for try jobs.') # TODO
+
     # TODO these constants should actually be shared by multiple build steps
     gm_actual_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'actual')
     gm_merge_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'merge')

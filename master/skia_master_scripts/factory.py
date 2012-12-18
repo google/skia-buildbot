@@ -37,8 +37,8 @@ CONFIGURATIONS = [CONFIG_DEBUG, CONFIG_RELEASE]
 class SkiaFactory(BuildFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""
 
-  def __init__(self, do_upload_results=False,
-               build_subdir='trunk', other_subdirs=None,
+  def __init__(self, other_subdirs=None, do_upload_results=False,
+               do_patch_step=False, build_subdir='trunk',
                target_platform=None, configuration=CONFIG_DEBUG,
                default_timeout=8*60*60,
                environment_variables=None, gm_image_subdir=None,
@@ -48,6 +48,8 @@ class SkiaFactory(BuildFactory):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     do_upload_results: whether we should upload bench/gm results
+    do_patch_step: whether the build should include a step which applies a
+        patch.  This is only applicable for trybots.
     build_subdir: subdirectory to check out and then build within
     other_subdirs: list of other subdirectories to also check out (or None)
     target_platform: a string such as TARGET_PLATFORM_LINUX
@@ -85,8 +87,11 @@ class SkiaFactory(BuildFactory):
         ).GetSpec()]
     if not other_subdirs:
       other_subdirs = []
-    if gm_image_subdir:
-      other_subdirs.append('gm-expected/%s' % gm_image_subdir)
+    
+    # Trybots need to check out all of these directories.
+    if do_patch_step:
+      other_subdirs.append('android')
+      other_subdirs.append('gm-expected')
     other_subdirs.append('skp')
     for other_subdir in other_subdirs:
       self._gclient_solutions.append(gclient_factory.GClientSolution(
@@ -102,6 +107,7 @@ class SkiaFactory(BuildFactory):
     self._do_upload_results = do_upload_results
     self._do_upload_bench_results = do_upload_results and \
         perf_output_basedir != None
+    self._do_patch_step = do_patch_step
 
     # Get an implementation of SkiaCommands as appropriate for
     # this target_platform.
@@ -164,6 +170,7 @@ class SkiaFactory(BuildFactory):
         '--gm_args', '"%s"' % ' '.join(gm_args),
         '--bench_args', '"%s"' % ' '.join(bench_args),
         '--num_cores', WithProperties('%(num_cores:-None)s'),
+        '--is_try', str(self._do_patch_step),
         '--bench_pictures_cfg', bench_pictures_cfg,
         ]
     BuildFactory.__init__(self, build_factory_properties=properties)
@@ -220,7 +227,9 @@ class SkiaFactory(BuildFactory):
     """
     if clobber is None:
       clobber = self._default_clobber
-    if clobber:
+
+    # Trybots should always clean.
+    if clobber or self._do_patch_step:
       self.AddSlaveScript(script='clean.py', description='Clean')
     self.Make('skia_base_libs',  'BuildSkiaBaseLibs')
     self.Make('tests', 'BuildTests')
@@ -284,6 +293,19 @@ class SkiaFactory(BuildFactory):
         is_rebaseline_step=True,
         get_props_from_stdout={'got_revision':'Skia updated to revision (\d+)'},
         workdir='build')
+
+    if self._do_patch_step:
+      def _GetPatch(build):
+        if build.getSourceStamp().patch:
+          patch = str(build.getSourceStamp().patch).encode()
+        else:
+          patch = 'None'
+        return patch
+
+      args = ['--patch', WithProperties('%(patch)s', patch=_GetPatch),
+              '--patch_root', WithProperties('%(root:-None)s')]
+      self.AddSlaveScript(script='apply_patch.py', description='ApplyPatch',
+                          args=args, halt_on_failure=True)
 
   def UploadBenchGraphs(self):
     """ Upload bench performance graphs (but only if we have been

@@ -6,12 +6,13 @@
     <link rel="icon" href="favicon.ico">
 
     <script language="JavaScript">
-    var nonbench_builders = [];
-    var bench_builders = [];
-    var all_builders = [];
+    var nonbench_percommit_builders = [];
+    var bench_percommit_builders = [];
+    var all_percommit_builders = [];
+    var try_builders = [];
 
     var display_builders = "nonbench";
-    var display_builders_list = nonbench_builders;
+    var display_builders_list = nonbench_percommit_builders;
     var display_view = "external";
     var display_page = "console";
     var internalport = "10115";
@@ -78,15 +79,20 @@
       // We *should* use a JSON parser, but since we trust the buildbot master
       // server, we allow this unsafe call 
       var builders_json = eval("(" + request.responseText + ")");
-      nonbench_builders = [];
-      bench_builders = [];
-      all_builders = [];
+      nonbench_percommit_builders = [];
+      bench_percommit_builders = [];
+      all_percommit_builders = [];
+      try_builders = [];
       for (var builder in builders_json) {
-        all_builders.push(builder);
-        if (builder.indexOf("Bench") != -1) {
-          bench_builders.push(builder);
+        if (builder.indexOf("Trybot") != -1) {
+          try_builders.push(builder)
         } else {
-          nonbench_builders.push(builder);
+          all_percommit_builders.push(builder);
+          if (builder.indexOf("Bench") != -1) {
+            bench_percommit_builders.push(builder);
+          } else {
+            nonbench_percommit_builders.push(builder);
+          }
         }
       }
     }
@@ -101,12 +107,14 @@
         display_builders = "nonbench";
       }
       if (display_builders == "bench") {
-        display_builders_list = bench_builders;
+        display_builders_list = bench_percommit_builders;
       } else if (display_builders == "all") {
-        display_builders_list = all_builders;
+        display_builders_list = all_percommit_builders;
+      } else if (display_builders == "try") {
+        display_builders_list = try_builders;
       } else {
         display_builders = "nonbench";
-        display_builders_list = nonbench_builders;
+        display_builders_list = nonbench_percommit_builders;
       }
       display_view = args["view"];
       if (!display_view)
@@ -140,6 +148,7 @@
         <input type="radio" id="nonbench_console" value="nonbench_console" onClick="javascript:reloadWithOptions(display_view, 'nonbench', 'console');">Non-Bench Builders
         <input type="radio" id="bench_console" value="bench_console" onClick="javascript:reloadWithOptions(display_view, 'bench', 'console');">Bench Builders
         <input type="radio" id="all_console" value="all_console" onClick="javascript:reloadWithOptions(display_view, 'all', 'console');">All Builders
+        <input type="radio" id="try_waterfall" value="try_waterfall" onClick="javascript:reloadWithOptions(display_view, 'try', 'waterfall');">Trybots
       </form>
     </div>
    <!-- Waterfall: 

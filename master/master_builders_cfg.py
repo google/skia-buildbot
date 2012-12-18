@@ -41,6 +41,9 @@ def Update(config, active_master, c):
   #
   helper.PeriodicScheduler('skia_periodic', branch='trunk', minute=0, hour=2)
 
+  # Scheduler for Skia trybots.
+  helper.TryScheduler('skia_try')
+
   #
   # Set up all the builders.
   #
@@ -265,6 +268,20 @@ def Update(config, active_master, c):
       perf_output_basedir=None, # no perf measurement for debug builds
       bench_pictures_cfg='no_gpu',
       builder_name='Skia_Linux_NoGPU',
+      ).Build())
+
+  B('Skia_Linux_NoGPU_Trybot', 'f_skia_linux_no_gpu_trybot',
+    scheduler='skia_try')
+  F('f_skia_linux_no_gpu_trybot', skia_factory.SkiaFactory(
+      do_upload_results=do_upload_results,
+      do_patch_step=True,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      configuration=skia_factory.CONFIG_DEBUG,
+      environment_variables=
+          {'GYP_DEFINES': 'skia_scalar=float skia_gpu=0 skia_arch_width=64'},
+      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
+      perf_output_basedir=None, # no perf measurement for debug builds
+      builder_name='Skia_Linux_NoGPU_Trybot',
       ).Build())
 
   defaults['category'] = 'ChromeOS'

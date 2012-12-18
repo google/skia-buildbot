@@ -42,6 +42,9 @@ class UploadBenchGraphs(BuildStep):
           '\n\n%s does not exist! Skipping graph upload!' % graph_filepath)
 
   def _Run(self):
+    if self._is_try:
+      raise BuildStepWarning('Not yet uploading results for try jobs.') # TODO
+
     for rep in ['avg', 'min', 'med', '25th']:
       self._RunInternal(rep)
 
