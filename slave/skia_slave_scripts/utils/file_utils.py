@@ -26,7 +26,15 @@ def RecursiveDelete(directory):
     abs_path = misc.GetAbsPath(path)
     if not os.access(abs_path, os.W_OK):
       # Change the path to be writeable and try again.
-      os.chmod(abs_path, stat.S_IWUSR)
+      try:
+        os.chmod(abs_path, stat.S_IWRITE)
+      except Exception as e:
+        if os.path.exists(abs_path):
+          raise
+        print 'Warning: removal of %s failed but the path no longer exists.' % \
+            abs_path
+        print e
+        return
     function(abs_path)
 
   shutil.rmtree(directory, onerror=_OnRmtreeError)
