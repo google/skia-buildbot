@@ -177,7 +177,9 @@ class CompareAndUploadWebpageGMs(BuildStep):
       if self._builder_name in may_fail_with_warning:
         raise BuildStepWarning(e)
       else:
-        raise
+        # TODO(rmistry): Change the below line to 'raise' after
+        # https://code.google.com/p/skia/issues/detail?id=1027 is fixed.
+        raise BuildStepWarning(e)
     else:
       print '\n\n=========GM Comparison Succeeded!=========\n\n'
       if (self._do_upload_results and self._gm_actual_exists_on_storage and
