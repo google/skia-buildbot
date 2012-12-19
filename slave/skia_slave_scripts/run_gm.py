@@ -13,6 +13,8 @@ import shutil
 import sys
 
 
+JSON_SUMMARY_FILENAME = 'actual-results.json'
+
 class RunGM(BuildStep):
   def _PreGM(self,):
     print 'Removing %s' % self._gm_actual_dir
@@ -50,7 +52,9 @@ class RunGM(BuildStep):
   def _Run(self):
     self._PreGM()
     cmd = [self._PathToBinary('gm'),
-           '-w', self._gm_actual_dir,
+           '--writePath', self._gm_actual_dir,
+           '--writeJsonSummary', os.path.join(self._gm_actual_dir,
+                                              JSON_SUMMARY_FILENAME),
            ] + self._gm_args
     self._RunModulo(cmd)
 

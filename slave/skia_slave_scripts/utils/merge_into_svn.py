@@ -216,6 +216,8 @@ def MergeIntoSvn(options):
   _SetProperty(_FindFiles(mergedir, '.css'), 'svn:mime-type', 'text/css', repo)
   _SetProperty(_FindFiles(mergedir, '.js'), 'svn:mime-type',
                'text/javascript', repo)
+  _SetProperty(_FindFiles(mergedir, '.json'), 'svn:mime-type',
+               'application/json', repo)
   _SetProperty(_FindFiles(mergedir, '.gif'), 'svn:mime-type', 'image/gif', repo)
   _SetProperty(_FindFiles(mergedir, '.png'), 'svn:mime-type', 'image/png', repo)
   _SetProperty(_FindFiles(mergedir, '.pdf'), 'svn:mime-type',
