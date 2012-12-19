@@ -68,7 +68,8 @@ class CompareAndUploadWebpageGMs(BuildStep):
     # Check if gm-expected exists on Google Storage.
     self._gm_expected_exists_on_storage = gs_utils.DoesStorageObjectExist(
         posixpath.join(self._dest_gsbase,
-                       self._storage_playback_dirs.PlaybackGmExpectedDir()))
+                       self._storage_playback_dirs.PlaybackGmExpectedDir(),
+                       gs_utils.TIMESTAMP_COMPLETED_FILENAME))
     # Check if gm-actual exists on Google Storage.
     self._gm_actual_exists_on_storage = gs_utils.DoesStorageObjectExist(
         posixpath.join(self._dest_gsbase,
