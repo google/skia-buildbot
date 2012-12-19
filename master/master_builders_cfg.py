@@ -182,7 +182,8 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-shuttle-win7-intel-float',
-      perf_output_basedir=perf_output_basedir_windows)
+      perf_output_basedir=perf_output_basedir_windows,
+      use_skp_playback_framework=True)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_64',
@@ -191,7 +192,8 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
       gm_image_subdir='base-shuttle-win7-intel-float',
-      perf_output_basedir=perf_output_basedir_windows)
+      perf_output_basedir=perf_output_basedir_windows,
+      use_skp_playback_framework=True)
 
   # Special-purpose Win7 builders
   defaults['category'] = 'Win7-Special'

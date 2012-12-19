@@ -272,7 +272,8 @@ def MakeSchedulerName(builder_base_name):
 def MakeBuilderSet(helper, builder_base_name, do_upload_results,
                    target_platform, environment_variables, gm_image_subdir,
                    perf_output_basedir, test_args=None, gm_args=None,
-                   bench_args=None, extra_branches=None):
+                   bench_args=None, extra_branches=None,
+                   use_skp_playback_framework=False):
   """ Creates a trio of builders for a given platform:
   1. Debug mode builder which runs all steps
   2. Release mode builder which runs all steps EXCEPT benchmarks
@@ -305,6 +306,7 @@ def MakeBuilderSet(helper, builder_base_name, do_upload_results,
       test_args=test_args,
       gm_args=gm_args,
       bench_args=bench_args,
+      use_skp_playback_framework=use_skp_playback_framework,
       ).Build())
   B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
       scheduler=scheduler_name)
@@ -319,6 +321,7 @@ def MakeBuilderSet(helper, builder_base_name, do_upload_results,
       test_args=test_args,
       gm_args=gm_args,
       bench_args=bench_args,
+      use_skp_playback_framework=use_skp_playback_framework,
       ).Build())
   B(perf_builder_name, 'f_%s' % perf_builder_name,
       scheduler=scheduler_name)
@@ -333,6 +336,7 @@ def MakeBuilderSet(helper, builder_base_name, do_upload_results,
       test_args=test_args,
       gm_args=gm_args,
       bench_args=bench_args,
+      use_skp_playback_framework=use_skp_playback_framework,
       ).Build())
 
 
@@ -463,3 +467,4 @@ class SkiaTryMailNotifier(TryMailNotifier):
   def buildMessage(self, name, build, results):
     if build[0].source.patch:
       return TryMailNotifier.buildMessage(self, name, build, results)
+

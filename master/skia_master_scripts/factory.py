@@ -44,7 +44,8 @@ class SkiaFactory(BuildFactory):
                environment_variables=None, gm_image_subdir=None,
                perf_output_basedir=None, builder_name=None, make_flags=None,
                test_args=None, gm_args=None, bench_args=None,
-               bench_pictures_cfg='default'):
+               bench_pictures_cfg='default',
+               use_skp_playback_framework=False):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     do_upload_results: whether we should upload bench/gm results
@@ -67,6 +68,9 @@ class SkiaFactory(BuildFactory):
     gm_args: list of extra flags to pass to the 'gm' executable
     bench_args: list of extra flags to pass to the 'bench' executable
     bench_pictures_cfg: config name to use for bench_pictures
+    use_skp_playback_framework: whether the builder should use the new skp
+        playback framework. This is a temporary flag that will be removed once
+        all builders use the new framework
     """
     properties = {}
 
@@ -87,7 +91,7 @@ class SkiaFactory(BuildFactory):
         ).GetSpec()]
     if not other_subdirs:
       other_subdirs = []
-    
+
     # Trybots need to check out all of these directories.
     if do_patch_step:
       other_subdirs.append('android')
@@ -130,6 +134,8 @@ class SkiaFactory(BuildFactory):
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._builder_name = builder_name
+
+    self._use_skp_playback_framework = use_skp_playback_framework
 
     # The class to use when creating builds in build_factory.BuildFactory
     self.buildClass = skia_build.SkiaBuild
@@ -249,13 +255,25 @@ class SkiaFactory(BuildFactory):
 
   def RenderPictures(self):
     """ Run the "render_pictures" tool to generate images from .skp's. """
-    self.AddSlaveScript(script='render_pictures.py',
-                        description='RenderPictures')
+    if self._use_skp_playback_framework:
+      self.AddSlaveScript(script='render_webpage_pictures.py',
+                          description='RenderWebpagePictures')
+    else:
+      self.AddSlaveScript(script='render_pictures.py',
+                          description='RenderPictures')
 
   def CompareGMs(self):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
     generated to the baselines in _gm_image_subdir. """
     self.AddSlaveScript(script='compare_gms.py', description='CompareGMs',
+                        is_rebaseline_step=True)
+  
+  def CompareAndUploadWebpageGMs(self):
+    """ Run the "skdiff" tool to compare the "actual" GM images we just
+    generated to the baselines in _gm_image_subdir and uploads the actual
+    images if appropriate. """
+    self.AddSlaveScript(script='compare_and_upload_webpage_gms.py',
+                        description='CompareAndUploadWebpageGMs',
                         is_rebaseline_step=True)
 
   def RunBench(self):
@@ -265,12 +283,22 @@ class SkiaFactory(BuildFactory):
 
   def BenchPictures(self):
     """ Run "bench_pictures" """
-    self.AddSlaveScript(script='bench_pictures.py', description='BenchPictures')
+    if self._use_skp_playback_framework:
+      self.AddSlaveScript(script='bench_webpage_pictures.py',
+                          description='BenchWebpagePictures')
+    else:  
+      self.AddSlaveScript(script='bench_pictures.py',
+                          description='BenchPictures')
 
   def BenchGraphs(self):
     """ Generate bench performance graphs. """
     self.AddSlaveScript(script='generate_bench_graphs.py',
                         description='GenerateBenchGraphs')
+
+  def GenerateWebpagePictureBenchGraphs(self):
+    """ Generate webpage picture bench performance graphs. """
+    self.AddSlaveScript(script='generate_webpage_picture_bench_graphs.py',
+                        description='GenerateWebpagePictureBenchGraphs')
 
   def UpdateSteps(self):
     """ Update the Skia sources. """
@@ -313,10 +341,22 @@ class SkiaFactory(BuildFactory):
     self.AddSlaveScript(script='upload_bench_graphs.py',
                         description='UploadBenchGraphs')
 
+  def UploadWebpagePictureBenchGraphs(self):
+    """ Upload webpage picture bench performance graphs (but only if we have
+    been recording bench output for this build type). """
+    self.AddSlaveScript(script='upload_webpage_picture_bench_graphs.py',
+                        description='UploadWebpagePictureBenchGraphs')
+
   def UploadBenchResults(self):
     """ Upload bench results (performance data). """
     self.AddSlaveScript(script='upload_bench_results.py',
                         description='UploadBenchResults')
+
+  def UploadWebpagePictureBenchResults(self):
+    """ Upload webpage picture bench results (performance data). """
+    self.AddSlaveScript(script='upload_webpage_picture_bench_results.py',
+                        description='UploadWebpagePictureBenchResults')
+
 
   def UploadGMResults(self):
     """ Upload the images generated by GM """
@@ -334,6 +374,8 @@ class SkiaFactory(BuildFactory):
     if self._do_upload_results:
       self.UploadGMResults()
     self.CompareGMs()
+    if self._use_skp_playback_framework:
+      self.CompareAndUploadWebpageGMs()
 
   def PerfSteps(self):
     """ Add performance testing BuildSteps. """
@@ -343,6 +385,10 @@ class SkiaFactory(BuildFactory):
       self.UploadBenchResults()
       self.BenchGraphs()
       self.UploadBenchGraphs()
+      if self._use_skp_playback_framework:
+        self.UploadWebpagePictureBenchResults()
+        self.GenerateWebpagePictureBenchGraphs()
+        self.UploadWebpagePictureBenchGraphs()
 
   def Build(self, clobber=None):
     """Build and return the complete BuildFactory.
