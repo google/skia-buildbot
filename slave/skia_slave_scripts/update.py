@@ -75,7 +75,6 @@ class Update(BuildStep):
       os.chdir(os.pardir)
       print 'Deleting checkout and starting over...'
       file_utils.ClearDirectory(build_dir)
-      os.mkdir(build_dir)
       os.chdir(build_dir)
       shell_utils.Bash([gclient, 'config', '--spec=%s' % gclient_spec])
       shell_utils.Bash([gclient, 'sync'] + sync_args)
