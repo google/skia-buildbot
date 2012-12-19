@@ -27,7 +27,7 @@ def RecursiveDelete(directory):
     if not os.access(abs_path, os.W_OK):
       # Change the path to be writeable and try again.
       try:
-        os.chmod(abs_path, stat.S_IWRITE)
+        os.chmod(abs_path, stat.S_IWUSR)
       except Exception as e:
         if os.path.exists(abs_path):
           raise
@@ -45,13 +45,14 @@ def ClearDirectory(directory):
   when the directory itself cannot be removed for some reason. Otherwise,
   RecursiveDelete or CreateCleanLocalDir should be preferred. """
   for path in os.listdir(directory):
-    if os.path.isdir(path):
-      RecursiveDelete(os.path.join(directory, path))
+    abs_path = os.path.join(directory, path)
+    if os.path.isdir(abs_path):
+      RecursiveDelete(abs_path)
     else:
-      if not os.access(path, os.W_OK):
+      if not os.access(abs_path, os.W_OK):
         # Change the path to be writeable
-        os.chmod(path, stat.S_IWUSR)
-      os.remove(path)
+        os.chmod(abs_path, stat.S_IWUSR)
+      os.remove(abs_path)
 
 
 def CreateCleanLocalDir(directory):
