@@ -100,24 +100,27 @@ for gm_image_subdir in gm_images_seq:
   gs_utils.DeleteStorageObject(gm_expected_dir)
 
   print '\n\nCopy all contents from gm_actual_dir to gm_expected_dir'
-  gm_actual_contents = slave_utils.GSUtilListBucket(
-                           gm_actual_dir, [])[1].split()
-  # Do not copy the TIMESTAMP_* and COMPARISON files.
+  # This is a 3 step process.
+  # 1. Copy from gm_actual_dir to a temporary location.
+  gm_tmp_dir = posixpath.join(
+      dest_gsbase, 'test', gm_image_subdir, builder_name)
+  gs_utils.CopyStorageDirectory(
+      src_dir=gm_actual_dir,
+      dest_dir=gm_tmp_dir,
+      gs_acl=PLAYBACK_CANNED_ACL)
+
+  # 2. Delete TIMESTAMP_* and COMPARISON files from the temporary location.
   for file_to_remove in (
       gs_utils.TIMESTAMP_STARTED_FILENAME,
       gs_utils.TIMESTAMP_COMPLETED_FILENAME,
       compare_and_upload_webpage_gms.LAST_COMPARISON_FILENAME):
-    gs_file_to_remove = posixpath.join(gm_actual_dir, file_to_remove)
-    if gs_file_to_remove in gm_actual_contents:
-      gm_actual_contents.remove(gs_file_to_remove)
-  # Copy all other files to gm_expected_dir.
-  for gm_actual_file in gm_actual_contents:
-    gm_expected_file = posixpath.join(gm_expected_dir,
-                                      os.path.basename(gm_actual_file))
-    gs_utils.CopyStorageDirectory(
-        src_dir=gm_actual_file,
-        dest_dir=gm_expected_file,
-        gs_acl=PLAYBACK_CANNED_ACL)
+    gs_file_to_remove = posixpath.join(gm_tmp_dir, file_to_remove)
+    gs_utils.DeleteStorageObject(gs_file_to_remove)
+
+  # 3. Move files from the temporary location to gm_expected_dir.
+  gs_utils.MoveStorageDirectory(
+      src_dir=gm_tmp_dir,
+      dest_dir=gm_expected_dir)
 
   print '\n\nUpdate gm_expected_dir timestamp'
   gs_utils.WriteTimeStampFile(

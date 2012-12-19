@@ -36,7 +36,16 @@ def CopyStorageDirectory(src_dir, dest_dir, gs_acl):
   command.extend(['cp', '-a', gs_acl, '-R', src_dir, dest_dir])
   print 'Running command: %s' % command
   chromium_utils.RunCommand(command)
-  
+
+
+def MoveStorageDirectory(src_dir, dest_dir):
+  """Move a directory on Google Storage."""
+  gsutil = slave_utils.GSUtilSetup()
+  command = [gsutil]
+  command.extend(['mv', '-p', src_dir, dest_dir])
+  print 'Running command: %s' % command
+  chromium_utils.RunCommand(command)
+
 
 def DoesStorageObjectExist(object_name):
   """Checks if an object exists on Google Storage.
