@@ -2,23 +2,25 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 """Utility class to build the Skia master BuildFactory's.
 
 Based on gclient_factory.py and adds Skia-specific steps."""
 
-import ntpath
-import posixpath
 
 from buildbot.process.properties import Property, WithProperties
 from master.factory import gclient_factory
 from master.factory.build_factory import BuildFactory
 from skia_master_scripts import commands as skia_commands
 import config
+import ntpath
+import posixpath
 import skia_build
 
 
 SKIA_SVN_BASEURL = 'https://skia.googlecode.com/svn'
 AUTOGEN_SVN_BASEURL = 'https://skia-autogen.googlecode.com/svn'
+
 
 # TODO(epoger): My intent is to make the build steps identical on all platforms
 # and thus remove the need for the whole target_platform parameter.
@@ -33,6 +35,7 @@ CONFIG_DEBUG = 'Debug'
 CONFIG_RELEASE = 'Release'
 CONFIG_BENCH = 'Bench'
 CONFIGURATIONS = [CONFIG_DEBUG, CONFIG_RELEASE]
+
 
 class SkiaFactory(BuildFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""

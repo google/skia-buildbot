@@ -5,13 +5,12 @@
 # Sets up all the builders we want this buildbot master to run.
 
 from master import master_config
-from skia_master_scripts import chromeos_factory
 from skia_master_scripts import factory as skia_factory
-from skia_master_scripts import ios_factory
 from skia_master_scripts import housekeeping_percommit_factory
 from skia_master_scripts import housekeeping_periodic_factory
 from skia_master_scripts import utils
-from skia_master_scripts.utils import MakeBuilderSet, MakeAndroidBuilderSet
+from skia_master_scripts.utils import MakeBuilderSet, MakeAndroidBuilderSet, \
+                                      MakeChromeOSBuilderSet, MakeIOSBuilderSet
 
 # Directory where we want to record performance data
 #
@@ -224,16 +223,16 @@ def Update(config, active_master, c):
       use_skp_playback_framework=True)
 
   defaults['category'] = 'iOS'
-  B('Skia_iOS_32', 'f_skia_ios_32', scheduler='skia_rel')
-  F('f_skia_ios_32', ios_factory.iOSFactory(
+  MakeIOSBuilderSet(
+      helper=helper,
+      builder_base_name='Skia_iOS_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      configuration=skia_factory.CONFIG_DEBUG,
       environment_variables={'GYP_DEFINES': 'skia_os=ios'},
       gm_image_subdir=None,
       perf_output_basedir=None,
-      builder_name='Skia_iOS_32',
-      ).Build())
+      do_release=False,
+      do_bench=False)
 
   # House Keeping
   defaults['category'] = ' housekeeping'
@@ -256,55 +255,32 @@ def Update(config, active_master, c):
 
   # "Special" bots, running on Linux
   defaults['category'] = 'Linux-Special'
-
-  # Use the Ubuntu12_ATI5770 scheduler created by MakeBuilderSet so that this
-  # builder will be triggered by commits inside the
-  # 'gm-expected/base-shuttle_ubuntu12_ati5770' directory. This is a bit of a
-  # hack, since we shouldn't know the names of the schedulers created inside
-  # MakeBuilderSet, but it lets us avoid creating a redundant scheduler here.
-  B('Skia_Linux_NoGPU', 'f_skia_linux_no_gpu',
-    scheduler='Skia_Shuttle_Ubuntu12_ATI5770_Float_Scheduler_64')
-  F('f_skia_linux_no_gpu', skia_factory.SkiaFactory(
+  MakeBuilderSet(
+      helper=helper,
+      builder_base_name='Skia_Linux_NoGPU_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration=skia_factory.CONFIG_DEBUG,
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_gpu=0 skia_arch_width=64'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
       perf_output_basedir=None, # no perf measurement for debug builds
       bench_pictures_cfg='no_gpu',
-      builder_name='Skia_Linux_NoGPU',
-      ).Build())
+      do_release=False,
+      do_bench=False)
 
-  B('Skia_Linux_NoGPU_Trybot', 'f_skia_linux_no_gpu_trybot',
-    scheduler='skia_try')
-  F('f_skia_linux_no_gpu_trybot', skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      do_patch_step=True,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration=skia_factory.CONFIG_DEBUG,
-      environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_gpu=0 skia_arch_width=64'},
-      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name='Skia_Linux_NoGPU_Trybot',
-      ).Build())
-
+  # Chrome OS
   defaults['category'] = 'ChromeOS'
-  B('Skia_ChromeOS_Alex_Debug_32', 'f_skia_chromeos_alex_debug_32',
-      scheduler='skia_rel')
-  F('f_skia_chromeos_alex_debug_32', chromeos_factory.ChromeOSFactory(
-      ssh_host='192.168.1.134',
-      ssh_port='22',
+  MakeChromeOSBuilderSet(
+      helper=helper,
+      builder_base_name='Skia_ChromeOS_Alex_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      configuration=skia_factory.CONFIG_DEBUG,
       environment_variables=
           {'GYP_DEFINES': 'skia_arch_width=32 skia_gpu=0'},
       gm_image_subdir=None,
       perf_output_basedir=None, # no perf measurement for debug builds
       bench_pictures_cfg='no_gpu',
-      builder_name='Skia_ChromeOS_Alex_Debug_32',
-      ).Build())
+      do_release=False,
+      do_bench=False)
 
   return helper.Update(c)

@@ -2,9 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 """Miscellaneous utilities needed by the Skia buildbot master."""
 
+
 import httplib2
+
 
 # requires Google APIs client library for Python; see
 # https://code.google.com/p/google-api-python-client/wiki/Installation
@@ -19,9 +22,15 @@ from master.try_job_svn import TryJobSubversion
 from master.try_mail_notifier import TryMailNotifier
 from oauth2client.client import SignedJwtAssertionCredentials
 from skia_master_scripts import android_factory
+from skia_master_scripts import chromeos_factory
 from skia_master_scripts import factory as skia_factory
+from skia_master_scripts import ios_factory
 from skia_master_scripts.perf_only_factory import PerfOnlyFactory, AndroidPerfOnlyFactory
 from skia_master_scripts.no_perf_factory import NoPerfFactory, AndroidNoPerfFactory
+
+
+TRYBOT_NAME_SUFFIX = '_Trybot'
+
 
 def _AssertValidString(var, varName='[unknown]'):
   """Raises an exception if a var is not a valid string.
@@ -40,6 +49,7 @@ def _AssertValidString(var, varName='[unknown]'):
   if var.isspace():
     raise Exception('variable "%s" is whitespace' % varName)
 
+
 def _AssertValidStringList(var, varName='[unknown]'):
   """Raises an exception if var is not a list of valid strings.
   
@@ -54,6 +64,7 @@ def _AssertValidStringList(var, varName='[unknown]'):
     raise Exception('variable "%s" is not a list' % varName)
   for index, item in zip(range(len(var)), var):
     _AssertValidString(item, '%s[%d]' % (varName, index))
+
 
 def FileBug(summary, description, owner=None, ccs=[], labels=[]):
   """Files a bug to the Skia issue tracker.
@@ -128,10 +139,12 @@ def FileBug(summary, description, owner=None, ccs=[], labels=[]):
 
   return result
 
+
 # Base set of branches for which we trigger rebuilds on all builders. Schedulers
 # may trigger builds on a superset of this list to include, for example, the
 # 'android' branch or a subfolder of 'gm-expected'.
 SKIA_PRIMARY_SUBDIRS = ['buildbot', 'skp', 'trunk']
+
 
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
@@ -269,11 +282,10 @@ def MakeSchedulerName(builder_base_name):
   return MakeBuilderName(builder_base_name, 'Scheduler')
 
 
-def MakeBuilderSet(helper, builder_base_name, do_upload_results,
-                   target_platform, environment_variables, gm_image_subdir,
-                   perf_output_basedir, test_args=None, gm_args=None,
-                   bench_args=None, extra_branches=None,
-                   use_skp_playback_framework=False):
+def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
+                   extra_branches=None, debug_factory=None,
+                   release_factory=None, bench_factory=None, is_trybot=False,
+                   **kwargs):
   """ Creates a trio of builders for a given platform:
   1. Debug mode builder which runs all steps
   2. Release mode builder which runs all steps EXCEPT benchmarks
@@ -282,133 +294,131 @@ def MakeBuilderSet(helper, builder_base_name, do_upload_results,
   B = helper.Builder
   F = helper.Factory
 
-  scheduler_name       = MakeSchedulerName(builder_base_name)
+  if is_trybot:
+    scheduler_name       = 'skia_try'
+    builder_base_name    = builder_base_name + TRYBOT_NAME_SUFFIX
+  else:
+    scheduler_name       = MakeSchedulerName(builder_base_name)
+    if not extra_branches:
+      extra_branches = []
+    branches = SKIA_PRIMARY_SUBDIRS + ['gm-expected/%s' % gm_image_subdir,
+                                       'android'] + extra_branches
+    helper.AnyBranchScheduler(scheduler_name, branches=branches)
+
   debug_builder_name   = MakeDebugBuilderName(builder_base_name)
   no_perf_builder_name = MakeReleaseBuilderName(builder_base_name)
   perf_builder_name    = MakeBenchBuilderName(builder_base_name)
 
-  if not extra_branches:
-    extra_branches = []
-  branches = SKIA_PRIMARY_SUBDIRS + ['gm-expected/%s' % gm_image_subdir] + \
-      extra_branches
-  helper.AnyBranchScheduler(scheduler_name, branches=branches)
+  if debug_factory:
+    B(debug_builder_name, 'f_%s' % debug_builder_name,
+        scheduler=scheduler_name)
+    F('f_%s' % debug_builder_name, debug_factory(
+        builder_name=debug_builder_name,
+        configuration=skia_factory.CONFIG_DEBUG,
+        gm_image_subdir=gm_image_subdir,
+        do_patch_step=is_trybot,
+        **kwargs
+        ).Build())
 
-  B(debug_builder_name, 'f_%s' % debug_builder_name,
-      scheduler=scheduler_name)
-  F('f_%s' % debug_builder_name, skia_factory.SkiaFactory(
-      do_upload_results=do_upload_results,
-      target_platform=target_platform,
-      configuration=skia_factory.CONFIG_DEBUG,
-      environment_variables=environment_variables,
-      gm_image_subdir=gm_image_subdir,
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name=debug_builder_name,
-      test_args=test_args,
-      gm_args=gm_args,
-      bench_args=bench_args,
-      use_skp_playback_framework=use_skp_playback_framework,
-      ).Build())
-  B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
-      scheduler=scheduler_name)
-  F('f_%s' % no_perf_builder_name,  NoPerfFactory(
-      do_upload_results=do_upload_results,
-      target_platform=target_platform,
-      configuration=skia_factory.CONFIG_RELEASE,
-      environment_variables=environment_variables,
-      gm_image_subdir=gm_image_subdir,
-      perf_output_basedir=None,
-      builder_name=no_perf_builder_name,
-      test_args=test_args,
-      gm_args=gm_args,
-      bench_args=bench_args,
-      use_skp_playback_framework=use_skp_playback_framework,
-      ).Build())
-  B(perf_builder_name, 'f_%s' % perf_builder_name,
-      scheduler=scheduler_name)
-  F('f_%s' % perf_builder_name, PerfOnlyFactory(
-      do_upload_results=do_upload_results,
-      target_platform=target_platform,
-      configuration=skia_factory.CONFIG_RELEASE,
-      environment_variables=environment_variables,
-      gm_image_subdir=gm_image_subdir,
-      perf_output_basedir=perf_output_basedir,
-      builder_name=perf_builder_name,
-      test_args=test_args,
-      gm_args=gm_args,
-      bench_args=bench_args,
-      use_skp_playback_framework=use_skp_playback_framework,
-      ).Build())
+  if release_factory:
+    B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
+        scheduler=scheduler_name)
+    F('f_%s' % no_perf_builder_name,  release_factory(
+        builder_name=no_perf_builder_name,
+        configuration=skia_factory.CONFIG_RELEASE,
+        gm_image_subdir=gm_image_subdir,
+        do_patch_step=is_trybot,
+        **kwargs
+        ).Build())
+
+  if bench_factory:
+    B(perf_builder_name, 'f_%s' % perf_builder_name,
+        scheduler=scheduler_name)
+    F('f_%s' % perf_builder_name, bench_factory(
+        builder_name=perf_builder_name,
+        configuration=skia_factory.CONFIG_RELEASE,
+        gm_image_subdir=gm_image_subdir,
+        do_patch_step=is_trybot,
+        **kwargs        
+        ).Build())
 
 
-def MakeAndroidBuilderSet(helper, builder_base_name, device,
-                          do_upload_results, target_platform, 
-                          environment_variables, gm_image_subdir,
-                          perf_output_basedir, test_args=None,
-                          gm_args=None, bench_args=None, extra_branches=None):
-  """ Creates a trio of builders for Android:
-  1. Debug mode builder which runs all steps
-  2. Release mode builder which runs all steps EXCEPT benchmarks
-  3. Release mode builder which runs ONLY benchmarks.
-  """
-  B = helper.Builder
-  F = helper.Factory
+def _MakeBuilderAndMaybeTrybotSet(do_trybots=True, **kwargs):
+  _MakeBuilderSet(is_trybot=False, **kwargs)
+  if do_trybots:
+    _MakeBuilderSet(is_trybot=True, **kwargs)
 
-  scheduler_name       = MakeSchedulerName(builder_base_name)
-  debug_builder_name   = MakeDebugBuilderName(builder_base_name)
-  no_perf_builder_name = MakeReleaseBuilderName(builder_base_name)
-  perf_builder_name    = MakeBenchBuilderName(builder_base_name)
 
-  if not extra_branches:
-    extra_branches = []
-  branches = SKIA_PRIMARY_SUBDIRS + ['gm-expected/%s' % gm_image_subdir,
-                                     'android'] + extra_branches
-  helper.AnyBranchScheduler(scheduler_name, branches=branches)
+def MakeBuilderSet(do_debug=True, do_release=True, do_bench=True,
+                   do_trybots=True, **kwargs):
+  debug_factory   = None
+  release_factory = None
+  bench_factory   = None
+  if do_debug:
+    debug_factory = skia_factory.SkiaFactory
+  if do_release:
+    release_factory = NoPerfFactory
+  if do_bench:
+    bench_factory = PerfOnlyFactory
+  _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
+                                debug_factory=debug_factory,
+                                release_factory=release_factory,
+                                bench_factory=bench_factory,
+                                **kwargs)
 
-  B(debug_builder_name, 'f_%s' % debug_builder_name,
-      scheduler=scheduler_name)
-  F('f_%s' % debug_builder_name, android_factory.AndroidFactory(
-      device=device,
-      do_upload_results=do_upload_results,
-      target_platform=target_platform,
-      configuration=skia_factory.CONFIG_DEBUG,
-      environment_variables=environment_variables,
-      gm_image_subdir=gm_image_subdir,
-      perf_output_basedir=None, # no perf measurement for debug builds
-      builder_name=debug_builder_name,
-      test_args=test_args,
-      gm_args=gm_args,
-      bench_args=bench_args,
-      ).Build())
-  B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
-      scheduler=scheduler_name)
-  F('f_%s' % no_perf_builder_name,  AndroidNoPerfFactory(
-      device=device,
-      do_upload_results=do_upload_results,
-      target_platform=target_platform,
-      configuration=skia_factory.CONFIG_RELEASE,
-      environment_variables=environment_variables,
-      gm_image_subdir=gm_image_subdir,
-      perf_output_basedir=None,
-      builder_name=no_perf_builder_name,
-      test_args=test_args,
-      gm_args=gm_args,
-      bench_args=bench_args,
-      ).Build())
-  B(perf_builder_name, 'f_%s' % perf_builder_name,
-      scheduler=scheduler_name)
-  F('f_%s' % perf_builder_name, AndroidPerfOnlyFactory(
-      device=device,
-      do_upload_results=do_upload_results,
-      target_platform=target_platform,
-      configuration=skia_factory.CONFIG_RELEASE,
-      environment_variables=environment_variables,
-      gm_image_subdir=gm_image_subdir,
-      perf_output_basedir=perf_output_basedir,
-      builder_name=perf_builder_name,
-      test_args=test_args,
-      gm_args=gm_args,
-      bench_args=bench_args,
-      ).Build())
+
+def MakeAndroidBuilderSet(do_debug=True, do_release=True, do_bench=True,
+                          do_trybots=True, **kwargs):
+  debug_factory   = None
+  release_factory = None
+  bench_factory   = None
+  if do_debug:
+    debug_factory = android_factory.AndroidFactory
+  if do_release:
+    release_factory = AndroidNoPerfFactory
+  if do_bench:
+    bench_factory = AndroidPerfOnlyFactory
+  _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
+                                debug_factory=debug_factory,
+                                release_factory=release_factory,
+                                bench_factory=bench_factory,
+                                **kwargs)
+
+
+def MakeChromeOSBuilderSet(do_debug=True, do_release=True, do_bench=True,
+                           do_trybots=True, **kwargs):
+  debug_factory   = None
+  release_factory = None
+  bench_factory   = None
+  if do_debug:
+    debug_factory = chromeos_factory.ChromeOSFactory
+  if do_release:
+    release_factory = ChromeOSNoPerfFactory
+  if do_bench:
+    bench_factory = ChromeOSPerfOnlyFactory
+  _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
+                                debug_factory=debug_factory,
+                                release_factory=release_factory,
+                                bench_factory=bench_factory,
+                                **kwargs)
+
+
+def MakeIOSBuilderSet(do_debug=True, do_release=True, do_bench=True,
+                      do_trybots=True, **kwargs):
+  debug_factory   = None
+  release_factory = None
+  bench_factory   = None
+  if do_debug:
+    debug_factory = ios_factory.iOSFactory
+  if do_release:
+    release_factory = iOSNoPerfFactory
+  if do_bench:
+    bench_factory = iOSPerfOnlyFactory
+  _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
+                                debug_factory=debug_factory,
+                                release_factory=release_factory,
+                                bench_factory=bench_factory,
+                                **kwargs)
 
 
 def CanMergeBuildRequests(req1, req2):
@@ -467,4 +477,3 @@ class SkiaTryMailNotifier(TryMailNotifier):
   def buildMessage(self, name, build, results):
     if build[0].source.patch:
       return TryMailNotifier.buildMessage(self, name, build, results)
-

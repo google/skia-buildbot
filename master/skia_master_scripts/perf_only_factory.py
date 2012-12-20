@@ -2,8 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 from android_factory import AndroidFactory
+from chromeos_factory import ChromeOSFactory
 from factory import SkiaFactory, CONFIG_RELEASE
+from ios_factory import iOSFactory
+
 
 class PerfOnlyFactory(SkiaFactory):
   """Subclass of Factory which only runs benchmarking steps. Designed to
@@ -33,6 +37,7 @@ class PerfOnlyFactory(SkiaFactory):
     self.PerfSteps()
     return self
 
+
 class AndroidPerfOnlyFactory(AndroidFactory, PerfOnlyFactory):
   """ Android-specific subclass of PerfOnlyFactory.  Inherits __init__() from
   AndroidFactory and Build() from PerfOnlyFactory. """
@@ -41,3 +46,25 @@ class AndroidPerfOnlyFactory(AndroidFactory, PerfOnlyFactory):
 
   def Build(self, **kwargs):
     return PerfOnlyFactory.Build(self, **kwargs)
+
+
+class ChromeOSPerfOnlyFactory(ChromeOSFactory, PerfOnlyFactory):
+  """ ChromeOS-specific subclass of PerfOnlyFactory.  Inherits __init__() from
+  ChromeOSFactory and Build() from PerfOnlyFactory. """
+  def __init__(self, **kwargs):
+    ChromeOSFactory.__init__(self, **kwargs)
+
+  def Build(self, **kwargs):
+    return PerfOnlyFactory.Build(self, **kwargs)
+
+
+class iOSPerfOnlyFactory(iOSFactory, PerfOnlyFactory):
+  """ iOS-specific subclass of PerfOnlyFactory.  Inherits __init__() from
+  iOSFactory and Build() from PerfOnlyFactory. """
+  def __init__(self, **kwargs):
+    iOSFactory.__init__(self, **kwargs)
+
+  def Build(self, **kwargs):
+    # TODO: Inheriting Build() from iOSFactory until all build steps are
+    # supported.
+    return iOSFactory.Build(self, **kwargs)
