@@ -11,8 +11,14 @@ from ast import literal_eval
 from build_step import BuildStep, BuildStepFailure
 from utils import shell_utils
 import os
+import shutil
 import sys
 import tempfile
+
+
+WIN_PATCH = os.path.abspath(os.path.join(os.pardir, os.pardir, os.pardir,
+                                         os.pardir, os.pardir, 'GnuWin32',
+                                         'patch.exe'))
 
 
 class ApplyPatch(BuildStep):
@@ -29,21 +35,34 @@ class ApplyPatch(BuildStep):
     print 'Diff:'
     print patch[1]
 
-    patch_file = tempfile.NamedTemporaryFile()
-    patch_file.write(patch[1])
-    patch_file.flush()
-    print 'Saved patch to %s' % patch_file.name
-
-    # Make sure we're always in the right place to apply the patch.
-    patch_root = self._args['patch_root'].replace('/', os.path.sep)
-    os.chdir(os.pardir)
-    if patch_root != 'svn':
-      os.chdir(patch_root)
+    # Write the patch file into a temporary directory. Unfortunately, temporary
+    # files created by the tempfile module don't behave properly on Windows, so
+    # we create a temporary directory and write the file inside it.
+    temp_dir = tempfile.mkdtemp()
     try:
-      shell_utils.Bash(['patch', '-p%d' % patch[0], '-i', patch_file.name])
+      patch_file_name = os.path.join(temp_dir, 'skiabot_patch')
+      patch_file = open(patch_file_name, 'w')
+      try:
+        patch_file.write(patch[1])
+      finally:
+        patch_file.close()
+      print 'Saved patch to %s' % patch_file.name
+  
+      # On Windows, use the patch.exe included in the checkout
+      if os.name == 'nt':
+        patcher = WIN_PATCH
+      else:
+        patcher = 'patch'
+  
+      # Make sure we're always in the right place to apply the patch.
+      patch_root = self._args['patch_root'].replace('/', os.path.sep)
+      os.chdir(os.pardir)
+      if patch_root != 'svn':
+        os.chdir(patch_root)
+  
+      shell_utils.Bash([patcher, '-p%d' % patch[0], '-i', patch_file.name])
     finally:
-      # Closing a NamedTemporaryFile also deletes it.
-      patch_file.close()
+      shutil.rmtree(temp_dir)
 
 
 if '__main__' == __name__:
