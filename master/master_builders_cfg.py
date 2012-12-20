@@ -62,7 +62,8 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=64'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_32',
@@ -71,7 +72,8 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=32'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
 
   # Android (runs on a Linux buildbot slave)...
   defaults['category'] = 'android'
@@ -207,7 +209,8 @@ def Update(config, active_master, c):
       gm_image_subdir='base-shuttle-win7-intel-angle',
       perf_output_basedir=perf_output_basedir_windows,
       gm_args=['--config', 'angle'],
-      bench_args=['--config', 'ANGLE'])
+      bench_args=['--config', 'ANGLE'],
+      use_skp_playback_framework=True)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite_%s_32',
@@ -217,7 +220,8 @@ def Update(config, active_master, c):
           {'GYP_DEFINES':
            'skia_scalar=float skia_directwrite=1 skia_arch_width=32'},
       gm_image_subdir='base-shuttle-win7-intel-directwrite',
-      perf_output_basedir=perf_output_basedir_windows)
+      perf_output_basedir=perf_output_basedir_windows,
+      use_skp_playback_framework=True)
 
   defaults['category'] = 'iOS'
   B('Skia_iOS_32', 'f_skia_ios_32', scheduler='skia_rel')
