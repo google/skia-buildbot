@@ -283,9 +283,9 @@ def MakeSchedulerName(builder_base_name):
 
 
 def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
-                   extra_branches=None, debug_factory=None,
-                   release_factory=None, bench_factory=None, is_trybot=False,
-                   **kwargs):
+                    perf_output_basedir=None, extra_branches=None,
+                    debug_factory=None, release_factory=None,
+                    bench_factory=None, is_trybot=False, **kwargs):
   """ Creates a trio of builders for a given platform:
   1. Debug mode builder which runs all steps
   2. Release mode builder which runs all steps EXCEPT benchmarks
@@ -317,6 +317,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         configuration=skia_factory.CONFIG_DEBUG,
         gm_image_subdir=gm_image_subdir,
         do_patch_step=is_trybot,
+        perf_output_basedir=None,
         **kwargs
         ).Build())
 
@@ -328,6 +329,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         configuration=skia_factory.CONFIG_RELEASE,
         gm_image_subdir=gm_image_subdir,
         do_patch_step=is_trybot,
+        perf_output_basedir=None,
         **kwargs
         ).Build())
 
@@ -339,6 +341,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         configuration=skia_factory.CONFIG_RELEASE,
         gm_image_subdir=gm_image_subdir,
         do_patch_step=is_trybot,
+        perf_output_basedir=perf_output_basedir,
         **kwargs        
         ).Build())
 
