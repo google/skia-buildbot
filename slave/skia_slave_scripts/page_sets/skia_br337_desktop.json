@@ -1,12 +1,11 @@
 {
-    "description": "br.337 for Skia for Nexus10.",
-    "archive_path": "data/skia_br337_nexus10.wpr",
+    "description": "br.337 for Skia for Desktop.",
+    "archive_path": "data/skia_br337_desktop.wpr",
     "credentials_path": "data/credentials.json",
-    "user_agent_type": "nexus10",
     "pages": [
         {
             "url": "http://br.337.com/pages/196/DDTank",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 15.0,
             "why": "from Tom W's list"
         }
     ]

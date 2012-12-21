@@ -1,12 +1,11 @@
 {
-    "description": "SFgate for Skia for Nexus10.",
-    "archive_path": "data/skia_sfgate_nexus10.wpr",
+    "description": "SFgate for Skia for Desktop.",
+    "archive_path": "data/skia_sfgate_desktop.wpr",
     "credentials_path": "data/credentials.json",
-    "user_agent_type": "nexus10",
     "pages": [
         {
             "url": "http://www.sfgate.com/",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 15.0,
             "why": "from Arrow scrolling thread"
         }
     ]

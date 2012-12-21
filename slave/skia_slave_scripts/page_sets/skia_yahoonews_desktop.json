@@ -5,7 +5,7 @@
     "pages": [
         {
             "url": "http://news.yahoo.com",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 25.0,
             "why": "#1 news worldwide (Alexa global)"
         }
     ]

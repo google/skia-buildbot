@@ -5,7 +5,7 @@
     "user_agent_type": "nexus10",
     "pages": [
         {
-            "url": "http://www.sahadan.com/default.aspx",
+            "url": "http://www.sahadan.com/canli_sonuclar/",
             "wait_time_after_navigate": 30.0,
             "why": "from Tom W's list"
         }

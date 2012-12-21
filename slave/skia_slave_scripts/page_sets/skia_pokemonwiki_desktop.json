@@ -1,11 +1,10 @@
 {
-    "description": "Frantzen-lindeberg for Skia for Nexus10.",
-    "archive_path": "data/skia_frantzen_nexus10.wpr",
+    "description": "List of Pokemon Wiki for Skia for Desktop.",
+    "archive_path": "data/skia_pokemonwiki_desktop.wpr",
     "credentials_path": "data/credentials.json",
-    "user_agent_type": "nexus10",
     "pages": [
         {
-            "url": "http://www.frantzen-lindeberg.com/se/",
+            "url": "http://en.wikipedia.org/wiki/List_of_Pok%C3%A9mon",
             "wait_time_after_navigate": 30.0,
             "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
         }

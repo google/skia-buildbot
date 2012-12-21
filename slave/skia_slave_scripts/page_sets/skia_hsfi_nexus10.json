@@ -6,7 +6,7 @@
     "pages": [
         {
             "url": "http://www.hs.fi/",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 25.0,
             "why": "for Clank CY"
         }
     ]

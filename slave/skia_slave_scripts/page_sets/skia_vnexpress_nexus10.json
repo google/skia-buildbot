@@ -6,7 +6,7 @@
     "pages": [
         {
             "url": "http://vnexpress.net/",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 30.0,
             "why": "from Tom W's list"
         }
     ]

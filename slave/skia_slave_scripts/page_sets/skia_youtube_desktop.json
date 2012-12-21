@@ -1,12 +1,11 @@
 {
-    "description": "YouTube for Skia for Nexus10.",
-    "archive_path": "data/skia_youtube_nexus10.wpr",
+    "description": "YouTube for Skia for Desktop.",
+    "archive_path": "data/skia_youtube_desktop.wpr",
     "credentials_path": "data/credentials.json",
-    "user_agent_type": "nexus10",
     "pages": [
         {
             "url": "http://www.youtube.com/watch?v=PC57z-oDPLs",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 30.0,
             "why": "#3 (Alexa global)"
         }
     ]

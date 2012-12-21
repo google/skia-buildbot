@@ -6,7 +6,7 @@
     "pages": [
         {
             "url": "http://nofolo.com/",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 15.0,
             "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
         }
     ]
