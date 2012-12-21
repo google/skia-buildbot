@@ -250,9 +250,12 @@ class SkPicturePlayback(object):
         # Eg: for 'skia_yahooanswers_desktop.json' it gets 'desktop'.
         device = (page_set.split('/')[-1].split('_')[-1].split('.')[0])
         platform_prefix = DEVICE_TO_PLATFORM_PREFIX[device]
+        # Gets the webpage name for the page set.
+        # Eg: for 'skia_yahooanswers_desktop.json' it gets 'yahooanswers'.
+        webpage_name = page_set.split('/')[-1].split('_')[-2]
 
-        # Replace the prefix http/https with the platform prefix.
-        basename = basename.replace(basename.split('_')[0], platform_prefix, 1)
+        # Construct the basename of the skp file.
+        basename = '%s_%s' % (platform_prefix, webpage_name)
 
         # Ensure the basename is not too long.
         if len(basename) > MAX_SKP_BASE_NAME_LEN:
