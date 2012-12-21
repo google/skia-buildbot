@@ -21,7 +21,7 @@ python ../../../../../../slave/skia_slave_scripts/render_webpage_pictures.py \
 --bench_args "" --num_cores 8 --perf_output_basedir "" \
 --builder_name Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64 \
 --got_revision 0 --gm_image_subdir base-shuttle_ubuntu12_ati5770 \
---do_upload_results True --dest_gsbase gs://rmistry
+--is_try False --do_upload_results True --dest_gsbase gs://rmistry
 
 """
 
@@ -46,6 +46,18 @@ RENDER_PICTURES_DEVICE = 'bitmap'
 
 
 class RenderWebpagePictures(build_step.BuildStep):
+
+  def __init__(
+      self, args, attempts=1,
+      timeout=(
+          build_step.DEFAULT_TIMEOUT *
+          compare_and_upload_webpage_gms.SKP_TIMEOUT_MULTIPLIER),
+      no_output_timeout=(
+          build_step.DEFAULT_NO_OUTPUT_TIMEOUT *
+          compare_and_upload_webpage_gms.SKP_TIMEOUT_MULTIPLIER)):
+    super(RenderWebpagePictures, self).__init__(
+        args, attempts=attempts, timeout=timeout,
+        no_output_timeout=no_output_timeout)    
 
   def _Run(self):
     # Create the required local storage directories.
