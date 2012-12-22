@@ -38,7 +38,7 @@ from build_step import BuildStep, BuildStepWarning
 
 import build_step
 
-SKP_TIMEOUT_MULTIPLIER = 7
+SKP_TIMEOUT_MULTIPLIER = 8
 LAST_COMPARISON_FILENAME = 'LAST_COMPARISON_SUCCEEDED'
 
 
