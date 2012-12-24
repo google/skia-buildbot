@@ -85,6 +85,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
            '--failonresult', 'DifferentPixels',
            '--failonresult', 'DifferentSizes',
            '--failonresult', 'DifferentOther',
+           '--failonresult', 'CouldNotCompare',
            '--failonresult', 'Unknown',
            self._local_playback_dirs.PlaybackGmExpectedDir(),
            self._local_playback_dirs.PlaybackGmActualDir(),
