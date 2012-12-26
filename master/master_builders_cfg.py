@@ -141,7 +141,8 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_osx_sdkroot=macosx10.6 skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini',
-      perf_output_basedir=perf_output_basedir_mac)
+      perf_output_basedir=perf_output_basedir_mac,
+      use_skp_playback_framework=True)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Mac_Float_%s_64',
@@ -150,7 +151,8 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_osx_sdkroot=macosx10.6 skia_scalar=float skia_mesa=1 skia_arch_width=64'},
       gm_image_subdir='base-macmini',
-      perf_output_basedir=perf_output_basedir_mac)
+      perf_output_basedir=perf_output_basedir_mac,
+      use_skp_playback_framework=True)
 
   # Mac 10.7 (Lion) ...
   defaults['category'] = 'mac-10.7'
@@ -162,7 +164,8 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini-lion-float',
-      perf_output_basedir=perf_output_basedir_mac)
+      perf_output_basedir=perf_output_basedir_mac,
+      use_skp_playback_framework=True)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_MacMiniLion_Float_%s_64',
@@ -171,7 +174,8 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
       gm_image_subdir='base-macmini-lion-float',
-      perf_output_basedir=perf_output_basedir_mac)
+      perf_output_basedir=perf_output_basedir_mac,
+      use_skp_playback_framework=True)
 
   # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
   defaults['category'] = 'Shuttle_Win7_Intel'
