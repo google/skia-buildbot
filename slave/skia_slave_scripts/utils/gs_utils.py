@@ -74,8 +74,9 @@ def DownloadDirectoryContentsIfChanged(gs_base, gs_relative_dir, local_dir):
     slave_utils.GSUtilDownloadFile(src=gs_source, dst=local_dir)
 
 
-def UploadDirectoryContentsIfChanged(gs_base, gs_relative_dir, gs_acl,
-                                     local_dir, force_upload=False):
+def UploadDirectoryContentsIfChanged(
+    gs_base, gs_relative_dir, gs_acl, local_dir, force_upload=False,
+    upload_one_file_at_a_time=False):
   """Compares the TIMESTAMP_LAST_UPLOAD_COMPLETED and uploads if different.
 
   The goal of DownloadDirectoryContentsIfChanged and
@@ -102,7 +103,14 @@ def UploadDirectoryContentsIfChanged(gs_base, gs_relative_dir, gs_acl,
         timestamp_value=timestamp_value, gs_base=gs_base,
         gs_relative_dir=gs_relative_dir, local_dir=local_dir, gs_acl=gs_acl)
 
-    slave_utils.GSUtilDownloadFile(src=local_src, dst=gs_dest)
+    if upload_one_file_at_a_time:
+      local_files = os.listdir(local_dir)
+      for local_file in local_files:
+        slave_utils.GSUtilDownloadFile(
+            src=os.path.join(local_dir, local_file),
+            dst=gs_dest)
+    else:
+      slave_utils.GSUtilDownloadFile(src=local_src, dst=gs_dest)
 
     print '\n\n=======Writing new TIMESTAMP_LAST_UPLOAD_COMPLETED=======\n\n'
     WriteTimeStampFile(

@@ -19,7 +19,7 @@ compare_and_upload_webpage_gms.py \
 --bench_args "" --num_cores 8 --perf_output_basedir "" \
 --builder_name Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64 \
 --got_revision 0 --gm_image_subdir base-shuttle_ubuntu12_ati5770 \
---do_upload_results True --dest_gsbase gs://rmistry
+--is_try False --do_upload_results True --dest_gsbase gs://rmistry
 
 """
 
@@ -40,6 +40,10 @@ import build_step
 
 SKP_TIMEOUT_MULTIPLIER = 8
 LAST_COMPARISON_FILENAME = 'LAST_COMPARISON_SUCCEEDED'
+
+UPLOAD_ONE_FILE_AT_A_TIME_IMAGES = [
+  'base-shuttle_ubuntu12_ati5770'
+]
 
 
 class CompareAndUploadWebpageGMs(BuildStep):
@@ -64,6 +68,10 @@ class CompareAndUploadWebpageGMs(BuildStep):
 
     self._dest_gsbase = (self._args.get('dest_gsbase') or
                          sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
+
+    self._upload_one_file_at_a_time = (
+        True if self._gm_image_subdir in UPLOAD_ONE_FILE_AT_A_TIME_IMAGES
+             else False)
 
     # Check if gm-expected exists on Google Storage.
     self._gm_expected_exists_on_storage = gs_utils.DoesStorageObjectExist(
@@ -126,7 +134,8 @@ class CompareAndUploadWebpageGMs(BuildStep):
           gs_base=self._dest_gsbase,
           gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
           gs_acl=PLAYBACK_CANNED_ACL,
-          local_dir=self._local_playback_dirs.PlaybackGmActualDir())
+          local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
+          upload_one_file_at_a_time=self._upload_one_file_at_a_time)
 
     # Debugging statements.
     print '\n\n=======Directory Contents=======\n\n'
@@ -170,7 +179,8 @@ class CompareAndUploadWebpageGMs(BuildStep):
               gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
               gs_acl=PLAYBACK_CANNED_ACL,
               local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
-              force_upload=True)
+              force_upload=True,
+              upload_one_file_at_a_time=self._upload_one_file_at_a_time)
 
       print '\n\nUpdate the gm-actual local LAST_COMPARISON_SUCCEEDED'
       self._WriteToLastComparisonFile(False)
@@ -193,7 +203,8 @@ class CompareAndUploadWebpageGMs(BuildStep):
             gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
             gs_acl=PLAYBACK_CANNED_ACL,
             local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
-            force_upload=True)
+            force_upload=True,
+            upload_one_file_at_a_time=self._upload_one_file_at_a_time)
         
       print 'Update the gm-actual local LAST_COMPARISON_SUCCEEDED'
       self._WriteToLastComparisonFile(True)
