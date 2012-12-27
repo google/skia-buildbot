@@ -41,9 +41,9 @@ import build_step
 SKP_TIMEOUT_MULTIPLIER = 8
 LAST_COMPARISON_FILENAME = 'LAST_COMPARISON_SUCCEEDED'
 
-UPLOAD_ONE_FILE_AT_A_TIME_IMAGES = [
+IMAGES_FOR_UPLOAD_CHUNKS = [
   'base-shuttle_ubuntu12_ati5770',
-  'base-macmini-lion-float'
+  'base-macmini-lion-float',
 ]
 
 
@@ -70,8 +70,8 @@ class CompareAndUploadWebpageGMs(BuildStep):
     self._dest_gsbase = (self._args.get('dest_gsbase') or
                          sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 
-    self._upload_one_file_at_a_time = (
-        True if self._gm_image_subdir in UPLOAD_ONE_FILE_AT_A_TIME_IMAGES
+    self._upload_chunks = (
+        True if self._gm_image_subdir in IMAGES_FOR_UPLOAD_CHUNKS
              else False)
 
     # Check if gm-expected exists on Google Storage.
@@ -136,7 +136,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
           gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
           gs_acl=PLAYBACK_CANNED_ACL,
           local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
-          upload_one_file_at_a_time=self._upload_one_file_at_a_time)
+          upload_chunks=self._upload_chunks)
 
     # Debugging statements.
     print '\n\n=======Directory Contents=======\n\n'
@@ -181,7 +181,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
               gs_acl=PLAYBACK_CANNED_ACL,
               local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
               force_upload=True,
-              upload_one_file_at_a_time=self._upload_one_file_at_a_time)
+              upload_chunks=self._upload_chunks)
 
       print '\n\nUpdate the gm-actual local LAST_COMPARISON_SUCCEEDED'
       self._WriteToLastComparisonFile(False)
@@ -205,8 +205,8 @@ class CompareAndUploadWebpageGMs(BuildStep):
             gs_acl=PLAYBACK_CANNED_ACL,
             local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
             force_upload=True,
-            upload_one_file_at_a_time=self._upload_one_file_at_a_time)
-        
+            upload_chunks=self._upload_chunks)       
+ 
       print 'Update the gm-actual local LAST_COMPARISON_SUCCEEDED'
       self._WriteToLastComparisonFile(True)
 

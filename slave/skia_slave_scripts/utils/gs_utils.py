@@ -19,6 +19,7 @@ import file_utils
 TIMESTAMP_STARTED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_STARTED'
 TIMESTAMP_COMPLETED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_COMPLETED'
 
+FILES_CHUNK = 4000
 
 def DeleteStorageObject(object_name):
   """Delete an object on Google Storage."""
@@ -74,9 +75,15 @@ def DownloadDirectoryContentsIfChanged(gs_base, gs_relative_dir, local_dir):
     slave_utils.GSUtilDownloadFile(src=gs_source, dst=local_dir)
 
 
+def _GetChunks(seq, n):
+  """Yield successive n-sized chunks from the specified sequence."""
+  for i in xrange(0, len(seq), n):
+    yield seq[i:i+n]
+
+
 def UploadDirectoryContentsIfChanged(
     gs_base, gs_relative_dir, gs_acl, local_dir, force_upload=False,
-    upload_one_file_at_a_time=False):
+    upload_chunks=False):
   """Compares the TIMESTAMP_LAST_UPLOAD_COMPLETED and uploads if different.
 
   The goal of DownloadDirectoryContentsIfChanged and
@@ -103,12 +110,14 @@ def UploadDirectoryContentsIfChanged(
         timestamp_value=timestamp_value, gs_base=gs_base,
         gs_relative_dir=gs_relative_dir, local_dir=local_dir, gs_acl=gs_acl)
 
-    if upload_one_file_at_a_time:
-      local_files = os.listdir(local_dir)
-      for local_file in local_files:
-        slave_utils.GSUtilDownloadFile(
-            src=os.path.join(local_dir, local_file),
-            dst=gs_dest)
+    if upload_chunks:
+      local_files = [
+          os.path.join(local_dir, local_file)
+          for local_file in os.listdir(local_dir)]
+      for files_chunk in _GetChunks(local_files, FILES_CHUNK):
+        gsutil = slave_utils.GSUtilSetup()
+        command = [gsutil, 'cp'] + files_chunk + [gs_dest]
+        chromium_utils.RunCommand(command)
     else:
       slave_utils.GSUtilDownloadFile(src=local_src, dst=gs_dest)
 
