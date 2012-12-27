@@ -42,7 +42,8 @@ SKP_TIMEOUT_MULTIPLIER = 8
 LAST_COMPARISON_FILENAME = 'LAST_COMPARISON_SUCCEEDED'
 
 UPLOAD_ONE_FILE_AT_A_TIME_IMAGES = [
-  'base-shuttle_ubuntu12_ati5770'
+  'base-shuttle_ubuntu12_ati5770',
+  'base-macmini-lion-float'
 ]
 
 
