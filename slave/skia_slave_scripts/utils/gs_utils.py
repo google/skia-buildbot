@@ -117,9 +117,11 @@ def UploadDirectoryContentsIfChanged(
       for files_chunk in _GetChunks(local_files, FILES_CHUNK):
         gsutil = slave_utils.GSUtilSetup()
         command = [gsutil, 'cp'] + files_chunk + [gs_dest]
-        chromium_utils.RunCommand(command)
+        if chromium_utils.RunCommand(command) != 0:
+          raise Exception('Could not upload to Google Storage!')
     else:
-      slave_utils.GSUtilDownloadFile(src=local_src, dst=gs_dest)
+      if slave_utils.GSUtilDownloadFile(src=local_src, dst=gs_dest) != 0:
+        raise Exception('Could not upload to Google Storage!')
 
     print '\n\n=======Writing new TIMESTAMP_LAST_UPLOAD_COMPLETED=======\n\n'
     WriteTimeStampFile(
