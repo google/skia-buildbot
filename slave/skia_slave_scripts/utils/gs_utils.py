@@ -19,7 +19,7 @@ import file_utils
 TIMESTAMP_STARTED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_STARTED'
 TIMESTAMP_COMPLETED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_COMPLETED'
 
-FILES_CHUNK = 1000
+FILES_CHUNK = 500
 
 def DeleteStorageObject(object_name):
   """Delete an object on Google Storage."""
