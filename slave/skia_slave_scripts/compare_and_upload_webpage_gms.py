@@ -82,7 +82,8 @@ class CompareAndUploadWebpageGMs(BuildStep):
     # Check if gm-actual exists on Google Storage.
     self._gm_actual_exists_on_storage = gs_utils.DoesStorageObjectExist(
         posixpath.join(self._dest_gsbase,
-                       self._storage_playback_dirs.PlaybackGmActualDir()))
+                       self._storage_playback_dirs.PlaybackGmActualDir(),
+                       gs_utils.TIMESTAMP_COMPLETED_FILENAME))
 
   def _Run(self):
     cmd = [self._PathToBinary('skdiff'),
