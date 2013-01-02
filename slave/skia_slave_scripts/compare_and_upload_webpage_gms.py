@@ -42,8 +42,9 @@ SKP_TIMEOUT_MULTIPLIER = 8
 LAST_COMPARISON_FILENAME = 'LAST_COMPARISON_SUCCEEDED'
 
 IMAGES_FOR_UPLOAD_CHUNKS = [
-  'base-shuttle_ubuntu12_ati5770',
+  'base-macmini',
   'base-macmini-lion-float',
+  'base-shuttle_ubuntu12_ati5770',
 ]
 
 
