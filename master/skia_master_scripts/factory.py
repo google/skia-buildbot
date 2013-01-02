@@ -92,15 +92,17 @@ class SkiaFactory(BuildFactory):
     self._gclient_solutions = [gclient_factory.GClientSolution(
         svn_url=config.Master.skia_url + build_subdir, name=build_subdir
         ).GetSpec()]
+
     if not other_subdirs:
       other_subdirs = []
+    subdirs_to_checkout = set(other_subdirs)
 
     # Trybots need to check out all of these directories.
     if do_patch_step:
-      other_subdirs.append('android')
-      other_subdirs.append('gm-expected')
-    other_subdirs.append('skp')
-    for other_subdir in other_subdirs:
+      subdirs_to_checkout.add('android')
+      subdirs_to_checkout.add('gm-expected')
+    subdirs_to_checkout.add('skp')
+    for other_subdir in subdirs_to_checkout:
       self._gclient_solutions.append(gclient_factory.GClientSolution(
           svn_url=config.Master.skia_url + other_subdir,
           name=other_subdir).GetSpec())
