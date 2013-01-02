@@ -294,15 +294,17 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
   B = helper.Builder
   F = helper.Factory
 
+  if not extra_branches:
+    extra_branches = []
+  gm_image_branch = 'gm-expected/%s' % gm_image_subdir
+  extra_branches.append(gm_image_branch)
+
   if is_trybot:
     scheduler_name       = 'skia_try'
     builder_base_name    = builder_base_name + TRYBOT_NAME_SUFFIX
   else:
     scheduler_name       = MakeSchedulerName(builder_base_name)
-    if not extra_branches:
-      extra_branches = []
-    branches = SKIA_PRIMARY_SUBDIRS + ['gm-expected/%s' % gm_image_subdir,
-                                       'android'] + extra_branches
+    branches = SKIA_PRIMARY_SUBDIRS + extra_branches
     helper.AnyBranchScheduler(scheduler_name, branches=branches)
 
   debug_builder_name   = MakeDebugBuilderName(builder_base_name)
@@ -314,6 +316,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         scheduler=scheduler_name)
     F('f_%s' % debug_builder_name, debug_factory(
         builder_name=debug_builder_name,
+        other_subdirs=extra_branches,
         configuration=skia_factory.CONFIG_DEBUG,
         gm_image_subdir=gm_image_subdir,
         do_patch_step=is_trybot,
@@ -326,6 +329,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         scheduler=scheduler_name)
     F('f_%s' % no_perf_builder_name,  release_factory(
         builder_name=no_perf_builder_name,
+        other_subdirs=extra_branches,
         configuration=skia_factory.CONFIG_RELEASE,
         gm_image_subdir=gm_image_subdir,
         do_patch_step=is_trybot,
@@ -338,6 +342,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         scheduler=scheduler_name)
     F('f_%s' % perf_builder_name, bench_factory(
         builder_name=perf_builder_name,
+        other_subdirs=extra_branches,
         configuration=skia_factory.CONFIG_RELEASE,
         gm_image_subdir=gm_image_subdir,
         do_patch_step=is_trybot,
@@ -371,7 +376,7 @@ def MakeBuilderSet(do_debug=True, do_release=True, do_bench=True,
 
 
 def MakeAndroidBuilderSet(do_debug=True, do_release=True, do_bench=True,
-                          do_trybots=True, **kwargs):
+                          do_trybots=True, extra_branches=None, **kwargs):
   debug_factory   = None
   release_factory = None
   bench_factory   = None
@@ -381,10 +386,14 @@ def MakeAndroidBuilderSet(do_debug=True, do_release=True, do_bench=True,
     release_factory = AndroidNoPerfFactory
   if do_bench:
     bench_factory = AndroidPerfOnlyFactory
+  if not extra_branches:
+    extra_branches = []
+  extra_branches.append('android')
   _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
                                 debug_factory=debug_factory,
                                 release_factory=release_factory,
                                 bench_factory=bench_factory,
+                                extra_branches=extra_branches,
                                 **kwargs)
 
 
