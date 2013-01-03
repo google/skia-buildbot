@@ -5,10 +5,65 @@
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script type="text/javascript" src="skia_tools.js"></script>
   <script language="JavaScript">
-  var BUILDS_TO_LOAD = 100;
+  "use strict";
 
+  // Number of revisions which should be loaded.
+  // TODO(borenet): Make this configurable in the UI.
+  var REVS_TO_LOAD = 100;
+
+  // Configuration options for the charts
+  var LINE_CHART_OPTIONS = {
+      "title": "Build Times",
+      "width": "100%",
+      "height": "100%",
+      "chartArea": {left: "9%", top: "9%", width: "86%",
+                    height: "70%"},
+      "interpolateNulls": true,
+      "hAxis": {"title": "Revision"},
+      "vAxis": {"title": "Build Time (s)"},
+      "legend": {"textStyle": {"fontSize": 12},
+                 "position": "bottom"},
+  };
+
+  var LINE_CHART_RANGE_FILTER_OPTIONS = {
+      "filterColumnIndex": 0,
+      "ui": {
+          "chartType": "AreaChart",
+          "minRangeSize": 1,
+          "chartOptions": {
+              "chartArea": {"width": "86%",
+                            "height": "75%",
+                            "left": "9%",
+                            "right": "6%"},
+              "width": "100%",
+              "height": "100%",
+              "colors": ["grey"],
+              "hAxis": {"baselineColor": "none"},
+              "vAxis": {"baselineColor": "none"},
+              "interpolateNulls": true,
+          },
+      },
+  };
+
+  var BAR_CHART_OPTIONS = {
+      "width": "100%",
+      "height": "100%",
+      "chartArea": {left: "17%", top: "9%", width: "65%", height: "70%"},
+      "hAxis": {"title": "Time (s)"},
+      "vAxis": {"title": "Build Step"},
+      "tooltip": {"isHtml": true},
+      "legend": {"position": "none"},
+  };
+
+  // High-level information about each builder.
   var builderData = null;
+
+  // Data for all builds for all builders, indexed by revision number. Filled in
+  // on-demand.
   var data = {};
+
+  // Dictionary with builder names as keys and booleans as values, indicating
+  // whether or not build data has been obtained for each builder.
   var gotData = {};
 
   // Load the Visualization API
@@ -17,27 +72,43 @@
   // Set a callback to run when the Google Visualization API is loaded.
   google.setOnLoadCallback(init);
 
+  /**
+   * Display text or HTML in the logging div.
+   * @param {string} msg The HTML or text to display.
+   */
   function setMessage(msg) {
     console.log(msg);
     document.getElementById("logging_div").innerHTML = msg;
   }
 
+  /**
+   * Set the HTML content in the pane on the right side of the page.
+   * @param {string} content HTML to display.
+   */
   function setRightContent(content) {
     document.getElementById("right_content_div").innerHTML = content;
   }
 
+  /**
+   * Clear the divs containing charts. Useful when charts need to be updated.
+   */
   function clearCharts() {
     document.getElementById("line_chart_div").innerHTML = "";
     document.getElementById("line_chart_range_filter_div").innerHTML = "";
     document.getElementById("bar_chart_div").innerHTML = "";
   }
 
-  function formatTime(seconds) {
-    var seconds = Math.round(seconds);
-    var hours = Math.floor(seconds / 3600);
-    seconds -= hours * 3600;
-    var minutes = Math.floor((seconds - (hours * 36000)) / 60);
-    seconds -= minutes * 60;
+  /**
+   * Convert a duration in seconds to an easily-readable string.
+   * @param {number} seconds The duration to convert.
+   * @return {string} The duration in HH:MM:SS format.
+   */
+  function formatTime(secondsParam) {
+    var seconds = Math.round(secondsParam);
+    var minutes = Math.floor(seconds / 60);
+    seconds -= seconds * 60;
+    var hours = Math.floor(minutes / 60);
+    minutes -= hours * 60;
     var totalTime = "";
     if (seconds > 9) {
       totalTime = seconds;
@@ -57,6 +128,14 @@
     return totalTime;
   }
 
+  /**
+   * Draw a line chart illustrating build times for a number of revisions for
+   * a set of builders.
+   * @param {Array.<string>} displayBuilders List of builders which should be
+   *     included in the chart.
+   * @param {Array.<number>} allRevs List of revision numbers which should be
+   *     included in the chart.
+   */
   function drawLineChart(displayBuilders, allRevs) {
     var table = new google.visualization.DataTable();
     table.addColumn("number", "Revision");
@@ -67,23 +146,24 @@
     var lineChartColsPerBuilder = 2;
     var longestBuildTime = -1;
     var rows = [];
-    for (var i = 0; i < BUILDS_TO_LOAD; i++) {
-      var rev = allRevs[allRevs.length - BUILDS_TO_LOAD + i];
+    for (var revIdx = 0; revIdx < allRevs.length; revIdx++) {
+      var rev = allRevs[revIdx];
       var row = [rev];
-      for (j = 0; j < displayBuilders.length; j++) {
-        var builder = displayBuilders[j];
-        try {
-          time = data[rev][builder]["time"];
+      for (var builderIdx = 0; builderIdx < displayBuilders.length;
+           builderIdx++) {
+        var builder = displayBuilders[builderIdx];
+        if (data[rev][builder] != undefined) {
+          var time = data[rev][builder].getElapsedTime();
           if (time > longestBuildTime) {
             longestBuildTime = time;
           }
           row.push(time);
-          if (data[rev][builder]["result"] != 0) {
+          if (data[rev][builder].getResult() != 0) {
             row.push("failed");
           } else {
             row.push(null);
           }
-        } catch (e) {
+        } else {
           row.push(null);
           row.push(null);
         }
@@ -92,36 +172,20 @@
     }
     table.addRows(rows);
 
-    var options = {"title": "Build Times",
-                   "width": "100%",
-                   "height": "100%",
-                   "chartArea": {left: "9%", top: "9%", width: "86%",
-                                 height: "70%"},
-                   "interpolateNulls": true,
-                   "hAxis": {"title": "Revision"},
-                   "vAxis": {"title": "Build Time (s)"},
-                   "legend": {"textStyle": {"fontSize": 12},
-                              "position": "bottom"},
-                   };
     var lineChart = new google.visualization.LineChart(document.getElementById(
         "line_chart_div"));
     google.visualization.events.addListener(lineChart, 'select',
                                             function() {
       var selected = lineChart.getSelection()[0];
-      if (selected && selected.column != undefined &&
+      if (selected &&
+          selected.column != undefined &&
           selected.row != undefined) {
         var builder = null;
         var builderIdx = Math.floor(
             (selected.column - 1) / lineChartColsPerBuilder);
-        for (var i = 0; i < displayBuilders.length; i++) {
-          if (i == builderIdx) {
-            builder = displayBuilders[i];
-            break;
-          }
-        }
-        var revIdx = BUILDS_TO_LOAD - selected.row
-        var rev = allRevs[allRevs.length - revIdx];
-        var buildNum = data[rev][builder]["buildNum"];
+        builder = displayBuilders[builderIdx];
+        var rev = allRevs[selected.row];
+        var buildNum = data[rev][builder].getNumber();
         console.log("Selected: " + builder + " @ " + rev);
         var url = skiaTools.HOST + ":" + skiaTools.PORT + "/builders/" + builder
             + "/builds/" + buildNum;
@@ -132,59 +196,50 @@
         drawBarChart(builder, rev, longestBuildTime);
       }
     });
-    lineChart.draw(table, options);
+    lineChart.draw(table, LINE_CHART_OPTIONS);
 
-    firstRev = allRevs[0];
-    lastRev = allRevs[allRevs.length - 1];
+    var firstRev = allRevs[0];
+    var lastRev = allRevs[allRevs.length - 1];
     var lineChartRangeFilter = new google.visualization.ChartRangeFilter(
         document.getElementById("line_chart_range_filter_div"));
     google.visualization.events.addListener(lineChartRangeFilter,
         "statechange",
         function() {
           var range = lineChartRangeFilter.getState().range;
-          options.hAxis.viewWindow = {min: range.start, max: range.end};
-          lineChart.draw(table, options);
+          LINE_CHART_OPTIONS.hAxis.viewWindow = {min: range.start,
+                                                 max: range.end};
+          lineChart.draw(table, LINE_CHART_OPTIONS);
         });
-    lineChartRangeFilter.draw(table,
-        {
-            "filterColumnIndex": 0,
-            "ui": {
-                "chartType": "AreaChart",
-                "minRangeSize": 1,
-                "chartOptions": {
-                    "chartArea": {"width": "86%",
-                                  "height": "75%",
-                                  "left": "9%",
-                                  "right": "6%"},
-                    "width": "100%",
-                    "height": "100%",
-                    "colors": ["grey"],
-                    "hAxis": {"baselineColor": "none"},
-                    "vAxis": {"baselineColor": "none"},
-                    "interpolateNulls": true,
-                },
-            },
-        },
+    lineChartRangeFilter.draw(table, LINE_CHART_RANGE_FILTER_OPTIONS,
         {"range": {"start": firstRev, "end": lastRev}});
     setRightContent("");
   }
 
+  /**
+   * Draw a bar chart illustrating the running times of each step in a given
+   * build for a given builder.
+   * @param {string} builder The builder whose build should be displayed.
+   * @param {number} revision The revision of the build to display.
+   * @param {number} viewWindowMax The width of the viewing window. This is
+   *     provided instead of being determined from the data so that each bar
+   *     graph can be displayed with the same scale.
+   */
   function drawBarChart(builder, revision, viewWindowMax) {
     var table = new google.visualization.DataTable();
     table.addColumn("string", "Step");
     table.addColumn("number", "Time");
     table.addColumn({"type": "string", "role": "tooltip", "p": {"html": true}});
     var buildData = data[revision][builder];
-    for (var i = 0; i < buildData["steps"].length; i++) {
-      var step = buildData["steps"][i];
-      var stepName = step["name"];
-      var time = step["time"];
-      var stdio = step["stdio"];
-      var result = step["result"];
-      var percent = time / buildData["time"] * 100.0;
+    for (var stepIdx = 0; stepIdx < buildData.getSteps().length; stepIdx++) {
+      var step = buildData.getSteps()[stepIdx];
+      var stepName = step.getName();
+      var time = step.getElapsedTime();
+      var stdio = step.getStdio();
+      var result = step.getResult();
+      var percent = time / buildData.getElapsedTime() * 100.0;
       table.addRow();
-      table.setValue(i, 0, stepName);
-      table.setValue(i, 1, time);
+      table.setValue(stepIdx, 0, stepName);
+      table.setValue(stepIdx, 1, time);
       var tooltip = "<div style=\"font-family:Arial;font-size:14px;"
                   + "padding:10px;\">" + stepName;
       if (result != 0) {
@@ -193,28 +248,24 @@
       tooltip += "<br/>" + formatTime(time) + " (" + percent.toFixed(2)
               + "%)<br/>Log: <a href=\"" + stdio
               + "\" target=\"_blank\">stdout</a></div>";
-      table.setFormattedValue(i, 2, tooltip);
+      table.setFormattedValue(stepIdx, 2, tooltip);
     }
-
-    // Set chart options
-    var options = {"title": builder + ": Build #" +
-                       buildData["buildNum"] + ", r" + revision,
-                   "width": "100%",
-                   "height": "100%",
-                   "chartArea": {left: "17%", top: "9%", width: "65%", height: "70%"},
-                   "hAxis": {"title": "Time (s)",
-                             "viewWindow": {"max": viewWindowMax}},
-                   "vAxis": {"title": "Build Step"},
-                   "tooltip": {"isHtml": true},
-                   "legend": {"position": "none"},
-                   };
   
     // Instantiate and draw our chart, passing in some options.
     var barChart = new google.visualization.BarChart(
         document.getElementById("bar_chart_div"));
-    barChart.draw(table, options);
+    var options = BAR_CHART_OPTIONS;
+    options["title"] = builder + ": Build #" + buildData.getNumber() + ", r" +
+        revision;
+    options["hAxis"]["viewWindow"] = {"max": viewWindowMax};
+    barChart.draw(table, BAR_CHART_OPTIONS);
   }
 
+  /**
+   * Callback function to use when the selected items of the listbox have
+   * changed. This causes data to be loaded for the selected builders and charts
+   * to be created for that data.
+   */
   function selectBuilders() {
     var displayBuilders = [];
     var msg = "<p style=\"font-size:0.8em;\">Loading builds for builders:<ul>";
@@ -237,8 +288,21 @@
         var builder = displayBuilders[i];
         if (!gotData[builder] || gotData[builder] == undefined) {
           console.log("Loading builds for " + builder + "...");
-          skiaTools.loadDataForBuilder(builder, builderData[builder],
-                                       BUILDS_TO_LOAD, allRevs, data);
+          var cachedBuilds = builderData[builder].getCachedBuilds();
+          var lastBuild = cachedBuilds[cachedBuilds.length - 1];
+          var dataForBuilder = skiaTools.loadBuildsForBuilder(builder,
+                                                              lastBuild,
+                                                              REVS_TO_LOAD);
+          for (var rev in dataForBuilder) {
+            var revisionNumber = parseInt(rev);
+            if (allRevs.indexOf(revisionNumber) == -1) {
+              allRevs.push(revisionNumber);
+            }
+            if (data[revisionNumber] == undefined) {
+              data[revisionNumber] = {};
+            }
+            data[revisionNumber][builder] = dataForBuilder[revisionNumber];
+          }
           gotData[builder] = true;
           console.log("Loaded builds for " + builder + ".");
         }
@@ -249,13 +313,21 @@
     }, 0);
   }
 
+  /**
+   * Callback function to use on page load. This causes the high-level builder
+   * data to be loaded and the builder menu populated.
+   */
   function init() {
     setMessage("Loading builders...");
     setTimeout(function() {
+      var builders = skiaTools.loadBuilders();
       var allBuilders = [];
-      builderData = skiaTools.loadBuilders(allBuilders);
-      for (var i = 0; i < allBuilders.length; i++) {
-        gotData[allBuilders[i]] = false;
+      builderData = {};
+      for (var builderNum = 0; builderNum < builders.length; builderNum++) {
+        var builder = builders[builderNum];
+        builderData[builder.getName()] = builder;
+        allBuilders.push(builder.getName());
+        gotData[builder.getName()] = false;
       }
       skiaTools.populateMenu("builder_menu", allBuilders);
       setMessage("Loaded builders.");

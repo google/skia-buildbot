@@ -5,11 +5,55 @@
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script type="text/javascript" src="skia_tools.js"></script>
   <script language="JavaScript">
+  // Configuration options for the charts
+  var LINE_CHART_OPTIONS = {
+      "title": "Buildslave Busy Times",
+      "width": "100%",
+      "height": "100%",
+      "chartArea": {left: "9%", top: "9%", width: "86%",
+                    height: "70%"},
+      "vAxis": {"gridlines": {"count": 0}},
+      "legend": {"textStyle": {"fontSize": 12},
+                 "position": "bottom"},
+      "lineWidth": 20,
+  };
+
+  var LINE_CHART_RANGE_FILTER_OPTIONS = {
+      "filterColumnIndex": 0,
+      "ui": {
+          "chartType": "LineChart",
+          "minRangeSize": 1,
+          "chartOptions": {
+              "chartArea": {"width": "86%",
+                            "height": "75%",
+                            "left": "9%",
+                            "right": "6%"},
+              "width": "100%",
+              "height": "100%",
+              "colors": ["grey"],
+              "hAxis": {"baselineColor": "none"},
+              "vAxis": {"baselineColor": "none"},
+          },
+      },
+  };
+
+  var PIE_CHART_OPTIONS = {"title": "Busy/Idle Time"};
+
+  // Data for all builds for all build slaves. Filled in on-demand.
   var data = null;
+
+  // Dictionary with build slave names as keys and booleans as values,
+  // indicating whether or not build data has been obtained for each slave.
   var gotData = {};
 
+  // Time window for data analysis in seconds.
+  // TODO(borenet): Make this configurable in the UI. 
   var RANGE_SECS = 86400;
+
+  // Current time in UNIX seconds from epoch as of page load.
   var CURRENT_TIME = Math.ceil(new Date().getTime() / 1000);
+
+  // Beginning of the data analysis time window.
   var MIN_TIME = CURRENT_TIME - RANGE_SECS;
 
   // Load the Visualization API
@@ -18,21 +62,42 @@
   // Set a callback to run when the Google Visualization API is loaded.
   google.setOnLoadCallback(init);
 
+  /**
+   * Display text or HTML in the logging div.
+   * @param {string} msg The HTML or text to display.
+   */
   function setMessage(msg) {
     console.log(msg);
     document.getElementById("logging_div").innerHTML = msg;
   }
 
+  /**
+   * Set the HTML content in the pane on the right side of the page.
+   * @param {string} content HTML to display.
+   */
   function setRightContent(content) {
     document.getElementById("right_content_div").innerHTML = content;
   }
 
+  /**
+   * Clear the divs containing charts. Useful when charts need to be updated.
+   */
   function clearCharts() {
     document.getElementById("line_chart_div").innerHTML = "";
     document.getElementById("line_chart_range_filter_div").innerHTML = "";
     document.getElementById("pie_chart_div").innerHTML = "";
   }
 
+  /**
+   * Draw a timeline-style line chart over the given range for the given set of
+   * build slaves.
+   * @param {Array.<string>} displaySlaves List of slave names indicating which
+   *     slaves should be included in the chart.
+   * @param {number} rangeMin Beginning of the data analysis time window, in
+         UNIX seconds from epoch.
+   * @param {number} rangeMax End of the data analysis time window, in UNIX
+         seconds from epoch.
+   */
   function drawLineChart(displaySlaves, rangeMin, rangeMax) {
     var table = new google.visualization.DataTable();
     table.addColumn("datetime", "Time");
@@ -50,16 +115,17 @@
       currentBuild[slave] = null;
       for (var j = 0; j < slaveData["allBuilds"].length; j++) {
         build = slaveData["allBuilds"][j];
-        if (build[2] > rangeMin && build[2] < rangeMax) {
-          times.push(Math.round(build[2] - 1));
-          times.push(Math.round(build[2] + 1));
+        if (build.getStartTime() > rangeMin &&
+            build.getStartTime() < rangeMax) {
+          times.push(Math.round(build.getStartTime() - 1));
+          times.push(Math.round(build.getStartTime() + 1));
           if (currentBuild[slave] == null) {
             currentBuild[slave] = j;
           }
         }
-        if (build[3] > rangeMin && build[3] < rangeMax) {
-          times.push(Math.round(build[3] - 1));
-          times.push(Math.round(build[3] + 1));
+        if (build.getEndTime() > rangeMin && build.getEndTime() < rangeMax) {
+          times.push(Math.round(build.getEndTime() - 1));
+          times.push(Math.round(build.getEndTime() + 1));
           if (currentBuild[slave] == null) {
             currentBuild[slave] = j;
           }
@@ -79,12 +145,13 @@
         if (null != currentBuild[slave]) {
           var buildIdx = currentBuild[slave];
           var buildData = data[slave]["allBuilds"][buildIdx]
-          var min = buildData[2];
-          var max = buildData[3];
+          var min = buildData.getStartTime();
+          var max = buildData.getEndTime();
           if (time >= min) {
             if (time <= max) {
               val = j + 1;
-              tooltip = slave + ": " + buildData[0] + " Build #" + buildData[1];
+              tooltip = slave + ": " + buildData.getBuilder() + " Build #" +
+                  buildData.getNumber();
             } else {
               if (data[slave]["allBuilds"].length > currentBuild[slave] + 1) {
                 currentBuild[slave]++;
@@ -101,25 +168,14 @@
     }
     table.addRows(rows);
 
-    var options = {"title": "Buildslave Busy Times",
-                   "width": "100%",
-                   "height": "100%",
-                   "chartArea": {left: "9%", top: "9%", width: "86%",
-                                 height: "70%"},
-                   "hAxis": {"viewWindow": {"min": dateMin,
-                                            "max": dateMax}},
-                   "vAxis": {"gridlines": {"count": 0},
-                             "viewWindow": {"min": 0,
-                                            "max": displaySlaves.length + 1}},
-                   "legend": {"textStyle": {"fontSize": 12},
-                              "position": "bottom"},
-                   "lineWidth": 20,
-                   };
     var lineChart = new google.visualization.LineChart(document.getElementById(
         "line_chart_div"));
-    //google.visualization.events.addListener(lineChart, 'select',
-    //                                        lineChartSelectHandler);
-    lineChart.draw(table, options);
+    var line_chart_options = LINE_CHART_OPTIONS;
+    line_chart_options["vAxis"]["viewWindow"] = {"min": 0,
+        "max": displaySlaves.length + 1};
+    line_chart_options["hAxis"] = {"viewWindow": {"min": dateMin,
+                                                  "max": dateMax}};
+    lineChart.draw(table, line_chart_options);
 
     var lineChartRangeFilter = new google.visualization.ChartRangeFilter(
         document.getElementById("line_chart_range_filter_div"));
@@ -127,35 +183,19 @@
         "statechange",
         function() {
           var range = lineChartRangeFilter.getState().range;
-          options.hAxis.viewWindow = {min: range.start, max: range.end};
-          lineChart.draw(table, options);
+          line_chart_options["hAxis"]["viewWindow"] = {min: range.start,
+                                                       max: range.end};
+          lineChart.draw(table, line_chart_options);
           if (displaySlaves.length == 1) {
             drawPieChart(data[displaySlaves[0]]["allBuilds"],
                          range.start.getTime() / 1000,
                          range.end.getTime() / 1000);
           }
         });
-    lineChartRangeFilter.draw(table,
-        {
-            "filterColumnIndex": 0,
-            "ui": {
-                "chartType": "LineChart",
-                "minRangeSize": 1,
-                "chartOptions": {
-                    "chartArea": {"width": "86%",
-                                  "height": "75%",
-                                  "left": "9%",
-                                  "right": "6%"},
-                    "width": "100%",
-                    "height": "100%",
-                    "colors": ["grey"],
-                    "hAxis": {"baselineColor": "none",
-                              "viewWindow": {"min": dateMin,
-                                             "max": dateMax}},
-                    "vAxis": {"baselineColor": "none"},
-                },
-            },
-        },
+    var line_chart_range_filter_options = LINE_CHART_RANGE_FILTER_OPTIONS;
+    line_chart_range_filter_options["ui"]["chartOptions"]["hAxis"]
+        ["viewWindow"] = {"min": dateMin, "max": dateMax};
+    lineChartRangeFilter.draw(table, line_chart_range_filter_options,
         {"range": {"start": dateMin, "end": dateMax}});
     if (displaySlaves.length == 1) {
       drawPieChart(data[displaySlaves[0]]["allBuilds"], rangeMin,
@@ -164,12 +204,30 @@
     setRightContent("");
   }
 
+  /**
+   * Draw a pie chart to display the proportions of busy and idle time over a
+   * particular time period for a given slave.
+   * @param {Array.<object>} builds List of builds for a slave, each
+   *     represented as a list containing:
+   *     <ul>
+   *     <li>builderName {string} Name of the builder.
+   *     <li>buildNum {number} Build number.
+   *     <li>startTime {number} Time of the start of the build, in UNIX seconds
+   *         from epoch.
+   *     <li>endTime {number} Time of the end of the build, in UNIX seconds from
+   *         epoch.
+   *     </ul>
+   * @param {number} rangeMin Beginning of the analysis window in UNIX seconds
+   *     from epoch.
+   * @param {number} rangeMax End of the analysis window in UNIX seconds from
+   *     epoch.
+   */
   function drawPieChart(builds, rangeMin, rangeMax) {
     var busyTime = 0;
     for (var i = 0; i < builds.length; i++) {
       var build = builds[i];
-      var buildStart = build[2];
-      var buildEnd = build[3];
+      var buildStart = build.getStartTime();
+      var buildEnd = build.getEndTime();
       if (buildEnd < rangeMin || buildStart > rangeMax) {
         continue;
       }
@@ -189,14 +247,19 @@
     ]);
 
     // Set chart options
-    var options = {"title": "Busy/Idle Time"};
+    var pie_chart_options = PIE_CHART_OPTIONS;
   
     // Instantiate and draw our chart, passing in some options.
     pieChart = new google.visualization.PieChart(
         document.getElementById("pie_chart_div"));
-    pieChart.draw(table, options);
+    pieChart.draw(table, pie_chart_options);
   }
 
+  /**
+   * Callback function to use when the selected items of the listbox have
+   * changed. This causes data to be loaded for the selected slaves and charts
+   * to be created for that data.
+   */
   function selectSlaves() {
     var displaySlaves = [];
     var msg = "<p style=\"font-size:0.8em;\">Loading builds for slaves:<ul>";
@@ -218,7 +281,9 @@
         var slave = displaySlaves[i];
         if (!gotData[slave] || gotData[slave] == undefined) {
           console.log("Loading builds for " + slave + "...");
-          skiaTools.loadDataForSlave(data[slave], MIN_TIME, CURRENT_TIME);
+          buildList = skiaTools.loadBuildsForSlave(data[slave], MIN_TIME,
+                                                   CURRENT_TIME);
+          data[slave]["allBuilds"] = buildList;
           gotData[slave] = true;
           console.log("Loaded builds for " + slave + ".");
         }
@@ -228,13 +293,21 @@
     }, 0);
   }
 
+  /**
+   * Callback function to use on page load. This causes the high-level build
+   * slave data to be loaded and the slave menu populated.
+   */
   function init() {
     setMessage("Loading buildslaves...");
     setTimeout(function() {
+      var slaveData = skiaTools.loadSlaves();
       var allSlaves = [];
-      data = skiaTools.loadSlaves(allSlaves);
-      for (var i = 0; i < allSlaves.length; i++) {
-        gotData[allSlaves[i]] = false;
+      data = {}
+      for (var slaveIdx = 0; slaveIdx < slaveData.length; slaveIdx++) {
+        var slave = slaveData[slaveIdx];
+        data[slave.getName()] = slave;
+        allSlaves.push(slave.getName());
+        gotData[slave.getName()] = false;
       }
       skiaTools.populateMenu("slave_menu", allSlaves);
       setMessage("Loaded buildslaves.");
