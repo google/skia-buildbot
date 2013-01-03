@@ -42,7 +42,6 @@ SKP_TIMEOUT_MULTIPLIER = 8
 LAST_COMPARISON_FILENAME = 'LAST_COMPARISON_SUCCEEDED'
 
 GM_COMPARISON_LINES_TO_EXTRACT_IMAGES = [
-  'contain the same pixel values, but not the same bits',
   'have identical dimensions but some differing pixels',
   'have differing dimensions',
 ]
