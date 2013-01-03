@@ -23,8 +23,9 @@ class AndroidFactory(skia_factory.SkiaFactory):
     """
     if not other_subdirs:
       other_subdirs = []
-    other_subdirs.append('android')
-    skia_factory.SkiaFactory.__init__(self, other_subdirs=other_subdirs,
+    subdirs_to_checkout = set(other_subdirs)
+    subdirs_to_checkout.add('android')
+    skia_factory.SkiaFactory.__init__(self, other_subdirs=subdirs_to_checkout,
                                       bench_pictures_cfg=device, **kwargs)
     self._device = device
     self._common_args += ['--device', self._device,
