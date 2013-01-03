@@ -306,7 +306,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     builder_base_name    = builder_base_name + TRYBOT_NAME_SUFFIX
   else:
     scheduler_name       = MakeSchedulerName(builder_base_name)
-    branches = subdirs_to_checkout.union(SKIA_PRIMARY_SUBDIRS)
+    branches = list(subdirs_to_checkout.union(SKIA_PRIMARY_SUBDIRS))
     helper.AnyBranchScheduler(scheduler_name, branches=branches)
 
   debug_builder_name   = MakeDebugBuilderName(builder_base_name)
