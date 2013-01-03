@@ -83,7 +83,7 @@ def _GetChunks(seq, n):
 
 def UploadDirectoryContentsIfChanged(
     gs_base, gs_relative_dir, gs_acl, local_dir, force_upload=False,
-    upload_chunks=False):
+    upload_chunks=False, files_to_upload=None):
   """Compares the TIMESTAMP_LAST_UPLOAD_COMPLETED and uploads if different.
 
   The goal of DownloadDirectoryContentsIfChanged and
@@ -100,9 +100,10 @@ def UploadDirectoryContentsIfChanged(
     local_src = os.path.join(local_dir, '*')
     gs_dest = posixpath.join(gs_base, gs_relative_dir)
     timestamp_value = time.time()
-    
-    print '\n\n=======Delete Storage directory before uploading=======\n\n'
-    DeleteStorageObject(gs_dest)
+
+    if not files_to_upload:
+      print '\n\n=======Delete Storage directory before uploading=======\n\n'
+      DeleteStorageObject(gs_dest)
 
     print '\n\n=======Writing new TIMESTAMP_LAST_UPLOAD_STARTED=======\n\n'
     WriteTimeStampFile(
@@ -110,10 +111,15 @@ def UploadDirectoryContentsIfChanged(
         timestamp_value=timestamp_value, gs_base=gs_base,
         gs_relative_dir=gs_relative_dir, local_dir=local_dir, gs_acl=gs_acl)
 
-    if upload_chunks:
-      local_files = [
-          os.path.join(local_dir, local_file)
-          for local_file in os.listdir(local_dir)]
+    if upload_chunks or files_to_upload:
+      if files_to_upload:
+        local_files = [
+            os.path.join(local_dir, local_file)
+            for local_file in files_to_upload]
+      else:
+        local_files = [
+            os.path.join(local_dir, local_file)
+            for local_file in os.listdir(local_dir)]
       for files_chunk in _GetChunks(local_files, FILES_CHUNK):
         gsutil = slave_utils.GSUtilSetup()
         command = [gsutil, 'cp'] + files_chunk + [gs_dest]

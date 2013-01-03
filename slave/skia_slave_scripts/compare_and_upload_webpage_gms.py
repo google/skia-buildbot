@@ -41,6 +41,12 @@ import build_step
 SKP_TIMEOUT_MULTIPLIER = 8
 LAST_COMPARISON_FILENAME = 'LAST_COMPARISON_SUCCEEDED'
 
+GM_COMPARISON_LINES_TO_EXTRACT_IMAGES = [
+  'contain the same pixel values, but not the same bits',
+  'have identical dimensions but some differing pixels',
+  'have differing dimensions',
+]
+
 IMAGES_FOR_UPLOAD_CHUNKS = [
   'base-macmini',
   'base-macmini-lion-float',
@@ -160,10 +166,15 @@ class CompareAndUploadWebpageGMs(BuildStep):
     print skp_contents
     print len(skp_contents)
 
+    gm_comparison_output = ''
     last_comparison_successful = self._ReadFromLastComparisonFile() == 'True'
     try:
       print '\n\n=========Running GM Comparison=========\n\n'
-      shell_utils.Bash(cmd)
+      proc = shell_utils.BashAsync(cmd, echo=True, shell=False)
+      (returncode, gm_comparison_output) = shell_utils.LogProcessToCompletion(
+          proc, echo=True, timeout=None)
+      if returncode != 0:
+          raise Exception('Command failed with code %d' % returncode)
     except Exception as e:
       print '\n\n=========GM Comparison Failed!=========\n\n'
       if self._do_upload_results and self._gm_actual_exists_on_storage:
@@ -177,13 +188,24 @@ class CompareAndUploadWebpageGMs(BuildStep):
             print '\n\n======Last GM Comparison was successful======'
           print '======Uploading gm-actual to Google Storage======\n\n'
 
+          # Try to get the list of changed images by parsing the
+          # gm_comparison_output. If we cannot determine which images have
+          # changed then we upload all images.
+          images_list = []
+          for output_line in gm_comparison_output.split('\n'):
+            for gm_comparison_line in GM_COMPARISON_LINES_TO_EXTRACT_IMAGES:
+              if gm_comparison_line in output_line:
+                images_list.extend([image for image in output_line.split()
+                                    if 'png' in image])
+
           gs_utils.UploadDirectoryContentsIfChanged(
               gs_base=self._dest_gsbase,
               gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
               gs_acl=PLAYBACK_CANNED_ACL,
               local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
               force_upload=True,
-              upload_chunks=self._upload_chunks)
+              upload_chunks=self._upload_chunks,
+              files_to_upload=images_list)
 
       print '\n\nUpdate the gm-actual local LAST_COMPARISON_SUCCEEDED'
       self._WriteToLastComparisonFile(False)
