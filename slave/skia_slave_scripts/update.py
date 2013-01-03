@@ -59,7 +59,7 @@ class Update(BuildStep):
     if self._is_try:
       # Clean our checkout to make sure we don't have a patch left over.
       print 'Cleaning checkout...'
-      shell_utils.Bash([gclient, 'revert'])
+      shell_utils.Bash([gclient, 'revert', '-j1'])
 
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
