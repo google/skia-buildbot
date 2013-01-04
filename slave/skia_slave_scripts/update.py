@@ -65,7 +65,7 @@ class Update(BuildStep):
           shell_utils.Bash([gclient, 'revert', '-j1'])
           break
         except:
-          print 'Revert failed attempt #' + retry
+          print 'Revert failed attempt #' + str(retry)
           # Sleep before retrying revert.
           time.sleep(1)
 
