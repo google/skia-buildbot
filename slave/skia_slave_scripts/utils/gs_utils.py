@@ -86,6 +86,21 @@ def UploadDirectoryContentsIfChanged(
     upload_chunks=False, files_to_upload=None):
   """Compares the TIMESTAMP_LAST_UPLOAD_COMPLETED and uploads if different.
 
+  Args:
+    gs_base: str - The Google Storage base. Eg: gs://rmistry.
+    gs_relative_dir: str - Relative directory to the Google Storage base.
+    gs_acl: str - ACL to use when uploading to Google Storage.
+    local_dir: str - The local directory to upload.
+    force_upload: bool - Whether upload should be done regardless of timestamps
+        matching or not.
+    upload_chunks: bool - Whether upload should be done in chunks or in a single
+        command. Note: If files_to_upload is specified then we always upload in
+        chunks regardless of the value of this boolean.
+    files_to_upload: str seq - Specific files that should be uploaded, if not
+        specified then all files in local_dir are uploaded. files_to_upload if
+        provided will be uploaded in chunks. The Google Storage directory is
+        not cleaned before upload if files_to_upload is specified.
+
   The goal of DownloadDirectoryContentsIfChanged and
   UploadDirectoryContentsIfChanged is to attempt to replicate directory level
   rsync functionality to the Google Storage directories we care about.

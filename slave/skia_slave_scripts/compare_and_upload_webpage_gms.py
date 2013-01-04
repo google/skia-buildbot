@@ -173,7 +173,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
       (returncode, gm_comparison_output) = shell_utils.LogProcessToCompletion(
           proc, echo=True, timeout=None)
       if returncode != 0:
-          raise Exception('Command failed with code %d' % returncode)
+        raise Exception('Command failed with code %d' % returncode)
     except Exception as e:
       print '\n\n=========GM Comparison Failed!=========\n\n'
       if self._do_upload_results and self._gm_actual_exists_on_storage:

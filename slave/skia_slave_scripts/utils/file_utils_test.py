@@ -23,7 +23,7 @@ class TestFileUtils(unittest.TestCase):
       self._path_exists_called = True
       return self._path_exists_ret
 
-    def _MockRmTree(directory):
+    def _MockRmTree(directory, onerror=None):
       self._rm_tree_called = True
 
     def _MockMakeDirs(directory):
