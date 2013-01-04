@@ -14,6 +14,7 @@ import os
 import re
 import shutil
 import sys
+import time
 
 
 class Update(BuildStep):
@@ -58,8 +59,15 @@ class Update(BuildStep):
 
     if self._is_try:
       # Clean our checkout to make sure we don't have a patch left over.
-      print 'Cleaning checkout...'
-      shell_utils.Bash([gclient, 'revert', '-j1'])
+      for retry in range(1, 6):
+        try:
+          print 'Cleaning checkout...'
+          shell_utils.Bash([gclient, 'revert', '-j1'])
+          break
+        except:
+          print 'Revert failed attempt #' + retry
+          # Sleep before retrying revert.
+          time.sleep(1)
 
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
