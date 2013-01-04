@@ -56,6 +56,9 @@ class RunGM(BuildStep):
            '--writeJsonSummary', os.path.join(self._gm_actual_dir,
                                               JSON_SUMMARY_FILENAME),
            ] + self._gm_args
+    # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
+    if sys.platform == 'darwin':
+      cmd.extend(['--exclude-config', 'msaa16'])
     self._RunModulo(cmd)
 
 
