@@ -94,12 +94,12 @@ def UploadDirectoryContentsIfChanged(
     force_upload: bool - Whether upload should be done regardless of timestamps
         matching or not.
     upload_chunks: bool - Whether upload should be done in chunks or in a single
-        command. Note: If files_to_upload is specified then we always upload in
-        chunks regardless of the value of this boolean.
+        command.
     files_to_upload: str seq - Specific files that should be uploaded, if not
-        specified then all files in local_dir are uploaded. files_to_upload if
-        provided will be uploaded in chunks. The Google Storage directory is
-        not cleaned before upload if files_to_upload is specified.
+        specified then all files in local_dir are uploaded. If upload_chunks is
+        True then files will be uploaded in chunks else they will be uploaded
+        one at a time. The Google Storage directory is not cleaned before upload
+        if files_to_upload is specified.
 
   The goal of DownloadDirectoryContentsIfChanged and
   UploadDirectoryContentsIfChanged is to attempt to replicate directory level
@@ -126,7 +126,7 @@ def UploadDirectoryContentsIfChanged(
         timestamp_value=timestamp_value, gs_base=gs_base,
         gs_relative_dir=gs_relative_dir, local_dir=local_dir, gs_acl=gs_acl)
 
-    if upload_chunks or files_to_upload:
+    if upload_chunks:
       if files_to_upload:
         local_files = [
             os.path.join(local_dir, local_file)
@@ -143,8 +143,15 @@ def UploadDirectoryContentsIfChanged(
               'Could not upload the chunk to Google Storage! The chunk: %s'
               % files_chunk)
     else:
-      if slave_utils.GSUtilDownloadFile(src=local_src, dst=gs_dest) != 0:
-        raise Exception('Could not upload %s to Google Storage!' % local_src)
+      if files_to_upload:
+        for file_to_upload in files_to_upload:
+          if slave_utils.GSUtilDownloadFile(
+              src=os.path.join(local_dir, file_to_upload), dst=gs_dest) != 0:
+            raise Exception(
+                'Could not upload %s to Google Storage!' % file_to_upload)
+      else:
+        if slave_utils.GSUtilDownloadFile(src=local_src, dst=gs_dest) != 0:
+          raise Exception('Could not upload %s to Google Storage!' % local_src)
 
     print '\n\n=======Writing new TIMESTAMP_LAST_UPLOAD_COMPLETED=======\n\n'
     WriteTimeStampFile(
