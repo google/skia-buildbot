@@ -59,7 +59,7 @@ class Update(BuildStep):
 
     if self._is_try:
       # Clean our checkout to make sure we don't have a patch left over.
-      for retry in range(1, 6):
+      for retry in range(1, 11):
         try:
           print 'Cleaning checkout...'
           shell_utils.Bash([gclient, 'revert', '-j1'])
@@ -68,6 +68,8 @@ class Update(BuildStep):
           print 'Revert failed attempt #' + str(retry)
           # Sleep before retrying revert.
           time.sleep(1)
+      else:
+        raise Exception('"gclient revert" failed too many times!')
 
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
