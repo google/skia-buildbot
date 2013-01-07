@@ -8,11 +8,6 @@
 To archive webpages and store skp files (will be run rarely):
 
 cd ../buildbot/slave/skia_slave_scripts
-PYTHONPATH=../../third_party/chromium_trunk/tools/perf:\
-../../third_party/src/third_party/webpagereplay:\
-../../third_party/chromium_trunk/tools/telemetry:\
-../../third_party/chromium_buildbot/scripts:\
-../../third_party/chromium_buildbot/site_config \
 python webpages_playback.py --dest_gsbase=gs://rmistry \
 --record=True
 
@@ -21,22 +16,12 @@ To replay archived webpages and re-generate skp files (will be run whenever
 SkPicture.PICTURE_VERSION changes):
 
 cd ../buildbot/slave/skia_slave_scripts
-PYTHONPATH=../../third_party/chromium_trunk/tools/perf:\
-../../third_party/src/third_party/webpagereplay:\
-../../third_party/chromium_trunk/tools/telemetry:\
-../../third_party/chromium_buildbot/scripts:\
-../../third_party/chromium_buildbot/site_config \
 python webpages_playback.py --dest_gsbase=gs://rmistry
 
 Specify the --page_sets flag (default value is 'all') to pick a list of which
 webpages should be archived and/or replayed. Eg:
 
 cd ../buildbot/slave/skia_slave_scripts
-PYTHONPATH=../../third_party/chromium_trunk/tools/perf:\
-../../third_party/src/third_party/webpagereplay:\
-../../third_party/chromium_trunk/tools/telemetry:\
-../../third_party/chromium_buildbot/scripts:\
-../../third_party/chromium_buildbot/site_config \
 python webpages_playback.py --dest_gsbase=gs://rmistry \
 --page_sets=page_sets/skia_yahooanswers_desktop.json,\
 page_sets/skia_wikipedia_galaxynexus.json
@@ -59,6 +44,24 @@ import sys
 import tempfile
 import time
 import traceback
+
+# Set the PYTHONPATH for this script to include chromium_buildbot scripts,
+# site_config, perf, telemetry and webpagereplay.
+sys.path.append(
+    os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_trunk',
+                 'tools', 'perf'))
+sys.path.append(
+    os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_trunk',
+                 'tools', 'telemetry'))
+sys.path.append(
+    os.path.join(os.pardir, os.pardir, 'third_party', 'src', 'third_party',
+                 'webpagereplay'))
+sys.path.append(
+    os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_buildbot',
+                 'scripts'))
+sys.path.append(
+    os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_buildbot',
+                 'site_config'))
 
 from perf_tools import skpicture_printer
 from slave import slave_utils
@@ -132,6 +135,14 @@ class SkPicturePlayback(object):
 
   def Run(self):
     """Run the SkPicturePlayback BuildStep."""
+
+    # Ensure the right .boto file is used by gsutil.
+    if not gs_utils.DoesStorageObjectExist(self._dest_gsbase):
+      raise Exception(
+          'Missing .boto file or .boto does not have the right credentials.'
+          'Please see https://docs.google.com/a/google.com/document/d/1ZzHP6M5q'
+          'ACA9nJnLqOZr2Hl0rjYqE4yQsQWAfVjKCzs/edit '
+          '(may have to request access)')
 
     # Delete the local root directory if it already exists.
     if os.path.exists(LOCAL_PLAYBACK_ROOT_DIR):

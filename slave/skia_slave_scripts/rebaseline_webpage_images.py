@@ -8,8 +8,6 @@
 Usage:
 
 cd ../buildbot/slave/skia_slave_scripts
-PYTHONPATH=../../third_party/chromium_buildbot/scripts:\
-../../third_party/chromium_buildbot/site_config \
 python rebaseline_webpage_images.py base-android-xoom
 """
 
@@ -17,6 +15,15 @@ import os
 import posixpath
 import sys
 import time
+
+# Set the PYTHONPATH for this script to include chromium_buildbot scripts and
+# site_config.
+sys.path.append(
+    os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_buildbot',
+                 'scripts'))
+sys.path.append(
+    os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_buildbot',
+                 'site_config'))
 
 from build_step import PLAYBACK_CANNED_ACL
 from slave import slave_utils
@@ -79,6 +86,14 @@ else:
 dest_gsbase = sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE
 
 
+# Ensure the right .boto file is used by gsutil.
+if not gs_utils.DoesStorageObjectExist(dest_gsbase):
+  raise Exception(
+      'Missing .boto file or .boto does not have the right credentials. Please '
+      'see https://docs.google.com/a/google.com/document/d/1ZzHP6M5qACA9nJnLq'
+      'OZr2Hl0rjYqE4yQsQWAfVjKCzs/edit (may have to request access)')
+
+
 for gm_image_subdir in gm_images_seq:
   builder_name = GM_IMAGE_TO_BASELINE_BUILDER[gm_image_subdir]
   
@@ -91,19 +106,20 @@ for gm_image_subdir in gm_images_seq:
       dest_gsbase, storage_playback_dirs.PlaybackGmActualDir())
   gm_expected_dir = posixpath.join(
       dest_gsbase, storage_playback_dirs.PlaybackGmExpectedDir())
+  gm_tmp_dir = posixpath.join(
+      dest_gsbase, 'test', gm_image_subdir, builder_name)
 
   print '\n\nThrow an Exception if gm_actual_dir does not exist'
   if not gs_utils.DoesStorageObjectExist(gm_actual_dir):
     raise Exception("%s does not exist in Google Storage!" % gm_actual_dir)
 
-  print '\n\nDelete contents of gm_expected_dir'
+  print '\n\nDelete contents of gm_expected_dir and gm_tmp_dir'
   gs_utils.DeleteStorageObject(gm_expected_dir)
+  gs_utils.DeleteStorageObject(gm_tmp_dir)
 
   print '\n\nCopy all contents from gm_actual_dir to gm_expected_dir'
   # This is a 3 step process.
   # 1. Copy from gm_actual_dir to a temporary location.
-  gm_tmp_dir = posixpath.join(
-      dest_gsbase, 'test', gm_image_subdir, builder_name)
   gs_utils.CopyStorageDirectory(
       src_dir=gm_actual_dir,
       dest_dir=gm_tmp_dir,
