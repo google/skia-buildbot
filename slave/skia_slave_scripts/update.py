@@ -59,17 +59,38 @@ class Update(BuildStep):
 
     if self._is_try:
       # Clean our checkout to make sure we don't have a patch left over.
-      for retry in range(1, 11):
-        try:
-          print 'Cleaning checkout...'
-          shell_utils.Bash([gclient, 'revert', '-j1'])
+
+      # "gclient revert" is finicky on Windows (for more information, see
+      # https://code.google.com/p/skia/issues/detail?id=1041).  The number of
+      # retries required can be arbitrarily large (limited by the number of
+      # directories in the entire checkout), so we just retry until either:
+      #
+      # - The retry succeeds
+      # - The timeout is reached
+      # - The same error is encountered twice in a row
+      #
+      # The logic behind the last case is that, if the error is irrecoverable,
+      # we will see the same output multiple times, whereas if the error is
+      # recoverable, we won't see the same output again when we wait and retry.
+      last_error_text = None
+      attempt = 1
+      while True:
+        print 'Cleaning checkout...'
+        proc = shell_utils.BashAsync([gclient, 'revert', '-j1'])
+        returncode, output = shell_utils.LogProcessToCompletion(proc)
+        if returncode == 0:
           break
-        except:
-          print 'Revert failed attempt #' + str(retry)
-          # Sleep before retrying revert.
-          time.sleep(1)
-      else:
-        raise Exception('"gclient revert" failed too many times!')
+        print 'Revert failed attempt #' + str(attempt)
+        if output == last_error_text:
+          # Assume that we've hit an irrecoverable error if we see the same
+          # error more than once in a row
+          raise Exception('Revert failed with the same output twice in a row. '
+                          'Interpreting this error as irrecoverable and giving '
+                          'up.')
+        last_error_text = output
+        attempt = attempt + 1
+        # Sleep before retrying revert.
+        time.sleep(1)
 
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
