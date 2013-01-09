@@ -12,6 +12,7 @@ it and also reuse some of its methods to send emails.
 # which must be in the PYTHONPATH.
 from buildbot.status.mail import MailNotifier
 from buildbot.status.results import Results
+from master.try_mail_notifier import TryMailNotifier
 
 
 class SkiaNotifier(MailNotifier):
@@ -22,6 +23,10 @@ class SkiaNotifier(MailNotifier):
 
   def createEmail(self, msgdict, builderName, title, results, builds=None,
                   patches=None, logs=None):
+    # Trybots have their own Notifier
+    if 'Trybot' in builderName:
+      return None
+
     m = MailNotifier.createEmail(self, msgdict, builderName, title,
         results, builds, patches, logs)
 
@@ -34,3 +39,13 @@ class SkiaNotifier(MailNotifier):
           })
     return m
 
+
+class SkiaTryMailNotifier(TryMailNotifier):
+  """ The TryMailNotifier sends mail for every build by default. Since we use
+  a single build master for both try builders and regular builders, this causes
+  mail to be sent for every single build. So, we subclass TryMailNotifier here
+  and add logic to prevent sending mail on anything but a try job. """
+
+  def buildMessage(self, name, build, results):
+    if build[0].source.patch:
+      return TryMailNotifier.buildMessage(self, name, build, results)

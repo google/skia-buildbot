@@ -19,7 +19,6 @@ from buildbot.util import NotABranch
 from master import master_config
 from master.builders_pools import BuildersPools
 from master.try_job_svn import TryJobSubversion
-from master.try_mail_notifier import TryMailNotifier
 from oauth2client.client import SignedJwtAssertionCredentials
 from skia_master_scripts import android_factory
 from skia_master_scripts import chromeos_factory
@@ -476,14 +475,3 @@ def CanMergeBuildRequests(req1, req2):
       return False
   
   return True
-
-
-class SkiaTryMailNotifier(TryMailNotifier):
-  """ The TryMailNotifier sends mail for every build by default. Since we use
-  a single build master for both try builders and regular builders, this causes
-  mail to be sent for every single build. So, we subclass TryMailNotifier here
-  and add logic to prevent sending mail on anything but a try job. """
-
-  def buildMessage(self, name, build, results):
-    if build[0].source.patch:
-      return TryMailNotifier.buildMessage(self, name, build, results)
