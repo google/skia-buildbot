@@ -21,9 +21,9 @@ BINARY_NAME = 'skia_render_pictures'
 
 
 class ChromeOSRenderPictures(RenderPictures, ChromeOSBuildStep):
-  def __init__(self, args, attempts=1, timeout=4800):
+  def __init__(self, args, attempts=1, timeout=4800, **kwargs):
     super(ChromeOSRenderPictures, self).__init__(args, attempts=attempts,
-                                                 timeout=timeout)
+                                                 timeout=timeout, **kwargs)
 
   def _PushSKPSources(self):
     """ Push the skp directory full of .skp's to the ChromeoS device. """
