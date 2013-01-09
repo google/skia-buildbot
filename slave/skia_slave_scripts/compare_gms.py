@@ -29,13 +29,21 @@ class CompareGMs(BuildStep):
     # bot turning red.
     may_fail_with_warning = [
         'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_32',
+        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_32_Trybot',
         'Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32',
+        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32_Trybot',
         'Skia_Shuttle_Win7_Intel_Float_Debug_64',
+        'Skia_Shuttle_Win7_Intel_Float_Debug_64_Trybot',
         'Skia_Shuttle_Win7_Intel_Float_Release_64',
+        'Skia_Shuttle_Win7_Intel_Float_Release_64_Trybot',
         'Skia_Mac_Float_Debug_64',
+        'Skia_Mac_Float_Debug_64_Trybot',
         'Skia_Mac_Float_Release_64',
+        'Skia_Mac_Float_Release_64_Trybot',
         'Skia_MacMiniLion_Float_Debug_64',
-        'Skia_MacMiniLion_Float_Release_64'
+        'Skia_MacMiniLion_Float_Debug_64_Trybot',
+        'Skia_MacMiniLion_Float_Release_64',
+        'Skia_MacMiniLion_Float_Release_64_Trybot',
         ]
     try:
       shell_utils.Bash(cmd)
