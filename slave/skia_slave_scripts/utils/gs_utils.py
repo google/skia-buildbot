@@ -48,6 +48,22 @@ def MoveStorageDirectory(src_dir, dest_dir):
   chromium_utils.RunCommand(command)
 
 
+def ListStorageDirectory(dest_gsbase, subdir):
+  """List the contents of the specified Storage directory."""
+  gsbase_subdir = posixpath.join(dest_gsbase, subdir)
+  status, output_gsutil_ls = slave_utils.GSUtilListBucket(gsbase_subdir, [])
+  if status != 0:
+    raise Exception(
+        'Could not list contents of %s in Google Storage!' % src_dir)
+
+  gs_files = []
+  for line in set(output_gsutil_ls.splitlines()):
+    # Ignore lines with warnings and status messages.
+    if line and line.startswith(gsbase_subdir) and line != gsbase_subdir:
+      gs_files.append(line)
+  return gs_files
+
+
 def DoesStorageObjectExist(object_name):
   """Checks if an object exists on Google Storage.
 
