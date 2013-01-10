@@ -40,6 +40,7 @@ import build_step
 
 SKP_TIMEOUT_MULTIPLIER = 8
 LAST_COMPARISON_FILENAME = 'LAST_COMPARISON_SUCCEEDED'
+REBASELINE_IN_PROGRESS_FILENAME = 'REBASELINE_IN_PROGRESS'
 
 GM_COMPARISON_LINES_TO_EXTRACT_IMAGES = [
   'have identical dimensions but some differing pixels',
@@ -127,6 +128,20 @@ class CompareAndUploadWebpageGMs(BuildStep):
         'Skia_MacMiniLion_Float_Release_64',
         'Skia_MacMiniLion_Float_Release_64_Trybot',
         ]
+
+    # Fail with a warning if the gm_actual directory on Google Storage is
+    # currently being rebaselined else running this Build step will result in
+    # data being in an inconsistent state.
+    if gs_utils.DoesStorageObjectExist(
+        posixpath.join(self._dest_gsbase,
+                       self._storage_playback_dirs.PlaybackGmActualDir(),
+                       REBASELINE_IN_PROGRESS_FILENAME)):
+      raise Exception(
+          'Rebaselining is currently in progress. Failing this build step since'
+          ' running it could result in data being in an inconsistent state. See'
+          ' https://codereview.appspot.com/7069066/ (Adding a Lock file to'
+          ' prevent rebaseline script clashing with the build steps) for'
+          ' details.')
 
     if not self._gm_expected_exists_on_storage:
       # Copy images to expected directory if gm-expected has not been created in
@@ -247,10 +262,12 @@ class CompareAndUploadWebpageGMs(BuildStep):
     Returns true iff the timestamp in this platform's gm-expected directory
     in Google Storage was uploaded more recently than its gm-actual directory.
     """
-    gs_actual_timestamp = gs_utils.ReadTimeStampCompletedFile(
+    gs_actual_timestamp = gs_utils.ReadTimeStampFile(
+        timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
         gs_base=self._dest_gsbase,
         gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir())
-    gs_expected_timestamp = gs_utils.ReadTimeStampCompletedFile(
+    gs_expected_timestamp = gs_utils.ReadTimeStampFile(
+        timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
         gs_base=self._dest_gsbase,
         gs_relative_dir=self._storage_playback_dirs.PlaybackGmExpectedDir())
     return gs_actual_timestamp < gs_expected_timestamp

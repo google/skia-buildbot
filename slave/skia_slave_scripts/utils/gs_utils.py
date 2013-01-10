@@ -54,7 +54,7 @@ def ListStorageDirectory(dest_gsbase, subdir):
   status, output_gsutil_ls = slave_utils.GSUtilListBucket(gsbase_subdir, [])
   if status != 0:
     raise Exception(
-        'Could not list contents of %s in Google Storage!' % src_dir)
+        'Could not list contents of %s in Google Storage!' % gsbase_subdir)
 
   gs_files = []
   for line in set(output_gsutil_ls.splitlines()):
@@ -201,12 +201,12 @@ def _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
     storage_file_obj.close()
 
 
-def ReadTimeStampCompletedFile(gs_base, gs_relative_dir):
-  """Reads the TIMESTAMP_LAST_UPLOAD_COMPLETED from the specified GS dir.
+def ReadTimeStampFile(timestamp_file_name, gs_base, gs_relative_dir):
+  """Reads the specified TIMESTAMP file from the specified GS dir.
 
   Returns 0 if the file is empty or does not exist.
   """
-  src = posixpath.join(gs_base, gs_relative_dir, TIMESTAMP_COMPLETED_FILENAME)
+  src = posixpath.join(gs_base, gs_relative_dir, timestamp_file_name)
   temp_file = tempfile.mkstemp()[1]
   slave_utils.GSUtilDownloadFile(src=src, dst=temp_file)
 

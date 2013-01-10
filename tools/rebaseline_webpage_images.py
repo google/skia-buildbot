@@ -5,8 +5,14 @@
 
 """Rebaselines the specified gm_image_subdir or all gm_image_subdirs.
 
-Note: Please make sure the gm-actuals of the builders of interest are not being
-updated at the time this script is run.
+Note:
+  Please make sure the gm-actuals of the builders of interest are not being
+  updated at the time this script is run, or else this script will wait for
+  the gm-actuals upload to be completed.
+  The best time to run this script is late evening / night / weekends because
+  after rebaseling completes, the corresponding builders will have to download
+  new gm-expected images and possibily upload their new gm-actuals which can
+  add ~2 hours to the builders running time.
 
 Usage:
 cd ../buildbot/slave/skia_slave_scripts
@@ -67,7 +73,6 @@ GM_IMAGE_TO_BASELINE_BUILDER = {
 }
 
 ARG_FOR_ALL_IMAGES = 'all'
-
 
 commit_whitespace_change = len(sys.argv) == 5
 if len(sys.argv) != 2 and not commit_whitespace_change:
@@ -137,17 +142,45 @@ for gm_image_subdir in gm_images_seq:
   if not gs_utils.DoesStorageObjectExist(gm_actual_dir):
     raise Exception("%s does not exist in Google Storage!" % gm_actual_dir)
 
+  print '\n\n=======Wait if gm_actual_dir is being updated======='
+  keep_waiting = True
+  while(keep_waiting):
+    gm_actual_started_timestamp = gs_utils.ReadTimeStampFile(
+        timestamp_file_name=gs_utils.TIMESTAMP_STARTED_FILENAME,
+        gs_base=dest_gsbase,
+        gs_relative_dir=storage_playback_dirs.PlaybackGmActualDir())
+    gm_actual_completed_timestamp = gs_utils.ReadTimeStampFile(
+        timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+        gs_base=dest_gsbase,
+        gs_relative_dir=storage_playback_dirs.PlaybackGmActualDir())
+    if gm_actual_started_timestamp != gm_actual_completed_timestamp:
+      print '\n\nSleep for a minute since gm_actual_dir is being updated.'
+      print 'Please manually exit the script if you want to rerun it later.\n'
+      time.sleep(60)
+    else:
+      keep_waiting = False
+
+  print '\n\n=======Add the REBASELINE_IN_PROGRESS lock file======='
+  gs_utils.WriteTimeStampFile(
+      timestamp_file_name=(
+          compare_and_upload_webpage_gms.REBASELINE_IN_PROGRESS_FILENAME),
+      timestamp_value=time.time(),
+      gs_base=dest_gsbase,
+      gs_relative_dir=storage_playback_dirs.PlaybackGmActualDir(),
+      gs_acl=PLAYBACK_CANNED_ACL)
+
   print '\n\n=======Delete contents of gm_expected_dir======='
   gs_utils.DeleteStorageObject(gm_expected_dir)
 
   print '\n\n=====Copy all contents from gm_actual_dir to gm_expected_dir======'
 
-  # Gather list of all files
+  # Gather list of all files.
   gm_actual_contents = gs_utils.ListStorageDirectory(
       dest_gsbase, storage_playback_dirs.PlaybackGmActualDir())
 
-  # Remove TIMESTAMP_* and COMPARISON files from the list
+  # Remove REBASELINE, TIMESTAMP_* and COMPARISON files from the list.
   for file_to_remove in (
+      compare_and_upload_webpage_gms.REBASELINE_IN_PROGRESS_FILENAME,
       gs_utils.TIMESTAMP_STARTED_FILENAME,
       gs_utils.TIMESTAMP_COMPLETED_FILENAME,
       compare_and_upload_webpage_gms.LAST_COMPARISON_FILENAME):
@@ -165,6 +198,12 @@ for gm_image_subdir in gm_images_seq:
       raise Exception(
           'Could not upload the chunk to Google Storage! The chunk: %s'
           % files_chunk)
+
+  print '\n\n=======Delete the REBASELINE_IN_PROGRESS lock file======='
+  gs_utils.DeleteStorageObject(
+      posixpath.join(
+          gm_actual_dir,
+          compare_and_upload_webpage_gms.REBASELINE_IN_PROGRESS_FILENAME))
 
   print '\n\n=======Update gm_expected_dir timestamp======='
   gs_utils.WriteTimeStampFile(
