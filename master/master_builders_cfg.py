@@ -34,11 +34,10 @@ def Update(config, active_master, c):
   helper.AnyBranchScheduler('skia_rel', branches=utils.SKIA_PRIMARY_SUBDIRS)
 
   #
-  # Periodic Scheduler for Skia. The timezone the PeriodicScheduler is run in is
-  # the timezone of the buildbot master. Currently this is EST because it runs
-  # in Atlanta.
+  # Periodic Scheduler for Skia. The buildbot master follows UTC.
+  # Setting it to 7AM UTC (2 AM EST).
   #
-  helper.PeriodicScheduler('skia_periodic', branch='trunk', minute=0, hour=2)
+  helper.PeriodicScheduler('skia_periodic', branch='trunk', minute=0, hour=7)
 
   # Scheduler for Skia trybots.
   helper.TryScheduler('skia_try')

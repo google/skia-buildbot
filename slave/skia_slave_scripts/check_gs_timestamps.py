@@ -88,7 +88,7 @@ class CheckGoogleStorageTimestamps(build_step.BuildStep):
 
     if failed_gm_actual_dirs:
       exception_txt = (
-          'These are the gm-actual directories with timestamps that do not '
+          '\n\nThese are the gm-actual directories with timestamps that do not '
           'match: %s\n'
           'This indicates one of two things (can be determined by examining '
           'the directory):\n'
@@ -99,6 +99,11 @@ class CheckGoogleStorageTimestamps(build_step.BuildStep):
           'and needs to be manually fixed by deleting its '
           'TIMESTAMP_LAST_UPLOAD_COMPLETED directory.\n\n'
               % failed_gm_actual_dirs)
+      exception_txt += ('Investigate the suspect directories with the following'
+                        ' command(s):\n')
+      for failed_gm_actual_dir in failed_gm_actual_dirs:
+        exception_txt += 'gsutil ls -l %sTIMESTAMP*\n' % failed_gm_actual_dir
+      exception_txt += '\n'
       raise Exception(exception_txt)
 
 
