@@ -19,6 +19,9 @@ class AndroidBenchPictures(BenchPictures, AndroidRenderPictures):
   def _DoBenchPictures(self, args):
     data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), args)
     args += [self._device_dirs.SKPDir()]
+    # Time individual tiles. For more details see
+    # https://code.google.com/p/skia/issues/detail?id=1051
+    args += ['--timeIndividualTiles']
     DoBench(serial=self._serial,
             executable='bench_pictures',
             perf_data_dir=self._perf_data_dir,
