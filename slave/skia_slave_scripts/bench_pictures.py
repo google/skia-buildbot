@@ -47,6 +47,9 @@ class BenchPictures(RunBench):
       cmd += BenchArgs(repeats=self.BENCH_REPEAT_COUNT,
                        data_file=self._BuildDataFile(self._GetPerfDataDir(),
                                                      args))
+      # Time individual tiles. For more details see
+      # https://code.google.com/p/skia/issues/detail?id=1051
+      cmd += ['--timeIndividualTiles']
     shell_utils.Bash(cmd)
 
   def _Run(self):
