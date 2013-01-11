@@ -29,6 +29,9 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
     if clobber:
       self.AddSlaveScript(script='clean.py', description='Clean')
 
+    self.AddSlaveScript(script='check_gs_timestamps.py',
+                        description='CheckGoogleStorageTimestamps')
+
     sanitize_script_path = self.TargetPathJoin('tools',
                                                'sanitize_source_files.py')
     skia_trunk_svn_baseurl = '%s/%s' % (
