@@ -1,0 +1,12 @@
+{
+    "description": "CSS3 Gradients for Skia Desktop.",
+    "archive_path": "data/skia_css3gradients_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "https://www.webkit.org/blog/1424/css3-gradients/",
+            "wait_time_after_navigate": 30.0,
+            "why": "http://code.google.com/p/chromium/issues/detail?id=168448"
+        }
+    ]
+}
