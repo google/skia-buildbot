@@ -74,6 +74,9 @@ class BenchPictures(RunBench):
       args = []
       for key, value in config.iteritems():
         args.append('--' + key)
+        if value is True:
+          # The flag doesn't take the form "--key value", just "--key"
+          continue
         if type(value).__name__ == 'list':
           args.extend(value)
         else:
