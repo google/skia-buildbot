@@ -46,6 +46,8 @@ Starting setup of ${VM_COMPLETE_NAME}.....
   for REQUIRED_FILE in ${REQUIRED_FILES_FOR_SLAVES[@]}; do
     $GCOMPUTE_CMD push --ssh_user=default $VM_COMPLETE_NAME \
       $REQUIRED_FILE /home/default/skia-slave/buildbot/site_config/
+    $GCOMPUTE_CMD push --ssh_user=default $VM_COMPLETE_NAME \
+      $REQUIRED_FILE /home/default/skia-slave/buildbot/third_party/chromium_buildbot/site_config/
   done
 
 done

@@ -14,7 +14,8 @@ VM_NAMES="${VM_MASTER_NAMES} ${VM_SLAVE_NAMES}"
 REQUIRED_FILES_FOR_SLAVES=(~/.autogen_svn_username \
                            ~/.autogen_svn_password \
                            ~/.skia_svn_username \
-                           ~/.skia_svn_password)
+                           ~/.skia_svn_password \
+                           ~/.boto)
 
 # The (Shared Fate) Zone is conceptually equivalent to a data center cell. VM
 # instances live in a zone.
