@@ -50,5 +50,14 @@ Starting setup of ${VM_COMPLETE_NAME}.....
       $REQUIRED_FILE /home/default/skia-slave/buildbot/third_party/chromium_buildbot/site_config/
   done
 
+  echo """
+Please manually ssh into ${VM_COMPLETE_NAME} and:
+  * Generate SSH keys (ssh-keygen -t dsa).
+  * Add the public key to the slave's ~/.ssh/authorized_keys
+  * Add the public key to the buildbot master's ~/.ssh/authorized_keys
+
+ssh cmd: ${GCOMPUTE_CMD} ssh --ssh_user=default ${VM_COMPLETE_NAME}
+"""
+
 done
 
