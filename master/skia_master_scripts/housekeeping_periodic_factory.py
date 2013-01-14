@@ -9,6 +9,7 @@ Overrides SkiaFactory with Periodic HouseKeeping steps."""
 import tempfile
 
 from buildbot.process.properties import WithProperties
+from config_private import SKIA_PUBLIC_MASTER, SKIA_HOUSEKEEPING_SLAVE
 from skia_master_scripts import factory as skia_factory
 
 
@@ -31,6 +32,20 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
 
     self.AddSlaveScript(script='check_gs_timestamps.py',
                         description='CheckGoogleStorageTimestamps')
+
+    disk_usage_script_path = self.TargetPathJoin(
+        self._skia_cmd_obj._local_slave_script_dir,
+        'check_compute_engine_disk_usage.sh')
+    self._skia_cmd_obj.AddRunCommand(
+        command=('SKIA_COMPUTE_ENGINE_HOSTNAME=%s PERSISTENT_DISK_NAME='
+                 '/home/default/skia-master %s'
+                 % (SKIA_PUBLIC_MASTER, disk_usage_script_path)),
+                 description='CheckMasterDiskUsage')
+    self._skia_cmd_obj.AddRunCommand(
+        command=('SKIA_COMPUTE_ENGINE_HOSTNAME=%s PERSISTENT_DISK_NAME='
+                 '/home/default/skia-slave %s'
+                 % (SKIA_HOUSEKEEPING_SLAVE, disk_usage_script_path)),
+                 description='CheckHousekeepingSlaveDiskUsage')
 
     sanitize_script_path = self.TargetPathJoin('tools',
                                                'sanitize_source_files.py')
