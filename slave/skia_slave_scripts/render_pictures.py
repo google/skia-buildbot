@@ -14,16 +14,16 @@ import tempfile
 
 
 class RenderPictures(BuildStep):
-  def _PictureArgs(self, skp_dir, out_dir, config):
-    return [skp_dir, '--device', config,
-            '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
+  def _PictureArgs(self, skp_dir, out_dir, device):
+    return [skp_dir, '--device', device,
+            '--validate', '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
 
-  def _Run(self):
+  def DoRenderPictures(self, verify_args):
     # Render the pictures into a temporary directory.
     temp_dir = tempfile.mkdtemp()
     skp_dir = os.path.join(os.pardir, 'skp')
     args = self._PictureArgs(skp_dir, temp_dir, 'bitmap')
-    cmd = [self._PathToBinary('render_pictures')] + args
+    cmd = [self._PathToBinary('render_pictures')] + args + verify_args
     shell_utils.Bash(cmd)
     # Copy the files into gm_actual_dir, prepending 'skp_' to the filename
     filepaths = os.listdir(temp_dir)
@@ -33,6 +33,12 @@ class RenderPictures(BuildStep):
         shutil.copyfile(os.path.join(temp_dir, filepath), out_file)
     shutil.rmtree(temp_dir)
 
+  def _Run(self):
+    self.DoRenderPictures([])
+    self.DoRenderPictures(['--clone', '1'])
+    self.DoRenderPictures(['--clone', '2'])
+    self.DoRenderPictures(['--bbh', 'grid', '256', '256'])
+    self.DoRenderPictures(['--bbh', 'rtree'])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RenderPictures))

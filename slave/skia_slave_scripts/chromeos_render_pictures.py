@@ -57,18 +57,20 @@ class ChromeOSRenderPictures(RenderPictures, ChromeOSBuildStep):
                        posixpath.join(self._device_dirs.SKPOutDir(), img),
                        self._ssh_username, self._ssh_host, self._ssh_port)
 
+  def DoRenderPictures(self, verify_args):
+    args = self._PictureArgs(self._device_dirs.SKPDir(),
+                             self._device_dirs.SKPOutDir(), 'bitmap')
+    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                     [BINARY_NAME] + args + verify_args)
+
   def _Run(self):
     # For this step, we assume that we run *after* RunGM and *before*
     # UploadGMResults.  This needs to be the case, because RunGM clears the
     # output directory before it begins, and because we want the results from
     # this step to be uploaded with the GM results.
     self._PushSKPSources()
-    args = self._PictureArgs(self._device_dirs.SKPDir(),
-                             self._device_dirs.SKPOutDir(), 'bitmap')
-    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                     [BINARY_NAME] + args)
+    super(ChromeOSRenderPictures, self)._Run()
     self._PullSKPResults()
-
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(ChromeOSRenderPictures))

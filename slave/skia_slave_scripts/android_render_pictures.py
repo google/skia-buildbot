@@ -45,20 +45,22 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
     android_utils.RunADB(serial, ['pull', self._device_dirs.SKPOutDir(),
                                   self._gm_actual_dir])
 
+  def DoRenderPictures(self, verify_args):
+    args = self._PictureArgs(self._device_dirs.SKPDir(),
+                             self._device_dirs.SKPOutDir(),
+                             'bitmap')
+    android_utils.RunShell(self._serial, [BINARY_NAME] + args + verify_args)
+
   def _Run(self):
     # For this step, we assume that we run *after* RunGM and *before*
     # UploadGMResults.  This needs to be the case, because RunGM clears the
     # output directory before it begins, and because we want the results from
     # this step to be uploaded with the GM results.
     self._PushSKPSources(self._serial)
-    args = self._PictureArgs(self._device_dirs.SKPDir(),
-                             self._device_dirs.SKPOutDir(),
-                             'bitmap')
     try:
-      android_utils.RunShell(self._serial, [BINARY_NAME] + args)
+      super(AndroidRenderPictures, self)._Run()
     finally:
       self._PullSKPResults(self._serial)
-
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidRenderPictures))
