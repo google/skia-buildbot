@@ -53,7 +53,10 @@ def ADBShell(serial, cmd, echo=True):
                                                ' '.join(cmd))
   output = shell_utils.Bash(adb_cmd, shell=True, echo=echo)
   output_lines = output.splitlines()
-  real_exitcode = int(output_lines[-1].rstrip())
+  try:
+    real_exitcode = int(output_lines[-1].rstrip())
+  except ValueError:
+    real_exitcode = -1
   if real_exitcode != 0:
     raise Exception('Command failed with code %s' % real_exitcode)
   return '\n'.join(output_lines[:-1])
