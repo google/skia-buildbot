@@ -15,8 +15,13 @@ import tempfile
 
 class RenderPictures(BuildStep):
   def _PictureArgs(self, skp_dir, out_dir, device):
-    return [skp_dir, '--device', device,
-            '--validate', '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
+    args = [skp_dir, '--device', device,
+            '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
+    if not hasattr(self, 'device'):
+      # For now, only run --validate when not on Android, since some of our
+      # pictures are too big to fit in memory.
+      args.append('--validate')
+    return args
 
   def DoRenderPictures(self, verify_args):
     # Render the pictures into a temporary directory.
