@@ -17,7 +17,7 @@ class RenderPictures(BuildStep):
   def _PictureArgs(self, skp_dir, out_dir, device):
     args = [skp_dir, '--device', device,
             '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
-    if not hasattr(self, 'device'):
+    if not hasattr(self, '_device'):
       # For now, only run --validate when not on Android, since some of our
       # pictures are too big to fit in memory.
       args.append('--validate')
