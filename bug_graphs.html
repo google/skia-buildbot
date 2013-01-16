@@ -1,0 +1,124 @@
+<head>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>  
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+    var url = "https://www.googleapis.com/projecthosting/v2/projects/skia/issues";
+
+    var ph_params = {
+      sort: 'items(published)',
+      fields: 'items(published,closed),totalResults',
+      maxResults: 99999,
+      key: 'AIzaSyDq0bq2zkLR1WfmmGihHU6Vf6nG4msE-io',
+    };
+
+    google.load('visualization', '1', {packages:['corechart']});
+    google.setOnLoadCallback( drawChart );
+      
+
+    function drawChart() {
+      var bug_data = [];
+      
+      $.get( url, ph_params, function( data ) {
+
+
+       /* Data comes back from the Project Hosting API in JSON format like:
+
+          {
+           "totalResults": 1057,
+           "items": [
+            {
+             "published": "2008-12-23T18:57:06.000Z",
+             "closed": "2009-04-23T17:12:54.000Z"
+            },
+            {
+             "published": "2008-12-23T18:58:08.000Z",
+             "closed": "2010-04-15T17:28:52.000Z"
+            },
+          ...
+          }
+
+          if the bug is still open, there will simply not be a 'closed'
+          attribute on the item.
+
+       */
+        
+
+        // turn this into a list of [ date, +1/-1 ] pairs indicating 
+        // whether or not we added or subtracted a bug on that day.
+        // Need this intermediate step because the list of actions
+        // are only sorted on publication date, but the close date
+        // can be any time in the future.
+
+        actions = [];
+        for (var i = 0 ; i < data.items.length; i++) {
+          var publish = new Date(data.items[i].published);
+          actions.push( [publish, 1] );
+          if (data.items[i].closed ) {
+            var closed = new Date(data.items[i].closed);
+            actions.push( [closed,-1] );
+          }
+        }
+
+        // now that opening and closing bugs are on equal footing,
+        // we can sort the action array by the date.
+
+        actions.sort( function(a,b) { return a[0] - b[0]; } );
+
+        // convert the action array to a running total, and format
+        // it for the google visualization API while we're at it.
+
+        var bug_count = 0;
+        for (var i = 0 ; i < actions.length; i++) {
+          bug_count += actions[i][1];
+          bug_data.push( {c: [{v: actions[i][0]}, {v: bug_count}]} );
+        }
+        $("#stats").text("Found " + data.totalResults + 
+                         " total Skia bugs, with " + bug_count + 
+                         " remaining open." );
+      
+        var data_table_init = {
+          'cols': [
+            { 
+              'label': 'Time', 
+              'type': 'datetime'
+            }, 
+            { 
+              'label': 'Number of open Skia bugs', 
+              'type': 'number'
+            }
+          ],
+          'rows': bug_data
+        };
+      
+        var data_table = new google.visualization.DataTable(data_table_init);
+
+        var options = {
+          'title': 'Number of open Skia bugs', 
+          'width': 1024, 
+          'height': 768
+        };
+      
+        var graph_container = document.getElementById('graph');
+        var graph = new google.visualization.LineChart(graph_container);
+        graph.draw(data_table,options);
+      });
+    }
+  </script>
+  
+  <style>
+    body {
+      font-size: 24pt;
+      text-align: center;
+      font-family: Verdana, Arial, Helvetica, sans-serif;
+    }
+  </style>
+  
+  <title>Skia bug motivator</title>
+</head>
+<body>
+  <div id="results_wrapper">
+    Retrieving Skia bug information...
+    <div id="stats"></div>
+    <div id="graph"></div>
+  </div>
+</body>
