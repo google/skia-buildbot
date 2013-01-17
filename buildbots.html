@@ -137,14 +137,14 @@
 
     <iframe id="skia-tree-status" width="100%" height="40" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
     <div id="container" style="clear:both; height: 75px;">
-      <div style="float:left; width:30%;">
+      <div style="float:left; width:30%; position: relative; z-index:2;">
       <form name="unused">
         <input type="radio" name="internal_external" value="external" id="external" onClick="reloadWithOptions('external', display_builders, display_page);">external view<br>
         <input type="radio" name="internal_external" value="internal" id="internal" onClick="reloadWithOptions('internal', display_builders, display_page);">internal view
       </form>
       </div>
 
-      <div style="float:right; max-width:22%;">
+      <div style="float:right; max-width:22%; position: relative; z-index:2;">
         <div style="float:left;">
           <ul style="margin: 0px 0px 0px 25px; padding:0;">
           <li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li>
@@ -161,7 +161,7 @@
         </div>
       </div>
 
-      <div style="text-align:center; position: absolute; width: 100%; z-index:-1;">
+      <div style="text-align:center; position: absolute; width: 100%; z-index:1;">
         <div id="heading" style="font-size:2.5em; text-align:center;">Skia Buildbots</div>
         <div style="text-align:center;">
           <form name="unused2">
