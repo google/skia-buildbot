@@ -121,9 +121,9 @@ class SkPicturePlayback(object):
     self._page_sets = self._ParsePageSets(parse_options.page_sets)
 
     self._dest_gsbase = parse_options.dest_gsbase
-    self._record = parse_options.record
+    self._record = parse_options.record == 'True'
     self._debugger = parse_options.debugger
-    self._dryrun = parse_options.dryrun
+    self._dryrun = parse_options.dryrun == 'True'
 
     self._trunk = parse_options.trunk
     self._svn_username = parse_options.svn_username
@@ -381,7 +381,7 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--record',
       help='Specifies whether a new website archive should be created.',
-      default=False)
+      default='False')
   option_parser.add_option(
       '', '--dest_gsbase',
       help='gs:// bucket_name, the bucket to upload the file to.',
@@ -394,7 +394,7 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--dryrun',
       help='Does not upload to Google Storage if this is true.',
-      default=False)
+      default='False')
   option_parser.add_option(
       '', '--trunk',
       help='Path to Skia trunk, used for whitespace commit.',
