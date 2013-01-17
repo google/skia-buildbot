@@ -124,20 +124,29 @@
         display_page = "console";
       updateView();
     }
+
+    function reloadSkiaTreeStatus() {
+      document.getElementById("skia-tree-status").src = document.getElementById("skia-tree-status").src;
+    }
+
+    window.setInterval("reloadSkiaTreeStatus();", 10000);
     </script>
 
   </head>
   <body onload="init()" style="background-color: #fff;">
+
+    <iframe id="skia-tree-status" width="100%" height="60" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
+
     <div id="heading" style="font-size:2.5em; text-align:center;">Skia Buildbots</div>
 
-    <div style="position:absolute; left:10; top:13;">
+    <div style="position:absolute; left:10; top:75;">
     <form name="unused">
       <input type="radio" name="internal_external" value="external" id="external" onClick="reloadWithOptions('external', display_builders, display_page);">external view<br>
       <input type="radio" name="internal_external" value="internal" id="internal" onClick="reloadWithOptions('internal', display_builders, display_page);">internal view
     </form>
     </div>
 
-    <div style="position:absolute; right:10; top:5;">
+    <div style="position:absolute; right:10; top:60;">
     <a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/>
     <a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/>
     <a href="bench_graphs.html" target="_blank">Bench Graphs</a><br/>
