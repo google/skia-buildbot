@@ -135,39 +135,46 @@
   </head>
   <body onload="init()" style="background-color: #fff;">
 
-    <iframe id="skia-tree-status" width="100%" height="60" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
-
-    <div id="heading" style="font-size:2.5em; text-align:center;">Skia Buildbots</div>
-
-    <div style="position:absolute; left:10; top:75;">
-    <form name="unused">
-      <input type="radio" name="internal_external" value="external" id="external" onClick="reloadWithOptions('external', display_builders, display_page);">external view<br>
-      <input type="radio" name="internal_external" value="internal" id="internal" onClick="reloadWithOptions('internal', display_builders, display_page);">internal view
-    </form>
-    </div>
-
-    <div style="position:absolute; right:10; top:48;">
-    <a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/>
-    <a href="https://skia-tree-status.appspot.com/" target="_blank">Skia Tree Status Manager</a><br/>
-    <a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/>
-    <a href="bench_graphs.html" target="_blank">Bench Graphs</a><br/>
-    <a href="http://go/skpbench" target="_blank">Bench Dashboard</a>
-    </div>
-    <div style="text-align:center;">
-      <form name="unused2">
-        <input type="radio" id="nonbench_console" value="nonbench_console" onClick="javascript:reloadWithOptions(display_view, 'nonbench', 'console');">Non-Bench Builders
-        <input type="radio" id="bench_console" value="bench_console" onClick="javascript:reloadWithOptions(display_view, 'bench', 'console');">Bench Builders
-        <input type="radio" id="all_console" value="all_console" onClick="javascript:reloadWithOptions(display_view, 'all', 'console');">All Builders
-        <input type="radio" id="try_waterfall" value="try_waterfall" onClick="javascript:reloadWithOptions(display_view, 'try', 'waterfall');">Trybots
+    <iframe id="skia-tree-status" width="100%" height="40" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
+    <div id="container" style="clear:both; height: 75px;">
+      <div style="float:left; width:30%;">
+      <form name="unused">
+        <input type="radio" name="internal_external" value="external" id="external" onClick="reloadWithOptions('external', display_builders, display_page);">external view<br>
+        <input type="radio" name="internal_external" value="internal" id="internal" onClick="reloadWithOptions('internal', display_builders, display_page);">internal view
       </form>
-    </div>
-   <!-- Waterfall: 
-    <a href="javascript:reloadWithOptions(display_view, 'nonbench', 'waterfall');">Non-Bench Builders</a>
-    |
-    <a href="javascript:reloadWithOptions(display_view, 'bench', 'waterfall');">Bench Builders</a>
-    |
-    <a href="javascript:reloadWithOptions(display_view, 'all', 'waterfall');">All Builders</a>-->
+      </div>
 
+      <div style="float:right; max-width:22%;">
+        <div style="float:left;">
+          <ul style="margin: 0px 0px 0px 25px; padding:0;">
+          <li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li>
+          <li><a href="https://skia-tree-status.appspot.com/" target="_blank">Skia Tree Status Manager</a><br/></li>
+          <li><a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/></li>
+          </ul>
+        </div>
+        <div style="float:left;">
+          <ul style="margin: 0px 0px 0px 25px; padding:0;">
+          <li><a href="bench_graphs.html" target="_blank">Bench Graphs</a><br/></li>
+          <li><a href="http://go/skpbench" target="_blank">Bench Dashboard</a><br/></li>
+          <li><a href="bug_graphs.html" target="_blank">Open Bugs Graph</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="text-align:center; position: absolute; width: 100%;">
+        <div id="heading" style="font-size:2.5em; text-align:center;">Skia Buildbots</div>
+        <div style="text-align:center;">
+          <form name="unused2">
+            <nobr>
+            <input type="radio" id="nonbench_console" value="nonbench_console" onClick="javascript:reloadWithOptions(display_view, 'nonbench', 'console');">Non-Bench Builders
+            <input type="radio" id="bench_console" value="bench_console" onClick="javascript:reloadWithOptions(display_view, 'bench', 'console');">Bench Builders
+            <input type="radio" id="all_console" value="all_console" onClick="javascript:reloadWithOptions(display_view, 'all', 'console');">All Builders
+            <input type="radio" id="try_waterfall" value="try_waterfall" onClick="javascript:reloadWithOptions(display_view, 'try', 'waterfall');">Trybots
+            </nobr>
+          </form>
+        </div>
+      </div>  
+    </div>
     <iframe id="content" width="100%" height="4650px" src="about:blank" frameborder="0""></iframe>
 
   </body>
