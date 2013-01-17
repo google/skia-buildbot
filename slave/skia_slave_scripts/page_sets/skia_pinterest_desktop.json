@@ -7,8 +7,9 @@
             "name": "Pinterest",
             "url": "http://pinterest.com",
             "why": "#37 (Alexa global)",
-            "wait_time_after_navigate": 5.0,
+            "wait_time_after_navigate": 30.0,
             "scroll_is_infinite": true
         }
     ]
 }
+
