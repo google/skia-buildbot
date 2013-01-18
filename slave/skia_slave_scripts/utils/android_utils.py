@@ -9,10 +9,10 @@ import os
 import re
 import shell_utils
 import shlex
+import sys
 import time
 
 
-PATH_TO_ADB = os.path.join('..', 'android', 'bin', 'linux', 'adb')
 DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'xoom': 'stingray',
                  'galaxy_nexus': 'toro',
@@ -20,6 +20,77 @@ DEVICE_LOOKUP = {'nexus_s': 'crespo',
                  'nexus_7': 'grouper',
                  'nexus_10': 'manta'}
 CPU_SCALING_MODES = ['performance', 'interactive']
+
+
+def GotADB(adb):
+  """ Returns True iff ADB exists at the given location.
+
+  adb: string; possible path to the ADB executable.
+  """
+  try:
+    shell_utils.Bash([adb, 'version'], echo=False)
+    return True
+  except:
+    return False
+
+
+def FindADB(hint=None):
+  """ Attempt to find the ADB program using the following sequence of steps.
+  Returns the path to ADB if it can be found, or None otherwise.
+  1. If a hint was provided, is it a valid path to ADB?
+  2. Is ADB in PATH?
+  3. Is there an environment variable for ADB?
+  4. If the ANDROID_SDK_ROOT variable is set, try to find ADB in the SDK
+     directory.
+  5. Try to find ADB in a list of common locations.
+
+  hint: string indicating a possible path to ADB.
+  """
+  # 1. If a hint was provided, does it point to ADB?
+  if hint:
+    if os.path.basename(hint) == 'adb':
+      adb = hint
+    else:
+      adb = os.path.join(hint, 'adb')
+    if GotADB(adb):
+      return adb
+
+  # 2. Is 'adb' in our PATH?
+  adb = 'adb'
+  if GotADB(adb):
+    return adb
+
+  # 3. Is there an environment variable for ADB?
+  adb = os.environ.get('ADB')
+  if GotADB(adb):
+    return adb
+
+  # 4. If ANDROID_SDK_ROOT is set, try to find ADB in the SDK directory.
+  sdk_dir = os.environ.get('ANDROID_SDK_ROOT', '')
+  adb = os.path.join(sdk_dir, 'platform-tools', 'adb')
+  if GotADB(adb):
+    return adb
+
+  # 4. Try to find ADB relative to this file.
+  common_locations = []
+  os_dir = None
+  if sys.platform.startswith('linux'):
+    os_dir = 'linux'
+  elif sys.platform.startswith('darwin'):
+    os_dir = 'mac'
+  else:
+    os_dir = 'win'
+  common_locations.append(os.path.join(os.pardir, os_dir, 'adb'))
+  common_locations.append(os.path.join(os.environ.get('HOME', ''),
+                          'android-sdk-%s' % os_dir))
+  for location in common_locations:
+    if GotADB(location):
+      return location
+
+  raise Exception('android_utils: Unable to find ADB!')
+
+
+PATH_TO_ADB = FindADB(hint=os.path.join('..', 'android', 'bin', 'linux', 'adb'))
 
 
 def RunADB(serial, cmd, echo=True, attempts=5, secs_between_attempts=10,

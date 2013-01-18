@@ -3,13 +3,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 """ Repeatedly launch the build master in an infinite loop, updating the source
 between launches. This script is intended to be run at boot time. """
+
 
 import os
 import subprocess
 import sys
 import time
+
 
 # File where the PID of the running master is stored
 PID_FILE = 'twistd.pid'
@@ -17,6 +20,7 @@ PID_FILE = 'twistd.pid'
 # Maximum time (in seconds) to wait for PID_FILE to be written after the master
 # is launched.  If PID_FILE is not written by then, we assume an error occurred.
 PID_TIMEOUT = 10.0
+
 
 def _SyncSources():
   """ Run 'gclient sync' on the buildbot sources. """
@@ -26,6 +30,7 @@ def _SyncSources():
   if not subprocess.call(cmd) == 0:
     # Don't throw an exception or quit, since we want to keep the master running
     print 'WARNING: Failed to update sources.'
+
 
 def _LaunchMaster(private=False):
   """ Launch the build master and return its PID.
@@ -47,32 +52,49 @@ def _LaunchMaster(private=False):
 
   # Wait for the pid file to be written, then use it to obtain the master's pid
   pid_file = None
-  start_time = time.clock()
+  start_time = time.time()
   while not pid_file:
     try:
       pid_file = open(PID_FILE)
     except:
-      if time.clock() - start_time > PID_TIMEOUT:
+      if time.time() - start_time > PID_TIMEOUT:
         raise Exception('Failed to launch master.')
       time.sleep(1)
   pid = str(pid_file.read()).rstrip()
   pid_file.close
   return pid
 
-# TODO(borenet): Right now, this only works on Linux.  Make it cross-platform.
+
+# TODO(borenet): Share this code with launch_slaves.py.
+def IsRunning(pid):
+  """ Determine whether a process with the given PID is running.
+
+  pid: string; the PID to test. If pid is None, return False.
+  """
+  if pid is None:
+    return False
+  if os.name == 'nt':
+    cmd = ['tasklist', '/FI', '"PID eq %s"' % pid]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    if proc.wait() != 0:
+      raise Exception('Unable to poll process with PID %s' % pid)
+    is_running = pid in proc.communicate()[0]
+  else:
+    cmd = ['cat', '/proc/%s/stat' % pid]
+    is_running = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT).wait() == 0
+  return is_running
+
+
 def _BlockUntilFinished(pid):
   """ Blocks until the given process has finished.
 
   pid: PID of the process to wait for
   """
-  running = True
-  while running:
+  while IsRunning(pid):
     time.sleep(1)
-    poll_proc = subprocess.Popen(['cat', '/proc/%s/stat' % pid],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT)
-    poll_proc.wait()
-    running = poll_proc.poll() == 0
+
 
 def _UpdateAndRunMaster(private=False):
   """ Update the buildbot sources and run the build master, blocking until it
@@ -85,6 +107,7 @@ def _UpdateAndRunMaster(private=False):
   print 'Launched build master with PID: %s' % pid
   _BlockUntilFinished(pid)
   print 'Master process has finished.'
+
 
 def main():
   """ Alternately sync the buildbot source and launch the build master. """
