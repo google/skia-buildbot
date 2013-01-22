@@ -262,6 +262,10 @@ class SkPicturePlayback(object):
            commit_msg = (
                'Updated the following skp files on Google Storage: %s' % (
                    self._skp_files))
+         # Adding a pattern that makes the commit msg show up as an annotation
+         # in the dashboard. Please see for more details:
+         # https://code.google.com/p/skia/issues/detail?id=1065
+         commit_msg += ' (AddDashboardAnnotation)'
          repo._RunSvnCommand(
              ['commit', '--message', commit_msg, 'whitespace.txt'])
 
