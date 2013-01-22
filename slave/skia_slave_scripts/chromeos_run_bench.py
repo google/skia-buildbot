@@ -5,7 +5,7 @@
 
 """ Run the Skia bench executable. """
 
-from build_step import BuildStep
+from build_step import BuildStep, BuildStepWarning
 from chromeos_build_step import ChromeOSBuildStep
 from run_bench import BenchArgs
 from run_bench import PreBench
@@ -48,14 +48,16 @@ def DoBench(executable, perf_data_dir, device_perf_dir, data_file,
 
 class ChromeOSRunBench(RunBench, ChromeOSBuildStep):
   def _Run(self):
-    data_file = self._BuildDataFile(self._device_dirs.PerfDir())
-    DoBench(executable='skia_bench',
-            perf_data_dir=self._perf_data_dir,
-            device_perf_dir=self._device_dirs.PerfDir(),
-            data_file=data_file,
-            ssh_username=self._ssh_username,
-            ssh_host=self._ssh_host,
-            ssh_port=self._ssh_port)
+    # TODO(borenet): Re-enable this step once the crash is fixed.
+    #data_file = self._BuildDataFile(self._device_dirs.PerfDir())
+    #DoBench(executable='skia_bench',
+    #        perf_data_dir=self._perf_data_dir,
+    #        device_perf_dir=self._device_dirs.PerfDir(),
+    #        data_file=data_file,
+    #        ssh_username=self._ssh_username,
+    #        ssh_host=self._ssh_host,
+    #        ssh_port=self._ssh_port)
+    raise BuildStepWarning('Skipping bench on ChromeOS until crash is fixed.')
 
 
 if '__main__' == __name__:
