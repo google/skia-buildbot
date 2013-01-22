@@ -9,13 +9,13 @@ from chromeos_render_pictures import ChromeOSRenderPictures
 from chromeos_run_bench import DoBench
 from bench_pictures import BenchPictures
 from build_step import BuildStep
-import posixpath
 import sys
 
 
 class ChromeOSBenchPictures(BenchPictures, ChromeOSRenderPictures):
   def _DoBenchPictures(self, args):
     data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), args)
+    args += [self._device_dirs.SKPDir()]
     DoBench(executable='skia_bench_pictures',
             perf_data_dir=self._perf_data_dir,
             device_perf_dir=self._device_dirs.SKPPerfDir(),
