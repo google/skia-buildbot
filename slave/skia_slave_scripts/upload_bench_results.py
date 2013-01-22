@@ -18,8 +18,8 @@ import sys
 
 class UploadBenchResults(BuildStep):
 
-  def __init__(self, args, attempts=5):
-    super(UploadBenchResults, self).__init__(args, attempts)
+  def __init__(self, attempts=5, **kwargs):
+    super(UploadBenchResults, self).__init__(attempts=attempts, **kwargs)
 
   def _GetPerfDataDir(self):
     return self._perf_data_dir

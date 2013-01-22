@@ -222,7 +222,7 @@ class BuildStep(multiprocessing.Process):
     args = misc.ArgsToDict(sys.argv)
     attempt = 0
     while True:
-      step = StepType(args)
+      step = StepType(args=args)
       try:
         start_time = time.time()
         last_written_time = start_time

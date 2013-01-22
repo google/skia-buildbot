@@ -20,8 +20,8 @@ class Options(object):
   pass
 
 class UploadGMResults(BuildStep):
-  def __init__(self, args, attempts=5):
-    super(UploadGMResults, self).__init__(args, attempts)
+  def __init__(self, attempts=5, **kwargs):
+    super(UploadGMResults, self).__init__(attempts=attempts, **kwargs)
 
   def _Run(self):
     if self._is_try:

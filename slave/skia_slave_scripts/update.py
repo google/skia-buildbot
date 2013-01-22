@@ -18,8 +18,9 @@ import time
 
 
 class Update(BuildStep):
-  def __init__(self, args, timeout=6000, no_output_timeout=4800, **kwargs):
-    super(Update, self).__init__(args, timeout=timeout, **kwargs)
+  def __init__(self, timeout=6000, no_output_timeout=4800, **kwargs):
+    super(Update, self).__init__(timeout=timeout,
+                                 no_output_timeout=no_output_timeout, **kwargs)
 
   def _Run(self):
     if os.name == 'nt':

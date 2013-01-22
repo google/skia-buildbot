@@ -19,10 +19,10 @@ RUNNING_ALL_CONFIGURATIONS = False
 
 
 class BenchPictures(RunBench):
-  def __init__(self, args, attempts=1, timeout=16800, no_output_timeout=16800):
-    super(BenchPictures, self).__init__(args, attempts=attempts,
-                                        timeout=timeout,
-                                        no_output_timeout=no_output_timeout)
+  def __init__(self, timeout=16800, no_output_timeout=16800, **kwargs):
+    super(BenchPictures, self).__init__(timeout=timeout,
+                                        no_output_timeout=no_output_timeout,
+                                        **kwargs)
 
   def _BuildDataFile(self, perf_dir, args):
     data_file = '%s_skp_%s' % (

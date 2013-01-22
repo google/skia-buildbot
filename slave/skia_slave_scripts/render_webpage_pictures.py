@@ -48,16 +48,18 @@ RENDER_PICTURES_DEVICE = 'bitmap'
 class RenderWebpagePictures(build_step.BuildStep):
 
   def __init__(
-      self, args, attempts=1,
+      self,
       timeout=(
           build_step.DEFAULT_TIMEOUT *
           compare_and_upload_webpage_gms.SKP_TIMEOUT_MULTIPLIER),
       no_output_timeout=(
           build_step.DEFAULT_NO_OUTPUT_TIMEOUT *
-          compare_and_upload_webpage_gms.SKP_TIMEOUT_MULTIPLIER)):
+          compare_and_upload_webpage_gms.SKP_TIMEOUT_MULTIPLIER),
+      **kwargs):
     super(RenderWebpagePictures, self).__init__(
-        args, attempts=attempts, timeout=timeout,
-        no_output_timeout=no_output_timeout)    
+        timeout=timeout,
+        no_output_timeout=no_output_timeout,
+        **kwargs)    
 
   def _Run(self):
     # Create the required local storage directories.

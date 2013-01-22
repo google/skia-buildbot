@@ -32,9 +32,9 @@ import sys
 class UploadWebpagePictureBenchGraphs(UploadBenchGraphs):
   """Upload benchmark graphs from archived webpages."""
 
-  def __init__(self, args, attempts=5):
+  def __init__(self, attempts=5, **kwargs):
     """Create an instance of UploadWebpagePictureBenchGraphs."""
-    super(UploadBenchGraphs, self).__init__(args, attempts)
+    super(UploadBenchGraphs, self).__init__(attempts=attempts, **kwargs)
 
   def _GetPerfGraphsDir(self):
     """Points to the local playback perf graphs directory."""

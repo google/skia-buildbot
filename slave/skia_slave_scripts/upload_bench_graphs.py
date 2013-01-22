@@ -18,8 +18,8 @@ import sys
 
 class UploadBenchGraphs(BuildStep):
 
-  def __init__(self, args, attempts=5):
-    super(UploadBenchGraphs, self).__init__(args, attempts)
+  def __init__(self, attempts=5, **kwargs):
+    super(UploadBenchGraphs, self).__init__(attempts=attempts, **kwargs)
 
   def _GetPerfGraphsDir(self):
     return self._perf_graphs_dir

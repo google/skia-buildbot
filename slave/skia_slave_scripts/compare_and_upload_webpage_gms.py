@@ -57,22 +57,22 @@ IMAGES_FOR_UPLOAD_CHUNKS = [
 class CompareAndUploadWebpageGMs(BuildStep):
 
   def __init__(
-      self, args, attempts=1,
+      self,
       timeout=build_step.DEFAULT_TIMEOUT * SKP_TIMEOUT_MULTIPLIER,
       no_output_timeout=(
-          build_step.DEFAULT_NO_OUTPUT_TIMEOUT * SKP_TIMEOUT_MULTIPLIER)):
+          build_step.DEFAULT_NO_OUTPUT_TIMEOUT * SKP_TIMEOUT_MULTIPLIER),
+      **kwargs):
     """Constructs a RenderWebpagePictures BuildStep instance.
 
-    args: dictionary containing arguments to this BuildStep.
-    attempts: how many times to try this BuildStep before giving up.
     timeout: maximum time allowed for this BuildStep. The default value here is
              increased because there could be a lot of skps' whose images have
              to be copied over to Google Storage.
     no_output_timeout: maximum time allowed for this BuildStep to run without
         any output.
     """
-    build_step.BuildStep.__init__(self, args, attempts, timeout,
-                                  no_output_timeout)
+    build_step.BuildStep.__init__(self, timeout=timeout,
+                                  no_output_timeout=no_output_timeout,
+                                  **kwargs)
 
     self._dest_gsbase = (self._args.get('dest_gsbase') or
                          sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)

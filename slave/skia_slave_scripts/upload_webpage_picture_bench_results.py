@@ -32,9 +32,9 @@ import sys
 class UploadWebpagePictureBenchResults(UploadBenchResults):
   """Upload benchmark performance data results from archived webpages."""
 
-  def __init__(self, args, attempts=5):
+  def __init__(self, attempts=5, **kwargs):
     """Create an instance of UploadWebpagePictureBenchResults."""
-    super(UploadBenchResults, self).__init__(args, attempts)
+    super(UploadBenchResults, self).__init__(attempts=attempts, **kwargs)
 
   def _GetPerfDataDir(self):
     """Points to the local playback perf data directory."""

@@ -43,9 +43,8 @@ def DoBench(serial, executable, perf_data_dir, device_perf_dir, data_file,
 
 
 class AndroidRunBench(RunBench, AndroidBuildStep):
-  def __init__(self, args, attempts=1, timeout=4800):
-    super(AndroidRunBench, self).__init__(args, attempts=attempts,
-                                          timeout=timeout)
+  def __init__(self, timeout=4800, **kwargs):
+    super(AndroidRunBench, self).__init__(timeout=timeout, **kwargs)
 
   def _Run(self):
     data_file = self._BuildDataFile(self._device_dirs.PerfDir())

@@ -29,10 +29,9 @@ class ChromeOSDirs(object):
 
 
 class ChromeOSBuildStep(BuildStep):
-  def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT):
+  def __init__(self, args, **kwargs):
     self._ssh_host = args['ssh_host']
     self._ssh_port = args['ssh_port']
     self._ssh_username = 'root'
     self._device_dirs = ChromeOSDirs('/usr/local')
-    super(ChromeOSBuildStep, self).__init__(args, attempts=attempts,
-                                            timeout=timeout)
+    super(ChromeOSBuildStep, self).__init__(args=args, **kwargs)
