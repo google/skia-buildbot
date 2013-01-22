@@ -29,7 +29,6 @@ import shutil
 import sys
 import tempfile
 
-from utils import file_utils
 from utils import gs_utils
 from utils import shell_utils
 from utils import sync_bucket_subdir
@@ -45,6 +44,7 @@ REBASELINE_IN_PROGRESS_FILENAME = 'REBASELINE_IN_PROGRESS'
 GM_COMPARISON_LINES_TO_EXTRACT_IMAGES = [
   'have identical dimensions but some differing pixels',
   'have differing dimensions',
+  'not found in baseDir and found in comparisonDir',
 ]
 
 IMAGES_FOR_UPLOAD_CHUNKS = [
