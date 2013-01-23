@@ -16,6 +16,7 @@ import utils
 
 
 OPEN_STATE = 'open'
+CAUTION_STATE = 'caution'
 CLOSED_STATE = 'closed'
 
 # The maximum chunk of statuses that are displayed.
@@ -40,26 +41,32 @@ class Status(db.Model):
     """
     if re.search(CLOSED_STATE, self.message, re.IGNORECASE):
       return CLOSED_STATE
+    elif re.search(CAUTION_STATE, self.message, re.IGNORECASE):
+      return CAUTION_STATE
     else:
       return OPEN_STATE
 
   @staticmethod
   def validate_state_message(message):
-    """Throws an Error iff exactly one of closed or open are not specified."""
+    """Throws an Error iff exactly one of closed, open or caution is missing."""
     closed_state = re.search(CLOSED_STATE, message, re.IGNORECASE)
+    caution_state = re.search(CAUTION_STATE, message, re.IGNORECASE)
     open_state = re.search(OPEN_STATE, message, re.IGNORECASE)
-    if closed_state and open_state:
+    if (closed_state and open_state) or (
+        closed_state and caution_state) or (
+        caution_state and open_state):
       raise ValueError(
-          'Cannot specify both \'%s\' and \'%s\' in the status message!' % (
-              CLOSED_STATE, OPEN_STATE))
-    elif not (closed_state or open_state):
+          'Cannot specify two keywords from (\'%s\', \'%s\', \'%s\') in a '
+          'status message!' % (CLOSED_STATE, CAUTION_STATE, OPEN_STATE))
+    elif not (closed_state or caution_state or open_state):
       raise ValueError(
-          'Must specify either \'%s\' or \'%s\' somewhere in the status '
-          'message!' % (CLOSED_STATE, OPEN_STATE))
+          'Must specify either \'%s\' or \'%s\' or \'%s\' somewhere in the '
+          'status message!' % (CLOSED_STATE, CAUTION_STATE, OPEN_STATE))
 
   @property
   def can_commit_freely(self):
-    return self.general_state == OPEN_STATE
+    return (self.general_state == OPEN_STATE or
+            self.general_state == CAUTION_STATE)
 
   def AsDict(self):
     data = super(Status, self).AsDict()
@@ -188,7 +195,7 @@ class BinaryStatusPage(BasePage):
   """Displays the /binarystatus page."""
 
   def get(self):
-    """Displays 1 if the tree is open, and 0 if the tree is closed."""
+    """Displays 1 if the tree is open or in caution, and 0 if it is closed."""
     status = get_status()
     self.response.headers['Cache-Control'] = 'no-cache, private, max-age=0'
     self.response.headers['Content-Type'] = 'text/plain'
@@ -251,7 +258,8 @@ class MainPage(BasePage):
       self.redirect("/")
       return
 
-    # Ensure the new status message contains exactly one of 'open' or 'closed'.
+    # Ensure the new status message contains exactly one of 'open' or 'closed'
+    # or 'caution'.
     try:
       Status.validate_state_message(new_message)
     except ValueError, e:
