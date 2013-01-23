@@ -39,9 +39,11 @@ def GetCodesiteUrlWithChangesRange(first_rev, last_rev=None):
   If the last revision number is not specified then the current latest Skia
   revision number is used.
   """
+  if not first_rev:
+    return None
   if not last_rev:
     last_rev = GetCurrLatestRevNum()
-  if not first_rev or first_rev > last_rev:
+  if first_rev > last_rev:
     return None
   difference = last_rev - first_rev + 1
   params = {
