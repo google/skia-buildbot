@@ -34,7 +34,7 @@ class ApplyPatch(BuildStep):
     # the patch and patch[1] is the diff.
     patch = literal_eval(self._args['patch'].decode())
     patch_level = patch[0]
-    patch_url = urllib.quote(patch[1], safe="%/:=&?~#+!$,;'@()*[]")
+    patch_url = urllib.quote(patch[1], safe="%/:=&?~+!$,;'@()*[]")
     print 'Patch level: %d' % patch[0]
     print 'Diff file URL:'
     print patch_url
