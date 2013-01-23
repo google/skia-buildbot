@@ -19,7 +19,7 @@ def SkiaFileSplitter(path):
 
 def Update(config, active_master, c):
   skia_url = config.Master.skia_url
-  skia_revlinktmpl = 'http://code.google.com/p/skia/source/browse?r=%s'
+  skia_revlinktmpl = 'http://code.google.com/p/skia/source/detail?r=%s'
 
   skia_poller = svnpoller.SVNPoller(svnurl=skia_url,
                                     split_file=SkiaFileSplitter,

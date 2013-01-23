@@ -6,6 +6,8 @@
     <link rel="icon" href="favicon.ico">
 
     <script language="JavaScript">
+    "use strict";
+
     var nonbench_percommit_builders = [];
     var bench_percommit_builders = [];
     var all_percommit_builders = [];
@@ -19,12 +21,15 @@
     var externalport = "10117";
     var port = externalport;
     var host = "http://70.32.156.51";
+    var skia_repo = "http://skia.googlecode.com/svn";
+    var try_repo = "http://skia-try.googlecode.com/svn";
+    var display_repo = skia_repo;
 
     // Return a string of the form: "&builder=x&builder=y..." with all of those
     // contained in the given array of builders.
     function getBuilderString(builders) {
       var builder_string = "";
-      for (i = 0; i < builders.length; i++) {
+      for (var i = 0; i < builders.length; i++) {
         builder_string = builder_string.concat("&builder=", builders[i]);
       }
       return builder_string;
@@ -40,8 +45,9 @@
         document.all.internal.checked = true;
       }
       var url = host + ":" + port + "/" + display_page +
-                "?reload=40" + getBuilderString(display_builders_list);
-      document.all.content.src = url
+                "?reload=40&repository=" + display_repo +
+                getBuilderString(display_builders_list);
+      document.all.content.src = url;
       var id = display_builders + "_" + display_page;
       document.getElementById(id).checked = true;
     }
@@ -101,20 +107,24 @@
     // iframe view of the buildbot page.
     function init() {
       getBuilderLists();
-      args = parseArgs();
+      var args = parseArgs();
       display_builders = args["builders"];
       if (!display_builders) {
         display_builders = "nonbench";
       }
       if (display_builders == "bench") {
         display_builders_list = bench_percommit_builders;
+        display_repo = skia_repo;
       } else if (display_builders == "all") {
         display_builders_list = all_percommit_builders;
+        display_repo = skia_repo;
       } else if (display_builders == "try") {
         display_builders_list = try_builders;
+        display_repo = try_repo;
       } else {
         display_builders = "nonbench";
         display_builders_list = nonbench_percommit_builders;
+        display_repo = skia_repo;
       }
       display_view = args["view"];
       if (!display_view)

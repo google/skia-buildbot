@@ -330,7 +330,9 @@ class SkiaFactory(BuildFactory):
     if self._do_patch_step:
       def _GetPatch(build):
         if build.getSourceStamp().patch:
-          patch = str(build.getSourceStamp().patch).encode()
+          patch = (build.getSourceStamp().patch[0],
+                   build.getProperty('patch_file_url'))
+          return str(patch).encode()
         else:
           patch = 'None'
         return patch

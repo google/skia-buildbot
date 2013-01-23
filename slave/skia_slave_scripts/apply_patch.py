@@ -14,6 +14,8 @@ import os
 import shutil
 import sys
 import tempfile
+import urllib
+import urllib2
 
 
 WIN_PATCH = os.path.abspath(os.path.join(os.pardir, os.pardir, os.pardir,
@@ -31,9 +33,11 @@ class ApplyPatch(BuildStep):
     # patch is a tuple of the form (int, str), where patch[0] is the "level" of
     # the patch and patch[1] is the diff.
     patch = literal_eval(self._args['patch'].decode())
+    patch_level = patch[0]
+    patch_url = urllib.quote(patch[1], safe="%/:=&?~#+!$,;'@()*[]")
     print 'Patch level: %d' % patch[0]
-    print 'Diff:'
-    print patch[1]
+    print 'Diff file URL:'
+    print patch_url
 
     # Write the patch file into a temporary directory. Unfortunately, temporary
     # files created by the tempfile module don't behave properly on Windows, so
@@ -43,7 +47,8 @@ class ApplyPatch(BuildStep):
       patch_file_name = os.path.join(temp_dir, 'skiabot_patch')
       patch_file = open(patch_file_name, 'w')
       try:
-        patch_file.write(patch[1])
+        patch_contents = urllib2.urlopen(patch_url)
+        patch_file.write(patch_contents.read())
       finally:
         patch_file.close()
       print 'Saved patch to %s' % patch_file.name
@@ -60,7 +65,7 @@ class ApplyPatch(BuildStep):
       if patch_root != 'svn':
         os.chdir(patch_root)
   
-      shell_utils.Bash([patcher, '-p%d' % patch[0], '-i', patch_file.name])
+      shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name])
     finally:
       shutil.rmtree(temp_dir)
 

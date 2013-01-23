@@ -18,7 +18,7 @@ from buildbot.schedulers import timed
 from buildbot.util import NotABranch
 from master import master_config
 from master.builders_pools import BuildersPools
-from master.try_job_svn import TryJobSubversion
+from master import try_job_svn
 from oauth2client.client import SignedJwtAssertionCredentials
 from skia_master_scripts import android_factory
 from skia_master_scripts import chromeos_factory
@@ -223,9 +223,9 @@ class SkiaHelper(master_config.Helper):
       elif scheduler['type'] == 'TryJobSubversion':
         pools = BuildersPools(s_name)
         pools[s_name].extend(scheduler['builders'])
-        instance = TryJobSubversion(
+        instance = try_job_svn.TryJobSubversion(
             name=s_name,
-            svn_url='https://skia-try.googlecode.com/svn',
+            svn_url='http://skia-try.googlecode.com/svn',
             last_good_urls={'skia': None},
             code_review_sites={'skia': 'http://codereview.appspot.com'},
             pools=pools)
