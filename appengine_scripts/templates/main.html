@@ -28,12 +28,29 @@
     <td><b>Who</b></td>
     <td><b>When</b></td>
     <td><b>Message</b></td>
+    <td><b>Revs committed</b></td>
   </tr>
   {% for a_status in status %}
     <tr class="{{ a_status.general_state }}">
       <td>{{ a_status.username }}</td>
       <td>{{ a_status.date|date:"D M d, H:i T " }}</td>
       <td>{{ a_status.message }}</td>
+      <td>
+        {% if a_status.codesite_changes_url %}
+          <a href='{{ a_status.codesite_changes_url }}'>
+            r{{ a_status.first_rev }}
+            {% if a_status.last_rev %}
+              {% if a_status.last_rev != a_status.first_rev %}
+                - r{{ a_status.last_rev }}
+              {% endif %}
+            {% else %}
+              +
+            {% endif %}
+          </a>
+        {% else %}
+          None
+        {% endif %}
+      </td>
     </tr>
   {% endfor %}
 
