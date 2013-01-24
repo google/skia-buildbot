@@ -14,6 +14,10 @@ from buildbot.status.mail import MailNotifier
 from buildbot.status.results import Results
 from master.try_mail_notifier import TryMailNotifier
 
+import datetime
+import re
+import urllib
+
 
 class SkiaNotifier(MailNotifier):
   """This is Skia's status notifier."""
@@ -40,6 +44,27 @@ class SkiaNotifier(MailNotifier):
     return m
 
 
+def _ParseTimeStampFromURL(url):
+  """ Parse a timestamp from a diff-file url.
+
+  url: string; the url from which to parse the timestamp.
+  """
+  diff_file_name = urllib.unquote(url).split('/')[-1]
+  m = re.search('\S+\.\S+\.(\d+)-(\d+)-(\d+)\s(\d+)\.(\d+)\.(\d+)\.\d+\.diff',
+                diff_file_name)
+
+  # If there are no matches or an incorrect number of matches, use the current
+  # date as a default. We don't include the time because that would result in
+  # many try result emails being sent with different subject lines. It is
+  # preferable to group all emails for the same changelist on the same day (even
+  # if they are from separate try requests).
+  expected_num_matches = 6
+  if not m or len(m.groups()) != expected_num_matches:
+    now = datetime.datetime.now()
+    return '%s-%s-%s' % (now.year, now.month, now.day)
+  return '%s-%s-%s %s:%s:%s' % m.groups()
+
+
 class SkiaTryMailNotifier(TryMailNotifier):
   """ The TryMailNotifier sends mail for every build by default. Since we use
   a single build master for both try builders and regular builders, this causes
@@ -48,4 +73,7 @@ class SkiaTryMailNotifier(TryMailNotifier):
 
   def buildMessage(self, name, build, results):
     if build[0].source.patch:
+      if not hasattr(build[0].source, 'timestamp'):
+        build[0].source.timestamp = _ParseTimeStampFromURL(
+            build[0].getProperty('patch_file_url'))
       return TryMailNotifier.buildMessage(self, name, build, results)
