@@ -149,8 +149,6 @@ def FileBug(summary, description, owner=None, ccs=None, labels=None):
 # 'android' branch or a subfolder of 'gm-expected'.
 SKIA_PRIMARY_SUBDIRS = ['buildbot', 'skp', 'trunk']
 
-skia_all_subdirs = []
-
 
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
