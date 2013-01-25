@@ -31,7 +31,7 @@ def DoBench(serial, executable, perf_data_dir, device_perf_dir, data_file,
     PreBench(perf_data_dir)
     try:
       android_utils.RunADB(serial, ['shell', 'rm', '-r', device_perf_dir])
-    except:
+    except Exception:
       pass
     android_utils.RunADB(serial, ['shell', 'mkdir', '-p', device_perf_dir])
     cmd_args += BenchArgs(RunBench.BENCH_REPEAT_COUNT, data_file)

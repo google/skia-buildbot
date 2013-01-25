@@ -6,10 +6,8 @@
 """ Generate performance graphs from bench output. """
 
 from build_step import BuildStep, BuildStepWarning
-from slave import slave_utils
 from utils import bench_common
 from utils import shell_utils
-from utils import gs_utils
 from utils import sync_bucket_subdir
 
 import errno
@@ -47,7 +45,7 @@ class GenerateBenchGraphs(BuildStep):
     graph_filepath = bench_common.GraphFilePath(self._GetPerfGraphsDir(),
                                                 self._builder_name,
                                                 representation)
-    sync_bucket_subdir.SyncBucketSubdir(dir=self._GetPerfDataDir(),
+    sync_bucket_subdir.SyncBucketSubdir(directory=self._GetPerfDataDir(),
         dest_gsbase=dest_gsbase,
         subdir=self._GetBucketSubdir(),
         do_upload=False,

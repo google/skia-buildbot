@@ -4,7 +4,6 @@
 
 # Sets up all the builders we want this buildbot master to run.
 
-from master import master_config
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import housekeeping_percommit_factory
 from skia_master_scripts import housekeeping_periodic_factory
@@ -138,7 +137,8 @@ def Update(config, active_master, c):
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       environment_variables=
-          {'GYP_DEFINES': 'skia_osx_sdkroot=macosx10.6 skia_scalar=float skia_mesa=1 skia_arch_width=32'},
+          {'GYP_DEFINES': ('skia_osx_sdkroot=macosx10.6 skia_scalar=float '
+                           'skia_mesa=1 skia_arch_width=32')},
       gm_image_subdir='base-macmini',
       perf_output_basedir=perf_output_basedir_mac,
       use_skp_playback_framework=True)
@@ -148,7 +148,8 @@ def Update(config, active_master, c):
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
       environment_variables=
-          {'GYP_DEFINES': 'skia_osx_sdkroot=macosx10.6 skia_scalar=float skia_mesa=1 skia_arch_width=64'},
+          {'GYP_DEFINES': ('skia_osx_sdkroot=macosx10.6 skia_scalar=float '
+                           'skia_mesa=1 skia_arch_width=64')},
       gm_image_subdir='base-macmini',
       perf_output_basedir=perf_output_basedir_mac,
       use_skp_playback_framework=True)

@@ -7,11 +7,9 @@
 
 from build_step import BuildStep, BuildStepWarning
 from utils import bench_common
-from utils import misc
 from utils import sync_bucket_subdir
 from utils import upload_to_bucket
 
-import optparse
 import os
 import sys
 

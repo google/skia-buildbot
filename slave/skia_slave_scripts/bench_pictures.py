@@ -24,6 +24,7 @@ class BenchPictures(RunBench):
                                         no_output_timeout=no_output_timeout,
                                         **kwargs)
 
+  # pylint: disable=W0221
   def _BuildDataFile(self, perf_dir, args):
     data_file = '%s_skp_%s' % (
         super(BenchPictures, self)._BuildDataFile(perf_dir),
@@ -58,9 +59,9 @@ class BenchPictures(RunBench):
     else:
       cfg_name = self._args['bench_pictures_cfg']
 
-    vars = {'import_path': 'tools'}
-    execfile(os.path.join('tools', 'bench_pictures.cfg'), vars)
-    bench_pictures_cfg = vars['bench_pictures_cfg']
+    config_vars = {'import_path': 'tools'}
+    execfile(os.path.join('tools', 'bench_pictures.cfg'), config_vars)
+    bench_pictures_cfg = config_vars['bench_pictures_cfg']
     if bench_pictures_cfg.has_key(cfg_name):
       my_configs = bench_pictures_cfg[cfg_name]
     else:

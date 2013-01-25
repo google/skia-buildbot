@@ -9,7 +9,6 @@ from build_step import BuildStep
 from chromeos_build_step import ChromeOSBuildStep
 from run_gm import RunGM
 from utils import ssh_utils
-import errno
 import os
 import posixpath
 import shutil
@@ -38,7 +37,7 @@ class ChromeOSRunGM(ChromeOSBuildStep, RunGM):
       ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                        ['rm', '-rf', posixpath.join(self._device_dirs.GMDir(),
                                                     self._gm_image_subdir)])
-    except:
+    except Exception:
       pass
     ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                      ['mkdir', '-p', posixpath.join(self._device_dirs.GMDir(),

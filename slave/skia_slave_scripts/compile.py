@@ -8,7 +8,6 @@
 from utils import shell_utils
 from build_step import BuildStep
 import os
-import shlex
 import sys
 
 

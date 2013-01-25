@@ -8,7 +8,6 @@
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from utils import android_utils
-import os
 import sys
 
 

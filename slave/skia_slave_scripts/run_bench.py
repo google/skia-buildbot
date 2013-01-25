@@ -19,7 +19,7 @@ def BenchArgs(repeats, data_file):
   data_file: filepath to store the log output
   """
   return ['--repeat', '%d' % repeats, '--timers', 'wcg', '--logPerIter',
-          '%d' %1, '--logFile', data_file]
+          '%d' % 1, '--logFile', data_file]
 
 
 def PreBench(perf_data_dir):

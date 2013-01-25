@@ -22,13 +22,10 @@ python ../../../../../../slave/skia_slave_scripts/bench_webpage_pictures.py \
 
 """
 
-import os
-import posixpath
 import sys
 
 from build_step import BuildStep
 from bench_pictures import BenchPictures
-from slave import slave_utils
 from utils import gs_utils
 from utils import sync_bucket_subdir
 

@@ -28,7 +28,7 @@ class ChromeOSFactory(skia_factory.SkiaFactory):
 
   def Compile(self, clobber=None):
     """Compile step.  Build everything. """
-    args = ['--target', 'all']
+    _args = ['--target', 'all']
     skia_factory.SkiaFactory.Compile(self, clobber)
     # Copy the executables to the device
     self.AddSlaveScript(script='chromeos_send_files.py',

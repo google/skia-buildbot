@@ -56,12 +56,12 @@ def _LaunchMaster(private=False):
   while not pid_file:
     try:
       pid_file = open(PID_FILE)
-    except:
+    except Exception:
       if time.time() - start_time > PID_TIMEOUT:
         raise Exception('Failed to launch master.')
       time.sleep(1)
   pid = str(pid_file.read()).rstrip()
-  pid_file.close
+  pid_file.close()
   return pid
 
 

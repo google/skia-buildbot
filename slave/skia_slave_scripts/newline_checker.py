@@ -20,7 +20,7 @@ def NewlineChecker():
   if files_without_trailing_newlines:
     raise Exception(
         'The following file(s) have no newlines at the end:\n %s' % (
-            '\n'.join(files_without_trailing_newlines)));
+            '\n'.join(files_without_trailing_newlines)))
 
 
 def _ListFiles(directory):
@@ -30,7 +30,7 @@ def _ListFiles(directory):
     if os.path.isfile(full_item_path):
       for suffix in _FILE_SUFFIXES_TO_CHECK:
         if item.endswith(suffix):
-          file_content = file(full_item_path).read();
+          file_content = file(full_item_path).read()
           if file_content and file_content[-1] != '\n':
             files_without_trailing_newlines.append(full_item_path)
     elif item not in _SUBDIRS_TO_IGNORE:

@@ -36,7 +36,7 @@ class SlaveHostsCfgTest(unittest.TestCase):
     slave_hosts = slave_hosts_cfg['SLAVE_HOSTS']
 
     # Verify that every slave listed by a slave host is defined in slaves.cfg.
-    for slave_host_name, slave_host_data in slave_hosts.iteritems():
+    for slave_host_data in slave_hosts.itervalues():
       for slave in slave_host_data['slaves']:
         found_slave = False
         for slave_cfg in slaves:
@@ -48,7 +48,7 @@ class SlaveHostsCfgTest(unittest.TestCase):
     # Verify that every slave in slaves.cfg has a slave host to match.
     for slave in slaves:
       found_host = False
-      for slave_host_name, slave_host_data in slave_hosts.iteritems():
+      for slave_host_data in slave_hosts.itervalues():
         if slave['hostname'] in slave_host_data['slaves']:
           found_host = True
           break

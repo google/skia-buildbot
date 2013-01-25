@@ -31,7 +31,7 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
     # the file system.
     try:
       shutil.rmtree(self._gm_actual_dir)
-    except:
+    except Exception:
       pass
     os.makedirs(self._gm_actual_dir)
     android_utils.RunADB(serial, ['pull', '%s/%s' % (self._device_dirs.GMDir(),
@@ -48,7 +48,7 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
       android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
                                           '%s/%s' % (self._device_dirs.GMDir(),
                                                      self._gm_image_subdir)])
-    except:
+    except Exception:
       pass
     android_utils.RunADB(self._serial, ['shell', 'mkdir', '-p',
                                         '%s/%s' % (self._device_dirs.GMDir(),

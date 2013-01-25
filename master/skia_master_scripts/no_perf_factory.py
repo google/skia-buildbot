@@ -12,6 +12,7 @@ from ios_factory import iOSFactory
 class NoPerfFactory(SkiaFactory):
   """Subclass of Factory which does not run benchmarking steps. Designed to
   complement PerfOnlyFactory. """
+
   def Build(self, clobber=None):
     self.UpdateSteps()
     self.Compile(clobber)
@@ -22,6 +23,8 @@ class NoPerfFactory(SkiaFactory):
 class AndroidNoPerfFactory(AndroidFactory, NoPerfFactory):
   """ Android-specific subclass of NoPerfFactory.  Inherits __init__() from
   AndroidFactory and Build() from NoPerfFactory. """
+
+  # pylint: disable=W0231
   def __init__(self, **kwargs):
     AndroidFactory.__init__(self, **kwargs)
 
@@ -32,6 +35,8 @@ class AndroidNoPerfFactory(AndroidFactory, NoPerfFactory):
 class ChromeOSNoPerfFactory(ChromeOSFactory, NoPerfFactory):
   """ ChromeOS-specific subclass of NoPerfFactory.  Inherits __init__() from
   ChromeOSFactory and Build() from NoPerfFactory. """
+
+  # pylint: disable=W0231
   def __init__(self, **kwargs):
     ChromeOSFactory.__init__(self, **kwargs)
 
@@ -42,6 +47,8 @@ class ChromeOSNoPerfFactory(ChromeOSFactory, NoPerfFactory):
 class iOSNoPerfFactory(iOSFactory, NoPerfFactory):
   """ iOS-specific subclass of NoPerfFactory.  Inherits __init__() from
   iOSFactory and Build() from NoPerfFactory. """
+
+  # pylint: disable=W0231
   def __init__(self, **kwargs):
     iOSFactory.__init__(self, **kwargs)
 

@@ -6,12 +6,8 @@
 """ Upload benchmark performance data results. """
 
 from build_step import BuildStep, BuildStepWarning
-from utils import bench_common
-from utils import misc
 from utils import sync_bucket_subdir
 
-import optparse
-import os
 import posixpath
 import sys
 
@@ -31,7 +27,7 @@ class UploadBenchResults(BuildStep):
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 
-    return sync_bucket_subdir.SyncBucketSubdir(dir=self._GetPerfDataDir(),
+    return sync_bucket_subdir.SyncBucketSubdir(directory=self._GetPerfDataDir(),
                dest_gsbase=dest_gsbase,
                subdir=self._GetBucketSubdir(),
                do_upload=True,

@@ -33,6 +33,7 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
     self.AddSlaveScript(script='check_gs_timestamps.py',
                         description='CheckGoogleStorageTimestamps')
 
+    # pylint: disable=W0212
     disk_usage_script_path = self.TargetPathJoin(
         self._skia_cmd_obj._local_slave_script_dir,
         'check_compute_engine_disk_usage.sh')
@@ -56,8 +57,8 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
         command='python %s' % sanitize_script_path,
         description='RunSanitization')
     if self._do_upload_results:
-      merge_dir_path=self.TargetPathJoin(tempfile.gettempdir(),
-                                         'sanitize-merge')
+      merge_dir_path = self.TargetPathJoin(tempfile.gettempdir(),
+                                           'sanitize-merge')
       # Cleanup the previous (if any) sanitize merge dir.
       self._skia_cmd_obj.AddRunCommand(
         command='rm -rf %s' % merge_dir_path, description='Cleanup')

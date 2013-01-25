@@ -8,8 +8,6 @@ rebaselining. """
 
 from build_step import BuildStep, BuildStepWarning
 from utils import merge_into_svn
-from utils import misc
-import optparse
 import os
 import sys
 
@@ -40,16 +38,22 @@ class UploadGMResults(BuildStep):
     # https://code.google.com/p/skia/issues/detail?id=720 ('UploadGMs step
     # should be skipped when re-running old revisions of the buildbot')
     merge_options = Options()
+    # pylint: disable=W0201
     merge_options.commit_message = 'UploadGMResults of r%s on %s' % (
         self._got_revision, self._args['builder_name'])
+    # pylint: disable=W0201
     merge_options.dest_svn_url = '%s/%s/%s/%s' % (
         gm_actual_svn_baseurl, self._args['gm_image_subdir'],
         self._args['builder_name'], self._args['gm_image_subdir'])
+    # pylint: disable=W0201
     merge_options.merge_dir_path = os.path.join(gm_merge_basedir,
                                                 self._args['gm_image_subdir'])
+    # pylint: disable=W0201
     merge_options.source_dir_path = os.path.join(gm_actual_basedir,
                                                  self._args['gm_image_subdir'])
+    # pylint: disable=W0201
     merge_options.svn_password_file = autogen_svn_password_file
+    # pylint: disable=W0201
     merge_options.svn_username_file = autogen_svn_username_file
     merge_into_svn.MergeIntoSvn(merge_options)
 

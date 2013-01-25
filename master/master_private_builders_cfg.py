@@ -5,7 +5,6 @@
 # Sets up all the builders we want this buildbot master to run.
 
 from skia_master_scripts import utils
-from skia_master_scripts import android_factory
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts.utils import MakeAndroidBuilderSet
 # Directory where we want to record performance data
@@ -20,8 +19,6 @@ defaults = {}
 
 def Update(config, active_master, c):
   helper = utils.SkiaHelper(defaults)
-  B = helper.Builder
-  F = helper.Factory
 
   #
   # Main (per-commit) Scheduler for Skia
@@ -41,7 +38,6 @@ def Update(config, active_master, c):
   # Don't put spaces or 'funny characters' within the builder names, so that
   # we can safely use the builder name as part of a filepath.
   #
-  do_upload_results = active_master.is_production_host
 
   ########## LIST ALL PRIVATELY VISIBLE BUILDERS HERE ##########
   MakeAndroidBuilderSet(

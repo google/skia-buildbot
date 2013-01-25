@@ -51,6 +51,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     # Generate and upload Buildbot Pydoc documentation.
     buildbot_pydoc_actual_svn_baseurl = '%s/%s' % (
         skia_factory.AUTOGEN_SVN_BASEURL, 'buildbot-docs')
+    # pylint: disable=W0212
     update_buildbot_pydoc_path = self.TargetPathJoin(
         self._skia_cmd_obj._local_slave_script_dir, 'update-buildbot-pydoc.sh')
     buildbot_pydoc_working_dir = self.TargetPathJoin(

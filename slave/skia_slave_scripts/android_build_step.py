@@ -4,9 +4,8 @@
 
 """ Subclass for all slave-side Android build steps. """
 
-from build_step import BuildStep, DEFAULT_TIMEOUT, DEFAULT_NO_OUTPUT_TIMEOUT
+from build_step import BuildStep
 from utils import android_utils
-from utils import misc
 from utils import shell_utils
 
 

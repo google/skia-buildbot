@@ -26,7 +26,9 @@ class SkiaBuild(Build):
     # We want the build result to show SKIPPED if all steps which ran succeeded
     # but some steps were skipped. The superclass method just ignores the result
     # of skipped steps.
+    # pylint: disable=E0203
     if self.result == SUCCESS and step_result == SKIPPED:
+      # pylint: disable=W0201
       self.result = SKIPPED
 
     return terminate

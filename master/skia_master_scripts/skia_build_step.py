@@ -54,16 +54,16 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
       log = cmd.logs['stdio']
       stdout = ''.join(log.getChunks([STDOUT], onlyText=True))
       self._changed_props = {}
-      for property, regex in self._get_props_from_stdout.iteritems():
+      for prop, regex in self._get_props_from_stdout.iteritems():
         matches = re.search(regex, stdout)
         if not matches:
-          raise Exception('Unable to parse %s from stdout.' % property)
+          raise Exception('Unable to parse %s from stdout.' % prop)
         groups = matches.groups()
         if len(groups) != 1:
           raise Exception('Multiple matches for "%s"' % regex)
         prop_value = groups[0]
-        self.setProperty(property, prop_value, ''.join(self.description))
-        self._changed_props[property] = prop_value
+        self.setProperty(prop, prop_value, ''.join(self.description))
+        self._changed_props[prop] = prop_value
     retcode_command.ReturnCodeCommand.commandComplete(self, cmd)
 
   def getText(self, cmd, results):
@@ -76,16 +76,17 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
     return text
 
 
-def _HasProperty(step, property):
+def _HasProperty(step, prop):
   """ Helper used by ShouldDoStep. Determine whether the given BuildStep has
   the requested property.
 
   step: an instance of BuildStep
-  property: string, the property to test
+  prop: string, the property to test
   """
   try:
-    step.getProperty(property)
+    step.getProperty(prop)
     return True
+  # pylint: disable=W0702
   except:
     return False
 
@@ -104,11 +105,11 @@ def _CheckRebaselineChanges(changes, gm_image_subdir):
   commit_is_only_baselines = True
   platform_changed = False
   for change in changes:
-    for file in change.asDict()['files']:
+    for changed_file in change.asDict()['files']:
       for subdir in utils.SKIA_PRIMARY_SUBDIRS:
-        if subdir != 'gm-expected' and subdir in file['name']:
+        if subdir != 'gm-expected' and subdir in changed_file['name']:
           commit_is_only_baselines = False
-      if gm_image_subdir in file:
+      if gm_image_subdir in changed_file:
         platform_changed = True
   return commit_is_only_baselines, platform_changed
 

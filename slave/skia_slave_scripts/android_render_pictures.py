@@ -26,12 +26,12 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
     try:
       android_utils.RunADB(serial, ['shell', 'rm', '-r', '%s' % \
                                     self._device_dirs.SKPDir()])
-    except:
+    except Exception:
       pass
     try:
       android_utils.RunADB(serial, ['shell', 'rm', '-r', '%s' % \
                                     self._device_dirs.SKPOutDir()])
-    except:
+    except Exception:
       pass
     android_utils.RunADB(serial, ['shell', 'mkdir', '-p','%s' % \
                                   self._device_dirs.SKPDir()])

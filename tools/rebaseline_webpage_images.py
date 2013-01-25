@@ -189,6 +189,7 @@ for gm_image_subdir in gm_images_seq:
       gm_actual_contents.remove(gs_file_to_remove)
 
   # Copy over files in chunks.
+  # pylint: disable=W0212
   for files_chunk in gs_utils._GetChunks(gm_actual_contents,
                                          gs_utils.FILES_CHUNK):
     gsutil = slave_utils.GSUtilSetup()
@@ -230,6 +231,7 @@ if commit_whitespace_change:
   finally:
     whitespace_file.close()
   print '\n\n=======Submit whitespace change to trigger rebuilds======='
+  # pylint: disable=W0212
   repo._RunSvnCommand(
       ['commit', '--message',
        'Rebaselined webpage image GMs for %s on Google Storage.'

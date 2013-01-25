@@ -4,7 +4,6 @@
 
 
 from buildbot.changes import svnpoller
-from master import build_utils
 from skia_master_scripts import utils
 
 

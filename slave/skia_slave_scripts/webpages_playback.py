@@ -167,7 +167,8 @@ class SkPicturePlayback(object):
       wpr_file_name = page_set.split('/')[-1].split('.')[0] + '.wpr'
 
       if not self._record:
-        # Get the webpages archive from Google Storage so that it can be replayed.
+        # Get the webpages archive from Google Storage so that it can be
+        # replayed.
         self._DownloadArchiveFromStorage(wpr_file_name)
 
       # Clear all command line arguments and add only the ones supported by
@@ -214,7 +215,8 @@ class SkPicturePlayback(object):
           accept_skp = True
 
       if self._record:
-        # Move over the created archive into the local webpages archive directory.
+        # Move over the created archive into the local webpages archive
+        # directory.
         shutil.move(
             os.path.join(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, wpr_file_name),
             LOCAL_RECORD_WEBPAGES_ARCHIVE_DIR)
@@ -233,8 +235,8 @@ class SkPicturePlayback(object):
                 gs_status, LOCAL_PLAYBACK_ROOT_DIR, self._dest_gsbase,
                 ROOT_PLAYBACK_DIR_NAME))
     
-      # Add a timestamp file to the skp directory in Google Storage so we can use
-      # directory level rsync like functionality.
+      # Add a timestamp file to the skp directory in Google Storage so we can
+      # use directory level rsync like functionality.
       gs_utils.WriteTimeStampFile(
           timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
           timestamp_value=time.time(),
@@ -246,28 +248,29 @@ class SkPicturePlayback(object):
 
       # Submit a whitespace change if all required arguments have been provided.
       if self._trunk and self._svn_username and self._svn_password:
-         repo = svn.Svn(self._trunk, self._svn_username, self._svn_password,
-                        additional_svn_flags=[
-                            '--trust-server-cert', '--no-auth-cache',
-                            '--non-interactive'])
-         whitespace_file = open(
-             os.path.join(self._trunk, 'whitespace.txt'), 'a')
-         try:
-           whitespace_file.write('\n')
-         finally:
-           whitespace_file.close()
-         if self._all_page_sets_specified:
-           commit_msg = 'All skp files in Google Storage have been updated'
-         else:
-           commit_msg = (
-               'Updated the following skp files on Google Storage: %s' % (
-                   self._skp_files))
-         # Adding a pattern that makes the commit msg show up as an annotation
-         # in the dashboard. Please see for more details:
-         # https://code.google.com/p/skia/issues/detail?id=1065
-         commit_msg += ' (AddDashboardAnnotation)'
-         repo._RunSvnCommand(
-             ['commit', '--message', commit_msg, 'whitespace.txt'])
+        repo = svn.Svn(self._trunk, self._svn_username, self._svn_password,
+                       additional_svn_flags=[
+                           '--trust-server-cert', '--no-auth-cache',
+                           '--non-interactive'])
+        whitespace_file = open(
+            os.path.join(self._trunk, 'whitespace.txt'), 'a')
+        try:
+          whitespace_file.write('\n')
+        finally:
+          whitespace_file.close()
+        if self._all_page_sets_specified:
+          commit_msg = 'All skp files in Google Storage have been updated'
+        else:
+          commit_msg = (
+              'Updated the following skp files on Google Storage: %s' % (
+                  self._skp_files))
+        # Adding a pattern that makes the commit msg show up as an annotation
+        # in the dashboard. Please see for more details:
+        # https://code.google.com/p/skia/issues/detail?id=1065
+        commit_msg += ' (AddDashboardAnnotation)'
+        # pylint: disable=W0212
+        repo._RunSvnCommand(
+            ['commit', '--message', commit_msg, 'whitespace.txt'])
 
     return 0
 
@@ -279,7 +282,7 @@ class SkPicturePlayback(object):
 
     Eg: http_news_yahoo_com/layer_0.skp -> http_news_yahoo_com_0.skp
     """
-    for (dirpath, unused_dirnames, filenames) in os.walk(TMP_SKP_DIR):
+    for (dirpath, _dirnames, filenames) in os.walk(TMP_SKP_DIR):
       if not dirpath or not filenames:
         continue
       basename = os.path.basename(dirpath)
@@ -325,11 +328,11 @@ class SkPicturePlayback(object):
     parser.add_option('-o', '--outdir', help='Output directory',
                       default=TMP_SKP_DIR)
 
-  def CustomizeBrowserOptions(self, options):
+  def CustomizeBrowserOptions(self, browser_options):
     """Specifying Skia specific browser options."""
-    options.extra_browser_args.extend(['--enable-gpu-benchmarking',
-                                       '--no-sandbox',
-                                       '--force-compositing-mode'])
+    browser_options.extra_browser_args.extend(['--enable-gpu-benchmarking',
+                                               '--no-sandbox',
+                                               '--force-compositing-mode'])
     
 
   def _SetupArgsForSkPrinter(self, page_set):

@@ -17,7 +17,7 @@ BUILD_DIR_DEPTH = 5
 
 class UpdateScripts(BuildStep):
   def _Run(self):
-    buildbot_dir = os.path.join(*[os.pardir for i in range(BUILD_DIR_DEPTH)])
+    buildbot_dir = os.path.join(*[os.pardir for _i in range(BUILD_DIR_DEPTH)])
     os.chdir(buildbot_dir)
     if os.name == 'nt':
       gclient = 'gclient.bat'

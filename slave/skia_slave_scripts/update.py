@@ -11,8 +11,6 @@ from build_step import BuildStep, BuildStepFailure
 import ast
 import config
 import os
-import re
-import shutil
 import sys
 import time
 
@@ -101,7 +99,7 @@ class Update(BuildStep):
     try:
       # Run "gclient sync" with the argument list we just constructed.
       shell_utils.Bash([gclient, 'sync'] + sync_args)
-    except:
+    except Exception:
       # If the sync failed, remove the entire build directory and start over.
       build_dir = os.path.abspath(os.curdir)
       os.chdir(os.pardir)

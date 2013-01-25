@@ -60,19 +60,16 @@ class TestGSUtils(unittest.TestCase):
       def readlines(self):
         return []
 
-      def read(self):
+      def read(self, arg1=None):
         if self._name == os.path.join(tempfile.gettempdir(), 'TIMESTAMP'):
           return TEST_TIMESTAMP
         else:
           return TEST_TIMESTAMP_2
 
-      def read(self, arg1):
-        pass
-
       def close(self):
         pass
 
-      def write(self, str):
+      def write(self, string):
         pass
 
     self._original_run_command = chromium_utils.RunCommand
@@ -126,6 +123,7 @@ class TestGSUtils(unittest.TestCase):
     local_dir = tempfile.mkdtemp()  
  
     # Will be false because the tmp directory will have no TIMESTAMP in it.
+    # pylint: disable=W0212
     self.assertFalse(
         gs_utils._AreTimeStampsEqual(
             local_dir=local_dir,
@@ -135,6 +133,7 @@ class TestGSUtils(unittest.TestCase):
     self._test_temp_file = os.path.join(local_dir, 'TIMESTAMP')
   
     # Will be false because the timestamps are different.
+    # pylint: disable=W0212
     self.assertFalse(
         gs_utils._AreTimeStampsEqual(
             local_dir=local_dir,

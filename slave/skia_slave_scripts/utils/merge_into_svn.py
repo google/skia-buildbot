@@ -32,7 +32,6 @@ import os
 import shutil
 import sys
 import tempfile
-import traceback
 
 from slave import svn
 
@@ -79,15 +78,15 @@ def _CopyAllFiles(source_dir, dest_dir):
       shutil.copyfile(source_path, dest_path)
 
 
-def _DeleteDirectoryContents(dir):
+def _DeleteDirectoryContents(directory):
   """Delete all contents (recursively) within dir, but don't delete the
   directory itself.
 
   @param dir directory whose contents to delete
   """
-  basenames = os.listdir(dir)
+  basenames = os.listdir(directory)
   for basename in basenames:
-    path = os.path.join(dir, basename)
+    path = os.path.join(directory, basename)
     if os.path.isdir(path):
       file_utils.RecursiveDelete(path)
     else:
@@ -98,7 +97,10 @@ def _DeleteDirectoryContents(dir):
 # _RunSvnCommand() method public; in the meanwhile, abuse its private
 # _RunSvnCommand() method.
 # See https://code.google.com/p/skia/issues/detail?id=713
-def _SvnUpdate(repo, additional_svn_flags=[]):
+def _SvnUpdate(repo, additional_svn_flags=None):
+  if not additional_svn_flags:
+    additional_svn_flags = []
+  # pylint: disable=W0212
   return repo._RunSvnCommand(['update'] + additional_svn_flags)
 
 
@@ -106,7 +108,10 @@ def _SvnUpdate(repo, additional_svn_flags=[]):
 # _RunSvnCommand() method public; in the meanwhile, abuse its private
 # _RunSvnCommand() method.
 # See https://code.google.com/p/skia/issues/detail?id=713
-def _SvnImport(repo, path, url, message, additional_svn_flags=[]):
+def _SvnImport(repo, path, url, message, additional_svn_flags=None):
+  if not additional_svn_flags:
+    additional_svn_flags = []
+  # pylint: disable=W0212
   return repo._RunSvnCommand(['import', path, url, '--message', message]
                              + additional_svn_flags)
 
@@ -117,6 +122,7 @@ def _SvnImport(repo, path, url, message, additional_svn_flags=[]):
 # See https://code.google.com/p/skia/issues/detail?id=713
 def _SvnDoesUrlExist(repo, url):
   try:
+    # pylint: disable=W0212
     repo._RunSvnCommand(['ls', url])
     return True
   except Exception:
@@ -130,6 +136,7 @@ def _SvnDoesUrlExist(repo, url):
 # _RunSvnCommand() method.
 # See https://code.google.com/p/skia/issues/detail?id=713
 def _SvnCleanup(repo):
+  # pylint: disable=W0212
   repo._RunSvnCommand(['cleanup'])
 
 
@@ -258,17 +265,17 @@ def _GetChunks(seq, n):
 def _FindFiles(root, file_pattern):
   """Finds all files below the specified dir that match the pattern."""
   ret_files = []
-  for directory, subdirs, files in os.walk(root):
+  for directory, _subdirs, files in os.walk(root):
     for subdir_to_ignore in SUBDIRS_TO_IGNORE:
       if subdir_to_ignore in directory:
         break
     else:
       for filename in files:
         if filename.endswith(file_pattern):
-          file = os.path.join(directory, filename)
-          if file.startswith(root):
-            file = file[len(root) + 1:]
-          ret_files.append(file)
+          svn_file = os.path.join(directory, filename)
+          if svn_file.startswith(root):
+            svn_file = svn_file[len(root) + 1:]
+          ret_files.append(svn_file)
   return ret_files
 
 

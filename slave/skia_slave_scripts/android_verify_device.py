@@ -11,6 +11,8 @@ import sys
 
 
 class AndroidVerifyDevice:
+
+  # pylint: disable=R0201
   def _Run(self):
     args = misc.ArgsToDict(sys.argv)
     serial = args['serial']
@@ -19,4 +21,5 @@ class AndroidVerifyDevice:
 
 
 if '__main__' == __name__:
+  # pylint: disable=W0212
   sys.exit(AndroidVerifyDevice()._Run())

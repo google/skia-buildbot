@@ -112,7 +112,7 @@ def BashRetry(cmd, echo=True, shell=False, attempts=1,
   while True:
     try:
       return Bash(cmd, echo=echo, shell=shell, timeout=timeout)
-    except:
+    except Exception:
       if attempt >= attempts:
         raise
     print 'Command failed. Retrying in %d seconds...' % secs_between_attempts

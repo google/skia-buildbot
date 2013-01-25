@@ -5,7 +5,7 @@
 """ Subclass for all slave-side ChromeOS build steps. """
 
 
-from build_step import BuildStep, DEFAULT_TIMEOUT
+from build_step import BuildStep
 
 
 class ChromeOSDirs(object):

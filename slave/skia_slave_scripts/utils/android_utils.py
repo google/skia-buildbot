@@ -30,7 +30,7 @@ def GotADB(adb):
   try:
     shell_utils.Bash([adb, 'version'], echo=False)
     return True
-  except:
+  except Exception:
     return False
 
 
@@ -142,7 +142,7 @@ def ADBKill(serial, process):
   try:
     stdout = shell_utils.Bash('%s -s %s shell ps | grep %s' % (
                                   PATH_TO_ADB, serial, process), shell=True)
-  except:
+  except Exception:
     return
   for line in stdout.split('\n'):
     if line != '':
@@ -175,17 +175,17 @@ def GetSerial(device_type):
     if line != '' and not ('List of devices attached' in line) and \
         line[0] != '*':
       device_ids.append(line.split('\t')[0])
-  for id in device_ids:
-    print 'Finding type for id %s' % id
+  for device_id in device_ids:
+    print 'Finding type for id %s' % device_id
     # Get device name
     name_line = shell_utils.BashRetry(
         '%s -s %s shell cat /system/build.prop | grep "ro.product.device="' % (
-            PATH_TO_ADB, id), shell=True, attempts=5)
+            PATH_TO_ADB, device_id), shell=True, attempts=5)
     print name_line
     name = name_line.split('=')[-1].rstrip()
     # Just return the first attached device of the requested model.
     if device_name in name:
-      return id
+      return device_id
   raise Exception('No %s device attached!' % device_name)
 
 
@@ -204,8 +204,8 @@ def SetCPUScalingMode(serial, mode):
       PATH_TO_ADB, serial), echo=False, shell=True)
   cpu_dirs_list = cpu_dirs.split('\n')
   regex = re.compile('cpu\d')
-  for dir in cpu_dirs_list:
-    cpu_dir = dir.rstrip()
+  for cpu_dir_from_list in cpu_dirs_list:
+    cpu_dir = cpu_dir_from_list.rstrip()
     if regex.match(cpu_dir):
       path = '/sys/devices/system/cpu/%s/cpufreq/scaling_governor' % cpu_dir
       path_found = shell_utils.Bash('%s -s %s shell ls %s' % (

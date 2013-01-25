@@ -13,7 +13,7 @@ class PerfOnlyFactory(SkiaFactory):
   """Subclass of Factory which only runs benchmarking steps. Designed to
   complement NoPerfFactory. """
 
-  def Compile(self, clobber):
+  def Compile(self, clobber=None):
     """Compile step. Build everything.
 
     clobber: optional boolean which tells us whether to 'clean' before building.
@@ -41,6 +41,8 @@ class PerfOnlyFactory(SkiaFactory):
 class AndroidPerfOnlyFactory(AndroidFactory, PerfOnlyFactory):
   """ Android-specific subclass of PerfOnlyFactory.  Inherits __init__() from
   AndroidFactory and Build() from PerfOnlyFactory. """
+
+  # pylint: disable=W0231
   def __init__(self, **kwargs):
     AndroidFactory.__init__(self, **kwargs)
 
@@ -51,6 +53,8 @@ class AndroidPerfOnlyFactory(AndroidFactory, PerfOnlyFactory):
 class ChromeOSPerfOnlyFactory(ChromeOSFactory, PerfOnlyFactory):
   """ ChromeOS-specific subclass of PerfOnlyFactory.  Inherits __init__() from
   ChromeOSFactory and Build() from PerfOnlyFactory. """
+
+  # pylint: disable=W0231
   def __init__(self, **kwargs):
     ChromeOSFactory.__init__(self, **kwargs)
 
@@ -61,6 +65,8 @@ class ChromeOSPerfOnlyFactory(ChromeOSFactory, PerfOnlyFactory):
 class iOSPerfOnlyFactory(iOSFactory, PerfOnlyFactory):
   """ iOS-specific subclass of PerfOnlyFactory.  Inherits __init__() from
   iOSFactory and Build() from PerfOnlyFactory. """
+
+  # pylint: disable=W0231
   def __init__(self, **kwargs):
     iOSFactory.__init__(self, **kwargs)
 
@@ -68,3 +74,4 @@ class iOSPerfOnlyFactory(iOSFactory, PerfOnlyFactory):
     # TODO: Inheriting Build() from iOSFactory until all build steps are
     # supported.
     return iOSFactory.Build(self, **kwargs)
+

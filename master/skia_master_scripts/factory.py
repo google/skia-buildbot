@@ -8,7 +8,7 @@
 Based on gclient_factory.py and adds Skia-specific steps."""
 
 
-from buildbot.process.properties import Property, WithProperties
+from buildbot.process.properties import WithProperties
 from master.factory import gclient_factory
 from master.factory.build_factory import BuildFactory
 from skia_master_scripts import commands as skia_commands

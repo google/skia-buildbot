@@ -20,7 +20,7 @@ class RunGM(BuildStep):
     print 'Removing %s' % self._gm_actual_dir
     try:
       shutil.rmtree(self._gm_actual_dir)
-    except:
+    except Exception:
       pass
     print 'Creating %s' % self._gm_actual_dir
     try:
@@ -42,7 +42,7 @@ class RunGM(BuildStep):
       retcode = 0
       try:
         retcode = shell_utils.LogProcessToCompletion(proc)[0]
-      except:
+      except Exception:
         retcode = 1
       retcodes.append(retcode)
     for retcode in retcodes:

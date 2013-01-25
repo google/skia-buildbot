@@ -20,7 +20,8 @@ SKIA_PUBLIC_MASTER = 'skia-master-a.c.skia-buildbots.google.com.internal'
 # The housekeeping slave.
 SKIA_HOUSEKEEPING_SLAVE = 'skia-housekeeping-slave-a'
 # The private master which is visible only to Google corp.
-SKIA_PRIVATE_MASTER = 'skia-private-master-a.c.skia-buildbots.google.com.internal'
+SKIA_PRIVATE_MASTER = (
+    'skia-private-master-a.c.skia-buildbots.google.com.internal')
 
 
 class Master(config_default.Master):
@@ -60,8 +61,9 @@ class Master(config_default.Master):
   
 
 class Archive(config_default.Archive):
-    bogus_var = 'bogus_value'
+  bogus_var = 'bogus_value'
 
 
 class Distributed(config_default.Distributed):
-    bogus_var = 'bogus_value'
+  bogus_var = 'bogus_value'
+

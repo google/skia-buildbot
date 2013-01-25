@@ -13,10 +13,11 @@ To test:
     --source_gsurl=gs://chromium-skia-gm/DEPS --dest=~/DEPS
 """
 
-from utils import misc
 import optparse
+import sys
 
 from slave import slave_utils
+
 
 def DownloadFromBucket(source_gsurl, dest):
   status = slave_utils.GSUtilDownloadFile(source_gsurl, dest)
@@ -24,6 +25,7 @@ def DownloadFromBucket(source_gsurl, dest):
     raise Exception('ERROR: GSUtilDownloadFile error %d. "%s" -> "%s"' % (
                     status, source_gsurl, dest))
   return 0
+
 
 def main(argv):
   option_parser = optparse.OptionParser()
@@ -35,7 +37,8 @@ def main(argv):
       help='Destination file/directory where the file will be downloaded.')
   (options, _args) = option_parser.parse_args()
   return DownloadFromBucket(source_gsurl=options.source_gsurl,
-                            filename=options.dest)
+                            dest=options.dest)
+
 
 if '__main__' == __name__:
   sys.exit(main(None))

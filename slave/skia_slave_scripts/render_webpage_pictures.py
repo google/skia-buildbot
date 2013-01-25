@@ -26,13 +26,8 @@ python ../../../../../../slave/skia_slave_scripts/render_webpage_pictures.py \
 """
 
 import os
-import posixpath
-import shutil
 import sys
-import tempfile
 
-from slave import slave_utils
-from utils import file_utils
 from utils import gs_utils
 from utils import sync_bucket_subdir
 from utils import shell_utils
@@ -94,7 +89,7 @@ class RenderWebpagePictures(build_step.BuildStep):
 
     if os.path.exists(self._local_playback_dirs.PlaybackGmActualDir()):
       # Delete everything except the timestamp and last comparison files.
-      for path, unused_dirs, files in os.walk(
+      for path, _dirs, files in os.walk(
           self._local_playback_dirs.PlaybackGmActualDir()):
         if gs_utils.TIMESTAMP_COMPLETED_FILENAME in files:
           files.remove(gs_utils.TIMESTAMP_COMPLETED_FILENAME)

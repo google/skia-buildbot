@@ -9,11 +9,9 @@ from chromeos_build_step import ChromeOSBuildStep
 from build_step import BuildStep
 from render_pictures import RenderPictures
 from utils import ssh_utils
-import glob
 import os
 import posixpath
 import shlex
-import shutil
 import sys
 
 
@@ -29,12 +27,12 @@ class ChromeOSRenderPictures(RenderPictures, ChromeOSBuildStep):
     try:
       ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                        ['rm', '-rf', self._device_dirs.SKPDir()])
-    except:
+    except Exception:
       pass
     try:
       ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                        ['rm', '-rf', self._device_dirs.SKPOutDir()])
-    except:
+    except Exception:
       pass
     ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                      ['mkdir', '-p', self._device_dirs.SKPDir()])

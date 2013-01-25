@@ -13,7 +13,6 @@ import httplib2
 # https://code.google.com/p/google-api-python-client/wiki/Installation
 from apiclient.discovery import build
 from buildbot.scheduler import AnyBranchScheduler
-from buildbot.scheduler import Scheduler
 from buildbot.schedulers import timed
 from buildbot.util import NotABranch
 from master import master_config
@@ -24,8 +23,10 @@ from skia_master_scripts import android_factory
 from skia_master_scripts import chromeos_factory
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import ios_factory
-from skia_master_scripts.perf_only_factory import PerfOnlyFactory, AndroidPerfOnlyFactory
-from skia_master_scripts.no_perf_factory import NoPerfFactory, AndroidNoPerfFactory
+from skia_master_scripts.perf_only_factory import PerfOnlyFactory, \
+    AndroidPerfOnlyFactory, ChromeOSPerfOnlyFactory, iOSPerfOnlyFactory
+from skia_master_scripts.no_perf_factory import NoPerfFactory, \
+    AndroidNoPerfFactory, ChromeOSNoPerfFactory, iOSNoPerfFactory
 
 
 TRYBOT_NAME_SUFFIX = '_Trybot'
@@ -65,7 +66,7 @@ def _AssertValidStringList(var, varName='[unknown]'):
     _AssertValidString(item, '%s[%d]' % (varName, index))
 
 
-def FileBug(summary, description, owner=None, ccs=[], labels=[]):
+def FileBug(summary, description, owner=None, ccs=None, labels=None):
   """Files a bug to the Skia issue tracker.
 
   Args:
@@ -83,7 +84,11 @@ def FileBug(summary, description, owner=None, ccs=[], labels=[]):
   key_file = 'key.p12' # Key file from the API console, renamed to key.p12
   service_acct = ('352371350305-b3u8jq5sotdh964othi9ntg9d0pelu77'
                   '@developer.gserviceaccount.com') # Created with the key
-  result = {} 
+  result = {}
+  if not ccs:
+    ccs = []
+  if not labels:
+    labels = []
   
   if owner is not None:  # owner can be None
     _AssertValidString(owner, 'owner')
@@ -144,6 +149,8 @@ def FileBug(summary, description, owner=None, ccs=[], labels=[]):
 # 'android' branch or a subfolder of 'gm-expected'.
 SKIA_PRIMARY_SUBDIRS = ['buildbot', 'skp', 'trunk']
 
+skia_all_subdirs = []
+
 
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
@@ -155,6 +162,7 @@ SKIA_PRIMARY_SUBDIRS = ['buildbot', 'skp', 'trunk']
 # TODO(borenet): modify this code upstream so that we don't need this override.	
 # BUG: http://code.google.com/p/skia/issues/detail?id=761
 class SkiaHelper(master_config.Helper):
+
   def Builder(self, name, factory, gatekeeper=None, scheduler=None,
               builddir=None, auto_reboot=False, notify_on_missing=False):
     super(SkiaHelper, self).Builder(name=name, factory=factory,

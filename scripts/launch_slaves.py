@@ -25,7 +25,7 @@ import urllib2
 
 # How often we should check each buildslave's keepalive conditions, in seconds.
 DEFAULT_POLL_INTERVAL = 60
-DRIVE_MAPPING=True
+DRIVE_MAPPING = True
 PID_FILE = os.path.join('buildbot', 'third_party', 'chromium_buildbot', 'slave',
                         'twistd.pid')
 # Maximum time (in seconds) to wait for PID_FILE to be written after the slave
@@ -115,7 +115,7 @@ class BuildSlaveManager(multiprocessing.Process):
   def _LaunchSlave(self):
     """ Launch the BuildSlave. """
     if self._IsRunning():
-      self._KillSlave(pid)
+      self._KillSlave()
 
     _SyncSources(self._copies)
 
@@ -191,10 +191,10 @@ class BuildSlaveManager(multiprocessing.Process):
       if not slave_can_run and self._IsRunning():
         self._KillSlave()
       elif slave_can_run and not self._IsRunning():
-        pid = self._LaunchSlave()
+        self._LaunchSlave()
         print 'Successfully launched slave %s.' % self._slavename
       time.sleep(self._poll_interval)
-    print 'Slave process for %s has finished.' % slavename
+    print 'Slave process for %s has finished.' % self._slavename
 
 
 def RunSlave(slavename, copies, slaves_cfg):
@@ -246,9 +246,9 @@ def GetCfg(url):
   url: string; the url of the file to load.
   """
   with closing(urllib2.urlopen(url)) as f:
-    vars = {}
-    exec(f.read(), vars)
-    return vars
+    config_vars = {}
+    exec(f.read(), config_vars)
+    return config_vars
 
 
 def GetSlaveHostCfg():

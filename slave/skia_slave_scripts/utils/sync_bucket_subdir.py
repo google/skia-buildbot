@@ -16,19 +16,19 @@ For a lack of a better word 'synchronization' was used, warnings:
 
 from slave import slave_utils
 from utils import download_from_bucket
-from utils import misc
 from utils import upload_to_bucket
-import optparse
+
 import os
 import posixpath
 import re
-import sys
+
 
 DEFAULT_PERFDATA_GS_BASE = 'gs://chromium-skia-gm'
-KNOWN_FILENAMES=r'^bench_r(\d*)_data.*'
-IGNORE_UPLOAD_FILENAMES=('.DS_Store')
+KNOWN_FILENAMES = r'^bench_r(\d*)_data.*'
+IGNORE_UPLOAD_FILENAMES = ('.DS_Store')
 
-def SyncBucketSubdir(dir, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
+
+def SyncBucketSubdir(directory, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
     do_upload=True, do_download=True, filenames_filter=KNOWN_FILENAMES,
     min_download_revision=0):
   """ synchronizes a local directory with a cloud one
@@ -46,7 +46,7 @@ def SyncBucketSubdir(dir, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
                          (based on filenames_filter) is lower than this
   """
 
-  local_files = set(os.listdir(dir))
+  local_files = set(os.listdir(directory))
 
   status, output_gsutil_ls = slave_utils.GSUtilListBucket(
       posixpath.join(dest_gsbase, subdir), [])
@@ -72,27 +72,27 @@ def SyncBucketSubdir(dir, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
   if do_download:
     to_download = cloud_files.difference(local_files)
     for file_name in to_download:
-      match=re.search(filenames_filter, file_name)
+      match = re.search(filenames_filter, file_name)
       if not match:
-        raise Exception('ERROR: found filename %s on remote filesystem' + \
-                        'that does not match filter %s' % \
-                        (file_name, filenames_filter))
+        raise Exception('ERROR: found filename %s on remote filesystem'
+                        'that does not match filter %s' % (file_name,
+                                                           filenames_filter))
       if int(match.group(1)) >= min_download_revision:
         download_from_bucket.DownloadFromBucket(
-            posixpath.join(gsbase_subdir, file_name), dir)
+            posixpath.join(gsbase_subdir, file_name), directory)
 
   # Uploads only files not present on the cloud storage
   if do_upload:
     to_upload = local_files.difference(cloud_files)
     for file_name in to_upload:
       if file_name not in IGNORE_UPLOAD_FILENAMES:
-        match=re.search(filenames_filter, file_name)
+        match = re.search(filenames_filter, file_name)
         if not match:
           raise Exception('ERROR: %s trying to upload unknown file name.' % (
                           file_name))
         # Ignore force builds without a revision number.
         if match.group(1) != '':
-          upload_to_bucket.upload_to_bucket(os.path.join(dir, file_name),
+          upload_to_bucket.upload_to_bucket(os.path.join(directory, file_name),
                                             dest_gsbase,
                                             subdir)
   return 0
