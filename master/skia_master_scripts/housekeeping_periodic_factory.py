@@ -9,7 +9,7 @@ Overrides SkiaFactory with Periodic HouseKeeping steps."""
 import tempfile
 
 from buildbot.process.properties import WithProperties
-from config_private import SKIA_PUBLIC_MASTER, SKIA_HOUSEKEEPING_SLAVE
+from config_private import SKIA_PUBLIC_MASTER
 from skia_master_scripts import factory as skia_factory
 
 
@@ -41,12 +41,13 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
         command=('SKIA_COMPUTE_ENGINE_HOSTNAME=%s PERSISTENT_DISK_NAME='
                  '/home/default/skia-master %s'
                  % (SKIA_PUBLIC_MASTER, disk_usage_script_path)),
-                 description='CheckMasterDiskUsage')
+        description='CheckMasterDiskUsage')
     self._skia_cmd_obj.AddRunCommand(
-        command=('SKIA_COMPUTE_ENGINE_HOSTNAME=%s PERSISTENT_DISK_NAME='
-                 '/home/default/skia-slave %s'
-                 % (SKIA_HOUSEKEEPING_SLAVE, disk_usage_script_path)),
-                 description='CheckHousekeepingSlaveDiskUsage')
+        command=(WithProperties('SKIA_COMPUTE_ENGINE_HOSTNAME=%(slavename)s '
+                                'PERSISTENT_DISK_NAME='
+                                '/home/default/skia-slave ' + \
+                                disk_usage_script_path)),
+        description='CheckHousekeepingSlaveDiskUsage')
 
     sanitize_script_path = self.TargetPathJoin('tools',
                                                'sanitize_source_files.py')

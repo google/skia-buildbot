@@ -17,8 +17,6 @@ import config_default
 # Skia's Google Compute Engine instances.
 # The public master which is visible to everyone.
 SKIA_PUBLIC_MASTER = 'skia-master-a.c.skia-buildbots.google.com.internal'
-# The housekeeping slave.
-SKIA_HOUSEKEEPING_SLAVE = 'skia-housekeeping-slave-a'
 # The private master which is visible only to Google corp.
 SKIA_PRIVATE_MASTER = (
     'skia-private-master-a.c.skia-buildbots.google.com.internal')
