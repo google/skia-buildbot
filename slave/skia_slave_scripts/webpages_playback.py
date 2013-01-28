@@ -45,6 +45,7 @@ import tempfile
 import time
 import traceback
 
+
 # Set the PYTHONPATH for this script to include chromium_buildbot scripts,
 # site_config, perf, telemetry and webpagereplay.
 sys.path.append(
@@ -203,11 +204,8 @@ class SkPicturePlayback(object):
               print '======================Retrying!======================'
 
         if self._debugger:
-          cwd = os.getcwd()
-          os.chdir(TMP_SKP_DIR)
-          print 'Skp files are in: %s' % TMP_SKP_DIR
-          os.system(self._debugger)
-          os.chdir(cwd)
+          os.system('%s %s' % (self._debugger,
+                               os.path.join(TMP_SKP_DIR, '*', 'layer_0.skp')))
           user_input = raw_input("Would you like to recapture the skp? [y,n]")
           accept_skp = False if user_input == 'y' else True
         else:
