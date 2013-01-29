@@ -228,6 +228,7 @@ def RunSlave(slavename, copies, slaves_cfg):
     # Because of weirdness in gclient, we can't run "gclient sync" in a drive
     # root.  So, we inject a minimal extra level.
     slave_dir = os.path.join('%c:' % drive_letter, 'b')
+    os.makedirs(slave_dir)
 
   slave_cfg = {}
   for cfg in slaves_cfg:
