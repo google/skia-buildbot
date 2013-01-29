@@ -209,6 +209,11 @@ def RunSlave(slavename, copies, slaves_cfg):
   start_dir = os.path.realpath(os.curdir)
   slave_dir = os.path.join(start_dir, slavename)
 
+  # Create the slave directory if needed
+  if not os.path.isdir(slave_dir):
+    print 'Creating directory: %s' % slave_dir
+    os.makedirs(slave_dir)
+
   # Optionally map the slave directory to a drive letter.  This is helpful in
   # avoiding path length limits on Windows.
   if os.name == 'nt' and DRIVE_MAPPING:
@@ -223,11 +228,6 @@ def RunSlave(slavename, copies, slaves_cfg):
     # Because of weirdness in gclient, we can't run "gclient sync" in a drive
     # root.  So, we inject a minimal extra level.
     slave_dir = os.path.join('%c:' % drive_letter, 'b')
-
-  # Create the slave directory if needed
-  if not os.path.isdir(slave_dir):
-    print 'Creating directory: %s' % slave_dir
-    os.makedirs(slave_dir)
 
   slave_cfg = {}
   for cfg in slaves_cfg:
