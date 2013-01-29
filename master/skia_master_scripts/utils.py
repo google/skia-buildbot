@@ -14,6 +14,7 @@ import httplib2
 from apiclient.discovery import build
 from buildbot.scheduler import AnyBranchScheduler
 from buildbot.schedulers import timed
+from buildbot.schedulers.filter import ChangeFilter
 from buildbot.util import NotABranch
 from master import master_config
 from master.builders_pools import BuildersPools
@@ -150,6 +151,11 @@ def FileBug(summary, description, owner=None, ccs=None, labels=None):
 SKIA_PRIMARY_SUBDIRS = ['buildbot', 'skp', 'trunk']
 
 
+# Skip buildbot runs of a CL if its commit log message contains the following
+# substring.
+SKIP_BUILDBOT_SUBSTRING = '(SkipBuildbotRuns)'
+
+
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
 # Specifically, the Helper class hardcodes each registered scheduler to be
@@ -210,13 +216,22 @@ class SkiaHelper(master_config.Helper):
       scheduler = self._schedulers[s_name]
       instance = None
       if scheduler['type'] == 'AnyBranchScheduler':
+        def filter_fn(change):
+          """Filter out if SKIP_BUILDBOT_SUBSTRING is in change.comments."""
+          return not SKIP_BUILDBOT_SUBSTRING in change.comments
+        def branch_fn(branch):
+          """Filter out if branch is not in scheduler['branches']."""
+          return branch in scheduler['branches']
         instance = AnyBranchScheduler(name=s_name,
                                       branch=NotABranch,
-                                      branches=scheduler['branches'],
+                                      branches=NotABranch,
                                       treeStableTimer=
                                           scheduler['treeStableTimer'],
                                       builderNames=scheduler['builders'],
-                                      categories=scheduler['categories'])
+                                      categories=scheduler['categories'],
+                                      change_filter=ChangeFilter(
+                                          branch_fn=branch_fn,
+                                          filter_fn=filter_fn))
       elif scheduler['type'] == 'PeriodicScheduler':
         instance = timed.Nightly(name=s_name,
                                  branch=scheduler['branch'],
@@ -252,6 +267,7 @@ class SkiaHelper(master_config.Helper):
 
     # Export the set to be used externally, making sure that it hasn't already
     # been defined.
+    # pylint: disable=W0601
     global skia_all_subdirs
     try:
       if skia_all_subdirs:
