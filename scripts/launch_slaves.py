@@ -65,41 +65,19 @@ def IsRunning(pid):
   return is_running
 
 
-def _SyncSources(copies):
-  """ Run 'gclient sync' on the buildbot sources. """
-
-  # Check out or update the buildbot scripts
-  if os.name == 'nt':
-    gclient = 'gclient.bat'
-  else:
-    gclient = 'gclient'
-  proc = subprocess.Popen([gclient, 'config', SVN_URL])
-  if proc.wait() != 0:
-    raise Exception('Could not successfully configure gclient.')
-  proc = subprocess.Popen([gclient, 'sync', '-j1'])
-  if proc.wait() != 0:
-    raise Exception('Sync failed.')
-
-  # Perform Copies
-  for copy in copies:
-    src = os.path.join(os.pardir, os.path.normpath(copy['source']))
-    dest = os.path.normpath(copy['destination'])
-    print 'Copying %s to %s' % (src, dest)
-    shutil.copy(src, dest)
-
-
 class BuildSlaveManager(multiprocessing.Process):
   """ Manager process for BuildSlaves. Periodically checks that any
   keepalive_conditions are met and kills or starts the slave accordingly. """
 
-  def __init__(self, slavename, slave_dir, copies, keepalive_conditions,
-               poll_interval):
+  def __init__(self, slavename, slave_dir, copies, copy_src_dir,
+               keepalive_conditions, poll_interval):
     """ Construct the BuildSlaveManager.
 
     slavename: string; the name of the slave to start.
     slave_dir: string; the directory in which to launch the slave.
     copies: list of dictionaries; files to copy into the slave's source
         checkout.
+    copy_src_dir: string; directory in which the files to copy reside.
     keepalive_conditions: list; commands which must succeed in order for the
         slave to stay alive.
     poll_interval: number; how often to verify the keepalive_conditions, in
@@ -108,16 +86,38 @@ class BuildSlaveManager(multiprocessing.Process):
     self._slavename = slavename
     self._slave_dir = slave_dir
     self._copies = copies
+    self._copy_src_dir = os.path.abspath(copy_src_dir)
     self._keepalive_conditions = keepalive_conditions
     self._poll_interval = poll_interval
     multiprocessing.Process.__init__(self)
+
+  def _SyncSources(self):
+    """ Run 'gclient sync' on the buildbot sources. """
+    # Check out or update the buildbot scripts
+    if os.name == 'nt':
+      gclient = 'gclient.bat'
+    else:
+      gclient = 'gclient'
+    proc = subprocess.Popen([gclient, 'config', SVN_URL])
+    if proc.wait() != 0:
+      raise Exception('Could not successfully configure gclient.')
+    proc = subprocess.Popen([gclient, 'sync', '-j1'])
+    if proc.wait() != 0:
+      raise Exception('Sync failed.')
+
+    # Perform Copies
+    for copy in self._copies:
+      src = os.path.join(self._copy_src_dir, os.path.normpath(copy['source']))
+      dest = os.path.normpath(copy['destination'])
+      print 'Copying %s to %s' % (src, dest)
+      shutil.copy(src, dest)
 
   def _LaunchSlave(self):
     """ Launch the BuildSlave. """
     if self._IsRunning():
       self._KillSlave()
 
-    _SyncSources(self._copies)
+    self._SyncSources()
 
     os.chdir(os.path.join('buildbot', 'slave'))
     if os.name == 'nt':
@@ -170,7 +170,7 @@ class BuildSlaveManager(multiprocessing.Process):
     """ Run the BuildSlaveManager. This overrides multiprocessing.Process's
     run() method. """
     os.chdir(self._slave_dir)
-    _SyncSources(self._copies)
+    self._SyncSources()
     self._slave_dir = os.path.abspath(os.curdir)
     if self._IsRunning():
       self._KillSlave()
@@ -236,7 +236,7 @@ def RunSlave(slavename, copies, slaves_cfg):
       slave_cfg = cfg
       break
 
-  manager = BuildSlaveManager(slavename, slave_dir, copies,
+  manager = BuildSlaveManager(slavename, slave_dir, copies, os.curdir,
                               slave_cfg.get('keepalive_conditions', []), 10)
   manager.start()
 
