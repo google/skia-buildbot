@@ -30,6 +30,14 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
     if clobber:
       self.AddSlaveScript(script='clean.py', description='Clean')
 
+    # pylint: disable=W0212
+    clang_static_analyzer_script_path = self.TargetPathJoin(
+        self._skia_cmd_obj._local_slave_script_dir,
+        'run-clang-static-analyzer.sh')
+    self._skia_cmd_obj.AddRunCommand(
+        command=clang_static_analyzer_script_path,
+        description='RunClangStaticAnalyzer')
+
     self.AddSlaveScript(script='check_gs_timestamps.py',
                         description='CheckGoogleStorageTimestamps')
 
