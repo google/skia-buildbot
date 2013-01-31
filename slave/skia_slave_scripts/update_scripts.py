@@ -7,7 +7,7 @@
 
 from utils import shell_utils
 from build_step import BuildStep
-import config
+from config_private import SKIA_SVN_BASEURL
 import os
 import sys
 
@@ -28,8 +28,8 @@ class UpdateScripts(BuildStep):
 
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
-    shell_utils.Bash([svn, 'ls', config.Master.skia_url,
-                      '--non-interactive', '--trust-server-cert'])
+    shell_utils.Bash([svn, 'ls', SKIA_SVN_BASEURL, '--non-interactive',
+                      '--trust-server-cert'])
     shell_utils.Bash([gclient, 'sync'])
 
 

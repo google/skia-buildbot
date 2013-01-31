@@ -4,6 +4,7 @@
 
 
 from buildbot.changes import svnpoller
+from config_private import SKIA_REVLINKTMPL, SKIA_SVN_BASEURL
 from skia_master_scripts import utils
 
 
@@ -17,11 +18,8 @@ def SkiaFileSplitter(path):
 
 
 def Update(config, active_master, c):
-  skia_url = config.Master.skia_url
-  skia_revlinktmpl = 'http://code.google.com/p/skia/source/detail?r=%s'
-
-  skia_poller = svnpoller.SVNPoller(svnurl=skia_url,
+  skia_poller = svnpoller.SVNPoller(svnurl=SKIA_SVN_BASEURL,
                                     split_file=SkiaFileSplitter,
                                     pollinterval=30,
-                                    revlinktmpl=skia_revlinktmpl)
+                                    revlinktmpl=SKIA_REVLINKTMPL)
   c['change_source'].append(skia_poller)

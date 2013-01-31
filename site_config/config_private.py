@@ -7,8 +7,9 @@
 # But this file is stored within a public SVN repository, so don't put any
 # secrets in here.
 
-# system-level imports
+
 import socket
+import skia_vars
 
 # import base class from third_party/chromium_buildbot/site_config/
 import config_default
@@ -20,6 +21,9 @@ SKIA_PUBLIC_MASTER = 'skia-master-a.c.skia-buildbots.google.com.internal'
 # The private master which is visible only to Google corp.
 SKIA_PRIVATE_MASTER = (
     'skia-private-master-a.c.skia-buildbots.google.com.internal')
+AUTOGEN_SVN_BASEURL = skia_vars.GetGlobalVariable('autogen_svn_url')
+SKIA_REVLINKTMPL = skia_vars.GetGlobalVariable('revlinktmpl')
+SKIA_SVN_BASEURL = skia_vars.GetGlobalVariable('skia_svn_url')
 
 
 class Master(config_default.Master):
@@ -32,13 +36,13 @@ class Master(config_default.Master):
 
   class Skia(object):
     project_name = 'Skia'
-    project_url = 'http://skia.googlecode.com'
+    project_url = skia_vars.GetGlobalVariable('project_url')
     # The master host runs in Google Compute Engine.
-    master_host = '70.32.156.51'
+    master_host = skia_vars.GetGlobalVariable('master_host')
     is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER
-    master_port = 10115
-    slave_port = 10116
-    master_port_alt = 10117
+    master_port = skia_vars.GetGlobalVariable('internal_port')
+    slave_port = skia_vars.GetGlobalVariable('slave_port')
+    master_port_alt = skia_vars.GetGlobalVariable('external_port')
     tree_closing_notification_recipients = []
     from_address = 'skia-buildbot@pogerlabs.com'
     buildbot_url = 'http://%s:%d/' % (master_host, master_port)
@@ -46,13 +50,13 @@ class Master(config_default.Master):
 
   class PrivateSkia(object):
     project_name = 'PrivateSkia'
-    project_url = 'http://skia.googlecode.com'
+    project_url = skia_vars.GetGlobalVariable('project_url')
     # The private master host runs in Google Compute Engine.
-    master_host = '70.32.159.66'
+    master_host = skia_vars.GetGlobalVariable('private_master_host')
     is_production_host = socket.getfqdn() == SKIA_PRIVATE_MASTER
-    master_port = 8041
-    slave_port = 8141
-    master_port_alt = 8241
+    master_port = skia_vars.GetGlobalVariable('private_internal_port')
+    slave_port = skia_vars.GetGlobalVariable('private_slave_port')
+    master_port_alt = skia_vars.GetGlobalVariable('private_external_port')
     tree_closing_notification_recipients = []
     from_address = 'skia-buildbot@pogerlabs.com'
     is_publicly_visible = False

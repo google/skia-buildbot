@@ -9,6 +9,7 @@ Based on gclient_factory.py and adds Skia-specific steps."""
 
 
 from buildbot.process.properties import WithProperties
+from config_private import AUTOGEN_SVN_BASEURL, SKIA_SVN_BASEURL
 from master.factory import gclient_factory
 from master.factory.build_factory import BuildFactory
 from skia_master_scripts import commands as skia_commands
@@ -16,10 +17,6 @@ import config
 import ntpath
 import posixpath
 import skia_build
-
-
-SKIA_SVN_BASEURL = 'https://skia.googlecode.com/svn'
-AUTOGEN_SVN_BASEURL = 'https://skia-autogen.googlecode.com/svn'
 
 
 # TODO(epoger): My intent is to make the build steps identical on all platforms
@@ -90,7 +87,7 @@ class SkiaFactory(BuildFactory):
     # Create gclient solutions corresponding to the main build_subdir
     # and other directories we also wish to check out.
     self._gclient_solutions = [gclient_factory.GClientSolution(
-        svn_url=config.Master.skia_url + build_subdir, name=build_subdir
+        svn_url=SKIA_SVN_BASEURL + '/' + build_subdir, name=build_subdir
         ).GetSpec()]
 
     if not other_subdirs:
@@ -104,7 +101,7 @@ class SkiaFactory(BuildFactory):
     subdirs_to_checkout.add('skp')
     for other_subdir in subdirs_to_checkout:
       self._gclient_solutions.append(gclient_factory.GClientSolution(
-          svn_url=config.Master.skia_url + other_subdir,
+          svn_url=SKIA_SVN_BASEURL + '/' + other_subdir,
           name=other_subdir).GetSpec())
 
     if gm_image_subdir:
@@ -242,12 +239,13 @@ class SkiaFactory(BuildFactory):
     # Trybots should always clean.
     if clobber or self._do_patch_step:
       self.AddSlaveScript(script='clean.py', description='Clean')
-    self.Make('skia_base_libs',  'BuildSkiaBaseLibs')
+
+    self.Make('skia_base_libs', 'BuildSkiaBaseLibs')
     self.Make('tests', 'BuildTests')
-    self.Make('gm',    'BuildGM', is_rebaseline_step=True)
+    self.Make('gm', 'BuildGM', is_rebaseline_step=True)
     self.Make('tools', 'BuildTools')
     self.Make('bench', 'BuildBench')
-    self.Make('most',  'BuildMost')
+    self.Make('most', 'BuildMost')
 
   def RunTests(self):
     """ Run the unit tests. """

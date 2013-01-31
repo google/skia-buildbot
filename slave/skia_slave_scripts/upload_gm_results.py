@@ -7,6 +7,7 @@
 rebaselining. """
 
 from build_step import BuildStep, BuildStepWarning
+from config_private import AUTOGEN_SVN_BASEURL
 from utils import merge_into_svn
 import os
 import sys
@@ -28,8 +29,7 @@ class UploadGMResults(BuildStep):
     # TODO these constants should actually be shared by multiple build steps
     gm_actual_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'actual')
     gm_merge_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'merge')
-    autogen_svn_baseurl = 'https://skia-autogen.googlecode.com/svn'
-    gm_actual_svn_baseurl = '%s/%s' % (autogen_svn_baseurl, 'gm-actual')
+    gm_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL, 'gm-actual')
     autogen_svn_username_file = self._args['autogen_svn_username_file']
     autogen_svn_password_file = self._args['autogen_svn_password_file']
   

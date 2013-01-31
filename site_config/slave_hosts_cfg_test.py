@@ -8,6 +8,7 @@
 and compatible. """
 
 
+from config_private import SKIA_SVN_BASEURL
 import os
 import posixpath
 import unittest
@@ -15,7 +16,7 @@ import unittest
 
 SLAVES_CFG = os.path.join('master', 'slaves.cfg')
 SLAVE_HOSTS_CFG = os.path.join('site_config', 'slave_hosts.cfg')
-BUILDBOT_SVN_URL = 'https://code.google.com/p/skia/source/browse/buildbot'
+BUILDBOT_SVN_URL = SKIA_SVN_BASEURL + '/buildbot'
 
 
 class SlaveHostsCfgTest(unittest.TestCase):

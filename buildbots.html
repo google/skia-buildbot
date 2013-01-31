@@ -4,7 +4,7 @@
       Skia Buildbot
     </title>
     <link rel="icon" href="favicon.ico">
-
+    <script type="text/javascript" src="skia_tools.js"></script>
     <script language="JavaScript">
     "use strict";
 
@@ -17,12 +17,12 @@
     var display_builders_list = nonbench_percommit_builders;
     var display_view = "external";
     var display_page = "console";
-    var internalport = "10115";
-    var externalport = "10117";
+    var internalport = skiaTools.getVariable("internal_port");
+    var externalport = skiaTools.getVariable("external_port");
     var port = externalport;
-    var host = "http://70.32.156.51";
-    var skia_repo = "http://skia.googlecode.com/svn";
-    var try_repo = "http://skia-try.googlecode.com/svn";
+    var host = "http://" + skiaTools.getVariable("master_host");
+    var skia_repo = skiaTools.getVariable("skia_svn_url");
+    var try_repo = skiaTools.getVariable("try_svn_url");
     var display_repo = skia_repo;
 
     // Return a string of the form: "&builder=x&builder=y..." with all of those
@@ -75,21 +75,13 @@
     // Obtain the list of all builders from the buildbot master and load them
     // into the global arrays of builders.
     function getBuilderLists() {
-      try {
-        var request = new XMLHttpRequest();
-      } catch (error) {
-        alert(error);
-      }
-      request.open("GET", host + ":" + port + "/json/builders", false);
-      request.send(null);
-      // We *should* use a JSON parser, but since we trust the buildbot master
-      // server, we allow this unsafe call 
-      var builders_json = eval("(" + request.responseText + ")");
+      var builders = skiaTools.loadBuilders();
       nonbench_percommit_builders = [];
       bench_percommit_builders = [];
       all_percommit_builders = [];
       try_builders = [];
-      for (var builder in builders_json) {
+      for (var i = 0; i < builders.length; ++i) {
+        var builder = builders[i].name;
         if (builder.indexOf("Trybot") != -1) {
           try_builders.push(builder)
         } else {

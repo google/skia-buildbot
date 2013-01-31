@@ -15,18 +15,40 @@
 var skiaTools = {
 
 /**
- * IP address of the Skia buildbot master.
- * @const
- * @type {string}
+ * getVariable
+ *
+ * @return The value for the requested variable, as defined in the global
+ *     variables file.
  */
-HOST: "http://70.32.156.51",
+getVariable: function(varName) {
+  var url = "site_config/global_variables.json";
+  try {
+    var request = new XMLHttpRequest();
+  } catch (error) {
+    alert(error);
+  }
+  request.open("GET", url, false);
+  request.send();
+  return eval("(" + request.responseText + ")")[varName].value;
+},
 
 /**
- * Communication port of the Skia buildbot master.
- * @const
- * @type {string}
+ * host
+ *
+ * @return {string} IP address of the Skia buildbot master.
  */
-PORT: "10117",
+host: function() {
+  return "http://" + this.getVariable("master_host");
+},
+
+/**
+ * port
+ *
+ * @return {string} Communication port of the Skia buildbot master.
+ */
+port: function() {
+  return this.getVariable("external_port");
+},
 
 /**
  * Information about a single build.
@@ -288,7 +310,8 @@ loadDataFromBuildMaster: function(subdir) {
   } catch (error) {
     alert(error);
   }
-  request.open("GET", this.HOST + ":" + this.PORT + "/json/" + subdir, false);
+  request.open("GET", this.host() + ":" + this.port() + "/json/" + subdir,
+               false);
   request.send(null);
   // We *should* use a JSON parser, but since we trust the buildbot master
   // server, we allow this unsafe call 
