@@ -24,6 +24,8 @@ $GCOMPUTE_CMD getproject 2>/dev/null \
   | sed -n -e 's/.* ips  *| *\(.*\) *|.*$/\1/p' \
   | tr , \\n \
   | sort >$ALL_IPS
+# Remove trailing whitespace else it results in an incorrect comparison.
+sed -i 's/[ \t]*$//' $ALL_IPS
 
 # Get a list of IP addresss used so far
 #   1. Grab the external_ip column.

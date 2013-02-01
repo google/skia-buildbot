@@ -40,6 +40,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "cd ~/skia-slave; " \
     "sudo chmod 777 -R .; " \
     "svn checkout http://src.chromium.org/svn/trunk/tools/depot_tools; " \
+    "sudo mv /etc/boto.cfg /etc/boto.cfg.bak; " \
     "~/skia-slave/depot_tools/gclient config https://skia.googlecode.com/svn/buildbot; " \
     "~/skia-slave/depot_tools/gclient sync; "
 
