@@ -10,6 +10,7 @@ is intended to be run at boot time. """
 
 from contextlib import closing
 
+import json
 import multiprocessing
 import os
 if os.name == 'nt':
@@ -69,7 +70,7 @@ class BuildSlaveManager(multiprocessing.Process):
   """ Manager process for BuildSlaves. Periodically checks that any
   keepalive_conditions are met and kills or starts the slave accordingly. """
 
-  def __init__(self, slavename, slave_dir, copies, copy_src_dir,
+  def __init__(self, slavename, slave_dir, copies, copy_src_dir, master_host,
                keepalive_conditions, poll_interval):
     """ Construct the BuildSlaveManager.
 
@@ -78,6 +79,7 @@ class BuildSlaveManager(multiprocessing.Process):
     copies: list of dictionaries; files to copy into the slave's source
         checkout.
     copy_src_dir: string; directory in which the files to copy reside.
+    master_host: string indicating the hostname of the build master.
     keepalive_conditions: list; commands which must succeed in order for the
         slave to stay alive.
     poll_interval: number; how often to verify the keepalive_conditions, in
@@ -89,6 +91,7 @@ class BuildSlaveManager(multiprocessing.Process):
     self._copy_src_dir = os.path.abspath(copy_src_dir)
     self._keepalive_conditions = keepalive_conditions
     self._poll_interval = poll_interval
+    self._master_host = master_host
     multiprocessing.Process.__init__(self)
 
   def _SyncSources(self):
@@ -124,11 +127,12 @@ class BuildSlaveManager(multiprocessing.Process):
       # We run different commands for the Windows shell
       cmd = 'setlocal&&'
       cmd += 'set TESTING_SLAVENAME=%s&&' % self._slavename
+      cmd += 'set TESTING_MASTER_HOST=%s&&' % self._master_host
       cmd += 'run_slave.bat'
       cmd += '&& endlocal'
     else:
       cmd = 'TESTING_SLAVENAME=%s ' % self._slavename
-      cmd += 'TESTING_MASTER_HOST=localhost '
+      cmd += 'TESTING_MASTER_HOST=%s ' % self._master_host
       cmd += 'make restart'
     print 'Running cmd: %s' % cmd
     subprocess.Popen(cmd, shell=True)
@@ -197,13 +201,15 @@ class BuildSlaveManager(multiprocessing.Process):
     print 'Slave process for %s has finished.' % self._slavename
 
 
-def RunSlave(slavename, copies, slaves_cfg):
+def RunSlave(slavename, copies, slaves_cfg, master_host):
   """ Launch a single slave, checking out the buildbot tree if necessary.
 
   slavename: string indicating the hostname of the build slave to launch.
   copies: dictionary with 'source' and 'destination' keys whose values are the
       current location and destination location within the buildbot checkout of
       files to be copied.
+  slaves_cfg: dictionary describing the configurations of the buildslaves.
+  master_host: string indicating the hostname of the build master.
   """
   print 'Starting slave: %s' % slavename
   start_dir = os.path.realpath(os.curdir)
@@ -228,7 +234,8 @@ def RunSlave(slavename, copies, slaves_cfg):
     # Because of weirdness in gclient, we can't run "gclient sync" in a drive
     # root.  So, we inject a minimal extra level.
     slave_dir = os.path.join('%c:' % drive_letter, 'b')
-    os.makedirs(slave_dir)
+    if not os.path.isdir(slave_dir):
+      os.makedirs(slave_dir)
 
   slave_cfg = {}
   for cfg in slaves_cfg:
@@ -237,6 +244,7 @@ def RunSlave(slavename, copies, slaves_cfg):
       break
 
   manager = BuildSlaveManager(slavename, slave_dir, copies, os.curdir,
+                              master_host,
                               slave_cfg.get('keepalive_conditions', []), 10)
   manager.start()
 
@@ -266,8 +274,61 @@ def GetSlavesCfg():
   return cfg_vars['slaves']
 
 
+def GetSkiaMasterHost():
+  """ Retrieve the hostname of the production master. """
+  global_variables_file = SVN_URL + '/site_config/global_variables.json'
+  with closing(urllib2.urlopen(global_variables_file)) as f:
+    global_variables = json.load(f)
+  return global_variables['master_host']['value']
+
+
+def ParseArgs(argv):
+  """ Parse and validate command-line arguments. """
+
+  class CollectedArgs(object):
+    def __init__(self, master_host):
+      self._master_host = master_host
+
+    @property
+    def master_host(self):
+      return self._master_host
+
+  usage = (
+"""launch_slaves.py: Launch build slaves.
+python launch_slaves.py [--master_host <hostname>]
+
+--master_host       Hostname of the build master.
+-h, --help          Show this message.
+""")
+
+  def Exit(error_msg=None):
+    if error_msg:
+      print error_msg
+    print usage
+    sys.exit(1)
+
+  master_host = None
+
+  while argv:
+    arg = argv.pop(0)
+    if arg == '-h' or arg == '--help':
+      Exit()
+    elif arg == '--master_host':
+      if master_host:
+        Exit('--master_host specified multiple times.')
+      if len(argv) < 1:
+        Exit('You must specify a hostname with "--master_host".')
+      master_host = argv.pop(0)
+    else:
+      Exit('Unknown argument: %s' % arg)
+  return CollectedArgs(master_host=master_host)
+
+
 def main():
   """ Launch local build slave instances """
+  # Gather command-line arguments.
+  args = ParseArgs(sys.argv[1:])
+  master_host = args.master_host or GetSkiaMasterHost()
 
   # Obtain configuration information about this build slave host machine.
   slave_host = GetSlaveHostCfg()
@@ -279,7 +340,7 @@ def main():
 
   # Launch the build slaves
   for slavename in slaves:
-    RunSlave(slavename, copies, slaves_cfg)
+    RunSlave(slavename, copies, slaves_cfg, master_host)
 
 
 if '__main__' == __name__:
