@@ -14,6 +14,7 @@
 # Initialize and validate environment variables.
 STATIC_ANALYZER_TEMPDIR=${STATIC_ANALYZER_TEMPDIR:-/tmp/clang-static-analyzer}
 SKIA_GOOGLE_STORAGE_BASE=${SKIA_GOOGLE_STORAGE_BASE:-gs://chromium-skia-gm}
+GOOGLE_STORAGE_CLANG_URL="https:\/\/storage.cloud.google.com\/chromium-skia-gm\/static_analyzers\/clang_static_analyzer\/"
 
 if [[ $SKIA_GOOGLE_STORAGE_BASE =~ ^gs://.* ]]; then
   if [[ "$SKIA_GOOGLE_STORAGE_BASE" =~ ^gs://.+/.+ ]]; then
@@ -44,6 +45,12 @@ if [ $ret_code != 0 ]; then
   echo "Error while executing the scan-build command"
   exit $ret_code
 fi
+
+
+# Fix static file paths to point to storage.cloud.google.com else the files will not be found.
+sed -i 's/href="\(.*\.css\)/href="'$GOOGLE_STORAGE_CLANG_URL'\1/g' $STATIC_ANALYZER_TEMPDIR/*/index.html
+sed -i 's/src="\(.*\.js\)/src="'$GOOGLE_STORAGE_CLANG_URL'\1/g' $STATIC_ANALYZER_TEMPDIR/*/index.html
+sed -i 's/href="\(.*\.html\)/href="'$GOOGLE_STORAGE_CLANG_URL'\1/g' $STATIC_ANALYZER_TEMPDIR/*/index.html
 
 
 # Clean the SKIA_GOOGLE_STORAGE_STATIC_ANALYSIS_DIR.
