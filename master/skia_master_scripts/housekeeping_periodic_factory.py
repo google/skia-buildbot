@@ -32,7 +32,8 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
 
     sanitize_script_path = self.TargetPathJoin('tools',
                                                'sanitize_source_files.py')
-    skia_trunk_svn_baseurl = '%s/%s' % (SKIA_SVN_BASEURL, 'trunk')
+    skia_trunk_svn_baseurl = '%s/%s' % (
+        SKIA_SVN_BASEURL.replace('http', 'https'), 'trunk')
     # Run the sanitization script.
     self._skia_cmd_obj.AddRunCommand(
         command='python %s' % sanitize_script_path,
