@@ -4,6 +4,8 @@
       Skia Buildbot
     </title>
     <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="master/public_html/default.css"
+        type="text/css">
     <script type="text/javascript" src="skia_tools.js"></script>
     <script language="JavaScript">
     "use strict";
@@ -48,7 +50,7 @@
                 "?reload=40&repository=" + display_repo +
                 getBuilderString(display_builders_list);
       document.all.content.src = url;
-      var id = display_builders + "_" + display_page;
+      var id = display_builders;
       document.getElementById(id).checked = true;
     }
 
@@ -95,9 +97,32 @@
       }
     }
 
+    function loadMenuLinks() {
+      var links = [
+        ["https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview", "Full Skia documentation"],
+        ["https://skia-tree-status.appspot.com/", "Skia Tree Status Manager"],
+        ["https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots", "Current build-breaking bugs"],
+        ["bench_graphs.html", "Bench Graphs"],
+        ["http://go/skpbench", "Bench Dashboard"],
+        ["bug_graphs.html", "Open Bugs Graph"]
+      ];
+      var links_div = document.getElementById("links");
+      var html = "";
+      for (var i = 0; i < links.length; ++i) {
+        var link = links[i];
+        html += '<div style="float:left; width: 190px;">';
+        html += '<ul style="margin: 0px 0px 0px 25px; padding:0;">';
+        html += '<li><a href="' + link[0] + '" target="_blank">' + link[1] +
+            '</a><br/></li>';
+        html += '</ul></div>';
+      }
+      links_div.innerHTML = html;
+    }
+
     // Function to call on page load.  Sets all global variables and updates the
     // iframe view of the buildbot page.
     function init() {
+      loadMenuLinks();
       getBuilderLists();
       var args = parseArgs();
       display_builders = args["builders"];
@@ -124,60 +149,68 @@
       display_page = args["page"];
       if (!display_page)
         display_page = "console";
+      if (display_page == "home")
+        display_page = "";
       updateView();
     }
 
+    function resizeIframe(width, height) {
+      console.log("resizing iframe!!!");
+      var padding = 32;
+      document.all.content.style.width = (width + padding) + "px";
+      document.all.content.style.height = (height + padding) + "px";
+    }
+
     function reloadSkiaTreeStatus() {
-      document.getElementById("skia-tree-status").src = document.getElementById("skia-tree-status").src;
+      document.getElementById("skia-tree-status").src =
+          document.getElementById("skia-tree-status").src;
     }
 
     window.setInterval("reloadSkiaTreeStatus();", 10000);
     </script>
 
   </head>
-  <body onload="init()" style="background-color: #fff;">
-
+  <body class="interface" onload="init()" style="background: url(master/public_html/bg_gradient.jpg) repeat-x; background-size: 20px 300px;" allowTransparency="true">
     <iframe id="skia-tree-status" width="100%" height="40" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
-    <div id="container" style="clear:both; height: 75px;">
+    <div id="container" style="float: left; width: 100%; min-height: 65px;">
       <div style="float:left; width:30%; position: relative; z-index:2;">
       <form name="unused">
-        <input type="radio" name="internal_external" value="external" id="external" onClick="reloadWithOptions('external', display_builders, display_page);">external view<br>
-        <input type="radio" name="internal_external" value="internal" id="internal" onClick="reloadWithOptions('internal', display_builders, display_page);">internal view
+        <input type="radio" name="internal_external" value="external" id="external" onClick="reloadWithOptions('external', display_builders, display_page);">External View<br>
+        <input type="radio" name="internal_external" value="internal" id="internal" onClick="reloadWithOptions('internal', display_builders, display_page);">Internal View
       </form>
       </div>
 
-      <div style="float:right; max-width:22%; position: relative; z-index:2;">
-        <div style="float:left;">
-          <ul style="margin: 0px 0px 0px 25px; padding:0;">
-          <li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li>
-          <li><a href="https://skia-tree-status.appspot.com/" target="_blank">Skia Tree Status Manager</a><br/></li>
-          <li><a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/></li>
-          </ul>
-        </div>
-        <div style="float:left;">
-          <ul style="margin: 0px 0px 0px 25px; padding:0;">
-          <li><a href="bench_graphs.html" target="_blank">Bench Graphs</a><br/></li>
-          <li><a href="http://go/skpbench" target="_blank">Bench Dashboard</a><br/></li>
-          <li><a href="bug_graphs.html" target="_blank">Open Bugs Graph</a></li>
-          </ul>
-        </div>
-      </div>
+      <div id="links" style="float:right; max-width:22%; position: relative; z-index:2;"></div>
 
-      <div style="text-align:center; position: absolute; width: 100%; z-index:1;">
-        <div id="heading" style="font-size:2.5em; text-align:center;">Skia Buildbots</div>
+      <div style="text-align:center; position: absolute; width: 100%; height: 65px; z-index:1;">
+        <div id="heading" style="font-size:3.5em; text-align:center;">Skia Buildbots</div>
         <div style="text-align:center;">
           <form name="unused2">
             <nobr>
-            <input type="radio" id="nonbench_console" value="nonbench_console" onClick="javascript:reloadWithOptions(display_view, 'nonbench', 'console');">Non-Bench Builders
-            <input type="radio" id="bench_console" value="bench_console" onClick="javascript:reloadWithOptions(display_view, 'bench', 'console');">Bench Builders
-            <input type="radio" id="all_console" value="all_console" onClick="javascript:reloadWithOptions(display_view, 'all', 'console');">All Builders
-            <input type="radio" id="try_waterfall" value="try_waterfall" onClick="javascript:reloadWithOptions(display_view, 'try', 'waterfall');">Trybots
+            <input type="radio" id="nonbench" value="nonbench" onClick="javascript:reloadWithOptions(display_view, 'nonbench', display_page);">Non-Bench Builders
+            <input type="radio" id="bench" value="bench" onClick="javascript:reloadWithOptions(display_view, 'bench', display_page);">Bench Builders
+            <input type="radio" id="all" value="all" onClick="javascript:reloadWithOptions(display_view, 'all', display_page);">All Builders
+            <input type="radio" id="try" value="try" onClick="javascript:reloadWithOptions(display_view, 'try', display_page);">Trybots
             </nobr>
           </form>
         </div>
       </div>  
     </div>
-    <iframe id="content" width="100%" height="4650px" src="about:blank" frameborder="0""></iframe>
+    <div width="100%" style="text-align: center; padding: 8px 0px;">
+        <!-- TODO(borenet): Make this work with "open new tab."  -->
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'home');">Home</a> -
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'waterfall');">Waterfall</a>
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'grid');">Grid</a>
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'tgrid');">T-Grid</a>
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'console');">Console</a>
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'builders');">Builders</a>
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'one_line_per_build');">Recent Builds</a>
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'buildslaves');">Buildslaves</a>
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'changes');">Changesources</a> -
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'json/help');">JSON API</a> -
+        <a href="javascript:;" onClick="javascript:reloadWithOptions(display_view, display_builders, 'about');">About</a>
+    </div>
+    <iframe id="content" width="100%" height="4650px" src="about:blank" frameborder="0"></iframe>
 
   </body>
 </html>
