@@ -23,6 +23,7 @@ OR
 python rebaseline_webpage_images.py all
 """
 
+import getpass
 import os
 import posixpath
 import sys
@@ -210,6 +211,15 @@ for gm_image_subdir in gm_images_seq:
   gs_utils.WriteTimeStampFile(
       timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
       timestamp_value=time.time(),
+      gs_base=dest_gsbase,
+      gs_relative_dir=storage_playback_dirs.PlaybackGmExpectedDir(),
+      gs_acl=PLAYBACK_CANNED_ACL,
+      local_dir=None)
+
+  print '\n\n=======Add LAST_REBASELINED_BY file======='
+  gs_utils.WriteTimeStampFile(
+      timestamp_file_name=gs_utils.LAST_REBASELINED_BY_FILENAME,
+      timestamp_value=getpass.getuser(),
       gs_base=dest_gsbase,
       gs_relative_dir=storage_playback_dirs.PlaybackGmExpectedDir(),
       gs_acl=PLAYBACK_CANNED_ACL,

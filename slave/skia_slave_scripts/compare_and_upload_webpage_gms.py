@@ -98,6 +98,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
            '--nodiffs',
            '--nomatch', gs_utils.TIMESTAMP_STARTED_FILENAME,
            '--nomatch', gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+           '--nomatch', gs_utils.LAST_REBASELINED_BY_FILENAME,
            '--nomatch', LAST_COMPARISON_FILENAME,
            '--failonresult', 'DifferentPixels',
            '--failonresult', 'DifferentSizes',
