@@ -21,7 +21,7 @@ var skiaTools = {
  *     variables file.
  */
 getVariable: function(varName) {
-  var url = "site_config/global_variables.json";
+  var url = "http://skia.googlecode.com/svn/buildbot/site_config/global_variables.json";
   try {
     var request = new XMLHttpRequest();
   } catch (error) {
