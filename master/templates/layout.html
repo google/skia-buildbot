@@ -19,17 +19,8 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     <link rel="stylesheet" href="{{ stylesheet }}" type="text/css" />
     <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ path_to_root }}rss">
     {% endblock %}
-    <script language="JavaScript">
-    function resizeParent() {
-      var width = document.body.scrollWidth;
-      var height = document.body.scrollHeight;
-      var helper = document.getElementById("resize_helper");
-      var url = "http://skia.googlecode.com/svn/buildbot/helper.html";
-      helper.src = url + "?width=" + width + "&height=" + height;
-    }
-    </script>
   </head>
-  <body class="interface" onload="resizeParent()">
+  <body class="interface">
 
     {%- block barecontent -%}
 
@@ -56,8 +47,5 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       Page built: <b>{{ time }}</b> ({{ tz }})
     </div>
     {% endblock -%}
-    <!-- Contains a helper page for resizing our parent. -->
-    <iframe id="resize_helper" src="" width="0" height="0" frameborder="0">
-    </iframe>
   </body>
 </html>
