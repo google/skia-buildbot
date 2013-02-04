@@ -38,7 +38,7 @@ mkdir -p $STATIC_ANALYZER_TEMPDIR
 
 # Run the clang static analyzer.
 # Details about the analyzer are here: http://clang-analyzer.llvm.org/.
-scan-build -o $STATIC_ANALYZER_TEMPDIR make
+CXX=`which clang++` CC=`which clang` scan-build -o $STATIC_ANALYZER_TEMPDIR make -j30
 
 ret_code=$?
 if [ $ret_code != 0 ]; then
