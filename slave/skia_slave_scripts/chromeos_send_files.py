@@ -23,6 +23,7 @@ class ChromeOSSendFiles(ChromeOSBuildStep):
     self._PutSCP('tests')
     self._PutSCP('gm')
     self._PutSCP('render_pictures')
+    self._PutSCP('render_pdfs')
     self._PutSCP('bench')
     self._PutSCP('bench_pictures')
 
