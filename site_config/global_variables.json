@@ -14,8 +14,13 @@
     "type": "integer",
     "description": "Internally-visible port on the Skia build master."
   },
+  "master_host_name": {
+    "value": "skia-master-b.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "Host name of the Skia build master."
+  },
   "master_host": {
-    "value": "70.32.156.51",
+    "value": "70.32.156.53",
     "type": "string",
     "description": "IP address of the Skia build master."
   },
@@ -28,6 +33,11 @@
     "value": "8041",
     "type": "integer",
     "description": "Internally-visible port on the private Skia build master."
+  },
+  "private_master_host_name": {
+    "value": "skia-private-master-a.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "Host name of the private Skia build master."
   },
   "private_master_host": {
     "value": "70.32.159.66",

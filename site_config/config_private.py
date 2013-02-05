@@ -17,10 +17,9 @@ import config_default
 
 # Skia's Google Compute Engine instances.
 # The public master which is visible to everyone.
-SKIA_PUBLIC_MASTER = 'skia-master-a.c.skia-buildbots.google.com.internal'
+SKIA_PUBLIC_MASTER = skia_vars.GetGlobalVariable('master_host_name')
 # The private master which is visible only to Google corp.
-SKIA_PRIVATE_MASTER = (
-    'skia-private-master-a.c.skia-buildbots.google.com.internal')
+SKIA_PRIVATE_MASTER = skia_vars.GetGlobalVariable('private_master_host_name')
 AUTOGEN_SVN_BASEURL = skia_vars.GetGlobalVariable('autogen_svn_url')
 SKIA_REVLINKTMPL = skia_vars.GetGlobalVariable('revlinktmpl')
 SKIA_SVN_BASEURL = skia_vars.GetGlobalVariable('skia_svn_url')
