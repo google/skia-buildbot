@@ -26,7 +26,6 @@ class ChromeOSBenchPictures(BenchPictures, ChromeOSRenderPictures):
             extra_args=args)
 
   def _Run(self):
-    self._PushSKPSources()
     super(ChromeOSBenchPictures, self)._Run()
 
 

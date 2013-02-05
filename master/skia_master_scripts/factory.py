@@ -142,6 +142,8 @@ class SkiaFactory(BuildFactory):
     # The class to use when creating builds in build_factory.BuildFactory
     self.buildClass = skia_build.SkiaBuild
 
+    self.done_prerender = False
+
     def _DetermineRevision(build):
       """ Get the 'revision' property at build time. WithProperties returns the
       empty string if 'revision' is not defined, which causes failures when we
@@ -388,6 +390,7 @@ class SkiaFactory(BuildFactory):
     """ Add correctness testing BuildSteps. """
     self.RunTests()
     self.RunGM()
+    self.done_prerender = True
     self.PreRender()
     self.RenderPictures()
     self.RenderPdfs()
@@ -400,6 +403,9 @@ class SkiaFactory(BuildFactory):
 
   def PerfSteps(self):
     """ Add performance testing BuildSteps. """
+    if not self.done_prerender:
+      self.PreRender()
+      self.done_prerender = True
     self.RunBench()
     self.BenchPictures()
     if self._do_upload_bench_results:

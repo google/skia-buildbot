@@ -26,7 +26,6 @@ class AndroidBenchPictures(BenchPictures, AndroidRenderPictures):
             extra_args=args)
 
   def _Run(self):
-    self._PushSKPSources(self._serial)
     super(AndroidBenchPictures, self)._Run()
 
 if '__main__' == __name__:
