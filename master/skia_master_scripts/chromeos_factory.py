@@ -42,10 +42,25 @@ class ChromeOSFactory(skia_factory.SkiaFactory):
     """ Run the "GM" tool, saving the images to disk. """
     self.AddSlaveScript(script='chromeos_run_gm.py', description='GenerateGMs')
 
+  def PreRender(self):
+    """ Prepares ChromeOS device for rendering. """
+    self.AddSlaveScript(script='chromeos_prerender.py',
+                        description='PreRender')
+
   def RenderPictures(self):
     """ Run the "render_pictures" tool to generate images from .skp's. """
     self.AddSlaveScript(script='chromeos_render_pictures.py',
                         description='RenderPictures')
+
+  def RenderPdfs(self):
+    """ Run the "render_pdfs" tool to generate pdfs from .skp's. """
+    self.AddSlaveScript(script='chromeos_render_pdfs.py',
+                        description='RenderPdfs')
+
+  def PostRender(self):
+    """ Post render operations for the ChromeOS device. """
+    self.AddSlaveScript(script='chromeos_postrender.py',
+                        description='PostRender')
 
   def RunBench(self):
     """ Run "bench", piping the output somewhere so we can graph

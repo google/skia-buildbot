@@ -256,6 +256,10 @@ class SkiaFactory(BuildFactory):
     self.AddSlaveScript(script='run_gm.py', description='GenerateGMs',
                         is_rebaseline_step=True)
 
+  # NOP here, android and chrome will push SKPs to device
+  def PreRender(self):
+    return
+
   def RenderPictures(self):
     """ Run the "render_pictures" tool to generate images from .skp's. """
     if self._use_skp_playback_framework:
@@ -264,6 +268,15 @@ class SkiaFactory(BuildFactory):
     else:
       self.AddSlaveScript(script='render_pictures.py',
                           description='RenderPictures')
+
+  def RenderPdfs(self):
+    """ Run the "render_pdfs" tool to generate pdfs from .skp's. """
+    self.AddSlaveScript(script='render_pdfs.py',
+                        description='RenderPdfs')
+
+  # NOP here, android and chrome will pull results from device
+  def PostRender(self):
+    return
 
   def CompareGMs(self):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
@@ -375,7 +388,10 @@ class SkiaFactory(BuildFactory):
     """ Add correctness testing BuildSteps. """
     self.RunTests()
     self.RunGM()
+    self.PreRender()
     self.RenderPictures()
+    self.RenderPdfs()
+    self.PostRender()
     if self._do_upload_results:
       self.UploadGMResults()
     self.CompareGMs()

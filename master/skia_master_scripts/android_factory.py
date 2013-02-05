@@ -57,10 +57,25 @@ class AndroidFactory(skia_factory.SkiaFactory):
     self.AddSlaveScript(script='android_run_gm.py', description='GenerateGMs',
                         is_rebaseline_step=True)
 
+  def PreRender(self):
+    """ Prepares Android device for rendering. """
+    self.AddSlaveScript(script='android_prerender.py',
+                        description='PreRender')
+
   def RenderPictures(self):
     """ Run the "render_pictures" tool to generate images from .skp's. """
     self.AddSlaveScript(script='android_render_pictures.py',
                         description='RenderPictures')
+
+  def RenderPdfs(self):
+    """ Run the "render_pdfs" tool to generate pdfs from .skp's. """
+    self.AddSlaveScript(script='android_render_pdfs.py',
+                        description='RenderPdfs')
+
+  def PostRender(self):
+    """ Post render operations for the Android device. """
+    self.AddSlaveScript(script='android_postrender.py',
+                        description='PostRender')
 
   def CompareGMs(self):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
