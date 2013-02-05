@@ -40,10 +40,8 @@ class RenderPictures(BuildStep):
 
   def _Run(self):
     self.DoRenderPictures([])
-    self.DoRenderPictures(['--clone', '1'])
-    self.DoRenderPictures(['--clone', '2'])
-    self.DoRenderPictures(['--bbh', 'grid', '256', '256'])
-    self.DoRenderPictures(['--bbh', 'rtree'])
+    self.DoRenderPictures(['--bbh', 'grid', '256', '256', '--clone', '1'])
+    self.DoRenderPictures(['--bbh', 'rtree', '--clone', '2'])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RenderPictures))
