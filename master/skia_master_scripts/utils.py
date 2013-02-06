@@ -219,9 +219,6 @@ class SkiaHelper(master_config.Helper):
         def filter_fn(change):
           """Filter out if SKIP_BUILDBOT_SUBSTRING is in change.comments."""
           return not SKIP_BUILDBOT_SUBSTRING in change.comments
-        def branch_fn(branch):
-          """Filter out if branch is not in scheduler['branches']."""
-          return branch in scheduler['branches']
         instance = AnyBranchScheduler(name=s_name,
                                       branch=NotABranch,
                                       branches=NotABranch,
@@ -230,7 +227,7 @@ class SkiaHelper(master_config.Helper):
                                       builderNames=scheduler['builders'],
                                       categories=scheduler['categories'],
                                       change_filter=ChangeFilter(
-                                          branch_fn=branch_fn,
+                                          branch=scheduler['branches'],
                                           filter_fn=filter_fn))
       elif scheduler['type'] == 'PeriodicScheduler':
         instance = timed.Nightly(name=s_name,
