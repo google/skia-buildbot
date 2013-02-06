@@ -18,7 +18,9 @@ BINARY_NAME = 'render_pdfs'
 class AndroidRenderPdfs(RenderPdfs, AndroidBuildStep):
   def DoRenderPdfs(self):
     args = self._PdfArgs(self._device_dirs.SKPDir())
-    android_utils.RunShell(self._serial, [BINARY_NAME] + args)
+    android_utils.RunSkia(self._serial, [BINARY_NAME] + args,
+                          use_intent=(not self._has_root),
+                          stop_shell=self._has_root)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidRenderPdfs))
