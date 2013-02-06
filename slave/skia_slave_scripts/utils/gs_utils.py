@@ -98,6 +98,24 @@ def _GetChunks(seq, n):
     yield seq[i:i+n]
 
 
+def DeleteDirectoryContents(gs_base, gs_relative_dir, files_to_delete):
+  """Deletes the specified files from the Google Storage Directory.
+
+  Args:
+    gs_base: str - The Google Storage base. Eg: gs://rmistry.
+    gs_relative_dir: str - Relative directory to the Google Storage base.
+    files_to_delete: Files that should be deleted from the Google Storage
+        directory. The files are deleted one at a time. If files_to_delete is
+        None or empty then all directory contents are deleted.
+  """
+  gs_dest = posixpath.join(gs_base, gs_relative_dir)
+  if files_to_delete:
+    for file_to_delete in files_to_delete:
+      DeleteStorageObject(object_name=posixpath.join(gs_dest, file_to_delete))
+  else:
+    DeleteStorageObject(gs_dest)
+
+
 def UploadDirectoryContentsIfChanged(
     gs_base, gs_relative_dir, gs_acl, local_dir, force_upload=False,
     upload_chunks=False, files_to_upload=None):

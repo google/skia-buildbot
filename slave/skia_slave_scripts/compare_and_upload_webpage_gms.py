@@ -47,6 +47,10 @@ GM_COMPARISON_LINES_TO_EXTRACT_IMAGES = [
   'not found in baseDir and found in comparisonDir',
 ]
 
+GM_COMPARISON_LINES_TO_DELETE_IMAGES = [
+  'found in baseDir and not found in comparisonDir',
+]
+
 IMAGES_FOR_UPLOAD_CHUNKS = [
   'base-macmini',
   'base-macmini-lion-float',
@@ -215,20 +219,35 @@ class CompareAndUploadWebpageGMs(BuildStep):
           # gm_comparison_output. If we cannot determine which images have
           # changed then we upload all images.
           images_list = []
+          images_to_delete_list = []
           for output_line in gm_comparison_output.split('\n'):
             for gm_comparison_line in GM_COMPARISON_LINES_TO_EXTRACT_IMAGES:
               if gm_comparison_line in output_line:
                 images_list.extend([image for image in output_line.split()
                                     if 'png' in image])
+            for gm_comparison_line in GM_COMPARISON_LINES_TO_DELETE_IMAGES:
+              if gm_comparison_line in output_line:
+                images_to_delete_list.extend(
+                    [image for image in output_line.split() if 'png' in image])
 
-          gs_utils.UploadDirectoryContentsIfChanged(
-              gs_base=self._dest_gsbase,
-              gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
-              gs_acl=PLAYBACK_CANNED_ACL,
-              local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
-              force_upload=True,
-              upload_chunks=self._upload_chunks,
-              files_to_upload=images_list)
+          if images_to_delete_list:
+            gs_utils.DeleteDirectoryContents(
+                gs_base=self._dest_gsbase,
+                gs_relative_dir=(
+                    self._storage_playback_dirs.PlaybackGmActualDir()),
+                files_to_delete=images_to_delete_list)
+
+          if not images_to_delete_list or (
+              images_to_delete_list and images_list):
+            gs_utils.UploadDirectoryContentsIfChanged(
+                gs_base=self._dest_gsbase,
+                gs_relative_dir=(
+                    self._storage_playback_dirs.PlaybackGmActualDir()),
+                gs_acl=PLAYBACK_CANNED_ACL,
+                local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
+                force_upload=True,
+                upload_chunks=self._upload_chunks,
+                files_to_upload=images_list)
 
       print '\n\nUpdate the gm-actual local LAST_COMPARISON_SUCCEEDED'
       self._WriteToLastComparisonFile(False)
