@@ -396,7 +396,7 @@ def MakeBuilderSet(do_debug=True, do_release=True, do_bench=True,
 
 
 def MakeAndroidBuilderSet(do_debug=True, do_release=True, do_bench=True,
-                          do_trybots=True, **kwargs):
+                          do_trybots=True, extra_branches=None, **kwargs):
   debug_factory   = None
   release_factory = None
   bench_factory   = None
@@ -406,10 +406,14 @@ def MakeAndroidBuilderSet(do_debug=True, do_release=True, do_bench=True,
     release_factory = AndroidNoPerfFactory
   if do_bench:
     bench_factory = AndroidPerfOnlyFactory
+  if not extra_branches:
+    extra_branches = []
+  extra_branches.append('android')
   _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
                                 debug_factory=debug_factory,
                                 release_factory=release_factory,
                                 bench_factory=bench_factory,
+                                extra_branches=extra_branches,
                                 **kwargs)
 
 
