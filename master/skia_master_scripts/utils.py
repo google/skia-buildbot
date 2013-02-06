@@ -16,6 +16,7 @@ from buildbot.scheduler import AnyBranchScheduler
 from buildbot.schedulers import timed
 from buildbot.schedulers.filter import ChangeFilter
 from buildbot.util import NotABranch
+from config_private import TRY_SVN_BASEURL
 from master import master_config
 from master.builders_pools import BuildersPools
 from master import try_job_svn
@@ -243,7 +244,7 @@ class SkiaHelper(master_config.Helper):
         pools[s_name].extend(scheduler['builders'])
         instance = try_job_svn.TryJobSubversion(
             name=s_name,
-            svn_url='http://skia-try.googlecode.com/svn',
+            svn_url=TRY_SVN_BASEURL,
             last_good_urls={'skia': None},
             code_review_sites={'skia': 'http://codereview.appspot.com'},
             pools=pools)

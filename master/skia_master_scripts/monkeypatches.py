@@ -5,11 +5,16 @@
 
 """ Monkeypatches to override upstream code. """
 
+
+from buildbot.status.web import base as webstatus_base
 from master import try_job_base
 from master import try_job_svn
 from master.try_job_base import text_to_dict
 from twisted.internet import defer
 from twisted.python import log
+from twisted.web import server
+
+import config_private
 
 
 ################################################################################
@@ -73,3 +78,53 @@ def TryJobCreateBuildset(self, ssid, parsed_job):
   return result
 
 try_job_base.TryJobBase.create_buildset = TryJobCreateBuildset
+
+
+def HtmlResourceRender(self, request):
+  """ Override of buildbot.status.web.base.HtmlResource.render:
+  http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4p1/buildbot/status/web/base.py?view=markup
+
+  We modify it to pass additional variables on to the web status pages, and
+  remove the "if False" section.
+  """
+  # tell the WebStatus about the HTTPChannel that got opened, so they
+  # can close it if we get reconfigured and the WebStatus goes away.
+  # They keep a weakref to this, since chances are good that it will be
+  # closed by the browser or by us before we get reconfigured. See
+  # ticket #102 for details.
+  if hasattr(request, "channel"):
+    # web.distrib.Request has no .channel
+    request.site.buildbot_service.registerChannel(request.channel)
+
+  ctx = self.getContext(request)
+
+  ############################## Added by borenet ##############################
+  status = self.getStatus(request)
+  ctx['all_builders'] = status.getBuilderNames()
+  ctx['skia_repo'] = config_private.SKIA_SVN_BASEURL
+  ctx['try_repo'] = config_private.TRY_SVN_BASEURL
+  ctx['internal_port'] = config_private.Master.Skia.master_port
+  ctx['external_port'] = config_private.Master.Skia.master_port_alt
+  ctx['title_url'] = config_private.Master.Skia.project_url
+  ##############################################################################
+
+  d = defer.maybeDeferred(lambda : self.content(request, ctx))
+  def handle(data):
+    if isinstance(data, unicode):
+      data = data.encode("utf-8")
+    request.setHeader("content-type", self.contentType)
+    if request.method == "HEAD":
+      request.setHeader("content-length", len(data))
+      return ''
+    return data
+  d.addCallback(handle)
+  def ok(data):
+    request.write(data)
+    request.finish()
+  def fail(f):
+    request.processingFailed(f)
+    return None # processingFailed will log this for us
+  d.addCallbacks(ok, fail)
+  return server.NOT_DONE_YET
+
+webstatus_base.HtmlResource.render = HtmlResourceRender

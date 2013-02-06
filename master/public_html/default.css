@@ -13,9 +13,10 @@ body.interface {
   margin-top: 10px;
   margin-bottom: 50px;
   padding: 0;
-  background: none transparent;
+  background: url(bg_gradient.jpg) repeat-x;
   font-family: Verdana, sans-serif;
   font-size: 10px;
+  background-color: #fff;
   color: #333;
 }
 
@@ -76,6 +77,10 @@ div.Announcement>div.Closed {
   padding: 0.5em;
   font-size: 24px;
   font-weight: bold;
+  text-align: center;
+}
+
+div.header {
   text-align: center;
 }
 

@@ -18,9 +18,264 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     <title>{{ pageTitle|e }}</title>
     <link rel="stylesheet" href="{{ stylesheet }}" type="text/css" />
     <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ path_to_root }}rss">
+    <script type="text/javascript" src="http://www.thomasfrank.se/downloadableJS/jsonStringify.js"></script>
+    <script type="text/javascript">
+    "use strict";
+
+    var reload = 40;
+    var skia_repo = "{{ skia_repo }}";
+    var try_repo = "{{ try_repo }}";
+    var internalport = "{{ internal_port }}";
+    var externalport = "{{ external_port }}";
+
+    var all_builders = [
+      {% for b in all_builders %}
+      "{{ b }}",
+      {% endfor %}
+    ];
+
+    // Categorize the builders.
+    var nonbench_percommit_builders = [];
+    var bench_percommit_builders = [];
+    var all_percommit_builders = [];
+    var try_builders = [];
+    for (var i = 0; i < all_builders.length; ++i) {
+      var builder = all_builders[i];
+      if (builder.indexOf("Trybot") != -1) {
+        try_builders.push(builder)
+      } else {
+        all_percommit_builders.push(builder);
+        if (builder.indexOf("Bench") != -1) {
+          bench_percommit_builders.push(builder);
+        } else {
+          nonbench_percommit_builders.push(builder);
+        }
+      }
+    }
+
+    // Set an option on window.name
+    function setOption(name, value) {
+      var options = JSONstring.toObject(top.name);
+      options[name] = value;
+      top.name = JSONstring.make(options);
+    }
+
+    // Get an option from window.name
+    function getOption(name) {
+      var options = JSONstring.toObject(top.name);
+      return options[name];
+    }
+
+    // Reload the page with the given set of builders and repository, making a
+    // note of which radio button to set. If make_historic is true, a new
+    // history entry is added for this reload.
+    function reloadWithOptions(builders, repository, radio_id, make_historic) {
+      setOption("builders", builders);
+      setOption("repository", repository);
+      setOption("radio", radio_id);
+
+      // Reload the page with the desired list of builders.
+      var current_url = window.location.href;
+      var bare_url = current_url.substring(0, current_url.indexOf("?"));
+      var new_url = bare_url + "?reload=" + reload + "&repository=" + repository
+                        + getBuilderString(builders);
+      if (make_historic) {
+        // This forces a new history entry.
+        window.location = new_url;
+      } else {
+        // This sneakily replaces the current history entry.
+        window.location.replace(new_url);
+      }
+    }
+
+    // Switch to the internal or external view.
+    function setInternalView(is_internal) {
+      var current_host = window.location.host;
+      var new_host = current_host.split(":")[0] + ":";
+      if (is_internal) {
+        new_host += internalport;
+      } else {
+        new_host += externalport;
+      }
+      window.location.host = new_host;
+    }
+
+    // Refresh the tree status iframe.
+    function reloadSkiaTreeStatus() {
+      document.getElementById("skia-tree-status").src =
+          document.getElementById("skia-tree-status").src;
+    }
+
+    // Parse the variables in the URL and return a key/value dictionary.
+    function parseArgs()
+    {
+      var args = {};
+      var dict = window.location.search.slice(1).split('&');
+      for(var i = 0; i < dict.length; i++) {
+        var split = dict[i].split('=');
+        if (args[split[0]]) {
+          if (Object.prototype.toString.call(args[split[0]]) == "[object Array]") {
+            args[split[0]].push(split[1]);
+          } else {
+            args[split[0]] = [args[split[0]], split[1]];
+          }
+        } else {
+          args[split[0]] = split[1];
+        }
+      }
+      return args;
+    }
+
+    // Return a string of the form: "&builder=x&builder=y..." with all of those
+    // contained in the given array of builders.
+    function getBuilderString(builders) {
+      var builder_string = "";
+      for (var i = 0; i < builders.length; i++) {
+        builder_string = builder_string.concat("&builder=", builders[i]);
+      }
+      return builder_string;
+    }
+
+    // Compare two lists. Returns true iff the lists are identical.
+    function listsAreIdentical(a, b) {
+      if (a.length != b.length) {
+        return false;
+      } else {
+        a.sort();
+        b.sort();
+        for (var i = 0; i < a.length; ++i) {
+          if (a[i] != b[i]) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    // Function to call on page load. Reloads the page with appropriate options
+    // if they are not already set.
+    function init() {
+      var args = parseArgs();
+      var currently_displaying = args["builder"];
+      if (currently_displaying &&
+          !Object.prototype.toString.call(currently_displaying) == "[object Array]") {
+        currently_displaying = [currently_displaying];
+      }
+      var desired_builders = getOption("builders");
+      var desired_radio;
+      var desired_repository;
+      if (!currently_displaying) {
+        if (desired_builders) {
+          reloadWithOptions(desired_builders, getOption("repository"), getOption("radio"), false);
+          return;
+        } else {
+          reloadWithOptions(nonbench_percommit_builders, skia_repo, "radio_nonbench", false);
+          return;
+        }
+      } else {
+        // If the list of builders is known, accept it as the desired list.
+        if (listsAreIdentical(currently_displaying, nonbench_percommit_builders)) {
+          desired_radio = "radio_nonbench";
+          desired_repository = skia_repo;
+        } else if (listsAreIdentical(currently_displaying, bench_percommit_builders)) {
+          desired_radio = "radio_bench";
+          desired_repository = skia_repo;
+        } else if (listsAreIdentical(currently_displaying, all_percommit_builders)) {
+          desired_radio = "radio_all";
+          desired_repository = skia_repo;
+        } else if (listsAreIdentical(currently_displaying, try_builders)) {
+          desired_radio = "radio_try";
+          desired_repository = try_repo;
+        } else {
+          // If the list of builders is not known, allow it, and use defaults for everything else.
+          desired_repository = skia_repo;
+        }
+      }
+
+      // Set options for the next page load.
+      desired_builders = currently_displaying;
+      setOption("radio", desired_radio);
+      setOption("builders", desired_builders);
+      setOption("repository", desired_repository);
+
+      // Check the correct boxes.
+      var all_input = document.getElementsByTagName("input");
+      for (var i = 0; i < all_input.length; ++i) {
+        if (all_input[i].type == "radio") {
+          all_input[i].checked = false;
+        }
+      }
+      if (desired_radio) {
+        document.getElementById(desired_radio).checked = true;
+      }
+      var host = window.location.host;
+      if (host.indexOf(internalport, host.length - internalport.length) !== -1) {
+        document.getElementById("radio_internal").checked = true;
+      } else if (host.indexOf(externalport, host.length - externalport.length) !== -1) {
+        document.getElementById("radio_external").checked = true;
+      }
+
+      // Set the iframe to reload.
+      window.setInterval("reloadSkiaTreeStatus();", 10000);
+    }
+
+    </script>
     {% endblock %}
   </head>
   <body class="interface">
+
+    {% block header -%}
+    <iframe id="skia-tree-status" width="100%" height="40" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
+    <div id="container" style="float: left; width: 100%; min-height: 65px;">
+      <div style="float:left; width:30%; position: relative; z-index:2;">
+      <form name="unused">
+        <input type="radio" name="internal_external" value="external" id="radio_external" onClick="setInternalView(false);">External View<br>
+        <input type="radio" name="internal_external" value="internal" id="radio_internal" onClick="setInternalView(true);">Internal View
+      </form>
+      </div>
+
+      <div id="links" style="float:right; max-width:22%; position: relative; z-index:2;">
+        <div style="float:left; width: 190px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li></ul></div>
+        <div style="float:left; width: 190px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skia-tree-status.appspot.com/" target="_blank">Skia Tree Status Manager</a><br/></li></ul></div>
+        <div style="float:left; width: 190px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/></li></ul></div>
+        <div style="float:left; width: 190px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bench_graphs.html" target="_blank">Bench Graphs</a><br/></li></ul></div>
+        <div style="float:left; width: 190px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://go/skpbench" target="_blank">Bench Dashboard</a><br/></li></ul></div>
+        <div style="float:left; width: 190px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bug_graphs.html" target="_blank">Open Bugs Graph</a><br/></li></ul></div>
+        <div style="float:left; width: 190px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://storage.cloud.google.com/chromium-skia-gm/static_analyzers/clang_static_analyzer/index.html" target="_blank">Clang Static Analyzer</a><br/></li></ul></div>
+      </div>
+
+      <div style="text-align:center; position: absolute; width: 100%; height: 65px; z-index:1;">
+        <div id="heading" style="font-size:3.5em; text-align:center;">Skia Buildbots</div>
+        <div style="text-align:center;">
+          <form name="unused2">
+            <nobr>
+            <input type="radio" id="radio_nonbench" value="nonbench" onClick="javascript:reloadWithOptions(nonbench_percommit_builders, skia_repo, 'radio_nonbench', true);">Non-Bench Builders
+            <input type="radio" id="radio_bench" value="bench" onClick="javascript:reloadWithOptions(bench_percommit_builders, skia_repo, 'radio_bench', true);">Bench Builders
+            <input type="radio" id="radio_all" value="all" onClick="javascript:reloadWithOptions(all_percommit_builders, skia_repo, 'radio_all', true);">All Builders
+            <input type="radio" id="radio_try" value="try" onClick="javascript:reloadWithOptions(try_builders, try_repo, 'radio_try', true);">Trybots
+            </nobr>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="header">
+        <a href="{{ path_to_root or '.' }}">Home</a> -
+        <a href="{{ path_to_root }}waterfall">Waterfall</a>
+        <a href="{{ path_to_root }}grid">Grid</a>
+        <a href="{{ path_to_root }}tgrid">T-Grid</a>
+        <a href="{{ path_to_root }}console">Console</a>
+        <a href="{{ path_to_root }}builders">Builders</a>
+        <a href="{{ path_to_root }}one_line_per_build">Recent Builds</a>
+        <a href="{{ path_to_root }}buildslaves">Buildslaves</a>
+        <a href="{{ path_to_root }}changes">Changesources</a> -
+        <a href="{{ path_to_root }}json/help">JSON API</a> -
+        <a href="{{ path_to_root }}about">About</a>
+    </div>
+    <script language="JavaScript">
+      init();
+    </script>
+    {% endblock %}
 
     {%- block barecontent -%}
 

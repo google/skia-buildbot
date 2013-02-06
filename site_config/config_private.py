@@ -23,7 +23,7 @@ SKIA_PRIVATE_MASTER = skia_vars.GetGlobalVariable('private_master_host_name')
 AUTOGEN_SVN_BASEURL = skia_vars.GetGlobalVariable('autogen_svn_url')
 SKIA_REVLINKTMPL = skia_vars.GetGlobalVariable('revlinktmpl')
 SKIA_SVN_BASEURL = skia_vars.GetGlobalVariable('skia_svn_url')
-
+TRY_SVN_BASEURL = skia_vars.GetGlobalVariable('try_svn_url')
 
 class Master(config_default.Master):
   googlecode_revlinktmpl = 'http://code.google.com/p/%s/source/browse?r=%s'
