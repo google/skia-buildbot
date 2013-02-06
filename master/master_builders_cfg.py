@@ -128,6 +128,15 @@ def Update(config, active_master, c):
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-10',
       perf_output_basedir=perf_output_basedir_linux)
+  MakeAndroidBuilderSet(
+      helper=helper,
+      builder_base_name='Skia_RazrI_4-1_Float_%s_32',
+      device='x86',
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
+      gm_image_subdir='base-android-razr-i',
+      perf_output_basedir=perf_output_basedir_linux)
 
   # Mac 10.6 (SnowLeopard) ...
   defaults['category'] = 'mac-10.6'

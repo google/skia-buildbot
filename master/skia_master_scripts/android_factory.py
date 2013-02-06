@@ -29,7 +29,8 @@ class AndroidFactory(skia_factory.SkiaFactory):
                                       bench_pictures_cfg=device, **kwargs)
     self._device = device
     self._common_args += ['--device', self._device,
-                          '--serial', WithProperties('%(serial:-None)s')]
+                          '--serial', WithProperties('%(serial:-None)s'),
+                          '--has_root', WithProperties('%(has_root:-True)s')]
 
   def Compile(self, clobber=None):
     """Compile step. Build everything.

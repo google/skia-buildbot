@@ -58,11 +58,9 @@ class AndroidRunGM(AndroidBuildStep, RunGM):
                                    self._gm_image_subdir)]
                  + self._gm_args)
     try:
-      android_utils.StopShell(self._serial)
-      android_utils.RunADB(self._serial, ['logcat', '-c'])
-      cmd = [android_utils.PATH_TO_ADB, '-s', self._serial, 'shell',
-             'skia_launcher', 'gm'] + arguments
-      self._RunModulo(cmd)
+      android_utils.RunSkia(self._serial, ['gm'] + arguments,
+                            use_intent=(not self._has_root),
+                            stop_shell=self._has_root)
     finally:
       android_utils.RunADB(self._serial, ['logcat', '-d', '-v', 'time'])
       self._PullImages(self._serial)

@@ -40,7 +40,8 @@ def BashAsync(cmd, echo=True, shell=False):
                           bufsize=1)
 
 
-def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
+def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
+                           halt_on_output=None):
   """ Log the output of proc until it completes. Return a tuple containing the
   exit code of proc and the contents of stdout.
 
@@ -48,6 +49,8 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
   echo: boolean indicating whether to print the output received from proc.stdout
   timeout: number of seconds allotted for the process to run
   log_file: an open file for writing output
+  halt_on_output: string; kill the process and return if this string is found
+      in the output stream from the process.
   """
 
   def Enqueue(stdout, queue):
@@ -71,6 +74,9 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None):
         log_file.write(output)
         log_file.flush()
       all_output.append(output)
+      if halt_on_output and halt_on_output in output:
+        proc.terminate()
+        break
     except Queue.Empty:
       if code != None: # proc has finished running
         break

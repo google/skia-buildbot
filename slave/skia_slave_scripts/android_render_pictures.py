@@ -20,7 +20,9 @@ class AndroidRenderPictures(RenderPictures, AndroidBuildStep):
     args = self._PictureArgs(self._device_dirs.SKPDir(),
                              self._device_dirs.SKPOutDir(),
                              'bitmap')
-    android_utils.RunShell(self._serial, [BINARY_NAME] + args + verify_args)
+    android_utils.RunSkia(self._serial, [BINARY_NAME] + args + verify_args,
+                          use_intent=(not self._has_root),
+                          stop_shell=self._has_root)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidRenderPictures))

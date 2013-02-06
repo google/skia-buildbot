@@ -31,14 +31,18 @@ class AndroidDirs(object):
 
 class AndroidBuildStep(BuildStep):
   def _PreRun(self):
-    android_utils.RunADB(self._serial, ['root'])
-    android_utils.RunADB(self._serial, ['remount'])
-    android_utils.SetCPUScalingMode(self._serial, 'performance')
-    android_utils.ADBKill(self._serial, 'skia')
+    if self._has_root:
+      android_utils.RunADB(self._serial, ['root'])
+      android_utils.RunADB(self._serial, ['remount'])
+      android_utils.SetCPUScalingMode(self._serial, 'performance')
+      android_utils.ADBKill(self._serial, 'skia')
+    else:
+      android_utils.ADBKill(self._serial, 'com.skia', kill_app=True)
 
   def __init__(self, args, **kwargs):
     self._device = args['device']
     self._serial = args['serial']
+    self._has_root = args['has_root'] == 'True'
     if self._serial == 'None':
       self._serial = android_utils.GetSerial(self._device)
     device_scratch_dir = shell_utils.Bash(

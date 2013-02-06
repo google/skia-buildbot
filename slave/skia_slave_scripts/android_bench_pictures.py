@@ -23,7 +23,8 @@ class AndroidBenchPictures(BenchPictures, AndroidRenderPictures):
             perf_data_dir=self._perf_data_dir,
             device_perf_dir=self._device_dirs.SKPPerfDir(),
             data_file=data_file,
-            extra_args=args)
+            extra_args=args,
+            has_root=self._has_root)
 
   def _Run(self):
     super(AndroidBenchPictures, self)._Run()

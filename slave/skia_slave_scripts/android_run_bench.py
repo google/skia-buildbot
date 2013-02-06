@@ -15,7 +15,7 @@ import sys
 
 
 def DoBench(serial, executable, perf_data_dir, device_perf_dir, data_file,
-            extra_args=None):
+            extra_args=None, has_root=True):
   """ Runs an Android benchmarking executable.
   
   serial: string indicating serial number of the Android device to target
@@ -25,6 +25,7 @@ def DoBench(serial, executable, perf_data_dir, device_perf_dir, data_file,
       temporarily stored.
   data_file: string containing the path to the perf data file on the device
   extra_args: list of any extra arguments to pass to the executable.
+  has_root: boolean indicating whether we have root access to the device.
   """
   cmd_args = extra_args or []
   if perf_data_dir:
@@ -35,11 +36,13 @@ def DoBench(serial, executable, perf_data_dir, device_perf_dir, data_file,
       pass
     android_utils.RunADB(serial, ['shell', 'mkdir', '-p', device_perf_dir])
     cmd_args += BenchArgs(RunBench.BENCH_REPEAT_COUNT, data_file)
-    android_utils.RunShell(serial, [executable] + cmd_args)
+    android_utils.RunSkia(serial, [executable] + cmd_args,
+                          use_intent=(not has_root), stop_shell=has_root)
     android_utils.RunADB(serial, ['pull', data_file, perf_data_dir])
     android_utils.RunADB(serial, ['shell', 'rm', '-r', device_perf_dir])
   else:
-    android_utils.RunShell(serial, [executable] + cmd_args)
+    android_utils.RunSkia(serial, [executable] + cmd_args,
+                          use_intent=(not has_root), stop_shell=has_root)
 
 
 class AndroidRunBench(RunBench, AndroidBuildStep):
@@ -52,7 +55,8 @@ class AndroidRunBench(RunBench, AndroidBuildStep):
             executable='bench',
             perf_data_dir=self._perf_data_dir,
             device_perf_dir=self._device_dirs.PerfDir(),
-            data_file=data_file)
+            data_file=data_file,
+            has_root=self._has_root)
 
 
 if '__main__' == __name__:
