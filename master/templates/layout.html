@@ -164,39 +164,40 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       var desired_builders = getOption("builders");
       var desired_radio;
       var desired_repository;
-      if (!currently_displaying) {
-        if (desired_builders) {
-          reloadWithOptions(desired_builders, getOption("repository"), getOption("radio"), false);
-          return;
+      if (!args["show"]) { // Do not reload pages with "show=".
+        if (!currently_displaying) {
+          if (desired_builders) {
+            reloadWithOptions(desired_builders, getOption("repository"), getOption("radio"), false);
+            return;
+          } else {
+            reloadWithOptions(nonbench_percommit_builders, skia_repo, "radio_nonbench", false);
+            return;
+          }
         } else {
-          reloadWithOptions(nonbench_percommit_builders, skia_repo, "radio_nonbench", false);
-          return;
+          // If the list of builders is known, accept it as the desired list.
+          if (listsAreIdentical(currently_displaying, nonbench_percommit_builders)) {
+            desired_radio = "radio_nonbench";
+            desired_repository = skia_repo;
+          } else if (listsAreIdentical(currently_displaying, bench_percommit_builders)) {
+            desired_radio = "radio_bench";
+            desired_repository = skia_repo;
+          } else if (listsAreIdentical(currently_displaying, all_percommit_builders)) {
+            desired_radio = "radio_all";
+            desired_repository = skia_repo;
+          } else if (listsAreIdentical(currently_displaying, try_builders)) {
+            desired_radio = "radio_try";
+            desired_repository = try_repo;
+          } else {
+            // If the list of builders is not known, allow it, and use defaults for everything else.
+            desired_repository = skia_repo;
+          }
         }
-      } else {
-        // If the list of builders is known, accept it as the desired list.
-        if (listsAreIdentical(currently_displaying, nonbench_percommit_builders)) {
-          desired_radio = "radio_nonbench";
-          desired_repository = skia_repo;
-        } else if (listsAreIdentical(currently_displaying, bench_percommit_builders)) {
-          desired_radio = "radio_bench";
-          desired_repository = skia_repo;
-        } else if (listsAreIdentical(currently_displaying, all_percommit_builders)) {
-          desired_radio = "radio_all";
-          desired_repository = skia_repo;
-        } else if (listsAreIdentical(currently_displaying, try_builders)) {
-          desired_radio = "radio_try";
-          desired_repository = try_repo;
-        } else {
-          // If the list of builders is not known, allow it, and use defaults for everything else.
-          desired_repository = skia_repo;
-        }
+        // Set options for the next page load.
+        desired_builders = currently_displaying;
+        setOption("radio", desired_radio);
+        setOption("builders", desired_builders);
+        setOption("repository", desired_repository);
       }
-
-      // Set options for the next page load.
-      desired_builders = currently_displaying;
-      setOption("radio", desired_radio);
-      setOption("builders", desired_builders);
-      setOption("repository", desired_repository);
 
       // Check the correct boxes.
       var all_input = document.getElementsByTagName("input");
