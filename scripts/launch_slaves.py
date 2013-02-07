@@ -31,7 +31,7 @@ PID_FILE = os.path.join('buildbot', 'third_party', 'chromium_buildbot', 'slave',
                         'twistd.pid')
 # Maximum time (in seconds) to wait for PID_FILE to be written after the slave
 # is launched.  If PID_FILE is not written by then, we assume an error occurred.
-PID_TIMEOUT = 10.0
+PID_TIMEOUT = 60.0
 SVN_URL = 'https://skia.googlecode.com/svn/buildbot'
 
 
@@ -245,7 +245,8 @@ def RunSlave(slavename, copies, slaves_cfg, master_host):
 
   manager = BuildSlaveManager(slavename, slave_dir, copies, os.curdir,
                               master_host,
-                              slave_cfg.get('keepalive_conditions', []), 10)
+                              slave_cfg.get('keepalive_conditions', []),
+                              DEFAULT_POLL_INTERVAL)
   manager.start()
 
 
