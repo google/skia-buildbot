@@ -187,8 +187,8 @@
         var rev = allRevs[selected.row];
         var buildNum = data[rev][builder].getNumber();
         console.log("Selected: " + builder + " @ " + rev);
-        var url = skiaTools.HOST + ":" + skiaTools.PORT + "/builders/" + builder
-            + "/builds/" + buildNum;
+        var url = skiaTools.host() + ":" + skiaTools.port() + "/builders/" +
+            builder + "/builds/" + buildNum;
         var rightContent = "<iframe style=\"width:100%; height:100%; "
                          + "padding:0px; margin=0px; overflow:scroll;\" src=\""
                          + url + "\"></iframe>";
