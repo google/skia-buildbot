@@ -344,9 +344,7 @@ def RunSkiaShell(serial, cmd, stop_shell=True):
     StopShell(serial)
   RunADB(serial, ['logcat', '-c'])
   try:
-    skia_cmd = [os.path.join(os.pardir, 'android', 'bin', 'android_run_skia'),
-                '-s', serial]
-    shell_utils.Bash(skia_cmd + cmd)
+    ADBShell(serial, ['skia_launcher'] + cmd)
   finally:
     RunADB(serial, ['logcat', '-d', '-v', 'time'])
 
