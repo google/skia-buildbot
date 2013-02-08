@@ -75,6 +75,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
         log_file.flush()
       all_output.append(output)
       if halt_on_output and halt_on_output in output:
+        print '%s found in subprocess output; halting.'
         proc.terminate()
         break
     except Queue.Empty:
@@ -84,7 +85,9 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
     if timeout and time.time() - t_0 > timeout:
       proc.terminate()
       break
+  print 'Joining log thread.'
   log_thread.join()
+  print 'LogProcessToCompletion finished.'
   return (code, ''.join(all_output))
 
 
