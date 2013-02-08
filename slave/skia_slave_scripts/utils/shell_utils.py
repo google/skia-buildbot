@@ -85,6 +85,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
       time.sleep(0.5)
     if timeout and time.time() - t_0 > timeout:
       proc.terminate()
+      print proc.poll()
       break
   print 'Joining log thread.'
   log_thread.join()
