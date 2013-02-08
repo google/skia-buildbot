@@ -40,6 +40,12 @@ def BashAsync(cmd, echo=True, shell=False):
                           bufsize=1)
 
 
+def KillProcess(proc):
+  proc.terminate()
+  if not proc.poll():
+    proc.kill()
+
+
 def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
                            halt_on_output=None):
   """ Log the output of proc until it completes. Return a tuple containing the
@@ -76,7 +82,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
       all_output.append(output)
       if halt_on_output and halt_on_output in output:
         print '%s found in subprocess output; halting.' % halt_on_output
-        proc.terminate()
+        KillProcess(proc)
         print proc.poll()
         break
     except Queue.Empty:
