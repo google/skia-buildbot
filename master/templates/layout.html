@@ -152,9 +152,33 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       return true;
     }
 
+    // Resize the spacer div.
+    function resizeSpacer() {
+      var spacer = document.getElementById("skia_spacer");
+      var header = document.getElementById("skia_header");
+      if (spacer && header) {
+        spacer.style.height = header.offsetHeight + "px";
+      }
+    }
+    window.onresize = resizeSpacer;
+
+    // Scroll the header div with the page.
+    function scrollHeader() {
+      var header = document.getElementById("skia_header");
+      if (header) {
+        header.style.top = (5 - parseInt(document.body.scrollTop)) + "px";
+      }
+    }
+    document.onscroll = scrollHeader;
+
     // Function to call on page load. Reloads the page with appropriate options
     // if they are not already set.
     function init() {
+      // Resize the spacer div.
+      resizeSpacer();
+
+      // Use the URL variables and window-attached options to determine which
+      // builders to display and reload the page if necessary.
       var args = parseArgs();
       var currently_displaying = args["builder"];
       if (currently_displaying &&
@@ -199,7 +223,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         setOption("repository", desired_repository);
       }
 
-      // Check the correct boxes.
+      // Check the correct radio buttons.
       var all_input = document.getElementsByTagName("input");
       for (var i = 0; i < all_input.length; ++i) {
         if (all_input[i].type == "radio") {
@@ -224,57 +248,59 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     {% endblock %}
   </head>
   <body class="interface">
-
     {% block header -%}
-    <iframe id="skia-tree-status" width="100%" height="40" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
-    <div id="container" style="float: left; width: 100%; min-height: 65px;">
-      <div style="float:left; width:30%; position: relative; z-index:2;">
-      <form name="unused">
-        <input type="radio" name="internal_external" value="external" id="radio_external" onClick="setInternalView(false);">External View<br>
-        <input type="radio" name="internal_external" value="internal" id="radio_internal" onClick="setInternalView(true);">Internal View
-      </form>
-      </div>
-
-      <div id="links" style="float:right; max-width:32%; position: relative; z-index:2;">
-        <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li></ul></div>
-        <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skia-tree-status.appspot.com/" target="_blank">Skia Tree Status Manager</a><br/></li></ul></div>
-        <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/></li></ul></div>
-        <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bench_graphs.html" target="_blank">Bench Graphs</a><br/></li></ul></div>
-        <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://go/skpbench" target="_blank">Bench Dashboard</a><br/></li></ul></div>
-        <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bug_graphs.html" target="_blank">Open Bugs Graph</a><br/></li></ul></div>
-        <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://storage.cloud.google.com/chromium-skia-gm/static_analyzers/clang_static_analyzer/index.html" target="_blank">Clang Static Analyzer</a><br/></li></ul></div>
-        <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/buildbots_self_analysis.html" target="_blank">Buildbot Self-Dashboard</a><br/></li></ul></div>
-        <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/buildslave_idle.html" target="_blank">Buildslave Idle Time Analysis</a><br/></li></ul></div>
-      </div>
-
-      <div style="text-align:center; position: absolute; width: 100%; height: 65px; z-index:1;">
-        <div id="heading" style="font-size:3.5em; text-align:center;">Skia Buildbots</div>
-        <div style="text-align:center;">
-          <form name="unused2">
-            <nobr>
-            <input type="radio" id="radio_nonbench" value="nonbench" onClick="javascript:reloadWithOptions(nonbench_percommit_builders, skia_repo, 'radio_nonbench', true);">Non-Bench Builders
-            <input type="radio" id="radio_bench" value="bench" onClick="javascript:reloadWithOptions(bench_percommit_builders, skia_repo, 'radio_bench', true);">Bench Builders
-            <input type="radio" id="radio_all" value="all" onClick="javascript:reloadWithOptions(all_percommit_builders, skia_repo, 'radio_all', true);">All Builders
-            <input type="radio" id="radio_try" value="try" onClick="javascript:reloadWithOptions(try_builders, try_repo, 'radio_try', true);">Trybots
-            </nobr>
-          </form>
+    <div id="skia_header" style="position:fixed; top:5px;">
+      <iframe id="skia-tree-status" width="100%" height="40" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
+      <div id="container" style="float: left; width: 100%; min-height: 65px;">
+        <div style="float:left; width:30%; position: relative; z-index:2;">
+        <form name="unused">
+          <input type="radio" name="internal_external" value="external" id="radio_external" onClick="setInternalView(false);">External View<br>
+          <input type="radio" name="internal_external" value="internal" id="radio_internal" onClick="setInternalView(true);">Internal View
+        </form>
+        </div>
+  
+        <div id="links" style="float:right; max-width:32%; position: relative; z-index:2;">
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skia-tree-status.appspot.com/" target="_blank">Skia Tree Status Manager</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bench_graphs.html" target="_blank">Bench Graphs</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://go/skpbench" target="_blank">Bench Dashboard</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bug_graphs.html" target="_blank">Open Bugs Graph</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://storage.cloud.google.com/chromium-skia-gm/static_analyzers/clang_static_analyzer/index.html" target="_blank">Clang Static Analyzer</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/buildbots_self_analysis.html" target="_blank">Buildbot Self-Dashboard</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/buildslave_idle.html" target="_blank">Buildslave Idle Time Analysis</a><br/></li></ul></div>
+        </div>
+  
+        <div style="text-align:center; position: absolute; width: 100%; height: 65px; z-index:1;">
+          <div id="heading" style="font-size:3.5em; text-align:center;">Skia Buildbots</div>
+          <div style="text-align:center;">
+            <form name="unused2">
+              <nobr>
+              <input type="radio" id="radio_nonbench" value="nonbench" onClick="javascript:reloadWithOptions(nonbench_percommit_builders, skia_repo, 'radio_nonbench', true);">Non-Bench Builders
+              <input type="radio" id="radio_bench" value="bench" onClick="javascript:reloadWithOptions(bench_percommit_builders, skia_repo, 'radio_bench', true);">Bench Builders
+              <input type="radio" id="radio_all" value="all" onClick="javascript:reloadWithOptions(all_percommit_builders, skia_repo, 'radio_all', true);">All Builders
+              <input type="radio" id="radio_try" value="try" onClick="javascript:reloadWithOptions(try_builders, try_repo, 'radio_try', true);">Trybots
+              </nobr>
+            </form>
+          </div>
         </div>
       </div>
+  
+      <div class="header">
+          <a href="{{ path_to_root or '.' }}">Home</a> -
+          <a href="{{ path_to_root }}waterfall">Waterfall</a>
+          <a href="{{ path_to_root }}grid">Grid</a>
+          <a href="{{ path_to_root }}tgrid">T-Grid</a>
+          <a href="{{ path_to_root }}console">Console</a>
+          <a href="{{ path_to_root }}builders">Builders</a>
+          <a href="{{ path_to_root }}one_line_per_build">Recent Builds</a>
+          <a href="{{ path_to_root }}buildslaves">Buildslaves</a>
+          <a href="{{ path_to_root }}changes">Changesources</a> -
+          <a href="{{ path_to_root }}json/help">JSON API</a> -
+          <a href="{{ path_to_root }}about">About</a>
+      </div>
     </div>
-
-    <div class="header">
-        <a href="{{ path_to_root or '.' }}">Home</a> -
-        <a href="{{ path_to_root }}waterfall">Waterfall</a>
-        <a href="{{ path_to_root }}grid">Grid</a>
-        <a href="{{ path_to_root }}tgrid">T-Grid</a>
-        <a href="{{ path_to_root }}console">Console</a>
-        <a href="{{ path_to_root }}builders">Builders</a>
-        <a href="{{ path_to_root }}one_line_per_build">Recent Builds</a>
-        <a href="{{ path_to_root }}buildslaves">Buildslaves</a>
-        <a href="{{ path_to_root }}changes">Changesources</a> -
-        <a href="{{ path_to_root }}json/help">JSON API</a> -
-        <a href="{{ path_to_root }}about">About</a>
-    </div>
+    <div id="skia_spacer" style="clear:both"></div>
     <script language="JavaScript">
       init();
     </script>
