@@ -77,7 +77,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
       if halt_on_output and halt_on_output in output:
         print '%s found in subprocess output; halting.' % halt_on_output
         proc.terminate()
-        proc.stdout.close()
+        print proc.poll()
         break
     except Queue.Empty:
       if code != None: # proc has finished running
