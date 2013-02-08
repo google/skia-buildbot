@@ -394,7 +394,6 @@ class _WatchLog(threading.Thread):
         self._log_process,
         log_file=self._log_file,
         halt_on_output='SKIA_RETURN_CODE')[1]
-    print 'Finished running Skia executable.'
     if not self._stopped:
       # If the logger was stopped, then we know the Skia process died.
       for line in output.split('\n'):
@@ -437,9 +436,8 @@ def RunSkiaIntent(serial, cmd, logfile=None):
     # adb does not always return in a timely fashion.  Don't wait for it.
     monitor = shell_utils.Bash(
         '%s -s %s shell ps | grep skia_native' % (PATH_TO_ADB, serial),
-        echo=True, shell=True, timeout=SUBPROCESS_TIMEOUT)
+        echo=False, shell=True, timeout=SUBPROCESS_TIMEOUT)
     if not monitor[0]: # adb timed out
-      print 'ADB timed out!'
       continue
     # No SKIA_RETURN_CODE printed, but the process isn't running
     if monitor[1] == '' and logger.retcode == SKIA_RUNNING:
