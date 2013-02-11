@@ -17,6 +17,13 @@ import sys
 
 
 class GenerateBenchGraphs(BuildStep):
+  # TODO(borenet): Temporarily increasing the timeout since the amount of data
+  # dramatically increased with r7620.
+  def __init__(self, timeout=9600, no_output_timeout=9600, **kwargs):
+    super(GenerateBenchGraphs, self).__init__(
+        timeout=timeout,
+        no_output_timeout=no_output_timeout,
+        **kwargs)
 
   def _GetPerfGraphsDir(self):
     return self._perf_graphs_dir
