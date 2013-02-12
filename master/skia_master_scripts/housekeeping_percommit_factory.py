@@ -50,8 +50,8 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
         description='ClangCompile')
 
     # Generate and upload Buildbot Pydoc documentation.
-    buildbot_pydoc_actual_svn_baseurl = '%s/%s' % (
-        AUTOGEN_SVN_BASEURL.replace('http', 'https'), 'buildbot-docs')
+    buildbot_pydoc_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL,
+                                                   'buildbot-docs')
     # pylint: disable=W0212
     update_buildbot_pydoc_path = self.TargetPathJoin(
         self._skia_cmd_obj._local_slave_script_dir, 'update-buildbot-pydoc.sh')
@@ -81,8 +81,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
           description='UploadBuildbotPydoc')
 
     # Generate and upload Doxygen documentation.
-    doxygen_actual_svn_baseurl = '%s/%s' % (
-        AUTOGEN_SVN_BASEURL.replace('http', 'https'), 'docs')
+    doxygen_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL, 'docs')
     update_doxygen_path = self.TargetPathJoin('tools', 'update-doxygen.sh')
     doxygen_working_dir = self.TargetPathJoin(tempfile.gettempdir(), 'doxygen')
     # Cleanup the previous (if any) doxygen working dir.
