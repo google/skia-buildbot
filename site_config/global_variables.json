@@ -1,6 +1,6 @@
 {
   "autogen_svn_url": {
-    "value": "http://skia-autogen.googlecode.com/svn",
+    "value": "https://skia-autogen.googlecode.com/svn",
     "type": "string",
     "description": "URL of the SVN repo used for auto-generated assets."
   },
