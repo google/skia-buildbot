@@ -7,6 +7,7 @@
 
 import os
 import Queue
+import select
 import subprocess
 import sys
 import threading
@@ -17,6 +18,7 @@ if 'nt' in os.name:
 
 
 DEFAULT_SECS_BETWEEN_ATTEMPTS = 10
+POLL_MILLIS = 250
 
 
 def BashAsync(cmd, echo=True, shell=False):
@@ -40,6 +42,38 @@ def BashAsync(cmd, echo=True, shell=False):
                           bufsize=1)
 
 
+class _EnqueueThread(threading.Thread):
+  """ Reads and enqueues lines from a file. """
+  def __init__(self, file_obj, queue):
+    threading.Thread.__init__(self)
+    self._file = file_obj
+    self._queue = queue
+    self._stopped = False
+
+  def run(self):
+    if os.name == 'nt':
+      # Windows doesn't support polling objects, so just read from the file,
+      # Python-style.
+      for line in iter(self._file.readline, ''):
+        self._queue.put(line)
+        if self._stopped:
+          break
+    else:
+      # Use a polling object to avoid the blocking call to readline().
+      poll = select.poll()
+      poll.register(self._file, select.POLLIN)
+      while not self._stopped:
+        has_output = poll.poll(POLL_MILLIS)
+        if has_output:
+          line = self._file.readline()
+          if line == '':
+            self._stopped = True
+          self._queue.put(line)
+
+  def stop(self):
+    self._stopped = True
+
+
 def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
                            halt_on_output=None):
   """ Log the output of proc until it completes. Return a tuple containing the
@@ -52,14 +86,8 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
   halt_on_output: string; kill the process and return if this string is found
       in the output stream from the process.
   """
-
-  def Enqueue(stdout, queue):
-    for line in iter(stdout.readline, ''):
-      queue.put(line)
-
   stdout_queue = Queue.Queue()
-  log_thread = threading.Thread(target=Enqueue,
-                                args=(proc.stdout, stdout_queue))
+  log_thread = _EnqueueThread(proc.stdout, stdout_queue)
   log_thread.daemon = True
   log_thread.start()
   all_output = []
@@ -85,6 +113,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
     if timeout and time.time() - t_0 > timeout:
       proc.terminate()
       break
+  log_thread.stop()
   return (code, ''.join(all_output))
 
 
