@@ -60,6 +60,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
   stdout_queue = Queue.Queue()
   log_thread = threading.Thread(target=Enqueue,
                                 args=(proc.stdout, stdout_queue))
+  log_thread.daemon = True
   log_thread.start()
   all_output = []
   t_0 = time.time()
@@ -84,7 +85,6 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
     if timeout and time.time() - t_0 > timeout:
       proc.terminate()
       break
-  log_thread.join()
   return (code, ''.join(all_output))
 
 
@@ -105,7 +105,7 @@ def Bash(cmd, echo=True, shell=False, timeout=None):
   (returncode, output) = LogProcessToCompletion(proc, echo=echo,
                                                 timeout=timeout)
   if returncode != 0:
-    raise Exception('Command failed with code %d' % returncode)
+    raise Exception('Command failed with code %d: %s' % (returncode, output))
   return output
 
 
