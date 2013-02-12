@@ -51,14 +51,7 @@ class _EnqueueThread(threading.Thread):
     self._stopped = False
 
   def run(self):
-    if os.name == 'nt':
-      # Windows doesn't support polling objects, so just read from the file,
-      # Python-style.
-      for line in iter(self._file.readline, ''):
-        self._queue.put(line)
-        if self._stopped:
-          break
-    else:
+    if sys.platform.startswith('linux'):
       # Use a polling object to avoid the blocking call to readline().
       poll = select.poll()
       poll.register(self._file, select.POLLIN)
@@ -69,6 +62,13 @@ class _EnqueueThread(threading.Thread):
           if line == '':
             self._stopped = True
           self._queue.put(line)
+    else:
+      # Only Unix supports polling objects, so just read from the file,
+      # Python-style.
+      for line in iter(self._file.readline, ''):
+        self._queue.put(line)
+        if self._stopped:
+          break
 
   def stop(self):
     self._stopped = True
