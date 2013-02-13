@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+    <link href="/stylesheets/cq.css" type="text/css" rel="stylesheet"/>
+{% endblock %}
+
+{% block content %}
+<table class="links">
+  <tr>
+    <td>
+      <i><a href="/cq/top" style=>Top scores</a></i>
+    </td>
+    <td>
+      <i><a href="http://chromium.org/developers/testing/commit-queue" style=>Commit Queue FAQ</a></i>
+    </td>
+  </tr>
+</table>
+<h1>Sorted by last month usage</h1>
+<table class="issue">
+  <thead>
+    <tr>
+      <th>User</th>
+      <th>Last day</th>
+      <th>Last week</th>
+      <th>Last month</th>
+      <th>Ever</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for owner in data %}
+    <tr>
+      <td><a href="/cq/{{ owner.email|urlencode }}" class="owner">{{ owner.email }}</a></td>
+      <td>{{ owner.last_day|safe }}</td>
+      <td>{{ owner.last_week|safe }}</td>
+      <td>{{ owner.last_month }}</td>
+      <td>{{ owner.forever }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p>
+{% endblock %}

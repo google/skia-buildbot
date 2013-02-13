@@ -7,5 +7,5 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/chromium-status/
 Upload the web app to AppEngine with the following steps:
 * Install the Python AppEngine SDK
 * Go up one level to the parent directory
-* appcfg.py update appengine_scripts
+* appcfg.py update skia-tree-status
 

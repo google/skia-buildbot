@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+    <link href="/stylesheets/cq_top_score.css" type="text/css" rel="stylesheet"/>
+{% endblock %}
+
+{% block content %}
+<h1>Top scores</h1>
+<table class="issue">
+  <tbody>
+    {% for owner in data %}
+    <tr>
+      <td>{{ owner.rank }}</td>
+      <td>{{ owner.name }}</td>
+      <td>{{ owner.points }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<table class="legend">
+  <tbody>
+    <tr>
+      <td>
+      </td>
+      <td>
+        10 POINTS FOR CQ IN THE PAST 24 HOURS<br>
+        5 POINTS FOR CQ IN THE PAST 7 DAYS<br>
+        2 POINTS FOR CQ IN THE PAST 30 DAYS<br>
+        1 POINT FOR CQ DONE BEFORE<br>
+      </td>
+      <td>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>
+<a href="/third_party/LICENSE.txt">Font license</a>
+{% endblock %}

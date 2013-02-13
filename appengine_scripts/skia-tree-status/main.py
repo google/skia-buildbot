@@ -11,6 +11,8 @@
 
 from google.appengine.ext import webapp
 
+import base_page
+import commit_queue
 import status
 import utils
 
@@ -24,14 +26,22 @@ class Warmup(webapp.RequestHandler):
 # Application configuration.
 URLS = [
   ('/', status.MainPage),
-  ('/all-status/?', status.AllStatusPage),
+  ('/allstatus/?', status.AllStatusPage),
   ('/banner-status/?', status.BannerStatusPage),
   ('/binary-status/?', status.BinaryStatusPage),
+  ('/cq/receiver/?', commit_queue.Receiver),
+  ('/cq/?', commit_queue.Summary),
+  ('/cq/top', commit_queue.TopScore),
+  ('/cq/([^/]+)/?', commit_queue.User),
+  ('/cq/([^/]+)/(\d+)/?', commit_queue.Issue),
+  ('/cq/([^/]+)/(\d+)/(\d+)/?', commit_queue.Issue),
 ]
 APPLICATION = webapp.WSGIApplication(URLS, debug=True)
 
 
 # Do some one-time initializations.
+base_page.bootstrap()
+commit_queue.bootstrap()
 status.bootstrap()
 utils.bootstrap()
 
