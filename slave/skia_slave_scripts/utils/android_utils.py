@@ -366,6 +366,7 @@ class _WatchLog(threading.Thread):
     self._mutex = threading.Lock()
 
   def _restart(self):
+    print '_WatchLog.restart()'
     self._mutex.acquire()
     try:
       if self._log_process:
@@ -380,6 +381,7 @@ class _WatchLog(threading.Thread):
       self._mutex.release()
 
   def stop(self):
+    print '_WatchLog.stop()'
     self._mutex.acquire()
     try:
       self._stopped = True
@@ -394,6 +396,7 @@ class _WatchLog(threading.Thread):
         self._log_process,
         log_file=self._log_file,
         halt_on_output='SKIA_RETURN_CODE')[1]
+    print 'Subprocess finished.'
     if not self._stopped:
       # If the logger was stopped, then we know the Skia process died.
       for line in output.split('\n'):
@@ -434,6 +437,7 @@ def RunSkiaIntent(serial, cmd, logfile=None):
     raise
   while logger.isAlive() and logger.retcode == SKIA_RUNNING:
     time.sleep(PROCESS_MONITOR_INTERVAL)
+    print 'Polling Skia process...'
     # adb does not always return in a timely fashion.  Don't wait for it.
     monitor_proc = shell_utils.BashAsync(
         '%s -s %s shell ps | grep skia_native' % (PATH_TO_ADB, serial),
@@ -441,6 +445,7 @@ def RunSkiaIntent(serial, cmd, logfile=None):
     retcode, output = shell_utils.LogProcessToCompletion(monitor_proc,
         echo=False, timeout=SUBPROCESS_TIMEOUT)
     if retcode is None: # adb timed out
+      print 'Poller timed out.'
       continue
     # No SKIA_RETURN_CODE printed, but the process isn't running
     if (retcode != 0 or output == '') and logger.retcode == SKIA_RUNNING:
@@ -448,3 +453,4 @@ def RunSkiaIntent(serial, cmd, logfile=None):
       raise Exception('Skia process died while executing: %s' % ' '.join(cmd))
   if not logger.retcode == '0':
     raise Exception('Command failed: %s' % ' '.join(cmd))
+  print 'RunSkiaIntent: Done.'
