@@ -18,4 +18,8 @@ class AndroidRunTests(AndroidBuildStep):
 
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.RunBuildStep(AndroidRunTests))
+  exitcode = BuildStep.RunBuildStep(AndroidRunTests)
+  print 'AndroidRunTests finished with code %d' % exitcode
+  import threading
+  print 'Threads still running:\n%s' % threading.enumerate()
+  sys.exit(exitcode)
