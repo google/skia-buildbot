@@ -54,6 +54,7 @@ GM_COMPARISON_LINES_TO_DELETE_IMAGES = [
 IMAGES_FOR_UPLOAD_CHUNKS = [
   'base-macmini',
   'base-macmini-lion-float',
+  'base-macmini-10_8',
   'base-shuttle_ubuntu12_ati5770',
 ]
 
