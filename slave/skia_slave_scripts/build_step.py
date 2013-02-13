@@ -254,6 +254,7 @@ class BuildStep(multiprocessing.Process):
           time.sleep(1)
           if build_step_stdout_has_written.value == INT_TRUE:
             last_written_time = time.time()
+        print 'Build Step Finished.'
         if step.exitcode == 0:
           return 0
         elif step.exitcode == config.Master.retcode_warnings:
