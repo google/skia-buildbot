@@ -433,6 +433,7 @@ def RunSkiaIntent(serial, cmd, logfile=None):
                     '--ei', 'returnRepeats', '%d' % SKIA_RETURN_CODE_REPEATS])
   except:
     logger.stop()
+    logger.join()
     raise
   while logger.isAlive() and logger.retcode == SKIA_RUNNING:
     time.sleep(PROCESS_MONITOR_INTERVAL)
@@ -449,8 +450,10 @@ def RunSkiaIntent(serial, cmd, logfile=None):
     # No SKIA_RETURN_CODE printed, but the process isn't running
     if (retcode != 0 or output == '') and logger.retcode == SKIA_RUNNING:
       logger.stop()
+      logger.join()
       raise Exception('Skia process died while executing: %s' % ' '.join(cmd))
     print 'Threads still running:\n%s' % threading.enumerate()
+  logger.join()
   if not logger.retcode == '0':
     raise Exception('Command failed: %s' % ' '.join(cmd))
   print 'RunSkiaIntent: Done.'
