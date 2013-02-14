@@ -424,7 +424,6 @@ def RunSkiaIntent(serial, cmd, logfile=None):
   ADBKill(serial, 'com.skia', kill_app=True)
 
   logger = _WatchLog(serial, log_file=logfile)
-  logger.daemon = True
   logger.start()
   try:
     RunADB(serial, ['shell', 'am', 'broadcast',
@@ -451,6 +450,7 @@ def RunSkiaIntent(serial, cmd, logfile=None):
     if (retcode != 0 or output == '') and logger.retcode == SKIA_RUNNING:
       logger.stop()
       raise Exception('Skia process died while executing: %s' % ' '.join(cmd))
+    print 'Threads still running:\n%s' % threading.enumerate()
   if not logger.retcode == '0':
     raise Exception('Command failed: %s' % ' '.join(cmd))
   print 'RunSkiaIntent: Done.'

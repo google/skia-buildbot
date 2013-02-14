@@ -73,6 +73,7 @@ class _EnqueueThread(threading.Thread):
           break
 
   def stop(self):
+    print '_EnqueueThread: stop()'
     self._stopped = True
 
 
@@ -90,7 +91,6 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
   """
   stdout_queue = Queue.Queue()
   log_thread = _EnqueueThread(proc.stdout, stdout_queue)
-  log_thread.daemon = True
   log_thread.start()
   all_output = []
   t_0 = time.time()
@@ -116,6 +116,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
       proc.terminate()
       break
   log_thread.stop()
+  log_thread.join()
   return (code, ''.join(all_output))
 
 
