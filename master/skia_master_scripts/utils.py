@@ -7,6 +7,7 @@
 
 
 import httplib2
+import re
 
 
 # requires Google APIs client library for Python; see
@@ -32,6 +33,35 @@ from skia_master_scripts.no_perf_factory import NoPerfFactory, \
 
 
 TRYBOT_NAME_SUFFIX = '_Trybot'
+
+
+class SkiaChangeFilter(ChangeFilter):
+  """Skia specific subclass of ChangeFilter."""
+
+  def __init__(self, builders, **kwargs):
+    self._builders = builders
+    ChangeFilter.__init__(self, **kwargs)
+
+  def filter_change(self, change):
+    """Overrides ChangeFilter.filter_change to pass builders to filter_fn.
+
+    The code has been copied from
+    http://buildbot.net/buildbot/docs/0.8.3/reference/buildbot.schedulers.filter-pysrc.html#ChangeFilter
+    with one change: We pass a sequence of builders to the filter function.
+    """
+    if self.filter_fn is not None and not self.filter_fn(change,
+                                                         self._builders):
+      return False
+    for (filt_list, filt_re, filt_fn, chg_attr) in self.checks:
+      chg_val = getattr(change, chg_attr, '')
+      if filt_list is not None and chg_val not in filt_list:
+        return False
+      if filt_re is not None and (
+          chg_val is None or not filt_re.match(chg_val)):
+        return False
+      if filt_fn is not None and not filt_fn(chg_val):
+        return False
+    return True
 
 
 def _AssertValidString(var, varName='[unknown]'):
@@ -156,6 +186,11 @@ SKIA_PRIMARY_SUBDIRS = ['buildbot', 'skp', 'trunk']
 # substring.
 SKIP_BUILDBOT_SUBSTRING = '(SkipBuildbotRuns)'
 
+# If the below regex is found in a CL's commit log message, only run the
+# builders specified therein.
+RUN_BUILDERS_REGEX = '\(RunBuilders:(.+)\)'
+RUN_BUILDERS_RE_COMPILED = re.compile(RUN_BUILDERS_REGEX)
+
 
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
@@ -217,9 +252,38 @@ class SkiaHelper(master_config.Helper):
       scheduler = self._schedulers[s_name]
       instance = None
       if scheduler['type'] == 'AnyBranchScheduler':
-        def filter_fn(change):
-          """Filter out if SKIP_BUILDBOT_SUBSTRING is in change.comments."""
-          return not SKIP_BUILDBOT_SUBSTRING in change.comments
+        def filter_fn(change, builders):
+          """Filters out if change.comments contains certain keywords.
+
+          The change is filtered out if the commit message contains:
+          * SKIP_BUILDBOT_SUBSTRING or
+          * RUN_BUILDERS_REGEX when the scheduler does not contain any of the
+            specified builders
+
+          Args:
+            change: An instance of changes.Change.
+            builders: Sequence of strings. The builders that are run by this
+              scheduler.
+
+          Returns:
+            If the change should be filtered out (i.e. not run by the buildbot
+            code) then False is returned else True is returned.
+          """
+          if SKIP_BUILDBOT_SUBSTRING in change.comments:
+            return False
+          match_obj = RUN_BUILDERS_RE_COMPILED.search(change.comments)
+          if builders and match_obj:
+            for builder_to_run in match_obj.group(1).split(','):
+              if builder_to_run.strip() in builders:
+                break
+            else:
+              return False
+          return True
+
+        skia_change_filter = SkiaChangeFilter(
+            builders=scheduler['builders'], branch=scheduler['branches'],
+            filter_fn=filter_fn)
+
         instance = AnyBranchScheduler(name=s_name,
                                       branch=NotABranch,
                                       branches=NotABranch,
@@ -227,9 +291,7 @@ class SkiaHelper(master_config.Helper):
                                           scheduler['treeStableTimer'],
                                       builderNames=scheduler['builders'],
                                       categories=scheduler['categories'],
-                                      change_filter=ChangeFilter(
-                                          branch=scheduler['branches'],
-                                          filter_fn=filter_fn))
+                                      change_filter=skia_change_filter)
       elif scheduler['type'] == 'PeriodicScheduler':
         instance = timed.Nightly(name=s_name,
                                  branch=scheduler['branch'],
