@@ -42,7 +42,7 @@ def BashAsync(cmd, echo=True, shell=False):
                           bufsize=1)
 
 
-class _EnqueueThread(threading.Thread):
+class EnqueueThread(threading.Thread):
   """ Reads and enqueues lines from a file. """
   def __init__(self, file_obj, queue):
     threading.Thread.__init__(self)
@@ -60,10 +60,10 @@ class _EnqueueThread(threading.Thread):
         if has_output:
           line = self._file.readline()
           if line == '':
-            print '_EnqueueThread: stopping self.'
+            print 'EnqueueThread: stopping self.'
             self._stopped = True
           self._queue.put(line)
-      print '_EnqueueThread: finished.'
+      print 'EnqueueThread: finished.'
     else:
       # Only Unix supports polling objects, so just read from the file,
       # Python-style.
@@ -73,7 +73,7 @@ class _EnqueueThread(threading.Thread):
           break
 
   def stop(self):
-    print '_EnqueueThread: stop()'
+    print 'EnqueueThread: stop()'
     self._stopped = True
 
 
@@ -90,33 +90,35 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
       in the output stream from the process.
   """
   stdout_queue = Queue.Queue()
-  log_thread = _EnqueueThread(proc.stdout, stdout_queue)
+  log_thread = EnqueueThread(proc.stdout, stdout_queue)
   log_thread.start()
-  all_output = []
-  t_0 = time.time()
-  while True:
-    code = proc.poll()
-    try:
-      output = stdout_queue.get_nowait()
-      if echo:
-        sys.stdout.write(output)
-        sys.stdout.flush()
-      if log_file:
-        log_file.write(output)
-        log_file.flush()
-      all_output.append(output)
-      if halt_on_output and halt_on_output in output:
+  try:
+    all_output = []
+    t_0 = time.time()
+    while True:
+      code = proc.poll()
+      try:
+        output = stdout_queue.get_nowait()
+        if echo:
+          sys.stdout.write(output)
+          sys.stdout.flush()
+        if log_file:
+          log_file.write(output)
+          log_file.flush()
+        all_output.append(output)
+        if halt_on_output and halt_on_output in output:
+          proc.terminate()
+          break
+      except Queue.Empty:
+        if code != None: # proc has finished running
+          break
+        time.sleep(0.5)
+      if timeout and time.time() - t_0 > timeout:
         proc.terminate()
         break
-    except Queue.Empty:
-      if code != None: # proc has finished running
-        break
-      time.sleep(0.5)
-    if timeout and time.time() - t_0 > timeout:
-      proc.terminate()
-      break
-  log_thread.stop()
-  log_thread.join()
+  finally:
+    log_thread.stop()
+    log_thread.join()
   return (code, ''.join(all_output))
 
 
@@ -137,7 +139,7 @@ def Bash(cmd, echo=True, shell=False, timeout=None):
   (returncode, output) = LogProcessToCompletion(proc, echo=echo,
                                                 timeout=timeout)
   if returncode != 0:
-    raise Exception('Command failed with code %d: %s' % (returncode, output))
+    raise Exception('Command failed with code %d: %s' % (returncode, cmd))
   return output
 
 

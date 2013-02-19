@@ -6,6 +6,7 @@
 """ This module contains tools used by Android-specific buildbot scripts. """
 
 import os
+import Queue
 import re
 import shell_utils
 import shlex
@@ -349,111 +350,101 @@ def RunSkiaShell(serial, cmd, stop_shell=True):
     RunADB(serial, ['logcat', '-d', '-v', 'time'])
 
 
-class _WatchLog(threading.Thread):
-  """ Run WatchLog in a new thread to record the logcat output from SkiaAndroid.
-  Returns iff a 'SKIA_RETURN_CODE' appears in the log, setting the return code
-  appropriately.  Note that this will not terminate if the SkiaAndroid process
-  does not finish normally, so we need to periodically check that the process is
-  still running and terminate this thread if the process has died without
-  printing a 'SKIA_RETURN_CODE'. """
-  def __init__(self, serial, log_file=None):
-    threading.Thread.__init__(self)
-    self.retcode = SKIA_RUNNING
-    self.serial = serial
-    self._stopped = False
-    self._log_file = log_file
-    self._log_process = None
-    self._mutex = threading.Lock()
+def RunSkiaIntent(serial, cmd, echo=True, timeout=None, log_file=None):
+  """ Run 'cmd', on the device with id 'serial' using a broadcast intent.  Using
+  a similar procedure to shell_utils.LogProcessToCompletion, we run an
+  EnqueueThread to read output from Logcat and store it in a Queue.  The main
+  thread makes non-blocking reads from the Queue, watching for SKIA_RETURN_CODE
+  in the output and periodically polling the device to ensure that the Skia
+  process is still running.  We are done when either:
 
-  def _restart(self):
-    print '_WatchLog.restart()'
-    self._mutex.acquire()
-    try:
-      if self._log_process:
-        self._log_process.terminate()
-        self._log_process = None
-      self._stopped = False
-      # Clear the log so we don't see a bunch of old data
-      RunADB(self.serial, ['logcat', '-c'], echo=False)
-      self._log_process = shell_utils.BashAsync('%s -s %s logcat' % (
-          PATH_TO_ADB, self.serial), echo=False, shell=True)
-    finally:
-      self._mutex.release()
+  1. SKIA_RETURN_CODE appears in the log output
+  2. SKIA_RETURN_CODE has not appeared in the log output but the Skia process is
+     no longer running on the device.
 
-  def stop(self):
-    print '_WatchLog.stop()'
-    self._mutex.acquire()
-    try:
-      self._stopped = True
-      self._log_process.terminate()
-      self._log_process = None
-    finally:
-      self._mutex.release()
-
-  def run(self):
-    self._restart()
-    output = shell_utils.LogProcessToCompletion(
-        self._log_process,
-        log_file=self._log_file,
-        halt_on_output='SKIA_RETURN_CODE')[1]
-    print 'Subprocess finished.'
-    if not self._stopped:
-      # If the logger was stopped, then we know the Skia process died.
-      for line in output.split('\n'):
-        if 'SKIA_RETURN_CODE' in line:
-          self.retcode = shlex.split(line)[-1]
-          return
-    self.retcode = '-1'
-
-
-def RunSkiaIntent(serial, cmd, logfile=None):
-  """ Run 'cmd', on the device with id 'serial' using a broadcast intent.  We
-  launch WatchLog in a new thread and then keep polling the device to make sure
-  that the process is still running.  We are done when either:
-
-  1. WatchLog sets a value in 'retcode'
-  2. WatchLog has not set a value in 'retcode' and the Skia process has died.
-
-  We then return success or failure.
+  If SKIA_RETURN_CODE is not found or is non-zero, an exception is thrown.
 
   serial: string indicating the serial number of the target device
   cmd: list of strings; command to run on the device.
-  logfile: optional, path to a log file on the device.
+  echo: boolean indicating whether we should print the command and log output
+  timeout: optional, integer indicating the maximum elapsed time in seconds
+  log_file: optional, path to a log file on the device.
   """
   # First, kill any running instances of the app.
   ADBKill(serial, 'com.skia', kill_app=True)
 
-  logger = _WatchLog(serial, log_file=logfile)
-  logger.start()
+
+  # Clear the ADB log.
+  RunADB(serial, ['logcat', '-c'], echo=False)
+
+  # Start the logcat subprocess.
+  log_process = shell_utils.BashAsync('%s -s %s logcat' % (
+      PATH_TO_ADB, serial), echo=False, shell=True)
+
+  # Prepare to read from subprocess stdout.
+  stdout_queue = Queue.Queue()
+  log_thread = shell_utils.EnqueueThread(log_process.stdout, stdout_queue)
+  log_thread.start()
+
   try:
+    # Run the command.
     RunADB(serial, ['shell', 'am', 'broadcast',
                     '-a', 'com.skia.intent.action.LAUNCH_SKIA',
                     '-n', 'com.skia/.SkiaReceiver',
                     '-e', 'args', '"\"%s\""' % ' '.join(cmd),
                     '--ei', 'returnRepeats', '%d' % SKIA_RETURN_CODE_REPEATS])
-  except:
-    logger.stop()
-    logger.join()
-    raise
-  while logger.isAlive() and logger.retcode == SKIA_RUNNING:
-    time.sleep(PROCESS_MONITOR_INTERVAL)
-    print 'Polling Skia process...'
-    # adb does not always return in a timely fashion.  Don't wait for it.
-    monitor_proc = shell_utils.BashAsync(
-        '%s -s %s shell ps | grep skia_native' % (PATH_TO_ADB, serial),
-        echo=False, shell=True)
-    retcode, output = shell_utils.LogProcessToCompletion(monitor_proc,
-        echo=False, timeout=SUBPROCESS_TIMEOUT)
-    if retcode is None: # adb timed out
-      print 'Poller timed out.'
-      continue
-    # No SKIA_RETURN_CODE printed, but the process isn't running
-    if (retcode != 0 or output == '') and logger.retcode == SKIA_RUNNING:
-      logger.stop()
-      logger.join()
-      raise Exception('Skia process died while executing: %s' % ' '.join(cmd))
-    print 'Threads still running:\n%s' % threading.enumerate()
-  logger.join()
-  if not logger.retcode == '0':
+
+    # Read from subprocess stdout.
+    all_output = []
+    start_time = time.time()
+    last_poll_time = start_time
+    while True:
+      code = log_process.poll()
+      try:
+        output = stdout_queue.get_nowait()
+        if echo:
+          sys.stdout.write(output)
+          sys.stdout.flush()
+        if log_file:
+          log_file.write(output)
+          log_file.flush()
+        all_output.append(output)
+        if 'SKIA_RETURN_CODE' in output:
+          break
+      except Queue.Empty:
+        if code != None: # proc has finished running
+          break
+        time.sleep(0.5)
+      if timeout and time.time() - start_time > timeout:
+        raise Exception('Timeout exceeded!')
+      if time.time() - last_poll_time > PROCESS_MONITOR_INTERVAL:
+        print 'Polling Skia process...'
+        print 'Threads still running:\n%s' % threading.enumerate()
+        # adb does not always return in a timely fashion.  Don't wait for it.
+        monitor_proc = shell_utils.BashAsync(
+            '%s -s %s shell ps | grep skia_native' % (PATH_TO_ADB, serial),
+            echo=False, shell=True)
+        monitor_retcode, output = shell_utils.LogProcessToCompletion(
+            monitor_proc, echo=False, timeout=SUBPROCESS_TIMEOUT)
+        if monitor_retcode is None: # adb timed out
+          print 'Poller timed out.'
+          continue
+        # No SKIA_RETURN_CODE printed, but the process isn't running
+        if monitor_retcode != 0 or output == '':
+          raise Exception('Skia process died.')
+        last_poll_time = time.time()
+  finally:
+    # Cleanup.
+    log_process.terminate()
+    log_thread.stop()
+    log_thread.join()
+
+  # Report the return code.
+  retcode = '-1'
+  for line in ''.join(all_output).split('\n'):
+    if 'SKIA_RETURN_CODE' in line:
+      retcode = shlex.split(line)[-1]
+      break
+  if not retcode == '0':
     raise Exception('Command failed: %s' % ' '.join(cmd))
   print 'RunSkiaIntent: Done.'
