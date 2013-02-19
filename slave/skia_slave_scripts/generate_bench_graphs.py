@@ -5,7 +5,7 @@
 
 """ Generate performance graphs from bench output. """
 
-from build_step import BuildStep, BuildStepWarning
+from build_step import BuildStep
 from utils import bench_common
 from utils import shell_utils
 from utils import sync_bucket_subdir
@@ -74,12 +74,7 @@ class GenerateBenchGraphs(BuildStep):
     if self._builder_name.find('_Win') >= 0:
       cmd.extend(['-i', 'c'])  # Ignore cpu time for Windows.
 
-    try:
-      shell_utils.Bash(cmd)
-    except Exception as e:
-      print e
-      print 'Not enough revisions created yet to generate graphs with!'
-      raise BuildStepWarning(e)
+    shell_utils.Bash(cmd)
 
   def _Run(self):
     for rep in ['avg', 'min', 'med', '25th']:
