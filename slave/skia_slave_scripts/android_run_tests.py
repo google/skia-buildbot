@@ -8,6 +8,7 @@
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from utils import android_utils
+from utils import shell_utils
 import sys
 import threading
 
@@ -18,6 +19,9 @@ class AndroidRunTests(AndroidBuildStep):
                           use_intent=(not self._has_root))
     print 'AndroidRunTests process done...'
     print 'Threads still running:\n%s' % threading.enumerate()
+    print 'Subprocesses:'
+    for sub in shell_utils.ListSubprocesses():
+      print '<%d, %s, %s>' % (sub[0].pid, sub[0].poll(), sub[1])
 
 
 if '__main__' == __name__:

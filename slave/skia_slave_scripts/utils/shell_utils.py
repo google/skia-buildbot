@@ -21,6 +21,12 @@ DEFAULT_SECS_BETWEEN_ATTEMPTS = 10
 POLL_MILLIS = 250
 
 
+_all_subprocesses = []
+def ListSubprocesses():
+  for sub in _all_subprocesses:
+    yield sub
+
+
 def BashAsync(cmd, echo=True, shell=False):
   """ Run 'cmd' in a subprocess, returning a Popen class instance referring to
   that process.  (Non-blocking) """
@@ -37,9 +43,11 @@ def BashAsync(cmd, echo=True, shell=False):
     flags = 0x8000000 # CREATE_NO_WINDOW
   else:
     flags = 0
-  return subprocess.Popen(cmd, shell=shell, stderr=subprocess.STDOUT,
+  proc = subprocess.Popen(cmd, shell=shell, stderr=subprocess.STDOUT,
                           stdout=subprocess.PIPE, creationflags=flags,
                           bufsize=1)
+  _all_subprocesses.append((proc, cmd))
+  return proc
 
 
 class EnqueueThread(threading.Thread):
