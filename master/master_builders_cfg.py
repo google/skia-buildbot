@@ -245,7 +245,8 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_windows,
       gm_args=['--config', 'angle'],
       bench_args=['--config', 'ANGLE'],
-      use_skp_playback_framework=True)
+      use_skp_playback_framework=True,
+      bench_pictures_cfg='angle')
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite_%s_32',
