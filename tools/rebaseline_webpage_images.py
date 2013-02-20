@@ -61,6 +61,8 @@ GM_IMAGE_TO_BASELINE_BUILDER = {
         'Skia_Mac_Float_Release_32',
     'base-macmini-lion-float':
         'Skia_MacMiniLion_Float_Release_32',
+    'base-macmini-10_8':
+        'Skia_MacMini_10_8_Float_Release_32',
     'base-android-galaxy-nexus':
         'Skia_GalaxyNexus_4-1_Float_Release_32',
     'base-android-nexus-7':
@@ -240,10 +242,15 @@ if commit_whitespace_change:
     whitespace_file.write('\n')
   finally:
     whitespace_file.close()
+
   print '\n\n=======Submit whitespace change to trigger rebuilds======='
+  builders_to_run = []
+  for gm_image_subdir in gm_images_seq:
+    builders_to_run.append(GM_IMAGE_TO_BASELINE_BUILDER[gm_image_subdir])
+  run_builders_keyword = '(RunBuilders:%s)' % ','.join(builders_to_run)
   # pylint: disable=W0212
   repo._RunSvnCommand(
       ['commit', '--message',
-       'Rebaselined webpage image GMs for %s on Google Storage.'
-           % gm_images_seq,
+       'Rebaselined webpage image GMs for %s on Google Storage.\n%s'
+           % (gm_images_seq, run_builders_keyword),
        'whitespace.txt'])
