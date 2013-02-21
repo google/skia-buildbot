@@ -68,10 +68,8 @@ class EnqueueThread(threading.Thread):
         if has_output:
           line = self._file.readline()
           if line == '':
-            print 'EnqueueThread: stopping self.'
             self._stopped = True
           self._queue.put(line)
-      print 'EnqueueThread: finished.'
     else:
       # Only Unix supports polling objects, so just read from the file,
       # Python-style.
@@ -81,7 +79,6 @@ class EnqueueThread(threading.Thread):
           break
 
   def stop(self):
-    print 'EnqueueThread: stop()'
     self._stopped = True
 
 
