@@ -2,79 +2,9 @@
 
 {% block head %}
 {{ super() }}
-<style>
-a.morecontent span {display: none;}
-</style>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script type='text/javascript'>
 // <![CDATA[
 //
-
-//
-// Function that truncates commit messages of changes to display the first summary line
-// with an ellipses and a 'more' link. If the 'more' link is clicked then the complete
-// summary is displayed with a 'less' link.
-//
-;(function($) {
-
-  $.fn.shorten = function(settings) {
-  
-   var config = $.extend( {
-     ellipsesText : "...",
-     moreText : "more",
-     lessText : "less"
-    }, settings);
-  
-    $('.morelink').live('click', function() {
-      var $this = $(this);
-      
-      // Toggle the name of the link.
-      if ($this.hasClass('less')) { // 'less' has been clicked, show 'more'
-        
-        $this.removeClass('less');
-        $this.html(config.moreText);
-        
-        // Show short content and hide more content.
-        $this.parent().prev().prev().show(); // Show short content
-        $this.parent().prev().hide(); // Hide more content
-        
-      } else { // 'more' has been clicked, show 'less'
-        $this.addClass('less');
-        $this.html(config.lessText);
-        
-        $this.parent().prev().prev().hide(); // Hide short content
-        $this.parent().prev().show(); // Show more content
-      }
-      
-      return false;
-    });
-
-  return this.each(function() {
-    var $this = $(this);
-
-    var content = $this.html();
-    var lines = content.split('<br>');
-    var summaryLine = '';
-    var summaryLineNumber = 0;
-    for (var i=0; i<lines.length; i++) {
-      var line = lines[i];
-      summaryLineNumber++;
-      if (line != '') {
-        summaryLine = line;
-        break;
-      }
-    }
-    if (summaryLine != '' && summaryLineNumber < lines.length - 1) {
-      var summaryLineIndex = content.indexOf(summaryLine);
-      var h = '<br>' + content.substr(summaryLineIndex + summaryLine.length, content.length);
-      var html = summaryLine + '<span class="moreellipses">' + config.ellipsesText + '&nbsp;</span><span class="morecontent">' + h + '</span>&nbsp;&nbsp;<span><a href="javascript://nop/" class="morelink">' + config.moreText + '</a></span>';
-      $this.html(html);
-      $(".morecontent").hide();
-    }
-  });
-  };
-})(jQuery);
-
 
 //
 // Functions used to display the build status bubble on box click.
@@ -282,14 +212,7 @@ function checkMouseLeave(element, event) {
    
   <tr>
     <td colspan="{{ r.span }}" class='DevComment {{ alt }}'> 
-      <div class="comment{{ r.id|shortrev(r.repository) }}">
       {{ r.comments|changecomment(r.project or None)|replace('\n', '<br/>')|replace('  ','&nbsp; ') }}
-      </div>
-      <script type="text/javascript">
-        $(document).ready(function() {
-          $(".comment{{ r.id|shortrev(r.repository) }}").shorten();
-        });
-      </script>
     </td>
   </tr>
  
@@ -335,9 +258,6 @@ window.onload = function() {
     updateDiv(event);
   };
 };
-$(document).ready(function() {
-  $(".comment").shorten();
-});
 </script>
 
 {% endblock %}
