@@ -7,6 +7,14 @@
 
 
 from buildbot.status.web import base as webstatus_base
+from buildbot.status.web.status_json import BuilderJsonResource
+from buildbot.status.web.status_json import BuildersJsonResource
+from buildbot.status.web.status_json import ChangeSourcesJsonResource
+from buildbot.status.web.status_json import JsonResource
+from buildbot.status.web.status_json import JsonStatusResource
+from buildbot.status.web.status_json import MetricsJsonResource
+from buildbot.status.web.status_json import ProjectJsonResource
+from buildbot.status.web.status_json import SlavesJsonResource
 from master import try_job_base
 from master import try_job_svn
 from master.try_job_base import text_to_dict
@@ -15,6 +23,7 @@ from twisted.python import log
 from twisted.web import server
 
 import config_private
+import utils
 
 
 ################################################################################
@@ -128,3 +137,46 @@ def HtmlResourceRender(self, request):
   return server.NOT_DONE_YET
 
 webstatus_base.HtmlResource.render = HtmlResourceRender
+
+
+class TryBuildersJsonResource(JsonResource):
+  """ Clone of buildbot.status.web.status_json.BuildersJsonResource:
+  http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4p1/buildbot/status/web/status_json.py?view=markup
+
+  We add filtering to display only the try builders.
+  """
+  help = """List of all the try builders defined on a master."""
+  pageTitle = 'Builders'
+
+  def __init__(self, status):
+    JsonResource.__init__(self, status)
+    for builder_name in self.status.getBuilderNames():
+      if builder_name.endswith(utils.TRYBOT_NAME_SUFFIX):
+        self.putChild(builder_name,
+                      BuilderJsonResource(status,
+                                          status.getBuilder(builder_name)))
+
+
+def JsonStatusResourceInit(self, status):
+  """ Override of buildbot.status.web.status_json.JsonStatusResource.__init__:
+  http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4p1/buildbot/status/web/status_json.py?view=markup
+
+  We add a line which adds a trybots status page.
+  """
+  JsonResource.__init__(self, status)
+  self.level = 1
+  self.putChild('builders', BuildersJsonResource(status))
+  self.putChild('change_sources', ChangeSourcesJsonResource(status))
+  self.putChild('project', ProjectJsonResource(status))
+  self.putChild('slaves', SlavesJsonResource(status))
+  self.putChild('metrics', MetricsJsonResource(status))
+
+  ############################## Added by borenet ##############################
+  # Added to address: https://code.google.com/p/skia/issues/detail?id=1134
+  self.putChild('trybots', TryBuildersJsonResource(status))
+  ##############################################################################
+
+  # This needs to be called before the first HelpResource().body call.
+  self.hackExamples()
+
+JsonStatusResource.__init__ = JsonStatusResourceInit
