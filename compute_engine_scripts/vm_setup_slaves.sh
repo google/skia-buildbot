@@ -30,7 +30,8 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "sudo apt-get update; " \
     "sudo apt-get install libfreetype6 libfreetype6-dev libpng12-0 libpng12-dev libgl1-mesa-dev " \
     "libgl1-mesa-dri subversion postfix libgl1-mesa-glx libglu1-mesa libglu1-mesa-dev mesa-common-dev " \
-    "libosmesa6 libosmesa6-dev doxygen clang libQt4-dev git make python-dev g++ python-epydoc; " \
+    "libosmesa6 libosmesa6-dev doxygen clang libQt4-dev git make python-dev g++ python-epydoc " \
+    "libfontconfig-dev; " \
     "echo 'PATH=\"~/skia-slave/depot_tools:/usr/local/sbin:/usr/sbin:/sbin:$PATH\"' >> ~/.bashrc; " \
     "echo 'alias s=\"cd ~/skia-slave/buildbot/slave\"' >> ~/.bashrc; " \
     "sudo easy_install --upgrade google-api-python-client; " \
