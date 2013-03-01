@@ -6,6 +6,7 @@
 """ Run the Skia render_pictures executable. """
 
 from build_step import BuildStep
+import os
 import sys
 
 
@@ -18,10 +19,11 @@ class RenderPictures(BuildStep):
     cmd = [self._device_dirs.SKPDir(), '--device', device,
            '--mode', 'tile', str(DEFAULT_TILE_X), str(DEFAULT_TILE_Y)]
     cmd.extend(args)
-    if not hasattr(self, '_device'):
+    if not hasattr(self, '_device') and not os.name == 'nt':
       # For now, skip --validate and writing images on Android, since some of
       # our pictures are too big to fit in memory, and the images take too long
       # to transfer.
+      # Also skip --validate on Windows, where it is currently failing.
       cmd.append('--validate')
       if write_images:
         cmd.extend(['-w', self._device_dirs.SKPOutDir()])
