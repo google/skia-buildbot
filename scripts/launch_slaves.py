@@ -24,15 +24,28 @@ import time
 import urllib2
 
 
+def GetGlobalVariables():
+  """ Retrieve a global variable from the global_variables.json file. """
+  global_variables_file = ('http://skia.googlecode.com/svn/buildbot/'
+                           'site_config/global_variables.json')
+  with closing(urllib2.urlopen(global_variables_file)) as f:
+    return json.load(f)
+
+
+def GetGlobalVariable(var_name):
+  return GLOBAL_VARIABLES[var_name]['value']
+
+
 # How often we should check each buildslave's keepalive conditions, in seconds.
 DEFAULT_POLL_INTERVAL = 60
 DRIVE_MAPPING = True
+GLOBAL_VARIABLES = GetGlobalVariables()
 PID_FILE = os.path.join('buildbot', 'third_party', 'chromium_buildbot', 'slave',
                         'twistd.pid')
 # Maximum time (in seconds) to wait for PID_FILE to be written after the slave
 # is launched.  If PID_FILE is not written by then, we assume an error occurred.
 PID_TIMEOUT = 60.0
-SVN_URL = 'https://skia.googlecode.com/svn/buildbot'
+SVN_URL = GetGlobalVariable('skia_svn_url') + '/buildbot'
 
 
 if os.name == 'nt':
@@ -275,14 +288,6 @@ def GetSlavesCfg():
   return cfg_vars['slaves']
 
 
-def GetSkiaMasterHost():
-  """ Retrieve the hostname of the production master. """
-  global_variables_file = SVN_URL + '/site_config/global_variables.json'
-  with closing(urllib2.urlopen(global_variables_file)) as f:
-    global_variables = json.load(f)
-  return global_variables['master_host']['value']
-
-
 def ParseArgs(argv):
   """ Parse and validate command-line arguments. """
 
@@ -329,7 +334,7 @@ def main():
   """ Launch local build slave instances """
   # Gather command-line arguments.
   args = ParseArgs(sys.argv[1:])
-  master_host = args.master_host or GetSkiaMasterHost()
+  master_host = args.master_host or GetGlobalVariable('master_host')
 
   # Obtain configuration information about this build slave host machine.
   slave_host = GetSlaveHostCfg()
