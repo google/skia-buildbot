@@ -11,7 +11,7 @@ from render_pdfs import RenderPdfs
 import sys
 
 
-class ChromeOSRenderPdfs(RenderPdfs, ChromeOSBuildStep):
+class ChromeOSRenderPdfs(ChromeOSBuildStep, RenderPdfs):
   def __init__(self, args, attempts=1, timeout=4800, **kwargs):
     super(ChromeOSRenderPdfs, self).__init__(args, attempts=attempts,
                                              timeout=timeout, **kwargs)
