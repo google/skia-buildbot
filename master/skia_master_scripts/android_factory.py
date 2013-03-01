@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -26,7 +26,8 @@ class AndroidFactory(skia_factory.SkiaFactory):
     subdirs_to_checkout = set(other_subdirs)
     subdirs_to_checkout.add('android')
     skia_factory.SkiaFactory.__init__(self, other_subdirs=subdirs_to_checkout,
-                                      bench_pictures_cfg=device, **kwargs)
+                                      bench_pictures_cfg=device,
+                                      flavor='android', **kwargs)
     self._device = device
     self._common_args += ['--device', self._device,
                           '--serial', WithProperties('%(serial:-None)s'),
@@ -40,43 +41,14 @@ class AndroidFactory(skia_factory.SkiaFactory):
     self.AddSlaveScript(script='clean.py', description='Clean',
                         is_rebaseline_step=True)
 
+    # On Android, we build all targets at once.  This is because the Android app
+    # is always built with any target, and the build system is not smart enough
+    # to know when the set of packaged libraries has changed, which causes the
+    # app not to contain the full set of Skia libraries.
     args = ['--target', 'all']
     self.AddSlaveScript(script='android_compile.py', args=args,
                         description='BuildAll', halt_on_failure=True,
                         is_rebaseline_step=True)
-    # Install the app onto the device, so that it can be used in later steps.
-    self.AddSlaveScript(script='android_install_apk.py',
-                        description='InstallAPK', halt_on_failure=True,
-                        is_rebaseline_step=True)
-
-  def RunTests(self):
-    """ Run the unit tests. """
-    self.AddSlaveScript(script='android_run_tests.py', description='RunTests')
-
-  def RunGM(self):
-    """ Run the "GM" tool, saving the images to disk. """
-    self.AddSlaveScript(script='android_run_gm.py', description='GenerateGMs',
-                        is_rebaseline_step=True)
-
-  def PreRender(self):
-    """ Prepares Android device for rendering. """
-    self.AddSlaveScript(script='android_prerender.py',
-                        description='PreRender')
-
-  def RenderPictures(self):
-    """ Run the "render_pictures" tool to generate images from .skp's. """
-    self.AddSlaveScript(script='android_render_pictures.py',
-                        description='RenderPictures')
-
-  def RenderPdfs(self):
-    """ Run the "render_pdfs" tool to generate pdfs from .skp's. """
-    self.AddSlaveScript(script='android_render_pdfs.py',
-                        description='RenderPdfs')
-
-  def PostRender(self):
-    """ Post render operations for the Android device. """
-    self.AddSlaveScript(script='android_postrender.py',
-                        description='PostRender')
 
   def CompareGMs(self):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
@@ -85,13 +57,3 @@ class AndroidFactory(skia_factory.SkiaFactory):
                         is_rebaseline_step=True)
     self.Make('tools', 'BuildSkDiff', is_rebaseline_step=True)
     skia_factory.SkiaFactory.CompareGMs(self)
-
-  def RunBench(self):
-    """ Run "bench", piping the output somewhere so we can graph
-    results over time. """
-    self.AddSlaveScript(script='android_run_bench.py', description='RunBench')
-
-  def BenchPictures(self):
-    """ Run "bench_pictures" """
-    self.AddSlaveScript(script='android_bench_pictures.py',
-                        description='BenchPictures')

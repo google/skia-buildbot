@@ -1,4 +1,4 @@
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -42,8 +42,8 @@ class SkiaFactory(BuildFactory):
                target_platform=None, configuration=CONFIG_DEBUG,
                default_timeout=8*60*60,
                environment_variables=None, gm_image_subdir=None,
-               perf_output_basedir=None, builder_name=None, make_flags=None,
-               test_args=None, gm_args=None, bench_args=None,
+               perf_output_basedir=None, builder_name=None, flavor=None,
+               make_flags=None, test_args=None, gm_args=None, bench_args=None,
                bench_pictures_cfg='default',
                use_skp_playback_framework=False):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
@@ -63,6 +63,7 @@ class SkiaFactory(BuildFactory):
     perf_output_basedir: path to directory under which to store performance
         data, or None if we don't want to store performance data
     builder_name: name of the builder associated with this factory
+    flavor: which "flavor" of slave-side scripts this factory should use
     make_flags: list of extra flags to pass to the compile step
     test_args: list of extra flags to pass to the 'tests' executable
     gm_args: list of extra flags to pass to the 'gm' executable
@@ -98,7 +99,8 @@ class SkiaFactory(BuildFactory):
     if do_patch_step:
       subdirs_to_checkout.add('android')
       subdirs_to_checkout.add('gm-expected')
-    subdirs_to_checkout.add('skp')
+    if not use_skp_playback_framework:
+      subdirs_to_checkout.add('skp')
     for other_subdir in subdirs_to_checkout:
       self._gclient_solutions.append(gclient_factory.GClientSolution(
           svn_url=SKIA_SVN_BASEURL + '/' + other_subdir,
@@ -136,13 +138,11 @@ class SkiaFactory(BuildFactory):
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._builder_name = builder_name
-
+    self._flavor = flavor
     self._use_skp_playback_framework = use_skp_playback_framework
 
     # The class to use when creating builds in build_factory.BuildFactory
     self.buildClass = skia_build.SkiaBuild
-
-    self.done_prerender = False
 
     def _DetermineRevision(build):
       """ Get the 'revision' property at build time. WithProperties returns the
@@ -182,6 +182,7 @@ class SkiaFactory(BuildFactory):
         '--num_cores', WithProperties('%(num_cores:-None)s'),
         '--is_try', str(self._do_patch_step),
         '--bench_pictures_cfg', bench_pictures_cfg,
+        '--use_skp_playback_framework', str(self._use_skp_playback_framework),
         ]
     BuildFactory.__init__(self, build_factory_properties=properties)
 
@@ -223,6 +224,16 @@ class SkiaFactory(BuildFactory):
         get_props_from_stdout=get_props_from_stdout,
         workdir=workdir)
 
+  def AddFlavoredSlaveScript(self, script, **kwargs):
+    """ Add a flavor-specific BuildStep.
+
+    Finds a script to run by concatenating the flavor of this BuildFactory with
+    the provided script name.
+    """
+    script_to_run = ('%s_%s' % (self._flavor, script)
+                                if self._flavor else script)
+    self.AddSlaveScript(script_to_run, **kwargs)
+
   def Make(self, target, description, is_rebaseline_step=False):
     """ Build a single target."""
     args = ['--target', target]
@@ -249,36 +260,56 @@ class SkiaFactory(BuildFactory):
     self.Make('bench', 'BuildBench')
     self.Make('most', 'BuildMost')
 
+  def Install(self):
+    """ Install the compiled executables. """
+    self.AddFlavoredSlaveScript(script='install.py', description='Install',
+                                halt_on_failure=True)
+
+  def DownloadSKPs(self):
+    """ Download the SKPs. """
+    self.AddSlaveScript(script='download_skps.py', description='DownloadSKPs',
+                        halt_on_failure=True)
+
+  def DownloadBaselines(self):
+    """ Download the GM baselines. """
+    self.AddSlaveScript(script='download_baselines.py',
+                        description='DownloadBaselines', halt_on_failure=True)
+
   def RunTests(self):
     """ Run the unit tests. """
-    self.AddSlaveScript(script='run_tests.py', description='RunTests')
+    self.AddFlavoredSlaveScript(script='run_tests.py', description='RunTests')
 
   def RunGM(self):
     """ Run the "GM" tool, saving the images to disk. """
-    self.AddSlaveScript(script='run_gm.py', description='GenerateGMs',
-                        is_rebaseline_step=True)
+    self.AddFlavoredSlaveScript(script='run_gm.py', description='GenerateGMs',
+                                is_rebaseline_step=True)
 
-  # NOP here, android and chrome will push SKPs to device
   def PreRender(self):
-    return
+    """ Step to run before the render steps. """
+    self.AddFlavoredSlaveScript(script='prerender.py', description='PreRender')
 
   def RenderPictures(self):
     """ Run the "render_pictures" tool to generate images from .skp's. """
-    if self._use_skp_playback_framework:
-      self.AddSlaveScript(script='render_webpage_pictures.py',
-                          description='RenderWebpagePictures')
-    else:
-      self.AddSlaveScript(script='render_pictures.py',
-                          description='RenderPictures')
+    self.AddFlavoredSlaveScript(script='render_pictures.py',
+                                description='RenderPictures')
 
   def RenderPdfs(self):
     """ Run the "render_pdfs" tool to generate pdfs from .skp's. """
-    self.AddSlaveScript(script='render_pdfs.py',
-                        description='RenderPdfs')
+    self.AddFlavoredSlaveScript(script='render_pdfs.py',
+                                description='RenderPdfs')
 
-  # NOP here, android and chrome will pull results from device
   def PostRender(self):
-    return
+    """ Step to run after the render steps. """
+    self.AddFlavoredSlaveScript(script='postrender.py',
+                                description='PostRender')
+
+  def PreBench(self):
+    """ Step to run before the benchmarking steps. """
+    self.AddFlavoredSlaveScript(script='prebench.py', description='PreBench')
+
+  def PostBench(self):
+    """ Step to run after the benchmarking steps. """
+    self.AddFlavoredSlaveScript(script='postbench.py', description='PostBench')
 
   def CompareGMs(self):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
@@ -297,16 +328,12 @@ class SkiaFactory(BuildFactory):
   def RunBench(self):
     """ Run "bench", piping the output somewhere so we can graph
     results over time. """
-    self.AddSlaveScript(script='run_bench.py', description='RunBench')
+    self.AddFlavoredSlaveScript(script='run_bench.py', description='RunBench')
 
   def BenchPictures(self):
     """ Run "bench_pictures" """
-    if self._use_skp_playback_framework:
-      self.AddSlaveScript(script='bench_webpage_pictures.py',
-                          description='BenchWebpagePictures')
-    else:  
-      self.AddSlaveScript(script='bench_pictures.py',
-                          description='BenchPictures')
+    self.AddFlavoredSlaveScript(script='bench_pictures.py',
+                                description='BenchPictures')
 
   def BenchGraphs(self):
     """ Generate bench performance graphs. """
@@ -386,28 +413,34 @@ class SkiaFactory(BuildFactory):
                         description='UploadGMResults', timeout=5400,
                         is_rebaseline_step=True)
 
+  def CommonSteps(self, clobber=None):
+    """ Steps which are run at the beginning of all builds. """
+    self.UpdateSteps()
+    self.DownloadSKPs()
+    self.Compile(clobber)
+    self.Install()
+
   def NonPerfSteps(self):
     """ Add correctness testing BuildSteps. """
+    self.DownloadBaselines()
+    self.PreRender()
     self.RunTests()
     self.RunGM()
-    self.done_prerender = True
-    self.PreRender()
     self.RenderPictures()
     self.RenderPdfs()
     self.PostRender()
     if self._do_upload_results:
       self.UploadGMResults()
+      if self._use_skp_playback_framework:
+        self.CompareAndUploadWebpageGMs()
     self.CompareGMs()
-    if self._use_skp_playback_framework:
-      self.CompareAndUploadWebpageGMs()
 
   def PerfSteps(self):
     """ Add performance testing BuildSteps. """
-    if not self.done_prerender:
-      self.PreRender()
-      self.done_prerender = True
+    self.PreBench()
     self.RunBench()
     self.BenchPictures()
+    self.PostBench()
     if self._do_upload_bench_results:
       self.UploadBenchResults()
       self.BenchGraphs()
@@ -422,9 +455,33 @@ class SkiaFactory(BuildFactory):
 
     clobber: boolean indicating whether we should clean before building
     """
-    self.UpdateSteps()
-    self.Compile(clobber)
+    self.CommonSteps(clobber)
     self.NonPerfSteps()
     self.PerfSteps()
+    return self
 
+  def BuildNoPerf(self, clobber=None):
+    """Build and return the complete BuildFactory, without the benchmarking
+    steps.
+
+    clobber: boolean indicating whether we should clean before building
+    """
+    self.CommonSteps(clobber)
+    self.NonPerfSteps()
+    return self
+
+  def BuildPerfOnly(self, clobber=None):
+    """Build and return the complete BuildFactory, with only the benchmarking
+    steps.
+
+    clobber: boolean indicating whether we should clean before building
+    """
+    if not self._perf_output_basedir:
+      raise ValueError(
+          'BuildPerfOnly requires perf_output_basedir to be defined.')
+    if self._configuration != CONFIG_RELEASE:
+      raise ValueError('BuildPerfOnly should run in %s configuration.' %
+                       CONFIG_RELEASE)
+    self.CommonSteps(clobber)
+    self.PerfSteps()
     return self

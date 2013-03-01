@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -7,22 +7,25 @@
 
 from chromeos_build_step import ChromeOSBuildStep
 from build_step import BuildStep
+from prerender import PreRender
 from utils import ssh_utils
-import os
 import posixpath
 import sys
 
 
-class ChromeOSPreRender(ChromeOSBuildStep):
+class ChromeOSPreRender(ChromeOSBuildStep, PreRender):
   def __init__(self, args, attempts=1, timeout=4800, **kwargs):
     super(ChromeOSPreRender, self).__init__(args, attempts=attempts,
                                             timeout=timeout, **kwargs)
 
-  def _PushSKPSources(self):
-    """ Push the skp directory full of .skp's to the ChromeoS device. """
+  def _Run(self):
+    super(ChromeOSPreRender, self)._Run()
+
+    # Clear the GM directory on the device.
     try:
       ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                       ['rm', '-rf', self._device_dirs.SKPDir()])
+                       ['rm', '-rf', posixpath.join(self._device_dirs.GMDir(),
+                                                    self._gm_image_subdir)])
     except Exception:
       pass
     try:
@@ -31,19 +34,12 @@ class ChromeOSPreRender(ChromeOSBuildStep):
     except Exception:
       pass
     ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                     ['mkdir', '-p', self._device_dirs.SKPDir()])
+                     ['mkdir', '-p', posixpath.join(self._device_dirs.GMDir(),
+                                                    self._gm_image_subdir)])
     ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                      ['mkdir', '-p',
                       posixpath.join(self._device_dirs.SKPOutDir())])
-    skp_list = os.listdir(self._skp_dir)
-    for skp in skp_list:
-      if os.path.isfile(os.path.join(self._skp_dir, skp)):
-        ssh_utils.PutSCP(os.path.join(self._skp_dir, skp),
-                         self._device_dirs.SKPDir(), self._ssh_username,
-                         self._ssh_host, self._ssh_port)
 
-  def _Run(self):
-    self._PushSKPSources()
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(ChromeOSPreRender))

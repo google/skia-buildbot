@@ -1,58 +1,39 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """ Run the Skia bench_pictures executable. """
 
-from utils import shell_utils
 from build_step import BuildStep
 from run_bench import BenchArgs
 from run_bench import RunBench
-from run_bench import PreBench
 import os
 import sys
 
 
-# Skipping these for now to avoid excessively long cycle times.
-RUNNING_ALL_CONFIGURATIONS = False
-
-
-class BenchPictures(RunBench):
+class BenchPictures(BuildStep):
   def __init__(self, timeout=16800, no_output_timeout=16800, **kwargs):
     super(BenchPictures, self).__init__(timeout=timeout,
                                         no_output_timeout=no_output_timeout,
                                         **kwargs)
 
   # pylint: disable=W0221
-  def _BuildDataFile(self, perf_dir, args):
-    data_file = '%s_skp_%s' % (
-        super(BenchPictures, self)._BuildDataFile(perf_dir),
-        '_'.join(args).replace('-', '').replace(':', '-'))
-    return data_file
-
-  def _GetSkpDir(self):
-    return self._skp_dir
-
-  def _GetPerfDataDir(self):
-    return self._perf_data_dir
-
-  def _PopulateSkpDir(self):
-    # The skp dir comes from skia repository, nothing to do here.
-    pass
+  def _BuildDataFile(self, args):
+    filename = '_'.join(['bench', 'r%s' % self._got_revision,
+                         'data', 'skp'] + args)
+    full_path = os.path.join(self._device_dirs.PerfDir(),
+        filename.replace('-', '').replace(':', '-'))
+    return full_path
 
   def _DoBenchPictures(self, args):
-    cmd = [self._PathToBinary('bench_pictures'), self._GetSkpDir()] + args
-    if self._GetPerfDataDir():
-      PreBench(self._GetPerfDataDir())
-      cmd += BenchArgs(repeats=self.BENCH_REPEAT_COUNT,
-                       data_file=self._BuildDataFile(self._GetPerfDataDir(),
-                                                     args))
-    shell_utils.Bash(cmd)
+    arguments = [self._device_dirs.SKPDir()] + args
+    if self._perf_data_dir:
+      arguments.extend(BenchArgs(repeats=RunBench.BENCH_REPEAT_COUNT,
+          data_file=self._BuildDataFile(args)))
+    self.RunFlavoredCmd('bench_pictures', arguments)
 
   def _Run(self):
-    self._PopulateSkpDir()
-
     # Determine which configs to run
     if self._configuration == 'Debug':
       cfg_name = 'debug'

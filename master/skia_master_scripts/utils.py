@@ -1,4 +1,4 @@
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -26,10 +26,6 @@ from skia_master_scripts import android_factory
 from skia_master_scripts import chromeos_factory
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import ios_factory
-from skia_master_scripts.perf_only_factory import PerfOnlyFactory, \
-    AndroidPerfOnlyFactory, ChromeOSPerfOnlyFactory, iOSPerfOnlyFactory
-from skia_master_scripts.no_perf_factory import NoPerfFactory, \
-    AndroidNoPerfFactory, ChromeOSNoPerfFactory, iOSNoPerfFactory
 
 
 TRYBOT_NAME_SUFFIX = '_Trybot'
@@ -365,8 +361,8 @@ def MakeSchedulerName(builder_base_name):
 
 def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
                     perf_output_basedir=None, extra_branches=None,
-                    debug_factory=None, release_factory=None,
-                    bench_factory=None, is_trybot=False, **kwargs):
+                    factory_type=None, do_debug=True, do_release=True,
+                    do_bench=True, is_trybot=False, **kwargs):
   """ Creates a trio of builders for a given platform:
   1. Debug mode builder which runs all steps
   2. Release mode builder which runs all steps EXCEPT benchmarks
@@ -383,21 +379,18 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     subdirs_to_checkout.add(gm_image_branch)
 
   if is_trybot:
-    scheduler_name       = 'skia_try'
-    builder_base_name    = builder_base_name + TRYBOT_NAME_SUFFIX
+    scheduler_name = 'skia_try'
+    builder_base_name = builder_base_name + TRYBOT_NAME_SUFFIX
   else:
-    scheduler_name       = MakeSchedulerName(builder_base_name)
+    scheduler_name = MakeSchedulerName(builder_base_name)
     branches = list(subdirs_to_checkout.union(SKIA_PRIMARY_SUBDIRS))
     helper.AnyBranchScheduler(scheduler_name, branches=branches)
 
-  debug_builder_name   = MakeDebugBuilderName(builder_base_name)
-  no_perf_builder_name = MakeReleaseBuilderName(builder_base_name)
-  perf_builder_name    = MakeBenchBuilderName(builder_base_name)
-
-  if debug_factory:
+  if do_debug:
+    debug_builder_name = MakeDebugBuilderName(builder_base_name)
     B(debug_builder_name, 'f_%s' % debug_builder_name,
         scheduler=scheduler_name)
-    F('f_%s' % debug_builder_name, debug_factory(
+    F('f_%s' % debug_builder_name, factory_type(
         builder_name=debug_builder_name,
         other_subdirs=subdirs_to_checkout,
         configuration=skia_factory.CONFIG_DEBUG,
@@ -407,10 +400,11 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         **kwargs
         ).Build())
 
-  if release_factory:
+  if do_release:
+    no_perf_builder_name = MakeReleaseBuilderName(builder_base_name)
     B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
         scheduler=scheduler_name)
-    F('f_%s' % no_perf_builder_name,  release_factory(
+    F('f_%s' % no_perf_builder_name,  factory_type(
         builder_name=no_perf_builder_name,
         other_subdirs=subdirs_to_checkout,
         configuration=skia_factory.CONFIG_RELEASE,
@@ -418,12 +412,13 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         do_patch_step=is_trybot,
         perf_output_basedir=None,
         **kwargs
-        ).Build())
+        ).BuildNoPerf())
 
-  if bench_factory:
+  if do_bench:
+    perf_builder_name = MakeBenchBuilderName(builder_base_name)
     B(perf_builder_name, 'f_%s' % perf_builder_name,
         scheduler=scheduler_name)
-    F('f_%s' % perf_builder_name, bench_factory(
+    F('f_%s' % perf_builder_name, factory_type(
         builder_name=perf_builder_name,
         other_subdirs=subdirs_to_checkout,
         configuration=skia_factory.CONFIG_RELEASE,
@@ -431,7 +426,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         do_patch_step=is_trybot,
         perf_output_basedir=perf_output_basedir,
         **kwargs        
-        ).Build())
+        ).BuildPerfOnly())
 
 
 def _MakeBuilderAndMaybeTrybotSet(do_trybots=True, **kwargs):
@@ -440,80 +435,26 @@ def _MakeBuilderAndMaybeTrybotSet(do_trybots=True, **kwargs):
     _MakeBuilderSet(is_trybot=True, **kwargs)
 
 
-def MakeBuilderSet(do_debug=True, do_release=True, do_bench=True,
-                   do_trybots=True, **kwargs):
-  debug_factory   = None
-  release_factory = None
-  bench_factory   = None
-  if do_debug:
-    debug_factory = skia_factory.SkiaFactory
-  if do_release:
-    release_factory = NoPerfFactory
-  if do_bench:
-    bench_factory = PerfOnlyFactory
-  _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
-                                debug_factory=debug_factory,
-                                release_factory=release_factory,
-                                bench_factory=bench_factory,
-                                **kwargs)
+def MakeBuilderSet(**kwargs):
+  _MakeBuilderAndMaybeTrybotSet(factory_type=skia_factory.SkiaFactory, **kwargs)
 
 
-def MakeAndroidBuilderSet(do_debug=True, do_release=True, do_bench=True,
-                          do_trybots=True, extra_branches=None, **kwargs):
-  debug_factory   = None
-  release_factory = None
-  bench_factory   = None
-  if do_debug:
-    debug_factory = android_factory.AndroidFactory
-  if do_release:
-    release_factory = AndroidNoPerfFactory
-  if do_bench:
-    bench_factory = AndroidPerfOnlyFactory
+def MakeAndroidBuilderSet(extra_branches=None, **kwargs):
   if not extra_branches:
     extra_branches = []
   extra_branches.append('android')
-  _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
-                                debug_factory=debug_factory,
-                                release_factory=release_factory,
-                                bench_factory=bench_factory,
+  _MakeBuilderAndMaybeTrybotSet(factory_type=android_factory.AndroidFactory,
                                 extra_branches=extra_branches,
                                 **kwargs)
 
 
-def MakeChromeOSBuilderSet(do_debug=True, do_release=True, do_bench=True,
-                           do_trybots=True, **kwargs):
-  debug_factory   = None
-  release_factory = None
-  bench_factory   = None
-  if do_debug:
-    debug_factory = chromeos_factory.ChromeOSFactory
-  if do_release:
-    release_factory = ChromeOSNoPerfFactory
-  if do_bench:
-    bench_factory = ChromeOSPerfOnlyFactory
-  _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
-                                debug_factory=debug_factory,
-                                release_factory=release_factory,
-                                bench_factory=bench_factory,
+def MakeChromeOSBuilderSet(**kwargs):
+  _MakeBuilderAndMaybeTrybotSet(factory_type=chromeos_factory.ChromeOSFactory,
                                 **kwargs)
 
 
-def MakeIOSBuilderSet(do_debug=True, do_release=True, do_bench=True,
-                      do_trybots=True, **kwargs):
-  debug_factory   = None
-  release_factory = None
-  bench_factory   = None
-  if do_debug:
-    debug_factory = ios_factory.iOSFactory
-  if do_release:
-    release_factory = iOSNoPerfFactory
-  if do_bench:
-    bench_factory = iOSPerfOnlyFactory
-  _MakeBuilderAndMaybeTrybotSet(do_trybots=do_trybots,
-                                debug_factory=debug_factory,
-                                release_factory=release_factory,
-                                bench_factory=bench_factory,
-                                **kwargs)
+def MakeIOSBuilderSet(**kwargs):
+  _MakeBuilderAndMaybeTrybotSet(factory_type=ios_factory.iOSFactory, **kwargs)
 
 
 def CanMergeBuildRequests(req1, req2):

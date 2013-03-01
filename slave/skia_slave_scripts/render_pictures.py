@@ -1,47 +1,38 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """ Run the Skia render_pictures executable. """
 
-from utils import shell_utils
 from build_step import BuildStep
-import os
-import shutil
 import sys
-import tempfile
+
+
+DEFAULT_TILE_X = 256
+DEFAULT_TILE_Y = 256
 
 
 class RenderPictures(BuildStep):
-  def _PictureArgs(self, skp_dir, out_dir, device):
-    args = [skp_dir, '--device', device,
-            '--mode', 'tile', str(self.TILE_X), str(self.TILE_Y)]
+  def DoRenderPictures(self, args, device='bitmap', write_images=True):
+    cmd = [self._device_dirs.SKPDir(), '--device', device,
+           '--mode', 'tile', str(DEFAULT_TILE_X), str(DEFAULT_TILE_Y)]
+    cmd.extend(args)
     if not hasattr(self, '_device'):
-      # For now, only run --validate when not on Android, since some of our
-      # pictures are too big to fit in memory.
-      args.append('--validate')
-    return args
-
-  def DoRenderPictures(self, verify_args):
-    # Render the pictures into a temporary directory.
-    temp_dir = tempfile.mkdtemp()
-    skp_dir = os.path.join(os.pardir, 'skp')
-    args = self._PictureArgs(skp_dir, temp_dir, 'bitmap')
-    cmd = [self._PathToBinary('render_pictures')] + args + verify_args
-    shell_utils.Bash(cmd)
-    # Copy the files into gm_actual_dir, prepending 'skp_' to the filename
-    filepaths = os.listdir(temp_dir)
-    for filepath in filepaths:
-      if not os.path.isdir(filepath):
-        out_file = os.path.join(self._gm_actual_dir, filepath)
-        shutil.copyfile(os.path.join(temp_dir, filepath), out_file)
-    shutil.rmtree(temp_dir)
+      # For now, skip --validate and writing images on Android, since some of
+      # our pictures are too big to fit in memory, and the images take too long
+      # to transfer.
+      cmd.append('--validate')
+      if write_images:
+        cmd.extend(['-w', self._device_dirs.SKPOutDir()])
+    self.RunFlavoredCmd('render_pictures', cmd)
 
   def _Run(self):
     self.DoRenderPictures([])
-    self.DoRenderPictures(['--bbh', 'grid', '256', '256', '--clone', '1'])
+    self.DoRenderPictures(['--bbh', 'grid', str(DEFAULT_TILE_X),
+                           str(DEFAULT_TILE_X), '--clone', '1'])
     self.DoRenderPictures(['--bbh', 'rtree', '--clone', '2'])
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RenderPictures))

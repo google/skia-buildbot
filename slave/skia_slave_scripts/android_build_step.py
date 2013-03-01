@@ -1,32 +1,13 @@
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """ Subclass for all slave-side Android build steps. """
 
-from build_step import BuildStep
+from build_step import BuildStep, DeviceDirs
 from utils import android_utils
 from utils import shell_utils
-
-
-class AndroidDirs(object):
-  def __init__(self, path_prefix):
-    self._path_prefix = path_prefix + '/skiabot/skia_'
-
-  def GMDir(self):
-    return self._path_prefix + 'gm'
-
-  def PerfDir(self):
-    return self._path_prefix + 'perf'
-
-  def SKPDir(self):
-    return self._path_prefix + 'skp'
-
-  def SKPPerfDir(self):
-    return self._path_prefix + 'skp_perf'
-
-  def SKPOutDir(self):
-    return self._path_prefix + 'skp_out'
+import posixpath
 
 
 class AndroidBuildStep(BuildStep):
@@ -39,6 +20,12 @@ class AndroidBuildStep(BuildStep):
     else:
       android_utils.ADBKill(self._serial, 'com.skia', kill_app=True)
 
+  def RunFlavoredCmd(self, app, args):
+    """ Override this in new BuildStep flavors. """
+    android_utils.RunSkia(self._serial, [app] + args,
+                          use_intent=(not self._has_root),
+                          stop_shell=self._has_root)
+
   def __init__(self, args, **kwargs):
     self._device = args['device']
     self._serial = args['serial']
@@ -49,5 +36,10 @@ class AndroidBuildStep(BuildStep):
         '%s -s %s shell echo \$EXTERNAL_STORAGE' % (
             android_utils.PATH_TO_ADB, self._serial), 
         echo=True, shell=True).rstrip().split('\n')[-1]
-    self._device_dirs = AndroidDirs(device_scratch_dir)
     super(AndroidBuildStep, self).__init__(args=args, **kwargs)
+    prefix = posixpath.join(device_scratch_dir, 'skiabot', 'skia_')
+    self._device_dirs = DeviceDirs(perf_data_dir=prefix + 'perf',
+                                   gm_dir=prefix + 'gm',
+                                   skp_dir=prefix + 'skp',
+                                   skp_perf_dir=prefix + 'skp_perf',
+                                   skp_out_dir=prefix + 'skp_out')

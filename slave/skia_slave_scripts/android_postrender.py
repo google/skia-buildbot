@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -7,17 +7,27 @@
 
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
+from postrender import PostRender
 from utils import android_utils
+import posixpath
 import sys
 
 
-class AndroidPostRender(AndroidBuildStep):
-  def _PullSKPResults(self, serial):
-    android_utils.RunADB(serial, ['pull', self._device_dirs.SKPOutDir(),
-                                  self._gm_actual_dir])
-
+class AndroidPostRender(AndroidBuildStep, PostRender):
   def _Run(self):
-    self._PullSKPResults(self._serial)
+    super(AndroidPostRender, self)._Run()
+
+    android_utils.RunADB(self._serial, ['pull', posixpath.join(
+                                            self._device_dirs.GMDir(),
+                                            self._gm_image_subdir),
+                                        self._gm_actual_dir])
+    android_utils.RunADB(self._serial, ['pull', self._device_dirs.SKPOutDir(),
+                                        self._gm_actual_dir])
+    android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
+                                        self._device_dirs.GMDir()])
+    android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
+                                        self._device_dirs.SKPOutDir()])
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidPostRender))

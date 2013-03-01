@@ -1,37 +1,28 @@
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """ Subclass for all slave-side ChromeOS build steps. """
 
 
-from build_step import BuildStep
-
-
-class ChromeOSDirs(object):
-  def __init__(self, path_prefix):
-    self._path_prefix = path_prefix + '/skiabot/skia_'
-
-  def GMDir(self):
-    return self._path_prefix + 'gm'
-
-  def PerfDir(self):
-    return self._path_prefix + 'perf'
-
-  def SKPDir(self):
-    return self._path_prefix + 'skp'
-
-  def SKPPerfDir(self):
-    return self._path_prefix + 'skp_perf'
-
-  def SKPOutDir(self):
-    return self._path_prefix + 'skp_out'
+from build_step import BuildStep, DeviceDirs
+from utils import ssh_utils
 
 
 class ChromeOSBuildStep(BuildStep):
+  def RunFlavoredCmd(self, app, args):
+    """ Override this in new BuildStep flavors. """
+    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                     ['skia_%s' % app] + args)
+
   def __init__(self, args, **kwargs):
     self._ssh_host = args['ssh_host']
     self._ssh_port = args['ssh_port']
     self._ssh_username = 'root'
-    self._device_dirs = ChromeOSDirs('/usr/local')
     super(ChromeOSBuildStep, self).__init__(args=args, **kwargs)
+    prefix = '/usr/local/skiabot/skia_'
+    self._device_dirs = DeviceDirs(perf_data_dir=prefix + 'perf',
+                                   gm_dir=prefix + 'gm',
+                                   skp_dir=prefix + 'skp',
+                                   skp_perf_dir=prefix + 'skp_perf',
+                                   skp_out_dir=prefix + 'skp_out')

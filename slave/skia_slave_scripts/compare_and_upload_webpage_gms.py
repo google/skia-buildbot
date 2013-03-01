@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -157,12 +157,6 @@ class CompareAndUploadWebpageGMs(BuildStep):
         shutil.rmtree(self._local_playback_dirs.PlaybackGmExpectedDir())
       shutil.copytree(self._local_playback_dirs.PlaybackGmActualDir(),
                       self._local_playback_dirs.PlaybackGmExpectedDir())
-    else:
-      print '\n\n=======Downloading gm-expected from Google Storage=======\n\n'
-      gs_utils.DownloadDirectoryContentsIfChanged(
-          gs_base=self._dest_gsbase,
-          gs_relative_dir=self._storage_playback_dirs.PlaybackGmExpectedDir(),
-          local_dir=self._local_playback_dirs.PlaybackGmExpectedDir())
 
     if not self._gm_actual_exists_on_storage and self._do_upload_results:
       # Copy actual images to Google Storage since they do not exist yet.

@@ -1,33 +1,20 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """ Run the Skia bench_pictures executable. """
 
-from android_render_pictures import AndroidRenderPictures
-from android_run_bench import DoBench
-from bench_pictures import BenchPictures
+from android_build_step import AndroidBuildStep
 from build_step import BuildStep
+from bench_pictures import BenchPictures
 import sys
 
-class AndroidBenchPictures(BenchPictures, AndroidRenderPictures):
+
+class AndroidBenchPictures(AndroidBuildStep, BenchPictures):
   def __init__(self, timeout=134400, **kwargs):
     super(AndroidBenchPictures, self).__init__(timeout=timeout, **kwargs)
 
-  def _DoBenchPictures(self, args):
-    data_file = self._BuildDataFile(self._device_dirs.SKPPerfDir(), args)
-    args += [self._device_dirs.SKPDir()]
-    DoBench(serial=self._serial,
-            executable='bench_pictures',
-            perf_data_dir=self._perf_data_dir,
-            device_perf_dir=self._device_dirs.SKPPerfDir(),
-            data_file=data_file,
-            extra_args=args,
-            has_root=self._has_root)
-
-  def _Run(self):
-    super(AndroidBenchPictures, self)._Run()
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidBenchPictures))
