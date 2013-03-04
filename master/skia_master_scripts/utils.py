@@ -25,6 +25,8 @@ from oauth2client.client import SignedJwtAssertionCredentials
 from skia_master_scripts import android_factory
 from skia_master_scripts import chromeos_factory
 from skia_master_scripts import factory as skia_factory
+from skia_master_scripts import housekeeping_percommit_factory, \
+                                housekeeping_periodic_factory
 from skia_master_scripts import ios_factory
 
 
@@ -437,6 +439,37 @@ def _MakeBuilderAndMaybeTrybotSet(do_trybots=True, **kwargs):
 
 def MakeBuilderSet(**kwargs):
   _MakeBuilderAndMaybeTrybotSet(factory_type=skia_factory.SkiaFactory, **kwargs)
+
+
+def MakeHousekeeperBuilderSet(helper, do_trybots, do_upload_results):
+  B = helper.Builder
+  F = helper.Factory
+
+  builder_factory_scheduler = [
+    # The Percommit housekeeper
+    ('Skia_PerCommit_House_Keeping',
+     housekeeping_percommit_factory.HouseKeepingPerCommitFactory,
+     'skia_rel'),
+    # The Periodic housekeeper
+    ('Skia_Periodic_House_Keeping',
+     housekeeping_periodic_factory.HouseKeepingPeriodicFactory,
+     'skia_periodic'),
+  ]
+  if do_trybots:
+    # Add the corresponding trybot builders to the above list.
+    builder_factory_scheduler.extend([
+        (builder + TRYBOT_NAME_SUFFIX, factory, 'skia_try')
+        for (builder, factory, _scheduler) in builder_factory_scheduler])
+
+  for (builder_name, factory, scheduler) in builder_factory_scheduler:
+    B(builder_name, 'f_%s' % builder_name, scheduler=scheduler)
+    F('f_%s' % builder_name,
+      factory(
+        do_upload_results=do_upload_results,
+        target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+        builder_name=builder_name,
+        do_patch_step=(scheduler == 'skia_try'),
+      ).Build())
 
 
 def MakeAndroidBuilderSet(extra_branches=None, **kwargs):

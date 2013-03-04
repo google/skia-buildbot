@@ -5,11 +5,12 @@
 # Sets up all the builders we want this buildbot master to run.
 
 from skia_master_scripts import factory as skia_factory
-from skia_master_scripts import housekeeping_percommit_factory
-from skia_master_scripts import housekeeping_periodic_factory
 from skia_master_scripts import utils
-from skia_master_scripts.utils import MakeBuilderSet, MakeAndroidBuilderSet, \
-                                      MakeChromeOSBuilderSet, MakeIOSBuilderSet
+from skia_master_scripts.utils import MakeBuilderSet, \
+                                      MakeAndroidBuilderSet, \
+                                      MakeChromeOSBuilderSet, \
+                                      MakeIOSBuilderSet, \
+                                      MakeHousekeeperBuilderSet
 
 # Directory where we want to record performance data
 #
@@ -23,8 +24,6 @@ defaults = {}
 
 def Update(config, active_master, c):
   helper = utils.SkiaHelper(defaults)
-  B = helper.Builder
-  F = helper.Factory
 
   #
   # Default (per-commit) Scheduler for Skia. Only use this for builders which
@@ -273,22 +272,10 @@ def Update(config, active_master, c):
 
   # House Keeping
   defaults['category'] = ' housekeeping'
-  B('Skia_PerCommit_House_Keeping', 'f_skia_percommit_house_keeping',
-      scheduler='skia_rel')
-  F('f_skia_percommit_house_keeping',
-      housekeeping_percommit_factory.HouseKeepingPerCommitFactory(
-        do_upload_results=do_upload_results,
-        target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-        builder_name='Skia_PerCommit_House_Keeping',
-      ).Build())
-  B('Skia_Periodic_House_Keeping', 'f_skia_periodic_house_keeping',
-      scheduler='skia_periodic')
-  F('f_skia_periodic_house_keeping',
-      housekeeping_periodic_factory.HouseKeepingPeriodicFactory(
-        do_upload_results=do_upload_results,
-        target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-        builder_name='Skia_Periodic_House_Keeping',
-      ).Build())
+  MakeHousekeeperBuilderSet(
+      helper=helper,
+      do_trybots=True,
+      do_upload_results=do_upload_results)
 
   # "Special" bots, running on Linux
   defaults['category'] = 'Linux-Special'
