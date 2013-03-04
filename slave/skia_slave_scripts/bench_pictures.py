@@ -27,7 +27,7 @@ class BenchPictures(BuildStep):
     return full_path
 
   def _DoBenchPictures(self, args):
-    arguments = [self._device_dirs.SKPDir()] + args
+    arguments = ['-r', self._device_dirs.SKPDir()] + args
     if self._perf_data_dir:
       arguments.extend(BenchArgs(repeats=RunBench.BENCH_REPEAT_COUNT,
           data_file=self._BuildDataFile(args)))

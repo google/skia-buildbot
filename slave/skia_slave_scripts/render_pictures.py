@@ -15,8 +15,8 @@ DEFAULT_TILE_Y = 256
 
 
 class RenderPictures(BuildStep):
-  def DoRenderPictures(self, args, device='bitmap', write_images=True):
-    cmd = [self._device_dirs.SKPDir(), '--device', device,
+  def DoRenderPictures(self, args, config='8888', write_images=True):
+    cmd = ['-r', self._device_dirs.SKPDir(), '--config', config,
            '--mode', 'tile', str(DEFAULT_TILE_X), str(DEFAULT_TILE_Y)]
     cmd.extend(args)
     if not hasattr(self, '_device') and not os.name == 'nt' and \
