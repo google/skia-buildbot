@@ -469,6 +469,7 @@ def MakeHousekeeperBuilderSet(helper, do_trybots, do_upload_results):
         target_platform=skia_factory.TARGET_PLATFORM_LINUX,
         builder_name=builder_name,
         do_patch_step=(scheduler == 'skia_try'),
+        use_skp_playback_framework=True,
       ).Build())
 
 
