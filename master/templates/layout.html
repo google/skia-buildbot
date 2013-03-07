@@ -18,7 +18,8 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     <title>{{ pageTitle|e }}</title>
     <link rel="stylesheet" href="{{ stylesheet }}" type="text/css" />
     <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ path_to_root }}rss">
-    <script type="text/javascript" src="http://www.thomasfrank.se/downloadableJS/jsonStringify.js"></script>
+    <!-- Using Thomas Frank's JSON stringifier -->
+    <script type="text/javascript" src="jsonStringify.js"></script>
     <script type="text/javascript">
     "use strict";
 
@@ -194,7 +195,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
             reloadWithOptions(desired_builders, getOption("repository"), getOption("radio"), false);
             return;
           } else {
-            reloadWithOptions(nonbench_percommit_builders, skia_repo, "radio_nonbench", false);
+            reloadWithOptions(all_percommit_builders, skia_repo, "radio_all", false);
             return;
           }
         } else {
