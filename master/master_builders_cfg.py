@@ -216,7 +216,8 @@ def Update(config, active_master, c):
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
+          {'GYP_DEFINES': ('skia_scalar=float skia_arch_width=32 '
+                           'skia_win_debuggers_path=c:/DbgHelp')},
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=perf_output_basedir_windows,
       use_skp_playback_framework=True)
@@ -226,7 +227,8 @@ def Update(config, active_master, c):
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
+          {'GYP_DEFINES': ('skia_scalar=float skia_arch_width=64 '
+                           'skia_win_debuggers_path=c:/DbgHelp')},
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=perf_output_basedir_windows,
       use_skp_playback_framework=True)
@@ -239,7 +241,8 @@ def Update(config, active_master, c):
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_angle=1 skia_arch_width=32'},
+          {'GYP_DEFINES': ('skia_scalar=float skia_angle=1 skia_arch_width=32 '
+                           'skia_win_debuggers_path=c:/DbgHelp')},
       gm_image_subdir='base-shuttle-win7-intel-angle',
       perf_output_basedir=perf_output_basedir_windows,
       gm_args=['--config', 'angle'],
@@ -253,7 +256,8 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
       environment_variables=
           {'GYP_DEFINES':
-           'skia_scalar=float skia_directwrite=1 skia_arch_width=32'},
+           ('skia_scalar=float skia_directwrite=1 skia_arch_width=32 '
+            'skia_win_debuggers_path=c:/DbgHelp')},
       gm_image_subdir='base-shuttle-win7-intel-directwrite',
       perf_output_basedir=perf_output_basedir_windows,
       use_skp_playback_framework=True)
