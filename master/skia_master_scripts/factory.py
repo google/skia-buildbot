@@ -441,14 +441,10 @@ class SkiaFactory(BuildFactory):
     self.RunBench()
     self.BenchPictures()
     self.PostBench()
+    self.BenchGraphs()
     if self._do_upload_bench_results:
       self.UploadBenchResults()
-      self.BenchGraphs()
       self.UploadBenchGraphs()
-      if self._use_skp_playback_framework:
-        self.UploadWebpagePictureBenchResults()
-        self.GenerateWebpagePictureBenchGraphs()
-        self.UploadWebpagePictureBenchGraphs()
 
   def Build(self, clobber=None):
     """Build and return the complete BuildFactory.

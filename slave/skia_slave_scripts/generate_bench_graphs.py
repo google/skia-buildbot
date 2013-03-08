@@ -17,26 +17,15 @@ import sys
 
 
 class GenerateBenchGraphs(BuildStep):
-  # TODO(borenet): Temporarily increasing the timeout since the amount of data
-  # dramatically increased with r7620.
-  def __init__(self, timeout=9600, no_output_timeout=9600, **kwargs):
+  def __init__(self, timeout=600, no_output_timeout=600, **kwargs):
     super(GenerateBenchGraphs, self).__init__(
         timeout=timeout,
         no_output_timeout=no_output_timeout,
         **kwargs)
 
-  def _GetPerfGraphsDir(self):
-    return self._perf_graphs_dir
-
-  def _GetPerfDataDir(self):
-    return self._perf_data_dir
-
-  def _GetBucketSubdir(self):
-    return posixpath.join('perfdata', self._builder_name)
-
   def _RunInternal(self, representation):
     try:
-      os.makedirs(self._GetPerfGraphsDir())
+      os.makedirs(self._perf_graphs_dir)
     except OSError as e:
       if e.errno == errno.EEXIST:
         pass
@@ -49,19 +38,19 @@ class GenerateBenchGraphs(BuildStep):
     path_to_bench_expectations = os.path.join('bench',
                                               'bench_expectations.txt')
     graph_title = 'Bench_Performance_for_%s' % self._builder_name
-    graph_filepath = bench_common.GraphFilePath(self._GetPerfGraphsDir(),
+    graph_filepath = bench_common.GraphFilePath(self._perf_graphs_dir,
                                                 self._builder_name,
                                                 representation)
-    sync_bucket_subdir.SyncBucketSubdir(directory=self._GetPerfDataDir(),
+    sync_bucket_subdir.SyncBucketSubdir(directory=self._perf_data_dir,
         dest_gsbase=dest_gsbase,
-        subdir=self._GetBucketSubdir(),
+        subdir=posixpath.join('perfdata', self._builder_name),
         do_upload=False,
         do_download=True,
         min_download_revision=self._got_revision -
             bench_common.BENCH_GRAPH_NUM_REVISIONS)
 
     cmd = ['python', path_to_bench_graph_svg,
-           '-d', self._GetPerfDataDir(),
+           '-d', self._perf_data_dir,
            '-e', path_to_bench_expectations,
            '-r', '-%d' % bench_common.BENCH_GRAPH_NUM_REVISIONS,
            '-f', '-%d' % bench_common.BENCH_GRAPH_NUM_REVISIONS,
