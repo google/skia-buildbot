@@ -66,8 +66,9 @@ class GenerateBenchGraphs(BuildStep):
     shell_utils.Bash(cmd)
 
   def _Run(self):
-    for rep in ['avg', 'min', 'med', '25th']:
-      self._RunInternal(rep)
+    if self._perf_data_dir:
+      for rep in ['avg', 'min', 'med', '25th']:
+        self._RunInternal(rep)
 
 
 if '__main__' == __name__:
