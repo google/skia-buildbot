@@ -27,7 +27,7 @@ import urllib2
 def GetGlobalVariables():
   """ Retrieve a global variable from the global_variables.json file. """
   global_variables_file = ('http://skia.googlecode.com/svn/buildbot/'
-                           'site_config/global_variables_2.json')
+                           'site_config/global_variables.json')
   with closing(urllib2.urlopen(global_variables_file)) as f:
     return json.load(f)
 
