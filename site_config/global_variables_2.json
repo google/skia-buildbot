@@ -1,0 +1,77 @@
+{
+  "autogen_svn_url": {
+    "value": "https://skia-autogen.googlecode.com/svn",
+    "type": "string",
+    "description": "URL of the SVN repo used for auto-generated assets."
+  },
+  "external_port": {
+    "value": "10117",
+    "type": "integer",
+    "description": "Externally-visible port on the Skia build master."
+  },
+  "internal_port": {
+    "value": "10115",
+    "type": "integer",
+    "description": "Internally-visible port on the Skia build master."
+  },
+  "master_host_name": {
+    "value": "skia-master-b.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "Host name of the Skia build master."
+  },
+  "master_host": {
+    "value": "108.170.217.252",
+    "type": "string",
+    "description": "IP address of the Skia build master."
+  },
+  "private_external_port": {
+    "value": "8241",
+    "type": "integer",
+    "description": "Externally-visible port on the private Skia build master."
+  },
+  "private_internal_port": {
+    "value": "8041",
+    "type": "integer",
+    "description": "Internally-visible port on the private Skia build master."
+  },
+  "private_master_host_name": {
+    "value": "skia-private-master-a.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "Host name of the private Skia build master."
+  },
+  "private_master_host": {
+    "value": "70.32.159.66",
+    "type": "string",
+    "description": "IP address of the private Skia build master."
+  },
+  "private_slave_port": {
+    "value": "8141",
+    "type": "integer",
+    "description": "Port used by private build slaves."
+  },
+  "project_url": {
+    "value": "http://skia.googlecode.com",
+    "type": "string",
+    "description": "URL of the Skia codesite."
+  },
+  "revlinktmpl": {
+    "value": "http://code.google.com/p/skia/source/detail?r=%s",
+    "type": "string",
+    "description": "Template for links to specific revisions in Skia."
+  },
+  "skia_svn_url": {
+    "value": "http://skia.googlecode.com/svn",
+    "type": "string",
+    "description": "URL of the Skia SVN repository."
+  },
+  "slave_port": {
+    "value": "10116",
+    "type": "integer",
+    "description": "Port used by build slaves."
+  },
+  "try_svn_url": {
+    "value": "http://skia-try.googlecode.com/svn",
+    "type": "string",
+    "description": "URL of the SVN repository used for try requests."
+  }
+}
