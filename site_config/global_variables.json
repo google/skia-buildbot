@@ -20,7 +20,7 @@
     "description": "Host name of the Skia build master."
   },
   "master_host": {
-    "value": "70.32.156.53",
+    "value": "108.170.217.252",
     "type": "string",
     "description": "IP address of the Skia build master."
   },
