@@ -435,7 +435,10 @@ def RunSkiaIntent(serial, cmd, echo=True, timeout=None, log_file=None):
         last_poll_time = time.time()
   finally:
     # Cleanup.
-    log_process.terminate()
+    try:
+      log_process.terminate()
+    except OSError:
+      pass
     log_thread.stop()
     log_thread.join()
 
