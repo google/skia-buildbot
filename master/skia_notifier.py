@@ -19,6 +19,11 @@ import re
 import urllib
 
 
+_COMMIT_QUEUE_AUTHOR_LINE = 'Author: '
+_COMMIT_QUEUE_REVIEWERS_LINE = 'Reviewed By: '
+_COMMIT_BOT = 'commit-bot@chromium.org'
+
+
 class SkiaNotifier(MailNotifier):
   """This is Skia's status notifier."""
 
@@ -42,6 +47,29 @@ class SkiaNotifier(MailNotifier):
               'revision': builds[0].getSourceStamp().revision,
           })
     return m
+
+  def buildMessage(self, name, builds, results):
+    if self.sendToInterestedUsers and self.lookup:
+
+      for build in builds:  # Loop through all builds we are emailing about
+        blame_list = set(build.getResponsibleUsers())
+        for change in build.getChanges():  # Loop through all changes in a build
+          if change.comments and _COMMIT_BOT == change.who:
+            # If the change has been submitted by the commit bot then find the
+            # original author and the reviewers and add them to the blame list
+            for commit_queue_line in (_COMMIT_QUEUE_AUTHOR_LINE,
+                                      _COMMIT_QUEUE_REVIEWERS_LINE):
+              users =  re.search(
+                  '%s(.*?)\n' % commit_queue_line,
+                  change.comments).group(1).split(',')
+              blame_list = blame_list.union(users)
+        # pylint: disable=C0301
+        # Set the extended blamelist. It was originally set in
+        # http://buildbot.net/buildbot/docs/0.8.4/reference/buildbot.process.build-pysrc.html
+        # (line 339)
+        build.setBlamelist(list(blame_list))
+
+    return MailNotifier.buildMessage(self, name, builds, results)
 
 
 def _ParseTimeStampFromURL(url):
