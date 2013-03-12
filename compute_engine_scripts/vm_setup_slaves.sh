@@ -37,7 +37,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "sudo easy_install --upgrade google-api-python-client; " \
     "sudo easy_install --upgrade pyOpenSSL; " \
     "mkdir ~/skia-slave; " \
-    "sudo /usr/share/google/safe_format_and_mount /dev/${VM}-disk-${ZONE_TAG} /home/default/skia-slave; " \
+    "sudo /usr/share/google/safe_format_and_mount /dev/sdb /home/default/skia-slave; " \
     "cd ~/skia-slave; " \
     "sudo chmod 777 -R .; " \
     "svn checkout http://src.chromium.org/svn/trunk/tools/depot_tools; " \

@@ -27,7 +27,7 @@ $GCOMPUTE_CMD getproject 2>/dev/null \
 # Remove trailing whitespace else it results in an incorrect comparison.
 sed -i 's/[ \t]*$//' $ALL_IPS
 
-# Get a list of IP addresss used so far
+# Get a list of IP addresses used so far
 #   1. Grab the external_ip column.
 #   2. Remove lines that are not IPs, strip spaces
 #   3. Set difference against ALL_IPS to see what is free
@@ -49,7 +49,6 @@ FREE_IP_INDEX=0
 for VM in $VM_NAMES; do
   $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM}-${ZONE_TAG} \
     --zone=$ZONE \
-    --machine='standard-2-cpu' \
     --external_ip_address=${FREE_IP_LIST[$FREE_IP_INDEX]} \
     --service_account=default \
     --service_account_scopes="$SCOPES" \
