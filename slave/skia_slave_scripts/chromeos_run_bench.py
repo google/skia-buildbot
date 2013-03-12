@@ -5,17 +5,14 @@
 
 """ Run the Skia bench executable. """
 
-from build_step import BuildStep, BuildStepWarning
+from build_step import BuildStep
 from chromeos_build_step import ChromeOSBuildStep
 from run_bench import RunBench
 import sys
 
 
 class ChromeOSRunBench(ChromeOSBuildStep, RunBench):
-  def _Run(self):
-    # TODO(borenet): Re-enable this step once the crash is fixed.
-    # RunBench._Run(self)
-    raise BuildStepWarning('Skipping bench on ChromeOS until crash is fixed.')
+  pass
 
 
 if '__main__' == __name__:
