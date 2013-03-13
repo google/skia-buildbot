@@ -59,6 +59,11 @@
     "type": "string",
     "description": "Template for links to specific revisions in Skia."
   },
+  "skia_dashboard_add_point_url": {
+    "value": "https://skiadash.appspot.com/add_point",
+    "type": "string",
+    "description": "URL for adding bench data to the Skia dashboard on Appspot."
+  },
   "skia_svn_url": {
     "value": "http://skia.googlecode.com/svn",
     "type": "string",

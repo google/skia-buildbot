@@ -335,6 +335,11 @@ class SkiaFactory(BuildFactory):
     self.AddFlavoredSlaveScript(script='bench_pictures.py',
                                 description='BenchPictures')
 
+  def CheckForRegressions(self):
+    """ Check for benchmark regressions. """
+    self.AddSlaveScript(script='check_for_regressions.py',
+                        description='CheckForRegressions')
+
   def BenchGraphs(self):
     """ Generate bench performance graphs. """
     self.AddSlaveScript(script='generate_bench_graphs.py',
@@ -399,6 +404,11 @@ class SkiaFactory(BuildFactory):
     self.AddSlaveScript(script='upload_bench_results.py',
                         description='UploadBenchResults')
 
+  def UploadBenchResultsToAppEngine(self):
+    """ Upload bench results (performance data) to AppEngine. """
+    self.AddSlaveScript(script='upload_bench_results_appengine.py',
+                        description='UploadBenchResultsToAppengine')
+
   def UploadWebpagePictureBenchResults(self):
     """ Upload webpage picture bench results (performance data). """
     self.AddSlaveScript(script='upload_webpage_picture_bench_results.py',
@@ -441,9 +451,11 @@ class SkiaFactory(BuildFactory):
     self.RunBench()
     self.BenchPictures()
     self.PostBench()
+    self.CheckForRegressions()
     self.BenchGraphs()
     if self._do_upload_bench_results:
       self.UploadBenchResults()
+      self.UploadBenchResultsToAppEngine()
       self.UploadBenchGraphs()
 
   def Build(self, clobber=None):
