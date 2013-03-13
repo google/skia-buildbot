@@ -28,8 +28,8 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "sudo sh -c 'echo 127.0.0.1 smtp >> /etc/hosts'"
 
    echo """
-Please manually ssh into ${VM_COMPLETE_NAME} from a different terminal and:
-  Comment out the TLS parameters section in /etc/postfix/main.cf.
+Please manually ssh into ${VM_COMPLETE_NAME} from a different terminal and follow all the steps in:
+  http://www.zoneminder.com/wiki/index.php/How_to_install_and_configure_Postfix_as_a_Gmail_SMTP_relay_for_ZoneMinder_email_filter_events.
 
 ssh cmd: ${GCOMPUTE_CMD} ssh --ssh_user=default ${VM_COMPLETE_NAME}
 """
