@@ -19,15 +19,15 @@ class RenderPictures(BuildStep):
     cmd = ['-r', self._device_dirs.SKPDir(), '--config', config,
            '--mode', 'tile', str(DEFAULT_TILE_X), str(DEFAULT_TILE_Y)]
     cmd.extend(args)
-    if not hasattr(self, '_device') and not os.name == 'nt' and \
-        not hasattr(self, '_ssh_host'):
+    if not hasattr(self, '_device') and not hasattr(self, '_ssh_host'):
       # For now, skip --validate and writing images on Android and ChromeOS,
       # since some of our pictures are too big to fit in memory, and the images
       # take too long to transfer.
       # Also skip --validate on Windows, where it is currently failing.
-      cmd.append('--validate')
       if write_images:
         cmd.extend(['-w', self._device_dirs.SKPOutDir()])
+      if not os.name == 'nt':
+        cmd.append('--validate')
     self.RunFlavoredCmd('render_pictures', cmd)
 
   def _Run(self):
