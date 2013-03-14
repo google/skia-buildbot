@@ -83,7 +83,8 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-s',
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_Xoom_4-1_Float_%s_32',
@@ -92,7 +93,8 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-xoom',
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_GalaxyNexus_4-1_Float_%s_32',
@@ -101,7 +103,8 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-galaxy-nexus',
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_Nexus4_4-1_Float_%s_32',
@@ -110,7 +113,8 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-4',
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_Nexus7_4-1_Float_%s_32',
@@ -119,7 +123,8 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-7',
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_Nexus10_4-1_Float_%s_32',
@@ -128,7 +133,8 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-10',
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_RazrI_4-1_Float_%s_32',
@@ -137,7 +143,8 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-razr-i',
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
 
   # Mac 10.6 (SnowLeopard) ...
   defaults['category'] = 'mac-10.6'
@@ -296,7 +303,8 @@ def Update(config, active_master, c):
       perf_output_basedir=None, # no perf measurement for debug builds
       bench_pictures_cfg='no_gpu',
       do_release=False,
-      do_bench=False)
+      do_bench=False,
+      use_skp_playback_framework=True)
 
   # Chrome OS
   defaults['category'] = 'ChromeOS'
@@ -308,6 +316,7 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_arch_width=32'},
       gm_image_subdir=None,
-      perf_output_basedir=perf_output_basedir_linux)
+      perf_output_basedir=perf_output_basedir_linux,
+      use_skp_playback_framework=True)
 
   return helper.Update(c)
