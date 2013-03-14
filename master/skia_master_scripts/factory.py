@@ -14,6 +14,7 @@ from master.factory import gclient_factory
 from master.factory.build_factory import BuildFactory
 from skia_master_scripts import commands as skia_commands
 import config
+import config_private
 import ntpath
 import posixpath
 import skia_build
@@ -373,17 +374,40 @@ class SkiaFactory(BuildFactory):
         workdir='build')
 
     if self._do_patch_step:
+      def _GetRoot(build):
+        if build.getSourceStamp().patch and 'root' in build.getProperties():
+          return build.getProperty('root')
+        elif 'issue' in build.getProperties() and \
+             'patchset' in build.getProperties() and \
+             'baseurl' in build.getProperties():
+          baseurl = build.getProperty('baseurl')
+          if len(baseurl) == 1:
+            baseurl = baseurl[0]
+          if not baseurl.startswith(config_private.SKIA_SVN_BASEURL):
+            return 'None'
+          return baseurl.split(config_private.SKIA_SVN_BASEURL)[1].strip('/')
+        else:
+          return 'None'
+
       def _GetPatch(build):
-        if build.getSourceStamp().patch:
+        if build.getSourceStamp().patch and \
+            'patch_file_url' in build.getProperties():
           patch = (build.getSourceStamp().patch[0],
                    build.getProperty('patch_file_url'))
           return str(patch).encode()
+        elif 'issue' in build.getProperties() and \
+            'patchset' in build.getProperties():
+          patch = '%s/download/issue%d_%d.diff' % (
+              config_private.CODE_REVIEW_SITE.rstrip('/'),
+              build.getProperty('issue'),
+              build.getProperty('patchset'))
+          return str((0, patch)).encode()
         else:
           patch = 'None'
         return patch
 
       args = ['--patch', WithProperties('%(patch)s', patch=_GetPatch),
-              '--patch_root', WithProperties('%(root:-None)s')]
+              '--patch_root', WithProperties('%(root)s', root=_GetRoot)]
       self.AddSlaveScript(script='apply_patch.py', description='ApplyPatch',
                           args=args, halt_on_failure=True)
 

@@ -4,6 +4,16 @@
     "type": "string",
     "description": "URL of the SVN repo used for auto-generated assets."
   },
+  "code_review_site": {
+    "value": "https://codereview.chromium.org/",
+    "type": "string",
+    "description": "URL of the project's code review site."
+  },
+  "code_review_status_listener": {
+    "value": "https://codereview.chromium.org/status_listener",
+    "type": "string",
+    "description": "URL of the code review site's status listener."
+  },
   "external_port": {
     "value": "10117",
     "type": "integer",

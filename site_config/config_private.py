@@ -15,6 +15,7 @@ import skia_vars
 import config_default
 
 
+CODE_REVIEW_SITE = skia_vars.GetGlobalVariable('code_review_site')
 # Skia's Google Compute Engine instances.
 # The public master which is visible to everyone.
 SKIA_PUBLIC_MASTER = skia_vars.GetGlobalVariable('master_host_name')
@@ -46,6 +47,8 @@ class Master(config_default.Master):
     from_address = 'skia-buildbot@pogerlabs.com'
     buildbot_url = 'http://%s:%d/' % (master_host, master_port)
     is_publicly_visible = True
+    code_review_site = \
+        skia_vars.GetGlobalVariable('code_review_status_listener')
 
   class PrivateSkia(object):
     project_name = 'PrivateSkia'
@@ -59,6 +62,8 @@ class Master(config_default.Master):
     tree_closing_notification_recipients = []
     from_address = 'skia-buildbot@pogerlabs.com'
     is_publicly_visible = False
+    code_review_site = \
+        skia_vars.GetGlobalVariable('code_review_status_listener')
   
 
 class Archive(config_default.Archive):

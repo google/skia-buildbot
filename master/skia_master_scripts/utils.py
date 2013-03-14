@@ -21,6 +21,7 @@ from config_private import TRY_SVN_BASEURL
 from master import master_config
 from master.builders_pools import BuildersPools
 from master import try_job_svn
+from master import try_job_rietveld
 from oauth2client.client import SignedJwtAssertionCredentials
 from skia_master_scripts import android_factory
 from skia_master_scripts import chromeos_factory
@@ -28,9 +29,13 @@ from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import housekeeping_percommit_factory, \
                                 housekeeping_periodic_factory
 from skia_master_scripts import ios_factory
+import config_private
 
 
 TRYBOT_NAME_SUFFIX = '_Trybot'
+TRY_SCHEDULER_SVN = 'skia_try_svn'
+TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
+TRY_SCHEDULERS = [TRY_SCHEDULER_SVN, TRY_SCHEDULER_RIETVELD]
 
 
 class SkiaChangeFilter(ChangeFilter):
@@ -236,12 +241,17 @@ class SkiaHelper(master_config.Helper):
                               'month': month,
                               'dayOfWeek': dayOfWeek}
 
-  def TryScheduler(self, name):
-    """ Adds a try scheduler. """
+  def TryJobSubversion(self, name):
+    """ Adds a Subversion-based try scheduler. """
     if name in self._schedulers:
       raise ValueError('Scheduler %s already exists' % name)
-    self._schedulers[name] = {'type': 'TryJobSubversion',
-                              'builders': []}
+    self._schedulers[name] = {'type': 'TryJobSubversion', 'builders': []}
+
+  def TryJobRietveld(self, name):
+    """ Adds a Rietveld-based try scheduler. """
+    if name in self._schedulers:
+      raise ValueError('Scheduler %s already exists' % name)
+    self._schedulers[name] = {'type': 'TryJobRietveld', 'builders': []}
 
   def Update(self, c):
     super(SkiaHelper, self).Update(c)
@@ -306,8 +316,17 @@ class SkiaHelper(master_config.Helper):
             name=s_name,
             svn_url=TRY_SVN_BASEURL,
             last_good_urls={'skia': None},
-            code_review_sites={'skia': 'http://codereview.appspot.com'},
+            code_review_sites={'skia': config_private.CODE_REVIEW_SITE},
             pools=pools)
+      elif scheduler['type'] == 'TryJobRietveld':
+        pools = BuildersPools(s_name)
+        pools[s_name].extend(scheduler['builders'])
+        instance = try_job_rietveld.TryJobRietveld(
+            name=s_name,
+            pools=pools,
+            last_good_urls={'skia': None},
+            code_review_sites={'skia': config_private.CODE_REVIEW_SITE},
+            project='skia')
       else:
         raise ValueError(
             'The scheduler type is unrecognized %s' % scheduler['type'])
@@ -364,7 +383,7 @@ def MakeSchedulerName(builder_base_name):
 def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
                     perf_output_basedir=None, extra_branches=None,
                     factory_type=None, do_debug=True, do_release=True,
-                    do_bench=True, is_trybot=False, **kwargs):
+                    do_bench=True, try_schedulers=None, **kwargs):
   """ Creates a trio of builders for a given platform:
   1. Debug mode builder which runs all steps
   2. Release mode builder which runs all steps EXCEPT benchmarks
@@ -380,8 +399,8 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     gm_image_branch = 'gm-expected/%s' % gm_image_subdir
     subdirs_to_checkout.add(gm_image_branch)
 
-  if is_trybot:
-    scheduler_name = 'skia_try'
+  if try_schedulers:
+    scheduler_name = '|'.join(try_schedulers)
     builder_base_name = builder_base_name + TRYBOT_NAME_SUFFIX
   else:
     scheduler_name = MakeSchedulerName(builder_base_name)
@@ -397,7 +416,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         other_subdirs=subdirs_to_checkout,
         configuration=skia_factory.CONFIG_DEBUG,
         gm_image_subdir=gm_image_subdir,
-        do_patch_step=is_trybot,
+        do_patch_step=(try_schedulers is not None),
         perf_output_basedir=None,
         **kwargs
         ).Build())
@@ -411,7 +430,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         other_subdirs=subdirs_to_checkout,
         configuration=skia_factory.CONFIG_RELEASE,
         gm_image_subdir=gm_image_subdir,
-        do_patch_step=is_trybot,
+        do_patch_step=(try_schedulers is not None),
         perf_output_basedir=None,
         **kwargs
         ).BuildNoPerf())
@@ -425,16 +444,16 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         other_subdirs=subdirs_to_checkout,
         configuration=skia_factory.CONFIG_RELEASE,
         gm_image_subdir=gm_image_subdir,
-        do_patch_step=is_trybot,
+        do_patch_step=(try_schedulers is not None),
         perf_output_basedir=perf_output_basedir,
         **kwargs        
         ).BuildPerfOnly())
 
 
 def _MakeBuilderAndMaybeTrybotSet(do_trybots=True, **kwargs):
-  _MakeBuilderSet(is_trybot=False, **kwargs)
+  _MakeBuilderSet(try_schedulers=None, **kwargs)
   if do_trybots:
-    _MakeBuilderSet(is_trybot=True, **kwargs)
+    _MakeBuilderSet(try_schedulers=TRY_SCHEDULERS, **kwargs)
 
 
 def MakeBuilderSet(**kwargs):
@@ -458,7 +477,7 @@ def MakeHousekeeperBuilderSet(helper, do_trybots, do_upload_results):
   if do_trybots:
     # Add the corresponding trybot builders to the above list.
     builder_factory_scheduler.extend([
-        (builder + TRYBOT_NAME_SUFFIX, factory, 'skia_try')
+        (builder + TRYBOT_NAME_SUFFIX, factory, '|'.join(TRY_SCHEDULERS))
         for (builder, factory, _scheduler) in builder_factory_scheduler])
 
   for (builder_name, factory, scheduler) in builder_factory_scheduler:
@@ -468,7 +487,8 @@ def MakeHousekeeperBuilderSet(helper, do_trybots, do_upload_results):
         do_upload_results=do_upload_results,
         target_platform=skia_factory.TARGET_PLATFORM_LINUX,
         builder_name=builder_name,
-        do_patch_step=(scheduler == 'skia_try'),
+        do_patch_step=(scheduler == TRY_SCHEDULER_SVN or
+                       scheduler == TRY_SCHEDULER_RIETVELD),
         use_skp_playback_framework=True,
       ).Build())
 
@@ -523,6 +543,9 @@ def CanMergeBuildRequests(req1, req2):
 
   # If either is a try request, don't merge (#4 above).
   if req1.source.patch or req2.source.patch:
+    return False
+  if req1.buildername.endswith(TRYBOT_NAME_SUFFIX) or \
+      req2.buildername.endswith(TRYBOT_NAME_SUFFIX):
     return False
 
   # Verify that either: both requests are associated with changes OR neither

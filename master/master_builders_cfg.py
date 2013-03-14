@@ -22,6 +22,7 @@ perf_output_basedir_windows = '..\\..\\..\\..\\perfdata'
 
 defaults = {}
 
+
 def Update(config, active_master, c):
   helper = utils.SkiaHelper(defaults)
 
@@ -37,8 +38,9 @@ def Update(config, active_master, c):
   #
   helper.PeriodicScheduler('skia_periodic', branch='trunk', minute=0, hour=7)
 
-  # Scheduler for Skia trybots.
-  helper.TryScheduler('skia_try')
+  # Schedulers for Skia trybots.
+  helper.TryJobSubversion(utils.TRY_SCHEDULER_SVN)
+  helper.TryJobRietveld(utils.TRY_SCHEDULER_RIETVELD)
 
   #
   # Set up all the builders.
