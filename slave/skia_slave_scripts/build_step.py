@@ -137,7 +137,6 @@ class BuildStep(multiprocessing.Process):
                                        self._gm_image_subdir)
     self._gm_actual_svn_baseurl = '%s/%s' % (args['autogen_svn_baseurl'],
                                              'gm-actual')
-    self._skp_dir = os.path.join(os.pardir, 'skp')
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._make_flags = shlex.split(args['make_flags'].replace('"', ''))
@@ -158,6 +157,10 @@ class BuildStep(multiprocessing.Process):
         self._builder_name, self._gm_image_subdir,
         None if args['perf_output_basedir'] == 'None'
             else args['perf_output_basedir'])
+
+    self._skp_dir = (self._local_playback_dirs.PlaybackSkpDir() \
+                     if self._use_skp_playback_framework \
+                     else os.path.join(os.pardir, 'skp'))
 
     # Figure out where we are going to store performance output.
     if args['perf_output_basedir'] != 'None':
