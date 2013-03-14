@@ -7,6 +7,14 @@
 
 source vm_config.sh
 
+for REQUIRED_FILE in ${REQUIRED_FILES_FOR_MASTERS[@]}; do
+  if [ ! -f $REQUIRED_FILE ];
+  then
+    echo "Please create $REQUIRED_FILE!"
+    exit 1
+  fi
+done
+
 for VM in $VM_MASTER_NAMES; do
   VM_COMPLETE_NAME="${VM_NAME_BASE}-${VM}-${ZONE_TAG}"
 
@@ -48,6 +56,11 @@ ssh cmd: ${GCOMPUTE_CMD} ssh --ssh_user=default ${VM_COMPLETE_NAME}
     "svn checkout http://src.chromium.org/svn/trunk/tools/depot_tools; " \
     "~/skia-master/depot_tools/gclient config https://skia.googlecode.com/svn/buildbot; " \
     "~/skia-master/depot_tools/gclient sync; "
+
+  for REQUIRED_FILE in ${REQUIRED_FILES_FOR_MASTERS[@]}; do
+    $GCOMPUTE_CMD push --ssh_user=default $VM_COMPLETE_NAME \
+      $REQUIRED_FILE /home/default/skia-master/buildbot/master/
+  done
 
 done
 
