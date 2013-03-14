@@ -63,6 +63,9 @@ class SkiaNotifier(MailNotifier):
                   '%s(.*?)\n' % commit_queue_line,
                   change.comments).group(1).split(',')
               blame_list = blame_list.union(users)
+            if _COMMIT_BOT in blame_list:
+              # Remove the commit bot from the blame list.
+              blame_list.remove(_COMMIT_BOT)
         # pylint: disable=C0301
         # Set the extended blamelist. It was originally set in
         # http://buildbot.net/buildbot/docs/0.8.4/reference/buildbot.process.build-pysrc.html
