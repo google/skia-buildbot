@@ -314,9 +314,10 @@ def Update(config, active_master, c):
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables=
-          {'GYP_DEFINES': 'skia_arch_width=32'},
+          {'GYP_DEFINES': 'skia_arch_width=32 skia_gpu=0'},
       gm_image_subdir=None,
       perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      use_skp_playback_framework=True,
+      bench_pictures_cfg='no_gpu')
 
   return helper.Update(c)
