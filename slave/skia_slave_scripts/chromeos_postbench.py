@@ -18,7 +18,8 @@ class ChromeOSPostBench(ChromeOSBuildStep, PostBench):
 
     if self._perf_data_dir:
       ssh_utils.GetSCP(self._perf_data_dir, self._device_dirs.PerfDir(),
-                       self._ssh_username, self._ssh_host, self._ssh_port)
+                       self._ssh_username, self._ssh_host, self._ssh_port,
+                       recurse=True)
       ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                        ['rm', '-rf', self._device_dirs.PerfDir()])
 
