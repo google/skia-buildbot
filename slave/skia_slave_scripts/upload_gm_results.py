@@ -23,7 +23,6 @@ class UploadGMResults(BuildStep):
     super(UploadGMResults, self).__init__(attempts=attempts, **kwargs)
 
   def _Run(self):
-    raise BuildStepWarning('Skipping uploads due to googlecode failures.')
     if self._is_try:
       raise BuildStepWarning('Not yet uploading results for try jobs.') # TODO
 
