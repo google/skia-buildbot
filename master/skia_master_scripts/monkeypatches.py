@@ -159,7 +159,7 @@ class TryBuildersJsonResource(JsonResource):
   def __init__(self, status):
     JsonResource.__init__(self, status)
     for builder_name in self.status.getBuilderNames():
-      if builder_name.endswith(utils.TRYBOT_NAME_SUFFIX):
+      if utils.IsTrybot(builder_name):
         self.putChild(builder_name,
                       BuilderJsonResource(status,
                                           status.getBuilder(builder_name)))

@@ -38,6 +38,10 @@ TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
 TRY_SCHEDULERS = [TRY_SCHEDULER_SVN, TRY_SCHEDULER_RIETVELD]
 
 
+def IsTrybot(builder_name):
+  return builder_name.endswith(TRYBOT_NAME_SUFFIX)
+
+
 class SkiaChangeFilter(ChangeFilter):
   """Skia specific subclass of ChangeFilter."""
 
@@ -544,8 +548,7 @@ def CanMergeBuildRequests(req1, req2):
   # If either is a try request, don't merge (#4 above).
   if req1.source.patch or req2.source.patch:
     return False
-  if req1.buildername.endswith(TRYBOT_NAME_SUFFIX) or \
-      req2.buildername.endswith(TRYBOT_NAME_SUFFIX):
+  if IsTrybot(req1.buildername) or IsTrybot(req2.buildername):
     return False
 
   # Verify that either: both requests are associated with changes OR neither

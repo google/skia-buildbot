@@ -17,6 +17,7 @@ from master.try_mail_notifier import TryMailNotifier
 import datetime
 import re
 import urllib
+import utils
 
 
 _COMMIT_QUEUE_AUTHOR_LINE = 'Author: '
@@ -33,7 +34,7 @@ class SkiaNotifier(MailNotifier):
   def createEmail(self, msgdict, builderName, title, results, builds=None,
                   patches=None, logs=None):
     # Trybots have their own Notifier
-    if 'Trybot' in builderName:
+    if utils.IsTrybot(builderName):
       return None
 
     m = MailNotifier.createEmail(self, msgdict, builderName, title,
@@ -52,6 +53,8 @@ class SkiaNotifier(MailNotifier):
     if self.sendToInterestedUsers and self.lookup:
 
       for build in builds:  # Loop through all builds we are emailing about
+        if utils.IsTrybot(build.getBuilder().name):
+          return
         blame_list = set(build.getResponsibleUsers())
         for change in build.getChanges():  # Loop through all changes in a build
           if change.comments and _COMMIT_BOT == change.who:
