@@ -13,6 +13,11 @@ import sys
 
 
 class DownloadBaselines(BuildStep):
+  def __init__(self, timeout=6400, no_output_timeout=4800, **kwargs):
+    super(DownloadBaselines, self).__init__(timeout=timeout,
+                                            no_output_timeout=no_output_timeout,
+                                            **kwargs)
+
   def _Run(self):
     if not self._use_skp_playback_framework:
       return
