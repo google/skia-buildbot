@@ -2,61 +2,24 @@
 
 {% block head %}
 {{ super() }}
-<style>
-a.morecontent span {display: none;}
-</style>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script type='text/javascript'>
 // <![CDATA[
 //
 
 //
-// Function that truncates commit messages of changes to display the first summary line
-// with an ellipses and a 'more' link. If the 'more' link is clicked then the complete
-// summary is displayed with a 'less' link.
+// Make the commit message display more or less.
 //
-$(document).ready(function() {
-    var ellipsestext = "...";
-    var moretext = "more";
-    var lesstext = "less";
-    $('.more').each(function() {
-        var content = $(this).html();
-        var lines = content.split('<br>'); 
-        var summaryLine = '';
-        var summaryLineNumber = 0;
-        for (var i=0; i<lines.length; i++) {
-          var line = lines[i];
-          summaryLineNumber++;
-          if (line != '') {
-            summaryLine = line;
-            break;
-          }
-        }
-        if (summaryLine != '' && summaryLineNumber < lines.length - 1) {
-            var summaryLineIndex = content.indexOf(summaryLine);
-            var h = '<br>' + content.substr(summaryLineIndex + summaryLine.length, content.length);
-            var html = summaryLine + '<span class="moreellipses">' + ellipsestext+ '&nbsp;</span><span class="morecontent"><span>' + h + '</span>&nbsp;&nbsp;<a href="" class="morelink">' + moretext + '</a></span>';
- 
-            $(this).html(html);
-            $(".morecontent span").hide();
-        }
- 
-    });
- 
-    $(".morelink").click(function(){
-        if($(this).hasClass(lesstext)) {
-            $(this).removeClass(lesstext);
-            $(this).html(moretext);
-        } else {
-            $(this).addClass(lesstext);
-            $(this).html(lesstext);
-        }
-        $(this).parent().prev().toggle();
-        $(this).prev().toggle();
-        return false;
-    });
-});
-
+function toggleMore(id, visible) {
+  if (visible) {
+    document.getElementById(id + "_long_desc").style.display = "inline";
+    document.getElementById(id + "_morelink").style.display = "none";
+    document.getElementById(id + "_lesslink").style.display = "inline";
+  } else {
+    document.getElementById(id + "_long_desc").style.display = "none";
+    document.getElementById(id + "_morelink").style.display = "inline";
+    document.getElementById(id + "_lesslink").style.display = "none";
+  }
+}
 
 //
 // Functions used to display the build status bubble on box click.
@@ -263,10 +226,15 @@ function checkMouseLeave(element, event) {
   </tr>
    
   <tr>
-    <td colspan="{{ r.span }}" class='DevComment {{ alt }}'> 
-      <div class="comment more">
-      {{ r.comments|changecomment(r.project or None)|replace('\n', '<br/>')|replace('  ','&nbsp; ') }}
-      </div>
+    <td colspan="{{ r.span }}" class='DevComment {{ alt }}'>
+      {{ r.comments.split('\n')[0] }} ...
+      <a href="javascript:toggleMore({{ r.id }}, true)" id="{{ r.id }}_morelink">more</a>
+      <a href="javascript:toggleMore({{ r.id }}, false)" id="{{ r.id }}_lesslink" style="display:none;">less</a>
+      <span id="{{ r.id }}_long_desc" style="display:none;">
+      <p>
+      {{ '<br/>'.join(r.comments.split('\n')[1:])|replace('  ','&nbsp; ') }}
+      </p>
+      </span>
     </td>
   </tr>
  

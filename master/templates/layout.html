@@ -19,11 +19,12 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     <link rel="stylesheet" href="{{ stylesheet }}" type="text/css" />
     <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ path_to_root }}rss">
     <!-- Using Thomas Frank's JSON stringifier -->
-    <script type="text/javascript" src="jsonStringify.js"></script>
+    <script type="text/javascript" src="/jsonStringify.js"></script>
     <script type="text/javascript">
     "use strict";
 
     var reload = 40;
+    var iframe_reload = 60000;
     var skia_repo = "{{ skia_repo }}";
     var try_repo = "{{ try_repo }}";
     var internalport = "{{ internal_port }}";
@@ -105,6 +106,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     function reloadSkiaTreeStatus() {
       document.getElementById("skia-tree-status").src =
           document.getElementById("skia-tree-status").src;
+      setTimeout("reloadSkiaTreeStatus();", iframe_reload);
     }
 
     // Parse the variables in the URL and return a key/value dictionary.
@@ -242,7 +244,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       }
 
       // Set the iframe to reload.
-      window.setInterval("reloadSkiaTreeStatus();", 10000);
+      setTimeout("reloadSkiaTreeStatus();", iframe_reload);
     }
 
     </script>
