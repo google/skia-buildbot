@@ -13,11 +13,11 @@ it and also reuse some of its methods to send emails.
 from buildbot.status.mail import MailNotifier
 from buildbot.status.results import Results
 from master.try_mail_notifier import TryMailNotifier
+from skia_master_scripts import utils
 
 import datetime
 import re
 import urllib
-import utils
 
 
 _COMMIT_QUEUE_AUTHOR_LINE = 'Author: '
