@@ -15,8 +15,12 @@ import shutil
 import sys
 import tempfile
 import urllib
-import urllib2
 
+
+if os.name == 'nt':
+  SVN = 'svn.bat'
+else:
+  SVN = 'svn'
 
 WIN_PATCH = os.path.abspath(os.path.join(os.pardir, os.pardir, os.pardir,
                                          os.pardir, os.pardir, 'GnuWin32',
@@ -47,7 +51,10 @@ class ApplyPatch(BuildStep):
       patch_file_name = os.path.join(temp_dir, 'skiabot_patch')
       patch_file = open(patch_file_name, 'w')
       try:
-        patch_contents = urllib2.urlopen(patch_url)
+        # TODO(borenet): Create an svn_utils module and use it instead.  It
+        # would be nice to find a way to share
+        # http://skia.googlecode.com/svn/trunk/tools/svn.py
+        patch_contents = shell_utils.Bash([SVN, 'cat', patch_url], echo=False)
         patch_file.write(patch_contents.read())
       finally:
         patch_file.close()

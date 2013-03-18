@@ -8,8 +8,6 @@
 is intended to be run at boot time. """
 
 
-from contextlib import closing
-
 import json
 import multiprocessing
 import os
@@ -21,15 +19,25 @@ import socket
 import subprocess
 import sys
 import time
-import urllib2
 
 
-def GetGlobalVariables():
-  """ Retrieve a global variable from the global_variables.json file. """
-  global_variables_file = ('http://skia.googlecode.com/svn/buildbot/'
-                           'site_config/global_variables.json')
-  with closing(urllib2.urlopen(global_variables_file)) as f:
-    return json.load(f)
+def SvnCat(svn_url):
+  """ Return the entire contents of the file at the given svn_url as a string.
+  Raises an exception if there were any errors.
+
+  svn_url: string; the file to read.
+  """
+  if os.name == 'nt':
+    svn = 'svn.bat'
+  else:
+    svn = 'svn'
+  proc = subprocess.Popen([svn, 'cat', svn_url],
+                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+  exitcode = proc.wait()
+  if not exitcode == 0:
+    raise Exception('Could not retrieve %s. Verify that the URL is valid and '
+                    'check your connection.' % svn_url)
+  return proc.communicate()[0]
 
 
 def GetGlobalVariable(var_name):
@@ -39,7 +47,8 @@ def GetGlobalVariable(var_name):
 # How often we should check each buildslave's keepalive conditions, in seconds.
 DEFAULT_POLL_INTERVAL = 60
 DRIVE_MAPPING = True
-GLOBAL_VARIABLES = GetGlobalVariables()
+GLOBAL_VARIABLES = json.loads(SvnCat('http://skia.googlecode.com/svn/buildbot/'
+                                     'site_config/global_variables.json'))
 PID_FILE = os.path.join('buildbot', 'third_party', 'chromium_buildbot', 'slave',
                         'twistd.pid')
 # Maximum time (in seconds) to wait for PID_FILE to be written after the slave
@@ -268,10 +277,10 @@ def GetCfg(url):
   
   url: string; the url of the file to load.
   """
-  with closing(urllib2.urlopen(url)) as f:
-    config_vars = {}
-    exec(f.read(), config_vars)
-    return config_vars
+  file_contents = SvnCat(url)
+  config_vars = {}
+  exec(file_contents, config_vars)
+  return config_vars
 
 
 def GetSlaveHostCfg():
