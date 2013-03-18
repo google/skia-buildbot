@@ -55,7 +55,7 @@ class ApplyPatch(BuildStep):
         # would be nice to find a way to share
         # http://skia.googlecode.com/svn/trunk/tools/svn.py
         patch_contents = shell_utils.Bash([SVN, 'cat', patch_url], echo=False)
-        patch_file.write(patch_contents.read())
+        patch_file.write(patch_contents)
       finally:
         patch_file.close()
       print 'Saved patch to %s' % patch_file.name
