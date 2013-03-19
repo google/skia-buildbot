@@ -70,6 +70,7 @@ from slave import svn
 from telemetry import multi_page_benchmark_runner
 from telemetry import wpr_modes
 from telemetry import user_agent
+from telemetry.browser_options import BrowserOptions
 from utils import file_utils
 from utils import gs_utils
 from utils import misc
@@ -323,8 +324,6 @@ class SkPicturePlayback(object):
     parser.add_option('--record', action='store_const',
                       dest='wpr_mode', const=wpr_modes.WPR_RECORD,
                       help='Record to the page set archive')
-    parser.add_option('-o', '--outdir', help='Output directory',
-                      default=TMP_SKP_DIR)
 
   def CustomizeBrowserOptions(self, browser_options):
     """Specifying Skia specific browser options."""
@@ -352,6 +351,7 @@ class SkPicturePlayback(object):
     skpicture_printer.SkPicturePrinter.CustomizeBrowserOptions = (
         self.CustomizeBrowserOptions)
     # Output skp files to skpictures_dir.
+    BrowserOptions.outdir = TMP_SKP_DIR
     skpicture_printer.SkPicturePrinter.AddCommandLineOptions = (
         self.AddSkPicturePrinterOptions)
 
