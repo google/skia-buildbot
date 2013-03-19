@@ -36,6 +36,7 @@ TRYBOT_NAME_SUFFIX = '_Trybot'
 TRY_SCHEDULER_SVN = 'skia_try_svn'
 TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
 TRY_SCHEDULERS = [TRY_SCHEDULER_SVN, TRY_SCHEDULER_RIETVELD]
+TRY_SCHEDULERS_STR = '|'.join(TRY_SCHEDULERS)
 
 
 def IsTrybot(builder_name):
@@ -481,7 +482,7 @@ def MakeHousekeeperBuilderSet(helper, do_trybots, do_upload_results):
   if do_trybots:
     # Add the corresponding trybot builders to the above list.
     builder_factory_scheduler.extend([
-        (builder + TRYBOT_NAME_SUFFIX, factory, '|'.join(TRY_SCHEDULERS))
+        (builder + TRYBOT_NAME_SUFFIX, factory, TRY_SCHEDULERS_STR)
         for (builder, factory, _scheduler) in builder_factory_scheduler])
 
   for (builder_name, factory, scheduler) in builder_factory_scheduler:
@@ -491,8 +492,7 @@ def MakeHousekeeperBuilderSet(helper, do_trybots, do_upload_results):
         do_upload_results=do_upload_results,
         target_platform=skia_factory.TARGET_PLATFORM_LINUX,
         builder_name=builder_name,
-        do_patch_step=(scheduler == TRY_SCHEDULER_SVN or
-                       scheduler == TRY_SCHEDULER_RIETVELD),
+        do_patch_step=(scheduler == TRY_SCHEDULERS_STR),
         use_skp_playback_framework=True,
       ).Build())
 
@@ -527,9 +527,11 @@ def CanMergeBuildRequests(req1, req2):
      (not req1.source.changes and not req2.source.changes and \
       req1.source.revision == req2.source.revision) 
 
-  Of the above, we want 1, 2, 4, and 5. Instead of 3, we want to merge requests
-  if both branches are the same or both are listed in skia_all_subdirs. So we
-  duplicate most of that logic here. """
+  Of the above, we want 1, 2, and 5.
+  Instead of 3, we want to merge requests if both branches are the same or both
+  are listed in skia_all_subdirs. So we duplicate most of that logic here.
+  Instead of 4, we want to make sure that neither request is a Trybot request.
+  """
   # Verify that the repositories are the same (#1 above).
   if req1.source.repository != req2.source.repository:
     return False
@@ -546,8 +548,6 @@ def CanMergeBuildRequests(req1, req2):
       return False
 
   # If either is a try request, don't merge (#4 above).
-  if req1.source.patch or req2.source.patch:
-    return False
   if IsTrybot(req1.buildername) or IsTrybot(req2.buildername):
     return False
 

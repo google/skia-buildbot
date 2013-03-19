@@ -106,8 +106,15 @@ class SkiaTryMailNotifier(TryMailNotifier):
   and add logic to prevent sending mail on anything but a try job. """
 
   def buildMessage(self, name, build, results):
-    if build[0].source.patch:
+    if utils.IsTrybot(build[0].getBuilder().name):
       if not hasattr(build[0].source, 'timestamp'):
-        build[0].source.timestamp = _ParseTimeStampFromURL(
-            build[0].getProperty('patch_file_url'))
+        if 'patch_file_url' in build[0].getProperties():
+          build[0].source.timestamp = _ParseTimeStampFromURL(
+              build[0].getProperty('patch_file_url'))
+          subject = (
+              'try %(result)s for changelist "%(reason)s" at %(timestamp)s')
+        else:
+          subject = 'try %(result)s for issue-patchset "%(reason)s"'
+        # pylint: disable=W0201
+        self.subject = subject
       return TryMailNotifier.buildMessage(self, name, build, results)
