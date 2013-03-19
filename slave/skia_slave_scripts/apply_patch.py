@@ -15,6 +15,7 @@ import shutil
 import sys
 import tempfile
 import urllib
+import urllib2
 
 
 if os.name == 'nt':
@@ -51,10 +52,13 @@ class ApplyPatch(BuildStep):
       patch_file_name = os.path.join(temp_dir, 'skiabot_patch')
       patch_file = open(patch_file_name, 'w')
       try:
-        # TODO(borenet): Create an svn_utils module and use it instead.  It
-        # would be nice to find a way to share
-        # http://skia.googlecode.com/svn/trunk/tools/svn.py
-        patch_contents = shell_utils.Bash([SVN, 'cat', patch_url], echo=False)
+        if 'svn' in patch_url:
+          # TODO(borenet): Create an svn_utils module and use it instead.  It
+          # would be nice to find a way to share
+          # http://skia.googlecode.com/svn/trunk/tools/svn.py
+          patch_contents = shell_utils.Bash([SVN, 'cat', patch_url], echo=False)
+        else:
+          patch_contents = urllib2.urlopen(patch_url).read()
         patch_file.write(patch_contents)
       finally:
         patch_file.close()
