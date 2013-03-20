@@ -17,8 +17,8 @@ class RunGM(BuildStep):
   def _Run(self):
     output_dir = os.path.join(self._device_dirs.GMDir(), self._gm_image_subdir)
     cmd = ['--writePath', output_dir,
-           '--writeJsonSummary', os.path.join(output_dir,
-                                              JSON_SUMMARY_FILENAME),
+           '--writeJsonSummaryPath', os.path.join(output_dir,
+                                                  JSON_SUMMARY_FILENAME),
            ] + self._gm_args
     # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
     if sys.platform == 'darwin':
