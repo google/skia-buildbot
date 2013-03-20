@@ -328,8 +328,9 @@ class SkPicturePlayback(object):
   def CustomizeBrowserOptions(self, browser_options):
     """Specifying Skia specific browser options."""
     browser_options.extra_browser_args.extend(['--enable-gpu-benchmarking',
-                                               '--no-sandbox',
-                                               '--force-compositing-mode'])
+                                             '--no-sandbox',
+                                             '--enable-deferred-image-decoding',
+                                             '--force-compositing-mode'])
     
 
   def _SetupArgsForSkPrinter(self, page_set):
