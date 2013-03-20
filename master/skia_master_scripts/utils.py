@@ -29,6 +29,7 @@ from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import housekeeping_percommit_factory, \
                                 housekeeping_periodic_factory
 from skia_master_scripts import ios_factory
+from skia_master_scripts import nacl_factory
 import config_private
 
 
@@ -513,6 +514,10 @@ def MakeChromeOSBuilderSet(**kwargs):
 
 def MakeIOSBuilderSet(**kwargs):
   _MakeBuilderAndMaybeTrybotSet(factory_type=ios_factory.iOSFactory, **kwargs)
+
+
+def MakeNaClBuilderSet(**kwargs):
+  _MakeBuilderAndMaybeTrybotSet(factory_type=nacl_factory.NaClFactory, **kwargs)
 
 
 def CanMergeBuildRequests(req1, req2):

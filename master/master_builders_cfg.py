@@ -10,7 +10,8 @@ from skia_master_scripts.utils import MakeBuilderSet, \
                                       MakeAndroidBuilderSet, \
                                       MakeChromeOSBuilderSet, \
                                       MakeIOSBuilderSet, \
-                                      MakeHousekeeperBuilderSet
+                                      MakeHousekeeperBuilderSet, \
+                                      MakeNaClBuilderSet
 
 # Directory where we want to record performance data
 #
@@ -305,6 +306,19 @@ def Update(config, active_master, c):
       do_release=False,
       do_bench=False,
       use_skp_playback_framework=True)
+
+  MakeNaClBuilderSet(
+      helper=helper,
+      builder_base_name='Skia_Shuttle_Ubuntu12_NaCl_%s',
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+      environment_variables=
+          {'NACL_SDK_ROOT': '/home/chrome-bot/nacl_sdk/pepper_25'},
+      gm_image_subdir=None,
+      perf_output_basedir=None,
+      use_skp_playback_framework=True,
+      do_release=False,
+      do_bench=False)
 
   # Chrome OS
   defaults['category'] = 'ChromeOS'
