@@ -205,7 +205,11 @@ function checkMouseLeave(element, event) {
       <a href='https://code.google.com/p/skia/source/detail?r={{ r.id|shortrev(r.repository) }}'>{{ r.id|shortrev(r.repository) }}</a>
     </td>
     <td class='DevName {{ alt }}' width="1%">
-      {{ r.who|user }}
+      {% if r.who == "commit-bot@chromium.org" and 'Author: ' in r.comments %}
+        {{ r.comments.split('Author: ')[1].split('\n')[0] }} ({{ r.who|user }})
+      {% else %}
+        {{ r.who|user }}
+      {% endif %}
     </td>
 
   {% for c in categories %}
