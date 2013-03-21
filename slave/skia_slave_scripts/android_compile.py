@@ -5,7 +5,6 @@
 
 """ Compile step for Android """
 
-from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from utils import shell_utils
 import os
@@ -16,13 +15,13 @@ ENV_VAR = 'ANDROID_SDK_ROOT'
 ANDROID_SDK_ROOT = '/home/chrome-bot/android-sdk-linux'
 
 
-class AndroidCompile(AndroidBuildStep):
+class AndroidCompile(BuildStep):
   def _Run(self):
     if not ENV_VAR in os.environ.keys():
       os.environ[ENV_VAR] = ANDROID_SDK_ROOT
     cmd = [os.path.join(os.pardir, 'android', 'bin', 'android_make'),
            self._args['target'],
-           '-d', self._device,
+           '-d', self._args['device'],
            'BUILDTYPE=%s' % self._configuration,
            ]
     cmd += self._make_flags
