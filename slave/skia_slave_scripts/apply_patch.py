@@ -73,7 +73,7 @@ class ApplyPatch(BuildStep):
       # Make sure we're always in the right place to apply the patch.
       patch_root = self._args['patch_root'].replace('/', os.path.sep)
       os.chdir(os.pardir)
-      if patch_root != 'svn':
+      if patch_root != 'svn' and patch_root != '':
         os.chdir(patch_root)
   
       shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name])
