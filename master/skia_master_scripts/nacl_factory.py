@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 
+from buildbot.process.properties import WithProperties
 from factory import SkiaFactory
 
 
@@ -18,6 +19,8 @@ class NaClFactory(SkiaFactory):
     subdirs_to_checkout.add('nacl')
     SkiaFactory.__init__(self, other_subdirs=subdirs_to_checkout, flavor='nacl',
                          **kwargs)
+    self._common_args += ['--nacl_sdk_root',
+                              WithProperties('%(nacl_sdk_root)s')]
 
   def Make(self, target, description, is_rebaseline_step=False):
     """ Build a single target."""

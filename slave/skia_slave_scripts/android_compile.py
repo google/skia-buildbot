@@ -12,13 +12,11 @@ import sys
 
 
 ENV_VAR = 'ANDROID_SDK_ROOT'
-ANDROID_SDK_ROOT = '/home/chrome-bot/android-sdk-linux'
 
 
 class AndroidCompile(BuildStep):
   def _Run(self):
-    if not ENV_VAR in os.environ.keys():
-      os.environ[ENV_VAR] = ANDROID_SDK_ROOT
+    os.environ[ENV_VAR] = self._args['android_sdk_root']
     cmd = [os.path.join(os.pardir, 'android', 'bin', 'android_make'),
            self._args['target'],
            '-d', self._args['device'],

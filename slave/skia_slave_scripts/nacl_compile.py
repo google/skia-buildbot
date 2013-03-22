@@ -11,8 +11,12 @@ import os
 import sys
 
 
+ENV_VAR = 'NACL_SDK_ROOT'
+
+
 class NaClCompile(BuildStep):
   def _Run(self):
+    os.environ[ENV_VAR] = self._args['nacl_sdk_root']
     make_cmd = os.path.join(os.pardir, 'nacl', 'nacl_make')
     cmd = [make_cmd,
            self._args['target'],

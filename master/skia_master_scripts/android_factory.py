@@ -8,8 +8,8 @@
 Overrides SkiaFactory with any Android-specific steps."""
 
 
-from skia_master_scripts import factory as skia_factory
 from buildbot.process.properties import WithProperties
+from skia_master_scripts import factory as skia_factory
 
 
 class AndroidFactory(skia_factory.SkiaFactory):
@@ -31,7 +31,9 @@ class AndroidFactory(skia_factory.SkiaFactory):
     self._device = device
     self._common_args += ['--device', self._device,
                           '--serial', WithProperties('%(serial:-None)s'),
-                          '--has_root', WithProperties('%(has_root:-True)s')]
+                          '--has_root', WithProperties('%(has_root:-True)s'),
+                          '--android_sdk_root',
+                              WithProperties('%(android_sdk_root)s')]
 
   def Compile(self, clobber=None):
     """Compile step. Build everything.
