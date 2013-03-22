@@ -206,7 +206,7 @@ function checkMouseLeave(element, event) {
     </td>
     <td class='DevName {{ alt }}' width="1%">
       {% if r.who == "commit-bot@chromium.org" and 'Author: ' in r.comments %}
-        {{ r.comments.split('Author: ')[1].split('\n')[0] }} ({{ r.who|user }})
+        {{ r.comments.split('Author: ')[1].split('\n')[0] }} (commit-bot)
       {% else %}
         {{ r.who|user }}
       {% endif %}
