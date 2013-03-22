@@ -45,7 +45,6 @@ class Master(config_default.Master):
     master_port_alt = skia_vars.GetGlobalVariable('external_port')
     tree_closing_notification_recipients = []
     from_address = 'skia-buildbot@pogerlabs.com'
-    buildbot_url = 'http://%s:%d/' % (master_host, master_port)
     is_publicly_visible = True
     code_review_site = \
         skia_vars.GetGlobalVariable('code_review_status_listener')
