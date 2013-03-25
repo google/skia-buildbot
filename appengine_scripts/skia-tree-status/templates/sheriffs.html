@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <center>
+  {% if is_admin %}
+    {% if error_message %}
+      <div class="error">
+      {{ error_message }}
+      </div>
+    {% endif %}
+  {% endif %}
+  <br><br>
+  <h2>Sheriff Rotation Schedule</h2>
+  <br>
+  <img border="0" src="/static/clint.jpg" width="180" height="120">
+  <br><br><br>
+  <table border="1" cellpadding="5">
+  <tr bgcolor="#CCCCFF">
+    <td><b>Who</b></td>
+    <td><b>When</b></td>
+  </tr>
+  {% for a_schedule in schedules %}
+    <tr {% if a_schedule.current_week %}bgcolor="#8FDF5F"{% endif %}>
+      <td>{{ a_schedule.username }}</td>
+      <td>{{ a_schedule.readable_range }}</td>
+    </tr>
+  {% endfor %}
+  </table>
+
+  </center>
+{% endblock %}

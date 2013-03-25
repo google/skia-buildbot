@@ -14,6 +14,7 @@ from google.appengine.ext import webapp
 import base_page
 import commit_queue
 import status
+import sheriff
 import utils
 
 
@@ -35,6 +36,8 @@ URLS = [
   ('/cq/([^/]+)/?', commit_queue.User),
   ('/cq/([^/]+)/(\d+)/?', commit_queue.Issue),
   ('/cq/([^/]+)/(\d+)/(\d+)/?', commit_queue.Issue),
+  ('/sheriff/?', sheriff.SheriffPage),
+  ('/update_sheriffs_schedule', sheriff.update_sheriffs_schedule),
 ]
 APPLICATION = webapp.WSGIApplication(URLS, debug=True)
 
@@ -43,5 +46,6 @@ APPLICATION = webapp.WSGIApplication(URLS, debug=True)
 base_page.bootstrap()
 commit_queue.bootstrap()
 status.bootstrap()
+sheriff.bootstrap()
 utils.bootstrap()
 

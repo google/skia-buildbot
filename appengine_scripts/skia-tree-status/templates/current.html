@@ -25,6 +25,11 @@ div.status-message {
   -moz-box-shadow: 2px 2px 6px rgba(0,0,0,0.6);
   -webkit-box-shadow: 2px 2px 6px rgba(0,0,0,0.6);
 }
+div.sheriff-message {
+  text-align: right;
+  font-weight: bold;
+  font-size: 12px;
+}
 div.open {
   background-color: #8fdf5f;
 }
@@ -37,7 +42,10 @@ div.caution {
 </style>
 
 <center>
-  <div class="status-message {{ state }}">{{ message }} </div>
+  <div class="status-message {{ state }}">
+    {{ message }}
+    <div class="sheriff-message">Sheriff: {{ sheriff }}</div>
+  </div>
 </center>
 
 </body>

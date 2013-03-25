@@ -12,6 +12,7 @@ from google.appengine.api import memcache
 from google.appengine.ext import db
 
 from base_page import BasePage
+from sheriff import SheriffSchedules
 import codesite_utils
 import utils
 
@@ -201,6 +202,7 @@ class BannerStatusPage(BasePage):
       template_values = self.InitializeTemplate(self.APP_NAME + ' Tree Status')
       template_values['message'] = status.message
       template_values['state'] = status.general_state
+      template_values['sheriff'] = SheriffSchedules.get_current_sheriff()
       self.DisplayTemplate('current.html', template_values, use_cache=True)
     else:
       self.error(400)
