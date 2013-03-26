@@ -23,16 +23,24 @@ class NaClFactory(SkiaFactory):
                               WithProperties('%(nacl_sdk_root)s')]
 
   def Make(self, target, description, is_rebaseline_step=False):
-    """ Build a single target."""
+    """ Build a single target.
+
+    target: string; the target to build.
+    description: string; description of this BuildStep.
+    is_rebaseline_step: optional boolean; whether or not this step is required
+        for rebaseline-only builds.
+    """
     args = ['--target', target]
     self.AddSlaveScript(script='nacl_compile.py', args=args,
                         description=description, halt_on_failure=True,
                         is_rebaseline_step=is_rebaseline_step)
 
-  def Compile(self, clobber=None):
-    """Compile step. Build everything that is currently supported on NaCl.
+  def Compile(self, clobber=None, build_in_one_step=True):
+    """ Compile step. Build everything that is currently supported on NaCl.
 
-    clobber: optional boolean which tells us whether to 'clean' before building.
+    clobber: optional boolean; whether to 'clean' before building.
+    build_in_one_step: optional boolean; whether to build in one step or build
+        each target separately.
     """
     if clobber is None:
       clobber = self._default_clobber
@@ -45,7 +53,3 @@ class NaClFactory(SkiaFactory):
     self.Make('tests', 'BuildTests')
     self.Make('debugger', 'BuildDebugger')
 
-  def Build(self, clobber=None):
-    self.UpdateSteps()
-    self.Compile(clobber)
-    return self

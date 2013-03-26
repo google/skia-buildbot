@@ -33,6 +33,7 @@ from skia_master_scripts import nacl_factory
 import config_private
 
 
+CATEGORY_BUILD = ' Build'
 TRYBOT_NAME_SUFFIX = '_Trybot'
 TRY_SCHEDULER_SVN = 'skia_try_svn'
 TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
@@ -213,11 +214,17 @@ RUN_BUILDERS_RE_COMPILED = re.compile(RUN_BUILDERS_REGEX)
 class SkiaHelper(master_config.Helper):
 
   def Builder(self, name, factory, gatekeeper=None, scheduler=None,
-              builddir=None, auto_reboot=False, notify_on_missing=False):
+              builddir=None, auto_reboot=False, notify_on_missing=False,
+              override_category=None):
+    if override_category:
+      old_category = self._defaults.get('category')
+      self._defaults['category'] = override_category
     super(SkiaHelper, self).Builder(name=name, factory=factory,
                                     gatekeeper=gatekeeper, scheduler=scheduler,
                                     builddir=builddir, auto_reboot=auto_reboot,
                                     notify_on_missing=notify_on_missing)
+    if override_category:
+      self._defaults['category'] = old_category
 
   def AnyBranchScheduler(self, name, branches, treeStableTimer=60,
                          categories=None):
@@ -370,6 +377,14 @@ def MakeBuilderName(builder_base_name, config):
     return '%s_%s' % (builder_base_name, config)
 
 
+def MakeCompileBuilderName(builder_base_name, release=False):
+  if release:
+    compile_name = 'Compile_Release'
+  else:
+    compile_name = 'Compile_Debug'
+  return MakeBuilderName(builder_base_name, compile_name)
+
+
 def MakeDebugBuilderName(builder_base_name):
   return MakeBuilderName(builder_base_name, skia_factory.CONFIG_DEBUG)
 
@@ -388,8 +403,10 @@ def MakeSchedulerName(builder_base_name):
 
 def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
                     perf_output_basedir=None, extra_branches=None,
-                    factory_type=None, do_debug=True, do_release=True,
-                    do_bench=True, try_schedulers=None, **kwargs):
+                    factory_type=None, do_compile=True, do_debug=True,
+                    do_release=True, do_bench=True, try_schedulers=None,
+                    compile_bot_warnings_as_errors=True,
+                    **kwargs):
   """ Creates a trio of builders for a given platform:
   1. Debug mode builder which runs all steps
   2. Release mode builder which runs all steps EXCEPT benchmarks
@@ -413,6 +430,36 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     branches = list(subdirs_to_checkout.union(SKIA_PRIMARY_SUBDIRS))
     helper.AnyBranchScheduler(scheduler_name, branches=branches)
 
+  if do_compile:
+    compile_debug_builder_name = MakeCompileBuilderName(builder_base_name,
+                                                        release=False)
+    B(compile_debug_builder_name, 'f_%s' % compile_debug_builder_name,
+        scheduler=scheduler_name, override_category=CATEGORY_BUILD)
+    F('f_%s' % compile_debug_builder_name, factory_type(
+        builder_name=compile_debug_builder_name,
+        other_subdirs=subdirs_to_checkout,
+        configuration=skia_factory.CONFIG_DEBUG,
+        gm_image_subdir=gm_image_subdir,
+        do_patch_step=(try_schedulers is not None),
+        perf_output_basedir=None,
+        compile_warnings_as_errors=compile_bot_warnings_as_errors,
+        **kwargs
+        ).BuildCompileOnly())
+    compile_release_builder_name = MakeCompileBuilderName(builder_base_name,
+                                                          release=True)
+    B(compile_release_builder_name, 'f_%s' % compile_release_builder_name,
+        scheduler=scheduler_name, override_category=CATEGORY_BUILD)
+    F('f_%s' % compile_release_builder_name, factory_type(
+        builder_name=compile_release_builder_name,
+        other_subdirs=subdirs_to_checkout,
+        configuration=skia_factory.CONFIG_RELEASE,
+        gm_image_subdir=gm_image_subdir,
+        do_patch_step=(try_schedulers is not None),
+        perf_output_basedir=None,
+        compile_warnings_as_errors=compile_bot_warnings_as_errors,
+        **kwargs
+        ).BuildCompileOnly())
+
   if do_debug:
     debug_builder_name = MakeDebugBuilderName(builder_base_name)
     B(debug_builder_name, 'f_%s' % debug_builder_name,
@@ -424,6 +471,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         gm_image_subdir=gm_image_subdir,
         do_patch_step=(try_schedulers is not None),
         perf_output_basedir=None,
+        compile_warnings_as_errors=False,
         **kwargs
         ).Build())
 
@@ -438,6 +486,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         gm_image_subdir=gm_image_subdir,
         do_patch_step=(try_schedulers is not None),
         perf_output_basedir=None,
+        compile_warnings_as_errors=False,
         **kwargs
         ).BuildNoPerf())
 
@@ -452,6 +501,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
         gm_image_subdir=gm_image_subdir,
         do_patch_step=(try_schedulers is not None),
         perf_output_basedir=perf_output_basedir,
+        compile_warnings_as_errors=False,
         **kwargs        
         ).BuildPerfOnly())
 

@@ -52,7 +52,7 @@ def Update(config, active_master, c):
   do_upload_results = active_master.is_production_host
 
   # Linux (Ubuntu12) on Shuttle with ATI5770 graphics card
-  defaults['category'] = 'Shuttle_Ubuntu12_ATI5770'
+  defaults['category'] = 'Linux'
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_64',
@@ -75,7 +75,7 @@ def Update(config, active_master, c):
       use_skp_playback_framework=True)
 
   # Android (runs on a Linux buildbot slave)...
-  defaults['category'] = 'android'
+  defaults['category'] = 'Android'
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_NexusS_4-1_Float_%s_32',
@@ -148,7 +148,7 @@ def Update(config, active_master, c):
       use_skp_playback_framework=True)
 
   # Mac 10.6 (SnowLeopard) ...
-  defaults['category'] = 'mac-10.6'
+  defaults['category'] = 'Mac-10.6'
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Mac_Float_%s_32',
@@ -170,10 +170,11 @@ def Update(config, active_master, c):
                            'skia_arch_width=64')},
       gm_image_subdir='base-macmini',
       perf_output_basedir=perf_output_basedir_mac,
-      use_skp_playback_framework=True)
+      use_skp_playback_framework=True,
+      compile_bot_warnings_as_errors=False)
 
   # Mac 10.7 (Lion) ...
-  defaults['category'] = 'mac-10.7'
+  defaults['category'] = 'Mac-10.7'
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_MacMiniLion_Float_%s_32',
@@ -193,10 +194,11 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
       gm_image_subdir='base-macmini-lion-float',
       perf_output_basedir=perf_output_basedir_mac,
-      use_skp_playback_framework=True)
+      use_skp_playback_framework=True,
+      compile_bot_warnings_as_errors=False)
 
   # Mac 10.8 (Mountain Lion) ...
-  defaults['category'] = 'mac-10.8'
+  defaults['category'] = 'Mac-10.8'
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_MacMini_10_8_Float_%s_32',
@@ -216,10 +218,11 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
       gm_image_subdir='base-macmini-10_8',
       perf_output_basedir=perf_output_basedir_mac,
-      use_skp_playback_framework=True)
+      use_skp_playback_framework=True,
+      compile_bot_warnings_as_errors=False)
 
   # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
-  defaults['category'] = 'Shuttle_Win7_Intel'
+  defaults['category'] = 'Win7'
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_32',
@@ -241,7 +244,8 @@ def Update(config, active_master, c):
                            'skia_win_debuggers_path=c:/DbgHelp')},
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=perf_output_basedir_windows,
-      use_skp_playback_framework=True)
+      use_skp_playback_framework=True,
+      compile_bot_warnings_as_errors=False)
 
   # Special-purpose Win7 builders
   defaults['category'] = 'Win7-Special'
@@ -281,11 +285,12 @@ def Update(config, active_master, c):
       environment_variables={'GYP_DEFINES': 'skia_os=ios'},
       gm_image_subdir=None,
       perf_output_basedir=None,
+      do_debug=False,
       do_release=False,
       do_bench=False)
 
   # House Keeping
-  defaults['category'] = ' housekeeping'
+  defaults['category'] = '  Housekeeping'
   MakeHousekeeperBuilderSet(
       helper=helper,
       do_trybots=True,
@@ -312,11 +317,10 @@ def Update(config, active_master, c):
       builder_base_name='Skia_Shuttle_Ubuntu12_NaCl_%s',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables=
-          {'NACL_SDK_ROOT': '/home/chrome-bot/nacl_sdk/pepper_25'},
       gm_image_subdir=None,
       perf_output_basedir=None,
       use_skp_playback_framework=True,
+      do_debug=False,
       do_release=False,
       do_bench=False)
 

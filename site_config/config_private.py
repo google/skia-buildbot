@@ -29,7 +29,7 @@ TRY_SVN_BASEURL = skia_vars.GetGlobalVariable('try_svn_url')
 class Master(config_default.Master):
   googlecode_revlinktmpl = 'http://code.google.com/p/%s/source/browse?r=%s'
   bot_password = 'epoger-temp-password'
-  default_clobber = True
+  default_clobber = False
 
   # domains to which we will send blame emails
   permitted_domains = ['google.com', 'chromium.org']

@@ -35,10 +35,13 @@ class AndroidFactory(skia_factory.SkiaFactory):
                           '--android_sdk_root',
                               WithProperties('%(android_sdk_root)s')]
 
-  def Compile(self, clobber=None):
-    """Compile step. Build everything.
+  def Compile(self, clobber=None, build_in_one_step=True):
+    """ Compile step. Build everything.
 
-    clobber: optional boolean which tells us whether to 'clean' before building.
+    clobber: optional boolean; whether to 'clean' before building. Ignored on
+        Android.
+    build_in_one_step: optional boolean; whether to build in one step or build
+        each target separately. Ignored on Android.
     """
     self.AddSlaveScript(script='clean.py', description='Clean',
                         is_rebaseline_step=True)

@@ -8,7 +8,4 @@ from factory import SkiaFactory
 
 class iOSFactory(SkiaFactory):
   """ Subclass of Factory which runs on iOS. """
-  def Build(self, clobber=None):
-    self.UpdateSteps()
-    self.Compile(clobber)
-    return self
+  pass

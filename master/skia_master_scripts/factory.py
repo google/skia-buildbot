@@ -46,7 +46,8 @@ class SkiaFactory(BuildFactory):
                perf_output_basedir=None, builder_name=None, flavor=None,
                make_flags=None, test_args=None, gm_args=None, bench_args=None,
                bench_pictures_cfg='default',
-               use_skp_playback_framework=False):
+               use_skp_playback_framework=False,
+               compile_warnings_as_errors=False):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     do_upload_results: whether we should upload bench/gm results
@@ -73,6 +74,8 @@ class SkiaFactory(BuildFactory):
     use_skp_playback_framework: whether the builder should use the new skp
         playback framework. This is a temporary flag that will be removed once
         all builders use the new framework
+    compile_warnings_as_errors: boolean; whether to build with "-Werror" or
+        some equivalent.
     """
     properties = {}
 
@@ -118,6 +121,14 @@ class SkiaFactory(BuildFactory):
         perf_output_basedir != None
     self._do_patch_step = do_patch_step
 
+    if not environment_variables:
+      my_env_vars = {}
+    else:
+      my_env_vars = dict(environment_variables)
+    gyp_defines = my_env_vars.get('GYP_DEFINES', '')
+    my_env_vars['GYP_DEFINES'] = gyp_defines + \
+        ' skia_warnings_as_errors=%d' % int(compile_warnings_as_errors)
+
     # Get an implementation of SkiaCommands as appropriate for
     # this target_platform.
     workdir = self.TargetPathJoin('build', build_subdir)
@@ -125,7 +136,7 @@ class SkiaFactory(BuildFactory):
         target_platform=target_platform, factory=self,
         configuration=configuration, workdir=workdir,
         target_arch=None, default_timeout=default_timeout,
-        environment_variables=environment_variables)
+        environment_variables=my_env_vars)
 
     self._perf_output_basedir = perf_output_basedir
 
@@ -236,16 +247,24 @@ class SkiaFactory(BuildFactory):
     self.AddSlaveScript(script_to_run, **kwargs)
 
   def Make(self, target, description, is_rebaseline_step=False):
-    """ Build a single target."""
+    """ Build a single target.
+
+    target: string; the target to build.
+    description: string; description of this BuildStep.
+    is_rebaseline_step: optional boolean; whether or not this step is required
+        for rebaseline-only builds.
+    """
     args = ['--target', target]
     self.AddSlaveScript(script='compile.py', args=args,
                         description=description, halt_on_failure=True,
                         is_rebaseline_step=is_rebaseline_step)
 
-  def Compile(self, clobber=None):
+  def Compile(self, clobber=None, build_in_one_step=False):
     """ Compile step. Build everything.
 
-    clobber: optional boolean which tells us whether to 'clean' before building.
+    clobber: optional boolean; whether to 'clean' before building.
+    build_in_one_step: optional boolean; whether to build in one step or build
+        each target separately.
     """
     if clobber is None:
       clobber = self._default_clobber
@@ -254,12 +273,15 @@ class SkiaFactory(BuildFactory):
     if clobber or self._do_patch_step:
       self.AddSlaveScript(script='clean.py', description='Clean')
 
-    self.Make('skia_base_libs', 'BuildSkiaBaseLibs')
-    self.Make('tests', 'BuildTests')
-    self.Make('gm', 'BuildGM', is_rebaseline_step=True)
-    self.Make('tools', 'BuildTools')
-    self.Make('bench', 'BuildBench')
-    self.Make('most', 'BuildMost')
+    if build_in_one_step:
+      self.Make('most', 'BuildMost', is_rebaseline_step=True)
+    else:
+      self.Make('skia_base_libs', 'BuildSkiaBaseLibs')
+      self.Make('tests', 'BuildTests')
+      self.Make('gm', 'BuildGM', is_rebaseline_step=True)
+      self.Make('tools', 'BuildTools')
+      self.Make('bench', 'BuildBench')
+      self.Make('most', 'BuildMost')
 
   def Install(self):
     """ Install the compiled executables. """
@@ -447,11 +469,11 @@ class SkiaFactory(BuildFactory):
                         description='UploadGMResults', timeout=5400,
                         is_rebaseline_step=True)
 
-  def CommonSteps(self, clobber=None):
+  def CommonSteps(self, clobber=None, build_in_one_step=True):
     """ Steps which are run at the beginning of all builds. """
     self.UpdateSteps()
     self.DownloadSKPs()
-    self.Compile(clobber)
+    self.Compile(clobber, build_in_one_step)
     self.Install()
 
   def NonPerfSteps(self):
@@ -490,6 +512,18 @@ class SkiaFactory(BuildFactory):
     self.CommonSteps(clobber)
     self.NonPerfSteps()
     self.PerfSteps()
+    return self
+
+  def BuildCompileOnly(self, clobber=None):
+    """Build and return the complete BuildFactory, with only the compile step.
+    Does not build in one step; the assumption is that if we're only performing
+    the compile, we want as much information as possible about *which* compile
+    steps are passing and failing.
+
+    clobber: boolean indicating whether we should clean before building
+    """
+    self.UpdateSteps()
+    self.Compile(clobber=clobber, build_in_one_step=False)
     return self
 
   def BuildNoPerf(self, clobber=None):
