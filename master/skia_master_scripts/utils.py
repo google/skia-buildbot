@@ -403,7 +403,7 @@ def MakeSchedulerName(builder_base_name):
 
 def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
                     perf_output_basedir=None, extra_branches=None,
-                    factory_type=None, do_compile=True, do_debug=True,
+                    factory_type=None, do_compile=False, do_debug=True,
                     do_release=True, do_bench=True, try_schedulers=None,
                     compile_bot_warnings_as_errors=True,
                     **kwargs):
