@@ -80,6 +80,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       var current_url = window.location.href;
       var bare_url = current_url.substring(0, current_url.indexOf("?"));
       var new_url = bare_url + "?reload=" + reload + "&repository=" + repository
+                        + "&limit=100" // Show the maximum allowed # of revs.
                         + getBuilderString(builders);
       if (make_historic) {
         // This forces a new history entry.
@@ -253,7 +254,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
   <body class="interface">
     {% block header -%}
     <div id="skia_header" style="position:fixed; top:5px;">
-      <iframe id="skia-tree-status" width="100%" height="40" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
+      <iframe id="skia-tree-status" width="100%" height="50" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
       <div id="container" style="float: left; width: 100%; min-height: 65px;">
         <div style="float:left; width:30%; position: relative; z-index:2;">
         <form name="unused">
@@ -272,6 +273,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://storage.cloud.google.com/chromium-skia-gm/static_analyzers/clang_static_analyzer/index.html" target="_blank">Clang Static Analyzer</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/buildbots_self_analysis.html" target="_blank">Buildbot Self-Dashboard</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/buildslave_idle.html" target="_blank">Buildslave Idle Time Analysis</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skia-tree-status.appspot.com/sheriff" target="_blank">Sheriff Schedule</a><br/></li></ul></div>
         </div>
   
         <div style="text-align:center; position: absolute; width: 100%; height: 65px; z-index:1;">
