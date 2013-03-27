@@ -80,7 +80,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       var current_url = window.location.href;
       var bare_url = current_url.substring(0, current_url.indexOf("?"));
       var new_url = bare_url + "?reload=" + reload + "&repository=" + repository
-                        + "&limit=100" // Show the maximum allowed # of revs.
                         + getBuilderString(builders);
       if (make_historic) {
         // This forces a new history entry.
