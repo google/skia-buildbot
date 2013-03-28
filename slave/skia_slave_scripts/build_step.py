@@ -122,7 +122,8 @@ class BuildStep(multiprocessing.Process):
     self._builder_name = args['builder_name']
     self._target_platform = args['target_platform']
     self._revision = \
-        None if args['revision'] == 'None' else int(args['revision'])
+        None if args['revision'] == 'None' or args['revision'] == 'HEAD' \
+        else int(args['revision'])
     self._got_revision = \
         None if args['got_revision'] == 'None' else int(args['got_revision'])
     self.attempts = attempts
