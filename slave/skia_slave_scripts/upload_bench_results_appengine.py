@@ -5,7 +5,7 @@
 
 """ Upload benchmark results to AppEngine.. """
 
-from build_step import BuildStep, BuildStepWarning
+from build_step import BuildStep
 from utils import shell_utils
 
 import os
@@ -38,8 +38,6 @@ class UploadBenchResultsToAppengine(BuildStep):
     shell_utils.Bash(cmd)
 
   def _Run(self):
-    raise BuildStepWarning('Skipping this step until it becomes faster and more'
-                           ' stable.')
     if self._perf_data_dir:
       for rep in ['avg', 'min', 'med', '25th']:
         self._RunInternal(rep)
