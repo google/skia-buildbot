@@ -203,7 +203,12 @@ def TryJobRietveldSubmitJobs(self, jobs):
       # Gate the try job on the user that requested the job, not the one that
       # authored the CL.
       # pylint: disable=W0212
-      if not self._valid_users.contains(job['requester']):
+      ########################## Added by rmistry ##########################
+      if (job.get('requester') and not job['requester'].endswith('@google.com')
+          and not job['requester'].endswith('@chromium.org')):
+        # Reject the job only if the requester has an email not ending in
+        # google.com or chromium.org
+      ######################################################################
         raise BadJobfile(
             'TryJobRietveld rejecting job from %s' % job['requester'])
 
@@ -278,10 +283,16 @@ def TryJobRietveldSubmitJobs(self, jobs):
             # results on Rietveld.
             'results': EXCEPTION,
           }
-          service.push('buildFinished', build=build)
+          ########################## Added by rmistry #########################
+          # Do not update Rietveld to mark the try job request as failed.
+          # See https://code.google.com/p/chromium/issues/detail?id=224014 for
+          # more context.
+          # service.push('buildFinished', build=build)
+          #####################################################################
           break
 
 try_job_rietveld.TryJobRietveld.SubmitJobs = TryJobRietveldSubmitJobs
+
 
 def TryJobBaseGetProps(self, builder, options):
   """ Override of try_job_base.TryJobBase.get_props:
@@ -312,3 +323,23 @@ def TryJobBaseGetProps(self, builder, options):
   return props
 
 try_job_base.TryJobBase.get_props = TryJobBaseGetProps
+
+
+def TryJobRietveldConstructor(
+    self, name, pools, properties=None, last_good_urls=None,
+    code_review_sites=None, project=None):
+  try_job_base.TryJobBase.__init__(self, name, pools, properties,
+                                   last_good_urls, code_review_sites)
+  endpoint = self._GetRietveldEndPointForProject(code_review_sites, project)
+############################### Added by rmistry ###############################
+  # rmistry: Increased the polling time from 10 seconds to 5 mins because 10
+  # seconds is too short for us. The RietveldPoller stops working if the time is
+  # too short.
+  self._poller = try_job_rietveld._RietveldPoller(endpoint, interval=5*60)
+################################################################################
+  self._valid_users = try_job_rietveld._ValidUserPoller(interval=12 * 60 * 60)
+  self._project = project
+  log.msg('TryJobRietveld created, get_pending_endpoint=%s '
+          'project=%s' % (endpoint, project))
+
+try_job_rietveld.TryJobRietveld.__init__ = TryJobRietveldConstructor
