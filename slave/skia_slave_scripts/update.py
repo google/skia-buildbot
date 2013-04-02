@@ -98,10 +98,15 @@ class Update(BuildStep):
   def _Run(self):
     if os.name == 'nt':
       gclient = 'gclient.bat'
+      which = 'where'
       svn = 'svn.bat'
     else:
       gclient = 'gclient'
+      which = 'which'
       svn = 'svn'
+
+    # Print out the location of the depot_tools.
+    shell_utils.Bash([which, gclient])
 
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
