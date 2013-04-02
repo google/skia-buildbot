@@ -38,8 +38,10 @@ class UploadBenchResultsToAppengine(BuildStep):
     shell_utils.Bash(cmd)
 
   def _Run(self):
-    raise BuildStepWarning('Skipping this step until it becomes faster and more'
-                           ' stable.')
+    # Temporarily enabling on only one builder.
+    if not self._builder_name == 'Skia_Shuttle_Ubuntu12_ATI5770_Float_Bench_64':
+      raise BuildStepWarning('Skipping this step until it becomes faster and '
+                             'more stable.')
     if self._perf_data_dir:
       for rep in ['avg', 'min', 'med', '25th']:
         self._RunInternal(rep)
