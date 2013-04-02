@@ -92,6 +92,7 @@ def TryJobCreateBuildset(self, ssid, parsed_job):
                   self.name,
                   builder,
                   self.pools[self.name]))
+  log.msg('Returning buildset: %s' % result)
   return result
 
 try_job_base.TryJobBase.create_buildset = TryJobCreateBuildset
