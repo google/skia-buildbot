@@ -25,7 +25,6 @@ To test:
 
 """
 
-import file_utils
 import misc
 import optparse
 import os
@@ -33,6 +32,7 @@ import shutil
 import sys
 import tempfile
 
+from common import chromium_utils
 from slave import svn
 
 
@@ -88,7 +88,7 @@ def _DeleteDirectoryContents(directory):
   for basename in basenames:
     path = os.path.join(directory, basename)
     if os.path.isdir(path):
-      file_utils.RecursiveDelete(path)
+      chromium_utils.RemoveDirectory(path)
     else:
       os.unlink(path)
 
@@ -191,7 +191,7 @@ def MergeIntoSvn(options):
         # First, clear the existing directory
         print 'The remote repository UUID has changed.  Removing the existing \
               checkout and checking out again to update with the new UUID'
-        file_utils.RecursiveDelete(mergedir)
+        chromium_utils.RemoveDirectory(mergedir)
         os.makedirs(mergedir)
         # Then, check out the repo again.
         print repo.Checkout(url=options.dest_svn_url, path='.')
@@ -239,7 +239,7 @@ def MergeIntoSvn(options):
   print repo.Commit(message=options.commit_message)
   if not options.merge_dir_path:
     print 'deleting mergedir %s' % mergedir
-    file_utils.RecursiveDelete(mergedir)
+    chromium_utils.RemoveDirectory(mergedir)
   return 0
 
 
