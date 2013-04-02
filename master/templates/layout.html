@@ -25,6 +25,11 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
 
     var reload = 40;
     var iframe_reload = 60000;
+
+    // Magic numbers to make the console page show enough revisions.
+    var default_revs = 50;
+    var rev_limit = 100;
+
     var skia_repo = "{{ skia_repo }}";
     var try_repo = "{{ try_repo }}";
     var internalport = "{{ internal_port }}";
@@ -80,6 +85,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       var current_url = window.location.href;
       var bare_url = current_url.substring(0, current_url.indexOf("?"));
       var new_url = bare_url + "?reload=" + reload + "&repository=" + repository
+                        + "&revs=" + default_revs + "&limit=" + rev_limit
                         + getBuilderString(builders);
       if (make_historic) {
         // This forces a new history entry.
