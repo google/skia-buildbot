@@ -209,10 +209,16 @@ def TryJobRietveldSubmitJobs(self, jobs):
           and not job['requester'].endswith('@chromium.org')):
         # Reject the job only if the requester has an email not ending in
         # google.com or chromium.org
-      ######################################################################
         raise BadJobfile(
             'TryJobRietveld rejecting job from %s' % job['requester'])
-
+      ######################################################################
+      ########################## Added by borenet ##########################
+      if not (job.get('baseurl') and 
+              config_private.Master.Skia.project_name.lower() in
+                  job['baseurl']):
+        raise BadJobfile('TryJobRietveld rejecting job with unknown baseurl: %s'
+                         % job.get('baseurl'))
+      ######################################################################
       if job['email'] != job['requester']:
         # Note the fact the try job was requested by someone else in the
         # 'reason'.
