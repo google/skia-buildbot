@@ -57,6 +57,9 @@ PID_TIMEOUT = 60.0
 SVN_URL = GetGlobalVariable('skia_svn_url') + '/buildbot'
 
 
+logger = None
+
+
 if os.name == 'nt':
   def GetFirstFreeDriveLetter():
     """ Returns the first unused Windows drive letter in [A, Z] """
@@ -297,6 +300,32 @@ def GetSlavesCfg():
   return cfg_vars['slaves']
 
 
+class FileLogger:
+  """ Write stdout to a log file. """
+  def __init__(self, log_file_name):
+    # Open the log file.
+    self._logfile = open(log_file_name, 'w')
+    self._stdout = sys.stdout
+    sys.stdout = self
+
+  def __del__(self):
+    self._logfile.close()
+    sys.stdout = self._stdout
+
+  def fileno(self):
+    return self._stdout.fileno()
+
+  def write(self, data):
+    self._logfile.write(data)
+    self._stdout.write(data)
+    # Always flush the log file.
+    self._logfile.flush()
+
+  def flush(self):
+    self._logfile.flush()
+    self._stdout.flush()
+
+
 def ParseArgs(argv):
   """ Parse and validate command-line arguments. """
 
@@ -344,14 +373,20 @@ def main():
   # Gather command-line arguments.
   args = ParseArgs(sys.argv[1:])
   master_host = args.master_host or GetGlobalVariable('master_host')
+  print 'Using master_host: %s' % master_host
+
 
   # Obtain configuration information about this build slave host machine.
   slave_host = GetSlaveHostCfg()
   slaves = slave_host['slaves']
   copies = slave_host['copies']
+  print 'Attempting to launch build slaves:'
+  for slavename in slaves:
+    print '  %s' % slavename
 
   # Obtain buildslave-specific configuration information.
   slaves_cfg = GetSlavesCfg()
+  print 'Got slaves.cfg.'
 
   # Launch the build slaves
   for slavename in slaves:
@@ -359,4 +394,14 @@ def main():
 
 
 if '__main__' == __name__:
+  # Pipe all output to a log file.
+  filename = 'launch_slaves.log'
+  if os.path.isfile(filename):
+    num = 1
+    new_filename = filename + '.' + str(num)
+    while os.path.isfile(new_filename):
+      num += 1
+      new_filename = filename + '.' + str(num)
+    os.rename(filename, new_filename)
+  logger = FileLogger(filename)
   sys.exit(main())
