@@ -17,7 +17,6 @@ import config
 import config_private
 import ntpath
 import posixpath
-import skia_build
 
 
 # TODO(epoger): My intent is to make the build steps identical on all platforms
@@ -151,9 +150,6 @@ class SkiaFactory(BuildFactory):
     self._builder_name = builder_name
     self._flavor = flavor
     self._use_skp_playback_framework = use_skp_playback_framework
-
-    # The class to use when creating builds in build_factory.BuildFactory
-    self.buildClass = skia_build.SkiaBuild
 
     def _DetermineRevision(build):
       """ Get the 'revision' property at build time. WithProperties returns the
