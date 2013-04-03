@@ -149,6 +149,13 @@ class BuildStep(multiprocessing.Process):
     self._use_skp_playback_framework = \
         args['use_skp_playback_framework'] == 'True'
 
+    if os.name == 'nt':
+      self._default_make_flags = []
+    else:
+      # Set the jobs limit to 4, since we have multiple slaves running on each
+      # machine.
+      self._default_make_flags = ['--jobs', '4', '--max-load=4.0']
+
     # Adding the playback directory transfer objects.
     self._local_playback_dirs = LocalSkpPlaybackDirs(
         self._builder_name, self._gm_image_subdir,

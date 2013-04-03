@@ -22,6 +22,7 @@ class AndroidCompile(BuildStep):
            '-d', self._args['device'],
            'BUILDTYPE=%s' % self._configuration,
            ]
+    cmd.extend(self._default_make_flags)
     cmd += self._make_flags
     shell_utils.Bash(cmd)
 

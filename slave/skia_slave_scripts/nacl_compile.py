@@ -23,6 +23,7 @@ class NaClCompile(BuildStep):
            'BUILDTYPE=%s' % self._configuration,
            ]
     cmd += self._make_flags
+    cmd.extend(self._default_make_flags)
     shell_utils.Bash(cmd)
 
 

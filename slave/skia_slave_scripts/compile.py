@@ -20,10 +20,7 @@ class Compile(BuildStep):
            self._args['target'],
            'BUILDTYPE=%s' % self._configuration,
            ]
-    if os.name != 'nt':
-      # Set the jobs limit to 4, since we have multiple slaves running on each
-      # machine.
-      cmd.extend(['--jobs', '4', '--max-load=4.0'])
+    cmd.extend(self._default_make_flags)
     cmd.extend(self._make_flags)
     shell_utils.Bash(cmd)
 
