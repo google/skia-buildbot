@@ -90,6 +90,8 @@ def DownloadDirectoryContentsIfChanged(gs_base, gs_relative_dir, local_dir):
     file_utils.CreateCleanLocalDir(local_dir)
     gs_source = posixpath.join(gs_base, gs_relative_dir, '*')
     slave_utils.GSUtilDownloadFile(src=gs_source, dst=local_dir)
+    if not _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
+      raise Exception('Failed to download from GS: %s' % gs_source)
 
 
 def _GetChunks(seq, n):
