@@ -87,7 +87,6 @@ class SkiaFactory(BuildFactory):
       self.TargetPathJoin = ntpath.join
     else:
       self.TargetPathJoin = posixpath.join
-      self._make_flags += ['--jobs', '--max-load=4.0']
 
     # Create gclient solutions corresponding to the main build_subdir
     # and other directories we also wish to check out.
