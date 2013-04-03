@@ -339,10 +339,10 @@ def TryJobRietveldConstructor(
                                    last_good_urls, code_review_sites)
   endpoint = self._GetRietveldEndPointForProject(code_review_sites, project)
 ############################### Added by rmistry ###############################
-  # rmistry: Increased the polling time from 10 seconds to 5 mins because 10
+  # rmistry: Increased the polling time from 10 seconds to 1 min because 10
   # seconds is too short for us. The RietveldPoller stops working if the time is
   # too short.
-  self._poller = try_job_rietveld._RietveldPoller(endpoint, interval=5*60)
+  self._poller = try_job_rietveld._RietveldPoller(endpoint, interval=60)
 ################################################################################
   self._valid_users = try_job_rietveld._ValidUserPoller(interval=12 * 60 * 60)
   self._project = project
