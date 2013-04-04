@@ -48,9 +48,6 @@ class DownloadSKPs(BuildStep):
         local_dir=self._local_playback_dirs.PlaybackSkpDir())
 
   def _Run(self):
-    if not self._use_skp_playback_framework:
-      return
-
     # Create the required local storage directories.
     self._CreateLocalStorageDirs()
 

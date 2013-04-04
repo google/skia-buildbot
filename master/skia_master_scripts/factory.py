@@ -44,9 +44,7 @@ class SkiaFactory(BuildFactory):
                environment_variables=None, gm_image_subdir=None,
                perf_output_basedir=None, builder_name=None, flavor=None,
                make_flags=None, test_args=None, gm_args=None, bench_args=None,
-               bench_pictures_cfg='default',
-               use_skp_playback_framework=False,
-               compile_warnings_as_errors=False):
+               bench_pictures_cfg='default', compile_warnings_as_errors=False):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     do_upload_results: whether we should upload bench/gm results
@@ -70,9 +68,6 @@ class SkiaFactory(BuildFactory):
     gm_args: list of extra flags to pass to the 'gm' executable
     bench_args: list of extra flags to pass to the 'bench' executable
     bench_pictures_cfg: config name to use for bench_pictures
-    use_skp_playback_framework: whether the builder should use the new skp
-        playback framework. This is a temporary flag that will be removed once
-        all builders use the new framework
     compile_warnings_as_errors: boolean; whether to build with "-Werror" or
         some equivalent.
     """
@@ -101,8 +96,6 @@ class SkiaFactory(BuildFactory):
     if do_patch_step:
       subdirs_to_checkout.add('android')
       subdirs_to_checkout.add('gm-expected')
-    if not use_skp_playback_framework:
-      subdirs_to_checkout.add('skp')
     for other_subdir in subdirs_to_checkout:
       self._gclient_solutions.append(gclient_factory.GClientSolution(
           svn_url=SKIA_SVN_BASEURL + '/' + other_subdir,
@@ -149,7 +142,6 @@ class SkiaFactory(BuildFactory):
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._builder_name = builder_name
     self._flavor = flavor
-    self._use_skp_playback_framework = use_skp_playback_framework
 
     def _DetermineRevision(build):
       """ Get the 'revision' property at build time. WithProperties returns the
@@ -189,7 +181,6 @@ class SkiaFactory(BuildFactory):
         '--num_cores', WithProperties('%(num_cores:-None)s'),
         '--is_try', str(self._do_patch_step),
         '--bench_pictures_cfg', bench_pictures_cfg,
-        '--use_skp_playback_framework', str(self._use_skp_playback_framework),
         ]
     BuildFactory.__init__(self, build_factory_properties=properties)
 
@@ -482,8 +473,7 @@ class SkiaFactory(BuildFactory):
     self.PostRender()
     if self._do_upload_results:
       self.UploadGMResults()
-      if self._use_skp_playback_framework:
-        self.CompareAndUploadWebpageGMs()
+      self.CompareAndUploadWebpageGMs()
     self.CompareGMs()
 
   def PerfSteps(self):

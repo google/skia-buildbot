@@ -19,9 +19,6 @@ class DownloadBaselines(BuildStep):
                                             **kwargs)
 
   def _Run(self):
-    if not self._use_skp_playback_framework:
-      return
-
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 

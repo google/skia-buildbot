@@ -189,7 +189,7 @@ def FileBug(summary, description, owner=None, ccs=None, labels=None):
 # Base set of branches for which we trigger rebuilds on all builders. Schedulers
 # may trigger builds on a superset of this list to include, for example, the
 # 'android' branch or a subfolder of 'gm-expected'.
-SKIA_PRIMARY_SUBDIRS = ['buildbot', 'skp', 'trunk']
+SKIA_PRIMARY_SUBDIRS = ['buildbot', 'trunk']
 
 
 # Skip buildbot runs of a CL if its commit log message contains the following
@@ -544,7 +544,6 @@ def MakeHousekeeperBuilderSet(helper, do_trybots, do_upload_results):
         target_platform=skia_factory.TARGET_PLATFORM_LINUX,
         builder_name=builder_name,
         do_patch_step=(scheduler == TRY_SCHEDULERS_STR),
-        use_skp_playback_framework=True,
       ).Build())
 
 

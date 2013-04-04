@@ -61,8 +61,7 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=64'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_linux)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_32',
@@ -71,8 +70,7 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=32'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_linux)
 
   # Android (runs on a Linux buildbot slave)...
   defaults['category'] = 'Android'
@@ -84,8 +82,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-s',
-      perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_Xoom_4-1_Float_%s_32',
@@ -94,8 +91,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-xoom',
-      perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_GalaxyNexus_4-1_Float_%s_32',
@@ -104,8 +100,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-galaxy-nexus',
-      perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_Nexus4_4-1_Float_%s_32',
@@ -114,8 +109,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-4',
-      perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_Nexus7_4-1_Float_%s_32',
@@ -124,8 +118,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-7',
-      perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_Nexus10_4-1_Float_%s_32',
@@ -134,8 +127,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-10',
-      perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_linux)
   MakeAndroidBuilderSet(
       helper=helper,
       builder_base_name='Skia_RazrI_4-1_Float_%s_32',
@@ -144,8 +136,7 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-razr-i',
-      perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_linux)
 
   # Mac 10.6 (SnowLeopard) ...
   defaults['category'] = 'Mac-10.6'
@@ -158,8 +149,7 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': ('skia_osx_sdkroot=macosx10.6 skia_scalar=float '
                            'skia_arch_width=32')},
       gm_image_subdir='base-macmini',
-      perf_output_basedir=perf_output_basedir_mac,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_mac)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Mac_Float_%s_64',
@@ -170,7 +160,6 @@ def Update(config, active_master, c):
                            'skia_arch_width=64')},
       gm_image_subdir='base-macmini',
       perf_output_basedir=perf_output_basedir_mac,
-      use_skp_playback_framework=True,
       compile_bot_warnings_as_errors=False)
 
   # Mac 10.7 (Lion) ...
@@ -183,8 +172,7 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini-lion-float',
-      perf_output_basedir=perf_output_basedir_mac,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_mac)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_MacMiniLion_Float_%s_64',
@@ -194,7 +182,6 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
       gm_image_subdir='base-macmini-lion-float',
       perf_output_basedir=perf_output_basedir_mac,
-      use_skp_playback_framework=True,
       compile_bot_warnings_as_errors=False)
 
   # Mac 10.8 (Mountain Lion) ...
@@ -207,8 +194,7 @@ def Update(config, active_master, c):
       environment_variables=
           {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-macmini-10_8',
-      perf_output_basedir=perf_output_basedir_mac,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_mac)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_MacMini_10_8_Float_%s_64',
@@ -218,7 +204,6 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
       gm_image_subdir='base-macmini-10_8',
       perf_output_basedir=perf_output_basedir_mac,
-      use_skp_playback_framework=True,
       compile_bot_warnings_as_errors=False)
 
   # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
@@ -232,8 +217,7 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': ('skia_scalar=float skia_arch_width=32 '
                            'skia_win_debuggers_path=c:/DbgHelp')},
       gm_image_subdir='base-shuttle-win7-intel-float',
-      perf_output_basedir=perf_output_basedir_windows,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_windows)
   MakeBuilderSet(
       helper=helper,
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_64',
@@ -244,7 +228,6 @@ def Update(config, active_master, c):
                            'skia_win_debuggers_path=c:/DbgHelp')},
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=perf_output_basedir_windows,
-      use_skp_playback_framework=True,
       compile_bot_warnings_as_errors=False)
 
   # Special-purpose Win7 builders
@@ -261,7 +244,6 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_windows,
       gm_args=['--config', 'angle'],
       bench_args=['--config', 'ANGLE'],
-      use_skp_playback_framework=True,
       bench_pictures_cfg='angle')
   MakeBuilderSet(
       helper=helper,
@@ -273,8 +255,7 @@ def Update(config, active_master, c):
            ('skia_scalar=float skia_directwrite=1 skia_arch_width=32 '
             'skia_win_debuggers_path=c:/DbgHelp')},
       gm_image_subdir='base-shuttle-win7-intel-directwrite',
-      perf_output_basedir=perf_output_basedir_windows,
-      use_skp_playback_framework=True)
+      perf_output_basedir=perf_output_basedir_windows)
 
   defaults['category'] = 'iOS'
   MakeIOSBuilderSet(
@@ -309,8 +290,7 @@ def Update(config, active_master, c):
       perf_output_basedir=None, # no perf measurement for debug builds
       bench_pictures_cfg='no_gpu',
       do_release=False,
-      do_bench=False,
-      use_skp_playback_framework=True)
+      do_bench=False)
 
   MakeNaClBuilderSet(
       helper=helper,
@@ -319,7 +299,6 @@ def Update(config, active_master, c):
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       gm_image_subdir=None,
       perf_output_basedir=None,
-      use_skp_playback_framework=True,
       do_debug=False,
       do_release=False,
       do_bench=False)
@@ -335,7 +314,6 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_arch_width=32 skia_gpu=0'},
       gm_image_subdir=None,
       perf_output_basedir=perf_output_basedir_linux,
-      use_skp_playback_framework=True,
       bench_pictures_cfg='no_gpu')
 
   return helper.Update(c)

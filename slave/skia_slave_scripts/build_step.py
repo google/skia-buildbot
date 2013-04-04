@@ -146,8 +146,6 @@ class BuildStep(multiprocessing.Process):
     self._gm_args.append('--serialize')
     self._bench_args = shlex.split(args['bench_args'].replace('"', ''))
     self._is_try = args['is_try'] == 'True'
-    self._use_skp_playback_framework = \
-        args['use_skp_playback_framework'] == 'True'
 
     if os.name == 'nt':
       self._default_make_flags = []
@@ -166,9 +164,7 @@ class BuildStep(multiprocessing.Process):
         None if args['perf_output_basedir'] == 'None'
             else args['perf_output_basedir'])
 
-    self._skp_dir = (self._local_playback_dirs.PlaybackSkpDir() \
-                     if self._use_skp_playback_framework \
-                     else os.path.join(os.pardir, 'skp'))
+    self._skp_dir = self._local_playback_dirs.PlaybackSkpDir()
 
     # Figure out where we are going to store performance output.
     if args['perf_output_basedir'] != 'None':
@@ -183,13 +179,9 @@ class BuildStep(multiprocessing.Process):
     self._device_dirs = DeviceDirs(
         perf_data_dir=self._perf_data_dir,
         gm_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
-        skp_dir=(self._local_playback_dirs.PlaybackSkpDir() \
-                 if self._use_skp_playback_framework \
-                 else os.path.join(os.pardir, 'skp')),
+        skp_dir=self._local_playback_dirs.PlaybackSkpDir(),
         skp_perf_dir=self._perf_data_dir,
-        skp_out_dir=(self._local_playback_dirs.PlaybackGmActualDir() \
-                     if self._use_skp_playback_framework \
-                     else os.path.join(os.pardir, os.pardir, 'gm', 'actual')))
+        skp_out_dir=self._local_playback_dirs.PlaybackGmActualDir())
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
