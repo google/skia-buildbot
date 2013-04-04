@@ -14,7 +14,7 @@ import sys
 
 
 class UploadBenchResultsToAppengine(BuildStep):
-  def __init__(self, timeout=1200, no_output_timeout=1200, **kwargs):
+  def __init__(self, timeout=1800, no_output_timeout=1200, **kwargs):
     super(UploadBenchResultsToAppengine, self).__init__(
         timeout=timeout,
         no_output_timeout=no_output_timeout,
