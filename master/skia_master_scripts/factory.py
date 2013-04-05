@@ -391,11 +391,11 @@ class SkiaFactory(BuildFactory):
           baseurl = build.getProperty('baseurl')
           if len(baseurl) == 1:
             baseurl = baseurl[0]
-          if not baseurl.startswith(config_private.SKIA_SVN_BASEURL):
-            return 'None'
-          return baseurl.split(config_private.SKIA_SVN_BASEURL)[1].strip('/')
-        else:
-          return 'None'
+          baseurl = baseurl.split('://', 1)[1]
+          skia_baseurl = config_private.SKIA_SVN_BASEURL.split('://', 1)[1]
+          if baseurl.startswith(skia_baseurl):
+            return baseurl.split(skia_baseurl)[1].strip('/')
+        return 'None'
 
       def _GetPatch(build):
         if build.getSourceStamp().patch and \
