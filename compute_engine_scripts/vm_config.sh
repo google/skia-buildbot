@@ -17,7 +17,8 @@ REQUIRED_FILES_FOR_SLAVES=(~/.autogen_svn_username \
                            ~/.skia_svn_password \
                            ~/.boto)
 
-REQUIRED_FILES_FOR_MASTERS=(~/.code_review_password)
+REQUIRED_FILES_FOR_MASTERS=(~/.code_review_password \
+                            ~/.status_password)
 
 # The (Shared Fate) Zone is conceptually equivalent to a data center cell. VM
 # instances live in a zone.
