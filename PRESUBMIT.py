@@ -44,7 +44,9 @@ def CheckChange(input_api, output_api):
       disabled_warnings=pylint_disabled_warnings,
       white_list=affected_python_files)
 
-  results += input_api.canned_checks.CheckLongLines(input_api, output_api)
+  # Use 100 for max length for files other than python. Python length is
+  # already checked during the Pylint above.
+  results += input_api.canned_checks.CheckLongLines(input_api, output_api, 100)
   results += input_api.canned_checks.CheckChangeTodoHasOwner(
       input_api, output_api)
   results += input_api.canned_checks.CheckChangeHasNoStrayWhitespace(
