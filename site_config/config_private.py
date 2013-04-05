@@ -43,11 +43,12 @@ class Master(config_default.Master):
     master_port = skia_vars.GetGlobalVariable('internal_port')
     slave_port = skia_vars.GetGlobalVariable('slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('external_port')
-    tree_closing_notification_recipients = []
+    tree_closing_notification_recipients = ['skia-commit@googlegroups.com']
     from_address = 'skia-buildbot@pogerlabs.com'
     is_publicly_visible = True
     code_review_site = \
         skia_vars.GetGlobalVariable('code_review_status_listener')
+    tree_status_url = skia_vars.GetGlobalVariable('tree_status_url')
 
   class PrivateSkia(object):
     project_name = 'PrivateSkia'

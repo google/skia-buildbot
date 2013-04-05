@@ -9,6 +9,11 @@
     "type": "string",
     "description": "URL of the project's code review site."
   },
+  "tree_status_url": {
+    "value": "https://skia-tree-status.appspot.com/binary-status",
+    "type": "string",
+    "description": "URL that displays the status of the Skia tree."
+  },
   "code_review_status_listener": {
     "value": "https://chromiumcodereview.appspot.com/status_listener",
     "type": "string",

@@ -9,7 +9,6 @@
 import httplib2
 import re
 
-
 # requires Google APIs client library for Python; see
 # https://code.google.com/p/google-api-python-client/wiki/Installation
 from apiclient.discovery import build
@@ -19,10 +18,11 @@ from buildbot.schedulers.filter import ChangeFilter
 from buildbot.util import NotABranch
 from config_private import TRY_SVN_BASEURL
 from master import master_config
-from master.builders_pools import BuildersPools
 from master import try_job_svn
 from master import try_job_rietveld
+from master.builders_pools import BuildersPools
 from oauth2client.client import SignedJwtAssertionCredentials
+
 from skia_master_scripts import android_factory
 from skia_master_scripts import chromeos_factory
 from skia_master_scripts import factory as skia_factory
@@ -30,6 +30,7 @@ from skia_master_scripts import housekeeping_percommit_factory, \
                                 housekeeping_periodic_factory
 from skia_master_scripts import ios_factory
 from skia_master_scripts import nacl_factory
+
 import config_private
 
 
@@ -434,6 +435,8 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     compile_debug_builder_name = MakeCompileBuilderName(builder_base_name,
                                                         release=False)
     B(compile_debug_builder_name, 'f_%s' % compile_debug_builder_name,
+        # Do not add gatekeeper for trybots.
+        gatekeeper='GateKeeper' if try_schedulers is None else None,
         scheduler=scheduler_name, override_category=CATEGORY_BUILD)
     F('f_%s' % compile_debug_builder_name, factory_type(
         builder_name=compile_debug_builder_name,
@@ -448,6 +451,8 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     compile_release_builder_name = MakeCompileBuilderName(builder_base_name,
                                                           release=True)
     B(compile_release_builder_name, 'f_%s' % compile_release_builder_name,
+        # Do not add gatekeeper for trybots.
+        gatekeeper='GateKeeper' if try_schedulers is None else None,
         scheduler=scheduler_name, override_category=CATEGORY_BUILD)
     F('f_%s' % compile_release_builder_name, factory_type(
         builder_name=compile_release_builder_name,
