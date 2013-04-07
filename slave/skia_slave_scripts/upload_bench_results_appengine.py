@@ -39,8 +39,7 @@ class UploadBenchResultsToAppengine(BuildStep):
 
   def _Run(self):
     if self._perf_data_dir:
-      for rep in ['avg', 'min', 'med', '25th']:
-        self._RunInternal(rep)
+      self._RunInternal('25th')
 
 
 if '__main__' == __name__:
