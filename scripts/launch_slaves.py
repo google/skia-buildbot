@@ -8,36 +8,59 @@
 is intended to be run at boot time. """
 
 
+import errno
 import json
 import multiprocessing
 import os
 if os.name == 'nt':
   import win32api
   import string
+import posixpath
 import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 
 
-def SvnCat(svn_url):
-  """ Return the entire contents of the file at the given svn_url as a string.
-  Raises an exception if there were any errors.
+SVN_URL = 'http://skia.googlecode.com/svn/buildbot'
 
-  svn_url: string; the file to read.
+
+def ReadFileFromSVN(filepath):
+  """ Return the entire contents of the file at the given filepath as a string.
+  Obtains or updates the file from svn.  Raises an exception if there were any
+  errors.
+
+  filepath: string; the file to read.
   """
   if os.name == 'nt':
     svn = 'svn.bat'
   else:
     svn = 'svn'
-  proc = subprocess.Popen([svn, 'cat', svn_url],
+  basedir, filename = posixpath.split(filepath)
+  try:
+    os.makedirs(basedir)
+  except OSError as e:
+    if e.errno != errno.EEXIST or not os.path.isdir(basedir):
+      raise
+  proc = subprocess.Popen([svn, 'checkout', posixpath.join(SVN_URL, basedir),
+                           basedir, '--depth', 'empty'],
+                          stdout=subprocess.PIPE,  stderr=subprocess.STDOUT)
+  result = proc.wait()
+  if result != 0:
+    raise Exception('Failed to checkout %s:\n%s' % (filepath,
+                                                    proc.communicate()[0]))
+  old_cwd = os.path.abspath(os.curdir)
+  os.chdir(basedir)
+  proc = subprocess.Popen([svn, 'update', filename],
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
   exitcode = proc.wait()
+  os.chdir(old_cwd)
   if not exitcode == 0:
     raise Exception('Could not retrieve %s. Verify that the URL is valid and '
-                    'check your connection.' % svn_url)
-  return proc.communicate()[0]
+                    'check your connection.' % filepath)
+  return open(filepath).read()
 
 
 def GetGlobalVariable(var_name):
@@ -47,14 +70,14 @@ def GetGlobalVariable(var_name):
 # How often we should check each buildslave's keepalive conditions, in seconds.
 DEFAULT_POLL_INTERVAL = 60
 DRIVE_MAPPING = True
-GLOBAL_VARIABLES = json.loads(SvnCat('http://skia.googlecode.com/svn/buildbot/'
-                                     'site_config/global_variables.json'))
+GLOBAL_VARIABLES = \
+    json.loads(ReadFileFromSVN('site_config/global_variables.json'))
 PID_FILE = os.path.join('buildbot', 'third_party', 'chromium_buildbot', 'slave',
                         'twistd.pid')
 # Maximum time (in seconds) to wait for PID_FILE to be written after the slave
 # is launched.  If PID_FILE is not written by then, we assume an error occurred.
 PID_TIMEOUT = 60.0
-SVN_URL = GetGlobalVariable('skia_svn_url') + '/buildbot'
+
 
 
 logger = None
@@ -275,12 +298,12 @@ def RunSlave(slavename, copies, slaves_cfg, master_host):
   manager.start()
 
 
-def GetCfg(url):
-  """ Retrieve a config file from the SVN repository and return it.
+def GetCfg(filepath):
+  """ Retrieve a config file return it.
   
-  url: string; the url of the file to load.
+  filepath: string; the filepath of the file to load.
   """
-  file_contents = SvnCat(url)
+  file_contents = ReadFileFromSVN(filepath)
   config_vars = {}
   exec(file_contents, config_vars)
   return config_vars
@@ -290,13 +313,13 @@ def GetSlaveHostCfg():
   """ Retrieve the latest slave_hosts.cfg file from the SVN repository and
   return the slave host configuration for this machine.
   """
-  cfg_vars = GetCfg(SVN_URL + '/site_config/slave_hosts.cfg')
+  cfg_vars = GetCfg('site_config/slave_hosts.cfg')
   return cfg_vars['GetSlaveHostConfig'](socket.gethostname())
 
 
 def GetSlavesCfg():
   """ Retrieve the latest slaves.cfg file from the SVN repository. """
-  cfg_vars = GetCfg(SVN_URL + '/master/slaves.cfg')
+  cfg_vars = GetCfg('master/slaves.cfg')
   return cfg_vars['slaves']
 
 
