@@ -31,6 +31,12 @@ import json
 import utils
 
 
+CQ_TRYBOTS = [
+    'Skia_MacMini_10_8_Float_Compile_Release_32_Trybot',
+    'Skia_Shuttle_Ubuntu12_ATI5770_Float_Compile_Release_64_Trybot',
+    'Skia_Shuttle_Win7_Intel_Float_Compile_Release_32_Trybot',
+]
+
 ################################################################################
 ############################# Trybot Monkeypatches #############################
 ################################################################################
@@ -157,10 +163,11 @@ class TryBuildersJsonResource(JsonResource):
   help = """List of all the try builders defined on a master."""
   pageTitle = 'Builders'
 
-  def __init__(self, status):
+  def __init__(self, status, include_only_cq_trybots=False):
     JsonResource.__init__(self, status)
     for builder_name in self.status.getBuilderNames():
-      if utils.IsTrybot(builder_name):
+      if utils.IsTrybot(builder_name) and (
+          not include_only_cq_trybots or builder_name in CQ_TRYBOTS):
         self.putChild(builder_name,
                       BuilderJsonResource(status,
                                           status.getBuilder(builder_name)))
@@ -183,6 +190,11 @@ def JsonStatusResourceInit(self, status):
   ############################## Added by borenet ##############################
   # Added to address: https://code.google.com/p/skia/issues/detail?id=1134
   self.putChild('trybots', TryBuildersJsonResource(status))
+  ##############################################################################
+  ############################## Added by rmistry ##############################
+  # Added to have a place to get the list of trybots run by the CQ.
+  self.putChild('cqtrybots',
+                TryBuildersJsonResource(status, include_only_cq_trybots=True))
   ##############################################################################
 
   # This needs to be called before the first HelpResource().body call.
