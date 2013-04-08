@@ -20,7 +20,6 @@ import shutil
 import socket
 import subprocess
 import sys
-import tempfile
 import time
 
 
@@ -179,9 +178,11 @@ class BuildSlaveManager(multiprocessing.Process):
       cmd += 'run_slave.bat'
       cmd += '&& endlocal'
     else:
+      proc = subprocess.Popen(['make', 'stop'])
+      proc.wait()
       cmd = 'TESTING_SLAVENAME=%s ' % self._slavename
       cmd += 'TESTING_MASTER_HOST=%s ' % self._master_host
-      cmd += 'make restart'
+      cmd += 'make start'
     print 'Running cmd: %s' % cmd
     subprocess.Popen(cmd, shell=True)
     os.chdir(self._slave_dir)
@@ -418,13 +419,13 @@ def main():
 
 if '__main__' == __name__:
   # Pipe all output to a log file.
-  filename = 'launch_slaves.log'
-  if os.path.isfile(filename):
+  logfile = 'launch_slaves.log'
+  if os.path.isfile(logfile):
     num = 1
-    new_filename = filename + '.' + str(num)
+    new_filename = logfile + '.' + str(num)
     while os.path.isfile(new_filename):
       num += 1
-      new_filename = filename + '.' + str(num)
-    os.rename(filename, new_filename)
-  logger = FileLogger(filename)
+      new_filename = logfile + '.' + str(num)
+    os.rename(logfile, new_filename)
+  logger = FileLogger(logfile)
   sys.exit(main())
