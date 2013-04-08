@@ -38,18 +38,19 @@ def ReadFileFromSVN(filepath):
   else:
     svn = 'svn'
   basedir, filename = posixpath.split(filepath)
-  try:
-    os.makedirs(basedir)
-  except OSError as e:
-    if e.errno != errno.EEXIST or not os.path.isdir(basedir):
-      raise
-  proc = subprocess.Popen([svn, 'checkout', posixpath.join(SVN_URL, basedir),
-                           basedir, '--depth', 'empty'],
-                          stdout=subprocess.PIPE,  stderr=subprocess.STDOUT)
-  result = proc.wait()
-  if result != 0:
-    raise Exception('Failed to checkout %s:\n%s' % (filepath,
-                                                    proc.communicate()[0]))
+  if not os.path.isfile(filepath):
+    try:
+      os.makedirs(basedir)
+    except OSError as e:
+      if e.errno != errno.EEXIST or not os.path.isdir(basedir):
+        raise
+    proc = subprocess.Popen([svn, 'checkout', posixpath.join(SVN_URL, basedir),
+                             basedir, '--depth', 'empty'],
+                            stdout=subprocess.PIPE,  stderr=subprocess.STDOUT)
+    result = proc.wait()
+    if result != 0:
+      raise Exception('Failed to checkout %s:\n%s' % (filepath,
+                                                      proc.communicate()[0]))
   old_cwd = os.path.abspath(os.curdir)
   os.chdir(basedir)
   proc = subprocess.Popen([svn, 'update', filename],
