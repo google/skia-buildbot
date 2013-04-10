@@ -9,6 +9,11 @@
     "type": "string",
     "description": "URL of the project's code review site."
   },
+  "current_sheriff_url": {
+    "value": "https://skia-tree-status.appspot.com/current-sheriff",
+    "type": "string",
+    "description": "URL that displays the current sheriff and his/her schedule."
+  },
   "tree_status_url": {
     "value": "https://skia-tree-status.appspot.com/binary-status",
     "type": "string",
