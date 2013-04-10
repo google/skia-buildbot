@@ -7,7 +7,7 @@ GCUTIL=`which gcutil`
 VM_NAME_BASE=${VM_NAME_BASE:='skia'}
 
 VM_MASTER_NAMES=${VM_MASTER_NAMES:="master"}
-VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave"}
+VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave compile1 compile2"}
 VM_NAMES="${VM_MASTER_NAMES} ${VM_SLAVE_NAMES}"
 
 
@@ -39,5 +39,5 @@ PROJECT_ID='google.com:skia-buildbots'
 # The user id which owns the server on the vm instance
 PROJECT_USER="default"
 
-GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
+GCOMPUTE_CMD="$GCUTIL --cluster=prod --project=$PROJECT_ID"
 GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER"
