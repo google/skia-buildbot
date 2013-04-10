@@ -80,7 +80,8 @@ Starting setup of ${VM_COMPLETE_NAME}.....
   $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
     "mkdir -p $SLAVE_DIR && " \
     "if [[ ! \$(cat /proc/mounts | grep $SLAVE_DIR) ]]; then sudo /usr/share/google/safe_format_and_mount -m \"mkfs.ext4 -F\" /dev/sdb /home/$PROJECT_USER/$SLAVE_DIR; fi && " \
-    "sudo chmod 777 -R $SLAVE_DIR" \
+    "sudo chmod 777 -R $SLAVE_DIR && " \
+    "sudo ln -s /home/default/skia-slave /home/chrome-bot" \
     || FAILED="$FAILED MountDisk"
   echo
 
