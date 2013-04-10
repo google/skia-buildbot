@@ -6,6 +6,7 @@
 
 
 import datetime
+import json
 
 from google.appengine.ext import db
 
@@ -53,6 +54,27 @@ class SheriffSchedules(db.Model):
         'schedule_end >', datetime_obj).fetch(limit=FETCH_LIMIT)
     for schedule in schedules:
       schedule.delete()
+
+  def AsDict(self):
+    data = super(SheriffSchedules, self).AsDict()
+    data['username'] = self.username
+    data['schedule_start'] = self.schedule_start.strftime('%m/%d')
+    data['schedule_end'] = self.schedule_end.strftime('%m/%d')
+    return data
+
+
+class CurrentSheriffPage(BasePage):
+  """Displays the current sheriff and schedule in JSON."""
+
+  def get(self):
+    self.response.headers['Content-Type'] = 'application/json'
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
+    upcoming_schedules = SheriffSchedules.get_upcoming_schedules()
+    if upcoming_schedules:
+      data = json.dumps(upcoming_schedules[0].AsDict())
+    else:
+      data = json.dumps({})
+    self.response.out.write(data)
 
 
 class SheriffPage(BasePage):

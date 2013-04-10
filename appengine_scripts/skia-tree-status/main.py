@@ -36,6 +36,7 @@ URLS = [
   ('/cq/([^/]+)/?', commit_queue.User),
   ('/cq/([^/]+)/(\d+)/?', commit_queue.Issue),
   ('/cq/([^/]+)/(\d+)/(\d+)/?', commit_queue.Issue),
+  ('/current-sheriff/?', sheriff.CurrentSheriffPage),
   ('/sheriff/?', sheriff.SheriffPage),
   ('/update_sheriffs_schedule', sheriff.update_sheriffs_schedule),
 ]
