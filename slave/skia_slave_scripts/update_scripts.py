@@ -5,6 +5,7 @@
 
 """ Check out the Skia buildbot scripts. """
 
+from utils import gclient_utils
 from utils import shell_utils
 from build_step import BuildStep
 from config_private import SKIA_SVN_BASEURL
@@ -20,17 +21,15 @@ class UpdateScripts(BuildStep):
     buildbot_dir = os.path.join(*[os.pardir for _i in range(BUILD_DIR_DEPTH)])
     os.chdir(buildbot_dir)
     if os.name == 'nt':
-      gclient = 'gclient.bat'
       svn = 'svn.bat'
     else:
-      gclient = 'gclient'
       svn = 'svn'
 
     # Sometimes the build slaves "forget" the svn server. To prevent this from
     # occurring, use "svn ls" with --trust-server-cert.
     shell_utils.Bash([svn, 'ls', SKIA_SVN_BASEURL, '--non-interactive',
                       '--trust-server-cert'])
-    shell_utils.Bash([gclient, 'sync'])
+    gclient_utils.Sync()
 
 
 if '__main__' == __name__:
