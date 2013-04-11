@@ -6,34 +6,32 @@
 """This module contains utilities for managing gclient checkouts."""
 
 
+from common import find_depot_tools
+
 import file_utils
 import os
 import shell_utils
 
 
-if os.name == 'nt':
-  GCLIENT = 'gclient.bat'
-  WHICH = 'where'
-else:
-  GCLIENT = 'gclient'
-  WHICH = 'which'
-
-GCLIENT_PY = None
-GCLIENT_FILE = '.gclient'
-
-
 def _GetGclientPy():
   """ Return the path to the gclient.py file. """
-  global GCLIENT_PY
-  if not GCLIENT_PY:
-    path_to_gclient = shell_utils.Bash([WHICH, GCLIENT], echo=False)
-    GCLIENT_PY = os.path.join(os.path.split(path_to_gclient)[0], 'gclient.py')
-  return GCLIENT_PY
+  path_to_gclient = find_depot_tools.add_depot_tools_to_path()
+  if path_to_gclient:
+    return os.path.join(path_to_gclient, 'gclient.py')
+  print 'Falling back on using "gclient" or "gclient.bat"'
+  if os.name == 'nt':
+    return 'gclient.bat'
+  else:
+    return 'gclient'
+
+
+GCLIENT_PY = _GetGclientPy()
+GCLIENT_FILE = '.gclient'
 
 
 def _RunCmd(cmd):
   """ Run a "gclient ..." command. """
-  return shell_utils.Bash(['python', _GetGclientPy()] + cmd)
+  return shell_utils.Bash(['python', GCLIENT_PY] + cmd)
 
 
 def Config(spec):
