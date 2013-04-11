@@ -57,7 +57,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "sudo apt-get install --assume-yes openjdk-7-jdk libpng12-0 libpng12-dev libgl1-mesa-dev " \
     "libgl1-mesa-dri subversion postfix libgl1-mesa-glx libglu1-mesa libglu1-mesa-dev mesa-common-dev " \
     "libosmesa6 libosmesa6-dev doxygen clang libQt4-dev git make python-dev g++ python-epydoc " \
-    "libfontconfig-dev unzip ant && " \
+    "libfontconfig-dev unzip ant ccache && " \
     "sudo easy_install --upgrade google-api-python-client && " \
     "sudo easy_install --upgrade pyOpenSSL" \
     || FAILED="$FAILED InstallPackages4"
@@ -72,6 +72,10 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "sudo ln -s /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib32/libX11.so && " \
     "sudo ln -s /usr/lib32/libz.so.1 /usr/lib32/libz.so && " \
     "sudo ln -s /lib/i386-linux-gnu/libpng12.so.0 /usr/lib32/libpng.so && " \
+    "sudo ln -s /usr/bin/ccache /usr/local/bin/cc && " \
+    "sudo ln -s /usr/bin/ccache /usr/local/bin/c++ && " \
+    "sudo ln -s /usr/bin/ccache /usr/local/bin/gcc && " \
+    "sudo ln -s /usr/bin/ccache /usr/local/bin/g++ && " \
     "sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java" \
     || FAILED="$FAILED SetupSymlinks"
   echo
@@ -147,6 +151,8 @@ Starting setup of ${VM_COMPLETE_NAME}.....
   echo
 
   for REQUIRED_FILE in ${REQUIRED_FILES_FOR_SLAVES[@]}; do
+    $GCOMPUTE_CMD push --ssh_user=default $VM_COMPLETE_NAME \
+      $REQUIRED_FILE /home/default/$SLAVE_DIR/buildbot/
     $GCOMPUTE_CMD push --ssh_user=default $VM_COMPLETE_NAME \
       $REQUIRED_FILE /home/default/$SLAVE_DIR/buildbot/site_config/
     $GCOMPUTE_CMD push --ssh_user=default $VM_COMPLETE_NAME \
