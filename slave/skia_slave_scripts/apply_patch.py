@@ -75,8 +75,17 @@ class ApplyPatch(BuildStep):
       os.chdir(os.pardir)
       if patch_root != 'svn' and patch_root != '':
         os.chdir(patch_root)
-  
-      shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name])
+
+      try:
+        shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name])
+      except Exception:
+        print 'Failed to apply patch. Trying a different level.'
+        if patch_level == 0:
+          patch_level = 1
+        else:
+          patch_level = 0
+        shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name])
+
     finally:
       shutil.rmtree(temp_dir)
 
