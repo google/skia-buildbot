@@ -57,7 +57,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "sudo apt-get install --assume-yes openjdk-7-jdk libpng12-0 libpng12-dev libgl1-mesa-dev " \
     "libgl1-mesa-dri subversion postfix libgl1-mesa-glx libglu1-mesa libglu1-mesa-dev mesa-common-dev " \
     "libosmesa6 libosmesa6-dev doxygen clang libQt4-dev git make python-dev g++ python-epydoc " \
-    "libfontconfig-dev unzip ant ccache && " \
+    "libfontconfig-dev unzip ant ccache libgif-dev libgif4:i386 && " \
     "sudo easy_install --upgrade google-api-python-client && " \
     "sudo easy_install --upgrade pyOpenSSL" \
     || FAILED="$FAILED InstallPackages4"
@@ -72,6 +72,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "sudo ln -s /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib32/libX11.so && " \
     "sudo ln -s /usr/lib32/libz.so.1 /usr/lib32/libz.so && " \
     "sudo ln -s /lib/i386-linux-gnu/libpng12.so.0 /usr/lib32/libpng.so && " \
+    "sudo ln -s /usr/lib/i386-linux-gnu/libgif.so.4.1.6 /usr/lib/i386-linux-gnu/libgif.so && " \
     "sudo ln -s /usr/bin/ccache /usr/local/bin/cc && " \
     "sudo ln -s /usr/bin/ccache /usr/local/bin/c++ && " \
     "sudo ln -s /usr/bin/ccache /usr/local/bin/gcc && " \
