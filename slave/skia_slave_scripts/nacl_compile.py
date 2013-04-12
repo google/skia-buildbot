@@ -17,13 +17,19 @@ ENV_VAR = 'NACL_SDK_ROOT'
 class NaClCompile(BuildStep):
   def _Run(self):
     os.environ[ENV_VAR] = self._args['nacl_sdk_root']
-    make_cmd = os.path.join(os.pardir, 'nacl', 'nacl_make')
-    cmd = [make_cmd,
+    cmd = [os.path.join(os.pardir, 'nacl', 'nacl_make'),
            self._args['target'],
            'BUILDTYPE=%s' % self._configuration,
            ]
-    cmd += self._make_flags
     cmd.extend(self._default_make_flags)
+    if os.name != 'nt':
+      try:
+        ccache = shell_utils.Bash(['which', 'ccache'], echo=False)
+        if ccache:
+          cmd.append('--use-ccache')
+      except Exception:
+        pass
+    cmd.extend(self._make_flags)
     shell_utils.Bash(cmd)
 
 

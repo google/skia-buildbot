@@ -23,7 +23,14 @@ class AndroidCompile(BuildStep):
            'BUILDTYPE=%s' % self._configuration,
            ]
     cmd.extend(self._default_make_flags)
-    cmd += self._make_flags
+    if os.name != 'nt':
+      try:
+        ccache = shell_utils.Bash(['which', 'ccache'], echo=False)
+        if ccache:
+          cmd.append('--use-ccache')
+      except Exception:
+        pass
+    cmd.extend(self._make_flags)
     shell_utils.Bash(cmd)
 
 
