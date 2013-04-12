@@ -241,6 +241,9 @@ function checkMouseLeave(element, event) {
    
   <tr>
     <td colspan="{{ r.span }}" class='DevComment {{ alt }}'>
+      {% if not ''.join(r.comments.split('\n')[1:]) %}
+      {{ r.comments }}
+      {% else %}
       {{ r.comments.split('\n')[0] }} ...
       <a href="javascript:toggleMore({{ r.id }}, true)" id="{{ r.id }}_morelink">more</a>
       <a href="javascript:toggleMore({{ r.id }}, false)" id="{{ r.id }}_lesslink" style="display:none;">less</a>
@@ -249,6 +252,7 @@ function checkMouseLeave(element, event) {
       {{ '<br/>'.join(r.comments.split('\n')[1:])|replace('  ','&nbsp; ') }}
       </p>
       </span>
+      {% endif %}
     </td>
   </tr>
  
