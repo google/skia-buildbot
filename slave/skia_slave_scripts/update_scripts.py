@@ -17,6 +17,9 @@ BUILD_DIR_DEPTH = 5
 
 
 class UpdateScripts(BuildStep):
+  def __init__(self, attempts=5, **kwargs):
+    super(UpdateScripts, self).__init__(attempts=attempts, **kwargs)
+
   def _Run(self):
     buildbot_dir = os.path.join(*[os.pardir for _i in range(BUILD_DIR_DEPTH)])
     os.chdir(buildbot_dir)

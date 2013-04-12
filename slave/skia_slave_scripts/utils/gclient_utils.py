@@ -88,11 +88,12 @@ def GetCheckedOutRevision():
 
 def _DeleteCheckoutAndGetCleanOne():
   """ Delete the entire checkout and create a new one. """
+  spec = _GetLocalConfig()
   build_dir = os.path.abspath(os.curdir)
   os.chdir(os.pardir)
   file_utils.ClearDirectory(build_dir)
   os.chdir(build_dir)
-  Config(spec=_GetLocalConfig())
+  Config(spec)
   Sync(verbose=True,
        manually_grab_svn_rev=True,
        force=True,

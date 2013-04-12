@@ -16,9 +16,12 @@ import sys
 
 
 class Update(BuildStep):
-  def __init__(self, timeout=6000, no_output_timeout=4800, **kwargs):
+  def __init__(self, timeout=6000, no_output_timeout=4800, attempts=5,
+               **kwargs):
     super(Update, self).__init__(timeout=timeout,
-                                 no_output_timeout=no_output_timeout, **kwargs)
+                                 no_output_timeout=no_output_timeout,
+                                 attempts=attempts,
+                                 **kwargs)
 
   def _Run(self):
     if os.name == 'nt':
