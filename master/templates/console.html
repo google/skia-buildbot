@@ -6,6 +6,14 @@
 // <![CDATA[
 //
 
+function addLinks(text) {
+    if (text && text.indexOf("<a href=") == -1) {
+        text = text.replace(
+            /(https?:\/\/.+?)(\s|\t|<|\n|\r|$)/g, '<a href="$1" target="_blank">$1</a>$2');
+    }
+    return text;
+}
+
 //
 // Make the commit message display more or less.
 //
@@ -14,6 +22,8 @@ function toggleMore(id, visible) {
     document.getElementById(id + "_long_desc").style.display = "inline";
     document.getElementById(id + "_morelink").style.display = "none";
     document.getElementById(id + "_lesslink").style.display = "inline";
+    document.getElementById(id + "_long_desc").innerHTML =
+        addLinks(document.getElementById(id + "_long_desc").innerHTML);
   } else {
     document.getElementById(id + "_long_desc").style.display = "none";
     document.getElementById(id + "_morelink").style.display = "inline";
@@ -202,7 +212,7 @@ function checkMouseLeave(element, event) {
 
   <tr>
     <td class='DevRev {{ alt }}' width="1%">
-      <a href='https://code.google.com/p/skia/source/detail?r={{ r.id|shortrev(r.repository) }}'>{{ r.id|shortrev(r.repository) }}</a>
+      <a href='https://code.google.com/p/skia/source/detail?r={{ r.id|shortrev(r.repository) }}' target="_blank">{{ r.id|shortrev(r.repository) }}</a>
     </td>
     <td class='DevName {{ alt }}' width="1%">
       {% if r.who == "commit-bot@chromium.org" and 'Author: ' in r.comments %}
