@@ -35,6 +35,24 @@ class AndroidInstall(AndroidBuildStep, Install):
       android_utils.RunADB(self._serial, ['push', skp,
                                           self._device_dirs.SKPDir()])
 
+    # Push GM expectations to the device.
+    try:
+      android_utils.RunADB(self._serial,
+          ['shell', 'rm', '-r', self._device_dirs.GMExpectedDir()])
+    except Exception:
+      pass
+    android_utils.RunADB(self._serial, ['shell', 'mkdir', '-p',
+                                        self._device_dirs.GMExpectedDir()])
+    # TODO(borenet) Enable expectations once we're using checksums.  It will
+    # take too long to push the expected images, but the checksums will be
+    # much faster.
+    #expectation_list = os.listdir(self._gm_expected_dir)
+    #for e in expectation_list:
+    #  if os.path.isfile(os.path.join(self._gm_expected_dir, e)):
+    #    android_utils.RunADB(self._serial,
+    #        ['push', os.path.join(self._gm_expected_dir, e),
+    #         self._device_dirs.GMExpectedDir()])
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidInstall))

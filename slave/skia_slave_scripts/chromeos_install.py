@@ -46,6 +46,24 @@ class ChromeOSInstall(ChromeOSBuildStep, Install):
                          self._device_dirs.SKPDir(), self._ssh_username,
                          self._ssh_host, self._ssh_port)
 
+    # Push the GM expectations to the device.
+    try:
+      ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                       ['rm', '-rf', self._device_dirs.GMExpectedDir()])
+    except Exception:
+      pass
+    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                     ['mkdir', '-p', self._device_dirs.GMExpectedDir()])
+    # TODO(borenet) Enable expectations once we're using checksums.  It will
+    # take too long to push the expected images, but the checksums will be
+    # much faster.
+    #expectation_list = os.listdir(self._gm_expected_dir)
+    #for e in expectation_list:
+    #  if os.path.isfile(os.path.join(self._gm_expected_dir, e)):
+    #    ssh_utils.PutSCP(os.path.join(self._gm_expected_dir, e),
+    #                     self._device_dirs.GMExpectedDir(),
+    #                     self._ssh_username, self._ssh_host, self._ssh_port)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(ChromeOSInstall))

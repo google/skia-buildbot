@@ -20,6 +20,10 @@ class RunGM(BuildStep):
            '--writePath', output_dir,
            '--writeJsonSummaryPath', os.path.join(output_dir,
                                                   JSON_SUMMARY_FILENAME),
+           '--ignoreErrorTypes',
+               'IntentionallySkipped', 'MissingExpectations',
+               'ExpectationsMismatch',
+           '--readPath', self._device_dirs.GMExpectedDir(),
            ] + self._gm_args
     # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
     if sys.platform == 'darwin':

@@ -78,15 +78,20 @@ class BuildStepLogger(object):
 
 
 class DeviceDirs(object):
-  def __init__(self, perf_data_dir, gm_dir, skp_dir, skp_perf_dir, skp_out_dir):
+  def __init__(self, perf_data_dir, gm_dir, gm_expected_dir, skp_dir,
+               skp_perf_dir, skp_out_dir):
     self._perf_data_dir = perf_data_dir
     self._gm_dir = gm_dir
+    self._gm_expected_dir = gm_expected_dir
     self._skp_dir = skp_dir
     self._skp_perf_dir = skp_perf_dir
     self._skp_out_dir = skp_out_dir
 
   def GMDir(self):
     return  self._gm_dir
+
+  def GMExpectedDir(self):
+    return self._gm_expected_dir
 
   def PerfDir(self):
     return self._perf_data_dir
@@ -179,6 +184,7 @@ class BuildStep(multiprocessing.Process):
     self._device_dirs = DeviceDirs(
         perf_data_dir=self._perf_data_dir,
         gm_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
+        gm_expected_dir=self._gm_expected_dir,
         skp_dir=self._local_playback_dirs.PlaybackSkpDir(),
         skp_perf_dir=self._perf_data_dir,
         skp_out_dir=self._local_playback_dirs.PlaybackGmActualDir())
