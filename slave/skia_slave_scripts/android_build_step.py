@@ -41,6 +41,7 @@ class AndroidBuildStep(BuildStep):
     self._device_dirs = DeviceDirs(perf_data_dir=prefix + 'perf',
                                    gm_dir=prefix + 'gm',
                                    gm_expected_dir=prefix + 'gm_expected',
+                                   resource_dir=prefix + 'resources',
                                    skp_dir=prefix + 'skp',
                                    skp_perf_dir=prefix + 'skp_perf',
                                    skp_out_dir=prefix + 'skp_out')

@@ -53,6 +53,21 @@ class AndroidInstall(AndroidBuildStep, Install):
     #        ['push', os.path.join(self._gm_expected_dir, e),
     #         self._device_dirs.GMExpectedDir()])
 
+    # Push resources to the device.
+    try:
+      android_utils.RunADB(self._serial,
+          ['shell', 'rm', '-r', self._device_dirs.ResourceDir()])
+    except Exception:
+      pass
+    android_utils.RunADB(self._serial, ['shell', 'mkdir', '-p',
+                                        self._device_dirs.ResourceDir()])
+    resource_list = os.listdir(self._resource_dir)
+    for res in resource_list:
+      if os.path.isfile(os.path.join(self._resource_dir, res)):
+        android_utils.RunADB(self._serial,
+            ['push', os.path.join(self._resource_dir, res),
+             self._device_dirs.ResourceDir()])
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidInstall))

@@ -64,6 +64,21 @@ class ChromeOSInstall(ChromeOSBuildStep, Install):
     #                     self._device_dirs.GMExpectedDir(),
     #                     self._ssh_username, self._ssh_host, self._ssh_port)
 
+    # Push resources to the device.
+    try:
+      ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                       ['rm', '-rf', self._device_dirs.ResourceDir()])
+    except Exception:
+      pass
+    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                     ['mkdir', '-p', self._device_dirs.ResourceDir()])
+    resource_list = os.listdir(self._resource_dir)
+    for res in resource_list:
+      if os.path.isfile(os.path.join(self._resource_dir, res)):
+        ssh_utils.PutSCP(os.path.join(self._resource_dir, res),
+                         self._device_dirs.ResourceDir(),
+                         self._ssh_username, self._ssh_host, self._ssh_port)
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(ChromeOSInstall))

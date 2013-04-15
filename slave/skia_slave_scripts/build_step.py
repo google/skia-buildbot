@@ -78,11 +78,12 @@ class BuildStepLogger(object):
 
 
 class DeviceDirs(object):
-  def __init__(self, perf_data_dir, gm_dir, gm_expected_dir, skp_dir,
-               skp_perf_dir, skp_out_dir):
+  def __init__(self, perf_data_dir, gm_dir, gm_expected_dir, resource_dir,
+               skp_dir, skp_perf_dir, skp_out_dir):
     self._perf_data_dir = perf_data_dir
     self._gm_dir = gm_dir
     self._gm_expected_dir = gm_expected_dir
+    self._resource_dir = resource_dir
     self._skp_dir = skp_dir
     self._skp_perf_dir = skp_perf_dir
     self._skp_out_dir = skp_out_dir
@@ -95,6 +96,9 @@ class DeviceDirs(object):
 
   def PerfDir(self):
     return self._perf_data_dir
+
+  def ResourceDir(self):
+    return self._resource_dir
 
   def SKPDir(self):
     return self._skp_dir
@@ -143,6 +147,7 @@ class BuildStep(multiprocessing.Process):
                                        self._gm_image_subdir)
     self._gm_actual_svn_baseurl = '%s/%s' % (args['autogen_svn_baseurl'],
                                              'gm-actual')
+    self._resource_dir = 'resources'
     self._autogen_svn_username_file = '.autogen_svn_username'
     self._autogen_svn_password_file = '.autogen_svn_password'
     self._make_flags = shlex.split(args['make_flags'].replace('"', ''))
@@ -185,6 +190,7 @@ class BuildStep(multiprocessing.Process):
         perf_data_dir=self._perf_data_dir,
         gm_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
         gm_expected_dir=self._gm_expected_dir,
+        resource_dir=self._resource_dir,
         skp_dir=self._local_playback_dirs.PlaybackSkpDir(),
         skp_perf_dir=self._perf_data_dir,
         skp_out_dir=self._local_playback_dirs.PlaybackGmActualDir())
