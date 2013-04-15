@@ -100,10 +100,14 @@ def put_status(status):
   """Sets the current Status, e.g. append a new one."""
   # Add the last_rev to the previous status.
   prev_status = memcache.get('last_status')
+  if prev_status is None:
+    prev_status = Status.all().order('-date').get()
   prev_status.last_rev = codesite_utils.GetCurrLatestRevNum()
   prev_status.put()
   # Now add the new status.
   status.put()
+  # Flush the cache.
+  memcache.flush_all()
   memcache.set('last_status', status)
   memcache.delete('last_statuses')
 
