@@ -13,8 +13,6 @@ import sys
 
 class Compile(BuildStep):
   def _Run(self):
-    if os.name != 'nt':
-      shell_utils.Bash(['ulimit', '-u'])
     make_cmd = 'make'
     if os.name == 'nt':
       make_cmd = 'make.bat'
