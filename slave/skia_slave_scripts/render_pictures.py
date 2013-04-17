@@ -16,13 +16,15 @@ DEFAULT_TILE_Y = 256
 
 class RenderPictures(BuildStep):
   def DoRenderPictures(self, args, config='8888', write_images=True):
+    # For now, don't run on Android, since it takes too long and we don't use
+    # the results.
+    if hasattr(self, '_device'):
+      return
     cmd = ['-r', self._device_dirs.SKPDir(), '--config', config,
            '--mode', 'tile', str(DEFAULT_TILE_X), str(DEFAULT_TILE_Y)]
     cmd.extend(args)
-    if not hasattr(self, '_device') and not hasattr(self, '_ssh_host'):
-      # For now, skip --validate and writing images on Android and ChromeOS,
-      # since some of our pictures are too big to fit in memory, and the images
-      # take too long to transfer.
+    if self._builder_name == 'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_64':
+      # For now, skip --validate and writing images on all builders except one.
       # Also skip --validate on Windows, where it is currently failing.
       if write_images:
         cmd.extend(['-w', self._device_dirs.SKPOutDir()])

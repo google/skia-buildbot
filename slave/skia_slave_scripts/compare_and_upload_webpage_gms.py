@@ -98,6 +98,10 @@ class CompareAndUploadWebpageGMs(BuildStep):
                        gs_utils.TIMESTAMP_COMPLETED_FILENAME))
 
   def _Run(self):
+    # Right now, we only write images on one builder, since it takes too long.
+    if self._builder_name != 'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_64':
+      return
+
     cmd = [self._PathToBinary('skdiff'),
            '--listfilenames',
            '--nodiffs',
