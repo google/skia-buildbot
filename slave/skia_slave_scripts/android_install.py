@@ -9,7 +9,6 @@ from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from install import Install
 from utils import android_utils
-import glob
 import os
 import sys
 
@@ -31,9 +30,10 @@ class AndroidInstall(AndroidBuildStep, Install):
     android_utils.RunADB(self._serial, ['shell', 'mkdir', '-p',
                                         self._device_dirs.SKPDir()])
     # Push each skp individually, since adb doesn't let us use wildcards
-    for skp in glob.glob(os.path.join(self._skp_dir, '*.skp')):
-      android_utils.RunADB(self._serial, ['push', skp,
-                                          self._device_dirs.SKPDir()])
+    for skp in os.listdir(self._skp_dir):
+      android_utils.RunADB(self._serial,
+          ['push', os.path.join(self._skp_dir, skp),
+           self._device_dirs.SKPDir()])
 
     # Push GM expectations to the device.
     try:
