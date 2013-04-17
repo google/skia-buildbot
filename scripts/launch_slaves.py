@@ -58,6 +58,7 @@ def ReadFileFromSVN(filepath):
   exitcode = proc.wait()
   os.chdir(old_cwd)
   if not exitcode == 0:
+    print proc.communicate()[0]
     raise Exception('Could not retrieve %s. Verify that the URL is valid and '
                     'check your connection.' % filepath)
   return open(filepath).read()
@@ -70,8 +71,7 @@ def GetGlobalVariable(var_name):
 # How often we should check each buildslave's keepalive conditions, in seconds.
 DEFAULT_POLL_INTERVAL = 60
 DRIVE_MAPPING = True
-GLOBAL_VARIABLES = \
-    json.loads(ReadFileFromSVN('site_config/global_variables.json'))
+GLOBAL_VARIABLES = None
 PID_FILE = os.path.join('buildbot', 'third_party', 'chromium_buildbot', 'slave',
                         'twistd.pid')
 # Maximum time (in seconds) to wait for PID_FILE to be written after the slave
@@ -397,6 +397,10 @@ def main():
   """ Launch local build slave instances """
   # Gather command-line arguments.
   args = ParseArgs(sys.argv[1:])
+
+  global GLOBAL_VARIABLES
+  GLOBAL_VARIABLES = \
+      json.loads(ReadFileFromSVN('site_config/global_variables.json'))
   master_host = args.master_host or GetGlobalVariable('master_host')
   print 'Using master_host: %s' % master_host
 
