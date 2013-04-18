@@ -1,0 +1,12 @@
+{
+    "description": "YouTube TV video for Skia for Desktop.",
+    "archive_path": "data/skia_youtubetvvideo_desktop.wpr",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "https://www.youtube.com/tv#/watch?v=046MuD1pYJg&mode=transport",
+            "wait_time_after_navigate": 10.0,
+            "why": "from bsalomon"
+        }
+    ]
+}
