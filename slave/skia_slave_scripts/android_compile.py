@@ -16,6 +16,8 @@ ENV_VAR = 'ANDROID_SDK_ROOT'
 
 class AndroidCompile(BuildStep):
   def _Run(self):
+    os.environ['PATH'] += os.pathsep + os.path.abspath(os.path.join(
+        os.pardir, os.pardir, os.pardir, os.pardir, 'third_party', 'gsutil'))
     os.environ[ENV_VAR] = self._args['android_sdk_root']
     cmd = [os.path.join(os.pardir, 'android', 'bin', 'android_make'),
            self._args['target'],
