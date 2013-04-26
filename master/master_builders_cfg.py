@@ -4,14 +4,14 @@
 
 # Sets up all the builders we want this buildbot master to run.
 
+from skia_master_scripts import android_factory
+from skia_master_scripts import chromeos_factory
 from skia_master_scripts import factory as skia_factory
+from skia_master_scripts import housekeeping_percommit_factory, \
+                                housekeeping_periodic_factory
+from skia_master_scripts import ios_factory
+from skia_master_scripts import nacl_factory
 from skia_master_scripts import utils
-from skia_master_scripts.utils import MakeBuilderSet, \
-                                      MakeAndroidBuilderSet, \
-                                      MakeChromeOSBuilderSet, \
-                                      MakeIOSBuilderSet, \
-                                      MakeHousekeeperBuilderSet, \
-                                      MakeNaClBuilderSet
 
 # Directory where we want to record performance data
 #
@@ -53,8 +53,9 @@ def Update(config, active_master, c):
 
   # Linux (Ubuntu12) on Shuttle with ATI5770 graphics card
   defaults['category'] = 'Linux'
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
@@ -62,8 +63,9 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=64'},
       gm_image_subdir='base-shuttle_ubuntu12_ati5770',
       perf_output_basedir=perf_output_basedir_linux)
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
@@ -74,64 +76,78 @@ def Update(config, active_master, c):
 
   # Android (runs on a Linux buildbot slave)...
   defaults['category'] = 'Android'
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       builder_base_name='Skia_NexusS_4-1_Float_%s_32',
       device='nexus_s',
+      extra_branches=['android'],
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-s',
       perf_output_basedir=perf_output_basedir_linux)
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       builder_base_name='Skia_Xoom_4-1_Float_%s_32',
       device='xoom',
+      extra_branches=['android'],
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-xoom',
       perf_output_basedir=perf_output_basedir_linux)
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       builder_base_name='Skia_GalaxyNexus_4-1_Float_%s_32',
       device='galaxy_nexus',
+      extra_branches=['android'],
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-galaxy-nexus',
       perf_output_basedir=perf_output_basedir_linux)
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       builder_base_name='Skia_Nexus4_4-1_Float_%s_32',
       device='nexus_4',
+      extra_branches=['android'],
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-4',
       perf_output_basedir=perf_output_basedir_linux)
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       builder_base_name='Skia_Nexus7_4-1_Float_%s_32',
       device='nexus_7',
+      extra_branches=['android'],
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-7',
       perf_output_basedir=perf_output_basedir_linux)
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       builder_base_name='Skia_Nexus10_4-1_Float_%s_32',
       device='nexus_10',
+      extra_branches=['android'],
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
       gm_image_subdir='base-android-nexus-10',
       perf_output_basedir=perf_output_basedir_linux)
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       builder_base_name='Skia_RazrI_4-1_Float_%s_32',
       device='x86',
+      extra_branches=['android'],
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
       environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
@@ -140,8 +156,9 @@ def Update(config, active_master, c):
 
   # Mac 10.6 (SnowLeopard) ...
   defaults['category'] = 'Mac-10.6'
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_Mac_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -150,8 +167,9 @@ def Update(config, active_master, c):
                            'skia_arch_width=32')},
       gm_image_subdir='base-macmini',
       perf_output_basedir=perf_output_basedir_mac)
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_Mac_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -164,8 +182,9 @@ def Update(config, active_master, c):
 
   # Mac 10.7 (Lion) ...
   defaults['category'] = 'Mac-10.7'
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_MacMiniLion_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -173,8 +192,9 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
       gm_image_subdir='base-macmini-lion-float',
       perf_output_basedir=perf_output_basedir_mac)
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_MacMiniLion_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -186,8 +206,9 @@ def Update(config, active_master, c):
 
   # Mac 10.8 (Mountain Lion) ...
   defaults['category'] = 'Mac-10.8'
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_MacMini_10_8_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -195,8 +216,9 @@ def Update(config, active_master, c):
           {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
       gm_image_subdir='base-macmini-10_8',
       perf_output_basedir=perf_output_basedir_mac)
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_MacMini_10_8_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -208,8 +230,9 @@ def Update(config, active_master, c):
 
   # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
   defaults['category'] = 'Win7'
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
@@ -218,8 +241,9 @@ def Update(config, active_master, c):
                            'skia_win_debuggers_path=c:/DbgHelp')},
       gm_image_subdir='base-shuttle-win7-intel-float',
       perf_output_basedir=perf_output_basedir_windows)
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_64',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
@@ -232,8 +256,9 @@ def Update(config, active_master, c):
 
   # Special-purpose Win7 builders
   defaults['category'] = 'Win7-Special'
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_ANGLE_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
@@ -245,8 +270,9 @@ def Update(config, active_master, c):
       gm_args=['--config', 'angle'],
       bench_args=['--config', 'ANGLE'],
       bench_pictures_cfg='angle')
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_WIN32,
@@ -258,8 +284,9 @@ def Update(config, active_master, c):
       perf_output_basedir=perf_output_basedir_windows)
 
   defaults['category'] = 'iOS'
-  MakeIOSBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=ios_factory.iOSFactory,
       builder_base_name='Skia_iOS_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_MAC,
@@ -272,15 +299,21 @@ def Update(config, active_master, c):
 
   # House Keeping
   defaults['category'] = '  Housekeeping'
-  MakeHousekeeperBuilderSet(
+  utils.MakeHousekeeperBuilderSet(
       helper=helper,
+      percommit_factory_type=\
+          housekeeping_percommit_factory.HouseKeepingPerCommitFactory,
+      periodic_factory_type=\
+          housekeeping_periodic_factory.HouseKeepingPeriodicFactory,
       do_trybots=True,
-      do_upload_results=do_upload_results)
+      do_upload_results=do_upload_results,
+      target_platform=skia_factory.TARGET_PLATFORM_LINUX)
 
   # "Special" bots, running on Linux
   defaults['category'] = 'Linux-Special'
-  MakeBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=skia_factory.SkiaFactory,
       builder_base_name='Skia_Linux_NoGPU_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
@@ -292,8 +325,9 @@ def Update(config, active_master, c):
       do_release=False,
       do_bench=False)
 
-  MakeNaClBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=nacl_factory.NaClFactory,
       builder_base_name='Skia_Shuttle_Ubuntu12_NaCl_%s',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,
@@ -305,8 +339,9 @@ def Update(config, active_master, c):
 
   # Chrome OS
   defaults['category'] = 'ChromeOS'
-  MakeChromeOSBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=chromeos_factory.ChromeOSFactory,
       builder_base_name='Skia_ChromeOS_Alex_%s_32',
       do_upload_results=do_upload_results,
       target_platform=skia_factory.TARGET_PLATFORM_LINUX,

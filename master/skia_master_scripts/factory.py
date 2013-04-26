@@ -16,7 +16,9 @@ from skia_master_scripts import commands as skia_commands
 import config
 import config_private
 import ntpath
+import os
 import posixpath
+import utils
 
 
 # TODO(epoger): My intent is to make the build steps identical on all platforms
@@ -113,11 +115,11 @@ class SkiaFactory(BuildFactory):
     self._do_patch_step = do_patch_step
 
     if not environment_variables:
-      my_env_vars = {}
+      self._env_vars = {}
     else:
-      my_env_vars = dict(environment_variables)
-    gyp_defines = my_env_vars.get('GYP_DEFINES', '')
-    my_env_vars['GYP_DEFINES'] = gyp_defines + \
+      self._env_vars = dict(environment_variables)
+    gyp_defines = self._env_vars.get('GYP_DEFINES', '')
+    self._env_vars['GYP_DEFINES'] = gyp_defines + \
         ' skia_warnings_as_errors=%d' % int(compile_warnings_as_errors)
 
     # Get an implementation of SkiaCommands as appropriate for
@@ -127,7 +129,7 @@ class SkiaFactory(BuildFactory):
         target_platform=target_platform, factory=self,
         configuration=configuration, workdir=workdir,
         target_arch=None, default_timeout=default_timeout,
-        environment_variables=my_env_vars)
+        environment_variables=self._env_vars)
 
     self._perf_output_basedir = perf_output_basedir
 
@@ -183,6 +185,26 @@ class SkiaFactory(BuildFactory):
         '--bench_pictures_cfg', bench_pictures_cfg,
         ]
     BuildFactory.__init__(self, build_factory_properties=properties)
+
+  def Validate(self):
+    """ Validate the Factory against the known good configuration. """
+    test_dir = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir,
+                            'tools', 'tests', 'factory_configuration')
+    expected_dir = os.path.join(test_dir, 'expected')
+    actual_dir = os.path.join(test_dir, 'actual')
+    if not os.path.exists(actual_dir):
+      os.makedirs(actual_dir)
+    try:
+      expectation = open(os.path.join(expected_dir, self._builder_name)).read()
+    except IOError:
+      raise Exception('Warning: No expected factory configuration for %s.' %
+          self._builder_name)
+    self_as_string = utils.ToString(self.__dict__)
+    with open(os.path.join(actual_dir, self._builder_name), 'w') as f:
+      f.write(self_as_string)
+    if self_as_string != expectation:
+      raise ValueError('Factory configuration for %s does not match '
+                       'expectation!' % self._builder_name)
 
   def AddSlaveScript(self, script, description, args=None, timeout=None,
                      halt_on_failure=False, is_upload_step=False,
@@ -497,6 +519,7 @@ class SkiaFactory(BuildFactory):
     self.CommonSteps(clobber)
     self.NonPerfSteps()
     self.PerfSteps()
+    self.Validate()
     return self
 
   def BuildCompileOnly(self, clobber=None):
@@ -509,6 +532,7 @@ class SkiaFactory(BuildFactory):
     """
     self.UpdateSteps()
     self.Compile(clobber=clobber, build_in_one_step=False)
+    self.Validate()
     return self
 
   def BuildNoPerf(self, clobber=None):
@@ -519,6 +543,7 @@ class SkiaFactory(BuildFactory):
     """
     self.CommonSteps(clobber)
     self.NonPerfSteps()
+    self.Validate()
     return self
 
   def BuildPerfOnly(self, clobber=None):
@@ -535,4 +560,5 @@ class SkiaFactory(BuildFactory):
                        CONFIG_RELEASE)
     self.CommonSteps(clobber)
     self.PerfSteps()
+    self.Validate()
     return self

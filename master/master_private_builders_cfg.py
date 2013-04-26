@@ -5,8 +5,9 @@
 # Sets up all the builders we want this buildbot master to run.
 
 from skia_master_scripts import utils
+from skia_master_scripts import android_factory
 from skia_master_scripts import factory as skia_factory
-from skia_master_scripts.utils import MakeAndroidBuilderSet
+
 # Directory where we want to record performance data
 #
 # TODO(epoger): consider changing to reuse existing config.Master.perf_base_url,
@@ -40,8 +41,9 @@ def Update(config, active_master, c):
   #
 
   ########## LIST ALL PRIVATELY VISIBLE BUILDERS HERE ##########
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       scheduler='skia_rel',
       builder_base_name='Skia_Private_Builder_%s_001',
       device='nexus_s',
@@ -50,8 +52,9 @@ def Update(config, active_master, c):
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir=None,
       perf_output_basedir=perf_output_basedir_linux)
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       scheduler='skia_rel',
       builder_base_name='Skia_Private_Builder_%s_002',
       device='nexus_s',
@@ -60,8 +63,9 @@ def Update(config, active_master, c):
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir=None,
       perf_output_basedir=perf_output_basedir_linux)
-  MakeAndroidBuilderSet(
+  utils.MakeBuilderSet(
       helper=helper,
+      factory_type=android_factory.AndroidFactory,
       scheduler='skia_rel',
       builder_base_name='Skia_Private_Builder_%s_003',
       device='nexus_s',

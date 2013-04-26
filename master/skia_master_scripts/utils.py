@@ -23,14 +23,6 @@ from master import try_job_rietveld
 from master.builders_pools import BuildersPools
 from oauth2client.client import SignedJwtAssertionCredentials
 
-from skia_master_scripts import android_factory
-from skia_master_scripts import chromeos_factory
-from skia_master_scripts import factory as skia_factory
-from skia_master_scripts import housekeeping_percommit_factory, \
-                                housekeeping_periodic_factory
-from skia_master_scripts import ios_factory
-from skia_master_scripts import nacl_factory
-
 import config_private
 
 
@@ -44,6 +36,60 @@ TRY_SCHEDULERS_STR = '|'.join(TRY_SCHEDULERS)
 
 def IsTrybot(builder_name):
   return builder_name.endswith(TRYBOT_NAME_SUFFIX)
+
+
+def _IndentStr(indent):
+  return '    ' * (indent + 1)
+
+
+def ToString(obj, indent=0):
+  """ Returns a string representation of the given object. This differs from the
+  built-in string function in that it does not give memory locations.
+
+  obj: the object to print.
+  indent: integer; the current indent level.
+  """
+  if isinstance(obj, list):
+    return _ListToString(obj, indent)
+  elif isinstance(obj, dict):
+    return _DictToString(obj, indent)
+  elif isinstance(obj, tuple):
+    return _ListToString(obj, indent)
+  elif isinstance(obj, str):
+    return '\'%s\'' % obj
+  elif obj is None:
+    return 'None'
+  else:
+    return '<Object>'
+
+
+def _ListToString(list_var, indent):
+  if not list_var:
+    return '[]'
+  indent_str = _IndentStr(indent)
+  val = '[\n'
+  indent += 1
+  val += ''.join(['%s%s,\n' % (indent_str, ToString(elem, indent)) \
+                  for elem in list_var])
+  indent -= 1
+  indent_str = _IndentStr(indent - 1)
+  val += indent_str + ']'
+  return val
+
+
+def _DictToString(d, indent):
+  if not d:
+    return '{}'
+  indent_str = _IndentStr(indent)
+  val = '{\n'
+  indent += 1
+  val += ''.join(['%s%s: %s,\n' % (indent_str, ToString(k, indent),
+                                   ToString(d[k], indent)) \
+                  for k in sorted(d.keys())])
+  indent -= 1
+  indent_str = _IndentStr(indent - 1)
+  val += indent_str + '}'
+  return val
 
 
 class SkiaChangeFilter(ChangeFilter):
@@ -387,27 +433,26 @@ def MakeCompileBuilderName(builder_base_name, release=False):
 
 
 def MakeDebugBuilderName(builder_base_name):
-  return MakeBuilderName(builder_base_name, skia_factory.CONFIG_DEBUG)
+  return MakeBuilderName(builder_base_name, 'Debug')
 
 
 def MakeReleaseBuilderName(builder_base_name):
-  return MakeBuilderName(builder_base_name, skia_factory.CONFIG_RELEASE)
+  return MakeBuilderName(builder_base_name, 'Release')
 
 
 def MakeBenchBuilderName(builder_base_name):
-  return MakeBuilderName(builder_base_name, skia_factory.CONFIG_BENCH)
+  return MakeBuilderName(builder_base_name, 'Bench')
 
 
 def MakeSchedulerName(builder_base_name):
   return MakeBuilderName(builder_base_name, 'Scheduler')
 
 
-def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
+def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir, factory_type,
                     perf_output_basedir=None, extra_branches=None,
-                    factory_type=None, do_compile=True, do_debug=True,
-                    do_release=True, do_bench=True, try_schedulers=None,
-                    compile_bot_warnings_as_errors=True,
-                    **kwargs):
+                    do_compile=True, do_debug=True, do_release=True,
+                    do_bench=True, try_schedulers=None,
+                    compile_bot_warnings_as_errors=True, **kwargs):
   """ Creates a trio of builders for a given platform:
   1. Debug mode builder which runs all steps
   2. Release mode builder which runs all steps EXCEPT benchmarks
@@ -441,7 +486,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     F('f_%s' % compile_debug_builder_name, factory_type(
         builder_name=compile_debug_builder_name,
         other_subdirs=subdirs_to_checkout,
-        configuration=skia_factory.CONFIG_DEBUG,
+        configuration='Debug',
         gm_image_subdir=gm_image_subdir,
         do_patch_step=(try_schedulers is not None),
         perf_output_basedir=None,
@@ -457,7 +502,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     F('f_%s' % compile_release_builder_name, factory_type(
         builder_name=compile_release_builder_name,
         other_subdirs=subdirs_to_checkout,
-        configuration=skia_factory.CONFIG_RELEASE,
+        configuration='Release',
         gm_image_subdir=gm_image_subdir,
         do_patch_step=(try_schedulers is not None),
         perf_output_basedir=None,
@@ -472,7 +517,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     F('f_%s' % debug_builder_name, factory_type(
         builder_name=debug_builder_name,
         other_subdirs=subdirs_to_checkout,
-        configuration=skia_factory.CONFIG_DEBUG,
+        configuration='Debug',
         gm_image_subdir=gm_image_subdir,
         do_patch_step=(try_schedulers is not None),
         perf_output_basedir=None,
@@ -487,7 +532,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     F('f_%s' % no_perf_builder_name,  factory_type(
         builder_name=no_perf_builder_name,
         other_subdirs=subdirs_to_checkout,
-        configuration=skia_factory.CONFIG_RELEASE,
+        configuration='Release',
         gm_image_subdir=gm_image_subdir,
         do_patch_step=(try_schedulers is not None),
         perf_output_basedir=None,
@@ -502,7 +547,7 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir,
     F('f_%s' % perf_builder_name, factory_type(
         builder_name=perf_builder_name,
         other_subdirs=subdirs_to_checkout,
-        configuration=skia_factory.CONFIG_RELEASE,
+        configuration='Release',
         gm_image_subdir=gm_image_subdir,
         do_patch_step=(try_schedulers is not None),
         perf_output_basedir=perf_output_basedir,
@@ -518,21 +563,22 @@ def _MakeBuilderAndMaybeTrybotSet(do_trybots=True, **kwargs):
 
 
 def MakeBuilderSet(**kwargs):
-  _MakeBuilderAndMaybeTrybotSet(factory_type=skia_factory.SkiaFactory, **kwargs)
+  _MakeBuilderAndMaybeTrybotSet(**kwargs)
 
 
-def MakeHousekeeperBuilderSet(helper, do_trybots, do_upload_results):
+def MakeHousekeeperBuilderSet(helper, percommit_factory_type,
+                              periodic_factory_type, do_trybots, **kwargs):
   B = helper.Builder
   F = helper.Factory
 
   builder_factory_scheduler = [
     # The Percommit housekeeper
     ('Skia_PerCommit_House_Keeping',
-     housekeeping_percommit_factory.HouseKeepingPerCommitFactory,
+     percommit_factory_type,
      'skia_rel'),
     # The Periodic housekeeper
     ('Skia_Periodic_House_Keeping',
-     housekeeping_periodic_factory.HouseKeepingPeriodicFactory,
+     periodic_factory_type,
      'skia_periodic'),
   ]
   if do_trybots:
@@ -545,34 +591,9 @@ def MakeHousekeeperBuilderSet(helper, do_trybots, do_upload_results):
     B(builder_name, 'f_%s' % builder_name, scheduler=scheduler)
     F('f_%s' % builder_name,
       factory(
-        do_upload_results=do_upload_results,
-        target_platform=skia_factory.TARGET_PLATFORM_LINUX,
         builder_name=builder_name,
         do_patch_step=(scheduler == TRY_SCHEDULERS_STR),
       ).Build())
-
-
-def MakeAndroidBuilderSet(extra_branches=None, **kwargs):
-  if not extra_branches:
-    extra_branches = []
-  extra_branches.append('android')
-  _MakeBuilderAndMaybeTrybotSet(factory_type=android_factory.AndroidFactory,
-                                extra_branches=extra_branches,
-                                **kwargs)
-
-
-def MakeChromeOSBuilderSet(**kwargs):
-  _MakeBuilderAndMaybeTrybotSet(factory_type=chromeos_factory.ChromeOSFactory,
-                                **kwargs)
-
-
-def MakeIOSBuilderSet(**kwargs):
-  _MakeBuilderAndMaybeTrybotSet(factory_type=ios_factory.iOSFactory, **kwargs)
-
-
-def MakeNaClBuilderSet(**kwargs):
-  _MakeBuilderAndMaybeTrybotSet(factory_type=nacl_factory.NaClFactory, **kwargs)
-
 
 def CanMergeBuildRequests(req1, req2):
   """ Determine whether or not two BuildRequests can be merged. Note that the
