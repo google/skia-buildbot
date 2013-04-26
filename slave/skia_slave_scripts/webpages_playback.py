@@ -26,8 +26,8 @@ python webpages_playback.py --dest_gsbase=gs://rmistry \
 --page_sets=page_sets/skia_yahooanswers_desktop.json,\
 page_sets/skia_wikipedia_galaxynexus.json
 
-The --dryrun=True flag will not upload to Google Storage (default value is
-'False').
+The --do_not_upload_to_gs=True flag will not upload to Google Storage (default
+value is 'False').
 
 The --debugger flag if specified will allow you to preview the captured skp
 before proceeding to the next step. It needs to point to the built debugger. Eg:
@@ -36,6 +36,8 @@ trunk/out/Debug/debugger
 """
 
 import cPickle
+import glob
+import json
 import optparse
 import os
 import posixpath
@@ -85,10 +87,6 @@ LOCAL_PLAYBACK_ROOT_DIR = os.path.join(
     tempfile.gettempdir(), ROOT_PLAYBACK_DIR_NAME)
 LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), 'page_sets', 'data')
-LOCAL_RECORD_WEBPAGES_ARCHIVE_DIR = os.path.join(
-    tempfile.gettempdir(), ROOT_PLAYBACK_DIR_NAME, 'webpages_archive')
-LOCAL_SKP_DIR = os.path.join(
-    tempfile.gettempdir(), ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
 TMP_SKP_DIR = tempfile.mkdtemp()
 
 # Directory containing MultiPageBenchmarks.
@@ -125,7 +123,13 @@ class SkPicturePlayback(object):
     self._dest_gsbase = parse_options.dest_gsbase
     self._record = parse_options.record == 'True'
     self._debugger = parse_options.debugger
-    self._dryrun = parse_options.dryrun == 'True'
+    self._do_not_upload_to_gs = parse_options.do_not_upload_to_gs == 'True'
+    self._archive_location = parse_options.archive_location
+
+    self._local_skp_dir = os.path.join(
+        parse_options.output_dir, ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
+    self._local_record_webpages_archive_dir = os.path.join(
+        parse_options.output_dir, ROOT_PLAYBACK_DIR_NAME, 'webpages_archive')
 
     self._trunk = parse_options.trunk
     self._svn_username = parse_options.svn_username
@@ -142,6 +146,9 @@ class SkPicturePlayback(object):
       return [os.path.join('page_sets', page_set)
               for page_set in os.listdir('page_sets')
               if not os.path.isdir(os.path.join('page_sets', page_set))]
+    elif '*' in page_sets:
+      # Explode and return the glob.
+      return glob.glob(page_sets)
     else:
       return page_sets.split(',')
 
@@ -163,15 +170,22 @@ class SkPicturePlayback(object):
     # Create the required local storage directories.
     self._CreateLocalStorageDirs()
 
+    # Start the timer.
+    start_time = time.time()
+
     # Loop through all page_sets.
     for page_set in self._page_sets:
 
-      wpr_file_name = page_set.split('/')[-1].split('.')[0] + '.wpr'
+      # Check to see if multiple webpages are specified in this page_set.
+      with open(page_set, 'r') as page_set_file:
+        parsed_json = json.load(page_set_file)
+        multiple_pages_specified = len(parsed_json['pages']) > 1
+
+      wpr_file_name = page_set.split(os.path.sep)[-1].split('.')[0] + '.wpr'
 
       if not self._record:
-        # Get the webpages archive from Google Storage so that it can be
-        # replayed.
-        self._DownloadArchiveFromStorage(wpr_file_name)
+        # Get the webpages archive so that it can be replayed.
+        self._GetWebpagesArchive(wpr_file_name)
 
       # Clear all command line arguments and add only the ones supported by
       # the skpicture_printer benchmark.
@@ -205,9 +219,11 @@ class SkPicturePlayback(object):
               print '======================Retrying!======================'
 
         if self._debugger:
-          os.system('%s %s' % (self._debugger,
-                               os.path.join(TMP_SKP_DIR, '*', 'layer_0.skp')))
-          user_input = raw_input("Would you like to recapture the skp? [y,n]")
+          skp_files = glob.glob(os.path.join(TMP_SKP_DIR, '*', 'layer_0.skp'))
+          for skp_file in skp_files:
+            os.system('%s %s' % (self._debugger, skp_file))
+          user_input = raw_input(
+              "Would you like to recapture the skp(s)? [y,n]")
           accept_skp = False if user_input == 'y' else True
         else:
           # Always accept skps if debugger is not provided to preview.
@@ -218,12 +234,15 @@ class SkPicturePlayback(object):
         # directory.
         shutil.move(
             os.path.join(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, wpr_file_name),
-            LOCAL_RECORD_WEBPAGES_ARCHIVE_DIR)
+            self._local_record_webpages_archive_dir)
 
       # Rename generated skp files into more descriptive names.
-      self._RenameSkpFiles(page_set)
+      self._RenameSkpFiles(page_set, multiple_pages_specified)
 
-    if not self._dryrun:
+    print '\n\n=======Capturing SKP files took %s seconds=======\n\n' % (
+        time.time() - start_time)
+
+    if not self._do_not_upload_to_gs:
       # Copy the directory structure in the root directory into Google Storage.
       gs_status = slave_utils.GSUtilCopyDir(
           src_dir=LOCAL_PLAYBACK_ROOT_DIR, gs_base=self._dest_gsbase,
@@ -273,7 +292,7 @@ class SkPicturePlayback(object):
 
     return 0
 
-  def _RenameSkpFiles(self, page_set):
+  def _RenameSkpFiles(self, page_set, multiple_pages_specified):
     """Rename generated skp files into more descriptive names.
 
     All skp files are currently called layer_X.skp where X is an integer, they
@@ -296,11 +315,16 @@ class SkPicturePlayback(object):
 
         # Gets the platform prefix for the page set.
         # Eg: for 'skia_yahooanswers_desktop.json' it gets 'desktop'.
-        device = (page_set.split('/')[-1].split('_')[-1].split('.')[0])
+        device = (page_set.split(os.path.sep)[-1].split('_')[-1].split('.')[0])
         platform_prefix = DEVICE_TO_PLATFORM_PREFIX[device]
-        # Gets the webpage name for the page set.
-        # Eg: for 'skia_yahooanswers_desktop.json' it gets 'yahooanswers'.
-        webpage_name = page_set.split('/')[-1].split('_')[-2]
+        if multiple_pages_specified:
+          # Get the webpage name from the directory name.
+          # Eg: for '/tmp/tmpAADdmW/http___facebook_com' it gets 'facebook_com'.
+          webpage_name = dirpath.split(os.path.sep)[-1].split('___')[-1]
+        else:
+          # Gets the webpage name from the page set name.
+          # Eg: for 'skia_yahooanswers_desktop.json' it gets 'yahooanswers'.
+          webpage_name = page_set.split(os.path.sep)[-1].split('_')[-2]
 
         # Construct the basename of the skp file.
         basename = '%s_%s' % (platform_prefix, webpage_name)
@@ -310,7 +334,7 @@ class SkPicturePlayback(object):
           basename = basename[0:MAX_SKP_BASE_NAME_LEN]
         new_filename = '%s.%s' % (basename, extension)
         shutil.move(os.path.join(dirpath, filename),
-                    os.path.join(LOCAL_SKP_DIR, new_filename))
+                    os.path.join(self._local_skp_dir, new_filename))
         self._skp_files.append(new_filename)
       shutil.rmtree(dirpath)
 
@@ -363,26 +387,31 @@ class SkPicturePlayback(object):
 
   def _CreateLocalStorageDirs(self):
     """Creates required local storage directories for this script."""
-    file_utils.CreateCleanLocalDir(LOCAL_RECORD_WEBPAGES_ARCHIVE_DIR)
-    file_utils.CreateCleanLocalDir(LOCAL_SKP_DIR)
+    file_utils.CreateCleanLocalDir(self._local_record_webpages_archive_dir)
+    file_utils.CreateCleanLocalDir(self._local_skp_dir)
 
-  def _DownloadArchiveFromStorage(self, wpr_file_name):
-    """Download the webpages archive from Google Storage."""
-    wpr_source = posixpath.join(
-        self._dest_gsbase, ROOT_PLAYBACK_DIR_NAME, 'webpages_archive',
-        wpr_file_name)
-    if gs_utils.DoesStorageObjectExist(wpr_source):
-      slave_utils.GSUtilDownloadFile(
-          src=wpr_source, dst=LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR)
+  def _GetWebpagesArchive(self, wpr_file_name):
+    """Get the webpages archive."""
+    if self._archive_location:
+      shutil.copyfile(self._archive_location,
+                      os.path.join(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR,
+                                   wpr_file_name))
     else:
-      raise Exception('%s does not exist in Google Storage!' % wpr_source)
+      wpr_source = posixpath.join(
+          self._dest_gsbase, ROOT_PLAYBACK_DIR_NAME, 'webpages_archive',
+          wpr_file_name)
+      if gs_utils.DoesStorageObjectExist(wpr_source):
+        slave_utils.GSUtilDownloadFile(
+            src=wpr_source, dst=LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR)
+      else:
+        raise Exception('%s does not exist in Google Storage!' % wpr_source)
 
 
 if '__main__' == __name__:
   option_parser = optparse.OptionParser()
   option_parser.add_option(
       '', '--page_sets',
-      help='Specifies the page sets to use to archive.',
+      help='Specifies the page sets to use to archive. Supports globs.',
       default='all')
   option_parser.add_option(
       '', '--record',
@@ -398,9 +427,16 @@ if '__main__' == __name__:
             'is specified.'),
       default=None)
   option_parser.add_option(
-      '', '--dryrun',
+      '', '--do_not_upload_to_gs',
       help='Does not upload to Google Storage if this is true.',
       default='False')
+  option_parser.add_option(
+      '', '--archive_location',
+      help='Downloads from Google Storage if archive location is unspecified.')
+  option_parser.add_option(
+      '', '--output_dir',
+      help='Directory where SKPs and webpage archives will be outputted to.',
+      default=tempfile.gettempdir())
   option_parser.add_option(
       '', '--trunk',
       help='Path to Skia trunk, used for whitespace commit.',
