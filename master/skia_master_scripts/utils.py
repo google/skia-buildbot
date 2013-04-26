@@ -593,6 +593,7 @@ def MakeHousekeeperBuilderSet(helper, percommit_factory_type,
       factory(
         builder_name=builder_name,
         do_patch_step=(scheduler == TRY_SCHEDULERS_STR),
+        **kwargs
       ).Build())
 
 def CanMergeBuildRequests(req1, req2):
