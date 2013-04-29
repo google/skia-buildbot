@@ -52,6 +52,9 @@ import traceback
 # site_config, perf, telemetry and webpagereplay.
 sys.path.append(
     os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_trunk',
+                 'chrome', 'test', 'functional'))
+sys.path.append(
+    os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_trunk',
                  'tools', 'perf'))
 sys.path.append(
     os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_trunk',
@@ -69,6 +72,7 @@ sys.path.append(
 from perf_tools import skpicture_printer
 from slave import slave_utils
 from slave import svn
+from telemetry import inspector_runtime
 from telemetry import multi_page_benchmark_runner
 from telemetry import wpr_modes
 from telemetry import user_agent
@@ -76,6 +80,7 @@ from telemetry.browser_options import BrowserOptions
 from utils import file_utils
 from utils import gs_utils
 from utils import misc
+from webpagereplay import ReplayNotStartedError
 
 from build_step import PLAYBACK_CANNED_ACL
 from playback_dirs import ROOT_PLAYBACK_DIR_NAME
@@ -192,6 +197,7 @@ class SkPicturePlayback(object):
       self._SetupArgsForSkPrinter(page_set)
 
       accept_skp = False
+      errors_in_webpage = False
 
       while not accept_skp:
         # Adding retries to workaround the bug
@@ -199,11 +205,23 @@ class SkPicturePlayback(object):
         num_times_retried = 0
         retry = True
         while retry:
-          # Run the skpicture_printer script which:
-          # Creates an archive of the specified webpages if '--record' is
-          # specified.
-          # Saves all webpages in the page_set as skp files.
-          multi_page_benchmark_runner.Main(BENCHMARK_DIR)
+          try:
+            # Sometimes if a browser is brought up too quickly then this script
+            # cannot connect to its socket.
+            time.sleep(3)
+            # Run the skpicture_printer script which:
+            # Creates an archive of the specified webpages if '--record' is
+            # specified.
+            # Saves all webpages in the page_set as skp files.
+            multi_page_benchmark_runner.Main(BENCHMARK_DIR)
+          except inspector_runtime.EvaluateException, e:
+            traceback.print_exc()
+            errors_in_webpage = True
+            break
+          except ReplayNotStartedError, e:
+            traceback.print_exc()
+            errors_in_webpage = True
+            break
 
           try:
             cPickle.load(open(os.path.join(
@@ -228,6 +246,9 @@ class SkPicturePlayback(object):
         else:
           # Always accept skps if debugger is not provided to preview.
           accept_skp = True
+
+      if errors_in_webpage:
+        continue
 
       if self._record:
         # Move over the created archive into the local webpages archive

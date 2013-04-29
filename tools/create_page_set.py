@@ -47,14 +47,22 @@ TOP1M_CSV_ZIP_LOCATION = (
 
 # List of broken or spyware filled webpages.
 blacklisted_webpages = [
+    'm5zn.com',
     'yieldmanager.com',
 ]
 
 # Webpages that need more loading time.
 slow_webpages = {
+    'gavick.com': 15.0,
     'rapidgator.net': 15.0,
     'xhamster.com': 15.0,
 }
+
+# Webpages that need to be mapped to another name to work.
+mapped_webpages = {
+    'justhost.com': 'www.justhost.com',
+}
+
 
 if '__main__' == __name__:
   option_parser = optparse.OptionParser()
@@ -86,13 +94,14 @@ if '__main__' == __name__:
     if website in blacklisted_webpages:
       continue
     website_filename = 'alexa%s_%s_desktop' % (
-        index + 1, website.replace('.', '-'))
+        index + 1, website.replace('.', '-').replace('/', '-'))
     website_specific_info = {
         'archive_path': os.path.join(os.pardir, os.pardir, 'slave',
                                      'skia_slave_scripts', 'page_sets', 'data',
                                      '%s.wpr' % website_filename),
         'pages': [{
-            'url': 'http://%s' % website,  # fully qualified CSV websites.
+            # fully qualified CSV websites.
+            'url': 'http://%s' % mapped_webpages.get(website, website),
             'wait_time_after_navigate': slow_webpages.get(website, 5.0),
             'why': '#%s in Alexa global.' % (index + 1)
          }]
