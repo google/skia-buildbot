@@ -7,7 +7,7 @@ GCUTIL=`which gcutil`
 VM_NAME_BASE=${VM_NAME_BASE:='skia'}
 
 VM_MASTER_NAMES=${VM_MASTER_NAMES:="master"}
-VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave compile1 compile2"}
+VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave compile1 compile2 compile3 compile4 compile5"}
 VM_NAMES="${VM_MASTER_NAMES} ${VM_SLAVE_NAMES}"
 
 
