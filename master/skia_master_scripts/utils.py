@@ -345,6 +345,7 @@ class SkiaHelper(master_config.Helper):
 
   def Update(self, c):
     super(SkiaHelper, self).Update(c)
+    c['builders'].sort(key=lambda builder: builder['name'])
     all_subdirs = SKIA_PRIMARY_SUBDIRS
     for s_name in self._schedulers:
       scheduler = self._schedulers[s_name]
