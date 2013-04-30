@@ -42,8 +42,8 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     ];
 
     // Categorize the builders.
-    var nonbench_percommit_builders = [];
-    var bench_percommit_builders = [];
+    var test_percommit_builders = [];
+    var perf_percommit_builders = [];
     var all_percommit_builders = [];
     var try_builders = [];
     for (var i = 0; i < all_builders.length; ++i) {
@@ -52,10 +52,10 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         try_builders.push(builder)
       } else {
         all_percommit_builders.push(builder);
-        if (builder.indexOf("Bench") != -1) {
-          bench_percommit_builders.push(builder);
+        if (builder.indexOf("Perf") != -1) {
+          perf_percommit_builders.push(builder);
         } else {
-          nonbench_percommit_builders.push(builder);
+          test_percommit_builders.push(builder);
         }
       }
     }
@@ -208,11 +208,11 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           }
         } else {
           // If the list of builders is known, accept it as the desired list.
-          if (listsAreIdentical(currently_displaying, nonbench_percommit_builders)) {
-            desired_radio = "radio_nonbench";
+          if (listsAreIdentical(currently_displaying, test_percommit_builders)) {
+            desired_radio = "radio_test";
             desired_repository = skia_repo;
-          } else if (listsAreIdentical(currently_displaying, bench_percommit_builders)) {
-            desired_radio = "radio_bench";
+          } else if (listsAreIdentical(currently_displaying, perf_percommit_builders)) {
+            desired_radio = "radio_perf";
             desired_repository = skia_repo;
           } else if (listsAreIdentical(currently_displaying, all_percommit_builders)) {
             desired_radio = "radio_all";
@@ -287,8 +287,8 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           <div style="text-align:center;">
             <form name="unused2">
               <nobr>
-              <input type="radio" id="radio_nonbench" value="nonbench" onClick="javascript:reloadWithOptions(nonbench_percommit_builders, skia_repo, 'radio_nonbench', true);">Non-Bench Builders
-              <input type="radio" id="radio_bench" value="bench" onClick="javascript:reloadWithOptions(bench_percommit_builders, skia_repo, 'radio_bench', true);">Bench Builders
+              <input type="radio" id="radio_test" value="test" onClick="javascript:reloadWithOptions(test_percommit_builders, skia_repo, 'radio_test', true);">Non-Perf Builders
+              <input type="radio" id="radio_perf" value="perf" onClick="javascript:reloadWithOptions(perf_percommit_builders, skia_repo, 'radio_perf', true);">Perf Builders
               <input type="radio" id="radio_all" value="all" onClick="javascript:reloadWithOptions(all_percommit_builders, skia_repo, 'radio_all', true);">All Builders
               <input type="radio" id="radio_try" value="try" onClick="javascript:reloadWithOptions(try_builders, try_repo, 'radio_try', true);">Trybots
               </nobr>
