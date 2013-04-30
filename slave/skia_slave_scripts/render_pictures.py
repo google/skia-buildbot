@@ -23,7 +23,7 @@ class RenderPictures(BuildStep):
     cmd = ['-r', self._device_dirs.SKPDir(), '--config', config,
            '--mode', 'tile', str(DEFAULT_TILE_X), str(DEFAULT_TILE_Y)]
     cmd.extend(args)
-    if self._builder_name == 'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_64':
+    if self._builder_name == 'Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Debug':
       # For now, skip --validate and writing images on all builders except one.
       # Also skip --validate on Windows, where it is currently failing.
       if write_images:

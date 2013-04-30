@@ -10,7 +10,7 @@ files of all gm-actual directories on Google Storage match. This module can be
 run from the command-line like this:
 
 cd buildbot/third_party/chromium_buildbot/slave/\
-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64/build/trunk
+Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release/build/trunk
 
 PYTHONPATH=../../../../scripts:\
 ../../../../site_config \
@@ -18,7 +18,7 @@ python ../../../../../../slave/skia_slave_scripts/check_gs_timestamps.py \
 --configuration "Debug" --target_platform "" --revision 0 \
 --autogen_svn_baseurl "" --make_flags "" --test_args "" --gm_args "" \
 --bench_args "" --num_cores 8 --perf_output_basedir "" \
---builder_name Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64 \
+--builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
 --got_revision 0 --gm_image_subdir base-shuttle_ubuntu12_ati5770 \
 --is_try False --do_upload_results True --dest_gsbase gs://rmistry
 

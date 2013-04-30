@@ -7,6 +7,7 @@
 from skia_master_scripts import utils
 from skia_master_scripts import android_factory
 from skia_master_scripts import factory as skia_factory
+from skia_master_scripts import android_factory
 
 # Directory where we want to record performance data
 #
@@ -52,6 +53,7 @@ def Update(config, active_master, c):
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir=None,
       perf_output_basedir=perf_output_basedir_linux)
+
   utils.MakeBuilderSet(
       helper=helper,
       factory_type=android_factory.AndroidFactory,
@@ -63,6 +65,7 @@ def Update(config, active_master, c):
       environment_variables={'GYP_DEFINES': 'skia_scalar=float'},
       gm_image_subdir=None,
       perf_output_basedir=perf_output_basedir_linux)
+
   utils.MakeBuilderSet(
       helper=helper,
       factory_type=android_factory.AndroidFactory,

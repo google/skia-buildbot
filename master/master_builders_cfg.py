@@ -4,11 +4,13 @@
 
 # Sets up all the builders we want this buildbot master to run.
 
+#pylint: disable=C0301
+
 from skia_master_scripts import android_factory
 from skia_master_scripts import chromeos_factory
 from skia_master_scripts import factory as skia_factory
-from skia_master_scripts import housekeeping_percommit_factory, \
-                                housekeeping_periodic_factory
+from skia_master_scripts import housekeeping_percommit_factory
+from skia_master_scripts import housekeeping_periodic_factory
 from skia_master_scripts import ios_factory
 from skia_master_scripts import nacl_factory
 from skia_master_scripts import utils
@@ -24,7 +26,32 @@ perf_output_basedir_windows = '..\\..\\..\\..\\perfdata'
 defaults = {}
 
 
-def Update(config, active_master, c):
+ARCH_TO_GYP_DEFINE = {
+  'x86': 'skia_arch_width=32',
+  'x86_64': 'skia_arch_width=64',
+  'Arm7': 'skia_arch_width=32',
+  'NaCl': None,
+}
+
+
+def GetExtraFactoryArgs(compile_builder_info):
+  factory_type = compile_builder_info[8]
+  if factory_type == android_factory.AndroidFactory:
+    # AndroidFactory requires a "device" argument.
+    return {'device': utils.AndroidModelToDevice(compile_builder_info[4])}
+  elif factory_type == skia_factory.SkiaFactory:
+    # Some "normal" factories require extra arguments.
+    if compile_builder_info[4] == 'ANGLE':
+      return {'gm_args': ['--config', 'angle'],
+              'bench_args': ['--config', 'ANGLE'],
+              'bench_pictures_cfg': 'angle'}
+    else:
+      return {}
+  else:
+    return {}
+
+
+def Update(config, active_master, cfg):
   helper = utils.SkiaHelper(defaults)
 
   #
@@ -51,304 +78,208 @@ def Update(config, active_master, c):
   #
   do_upload_results = active_master.is_production_host
 
-  # Linux (Ubuntu12) on Shuttle with ATI5770 graphics card
-  defaults['category'] = 'Linux'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_64',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=64'},
-      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=perf_output_basedir_linux)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_Shuttle_Ubuntu12_ATI5770_Float_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=0 skia_arch_width=32'},
-      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=perf_output_basedir_linux)
+  gyp_win = 'skia_win_debuggers_path=c:/DbgHelp'
+  gyp_angle = gyp_win + ' skia_angle=1'
+  gyp_dw = gyp_win + ' skia_directwrite=1'
+  gyp_10_6 = 'skia_osx_sdkroot=macosx10.6'
+  gyp_10_7 = 'skia_mesa=1'
+  gyp_ios = 'skia_os=ios'
 
-  # Android (runs on a Linux buildbot slave)...
-  defaults['category'] = 'Android'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=android_factory.AndroidFactory,
-      builder_base_name='Skia_NexusS_4-1_Float_%s_32',
-      device='nexus_s',
-      extra_branches=['android'],
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
-      gm_image_subdir='base-android-nexus-s',
-      perf_output_basedir=perf_output_basedir_linux)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=android_factory.AndroidFactory,
-      builder_base_name='Skia_Xoom_4-1_Float_%s_32',
-      device='xoom',
-      extra_branches=['android'],
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
-      gm_image_subdir='base-android-xoom',
-      perf_output_basedir=perf_output_basedir_linux)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=android_factory.AndroidFactory,
-      builder_base_name='Skia_GalaxyNexus_4-1_Float_%s_32',
-      device='galaxy_nexus',
-      extra_branches=['android'],
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
-      gm_image_subdir='base-android-galaxy-nexus',
-      perf_output_basedir=perf_output_basedir_linux)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=android_factory.AndroidFactory,
-      builder_base_name='Skia_Nexus4_4-1_Float_%s_32',
-      device='nexus_4',
-      extra_branches=['android'],
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
-      gm_image_subdir='base-android-nexus-4',
-      perf_output_basedir=perf_output_basedir_linux)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=android_factory.AndroidFactory,
-      builder_base_name='Skia_Nexus7_4-1_Float_%s_32',
-      device='nexus_7',
-      extra_branches=['android'],
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
-      gm_image_subdir='base-android-nexus-7',
-      perf_output_basedir=perf_output_basedir_linux)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=android_factory.AndroidFactory,
-      builder_base_name='Skia_Nexus10_4-1_Float_%s_32',
-      device='nexus_10',
-      extra_branches=['android'],
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
-      gm_image_subdir='base-android-nexus-10',
-      perf_output_basedir=perf_output_basedir_linux)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=android_factory.AndroidFactory,
-      builder_base_name='Skia_RazrI_4-1_Float_%s_32',
-      device='x86',
-      extra_branches=['android'],
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables={'GYP_DEFINES': 'skia_scalar=float skia_mesa=0'},
-      gm_image_subdir='base-android-razr-i',
-      perf_output_basedir=perf_output_basedir_linux)
+  # builder_specs is a dictionary whose keys are specifications for compile
+  # builders and values are specifications for Test and Perf builders which will
+  # eventually *depend* on those compile builders.
+  builder_specs = {}
+  #
+  #                            COMPILE BUILDERS                                                                              TEST AND PERF BUILDERS
+  #
+  #    OS          Compiler  Config     Arch     Extra Config   GYP_DEFS       WERR                Role    OS          Model         GPU            Extra Config   GM Subdir
+  #
+  c = 'Linux'
+  f = skia_factory.SkiaFactory
+  p = skia_factory.TARGET_PLATFORM_LINUX
+  builder_specs.update({
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',    None,          None,         True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770')],
+      ('Ubuntu12', 'GCC',    'Release', 'x86',    None,          None,         True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
+                                                                                                  ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', None,          None,         True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770')],
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', None,          None,         True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
+                                                                                                  ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],})
+  c = 'Linux-Special'
+  builder_specs.update({
+      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       'skia_gpu=0', True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       None,          'base-shuttle_ubuntu12_ati5770')],
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       'skia_gpu=0', True,  c, f, p) : [],})
+  f = nacl_factory.NaClFactory
+  builder_specs.update({
+      ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,         True,  c, f, p) : [],
+      ('Ubuntu12', 'GCC',    'Release', 'NaCl',   None,          None,         True,  c, f, p) : [],})
+  c = 'Mac-10.6'
+  f = skia_factory.SkiaFactory
+  p = skia_factory.TARGET_PLATFORM_MAC
+  builder_specs.update({
+      ('Mac10.6',  'GCC',    'Debug',   'x86',    None,          gyp_10_6,     True,  c, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini')],
+      ('Mac10.6',  'GCC',    'Release', 'x86',    None,          gyp_10_6,     True,  c, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini'),
+                                                                                                  ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],
+      ('Mac10.6',  'GCC',    'Debug',   'x86_64', None,          gyp_10_6,     False, c, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini')],
+      ('Mac10.6',  'GCC',    'Release', 'x86_64', None,          gyp_10_6,     False, c, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini'),
+                                                                                                  ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],})
+  c = 'Mac-10.7'
+  builder_specs.update({
+      ('Mac10.7',  'Clang',  'Debug',   'x86',    None,          gyp_10_7,     True,  c, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
+      ('Mac10.7',  'Clang',  'Release', 'x86',    None,          gyp_10_7,     True,  c, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
+                                                                                                  ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],
+      ('Mac10.7',  'Clang',  'Debug',   'x86_64', None,          gyp_10_7,     False, c, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
+      ('Mac10.7',  'Clang',  'Release', 'x86_64', None,          gyp_10_7,     False, c, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
+                                                                                                  ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],})
+  c = 'Mac-10.8'
+  builder_specs.update({
+      ('Mac10.8',  'Clang',  'Debug',   'x86',    None,          None,         True,  c, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8')],
+      ('Mac10.8',  'Clang',  'Release', 'x86',    None,          None,         True,  c, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
+                                                                                                  ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],
+      ('Mac10.8',  'Clang',  'Debug',   'x86_64', None,          None,         False, c, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8')],
+      ('Mac10.8',  'Clang',  'Release', 'x86_64', None,          None,         False, c, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
+                                                                                                  ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],})
+  c = 'Win7'
+  p = skia_factory.TARGET_PLATFORM_WIN32
+  builder_specs.update({
+      ('Win7',     'VS2010', 'Debug',   'x86',    None,          gyp_win,      True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
+      ('Win7',     'VS2010', 'Release', 'x86',    None,          gyp_win,      True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
+                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      None,          None)],
+      ('Win7',     'VS2010', 'Debug',   'x86_64', None,          gyp_win,      False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
+      ('Win7',     'VS2010', 'Release', 'x86_64', None,          gyp_win,      False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
+                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      None,          None)],})
+  c = 'Win7-Special'
+  builder_specs.update({
+      ('Win7',     'VS2010', 'Debug',   'x86',    'ANGLE',       gyp_angle,    True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle')],
+      ('Win7',     'VS2010', 'Release', 'x86',    'ANGLE',       gyp_angle,    True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle'),
+                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       None)],
+      ('Win7',     'VS2010', 'Debug',   'x86',    'DirectWrite', gyp_dw,       False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite')],
+      ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', gyp_dw,       False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite'),
+                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', None)],})
+  c = 'Android'
+  f = android_factory.AndroidFactory
+  p = skia_factory.TARGET_PLATFORM_LINUX
+  builder_specs.update({
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'NexusS',      None,         True,  c, f, p) : [('Test', 'Android',  'NexusS',     'SGX540',      None,          'base-android-nexus-s')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'NexusS',      None,         True,  c, f, p) : [('Test', 'Android',  'NexusS',     'SGX540',      None,          'base-android-nexus-s'),
+                                                                                                  ('Perf', 'Android',  'NexusS',     'SGX540',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus4',      None,         True,  c, f, p) : [('Test', 'Android',  'Nexus4',     'Adreno320',   None,          'base-android-nexus-4')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus4',      None,         True,  c, f, p) : [('Test', 'Android',  'Nexus4',     'Adreno320',   None,          'base-android-nexus-4'),
+                                                                                                  ('Perf', 'Android',  'Nexus4',     'Adreno320',   None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus7',      None,         True,  c, f, p) : [('Test', 'Android',  'Nexus7',     'Tegra3',      None,          'base-android-nexus-7')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus7',      None,         True,  c, f, p) : [('Test', 'Android',  'Nexus7',     'Tegra3',      None,          'base-android-nexus-7'),
+                                                                                                  ('Perf', 'Android',  'Nexus7',     'Tegra3',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus10',     None,         True,  c, f, p) : [('Test', 'Android',  'Nexus10',    'MaliT604',    None,          'base-android-nexus-10')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus10',     None,         True,  c, f, p) : [('Test', 'Android',  'Nexus10',    'MaliT604',    None,          'base-android-nexus-10'),
+                                                                                                  ('Perf', 'Android',  'Nexus10',    'MaliT604',    None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'GalaxyNexus', None,         True,  c, f, p) : [('Test', 'Android',  'GalaxyNexus','SGX540',      None,          'base-android-galaxy-nexus')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'GalaxyNexus', None,         True,  c, f, p) : [('Test', 'Android',  'GalaxyNexus','SGX540',      None,          'base-android-galaxy-nexus'),
+                                                                                                  ('Perf', 'Android',  'GalaxyNexus','SGX540',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Xoom',        None,         True,  c, f, p) : [('Test', 'Android',  'Xoom',       'Tegra2',      None,          'base-android-xoom')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Xoom',        None,         True,  c, f, p) : [('Test', 'Android',  'Xoom',       'Tegra2',      None,          'base-android-xoom'),
+                                                                                                  ('Perf', 'Android',  'Xoom',       'Tegra2',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'RazrI',       None,         True,  c, f, p) : [('Test', 'Android',  'RazrI',      'SGX540',      None,          'base-android-razr-i')],
+      ('Ubuntu12', 'GCC',    'Release', 'x86',    'RazrI',       None,         True,  c, f, p) : [('Test', 'Android',  'RazrI',      'SGX540',      None,          'base-android-razr-i'),
+                                                                                                  ('Perf', 'Android',  'RazrI',      'SGX540',      None,          None)],})
+  c = 'ChromeOS'
+  f = chromeos_factory.ChromeOSFactory
+  builder_specs.update({
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',   'ChromeOS',    'skia_gpu=0', True,  c, f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],
+      ('Ubuntu12', 'GCC',    'Release', 'x86',   'ChromeOS',    'skia_gpu=0', True,  c, f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None),
+                                                                                                 ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],})
+  c = 'iOS'
+  f = ios_factory.iOSFactory
+  p = skia_factory.TARGET_PLATFORM_MAC
+  builder_specs.update({
+      ('Mac10.7',  'Clang',  'Debug',   'Arm7',   'iOS',         gyp_ios,      True,  c, f, p) : [],
+      ('Mac10.7',  'Clang',  'Release', 'Arm7',   'iOS',         gyp_ios,      True,  c, f, p) : [],})
 
-  # Mac 10.6 (SnowLeopard) ...
-  defaults['category'] = 'Mac-10.6'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_Mac_Float_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      environment_variables=
-          {'GYP_DEFINES': ('skia_osx_sdkroot=macosx10.6 skia_scalar=float '
-                           'skia_arch_width=32')},
-      gm_image_subdir='base-macmini',
-      perf_output_basedir=perf_output_basedir_mac)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_Mac_Float_%s_64',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      environment_variables=
-          {'GYP_DEFINES': ('skia_osx_sdkroot=macosx10.6 skia_scalar=float '
-                           'skia_arch_width=64')},
-      gm_image_subdir='base-macmini',
-      perf_output_basedir=perf_output_basedir_mac,
-      compile_bot_warnings_as_errors=False)
-
-  # Mac 10.7 (Lion) ...
-  defaults['category'] = 'Mac-10.7'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_MacMiniLion_Float_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=32'},
-      gm_image_subdir='base-macmini-lion-float',
-      perf_output_basedir=perf_output_basedir_mac)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_MacMiniLion_Float_%s_64',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_mesa=1 skia_arch_width=64'},
-      gm_image_subdir='base-macmini-lion-float',
-      perf_output_basedir=perf_output_basedir_mac,
-      compile_bot_warnings_as_errors=False)
-
-  # Mac 10.8 (Mountain Lion) ...
-  defaults['category'] = 'Mac-10.8'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_MacMini_10_8_Float_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=32'},
-      gm_image_subdir='base-macmini-10_8',
-      perf_output_basedir=perf_output_basedir_mac)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_MacMini_10_8_Float_%s_64',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_arch_width=64'},
-      gm_image_subdir='base-macmini-10_8',
-      perf_output_basedir=perf_output_basedir_mac,
-      compile_bot_warnings_as_errors=False)
-
-  # Windows7 running on Shuttle PC with Intel Core i7-2600 with on-CPU graphics
-  defaults['category'] = 'Win7'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      environment_variables=
-          {'GYP_DEFINES': ('skia_scalar=float skia_arch_width=32 '
-                           'skia_win_debuggers_path=c:/DbgHelp')},
-      gm_image_subdir='base-shuttle-win7-intel-float',
-      perf_output_basedir=perf_output_basedir_windows)
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_Shuttle_Win7_Intel_Float_%s_64',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      environment_variables=
-          {'GYP_DEFINES': ('skia_scalar=float skia_arch_width=64 '
-                           'skia_win_debuggers_path=c:/DbgHelp')},
-      gm_image_subdir='base-shuttle-win7-intel-float',
-      perf_output_basedir=perf_output_basedir_windows,
-      compile_bot_warnings_as_errors=False)
-
-  # Special-purpose Win7 builders
-  defaults['category'] = 'Win7-Special'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_Shuttle_Win7_Intel_Float_ANGLE_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      environment_variables=
-          {'GYP_DEFINES': ('skia_scalar=float skia_angle=1 skia_arch_width=32 '
-                           'skia_win_debuggers_path=c:/DbgHelp')},
-      gm_image_subdir='base-shuttle-win7-intel-angle',
-      perf_output_basedir=perf_output_basedir_windows,
-      gm_args=['--config', 'angle'],
-      bench_args=['--config', 'ANGLE'],
-      bench_pictures_cfg='angle')
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_Shuttle_Win7_Intel_Float_DirectWrite_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_WIN32,
-      environment_variables=
-          {'GYP_DEFINES':
-           ('skia_scalar=float skia_directwrite=1 skia_arch_width=32 '
-            'skia_win_debuggers_path=c:/DbgHelp')},
-      gm_image_subdir='base-shuttle-win7-intel-directwrite',
-      perf_output_basedir=perf_output_basedir_windows)
-
-  defaults['category'] = 'iOS'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=ios_factory.iOSFactory,
-      builder_base_name='Skia_iOS_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_MAC,
-      environment_variables={'GYP_DEFINES': 'skia_os=ios'},
-      gm_image_subdir=None,
-      perf_output_basedir=None,
-      do_debug=False,
-      do_release=False,
-      do_bench=False)
+  for compile_builder in builder_specs.keys():
+    factory_type = compile_builder[8]
+    factory_args = GetExtraFactoryArgs(compile_builder)
+    target_platform = compile_builder[9]
+    try:
+      arch_width_define = ARCH_TO_GYP_DEFINE[compile_builder[3]]
+    except KeyError:
+      raise Exception('Unknown arch type: %s' % compile_builder[3])
+    gyp_defines = compile_builder[5]
+    if arch_width_define:
+      if not gyp_defines:
+        gyp_defines = arch_width_define
+      else:
+        if 'skia_arch_width' in gyp_defines:
+          raise ValueError('Cannot define skia_arch_width; it is derived from '
+                           'the provided arch type.')
+        gyp_defines += ' ' + arch_width_define
+    defaults['category'] = utils.CATEGORY_BUILD
+    utils.MakeCompileBuilderSet(
+        helper=helper,
+        scheduler='skia_rel',
+        os=compile_builder[0],
+        compiler=compile_builder[1],
+        configuration=compile_builder[2],
+        target_arch=compile_builder[3],
+        extra_config=compile_builder[4],
+        environment_variables={'GYP_DEFINES': gyp_defines},
+        do_upload_results=do_upload_results,
+        compile_warnings_as_errors=compile_builder[6],
+        factory_type=factory_type,
+        target_platform=target_platform,
+        **factory_args)
+    defaults['category'] = compile_builder[7]
+    for dependent_builder in builder_specs[compile_builder]:
+      role = dependent_builder[0]
+      perf_output_basedir = None
+      if role == utils.BUILDER_ROLE_PERF:
+        if target_platform == skia_factory.TARGET_PLATFORM_LINUX:
+          perf_output_basedir = perf_output_basedir_linux
+        elif target_platform == skia_factory.TARGET_PLATFORM_MAC:
+          perf_output_basedir = perf_output_basedir_mac
+        elif target_platform == skia_factory.TARGET_PLATFORM_WIN32:
+          perf_output_basedir = perf_output_basedir_windows
+      utils.MakeBuilderSet(
+          helper=helper,
+          role=role,
+          os=dependent_builder[1],
+          model=dependent_builder[2],
+          gpu=dependent_builder[3],
+          extra_config=dependent_builder[4],
+          configuration=compile_builder[2],
+          arch=compile_builder[3],
+          environment_variables={'GYP_DEFINES': gyp_defines},
+          factory_type=factory_type,
+          target_platform=target_platform,
+          gm_image_subdir=dependent_builder[5],
+          do_upload_results=do_upload_results,
+          perf_output_basedir=perf_output_basedir,
+          compile_warnings_as_errors=False,
+          **factory_args)
 
   # House Keeping
   defaults['category'] = '  Housekeeping'
-  utils.MakeHousekeeperBuilderSet(
-      helper=helper,
-      percommit_factory_type=\
-          housekeeping_percommit_factory.HouseKeepingPerCommitFactory,
-      periodic_factory_type=\
-          housekeeping_periodic_factory.HouseKeepingPeriodicFactory,
-      do_trybots=True,
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX)
+  builder_factory_scheduler = [
+    # The Percommit housekeeper
+    (utils.MakeBuilderName(role='Housekeeper', frequency='PerCommit'),
+     housekeeping_percommit_factory.HouseKeepingPerCommitFactory,
+     'skia_rel'),
+    # The Periodic housekeeper
+    (utils.MakeBuilderName(role='Housekeeper', frequency='Nightly'),
+     housekeeping_periodic_factory.HouseKeepingPeriodicFactory,
+     'skia_periodic'),
+  ]
+  # Add the corresponding trybot builders to the above list.
+  builder_factory_scheduler.extend([
+      (builder + utils.BUILDER_NAME_SEP + utils.TRYBOT_NAME_SUFFIX, factory,
+       utils.TRY_SCHEDULERS_STR)
+      for (builder, factory, _scheduler) in builder_factory_scheduler])
 
-  # "Special" bots, running on Linux
-  defaults['category'] = 'Linux-Special'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=skia_factory.SkiaFactory,
-      builder_base_name='Skia_Linux_NoGPU_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables=
-          {'GYP_DEFINES': 'skia_scalar=float skia_gpu=0 skia_arch_width=64'},
-      gm_image_subdir='base-shuttle_ubuntu12_ati5770',
-      perf_output_basedir=None, # no perf measurement for debug builds
-      bench_pictures_cfg='no_gpu',
-      do_release=False,
-      do_bench=False)
+  for (builder_name, factory, scheduler) in builder_factory_scheduler:
+    helper.Builder(builder_name, 'f_%s' % builder_name, scheduler=scheduler)
+    helper.Factory('f_%s' % builder_name,
+      factory(
+        do_upload_results=do_upload_results,
+        target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+        builder_name=builder_name,
+        do_patch_step=(scheduler == utils.TRY_SCHEDULERS_STR),
+      ).Build())
 
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=nacl_factory.NaClFactory,
-      builder_base_name='Skia_Shuttle_Ubuntu12_NaCl_%s',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      gm_image_subdir=None,
-      perf_output_basedir=None,
-      do_debug=False,
-      do_release=False,
-      do_bench=False)
-
-  # Chrome OS
-  defaults['category'] = 'ChromeOS'
-  utils.MakeBuilderSet(
-      helper=helper,
-      factory_type=chromeos_factory.ChromeOSFactory,
-      builder_base_name='Skia_ChromeOS_Alex_%s_32',
-      do_upload_results=do_upload_results,
-      target_platform=skia_factory.TARGET_PLATFORM_LINUX,
-      environment_variables=
-          {'GYP_DEFINES': 'skia_arch_width=32 skia_gpu=0'},
-      gm_image_subdir=None,
-      perf_output_basedir=perf_output_basedir_linux,
-      bench_pictures_cfg='no_gpu')
-
-  return helper.Update(c)
+  return helper.Update(cfg)

@@ -28,22 +28,22 @@ class CompareGMs(BuildStep):
     # Temporary list of builders who are allowed to fail this step without the
     # bot turning red.
     may_fail_with_warning = [
-        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_32',
-        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_32_Trybot',
-        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32',
-        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32_Trybot',
-        'Skia_Shuttle_Win7_Intel_Float_Debug_64',
-        'Skia_Shuttle_Win7_Intel_Float_Debug_64_Trybot',
-        'Skia_Shuttle_Win7_Intel_Float_Release_64',
-        'Skia_Shuttle_Win7_Intel_Float_Release_64_Trybot',
-        'Skia_Mac_Float_Debug_64',
-        'Skia_Mac_Float_Debug_64_Trybot',
-        'Skia_Mac_Float_Release_64',
-        'Skia_Mac_Float_Release_64_Trybot',
-        'Skia_MacMiniLion_Float_Debug_64',
-        'Skia_MacMiniLion_Float_Debug_64_Trybot',
-        'Skia_MacMiniLion_Float_Release_64',
-        'Skia_MacMiniLion_Float_Release_64_Trybot',
+        'Test-Ubuntu12-ShuttleA-ATI5770-x86-Debug',
+        'Test-Ubuntu12-ShuttleA-ATI5770-x86-Debug-Trybot',
+        'Test-Ubuntu12-ShuttleA-ATI5770-x86-Release',
+        'Test-Ubuntu12-ShuttleA-ATI5770-x86-Release-Trybot',
+        'Test-Win7-ShuttleA-HD2000-x86_64-Debug',
+        'Test-Win7-ShuttleA-HD2000-x86_64-Debug-Trybot',
+        'Test-Win7-ShuttleA-HD2000-x86_64-Release',
+        'Test-Win7-ShuttleA-HD2000-x86_64-Release-Trybot',
+        'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Debug',
+        'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Debug-Trybot',
+        'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Release',
+        'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Release-Trybot',
+        'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Debug',
+        'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Debug-Trybot',
+        'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Release',
+        'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Release-Trybot',
         ]
     try:
       shell_utils.Bash(cmd)

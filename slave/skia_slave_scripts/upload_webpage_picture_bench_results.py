@@ -8,7 +8,7 @@
 This module can be run from the command-line like this:
 
 cd buildbot/third_party/chromium_buildbot/slave/\
-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64/build/trunk
+Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release/build/trunk
 
 PYTHONPATH=../../../../site_config:\
 ../../../../scripts \
@@ -17,7 +17,7 @@ upload_webpage_picture_bench_results.py \
 --configuration "" --target_platform "" --revision 0 \
 --autogen_svn_baseurl "" --make_flags "" --test_args "" --gm_args "" \
 --bench_args "" --num_cores 8 --perf_output_basedir "../../../../perfdata" \
---builder_name Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64 \
+--builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
 --got_revision 0 --gm_image_subdir "" \
 --dest_gsbase "gs://rmistry"
 

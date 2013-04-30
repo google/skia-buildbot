@@ -22,6 +22,7 @@ class ChromeOSFactory(skia_factory.SkiaFactory):
     ssh_host: string indicating hostname or ip address of the target device
     ssh_port: string indicating the ssh port on the target device
     """
-    skia_factory.SkiaFactory.__init__(self, flavor='chromeos', **kwargs)
+    skia_factory.SkiaFactory.__init__(self, flavor='chromeos',
+                                      bench_pictures_cfg='no_gpu', **kwargs)
     self._common_args += ['--ssh_host', WithProperties('%(ssh_host:-None)s'),
                           '--ssh_port', WithProperties('%(ssh_port:-None)s')]

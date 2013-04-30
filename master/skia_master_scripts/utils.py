@@ -26,8 +26,25 @@ from oauth2client.client import SignedJwtAssertionCredentials
 import config_private
 
 
+BUILDER_NAME_SEP = '-'
+
+# Patterns for creating builder names, based on the role of the builder.
+# TODO(borenet): Extract these into a separate file (JSON?) so that they can be
+# read by other users.
+BUILDER_ROLE_COMPILE = 'Build'
+BUILDER_ROLE_PERF = 'Perf'
+BUILDER_ROLE_TEST = 'Test'
+BUILDER_ROLE_HOUSEKEEPER = 'Housekeeper'
+BUILDER_NAME_DEFAULT_ATTRS = ['os', 'model', 'gpu', 'arch', 'configuration']
+BUILDER_NAME_SCHEMA = {
+  BUILDER_ROLE_COMPILE: ['os', 'compiler', 'target_arch', 'configuration'],
+  BUILDER_ROLE_TEST: BUILDER_NAME_DEFAULT_ATTRS,
+  BUILDER_ROLE_PERF: BUILDER_NAME_DEFAULT_ATTRS,
+  BUILDER_ROLE_HOUSEKEEPER: ['frequency'],
+}
+
 CATEGORY_BUILD = ' Build'
-TRYBOT_NAME_SUFFIX = '_Trybot'
+TRYBOT_NAME_SUFFIX = 'Trybot'
 TRY_SCHEDULER_SVN = 'skia_try_svn'
 TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
 TRY_SCHEDULERS = [TRY_SCHEDULER_SVN, TRY_SCHEDULER_RIETVELD]
@@ -249,6 +266,25 @@ RUN_BUILDERS_REGEX = '\(RunBuilders:(.+)\)'
 RUN_BUILDERS_RE_COMPILED = re.compile(RUN_BUILDERS_REGEX)
 
 
+def AndroidModelToDevice(android_model):
+  """ Converts Android model names to device names which android_setup.sh will
+  like.
+
+  Examples:
+    'NexusS' becomes 'nexus_s'
+    'Nexus10' becomes 'nexus_10'
+
+  android_model: string; model name for an Android device.
+  """
+  name_parts = []
+  for part in re.split('(\d+)', android_model):
+    if re.match('(\d+)', part):
+      name_parts.append(part)
+    else:
+      name_parts.extend(re.findall('[A-Z][a-z]*', part))
+  return '_'.join([part.lower() for part in name_parts])
+
+
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
 # Specifically, the Helper class hardcodes each registered scheduler to be
@@ -261,17 +297,11 @@ RUN_BUILDERS_RE_COMPILED = re.compile(RUN_BUILDERS_REGEX)
 class SkiaHelper(master_config.Helper):
 
   def Builder(self, name, factory, gatekeeper=None, scheduler=None,
-              builddir=None, auto_reboot=False, notify_on_missing=False,
-              override_category=None):
-    if override_category:
-      old_category = self._defaults.get('category')
-      self._defaults['category'] = override_category
+              builddir=None, auto_reboot=False, notify_on_missing=False):
     super(SkiaHelper, self).Builder(name=name, factory=factory,
                                     gatekeeper=gatekeeper, scheduler=scheduler,
                                     builddir=builddir, auto_reboot=auto_reboot,
                                     notify_on_missing=notify_on_missing)
-    if override_category:
-      self._defaults['category'] = old_category
 
   def AnyBranchScheduler(self, name, branches, treeStableTimer=60,
                          categories=None):
@@ -413,51 +443,33 @@ class SkiaHelper(master_config.Helper):
       skia_all_subdirs = all_subdirs
 
 
-def MakeBuilderName(builder_base_name, config):
-  """ Inserts config into builder_base_name at '%s', or if builder_base_name
-  does not contain '%s', appends config to the end of builder_base_name,
-  separated by an underscore. """
-  try:
-    return builder_base_name % config
-  except TypeError:
-    # If builder_base_name does not contain '%s'
-    return '%s_%s' % (builder_base_name, config)
+def MakeBuilderName(role, extra_config=None, is_trybot=False, **kwargs):
+  schema = BUILDER_NAME_SCHEMA.get(role)
+  if not schema:
+    raise ValueError('%s is not a recognized role.' % role)
+  for k, v in kwargs.iteritems():
+    if BUILDER_NAME_SEP in v:
+      raise ValueError('%s not allowed in %s.' % (v, BUILDER_NAME_SEP))
+    if not k in schema:
+      raise ValueError('Schema does not contain "%s": %s' %(k, schema))
+  if extra_config and BUILDER_NAME_SEP in extra_config:
+    raise ValueError('%s not allowed in %s.' % (extra_config,
+                                                BUILDER_NAME_SEP))
+  name_parts = [role]
+  name_parts.extend([kwargs[attribute] for attribute in schema])
+  if extra_config:
+    name_parts.append(extra_config)
+  if is_trybot:
+    name_parts.append(TRYBOT_NAME_SUFFIX)
+  print BUILDER_NAME_SEP.join(name_parts)
+  return BUILDER_NAME_SEP.join(name_parts)
 
 
-def MakeCompileBuilderName(builder_base_name, release=False):
-  if release:
-    compile_name = 'Compile_Release'
-  else:
-    compile_name = 'Compile_Debug'
-  return MakeBuilderName(builder_base_name, compile_name)
-
-
-def MakeDebugBuilderName(builder_base_name):
-  return MakeBuilderName(builder_base_name, 'Debug')
-
-
-def MakeReleaseBuilderName(builder_base_name):
-  return MakeBuilderName(builder_base_name, 'Release')
-
-
-def MakeBenchBuilderName(builder_base_name):
-  return MakeBuilderName(builder_base_name, 'Bench')
-
-
-def MakeSchedulerName(builder_base_name):
-  return MakeBuilderName(builder_base_name, 'Scheduler')
-
-
-def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir, factory_type,
-                    perf_output_basedir=None, extra_branches=None,
-                    do_compile=True, do_debug=True, do_release=True,
-                    do_bench=True, try_schedulers=None,
-                    compile_bot_warnings_as_errors=True, **kwargs):
-  """ Creates a trio of builders for a given platform:
-  1. Debug mode builder which runs all steps
-  2. Release mode builder which runs all steps EXCEPT benchmarks
-  3. Release mode builder which runs ONLY benchmarks.
-  """
+def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
+                 gm_image_subdir, factory_type, extra_config=None,
+                 perf_output_basedir=None, extra_branches=None, is_trybot=False,
+                 **kwargs):
+  """ Creates a builder and scheduler. """
   B = helper.Builder
   F = helper.Factory
 
@@ -468,133 +480,73 @@ def _MakeBuilderSet(helper, builder_base_name, gm_image_subdir, factory_type,
     gm_image_branch = 'gm-expected/%s' % gm_image_subdir
     subdirs_to_checkout.add(gm_image_branch)
 
-  if try_schedulers:
-    scheduler_name = '|'.join(try_schedulers)
-    builder_base_name = builder_base_name + TRYBOT_NAME_SUFFIX
+  builder_name = MakeBuilderName(
+      role=role,
+      os=os,
+      model=model,
+      gpu=gpu,
+      configuration=configuration,
+      arch=arch,
+      extra_config=extra_config,
+      is_trybot=is_trybot)
+
+  if is_trybot:
+    scheduler_name = TRY_SCHEDULERS_STR
   else:
-    scheduler_name = MakeSchedulerName(builder_base_name)
+    scheduler_name = builder_name + BUILDER_NAME_SEP + 'Scheduler'
     branches = list(subdirs_to_checkout.union(SKIA_PRIMARY_SUBDIRS))
     helper.AnyBranchScheduler(scheduler_name, branches=branches)
 
-  if do_compile:
-    compile_debug_builder_name = MakeCompileBuilderName(builder_base_name,
-                                                        release=False)
-    B(compile_debug_builder_name, 'f_%s' % compile_debug_builder_name,
-        # Do not add gatekeeper for trybots.
-        gatekeeper='GateKeeper' if try_schedulers is None else None,
-        scheduler=scheduler_name, override_category=CATEGORY_BUILD)
-    F('f_%s' % compile_debug_builder_name, factory_type(
-        builder_name=compile_debug_builder_name,
-        other_subdirs=subdirs_to_checkout,
-        configuration='Debug',
-        gm_image_subdir=gm_image_subdir,
-        do_patch_step=(try_schedulers is not None),
-        perf_output_basedir=None,
-        compile_warnings_as_errors=compile_bot_warnings_as_errors,
-        **kwargs
-        ).BuildCompileOnly())
-    compile_release_builder_name = MakeCompileBuilderName(builder_base_name,
-                                                          release=True)
-    B(compile_release_builder_name, 'f_%s' % compile_release_builder_name,
-        # Do not add gatekeeper for trybots.
-        gatekeeper='GateKeeper' if try_schedulers is None else None,
-        scheduler=scheduler_name, override_category=CATEGORY_BUILD)
-    F('f_%s' % compile_release_builder_name, factory_type(
-        builder_name=compile_release_builder_name,
-        other_subdirs=subdirs_to_checkout,
-        configuration='Release',
-        gm_image_subdir=gm_image_subdir,
-        do_patch_step=(try_schedulers is not None),
-        perf_output_basedir=None,
-        compile_warnings_as_errors=compile_bot_warnings_as_errors,
-        **kwargs
-        ).BuildCompileOnly())
-
-  if do_debug:
-    debug_builder_name = MakeDebugBuilderName(builder_base_name)
-    B(debug_builder_name, 'f_%s' % debug_builder_name,
-        scheduler=scheduler_name)
-    F('f_%s' % debug_builder_name, factory_type(
-        builder_name=debug_builder_name,
-        other_subdirs=subdirs_to_checkout,
-        configuration='Debug',
-        gm_image_subdir=gm_image_subdir,
-        do_patch_step=(try_schedulers is not None),
-        perf_output_basedir=None,
-        compile_warnings_as_errors=False,
-        **kwargs
-        ).Build())
-
-  if do_release:
-    no_perf_builder_name = MakeReleaseBuilderName(builder_base_name)
-    B(no_perf_builder_name, 'f_%s' % no_perf_builder_name,
-        scheduler=scheduler_name)
-    F('f_%s' % no_perf_builder_name,  factory_type(
-        builder_name=no_perf_builder_name,
-        other_subdirs=subdirs_to_checkout,
-        configuration='Release',
-        gm_image_subdir=gm_image_subdir,
-        do_patch_step=(try_schedulers is not None),
-        perf_output_basedir=None,
-        compile_warnings_as_errors=False,
-        **kwargs
-        ).BuildNoPerf())
-
-  if do_bench:
-    perf_builder_name = MakeBenchBuilderName(builder_base_name)
-    B(perf_builder_name, 'f_%s' % perf_builder_name,
-        scheduler=scheduler_name)
-    F('f_%s' % perf_builder_name, factory_type(
-        builder_name=perf_builder_name,
-        other_subdirs=subdirs_to_checkout,
-        configuration='Release',
-        gm_image_subdir=gm_image_subdir,
-        do_patch_step=(try_schedulers is not None),
-        perf_output_basedir=perf_output_basedir,
-        compile_warnings_as_errors=False,
-        **kwargs        
-        ).BuildPerfOnly())
+  B(builder_name, 'f_%s' % builder_name, scheduler=scheduler_name)
+  F('f_%s' % builder_name, factory_type(
+      builder_name=builder_name,
+      other_subdirs=subdirs_to_checkout,
+      configuration=configuration,
+      gm_image_subdir=gm_image_subdir,
+      do_patch_step=is_trybot,
+      perf_output_basedir=perf_output_basedir,
+      **kwargs
+      ).Build(role=role))
 
 
 def _MakeBuilderAndMaybeTrybotSet(do_trybots=True, **kwargs):
-  _MakeBuilderSet(try_schedulers=None, **kwargs)
+  _MakeBuilder(**kwargs)
   if do_trybots:
-    _MakeBuilderSet(try_schedulers=TRY_SCHEDULERS, **kwargs)
+    _MakeBuilder(is_trybot=True, **kwargs)
 
 
 def MakeBuilderSet(**kwargs):
   _MakeBuilderAndMaybeTrybotSet(**kwargs)
 
 
-def MakeHousekeeperBuilderSet(helper, percommit_factory_type,
-                              periodic_factory_type, do_trybots, **kwargs):
-  B = helper.Builder
-  F = helper.Factory
+def _MakeCompileBuilder(helper, scheduler, os, compiler, configuration,
+                        target_arch, factory_type, is_trybot,
+                        extra_config=None, **kwargs):
+  builder_name = MakeBuilderName(role=BUILDER_ROLE_COMPILE,
+                                 os=os,
+                                 compiler=compiler,
+                                 configuration=configuration,
+                                 target_arch=target_arch,
+                                 extra_config=extra_config,
+                                 is_trybot=is_trybot)
+  helper.Builder(builder_name, 'f_%s' % builder_name,
+                 # Do not add gatekeeper for trybots.
+                 gatekeeper='GateKeeper' if is_trybot else None,
+                 scheduler=scheduler)
+  helper.Factory('f_%s' % builder_name, factory_type(
+      builder_name=builder_name,
+      do_patch_step=is_trybot,
+      configuration=configuration,
+      **kwargs
+      ).Build(role=BUILDER_ROLE_COMPILE))
+  return builder_name
 
-  builder_factory_scheduler = [
-    # The Percommit housekeeper
-    ('Skia_PerCommit_House_Keeping',
-     percommit_factory_type,
-     'skia_rel'),
-    # The Periodic housekeeper
-    ('Skia_Periodic_House_Keeping',
-     periodic_factory_type,
-     'skia_periodic'),
-  ]
+
+def MakeCompileBuilderSet(scheduler, do_trybots=True, **kwargs):
   if do_trybots:
-    # Add the corresponding trybot builders to the above list.
-    builder_factory_scheduler.extend([
-        (builder + TRYBOT_NAME_SUFFIX, factory, TRY_SCHEDULERS_STR)
-        for (builder, factory, _scheduler) in builder_factory_scheduler])
+    _MakeCompileBuilder(scheduler=scheduler, is_trybot=True, **kwargs)
+  _MakeCompileBuilder(scheduler=TRY_SCHEDULERS_STR, is_trybot=False, **kwargs)
 
-  for (builder_name, factory, scheduler) in builder_factory_scheduler:
-    B(builder_name, 'f_%s' % builder_name, scheduler=scheduler)
-    F('f_%s' % builder_name,
-      factory(
-        builder_name=builder_name,
-        do_patch_step=(scheduler == TRY_SCHEDULERS_STR),
-        **kwargs
-      ).Build())
 
 def CanMergeBuildRequests(req1, req2):
   """ Determine whether or not two BuildRequests can be merged. Note that the

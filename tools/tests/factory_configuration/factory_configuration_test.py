@@ -19,6 +19,7 @@ sys.path.append(os.path.join('third_party', 'chromium_buildbot', 'third_party',
 import config
 import master_builders_cfg
 
+
 def main():
   c = {}
   c['schedulers'] = []
@@ -27,4 +28,4 @@ def main():
 
 
 if '__main__' == __name__:
-  main()
+  sys.exit(main())

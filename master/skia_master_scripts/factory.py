@@ -32,7 +32,6 @@ TARGET_PLATFORM_WIN32 = 'win32'
 
 CONFIG_DEBUG = 'Debug'
 CONFIG_RELEASE = 'Release'
-CONFIG_BENCH = 'Bench'
 CONFIGURATIONS = [CONFIG_DEBUG, CONFIG_RELEASE]
 
 
@@ -119,8 +118,12 @@ class SkiaFactory(BuildFactory):
     else:
       self._env_vars = dict(environment_variables)
     gyp_defines = self._env_vars.get('GYP_DEFINES', '')
-    self._env_vars['GYP_DEFINES'] = gyp_defines + \
-        ' skia_warnings_as_errors=%d' % int(compile_warnings_as_errors)
+    if gyp_defines:
+      self._env_vars['GYP_DEFINES'] = gyp_defines + \
+          ' skia_warnings_as_errors=%d' % int(compile_warnings_as_errors)
+    else:
+      self._env_vars['GYP_DEFINES'] = \
+          ' skia_warnings_as_errors=%d' % int(compile_warnings_as_errors)
 
     # Get an implementation of SkiaCommands as appropriate for
     # this target_platform.
@@ -511,54 +514,38 @@ class SkiaFactory(BuildFactory):
       self.UploadBenchResultsToAppEngine()
       self.UploadBenchGraphs()
 
-  def Build(self, clobber=None):
+  def Build(self, role=None, clobber=None):
     """Build and return the complete BuildFactory.
 
+    role: string; the intended role of this builder. The role affects which
+        steps are run. Known values are given in the utils module.
     clobber: boolean indicating whether we should clean before building
     """
-    self.CommonSteps(clobber)
-    self.NonPerfSteps()
-    self.PerfSteps()
-    self.Validate()
-    return self
-
-  def BuildCompileOnly(self, clobber=None):
-    """Build and return the complete BuildFactory, with only the compile step.
-    Does not build in one step; the assumption is that if we're only performing
-    the compile, we want as much information as possible about *which* compile
-    steps are passing and failing.
-
-    clobber: boolean indicating whether we should clean before building
-    """
-    self.UpdateSteps()
-    self.Compile(clobber=clobber, build_in_one_step=False)
-    self.Validate()
-    return self
-
-  def BuildNoPerf(self, clobber=None):
-    """Build and return the complete BuildFactory, without the benchmarking
-    steps.
-
-    clobber: boolean indicating whether we should clean before building
-    """
-    self.CommonSteps(clobber)
-    self.NonPerfSteps()
-    self.Validate()
-    return self
-
-  def BuildPerfOnly(self, clobber=None):
-    """Build and return the complete BuildFactory, with only the benchmarking
-    steps.
-
-    clobber: boolean indicating whether we should clean before building
-    """
-    if not self._perf_output_basedir:
-      raise ValueError(
-          'BuildPerfOnly requires perf_output_basedir to be defined.')
-    if self._configuration != CONFIG_RELEASE:
-      raise ValueError('BuildPerfOnly should run in %s configuration.' %
-                       CONFIG_RELEASE)
-    self.CommonSteps(clobber)
-    self.PerfSteps()
+    if not role:
+      # If no role is provide, just run everything.
+      self.CommonSteps(clobber)
+      self.NonPerfSteps()
+      self.PerfSteps()
+    elif role == utils.BUILDER_ROLE_COMPILE:
+      # Compile-only builder.
+      self.UpdateSteps()
+      self.Compile(clobber=clobber, build_in_one_step=False)
+    else:
+      self.CommonSteps(clobber)
+      if role == utils.BUILDER_ROLE_TEST:
+        # Test-running builder.
+        self.NonPerfSteps()
+        if self._configuration == CONFIG_DEBUG:
+          # Debug-mode testers run all steps, but release-mode testers don't.
+          self.PerfSteps()
+      elif role == utils.BUILDER_ROLE_PERF:
+        # Perf-only builder.
+        if not self._perf_output_basedir:
+          raise ValueError(
+              'BuildPerfOnly requires perf_output_basedir to be defined.')
+        if self._configuration != CONFIG_RELEASE:
+          raise ValueError('BuildPerfOnly should run in %s configuration.' %
+                           CONFIG_RELEASE)
+        self.PerfSteps()
     self.Validate()
     return self

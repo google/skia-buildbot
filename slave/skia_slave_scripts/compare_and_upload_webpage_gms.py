@@ -8,7 +8,7 @@
 This module can be run from the command-line like this:
 
 cd buildbot/third_party/chromium_buildbot/slave/\
-Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64/build/trunk
+Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release/build/trunk
 
 PYTHONPATH=../../../../site_config:\
 ../../../../scripts \
@@ -17,7 +17,7 @@ compare_and_upload_webpage_gms.py \
 --configuration "Debug" --target_platform "" --revision 0 \
 --autogen_svn_baseurl "" --make_flags "" --test_args "" --gm_args "" \
 --bench_args "" --num_cores 8 --perf_output_basedir "" \
---builder_name Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_64 \
+--builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
 --got_revision 0 --gm_image_subdir base-shuttle_ubuntu12_ati5770 \
 --is_try False --do_upload_results True --dest_gsbase gs://rmistry
 
@@ -99,7 +99,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
 
   def _Run(self):
     # Right now, we only write images on one builder, since it takes too long.
-    if self._builder_name != 'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_64':
+    if self._builder_name != 'Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Debug':
       return
 
     cmd = [self._PathToBinary('skdiff'),
@@ -121,22 +121,22 @@ class CompareAndUploadWebpageGMs(BuildStep):
     # Temporary list of builders who are allowed to fail this step without the
     # bot turning red.
     may_fail_with_warning = [
-        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_32',
-        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Debug_32_Trybot',
-        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32',
-        'Skia_Shuttle_Ubuntu12_ATI5770_Float_Release_32_Trybot',
-        'Skia_Shuttle_Win7_Intel_Float_Debug_64',
-        'Skia_Shuttle_Win7_Intel_Float_Debug_64_Trybot',
-        'Skia_Shuttle_Win7_Intel_Float_Release_64',
-        'Skia_Shuttle_Win7_Intel_Float_Release_64_Trybot',
-        'Skia_Mac_Float_Debug_64',
-        'Skia_Mac_Float_Debug_64_Trybot',
-        'Skia_Mac_Float_Release_64',
-        'Skia_Mac_Float_Release_64_Trybot',
-        'Skia_MacMiniLion_Float_Debug_64',
-        'Skia_MacMiniLion_Float_Debug_64_Trybot',
-        'Skia_MacMiniLion_Float_Release_64',
-        'Skia_MacMiniLion_Float_Release_64_Trybot',
+        'Test-Ubuntu12-ShuttleA-ATI5770-x86-Debug',
+        'Test-Ubuntu12-ShuttleA-ATI5770-x86-Debug-Trybot',
+        'Test-Ubuntu12-ShuttleA-ATI5770-x86-Release',
+        'Test-Ubuntu12-ShuttleA-ATI5770-x86-Release-Trybot',
+        'Test-Win7-ShuttleA-HD2000-x86_64-Debug',
+        'Test-Win7-ShuttleA-HD2000-x86_64-Debug-Trybot',
+        'Test-Win7-ShuttleA-HD2000-x86_64-Release',
+        'Test-Win7-ShuttleA-HD2000-x86_64-Release-Trybot',
+        'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Debug',
+        'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Debug-Trybot',
+        'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Release',
+        'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Release-Trybot',
+        'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Debug',
+        'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Debug-Trybot',
+        'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Release',
+        'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Release-Trybot',
         ]
 
     # Fail with a warning if the gm_actual directory on Google Storage is

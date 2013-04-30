@@ -32,9 +32,9 @@ import utils
 
 
 CQ_TRYBOTS = [
-    'Skia_MacMiniLion_Float_Compile_Release_32_Trybot',
-    'Skia_Shuttle_Ubuntu12_ATI5770_Float_Compile_Release_64_Trybot',
-    # 'Skia_Shuttle_Win7_Intel_Float_Compile_Release_32_Trybot',
+    'Build-Mac10.7-Clang-x86-Release-Trybot',
+    'Build-Ubuntu12-GCC-x86_64-Release-Trybot',
+    # 'Build-Win7-VS2010-x86-Release-Trybot',
 ]
 
 ################################################################################
