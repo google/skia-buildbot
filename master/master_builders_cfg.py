@@ -193,7 +193,7 @@ def Update(config, active_master, cfg):
       ('Mac10.7',  'Clang',  'Debug',   'Arm7',   'iOS',         gyp_ios,      True,  c, f, p) : [],
       ('Mac10.7',  'Clang',  'Release', 'Arm7',   'iOS',         gyp_ios,      True,  c, f, p) : [],})
 
-  for compile_builder in builder_specs.keys():
+  for compile_builder in sorted(builder_specs.keys()):
     factory_type = compile_builder[8]
     factory_args = GetExtraFactoryArgs(compile_builder)
     target_platform = compile_builder[9]

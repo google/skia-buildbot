@@ -544,8 +544,8 @@ def _MakeCompileBuilder(helper, scheduler, os, compiler, configuration,
 
 def MakeCompileBuilderSet(scheduler, do_trybots=True, **kwargs):
   if do_trybots:
-    _MakeCompileBuilder(scheduler=scheduler, is_trybot=True, **kwargs)
-  _MakeCompileBuilder(scheduler=TRY_SCHEDULERS_STR, is_trybot=False, **kwargs)
+    _MakeCompileBuilder(scheduler=TRY_SCHEDULERS_STR, is_trybot=True, **kwargs)
+  _MakeCompileBuilder(scheduler=scheduler, is_trybot=False, **kwargs)
 
 
 def CanMergeBuildRequests(req1, req2):
