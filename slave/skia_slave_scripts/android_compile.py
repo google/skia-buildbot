@@ -22,7 +22,7 @@ class AndroidCompile(BuildStep):
     os.environ['BOTO_CONFIG'] = os.path.abspath(os.path.join(
         os.pardir, os.pardir, os.pardir, os.pardir, 'site_config', '.boto'))
     os.environ[ENV_VAR] = self._args['android_sdk_root']
-    cmd = [os.path.join(os.pardir, 'android', 'bin', 'android_make'),
+    cmd = [os.path.join('platform_tools', 'android', 'bin', 'android_make'),
            self._args['target'],
            '-d', self._args['device'],
            'BUILDTYPE=%s' % self._configuration,
