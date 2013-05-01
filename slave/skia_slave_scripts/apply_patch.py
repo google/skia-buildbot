@@ -77,14 +77,16 @@ class ApplyPatch(BuildStep):
         os.chdir(patch_root)
 
       try:
-        shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name])
+        shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name,
+                          '-r', '-'])
       except Exception:
         print 'Failed to apply patch. Trying a different level.'
         if patch_level == 0:
           patch_level = 1
         else:
           patch_level = 0
-        shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name])
+        shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name,
+                          '-r', '-'])
 
     finally:
       shutil.rmtree(temp_dir)
