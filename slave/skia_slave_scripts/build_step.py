@@ -111,6 +111,26 @@ class DeviceDirs(object):
 
 
 class BuildStep(multiprocessing.Process):
+
+  def ReadFileOnDevice(self, filepath):
+    """ Read the contents of a file on the associated device. Subclasses should
+    override this method with one appropriate for reading the contents of a file
+    on the device side. """
+    with open(filepath) as f:
+      return f.read()
+
+  def CopyDirectoryContentsToDevice(self, host_dir, device_dir):
+    """ Copy the contents of a host-side directory to a clean directory on the
+    device side. Subclasses should override this method with one appropriate for
+    copying the contents of a host-side directory to a clean device-side
+    directory."""
+    # For "normal" builders who don't have an attached device, we expect
+    # host_dir and device_dir to be the same.
+    if host_dir != device_dir:
+      raise ValueError('For builders who do not have attached devices, copying '
+                       'from host to device is undefined and only allowed if '
+                       'host_dir and device_dir are the same.')
+
   def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT,
                no_output_timeout=DEFAULT_NO_OUTPUT_TIMEOUT):
     """ Constructs a BuildStep instance.
