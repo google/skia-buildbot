@@ -43,19 +43,12 @@ from StringIO import StringIO
 TOP1M_CSV_FILE_NAME = 'top-1m.csv'
 TOP1M_CSV_ZIP_LOCATION = (
     'http://s3.amazonaws.com/alexa-static/%s.zip' % TOP1M_CSV_FILE_NAME)
+ALEXA_PREFIX = 'alexa'
 
-
-# List of broken or spyware filled webpages.
-blacklisted_webpages = [
-    'm5zn.com',
-    'yieldmanager.com',
-]
 
 # Webpages that need more loading time.
 slow_webpages = {
-    'gavick.com': 15.0,
-    'rapidgator.net': 15.0,
-    'xhamster.com': 15.0,
+    'gavick.com': 10.0,
 }
 
 # Webpages that need to be mapped to another name to work.
@@ -91,10 +84,8 @@ if '__main__' == __name__:
   for index in xrange(0, int(options.number)):
     line = csv_contents[index]
     (unused_number, website) = line.strip().split(',')
-    if website in blacklisted_webpages:
-      continue
-    website_filename = 'alexa%s_%s_desktop' % (
-        index + 1, website.replace('.', '-').replace('/', '-'))
+    website_filename = '%s%s_%s_desktop' % (
+        ALEXA_PREFIX, index + 1, website.replace('.', '-').replace('/', '-'))
     website_specific_info = {
         'archive_path': os.path.join(os.pardir, os.pardir, 'slave',
                                      'skia_slave_scripts', 'page_sets', 'data',
@@ -102,7 +93,7 @@ if '__main__' == __name__:
         'pages': [{
             # fully qualified CSV websites.
             'url': 'http://%s' % mapped_webpages.get(website, website),
-            'wait_time_after_navigate': slow_webpages.get(website, 5.0),
+            'wait_time_after_navigate': slow_webpages.get(website, 1.0),
             'why': '#%s in Alexa global.' % (index + 1)
          }]
     }

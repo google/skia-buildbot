@@ -46,10 +46,12 @@ import sys
 import tempfile
 import time
 import traceback
+import urllib2
 
 
 # Set the PYTHONPATH for this script to include chromium_buildbot scripts,
 # site_config, perf, telemetry and webpagereplay.
+sys.path.append(os.path.join(os.pardir, os.pardir, 'tools'))
 sys.path.append(
     os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_trunk',
                  'chrome', 'test', 'functional'))
@@ -72,7 +74,7 @@ sys.path.append(
 from perf_tools import skpicture_printer
 from slave import slave_utils
 from slave import svn
-from telemetry import inspector_runtime
+from telemetry import browser_backend
 from telemetry import multi_page_benchmark_runner
 from telemetry import wpr_modes
 from telemetry import user_agent
@@ -80,9 +82,9 @@ from telemetry.browser_options import BrowserOptions
 from utils import file_utils
 from utils import gs_utils
 from utils import misc
-from webpagereplay import ReplayNotStartedError
 
 from build_step import PLAYBACK_CANNED_ACL
+from create_page_set import ALEXA_PREFIX
 from playback_dirs import ROOT_PLAYBACK_DIR_NAME
 from playback_dirs import SKPICTURES_DIR_NAME
 
@@ -117,6 +119,23 @@ DEVICE_TO_PLATFORM_PREFIX = {
 }
 
 
+def Request(self, path, timeout=None):
+  """Monkey patching telemetry.browser_backend.BrowserBackend.Request
+
+  The original request method used timeout=None which sometimes makes
+  the script hang indefinitely.
+  A better fix should be upstreamed to telemetry.
+  """
+  # pylint: disable=W0212
+  url = 'http://localhost:%i/json' % self._port
+  if not timeout:
+    timeout = 30
+  if path:
+    url += '/' + path
+  req = urllib2.urlopen(url, timeout=timeout)
+  return req.read()
+
+
 class SkPicturePlayback(object):
   """Class that archives or replays webpages and creates skps."""
 
@@ -130,6 +149,7 @@ class SkPicturePlayback(object):
     self._debugger = parse_options.debugger
     self._do_not_upload_to_gs = parse_options.do_not_upload_to_gs == 'True'
     self._archive_location = parse_options.archive_location
+    self._ignore_exceptions = parse_options.ignore_exceptions == 'True'
 
     self._local_skp_dir = os.path.join(
         parse_options.output_dir, ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
@@ -178,6 +198,16 @@ class SkPicturePlayback(object):
     # Start the timer.
     start_time = time.time()
 
+    # Sort page_sets only if they are from the alexa list with the format:
+    # alexa10_webpage_desktop.json
+    # This is to ensure that page sets are processed in order and not randomly.
+    if self._page_sets and (
+        os.path.basename(self._page_sets[0]).startswith(ALEXA_PREFIX)):
+      self._page_sets = sorted(
+          self._page_sets,
+          key=lambda p: int(
+              os.path.basename(p).split('_')[0].lstrip(ALEXA_PREFIX)))
+
     # Loop through all page_sets.
     for page_set in self._page_sets:
 
@@ -206,23 +236,18 @@ class SkPicturePlayback(object):
         retry = True
         while retry:
           try:
-            # Sometimes if a browser is brought up too quickly then this script
-            # cannot connect to its socket.
-            time.sleep(3)
             # Run the skpicture_printer script which:
             # Creates an archive of the specified webpages if '--record' is
             # specified.
             # Saves all webpages in the page_set as skp files.
             multi_page_benchmark_runner.Main(BENCHMARK_DIR)
-          except inspector_runtime.EvaluateException, e:
-            traceback.print_exc()
-            errors_in_webpage = True
-            break
-          except ReplayNotStartedError, e:
-            traceback.print_exc()
-            errors_in_webpage = True
-            break
-
+          except Exception, e:
+            if self._ignore_exceptions:
+              traceback.print_exc()
+              errors_in_webpage = True
+              break
+            else:
+              raise e
           try:
             cPickle.load(open(os.path.join(
                 LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, wpr_file_name), 'rb'))
@@ -231,8 +256,12 @@ class SkPicturePlayback(object):
             traceback.print_exc()
             num_times_retried += 1
             if num_times_retried > NUM_TIMES_TO_RETRY:
-              print 'Exceeded number of times to retry!'
-              raise e
+              if self._ignore_exceptions:
+                print 'Exceeded number of times to retry!'
+                errors_in_webpage = True
+                break
+              else:
+                raise e
             else:
               print '======================Retrying!======================'
 
@@ -376,7 +405,6 @@ class SkPicturePlayback(object):
                                              '--no-sandbox',
                                              '--enable-deferred-image-decoding',
                                              '--force-compositing-mode'])
-    
 
   def _SetupArgsForSkPrinter(self, page_set):
     """Setup arguments for the skpicture_printer script.
@@ -396,6 +424,9 @@ class SkPicturePlayback(object):
     # Specify extra browser args needed for Skia.
     skpicture_printer.SkPicturePrinter.CustomizeBrowserOptions = (
         self.CustomizeBrowserOptions)
+    # Set a limit to the timeout instead of using None, else sometimes the
+    # script hangs due to broken socket connections.
+    browser_backend.BrowserBackend.Request = Request
     # Output skp files to skpictures_dir.
     BrowserOptions.outdir = TMP_SKP_DIR
     skpicture_printer.SkPicturePrinter.AddCommandLineOptions = (
@@ -470,6 +501,11 @@ if '__main__' == __name__:
       '', '--svn_password',
       help='SVN password, used for whitespace commit.',
       default=None)
+  option_parser.add_option(
+      '', '--ignore_exceptions',
+      help='Does not fail the script if this is true, it instead moves on to '
+           'the next page_set.',
+      default='False')
   options, unused_args = option_parser.parse_args()
 
   playback = SkPicturePlayback(options)
