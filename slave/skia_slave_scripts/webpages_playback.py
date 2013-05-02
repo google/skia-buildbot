@@ -181,7 +181,8 @@ class SkPicturePlayback(object):
     """Run the SkPicturePlayback BuildStep."""
 
     # Ensure the right .boto file is used by gsutil.
-    if not gs_utils.DoesStorageObjectExist(self._dest_gsbase):
+    if not self._do_not_upload_to_gs and not (
+            gs_utils.DoesStorageObjectExist(self._dest_gsbase)):
       raise Exception(
           'Missing .boto file or .boto does not have the right credentials.'
           'Please see https://docs.google.com/a/google.com/document/d/1ZzHP6M5q'
@@ -208,8 +209,14 @@ class SkPicturePlayback(object):
           key=lambda p: int(
               os.path.basename(p).split('_')[0].lstrip(ALEXA_PREFIX)))
 
+    # Dictionary to keep track of all failed webpages. It will only be populated
+    # if ignore_exceptions is True.
+    failed_webpages = {}
+
     # Loop through all page_sets.
     for page_set in self._page_sets:
+
+      page_set_basename = os.path.basename(page_set)
 
       # Check to see if multiple webpages are specified in this page_set.
       with open(page_set, 'r') as page_set_file:
@@ -245,6 +252,7 @@ class SkPicturePlayback(object):
             if self._ignore_exceptions:
               traceback.print_exc()
               errors_in_webpage = True
+              failed_webpages[page_set_basename] = traceback.format_exc()
               break
             else:
               raise e
@@ -259,6 +267,7 @@ class SkPicturePlayback(object):
               if self._ignore_exceptions:
                 print 'Exceeded number of times to retry!'
                 errors_in_webpage = True
+                failed_webpages[page_set_basename] = traceback.format_exc()
                 break
               else:
                 raise e
@@ -289,6 +298,12 @@ class SkPicturePlayback(object):
       # Rename generated skp files into more descriptive names.
       self._RenameSkpFiles(page_set, multiple_pages_specified)
 
+    if failed_webpages:
+      failed_filename = tempfile.mkstemp()[1]
+      json.dump(failed_webpages, open(failed_filename, 'w'), indent=4,
+                sort_keys=True)
+      print '\n\n=====Failed Webpages have been outputted to: %s=====\n\n' % (
+          failed_filename)
     print '\n\n=======Capturing SKP files took %s seconds=======\n\n' % (
         time.time() - start_time)
 
