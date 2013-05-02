@@ -49,6 +49,10 @@ class Update(BuildStep):
       solution_dicts += ast.literal_eval(solution)
     gclient_spec += ']'
 
+    # Set the DEPS target_os if necessary.
+    if self._deps_target_os:
+      gclient_spec += '\ntarget_os = ["%s"]' % self._deps_target_os
+
     # Run "gclient config" with the spec we just built.
     gclient_utils.Config(spec=gclient_spec)
 

@@ -27,6 +27,7 @@ class AndroidFactory(skia_factory.SkiaFactory):
     subdirs_to_checkout.add('android')
     skia_factory.SkiaFactory.__init__(self, other_subdirs=subdirs_to_checkout,
                                       bench_pictures_cfg=device,
+                                      deps_target_os='android',
                                       flavor='android', **kwargs)
     self._device = device
     self._common_args += ['--device', self._device,

@@ -41,7 +41,7 @@ class SkiaFactory(BuildFactory):
   def __init__(self, other_subdirs=None, do_upload_results=False,
                do_patch_step=False, build_subdir='trunk',
                target_platform=None, configuration=CONFIG_DEBUG,
-               default_timeout=8*60*60,
+               default_timeout=8*60*60, deps_target_os=None,
                environment_variables=None, gm_image_subdir=None,
                perf_output_basedir=None, builder_name=None, flavor=None,
                make_flags=None, test_args=None, gm_args=None, bench_args=None,
@@ -56,6 +56,7 @@ class SkiaFactory(BuildFactory):
     target_platform: a string such as TARGET_PLATFORM_LINUX
     configuration: 'Debug' or 'Release'
     default_timeout: default timeout for each command, in seconds
+    deps_target_os: string; the target_os to be specified in the gclient config.
     environment_variables: dictionary of environment variables that should
         be passed to all commands
     gm_image_subdir: directory containing images for comparison against results
@@ -101,6 +102,8 @@ class SkiaFactory(BuildFactory):
       self._gclient_solutions.append(gclient_factory.GClientSolution(
           svn_url=SKIA_SVN_BASEURL + '/' + other_subdir,
           name=other_subdir).GetSpec())
+
+    self._deps_target_os = deps_target_os
 
     if gm_image_subdir:
       properties['gm_image_subdir'] = gm_image_subdir
@@ -172,6 +175,7 @@ class SkiaFactory(BuildFactory):
     self._common_args = [
         '--autogen_svn_baseurl', AUTOGEN_SVN_BASEURL,
         '--configuration', configuration,
+        '--deps_target_os', self._deps_target_os or 'None',
         '--do_upload_results', str(self._do_upload_results),
         '--gm_image_subdir', gm_image_subdir or 'None',
         '--builder_name', builder_name,

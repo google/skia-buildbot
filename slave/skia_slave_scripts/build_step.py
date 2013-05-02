@@ -150,6 +150,8 @@ class BuildStep(multiprocessing.Process):
     self._gm_image_subdir = args['gm_image_subdir']
     self._builder_name = args['builder_name']
     self._target_platform = args['target_platform']
+    self._deps_target_os = \
+        None if args['deps_target_os'] == 'None' else args['deps_target_os']
     self._revision = \
         None if args['revision'] == 'None' or args['revision'] == 'HEAD' \
         else int(args['revision'])
