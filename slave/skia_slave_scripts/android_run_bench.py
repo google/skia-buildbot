@@ -12,7 +12,7 @@ import sys
 
 
 class AndroidRunBench(AndroidBuildStep, RunBench):
-  def __init__(self, timeout=4800, **kwargs):
+  def __init__(self, timeout=9600, **kwargs):
     super(AndroidRunBench, self).__init__(timeout=timeout, **kwargs)
 
 
