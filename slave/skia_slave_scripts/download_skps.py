@@ -14,7 +14,7 @@ import sys
 
 
 class DownloadSKPs(BuildStep):
-  def __init__(self, timeout=6400, no_output_timeout=4800, **kwargs):
+  def __init__(self, timeout=12800, no_output_timeout=9600, **kwargs):
     super (DownloadSKPs, self).__init__(timeout=timeout,
                                         no_output_timeout=no_output_timeout,
                                         **kwargs)
