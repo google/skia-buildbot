@@ -13,7 +13,9 @@ import threading
 
 
 class AndroidRunTests(AndroidBuildStep, RunTests):
-  pass
+  def _Run(self):
+    self._test_args.extend(['--match', '~Threaded'])
+    super(AndroidRunTests, self)._Run()
 
 
 if '__main__' == __name__:
