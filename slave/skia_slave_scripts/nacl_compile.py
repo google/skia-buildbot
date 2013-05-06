@@ -17,7 +17,7 @@ ENV_VAR = 'NACL_SDK_ROOT'
 class NaClCompile(BuildStep):
   def _Run(self):
     os.environ[ENV_VAR] = self._args['nacl_sdk_root']
-    cmd = [os.path.join(os.pardir, 'nacl', 'nacl_make'),
+    cmd = [os.path.join('platform_tools', 'nacl', 'nacl_make'),
            self._args['target'],
            'BUILDTYPE=%s' % self._configuration,
            ]
