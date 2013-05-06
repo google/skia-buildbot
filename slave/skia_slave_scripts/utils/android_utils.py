@@ -96,7 +96,8 @@ def FindADB(hint=None):
   raise Exception('android_utils: Unable to find ADB!')
 
 
-PATH_TO_ADB = FindADB(hint=os.path.join('..', 'android', 'bin', 'linux', 'adb'))
+PATH_TO_ADB = FindADB(hint=os.path.join('platform_tools', 'android', 'bin',
+                                        'linux', 'adb'))
 
 
 def RunADB(serial, cmd, echo=True, attempts=5, secs_between_attempts=10,
