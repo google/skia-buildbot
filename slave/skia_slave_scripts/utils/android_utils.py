@@ -86,7 +86,8 @@ def FindADB(hint=None):
     os_dir = 'mac'
   else:
     os_dir = 'win'
-  common_locations.append(os.path.join(os.pardir, os_dir, 'adb'))
+  common_locations.append(os.path.join('platform_tools', 'android', 'bin',
+                                       os_dir, 'adb'))
   common_locations.append(os.path.join(os.environ.get('HOME', ''),
                           'android-sdk-%s' % os_dir))
   for location in common_locations:
@@ -303,7 +304,8 @@ def Install(serial, release_mode=False, install_launcher=True):
   # The shell must be running to install/uninstall apps
   StartShell(serial)
   # Assuming we're in the 'trunk' directory.
-  cmd = [os.path.join(os.pardir, 'android', 'bin', 'android_install_skia'),
+  cmd = [os.path.join('platform_tools', 'android', 'bin',
+                      'android_install_skia'),
          '-f',
          '-s', serial]
   if install_launcher:
