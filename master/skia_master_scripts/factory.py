@@ -98,7 +98,6 @@ class SkiaFactory(BuildFactory):
 
     # Trybots need to check out all of these directories.
     if do_patch_step:
-      subdirs_to_checkout.add('android')
       subdirs_to_checkout.add('gm-expected')
     for other_subdir in subdirs_to_checkout:
       self._gclient_solutions.append(gclient_factory.GClientSolution(
