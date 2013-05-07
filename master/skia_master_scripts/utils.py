@@ -492,7 +492,7 @@ def _MakeCompileBuilder(helper, scheduler, os, compiler, configuration,
 
   helper.Builder(builder_name, 'f_%s' % builder_name,
                  # Do not add gatekeeper for trybots.
-                 gatekeeper='GateKeeper' if is_trybot else None,
+                 gatekeeper=None if is_trybot else 'GateKeeper',
                  scheduler=scheduler)
   helper.Factory('f_%s' % builder_name, factory_type(
       builder_name=builder_name,
