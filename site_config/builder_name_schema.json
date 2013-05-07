@@ -1,0 +1,29 @@
+{
+  "builder_name_schema": {
+    "Test": [
+      "os",
+      "model",
+      "gpu",
+      "arch",
+      "configuration"
+    ],
+    "Housekeeper": [
+      "frequency"
+    ],
+    "Build": [
+      "os",
+      "compiler",
+      "target_arch",
+      "configuration"
+    ],
+    "Perf": [
+      "os",
+      "model",
+      "gpu",
+      "arch",
+      "configuration"
+    ]
+  },
+  "builder_name_sep": "-",
+  "trybot_name_suffix": "Trybot"
+}

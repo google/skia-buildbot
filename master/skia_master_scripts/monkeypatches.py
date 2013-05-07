@@ -26,9 +26,9 @@ from twisted.internet import defer
 from twisted.python import log
 from twisted.web import server
 
+import builder_name_schema
 import config_private
 import json
-import utils
 
 
 CQ_TRYBOTS = [
@@ -166,7 +166,7 @@ class TryBuildersJsonResource(JsonResource):
   def __init__(self, status, include_only_cq_trybots=False):
     JsonResource.__init__(self, status)
     for builder_name in self.status.getBuilderNames():
-      if utils.IsTrybot(builder_name) and (
+      if builder_name_schema.IsTrybot(builder_name) and (
           not include_only_cq_trybots or builder_name in CQ_TRYBOTS):
         self.putChild(builder_name,
                       BuilderJsonResource(status,

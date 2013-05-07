@@ -15,6 +15,9 @@ from skia_master_scripts import ios_factory
 from skia_master_scripts import nacl_factory
 from skia_master_scripts import utils
 
+import builder_name_schema
+
+
 # Directory where we want to record performance data
 #
 # TODO(epoger): consider changing to reuse existing config.Master.perf_base_url,
@@ -229,7 +232,7 @@ def Update(config, active_master, cfg):
     for dependent_builder in builder_specs[compile_builder]:
       role = dependent_builder[0]
       perf_output_basedir = None
-      if role == utils.BUILDER_ROLE_PERF:
+      if role == builder_name_schema.BUILDER_ROLE_PERF:
         if target_platform == skia_factory.TARGET_PLATFORM_LINUX:
           perf_output_basedir = perf_output_basedir_linux
         elif target_platform == skia_factory.TARGET_PLATFORM_MAC:
@@ -258,17 +261,20 @@ def Update(config, active_master, cfg):
   defaults['category'] = '  Housekeeping'
   builder_factory_scheduler = [
     # The Percommit housekeeper
-    (utils.MakeBuilderName(role='Housekeeper', frequency='PerCommit'),
+    (builder_name_schema.MakeBuilderName(role='Housekeeper',
+                                         frequency='PerCommit'),
      housekeeping_percommit_factory.HouseKeepingPerCommitFactory,
      'skia_rel'),
     # The Periodic housekeeper
-    (utils.MakeBuilderName(role='Housekeeper', frequency='Nightly'),
+    (builder_name_schema.MakeBuilderName(role='Housekeeper',
+                                         frequency='Nightly'),
      housekeeping_periodic_factory.HouseKeepingPeriodicFactory,
      'skia_periodic'),
   ]
   # Add the corresponding trybot builders to the above list.
   builder_factory_scheduler.extend([
-      (builder + utils.BUILDER_NAME_SEP + utils.TRYBOT_NAME_SUFFIX, factory,
+      (builder + builder_name_schema.BUILDER_NAME_SEP + \
+       builder_name_schema.TRYBOT_NAME_SUFFIX, factory,
        utils.TRY_SCHEDULERS_STR)
       for (builder, factory, _scheduler) in builder_factory_scheduler])
 

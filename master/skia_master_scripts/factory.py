@@ -13,6 +13,8 @@ from config_private import AUTOGEN_SVN_BASEURL, SKIA_SVN_BASEURL
 from master.factory import gclient_factory
 from master.factory.build_factory import BuildFactory
 from skia_master_scripts import commands as skia_commands
+
+import builder_name_schema
 import config
 import config_private
 import ntpath
@@ -530,19 +532,19 @@ class SkiaFactory(BuildFactory):
       self.CommonSteps(clobber)
       self.NonPerfSteps()
       self.PerfSteps()
-    elif role == utils.BUILDER_ROLE_COMPILE:
+    elif role == builder_name_schema.BUILDER_ROLE_BUILD:
       # Compile-only builder.
       self.UpdateSteps()
       self.Compile(clobber=clobber, build_in_one_step=False)
     else:
       self.CommonSteps(clobber)
-      if role == utils.BUILDER_ROLE_TEST:
+      if role == builder_name_schema.BUILDER_ROLE_TEST:
         # Test-running builder.
         self.NonPerfSteps()
         if self._configuration == CONFIG_DEBUG:
           # Debug-mode testers run all steps, but release-mode testers don't.
           self.PerfSteps()
-      elif role == utils.BUILDER_ROLE_PERF:
+      elif role == builder_name_schema.BUILDER_ROLE_PERF:
         # Perf-only builder.
         if not self._perf_output_basedir:
           raise ValueError(

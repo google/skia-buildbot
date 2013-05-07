@@ -23,36 +23,15 @@ from master import try_job_rietveld
 from master.builders_pools import BuildersPools
 from oauth2client.client import SignedJwtAssertionCredentials
 
+import builder_name_schema
 import config_private
 
 
-BUILDER_NAME_SEP = '-'
-
-# Patterns for creating builder names, based on the role of the builder.
-# TODO(borenet): Extract these into a separate file (JSON?) so that they can be
-# read by other users.
-BUILDER_ROLE_COMPILE = 'Build'
-BUILDER_ROLE_PERF = 'Perf'
-BUILDER_ROLE_TEST = 'Test'
-BUILDER_ROLE_HOUSEKEEPER = 'Housekeeper'
-BUILDER_NAME_DEFAULT_ATTRS = ['os', 'model', 'gpu', 'arch', 'configuration']
-BUILDER_NAME_SCHEMA = {
-  BUILDER_ROLE_COMPILE: ['os', 'compiler', 'target_arch', 'configuration'],
-  BUILDER_ROLE_TEST: BUILDER_NAME_DEFAULT_ATTRS,
-  BUILDER_ROLE_PERF: BUILDER_NAME_DEFAULT_ATTRS,
-  BUILDER_ROLE_HOUSEKEEPER: ['frequency'],
-}
-
 CATEGORY_BUILD = ' Build'
-TRYBOT_NAME_SUFFIX = 'Trybot'
 TRY_SCHEDULER_SVN = 'skia_try_svn'
 TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
 TRY_SCHEDULERS = [TRY_SCHEDULER_SVN, TRY_SCHEDULER_RIETVELD]
 TRY_SCHEDULERS_STR = '|'.join(TRY_SCHEDULERS)
-
-
-def IsTrybot(builder_name):
-  return builder_name.endswith(TRYBOT_NAME_SUFFIX)
 
 
 def _IndentStr(indent):
@@ -444,28 +423,6 @@ class SkiaHelper(master_config.Helper):
       skia_all_subdirs = all_subdirs
 
 
-def MakeBuilderName(role, extra_config=None, is_trybot=False, **kwargs):
-  schema = BUILDER_NAME_SCHEMA.get(role)
-  if not schema:
-    raise ValueError('%s is not a recognized role.' % role)
-  for k, v in kwargs.iteritems():
-    if BUILDER_NAME_SEP in v:
-      raise ValueError('%s not allowed in %s.' % (v, BUILDER_NAME_SEP))
-    if not k in schema:
-      raise ValueError('Schema does not contain "%s": %s' %(k, schema))
-  if extra_config and BUILDER_NAME_SEP in extra_config:
-    raise ValueError('%s not allowed in %s.' % (extra_config,
-                                                BUILDER_NAME_SEP))
-  name_parts = [role]
-  name_parts.extend([kwargs[attribute] for attribute in schema])
-  if extra_config:
-    name_parts.append(extra_config)
-  if is_trybot:
-    name_parts.append(TRYBOT_NAME_SUFFIX)
-  print BUILDER_NAME_SEP.join(name_parts)
-  return BUILDER_NAME_SEP.join(name_parts)
-
-
 def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
                  gm_image_subdir, factory_type, extra_config=None,
                  perf_output_basedir=None, extra_branches=None, is_trybot=False,
@@ -481,7 +438,7 @@ def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
     gm_image_branch = 'gm-expected/%s' % gm_image_subdir
     subdirs_to_checkout.add(gm_image_branch)
 
-  builder_name = MakeBuilderName(
+  builder_name = builder_name_schema.MakeBuilderName(
       role=role,
       os=os,
       model=model,
@@ -494,7 +451,8 @@ def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
   if is_trybot:
     scheduler_name = TRY_SCHEDULERS_STR
   else:
-    scheduler_name = builder_name + BUILDER_NAME_SEP + 'Scheduler'
+    scheduler_name = builder_name + builder_name_schema.BUILDER_NAME_SEP + \
+                     'Scheduler'
     branches = list(subdirs_to_checkout.union(SKIA_PRIMARY_SUBDIRS))
     helper.AnyBranchScheduler(scheduler_name, branches=branches)
 
@@ -523,13 +481,15 @@ def MakeBuilderSet(**kwargs):
 def _MakeCompileBuilder(helper, scheduler, os, compiler, configuration,
                         target_arch, factory_type, is_trybot,
                         extra_config=None, **kwargs):
-  builder_name = MakeBuilderName(role=BUILDER_ROLE_COMPILE,
-                                 os=os,
-                                 compiler=compiler,
-                                 configuration=configuration,
-                                 target_arch=target_arch,
-                                 extra_config=extra_config,
-                                 is_trybot=is_trybot)
+  builder_name = builder_name_schema.MakeBuilderName(
+      role=builder_name_schema.BUILDER_ROLE_BUILD,
+      os=os,
+      compiler=compiler,
+      configuration=configuration,
+      target_arch=target_arch,
+      extra_config=extra_config,
+      is_trybot=is_trybot)
+
   helper.Builder(builder_name, 'f_%s' % builder_name,
                  # Do not add gatekeeper for trybots.
                  gatekeeper='GateKeeper' if is_trybot else None,
@@ -539,7 +499,7 @@ def _MakeCompileBuilder(helper, scheduler, os, compiler, configuration,
       do_patch_step=is_trybot,
       configuration=configuration,
       **kwargs
-      ).Build(role=BUILDER_ROLE_COMPILE))
+      ).Build(role=builder_name_schema.BUILDER_ROLE_BUILD))
   return builder_name
 
 
@@ -582,7 +542,8 @@ def CanMergeBuildRequests(req1, req2):
       return False
 
   # If either is a try request, don't merge (#4 above).
-  if IsTrybot(req1.buildername) or IsTrybot(req2.buildername):
+  if (builder_name_schema.IsTrybot(req1.buildername) or
+      builder_name_schema.IsTrybot(req2.buildername)):
     return False
 
   # Verify that either: both requests are associated with changes OR neither

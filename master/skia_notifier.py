@@ -13,8 +13,8 @@ it and also reuse some of its methods to send emails.
 from buildbot.status.mail import MailNotifier
 from buildbot.status.results import Results
 from master.try_mail_notifier import TryMailNotifier
-from skia_master_scripts import utils
 
+import builder_name_schema
 import datetime
 import re
 import urllib
@@ -34,7 +34,7 @@ class SkiaNotifier(MailNotifier):
   def createEmail(self, msgdict, builderName, title, results, builds=None,
                   patches=None, logs=None):
     # Trybots have their own Notifier
-    if utils.IsTrybot(builderName):
+    if builder_name_schema.IsTrybot(builderName):
       return None
 
     m = MailNotifier.createEmail(self, msgdict, builderName, title,
@@ -53,7 +53,7 @@ class SkiaNotifier(MailNotifier):
     if self.sendToInterestedUsers and self.lookup:
 
       for build in builds:  # Loop through all builds we are emailing about
-        if utils.IsTrybot(build.getBuilder().name):
+        if builder_name_schema.IsTrybot(build.getBuilder().name):
           return
         blame_list = set(build.getResponsibleUsers())
         for change in build.getChanges():  # Loop through all changes in a build
@@ -106,7 +106,7 @@ class SkiaTryMailNotifier(TryMailNotifier):
   and add logic to prevent sending mail on anything but a try job. """
 
   def buildMessage(self, name, build, results):
-    if utils.IsTrybot(build[0].getBuilder().name):
+    if builder_name_schema.IsTrybot(build[0].getBuilder().name):
       if not hasattr(build[0].source, 'timestamp'):
         if 'patch_file_url' in build[0].getProperties():
           build[0].source.timestamp = _ParseTimeStampFromURL(
