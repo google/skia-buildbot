@@ -29,7 +29,10 @@ class RunGM(BuildStep):
            ] + self._gm_args
     # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
     if sys.platform == 'darwin':
-      cmd.extend(['--excludeConfig', 'msaa16'])
+      cmd.extend(['--config', 'defaults', '~msaa16'])
+    elif hasattr(self, '_device') and self._device in ['razr_i', 'nexus_10',
+                                                       'galaxy_nexus']:
+      cmd.extend(['--config', 'defaults', 'msaa4'])
     self.RunFlavoredCmd('gm', cmd)
 
 
