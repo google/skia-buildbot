@@ -10,15 +10,10 @@ from factory import SkiaFactory
 class NaClFactory(SkiaFactory):
   """ Subclass of Factory which runs in Native Client. """
 
-  def __init__(self, other_subdirs=None, **kwargs):
+  def __init__(self, **kwargs):
     """ Instantiates a NaClFactory with properties and build steps specific to
     Native Client builds. """
-    if not other_subdirs:
-      other_subdirs = []
-    subdirs_to_checkout = set(other_subdirs)
-    subdirs_to_checkout.add('nacl')
-    SkiaFactory.__init__(self, other_subdirs=subdirs_to_checkout, flavor='nacl',
-                         **kwargs)
+    SkiaFactory.__init__(self, flavor='nacl', **kwargs)
     self._common_args += ['--nacl_sdk_root',
                               WithProperties('%(nacl_sdk_root)s')]
 
