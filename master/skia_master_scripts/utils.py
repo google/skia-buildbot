@@ -6,6 +6,7 @@
 """Miscellaneous utilities needed by the Skia buildbot master."""
 
 
+import difflib
 import httplib2
 import re
 
@@ -32,6 +33,12 @@ TRY_SCHEDULER_SVN = 'skia_try_svn'
 TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
 TRY_SCHEDULERS = [TRY_SCHEDULER_SVN, TRY_SCHEDULER_RIETVELD]
 TRY_SCHEDULERS_STR = '|'.join(TRY_SCHEDULERS)
+
+
+def StringDiff(expected, actual):
+  """ Returns the diff between two multiline strings, as a multiline string."""
+  return ''.join(difflib.unified_diff(expected.splitlines(1),
+                                      actual.splitlines(1)))
 
 
 def _IndentStr(indent):

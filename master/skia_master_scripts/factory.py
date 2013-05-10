@@ -212,7 +212,9 @@ class SkiaFactory(BuildFactory):
       f.write(self_as_string)
     if self_as_string != expectation:
       raise ValueError('Factory configuration for %s does not match '
-                       'expectation!' % self._builder_name)
+                       'expectation!  Here\'s the diff:\n%s\n' %
+                       (self._builder_name, utils.StringDiff(
+                           self_as_string, expectation)))
 
   def AddSlaveScript(self, script, description, args=None, timeout=None,
                      halt_on_failure=False, is_upload_step=False,
