@@ -31,7 +31,7 @@ def DeleteStorageObject(object_name):
   chromium_utils.RunCommand(command)
 
 
-def CopyStorageDirectory(src_dir, dest_dir, gs_acl):
+def CopyStorageDirectory(src_dir, dest_dir, gs_acl='private'):
   """Copy a directory from/to Google Storage."""
   gsutil = slave_utils.GSUtilSetup()
   command = [gsutil]
