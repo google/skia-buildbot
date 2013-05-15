@@ -5,24 +5,28 @@
 
 """ Compare the generated GM images to the baselines """
 
-from utils import shell_utils
-from build_step import BuildStep, BuildStepWarning
+# System-level imports
+import os
 import sys
 
+from build_step import BuildStep, BuildStepWarning
+from utils import misc, shell_utils
+import run_gm
 
 class CompareGMs(BuildStep):
   def _Run(self):
-    cmd = [self._PathToBinary('skdiff'),
-           '--listfilenames',
-           '--nodiffs',
-           '--nomatch', 'README',
-           '--failonresult', 'DifferentPixels',
-           '--failonresult', 'DifferentSizes',
-           '--failonresult', 'Unknown',
-           '--failonstatus', 'CouldNotDecode,CouldNotRead', 'any',
-           '--failonstatus', 'any', 'CouldNotDecode,CouldNotRead',
-           self._gm_expected_dir,
-           self._gm_actual_dir,
+    json_summary_path = misc.GetAbsPath(os.path.join(
+        self._gm_actual_dir, run_gm.JSON_SUMMARY_FILENAME))
+
+    # TODO(epoger): It would be better to call the Python code in
+    # confirm_no_failures_in_json.py directly, rather than going through the
+    # shell and launching another Python interpreter.  See
+    # https://code.google.com/p/skia/issues/detail?id=1298 ('buildbots:
+    # augment slave-side PYTHON_PATH, so slave-side scripts can easily call
+    # Python code in Skia trunk')
+    cmd = ['python',
+           os.path.join('gm', 'confirm_no_failures_in_json.py'),
+           json_summary_path,
            ]
 
     # Temporary list of builders who are allowed to fail this step without the
