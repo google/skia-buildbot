@@ -19,9 +19,8 @@ class Options(object):
   pass
 
 class UploadGMResults(BuildStep):
-  def __init__(self, attempts=5, timeout=4800, **kwargs):
-    super(UploadGMResults, self).__init__(attempts=attempts, timeout=timeout,
-                                          **kwargs)
+  def __init__(self, timeout=4800, **kwargs):
+    super(UploadGMResults, self).__init__(timeout=timeout, **kwargs)
 
   def _Run(self):
     if self._is_try:
@@ -56,7 +55,11 @@ class UploadGMResults(BuildStep):
     merge_options.svn_password_file = autogen_svn_password_file
     # pylint: disable=W0201
     merge_options.svn_username_file = autogen_svn_username_file
-    merge_into_svn.MergeIntoSvn(merge_options)
+
+    try:
+      merge_into_svn.MergeIntoSvn(merge_options)
+    except Exception as e:
+      raise BuildStepWarning(str(e))
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UploadGMResults))
