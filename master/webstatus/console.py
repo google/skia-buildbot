@@ -22,150 +22,15 @@ from buildbot import util
 from buildbot.status import builder
 from buildbot.status.web.base import HtmlResource
 from buildbot.changes import changes
-
-class DoesNotPassFilter(Exception): pass # Used for filtering revs
-
-def isBuildGoingToFail(build):
-    """Returns True if one of the step in the running build has failed."""
-    for step in build.getSteps():
-        if step.getResults()[0] == builder.FAILURE:
-            return True
-    return False
-
-def getInProgressResults(build):
-    """Returns build status expectation for an incomplete build."""
-    if not build.isFinished() and isBuildGoingToFail(build):
-        return builder.FAILURE
-
-    return build.getResults()
-
-def getResultsClass(results, prevResults, inProgress, inProgressResults=None):
-    """Given the current and past results, return the class that will be used
-    by the css to display the right color for a box."""
-
-    if inProgress:
-        if inProgressResults == builder.FAILURE:
-            return "running_failure"
-        return "running"
-
-    if results is None:
-        return "notstarted"
-
-    if results == builder.SUCCESS:
-        return "success"
-
-    if results == builder.WARNINGS:
-        return "warnings"
-
-    if results == builder.FAILURE:
-        if not prevResults:
-            # This is the bottom box. We don't know if the previous one failed
-            # or not. We assume it did not.
-            return "failure"
-
-        if prevResults != builder.FAILURE:
-            # This is a new failure.
-            return "failure"
-        else:
-            # The previous build also failed.
-            return "warnings"
-
-    # Any other results? Like EXCEPTION?
-    return "exception"
-
-class ANYBRANCH: pass # a flag value, used below
-
-class CachedStatusBox(object):
-    """Basic data class to remember the information for a box on the console."""
-    def __init__(self, color, pageTitle, details, url, tag, builderName):
-        self.color = color
-        self.pageTitle = pageTitle
-        self.details = details
-        self.url = url
-        self.tag = tag
-        self.builderName = builderName
-
-
-class CacheStatus(object):
-    """Basic cache of CachedStatusBox based on builder names and revisions.
-
-    Current limitation: If the revisions are not numerically increasing, the
-                        "trim" feature will not work and the cache will grow
-                        indefinitely.
-    """
-    def __init__(self):
-      self.allBoxes = dict()
-
-    def display(self):
-        """Display the available data in the cache. Used for debugging only."""
-        data = ""
-        for builder in self.allBoxes:
-            for revision in self.allBoxes[builder]:
-               data += "%s %s %s\n" % (builder, str(revision),
-                                       self.allBoxes[builder][revision].color)
-        return data
-
-    def insert(self, builderName, revision, color, pageTitle, details, url, tag):
-        """Insert a new build into the cache."""
-        box = CachedStatusBox(color, pageTitle, details, url, tag, builderName)
-        if not self.allBoxes.get(builderName):
-            self.allBoxes[builderName] = {}
-
-        self.allBoxes[builderName][revision] = box
-
-    def get(self, builderName, revision):
-        """Retrieve a build from the cache."""
-        if not self.allBoxes.get(builderName):
-          return None
-        if not self.allBoxes[builderName].get(revision):
-          return None
-        return self.allBoxes[builderName][revision]
-
-    def trim(self):
-        """Remove old revisions from the cache. (For integer revisions only)"""
-        try:
-            for builder in self.allBoxes:
-                allRevs = []
-                for revision in self.allBoxes[builder]:
-                  allRevs.append(revision)
-
-                if len(allRevs) > 250:
-                   allRevs.sort(cmp=lambda x,y: cmp(int(x), int(y)))
-                   deleteCount = len(allRevs) - 250
-                   for i in range(0, deleteCount):
-                     del self.allBoxes[builder][allRevs[i]]
-        except:
-            pass
-
-
-class DevRevision:
-    """Helper class that contains all the information we need for a revision."""
-
-    def __init__(self, change):
-        self.revision = change.revision
-        self.comments = change.comments
-        self.who = change.who
-        self.date = change.getTime()
-        self.revlink = getattr(change, 'revlink', None)
-        self.when = change.when
-        self.repository = change.repository
-        self.project = change.project
-
-
-class DevBuild:
-    """Helper class that contains all the information we need for a build."""
-
-    def __init__(self, revision, build, details, inProgressResults=None):
-        self.revision = revision
-        self.results =  build.getResults()
-        self.number = build.getNumber()
-        self.isFinished = build.isFinished()
-        self.text = build.getText()
-        self.eta = build.getETA()
-        self.details = details
-        self.when = build.getTimes()[0]
-        self.source = build.getSourceStamp()
-        self.inProgressResults = inProgressResults
+from buildbot.status.web.console import ANYBRANCH, \
+                                        CacheStatus, \
+                                        DevBuild, \
+                                        DevRevision, \
+                                        DoesNotPassFilter, \
+                                        getInProgressResults, \
+                                        getResultsClass, \
+                                        TimeRevisionComparator, \
+                                        IntegerRevisionComparator
 
 
 class ConsoleStatusResource(HtmlResource):
@@ -665,24 +530,13 @@ class ConsoleStatusResource(HtmlResource):
         subs["debugInfo"] = debugInfo
         subs["ANYBRANCH"] = ANYBRANCH
 
-        subs['builders_by_role_then_category'] = dict()
-        rspan = 2
         if builderList:
             subs["categories"] = self.displayCategories(builderList, debugInfo)
             subs['slaves'] = self.displaySlaveLine(status, builderList,
                                                    debugInfo)
-            for category in subs['categories']:
-              for slave in subs['slaves'][category['name']]:
-                role = slave['builderName'].split('-')[0]
-                print '%s:%s' % (slave['builderName'], role)
-                if not subs['builders_by_role_then_category'].get(role):
-                  subs['builders_by_role_then_category'][role] = {}
-                if not subs['builders_by_role_then_category'][role].get(category['name']):
-                  subs['builders_by_role_then_category'][role][category['name']] = []
-                subs['builders_by_role_then_category'][role][category['name']].append(slave)
-                rspan += 1
         else:
             subs["categories"] = []
+
         subs['revisions'] = []
 
         # For each revision we show one line
@@ -707,7 +561,7 @@ class ConsoleStatusResource(HtmlResource):
             r['details'] = details
 
             # Calculate the td span for the comment and the details.
-            r["span"] = rspan
+            r["span"] = len(builderList) + 2
 
             subs['revisions'].append(r)
 
@@ -827,49 +681,3 @@ class ConsoleStatusResource(HtmlResource):
             return data
         d.addCallback(got_changes)
         return d
-
-class RevisionComparator(object):
-    """Used for comparing between revisions, as some
-    VCS use a plain counter for revisions (like SVN)
-    while others use different concepts (see Git).
-    """
-    
-    # TODO (avivby): Should this be a zope interface?
-    
-    def isRevisionEarlier(self, first_change, second_change):
-        """Used for comparing 2 changes"""
-        raise NotImplementedError
-
-    def isValidRevision(self, revision):
-        """Checks whether the revision seems like a VCS revision"""
-        raise NotImplementedError
-
-    def getSortingKey(self):
-        raise NotImplementedError
-    
-class TimeRevisionComparator(RevisionComparator):
-    def isRevisionEarlier(self, first, second):
-        return first.when < second.when
-
-    def isValidRevision(self, revision):
-        return True # No general way of determining
-
-    def getSortingKey(self):
-        return operator.attrgetter('when')
-
-class IntegerRevisionComparator(RevisionComparator):
-    def isRevisionEarlier(self, first, second):
-        try:
-            return int(first.revision) < int(second.revision)
-        except (TypeError, ValueError):
-            return False
-
-    def isValidRevision(self, revision):
-        try:
-            int(revision)
-            return True
-        except:
-            return False
-
-    def getSortingKey(self):
-        return operator.attrgetter('revision')
