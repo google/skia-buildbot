@@ -205,16 +205,29 @@ class SkiaFactory(BuildFactory):
     try:
       expectation = open(os.path.join(expected_dir, self._builder_name)).read()
     except IOError:
-      raise Exception('Warning: No expected factory configuration for %s.' %
-          self._builder_name)
+      msg = 'No expected factory configuration for %s.' % self._builder_name
+      if config_private.die_on_validation_failure:
+        raise Exception(msg)
+      else:
+        print 'Warning: %s' % msg
+        return
     self_as_string = utils.ToString(self.__dict__)
     with open(os.path.join(actual_dir, self._builder_name), 'w') as f:
       f.write(self_as_string)
     if self_as_string != expectation:
-      raise ValueError('Factory configuration for %s does not match '
-                       'expectation!  Here\'s the diff:\n%s\n' %
-                       (self._builder_name, utils.StringDiff(
-                           self_as_string, expectation)))
+      if config_private.die_on_validation_failure:
+        raise ValueError('Factory configuration for %s does not match '
+                         'expectation!  Here\'s the diff:\n%s\n' %
+                         (self._builder_name, utils.StringDiff(
+                             self_as_string, expectation)))
+      else:
+        # We don't print the full diff in this case because:
+        # a. It's generally too long to be easily read in a terminal
+        # b. All of the printing can noticeably slow down the master startup
+        # c. The master prints so much output that it would be easy to miss the
+        #    diff if we did print it.
+        print 'Warning: Factory configuration for %s does not match ' \
+              'expectation!' % self._builder_name
 
   def AddSlaveScript(self, script, description, args=None, timeout=None,
                      halt_on_failure=False, is_upload_step=False,

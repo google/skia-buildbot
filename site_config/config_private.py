@@ -16,6 +16,14 @@ import config_default
 
 
 CODE_REVIEW_SITE = skia_vars.GetGlobalVariable('code_review_site')
+
+# On startup, the build master validates the bot configuration against a known
+# expectation.  If this variable is set to true (eg. in a buildbot self-test),
+# the master will fail to start up if validation fails.
+#
+# For more information: https://code.google.com/p/skia/issues/detail?id=1289
+die_on_validation_failure = False
+
 # Skia's Google Compute Engine instances.
 # The public master which is visible to everyone.
 SKIA_PUBLIC_MASTER = skia_vars.GetGlobalVariable('master_host_name')

@@ -6,11 +6,36 @@
 """Presubmit checks for the buildbot code."""
 
 import os
+import subprocess
 import sys
 
 
 SKIA_TREE_STATUS_URL = 'http://skia-tree-status.appspot.com'
 SKIP_RUNS_KEYWORD = '(SkipBuildbotRuns)'
+
+
+def _RunBuildbotSelfTests(input_api, output_api):
+  """ Run the buildbot self-tests and return a list of strings containing any
+  errors. """
+  results = []
+  success = True
+  try:
+    proc = subprocess.Popen(['python',
+                             os.path.join('tools', 'tests',
+                                          'factory_configuration',
+                                          'factory_configuration_test.py')],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    success = proc.wait() == 0
+    long_text = proc.communicate()[0]
+  except Exception:
+    success = False
+    long_text = 'Failed to launch the factory configuration test!'
+  if not success:
+    results.append(output_api.PresubmitPromptWarning(
+        message='Factory configuration test failed.',
+        long_text=long_text))
+  return results
+
 
 def CheckChange(input_api, output_api):
   """Presubmit checks for the change on upload or commit.
@@ -58,6 +83,8 @@ def CheckChange(input_api, output_api):
   results += input_api.canned_checks.CheckChangeHasNoStrayWhitespace(
       input_api, output_api)
   results += input_api.canned_checks.CheckChangeHasNoTabs(input_api, output_api)
+
+  results += _RunBuildbotSelfTests(input_api, output_api)
 
   return results
 
