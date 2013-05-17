@@ -9,12 +9,16 @@ expectation. """
 import os
 import sys
 
-sys.path.append('master')
-sys.path.append('site_config')
-sys.path.append(os.path.join('third_party', 'chromium_buildbot', 'scripts'))
-sys.path.append(os.path.join('third_party', 'chromium_buildbot', 'site_config'))
-sys.path.append(os.path.join('third_party', 'chromium_buildbot', 'third_party',
-                             'buildbot_8_4p1'))
+buildbot_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                             os.pardir, os.pardir, os.pardir)
+sys.path.append(os.path.join(buildbot_path, 'master'))
+sys.path.append(os.path.join(buildbot_path, 'site_config'))
+sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
+                             'scripts'))
+sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
+                             'site_config'))
+sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
+                             'third_party', 'buildbot_8_4p1'))
 
 import config
 import config_private
