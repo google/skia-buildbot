@@ -37,13 +37,13 @@ class ConsoleStatusResource(HtmlResource):
   Every change is a line in the page, and it shows the result of the first
   build with this change for each slave."""
 
-  def __init__(self, orderByTime=False):
+  def __init__(self, order_by_time=False):
     HtmlResource.__init__(self)
 
     self.status = None
     self.cache = CacheStatus()
 
-    if orderByTime:
+    if order_by_time:
       self.comparator = TimeRevisionComparator()
     else:
       self.comparator = IntegerRevisionComparator()
@@ -75,7 +75,7 @@ class ConsoleStatusResource(HtmlResource):
 
     return build
 
-  def fetchChangesFromHistory(self, status, max_depth, max_builds, debugInfo):
+  def fetchChangesFromHistory(self, status, max_depth, max_builds, debug_info):
     """Look at the history of the builders and try to fetch as many changes
     as possible. We need this when the main source does not contain enough
     sourcestamps.
@@ -88,27 +88,27 @@ class ConsoleStatusResource(HtmlResource):
     function is cached, so this function won't be called more than once.
     """
 
-    allChanges = list()
+    all_changes = list()
     build_count = 0
-    for builderName in status.getBuilderNames()[:]:
+    for builder_name in status.getBuilderNames()[:]:
       if build_count > max_builds:
         break
 
-      builder = status.getBuilder(builderName)
+      builder = status.getBuilder(builder_name)
       build = self.getHeadBuild(builder)
       depth = 0
       while build and depth < max_depth and build_count < max_builds:
         depth += 1
         build_count += 1
         sourcestamp = build.getSourceStamp()
-        allChanges.extend(sourcestamp.changes[:])
+        all_changes.extend(sourcestamp.changes[:])
         build = build.getPreviousBuild()
 
-    debugInfo["source_fetch_len"] = len(allChanges)
-    return allChanges
+    debug_info["source_fetch_len"] = len(all_changes)
+    return all_changes
 
   @defer.deferredGenerator
-  def getAllChanges(self, request, status, debugInfo):
+  def getAllChanges(self, request, status, debug_info):
     master = request.site.buildbot_service.master
     limit = min(100, max(1, int(request.args.get('limit', [25])[0])))
     wfd = defer.waitForDeferred(master.db.changes.getRecentChanges(limit))
@@ -119,24 +119,24 @@ class ConsoleStatusResource(HtmlResource):
     wfd = defer.waitForDeferred(defer.gatherResults([
         changes.Change.fromChdict(master, chdict) for chdict in chdicts ]))
     yield wfd
-    allChanges = wfd.getResult()
+    all_changes = wfd.getResult()
 
-    allChanges.sort(key=self.comparator.getSortingKey())
+    all_changes.sort(key=self.comparator.getSortingKey())
 
     # Remove the dups
-    prevChange = None
-    newChanges = []
-    for change in allChanges:
+    prev_change = None
+    new_changes = []
+    for change in all_changes:
       rev = change.revision
-      if not prevChange or rev != prevChange.revision:
-        newChanges.append(change)
-      prevChange = change
-    allChanges = newChanges
+      if not prev_change or rev != prev_change.revision:
+        new_changes.append(change)
+      prev_change = change
+    all_changes = new_changes
 
-    debugInfo["source_len"] = len(allChanges)
-    yield allChanges
+    debug_info["source_len"] = len(all_changes)
+    yield all_changes
 
-  def getBuildDetails(self, request, builderName, build):
+  def getBuildDetails(self, request, builder_name, build):
     """Returns an HTML list of failures for a given build."""
     details = {}
     if not build.getLogs():
@@ -148,11 +148,11 @@ class ConsoleStatusResource(HtmlResource):
         name = step.getName()
 
         # Remove html tags from the error text.
-        stripHtml = re.compile(r'<.*?>')
-        strippedDetails = stripHtml.sub('', ' '.join(step.getText()))
+        strip_html = re.compile(r'<.*?>')
+        stripped_details = strip_html.sub('', ' '.join(step.getText()))
 
-        details['buildername'] = builderName
-        details['status'] = strippedDetails
+        details['buildername'] = builder_name
+        details['status'] = stripped_details
         details['reason'] = reason
         logs = details['logs'] = []
 
@@ -161,27 +161,27 @@ class ConsoleStatusResource(HtmlResource):
             logname = log.getName()
             logurl = request.childLink(
                 "../builders/%s/builds/%s/steps/%s/logs/%s" %
-                    (urllib.quote(builderName),
+                    (urllib.quote(builder_name),
                      build.getNumber(),
                      urllib.quote(name),
                      urllib.quote(logname)))
             logs.append(dict(url=logurl, name=logname))
     return details
 
-  def getBuildsForRevision(self, request, builder, builderName, lastRevision,
-                           numBuilds, debugInfo):
+  def getBuildsForRevision(self, request, builder, builder_name, last_revision,
+                           num_builds, debug_info):
     """Return the list of all the builds for a given builder that we will
     need to be able to display the console page. We start by the most recent
     build, and we go down until we find a build that was built prior to the
     last change we are interested in."""
 
-    revision = lastRevision
+    revision = last_revision
 
     builds = []
     build = self.getHeadBuild(builder)
     number = 0
-    while build and number < numBuilds:
-      debugInfo["builds_scanned"] += 1
+    while build and number < num_builds:
+      debug_info["builds_scanned"] += 1
       number += 1
 
       # Get the last revision in this build.
@@ -208,15 +208,15 @@ class ConsoleStatusResource(HtmlResource):
       # with the update source step. We need to find a way to tell the
       # user that his change might have broken the source update.
       if got_rev and got_rev != -1:
-        details = self.getBuildDetails(request, builderName, build)
-        devBuild = DevBuild(got_rev, build, details,
-                            getInProgressResults(build))
-        builds.append(devBuild)
+        details = self.getBuildDetails(request, builder_name, build)
+        dev_build = DevBuild(got_rev, build, details,
+                             getInProgressResults(build))
+        builds.append(dev_build)
 
         # Now break if we have enough builds.
         current_revision = self.getChangeForBuild(build, revision)
         if self.comparator.isRevisionEarlier(
-          devBuild, current_revision):
+          dev_build, current_revision):
           break
 
       build = build.getPreviousBuild()
@@ -236,35 +236,35 @@ class ConsoleStatusResource(HtmlResource):
     changes.sort(key=self.comparator.getSortingKey())
     return changes[-1]
 
-  def getAllBuildsForRevision(self, status, request, lastRevision, numBuilds,
-                              categories, builders, debugInfo):
+  def getAllBuildsForRevision(self, status, request, last_revision, num_builds,
+                              categories, builders, debug_info):
     """Returns a dictionary of builds we need to inspect to be able to
     display the console page. The key is the builder name, and the value is
     an array of build we care about. We also returns a dictionary of
     builders we care about. The key is it's category.
 
-    lastRevision is the last revision we want to display in the page.
+    last_revision is the last revision we want to display in the page.
     categories is a list of categories to display. It is coming from the
         HTTP GET parameters.
     builders is a list of builders to display. It is coming from the HTTP
         GET parameters.
     """
 
-    allBuilds = dict()
+    all_builds = dict()
 
     # List of all builders in the dictionary.
-    builderList = dict()
+    builder_list = dict()
 
-    debugInfo["builds_scanned"] = 0
+    debug_info["builds_scanned"] = 0
     # Get all the builders.
-    builderNames = status.getBuilderNames()[:]
-    for builderName in builderNames:
-      builder = status.getBuilder(builderName)
+    builder_names = status.getBuilderNames()[:]
+    for builder_name in builder_names:
+      builder = status.getBuilder(builder_name)
 
       # Make sure we are interested in this builder.
       if categories and builder.category not in categories:
         continue
-      if builders and builderName not in builders:
+      if builders and builder_name not in builders:
         continue
 
       # We want to display this builder.
@@ -275,34 +275,34 @@ class ConsoleStatusResource(HtmlResource):
       # TODO(nsylvain): Create another way to specify "display category"
       #     in master.cfg.
       category = category.split('|')[0]
-      if not builderList.get(category):
-        builderList[category] = []
+      if not builder_list.get(category):
+        builder_list[category] = []
 
       # Append this builder to the dictionary of builders.
-      builderList[category].append(builderName)
+      builder_list[category].append(builder_name)
       # Set the list of builds for this builder.
-      allBuilds[builderName] = self.getBuildsForRevision(request,
-                                                         builder,
-                                                         builderName,
-                                                         lastRevision,
-                                                         numBuilds,
-                                                         debugInfo)
+      all_builds[builder_name] = self.getBuildsForRevision(request,
+                                                           builder,
+                                                           builder_name,
+                                                           last_revision,
+                                                           num_builds,
+                                                           debug_info)
 
-    return (builderList, allBuilds)
+    return (builder_list, all_builds)
 
 
   ##
   ## Display functions
   ##
 
-  def displayCategories(self, builderList, debugInfo):
+  def displayCategories(self, builder_list, debug_info):
     """Display the top category line."""
 
     count = 0
-    for category in builderList:
-      count += len(builderList[category])
+    for category in builder_list:
+      count += len(builder_list[category])
 
-    categories = builderList.keys()
+    categories = builder_list.keys()
     categories.sort()
 
     cs = []
@@ -315,23 +315,23 @@ class ConsoleStatusResource(HtmlResource):
       # To be able to align the table correctly, we need to know
       # what percentage of space this category will be taking. This is
       # (#Builders in Category) / (#Builders Total) * 100.
-      c["size"] = (len(builderList[category]) * 100) / count
+      c["size"] = (len(builder_list[category]) * 100) / count
       cs.append(c)
 
     return cs
 
-  def displaySlaveLine(self, status, builderList, debugInfo):
+  def displaySlaveLine(self, status, builder_list, debug_info):
     """Display a line the shows the current status for all the builders we
     care about."""
 
-    nbSlaves = 0
+    num_slaves = 0
 
     # Get the number of builders.
-    for category in builderList:
-      nbSlaves += len(builderList[category])
+    for category in builder_list:
+      num_slaves += len(builder_list[category])
 
     # Get the categories, and order them alphabetically.
-    categories = builderList.keys()
+    categories = builder_list.keys()
     categories.sort()
 
     slaves = {}
@@ -341,7 +341,7 @@ class ConsoleStatusResource(HtmlResource):
       slaves[category] = []
       # For each builder in this category, we set the build info and we
       # display the box.
-      for builder in builderList[category]:
+      for builder in builder_list[category]:
         s = {}
         s["color"] = "notstarted"
         s["pageTitle"] = builder
@@ -365,18 +365,18 @@ class ConsoleStatusResource(HtmlResource):
 
     return slaves
 
-  def displayStatusLine(self, builderList, allBuilds, revision, debugInfo):
+  def displayStatusLine(self, builder_list, all_builds, revision, debug_info):
     """Display the boxes that represent the status of each builder in the
     first build "revision" was in. Returns an HTML list of errors that
     happened during these builds."""
 
     details = []
-    nbSlaves = 0
-    for category in builderList:
-      nbSlaves += len(builderList[category])
+    num_slaves = 0
+    for category in builder_list:
+      num_slaves += len(builder_list[category])
 
     # Sort the categories.
-    categories = builderList.keys()
+    categories = builder_list.keys()
     categories.sort()
 
     builds = {}
@@ -387,13 +387,13 @@ class ConsoleStatusResource(HtmlResource):
       builds[category] = []
 
       # Display the boxes for each builder in this category.
-      for builder in builderList[category]:
-        introducedIn = None
-        firstNotIn = None
+      for builder in builder_list[category]:
+        introduced_in = None
+        first_not_in = None
 
         cached_value = self.cache.get(builder, revision.revision)
         if cached_value:
-          debugInfo["from_cache"] += 1
+          debug_info["from_cache"] += 1
 
           b = {}
           b["url"] = cached_value.url
@@ -410,55 +410,55 @@ class ConsoleStatusResource(HtmlResource):
           continue
 
         # Find the first build that does not include the revision.
-        for build in allBuilds[builder]:
+        for build in all_builds[builder]:
           if self.comparator.isRevisionEarlier(build, revision):
-            firstNotIn = build
+            first_not_in = build
             break
           else:
-            introducedIn = build
+            introduced_in = build
 
         # Get the results of the first build with the revision, and the
         # first build that does not include the revision.
         results = None
-        inProgressResults = None
-        previousResults = None
-        if introducedIn:
-          results = introducedIn.results
-          inProgressResults = introducedIn.inProgressResults
-        if firstNotIn:
-          previousResults = firstNotIn.results
+        in_progress_results = None
+        previous_results = None
+        if introduced_in:
+          results = introduced_in.results
+          in_progress_results = introduced_in.inProgressResults
+        if first_not_in:
+          previous_results = first_not_in.results
 
-        isRunning = False
-        if introducedIn and not introducedIn.isFinished:
-          isRunning = True
+        is_running = False
+        if introduced_in and not introduced_in.isFinished:
+          is_running = True
 
         url = "./waterfall"
-        pageTitle = builder
+        page_title = builder
         tag = ""
         current_details = {}
-        if introducedIn:
-          current_details = introducedIn.details or ""
+        if introduced_in:
+          current_details = introduced_in.details or ""
           url = "./buildstatus?builder=%s&number=%s" % (urllib.quote(builder),
-                                                        introducedIn.number)
-          pageTitle += " "
-          pageTitle += urllib.quote(' '.join(introducedIn.text), ' \n\\/:')
+                                                        introduced_in.number)
+          page_title += " "
+          page_title += urllib.quote(' '.join(introduced_in.text), ' \n\\/:')
 
-          builderStrip = builder.replace(' ', '')
-          builderStrip = builderStrip.replace('(', '')
-          builderStrip = builderStrip.replace(')', '')
-          builderStrip = builderStrip.replace('.', '')
-          tag = "Tag%s%s" % (builderStrip, introducedIn.number)
+          builder_strip = builder.replace(' ', '')
+          builder_strip = builder_strip.replace('(', '')
+          builder_strip = builder_strip.replace(')', '')
+          builder_strip = builder_strip.replace('.', '')
+          tag = "Tag%s%s" % (builder_strip, introduced_in.number)
 
-        if isRunning:
-          pageTitle += ' ETA: %ds' % (introducedIn.eta or 0)
+        if is_running:
+          page_title += ' ETA: %ds' % (introduced_in.eta or 0)
 
-        resultsClass = getResultsClass(results, previousResults, isRunning,
-                                       inProgressResults)
+        results_class = getResultsClass(results, previous_results, is_running,
+                                        in_progress_results)
 
         b = {}
         b["url"] = url
-        b["pageTitle"] = pageTitle
-        b["color"] = resultsClass
+        b["pageTitle"] = page_title
+        b["color"] = results_class
         b["tag"] = tag
         b["builderName"] = builder
 
@@ -466,16 +466,16 @@ class ConsoleStatusResource(HtmlResource):
 
         # If the box is red, we add the explaination in the details
         # section.
-        if current_details and resultsClass == "failure":
+        if current_details and results_class == "failure":
           details.append(current_details)
 
         # Add this box to the cache if it's completed so we don't have
         # to compute it again.
-        if resultsClass not in ("running", "running_failure",
-                                "notstarted"):
-          debugInfo["added_blocks"] += 1
-          self.cache.insert(builder, revision.revision, resultsClass,
-                            pageTitle, current_details, url, tag)
+        if results_class not in ("running", "running_failure",
+                                 "notstarted"):
+          debug_info["added_blocks"] += 1
+          self.cache.insert(builder, revision.revision, results_class,
+                            page_title, current_details, url, tag)
 
     return (builds, details)
 
@@ -510,8 +510,8 @@ class ConsoleStatusResource(HtmlResource):
         except DoesNotPassFilter:
           pass
 
-  def displayPage(self, request, status, builderList, allBuilds, revisions,
-                  categories, repository, branch, debugInfo):
+  def displayPage(self, request, status, builder_list, all_builds, revisions,
+                  categories, repository, branch, debug_info):
     """Display the console page."""
     # Build the main template directory with all the informations we have.
     subs = dict()
@@ -521,13 +521,13 @@ class ConsoleStatusResource(HtmlResource):
       subs["categories"] = ' '.join(categories)
     subs["time"] = time.strftime("%a %d %b %Y %H:%M:%S",
                                  time.localtime(util.now()))
-    subs["debugInfo"] = debugInfo
+    subs["debugInfo"] = debug_info
     subs["ANYBRANCH"] = ANYBRANCH
 
-    if builderList:
-      subs["categories"] = self.displayCategories(builderList, debugInfo)
-      subs['slaves'] = self.displaySlaveLine(status, builderList,
-                                             debugInfo)
+    if builder_list:
+      subs["categories"] = self.displayCategories(builder_list, debug_info)
+      subs['slaves'] = self.displaySlaveLine(status, builder_list,
+                                             debug_info)
     else:
       subs["categories"] = []
 
@@ -547,22 +547,22 @@ class ConsoleStatusResource(HtmlResource):
       r['project'] = revision.project
 
       # Display the status for all builders.
-      (builds, details) = self.displayStatusLine(builderList,
-                                                 allBuilds,
+      (builds, details) = self.displayStatusLine(builder_list,
+                                                 all_builds,
                                                  revision,
-                                                 debugInfo)
+                                                 debug_info)
       r['builds'] = builds
       r['details'] = details
 
       # Calculate the td span for the comment and the details.
-      r["span"] = len(builderList) + 2
+      r["span"] = len(builder_list) + 2
 
       subs['revisions'].append(r)
 
     #
     # Display the footer of the page.
     #
-    debugInfo["load_time"] = time.time() - debugInfo["load_time"]
+    debug_info["load_time"] = time.time() - debug_info["load_time"]
     return subs
 
 
@@ -591,8 +591,8 @@ class ConsoleStatusResource(HtmlResource):
       cxt['refresh'] = reload_time
 
     # Debug information to display at the end of the page.
-    debugInfo = cxt['debuginfo'] = dict()
-    debugInfo["load_time"] = time.time()
+    debug_info = cxt['debuginfo'] = dict()
+    debug_info["load_time"] = time.time()
 
     # get url parameters
     # Categories to show information for.
@@ -604,7 +604,7 @@ class ConsoleStatusResource(HtmlResource):
     # Branch used to filter the changes shown.
     branch = request.args.get("branch", [ANYBRANCH])[0]
     # List of all the committers name to display on the page.
-    devName = request.args.get("name", [])
+    dev_name = request.args.get("name", [])
 
     # and the data we want to render
     status = self.getStatus(request)
@@ -613,46 +613,46 @@ class ConsoleStatusResource(HtmlResource):
     # By default we process the last 40 revisions.
     # If a dev name is passed, we look for the changes by this person in the
     # last 160 revisions.
-    numRevs = int(request.args.get("revs", [40])[0])
-    if devName:
-      numRevs *= 4
-    numBuilds = numRevs
+    num_revs = int(request.args.get("revs", [40])[0])
+    if dev_name:
+      num_revs *= 4
+    num_builds = num_revs
 
     # Get all changes we can find.  This is a DB operation, so it must use
     # a deferred.
-    d = self.getAllChanges(request, status, debugInfo)
-    def got_changes(allChanges):
-      debugInfo["source_all"] = len(allChanges)
+    d = self.getAllChanges(request, status, debug_info)
+    def got_changes(all_changes):
+      debug_info["source_all"] = len(all_changes)
 
-      revFilter = {}
+      rev_filter = {}
       if branch != ANYBRANCH:
-        revFilter['branch'] = branch
-      if devName:
-        revFilter['who'] = devName
+        rev_filter['branch'] = branch
+      if dev_name:
+        rev_filter['who'] = dev_name
       if repository:
-        revFilter['repository'] = repository
-      revisions = list(self.filterRevisions(allChanges, max_revs=numRevs,
-                                            filter=revFilter))
-      debugInfo["revision_final"] = len(revisions)
+        rev_filter['repository'] = repository
+      revisions = list(self.filterRevisions(all_changes, max_revs=num_revs,
+                                            filter=rev_filter))
+      debug_info["revision_final"] = len(revisions)
 
       # Fetch all the builds for all builders until we get the next build
-      # after lastRevision.
-      builderList = None
-      allBuilds = None
+      # after last_revision.
+      builder_list = None
+      all_builds = None
       if revisions:
-        lastRevision = revisions[len(revisions) - 1].revision
-        debugInfo["last_revision"] = lastRevision
+        last_revision = revisions[len(revisions) - 1].revision
+        debug_info["last_revision"] = last_revision
 
-        (builderList, allBuilds) = self.getAllBuildsForRevision(status,
-                                                                request,
-                                                                lastRevision,
-                                                                numBuilds,
-                                                                categories,
-                                                                builders,
-                                                                debugInfo)
+        (builder_list, all_builds) = self.getAllBuildsForRevision(status,
+                                                                  request,
+                                                                  last_revision,
+                                                                  num_builds,
+                                                                  categories,
+                                                                  builders,
+                                                                  debug_info)
 
-      debugInfo["added_blocks"] = 0
-      debugInfo["from_cache"] = 0
+      debug_info["added_blocks"] = 0
+      debug_info["from_cache"] = 0
 
       if request.args.get("display_cache", None):
         data = ""
@@ -660,16 +660,16 @@ class ConsoleStatusResource(HtmlResource):
         data += self.cache.display()
         return data
 
-      cxt.update(self.displayPage(request, status, builderList,
-                                  allBuilds, revisions, categories,
-                                  repository, branch, debugInfo))
+      cxt.update(self.displayPage(request, status, builder_list,
+                                  all_builds, revisions, categories,
+                                  repository, branch, debug_info))
 
       templates = request.site.buildbot_service.templates
       template = templates.get_template("console.html")
       data = template.render(cxt)
 
       # Clean up the cache.
-      if debugInfo["added_blocks"]:
+      if debug_info["added_blocks"]:
         self.cache.trim()
 
       return data
