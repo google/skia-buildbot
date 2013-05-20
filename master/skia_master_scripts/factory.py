@@ -198,10 +198,17 @@ class SkiaFactory(BuildFactory):
     """ Validate the Factory against the known good configuration. """
     test_dir = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir,
                             'tools', 'tests', 'factory_configuration')
-    expected_dir = os.path.join(test_dir, 'expected')
+
+    # Write the actual configuration.
     actual_dir = os.path.join(test_dir, 'actual')
     if not os.path.exists(actual_dir):
       os.makedirs(actual_dir)
+    self_as_string = utils.ToString(self.__dict__)
+    with open(os.path.join(actual_dir, self._builder_name), 'w') as f:
+      f.write(self_as_string)
+
+    # Read the expected configuration.
+    expected_dir = os.path.join(test_dir, 'expected')
     try:
       expectation = open(os.path.join(expected_dir, self._builder_name)).read()
     except IOError:
@@ -211,9 +218,8 @@ class SkiaFactory(BuildFactory):
       else:
         print 'Warning: %s' % msg
         return
-    self_as_string = utils.ToString(self.__dict__)
-    with open(os.path.join(actual_dir, self._builder_name), 'w') as f:
-      f.write(self_as_string)
+
+    # Compare actual to expected.
     if self_as_string != expectation:
       if config_private.die_on_validation_failure:
         raise ValueError('Factory configuration for %s does not match '
