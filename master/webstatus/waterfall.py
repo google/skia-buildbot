@@ -1,28 +1,14 @@
-# This file is part of Buildbot.  Buildbot is free software: you can
-# redistribute it and/or modify it under the terms of the GNU General Public
-# License as published by the Free Software Foundation, version 2.
-#
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-# details.
-#
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software Foundation, Inc., 51
-# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-#
-# Copyright Buildbot Team Members
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
+""" Skia's override of buildbot.status.web.waterfall """
 
-from twisted.python import log
-from twisted.internet import defer
-import urllib
-
-import time, locale
 
 from buildbot import interfaces, util
-from buildbot.status import builder, buildstep
-from buildbot.changes import changes
+from buildbot.status import builder as builder_status_module
+from buildbot.status import buildstep
+from buildbot.changes import changes as changes_module
 
 from buildbot.status.web.base import Box, HtmlResource, IBox, ICurrentBox, \
      ITopBox, path_to_root, \
@@ -32,6 +18,13 @@ from buildbot.status.web.waterfall import earlier, \
                                           insertGaps, \
                                           WaterfallHelp, \
                                           ChangeEventSource
+from twisted.python import log
+from twisted.internet import defer
+
+import locale
+import time
+import urllib
+
 
 class WaterfallStatusResource(HtmlResource):
   """This builds the main status page, with the waterfall display, and
@@ -53,7 +46,6 @@ class WaterfallStatusResource(HtmlResource):
       return "BuildBot"
 
   def getChangeManager(self, request):
-    # TODO: this wants to go away, access it through IStatus
     return request.site.buildbot_service.getChangeSvc()
 
   def get_reload_time(self, request):
@@ -77,7 +69,7 @@ class WaterfallStatusResource(HtmlResource):
 
     # Look at the last finished build to see if it was success or not.
     last_build = builderStatus.getLastFinishedBuild()
-    if last_build and last_build.getResults() != builder.SUCCESS:
+    if last_build and last_build.getResults() != builder_status_module.SUCCESS:
       return False
 
     # Check all the current builds to see if one step is already
@@ -86,7 +78,7 @@ class WaterfallStatusResource(HtmlResource):
     if current_builds:
       for build in current_builds:
         for step in build.getSteps():
-          if step.getResults()[0] == builder.FAILURE:
+          if step.getResults()[0] == builder_status_module.FAILURE:
             return False
 
     # The last finished build was successful, and all the current builds
@@ -107,7 +99,8 @@ class WaterfallStatusResource(HtmlResource):
     changes_d = master.db.changes.getRecentChanges(40)
     def to_changes(chdicts):
       return defer.gatherResults([
-          changes.Change.fromChdict(master, chdict) for chdict in chdicts ])
+          changes_module.Change.fromChdict(master, chdict)
+          for chdict in chdicts ])
     changes_d.addCallback(to_changes)
     def keep_changes(changes):
       results['changes'] = changes
@@ -129,7 +122,7 @@ class WaterfallStatusResource(HtmlResource):
     d = defer.gatherResults([ changes_d ] + brstatus_ds)
     def call_content(_):
       return self.content_with_db_data(results['changes'],
-          brcounts, request, ctx)
+                                       brcounts, request, ctx)
     d.addCallback(call_content)
     return d
 
@@ -179,7 +172,7 @@ class WaterfallStatusResource(HtmlResource):
     ctx['changes_url'] = request.childLink("../changes")
 
     bn = ctx['builders'] = []
-            
+
     for name in builder_names:
       builder = status.getBuilder(name)
       top_box = ITopBox(builder).getBox(request)
@@ -196,8 +189,11 @@ class WaterfallStatusResource(HtmlResource):
     ctx.update(self.phase2(request, change_names + builder_names, timestamps,
                            event_grid, source_events))
 
-    def with_args(req, remove_args=[], new_args=[], new_path=None):
-      # sigh, nevow makes this sort of manipulation easier
+    def with_args(req, remove_args=None, new_args=None, new_path=None):
+      if not remove_args:
+        remove_args = []
+      if not new_args:
+        new_args = []
       newargs = req.args.copy()
       for argname in remove_args:
         newargs[argname] = []
@@ -289,7 +285,7 @@ class WaterfallStatusResource(HtmlResource):
           # waterfall.Spacer(builder.Event), or changes.Change .
           # The show_events=False flag means we should hide
           # builder.Event .
-          if not show_events and isinstance(e, builder.Event):
+          if not show_events and isinstance(e, builder_status_module.Event):
             continue
 
           if isinstance(e, buildstep.BuildStepStatus):
@@ -354,7 +350,7 @@ class WaterfallStatusResource(HtmlResource):
           if debug:
             log.msg("pushing", event.getText(), event)
           events.append(event)
-          starts, finishes = event.getTimes()
+          starts, _ = event.getTimes()
           first_timestamp = earlier(first_timestamp, starts)
           event = get_event_from(source_generators[c])
         if debug:
@@ -399,7 +395,7 @@ class WaterfallStatusResource(HtmlResource):
 
     if not timestamps:
       return dict(grid=[], gridlen=0)
-    
+
     # first pass: figure out the height of the chunks, populate grid
     grid = []
     for i in range(1+len(source_names)):
@@ -413,8 +409,7 @@ class WaterfallStatusResource(HtmlResource):
       # chunkstrip is a horizontal strip of event blocks. Each block
       # is a vertical list of events, all for the same source.
       assert(len(chunkstrip) == len(source_names))
-      max_rows = reduce(lambda x, y: max(x, y),
-                       map(lambda x: len(x), chunkstrip))
+      max_rows = reduce(max, map(len, chunkstrip))
       for i in range(max_rows):
         if i != max_rows-1:
           grid[0].append(None)
@@ -473,13 +468,13 @@ class WaterfallStatusResource(HtmlResource):
           for i in range(2, len(strip)+1):
             # only merge empty boxes. Don't bubble commit boxes.
             if strip[-i] == None:
-              next = strip[-i+1]
-              assert(next)
-              if next:
-                #if not next.event:
-                if next.spacer:
+              next_box = strip[-i+1]
+              assert(next_box)
+              if next_box:
+                #if not next_box.event:
+                if next_box.spacer:
                   # bubble the empty box up
-                  strip[-i] = next
+                  strip[-i] = next_box
                   strip[-i].parms['rowspan'] += 1
                   strip[-i+1] = None
                 else:

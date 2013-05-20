@@ -1,26 +1,14 @@
-# This file is part of Buildbot.  Buildbot is free software: you can
-# redistribute it and/or modify it under the terms of the GNU General Public
-# License as published by the Free Software Foundation, version 2.
-#
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-# details.
-#
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software Foundation, Inc., 51
-# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-#
-# Copyright Buildbot Team Members
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
-import time
-import re
-import urllib
-from twisted.internet import defer
+""" Skia's override of buildbot.status.web.console """
+
+
 from buildbot import util
-from buildbot.status import builder
+from buildbot.changes import changes as changes_module
+from buildbot.status import builder as builder_status
 from buildbot.status.web.base import HtmlResource
-from buildbot.changes import changes
 from buildbot.status.web.console import ANYBRANCH, \
                                         CacheStatus, \
                                         DevBuild, \
@@ -30,6 +18,11 @@ from buildbot.status.web.console import ANYBRANCH, \
                                         getResultsClass, \
                                         TimeRevisionComparator, \
                                         IntegerRevisionComparator
+from twisted.internet import defer
+
+import re
+import time
+import urllib
 
 
 class ConsoleStatusResource(HtmlResource):
@@ -116,8 +109,10 @@ class ConsoleStatusResource(HtmlResource):
     chdicts = wfd.getResult()
 
     # convert those to Change instances
-    wfd = defer.waitForDeferred(defer.gatherResults([
-        changes.Change.fromChdict(master, chdict) for chdict in chdicts ]))
+    wfd = defer.waitForDeferred(
+      defer.gatherResults([
+        changes_module.Change.fromChdict(master, chdict)
+        for chdict in chdicts ]))
     yield wfd
     all_changes = wfd.getResult()
 
@@ -144,7 +139,7 @@ class ConsoleStatusResource(HtmlResource):
 
     for step in build.getSteps():
       (result, reason) = step.getResults()
-      if result == builder.FAILURE:
+      if result == builder_status.FAILURE:
         name = step.getName()
 
         # Remove html tags from the error text.
@@ -200,7 +195,7 @@ class ConsoleStatusResource(HtmlResource):
           got_rev = build.getProperty("revision")
         if not self.comparator.isValidRevision(got_rev):
           got_rev = -1
-      except:
+      except Exception:
         pass
 
       # We ignore all builds that don't have last revisions.
@@ -215,8 +210,7 @@ class ConsoleStatusResource(HtmlResource):
 
         # Now break if we have enough builds.
         current_revision = self.getChangeForBuild(build, revision)
-        if self.comparator.isRevisionEarlier(
-          dev_build, current_revision):
+        if self.comparator.isRevisionEarlier(dev_build, current_revision):
           break
 
       build = build.getPreviousBuild()
@@ -226,7 +220,7 @@ class ConsoleStatusResource(HtmlResource):
   def getChangeForBuild(self, build, revision):
     if not build or not build.getChanges(): # Forced build
       return DevBuild(revision, build, None)
-    
+
     for change in build.getChanges():
       if change.revision == revision:
         return change
@@ -324,12 +318,6 @@ class ConsoleStatusResource(HtmlResource):
     """Display a line the shows the current status for all the builders we
     care about."""
 
-    num_slaves = 0
-
-    # Get the number of builders.
-    for category in builder_list:
-      num_slaves += len(builder_list[category])
-
     # Get the categories, and order them alphabetically.
     categories = builder_list.keys()
     categories.sort()
@@ -347,7 +335,7 @@ class ConsoleStatusResource(HtmlResource):
         s["pageTitle"] = builder
         s["url"] = "./builders/%s" % urllib.quote(builder, safe='() ')
         s["builderName"] = builder
-        state, builds = status.getBuilder(builder).getState()
+        state, _ = status.getBuilder(builder).getState()
         # Check if it's offline, if so, the box is purple.
         if state == "offline":
           s["color"] = "offline"
@@ -371,9 +359,6 @@ class ConsoleStatusResource(HtmlResource):
     happened during these builds."""
 
     details = []
-    num_slaves = 0
-    for category in builder_list:
-      num_slaves += len(builder_list[category])
 
     # Sort the categories.
     categories = builder_list.keys()
@@ -479,11 +464,11 @@ class ConsoleStatusResource(HtmlResource):
 
     return (builds, details)
 
-  def filterRevisions(self, revisions, filter=None, max_revs=None):
+  def filterRevisions(self, revisions, rev_filter=None, max_revs=None):
     """Filter a set of revisions based on any number of filter criteria.
-    If specified, filter should be a dict with keys corresponding to
+    If specified, rev_filter should be a dict with keys corresponding to
     revision attributes, and values of 1+ strings"""
-    if not filter:
+    if not rev_filter:
       if max_revs is None:
         for rev in reversed(revisions):
           yield DevRevision(rev)
@@ -497,7 +482,7 @@ class ConsoleStatusResource(HtmlResource):
         if max_revs and index >= max_revs:
           break
         try:
-          for field, acceptable in filter.iteritems():
+          for field, acceptable in rev_filter.iteritems():
             if not hasattr(rev, field):
               raise DoesNotPassFilter
             if type(acceptable) in (str, unicode):
@@ -632,7 +617,7 @@ class ConsoleStatusResource(HtmlResource):
       if repository:
         rev_filter['repository'] = repository
       revisions = list(self.filterRevisions(all_changes, max_revs=num_revs,
-                                            filter=rev_filter))
+                                            rev_filter=rev_filter))
       debug_info["revision_final"] = len(revisions)
 
       # Fetch all the builds for all builders until we get the next build
