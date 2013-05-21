@@ -37,6 +37,7 @@ class RenderPictures(BuildStep):
     self.DoRenderPictures(['--bbh', 'grid', str(DEFAULT_TILE_X),
                            str(DEFAULT_TILE_X), '--clone', '1'])
     self.DoRenderPictures(['--bbh', 'rtree', '--clone', '2'])
+    self.DoRenderPictures(['--deferImageDecoding', '--useVolatileCache'])
 
 
 if '__main__' == __name__:
