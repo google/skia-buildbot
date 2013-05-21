@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+"""Runs all unit tests under this base directory."""
+
+import os
+import subprocess
+import sys
+import unittest
+
+
+BUILDBOT_PATH = os.path.dirname(os.path.abspath(__file__))
+
+
+# Add the buildbot directory to the path, in case the tests are being run from
+# elsewhere.
+sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
+                             'scripts'))
+
+
+NO_CRAWL_DIRS = [
+  'third_party',
+  '.svn',
+]
+
+
+def FilterDirectory(dirpath, filenames):
+  """ Determine whether to look for tests in the given directory.
+
+  dirpath: string; path of the directory in question.
+  filenames: list of strings; the files in the directory.
+  """
+  if not dirpath or not filenames:
+    return False
+  for no_crawl_dir in NO_CRAWL_DIRS:
+    if no_crawl_dir in dirpath:
+      return False
+  return True
+
+
+if __name__ == '__main__':
+  print 'Searching for tests.'
+  tests_to_run = []
+
+  for (dirpath, unused_dirnames, filenames) in os.walk(BUILDBOT_PATH):
+    if not FilterDirectory(dirpath, filenames):
+      continue
+    test_modules = [os.path.join(dirpath, filename) for filename in filenames
+                    if filename.endswith('_test.py')]
+    if not test_modules:
+      continue
+    tests_to_run.extend(test_modules)
+
+  print 'Found %d tests.' % len(tests_to_run)
+  errors = []
+  for test in tests_to_run:
+    env = os.environ.copy()
+    python_path = env.get('PYTHONPATH', '')
+    python_path = os.pathsep.join(
+        [python_path, os.path.join(BUILDBOT_PATH,
+                                   'third_party', 'chromium_buildbot',
+                                   'scripts')])
+    env['PYTHONPATH'] = python_path
+
+    proc = subprocess.Popen(['python', test], stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, env=env)
+    if proc.wait() != 0:
+      errors.append(proc.communicate()[0])
+  if errors:
+    for error in errors:
+      print error
+    print 'Failed %d of %d.' % (len(errors), len(test_modules))
+    sys.exit(1)
+  else:
+    print 'All tests succeeded.'

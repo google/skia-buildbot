@@ -111,9 +111,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
             description='UploadDoxygen')
 
     self._skia_cmd_obj.AddRunCommand(
-        command='python %s' % self.TargetPathJoin('tools', 'tests',
-            'factory_configuration', 'factory_configuration_test.py'),
-        description='BuildbotFactoryConfigTest',
+        command='python run_unittests', description='BuildbotSelfTests',
         workdir=self.TargetPathJoin(os.pardir, os.pardir, os.pardir, os.pardir))
 
     return self

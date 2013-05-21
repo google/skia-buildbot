@@ -8,14 +8,19 @@
 and compatible. """
 
 
-from config_private import SKIA_SVN_BASEURL
 import os
-import posixpath
+import sys
 import unittest
 
+buildbot_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                             os.pardir)
+sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
+                             'site_config'))
+from config_private import SKIA_SVN_BASEURL
 
-SLAVES_CFG = os.path.join('master', 'slaves.cfg')
-SLAVE_HOSTS_CFG = os.path.join('site_config', 'slave_hosts.cfg')
+
+SLAVES_CFG = os.path.join(buildbot_path, 'master', 'slaves.cfg')
+SLAVE_HOSTS_CFG = os.path.join(buildbot_path, 'site_config', 'slave_hosts.cfg')
 BUILDBOT_SVN_URL = SKIA_SVN_BASEURL + '/buildbot'
 
 
@@ -45,19 +50,6 @@ class SlaveHostsCfgTest(unittest.TestCase):
             found_slave = True
             break
         self.assertTrue(found_slave, 'Unknown slavename: %s' % slave)
-
-    # Verify that every slave in slaves.cfg has a slave host to match.
-    for slave in slaves:
-      found_host = False
-      for slave_host_data in slave_hosts.itervalues():
-        if slave['hostname'] in slave_host_data['slaves']:
-          found_host = True
-          break
-      self.assertTrue(found_host, '%s has no host machine! Verify the ' \
-                      'configurations in %s and %s' % (
-                          slave['hostname'],
-                          posixpath.join(BUILDBOT_SVN_URL, SLAVES_CFG),
-                          posixpath.join(BUILDBOT_SVN_URL, SLAVE_HOSTS_CFG)))
 
 
 if __name__ == '__main__':

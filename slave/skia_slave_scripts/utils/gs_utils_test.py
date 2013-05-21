@@ -12,14 +12,17 @@ import tempfile
 import time
 
 # Appending to PYTHONPATH to find common.
-sys.path.append(os.path.join(os.pardir, os.pardir, 'third_party',
-                             'chromium_buildbot', 'scripts'))
-sys.path.append(os.path.join(os.pardir, os.pardir, 'third_party',
-                             'chromium_buildbot', 'site_config'))
-from common import chromium_utils
+buildbot_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                             os.pardir, os.pardir, os.pardir)
+sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
+                             'scripts'))
+sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
+                             'scripts', 'common'))
+sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
+                             'site_config'))
 
+import chromium_utils
 from slave import slave_utils
-
 import gs_utils
 import unittest
 
@@ -53,25 +56,6 @@ class TestGSUtils(unittest.TestCase):
     def _MockGSUtilDownloadFile(src, dst):
       pass
 
-    class _MockFile():
-      def __init__(self, name, attributes):
-        self._name = name
-
-      def readlines(self):
-        return []
-
-      def read(self, arg1=None):
-        if self._name == os.path.join(tempfile.gettempdir(), 'TIMESTAMP'):
-          return TEST_TIMESTAMP
-        else:
-          return TEST_TIMESTAMP_2
-
-      def close(self):
-        pass
-
-      def write(self, string):
-        pass
-
     self._original_run_command = chromium_utils.RunCommand
     chromium_utils.RunCommand = _MockCommand
 
@@ -82,7 +66,6 @@ class TestGSUtils(unittest.TestCase):
     slave_utils.GSUtilDownloadFile = _MockGSUtilDownloadFile
 
     self._original_file = __builtin__.open
-    __builtin__.open = _MockFile
 
   def tearDown(self):
     chromium_utils.RunCommand = self._original_run_command
@@ -121,7 +104,28 @@ class TestGSUtils(unittest.TestCase):
     self._test_destdir = 'testdir'
 
     local_dir = tempfile.mkdtemp()  
- 
+
+    class _MockFile():
+      def __init__(self, name, attributes):
+        self._name = name
+
+      def readlines(self):
+        return []
+
+      def read(self, arg1=None):
+        if self._name == os.path.join(tempfile.gettempdir(), 'TIMESTAMP'):
+          return TEST_TIMESTAMP
+        else:
+          return TEST_TIMESTAMP_2
+
+      def close(self):
+        pass
+
+      def write(self, string):
+        pass
+
+    __builtin__.open = _MockFile
+
     # Will be false because the tmp directory will have no TIMESTAMP in it.
     # pylint: disable=W0212
     self.assertFalse(

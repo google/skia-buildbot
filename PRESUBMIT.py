@@ -20,10 +20,7 @@ def _RunBuildbotSelfTests(input_api, output_api):
   results = []
   success = True
   try:
-    proc = subprocess.Popen(['python',
-                             os.path.join('tools', 'tests',
-                                          'factory_configuration',
-                                          'factory_configuration_test.py')],
+    proc = subprocess.Popen(['python', 'run_unittests'],
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     success = proc.wait() == 0
     long_text = proc.communicate()[0]
