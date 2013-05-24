@@ -77,4 +77,4 @@ class ChromeOSBuildStep(BuildStep):
                                    skp_dir=prefix + 'skp',
                                    skp_perf_dir=prefix + 'skp_perf',
                                    skp_out_dir=prefix + 'skp_out',
-                                   tmp_dir='tmp_dir')
+                                   tmp_dir=prefix + 'tmp_dir')
