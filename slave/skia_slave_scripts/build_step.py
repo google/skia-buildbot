@@ -16,6 +16,7 @@ import traceback
 
 from playback_dirs import LocalSkpPlaybackDirs
 from playback_dirs import StorageSkpPlaybackDirs
+from utils import file_utils
 from utils import misc
 from utils import shell_utils
 
@@ -79,7 +80,7 @@ class BuildStepLogger(object):
 
 class DeviceDirs(object):
   def __init__(self, perf_data_dir, gm_dir, gm_expected_dir, resource_dir,
-               skp_dir, skp_perf_dir, skp_out_dir):
+               skp_dir, skp_perf_dir, skp_out_dir, tmp_dir):
     self._perf_data_dir = perf_data_dir
     self._gm_dir = gm_dir
     self._gm_expected_dir = gm_expected_dir
@@ -87,6 +88,7 @@ class DeviceDirs(object):
     self._skp_dir = skp_dir
     self._skp_perf_dir = skp_perf_dir
     self._skp_out_dir = skp_out_dir
+    self._tmp_dir = tmp_dir
 
   def GMDir(self):
     return  self._gm_dir
@@ -109,6 +111,9 @@ class DeviceDirs(object):
   def SKPOutDir(self):
     return self._skp_out_dir
 
+  def TmpDir(self):
+    return self._tmp_dir
+
 
 class BuildStep(multiprocessing.Process):
 
@@ -130,6 +135,9 @@ class BuildStep(multiprocessing.Process):
       raise ValueError('For builders who do not have attached devices, copying '
                        'from host to device is undefined and only allowed if '
                        'host_dir and device_dir are the same.')
+
+  def CreateCleanDirectory(self, directory):
+    file_utils.CreateCleanLocalDir(directory)
 
   def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT,
                no_output_timeout=DEFAULT_NO_OUTPUT_TIMEOUT):
@@ -215,7 +223,8 @@ class BuildStep(multiprocessing.Process):
         resource_dir=self._resource_dir,
         skp_dir=self._local_playback_dirs.PlaybackSkpDir(),
         skp_perf_dir=self._perf_data_dir,
-        skp_out_dir=self._local_playback_dirs.PlaybackGmActualDir())
+        skp_out_dir=self._local_playback_dirs.PlaybackGmActualDir(),
+        tmp_dir=os.path.join(os.pardir, 'tmp'))
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """

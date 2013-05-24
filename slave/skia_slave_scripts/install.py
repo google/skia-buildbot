@@ -45,6 +45,8 @@ class Install(BuildStep):
     self.CopyDirectoryContentsToDevice(self._resource_dir,
                                        self._device_dirs.ResourceDir())
 
+    # Initialize a clean scratch directory.
+    self.CreateCleanDirectory(self._device_dirs.TmpDir())
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(Install))

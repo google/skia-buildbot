@@ -52,12 +52,15 @@ class AndroidBuildStep(BuildStep):
     """ Copy a file to the device. """
     android_utils.RunADB(self._serial, ['push', src, dst])
 
+  def CreateCleanDirectory(self, directory):
+    self._RemoveDirectoryOnDevice(directory)
+    self._CreateDirectoryOnDevice(directory)
+
   def CopyDirectoryContentsToDevice(self, host_dir, device_dir):
     """ Copy the contents of a host-side directory to a clean directory on the
     device side.
     """
-    self._RemoveDirectoryOnDevice(device_dir)
-    self._CreateDirectoryOnDevice(device_dir)
+    self.CreateCleanDirectory(device_dir)
     file_list = os.listdir(host_dir)
     for f in file_list:
       if f == gs_utils.TIMESTAMP_COMPLETED_FILENAME:
@@ -86,4 +89,5 @@ class AndroidBuildStep(BuildStep):
                                    resource_dir=prefix + 'resources',
                                    skp_dir=prefix + 'skp',
                                    skp_perf_dir=prefix + 'skp_perf',
-                                   skp_out_dir=prefix + 'skp_out')
+                                   skp_out_dir=prefix + 'skp_out',
+                                   tmp_dir='tmp_dir')
