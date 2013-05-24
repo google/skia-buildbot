@@ -124,7 +124,32 @@ def HtmlResourceRender(self, request):
 
   ############################## Added by borenet ##############################
   status = self.getStatus(request)
-  ctx['all_builders'] = status.getBuilderNames()
+  all_builders = status.getBuilderNames()
+  all_full_category_names = set()
+  all_categories = set()
+  all_subcategories = set()
+  builders_by_cat_subcat = {}
+  for builder_name in all_builders:
+    category_full = status.getBuilder(builder_name).category or 'default'
+    all_full_category_names.add(category_full)
+    category_split = category_full.split('|')
+    category = category_split[0]
+    subcategory = category_split[1] if len(category_split) > 1 else 'default'
+    all_categories.add(category)
+    all_subcategories.add(subcategory)
+    if not builders_by_cat_subcat.get(category):
+      builders_by_cat_subcat[category] = {}
+    if not builders_by_cat_subcat[category].get(subcategory):
+      builders_by_cat_subcat[category][subcategory] = {}
+    if not builders_by_cat_subcat[category][subcategory].get(category_full):
+      builders_by_cat_subcat[category][subcategory][category_full] = []
+    builders_by_cat_subcat[category][subcategory][category_full].append(
+        builder_name)
+
+  ctx['all_full_category_names'] = sorted(list(all_full_category_names))
+  ctx['all_categories'] = sorted(list(all_categories))
+  ctx['all_subcategories'] = sorted(list(all_subcategories))
+  ctx['builders_by_cat_subcat'] = builders_by_cat_subcat
   ctx['skia_repo'] = config_private.SKIA_SVN_BASEURL
   ctx['try_repo'] = config_private.TRY_SVN_BASEURL
   ctx['internal_port'] = config_private.Master.Skia.master_port
@@ -285,7 +310,7 @@ def TryJobRietveldSubmitJobs(self, jobs):
           'Got %s for issue %s, updating Rietveld' % (e, job.get('issue')))
       for service in self.master.services:
         if service.__class__.__name__ == 'TryServerHttpStatusPush':
-          # pylint: disable=W0212
+          # pylint: disable=W0212,W0612
           build = {
             'properties': [
               ('buildername', job.get('builder'), None),
@@ -349,13 +374,16 @@ def TryJobRietveldConstructor(
     code_review_sites=None, project=None):
   try_job_base.TryJobBase.__init__(self, name, pools, properties,
                                    last_good_urls, code_review_sites)
+  # pylint: disable=W0212
   endpoint = self._GetRietveldEndPointForProject(code_review_sites, project)
 ############################### Added by rmistry ###############################
   # rmistry: Increased the polling time from 10 seconds to 1 min because 10
   # seconds is too short for us. The RietveldPoller stops working if the time is
   # too short.
+  # pylint: disable=W0212
   self._poller = try_job_rietveld._RietveldPoller(endpoint, interval=60)
 ################################################################################
+  # pylint: disable=W0212
   self._valid_users = try_job_rietveld._ValidUserPoller(interval=12 * 60 * 60)
   self._project = project
   log.msg('TryJobRietveld created, get_pending_endpoint=%s '

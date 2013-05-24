@@ -21,6 +21,7 @@ from buildbot.status.web.waterfall import earlier, \
 from twisted.python import log
 from twisted.internet import defer
 
+import builder_name_schema
 import locale
 import time
 import urllib
@@ -30,12 +31,17 @@ class WaterfallStatusResource(HtmlResource):
   """This builds the main status page, with the waterfall display, and
   all child pages."""
 
-  def __init__(self, categories=None, num_events=200, num_events_max=None):
+  def __init__(self, categories=None, num_events=200, num_events_max=None,
+               title='Waterfall', only_show_failures=False,
+               builder_filter=lambda x: not builder_name_schema.IsTrybot(x)):
     HtmlResource.__init__(self)
     self.categories = categories
     self.num_events = num_events
     self.num_events_max = num_events_max
     self.putChild("help", WaterfallHelp(categories))
+    self.BuilderFilter = builder_filter
+    self.title = title
+    self.only_show_failures = only_show_failures
 
   def getPageTitle(self, request):
     status = self.getStatus(request)
@@ -127,6 +133,7 @@ class WaterfallStatusResource(HtmlResource):
     return d
 
   def content_with_db_data(self, changes, brcounts, request, ctx):
+    ctx['title'] = self.title
     status = self.getStatus(request)
     ctx['refresh'] = self.get_reload_time(request)
 
@@ -135,6 +142,9 @@ class WaterfallStatusResource(HtmlResource):
     # to all defined Builders.
     all_builder_names = status.getBuilderNames(categories=self.categories)
     builders = [status.getBuilder(name) for name in all_builder_names]
+
+    # Apply a filter to the builders.
+    builders = [b for b in builders if self.BuilderFilter(b.name)]
 
     # but if the URL has one or more builder= arguments (or the old show=
     # argument, which is still accepted for backwards compatibility), we
@@ -152,16 +162,14 @@ class WaterfallStatusResource(HtmlResource):
     if show_categories:
       builders = [b for b in builders if b.category in show_categories]
 
-    # If the URL has the failures_only=true argument, we remove all the
-    # builders that are not currently red or won't be turning red at the end
-    # of their current run.
-    failures_only = request.args.get("failures_only", ["false"])[0]
-    if failures_only.lower() == "true":
+    # If we are only showing failures, we remove all the builders that are not
+    # currently red or won't be turning red at the end  of their current run.
+    if self.only_show_failures:
       builders = [b for b in builders if not self.isSuccess(b)]
 
     (change_names, builder_names, timestamps, event_grid, source_events) = \
         self.buildGrid(request, builders, changes)
-        
+
     # start the table: top-header material
     locale_enc = locale.getdefaultlocale()[1]
     if locale_enc is not None:
@@ -237,8 +245,6 @@ class WaterfallStatusResource(HtmlResource):
 
   def buildGrid(self, request, builders, changes):
     debug = False
-    # TODO: see if we can use a cached copy
-
     show_events = False
     if request.args.get("show_events", ["false"])[0].lower() == "true":
       show_events = True
@@ -411,7 +417,7 @@ class WaterfallStatusResource(HtmlResource):
       assert(len(chunkstrip) == len(source_names))
       max_rows = reduce(max, map(len, chunkstrip))
       for i in range(max_rows):
-        if i != max_rows-1:
+        if i != max_rows - 1:
           grid[0].append(None)
         else:
           # timestamp goes at the bottom of the chunk
@@ -449,8 +455,8 @@ class WaterfallStatusResource(HtmlResource):
       strip = grid[i]
       assert(len(strip) == gridlen)
       if strip[-1] == None:
-        if source_events[i-1]:
-          filler = IBox(source_events[i-1]).getBox(request)
+        if source_events[i - 1]:
+          filler = IBox(source_events[i - 1]).getBox(request)
         else:
           # this can happen if you delete part of the build history
           filler = Box(text=["?"], align="center")
@@ -465,10 +471,10 @@ class WaterfallStatusResource(HtmlResource):
       for col in range(len(grid)):
         strip = grid[col]
         if col == 1: # changes are handled differently
-          for i in range(2, len(strip)+1):
+          for i in range(2, len(strip) + 1):
             # only merge empty boxes. Don't bubble commit boxes.
             if strip[-i] == None:
-              next_box = strip[-i+1]
+              next_box = strip[-i + 1]
               assert(next_box)
               if next_box:
                 #if not next_box.event:
@@ -476,7 +482,7 @@ class WaterfallStatusResource(HtmlResource):
                   # bubble the empty box up
                   strip[-i] = next_box
                   strip[-i].parms['rowspan'] += 1
-                  strip[-i+1] = None
+                  strip[-i + 1] = None
                 else:
                   # we are above a commit box. Leave it
                   # be, and turn the current box into an
@@ -490,14 +496,14 @@ class WaterfallStatusResource(HtmlResource):
                 # Shouldn't happen
                 pass
         else:
-          for i in range(2, len(strip)+1):
+          for i in range(2, len(strip) + 1):
             # strip[-i] will go from next-to-last back to first
             if strip[-i] == None:
               # bubble previous item up
-              assert(strip[-i+1] != None)
-              strip[-i] = strip[-i+1]
+              assert(strip[-i + 1] != None)
+              strip[-i] = strip[-i + 1]
               strip[-i].parms['rowspan'] += 1
-              strip[-i+1] = None
+              strip[-i + 1] = None
             else:
               strip[-i].parms['rowspan'] = 1
 
@@ -509,3 +515,13 @@ class WaterfallStatusResource(HtmlResource):
 
     return dict(grid=grid, gridlen=gridlen, no_bubble=no_bubble, time=last_date)
 
+
+class TrybotStatusResource(WaterfallStatusResource):
+  def __init__(self, **kwargs):
+    WaterfallStatusResource.__init__(self, title='Trybot Waterfall',
+        builder_filter=builder_name_schema.IsTrybot, **kwargs)
+
+class FailureWaterfallStatusResource(WaterfallStatusResource):
+  def __init__(self, **kwargs):
+    WaterfallStatusResource.__init__(self, title='Currently Failing',
+                                     only_show_failures=True, **kwargs)

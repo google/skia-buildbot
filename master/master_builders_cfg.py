@@ -38,7 +38,7 @@ ARCH_TO_GYP_DEFINE = {
 
 
 def GetExtraFactoryArgs(compile_builder_info):
-  factory_type = compile_builder_info[8]
+  factory_type = compile_builder_info[7]
   if factory_type == android_factory.AndroidFactory:
     # AndroidFactory requires a "device" argument.
     return {'device': utils.AndroidModelToDevice(compile_builder_info[4])}
@@ -97,109 +97,99 @@ def Update(config, active_master, cfg):
   #
   #    OS          Compiler  Config     Arch     Extra Config   GYP_DEFS       WERR                Role    OS          Model         GPU            Extra Config   GM Subdir
   #
-  c = 'Linux'
   f = skia_factory.SkiaFactory
   p = skia_factory.TARGET_PLATFORM_LINUX
   builder_specs.update({
-      ('Ubuntu12', 'GCC',    'Debug',   'x86',    None,          None,         True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770')],
-      ('Ubuntu12', 'GCC',    'Release', 'x86',    None,          None,         True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
-                                                                                                  ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],
-      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', None,          None,         True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770')],
-      ('Ubuntu12', 'GCC',    'Release', 'x86_64', None,          None,         True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
-                                                                                                  ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],})
-  c = 'Linux-Special'
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',    None,          None,         True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770')],
+      ('Ubuntu12', 'GCC',    'Release', 'x86',    None,          None,         True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
+                                                                                               ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', None,          None,         True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770')],
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', None,          None,         True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
+                                                                                               ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],})
   builder_specs.update({
-      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       'skia_gpu=0', True,  c, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       None,          'base-shuttle_ubuntu12_ati5770')],
-      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       'skia_gpu=0', True,  c, f, p) : [],})
+      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       'skia_gpu=0', True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       None,          'base-shuttle_ubuntu12_ati5770')],
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       'skia_gpu=0', True,  f, p) : [],})
   f = nacl_factory.NaClFactory
   builder_specs.update({
-      ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,         True,  c, f, p) : [],
-      ('Ubuntu12', 'GCC',    'Release', 'NaCl',   None,          None,         True,  c, f, p) : [],})
-  c = 'Mac-10.6'
+      ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,         True,  f, p) : [],
+      ('Ubuntu12', 'GCC',    'Release', 'NaCl',   None,          None,         True,  f, p) : [],})
   f = skia_factory.SkiaFactory
   p = skia_factory.TARGET_PLATFORM_MAC
   builder_specs.update({
-      ('Mac10.6',  'GCC',    'Debug',   'x86',    None,          gyp_10_6,     True,  c, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini')],
-      ('Mac10.6',  'GCC',    'Release', 'x86',    None,          gyp_10_6,     True,  c, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini'),
-                                                                                                  ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],
-      ('Mac10.6',  'GCC',    'Debug',   'x86_64', None,          gyp_10_6,     False, c, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini')],
-      ('Mac10.6',  'GCC',    'Release', 'x86_64', None,          gyp_10_6,     False, c, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini'),
-                                                                                                  ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],})
-  c = 'Mac-10.7'
+      ('Mac10.6',  'GCC',    'Debug',   'x86',    None,          gyp_10_6,     True,  f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini')],
+      ('Mac10.6',  'GCC',    'Release', 'x86',    None,          gyp_10_6,     True,  f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini'),
+                                                                                               ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],
+      ('Mac10.6',  'GCC',    'Debug',   'x86_64', None,          gyp_10_6,     False, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini')],
+      ('Mac10.6',  'GCC',    'Release', 'x86_64', None,          gyp_10_6,     False, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini'),
+                                                                                               ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],})
   builder_specs.update({
-      ('Mac10.7',  'Clang',  'Debug',   'x86',    None,          gyp_10_7,     True,  c, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
-      ('Mac10.7',  'Clang',  'Release', 'x86',    None,          gyp_10_7,     True,  c, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
-                                                                                                  ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],
-      ('Mac10.7',  'Clang',  'Debug',   'x86_64', None,          gyp_10_7,     False, c, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
-      ('Mac10.7',  'Clang',  'Release', 'x86_64', None,          gyp_10_7,     False, c, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
-                                                                                                  ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],})
-  c = 'Mac-10.8'
+      ('Mac10.7',  'Clang',  'Debug',   'x86',    None,          gyp_10_7,     True,  f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
+      ('Mac10.7',  'Clang',  'Release', 'x86',    None,          gyp_10_7,     True,  f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
+                                                                                               ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],
+      ('Mac10.7',  'Clang',  'Debug',   'x86_64', None,          gyp_10_7,     False, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
+      ('Mac10.7',  'Clang',  'Release', 'x86_64', None,          gyp_10_7,     False, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
+                                                                                               ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],})
   builder_specs.update({
-      ('Mac10.8',  'Clang',  'Debug',   'x86',    None,          None,         True,  c, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8')],
-      ('Mac10.8',  'Clang',  'Release', 'x86',    None,          None,         True,  c, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
-                                                                                                  ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],
-      ('Mac10.8',  'Clang',  'Debug',   'x86_64', None,          None,         False, c, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8')],
-      ('Mac10.8',  'Clang',  'Release', 'x86_64', None,          None,         False, c, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
-                                                                                                  ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],})
-  c = 'Win7'
+      ('Mac10.8',  'Clang',  'Debug',   'x86',    None,          None,         True,  f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8')],
+      ('Mac10.8',  'Clang',  'Release', 'x86',    None,          None,         True,  f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
+                                                                                               ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],
+      ('Mac10.8',  'Clang',  'Debug',   'x86_64', None,          None,         False, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8')],
+      ('Mac10.8',  'Clang',  'Release', 'x86_64', None,          None,         False, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
+                                                                                               ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],})
   p = skia_factory.TARGET_PLATFORM_WIN32
   builder_specs.update({
-      ('Win7',     'VS2010', 'Debug',   'x86',    None,          gyp_win,      True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
-      ('Win7',     'VS2010', 'Release', 'x86',    None,          gyp_win,      True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
-                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      None,          None)],
-      ('Win7',     'VS2010', 'Debug',   'x86_64', None,          gyp_win,      False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
-      ('Win7',     'VS2010', 'Release', 'x86_64', None,          gyp_win,      False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
-                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      None,          None)],})
-  c = 'Win7-Special'
+      ('Win7',     'VS2010', 'Debug',   'x86',    None,          gyp_win,      True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
+      ('Win7',     'VS2010', 'Release', 'x86',    None,          gyp_win,      True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
+                                                                                               ('Perf', 'Win7',     'ShuttleA',   'HD2000',      None,          None)],
+      ('Win7',     'VS2010', 'Debug',   'x86_64', None,          gyp_win,      False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
+      ('Win7',     'VS2010', 'Release', 'x86_64', None,          gyp_win,      False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
+                                                                                               ('Perf', 'Win7',     'ShuttleA',   'HD2000',      None,          None)],})
   builder_specs.update({
-      ('Win7',     'VS2010', 'Debug',   'x86',    'ANGLE',       gyp_angle,    True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle')],
-      ('Win7',     'VS2010', 'Release', 'x86',    'ANGLE',       gyp_angle,    True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle'),
-                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       None)],
-      ('Win7',     'VS2010', 'Debug',   'x86',    'DirectWrite', gyp_dw,       False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite')],
-      ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', gyp_dw,       False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite'),
-                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', None)],})
-  c = 'Android'
+      ('Win7',     'VS2010', 'Debug',   'x86',    'ANGLE',       gyp_angle,    True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle')],
+      ('Win7',     'VS2010', 'Release', 'x86',    'ANGLE',       gyp_angle,    True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle'),
+                                                                                               ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       None)],
+      ('Win7',     'VS2010', 'Debug',   'x86',    'DirectWrite', gyp_dw,       False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite')],
+      ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', gyp_dw,       False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite'),
+                                                                                               ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', None)],})
   f = android_factory.AndroidFactory
   p = skia_factory.TARGET_PLATFORM_LINUX
   builder_specs.update({
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'NexusS',      None,         True,  c, f, p) : [('Test', 'Android',  'NexusS',     'SGX540',      None,          'base-android-nexus-s')],
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'NexusS',      None,         True,  c, f, p) : [('Test', 'Android',  'NexusS',     'SGX540',      None,          'base-android-nexus-s'),
-                                                                                                  ('Perf', 'Android',  'NexusS',     'SGX540',      None,          None)],
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus4',      None,         True,  c, f, p) : [('Test', 'Android',  'Nexus4',     'Adreno320',   None,          'base-android-nexus-4')],
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus4',      None,         True,  c, f, p) : [('Test', 'Android',  'Nexus4',     'Adreno320',   None,          'base-android-nexus-4'),
-                                                                                                  ('Perf', 'Android',  'Nexus4',     'Adreno320',   None,          None)],
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus7',      None,         True,  c, f, p) : [('Test', 'Android',  'Nexus7',     'Tegra3',      None,          'base-android-nexus-7')],
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus7',      None,         True,  c, f, p) : [('Test', 'Android',  'Nexus7',     'Tegra3',      None,          'base-android-nexus-7'),
-                                                                                                  ('Perf', 'Android',  'Nexus7',     'Tegra3',      None,          None)],
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus10',     None,         True,  c, f, p) : [('Test', 'Android',  'Nexus10',    'MaliT604',    None,          'base-android-nexus-10')],
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus10',     None,         True,  c, f, p) : [('Test', 'Android',  'Nexus10',    'MaliT604',    None,          'base-android-nexus-10'),
-                                                                                                  ('Perf', 'Android',  'Nexus10',    'MaliT604',    None,          None)],
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'GalaxyNexus', None,         True,  c, f, p) : [('Test', 'Android',  'GalaxyNexus','SGX540',      None,          'base-android-galaxy-nexus')],
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'GalaxyNexus', None,         True,  c, f, p) : [('Test', 'Android',  'GalaxyNexus','SGX540',      None,          'base-android-galaxy-nexus'),
-                                                                                                  ('Perf', 'Android',  'GalaxyNexus','SGX540',      None,          None)],
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Xoom',        None,         True,  c, f, p) : [('Test', 'Android',  'Xoom',       'Tegra2',      None,          'base-android-xoom')],
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Xoom',        None,         True,  c, f, p) : [('Test', 'Android',  'Xoom',       'Tegra2',      None,          'base-android-xoom'),
-                                                                                                  ('Perf', 'Android',  'Xoom',       'Tegra2',      None,          None)],
-      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'RazrI',       None,         True,  c, f, p) : [('Test', 'Android',  'RazrI',      'SGX540',      None,          'base-android-razr-i')],
-      ('Ubuntu12', 'GCC',    'Release', 'x86',    'RazrI',       None,         True,  c, f, p) : [('Test', 'Android',  'RazrI',      'SGX540',      None,          'base-android-razr-i'),
-                                                                                                  ('Perf', 'Android',  'RazrI',      'SGX540',      None,          None)],})
-  c = 'ChromeOS'
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'NexusS',      None,         True,  f, p) : [('Test', 'Android',  'NexusS',     'SGX540',      None,          'base-android-nexus-s')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'NexusS',      None,         True,  f, p) : [('Test', 'Android',  'NexusS',     'SGX540',      None,          'base-android-nexus-s'),
+                                                                                               ('Perf', 'Android',  'NexusS',     'SGX540',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus4',      None,         True,  f, p) : [('Test', 'Android',  'Nexus4',     'Adreno320',   None,          'base-android-nexus-4')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus4',      None,         True,  f, p) : [('Test', 'Android',  'Nexus4',     'Adreno320',   None,          'base-android-nexus-4'),
+                                                                                               ('Perf', 'Android',  'Nexus4',     'Adreno320',   None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus7',      None,         True,  f, p) : [('Test', 'Android',  'Nexus7',     'Tegra3',      None,          'base-android-nexus-7')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus7',      None,         True,  f, p) : [('Test', 'Android',  'Nexus7',     'Tegra3',      None,          'base-android-nexus-7'),
+                                                                                               ('Perf', 'Android',  'Nexus7',     'Tegra3',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus10',     None,         True,  f, p) : [('Test', 'Android',  'Nexus10',    'MaliT604',    None,          'base-android-nexus-10')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus10',     None,         True,  f, p) : [('Test', 'Android',  'Nexus10',    'MaliT604',    None,          'base-android-nexus-10'),
+                                                                                               ('Perf', 'Android',  'Nexus10',    'MaliT604',    None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'GalaxyNexus', None,         True,  f, p) : [('Test', 'Android',  'GalaxyNexus','SGX540',      None,          'base-android-galaxy-nexus')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'GalaxyNexus', None,         True,  f, p) : [('Test', 'Android',  'GalaxyNexus','SGX540',      None,          'base-android-galaxy-nexus'),
+                                                                                               ('Perf', 'Android',  'GalaxyNexus','SGX540',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Xoom',        None,         True,  f, p) : [('Test', 'Android',  'Xoom',       'Tegra2',      None,          'base-android-xoom')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Xoom',        None,         True,  f, p) : [('Test', 'Android',  'Xoom',       'Tegra2',      None,          'base-android-xoom'),
+                                                                                               ('Perf', 'Android',  'Xoom',       'Tegra2',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'RazrI',       None,         True,  f, p) : [('Test', 'Android',  'RazrI',      'SGX540',      None,          'base-android-razr-i')],
+      ('Ubuntu12', 'GCC',    'Release', 'x86',    'RazrI',       None,         True,  f, p) : [('Test', 'Android',  'RazrI',      'SGX540',      None,          'base-android-razr-i'),
+                                                                                               ('Perf', 'Android',  'RazrI',      'SGX540',      None,          None)],})
   f = chromeos_factory.ChromeOSFactory
   builder_specs.update({
-      ('Ubuntu12', 'GCC',    'Debug',   'x86',   'ChromeOS',    'skia_gpu=0', True,  c, f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],
-      ('Ubuntu12', 'GCC',    'Release', 'x86',   'ChromeOS',    'skia_gpu=0', True,  c, f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None),
-                                                                                                 ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],})
-  c = 'iOS'
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',   'ChromeOS',    'skia_gpu=0', True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],
+      ('Ubuntu12', 'GCC',    'Release', 'x86',   'ChromeOS',    'skia_gpu=0', True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None),
+                                                                                              ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],})
   f = ios_factory.iOSFactory
   p = skia_factory.TARGET_PLATFORM_MAC
   builder_specs.update({
-      ('Mac10.7',  'Clang',  'Debug',   'Arm7',   'iOS',         gyp_ios,      True,  c, f, p) : [],
-      ('Mac10.7',  'Clang',  'Release', 'Arm7',   'iOS',         gyp_ios,      True,  c, f, p) : [],})
+      ('Mac10.7',  'Clang',  'Debug',   'Arm7',   'iOS',        gyp_ios,      True,  f, p) : [],
+      ('Mac10.7',  'Clang',  'Release', 'Arm7',   'iOS',        gyp_ios,      True,  f, p) : [],})
 
   for compile_builder in sorted(builder_specs.keys()):
-    factory_type = compile_builder[8]
+    factory_type = compile_builder[7]
     factory_args = GetExtraFactoryArgs(compile_builder)
-    target_platform = compile_builder[9]
+    target_platform = compile_builder[8]
     try:
       arch_width_define = ARCH_TO_GYP_DEFINE[compile_builder[3]]
     except KeyError:
@@ -213,7 +203,6 @@ def Update(config, active_master, cfg):
           raise ValueError('Cannot define skia_arch_width; it is derived from '
                            'the provided arch type.')
         gyp_defines += ' ' + arch_width_define
-    defaults['category'] = utils.CATEGORY_BUILD
     utils.MakeCompileBuilderSet(
         helper=helper,
         scheduler='skia_rel',
@@ -228,7 +217,6 @@ def Update(config, active_master, cfg):
         factory_type=factory_type,
         target_platform=target_platform,
         **factory_args)
-    defaults['category'] = compile_builder[7]
     for dependent_builder in builder_specs[compile_builder]:
       role = dependent_builder[0]
       perf_output_basedir = None
@@ -258,8 +246,7 @@ def Update(config, active_master, cfg):
           **factory_args)
 
   # House Keeping
-  defaults['category'] = '  Housekeeping'
-  builder_factory_scheduler = [
+  housekeepers = [
     # The Percommit housekeeper
     (builder_name_schema.MakeBuilderName(role='Housekeeper',
                                          frequency='PerCommit'),
@@ -272,13 +259,13 @@ def Update(config, active_master, cfg):
      'skia_periodic'),
   ]
   # Add the corresponding trybot builders to the above list.
-  builder_factory_scheduler.extend([
+  housekeepers.extend([
       (builder + builder_name_schema.BUILDER_NAME_SEP + \
        builder_name_schema.TRYBOT_NAME_SUFFIX, factory,
        utils.TRY_SCHEDULERS_STR)
-      for (builder, factory, _scheduler) in builder_factory_scheduler])
+      for (builder, factory, _scheduler) in housekeepers])
 
-  for (builder_name, factory, scheduler) in builder_factory_scheduler:
+  for (builder_name, factory, scheduler) in housekeepers:
     helper.Builder(builder_name, 'f_%s' % builder_name, scheduler=scheduler)
     helper.Factory('f_%s' % builder_name,
       factory(

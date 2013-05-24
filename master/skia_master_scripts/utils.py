@@ -28,7 +28,6 @@ import builder_name_schema
 import config_private
 
 
-CATEGORY_BUILD = ' Build'
 TRY_SCHEDULER_SVN = 'skia_try_svn'
 TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
 TRY_SCHEDULERS = [TRY_SCHEDULER_SVN, TRY_SCHEDULER_RIETVELD]
@@ -284,10 +283,17 @@ class SkiaHelper(master_config.Helper):
 
   def Builder(self, name, factory, gatekeeper=None, scheduler=None,
               builddir=None, auto_reboot=False, notify_on_missing=False):
+    # Override the category with the first two parts of the builder name.
+    name_parts = name.split(builder_name_schema.BUILDER_NAME_SEP)
+    category = name_parts[0]
+    subcategory = name_parts[1] if len(name_parts) > 1 else 'default'
+    old_category = self._defaults.get('category')
+    self._defaults['category'] = '|'.join((category, subcategory))
     super(SkiaHelper, self).Builder(name=name, factory=factory,
                                     gatekeeper=gatekeeper, scheduler=scheduler,
                                     builddir=builddir, auto_reboot=auto_reboot,
                                     notify_on_missing=notify_on_missing)
+    self._defaults['category'] = old_category
 
   def AnyBranchScheduler(self, name, branches, treeStableTimer=60,
                          categories=None):

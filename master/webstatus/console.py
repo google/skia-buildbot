@@ -20,6 +20,7 @@ from buildbot.status.web.console import ANYBRANCH, \
                                         IntegerRevisionComparator
 from twisted.internet import defer
 
+import builder_name_schema
 import re
 import time
 import urllib
@@ -260,20 +261,46 @@ class ConsoleStatusResource(HtmlResource):
         continue
       if builders and builder_name not in builders:
         continue
+      if builder_name_schema.IsTrybot(builder_name):
+        continue
 
       # We want to display this builder.
-      category = builder.category or "default"
-      # Strip the category to keep only the text before the first |.
-      # This is a hack to support the chromium usecase where they have
-      # multiple categories for each slave. We use only the first one.
-      # TODO(nsylvain): Create another way to specify "display category"
-      #     in master.cfg.
-      category = category.split('|')[0]
+      category_full = builder.category or 'default'
+
+      category_parts = category_full.split('|')
+      category = category_parts[0]
+      if len(category_parts) > 1:
+        subcategory = category_parts[1]
+      else:
+        subcategory = 'default'
       if not builder_list.get(category):
-        builder_list[category] = []
+        builder_list[category] = {}
+      if not builder_list[category].get(subcategory):
+        builder_list[category][subcategory] = {}
+      if not builder_list[category][subcategory].get(category_full):
+        builder_list[category][subcategory][category_full] = []
+
+      b = {}
+      b["color"] = "notstarted"
+      b["pageTitle"] = builder
+      b["url"] = "./builders/%s" % urllib.quote(builder_name, safe='() ')
+      b["builderName"] = builder_name
+      state, _ = status.getBuilder(builder_name).getState()
+      # Check if it's offline, if so, the box is purple.
+      if state == "offline":
+        b["color"] = "offline"
+      else:
+        # If not offline, then display the result of the last
+        # finished build.
+        build = self.getHeadBuild(status.getBuilder(builder_name))
+        while build and not build.isFinished():
+          build = build.getPreviousBuild()
+
+        if build:
+          b["color"] = getResultsClass(build.getResults(), None, False)
 
       # Append this builder to the dictionary of builders.
-      builder_list[category].append(builder_name)
+      builder_list[category][subcategory][category_full].append(b)
       # Set the list of builds for this builder.
       all_builds[builder_name] = self.getBuildsForRevision(request,
                                                            builder,
@@ -289,178 +316,110 @@ class ConsoleStatusResource(HtmlResource):
   ## Display functions
   ##
 
-  def displayCategories(self, builder_list, debug_info):
-    """Display the top category line."""
-
-    count = 0
-    for category in builder_list:
-      count += len(builder_list[category])
-
-    categories = builder_list.keys()
-    categories.sort()
-
-    cs = []
-
-    for category in categories:
-      c = {}
-
-      c["name"] = category
-
-      # To be able to align the table correctly, we need to know
-      # what percentage of space this category will be taking. This is
-      # (#Builders in Category) / (#Builders Total) * 100.
-      c["size"] = (len(builder_list[category]) * 100) / count
-      cs.append(c)
-
-    return cs
-
-  def displaySlaveLine(self, status, builder_list, debug_info):
-    """Display a line the shows the current status for all the builders we
-    care about."""
-
-    # Get the categories, and order them alphabetically.
-    categories = builder_list.keys()
-    categories.sort()
-
-    slaves = {}
-
-    # For each category, we display each builder.
-    for category in categories:
-      slaves[category] = []
-      # For each builder in this category, we set the build info and we
-      # display the box.
-      for builder in builder_list[category]:
-        s = {}
-        s["color"] = "notstarted"
-        s["pageTitle"] = builder
-        s["url"] = "./builders/%s" % urllib.quote(builder, safe='() ')
-        s["builderName"] = builder
-        state, _ = status.getBuilder(builder).getState()
-        # Check if it's offline, if so, the box is purple.
-        if state == "offline":
-          s["color"] = "offline"
-        else:
-          # If not offline, then display the result of the last
-          # finished build.
-          build = self.getHeadBuild(status.getBuilder(builder))
-          while build and not build.isFinished():
-            build = build.getPreviousBuild()
-
-          if build:
-            s["color"] = getResultsClass(build.getResults(), None, False)
-
-        slaves[category].append(s)
-
-    return slaves
-
   def displayStatusLine(self, builder_list, all_builds, revision, debug_info):
     """Display the boxes that represent the status of each builder in the
     first build "revision" was in. Returns an HTML list of errors that
     happened during these builds."""
 
     details = []
-
-    # Sort the categories.
-    categories = builder_list.keys()
-    categories.sort()
-
     builds = {}
 
     # Display the boxes by category group.
-    for category in categories:
+    for category in builder_list:
+      for subcategory in builder_list[category]:
+        for category_full in builder_list[category][subcategory]:
+          for builder in builder_list[category][subcategory][category_full]:
+            builder_name = builder['builderName']
+            builds[builder_name] = []
+            introduced_in = None
+            first_not_in = None
 
-      builds[category] = []
+            cached_value = self.cache.get(builder_name, revision.revision)
+            if cached_value:
+              debug_info["from_cache"] += 1
 
-      # Display the boxes for each builder in this category.
-      for builder in builder_list[category]:
-        introduced_in = None
-        first_not_in = None
+              b = {}
+              b["url"] = cached_value.url
+              b["pageTitle"] = cached_value.pageTitle
+              b["color"] = cached_value.color
+              b["tag"] = cached_value.tag
+              b["builderName"] = cached_value.builderName
 
-        cached_value = self.cache.get(builder, revision.revision)
-        if cached_value:
-          debug_info["from_cache"] += 1
+              builds[builder_name].append(b)
 
-          b = {}
-          b["url"] = cached_value.url
-          b["pageTitle"] = cached_value.pageTitle
-          b["color"] = cached_value.color
-          b["tag"] = cached_value.tag
-          b["builderName"] = cached_value.builderName
+              if cached_value.details and cached_value.color == "failure":
+                details.append(cached_value.details)
 
-          builds[category].append(b)
+              continue
 
-          if cached_value.details and cached_value.color == "failure":
-            details.append(cached_value.details)
+            # Find the first build that does not include the revision.
+            for build in all_builds[builder_name]:
+              if self.comparator.isRevisionEarlier(build, revision):
+                first_not_in = build
+                break
+              else:
+                introduced_in = build
 
-          continue
+            # Get the results of the first build with the revision, and the
+            # first build that does not include the revision.
+            results = None
+            in_progress_results = None
+            previous_results = None
+            if introduced_in:
+              results = introduced_in.results
+              in_progress_results = introduced_in.inProgressResults
+            if first_not_in:
+              previous_results = first_not_in.results
 
-        # Find the first build that does not include the revision.
-        for build in all_builds[builder]:
-          if self.comparator.isRevisionEarlier(build, revision):
-            first_not_in = build
-            break
-          else:
-            introduced_in = build
+            is_running = False
+            if introduced_in and not introduced_in.isFinished:
+              is_running = True
 
-        # Get the results of the first build with the revision, and the
-        # first build that does not include the revision.
-        results = None
-        in_progress_results = None
-        previous_results = None
-        if introduced_in:
-          results = introduced_in.results
-          in_progress_results = introduced_in.inProgressResults
-        if first_not_in:
-          previous_results = first_not_in.results
+            url = "./waterfall"
+            page_title = builder_name
+            tag = ""
+            current_details = {}
+            if introduced_in:
+              current_details = introduced_in.details or ""
+              url = "./buildstatus?builder=%s&number=%s" % (
+                  urllib.quote(builder_name), introduced_in.number)
+              page_title += " "
+              page_title += urllib.quote(' '.join(introduced_in.text),
+                                         ' \n\\/:')
 
-        is_running = False
-        if introduced_in and not introduced_in.isFinished:
-          is_running = True
+              builder_strip = builder_name.replace(' ', '')
+              builder_strip = builder_strip.replace('(', '')
+              builder_strip = builder_strip.replace(')', '')
+              builder_strip = builder_strip.replace('.', '')
+              tag = "Tag%s%s" % (builder_strip, introduced_in.number)
 
-        url = "./waterfall"
-        page_title = builder
-        tag = ""
-        current_details = {}
-        if introduced_in:
-          current_details = introduced_in.details or ""
-          url = "./buildstatus?builder=%s&number=%s" % (urllib.quote(builder),
-                                                        introduced_in.number)
-          page_title += " "
-          page_title += urllib.quote(' '.join(introduced_in.text), ' \n\\/:')
+            if is_running:
+              page_title += ' ETA: %ds' % (introduced_in.eta or 0)
 
-          builder_strip = builder.replace(' ', '')
-          builder_strip = builder_strip.replace('(', '')
-          builder_strip = builder_strip.replace(')', '')
-          builder_strip = builder_strip.replace('.', '')
-          tag = "Tag%s%s" % (builder_strip, introduced_in.number)
+            results_class = getResultsClass(results, previous_results,
+                                            is_running, in_progress_results)
 
-        if is_running:
-          page_title += ' ETA: %ds' % (introduced_in.eta or 0)
+            b = {}
+            b["url"] = url
+            b["pageTitle"] = page_title
+            b["color"] = results_class
+            b["tag"] = tag
+            b["builderName"] = builder_name
 
-        results_class = getResultsClass(results, previous_results, is_running,
-                                        in_progress_results)
+            builds[builder_name].append(b)
 
-        b = {}
-        b["url"] = url
-        b["pageTitle"] = page_title
-        b["color"] = results_class
-        b["tag"] = tag
-        b["builderName"] = builder
+            # If the box is red, we add the explaination in the details
+            # section.
+            if current_details and results_class == "failure":
+              details.append(current_details)
 
-        builds[category].append(b)
-
-        # If the box is red, we add the explaination in the details
-        # section.
-        if current_details and results_class == "failure":
-          details.append(current_details)
-
-        # Add this box to the cache if it's completed so we don't have
-        # to compute it again.
-        if results_class not in ("running", "running_failure",
-                                 "notstarted"):
-          debug_info["added_blocks"] += 1
-          self.cache.insert(builder, revision.revision, results_class,
-                            page_title, current_details, url, tag)
+            # Add this box to the cache if it's completed so we don't have
+            # to compute it again.
+            if results_class not in ("running", "running_failure",
+                                     "notstarted"):
+              debug_info["added_blocks"] += 1
+              self.cache.insert(builder_name, revision.revision, results_class,
+                                page_title, current_details, url, tag)
 
     return (builds, details)
 
@@ -510,11 +469,9 @@ class ConsoleStatusResource(HtmlResource):
     subs["ANYBRANCH"] = ANYBRANCH
 
     if builder_list:
-      subs["categories"] = self.displayCategories(builder_list, debug_info)
-      subs['slaves'] = self.displaySlaveLine(status, builder_list,
-                                             debug_info)
+      subs['builders'] = builder_list
     else:
-      subs["categories"] = []
+      subs['builders'] = {}
 
     subs['revisions'] = []
 
@@ -540,7 +497,8 @@ class ConsoleStatusResource(HtmlResource):
       r['details'] = details
 
       # Calculate the td span for the comment and the details.
-      r["span"] = len(builder_list) + 2
+      r["span"] = sum ([len(builder_list[category]) \
+                        for category in builder_list]) + 2
 
       subs['revisions'].append(r)
 

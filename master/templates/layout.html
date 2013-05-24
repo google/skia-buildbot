@@ -35,30 +35,53 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     var internalport = "{{ internal_port }}";
     var externalport = "{{ external_port }}";
 
-    var all_builders = [
-      {% for b in all_builders %}
-      "{{ b }}",
+    var all_full_category_names = [
+      {% for c in all_full_category_names %}
+      "{{ c }}",
       {% endfor %}
     ];
-
-    // Categorize the builders.
-    var test_percommit_builders = [];
-    var perf_percommit_builders = [];
-    var all_percommit_builders = [];
-    var try_builders = [];
-    for (var i = 0; i < all_builders.length; ++i) {
-      var builder = all_builders[i];
-      if (builder.indexOf("Trybot") != -1) {
-        try_builders.push(builder)
-      } else {
-        all_percommit_builders.push(builder);
-        if (builder.indexOf("Perf") != -1) {
-          perf_percommit_builders.push(builder);
-        } else {
-          test_percommit_builders.push(builder);
+    var all_categories = [
+      {% for r in all_categories %}
+      "{{ r }}",
+      {% endfor %}
+    ];
+    var all_subcategories = [
+      {% for subcategory in all_subcategories %}
+      "{{ subcategory }}",
+      {% endfor %}
+    ];
+    var builders_by_cat_subcat = {
+      {% for category in builders_by_cat_subcat %}
+        "{{ category }}": {
+          {% for subcategory in builders_by_cat_subcat[category] %}
+            "{{ subcategory }}": [
+              {% for cat in builders_by_cat_subcat[category][subcategory] %}
+                "{{ cat }}",
+              {% endfor %}
+            ],
+          {% endfor %}
+        },
+      {% endfor %}
+    };
+    var default_categories = all_categories;
+    var default_subcategories = all_subcategories;
+    var default_categories_fullnames = [];
+    for (var i = 0; i < default_categories.length; ++i) {
+      var category = default_categories[i];
+      for (var j = 0; j < default_subcategories.length; ++j) {
+        var subcategory = default_subcategories[j];
+        var cats = builders_by_cat_subcat[category][subcategory];
+        if (cats && cats.length > 0) {
+          for (var k = 0; k < cats.length; ++k) {
+            default_categories_fullnames.push(cats[k]);
+          }
         }
       }
     }
+
+    var displaying_full_category_names = [];
+    var displaying_categories = [];
+    var displaying_subcategories = [];
 
     // Set an option on window.name
     function setOption(name, value) {
@@ -73,20 +96,75 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       return options[name];
     }
 
-    // Reload the page with the given set of builders and repository, making a
-    // note of which radio button to set. If make_historic is true, a new
+    // Reload the page with new categories. If make_historic is true, a new
     // history entry is added for this reload.
-    function reloadWithOptions(builders, repository, radio_id, make_historic) {
-      setOption("builders", builders);
-      setOption("repository", repository);
-      setOption("radio", radio_id);
+    function reloadWithOptions(make_historic, changed_chkbox) {
+      if (changed_chkbox) {
+        var split_name = changed_chkbox.split("_", 2);
+        if (document.getElementById(changed_chkbox).checked) {
+          // Add to categories
+          if (split_name[0] == "category") {
+            var category = split_name[1];
+            displaying_categories.push(category);
+            // If no subcategories under the new category are being displayed,
+            // display them all.
+            var add_all_subcats = true;
+            for (var subcategory in builders_by_cat_subcat[category]) {
+              if (displaying_subcategories.indexOf(subcategory) != -1) {
+                add_all_subcats = false;
+                break;
+              }
+            }
+            if (add_all_subcats) {
+              for (var subcategory in builders_by_cat_subcat[category]) {
+                displaying_subcategories.push(subcategory);
+              }
+            }
+          } else {
+            displaying_subcategories.push(split_name[1]);
+          }
+        } else {
+          // Remove from categories
+          if (split_name[0] == "category") {
+            for (var i = 0; i < displaying_categories.length; ++i) {
+              if (displaying_categories[i] == split_name[1]) {
+                displaying_categories.splice(i, 1);
+                break;
+              }
+            }
+          } else {
+            for (var i = 0; i < displaying_subcategories.length; ++i) {
+              if (displaying_subcategories[i] == split_name[1]) {
+                displaying_subcategories.splice(i, 1);
+                break;
+              }
+            }
+          }
+        }
+      }
 
-      // Reload the page with the desired list of builders.
+      var categories = [];
+      for (var i = 0; i < displaying_categories.length; ++i) {
+        var category = displaying_categories[i];
+        for (var j = 0; j < displaying_subcategories.length; ++j) {
+          var subcategory = displaying_subcategories[j];
+          var cats_to_add = builders_by_cat_subcat[category][subcategory];
+          if (cats_to_add) {
+            for (var k = 0; k < cats_to_add.length; ++k) {
+              categories.push(cats_to_add[k]);
+            }
+          }
+        }
+      }
+
+      setOption("categories", categories);
+
+      // Reload the page with the desired list of categories.
       var current_url = window.location.href;
       var bare_url = current_url.substring(0, current_url.indexOf("?"));
-      var new_url = bare_url + "?reload=" + reload + "&repository=" + repository
+      var new_url = bare_url + "?reload=" + reload + "&repository=" + skia_repo
                         + "&revs=" + default_revs + "&limit=" + rev_limit
-                        + getBuilderString(builders);
+                        + getCategoryString(categories);
       if (make_historic) {
         // This forces a new history entry.
         window.location = new_url;
@@ -135,41 +213,15 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       return args;
     }
 
-    // Return a string of the form: "&builder=x&builder=y..." with all of those
-    // contained in the given array of builders.
-    function getBuilderString(builders) {
-      var builder_string = "";
-      for (var i = 0; i < builders.length; i++) {
-        builder_string = builder_string.concat("&builder=", builders[i]);
+    // Return a string of the form: "&category=x&category=y..." with all of
+    // those contained in the given array of categories.
+    function getCategoryString(categories) {
+      var category_string = "";
+      for (var i = 0; i < categories.length; i++) {
+        category_string = category_string.concat("&category=", categories[i]);
       }
-      return builder_string;
+      return category_string;
     }
-
-    // Compare two lists. Returns true iff the lists are identical.
-    function listsAreIdentical(a, b) {
-      if (a.length != b.length) {
-        return false;
-      } else {
-        a.sort();
-        b.sort();
-        for (var i = 0; i < a.length; ++i) {
-          if (a[i] != b[i]) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
-
-    // Resize the spacer div.
-    function resizeSpacer() {
-      var spacer = document.getElementById("skia_spacer");
-      var header = document.getElementById("skia_header");
-      if (spacer && header) {
-        spacer.style.height = header.offsetHeight + "px";
-      }
-    }
-    window.onresize = resizeSpacer;
 
     // Scroll the header div with the page.
     function scrollHeader() {
@@ -180,68 +232,65 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     }
     document.onscroll = scrollHeader;
 
+    // Check the desired boxes.
+    function setCheckBoxes() {
+      for (var i = 0; i < displaying_categories.length; ++i) {
+        document.getElementById("category_" + displaying_categories[i]).checked = true;
+      }
+      for (var i = 0; i < displaying_subcategories.length; ++i) {
+        document.getElementById("subcategory_" + displaying_subcategories[i]).checked = true;
+      }
+    }
+
     // Function to call on page load. Reloads the page with appropriate options
     // if they are not already set.
     function init() {
-      // Resize the spacer div.
-      resizeSpacer();
-
       // Use the URL variables and window-attached options to determine which
-      // builders to display and reload the page if necessary.
+      // categories to display and reload the page if necessary.
       var args = parseArgs();
-      var currently_displaying = args["builder"];
-      if (currently_displaying &&
-          !Object.prototype.toString.call(currently_displaying) == "[object Array]") {
-        currently_displaying = [currently_displaying];
-      }
-      var desired_builders = getOption("builders");
-      var desired_radio;
-      var desired_repository;
-      if (!args["show"]) { // Do not reload pages with "show=".
-        if (!currently_displaying) {
-          if (desired_builders) {
-            reloadWithOptions(desired_builders, getOption("repository"), getOption("radio"), false);
-            return;
-          } else {
-            reloadWithOptions(all_percommit_builders, skia_repo, "radio_all", false);
-            return;
-          }
-        } else {
-          // If the list of builders is known, accept it as the desired list.
-          if (listsAreIdentical(currently_displaying, test_percommit_builders)) {
-            desired_radio = "radio_test";
-            desired_repository = skia_repo;
-          } else if (listsAreIdentical(currently_displaying, perf_percommit_builders)) {
-            desired_radio = "radio_perf";
-            desired_repository = skia_repo;
-          } else if (listsAreIdentical(currently_displaying, all_percommit_builders)) {
-            desired_radio = "radio_all";
-            desired_repository = skia_repo;
-          } else if (listsAreIdentical(currently_displaying, try_builders)) {
-            desired_radio = "radio_try";
-            desired_repository = try_repo;
-          } else {
-            // If the list of builders is not known, allow it, and use defaults for everything else.
-            desired_repository = skia_repo;
-          }
-        }
-        // Set options for the next page load.
-        desired_builders = currently_displaying;
-        setOption("radio", desired_radio);
-        setOption("builders", desired_builders);
-        setOption("repository", desired_repository);
+      displaying_full_category_names = args["category"];
+      if (displaying_full_category_names &&
+          !(Object.prototype.toString.call(displaying_full_category_names) == "[object Array]")) {
+        displaying_full_category_names = [displaying_full_category_names];
       }
 
-      // Check the correct radio buttons.
-      var all_input = document.getElementsByTagName("input");
-      for (var i = 0; i < all_input.length; ++i) {
-        if (all_input[i].type == "radio") {
-          all_input[i].checked = false;
+      // Some categories have spaces in the name. Filter them out.
+      var desired_categories = getOption("categories");
+      // Do not reload pages with "show=" or "builder=".
+      if (!args["show"] && !args["builder"]) {
+        var needs_to_reload = false;
+        if (!displaying_full_category_names) {
+          if (desired_categories && desired_categories.length > 0) {
+            displaying_full_category_names = desired_categories;
+            needs_to_reload = true;
+          } else {
+            displaying_full_category_names = default_categories_fullnames;
+            needs_to_reload = true;
+          }
+        }
+
+        for (var i = 0; i < displaying_full_category_names.length; ++i) {
+          var split_category = displaying_full_category_names[i].split("|");
+          var category = split_category[0];
+          if (displaying_categories.indexOf(category) == -1) {
+            displaying_categories.push(category);
+          }
+          var subcategory = split_category[1];
+          if (displaying_subcategories.indexOf(subcategory) == -1) {
+            displaying_subcategories.push(subcategory);
+          }
+        }
+
+        // Set options for the next page load.
+        setOption("categories", displaying_full_category_names);
+
+        if (needs_to_reload) {
+          reloadWithOptions(false);
+          return;
         }
       }
-      if (desired_radio) {
-        document.getElementById(desired_radio).checked = true;
-      }
+      // Check the correct checkboxes.
+      setCheckBoxes();
       var host = window.location.host;
       if (host.indexOf(internalport, host.length - internalport.length) !== -1) {
         document.getElementById("radio_internal").checked = true;
@@ -258,17 +307,17 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
   </head>
   <body class="interface">
     {% block header -%}
-    <div id="skia_header" style="position:fixed; top:5px;">
+    <div id="skia_header" style="top:5px;">
       <iframe id="skia-tree-status" width="100%" height="50" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
-      <div id="container" style="float: left; width: 100%; min-height: 65px;">
-        <div style="float:left; width:30%; position: relative; z-index:2;">
+      <div id="container" style="float: left; width: 100%;">
+        <div style="float:left; width:25%;">
         <form name="unused">
           <input type="radio" name="internal_external" value="external" id="radio_external" onClick="setInternalView(false);">External View<br>
           <input type="radio" name="internal_external" value="internal" id="radio_internal" onClick="setInternalView(true);">Internal View
         </form>
         </div>
   
-        <div id="links" style="float:right; max-width:32%; position: relative; z-index:2;">
+        <div id="links" style="float:right; width:25%;">
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skia-tree-status.appspot.com/" target="_blank">Skia Tree Status Manager</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/></li></ul></div>
@@ -282,36 +331,39 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skia-tree-status.appspot.com/sheriff" target="_blank">Sheriff Schedule</a><br/></li></ul></div>
         </div>
   
-        <div style="text-align:center; position: absolute; width: 100%; height: 65px; z-index:1;">
+        <div style="text-align:center; width: 50%; margin-left: 25%; margin-right: 25%">
           <div id="heading" style="font-size:3.5em; text-align:center;">Skia Buildbots</div>
           <div style="text-align:center;">
             <form name="unused2">
-              <nobr>
-              <input type="radio" id="radio_test" value="test" onClick="javascript:reloadWithOptions(test_percommit_builders, skia_repo, 'radio_test', true);">Non-Perf Builders
-              <input type="radio" id="radio_perf" value="perf" onClick="javascript:reloadWithOptions(perf_percommit_builders, skia_repo, 'radio_perf', true);">Perf Builders
-              <input type="radio" id="radio_all" value="all" onClick="javascript:reloadWithOptions(all_percommit_builders, skia_repo, 'radio_all', true);">All Builders
-              <input type="radio" id="radio_try" value="try" onClick="javascript:reloadWithOptions(try_builders, try_repo, 'radio_try', true);">Trybots
-              </nobr>
+              <p>
+              <b>Category:</b>
+              {% for r in all_categories %}
+              <nobr><input type="checkbox" id="category_{{ r }}" name="category_chkbox" value="{{ r }}" onClick="javascript:reloadWithOptions(true, 'category_{{ r }}');">{{ r|trim }}</nobr>
+              {% endfor %}
+              </p>
+              <p>
+              <b>Subcategory:</b>
+              {% for subcategory in all_subcategories %}
+              <nobr><input type="checkbox" id="subcategory_{{ subcategory }}" name="subcategory_chkbox" value="{{ subcategory }}" onClick="javascript:reloadWithOptions(true, 'subcategory_{{ subcategory }}');">{{ subcategory|trim }}</nobr>
+              {% endfor %}
+              </p>
             </form>
           </div>
         </div>
       </div>
-  
+
       <div class="header">
           <a href="{{ path_to_root or '.' }}">Home</a> -
           <a href="{{ path_to_root }}waterfall">Waterfall</a>
-          <a href="{{ path_to_root }}grid">Grid</a>
-          <a href="{{ path_to_root }}tgrid">T-Grid</a>
           <a href="{{ path_to_root }}console">Console</a>
           <a href="{{ path_to_root }}builders">Builders</a>
-          <a href="{{ path_to_root }}one_line_per_build">Recent Builds</a>
-          <a href="{{ path_to_root }}buildslaves">Buildslaves</a>
-          <a href="{{ path_to_root }}changes">Changesources</a> -
+          <a href="{{ path_to_root }}buildslaves">Buildslaves</a> -
+          <a href="{{ path_to_root }}failures">Currently Failing</a> -
+          <a href="{{ path_to_root }}trybots">Trybot Waterfall</a> -
           <a href="{{ path_to_root }}json/help">JSON API</a> -
           <a href="{{ path_to_root }}about">About</a>
       </div>
     </div>
-    <div id="skia_spacer" style="clear:both"></div>
     <script language="JavaScript">
       init();
     </script>
