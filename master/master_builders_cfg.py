@@ -145,17 +145,17 @@ def Update(config, active_master, cfg):
       ('Win7',     'VS2010', 'Release', 'x86_64', None,          gyp_win,      False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
                                                                                                ('Perf', 'Win7',     'ShuttleA',   'HD2000',      None,          None)],})
   builder_specs.update({
-      ('Win7',     'VS2010', 'Debug',   'x86',    'ANGLE',       gyp_angle,    True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle')],
-      ('Win7',     'VS2010', 'Release', 'x86',    'ANGLE',       gyp_angle,    True,  c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle'),
-                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       None)],
-      ('Win7',     'VS2010', 'Debug',   'x86',    'DirectWrite', gyp_dw,       False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite')],
-      ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', gyp_dw,       False, c, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite'),
-                                                                                                  ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', None)],})
+      ('Win7',     'VS2010', 'Debug',   'x86',    'ANGLE',       gyp_angle,    True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle')],
+      ('Win7',     'VS2010', 'Release', 'x86',    'ANGLE',       gyp_angle,    True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle'),
+                                                                                               ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       None)],
+      ('Win7',     'VS2010', 'Debug',   'x86',    'DirectWrite', gyp_dw,       False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite')],
+      ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', gyp_dw,       False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite'),
+                                                                                               ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', None)],})
   builder_specs.update({
-      ('Win8',     'VS2012', 'Debug',   'x86',    None,          gyp_win,      True,  c, f, p) : [],
-      ('Win8',     'VS2012', 'Release', 'x86',    None,          gyp_win,      True,  c, f, p) : [],
-      ('Win8',     'VS2012', 'Debug',   'x86_64', None,          gyp_win,      False, c, f, p) : [],
-      ('Win8',     'VS2012', 'Release', 'x86_64', None,          gyp_win,      False, c, f, p) : [],})
+      ('Win8',     'VS2012', 'Debug',   'x86',    None,          gyp_win,      True,  f, p) : [],
+      ('Win8',     'VS2012', 'Release', 'x86',    None,          gyp_win,      True,  f, p) : [],
+      ('Win8',     'VS2012', 'Debug',   'x86_64', None,          gyp_win,      False, f, p) : [],
+      ('Win8',     'VS2012', 'Release', 'x86_64', None,          gyp_win,      False, f, p) : [],})
   f = android_factory.AndroidFactory
   p = skia_factory.TARGET_PLATFORM_LINUX
   builder_specs.update({
