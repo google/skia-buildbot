@@ -11,9 +11,9 @@ This module does the following steps:
 * Writes out multiple JSON page sets from the CSV file for the specified number
   of webpages.
 
-Note: Blacklisted webpages (broken or spyware filled webpages) will not be added
-to the outputted JSON page_set. If you request 100 webpages and 5 of them are
-blacklisted then the page_set will only contain 95 webpages.
+Note: Blacklisted webpages will not be added to the outputted JSON page_set. If
+you request 100 webpages and 5 of them are blacklisted then the page_set will
+only contain 95 webpages.
 
 Sample Usage:
   python create_page_set.py -n 10000
@@ -45,7 +45,6 @@ TOP1M_CSV_ZIP_LOCATION = (
     'http://s3.amazonaws.com/alexa-static/%s.zip' % TOP1M_CSV_FILE_NAME)
 ALEXA_PREFIX = 'alexa'
 
-
 # Webpages that need more loading time.
 slow_webpages = {
     'gavick.com': 10.0,
@@ -60,47 +59,98 @@ mapped_webpages = {
 if '__main__' == __name__:
   option_parser = optparse.OptionParser()
   option_parser.add_option(
-      '-n', '--number',
-      help='Specifies how many top webpages should be added to the page_set.',
+      '-s', '--start_number',
+      help='Specifies where to start with when adding the top webpages to the '
+           'page_set.',
+      default='1')
+  option_parser.add_option(
+      '-e', '--end_number',
+      help='Specifies where to end with when adding the top webpages to the '
+           'page_set',
       default='10000')
+  option_parser.add_option(
+      '-b', '--blacklist',
+      help='Location of a black_list file which specifies which webpages '
+           'should not be converted into page_sets.',
+      default='blacklist')
+  option_parser.add_option(
+      '-c', '--csv_file',
+      help='Location of the alexa top 1M CSV file. This script downloads it '
+           'from the internet if it is not specified.',
+      default=None)
   options, unused_args = option_parser.parse_args()
 
-  # Download the zip file in member and extract its contents.
-  usock = urllib.urlopen(TOP1M_CSV_ZIP_LOCATION)
-  myzipfile = zipfile.ZipFile(StringIO(usock.read()))
-  csv_contents = myzipfile.open(TOP1M_CSV_FILE_NAME).readlines()
+  # Validate arguments.
+  if int(options.start_number) <= 0:
+    raise Exception('The -s/--start_number must be greater than 0')
+  if int(options.start_number) > int(options.end_number):
+    raise Exception('The -s/--start_number must be less than or equal to '
+                    '-e/--end_number')
 
-  # Validate options.number
-  if int(options.number) > len(csv_contents):
-    raise Exception('Please specify -n/--number less than or equal to %s' %
+  if options.csv_file:
+    csv_contents = open(options.csv_file).readlines()
+  else:
+    # Download the zip file in member and extract its contents.
+    usock = urllib.urlopen(TOP1M_CSV_ZIP_LOCATION)
+    myzipfile = zipfile.ZipFile(StringIO(usock.read()))
+    csv_contents = myzipfile.open(TOP1M_CSV_FILE_NAME).readlines()
+
+  # Validate options.end_number.
+  if int(options.end_number) > len(csv_contents):
+    raise Exception('Please specify -e/--end_number less than or equal to %s' %
               len(csv_contents))
 
   # Populate the JSON dictionary.
+  pages = []
   json_dict = {
       '_comment': 'Generated on %s by %s using create_page_set.py' % (
           datetime.now(), getpass.getuser()),
-      'description': 'Top %s Alexa global.' % options.number,
+      'description': 'Top %s-%s Alexa global.' % (options.start_number,
+                                                  options.end_number),
+      'archive_data_file': os.path.join(
+          '/', 'home', 'default', 'storage', 'webpages_archive'
+          'alexa%s-%s.json' % (options.start_number, options.end_number)),
+      'pages': pages,
+      'smoothness': { 'action': 'wait', 'condition': 'duration', 'seconds': 0},
+      # The below scrolls to the bottom of the webpage before it archives or
+      # runs the perf test. It is too slow for the 1M webpages but would be
+      # perfect for the few SKPs we use in the buildbots.
+      # 'smoothness': { 'action': 'scroll'},
+      'user_agent_type': 'desktop',
   }
-  for index in xrange(0, int(options.number)):
+
+  blacklisted_webpages = (open(options.blacklist).readlines()
+                          if options.blacklist else [])
+
+  for index in xrange(int(options.start_number) - 1, int(options.end_number)):
     line = csv_contents[index]
     (unused_number, website) = line.strip().split(',')
     website_filename = '%s%s_%s_desktop' % (
         ALEXA_PREFIX, index + 1, website.replace('.', '-').replace('/', '-'))
-    website_specific_info = {
-        'archive_path': os.path.join(os.pardir, os.pardir, 'slave',
-                                     'skia_slave_scripts', 'page_sets', 'data',
-                                     '%s.wpr' % website_filename),
-        'pages': [{
-            # fully qualified CSV websites.
-            'url': 'http://%s' % mapped_webpages.get(website, website),
-            'wait_time_after_navigate': slow_webpages.get(website, 1.0),
-            'why': '#%s in Alexa global.' % (index + 1)
-         }]
-    }
-    json_dict.update(website_specific_info)
+
+    skip_webpage = False
+    for blacklisted_webpage in blacklisted_webpages:
+      if blacklisted_webpage.rstrip() in website_filename:
+        skip_webpage = True
+        break
+    if skip_webpage:
+      print 'Skipping %s because it is in the provided blacklist file!' % (
+          website_filename)
+      continue
+    pages.append({
+        # fully qualified CSV websites.
+        'url': 'http://%s' % mapped_webpages.get(website, website),
+        'wait_time_after_navigate': slow_webpages.get(website, 1.0),
+        'why': '#%s in Alexa global.' % (index + 1)
+        })
 
     # Output the JSON dictionary to a file.
-    with open(os.path.join('page_sets', '%s.json' % website_filename),
-              'w') as outfile:
-      json.dump(json_dict, outfile, indent=4)
+    try:
+      with open(os.path.join('page_sets', 'alexa%s-%s.json' % (
+                    options.start_number, options.end_number)),
+                'w') as outfile:
+        json.dump(json_dict, outfile, indent=4)
+    except Exception, e:
+      print 'Skipping %s because it failed with Exception: %s' % (
+          website_filename, e)
 
