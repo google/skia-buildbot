@@ -108,7 +108,7 @@ if '__main__' == __name__:
       'description': 'Top %s-%s Alexa global.' % (options.start_number,
                                                   options.end_number),
       'archive_data_file': os.path.join(
-          '/', 'home', 'default', 'storage', 'webpages_archive'
+          '/', 'home', 'default', 'storage', 'webpages_archive',
           'alexa%s-%s.json' % (options.start_number, options.end_number)),
       'pages': pages,
       'smoothness': { 'action': 'wait', 'condition': 'duration', 'seconds': 0},
