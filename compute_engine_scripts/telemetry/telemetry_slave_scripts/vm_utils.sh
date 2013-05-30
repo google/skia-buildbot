@@ -12,6 +12,7 @@
 # Functions which can be called by the telemetry slave scripts to create or
 # delete current_work files.
 function create_worker_file {
+  mkdir -p /home/default/storage/current_work/
   touch /home/default/storage/current_work/$1
 }
 function delete_worker_file {

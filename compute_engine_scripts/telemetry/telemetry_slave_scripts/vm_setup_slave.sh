@@ -56,10 +56,6 @@ GOOGLE_TRACK=stable
 cd /home/default/skia-repo/buildbot
 /home/default/depot_tools/gclient sync
 
-# Create a current_work directory which will be populated by what the worker is
-# currently executing.
-mkdir -p /home/default/storage/current_work/
-
 # Start an Xvfb display on :0.
 sudo Xvfb :0 -screen 0 1280x1024x24 &
 cd third_party/chromium_trunk/
