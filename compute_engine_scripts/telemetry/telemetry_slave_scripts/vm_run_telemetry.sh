@@ -51,9 +51,13 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   cd /home/default/storage/skps
   SKP_LIST=`find . -mindepth 1 -maxdepth 1 -type d  \( ! -iname ".*" \) | sed 's|^\./||g'`
   for SKP in $SKP_LIST; do
-    gsutil cp /home/default/storage/skps/$SKP/layer_0.skp \
+    mv /home/default/storage/skps/$SKP/layer_0.skp /home/default/storage/skps/$SKP.skp
+    gsutil cp /home/default/storage/skps/$SKP.skp \
       gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$SKP.skp
   done
+  # Leave only SKP files in the skps directory.
+  cd /home/default/storage/skps
+  rm -rf */
 fi
 
 delete_worker_file $WORKER_FILE
