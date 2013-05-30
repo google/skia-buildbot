@@ -1,0 +1,18 @@
+# Compiled python files.
+*.pyc
+# Files open in vi.
+*.swp
+# Files created when running as a master.
+master/Build-*
+master/Housekeeper*
+master/http*
+master/Perf-*
+master/state.sqlite
+master/Test-*
+master/twistd*
+# Third party files pulled by buildbot.
+third_party/chromium_buildbot/*
+third_party/chromium_trunk/*
+third_party/depot_tools/*
+third_party/src/*
+tools/tests/factory_configuration/actual/
