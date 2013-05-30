@@ -10,6 +10,9 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
+# Update buildbot.
+gclient sync
+
 # Update trunk.
 cd ../../../../trunk/
 gclient sync
