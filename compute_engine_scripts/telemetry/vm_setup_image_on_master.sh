@@ -39,7 +39,8 @@ $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
   "libpci-dev libgcrypt11-dev libgnome-keyring-dev libudev-dev libpulse-dev " \
   "libcups2-dev libelf-dev gperf libbison-dev ia32-libs libxtst-dev libasound2-dev libxss-dev " \
   "xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrillic xserver-xorg-core " \
-  "ttf-.*-fonts fonts-nanum fonts-tlwg-* fonts-kacst.* fonts-thai-tlwg;" \
+  "ttf-.*-fonts fonts-nanum fonts-tlwg-* fonts-kacst.* fonts-thai-tlwg libgl1-mesa-dev " \
+  "libgif-dev libglu-dev;" \
   || FAILED="$FAILED InstallPackages"
 echo
 
