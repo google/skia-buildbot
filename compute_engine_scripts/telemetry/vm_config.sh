@@ -28,3 +28,6 @@ PROJECT_USER="default"
 
 GCOMPUTE_CMD="$GCUTIL --cluster=prod --project=$PROJECT_ID"
 GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD --zone=$ZONE ssh --ssh_user=$PROJECT_USER"
+
+# Slave activity names.
+RECORD_WPR_ACTIVITY="RECORD_WPR"

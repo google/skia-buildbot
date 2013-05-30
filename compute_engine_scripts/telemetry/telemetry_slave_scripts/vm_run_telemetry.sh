@@ -10,9 +10,17 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -ne 4 ]; then
+if [ $# -ne 5 ]; then
+  echo
   echo "Usage: `basename $0` 1 skpicture_printer alexa1-10000.json" \
-    " --skp-outdir=/home/default/storage/skps/"
+    "--skp-outdir=/home/default/storage/skps/ rmistry"
+  echo
+  echo "The first argument is the slave_num of this telemetry slave."
+  echo "The second argument is the telemetry benchmark to run on this slave."
+  echo "The third argument is the page_set that should be processed."
+  echo "The fourth argument are the extra arguments that the benchmark needs."
+  echo "The fifth argument is the user who triggered the run."
+  echo
   exit 1
 fi
 
@@ -20,6 +28,13 @@ SLAVE_NUM=$1
 TELEMETRY_BENCHMARK=$2
 PAGE_SET_FILENAME=$3
 EXTRA_ARGS=$4
+REQUESTOR=$5
+
+source vm_utils.sh
+
+TIMESTAMP=`date "+%m-%d-%Y.%T"`
+WORKER_FILE=$TELEMETRY_BENCHMARK.$REQUESTOR.$TIMESTAMP
+create_worker_file $WORKER_FILE
 
 source vm_setup_slave.sh
 
@@ -41,3 +56,4 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   done
 fi
 
+delete_worker_file $WORKER_FILE

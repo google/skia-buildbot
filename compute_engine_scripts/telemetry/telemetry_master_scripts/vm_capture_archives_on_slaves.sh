@@ -11,9 +11,22 @@
 # Author: rmistry@google.com (Ravi Mistry)
 
 source ../vm_config.sh
+source vm_utils.sh
 
 # Update buildbot.
 gclient sync
+
+# Check if any slave is in the process of capturing archives.
+for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
+  result=$(is_slave_currently_executing $SLAVE_NUM $RECORD_WPR_ACTIVITY)
+  if $result; then
+    echo
+    echo "skia-telemetry-worker$SLAVE_NUM is currently capturing archives!"
+    echo "Please rerun this script after it is done."
+    echo
+    exit 1
+  fi
+done
 
 NUM_PAGESETS=$(($NUM_WEBPAGES/$NUM_SLAVES))
 START=1
