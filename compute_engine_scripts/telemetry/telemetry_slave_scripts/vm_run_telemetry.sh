@@ -56,8 +56,7 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
       gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$SKP.skp
   done
   # Leave only SKP files in the skps directory.
-  cd /home/default/storage/skps
-  rm -rf */
+  rm -rf /home/default/storage/skps/*/
 fi
 
 delete_worker_file $WORKER_FILE
