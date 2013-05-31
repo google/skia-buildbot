@@ -33,6 +33,7 @@ class RenderPictures(BuildStep):
     self.RunFlavoredCmd('render_pictures', cmd)
 
   def _Run(self):
+    return
     self.DoRenderPictures([])
     self.DoRenderPictures(['--bbh', 'grid', str(DEFAULT_TILE_X),
                            str(DEFAULT_TILE_X), '--clone', '1'])
