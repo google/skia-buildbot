@@ -34,7 +34,6 @@ class BenchPictures(BuildStep):
     self.RunFlavoredCmd('bench_pictures', arguments)
 
   def _Run(self):
-    return
     # Determine which configs to run
     if self._configuration == 'Debug':
       cfg_name = 'debug'

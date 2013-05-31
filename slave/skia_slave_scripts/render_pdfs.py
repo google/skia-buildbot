@@ -13,7 +13,6 @@ import sys
 
 class RenderPdfs(BuildStep):
   def _Run(self):
-    return
     self.RunFlavoredCmd('render_pdfs', [self._device_dirs.SKPDir()])
 
 if '__main__' == __name__:
