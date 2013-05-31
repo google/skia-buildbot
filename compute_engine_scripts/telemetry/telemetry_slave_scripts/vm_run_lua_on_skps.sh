@@ -37,13 +37,13 @@ cd /home/default/skia-repo/trunk
 gclient sync
 
 # Build tools.
-make tools BUILDTYPE=Debug
+GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
 
 # Copy the lua script from Google Storage to /tmp.
 gsutil cp $LUA_SCRIPT_GS_LOCATION /tmp/$LUA_FILE
 
 # Run lua_pictures.
-cd out/Debug
+cd out/Release
 ./lua_pictures --skpPath /home/default/storage/skps/ --luaFile /tmp/$LUA_FILE &> /tmp/$LUA_OUTPUT_FILE
 
 # Copy the output of the lua script to Google Storage.
