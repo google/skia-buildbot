@@ -10,18 +10,19 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -ne 2 ]; then
+import time
+
+
+if [ $# -ne 1 ]; then
   echo
-  echo "Usage: `basename $0` 1 alexa1-10000.json"
+  echo "Usage: `basename $0` 1"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
-  echo "The second argument is the page_set that should be processed."
   echo
   exit 1
 fi
 
 SLAVE_NUM=$1
-PAGE_SET_FILENAME=$2
 
 source ../vm_config.sh
 source vm_utils.sh
@@ -34,8 +35,14 @@ source vm_setup_slave.sh
 mkdir -p /home/default/storage/webpages_archive/
 rm -rf /home/default/storage/webpages_archive/*
 
-DISPLAY=:0 tools/perf/record_wpr --browser=system \
-  /home/default/storage/page_sets/$PAGE_SET_FILENAME
+for page_set in /home/default/storage/page_sets/*; do
+  if [[ -f $page_set ]]; then
+    echo "========== Processing $page_set =========="
+    DISPLAY=:0 tools/perf/record_wpr --browser=system $page_set
+    echo "========== Done with $page_set =========="
+    time.sleep(2 * 60)
+  fi
+done
 
 # Copy the webpages_archive directory to Google Storage.
 gsutil rm -R gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/*

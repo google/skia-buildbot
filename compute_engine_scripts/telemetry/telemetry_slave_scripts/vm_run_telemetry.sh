@@ -10,25 +10,26 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -ne 5 ]; then
+import time
+
+
+if [ $# -ne 4 ]; then
   echo
-  echo "Usage: `basename $0` 1 skpicture_printer alexa1-10000.json" \
+  echo "Usage: `basename $0` 1 skpicture_printer" \
     "--skp-outdir=/home/default/storage/skps/ rmistry"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
   echo "The second argument is the telemetry benchmark to run on this slave."
-  echo "The third argument is the page_set that should be processed."
-  echo "The fourth argument are the extra arguments that the benchmark needs."
-  echo "The fifth argument is the user who triggered the run."
+  echo "The third argument are the extra arguments that the benchmark needs."
+  echo "The fourth argument is the user who triggered the run."
   echo
   exit 1
 fi
 
 SLAVE_NUM=$1
 TELEMETRY_BENCHMARK=$2
-PAGE_SET_FILENAME=$3
-EXTRA_ARGS=$4
-REQUESTOR=$5
+EXTRA_ARGS=$3
+REQUESTOR=$4
 
 source vm_utils.sh
 
@@ -38,12 +39,23 @@ create_worker_file $WORKER_FILE
 
 source vm_setup_slave.sh
 
+# Download webpage_archives from Google Storage.
+mkdir -p /home/default/storage/webpages_archive/
+gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/* \
+  /home/default/storage/webpages_archive/
+
 # Clean and create the skp output directory.
 rm -rf /home/default/storage/skps
 mkdir -p /home/default/storage/skps/
 
-DISPLAY=:0 tools/perf/run_multipage_benchmarks --browser=system $TELEMETRY_BENCHMARK \
-  /home/default/storage/page_sets/$PAGE_SET_FILENAME $EXTRA_ARGS
+for page_set in /home/default/storage/page_sets/*; do
+  if [[ -f $page_set ]]; then
+    echo "========== Processing $page_set =========="
+    DISPLAY=:0 tools/perf/run_multipage_benchmarks --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS
+    echo "========== Done with $page_set =========="
+    time.sleep(2 * 60)
+  fi
+done
 
 # Special handling for skpicture_printer, SKP files need to be copied to Google Storage.
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then

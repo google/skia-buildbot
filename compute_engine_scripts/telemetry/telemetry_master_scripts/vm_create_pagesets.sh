@@ -24,12 +24,15 @@ rm -rf ~/storage/page_sets/*
 
 # Loop through all slaves and create only those many numbers.
 # Copy them over to Google Storage
-NUM_PAGESETS=$(($NUM_WEBPAGES/$NUM_SLAVES))
+NUM_WEBPAGES_PER_SLAVE=$(($NUM_WEBPAGES/$NUM_SLAVES))
+NUM_PAGESETS_PER_SLAVE=$(($NUM_WEBPAGES_PER_SLAVE/$MAX_WEBPAGES_PER_PAGESET))
 START=1
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  END=$(expr $START + $NUM_PAGESETS - 1)
-  python create_page_set.py -s $START -e $END
-  START=$(expr $END + 1)
+  for PAGESET_NUM in $(seq 1 $NUM_PAGESETS_PER_SLAVE); do
+    END=$(expr $START + $MAX_WEBPAGES_PER_PAGESET - 1)
+    python create_page_set.py -s $START -e $END
+    START=$(expr $END + 1)
+  done
   # Copy page_sets to the local directory.
   mkdir -p ~/storage/page_sets/slave$SLAVE_NUM
   mv page_sets/*.json ~/storage/page_sets/slave$SLAVE_NUM
