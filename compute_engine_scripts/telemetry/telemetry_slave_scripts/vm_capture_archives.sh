@@ -10,8 +10,6 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-import time
-
 
 if [ $# -ne 1 ]; then
   echo
@@ -40,7 +38,7 @@ for page_set in /home/default/storage/page_sets/*; do
     echo "========== Processing $page_set =========="
     DISPLAY=:0 tools/perf/record_wpr --browser=system $page_set
     echo "========== Done with $page_set =========="
-    time.sleep(2 * 60)
+    sleep 120
   fi
 done
 
