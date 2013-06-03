@@ -313,7 +313,7 @@ class SkiaFactory(BuildFactory):
     if build_in_one_step:
       self.Make('most', 'BuildMost', is_rebaseline_step=True)
     else:
-      self.Make('skia_base_libs', 'BuildSkiaBaseLibs')
+      self.Make('skia_lib', 'BuildSkiaLib')
       self.Make('tests', 'BuildTests')
       self.Make('gm', 'BuildGM', is_rebaseline_step=True)
       self.Make('tools', 'BuildTools')
