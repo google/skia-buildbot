@@ -45,11 +45,6 @@ TOP1M_CSV_ZIP_LOCATION = (
     'http://s3.amazonaws.com/alexa-static/%s.zip' % TOP1M_CSV_FILE_NAME)
 ALEXA_PREFIX = 'alexa'
 
-# Webpages that need more loading time.
-slow_webpages = {
-    'gavick.com': 10.0,
-}
-
 # Webpages that need to be mapped to another name to work.
 mapped_webpages = {
     'justhost.com': 'www.justhost.com',
@@ -111,11 +106,7 @@ if '__main__' == __name__:
           '/', 'home', 'default', 'storage', 'webpages_archive',
           'alexa%s-%s.json' % (options.start_number, options.end_number)),
       'pages': pages,
-      'smoothness': { 'action': 'wait', 'condition': 'duration', 'seconds': 0},
-      # The below scrolls to the bottom of the webpage before it archives or
-      # runs the perf test. It is too slow for the 1M webpages but would be
-      # perfect for the few SKPs we use in the buildbots.
-      # 'smoothness': { 'action': 'scroll'},
+      'smoothness': { 'action': 'scroll'},
       'user_agent_type': 'desktop',
   }
 
@@ -140,7 +131,6 @@ if '__main__' == __name__:
     pages.append({
         # fully qualified CSV websites.
         'url': 'http://%s' % mapped_webpages.get(website, website),
-        'wait_time_after_navigate': slow_webpages.get(website, 1.0),
         'why': '#%s in Alexa global.' % (index + 1)
         })
 

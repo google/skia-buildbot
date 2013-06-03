@@ -57,7 +57,6 @@ for page_set in /home/default/storage/page_sets/*; do
     echo "========== Processing $page_set =========="
     DISPLAY=:0 tools/perf/run_multipage_benchmarks --browser=system --allow-live-sites $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS
     echo "========== Done with $page_set =========="
-    sleep 120
   fi
 done
 
