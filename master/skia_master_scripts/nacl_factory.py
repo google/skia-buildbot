@@ -44,7 +44,7 @@ class NaClFactory(SkiaFactory):
     if clobber or self._do_patch_step:
       self.AddSlaveScript(script='clean.py', description='Clean')
 
-    self.Make('skia_base_libs', 'BuildSkiaBaseLibs')
+    self.Make('skia_lib', 'BuildSkiaLib')
     self.Make('tests', 'BuildTests')
     self.Make('debugger', 'BuildDebugger')
 
