@@ -42,6 +42,12 @@ mkdir -p /home/default/storage/webpages_archive/
 gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/* \
   /home/default/storage/webpages_archive/
 
+# Download page_sets from Google Storage.
+mkdir -p /home/default/storage/page_sets/
+rm -rf /home/default/storage/page_sets/*
+gsutil cp gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/* \
+  /home/default/storage/page_sets/
+
 # Clean and create the skp output directory.
 rm -rf /home/default/storage/skps
 mkdir -p /home/default/storage/skps/
