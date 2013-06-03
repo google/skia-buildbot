@@ -55,7 +55,7 @@ mkdir -p /home/default/storage/skps/
 for page_set in /home/default/storage/page_sets/*; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
-    DISPLAY=:0 tools/perf/run_multipage_benchmarks --browser=system --allow-live-sites $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS
+    DISPLAY=:0 tools/perf/run_multipage_benchmarks --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS
     echo "========== Done with $page_set =========="
   fi
 done
