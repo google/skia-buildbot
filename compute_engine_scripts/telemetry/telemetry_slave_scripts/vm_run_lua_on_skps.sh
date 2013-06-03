@@ -34,9 +34,10 @@ create_worker_file $WORKER_FILE
 
 # Sync trunk.
 cd /home/default/skia-repo/trunk
-gclient sync
+/home/default/depot_tools/gclient sync
 
 # Build tools.
+make clean
 GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
 
 # Copy the lua script from Google Storage to /tmp.
