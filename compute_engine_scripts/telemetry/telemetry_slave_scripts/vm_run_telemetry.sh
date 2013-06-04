@@ -67,11 +67,18 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   SKP_LIST=`find . -mindepth 1 -maxdepth 1 -type d  \( ! -iname ".*" \) | sed 's|^\./||g'`
   for SKP in $SKP_LIST; do
     mv /home/default/storage/skps/$SKP/layer_0.skp /home/default/storage/skps/$SKP.skp
-    gsutil cp /home/default/storage/skps/$SKP.skp \
-      gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$SKP.skp
   done
+
   # Leave only SKP files in the skps directory.
   rm -rf /home/default/storage/skps/*/
+
+  # Delete all SKP files less than 10K (they will be the ones with errors).
+  find . -type f -size -10k
+  find . -type f -size -10k -exec rm {} \;
+
+  # Now copy the SKP files to Google Storage. 
+  gsutil cp /home/default/storage/skps/* \
+    gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/
 fi
 
 delete_worker_file $WORKER_FILE
