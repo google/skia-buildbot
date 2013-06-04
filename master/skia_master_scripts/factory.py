@@ -9,6 +9,7 @@ Based on gclient_factory.py and adds Skia-specific steps."""
 
 
 from buildbot.process.properties import WithProperties
+from buildbot.status import builder
 from config_private import AUTOGEN_SVN_BASEURL, SKIA_SVN_BASEURL
 from master.factory import gclient_factory
 from master.factory.build_factory import BuildFactory
@@ -47,7 +48,8 @@ class SkiaFactory(BuildFactory):
                environment_variables=None, gm_image_subdir=None,
                perf_output_basedir=None, builder_name=None, flavor=None,
                make_flags=None, test_args=None, gm_args=None, bench_args=None,
-               bench_pictures_cfg='default', compile_warnings_as_errors=False):
+               bench_pictures_cfg='default', compile_warnings_as_errors=False,
+               gyp_defines=None):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     do_upload_results: whether we should upload bench/gm results
@@ -74,6 +76,7 @@ class SkiaFactory(BuildFactory):
     bench_pictures_cfg: config name to use for bench_pictures
     compile_warnings_as_errors: boolean; whether to build with "-Werror" or
         some equivalent.
+    gyp_defines: optional dict; GYP_DEFINES to be used in the build.
     """
     properties = {}
 
@@ -121,13 +124,10 @@ class SkiaFactory(BuildFactory):
       self._env_vars = {}
     else:
       self._env_vars = dict(environment_variables)
-    gyp_defines = self._env_vars.get('GYP_DEFINES', '')
-    if gyp_defines:
-      self._env_vars['GYP_DEFINES'] = gyp_defines + \
-          ' skia_warnings_as_errors=%d' % int(compile_warnings_as_errors)
-    else:
-      self._env_vars['GYP_DEFINES'] = \
-          ' skia_warnings_as_errors=%d' % int(compile_warnings_as_errors)
+
+    self._gyp_defines = dict(gyp_defines or {})
+    self._gyp_defines['skia_warnings_as_errors'] = \
+        '%d' % int(compile_warnings_as_errors)
 
     # Get an implementation of SkiaCommands as appropriate for
     # this target_platform.
@@ -238,7 +238,7 @@ class SkiaFactory(BuildFactory):
   def AddSlaveScript(self, script, description, args=None, timeout=None,
                      halt_on_failure=False, is_upload_step=False,
                      is_rebaseline_step=False, get_props_from_stdout=None,
-                     workdir=None):
+                     workdir=None, do_step_if=None):
     """ Add a BuildStep consisting of a python script.
 
     script: which slave-side python script to run.
@@ -258,8 +258,10 @@ class SkiaFactory(BuildFactory):
     workdir: optional string indicating the working directory in which to run
         the script. If this is provided, then the script must be given relative
         to this directory.
+    do_step_if: optional, function which determines whether or not to run the
+        step.
     """
-    arguments = self._common_args
+    arguments = list(self._common_args)
     if args:
       arguments += args
     self._skia_cmd_obj.AddSlaveScript(
@@ -271,7 +273,8 @@ class SkiaFactory(BuildFactory):
         is_upload_step=is_upload_step,
         is_rebaseline_step=is_rebaseline_step,
         get_props_from_stdout=get_props_from_stdout,
-        workdir=workdir)
+        workdir=workdir,
+        do_step_if=do_step_if)
 
   def AddFlavoredSlaveScript(self, script, **kwargs):
     """ Add a flavor-specific BuildStep.
@@ -283,42 +286,78 @@ class SkiaFactory(BuildFactory):
                                 if self._flavor else script)
     self.AddSlaveScript(script_to_run, **kwargs)
 
-  def Make(self, target, description, is_rebaseline_step=False):
+  def Make(self, target, description, is_rebaseline_step=False, do_step_if=None,
+           halt_on_failure=False):
     """ Build a single target.
 
     target: string; the target to build.
     description: string; description of this BuildStep.
     is_rebaseline_step: optional boolean; whether or not this step is required
         for rebaseline-only builds.
+    do_step_if: optional, function which determines whether or not to run this
+        step.
+    halt_on_failure: boolean indicating whether to continue the build if this
+        step fails.
     """
-    args = ['--target', target]
+    args = ['--target', target,
+            '--gyp_defines',
+            ' '.join('%s=%s' % (k, v) for k, v in self._gyp_defines.items())]
     self.AddSlaveScript(script='compile.py', args=args,
-                        description=description, halt_on_failure=True,
-                        is_rebaseline_step=is_rebaseline_step)
+                        description=description,
+                        halt_on_failure=halt_on_failure,
+                        is_rebaseline_step=is_rebaseline_step,
+                        do_step_if=do_step_if)
 
-  def Compile(self, clobber=None, build_in_one_step=False):
+  def Compile(self, clobber=None, build_in_one_step=False,
+              clean_and_rebuild_on_failure=True):
     """ Compile step. Build everything.
 
     clobber: optional boolean; whether to 'clean' before building.
     build_in_one_step: optional boolean; whether to build in one step or build
         each target separately.
+    clean_and_rebuild_on_failure: optional boolean; if the build fails, clean
+        and try again.
     """
+    def DidAnyBuildFail(step):
+      """ Returns True iff any Compile step in the current build has failed. """
+      for build_step in step.build.getStatus().getSteps():
+        if (build_step.isFinished() and
+            build_step.getName().startswith('Build') and
+            build_step.getResults()[0] == builder.FAILURE):
+          return True
+      return False
+
     if clobber is None:
       clobber = self._default_clobber
 
     # Trybots should always clean.
     if clobber or self._do_patch_step:
-      self.AddSlaveScript(script='clean.py', description='Clean')
+      self.AddSlaveScript(script='clean.py', description='Clean',
+                          halt_on_failure=True)
 
     if build_in_one_step:
-      self.Make('most', 'BuildMost', is_rebaseline_step=True)
+      self.Make('most', 'BuildMost', is_rebaseline_step=True,
+                halt_on_failure=not clean_and_rebuild_on_failure)
     else:
-      self.Make('skia_lib', 'BuildSkiaLib')
-      self.Make('tests', 'BuildTests')
-      self.Make('gm', 'BuildGM', is_rebaseline_step=True)
-      self.Make('tools', 'BuildTools')
-      self.Make('bench', 'BuildBench')
-      self.Make('most', 'BuildMost')
+      self.Make('skia_lib', 'BuildSkiaLib',
+                halt_on_failure=not clean_and_rebuild_on_failure)
+      self.Make('tests', 'BuildTests',
+                halt_on_failure=not clean_and_rebuild_on_failure)
+      self.Make('gm', 'BuildGM', is_rebaseline_step=True,
+                halt_on_failure=not clean_and_rebuild_on_failure)
+      self.Make('tools', 'BuildTools',
+                halt_on_failure=not clean_and_rebuild_on_failure)
+      self.Make('bench', 'BuildBench',
+                halt_on_failure=not clean_and_rebuild_on_failure)
+      self.Make('most', 'BuildMost',
+                halt_on_failure=not clean_and_rebuild_on_failure)
+    if clean_and_rebuild_on_failure:
+      # If the build failed, try again without warnings-as-errors.
+      self._gyp_defines['skia_warnings_as_errors'] = '0'
+      self.AddSlaveScript(script='clean.py', description='Clean',
+                          do_step_if=DidAnyBuildFail)
+      self.Make('most', 'RetryBuild', do_step_if=DidAnyBuildFail,
+                halt_on_failure=True)
 
   def Install(self):
     """ Install the compiled executables. """
@@ -548,7 +587,7 @@ class SkiaFactory(BuildFactory):
     clobber: boolean indicating whether we should clean before building
     """
     if not role:
-      # If no role is provide, just run everything.
+      # If no role is provided, just run everything.
       self.CommonSteps(clobber)
       self.NonPerfSteps()
       self.PerfSteps()

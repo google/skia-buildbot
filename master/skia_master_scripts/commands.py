@@ -66,7 +66,7 @@ class SkiaCommands(commands.FactoryCommands):
   def AddSlaveScript(self, script, args, description, timeout=None,
                      halt_on_failure=False, is_upload_step=False,
                      is_rebaseline_step=False, get_props_from_stdout=None,
-                     workdir=None):
+                     workdir=None, do_step_if=None):
     """Run a slave-side Python script as its own build step."""
     if workdir:
       path_to_script = script
@@ -80,12 +80,13 @@ class SkiaCommands(commands.FactoryCommands):
                        is_upload_step=is_upload_step,
                        is_rebaseline_step=is_rebaseline_step,
                        get_props_from_stdout=get_props_from_stdout,
-                       workdir=use_workdir)
+                       workdir=use_workdir,
+                       do_step_if=do_step_if)
 
   def AddRunCommand(self, command, description='Run', timeout=None,
                     halt_on_failure=False, is_upload_step=False,
                     is_rebaseline_step=False, get_props_from_stdout=None,
-                    workdir=None):
+                    workdir=None, do_step_if=None):
     """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
       timeout = self.default_timeout
@@ -97,7 +98,7 @@ class SkiaCommands(commands.FactoryCommands):
                          command=command, workdir=workdir or self.workdir,
                          env=self.environment_variables,
                          haltOnFailure=halt_on_failure,
-                         doStepIf=skia_build_step.ShouldDoStep)
+                         doStepIf=do_step_if or skia_build_step.ShouldDoStep)
 
   def AddRunCommandList(self, command_list, description='Run', timeout=None,
                         halt_on_failure=False, is_upload_step=False,

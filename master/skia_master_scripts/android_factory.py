@@ -46,7 +46,9 @@ class AndroidFactory(skia_factory.SkiaFactory):
     # is always built with any target, and the build system is not smart enough
     # to know when the set of packaged libraries has changed, which causes the
     # app not to contain the full set of Skia libraries.
-    args = ['--target', 'all']
+    args = ['--target', 'all',
+            '--gyp_defines',
+            ' '.join('%s=%s' % (k, v) for k, v in self._gyp_defines.items())]
     self.AddSlaveScript(script='android_compile.py', args=args,
                         description='BuildAll', halt_on_failure=True,
                         is_rebaseline_step=True)

@@ -15,6 +15,8 @@ class Compile(BuildStep):
   def _Run(self):
     if 'VS2012' in self._builder_name:
       os.environ['GYP_MSVS_VERSION'] = '2012'
+    os.environ['GYP_DEFINES'] = self._args['gyp_defines']
+    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     make_cmd = 'make'
     if os.name == 'nt':
       make_cmd = 'make.bat'

@@ -11,9 +11,6 @@ import os
 import sys
 
 
-ENV_VAR = 'ANDROID_SDK_ROOT'
-
-
 class AndroidCompile(BuildStep):
   def _Run(self):
     os.environ['PATH'] = os.path.abspath(
@@ -21,7 +18,9 @@ class AndroidCompile(BuildStep):
                      'gsutil')) + os.pathsep + os.environ['PATH']
     os.environ['BOTO_CONFIG'] = os.path.abspath(os.path.join(
         os.pardir, os.pardir, os.pardir, os.pardir, 'site_config', '.boto'))
-    os.environ[ENV_VAR] = self._args['android_sdk_root']
+    os.environ['ANDROID_SDK_ROOT'] = self._args['android_sdk_root']
+    os.environ['GYP_DEFINES'] = self._args['gyp_defines']
+    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     cmd = [os.path.join('platform_tools', 'android', 'bin', 'android_make'),
            self._args['target'],
            '-d', self._args['device'],
