@@ -131,6 +131,7 @@ if '__main__' == __name__:
     pages.append({
         # fully qualified CSV websites.
         'url': 'http://%s' % mapped_webpages.get(website, website),
+        'wait_seconds': 5,
         'why': '#%s in Alexa global.' % (index + 1)
         })
 
