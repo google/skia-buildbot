@@ -38,7 +38,6 @@ for page_set in /home/default/storage/page_sets/*; do
     echo "========== Processing $page_set =========="
     DISPLAY=:0 tools/perf/record_wpr --browser=system $page_set
     echo "========== Done with $page_set =========="
-    sleep 60
   fi
 done
 
