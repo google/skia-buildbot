@@ -38,7 +38,13 @@ class AndroidFactory(skia_factory.SkiaFactory):
   def CompareGMs(self):
     """ Run the "skdiff" tool to compare the "actual" GM images we just
     generated to the baselines in _gm_image_subdir. """
-    self.AddSlaveScript(script='clean.py', description='Clean',
-                        is_rebaseline_step=True)
-    self.Make('tools', 'BuildSkDiff', is_rebaseline_step=True)
+    # We have bypass the Android-flavored compile in order to build SkDiff for
+    # the host.
+    self.AddSlaveScript(script='compile.py',
+                        description='BuildSkDiff',
+                        is_rebaseline_step=True,
+                        args=['--target', 'tools',
+                              '--gyp_defines',
+                              ' '.join('%s=%s' % (k, v)
+                                       for k, v in self._gyp_defines.items())])
     skia_factory.SkiaFactory.CompareGMs(self)
