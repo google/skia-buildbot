@@ -61,7 +61,7 @@ class Update(BuildStep):
       gclient_utils.Revert()
 
     # Run "gclient sync"
-    gclient_utils.Sync(
+    gclient_utils.SyncWithRetry(
         branches=[solution['name'] for solution in solution_dicts],
         revision=self._revision,
         verbose=True,

@@ -83,7 +83,7 @@ def GetCheckedOutRevision():
   try:
     return int(got_revision)
   except ValueError:
-    raise Exception('Working copy is dirty!')
+    raise Exception('Working copy is dirty! Got revision: %s' % got_revision)
 
 
 def _DeleteCheckoutAndGetCleanOne():
@@ -98,6 +98,16 @@ def _DeleteCheckoutAndGetCleanOne():
        manually_grab_svn_rev=True,
        force=True,
        delete_unversioned_trees=True)
+
+
+def SyncWithRetry(**kwargs):
+  """ Attempt to sync the source. If the sync fails, delete the entire checkout
+  and try again. """
+  try:
+    return Sync(**kwargs)
+  except:
+    _DeleteCheckoutAndGetCleanOne()
+    return Sync(**kwargs)
 
 
 def Revert(delete_checkout_if_necessary=True):
