@@ -61,15 +61,25 @@ class Update(BuildStep):
       gclient_utils.Revert()
 
     # Run "gclient sync"
-    gclient_utils.SyncWithRetry(
+    gclient_utils.Sync(
         branches=[solution['name'] for solution in solution_dicts],
         revision=self._revision,
         verbose=True,
         manually_grab_svn_rev=True,
         force=True,
         delete_unversioned_trees=True)
-
-    got_revision = gclient_utils.GetCheckedOutRevision()
+    try:
+      got_revision = gclient_utils.GetCheckedOutRevision()
+    except Exception:
+      gclient_utils.DeleteCheckoutAndGetCleanOne()
+      gclient_utils.Sync(
+          branches=[solution['name'] for solution in solution_dicts],
+          revision=self._revision,
+          verbose=True,
+          manually_grab_svn_rev=True,
+          force=True,
+          delete_unversioned_trees=True)
+      got_revision = gclient_utils.GetCheckedOutRevision()
 
     # If the revision we actually got differs from what was requested, raise an
     # exception.

@@ -86,7 +86,7 @@ def GetCheckedOutRevision():
     raise Exception('Working copy is dirty! Got revision: %s' % got_revision)
 
 
-def _DeleteCheckoutAndGetCleanOne():
+def DeleteCheckoutAndGetCleanOne():
   """ Delete the entire checkout and create a new one. """
   spec = _GetLocalConfig()
   build_dir = os.path.abspath(os.curdir)
@@ -100,23 +100,13 @@ def _DeleteCheckoutAndGetCleanOne():
        delete_unversioned_trees=True)
 
 
-def SyncWithRetry(**kwargs):
-  """ Attempt to sync the source. If the sync fails, delete the entire checkout
-  and try again. """
-  try:
-    return Sync(**kwargs)
-  except:
-    _DeleteCheckoutAndGetCleanOne()
-    return Sync(**kwargs)
-
-
 def Revert(delete_checkout_if_necessary=True):
   """ Revert all local changes. """
   try:
     _RunCmd(['revert', '-j1'])
   except Exception:
     if delete_checkout_if_necessary:
-      _DeleteCheckoutAndGetCleanOne()
+      DeleteCheckoutAndGetCleanOne()
     else:
       raise
 
