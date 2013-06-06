@@ -41,7 +41,7 @@ def GetExtraFactoryArgs(compile_builder_info):
   factory_type = compile_builder_info[7]
   if factory_type == android_factory.AndroidFactory:
     # AndroidFactory requires a "device" argument.
-    return {'device': utils.AndroidModelToDevice(compile_builder_info[4])}
+    return {'device': utils.CapWordsToUnderscores(compile_builder_info[4])}
   elif factory_type == skia_factory.SkiaFactory:
     # Some "normal" factories require extra arguments.
     if compile_builder_info[4] == 'ANGLE':

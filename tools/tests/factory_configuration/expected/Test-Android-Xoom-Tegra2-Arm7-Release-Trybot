@@ -2,6 +2,9 @@
     'TargetPathJoin': <Object>,
     '_autogen_svn_password_file': '.autogen_svn_password',
     '_autogen_svn_username_file': '.autogen_svn_username',
+    '_build_targets': [
+        'all',
+    ],
     '_builder_name': 'Test-Android-Xoom-Tegra2-Arm7-Release-Trybot',
     '_common_args': [
         '--autogen_svn_baseurl',
@@ -75,6 +78,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../slave/skia_slave_scripts/update_scripts.py',
@@ -124,8 +128,10 @@
                 'description': 'UpdateScripts',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -135,6 +141,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../slave/skia_slave_scripts/update.py',
@@ -186,10 +193,12 @@
                 'description': 'Update',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
                     'got_revision': 'Skia updated to revision (\d+)',
                 },
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -199,6 +208,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/apply_patch.py',
@@ -252,8 +262,10 @@
                 'description': 'ApplyPatch',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -263,6 +275,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/download_skps.py',
@@ -312,8 +325,10 @@
                 'description': 'DownloadSKPs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -323,6 +338,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/clean.py',
@@ -372,8 +388,10 @@
                 'description': 'Clean',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -383,6 +401,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/android_compile.py',
@@ -436,8 +455,10 @@
                 'description': 'BuildAll',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -447,6 +468,137 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
+                'command': [
+                    'python',
+                    '../../../../../../slave/skia_slave_scripts/clean.py',
+                    '--autogen_svn_baseurl',
+                    'https://skia-autogen.googlecode.com/svn',
+                    '--configuration',
+                    'Release',
+                    '--deps_target_os',
+                    'android',
+                    '--do_upload_results',
+                    'True',
+                    '--gm_image_subdir',
+                    'base-android-xoom',
+                    '--builder_name',
+                    'Test-Android-Xoom-Tegra2-Arm7-Release-Trybot',
+                    '--target_platform',
+                    'linux',
+                    '--revision',
+                    <Object>,
+                    '--got_revision',
+                    <Object>,
+                    '--perf_output_basedir',
+                    'None',
+                    '--make_flags',
+                    '""',
+                    '--test_args',
+                    '""',
+                    '--gm_args',
+                    '""',
+                    '--bench_args',
+                    '""',
+                    '--num_cores',
+                    <Object>,
+                    '--is_try',
+                    'True',
+                    '--bench_pictures_cfg',
+                    'xoom',
+                    '--device',
+                    'xoom',
+                    '--serial',
+                    <Object>,
+                    '--has_root',
+                    <Object>,
+                    '--android_sdk_root',
+                    <Object>,
+                ],
+                'description': 'Clean',
+                'doStepIf': <Object>,
+                'env': {},
+                'flunkOnFailure': <Object>,
+                'get_props_from_stdout': None,
+                'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
+                'is_rebaseline_step': <Object>,
+                'is_upload_step': <Object>,
+                'timeout': <Object>,
+                'workdir': 'build/trunk',
+            },
+        ],
+        [
+            <Object>,
+            {
+                'alwaysRun': <Object>,
+                'command': [
+                    'python',
+                    '../../../../../../slave/skia_slave_scripts/android_compile.py',
+                    '--autogen_svn_baseurl',
+                    'https://skia-autogen.googlecode.com/svn',
+                    '--configuration',
+                    'Release',
+                    '--deps_target_os',
+                    'android',
+                    '--do_upload_results',
+                    'True',
+                    '--gm_image_subdir',
+                    'base-android-xoom',
+                    '--builder_name',
+                    'Test-Android-Xoom-Tegra2-Arm7-Release-Trybot',
+                    '--target_platform',
+                    'linux',
+                    '--revision',
+                    <Object>,
+                    '--got_revision',
+                    <Object>,
+                    '--perf_output_basedir',
+                    'None',
+                    '--make_flags',
+                    '""',
+                    '--test_args',
+                    '""',
+                    '--gm_args',
+                    '""',
+                    '--bench_args',
+                    '""',
+                    '--num_cores',
+                    <Object>,
+                    '--is_try',
+                    'True',
+                    '--bench_pictures_cfg',
+                    'xoom',
+                    '--device',
+                    'xoom',
+                    '--serial',
+                    <Object>,
+                    '--has_root',
+                    <Object>,
+                    '--android_sdk_root',
+                    <Object>,
+                    '--target',
+                    'all',
+                    '--gyp_defines',
+                    'skia_arch_width=32 skia_warnings_as_errors=0',
+                ],
+                'description': 'Retry_BuildAll',
+                'doStepIf': <Object>,
+                'env': {},
+                'flunkOnFailure': <Object>,
+                'get_props_from_stdout': None,
+                'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
+                'is_rebaseline_step': <Object>,
+                'is_upload_step': <Object>,
+                'timeout': <Object>,
+                'workdir': 'build/trunk',
+            },
+        ],
+        [
+            <Object>,
+            {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/android_install.py',
@@ -496,8 +648,10 @@
                 'description': 'Install',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -507,6 +661,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/download_baselines.py',
@@ -556,8 +711,10 @@
                 'description': 'DownloadBaselines',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -567,6 +724,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/android_prerender.py',
@@ -616,8 +774,10 @@
                 'description': 'PreRender',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -627,6 +787,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/android_run_tests.py',
@@ -676,8 +837,10 @@
                 'description': 'RunTests',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -687,6 +850,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/android_run_gm.py',
@@ -736,8 +900,10 @@
                 'description': 'GenerateGMs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -747,6 +913,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/android_render_pictures.py',
@@ -796,8 +963,10 @@
                 'description': 'RenderPictures',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -807,6 +976,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/android_render_pdfs.py',
@@ -856,8 +1026,10 @@
                 'description': 'RenderPdfs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -867,6 +1039,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/android_postrender.py',
@@ -916,8 +1089,10 @@
                 'description': 'PostRender',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -927,6 +1102,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/upload_gm_results.py',
@@ -980,8 +1156,10 @@
                 'description': 'UploadGMResults',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -991,6 +1169,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compare_and_upload_webpage_gms.py',
@@ -1040,8 +1219,10 @@
                 'description': 'CompareAndUploadWebpageGMs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1051,6 +1232,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/clean.py',
@@ -1100,8 +1282,10 @@
                 'description': 'Clean',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1111,9 +1295,10 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '../../../../../../slave/skia_slave_scripts/android_compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1164,8 +1349,10 @@
                 'description': 'BuildSkDiff',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1175,6 +1362,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compare_gms.py',
@@ -1224,8 +1412,10 @@
                 'description': 'CompareGMs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,

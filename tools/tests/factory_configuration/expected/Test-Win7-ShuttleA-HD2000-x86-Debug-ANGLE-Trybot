@@ -2,6 +2,9 @@
     'TargetPathJoin': <Object>,
     '_autogen_svn_password_file': '.autogen_svn_password',
     '_autogen_svn_username_file': '.autogen_svn_username',
+    '_build_targets': [
+        'most',
+    ],
     '_builder_name': 'Test-Win7-ShuttleA-HD2000-x86-Debug-ANGLE-Trybot',
     '_common_args': [
         '--autogen_svn_baseurl',
@@ -68,6 +71,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\slave\skia_slave_scripts\update_scripts.py',
@@ -109,8 +113,10 @@
                 'description': 'UpdateScripts',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -120,6 +126,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\slave\skia_slave_scripts\update.py',
@@ -163,10 +170,12 @@
                 'description': 'Update',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
                     'got_revision': 'Skia updated to revision (\d+)',
                 },
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -176,6 +185,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\apply_patch.py',
@@ -221,8 +231,10 @@
                 'description': 'ApplyPatch',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -232,6 +244,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\download_skps.py',
@@ -273,8 +286,10 @@
                 'description': 'DownloadSKPs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -284,6 +299,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\clean.py',
@@ -325,8 +341,10 @@
                 'description': 'Clean',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -336,6 +354,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
@@ -381,8 +400,10 @@
                 'description': 'BuildMost',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -392,6 +413,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\clean.py',
@@ -433,8 +455,10 @@
                 'description': 'Clean',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -444,6 +468,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
@@ -486,11 +511,13 @@
                     '--gyp_defines',
                     'skia_arch_width=32 skia_warnings_as_errors=0 skia_angle=1 skia_win_debuggers_path=c:/DbgHelp',
                 ],
-                'description': 'RetryBuild',
+                'description': 'Retry_BuildMost',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -500,6 +527,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\install.py',
@@ -541,8 +569,10 @@
                 'description': 'Install',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -552,6 +582,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\download_baselines.py',
@@ -593,8 +624,10 @@
                 'description': 'DownloadBaselines',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -604,6 +637,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\prerender.py',
@@ -645,8 +679,10 @@
                 'description': 'PreRender',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -656,6 +692,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\run_tests.py',
@@ -697,8 +734,10 @@
                 'description': 'RunTests',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -708,6 +747,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\run_gm.py',
@@ -749,8 +789,10 @@
                 'description': 'GenerateGMs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -760,6 +802,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\render_pictures.py',
@@ -801,8 +844,10 @@
                 'description': 'RenderPictures',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -812,6 +857,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\render_pdfs.py',
@@ -853,8 +899,10 @@
                 'description': 'RenderPdfs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -864,6 +912,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\postrender.py',
@@ -905,8 +954,10 @@
                 'description': 'PostRender',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -916,6 +967,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\upload_gm_results.py',
@@ -961,8 +1013,10 @@
                 'description': 'UploadGMResults',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -972,6 +1026,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compare_and_upload_webpage_gms.py',
@@ -1013,8 +1068,10 @@
                 'description': 'CompareAndUploadWebpageGMs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1024,6 +1081,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compare_gms.py',
@@ -1065,8 +1123,10 @@
                 'description': 'CompareGMs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1076,6 +1136,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\prebench.py',
@@ -1117,8 +1178,10 @@
                 'description': 'PreBench',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1128,6 +1191,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\run_bench.py',
@@ -1169,8 +1233,10 @@
                 'description': 'RunBench',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1180,6 +1246,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\bench_pictures.py',
@@ -1221,8 +1288,10 @@
                 'description': 'BenchPictures',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1232,6 +1301,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\postbench.py',
@@ -1273,8 +1343,10 @@
                 'description': 'PostBench',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1284,6 +1356,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\check_for_regressions.py',
@@ -1325,8 +1398,10 @@
                 'description': 'CheckForRegressions',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
@@ -1336,6 +1411,7 @@
         [
             <Object>,
             {
+                'alwaysRun': <Object>,
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\generate_bench_graphs.py',
@@ -1377,8 +1453,10 @@
                 'description': 'GenerateBenchGraphs',
                 'doStepIf': <Object>,
                 'env': {},
+                'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,

@@ -251,23 +251,37 @@ RUN_BUILDERS_REGEX = '\(RunBuilders:(.+)\)'
 RUN_BUILDERS_RE_COMPILED = re.compile(RUN_BUILDERS_REGEX)
 
 
-def AndroidModelToDevice(android_model):
-  """ Converts Android model names to device names which android_setup.sh will
-  like.
+def CapWordsToUnderscores(string):
+  """ Converts a string containing capitalized words to one in which all
+  characters are lowercase and words are separated by underscores.
 
   Examples:
     'NexusS' becomes 'nexus_s'
     'Nexus10' becomes 'nexus_10'
 
-  android_model: string; model name for an Android device.
+  string: string; string to manipulate.
   """
   name_parts = []
-  for part in re.split('(\d+)', android_model):
+  for part in re.split('(\d+)', string):
     if re.match('(\d+)', part):
       name_parts.append(part)
     else:
       name_parts.extend(re.findall('[A-Z][a-z]*', part))
   return '_'.join([part.lower() for part in name_parts])
+
+
+def UnderscoresToCapWords(string):
+  """ Converts a string lowercase words separated by underscores to one in which
+  words are capitalized and not separated by underscores.
+
+  Examples:
+    'nexus_s' becomes 'NexusS'
+    'nexus_10' becomes 'Nexus10'
+
+  string: string; string to manipulate.
+  """
+  name_parts = string.split('_')
+  return ''.join([part.title() for part in name_parts])
 
 
 # Since we can't modify the existing Helper class, we subclass it here,
