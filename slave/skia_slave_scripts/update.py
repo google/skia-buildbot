@@ -71,7 +71,12 @@ class Update(BuildStep):
           delete_unversioned_trees=True)
       got_revision = gclient_utils.GetCheckedOutRevision()
     except Exception:
-      gclient_utils.DeleteCheckoutAndGetCleanOne()
+      # If the sync fails, clear the checkout and try again.
+      build_dir = os.path.abspath(os.curdir)
+      os.chdir(os.pardir)
+      file_utils.ClearDirectory(build_dir)
+      os.chdir(build_dir)
+      gclient_utils.Config(spec=gclient_spec)
       gclient_utils.Sync(
           branches=[solution['name'] for solution in solution_dicts],
           revision=self._revision,
