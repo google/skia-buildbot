@@ -6,6 +6,7 @@
 """ Check out the Skia sources. """
 
 
+from utils import file_utils
 from utils import gclient_utils
 from utils import shell_utils
 from build_step import BuildStep, BuildStepFailure
