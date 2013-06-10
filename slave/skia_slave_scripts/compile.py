@@ -12,6 +12,9 @@ import sys
 
 
 class Compile(BuildStep):
+  def __init__(self, timeout=4800, **kwargs):
+    super(Compile, self).__init__(timeout=timeout, **kwargs)
+
   def _Run(self):
     if 'VS2012' in self._builder_name:
       os.environ['GYP_MSVS_VERSION'] = '2012'
