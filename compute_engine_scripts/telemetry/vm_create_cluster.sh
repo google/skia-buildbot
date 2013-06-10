@@ -62,8 +62,10 @@ Check ./vm_status.sh to wait until the status is RUNNING
 SSH into the master with:
   gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-master
 and run:
-  gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-worker1
+  * gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-worker1
 to setup gcutil promptless authentication from the master to its workers.
+  * Follow the instructions in
+https://developers.google.com/compute/docs/networking#mailserver using skia.buildbots@gmail.com
 
 INP
 
