@@ -36,8 +36,12 @@ rm -rf /home/default/storage/webpages_archive/*
 for page_set in /home/default/storage/page_sets/*; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
-    DISPLAY=:0 tools/perf/record_wpr --browser=system $page_set
-    echo "========== Done with $page_set =========="
+    DISPLAY=:0 timeout 600 tools/perf/record_wpr --browser=system $page_set
+    if [ $? -eq 124 ]; then
+      echo "========== $page_set timed out! =========="
+    else
+      echo "========== Done with $page_set =========="
+    fi
   fi
 done
 

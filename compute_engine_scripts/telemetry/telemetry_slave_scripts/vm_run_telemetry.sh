@@ -38,15 +38,9 @@ create_worker_file $WORKER_FILE
 source vm_setup_slave.sh
 
 # Download webpage_archives from Google Storage.
-mkdir -p /home/default/storage/webpages_archive/
-gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/* \
-  /home/default/storage/webpages_archive/
-
-# Download page_sets from Google Storage.
-mkdir -p /home/default/storage/page_sets/
-rm -rf /home/default/storage/page_sets/*
-gsutil cp gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/* \
-  /home/default/storage/page_sets/
+# mkdir -p /home/default/storage/webpages_archive/
+# gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/* \
+#   /home/default/storage/webpages_archive/
 
 # Clean and create the skp output directory.
 rm -rf /home/default/storage/skps
@@ -55,8 +49,12 @@ mkdir -p /home/default/storage/skps/
 for page_set in /home/default/storage/page_sets/*; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
-    DISPLAY=:0 tools/perf/run_multipage_benchmarks --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS
-    echo "========== Done with $page_set =========="
+    DISPLAY=:0 timeout 600 tools/perf/run_multipage_benchmarks --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS
+    if [ $? -eq 124 ]; then
+      echo "========== $page_set timed out! =========="
+    else
+      echo "========== Done with $page_set =========="
+    fi
   fi
 done
 
