@@ -50,7 +50,7 @@ gsutil cp $LUA_SCRIPT_GS_LOCATION /tmp/$LUA_FILE
 
 # Run lua_pictures.
 cd out/Release
-./lua_pictures --skpPath /home/default/storage/skps/ --luaFile /tmp/$LUA_FILE &> /tmp/$LUA_OUTPUT_FILE
+./lua_pictures --skpPath /home/default/storage/skps/ --luaFile /tmp/$LUA_FILE > /tmp/$LUA_OUTPUT_FILE
 
 # Copy the output of the lua script to Google Storage.
 gsutil cp /tmp/$LUA_OUTPUT_FILE gs://chromium-skia-gm/telemetry/lua-outputs/slave$SLAVE_NUM/$LUA_OUTPUT_FILE
