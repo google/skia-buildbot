@@ -43,7 +43,7 @@ class Poller(object):
           continue
         ENCOUNTERED_KEYS[task_key] = 1
         # Create a run id.
-        run_id = '%s-%s' % (task['username'].split('@')[0], int(time.time()))
+        run_id = '%s-%s' % (task['username'].split('@')[0], time.time())
         lua_file = os.path.join(tempfile.gettempdir(), '%s.lua' % run_id)
         f = open(lua_file, 'w')
         f.write(task['lua_script'])
