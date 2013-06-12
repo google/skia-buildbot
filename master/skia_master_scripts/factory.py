@@ -329,18 +329,39 @@ class SkiaFactory(BuildFactory):
                                 always_run=always_run,
                                 flunk_on_failure=flunk_on_failure)
 
-  def Compile(self, clobber=None, retry_on_failure=True,
+  def Compile(self, clobber=None, retry_with_clobber_on_failure=True,
               retry_without_werr_on_failure=False):
     """ Compile step. Build everything.
 
     clobber: optional boolean; whether to 'clean' before building.
-    retry_on_failure: optional boolean; if the build fails, clean and try again,
-        with the same configuration as before.
+    retry_with_clobber_on_failure: optional boolean; if the build fails, clean
+        and try again, with the same configuration as before.
     retry_without_werr_on_failure: optional boolean; if the build fails, clean
         and try again *without* warnings-as-errors.
     """
-    def ShouldRetry(step):
+    if clobber is None:
+      clobber = self._default_clobber
+
+    # Trybots should always clean.
+    if clobber or self._do_patch_step:
+      self.AddSlaveScript(script='clean.py', description='Clean',
+                          halt_on_failure=True)
+
+    # Always re-run gyp before compiling.
+    self.AddSlaveScript(script='run_gyp.py', description='RunGYP',
+                        halt_on_failure=True,
+                        args=['--gyp_defines',
+                              ' '.join('%s=%s' % (k, v) for k, v in
+                                       self._gyp_defines.items())])
+
+    # Only retry with clobber if we've requested it AND we aren't clobbering on
+    # the first build.
+    maybe_retry_with_clobber = retry_with_clobber_on_failure and not clobber
+
+    def ShouldRetryWithClobber(step):
       """ Determine whether the retry step should run. """
+      if not maybe_retry_with_clobber:
+        return False
       compile_failed = False
       retry_failed = False
       for build_step in step.build.getStatus().getSteps():
@@ -355,6 +376,8 @@ class SkiaFactory(BuildFactory):
     def ShouldRetryWithoutWarnings(step):
       """ Determine whether the retry-without-warnings-as-errors step should
       run. """
+      if not retry_without_werr_on_failure:
+        return False
       compile_failed = False
       retry_failed = False
       no_warning_retry_failed = False
@@ -368,53 +391,47 @@ class SkiaFactory(BuildFactory):
           elif build_step.getName().startswith(
               _COMPILE_NO_WERR_PREFIX):
             no_warning_retry_failed = True
-      return compile_failed and retry_failed and not no_warning_retry_failed
-
-    if clobber is None:
-      clobber = self._default_clobber
-
-    # Trybots should always clean.
-    if clobber or self._do_patch_step:
-      self.AddSlaveScript(script='clean.py', description='Clean',
-                          halt_on_failure=True)
-    else:
-      # If we didn't run "make clean" we at least re-run gyp.
-      self.AddSlaveScript(script='run_gyp.py', description='RunGYP',
-                          halt_on_failure=True,
-                          args=['--gyp_defines',
-                                ' '.join('%s=%s' % (k, v) for k, v in
-                                         self._gyp_defines.items())])
+      # If we've already failed a previous retry without warnings, just give up.
+      if no_warning_retry_failed:
+        return False
+      # If we're retrying with clobber, only retry without warnings if a clobber
+      # retry has failed.
+      if maybe_retry_with_clobber:
+        return retry_failed
+      # Only run the retry if the initial compile has failed.
+      return compile_failed
 
     for build_target in self._build_targets:
       self.Make(target=build_target,
                 description=_COMPILE_STEP_PREFIX + \
                     utils.UnderscoresToCapWords(build_target),
-                flunk_on_failure=not retry_on_failure)
-    if retry_on_failure:
-      self.AddSlaveScript(script='clean.py', description='Clean',
-                          always_run=True,
-                          do_step_if=ShouldRetry)
-      for build_target in self._build_targets:
-        self.Make(target=build_target,
-                  description=_COMPILE_RETRY_PREFIX + \
-                      utils.UnderscoresToCapWords(build_target),
-                  flunk_on_failure=True,
-                  always_run=True,
-                  do_step_if=ShouldRetry)
-    if retry_without_werr_on_failure:
-      # Try again without warnings-as-errors.
-      self._gyp_defines['skia_warnings_as_errors'] = '0'
-      self.AddSlaveScript(script='clean.py', description='Clean',
-                          always_run=True,
-                          do_step_if=ShouldRetryWithoutWarnings)
-      for build_target in self._build_targets:
-        self.Make(target=build_target,
-                  description=_COMPILE_NO_WERR_PREFIX + \
-                      utils.UnderscoresToCapWords(build_target),
-                  flunk_on_failure=True,
-                  halt_on_failure=True,
-                  always_run=True,
-                  do_step_if=ShouldRetryWithoutWarnings)
+                flunk_on_failure=not maybe_retry_with_clobber,
+                halt_on_failure=(not maybe_retry_with_clobber and
+                                 not retry_without_werr_on_failure))
+
+    # Try again with a clean build.
+    self.AddSlaveScript(script='clean.py', description='Clean',
+                        do_step_if=ShouldRetryWithClobber)
+    for build_target in self._build_targets:
+      self.Make(target=build_target,
+                description=_COMPILE_RETRY_PREFIX + \
+                    utils.UnderscoresToCapWords(build_target),
+                flunk_on_failure=True,
+                halt_on_failure=not retry_without_werr_on_failure,
+                do_step_if=ShouldRetryWithClobber)
+
+    # Try again without warnings-as-errors.
+    self._gyp_defines['skia_warnings_as_errors'] = '0'
+    self.AddSlaveScript(script='clean.py', description='Clean',
+                        always_run=True,
+                        do_step_if=ShouldRetryWithoutWarnings)
+    for build_target in self._build_targets:
+      self.Make(target=build_target,
+                description=_COMPILE_NO_WERR_PREFIX + \
+                    utils.UnderscoresToCapWords(build_target),
+                flunk_on_failure=True,
+                halt_on_failure=True,
+                do_step_if=ShouldRetryWithoutWarnings)
 
   def Install(self):
     """ Install the compiled executables. """
