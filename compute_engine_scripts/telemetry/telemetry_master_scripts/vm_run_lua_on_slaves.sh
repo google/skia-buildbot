@@ -32,13 +32,19 @@ source ../vm_config.sh
 # Start the timer.
 TIMER="$(date +%s)"
 
+if [ -e /etc/boto.cfg ]; then
+  # Move boto.cfg since it may interfere with the ~/.boto file.
+  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
+fi
+
 # Copy the local lua script to Google Storage.
-LUA_SCRIPT_GS_LOCATION=gs://chromium-skia-gm/telemetry/lua-scripts/$RUN_ID.lua
+LUA_SCRIPT_GS_LOCATION=gs://chromium-skia-gm/telemetry/lua-scripts/$RUN_ID.lua.txt
 gsutil cp -a public-read $LUA_SCRIPT_LOCAL_LOCATION $LUA_SCRIPT_GS_LOCATION 
 
 # Update buildbot.
 gclient sync
 
+# Run vm_run_lua_on_skps.sh on all the slaves.
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_lua_on_skps.sh $SLAVE_NUM $LUA_SCRIPT_GS_LOCATION $RUN_ID"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
@@ -48,7 +54,7 @@ done
 
 # Check to see if all slaves are done
 COMPLETED_COUNT=$( gsutil ls -l gs://chromium-skia-gm/telemetry/lua-outputs/*/${RUN_ID}.lua-output | grep -v TOTAL | wc -l )
-while [ $COMPLETED_COUNT -ne $NUM_SLAVES ]; do
+while [ $COMPLETED_COUNT -lt $NUM_SLAVES ]; do
   echo "$COMPLETED_COUNT are done with the lua script, sleeping for 10 seconds."
   sleep 10
   COMPLETED_COUNT=$( gsutil ls -l gs://chromium-skia-gm/telemetry/lua-outputs/*/$RUN_ID.lua-output | grep -v TOTAL | wc -l )
@@ -63,20 +69,20 @@ done
 
 # Copy the consolidated file into Google Storage.
 gsutil cp -a public-read /tmp/$RUN_ID.lua-output \
-  gs://chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.lua-output
+  gs://chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.lua-output.txt
 
 # End the timer.
 TIMER="$(($(date +%s)-TIMER))"
 
-# Email!
-OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.lua-output
-SCRIPT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/lua-scripts/$RUN_ID.lua
+# Email results to the requester and admins.
+ADMINS=rmistry@google.com
+OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.lua-output.txt
+SCRIPT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/lua-scripts/$RUN_ID.lua.txt
 BOUNDARY=`date +%s|md5sum`
 BOUNDARY=${BOUNDARY:0:32}
-sendmail $REQUESTER_EMAIL <<EOF
+sendmail $REQUESTER_EMAIL,$ADMINS <<EOF
 subject:Results of your Lua script run
-to:$REQUESTER_EMAIL
-cc:ravimist@gmail.com
+to:$REQUESTER_EMAIL,$ADMINS
 from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
 

@@ -40,6 +40,11 @@ cd /home/default/skia-repo/trunk
 # make clean
 GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
 
+if [ -e /etc/boto.cfg ]; then
+  # Move boto.cfg since it may interfere with the ~/.boto file.
+  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
+fi
+
 # Copy the lua script from Google Storage to /tmp.
 gsutil cp $LUA_SCRIPT_GS_LOCATION /tmp/$LUA_FILE
 
