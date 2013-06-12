@@ -14,26 +14,25 @@ import tempfile
 import time
 import urllib
 
+import appengine_constants
 
-# TODO(rmistry): Update this to an hour or 2 hours maybe.
-PROVIDE_INFO_AFTER_SECS = 15
+
 SLEEP_BETWEEN_POLLS_SECS = 60
 
-SKIA_TELEMETRY_WEBAPP = (
-    'https://skia-tree-status-staging.appspot.com/skia-telemetry/')
-GET_TELEMETRY_TASKS_SUBPATH = 'get_telemetry_tasks'
-GET_LUA_TASKS_SUBPATH = 'get_lua_tasks'
-
 ENCOUNTERED_KEYS = {}
+
 
 class Poller(object):
 
   def Poll(self):
+
     while True:
+
       # Get all tasks in the queue
       # TODO(rmistry): Make urls to open a tuple??
       get_tasks_page = urllib.urlopen(
-          SKIA_TELEMETRY_WEBAPP + GET_LUA_TASKS_SUBPATH)
+          appengine_constants.SKIA_TELEMETRY_WEBAPP +
+          appengine_constants.GET_LUA_TASKS_SUBPATH)
       pending_tasks = json.loads(
           get_tasks_page.read().replace('\r\n', '\\r\\n'))
       for key in sorted(pending_tasks.keys()):
