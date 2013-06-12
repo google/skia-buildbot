@@ -66,6 +66,7 @@ and run:
 to setup gcutil promptless authentication from the master to its workers.
   * Follow the instructions in
 https://developers.google.com/compute/docs/networking#mailserver using skia.buildbots@gmail.com
+  * Start the /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_polly.py script.
 
 INP
 
