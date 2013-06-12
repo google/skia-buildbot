@@ -71,6 +71,9 @@ done
 gsutil cp -a public-read /tmp/$RUN_ID.lua-output \
   gs://chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.lua-output.txt
 
+# Delete all tmp files.
+rm -rf /tmp/$RUN_ID*
+
 # End the timer.
 TIMER="$(($(date +%s)-TIMER))"
 
