@@ -33,6 +33,8 @@ class RunGM(BuildStep):
     elif hasattr(self, '_device') and self._device in ['razr_i', 'nexus_10',
                                                        'galaxy_nexus']:
       cmd.extend(['--config', 'defaults', 'msaa4'])
+    else:
+      cmd.extend(['--config', 'defaults', 'msaa16'])
     self.RunFlavoredCmd('gm', cmd)
 
 
