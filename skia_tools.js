@@ -356,6 +356,11 @@ populateMenu: function(menuId, items) {
 loadDataForBuild: function(builder, build, loadUnfinished, loadUnknownRevs) {
   var buildData = this.loadDataFromBuildMaster("builders/" + builder +
                                                "/builds/" + build + "/steps");
+  // Build step results.
+  var SUCCESS = 0;
+  var FAILURE = 2;
+  var SKIPPED = 3;
+
   var steps = [];
   var result = 0;
   var startTime = 0;
@@ -406,8 +411,8 @@ loadDataForBuild: function(builder, build, loadUnfinished, loadUnknownRevs) {
                                        stepData["results"][0], stdout);
     steps.push(buildStep);
 
-    if (buildStep.getResult() != 0) {
-      result++;
+    if (buildStep.getResult() != SUCCESS && buildStep.getResult() != SKIPPED) {
+      result = FAILURE;
     }
   }
   if (revision == undefined) {
