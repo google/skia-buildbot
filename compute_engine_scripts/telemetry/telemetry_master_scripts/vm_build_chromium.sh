@@ -10,6 +10,21 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
+if [ $# -ne 3 ]; then
+  echo
+  echo "Usage: `basename $0` rmistry@google.com 1001 /tmp/logfile"
+  echo
+  echo "The first argument is the email address of the requester."
+  echo "The second argument is the key of the appengine admin task."
+  echo "The third argument is location of the log file that should be emailed."
+  echo
+  exit 1
+fi
+
+REQUESTER_EMAIL=$1
+APPENGINE_KEY=$2
+LOG_FILE_LOCATION=$3
+
 # Update buildbot.
 gclient sync
 
@@ -39,4 +54,38 @@ then
   gsutil cp -r * gs://chromium-skia-gm/telemetry/chrome-build/
 
 fi
+
+# Copy the log file to Google Storage.
+gsutil cp -a public-read $LOG_FILE_LOCATION \
+  gs://chromium-skia-gm/telemetry/admin-task-outputs/$REQUESTER_EMAIL-chromium.txt
+
+OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/admin-task-outputs/$REQUESTER_EMAIL-chromium.txt
+BOUNDARY=`date +%s|md5sum`
+BOUNDARY=${BOUNDARY:0:32}
+sendmail $REQUESTER_EMAIL <<EOF
+subject:Your Chrome Build has completed!
+to:$REQUESTER_EMAIL
+from:skia.buildbot@gmail.com
+Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
+
+This is a MIME-encapsulated message
+
+--$BOUNDARY
+Content-Type: text/html
+
+<html>
+  <head/>
+  <body>
+  The output of the script is available <a href='$OUTPUT_LINK'>here</a>.<br/>
+  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/lua_script'>here</a>.<br/><br/>
+  Thanks!
+  </body>
+</html>
+
+--$BOUNDARY--
+
+EOF
+
+# Mark this task as completed on AppEngine.
+wget -o /dev/null "http://skia-tree-status.appspot.com/skia-telemetry/update_admin_task?key=$APPENGINE_KEY"
 

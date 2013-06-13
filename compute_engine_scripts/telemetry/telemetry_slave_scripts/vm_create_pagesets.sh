@@ -25,7 +25,7 @@ WEBPAGES_START=$2
 source vm_utils.sh
 source ../vm_config.sh
 
-create_worker_file CREATING_PAGESETS
+create_worker_file $CREATING_PAGESETS_ACTIVITY
 
 # Sync buildbot.
 /home/default/depot_tools/gclient sync
@@ -60,5 +60,5 @@ gsutil rm -R gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/*
 # Copy the page_sets into Google Storage.
 gsutil cp ~/storage/page_sets/* gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/
 
-delete_worker_file CREATING_PAGESETS
+delete_worker_file $CREATING_PAGESETS_ACTIVITY
 

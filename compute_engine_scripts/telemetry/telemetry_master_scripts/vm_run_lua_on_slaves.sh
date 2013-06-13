@@ -77,7 +77,7 @@ rm -rf /tmp/$RUN_ID*
 # End the timer.
 TIMER="$(($(date +%s)-TIMER))"
 
-# Email results to the requester and admins.
+# Email results to the requester and admins (should be comma separated).
 ADMINS=rmistry@google.com
 OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.lua-output.txt
 SCRIPT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/lua-scripts/$RUN_ID.lua.txt
