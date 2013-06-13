@@ -1,0 +1,53 @@
+{% extends "skia_telemetry_base.html" %}
+
+{% block content %}
+
+<center>
+  <h2>All Lua script runs history</h2>
+  <br/>
+
+  {% if lua_tasks %}
+  <table border="1" cellpadding="5">
+    <tr bgcolor="#CCCCFF">
+      <td><b>User</b></td>
+      <td><b>Description</b></td>
+      <td><b>Requested Time</b></td>
+      <td><b>Completed Time</b></td>
+      <td><b>Lua Script Link</b></td>
+      <td><b>Lua Output Link</b></td>
+    </tr>
+    {% for task in lua_tasks %}
+    <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
+      <td>{{ task.username }}</td>
+      <td>{{ task.description }}</td>
+      <td>{{ task.requested_time }}</td>
+      <td>
+        {% if task.completed_time %}
+          {{ task.completed_time }}
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.lua_script_link %}
+          <a href='{{ task.lua_script_link }}' target='_blank'>script</a>
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.lua_output_link %}
+          <a href='{{ task.lua_output_link }}' target='_blank'>output</a>
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    No Previous runs yet.
+  {% endif %}
+</center>
+
+{% endblock %}

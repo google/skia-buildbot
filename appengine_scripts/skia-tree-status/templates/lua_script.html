@@ -1,0 +1,65 @@
+{% extends "skia_telemetry_base.html" %}
+
+{% block content %}
+
+<center>
+{% if info_msg %}<font color="red"><b>{{ info_msg }}</b></font><br/><br/>{% endif %}
+<h2>Run Lua Scripts</h2>
+<br/>
+<form name="luaForm" action="lua_script" method="post">
+  Paste your Lua script here:<br/>
+  <textarea name="lua_script" cols="80" rows="20"></textarea><br/><br/>
+  Enter an optional description:<br/>
+  <input type="text" name="description" size="35"><br/><br/>
+  <input type="submit" value="Queue Lua Task">
+</form>
+<hr/>
+
+  <h2>Your Lua script runs history</h2>
+  <br/>
+
+  {% if lua_tasks %}
+  <table border="1" cellpadding="5">
+    <tr bgcolor="#CCCCFF">
+      <td><b>Description</b></td>
+      <td><b>Requested Time</b></td>
+      <td><b>Completed Time</b></td>
+      <td><b>Lua Script Link</b></td>
+      <td><b>Lua Output Link</b></td>
+    </tr>
+    {% for task in lua_tasks %}
+    <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
+      <td>{{ task.description }}</td>
+      <td>{{ task.requested_time }}</td>
+      <td>
+        {% if task.completed_time %}
+          {{ task.completed_time }}
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.lua_script_link %}
+          <a href='{{ task.lua_script_link }}' target='_blank'>script</a>
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.lua_output_link %}
+          <a href='{{ task.lua_output_link }}' target='_blank'>output</a>
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    No Previous runs yet.
+  {% endif %}
+  <br/>
+  <a href='all_lua_script_runs'>View runs of all users</a>
+</center>
+
+{% endblock %}

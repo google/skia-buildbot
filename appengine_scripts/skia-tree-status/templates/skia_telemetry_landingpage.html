@@ -1,0 +1,56 @@
+{% extends "skia_telemetry_base.html" %}
+
+{% block content %}
+  <center>
+  <h2>Run Telemetry Benchmarks</h2>
+
+  <form action="skia-telemetry/add_telemetry_task" name="add_telemetry_task" method="post">
+    <table cellpadding="5">
+      <tr>
+        <td>Benchmark to run</td>
+        <td><input type="text" name="benchmark_name"/></td>
+      </tr>
+      <tr>
+        <td>Benchmark Arguments</td>
+        <td><input type="text" name="benchmark_arguments"/></td>
+      </tr>
+      <tr>
+        <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task"></td>
+      </tr>
+    </table>
+  </form>
+  <hr/>
+
+
+  <h2>Your previous Benchmark runs</h2>
+  <br/>
+
+  {% if telemetry_tasks %}
+  <table border="1" cellpadding="5">
+    <tr bgcolor="#CCCCFF">
+      <td><b>Benchmark Name</b></td>
+      <td><b>Benchmark Arguments</b></td>
+      <td><b>Requested Time</b></td>
+      <td><b>Completed Time</b></td>
+    </tr>
+    {% for task in telemetry_tasks %}
+    <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
+      <td>{{ task.benchmark_name }}</td>
+      <td>{{ task.benchmark_arguments }}</td>
+      <td>{{ task.requested_time }}</td>
+      <td>
+        {% if task.completed_time %}
+          {{ task.completed_time }}
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    No Previous runs yet.
+  {% endif %}
+  </center>
+
+{% endblock %}

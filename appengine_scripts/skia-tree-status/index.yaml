@@ -207,6 +207,33 @@ indexes:
   - name: created
     direction: desc
 
+- kind: AdminTasks
+  properties:
+  - name: completed_time
+  - name: requested_time
+
+- kind: LuaTasks
+  properties:
+  - name: username
+  - name: requested_time
+    direction: desc
+
+- kind: LuaTasks
+  properties:
+  - name: completed_time
+  - name: requested_time
+
+- kind: TelemetryTasks
+  properties:
+  - name: completed_time
+  - name: requested_time
+
+- kind: TelemetryTasks
+  properties:
+  - name: username
+  - name: requested_time
+    direction: desc
+
 - kind: VerificationEvent
   ancestor: yes
   properties:

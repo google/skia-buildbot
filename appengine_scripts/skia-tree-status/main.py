@@ -15,6 +15,7 @@ import base_page
 import commit_queue
 import status
 import sheriff
+import skia_telemetry
 import utils
 
 
@@ -38,6 +39,17 @@ URLS = [
   ('/cq/([^/]+)/(\d+)/(\d+)/?', commit_queue.Issue),
   ('/current-sheriff/?', sheriff.CurrentSheriffPage),
   ('/sheriff/?', sheriff.SheriffPage),
+  ('/skia-telemetry/?', skia_telemetry.LandingPage),
+  ('/skia-telemetry/add_telemetry_task?', skia_telemetry.AddTelemetryTaskPage),
+  ('/skia-telemetry/all_admin_tasks?', skia_telemetry.AllAdminTasks),
+  ('/skia-telemetry/all_lua_script_runs?', skia_telemetry.AllLuaRunsPage),
+  ('/skia-telemetry/get_admin_tasks?', skia_telemetry.GetAdminTasksPage),
+  ('/skia-telemetry/get_lua_tasks?', skia_telemetry.GetLuaTasksPage),
+  ('/skia-telemetry/get_telemetry_tasks?',
+   skia_telemetry.GetTelemetryTasksPage),
+  ('/skia-telemetry/lua_script?', skia_telemetry.LuaScriptPage),
+  ('/skia-telemetry/update_lua_tasks?', skia_telemetry.UpdateLuaTasksPage),
+  ('/skia-telemetry/update_telemetry_info?', skia_telemetry.UpdateInfoPage),
   ('/update_sheriffs_schedule', sheriff.update_sheriffs_schedule),
 ]
 APPLICATION = webapp.WSGIApplication(URLS, debug=True)
@@ -48,5 +60,6 @@ base_page.bootstrap()
 commit_queue.bootstrap()
 status.bootstrap()
 sheriff.bootstrap()
+skia_telemetry.bootstrap()
 utils.bootstrap()
 
