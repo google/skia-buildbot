@@ -7,6 +7,10 @@
   <script language="JavaScript">
   "use strict";
 
+  // Build result codes.
+  var SUCCESS = 0;
+  var SKIPPED = 3;
+
   // Number of revisions which should be loaded.
   // TODO(borenet): Make this configurable in the UI.
   var REVS_TO_LOAD = 100;
@@ -158,7 +162,8 @@
             longestBuildTime = time;
           }
           row.push(time);
-          if (data[rev][builder].getResult() != 0) {
+          if (data[rev][builder].getResult() != SUCCESS &&
+              data[rev][builder].getResult() != SKIPPED) {
             row.push("failed");
           } else {
             row.push(null);
