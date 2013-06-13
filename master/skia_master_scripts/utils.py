@@ -28,6 +28,8 @@ import builder_name_schema
 import config_private
 
 
+GATEKEEPER_NAME = 'GateKeeper'
+
 TRY_SCHEDULER_SVN = 'skia_try_svn'
 TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
 TRY_SCHEDULERS = [TRY_SCHEDULER_SVN, TRY_SCHEDULER_RIETVELD]
@@ -519,7 +521,7 @@ def _MakeCompileBuilder(helper, scheduler, os, compiler, configuration,
 
   helper.Builder(builder_name, 'f_%s' % builder_name,
                  # Do not add gatekeeper for trybots.
-                 gatekeeper=None if is_trybot else 'GateKeeper',
+                 gatekeeper=None if is_trybot else GATEKEEPER_NAME,
                  scheduler=scheduler)
   helper.Factory('f_%s' % builder_name, factory_type(
       builder_name=builder_name,

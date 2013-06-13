@@ -18,6 +18,8 @@ from buildbot.status.web.status_json import JsonStatusResource
 from buildbot.status.web.status_json import MetricsJsonResource
 from buildbot.status.web.status_json import ProjectJsonResource
 from buildbot.status.web.status_json import SlavesJsonResource
+from master import chromium_notifier
+from master import gatekeeper
 from master import try_job_base
 from master import try_job_rietveld
 from master import try_job_svn
@@ -25,6 +27,7 @@ from master.try_job_base import text_to_dict
 from twisted.internet import defer
 from twisted.python import log
 from twisted.web import server
+from utils import GATEKEEPER_NAME
 
 import builder_name_schema
 import config_private
@@ -390,3 +393,17 @@ def TryJobRietveldConstructor(
           'project=%s' % (endpoint, project))
 
 try_job_rietveld.TryJobRietveld.__init__ = TryJobRietveldConstructor
+
+
+def GateKeeperIsInterestingBuilder(self, builder_status):
+  """ Override of gatekeeper.GateKeeper.isInterestingBuilder:
+  http://src.chromium.org/viewvc/chrome/trunk/tools/build/scripts/master/gatekeeper.py?view=markup
+
+  We modify it to actually check whether the builder should be considered by the
+  GateKeeper, as indicated in its category name.
+  """
+  return (GATEKEEPER_NAME in (builder_status.getCategory() or '') and
+          chromium_notifier.ChromiumNotifier.isInterestingBuilder(self,
+              builder_status))
+
+gatekeeper.GateKeeper.isInterestingBuilder = GateKeeperIsInterestingBuilder
