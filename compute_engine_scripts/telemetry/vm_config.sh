@@ -11,7 +11,7 @@ VM_SLAVE_NAME=${VM_SLAVE_NAME:="worker"}
 
 NUM_SLAVES=${NUM_SLAVES:=100}
 NUM_WEBPAGES=${NUM_WEBPAGES:=1000000}
-MAX_WEBPAGES_PER_PAGESET=${MAX_WEBPAGES_PER_PAGESET:=5}
+MAX_WEBPAGES_PER_PAGESET=${MAX_WEBPAGES_PER_PAGESET:=1000}
 
 # The (Shared Fate) Zone is conceptually equivalent to a data center cell. VM
 # instances live in a zone.

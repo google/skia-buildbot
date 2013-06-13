@@ -49,7 +49,7 @@ mkdir -p /home/default/storage/skps/
 for page_set in /home/default/storage/page_sets/*; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
-    DISPLAY=:0 timeout 600 tools/perf/run_multipage_benchmarks --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS
+    DISPLAY=:0 timeout 7200 tools/perf/run_multipage_benchmarks --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
     else
