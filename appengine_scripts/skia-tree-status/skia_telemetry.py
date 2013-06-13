@@ -306,6 +306,21 @@ class GetLuaTasksPage(BasePage):
     self.response.out.write(json.dumps(tasks_dict, sort_keys=True))
 
 
+class UpdateAdminTasksPage(BasePage):
+  """Updates an admin task using its key."""
+
+  def get(self):
+    key = int(self.request.get('key'))
+    completed_time = datetime.datetime.now()
+    admin_task = AdminTasks.get_admin_task(key)[0]
+    admin_task.completed_time = completed_time
+    admin_task.put()
+
+    self.response.out.write('<br/><br/>Added to the datastore-<br/><br/>')
+    self.response.out.write('key: %s<br/>' % key)
+    self.response.out.write('completed_time: %s<br/>' % completed_time)
+
+
 class UpdateLuaTasksPage(BasePage):
   """Updates a lua task using its key."""
 
