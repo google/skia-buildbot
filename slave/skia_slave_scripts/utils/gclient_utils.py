@@ -86,13 +86,7 @@ def GetCheckedOutRevision():
     raise Exception('Working copy is dirty! Got revision: %s' % got_revision)
 
 
-def Revert(delete_checkout_if_necessary=True):
+def Revert():
   """ Revert all local changes. """
-  try:
-    _RunCmd(['revert', '-j1'])
-  except Exception:
-    if delete_checkout_if_necessary:
-      DeleteCheckoutAndGetCleanOne()
-    else:
-      raise
+  _RunCmd(['revert', '-j1'])
 

@@ -57,12 +57,11 @@ class Update(BuildStep):
     # Run "gclient config" with the spec we just built.
     gclient_utils.Config(spec=gclient_spec)
 
-    if self._is_try:
-      # Clean our checkout to make sure we don't have a patch left over.
-      gclient_utils.Revert()
-
     # Run "gclient sync"
     try:
+      if self._is_try:
+        # Clean our checkout to make sure we don't have a patch left over.
+        gclient_utils.Revert()
       gclient_utils.Sync(
           branches=[solution['name'] for solution in solution_dicts],
           revision=self._revision,
