@@ -7,7 +7,7 @@ master/Build-*
 master/Housekeeper*
 master/http*
 master/Perf-*
-master/state.sqlite
+master/state.sqlite*
 master/Test-*
 master/twistd*
 # Third party files pulled by buildbot.
