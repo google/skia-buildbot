@@ -114,4 +114,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
         command='python run_unittests', description='BuildbotSelfTests',
         workdir=self.TargetPathJoin(os.pardir, os.pardir, os.pardir, os.pardir))
 
+    self.AddSlaveScript(script='check_compile_times.py',
+                        description='CheckCompileTimes')
+    self.Validate()
     return self

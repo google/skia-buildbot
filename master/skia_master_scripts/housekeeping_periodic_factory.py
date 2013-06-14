@@ -83,6 +83,6 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
                                   '/home/default/skia-slave ' + \
                                   disk_usage_script_path)),
           description='CheckHousekeepingSlaveDiskUsage')
-
+    self.Validate()
     return self
 
