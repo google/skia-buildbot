@@ -38,7 +38,10 @@ class ApplyPatch(BuildStep):
     # patch is a tuple of the form (int, str), where patch[0] is the "level" of
     # the patch and patch[1] is the diff.
     patch = literal_eval(self._args['patch'].decode())
-    patch_level = patch[0]
+    # Assume that the patch level that was passed in is incorrect, since that
+    # is most often the case.  Instead use 1, because patches from git checkouts
+    # have an extra level.
+    patch_level = 1
     patch_url = urllib.quote(patch[1], safe="%/:=&?~+!$,;'@()*[]")
     print 'Patch level: %d' % patch[0]
     print 'Diff file URL:'
