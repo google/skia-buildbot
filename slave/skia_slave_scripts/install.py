@@ -38,6 +38,7 @@ class Install(BuildStep):
     # TODO(borenet) Enable expectations once we're using checksums.  It will
     # take too long to push the expected images, but the checksums will be
     # much faster.
+    self.CreateCleanDirectory(self._device_dirs.GMExpectedDir())
     #self.CopyDirectoryContentsToDevice(self._gm_expected_dir,
     #                                   self._device_dirs.GMExpectedDir())
 
