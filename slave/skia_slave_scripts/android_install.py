@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Install the Skia Android APK. """
+""" Install all executables, and any runtime resources that are needed by
+    *both* Test and Bench builders. """
 
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep

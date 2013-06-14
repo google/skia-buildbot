@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Install the Skia executables. """
+""" Install all executables, and any runtime resources that are needed by
+    *both* Test and Bench builders. """
 
 from build_step import BuildStep
 from utils import gs_utils
@@ -34,20 +35,13 @@ class Install(BuildStep):
       self.CopyDirectoryContentsToDevice(self._skp_dir,
                                          self._device_dirs.SKPDir())
 
-    # Push the GM expectations to the device.
-    # TODO(borenet) Enable expectations once we're using checksums.  It will
-    # take too long to push the expected images, but the checksums will be
-    # much faster.
-    self.CreateCleanDirectory(self._device_dirs.GMExpectedDir())
-    #self.CopyDirectoryContentsToDevice(self._gm_expected_dir,
-    #                                   self._device_dirs.GMExpectedDir())
-
     # Push resources to the device.
     self.CopyDirectoryContentsToDevice(self._resource_dir,
                                        self._device_dirs.ResourceDir())
 
     # Initialize a clean scratch directory.
     self.CreateCleanDirectory(self._device_dirs.TmpDir())
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(Install))

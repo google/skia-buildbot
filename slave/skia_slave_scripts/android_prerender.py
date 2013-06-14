@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Step to run before the render steps. """
+""" Prepare runtime resources that are needed by Test builders but not
+    Bench builders. """
 
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
@@ -37,4 +38,3 @@ class AndroidPreRender(AndroidBuildStep, PreRender):
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidPreRender))
-

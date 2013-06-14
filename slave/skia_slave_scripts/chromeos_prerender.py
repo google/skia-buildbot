@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Push the skp directory full of .skp's to the ChromeOS device. """
+""" Prepare runtime resources that are needed by Test builders but not
+    Bench builders. """
 
 from chromeos_build_step import ChromeOSBuildStep
 from build_step import BuildStep
@@ -43,4 +44,3 @@ class ChromeOSPreRender(ChromeOSBuildStep, PreRender):
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(ChromeOSPreRender))
-

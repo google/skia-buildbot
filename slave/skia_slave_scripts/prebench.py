@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Step to run before the benchmarking steps. """
+""" Prepare runtime resources that are needed by Bench builders but not
+    Test builders. """
 
 from build_step import BuildStep
 import errno
