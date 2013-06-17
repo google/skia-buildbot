@@ -8,6 +8,7 @@ import config
 import multiprocessing
 import os
 import shlex
+import shutil
 import signal
 import subprocess
 import sys
@@ -30,6 +31,9 @@ sys.path.append(os.path.join(buildbot_root, 'site_config'))
 DEFAULT_TIMEOUT = 2400
 DEFAULT_NO_OUTPUT_TIMEOUT = 3600
 DEFAULT_NUM_CORES = 2
+
+
+GM_EXPECTATIONS_FILENAME = 'expected-results.json'
 
 
 # multiprocessing.Value doesn't accept boolean types, so we have to use an int.
@@ -79,10 +83,10 @@ class BuildStepLogger(object):
 
 
 class DeviceDirs(object):
-  def __init__(self, perf_data_dir, gm_dir, gm_expected_dir, resource_dir,
-               skp_dir, skp_perf_dir, skp_out_dir, tmp_dir):
+  def __init__(self, perf_data_dir, gm_actual_dir, gm_expected_dir,
+               resource_dir, skp_dir, skp_perf_dir, skp_out_dir, tmp_dir):
     self._perf_data_dir = perf_data_dir
-    self._gm_dir = gm_dir
+    self._gm_actual_dir = gm_actual_dir
     self._gm_expected_dir = gm_expected_dir
     self._resource_dir = resource_dir
     self._skp_dir = skp_dir
@@ -90,8 +94,8 @@ class DeviceDirs(object):
     self._skp_out_dir = skp_out_dir
     self._tmp_dir = tmp_dir
 
-  def GMDir(self):
-    return  self._gm_dir
+  def GMActualDir(self):
+    return  self._gm_actual_dir
 
   def GMExpectedDir(self):
     return self._gm_expected_dir
@@ -135,6 +139,18 @@ class BuildStep(multiprocessing.Process):
       raise ValueError('For builders who do not have attached devices, copying '
                        'from host to device is undefined and only allowed if '
                        'host_dir and device_dir are the same.')
+
+  def PushFileToDevice(self, src, dst):
+    """ Copy the a single file from path "src" on the host to path "dst" on
+    the device.  If the host IS the device we are testing, it's just a filecopy.
+    Subclasses should override this method with one appropriate for
+    pushing the file to the device. """
+    shutil.copy(src, dst)
+
+  def DevicePathJoin(self, *args):
+    """ Like os.path.join(), but for paths that will target the connected
+    device. """
+    return os.sep.join(args)
 
   def CreateCleanDirectory(self, directory):
     file_utils.CreateCleanLocalDir(directory)
@@ -216,10 +232,22 @@ class BuildStep(multiprocessing.Process):
       self._perf_data_dir = None
       self._perf_graphs_dir = None
 
+    # Note that DeviceDirs.GMExpectedDir() is being set up to point at a
+    # DIFFERENT directory than self._gm_expected.
+    # self._gm_expected : The SVN-managed directory on the buildbot host
+    #                     where canonical expectations are stored.
+    #                     Currently, they are stored there as
+    #                     individual image files.
+    # DeviceDirs.GMExpectedDir(): A temporary directory on the device we are
+    #                             testing, where the PreRender step will put
+    #                             an expected-results.json file that describes
+    #                             all GM results expectations.
+    # TODO(epoger): Update the above description as we move through the steps in
+    # https://goto.google.com/ChecksumTransitionDetail
     self._device_dirs = DeviceDirs(
         perf_data_dir=self._perf_data_dir,
-        gm_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
-        gm_expected_dir=self._gm_expected_dir,
+        gm_actual_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
+        gm_expected_dir=os.path.join(os.pardir, os.pardir, 'gm', 'expected'),
         resource_dir=self._resource_dir,
         skp_dir=self._local_playback_dirs.PlaybackSkpDir(),
         skp_perf_dir=self._perf_data_dir,
@@ -344,4 +372,3 @@ class BuildStep(multiprocessing.Process):
       step._WaitFunc(attempt)
       attempt += 1
       print '**** %s, attempt %d ****' % (StepType.__name__, attempt + 1)
-

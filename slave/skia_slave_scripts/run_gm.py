@@ -6,6 +6,7 @@
 """ Run the Skia GM executable. """
 
 from build_step import BuildStep
+import build_step
 import os
 import sys
 
@@ -15,7 +16,10 @@ JSON_SUMMARY_FILENAME = 'actual-results.json'
 
 class RunGM(BuildStep):
   def _Run(self):
-    output_dir = os.path.join(self._device_dirs.GMDir(), self._gm_image_subdir)
+    device_gm_expectations_path = self.DevicePathJoin(
+        self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
+    output_dir = os.path.join(self._device_dirs.GMActualDir(),
+                              self._gm_image_subdir)
     cmd = ['--verbose',
            '--writePath', output_dir,
            '--writeJsonSummaryPath', os.path.join(output_dir,
@@ -23,7 +27,7 @@ class RunGM(BuildStep):
            '--ignoreErrorTypes',
                'IntentionallySkipped', 'MissingExpectations',
                'ExpectationsMismatch',
-           '--readPath', self._device_dirs.GMExpectedDir(),
+           '--readPath', device_gm_expectations_path,
            # TODO(borenet): Re-enable --resourcePath when the test passes.
            #'--resourcePath', self._device_dirs.ResourceDir(),
            ] + self._gm_args

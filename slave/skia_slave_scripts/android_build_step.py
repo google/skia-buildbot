@@ -49,8 +49,12 @@ class AndroidBuildStep(BuildStep):
     android_utils.RunADB(self._serial, ['shell', 'mkdir', '-p', directory])
 
   def PushFileToDevice(self, src, dst):
-    """ Copy a file to the device. """
+    """ Overrides build_step.PushFileToDevice() """
     android_utils.RunADB(self._serial, ['push', src, dst])
+
+  def DevicePathJoin(self, *args):
+    """ Overrides build_step.DevicePathJoin() """
+    return posixpath.sep.join(args)
 
   def CreateCleanDirectory(self, directory):
     self._RemoveDirectoryOnDevice(directory)
@@ -84,7 +88,7 @@ class AndroidBuildStep(BuildStep):
     super(AndroidBuildStep, self).__init__(args=args, **kwargs)
     prefix = posixpath.join(device_scratch_dir, 'skiabot', 'skia_')
     self._device_dirs = DeviceDirs(perf_data_dir=prefix + 'perf',
-                                   gm_dir=prefix + 'gm',
+                                   gm_actual_dir=prefix + 'gm_actual',
                                    gm_expected_dir=prefix + 'gm_expected',
                                    resource_dir=prefix + 'resources',
                                    skp_dir=prefix + 'skp',

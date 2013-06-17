@@ -18,17 +18,16 @@ class AndroidPostRender(AndroidBuildStep, PostRender):
     super(AndroidPostRender, self)._Run()
 
     android_utils.RunADB(self._serial, ['pull', posixpath.join(
-                                            self._device_dirs.GMDir(),
+                                            self._device_dirs.GMActualDir(),
                                             self._gm_image_subdir),
                                         self._gm_actual_dir])
     android_utils.RunADB(self._serial, ['pull', self._device_dirs.SKPOutDir(),
                                         self._gm_actual_dir])
     android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
-                                        self._device_dirs.GMDir()])
+                                        self._device_dirs.GMActualDir()])
     android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
                                         self._device_dirs.SKPOutDir()])
 
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidPostRender))
-

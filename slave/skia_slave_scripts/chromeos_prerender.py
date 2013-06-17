@@ -25,8 +25,9 @@ class ChromeOSPreRender(ChromeOSBuildStep, PreRender):
     # Clear the GM directory on the device.
     try:
       ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                       ['rm', '-rf', posixpath.join(self._device_dirs.GMDir(),
-                                                    self._gm_image_subdir)])
+                       ['rm', '-rf', posixpath.join(
+                           self._device_dirs.GMActualDir(),
+                           self._gm_image_subdir)])
     except Exception:
       pass
     try:
@@ -35,8 +36,9 @@ class ChromeOSPreRender(ChromeOSBuildStep, PreRender):
     except Exception:
       pass
     ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                     ['mkdir', '-p', posixpath.join(self._device_dirs.GMDir(),
-                                                    self._gm_image_subdir)])
+                     ['mkdir', '-p', posixpath.join(
+                         self._device_dirs.GMActualDir(),
+                         self._gm_image_subdir)])
     ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                      ['mkdir', '-p',
                       posixpath.join(self._device_dirs.SKPOutDir())])

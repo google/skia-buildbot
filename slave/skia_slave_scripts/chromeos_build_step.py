@@ -9,6 +9,7 @@ from build_step import BuildStep, DeviceDirs
 from utils import gs_utils
 from utils import ssh_utils
 import os
+import posixpath
 
 
 class ChromeOSBuildStep(BuildStep):
@@ -41,9 +42,13 @@ class ChromeOSBuildStep(BuildStep):
                  ['mkdir', '-p', directory])
 
   def PushFileToDevice(self, src, dst):
-    """ Copy a file to the device. """
+    """ Overrides build_step.PushFileToDevice() """
     ssh_utils.PutSCP(src, dst, self._ssh_username, self._ssh_host,
                      self._ssh_port)
+
+  def DevicePathJoin(self, *args):
+    """ Overrides build_step.DevicePathJoin() """
+    return posixpath.sep.join(args)
 
   def CreateCleanDirectory(self, directory):
     self._RemoveDirectoryOnDevice(directory)
@@ -71,7 +76,7 @@ class ChromeOSBuildStep(BuildStep):
     super(ChromeOSBuildStep, self).__init__(args=args, **kwargs)
     prefix = '/usr/local/skiabot/skia_'
     self._device_dirs = DeviceDirs(perf_data_dir=prefix + 'perf',
-                                   gm_dir=prefix + 'gm',
+                                   gm_actual_dir=prefix + 'gm_actual',
                                    gm_expected_dir=prefix + 'gm_expected',
                                    resource_dir=prefix + 'resources',
                                    skp_dir=prefix + 'skp',

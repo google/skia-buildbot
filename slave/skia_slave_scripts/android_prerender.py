@@ -20,7 +20,7 @@ class AndroidPreRender(AndroidBuildStep, PreRender):
 
     try:
       android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
-                                          self._device_dirs.GMDir()])
+                                          self._device_dirs.GMActualDir()])
     except Exception:
       pass
     try:
@@ -30,7 +30,7 @@ class AndroidPreRender(AndroidBuildStep, PreRender):
       pass
     android_utils.RunADB(self._serial, ['shell', 'mkdir', '-p',
                                         posixpath.join(
-                                            self._device_dirs.GMDir(),
+                                            self._device_dirs.GMActualDir(),
                                             self._gm_image_subdir)])
     android_utils.RunADB(self._serial, ['shell', 'mkdir', '-p',
                                         self._device_dirs.SKPOutDir()])

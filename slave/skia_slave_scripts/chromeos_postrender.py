@@ -23,7 +23,7 @@ class ChromeOSPostRender(ChromeOSBuildStep, PostRender):
     super(ChromeOSPostRender, self)._Run()
 
     ssh_utils.GetSCP(self._gm_actual_basedir,
-                     posixpath.join(self._device_dirs.GMDir(),
+                     posixpath.join(self._device_dirs.GMActualDir(),
                                     self._gm_image_subdir),
                      self._ssh_username, self._ssh_host, self._ssh_port,
                      recurse=True)
@@ -35,11 +35,10 @@ class ChromeOSPostRender(ChromeOSBuildStep, PostRender):
                        self._ssh_username, self._ssh_host, self._ssh_port)
 
     ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                     ['rm', '-rf', self._device_dirs.GMDir()])
+                     ['rm', '-rf', self._device_dirs.GMActualDir()])
     ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                      ['rm', '-rf', self._device_dirs.SKPOutDir()])
 
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(ChromeOSPostRender))
-
