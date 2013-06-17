@@ -5,6 +5,7 @@
 
 """ This module contains tools for running commands in a shell. """
 
+import datetime
 import os
 import Queue
 import select
@@ -75,7 +76,7 @@ class EnqueueThread(threading.Thread):
 
 
 def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
-                           halt_on_output=None):
+                           halt_on_output=None, print_timestamps=True):
   """ Log the output of proc until it completes. Return a tuple containing the
   exit code of proc and the contents of stdout.
 
@@ -85,6 +86,8 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
   log_file: an open file for writing output
   halt_on_output: string; kill the process and return if this string is found
       in the output stream from the process.
+  print_timestamps: boolean indicating whether a formatted timestamp should be
+      prepended to each line of output.
   """
   stdout_queue = Queue.Queue()
   log_thread = EnqueueThread(proc.stdout, stdout_queue)
@@ -96,13 +99,17 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
       code = proc.poll()
       try:
         output = stdout_queue.get_nowait()
+        all_output.append(output)
+        if output and print_timestamps:
+          timestamp = datetime.datetime.now().strftime('%H:%M:%S.%f')
+          output = ''.join(['[%s] %s\n' % (timestamp, line)
+                            for line in output.splitlines()])
         if echo:
           sys.stdout.write(output)
           sys.stdout.flush()
         if log_file:
           log_file.write(output)
           log_file.flush()
-        all_output.append(output)
         if halt_on_output and halt_on_output in output:
           proc.terminate()
           break
@@ -119,7 +126,7 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
   return (code, ''.join(all_output))
 
 
-def Bash(cmd, echo=True, shell=False, timeout=None):
+def Bash(cmd, echo=True, shell=False, timeout=None, print_timestamps=True):
   """ Run 'cmd' in a shell and return the combined contents of stdout and
   stderr (Blocking).  Throws an exception if the command exits non-zero.
   
@@ -131,10 +138,12 @@ def Bash(cmd, echo=True, shell=False, timeout=None):
       could be exploited by malicious code. See the warning here:
       http://docs.python.org/library/subprocess.html#popen-constructor
   timeout: optional, integer indicating the maximum elapsed time in seconds
+  print_timestamps: boolean indicating whether a formatted timestamp should be
+      prepended to each line of output.
   """
   proc = BashAsync(cmd, echo=echo, shell=shell)
   (returncode, output) = LogProcessToCompletion(proc, echo=echo,
-                                                timeout=timeout)
+      timeout=timeout, print_timestamps=print_timestamps)
   if returncode != 0:
     raise Exception('Command failed with code %d: %s' % (returncode, cmd))
   return output
@@ -142,13 +151,14 @@ def Bash(cmd, echo=True, shell=False, timeout=None):
 
 def BashRetry(cmd, echo=True, shell=False, attempts=1,
               secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS,
-              timeout=None):
+              timeout=None, print_timestamps=True):
   """ Wrapper for Bash() which makes multiple attempts until either the command
   succeeds or the maximum number of attempts is reached. """
   attempt = 1
   while True:
     try:
-      return Bash(cmd, echo=echo, shell=shell, timeout=timeout)
+      return Bash(cmd, echo=echo, shell=shell, timeout=timeout,
+                  print_timestamps=print_timestamps)
     except Exception:
       if attempt >= attempts:
         raise
