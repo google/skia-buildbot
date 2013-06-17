@@ -16,6 +16,59 @@ import tempfile
 
 
 class PreRender(BuildStep):
+
+  def _CreateExpectationsSummaryFromImages(self, srcdir, destpath):
+    """ Create GM expectations summary at destpath from the images in srcdir """
+    print 'Creating GM expectations summary %s from images in %s ...' % (
+        destpath, srcdir)
+
+    if not os.path.isdir(srcdir):
+      print 'image dir %s does not exist' % srcdir
+      self._CreateEmptyExpectationsSummary(destpath)
+      return
+
+    # Delete any non-image files in _gm_expected_dir, because they will
+    # cause skimage to fail.
+    # TODO(epoger): it would be better to fix skimage so that it doesn't
+    # fail in that case, but we shouldn't be calling skimage on the bots for
+    # more than a week anyway...
+    num_imagefiles = 0
+    for filename in os.listdir(srcdir):
+      if filename.endswith('.png'):
+        num_imagefiles += 1
+      else:
+        filepath = os.path.join(srcdir, filename)
+        if os.path.isfile(filepath):
+          print 'Deleting nonimage file %s' % filepath
+          os.remove(filepath)
+
+    if num_imagefiles == 0:
+      print 'image dir %s contains no image files' % srcdir
+      self._CreateEmptyExpectationsSummary(destpath)
+      return
+
+    cmd = [self._PathToBinary('skimage'),
+           '--readPath', srcdir,
+           '--createExpectationsPath', destpath,
+           ]
+    shell_utils.Bash(cmd)
+
+  def _CreateEmptyExpectationsSummary(self, destpath):
+    print 'Creating empty GM expectations summary in file %s .' % destpath
+    f = open(destpath, 'w')
+    f.write("""
+        {
+           "actual-results" : {
+             "failed" : null,
+             "failure-ignored" : null,
+             "no-comparison" : null,
+             "succeeded" : null
+           },
+           "expected-results" : null
+        }
+""")
+    f.close()
+
   def _Run(self):
     # Prepare directory to hold GM expectations.
     device_gm_expectations_path = self.DevicePathJoin(
@@ -47,24 +100,8 @@ class PreRender(BuildStep):
       tempdir = tempfile.mkdtemp()
       temp_gm_expectations_path = os.path.join(
           tempdir, build_step.GM_EXPECTATIONS_FILENAME)
-      print 'Creating GM expectations summary %s from images in %s ...' % (
-          temp_gm_expectations_path, self._gm_expected_dir)
-      # Delete any non-image files in _gm_expected_dir, because they will
-      # cause skimage to fail.
-      # TODO(epoger): it would be better to fix skimage so that it doesn't
-      # fail in that case, but we shouldn't be calling skimage on the bots for
-      # more than a week anyway...
-      for filename in os.listdir(self._gm_expected_dir):
-        if not filename.endswith('.png'):
-          filepath = os.path.join(self._gm_expected_dir, filename)
-          if os.path.isfile(filepath):
-            print 'Deleting nonimage file %s' % filepath
-            os.remove(filepath)
-      cmd = [self._PathToBinary('skimage'),
-             '--readPath', self._gm_expected_dir,
-             '--createExpectationsPath', temp_gm_expectations_path,
-             ]
-      shell_utils.Bash(cmd)
+      self._CreateExpectationsSummaryFromImages(
+          srcdir=self._gm_expected_dir, destpath=temp_gm_expectations_path)
       print 'Pushing GM expectations from %s on host to %s on device...' % (
           temp_gm_expectations_path, device_gm_expectations_path)
       self.PushFileToDevice(temp_gm_expectations_path,
