@@ -7,7 +7,6 @@
 
 import datetime
 import json
-import logging
 
 from google.appengine.ext import db
 
@@ -168,8 +167,8 @@ class LuaScriptPage(BasePage):
     self.DisplayTemplate('lua_script.html', template_values)
 
 
-class AllAdminTasks(BasePage):
-  """Displays all Admin tasks."""
+class AllTasks(BasePage):
+  """Displays all tasks (Admin, Lua, Telemetry)."""
 
   @utils.require_user
   def get(self):
@@ -185,38 +184,21 @@ class AllAdminTasks(BasePage):
         task_name=admin_task,
         requested_time=requested_time).put()
 
-    self.redirect('all_admin_tasks')
+    self.redirect('all_tasks')
 
   def _handle(self):
     """Sets the information to be displayed on the main page."""
     template_values = self.InitializeTemplate(
-        'All Admin Tasks')
+        'All Tasks')
 
     add_telemetry_info_to_template(template_values, self.user.email())
 
     admin_tasks = AdminTasks.get_all_admin_tasks()
     template_values['admin_tasks'] = admin_tasks
-
-    self.DisplayTemplate('all_admin_tasks.html', template_values)
-
-
-class AllLuaRunsPage(BasePage):
-  """Displays the Lua Runs of all users."""
-
-  @utils.require_user
-  def get(self):
-    return self._handle()
-
-  def _handle(self):
-    """Sets the information to be displayed on the main page."""
-    template_values = self.InitializeTemplate('All Lua Script Runs')
-
-    add_telemetry_info_to_template(template_values, self.user.email())
-
     lua_tasks = LuaTasks.get_all_lua_tasks()
     template_values['lua_tasks'] = lua_tasks
 
-    self.DisplayTemplate('all_lua_runs.html', template_values)
+    self.DisplayTemplate('all_tasks.html', template_values)
 
 
 class LandingPage(BasePage):
@@ -374,7 +356,8 @@ class UpdateInfoPage(BasePage):
     last_updated = datetime.datetime.now()
 
     # Delete the old entry.
-    telemetry_info = TelemetryInfo.get_telemetry_info().delete()
+    TelemetryInfo.get_telemetry_info().delete()
+
     # Add the new updated one.
     TelemetryInfo(
         chrome_last_built=chrome_last_built,

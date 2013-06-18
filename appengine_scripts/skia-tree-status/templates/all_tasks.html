@@ -3,7 +3,43 @@
 {% block content %}
 
 <center>
+  <br/><br/>
+
+  <h2>All Admin Tasks</h2>
+  <a href='admin'></a>
+  <br/>
+
+  {% if admin_tasks %}
+  <table border="1" cellpadding="5">
+    <tr bgcolor="#CCCCFF">
+      <td><b>User</b></td>
+      <td><b>Task</b></td>
+      <td><b>Requested Time</b></td>
+      <td><b>Completed Time</b></td>
+    </tr>
+    {% for task in admin_tasks %}
+    <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
+      <td>{{ task.username }}</td>
+      <td>{{ task.task_name }}</td>
+      <td>{{ task.requested_time }}</td>
+      <td>
+        {% if task.completed_time %}
+          {{ task.completed_time }}
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    No Previous runs yet.
+  {% endif %}
+
+  <br/><br/>
+
   <h2>All Lua script runs history</h2>
+  <a href='lua'></a>
   <br/>
 
   {% if lua_tasks %}
@@ -48,6 +84,7 @@
   {% else %}
     No Previous runs yet.
   {% endif %}
+
 </center>
 
 {% endblock %}
