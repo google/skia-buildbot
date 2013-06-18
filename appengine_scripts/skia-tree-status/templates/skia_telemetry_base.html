@@ -32,6 +32,21 @@
           </td>
         </tr>
       </table>
+
+      <table cellpadding="5">
+        <tr>
+          <td align="center">
+            <a href='/skia-telemetry'>Run Benchmarks</a>
+          </td>
+          <td align="center">
+            <a href='/skia-telemetry/lua_script'>Run Lua Scripts</a>
+          </td>
+          <td align="center">
+            <a href='/skia-telemetry/all_tasks'>Tasks History</a>
+          </td>
+        </tr>
+      </table>
+
       <h2>General Information</h2>
       <table cellpadding="5">
         <tr>
@@ -53,12 +68,21 @@
           <td colspan="2" align="center">(Last updated on {{ last_updated }})</td>
         </tr>
         </table>
+
         <form action="all_admin_tasks" name="all_admin_tasks" method="post">
-          <input type="submit" value="Rebuild Chrome" name="admin_task" {% if not admin %}disabled{% endif %}>
-          <input type="submit" value="Recreate Pagesets" name="admin_task" {% if not admin %}disabled{% endif %}>
-          <input type="submit" value="Recreate Webpage Archives" name="admin_task" {% if not admin %}disabled{% endif %}>
-          <br/>
-          <a href='all_tasks#admin'>See all admin tasks</a>
+          <table cellpadding="5">
+            <tr>
+              <td align="center">
+                <input type="submit" value="Rebuild Chrome" name="admin_task" {% if not admin %}disabled{% endif %}>
+              </td>
+              <td align="center">
+                <input type="submit" value="Recreate Pagesets" name="admin_task" {% if not admin %}disabled{% endif %}>
+              </td>
+              <td align="center">
+                <input type="submit" value="Recreate Webpage Archives" name="admin_task" {% if not admin %}disabled{% endif %}>
+              </td>
+            </tr>
+          </table>
         </form>
         <hr/>
 
