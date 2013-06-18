@@ -58,6 +58,7 @@ fi
 # Copy the log file to Google Storage.
 gsutil cp -a public-read $LOG_FILE_LOCATION \
   gs://chromium-skia-gm/telemetry/admin-task-outputs/$REQUESTER_EMAIL-chromium.txt
+rm $LOG_FILE_LOCATION
 
 OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/admin-task-outputs/$REQUESTER_EMAIL-chromium.txt
 BOUNDARY=`date +%s|md5sum`

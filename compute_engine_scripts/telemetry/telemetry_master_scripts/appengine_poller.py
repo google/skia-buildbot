@@ -30,11 +30,16 @@ def process_admin_tasks(pending_tasks):
 
     # Extract required parameters.
     task_key = task['key']
+    if task_key in ADMIN_ENCOUNTERED_KEYS:
+      print '%s is already being processed' % task_key
+      continue
+    ADMIN_ENCOUNTERED_KEYS[task_key] = 1
+
     task_name = task['task_name']
     username = task['username']
 
-    log_file = os.path.join(tempfile.gettempdir(), '%s-%s-%s.output' % (
-        username, task_name, task_key))
+    log_file = os.path.join(tempfile.gettempdir(), '%s-%s.output' % (
+        username, task_key))
     print 'Output will be available in %s' % log_file
 
     cmd = ''
@@ -45,7 +50,7 @@ def process_admin_tasks(pending_tasks):
       cmd = 'bash vm_create_pagesets_on_slaves.sh %s %s' % (
           username, task_key)
     elif task_name == appengine_constants.WEBPAGE_ARCHIVES_ADMIN_TASK_NAME:
-      cmd = 'bash vm_capture_archive_on_slaves.sh %s %s' % (
+      cmd = 'bash vm_capture_archives_on_slaves.sh %s %s' % (
           username, task_key)
     subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                      stderr=open(log_file, 'w'))
@@ -56,7 +61,7 @@ def process_lua_tasks(pending_tasks):
     task = pending_tasks[key]
     task_key = task['key']
     if task_key in LUA_ENCOUNTERED_KEYS:
-      '%s is already being processed' % task_key
+      print '%s is already being processed' % task_key
       continue
     LUA_ENCOUNTERED_KEYS[task_key] = 1
     # Create a run id.
