@@ -3,7 +3,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Module that polls the skia-telemetry AppEngine WebApp."""
+"""Module that polls the skia-telemetry AppEngine WebApp.
+
+Admin and Lua tasks are polled by this module. All new tasks are then triggered.
+This module also periodically updates the Telemetry Information after
+UPDATE_INFO_AFTER_SECS have elapsed.
+"""
 
 
 import json
@@ -20,6 +25,10 @@ import appengine_constants
 
 SLEEP_BETWEEN_POLLS_SECS = 60
 
+UPDATE_INFO_AFTER_SECS = 3600
+
+# The following dictionaries ensure that tasks which are being currently
+# processed are not triggered again.
 ADMIN_ENCOUNTERED_KEYS = {}
 LUA_ENCOUNTERED_KEYS = {}
 
@@ -89,8 +98,18 @@ TASK_SUBPATHS_TO_PROCESSING_METHOD = {
 class Poller(object):
 
   def Poll(self):
+    info_updated_on = 0
     while True:
       try:
+        if (time.time() - info_updated_on) >= UPDATE_INFO_AFTER_SECS:
+          log_file = os.path.join(tempfile.gettempdir(), 'update-info.output')
+          cmd = 'python update_appengine_info.py'
+          print 'Update Info Output will be available in %s' % log_file
+          subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
+                           stderr=open(log_file, 'w'))
+          info_updated_on = time.time()
+
+        # pylint: disable=C0301
         for task_subpath, processing_method in TASK_SUBPATHS_TO_PROCESSING_METHOD.items():
           get_tasks_page = urllib.urlopen(
               appengine_constants.SKIA_TELEMETRY_WEBAPP +
