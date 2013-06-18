@@ -5,8 +5,7 @@
 <center>
   <br/><br/>
 
-  <h2>All Admin Tasks</h2>
-  <a href='admin'></a>
+  <a id='admin'><h2>All Admin Tasks</h2></a>
   <br/>
 
   {% if admin_tasks %}
@@ -38,8 +37,7 @@
 
   <br/><br/>
 
-  <h2>All Lua script runs history</h2>
-  <a href='lua'></a>
+  <a id='lua'><h2>All Lua script runs history</h2></a>
   <br/>
 
   {% if lua_tasks %}
@@ -74,6 +72,40 @@
       <td align="center">
         {% if task.lua_output_link %}
           <a href='{{ task.lua_output_link }}' target='_blank'>output</a>
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    No Previous runs yet.
+  {% endif %}
+
+  <br/><br/>
+
+  <a id='telemetry'><h2>All Telemetry benchmark runs history</h2></a>
+  <br/>
+
+  {% if telemetry_tasks %}
+  <table border="1" cellpadding="5">
+    <tr bgcolor="#CCCCFF">
+      <td><b>User</b></td>
+      <td><b>Benchmark Name</b></td>
+      <td><b>Benchmark Arguments</b></td>
+      <td><b>Requested Time</b></td>
+      <td><b>Completed Time</b></td>
+    </tr>
+    {% for task in telemetry_tasks %}
+    <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
+      <td>{{ task.username }}</td>
+      <td>{{ task.benchmark_name }}</td>
+      <td>{{ task.benchmark_arguments }}</td>
+      <td>{{ task.requested_time }}</td>
+      <td>
+        {% if task.completed_time %}
+          {{ task.completed_time }}
         {% else %}
           In Progress
         {% endif %}

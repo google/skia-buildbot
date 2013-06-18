@@ -4,15 +4,15 @@
   <center>
   <h2>Run Telemetry Benchmarks</h2>
 
-  <form action="skia-telemetry/add_telemetry_task" name="add_telemetry_task" method="post">
+  <form action="/skia-telemetry" name="add_telemetry_task" method="post">
     <table cellpadding="5">
       <tr>
         <td>Benchmark to run</td>
-        <td><input type="text" name="benchmark_name"/></td>
+        <td><input type="text" size="35" name="benchmark_name" value="skpicture_printer"/></td>
       </tr>
       <tr>
         <td>Benchmark Arguments</td>
-        <td><input type="text" name="benchmark_arguments"/></td>
+        <td><input type="text" size="35" name="benchmark_arguments" value="--skp-outdir=/home/default/storage/skps/"/></td>
       </tr>
       <tr>
         <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task"></td>
@@ -51,6 +51,8 @@
   {% else %}
     No Previous runs yet.
   {% endif %}
+  <br/>
+  <a href='/skia-telemetry/all_tasks#telemetry'>View runs of all users</a>
   </center>
 
 {% endblock %}

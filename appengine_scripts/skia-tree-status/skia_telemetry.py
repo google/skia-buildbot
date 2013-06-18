@@ -105,7 +105,6 @@ class TelemetryTasks(db.Model):
   benchmark_arguments = db.StringProperty()
   requested_time = db.DateTimeProperty(required=True)
   completed_time = db.DateTimeProperty()
-  logs = db.BlobProperty()
 
   @classmethod
   def get_all_pending_telemetry_tasks(cls):
@@ -115,11 +114,23 @@ class TelemetryTasks(db.Model):
                .fetch(limit=FETCH_LIMIT))
 
   @classmethod
+  def get_all_telemetry_tasks(cls):
+    return (cls.all()
+               .order('-requested_time')
+               .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
   def get_all_telemetry_tasks_of_user(cls, user):
     return (cls.all()
                .filter('username =', user)
                .order('-requested_time')
                .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
+  def get_telemetry_task(cls, key):
+    return db.GqlQuery(
+        'SELECT * FROM TelemetryTasks WHERE __key__ = '
+        'Key(\'TelemetryTasks\', %s);' % key)
 
 
 def add_telemetry_info_to_template(template_values, user_email):
@@ -201,6 +212,8 @@ class AllTasks(BasePage):
     template_values['admin_tasks'] = admin_tasks
     lua_tasks = LuaTasks.get_all_lua_tasks()
     template_values['lua_tasks'] = lua_tasks
+    telemetry_tasks = TelemetryTasks.get_all_telemetry_tasks()
+    template_values['telemetry_tasks'] = telemetry_tasks
 
     self.DisplayTemplate('all_tasks.html', template_values)
 
@@ -211,23 +224,6 @@ class LandingPage(BasePage):
   @utils.require_user
   def get(self):
     return self._handle()
-
-  def _handle(self):
-    """Sets the information to be displayed on the main page."""
-
-    template_values = self.InitializeTemplate('Skia Telemetry')
-
-    add_telemetry_info_to_template(template_values, self.user.email())
-
-    telemetry_tasks = TelemetryTasks.get_all_telemetry_tasks_of_user(
-        self.user.email())
-    template_values['telemetry_tasks'] = telemetry_tasks
-
-    self.DisplayTemplate('skia_telemetry_landingpage.html', template_values)
-
-
-class AddTelemetryTaskPage(BasePage):
-  """Adds a telemetry task to the queue."""
 
   @utils.require_user
   def post(self):
@@ -241,19 +237,21 @@ class AddTelemetryTaskPage(BasePage):
         benchmark_arguments=benchmark_arguments,
         requested_time=requested_time).put()
 
-    self.response.out.write('<br/><br/>')
-    self.response.out.write('Added the following to the queue-')
-    self.response.out.write('<br/><br/>')
-    self.response.out.write('username: %s<br/>' % self.user.email())
-    self.response.out.write('benchmark_name: %s<br/>' % benchmark_name)
-    self.response.out.write(
-        'benchmark_arguments: %s<br/>' % benchmark_arguments)
-    self.response.out.write('requested_time: %s' % requested_time)
-    self.response.out.write('<br/><br/>')
-    self.response.out.write(
-        'You will receive an email when the benchmark run completes.')
-    self.response.out.write('<br/><br/>')
-    self.response.out.write('<a href=\'/skia-telemetry/\'>Back</a>')
+    self.redirect('/skia-telemetry')
+
+
+  def _handle(self):
+    """Sets the information to be displayed on the main page."""
+
+    template_values = self.InitializeTemplate('Skia Telemetry')
+
+    add_telemetry_info_to_template(template_values, self.user.email())
+
+    telemetry_tasks = TelemetryTasks.get_all_telemetry_tasks_of_user(
+        self.user.email())
+    template_values['telemetry_tasks'] = telemetry_tasks
+
+    self.DisplayTemplate('skia_telemetry_landingpage.html', template_values)
 
 
 class GetAdminTasksPage(BasePage):
@@ -302,7 +300,22 @@ class UpdateAdminTasksPage(BasePage):
     admin_task.completed_time = completed_time
     admin_task.put()
 
-    self.response.out.write('<br/><br/>Added to the datastore-<br/><br/>')
+    self.response.out.write('<br/><br/>Updated the datastore-<br/><br/>')
+    self.response.out.write('key: %s<br/>' % key)
+    self.response.out.write('completed_time: %s<br/>' % completed_time)
+
+
+class UpdateTelemetryTasksPage(BasePage):
+  """Updates a telemetry task using its key."""
+
+  def get(self):
+    key = int(self.request.get('key'))
+    completed_time = datetime.datetime.now()
+    telemetry_task = TelemetryTasks.get_telemetry_task(key)[0]
+    telemetry_task.completed_time = completed_time
+    telemetry_task.put()
+
+    self.response.out.write('<br/><br/>Updated the datastore-<br/><br/>')
     self.response.out.write('key: %s<br/>' % key)
     self.response.out.write('completed_time: %s<br/>' % completed_time)
 
@@ -322,7 +335,7 @@ class UpdateLuaTasksPage(BasePage):
     lua_task.completed_time = completed_time
     lua_task.put()
 
-    self.response.out.write('<br/><br/>Added to the datastore-<br/><br/>')
+    self.response.out.write('<br/><br/>Updated the datastore-<br/><br/>')
     self.response.out.write('key: %s<br/>' % key)
     self.response.out.write('lua_script_link: %s<br/>' % lua_script_link)
     self.response.out.write('lua_output_link: %s<br/>' % lua_output_link)
