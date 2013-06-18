@@ -27,6 +27,8 @@ class TelemetryInfo(db.Model):
   num_webpages = db.IntegerProperty(required=True)
   num_skp_files = db.IntegerProperty(required=True)
   last_updated = db.DateTimeProperty(required=True)
+  skia_rev = db.IntegerProperty(required=True)
+  chromium_rev = db.IntegerProperty(required=True)
 
   @classmethod
   def get_telemetry_info(cls):
@@ -124,6 +126,8 @@ def add_telemetry_info_to_template(template_values, user_email):
   """Reads TelemetryInfo from the Datastore and adds it to the template."""
   telemetry_info = TelemetryInfo.get_telemetry_info()
   template_values['chrome_last_built'] = telemetry_info.chrome_last_built
+  template_values['chromium_rev'] = telemetry_info.chromium_rev
+  template_values['skia_rev'] = telemetry_info.skia_rev
   template_values['gce_slaves'] = telemetry_info.gce_slaves
   template_values['num_webpages'] = telemetry_info.num_webpages
   template_values['num_skp_files'] = telemetry_info.num_skp_files
@@ -350,6 +354,8 @@ class UpdateInfoPage(BasePage):
   def get(self):
     chrome_last_built = datetime.datetime.fromtimestamp(
         float(self.request.get('chrome_last_built')))
+    chromium_rev = int(self.request.get('chromium_rev'))
+    skia_rev = int(self.request.get('skia_rev'))
     gce_slaves = int(self.request.get('gce_slaves'))
     num_webpages = int(self.request.get('num_webpages'))
     num_skp_files = int(self.request.get('num_skp_files'))
@@ -361,6 +367,8 @@ class UpdateInfoPage(BasePage):
     # Add the new updated one.
     TelemetryInfo(
         chrome_last_built=chrome_last_built,
+        chromium_rev=chromium_rev,
+        skia_rev=skia_rev,
         gce_slaves=gce_slaves,
         num_webpages=num_webpages,
         num_skp_files=num_skp_files,
@@ -368,6 +376,8 @@ class UpdateInfoPage(BasePage):
 
     self.response.out.write('<br/><br/>Added to the datastore-<br/><br/>')
     self.response.out.write('chrome_last_built: %s<br/>' % chrome_last_built)
+    self.response.out.write('chromium_rev: %s<br/>' % chromium_rev)
+    self.response.out.write('skia_rev: %s<br/>' % skia_rev)
     self.response.out.write('gce_slaves: %s<br/>' % gce_slaves)
     self.response.out.write('num_webpages: %s<br/>' % num_webpages)
     self.response.out.write('num_skp_files: %s<br/>' % num_skp_files)
@@ -379,6 +389,8 @@ def bootstrap():
   if db.GqlQuery('SELECT __key__ FROM TelemetryInfo').get() is None:
     TelemetryInfo(
         chrome_last_built=datetime.datetime(1970, 1, 1),
+        skia_rev=0,
+        chromium_rev=0,
         gce_slaves=0,
         num_webpages=0,
         num_skp_files=0,
