@@ -109,5 +109,5 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-wget -o /dev/null "http://skia-tree-status.appspot.com/skia-telemetry/update_lua_task?key=$APPENGINE_KEY&lua_script_link=$SCRIPT_LINK&lua_output_link=$OUTPUT_LINK"
+wget "http://skia-tree-status.appspot.com/skia-telemetry/update_lua_task?key=$APPENGINE_KEY&lua_script_link=$SCRIPT_LINK&lua_output_link=$OUTPUT_LINK" -O /dev/null
 

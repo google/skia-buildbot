@@ -88,5 +88,5 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-wget -o /dev/null "http://skia-tree-status.appspot.com/skia-telemetry/update_admin_task?key=$APPENGINE_KEY"
+wget "http://skia-tree-status.appspot.com/skia-telemetry/update_admin_task?key=$APPENGINE_KEY" -O /dev/null
 

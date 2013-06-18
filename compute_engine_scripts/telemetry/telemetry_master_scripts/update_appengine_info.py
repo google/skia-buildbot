@@ -6,15 +6,15 @@
 """Module that updates the skia-telemetry AppEngine WebApp information."""
 
 import os
+import re
 import subprocess
 import sys
-import urllib2
 
 import appengine_constants
 
 
-CHROME_BINARY_LOCATION = (
-    '/home/default/storage/chromium-trunk/src/out/Release/chrome')
+CHROME_SRC = '/home/default/storage/chromium-trunk/src/'
+CHROME_BINARY_LOCATION = CHROME_SRC + 'out/Release/chrome'
 
 
 class UpdateInfo(object):
@@ -43,14 +43,28 @@ class UpdateInfo(object):
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT).communicate()[0].rstrip()
 
+    # Get Chromium and Skia revisions.
+    os.chdir(CHROME_SRC)
+    version_cmd = [
+        'svnversion' ,
+        '.']
+    svnversion_output = subprocess.Popen(
+        version_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT).communicate()[0].rstrip()
+    match_obj = re.search(r'([0-9]+):([0-9]+).*', svnversion_output, re.M|re.I)
+    skia_rev = match_obj.group(1)
+    chromium_rev = match_obj.group(2)
+
     # Now communicate with the skia-telemetry webapp.
     update_info_url = (
         '%s%s?chrome_last_built=%s&gce_slaves=%s&num_webpages=%s&'
-        'num_skp_files=%s' % (
+        'num_skp_files=%s&chromium_rev=%s&skia_rev=%s' % (
             appengine_constants.SKIA_TELEMETRY_WEBAPP,
             appengine_constants.UPDATE_INFO_SUBPATH,
-            chrome_last_built, gce_slaves, num_webpages, num_skp_files))
-    os.system('wget -o /dev/null "%s"' % update_info_url)
+            chrome_last_built, gce_slaves, num_webpages, num_skp_files,
+            chromium_rev, skia_rev))
+    os.system('wget "%s" -O /dev/null' % update_info_url)
 
 
 if '__main__' == __name__:
