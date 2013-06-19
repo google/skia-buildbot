@@ -33,10 +33,10 @@ sudo ln -s /home/default/storage/chrome-build/chrome /usr/bin/google-chrome
 sudo chmod 777 /usr/bin/google-chrome
 
 # Copy over the page_sets for this slave.
-mkdir -p /home/default/storage/page_sets/
-rm -rf /home/default/storage/page_sets/*
-gsutil cp -r gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/* \
-  /home/default/storage/page_sets/
+# mkdir -p /home/default/storage/page_sets/
+# rm -rf /home/default/storage/page_sets/*
+# gsutil cp -r gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/* \
+#   /home/default/storage/page_sets/
 
 # Create /etc/lsb-release which is needed by telemetry.
 echo """

@@ -14,12 +14,12 @@
 if [ $# -ne 4 ]; then
   echo
   echo "Usage: `basename $0` 1 skpicture_printer" \
-    "--skp-outdir=/home/default/storage/skps/ rmistry"
+    "--skp-outdir=/home/default/storage/skps/ rmistry2013-05-24.07-34-05"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
   echo "The second argument is the telemetry benchmark to run on this slave."
   echo "The third argument are the extra arguments that the benchmark needs."
-  echo "The fourth argument is the user who triggered the run."
+  echo "The fourth argument is the runid (typically requester + timestamp)."
   echo
   exit 1
 fi
@@ -27,13 +27,11 @@ fi
 SLAVE_NUM=$1
 TELEMETRY_BENCHMARK=$2
 EXTRA_ARGS=$3
-REQUESTOR=$4
+RUN_ID=$4
 
 source vm_utils.sh
 
-TIMESTAMP=`date "+%m-%d-%Y.%T"`
-WORKER_FILE=$TELEMETRY_BENCHMARK.$REQUESTOR.$TIMESTAMP
-create_worker_file $WORKER_FILE
+create_worker_file TELEMETRY_${RUN_ID}
 
 source vm_setup_slave.sh
 
@@ -42,9 +40,11 @@ source vm_setup_slave.sh
 # gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/* \
 #   /home/default/storage/webpages_archive/
 
-# Clean and create the skp output directory.
-rm -rf /home/default/storage/skps
-mkdir -p /home/default/storage/skps/
+if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
+  # Clean and create the skp output directory.
+  rm -rf /home/default/storage/skps
+  mkdir -p /home/default/storage/skps/
+fi
 
 for page_set in /home/default/storage/page_sets/*; do
   if [[ -f $page_set ]]; then
@@ -79,4 +79,4 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
     gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/
 fi
 
-delete_worker_file $WORKER_FILE
+delete_worker_file TELEMETRY_${RUN_ID}
