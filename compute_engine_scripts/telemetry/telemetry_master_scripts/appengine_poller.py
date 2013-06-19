@@ -31,6 +31,7 @@ UPDATE_INFO_AFTER_SECS = 3600
 # processed are not triggered again.
 ADMIN_ENCOUNTERED_KEYS = {}
 LUA_ENCOUNTERED_KEYS = {}
+TELEMETRY_ENCOUNTERED_KEYS = {}
 
 
 def process_admin_tasks(pending_tasks):
@@ -49,7 +50,7 @@ def process_admin_tasks(pending_tasks):
 
     log_file = os.path.join(tempfile.gettempdir(), '%s-%s.output' % (
         username, task_key))
-    print 'Output will be available in %s' % log_file
+    print 'Admin output will be available in %s' % log_file
 
     cmd = ''
     if task_name == appengine_constants.CHROME_ADMIN_TASK_NAME:
@@ -84,7 +85,31 @@ def process_lua_tasks(pending_tasks):
     log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
     cmd = 'bash vm_run_lua_on_slaves.sh %s %s %s %s' % (
         lua_file, run_id, task['username'], task_key)
-    print 'Output will be available in %s' % log_file
+    print 'Lua output will be available in %s' % log_file
+    subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
+                     stderr=open(log_file, 'w'))
+
+
+def process_telemetry_tasks(pending_tasks):
+  for key in sorted(pending_tasks.keys()):
+    task = pending_tasks[key]
+    task_key = task['key']
+    if task_key in TELEMETRY_ENCOUNTERED_KEYS:
+      print '%s is already being processed' % task_key
+      continue
+    TELEMETRY_ENCOUNTERED_KEYS[task_key] = 1
+    benchmark_name = task['benchmark_name']
+    benchmark_arguments = task['benchmark_arguments']
+    username = task['username']
+    # Create a run id.
+    run_id = '%s-%s' % (username.split('@')[0], time.time())
+
+    # Now call the vm_run_telemetry_on_slaves.sh script.
+    log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
+    cmd = 'bash vm_run_telemetry_on_slaves.sh %s %s %s %s %s %s' % (
+        benchmark_name, benchmark_arguments, run_id, username, task_key,
+        log_file)
+    print 'Telemetry output will be available in %s' % log_file
     subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                      stderr=open(log_file, 'w'))
 
@@ -92,6 +117,7 @@ def process_lua_tasks(pending_tasks):
 TASK_SUBPATHS_TO_PROCESSING_METHOD = {
     appengine_constants.GET_ADMIN_TASKS_SUBPATH: process_admin_tasks,
     appengine_constants.GET_LUA_TASKS_SUBPATH: process_lua_tasks,
+    appengine_constants.GET_TELEMETRY_TASKS_SUBPATH: process_telemetry_tasks,
 }
 
 
