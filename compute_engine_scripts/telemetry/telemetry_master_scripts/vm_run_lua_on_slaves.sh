@@ -110,5 +110,5 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&lua_script_link=$SCRIPT_LINK&lua_output_link=$OUTPUT_LINK&password=$PASSWORD" "http://skia-tree-status.appspot.com/skia-telemetry/update_lua_task" -O /dev/null
+wget --post-data "key=$APPENGINE_KEY&lua_script_link=$SCRIPT_LINK&lua_output_link=$OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_lua_task" -O /dev/null
 

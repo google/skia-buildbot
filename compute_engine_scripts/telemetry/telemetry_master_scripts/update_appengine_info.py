@@ -60,7 +60,7 @@ class UpdateInfo(object):
 
     # Now communicate with the skia-telemetry webapp.
     update_info_url = '%s%s' % (
-        appengine_constants.SKIA_TELEMETRY_WEBAPP,
+        appengine_constants.SKIA_TELEMETRY_WEBAPP.replace('http', 'https'),
         appengine_constants.UPDATE_INFO_SUBPATH)
     password = open('appengine_password.txt').read().rstrip()
     update_info_post_data = (

@@ -89,5 +89,5 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD" "http://skia-tree-status.appspot.com/skia-telemetry/update_admin_task" -O /dev/null
+wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_admin_task" -O /dev/null
 
