@@ -411,23 +411,22 @@ def bootstrap():
   
   if db.GqlQuery('SELECT __key__ FROM TelemetryTasks').get() is None:
     TelemetryTasks(
-        username='Humpty Dumpty',
-        benchmark_name='Sitting On A wall',
-        benchmark_arguments='--try_not_to_fall',
+        username='Admin',
+        benchmark_name='Test benchmark',
+        benchmark_arguments='--test_arg',
         requested_time=datetime.datetime.now(),
-        completed_time=datetime.datetime.now(),
-        logs="I had a great fall").put()
+        completed_time=datetime.datetime.now()).put()
 
   if db.GqlQuery('SELECT __key__ FROM LuaTasks').get() is None:
     LuaTasks(
-        username='Initial Table Creation',
+        username='Admin',
         lua_script='Test Lua Script',
         requested_time=datetime.datetime.now(),
         completed_time=datetime.datetime.now()).put()
 
   if db.GqlQuery('SELECT __key__ FROM AdminTasks').get() is None:
     AdminTasks(
-        username='admin',
+        username='Admin',
         task_name='Initial Table Creation',
         requested_time=datetime.datetime.now(),
         completed_time=datetime.datetime.now()).put()
