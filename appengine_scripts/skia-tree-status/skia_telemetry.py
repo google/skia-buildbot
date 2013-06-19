@@ -293,7 +293,8 @@ class GetLuaTasksPage(BasePage):
 class UpdateAdminTasksPage(BasePage):
   """Updates an admin task using its key."""
 
-  def get(self):
+  @utils.admin_only
+  def post(self):
     key = int(self.request.get('key'))
     completed_time = datetime.datetime.now()
     admin_task = AdminTasks.get_admin_task(key)[0]
@@ -308,7 +309,8 @@ class UpdateAdminTasksPage(BasePage):
 class UpdateTelemetryTasksPage(BasePage):
   """Updates a telemetry task using its key."""
 
-  def get(self):
+  @utils.admin_only
+  def post(self):
     key = int(self.request.get('key'))
     completed_time = datetime.datetime.now()
     telemetry_task = TelemetryTasks.get_telemetry_task(key)[0]
@@ -323,7 +325,8 @@ class UpdateTelemetryTasksPage(BasePage):
 class UpdateLuaTasksPage(BasePage):
   """Updates a lua task using its key."""
 
-  def get(self):
+  @utils.admin_only
+  def post(self):
     key = int(self.request.get('key'))
     lua_script_link = self.request.get('lua_script_link')
     lua_output_link = self.request.get('lua_output_link')
@@ -364,7 +367,8 @@ class GetTelemetryTasksPage(BasePage):
 class UpdateInfoPage(BasePage):
   """Updates Telemetry info from the GCE master."""
 
-  def get(self):
+  @utils.admin_only
+  def post(self):
     chrome_last_built = datetime.datetime.fromtimestamp(
         float(self.request.get('chrome_last_built')))
     chromium_rev = int(self.request.get('chromium_rev'))
