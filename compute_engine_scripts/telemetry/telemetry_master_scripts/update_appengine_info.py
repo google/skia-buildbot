@@ -44,6 +44,7 @@ class UpdateInfo(object):
         stderr=subprocess.STDOUT).communicate()[0].rstrip()
 
     # Get Chromium and Skia revisions.
+    old_cwd = os.getcwd()
     os.chdir(CHROME_SRC)
     version_cmd = [
         'svnversion' ,
@@ -55,16 +56,20 @@ class UpdateInfo(object):
     match_obj = re.search(r'([0-9]+):([0-9]+).*', svnversion_output, re.M|re.I)
     skia_rev = match_obj.group(1)
     chromium_rev = match_obj.group(2)
+    os.chdir(old_cwd)
 
     # Now communicate with the skia-telemetry webapp.
-    update_info_url = (
-        '%s%s?chrome_last_built=%s&gce_slaves=%s&num_webpages=%s&'
-        'num_skp_files=%s&chromium_rev=%s&skia_rev=%s' % (
-            appengine_constants.SKIA_TELEMETRY_WEBAPP,
-            appengine_constants.UPDATE_INFO_SUBPATH,
+    update_info_url = '%s%s' % (
+        appengine_constants.SKIA_TELEMETRY_WEBAPP,
+        appengine_constants.UPDATE_INFO_SUBPATH)
+    password = open('appengine_password.txt').read().rstrip()
+    update_info_post_data = (
+        'chrome_last_built=%s&gce_slaves=%s&num_webpages=%s&'
+        'num_skp_files=%s&chromium_rev=%s&skia_rev=%s&password=%s' % (
             chrome_last_built, gce_slaves, num_webpages, num_skp_files,
-            chromium_rev, skia_rev))
-    os.system('wget "%s" -O /dev/null' % update_info_url)
+            chromium_rev, skia_rev, password))
+    os.system('wget --post-data "%s" "%s" -O /dev/null' % (
+        update_info_post_data, update_info_url))
 
 
 if '__main__' == __name__:

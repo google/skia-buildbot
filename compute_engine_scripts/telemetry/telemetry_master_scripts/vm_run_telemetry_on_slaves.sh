@@ -106,7 +106,8 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-wget "http://skia-tree-status.appspot.com/skia-telemetry/update_telemetry_task?key=$APPENGINE_KEY" -O /dev/null
+PASSWORD=`cat appengine_password.txt`
+wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD" "http://skia-tree-status.appspot.com/skia-telemetry/update_telemetry_task" -O /dev/null
 
 # Delete the log file since this task is now done.
 rm $LOG_FILE_LOCATION
