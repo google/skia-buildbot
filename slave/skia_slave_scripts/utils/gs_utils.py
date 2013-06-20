@@ -15,6 +15,7 @@ from common import chromium_utils
 from slave import slave_utils
 
 import file_utils
+import shell_utils
 
 TIMESTAMP_STARTED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_STARTED'
 TIMESTAMP_COMPLETED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_COMPLETED'
@@ -31,13 +32,28 @@ def DeleteStorageObject(object_name):
   chromium_utils.RunCommand(command)
 
 
-def CopyStorageDirectory(src_dir, dest_dir, gs_acl='private'):
-  """Copy a directory from/to Google Storage."""
+def CopyStorageDirectory(src_dir, dest_dir, gs_acl='private',
+                         http_header_lines=None):
+  """Copy a directory from/to Google Storage.
+
+  params:
+    src_dir
+    dest_dir
+    gs_acl
+    http_header_lines: a list of HTTP header strings to add, if any
+
+  The copy operates as a "merge with overwrite": any files in src_dir will be
+  "overlaid" on top of the existing content in dest_dir.  Existing files with
+  the same names will be overwritten.
+  """
   gsutil = slave_utils.GSUtilSetup()
   command = [gsutil]
+  if http_header_lines:
+    for http_header_line in http_header_lines:
+      command.extend(['-h', http_header_line])
   command.extend(['cp', '-a', gs_acl, '-R', src_dir, dest_dir])
   print 'Running command: %s' % command
-  chromium_utils.RunCommand(command)
+  shell_utils.Bash(command)
 
 
 def MoveStorageDirectory(src_dir, dest_dir):

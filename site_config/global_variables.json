@@ -14,6 +14,11 @@
     "type": "string",
     "description": "URL that displays the current sheriff and his/her schedule."
   },
+  "googlestorage_bucket": {
+    "value": "gs://chromium-skia-gm",
+    "type": "string",
+    "description": "Root of our Google Storage tree."
+  },
   "tree_status_url": {
     "value": "https://skia-tree-status.appspot.com/binary-status",
     "type": "string",

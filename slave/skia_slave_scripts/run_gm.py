@@ -21,6 +21,7 @@ class RunGM(BuildStep):
     output_dir = os.path.join(self._device_dirs.GMActualDir(),
                               self._gm_image_subdir)
     cmd = ['--verbose',
+           '--writeChecksumBasedFilenames',
            '--writePath', output_dir,
            '--writeJsonSummaryPath', os.path.join(output_dir,
                                                   JSON_SUMMARY_FILENAME),
