@@ -37,11 +37,24 @@ ARCH_TO_GYP_DEFINE = {
 }
 
 
+CHROMEOS_BOARD_NAME = {
+  'Alex': 'x86-alex',
+  'Link': 'link',
+  'daisy': 'daisy',
+}
+
+
 def GetExtraFactoryArgs(compile_builder_info):
   factory_type = compile_builder_info[7]
   if factory_type == android_factory.AndroidFactory:
     # AndroidFactory requires a "device" argument.
     return {'device': utils.CapWordsToUnderscores(compile_builder_info[4])}
+  elif factory_type == chromeos_factory.ChromeOSFactory:
+    # ChromeOSFactory requires a "board" argument.
+    try:
+      return {'board': CHROMEOS_BOARD_NAME[compile_builder_info[4]]}
+    except KeyError:
+      raise Exception('Unknown board type "%s"' % compile_builder_info[4])
   elif factory_type == skia_factory.SkiaFactory:
     # Some "normal" factories require extra arguments.
     if compile_builder_info[4] == 'ANGLE':
@@ -187,8 +200,8 @@ def Update(config, active_master, cfg):
                                                                                             ('Perf', 'Android',  'RazrI',      'SGX540',      None,          None)],})
   f = chromeos_factory.ChromeOSFactory
   builder_specs.update({
-      ('Ubuntu12', 'GCC',    'Debug',   'x86',   'ChromeOS',     no_gpu,    True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],
-      ('Ubuntu12', 'GCC',    'Release', 'x86',   'ChromeOS',     no_gpu,    True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None),
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'Alex',        None,      True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],
+      ('Ubuntu12', 'GCC',    'Release', 'x86',    'Alex',        None,      True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None),
                                                                                             ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],})
   f = ios_factory.iOSFactory
   p = skia_factory.TARGET_PLATFORM_MAC

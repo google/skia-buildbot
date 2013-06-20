@@ -15,7 +15,7 @@ from buildbot.process.properties import WithProperties
 class ChromeOSFactory(skia_factory.SkiaFactory):
   """Overrides for ChromeOS builds."""
 
-  def __init__(self, **kwargs):
+  def __init__(self, board, **kwargs):
     """ Instantiates a ChromeOSFactory with properties and build steps specific
     to ChromeOS devices.
 
@@ -23,6 +23,8 @@ class ChromeOSFactory(skia_factory.SkiaFactory):
     ssh_port: string indicating the ssh port on the target device
     """
     skia_factory.SkiaFactory.__init__(self, flavor='chromeos',
-                                      bench_pictures_cfg='no_gpu', **kwargs)
+                                      deps_target_os='chromeos', **kwargs)
     self._common_args += ['--ssh_host', WithProperties('%(ssh_host:-None)s'),
-                          '--ssh_port', WithProperties('%(ssh_port:-None)s')]
+                          '--ssh_port', WithProperties('%(ssh_port:-None)s'),
+                          '--board', board]
+
