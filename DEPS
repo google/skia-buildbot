@@ -15,7 +15,7 @@ use_relative_paths = True
 vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   "chromium_revision": "179720",
-  "depot_tools_revision": "015fd3d953081bb86f6e7b4c8788283f370d5df8s",
+  "depot_tools_revision": "015fd3d953081bb86f6e7b4c8788283f370d5df8",
   "telemetry_chromium_revision": "206068",
   "webpagereplay_revision": "511",
 }
