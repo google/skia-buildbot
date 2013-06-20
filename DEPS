@@ -47,7 +47,7 @@ deps = {
   "third_party/chromium_buildbot/scripts/command_wrapper/bin":
     Var("chromium_trunk") + "/tools/command_wrapper/bin@" + Var("chromium_revision"),
   "third_party/depot_tools":
-    "https://chromium.googlesource.com/chromium/tools/depot_tools.git@" + Var("depot_tools_revision"),
+    Var("chromium_trunk") + "/tools/depot_tools@" + Var("chromium_revision"),
 
   # Dependencies of the Chromium buildbot code.
   # I tried to use From() to link to Chromium's /tools/build/DEPS dependencies,
