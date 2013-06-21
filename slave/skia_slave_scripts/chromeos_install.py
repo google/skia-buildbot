@@ -16,9 +16,11 @@ import sys
 
 class ChromeOSInstall(ChromeOSBuildStep, Install):
   def _PutSCP(self, executable):
-    ssh_utils.PutSCP(local_path=os.path.join('out', 'config',
-                                             'chromeos-' + self._args['board'],
-                                             self._configuration, executable),
+    ssh_utils.PutSCP(# TODO(borenet): Use the new chromeos_make script.
+                     #local_path=os.path.join('out', 'config',
+                     #                        'chromeos-' + self._args['board'],
+                     #                        self._configuration, executable),
+                     local_path=self._PathToBinary(executable),
                      remote_path='/usr/local/bin/skia_%s' % executable,
                      username=self._ssh_username,
                      host=self._ssh_host,
