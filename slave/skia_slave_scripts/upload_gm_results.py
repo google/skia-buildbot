@@ -7,6 +7,7 @@
 rebaselining. """
 
 from build_step import BuildStep
+from common import chromium_utils
 from config_private import AUTOGEN_SVN_BASEURL
 from utils import gs_utils, merge_into_svn
 import os
@@ -87,6 +88,16 @@ class UploadGMResults(BuildStep):
     # pylint: disable=W0201
     merge_options.merge_dir_path = os.path.join(gm_merge_basedir,
                                                 self._args['gm_image_subdir'])
+    # Clear out the merge_dir, in case it has old imagefiles in it from the
+    # bad old days when we were still uploading actual images to skia-autogen.
+    # This resolves https://code.google.com/p/skia/issues/detail?id=1362 ('some
+    # buildbots are still uploading image files to skia-autogen after r9709')
+    #
+    # We wouldn't want to do this for a mergedir like that used for the
+    # Doxygen docs, since that dir holds so many files.. but this mergedir
+    # only holds the actual-results.json file now.  So the overhead of
+    # downloading that file from the repo every time isn't a big deal.
+    chromium_utils.RemoveDirectory(merge_options.merge_dir_path)
     # pylint: disable=W0201
     merge_options.source_dir_path = src_dir
     # pylint: disable=W0201
