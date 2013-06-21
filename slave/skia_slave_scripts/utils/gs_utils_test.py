@@ -7,6 +7,7 @@
 
 import __builtin__
 import os
+import shell_utils
 import sys
 import tempfile
 import time
@@ -27,9 +28,8 @@ import gs_utils
 import unittest
 
 
-GSUTIL_LOCATION = os.path.join(
-    os.pardir, os.pardir, 'third_party', 'chromium_buildbot', 'scripts',
-    'slave', 'gsutil')
+GSUTIL_LOCATION = slave_utils.GSUtilSetup()
+
 
 TEST_TIMESTAMP = '1354128965'
 TEST_TIMESTAMP_2 = '1354128985'
@@ -59,6 +59,9 @@ class TestGSUtils(unittest.TestCase):
     self._original_run_command = chromium_utils.RunCommand
     chromium_utils.RunCommand = _MockCommand
 
+    self._original_bash_run_command = shell_utils.Bash
+    shell_utils.Bash = _MockCommand
+
     self._original_gsutil_file_copy = slave_utils.GSUtilCopyFile
     slave_utils.GSUtilCopyFile = _MockGSUtilFileCopy
     
@@ -69,6 +72,7 @@ class TestGSUtils(unittest.TestCase):
 
   def tearDown(self):
     chromium_utils.RunCommand = self._original_run_command
+    shell_utils.Bash = self._original_bash_run_command
     slave_utils.GSUtilCopyFile = self._original_gsutil_file_copy
     slave_utils.GSUtilDownloadFile = self._original_gsutil_download_file
     __builtin__.open = self._original_file
@@ -77,10 +81,7 @@ class TestGSUtils(unittest.TestCase):
     self._expected_command = ('%s rm -R superman' % GSUTIL_LOCATION)
     gs_utils.DeleteStorageObject('superman')
 
-  # TODO(rmistry): Disabled in https://codereview.chromium.org/17473003 ,
-  # because it wasn't clear how to make it work with shell_utils.Bash()
-  # instead of chromium_utils.RunCommand().
-  def DISABLEDtestCopyStorageDirectory(self):
+  def test_CopyStorageDirectory(self):
     self._expected_command = (
         '%s cp -a public -R superman batman' % GSUTIL_LOCATION)
     gs_utils.CopyStorageDirectory('superman', 'batman', 'public')
