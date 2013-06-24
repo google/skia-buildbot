@@ -15,7 +15,7 @@ use_relative_paths = True
 vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   "chromium_revision": "179720",
-  "depot_tools_revision": "015fd3d953081bb86f6e7b4c8788283f370d5df8",
+  "depot_tools_revision": "207048",
   "telemetry_chromium_revision": "206068",
   "webpagereplay_revision": "511",
 }
@@ -47,7 +47,7 @@ deps = {
   "third_party/chromium_buildbot/scripts/command_wrapper/bin":
     Var("chromium_trunk") + "/tools/command_wrapper/bin@" + Var("chromium_revision"),
   "third_party/depot_tools":
-    Var("chromium_trunk") + "/tools/depot_tools@" + Var("chromium_revision"),
+    Var("chromium_trunk") + "/tools/depot_tools@" + Var("depot_tools_revision"),
 
   # Dependencies of the Chromium buildbot code.
   # I tried to use From() to link to Chromium's /tools/build/DEPS dependencies,
