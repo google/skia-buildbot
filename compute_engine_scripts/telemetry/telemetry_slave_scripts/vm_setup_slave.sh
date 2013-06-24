@@ -21,22 +21,28 @@ if [ -e /etc/boto.cfg ]; then
   sudo mv /etc/boto.cfg /etc/boto.cfg.bak
 fi
 
-# Copy over chrome binary from Google Storage.
+# Download the chrome binary from Google Storage if the local TIMESTAMP is out
+# of date.
 mkdir -p /home/default/storage/chrome-build/
-rm -rf /home/default/storage/chrome-build/*
-gsutil cp -r gs://chromium-skia-gm/telemetry/chrome-build/* \
-  /home/default/storage/chrome-build/
+are_timestamps_equal /home/default/storage/chrome-build gs://chromium-skia-gm/telemetry/chrome-build/slave$SLAVE_NUM
+if [ $? -eq 1 ]; then
+  gsutil cp gs://chromium-skia-gm/telemetry/chrome-build/slave$SLAVE_NUM/* \
+    /home/default/storage/chrome-build/
+fi
 
 # Setup the right symlinks for telemetry.
 sudo rm /usr/bin/google-chrome
 sudo ln -s /home/default/storage/chrome-build/chrome /usr/bin/google-chrome
 sudo chmod 777 /usr/bin/google-chrome
 
-# Copy over the page_sets for this slave.
-# mkdir -p /home/default/storage/page_sets/
-# rm -rf /home/default/storage/page_sets/*
-# gsutil cp -r gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/* \
-#   /home/default/storage/page_sets/
+# Download the page_sets from Google Storage if the local TIMESTAMP is out of
+# date.
+mkdir -p /home/default/storage/page_sets/
+are_timestamps_equal /home/default/storage/page_sets gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM
+if [ $? -eq 1 ]; then
+  gsutil cp gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/* \
+    /home/default/storage/page_sets/
+fi
 
 # Create /etc/lsb-release which is needed by telemetry.
 echo """

@@ -52,7 +52,11 @@ then
   gsutil rm -R gs://chromium-skia-gm/telemetry/chrome-build/*
   # Copy the newly built chrome binary into Google Storage.
   gsutil cp -r * gs://chromium-skia-gm/telemetry/chrome-build/
-
+  # Create a TIMESTAMP file and copy it to Google Storage.
+  TIMESTAMP=`date +%s`
+  echo $TIMESTAMP > /tmp/$TIMESTAMP
+  gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/chrome-build/TIMESTAMP
+  rm /tmp/$TIMESTAMP
 fi
 
 # Copy the log file to Google Storage.

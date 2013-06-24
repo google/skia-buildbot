@@ -35,10 +35,14 @@ create_worker_file TELEMETRY_${RUN_ID}
 
 source vm_setup_slave.sh
 
-# Download webpage_archives from Google Storage.
-# mkdir -p /home/default/storage/webpages_archive/
-# gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/* \
-#   /home/default/storage/webpages_archive/
+# Download the webpage_archives from Google Storage if the local TIMESTAMP is
+# out of date.
+mkdir -p /home/default/storage/webpages_archive/
+are_timestamps_equal /home/default/storage/webpages_archive gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM
+if [ $? -eq 1 ]; then
+  gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/* \
+    /home/default/storage/webpages_archive/
+fi
 
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Clean and create the skp output directory.
@@ -77,6 +81,14 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Now copy the SKP files to Google Storage. 
   gsutil cp /home/default/storage/skps/* \
     gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/
+
+  # Create a TIMESTAMP file and copy it to Google Storage.
+  TIMESTAMP=`date +%s`
+  echo $TIMESTAMP > /tmp/$TIMESTAMP
+  cp /tmp/$TIMESTAMP /home/default/storage/skps/
+  gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/TIMESTAMP
+  rm /tmp/$TIMESTAMP
+
 fi
 
 delete_worker_file TELEMETRY_${RUN_ID}

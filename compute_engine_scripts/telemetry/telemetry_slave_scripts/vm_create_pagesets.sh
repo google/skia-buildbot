@@ -60,5 +60,12 @@ gsutil rm -R gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/*
 # Copy the page_sets into Google Storage.
 gsutil cp ~/storage/page_sets/* gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/
 
+# Create a TIMESTAMP file and copy it to Google Storage.
+TIMESTAMP=`date +%s`
+echo $TIMESTAMP > /tmp/$TIMESTAMP
+cp /tmp/$TIMESTAMP ~/storage/page_sets/
+gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/TIMESTAMP
+rm /tmp/$TIMESTAMP
+
 delete_worker_file $CREATING_PAGESETS_ACTIVITY
 

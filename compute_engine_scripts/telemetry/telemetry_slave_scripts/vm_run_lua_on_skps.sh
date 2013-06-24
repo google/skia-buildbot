@@ -45,6 +45,13 @@ if [ -e /etc/boto.cfg ]; then
   sudo mv /etc/boto.cfg /etc/boto.cfg.bak
 fi
 
+# Download the SKP files from Google Storage if the local TIMESTAMP is out of date.
+mkdir -p /home/default/storage/skps/
+are_timestamps_equal /home/default/storage/skps gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM
+if [ $? -eq 1 ]; then
+  gsutil cp gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/* /home/default/storage/skps/
+fi
+
 # Copy the lua script from Google Storage to /tmp.
 gsutil cp $LUA_SCRIPT_GS_LOCATION /tmp/$LUA_FILE
 

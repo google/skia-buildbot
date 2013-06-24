@@ -50,4 +50,11 @@ gsutil rm -R gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/*
 gsutil cp /home/default/storage/webpages_archive/* \
   gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/
 
+# Create a TIMESTAMP file and copy it to Google Storage.
+TIMESTAMP=`date +%s`
+echo $TIMESTAMP > /tmp/$TIMESTAMP
+cp /tmp/$TIMESTAMP /home/default/storage/webpages_archive/
+gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/TIMESTAMP
+rm /tmp/$TIMESTAMP
+
 delete_worker_file $RECORD_WPR_ACTIVITY
