@@ -46,6 +46,8 @@ URLS = [
   ('/skia-telemetry/get_telemetry_tasks?',
    skia_telemetry.GetTelemetryTasksPage),
   ('/skia-telemetry/lua_script?', skia_telemetry.LuaScriptPage),
+  ('/skia-telemetry/skia_telemetry_info_page?',
+   skia_telemetry.TelemetryInfoPage),
   ('/skia-telemetry/update_admin_tasks?', skia_telemetry.UpdateAdminTasksPage),
   ('/skia-telemetry/update_telemetry_tasks?',
    skia_telemetry.UpdateTelemetryTasksPage),

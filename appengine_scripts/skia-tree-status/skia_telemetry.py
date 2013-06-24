@@ -25,6 +25,7 @@ class TelemetryInfo(db.Model):
   chrome_last_built = db.DateTimeProperty(required=True)
   gce_slaves = db.IntegerProperty(required=True)
   num_webpages = db.IntegerProperty(required=True)
+  num_webpages_per_pageset = db.IntegerProperty(required=True)
   num_skp_files = db.IntegerProperty(required=True)
   last_updated = db.DateTimeProperty(required=True)
   skia_rev = db.IntegerProperty(required=True)
@@ -60,6 +61,14 @@ class AdminTasks(db.Model):
                .filter('completed_time =', None)
                .order('requested_time')
                .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
+  def is_admin_task_running(cls, task_name):
+    admin_tasks = (cls.all()
+                      .filter('completed_time =', None)
+                      .filter('task_name =', task_name)
+                      .fetch(limit=1))
+    return admin_tasks != None and len(admin_tasks) != 0
 
 
 class LuaTasks(db.Model):
@@ -132,6 +141,14 @@ class TelemetryTasks(db.Model):
         'SELECT * FROM TelemetryTasks WHERE __key__ = '
         'Key(\'TelemetryTasks\', %s);' % key)
 
+  @classmethod
+  def is_skp_benchmark_running(cls):
+    skp_benchmarks = (cls.all()
+                         .filter('completed_time =', None)
+                         .filter('benchmark_name =', 'skpicture_printer')
+                         .fetch(limit=1))
+    return skp_benchmarks != None and len(skp_benchmarks) != 0
+
 
 def add_telemetry_info_to_template(template_values, user_email):
   """Reads TelemetryInfo from the Datastore and adds it to the template."""
@@ -141,6 +158,8 @@ def add_telemetry_info_to_template(template_values, user_email):
   template_values['skia_rev'] = telemetry_info.skia_rev
   template_values['gce_slaves'] = telemetry_info.gce_slaves
   template_values['num_webpages'] = telemetry_info.num_webpages
+  template_values['num_webpages_per_pageset'] = (
+      telemetry_info.num_webpages_per_pageset)
   template_values['num_skp_files'] = telemetry_info.num_skp_files
   template_values['last_updated'] = telemetry_info.last_updated
   template_values['admin'] = user_email in TELEMETRY_ADMINS
@@ -182,6 +201,21 @@ class LuaScriptPage(BasePage):
     self.DisplayTemplate('lua_script.html', template_values)
 
 
+class TelemetryInfoPage(BasePage):
+  """Displays information messages."""
+
+  @utils.require_user
+  def get(self):
+    template_values = self.InitializeTemplate('Telemetry Info Message')
+
+    add_telemetry_info_to_template(template_values, self.user.email())
+
+    info_msg = self.request.get('info_msg')
+    template_values['info_msg'] = info_msg
+
+    self.DisplayTemplate('skia_telemetry_info_page.html', template_values)
+
+
 class AllTasks(BasePage):
   """Displays all tasks (Admin, Lua, Telemetry)."""
 
@@ -194,17 +228,21 @@ class AllTasks(BasePage):
     requested_time = datetime.datetime.now()
     admin_task = self.request.get('admin_task')
 
-    AdminTasks(
-        username=self.user.email(),
-        task_name=admin_task,
-        requested_time=requested_time).put()
-
-    self.redirect('all_tasks')
+    # There should be only one instance of an admin task running at a time.
+    # Running multiple instances causes unpredictable and inconsistent behavior.
+    if AdminTasks.is_admin_task_running(admin_task):
+      self.redirect('/skia-telemetry/skia_telemetry_info_page?info_msg=%s'
+                    ' is already running!' % admin_task)
+    else:
+      AdminTasks(
+          username=self.user.email(),
+          task_name=admin_task,
+          requested_time=requested_time).put()
+      self.redirect('all_tasks')
 
   def _handle(self):
     """Sets the information to be displayed on the main page."""
-    template_values = self.InitializeTemplate(
-        'All Tasks')
+    template_values = self.InitializeTemplate('All Tasks')
 
     add_telemetry_info_to_template(template_values, self.user.email())
 
@@ -231,13 +269,18 @@ class LandingPage(BasePage):
     benchmark_arguments = self.request.get('benchmark_arguments')
     requested_time = datetime.datetime.now()
 
-    TelemetryTasks(
-        username=self.user.email(),
-        benchmark_name=benchmark_name,
-        benchmark_arguments=benchmark_arguments,
-        requested_time=requested_time).put()
-
-    self.redirect('/skia-telemetry')
+    # There should be only one instance of a skp benchmark running at a time.
+    # Running multiple instances causes unpredictable and inconsistent behavior.
+    if TelemetryTasks.is_skp_benchmark_running():
+      self.redirect('/skia-telemetry/skia_telemetry_info_page?info_msg=%s'
+                    ' is already running!' % benchmark_name)
+    else:
+      TelemetryTasks(
+          username=self.user.email(),
+          benchmark_name=benchmark_name,
+          benchmark_arguments=benchmark_arguments,
+          requested_time=requested_time).put()
+      self.redirect('/skia-telemetry')
 
 
   def _handle(self):
@@ -375,6 +418,7 @@ class UpdateInfoPage(BasePage):
     skia_rev = int(self.request.get('skia_rev'))
     gce_slaves = int(self.request.get('gce_slaves'))
     num_webpages = int(self.request.get('num_webpages'))
+    num_webpages_per_pageset = int(self.request.get('num_webpages_per_pageset'))
     num_skp_files = int(self.request.get('num_skp_files'))
     last_updated = datetime.datetime.now()
 
@@ -388,6 +432,7 @@ class UpdateInfoPage(BasePage):
         skia_rev=skia_rev,
         gce_slaves=gce_slaves,
         num_webpages=num_webpages,
+        num_webpages_per_pageset=num_webpages_per_pageset,
         num_skp_files=num_skp_files,
         last_updated=last_updated).put()
 
@@ -397,6 +442,8 @@ class UpdateInfoPage(BasePage):
     self.response.out.write('skia_rev: %s<br/>' % skia_rev)
     self.response.out.write('gce_slaves: %s<br/>' % gce_slaves)
     self.response.out.write('num_webpages: %s<br/>' % num_webpages)
+    self.response.out.write('num_webpages_per_pageset: %s<br/>' % (
+        num_webpages_per_pageset))
     self.response.out.write('num_skp_files: %s<br/>' % num_skp_files)
     self.response.out.write('last_updated: %s' % last_updated)
    
@@ -410,6 +457,7 @@ def bootstrap():
         chromium_rev=0,
         gce_slaves=0,
         num_webpages=0,
+        num_webpages_per_pageset=0,
         num_skp_files=0,
         last_updated=datetime.datetime.now()).put()
   

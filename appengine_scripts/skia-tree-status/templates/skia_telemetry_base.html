@@ -52,32 +52,36 @@
         <tr>
           <td>Chrome was last built on</td>
           <td>{{ chrome_last_built }}</td>
-        </tr>
-        <tr>
-          <td>Chromium Revision</td>
-          <td>{{ chromium_rev }}</td>
-        </tr>
-        <tr>
-          <td>Skia Revision</td>
-          <td>{{ skia_rev }}</td>
-        </tr>
-        <tr>
-          <td>GCE Slave machines available</td>
-          <td>{{ gce_slaves }}</td>
-        </tr>
-        <tr>
+          <td></td>
           <td>Number of webpages archived</td>
           <td>{{ num_webpages }}</td>
         </tr>
         <tr>
+          <td>Chromium Revision</td>
+          <td>{{ chromium_rev }}</td>
+          <td></td>
+          <td>Number of webpages per pageset</td>
+          <td>{{ num_webpages_per_pageset }}</td>
+        </tr>
+        <tr>
+          <td>Skia Revision</td>
+          <td>{{ skia_rev }}</td>
+          <td></td>
           <td>Number of Total SKP files</td>
           <td>{{ num_skp_files }}</td>
-        <tr>
-          <td colspan="2" align="center">(Last updated on {{ last_updated }})</td>
         </tr>
-        </table>
+        <tr>
+          <td>Number of GCE slaves</td>
+          <td>{{ gce_slaves }}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </table>
+        <br/>
+        (Last updated on {{ last_updated }})
 
-        <form action="all_admin_tasks" name="all_admin_tasks" method="post">
+        <form action="/skia-telemetry/all_tasks" name="all_admin_tasks" method="post">
           <table cellpadding="5">
             <tr>
               <td align="center">
