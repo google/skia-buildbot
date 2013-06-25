@@ -17,8 +17,11 @@ import sys
 class ChromeOSInstall(ChromeOSBuildStep, Install):
   def _PutSCP(self, executable):
     # First, make sure that the program isn't running.
-    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                     ['killall', 'skia_%s' % executable])
+    try:
+      ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                       ['killall', 'skia_%s' % executable])
+    except Exception:
+      pass
     ssh_utils.PutSCP(local_path=os.path.join('out', 'config',
                                              'chromeos-' + self._args['board'],
                                              self._configuration, executable),
