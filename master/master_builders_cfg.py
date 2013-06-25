@@ -52,7 +52,8 @@ def GetExtraFactoryArgs(compile_builder_info):
   elif factory_type == chromeos_factory.ChromeOSFactory:
     # ChromeOSFactory requires a "board" argument.
     try:
-      return {'board': CHROMEOS_BOARD_NAME[compile_builder_info[4]]}
+      return {'board': CHROMEOS_BOARD_NAME[compile_builder_info[4]],
+              'bench_pictures_cfg': 'no_gpu'}
     except KeyError:
       raise Exception('Unknown board type "%s"' % compile_builder_info[4])
   elif factory_type == skia_factory.SkiaFactory:
