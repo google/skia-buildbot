@@ -91,10 +91,6 @@ class AndroidBuildStep(BuildStep):
                                    gm_actual_dir=prefix + 'gm_actual',
                                    gm_expected_dir=prefix + 'gm_expected',
                                    resource_dir=prefix + 'resources',
-                                   skimage_in_dir=prefix + 'skimage_in',
-                                   skimage_expected_dir=(prefix
-                                                         + 'skimage_expected'),
-                                   skimage_out_dir=prefix + 'skimage_out',
                                    skp_dir=prefix + 'skp',
                                    skp_perf_dir=prefix + 'skp_perf',
                                    skp_out_dir=prefix + 'skp_out',

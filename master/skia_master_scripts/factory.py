@@ -443,12 +443,6 @@ class SkiaFactory(BuildFactory):
     self.AddSlaveScript(script='download_skps.py', description='DownloadSKPs',
                         halt_on_failure=True)
 
-  def DownloadSKImageFiles(self):
-    """ Download image files for running skimage. """
-    self.AddSlaveScript(script='download_skimage_files.py',
-                        description='DownloadSKImageFiles',
-                        halt_on_failure=True)
-
   def DownloadBaselines(self):
     """ Download the GM baselines. """
     self.AddSlaveScript(script='download_baselines.py',
@@ -457,11 +451,6 @@ class SkiaFactory(BuildFactory):
   def RunTests(self):
     """ Run the unit tests. """
     self.AddFlavoredSlaveScript(script='run_tests.py', description='RunTests')
-
-  def RunDecodingTests(self):
-    """ Run tests of image decoders. """
-    self.AddFlavoredSlaveScript(script='run_decoding_tests.py',
-                                description='RunDecodingTests')
 
   def RunGM(self):
     """ Run the "GM" tool, saving the images to disk. """
@@ -630,10 +619,6 @@ class SkiaFactory(BuildFactory):
                         description='UploadGMResults', timeout=5400,
                         is_rebaseline_step=True)
 
-  def UploadSKImageResults(self):
-    self.AddSlaveScript(script='upload_skimage_results.py',
-                        description="UploadSKImageResults")
-
   def CommonSteps(self, clobber=None):
     """ Steps which are run at the beginning of all builds. """
     self.UpdateSteps()
@@ -644,18 +629,15 @@ class SkiaFactory(BuildFactory):
   def NonPerfSteps(self):
     """ Add correctness testing BuildSteps. """
     self.DownloadBaselines()
-    self.DownloadSKImageFiles()
     self.PreRender()
     self.RunTests()
     self.RunGM()
     self.RenderPictures()
     self.RenderPdfs()
-    self.RunDecodingTests()
     self.PostRender()
     if self._do_upload_results:
       self.UploadGMResults()
       self.CompareAndUploadWebpageGMs()
-      self.UploadSKImageResults()
     self.CompareGMs()
 
   def PerfSteps(self):

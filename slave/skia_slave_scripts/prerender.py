@@ -7,7 +7,6 @@
     Bench builders. """
 
 from build_step import BuildStep
-from utils import file_utils
 from utils import shell_utils
 import build_step
 import os
@@ -115,20 +114,6 @@ class PreRender(BuildStep):
       shutil.rmtree(self._gm_actual_dir)
     print 'Creating %s' % self._gm_actual_dir
     os.makedirs(self._gm_actual_dir)
-
-    # Copy expectations file and images to decode in skimage to device.
-    self.CopyDirectoryContentsToDevice(self._skimage_expected_dir,
-                                       self._device_dirs.SKImageExpectedDir())
-
-    self.CopyDirectoryContentsToDevice(self._skimage_in_dir,
-                                       self._device_dirs.SKImageInDir())
-
-    # Create an out directory locally for android builds, so the files can be
-    # copied back to the master
-    file_utils.CreateCleanLocalDir(self._skimage_out_dir)
-
-    # Create a directory for the output of skimage
-    self.CreateCleanDirectory(self._device_dirs.SKImageOutDir())
 
 
 if '__main__' == __name__:
