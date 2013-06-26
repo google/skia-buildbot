@@ -40,7 +40,7 @@ ARCH_TO_GYP_DEFINE = {
 CHROMEOS_BOARD_NAME = {
   'Alex': 'x86-alex',
   'Link': 'link',
-  'daisy': 'daisy',
+  'Daisy': 'daisy',
 }
 
 
@@ -203,7 +203,13 @@ def Update(config, active_master, cfg):
   builder_specs.update({
       ('Ubuntu12', 'GCC',    'Debug',   'x86',    'Alex',        None,      True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],
       ('Ubuntu12', 'GCC',    'Release', 'x86',    'Alex',        None,      True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None),
-                                                                                            ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],})
+                                                                                            ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'Link',        None,      True,  f, p) : [('Test', 'ChromeOS', 'Link',       'HD4000',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'Link',        None,      True,  f, p) : [('Test', 'ChromeOS', 'Link',       'HD4000',      None,          None),
+                                                                                            ('Perf', 'ChromeOS', 'Link',       'HD4000',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Daisy',       None,      True,  f, p) : [('Test', 'ChromeOS', 'Daisy',      'MaliT604',    None,          None)],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Daisy',       None,      True,  f, p) : [('Test', 'ChromeOS', 'Daisy',      'MaliT604',    None,          None),
+                                                                                            ('Perf', 'ChromeOS', 'Daisy',      'MaliT604',    None,          None)],})
   f = ios_factory.iOSFactory
   p = skia_factory.TARGET_PLATFORM_MAC
   builder_specs.update({

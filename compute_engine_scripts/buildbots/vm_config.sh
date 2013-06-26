@@ -15,8 +15,7 @@ REQUIRED_FILES_FOR_SLAVES=(~/.autogen_svn_username \
                            ~/.autogen_svn_password \
                            ~/.skia_svn_username \
                            ~/.skia_svn_password \
-                           ~/.boto \
-                           ~/.boto_cros)
+                           ~/.boto)
 
 REQUIRED_FILES_FOR_MASTERS=(~/.code_review_password \
                             ~/.status_password)
