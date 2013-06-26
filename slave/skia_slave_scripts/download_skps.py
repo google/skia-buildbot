@@ -15,9 +15,10 @@ import sys
 
 class DownloadSKPs(BuildStep):
   def __init__(self, timeout=12800, no_output_timeout=9600, **kwargs):
-    super (DownloadSKPs, self).__init__(timeout=timeout,
-                                        no_output_timeout=no_output_timeout,
-                                        **kwargs)
+    super (DownloadSKPs, self).__init__(
+        timeout=timeout,
+        no_output_timeout=no_output_timeout,
+        **kwargs)
 
   def _CreateLocalStorageDirs(self):
     """Creates required local storage directories for this script."""

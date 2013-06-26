@@ -39,6 +39,14 @@ class ChromeOSPostRender(ChromeOSBuildStep, PostRender):
     ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
                      ['rm', '-rf', self._device_dirs.SKPOutDir()])
 
+    # Copy skimage results and remove them from the device.
+    ssh_utils.GetSCP(self._skimage_out_dir, self._device_dirs.SKImageOutDir(),
+                     self._ssh_username, self._ssh_host, self._ssh_port,
+                     recurse=True)
+
+    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                     ['rm', '-rf', self._device_dirs.SKImageOutDir()])
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(ChromeOSPostRender))

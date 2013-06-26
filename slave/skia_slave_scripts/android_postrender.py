@@ -28,6 +28,14 @@ class AndroidPostRender(AndroidBuildStep, PostRender):
     android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
                                         self._device_dirs.SKPOutDir()])
 
+    # Pull skimage results from device:
+    android_utils.RunADB(self._serial, ['pull',
+                                        self._device_dirs.SKImageOutDir(),
+                                        self._skimage_out_dir])
+
+    # And remove them.
+    android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
+                                        self._device_dirs.SKImageOutDir()])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidPostRender))
