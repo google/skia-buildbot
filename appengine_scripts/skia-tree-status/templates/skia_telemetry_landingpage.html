@@ -8,11 +8,11 @@
     <table cellpadding="5">
       <tr>
         <td>Benchmark to run</td>
-        <td><input type="text" size="35" name="benchmark_name" value="skpicture_printer"/></td>
+        <td><input type="text" size="35" name="benchmark_name" {% if admin %}value="skpicture_printer"{% endif %}/></td>
       </tr>
       <tr>
         <td>Benchmark Arguments</td>
-        <td><input type="text" size="35" name="benchmark_arguments" value="--skp-outdir=/home/default/storage/skps/"/></td>
+        <td><input type="text" size="35" name="benchmark_arguments" {% if admin %}value="--skp-outdir=/home/default/storage/skps/"{% endif %}/></td>
       </tr>
       <tr>
         <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task"></td>
