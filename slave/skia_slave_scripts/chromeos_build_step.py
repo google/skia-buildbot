@@ -30,10 +30,7 @@ class ChromeOSBuildStep(BuildStep):
                        ['rm', '-rf', directory])
     except Exception:
       pass
-    if 'DIRECTORY_EXISTS' in ssh_utils.RunSSH(self._ssh_username,
-        self._ssh_host, self._ssh_port, ['if', '[', '-d', directory, '];',
-                                         'then', 'echo', 'DIRECTORY_EXISTS;',
-                                         'fi']):
+    if self.DevicePathExists(directory):
       raise Exception('Failed to remove %s' % directory)
 
   def _CreateDirectoryOnDevice(self, directory):
@@ -45,6 +42,22 @@ class ChromeOSBuildStep(BuildStep):
     """ Overrides build_step.PushFileToDevice() """
     ssh_utils.PutSCP(src, dst, self._ssh_username, self._ssh_host,
                      self._ssh_port)
+
+  def DeviceListDir(self, directory):
+    """ Overrides build_step.DeviceListDir() """
+    return ssh_utils.RunSSH(
+        self._ssh_username,
+        self._ssh_host,
+        self._ssh_port,
+        ['ls', directory], echo=False).split('\n')
+
+  def DevicePathExists(self, path):
+    """ Overrides build_step.DevicePathExists() """
+    return 'FILE_EXISTS' in ssh_utils.RunSSH(
+        self._ssh_username,
+        self._ssh_host,
+        self._ssh_port,
+        ['if', '[', '-e', path, '];', 'then', 'echo', 'FILE_EXISTS;', 'fi'])
 
   def DevicePathJoin(self, *args):
     """ Overrides build_step.DevicePathJoin() """
@@ -79,6 +92,10 @@ class ChromeOSBuildStep(BuildStep):
                                    gm_actual_dir=prefix + 'gm_actual',
                                    gm_expected_dir=prefix + 'gm_expected',
                                    resource_dir=prefix + 'resources',
+                                   skimage_in_dir=prefix + 'skimage_in',
+                                   skimage_expected_dir=(prefix
+                                                         + 'skimage_expected'),
+                                   skimage_out_dir=prefix + 'skimage_out',
                                    skp_dir=prefix + 'skp',
                                    skp_perf_dir=prefix + 'skp_perf',
                                    skp_out_dir=prefix + 'skp_out',

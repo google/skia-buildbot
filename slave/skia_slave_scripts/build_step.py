@@ -84,11 +84,15 @@ class BuildStepLogger(object):
 
 class DeviceDirs(object):
   def __init__(self, perf_data_dir, gm_actual_dir, gm_expected_dir,
-               resource_dir, skp_dir, skp_perf_dir, skp_out_dir, tmp_dir):
+               resource_dir, skimage_in_dir, skimage_expected_dir,
+               skimage_out_dir, skp_dir, skp_perf_dir, skp_out_dir, tmp_dir):
     self._perf_data_dir = perf_data_dir
     self._gm_actual_dir = gm_actual_dir
     self._gm_expected_dir = gm_expected_dir
     self._resource_dir = resource_dir
+    self._skimage_in_dir = skimage_in_dir
+    self._skimage_expected_dir = skimage_expected_dir
+    self._skimage_out_dir = skimage_out_dir
     self._skp_dir = skp_dir
     self._skp_perf_dir = skp_perf_dir
     self._skp_out_dir = skp_out_dir
@@ -105,6 +109,15 @@ class DeviceDirs(object):
 
   def ResourceDir(self):
     return self._resource_dir
+
+  def SKImageInDir(self):
+    return self._skimage_in_dir
+
+  def SKImageExpectedDir(self):
+    return self._skimage_expected_dir
+
+  def SKImageOutDir(self):
+    return self._skimage_out_dir
 
   def SKPDir(self):
     return self._skp_dir
@@ -146,6 +159,14 @@ class BuildStep(multiprocessing.Process):
     Subclasses should override this method with one appropriate for
     pushing the file to the device. """
     shutil.copy(src, dst)
+
+  def DeviceListDir(self, directory):
+    """ List the contents of a directory on the connected device. """
+    return os.listdir(directory)
+
+  def DevicePathExists(self, path):
+    """ Like os.path.exists(), but for a path on the connected device. """
+    return os.path.exists(path)
 
   def DevicePathJoin(self, *args):
     """ Like os.path.join(), but for paths that will target the connected
@@ -232,6 +253,13 @@ class BuildStep(multiprocessing.Process):
       self._perf_data_dir = None
       self._perf_graphs_dir = None
 
+    self._skimage_in_dir = os.path.join(os.pardir, 'skimage_in')
+
+    self._skimage_expected_dir = os.path.join('expectations', 'skimage')
+
+    self._skimage_out_dir = os.path.join('out', self._configuration,
+                                         'skimage_out')
+
     # Note that DeviceDirs.GMExpectedDir() is being set up to point at a
     # DIFFERENT directory than self._gm_expected.
     # self._gm_expected : The SVN-managed directory on the buildbot host
@@ -249,6 +277,9 @@ class BuildStep(multiprocessing.Process):
         gm_actual_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
         gm_expected_dir=os.path.join(os.pardir, os.pardir, 'gm', 'expected'),
         resource_dir=self._resource_dir,
+        skimage_in_dir=self._skimage_in_dir,
+        skimage_expected_dir=self._skimage_expected_dir,
+        skimage_out_dir=self._skimage_out_dir,
         skp_dir=self._local_playback_dirs.PlaybackSkpDir(),
         skp_perf_dir=self._perf_data_dir,
         skp_out_dir=self._local_playback_dirs.PlaybackGmActualDir(),
