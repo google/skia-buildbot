@@ -182,13 +182,20 @@ class LuaScriptPage(BasePage):
     if not description:
       description = 'None'
 
-    LuaTasks(
-        username=self.user.email(),
-        lua_script=lua_script,
-        requested_time=requested_time,
-        description=description).put()
-
-    self.redirect('lua_script')
+    # Lua scripts should not run if skpicture_printer is already running,
+    # because when that benchmark is running the local skps directory is empty
+    # till the benchmark completes (this takes a few hours).
+    if TelemetryTasks.is_skp_benchmark_running():
+      self.redirect('/skia-telemetry/skia_telemetry_info_page?info_msg=SKP '
+                    'files are in the process of being captured. Please try '
+                    'your Lua script in a few hours.')
+    else:
+      LuaTasks(
+          username=self.user.email(),
+          lua_script=lua_script,
+          requested_time=requested_time,
+          description=description).put()
+      self.redirect('lua_script')
 
   def _handle(self):
     """Sets the information to be displayed on the main page."""
