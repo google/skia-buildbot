@@ -8,7 +8,7 @@
 from build_step import BuildStep
 from utils import gs_utils
 from utils import sync_bucket_subdir
-import os
+import posixpath
 import sys
 
 class DownloadSKImageFiles(BuildStep):
@@ -23,7 +23,7 @@ class DownloadSKImageFiles(BuildStep):
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
     print '\n\n========Downloading image files from Google Storage========\n\n'
-    gs_relative_dir = os.path.join('skimage', 'input')
+    gs_relative_dir = posixpath.join('skimage', 'input')
     gs_utils.DownloadDirectoryContentsIfChanged(
         gs_base=dest_gsbase,
         gs_relative_dir=gs_relative_dir,
