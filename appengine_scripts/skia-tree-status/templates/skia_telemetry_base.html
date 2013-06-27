@@ -80,6 +80,7 @@
       </table>
         <br/>
         (Last updated on {{ last_updated }})
+        {% if not admin %}<br/>Must be admin to trigger below admin tasks (contact rmistry@)<br/><br/>{% endif %}
 
         <form action="/skia-telemetry/all_tasks" name="all_admin_tasks" method="post">
           <table cellpadding="5">

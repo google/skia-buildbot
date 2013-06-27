@@ -150,7 +150,8 @@ class TelemetryTasks(db.Model):
     return skp_benchmarks != None and len(skp_benchmarks) != 0
 
 
-def add_telemetry_info_to_template(template_values, user_email):
+def add_telemetry_info_to_template(template_values, user_email,
+                                   is_google_chromium_user):
   """Reads TelemetryInfo from the Datastore and adds it to the template."""
   telemetry_info = TelemetryInfo.get_telemetry_info()
   template_values['chrome_last_built'] = telemetry_info.chrome_last_built
@@ -163,6 +164,7 @@ def add_telemetry_info_to_template(template_values, user_email):
   template_values['num_skp_files'] = telemetry_info.num_skp_files
   template_values['last_updated'] = telemetry_info.last_updated
   template_values['admin'] = user_email in TELEMETRY_ADMINS
+  template_values['is_google_chromium_user'] = is_google_chromium_user
 
 
 class LuaScriptPage(BasePage):
@@ -193,7 +195,8 @@ class LuaScriptPage(BasePage):
     template_values = self.InitializeTemplate(
         'Run Lua scripts on the SKP repository')
 
-    add_telemetry_info_to_template(template_values, self.user.email())
+    add_telemetry_info_to_template(template_values, self.user.email(),
+                                   self.is_admin)
 
     lua_tasks = LuaTasks.get_all_lua_tasks_of_user(self.user.email())
     template_values['lua_tasks'] = lua_tasks
@@ -208,7 +211,8 @@ class TelemetryInfoPage(BasePage):
   def get(self):
     template_values = self.InitializeTemplate('Telemetry Info Message')
 
-    add_telemetry_info_to_template(template_values, self.user.email())
+    add_telemetry_info_to_template(template_values, self.user.email(),
+                                   self.is_admin)
 
     info_msg = self.request.get('info_msg')
     template_values['info_msg'] = info_msg
@@ -244,7 +248,8 @@ class AllTasks(BasePage):
     """Sets the information to be displayed on the main page."""
     template_values = self.InitializeTemplate('All Tasks')
 
-    add_telemetry_info_to_template(template_values, self.user.email())
+    add_telemetry_info_to_template(template_values, self.user.email(),
+                                   self.is_admin)
 
     admin_tasks = AdminTasks.get_all_admin_tasks()
     template_values['admin_tasks'] = admin_tasks
@@ -286,9 +291,10 @@ class LandingPage(BasePage):
   def _handle(self):
     """Sets the information to be displayed on the main page."""
 
-    template_values = self.InitializeTemplate('Skia Telemetry')
+    template_values = self.InitializeTemplate('Skia Cluster Telemetry')
 
-    add_telemetry_info_to_template(template_values, self.user.email())
+    add_telemetry_info_to_template(template_values, self.user.email(),
+                                   self.is_admin)
 
     telemetry_tasks = TelemetryTasks.get_all_telemetry_tasks_of_user(
         self.user.email())

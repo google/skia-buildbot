@@ -4,18 +4,19 @@
   <center>
   <h2>Run Telemetry Benchmarks</h2>
 
+  {% if not is_google_chromium_user %}<br/>Must have a google or chromium account to trigger benchmarks (contact rmistry@)<br/><br/>{% endif %}
   <form action="/skia-telemetry" name="add_telemetry_task" method="post">
     <table cellpadding="5">
       <tr>
         <td>Benchmark to run</td>
-        <td><input type="text" size="35" name="benchmark_name" {% if admin %}value="skpicture_printer"{% endif %}/></td>
+        <td><input type="text" size="35" name="benchmark_name" {% if admin %}value="skpicture_printer"{% endif %} {% if not is_google_chromium_user %}disabled{% endif %}/></td>
       </tr>
       <tr>
         <td>Benchmark Arguments</td>
-        <td><input type="text" size="35" name="benchmark_arguments" {% if admin %}value="--skp-outdir=/home/default/storage/skps/"{% endif %}/></td>
+        <td><input type="text" size="35" name="benchmark_arguments" {% if admin %}value="--skp-outdir=/home/default/storage/skps/"{% endif %} {% if not is_google_chromium_user %}disabled{% endif %}/></td>
       </tr>
       <tr>
-        <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task"></td>
+        <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task" {% if not is_google_chromium_user %}disabled{% endif %}></td>
       </tr>
     </table>
   </form>
