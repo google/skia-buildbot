@@ -39,6 +39,7 @@ class ChromeOSInstall(ChromeOSBuildStep, Install):
     self._PutSCP('render_pdfs')
     self._PutSCP('bench')
     self._PutSCP('bench_pictures')
+    self._PutSCP('skimage')
 
 
 if '__main__' == __name__:
