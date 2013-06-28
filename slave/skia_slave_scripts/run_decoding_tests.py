@@ -13,10 +13,20 @@ class RunDecodingTests(BuildStep):
   def _Run(self):
     image_dir = self._device_dirs.SKImageInDir()
 
-    # Skip the time stamp file.
-    images = [self.DevicePathJoin(image_dir, filename)
-              for filename in self.DeviceListDir(image_dir)
-              if not filename == TIMESTAMP_COMPLETED_FILENAME]
+    # Skip the time stamp file, if present.
+    # On desktops, the timestamp file will be present and will cause the
+    # test to report a failure, so supply a list of files.
+    # On Android, the timestamp is not present, so the list is unnecessary,
+    # and is actually too long, so just supply the directory.
+    timestamp_full_path = self.DevicePathJoin(image_dir,
+                                              TIMESTAMP_COMPLETED_FILENAME)
+    if self.DevicePathExists(timestamp_full_path):
+      images = [self.DevicePathJoin(image_dir, filename)
+                for filename in self.DeviceListDir(image_dir)
+                if not filename == TIMESTAMP_COMPLETED_FILENAME]
+    else:
+      images = [image_dir]
+
     cmd = ['-r']
     cmd.extend(images)
 
