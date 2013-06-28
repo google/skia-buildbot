@@ -63,7 +63,6 @@
     '_flavor': 'chromeos',
     '_gclient_solutions': [
         '{ "name": "trunk", "url": "http://skia.googlecode.com/svn/trunk", "custom_deps": {},"custom_vars": {},},',
-        '{ "name": "gm-expected", "url": "http://skia.googlecode.com/svn/gm-expected", "custom_deps": {},"custom_vars": {},},',
     ],
     '_gyp_defines': {
         'skia_arch_width': '32',
@@ -185,7 +184,7 @@
                     '--board',
                     'daisy',
                     '--gclient_solutions',
-                    '"['{ "name": "trunk", "url": "http://skia.googlecode.com/svn/trunk", "custom_deps": {},"custom_vars": {},},', '{ "name": "gm-expected", "url": "http://skia.googlecode.com/svn/gm-expected", "custom_deps": {},"custom_vars": {},},']"',
+                    '"['{ "name": "trunk", "url": "http://skia.googlecode.com/svn/trunk", "custom_deps": {},"custom_vars": {},},']"',
                 ],
                 'description': 'Update',
                 'doStepIf': <Object>,

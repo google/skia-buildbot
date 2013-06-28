@@ -106,7 +106,8 @@ class SkiaFactory(BuildFactory):
     subdirs_to_checkout = set(other_subdirs)
 
     # Trybots need to check out all of these directories.
-    if do_patch_step:
+    if do_patch_step and not \
+        builder_name.startswith(builder_name_schema.BUILDER_ROLE_BUILD):
       subdirs_to_checkout.add('gm-expected')
     for other_subdir in subdirs_to_checkout:
       self._gclient_solutions.append(gclient_factory.GClientSolution(
