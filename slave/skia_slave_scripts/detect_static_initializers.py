@@ -21,6 +21,8 @@ DUMP_STATIC_INITIALIZERS_URL = ('http://src.chromium.org/svn/trunk/src/tools/'
 class DetectStaticInitializers(BuildStep):
   def _Run(self):
     # Build the Skia libraries in Release mode.
+    os.environ['GYP_DEFINES'] = 'skia_static_initializers=0'
+    shell_utils.Bash(['python', 'gyp_skia'])
     shell_utils.Bash(['make', 'skia_lib', 'BUILDTYPE=Release', '--jobs'])
 
     # Obtain the dump-static-initializers script.
