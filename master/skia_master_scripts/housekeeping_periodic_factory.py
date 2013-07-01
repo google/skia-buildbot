@@ -8,6 +8,8 @@ Overrides SkiaFactory with Periodic HouseKeeping steps."""
 
 import tempfile
 
+import skia_vars
+
 from buildbot.process.properties import WithProperties
 from config_private import SKIA_PUBLIC_MASTER, SKIA_SVN_BASEURL
 from skia_master_scripts import factory as skia_factory
@@ -83,6 +85,18 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
                                   '/home/default/skia-slave ' + \
                                   disk_usage_script_path)),
           description='CheckHousekeepingSlaveDiskUsage')
+      num_gce_compile_bots = skia_vars.GetGlobalVariable('num_gce_compile_bots')
+      gce_compile_bots_zone = skia_vars.GetGlobalVariable(
+          'gce_compile_bots_zone')
+      compile_bot_threshold = 95  # Use a high threshold for compile bots.
+      for compile_bot_index in range(1, num_gce_compile_bots + 1):
+        self._skia_cmd_obj.AddRunCommand(
+            command=('THRESHOLD=%s '
+                     'SKIA_COMPUTE_ENGINE_HOSTNAME=skia-compile%s-%s '
+                     'PERSISTENT_DISK_NAME=/home/default/skia-slave %s' % (
+                         compile_bot_threshold, compile_bot_index,
+                         gce_compile_bots_zone, disk_usage_script_path)),
+            description='CheckCompile%sDiskUsage' % compile_bot_index)
     self.Validate()
     return self
 

@@ -39,6 +39,16 @@
     "type": "integer",
     "description": "Internally-visible port on the Skia build master."
   },
+  "num_gce_compile_bots": {
+    "value": "5",
+    "type": "integer",
+    "description": "The number of Compile buildbots on GCE."
+  },
+  "gce_compile_bots_zone": {
+    "value": "b",
+    "type": "string",
+    "description": "The zone of the Compile buildbots on GCE."
+  },
   "master_host_name": {
     "value": "skia-master-b.c.skia-buildbots.google.com.internal",
     "type": "string",
