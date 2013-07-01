@@ -49,6 +49,10 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
                  'CC=`which clang` make -j30'),
         description='ClangCompile')
 
+    # Check for static initializers.
+    self.AddSlaveScript(script='detect_static_initializers.py',
+                        description='DetectStaticInitializers')
+
     if not self._do_patch_step:  # Do not run Pydoc & Doxygen steps if try job.
       # Generate and upload Buildbot Pydoc documentation.
       buildbot_pydoc_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL,
