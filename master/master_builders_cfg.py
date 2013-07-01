@@ -62,6 +62,8 @@ def GetExtraFactoryArgs(compile_builder_info):
       return {'gm_args': ['--config', 'angle'],
               'bench_args': ['--config', 'ANGLE'],
               'bench_pictures_cfg': 'angle'}
+    elif compile_builder_info[4] == 'Valgrind':
+      return {'flavor': 'valgrind'}
     else:
       return {}
   else:
@@ -106,6 +108,7 @@ def Update(config, active_master, cfg):
   gyp_10_7 = repr({'skia_mesa': '1'})
   gyp_ios = repr({'skia_os': 'ios'})
   no_gpu = repr({'skia_gpu': '0'})
+  valgrind = repr({'skia_release_optimization_level': '1'})
 
   # builder_specs is a dictionary whose keys are specifications for compile
   # builders and values are specifications for Test and Perf builders which will
@@ -124,8 +127,8 @@ def Update(config, active_master, cfg):
                                                                                             ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],
       ('Ubuntu12', 'GCC',    'Debug',   'x86_64', None,          None,      True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770')],
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', None,          None,      True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
-                                                                                            ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],})
-  builder_specs.update({
+                                                                                            ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'Valgrind',    valgrind,  True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'HD2000',      'Valgrind',    None)],
       ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       None,          'base-shuttle_ubuntu12_ati5770')],
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [],})
   f = nacl_factory.NaClFactory
@@ -140,15 +143,13 @@ def Update(config, active_master, cfg):
                                                                                             ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],
       ('Mac10.6',  'GCC',    'Debug',   'x86_64', None,          gyp_10_6,  False, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini')],
       ('Mac10.6',  'GCC',    'Release', 'x86_64', None,          gyp_10_6,  False, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini'),
-                                                                                            ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],})
-  builder_specs.update({
+                                                                                            ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],
       ('Mac10.7',  'Clang',  'Debug',   'x86',    None,          gyp_10_7,  True,  f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
       ('Mac10.7',  'Clang',  'Release', 'x86',    None,          gyp_10_7,  True,  f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
                                                                                             ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],
       ('Mac10.7',  'Clang',  'Debug',   'x86_64', None,          gyp_10_7,  False, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
       ('Mac10.7',  'Clang',  'Release', 'x86_64', None,          gyp_10_7,  False, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
-                                                                                            ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],})
-  builder_specs.update({
+                                                                                            ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],
       ('Mac10.8',  'Clang',  'Debug',   'x86',    None,          None,      True,  f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8')],
       ('Mac10.8',  'Clang',  'Release', 'x86',    None,          None,      True,  f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
                                                                                             ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],
@@ -169,8 +170,7 @@ def Update(config, active_master, cfg):
       ('Win7',     'VS2010', 'Debug',   'x86',    'DirectWrite', gyp_dw,    False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite')],
       ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', gyp_dw,    False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite'),
                                                                                             ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', None)],
-      ('Win7',     'VS2010', 'Debug',   'x86',    'Exceptions',  gyp_exc,   False, f, p) : []})
-  builder_specs.update({
+      ('Win7',     'VS2010', 'Debug',   'x86',    'Exceptions',  gyp_exc,   False, f, p) : [],
       ('Win8',     'VS2012', 'Debug',   'x86',    None,          gyp_win,   True,  f, p) : [],
       ('Win8',     'VS2012', 'Release', 'x86',    None,          gyp_win,   True,  f, p) : [],
       ('Win8',     'VS2012', 'Debug',   'x86_64', None,          gyp_win,   False, f, p) : [],
