@@ -8,6 +8,7 @@ expectation. """
 
 from distutils import dir_util
 import os
+import shutil
 import sys
 
 my_path = os.path.abspath(os.path.dirname(__file__))
@@ -45,6 +46,9 @@ def RunTest(die_on_validation_failure=True):
 def main():
   if '--rebaseline' in sys.argv:
     print 'Generating new actuals.'
+    if os.path.exists(os.path.join(my_path, 'actual')):
+      shutil.rmtree(os.path.join(my_path, 'actual'))
+    os.makedirs(os.path.join(my_path, 'actual'))
     RunTest(die_on_validation_failure=False)
     print 'Copying actual to expected.'
     dir_util.copy_tree(os.path.join(my_path, 'actual'),
