@@ -11,7 +11,8 @@ from utils import shell_utils
 class ValgrindBuildStep(BuildStep):
   def __init__(self, suppressions_file=None, **kwargs):
     self._suppressions_file = suppressions_file
-    super(ValgrindBuildStep, self).__init__(**kwargs)
+    super(ValgrindBuildStep, self).__init__(timeout=12000,
+                                            no_output_timeout=9600,**kwargs)
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
