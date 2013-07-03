@@ -43,12 +43,6 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
         command=self.TargetPath.join('gm', 'tests', 'run.sh'),
         description='RunGmSelfTests')
 
-    # Compile using clang.
-    self._skia_cmd_obj.AddRunCommand(
-        command=('GYP_DEFINES=skia_warnings_as_errors=1 CXX=`which clang++` '
-                 'CC=`which clang` make -j30'),
-        description='ClangCompile')
-
     # Check for static initializers.
     self.AddSlaveScript(script='detect_static_initializers.py',
                         description='DetectStaticInitializers')
