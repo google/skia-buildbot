@@ -19,6 +19,9 @@ from skia_master_scripts import factory as skia_factory
 # runs on a Linux machine.
 class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
   """Overrides for HouseKeeping per-commit builds."""
+  def __init__(self, **kwargs):
+    skia_factory.SkiaFactory.__init__(self, build_targets=['tools', 'gm'],
+                                      **kwargs)
 
   def Build(self, clobber=None):
     """Build and return the complete BuildFactory.
@@ -26,19 +29,14 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     clobber: boolean indicating whether we should clean before building
     """
     self.UpdateSteps()
-    if clobber is None:
-      clobber = self._default_clobber
-    if clobber:
-      self.AddSlaveScript(script='clean.py', description='Clean')
+    self.Compile(clobber)
 
     # Build tools and run their unittests.
-    self.Make('tools', 'BuildTools')
     self._skia_cmd_obj.AddRunCommand(
         command=self.TargetPath.join('tools', 'tests', 'run.sh'),
         description='RunToolSelfTests')
 
     # Build GM and run its unittests.
-    self.Make('gm', 'BuildGM')
     self._skia_cmd_obj.AddRunCommand(
         command=self.TargetPath.join('gm', 'tests', 'run.sh'),
         description='RunGmSelfTests')
