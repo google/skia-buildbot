@@ -42,6 +42,7 @@ _COMPILE_STEP_PREFIX = 'Build'
 _COMPILE_RETRY_PREFIX = 'Retry_' + _COMPILE_STEP_PREFIX
 _COMPILE_NO_WERR_PREFIX = 'Retry_NoWarningsAsErrors_' + _COMPILE_STEP_PREFIX
 
+
 class SkiaFactory(BuildFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""
 
@@ -91,9 +92,9 @@ class SkiaFactory(BuildFactory):
     self._make_flags = make_flags
     # Platform-specific stuff.
     if target_platform == TARGET_PLATFORM_WIN32:
-      self.TargetPathJoin = ntpath.join
+      self.TargetPath = ntpath
     else:
-      self.TargetPathJoin = posixpath.join
+      self.TargetPath = posixpath
 
     # Create gclient solutions corresponding to the main build_subdir
     # and other directories we also wish to check out.
@@ -140,10 +141,10 @@ class SkiaFactory(BuildFactory):
 
     # Get an implementation of SkiaCommands as appropriate for
     # this target_platform.
-    workdir = self.TargetPathJoin('build', build_subdir)
+    self._workdir = self.TargetPath.join('build', build_subdir)
     self._skia_cmd_obj = skia_commands.SkiaCommands(
         target_platform=target_platform, factory=self,
-        configuration=configuration, workdir=workdir,
+        configuration=configuration, workdir=self._workdir,
         target_arch=None, default_timeout=default_timeout,
         environment_variables=self._env_vars)
 
@@ -302,6 +303,14 @@ class SkiaFactory(BuildFactory):
                                 if self._flavor else script)
     self.AddSlaveScript(script_to_run, **kwargs)
 
+  def RunGYP(self):
+    """ Run GYP to generate build files. """
+    self.AddSlaveScript(script='run_gyp.py', description='RunGYP',
+                        halt_on_failure=True,
+                        args=['--gyp_defines',
+                                  ' '.join('%s=%s' % (k, v) for k, v in
+                                           self._gyp_defines.items())])
+
   def Make(self, target, description, is_rebaseline_step=False, do_step_if=None,
            always_run=False, flunk_on_failure=True, halt_on_failure=True):
     """ Build a single target.
@@ -349,11 +358,7 @@ class SkiaFactory(BuildFactory):
                           halt_on_failure=True)
 
     # Always re-run gyp before compiling.
-    self.AddSlaveScript(script='run_gyp.py', description='RunGYP',
-                        halt_on_failure=True,
-                        args=['--gyp_defines',
-                              ' '.join('%s=%s' % (k, v) for k, v in
-                                       self._gyp_defines.items())])
+    self.RunGYP()
 
     # Only retry with clobber if we've requested it AND we aren't clobbering on
     # the first build.
@@ -535,18 +540,21 @@ class SkiaFactory(BuildFactory):
     self.AddSlaveScript(script='generate_webpage_picture_bench_graphs.py',
                         description='GenerateWebpagePictureBenchGraphs')
 
-  def UpdateSteps(self):
-    """ Update the Skia sources. """
-    self.AddSlaveScript(script=self.TargetPathJoin('..', '..', '..', '..', '..',
-                                                   'slave',
-                                                   'skia_slave_scripts',
-                                                   'update_scripts.py'),
+  def UpdateScripts(self):
+    """ Update the buildbot scripts on the build slave. """
+    self.AddSlaveScript(script=self.TargetPath.join('..', '..', '..', '..',
+                                                    '..', 'slave',
+                                                    'skia_slave_scripts',
+                                                    'update_scripts.py'),
                         description='UpdateScripts',
                         halt_on_failure=True,
                         workdir='build')
+
+  def Update(self):
+    """ Update the Skia code on the build slave. """
     args = ['--gclient_solutions', '"%s"' % self._gclient_solutions]
     self.AddSlaveScript(
-        script=self.TargetPathJoin('..', '..', '..', '..', '..', 'slave',
+        script=self.TargetPath.join('..', '..', '..', '..', '..', 'slave',
                                    'skia_slave_scripts', 'update.py'),
         description='Update',
         args=args,
@@ -557,43 +565,59 @@ class SkiaFactory(BuildFactory):
         get_props_from_stdout={'got_revision':'Skia updated to revision (\d+)'},
         workdir='build')
 
-    if self._do_patch_step:
-      def _GetRoot(build):
-        if build.getSourceStamp().patch and 'root' in build.getProperties():
-          return build.getProperty('root')
-        elif 'issue' in build.getProperties() and \
-             'patchset' in build.getProperties() and \
-             'baseurl' in build.getProperties():
-          baseurl = build.getProperty('baseurl')
-          if len(baseurl) == 1:
-            baseurl = baseurl[0]
-          baseurl = baseurl.split('://', 1)[1]
-          skia_baseurl = config_private.SKIA_SVN_BASEURL.split('://', 1)[1]
-          if baseurl.startswith(skia_baseurl):
-            return baseurl.split(skia_baseurl)[1].strip('/')
-        return 'None'
+  def ApplyPatch(self, alternate_workdir=None, alternate_script=None):
+    """ Apply a patch to the Skia code on the build slave. """
+    def _GetRoot(build):
+      if build.getSourceStamp().patch and 'root' in build.getProperties():
+        return build.getProperty('root')
+      elif 'issue' in build.getProperties() and \
+           'patchset' in build.getProperties() and \
+           'baseurl' in build.getProperties():
+        baseurl = build.getProperty('baseurl')
+        if len(baseurl) == 1:
+          baseurl = baseurl[0]
+        baseurl = baseurl.split('://', 1)[1]
+        skia_baseurl = config_private.SKIA_SVN_BASEURL.split('://', 1)[1]
+        if baseurl.startswith(skia_baseurl):
+          return baseurl.split(skia_baseurl)[1].strip('/')
+      return 'None'
 
-      def _GetPatch(build):
-        if build.getSourceStamp().patch and \
-            'patch_file_url' in build.getProperties():
-          patch = (build.getSourceStamp().patch[0],
-                   build.getProperty('patch_file_url'))
-          return str(patch).encode()
-        elif 'issue' in build.getProperties() and \
-            'patchset' in build.getProperties():
-          patch = '%s/download/issue%d_%d.diff' % (
-              config_private.CODE_REVIEW_SITE.rstrip('/'),
-              build.getProperty('issue'),
-              build.getProperty('patchset'))
-          return str((0, patch)).encode()
-        else:
-          patch = 'None'
-        return patch
+    def _GetPatch(build):
+      if build.getSourceStamp().patch and \
+          'patch_file_url' in build.getProperties():
+        patch = (build.getSourceStamp().patch[0],
+                 build.getProperty('patch_file_url'))
+        return str(patch).encode()
+      elif 'issue' in build.getProperties() and \
+          'patchset' in build.getProperties():
+        patch = '%s/download/issue%d_%d.diff' % (
+            config_private.CODE_REVIEW_SITE.rstrip('/'),
+            build.getProperty('issue'),
+            build.getProperty('patchset'))
+        return str((0, patch)).encode()
+      else:
+        patch = 'None'
+      return patch
 
-      args = ['--patch', WithProperties('%(patch)s', patch=_GetPatch),
-              '--patch_root', WithProperties('%(root)s', root=_GetRoot)]
+    if not bool(alternate_workdir) == bool(alternate_script):
+      raise ValueError('alternate_workdir and alternate_script must be provided'
+                       ' together.')
+    args = ['--patch', WithProperties('%(patch)s', patch=_GetPatch),
+            '--patch_root', WithProperties('%(root)s', root=_GetRoot)]
+    if alternate_script:
+      self.AddSlaveScript(script=alternate_script, description='ApplyPatch',
+                          args=args, halt_on_failure=True,
+                          workdir=alternate_workdir)
+    else:
       self.AddSlaveScript(script='apply_patch.py', description='ApplyPatch',
                           args=args, halt_on_failure=True)
+
+  def UpdateSteps(self):
+    """ Update the Skia sources. """
+    self.UpdateScripts()
+    self.Update()
+    if self._do_patch_step:
+      self.ApplyPatch()
 
   def UploadBenchGraphs(self):
     """ Upload bench performance graphs (but only if we have been

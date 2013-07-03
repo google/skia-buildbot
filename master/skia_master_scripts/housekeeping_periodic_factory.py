@@ -33,8 +33,8 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
       self.AddSlaveScript(script='clean.py', description='Clean')
 
     if not self._do_patch_step:  # Do not run the sanitizer if it is a try job.
-      sanitize_script_path = self.TargetPathJoin('tools',
-                                                 'sanitize_source_files.py')
+      sanitize_script_path = self.TargetPath.join('tools',
+                                                  'sanitize_source_files.py')
       skia_trunk_svn_baseurl = '%s/%s' % (
           SKIA_SVN_BASEURL.replace('http', 'https'), 'trunk')
       # Run the sanitization script.
@@ -42,8 +42,8 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
           command='python %s' % sanitize_script_path,
           description='RunSanitization')
       if self._do_upload_results:
-        merge_dir_path = self.TargetPathJoin(tempfile.gettempdir(),
-                                             'sanitize-merge')
+        merge_dir_path = self.TargetPath.join(tempfile.gettempdir(),
+                                              'sanitize-merge')
         # Cleanup the previous (if any) sanitize merge dir.
         self._skia_cmd_obj.AddRunCommand(
           command='rm -rf %s' % merge_dir_path, description='Cleanup')
@@ -59,7 +59,7 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
             description='UploadSanitizedFiles')
 
     # pylint: disable=W0212
-    clang_static_analyzer_script_path = self.TargetPathJoin(
+    clang_static_analyzer_script_path = self.TargetPath.join(
         self._skia_cmd_obj._local_slave_script_dir,
         'run-clang-static-analyzer.sh')
     self._skia_cmd_obj.AddRunCommand(
@@ -71,7 +71,7 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
 
     if not self._do_patch_step:  # Do not run the checkers if it is a try job.
       # pylint: disable=W0212
-      disk_usage_script_path = self.TargetPathJoin(
+      disk_usage_script_path = self.TargetPath.join(
           self._skia_cmd_obj._local_slave_script_dir,
           'check_compute_engine_disk_usage.sh')
       self._skia_cmd_obj.AddRunCommand(

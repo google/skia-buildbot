@@ -1,5 +1,5 @@
 {
-    'TargetPathJoin': <Object>,
+    'TargetPath': <Object>,
     '_autogen_svn_password_file': '.autogen_svn_password',
     '_autogen_svn_username_file': '.autogen_svn_username',
     '_build_targets': [
@@ -63,6 +63,7 @@
     '_skia_cmd_obj': <Object>,
     '_skia_svn_password_file': '.skia_svn_password',
     '_skia_svn_username_file': '.skia_svn_username',
+    '_workdir': 'build/trunk',
     'properties': <Object>,
     'steps': [
         [

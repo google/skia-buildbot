@@ -24,7 +24,8 @@ SVNVERSION = 'svnversion.bat' if os.name == 'nt' else 'svnversion'
 
 def Sync(skia_revision=None, chrome_revision=None):
   """ Create and sync a checkout of Skia inside a checkout of Chrome. Returns
-  the actually-obtained revision of Skia.
+  a tuple containing the actually-obtained revision of Skia and the actually-
+  obtained revision of Chrome.
 
   skia_revision: revision of Skia to sync. If None, will attempt to determine
       the most recent Skia revision.
@@ -47,14 +48,17 @@ def Sync(skia_revision=None, chrome_revision=None):
       'managed': 'True',
       'safesync_url': CHROME_LKGR_URL,
       'custom_vars': {
-        'skia_revision': skia_revision,
+        'skia_revision': str(skia_revision),
       },
     },
   ]
 
   gclient_utils.Config('solutions = %s' % repr(gclient_spec))
-  gclient_utils.Sync(revision=chrome_revision, jobs=1)
-  return shell_utils.Bash([SVNVERSION, PATH_TO_SKIA_IN_CHROME])
+  gclient_utils.Sync(revision=str(chrome_revision), jobs=1)
+  actual_skia_rev = shell_utils.Bash([SVNVERSION, PATH_TO_SKIA_IN_CHROME])
+  actual_chrome_rev = shell_utils.Bash([SVNVERSION,
+                                        CHROME_SVN_URL.split('/')[-1]])
+  return (actual_skia_rev, actual_chrome_rev)
 
 
 def Main():

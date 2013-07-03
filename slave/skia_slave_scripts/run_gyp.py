@@ -11,7 +11,7 @@ import os
 import sys
 
 
-class RunTests(BuildStep):
+class RunGYP(BuildStep):
   def _Run(self):
     os.environ['GYP_DEFINES'] = self._args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
@@ -20,4 +20,4 @@ class RunTests(BuildStep):
 
 
 if '__main__' == __name__:
-  sys.exit(BuildStep.RunBuildStep(RunTests))
+  sys.exit(BuildStep.RunBuildStep(RunGYP))

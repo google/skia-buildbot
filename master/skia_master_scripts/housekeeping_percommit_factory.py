@@ -34,13 +34,13 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     # Build tools and run their unittests.
     self.Make('tools', 'BuildTools')
     self._skia_cmd_obj.AddRunCommand(
-        command=self.TargetPathJoin('tools', 'tests', 'run.sh'),
+        command=self.TargetPath.join('tools', 'tests', 'run.sh'),
         description='RunToolSelfTests')
 
     # Build GM and run its unittests.
     self.Make('gm', 'BuildGM')
     self._skia_cmd_obj.AddRunCommand(
-        command=self.TargetPathJoin('gm', 'tests', 'run.sh'),
+        command=self.TargetPath.join('gm', 'tests', 'run.sh'),
         description='RunGmSelfTests')
 
     # Compile using clang.
@@ -58,10 +58,10 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
       buildbot_pydoc_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL,
                                                      'buildbot-docs')
       # pylint: disable=W0212
-      update_buildbot_pydoc_path = self.TargetPathJoin(
+      update_buildbot_pydoc_path = self.TargetPath.join(
           self._skia_cmd_obj._local_slave_script_dir,
           'update-buildbot-pydoc.sh')
-      buildbot_pydoc_working_dir = self.TargetPathJoin(
+      buildbot_pydoc_working_dir = self.TargetPath.join(
           tempfile.gettempdir(), 'buildbot-docs')
       # Cleanup the previous (if any) buildbot pydoc working dir.
       self._skia_cmd_obj.AddRunCommand(
@@ -75,7 +75,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
       if self._do_upload_results:
         # Upload Buildbot Pydoc.
         self._skia_cmd_obj.AddMergeIntoSvn(
-            source_dir_path=self.TargetPathJoin(
+            source_dir_path=self.TargetPath.join(
                 buildbot_pydoc_working_dir, 'buildbot-docs'),
             dest_svn_url=buildbot_pydoc_actual_svn_baseurl,
             merge_dir_path=os.path.join(buildbot_pydoc_working_dir, 'merge'),
@@ -88,8 +88,8 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
 
       # Generate and upload Doxygen documentation.
       doxygen_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL, 'docs')
-      update_doxygen_path = self.TargetPathJoin('tools', 'update-doxygen.sh')
-      doxygen_working_dir = self.TargetPathJoin(
+      update_doxygen_path = self.TargetPath.join('tools', 'update-doxygen.sh')
+      doxygen_working_dir = self.TargetPath.join(
           tempfile.gettempdir(), 'doxygen')
       # Cleanup the previous (if any) doxygen working dir.
       self._skia_cmd_obj.AddRunCommand(
@@ -103,7 +103,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
       if self._do_upload_results:
         # Upload Doxygen.
         self._skia_cmd_obj.AddMergeIntoSvn(
-            source_dir_path=self.TargetPathJoin(
+            source_dir_path=self.TargetPath.join(
                 doxygen_working_dir, 'docs'),
             dest_svn_url=doxygen_actual_svn_baseurl,
             merge_dir_path=os.path.join(doxygen_working_dir, 'merge'),
@@ -116,7 +116,8 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
 
     self._skia_cmd_obj.AddRunCommand(
         command='python run_unittests', description='BuildbotSelfTests',
-        workdir=self.TargetPathJoin(os.pardir, os.pardir, os.pardir, os.pardir))
+        workdir=self.TargetPath.join(os.pardir, os.pardir, os.pardir,
+                                     os.pardir))
 
     self.AddSlaveScript(script='check_compile_times.py',
                         description='CheckCompileTimes')
