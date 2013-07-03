@@ -5,7 +5,7 @@
 
 """ Run the Skia skimage executable. """
 
-from build_step import BuildStep
+from build_step import BuildStep, BuildStepWarning
 import sys
 
 class RunDecodingTests(BuildStep):
@@ -33,7 +33,11 @@ class RunDecodingTests(BuildStep):
     # Draw any mismatches to the same folder as the output json.
     cmd.extend(['--mismatchPath', self._device_dirs.SKImageOutDir()])
 
-    self.RunFlavoredCmd('skimage', cmd)
+    try:
+      self.RunFlavoredCmd('skimage', cmd)
+    except Exception as e:
+      print "========= Exception in run_decoding_tests ========"
+      raise BuildStepWarning(e)
 
 
 if '__main__' == __name__:
