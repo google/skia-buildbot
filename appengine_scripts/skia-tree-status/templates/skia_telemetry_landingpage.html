@@ -33,6 +33,7 @@
       <td><b>Benchmark Arguments</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
+      <td><b>Output Link</b></td>
     </tr>
     {% for task in telemetry_tasks %}
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
@@ -42,6 +43,13 @@
       <td>
         {% if task.completed_time %}
           {{ task.completed_time }}
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.output_link %}
+          <a href='{{ task.output_link }}' target='_blank'>output</a>
         {% else %}
           In Progress
         {% endif %}

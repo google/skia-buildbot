@@ -114,6 +114,7 @@ class TelemetryTasks(db.Model):
   benchmark_arguments = db.StringProperty()
   requested_time = db.DateTimeProperty(required=True)
   completed_time = db.DateTimeProperty()
+  output_link = db.LinkProperty()
 
   @classmethod
   def get_all_pending_telemetry_tasks(cls):
@@ -368,13 +369,17 @@ class UpdateTelemetryTasksPage(BasePage):
   @utils.admin_only
   def post(self):
     key = int(self.request.get('key'))
+    output_link = self.request.get('output_link')
     completed_time = datetime.datetime.now()
+
     telemetry_task = TelemetryTasks.get_telemetry_task(key)[0]
+    telemetry_task.output_link = output_link
     telemetry_task.completed_time = completed_time
     telemetry_task.put()
 
     self.response.out.write('<br/><br/>Updated the datastore-<br/><br/>')
     self.response.out.write('key: %s<br/>' % key)
+    self.response.out.write('output_link: %s<br/>' % output_link)
     self.response.out.write('completed_time: %s<br/>' % completed_time)
 
 
