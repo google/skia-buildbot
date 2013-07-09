@@ -10,7 +10,7 @@ import sys
 
 class RunDecodingTests(BuildStep):
   def _Run(self):
-    cmd = ['-r', self._device_dirs.SKImageInDir()]
+    cmd = ['-r', self._device_dirs.SKImageInDir(), '--noreencode']
 
     if self._gm_image_subdir is not None:
       expectations_name = self._gm_image_subdir + '.json'
