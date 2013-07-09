@@ -79,6 +79,32 @@ while $SLAVES_STILL_PROCESSING ; do
   done
 done
 
+# Copy over the outputs from all slaves and consolidate them into one file with
+# special handling for CSV files.
+for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
+  gsutil cp gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/$RUN_ID.output \
+    /tmp/$RUN_ID-$SLAVE_NUM.output
+  if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
+    # For CSV outputs, save the first encountered CSV and append only the last
+    # line of all other CSVs. This ensures that the headings appear only once.
+    if [ ! -f /tmp/${RUN_ID}.$TELEMETRY_BENCHMARK.output ]; then
+      cp /tmp/$RUN_ID-$SLAVE_NUM.output /tmp/${RUN_ID}.$TELEMETRY_BENCHMARK.output
+    else
+      tail -n -1 "/tmp/$RUN_ID-$SLAVE_NUM.output" >> /tmp/${RUN_ID}.$TELEMETRY_BENCHMARK.output
+    fi
+  else
+    cat /tmp/$RUN_ID-$SLAVE_NUM.output >> /tmp/${RUN_ID}.$TELEMETRY_BENCHMARK.output
+  fi
+done
+
+# Copy the consolidated file into Google Storage.
+gsutil cp -a public-read /tmp/$RUN_ID.$TELEMETRY_BENCHMARK.output \
+  gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
+OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
+
+# Delete all tmp files.
+rm -rf /tmp/$RUN_ID*
+
 # Email the requester.
 BOUNDARY=`date +%s|md5sum`
 BOUNDARY=${BOUNDARY:0:32}
@@ -96,6 +122,7 @@ Content-Type: text/html
 <html>
   <head/>
   <body>
+  The output of your script is available <a href='$OUTPUT_LINK'>here</a>.<br/>
   You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry'>here</a>.<br/><br/>
   Thanks!
   </body>
@@ -107,7 +134,7 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_telemetry_task" -O /dev/null
+wget --post-data "key=$APPENGINE_KEY&output_link=$OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_telemetry_task" -O /dev/null
 
 # Delete the log file since this task is now done.
 rm $LOG_FILE_LOCATION

@@ -53,7 +53,8 @@ fi
 for page_set in /home/default/storage/page_sets/*; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
-    DISPLAY=:0 timeout 600 tools/perf/run_multipage_benchmarks --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS
+    page_set_basename=`basename $page_set`
+    DISPLAY=:0 timeout 600 tools/perf/run_multipage_benchmarks --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o /tmp/${RUN_ID}.${page_set_basename}
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
     else
@@ -61,6 +62,25 @@ for page_set in /home/default/storage/page_sets/*; do
     fi
   fi
 done
+
+# Consolidate outputs from all page sets into a single file with special
+# handling for CSV files.
+for output in /tmp/${RUN_ID}.*; do
+  if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
+    # For CSV outputs, save the first encountered CSV and append only the last
+    # line of all other CSVs. This ensures that the headings appear only once.
+    if [ ! -f /tmp/output.${RUN_ID} ]; then
+      cp $output /tmp/output.${RUN_ID}
+    else
+      tail -n -1 "$output" >> /tmp/output.${RUN_ID}
+    fi
+  else
+    cat $output >> /tmp/output.${RUN_ID}
+  fi
+done
+
+# Copy the consolidated output to Google Storage.
+gsutil cp /tmp/output.${RUN_ID} gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/${RUN_ID}.output
 
 # Special handling for skpicture_printer, SKP files need to be copied to Google Storage.
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
@@ -91,4 +111,6 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
 
 fi
 
+# Clean up logs and the worker file.
+rm -rf /tmp/*${RUN_ID}*
 delete_worker_file TELEMETRY_${RUN_ID}
