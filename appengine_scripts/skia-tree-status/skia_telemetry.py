@@ -290,7 +290,8 @@ class LandingPage(BasePage):
 
     # There should be only one instance of a skp benchmark running at a time.
     # Running multiple instances causes unpredictable and inconsistent behavior.
-    if TelemetryTasks.is_skp_benchmark_running():
+    if (benchmark_name == 'skpicture_printer' and
+        TelemetryTasks.is_skp_benchmark_running()):
       self.redirect('/skia-telemetry/skia_telemetry_info_page?info_msg=%s'
                     ' is already running!' % benchmark_name)
     else:
