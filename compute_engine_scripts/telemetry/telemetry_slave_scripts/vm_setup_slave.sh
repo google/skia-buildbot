@@ -26,8 +26,8 @@ fi
 mkdir -p /home/default/storage/chrome-build/
 are_timestamps_equal /home/default/storage/chrome-build gs://chromium-skia-gm/telemetry/chrome-build
 if [ $? -eq 1 ]; then
-  rm -rf /tmp/default/storage/chrome-build/*
-  gsutil cp gs://chromium-skia-gm/telemetry/chrome-build/* \
+  rm -rf /tmp/default/storage/chrome-build*
+  gsutil cp -R gs://chromium-skia-gm/telemetry/chrome-build/* \
     /home/default/storage/chrome-build/
 fi
 
