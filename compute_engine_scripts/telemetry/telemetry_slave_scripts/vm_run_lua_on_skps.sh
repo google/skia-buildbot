@@ -62,4 +62,6 @@ cd out/Release
 # Copy the output of the lua script to Google Storage.
 gsutil cp /tmp/$LUA_OUTPUT_FILE gs://chromium-skia-gm/telemetry/lua-outputs/slave$SLAVE_NUM/$LUA_OUTPUT_FILE
 
+# Clean up logs and the worker file.
+rm -rf /tmp/*${RUN_ID}*
 delete_worker_file $WORKER_FILE

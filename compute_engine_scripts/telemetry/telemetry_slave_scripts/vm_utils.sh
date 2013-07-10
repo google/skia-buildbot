@@ -46,3 +46,23 @@ function are_timestamps_equal {
   rm /tmp/TIMESTAMP-$unique_id
   return 0
 }
+
+# Checks if the url in the specified page set exists in a whitelist.
+function check_pageset_url_in_whitelist {
+  page_set=$1
+  whitelist=$2
+
+  # Get URL from page_set (assumes that there is only one url in a pageset).
+  url=`cat $1 | grep url | sed 's/.*\(http:\/\/[^&]*\)\"\,.*/\1/g'`
+
+  # Loops though the file everytime because we do not want to save the file in
+  # memory since it could be huge. Adding a few minutes to 6-7 hours is not too
+  # bad.
+  while read line
+  do
+    if [ "$line" == "$url" ]; then
+      return 0
+    fi
+  done < $2
+  return 1
+}

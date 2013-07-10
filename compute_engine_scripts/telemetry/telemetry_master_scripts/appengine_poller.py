@@ -109,6 +109,13 @@ def process_telemetry_tasks(pending_tasks):
     cmd = 'bash vm_run_telemetry_on_slaves.sh %s %s %s %s %s %s' % (
         benchmark_name, benchmark_arguments, run_id, username, task_key,
         log_file)
+    if task.get('whitelist_file'):
+      whitelist_file = os.path.join(tempfile.gettempdir(),
+                                    '%s.whitelist' % run_id)
+      f = open(whitelist_file, 'w')
+      f.write(task['whitelist_file'])
+      f.close()
+      cmd += ' ' + whitelist_file
     print 'Telemetry output will be available in %s' % log_file
     subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                      stderr=open(log_file, 'w'))

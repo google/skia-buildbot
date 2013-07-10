@@ -14,7 +14,7 @@ if [ $# -ne 4 ]; then
   echo "Usage: `basename $0` /tmp/test.lua" \
        "rmistry-2013-05-24.07-34-05 rmistry@google.com 1001"
   echo
-  echo "The first argument is the Google Storage location of the Lua script."
+  echo "The first argument is the local location of the Lua script."
   echo "The second argument is a unique run id (typically requester + timestamp)."
   echo "The third argument is the email address of the requester."
   echo "The fourth argument is the key of the appengine lua task."

@@ -11,7 +11,7 @@
 # Author: rmistry@google.com (Ravi Mistry)
 
 
-if [ $# -ne 4 ]; then
+if [ $# -lt 4 ]; then
   echo
   echo "Usage: `basename $0` 1 skpicture_printer" \
     "--skp-outdir=/home/default/storage/skps/ rmistry2013-05-24.07-34-05"
@@ -20,6 +20,7 @@ if [ $# -ne 4 ]; then
   echo "The second argument is the telemetry benchmark to run on this slave."
   echo "The third argument are the extra arguments that the benchmark needs."
   echo "The fourth argument is the runid (typically requester + timestamp)."
+  echo "The fifth optional argument is the Google Storage location of the URL whitelist."
   echo
   exit 1
 fi
@@ -28,6 +29,9 @@ SLAVE_NUM=$1
 TELEMETRY_BENCHMARK=$2
 EXTRA_ARGS=$3
 RUN_ID=$4
+WHITELIST_GS_LOCATION=$5
+
+WHITELIST_FILE=whitelist.$RUN_ID
 
 source vm_utils.sh
 
@@ -44,6 +48,11 @@ if [ $? -eq 1 ]; then
     /home/default/storage/webpages_archive/
 fi
 
+if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
+  # Copy the whitelist from Google Storage to /tmp.
+  gsutil cp $WHITELIST_GS_LOCATION /tmp/$WHITELIST_FILE
+fi
+
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Clean and create the skp output directory.
   rm -rf /home/default/storage/skps
@@ -52,6 +61,15 @@ fi
 
 for page_set in /home/default/storage/page_sets/*.json; do
   if [[ -f $page_set ]]; then
+    if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
+      check_pageset_url_in_whitelist $page_set /tmp/$WHITELIST_FILE
+      if [ $? -eq 1 ]; then
+        # The current page set URL does not exist in the whitelist, move on to
+        # the next one.
+        echo "========== Skipping $page_set because it is not in the whitelist =========="
+        continue
+      fi
+    fi
     echo "========== Processing $page_set =========="
     page_set_basename=`basename $page_set`
     DISPLAY=:0 timeout 600 tools/perf/run_measurement --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o /tmp/${RUN_ID}.${page_set_basename}
@@ -80,7 +98,9 @@ for output in /tmp/${RUN_ID}.*; do
 done
 
 # Copy the consolidated output to Google Storage.
-gsutil cp /tmp/output.${RUN_ID} gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/${RUN_ID}.output
+gsutil cp /tmp/output.${RUN_ID} gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/outputs/${RUN_ID}.output
+# Copy the complete telemetry log to Google Storage.
+gsutil cp /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/logs/${RUN_ID}.log
 
 # Special handling for skpicture_printer, SKP files need to be copied to Google Storage.
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
@@ -108,7 +128,6 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   cp /tmp/$TIMESTAMP /home/default/storage/skps/
   gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/TIMESTAMP
   rm /tmp/$TIMESTAMP
-
 fi
 
 # Clean up logs and the worker file.
