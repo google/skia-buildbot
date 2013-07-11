@@ -53,7 +53,7 @@ gsutil cp /home/default/storage/webpages_archive/* \
 # Create a TIMESTAMP file and copy it to Google Storage.
 TIMESTAMP=`date +%s`
 echo $TIMESTAMP > /tmp/$TIMESTAMP
-cp /tmp/$TIMESTAMP /home/default/storage/webpages_archive/
+cp /tmp/$TIMESTAMP /home/default/storage/webpages_archive/TIMESTAMP
 gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/TIMESTAMP
 rm /tmp/$TIMESTAMP
 

@@ -125,7 +125,7 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Create a TIMESTAMP file and copy it to Google Storage.
   TIMESTAMP=`date +%s`
   echo $TIMESTAMP > /tmp/$TIMESTAMP
-  cp /tmp/$TIMESTAMP /home/default/storage/skps/
+  cp /tmp/$TIMESTAMP /home/default/storage/skps/TIMESTAMP
   gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/TIMESTAMP
   rm /tmp/$TIMESTAMP
 fi
