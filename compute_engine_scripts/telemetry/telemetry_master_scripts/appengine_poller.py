@@ -23,7 +23,7 @@ import urllib
 import appengine_constants
 
 
-SLEEP_BETWEEN_POLLS_SECS = 60
+SLEEP_BETWEEN_POLLS_SECS = 30
 
 UPDATE_INFO_AFTER_SECS = 3600
 
