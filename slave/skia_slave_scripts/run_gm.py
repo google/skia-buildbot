@@ -22,10 +22,7 @@ class RunGM(BuildStep):
                               self._gm_image_subdir)
     cmd = ['--verbose',
            '--writeChecksumBasedFilenames',
-           # Don't bother writing out image files that match our expectations--
-           # we know that previous runs have already uploaded those!
-           '--mismatchPath', output_dir,
-           '--missingExpectationsPath', output_dir,
+           '--writePath', output_dir,
            '--writeJsonSummaryPath', os.path.join(output_dir,
                                                   JSON_SUMMARY_FILENAME),
            '--ignoreErrorTypes',
