@@ -44,6 +44,9 @@ gsutil cp -a public-read $LUA_SCRIPT_LOCAL_LOCATION $LUA_SCRIPT_GS_LOCATION
 # Update buildbot.
 gclient sync
 
+LOGS_DIR=/home/default/storage/lua_logs
+mkdir $LOGS_DIR
+
 # Run vm_run_lua_on_skps.sh on all the slaves.
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_lua_on_skps.sh $SLAVE_NUM $LUA_SCRIPT_GS_LOCATION $RUN_ID"
@@ -63,15 +66,16 @@ done
 # Copy everything locally and combine it into one file.
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   gsutil cp gs://chromium-skia-gm/telemetry/lua-outputs/slave$SLAVE_NUM/$RUN_ID.lua-output \
-    /tmp/$RUN_ID-$SLAVE_NUM.lua-output
-  cat /tmp/$RUN_ID-$SLAVE_NUM.lua-output >> /tmp/$RUN_ID.lua-output
+    $LOGS_DIR/$RUN_ID-$SLAVE_NUM.lua-output
+  cat $LOGS_DIR/$RUN_ID-$SLAVE_NUM.lua-output >> $LOGS_DIR/$RUN_ID.lua-output
 done
 
 # Copy the consolidated file into Google Storage.
-gsutil cp -a public-read /tmp/$RUN_ID.lua-output \
+gsutil cp -a public-read $LOGS_DIR/$RUN_ID.lua-output \
   gs://chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.lua-output.txt
 
 # Delete all tmp files.
+rm -rf $LOGS_DIR/$RUN_ID*
 rm -rf /tmp/$RUN_ID*
 
 # End the timer.
