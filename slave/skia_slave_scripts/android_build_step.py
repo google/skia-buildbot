@@ -14,13 +14,14 @@ import posixpath
 
 class AndroidBuildStep(BuildStep):
   def _PreRun(self):
-    if self._has_root:
-      android_utils.RunADB(self._serial, ['root'])
-      android_utils.RunADB(self._serial, ['remount'])
-      android_utils.SetCPUScalingMode(self._serial, 'performance')
-      android_utils.ADBKill(self._serial, 'skia')
-    else:
-      android_utils.ADBKill(self._serial, 'com.skia', kill_app=True)
+    if self._serial:
+      if self._has_root:
+        android_utils.RunADB(self._serial, ['root'])
+        android_utils.RunADB(self._serial, ['remount'])
+        android_utils.SetCPUScalingMode(self._serial, 'performance')
+        android_utils.ADBKill(self._serial, 'skia')
+      else:
+        android_utils.ADBKill(self._serial, 'com.skia', kill_app=True)
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
@@ -128,11 +129,13 @@ class AndroidBuildStep(BuildStep):
     self._serial = args['serial']
     self._has_root = args['has_root'] == 'True'
     if self._serial == 'None':
-      self._serial = android_utils.GetSerial(self._device)
-    device_scratch_dir = shell_utils.Bash(
-        '%s -s %s shell echo \$EXTERNAL_STORAGE' % (
-            android_utils.PATH_TO_ADB, self._serial), 
-        echo=True, shell=True).rstrip().split('\n')[-1]
+      self._serial = None
+      print 'WARNING: No device serial number provided!'
+    else:
+      device_scratch_dir = shell_utils.Bash(
+          '%s -s %s shell echo \$EXTERNAL_STORAGE' % (
+              android_utils.PATH_TO_ADB, self._serial),
+          echo=True, shell=True).rstrip().split('\n')[-1]
     super(AndroidBuildStep, self).__init__(args=args, **kwargs)
     self._gm_args.append('--nopdf')
     self._test_args.extend(['--match', '~Threaded'])
