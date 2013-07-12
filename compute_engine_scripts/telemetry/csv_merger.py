@@ -28,7 +28,7 @@ class CsvMerger(object):
   def Merge(self):
     """Method that does the CSV merging."""
     # Counter that keeps track of how many entries have been populated so far.
-    num_entries = 0
+    total_entries = 0
     for csv_file in glob.glob(os.path.join(self._csv_dir, '*.csv')):
       csv_full_path = os.path.join(self._csv_dir, csv_file)
 
@@ -39,34 +39,40 @@ class CsvMerger(object):
       csv_lines = open(csv_full_path).readlines()
       headers = csv_lines[0].rstrip().split(',')
       header_index = 0
+      entries_in_curr_csv = 0
       for header in headers:
+        entries_in_curr_csv = 0
         if header in self._csv_dict:
           entries = self._csv_dict[header]
-          csv_entry = csv_lines[1].rstrip().split(',')[header_index]
-          entries.append(csv_entry)
+          for csv_entries in csv_lines[1:]:
+            csv_entry = csv_entries.rstrip().split(',')[header_index]
+            entries.append(csv_entry)
+            entries_in_curr_csv += 1
         else:
           entries = []
           # Populate the previous entries with the EMPTY_VALUE since this is
           # the first time we have encountered this header.
-          for _index in range(0, num_entries):
+          for _index in range(0, total_entries):
             entries.append(EMPTY_VALUE)
-          csv_entry = csv_lines[1].rstrip().split(',')[header_index]
-          entries.append(csv_entry)
+          for csv_entries in csv_lines[1:]:
+            csv_entry = csv_entries.rstrip().split(',')[header_index]
+            entries.append(csv_entry)
+            entries_in_curr_csv += 1
           self._csv_dict[header] = entries
         header_index += 1
 
+      total_entries += entries_in_curr_csv
       # Do a loop here for headers that are not in the currect CSV file and add
       # EMPTY_VALUEs for them.
       for missing_header in set(self._csv_dict) - set(headers):
-        self._csv_dict[missing_header].append(EMPTY_VALUE)
-      num_entries += 1
+        for _unused in xrange(0, entries_in_curr_csv):
+          self._csv_dict[missing_header].append(EMPTY_VALUE)
 
     # Output the constructed dictionary to CSV.
     file_writer = csv.writer(
         open(os.path.join(self._csv_dir, self._output_csv_name), 'w'))
-    # for header in self._csv_dict.keys():
     file_writer.writerow(self._csv_dict.keys())
-    for entry_index in range(0, num_entries):
+    for entry_index in range(0, total_entries):
       csv_row = []
       for header in self._csv_dict.keys():
         csv_row.append(self._csv_dict[header][entry_index])
