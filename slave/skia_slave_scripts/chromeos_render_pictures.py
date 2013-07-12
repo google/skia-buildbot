@@ -11,10 +11,8 @@ from render_pictures import RenderPictures
 import sys
 
 
-# pylint: disable=W0231
 class ChromeOSRenderPictures(ChromeOSBuildStep, RenderPictures):
-  def __init__(self, timeout=6400, **kwargs):
-    ChromeOSBuildStep.__init__(self, timeout=timeout, **kwargs)
+  pass
 
 
 if '__main__' == __name__:

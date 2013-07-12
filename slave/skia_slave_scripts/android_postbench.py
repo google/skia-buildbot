@@ -8,19 +8,11 @@
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from postbench import PostBench
-from utils import android_utils
 import sys
 
 
 class AndroidPostBench(AndroidBuildStep, PostBench):
-  def _Run(self):
-    super(AndroidPostBench, self)._Run()
-
-    if self._perf_data_dir:
-      android_utils.RunADB(self._serial, ['pull', self._device_dirs.PerfDir(),
-                                          self._perf_data_dir])
-      android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
-                                          self._device_dirs.PerfDir()])
+  pass
 
 
 if '__main__' == __name__:

@@ -6,6 +6,7 @@
 
 from build_step import BuildStep
 from utils import shell_utils
+import os
 
 
 class ValgrindBuildStep(BuildStep):
@@ -23,3 +24,17 @@ class ValgrindBuildStep(BuildStep):
     cmd.append(self._PathToBinary(app))
     cmd.extend(args)
     return shell_utils.Bash(cmd)
+
+  def Compile(self, target):
+    os.environ['GYP_DEFINES'] = self._args['gyp_defines']
+    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
+    make_cmd = 'make'
+    if os.name == 'nt':
+      make_cmd = 'make.bat'
+    cmd = [make_cmd,
+           target,
+           'BUILDTYPE=%s' % self._configuration,
+           ]
+    cmd.extend(self._default_make_flags)
+    cmd.extend(self._make_flags)
+    shell_utils.Bash(cmd)

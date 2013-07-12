@@ -8,34 +8,12 @@
 from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from postrender import PostRender
-from utils import android_utils
-import posixpath
 import sys
 
 
 class AndroidPostRender(AndroidBuildStep, PostRender):
-  def _Run(self):
-    super(AndroidPostRender, self)._Run()
+  pass
 
-    android_utils.RunADB(self._serial, ['pull', posixpath.join(
-                                            self._device_dirs.GMActualDir(),
-                                            self._gm_image_subdir),
-                                        self._gm_actual_dir])
-    android_utils.RunADB(self._serial, ['pull', self._device_dirs.SKPOutDir(),
-                                        self._gm_actual_dir])
-    android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
-                                        self._device_dirs.GMActualDir()])
-    android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
-                                        self._device_dirs.SKPOutDir()])
-
-    # Pull skimage results from device:
-    android_utils.RunADB(self._serial, ['pull',
-                                        self._device_dirs.SKImageOutDir(),
-                                        self._skimage_out_dir])
-
-    # And remove them.
-    android_utils.RunADB(self._serial, ['shell', 'rm', '-r',
-                                        self._device_dirs.SKImageOutDir()])
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(AndroidPostRender))

@@ -40,8 +40,10 @@ class Install(BuildStep):
                                        self._device_dirs.ResourceDir())
 
     # Initialize a clean scratch directory.
-    self.CreateCleanDirectory(self._device_dirs.TmpDir())
+    self.CreateCleanDeviceDirectory(self._device_dirs.TmpDir())
 
+    # Install the Skia executables.
+    self.Install()
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(Install))

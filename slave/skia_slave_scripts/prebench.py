@@ -7,8 +7,6 @@
     Test builders. """
 
 from build_step import BuildStep
-import errno
-import os
 import sys
 
 
@@ -16,13 +14,7 @@ class PreBench(BuildStep):
   def _Run(self):
     if self._perf_data_dir:
       # Create the perf data dir if it doesn't exist.
-      try:
-        os.makedirs(self._perf_data_dir)
-      except OSError as e:
-        if e.errno == errno.EEXIST:
-          pass
-        else:
-          raise e
+      self.CreateCleanDeviceDirectory(self._device_dirs.PerfDir())
 
 
 if '__main__' == __name__:

@@ -153,6 +153,18 @@ class BuildStep(multiprocessing.Process):
                        'from host to device is undefined and only allowed if '
                        'host_dir and device_dir are the same.')
 
+  def CopyDirectoryContentsToHost(self, device_dir, host_dir):
+    """ Copy the contents of a device-side directory to a clean directory on the
+    host side. Subclasses should override this method with one appropriate for
+    copying the contents of a device-side directory to a clean host-side
+    directory."""
+    # For "normal" builders who don't have an attached device, we expect
+    # host_dir and device_dir to be the same.
+    if host_dir != device_dir:
+      raise ValueError('For builders who do not have attached devices, copying '
+                       'from host to device is undefined and only allowed if '
+                       'host_dir and device_dir are the same.')
+
   def PushFileToDevice(self, src, dst):
     """ Copy the a single file from path "src" on the host to path "dst" on
     the device.  If the host IS the device we are testing, it's just a filecopy.
@@ -173,8 +185,41 @@ class BuildStep(multiprocessing.Process):
     device. """
     return os.sep.join(args)
 
-  def CreateCleanDirectory(self, directory):
+  def CreateCleanDeviceDirectory(self, directory):
+    """ Creates an empty directory on an attached device. Subclasses with
+    attached devices should override. For builders with no attached device, just
+    make sure that the directory exists, since we may want to keep data. """
+    # TODO(borenet): This should actually clean the directory, but we don't
+    # because we want to avoid deleting historical bench data which we might
+    # need.
+    os.makedirs(directory)
+
+  def CreateCleanHostDirectory(self, directory):
+    """ Creates an empty directory on the host. Can be overridden by subclasses,
+    but that should not be necessary. """
     file_utils.CreateCleanLocalDir(directory)
+
+  def Install(self):
+    """ Install the Skia executables. """
+    pass
+
+  def Compile(self, target):
+    """ Compile the Skia executables. """
+    # TODO(borenet): It would be nice to increase code sharing here.
+    if 'VS2012' in self._builder_name:
+      os.environ['GYP_MSVS_VERSION'] = '2012'
+    os.environ['GYP_DEFINES'] = self._args['gyp_defines']
+    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
+    make_cmd = 'make'
+    if os.name == 'nt':
+      make_cmd = 'make.bat'
+    cmd = [make_cmd,
+           target,
+           'BUILDTYPE=%s' % self._configuration,
+           ]
+    cmd.extend(self._default_make_flags)
+    cmd.extend(self._make_flags)
+    shell_utils.Bash(cmd)
 
   def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT,
                no_output_timeout=DEFAULT_NO_OUTPUT_TIMEOUT):

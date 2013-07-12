@@ -9,37 +9,11 @@
 from build_step import BuildStep
 from chromeos_build_step import ChromeOSBuildStep
 from install import Install
-from utils import ssh_utils
-import os
 import sys
 
 
 class ChromeOSInstall(ChromeOSBuildStep, Install):
-  def _PutSCP(self, executable):
-    # First, make sure that the program isn't running.
-    try:
-      ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                       ['killall', 'skia_%s' % executable])
-    except Exception:
-      pass
-    ssh_utils.PutSCP(local_path=os.path.join('out', 'config',
-                                             'chromeos-' + self._args['board'],
-                                             self._configuration, executable),
-                     remote_path='/usr/local/bin/skia_%s' % executable,
-                     username=self._ssh_username,
-                     host=self._ssh_host,
-                     port=self._ssh_port)
-
-  def _Run(self):
-    super(ChromeOSInstall, self)._Run()
-
-    self._PutSCP('tests')
-    self._PutSCP('gm')
-    self._PutSCP('render_pictures')
-    self._PutSCP('render_pdfs')
-    self._PutSCP('bench')
-    self._PutSCP('bench_pictures')
-    self._PutSCP('skimage')
+  pass
 
 
 if '__main__' == __name__:

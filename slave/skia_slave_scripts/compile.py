@@ -5,9 +5,7 @@
 
 """ Compile step """
 
-from utils import shell_utils
 from build_step import BuildStep
-import os
 import sys
 
 
@@ -16,20 +14,7 @@ class Compile(BuildStep):
     super(Compile, self).__init__(timeout=timeout, **kwargs)
 
   def _Run(self):
-    if 'VS2012' in self._builder_name:
-      os.environ['GYP_MSVS_VERSION'] = '2012'
-    os.environ['GYP_DEFINES'] = self._args['gyp_defines']
-    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
-    make_cmd = 'make'
-    if os.name == 'nt':
-      make_cmd = 'make.bat'
-    cmd = [make_cmd,
-           self._args['target'],
-           'BUILDTYPE=%s' % self._configuration,
-           ]
-    cmd.extend(self._default_make_flags)
-    cmd.extend(self._make_flags)
-    shell_utils.Bash(cmd)
+    self.Compile(self._args['target'])
 
 
 if '__main__' == __name__:

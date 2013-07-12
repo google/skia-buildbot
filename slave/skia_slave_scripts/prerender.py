@@ -7,7 +7,6 @@
     Bench builders. """
 
 from build_step import BuildStep
-from utils import file_utils
 from utils import shell_utils
 import build_step
 import os
@@ -74,7 +73,7 @@ class PreRender(BuildStep):
     # Prepare directory to hold GM expectations.
     device_gm_expectations_path = self.DevicePathJoin(
         self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
-    self.CreateCleanDirectory(self._device_dirs.GMExpectedDir())
+    self.CreateCleanDeviceDirectory(self._device_dirs.GMExpectedDir())
 
     # Push the GM expectations JSON file to the device.
     #
@@ -110,11 +109,13 @@ class PreRender(BuildStep):
       shutil.rmtree(tempdir)
 
     # Prepare directory to hold GM actuals.
-    if os.path.exists(self._gm_actual_dir):
-      print 'Removing %s' % self._gm_actual_dir
-      shutil.rmtree(self._gm_actual_dir)
-    print 'Creating %s' % self._gm_actual_dir
-    os.makedirs(self._gm_actual_dir)
+    self.CreateCleanHostDirectory(self._gm_actual_dir)
+    self.CreateCleanDeviceDirectory(self.DevicePathJoin(
+                                        self._device_dirs.GMActualDir(),
+                                        self._gm_image_subdir))
+    self.CreateCleanHostDirectory(
+        self._local_playback_dirs.PlaybackGmActualDir())
+    self.CreateCleanDeviceDirectory(self._device_dirs.SKPOutDir())
 
     # Copy expectations file and images to decode in skimage to device.
     self.CopyDirectoryContentsToDevice(self._skimage_expected_dir,
@@ -123,12 +124,10 @@ class PreRender(BuildStep):
     self.CopyDirectoryContentsToDevice(self._skimage_in_dir,
                                        self._device_dirs.SKImageInDir())
 
-    # Create an out directory locally for android builds, so the files can be
-    # copied back to the master
-    file_utils.CreateCleanLocalDir(self._skimage_out_dir)
 
     # Create a directory for the output of skimage
-    self.CreateCleanDirectory(self._device_dirs.SKImageOutDir())
+    self.CreateCleanHostDirectory(self._skimage_out_dir)
+    self.CreateCleanDeviceDirectory(self._device_dirs.SKImageOutDir())
 
 
 if '__main__' == __name__:

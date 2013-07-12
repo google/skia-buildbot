@@ -6,7 +6,9 @@
 
 
 from build_step import BuildStep, DeviceDirs
+from slave import slave_utils
 from utils import gs_utils
+from utils import shell_utils
 from utils import ssh_utils
 import os
 import posixpath
@@ -63,7 +65,7 @@ class ChromeOSBuildStep(BuildStep):
     """ Overrides build_step.DevicePathJoin() """
     return posixpath.sep.join(args)
 
-  def CreateCleanDirectory(self, directory):
+  def CreateCleanDeviceDirectory(self, directory):
     self._RemoveDirectoryOnDevice(directory)
     self._CreateDirectoryOnDevice(directory)
 
@@ -71,7 +73,7 @@ class ChromeOSBuildStep(BuildStep):
     """ Copy the contents of a host-side directory to a clean directory on the
     device side.
     """
-    self.CreateCleanDirectory(device_dir)
+    self.CreateCleanDeviceDirectory(device_dir)
     file_list = os.listdir(host_dir)
     for f in file_list:
       if f == gs_utils.TIMESTAMP_COMPLETED_FILENAME:
@@ -81,6 +83,60 @@ class ChromeOSBuildStep(BuildStep):
     ts_filepath = os.path.join(host_dir, gs_utils.TIMESTAMP_COMPLETED_FILENAME)
     if os.path.isfile(ts_filepath):
       self.PushFileToDevice(ts_filepath, device_dir)
+
+  def CopyDirectoryContentsToHost(self, device_dir, host_dir):
+    """ Copy the contents of a device-side directory to a clean directory on the
+    host side.
+    """
+    self.CreateCleanHostDirectory(host_dir)
+    ssh_utils.GetSCP(host_dir, posixpath.join(device_dir, '*'),
+                     self._ssh_username, self._ssh_host, self._ssh_port,
+                     recurse=True)
+
+  def _PutSCP(self, executable):
+    # First, make sure that the program isn't running.
+    try:
+      ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                       ['killall', 'skia_%s' % executable])
+    except Exception:
+      pass
+    ssh_utils.PutSCP(local_path=os.path.join('out', 'config',
+                                             'chromeos-' + self._args['board'],
+                                             self._configuration, executable),
+                     remote_path='/usr/local/bin/skia_%s' % executable,
+                     username=self._ssh_username,
+                     host=self._ssh_host,
+                     port=self._ssh_port)
+
+  def Install(self):
+    """ Install the Skia executables. """
+    # TODO(borenet): Make it so that we don't have to list the executables here.
+    self._PutSCP('tests')
+    self._PutSCP('gm')
+    self._PutSCP('render_pictures')
+    self._PutSCP('render_pdfs')
+    self._PutSCP('bench')
+    self._PutSCP('bench_pictures')
+    self._PutSCP('skimage')
+
+  def Compile(self, target):
+    """ Compile the Skia executables. """
+    # Add gsutil to PATH
+    gsutil = slave_utils.GSUtilSetup()
+    os.environ['PATH'] += os.pathsep + os.path.dirname(gsutil)
+
+    # Run the chromeos_make script.
+    make_cmd = os.path.join('platform_tools', 'chromeos', 'bin',
+                            'chromeos_make')
+    cmd = [make_cmd,
+           '-d', self._args['board'],
+           self._args['target'],
+           'BUILDTYPE=%s' % self._configuration,
+           ]
+
+    cmd.extend(self._default_make_flags)
+    cmd.extend(self._make_flags)
+    shell_utils.Bash(cmd)
 
   def __init__(self, args, **kwargs):
     self._ssh_host = args['ssh_host']

@@ -8,44 +8,11 @@
 from chromeos_build_step import ChromeOSBuildStep
 from build_step import BuildStep
 from postrender import PostRender
-from utils import ssh_utils
-import posixpath
-import shlex
 import sys
 
 
 class ChromeOSPostRender(ChromeOSBuildStep, PostRender):
-  def __init__(self, args, attempts=1, timeout=4800, **kwargs):
-    super(ChromeOSPostRender, self).__init__(args, attempts=attempts,
-                                             timeout=timeout, **kwargs)
-
-  def _Run(self):
-    super(ChromeOSPostRender, self)._Run()
-
-    ssh_utils.GetSCP(self._gm_actual_basedir,
-                     posixpath.join(self._device_dirs.GMActualDir(),
-                                    self._gm_image_subdir),
-                     self._ssh_username, self._ssh_host, self._ssh_port,
-                     recurse=True)
-    img_list = shlex.split(ssh_utils.RunSSH(self._ssh_username, self._ssh_host,
-        self._ssh_port, ['ls', self._device_dirs.SKPOutDir()], echo=False))
-    for img in img_list:
-      ssh_utils.GetSCP(self._gm_actual_dir,
-                       posixpath.join(self._device_dirs.SKPOutDir(), img),
-                       self._ssh_username, self._ssh_host, self._ssh_port)
-
-    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                     ['rm', '-rf', self._device_dirs.GMActualDir()])
-    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                     ['rm', '-rf', self._device_dirs.SKPOutDir()])
-
-    # Copy skimage results and remove them from the device.
-    ssh_utils.GetSCP(self._skimage_out_dir, self._device_dirs.SKImageOutDir(),
-                     self._ssh_username, self._ssh_host, self._ssh_port,
-                     recurse=True)
-
-    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                     ['rm', '-rf', self._device_dirs.SKImageOutDir()])
+  pass
 
 
 if '__main__' == __name__:

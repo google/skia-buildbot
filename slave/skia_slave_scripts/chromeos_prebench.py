@@ -9,22 +9,11 @@
 from build_step import BuildStep
 from chromeos_build_step import ChromeOSBuildStep
 from prebench import PreBench
-from utils import ssh_utils
 import sys
 
 
 class ChromeOSPreBench(ChromeOSBuildStep, PreBench):
-  def _Run(self):
-    super(ChromeOSPreBench, self)._Run()
-
-    if self._perf_data_dir:
-      try:
-        ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                         ['rm', '-rf', self._device_dirs.PerfDir()])
-      except Exception:
-        pass
-      ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                       ['mkdir', '-p', self._device_dirs.PerfDir()])
+  pass
 
 
 if '__main__' == __name__:

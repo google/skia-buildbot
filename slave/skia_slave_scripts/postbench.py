@@ -11,8 +11,9 @@ import sys
 
 class PostBench(BuildStep):
   def _Run(self):
-    # This is a no-op in the default case.
-    pass
+    if self._perf_data_dir:
+      self.CopyDirectoryContentsToHost(self._device_dirs.PerfDir(),
+                                       self._perf_data_dir)
 
 
 if '__main__' == __name__:

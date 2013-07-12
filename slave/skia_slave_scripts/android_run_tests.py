@@ -9,17 +9,11 @@ from android_build_step import AndroidBuildStep
 from build_step import BuildStep
 from run_tests import RunTests
 import sys
-import threading
 
 
 class AndroidRunTests(AndroidBuildStep, RunTests):
-  def _Run(self):
-    self._test_args.extend(['--match', '~Threaded'])
-    super(AndroidRunTests, self)._Run()
+  pass
 
 
 if '__main__' == __name__:
-  exitcode = BuildStep.RunBuildStep(AndroidRunTests)
-  print 'AndroidRunTests finished with code %d' % exitcode
-  print 'Threads still running:\n%s' % threading.enumerate()
-  sys.exit(exitcode)
+  sys.exit(BuildStep.RunBuildStep(AndroidRunTests))

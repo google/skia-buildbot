@@ -11,8 +11,14 @@ import sys
 
 class PostRender(BuildStep):
   def _Run(self):
-    # This is a no-op in the default case.
-    pass
+    self.CopyDirectoryContentsToHost(self.DevicePathJoin(
+                                         self._device_dirs.GMActualDir(),
+                                         self._gm_image_subdir),
+                                     self._gm_actual_dir)
+    self.CopyDirectoryContentsToHost(self._device_dirs.SKPOutDir(),
+        self._local_playback_dirs.PlaybackGmActualDir())
+    self.CopyDirectoryContentsToHost(self._device_dirs.SKImageOutDir(),
+                                     self._skimage_out_dir)
 
 
 if '__main__' == __name__:
