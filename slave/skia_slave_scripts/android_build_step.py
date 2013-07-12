@@ -139,16 +139,17 @@ class AndroidBuildStep(BuildStep):
     super(AndroidBuildStep, self).__init__(args=args, **kwargs)
     self._gm_args.append('--nopdf')
     self._test_args.extend(['--match', '~Threaded'])
-    prefix = posixpath.join(device_scratch_dir, 'skiabot', 'skia_')
-    self._device_dirs = DeviceDirs(perf_data_dir=prefix + 'perf',
-                                   gm_actual_dir=prefix + 'gm_actual',
-                                   gm_expected_dir=prefix + 'gm_expected',
-                                   resource_dir=prefix + 'resources',
-                                   skimage_in_dir=prefix + 'skimage_in',
-                                   skimage_expected_dir=(prefix
-                                                         + 'skimage_expected'),
-                                   skimage_out_dir=prefix + 'skimage_out',
-                                   skp_dir=prefix + 'skp',
-                                   skp_perf_dir=prefix + 'skp_perf',
-                                   skp_out_dir=prefix + 'skp_out',
-                                   tmp_dir=prefix + 'tmp_dir')
+    if self._serial:
+      prefix = posixpath.join(device_scratch_dir, 'skiabot', 'skia_')
+      self._device_dirs = DeviceDirs(perf_data_dir=prefix + 'perf',
+                                     gm_actual_dir=prefix + 'gm_actual',
+                                     gm_expected_dir=prefix + 'gm_expected',
+                                     resource_dir=prefix + 'resources',
+                                     skimage_in_dir=prefix + 'skimage_in',
+                                     skimage_expected_dir=(prefix +
+                                                           'skimage_expected'),
+                                     skimage_out_dir=prefix + 'skimage_out',
+                                     skp_dir=prefix + 'skp',
+                                     skp_perf_dir=prefix + 'skp_perf',
+                                     skp_out_dir=prefix + 'skp_out',
+                                     tmp_dir=prefix + 'tmp_dir')
