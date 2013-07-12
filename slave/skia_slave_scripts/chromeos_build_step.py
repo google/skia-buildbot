@@ -89,9 +89,11 @@ class ChromeOSBuildStep(BuildStep):
     host side.
     """
     self.CreateCleanHostDirectory(host_dir)
-    ssh_utils.GetSCP(host_dir, posixpath.join(device_dir, '*'),
-                     self._ssh_username, self._ssh_host, self._ssh_port,
-                     recurse=True)
+    if ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
+                        ['ls', device_dir]):
+      ssh_utils.GetSCP(host_dir, posixpath.join(device_dir, '*'),
+                       self._ssh_username, self._ssh_host, self._ssh_port,
+                       recurse=True)
 
   def _PutSCP(self, executable):
     # First, make sure that the program isn't running.
