@@ -6,7 +6,6 @@
 """Tests for module csv_merger."""
 
 import csv_merger
-import filecmp
 import os
 import unittest
 
@@ -33,7 +32,9 @@ class TestCsvMerger(unittest.TestCase):
 
     # Compare actual with expected.
     expected_output = os.path.join(self._test_csv_dir, 'expected_output')
-    self.assertTrue(filecmp.cmp(expected_output, self._actual_output))
+    expected_output_lines = open(expected_output).readlines()
+    actual_output_lines = open(self._actual_output).readlines()
+    self.assertTrue(set(expected_output_lines) == set(actual_output_lines))
 
 
 if __name__ == '__main__':
