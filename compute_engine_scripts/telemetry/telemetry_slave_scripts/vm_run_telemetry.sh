@@ -83,17 +83,24 @@ done
 
 # Consolidate outputs from all page sets into a single file with special
 # handling for CSV files.
+
+if [ ! -d "/tmp/${RUN_ID}" ]; then
+  mkdir /tmp/${RUN_ID}
+fi
+
 for output in /tmp/${RUN_ID}.*; do
   if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
     csv_basename=`basename $output`
-    mkdir /tmp/${RUN_ID}
     mv $output /tmp/${RUN_ID}/${csv_basename}.csv
-    python ~/skia-repo/buildbot/compute_engine_scripts/telemetry/csv_merger.py \
-      --csv_dir=/tmp/${RUN_ID} --output_csv_name=/tmp/output.${RUN_ID}
   else
     cat $output >> /tmp/output.${RUN_ID}
   fi
 done
+
+if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
+  python ~/skia-repo/buildbot/compute_engine_scripts/telemetry/csv_merger.py \
+    --csv_dir=/tmp/${RUN_ID} --output_csv_name=/tmp/output.${RUN_ID}
+fi
 
 # Copy the consolidated output to Google Storage.
 gsutil cp /tmp/output.${RUN_ID} gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/outputs/${RUN_ID}.output

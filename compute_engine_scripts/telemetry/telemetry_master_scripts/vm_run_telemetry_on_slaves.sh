@@ -96,11 +96,14 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     /tmp/$RUN_ID/$SLAVE_NUM.output
   if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
     mv /tmp/$RUN_ID/$SLAVE_NUM.output /tmp/$RUN_ID/$SLAVE_NUM.csv
-    python ../csv_merger.py --csv_dir=/tmp/$RUN_ID --output_csv_name=${RUN_ID}.$TELEMETRY_BENCHMARK.output
   else
     cat /tmp/$RUN_ID/$SLAVE_NUM.output >> /tmp/${RUN_ID}/${RUN_ID}.$TELEMETRY_BENCHMARK.output
   fi
 done
+
+if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
+  python ../csv_merger.py --csv_dir=/tmp/$RUN_ID --output_csv_name=${RUN_ID}.$TELEMETRY_BENCHMARK.output
+fi
 
 # Copy the consolidated file into Google Storage.
 gsutil cp -a public-read /tmp/$RUN_ID/$RUN_ID.$TELEMETRY_BENCHMARK.output \
