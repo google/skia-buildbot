@@ -5,6 +5,7 @@
 """Base class for all slave-side build steps. """
 
 import config
+import errno
 import multiprocessing
 import os
 import shlex
@@ -192,7 +193,11 @@ class BuildStep(multiprocessing.Process):
     # TODO(borenet): This should actually clean the directory, but we don't
     # because we want to avoid deleting historical bench data which we might
     # need.
-    os.makedirs(directory)
+    try:
+      os.makedirs(directory)
+    except OSError as e:
+      if e.errno != errno.EEXIST:
+        raise
 
   def CreateCleanHostDirectory(self, directory):
     """ Creates an empty directory on the host. Can be overridden by subclasses,
