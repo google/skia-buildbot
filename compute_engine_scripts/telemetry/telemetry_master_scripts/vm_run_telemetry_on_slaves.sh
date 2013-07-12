@@ -90,24 +90,20 @@ done
 
 # Copy over the outputs from all slaves and consolidate them into one file with
 # special handling for CSV files.
+mkdir /tmp/$RUN_ID/
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   gsutil cp gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/outputs/$RUN_ID.output \
-    /tmp/$RUN_ID-$SLAVE_NUM.output
+    /tmp/$RUN_ID/$SLAVE_NUM.output
   if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
-    # For CSV outputs, save the first encountered CSV and append only the last
-    # line of all other CSVs. This ensures that the headings appear only once.
-    if [ ! -f /tmp/${RUN_ID}.$TELEMETRY_BENCHMARK.output ]; then
-      cp /tmp/$RUN_ID-$SLAVE_NUM.output /tmp/${RUN_ID}.$TELEMETRY_BENCHMARK.output
-    else
-      tail -n -1 "/tmp/$RUN_ID-$SLAVE_NUM.output" >> /tmp/${RUN_ID}.$TELEMETRY_BENCHMARK.output
-    fi
+    mv /tmp/$RUN_ID/$SLAVE_NUM.output /tmp/$RUN_ID/$SLAVE_NUM.csv
+    python ../csv_merger.py --csv_dir=/tmp/$RUN_ID --output_csv_name=${RUN_ID}.$TELEMETRY_BENCHMARK.output
   else
-    cat /tmp/$RUN_ID-$SLAVE_NUM.output >> /tmp/${RUN_ID}.$TELEMETRY_BENCHMARK.output
+    cat /tmp/$RUN_ID/$SLAVE_NUM.output >> /tmp/${RUN_ID}/${RUN_ID}.$TELEMETRY_BENCHMARK.output
   fi
 done
 
 # Copy the consolidated file into Google Storage.
-gsutil cp -a public-read /tmp/$RUN_ID.$TELEMETRY_BENCHMARK.output \
+gsutil cp -a public-read /tmp/$RUN_ID/$RUN_ID.$TELEMETRY_BENCHMARK.output \
   gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
 OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
 

@@ -85,13 +85,11 @@ done
 # handling for CSV files.
 for output in /tmp/${RUN_ID}.*; do
   if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
-    # For CSV outputs, save the first encountered CSV and append only the last
-    # line of all other CSVs. This ensures that the headings appear only once.
-    if [ ! -f /tmp/output.${RUN_ID} ]; then
-      cp $output /tmp/output.${RUN_ID}
-    else
-      tail -n -1 "$output" >> /tmp/output.${RUN_ID}
-    fi
+    csv_basename=`basename $output`
+    mkdir /tmp/${RUN_ID}
+    mv $output /tmp/${RUN_ID}/${csv_basename}.csv
+    python ~/skia-repo/buildbot/compute_engine_scripts/telemetry/csv_merger.py \
+      --csv_dir=/tmp/${RUN_ID} --output_csv_name=/tmp/output.${RUN_ID}
   else
     cat $output >> /tmp/output.${RUN_ID}
   fi
