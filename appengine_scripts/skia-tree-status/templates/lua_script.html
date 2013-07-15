@@ -26,6 +26,7 @@
       <td><b>Completed Time</b></td>
       <td><b>Lua Script Link</b></td>
       <td><b>Lua Output Link</b></td>
+      <td><b>Delete</b></td>
     </tr>
     {% for task in lua_tasks %}
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
@@ -51,6 +52,12 @@
         {% else %}
           In Progress
         {% endif %}
+      </td>
+      <td align="center">
+        <form action="lua_script" name="delete_lua_task" method="post">
+          <input type='hidden' name='delete' value='{{ task.key.id_or_name }}'>
+          <input type='submit' value='Delete'>
+        </form>
       </td>
     </tr>
     {% endfor %}

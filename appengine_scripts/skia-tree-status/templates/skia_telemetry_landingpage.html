@@ -38,6 +38,7 @@
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Output Link</b></td>
+      <td><b>Delete</b></td>
     </tr>
     {% for task in telemetry_tasks %}
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
@@ -57,6 +58,12 @@
         {% else %}
           In Progress
         {% endif %}
+      </td>
+      <td align="center">
+        <form action="/skia-telemetry" name="delete_telemetry_task" method="post">
+          <input type='hidden' name='delete' value='{{ task.key.id_or_name }}'>
+          <input type='submit' value='Delete'>
+        </form>
       </td>
     </tr>
     {% endfor %}

@@ -106,6 +106,12 @@ class LuaTasks(db.Model):
     return db.GqlQuery(
         'SELECT * FROM LuaTasks WHERE __key__ = Key(\'LuaTasks\', %s);' %  key)
 
+  @classmethod
+  def delete_lua_task(cls, key):
+    lua_tasks = cls.get_lua_task(key)
+    if lua_tasks.count():
+      lua_tasks[0].delete()
+
 
 class TelemetryTasks(db.Model):
   """Data model for Telemetry tasks."""
@@ -151,6 +157,12 @@ class TelemetryTasks(db.Model):
                          .fetch(limit=1))
     return skp_benchmarks != None and len(skp_benchmarks) != 0
 
+  @classmethod
+  def delete_telemetry_task(cls, key):
+    telemetry_tasks = cls.get_telemetry_task(key)
+    if telemetry_tasks.count():
+      telemetry_tasks[0].delete()
+
 
 def add_telemetry_info_to_template(template_values, user_email,
                                    is_google_chromium_user):
@@ -178,6 +190,14 @@ class LuaScriptPage(BasePage):
 
   @utils.require_user
   def post(self):
+    # Check if this is a delete lua task request.
+    delete_key = self.request.get('delete')
+    if delete_key:
+      LuaTasks.delete_lua_task(delete_key)
+      self.redirect('lua_script')
+      return
+
+    # It is an add lua task request.
     requested_time = datetime.datetime.now()
     lua_script = db.Text(self.request.get('lua_script'))
     description = self.request.get('description')
@@ -279,6 +299,14 @@ class LandingPage(BasePage):
 
   @utils.require_user
   def post(self):
+    # Check if this is a delete telemetry task request.
+    delete_key = self.request.get('delete')
+    if delete_key:
+      TelemetryTasks.delete_telemetry_task(delete_key)
+      self.redirect('/skia-telemetry')
+      return
+
+    # It is an add telemetry task request.
     benchmark_name = self.request.get('benchmark_name')
     benchmark_arguments = self.request.get('benchmark_arguments')
     requested_time = datetime.datetime.now()
