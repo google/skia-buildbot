@@ -492,8 +492,11 @@ class UpdateInfoPage(BasePage):
     num_skp_files = int(self.request.get('num_skp_files'))
     last_updated = datetime.datetime.now()
 
+    telemetry_info = TelemetryInfo.get_telemetry_info()
+    # Save the last framework_msg if any.
+    framework_msg = telemetry_info.framework_msg
     # Delete the old entry.
-    TelemetryInfo.get_telemetry_info().delete()
+    telemetry_info.delete()
 
     # Add the new updated one.
     TelemetryInfo(
@@ -504,6 +507,7 @@ class UpdateInfoPage(BasePage):
         num_webpages=num_webpages,
         num_webpages_per_pageset=num_webpages_per_pageset,
         num_skp_files=num_skp_files,
+        framework_msg=framework_msg,
         last_updated=last_updated).put()
 
     self.response.out.write('<br/><br/>Added to the datastore-<br/><br/>')
