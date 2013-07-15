@@ -237,7 +237,14 @@ class TelemetryInfoPage(BasePage):
   """Displays information messages."""
 
   @utils.require_user
+  def post(self):
+    self._handle()
+
+  @utils.require_user
   def get(self):
+    self._handle()
+
+  def _handle(self):
     template_values = self.InitializeTemplate('Telemetry Info Message')
 
     add_telemetry_info_to_template(template_values, self.user.email(),
@@ -245,6 +252,12 @@ class TelemetryInfoPage(BasePage):
 
     info_msg = self.request.get('info_msg')
     template_values['info_msg'] = info_msg
+
+    whitelist_key = self.request.get('whitelist_key')
+    if whitelist_key:
+      telemetry_task = TelemetryTasks.get_telemetry_task(whitelist_key)[0]
+      template_values['whitelist_entries'] = (
+          telemetry_task.whitelist_file.split())
 
     self.DisplayTemplate('skia_telemetry_info_page.html', template_values)
 

@@ -6,6 +6,15 @@
   <br/><br/>
 
   <font size="4"><b>{{ info_msg }}</b></font>
+  {% if whitelist_entries %}
+    <b>Contents of Whitelist File:</b>
+    <br/>
+    <br/>
+  {% endif %}
+  {% for whitelist_entry in whitelist_entries %}
+    {{ whitelist_entry }}
+    <br/>
+  {% endfor %}
 
 </center>
 
