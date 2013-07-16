@@ -30,6 +30,10 @@ class TelemetryInfo(db.Model):
   last_updated = db.DateTimeProperty(required=True)
   skia_rev = db.IntegerProperty(required=True)
   chromium_rev = db.IntegerProperty(required=True)
+  pagesets_source = db.LinkProperty(
+      required=True,
+      default='https://storage.cloud.google.com/chromium-skia-gm/telemetry/'
+              'pagesets_source/top-1m.csv')
   framework_msg = db.StringProperty()
 
   @classmethod
@@ -180,6 +184,7 @@ def add_telemetry_info_to_template(template_values, user_email,
   template_values['last_updated'] = telemetry_info.last_updated
   template_values['admin'] = user_email in TELEMETRY_ADMINS
   template_values['is_google_chromium_user'] = is_google_chromium_user
+  template_values['pagesets_source'] = telemetry_info.pagesets_source
   template_values['framework_msg'] = telemetry_info.framework_msg
 
 
