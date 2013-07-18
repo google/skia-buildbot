@@ -20,6 +20,10 @@
         <td><input type="file" name="whitelist_file" {% if not is_google_chromium_user %}disabled{% endif %}/> (Must contain one webpage per line)</td>
       </tr>
       <tr>
+        <td>Optional Description</td>
+        <td><input type="text" name="description" size="35"></td>
+      </tr>
+      <tr>
         <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task" {% if not is_google_chromium_user %}disabled{% endif %}></td>
       </tr>
     </table>
@@ -33,6 +37,7 @@
   {% if telemetry_tasks %}
   <table border="1" cellpadding="5">
     <tr bgcolor="#CCCCFF">
+      <td><b>Description</b></td>
       <td><b>Benchmark Name</b></td>
       <td><b>Benchmark Arguments</b></td>
       <td><b>Requested Time</b></td>
@@ -43,6 +48,7 @@
     </tr>
     {% for task in telemetry_tasks %}
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
+      <td>{{ task.description }}</td>
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
       <td>{{ task.requested_time }}</td>
@@ -57,7 +63,7 @@
         {% if task.whitelist_file %}
           <form action="/skia-telemetry/skia_telemetry_info_page" name="display_whitelist_file" method="post">
             <input type='hidden' name='whitelist_key' value='{{ task.key.id_or_name }}'>
-            <input type='submit' value='View Whitelist File'>
+            <input type='submit' value='Whitelist File'>
           </form>
         {% else %}
           None

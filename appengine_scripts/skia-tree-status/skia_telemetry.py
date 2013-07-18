@@ -127,6 +127,7 @@ class TelemetryTasks(db.Model):
   completed_time = db.DateTimeProperty()
   output_link = db.LinkProperty()
   whitelist_file = db.BlobProperty()
+  description = db.StringProperty()
 
   @classmethod
   def get_all_pending_telemetry_tasks(cls):
@@ -335,6 +336,9 @@ class LandingPage(BasePage):
       whitelist_file = db.Blob(whitelist_file)
     else:
       whitelist_file = None
+    description = self.request.get('description')
+    if not description:
+      description = 'None'
 
     # There should be only one instance of a skp benchmark running at a time.
     # Running multiple instances causes unpredictable and inconsistent behavior.
@@ -348,7 +352,8 @@ class LandingPage(BasePage):
           benchmark_name=benchmark_name,
           benchmark_arguments=benchmark_arguments,
           requested_time=requested_time,
-          whitelist_file=whitelist_file).put()
+          whitelist_file=whitelist_file,
+          description=description).put()
       self.redirect('/skia-telemetry')
 
 

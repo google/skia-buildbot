@@ -92,6 +92,7 @@
   <table border="1" cellpadding="5">
     <tr bgcolor="#CCCCFF">
       <td><b>User</b></td>
+      <td><b>Description</b></td>
       <td><b>Benchmark Name</b></td>
       <td><b>Benchmark Arguments</b></td>
       <td><b>Requested Time</b></td>
@@ -102,6 +103,7 @@
     {% for task in telemetry_tasks %}
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
       <td>{{ task.username }}</td>
+      <td>{{ task.description }}</td>
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
       <td>{{ task.requested_time }}</td>
