@@ -45,6 +45,20 @@ table td {
   min-width: 5em;
 }
 
+div.BuilderTooltip {
+  position: absolute;
+  border: 1px solid black;
+  background-color: white;
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  padding: 5px;
+}
+
+a.BuilderHasComment,div.BuilderHasComment,td.BuilderHasComment {
+  border: 1px solid blue;
+}
+
 /* Chromium Specific styles */
 div.BuildResultInfo {
   color: #444;

@@ -203,8 +203,8 @@ function checkMouseLeave(element, event) {
           <table width="100%">
             <tr>
             {% for b in builders[category][subcategory][cat_full]|sort %}
-              <td class='DevSlaveBox'>
-                <a href='{{ b.url }}' title='{{ b.pageTitle }}' class='DevSlaveBox {{ b.color }}' target="_blank">
+              <td class='DevSlaveBox' onmouseover="showBuilderTooltip('{{ b.builderName }}', event)" onmouseout="hideBuilderTooltip(event)">
+                <a href='{{ b.url }}' class='DevSlaveBox {{ b.color }}' target="_blank" id="commentIndicator_{{ b.builderName }}">
                 </a>
               </td>
             {% endfor %}

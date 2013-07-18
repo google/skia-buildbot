@@ -35,6 +35,10 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     var internalport = "{{ internal_port }}";
     var externalport = "{{ external_port }}";
 
+    var tree_status_appspot_url = "http://skia-tree-status.appspot.com";
+    var get_builder_status_url = tree_status_appspot_url + "/builder-status/get_builder_statuses?jsonp=setJSONStatus";
+    var set_builder_status_url = tree_status_appspot_url + "/builder-status/";
+
     var all_full_category_names = [
       {% for c in all_full_category_names %}
       "{{ c }}",
@@ -82,6 +86,39 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     var displaying_full_category_names = [];
     var displaying_categories = [];
     var displaying_subcategories = [];
+
+    // This variable holds statuses for the builders from AppEngine.
+    var status_json = {};
+
+    // Load builder status information from AppEngine.
+    function loadJSONStatus() {
+      var script = document.createElement("script");
+      script.setAttribute("src", get_builder_status_url);
+      document.getElementsByTagName("head")[0].appendChild(script);
+    }
+
+    // Callback function which receives JSON date from AppEngine and stores it in status_json.
+    function setJSONStatus(data) {
+      status_json = data;
+      // Mark builders who have comments.
+      for (var builder_name in status_json) {
+        var comment_indicator = document.getElementById("commentIndicator_" + builder_name);
+        if (comment_indicator) {
+          comment_indicator.className += " BuilderHasComment";
+        }
+      }
+
+      // Optionally display the builder status message on the page.
+      var display_comment_elems = document.getElementsByClassName("DisplayBuilderComment");
+      for (var i = 0; i < display_comment_elems.length; ++i) {
+        var display_comment = display_comment_elems[i];
+        var builder_name = display_comment.id.slice("displayBuilderComment_".length);
+        display_comment.innerHTML = builderCommentText(builder_name);
+        if (status_json[builder_name]) {
+          display_comment.className += " BuilderTooltip BuilderHasComment";
+        }
+      }
+    }
 
     // Set an option on window.name
     function setOption(name, value) {
@@ -300,6 +337,60 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
 
       // Set the iframe to reload.
       setTimeout("reloadSkiaTreeStatus();", iframe_reload);
+
+      // Load the builder statuses.
+      loadJSONStatus();
+    }
+
+    // Get the comment text for a given builder.
+    function builderCommentText(builder_name) {
+      var comment = null;
+      if (status_json[builder_name]) {
+        comment = status_json[builder_name]["message"];
+      }
+      var edit_status_url = set_builder_status_url + "?selected_builder_name=" + builder_name
+      var comment_html;
+      if (comment) {
+        comment_html = comment + " (<a href='" + edit_status_url + "' target='_blank'>edit</a>)";
+      } else {
+        comment_html = "<a href='" + edit_status_url + "' target='_blank'>add a comment</a>";
+      }
+      return comment_html;
+    }
+
+    // Display a builder tooltip.
+    function showBuilderTooltip(builder_name, event) {
+      var tooltipbox = document.getElementById('builderTooltip');
+      var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
+      var cursorPosLeft = (window.event ? window.event.clientX : event.pageX)
+    
+      cursorPosTop  = cursorPosTop  + document.body.scrollTop + 5;    
+      cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
+    
+      tooltipbox.innerHTML = builderCommentText(builder_name);
+      tooltipbox.style.top = parseInt(cursorPosTop) + 'px';
+      tooltipbox.style.left = parseInt(cursorPosLeft) + 'px';
+      tooltipbox.style.display = "block";
+    }
+
+    // Hide the builder tooltip.
+    function hideBuilderTooltip(event) {
+      // Only hide the tooltip if the mouse is outside the tooltip area.
+      var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
+      var cursorPosLeft = (window.event ? window.event.clientX : event.pageX)
+      cursorPosTop  = cursorPosTop  + document.body.scrollTop;    
+      cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
+
+      var tooltipbox = document.getElementById('builderTooltip');
+      var top = parseInt(tooltipbox.style.top.replace("px", ""));
+      var left = parseInt(tooltipbox.style.left.replace("px", ""));
+      var bottom = top + parseInt(tooltipbox.offsetHeight);
+      var right = left + parseInt(tooltipbox.offsetWidth);
+
+      if (cursorPosTop < top - 5 || cursorPosTop > bottom ||
+          cursorPosLeft < left || cursorPosLeft > right) {
+        tooltipbox.style.display = "none";
+      }
     }
 
     </script>
@@ -395,5 +486,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       Page built: <b>{{ time }}</b> ({{ tz }})
     </div>
     {% endblock -%}
+    <div id="builderTooltip" class="BuilderTooltip" style="display: none;" onmouseout="hideBuilderTooltip(event)"></div>
   </body>
 </html>

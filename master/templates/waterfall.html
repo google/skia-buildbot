@@ -16,7 +16,7 @@
   </td>
 
 {% for b in builders %}
-  <td align="center" class="{{ b.top_class }}">
+  <td align="center" class="{{ b.top_class }}" id="commentIndicator_{{ b.name }}" onmouseover="showBuilderTooltip('{{ b.name }}', event)" onmouseout="hideBuilderTooltip(event)">
     <a href="{{ b.url }}">{{ b.name }}</a><br/>
     {{ " ".join(b.top) }}
   </td>
