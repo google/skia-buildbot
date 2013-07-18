@@ -29,7 +29,7 @@ buildbot_root = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 sys.path.append(os.path.join(buildbot_root, 'site_config'))
 
 
-DEFAULT_TIMEOUT = 2400
+DEFAULT_TIMEOUT = 4800
 DEFAULT_NO_OUTPUT_TIMEOUT = 3600
 DEFAULT_NUM_CORES = 2
 
