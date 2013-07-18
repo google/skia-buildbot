@@ -12,6 +12,7 @@
 from google.appengine.ext import webapp
 
 import base_page
+import builder_status
 import commit_queue
 import status
 import sheriff
@@ -31,6 +32,9 @@ URLS = [
   ('/allstatus/?', status.AllStatusPage),
   ('/banner-status/?', status.BannerStatusPage),
   ('/binary-status/?', status.BinaryStatusPage),
+  ('/builder-status/?', builder_status.BuilderStatusPage),
+  ('/builder-status/get_builder_statuses?',
+   builder_status.GetBuilderStatusesPage),
   ('/cq/receiver/?', commit_queue.Receiver),
   ('/cq/?', commit_queue.Summary),
   ('/cq/top', commit_queue.TopScore),
@@ -60,6 +64,7 @@ APPLICATION = webapp.WSGIApplication(URLS, debug=True)
 
 # Do some one-time initializations.
 base_page.bootstrap()
+builder_status.bootstrap()
 commit_queue.bootstrap()
 status.bootstrap()
 sheriff.bootstrap()
