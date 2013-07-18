@@ -118,7 +118,7 @@
         {% if task.whitelist_file %}
           <form action="/skia-telemetry/skia_telemetry_info_page" name="display_whitelist_file" method="post">
             <input type='hidden' name='whitelist_key' value='{{ task.key.id_or_name }}'>
-            <input type='submit' value='View Whitelist File'>
+            <input type='submit' value='Whitelist File'>
           </form>
         {% else %}
           None
