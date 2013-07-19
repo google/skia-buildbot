@@ -204,8 +204,9 @@ class ConsoleStatusResource(HtmlResource):
       # with the update source step. We need to find a way to tell the
       # user that his change might have broken the source update.
       if got_rev and got_rev != -1:
+        dev_revision = self.getChangeForBuild(build, got_rev)
         details = self.getBuildDetails(request, builder_name, build)
-        dev_build = DevBuild(got_rev, build, details,
+        dev_build = DevBuild(dev_revision, build, details,
                              getInProgressResults(build))
         builds.append(dev_build)
 
@@ -354,7 +355,7 @@ class ConsoleStatusResource(HtmlResource):
 
             # Find the first build that does not include the revision.
             for build in all_builds[builder_name]:
-              if self.comparator.isRevisionEarlier(build, revision):
+              if self.comparator.isRevisionEarlier(build.revision, revision):
                 first_not_in = build
                 break
               else:
