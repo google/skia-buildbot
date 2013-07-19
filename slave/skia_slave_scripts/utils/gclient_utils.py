@@ -52,7 +52,7 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
          branches=None, verbose=False, manually_grab_svn_rev=False, jobs=None):
   """ Update the local checkout to the given revision, if provided, or to the
   most recent revision. """
-  cmd = ['sync']
+  cmd = ['sync', '--no-nag-max']
   if verbose:
     cmd.append('--verbose')
   if manually_grab_svn_rev:
