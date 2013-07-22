@@ -36,6 +36,13 @@ class BuilderStatus(db.Model):
     if builders:
       builders[0].delete()
 
+  @classmethod
+  def get_status_for_builder(cls, builder_name):
+    builders = (BuilderStatus.all()
+                             .filter('builder_name =', builder_name)
+                             .fetch(limit=1))
+    return builders[0].message if builders else ''
+
 
 def get_builder_statuses():
   """Returns all builder statuses."""
@@ -108,8 +115,11 @@ class BuilderStatusPage(BasePage):
 
     template_values = self.InitializeTemplate('Builder Statuses')
     template_values['builder_statuses'] = builder_statuses
-    template_values['selected_builder_name'] = self.request.get(
-        'selected_builder_name')
+    selected_builder_name = self.request.get('selected_builder_name')
+    template_values['selected_builder_name'] = selected_builder_name
+    if selected_builder_name:
+      template_values['selected_builder_status'] = (
+          BuilderStatus.get_status_for_builder(selected_builder_name))
     self.DisplayTemplate('builder_status.html', template_values)
 
 

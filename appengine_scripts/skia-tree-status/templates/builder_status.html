@@ -21,14 +21,20 @@
         <tr>
           <td>Status message</td>
           <td>
-            <input type="text" size="80" name="message" value="">
+            <input type="text" size="80" name="message" value="{{ selected_builder_status }}">
           </td>
         </tr>
       </table>
-      <br/><br/>
       <input type="submit" name="submit" value="Submit">
       <input type="button" name="refresh" value="Refresh" onclick="location.href='/builder-status';">
     </form>
+    {% if selected_builder_status %}
+    <form action="/builder-status" name="delete_builder_status" method="post">
+      <input type='hidden' name='delete' value='{{ selected_builder_name }}'>
+      <input type='submit' value='Delete'{% if not is_admin %} disabled {% endif %}>
+    </form>
+    {% endif %}
+
     <br/>
     Builder status messages support HTML.<br/>
     Entering a status message for a builder that already has one will replace the old message.
