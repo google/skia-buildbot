@@ -55,6 +55,13 @@ class AdminTasks(db.Model):
                .fetch(limit=FETCH_LIMIT))
 
   @classmethod
+  def get_all_admin_tasks_of_user(cls, user):
+    return (cls.all()
+               .filter('username =', user)
+               .order('-requested_time')
+               .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
   def get_admin_task(cls, key):
     return db.GqlQuery(
         'SELECT * FROM AdminTasks WHERE __key__ = Key(\'AdminTasks\', %s);' % (
@@ -74,6 +81,12 @@ class AdminTasks(db.Model):
                       .filter('task_name =', task_name)
                       .fetch(limit=1))
     return admin_tasks != None and len(admin_tasks) != 0
+
+  @classmethod
+  def delete_admin_task(cls, key):
+    admin_tasks = cls.get_admin_task(key)
+    if admin_tasks.count():
+      admin_tasks[0].delete()
 
 
 class LuaTasks(db.Model):
@@ -189,6 +202,51 @@ def add_telemetry_info_to_template(template_values, user_email,
   template_values['framework_msg'] = telemetry_info.framework_msg
 
 
+class AdminTasksPage(BasePage):
+  """Displays the admin tasks page."""
+
+  @utils.require_user
+  def get(self):
+    return self._handle()
+
+  @utils.require_user
+  def post(self):
+    # Check if this is a delete admin task request.
+    delete_key = self.request.get('delete')
+    if delete_key:
+      AdminTasks.delete_admin_task(delete_key)
+      self.redirect('admin_tasks')
+      return
+
+    # It is an add admin task request.
+    requested_time = datetime.datetime.now()
+    admin_task = self.request.get('admin_task')
+
+    # There should be only one instance of an admin task running at a time.
+    # Running multiple instances causes unpredictable and inconsistent behavior.
+    if AdminTasks.is_admin_task_running(admin_task):
+      self.redirect('/skia-telemetry/skia_telemetry_info_page?info_msg=%s'
+                    ' is already running!' % admin_task)
+    else:
+      AdminTasks(
+          username=self.user.email(),
+          task_name=admin_task,
+          requested_time=requested_time).put()
+      self.redirect('admin_tasks')
+
+  def _handle(self):
+    """Sets the information to be displayed on the main page."""
+    template_values = self.InitializeTemplate('Run Admin Tasks')
+
+    add_telemetry_info_to_template(template_values, self.user.email(),
+                                   self.is_admin)
+
+    admin_tasks = AdminTasks.get_all_admin_tasks_of_user(self.user.email())
+    template_values['admin_tasks'] = admin_tasks
+
+    self.DisplayTemplate('admin_tasks.html', template_values)
+
+
 class LuaScriptPage(BasePage):
   """Displays the lua script page."""
 
@@ -276,23 +334,6 @@ class AllTasks(BasePage):
   @utils.require_user
   def get(self):
     return self._handle()
-
-  @utils.require_user
-  def post(self):
-    requested_time = datetime.datetime.now()
-    admin_task = self.request.get('admin_task')
-
-    # There should be only one instance of an admin task running at a time.
-    # Running multiple instances causes unpredictable and inconsistent behavior.
-    if AdminTasks.is_admin_task_running(admin_task):
-      self.redirect('/skia-telemetry/skia_telemetry_info_page?info_msg=%s'
-                    ' is already running!' % admin_task)
-    else:
-      AdminTasks(
-          username=self.user.email(),
-          task_name=admin_task,
-          requested_time=requested_time).put()
-      self.redirect('all_tasks')
 
   def _handle(self):
     """Sets the information to be displayed on the main page."""

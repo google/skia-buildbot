@@ -217,6 +217,12 @@ indexes:
   - name: completed_time
   - name: task_name
 
+- kind: AdminTasks
+  properties:
+  - name: username
+  - name: requested_time
+    direction: desc
+
 - kind: LuaTasks
   properties:
   - name: username

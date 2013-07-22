@@ -33,8 +33,11 @@
         </tr>
       </table>
 
-      <table cellpadding="5">
+      <table cellpadding="5" border="1">
         <tr>
+          <td align="center">
+            <a href='/skia-telemetry/admin_tasks'>Run Admin Tasks</a>
+          </td>
           <td align="center">
             <a href='/skia-telemetry'>Run Benchmarks</a>
           </td>
@@ -53,6 +56,7 @@
         <br/>
       {% endif %}
 
+      <br/>
       <h2>General Information</h2>
       <table cellpadding="5">
         <tr>
@@ -86,23 +90,6 @@
       </table>
         <br/>
         (Last updated on {{ last_updated }})
-        {% if not admin %}<br/>Must be admin to trigger below admin tasks (contact rmistry@)<br/><br/>{% endif %}
-
-        <form action="/skia-telemetry/all_tasks" name="all_admin_tasks" method="post">
-          <table cellpadding="5">
-            <tr>
-              <td align="center">
-                <input type="submit" value="Rebuild Chrome" name="admin_task" {% if not admin %}disabled{% endif %}>
-              </td>
-              <td align="center">
-                <input type="submit" value="Recreate Pagesets" name="admin_task" {% if not admin %}disabled{% endif %}>
-              </td>
-              <td align="center">
-                <input type="submit" value="Recreate Webpage Archives" name="admin_task" {% if not admin %}disabled{% endif %}>
-              </td>
-            </tr>
-          </table>
-        </form>
         <hr/>
 
     </center>

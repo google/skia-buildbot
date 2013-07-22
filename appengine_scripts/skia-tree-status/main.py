@@ -44,6 +44,7 @@ URLS = [
   ('/current-sheriff/?', sheriff.CurrentSheriffPage),
   ('/sheriff/?', sheriff.SheriffPage),
   ('/skia-telemetry/?', skia_telemetry.LandingPage),
+  ('/skia-telemetry/admin_tasks?', skia_telemetry.AdminTasksPage),
   ('/skia-telemetry/all_tasks?', skia_telemetry.AllTasks),
   ('/skia-telemetry/get_admin_tasks?', skia_telemetry.GetAdminTasksPage),
   ('/skia-telemetry/get_lua_tasks?', skia_telemetry.GetLuaTasksPage),

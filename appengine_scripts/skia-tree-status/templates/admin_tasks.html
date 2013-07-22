@@ -1,0 +1,70 @@
+{% extends "skia_telemetry_base.html" %}
+
+{% block content %}
+
+<center>
+{% if info_msg %}<font color="red"><b>{{ info_msg }}</b></font><br/><br/>{% endif %}
+<h2>Run Admin Tasks</h2>
+<br/>
+
+{% if not admin %}<br/>Must be admin to trigger below admin tasks (contact rmistry@)<br/><br/>{% endif %}
+
+<form action="/skia-telemetry/admin_tasks" name="all_admin_tasks" method="post">
+  <table cellpadding="5">
+    <tr>
+      <td align="center">
+        <input type="submit" value="Rebuild Chrome" name="admin_task" {% if not admin %}disabled{% endif %}>
+      </td>
+      <td align="center">
+        <input type="submit" value="Recreate Pagesets" name="admin_task" {% if not admin %}disabled{% endif %}>
+      </td>
+      <td align="center">
+        <input type="submit" value="Recreate Webpage Archives" name="admin_task" {% if not admin %}disabled{% endif %}>
+      </td>
+    </tr>
+  </table>
+</form>
+<br/>
+<br/>
+
+  <h2>Your previous Admin task runs</h2>
+  <br/>
+  <br/>
+  {% if admin_tasks %}
+  <table border="1" cellpadding="5">
+    <tr bgcolor="#CCCCFF">
+      <td><b>Task</b></td>
+      <td><b>Requested Time</b></td>
+      <td><b>Completed Time</b></td>
+      <td><b>Delete</b></td>
+    </tr>
+    {% for task in admin_tasks %}
+    <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
+      <td>{{ task.task_name }}</td>
+      <td>{{ task.requested_time }}</td>
+      <td>
+        {% if task.completed_time %}
+          {{ task.completed_time }}
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+      <td align="center">
+        <form action="/skia-telemetry/admin_tasks" name="delete_admin_task" method="post">
+          <input type='hidden' name='delete' value='{{ task.key.id_or_name }}'>
+          <input type='submit' value='Delete'>
+        </form>
+      </td>
+
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    No Previous runs yet.
+  {% endif %}
+
+  <br/>
+  <a href='all_tasks#admin'>View runs of all users</a>
+</center>
+
+{% endblock %}
