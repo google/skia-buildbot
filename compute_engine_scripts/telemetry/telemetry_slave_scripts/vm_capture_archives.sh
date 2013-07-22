@@ -36,6 +36,7 @@ rm -rf /home/default/storage/webpages_archive/*
 for page_set in /home/default/storage/page_sets/*; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
+    check_and_run_xvfb
     DISPLAY=:0 timeout 600 tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser=system $page_set
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
