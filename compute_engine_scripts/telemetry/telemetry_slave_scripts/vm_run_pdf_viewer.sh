@@ -65,8 +65,9 @@ out/Release/render_pdfs /home/default/storage/skps/ -w $LOGS_DIR/pdf/
 out/Release/pdfviewer -r $LOGS_DIR/pdf/ -w $LOGS_DIR/actual/ -n
 out/Release/skpdiff -f $LOGS_DIR/expected/ $LOGS_DIR/actual/ --csv $LOGS_DIR/csv/result.csv
 
-# Copy the csv output to Google Storage.
+# Copy the csv output and logs to Google Storage.
 gsutil cp $LOGS_DIR/csv/result.csv gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/outputs/${RUN_ID}.output
+gsutil cp /tmp/pdfviewer-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/logs/${RUN_ID}.log
 
 # Clean up logs and the worker file.
 rm -rf /home/default/storage/pdf_logs/*${RUN_ID}*
