@@ -11,7 +11,7 @@
 
 if [ $# -ne 3 ]; then
   echo
-  echo "Usage: `basename $0` rmistry@google.com 1001"
+  echo "Usage: `basename $0` rmistry@google.com 1001 All"
   echo
   echo "The first argument is the email address of the requester."
   echo "The second argument is the key of the appengine admin task."

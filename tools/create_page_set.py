@@ -73,6 +73,11 @@ if '__main__' == __name__:
       help='Location of the alexa top 1M CSV file. This script downloads it '
            'from the internet if it is not specified.',
       default=None)
+  option_parser.add_option(
+      '-p', '--pagesets_type',
+      help='The type of pagesets to create from the 1M list. Eg: All, '
+           'Filtered, 100k, 10k, Deeplinks',
+      default='All')
   options, unused_args = option_parser.parse_args()
 
   # Validate arguments.
@@ -104,6 +109,7 @@ if '__main__' == __name__:
                                                   options.end_number),
       'archive_data_file': os.path.join(
           '/', 'home', 'default', 'storage', 'webpages_archive',
+          options.pagesets_type,
           'alexa%s-%s.json' % (options.start_number, options.end_number)),
       'pages': pages,
       'smoothness': { 'action': 'scroll'},

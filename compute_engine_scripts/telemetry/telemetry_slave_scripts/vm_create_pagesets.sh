@@ -11,7 +11,7 @@
 
 if [ $# -ne 3 ]; then
   echo
-  echo "Usage: `basename $0` 1 1 1000"
+  echo "Usage: `basename $0` 1 1 All"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
   echo "The second argument is the webpage rank to start with."
@@ -64,7 +64,8 @@ rm /tmp/pagesets.zip
 # Run create_page_set.py
 for PAGESET_NUM in $(seq 1 $NUM_PAGESETS_PER_SLAVE); do
   END=$(expr $START + $MAX_WEBPAGES_PER_PAGESET - 1)
-  python create_page_set.py -s $START -e $END -c page_sets/top-1m.csv $BLACKLIST_ARG
+  python create_page_set.py -s $START -e $END \
+    -c page_sets/top-1m.csv $BLACKLIST_ARG -p $PAGESETS_TYPE
   START=$(expr $END + 1)
 done
 # Copy page_sets to the local directory.
