@@ -12,8 +12,8 @@ import sys
 class PostBench(BuildStep):
   def _Run(self):
     if self._perf_data_dir:
-      self.CopyDirectoryContentsToHost(self._device_dirs.PerfDir(),
-                                       self._perf_data_dir)
+      self._flavor_utils.CopyDirectoryContentsToHost(
+          self._device_dirs.PerfDir(), self._perf_data_dir)
 
 
 if '__main__' == __name__:

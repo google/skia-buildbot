@@ -33,7 +33,7 @@ class RunBench(BuildStep):
     if self._perf_data_dir:
       args.extend(BenchArgs(self.BENCH_REPEAT_COUNT,
                             self._BuildDataFile()))
-    self.RunFlavoredCmd('bench', args + self._bench_args)
+    self._flavor_utils.RunFlavoredCmd('bench', args + self._bench_args)
 
 
 if '__main__' == __name__:

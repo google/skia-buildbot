@@ -270,7 +270,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
             gs_acl=PLAYBACK_CANNED_ACL,
             local_dir=self._local_playback_dirs.PlaybackGmActualDir(),
             force_upload=True,
-            upload_chunks=self._upload_chunks)       
+            upload_chunks=self._upload_chunks)
  
       print 'Update the gm-actual local LAST_COMPARISON_SUCCEEDED'
       self._WriteToLastComparisonFile(True)

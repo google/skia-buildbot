@@ -30,7 +30,7 @@ class RenderPictures(BuildStep):
         cmd.extend(['-w', self._device_dirs.SKPOutDir()])
       if not os.name == 'nt':
         cmd.append('--validate')
-    self.RunFlavoredCmd('render_pictures', cmd)
+    self._flavor_utils.RunFlavoredCmd('render_pictures', cmd)
 
   def _Run(self):
     self.DoRenderPictures([])

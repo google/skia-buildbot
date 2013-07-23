@@ -8,7 +8,6 @@
 
 from utils import sync_skia_in_chrome
 from build_step import BuildStep
-import os
 import sys
 
 

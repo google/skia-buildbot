@@ -11,7 +11,7 @@ import sys
 
 class Compile(BuildStep):
   def _Run(self):
-    self.Compile(self._args['target'])
+    self._flavor_utils.Compile(self._args['target'])
 
 
 if '__main__' == __name__:

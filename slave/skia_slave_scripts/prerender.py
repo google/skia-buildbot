@@ -47,7 +47,7 @@ class PreRender(BuildStep):
       self._CreateEmptyExpectationsSummary(destpath)
       return
 
-    cmd = [self._PathToBinary('skimage'),
+    cmd = [os.path.join('out', self._configuration, 'skimage'),
            '--readPath', srcdir,
            '--createExpectationsPath', destpath,
            ]
@@ -71,9 +71,10 @@ class PreRender(BuildStep):
 
   def _Run(self):
     # Prepare directory to hold GM expectations.
-    device_gm_expectations_path = self.DevicePathJoin(
+    device_gm_expectations_path = self._flavor_utils.DevicePathJoin(
         self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
-    self.CreateCleanDeviceDirectory(self._device_dirs.GMExpectedDir())
+    self._flavor_utils.CreateCleanDeviceDirectory(
+        self._device_dirs.GMExpectedDir())
 
     # Push the GM expectations JSON file to the device.
     #
@@ -94,8 +95,8 @@ class PreRender(BuildStep):
     if os.path.exists(repo_gm_expectations_path):
       print 'Pushing GM expectations from %s on host to %s on device...' % (
           repo_gm_expectations_path, device_gm_expectations_path)
-      self.PushFileToDevice(repo_gm_expectations_path,
-                            device_gm_expectations_path)
+      self._flavor_utils.PushFileToDevice(repo_gm_expectations_path,
+                                          device_gm_expectations_path)
     else:
       tempdir = tempfile.mkdtemp()
       temp_gm_expectations_path = os.path.join(
@@ -104,30 +105,31 @@ class PreRender(BuildStep):
           srcdir=self._gm_expected_dir, destpath=temp_gm_expectations_path)
       print 'Pushing GM expectations from %s on host to %s on device...' % (
           temp_gm_expectations_path, device_gm_expectations_path)
-      self.PushFileToDevice(temp_gm_expectations_path,
-                            device_gm_expectations_path)
+      self._flavor_utils.PushFileToDevice(temp_gm_expectations_path,
+                                          device_gm_expectations_path)
       shutil.rmtree(tempdir)
 
     # Prepare directory to hold GM actuals.
-    self.CreateCleanHostDirectory(self._gm_actual_dir)
-    self.CreateCleanDeviceDirectory(self.DevicePathJoin(
-                                        self._device_dirs.GMActualDir(),
-                                        self._gm_image_subdir))
-    self.CreateCleanHostDirectory(
+    self._flavor_utils.CreateCleanHostDirectory(self._gm_actual_dir)
+    self._flavor_utils.CreateCleanDeviceDirectory(
+        self._flavor_utils.DevicePathJoin(self._device_dirs.GMActualDir(),
+                                          self._gm_image_subdir))
+    self._flavor_utils.CreateCleanHostDirectory(
         self._local_playback_dirs.PlaybackGmActualDir())
-    self.CreateCleanDeviceDirectory(self._device_dirs.SKPOutDir())
+    self._flavor_utils.CreateCleanDeviceDirectory(self._device_dirs.SKPOutDir())
 
     # Copy expectations file and images to decode in skimage to device.
-    self.CopyDirectoryContentsToDevice(self._skimage_expected_dir,
-                                       self._device_dirs.SKImageExpectedDir())
+    self._flavor_utils.CopyDirectoryContentsToDevice(
+        self._skimage_expected_dir, self._device_dirs.SKImageExpectedDir())
 
-    self.CopyDirectoryContentsToDevice(self._skimage_in_dir,
-                                       self._device_dirs.SKImageInDir())
+    self._flavor_utils.CopyDirectoryContentsToDevice(
+        self._skimage_in_dir, self._device_dirs.SKImageInDir())
 
 
     # Create a directory for the output of skimage
-    self.CreateCleanHostDirectory(self._skimage_out_dir)
-    self.CreateCleanDeviceDirectory(self._device_dirs.SKImageOutDir())
+    self._flavor_utils.CreateCleanHostDirectory(self._skimage_out_dir)
+    self._flavor_utils.CreateCleanDeviceDirectory(
+        self._device_dirs.SKImageOutDir())
 
 
 if '__main__' == __name__:

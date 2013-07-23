@@ -12,7 +12,7 @@ import sys
 class RunTests(BuildStep):
   def _Run(self):
     self._test_args.extend(['--tmpDir', self._device_dirs.TmpDir()])
-    self.RunFlavoredCmd('tests', self._test_args)
+    self._flavor_utils.RunFlavoredCmd('tests', self._test_args)
 
 
 if '__main__' == __name__:

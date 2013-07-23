@@ -31,7 +31,7 @@ class BenchPictures(BuildStep):
     if self._perf_data_dir:
       arguments.extend(BenchArgs(repeats=RunBench.BENCH_REPEAT_COUNT,
           data_file=self._BuildDataFile(args)))
-    self.RunFlavoredCmd('bench_pictures', arguments)
+    self._flavor_utils.RunFlavoredCmd('bench_pictures', arguments)
 
   def _Run(self):
     # Determine which configs to run

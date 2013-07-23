@@ -16,15 +16,15 @@ class RunDecodingTests(BuildStep):
       expectations_name = self._gm_image_subdir + '.json'
 
       # Read expectations, which were downloaded/copied to the device.
-      expectations_file = self.DevicePathJoin(
+      expectations_file = self._flavor_utils.DevicePathJoin(
         self._device_dirs.SKImageExpectedDir(),
         expectations_name)
 
-      if self.DevicePathExists(expectations_file):
+      if self._flavor_utils.DevicePathExists(expectations_file):
         cmd.extend(['--readExpectationsPath', expectations_file])
 
     # Write the expectations file, in case any did not match.
-    output_expectations_file = self.DevicePathJoin(
+    output_expectations_file = self._flavor_utils.DevicePathJoin(
         self._device_dirs.SKImageOutDir(),
         expectations_name)
 
@@ -33,7 +33,7 @@ class RunDecodingTests(BuildStep):
     # Draw any mismatches to the same folder as the output json.
     cmd.extend(['--mismatchPath', self._device_dirs.SKImageOutDir()])
 
-    self.RunFlavoredCmd('skimage', cmd)
+    self._flavor_utils.RunFlavoredCmd('skimage', cmd)
 
 
 if '__main__' == __name__:

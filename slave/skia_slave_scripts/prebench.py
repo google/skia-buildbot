@@ -14,7 +14,7 @@ class PreBench(BuildStep):
   def _Run(self):
     if self._perf_data_dir:
       # Create the perf data dir if it doesn't exist.
-      self.CreateCleanDeviceDirectory(self._device_dirs.PerfDir())
+      self._flavor_utils.CreateCleanDeviceDirectory(self._device_dirs.PerfDir())
 
 
 if '__main__' == __name__:

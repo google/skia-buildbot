@@ -5,7 +5,7 @@
 """ Subclass for all slave-side ChromeOS build steps. """
 
 
-from build_step import BuildStep, DeviceDirs
+from build_step import BuildStep, BuildStepUtils, DeviceDirs
 from slave import slave_utils
 from utils import gs_utils
 from utils import shell_utils
@@ -14,22 +14,22 @@ import os
 import posixpath
 
 
-class ChromeOSBuildStep(BuildStep):
+class ChromeOSBuildStepUtils(BuildStepUtils):
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
-    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                     ['skia_%s' % app] + args)
+    ssh_utils.RunSSH(self._step.ssh_username, self._step.ssh_host,
+                     self._step.ssh_port, ['skia_%s' % app] + args)
 
   def ReadFileOnDevice(self, filepath):
     """ Read the contents of a file on the device. """
-    return ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                            ['cat', filepath], echo=False)
+    return ssh_utils.RunSSH(self._step.ssh_username, self._step.ssh_host,
+                            self._step.ssh_port, ['cat', filepath], echo=False)
 
   def _RemoveDirectoryOnDevice(self, directory):
     """ Delete a directory on the device. """
     try:
-      ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                       ['rm', '-rf', directory])
+      ssh_utils.RunSSH(self._step.ssh_username, self._step.ssh_host,
+                       self._step.ssh_port, ['rm', '-rf', directory])
     except Exception:
       pass
     if self.DevicePathExists(directory):
@@ -37,28 +37,28 @@ class ChromeOSBuildStep(BuildStep):
 
   def _CreateDirectoryOnDevice(self, directory):
     """ Create a directory on the device. """
-    ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                 ['mkdir', '-p', directory])
+    ssh_utils.RunSSH(self._step.ssh_username, self._step.ssh_host,
+                     self._step.ssh_port, ['mkdir', '-p', directory])
 
   def PushFileToDevice(self, src, dst):
     """ Overrides build_step.PushFileToDevice() """
-    ssh_utils.PutSCP(src, dst, self._ssh_username, self._ssh_host,
-                     self._ssh_port)
+    ssh_utils.PutSCP(src, dst, self._step.ssh_username, self._step.ssh_host,
+                     self._step.ssh_port)
 
   def DeviceListDir(self, directory):
     """ Overrides build_step.DeviceListDir() """
     return ssh_utils.RunSSH(
-        self._ssh_username,
-        self._ssh_host,
-        self._ssh_port,
+        self._step.ssh_username,
+        self._step.ssh_host,
+        self._step.ssh_port,
         ['ls', directory], echo=False).split('\n')
 
   def DevicePathExists(self, path):
     """ Overrides build_step.DevicePathExists() """
     return 'FILE_EXISTS' in ssh_utils.RunSSH(
-        self._ssh_username,
-        self._ssh_host,
-        self._ssh_port,
+        self._step.ssh_username,
+        self._step.ssh_host,
+        self._step.ssh_port,
         ['if', '[', '-e', path, '];', 'then', 'echo', 'FILE_EXISTS;', 'fi'])
 
   def DevicePathJoin(self, *args):
@@ -89,26 +89,28 @@ class ChromeOSBuildStep(BuildStep):
     host side.
     """
     self.CreateCleanHostDirectory(host_dir)
-    if ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                        ['ls', device_dir]):
+    if ssh_utils.RunSSH(self._step.ssh_username, self._step.ssh_host,
+                        self._step.ssh_port, ['ls', device_dir]):
       ssh_utils.GetSCP(host_dir, posixpath.join(device_dir, '*'),
-                       self._ssh_username, self._ssh_host, self._ssh_port,
-                       recurse=True)
+                       self._step.ssh_username, self._step.ssh_host,
+                       self._step.ssh_port, recurse=True)
 
   def _PutSCP(self, executable):
     # First, make sure that the program isn't running.
     try:
-      ssh_utils.RunSSH(self._ssh_username, self._ssh_host, self._ssh_port,
-                       ['killall', 'skia_%s' % executable])
+      ssh_utils.RunSSH(self._step.ssh_username, self._step.ssh_host,
+                       self._step.ssh_port, ['killall', 'skia_%s' % executable])
     except Exception:
       pass
     ssh_utils.PutSCP(local_path=os.path.join('out', 'config',
-                                             'chromeos-' + self._args['board'],
-                                             self._configuration, executable),
+                                             ('chromeos-' +
+                                                  self._step.args['board']),
+                                             self._step.configuration,
+                                             executable),
                      remote_path='/usr/local/bin/skia_%s' % executable,
-                     username=self._ssh_username,
-                     host=self._ssh_host,
-                     port=self._ssh_port)
+                     username=self._step.ssh_username,
+                     host=self._step.ssh_host,
+                     port=self._step.ssh_port)
 
   def Install(self):
     """ Install the Skia executables. """
@@ -131,20 +133,23 @@ class ChromeOSBuildStep(BuildStep):
     make_cmd = os.path.join('platform_tools', 'chromeos', 'bin',
                             'chromeos_make')
     cmd = [make_cmd,
-           '-d', self._args['board'],
-           self._args['target'],
-           'BUILDTYPE=%s' % self._configuration,
+           '-d', self._step.args['board'],
+           self._step.args['target'],
+           'BUILDTYPE=%s' % self._step.configuration,
            ]
 
-    cmd.extend(self._default_make_flags)
-    cmd.extend(self._make_flags)
+    cmd.extend(self._step.default_make_flags)
+    cmd.extend(self._step.make_flags)
     shell_utils.Bash(cmd)
 
+
+class ChromeOSBuildStep(BuildStep):
   def __init__(self, args, **kwargs):
     self._ssh_host = args['ssh_host']
     self._ssh_port = args['ssh_port']
     self._ssh_username = 'root'
     super(ChromeOSBuildStep, self).__init__(args=args, **kwargs)
+    self._flavor_utils = ChromeOSBuildStepUtils(self)
     prefix = '/usr/local/skiabot/skia_'
     self._device_dirs = DeviceDirs(perf_data_dir=prefix + 'perf',
                                    gm_actual_dir=prefix + 'gm_actual',
@@ -158,3 +163,15 @@ class ChromeOSBuildStep(BuildStep):
                                    skp_perf_dir=prefix + 'skp_perf',
                                    skp_out_dir=prefix + 'skp_out',
                                    tmp_dir=prefix + 'tmp_dir')
+
+  @property
+  def ssh_username(self):
+    return self._ssh_username
+
+  @property
+  def ssh_host(self):
+    return self._ssh_host
+
+  @property
+  def ssh_port(self):
+    return self._ssh_port

@@ -16,7 +16,7 @@ JSON_SUMMARY_FILENAME = 'actual-results.json'
 
 class RunGM(BuildStep):
   def _Run(self):
-    device_gm_expectations_path = self.DevicePathJoin(
+    device_gm_expectations_path = self._flavor_utils.DevicePathJoin(
         self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
     output_dir = os.path.join(self._device_dirs.GMActualDir(),
                               self._gm_image_subdir)
@@ -44,7 +44,7 @@ class RunGM(BuildStep):
     elif (not 'NoGPU' in self._builder_name and
           not 'ChromeOS' in self._builder_name):
       cmd.extend(['--config', 'defaults', 'msaa16'])
-    self.RunFlavoredCmd('gm', cmd)
+    self._flavor_utils.RunFlavoredCmd('gm', cmd)
 
 
 if '__main__' == __name__:

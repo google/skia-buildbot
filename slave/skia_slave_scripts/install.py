@@ -20,9 +20,9 @@ class Install(BuildStep):
       # Only push if the existing set is out of date.
       host_timestamp = open(os.path.join(self._skp_dir,
           gs_utils.TIMESTAMP_COMPLETED_FILENAME)).read()
-      device_timestamp = self.ReadFileOnDevice(
+      device_timestamp = self._flavor_utils.ReadFileOnDevice(
           os.path.join(self._device_dirs.SKPDir(),
-                         gs_utils.TIMESTAMP_COMPLETED_FILENAME))
+                       gs_utils.TIMESTAMP_COMPLETED_FILENAME))
       if host_timestamp == device_timestamp:
         print 'SKPs are up to date. Skipping.'
         skps_need_updating = False
@@ -32,18 +32,18 @@ class Install(BuildStep):
     except Exception as e:
       print 'Could not get timestamps: %s' % e
     if skps_need_updating:
-      self.CopyDirectoryContentsToDevice(self._skp_dir,
-                                         self._device_dirs.SKPDir())
+      self._flavor_utils.CopyDirectoryContentsToDevice(
+          self._skp_dir, self._device_dirs.SKPDir())
 
     # Push resources to the device.
-    self.CopyDirectoryContentsToDevice(self._resource_dir,
-                                       self._device_dirs.ResourceDir())
+    self._flavor_utils.CopyDirectoryContentsToDevice(
+        self._resource_dir, self._device_dirs.ResourceDir())
 
     # Initialize a clean scratch directory.
-    self.CreateCleanDeviceDirectory(self._device_dirs.TmpDir())
+    self._flavor_utils.CreateCleanDeviceDirectory(self._device_dirs.TmpDir())
 
     # Install the Skia executables.
-    self.Install()
+    self._flavor_utils.Install()
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(Install))
