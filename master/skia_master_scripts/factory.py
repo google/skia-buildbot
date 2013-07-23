@@ -201,6 +201,7 @@ class SkiaFactory(BuildFactory):
         '--num_cores', WithProperties('%(num_cores:-None)s'),
         '--is_try', str(self._do_patch_step),
         '--bench_pictures_cfg', bench_pictures_cfg,
+        '--flavor', self._flavor or 'default',
         ]
     BuildFactory.__init__(self, build_factory_properties=properties)
 
