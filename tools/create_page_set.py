@@ -16,7 +16,7 @@ you request 100 webpages and 5 of them are blacklisted then the page_set will
 only contain 95 webpages.
 
 Sample Usage:
-  python create_page_set.py -n 10000
+  python create_page_set.py -s 1 -e 10000
 
 Running the above command will create 10000 different page sets.
 The outputted page sets are intended to be used by the webpages_playback.py
@@ -89,9 +89,6 @@ if '__main__' == __name__:
     usock = urllib.urlopen(TOP1M_CSV_ZIP_LOCATION)
     myzipfile = zipfile.ZipFile(StringIO(usock.read()))
     csv_contents = myzipfile.open(TOP1M_CSV_FILE_NAME).readlines()
-    # Output the CSV to the page_sets directory.
-    f = open(os.path.join('page_sets', TOP1M_CSV_FILE_NAME), 'w')
-    f.write(csv_contents)
 
   # Validate options.end_number.
   if int(options.end_number) > len(csv_contents):

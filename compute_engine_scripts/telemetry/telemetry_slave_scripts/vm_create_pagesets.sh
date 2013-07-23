@@ -50,9 +50,16 @@ fi
 NUM_WEBPAGES_PER_SLAVE=$(($NUM_WEBPAGES/$NUM_SLAVES))
 NUM_PAGESETS_PER_SLAVE=$(($NUM_WEBPAGES_PER_SLAVE/$MAX_WEBPAGES_PER_PAGESET))
 START=$WEBPAGES_START
+
+# Download the top-1m.csv
+wget -O /tmp/pagesets.zip http://s3.amazonaws.com/alexa-static/top-1m.csv.zip
+unzip /tmp/pagesets.zip -d page_sets/
+rm /tmp/pagesets.zip
+
+# Run create_page_set.py
 for PAGESET_NUM in $(seq 1 $NUM_PAGESETS_PER_SLAVE); do
   END=$(expr $START + $MAX_WEBPAGES_PER_PAGESET - 1)
-  python create_page_set.py -s $START -e $END
+  python create_page_set.py -s $START -e $END -c page_sets/top-1m.csv
   START=$(expr $END + 1)
 done
 # Copy page_sets to the local directory.
