@@ -1,5 +1,5 @@
 #
-# Starts the telemetry_slave_scripts/vm_capture_archives.sh script on all
+# Starts the telemetry_slave_scripts/vm_create_pagesets.sh script on all
 # slaves.
 #
 # The script should be run from the skia-telemetry-master GCE instance's
@@ -9,18 +9,21 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -ne 2 ]; then
+if [ $# -ne 3 ]; then
   echo
   echo "Usage: `basename $0` rmistry@google.com 1001"
   echo
   echo "The first argument is the email address of the requester."
   echo "The second argument is the key of the appengine admin task."
+  echo "The third argument is the type of pagesets to create from the 1M list" \
+       "Eg: All, Filtered, 100k, 10k, Deeplinks."
   echo
   exit 1
 fi
 
 REQUESTER_EMAIL=$1
 APPENGINE_KEY=$2
+PAGESETS_TYPE=$3
 
 source vm_utils.sh
 source ../vm_config.sh
@@ -28,11 +31,19 @@ source ../vm_config.sh
 # Update buildbot.
 gclient sync
 
+# If PAGESETS_TYPE is 100k or 10k then adjust NUM_WEBPAGES.
+if [ "$PAGESETS_TYPE" == "100k" ]; then
+  NUM_WEBPAGES=100000
+elif [ "$PAGESETS_TYPE" == "10k" ]; then
+  NUM_WEBPAGES=10000
+fi
+
 NUM_WEBPAGES_PER_SLAVE=$(($NUM_WEBPAGES/$NUM_SLAVES))
+
 START=1
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   END=$(expr $START + $NUM_WEBPAGES_PER_SLAVE - 1)
-  CMD="bash vm_create_pagesets.sh $SLAVE_NUM $START"
+  CMD="bash vm_create_pagesets.sh $SLAVE_NUM $START $PAGESETS_TYPE"
   START=$(expr $END + 1)
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
