@@ -10,10 +10,19 @@
 {% if not admin %}<br/>Must be admin to trigger below admin tasks (contact rmistry@)<br/><br/>{% endif %}
 
 <form action="/skia-telemetry/admin_tasks" name="all_admin_tasks" method="post">
-  <table cellpadding="5">
+  <table cellpadding="5" border="1">
     <tr>
-      <td align="center">
+      <td align="center" colspan="3">
         <input type="submit" value="Rebuild Chrome" name="admin_task" {% if not admin %}disabled{% endif %}>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <select name="pagesets_type">
+          {% for pageset_type in pageset_types %}
+            <option value="{{ pageset_type }}" {% ifequal pageset_type "Deeplinks" %}disabled{% endifequal %}>{{ pageset_type }}</option>
+          {% endfor %}
+        </select>
       </td>
       <td align="center">
         <input type="submit" value="Recreate Pagesets" name="admin_task" {% if not admin %}disabled{% endif %}>
@@ -34,6 +43,7 @@
   <table border="1" cellpadding="5">
     <tr bgcolor="#CCCCFF">
       <td><b>Task</b></td>
+      <td><b>Pagesets Type</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Delete</b></td>
@@ -41,6 +51,7 @@
     {% for task in admin_tasks %}
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
       <td>{{ task.task_name }}</td>
+      <td>{{ task.pagesets_type }}</td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}

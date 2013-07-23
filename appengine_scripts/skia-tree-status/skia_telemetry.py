@@ -17,7 +17,16 @@ import utils
 FETCH_LIMIT = 50
 
 TELEMETRY_ADMINS = (
-    'rmistry@google.com',)
+    'rmistry@google.com',
+)
+
+PAGESET_TYPES = (
+    'All',
+    'Filtered',
+    '100k',
+    '10k',
+    'Deeplinks',
+)
 
 
 class TelemetryInfo(db.Model):
@@ -46,6 +55,7 @@ class AdminTasks(db.Model):
   username = db.StringProperty(required=True)
   task_name = db.StringProperty(required=True)
   requested_time = db.DateTimeProperty(required=True)
+  pagesets_type = db.StringProperty()
   completed_time = db.DateTimeProperty()
 
   @classmethod
@@ -221,6 +231,9 @@ class AdminTasksPage(BasePage):
     # It is an add admin task request.
     requested_time = datetime.datetime.now()
     admin_task = self.request.get('admin_task')
+    pagesets_type = self.request.get('pagesets_type')
+    if admin_task == 'Rebuild Chrome':
+      pagesets_type = 'N/A'
 
     # There should be only one instance of an admin task running at a time.
     # Running multiple instances causes unpredictable and inconsistent behavior.
@@ -231,6 +244,7 @@ class AdminTasksPage(BasePage):
       AdminTasks(
           username=self.user.email(),
           task_name=admin_task,
+          pagesets_type=pagesets_type,
           requested_time=requested_time).put()
       self.redirect('admin_tasks')
 
@@ -243,6 +257,7 @@ class AdminTasksPage(BasePage):
 
     admin_tasks = AdminTasks.get_all_admin_tasks_of_user(self.user.email())
     template_values['admin_tasks'] = admin_tasks
+    template_values['pageset_types'] = PAGESET_TYPES
 
     self.DisplayTemplate('admin_tasks.html', template_values)
 
@@ -426,6 +441,7 @@ class GetAdminTasksPage(BasePage):
       task_dict['key'] = task.key().id_or_name()
       task_dict['username'] = task.username
       task_dict['task_name'] = task.task_name
+      task_dict['pagesets_type'] = task.pagesets_type
       tasks_dict[count] = task_dict
       count += 1
     self.response.out.write(json.dumps(tasks_dict, sort_keys=True))
@@ -605,6 +621,7 @@ def bootstrap():
     AdminTasks(
         username='Admin',
         task_name='Initial Table Creation',
+        pagesets_type='Test type',
         requested_time=datetime.datetime.now(),
         completed_time=datetime.datetime.now()).put()
 
