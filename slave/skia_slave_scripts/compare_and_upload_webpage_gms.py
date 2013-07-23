@@ -102,7 +102,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
     if self._builder_name != 'Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Debug':
       return
 
-    cmd = [self._PathToBinary('skdiff'),
+    cmd = [os.path.join('out', self.configuration, 'skdiff'),
            '--listfilenames',
            '--nodiffs',
            '--nomatch', gs_utils.TIMESTAMP_STARTED_FILENAME,
