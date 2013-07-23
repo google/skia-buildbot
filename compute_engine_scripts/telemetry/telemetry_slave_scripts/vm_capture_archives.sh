@@ -11,16 +11,19 @@
 # Author: rmistry@google.com (Ravi Mistry)
 
 
-if [ $# -ne 1 ]; then
+if [ $# -ne 2 ]; then
   echo
-  echo "Usage: `basename $0` 1"
+  echo "Usage: `basename $0` 1 All"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
+  echo "The second argument is the type of pagesets to create from the 1M list"\
+       "Eg: All, Filtered, 100k, 10k, Deeplinks."
   echo
   exit 1
 fi
 
 SLAVE_NUM=$1
+PAGESETS_TYPE=$2
 
 source ../vm_config.sh
 source vm_utils.sh
@@ -30,10 +33,10 @@ create_worker_file $RECORD_WPR_ACTIVITY
 source vm_setup_slave.sh
 
 # Create the webpages_archive directory.
-mkdir -p /home/default/storage/webpages_archive/
-rm -rf /home/default/storage/webpages_archive/*
+mkdir -p /home/default/storage/webpages_archive/$PAGESETS_TYPE/
+rm -rf /home/default/storage/webpages_archive/$PAGESETS_TYPE/*
 
-for page_set in /home/default/storage/page_sets/*; do
+for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
     check_and_run_xvfb
@@ -47,15 +50,15 @@ for page_set in /home/default/storage/page_sets/*; do
 done
 
 # Copy the webpages_archive directory to Google Storage.
-gsutil rm -R gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/*
-gsutil cp /home/default/storage/webpages_archive/* \
-  gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/
+gsutil rm -R gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/*
+gsutil cp /home/default/storage/webpages_archive/$PAGESETS_TYPE/* \
+  gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/
 
 # Create a TIMESTAMP file and copy it to Google Storage.
 TIMESTAMP=`date +%s`
 echo $TIMESTAMP > /tmp/$TIMESTAMP
-cp /tmp/$TIMESTAMP /home/default/storage/webpages_archive/TIMESTAMP
-gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/TIMESTAMP
+cp /tmp/$TIMESTAMP /home/default/storage/webpages_archive/$PAGESETS_TYPE/TIMESTAMP
+gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/TIMESTAMP
 rm /tmp/$TIMESTAMP
 
 delete_worker_file $RECORD_WPR_ACTIVITY

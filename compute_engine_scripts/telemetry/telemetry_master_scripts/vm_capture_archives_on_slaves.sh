@@ -10,18 +10,21 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -ne 2 ]; then
+if [ $# -ne 3 ]; then
   echo
-  echo "Usage: `basename $0` rmistry@google.com 1001"
+  echo "Usage: `basename $0` rmistry@google.com 1001 All"
   echo
   echo "The first argument is the email address of the requester."
   echo "The second argument is the key of the appengine admin task."
+  echo "The third argument is the type of pagesets to create from the 1M list" \
+       "Eg: All, Filtered, 100k, 10k, Deeplinks."
   echo
   exit 1
 fi
 
 REQUESTER_EMAIL=$1
 APPENGINE_KEY=$2
+PAGESETS_TYPE=$3
 
 source ../vm_config.sh
 source vm_utils.sh
@@ -42,7 +45,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
 done
 
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  CMD="bash vm_capture_archives.sh $SLAVE_NUM"
+  CMD="bash vm_capture_archives.sh $SLAVE_NUM $PAGESETS_TYPE"
   # Still trying to figure the below now.
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
