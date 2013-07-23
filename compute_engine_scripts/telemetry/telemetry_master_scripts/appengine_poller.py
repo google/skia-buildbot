@@ -47,6 +47,7 @@ def process_admin_tasks(pending_tasks):
 
     task_name = task['task_name']
     username = task['username']
+    pagesets_type = task['pagesets_type']
 
     log_file = os.path.join(tempfile.gettempdir(), '%s-%s.output' % (
         username, task_key))
@@ -57,11 +58,11 @@ def process_admin_tasks(pending_tasks):
       cmd = 'bash vm_build_chromium.sh %s %s %s' % (
           username, task_key, log_file)
     elif task_name == appengine_constants.PAGESETS_ADMIN_TASK_NAME:
-      cmd = 'bash vm_create_pagesets_on_slaves.sh %s %s' % (
-          username, task_key)
+      cmd = 'bash vm_create_pagesets_on_slaves.sh %s %s %s' % (
+          username, task_key, pagesets_type)
     elif task_name == appengine_constants.WEBPAGE_ARCHIVES_ADMIN_TASK_NAME:
-      cmd = 'bash vm_capture_archives_on_slaves.sh %s %s' % (
-          username, task_key)
+      cmd = 'bash vm_capture_archives_on_slaves.sh %s %s %s' % (
+          username, task_key, pagesets_type)
     subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                      stderr=open(log_file, 'w'))
 

@@ -49,7 +49,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   # Still trying to figure the below now.
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; $CMD > /tmp/capture_archives_output.txt 2>&1"
+    -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; svn update; $CMD > /tmp/capture_archives_output.txt 2>&1"
 done
 
 # Check to see if the slaves are done capturing archives.
@@ -86,7 +86,7 @@ Content-Type: text/html
 <html>
   <head/>
   <body>
-  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/lua_script'>here</a>.<br/><br/>
+  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/admin_tasks'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>

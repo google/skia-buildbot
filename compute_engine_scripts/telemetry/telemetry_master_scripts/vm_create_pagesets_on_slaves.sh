@@ -84,7 +84,7 @@ Content-Type: text/html
 <html>
   <head/>
   <body>
-  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/lua_script'>here</a>.<br/><br/>
+  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/admin_tasks'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>
