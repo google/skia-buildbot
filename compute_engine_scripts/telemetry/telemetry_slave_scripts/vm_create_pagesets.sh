@@ -47,6 +47,11 @@ elif [ "$PAGESETS_TYPE" == "10k" ]; then
   NUM_WEBPAGES=10000
 fi
 
+# The blacklist file should only be used for the Filtered page set type.
+if [ "$PAGESETS_TYPE" == "Filtered" ]; then
+  BLACKLIST_ARG='-b blacklist'
+fi
+
 NUM_WEBPAGES_PER_SLAVE=$(($NUM_WEBPAGES/$NUM_SLAVES))
 NUM_PAGESETS_PER_SLAVE=$(($NUM_WEBPAGES_PER_SLAVE/$MAX_WEBPAGES_PER_PAGESET))
 START=$WEBPAGES_START
@@ -59,7 +64,7 @@ rm /tmp/pagesets.zip
 # Run create_page_set.py
 for PAGESET_NUM in $(seq 1 $NUM_PAGESETS_PER_SLAVE); do
   END=$(expr $START + $MAX_WEBPAGES_PER_PAGESET - 1)
-  python create_page_set.py -s $START -e $END -c page_sets/top-1m.csv
+  python create_page_set.py -s $START -e $END -c page_sets/top-1m.csv $BLACKLIST_ARG
   START=$(expr $END + 1)
 done
 # Copy page_sets to the local directory.
