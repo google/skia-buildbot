@@ -456,16 +456,15 @@ def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
                  gm_image_subdir, factory_type, extra_config=None,
                  perf_output_basedir=None, extra_branches=None, is_trybot=False,
                  **kwargs):
-  """ Creates a builder and scheduler. """
+  """ Creates a builder and scheduler.
+
+  TODO(epoger): gm_image_subdir is no longer used, should be removed."""
   B = helper.Builder
   F = helper.Factory
 
   if not extra_branches:
     extra_branches = []
   subdirs_to_checkout = set(extra_branches)
-  if gm_image_subdir:
-    gm_image_branch = 'gm-expected/%s' % gm_image_subdir
-    subdirs_to_checkout.add(gm_image_branch)
 
   builder_name = builder_name_schema.MakeBuilderName(
       role=role,
