@@ -67,7 +67,7 @@ if '__main__' == __name__:
       '-b', '--blacklist',
       help='Location of a black_list file which specifies which webpages '
            'should not be converted into page_sets.',
-      default='blacklist')
+      default='')
   option_parser.add_option(
       '-c', '--csv_file',
       help='Location of the alexa top 1M CSV file. This script downloads it '
