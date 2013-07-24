@@ -16,7 +16,7 @@ vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   "chromium_revision": "179720",
   "depot_tools_revision": "207048",
-  "telemetry_chromium_revision": "212345",
+  "telemetry_chromium_revision": "213279",
   "webpagereplay_revision": "511",
 }
 
