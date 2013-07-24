@@ -68,7 +68,7 @@ to setup gcutil promptless authentication from the master to its workers.
 https://developers.google.com/compute/docs/networking#mailserver using skia.buildbots@gmail.com
   * Run 'sudo mv /etc/boto.cfg /etc/boto.cfg.bak'
   * 'svn sync' /home/default/skia-repo/buildbot and enter the correct AppEngine password in /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt
-  * Run 'sudo apt-get update; sudo apt-get -y install libgif-dev libgl1-mesa-dev libglu-dev gdb unzip' on the slaves using vm_run_command_on_slaves.sh. This step will not be required when the image is recaptured.
+  * Run 'sudo apt-get update; sudo apt-get -y install libgif-dev libgl1-mesa-dev libglu-dev gdb unzip linux-tools' on the slaves using vm_run_command_on_slaves.sh. This step will not be required when the image is recaptured.
   * Update buildbot and trunk directory of all slaves by running vm_run_command_on_slaves.sh (Will have to 'rm -rf third_party/externals/*' in trunk).
   * Start the /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_poller.py script.
   * Trigger 'Rebuild Chrome' from http://skia-tree-status.appspot.com/skia-telemetry/.
