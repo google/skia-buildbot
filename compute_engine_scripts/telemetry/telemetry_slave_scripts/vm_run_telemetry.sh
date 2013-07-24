@@ -76,7 +76,7 @@ for page_set in /home/default/storage/page_sets/*.json; do
     echo "========== Processing $page_set =========="
     page_set_basename=`basename $page_set`
     check_and_run_xvfb
-    sudo eval DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
+    eval sudo DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     sudo chown default:default $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
