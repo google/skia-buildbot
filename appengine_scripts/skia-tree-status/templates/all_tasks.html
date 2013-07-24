@@ -5,27 +5,48 @@
 <center>
   <br/><br/>
 
-  <a id='admin'><h2>All Admin Tasks</h2></a>
+  <a id='telemetry'><h2>All Telemetry benchmark runs history</h2></a>
   <br/>
 
-  {% if admin_tasks %}
+  {% if telemetry_tasks %}
   <table border="1" cellpadding="5">
     <tr bgcolor="#CCCCFF">
       <td><b>User</b></td>
-      <td><b>Task</b></td>
-      <td><b>Pagesets Type</b></td>
+      <td><b>Description</b></td>
+      <td><b>Benchmark Name</b></td>
+      <td><b>Benchmark Arguments</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
+      <td><b>Whitelist File</b></td>
+      <td><b>Output Link</b></td>
     </tr>
-    {% for task in admin_tasks %}
+    {% for task in telemetry_tasks %}
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
       <td>{{ task.username }}</td>
-      <td>{{ task.pagesets_type }}</td>
-      <td>{{ task.task_name }}</td>
+      <td>{{ task.description }}</td>
+      <td>{{ task.benchmark_name }}</td>
+      <td>{{ task.benchmark_arguments }}</td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}
           {{ task.completed_time }}
+        {% else %}
+          In Progress
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.whitelist_file %}
+          <form action="/skia-telemetry/skia_telemetry_info_page" name="display_whitelist_file" method="post">
+            <input type='hidden' name='whitelist_key' value='{{ task.key.id_or_name }}'>
+            <input type='submit' value='Whitelist File'>
+          </form>
+        {% else %}
+          None
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.output_link %}
+          <a href='{{ task.output_link }}' target='_blank'>output</a>
         {% else %}
           In Progress
         {% endif %}
@@ -87,48 +108,27 @@
 
   <br/><br/>
 
-  <a id='telemetry'><h2>All Telemetry benchmark runs history</h2></a>
+  <a id='admin'><h2>All Admin Tasks</h2></a>
   <br/>
 
-  {% if telemetry_tasks %}
+  {% if admin_tasks %}
   <table border="1" cellpadding="5">
     <tr bgcolor="#CCCCFF">
       <td><b>User</b></td>
-      <td><b>Description</b></td>
-      <td><b>Benchmark Name</b></td>
-      <td><b>Benchmark Arguments</b></td>
+      <td><b>Task</b></td>
+      <td><b>Pagesets Type</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
-      <td><b>Whitelist File</b></td>
-      <td><b>Output Link</b></td>
     </tr>
-    {% for task in telemetry_tasks %}
+    {% for task in admin_tasks %}
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
       <td>{{ task.username }}</td>
-      <td>{{ task.description }}</td>
-      <td>{{ task.benchmark_name }}</td>
-      <td>{{ task.benchmark_arguments }}</td>
+      <td>{{ task.pagesets_type }}</td>
+      <td>{{ task.task_name }}</td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}
           {{ task.completed_time }}
-        {% else %}
-          In Progress
-        {% endif %}
-      </td>
-      <td align="center">
-        {% if task.whitelist_file %}
-          <form action="/skia-telemetry/skia_telemetry_info_page" name="display_whitelist_file" method="post">
-            <input type='hidden' name='whitelist_key' value='{{ task.key.id_or_name }}'>
-            <input type='submit' value='Whitelist File'>
-          </form>
-        {% else %}
-          None
-        {% endif %}
-      </td>
-      <td align="center">
-        {% if task.output_link %}
-          <a href='{{ task.output_link }}' target='_blank'>output</a>
         {% else %}
           In Progress
         {% endif %}
