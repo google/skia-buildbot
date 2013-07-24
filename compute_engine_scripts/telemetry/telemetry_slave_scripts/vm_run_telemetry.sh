@@ -59,6 +59,9 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   mkdir -p /home/default/storage/skps/
 fi
 
+OUTPUT_DIR=/home/default/storage/telemetry_outputs/$RUN_ID
+mkdir -p $OUTPUT_DIR
+
 for page_set in /home/default/storage/page_sets/*.json; do
   if [[ -f $page_set ]]; then
     if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
@@ -73,7 +76,7 @@ for page_set in /home/default/storage/page_sets/*.json; do
     echo "========== Processing $page_set =========="
     page_set_basename=`basename $page_set`
     check_and_run_xvfb
-    eval DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o /tmp/${RUN_ID}.${page_set_basename}
+    eval DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
     else
@@ -84,27 +87,24 @@ done
 
 # Consolidate outputs from all page sets into a single file with special
 # handling for CSV files.
+mkdir $OUTPUT_DIR/${RUN_ID}
 
-if [ ! -d "/tmp/${RUN_ID}" ]; then
-  mkdir /tmp/${RUN_ID}
-fi
-
-for output in /tmp/${RUN_ID}.*; do
+for output in $OUTPUT_DIR/${RUN_ID}.*; do
   if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
     csv_basename=`basename $output`
-    mv $output /tmp/${RUN_ID}/${csv_basename}.csv
+    mv $output $OUTPUT_DIR/${RUN_ID}/${csv_basename}.csv
   else
-    cat $output >> /tmp/output.${RUN_ID}
+    cat $output >> $OUTPUT_DIR/output.${RUN_ID}
   fi
 done
 
 if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
   python ~/skia-repo/buildbot/compute_engine_scripts/telemetry/csv_merger.py \
-    --csv_dir=/tmp/${RUN_ID} --output_csv_name=/tmp/output.${RUN_ID}
+    --csv_dir=$OUTPUT_DIR/${RUN_ID} --output_csv_name=$OUTPUT_DIR/output.${RUN_ID}
 fi
 
 # Copy the consolidated output to Google Storage.
-gsutil cp /tmp/output.${RUN_ID} gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/outputs/${RUN_ID}.output
+gsutil cp $OUTPUT_DIR/output.${RUN_ID} gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/outputs/${RUN_ID}.output
 # Copy the complete telemetry log to Google Storage.
 gsutil cp /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/logs/${RUN_ID}.log
 
@@ -138,4 +138,5 @@ fi
 
 # Clean up logs and the worker file.
 rm -rf /tmp/*${RUN_ID}*
+rm -rf ${OUTPUT_DIR}*
 delete_worker_file TELEMETRY_${RUN_ID}

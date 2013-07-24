@@ -90,28 +90,30 @@ done
 
 # Copy over the outputs from all slaves and consolidate them into one file with
 # special handling for CSV files.
-mkdir /tmp/$RUN_ID/
+OUTPUT_DIR=/home/default/storage/telemetry_outputs/$RUN_ID
+mkdir -p $OUTPUT_DIR
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   gsutil cp gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/outputs/$RUN_ID.output \
-    /tmp/$RUN_ID/$SLAVE_NUM.output
+    $OUTPUT_DIR/$SLAVE_NUM.output
   if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
-    mv /tmp/$RUN_ID/$SLAVE_NUM.output /tmp/$RUN_ID/$SLAVE_NUM.csv
+    mv $OUTPUT_DIR/$SLAVE_NUM.output $OUTPUT_DIR/$SLAVE_NUM.csv
   else
-    cat /tmp/$RUN_ID/$SLAVE_NUM.output >> /tmp/${RUN_ID}/${RUN_ID}.$TELEMETRY_BENCHMARK.output
+    cat $OUTPUT_DIR/$SLAVE_NUM.output >> $OUTPUT_DIR/${RUN_ID}.$TELEMETRY_BENCHMARK.output
   fi
 done
 
 if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
-  python ../csv_merger.py --csv_dir=/tmp/$RUN_ID --output_csv_name=${RUN_ID}.$TELEMETRY_BENCHMARK.output
+  python ../csv_merger.py --csv_dir=$OUTPUT_DIR --output_csv_name=${RUN_ID}.$TELEMETRY_BENCHMARK.output
 fi
 
 # Copy the consolidated file into Google Storage.
-gsutil cp -a public-read /tmp/$RUN_ID/$RUN_ID.$TELEMETRY_BENCHMARK.output \
+gsutil cp -a public-read $OUTPUT_DIR/$RUN_ID.$TELEMETRY_BENCHMARK.output \
   gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
 OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
 
 # Delete all tmp files.
 rm -rf /tmp/$RUN_ID*
+rm -rf ${OUTPUT_DIR}*
 
 # Email the requester.
 BOUNDARY=`date +%s|md5sum`
