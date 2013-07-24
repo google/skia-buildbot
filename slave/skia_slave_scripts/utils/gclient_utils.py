@@ -49,7 +49,8 @@ def _GetLocalConfig():
 
 
 def Sync(revision=None, force=False, delete_unversioned_trees=False,
-         branches=None, verbose=False, manually_grab_svn_rev=False, jobs=None):
+         branches=None, verbose=False, manually_grab_svn_rev=False, jobs=None,
+         no_hooks=False):
   """ Update the local checkout to the given revision, if provided, or to the
   most recent revision. """
   cmd = ['sync', '--no-nag-max']
@@ -63,6 +64,8 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
     cmd.append('--delete_unversioned_trees')
   if jobs:
     cmd.append('-j%d' % jobs)
+  if no_hooks:
+    cmd.append('--nohooks')
   if revision and branches:
     for branch in branches:
       cmd.extend(['--revision', '%s@%s' % (branch, revision)])

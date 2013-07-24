@@ -6,18 +6,23 @@
 """ Create (if needed) and sync a nested checkout of Skia inside of Chrome. """
 
 
-from config_private import SKIA_SVN_BASEURL
 import gclient_utils
 from optparse import OptionParser
 import os
 import shell_utils
+import shutil
 import sys
 
 
-CHROME_LKGR_URL = 'http://chromium-status.appspot.com/lkgr'
+CHROME_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
 CHROME_SVN_URL = 'https://src.chromium.org/chrome/trunk/src'
+FETCH = 'fetch.bat' if os.name == 'nt' else 'fetch'
+GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
+GIT = 'git.bat' if os.name == 'nt' else 'git'
+GCLIENT_FILE = '.gclient'
 PATH_TO_SKIA_IN_CHROME = os.path.join('src', 'third_party', 'skia', 'src')
 REVISION_PREFIX = 'Revision: '
+SKIA_SVN_URL = 'https://skia.googlecode.com/svn/trunk'
 SVN = 'svn.bat' if os.name == 'nt' else 'svn'
 SVNVERSION = 'svnversion.bat' if os.name == 'nt' else 'svnversion'
 
@@ -31,8 +36,9 @@ def Sync(skia_revision=None, chrome_revision=None):
       the most recent Skia revision.
   chrome_revision: revision of Chrome to sync. If None, will use the LKGR.
   """
+  # Figure out what revision of Skia we should use.
   if not skia_revision:
-    output = shell_utils.Bash([SVN, 'info', SKIA_SVN_BASEURL])
+    output = shell_utils.Bash([SVN, 'info', SKIA_SVN_URL])
     for line in output.splitlines():
       if line.startswith(REVISION_PREFIX):
         skia_revision = line[len(REVISION_PREFIX):].rstrip('\n')
@@ -40,24 +46,78 @@ def Sync(skia_revision=None, chrome_revision=None):
     if not skia_revision:
       raise Exception('Could not determine current Skia revision!')
 
-  gclient_spec = [
-    {
-      'name': CHROME_SVN_URL.split('/')[-1],
-      'url': CHROME_SVN_URL,
-      'deps_file': 'DEPS',
-      'managed': 'True',
-      'safesync_url': CHROME_LKGR_URL,
-      'custom_vars': {
-        'skia_revision': str(skia_revision),
-      },
-    },
-  ]
+  # Run "fetch chromium". The initial run is allowed to fail after it does some
+  # work. At the least, we expect the .gclient file to be present when it
+  # finishes.
+  if not os.path.isfile(GCLIENT_FILE):
+    try:
+      shell_utils.Bash([FETCH, 'chromium', '--nosvn=True'])
+    except Exception:
+      pass
+  if not os.path.isfile(GCLIENT_FILE):
+    raise Exception('Could not fetch chromium!')
 
-  gclient_utils.Config('solutions = %s' % repr(gclient_spec))
-  gclient_utils.Sync(revision=str(chrome_revision), jobs=1)
-  actual_skia_rev = shell_utils.Bash([SVNVERSION, PATH_TO_SKIA_IN_CHROME])
-  actual_chrome_rev = shell_utils.Bash([SVNVERSION,
-                                        CHROME_SVN_URL.split('/')[-1]])
+  # Hack the .gclient file to use LKGR and NOT check out Skia.
+  gclient_vars = {}
+  execfile(GCLIENT_FILE, gclient_vars)
+  for solution in gclient_vars['solutions']:
+    if solution['name'] == 'src':
+      solution['safesync_url'] = CHROME_LKGR_URL
+      if not solution.get('custom_deps'):
+        solution['custom_deps'] = {}
+      solution['custom_deps']['src/third_party/skia/gyp'] = None
+      solution['custom_deps']['src/third_party/skia/include'] = None
+      solution['custom_deps']['src/third_party/skia/src'] = None
+      break
+  with open(GCLIENT_FILE, 'w') as gclient_file:
+    for gclient_var in gclient_vars.iteritems():
+      if not gclient_var[0].startswith('_'):
+        gclient_file.write('%s = %s\n' % gclient_var)
+
+  # Run "gclient sync"
+  gclient_utils.Sync(revision=str(chrome_revision), jobs=1, no_hooks=True,
+                     force=True)
+
+  # Find the actually-obtained Chrome revision.
+  os.chdir('src')
+  actual_chrome_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
+
+  # Check out Skia.
+  os.chdir(os.path.join('third_party', 'skia'))
+  try:
+    # Assume that we already have a Skia checkout.
+    current_skia_rev = int(shell_utils.Bash([SVNVERSION, os.curdir]).rstrip())
+    print 'Found existing Skia checkout at revision %d' % current_skia_rev
+    shell_utils.Bash([SVN, 'update', '--revision', skia_revision])
+  except Exception:
+    # If svnversion fails, assume that we haven't checked out Skia yet. First,
+    # remove some troublesome paths, then check out Skia.
+    if os.path.isfile('LICENSE'):
+      os.remove('LICENSE')
+    if os.path.isdir('gyp'):
+      shutil.rmtree('gyp')
+    if os.path.isdir('include'):
+      shutil.rmtree('include')
+    if os.path.isdir('src'):
+      shutil.rmtree('src')
+    shell_utils.Bash([SVN, 'checkout', '%s@%s' % (SKIA_SVN_URL, skia_revision),
+                      os.curdir])
+
+  # Find the actually-obtained Skia revision.
+  actual_skia_rev = shell_utils.Bash([SVNVERSION, os.curdir]).rstrip('\n')
+
+  # Run gclient hooks
+  os.chdir(os.path.join(os.pardir, os.pardir, os.pardir))
+  shell_utils.Bash([GCLIENT, 'runhooks'])
+
+  # Verify that we got the requested revisions of Chrome and Skia.
+  if skia_revision != actual_skia_rev:
+    raise Exception('Requested Skia revision %s but got %s!' % (
+        skia_revision, actual_skia_rev))
+  if chrome_revision and chrome_revision != actual_chrome_rev:
+    raise Exception('Requested Chrome revision %s but got %s!' % (
+        chrome_revision, actual_chrome_rev))
+
   return (actual_skia_rev, actual_chrome_rev)
 
 
@@ -78,7 +138,10 @@ def Main():
   cur_dir = os.path.abspath(os.curdir)
   os.chdir(dest_dir)
   try:
-    Sync(options.skia_revision, options.chrome_revision)
+    actual_skia_rev, actual_chrome_rev = Sync(options.skia_revision,
+                                              options.chrome_revision)
+    print 'Chrome synced to %s' % actual_chrome_rev
+    print 'Skia synced to %s' % actual_skia_rev
   finally:
     os.chdir(cur_dir)
 
