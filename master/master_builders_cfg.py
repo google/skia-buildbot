@@ -69,6 +69,10 @@ def GetExtraFactoryArgs(compile_builder_info):
           compile_builder_info[1] == 'Clang'):
       return {'environment_variables': {'CC': '/usr/bin/clang',
                                         'CXX': '/usr/bin/clang++'}}
+    elif compile_builder_info[0] == 'Win8':
+      # On Win8, we build all targets at once, because of
+      # https://code.google.com/p/skia/issues/detail?id=1331
+      return {'build_targets': ['most']}
     else:
       return {}
   else:
