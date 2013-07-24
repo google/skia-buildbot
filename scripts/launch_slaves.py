@@ -91,6 +91,28 @@ if os.name == 'nt':
     free = list(set(all_possible) - set(in_use))
     return free[0]
 
+  def MapDriveLetter(path):
+    drive_letter = GetFirstFreeDriveLetter()
+    print 'Mapping %c' % drive_letter
+    cmd = ['subst', '%c:' % drive_letter, path]
+    print 'Running cmd: %s' % cmd
+    if subprocess.call(cmd) != 0:
+      raise Exception('Could not map %c' % drive_letter)
+    return drive_letter
+
+  def UnmapDriveLetters():
+    proc = subprocess.Popen(['subst'], stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    if proc.wait() != 0:
+      raise Exception('Failed to unmap drive letters.')
+    mapped = proc.communicate()[0].splitlines()
+    for drive_letter_line in mapped:
+      drive_letter = drive_letter_line[0]
+      print 'Unmapping %c' % drive_letter
+      cmd = ['subst', '%c:' % drive_letter, '/D']
+      if subprocess.call(cmd) != 0:
+        raise Exception('Failed to unmap %c' % drive_letter)
+    
 
 # TODO(borenet): Share this code with launch_master.py.
 def IsRunning(pid):
@@ -273,14 +295,7 @@ def RunSlave(slavename, copies, slaves_cfg, master_host):
   # Optionally map the slave directory to a drive letter.  This is helpful in
   # avoiding path length limits on Windows.
   if os.name == 'nt' and DRIVE_MAPPING:
-    drive_letter = GetFirstFreeDriveLetter()
-    print 'Mapping %c' % drive_letter
-    cmd = 'net use %c: \\\\localhost\%s' % (drive_letter,
-                                            slave_dir.replace(':', '$'))
-    print 'Running cmd: %s' % cmd
-    proc = subprocess.Popen(cmd)
-    if proc.wait() != 0:
-      raise Exception('Could not map %c' % drive_letter)
+    drive_letter = MapDriveLetter(slave_dir)
     # Because of weirdness in gclient, we can't run "gclient sync" in a drive
     # root.  So, we inject a minimal extra level.
     slave_dir = os.path.join('%c:' % drive_letter, 'b')
@@ -416,6 +431,9 @@ def main():
   # Obtain buildslave-specific configuration information.
   slaves_cfg = GetSlavesCfg()
   print 'Got slaves.cfg.'
+
+  # Unmap any previously-mapped drive letters.
+  UnmapDriveLetters()
 
   # Launch the build slaves
   for slavename in slaves:
