@@ -76,7 +76,8 @@ for page_set in /home/default/storage/page_sets/*.json; do
     echo "========== Processing $page_set =========="
     page_set_basename=`basename $page_set`
     check_and_run_xvfb
-    eval DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
+    sudo eval DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
+    sudo chown default:default $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
     else
@@ -111,6 +112,7 @@ gsutil cp /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm
 # Special handling for skpicture_printer, SKP files need to be copied to Google Storage.
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   gsutil rm -R gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/*
+  sudo chown -R default:default /home/default/storage/skps
   cd /home/default/storage/skps
   SKP_LIST=`find . -mindepth 1 -maxdepth 1 -type d  \( ! -iname ".*" \) | sed 's|^\./||g'`
   for SKP in $SKP_LIST; do

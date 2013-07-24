@@ -48,6 +48,7 @@ class Master(config_default.Master):
     # The master host runs in Google Compute Engine.
     master_host = skia_vars.GetGlobalVariable('master_host')
     is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER
+    is_production_host = True
     master_port = skia_vars.GetGlobalVariable('internal_port')
     slave_port = skia_vars.GetGlobalVariable('slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('external_port')
