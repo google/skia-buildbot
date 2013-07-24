@@ -140,5 +140,6 @@ fi
 
 # Clean up logs and the worker file.
 rm -rf /tmp/*${RUN_ID}*
-rm -rf ${OUTPUT_DIR}*
+# TODO(rmistry): Uncomment the below when artifacts no longer needed.
+# rm -rf ${OUTPUT_DIR}*
 delete_worker_file TELEMETRY_${RUN_ID}
