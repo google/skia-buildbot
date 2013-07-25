@@ -44,9 +44,8 @@ if __name__ == '__main__':
   print 'Searching for tests.'
   tests_to_run = []
 
-  for (dirpath, unused_dirnames, filenames) in os.walk(BUILDBOT_PATH):
-    if not FilterDirectory(dirpath, filenames):
-      continue
+  for (dirpath, dirnames, filenames) in os.walk(BUILDBOT_PATH, topdown=True):
+    dirnames[:] = [d for d in dirnames if not d in NO_CRAWL_DIRS]
     test_modules = [os.path.join(dirpath, filename) for filename in filenames
                     if filename.endswith('_test.py')]
     if not test_modules:

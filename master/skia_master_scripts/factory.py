@@ -220,7 +220,8 @@ class SkiaFactory(BuildFactory):
     try:
       expectation = open(os.path.join(expected_dir, self._builder_name)).read()
     except IOError:
-      msg = 'No expected factory configuration for %s.' % self._builder_name
+      msg = 'No expected factory configuration for %s in %s.' % (
+          self._builder_name, expected_dir)
       if config_private.die_on_validation_failure:
         raise Exception(msg)
       else:
@@ -231,9 +232,9 @@ class SkiaFactory(BuildFactory):
     if self_as_string != expectation:
       if config_private.die_on_validation_failure:
         raise ValueError('Factory configuration for %s does not match '
-                         'expectation!  Here\'s the diff:\n%s\n' %
-                         (self._builder_name, utils.StringDiff(
-                             self_as_string, expectation)))
+                         'expectation in %s!  Here\'s the diff:\n%s\n' %
+                         (self._builder_name, expected_dir,
+                          utils.StringDiff(self_as_string, expectation)))
       else:
         # We don't print the full diff in this case because:
         # a. It's generally too long to be easily read in a terminal

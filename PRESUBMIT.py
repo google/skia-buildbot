@@ -14,9 +14,9 @@ SKIA_TREE_STATUS_URL = 'http://skia-tree-status.appspot.com'
 SKIP_RUNS_KEYWORD = '(SkipBuildbotRuns)'
 
 
-def _RunBuildbotSelfTests(input_api, output_api):
-  """ Run the buildbot self-tests and return a list of strings containing any
-  errors. """
+def _RunBuildbotTests(input_api, output_api):
+  """ Run the buildbot tests and return a list of strings containing any errors.
+  """
   results = []
   success = True
   try:
@@ -26,10 +26,10 @@ def _RunBuildbotSelfTests(input_api, output_api):
     long_text = proc.communicate()[0]
   except Exception:
     success = False
-    long_text = 'Failed to launch the factory configuration test!'
+    long_text = 'Failed to run the buildbot tests!'
   if not success:
     results.append(output_api.PresubmitPromptWarning(
-        message='Factory configuration test failed.',
+        message='One or more buildbot tests failed.',
         long_text=long_text))
   return results
 
@@ -81,7 +81,7 @@ def CheckChange(input_api, output_api):
       input_api, output_api)
   results += input_api.canned_checks.CheckChangeHasNoTabs(input_api, output_api)
 
-  results += _RunBuildbotSelfTests(input_api, output_api)
+  results += _RunBuildbotTests(input_api, output_api)
 
   return results
 
