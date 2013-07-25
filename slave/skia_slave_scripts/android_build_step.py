@@ -141,8 +141,6 @@ class AndroidBuildStep(BuildStep):
           echo=True, shell=True).rstrip().split('\n')[-1]
     super(AndroidBuildStep, self).__init__(args=args, **kwargs)
     self._flavor_utils = AndroidBuildStepUtils(self)
-    self._gm_args.append('--nopdf')
-    self._test_args.extend(['--match', '~Threaded'])
     if self._serial:
       prefix = posixpath.join(device_scratch_dir, 'skiabot', 'skia_')
       self._device_dirs = DeviceDirs(perf_data_dir=prefix + 'perf',
