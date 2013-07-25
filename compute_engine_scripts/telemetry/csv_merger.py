@@ -36,16 +36,20 @@ class CsvMerger(object):
       if os.path.getsize(csv_full_path) == 0:
         continue
 
-      csv_lines = open(csv_full_path).readlines()
-      headers = csv_lines[0].rstrip().split(',')
+      csv_reader = csv.reader(open(csv_full_path, 'r'))
+      headers = csv_reader.next()
+      remaining_lines = []
+      for remaining_line in csv_reader:
+        remaining_lines.append(remaining_line)
+
       header_index = 0
       entries_in_curr_csv = 0
       for header in headers:
         entries_in_curr_csv = 0
         if header in self._csv_dict:
           entries = self._csv_dict[header]
-          for csv_entries in csv_lines[1:]:
-            csv_entry = csv_entries.rstrip().split(',')[header_index]
+          for csv_entries in remaining_lines:
+            csv_entry = csv_entries[header_index]
             entries.append(csv_entry)
             entries_in_curr_csv += 1
         else:
@@ -54,8 +58,8 @@ class CsvMerger(object):
           # the first time we have encountered this header.
           for _index in range(0, total_entries):
             entries.append(EMPTY_VALUE)
-          for csv_entries in csv_lines[1:]:
-            csv_entry = csv_entries.rstrip().split(',')[header_index]
+          for csv_entries in remaining_lines:
+            csv_entry = csv_entries[header_index]
             entries.append(csv_entry)
             entries_in_curr_csv += 1
           self._csv_dict[header] = entries
