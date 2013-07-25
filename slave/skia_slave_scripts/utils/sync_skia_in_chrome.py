@@ -45,6 +45,7 @@ def Sync(skia_revision=None, chrome_revision=None):
         break
     if not skia_revision:
       raise Exception('Could not determine current Skia revision!')
+  skia_revision = str(skia_revision)
 
   # Run "fetch chromium". The initial run is allowed to fail after it does some
   # work. At the least, we expect the .gclient file to be present when it
