@@ -41,7 +41,7 @@ def Sync(skia_revision=None, chrome_revision=None):
     output = shell_utils.Bash([SVN, 'info', SKIA_SVN_URL])
     for line in output.splitlines():
       if line.startswith(REVISION_PREFIX):
-        skia_revision = line[len(REVISION_PREFIX):].rstrip('\n')
+        skia_revision = line[len(REVISION_PREFIX):].rstrip()
         break
     if not skia_revision:
       raise Exception('Could not determine current Skia revision!')
@@ -105,7 +105,7 @@ def Sync(skia_revision=None, chrome_revision=None):
                       os.curdir])
 
   # Find the actually-obtained Skia revision.
-  actual_skia_rev = shell_utils.Bash([SVNVERSION, os.curdir]).rstrip('\n')
+  actual_skia_rev = shell_utils.Bash([SVNVERSION, os.curdir]).rstrip()
 
   # Run gclient hooks
   os.chdir(os.path.join(os.pardir, os.pardir, os.pardir))
