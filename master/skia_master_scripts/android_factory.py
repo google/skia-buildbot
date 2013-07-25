@@ -15,7 +15,7 @@ from skia_master_scripts import factory as skia_factory
 class AndroidFactory(skia_factory.SkiaFactory):
   """Overrides for Android builds."""
 
-  def __init__(self, device, **kwargs):
+  def __init__(self, device, gm_args=None, test_args=None, **kwargs):
     """ Instantiates an AndroidFactory with properties and build steps specific
     to Android devices.
 
@@ -25,6 +25,9 @@ class AndroidFactory(skia_factory.SkiaFactory):
                                       deps_target_os='android',
                                       flavor='android',
                                       build_targets=['all'],
+                                      gm_args=list(gm_args or []) + ['--nopdf'],
+                                      test_args=list(test_args or []) + \
+                                                    ['--match', '~Threaded'],
                                       **kwargs)
     self._device = device
     self._common_args += ['--device', self._device,
