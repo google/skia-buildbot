@@ -23,8 +23,8 @@ class ChromeCanaryUpdate(BuildStep):
   def _Run(self):
     (skia_rev, chrome_rev) = \
         sync_skia_in_chrome.Sync(skia_revision=self._revision)
-    print 'Skia updated to revision %d' % int(skia_rev)
-    print 'Chrome updated to revision %d' % int(chrome_rev)
+    print 'Skia updated to %s' % skia_rev
+    print 'Chrome updated to %s' % chrome_rev
 
 
 if '__main__' == __name__:
