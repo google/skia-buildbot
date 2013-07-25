@@ -56,10 +56,13 @@ NUM_WEBPAGES_PER_SLAVE=$(($NUM_WEBPAGES/$NUM_SLAVES))
 NUM_PAGESETS_PER_SLAVE=$(($NUM_WEBPAGES_PER_SLAVE/$MAX_WEBPAGES_PER_PAGESET))
 START=$WEBPAGES_START
 
-# Download the top-1m.csv
-wget -O /tmp/pagesets.zip http://s3.amazonaws.com/alexa-static/top-1m.csv.zip
-unzip /tmp/pagesets.zip -d page_sets/
-rm /tmp/pagesets.zip
+if [ -e /etc/boto.cfg ]; then
+  # Move boto.cfg since it may interfere with the ~/.boto file.
+  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
+fi
+
+# Download the top-1m.csv with qualified websites from Google Storage.
+gsutil cp gs://chromium-skia-gm/telemetry/csv/top-1m.csv page_sets/top-1m.csv
 
 # Run create_page_set.py
 for PAGESET_NUM in $(seq 1 $NUM_PAGESETS_PER_SLAVE); do
@@ -71,18 +74,11 @@ done
 # Copy page_sets to the local directory.
 mkdir -p ~/storage/page_sets/$PAGESETS_TYPE
 mv page_sets/*.json ~/storage/page_sets/$PAGESETS_TYPE/
-# Copy the top-1m.csv to the page_sets directory as well.
-mv page_sets/*.csv ~/storage/page_sets/$PAGESETS_TYPE/
-
-if [ -e /etc/boto.cfg ]; then
-  # Move boto.cfg since it may interfere with the ~/.boto file.
-  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
-fi
 
 # Clean the directory in Google Storage.
 gsutil rm -R gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/*
 # Copy the page_sets into Google Storage.
-gsutil cp ~/storage/page_sets/$PAGESETS_TYPE/* gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
+gsutil cp ~/storage/page_sets/$PAGESETS_TYPE/*json gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
 
 # Create a TIMESTAMP file and copy it to Google Storage.
 TIMESTAMP=`date +%s`

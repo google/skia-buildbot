@@ -45,11 +45,6 @@ TOP1M_CSV_ZIP_LOCATION = (
     'http://s3.amazonaws.com/alexa-static/%s.zip' % TOP1M_CSV_FILE_NAME)
 ALEXA_PREFIX = 'alexa'
 
-# Webpages that need to be mapped to another name to work.
-mapped_webpages = {
-    'justhost.com': 'www.justhost.com',
-}
-
 
 if '__main__' == __name__:
   option_parser = optparse.OptionParser()
@@ -70,8 +65,12 @@ if '__main__' == __name__:
       default='')
   option_parser.add_option(
       '-c', '--csv_file',
-      help='Location of the alexa top 1M CSV file. This script downloads it '
-           'from the internet if it is not specified.',
+      help='Location of a filtered alexa top 1M CSV file. Each row should '
+           'have 3 entries, 1st will be rank, 2nd will be domain name and '
+           'third will be the fully qualified url. If the third section is '
+           'missing then a page_set for the URL will not be generated. If '
+           'csv_file is not specified then this script downloads it from the '
+           'internet.',
       default=None)
   option_parser.add_option(
       '-p', '--pagesets_type',
@@ -121,7 +120,18 @@ if '__main__' == __name__:
 
   for index in xrange(int(options.start_number) - 1, int(options.end_number)):
     line = csv_contents[index]
-    (unused_number, website) = line.strip().split(',')
+    if options.csv_file:
+      try:
+        (unused_number, website, qualified_website) = line.strip().split(',')
+      except ValueError:
+        print '%s is not mapped to a qualified website.' % (
+            line.strip().split(',')[1])
+        continue
+    else:
+      (unused_number, website) = line.strip().split(',')
+      # Qualified website was not provided in the CSV, construct it.
+      qualified_website = 'http://www.%s' % website
+
     website_filename = '%s%s_%s_desktop' % (
         ALEXA_PREFIX, index + 1, website.replace('.', '-').replace('/', '-'))
 
@@ -135,8 +145,7 @@ if '__main__' == __name__:
           website_filename)
       continue
     pages.append({
-        # fully qualified CSV websites.
-        'url': 'http://%s' % mapped_webpages.get(website, website),
+        'url': qualified_website,
         'why': '#%s in Alexa global.' % (index + 1)
         })
 
