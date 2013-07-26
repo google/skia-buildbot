@@ -167,7 +167,7 @@
                 'env': {},
                 'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
-                    'chrome_revision': 'Chrome updated to revision (\d+)',
+                    'chrome_revision': 'Chrome updated to (\w+)',
                     'got_revision': 'Skia updated to revision (\d+)',
                 },
                 'haltOnFailure': <Object>,

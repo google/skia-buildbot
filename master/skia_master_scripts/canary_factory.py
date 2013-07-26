@@ -6,9 +6,6 @@
 """ Subclass of factory.SkiaFactory which builds some project other than Skia,
 using the latest revision of Skia. """
 
-from buildbot.process.properties import WithProperties
-from config_private import SKIA_SVN_BASEURL
-from master.factory import gclient_factory
 import builder_name_schema
 import factory
 import os
@@ -42,7 +39,7 @@ class CanaryFactory(factory.SkiaFactory):
         get_props_from_stdout={'got_revision':
                                    'Skia updated to revision (\d+)',
                                'chrome_revision':
-                                   'Chrome updated to revision (\d+)'},
+                                   'Chrome updated to (\w+)'},
         workdir='build')
 
   def ApplyPatch(self):
@@ -50,8 +47,7 @@ class CanaryFactory(factory.SkiaFactory):
     # any patch containing changes outside of those directories will fail to
     # apply.
     workdir = self.TargetPath.join(self._workdir, self._path_to_skia)
-    path_to_script = [os.pardir for
-                      path_elem in workdir.split(self.TargetPath.sep)]
+    path_to_script = [os.pardir for _ in workdir.split(self.TargetPath.sep)]
     path_to_script.extend([os.pardir, os.pardir, os.pardir, os.pardir,
                            'slave', 'skia_slave_scripts', 'apply_patch.py'])
     path_str = self.TargetPath.join(*path_to_script)
