@@ -58,27 +58,28 @@ while $SLAVES_STILL_PROCESSING ; do
   done
 done
 
-# Copy over the outputs from all slaves and consolidate them into one file with
-# special handling for CSV files.
+# Copy over the outputs from all slaves and consolidate them into one file.
 LOGS_DIR=/home/default/storage/pdf_logs
-mkdir $LOGS_DIR
-mkdir $LOGS_DIR/$RUN_ID
-
+files=( "expected-skp.csv" "pdf-skp.csv" "actual-skp.csv" "csv-skp.csv" "csv-actual.csv" )
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  gsutil cp gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/outputs/${RUN_ID}.output \
-    $LOGS_DIR/$RUN_ID/$SLAVE_NUM.csv
+  mkdir -p $LOGS_DIR/$RUN_ID/$SLAVE_NUM
+  for file in "${files[@]}"; do
+    gsutil cp gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/outputs/${RUN_ID}/$file \
+      $LOGS_DIR/$RUN_ID/$SLAVE_NUM/$file
+    cat $LOGS_DIR/$RUN_ID/$SLAVE_NUM/$file >> $LOGS_DIR/$RUN_ID/$file
+  done
 done
 
-python ../csv_merger.py --csv_dir=$LOGS_DIR/$RUN_ID --output_csv_name=result.csv
-
-# Copy the consolidated file into Google Storage.
-gsutil cp -a public-read $LOGS_DIR/$RUN_ID/result.csv \
-  gs://chromium-skia-gm/telemetry/pdfviewer/consolidated-outputs/$RUN_ID.output.txt
-OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/pdfviewer/consolidated-outputs/$RUN_ID.output.txt
+# Copy the consolidated files into Google Storage.
+for file in "${files[@]}"; do
+  gsutil cp -a public-read $LOGS_DIR/$RUN_ID/$file \
+    gs://chromium-skia-gm/telemetry/pdfviewer/consolidated-outputs/$RUN_ID/${file}.txt
+done
+OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/pdfviewer/consolidated-outputs/$RUN_ID
 
 # Delete all tmp files.
-rm -rf $LOGS_DIR/*$RUN_ID*
-rm -rf /tmp/*$RUN_ID*
+# rm -rf $LOGS_DIR/*$RUN_ID*
+# rm -rf /tmp/*$RUN_ID*
 
 # Email the requester.
 BOUNDARY=`date +%s|md5sum`

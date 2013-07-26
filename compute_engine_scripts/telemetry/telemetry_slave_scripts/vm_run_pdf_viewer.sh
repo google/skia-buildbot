@@ -29,6 +29,8 @@ source vm_utils.sh
 WORKER_FILE=PDF_VIEWER.$RUN_ID
 create_worker_file $WORKER_FILE
 
+TOOLS=`pwd`
+
 # Sync trunk.
 cd /home/default/skia-repo/trunk
 /home/default/depot_tools/gclient sync
@@ -37,8 +39,6 @@ cd /home/default/skia-repo/trunk
 make tools BUILDTYPE=Release
 ./gyp_skia gyp/pdfviewer.gyp
 make pdfviewer BUILDTYPE=Release
-./gyp_skia experimental/skpdiff/skpdiff.gyp
-make skpdiff BUILDTYPE=Release
 
 if [ -e /etc/boto.cfg ]; then
   # Move boto.cfg since it may interfere with the ~/.boto file.
@@ -58,18 +58,40 @@ mkdir -p $LOGS_DIR/expected
 mkdir -p $LOGS_DIR/pdf
 mkdir -p $LOGS_DIR/actual
 mkdir -p $LOGS_DIR/csv
+mkdir -p $LOGS_DIR/result
+mkdir -p $LOGS_DIR/logs
 
-# Run render_pictures, render_pdfs, pdfviewer and skpdiff.
-out/Release/render_pictures -r /home/default/storage/skps/ -w $LOGS_DIR/expected/
-out/Release/render_pdfs /home/default/storage/skps/ -w $LOGS_DIR/pdf/
-out/Release/pdfviewer -r $LOGS_DIR/pdf/ -w $LOGS_DIR/actual/ -n
-out/Release/skpdiff -f $LOGS_DIR/expected/ $LOGS_DIR/actual/ --csv $LOGS_DIR/csv/result.csv
+safe_tools=$(printf '%s\n' "$TOOLS" | sed 's/[\&/]/\\&/g')
+safe_logs_dir=$(printf '%s\n' "$LOGS_DIR" | sed 's/[\&/]/\\&/g')
+
+# Run render_pictures, render_pdfs, pdfviewer and skpdiff, in parallel - will use by all available cores
+# Allow 5 minutes (300 seconds) for each skp to be proccessed.
+ls /home/default/storage/skps/*.skp | sed "s/^/${safe_tools}\/vm_timeout\.sh -t 300 ${safe_tools}\/vm_pdf_viewer_run_one_skp.sh ${safe_logs_dir} /" | parallel
+
+# Merge all csv files in one result.csv file
+cat $LOGS_DIR/csv/* | sort | uniq -u >$LOGS_DIR/result/result.csv
+
+ls /home/default/storage/skps/ | sed "s/\.skp//" >$LOGS_DIR/result/skp.csv
+ls $LOGS_DIR/expected/ | sed "s/\.png//" >$LOGS_DIR/result/expected.csv
+ls $LOGS_DIR/pdf/ | sed "s/\.pdf//" >$LOGS_DIR/result/pdf.csv
+ls $LOGS_DIR/actual/ | sed "s/\.png//" >$LOGS_DIR/result/actual.csv
+ls $LOGS_DIR/csv/ | sed "s/\.csv//" >$LOGS_DIR/result/csv.csv
+
+# please upload these ones!
+cat $LOGS_DIR/result/skp.csv $LOGS_DIR/result/expected.csv | sort | uniq -u >$LOGS_DIR/result/expected-skp.csv
+cat $LOGS_DIR/result/skp.csv $LOGS_DIR/result/pdf.csv | sort | uniq -u >$LOGS_DIR/result/pdf-skp.csv
+cat $LOGS_DIR/result/skp.csv $LOGS_DIR/result/actual.csv | sort | uniq -u >$LOGS_DIR/result/actual-skp.csv
+cat $LOGS_DIR/result/skp.csv $LOGS_DIR/result/csv.csv | sort | uniq -u >$LOGS_DIR/result/csv-skp.csv
+cat $LOGS_DIR/result/csv.csv $LOGS_DIR/result/actual.csv | sort | uniq -u >$LOGS_DIR/result/csv-actual.csv
 
 # Copy the csv output and logs to Google Storage.
-gsutil cp $LOGS_DIR/csv/result.csv gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/outputs/${RUN_ID}.output
+files=( "expected-skp.csv" "pdf-skp.csv" "actual-skp.csv" "csv-skp.csv" "csv-actual.csv" )
+for file in "${files[@]}"; do
+  gsutil cp $LOGS_DIR/result/$file gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/outputs/${RUN_ID}/$file
+done
 gsutil cp /tmp/pdfviewer-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/logs/${RUN_ID}.log
 
 # Clean up logs and the worker file.
-rm -rf /home/default/storage/pdf_logs/*${RUN_ID}*
-rm -rf /tmp/*${RUN_ID}*
+# rm -rf /home/default/storage/pdf_logs/*${RUN_ID}*
+# rm -rf /tmp/*${RUN_ID}*
 delete_worker_file $WORKER_FILE
