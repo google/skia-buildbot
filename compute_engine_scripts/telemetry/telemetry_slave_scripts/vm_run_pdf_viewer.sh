@@ -85,7 +85,7 @@ cat $LOGS_DIR/result/skp.csv $LOGS_DIR/result/csv.csv | sort | uniq -u >$LOGS_DI
 cat $LOGS_DIR/result/csv.csv $LOGS_DIR/result/actual.csv | sort | uniq -u >$LOGS_DIR/result/csv-actual.csv
 
 # Copy the csv output and logs to Google Storage.
-files=( "expected-skp.csv" "pdf-skp.csv" "actual-skp.csv" "csv-skp.csv" "csv-actual.csv" )
+files=( "expected-skp.csv" "pdf-skp.csv" "actual-skp.csv" "csv-skp.csv" "csv-actual.csv" "result.csv" )
 for file in "${files[@]}"; do
   gsutil cp $LOGS_DIR/result/$file gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/outputs/${RUN_ID}/$file
 done

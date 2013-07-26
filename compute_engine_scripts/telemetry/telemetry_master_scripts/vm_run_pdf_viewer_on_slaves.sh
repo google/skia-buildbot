@@ -60,7 +60,7 @@ done
 
 # Copy over the outputs from all slaves and consolidate them into one file.
 LOGS_DIR=/home/default/storage/pdf_logs
-files=( "expected-skp.csv" "pdf-skp.csv" "actual-skp.csv" "csv-skp.csv" "csv-actual.csv" )
+files=( "expected-skp.csv" "pdf-skp.csv" "actual-skp.csv" "csv-skp.csv" "csv-actual.csv" "result.csv" )
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   mkdir -p $LOGS_DIR/$RUN_ID/$SLAVE_NUM
   for file in "${files[@]}"; do
