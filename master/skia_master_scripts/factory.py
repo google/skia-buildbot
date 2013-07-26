@@ -198,7 +198,6 @@ class SkiaFactory(BuildFactory):
         '--num_cores', WithProperties('%(num_cores:-None)s'),
         '--is_try', str(self._do_patch_step),
         '--bench_pictures_cfg', bench_pictures_cfg,
-        '--flavor', self._flavor or 'default',
         ]
     BuildFactory.__init__(self, build_factory_properties=properties)
 
@@ -292,7 +291,7 @@ class SkiaFactory(BuildFactory):
         always_run=always_run,
         flunk_on_failure=flunk_on_failure)
 
-  def AddFlavoredSlaveScript(self, script, **kwargs):
+  def AddFlavoredSlaveScript(self, script, args=None, **kwargs):
     """ Add a flavor-specific BuildStep.
 
     Finds a script to run by concatenating the flavor of this BuildFactory with
@@ -300,7 +299,9 @@ class SkiaFactory(BuildFactory):
     """
     script_to_run = ('%s_%s' % (self._flavor, script)
                                 if self._flavor else script)
-    self.AddSlaveScript(script_to_run, **kwargs)
+    flavor_args = ['--flavor', self._flavor or 'default']
+    self.AddSlaveScript(script_to_run, args=list(args or []) + flavor_args,
+                        **kwargs)
 
   def RunGYP(self):
     """ Run GYP to generate build files. """
