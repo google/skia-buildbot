@@ -16,6 +16,17 @@
         <td><input type="text" size="35" name="benchmark_arguments" {% if admin %}value="--skp-outdir=/home/default/storage/skps/"{% endif %} {% if not is_google_chromium_user %}disabled{% endif %}/></td>
       </tr>
       <tr>
+        <td>Pagesets Type</td>
+        <td>
+          <select name="pagesets_type">
+            {% for pageset_type in pageset_types %}
+              <option value="{{ pageset_type }}" {% ifequal pageset_type "Deeplinks" %}disabled{% endifequal %}>{{ pageset_type }}</option>
+            {% endfor %}
+          </select>
+      </td>
+
+      </tr>
+      <tr>
         <td>Whitelist File</td>
         <td><input type="file" name="whitelist_file" {% if not is_google_chromium_user %}disabled{% endif %}/> (Must contain one webpage per line)</td>
       </tr>
@@ -40,6 +51,7 @@
       <td><b>Description</b></td>
       <td><b>Benchmark Name</b></td>
       <td><b>Benchmark Arguments</b></td>
+      <td><b>Pagesets Type</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Whitelist File</b></td>
@@ -51,6 +63,7 @@
       <td>{{ task.description }}</td>
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
+      <td>{{ task.pagesets_type }}</td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}

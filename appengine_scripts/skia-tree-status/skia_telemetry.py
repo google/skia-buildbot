@@ -146,6 +146,7 @@ class TelemetryTasks(db.Model):
   username = db.StringProperty(required=True)
   benchmark_name = db.StringProperty(required=True)
   benchmark_arguments = db.StringProperty()
+  pagesets_type = db.StringProperty()
   requested_time = db.DateTimeProperty(required=True)
   completed_time = db.DateTimeProperty()
   output_link = db.LinkProperty()
@@ -386,6 +387,7 @@ class LandingPage(BasePage):
     # It is an add telemetry task request.
     benchmark_name = self.request.get('benchmark_name')
     benchmark_arguments = self.request.get('benchmark_arguments')
+    pagesets_type = self.request.get('pagesets_type')
     requested_time = datetime.datetime.now()
     whitelist_file = self.request.get('whitelist_file')
     if whitelist_file:
@@ -407,6 +409,7 @@ class LandingPage(BasePage):
           username=self.user.email(),
           benchmark_name=benchmark_name,
           benchmark_arguments=benchmark_arguments,
+          pagesets_type=pagesets_type,
           requested_time=requested_time,
           whitelist_file=whitelist_file,
           description=description).put()
@@ -424,6 +427,7 @@ class LandingPage(BasePage):
     telemetry_tasks = TelemetryTasks.get_all_telemetry_tasks_of_user(
         self.user.email())
     template_values['telemetry_tasks'] = telemetry_tasks
+    template_values['pageset_types'] = PAGESET_TYPES
 
     self.DisplayTemplate('skia_telemetry_landingpage.html', template_values)
 
@@ -538,6 +542,7 @@ class GetTelemetryTasksPage(BasePage):
       task_dict['username'] = task.username
       task_dict['benchmark_name'] = task.benchmark_name
       task_dict['benchmark_arguments'] = task.benchmark_arguments
+      task_dict['pagesets_type'] = task.pagesets_type
       task_dict['whitelist_file'] = task.whitelist_file
       tasks_dict[count] = task_dict
       count += 1
@@ -607,6 +612,7 @@ def bootstrap():
         username='Admin',
         benchmark_name='Test benchmark',
         benchmark_arguments='--test_arg',
+        pagesets_type='Test type',
         requested_time=datetime.datetime.now(),
         completed_time=datetime.datetime.now()).put()
 
