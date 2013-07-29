@@ -92,6 +92,6 @@ done
 gsutil cp /tmp/pdfviewer-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/logs/${RUN_ID}.log
 
 # Clean up logs and the worker file.
-# rm -rf /home/default/storage/pdf_logs/*${RUN_ID}*
-# rm -rf /tmp/*${RUN_ID}*
+rm -rf /home/default/storage/pdf_logs/*${RUN_ID}*
+rm -rf /tmp/*${RUN_ID}*
 delete_worker_file $WORKER_FILE

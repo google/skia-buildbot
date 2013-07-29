@@ -40,7 +40,7 @@ for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
     pageset_basename=`basename $page_set`
-    if [[ -f /home/default/storage/webpages_archive/All/$pageset_basename ]]; then
+    if [ "$PAGESETS_TYPE" != "All" ]; then
       # Since the archive already exists in 'All' do not run record_wpr.
       pageset_filename="${pageset_basename%.*}"
       cp  /home/default/storage/webpages_archive/All/${pageset_filename}* /home/default/storage/webpages_archive/$PAGESETS_TYPE/
