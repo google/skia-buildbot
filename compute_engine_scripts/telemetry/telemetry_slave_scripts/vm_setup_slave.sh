@@ -36,17 +36,13 @@ sudo rm /usr/bin/google-chrome
 sudo ln -s /home/default/storage/chrome-build/chrome /usr/bin/google-chrome
 sudo chmod 777 /usr/bin/google-chrome
 
-# TODO(rmistry): Remove the below check when you have implemented pagesets type
-# for benchmarks.
-if [[ ! -z "$PAGESETS_TYPE" ]]; then
-  # Download the page_sets from Google Storage if the local TIMESTAMP is out of
-  # date.
-  mkdir -p /home/default/storage/page_sets/$PAGESETS_TYPE/
-  are_timestamps_equal /home/default/storage/page_sets/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE
-  if [ $? -eq 1 ]; then
-    gsutil cp gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/* \
-      /home/default/storage/page_sets/$PAGESETS_TYPE/
-  fi
+# Download the page_sets from Google Storage if the local TIMESTAMP is out of
+# date.
+mkdir -p /home/default/storage/page_sets/$PAGESETS_TYPE/
+are_timestamps_equal /home/default/storage/page_sets/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE
+if [ $? -eq 1 ]; then
+  gsutil cp gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/* \
+    /home/default/storage/page_sets/$PAGESETS_TYPE/
 fi
 
 # Create /etc/lsb-release which is needed by telemetry.

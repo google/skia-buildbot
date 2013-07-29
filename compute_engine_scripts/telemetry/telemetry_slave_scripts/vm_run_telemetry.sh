@@ -14,13 +14,15 @@
 if [ $# -lt 4 ]; then
   echo
   echo "Usage: `basename $0` 1 skpicture_printer" \
-    "--skp-outdir=/home/default/storage/skps/ rmistry2013-05-24.07-34-05"
+    "--skp-outdir=/home/default/storage/skps/ All rmistry2013-05-24.07-34-05"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
   echo "The second argument is the telemetry benchmark to run on this slave."
   echo "The third argument are the extra arguments that the benchmark needs."
-  echo "The fourth argument is the runid (typically requester + timestamp)."
-  echo "The fifth optional argument is the Google Storage location of the URL whitelist."
+  echo "The fourth argument is the type of pagesets to create from the 1M list" \
+       "Eg: All, Filtered, 100k, 10k, Deeplinks."
+  echo "The fifth argument is the runid (typically requester + timestamp)."
+  echo "The sixth optional argument is the Google Storage location of the URL whitelist."
   echo
   exit 1
 fi
@@ -28,8 +30,9 @@ fi
 SLAVE_NUM=$1
 TELEMETRY_BENCHMARK=$2
 EXTRA_ARGS=$3
-RUN_ID=$4
-WHITELIST_GS_LOCATION=$5
+PAGESETS_TYPE=$4
+RUN_ID=$5
+WHITELIST_GS_LOCATION=$6
 
 WHITELIST_FILE=whitelist.$RUN_ID
 
@@ -41,11 +44,11 @@ source vm_setup_slave.sh
 
 # Download the webpage_archives from Google Storage if the local TIMESTAMP is
 # out of date.
-mkdir -p /home/default/storage/webpages_archive/
-are_timestamps_equal /home/default/storage/webpages_archive gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM
+mkdir -p /home/default/storage/webpages_archive/$PAGESETS_TYPE/
+are_timestamps_equal /home/default/storage/webpages_archive/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE
 if [ $? -eq 1 ]; then
-  gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/* \
-    /home/default/storage/webpages_archive/
+  gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/* \
+    /home/default/storage/webpages_archive/$PAGESETS_TYPE
 fi
 
 if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
@@ -62,7 +65,7 @@ fi
 OUTPUT_DIR=/home/default/storage/telemetry_outputs/$RUN_ID
 mkdir -p $OUTPUT_DIR
 
-for page_set in /home/default/storage/page_sets/*.json; do
+for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*.json; do
   if [[ -f $page_set ]]; then
     if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
       check_pageset_url_in_whitelist $page_set /tmp/$WHITELIST_FILE

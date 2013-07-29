@@ -103,6 +103,7 @@ def process_telemetry_tasks(pending_tasks):
     benchmark_arguments = task['benchmark_arguments']
     # Escape any quotes in benchmark arguments.
     benchmark_arguments = benchmark_arguments.replace('"', r'\"')
+    pagesets_type = task['pagesets_type']
     username = task['username']
     # Create a run id.
     run_id = '%s-%s' % (username.split('@')[0], time.time())
@@ -114,6 +115,7 @@ def process_telemetry_tasks(pending_tasks):
         'vm_run_telemetry_on_slaves.sh',
         benchmark_name,
         benchmark_arguments,
+        pagesets_type,
         run_id,
         username,
         str(task_key),
