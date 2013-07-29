@@ -12,75 +12,43 @@ import os
 import sys
 
 
-# TODO(rmistry): Should this be 'None' instead?
-EMPTY_VALUE = 0.0
-
-
 class CsvMerger(object):
   """Class that merges many CSV files into a single file."""
 
   def __init__(self, csv_dir, output_csv_name):
     """Constructs a CsvMerge instance."""
-    self._csv_dir = csv_dir
-    self._output_csv_name = output_csv_name
-    self._csv_dict = {}
+    self._input_csv_files = sorted([
+        os.path.join(csv_dir, f) for f in
+        glob.glob(os.path.join(csv_dir, '*.csv'))
+        if os.path.getsize(os.path.join(csv_dir, f))])
+    self._output_csv_name = os.path.join(csv_dir, output_csv_name)
+
+  def _GetFieldNames(self):
+    field_names = set()
+    for csv_file in self._input_csv_files:
+      field_names.update(csv.DictReader(open(csv_file, 'r')).fieldnames)
+    return field_names
 
   def Merge(self):
     """Method that does the CSV merging."""
-    # Counter that keeps track of how many entries have been populated so far.
-    total_entries = 0
-    for csv_file in glob.glob(os.path.join(self._csv_dir, '*.csv')):
-      csv_full_path = os.path.join(self._csv_dir, csv_file)
+    field_names = self._GetFieldNames()
+    print 'Merging %d csv files into %d columns' % (len(self._input_csv_files),
+                                                    len(field_names))
 
-      # If the CSV file is empty then move on to the next one.
-      if os.path.getsize(csv_full_path) == 0:
-        continue
+    dict_writer = csv.DictWriter(open(self._output_csv_name, 'w'), field_names)
+    dict_writer.writeheader()
 
-      csv_reader = csv.reader(open(csv_full_path, 'r'))
-      headers = csv_reader.next()
-      remaining_lines = []
-      for remaining_line in csv_reader:
-        remaining_lines.append(remaining_line)
+    total_rows = 0
 
-      header_index = 0
-      entries_in_curr_csv = 0
-      for header in headers:
-        entries_in_curr_csv = 0
-        if header in self._csv_dict:
-          entries = self._csv_dict[header]
-          for csv_entries in remaining_lines:
-            csv_entry = csv_entries[header_index]
-            entries.append(csv_entry)
-            entries_in_curr_csv += 1
-        else:
-          entries = []
-          # Populate the previous entries with the EMPTY_VALUE since this is
-          # the first time we have encountered this header.
-          for _index in range(0, total_entries):
-            entries.append(EMPTY_VALUE)
-          for csv_entries in remaining_lines:
-            csv_entry = csv_entries[header_index]
-            entries.append(csv_entry)
-            entries_in_curr_csv += 1
-          self._csv_dict[header] = entries
-        header_index += 1
+    for csv_file in self._input_csv_files:
+      print 'Merging %s' % csv_file
 
-      total_entries += entries_in_curr_csv
-      # Do a loop here for headers that are not in the currect CSV file and add
-      # EMPTY_VALUEs for them.
-      for missing_header in set(self._csv_dict) - set(headers):
-        for _unused in xrange(0, entries_in_curr_csv):
-          self._csv_dict[missing_header].append(EMPTY_VALUE)
+      dict_reader = csv.DictReader(open(csv_file, 'r'))
+      for row in dict_reader:
+        dict_writer.writerow(row)
+        total_rows += 1
 
-    # Output the constructed dictionary to CSV.
-    file_writer = csv.writer(
-        open(os.path.join(self._csv_dir, self._output_csv_name), 'w'))
-    file_writer.writerow(self._csv_dict.keys())
-    for entry_index in range(0, total_entries):
-      csv_row = []
-      for header in self._csv_dict.keys():
-        csv_row.append(self._csv_dict[header][entry_index])
-      file_writer.writerow(csv_row)
+    print 'Successfully merged %d rows' % total_rows
 
 
 if '__main__' == __name__:
@@ -98,4 +66,3 @@ if '__main__' == __name__:
     option_parser.error('Must specify bot csv_dir and output_csv_name')
 
   sys.exit(CsvMerger(options.csv_dir, options.output_csv_name).Merge())
-
