@@ -21,7 +21,7 @@ import urllib
 
 
 _COMMIT_QUEUE_AUTHOR_LINE = 'Author: '
-_COMMIT_QUEUE_REVIEWERS_LINE = 'Reviewed By: '
+_COMMIT_QUEUE_REVIEWERS_LINE = 'R='
 _COMMIT_BOT = 'commit-bot@chromium.org'
 
 
