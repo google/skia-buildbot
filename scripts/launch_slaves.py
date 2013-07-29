@@ -327,11 +327,13 @@ def GetCfg(filepath):
 
 
 def GetSlaveHostCfg():
-  """ Retrieve the latest slave_hosts.cfg file from the SVN repository and
+  """ Retrieve the latest slave_hosts_cfg.py file from the SVN repository and
   return the slave host configuration for this machine.
   """
-  cfg_vars = GetCfg('site_config/slave_hosts.cfg')
-  return cfg_vars['GetSlaveHostConfig'](socket.gethostname())
+  ReadFileFromSVN('site_config/slave_hosts_cfg.py')
+  sys.path.append(os.path.join(os.path.abspath(os.curdir), 'site_config'))
+  import slave_hosts_cfg
+  return slave_hosts_cfg.GetSlaveHostConfig(socket.gethostname())
 
 
 def GetSlavesCfg():
@@ -433,7 +435,8 @@ def main():
   print 'Got slaves.cfg.'
 
   # Unmap any previously-mapped drive letters.
-  UnmapDriveLetters()
+  if os.name == 'nt' and DRIVE_MAPPING:
+    UnmapDriveLetters()
 
   # Launch the build slaves
   for slavename in slaves:

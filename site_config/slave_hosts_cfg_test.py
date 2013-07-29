@@ -4,13 +4,15 @@
 # found in the LICENSE file.
 
 
-""" This test verifies that the slave_hosts.cfg and slaves.cfg files are sane
+""" This test verifies that the slave_hosts_cfg.py and slaves.cfg files are sane
 and compatible. """
 
 
 import os
 import sys
 import unittest
+
+import slave_hosts_cfg
 
 buildbot_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                              os.pardir)
@@ -20,7 +22,6 @@ from config_private import SKIA_SVN_BASEURL
 
 
 SLAVES_CFG = os.path.join(buildbot_path, 'master', 'slaves.cfg')
-SLAVE_HOSTS_CFG = os.path.join(buildbot_path, 'site_config', 'slave_hosts.cfg')
 BUILDBOT_SVN_URL = SKIA_SVN_BASEURL + '/buildbot'
 
 
@@ -31,26 +32,37 @@ class SlaveHostsCfgTest(unittest.TestCase):
   def runTest(self):
     """ Run the test. """
 
-    # First, read both files.
+    # First, read the slaves.cfg file.
     slaves_cfg = {}
     execfile(SLAVES_CFG, slaves_cfg)
-
-    slave_hosts_cfg = {}
-    execfile(SLAVE_HOSTS_CFG, slave_hosts_cfg)
-
     slaves = slaves_cfg['slaves']
-    slave_hosts = slave_hosts_cfg['SLAVE_HOSTS']
 
-    # Verify that every slave listed by a slave host is defined in slaves.cfg.
-    for slave_host_data in slave_hosts.itervalues():
+    # Verify that every slave listed by a slave host is defined exactly once in
+    # slaves.cfg.
+    for slave_host_data in slave_hosts_cfg.SLAVE_HOSTS.itervalues():
       for slave in slave_host_data['slaves']:
         found_slave = False
         for slave_cfg in slaves:
           if slave_cfg['hostname'] == slave:
+            self.assertFalse(found_slave,
+                'Slave %s is defined more than once in slaves.cfg' % slave)
             found_slave = True
-            break
-        self.assertTrue(found_slave, 'Unknown slavename: %s' % slave)
+        self.assertTrue(found_slave,
+                        'Slave %s is not defined in slaves.cfg' % slave)
 
+    # Verify that every slave listed in slaves.cfg is associated with exactly
+    # one host in slave_hosts_cfg.py.
+    for slave_cfg in slaves:
+      found_slave = False
+      for slave_host_data in slave_hosts_cfg.SLAVE_HOSTS.itervalues():
+        for slave in slave_host_data['slaves']:
+          if slave_cfg['hostname'] == slave:
+            self.assertFalse(found_slave,
+                'Slave %s is listed for more than one host' % slave)
+            found_slave = True
+      self.assertTrue(found_slave,
+                      ('Slave %s is not defined in slaves_hosts_cfg.py' %
+                          slave_cfg['hostname']))
 
 if __name__ == '__main__':
   unittest.main()

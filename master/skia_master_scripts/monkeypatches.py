@@ -32,6 +32,8 @@ from utils import GATEKEEPER_NAME
 import builder_name_schema
 import config_private
 import json
+import slave_hosts_cfg
+import slaves_cfg
 
 
 CQ_TRYBOTS = [
@@ -158,6 +160,8 @@ def HtmlResourceRender(self, request):
   ctx['internal_port'] = config_private.Master.Skia.master_port
   ctx['external_port'] = config_private.Master.Skia.master_port_alt
   ctx['title_url'] = config_private.Master.Skia.project_url
+  ctx['slave_hosts_cfg'] = slave_hosts_cfg.SLAVE_HOSTS
+  ctx['slaves_cfg'] = slaves_cfg.SLAVES
   ##############################################################################
 
   d = defer.maybeDeferred(lambda : self.content(request, ctx))

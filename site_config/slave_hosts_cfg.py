@@ -3,7 +3,7 @@ machines. """
 
 
 # Files to copy into buildslave checkouts.
-DEFAULT_COPIES = [
+_DEFAULT_COPIES = [
   {
     "source": ".boto",
     "destination": "buildbot/third_party/chromium_buildbot/site_config",
@@ -27,7 +27,9 @@ SLAVE_HOSTS = {
     'slaves': [
       'skiabot-shuttle-ubuntu12-ati5770-001',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.132',
+    'kvm_num': '2',
   },
 
   'skiabot-shuttle-ubuntu12-android-003': {
@@ -46,7 +48,9 @@ SLAVE_HOSTS = {
       'skiabot-shuttle-ubuntu12-nexus10-003',
       'skiabot-shuttle-ubuntu12-razri-001',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.110',
+    'kvm_num': '8',
   },
 
   'skiabot-shuttle-ubuntu12-xxx': {
@@ -58,88 +62,129 @@ SLAVE_HOSTS = {
       'skiabot-shuttle-ubuntu12-004',
       'skiabot-shuttle-ubuntu12-005',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.108',
+    'kvm_num': '7',
   },
 
   'skia-compile1-a': {
     'slaves': [
-      'skiabot-linux-compile-vm-000',
-      'skiabot-linux-compile-vm-001',
+      'skiabot-linux-compile-vm-a-000',
+      'skiabot-linux-compile-vm-a-001',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
   'skia-compile2-a': {
     'slaves': [
-      'skiabot-linux-compile-vm-002',
-      'skiabot-linux-compile-vm-003',
+      'skiabot-linux-compile-vm-a-002',
+      'skiabot-linux-compile-vm-a-003',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
   'skia-compile3-a': {
     'slaves': [
-      'skiabot-linux-compile-vm-004',
-      'skiabot-linux-compile-vm-005',
+      'skiabot-linux-compile-vm-a-004',
+      'skiabot-linux-compile-vm-a-005',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
   'skia-compile4-a': {
     'slaves': [
-      'skiabot-linux-compile-vm-006',
-      'skiabot-linux-compile-vm-007',
+      'skiabot-linux-compile-vm-a-006',
+      'skiabot-linux-compile-vm-a-007',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
   'skia-compile5-a': {
     'slaves': [
-      'skiabot-linux-compile-vm-008',
-      'skiabot-linux-compile-vm-009',
+      'skiabot-linux-compile-vm-a-008',
+      'skiabot-linux-compile-vm-a-009',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
+  },
+
+  'skia-housekeeping-slave-a': {
+    'slaves': [
+      'skia-housekeeping-slave-a',
+    ],
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
   'skia-compile1-b': {
     'slaves': [
-      'skiabot-linux-compile-vm-000',
-      'skiabot-linux-compile-vm-001',
+      'skiabot-linux-compile-vm-b-000',
+      'skiabot-linux-compile-vm-b-001',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
   'skia-compile2-b': {
     'slaves': [
-      'skiabot-linux-compile-vm-002',
-      'skiabot-linux-compile-vm-003',
+      'skiabot-linux-compile-vm-b-002',
+      'skiabot-linux-compile-vm-b-003',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
   'skia-compile3-b': {
     'slaves': [
-      'skiabot-linux-compile-vm-004',
-      'skiabot-linux-compile-vm-005',
+      'skiabot-linux-compile-vm-b-004',
+      'skiabot-linux-compile-vm-b-005',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
   'skia-compile4-b': {
     'slaves': [
-      'skiabot-linux-compile-vm-006',
-      'skiabot-linux-compile-vm-007',
+      'skiabot-linux-compile-vm-b-006',
+      'skiabot-linux-compile-vm-b-007',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
   'skia-compile5-b': {
     'slaves': [
-      'skiabot-linux-compile-vm-008',
-      'skiabot-linux-compile-vm-009',
+      'skiabot-linux-compile-vm-b-008',
+      'skiabot-linux-compile-vm-b-009',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
+
+  'skia-housekeeping-slave-b': {
+    'slaves': [
+      'skia-housekeeping-slave-b',
+    ],
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
+  },
+
 ################################# Mac Machines #################################
 
   'skiabot-macmini-10_6-001': {
@@ -149,14 +194,18 @@ SLAVE_HOSTS = {
       'skiabot-macmini-10_6-002',
       'skiabot-macmini-10_6-003',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.144',
+    'kvm_num': 'A',
   },
 
   'skiabot-macmini-10_6-002': {
     'slaves': [
       'skiabot-macmini-10_6-bench',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.121',
+    'kvm_num': 'D',
   },
 
   'skiabot-macmini-10_7-001': {
@@ -166,14 +215,18 @@ SLAVE_HOSTS = {
       'skiabot-macmini-10_7-002',
       'skiabot-macmini-10_7-003',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.137',
+    'kvm_num': 'B',
   },
 
   'skiabot-macmini-10_7-002': {
     'slaves': [
       'skiabot-macmini-10_7-bench',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.124',
+    'kvm_num': 'C',
   },
 
   'skiabot-macmini-10_8-001': {
@@ -183,14 +236,18 @@ SLAVE_HOSTS = {
       'skiabot-macmini-10_8-002',
       'skiabot-macmini-10_8-003',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.140',
+    'kvm_num': 'F',
   },
 
   'skiabot-macmini-10_8-002': {
     'slaves': [
       'skiabot-macmini-10_8-bench',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.135',
+    'kvm_num': 'G',
   },
 
   'skiabot-mac-10_6-compile': {
@@ -202,7 +259,9 @@ SLAVE_HOSTS = {
       'skiabot-mac-10_6-compile-004',
       'skiabot-mac-10_6-compile-005',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.111',
+    'kvm_num': 'N/A',
   },
 
   'skiabot-mac-10_7-compile': {
@@ -218,7 +277,9 @@ SLAVE_HOSTS = {
       'skiabot-mac-10_7-compile-008',
       'skiabot-mac-10_7-compile-009',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.120',
+    'kvm_num': 'N/A',
   },
 
   'borenet-mac.cnc.corp.google.com': {
@@ -234,7 +295,9 @@ SLAVE_HOSTS = {
       'skiabot-mac-10_8-compile-008',
       'skiabot-mac-10_8-compile-009',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
   },
 
 ############################### Windows Machines ###############################
@@ -243,14 +306,18 @@ SLAVE_HOSTS = {
     'slaves': [
       'skiabot-shuttle-win7-intel-bench',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.139',
+    'kvm_num': '3',
   },
 
   'win7-intel-003': {
     'slaves': [
       'skiabot-shuttle-win7-intel-000',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.114',
+    'kvm_num': '4',
   },
 
   'win7-intel-004': {
@@ -260,28 +327,36 @@ SLAVE_HOSTS = {
       'skiabot-shuttle-win7-intel-special-002',
       'skiabot-shuttle-win7-intel-special-003',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.119',
+    'kvm_num': '6',
   },
 
   'win7-compile1': {
     'slaves': [
       'skiabot-win-compile-000',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.101',
+    'kvm_num': 'N/A',
   },
 
   'win7-compile2': {
     'slaves': [
       'skiabot-win-compile-004',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.113',
+    'kvm_num': 'N/A',
   },
 
   'win8compile000': {
     'slaves': [
       'skiabot-win8-compile-000',
     ],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.117',
+    'kvm_num': 'N/A',
   },
 }
 
@@ -295,6 +370,6 @@ def GetSlaveHostConfig(hostname):
   """
   default_cfg = {
     'slaves': [hostname],
-    'copies': DEFAULT_COPIES,
+    'copies': _DEFAULT_COPIES,
   }
   return SLAVE_HOSTS.get(hostname, default_cfg)
