@@ -39,12 +39,20 @@ rm -rf /home/default/storage/webpages_archive/$PAGESETS_TYPE/*
 for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
-    check_and_run_xvfb
-    DISPLAY=:0 timeout 600 tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser=system $page_set
-    if [ $? -eq 124 ]; then
-      echo "========== $page_set timed out! =========="
+    pageset_basename=`basename $page_set`
+    if [[ -f /home/default/storage/webpages_archive/All/$pageset_basename ]]; then
+      # Since the archive already exists in 'All' do not run record_wpr.
+      pageset_filename="${pageset_basename%.*}"
+      cp  /home/default/storage/webpages_archive/All/${pageset_filename}* /home/default/storage/webpages_archive/$PAGESETS_TYPE/
+      echo "========== $page_set copied over from All =========="
     else
-      echo "========== Done with $page_set =========="
+      check_and_run_xvfb
+      DISPLAY=:0 timeout 600 tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser=system $page_set
+      if [ $? -eq 124 ]; then
+        echo "========== $page_set timed out! =========="
+      else
+        echo "========== Done with $page_set =========="
+      fi
     fi
   fi
 done
