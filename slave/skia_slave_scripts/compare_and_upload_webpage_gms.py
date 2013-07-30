@@ -98,9 +98,9 @@ class CompareAndUploadWebpageGMs(BuildStep):
                        gs_utils.TIMESTAMP_COMPLETED_FILENAME))
 
   def _Run(self):
-    # Right now, we only write images on one builder, since it takes too long.
-    if self._builder_name != 'Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Debug':
-      return
+    # Skip this step for now until we have checksums.
+    # Bug: https://code.google.com/p/skia/issues/detail?id=1455
+    return
 
     cmd = [os.path.join('out', self.configuration, 'skdiff'),
            '--listfilenames',

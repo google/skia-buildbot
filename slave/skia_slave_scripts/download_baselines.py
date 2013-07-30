@@ -19,6 +19,10 @@ class DownloadBaselines(BuildStep):
                                             **kwargs)
 
   def _Run(self):
+    # Skip this step for now until we have checksums.
+    # Bug: https://code.google.com/p/skia/issues/detail?id=1455
+    return
+
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 
