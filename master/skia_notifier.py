@@ -57,30 +57,19 @@ class SkiaNotifier(MailNotifier):
           return
         blame_list = set(build.getResponsibleUsers())
         for change in build.getChanges():  # Loop through all changes in a build
-          # TODO(rmistry): Remove the debugging stmts below.
-          print 'DEBUGGING DEBUGGING DEBUGGING'
-          print 'change.comments: %s' % change.comments
-          print 'change.who: %s' % change.who
-          print 'DEBUGGING DEBUGGING DEBUGGING'
 
           if change.comments and _COMMIT_BOT == change.who:
-            print '='*100
-            print 'COMMITED BY COMMIT QUEUE'
             # If the change has been submitted by the commit bot then find the
             # original author and the reviewers and add them to the blame list
             for commit_queue_line in (_COMMIT_QUEUE_AUTHOR_LINE,
                                       _COMMIT_QUEUE_REVIEWERS_LINE):
-              print 'commit_queue_line: %s' % commit_queue_line
               users =  re.search(
                   '%s(.*?)\n' % commit_queue_line,
                   change.comments).group(1).split(',')
-              print 'users: %s' % users
               blame_list = blame_list.union(users)
-              print 'blame_list: %s' % blame_list
             if _COMMIT_BOT in blame_list:
               # Remove the commit bot from the blame list.
               blame_list.remove(_COMMIT_BOT)
-            print '='*100
         # pylint: disable=C0301
         # Set the extended blamelist. It was originally set in
         # http://buildbot.net/buildbot/docs/0.8.4/reference/buildbot.process.build-pysrc.html
