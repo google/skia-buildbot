@@ -40,7 +40,7 @@ class UpdateInfo(object):
     num_archives_cmd = [
         'bash',
         '-c',
-        'gsutil ls -l gs://chromium-skia-gm/telemetry/webpages_archive/*/*.json | wc -l']
+        'gsutil ls -l gs://chromium-skia-gm/telemetry/webpages_archive/*/All/*.json | wc -l']
     num_archives = subprocess.Popen(
         num_archives_cmd,
         stdout=subprocess.PIPE,
@@ -65,16 +65,28 @@ class UpdateInfo(object):
     version_cmd = [
         'svnversion' ,
         '.']
-    svnversion_output = subprocess.Popen(
-        version_cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT).communicate()[0].rstrip()
-    match_obj = re.search(r'([0-9]+):([0-9]+).*', svnversion_output, re.M|re.I)
-    skia_rev = match_obj.group(1)
-    chromium_rev = match_obj.group(2)
-    os.chdir(old_cwd)
-    print 'skia_rev: %s' % skia_rev
-    print 'chromium_rev: %s' % chromium_rev
+    # Sometimes 'svnversion .' returns the wrong output and needs to be retried.
+    for _ in range(5):
+      svnversion_output = subprocess.Popen(
+          version_cmd,
+          stdout=subprocess.PIPE,
+          stderr=subprocess.STDOUT).communicate()[0].rstrip()
+      print 'svnversion output: %s' % svnversion_output
+      match_obj = re.search(
+          r'([0-9]+):([0-9]+).*', svnversion_output, re.M|re.I)
+      try:
+        skia_rev = match_obj.group(1)
+        chromium_rev = match_obj.group(2)
+      except Exception as e:
+        print e
+        skia_rev = '0'
+        chromium_rev = '0'
+        # There was an exception retry the command.
+        continue
+      os.chdir(old_cwd)
+      print 'skia_rev: %s' % skia_rev
+      print 'chromium_rev: %s' % chromium_rev
+      break
 
     # Now communicate with the skia-telemetry webapp.
     update_info_url = '%s%s' % (

@@ -25,7 +25,7 @@ import appengine_constants
 
 SLEEP_BETWEEN_POLLS_SECS = 30
 
-UPDATE_INFO_AFTER_SECS = 3600
+UPDATE_INFO_AFTER_SECS = 7200
 
 # The following dictionaries ensure that tasks which are being currently
 # processed are not triggered again.
