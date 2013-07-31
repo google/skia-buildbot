@@ -383,6 +383,8 @@
                     <Object>,
                     '--android_sdk_root',
                     <Object>,
+                    '--flavor',
+                    'android',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,
@@ -448,6 +450,8 @@
                     <Object>,
                     '--gyp_defines',
                     'skia_arch_width=32 skia_warnings_as_errors=0',
+                    '--flavor',
+                    'android',
                 ],
                 'description': 'RunGYP',
                 'doStepIf': <Object>,
@@ -468,7 +472,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -600,7 +604,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -732,7 +736,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -801,7 +805,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_install.py',
+                    '../../../../../../slave/skia_slave_scripts/install.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1059,7 +1063,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_prerender.py',
+                    '../../../../../../slave/skia_slave_scripts/prerender.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1124,7 +1128,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_run_tests.py',
+                    '../../../../../../slave/skia_slave_scripts/run_tests.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1189,7 +1193,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_run_gm.py',
+                    '../../../../../../slave/skia_slave_scripts/run_gm.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1254,7 +1258,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_render_pictures.py',
+                    '../../../../../../slave/skia_slave_scripts/render_pictures.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1319,7 +1323,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_render_pdfs.py',
+                    '../../../../../../slave/skia_slave_scripts/render_pdfs.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1384,7 +1388,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_run_decoding_tests.py',
+                    '../../../../../../slave/skia_slave_scripts/run_decoding_tests.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1449,7 +1453,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_postrender.py',
+                    '../../../../../../slave/skia_slave_scripts/postrender.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',

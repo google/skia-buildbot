@@ -227,6 +227,8 @@
                     'default',
                     '--gyp_defines',
                     'skia_arch_width=32 skia_warnings_as_errors=1',
+                    '--flavor',
+                    'default',
                 ],
                 'description': 'RunGYP',
                 'doStepIf': <Object>,

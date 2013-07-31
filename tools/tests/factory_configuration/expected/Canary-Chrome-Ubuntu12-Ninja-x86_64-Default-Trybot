@@ -278,6 +278,8 @@
                     'True',
                     '--bench_pictures_cfg',
                     'default',
+                    '--flavor',
+                    'chrome_canary',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,
@@ -298,7 +300,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chrome_canary_run_gyp.py',
+                    '../../../../../../slave/skia_slave_scripts/run_gyp.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -335,6 +337,8 @@
                     'default',
                     '--gyp_defines',
                     'skia_warnings_as_errors=0',
+                    '--flavor',
+                    'chrome_canary',
                 ],
                 'description': 'RunGYP',
                 'doStepIf': <Object>,
@@ -355,7 +359,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chrome_canary_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -471,7 +475,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chrome_canary_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -587,7 +591,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chrome_canary_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',

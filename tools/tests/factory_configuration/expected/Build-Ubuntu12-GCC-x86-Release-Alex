@@ -251,6 +251,8 @@
                     'x86-alex',
                     '--gyp_defines',
                     'skia_arch_width=32 skia_warnings_as_errors=1',
+                    '--flavor',
+                    'chromeos',
                 ],
                 'description': 'RunGYP',
                 'doStepIf': <Object>,
@@ -271,7 +273,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -338,7 +340,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -405,7 +407,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -472,7 +474,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -539,7 +541,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -606,7 +608,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -734,7 +736,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -801,7 +803,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -868,7 +870,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -935,7 +937,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1002,7 +1004,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1069,7 +1071,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1197,7 +1199,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1264,7 +1266,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1331,7 +1333,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1398,7 +1400,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1465,7 +1467,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1532,7 +1534,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',

@@ -5,23 +5,22 @@
 
 """ Compile step for NaCl build. """
 
+from default_build_step_utils import DefaultBuildStepUtils
 from utils import shell_utils
-from build_step import BuildStep
+
 import os
-import sys
 
 
 ENV_VAR = 'NACL_SDK_ROOT'
 
 
-class NaClCompile(BuildStep):
-  def _Run(self):
-    os.environ[ENV_VAR] = self._args['nacl_sdk_root']
+class NaclBuildStepUtils(DefaultBuildStepUtils):
+  def Compile(self, target):
+    os.environ[ENV_VAR] = self._step.args['nacl_sdk_root']
     cmd = [os.path.join('platform_tools', 'nacl', 'nacl_make'),
-           self._args['target'],
-           'BUILDTYPE=%s' % self._configuration,
+           target, 'BUILDTYPE=%s' % self._step.configuration,
            ]
-    cmd.extend(self._default_make_flags)
+    cmd.extend(self._step.default_make_flags)
     if os.name != 'nt':
       try:
         ccache = shell_utils.Bash(['which', 'ccache'], echo=False)
@@ -29,9 +28,5 @@ class NaClCompile(BuildStep):
           cmd.append('--use-ccache')
       except Exception:
         pass
-    cmd.extend(self._make_flags)
+    cmd.extend(self._step.make_flags)
     shell_utils.Bash(cmd)
-
-
-if '__main__' == __name__:
-  sys.exit(BuildStep.RunBuildStep(NaClCompile))

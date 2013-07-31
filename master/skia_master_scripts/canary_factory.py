@@ -42,6 +42,7 @@ class CanaryFactory(factory.SkiaFactory):
                                    'Chrome updated to (\w+)'},
         workdir='build')
 
+  # pylint: disable=W0221
   def ApplyPatch(self):
     # Note that, since Chrome only checks out the src, include, and gyp dirs,
     # any patch containing changes outside of those directories will fail to
@@ -54,13 +55,6 @@ class CanaryFactory(factory.SkiaFactory):
     factory.SkiaFactory.ApplyPatch(self,
                                    alternate_script=path_str,
                                    alternate_workdir=workdir)
-
-  def RunGYP(self):
-    self.AddSlaveScript(script='chrome_canary_run_gyp.py', description='RunGYP',
-                        halt_on_failure=True,
-                        args=['--gyp_defines',
-                                  ' '.join('%s=%s' % (k, v) for k, v in
-                                           self._gyp_defines.items())])
 
   def Build(self, **kwargs):
     # Spoof the role as a compile builder so that this factory only runs the

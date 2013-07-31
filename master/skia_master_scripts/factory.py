@@ -297,19 +297,16 @@ class SkiaFactory(BuildFactory):
     Finds a script to run by concatenating the flavor of this BuildFactory with
     the provided script name.
     """
-    script_to_run = ('%s_%s' % (self._flavor, script)
-                                if self._flavor else script)
     flavor_args = ['--flavor', self._flavor or 'default']
-    self.AddSlaveScript(script_to_run, args=list(args or []) + flavor_args,
-                        **kwargs)
+    self.AddSlaveScript(script, args=list(args or []) + flavor_args, **kwargs)
 
   def RunGYP(self):
     """ Run GYP to generate build files. """
-    self.AddSlaveScript(script='run_gyp.py', description='RunGYP',
-                        halt_on_failure=True,
-                        args=['--gyp_defines',
-                                  ' '.join('%s=%s' % (k, v) for k, v in
-                                           self._gyp_defines.items())])
+    self.AddFlavoredSlaveScript(script='run_gyp.py', description='RunGYP',
+                                halt_on_failure=True,
+                                args=['--gyp_defines',
+                                      ' '.join('%s=%s' % (k, v) for k, v in
+                                               self._gyp_defines.items())])
 
   def Make(self, target, description, is_rebaseline_step=False, do_step_if=None,
            always_run=False, flunk_on_failure=True, halt_on_failure=True):
@@ -354,8 +351,8 @@ class SkiaFactory(BuildFactory):
 
     # Trybots should always clean.
     if clobber or self._do_patch_step:
-      self.AddSlaveScript(script='clean.py', description='Clean',
-                          halt_on_failure=True)
+      self.AddFlavoredSlaveScript(script='clean.py', description='Clean',
+                                  halt_on_failure=True)
 
     # Always re-run gyp before compiling.
     self.RunGYP()

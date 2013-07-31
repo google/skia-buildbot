@@ -5,18 +5,13 @@
 
 """ Clean step """
 
-from utils import shell_utils
 from build_step import BuildStep
-import os
 import sys
 
 
 class Clean(BuildStep):
   def _Run(self):
-    make_cmd = 'make'
-    if os.name == 'nt':
-      make_cmd = 'make.bat'
-    shell_utils.Bash([make_cmd, 'clean'])
+    self._flavor_utils.MakeClean()
 
 
 if '__main__' == __name__:

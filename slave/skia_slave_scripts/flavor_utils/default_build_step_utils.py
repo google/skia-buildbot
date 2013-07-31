@@ -12,7 +12,57 @@ from utils import file_utils
 from utils import shell_utils
 
 
-class BuildStepUtils:
+class DeviceDirs(object):
+  def __init__(self, perf_data_dir, gm_actual_dir, gm_expected_dir,
+               resource_dir, skimage_in_dir, skimage_expected_dir,
+               skimage_out_dir, skp_dir, skp_perf_dir, skp_out_dir, tmp_dir):
+    self._perf_data_dir = perf_data_dir
+    self._gm_actual_dir = gm_actual_dir
+    self._gm_expected_dir = gm_expected_dir
+    self._resource_dir = resource_dir
+    self._skimage_in_dir = skimage_in_dir
+    self._skimage_expected_dir = skimage_expected_dir
+    self._skimage_out_dir = skimage_out_dir
+    self._skp_dir = skp_dir
+    self._skp_perf_dir = skp_perf_dir
+    self._skp_out_dir = skp_out_dir
+    self._tmp_dir = tmp_dir
+
+  def GMActualDir(self):
+    return  self._gm_actual_dir
+
+  def GMExpectedDir(self):
+    return self._gm_expected_dir
+
+  def PerfDir(self):
+    return self._perf_data_dir
+
+  def ResourceDir(self):
+    return self._resource_dir
+
+  def SKImageInDir(self):
+    return self._skimage_in_dir
+
+  def SKImageExpectedDir(self):
+    return self._skimage_expected_dir
+
+  def SKImageOutDir(self):
+    return self._skimage_out_dir
+
+  def SKPDir(self):
+    return self._skp_dir
+
+  def SKPPerfDir(self):
+    return self._skp_perf_dir
+
+  def SKPOutDir(self):
+    return self._skp_out_dir
+
+  def TmpDir(self):
+    return self._tmp_dir
+
+
+class DefaultBuildStepUtils:
   """ Utilities to be used by subclasses of BuildStep.
 
   The methods in this class define how certain high-level functions should work.
@@ -107,6 +157,9 @@ class BuildStepUtils:
     """ Install the Skia executables. """
     pass
 
+  def RunGYP(self):
+    self.Compile('gyp')
+
   def Compile(self, target):
     """ Compile the Skia executables. """
     # TODO(borenet): It would be nice to increase code sharing here.
@@ -124,3 +177,28 @@ class BuildStepUtils:
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
     shell_utils.Bash(cmd)
+
+  def MakeClean(self):
+    make_cmd = 'make'
+    if os.name == 'nt':
+      make_cmd = 'make.bat'
+    shell_utils.Bash([make_cmd, 'clean'])
+
+  def PreRun(self):
+    """ Preprocessing step to run before the BuildStep itself. """
+    pass
+
+  def GetDeviceDirs(self):
+    """ Set the directories which will be used by the BuildStep. """
+    return DeviceDirs(
+        perf_data_dir=self._step.perf_data_dir,
+        gm_actual_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
+        gm_expected_dir=os.path.join(os.pardir, os.pardir, 'gm', 'expected'),
+        resource_dir=self._step.resource_dir,
+        skimage_in_dir=self._step.skimage_in_dir,
+        skimage_expected_dir=self._step.skimage_expected_dir,
+        skimage_out_dir=self._step.skimage_out_dir,
+        skp_dir=self._step.local_playback_dirs.PlaybackSkpDir(),
+        skp_perf_dir=self._step.perf_data_dir,
+        skp_out_dir=self._step.local_playback_dirs.PlaybackGmActualDir(),
+        tmp_dir=os.path.join(os.pardir, 'tmp'))

@@ -222,6 +222,8 @@
                     'default',
                     '--gyp_defines',
                     'skia_warnings_as_errors=0',
+                    '--flavor',
+                    'default',
                 ],
                 'description': 'RunGYP',
                 'doStepIf': <Object>,

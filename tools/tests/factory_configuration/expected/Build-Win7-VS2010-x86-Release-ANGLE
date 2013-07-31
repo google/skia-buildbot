@@ -229,6 +229,8 @@
                     'angle',
                     '--gyp_defines',
                     'skia_arch_width=32 skia_warnings_as_errors=1 skia_angle=1 skia_win_debuggers_path=c:/DbgHelp',
+                    '--flavor',
+                    'default',
                 ],
                 'description': 'RunGYP',
                 'doStepIf': <Object>,

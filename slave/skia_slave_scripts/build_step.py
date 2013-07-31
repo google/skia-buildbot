@@ -5,6 +5,9 @@
 """Base class for all slave-side build steps. """
 
 import config
+# pylint: disable=W0611
+import flavor_utils
+import imp
 import multiprocessing
 import os
 import shlex
@@ -14,7 +17,6 @@ import sys
 import time
 import traceback
 
-from flavor_utils import default_build_step_utils
 from playback_dirs import LocalSkpPlaybackDirs
 from playback_dirs import StorageSkpPlaybackDirs
 from utils import misc
@@ -80,56 +82,6 @@ class BuildStepLogger(object):
     self.stdout.flush()
 
 
-class DeviceDirs(object):
-  def __init__(self, perf_data_dir, gm_actual_dir, gm_expected_dir,
-               resource_dir, skimage_in_dir, skimage_expected_dir,
-               skimage_out_dir, skp_dir, skp_perf_dir, skp_out_dir, tmp_dir):
-    self._perf_data_dir = perf_data_dir
-    self._gm_actual_dir = gm_actual_dir
-    self._gm_expected_dir = gm_expected_dir
-    self._resource_dir = resource_dir
-    self._skimage_in_dir = skimage_in_dir
-    self._skimage_expected_dir = skimage_expected_dir
-    self._skimage_out_dir = skimage_out_dir
-    self._skp_dir = skp_dir
-    self._skp_perf_dir = skp_perf_dir
-    self._skp_out_dir = skp_out_dir
-    self._tmp_dir = tmp_dir
-
-  def GMActualDir(self):
-    return  self._gm_actual_dir
-
-  def GMExpectedDir(self):
-    return self._gm_expected_dir
-
-  def PerfDir(self):
-    return self._perf_data_dir
-
-  def ResourceDir(self):
-    return self._resource_dir
-
-  def SKImageInDir(self):
-    return self._skimage_in_dir
-
-  def SKImageExpectedDir(self):
-    return self._skimage_expected_dir
-
-  def SKImageOutDir(self):
-    return self._skimage_out_dir
-
-  def SKPDir(self):
-    return self._skp_dir
-
-  def SKPPerfDir(self):
-    return self._skp_perf_dir
-
-  def SKPOutDir(self):
-    return self._skp_out_dir
-
-  def TmpDir(self):
-    return self._tmp_dir
-
-
 class BuildStep(multiprocessing.Process):
 
   def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT,
@@ -144,12 +96,27 @@ class BuildStep(multiprocessing.Process):
     """
     multiprocessing.Process.__init__(self)
 
+    self._args = dict(args)
+
     self.timeout = timeout
     self.no_output_timeout = no_output_timeout
     self.attempts = attempts
 
-    self._flavor_utils = default_build_step_utils.BuildStepUtils(self)
-    self._args = args
+    flavor = args.get('flavor', 'default')
+    try:
+      flavor_utils_module_name = '%s_build_step_utils' % flavor
+      flavor_utils_path = os.path.join(os.path.dirname(__file__),
+                                       'flavor_utils',
+                                       '%s.py' % flavor_utils_module_name)
+      flavor_utils_module = imp.load_source(
+          'flavor_utils.%s' % flavor_utils_module_name, flavor_utils_path)
+      flavor_utils_class_name = ''.join([part.title() for part in
+                                         flavor.split('_')])
+      flavor_utils_class = getattr(flavor_utils_module,
+                                   '%sBuildStepUtils' % flavor_utils_class_name)
+      self._flavor_utils = flavor_utils_class(self)
+    except (ImportError, IOError) as e:
+      raise Exception('Unrecognized build flavor: %s\n%s' % (flavor, e))
 
     self._configuration = args['configuration']
     self._gm_image_subdir = args['gm_image_subdir']
@@ -229,18 +196,7 @@ class BuildStep(multiprocessing.Process):
     #                             all GM results expectations.
     # TODO(epoger): Update the above description as we move through the steps in
     # https://goto.google.com/ChecksumTransitionDetail
-    self._device_dirs = DeviceDirs(
-        perf_data_dir=self._perf_data_dir,
-        gm_actual_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
-        gm_expected_dir=os.path.join(os.pardir, os.pardir, 'gm', 'expected'),
-        resource_dir=self._resource_dir,
-        skimage_in_dir=self._skimage_in_dir,
-        skimage_expected_dir=self._skimage_expected_dir,
-        skimage_out_dir=self._skimage_out_dir,
-        skp_dir=self._local_playback_dirs.PlaybackSkpDir(),
-        skp_perf_dir=self._perf_data_dir,
-        skp_out_dir=self._local_playback_dirs.PlaybackGmActualDir(),
-        tmp_dir=os.path.join(os.pardir, 'tmp'))
+    self._device_dirs = self._flavor_utils.GetDeviceDirs()
 
   @property
   def configuration(self):
@@ -262,9 +218,33 @@ class BuildStep(multiprocessing.Process):
   def make_flags(self):
     return self._make_flags
 
+  @property
+  def perf_data_dir(self):
+    return self._perf_data_dir
+
+  @property
+  def resource_dir(self):
+    return self._resource_dir
+
+  @property
+  def skimage_in_dir(self):
+    return self._skimage_in_dir
+
+  @property
+  def skimage_expected_dir(self):
+    return self._skimage_expected_dir
+
+  @property
+  def skimage_out_dir(self):
+    return self._skimage_out_dir
+
+  @property
+  def local_playback_dirs(self):
+    return self._local_playback_dirs
+
   def _PreRun(self):
-    """ Optional preprocessing step for BuildSteps to override. """
-    pass
+    """ Optional preprocessing step defined in the BuildStepUtils. """
+    self._flavor_utils.PreRun()
 
   def _Run(self):
     """ Code to be run in a given BuildStep.  No return value; throws exception

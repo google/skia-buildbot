@@ -231,6 +231,8 @@
                     <Object>,
                     '--gyp_defines',
                     'skia_warnings_as_errors=1',
+                    '--flavor',
+                    'nacl',
                 ],
                 'description': 'RunGYP',
                 'doStepIf': <Object>,
@@ -251,7 +253,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/nacl_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -314,7 +316,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/nacl_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -377,7 +379,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/nacl_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -497,7 +499,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/nacl_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -560,7 +562,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/nacl_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -623,7 +625,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/nacl_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -743,7 +745,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/nacl_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -806,7 +808,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/nacl_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -869,7 +871,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/nacl_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',

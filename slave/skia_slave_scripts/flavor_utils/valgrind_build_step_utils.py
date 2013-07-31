@@ -4,19 +4,29 @@
 
 """ Subclass for all slave-side Valgrind build steps. """
 
-from default_build_step_utils import BuildStepUtils
+from default_build_step_utils import DefaultBuildStepUtils
 from utils import shell_utils
 
 import os
 
 
-class ValgrindBuildStepUtils(BuildStepUtils):
+class ValgrindBuildStepUtils(DefaultBuildStepUtils):
+  def __init__(self, build_step_instance):
+    DefaultBuildStepUtils.__init__(self, build_step_instance)
+    classname = self._step.__class__.__name__
+    if classname == 'ValgrindRunTests':
+      self._suppressions_file = os.path.join('tests', 'valgrind.supp')
+    elif classname == 'ValgrindRunGM':
+      self._suppressions_file = os.path.join('gm', 'valgrind.supp')
+    else:
+      self._suppressions_file = None
+
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
     cmd = ['valgrind', '--gen-suppressions=all', '--leak-check=full',
            '--track-origins=yes', '--error-exitcode=1']
-    if self._step.suppressions_file:
-      cmd.append('--suppressions=%s' % self._step.suppressions_file)
+    if self._suppressions_file:
+      cmd.append('--suppressions=%s' % self._suppressions_file)
     cmd.append(self._PathToBinary(app))
     cmd.extend(args)
     return shell_utils.Bash(cmd)

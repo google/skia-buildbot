@@ -383,6 +383,8 @@
                     <Object>,
                     '--android_sdk_root',
                     <Object>,
+                    '--flavor',
+                    'android',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,
@@ -448,6 +450,8 @@
                     <Object>,
                     '--gyp_defines',
                     'skia_arch_width=32 skia_warnings_as_errors=0',
+                    '--flavor',
+                    'android',
                 ],
                 'description': 'RunGYP',
                 'doStepIf': <Object>,
@@ -468,7 +472,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -600,7 +604,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -732,7 +736,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -801,7 +805,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_install.py',
+                    '../../../../../../slave/skia_slave_scripts/install.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -866,7 +870,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_prebench.py',
+                    '../../../../../../slave/skia_slave_scripts/prebench.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -931,7 +935,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_run_bench.py',
+                    '../../../../../../slave/skia_slave_scripts/run_bench.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -996,7 +1000,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_bench_pictures.py',
+                    '../../../../../../slave/skia_slave_scripts/bench_pictures.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1061,7 +1065,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/android_postbench.py',
+                    '../../../../../../slave/skia_slave_scripts/postbench.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',

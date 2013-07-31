@@ -6,17 +6,12 @@
 """ Run GYP to generate project files. """
 
 from build_step import BuildStep
-from utils import shell_utils
-import os
 import sys
 
 
 class RunGYP(BuildStep):
   def _Run(self):
-    os.environ['GYP_DEFINES'] = self._args['gyp_defines']
-    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
-    python = 'python.bat' if os.name == 'nt' else 'python'
-    shell_utils.Bash([python, 'gyp_skia'])
+    self._flavor_utils.RunGYP()
 
 
 if '__main__' == __name__:

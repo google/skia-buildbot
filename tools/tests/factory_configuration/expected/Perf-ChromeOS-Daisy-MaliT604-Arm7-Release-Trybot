@@ -370,6 +370,8 @@
                     <Object>,
                     '--board',
                     'daisy',
+                    '--flavor',
+                    'chromeos',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,
@@ -433,6 +435,8 @@
                     'daisy',
                     '--gyp_defines',
                     'skia_arch_width=32 skia_warnings_as_errors=0',
+                    '--flavor',
+                    'chromeos',
                 ],
                 'description': 'RunGYP',
                 'doStepIf': <Object>,
@@ -453,7 +457,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -581,7 +585,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -709,7 +713,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_compile.py',
+                    '../../../../../../slave/skia_slave_scripts/compile.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -776,7 +780,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_install.py',
+                    '../../../../../../slave/skia_slave_scripts/install.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -839,7 +843,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_prebench.py',
+                    '../../../../../../slave/skia_slave_scripts/prebench.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -902,7 +906,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_run_bench.py',
+                    '../../../../../../slave/skia_slave_scripts/run_bench.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -965,7 +969,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_bench_pictures.py',
+                    '../../../../../../slave/skia_slave_scripts/bench_pictures.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1028,7 +1032,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/chromeos_postbench.py',
+                    '../../../../../../slave/skia_slave_scripts/postbench.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
