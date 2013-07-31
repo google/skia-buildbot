@@ -18,7 +18,7 @@ class RenderPictures(BuildStep):
   def DoRenderPictures(self, args, config='8888', write_images=True):
     # For now, don't run on Android, since it takes too long and we don't use
     # the results.
-    if hasattr(self, '_device'):
+    if 'Android' in self._builder_name:
       return
     cmd = ['-r', self._device_dirs.SKPDir(), '--config', config,
            '--mode', 'tile', str(DEFAULT_TILE_X), str(DEFAULT_TILE_Y)]
