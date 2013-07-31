@@ -38,8 +38,9 @@ class RunGM(BuildStep):
     # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
     if sys.platform == 'darwin':
       cmd.extend(['--config', 'defaults', '~msaa16'])
-    elif hasattr(self, '_device') and self._device in ['razr_i', 'nexus_10',
-                                                       'galaxy_nexus']:
+    elif ('RazrI' in self._builder_name or
+          'Nexus10' in self._builder_name or
+          'GalaxyNexus' in self._builder_name):
       cmd.extend(['--config', 'defaults', 'msaa4'])
     elif (not 'NoGPU' in self._builder_name and
           not 'ChromeOS' in self._builder_name):
