@@ -83,7 +83,8 @@ class Update(BuildStep):
           verbose=True,
           manually_grab_svn_rev=True,
           force=True,
-          delete_unversioned_trees=True)
+          delete_unversioned_trees=True,
+          jobs=1)
       got_revision = gclient_utils.GetCheckedOutRevision()
 
     # If the revision we actually got differs from what was requested, raise an
