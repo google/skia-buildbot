@@ -530,16 +530,6 @@ class SkiaFactory(BuildFactory):
     self.AddSlaveScript(script='check_for_regressions.py',
                         description='CheckForRegressions')
 
-  def BenchGraphs(self):
-    """ Generate bench performance graphs. """
-    self.AddSlaveScript(script='generate_bench_graphs.py',
-                        description='GenerateBenchGraphs')
-
-  def GenerateWebpagePictureBenchGraphs(self):
-    """ Generate webpage picture bench performance graphs. """
-    self.AddSlaveScript(script='generate_webpage_picture_bench_graphs.py',
-                        description='GenerateWebpagePictureBenchGraphs')
-
   def UpdateScripts(self):
     """ Update the buildbot scripts on the build slave. """
     self.AddSlaveScript(script=self.TargetPath.join('..', '..', '..', '..',
@@ -619,18 +609,6 @@ class SkiaFactory(BuildFactory):
     if self._do_patch_step:
       self.ApplyPatch()
 
-  def UploadBenchGraphs(self):
-    """ Upload bench performance graphs (but only if we have been
-    recording bench output for this build type). """
-    self.AddSlaveScript(script='upload_bench_graphs.py',
-                        description='UploadBenchGraphs')
-
-  def UploadWebpagePictureBenchGraphs(self):
-    """ Upload webpage picture bench performance graphs (but only if we have
-    been recording bench output for this build type). """
-    self.AddSlaveScript(script='upload_webpage_picture_bench_graphs.py',
-                        description='UploadWebpagePictureBenchGraphs')
-
   def UploadBenchResults(self):
     """ Upload bench results (performance data). """
     self.AddSlaveScript(script='upload_bench_results.py',
@@ -690,11 +668,9 @@ class SkiaFactory(BuildFactory):
     self.BenchPictures()
     self.PostBench()
     self.CheckForRegressions()
-    self.BenchGraphs()
     if self._do_upload_bench_results:
       self.UploadBenchResults()
       self.UploadBenchResultsToAppEngine()
-      self.UploadBenchGraphs()
 
   def Build(self, role=None, clobber=None):
     """Build and return the complete BuildFactory.
