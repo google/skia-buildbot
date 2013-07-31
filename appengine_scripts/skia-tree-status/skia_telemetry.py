@@ -42,7 +42,7 @@ class TelemetryInfo(db.Model):
   pagesets_source = db.LinkProperty(
       required=True,
       default='https://storage.cloud.google.com/chromium-skia-gm/telemetry/csv'
-              '/consolidated-outputs/top-1m.csv')
+              '/top-1m.csv')
   framework_msg = db.StringProperty()
 
   @classmethod
