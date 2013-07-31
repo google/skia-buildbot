@@ -65,6 +65,8 @@ def GetExtraFactoryArgs(compile_builder_info):
               'bench_pictures_cfg': 'angle'}
     elif compile_builder_info[4] == 'Valgrind':
       return {'flavor': 'valgrind'}
+    elif compile_builder_info[4] == 'ASAN':
+      return {'flavor': 'asan'}
     elif (compile_builder_info[0] == 'Ubuntu12' and 
           compile_builder_info[1] == 'Clang'):
       return {'environment_variables': {'CC': '/usr/bin/clang',
@@ -138,6 +140,7 @@ def Update(config, active_master, cfg):
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', None,          None,      True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
                                                                                             ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'Valgrind',    valgrind,  False, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'HD2000',      'Valgrind',    None)],
+      ('Ubuntu12', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'HD2000',      'ASAN',        None)],
       ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       None,          'base-shuttle_ubuntu12_ati5770')],
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [],
       ('Ubuntu12', 'Clang',  'Debug',   'x86_64', None,          None,      True,  f, p) : [],})
