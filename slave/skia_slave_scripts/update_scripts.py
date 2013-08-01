@@ -13,7 +13,11 @@ import os
 import sys
 
 
-BUILD_DIR_DEPTH = 5
+# Path to the buildbot slave checkout on this machine.  This variable must be
+# defined before the build step is run, since __file__ is a relative path and
+# will not be valid after changing directories in BuildStep.__init__().
+BUILDBOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                            os.pardir, os.pardir))
 
 
 class UpdateScripts(BuildStep):
@@ -21,8 +25,8 @@ class UpdateScripts(BuildStep):
     super(UpdateScripts, self).__init__(attempts=attempts, **kwargs)
 
   def _Run(self):
-    buildbot_dir = os.path.join(*[os.pardir for _i in range(BUILD_DIR_DEPTH)])
-    os.chdir(buildbot_dir)
+    print 'chdir to %s' % BUILDBOT_DIR
+    os.chdir(BUILDBOT_DIR)
     if os.name == 'nt':
       svn = 'svn.bat'
     else:

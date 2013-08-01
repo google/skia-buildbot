@@ -102,6 +102,20 @@ class BuildStep(multiprocessing.Process):
     self.no_output_timeout = no_output_timeout
     self.attempts = attempts
 
+    self._builder_name = args['builder_name']
+
+    # Change to the correct working directory. This is needed on Windows, where
+    # our path lengths would otherwise be too long.
+    if os.name == 'nt':
+      curdir = os.getcwd()
+      workdir = os.path.join('C:\\', os.environ['TESTING_SLAVENAME'],
+                             self._builder_name, curdir[curdir.rfind('build'):])
+      print 'chdir to %s' % workdir
+      if not os.path.isdir(workdir):
+        os.makedirs(workdir)
+      os.chdir(workdir)
+
+    # Import the flavor-specific build step utils module.
     flavor = args.get('flavor', 'default')
     try:
       flavor_utils_module_name = '%s_build_step_utils' % flavor
@@ -120,7 +134,7 @@ class BuildStep(multiprocessing.Process):
 
     self._configuration = args['configuration']
     self._gm_image_subdir = args['gm_image_subdir']
-    self._builder_name = args['builder_name']
+
     self._target_platform = args['target_platform']
     self._deps_target_os = \
         None if args['deps_target_os'] == 'None' else args['deps_target_os']
