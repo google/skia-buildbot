@@ -23,8 +23,8 @@ if os.name == 'nt':
 else:
   SVN = 'svn'
 
-WIN_PATCH = os.path.abspath(os.path.join(os.pardir, os.pardir, os.pardir,
-                                         os.pardir, os.pardir, 'GnuWin32',
+WIN_PATCH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir,
+                                         os.pardir, 'third_party', 'GnuWin32',
                                          'patch.exe'))
 
 
