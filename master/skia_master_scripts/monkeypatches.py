@@ -34,6 +34,7 @@ import config_private
 import json
 import slave_hosts_cfg
 import slaves_cfg
+import skia_vars
 
 
 CQ_TRYBOTS = [
@@ -205,6 +206,15 @@ class TryBuildersJsonResource(JsonResource):
                                           status.getBuilder(builder_name)))
 
 
+class CQRequiredStepsJsonResource(JsonResource):
+  help = 'List the steps which cannot fail on the commit queue.'
+  pageTitle = 'CQ Required Steps'
+
+  def asDict(self, request):
+    return {'cq_required_steps':
+                skia_vars.GetGlobalVariable('cq_required_steps')}
+
+
 def JsonStatusResourceInit(self, status):
   """ Override of buildbot.status.web.status_json.JsonStatusResource.__init__:
   http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4p1/buildbot/status/web/status_json.py?view=markup
@@ -227,6 +237,10 @@ def JsonStatusResourceInit(self, status):
   # Added to have a place to get the list of trybots run by the CQ.
   self.putChild('cqtrybots',
                 TryBuildersJsonResource(status, include_only_cq_trybots=True))
+  ##############################################################################
+  ############################## Added by borenet ##############################
+  # Added to have a place to get the list of steps which cannot fail on the CQ.
+  self.putChild('cq_required_steps', CQRequiredStepsJsonResource(status))
   ##############################################################################
 
   # This needs to be called before the first HelpResource().body call.

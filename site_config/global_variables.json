@@ -9,6 +9,20 @@
     "type": "string",
     "description": "URL of the project's code review site."
   },
+  "cq_required_steps": {
+    "value": [
+        "Retry_BuildAll",
+        "Retry_BuildBench",
+        "Retry_BuildGm",
+        "Retry_BuildMost",
+        "Retry_BuildSkiaLib",
+        "Retry_BuildTests",
+        "Retry_BuildTools",
+        "Retry_NoWarningsAsErrors_BuildAll"
+    ],
+    "type": "list",
+    "description": "Steps which are not allowed to fail on the commit queue."
+  },
   "current_sheriff_url": {
     "value": "https://skia-tree-status.appspot.com/current-sheriff",
     "type": "string",

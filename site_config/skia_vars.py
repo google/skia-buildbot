@@ -31,6 +31,8 @@ def GetGlobalVariable(var_name):
     return bool(_GLOBAL_VARIABLES[var_name]['value'])
   elif var_type == 'string':
     return str(_GLOBAL_VARIABLES[var_name]['value'])
+  elif var_type == 'list':
+    return list(_GLOBAL_VARIABLES[var_name]['value'])
   else:
     raise Exception('Unknown variable type: %s' % var_type)
 
