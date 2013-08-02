@@ -376,7 +376,6 @@ def main():
   # Gather command-line arguments.
   args = ParseArgs(sys.argv[1:])
 
-  subprocess.check_call([SVN, 'checkout', SVN_URL, '.'])
   subprocess.check_call([SVN, 'update'])
 
   global GLOBAL_VARIABLES
