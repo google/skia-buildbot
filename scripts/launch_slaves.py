@@ -8,14 +8,12 @@
 is intended to be run at boot time. """
 
 
-import errno
 import json
 import multiprocessing
 import os
 if os.name == 'nt':
   import win32api
   import string
-import posixpath
 import shutil
 import socket
 import subprocess
@@ -24,6 +22,8 @@ import time
 
 
 SVN_URL = 'http://skia.googlecode.com/svn/buildbot'
+GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
+SVN = 'svn.bat' if os.name == 'nt' else 'svn'
 
 
 def ReadFileFromSVN(filepath):
@@ -33,34 +33,6 @@ def ReadFileFromSVN(filepath):
 
   filepath: string; the file to read.
   """
-  if os.name == 'nt':
-    svn = 'svn.bat'
-  else:
-    svn = 'svn'
-  basedir, filename = posixpath.split(filepath)
-  if not os.path.isfile(filepath):
-    try:
-      os.makedirs(basedir)
-    except OSError as e:
-      if e.errno != errno.EEXIST or not os.path.isdir(basedir):
-        raise
-    proc = subprocess.Popen([svn, 'checkout', posixpath.join(SVN_URL, basedir),
-                             basedir, '--depth', 'empty'],
-                            stdout=subprocess.PIPE,  stderr=subprocess.STDOUT)
-    result = proc.wait()
-    if result != 0:
-      raise Exception('Failed to checkout %s:\n%s' % (filepath,
-                                                      proc.communicate()[0]))
-  old_cwd = os.path.abspath(os.curdir)
-  os.chdir(basedir)
-  proc = subprocess.Popen([svn, 'update', filename],
-                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-  exitcode = proc.wait()
-  os.chdir(old_cwd)
-  if not exitcode == 0:
-    print proc.communicate()[0]
-    raise Exception('Could not retrieve %s. Verify that the URL is valid and '
-                    'check your connection.' % filepath)
   return open(filepath).read()
 
 
@@ -70,7 +42,7 @@ def GetGlobalVariable(var_name):
 
 # How often we should check each buildslave's keepalive conditions, in seconds.
 DEFAULT_POLL_INTERVAL = 60
-DRIVE_MAPPING = True
+DRIVE_MAPPING = False
 GLOBAL_VARIABLES = None
 PID_FILE = os.path.join('buildbot', 'third_party', 'chromium_buildbot', 'slave',
                         'twistd.pid')
@@ -414,6 +386,9 @@ def main():
   """ Launch local build slave instances """
   # Gather command-line arguments.
   args = ParseArgs(sys.argv[1:])
+
+  subprocess.check_call([SVN, 'checkout', SVN_URL, '.'])
+  subprocess.check_call([SVN, 'update'])
 
   global GLOBAL_VARIABLES
   GLOBAL_VARIABLES = \
