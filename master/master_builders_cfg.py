@@ -116,7 +116,6 @@ def Update(config, active_master, cfg):
   gyp_exc = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
                   'skia_win_exceptions': '1'})
   gyp_10_6 = repr({'skia_osx_sdkroot': 'macosx10.6'})
-  gyp_10_7 = repr({'skia_mesa': '1'})
   gyp_ios = repr({'skia_os': 'ios'})
   no_gpu = repr({'skia_gpu': '0'})
   valgrind = repr({'skia_release_optimization_level': '1'})
@@ -157,11 +156,11 @@ def Update(config, active_master, cfg):
       ('Mac10.6',  'GCC',    'Debug',   'x86_64', None,          gyp_10_6,  False, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini')],
       ('Mac10.6',  'GCC',    'Release', 'x86_64', None,          gyp_10_6,  False, f, p) : [('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          'base-macmini'),
                                                                                             ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', None,          None)],
-      ('Mac10.7',  'Clang',  'Debug',   'x86',    None,          gyp_10_7,  True,  f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
-      ('Mac10.7',  'Clang',  'Release', 'x86',    None,          gyp_10_7,  True,  f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
+      ('Mac10.7',  'Clang',  'Debug',   'x86',    None,          None,      True,  f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
+      ('Mac10.7',  'Clang',  'Release', 'x86',    None,          None,      True,  f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
                                                                                             ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],
-      ('Mac10.7',  'Clang',  'Debug',   'x86_64', None,          gyp_10_7,  False, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
-      ('Mac10.7',  'Clang',  'Release', 'x86_64', None,          gyp_10_7,  False, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
+      ('Mac10.7',  'Clang',  'Debug',   'x86_64', None,          None,      False, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float')],
+      ('Mac10.7',  'Clang',  'Release', 'x86_64', None,          None,      False, f, p) : [('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-lion-float'),
                                                                                             ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', None,          None)],
       ('Mac10.8',  'Clang',  'Debug',   'x86',    None,          None,      True,  f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8')],
       ('Mac10.8',  'Clang',  'Release', 'x86',    None,          None,      True,  f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
