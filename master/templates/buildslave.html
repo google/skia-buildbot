@@ -12,21 +12,31 @@ This section adds information about the build slave's host machine, which may be
 relevant in diagnosing failures.
 -->
 {% for slave_host_name, slave_host_cfg in slave_hosts_cfg.iteritems() %}
-  {% if slavename in slave_host_cfg['slaves'] %}
-    <h2>Host Machine:</h2>
-    <table class="info">
-    {% set alt_class = cycler('alt', '') %}
-    {% for item in (('Hostname', slave_host_name),
-                    ('IP', slave_host_cfg.get('ip')),
-                    ('KVM #', slave_host_cfg.get('kvm_num')),
-                    ('Slaves', '<br/>'.join(slave_host_cfg.get('slaves', [])))) %}
-      {% if item[1] %}
-        {% set alt = alt_class.next() %}
-        <tr class="{{ alt }}"><td style="text-align: right;">{{ item[0] }}</td><td style="text-align: left;">{{ item[1] }}</td></tr>
-      {% endif %}
-    {% endfor %}
-    </table>
-  {% endif %}
+  {% for possible_slavename, slave_id in slave_host_cfg['slaves'] %}
+    {% if slavename == possible_slavename %}
+      <h2>Host Machine:</h2>
+      <table class="info">
+      {% set alt_class = cycler('alt', '') %}
+      {% for item in (('Hostname', slave_host_name),
+                      ('IP', slave_host_cfg.get('ip')),
+                      ('KVM #', slave_host_cfg.get('kvm_num'))) %}
+        {% if item[1] %}
+          {% set alt = alt_class.next() %}
+          <tr class="{{ alt }}"><td style="text-align: right;">{{ item[0] }}</td><td style="text-align: left;">{{ item[1] }}</td></tr>
+        {% endif %}
+      {% endfor %}
+      {% set alt = alt_class.next() %}
+      <tr class="{{ alt }}">
+        <td style="text-align: right;">Slaves</td>
+        <td style="text-align: left;">
+        {% for slave_name, slave_id in slave_host_cfg['slaves'] %}
+          {{ slave_name }}<br/>
+        {% endfor %}
+        </td>
+      </tr>
+      </table>
+    {% endif %}
+  {% endfor %}
 {% endfor %}
 
 {% if current %}

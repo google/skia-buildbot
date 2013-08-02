@@ -26,7 +26,10 @@ from utils import misc
 buildbot_root = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              os.pardir, os.pardir)
 sys.path.append(os.path.join(buildbot_root, 'site_config'))
+sys.path.append(os.path.join(buildbot_root, 'master'))
 
+import slave_hosts_cfg
+import slaves_cfg
 
 DEFAULT_TIMEOUT = 4800
 DEFAULT_NO_OUTPUT_TIMEOUT = 3600
@@ -82,6 +85,16 @@ class BuildStepLogger(object):
     self.stdout.flush()
 
 
+def _GetBuildSlaveID(desired_slave_name):
+  """ Returns the index of the build slave in the list of build slaves running
+  on this machine, in the form of a string. """
+  for host_dict in slave_hosts_cfg.SLAVE_HOSTS.itervalues():
+    for slave_name, slave_id in host_dict['slaves']:
+      if slave_name == desired_slave_name:
+        return slave_id
+  raise Exception('No build slave found with name %s' % desired_slave_name)
+
+
 class BuildStep(multiprocessing.Process):
 
   def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT,
@@ -103,13 +116,17 @@ class BuildStep(multiprocessing.Process):
     self.attempts = attempts
 
     self._builder_name = args['builder_name']
+    self._slavename = os.environ['TESTING_SLAVENAME']
 
     # Change to the correct working directory. This is needed on Windows, where
     # our path lengths would otherwise be too long.
     if os.name == 'nt':
       curdir = os.getcwd()
-      workdir = os.path.join('C:\\', os.environ['TESTING_SLAVENAME'],
-                             self._builder_name, curdir[curdir.rfind('build'):])
+      # The buildslave name and builder name combo is too long.  Instead, obtain
+      # a unique buildslave ID.
+      buildslave_id = _GetBuildSlaveID(self._slavename)
+      workdir = os.path.join('C:\\', buildslave_id, self._builder_name,
+                             curdir[curdir.rfind('build'):])
       print 'chdir to %s' % workdir
       if not os.path.isdir(workdir):
         os.makedirs(workdir)

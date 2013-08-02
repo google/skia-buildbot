@@ -40,29 +40,36 @@ class SlaveHostsCfgTest(unittest.TestCase):
     # Verify that every slave listed by a slave host is defined exactly once in
     # slaves.cfg.
     for slave_host_data in slave_hosts_cfg.SLAVE_HOSTS.itervalues():
-      for slave in slave_host_data['slaves']:
+      for slave_name, _ in slave_host_data['slaves']:
         found_slave = False
         for slave_cfg in slaves:
-          if slave_cfg['hostname'] == slave:
+          if slave_cfg['hostname'] == slave_name:
             self.assertFalse(found_slave,
-                'Slave %s is defined more than once in slaves.cfg' % slave)
+                'Slave %s is defined more than once in slaves.cfg' % slave_name)
             found_slave = True
         self.assertTrue(found_slave,
-                        'Slave %s is not defined in slaves.cfg' % slave)
+                        'Slave %s is not defined in slaves.cfg' % slave_name)
 
     # Verify that every slave listed in slaves.cfg is associated with exactly
     # one host in slave_hosts_cfg.py.
     for slave_cfg in slaves:
       found_slave = False
       for slave_host_data in slave_hosts_cfg.SLAVE_HOSTS.itervalues():
-        for slave in slave_host_data['slaves']:
-          if slave_cfg['hostname'] == slave:
+        for slave_name, _ in slave_host_data['slaves']:
+          if slave_cfg['hostname'] == slave_name:
             self.assertFalse(found_slave,
-                'Slave %s is listed for more than one host' % slave)
+                'Slave %s is listed for more than one host' % slave_name)
             found_slave = True
       self.assertTrue(found_slave,
                       ('Slave %s is not defined in slaves_hosts_cfg.py' %
                           slave_cfg['hostname']))
+
+    # Verify that the ID for each slave on a given host is unique.
+    for slave_host_data in slave_hosts_cfg.SLAVE_HOSTS.itervalues():
+      known_ids = []
+      for slave_name, slave_id in slave_host_data['slaves']:
+        self.assertFalse(slave_id in known_ids,
+            'Slave %s has non-unique id %s' % (slave_name, slave_id))
 
 if __name__ == '__main__':
   unittest.main()

@@ -391,7 +391,7 @@ def main():
   slaves = slave_host['slaves']
   copies = slave_host['copies']
   print 'Attempting to launch build slaves:'
-  for slavename in slaves:
+  for slavename, _ in slaves:
     print '  %s' % slavename
 
   # Obtain buildslave-specific configuration information.
@@ -403,7 +403,7 @@ def main():
     UnmapDriveLetters()
 
   # Launch the build slaves
-  for slavename in slaves:
+  for slavename, _ in slaves:
     RunSlave(slavename, copies, slaves_cfg, master_host)
 
 
