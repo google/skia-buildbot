@@ -381,7 +381,7 @@ def main():
 
   global GLOBAL_VARIABLES
   GLOBAL_VARIABLES = \
-      json.load(os.path.join('site_config', 'global_variables.json'))
+      json.load(open(os.path.join('site_config', 'global_variables.json')))
   master_host = args.master_host or GetGlobalVariable('master_host')
   print 'Using master_host: %s' % master_host
 
