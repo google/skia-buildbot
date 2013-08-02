@@ -26,16 +26,6 @@ GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
 SVN = 'svn.bat' if os.name == 'nt' else 'svn'
 
 
-def ReadFileFromSVN(filepath):
-  """ Return the entire contents of the file at the given filepath as a string.
-  Obtains or updates the file from svn.  Raises an exception if there were any
-  errors.
-
-  filepath: string; the file to read.
-  """
-  return open(filepath).read()
-
-
 def GetGlobalVariable(var_name):
   return GLOBAL_VARIABLES[var_name]['value']
 
@@ -292,7 +282,7 @@ def GetCfg(filepath):
   
   filepath: string; the filepath of the file to load.
   """
-  file_contents = ReadFileFromSVN(filepath)
+  file_contents = open(filepath).read()
   config_vars = {}
   exec(file_contents, config_vars)
   return config_vars
@@ -302,7 +292,6 @@ def GetSlaveHostCfg():
   """ Retrieve the latest slave_hosts_cfg.py file from the SVN repository and
   return the slave host configuration for this machine.
   """
-  ReadFileFromSVN('site_config/slave_hosts_cfg.py')
   sys.path.append(os.path.join(os.path.abspath(os.curdir), 'site_config'))
   import slave_hosts_cfg
   return slave_hosts_cfg.GetSlaveHostConfig(socket.gethostname())
@@ -392,7 +381,7 @@ def main():
 
   global GLOBAL_VARIABLES
   GLOBAL_VARIABLES = \
-      json.loads(ReadFileFromSVN('site_config/global_variables.json'))
+      json.loads(os.path.join('site_config', 'global_variables.json'))
   master_host = args.master_host or GetGlobalVariable('master_host')
   print 'Using master_host: %s' % master_host
 
