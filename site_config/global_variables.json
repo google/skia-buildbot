@@ -11,6 +11,23 @@
   },
   "cq_required_steps": {
     "value": [
+      "BuildBench",
+      "BuildGm",
+      "BuildMost",
+      "BuildSkiaLib",
+      "BuildTests",
+      "BuildTools"
+    ],
+    "type": "list",
+    "description": "Steps which are not allowed to fail on the commit queue."
+  },
+  "current_sheriff_url": {
+    "value": "https://skia-tree-status.appspot.com/current-sheriff",
+    "type": "string",
+    "description": "URL that displays the current sheriff and his/her schedule."
+  },
+  "gatekeeper_steps": {
+    "value": [
         "Retry_BuildAll",
         "Retry_BuildBench",
         "Retry_BuildGm",
@@ -21,12 +38,7 @@
         "Retry_NoWarningsAsErrors_BuildAll"
     ],
     "type": "list",
-    "description": "Steps which are not allowed to fail on the commit queue."
-  },
-  "current_sheriff_url": {
-    "value": "https://skia-tree-status.appspot.com/current-sheriff",
-    "type": "string",
-    "description": "URL that displays the current sheriff and his/her schedule."
+    "description": "Steps which trigger the gatekeeper on failure."
   },
   "googlestorage_bucket": {
     "value": "gs://chromium-skia-gm",
