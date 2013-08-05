@@ -83,11 +83,11 @@ class UpdateInfo(object):
         chromium_rev = '0'
         # There was an exception retry the command.
         continue
-      os.chdir(old_cwd)
       print 'skia_rev: %s' % skia_rev
       print 'chromium_rev: %s' % chromium_rev
       break
 
+    os.chdir(old_cwd)
     # Now communicate with the skia-telemetry webapp.
     update_info_url = '%s%s' % (
         appengine_constants.SKIA_TELEMETRY_WEBAPP.replace('http', 'https'),
