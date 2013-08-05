@@ -10,24 +10,13 @@ import os
 import sys
 
 from build_step import BuildStep, BuildStepWarning
-from utils import misc, shell_utils
+from utils import misc
 import run_gm
 
 class CompareGMs(BuildStep):
   def _Run(self):
     json_summary_path = misc.GetAbsPath(os.path.join(
         self._gm_actual_dir, run_gm.JSON_SUMMARY_FILENAME))
-
-    # TODO(epoger): It would be better to call the Python code in
-    # display_json_results.py directly, rather than going through the
-    # shell and launching another Python interpreter.  See
-    # https://code.google.com/p/skia/issues/detail?id=1298 ('buildbots:
-    # augment slave-side PYTHON_PATH, so slave-side scripts can easily call
-    # Python code in Skia trunk')
-    cmd = ['python',
-           os.path.join('gm', 'display_json_results.py'),
-           json_summary_path,
-           ]
 
     # Temporary list of builders who are allowed to fail this step without the
     # bot turning red.
@@ -49,13 +38,15 @@ class CompareGMs(BuildStep):
         'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Release',
         'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Release-Trybot',
         ]
-    try:
-      shell_utils.Bash(cmd)
-    except Exception as e:
+    # This import must happen after BuildStep.__init__ because it requires that
+    # CWD is in PYTHONPATH, and BuildStep.__init__ may change the CWD.
+    from gm import display_json_results
+    if not display_json_results.Display(json_summary_path):
       if self._builder_name in may_fail_with_warning:
-        raise BuildStepWarning(e)
+        raise BuildStepWarning('Expectations mismatch in %s!' %
+                               json_summary_path)
       else:
-        raise
+        raise Exception('Expectations mismatch in %s!' % json_summary_path)
 
 
 if '__main__' == __name__:

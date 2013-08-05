@@ -32,7 +32,7 @@ class UploadBenchResultsToAppengine(BuildStep):
            '-m', representation,
            '-a', skia_vars.GetGlobalVariable('skia_dashboard_add_point_url'),
            ]
-    if self._builder_name.find('_Win') >= 0:
+    if os.name == 'nt':
       cmd.extend(['-i', 'c'])  # Ignore cpu time for Windows.
 
     shell_utils.Bash(cmd)

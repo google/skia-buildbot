@@ -132,6 +132,9 @@ class BuildStep(multiprocessing.Process):
         os.makedirs(workdir)
       os.chdir(workdir)
 
+    # Add CWD to the PYTHONPATH
+    sys.path.append(os.getcwd())
+
     # Import the flavor-specific build step utils module.
     flavor = args.get('flavor', 'default')
     try:
