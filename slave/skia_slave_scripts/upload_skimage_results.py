@@ -41,10 +41,10 @@ class UploadSKImageResults(BuildStep):
                          sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 
   def _Run(self):
-    if self._do_upload_results and self._gm_image_subdir:
+    if self._do_upload_results:
       # Copy actual images and expectations to Google Storage.
       print '\n\n========Uploading skimage results to Google Storage=======\n\n'
-      relative_dir = posixpath.join('skimage', 'output', self._gm_image_subdir)
+      relative_dir = posixpath.join('skimage', 'output', self._builder_name)
       gs_utils.UploadDirectoryContentsIfChanged(
           gs_base=self._dest_gsbase,
           gs_relative_dir=relative_dir,

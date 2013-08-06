@@ -12,6 +12,8 @@ class RunDecodingTests(BuildStep):
   def _Run(self):
     cmd = ['-r', self._device_dirs.SKImageInDir(), '--noreencode']
 
+    # TODO(scroggo): Once we have expectations files with the new name,
+    # the expectations_name will use self._builder_name
     if self._gm_image_subdir is not None:
       expectations_name = self._gm_image_subdir + '.json'
 
