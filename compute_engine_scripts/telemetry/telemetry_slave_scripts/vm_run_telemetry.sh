@@ -58,8 +58,8 @@ fi
 
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Clean and create the skp output directory.
-  rm -rf /home/default/storage/skps
-  mkdir -p /home/default/storage/skps/
+  rm -rf /home/default/storage/skps/$PAGESETS_TYPE
+  mkdir -p /home/default/storage/skps/$PAGESETS_TYPE/
 fi
 
 OUTPUT_DIR=/home/default/storage/telemetry_outputs/$RUN_ID
@@ -114,30 +114,30 @@ gsutil cp /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm
 
 # Special handling for skpicture_printer, SKP files need to be copied to Google Storage.
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
-  gsutil rm -R gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/*
-  sudo chown -R default:default /home/default/storage/skps
-  cd /home/default/storage/skps
+  gsutil rm -R gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/*
+  sudo chown -R default:default /home/default/storage/skps/$PAGESETS_TYPE
+  cd /home/default/storage/skps/$PAGESETS_TYPE
   SKP_LIST=`find . -mindepth 1 -maxdepth 1 -type d  \( ! -iname ".*" \) | sed 's|^\./||g'`
   for SKP in $SKP_LIST; do
-    mv /home/default/storage/skps/$SKP/layer_0.skp /home/default/storage/skps/$SKP.skp
+    mv /home/default/storage/skps/$PAGESETS_TYPE/$SKP/layer_0.skp /home/default/storage/skps/$PAGESETS_TYPE/$SKP.skp
   done
 
   # Leave only SKP files in the skps directory.
-  rm -rf /home/default/storage/skps/*/
+  rm -rf /home/default/storage/skps/$PAGESETS_TYPE/*/
 
   # Delete all SKP files less than 10K (they will be the ones with errors).
   find . -type f -size -10k
   find . -type f -size -10k -exec rm {} \;
 
   # Now copy the SKP files to Google Storage. 
-  gsutil cp /home/default/storage/skps/* \
-    gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/
+  gsutil cp /home/default/storage/skps/$PAGESETS_TYPE/* \
+    gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/
 
   # Create a TIMESTAMP file and copy it to Google Storage.
   TIMESTAMP=`date +%s`
   echo $TIMESTAMP > /tmp/$TIMESTAMP
-  cp /tmp/$TIMESTAMP /home/default/storage/skps/TIMESTAMP
-  gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/TIMESTAMP
+  cp /tmp/$TIMESTAMP /home/default/storage/skps/$PAGESETS_TYPE/TIMESTAMP
+  gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/TIMESTAMP
   rm /tmp/$TIMESTAMP
 fi
 
