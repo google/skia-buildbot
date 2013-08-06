@@ -21,6 +21,10 @@ def BenchArgs(repeats, data_file):
 
 
 class RunBench(BuildStep):
+  def __init__(self, timeout=9600, no_output_timeout=9600, **kwargs):
+    super(RunBench, self).__init__(timeout=timeout,
+                                   no_output_timeout=no_output_timeout,
+                                   **kwargs)
 
   BENCH_REPEAT_COUNT = 20
 
