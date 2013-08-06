@@ -327,6 +327,7 @@ def Update(config, active_master, cfg):
                                            compiler='Ninja',
                                            target_arch='x86_64',
                                            configuration='Default'),
+       skia_factory.TARGET_PLATFORM_LINUX,
        canary_factory.CanaryFactory,
        'skia_rel',
        {
@@ -334,23 +335,44 @@ def Update(config, active_master, cfg):
         'flavor': 'chrome',
         'build_subdir': 'src',
         'path_to_skia': ['third_party', 'skia']
+       }),
+      (builder_name_schema.MakeBuilderName(role='Canary',
+                                           project='Chrome',
+                                           os='Win7',
+                                           compiler='Ninja',
+                                           target_arch='x86',
+                                           configuration='SharedLib'),
+       skia_factory.TARGET_PLATFORM_WIN32,
+       canary_factory.CanaryFactory,
+       'skia_rel',
+       {
+        'build_targets': ['chrome'],
+        'flavor': 'chrome',
+        'build_subdir': 'src',
+        'path_to_skia': ['third_party', 'skia'],
+        'gyp_defines': {
+          'component': 'shared_library',
+        },
        })
   ]
   # Add corresponding trybot builders to the above list.
   canaries.extend([
       (builder + builder_name_schema.BUILDER_NAME_SEP + \
            builder_name_schema.TRYBOT_NAME_SUFFIX,
+       target_platform,
        factory,
        utils.TRY_SCHEDULERS_STR,
        factory_args)
-      for (builder, factory, _scheduler, factory_args) in canaries])
+      for (builder, target_platform, factory, _scheduler,
+           factory_args) in canaries])
 
-  for (builder_name, factory, scheduler, factory_args) in canaries:
+  for (builder_name, target_platform, factory, scheduler,
+       factory_args) in canaries:
     helper.Builder(builder_name, 'f_%s' % builder_name, scheduler=scheduler)
     helper.Factory('f_%s' % builder_name,
         factory(
             do_upload_results=do_upload_results,
-            target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+            target_platform=target_platform,
             builder_name=builder_name,
             do_patch_step=(scheduler == utils.TRY_SCHEDULERS_STR),
             **factory_args
