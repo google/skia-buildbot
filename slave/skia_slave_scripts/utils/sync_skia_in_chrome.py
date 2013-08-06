@@ -5,12 +5,12 @@
 
 """ Create (if needed) and sync a nested checkout of Skia inside of Chrome. """
 
+from common import chromium_utils
+from optparse import OptionParser
 
 import gclient_utils
-from optparse import OptionParser
 import os
 import shell_utils
-import shutil
 import sys
 
 
@@ -96,11 +96,11 @@ def Sync(skia_revision=None, chrome_revision=None):
     if os.path.isfile('LICENSE'):
       os.remove('LICENSE')
     if os.path.isdir('gyp'):
-      shutil.rmtree('gyp')
+      chromium_utils.RemoveDirectory('gyp')
     if os.path.isdir('include'):
-      shutil.rmtree('include')
+      chromium_utils.RemoveDirectory('include')
     if os.path.isdir('src'):
-      shutil.rmtree('src')
+      chromium_utils.RemoveDirectory('src')
     shell_utils.Bash([SVN, 'checkout', '%s@%s' % (SKIA_SVN_URL, skia_revision),
                       os.curdir])
 

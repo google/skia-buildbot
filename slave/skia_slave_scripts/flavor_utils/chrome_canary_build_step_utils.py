@@ -14,6 +14,8 @@ import os
 
 class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
   def Compile(self, target):
+    if not os.path.isdir('out'):
+      self.RunGYP()
     if 'VS2012' in self._step.builder_name:
       os.environ['GYP_MSVS_VERSION'] = '2012'
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
@@ -27,10 +29,13 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
     shell_utils.Bash(cmd)
 
   def MakeClean(self):
-    chromium_utils.RemoveDirectory('out')
+    if os.path.isdir('out'):
+      chromium_utils.RemoveDirectory('out')
 
   def RunGYP(self):
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
+    os.environ['GYP_GENERATORS'] = 'ninja'
+    print 'GYP_GENERATORS="%s"' % os.environ['GYP_GENERATORS']
     python = 'python.bat' if os.name == 'nt' else 'python'
     shell_utils.Bash([python, os.path.join('build', 'gyp_chromium')])
