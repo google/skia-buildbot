@@ -6,7 +6,9 @@
 
 import datetime
 import json
+import logging
 import re
+import urllib2
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
@@ -176,6 +178,31 @@ class AllStatusPage(BasePage):
     else:
       self.response.headers['Content-Type'] = 'text/plain'
       self.response.out.write('Invalid format')
+
+
+class LkgrPage(BasePage):
+  """Displays Skia's LKGR.
+
+  Parses http://src.chromium.org/viewvc/chrome/trunk/src/DEPS to get this
+  information. The justification for this is that a Skia rev makes it into
+  Chromium after passing all required tests.
+  """
+
+  def get(self):
+    """Displays Skia's LKGR."""
+    try:
+      chromium_deps = urllib2.urlopen(
+          'http://src.chromium.org/viewvc/chrome/trunk/src/DEPS')
+      for line in chromium_deps.readlines():
+        if 'skia_revision' in line:
+          skia_lkgr = re.match('.*skia_revision.*?([0-9]+).*', line).group(1)
+          break
+      else:
+        raise Exception('Could not find skia_revision!')
+    except Exception, e:
+      skia_lkgr = -1
+      logging.error(e)
+    self.response.out.write(skia_lkgr)
 
 
 class BannerStatusPage(BasePage):
