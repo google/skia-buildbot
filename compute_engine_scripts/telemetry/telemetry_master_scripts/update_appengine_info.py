@@ -66,7 +66,7 @@ class UpdateInfo(object):
         'svnversion' ,
         '.']
     # Sometimes 'svnversion .' returns the wrong output and needs to be retried.
-    for _ in range(5):
+    for _ in range(10):
       svnversion_output = subprocess.Popen(
           version_cmd,
           stdout=subprocess.PIPE,
