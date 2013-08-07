@@ -20,6 +20,11 @@ TELEMETRY_ADMINS = (
     'rmistry@google.com',
 )
 
+PDF_ADMINS = (
+    'edisonn@google.com',
+    'rmistry@google.com',
+)
+
 PAGESET_TYPES = (
     'All',
     'Filtered',
@@ -104,6 +109,7 @@ class LuaTasks(db.Model):
   username = db.StringProperty(required=True)
   lua_script = db.TextProperty(required=True)
   lua_script_link = db.LinkProperty()
+  pagesets_type = db.StringProperty()
   requested_time = db.DateTimeProperty(required=True)
   completed_time = db.DateTimeProperty()
   lua_output_link = db.LinkProperty()
@@ -208,6 +214,7 @@ def add_telemetry_info_to_template(template_values, user_email,
   template_values['num_skp_files'] = telemetry_info.num_skp_files
   template_values['last_updated'] = telemetry_info.last_updated
   template_values['admin'] = user_email in TELEMETRY_ADMINS
+  template_values['pdf_admin'] = user_email in PDF_ADMINS
   template_values['is_google_chromium_user'] = is_google_chromium_user
   template_values['pagesets_source'] = telemetry_info.pagesets_source
   template_values['framework_msg'] = telemetry_info.framework_msg
@@ -283,6 +290,7 @@ class LuaScriptPage(BasePage):
     requested_time = datetime.datetime.now()
     lua_script = db.Text(self.request.get('lua_script'))
     description = self.request.get('description')
+    pagesets_type = self.request.get('pagesets_type')
     if not description:
       description = 'None'
 
@@ -297,6 +305,7 @@ class LuaScriptPage(BasePage):
       LuaTasks(
           username=self.user.email(),
           lua_script=lua_script,
+          pagesets_type=pagesets_type,
           requested_time=requested_time,
           description=description).put()
       self.redirect('lua_script')
@@ -311,6 +320,7 @@ class LuaScriptPage(BasePage):
 
     lua_tasks = LuaTasks.get_all_lua_tasks_of_user(self.user.email())
     template_values['lua_tasks'] = lua_tasks
+    template_values['pageset_types'] = PAGESET_TYPES
 
     self.DisplayTemplate('lua_script.html', template_values)
 
@@ -464,6 +474,7 @@ class GetLuaTasksPage(BasePage):
       task_dict['key'] = task.key().id_or_name()
       task_dict['username'] = task.username
       task_dict['lua_script'] = task.lua_script
+      task_dict['pagesets_type'] = task.pagesets_type
       tasks_dict[count] = task_dict
       count += 1
     self.response.out.write(json.dumps(tasks_dict, sort_keys=True))
@@ -620,6 +631,7 @@ def bootstrap():
     LuaTasks(
         username='Admin',
         lua_script='Test Lua Script',
+        pagesets_type='Test type',
         requested_time=datetime.datetime.now(),
         completed_time=datetime.datetime.now()).put()
 

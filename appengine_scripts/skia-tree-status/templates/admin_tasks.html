@@ -12,7 +12,7 @@
 <form action="/skia-telemetry/admin_tasks" name="all_admin_tasks" method="post">
   <table cellpadding="5" border="1">
     <tr>
-      <td align="center" colspan="3">
+      <td align="center" colspan="4">
         <input type="submit" value="Rebuild Chrome" name="admin_task" {% if not admin %}disabled{% endif %}>
       </td>
     </tr>
@@ -29,6 +29,9 @@
       </td>
       <td align="center">
         <input type="submit" value="Recreate Webpage Archives" name="admin_task" {% if not admin %}disabled{% endif %}>
+      </td>
+      <td align="center">
+        <input type="submit" value="PDFViewer Diff" name="admin_task" {% if not pdf_admin %}disabled{% endif %}>
       </td>
     </tr>
   </table>
