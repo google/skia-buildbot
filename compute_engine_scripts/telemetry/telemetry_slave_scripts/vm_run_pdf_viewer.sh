@@ -11,18 +11,20 @@
 # Author: rmistry@google.com (Ravi Mistry)
 
 
-if [ $# -ne 2 ]; then
+if [ $# -ne 3 ]; then
   echo
   echo "Usage: `basename $0` 1 rmistry2013-05-24.07-34-05"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
   echo "The second argument is the runid (typically requester + timestamp)."
-  echo
+  echo "The third argument is the type of pagesets to create from the 1M list" \
+       "Eg: All, Filtered, 100k, 10k, Deeplinks."
   exit 1
 fi
 
 SLAVE_NUM=$1
 RUN_ID=$2
+PAGESETS_TYPE=$3
 
 source vm_utils.sh
 
@@ -46,10 +48,10 @@ if [ -e /etc/boto.cfg ]; then
 fi
 
 # Download the SKP files from Google Storage if the local TIMESTAMP is out of date.
-mkdir -p /home/default/storage/skps/
-are_timestamps_equal /home/default/storage/skps gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM
+mkdir -p /home/default/storage/skps/$PAGESETS_TYPE/
+are_timestamps_equal /home/default/storage/skps/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE
 if [ $? -eq 1 ]; then
-  gsutil cp gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/* /home/default/storage/skps/
+  gsutil cp gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/* /home/default/storage/skps/$PAGESETS_TYPE/
 fi
 
 # Create directories for outputs of this script.
@@ -66,12 +68,12 @@ safe_logs_dir=$(printf '%s\n' "$LOGS_DIR" | sed 's/[\&/]/\\&/g')
 
 # Run render_pictures, render_pdfs, pdfviewer and skpdiff, in parallel - will use by all available cores
 # Allow 5 minutes (300 seconds) for each skp to be proccessed.
-ls /home/default/storage/skps/*.skp | sed "s/^/${safe_tools}\/vm_timeout\.sh -t 300 ${safe_tools}\/vm_pdf_viewer_run_one_skp.sh ${safe_logs_dir} /" | parallel
+ls /home/default/storage/skps/$PAGESETS_TYPE/*.skp | sed "s/^/${safe_tools}\/vm_timeout\.sh -t 300 ${safe_tools}\/vm_pdf_viewer_run_one_skp.sh ${safe_logs_dir} /" | parallel
 
 # Merge all csv files in one result.csv file
 cat $LOGS_DIR/csv/* | sort | uniq -u >$LOGS_DIR/result/result.csv
 
-ls /home/default/storage/skps/ | sed "s/\.skp//" >$LOGS_DIR/result/skp.csv
+ls /home/default/storage/skps/$PAGESETS_TYPE/ | sed "s/\.skp//" >$LOGS_DIR/result/skp.csv
 ls $LOGS_DIR/expected/ | sed "s/\.png//" >$LOGS_DIR/result/expected.csv
 ls $LOGS_DIR/pdf/ | sed "s/\.pdf//" >$LOGS_DIR/result/pdf.csv
 ls $LOGS_DIR/actual/ | sed "s/\.png//" >$LOGS_DIR/result/actual.csv
