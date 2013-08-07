@@ -127,8 +127,8 @@
     {% for task in admin_tasks %}
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
       <td>{{ task.username }}</td>
-      <td>{{ task.pagesets_type }}</td>
       <td>{{ task.task_name }}</td>
+      <td>{{ task.pagesets_type }}</td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}
