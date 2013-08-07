@@ -63,6 +63,10 @@ def process_admin_tasks(pending_tasks):
     elif task_name == appengine_constants.WEBPAGE_ARCHIVES_ADMIN_TASK_NAME:
       cmd = 'bash vm_capture_archives_on_slaves.sh %s %s %s' % (
           username, task_key, pagesets_type)
+    elif task_name == appengine_constants.PDFVIEWER_ADMIN_TASK_NAME:
+      run_id = '%s-%s' % (task['username'].split('@')[0], time.time())
+      cmd = 'bash vm_run_pdf_viewer_on_slaves.sh %s %s %s %s %s' % (
+          username, run_id, pagesets_type, task_key, log_file)
     subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                      stderr=open(log_file, 'w'))
 
@@ -71,6 +75,7 @@ def process_lua_tasks(pending_tasks):
   for key in sorted(pending_tasks.keys()):
     task = pending_tasks[key]
     task_key = task['key']
+    pagesets_type = task['pagesets_type']
     if task_key in LUA_ENCOUNTERED_KEYS:
       print '%s is already being processed' % task_key
       continue
@@ -84,8 +89,8 @@ def process_lua_tasks(pending_tasks):
 
     # Now call the vm_run_lua_on_slaves.sh script.
     log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
-    cmd = 'bash vm_run_lua_on_slaves.sh %s %s %s %s' % (
-        lua_file, run_id, task['username'], task_key)
+    cmd = 'bash vm_run_lua_on_slaves.sh %s %s %s %s %s' % (
+        lua_file, run_id, pagesets_type, task['username'], task_key)
     print 'Lua output will be available in %s' % log_file
     subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                      stderr=open(log_file, 'w'))

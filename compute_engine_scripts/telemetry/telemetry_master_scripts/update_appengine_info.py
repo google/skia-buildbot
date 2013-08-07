@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 import appengine_constants
 
@@ -52,7 +53,7 @@ class UpdateInfo(object):
     num_skp_files_cmd = [
         'bash',
         '-c',
-        'gsutil ls -l gs://chromium-skia-gm/telemetry/skps/*/*.skp | wc -l']
+        'gsutil ls -l gs://chromium-skia-gm/telemetry/skps/*/All/*.skp | wc -l']
     num_skp_files = subprocess.Popen(
         num_skp_files_cmd,
         stdout=subprocess.PIPE,
@@ -76,17 +77,20 @@ class UpdateInfo(object):
           r'([0-9]+):([0-9]+).*', svnversion_output, re.M|re.I)
       try:
         skia_rev = match_obj.group(1)
+        if skia_rev <= 1:
+          raise Exception('Got an invalid skia revision!')
         chromium_rev = match_obj.group(2)
       except Exception as e:
         print e
         skia_rev = '0'
         chromium_rev = '0'
-        # There was an exception retry the command.
+        # There was an exception retry the command after sleeping.
+        time.sleep(5)
         continue
-      print 'skia_rev: %s' % skia_rev
-      print 'chromium_rev: %s' % chromium_rev
       break
 
+    print 'skia_rev: %s' % skia_rev
+    print 'chromium_rev: %s' % chromium_rev
     os.chdir(old_cwd)
     # Now communicate with the skia-telemetry webapp.
     update_info_url = '%s%s' % (

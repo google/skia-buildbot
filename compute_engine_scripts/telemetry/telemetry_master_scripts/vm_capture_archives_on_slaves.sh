@@ -46,7 +46,6 @@ done
 
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_capture_archives.sh $SLAVE_NUM $PAGESETS_TYPE"
-  # Still trying to figure the below now.
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
     -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; svn update; $CMD > /tmp/capture_archives_output.txt 2>&1"

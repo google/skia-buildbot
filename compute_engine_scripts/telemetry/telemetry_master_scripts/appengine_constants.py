@@ -16,4 +16,5 @@ GET_LUA_TASKS_SUBPATH = 'get_lua_tasks'
 
 CHROME_ADMIN_TASK_NAME = 'Rebuild Chrome'
 PAGESETS_ADMIN_TASK_NAME = 'Recreate Pagesets'
+PDFVIEWER_ADMIN_TASK_NAME = 'PDFViewer Diff'
 WEBPAGE_ARCHIVES_ADMIN_TASK_NAME = 'Recreate Webpage Archives'

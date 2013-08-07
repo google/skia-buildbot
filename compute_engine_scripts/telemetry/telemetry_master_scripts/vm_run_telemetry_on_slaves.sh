@@ -24,8 +24,8 @@ if [ $# -lt 6 ]; then
   echo "The fourth argument is a unique runid (typically requester + timestamp)."
   echo "The fifth argument is the email address of the requester."
   echo "The sixth argument is the key of the appengine telemetry task."
-  echo "The seventh argument is location of the log file."
-  echo "The eigth argument is the local location of the optional whitelist file."
+  echo "The seventh argument is the location of the log file."
+  echo "The eight argument is the local location of the optional whitelist file."
   echo
   exit 1
 fi
