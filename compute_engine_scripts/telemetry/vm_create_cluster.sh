@@ -71,6 +71,7 @@ https://developers.google.com/compute/docs/networking#mailserver using skia.buil
   * Run 'sudo apt-get update; sudo apt-get -y install libgif-dev libgl1-mesa-dev libglu-dev gdb unzip linux-tools parallel' on the slaves using vm_run_command_on_slaves.sh. This step will not be required when the image is recaptured.
   * Update buildbot and trunk directory of all slaves by running vm_run_command_on_slaves.sh (Will have to 'rm -rf third_party/externals/*' in trunk).
   * Start the /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_poller.py script.
+  * Run 'git config --global user.name' and 'git config --global user.email' on the master.
   * Trigger 'Rebuild Chrome' from http://skia-tree-status.appspot.com/skia-telemetry/.
 
 INP

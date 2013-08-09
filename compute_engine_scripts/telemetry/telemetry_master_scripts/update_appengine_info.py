@@ -6,15 +6,14 @@
 """Module that updates the skia-telemetry AppEngine WebApp information."""
 
 import os
-import re
 import subprocess
 import sys
-import time
 
 import appengine_constants
 
 
 CHROME_SRC = '/home/default/storage/chromium-trunk/src/'
+SKIA_SRC = CHROME_SRC + 'third_party/skia/'
 CHROME_BINARY_LOCATION = CHROME_SRC + 'out/Release/chrome'
 
 
@@ -41,7 +40,8 @@ class UpdateInfo(object):
     num_archives_cmd = [
         'bash',
         '-c',
-        'gsutil ls -l gs://chromium-skia-gm/telemetry/webpages_archive/*/All/*.json | wc -l']
+        'gsutil ls -l gs://chromium-skia-gm/telemetry/webpages_archive' \
+        '/*/All/*.json | wc -l']
     num_archives = subprocess.Popen(
         num_archives_cmd,
         stdout=subprocess.PIPE,
@@ -62,36 +62,27 @@ class UpdateInfo(object):
 
     # Get Chromium and Skia revisions.
     old_cwd = os.getcwd()
-    os.chdir(CHROME_SRC)
-    version_cmd = [
-        'svnversion' ,
+    chromium_version_cmd = [
+        'git',
+        'rev-parse',
+        'HEAD']
+    skia_version_cmd = [
+        'svnversion',
         '.']
-    # Sometimes 'svnversion .' returns the wrong output and needs to be retried.
-    for _ in range(10):
-      svnversion_output = subprocess.Popen(
-          version_cmd,
-          stdout=subprocess.PIPE,
-          stderr=subprocess.STDOUT).communicate()[0].rstrip()
-      print 'svnversion output: %s' % svnversion_output
-      match_obj = re.search(
-          r'([0-9]+):([0-9]+).*', svnversion_output, re.M|re.I)
-      try:
-        skia_rev = match_obj.group(1)
-        if skia_rev <= 1:
-          raise Exception('Got an invalid skia revision!')
-        chromium_rev = match_obj.group(2)
-      except Exception as e:
-        print e
-        skia_rev = '0'
-        chromium_rev = '0'
-        # There was an exception retry the command after sleeping.
-        time.sleep(5)
-        continue
-      break
-
+    os.chdir(CHROME_SRC)
+    chromium_rev = subprocess.Popen(
+        chromium_version_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT).communicate()[0].rstrip()
+    os.chdir(SKIA_SRC)
+    skia_rev = subprocess.Popen(
+        skia_version_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT).communicate()[0].rstrip()
     print 'skia_rev: %s' % skia_rev
     print 'chromium_rev: %s' % chromium_rev
     os.chdir(old_cwd)
+
     # Now communicate with the skia-telemetry webapp.
     update_info_url = '%s%s' % (
         appengine_constants.SKIA_TELEMETRY_WEBAPP.replace('http', 'https'),

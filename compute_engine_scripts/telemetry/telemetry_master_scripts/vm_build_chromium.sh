@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Build chromium and skia ToT on the telemetry master instance and then push
-# it to Google storage for the workers to consume.
+# Build chromium LKGR and skia ToT on the telemetry master instance and then
+# push it to Google storage for the workers to consume.
 #
 # The script should be run from the skia-telemetry-master GCE instance's
 # /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
@@ -28,15 +28,18 @@ LOG_FILE_LOCATION=$3
 # Update buildbot.
 gclient sync
 
-# Update trunk.
-cd ../../../../trunk/
-gclient sync
+# Run the script that checks out LKGR chromium and ToT skia and builds it.
+cd ../../../slave/skia_slave_scripts/utils/
+mkdir /home/default/storage/chromium-trunk
+PYTHONPATH=/home/default/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=/home/default/storage/chromium-trunk
 
-# Run the script that checks out ToT chromium and skia and builds it.
-tools/build-tot-chromium.sh /home/default/storage/chromium-trunk
+# Build chromium.
+cd /home/default/storage/chromium-trunk/src/
+GYP_GENERATORS='ninja' ./build/gyp_chromium
+/home/default/depot_tools/ninja -C out/Release chrome
 
-# Copy to Google Storage only if chrome successfully built.
-if [ -x /home/default/storage/chromium-trunk/src/out/Release/chrome ]
+# Copy to Google Storage only if chromium successfully built.
+if [ $? -eq 0 ]
 then
   # cd into the Release directory.
   cd /home/default/storage/chromium-trunk/src/out/Release
@@ -57,6 +60,8 @@ then
   echo $TIMESTAMP > /tmp/$TIMESTAMP
   gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/chrome-build/TIMESTAMP
   rm /tmp/$TIMESTAMP
+else
+  echo "There was an error building chromium LKGR + skia Tot"
 fi
 
 # Copy the log file to Google Storage.

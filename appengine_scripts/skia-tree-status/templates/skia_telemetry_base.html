@@ -68,14 +68,14 @@
         </tr>
         <tr>
           <td>Chromium Revision</td>
-          <td>{{ chromium_rev }}</td>
+          <td><a href='https://chromium.googlesource.com/chromium/src/+/{{ chromium_rev }}'>{{ chromium_rev|slice:":7" }}</a></td>
           <td></td>
           <td>Number of archived webpages</td>
           <td>{{ num_webpages }}</td>
         </tr>
         <tr>
           <td>Skia Revision</td>
-          <td>{{ skia_rev }}</td>
+          <td><a href='https://code.google.com/p/skia/source/detail?r={{ skia_rev }}'>{{ skia_rev }}</a></td>
           <td></td>
           <td>Number of webpages per pageset</td>
           <td>{{ num_webpages_per_pageset }}</td>
