@@ -1,5 +1,5 @@
 cd ~
-gclient config https://skia.googlesource.com/buildbot.git --name=skia-buildbot
+gclient config https://skia.googlesource.com/buildbot.git
 gclient sync --force
-cd skia-buildbot
+cd buildbot
 python scripts/launch_slaves.py
