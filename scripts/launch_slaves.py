@@ -140,13 +140,6 @@ class BuildSlaveManager(multiprocessing.Process):
     if proc.wait() != 0:
       raise Exception('Sync failed.')
 
-    # TODO(borenet): This is a temporary measure for deleting the .svn dirs...
-    os.chdir('buildbot')
-    try:
-      subprocess.check_call([GIT, 'clean', '-f', '-d'])
-    finally:
-      os.chdir(os.pardir)
-
     # Perform Copies
     for copy in self._copies:
       src = os.path.join(self._copy_src_dir, os.path.normpath(copy['source']))
