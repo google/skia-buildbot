@@ -58,9 +58,3 @@ deps = {
     "svn://svn.chromium.org/boto@7",
 }
 
-hooks = [
-  {
-    "pattern": ".",
-    "action": ["python", "buildbot/hooks.py"],
-  },
-]
