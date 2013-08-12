@@ -23,7 +23,7 @@ import time
 
 SKIA_URL = 'https://skia.googlesource.com/buildbot.git'
 GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
-SVN = 'svn.bat' if os.name == 'nt' else 'svn'
+GIT = 'git.bat' if os.name == 'nt' else 'git'
 
 
 def GetGlobalVariable(var_name):
@@ -136,9 +136,16 @@ class BuildSlaveManager(multiprocessing.Process):
     proc = subprocess.Popen([gclient, 'config', SKIA_URL])
     if proc.wait() != 0:
       raise Exception('Could not successfully configure gclient.')
-    proc = subprocess.Popen([gclient, 'sync', '-j1'])
+    proc = subprocess.Popen([gclient, 'sync', '-j1', '--force'])
     if proc.wait() != 0:
       raise Exception('Sync failed.')
+
+    # TODO(borenet): This is a temporary measure for deleting the .svn dirs...
+    os.chdir('buildbot')
+    try:
+      subprocess.check_call([GIT, 'clean', '-f', '-d'])
+    finally:
+      os.chdir(os.pardir)
 
     # Perform Copies
     for copy in self._copies:
@@ -289,7 +296,7 @@ def GetCfg(filepath):
 
 
 def GetSlaveHostCfg():
-  """ Retrieve the latest slave_hosts_cfg.py file from the SVN repository and
+  """ Retrieve the latest slave_hosts_cfg.py file from the repository and
   return the slave host configuration for this machine.
   """
   sys.path.append(os.path.join(os.path.abspath(os.curdir), 'site_config'))
@@ -298,7 +305,7 @@ def GetSlaveHostCfg():
 
 
 def GetSlavesCfg():
-  """ Retrieve the latest slaves.cfg file from the SVN repository. """
+  """ Retrieve the latest slaves.cfg file from the repository. """
   cfg_vars = GetCfg('master/slaves.cfg')
   return cfg_vars['slaves']
 
@@ -376,7 +383,7 @@ def main():
   # Gather command-line arguments.
   args = ParseArgs(sys.argv[1:])
 
-  subprocess.check_call([SVN, 'update'])
+  subprocess.check_call([GCLIENT, 'sync', '--force'])
 
   global GLOBAL_VARIABLES
   GLOBAL_VARIABLES = \
