@@ -6,12 +6,10 @@
 """ This module contains tools used by Android-specific buildbot scripts. """
 
 import os
-import Queue
 import re
 import shell_utils
 import shlex
 import sys
-import threading
 import time
 
 
@@ -287,170 +285,20 @@ def StartShell(serial, timeout=60):
       raise Exception('Timeout while attempting to start the Android runtime.')
 
 
-def IsSkiaAndroidAppInstalled(serial):
-  """ Determine whether the Skia Android app is installed. """
-  return bool('com.skia' in ADBShell(serial, ['pm', 'list', 'packages'],
-                                     echo=False))
-
-
-def Install(serial, release_mode=False, install_launcher=True):
-  """ Install an Android app to the device with the given serial number.
-
-  serial: string indicating the serial number of the target device.
-  release_mode: bool; whether the app was build in Release mode.
-  install_launcher: bool; whether or not the skia_launcher should be installed
-    into /system/bin on the device.  Requires root access.
-  """
-  # The shell must be running to install/uninstall apps
-  StartShell(serial)
-  # Assuming we're in the 'trunk' directory.
-  cmd = [os.path.join('platform_tools', 'android', 'bin',
-                      'android_install_skia'),
-         '-f',
-         '-s', serial]
-  if install_launcher:
-    cmd.append('--install-launcher')
-  if release_mode:
-    cmd.append('--release')
-  shell_utils.Bash(' '.join(cmd), shell=True)
-  if not IsSkiaAndroidAppInstalled(serial):
-    raise Exception('Failed to install Skia Android app.')
-  if install_launcher:
-    try:
-      ADBShell(serial, ['ls', '/system/bin/skia_launcher'])
-    except Exception:
-      raise Exception('Failed to push skia_launcher.')
-
-
-def RunSkia(serial, cmd, use_intent=False, stop_shell=True):
-  """ Run the given Skia executable command on an Android device.
-
-  serial: string indicating the serial number of the target device.
-  cmd: list of strings; the command to run
-  use_intent: bool; whether or not to use a broadcast intent to launch the
-      command in the Skia Android app.
-  stop_shell: bool; whether or not to stop the Android framework.
-  """
-  if use_intent:
-    return RunSkiaIntent(serial, cmd)
-  else:
-    return RunSkiaShell(serial, cmd, stop_shell)
-
-
-def RunSkiaShell(serial, cmd, stop_shell=True):
+def RunSkia(serial, cmd, release):
   """ Run the given command through skia_launcher on a given device.
 
   serial: string indicating the serial number of the target device.
   cmd: list of strings; the command line to run.
-  stop_shell: bool; whether or not to stop the Android framework.
+  release: bool; whether or not to run the app in Release mode.
   """
-  if stop_shell:
-    StopShell(serial)
   RunADB(serial, ['logcat', '-c'])
   try:
-    ADBShell(serial, ['skia_launcher'] + cmd)
+    cmd_to_run = [os.path.join('platform_tools', 'android', 'bin',
+                               'android_run_skia')]
+    if release:
+      cmd_to_run.extend('--release')
+    cmd_to_run.extend(cmd)
+    shell_utils.Bash(cmd_to_run)
   finally:
     RunADB(serial, ['logcat', '-d', '-v', 'time'])
-
-
-def RunSkiaIntent(serial, cmd, echo=True, timeout=None, log_file=None):
-  """ Run 'cmd', on the device with id 'serial' using a broadcast intent.  Using
-  a similar procedure to shell_utils.LogProcessToCompletion, we run an
-  EnqueueThread to read output from Logcat and store it in a Queue.  The main
-  thread makes non-blocking reads from the Queue, watching for SKIA_RETURN_CODE
-  in the output and periodically polling the device to ensure that the Skia
-  process is still running.  We are done when either:
-
-  1. SKIA_RETURN_CODE appears in the log output
-  2. SKIA_RETURN_CODE has not appeared in the log output but the Skia process is
-     no longer running on the device.
-
-  If SKIA_RETURN_CODE is not found or is non-zero, an exception is thrown.
-
-  serial: string indicating the serial number of the target device
-  cmd: list of strings; command to run on the device.
-  echo: boolean indicating whether we should print the command and log output
-  timeout: optional, integer indicating the maximum elapsed time in seconds
-  log_file: optional, path to a log file on the device.
-  """
-  # First, kill any running instances of the app.
-  ADBKill(serial, 'com.skia', kill_app=True)
-
-
-  # Clear the ADB log.
-  RunADB(serial, ['logcat', '-c'], echo=False)
-
-  # Start the logcat subprocess.
-  log_process = shell_utils.BashAsync('%s -s %s logcat' % (
-      PATH_TO_ADB, serial), echo=False, shell=True)
-
-  # Prepare to read from subprocess stdout.
-  stdout_queue = Queue.Queue()
-  log_thread = shell_utils.EnqueueThread(log_process.stdout, stdout_queue)
-  log_thread.start()
-
-  try:
-    # Run the command.
-    RunADB(serial, ['shell', 'am', 'broadcast',
-                    '-a', 'com.skia.intent.action.LAUNCH_SKIA',
-                    '-n', 'com.skia/.SkiaReceiver',
-                    '-e', 'args', '"\"%s\""' % ' '.join(cmd),
-                    '--ei', 'returnRepeats', '%d' % SKIA_RETURN_CODE_REPEATS])
-
-    # Read from subprocess stdout.
-    all_output = []
-    start_time = time.time()
-    last_poll_time = start_time
-    while True:
-      code = log_process.poll()
-      try:
-        output = stdout_queue.get_nowait()
-        if echo:
-          sys.stdout.write(output)
-          sys.stdout.flush()
-        if log_file:
-          log_file.write(output)
-          log_file.flush()
-        all_output.append(output)
-        if 'SKIA_RETURN_CODE' in output:
-          break
-      except Queue.Empty:
-        if code != None: # proc has finished running
-          break
-        time.sleep(0.5)
-      if timeout and time.time() - start_time > timeout:
-        raise Exception('Timeout exceeded!')
-      if time.time() - last_poll_time > PROCESS_MONITOR_INTERVAL:
-        print 'Polling Skia process...'
-        print 'Threads still running:\n%s' % threading.enumerate()
-        # adb does not always return in a timely fashion.  Don't wait for it.
-        monitor_proc = shell_utils.BashAsync(
-            '%s -s %s shell ps | grep skia_native' % (PATH_TO_ADB, serial),
-            echo=False, shell=True)
-        monitor_retcode, output = shell_utils.LogProcessToCompletion(
-            monitor_proc, echo=False, timeout=SUBPROCESS_TIMEOUT)
-        if monitor_retcode is None: # adb timed out
-          print 'Poller timed out.'
-          continue
-        # No SKIA_RETURN_CODE printed, but the process isn't running
-        if monitor_retcode != 0 or output == '':
-          raise Exception('Skia process died.')
-        last_poll_time = time.time()
-  finally:
-    # Cleanup.
-    try:
-      log_process.terminate()
-    except OSError:
-      pass
-    log_thread.stop()
-    log_thread.join()
-
-  # Report the return code.
-  retcode = '-1'
-  for line in ''.join(all_output).split('\n'):
-    if 'SKIA_RETURN_CODE' in line:
-      retcode = shlex.split(line)[-1]
-      break
-  if not retcode == '0':
-    raise Exception('Command failed: %s' % ' '.join(cmd))
-  print 'RunSkiaIntent: Done.'

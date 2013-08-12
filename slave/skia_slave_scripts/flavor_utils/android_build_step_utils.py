@@ -23,9 +23,8 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
-    android_utils.RunSkia(self._serial, [app] + args,
-                          use_intent=(not self._has_root),
-                          stop_shell=self._has_root)
+    release_mode = self._step.configuration == 'Release'
+    android_utils.RunSkia(self._serial, [app] + args, release=release_mode)
 
   def ReadFileOnDevice(self, filepath):
     """ Read the contents of a file on the device. """
@@ -92,9 +91,14 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
 
   def Install(self):
     """ Install the Skia executables. """
-    release_mode = self._step.configuration == 'Release'
-    android_utils.Install(self._serial, release_mode,
-                          install_launcher=self._has_root)
+    if self._has_root:
+      android_utils.RunADB(self._serial, ['root'])
+      android_utils.RunADB(self._serial, ['remount'])
+      android_utils.SetCPUScalingMode(self._serial, 'performance')
+      android_utils.ADBKill(self._serial, 'skia')
+      android_utils.StopShell(self._serial)
+    else:
+      android_utils.ADBKill(self._serial, 'com.skia', kill_app=True)
 
   def Compile(self, target):
     """ Compile the Skia executables. """
@@ -124,14 +128,7 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
 
   def PreRun(self):
     """ Preprocessing step to run before the BuildStep itself. """
-    if self._serial:
-      if self._has_root:
-        android_utils.RunADB(self._serial, ['root'])
-        android_utils.RunADB(self._serial, ['remount'])
-        android_utils.SetCPUScalingMode(self._serial, 'performance')
-        android_utils.ADBKill(self._serial, 'skia')
-      else:
-        android_utils.ADBKill(self._serial, 'com.skia', kill_app=True)
+    os.environ['ANDROID_SDK_ROOT'] = self._step.args['android_sdk_root']
 
   def GetDeviceDirs(self):
     """ Set the directories which will be used by the BuildStep. """
