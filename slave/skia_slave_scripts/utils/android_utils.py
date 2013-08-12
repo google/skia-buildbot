@@ -285,12 +285,13 @@ def StartShell(serial, timeout=60):
       raise Exception('Timeout while attempting to start the Android runtime.')
 
 
-def RunSkia(serial, cmd, release):
+def RunSkia(serial, cmd, release, device):
   """ Run the given command through skia_launcher on a given device.
 
   serial: string indicating the serial number of the target device.
   cmd: list of strings; the command line to run.
   release: bool; whether or not to run the app in Release mode.
+  device: string indicating the target device.
   """
   RunADB(serial, ['logcat', '-c'])
   try:
@@ -298,6 +299,7 @@ def RunSkia(serial, cmd, release):
                                'android_run_skia')]
     if release:
       cmd_to_run.extend('--release')
+    cmd_to_run.extend(['-d', device])
     cmd_to_run.extend(cmd)
     shell_utils.Bash(cmd_to_run)
   finally:

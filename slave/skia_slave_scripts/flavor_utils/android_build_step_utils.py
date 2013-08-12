@@ -24,7 +24,10 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
     release_mode = self._step.configuration == 'Release'
-    android_utils.RunSkia(self._serial, [app] + args, release=release_mode)
+    android_utils.RunSkia(serial=self._serial,
+                          cmd=[app] + args,
+                          release=release_mode,
+                          device=self._device)
 
   def ReadFileOnDevice(self, filepath):
     """ Read the contents of a file on the device. """
