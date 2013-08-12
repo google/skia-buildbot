@@ -21,7 +21,7 @@ import sys
 import time
 
 
-SVN_URL = 'http://skia.googlecode.com/svn/buildbot'
+SKIA_URL = 'https://skia.googlesource.com/buildbot.git'
 GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
 SVN = 'svn.bat' if os.name == 'nt' else 'svn'
 
@@ -133,7 +133,7 @@ class BuildSlaveManager(multiprocessing.Process):
       gclient = 'gclient.bat'
     else:
       gclient = 'gclient'
-    proc = subprocess.Popen([gclient, 'config', SVN_URL])
+    proc = subprocess.Popen([gclient, 'config', SKIA_URL])
     if proc.wait() != 0:
       raise Exception('Could not successfully configure gclient.')
     proc = subprocess.Popen([gclient, 'sync', '-j1'])
