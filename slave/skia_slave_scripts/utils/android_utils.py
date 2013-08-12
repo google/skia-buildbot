@@ -298,7 +298,7 @@ def RunSkia(serial, cmd, release, device):
     cmd_to_run = [os.path.join('platform_tools', 'android', 'bin',
                                'android_run_skia')]
     if release:
-      cmd_to_run.extend('--release')
+      cmd_to_run.extend(['--release'])
     cmd_to_run.extend(['-d', device])
     cmd_to_run.extend(['-s', serial])
     cmd_to_run.extend(cmd)
