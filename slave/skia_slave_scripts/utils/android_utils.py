@@ -300,6 +300,7 @@ def RunSkia(serial, cmd, release, device):
     if release:
       cmd_to_run.extend('--release')
     cmd_to_run.extend(['-d', device])
+    cmd_to_run.extend(['-s', serial])
     cmd_to_run.extend(cmd)
     shell_utils.Bash(cmd_to_run)
   finally:
