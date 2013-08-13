@@ -270,7 +270,7 @@ def RunSlave(slavename, copies, slaves_cfg, master_host):
       slave_cfg = cfg
       break
 
-  manager = BuildSlaveManager(slavename, slave_dir, copies, os.curdir,
+  manager = BuildSlaveManager(slavename, slave_dir, copies, os.pardir,
                               master_host,
                               slave_cfg.get('keepalive_conditions', []),
                               DEFAULT_POLL_INTERVAL)
