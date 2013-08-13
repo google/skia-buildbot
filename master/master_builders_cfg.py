@@ -208,9 +208,9 @@ def Update(config, active_master, cfg):
       ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Xoom',        None,      True,  f, p) : [('Test', 'Android',  'Xoom',       'Tegra2',      None,          'base-android-xoom')],
       ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Xoom',        None,      True,  f, p) : [('Test', 'Android',  'Xoom',       'Tegra2',      None,          'base-android-xoom'),
                                                                                             ('Perf', 'Android',  'Xoom',       'Tegra2',      None,          None)],
-      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'RazrI',       None,      True,  f, p) : [('Test', 'Android',  'RazrI',      'SGX540',      None,          'base-android-razr-i')],
-      ('Ubuntu12', 'GCC',    'Release', 'x86',    'RazrI',       None,      True,  f, p) : [('Test', 'Android',  'RazrI',      'SGX540',      None,          'base-android-razr-i'),
-                                                                                            ('Perf', 'Android',  'RazrI',      'SGX540',      None,          None)],})
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'IntelRhb',    None,      True,  f, p) : [('Test', 'Android',  'IntelRhb',   'SGX544',      None,          'base-android-intel-rhb')],
+      ('Ubuntu12', 'GCC',    'Release', 'x86',    'IntelRhb',    None,      True,  f, p) : [('Test', 'Android',  'IntelRhb',   'SGX544',      None,          'base-android-intel-rhb'),
+                                                                                            ('Perf', 'Android',  'IntelRhb',   'SGX544',      None,          None)],})
   f = chromeos_factory.ChromeOSFactory
   builder_specs.update({
       ('Ubuntu12', 'GCC',    'Debug',   'x86',    'Alex',        None,      True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],

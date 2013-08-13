@@ -46,7 +46,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-nexus7-003', '10'),
       ('skiabot-shuttle-ubuntu12-nexus10-001', '11'),
       ('skiabot-shuttle-ubuntu12-nexus10-003', '12'),
-      ('skiabot-shuttle-ubuntu12-razri-001', '13'),
+      ('skiabot-shuttle-ubuntu12-intel-rhb-001', '13'),
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.110',
