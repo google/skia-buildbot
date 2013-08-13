@@ -95,6 +95,10 @@ def Sync(skia_revision=None, chrome_revision=None):
     # remove some troublesome paths, then check out Skia.
     if os.path.isfile('LICENSE'):
       os.remove('LICENSE')
+    if os.path.isfile('README.chromium'):
+      os.remove('README.chromium')
+    if os.path.isfile('OWNERS'):
+      os.remove('OWNERS')
     if os.path.isdir('gyp'):
       chromium_utils.RemoveDirectory('gyp')
     if os.path.isdir('include'):
