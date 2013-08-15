@@ -104,7 +104,7 @@ class ConsoleStatusResource(HtmlResource):
   @defer.deferredGenerator
   def getAllChanges(self, request, status, debug_info):
     master = request.site.buildbot_service.master
-    limit = min(100, max(1, int(request.args.get('limit', [25])[0])))
+    limit = min(200, max(1, int(request.args.get('limit', [25])[0])))
     wfd = defer.waitForDeferred(master.db.changes.getRecentChanges(limit))
     yield wfd
     chdicts = wfd.getResult()
@@ -438,8 +438,9 @@ class ConsoleStatusResource(HtmlResource):
             break
           yield DevRevision(rev)
     else:
-      for index, rev in enumerate(reversed(revisions)):
-        if max_revs and index >= max_revs:
+      num_revs = 0
+      for rev in reversed(revisions):
+        if max_revs and num_revs >= max_revs:
           break
         try:
           for field, acceptable in rev_filter.iteritems():
@@ -451,6 +452,7 @@ class ConsoleStatusResource(HtmlResource):
             elif type(acceptable) in (list, tuple, set):
               if getattr(rev, field) not in acceptable:
                 raise DoesNotPassFilter
+          num_revs += 1
           yield DevRevision(rev)
         except DoesNotPassFilter:
           pass
