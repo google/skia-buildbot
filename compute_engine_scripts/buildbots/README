@@ -1,0 +1,61 @@
+This directory contains scripts to automate the creation, setup and deletion of
+Skia's GCE buildbot machines.
+
+
+Directory Contents
+==================
+
+- vm_config.sh
+Instantiates constants that are used by the below scripts.
+
+- vm_firewalls_create.sh
+Creates the firewalls required for the Skia buildbots. Allows access from Google
+machines to port 10115. Allows access to ports 10116 and 10117 to everyone.
+
+- vm_create_master.sh
+Creates the master instance in the specified $ZONE_TAG.
+
+- vm_create_slaves.sh
+Creates the slaves instances in the specified $ZONE_TAG.
+
+- vm_delete_master.sh
+Deletes the master instance from the specified $ZONE_TAG.
+
+- vm_delete_slaves.sh
+Deletes the slaves instances from the specified $ZONE_TAG.
+
+- vm_setup_image.sh
+Installs necessary packages on a vanilla GCE instance. This script setups up the
+base image that is used by all Skia GCE instances.
+
+- vm_setup_master.sh
+Sets up the base image with packages and directories necessary for the buildbot
+master.
+
+- vm_setup_slaves.sh
+Sets up the base image with packages and directories necessary for the buildbot
+slaves.
+
+- vm_setup_utils.sh
+Utility functions used by vm_setup_master.sh and vm_setup_slaves.sh.
+
+- vm_status.sh
+Outputs the quota and all instances of google.com:skia-buildbots.
+
+
+Migrating instances before PCRs
+===============================
+
+The instances should be moved using the scripts in this directory a few weeks
+before a PCR is scheduled. We are allowed instances in the us-central1-a and
+us-central1-b zones and will alternate between zone tags 'a' and 'b' during
+PCRs.
+
+The scripts should be executed in this order:
+* ZONE_TAG=$NEW_ZONE vm_create_master.sh
+* ZONE_TAG=$NEW_ZONE vm_setup_master.sh
+* ZONE_TAG=$OLD_ZONE vm_delete_slaves.sh
+* ZONE_TAG=$NEW_ZONE vm_create_slaves.sh
+* ZONE_TAG=$NEW_ZONE vm_setup_slaves.sh
+* ZONE_TAG=$NEW_ZONE vm_copy_buildbot_history.sh  (Run this overnight, it takes a while)
+* ZONE_TAG=$OLD_ZONE vm_delete_master.sh
