@@ -61,7 +61,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "mkdir -p naclports && " \
     "cd naclports && " \
     "/home/$PROJECT_USER/$SKIA_REPO_DIR/depot_tools/gclient config http://naclports.googlecode.com/svn/trunk/src && " \
-    "/home/$PROJECT_USER/$SKIA_REPO_DIR/depot_tools/gclient sync --delete_unversioned_trees --force && " \
+    "/home/$PROJECT_USER/$SKIA_REPO_DIR/depot_tools/gclient sync --delete_unversioned_trees --force --revision 711 && " \
     "cd src && " \
     "./make_all.sh zlib && " \
     "./make_all.sh png" \
