@@ -63,7 +63,7 @@ $GCOMPUTE_CMD push --ssh_user=root $VM_COMPLETE_NAME \
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
   "sudo chmod 755 /etc/init.d/automount-sdb && " \
   "sudo update-rc.d automount-sdb defaults" \
-  || FAILED="$FAILED CheckoutDepotTools"
+  || FAILED="$FAILED SetupAutomountScript"
 echo
 
 echo "Checkout depot_tools"

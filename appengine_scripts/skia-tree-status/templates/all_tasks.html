@@ -56,6 +56,13 @@
     </tr>
     {% endfor %}
   </table>
+    {% if telemetry_tasks_prev_offset == 0 or telemetry_tasks_prev_offset %}
+      <a href='/skia-telemetry/all_tasks?telemetry_tasks_offset={{ telemetry_tasks_prev_offset }}#telemetry'>Previous</a>
+    {% endif %}
+    {% if telemetry_tasks_next_offset %}
+      <a href='/skia-telemetry/all_tasks?telemetry_tasks_offset={{ telemetry_tasks_next_offset }}#telemetry'>Next</a>
+    {% endif %}
+
   {% else %}
     No Previous runs yet.
   {% endif %}
@@ -106,6 +113,12 @@
     </tr>
     {% endfor %}
   </table>
+    {% if lua_tasks_prev_offset == 0 or lua_tasks_prev_offset %}
+      <a href='/skia-telemetry/all_tasks?lua_tasks_offset={{ lua_tasks_prev_offset }}#lua'>Previous</a>
+    {% endif %}
+    {% if lua_tasks_next_offset %}
+      <a href='/skia-telemetry/all_tasks?lua_tasks_offset={{ lua_tasks_next_offset }}#lua'>Next</a>
+    {% endif %}
   {% else %}
     No Previous runs yet.
   {% endif %}
@@ -140,6 +153,12 @@
     </tr>
     {% endfor %}
   </table>
+    {% if admin_tasks_prev_offset == 0 or admin_tasks_prev_offset %}
+      <a href='/skia-telemetry/all_tasks?admin_tasks_offset={{ admin_tasks_prev_offset }}#admin'>Previous</a>
+    {% endif %}
+    {% if admin_tasks_next_offset %}
+      <a href='/skia-telemetry/all_tasks?admin_tasks_offset={{ admin_tasks_next_offset }}#admin'>Next</a>
+    {% endif %}
   {% else %}
     No Previous runs yet.
   {% endif %}

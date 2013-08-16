@@ -15,6 +15,7 @@ import utils
 
 
 FETCH_LIMIT = 50
+PAGINATION_LIMIT = 10
 
 TELEMETRY_ADMINS = (
     'rmistry@google.com',
@@ -55,6 +56,10 @@ class TelemetryInfo(db.Model):
     return cls.all().fetch(limit=1)[0]
 
 
+def tasks_counter(cls):
+  return cls.all(keys_only=True).count()
+
+
 class AdminTasks(db.Model):
   """Data model for Admin tasks."""
   username = db.StringProperty(required=True)
@@ -64,10 +69,10 @@ class AdminTasks(db.Model):
   completed_time = db.DateTimeProperty()
 
   @classmethod
-  def get_all_admin_tasks(cls):
+  def get_all_admin_tasks(cls, offset):
     return (cls.all()
                .order('-requested_time')
-               .fetch(limit=FETCH_LIMIT))
+               .fetch(offset=offset, limit=PAGINATION_LIMIT))
 
   @classmethod
   def get_all_admin_tasks_of_user(cls, user):
@@ -123,10 +128,10 @@ class LuaTasks(db.Model):
                .fetch(limit=FETCH_LIMIT))
 
   @classmethod
-  def get_all_lua_tasks(cls):
+  def get_all_lua_tasks(cls, offset):
     return (cls.all()
                .order('-requested_time')
-               .fetch(limit=FETCH_LIMIT))
+               .fetch(offset=offset, limit=PAGINATION_LIMIT))
 
   @classmethod
   def get_all_lua_tasks_of_user(cls, user):
@@ -167,10 +172,10 @@ class TelemetryTasks(db.Model):
                .fetch(limit=FETCH_LIMIT))
 
   @classmethod
-  def get_all_telemetry_tasks(cls):
+  def get_all_telemetry_tasks(cls, offset):
     return (cls.all()
                .order('-requested_time')
-               .fetch(limit=FETCH_LIMIT))
+               .fetch(offset=offset, limit=PAGINATION_LIMIT))
 
   @classmethod
   def get_all_telemetry_tasks_of_user(cls, user):
@@ -367,15 +372,36 @@ class AllTasks(BasePage):
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
+    template_values['pagination_limit'] = PAGINATION_LIMIT
 
-    admin_tasks = AdminTasks.get_all_admin_tasks()
-    template_values['admin_tasks'] = admin_tasks
-    lua_tasks = LuaTasks.get_all_lua_tasks()
-    template_values['lua_tasks'] = lua_tasks
-    telemetry_tasks = TelemetryTasks.get_all_telemetry_tasks()
-    template_values['telemetry_tasks'] = telemetry_tasks
+    # Set template values for Admin, Lua and Telemetry datamodels.
+    self.set_pagination_templates_for_models(
+        template_values,
+        'admin_tasks',
+        AdminTasks.get_all_admin_tasks,
+        tasks_counter(AdminTasks))
+    self.set_pagination_templates_for_models(
+        template_values,
+        'lua_tasks',
+        LuaTasks.get_all_lua_tasks,
+        tasks_counter(LuaTasks))
+    self.set_pagination_templates_for_models(
+        template_values,
+        'telemetry_tasks',
+        TelemetryTasks.get_all_telemetry_tasks,
+        tasks_counter(TelemetryTasks))
 
     self.DisplayTemplate('all_tasks.html', template_values)
+
+  def set_pagination_templates_for_models(
+      self, template_values, model_str, all_tasks_func, total_count):
+    offset = int(self.request.get('%s_offset' % model_str, 0))
+    all_tasks = all_tasks_func(offset=offset)
+    template_values[model_str] = all_tasks
+    if total_count > offset + PAGINATION_LIMIT:
+      template_values['%s_next_offset' % model_str] = offset + PAGINATION_LIMIT
+    if offset != 0:
+      template_values['%s_prev_offset' % model_str] = offset - PAGINATION_LIMIT
 
 
 class LandingPage(BasePage):
