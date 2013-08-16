@@ -139,10 +139,11 @@ def Update(config, active_master, cfg):
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', None,          None,      True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
                                                                                             ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'Valgrind',    valgrind,  False, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'HD2000',      'Valgrind',    None)],
-      ('Ubuntu12', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'HD2000',      'ASAN',        None)],
+      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f, p) : [('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'ASAN',        None)],
       ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       None,          'base-shuttle_ubuntu12_ati5770')],
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [],
-      ('Ubuntu12', 'Clang',  'Debug',   'x86_64', None,          None,      True,  f, p) : [],})
+      ('Ubuntu12', 'Clang',  'Debug',   'x86_64', None,          None,      True,  f, p) : [],
+      ('Ubuntu13', 'GCC4.8', 'Debug',   'x86_64', None,          None,      True,  f, p) : [],})
   f = nacl_factory.NaClFactory
   builder_specs.update({
       ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,      True,  f, p) : [],

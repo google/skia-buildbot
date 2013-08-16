@@ -67,6 +67,16 @@ SLAVE_HOSTS = {
     'kvm_num': '7',
   },
 
+  'skiabot-shuttle-ubuntu13-xxx': {
+    'slaves': [
+      ('skiabot-shuttle-ubuntu13-000', '0'),
+      ('skiabot-shuttle-ubuntu13-001', '1'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.122',
+    'kvm_num': 'N/A',
+  },
+
   'skia-compile1-a': {
     'slaves': [
       ('skiabot-linux-compile-vm-a-000', '0'),
