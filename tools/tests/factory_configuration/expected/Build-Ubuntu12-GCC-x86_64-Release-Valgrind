@@ -651,6 +651,8 @@
                     'False',
                     '--bench_pictures_cfg',
                     'default',
+                    '--flavor',
+                    'valgrind',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,

@@ -716,6 +716,8 @@
                     <Object>,
                     '--board',
                     'daisy',
+                    '--flavor',
+                    'chromeos',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,

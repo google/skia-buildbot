@@ -599,6 +599,8 @@
                     'default',
                     '--nacl_sdk_root',
                     <Object>,
+                    '--flavor',
+                    'nacl',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,

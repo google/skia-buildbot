@@ -565,6 +565,8 @@
                     <Object>,
                     '--board',
                     'x86-alex',
+                    '--flavor',
+                    'chromeos',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,

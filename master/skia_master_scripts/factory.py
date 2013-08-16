@@ -413,8 +413,8 @@ class SkiaFactory(BuildFactory):
                                  not retry_without_werr_on_failure))
 
     # Try again with a clean build.
-    self.AddSlaveScript(script='clean.py', description='Clean',
-                        do_step_if=ShouldRetryWithClobber)
+    self.AddFlavoredSlaveScript(script='clean.py', description='Clean',
+                                do_step_if=ShouldRetryWithClobber)
     for build_target in self._build_targets:
       self.Make(target=build_target,
                 description=_COMPILE_RETRY_PREFIX + \

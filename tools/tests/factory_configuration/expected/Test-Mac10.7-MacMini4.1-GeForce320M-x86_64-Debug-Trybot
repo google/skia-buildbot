@@ -511,6 +511,8 @@
                     'True',
                     '--bench_pictures_cfg',
                     'default',
+                    '--flavor',
+                    'default',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,
