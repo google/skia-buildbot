@@ -76,12 +76,12 @@
     "description": "The zone of the Compile buildbots on GCE."
   },
   "master_host_name": {
-    "value": "skia-master-b.c.skia-buildbots.google.com.internal",
+    "value": "skia-master2-b.c.skia-buildbots.google.com.internal",
     "type": "string",
     "description": "Host name of the Skia build master."
   },
   "master_host": {
-    "value": "108.170.217.252",
+    "value": "173.255.115.253",
     "type": "string",
     "description": "IP address of the Skia build master."
   },
