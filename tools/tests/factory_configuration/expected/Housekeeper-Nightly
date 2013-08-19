@@ -322,7 +322,7 @@
             <Object>,
             {
                 'alwaysRun': <Object>,
-                'command': 'SKIA_COMPUTE_ENGINE_HOSTNAME=skia-master2-b.c.skia-buildbots.google.com.internal PERSISTENT_DISK_NAME=/home/default/skia-master ../../../../../../slave/skia_slave_scripts/check_compute_engine_disk_usage.sh',
+                'command': 'SKIA_COMPUTE_ENGINE_HOSTNAME=skia-master2-b.c.skia-buildbots.google.com.internal PERSISTENT_DISK_NAME=/home/default/skia-repo ../../../../../../slave/skia_slave_scripts/check_compute_engine_disk_usage.sh',
                 'description': 'CheckMasterDiskUsage',
                 'doStepIf': <Object>,
                 'env': {},

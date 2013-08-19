@@ -76,7 +76,7 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
           'check_compute_engine_disk_usage.sh')
       self._skia_cmd_obj.AddRunCommand(
           command=('SKIA_COMPUTE_ENGINE_HOSTNAME=%s PERSISTENT_DISK_NAME='
-                   '/home/default/skia-master %s'
+                   '/home/default/skia-repo %s'
                    % (SKIA_PUBLIC_MASTER, disk_usage_script_path)),
           description='CheckMasterDiskUsage')
       self._skia_cmd_obj.AddRunCommand(
