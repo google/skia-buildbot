@@ -718,6 +718,8 @@
                     <Object>,
                     '--android_sdk_root',
                     <Object>,
+                    '--flavor',
+                    'android',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,

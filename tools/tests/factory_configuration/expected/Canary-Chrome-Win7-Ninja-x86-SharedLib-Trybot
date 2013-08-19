@@ -574,6 +574,8 @@
                     'True',
                     '--bench_pictures_cfg',
                     'default',
+                    '--flavor',
+                    'chrome_canary',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,

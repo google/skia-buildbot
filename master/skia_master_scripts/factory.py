@@ -425,9 +425,9 @@ class SkiaFactory(BuildFactory):
 
     # Try again without warnings-as-errors.
     self._gyp_defines['skia_warnings_as_errors'] = '0'
-    self.AddSlaveScript(script='clean.py', description='Clean',
-                        always_run=True,
-                        do_step_if=ShouldRetryWithoutWarnings)
+    self.AddFlavoredSlaveScript(script='clean.py', description='Clean',
+                                always_run=True,
+                                do_step_if=ShouldRetryWithoutWarnings)
     for build_target in self._build_targets:
       self.Make(target=build_target,
                 description=_COMPILE_NO_WERR_PREFIX + \

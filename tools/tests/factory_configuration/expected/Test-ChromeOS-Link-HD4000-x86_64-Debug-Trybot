@@ -695,6 +695,8 @@
                     <Object>,
                     '--board',
                     'link',
+                    '--flavor',
+                    'chromeos',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,

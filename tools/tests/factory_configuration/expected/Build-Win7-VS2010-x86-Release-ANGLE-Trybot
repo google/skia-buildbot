@@ -1191,6 +1191,8 @@
                     'True',
                     '--bench_pictures_cfg',
                     'angle',
+                    '--flavor',
+                    'default',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,

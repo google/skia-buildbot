@@ -629,6 +629,8 @@
                     'True',
                     '--bench_pictures_cfg',
                     'default',
+                    '--flavor',
+                    'asan',
                 ],
                 'description': 'Clean',
                 'doStepIf': <Object>,
