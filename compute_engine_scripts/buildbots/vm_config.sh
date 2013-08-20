@@ -10,10 +10,11 @@
 VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # Master name, type and the IP address to use for each zone.
-VM_MASTER_NAME=${VM_MASTER_NAME:="master"}
+# TODO(rmistry): Change back to 'master' during the next migration.
+VM_MASTER_NAME=${VM_MASTER_NAME:="master2"}
 MASTER_MACHINE_TYPE="n1-standard-8-d"
-MASTER_IP_ADDRESS_a="173.255.115.253"
-MASTER_IP_ADDRESS_b="108.170.217.252"
+MASTER_IP_ADDRESS_a="108.170.217.252"
+MASTER_IP_ADDRESS_b="173.255.115.253"
 
 # Slave names, type and their IP addresses.
 VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave compile1 compile2 compile3 compile4 compile5 skia-android-canary"}
@@ -49,6 +50,16 @@ SKIA_REPO_DIR="skia-repo"
 # us-central1-a and us-central1-b.
 # A short tag to use as part of the VM instance name
 ZONE_TAG=${ZONE_TAG:=b}
+# Make sure ZONE_TAG is either 'b' or 'a', they are the only ones allowed.
+if [ "$ZONE_TAG" == "a" ]; then
+  OLD_ZONE_TAG="b"
+elif [ "$ZONE_TAG" == "b" ]; then
+  OLD_ZONE_TAG="a"
+else
+  echo "ZONE_TAG=$ZONE_TAG has to be one of \"a\" or \"b\"."
+  exit 1
+fi
+
 ZONE=us-central1-$ZONE_TAG
 
 # The Project ID is found in the Compute tab of the dev console.

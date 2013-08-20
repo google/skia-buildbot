@@ -8,12 +8,6 @@
 
 source vm_config.sh
 
-if [ "$ZONE_TAG" == "b" ]; then
-  OLD_ZONE_TAG="a"
-else
-  OLD_ZONE_TAG="b"
-fi
-
 OLD_MASTER_HOSTNAME="${VM_NAME_BASE}-${VM_MASTER_NAME}-${OLD_ZONE_TAG}"
 NEW_MASTER_HOSTNAME="${VM_NAME_BASE}-${VM_MASTER_NAME}-${ZONE_TAG}"
 

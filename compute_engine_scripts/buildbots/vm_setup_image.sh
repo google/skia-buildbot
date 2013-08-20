@@ -57,7 +57,6 @@ $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
   || FAILED="$FAILED InstallPackages2"
 echo
 
-# Note: ia32-libs-multiarch to ia32-libs. Added libgif4 and libgif-dev and open-jdk-7-jdk here and the move command.
 echo
 echo "===== Install packages, Part 3. ====="
 $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
@@ -68,7 +67,6 @@ $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
   || FAILED="$FAILED InstallPackages3"
 echo
 
-# Note: Added python-setuptools and bzip2 and libgif4:i386 here.
 echo
 echo "===== Install packages, Part 4. ====="
 $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
