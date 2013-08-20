@@ -113,7 +113,7 @@ class PreRender(BuildStep):
     self._flavor_utils.CreateCleanHostDirectory(self._gm_actual_dir)
     self._flavor_utils.CreateCleanDeviceDirectory(
         self._flavor_utils.DevicePathJoin(self._device_dirs.GMActualDir(),
-                                          self._gm_image_subdir))
+                                          self._builder_name))
     self._flavor_utils.CreateCleanHostDirectory(
         self._local_playback_dirs.PlaybackGmActualDir())
     self._flavor_utils.CreateCleanDeviceDirectory(self._device_dirs.SKPOutDir())

@@ -19,7 +19,7 @@ class RunGM(BuildStep):
     device_gm_expectations_path = self._flavor_utils.DevicePathJoin(
         self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
     output_dir = os.path.join(self._device_dirs.GMActualDir(),
-                              self._gm_image_subdir)
+                              self._builder_name)
     cmd = ['--verbose',
            '--writeChecksumBasedFilenames',
            # Don't bother writing out image files that match our expectations--

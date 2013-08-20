@@ -82,12 +82,11 @@ class UploadGMResults(BuildStep):
     merge_options.commit_message = 'UploadGMResults of r%s on %s' % (
         self._got_revision, self._args['builder_name'])
     # pylint: disable=W0201
-    merge_options.dest_svn_url = '%s/%s/%s/%s' % (
-        gm_actual_svn_baseurl, self._args['gm_image_subdir'],
-        self._args['builder_name'], self._args['gm_image_subdir'])
+    merge_options.dest_svn_url = '%s/%s' % (
+        gm_actual_svn_baseurl, self._args['builder_name'])
     # pylint: disable=W0201
     merge_options.merge_dir_path = os.path.join(gm_merge_basedir,
-                                                self._args['gm_image_subdir'])
+                                                self._args['builder_name'])
     # Clear out the merge_dir, in case it has old imagefiles in it from the
     # bad old days when we were still uploading actual images to skia-autogen.
     # This resolves https://code.google.com/p/skia/issues/detail?id=1362 ('some
@@ -124,7 +123,7 @@ class UploadGMResults(BuildStep):
 
   def _Run(self):
     gm_output_dir = os.path.join(os.pardir, os.pardir, 'gm', 'actual',
-                                 self._args['gm_image_subdir'])
+                                 self._args['builder_name'])
     self._GSUploadAllImages(src_dir=gm_output_dir)
     self._SVNUploadJsonFiles(src_dir=gm_output_dir)
 

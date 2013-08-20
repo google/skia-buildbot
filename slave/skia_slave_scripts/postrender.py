@@ -13,7 +13,7 @@ class PostRender(BuildStep):
   def _Run(self):
     self._flavor_utils.CopyDirectoryContentsToHost(
         self._flavor_utils.DevicePathJoin(self._device_dirs.GMActualDir(),
-                                          self._gm_image_subdir),
+                                          self._builder_name),
                                                    self._gm_actual_dir)
     self._flavor_utils.CopyDirectoryContentsToHost(
         self._device_dirs.SKPOutDir(),

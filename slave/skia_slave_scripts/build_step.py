@@ -169,9 +169,9 @@ class BuildStep(multiprocessing.Process):
     self._gm_actual_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'actual')
     self._gm_merge_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'merge')
     self._gm_expected_dir = os.path.join('expectations', 'gm',
-                                         self._gm_image_subdir)
+                                         self._builder_name)
     self._gm_actual_dir = os.path.join(self._gm_actual_basedir,
-                                       self._gm_image_subdir)
+                                       self._builder_name)
     self._gm_actual_svn_baseurl = '%s/%s' % (args['autogen_svn_baseurl'],
                                              'gm-actual')
     self._resource_dir = 'resources'
