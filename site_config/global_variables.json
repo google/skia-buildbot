@@ -9,6 +9,11 @@
     "type": "string",
     "description": "URL of the project's code review site."
   },
+  "code_review_status_listener": {
+    "value": "https://chromiumcodereview.appspot.com/status_listener",
+    "type": "string",
+    "description": "URL of the code review site's status listener."
+  },
   "cq_required_steps": {
     "value": [
       "BuildBench",
@@ -26,6 +31,11 @@
     "type": "string",
     "description": "URL that displays the current sheriff and his/her schedule."
   },
+  "external_port": {
+    "value": "10117",
+    "type": "integer",
+    "description": "Externally-visible port on the Skia build master."
+  },
   "gatekeeper_steps": {
     "value": [
         "Retry_BuildAll",
@@ -40,40 +50,20 @@
     "type": "list",
     "description": "Steps which trigger the gatekeeper on failure."
   },
+  "gce_compile_bots_zone": {
+    "value": "b",
+    "type": "string",
+    "description": "The zone of the Compile buildbots on GCE."
+  },
   "googlestorage_bucket": {
     "value": "gs://chromium-skia-gm",
     "type": "string",
     "description": "Root of our Google Storage tree."
   },
-  "tree_status_url": {
-    "value": "https://skia-tree-status.appspot.com/binary-status",
-    "type": "string",
-    "description": "URL that displays the status of the Skia tree."
-  },
-  "code_review_status_listener": {
-    "value": "https://chromiumcodereview.appspot.com/status_listener",
-    "type": "string",
-    "description": "URL of the code review site's status listener."
-  },
-  "external_port": {
-    "value": "10117",
-    "type": "integer",
-    "description": "Externally-visible port on the Skia build master."
-  },
   "internal_port": {
     "value": "10115",
     "type": "integer",
     "description": "Internally-visible port on the Skia build master."
-  },
-  "num_gce_compile_bots": {
-    "value": "5",
-    "type": "integer",
-    "description": "The number of Compile buildbots on GCE."
-  },
-  "gce_compile_bots_zone": {
-    "value": "b",
-    "type": "string",
-    "description": "The zone of the Compile buildbots on GCE."
   },
   "master_host_name": {
     "value": "skia-master2-b.c.skia-buildbots.google.com.internal",
@@ -85,6 +75,11 @@
     "type": "string",
     "description": "IP address of the Skia build master."
   },
+  "num_gce_compile_bots": {
+    "value": "5",
+    "type": "integer",
+    "description": "The number of Compile buildbots on GCE."
+  },
   "private_external_port": {
     "value": "8241",
     "type": "integer",
@@ -95,15 +90,15 @@
     "type": "integer",
     "description": "Internally-visible port on the private Skia build master."
   },
-  "private_master_host_name": {
-    "value": "skia-private-master-a.c.skia-buildbots.google.com.internal",
-    "type": "string",
-    "description": "Host name of the private Skia build master."
-  },
   "private_master_host": {
     "value": "70.32.159.66",
     "type": "string",
     "description": "IP address of the private Skia build master."
+  },
+  "private_master_host_name": {
+    "value": "skia-private-master-a.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "Host name of the private Skia build master."
   },
   "private_slave_port": {
     "value": "8141",
@@ -134,6 +129,11 @@
     "value": "10116",
     "type": "integer",
     "description": "Port used by build slaves."
+  },
+  "tree_status_url": {
+    "value": "https://skia-tree-status.appspot.com/binary-status",
+    "type": "string",
+    "description": "URL that displays the status of the Skia tree."
   },
   "try_svn_url": {
     "value": "http://skia-try.googlecode.com/svn",
