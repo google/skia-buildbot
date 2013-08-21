@@ -111,7 +111,7 @@ class BuildSlaveManager(multiprocessing.Process):
     copies: list of dictionaries; files to copy into the slave's source
         checkout.
     copy_src_dir: string; directory in which the files to copy reside.
-    master_host: string indicating the hostname of the build master.
+    master_host: string; the hostname (or IP address) of the build master.
     keepalive_conditions: list; commands which must succeed in order for the
         slave to stay alive.
     poll_interval: number; how often to verify the keepalive_conditions, in
@@ -381,7 +381,7 @@ def main():
   global GLOBAL_VARIABLES
   GLOBAL_VARIABLES = \
       json.load(open(os.path.join('site_config', 'global_variables.json')))
-  master_host = args.master_host or GetGlobalVariable('master_host')
+  master_host = args.master_host or GetGlobalVariable('public_master_host')
   print 'Using master_host: %s' % master_host
 
 

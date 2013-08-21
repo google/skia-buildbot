@@ -11,7 +11,7 @@ import tempfile
 import skia_vars
 
 from buildbot.process.properties import WithProperties
-from config_private import SKIA_PUBLIC_MASTER, SKIA_SVN_BASEURL
+from config_private import SKIA_PUBLIC_MASTER_INTERNAL_FQDN, SKIA_SVN_BASEURL
 from skia_master_scripts import factory as skia_factory
 
 
@@ -77,7 +77,8 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
       self._skia_cmd_obj.AddRunCommand(
           command=('SKIA_COMPUTE_ENGINE_HOSTNAME=%s PERSISTENT_DISK_NAME='
                    '/home/default/skia-repo %s'
-                   % (SKIA_PUBLIC_MASTER, disk_usage_script_path)),
+                   % (SKIA_PUBLIC_MASTER_INTERNAL_FQDN,
+                      disk_usage_script_path)),
           description='CheckMasterDiskUsage')
       self._skia_cmd_obj.AddRunCommand(
           command=(WithProperties('SKIA_COMPUTE_ENGINE_HOSTNAME=%(slavename)s '
@@ -98,4 +99,3 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
             description='CheckCompile%sDiskUsage' % compile_bot_index)
     self.Validate()
     return self
-

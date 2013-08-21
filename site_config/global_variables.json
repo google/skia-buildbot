@@ -34,7 +34,7 @@
   "external_port": {
     "value": "10117",
     "type": "integer",
-    "description": "Externally-visible port on the Skia build master."
+    "description": "DEPRECATED. Use public_external_port instead!"
   },
   "gatekeeper_steps": {
     "value": [
@@ -63,17 +63,17 @@
   "internal_port": {
     "value": "10115",
     "type": "integer",
-    "description": "Internally-visible port on the Skia build master."
-  },
-  "master_host_name": {
-    "value": "skia-master2-b.c.skia-buildbots.google.com.internal",
-    "type": "string",
-    "description": "Host name of the Skia build master."
+    "description": "DEPRECATED. Use public_internal_port instead!"
   },
   "master_host": {
     "value": "173.255.115.253",
     "type": "string",
-    "description": "IP address of the Skia build master."
+    "description": "DEPRECATED. Use public_master_host instead!"
+  },
+  "master_host_name": {
+    "value": "skia-master2-b.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "DEPRECATED. Use public_master_internal_fqdn instead!"
   },
   "num_gce_compile_bots": {
     "value": "5",
@@ -93,12 +93,17 @@
   "private_master_host": {
     "value": "70.32.159.66",
     "type": "string",
-    "description": "IP address of the private Skia build master."
+    "description": "Hostname (or IP address) that can be used to reach the private Skia build master."
   },
   "private_master_host_name": {
     "value": "skia-private-master-a.c.skia-buildbots.google.com.internal",
     "type": "string",
-    "description": "Host name of the private Skia build master."
+    "description": "DEPRECATED. Use private_master_internal_fqdn instead!"
+  },
+  "private_master_internal_fqdn": {
+    "value": "skia-private-master-a.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "What the private Skia build master thinks its own FQDN is."
   },
   "private_slave_port": {
     "value": "8141",
@@ -109,6 +114,31 @@
     "value": "http://skia.googlecode.com",
     "type": "string",
     "description": "URL of the Skia codesite."
+  },
+  "public_external_port": {
+    "value": "10117",
+    "type": "integer",
+    "description": "Externally-visible port on the Skia build master."
+  },
+  "public_internal_port": {
+    "value": "10115",
+    "type": "integer",
+    "description": "Internally-visible port on the Skia build master."
+  },
+  "public_master_host": {
+    "value": "173.255.115.253",
+    "type": "string",
+    "description": "Hostname (or IP address) that can be used to reach the public Skia build master."
+  },
+  "public_master_internal_fqdn": {
+    "value": "skia-master2-b.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "What the public Skia build master thinks its own FQDN is."
+  },
+  "public_slave_port": {
+    "value": "10116",
+    "type": "integer",
+    "description": "Port used by public build slaves."
   },
   "revlinktmpl": {
     "value": "http://code.google.com/p/skia/source/detail?r=%s",
@@ -128,7 +158,7 @@
   "slave_port": {
     "value": "10116",
     "type": "integer",
-    "description": "Port used by build slaves."
+    "description": "DEPRECATED. Use public_slave_port instead!"
   },
   "tree_status_url": {
     "value": "https://skia-tree-status.appspot.com/binary-status",

@@ -38,7 +38,7 @@ getVariable: function(varName) {
  * @return {string} IP address of the Skia buildbot master.
  */
 host: function() {
-  return "http://" + this.getVariable("master_host");
+  return "http://" + this.getVariable("public_master_host");
 },
 
 /**
@@ -47,7 +47,7 @@ host: function() {
  * @return {string} Communication port of the Skia buildbot master.
  */
 port: function() {
-  return this.getVariable("external_port");
+  return this.getVariable("public_external_port");
 },
 
 /**

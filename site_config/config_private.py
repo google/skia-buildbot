@@ -26,9 +26,11 @@ die_on_validation_failure = False
 
 # Skia's Google Compute Engine instances.
 # The public master which is visible to everyone.
-SKIA_PUBLIC_MASTER = skia_vars.GetGlobalVariable('master_host_name')
+SKIA_PUBLIC_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
+    'public_master_internal_fqdn')
 # The private master which is visible only to Google corp.
-SKIA_PRIVATE_MASTER = skia_vars.GetGlobalVariable('private_master_host_name')
+SKIA_PRIVATE_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
+    'private_master_internal_fqdn')
 AUTOGEN_SVN_BASEURL = skia_vars.GetGlobalVariable('autogen_svn_url')
 SKIA_REVLINKTMPL = skia_vars.GetGlobalVariable('revlinktmpl')
 SKIA_SVN_BASEURL = skia_vars.GetGlobalVariable('skia_svn_url')
@@ -47,7 +49,7 @@ class Master(config_default.Master):
     project_url = skia_vars.GetGlobalVariable('project_url')
     # The master host runs in Google Compute Engine.
     master_host = skia_vars.GetGlobalVariable('master_host')
-    is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER
+    is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER_INTERNAL_FQDN
     master_port = skia_vars.GetGlobalVariable('internal_port')
     slave_port = skia_vars.GetGlobalVariable('slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('external_port')
@@ -63,7 +65,7 @@ class Master(config_default.Master):
     project_url = skia_vars.GetGlobalVariable('project_url')
     # The private master host runs in Google Compute Engine.
     master_host = skia_vars.GetGlobalVariable('private_master_host')
-    is_production_host = socket.getfqdn() == SKIA_PRIVATE_MASTER
+    is_production_host = socket.getfqdn() == SKIA_PRIVATE_MASTER_INTERNAL_FQDN
     master_port = skia_vars.GetGlobalVariable('private_internal_port')
     slave_port = skia_vars.GetGlobalVariable('private_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('private_external_port')
@@ -80,4 +82,3 @@ class Archive(config_default.Archive):
 
 class Distributed(config_default.Distributed):
   bogus_var = 'bogus_value'
-
