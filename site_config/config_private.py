@@ -48,11 +48,11 @@ class Master(config_default.Master):
     project_name = 'Skia'
     project_url = skia_vars.GetGlobalVariable('project_url')
     # The master host runs in Google Compute Engine.
-    master_host = skia_vars.GetGlobalVariable('master_host')
+    master_host = skia_vars.GetGlobalVariable('public_master_host')
     is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER_INTERNAL_FQDN
-    master_port = skia_vars.GetGlobalVariable('internal_port')
-    slave_port = skia_vars.GetGlobalVariable('slave_port')
-    master_port_alt = skia_vars.GetGlobalVariable('external_port')
+    master_port = skia_vars.GetGlobalVariable('public_internal_port')
+    slave_port = skia_vars.GetGlobalVariable('public_slave_port')
+    master_port_alt = skia_vars.GetGlobalVariable('public_external_port')
     tree_closing_notification_recipients = ['skia-commit@googlegroups.com']
     from_address = 'skia-buildbot@pogerlabs.com'
     is_publicly_visible = True
