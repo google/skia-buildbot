@@ -118,6 +118,7 @@ def Update(config, active_master, cfg):
   gyp_10_6 = repr({'skia_osx_sdkroot': 'macosx10.6'})
   gyp_ios = repr({'skia_os': 'ios'})
   no_gpu = repr({'skia_gpu': '0'})
+  clang = repr({'skia_clang_build': '1'})
   valgrind = repr({'skia_release_optimization_level': '1'})
 
   # builder_specs is a dictionary whose keys are specifications for compile
@@ -142,7 +143,7 @@ def Update(config, active_master, cfg):
       ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f, p) : [('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'ASAN',        None)],
       ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       None,          'base-shuttle_ubuntu12_ati5770')],
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [],
-      ('Ubuntu12', 'Clang',  'Debug',   'x86_64', None,          None,      True,  f, p) : [],
+      ('Ubuntu12', 'Clang',  'Debug',   'x86_64', None,          clang,     True,  f, p) : [],
       ('Ubuntu13', 'GCC4.8', 'Debug',   'x86_64', None,          None,      True,  f, p) : [],})
   f = nacl_factory.NaClFactory
   builder_specs.update({
