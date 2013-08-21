@@ -104,7 +104,7 @@ class ConsoleStatusResource(HtmlResource):
   @defer.deferredGenerator
   def getAllChanges(self, request, status, debug_info):
     master = request.site.buildbot_service.master
-    limit = min(200, max(1, int(request.args.get('limit', [25])[0])))
+    limit = min(100, max(1, int(request.args.get('limit', [25])[0])))
     wfd = defer.waitForDeferred(master.db.changes.getRecentChanges(limit))
     yield wfd
     chdicts = wfd.getResult()
