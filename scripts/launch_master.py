@@ -112,7 +112,7 @@ def _UpdateAndRunMaster(private=False):
 def main():
   """ Alternately sync the buildbot source and launch the build master. """
   private = '--private' in sys.argv
-  loop = '--loop' in sys.argv
+  loop = '--noloop' not in sys.argv
   master_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],
                              os.pardir, 'master')
   os.chdir(master_path)
