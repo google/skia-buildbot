@@ -39,7 +39,8 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
       make_cmd = 'make.bat'
     cmd = [make_cmd,
            target,
-           'BUILDTYPE=%s' % self._step.configuration,
+           # For now, just run in debug mode.
+           'BUILDTYPE=%s' % 'Debug', #self._step.configuration,
            ]
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
