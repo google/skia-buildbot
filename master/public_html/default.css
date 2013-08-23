@@ -407,6 +407,12 @@ div.BuildWaterfall {
   border-color: #C5C56D;
 }
 
+.running_failure {
+  color: #000;
+  background-color: #fd3;
+  border-color: #f00;
+}
+
 .offline,td.offline {
     color: #FFFFFF;
     background-color: #777777;
