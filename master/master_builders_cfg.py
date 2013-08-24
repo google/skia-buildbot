@@ -121,8 +121,7 @@ def Update(config, active_master, cfg):
   gyp_exc = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
                   'qt_sdk': 'C:/Qt/4.8.5/',
                   'skia_win_exceptions': '1'})
-  gyp_10_6 = repr({'skia_osx_sdkroot': 'macosx10.6',
-                   'qt_sdk': '/Developer/SDKs/MacOSX10.6.sdk/Library/Frameworks/Frameworks/'})
+  gyp_10_6 = repr({'skia_osx_sdkroot': 'macosx10.6'})
   gyp_ios = repr({'skia_os': 'ios'})
   no_gpu = repr({'skia_gpu': '0'})
   clang = repr({'skia_clang_build': '1'})

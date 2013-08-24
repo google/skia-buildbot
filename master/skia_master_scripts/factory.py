@@ -688,8 +688,9 @@ class SkiaFactory(BuildFactory):
       self.UpdateSteps()
       if not self._build_targets:
         self._build_targets = ['skia_lib', 'tests', 'gm', 'tools', 'bench']
-        if 'Win7' in self._builder_name and 'x86_64' in self._builder_name:
-          # Don't compile the debugger in 64-bit Win7.
+        if (('Win7' in self._builder_name and 'x86_64' in self._builder_name) or
+            'Mac10.6' in self._builder_name):
+          # Don't compile the debugger in 64-bit Win7 or Mac 10.6.
           self._build_targets.append('most')
         else:
           self._build_targets.append('everything')
