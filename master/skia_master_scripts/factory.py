@@ -687,8 +687,12 @@ class SkiaFactory(BuildFactory):
       # Compile-only builder.
       self.UpdateSteps()
       if not self._build_targets:
-        self._build_targets = ['skia_lib', 'tests', 'gm', 'tools', 'bench',
-                               'everything']
+        self._build_targets = ['skia_lib', 'tests', 'gm', 'tools', 'bench']
+        if 'Win7' in self._builder_name and 'x86_64' in self._builder_name:
+          # Don't compile the debugger in 64-bit Win7.
+          self._build_targets.append('most')
+        else:
+          self._build_targets.append('everything')
       self.Compile(clobber=clobber,
                    retry_without_werr_on_failure=True)
     else:

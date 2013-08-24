@@ -74,7 +74,7 @@ def GetExtraFactoryArgs(compile_builder_info):
     elif compile_builder_info[0] == 'Win8':
       # On Win8, we build all targets at once, because of
       # https://code.google.com/p/skia/issues/detail?id=1331
-      return {'build_targets': ['everything']}
+      return {'build_targets': ['most']}
     else:
       return {}
   else:
@@ -121,7 +121,8 @@ def Update(config, active_master, cfg):
   gyp_exc = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
                   'qt_sdk': 'C:/Qt/4.8.5/',
                   'skia_win_exceptions': '1'})
-  gyp_10_6 = repr({'skia_osx_sdkroot': 'macosx10.6'})
+  gyp_10_6 = repr({'skia_osx_sdkroot': 'macosx10.6',
+                   'qt_sdk': '/Developer/SDKs/MacOSX10.6.sdk/Library/Frameworks/Frameworks/'})
   gyp_ios = repr({'skia_os': 'ios'})
   no_gpu = repr({'skia_gpu': '0'})
   clang = repr({'skia_clang_build': '1'})
