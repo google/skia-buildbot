@@ -111,7 +111,7 @@ def Update(config, active_master, cfg):
   gyp_win7 = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
                    'qt_sdk': 'C:/Qt/4.8.5/'})
   gyp_win8 = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
-                   'qt_sdk': 'C:/Qt/Qt5.1.0/'})
+                   'qt_sdk': 'C:/Qt/Qt5.1.0/5.1.0/msvc2012_64/'})
   gyp_angle = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
                     'qt_sdk': 'C:/Qt/4.8.5/',
                     'skia_angle': '1'})
