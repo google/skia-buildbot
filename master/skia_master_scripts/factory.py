@@ -688,7 +688,7 @@ class SkiaFactory(BuildFactory):
       self.UpdateSteps()
       if not self._build_targets:
         self._build_targets = ['skia_lib', 'tests', 'gm', 'tools', 'bench',
-                               'most']
+                               'everything']
       self.Compile(clobber=clobber,
                    retry_without_werr_on_failure=True)
     else:
