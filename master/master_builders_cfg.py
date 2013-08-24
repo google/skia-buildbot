@@ -74,7 +74,7 @@ def GetExtraFactoryArgs(compile_builder_info):
     elif compile_builder_info[0] == 'Win8':
       # On Win8, we build all targets at once, because of
       # https://code.google.com/p/skia/issues/detail?id=1331
-      return {'build_targets': ['most']}
+      return {'build_targets': ['everything']}
     else:
       return {}
   else:
@@ -108,12 +108,18 @@ def Update(config, active_master, cfg):
   #
   do_upload_results = active_master.is_production_host
 
-  gyp_win = repr({'skia_win_debuggers_path': 'c:/DbgHelp'})
+  gyp_win7 = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
+                   'qt_sdk': 'C:/Qt/4.8.5/'})
+  gyp_win8 = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
+                   'qt_sdk': 'C:/Qt/Qt5.1.0/'})
   gyp_angle = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
+                    'qt_sdk': 'C:/Qt/4.8.5/',
                     'skia_angle': '1'})
   gyp_dw = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
+                 'qt_sdk': 'C:/Qt/4.8.5/',
                  'skia_directwrite': '1'})
   gyp_exc = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
+                  'qt_sdk': 'C:/Qt/4.8.5/',
                   'skia_win_exceptions': '1'})
   gyp_10_6 = repr({'skia_osx_sdkroot': 'macosx10.6'})
   gyp_ios = repr({'skia_os': 'ios'})
@@ -172,11 +178,11 @@ def Update(config, active_master, cfg):
                                                                                             ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],})
   p = skia_factory.TARGET_PLATFORM_WIN32
   builder_specs.update({
-      ('Win7',     'VS2010', 'Debug',   'x86',    None,          gyp_win,   True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
-      ('Win7',     'VS2010', 'Release', 'x86',    None,          gyp_win,   True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
+      ('Win7',     'VS2010', 'Debug',   'x86',    None,          gyp_win7,  True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
+      ('Win7',     'VS2010', 'Release', 'x86',    None,          gyp_win7,  True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
                                                                                             ('Perf', 'Win7',     'ShuttleA',   'HD2000',      None,          None)],
-      ('Win7',     'VS2010', 'Debug',   'x86_64', None,          gyp_win,   False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
-      ('Win7',     'VS2010', 'Release', 'x86_64', None,          gyp_win,   False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
+      ('Win7',     'VS2010', 'Debug',   'x86_64', None,          gyp_win7,  False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float')],
+      ('Win7',     'VS2010', 'Release', 'x86_64', None,          gyp_win7,  False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      None,          'base-shuttle-win7-intel-float'),
                                                                                             ('Perf', 'Win7',     'ShuttleA',   'HD2000',      None,          None)],
       ('Win7',     'VS2010', 'Debug',   'x86',    'ANGLE',       gyp_angle, True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle')],
       ('Win7',     'VS2010', 'Release', 'x86',    'ANGLE',       gyp_angle, True,  f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'ANGLE',       'base-shuttle-win7-intel-angle'),
@@ -185,10 +191,10 @@ def Update(config, active_master, cfg):
       ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', gyp_dw,    False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite'),
                                                                                             ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', None)],
       ('Win7',     'VS2010', 'Debug',   'x86',    'Exceptions',  gyp_exc,   False, f, p) : [],
-      ('Win8',     'VS2012', 'Debug',   'x86',    None,          gyp_win,   True,  f, p) : [],
-      ('Win8',     'VS2012', 'Release', 'x86',    None,          gyp_win,   True,  f, p) : [],
-      ('Win8',     'VS2012', 'Debug',   'x86_64', None,          gyp_win,   False, f, p) : [],
-      ('Win8',     'VS2012', 'Release', 'x86_64', None,          gyp_win,   False, f, p) : []})
+      ('Win8',     'VS2012', 'Debug',   'x86',    None,          gyp_win8,  True,  f, p) : [],
+      ('Win8',     'VS2012', 'Release', 'x86',    None,          gyp_win8,  True,  f, p) : [],
+      ('Win8',     'VS2012', 'Debug',   'x86_64', None,          gyp_win8,  False, f, p) : [],
+      ('Win8',     'VS2012', 'Release', 'x86_64', None,          gyp_win8,  False, f, p) : []})
   f = android_factory.AndroidFactory
   p = skia_factory.TARGET_PLATFORM_LINUX
   builder_specs.update({
