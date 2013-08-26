@@ -233,7 +233,7 @@ class SkiaFactory(BuildFactory):
         raise ValueError('Factory configuration for %s does not match '
                          'expectation in %s!  Here\'s the diff:\n%s\n' %
                          (self._builder_name, expected_dir,
-                          utils.StringDiff(self_as_string, expectation)))
+                          utils.StringDiff(expectation, self_as_string)))
       else:
         # We don't print the full diff in this case because:
         # a. It's generally too long to be easily read in a terminal
