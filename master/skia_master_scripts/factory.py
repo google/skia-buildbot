@@ -108,9 +108,15 @@ class SkiaFactory(BuildFactory):
 
     # Trybots need to check out all of these directories.
     for other_subdir in subdirs_to_checkout:
+      if other_subdir.startswith('http'):
+        solution_url = other_subdir
+        solution_name = other_subdir.split('/')[-1].rstrip('.git')
+      else:
+        solution_url = posixpath.join(SKIA_SVN_BASEURL, other_subdir)
+        solution_name = other_subdir
       self._gclient_solutions.append(gclient_factory.GClientSolution(
-          svn_url=SKIA_SVN_BASEURL + '/' + other_subdir,
-          name=other_subdir).GetSpec())
+          svn_url=solution_url,
+          name=solution_name).GetSpec())
 
     self._deps_target_os = deps_target_os
 
