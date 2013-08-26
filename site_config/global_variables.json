@@ -34,6 +34,7 @@
   "gatekeeper_steps": {
     "value": [
         "Retry_BuildAll",
+        "Retry_BuildEverything",
         "Retry_BuildBench",
         "Retry_BuildGm",
         "Retry_BuildMost",
