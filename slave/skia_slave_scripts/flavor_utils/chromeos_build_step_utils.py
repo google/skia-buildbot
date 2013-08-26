@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Subclass for all slave-side ChromeOS build steps. """
+""" Utilities for ChromeOS build steps. """
 
 
 from default_build_step_utils import DefaultBuildStepUtils, DeviceDirs

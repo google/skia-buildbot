@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Compile step for NaCl build. """
+""" Utilities for NaCl build steps. """
 
 from default_build_step_utils import DefaultBuildStepUtils
 from utils import shell_utils

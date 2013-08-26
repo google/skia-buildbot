@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Compile step for ASAN build. """
+""" Utilities for ASAN build steps. """
 
 from default_build_step_utils import DefaultBuildStepUtils
 from utils import shell_utils

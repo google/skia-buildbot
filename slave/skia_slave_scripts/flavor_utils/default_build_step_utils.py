@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Base class for all slave-side build steps. """
+""" Utilities for generic build steps. """
 
 import errno
 import os
