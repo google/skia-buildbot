@@ -72,15 +72,15 @@ def IsTrybot(builder_name):
   return builder_name.endswith(TRYBOT_NAME_SUFFIX)
 
 
-def GetWaterfallBot(trybot_builder_name):
-  """ Returns the name of the waterfall bot corresponding to this trybot.
-  Raises ValueError if trybot_builder_name does not refer to a trybot. """
+def GetWaterfallBot(builder_name):
+  """Returns the name of the waterfall bot for this builder. If it is not a
+  trybot, builder_name is returned unchanged. If it is a trybot the name is
+  returned without the trybot suffix."""
   #pylint: disable=E0602
-  if not IsTrybot(trybot_builder_name):
-    raise ValueError('called GetWaterfallBot for non-trybot builder %s' %
-                     trybot_builder_name)
-  return _WithoutSuffix(trybot_builder_name,
-                        BUILDER_NAME_SEP + TRYBOT_NAME_SUFFIX)
+  if not IsTrybot(builder_name):
+    return builder_name
+  return _WithoutSuffix(builder_name, BUILDER_NAME_SEP +
+                        TRYBOT_NAME_SUFFIX)
 
 
 def _WithoutSuffix(string, suffix):

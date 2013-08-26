@@ -6,6 +6,7 @@
 """ Prepare runtime resources that are needed by Test builders but not
     Bench builders. """
 
+import builder_name_schema
 from build_step import BuildStep
 from utils import shell_utils
 import build_step
@@ -119,8 +120,19 @@ class PreRender(BuildStep):
     self._flavor_utils.CreateCleanDeviceDirectory(self._device_dirs.SKPOutDir())
 
     # Copy expectations file and images to decode in skimage to device.
-    self._flavor_utils.CopyDirectoryContentsToDevice(
-        self._skimage_expected_dir, self._device_dirs.SKImageExpectedDir())
+    self._flavor_utils.CreateCleanDeviceDirectory(
+        self._device_dirs.SKImageExpectedDir())
+    skimage_expected_filename = builder_name_schema.GetWaterfallBot(
+        self._builder_name) + ".json"
+
+    skimage_host_expectations = os.path.join(self._skimage_expected_dir,
+                                             skimage_expected_filename)
+
+    if os.path.exists(skimage_host_expectations):
+      skimage_device_expectations = self._flavor_utils.DevicePathJoin(
+          self._device_dirs.SKImageExpectedDir(), skimage_expected_filename)
+      self._flavor_utils.PushFileToDevice(skimage_host_expectations,
+          skimage_device_expectations)
 
     self._flavor_utils.CopyDirectoryContentsToDevice(
         self._skimage_in_dir, self._device_dirs.SKImageInDir())
