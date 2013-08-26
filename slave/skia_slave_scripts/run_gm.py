@@ -32,8 +32,7 @@ class RunGM(BuildStep):
                'IntentionallySkipped', 'MissingExpectations',
                'ExpectationsMismatch',
            '--readPath', device_gm_expectations_path,
-           # TODO(borenet): Re-enable --resourcePath when the test passes.
-           #'--resourcePath', self._device_dirs.ResourceDir(),
+           '--resourcePath', self._device_dirs.ResourceDir(),
            ] + self._gm_args
     # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
     if sys.platform == 'darwin':
