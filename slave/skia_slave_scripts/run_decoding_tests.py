@@ -5,25 +5,27 @@
 
 """ Run the Skia skimage executable. """
 
-from build_step import BuildStep
+from build_step import BuildStep, BuildStepWarning
+# builder_name_schema must be imported after build_step so the PYTHONPATH will
+# be set properly to import it.
+import builder_name_schema
 import sys
 
 class RunDecodingTests(BuildStep):
   def _Run(self):
     cmd = ['-r', self._device_dirs.SKImageInDir(), '--noreencode']
 
-    # TODO(scroggo): Once we have expectations files with the new name,
-    # the expectations_name will use self._builder_name
-    if self._gm_image_subdir is not None:
-      expectations_name = self._gm_image_subdir + '.json'
+    expectations_name = (builder_name_schema.GetWaterfallBot(self._builder_name)
+                         + '.json')
 
-      # Read expectations, which were downloaded/copied to the device.
-      expectations_file = self._flavor_utils.DevicePathJoin(
-        self._device_dirs.SKImageExpectedDir(),
-        expectations_name)
+    # Read expectations, which were downloaded/copied to the device.
+    expectations_file = self._flavor_utils.DevicePathJoin(
+      self._device_dirs.SKImageExpectedDir(),
+      expectations_name)
 
-      if self._flavor_utils.DevicePathExists(expectations_file):
-        cmd.extend(['--readExpectationsPath', expectations_file])
+    have_expectations = self._flavor_utils.DevicePathExists(expectations_file)
+    if have_expectations:
+      cmd.extend(['--readExpectationsPath', expectations_file])
 
     # Write the expectations file, in case any did not match.
     output_expectations_file = self._flavor_utils.DevicePathJoin(
@@ -37,6 +39,12 @@ class RunDecodingTests(BuildStep):
 
     self._flavor_utils.RunFlavoredCmd('skimage', cmd)
 
+    # If there is no expectations file, still run the tests, and then raise a
+    # warning. Then we'll know to update the expectations with the results of
+    # running the tests.
+    # TODO(scroggo): Make this a failure once all builders have expectations.
+    if not have_expectations:
+      raise BuildStepWarning("Missing expectations file " + expectations_file)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RunDecodingTests))

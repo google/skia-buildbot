@@ -9,6 +9,9 @@
 from build_step import BuildStep
 from utils import shell_utils
 import build_step
+# builder_name_schema must be imported after build_step so the PYTHONPATH will
+# be set properly to import it.
+import builder_name_schema
 import os
 import shutil
 import sys
@@ -119,8 +122,19 @@ class PreRender(BuildStep):
     self._flavor_utils.CreateCleanDeviceDirectory(self._device_dirs.SKPOutDir())
 
     # Copy expectations file and images to decode in skimage to device.
-    self._flavor_utils.CopyDirectoryContentsToDevice(
-        self._skimage_expected_dir, self._device_dirs.SKImageExpectedDir())
+    self._flavor_utils.CreateCleanDeviceDirectory(
+        self._device_dirs.SKImageExpectedDir())
+    skimage_expected_filename = builder_name_schema.GetWaterfallBot(
+        self._builder_name) + ".json"
+
+    skimage_host_expectations = os.path.join(self._skimage_expected_dir,
+                                             skimage_expected_filename)
+
+    if os.path.exists(skimage_host_expectations):
+      skimage_device_expectations = self._flavor_utils.DevicePathJoin(
+          self._device_dirs.SKImageExpectedDir(), skimage_expected_filename)
+      self._flavor_utils.PushFileToDevice(skimage_host_expectations,
+          skimage_device_expectations)
 
     self._flavor_utils.CopyDirectoryContentsToDevice(
         self._skimage_in_dir, self._device_dirs.SKImageInDir())
