@@ -26,10 +26,14 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
     # First, kill any running Skia executables.
     android_utils.ADBKill(self._serial, 'skia')
     release_mode = self._step.configuration == 'Release'
-    android_utils.RunSkia(serial=self._serial,
-                          cmd=[app] + args,
-                          release=release_mode,
-                          device=self._device)
+    try:
+      android_utils.RunSkia(serial=self._serial,
+                            cmd=[app] + args,
+                            release=release_mode,
+                            device=self._device)
+    finally:
+      # Make sure that no Skia process is hanging around after we're done.
+      android_utils.ADBKill(self._serial, 'skia')
 
   def ReadFileOnDevice(self, filepath):
     """ Read the contents of a file on the device. """
