@@ -23,6 +23,8 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
+    # First, kill any running Skia executables.
+    android_utils.ADBKill(self._serial, 'skia')
     release_mode = self._step.configuration == 'Release'
     android_utils.RunSkia(serial=self._serial,
                           cmd=[app] + args,

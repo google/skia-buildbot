@@ -162,6 +162,15 @@ def ADBKill(serial, process, kill_app=False):
           continue
         pid = split[1]
         ADBShell(serial, ['kill', pid])
+    # Raise an exception if any Skia processes are still running.
+    try:
+      stdout = shell_utils.Bash('%s -s %s shell ps | grep %s' % (
+                                    PATH_TO_ADB, serial, process), shell=True)
+    except Exception:
+      return
+    if stdout:
+      raise Exception('There are still some skia processes running:\n%s\n'
+                      'Maybe the device should be rebooted?' % stdout)
 
 
 def GetSerial(device_type):
