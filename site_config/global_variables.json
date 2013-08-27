@@ -92,12 +92,12 @@
     "description": "URL of the Skia codesite."
   },
   "public_external_port": {
-    "value": "10127",
+    "value": "10117",
     "type": "integer",
     "description": "Externally-visible port on the Skia build master."
   },
   "public_internal_port": {
-    "value": "10125",
+    "value": "10115",
     "type": "integer",
     "description": "Internally-visible port on the Skia build master."
   },
@@ -112,7 +112,7 @@
     "description": "What the public Skia build master thinks its own FQDN is."
   },
   "public_slave_port": {
-    "value": "10126",
+    "value": "10116",
     "type": "integer",
     "description": "Port used by public build slaves."
   },
