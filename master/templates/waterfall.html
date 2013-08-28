@@ -16,7 +16,7 @@
   </td>
 
 {% for b in builders %}
-  <td align="center" class="{{ b.top_class }}" id="commentIndicator_{{ b.name }}" onmouseover="showBuilderTooltip('{{ b.name }}', event)" onmouseout="hideBuilderTooltip(event)">
+  <td align="center" class="{{ b.top_class }}{% if builder_statuses.get(b.name) %} BuilderHasComment{% endif %}" onmouseover="showBuilderTooltip(&#39;{{ get_builder_status_msg(b.name) }}&#39;, event)" onmouseout="hideBuilderTooltip(event)">
     <a href="{{ b.url }}">{{ b.name }}</a><br/>
     {{ " ".join(b.top) }}
   </td>

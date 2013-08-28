@@ -576,3 +576,52 @@ pre.comments>a:link,pre.comments>a:visited {
 pre.comments>a:active {
   color: purple;
 }
+
+/*
+Tree status banner styles, from
+appengine_scripts/skia-tree-status/templates/current.html
+
+TODO(borenet): Split out the CSS from current.html and share it?
+*/
+div.status-message {
+  margin-bottom: 1em;
+  padding: 0.5em;
+  font-weight: normal;
+  font-size: 16px;
+  font-family: Verdana, Cursor;
+  text-align: center;
+  color: black;
+  border-top-right-radius: 24px;
+  -webkit-border-top-right-radius: 24px;
+  -moz-border-radius-topright: 1em;
+  border-bottom-right-radius: 24px;
+  -webkit-border-bottom-right-radius: 24px;
+  -moz-border-radius-bottomright: 1em;
+  border-top-left-radius: 24px;
+  -webkit-border-top-left-radius: 24px;
+  -moz-border-radius-topleft: 1em;
+  border-bottom-left-radius: 24px;
+  -webkit-border-bottom-left-radius: 24px;
+  -moz-border-radius-bottomleft: 1em;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+  -moz-box-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+  -webkit-box-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+}
+
+div.sheriff-message {
+  text-align: right;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+div.open {
+  background-color: #8fdf5f;
+}
+
+div.closed {
+  background-color: #e98080;
+}
+
+div.caution {
+  background-color: #FFFC6C;
+}

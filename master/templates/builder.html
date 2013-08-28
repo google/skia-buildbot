@@ -6,9 +6,11 @@
 
 <h1>Builder {{ name }}</h1>
 
-<p>(<a href="{{ path_to_root }}waterfall?show={{ name }}">view in waterfall</a>)</p>
+<!-- If the builder is a trybot, link to the trybot waterfall, otherwise use the
+normal waterfall. -->
+<p>(<a href="{{ path_to_root }}{% if 'Trybot' in name %}trybots{% else %}waterfall{% endif %}?show={{ name }}">view in waterfall</a>)</p>
 
-<div class="DisplayBuilderComment" id="displayBuilderComment_{{ name }}" style="position: relative;"></div>
+<div class="DisplayBuilderComment{% if builder_statuses.get(name) %} BuilderTooltip BuilderHasComment{% endif %}" style="position: relative;">{{ get_builder_status_msg(name) }}</div>
 
 <div class="column">
 

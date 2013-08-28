@@ -35,10 +35,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     var internalport = "{{ internal_port }}";
     var externalport = "{{ external_port }}";
 
-    var tree_status_appspot_url = "http://skia-tree-status.appspot.com";
-    var get_builder_status_url = tree_status_appspot_url + "/builder-status/get_builder_statuses?jsonp=setJSONStatus";
-    var set_builder_status_url = tree_status_appspot_url + "/builder-status/";
-
     var all_full_category_names = [
       {% for c in all_full_category_names %}
       "{{ c }}",
@@ -86,39 +82,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     var displaying_full_category_names = [];
     var displaying_categories = [];
     var displaying_subcategories = [];
-
-    // This variable holds statuses for the builders from AppEngine.
-    var status_json = {};
-
-    // Load builder status information from AppEngine.
-    function loadJSONStatus() {
-      var script = document.createElement("script");
-      script.setAttribute("src", get_builder_status_url);
-      document.getElementsByTagName("head")[0].appendChild(script);
-    }
-
-    // Callback function which receives JSON date from AppEngine and stores it in status_json.
-    function setJSONStatus(data) {
-      status_json = data;
-      // Mark builders who have comments.
-      for (var builder_name in status_json) {
-        var comment_indicator = document.getElementById("commentIndicator_" + builder_name);
-        if (comment_indicator) {
-          comment_indicator.className += " BuilderHasComment";
-        }
-      }
-
-      // Optionally display the builder status message on the page.
-      var display_comment_elems = document.getElementsByClassName("DisplayBuilderComment");
-      for (var i = 0; i < display_comment_elems.length; ++i) {
-        var display_comment = display_comment_elems[i];
-        var builder_name = display_comment.id.slice("displayBuilderComment_".length);
-        display_comment.innerHTML = builderCommentText(builder_name);
-        if (status_json[builder_name]) {
-          display_comment.className += " BuilderTooltip BuilderHasComment";
-        }
-      }
-    }
 
     // Set an option on window.name
     function setOption(name, value) {
@@ -221,13 +184,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         new_host += externalport;
       }
       window.location.host = new_host;
-    }
-
-    // Refresh the tree status iframe.
-    function reloadSkiaTreeStatus() {
-      document.getElementById("skia-tree-status").src =
-          document.getElementById("skia-tree-status").src;
-      setTimeout("reloadSkiaTreeStatus();", iframe_reload);
     }
 
     // Parse the variables in the URL and return a key/value dictionary.
@@ -334,32 +290,10 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       } else if (host.indexOf(externalport, host.length - externalport.length) !== -1) {
         document.getElementById("radio_external").checked = true;
       }
-
-      // Set the iframe to reload.
-      setTimeout("reloadSkiaTreeStatus();", iframe_reload);
-
-      // Load the builder statuses.
-      loadJSONStatus();
-    }
-
-    // Get the comment text for a given builder.
-    function builderCommentText(builder_name) {
-      var comment = null;
-      if (status_json[builder_name]) {
-        comment = status_json[builder_name]["message"];
-      }
-      var edit_status_url = set_builder_status_url + "?selected_builder_name=" + builder_name
-      var comment_html;
-      if (comment) {
-        comment_html = comment + " (<a href='" + edit_status_url + "' target='_blank'>edit</a>)";
-      } else {
-        comment_html = "<a href='" + edit_status_url + "' target='_blank'>add a comment</a>";
-      }
-      return comment_html;
     }
 
     // Display a builder tooltip.
-    function showBuilderTooltip(builder_name, event) {
+    function showBuilderTooltip(message, event) {
       var tooltipbox = document.getElementById('builderTooltip');
       var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
       var cursorPosLeft = (window.event ? window.event.clientX : event.pageX)
@@ -367,7 +301,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       cursorPosTop  = cursorPosTop  + document.body.scrollTop + 5;    
       cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
     
-      tooltipbox.innerHTML = builderCommentText(builder_name);
+      tooltipbox.innerHTML = message;
       tooltipbox.style.top = parseInt(cursorPosTop) + 'px';
       tooltipbox.style.left = parseInt(cursorPosLeft) + 'px';
       tooltipbox.style.display = "block";
@@ -399,7 +333,12 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
   <body class="interface">
     {% block header -%}
     <div id="skia_header" style="top:5px;">
-      <iframe id="skia-tree-status" width="100%" height="50" frameborder="0" scrolling="no" src="http://skia-tree-status.appspot.com/banner-status"></iframe>
+      <a href="{{ tree_status_baseurl }}" target="_blank" style="text-decoration:inherit;">
+        <div id="skia-tree-status-div" width="100%" height="50" class="status-message {{ tree_status['general_state'] }}">
+          {{ tree_status['message'] }}
+          <div class="sheriff-message">Sheriff: {{ tree_status['username'] }}</div>
+        </div>
+      </a>
       <div id="container" style="float: left; width: 100%;">
         <div style="float:left; width:25%;">
         <form name="unused">
@@ -410,7 +349,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
   
         <div id="links" style="float:right; width:25%;">
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li></ul></div>
-          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skia-tree-status.appspot.com/" target="_blank">Skia Tree Status Manager</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bench_graphs.html" target="_blank">Bench Graphs</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://go/skpdash" target="_blank">Bench Dashboard Internal</a><br/></li></ul></div>

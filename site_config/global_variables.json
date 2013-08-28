@@ -131,6 +131,11 @@
     "type": "string",
     "description": "URL of the Skia SVN repository."
   },
+  "tree_status_baseurl": {
+    "value": "https://skia-tree-status.appspot.com",
+    "type": "string",
+    "description": "Base URL of the Skia tree status AppEngine instance."
+  },
   "tree_status_url": {
     "value": "https://skia-tree-status.appspot.com/binary-status",
     "type": "string",
