@@ -102,7 +102,7 @@
     "description": "Internally-visible port on the Skia build master."
   },
   "public_master_host": {
-    "value": "173.255.115.253",
+    "value": "skiabot-master.pogerlabs.com",
     "type": "string",
     "description": "Hostname (or IP address) that can be used to reach the public Skia build master."
   },
