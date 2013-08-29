@@ -5,7 +5,7 @@
 
 """ Run the Skia skimage executable. """
 
-from build_step import BuildStep, BuildStepWarning
+from build_step import BuildStep, BuildStepFailure
 # builder_name_schema must be imported after build_step so the PYTHONPATH will
 # be set properly to import it.
 import builder_name_schema
@@ -39,12 +39,11 @@ class RunDecodingTests(BuildStep):
 
     self._flavor_utils.RunFlavoredCmd('skimage', cmd)
 
-    # If there is no expectations file, still run the tests, and then raise a
-    # warning. Then we'll know to update the expectations with the results of
+    # If there is no expectations file, still run the tests, and then report a
+    # failure. Then we'll know to update the expectations with the results of
     # running the tests.
-    # TODO(scroggo): Make this a failure once all builders have expectations.
     if not have_expectations:
-      raise BuildStepWarning("Missing expectations file " + expectations_file)
+      raise BuildStepFailure("Missing expectations file " + expectations_file)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RunDecodingTests))
