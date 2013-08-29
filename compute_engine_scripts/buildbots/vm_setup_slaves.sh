@@ -37,6 +37,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
   echo "===== Android SDK. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
     "cd $SKIA_REPO_DIR && " \
+    "sudo apt-get -y install libncurses5:i386 && " \
     "wget http://dl.google.com/android/adt/adt-bundle-linux-x86_64-20130729.zip && " \
     "if [[ -d adt-bundle-linux-x86_64-20130729 ]]; then rm -rf adt-bundle-linux-x86_64-20130729; fi && " \
     "unzip adt-bundle-linux-x86_64-20130729.zip && " \
@@ -47,7 +48,6 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     || FAILED="$FAILED AndroidSDK"
   echo
 
-  # TODO(borenet): The below section fails when running minigzip tests.
   echo
   echo "===== Native Client SDK and NaClPorts. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
