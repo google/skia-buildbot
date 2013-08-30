@@ -68,7 +68,7 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
     cmd.append('-j%d' % jobs)
   if no_hooks:
     cmd.append('--nohooks')
-  if revision and SKIA_TRUNK in branches:
+  if revision and branches and SKIA_TRUNK in branches:
     cmd.extend(['--revision', '%s@%s' % (SKIA_TRUNK, revision)])
 
   return _RunCmd(cmd)
