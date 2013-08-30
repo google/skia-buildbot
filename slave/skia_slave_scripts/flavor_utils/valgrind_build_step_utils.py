@@ -27,11 +27,19 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
            '--track-origins=yes', '--error-exitcode=1']
     if self._suppressions_file:
       cmd.append('--suppressions=%s' % self._suppressions_file)
+
+    # For now, just run in debug mode.
+    self._step._configuration = 'Debug'
+
     cmd.append(self._PathToBinary(app))
     cmd.extend(args)
     return shell_utils.Bash(cmd)
 
   def Compile(self, target):
+
+    # For now, just run in debug mode.
+    self._step._configuration = 'Debug'
+
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     make_cmd = 'make'
@@ -39,8 +47,7 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
       make_cmd = 'make.bat'
     cmd = [make_cmd,
            target,
-           # For now, just run in debug mode.
-           'BUILDTYPE=%s' % 'Debug', #self._step.configuration,
+           'BUILDTYPE=%s' % self._step.configuration,
            ]
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
