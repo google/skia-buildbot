@@ -184,21 +184,23 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
 
     // Hide the builder tooltip.
     function hideBuilderTooltip(event) {
-      // Only hide the tooltip if the mouse is outside the tooltip area.
-      var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
-      var cursorPosLeft = (window.event ? window.event.clientX : event.pageX)
-      cursorPosTop  = cursorPosTop  + document.body.scrollTop;    
-      cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
-
       var tooltipbox = document.getElementById('builderTooltip');
-      var top = parseInt(tooltipbox.style.top.replace("px", ""));
-      var left = parseInt(tooltipbox.style.left.replace("px", ""));
-      var bottom = top + parseInt(tooltipbox.offsetHeight);
-      var right = left + parseInt(tooltipbox.offsetWidth);
+      if (tooltipbox) {
+        // Only hide the tooltip if the mouse is outside the tooltip area.
+        var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
+        var cursorPosLeft = (window.event ? window.event.clientX : event.pageX)
+        cursorPosTop  = cursorPosTop  + document.body.scrollTop;
+        cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
 
-      if (cursorPosTop < top - 5 || cursorPosTop > bottom ||
-          cursorPosLeft < left || cursorPosLeft > right) {
-        tooltipbox.style.display = "none";
+        var top = parseInt(tooltipbox.style.top.replace("px", ""));
+        var left = parseInt(tooltipbox.style.left.replace("px", ""));
+        var bottom = top + parseInt(tooltipbox.offsetHeight);
+        var right = left + parseInt(tooltipbox.offsetWidth);
+
+        if (cursorPosTop < top - 5 || cursorPosTop > bottom ||
+            cursorPosLeft < left || cursorPosLeft > right) {
+          tooltipbox.style.display = "none";
+        }
       }
     }
 
