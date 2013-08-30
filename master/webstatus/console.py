@@ -22,6 +22,7 @@ from twisted.internet import defer
 
 import builder_name_schema
 import re
+import skia_vars
 import time
 import urllib
 
@@ -104,7 +105,10 @@ class ConsoleStatusResource(HtmlResource):
   @defer.deferredGenerator
   def getAllChanges(self, request, status, debug_info):
     master = request.site.buildbot_service.master
-    limit = min(100, max(1, int(request.args.get('limit', [25])[0])))
+    max_rev_limit = skia_vars.GetGlobalVariable('console_max_rev_limit')
+    default_rev_limit = skia_vars.GetGlobalVariable('console_default_rev_limit')
+    limit = min(max_rev_limit,
+                max(1, int(request.args.get('limit', [default_rev_limit])[0])))
     wfd = defer.waitForDeferred(master.db.changes.getRecentChanges(limit))
     yield wfd
     chdicts = wfd.getResult()
@@ -530,7 +534,7 @@ class ConsoleStatusResource(HtmlResource):
 
     # Sets the default reload time to 60 seconds.
     if not reload_time:
-      reload_time = 60
+      reload_time = skia_vars.GetGlobalVariable('default_webstatus_refresh')
 
     # Append the tag to refresh the page.
     if reload_time is not None and reload_time != 0:
@@ -551,6 +555,20 @@ class ConsoleStatusResource(HtmlResource):
     branch = request.args.get("branch", [ANYBRANCH])[0]
     # List of all the committers name to display on the page.
     dev_name = request.args.get("name", [])
+
+    # List of categories for which we load information but hide initially.
+    hidden_categories_sets = request.args.get("hideCategories", [])
+    hide_categories = []
+    for category_set in hidden_categories_sets:
+      hide_categories.extend(category_set.split(','))
+    cxt['hide_categories'] = hide_categories
+
+    # List of subcategories for which we load information but hide initially.
+    hidden_subcategories_sets = request.args.get("hideSubcategories", [])
+    hide_subcategories = []
+    for subcategory_set in hidden_subcategories_sets:
+      hide_subcategories.extend(subcategory_set.split(','))
+    cxt['hide_subcategories'] = hide_subcategories
 
     # and the data we want to render
     status = self.getStatus(request)
@@ -575,8 +593,7 @@ class ConsoleStatusResource(HtmlResource):
         rev_filter['branch'] = branch
       if dev_name:
         rev_filter['who'] = dev_name
-      if repository:
-        rev_filter['repository'] = repository
+      rev_filter['repository'] = skia_vars.GetGlobalVariable('skia_svn_url')
       revisions = list(self.filterRevisions(all_changes, max_revs=num_revs,
                                             rev_filter=rev_filter))
       debug_info["revision_final"] = len(revisions)

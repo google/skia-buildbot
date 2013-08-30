@@ -12,166 +12,51 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     {% if metatags %}
       {{ metatags }}
     {% endif %}
-    {% if refresh %}
-      <meta http-equiv="refresh" content="{{ refresh|e }}"/>
-    {% endif %}
     <title>{{ pageTitle|e }}</title>
     <link rel="stylesheet" href="{{ stylesheet }}" type="text/css" />
     <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ path_to_root }}rss">
-    <!-- Using Thomas Frank's JSON stringifier -->
-    <script type="text/javascript" src="/jsonStringify.js"></script>
     <script type="text/javascript">
     "use strict";
 
-    var reload = 40;
-    var iframe_reload = 60000;
+    // Ports used to access the buildbot webstatus pages.
+    var internalPort = "{{ internal_port }}";
+    var externalPort = "{{ external_port }}";
 
-    // Magic numbers to make the console page show enough revisions.
-    var default_revs = 20;
-    var rev_limit = 50;
+    // How often, in milliseconds, to refresh the page.
+    var refreshInterval = {{ refresh or default_refresh }} * 1000;
 
-    var skia_repo = "{{ skia_repo }}";
-    var try_repo = "{{ try_repo }}";
-    var internalport = "{{ internal_port }}";
-    var externalport = "{{ external_port }}";
+    // Number of times a page reload has been cancelled due to activity on the page.
+    var cancelledReloads = 0;
 
-    var all_full_category_names = [
-      {% for c in all_full_category_names %}
-      "{{ c }}",
-      {% endfor %}
-    ];
-    var all_categories = [
+    // Maximum number of cancelled reloads before forcing a reload.
+    var maxCancelledReloads = 10;
+
+    // Variables passed in the URL.
+    var urlVars = {};
+
+    // Categories of builders, and whether each category should be displayed.
+    var allCategories = {
       {% for r in all_categories %}
-      "{{ r }}",
-      {% endfor %}
-    ];
-    var all_subcategories = [
-      {% for subcategory in all_subcategories %}
-      "{{ subcategory }}",
-      {% endfor %}
-    ];
-    var builders_by_cat_subcat = {
-      {% for category in builders_by_cat_subcat %}
-        "{{ category }}": {
-          {% for subcategory in builders_by_cat_subcat[category] %}
-            "{{ subcategory }}": [
-              {% for cat in builders_by_cat_subcat[category][subcategory] %}
-                "{{ cat }}",
-              {% endfor %}
-            ],
-          {% endfor %}
-        },
+      "{{ r }}": true,
       {% endfor %}
     };
-    var default_categories = all_categories;
-    var default_subcategories = all_subcategories;
-    var default_categories_fullnames = [];
-    for (var i = 0; i < default_categories.length; ++i) {
-      var category = default_categories[i];
-      for (var j = 0; j < default_subcategories.length; ++j) {
-        var subcategory = default_subcategories[j];
-        var cats = builders_by_cat_subcat[category][subcategory];
-        if (cats && cats.length > 0) {
-          for (var k = 0; k < cats.length; ++k) {
-            default_categories_fullnames.push(cats[k]);
-          }
-        }
-      }
-    }
 
-    var displaying_full_category_names = [];
-    var displaying_categories = [];
-    var displaying_subcategories = [];
+    // Subcategories of builders, and whether each category should be displayed.
+    var allSubcategories = {
+      {% for subcategory in all_subcategories %}
+      "{{ subcategory }}": true,
+      {% endfor %}
+    };
 
-    // Set an option on window.name
-    function setOption(name, value) {
-      var options = JSONstring.toObject(top.name);
-      options[name] = value;
-      top.name = JSONstring.make(options);
-    }
-
-    // Get an option from window.name
-    function getOption(name) {
-      var options = JSONstring.toObject(top.name);
-      return options[name];
-    }
-
-    // Reload the page with new categories. If make_historic is true, a new
-    // history entry is added for this reload.
-    function reloadWithOptions(make_historic, changed_chkbox) {
-      if (changed_chkbox) {
-        var split_name = changed_chkbox.split("_", 2);
-        if (document.getElementById(changed_chkbox).checked) {
-          // Add to categories
-          if (split_name[0] == "category") {
-            var category = split_name[1];
-            displaying_categories.push(category);
-            // If no subcategories under the new category are being displayed,
-            // display them all.
-            var add_all_subcats = true;
-            for (var subcategory in builders_by_cat_subcat[category]) {
-              if (displaying_subcategories.indexOf(subcategory) != -1) {
-                add_all_subcats = false;
-                break;
-              }
-            }
-            if (add_all_subcats) {
-              for (var subcategory in builders_by_cat_subcat[category]) {
-                displaying_subcategories.push(subcategory);
-              }
-            }
-          } else {
-            displaying_subcategories.push(split_name[1]);
-          }
-        } else {
-          // Remove from categories
-          if (split_name[0] == "category") {
-            for (var i = 0; i < displaying_categories.length; ++i) {
-              if (displaying_categories[i] == split_name[1]) {
-                displaying_categories.splice(i, 1);
-                break;
-              }
-            }
-          } else {
-            for (var i = 0; i < displaying_subcategories.length; ++i) {
-              if (displaying_subcategories[i] == split_name[1]) {
-                displaying_subcategories.splice(i, 1);
-                break;
-              }
-            }
-          }
-        }
-      }
-
-      var categories = [];
-      for (var i = 0; i < displaying_categories.length; ++i) {
-        var category = displaying_categories[i];
-        for (var j = 0; j < displaying_subcategories.length; ++j) {
-          var subcategory = displaying_subcategories[j];
-          var cats_to_add = builders_by_cat_subcat[category][subcategory];
-          if (cats_to_add) {
-            for (var k = 0; k < cats_to_add.length; ++k) {
-              categories.push(cats_to_add[k]);
-            }
-          }
-        }
-      }
-
-      setOption("categories", categories);
-
-      // Reload the page with the desired list of categories.
-      var current_url = window.location.href;
-      var bare_url = current_url.substring(0, current_url.indexOf("?"));
-      var new_url = bare_url + "?reload=" + reload + "&repository=" + skia_repo
-                        + "&revs=" + default_revs + "&limit=" + rev_limit
-                        + getCategoryString(categories);
-      if (make_historic) {
-        // This forces a new history entry.
-        window.location = new_url;
-      } else {
-        // This sneakily replaces the current history entry.
-        window.location.replace(new_url);
-      }
+    // Subcategories listed by which category they fall under.
+    var subcategoriesByCategory = {
+      {% for category in subcategories_by_category %}
+      "{{ category }}": [
+        {% for subcategory in subcategories_by_category[category] %}
+          "{{ subcategory }}",
+        {% endfor %}
+      ],
+      {% endfor %}
     }
 
     // Switch to the internal or external view.
@@ -179,9 +64,9 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       var current_host = window.location.host;
       var new_host = current_host.split(":")[0] + ":";
       if (is_internal) {
-        new_host += internalport;
+        new_host += internalPort;
       } else {
-        new_host += externalport;
+        new_host += externalPort;
       }
       window.location.host = new_host;
     }
@@ -193,118 +78,108 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       var dict = window.location.search.slice(1).split('&');
       for(var i = 0; i < dict.length; i++) {
         var split = dict[i].split('=');
-        if (args[split[0]]) {
-          if (Object.prototype.toString.call(args[split[0]]) == "[object Array]") {
-            args[split[0]].push(split[1]);
+        var key = split[0];
+        var value = split[1];
+        if (args[key]) {
+          if (Object.prototype.toString.call(args[key]) == "[object Array]") {
+            args[key].push(value);
           } else {
-            args[split[0]] = [args[split[0]], split[1]];
+            args[key] = [args[key], value];
           }
-        } else {
-          args[split[0]] = split[1];
+        } else if (key != "") {
+          args[key] = value;
         }
       }
       return args;
     }
 
-    // Return a string of the form: "&category=x&category=y..." with all of
-    // those contained in the given array of categories.
-    function getCategoryString(categories) {
-      var category_string = "";
-      for (var i = 0; i < categories.length; i++) {
-        category_string = category_string.concat("&category=", categories[i]);
-      }
-      return category_string;
-    }
+    // Reload the page, if the user isn't actively interacting with it.
+    function reloadPage() {
+      var reloadIsAllowed = true;
 
-    // Scroll the header div with the page.
-    function scrollHeader() {
-      var header = document.getElementById("skia_header");
-      if (header) {
-        header.style.top = (5 - parseInt(document.body.scrollTop)) + "px";
+      // Don't allow reload if a build box is open.
+      var buildBox = document.getElementById("divBox");
+      if (buildBox && buildBox.style.display != "none") {
+        console.log("divBox is displaying (" + buildBox.style.display + ").");
+        reloadIsAllowed = false;
       }
-    }
-    document.onscroll = scrollHeader;
 
-    // Check the desired boxes.
-    function setCheckBoxes() {
-      for (var i = 0; i < displaying_categories.length; ++i) {
-        document.getElementById("category_" + displaying_categories[i]).checked = true;
+      // Don't allow reload if a builder tooltip is open.
+      var builderTooltip = document.getElementById("builderTooltip");
+      if (builderTooltip && builderTooltip.style.display != "none") {
+        console.log("Tooltip displaying.");
+        reloadIsAllowed = false;
       }
-      for (var i = 0; i < displaying_subcategories.length; ++i) {
-        document.getElementById("subcategory_" + displaying_subcategories[i]).checked = true;
+
+      if (reloadIsAllowed) {
+        window.location.replace(window.location);
+      } else if (cancelledReloads >= maxCancelledReloads) {
+        console.log("Forcing a reload because the number of " +
+                    "previously-cancelled reloads exceeded " +
+                    maxCancelledReloads + ".");
+        window.location.replace(window.location);
+      } else {
+        console.log("Not reloading page because the user is interacting with it.");
+        cancelledReloads++;
+        setTimeout(reloadPage, refreshInterval);
       }
     }
 
     // Function to call on page load. Reloads the page with appropriate options
     // if they are not already set.
     function init() {
-      // Use the URL variables and window-attached options to determine which
-      // categories to display and reload the page if necessary.
-      var args = parseArgs();
-      displaying_full_category_names = args["category"];
-      if (displaying_full_category_names &&
-          !(Object.prototype.toString.call(displaying_full_category_names) == "[object Array]")) {
-        displaying_full_category_names = [displaying_full_category_names];
-      }
-
-      // Some categories have spaces in the name. Filter them out.
-      var desired_categories = getOption("categories");
-      // Do not reload pages with "show=" or "builder=".
-      if (!args["show"] && !args["builder"]) {
-        var needs_to_reload = false;
-        if (!displaying_full_category_names) {
-          if (desired_categories && desired_categories.length > 0) {
-            displaying_full_category_names = desired_categories;
-            needs_to_reload = true;
-          } else {
-            displaying_full_category_names = default_categories_fullnames;
-            needs_to_reload = true;
-          }
-        }
-
-        for (var i = 0; i < displaying_full_category_names.length; ++i) {
-          var split_category = displaying_full_category_names[i].split("|");
-          var category = split_category[0];
-          if (displaying_categories.indexOf(category) == -1) {
-            displaying_categories.push(category);
-          }
-          var subcategory = split_category[1];
-          if (displaying_subcategories.indexOf(subcategory) == -1) {
-            displaying_subcategories.push(subcategory);
-          }
-        }
-
-        // Set options for the next page load.
-        setOption("categories", displaying_full_category_names);
-
-        if (needs_to_reload) {
-          reloadWithOptions(false);
-          return;
-        }
-      }
-      // Check the correct checkboxes.
-      setCheckBoxes();
       var host = window.location.host;
-      if (host.indexOf(internalport, host.length - internalport.length) !== -1) {
-        document.getElementById("radio_internal").checked = true;
-      } else if (host.indexOf(externalport, host.length - externalport.length) !== -1) {
-        document.getElementById("radio_external").checked = true;
+      var checkedRadio;
+      if (host.indexOf(internalPort, host.length - internalPort.length) !== -1) {
+        checkedRadio = document.getElementById("radio_internal");
+      } else if (host.indexOf(externalPort, host.length - externalPort.length) !== -1) {
+        checkedRadio = document.getElementById("radio_external");
       }
+      if (checkedRadio) {
+        checkedRadio.checked = true;
+      }
+
+      urlVars = parseArgs();
+      if (urlVars["hideCategories"]) {
+        var categoryList = urlVars["hideCategories"].split(",");
+        for (var i = 0; i < categoryList.length; ++i) {
+          var name = categoryList[i];
+          allCategories[name] = false;
+          var chkbox = document.getElementById("chkbox_category_" + name);
+          if (chkbox) {
+            chkbox.checked = false;
+          }
+        }
+      }
+      if (urlVars["hideSubcategories"]) {
+        var subcategoryList = urlVars["hideSubcategories"].split(",");
+        for (var i = 0; i < subcategoryList.length; ++i) {
+          var name = subcategoryList[i];
+          allSubcategories[name] = false;
+          var chkbox = document.getElementById("chkbox_subcategory_" + name);
+          if (chkbox) {
+            chkbox.checked = false;
+          }
+        }
+      }
+      setTimeout(reloadPage, refreshInterval);
     }
 
     // Display a builder tooltip.
     function showBuilderTooltip(message, event) {
       var tooltipbox = document.getElementById('builderTooltip');
-      var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
-      var cursorPosLeft = (window.event ? window.event.clientX : event.pageX)
-    
-      cursorPosTop  = cursorPosTop  + document.body.scrollTop + 5;    
-      cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
-    
-      tooltipbox.innerHTML = message;
-      tooltipbox.style.top = parseInt(cursorPosTop) + 'px';
-      tooltipbox.style.left = parseInt(cursorPosLeft) + 'px';
-      tooltipbox.style.display = "block";
+      if (tooltipbox) {
+        var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
+        var cursorPosLeft = (window.event ? window.event.clientX : event.pageX)
+
+        cursorPosTop  = cursorPosTop  + document.body.scrollTop + 5;
+        cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
+
+        tooltipbox.innerHTML = message;
+        tooltipbox.style.top = parseInt(cursorPosTop) + 'px';
+        tooltipbox.style.left = parseInt(cursorPosLeft) + 'px';
+        tooltipbox.style.display = "block";
+      }
     }
 
     // Hide the builder tooltip.
@@ -327,6 +202,118 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       }
     }
 
+    // Helper function used by refreshCategories which loops through an array of
+    // elements and shows or hides them as indicated.
+    function showOrHideElements(elems, shouldDisplay) {
+      for (var i = 0; i < elems.length; ++i) {
+        elems[i].style.display = shouldDisplay ? "table-cell" : "none";
+      }
+    }
+
+    // Update the display based on the selected set of categories and
+    // subcategories.
+    function refreshCategories() {
+      for (var category in allCategories) {
+        // Show or hide each subcategory.
+        var colSpan = 0;
+        for (var i = 0; i < subcategoriesByCategory[category].length; ++i) {
+          var subcategory = subcategoriesByCategory[category][i];
+          var className = "category_" + category + "_subcategory_" + subcategory;
+          var elemsToChange = document.getElementsByClassName(className);
+          // Only display a subcategory if its category is also displaying.
+          var shouldDisplay = allCategories[category] && allSubcategories[subcategory]
+          showOrHideElements(elemsToChange, shouldDisplay);
+          if (shouldDisplay) {
+            colSpan++;
+          }
+        }
+
+        // Show or hide the category label.
+        var elemsToChange = document.getElementsByClassName("category_" + category);
+        var shouldDisplay = allCategories[category] && colSpan > 0;
+        showOrHideElements(elemsToChange, shouldDisplay);
+
+        // Fix the colSpan of the category header.
+        var header = document.getElementById("category_header_" + category);
+        if (header) {
+          header.colSpan = colSpan;
+        }
+      }
+    }
+
+    // Adds the key/value parameter pair to the given URL.
+    function appendParamToURL(url, key, value) {
+      if (url.indexOf("?") == "-1") {
+        url += "?";
+      } else {
+        url += "&";
+      }
+      url += key + "=" + value;
+      return url;
+    }
+
+    // Build a URL using the previous URL parameters and the category and
+    // subcategory lists.
+    function buildURL() {
+      var newLocation = location.protocol + "//" + location.host + location.pathname;
+      var firstVar = true;
+      for (var urlVar in urlVars) {
+        if (urlVar != "hideCategories" && urlVar != "hideSubcategories") {
+          if (Object.prototype.toString.call(urlVars[urlVar]) == "[object Array]") {
+            for (var i = 0; i < urlVars[urlVar].length; ++i) {
+              newLocation = appendParamToURL(newLocation, urlVar, urlVars[urlVar][i]);
+            }
+          } else {
+            newLocation = appendParamToURL(newLocation, urlVar, urlVars[urlVar]);
+          }
+        }
+      }
+
+      // Add hidden categories to the URL.
+      var hiddenCategories = ""
+      for (var category in allCategories) {
+        if (!allCategories[category]) {
+          if (hiddenCategories == "") {
+            hiddenCategories = category;
+          } else {
+            hiddenCategories += "," + category;
+          }
+        }
+      }
+      if (hiddenCategories != "") {
+        newLocation = appendParamToURL(newLocation, "hideCategories", hiddenCategories);
+      }
+
+      // Add hidden subcategories to the URL.
+      var hiddenSubcategories = ""
+      for (var subcategory in allSubcategories) {
+        if (!allSubcategories[subcategory]) {
+          if (hiddenSubcategories == "") {
+            hiddenSubcategories = subcategory;
+          } else {
+            hiddenSubcategories += "," + subcategory;
+          }
+        }
+      }
+      if (hiddenSubcategories != "") {
+        newLocation = appendParamToURL(newLocation, "hideSubcategories", hiddenSubcategories);
+      }
+
+      return newLocation;
+    }
+
+    // Callback function for when a category or subcategory checkbox is clicked.
+    function checkboxClicked(id) {
+      var chkbox = document.getElementById(id);
+      var toChange = id.substring("chkbox_".length).split("_");
+      if (toChange[0] == "category") {
+        allCategories[toChange[1]] = chkbox.checked;
+      } else if (toChange[0] == "subcategory") {
+        allSubcategories[toChange[1]] = chkbox.checked;
+      }
+      window.history.replaceState("", "Checked box", buildURL());
+      refreshCategories();
+    }
     </script>
     {% endblock %}
   </head>
@@ -336,7 +323,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       <a href="{{ tree_status_baseurl }}" target="_blank" style="text-decoration:inherit;">
         <div id="skia-tree-status-div" width="100%" height="50" class="status-message {{ tree_status['general_state'] }}">
           {{ tree_status['message'] }}
-          <div class="sheriff-message">Sheriff: {{ tree_status['username'] }}</div>
+          <div class="sheriff-message">Sheriff: {{ sheriff }}</div>
         </div>
       </a>
       <div id="container" style="float: left; width: 100%;">
@@ -349,6 +336,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
   
         <div id="links" style="float:right; width:25%;">
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="{{ tree_status_baseurl }}" target="_blank">Skia Tree Status Manager</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bench_graphs.html" target="_blank">Bench Graphs</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://go/skpdash" target="_blank">Bench Dashboard Internal</a><br/></li></ul></div>
@@ -368,13 +356,13 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
               <p>
               <b>Category:</b>
               {% for r in all_categories %}
-              <nobr><input type="checkbox" id="category_{{ r }}" name="category_chkbox" value="{{ r }}" onClick="javascript:reloadWithOptions(true, 'category_{{ r }}');">{{ r|trim }}</nobr>
+              <nobr><input type="checkbox" checked="true" id="chkbox_category_{{ r }}" name="category_chkbox" value="{{ r }}" onClick="checkboxClicked('chkbox_category_{{ r }}');">{{ r|trim }}</nobr>
               {% endfor %}
               </p>
               <p>
               <b>Subcategory:</b>
               {% for subcategory in all_subcategories %}
-              <nobr><input type="checkbox" id="subcategory_{{ subcategory }}" name="subcategory_chkbox" value="{{ subcategory }}" onClick="javascript:reloadWithOptions(true, 'subcategory_{{ subcategory }}');">{{ subcategory|trim }}</nobr>
+              <nobr><input type="checkbox" checked="true" id="chkbox_subcategory_{{ subcategory }}" name="subcategory_chkbox" value="{{ subcategory }}" onClick="checkboxClicked('chkbox_subcategory_{{ subcategory }}');">{{ subcategory|trim }}</nobr>
               {% endfor %}
               </p>
             </form>
@@ -394,9 +382,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           <a href="{{ path_to_root }}about">About</a>
       </div>
     </div>
-    <script language="JavaScript">
-      init();
-    </script>
     {% endblock %}
 
     {%- block barecontent -%}
@@ -425,5 +410,8 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     </div>
     {% endblock -%}
     <div id="builderTooltip" class="BuilderTooltip" style="display: none;" onmouseout="hideBuilderTooltip(event)"></div>
+    <script language="JavaScript">
+      init();
+    </script>
   </body>
 </html>

@@ -166,7 +166,21 @@ function checkMouseLeave(element, event) {
     <td width="1%">
     </td>
     {% for category in builders|sort %}
-      <td class="DevStatus Alt {{ 'first' if loop.first else '' }} {{ 'last' if loop.last else '' }}" colspan="{{ builders[category]|length }}">
+      <td id="category_header_{{ category }}" class="DevStatus Alt {{ 'first' if loop.first else '' }} {{ 'last' if loop.last else '' }} category_{{ category }}"
+        {% set category_props = {'colspan': 0} %}
+        {% if category in hide_categories %}
+          style='display: none;'
+        {% else %}
+          {% for subcategory in builders[category] %}
+            {% if subcategory not in hide_subcategories %}
+              {% if category_props.update({'colspan': category_props['colspan'] + 1}) %}{% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if not category_props['colspan'] %}
+            style='display: none;'
+          {% endif %}
+          colspan="{{ category_props['colspan'] }}"
+        {% endif %}>
         <a href="/waterfall?{% for subcategory in builders[category] %}{% set outer_loop = loop %}{% for cat_full in builders[category][subcategory] %}category={{ cat_full }}{{ '' if loop.last and outer_loop.last else '&' }}{% endfor %}{% endfor %}"><h3>{{ category }}</h3></a>
       </td>
     {% endfor %}
@@ -182,7 +196,8 @@ function checkMouseLeave(element, event) {
     {% for category in builders|sort %}
       {% set outer_loop = loop %}
       {% for subcategory in builders[category]|sort %}
-        <td class="DevStatus {{ 'first' if loop.first and outer_loop.first else '' }} {{ 'last' if loop.last and outer_loop.last else '' }}">
+        <td class="DevStatus {{ 'first' if loop.first and outer_loop.first else '' }} {{ 'last' if loop.last and outer_loop.last else '' }} category_{{ category }}_subcategory_{{ subcategory }}"
+          {% if category in hide_categories or subcategory in hide_subcategories %}style='display: none;'{% endif %}>
           <a href="/waterfall?{% for cat_full in builders[category][subcategory] %}category={{ cat_full }}{{ '' if loop.last else '&' }}{% endfor %}">{{ subcategory }}</a>
         </td>
       {% endfor %}
@@ -199,7 +214,8 @@ function checkMouseLeave(element, event) {
   {% for category in builders|sort %}
     {% for subcategory in builders[category]|sort %}
       {% for cat_full in builders[category][subcategory]|sort %}
-        <td class='DevSlave Alt'>
+        <td class='DevSlave Alt category_{{ category }}_subcategory_{{ subcategory }}'
+          {% if category in hide_categories or subcategory in hide_subcategories %}style='display: none;'{% endif %}>
           <table width="100%">
             <tr>
             {% for b in builders[category][subcategory][cat_full]|sort %}
@@ -235,7 +251,8 @@ function checkMouseLeave(element, event) {
   {% for category in builders|sort %}
     {% for subcategory in builders[category]|sort %}
       {% for cat_full in builders[category][subcategory]|sort %}
-        <td class='DevStatus {{ alt }} {{ last }}'>
+        <td class='DevStatus {{ alt }} {{ last }} category_{{ category }}_subcategory_{{ subcategory }}'
+            {% if category in hide_categories or subcategory in hide_subcategories %}style='display: none;'{% endif %}>
           <table width="100%">
             <tr>
             {% for builder in builders[category][subcategory][cat_full]|sort %}
@@ -301,7 +318,7 @@ function checkMouseLeave(element, event) {
 </div>
 
 
-<div id="divBox" onmouseout="if (checkMouseLeave(this, event)) this.style.display = 'None'" class="BuildWaterfall"> 
+<div id="divBox" onmouseout="if (checkMouseLeave(this, event)) this.style.display = 'none'" class="BuildWaterfall" style="display: none;">
 </div>
 
 

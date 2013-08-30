@@ -14,6 +14,16 @@
     "type": "string",
     "description": "URL of the code review site's status listener."
   },
+  "console_default_rev_limit": {
+    "value": "50",
+    "type": "integer",
+    "description": "Default number of changes to load from history when building the console page."
+  },
+  "console_max_rev_limit": {
+    "value": "500",
+    "type": "integer",
+    "description": "Maximum number of changes to load from history when building the console page."
+  },
   "cq_required_steps": {
     "value": [
       "BuildBench",
@@ -30,6 +40,11 @@
     "value": "https://skia-tree-status.appspot.com/current-sheriff",
     "type": "string",
     "description": "URL that displays the current sheriff and his/her schedule."
+  },
+  "default_webstatus_refresh": {
+    "value": "40",
+    "type": "integer",
+    "description": "How often (in seconds) to reload the buildbot status page if not specified."
   },
   "gatekeeper_steps": {
     "value": [

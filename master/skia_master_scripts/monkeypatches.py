@@ -58,6 +58,10 @@ EDIT_BUILDER_STATUS_LINK = \
     ' (<a href="%s" target="_blank">edit</a>)' % EDIT_BUILDER_STATUS_URL
 ADD_BUILDER_STATUS_LINK = \
     '<a href="%s" target="_blank">add a comment</a>' % EDIT_BUILDER_STATUS_URL
+SHERIFF_URL = \
+    posixpath.join(skia_vars.GetGlobalVariable('tree_status_baseurl'),
+                   'current-sheriff')
+
 
 ################################################################################
 ############################# Trybot Monkeypatches #############################
@@ -150,7 +154,7 @@ def HtmlResourceRender(self, request):
   all_full_category_names = set()
   all_categories = set()
   all_subcategories = set()
-  builders_by_cat_subcat = {}
+  subcategories_by_category = {}
   for builder_name in all_builders:
     category_full = status.getBuilder(builder_name).category or 'default'
     all_full_category_names.add(category_full)
@@ -159,14 +163,10 @@ def HtmlResourceRender(self, request):
     subcategory = category_split[1] if len(category_split) > 1 else 'default'
     all_categories.add(category)
     all_subcategories.add(subcategory)
-    if not builders_by_cat_subcat.get(category):
-      builders_by_cat_subcat[category] = {}
-    if not builders_by_cat_subcat[category].get(subcategory):
-      builders_by_cat_subcat[category][subcategory] = {}
-    if not builders_by_cat_subcat[category][subcategory].get(category_full):
-      builders_by_cat_subcat[category][subcategory][category_full] = []
-    builders_by_cat_subcat[category][subcategory][category_full].append(
-        builder_name)
+    if not subcategories_by_category.get(category):
+      subcategories_by_category[category] = []
+    if not subcategory in subcategories_by_category[category]:
+      subcategories_by_category[category].append(subcategory)
 
   # Get the tree status.
   tree_status = json.load(urllib2.urlopen(BANNER_STATUS_URL))
@@ -185,12 +185,16 @@ def HtmlResourceRender(self, request):
           else ADD_BUILDER_STATUS_LINK % builder_name
       ).replace('\'', '\\&#39;').replace('"', '&#34;')
 
+  # Get the current sheriff.
+  ctx['sheriff'] = json.load(urllib2.urlopen(SHERIFF_URL))['username']
+
   ctx['all_full_category_names'] = sorted(list(all_full_category_names))
   ctx['all_categories'] = sorted(list(all_categories))
   ctx['all_subcategories'] = sorted(list(all_subcategories))
-  ctx['builders_by_cat_subcat'] = builders_by_cat_subcat
+  ctx['subcategories_by_category'] = subcategories_by_category
+  ctx['default_refresh'] = \
+      skia_vars.GetGlobalVariable('default_webstatus_refresh')
   ctx['skia_repo'] = config_private.SKIA_SVN_BASEURL
-  ctx['try_repo'] = config_private.TRY_SVN_BASEURL
   ctx['internal_port'] = config_private.Master.Skia.master_port
   ctx['external_port'] = config_private.Master.Skia.master_port_alt
   ctx['title_url'] = config_private.Master.Skia.project_url
