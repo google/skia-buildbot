@@ -8,9 +8,11 @@
 
 from common import find_depot_tools
 
-import file_utils
 import os
 import shell_utils
+
+
+SKIA_TRUNK = 'trunk'
 
 
 def _GetGclientPy():
@@ -66,9 +68,8 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
     cmd.append('-j%d' % jobs)
   if no_hooks:
     cmd.append('--nohooks')
-  if revision and branches:
-    for branch in branches:
-      cmd.extend(['--revision', '%s@%s' % (branch, revision)])
+  if revision and SKIA_TRUNK in branches:
+    cmd.extend(['--revision', '%s@%s' % (SKIA_TRUNK, revision)])
 
   return _RunCmd(cmd)
 
