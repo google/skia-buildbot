@@ -16,8 +16,7 @@ def BenchArgs(repeats, data_file):
   repeats: integer indicating the number of times to repeat each benchmark
   data_file: filepath to store the log output
   """
-  return ['--repeat', '%d' % repeats, '--timers', 'wcg', '--logPerIter',
-          '--logFile', data_file]
+  return ['--repeat', '%d' % repeats, '--timers', 'wcg', '--logFile', data_file]
 
 
 class RunBench(BuildStep):

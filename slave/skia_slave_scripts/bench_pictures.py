@@ -31,6 +31,9 @@ class BenchPictures(BuildStep):
     if self._perf_data_dir:
       arguments.extend(BenchArgs(repeats=RunBench.BENCH_REPEAT_COUNT,
           data_file=self._BuildDataFile(args)))
+      # For bench_pictures we use the --logPerIter flag so that we can
+      # compensate for noisy performance.
+      arguments.append('--logPerIter')
     self._flavor_utils.RunFlavoredCmd('bench_pictures', arguments)
 
   def _Run(self):
