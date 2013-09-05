@@ -10,13 +10,12 @@ import os
 import sys
 
 
-def BenchArgs(repeats, data_file):
+def BenchArgs(data_file):
   """ Builds a list containing arguments to pass to bench.
 
-  repeats: integer indicating the number of times to repeat each benchmark
   data_file: filepath to store the log output
   """
-  return ['--repeat', '%d' % repeats, '--timers', 'wcg', '--logFile', data_file]
+  return ['--timers', 'wcg', '--logFile', data_file]
 
 
 class RunBench(BuildStep):
@@ -25,8 +24,6 @@ class RunBench(BuildStep):
                                    no_output_timeout=no_output_timeout,
                                    **kwargs)
 
-  BENCH_REPEAT_COUNT = 20
-
   def _BuildDataFile(self):
     return os.path.join(self._device_dirs.PerfDir(),
                         'bench_r%s_data' % self._got_revision)
@@ -34,8 +31,7 @@ class RunBench(BuildStep):
   def _Run(self):
     args = []
     if self._perf_data_dir:
-      args.extend(BenchArgs(self.BENCH_REPEAT_COUNT,
-                            self._BuildDataFile()))
+      args.extend(BenchArgs(self._BuildDataFile()))
     self._flavor_utils.RunFlavoredCmd('bench', args + self._bench_args)
 
 

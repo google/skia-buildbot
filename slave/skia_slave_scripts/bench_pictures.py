@@ -7,9 +7,11 @@
 
 from build_step import BuildStep
 from run_bench import BenchArgs
-from run_bench import RunBench
 import os
 import sys
+
+
+BENCH_REPEAT_COUNT = 20
 
 
 class BenchPictures(BuildStep):
@@ -29,11 +31,10 @@ class BenchPictures(BuildStep):
   def _DoBenchPictures(self, args):
     arguments = ['-r', self._device_dirs.SKPDir()] + args
     if self._perf_data_dir:
-      arguments.extend(BenchArgs(repeats=RunBench.BENCH_REPEAT_COUNT,
-          data_file=self._BuildDataFile(args)))
-      # For bench_pictures we use the --logPerIter flag so that we can
-      # compensate for noisy performance.
-      arguments.append('--logPerIter')
+      arguments.extend(BenchArgs(data_file=self._BuildDataFile(args)))
+      # For bench_pictures we use the --repeat and --logPerIter flags so that we
+      # can compensate for noisy performance.
+      arguments.extend(['--repeat', str(BENCH_REPEAT_COUNT), '--logPerIter'])
     self._flavor_utils.RunFlavoredCmd('bench_pictures', arguments)
 
   def _Run(self):
