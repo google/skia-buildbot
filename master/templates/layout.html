@@ -24,6 +24,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
 
     // How often, in milliseconds, to refresh the page.
     var refreshInterval = {{ refresh or default_refresh }} * 1000;
+    var refreshTimer = null;
 
     // Number of times a page reload has been cancelled due to activity on the page.
     var cancelledReloads = 0;
@@ -121,7 +122,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       } else {
         console.log("Not reloading page because the user is interacting with it.");
         cancelledReloads++;
-        setTimeout(reloadPage, refreshInterval);
+        refreshTimer = setTimeout(reloadPage, refreshInterval);
       }
     }
 
@@ -162,7 +163,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           }
         }
       }
-      setTimeout(reloadPage, refreshInterval);
+      refreshTimer = setTimeout(reloadPage, refreshInterval);
     }
 
     // Display a builder tooltip.
@@ -316,6 +317,18 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       window.history.replaceState("", "Checked box", buildURL());
       refreshCategories();
     }
+
+    // Callback function to adjust the reload time.
+    function setReload(textBox) {
+      var regex = /^\d+$/;
+      if (regex.test(textBox.value)) {
+        refreshInterval = textBox.value * 1000;
+        urlVars["reload"] = textBox.value;
+        window.history.replaceState("", "Changed refresh", buildURL());
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(reloadPage, refreshInterval);
+      }
+    }
     </script>
     {% endblock %}
   </head>
@@ -330,9 +343,10 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       </a>
       <div id="container" style="float: left; width: 100%;">
         <div style="float:left; width:25%;">
-        <form name="unused">
+        <form name="unused" action="javascript:void(0);">
           <input type="radio" name="internal_external" value="external" id="radio_external" onClick="setInternalView(false);">External View<br>
           <input type="radio" name="internal_external" value="internal" id="radio_internal" onClick="setInternalView(true);">Internal View
+          <br/><nobr>Refresh (seconds): <input type="text" name="reload_time" value="{{ refresh or default_refresh }}" onChange="setReload(this)" style="width: 50px;" maxlength="4" /></nobr>
         </form>
         </div>
   
