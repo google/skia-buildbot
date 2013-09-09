@@ -256,7 +256,7 @@ def JsonStatusResourceInit(self, status):
   """ Override of buildbot.status.web.status_json.JsonStatusResource.__init__:
   http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4p1/buildbot/status/web/status_json.py?view=markup
 
-  We add a line which adds a trybots status page.
+  We add trybots, cqtrybots, cq_required_steps (details below).
   """
   JsonResource.__init__(self, status)
   self.level = 1

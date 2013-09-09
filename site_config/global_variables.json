@@ -146,6 +146,26 @@
     "type": "string",
     "description": "URL of the Skia SVN repository."
   },
+  "gce_smtp_port": {
+    "value": "587",
+    "type": "integer",
+    "description": "SMTP port that is open on Skia GCE instances."
+  },
+  "gce_smtp_server": {
+    "value": "smtp.gmail.com",
+    "type": "string",
+    "description": "SMTP server that is accessible on Skia GCE instances."
+  },
+  "gce_smtp_use_tls": {
+    "value": "True",
+    "type": "boolean",
+    "description": "Whether SMTP should use TLS."
+  },
+  "gce_smtp_user": {
+    "value": "skia.buildbots@gmail.com",
+    "type": "string",
+    "description": "SMTP user which can send emails on Skia GCE instances."
+  },
   "tree_status_baseurl": {
     "value": "https://skia-tree-status.appspot.com",
     "type": "string",

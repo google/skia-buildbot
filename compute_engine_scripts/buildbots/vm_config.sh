@@ -32,7 +32,8 @@ SCOPES="https://www.googleapis.com/auth/devstorage.full_control"
 
 # Define required files for master and slaves.
 REQUIRED_FILES_FOR_MASTER=(~/.code_review_password \
-                           ~/.status_password)
+                           ~/.status_password \
+                           ~/.skia_buildbots_password)
 
 REQUIRED_FILES_FOR_SLAVES=(~/.autogen_svn_username \
                            ~/.autogen_svn_password \

@@ -41,6 +41,13 @@ class Master(config_default.Master):
   bot_password = 'epoger-temp-password'
   default_clobber = False
 
+  # SMTP configurations.
+  smtp_server = skia_vars.GetGlobalVariable('gce_smtp_server')
+  smtp_port = skia_vars.GetGlobalVariable('gce_smtp_port')
+  smtp_use_tls = skia_vars.GetGlobalVariable('gce_smtp_use_tls')
+  smtp_user = skia_vars.GetGlobalVariable('gce_smtp_user')
+  smtp_password = open('.skia_buildbots_password').readline().strip()
+
   # domains to which we will send blame emails
   permitted_domains = ['google.com', 'chromium.org']
 
@@ -54,7 +61,7 @@ class Master(config_default.Master):
     slave_port = skia_vars.GetGlobalVariable('public_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('public_external_port')
     tree_closing_notification_recipients = ['skia-commit@googlegroups.com']
-    from_address = 'skia-buildbot@pogerlabs.com'
+    from_address = skia_vars.GetGlobalVariable('gce_smtp_user')
     is_publicly_visible = True
     code_review_site = \
         skia_vars.GetGlobalVariable('code_review_status_listener')
@@ -70,7 +77,7 @@ class Master(config_default.Master):
     slave_port = skia_vars.GetGlobalVariable('private_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('private_external_port')
     tree_closing_notification_recipients = []
-    from_address = 'skia-buildbot@pogerlabs.com'
+    from_address = skia_vars.GetGlobalVariable('gce_smtp_user')
     is_publicly_visible = False
     code_review_site = \
         skia_vars.GetGlobalVariable('code_review_status_listener')
