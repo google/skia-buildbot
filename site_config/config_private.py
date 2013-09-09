@@ -46,7 +46,6 @@ class Master(config_default.Master):
   smtp_port = skia_vars.GetGlobalVariable('gce_smtp_port')
   smtp_use_tls = skia_vars.GetGlobalVariable('gce_smtp_use_tls')
   smtp_user = skia_vars.GetGlobalVariable('gce_smtp_user')
-  smtp_password = open('.skia_buildbots_password').readline().strip()
 
   # domains to which we will send blame emails
   permitted_domains = ['google.com', 'chromium.org']
