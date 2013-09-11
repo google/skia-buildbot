@@ -80,28 +80,20 @@ def Sync(skia_revision=None, chrome_revision=None):
   actual_chrome_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
 
   # Check out Skia.
-  os.chdir(os.path.join('third_party', 'skia'))
+  skia_dir = os.path.join('third_party', 'skia')
+  print 'cd %s' % skia_dir
+  os.chdir(skia_dir)
   try:
     # Assume that we already have a Skia checkout.
     current_skia_rev = gclient_utils.GetCheckedOutHash()
     print 'Found existing Skia checkout at %s' % current_skia_rev
     shell_utils.Bash([GIT, 'pull', 'origin/master'])
   except Exception:
-    # If svnversion fails, assume that we haven't checked out Skia yet. First,
-    # remove some troublesome paths, then check out Skia.
-    if os.path.isfile('LICENSE'):
-      os.remove('LICENSE')
-    if os.path.isfile('README.chromium'):
-      os.remove('README.chromium')
-    if os.path.isfile('OWNERS'):
-      os.remove('OWNERS')
-    if os.path.isdir('gyp'):
-      chromium_utils.RemoveDirectory('gyp')
-    if os.path.isdir('include'):
-      chromium_utils.RemoveDirectory('include')
-    if os.path.isdir('src'):
-      chromium_utils.RemoveDirectory('src')
-    shell_utils.Bash([GIT, 'clone', SKIA_GIT_URL, os.curdir])
+    # If updating fails, assume that we need to check out Skia from scratch.
+    os.chdir(os.pardir)
+    chromium_utils.RemoveDirectory('skia')
+    shell_utils.Bash([GIT, 'clone', SKIA_GIT_URL, 'skia'])
+    os.chdir('skia')
   shell_utils.Bash([GIT, 'reset', '--hard', skia_revision])
 
   # Find the actually-obtained Skia revision.
