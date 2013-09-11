@@ -25,7 +25,7 @@ def BenchArgs(data_file):
 
 
 def GetSvnRevision(commit_hash):
-  output = shell_utils.Bash([GIT, 'show', commit_hash])
+  output = shell_utils.Bash([GIT, 'show', commit_hash], echo=False)
   results = re.findall(GIT_SVN_ID_MATCH_STR, output)
   if not results:
     raise Exception('No git-svn-id found for %s' % commit_hash)
