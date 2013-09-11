@@ -6,8 +6,14 @@
 """ Run the Skia benchmarking executable. """
 
 from build_step import BuildStep
+from utils import shell_utils
 import os
+import re
 import sys
+
+
+GIT = 'git.bat' if os.name == 'nt' else 'git'
+GIT_SVN_ID_MATCH_STR = 'git-svn-id: http://skia.googlecode.com/svn/trunk@(\d+)'
 
 
 def BenchArgs(data_file):
@@ -18,6 +24,14 @@ def BenchArgs(data_file):
   return ['--timers', 'wcg', '--logFile', data_file]
 
 
+def GetSvnRevision(commit_hash):
+  output = shell_utils.Bash([GIT, 'show', commit_hash])
+  results = re.findall(GIT_SVN_ID_MATCH_STR, output)
+  if not results:
+    raise Exception('No git-svn-id found for %s' % commit_hash)
+  return results[0]
+
+
 class RunBench(BuildStep):
   def __init__(self, timeout=9600, no_output_timeout=9600, **kwargs):
     super(RunBench, self).__init__(timeout=timeout,
@@ -26,7 +40,7 @@ class RunBench(BuildStep):
 
   def _BuildDataFile(self):
     return os.path.join(self._device_dirs.PerfDir(),
-                        'bench_r%s_data' % self._got_revision)
+                        'bench_r%s_data' % GetSvnRevision(self._got_revision))
 
   def _Run(self):
     args = []
