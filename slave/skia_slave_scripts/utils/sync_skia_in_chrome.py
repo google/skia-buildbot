@@ -85,7 +85,7 @@ def Sync(skia_revision=None, chrome_revision=None):
   os.chdir(skia_dir)
   try:
     # Assume that we already have a Skia checkout.
-    current_skia_rev = gclient_utils.GetCheckedOutHash()
+    current_skia_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
     print 'Found existing Skia checkout at %s' % current_skia_rev
     shell_utils.Bash([GIT, 'pull', 'origin/master'])
   except Exception:
@@ -97,7 +97,7 @@ def Sync(skia_revision=None, chrome_revision=None):
   shell_utils.Bash([GIT, 'reset', '--hard', skia_revision])
 
   # Find the actually-obtained Skia revision.
-  actual_skia_rev = gclient_utils.GetCheckedOutHash()
+  actual_skia_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
 
   # Run gclient hooks
   os.chdir(os.path.join(os.pardir, os.pardir, os.pardir))
