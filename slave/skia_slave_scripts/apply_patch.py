@@ -32,8 +32,6 @@ class ApplyPatch(BuildStep):
   def _Run(self):
     if self._args['patch'] == 'None':
       raise BuildStepFailure('No patch given!')
-    if self._args['patch_root'] == 'None':
-      raise BuildStepFailure('Problem with patch: no root specified!')
 
     # patch is a tuple of the form (int, str), where patch[0] is the "level" of
     # the patch and patch[1] is the diff.
@@ -73,12 +71,6 @@ class ApplyPatch(BuildStep):
       else:
         patcher = 'patch'
   
-      # Make sure we're always in the right place to apply the patch.
-      patch_root = self._args['patch_root'].replace('/', os.path.sep)
-      os.chdir(os.pardir)
-      if patch_root != 'svn' and patch_root != '':
-        os.chdir(patch_root)
-
       shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name,
                         '-r', '-'])
 

@@ -230,8 +230,6 @@
                     'default',
                     '--patch',
                     <Object>,
-                    '--patch_root',
-                    <Object>,
                 ],
                 'description': 'ApplyPatch',
                 'doStepIf': <Object>,

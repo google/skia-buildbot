@@ -554,21 +554,6 @@ class SkiaFactory(BuildFactory):
 
   def ApplyPatch(self, alternate_workdir=None, alternate_script=None):
     """ Apply a patch to the Skia code on the build slave. """
-    def _GetRoot(build):
-      if build.getSourceStamp().patch and 'root' in build.getProperties():
-        return build.getProperty('root')
-      elif 'issue' in build.getProperties() and \
-           'patchset' in build.getProperties() and \
-           'baseurl' in build.getProperties():
-        baseurl = build.getProperty('baseurl')
-        if len(baseurl) == 1:
-          baseurl = baseurl[0]
-        baseurl = baseurl.split('://', 1)[1]
-        skia_baseurl = config_private.SKIA_SVN_BASEURL.split('://', 1)[1]
-        if baseurl.startswith(skia_baseurl):
-          return baseurl.split(skia_baseurl)[1].strip('/')
-      return 'None'
-
     def _GetPatch(build):
       if build.getSourceStamp().patch and \
           'patch_file_url' in build.getProperties():
@@ -589,8 +574,7 @@ class SkiaFactory(BuildFactory):
     if not bool(alternate_workdir) == bool(alternate_script):
       raise ValueError('alternate_workdir and alternate_script must be provided'
                        ' together.')
-    args = ['--patch', WithProperties('%(patch)s', patch=_GetPatch),
-            '--patch_root', WithProperties('%(root)s', root=_GetRoot)]
+    args = ['--patch', WithProperties('%(patch)s', patch=_GetPatch)]
     if alternate_script:
       self.AddSlaveScript(script=alternate_script, description='ApplyPatch',
                           args=args, halt_on_failure=True,
