@@ -36,7 +36,7 @@ from common import chromium_utils
 from slave import svn
 
 
-SUBDIRS_TO_IGNORE = ['.svn', 'third_party']
+SUBDIRS_TO_IGNORE = ['.git', '.svn', 'third_party']
 FILES_CHUNK = 50
 
 
