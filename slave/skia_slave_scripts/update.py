@@ -76,8 +76,9 @@ class Update(BuildStep):
     # If the revision we actually got differs from what was requested, raise an
     # exception.
     if self._revision and got_revision != self._revision:
-      raise BuildStepFailure('Actually-synced revision is different from the '
-                             'requested revision.')
+      raise BuildStepFailure('Actually-synced revision "%s" is different from '
+                             'the requested revision "%s".' % (
+                                  repr(got_revision), repr(self._revision)))
 
     # Print the obtained revision number so that the master can parse it.
     print 'Skia updated to %s' % got_revision

@@ -93,7 +93,7 @@ def GetCheckedOutHash():
   os.chdir(config[0]['name'])
   try:
     # "git rev-parse HEAD" returns the commit hash for HEAD.
-    commit_hash = shell_utils.Bash([GIT, 'rev-parse', 'HEAD'], echo=False)
+    commit_hash = shell_utils.Bash([GIT, 'rev-parse', 'HEAD'])
   finally:
     os.chdir(current_directory)
   return commit_hash.rstrip('\n')
