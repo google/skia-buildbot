@@ -489,7 +489,9 @@ class ConsoleStatusResource(HtmlResource):
       # Fill the dictionary with this new information
       r['id'] = revision.revision
       r['link'] = revision.revlink
-      r['who'] = revision.who
+      # revision.who is supposed to be an email address, but it can contain an
+      # extra '@' followed by garbage. This line strips the garbage.
+      r['who'] = '@'.join(revision.who.split('@')[:2])
       r['date'] = revision.date
       r['comments'] = revision.comments
       r['repository'] = revision.repository
@@ -593,7 +595,7 @@ class ConsoleStatusResource(HtmlResource):
         rev_filter['branch'] = branch
       if dev_name:
         rev_filter['who'] = dev_name
-      rev_filter['repository'] = skia_vars.GetGlobalVariable('skia_svn_url')
+      rev_filter['repository'] = skia_vars.GetGlobalVariable('skia_git_url')
       revisions = list(self.filterRevisions(all_changes, max_revs=num_revs,
                                             rev_filter=rev_filter))
       debug_info["revision_final"] = len(revisions)

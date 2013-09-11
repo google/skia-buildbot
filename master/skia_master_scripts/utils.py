@@ -26,6 +26,7 @@ from oauth2client.client import SignedJwtAssertionCredentials
 
 import builder_name_schema
 import config_private
+import skia_vars
 
 
 GATEKEEPER_NAME = 'GateKeeper'
@@ -388,7 +389,8 @@ class SkiaHelper(master_config.Helper):
           return True
 
         skia_change_filter = SkiaChangeFilter(
-            builders=scheduler['builders'], branch=scheduler['branches'],
+            builders=scheduler['builders'],
+            branch=skia_vars.GetGlobalVariable('master_branch_name'),
             filter_fn=filter_fn)
 
         instance = AnyBranchScheduler(name=s_name,
@@ -454,17 +456,15 @@ class SkiaHelper(master_config.Helper):
 
 def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
                  gm_image_subdir, factory_type, extra_config=None,
-                 perf_output_basedir=None, extra_branches=None, is_trybot=False,
+                 perf_output_basedir=None, extra_repos=None, is_trybot=False,
                  **kwargs):
-  """ Creates a builder and scheduler.
-
-  TODO(epoger): gm_image_subdir is no longer used, should be removed."""
+  """ Creates a builder and scheduler. """
   B = helper.Builder
   F = helper.Factory
 
-  if not extra_branches:
-    extra_branches = []
-  subdirs_to_checkout = set(extra_branches)
+  if not extra_repos:
+    extra_repos = []
+  repos_to_checkout = set(extra_repos)
 
   builder_name = builder_name_schema.MakeBuilderName(
       role=role,
@@ -479,15 +479,12 @@ def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
   if is_trybot:
     scheduler_name = TRY_SCHEDULERS_STR
   else:
-    scheduler_name = builder_name + builder_name_schema.BUILDER_NAME_SEP + \
-                     'Scheduler'
-    branches = list(subdirs_to_checkout.union(SKIA_PRIMARY_SUBDIRS))
-    helper.AnyBranchScheduler(scheduler_name, branches=branches)
+    scheduler_name = 'skia_rel'
 
   B(builder_name, 'f_%s' % builder_name, scheduler=scheduler_name)
   F('f_%s' % builder_name, factory_type(
       builder_name=builder_name,
-      other_subdirs=subdirs_to_checkout,
+      other_repos=repos_to_checkout,
       configuration=configuration,
       gm_image_subdir=gm_image_subdir,
       do_patch_step=is_trybot,

@@ -16,7 +16,8 @@ class Moz2DCanaryFactory(SkiaFactory):
     Moz2D builds. """
     SkiaFactory.__init__(self, flavor='moz2d_canary',
                          build_targets=['skia_lib', 'moz2d'],
-                         other_subdirs=['https://github.com/gw280/moz2d.git'],
+                         other_repos=[('moz2d',
+                                       'https://github.com/gw280/moz2d.git')],
                          configuration=CONFIG_RELEASE,
                          **kwargs)
     self._default_clobber = True
@@ -34,7 +35,7 @@ class Moz2DCanaryFactory(SkiaFactory):
         halt_on_failure=True,
         is_upload_step=False,
         is_rebaseline_step=True,
-        get_props_from_stdout={'got_revision':'Skia updated to revision (\d+)',
+        get_props_from_stdout={'got_revision':'Skia updated to (\w+)',
                                'moz2d_revision': 'Moz2D updated to (\w+)'},
         workdir='build')
 

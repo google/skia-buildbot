@@ -51,7 +51,7 @@
     '_env_vars': {},
     '_flavor': 'chrome_canary',
     '_gclient_solutions': [
-        '{ "name": "src", "url": "http://skia.googlecode.com/svn/src", "custom_deps": {},"custom_vars": {},},',
+        '{ "name": "src", "url": "https://skia.googlesource.com/skia.git", "custom_deps": {},"custom_vars": {},},',
     ],
     '_gyp_defines': {
         'component': 'shared_library',

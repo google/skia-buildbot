@@ -55,7 +55,7 @@
     '_env_vars': {},
     '_flavor': 'nacl',
     '_gclient_solutions': [
-        '{ "name": "trunk", "url": "http://skia.googlecode.com/svn/trunk", "custom_deps": {},"custom_vars": {},},',
+        '{ "name": "skia", "url": "https://skia.googlesource.com/skia.git", "custom_deps": {},"custom_vars": {},},',
     ],
     '_gyp_defines': {
         'skia_warnings_as_errors': '0',
@@ -65,7 +65,7 @@
     '_skia_cmd_obj': <Object>,
     '_skia_svn_password_file': '.skia_svn_password',
     '_skia_svn_username_file': '.skia_svn_username',
-    '_workdir': 'build/trunk',
+    '_workdir': 'build/skia',
     'properties': <Object>,
     'steps': [
         [
@@ -169,14 +169,14 @@
                     '--nacl_sdk_root',
                     <Object>,
                     '--gclient_solutions',
-                    '"['{ "name": "trunk", "url": "http://skia.googlecode.com/svn/trunk", "custom_deps": {},"custom_vars": {},},']"',
+                    '"['{ "name": "skia", "url": "https://skia.googlesource.com/skia.git", "custom_deps": {},"custom_vars": {},},']"',
                 ],
                 'description': 'Update',
                 'doStepIf': <Object>,
                 'env': {},
                 'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
-                    'got_revision': 'Skia updated to revision (\d+)',
+                    'got_revision': 'Skia updated to (\w+)',
                 },
                 'haltOnFailure': <Object>,
                 'hideStepIf': <Object>,
@@ -244,7 +244,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -303,7 +303,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -364,7 +364,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -427,7 +427,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -490,7 +490,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -553,7 +553,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -612,7 +612,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -675,7 +675,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -738,7 +738,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -801,7 +801,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -860,7 +860,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -923,7 +923,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -986,7 +986,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
         [
@@ -1049,7 +1049,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/trunk',
+                'workdir': 'build/skia',
             },
         ],
     ],

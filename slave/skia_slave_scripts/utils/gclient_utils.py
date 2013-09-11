@@ -12,7 +12,8 @@ import os
 import shell_utils
 
 
-SKIA_TRUNK = 'trunk'
+GIT = 'git.bat' if os.name == 'nt' else 'git'
+SKIA_TRUNK = 'skia'
 
 
 def _GetGclientPy():
@@ -51,15 +52,12 @@ def _GetLocalConfig():
 
 
 def Sync(revision=None, force=False, delete_unversioned_trees=False,
-         branches=None, verbose=False, manually_grab_svn_rev=False, jobs=None,
-         no_hooks=False):
+         branches=None, verbose=False, jobs=None, no_hooks=False):
   """ Update the local checkout to the given revision, if provided, or to the
   most recent revision. """
   cmd = ['sync', '--no-nag-max']
   if verbose:
     cmd.append('--verbose')
-  if manually_grab_svn_rev:
-    cmd.append('--manually_grab_svn_rev')
   if force:
     cmd.append('--force')
   if delete_unversioned_trees:
@@ -70,29 +68,37 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
     cmd.append('--nohooks')
   if revision and branches and SKIA_TRUNK in branches:
     cmd.extend(['--revision', '%s@%s' % (SKIA_TRUNK, revision)])
+  output = _RunCmd(cmd)
 
-  return _RunCmd(cmd)
+  # "gclient sync" just downloads all of the commits. In order to actually sync
+  # to the desired commit, we have to "git reset" to that commit.
+  start_dir = os.path.abspath(os.curdir)
+  if branches and SKIA_TRUNK in branches:
+    os.chdir(SKIA_TRUNK)
+    if revision:
+      shell_utils.Bash([GIT, 'reset', '--hard', revision])
+    else:
+      shell_utils.Bash([GIT, 'checkout', 'origin/master', '--detach', '-f'])
+    os.chdir(start_dir)
+  return output
 
 
-def GetCheckedOutRevision():
-  """ Determine what revision we actually got. If there are local modifications,
+def GetCheckedOutHash():
+  """ Determine what commit we actually got. If there are local modifications,
   raise an exception. """
   config = _GetLocalConfig()
   current_directory = os.path.abspath(os.curdir)
+
+  # Get the checked-out commit hash for the first gclient solution.
   os.chdir(config[0]['name'])
-  if os.name == 'nt':
-    svnversion = 'svnversion.bat'
-  else:
-    svnversion = 'svnversion'
-  got_revision = shell_utils.Bash([svnversion, '.'], echo=False)
-  os.chdir(current_directory)
   try:
-    return int(got_revision)
-  except ValueError:
-    raise Exception('Working copy is dirty! Got revision: %s' % got_revision)
+    # "git rev-parse HEAD" returns the commit hash for HEAD.
+    commit_hash = shell_utils.Bash([GIT, 'rev-parse', 'HEAD'], echo=False)
+  finally:
+    os.chdir(current_directory)
+  return commit_hash.rstrip('\n')
 
 
 def Revert():
-  """ Revert all local changes. """
-  _RunCmd(['revert', '-j1'])
-
+  shell_utils.Bash([GIT, 'clean', '-f', '-d'])
+  shell_utils.Bash([GIT, 'reset', '--hard', 'HEAD'])

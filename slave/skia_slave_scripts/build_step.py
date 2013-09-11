@@ -161,9 +161,9 @@ class BuildStep(multiprocessing.Process):
         None if args['deps_target_os'] == 'None' else args['deps_target_os']
     self._revision = \
         None if args['revision'] == 'None' or args['revision'] == 'HEAD' \
-        else int(args['revision'])
+        else args['revision']
     self._got_revision = \
-        None if args['got_revision'] == 'None' else int(args['got_revision'])
+        None if args['got_revision'] == 'None' else args['got_revision']
     self._do_upload_results = (False if args['do_upload_results'] == 'None'
                                else args['do_upload_results'] == 'True')
 

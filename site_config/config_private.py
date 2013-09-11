@@ -32,8 +32,7 @@ SKIA_PUBLIC_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
 SKIA_PRIVATE_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
     'private_master_internal_fqdn')
 AUTOGEN_SVN_BASEURL = skia_vars.GetGlobalVariable('autogen_svn_url')
-SKIA_REVLINKTMPL = skia_vars.GetGlobalVariable('revlinktmpl')
-SKIA_SVN_BASEURL = skia_vars.GetGlobalVariable('skia_svn_url')
+SKIA_GIT_URL = skia_vars.GetGlobalVariable('skia_git_url')
 TRY_SVN_BASEURL = skia_vars.GetGlobalVariable('try_svn_url')
 
 class Master(config_default.Master):

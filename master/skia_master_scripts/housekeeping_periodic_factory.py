@@ -11,7 +11,7 @@ import tempfile
 import skia_vars
 
 from buildbot.process.properties import WithProperties
-from config_private import SKIA_PUBLIC_MASTER_INTERNAL_FQDN, SKIA_SVN_BASEURL
+from config_private import SKIA_PUBLIC_MASTER_INTERNAL_FQDN
 from skia_master_scripts import factory as skia_factory
 
 
@@ -36,7 +36,8 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
       sanitize_script_path = self.TargetPath.join('tools',
                                                   'sanitize_source_files.py')
       skia_trunk_svn_baseurl = '%s/%s' % (
-          SKIA_SVN_BASEURL.replace('http', 'https'), 'trunk')
+          skia_vars.GetGlobalVariable('skia_svn_url').replace('http', 'https'),
+          'trunk')
       # Run the sanitization script.
       self._skia_cmd_obj.AddRunCommand(
           command='python %s' % sanitize_script_path,

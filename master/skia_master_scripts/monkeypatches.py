@@ -194,7 +194,7 @@ def HtmlResourceRender(self, request):
   ctx['subcategories_by_category'] = subcategories_by_category
   ctx['default_refresh'] = \
       skia_vars.GetGlobalVariable('default_webstatus_refresh')
-  ctx['skia_repo'] = config_private.SKIA_SVN_BASEURL
+  ctx['skia_repo'] = config_private.SKIA_GIT_URL
   ctx['internal_port'] = config_private.Master.Skia.master_port
   ctx['external_port'] = config_private.Master.Skia.master_port_alt
   ctx['title_url'] = config_private.Master.Skia.project_url

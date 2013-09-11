@@ -10,7 +10,7 @@ Based on gclient_factory.py and adds Skia-specific steps."""
 
 from buildbot.process.properties import WithProperties
 from buildbot.status import builder
-from config_private import AUTOGEN_SVN_BASEURL, SKIA_SVN_BASEURL
+from config_private import AUTOGEN_SVN_BASEURL, SKIA_GIT_URL
 from master.factory import gclient_factory
 from master.factory.build_factory import BuildFactory
 from skia_master_scripts import commands as skia_commands
@@ -46,8 +46,8 @@ _COMPILE_NO_WERR_PREFIX = 'Retry_NoWarningsAsErrors_' + _COMPILE_STEP_PREFIX
 class SkiaFactory(BuildFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""
 
-  def __init__(self, other_subdirs=None, do_upload_results=False,
-               do_patch_step=False, build_subdir='trunk',
+  def __init__(self, other_repos=None, do_upload_results=False,
+               do_patch_step=False, build_subdir='skia',
                target_platform=None, configuration=CONFIG_DEBUG,
                default_timeout=8*60*60, deps_target_os=None,
                environment_variables=None, gm_image_subdir=None,
@@ -61,7 +61,9 @@ class SkiaFactory(BuildFactory):
     do_patch_step: whether the build should include a step which applies a
         patch.  This is only applicable for trybots.
     build_subdir: subdirectory to check out and then build within
-    other_subdirs: list of other subdirectories to also check out (or None)
+    other_repos: list of other repositories to also check out (or None). Each
+        repo is specified as a tuple: (name, url), where "name" is the target
+        directory and "url" is the source code url.
     target_platform: a string such as TARGET_PLATFORM_LINUX
     configuration: 'Debug' or 'Release'
     default_timeout: default timeout for each command, in seconds
@@ -99,24 +101,16 @@ class SkiaFactory(BuildFactory):
     # Create gclient solutions corresponding to the main build_subdir
     # and other directories we also wish to check out.
     self._gclient_solutions = [gclient_factory.GClientSolution(
-        svn_url=SKIA_SVN_BASEURL + '/' + build_subdir, name=build_subdir
+        svn_url=SKIA_GIT_URL, name=build_subdir
         ).GetSpec()]
 
-    if not other_subdirs:
-      other_subdirs = []
-    subdirs_to_checkout = set(other_subdirs)
+    if not other_repos:
+      other_repos = []
+    repos_to_checkout = set(other_repos)
 
-    # Trybots need to check out all of these directories.
-    for other_subdir in subdirs_to_checkout:
-      if other_subdir.startswith('http'):
-        solution_url = other_subdir
-        solution_name = other_subdir.split('/')[-1].rstrip('.git')
-      else:
-        solution_url = posixpath.join(SKIA_SVN_BASEURL, other_subdir)
-        solution_name = other_subdir
+    for other_repo in repos_to_checkout:
       self._gclient_solutions.append(gclient_factory.GClientSolution(
-          svn_url=solution_url,
-          name=solution_name).GetSpec())
+          svn_url=other_repo[1], name=other_repo[0]).GetSpec())
 
     self._deps_target_os = deps_target_os
 
@@ -555,7 +549,7 @@ class SkiaFactory(BuildFactory):
         halt_on_failure=True,
         is_upload_step=False,
         is_rebaseline_step=True,
-        get_props_from_stdout={'got_revision':'Skia updated to revision (\d+)'},
+        get_props_from_stdout={'got_revision':'Skia updated to (\w+)'},
         workdir='build')
 
   def ApplyPatch(self, alternate_workdir=None, alternate_script=None):

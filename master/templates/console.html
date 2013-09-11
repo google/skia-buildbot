@@ -238,7 +238,7 @@ function checkMouseLeave(element, event) {
 
   <tr>
     <td class='DevRev {{ alt }}' width="1%">
-      <a href='https://code.google.com/p/skia/source/detail?r={{ r.id|shortrev(r.repository) }}' target="_blank">{{ r.id|shortrev(r.repository) }}</a>
+      <a href='{{ r.repository }}/+/{{ r.id }}' target="_blank">{{ r.id|shortrev(r.repository) }}</a>
     </td>
     <td class='DevName {{ alt }}' width="1%">
       {% if r.who == "commit-bot@chromium.org" and 'Author: ' in r.comments %}
@@ -278,8 +278,8 @@ function checkMouseLeave(element, event) {
       {{ r.comments }}
       {% else %}
       {{ r.comments.split('\n')[0] }} ...
-      <a href="javascript:toggleMore({{ r.id }}, true)" id="{{ r.id }}_morelink">more</a>
-      <a href="javascript:toggleMore({{ r.id }}, false)" id="{{ r.id }}_lesslink" style="display:none;">less</a>
+      <a href="javascript:toggleMore('{{ r.id }}', true)" id="{{ r.id }}_morelink">more</a>
+      <a href="javascript:toggleMore('{{ r.id }}', false)" id="{{ r.id }}_lesslink" style="display:none;">less</a>
       <span id="{{ r.id }}_long_desc" style="display:none;">
       <p>
       {{ '<br/>'.join(r.comments.split('\n')[1:])|replace('  ','&nbsp; ') }}

@@ -43,7 +43,7 @@ class ApplyPatch(BuildStep):
     # have an extra level.
     patch_level = 1
     patch_url = urllib.quote(patch[1], safe="%/:=&?~+!$,;'@()*[]")
-    print 'Patch level: %d' % patch[0]
+    print 'Patch level: %d' % patch_level
     print 'Diff file URL:'
     print patch_url
 
@@ -79,17 +79,8 @@ class ApplyPatch(BuildStep):
       if patch_root != 'svn' and patch_root != '':
         os.chdir(patch_root)
 
-      try:
-        shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name,
-                          '-r', '-'])
-      except Exception:
-        print 'Failed to apply patch. Trying a different level.'
-        if patch_level == 0:
-          patch_level = 1
-        else:
-          patch_level = 0
-        shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name,
-                          '-r', '-'])
+      shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name,
+                        '-r', '-'])
 
     finally:
       shutil.rmtree(temp_dir)

@@ -3,23 +3,15 @@
 # found in the LICENSE file.
 
 
-from buildbot.changes import svnpoller
-from config_private import SKIA_REVLINKTMPL, SKIA_SVN_BASEURL
-from skia_master_scripts import utils
+from config_private import SKIA_GIT_URL
+from master import chromium_git_poller_bb8
 
-
-def SkiaFileSplitter(path):
-  """split_file for Skia."""
-  subdirs = utils.skia_all_subdirs
-  for subdir in subdirs:
-    if path.startswith(subdir):
-      return (subdir, path[len(subdir)+1:])
-  return None
+import skia_vars
 
 
 def Update(config, active_master, c):
-  skia_poller = svnpoller.SVNPoller(svnurl=SKIA_SVN_BASEURL,
-                                    split_file=SkiaFileSplitter,
-                                    pollinterval=30,
-                                    revlinktmpl=SKIA_REVLINKTMPL)
+  skia_poller = chromium_git_poller_bb8.ChromiumGitPoller(
+      repourl=SKIA_GIT_URL,
+      pollInterval=30,
+      revlinktmpl=skia_vars.GetGlobalVariable('revlink_tmpl'))
   c['change_source'].append(skia_poller)

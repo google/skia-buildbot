@@ -18,11 +18,8 @@ buildbot_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                              os.pardir)
 sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
                              'site_config'))
-from config_private import SKIA_SVN_BASEURL
-
 
 SLAVES_CFG = os.path.join(buildbot_path, 'master', 'slaves.cfg')
-BUILDBOT_SVN_URL = SKIA_SVN_BASEURL + '/buildbot'
 
 
 class SlaveHostsCfgTest(unittest.TestCase):

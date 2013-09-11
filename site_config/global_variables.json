@@ -71,6 +71,11 @@
     "type": "string",
     "description": "Root of our Google Storage tree."
   },
+  "master_branch_name": {
+    "value": "master",
+    "type": "string",
+    "description": "The git branch on which the bots operate."
+  },
   "num_gce_compile_bots": {
     "value": "5",
     "type": "integer",
@@ -131,8 +136,8 @@
     "type": "integer",
     "description": "Port used by public build slaves."
   },
-  "revlinktmpl": {
-    "value": "http://code.google.com/p/skia/source/detail?r=%s",
+  "revlink_tmpl": {
+    "value": "https://skia.googlesource.com/skia/+/%s",
     "type": "string",
     "description": "Template for links to specific revisions in Skia."
   },
@@ -140,6 +145,11 @@
     "value": "https://skiadash.appspot.com/skia_add_points",
     "type": "string",
     "description": "URL for adding bench data to the Skia dashboard on Appspot."
+  },
+  "skia_git_url": {
+    "value": "https://skia.googlesource.com/skia.git",
+    "type": "string",
+    "description": "URL of the Skia Git repository."
   },
   "skia_svn_url": {
     "value": "http://skia.googlecode.com/svn",
