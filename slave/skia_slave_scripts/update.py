@@ -62,6 +62,11 @@ class Update(BuildStep):
 
     _PopulateGitConfigFile()
 
+    # Debugging statements for skia:1628.
+    shell_utils.Bash(['which', 'git'])
+    shell_utils.Bash(['alias', 'git'])
+    shell_utils.Bash(['git', '--version'])
+
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
     # into a list of strings.
