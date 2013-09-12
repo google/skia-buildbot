@@ -13,6 +13,7 @@ import shell_utils
 
 
 GIT = 'git.bat' if os.name == 'nt' else 'git'
+WHICH = 'where' if os.name == 'nt' else 'which'
 SKIA_TRUNK = 'skia'
 
 
@@ -92,8 +93,11 @@ def GetCheckedOutHash():
   # Get the checked-out commit hash for the first gclient solution.
   os.chdir(config[0]['name'])
   try:
+    shell_utils.Bash([WHICH, 'git'])
     # "git rev-parse HEAD" returns the commit hash for HEAD.
     commit_hash = shell_utils.Bash([GIT, 'rev-parse', 'HEAD'])
+    # Temporary debugging.
+    print 'Got commit_hash: ==%s==' % repr(commit_hash)
   finally:
     os.chdir(current_directory)
   return commit_hash.rstrip('\n')
