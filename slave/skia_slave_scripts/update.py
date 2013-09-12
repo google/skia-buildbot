@@ -37,7 +37,11 @@ def _PopulateGitConfigFile():
   destfile.close()
 
   # Some debugging info that might help us figure things out...
-  shell_utils.Bash(['git', 'config', '--global', '--list'])
+  cmd = ['git', 'config', '--global', '--list']
+  try:
+    shell_utils.Bash(cmd)
+  except Exception as e:
+    print '  caught exception %s while trying to run command %s' % (e, cmd)
   print 'leaving _PopulateGitConfigFile()'
 
 
