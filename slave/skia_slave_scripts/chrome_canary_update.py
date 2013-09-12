@@ -5,9 +5,9 @@
 
 """ Check out the Skia sources. """
 
-
-from utils import sync_skia_in_chrome
+# build_step must be imported first, since it does some tweaking of PYTHONPATH.
 from build_step import BuildStep
+from utils import sync_skia_in_chrome
 import sys
 
 

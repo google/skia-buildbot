@@ -37,7 +37,7 @@ class CanaryFactory(factory.SkiaFactory):
         is_upload_step=False,
         is_rebaseline_step=True,
         get_props_from_stdout={'got_revision':
-                                   'Skia updated to revision (\d+)',
+                                   'Skia updated to (\w+)',
                                'chrome_revision':
                                    'Chrome updated to (\w+)'},
         workdir='build')

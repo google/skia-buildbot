@@ -168,7 +168,7 @@
                 'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
                     'chrome_revision': 'Chrome updated to (\w+)',
-                    'got_revision': 'Skia updated to revision (\d+)',
+                    'got_revision': 'Skia updated to (\w+)',
                 },
                 'haltOnFailure': <Object>,
                 'hideStepIf': <Object>,
