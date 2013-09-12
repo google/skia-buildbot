@@ -6,13 +6,8 @@
 """ Check out the Skia sources. """
 
 
-<<<<<<< .mine
 from common import chromium_utils
-from utils import file_utils
-from utils import gclient_utils
-=======
 from utils import gclient_utils, shell_utils
->>>>>>> .r11221
 from build_step import BuildStep, BuildStepFailure
 import ast
 import os
