@@ -38,7 +38,7 @@ def _PopulateGitConfigFile():
   destfile.close()
 
   # Some debugging info that might help us figure things out...
-  cmd = ['git', 'config', '--global', '--list']
+  cmd = [gclient_utils.GIT, 'config', '--global', '--list']
   try:
     shell_utils.Bash(cmd)
   except Exception as e:
@@ -63,10 +63,11 @@ class Update(BuildStep):
     _PopulateGitConfigFile()
 
     # Debugging statements for skia:1628.
-    shell_utils.Bash(['which', 'git'])
-    os.system('alias git')
-    os.system('echo $PATH')
-    shell_utils.Bash(['git', '--version'])
+    shell_utils.Bash([gclient_utils.WHICH, gclient_utils.GIT])
+    if os.name != 'nt':
+      os.system('alias git')
+      os.system('echo $PATH')
+    shell_utils.Bash([gclient_utils.GIT, '--version'])
 
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
