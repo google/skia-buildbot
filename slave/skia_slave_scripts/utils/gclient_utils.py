@@ -97,6 +97,7 @@ def GetCheckedOutHash():
     for _i in xrange(3):
       shell_utils.Bash([WHICH, 'git'])
       os.system('alias git')
+      os.system('echo $PATH')
       shell_utils.Bash([GIT, '--version'])
       # "git rev-parse HEAD" returns the commit hash for HEAD.
       commit_hash = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip('\n')
