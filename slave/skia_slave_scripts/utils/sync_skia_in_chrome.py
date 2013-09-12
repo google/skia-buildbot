@@ -87,7 +87,7 @@ def Sync(skia_revision=None, chrome_revision=None):
     # Assume that we already have a Skia checkout.
     current_skia_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
     print 'Found existing Skia checkout at %s' % current_skia_rev
-    shell_utils.Bash([GIT, 'pull', 'origin/master'])
+    shell_utils.Bash([GIT, 'pull', 'origin', 'master'])
   except Exception:
     # If updating fails, assume that we need to check out Skia from scratch.
     os.chdir(os.pardir)
