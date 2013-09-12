@@ -6,7 +6,13 @@
 """ Check out the Skia sources. """
 
 
+<<<<<<< .mine
+from common import chromium_utils
+from utils import file_utils
+from utils import gclient_utils
+=======
 from utils import gclient_utils, shell_utils
+>>>>>>> .r11221
 from build_step import BuildStep, BuildStepFailure
 import ast
 import os
@@ -54,6 +60,11 @@ class Update(BuildStep):
                                  **kwargs)
 
   def _Run(self):
+    # If an old SVN checkout of Skia exists, remove it.
+    if os.path.isdir('trunk'):
+      print 'Removing old Skia checkout at %s' % os.path.abspath('trunk')
+      chromium_utils.RemoveDirectory('trunk')
+
     _PopulateGitConfigFile()
 
     # We receive gclient_solutions as a list of dictionaries flattened into a
