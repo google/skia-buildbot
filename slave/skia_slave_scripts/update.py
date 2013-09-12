@@ -24,7 +24,11 @@ def _PopulateGitConfigFile():
   my_ipaddr = s.getsockname()[0]
   print '  I think my IP address is "%s"' % my_ipaddr
 
-  destpath = os.path.join(os.path.expanduser('~'), '.gitconfig')
+  git_path = shell_utils.Bash([gclient_utils.WHICH, gclient_utils.GIT])
+  if 'depot_tools' in git_path:
+    destpath = os.path.join(os.path.dirname(git_path), '.gitconfig')
+  else:
+    destpath = os.path.join(os.path.expanduser('~'), '.gitconfig')
   destfile = open(destpath, 'w')
   if my_ipaddr.startswith('192.168.1.'):
     print ('  I think I am behind the NAT router. '
