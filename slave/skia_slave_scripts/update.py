@@ -64,7 +64,7 @@ class Update(BuildStep):
 
     # Debugging statements for skia:1628.
     shell_utils.Bash(['which', 'git'])
-    shell_utils.Bash(['alias', 'git'])
+    os.system('alias git')
     shell_utils.Bash(['git', '--version'])
 
     # We receive gclient_solutions as a list of dictionaries flattened into a
