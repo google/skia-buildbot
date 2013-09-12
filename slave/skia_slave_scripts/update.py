@@ -29,7 +29,7 @@ def _PopulateGitConfigFile():
   if my_ipaddr.startswith('192.168.1.'):
     print ('  I think I am behind the NAT router. '
            'Writing to .gitconfig file at "%s"...' % destpath)
-    destfile.write('[url "http://192.168.1.122/git-mirror/skia"]\n'
+    destfile.write('[url "git@192.168.1.122:git-mirror/skia"]\n'
                    '   insteadOf = https://skia.googlesource.com/skia\n')
   else:
     print ('  I think I am NOT behind the NAT router. '
