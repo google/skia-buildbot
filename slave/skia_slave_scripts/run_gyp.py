@@ -10,6 +10,12 @@ import sys
 
 
 class RunGYP(BuildStep):
+  def __init__(self, timeout=15000, no_output_timeout=10000,
+               **kwargs):
+    super(RunGYP, self).__init__(timeout=timeout,
+                                 no_output_timeout=no_output_timeout,
+                                 **kwargs)
+
   def _Run(self):
     self._flavor_utils.RunGYP()
 
