@@ -9,31 +9,7 @@
 from utils import gclient_utils
 from build_step import BuildStep, BuildStepFailure
 import ast
-import os
-import socket
 import sys
-
-
-# TODO(epoger): temporarily added to use the git mirror behind our NAT
-# TODO(epoger): DURING A TRIAL PERIOD, THIS KNOWINGLY SETS UP A BOGUS MIRROR!
-def _PopulateGitConfigFile():
-  print 'in _PopulateGitConfigFile()...'
-
-  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  s.connect(('8.8.8.8', 0))
-  my_ipaddr = s.getsockname()[0]
-  print '  I think my IP address is "%s"' % my_ipaddr
-  if not my_ipaddr.startswith('192.168.1.'):
-    print ('  I don\'t think I am behind the NAT router. '
-           'No need to write the .gitconfig file.')
-    return
-
-  destpath = os.path.join(os.path.expanduser('~'), '.gitconfig')
-  print '  writing to .gitconfig file at "%s"...' % destpath
-  destfile = open(destpath, 'w')
-  destfile.write('[url "http://192.168.1.122/NOgit-mirror/skia"]\n'
-                 '   insteadOf = https://skia.googlesource.com/skia\n')
-  destfile.close()
 
 
 class Update(BuildStep):
@@ -45,8 +21,6 @@ class Update(BuildStep):
                                  **kwargs)
 
   def _Run(self):
-    _PopulateGitConfigFile()
-
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
     # into a list of strings.
