@@ -94,7 +94,7 @@ def GetCheckedOutHash():
   # Get the checked-out commit hash for the first gclient solution.
   os.chdir(config[0]['name'])
   try:
-    for _i in xrange(3):
+    for _i in xrange(20):
       shell_utils.Bash([WHICH, 'git'])
       os.system('alias git')
       os.system('echo $PATH')
