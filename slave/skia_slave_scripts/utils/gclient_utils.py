@@ -108,7 +108,7 @@ def GetCheckedOutHash():
         # Break out of the retry loop if we have a non-empty commit hash.
         break
       # Sleep for 20 seconds and hope the next iteration finds the commit hash.
-      time.sleep(20)
+      time.sleep(60)
   finally:
     os.chdir(current_directory)
   return commit_hash
