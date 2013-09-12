@@ -10,6 +10,7 @@ from common import find_depot_tools
 
 import os
 import shell_utils
+import time
 
 
 GIT = 'git.bat' if os.name == 'nt' else 'git'
@@ -93,14 +94,20 @@ def GetCheckedOutHash():
   # Get the checked-out commit hash for the first gclient solution.
   os.chdir(config[0]['name'])
   try:
-    shell_utils.Bash([WHICH, 'git'])
-    # "git rev-parse HEAD" returns the commit hash for HEAD.
-    commit_hash = shell_utils.Bash([GIT, 'rev-parse', 'HEAD'])
-    # Temporary debugging.
-    print 'Got commit_hash: ==%s==' % repr(commit_hash)
+    for _i in xrange(3):
+      shell_utils.Bash([WHICH, 'git'])
+      # "git rev-parse HEAD" returns the commit hash for HEAD.
+      commit_hash = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip('\n')
+      # Temporary debugging.
+      print 'Got commit_hash: ==%s==' % repr(commit_hash)
+      if commit_hash:
+        # Break out of the retry loop if we have a non-empty commit hash.
+        break
+      # Sleep for 1 second incase there are concurrent runs.
+      time.sleep(1)
   finally:
     os.chdir(current_directory)
-  return commit_hash.rstrip('\n')
+  return commit_hash
 
 
 def Revert():
