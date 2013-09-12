@@ -6,10 +6,39 @@
 """ Check out the Skia sources. """
 
 
-from utils import gclient_utils
+from utils import gclient_utils, shell_utils
 from build_step import BuildStep, BuildStepFailure
 import ast
+import os
+import socket
 import sys
+
+
+# TODO(epoger): temporarily added to use the git mirror behind our NAT
+def _PopulateGitConfigFile():
+  print 'entering _PopulateGitConfigFile()...'
+
+  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+  s.connect(('google.com', 80))
+  my_ipaddr = s.getsockname()[0]
+  print '  I think my IP address is "%s"' % my_ipaddr
+
+  destpath = os.path.join(os.path.expanduser('~'), '.gitconfig')
+  destfile = open(destpath, 'w')
+  if my_ipaddr.startswith('192.168.1.'):
+    print ('  I think I am behind the NAT router. '
+           'Writing to .gitconfig file at "%s"...' % destpath)
+    destfile.write('[url "http://192.168.1.122/git-mirror/skia"]\n'
+                   '   insteadOf = https://skia.googlesource.com/skia\n')
+  else:
+    print ('  I think I am NOT behind the NAT router. '
+           'Writing a blank .gitconfig file to "%s".' % destpath)
+    destfile.write('')
+  destfile.close()
+
+  # Some debugging info that might help us figure things out...
+  shell_utils.Bash(['git', 'config', '--global', '--list'])
+  print 'leaving _PopulateGitConfigFile()'
 
 
 class Update(BuildStep):
@@ -21,6 +50,8 @@ class Update(BuildStep):
                                  **kwargs)
 
   def _Run(self):
+    _PopulateGitConfigFile()
+
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
     # into a list of strings.
