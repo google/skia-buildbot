@@ -243,6 +243,8 @@ td.Alt {
   border-radius: 5px;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
+  border-width: 1px;
+  border-style: solid;
   width: 100px;
   max-width: 100px;
   text-align: center;
