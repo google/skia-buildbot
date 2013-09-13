@@ -36,7 +36,7 @@ def _PopulateGitConfigFile(builder_name):
     git_config = ('[url "http://192.168.1.122/git-mirror/skia"]\n'
                   '   insteadOf = https://skia.googlesource.com/skia\n')
     if 'Mac10.6' in builder_name:
-      git_config += '[http]\n   postBuffer = 524288000\n'
+      git_config += '[core]\n   compression = -1\n'
     destfile.write(git_config)
   else:
     print ('  I think I am NOT behind the NAT router. '
