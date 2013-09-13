@@ -20,7 +20,7 @@ class Moz2DCanaryBuildStepUtils(DefaultBuildStepUtils):
     if target == 'moz2d':
       os.chdir(os.path.join(os.pardir, MOZ2D_DIR))
       shell_utils.Bash(['make', '-f', 'Makefile.standalone',
-                        'MOZ2D_SKIA=../trunk'])
+                        'MOZ2D_SKIA=../skia'])
     else:
       DefaultBuildStepUtils.Compile(self, target)
 
