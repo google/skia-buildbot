@@ -33,17 +33,16 @@ def _PopulateGitConfigFile(builder_name):
   if my_ipaddr.startswith('192.168.1.'):
     print ('  I think I am behind the NAT router. '
            'Writing to .gitconfig file at "%s"...' % destpath)
-    destfile.write('[url "http://192.168.1.122/git-mirror/skia"]\n'
-                   '   insteadOf = https://skia.googlesource.com/skia\n')
+    git_config = ('[url "http://192.168.1.122/git-mirror/skia"]\n'
+                  '   insteadOf = https://skia.googlesource.com/skia\n')
+    if 'Mac10.6' in builder_name:
+      git_config += '[http]\n   http.postBuffer = 524288000\n'
+    destfile.write(git_config)
   else:
     print ('  I think I am NOT behind the NAT router. '
            'Writing a blank .gitconfig file to "%s".' % destpath)
     destfile.write('')
   destfile.close()
-
-  if 'Mac10.6' in builder_name:
-    shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
-                      'http.postBuffer', '524288000'])
 
   # Some debugging info that might help us figure things out...
   cmd = [gclient_utils.GIT, 'config', '--global', '--list']
