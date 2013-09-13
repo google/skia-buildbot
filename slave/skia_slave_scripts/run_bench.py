@@ -37,7 +37,8 @@ def GetSvnRevision(commit_hash):
     time.sleep(1)
   results = re.findall(GIT_SVN_ID_MATCH_STR, output)
   if not results:
-    raise Exception('No git-svn-id found for %s' % commit_hash)
+    raise Exception('No git-svn-id found for %s\nOutput:\n%s' % (commit_hash,
+                                                                 output))
   return results[0]
 
 
