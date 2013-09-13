@@ -66,13 +66,6 @@ class Update(BuildStep):
 
     _PopulateGitConfigFile()
 
-    # Debugging statements for skia:1628.
-    shell_utils.Bash([gclient_utils.WHICH, gclient_utils.GIT])
-    if os.name != 'nt':
-      os.system('alias git')
-      os.system('echo $PATH')
-    shell_utils.Bash([gclient_utils.GIT, '--version'])
-
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
     # into a list of strings.

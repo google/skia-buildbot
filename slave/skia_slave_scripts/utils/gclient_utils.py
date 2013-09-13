@@ -94,20 +94,14 @@ def GetCheckedOutHash():
   # Get the checked-out commit hash for the first gclient solution.
   os.chdir(config[0]['name'])
   try:
-    for _i in xrange(25):
-      shell_utils.Bash([WHICH, GIT])
-      if os.name != 'nt':
-        os.system('alias git')
-        os.system('echo $PATH')
-      shell_utils.Bash([GIT, '--version'])
+    for i in xrange(30):
       # "git rev-parse HEAD" returns the commit hash for HEAD.
       commit_hash = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip('\n')
-      # Temporary debugging.
-      print 'Got commit_hash: ==%s==' % repr(commit_hash)
       if commit_hash:
         # Break out of the retry loop if we have a non-empty commit hash.
         break
       # Sleep for 1 second and hope the next iteration finds the commit hash.
+      print 'Could not find a non-empty commit_hash, retrying.. #%s' % (i + 1)
       time.sleep(1)
   finally:
     os.chdir(current_directory)
