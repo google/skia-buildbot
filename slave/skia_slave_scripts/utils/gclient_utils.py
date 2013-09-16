@@ -10,6 +10,7 @@ from common import find_depot_tools
 
 import os
 import shell_utils
+import subprocess
 import time
 
 
@@ -96,11 +97,18 @@ def GetCheckedOutHash():
   try:
     for i in xrange(30):
       # "git rev-parse HEAD" returns the commit hash for HEAD.
-      commit_hash = shell_utils.Bash('%s rev-parse HEAD' % GIT,
-                                     shell=True).rstrip('\n')
-      if commit_hash:
-        # Break out of the retry loop if we have a non-empty commit hash.
-        break
+      cmd = [GIT, 'rev-parse', 'HEAD']
+      print cmd
+      proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT)
+      if proc.wait() == 0:
+        commit_hash = proc.communicate()[0].rstrip('\n')
+        print commit_hash
+        if commit_hash:
+          # Break out of the retry loop if we have a non-empty commit hash.
+          break
+      else:
+        print 'Command exited with non-zero code.'
       # Sleep for 1 second and hope the next iteration finds the commit hash.
       print 'Could not find a non-empty commit_hash, retrying.. #%s' % (i + 1)
       time.sleep(1)
