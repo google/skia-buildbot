@@ -16,7 +16,7 @@ import sys
 
 
 # TODO(epoger): temporarily added to use the git mirror behind our NAT
-def _PopulateGitConfigFile(builder_name):
+def _PopulateGitConfigFile():
   print 'entering _PopulateGitConfigFile()...'
 
   s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -35,8 +35,6 @@ def _PopulateGitConfigFile(builder_name):
            'Writing to .gitconfig file at "%s"...' % destpath)
     git_config = ('[url "http://192.168.1.122/git-mirror/skia"]\n'
                   '   insteadOf = https://skia.googlesource.com/skia\n')
-    if 'Mac10.6' in builder_name:
-      git_config += '[core]\n   compression = -1\n'
     destfile.write(git_config)
   else:
     print ('  I think I am NOT behind the NAT router. '
@@ -67,7 +65,7 @@ class Update(BuildStep):
       print 'Removing old Skia checkout at %s' % os.path.abspath('trunk')
       chromium_utils.RemoveDirectory('trunk')
 
-    _PopulateGitConfigFile(self._builder_name)
+    _PopulateGitConfigFile()
 
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
