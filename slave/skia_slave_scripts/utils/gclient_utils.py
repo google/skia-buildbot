@@ -96,7 +96,8 @@ def GetCheckedOutHash():
   try:
     for i in xrange(30):
       # "git rev-parse HEAD" returns the commit hash for HEAD.
-      commit_hash = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip('\n')
+      commit_hash = shell_utils.Bash('%s rev-parse HEAD' % GIT,
+                                     shell=True).rstrip('\n')
       if commit_hash:
         # Break out of the retry loop if we have a non-empty commit hash.
         break
