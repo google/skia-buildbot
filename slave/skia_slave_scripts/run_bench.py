@@ -56,6 +56,8 @@ class RunBench(BuildStep):
     args = []
     if self._perf_data_dir:
       args.extend(BenchArgs(self._BuildDataFile()))
+    if 'Nexus4' in self._builder_name:
+      args.extend(['--config', 'defaults', 'MSAA4'])
     self._flavor_utils.RunFlavoredCmd('bench', args + self._bench_args)
 
 
