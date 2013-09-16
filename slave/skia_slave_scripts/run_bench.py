@@ -30,16 +30,16 @@ def GetSvnRevision(commit_hash):
   for i in xrange(30):
     output = shell_utils.Bash([GIT, 'show', commit_hash], echo=False)
     if output:
-      # Break out of the retry loop if we have non-empty output.
-      break
-    # Sleep for 1 second and hope the next iteration gives us output.
-    print 'No output from "git show", retrying.. #%s' % (i + 1)
+      results = re.findall(GIT_SVN_ID_MATCH_STR, output)
+      if results:
+        return results[0]
+      else:
+        print 'No git-svn-id found for %s\nOutput:\n%s' % (commit_hash, output)
+    else:
+      # Sleep for 1 second and hope the next iteration gives us output.
+      print 'No output from "git show", retrying.. #%s' % (i + 1)
     time.sleep(1)
-  results = re.findall(GIT_SVN_ID_MATCH_STR, output)
-  if not results:
-    raise Exception('No git-svn-id found for %s\nOutput:\n%s' % (commit_hash,
-                                                                 output))
-  return results[0]
+  raise Exception('Unable to parse git-svn-id!')
 
 
 class RunBench(BuildStep):
