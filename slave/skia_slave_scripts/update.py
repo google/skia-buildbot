@@ -89,10 +89,14 @@ class Update(BuildStep):
     # Run "gclient config" with the spec we just built.
     gclient_utils.Config(spec=gclient_spec)
 
-    # Run "gclient sync"
     if self._is_try:
       # Clean our checkout to make sure we don't have a patch left over.
-      gclient_utils.Revert()
+      if os.path.isdir('skia') and os.path.isdir(os.path.join('skia', '.git')):
+        os.chdir('skia')
+        gclient_utils.Revert()
+        os.chdir(os.pardir)
+
+    # Run "gclient sync"
     gclient_utils.Sync(
         branches=[solution['name'] for solution in solution_dicts],
         revision=self._revision,
