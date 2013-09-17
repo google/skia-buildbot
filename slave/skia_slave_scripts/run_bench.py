@@ -10,7 +10,6 @@ from utils import shell_utils
 import os
 import re
 import sys
-import time
 
 
 GIT = 'git.bat' if os.name == 'nt' else 'git'
@@ -26,20 +25,14 @@ def BenchArgs(data_file):
 
 
 def GetSvnRevision(commit_hash):
-  # Run "git show" in a retry loop, because it occasionally fails.
-  for i in xrange(30):
-    output = shell_utils.Bash([GIT, 'show', commit_hash], echo=False)
-    if output:
-      results = re.findall(GIT_SVN_ID_MATCH_STR, output)
-      if results:
-        return results[0]
-      else:
-        print 'No git-svn-id found for %s\nOutput:\n%s' % (commit_hash, output)
-    else:
-      # Sleep for 1 second and hope the next iteration gives us output.
-      print 'No output from "git show", retrying.. #%s' % (i + 1)
-    time.sleep(1)
-  raise Exception('Unable to parse git-svn-id!')
+  output = shell_utils.Bash([GIT, 'show', commit_hash], echo=False,
+                            log_in_real_time=False)
+  results = re.findall(GIT_SVN_ID_MATCH_STR, output)
+  if results:
+    return results[0]
+  else:
+    raise Exception('No git-svn-id found for %s\nOutput:\n%s' % (commit_hash,
+                                                                 output))
 
 
 class RunBench(BuildStep):

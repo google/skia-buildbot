@@ -10,8 +10,6 @@ from common import find_depot_tools
 
 import os
 import shell_utils
-import subprocess
-import time
 
 
 GIT = 'git.bat' if os.name == 'nt' else 'git'
@@ -95,26 +93,11 @@ def GetCheckedOutHash():
   # Get the checked-out commit hash for the first gclient solution.
   os.chdir(config[0]['name'])
   try:
-    for i in xrange(30):
-      # "git rev-parse HEAD" returns the commit hash for HEAD.
-      cmd = [GIT, 'rev-parse', 'HEAD']
-      print cmd
-      proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT)
-      if proc.wait() == 0:
-        commit_hash = proc.communicate()[0].rstrip('\n')
-        print commit_hash
-        if commit_hash:
-          # Break out of the retry loop if we have a non-empty commit hash.
-          break
-      else:
-        print 'Command exited with non-zero code.'
-      # Sleep for 1 second and hope the next iteration finds the commit hash.
-      print 'Could not find a non-empty commit_hash, retrying.. #%s' % (i + 1)
-      time.sleep(1)
+    # "git rev-parse HEAD" returns the commit hash for HEAD.
+    return shell_utils.Bash([GIT, 'rev-parse', 'HEAD'],
+                            log_in_real_time=False).rstrip('\n')
   finally:
     os.chdir(current_directory)
-  return commit_hash
 
 
 def Revert():
