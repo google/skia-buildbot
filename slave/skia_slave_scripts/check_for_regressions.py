@@ -22,7 +22,10 @@ class CheckForRegressions(BuildStep):
   def _RunInternal(self, representation):
     path_to_bench_graph_svg = os.path.join('bench', 'bench_graph_svg.py')
     path_to_bench_expectations = os.path.join('bench',
-                                              'bench_expectations.txt')
+        'bench_expectations_%s.txt' % self._builder_name)
+    if not os.path.isfile(path_to_bench_expectations):
+      print 'Skip due to missing expectations: %s' % path_to_bench_expectations
+      return
     graph_title = 'Bench_Performance_for_%s' % self._builder_name
     cmd = ['python', path_to_bench_graph_svg,
            '-d', self._perf_data_dir,
