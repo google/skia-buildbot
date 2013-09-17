@@ -22,6 +22,11 @@ DEFAULT_SECS_BETWEEN_ATTEMPTS = 10
 POLL_MILLIS = 250
 
 
+class TimeoutException(Exception):
+  """ Exception which gets raised when a subprocess exceeds its timeout. """
+  pass
+
+
 def BashAsync(cmd, echo=True, shell=False):
   """ Run 'cmd' in a subprocess, returning a Popen class instance referring to
   that process.  (Non-blocking) """
@@ -75,14 +80,15 @@ class EnqueueThread(threading.Thread):
     self._stopped = True
 
 
-def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
-                           halt_on_output=None, print_timestamps=True):
-  """ Log the output of proc until it completes. Return a tuple containing the
-  exit code of proc and the contents of stdout.
+def LogProcessInRealTime(proc, echo=True, timeout=None, log_file=None,
+                         halt_on_output=None, print_timestamps=True):
+  """ Log the output of proc in real time until it completes. Return a tuple
+  containing the exit code of proc and the contents of stdout.
 
   proc: an instance of Popen referring to a running subprocess.
   echo: boolean indicating whether to print the output received from proc.stdout
-  timeout: number of seconds allotted for the process to run
+  timeout: number of seconds allotted for the process to run. Raises a
+      TimeoutException if the run time exceeds the timeout.
   log_file: an open file for writing output
   halt_on_output: string; kill the process and return if this string is found
       in the output stream from the process.
@@ -119,14 +125,42 @@ def LogProcessToCompletion(proc, echo=True, timeout=None, log_file=None,
         time.sleep(0.5)
       if timeout and time.time() - t_0 > timeout:
         proc.terminate()
-        break
+        raise TimeoutException('Subprocess exceeded timeout of %ds' % timeout)
   finally:
     log_thread.stop()
     log_thread.join()
   return (code, ''.join(all_output))
 
 
-def Bash(cmd, echo=True, shell=False, timeout=None, print_timestamps=True):
+def LogProcessAfterCompletion(proc, echo=True, timeout=None, log_file=None):
+  """ Wait for proc to complete and return a tuple containing the exit code of
+  proc and the contents of stdout. Unlike LogProcessInRealTime, does not attempt
+  to read stdout from proc in real time.
+
+  proc: an instance of Popen referring to a running subprocess.
+  echo: boolean indicating whether to print the output received from proc.stdout
+  timeout: number of seconds allotted for the process to run. Raises a
+      TimeoutException if the run time exceeds the timeout.
+  log_file: an open file for writing outout
+  """
+  t_0 = time.time()
+  code = None
+  while code is None:
+    if timeout and time.time() - t_0 > timeout:
+      raise TimeoutException('Subprocess exceeded timeout of %ds' % timeout)
+    time.sleep(0.5)
+    code = proc.poll()
+  output = proc.communicate()[0]
+  if echo:
+    print output
+  if log_file:
+    log_file.write(output)
+    log_file.flush()
+  return (code, output)
+
+
+def Bash(cmd, echo=True, shell=False, timeout=None, print_timestamps=True,
+         log_in_real_time=True):
   """ Run 'cmd' in a shell and return the combined contents of stdout and
   stderr (Blocking).  Throws an exception if the command exits non-zero.
   
@@ -139,11 +173,21 @@ def Bash(cmd, echo=True, shell=False, timeout=None, print_timestamps=True):
       http://docs.python.org/library/subprocess.html#popen-constructor
   timeout: optional, integer indicating the maximum elapsed time in seconds
   print_timestamps: boolean indicating whether a formatted timestamp should be
-      prepended to each line of output.
+      prepended to each line of output. Unused if echo or log_in_real_time is
+      False.
+  log_in_real_time: boolean indicating whether to read stdout from the
+      subprocess in real time instead of when the process finishes. If echo is
+      False, we never log in real time, even if log_in_real_time is True.
   """
   proc = BashAsync(cmd, echo=echo, shell=shell)
-  (returncode, output) = LogProcessToCompletion(proc, echo=echo,
-      timeout=timeout, print_timestamps=print_timestamps)
+  # If we're not printing the output, we don't care if the output shows up in
+  # real time, so don't bother.
+  if log_in_real_time and echo:
+    (returncode, output) = LogProcessInRealTime(proc, echo=echo,
+        timeout=timeout, print_timestamps=print_timestamps)
+  else:
+    (returncode, output) = LogProcessAfterCompletion(proc, echo=echo,
+                                                     timeout=timeout)
   if returncode != 0:
     raise Exception('Command failed with code %d: %s' % (returncode, cmd))
   return output
