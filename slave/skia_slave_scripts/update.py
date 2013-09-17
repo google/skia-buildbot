@@ -65,10 +65,7 @@ class Update(BuildStep):
       print 'Removing old Skia checkout at %s' % os.path.abspath('trunk')
       chromium_utils.RemoveDirectory('trunk')
 
-    if 'Mac10.6' not in self._builder_name:
-      # This function causes problems on Mac 10.6:
-      # https://code.google.com/p/skia/issues/detail?id=1630
-      _PopulateGitConfigFile()
+    _PopulateGitConfigFile()
 
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
