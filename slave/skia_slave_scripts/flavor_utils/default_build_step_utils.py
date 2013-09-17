@@ -7,6 +7,7 @@
 import errno
 import os
 import shutil
+import sys
 
 from utils import file_utils
 from utils import shell_utils
@@ -82,7 +83,11 @@ class DefaultBuildStepUtils:
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStepUtils flavors. """
-    shell_utils.Bash([self._PathToBinary(app)] + args)
+    if sys.platform == 'linux2' and 'x86_64' in self._step.builder_name:
+      cmd = ['catchsegv', self._PathToBinary(app)]
+    else:
+      cmd = [self._PathToBinary(app)]
+    shell_utils.Bash(cmd + args)
 
   def ReadFileOnDevice(self, filepath):
     """ Read the contents of a file on the associated device. Subclasses should
