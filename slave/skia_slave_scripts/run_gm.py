@@ -12,9 +12,36 @@ import sys
 
 
 JSON_SUMMARY_FILENAME = 'actual-results.json'
+OVERRIDE_IGNORED_TESTS_FILE = 'ignored-tests.txt'
 
 
 class RunGM(BuildStep):
+  def _GetAdditionalTestsToIgnore(self):
+    """Parse the OVERRIDE_IGNORED_TESTS_FILE, and return any tests listed there
+    as an list.  If the file is empty or nonexistent, return an empty list.
+
+    See https://code.google.com/p/skia/issues/detail?id=1600#c4
+    """
+    tests = []
+    override_ignored_tests_path = os.path.join(
+        self._gm_expected_dir, os.pardir, OVERRIDE_IGNORED_TESTS_FILE)
+    try:
+      with open(override_ignored_tests_path) as f:
+        for line in f.readlines():
+          line = line.strip()
+          if not line:
+            continue
+          if line.startswith('#'):
+            continue
+          tests.append(line)
+    except IOError:
+      print ('override_ignored_tests_path %s does not exist' %
+             override_ignored_tests_path)
+      return []
+    print ('Found these tests to ignore at override_ignored_tests_path %s: %s' %
+           (override_ignored_tests_path, tests))
+    return tests
+
   def _Run(self):
     device_gm_expectations_path = self._flavor_utils.DevicePathJoin(
         self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
@@ -34,6 +61,11 @@ class RunGM(BuildStep):
            '--readPath', device_gm_expectations_path,
            '--resourcePath', self._device_dirs.ResourceDir(),
            ] + self._gm_args
+
+    additional_tests_to_ignore = self._GetAdditionalTestsToIgnore()
+    if additional_tests_to_ignore:
+      cmd.extend(['--ignoreTests'] + additional_tests_to_ignore)
+
     # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
     if sys.platform == 'darwin':
       cmd.extend(['--config', 'defaults', '~msaa16'])
