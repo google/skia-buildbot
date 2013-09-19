@@ -81,7 +81,8 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
 
   # Find the actually-obtained Chrome revision.
   os.chdir('src')
-  actual_chrome_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
+  actual_chrome_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD'],
+                                       log_in_real_time=False).rstrip()
 
   if use_lkgr_skia:
     # Get the Skia revision requested by Chrome.
@@ -111,7 +112,8 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   shell_utils.Bash([GIT, 'reset', '--hard', skia_revision])
 
   # Find the actually-obtained Skia revision.
-  actual_skia_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
+  actual_skia_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD'],
+                                     log_in_real_time=False).rstrip()
 
   # Run gclient hooks
   os.chdir(os.path.join(os.pardir, os.pardir, os.pardir))
