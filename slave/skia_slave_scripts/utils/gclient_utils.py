@@ -82,7 +82,7 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
     if revision:
       shell_utils.Bash([GIT, 'reset', '--hard', revision])
     else:
-      shell_utils.Bash([GIT, 'checkout', 'origin/master', '--detach', '-f'])
+      shell_utils.Bash([GIT, 'checkout', 'origin/master', '-f'])
     os.chdir(start_dir)
   return output
 
