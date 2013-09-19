@@ -13,6 +13,11 @@ import os
 
 
 class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
+  def __init__(self, build_step_instance):
+    DefaultBuildStepUtils.__init__(self, build_step_instance)
+    self._baseline_dir = os.path.join(os.pardir, 'webkit-master')
+    self._result_dir = os.path.join(os.pardir, 'layouttest_results')
+
   def Compile(self, target):
     if not os.path.isdir('out'):
       self.RunGYP()
@@ -39,3 +44,11 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
     print 'GYP_GENERATORS="%s"' % os.environ['GYP_GENERATORS']
     python = 'python.bat' if os.name == 'nt' else 'python'
     shell_utils.Bash([python, os.path.join('build', 'gyp_chromium')])
+
+  @property
+  def baseline_dir(self):
+    return self._baseline_dir
+
+  @property
+  def result_dir(self):
+    return self._result_dir

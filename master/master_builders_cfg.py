@@ -9,6 +9,7 @@
 from skia_master_scripts import android_factory
 from skia_master_scripts import canary_factory
 from skia_master_scripts import chromeos_factory
+from skia_master_scripts import drt_canary_factory
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import housekeeping_percommit_factory
 from skia_master_scripts import housekeeping_periodic_factory
@@ -373,6 +374,19 @@ def Update(config, active_master, cfg):
        moz2d_canary_factory.Moz2DCanaryFactory,
        'skia_rel',
        {}),
+      (builder_name_schema.MakeBuilderName(role='Canary',
+                                           project='Chrome',
+                                           os='Ubuntu12',
+                                           compiler='Ninja',
+                                           target_arch='x86_64',
+                                           configuration='DRT'),
+       skia_factory.TARGET_PLATFORM_LINUX,
+       drt_canary_factory.DRTCanaryFactory,
+       'skia_rel',
+       {
+        'build_subdir': 'src',
+        'path_to_skia': ['third_party', 'skia'],
+       }),
   ]
   # Add corresponding trybot builders to the above list.
   canaries.extend([

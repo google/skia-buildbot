@@ -53,7 +53,8 @@ def _GetLocalConfig():
 
 
 def Sync(revision=None, force=False, delete_unversioned_trees=False,
-         branches=None, verbose=False, jobs=None, no_hooks=False):
+         branches=None, verbose=False, jobs=None, no_hooks=False,
+         extra_args=None):
   """ Update the local checkout to the given revision, if provided, or to the
   most recent revision. """
   cmd = ['sync', '--no-nag-max']
@@ -69,6 +70,8 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
     cmd.append('--nohooks')
   if revision and branches and SKIA_TRUNK in branches:
     cmd.extend(['--revision', '%s@%s' % (SKIA_TRUNK, revision)])
+  if extra_args:
+    cmd.extend(extra_args)
   output = _RunCmd(cmd)
 
   # "gclient sync" just downloads all of the commits. In order to actually sync

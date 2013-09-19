@@ -21,8 +21,10 @@ class ChromeCanaryUpdate(BuildStep):
         **kwargs)
 
   def _Run(self):
-    (skia_rev, chrome_rev) = \
-        sync_skia_in_chrome.Sync(skia_revision=self._revision)
+    (skia_rev, chrome_rev) = sync_skia_in_chrome.Sync(
+        skia_revision=self._revision,
+        chrome_revision=self._args.get('chrome_rev'),
+        use_lkgr_skia=('use_lkgr_skia' in self._args.keys()))
     print 'Skia updated to %s' % skia_rev
     print 'Chrome updated to %s' % chrome_rev
 

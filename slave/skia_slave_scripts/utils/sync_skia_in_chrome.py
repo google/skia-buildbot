@@ -24,14 +24,16 @@ GCLIENT_FILE = '.gclient'
 PATH_TO_SKIA_IN_CHROME = os.path.join('src', 'third_party', 'skia', 'src')
 
 
-def Sync(skia_revision=None, chrome_revision=None):
+def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   """ Create and sync a checkout of Skia inside a checkout of Chrome. Returns
   a tuple containing the actually-obtained revision of Skia and the actually-
   obtained revision of Chrome.
 
   skia_revision: revision of Skia to sync. If None, will attempt to determine
-      the most recent Skia revision.
+      the most recent Skia revision. Ignored if use_lkgr_skia is True.
   chrome_revision: revision of Chrome to sync. If None, will use the LKGR.
+  use_lkgr_skia: boolean; if True, leaves Skia at the revision requested by
+      Chrome instead of using skia_revision.
   """
   # Figure out what revision of Skia we should use.
   if not skia_revision:
@@ -73,18 +75,30 @@ def Sync(skia_revision=None, chrome_revision=None):
 
   # Run "gclient sync"
   gclient_utils.Sync(revision=str(chrome_revision), jobs=1, no_hooks=True,
-                     force=True)
+      force=True,
+      extra_args=(['--revision', 'src@%s' % chrome_revision]
+                      if chrome_revision else None))
 
   # Find the actually-obtained Chrome revision.
   os.chdir('src')
   actual_chrome_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
+
+  if use_lkgr_skia:
+    # Get the Skia revision requested by Chrome.
+    deps_vars = {}
+    deps_vars['Var'] = lambda x: deps_vars['vars'][x]
+    execfile('DEPS', deps_vars)
+    skia_revision = deps_vars['vars']['skia_hash']
+    print 'Overriding skia_revision with %s' % skia_revision
 
   # Check out Skia.
   skia_dir = os.path.join('third_party', 'skia')
   print 'cd %s' % skia_dir
   os.chdir(skia_dir)
   try:
-    # Assume that we already have a Skia checkout.
+    # Determine whether we already have a Skia checkout. If so, just pull.
+    if not 'skia' in shell_utils.Bash([GIT, 'remote', '-v']):
+      raise Exception('%s does not contain a Skia checkout!' % skia_dir)
     current_skia_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
     print 'Found existing Skia checkout at %s' % current_skia_rev
     shell_utils.Bash([GIT, 'pull', 'origin', 'master'])
