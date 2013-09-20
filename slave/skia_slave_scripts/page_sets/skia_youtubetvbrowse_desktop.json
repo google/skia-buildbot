@@ -1,11 +1,12 @@
 {
     "description": "YouTube TV browse page for Skia for Desktop.",
-    "archive_path": "data/skia_youtubetvbrowse_desktop.wpr",
+    "archive_data_file": "data/skia_youtubetvbrowse_desktop.json",
     "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
     "pages": [
         {
             "url": "https://www.youtube.com/tv#/browse",
-            "wait_time_after_navigate": 15.0,
+            "wait_seconds": 15.0,
             "why": "from bsalomon"
         }
     ]

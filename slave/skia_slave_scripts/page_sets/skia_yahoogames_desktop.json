@@ -1,11 +1,13 @@
 {
     "description": "Yahoo Games for Skia Desktop.",
-    "archive_path": "data/skia_yahoogames_desktop.wpr",
+    "archive_data_file": "data/skia_yahoogames_desktop.json",
     "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
+    "skp_layer": "layer_1.skp",
     "pages": [
         {
             "url": "http://games.yahoo.com",
-            "wait_time_after_navigate": 25.0,
+            "wait_seconds": 15.0,
             "why": "#1 games according to Alexa (with actual games in it)"
         }
     ]

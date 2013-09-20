@@ -1,11 +1,12 @@
 {
     "description": "Techcrunch for Skia Desktop.",
-    "archive_path": "data/skia_techcrunch_desktop.wpr",
+    "archive_data_file": "data/skia_techcrunch_desktop.json",
     "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
     "pages": [
         {
             "url": "http://techcrunch.com",
-            "wait_time_after_navigate": 25.0,
+            "wait_seconds": 15.0,
             "why": "top tech blog"
         }
     ]

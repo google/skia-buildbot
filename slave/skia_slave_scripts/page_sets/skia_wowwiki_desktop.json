@@ -1,11 +1,12 @@
 {
     "description": "wowwiki for Skia for Desktop.",
-    "archive_path": "data/skia_wowwiki_desktop.wpr",
+    "archive_data_file": "data/skia_wowwiki_desktop.json",
     "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
     "pages": [
         {
             "url": "http://www.wowwiki.com/World_of_Warcraft:_Mists_of_Pandaria",
-            "wait_time_after_navigate": 30.0,
+            "wait_seconds": 15.0,
             "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
         }
     ]

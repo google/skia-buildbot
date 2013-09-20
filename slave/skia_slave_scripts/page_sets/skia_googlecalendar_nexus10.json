@@ -1,12 +1,13 @@
 {
     "description": "Google Calendar for Skia for Nexus10.",
-    "archive_path": "data/skia_googlecalendar_nexus10.wpr",
+    "archive_data_file": "data/skia_googlecalendar_nexus10.json",
     "credentials_path": "data/credentials.json",
-    "user_agent_type": "nexus10",
+    "user_agent_type": "tablet",
+    "smoothness": { "action": "scroll" },
     "pages": [
         {
             "url": "https://www.google.com/calendar/",
-            "wait_time_after_navigate": 5.0,
+            "wait_seconds": 5.0,
             "why": "productivity, top google properties",
             "credentials": "google",
             "scrollable_element_function": "function(callback) { callback(document.getElementById('scrolltimedeventswk')); }"

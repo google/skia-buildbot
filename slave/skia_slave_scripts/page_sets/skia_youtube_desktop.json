@@ -1,11 +1,12 @@
 {
     "description": "YouTube for Skia for Desktop.",
-    "archive_path": "data/skia_youtube_desktop.wpr",
+    "archive_data_file": "data/skia_youtube_desktop.json",
     "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
     "pages": [
         {
             "url": "http://www.youtube.com/watch?v=PC57z-oDPLs",
-            "wait_time_after_navigate": 30.0,
+            "wait_seconds": 15.0,
             "why": "#3 (Alexa global)"
         }
     ]

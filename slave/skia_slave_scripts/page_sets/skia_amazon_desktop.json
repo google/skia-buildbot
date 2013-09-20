@@ -1,11 +1,12 @@
 {
     "description": "Amazon for Skia Desktop.",
-    "archive_path": "data/skia_amazon_desktop.wpr",
+    "archive_data_file": "data/skia_amazon_desktop.json",
     "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
     "pages": [
         {
             "url": "http://www.amazon.com",
-            "wait_time_after_navigate": 5.0,
+            "wait_seconds": 5.0,
             "why": "#1 world commerce website by visits; #3 commerce in the US by time spent"
         }
     ]

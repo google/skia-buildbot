@@ -1,12 +1,13 @@
 {
     "description": "LinkedIn for Skia Desktop.",
-    "archive_path": "data/skia_linkedin_desktop.wpr",
+    "archive_data_file": "data/skia_linkedin_desktop.json",
     "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
     "pages": [
         {
             "name": "LinkedIn",
             "url": "http://www.linkedin.com/in/linustorvalds",
-            "wait_time_after_navigate": 5.0,
+            "wait_seconds": 5.0,
             "why": "#12 (Alexa global),Public profile"
         }
     ]

@@ -1,13 +1,14 @@
 {
     "description": "Pinterest for Skia Desktop.",
-    "archive_path": "data/skia_pinterest_desktop.wpr",
+    "archive_data_file": "data/skia_pinterest_desktop.json",
     "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
     "pages": [
         {
             "name": "Pinterest",
             "url": "http://pinterest.com",
             "why": "#37 (Alexa global)",
-            "wait_time_after_navigate": 30.0,
+            "wait_seconds": 15.0,
             "scroll_is_infinite": true
         }
     ]

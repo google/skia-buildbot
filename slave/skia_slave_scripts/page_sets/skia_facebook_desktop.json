@@ -1,32 +1,16 @@
 {
     "description": "Facebook for Skia Desktop.",
-    "archive_path": "data/skia_facebook_desktop.wpr",
+    "archive_data_file": "data/skia_facebook_desktop.json",
     "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
     "pages": [
         {
             "name": "Facebook",
             "url": "http://www.facebook.com/barackobama",
-            "wait_time_after_navigate": 5.0,
+            "wait_seconds": 5.0,
             "why": "top social,Public profile",
             "credentials": "facebook",
-            "scroll_is_infinite": true,
-            "stress_memory": {
-                "action": "compound_interaction",
-                "actions": [
-                    {
-                        "action": "click_to_navigate_interaction",
-                        "selector": "a[href=\"http://www.facebook.com/WomenforObama\"]"
-                    },
-                    {
-                        "action": "click_to_navigate_interaction",
-                        "selector": "a[href=\"http://www.facebook.com/WomenforObama/info\"]"
-                    },
-                    {
-                        "action": "click_to_navigate_interaction",
-                        "selector": "a[href=\"http://www.facebook.com/?ref=tn_tnmn\"]"
-                    }
-                ]
-            }
+            "scroll_is_infinite": true
         }
     ]
 }
