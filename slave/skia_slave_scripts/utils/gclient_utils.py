@@ -96,6 +96,13 @@ def GetCheckedOutHash():
   # Get the checked-out commit hash for the first gclient solution.
   os.chdir(config[0]['name'])
   try:
+    # First, print out the remote from which we synced, just for debugging.
+    cmd = [GIT, 'remote', '-v']
+    try:
+      shell_utils.Bash(cmd)
+    except Exception as e:
+      print e
+
     # "git rev-parse HEAD" returns the commit hash for HEAD.
     return shell_utils.Bash([GIT, 'rev-parse', 'HEAD'],
                             log_in_real_time=False).rstrip('\n')
