@@ -11,6 +11,7 @@ from utils import shell_utils
 
 import os
 import posixpath
+import time
 
 
 class AndroidBuildStepUtils(DefaultBuildStepUtils):
@@ -104,7 +105,13 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
       android_utils.RunADB(self._serial, ['root'])
       android_utils.RunADB(self._serial, ['remount'])
       android_utils.SetCPUScalingMode(self._serial, 'performance')
-      android_utils.ADBKill(self._serial, 'skia')
+      try:
+        android_utils.ADBKill(self._serial, 'skia')
+      except Exception:
+        # If we fail to kill the process, try rebooting the device, and wait for
+        # it to come back up.
+        shell_utils.Bash([android_utils.PATH_TO_ADB, 'reboot', self._serial])
+        time.sleep(60)
       android_utils.StopShell(self._serial)
     else:
       android_utils.ADBKill(self._serial, 'com.skia', kill_app=True)
