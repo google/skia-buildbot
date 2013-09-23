@@ -10,19 +10,19 @@
 VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # Master name, type and the IP address to use for each zone.
-# TODO(rmistry): Change back to 'master' during the next migration.
-VM_MASTER_NAME=${VM_MASTER_NAME:="master2"}
+VM_MASTER_NAME=${VM_MASTER_NAME:="master"}
 MASTER_MACHINE_TYPE="n1-standard-8-d"
 MASTER_IP_ADDRESS_a="108.170.217.252"
 MASTER_IP_ADDRESS_b="173.255.115.253"
 
 # Slave names, type and their IP addresses.
-VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave compile1 compile2 compile3 compile4 compile5 skia-android-canary"}
+VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave compile1 compile2 compile3 compile4 compile5"}
 SLAVES_MACHINE_TYPE="n1-standard-2-d"
 # The list of slave names must correspond to the list of their IP addresses.
 # If you need to add more slaves find available IP addresses by running:
 #   gcutil --project=google.com:skia-buildbots listaddresses
-SLAVE_IP_ADDRESSES="108.170.217.253 108.170.217.250 108.170.217.251 108.170.217.247 108.170.217.248 108.170.217.246 108.170.217.255"
+SLAVE_IP_ADDRESSES_a="173.255.114.84 173.255.114.239 173.255.114.128 108.170.217.249 173.255.115.61 108.170.217.254"
+SLAVE_IP_ADDRESSES_b="108.170.217.253 108.170.217.250 108.170.217.251 108.170.217.247 108.170.217.248 108.170.217.246"
 
 # The Skia buildbot GCE image name.
 SKIA_BUILDBOT_IMAGE_NAME="skia-buildbot-image"

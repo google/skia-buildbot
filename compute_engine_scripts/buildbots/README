@@ -59,3 +59,6 @@ The scripts should be executed in this order:
 * ZONE_TAG=$NEW_ZONE vm_setup_slaves.sh
 * ZONE_TAG=$NEW_ZONE vm_copy_buildbot_history.sh  (Run this overnight, it takes a while)
 * ZONE_TAG=$OLD_ZONE vm_delete_master.sh
+
+After the above scripts are run, update gce_compile_bots_zone in
+global_variables.json to point to the $NEW_ZONE.

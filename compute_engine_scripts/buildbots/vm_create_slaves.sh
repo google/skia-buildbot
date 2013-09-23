@@ -8,7 +8,9 @@
 source vm_config.sh
 
 COUNTER=0
-IP_ADDRESSES_ARR=($SLAVE_IP_ADDRESSES)
+# Get the IP addresses array for the requested zone.
+IP_ADDRESSES_ARR=($(eval echo \$SLAVE_IP_ADDRESSES_${ZONE_TAG}))
+
 for VM in $VM_SLAVE_NAMES; do
   IP_ADDRESS=${IP_ADDRESSES_ARR[$COUNTER]}
   COUNTER=$[$COUNTER +1]
@@ -22,6 +24,12 @@ for VM in $VM_SLAVE_NAMES; do
     --machine_type=$SLAVES_MACHINE_TYPE \
     --image=$SKIA_BUILDBOT_IMAGE_NAME \
     --nopersistent_boot_disk
+
+  if [[ $? != "0" ]]; then
+    echo
+    echo "Creation of ${VM_NAME_BASE}-${VM}-${ZONE_TAG} failed!"
+    exit 1
+  fi
 done
 
 cat <<INP

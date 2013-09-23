@@ -9,6 +9,7 @@ function checkout_depot_tools {
   echo
   echo "===== Checkout depot tools. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
+    "mkdir -p $SKIA_REPO_DIR; " \
     "cd $SKIA_REPO_DIR && " \
     "if [[ -d depot_tools ]]; then rm -rf depot_tools; fi && " \
     "svn checkout http://src.chromium.org/svn/trunk/tools/depot_tools" \
@@ -20,6 +21,7 @@ function checkout_buildbot {
   echo
   echo "===== Checkout the buildbot code. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
+    "mkdir -p $SKIA_REPO_DIR; " \
     "cd $SKIA_REPO_DIR && " \
     "if [[ -d buildbot ]]; then rm -rf buildbot; fi && " \
     "/home/$PROJECT_USER/$SKIA_REPO_DIR/depot_tools/gclient config https://skia.googlesource.com/buildbot.git && " \
