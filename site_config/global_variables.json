@@ -127,7 +127,7 @@
     "description": "Hostname (or IP address) that can be used to reach the public Skia build master."
   },
   "public_master_internal_fqdn": {
-    "value": "skia-master2-b.c.skia-buildbots.google.com.internal",
+    "value": "skia-master-a.c.skia-buildbots.google.com.internal",
     "type": "string",
     "description": "What the public Skia build master thinks its own FQDN is."
   },
