@@ -62,7 +62,7 @@
     "description": "Steps which trigger the gatekeeper on failure."
   },
   "gce_compile_bots_zone": {
-    "value": "b",
+    "value": "a",
     "type": "string",
     "description": "The zone of the Compile buildbots on GCE."
   },
