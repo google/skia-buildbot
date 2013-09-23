@@ -293,7 +293,7 @@ SLAVE_HOSTS = {
     'kvm_num': 'N/A',
   },
 
-  'borenet-mac.cnc.corp.google.com': {
+  'borenet-macpro.roam.corp.google.com': {
     'slaves': [
       ('skiabot-mac-10_8-compile-000', '0'),
       ('skiabot-mac-10_8-compile-001', '1'),
