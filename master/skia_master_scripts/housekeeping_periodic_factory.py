@@ -84,7 +84,7 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
       self._skia_cmd_obj.AddRunCommand(
           command=(WithProperties('SKIA_COMPUTE_ENGINE_HOSTNAME=%(slavename)s '
                                   'PERSISTENT_DISK_NAME='
-                                  '/home/default/skia-slave ' + \
+                                  '/home/default/skia-repo ' + \
                                   disk_usage_script_path)),
           description='CheckHousekeepingSlaveDiskUsage')
       num_gce_compile_bots = skia_vars.GetGlobalVariable('num_gce_compile_bots')
