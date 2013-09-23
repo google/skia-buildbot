@@ -110,7 +110,8 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
       except Exception:
         # If we fail to kill the process, try rebooting the device, and wait for
         # it to come back up.
-        shell_utils.Bash([android_utils.PATH_TO_ADB, 'reboot', self._serial])
+        shell_utils.Bash([android_utils.PATH_TO_ADB, '-s', self._serial,
+                          'reboot'])
         time.sleep(60)
       android_utils.StopShell(self._serial)
     else:
