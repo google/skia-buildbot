@@ -62,21 +62,18 @@ class UpdateInfo(object):
 
     # Get Chromium and Skia revisions.
     old_cwd = os.getcwd()
-    chromium_version_cmd = [
+    version_cmd = [
         'git',
         'rev-parse',
         'HEAD']
-    skia_version_cmd = [
-        'svnversion',
-        '.']
     os.chdir(CHROME_SRC)
     chromium_rev = subprocess.Popen(
-        chromium_version_cmd,
+        version_cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT).communicate()[0].rstrip()
     os.chdir(SKIA_SRC)
     skia_rev = subprocess.Popen(
-        skia_version_cmd,
+        version_cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT).communicate()[0].rstrip()
     print 'skia_rev: %s' % skia_rev
