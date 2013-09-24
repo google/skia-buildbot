@@ -162,8 +162,10 @@ class SkPicturePlayback(object):
       parsed_json = json.load(credentials_file)
       for key in parsed_json:
         if parsed_json[key]["password"] == CREDENTIALS_MISSING_PASSWORD:
-          raise Exception("Please enter the correct password for %s in %s" % (
-                              key, CREDENTIALS_FILE_PATH))
+          raise Exception(
+              "Please enter the correct password for %s in %s. Password is "
+              "stored in valentine (webpages_playback_credentials)." % (
+                  key, CREDENTIALS_FILE_PATH))
 
     # Ensure the right .boto file is used by gsutil.
     if self._upload_to_gs and not (
