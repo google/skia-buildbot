@@ -31,7 +31,7 @@ gclient sync
 # Run the script that checks out LKGR chromium and ToT skia and builds it.
 cd ../../../slave/skia_slave_scripts/utils/
 mkdir /home/default/storage/chromium-trunk
-PYTHONPATH=/home/default/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=/home/default/storage/chromium-trunk
+PYTHONPATH=/home/default/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/home/default/skia-repo/buildbot/site_config/:/home/default/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=/home/default/storage/chromium-trunk
 
 # Build chromium.
 cd /home/default/storage/chromium-trunk/src/
