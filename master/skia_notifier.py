@@ -13,6 +13,7 @@ it and also reuse some of its methods to send emails.
 from buildbot.status.mail import MailNotifier
 from buildbot.status.results import Results
 from master.try_mail_notifier import TryMailNotifier
+from skia_master_scripts import utils
 
 import builder_name_schema
 import datetime
@@ -70,11 +71,15 @@ class SkiaNotifier(MailNotifier):
             if _COMMIT_BOT in blame_list:
               # Remove the commit bot from the blame list.
               blame_list.remove(_COMMIT_BOT)
+
+        # Git-svn tacks a git-svn-id onto the email addresses.  Remove it.
+        new_blamelist = [utils.FixGitSvnEmail(email) for email in blame_list]
+
         # pylint: disable=C0301
         # Set the extended blamelist. It was originally set in
         # http://buildbot.net/buildbot/docs/0.8.4/reference/buildbot.process.build-pysrc.html
         # (line 339)
-        build.setBlamelist(list(blame_list))
+        build.setBlamelist(new_blamelist)
 
     return MailNotifier.buildMessage(self, name, builds, results)
 

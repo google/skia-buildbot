@@ -18,6 +18,7 @@ from buildbot.status.web.console import ANYBRANCH, \
                                         getResultsClass, \
                                         TimeRevisionComparator, \
                                         IntegerRevisionComparator
+from skia_master_scripts import utils
 from twisted.internet import defer
 
 import builder_name_schema
@@ -489,9 +490,7 @@ class ConsoleStatusResource(HtmlResource):
       # Fill the dictionary with this new information
       r['id'] = revision.revision
       r['link'] = revision.revlink
-      # revision.who is supposed to be an email address, but it can contain an
-      # extra '@' followed by garbage. This line strips the garbage.
-      r['who'] = '@'.join(revision.who.split('@')[:2])
+      r['who'] = utils.FixGitSvnEmail(revision.who)
       r['date'] = revision.date
       r['comments'] = revision.comments
       r['repository'] = revision.repository

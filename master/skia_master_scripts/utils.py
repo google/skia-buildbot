@@ -97,6 +97,16 @@ def _DictToString(d, indent):
   return val
 
 
+def FixGitSvnEmail(addr):
+  """ Git-svn tacks a git-svn-id onto email addresses. This function removes it.
+
+  For example, "skia.buildbots@gmail.com@2bbb7eff-a529-9590-31e7-b0007b416f81"
+  becomes, "skia.buildbots@gmail.com". Addresses containing a single '@' will be
+  unchanged.
+  """
+  return '@'.join(addr.split('@')[:2])
+
+
 class SkiaChangeFilter(ChangeFilter):
   """Skia specific subclass of ChangeFilter."""
 
