@@ -38,6 +38,16 @@ for REQUIRED_FILE in ${REQUIRED_FILES_FOR_MASTER[@]}; do
 done
 
 echo
+echo "===== Setting up launch-on-reboot ======"
+$GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
+  "cp $SKIA_REPO_DIR/buildbot/scripts/skiabot-master-start-on-boot.sh . && " \
+  "echo \"@reboot /home/${PROJECT_USER}/skiabot-master-start-on-boot.sh $SKIA_REPO_DIR\" > reboot.txt && " \
+  "crontab -u $PROJECT_USER reboot.txt && " \
+  "rm reboot.txt" \
+  || echo "Failed to set up launch-on-reboot!"
+echo
+
+echo
 echo "After the new master instance is turned on, CQ and Rietveld needs to be"
 echo "updated. The steps to do this are:"
 echo "* Create a CQ CL updating the IP Address. Eg: "
