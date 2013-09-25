@@ -41,7 +41,8 @@ echo
 echo "===== Setting up launch-on-reboot ======"
 $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
   "cp $SKIA_REPO_DIR/buildbot/scripts/skiabot-master-start-on-boot.sh . && " \
-  "echo \"@reboot /home/${PROJECT_USER}/skiabot-master-start-on-boot.sh $SKIA_REPO_DIR\" > reboot.txt && " \
+  "chmod a+x skiabot-master-start-on-boot.sh && " \
+  "echo \"@reboot /home/${PROJECT_USER}/skiabot-master-start-on-boot.sh ${SKIA_REPO_DIR}\" > reboot.txt && " \
   "crontab -u $PROJECT_USER reboot.txt && " \
   "rm reboot.txt" \
   || echo "Failed to set up launch-on-reboot!"
