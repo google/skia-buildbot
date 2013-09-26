@@ -46,7 +46,7 @@ class RunBench(BuildStep):
                         'bench_r%s_data' % GetSvnRevision(self._got_revision))
 
   def _Run(self):
-    args = []
+    args = ['-i ', self._device_dirs.ResourceDir()]
     if self._perf_data_dir:
       args.extend(BenchArgs(self._BuildDataFile()))
     if 'Nexus4' in self._builder_name:
