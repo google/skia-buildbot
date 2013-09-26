@@ -43,8 +43,6 @@ class RunGM(BuildStep):
     return tests
 
   def _Run(self):
-    device_gm_expectations_path = self._flavor_utils.DevicePathJoin(
-        self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
     output_dir = os.path.join(self._device_dirs.GMActualDir(),
                               self._builder_name)
     cmd = ['--verbose',
@@ -58,9 +56,13 @@ class RunGM(BuildStep):
            '--ignoreErrorTypes',
                'IntentionallySkipped', 'MissingExpectations',
                'ExpectationsMismatch',
-           '--readPath', device_gm_expectations_path,
            '--resourcePath', self._device_dirs.ResourceDir(),
            ] + self._gm_args
+
+    device_gm_expectations_path = self._flavor_utils.DevicePathJoin(
+        self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
+    if self._flavor_utils.DevicePathExists(device_gm_expectations_path):
+      cmd.extend(['--readPath', device_gm_expectations_path])
 
     additional_tests_to_ignore = self._GetAdditionalTestsToIgnore()
     if additional_tests_to_ignore:

@@ -227,16 +227,6 @@ class BuildStep(multiprocessing.Process):
     self._skimage_out_dir = os.path.join('out', self._configuration,
                                          'skimage_out')
 
-    # Note that DeviceDirs.GMExpectedDir() is being set up to point at a
-    # DIFFERENT directory than self._gm_expected_dir.
-    # self._gm_expected_dir : The SVN-managed directory on the buildbot host
-    #                         where canonical expectations are stored.
-    # DeviceDirs.GMExpectedDir(): A temporary directory on the device we are
-    #                             testing, where the PreRender step will put
-    #                             an expected-results.json file that describes
-    #                             all GM results expectations.
-    # TODO(epoger): Update the above description as we move through the steps in
-    # https://goto.google.com/ChecksumTransitionDetail
     self._device_dirs = self._flavor_utils.GetDeviceDirs()
 
   @property
