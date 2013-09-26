@@ -25,8 +25,8 @@ def BenchArgs(data_file):
 
 
 def GetSvnRevision(commit_hash):
-  output = shell_utils.Bash([GIT, 'show', commit_hash], echo=False,
-                            log_in_real_time=False)
+  output = shell_utils.Bash([GIT, 'show', '--no-patch', commit_hash],
+                            echo=False, log_in_real_time=False)
   results = re.findall(GIT_SVN_ID_MATCH_STR, output)
   if results:
     return results[0]
