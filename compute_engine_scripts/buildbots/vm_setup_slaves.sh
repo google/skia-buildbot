@@ -75,6 +75,17 @@ Starting setup of ${VM_COMPLETE_NAME}.....
       $REQUIRED_FILE /home/$PROJECT_USER/$SKIA_REPO_DIR/
   done
 
+  echo
+  echo "===== Setting up launch-on-reboot ======"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
+    "cp $SKIA_REPO_DIR/buildbot/scripts/skiabot-vm-slave-start-on-boot.sh . && " \
+    "chmod a+x skiabot-vm-slave-start-on-boot.sh && " \
+    "echo \"@reboot /home/${PROJECT_USER}/skiabot-vm-slave-start-on-boot.sh ${SKIA_REPO_DIR}\" > reboot.txt && " \
+    "crontab -u $PROJECT_USER reboot.txt && " \
+    "rm reboot.txt" \
+    || FAILED="$FAILED LaunchOnReboot"
+  echo
+
   if [[ $FAILED ]]; then
     echo
     echo "FAILURES: $FAILED"
