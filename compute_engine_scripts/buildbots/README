@@ -53,12 +53,14 @@ PCRs.
 
 The scripts should be executed in this order:
 * ZONE_TAG=$NEW_ZONE vm_create_master.sh
-* ZONE_TAG=$NEW_ZONE vm_setup_master.sh
+    Note: The skia-root-a disk has not been setup yet. It needs the same crontab and ~/.boto file as skia-root-b.
+    TODO(rmistry): Remove the above note and the below vm_setup_master.sh line after the skia-root-a disk has been setup.
+* ZONE_TAG=$NEW_ZONE vm_setup_master.sh  (This step is not required once skia-root-a has been setup)
 * ZONE_TAG=$OLD_ZONE vm_delete_slaves.sh
 * ZONE_TAG=$NEW_ZONE vm_create_slaves.sh
 * ZONE_TAG=$NEW_ZONE vm_setup_slaves.sh
 * ZONE_TAG=$NEW_ZONE vm_copy_buildbot_history.sh  (Run this overnight, it takes a while)
-* ZONE_TAG=$OLD_ZONE vm_delete_master.sh
+* ZONE_TAG=$OLD_ZONE vm_delete_master.sh  (Do NOT delete the persistent boot disk when prompted to)
 
 After the above scripts are run, update gce_compile_bots_zone in
 global_variables.json to point to the $NEW_ZONE.

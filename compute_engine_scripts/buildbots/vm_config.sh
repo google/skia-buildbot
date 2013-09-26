@@ -11,7 +11,7 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # Master name, type and the IP address to use for each zone.
 VM_MASTER_NAME=${VM_MASTER_NAME:="master"}
-MASTER_MACHINE_TYPE="n1-standard-8-d"
+MASTER_MACHINE_TYPE="n1-standard-8"
 MASTER_IP_ADDRESS_a="108.170.217.252"
 MASTER_IP_ADDRESS_b="173.255.115.253"
 
