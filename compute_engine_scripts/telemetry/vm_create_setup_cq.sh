@@ -53,6 +53,12 @@ echo "===== Checkout commit-queue-internal. ====="
     || FAILED="$FAILED CheckoutCommitQueueInternal"
 echo
 
+echo "===== Install necessary packages. ====="
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_CQ_NAME \
+    "sudo apt-get -y install python-mechanize " \
+    || FAILED="$FAILED InstallPackages"
+echo
+
 if [[ $FAILED ]]; then
   echo
   echo "FAILURES: $FAILED"
@@ -86,7 +92,10 @@ Check ./vm_status.sh to wait until the status is RUNNING
 SSH into the CQ with:
   gcutil --project=google.com:chromecompute ssh --ssh_user=default ${VM_CQ_NAME}
 and start the commit queue for Skia using the following commands:
+  * Create ~/.netrc using skia-commit-bot's password from valentine.
   * cd ${COMMIT_QUEUE_DIR}/commit-queue
-  * PYTHON_PATH=${COMMIT_QUEUE_INTERNAL_DIR}/commit-queue-internal/ python commit_queue.py --project=skia --no-dry-run --user=skia-commit-bot@chromium.org
+  * Apply the patch from https://codereview.chromium.org/22859063/ (if it is not already submitted).
+  * Comment out the verifiers.append(try_job_on_rietveld..) line in projects.gen_skia
+  * Start the CQ with: PYTHONPATH=${COMMIT_QUEUE_INTERNAL_DIR}/commit-queue-internal/ python commit_queue.py --project=skia --no-dry-run --user=skia-commit-bot@chromium.org
 
 INP

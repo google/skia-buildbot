@@ -72,6 +72,7 @@ https://developers.google.com/compute/docs/networking#mailserver using skia.buil
   * Run on all slaves and master: sudo sh -c "echo 'deb ftp://ftp.fr.debian.org/debian/ testing main contrib  non-free' >> /etc/apt/sources.list" followed by "sudo apt-get update" and "sudo DEBIAN_FRONTEND=noninteractive apt-get -y -t testing install libc6-dev"
   * Run 'sudo apt-get update; sudo apt-get -y install libgif-dev libgl1-mesa-dev libglu-dev gdb unzip linux-tools parallel; sudo gsutil update -n' on the slaves using vm_run_command_on_slaves.sh. These steps will not be required when the image is recaptured.
   * Update buildbot and trunk directory of all slaves by running vm_run_command_on_slaves.sh (Will have to 'rm -rf third_party/externals/*' in trunk).
+  * Apply the patches from gs://chromium-skia-gm/telemetry/patches/ on the slaves.
   * Start the /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_poller.py script.
   * Run 'git config --global user.name' and 'git config --global user.email' on the master.
   * Trigger 'Rebuild Chrome' from http://skia-tree-status.appspot.com/skia-telemetry/.
