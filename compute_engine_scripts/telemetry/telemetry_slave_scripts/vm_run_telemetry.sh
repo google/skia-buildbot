@@ -80,6 +80,7 @@ for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*.json; do
     echo "========== Processing $page_set =========="
     page_set_basename=`basename $page_set`
     check_and_run_xvfb
+    EXTRA_ARGS_OF_RUN="$EXTRA_ARGS"
     if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
       # Do two passes through the webpage, find the width and height in the
       # first pass.
@@ -89,9 +90,9 @@ for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*.json; do
       HEIGHT=`sudo od -t dI --skip-bytes=8 --read-bytes=4 /tmp/tmp-skps/*/layer_0.skp | head -1 | awk '{print $2}'`
       echo "Found $WIDTH,$HEIGHT"
       rm -rf /tmp/tmp-skps
-      EXTRA_ARGS="$EXTRA_ARGS --skp-window-size=$WIDTH,$HEIGHT"
+      EXTRA_ARGS_OF_RUN="$EXTRA_ARGS_OF_RUN --skp-window-size=$WIDTH,$HEIGHT"
     fi
-    eval sudo DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
+    eval sudo DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=--disable-setuid-sandbox --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS_OF_RUN -o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     sudo chown default:default $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
