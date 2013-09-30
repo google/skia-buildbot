@@ -137,7 +137,7 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
       try:
         ccache = shell_utils.Bash(['which', 'ccache'], echo=False)
         if ccache:
-          cmd.append('--use-ccache')
+          os.environ['ANDROID_MAKE_CCACHE'] = ccache
       except Exception:
         pass
     cmd.extend(self._step.make_flags)
