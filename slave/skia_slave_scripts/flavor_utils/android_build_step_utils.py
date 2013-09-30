@@ -119,6 +119,7 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
 
   def Compile(self, target):
     """ Compile the Skia executables. """
+    os.environ['SKIA_ANDROID_VERBOSE_SETUP'] = '1'
     os.environ['PATH'] = os.path.abspath(
         os.path.join(os.pardir, os.pardir, os.pardir, os.pardir, 'third_party',
                      'gsutil')) + os.pathsep + os.environ['PATH']

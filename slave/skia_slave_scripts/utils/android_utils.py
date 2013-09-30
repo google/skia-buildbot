@@ -103,7 +103,7 @@ def RunADB(serial, cmd, echo=True, attempts=5, secs_between_attempts=10,
            timeout=None):
   """ Run 'cmd' on an Android device, using ADB.  No return value; throws an
   exception if the command fails more than the allotted number of attempts.
-  
+
   serial: string indicating the serial number of the target device
   cmd: string; the command to issue on the device
   attempts: number of times to attempt the command
@@ -141,12 +141,12 @@ def ADBShell(serial, cmd, echo=True):
 
 def ADBKill(serial, process, kill_app=False):
   """ Kill a process running on an Android device.
-  
+
   serial: string indicating the serial number of the target device
   process: string indicating the name of the process to kill
   kill_app: bool indicating whether the process is an Android app, as opposed
       to a normal executable process.
-  """ 
+  """
   if kill_app:
     ADBShell(serial, ['am', 'kill', process])
   else:
@@ -179,7 +179,7 @@ def GetSerial(device_type):
   connected devices do not appear to be ordered by serial number.  Therefore,
   we have to assume that, in the case of multiple devices of the same type being
   connected to one host, we cannot predict which device will be chosen.
-  
+
   device_type: string indicating the 'common name' for the target device
   """
   if not device_type in DEVICE_LOOKUP:
@@ -304,6 +304,7 @@ def RunSkia(serial, cmd, release, device):
   """
   RunADB(serial, ['logcat', '-c'])
   try:
+    os.environ['SKIA_ANDROID_VERBOSE_SETUP'] = '1'
     cmd_to_run = [os.path.join('platform_tools', 'android', 'bin',
                                'android_run_skia')]
     if release:
