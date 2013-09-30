@@ -66,18 +66,21 @@ global_variables.json to point to the $NEW_ZONE.
 Handling Master VM crashes
 ==========================
 
-On rare occassions Google Compute Engine VMs crash. If the master crashes then
+On rare occasions Google Compute Engine VMs crash. If the master crashes then
 please run the following (this section will be removed after the next PCR
 migration because we will then have the ability to automatically recover from
 crashes):
 * ZONE_TAG=a bash vm_delete_master.sh  (Do NOT delete the persistent boot disk when prompted to)
 * ZONE_TAG=a bash vm_create_master.sh
 
+For more details, see https://code.google.com/p/skia/issues/detail?id=1676
+('Make the buildbot master self-recover if it crashes')
+
 
 Handling Slave VM crashes
 =========================
 
-On rare occassions Google Compute Engine VMs crash. We do not currently have
+On rare occasions Google Compute Engine VMs crash. We do not currently have
 a way for slaves to automatically come up because they do not have root
 persistent disks. You will have to recreate the specific slave(s) that crashed.
 Please run the following:
@@ -87,3 +90,5 @@ Please run the following:
 * ZONE_TAG=a bash vm_create_slaves.sh
 * ZONE_TAG=a bash vm_setup_slaves.sh
 
+For more details, see https://code.google.com/p/skia/issues/detail?id=1678
+('make GCE buildbot slaves self-recover on boot')
