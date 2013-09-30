@@ -135,9 +135,9 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
     cmd.extend(self._step.default_make_flags)
     if os.name != 'nt':
       try:
-        ccache = shell_utils.Bash(['which', 'ccache'], echo=False)
+        ccache = shell_utils.Bash(['which', 'ccache'])
         if ccache:
-          os.environ['ANDROID_MAKE_CCACHE'] = ccache
+          os.environ['ANDROID_MAKE_CCACHE'] = ccache.rstrip()
       except Exception:
         pass
     cmd.extend(self._step.make_flags)
