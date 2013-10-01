@@ -40,7 +40,7 @@ cd /home/default/skia-repo/trunk
 /home/default/depot_tools/gclient sync
 
 # Build tools.
-# make clean
+make clean
 GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
 
 if [ -e /etc/boto.cfg ]; then
