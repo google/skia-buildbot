@@ -27,6 +27,8 @@ gclient sync
 
 echo "About to run $CMD on all slaves..."
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
+  echo
+  echo "Running the cmd on skia-telemetry-worker$SLAVE_NUM..."
   cmd_output=`ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
     -A -q -p 22 default@108.170.222.$SLAVE_NUM -- "$CMD"`
