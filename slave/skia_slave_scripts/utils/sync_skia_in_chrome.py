@@ -64,14 +64,18 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
       solution['safesync_url'] = CHROME_LKGR_URL
       if not solution.get('custom_deps'):
         solution['custom_deps'] = {}
+      solution['managed'] = True
       solution['custom_deps']['src/third_party/skia/gyp'] = None
       solution['custom_deps']['src/third_party/skia/include'] = None
       solution['custom_deps']['src/third_party/skia/src'] = None
       break
+  print 'Writing %s:' % GCLIENT_FILE
   with open(GCLIENT_FILE, 'w') as gclient_file:
-    for gclient_var in gclient_vars.iteritems():
-      if not gclient_var[0].startswith('_'):
-        gclient_file.write('%s = %s\n' % gclient_var)
+    for k, v in gclient_vars.iteritems():
+      if not k.startswith('_'):
+        write_str = '%s = %s\n' % (str(k), str(v))
+        print write_str
+        gclient_file.write(write_str)
 
   # Run "gclient sync"
   gclient_utils.Sync(revision=str(chrome_revision), jobs=1, no_hooks=True,
