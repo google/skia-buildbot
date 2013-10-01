@@ -6,9 +6,10 @@
 {% if info_msg %}<font color="red"><b>{{ info_msg }}</b></font><br/><br/>{% endif %}
 <h2>Run Lua Scripts</h2>
 <br/>
+{% if not is_google_chromium_user %}Must have a google or chromium account to trigger benchmarks (contact rmistry@)<br/><br/>{% endif %}
 <form name="luaForm" action="lua_script" method="post">
   Paste your Lua script here:<br/>
-  <textarea name="lua_script" cols="80" rows="20"></textarea><br/><br/>
+  <textarea name="lua_script" cols="80" rows="20" {% if not is_google_chromium_user %}disabled{% endif %}></textarea><br/><br/>
   Pagesets Type:
   <select name="pagesets_type">
     {% for pageset_type in pageset_types %}
@@ -16,8 +17,8 @@
     {% endfor %}
   </select><br/><br/>
   Enter an optional description:<br/>
-  <input type="text" name="description" size="35"><br/><br/>
-  <input type="submit" value="Queue Lua Task">
+  <input type="text" name="description" size="35" {% if not is_google_chromium_user %}disabled{% endif %}><br/><br/>
+  <input type="submit" value="Queue Lua Task" {% if not is_google_chromium_user %}disabled{% endif %}>
 </form>
 <hr/>
 
