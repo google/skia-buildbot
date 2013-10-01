@@ -170,7 +170,16 @@ class DefaultBuildStepUtils:
     # TODO(borenet): It would be nice to increase code sharing here.
     if 'VS2012' in self._step.builder_name:
       os.environ['GYP_MSVS_VERSION'] = '2012'
-    os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
+
+    gyp_defines = self._step.args['gyp_defines']
+
+    # Temporary hack until we can turn it on universally: always use WERR when
+    # compiling skia_lib
+    if target == 'skia_lib':
+      gyp_defines = gyp_defines.replace('skia_warnings_as_errors=0',
+                                        'skia_warnings_as_errors=1')
+
+    os.environ['GYP_DEFINES'] = gyp_defines
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     make_cmd = 'make'
     if os.name == 'nt':
