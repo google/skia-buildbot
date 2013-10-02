@@ -59,7 +59,8 @@ class SkiaNotifier(MailNotifier):
         blame_list = set(build.getResponsibleUsers())
         for change in build.getChanges():  # Loop through all changes in a build
 
-          if change.comments and _COMMIT_BOT == change.who:
+          if (change.comments and
+              _COMMIT_BOT == utils.FixGitSvnEmail(change.who)):
             # If the change has been submitted by the commit bot then find the
             # original author and the reviewers and add them to the blame list
             for commit_queue_line in (_COMMIT_QUEUE_AUTHOR_LINE,
@@ -68,9 +69,9 @@ class SkiaNotifier(MailNotifier):
                   '%s(.*?)\n' % commit_queue_line,
                   change.comments).group(1).split(',')
               blame_list = blame_list.union(users)
-            if _COMMIT_BOT in blame_list:
+            if change.who in blame_list:
               # Remove the commit bot from the blame list.
-              blame_list.remove(_COMMIT_BOT)
+              blame_list.remove(change.who)
 
         # Git-svn tacks a git-svn-id onto the email addresses.  Remove it.
         new_blamelist = [utils.FixGitSvnEmail(email) for email in blame_list]
