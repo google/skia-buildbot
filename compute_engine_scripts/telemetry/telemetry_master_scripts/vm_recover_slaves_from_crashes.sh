@@ -23,6 +23,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
     -A -q -p 22 default@108.170.222.$SLAVE_NUM -- "ls -d ~/storage/*/ | wc -l"`
   if [ "$NUM_DIRS" == "1" ]; then
+    echo "skia-telemetry-worker$SLAVE_NUM crashed! Recovering it..."
     CMD="""
 echo Deleting SVN checkouts and creating Git checkouts;
 cd skia-repo;
@@ -43,6 +44,8 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y -t testing install libc6-dev;
     ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
       -A -q -p 22 default@108.170.222.$SLAVE_NUM -- "$CMD"
+  else
+    echo "skia-telemetry-worker$SLAVE_NUM has not crashed."
   fi
 done
 
