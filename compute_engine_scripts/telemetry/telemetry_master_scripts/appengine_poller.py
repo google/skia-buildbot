@@ -153,10 +153,13 @@ class Poller(object):
       try:
         if (time.time() - info_updated_on) >= UPDATE_INFO_AFTER_SECS:
           log_file = os.path.join(tempfile.gettempdir(), 'update-info.output')
-          cmd = 'python update_appengine_info.py'
-          print 'Update Info Output will be available in %s' % log_file
-          subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
-                           stderr=open(log_file, 'w'))
+          for cmd in ('python update_appengine_info.py',
+                      'bash vm_recover_slaves_from_crashes.sh'):
+            script_name = cmd.split()[1]
+            log_file = os.path.join(tempfile.gettempdir(), script_name)
+            print '%s output will be available in %s' % (script_name, log_file)
+            subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
+                             stderr=open(log_file, 'w'))
           info_updated_on = time.time()
 
         # pylint: disable=C0301
