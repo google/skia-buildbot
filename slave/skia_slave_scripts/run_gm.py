@@ -68,8 +68,12 @@ class RunGM(BuildStep):
     if additional_tests_to_ignore:
       cmd.extend(['--ignoreTests'] + additional_tests_to_ignore)
 
-    # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
+    if 'Xoom' in self._builder_name:
+      # The Xoom's GPU will crash on some tests if we don't use this flag.
+      # http://code.google.com/p/skia/issues/detail?id=1434
+      cmd.append('--resetGpuContext')
     if sys.platform == 'darwin':
+      # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
       cmd.extend(['--config', 'defaults', '~msaa16'])
     elif ('RazrI' in self._builder_name or
           'Nexus10' in self._builder_name or
