@@ -42,7 +42,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_pdf_viewer.sh $SLAVE_NUM $RUN_ID $PAGESETS_TYPE"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; svn update; $CMD > /tmp/pdfviewer-${RUN_ID}_output.txt 2>&1"
+    -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/pdfviewer-${RUN_ID}_output.txt 2>&1"
 done
 
 # Sleep for a minute to give the slaves some time to start processing.

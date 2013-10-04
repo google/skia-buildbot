@@ -47,7 +47,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   START=$(expr $END + 1)
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; svn update; $CMD > /tmp/create_pagesets_output.txt 2>&1"
+    -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/create_pagesets_output.txt 2>&1"
 done
 
 # Check to see if the slaves are done creating page_sets.
