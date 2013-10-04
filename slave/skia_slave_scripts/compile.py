@@ -10,6 +10,12 @@ import sys
 
 
 class Compile(BuildStep):
+  def __init__(self, timeout=9600, no_output_timeout=9600, **kwargs):
+    super (Compile, self).__init__(
+        timeout=timeout,
+        no_output_timeout=no_output_timeout,
+        **kwargs)
+
   def _Run(self):
     self._flavor_utils.Compile(self._args['target'])
 
