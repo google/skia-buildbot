@@ -12,6 +12,10 @@ import sys
 class RunTests(BuildStep):
   def _Run(self):
     self._test_args.extend(['--tmpDir', self._device_dirs.TmpDir()])
+    if 'Xoom' in self._builder_name:
+      # WritePixels fails on Xoom due to a bug which won't be fixed very soon.
+      # http://code.google.com/p/skia/issues/detail?id=1699
+      self._test_args.extend(['--match', '~WritePixels'])
     self._flavor_utils.RunFlavoredCmd('tests', self._test_args)
 
 
