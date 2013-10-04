@@ -43,7 +43,7 @@ class SkiaNotifier(MailNotifier):
 
     if builds and builds[0].getSourceStamp().revision:
       m.replace_header('Subject',
-          'buildbot %(result)s in %(title)s for r%(revision)s' % { 
+          'buildbot %(result)s in %(title)s for %(revision)s' % {
               'result': Results[results],
               'title': title,
               'revision': builds[0].getSourceStamp().revision,
