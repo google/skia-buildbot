@@ -651,7 +651,6 @@ class SkiaFactory(BuildFactory):
     self.CheckForRegressions()
     if self._do_upload_bench_results:
       self.UploadBenchResults()
-      self.UploadBenchResultsToAppEngine()
 
   def Build(self, role=None, clobber=None):
     """Build and return the complete BuildFactory.
