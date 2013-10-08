@@ -14,9 +14,9 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
   def __init__(self, build_step_instance):
     DefaultBuildStepUtils.__init__(self, build_step_instance)
     classname = self._step.__class__.__name__
-    if classname == 'ValgrindRunTests':
+    if classname == 'RunTests':
       self._suppressions_file = os.path.join('tests', 'valgrind.supp')
-    elif classname == 'ValgrindRunGM':
+    elif classname == 'RunGM':
       self._suppressions_file = os.path.join('gm', 'valgrind.supp')
     else:
       self._suppressions_file = None
@@ -28,18 +28,11 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
     if self._suppressions_file:
       cmd.append('--suppressions=%s' % self._suppressions_file)
 
-    # For now, just run in debug mode.
-    self._step._configuration = 'Debug'
-
     cmd.append(self._PathToBinary(app))
     cmd.extend(args)
     return shell_utils.Bash(cmd)
 
   def Compile(self, target):
-
-    # For now, just run in debug mode.
-    self._step._configuration = 'Debug'
-
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     make_cmd = 'make'
