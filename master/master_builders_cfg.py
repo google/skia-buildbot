@@ -17,6 +17,7 @@ from skia_master_scripts import ios_factory
 from skia_master_scripts import moz2d_canary_factory
 from skia_master_scripts import nacl_factory
 from skia_master_scripts import utils
+from skia_master_scripts import xsan_factory
 
 import builder_name_schema
 
@@ -59,6 +60,9 @@ def GetExtraFactoryArgs(compile_builder_info):
               'bench_pictures_cfg': 'no_gpu'}
     except KeyError:
       raise Exception('Unknown board type "%s"' % compile_builder_info[4])
+  elif factory_type == xsan_factory.XsanFactory:
+    sanitizers = { 'ASAN': 'address', 'TSAN': 'thread' }
+    return {'sanitizer': sanitizers[compile_builder_info[4]]}
   elif factory_type == skia_factory.SkiaFactory:
     # Some "normal" factories require extra arguments.
     if compile_builder_info[4] == 'ANGLE':
@@ -67,9 +71,7 @@ def GetExtraFactoryArgs(compile_builder_info):
               'bench_pictures_cfg': 'angle'}
     elif compile_builder_info[4] == 'Valgrind':
       return {'flavor': 'valgrind'}
-    elif compile_builder_info[4] == 'ASAN':
-      return {'flavor': 'asan'}
-    elif (compile_builder_info[0] == 'Ubuntu12' and 
+    elif (compile_builder_info[0] == 'Ubuntu12' and
           compile_builder_info[1] == 'Clang'):
       return {'environment_variables': {'CC': '/usr/bin/clang',
                                         'CXX': '/usr/bin/clang++'}}
@@ -148,11 +150,14 @@ def Update(config, active_master, cfg):
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', None,          None,      True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          'base-shuttle_ubuntu12_ati5770'),
                                                                                             ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     None,          None)],
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'Valgrind',    valgrind,  False, f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'HD2000',      'Valgrind',    None)],
-      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f, p) : [('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'ASAN',        None)],
       ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       None,          'base-shuttle_ubuntu12_ati5770')],
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       no_gpu,    True,  f, p) : [],
       ('Ubuntu12', 'Clang',  'Debug',   'x86_64', None,          clang,     True,  f, p) : [],
       ('Ubuntu13', 'GCC4.8', 'Debug',   'x86_64', None,          None,      True,  f, p) : [],})
+  f = xsan_factory.XsanFactory
+  builder_specs.update({
+      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f, p) : [('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'ASAN',        None)],
+      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'TSAN',        None,      False, f, p) : [('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'TSAN',        None)],})
   f = nacl_factory.NaClFactory
   builder_specs.update({
       ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,      True,  f, p) : [],

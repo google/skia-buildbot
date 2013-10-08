@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Utilities for ASAN build steps. """
+""" Utilities for ASAN,TSAN,etc. build steps. """
 
 from default_build_step_utils import DefaultBuildStepUtils
 from utils import shell_utils
@@ -11,18 +11,19 @@ from utils import shell_utils
 import os
 
 
-class AsanBuildStepUtils(DefaultBuildStepUtils):
+class XsanBuildStepUtils(DefaultBuildStepUtils):
   def Compile(self, target):
-    # Run the asan_build script.
+    # Run the xsan_build script.
     shell_utils.Bash(['which', 'clang'])
     shell_utils.Bash(['clang', '--version'])
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
-    make_cmd = os.path.join('tools', 'asan_build')
-    cmd = [make_cmd,
-           target,
-           'BUILDTYPE=%s' % self._step.configuration,
-           ]
+    cmd = [
+        os.path.join('tools', 'xsan_build'),
+        self._step.args['sanitizer'],
+        target,
+        'BUILDTYPE=%s' % self._step.configuration,
+    ]
 
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
