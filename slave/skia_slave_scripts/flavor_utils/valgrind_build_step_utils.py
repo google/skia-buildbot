@@ -18,7 +18,8 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
       self._suppressions_file = os.path.join('tests', 'valgrind.supp')
     elif classname == 'RunGM':
       self._suppressions_file = os.path.join('gm', 'valgrind.supp')
-    elif classname in ('RenderPictures', 'RenderPDFs', 'BenchPictures'):
+    elif classname in ('RenderPictures', 'RenderPDFs', 'BenchPictures',
+                       'RunDecodingTests'):
       self._suppressions_file = os.path.join('tools', 'valgrind.supp')
     else:
       self._suppressions_file = None
