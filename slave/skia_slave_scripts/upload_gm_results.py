@@ -46,7 +46,11 @@ class UploadGMResults(BuildStep):
     try:
       # Copy all of the desired files to a staging dir, with new filenames.
       for filename in files_to_upload:
-        (hashtype, test, hashvalue) = filename_pattern.match(filename).groups()
+        match = filename_pattern.match(filename)
+        if not match:
+          print 'Warning: found no images matching pattern "%s"' % filename
+          continue
+        (hashtype, test, hashvalue) = match.groups()
         src_filepath = os.path.join(src_dir, filename)
         temp_dir = os.path.join(temp_root, gm_actuals_subdir, hashtype, test)
         if not os.path.isdir(temp_dir):
