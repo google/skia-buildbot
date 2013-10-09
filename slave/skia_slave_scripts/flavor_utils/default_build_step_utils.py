@@ -83,7 +83,8 @@ class DefaultBuildStepUtils:
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStepUtils flavors. """
-    if sys.platform == 'linux2' and 'x86_64' in self._step.builder_name:
+    if (sys.platform == 'linux2' and 'x86_64' in self._step.builder_name
+        and not 'TSAN' in self._step.builder_name):
       cmd = ['catchsegv', self._PathToBinary(app)]
     else:
       cmd = [self._PathToBinary(app)]
