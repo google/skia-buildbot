@@ -12,6 +12,10 @@ import sys
 
 
 class ChromeDRTCanaryRunWebkitTests(BuildStep):
+  def __init__(self, timeout=16800, no_output_timeout=16800, **kwargs):
+    super(ChromeDRTCanaryRunWebkitTests, self).__init__(
+        timeout=timeout, no_output_timeout=no_output_timeout, **kwargs)
+
   def _Run(self):
     test_script_path = os.path.join('webkit', 'tools', 'layout_tests',
                                     'run_webkit_tests.sh')

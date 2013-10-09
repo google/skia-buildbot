@@ -10,7 +10,7 @@ import sys
 
 
 class Compile(BuildStep):
-  def __init__(self, timeout=9600, no_output_timeout=9600, **kwargs):
+  def __init__(self, timeout=16800, no_output_timeout=16800, **kwargs):
     super (Compile, self).__init__(
         timeout=timeout,
         no_output_timeout=no_output_timeout,
