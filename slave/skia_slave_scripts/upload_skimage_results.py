@@ -5,8 +5,10 @@
 
 """Upload results from running skimage."""
 
+import build_step
 import os
 import posixpath
+# Must be imported after build_step, which adds site_config to the python path.
 import skia_vars
 import sys
 
@@ -14,8 +16,6 @@ from utils import gs_utils
 from utils import sync_bucket_subdir
 from build_step import PLAYBACK_CANNED_ACL
 from build_step import BuildStep
-
-import build_step
 
 SKP_TIMEOUT_MULTIPLIER = 8
 
