@@ -18,7 +18,7 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
       self._suppressions_file = os.path.join('tests', 'valgrind.supp')
     elif classname == 'RunGM':
       self._suppressions_file = os.path.join('gm', 'valgrind.supp')
-    elif classname in ('RenderPictures', 'RenderPDFs', 'BenchPictures',
+    elif classname in ('RenderPictures', 'RenderPdfs', 'BenchPictures',
                        'RunDecodingTests'):
       self._suppressions_file = os.path.join('tools', 'valgrind.supp')
     else:
@@ -27,7 +27,7 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
     cmd = ['valgrind', '--gen-suppressions=all', '--leak-check=full',
-           '--track-origins=yes', '--error-exitcode=1']
+           '--track-origins=yes', '--error-exitcode=1', '--num-callers=40']
     if self._suppressions_file:
       cmd.append('--suppressions=%s' % self._suppressions_file)
 
