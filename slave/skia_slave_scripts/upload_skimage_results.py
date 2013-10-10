@@ -5,7 +5,9 @@
 
 """Upload results from running skimage."""
 
+import os
 import posixpath
+import skia_vars
 import sys
 
 from utils import gs_utils
@@ -42,7 +44,26 @@ class UploadSKImageResults(BuildStep):
 
   def _Run(self):
     if self._do_upload_results:
+      # Copy actual-results.json to skimage/output/actuals
+      print '\n\n====Uploading skimage actual-results to Google Storage====\n\n'
+      src_dir = os.path.abspath(os.path.join(self._skimage_out_dir,
+                                             self._builder_name))
+      dest_dir = posixpath.join(
+          skia_vars.GetGlobalVariable('googlestorage_bucket'),
+          'skimage', 'actuals', self._builder_name)
+      http_header_lines = ['Cache-Control:public,max-age=3600']
+      gs_utils.CopyStorageDirectory(src_dir=src_dir,
+                                    dest_dir=dest_dir,
+                                    gs_acl='public-read',
+                                    http_header_lines=http_header_lines)
+
       # Copy actual images and expectations to Google Storage.
+      # TODO(scroggo): This step uploads both the expectations and the
+      # mismatches, even though the expectations files were already uploaded
+      # in the above step. Once skimage is rewritten to include the hash digest
+      # in the filename, rewrite this to upload a folder (named <input image>)
+      # containing the result (named <hash digest>.png), much like
+      # upload_gm_results.
       print '\n\n========Uploading skimage results to Google Storage=======\n\n'
       relative_dir = posixpath.join('skimage', 'output', self._builder_name)
       gs_utils.UploadDirectoryContentsIfChanged(

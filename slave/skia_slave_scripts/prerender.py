@@ -47,15 +47,19 @@ class PreRender(BuildStep):
     # Copy expectations file and images to decode in skimage to device.
     self._flavor_utils.CreateCleanDeviceDirectory(
         self._device_dirs.SKImageExpectedDir())
-    skimage_expected_filename = builder_name_schema.GetWaterfallBot(
-        self._builder_name) + ".json"
+    skimage_subdir = builder_name_schema.GetWaterfallBot(self._builder_name)
+    skimage_expected_filename = build_step.GM_EXPECTATIONS_FILENAME
 
     skimage_host_expectations = os.path.join(self._skimage_expected_dir,
+                                             skimage_subdir,
                                              skimage_expected_filename)
 
     if os.path.exists(skimage_host_expectations):
+      skimage_device_subdir = self._flavor_utils.DevicePathJoin(
+          self._device_dirs.SKImageExpectedDir(),
+          skimage_subdir)
       skimage_device_expectations = self._flavor_utils.DevicePathJoin(
-          self._device_dirs.SKImageExpectedDir(), skimage_expected_filename)
+          skimage_device_subdir, skimage_expected_filename)
       # For builders without an attached device, PushFileToDevice will fail
       # when attempting to copy a file to itself. In this case, there is no
       # need to copy. Only do the push when there is an attached device,
@@ -64,6 +68,8 @@ class PreRender(BuildStep):
       # https://code.google.com/p/skia/issues/detail?id=1571 is fixed, this
       # check can go away.
       if skimage_device_expectations != skimage_host_expectations:
+        # Create the subdir on the device.
+        self._flavor_utils.CreateCleanDeviceDirectory(skimage_device_subdir)
         self._flavor_utils.PushFileToDevice(skimage_host_expectations,
             skimage_device_expectations)
 

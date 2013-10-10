@@ -5,32 +5,34 @@
 
 """ Run the Skia skimage executable. """
 
-from build_step import BuildStep, BuildStepFailure
+from build_step import BuildStep, BuildStepFailure, GM_EXPECTATIONS_FILENAME
 # builder_name_schema must be imported after build_step so the PYTHONPATH will
 # be set properly to import it.
 import builder_name_schema
+import run_gm
 import sys
 
 class RunDecodingTests(BuildStep):
   def _Run(self):
     cmd = ['-r', self._device_dirs.SKImageInDir(), '--noreencode']
 
-    expectations_name = (builder_name_schema.GetWaterfallBot(self._builder_name)
-                         + '.json')
+    subdir = builder_name_schema.GetWaterfallBot(self._builder_name)
 
     # Read expectations, which were downloaded/copied to the device.
     expectations_file = self._flavor_utils.DevicePathJoin(
-      self._device_dirs.SKImageExpectedDir(),
-      expectations_name)
+      self._device_dirs.SKImageExpectedDir(), subdir,
+      GM_EXPECTATIONS_FILENAME)
 
     have_expectations = self._flavor_utils.DevicePathExists(expectations_file)
     if have_expectations:
       cmd.extend(['--readExpectationsPath', expectations_file])
 
     # Write the expectations file, in case any did not match.
+    device_subdir = self._flavor_utils.DevicePathJoin(
+        self._device_dirs.SKImageOutDir(), subdir)
+    self._flavor_utils.CreateCleanDeviceDirectory(device_subdir)
     output_expectations_file = self._flavor_utils.DevicePathJoin(
-        self._device_dirs.SKImageOutDir(),
-        expectations_name)
+        device_subdir, run_gm.JSON_SUMMARY_FILENAME)
 
     cmd.extend(['--createExpectationsPath', output_expectations_file])
 
