@@ -50,7 +50,7 @@ class UploadSKImageResults(BuildStep):
                                              self._builder_name))
       dest_dir = posixpath.join(
           skia_vars.GetGlobalVariable('googlestorage_bucket'),
-          'skimage', 'actuals', self._builder_name)
+          'skimage', 'actuals')
       http_header_lines = ['Cache-Control:public,max-age=3600']
       gs_utils.CopyStorageDirectory(src_dir=src_dir,
                                     dest_dir=dest_dir,
