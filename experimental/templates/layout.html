@@ -1,0 +1,434 @@
+{%- block doctype -%}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{% endblock %}
+<!-- Copied and modified from:
+http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4p1/buildbot/status/web/templates/layout.html?revision=89637&content-type=text/plain
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    {% block head %}
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    {% if metatags %}
+      {{ metatags }}
+    {% endif %}
+    <title>{{ pageTitle|e }}</title>
+    <link rel="stylesheet" href="{{ stylesheet }}" type="text/css" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ path_to_root }}rss">
+    <script type="text/javascript">
+    "use strict";
+
+    // Ports used to access the buildbot webstatus pages.
+    var internalPort = "{{ internal_port }}";
+    var externalPort = "{{ external_port }}";
+
+    // How often, in milliseconds, to refresh the page.
+    var refreshInterval = {{ refresh or default_refresh }} * 1000;
+    var refreshTimer = null;
+
+    // Number of times a page reload has been cancelled due to activity on the page.
+    var cancelledReloads = 0;
+
+    // Maximum number of cancelled reloads before forcing a reload.
+    var maxCancelledReloads = 10;
+
+    // Variables passed in the URL.
+    var urlVars = {};
+
+    // Categories of builders, and whether each category should be displayed.
+    var allCategories = {
+      {% for r in all_categories %}
+      "{{ r }}": true,
+      {% endfor %}
+    };
+
+    // Subcategories of builders, and whether each category should be displayed.
+    var allSubcategories = {
+      {% for subcategory in all_subcategories %}
+      "{{ subcategory }}": true,
+      {% endfor %}
+    };
+
+    // Subcategories listed by which category they fall under.
+    var subcategoriesByCategory = {
+      {% for category in subcategories_by_category %}
+      "{{ category }}": [
+        {% for subcategory in subcategories_by_category[category] %}
+          "{{ subcategory }}",
+        {% endfor %}
+      ],
+      {% endfor %}
+    }
+
+    // Switch to the internal or external view.
+    function setInternalView(is_internal) {
+      var current_host = window.location.host;
+      var new_host = current_host.split(":")[0] + ":";
+      if (is_internal) {
+        new_host += internalPort;
+      } else {
+        new_host += externalPort;
+      }
+      window.location.host = new_host;
+    }
+
+    // Parse the variables in the URL and return a key/value dictionary.
+    function parseArgs()
+    {
+      var args = {};
+      var dict = window.location.search.slice(1).split('&');
+      for(var i = 0; i < dict.length; i++) {
+        var split = dict[i].split('=');
+        var key = split[0];
+        var value = split[1];
+        if (args[key]) {
+          if (Object.prototype.toString.call(args[key]) == "[object Array]") {
+            args[key].push(value);
+          } else {
+            args[key] = [args[key], value];
+          }
+        } else if (key != "") {
+          args[key] = value;
+        }
+      }
+      return args;
+    }
+
+    // Reload the page, if the user isn't actively interacting with it.
+    function reloadPage() {
+      var reloadIsAllowed = true;
+
+      // Don't allow reload if a build box is open.
+      var buildBox = document.getElementById("divBox");
+      if (buildBox && buildBox.style.display != "none") {
+        console.log("divBox is displaying (" + buildBox.style.display + ").");
+        reloadIsAllowed = false;
+      }
+
+      // Don't allow reload if a builder tooltip is open.
+      var builderTooltip = document.getElementById("builderTooltip");
+      if (builderTooltip && builderTooltip.style.display != "none") {
+        console.log("Tooltip displaying.");
+        reloadIsAllowed = false;
+      }
+
+      if (reloadIsAllowed) {
+        window.location.replace(window.location);
+      } else if (cancelledReloads >= maxCancelledReloads) {
+        console.log("Forcing a reload because the number of " +
+                    "previously-cancelled reloads exceeded " +
+                    maxCancelledReloads + ".");
+        window.location.replace(window.location);
+      } else {
+        console.log("Not reloading page because the user is interacting with it.");
+        cancelledReloads++;
+        refreshTimer = setTimeout(reloadPage, refreshInterval);
+      }
+    }
+
+    // Function to call on page load. Reloads the page with appropriate options
+    // if they are not already set.
+    function init() {
+      var host = window.location.host;
+      var checkedRadio;
+      if (host.indexOf(internalPort, host.length - internalPort.length) !== -1) {
+        checkedRadio = document.getElementById("radio_internal");
+      } else if (host.indexOf(externalPort, host.length - externalPort.length) !== -1) {
+        checkedRadio = document.getElementById("radio_external");
+      }
+      if (checkedRadio) {
+        checkedRadio.checked = true;
+      }
+
+      urlVars = parseArgs();
+      if (urlVars["hideCategories"]) {
+        var categoryList = urlVars["hideCategories"].split(",");
+        for (var i = 0; i < categoryList.length; ++i) {
+          var name = categoryList[i];
+          allCategories[name] = false;
+          var chkbox = document.getElementById("chkbox_category_" + name);
+          if (chkbox) {
+            chkbox.checked = false;
+          }
+        }
+      }
+      if (urlVars["hideSubcategories"]) {
+        var subcategoryList = urlVars["hideSubcategories"].split(",");
+        for (var i = 0; i < subcategoryList.length; ++i) {
+          var name = subcategoryList[i];
+          allSubcategories[name] = false;
+          var chkbox = document.getElementById("chkbox_subcategory_" + name);
+          if (chkbox) {
+            chkbox.checked = false;
+          }
+        }
+      }
+      refreshTimer = setTimeout(reloadPage, refreshInterval);
+    }
+
+    // Display a builder tooltip.
+    function showBuilderTooltip(message, event) {
+      var tooltipbox = document.getElementById('builderTooltip');
+      if (tooltipbox) {
+        var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
+        var cursorPosLeft = (window.event ? window.event.clientX : event.pageX)
+
+        cursorPosTop  = cursorPosTop  + document.body.scrollTop + 5;
+        cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
+
+        tooltipbox.innerHTML = message;
+        tooltipbox.style.top = parseInt(cursorPosTop) + 'px';
+        tooltipbox.style.left = parseInt(cursorPosLeft) + 'px';
+        tooltipbox.style.display = "block";
+      }
+    }
+
+    // Hide the builder tooltip.
+    function hideBuilderTooltip(event) {
+      var tooltipbox = document.getElementById('builderTooltip');
+      if (tooltipbox) {
+        // Only hide the tooltip if the mouse is outside the tooltip area.
+        var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
+        var cursorPosLeft = (window.event ? window.event.clientX : event.pageX)
+        cursorPosTop  = cursorPosTop  + document.body.scrollTop;
+        cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
+
+        var top = parseInt(tooltipbox.style.top.replace("px", ""));
+        var left = parseInt(tooltipbox.style.left.replace("px", ""));
+        var bottom = top + parseInt(tooltipbox.offsetHeight);
+        var right = left + parseInt(tooltipbox.offsetWidth);
+
+        if (cursorPosTop < top - 5 || cursorPosTop > bottom ||
+            cursorPosLeft < left || cursorPosLeft > right) {
+          tooltipbox.style.display = "none";
+        }
+      }
+    }
+
+    // Helper function used by refreshCategories which loops through an array of
+    // elements and shows or hides them as indicated.
+    function showOrHideElements(elems, shouldDisplay) {
+      for (var i = 0; i < elems.length; ++i) {
+        elems[i].style.display = shouldDisplay ? "table-cell" : "none";
+      }
+    }
+
+    // Update the display based on the selected set of categories and
+    // subcategories.
+    function refreshCategories() {
+      for (var category in allCategories) {
+        // Show or hide each subcategory.
+        var colSpan = 0;
+        for (var i = 0; i < subcategoriesByCategory[category].length; ++i) {
+          var subcategory = subcategoriesByCategory[category][i];
+          var className = "category_" + category + "_subcategory_" + subcategory;
+          var elemsToChange = document.getElementsByClassName(className);
+          // Only display a subcategory if its category is also displaying.
+          var shouldDisplay = allCategories[category] && allSubcategories[subcategory]
+          showOrHideElements(elemsToChange, shouldDisplay);
+          if (shouldDisplay) {
+            colSpan++;
+          }
+        }
+
+        // Show or hide the category label.
+        var elemsToChange = document.getElementsByClassName("category_" + category);
+        var shouldDisplay = allCategories[category] && colSpan > 0;
+        showOrHideElements(elemsToChange, shouldDisplay);
+
+        // Fix the colSpan of the category header.
+        var header = document.getElementById("category_header_" + category);
+        if (header) {
+          header.colSpan = colSpan;
+        }
+      }
+    }
+
+    // Adds the key/value parameter pair to the given URL.
+    function appendParamToURL(url, key, value) {
+      if (url.indexOf("?") == "-1") {
+        url += "?";
+      } else {
+        url += "&";
+      }
+      url += key + "=" + value;
+      return url;
+    }
+
+    // Build a URL using the previous URL parameters and the category and
+    // subcategory lists.
+    function buildURL() {
+      var newLocation = location.protocol + "//" + location.host + location.pathname;
+      var firstVar = true;
+      for (var urlVar in urlVars) {
+        if (urlVar != "hideCategories" && urlVar != "hideSubcategories") {
+          if (Object.prototype.toString.call(urlVars[urlVar]) == "[object Array]") {
+            for (var i = 0; i < urlVars[urlVar].length; ++i) {
+              newLocation = appendParamToURL(newLocation, urlVar, urlVars[urlVar][i]);
+            }
+          } else {
+            newLocation = appendParamToURL(newLocation, urlVar, urlVars[urlVar]);
+          }
+        }
+      }
+
+      // Add hidden categories to the URL.
+      var hiddenCategories = ""
+      for (var category in allCategories) {
+        if (!allCategories[category]) {
+          if (hiddenCategories == "") {
+            hiddenCategories = category;
+          } else {
+            hiddenCategories += "," + category;
+          }
+        }
+      }
+      if (hiddenCategories != "") {
+        newLocation = appendParamToURL(newLocation, "hideCategories", hiddenCategories);
+      }
+
+      // Add hidden subcategories to the URL.
+      var hiddenSubcategories = ""
+      for (var subcategory in allSubcategories) {
+        if (!allSubcategories[subcategory]) {
+          if (hiddenSubcategories == "") {
+            hiddenSubcategories = subcategory;
+          } else {
+            hiddenSubcategories += "," + subcategory;
+          }
+        }
+      }
+      if (hiddenSubcategories != "") {
+        newLocation = appendParamToURL(newLocation, "hideSubcategories", hiddenSubcategories);
+      }
+
+      return newLocation;
+    }
+
+    // Callback function for when a category or subcategory checkbox is clicked.
+    function checkboxClicked(id) {
+      var chkbox = document.getElementById(id);
+      var toChange = id.substring("chkbox_".length).split("_");
+      if (toChange[0] == "category") {
+        allCategories[toChange[1]] = chkbox.checked;
+      } else if (toChange[0] == "subcategory") {
+        allSubcategories[toChange[1]] = chkbox.checked;
+      }
+      window.history.replaceState("", "Checked box", buildURL());
+      refreshCategories();
+    }
+
+    // Callback function to adjust the reload time.
+    function setReload(textBox) {
+      var regex = /^\d+$/;
+      if (regex.test(textBox.value)) {
+        refreshInterval = textBox.value * 1000;
+        urlVars["reload"] = textBox.value;
+        window.history.replaceState("", "Changed refresh", buildURL());
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(reloadPage, refreshInterval);
+      }
+    }
+    </script>
+    {% endblock %}
+  </head>
+  <body class="interface">
+    {% block header -%}
+    <div id="skia_header" style="top:5px;">
+      <a href="{{ tree_status_baseurl }}" target="_blank" style="text-decoration:inherit;">
+        <div id="skia-tree-status-div" width="100%" height="50" class="status-message {{ tree_status['general_state'] }}">
+          {{ tree_status['message'] }}
+          <div class="sheriff-message">Sheriff: {{ sheriff }}</div>
+        </div>
+      </a>
+      <div id="container" style="float: left; width: 100%;">
+        <div style="float:left; width:25%;">
+        <form name="unused" action="javascript:void(0);">
+          <input type="radio" name="internal_external" value="external" id="radio_external" onClick="setInternalView(false);">External View<br>
+          <input type="radio" name="internal_external" value="internal" id="radio_internal" onClick="setInternalView(true);">Internal View
+          <br/><nobr>Refresh (seconds): <input type="text" name="reload_time" value="{{ refresh or default_refresh }}" onChange="setReload(this)" style="width: 50px;" maxlength="4" /></nobr>
+        </form>
+        </div>
+  
+        <div id="links" style="float:right; width:25%;">
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="{{ tree_status_baseurl }}" target="_blank">Skia Tree Status Manager</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://code.google.com/p/skia/issues/list?can=2&q=label%3ABreakingTheBuildbots" target="_blank">Current build-breaking bugs</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bench_graphs.html" target="_blank">Bench Graphs</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://go/skpdash" target="_blank">Bench Dashboard Internal</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skiadash.appspot.com/report" target="_blank">Bench Dashboard External</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/bug_graphs.html" target="_blank">Open Bugs Graph</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://storage.cloud.google.com/chromium-skia-gm/static_analyzers/clang_static_analyzer/index.html" target="_blank">Clang Static Analyzer</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/buildbots_self_analysis.html" target="_blank">Buildbot Self-Dashboard</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://skia.googlecode.com/svn/buildbot/buildslave_idle.html" target="_blank">Buildslave Idle Time Analysis</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skia-tree-status.appspot.com/sheriff" target="_blank">Sheriff Schedule</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://skia-tree-status.appspot.com/skia-telemetry/lua_script" target="_blank">Run Lua Scripts on SKP Repo</a><br/></li></ul></div>
+          <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="http://c128.i.corp.google.com/production-gm-diffs/latest/view.html" target="_blank">Recent GM Results</a><br/></li></ul></div>
+        </div>
+  
+        <div style="text-align:center; width: 50%; margin-left: 25%; margin-right: 25%">
+          <div id="heading" style="font-size:3.5em; text-align:center;">Skia Buildbots</div>
+          <div style="text-align:center;">
+            <form name="unused2">
+              <p>
+              <b>Category:</b>
+              {% for r in all_categories %}
+              <nobr><input type="checkbox" checked="true" id="chkbox_category_{{ r }}" name="category_chkbox" value="{{ r }}" onClick="checkboxClicked('chkbox_category_{{ r }}');">{{ r|trim }}</nobr>
+              {% endfor %}
+              </p>
+              <p>
+              <b>Subcategory:</b>
+              {% for subcategory in all_subcategories %}
+              <nobr><input type="checkbox" checked="true" id="chkbox_subcategory_{{ subcategory }}" name="subcategory_chkbox" value="{{ subcategory }}" onClick="checkboxClicked('chkbox_subcategory_{{ subcategory }}');">{{ subcategory|trim }}</nobr>
+              {% endfor %}
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="header">
+          <a href="{{ path_to_root or '.' }}">Home</a> -
+          <a href="{{ path_to_root }}waterfall">Waterfall</a>
+          <a href="{{ path_to_root }}console">Console</a>
+          <a href="{{ path_to_root }}builders">Builders</a>
+          <a href="{{ path_to_root }}buildslaves">Buildslaves</a> -
+          <a href="{{ path_to_root }}failures">Currently Failing</a> -
+          <a href="{{ path_to_root }}trybots">Trybot Waterfall</a> -
+          <a href="{{ path_to_root }}json/help">JSON API</a> -
+          <a href="{{ path_to_root }}about">About</a>
+      </div>
+    </div>
+    {% endblock %}
+
+    {%- block barecontent -%}
+
+    <div class="content">
+      {%- block content -%}
+      {%- endblock -%}
+    </div>
+    {%- endblock -%}
+
+    {%- block footer -%}
+    <div class="footer" style="clear:both">
+      <hr/>
+      <a href="http://buildbot.net/">BuildBot</a> ({{version}})
+      {% if title -%}
+        working for the&nbsp;
+        {%- if title_url -%}
+          <a href="{{ title_url }}">{{ title }}</a>
+        {%- else -%}
+          {{ title }}
+        {%- endif -%}
+        &nbsp;project.
+      {%- endif -%}
+      <br/>
+      Page built: <b>{{ time }}</b> ({{ tz }})
+    </div>
+    {% endblock -%}
+    <div id="builderTooltip" class="BuilderTooltip" style="display: none;" onmouseout="hideBuilderTooltip(event)"></div>
+    <script language="JavaScript">
+      init();
+    </script>
+  </body>
+</html>
