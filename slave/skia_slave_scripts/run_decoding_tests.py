@@ -16,11 +16,11 @@ class RunDecodingTests(BuildStep):
   def _Run(self):
     cmd = ['-r', self._device_dirs.SKImageInDir(), '--noreencode']
 
-    subdir = builder_name_schema.GetWaterfallBot(self._builder_name)
-
     # Read expectations, which were downloaded/copied to the device.
+    # If this bot is a trybot, read the expected results of the waterfall bot.
     expectations_file = self._flavor_utils.DevicePathJoin(
-      self._device_dirs.SKImageExpectedDir(), subdir,
+      self._device_dirs.SKImageExpectedDir(),
+      builder_name_schema.GetWaterfallBot(self._builder_name),
       GM_EXPECTATIONS_FILENAME)
 
     have_expectations = self._flavor_utils.DevicePathExists(expectations_file)
@@ -29,7 +29,7 @@ class RunDecodingTests(BuildStep):
 
     # Write the expectations file, in case any did not match.
     device_subdir = self._flavor_utils.DevicePathJoin(
-        self._device_dirs.SKImageOutDir(), subdir)
+        self._device_dirs.SKImageOutDir(), self._builder_name)
     self._flavor_utils.CreateCleanDeviceDirectory(device_subdir)
     output_expectations_file = self._flavor_utils.DevicePathJoin(
         device_subdir, run_gm.JSON_SUMMARY_FILENAME)
