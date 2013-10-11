@@ -44,7 +44,10 @@ class RunDecodingTests(BuildStep):
     # If there is no expectations file, still run the tests, and then report a
     # failure. Then we'll know to update the expectations with the results of
     # running the tests.
-    if not have_expectations:
+    # TODO(scroggo): Skipping the TSAN bot, where we'll never have
+    # expectations. A better way might be to have expty expectations. See
+    # https://code.google.com/p/skia/issues/detail?id=1711
+    if not have_expectations and not 'TSAN' in self._builder_name:
       raise BuildStepFailure("Missing expectations file " + expectations_file)
 
 if '__main__' == __name__:
