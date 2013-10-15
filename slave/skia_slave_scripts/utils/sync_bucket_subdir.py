@@ -24,7 +24,7 @@ import re
 
 
 DEFAULT_PERFDATA_GS_BASE = 'gs://chromium-skia-gm'
-KNOWN_FILENAMES = r'^bench_([0-9a-f]*)_data.*'
+KNOWN_FILENAMES = r'^bench_([0-9a-fr]*)_data.*'
 IGNORE_UPLOAD_FILENAMES = ('.DS_Store')
 
 
@@ -77,9 +77,10 @@ def SyncBucketSubdir(directory, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
         raise Exception('ERROR: found filename %s on remote filesystem'
                         'that does not match filter %s' % (file_name,
                                                            filenames_filter))
-      if int(match.group(1)) >= min_download_revision:
-        download_from_bucket.DownloadFromBucket(
-            posixpath.join(gsbase_subdir, file_name), directory)
+      #TODO(borenet): find alternative ways to handle revision ordering in git.
+      #if int(match.group(1)) >= min_download_revision:
+      download_from_bucket.DownloadFromBucket(
+          posixpath.join(gsbase_subdir, file_name), directory)
 
   # Uploads only files not present on the cloud storage
   if do_upload:
