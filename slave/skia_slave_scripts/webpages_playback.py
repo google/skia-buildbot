@@ -199,7 +199,9 @@ class SkPicturePlayback(object):
       # Get some properties from the page_set JSON.
       with open(page_set, 'r') as page_set_file:
         parsed_json = json.load(page_set_file)
-        skp_layer = parsed_json.get('skp_layer', 'layer_0.skp')
+        # Much of this script will do bizarre things if there's
+        # more than one page per page set.  See skia:1723.
+        assert len(parsed_json.get('pages', [])) == 1
 
       if self._record:
         # Create an archive of the specified webpages if '--record=True' is
@@ -252,9 +254,7 @@ class SkPicturePlayback(object):
               raise e
 
         if self._debugger:
-          skp_files = glob.glob(os.path.join(TMP_SKP_DIR, '*', skp_layer))
-          for skp_file in skp_files:
-            os.system('%s %s' % (self._debugger, skp_file))
+          os.system('%s %s' % (self._debugger, os.path.join(TMP_SKP_DIR, '*')))
           user_input = raw_input(
               "Would you like to recapture the skp(s)? [y,n]")
           accept_skp = False if user_input == 'y' else True
@@ -273,7 +273,7 @@ class SkPicturePlayback(object):
             self._local_record_webpages_archive_dir)
 
       # Rename generated skp files into more descriptive names.
-      self._RenameSkpFiles(page_set, skp_layer)
+      self._RenameSkpFiles(page_set)
 
     print '\n\n=======Capturing SKP files took %s seconds=======\n\n' % (
         time.time() - start_time)
@@ -288,7 +288,7 @@ class SkPicturePlayback(object):
             'ERROR: GSUtilCopyDir error %d. "%s" -> "%s/%s"' % (
                 gs_status, LOCAL_PLAYBACK_ROOT_DIR, self._dest_gsbase,
                 ROOT_PLAYBACK_DIR_NAME))
-    
+
       # Add a timestamp file to the skp directory in Google Storage so we can
       # use directory level rsync like functionality.
       gs_utils.WriteTimeStampFile(
@@ -328,44 +328,36 @@ class SkPicturePlayback(object):
 
     return 0
 
-  def _RenameSkpFiles(self, page_set, skp_layer):
+  def _RenameSkpFiles(self, page_set):
     """Rename generated skp files into more descriptive names.
 
-    All skp files are currently called layer_X.skp where X is an integer, they
-    will be renamed into http_website_name.skp.
-
-    Eg: http_news_yahoo_com/layer_0.skp -> http_news_yahoo_com.skp
+    Look into the subdirectory of TMP_SKP_DIR and find the most interesting
+    .skp in there to be this page_set's representative .skp.
     """
-    for (dirpath, _dirnames, filenames) in os.walk(TMP_SKP_DIR):
-      if not dirpath or not filenames:
-        continue
-      basename = os.path.basename(dirpath)
-      for filename in filenames:
-        if filename != skp_layer:
-          continue
-        filename_parts = filename.split('.')
-        extension = filename_parts[1]
-        basename = basename.rstrip('_')
+    # Here's where we're assuming there's one page per pageset.
+    # If there were more than one, we'd overwrite filename below.
 
-        # Gets the platform prefix for the page set.
-        # Eg: for 'skia_yahooanswers_desktop.json' it gets 'desktop'.
-        device = (page_set.split(os.path.sep)[-1].split('_')[-1].split('.')[0])
-        platform_prefix = DEVICE_TO_PLATFORM_PREFIX[device]
-        # Gets the webpage name from the page set name.
-        # Eg: for 'skia_yahooanswers_desktop.json' it gets 'yahooanswers'.
-        webpage_name = page_set.split(os.path.sep)[-1].split('_')[-2]
+    # /path/to/skia_yahooanswers_desktop.json -> skia_yahooanswers_desktop.json
+    _, ps_filename = os.path.split(page_set)
+    # skia_yahooanswers_desktop.json -> skia_yahooanswers_desktop
+    ps_basename, _ = os.path.splitext(ps_filename)
+    # skia_yahooanswers_desktop -> skia, yahooanswers, desktop
+    _, page_name, device = ps_basename.split('_')
 
-        # Construct the basename of the skp file.
-        basename = '%s_%s' % (platform_prefix, webpage_name)
+    basename = '%s_%s' % (DEVICE_TO_PLATFORM_PREFIX[device], page_name)
+    filename = basename[:MAX_SKP_BASE_NAME_LEN] + '.skp'
 
-        # Ensure the basename is not too long.
-        if len(basename) > MAX_SKP_BASE_NAME_LEN:
-          basename = basename[0:MAX_SKP_BASE_NAME_LEN]
-        new_filename = '%s.%s' % (basename, extension)
-        shutil.move(os.path.join(dirpath, filename),
-                    os.path.join(self._local_skp_dir, new_filename))
-        self._skp_files.append(new_filename)
-      shutil.rmtree(dirpath)
+    subdirs = glob.glob(os.path.join(TMP_SKP_DIR, '*'))
+    assert len(subdirs) == 1
+    for site in subdirs:
+      # We choose the largest .skp as the most likely to be interesting.
+      largest_skp = max(glob.glob(os.path.join(site, '*.skp')),
+                        key=lambda path: os.stat(path).st_size)
+      dest = os.path.join(self._local_skp_dir, filename)
+      print 'Moving', largest_skp, 'to', dest
+      shutil.move(largest_skp, dest)
+      self._skp_files.append(filename)
+      shutil.rmtree(site)
 
   def _CreateLocalStorageDirs(self):
     """Creates required local storage directories for this script."""

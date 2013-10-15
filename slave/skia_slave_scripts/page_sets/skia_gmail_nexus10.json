@@ -4,7 +4,6 @@
     "credentials_path": "data/credentials.json",
     "user_agent_type": "tablet",
     "smoothness": { "action": "scroll" },
-    "skp_layer": "layer_1.skp",
     "pages": [
         {
             "url": "https://mail.google.com/mail/",
