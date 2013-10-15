@@ -1,0 +1,155 @@
+{% extends "layout.html" %}
+{% from "box_macros.html" import box %}
+
+{% block content %}
+<p>
+<script type="text/javascript" src="../sigma.min.js"></script>
+<script type="text/javascript">
+var json_url = "/json/sourcestamp/{{ ssid }}";
+
+function setError(error) {
+  console.error(error);
+  document.getElementById("load_status").innerHTML = error;
+}
+
+function loadBuildsetData(url) {
+  document.getElementById("load_status").innerHTML = "Loading...";
+  var req = new XMLHttpRequest();
+  req.onreadystatechange = function() {
+    if (req.readyState == 4) {
+      if (req.status == 200) {
+        updateBuildsetTable(req.responseText);
+      } else {
+        setError("Request for " + url + " returned status " + req.status);
+      }
+    }
+  }
+  req.open("GET", url, false);
+  try {
+    req.send(null);
+  } catch(e) {
+    setError(e.message);
+  }
+}
+
+function updateBuildsetTable(data) {
+  // Parse the buildset data.
+  var parsed_data = null;
+  var buildsets = null;
+  try {
+    parsed_data = JSON.parse(data);
+    buildsets = parsed_data.buildsets;
+    error = parsed_data.error;
+    if (error) {
+      setError("Error: " + error);
+      return;
+    }
+  } catch(e) {
+    setError("Got invalid response from master:\n" + data);
+    return;
+  }
+
+  // Get the table element.
+  buildset_table_id = "buildset_table_body";
+  buildset_table = document.getElementById(buildset_table_id);
+  if (!buildset_table) {
+    setError("Could not access " + buildset_table_id);
+    return;
+  }
+
+  // Erase the table.
+  while (buildset_table.hasChildNodes()) {
+    buildset_table.removeChild(buildset_table.lastChild);
+  }
+
+  // Rebuild the table.
+  for (var buildset_index in buildsets) {
+    try {
+      var buildset = buildsets[buildset_index];
+      var name = buildset.properties.scheduler[0]
+      var tr = document.createElement("tr");
+
+      var bsid = document.createElement("td");
+      bsid.innerHTML = buildset.bsid;
+      tr.appendChild(bsid);
+
+      var task = document.createElement("td");
+      task.innerHTML = name;
+      tr.appendChild(task);
+
+      var builder = document.createElement("td");
+      var builder_link = document.createElement("a");
+      builder_link.href = "/builders/" + buildset.builder;
+      builder_link.innerHTML = buildset.builder;
+      builder.appendChild(builder_link);
+      tr.appendChild(builder);
+
+      var status_text = "";
+      if (buildset.build == null || buildset.build.start_time == null) {
+        status_text = "offline";
+      } else if (buildset.build.finish_time == null) {
+        status_text = "running";
+      } else if (buildset.results == 0 || buildset.results == 1) {
+        status_text = "success";
+      } else {
+        status_text = "failure";
+      }
+      tr.className = status_text
+
+      var build_num = document.createElement("td");
+      var build_link = null;
+      if (status_text != "offline") {
+        build_link = document.createElement("a");
+        build_link.href = "/builders/" + buildset.builder + "/builds/" +
+            buildset.build.number;
+        build_link.innerHTML = buildset.build.number;
+        build_num.appendChild(build_link);
+      }
+      tr.appendChild(build_num);
+
+      var result = document.createElement("td");
+      if (status_text == "offline") {
+        result.innerHTML = "not started.";
+      } else {
+        result.innerHTML = status_text;
+      }
+      tr.appendChild(result);
+
+      var deps = document.createElement("td");
+      deps.innerHTML = buildset.properties.dependencies[0];
+      tr.appendChild(deps);
+
+      buildset_table.appendChild(tr);
+    } catch(e) {
+      console.error("Master returned incomplete data:\n" + data);
+      document.getElementById("load_status").innerHTML = "Incomplete data";
+    }
+  }
+  document.getElementById("load_status").innerHTML = "Success.";
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(loadBuildsetData, refreshInterval, json_url);
+}
+reloadPage = updateBuildsetTable;
+</script>
+<h2>Tasks for Source Stamp {{ ssid }}</h2>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Task</th>
+      <th>Builder</th>
+      <th>Build #</th>
+      <th>Result</th>
+      <th>Depends On</th>
+    </tr>
+  </thead>
+  <tbody id="buildset_table_body">
+  </tbody>
+</table>
+<input type="button" onclick="loadBuildsetData(json_url);" value="Update Data"/>
+<div>Status: <div id="load_status">Please wait...</div></div>
+<div id="graph_canvas" class="sigma"></div>
+<script type="text/javascript">
+loadBuildsetData(json_url);
+</script>
+{% endblock %}

@@ -28,6 +28,7 @@ from twisted.internet import defer
 from twisted.python import log
 from twisted.web import server
 from utils import GATEKEEPER_NAME
+from webstatus import sourcestamp
 
 import builder_name_schema
 import config_private
@@ -269,6 +270,7 @@ def JsonStatusResourceInit(self, status):
   ############################## Added by borenet ##############################
   # Added to address: https://code.google.com/p/skia/issues/detail?id=1134
   self.putChild('trybots', TryBuildersJsonResource(status))
+  self.putChild('sourcestamp', sourcestamp.SourceStampsJsonResource(status))
   ##############################################################################
   ############################## Added by rmistry ##############################
   # Added to have a place to get the list of trybots run by the CQ.
