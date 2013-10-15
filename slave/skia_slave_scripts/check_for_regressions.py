@@ -20,23 +20,20 @@ class CheckForRegressions(BuildStep):
         **kwargs)
 
   def _RunInternal(self, representation):
-    path_to_bench_graph_svg = os.path.join('bench', 'bench_graph_svg.py')
+    path_to_check_bench_regressions = os.path.join('bench',
+        'check_bench_regressions.py')
     path_to_bench_expectations = os.path.join('bench',
         'bench_expectations_%s.txt' % self._builder_name)
     if not os.path.isfile(path_to_bench_expectations):
       print 'Skip due to missing expectations: %s' % path_to_bench_expectations
       return
-    graph_title = 'Bench_Performance_for_%s' % self._builder_name
-    cmd = ['python', path_to_bench_graph_svg,
+    cmd = ['python', path_to_check_bench_regressions,
+           '-a', representation,
+           '-b', self._builder_name,
            '-d', self._perf_data_dir,
            '-e', path_to_bench_expectations,
-           '-r', '-1',
-           '-f', '-1',
-           '-l', graph_title,
-           '-m', representation,
+           '-r', self._got_revision,
            ]
-    if self._builder_name.find('_Win') >= 0:
-      cmd.extend(['-i', 'c'])  # Ignore cpu time for Windows.
 
     shell_utils.Bash(cmd)
 

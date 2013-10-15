@@ -24,17 +24,6 @@ def BenchArgs(data_file):
   return ['--timers', 'wcg', '--logFile', data_file]
 
 
-def GetSvnRevision(commit_hash):
-  output = shell_utils.Bash([GIT, 'show', '-s', commit_hash],
-                            echo=False, log_in_real_time=False)
-  results = re.findall(GIT_SVN_ID_MATCH_STR, output)
-  if results:
-    return results[0]
-  else:
-    raise Exception('No git-svn-id found for %s\nOutput:\n%s' % (commit_hash,
-                                                                 output))
-
-
 class RunBench(BuildStep):
   def __init__(self, timeout=9600, no_output_timeout=9600, **kwargs):
     super(RunBench, self).__init__(timeout=timeout,
@@ -43,7 +32,7 @@ class RunBench(BuildStep):
 
   def _BuildDataFile(self):
     return os.path.join(self._device_dirs.PerfDir(),
-                        'bench_r%s_data' % GetSvnRevision(self._got_revision))
+                        'bench_%s_data' % self._got_revision)
 
   def _Run(self):
     args = ['-i', self._device_dirs.ResourceDir()]

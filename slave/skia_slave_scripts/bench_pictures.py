@@ -6,7 +6,7 @@
 """ Run the Skia bench_pictures executable. """
 
 from build_step import BuildStep
-from run_bench import BenchArgs, GetSvnRevision
+from run_bench import BenchArgs
 import os
 import sys
 
@@ -22,7 +22,7 @@ class BenchPictures(BuildStep):
 
   # pylint: disable=W0221
   def _BuildDataFile(self, args):
-    filename = '_'.join(['bench', 'r%s' % GetSvnRevision(self._got_revision),
+    filename = '_'.join(['bench', self._got_revision,
                          'data', 'skp'] + args)
     full_path = os.path.join(self._device_dirs.PerfDir(),
         filename.replace('-', '').replace(':', '-'))
