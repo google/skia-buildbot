@@ -24,7 +24,7 @@ import re
 
 
 DEFAULT_PERFDATA_GS_BASE = 'gs://chromium-skia-gm'
-KNOWN_FILENAMES = r'^bench_r(\w*)_data.*'
+KNOWN_FILENAMES = r'^bench_([0-9a-f]*)_data.*'
 IGNORE_UPLOAD_FILENAMES = ('.DS_Store')
 
 
