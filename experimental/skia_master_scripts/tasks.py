@@ -36,11 +36,24 @@ class Task(object):
   _factory_prefix = 'f_%s'
   _scheduler_prefix = 's_%s'
 
-  def __init__(self, graph, name, cmd, workdir='build'):
+  def __init__(self, graph, name, cmd, workdir='build', slave_profile=None):
+    """Initialize the Task. This constructor is not intended to be used
+    directly. Instead, use TaskManager to add Tasks.
+
+    Args:
+        graph: An instance of graph_utils.Graph to which this Task will be added
+            as a Node.
+        name: string; name of this Task.
+        cmd: string or list of strings; the command line that this Task runs.
+        workdir: string; working directory in which the command will run.
+        slave_profile: dict outlining the requirements which a Buildslave must
+            meet in order to perform this Task.
+    """
     self._graph = graph
     self._name = name
     self._cmd = cmd
     self._workdir = workdir
+    self._slave_profile = slave_profile or {}
     self._id = self._graph.add_node(self)
 
   def add_dependency(self, task):
@@ -62,6 +75,27 @@ class Task(object):
                               command=self._cmd,
                               workdir=self.workdir)
 
+  def can_be_performed_by(self, buildslave):
+    """Determine whether the given Buildslave can perform this Task.
+
+    This function compares the profile dict of the Task with the profile dict of
+    the Buildslave. The Buildslave may run the Task if the Buildslave's profile
+    is a superset of this Task's profile.
+
+    Args:
+        buildslave: dictionary describing a Buildslave.
+
+    Returns:
+        True if the Buildslave may run this Task and false otherwise.
+    """
+    if self._slave_profile and not buildslave.get('profile'):
+      return False
+    for property_name, desired_value in self._slave_profile.iteritems():
+      if (not buildslave['profile'].get(property_name) or
+          buildslave['profile'][property_name] != desired_value):
+        return False
+    return True
+
   @property
   def name(self):
     """The name of this Task."""
@@ -71,6 +105,10 @@ class Task(object):
   def workdir(self):
     """Working directory where this Task should run."""
     return self._workdir
+
+  @property
+  def slave_profile(self):
+    return self._slave_profile
 
   @property
   def dependencies(self):
@@ -94,13 +132,15 @@ class Task(object):
     return Task._scheduler_prefix % self.name
 
 
-def create_builders_from_dag(task_mgr, config):
+def create_builders_from_dag(task_mgr, slaves, config):
   """Given a Directed Acyclic Graph whose nodes are Tasks and whose edges are
   dependencies between tasks, sets up Schedulers, Builders, and BuildFactorys
-  which represent the same dependency relationships.
+  which represent the same dependency relationships, and assigns Builders to
+  appropriate Buildslaves according to their profile.
 
   Args:
       task_mgr: Instance of TaskManager.
+      slaves: List of Buildslave configuration dictionaries.
       config: Configuration dictionary for the Buildbot master.
   """
   if not isinstance(task_mgr, TaskManager):
@@ -115,7 +155,6 @@ def create_builders_from_dag(task_mgr, config):
   # Create a Scheduler, BuildFactory, and Builder for each Task.
   for task_id in reversed(sorted_tasks):
     task = task_mgr[task_id]
-    print '%s: %s' % (task.name, task.dependencies)
 
     # Create a Scheduler.
     scheduler_name = task.scheduler_name
@@ -135,4 +174,17 @@ def create_builders_from_dag(task_mgr, config):
                    scheduler=scheduler_name,
                    auto_reboot=False)
 
+    # Add the Builder to the appropriate Buildslaves.
+    for buildslave in slaves:
+      if not buildslave.get('builder'):
+        buildslave['builder'] = []
+      if task.can_be_performed_by(buildslave):
+        buildslave['builder'].append(builder_name)
+
+  # Remove any unused Buildslaves to satisfy the configuration test.
+  for buildslave in slaves:
+    if not buildslave.get('builder'):
+      slaves.remove(buildslave)
+
   helper.Update(config)
+

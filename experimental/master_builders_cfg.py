@@ -11,7 +11,7 @@ from skia_master_scripts import graph_utils
 from skia_master_scripts import utils
 
 
-def Update(config, active_master, cfg):
+def Update(config, active_master, slaves, cfg):
   """Set up the builders for this build master, using a directed acyclic graph
   of Tasks and their dependencies.
 
@@ -20,32 +20,59 @@ def Update(config, active_master, cfg):
   Args:
       config: Module containing configuration information for the build master.
       active_master: Object representing the active build master.
+      slaves: List of Buildslave dictionaries.
       cfg: Configuration dictionary for the build master.
   """
   task_mgr = tasks.TaskManager()
 
-  sync = task_mgr.add_task(name='Update', cmd=['sleep', '10'])
+  # Some dummy commands to run which sleep for 10 seconds and then succeed or
+  # fail. Sleeping is helpful so that we can see the buildsets fire in real
+  # time.
+  succeed = 'sleep 10; exit 0'
+  fail = 'sleep 10; exit 1'
 
-  compile = task_mgr.add_task(name='Build', cmd=['sleep', '10'],
-                              workdir='build/skia')
+  # These profiles describe the type of buildslave which may run certain tasks.
+  # Pre-build a few so that we can re-use them below.
+  slave_ubuntu12 = {
+    'os': 'Ubuntu12',
+  }
+  slave_ubuntu12_ati5770 = dict(gpu='ATI5770', **slave_ubuntu12)
+
+  # Set up some tasks.
+  sync = task_mgr.add_task(name='Update', cmd=succeed,
+                           slave_profile=slave_ubuntu12)
+
+  compile = task_mgr.add_task(name='Build', cmd=succeed,
+                              workdir='build/skia',
+                              slave_profile=slave_ubuntu12)
   compile.add_dependency(sync)
 
-  run_tests = task_mgr.add_task(name='RunTests', cmd=['sleep', '10'],
-                                workdir='build/skia')
+  run_tests = task_mgr.add_task(name='RunTests', cmd=succeed,
+                                workdir='build/skia',
+                                slave_profile=slave_ubuntu12)
   run_tests.add_dependency(compile)
 
-  run_gm = task_mgr.add_task(name='RunGM', cmd=['sleep', '10'],
-                             workdir='build/skia')
+  run_gm = task_mgr.add_task(name='RunGM', cmd=succeed,
+                             workdir='build/skia',
+                             slave_profile=slave_ubuntu12)
   run_gm.add_dependency(compile)
 
-  run_bench = task_mgr.add_task(name='RunBench', cmd=['sleep', '10'],
-                                workdir='build/skia')
+  run_gm_gpu = task_mgr.add_task(name='RunGM_ATI5770', cmd=succeed,
+                                 workdir='build/skia',
+                                 slave_profile=slave_ubuntu12_ati5770)
+  run_gm_gpu.add_dependency(compile)
+
+  run_bench = task_mgr.add_task(name='RunBench', cmd=fail,
+                                workdir='build/skia',
+                                slave_profile=slave_ubuntu12)
   run_bench.add_dependency(compile)
 
-  all_done = task_mgr.add_task(name='AllFinished', cmd=['sleep', '10'],
-                               workdir='build/skia')
+  all_done = task_mgr.add_task(name='AllFinished', cmd=succeed,
+                               workdir='build/skia',
+                               slave_profile=slave_ubuntu12)
   all_done.add_dependency(run_tests)
   all_done.add_dependency(run_gm)
+  all_done.add_dependency(run_gm_gpu)
   all_done.add_dependency(run_bench)
 
-  return tasks.create_builders_from_dag(task_mgr, cfg)
+  return tasks.create_builders_from_dag(task_mgr, slaves, cfg)

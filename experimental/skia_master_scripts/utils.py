@@ -352,7 +352,6 @@ class Helper(object):
       raise Exception('Parent is a list!')
     if name in self._schedulers:
       raise ValueError('Scheduler %s already exists' % name)
-    print 'Adding Dependent %s: %s' % (name, parent)
     self._schedulers[name] = {'type': 'Dependent',
                               'parent': parent,
                               'builders': []}
