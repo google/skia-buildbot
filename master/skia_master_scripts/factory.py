@@ -659,7 +659,16 @@ class SkiaFactory(BuildFactory):
         steps are run. Known values are given in the utils module.
     clobber: boolean indicating whether we should clean before building
     """
-    if not role:
+    # Special case: for the ZeroGPUCache bot, we only run GM.
+    if 'ZeroGPUCache' in self._builder_name:
+      self._build_targets = ['gm']
+      self.UpdateSteps()
+      self.Compile(clobber)
+      self.Install()
+      self.PreRender()
+      self.RunGM()
+      self.PostRender()
+    elif not role:
       # If no role is provided, just run everything.
       if not self._build_targets:
         self._build_targets = ['most']

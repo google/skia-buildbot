@@ -83,6 +83,8 @@ class RunGM(BuildStep):
     elif (not 'NoGPU' in self._builder_name and
           not 'ChromeOS' in self._builder_name):
       cmd.extend(['--config', 'defaults', 'msaa16'])
+    if 'ZeroGPUCache' in self._builder_name:
+      cmd.extend(['--gpuCacheSize', '0', '0', '--config', 'gpu'])
     self._flavor_utils.RunFlavoredCmd('gm', cmd)
 
 
