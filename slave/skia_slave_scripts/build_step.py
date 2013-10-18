@@ -38,6 +38,7 @@ DEFAULT_NUM_CORES = 2
 
 
 GM_EXPECTATIONS_FILENAME = 'expected-results.json'
+GM_IGNORE_FAILURES_FILE = 'ignored-tests.txt'
 
 
 # multiprocessing.Value doesn't accept boolean types, so we have to use an int.

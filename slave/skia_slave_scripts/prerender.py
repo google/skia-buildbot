@@ -19,12 +19,12 @@ class PreRender(BuildStep):
 
   def _Run(self):
     # Prepare directory to hold GM expectations.
-    device_gm_expectations_path = self._flavor_utils.DevicePathJoin(
-        self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
     self._flavor_utils.CreateCleanDeviceDirectory(
         self._device_dirs.GMExpectedDir())
 
     # Push the GM expectations JSON file to the device.
+    device_gm_expectations_path = self._flavor_utils.DevicePathJoin(
+        self._device_dirs.GMExpectedDir(), build_step.GM_EXPECTATIONS_FILENAME)
     repo_gm_expectations_path = os.path.join(
         self._gm_expected_dir, build_step.GM_EXPECTATIONS_FILENAME)
     if os.path.exists(repo_gm_expectations_path):
@@ -34,6 +34,19 @@ class PreRender(BuildStep):
                                           device_gm_expectations_path)
     else:
       print('Missing GM expectations file %s' % repo_gm_expectations_path)
+
+    # Push GM's ignore_failures_file to the device.
+    device_ignore_failures_path = self._flavor_utils.DevicePathJoin(
+        self._device_dirs.GMExpectedDir(), build_step.GM_IGNORE_FAILURES_FILE)
+    repo_ignore_failures_path = os.path.join(
+        self._gm_expected_dir, os.pardir, build_step.GM_IGNORE_FAILURES_FILE)
+    if os.path.exists(repo_ignore_failures_path):
+      print ('Pushing ignore_failures_file from %s on host to %s on device...'
+             % (repo_ignore_failures_path, device_ignore_failures_path))
+      self._flavor_utils.PushFileToDevice(repo_ignore_failures_path,
+                                          device_ignore_failures_path)
+    else:
+      print('Missing ignore_failures_file %s' % repo_ignore_failures_path)
 
     # Prepare directory to hold GM actuals.
     self._flavor_utils.CreateCleanHostDirectory(self._gm_actual_dir)

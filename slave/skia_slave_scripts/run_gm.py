@@ -12,36 +12,9 @@ import sys
 
 
 JSON_SUMMARY_FILENAME = 'actual-results.json'
-OVERRIDE_IGNORED_TESTS_FILE = 'ignored-tests.txt'
 
 
 class RunGM(BuildStep):
-  def _GetAdditionalTestsToIgnore(self):
-    """Parse the OVERRIDE_IGNORED_TESTS_FILE, and return any tests listed there
-    as an list.  If the file is empty or nonexistent, return an empty list.
-
-    See https://code.google.com/p/skia/issues/detail?id=1600#c4
-    """
-    tests = []
-    override_ignored_tests_path = os.path.join(
-        self._gm_expected_dir, os.pardir, OVERRIDE_IGNORED_TESTS_FILE)
-    try:
-      with open(override_ignored_tests_path) as f:
-        for line in f.readlines():
-          line = line.strip()
-          if not line:
-            continue
-          if line.startswith('#'):
-            continue
-          tests.append(line)
-    except IOError:
-      print ('override_ignored_tests_path %s does not exist' %
-             override_ignored_tests_path)
-      return []
-    print ('Found these tests to ignore at override_ignored_tests_path %s: %s' %
-           (override_ignored_tests_path, tests))
-    return tests
-
   def _Run(self):
     output_dir = os.path.join(self._device_dirs.GMActualDir(),
                               self._builder_name)
@@ -64,9 +37,11 @@ class RunGM(BuildStep):
     if self._flavor_utils.DevicePathExists(device_gm_expectations_path):
       cmd.extend(['--readPath', device_gm_expectations_path])
 
-    additional_tests_to_ignore = self._GetAdditionalTestsToIgnore()
-    if additional_tests_to_ignore:
-      cmd.extend(['--ignoreTests'] + additional_tests_to_ignore)
+    device_ignore_failures_path = self._flavor_utils.DevicePathJoin(
+        self._device_dirs.GMExpectedDir(),
+        build_step.GM_IGNORE_FAILURES_FILE)
+    if self._flavor_utils.DevicePathExists(device_ignore_failures_path):
+      cmd.extend(['--ignoreFailuresFile', device_ignore_failures_path])
 
     if 'Xoom' in self._builder_name:
       # The Xoom's GPU will crash on some tests if we don't use this flag.
