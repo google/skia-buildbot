@@ -41,7 +41,7 @@ def Update(config, active_master, slaves, cfg):
   compile = task_mgr.add_task(name='Build', cmd=succeed,
                               workdir='build/skia',
                               slave_profile=slave_ubuntu12,
-                              requires_sync=True)
+                              requires_source_checkout=True)
 
   run_tests = task_mgr.add_task(name='RunTests', cmd=succeed,
                                 workdir='build/skia',
