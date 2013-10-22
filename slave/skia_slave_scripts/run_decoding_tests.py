@@ -14,7 +14,8 @@ import sys
 
 class RunDecodingTests(BuildStep):
   def _Run(self):
-    cmd = ['-r', self._device_dirs.SKImageInDir(), '--noreencode']
+    cmd = ['-r', self._device_dirs.SKImageInDir(), '--noreencode',
+           '--writeChecksumBasedFilenames', '--config', '8888']
 
     # Read expectations, which were downloaded/copied to the device.
     # If this bot is a trybot, read the expected results of the waterfall bot.
@@ -36,8 +37,11 @@ class RunDecodingTests(BuildStep):
 
     cmd.extend(['--createExpectationsPath', output_expectations_file])
 
-    # Draw any mismatches to the same folder as the output json.
-    cmd.extend(['--mismatchPath', self._device_dirs.SKImageOutDir()])
+    # Draw any mismatches to a folder inside SKImageOutDir.
+    image_out_dir = self._flavor_utils.DevicePathJoin(
+        self._device_dirs.SKImageOutDir(), 'images')
+    self._flavor_utils.CreateCleanDeviceDirectory(image_out_dir)
+    cmd.extend(['--mismatchPath', image_out_dir])
 
     self._flavor_utils.RunFlavoredCmd('skimage', cmd)
 

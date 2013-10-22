@@ -44,7 +44,7 @@ class UploadSKImageResults(BuildStep):
 
   def _Run(self):
     if self._do_upload_results:
-      # Copy actual-results.json to skimage/output/actuals
+      # Copy actual-results.json to skimage/actuals
       print '\n\n====Uploading skimage actual-results to Google Storage====\n\n'
       src_dir = os.path.abspath(os.path.join(self._skimage_out_dir,
                                              self._builder_name))
@@ -57,21 +57,16 @@ class UploadSKImageResults(BuildStep):
                                     gs_acl='public-read',
                                     http_header_lines=http_header_lines)
 
-      # Copy actual images and expectations to Google Storage.
-      # TODO(scroggo): This step uploads both the expectations and the
-      # mismatches, even though the expectations files were already uploaded
-      # in the above step. Once skimage is rewritten to include the hash digest
-      # in the filename, rewrite this to upload a folder (named <input image>)
-      # containing the result (named <hash digest>.png), much like
-      # upload_gm_results.
+      # Copy actual images to Google Storage at skimage/output. This will merge
+      # with the existing files.
       print '\n\n========Uploading skimage results to Google Storage=======\n\n'
-      relative_dir = posixpath.join('skimage', 'output', self._builder_name)
-      gs_utils.UploadDirectoryContentsIfChanged(
-          gs_base=self._dest_gsbase,
-          gs_relative_dir=relative_dir,
-          gs_acl=PLAYBACK_CANNED_ACL,
-          force_upload=True,
-          local_dir=self._skimage_out_dir)
+      src_dir = os.path.abspath(os.path.join(self._skimage_out_dir, 'images'))
+      dest_dir = posixpath.join(
+          skia_vars.GetGlobalVariable('googlestorage_bucket'),
+          'skimage', 'output')
+      gs_utils.CopyStorageDirectory(src_dir=src_dir,
+                                    dest_dir=dest_dir,
+                                    gs_acl=PLAYBACK_CANNED_ACL)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UploadSKImageResults))
