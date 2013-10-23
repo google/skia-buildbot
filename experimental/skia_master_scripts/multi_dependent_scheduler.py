@@ -68,9 +68,6 @@ class DependencyChainScheduler(base.BaseScheduler):
     base.BaseScheduler.__init__(self, name, [builder_name], properties)
     self.dependencies = dependencies
 
-    self._pending_connector = \
-        pending_buildsets.PendingBuildsetsConnectorComponent()
-
     self._buildset_addition_subscr = None
     self._buildset_completion_subscr = None
     self.properties.setProperty('dependencies', dependency_list, 'Scheduler')
@@ -161,7 +158,8 @@ class DependencyChainScheduler(base.BaseScheduler):
             function to which this function may be attached as a callback.
         ssid: ID of the Source Stamp whose Buildsets should be aborted.
     """
-    return self._pending_connector.cancel_pending_buildsets(ssid, self.name)
+    return (self.master.skia_db.pending_buildsets
+            .cancel_pending_buildsets(ssid, self.name))
 
   @util.deferredLocked('_pending_buildset_lock')
   def _actually_add_buildset_for_source_stamp(self, ssid):
@@ -175,10 +173,15 @@ class DependencyChainScheduler(base.BaseScheduler):
       dl = []
       for bs in pending:
         dl.append(
-            base.BaseScheduler.addBuildsetForSourceStamp(self, ssid=ssid, **bs))
+            base.BaseScheduler.addBuildsetForSourceStamp(self,
+                ssid=ssid,
+                reason=bs['reason'],
+                external_idstring=bs['external_idstring'],
+                properties=bs['properties']))
       d = defer.DeferredList(dl)
       return d
-    d = self._pending_connector.cancel_pending_buildsets(ssid, self.name)
+    d = (self.master.skia_db.pending_buildsets
+         .cancel_pending_buildsets(ssid, self.name))
     d.addCallback(_got_pending)
     return d
 
@@ -232,12 +235,13 @@ class DependencyChainScheduler(base.BaseScheduler):
           pending: List of dicts of Buildset arguments representing not-yet-
               inserted Buildsets.
       """
-      if not arguments in pending:
-        d = self._pending_connector.add_pending_buildset(ssid, self.name,
-                                                         **arguments)
-        return d
-      else:
-        return defer.succeed(None)
+      for bs in pending:
+        if (str(bs['reason']) == str(arguments.get('reason', '')) and
+            bs['properties'] == arguments.get('properties', {})):
+          return defer.succeed(None)
+      d = (self.master.skia_db.pending_buildsets
+           .add_pending_buildset(ssid, self.name, **arguments))
+      return d
 
     def _got_buildset_props(props, buildsets):
       """Callback which runs once the properties for a list of buildsets have
@@ -257,7 +261,8 @@ class DependencyChainScheduler(base.BaseScheduler):
         if props[i][1].get('scheduler', (None, None))[0] == self.name:
           # If there's already a Buildset, don't insert one.
           return defer.succeed(None)
-      d = self._pending_connector.get_pending_buildsets(ssid, self.name)
+      d = (self.master.skia_db.pending_buildsets
+           .get_pending_buildsets(ssid, self.name))
       d.addCallback(_got_pending_buildsets)
       return d
 
