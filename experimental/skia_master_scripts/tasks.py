@@ -8,13 +8,25 @@
 
 from buildbot.process import factory
 from buildbot.scheduler import AnyBranchScheduler
-from buildbot.steps import shell
+from buildbot.steps import transfer, shell
 from buildbot.steps import trigger
 from buildbot.util import NotABranch
 
 import graph_utils
+import os
+import posixpath
 import skia_vars
 import utils
+
+
+BUILDBOT_SCRIPT_PATH = posixpath.join(os.pardir, os.pardir, os.pardir,
+                                      os.pardir)
+
+
+def _get_master_path(task_name, file_path):
+  # TODO(borenet): The path MUST be organized by source stamp ID, or the
+  # uploaded files can't be guaranteed to be valid.
+  return posixpath.join('slave_files', 'ssid', task_name, file_path)
 
 
 class Task(object):
@@ -43,6 +55,7 @@ class Task(object):
     """
     self._cmd = cmd
     self._files_to_download = []
+    self._files_to_upload = set()
     self._graph = graph
     self._name = name
     self._requires_source_checkout = requires_source_checkout
@@ -50,17 +63,19 @@ class Task(object):
     self._workdir = workdir
     self._id = self._graph.add_node(self)
 
-  def add_dependency(self, task, download_file=None):
+  def add_dependency(self, task, download_files=None):
     """Add a Task to the set on which this Task depends.
 
     Args:
         task: Instance of Task which must run before this Task.
-        download_file: Path to a file to download from the Buildslave who runs
-            the Task on which this Task depends.
+        download_files: List of paths to files to download from the Buildslave
+            who runs the Task on which this Task depends.
     """
     self._graph.add_edge(self._id, task._id)
-    if download_file:
-      self._files_to_download.append(download_file)
+    if download_files:
+      for file_path in download_files:
+        self._files_to_download.append((task.name, file_path))
+        task._files_to_upload.add(file_path)
 
   def get_build_factory(self):
     """Get the BuildFactory associated with this Task. Subclasses may override
@@ -74,28 +89,43 @@ class Task(object):
     # Always update the buildbot scripts.
     f.addStep(shell.ShellCommand(
         description='UpdateScripts',
-        command='echo "updating scripts"; sleep 5; exit 0',
-        workdir=self.workdir))
+        command='gclient sync',
+        workdir=BUILDBOT_SCRIPT_PATH,
+        haltOnFailure=True))
 
     # Sync code if this Task requires it.
     if self._requires_source_checkout:
       f.addStep(shell.ShellCommand(
           description='Update',
-          command='echo "syncing code"; sleep 5; exit 0',
-          workdir=self.workdir))
+          command=('gclient config https://skia.googlesource.com/skia.git; '
+                   'gclient sync'),
+          workdir=posixpath.join(self.workdir, os.pardir),
+          haltOnFailure=True))
 
-    # Download any required files from dependencies.
-    for file_to_download in self._files_to_download:
-      f.addStep(shell.ShellCommand(
-          description='DownloadFile',
-          command='echo "Downloading %s"; sleep 5; exit 0' % file_to_download,
-          workdir=self.workdir))
+    # Download any required files from the master.
+    for dependency_name, file_path in self._files_to_download:
+      f.addStep(transfer.FileDownload(
+          mastersrc=_get_master_path(dependency_name, file_path),
+          slavedest=file_path,
+          workdir=self.workdir,
+          mode=0755,
+          haltOnFailure=True
+      ))
 
     # Run the command required of this step.
     f.addStep(shell.ShellCommand(
         description=self.name,
         command=self._cmd,
         workdir=self.workdir))
+
+    # Upload any required files to the master.
+    for file_to_upload in self._files_to_upload:
+      f.addStep(transfer.FileUpload(
+          slavesrc=file_to_upload,
+          masterdest=_get_master_path(self.name, file_to_upload),
+          workdir=self.workdir,
+          mode=0755,
+      ))
 
     return f
 

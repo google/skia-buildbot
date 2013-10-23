@@ -38,30 +38,35 @@ def Update(config, active_master, slaves, cfg):
   slave_ubuntu12_ati5770 = dict(gpu='ATI5770', **slave_ubuntu12)
 
   # Set up some tasks.
-  compile = task_mgr.add_task(name='Build', cmd=succeed,
+  compile = task_mgr.add_task(name='Build',
+                              cmd=['make', '-j15'],
                               workdir='build/skia',
                               slave_profile=slave_ubuntu12,
                               requires_source_checkout=True)
 
-  run_tests = task_mgr.add_task(name='RunTests', cmd=succeed,
+  run_tests = task_mgr.add_task(name='RunTests', cmd=['out/Debug/tests'],
                                 workdir='build/skia',
                                 slave_profile=slave_ubuntu12)
-  run_tests.add_dependency(compile, download_file='out/Debug/tests')
+  run_tests.add_dependency(compile, download_files=['out/Debug/tests'])
 
-  run_gm = task_mgr.add_task(name='RunGM', cmd=succeed,
+  run_gm = task_mgr.add_task(name='RunGM', cmd=['out/Debug/gm'],
                              workdir='build/skia',
                              slave_profile=slave_ubuntu12)
-  run_gm.add_dependency(compile, download_file='out/Debug/gm')
+  run_gm.add_dependency(compile,
+      download_files=['out/Debug/gm',
+                      'out/Debug/lib.target/libpoppler-cpp-gpl.so'])
 
-  run_gm_gpu = task_mgr.add_task(name='RunGM_ATI5770', cmd=succeed,
+  run_gm_gpu = task_mgr.add_task(name='RunGM_ATI5770', cmd=['out/Debug/gm'],
                                  workdir='build/skia',
                                  slave_profile=slave_ubuntu12_ati5770)
-  run_gm_gpu.add_dependency(compile, download_file='out/Debug/gm')
+  run_gm_gpu.add_dependency(compile,
+      download_files=['out/Debug/gm',
+                      'out/Debug/lib.target/libpoppler-cpp-gpl.so'])
 
-  run_bench = task_mgr.add_task(name='RunBench', cmd=succeed,
+  run_bench = task_mgr.add_task(name='RunBench', cmd=['out/Debug/bench'],
                                 workdir='build/skia',
                                 slave_profile=slave_ubuntu12)
-  run_bench.add_dependency(compile, download_file='out/Debug/bench')
+  run_bench.add_dependency(compile, download_files=['out/Debug/bench'])
 
   all_done = task_mgr.add_task(name='AllFinished', cmd=succeed,
                                workdir='build/skia',
@@ -70,5 +75,17 @@ def Update(config, active_master, slaves, cfg):
   all_done.add_dependency(run_gm)
   all_done.add_dependency(run_gm_gpu)
   all_done.add_dependency(run_bench)
+
+  dosomething = task_mgr.add_task(name='DoSomething', cmd=succeed,
+                                  workdir='build/skia')
+  dosomethingelse = task_mgr.add_task(name='DoSomethingElse', cmd=succeed,
+                                      workdir='.')
+  dosomethingelse.add_dependency(dosomething)
+  dosomethingelse.add_dependency(run_gm_gpu)
+  #dosomethingelse.add_dependency(compile)
+
+  top_level = task_mgr.add_task(name='TopLevel', cmd=succeed, workdir='.')
+  top_level.add_dependency(dosomethingelse)
+  top_level.add_dependency(all_done)
 
   return task_mgr.create_builders_from_dag(slaves, cfg)
