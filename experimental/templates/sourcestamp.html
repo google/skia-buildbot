@@ -3,22 +3,185 @@
 
 {% block content %}
 <p>
-<script type="text/javascript" src="../sigma.min.js"></script>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript" src="../third_party/raphael-min.js"></script>
+<script type="text/javascript" src="../third_party/dracula_graffle.js"></script>
+<script type="text/javascript" src="../third_party/dracula_graph.js"></script>
+<script type="text/javascript" src="../third_party/dracula_algorithms.js"></script>
 <script type="text/javascript">
+
+// URL of the JSON interface for this Source Stamp.
 var json_url = "/json/sourcestamp/{{ ssid }}";
 
+// TODO(borenet): Move the graph layout functions to their own file.
+
+// Custom graph layout. Divide the nodes into columns such that the nodes in
+// each column only have edges toward nodes in columns to their left. The
+// columns are spaced evenly horizontally and the nodes are spaced evenly
+// vertically within each column.
+Graph.Layout.SkiaLayout = function(graph, width, height) {
+  this.graph = graph;
+  this.width = width;
+  this.height = height;
+  this.layout();
+};
+
+Graph.Layout.SkiaLayout.prototype = {
+  // Divide the nodes into columns. This is done by determining the length of
+  // the longest path to each node from any node with no incoming edges. That
+  // length indicates the column in which the node is placed.
+  setColumns2: function() {
+    // If the graph is empty, there's nothing to do.
+    if (this.graph.nodes.length == 0) {
+      return [];
+    }
+
+    // Sanity check: topologically sort the graph. If there are cycles, we want
+    // to find out so that we don't spin forever.
+    var sorted_nodes = topological_sort(this.graph);
+    if (sorted_nodes.length == 0) {
+      // topological_sort returns an empty array in the case of a cycle.
+      throw "Error: there are cycles in the graph!";
+    }
+
+    // Setup: initialize depths to 0.
+    for (var node_index in this.graph.nodes) {
+      this.graph.nodes[node_index].newdepth = 0;
+    }
+
+    // Use an iterative algorithm to determine the depth of each node. In each
+    // iteration, loop over the graph, setting each node's depth to one more
+    // than the greatest depth of any of its parents. The iterations are
+    // finished when no node depths change. This runs in O(kVE), where k is the
+    // number of iterations until convergence. In a DAG, k is one more than the
+    // maximum depth of any node in the graph, which is bounded in the worst
+    // case by the number of nodes in the graph.
+    var finished = false;
+    while (!finished) {
+      finished = true;
+
+      // Copy newdepth to olddepth.
+      for (var node_index in this.graph.nodes) {
+        var node = this.graph.nodes[node_index];
+        node.olddepth = node.newdepth;
+      }
+
+      for (var node_index in this.graph.nodes) {
+        var node = this.graph.nodes[node_index];
+
+        // Take the maximum depth of any parent of this node, and add 1.
+        for (var edge_index in node.edges) {
+          var parent = node.edges[edge_index].source;
+          if (parent != node) {
+            if (parent.olddepth + 1 > node.newdepth) {
+              node.newdepth = parent.olddepth + 1;
+              finished = false;
+            }
+          }
+        }
+      }
+    }
+
+    var columns = [];
+    for (var node_index in this.graph.nodes) {
+      var current_node = this.graph.nodes[node_index];
+      var column_id = current_node.newdepth;
+      if (column_id == -1) {
+        throw "Could not completely traverse the graph!";
+      }
+      if (!columns[column_id]) {
+        columns[column_id] = [current_node];
+      } else {
+        columns[column_id].push(current_node);
+      }
+      delete current_node.depth;
+    }
+    return columns;
+
+  },
+
+  // Given an array of arrays representing columns of nodes and the width and
+  // height of the graph, compute the coordinates for each node.
+  layoutColumns: function(columns) {
+    var chunk_width = this.width / columns.length;
+    for (var column_index in columns) {
+      var column = columns[column_index];
+      var chunk_height = this.height / column.length;
+      for (var node_index in column) {
+        var node = column[node_index];
+        node.layoutPosX =
+            this.width - (chunk_width * column_index + chunk_width / 2);
+        node.layoutPosY = chunk_height * node_index + chunk_height / 2;
+      }
+    }
+    var x_margin = 0.0;
+    var y_margin = 0.0;
+    this.graph.layoutMinX = 0 - this.width * x_margin;
+    this.graph.layoutMinY = 0 - this.height * y_margin;
+    this.graph.layoutMaxX = this.width * (1 + x_margin);
+    this.graph.layoutMaxY = this.height * (1 + y_margin);
+  },
+
+  layout: function() {
+    var columns = this.setColumns2();
+    this.layoutColumns(columns);
+  },
+};
+
+
+// Custom render function for nodes of the graph.
+var render_node = function(r, n) {
+  var node_rect = r.rect(n.point[0], n.point[1], 120, 30);
+  node_rect.attr({
+      "fill": n.color,
+      "href": n.href,
+      "stroke-width": 2,
+      r: "9px"
+  });
+
+  var node_label = r.text(n.point[0], n.point[1], n.label);
+  node_label.attr({
+      "font-size": "11px",
+      "href": n.href,
+  })
+
+  var set = r.set();
+  set.push(node_rect);
+
+  return set;
+};
+
+
+// Pre-defined node colors.
+// TODO(borenet): These are just copied from default.css. We should use CSS
+// classes instead.
+var color_offline = "#777777";
+var color_success = "#88dd44";
+var color_failure = "#ee8888";
+var color_running = "#ffdd33";
+
+
+// Properties for edges of the graph.
+var edge_color = "#000000";
+var edge_strokewidth = "2";
+var edge_props = {"fill": edge_color + "|" + edge_strokewidth};
+
+
+// Sets the text of the status box and logs an error.
 function setError(error) {
   console.error(error);
   document.getElementById("load_status").innerHTML = error;
 }
 
+
+// Load the builds for this Source Stamp from the build master.
 function loadBuildsetData(url) {
   document.getElementById("load_status").innerHTML = "Loading...";
   var req = new XMLHttpRequest();
   req.onreadystatechange = function() {
     if (req.readyState == 4) {
       if (req.status == 200) {
-        updateBuildsetTable(req.responseText);
+        updateBuildGraph(req.responseText);
       } else {
         setError("Request for " + url + " returned status " + req.status);
       }
@@ -32,7 +195,9 @@ function loadBuildsetData(url) {
   }
 }
 
-function updateBuildsetTable(data) {
+
+// Update the graph with data from the build master.
+function updateBuildGraph(data) {
   // Parse the buildset data.
   var parsed_data = null;
   var buildsets = null;
@@ -49,106 +214,77 @@ function updateBuildsetTable(data) {
     return;
   }
 
-  // Get the table element.
-  buildset_table_id = "buildset_table_body";
-  buildset_table = document.getElementById(buildset_table_id);
-  if (!buildset_table) {
-    setError("Could not access " + buildset_table_id);
-    return;
+  // Erase the graph.
+  var graph_canvas = document.getElementById("graph_canvas");
+  while (graph_canvas.hasChildNodes()) {
+    graph_canvas.removeChild(graph_canvas.lastChild);
   }
 
-  // Erase the table.
-  while (buildset_table.hasChildNodes()) {
-    buildset_table.removeChild(buildset_table.lastChild);
-  }
+  var graph = new Graph();
+  graph.edgeFactory.template.style.directed = true;
 
-  // Rebuild the table.
+  // Rebuild the graph.
   for (var buildset_index in buildsets) {
     try {
       var buildset = buildsets[buildset_index];
       var name = buildset.properties.scheduler[0]
-      var tr = document.createElement("tr");
 
-      var bsid = document.createElement("td");
-      bsid.innerHTML = buildset.bsid;
-      tr.appendChild(bsid);
-
-      var task = document.createElement("td");
-      task.innerHTML = name;
-      tr.appendChild(task);
-
-      var builder = document.createElement("td");
-      var builder_link = document.createElement("a");
-      builder_link.href = "/builders/" + buildset.builder;
-      builder_link.innerHTML = buildset.builder;
-      builder.appendChild(builder_link);
-      tr.appendChild(builder);
-
+      var node_color = "";
       var status_text = "";
       if (buildset.build == null || buildset.build.start_time == null) {
+        node_color = color_offline;
         status_text = "offline";
       } else if (buildset.build.finish_time == null) {
+        node_color = color_running;
         status_text = "running";
       } else if (buildset.results == 0 || buildset.results == 1) {
+        node_color = color_success;
         status_text = "success";
       } else {
+        node_color = color_failure;
         status_text = "failure";
       }
-      tr.className = status_text
 
-      var build_num = document.createElement("td");
       var build_link = null;
       if (status_text != "offline") {
-        build_link = document.createElement("a");
-        build_link.href = "/builders/" + buildset.builder + "/builds/" +
+        build_link = "/builders/" + buildset.builder + "/builds/" +
             buildset.build.number;
-        build_link.innerHTML = buildset.build.number;
-        build_num.appendChild(build_link);
       }
-      tr.appendChild(build_num);
 
-      var result = document.createElement("td");
-      if (status_text == "offline") {
-        result.innerHTML = "not started.";
-      } else {
-        result.innerHTML = status_text;
+      var node = graph.addNode(name, { label: name,
+                                       href: build_link,
+                                       color: node_color,
+                                       render: render_node });
+      var dependencies = buildset.properties.dependencies[0]
+      for (var i = 0; i < dependencies.length; ++i) {
+        graph.addEdge(name, dependencies[i], edge_props)
       }
-      tr.appendChild(result);
 
-      var deps = document.createElement("td");
-      deps.innerHTML = buildset.properties.dependencies[0];
-      tr.appendChild(deps);
-
-      buildset_table.appendChild(tr);
     } catch(e) {
       console.error("Master returned incomplete data:\n" + data);
       document.getElementById("load_status").innerHTML = "Incomplete data";
     }
   }
-  document.getElementById("load_status").innerHTML = "Success.";
+
+  var graph_width = 800;
+  var graph_height = 400;
+  var layouter = new Graph.Layout.SkiaLayout(graph, graph_width, graph_height);
+  var renderer = new Graph.Renderer.Raphael("graph_canvas", graph, graph_width,
+                                            graph_height);
+  renderer.draw();
+
+
+  document.getElementById("load_status").innerHTML =
+      "Loaded data at " + (new Date());
   clearTimeout(refreshTimer);
   refreshTimer = setTimeout(loadBuildsetData, refreshInterval, json_url);
 }
-reloadPage = updateBuildsetTable;
+reloadPage = updateBuildGraph;
 </script>
 <h2>Tasks for Source Stamp {{ ssid }}</h2>
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Task</th>
-      <th>Builder</th>
-      <th>Build #</th>
-      <th>Result</th>
-      <th>Depends On</th>
-    </tr>
-  </thead>
-  <tbody id="buildset_table_body">
-  </tbody>
-</table>
+<div id="graph_canvas"></div>
 <input type="button" onclick="loadBuildsetData(json_url);" value="Update Data"/>
 <div>Status: <div id="load_status">Please wait...</div></div>
-<div id="graph_canvas" class="sigma"></div>
 <script type="text/javascript">
 loadBuildsetData(json_url);
 </script>
