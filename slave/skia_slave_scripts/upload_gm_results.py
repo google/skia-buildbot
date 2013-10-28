@@ -39,6 +39,8 @@ class UploadGMResults(BuildStep):
     files_to_upload = filter(filematcher, all_files)
     print 'Uploading %d GM-actual files to Google Storage...' % (
         len(files_to_upload))
+    if not files_to_upload:
+      return
     filename_pattern = re.compile('^([^_]+)_(.+)_([^_]+)\.png$')
 
     gm_actuals_subdir = 'gm'
