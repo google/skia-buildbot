@@ -47,6 +47,15 @@ class RunGM(BuildStep):
       # The Xoom's GPU will crash on some tests if we don't use this flag.
       # http://code.google.com/p/skia/issues/detail?id=1434
       cmd.append('--resetGpuContext')
+
+    # Exercise alternative renderModes, but not on the slowest platforms.
+    # See https://code.google.com/p/skia/issues/detail?id=1641 ('Run GM tests
+    # with all rendering modes enabled, SOMETIMES')
+    if (not 'Android' in self._builder_name and
+        not 'ChromeOS' in self._builder_name):
+      cmd.extend(['--deferred', '--pipe', '--replay', '--rtree', '--serialize',
+                  '--tileGrid'])
+
     if sys.platform == 'darwin':
       # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
       cmd.extend(['--config', 'defaults', '~msaa16'])
@@ -58,8 +67,10 @@ class RunGM(BuildStep):
     elif (not 'NoGPU' in self._builder_name and
           not 'ChromeOS' in self._builder_name):
       cmd.extend(['--config', 'defaults', 'msaa16'])
+
     if 'ZeroGPUCache' in self._builder_name:
       cmd.extend(['--gpuCacheSize', '0', '0', '--config', 'gpu'])
+
     self._flavor_utils.RunFlavoredCmd('gm', cmd)
 
 
