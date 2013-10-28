@@ -15,9 +15,7 @@ from buildbot.status.web.console import ANYBRANCH, \
                                         DevRevision, \
                                         DoesNotPassFilter, \
                                         getInProgressResults, \
-                                        getResultsClass, \
-                                        TimeRevisionComparator, \
-                                        IntegerRevisionComparator
+                                        getResultsClass
 from skia_master_scripts import utils
 from twisted.internet import defer
 
@@ -33,16 +31,19 @@ class ConsoleStatusResource(HtmlResource):
   Every change is a line in the page, and it shows the result of the first
   build with this change for each slave."""
 
-  def __init__(self, order_by_time=False):
+  def __init__(self, comparator):
+    """Initialize the ConsoleStatusResource.
+
+    Args:
+        comparator: Instance of buildbot.status.web.console.RevisionComparator,
+            used to order the revisions on the console page.
+    """
     HtmlResource.__init__(self)
 
     self.status = None
     self.cache = CacheStatus()
 
-    if order_by_time:
-      self.comparator = TimeRevisionComparator()
-    else:
-      self.comparator = IntegerRevisionComparator()
+    self.comparator = comparator
 
   def getPageTitle(self, request):
     status = self.getStatus(request)
