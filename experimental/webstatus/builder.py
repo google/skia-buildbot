@@ -55,9 +55,10 @@ def force(self, req, auth_ok=False):
     def make_buildset(ssid):
         r = ("The web-page 'force build' button was pressed by '%s': %s\n"
              % (html.escape(name), html.escape(reason)))
-        return master.addBuildset(
-                builderNames=[self.builder_status.getName()],
-                ssid=ssid, reason=r, properties=properties.asDict())
+        for s in master.allSchedulers():
+          if self.builder_status.getName() in s.builderNames:
+            return s.addBuildsetForSourceStamp(ssid=ssid, reason=r,
+                                               properties=properties.asDict())
     d.addCallback(make_buildset)
     d.addErrback(log.err, "(ignored) while trying to force build")
     # send the user back to the builder page
