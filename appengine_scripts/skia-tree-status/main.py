@@ -33,6 +33,7 @@ URLS = [
   ('/banner-status/?', status.BannerStatusPage),
   ('/binary-status/?', status.BinaryStatusPage),
   ('/lkgr?', status.LkgrPage),
+  ('/git-lkgr?', status.GitLkgrPage),
   ('/builder-status/?', builder_status.BuilderStatusPage),
   ('/builder-status/get_builder_statuses?',
    builder_status.GetBuilderStatusesPage),
