@@ -48,13 +48,14 @@ class SkiaModel(base.DBConnectorComponent):
       sa.Column('external_idstring', sa.String(256)),
       sa.Column('reason', sa.String(256)),
       sa.Column('scheduler', sa.String(256)),
+      sa.Column('dependencies', sa.String(2048)),
       sa.Column('sourcestampid', sa.Integer, nullable=False),
       sa.Column('submitted_at', sa.Integer, nullable=False),
       sa.Column('complete', sa.SmallInteger, nullable=False,
                 server_default=sa.DefaultClause("0")),
       sa.Column('complete_at', sa.Integer),
       sa.Column('results', sa.SmallInteger),
-      sa.Column('properties', sa.String(1024))
+      sa.Column('properties', sa.String(2048))
   )
   sa.Index('pending_buildsets_scheduler', pending_buildsets.c.scheduler)
   sa.Index('pending_buildsets_sourcestampid', pending_buildsets.c.sourcestampid)

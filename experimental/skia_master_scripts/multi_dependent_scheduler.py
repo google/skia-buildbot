@@ -179,9 +179,11 @@ class DependencyChainScheduler(base.BaseScheduler):
                 external_idstring=bs['external_idstring'],
                 properties=bs['properties']))
       d = defer.DeferredList(dl)
+      d.addCallback(self.master.skia_db.pending_buildsets
+                        .cancel_pending_buildsets(ssid, self.name))
       return d
-    d = (self.master.skia_db.pending_buildsets
-         .cancel_pending_buildsets(ssid, self.name))
+    d = self.master.skia_db.pending_buildsets.get_pending_buildsets(ssid,
+                                                                    self.name)
     d.addCallback(_got_pending)
     return d
 
@@ -240,7 +242,9 @@ class DependencyChainScheduler(base.BaseScheduler):
             bs['properties'] == arguments.get('properties', {})):
           return defer.succeed(None)
       d = (self.master.skia_db.pending_buildsets
-           .add_pending_buildset(ssid, self.name, **arguments))
+           .add_pending_buildset(ssid, self.name,
+                                 [d.name for d in self.dependencies],
+                                 **arguments))
       return d
 
     def _got_buildset_props(props, buildsets):

@@ -88,7 +88,7 @@ class SourceStampJsonResource(JsonResource):
 
     """
 
-    def _got_builds(builds, buildsets):
+    def _got_builds(builds, buildsets, pending_buildsets):
       """Callback which runs after the Builds for each Build Request have been
       retrieved. Inserts the data for the builds (one per Buildset) into the
       buildsets dictionary and returns it."""
@@ -104,9 +104,9 @@ class SourceStampJsonResource(JsonResource):
           # Occurs when the build hasn't started yet.
           buildsets[i]['build'] = None
 
-      return {'buildsets': buildsets}
+      return {'buildsets': buildsets + pending_buildsets}
 
-    def _got_buildreqs(buildreqs, buildsets):
+    def _got_buildreqs(buildreqs, buildsets, pending_buildsets):
       """Callback which runs after the Build Requests for each Buildset have
       been retrieved. Retrieves the Builds for each Build Request."""
       assert len(buildreqs) == len(buildsets)
@@ -116,10 +116,10 @@ class SourceStampJsonResource(JsonResource):
         dl.append(
             master.db.builds.getBuildsForRequest(buildreqs[i][1][0]['brid']))
       d = defer.DeferredList(dl)
-      d.addCallback(_got_builds, buildsets)
+      d.addCallback(_got_builds, buildsets, pending_buildsets)
       return d
 
-    def _got_props(props, buildsets):
+    def _got_props(props, buildsets, pending_buildsets):
       """Callback which runs after the Properties for a list of Buildsets have
       been retrieved. Retrieves the Build Requests for each Buildset."""
       assert len(props) == len(buildsets)
@@ -133,19 +133,36 @@ class SourceStampJsonResource(JsonResource):
         dl.append(master.db.buildrequests.getBuildRequests(
             bsid=buildsets[i]['bsid']))
       d = defer.DeferredList(dl)
-      d.addCallback(_got_buildreqs, buildsets)
+      d.addCallback(_got_buildreqs, buildsets, pending_buildsets)
       return d
 
-    def _got_buildsets(buildsets):
-      """Callback which runs after the Buildsets for a given Source Stamp have
-      been retrieved. Retrieves the properties for each Buildset."""
-      if not buildsets:
-        return {'error': 'No such Source Stamp'}
+    def _got_pending_buildsets(pending_buildsets, buildsets):
+      """Callback which runs after the pending Buildsets for a given Source
+      Stamp have been retrieved. Retrieves the properties for each Buildset."""
       dl = []
       for buildset in buildsets:
         dl.append(master.db.buildsets.getBuildsetProperties(buildset['bsid']))
       d = defer.DeferredList(dl)
-      d.addCallback(_got_props, buildsets)
+      for pending_buildset in pending_buildsets:
+        if pending_buildset.get('submitted_at'):
+          pending_buildset['submitted_at'] = \
+              str(pending_buildset['submitted_at'])
+        if pending_buildset.get('complete_at'):
+          pending_buildset['complete_at'] = str(pending_buildset['complete_at'])
+        pending_buildset['properties']['scheduler'] = \
+            (pending_buildset['scheduler'], 'Scheduler')
+        pending_buildset['properties']['dependencies'] = \
+            (pending_buildset['dependencies'], 'Scheduler')
+      d.addCallback(_got_props, buildsets, pending_buildsets)
+      return d
+
+    def _got_buildsets(buildsets):
+      """Callback which runs after the Buildsets for a given Source Stamp have
+      been retrieved. Retrieves the pending Buildsets for the Source Stamp."""
+      if not buildsets:
+        return {'error': 'No such Source Stamp'}
+      d = master.skia_db.pending_buildsets.get_pending_buildsets(self._ssid)
+      d.addCallback(_got_pending_buildsets, buildsets)
       return d
 
     master = request.site.buildbot_service.master

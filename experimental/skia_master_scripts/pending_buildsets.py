@@ -20,12 +20,14 @@ class PendingBuildsetsConnectorComponent(base.DBConnectorComponent):
   buildsets which have not yet been inserted into the primary buildsets table.
   """
 
-  def add_pending_buildset(self, ssid, scheduler, _reactor=reactor, **kwargs):
+  def add_pending_buildset(self, ssid, scheduler, dependencies,
+                           _reactor=reactor, **kwargs):
     """Add a new Buildset to the pending buildsets table.
 
     Args:
         ssid: The ID of the SourceStamp which triggered this Buildset.
         scheduler: Name of the Scheduler requesting this Buildset.
+        dependencies: Names of schedulers on which this Buildset depends.
         kwargs: Extra arguments. These get stored with the Buildset and are used
             when adding it to the active buildsets table.
         _reactor: reactor module, for testing
@@ -43,6 +45,7 @@ class PendingBuildsetsConnectorComponent(base.DBConnectorComponent):
           sourcestampid=ssid,
           submitted_at=submitted_at,
           scheduler=scheduler,
+          dependencies=str(dependencies),
           properties=str(properties),
           **bs_args
       ))
@@ -50,12 +53,12 @@ class PendingBuildsetsConnectorComponent(base.DBConnectorComponent):
 
     return self.db.pool.do(thd)
 
-  def get_pending_buildsets(self, ssid, scheduler):
+  def get_pending_buildsets(self, ssid, scheduler=None):
     """Get all pending Buildsets for the given Scheduler and Source Stamp.
 
     Args:
         ssid: ID of a Source Stamp.
-        scheduler: Name of a scheduler
+        scheduler: Optional, name of a scheduler
 
     Returns:
         List of dictionaries where each dictionary is the kwargs which were
@@ -64,8 +67,11 @@ class PendingBuildsetsConnectorComponent(base.DBConnectorComponent):
     def thd(conn):
       table = self.db.model.pending_buildsets
       query = table.select()
-      query = query.where((table.c.scheduler == scheduler) &
-                          (table.c.sourcestampid == ssid))
+      if scheduler:
+        query = query.where((table.c.scheduler == scheduler) &
+                            (table.c.sourcestampid == ssid))
+      else:
+        query = query.where(table.c.sourcestampid == ssid)
       result = conn.execute(query)
       return [self._row2dict(row) for row in result.fetchall()]
 
@@ -108,4 +114,6 @@ class PendingBuildsetsConnectorComponent(base.DBConnectorComponent):
         complete=bool(row.complete),
         complete_at=mkdt(row.complete_at), results=row.results,
         bsid=row.id,
+        scheduler=row.scheduler,
+        dependencies=ast.literal_eval(row.dependencies),
         properties=ast.literal_eval(row.properties))
