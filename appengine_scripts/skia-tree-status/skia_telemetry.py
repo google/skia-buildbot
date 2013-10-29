@@ -7,6 +7,7 @@
 
 import datetime
 import json
+import urllib2
 
 from google.appengine.ext import db
 
@@ -33,6 +34,52 @@ PAGESET_TYPES = (
     '10k',
     'Deeplinks',
 )
+
+# LKGR urls.
+CHROMIUM_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
+SKIA_LKGR_URL = 'http://skia-tree-status.appspot.com/git-lkgr'
+
+
+class ChromiumBuilds(db.Model):
+  """Datamodel for Chromium builds."""
+  chromium_rev = db.StringProperty(required=True)
+  skia_rev = db.StringProperty(required=True)
+  username = db.StringProperty(required=True)
+  requested_time = db.DateTimeProperty(required=True)
+  completed_time = db.DateTimeProperty()
+  build_log_link = db.LinkProperty()
+  chromium_rev_date = db.DateTimeProperty()
+
+  @classmethod
+  def get_all_chromium_builds(cls):
+    return (cls.all()
+               .order('-chromium_rev_date')
+               .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
+  def get_chromium_build_with_key(cls, key):
+    return db.GqlQuery(
+        'SELECT * FROM ChromiumBuilds WHERE __key__ = Key(\'ChromiumBuilds\','
+        ' %s);' % key)
+
+  @classmethod
+  def get_chromium_build_with_revs(cls, chromium_rev, skia_rev):
+    return db.GqlQuery(
+        'SELECT * FROM ChromiumBuilds WHERE chromium_rev=\'%s\' '
+        'AND skia_rev=\'%s\';' % (chromium_rev, skia_rev))
+
+  @classmethod
+  def get_oldest_pending_chromium_build(cls):
+    return (cls.all()
+               .filter('completed_time =', None)
+               .order('requested_time')
+               .fetch(limit=1))
+
+  @classmethod
+  def delete_chromium_build(cls, key):
+    chromium_builds = cls.get_chromium_build_with_key(key)
+    if chromium_builds.count():
+      chromium_builds[0].delete()
 
 
 class TelemetryInfo(db.Model):
@@ -245,8 +292,6 @@ class AdminTasksPage(BasePage):
     requested_time = datetime.datetime.now()
     admin_task = self.request.get('admin_task')
     pagesets_type = self.request.get('pagesets_type')
-    if admin_task == 'Rebuild Chrome':
-      pagesets_type = 'N/A'
 
     # There should be only one instance of an admin task running at a time.
     # Running multiple instances causes unpredictable and inconsistent behavior.
@@ -328,6 +373,54 @@ class LuaScriptPage(BasePage):
     template_values['pageset_types'] = PAGESET_TYPES
 
     self.DisplayTemplate('lua_script.html', template_values)
+
+
+class ChromiumBuildsPage(BasePage):
+  """Allows users to add and delete new chromium builds to the framework."""
+
+  @utils.require_user
+  def get(self):
+    return self._handle()
+
+  @utils.require_user
+  def post(self):
+    # Check if this is a delete chromium build request.
+    delete_key = self.request.get('delete')
+    if delete_key:
+      ChromiumBuilds.delete_chromium_build(delete_key)
+      self.redirect('chromium_builds')
+      return
+
+    # It is an add chromium build request.
+    chromium_rev = self.request.get('chromium_rev')
+    skia_rev = self.request.get('skia_rev')
+    # If either is lkgr then get the commit hash from the lkgr urls.
+    if chromium_rev == 'LKGR':
+      chromium_rev = urllib2.urlopen(CHROMIUM_LKGR_URL).read()
+    if skia_rev == 'LKGR':
+      skia_rev = urllib2.urlopen(SKIA_LKGR_URL).read()
+
+    # Only add a new build if it is not already in the repository.
+    if (ChromiumBuilds.get_chromium_build_with_revs(
+        chromium_rev, skia_rev).count() == 0):
+      ChromiumBuilds(
+          requested_time=datetime.datetime.now(),
+          username=self.user.email(),
+          chromium_rev=chromium_rev,
+          skia_rev=skia_rev).put()
+    self.redirect('chromium_builds')
+
+  def _handle(self):
+    """Sets template values to display."""
+    template_values = self.InitializeTemplate('Chromium Builds')
+
+    add_telemetry_info_to_template(template_values, self.user.email(),
+                                   self.is_admin)
+
+    chromium_builds = ChromiumBuilds.get_all_chromium_builds()
+    template_values['chromium_builds'] = chromium_builds
+
+    self.DisplayTemplate('chromium_builds.html', template_values)
 
 
 class TelemetryInfoPage(BasePage):
@@ -487,6 +580,28 @@ class GetAdminTasksPage(BasePage):
     self.response.out.write(json.dumps(tasks_dict, sort_keys=True))
 
 
+class GetChromiumBuildTasksPage(BasePage):
+  """Returns a JSON of the oldest pending chromium build task in the queue."""
+
+  def get(self):
+    chromium_build_task = ChromiumBuilds.get_oldest_pending_chromium_build()
+
+    # Create a dict for JSON from the oldest pending task.
+    if chromium_build_task:
+      task = chromium_build_task[0]
+      task_dict = {
+        1: {
+            'key': task.key().id_or_name(),
+            'username': task.username,
+            'chromium_rev': task.chromium_rev,
+            'skia_rev': task.skia_rev
+        }
+      }
+    else:
+      task_dict = {}
+    self.response.out.write(json.dumps(task_dict, sort_keys=True))
+
+
 class GetLuaTasksPage(BasePage):
   """Returns a JSON of all pending lua tasks in the queue."""
 
@@ -519,6 +634,30 @@ class UpdateAdminTasksPage(BasePage):
 
     self.response.out.write('<br/><br/>Updated the datastore-<br/><br/>')
     self.response.out.write('key: %s<br/>' % key)
+    self.response.out.write('completed_time: %s<br/>' % completed_time)
+
+
+class UpdateChromiumBuildTasksPage(BasePage):
+  """Updates a chromium build task using its key."""
+
+  @utils.admin_only
+  def post(self):
+    key = int(self.request.get('key'))
+    build_log_link = self.request.get('build_log_link')
+    chromium_rev_date = int(self.request.get('chromium_rev_date'))
+    completed_time = datetime.datetime.now()
+
+    chromium_build_task = ChromiumBuilds.get_chromium_build_with_key(key)[0]
+    chromium_build_task.completed_time = completed_time
+    chromium_build_task.build_log_link = build_log_link
+    chromium_build_task.chromium_rev_date = datetime.datetime.fromtimestamp(
+        chromium_rev_date)
+    chromium_build_task.put()
+
+    self.response.out.write('<br/><br/>Updated the datastore-<br/><br/>')
+    self.response.out.write('key: %s<br/>' % key)
+    self.response.out.write('build_log_link: %s<br/>' % build_log_link)
+    self.response.out.write('chromium_rev_date: %s<br/>' % chromium_rev_date)
     self.response.out.write('completed_time: %s<br/>' % completed_time)
 
 

@@ -12,11 +12,6 @@
 <form action="/skia-telemetry/admin_tasks" name="all_admin_tasks" method="post">
   <table cellpadding="5" border="1">
     <tr>
-      <td align="center" colspan="4">
-        <input type="submit" value="Rebuild Chrome" name="admin_task" {% if not admin %}disabled{% endif %}>
-      </td>
-    </tr>
-    <tr>
       <td>
         <select name="pagesets_type">
           {% for pageset_type in pageset_types %}

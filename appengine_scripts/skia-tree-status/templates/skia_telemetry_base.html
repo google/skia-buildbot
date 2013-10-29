@@ -36,13 +36,16 @@
       <table cellpadding="5" border="1">
         <tr>
           <td align="center">
-            <a href='/skia-telemetry/admin_tasks'>Run Admin Tasks</a>
+            <a href='/skia-telemetry/chromium_builds'>Manage Chromium Builds</a>
           </td>
           <td align="center">
             <a href='/skia-telemetry'>Run Benchmarks</a>
           </td>
           <td align="center">
             <a href='/skia-telemetry/lua_script'>Run Lua Scripts</a>
+          </td>
+          <td align="center">
+            <a href='/skia-telemetry/admin_tasks'>Run Admin Tasks</a>
           </td>
           <td align="center">
             <a href='/skia-telemetry/all_tasks'>Tasks History</a>
@@ -60,36 +63,22 @@
       <h2>General Information</h2>
       <table cellpadding="5">
         <tr>
-          <td>Chrome was last built on</td>
-          <td>{{ chrome_last_built }}</td>
-          <td></td>
-          <td>Source of pagesets</td>
-          <td><a href='{{ pagesets_source }}'>Top 1M</a></td>
-        </tr>
-        <tr>
-          <td>Chromium Revision</td>
-          <td><a href='https://chromium.googlesource.com/chromium/src/+/{{ chromium_rev }}'>{{ chromium_rev|slice:":7" }}</a></td>
-          <td></td>
-          <td>Number of archived webpages</td>
-          <td>{{ num_webpages }}</td>
-        </tr>
-        <tr>
-          <td>Skia Revision</td>
-          <td><a href='https://skia.googlesource.com/skia/+/{{ skia_rev }}'>{{ skia_rev|slice:":7" }}</a></td>
+          <td>Number of GCE slaves</td>
+          <td>{{ gce_slaves }}</td>
           <td></td>
           <td>Number of webpages per pageset</td>
           <td>{{ num_webpages_per_pageset }}</td>
         </tr>
         <tr>
-          <td>Number of GCE slaves</td>
-          <td>{{ gce_slaves }}</td>
+          <td>Source of pagesets</td>
+          <td><a href='{{ pagesets_source }}'>Top 1M</a></td>
           <td></td>
-          <td>Number of Total SKP files</td>
-          <td>{{ num_skp_files }}</td>
+          <td>Number of archived webpages</td>
+          <td>{{ num_webpages }}</td>
         </tr>
       </table>
         <br/>
-        (Last updated on {{ last_updated }})
+        (Above information last updated on {{ last_updated }})
         <hr/>
 
     </center>
