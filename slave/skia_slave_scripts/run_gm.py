@@ -70,6 +70,16 @@ class RunGM(BuildStep):
 
     if 'ZeroGPUCache' in self._builder_name:
       cmd.extend(['--gpuCacheSize', '0', '0', '--config', 'gpu'])
+    if 'Nexus4' in self._builder_name:
+      cmd.extend(['--useDocumentInsteadOfDevice',
+                  '--forcePerspectiveMatrix',
+                  # Disabling the following tests because they crash GM in
+                  # perspective mode.
+                  # See https://code.google.com/p/skia/issues/detail?id=1665
+                  '--match',
+                  '~scaled_tilemodes',
+                  '~convexpaths',
+                  '~clipped-bitmap'])
 
     self._flavor_utils.RunFlavoredCmd('gm', cmd)
 
