@@ -11,19 +11,22 @@
 # Author: rmistry@google.com (Ravi Mistry)
 
 
-if [ $# -ne 2 ]; then
+if [ $# -ne 3 ]; then
   echo
-  echo "Usage: `basename $0` 1 All"
+  echo "Usage: `basename $0` 1 All a1234b-c5678d"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
   echo "The second argument is the type of pagesets to create from the 1M list"\
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
+  echo "The third argument is the name of the directory where the chromium" \
+       "build which will be used for this run is stored."
   echo
   exit 1
 fi
 
 SLAVE_NUM=$1
 PAGESETS_TYPE=$2
+CHROMIUM_BUILD_DIR=$3
 
 source ../vm_config.sh
 source vm_utils.sh
@@ -47,7 +50,7 @@ for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*; do
       echo "========== $page_set copied over from All =========="
     else
       check_and_run_xvfb
-      DISPLAY=:0 timeout 600 tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser=system $page_set
+      DISPLAY=:0 timeout 600 tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $page_set
       if [ $? -eq 124 ]; then
         echo "========== $page_set timed out! =========="
       else

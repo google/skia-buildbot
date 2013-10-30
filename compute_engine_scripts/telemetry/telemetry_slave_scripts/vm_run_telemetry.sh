@@ -11,18 +11,22 @@
 # Author: rmistry@google.com (Ravi Mistry)
 
 
-if [ $# -lt 4 ]; then
+if [ $# -lt 5 ]; then
   echo
   echo "Usage: `basename $0` 1 skpicture_printer" \
-    "--skp-outdir=/home/default/storage/skps/ All rmistry2013-05-24.07-34-05"
+    "--skp-outdir=/home/default/storage/skps/ All a1234b-c5678d" \
+    "rmistry2013-05-24.07-34-05"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
   echo "The second argument is the telemetry benchmark to run on this slave."
   echo "The third argument are the extra arguments that the benchmark needs."
   echo "The fourth argument is the type of pagesets to create from the 1M list" \
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
-  echo "The fifth argument is the runid (typically requester + timestamp)."
-  echo "The sixth optional argument is the Google Storage location of the URL whitelist."
+  echo "The fifth argument is the name of the directory where the chromium" \
+       "build which will be used for this run is stored."
+  echo "The sixth argument is the runid (typically requester + timestamp)."
+  echo "The seventh optional argument is the Google Storage location of the URL" \
+       "whitelist."
   echo
   exit 1
 fi
@@ -31,8 +35,9 @@ SLAVE_NUM=$1
 TELEMETRY_BENCHMARK=$2
 EXTRA_ARGS=$3
 PAGESETS_TYPE=$4
-RUN_ID=$5
-WHITELIST_GS_LOCATION=$6
+CHROMIUM_BUILD_DIR=$5
+RUN_ID=$6
+WHITELIST_GS_LOCATION=$7
 
 WHITELIST_FILE=whitelist.$RUN_ID
 
@@ -80,7 +85,7 @@ for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*.json; do
     echo "========== Processing $page_set =========="
     page_set_basename=`basename $page_set`
     check_and_run_xvfb
-    eval sudo DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing\" --browser=system $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
+    eval sudo DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing\" --browser-executable=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS -o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     sudo chown default:default $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="

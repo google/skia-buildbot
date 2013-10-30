@@ -3,8 +3,7 @@
 # Sets up the slave to capture webpage archives or to run telemetry. Does the
 # following:
 # * Makes sure ~/.boto is used instead of /etc/boto.cfg.
-# * Copies over the chrome binary in Google Storage.
-# * Setups up the right symlinks to find google-chrome.
+# * Copies over the chrome binary from Google Storage.
 # * Copies over the page_sets for this slave from Google Storage.
 # * Syncs the Skia buildbot checkout.
 # * Creates an Xvfb display on :0.
@@ -23,18 +22,14 @@ fi
 
 # Download the chrome binary from Google Storage if the local TIMESTAMP is out
 # of date.
-mkdir -p /home/default/storage/chrome-build/
-are_timestamps_equal /home/default/storage/chrome-build gs://chromium-skia-gm/telemetry/chrome-build
+mkdir -p /home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/
+are_timestamps_equal /home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR} gs://chromium-skia-gm/telemetry/chromium-builds/${CHROMIUM_BUILD_DIR}
 if [ $? -eq 1 ]; then
-  rm -rf /tmp/default/storage/chrome-build*
-  gsutil cp -R gs://chromium-skia-gm/telemetry/chrome-build/* \
-    /home/default/storage/chrome-build/
+  rm -rf /tmp/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}*
+  gsutil cp -R gs://chromium-skia-gm/telemetry/chromium-builds/${CHROMIUM_BUILD_DIR}/* \
+    /home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/
+  sudo chmod 777 /home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome
 fi
-
-# Setup the right symlinks for telemetry.
-sudo rm /usr/bin/google-chrome
-sudo ln -s /home/default/storage/chrome-build/chrome /usr/bin/google-chrome
-sudo chmod 777 /usr/bin/google-chrome
 
 # Download the page_sets from Google Storage if the local TIMESTAMP is out of
 # date.
