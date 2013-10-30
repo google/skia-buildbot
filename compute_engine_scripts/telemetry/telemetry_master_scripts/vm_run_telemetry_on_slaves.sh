@@ -10,22 +10,24 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -lt 6 ]; then
+if [ $# -lt 7 ]; then
   echo
   echo "Usage: `basename $0` skpicture_printer" \
        "--skp-outdir=/home/default/storage/skps/ All" \
-       "rmistry-2013-05-24.07-34-05" \
+       "a1234b-c5678d rmistry-2013-05-24.07-34-05" \
        "rmistry@google.com 1001 /tmp/logfile"
   echo
   echo "The first argument is the telemetry benchmark to run on this slave."
   echo "The second argument are the extra arguments that the benchmark needs."
   echo "The third argument is the type of pagesets to create from the 1M list" \
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
-  echo "The fourth argument is a unique runid (typically requester + timestamp)."
-  echo "The fifth argument is the email address of the requester."
-  echo "The sixth argument is the key of the appengine telemetry task."
-  echo "The seventh argument is the location of the log file."
-  echo "The eight argument is the local location of the optional whitelist file."
+  echo "The fourth argument is the name of the directory where the chromium" \
+       "build which will be used for this run is stored."
+  echo "The fifth argument is a unique runid (typically requester + timestamp)."
+  echo "The sixth argument is the email address of the requester."
+  echo "The seventh argument is the key of the appengine telemetry task."
+  echo "The eighth argument is the location of the log file."
+  echo "The ninth argument is the local location of the optional whitelist file."
   echo
   exit 1
 fi
@@ -33,11 +35,12 @@ fi
 TELEMETRY_BENCHMARK=$1
 EXTRA_ARGS=$2
 PAGESETS_TYPE=$3
-RUN_ID=$4
-REQUESTER_EMAIL=$5
-APPENGINE_KEY=$6
-LOG_FILE_LOCATION=$7
-WHITELIST_LOCAL_LOCATION=$8
+CHROMIUM_BUILD_DIR=$4
+RUN_ID=$5
+REQUESTER_EMAIL=$6
+APPENGINE_KEY=$7
+LOG_FILE_LOCATION=$8
+WHITELIST_LOCAL_LOCATION=$9
 
 source ../vm_config.sh
 source vm_utils.sh 
@@ -65,7 +68,7 @@ fi
 
 
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $RUN_ID $WHITELIST_GS_LOCATION"
+  CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $CHROMIUM_BUILD_DIR $RUN_ID $WHITELIST_GS_LOCATION"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
     -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt 2>&1"
