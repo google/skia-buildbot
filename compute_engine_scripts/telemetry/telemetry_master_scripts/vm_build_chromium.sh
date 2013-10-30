@@ -10,58 +10,81 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -ne 3 ]; then
+if [ $# -ne 5 ]; then
   echo
-  echo "Usage: `basename $0` rmistry@google.com 1001 /tmp/logfile"
+  echo "Usage: `basename $0` a1234b c5678d rmistry@google.com 1001 /tmp/logfile"
   echo
-  echo "The first argument is the email address of the requester."
-  echo "The second argument is the key of the appengine admin task."
-  echo "The third argument is location of the log file that should be emailed."
+  echo "The first argument is the Chromium commit hash."
+  echo "The second argument is the Skia commit hash."
+  echo "The third argument is the email address of the requester."
+  echo "The fourth argument is the key of the appengine admin task."
+  echo "The fifth argument is location of the log file that should be emailed."
   echo
   exit 1
 fi
 
-REQUESTER_EMAIL=$1
-APPENGINE_KEY=$2
-LOG_FILE_LOCATION=$3
+CHROMIUM_COMMIT_HASH=$1
+SKIA_COMMIT_HASH=$2
+REQUESTER_EMAIL=$3
+APPENGINE_KEY=$4
+LOG_FILE_LOCATION=$5
 
 # Update buildbot.
 gclient sync
 
-# Run the script that checks out LKGR chromium and ToT skia and builds it.
 cd ../../../slave/skia_slave_scripts/utils/
-mkdir /home/default/storage/chromium-trunk
-PYTHONPATH=/home/default/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/home/default/skia-repo/buildbot/site_config/:/home/default/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=/home/default/storage/chromium-trunk
+CHROMIUM_BUILD_DIR_BASE=/home/default/storage/chromium-builds/base
+mkdir -p $CHROMIUM_BUILD_DIR_BASE
+PYTHONPATH=/home/default/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/home/default/skia-repo/buildbot/site_config/:/home/default/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH
 
-# Build chromium.
-cd /home/default/storage/chromium-trunk/src/
-GYP_GENERATORS='ninja' ./build/gyp_chromium
-/home/default/depot_tools/ninja -C out/Release chrome
-
-# Copy to Google Storage only if chromium successfully built.
-if [ $? -eq 0 ]
+if [ $? -ne 0 ]
 then
-  # cd into the Release directory.
-  cd /home/default/storage/chromium-trunk/src/out/Release
-  # Delete the large subdirectories not needed to run the binary.
-  rm -rf gen obj
-
-  if [ -e /etc/boto.cfg ]; then
-    # Move boto.cfg since it may interfere with the ~/.boto file.
-    sudo mv /etc/boto.cfg /etc/boto.cfg.bak
-  fi
-
-  # Clean the directory in Google Storage.
-  gsutil rm -R gs://chromium-skia-gm/telemetry/chrome-build/*
-  # Copy the newly built chrome binary into Google Storage.
-  gsutil cp -r * gs://chromium-skia-gm/telemetry/chrome-build/
-  # Create a TIMESTAMP file and copy it to Google Storage.
-  TIMESTAMP=`date +%s`
-  echo $TIMESTAMP > /tmp/$TIMESTAMP
-  gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/chrome-build/TIMESTAMP
-  rm /tmp/$TIMESTAMP
+  echo "There was an error checking out chromium $CHROMIUM_COMMIT_HASH + skia $SKIA_COMMIT_HASH"
+  SUBJECT_FAILURE_SUFFIX=" with checkout failures"
+  CHROMIUM_REV_DATE="0"
 else
-  echo "There was an error building chromium LKGR + skia Tot"
+  # Construct directory name from chromium and skia's truncated commit hashes.
+  DIR_NAME=${CHROMIUM_COMMIT_HASH:0:7}-${SKIA_COMMIT_HASH:0:7}
+  # This is the directory that will be uploaded to google storage.
+  CHROMIUM_BUILD_DIR=/home/default/storage/chromium-builds/$DIR_NAME
+  mkdir -p $CHROMIUM_BUILD_DIR
+  cp -R ${CHROMIUM_BUILD_DIR_BASE}/* ${CHROMIUM_BUILD_DIR}/
+  cd $CHROMIUM_BUILD_DIR/src/
+
+  # Find when the requested Chromium revision was submitted to display in the
+  # appengine web app.
+  CHROMIUM_REV_DATE=`git log --pretty=format:"%at" -1`
+
+  # Build chromium.
+  GYP_GENERATORS='ninja' ./build/gyp_chromium
+  /home/default/depot_tools/ninja -C out/Release chrome
+
+  # Copy to Google Storage only if chromium successfully built.
+  if [ $? -ne 0 ]
+  then
+    echo "There was an error building chromium $CHROMIUM_COMMIT_HASH + skia $SKIA_COMMIT_HASH"
+    SUBJECT_FAILURE_SUFFIX=" with build failures"
+  else
+    # cd into the Release directory.
+    cd $CHROMIUM_BUILD_DIR/src/out/Release
+    # Delete the large subdirectories not needed to run the binary.
+    rm -rf gen obj
+
+    if [ -e /etc/boto.cfg ]; then
+      # Move boto.cfg since it may interfere with the ~/.boto file.
+      sudo mv /etc/boto.cfg /etc/boto.cfg.bak
+    fi
+
+    # Clean the directory in Google Storage.
+    gsutil rm -R gs://chromium-skia-gm/telemetry/chromium-builds/${DIR_NAME}/*
+    # Copy the newly built chrome binary into Google Storage.
+    gsutil cp -r * gs://chromium-skia-gm/telemetry/chromium-builds/${DIR_NAME}/
+    # Create a TIMESTAMP file and copy it to Google Storage.
+    TIMESTAMP=`date +%s`
+    echo $TIMESTAMP > /tmp/$TIMESTAMP
+    gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/chromium-builds/${DIR_NAME}/TIMESTAMP
+    rm /tmp/$TIMESTAMP
+  fi
 fi
 
 # Copy the log file to Google Storage.
@@ -73,7 +96,7 @@ OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/admin-ta
 BOUNDARY=`date +%s|md5sum`
 BOUNDARY=${BOUNDARY:0:32}
 sendmail $REQUESTER_EMAIL <<EOF
-subject:Your Chrome Build has completed!
+subject:Your Chrome Build has completed${SUBJECT_FAILURE_SUFFIX}!
 to:$REQUESTER_EMAIL
 from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
@@ -86,8 +109,9 @@ Content-Type: text/html
 <html>
   <head/>
   <body>
-  The output of the script is available <a href='$OUTPUT_LINK'>here</a>.<br/>
-  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/admin_tasks'>here</a>.<br/><br/>
+  You had requested a build with the Chromium commit hash <a href='https://chromium.googlesource.com/chromium/src/+/${CHROMIUM_COMMIT_HASH}'>${CHROMIUM_COMMIT_HASH:0:7}</a> and the Skia commit hash <a href='https://skia.googlesource.com/skia/+/${SKIA_COMMIT_HASH}'>${SKIA_COMMIT_HASH:0:7}</a>.<br/>
+  The build log is available <a href='$OUTPUT_LINK'>here</a>.<br/>
+  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/chromium_builds'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>
@@ -98,5 +122,5 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_admin_task" -O /dev/null
+wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD&chromium_rev_date=$CHROMIUM_REV_DATE&build_log_link=$OUTPUT_LINK" "https://skia-tree-status.appspot.com/skia-telemetry/update_chromium_build_tasks" -O /dev/null
 

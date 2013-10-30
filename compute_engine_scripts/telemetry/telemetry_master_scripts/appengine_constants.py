@@ -11,6 +11,7 @@ SKIA_TELEMETRY_WEBAPP = (
 
 UPDATE_INFO_SUBPATH = 'update_telemetry_info'
 GET_ADMIN_TASKS_SUBPATH = 'get_admin_tasks'
+GET_CHROMIUM_BUILD_TASKS_SUBPATH = 'get_chromium_build_tasks'
 GET_TELEMETRY_TASKS_SUBPATH = 'get_telemetry_tasks'
 GET_LUA_TASKS_SUBPATH = 'get_lua_tasks'
 

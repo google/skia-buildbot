@@ -30,6 +30,7 @@ UPDATE_INFO_AFTER_SECS = 7200
 # The following dictionaries ensure that tasks which are being currently
 # processed are not triggered again.
 ADMIN_ENCOUNTERED_KEYS = {}
+CHROMIUM_BUILD_ENCOUNTERED_KEYS = {}
 LUA_ENCOUNTERED_KEYS = {}
 TELEMETRY_ENCOUNTERED_KEYS = {}
 
@@ -67,6 +68,30 @@ def process_admin_tasks(pending_tasks):
       run_id = '%s-%s' % (task['username'].split('@')[0], time.time())
       cmd = 'bash vm_run_pdf_viewer_on_slaves.sh %s %s %s %s %s' % (
           username, run_id, pagesets_type, task_key, log_file)
+    subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
+                     stderr=open(log_file, 'w'))
+
+
+def process_chromium_build_tasks(pending_tasks):
+  for key in sorted(pending_tasks.keys()):
+    task = pending_tasks[key]
+
+    # Extract required parameters.
+    task_key = task['key']
+    if task_key in CHROMIUM_BUILD_ENCOUNTERED_KEYS:
+      print '%s is already being processed' % task_key
+      continue
+    CHROMIUM_BUILD_ENCOUNTERED_KEYS[task_key] = 1
+
+    chromium_rev = task['chromium_rev']
+    skia_rev = task['skia_rev']
+    username = task['username']
+
+    log_file = os.path.join(tempfile.gettempdir(), '%s-%s.output' % (
+        username, task_key))
+    print 'Chromium build output will be available in %s' % log_file
+    cmd = 'bash vm_build_chromium.sh %s %s %s %s %s' % (
+        chromium_rev, skia_rev, username, task_key, log_file)
     subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                      stderr=open(log_file, 'w'))
 
@@ -140,6 +165,8 @@ def process_telemetry_tasks(pending_tasks):
 
 TASK_SUBPATHS_TO_PROCESSING_METHOD = {
     appengine_constants.GET_ADMIN_TASKS_SUBPATH: process_admin_tasks,
+    appengine_constants.GET_CHROMIUM_BUILD_TASKS_SUBPATH:
+        process_chromium_build_tasks,
     appengine_constants.GET_LUA_TASKS_SUBPATH: process_lua_tasks,
     appengine_constants.GET_TELEMETRY_TASKS_SUBPATH: process_telemetry_tasks,
 }
