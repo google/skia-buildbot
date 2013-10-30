@@ -25,7 +25,7 @@ def Update(config, active_master, slaves, cfg):
   """
   task_mgr = tasks.TaskManager()
 
-  # Some dummy commands to run which sleep and then succeed or  fail. Sleeping
+  # Some dummy commands to run which sleep and then succeed or fail. Sleeping
   # is helpful so that we can see the buildsets fire in real time.
   succeed = 'sleep 5; exit 0'
   fail = 'sleep 5; exit 1'
@@ -77,15 +77,11 @@ def Update(config, active_master, slaves, cfg):
   all_done.add_dependency(run_bench)
 
   dosomething = task_mgr.add_task(name='DoSomething', cmd=succeed,
-                                  workdir='build/skia')
+                                  workdir='build/skia', is_percommit_task=False,
+                                  is_nightly_task=True)
   dosomethingelse = task_mgr.add_task(name='DoSomethingElse', cmd=succeed,
-                                      workdir='.')
+                                      workdir='.', is_percommit_task=False,
+                                      is_nightly_task=True)
   dosomethingelse.add_dependency(dosomething)
-  dosomethingelse.add_dependency(run_gm_gpu)
-  #dosomethingelse.add_dependency(compile)
-
-  top_level = task_mgr.add_task(name='TopLevel', cmd=succeed, workdir='.')
-  top_level.add_dependency(dosomethingelse)
-  top_level.add_dependency(all_done)
 
   return task_mgr.create_builders_from_dag(slaves, cfg)

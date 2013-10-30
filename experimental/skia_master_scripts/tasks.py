@@ -19,8 +19,12 @@ import skia_vars
 import utils
 
 
+# Relative path to the buildbot scripts from the default working directory.
 BUILDBOT_SCRIPT_PATH = posixpath.join(os.pardir, os.pardir, os.pardir,
                                       os.pardir)
+
+# Number of seconds to wait between finding a code change and starting builds.
+TREE_STABLE_TIMER = 10
 
 
 def _get_master_path(task_name, file_path):
@@ -37,9 +41,14 @@ class Task(object):
   _scheduler_prefix = 's_%s'
 
   def __init__(self, graph, name, cmd, workdir='build', slave_profile=None,
-               requires_source_checkout=False):
+               requires_source_checkout=False, is_percommit_task=True,
+               is_nightly_task=False):
     """Initialize the Task. This constructor is not intended to be used
     directly. Instead, use TaskManager to add Tasks.
+
+    Either or both of (is_percommit_task, is_nightly_task) may be set to True.
+    If neither is True, then this Task will only run as a dependency of other
+    Tasks.
 
     Args:
         graph: An instance of graph_utils.Graph to which this Task will be added
@@ -52,11 +61,17 @@ class Task(object):
         requires_source_checkout: boolean indicating whether this Task requires
             an up-to-date source code checkout in order to run. If False, the
             Task does *not* download any code.
+        is_percommit_task: boolean indicating whether this Task should run on
+            every commit.
+        is_nightly_task: boolean indicating whether this Task should run every
+            night.
     """
     self._cmd = cmd
     self._files_to_download = []
     self._files_to_upload = set()
     self._graph = graph
+    self._is_percommit_task = is_percommit_task
+    self._is_nightly_task = is_nightly_task
     self._name = name
     self._requires_source_checkout = requires_source_checkout
     self._slave_profile = slave_profile or {}
@@ -171,6 +186,16 @@ class Task(object):
             for child_id in self._graph.children(self._id)]
 
   @property
+  def is_percommit_task(self):
+    """Whether or not this Task should run on every commit."""
+    return self._is_percommit_task
+
+  @property
+  def is_nightly_task(self):
+    """Whether or not this Task should run every night."""
+    return self._is_nightly_task
+
+  @property
   def builder_name(self):
     """Name of the builder associated with this Task."""
     return Task._builder_prefix % self.name
@@ -212,14 +237,19 @@ class TaskManager(graph_utils.Graph):
     # Perform a topological sort of the graph so that we can set up the
     # dependencies more easily.
     sorted_tasks = self.topological_sort()
+
+    # Keep track of the percommit and nightly Tasks.
+    percommit_tasks = []
+    nightly_tasks = []
+
     # Create a Scheduler, BuildFactory, and Builder for each Task.
     for task_id in reversed(sorted_tasks):
       task = self[task_id]
 
       # Create a Scheduler.
       scheduler_name = task.scheduler_name
-      helper.Dependent(scheduler_name, [dep.scheduler_name
-                                        for dep in task.dependencies])
+      helper.DependencyChain(scheduler_name, [dep.scheduler_name
+                                              for dep in task.dependencies])
 
       # Create a BuildFactory.
       factory_name = task.factory_name
@@ -238,6 +268,18 @@ class TaskManager(graph_utils.Graph):
           buildslave['builder'] = []
         if task.can_be_performed_by(buildslave):
           buildslave['builder'].append(builder_name)
+
+      # If appropriate, add the Task to the percommit or nightly list.
+      if task.is_percommit_task:
+        percommit_tasks.append(scheduler_name)
+      if task.is_nightly_task:
+        nightly_tasks.append(scheduler_name)
+
+    # Create percommit and nightly schedulers to trigger the
+    # DependencyChainSchedulers we created above.
+    helper.PerCommit('percommit', 'master', percommit_tasks,
+                     treeStableTimer=TREE_STABLE_TIMER)
+    helper.Nightly('nightly', 'master', nightly_tasks, hour='*')
 
     # Remove any unused Buildslaves to satisfy the configuration test.
     for buildslave in slaves:

@@ -10,8 +10,10 @@ from twisted.internet import defer
 from twisted.python import log
 from buildbot import util
 from buildbot.db import buildsets
-from buildbot.status.results import SUCCESS, WARNINGS
+from buildbot.scheduler import Nightly
+from buildbot.schedulers.basic import SingleBranchScheduler
 from buildbot.schedulers import base, triggerable
+from buildbot.status.results import SUCCESS, WARNINGS
 
 import copy
 import pending_buildsets
@@ -363,3 +365,44 @@ class DependencyChainScheduler(base.BaseScheduler):
     d = self.master.db.buildsets.getBuildset(bsid)
     d.addCallback(_got_buildset)
     return d
+
+
+class PerCommitScheduler(SingleBranchScheduler):
+  """Scheduler which triggers a set of schedulers on every commit."""
+  def __init__(self, dependencies, *args, **kwargs):
+    """Initialize the PerCommitScheduler.
+
+    Args:
+        dependencies: List of schedulers which should trigger on every commit.
+    """
+    SingleBranchScheduler.__init__(self, builderNames=[], *args, **kwargs)
+    self._dependencies = dependencies
+
+  def addBuildsetForSourceStamp(self, *args, **kwargs):
+    """Override of SingleBranchScheduler.addBuildsetForSourceStamp. Rather than
+    actually adding a Buildset, trigger another set of schedulers."""
+    dl = []
+    for dependency in self._dependencies:
+      dl.append(dependency.addBuildsetForSourceStamp(*args, **kwargs))
+    return defer.DeferredList(dl)
+
+
+class NightlyScheduler(Nightly):
+  """Scheduler which triggers a set of schedulers every night."""
+  def __init__(self, dependencies, *args, **kwargs):
+    """Initialize the NightlyScheduler.
+
+    Args:
+        dependencies: List of schedulers which should trigger every night.
+    """
+    Nightly.__init__(self, builderNames=[], *args, **kwargs)
+    self._dependencies = dependencies
+
+  def addBuildsetForSourceStamp(self, *args, **kwargs):
+    """Override of Nightly.addBuildsetForSourceStamp. Rather than actually
+    adding a Buildset, trigger another set of schedulers."""
+    dl = []
+    for dependency in self._dependencies:
+      dl.append(dependency.addBuildsetForSourceStamp(*args, **kwargs))
+    return defer.DeferredList(dl)
+

@@ -13,10 +13,10 @@ import re
 # requires Google APIs client library for Python; see
 # https://code.google.com/p/google-api-python-client/wiki/Installation
 from apiclient.discovery import build
-from multi_dependent_scheduler import DependencyChainScheduler
-from buildbot.scheduler import Nightly
+from schedulers import DependencyChainScheduler, \
+                       PerCommitScheduler, \
+                       NightlyScheduler
 from buildbot.scheduler import Periodic
-from buildbot.scheduler import Scheduler
 from buildbot.scheduler import Triggerable
 from buildbot.schedulers.filter import ChangeFilter
 from buildbot.util import NotABranch
@@ -328,39 +328,24 @@ class Helper(object):
                            'auto_reboot': auto_reboot,
                            'notify_on_missing': notify_on_missing})
 
-  def Hourly(self, name, branch, hour='*'):
+  def Nightly(self, name, branch, schedulers_to_trigger, hour='*'):
     """Helper method for the Nightly scheduler."""
     if name in self._schedulers:
       raise ValueError('Scheduler %s already exists' % name)
     self._schedulers[name] = {'type': 'Nightly',
                               'builders': [],
                               'branch': branch,
-                              'hour': hour}
+                              'hour': hour,
+                              'schedulers': schedulers_to_trigger}
     self._schedulers_list.append(name)
 
-  def Periodic(self, name, periodicBuildTimer):
-    """Helper method for the Periodic scheduler."""
-    if name in self._schedulers:
-      raise ValueError('Scheduler %s already exists' % name)
-    self._schedulers[name] = {'type': 'Periodic',
-                              'builders': [],
-                              'periodicBuildTimer': periodicBuildTimer}
-    self._schedulers_list.append(name)
-
-  def Dependent(self, name, parent):
+  def DependencyChain(self, name, parent):
     if not isinstance(parent, list):
       raise Exception('Parent is a list!')
     if name in self._schedulers:
       raise ValueError('Scheduler %s already exists' % name)
-    self._schedulers[name] = {'type': 'Dependent',
+    self._schedulers[name] = {'type': 'DependencyChain',
                               'parent': parent,
-                              'builders': []}
-    self._schedulers_list.append(name)
-
-  def Triggerable(self, name):
-    if name in self._schedulers:
-      raise ValueError('Scheduler %s already exists' % name)
-    self._schedulers[name] = {'type': 'Triggerable',
                               'builders': []}
     self._schedulers_list.append(name)
 
@@ -369,12 +354,14 @@ class Helper(object):
       raise ValueError('Factory %s already exists' % name)
     self._factories[name] = factory
 
-  def Scheduler(self, name, branch, treeStableTimer=60, categories=None):
+  def PerCommit(self, name, branch, schedulers_to_trigger, treeStableTimer=60,
+                categories=None):
     if name in self._schedulers:
       raise ValueError('Scheduler %s already exists' % name)
     self._schedulers[name] = {'type': 'Scheduler',
                               'branch': branch,
                               'treeStableTimer': treeStableTimer,
+                              'schedulers': schedulers_to_trigger,
                               'builders': [],
                               'categories': categories}
     self._schedulers_list.append(name)
@@ -404,22 +391,10 @@ class Helper(object):
         new_builder['builddir'] = builder['builddir']
       c['builders'].append(new_builder)
 
-    # Process the main schedulers.
+    # Process the dependency chain schedulers.
     for s_name in self._schedulers_list:
       scheduler = self._schedulers[s_name]
-      if scheduler['type'] == 'Scheduler':
-        instance = Scheduler(name=s_name,
-                             branch=scheduler['branch'],
-                             treeStableTimer=scheduler['treeStableTimer'],
-                             builderNames=scheduler['builders'],
-                             categories=scheduler['categories'])
-        scheduler['instance'] = instance
-        c['schedulers'].append(instance)
-
-    # Process the dependent schedulers.
-    for s_name in self._schedulers_list:
-      scheduler = self._schedulers[s_name]
-      if scheduler['type'] == 'Dependent':
+      if scheduler['type'] == 'DependencyChain':
         if len(scheduler['builders']) > 1:
           raise Exception('DependencyChainScheduler is associated with a single'
                           ' builder.')
@@ -430,30 +405,30 @@ class Helper(object):
         scheduler['instance'] = instance
         c['schedulers'].append(instance)
 
-    # Process the triggerable schedulers.
+    # Process the percommit schedulers.
     for s_name in self._schedulers_list:
       scheduler = self._schedulers[s_name]
-      if scheduler['type'] == 'Triggerable':
-        c['schedulers'].append(Triggerable(s_name,
-                                           scheduler['builders']))
-
-    # Process the periodic schedulers.
-    for s_name in self._schedulers_list:
-      scheduler = self._schedulers[s_name]
-      if scheduler['type'] == 'Periodic':
-        c['schedulers'].append(
-            Periodic(s_name,
-                     periodicBuildTimer=scheduler['periodicBuildTimer'],
-                     builderNames=scheduler['builders']))
+      if scheduler['type'] == 'Scheduler':
+        instance = PerCommitScheduler(
+            name=s_name,
+            branch=scheduler['branch'],
+            treeStableTimer=scheduler['treeStableTimer'],
+            dependencies=[self._schedulers[s]['instance'] for s in scheduler['schedulers']],
+            categories=scheduler['categories'])
+        scheduler['instance'] = instance
+        c['schedulers'].append(instance)
 
     # Process the nightly schedulers.
     for s_name in self._schedulers_list:
       scheduler = self._schedulers[s_name]
       if scheduler['type'] == 'Nightly':
-        c['schedulers'].append(Nightly(s_name,
-                                       branch=scheduler['branch'],
-                                       hour=scheduler['hour'],
-                                       builderNames=scheduler['builders']))
+        instance = NightlyScheduler(name=s_name,
+                           branch=scheduler['branch'],
+                           hour=scheduler['hour'],
+                           dependencies=[self._schedulers[s]['instance'] for
+                                         s in scheduler['schedulers']])
+        scheduler['instance'] = instance
+        c['schedulers'].append(instance)
 
 
 def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
