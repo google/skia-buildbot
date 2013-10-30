@@ -40,6 +40,9 @@ if [ $? -eq 1 ]; then
     /home/default/storage/page_sets/$PAGESETS_TYPE/
 fi
 
+# Set all access permissions for webpagereplay_logs/logs.txt
+sudo chmod 777 /home/default/skia-repo/buildbot/third_party/src/webpagereplay_logs/logs.txt
+
 # Create /etc/lsb-release which is needed by telemetry.
 echo """
 # $Id: //depot/ops/corp/puppet/goobuntu/common/modules/base/templates/lsb-release.erb#1 $
