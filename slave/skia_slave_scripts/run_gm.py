@@ -79,7 +79,8 @@ class RunGM(BuildStep):
                   '--match',
                   '~scaled_tilemodes',
                   '~convexpaths',
-                  '~clipped-bitmap'])
+                  '~clipped-bitmap',
+                  '~xfermodes3'])
 
     self._flavor_utils.RunFlavoredCmd('gm', cmd)
 
