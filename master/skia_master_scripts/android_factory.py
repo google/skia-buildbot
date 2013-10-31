@@ -36,17 +36,3 @@ class AndroidFactory(skia_factory.SkiaFactory):
                               WithProperties('%(android_sdk_root)s')]
     self._default_clobber = True
 
-
-  def PreRender(self):
-    """ Before chaining to SkiaFactory.PreRender(), build tools (skdiff,
-    skimage) that we might need on the buildslave host machine. """
-    # We bypass the Android-flavored compile in order to build tools for
-    # the host.
-    self.AddSlaveScript(script='compile.py',
-                        description='BuildHostTools',
-                        is_rebaseline_step=True,
-                        args=['--target', 'tools',
-                              '--gyp_defines',
-                              ' '.join('%s=%s' % (k, v)
-                                       for k, v in self._gyp_defines.items())])
-    skia_factory.SkiaFactory.PreRender(self)
