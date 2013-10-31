@@ -11,6 +11,7 @@ from optparse import OptionParser
 
 import gclient_utils
 import os
+import re
 import shell_utils
 import shlex
 import sys
@@ -51,7 +52,7 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   if not os.path.isfile(GCLIENT_FILE):
     try:
       shell_utils.Bash([FETCH, 'chromium', '--nosvn=True'])
-    except Exception:
+    except shell_utils.CommandFailedException:
       pass
   if not os.path.isfile(GCLIENT_FILE):
     raise Exception('Could not fetch chromium!')
@@ -78,10 +79,29 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
         gclient_file.write(write_str)
 
   # Run "gclient sync"
-  gclient_utils.Sync(revision=str(chrome_revision), jobs=1, no_hooks=True,
-      force=True,
-      extra_args=(['--revision', 'src@%s' % chrome_revision]
-                      if chrome_revision else None))
+  try:
+    gclient_utils.Sync(revision=str(chrome_revision), jobs=1, no_hooks=True,
+        force=True,
+        extra_args=(['--revision', 'src@%s' % chrome_revision]
+                        if chrome_revision else None))
+  except shell_utils.CommandFailedException as e:
+    # We frequently see sync failures because a lock file wasn't deleted. In
+    # that case, delete the lock file and try again.
+    pattern = r".*fatal: Unable to create '(\S+)': File exists\..*"
+    match = re.search(pattern, e.output)
+    if not match:
+      raise e
+    file_to_delete = match.groups()[0]
+    try:
+      print 'Attempting to remove %s' % file_to_delete
+      os.remove(file_to_delete)
+    except OSError:
+      # If the file no longer exists, just try again.
+      pass
+    gclient_utils.Sync(revision=str(chrome_revision), jobs=1,
+        no_hooks=True, force=True,
+        extra_args=(['--revision', 'src@%s' % chrome_revision]
+                         if chrome_revision else None))
 
   # Find the actually-obtained Chrome revision.
   os.chdir('src')

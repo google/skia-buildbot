@@ -22,8 +22,27 @@ DEFAULT_SECS_BETWEEN_ATTEMPTS = 10
 POLL_MILLIS = 250
 
 
-class TimeoutException(Exception):
-  """ Exception which gets raised when a subprocess exceeds its timeout. """
+class CommandFailedException(Exception):
+  """Exception which gets raised when a command fails."""
+
+  def __init__(self, output, *args):
+    """Initialize the CommandFailedException.
+
+    Args:
+        output: string; output from the command.
+    """
+    Exception.__init__(self, *args)
+    self._output = output
+
+  @property
+  def output(self):
+    """Output from the command."""
+    return self._output
+
+
+class TimeoutException(CommandFailedException):
+  """CommandFailedException which gets raised when a subprocess exceeds its
+  timeout. """
   pass
 
 
@@ -125,7 +144,9 @@ def LogProcessInRealTime(proc, echo=True, timeout=None, log_file=None,
         time.sleep(0.5)
       if timeout and time.time() - t_0 > timeout:
         proc.terminate()
-        raise TimeoutException('Subprocess exceeded timeout of %ds' % timeout)
+        raise TimeoutException(
+            ''.join(all_output),
+            'Subprocess exceeded timeout of %ds' % timeout)
   finally:
     log_thread.stop()
     log_thread.join()
@@ -147,7 +168,9 @@ def LogProcessAfterCompletion(proc, echo=True, timeout=None, log_file=None):
   code = None
   while code is None:
     if timeout and time.time() - t_0 > timeout:
-      raise TimeoutException('Subprocess exceeded timeout of %ds' % timeout)
+      raise TimeoutException(
+          proc.communicate()[0],
+          'Subprocess exceeded timeout of %ds' % timeout)
     time.sleep(0.5)
     code = proc.poll()
   output = proc.communicate()[0]
@@ -189,7 +212,9 @@ def Bash(cmd, echo=True, shell=False, timeout=None, print_timestamps=True,
     (returncode, output) = LogProcessAfterCompletion(proc, echo=echo,
                                                      timeout=timeout)
   if returncode != 0:
-    raise Exception('Command failed with code %d: %s' % (returncode, cmd))
+    raise CommandFailedException(
+        output,
+        'Command failed with code %d: %s' % (returncode, cmd))
   return output
 
 
@@ -203,7 +228,7 @@ def BashRetry(cmd, echo=True, shell=False, attempts=1,
     try:
       return Bash(cmd, echo=echo, shell=shell, timeout=timeout,
                   print_timestamps=print_timestamps)
-    except Exception:
+    except CommandFailedException:
       if attempt >= attempts:
         raise
     print 'Command failed. Retrying in %d seconds...' % secs_between_attempts

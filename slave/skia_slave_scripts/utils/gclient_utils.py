@@ -100,7 +100,7 @@ def GetCheckedOutHash():
     cmd = [GIT, 'remote', '-v']
     try:
       shell_utils.Bash(cmd)
-    except Exception as e:
+    except shell_utils.CommandFailedException as e:
       print e
 
     # "git rev-parse HEAD" returns the commit hash for HEAD.
