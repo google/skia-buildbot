@@ -38,50 +38,62 @@ def Update(config, active_master, slaves, cfg):
   slave_ubuntu12_ati5770 = dict(gpu='ATI5770', **slave_ubuntu12)
 
   # Set up some tasks.
+  category = 'Compile'
+  subcategory = 'Linux'
   compile = task_mgr.add_task(name='Build',
                               cmd=['make', '-j15'],
                               workdir='build/skia',
                               slave_profile=slave_ubuntu12,
-                              requires_source_checkout=True)
+                              requires_source_checkout=True,
+                              category=category,
+                              subcategory=subcategory)
 
+  category = 'Unit Tests'
   run_tests = task_mgr.add_task(name='RunTests', cmd=['out/Debug/tests'],
                                 workdir='build/skia',
-                                slave_profile=slave_ubuntu12)
+                                slave_profile=slave_ubuntu12,
+                                category=category,
+                                subcategory=subcategory)
   run_tests.add_dependency(compile, download_files=['out/Debug/tests'])
 
+  category = 'GM'
   run_gm = task_mgr.add_task(name='RunGM', cmd=['out/Debug/gm'],
                              workdir='build/skia',
-                             slave_profile=slave_ubuntu12)
+                             slave_profile=slave_ubuntu12,
+                             category=category,
+                             subcategory=subcategory)
   run_gm.add_dependency(compile,
       download_files=['out/Debug/gm',
                       'out/Debug/lib.target/libpoppler-cpp-gpl.so'])
 
   run_gm_gpu = task_mgr.add_task(name='RunGM_ATI5770', cmd=['out/Debug/gm'],
                                  workdir='build/skia',
-                                 slave_profile=slave_ubuntu12_ati5770)
+                                 slave_profile=slave_ubuntu12_ati5770,
+                                 category=category,
+                                 subcategory=subcategory)
   run_gm_gpu.add_dependency(compile,
       download_files=['out/Debug/gm',
                       'out/Debug/lib.target/libpoppler-cpp-gpl.so'])
 
+  category = 'Benchmarks'
   run_bench = task_mgr.add_task(name='RunBench', cmd=['out/Debug/bench'],
                                 workdir='build/skia',
-                                slave_profile=slave_ubuntu12)
+                                slave_profile=slave_ubuntu12,
+                                category=category,
+                                subcategory=subcategory)
   run_bench.add_dependency(compile, download_files=['out/Debug/bench'])
 
-  all_done = task_mgr.add_task(name='AllFinished', cmd=succeed,
-                               workdir='build/skia',
-                               slave_profile=slave_ubuntu12)
-  all_done.add_dependency(run_tests)
-  all_done.add_dependency(run_gm)
-  all_done.add_dependency(run_gm_gpu)
-  all_done.add_dependency(run_bench)
-
+  category = 'Misc'
   dosomething = task_mgr.add_task(name='DoSomething', cmd=succeed,
                                   workdir='build/skia', is_percommit_task=False,
-                                  is_nightly_task=True)
+                                  is_nightly_task=True,
+                                  category=category,
+                                  subcategory=subcategory)
   dosomethingelse = task_mgr.add_task(name='DoSomethingElse', cmd=succeed,
                                       workdir='.', is_percommit_task=False,
-                                      is_nightly_task=True)
+                                      is_nightly_task=True,
+                                      category=category,
+                                      subcategory=subcategory)
   dosomethingelse.add_dependency(dosomething)
 
   return task_mgr.create_builders_from_dag(slaves, cfg)

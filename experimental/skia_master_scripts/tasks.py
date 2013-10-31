@@ -42,7 +42,8 @@ class Task(object):
 
   def __init__(self, graph, name, cmd, workdir='build', slave_profile=None,
                requires_source_checkout=False, is_percommit_task=True,
-               is_nightly_task=False):
+               is_nightly_task=False, category='default',
+               subcategory='default'):
     """Initialize the Task. This constructor is not intended to be used
     directly. Instead, use TaskManager to add Tasks.
 
@@ -65,7 +66,10 @@ class Task(object):
             every commit.
         is_nightly_task: boolean indicating whether this Task should run every
             night.
+        category: string; the organizational category for this Task.
+        subcategory: string; the organizational subcategory for this Task.
     """
+    self._category = category
     self._cmd = cmd
     self._files_to_download = []
     self._files_to_upload = set()
@@ -75,6 +79,7 @@ class Task(object):
     self._name = name
     self._requires_source_checkout = requires_source_checkout
     self._slave_profile = slave_profile or {}
+    self._subcategory = subcategory
     self._workdir = workdir
     self._id = self._graph.add_node(self)
 
@@ -166,6 +171,11 @@ class Task(object):
     return True
 
   @property
+  def category(self):
+    """The organizational category for this Task."""
+    return self._category
+
+  @property
   def name(self):
     """The name of this Task."""
     return self._name
@@ -209,6 +219,11 @@ class Task(object):
   def scheduler_name(self):
     """Name of the Scheduler associated with this Task."""
     return Task._scheduler_prefix % self.name
+
+  @property
+  def subcategory(self):
+    """The organizational subcategory for this Task."""
+    return self._subcategory
 
 
 class TaskManager(graph_utils.Graph):
@@ -260,7 +275,9 @@ class TaskManager(graph_utils.Graph):
       helper.Builder(name=builder_name,
                      factory=factory_name,
                      scheduler=scheduler_name,
-                     auto_reboot=False)
+                     auto_reboot=False,
+                     category='%s|%s' % (task.category, task.subcategory),
+                     )
 
       # Add the Builder to the appropriate Buildslaves.
       for buildslave in slaves:
