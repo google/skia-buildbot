@@ -221,7 +221,7 @@ function checkMouseLeave(element, event) {
           <table width="100%">
             <tr>
             {% for b in builders[category][subcategory][cat_full]|sort %}
-              <td class='DevSlaveBox' onmouseover="showBuilderTooltip(&#39;{{ get_builder_status_msg(b.builderName) }}&#39;, event)" onmouseout="hideBuilderTooltip(event)">
+              <td class='DevSlaveBox' onmouseover="showBuilderTooltip(&#39;{{ escape_quotes(get_builder_status_msg(b.builderName)) }}&#39;, event)" onmouseout="hideBuilderTooltip(event)">
                 <a href='{{ b.url }}' class='DevSlaveBox {{ b.color }}{% if builder_statuses.get(b.builderName) %} BuilderHasComment{% endif %}' target="_blank">
                 </a>
               </td>

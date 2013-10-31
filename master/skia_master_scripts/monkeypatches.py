@@ -183,7 +183,9 @@ def HtmlResourceRender(self, request):
            EDIT_BUILDER_STATUS_LINK % builder_name)
           if builder_statuses.get(builder_name)
           else ADD_BUILDER_STATUS_LINK % builder_name
-      ).replace('\'', '\\&#39;').replace('"', '&#34;')
+      )
+  ctx['escape_quotes'] = \
+      lambda input: input.replace('\'', '\\&#39;').replace('"', '&#34;')
 
   # Get the current sheriff.
   ctx['sheriff'] = json.load(urllib2.urlopen(SHERIFF_URL))['username']
