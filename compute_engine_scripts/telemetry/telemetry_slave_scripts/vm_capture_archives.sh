@@ -50,10 +50,7 @@ for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*; do
       echo "========== $page_set copied over from All =========="
     else
       check_and_run_xvfb
-      # TODO(rmistry): Figure out why using the specific chromium build does not
-      # work.
-      # DISPLAY=:0 timeout 600 tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $page_set
-      DISPLAY=:0 timeout 600 tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/usr/bin/chromium --browser=exact $page_set
+      DISPLAY=:0 timeout 600 tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $page_set
       if [ $? -eq 124 ]; then
         echo "========== $page_set timed out! =========="
       else
