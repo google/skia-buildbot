@@ -50,10 +50,28 @@ class ChromiumBuilds(db.Model):
   build_log_link = db.LinkProperty()
   chromium_rev_date = db.DateTimeProperty()
 
+  def get_json_repr(self):
+    """Returns a JSON representation of this Data Model."""
+    return {
+        'ChromiumBuildTask': {
+            'key': self.key().id_or_name(),
+            'username': self.username,
+            'chromium_rev': self.chromium_rev,
+            'skia_rev': self.skia_rev
+        }
+    }
+
   @classmethod
   def get_all_chromium_builds(cls):
     return (cls.all()
                .order('-chromium_rev_date')
+               .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
+  def get_all_completed_chromium_builds(cls):
+    return (cls.all()
+               .filter('completed_time !=', None)
+               .order('-completed_time')
                .fetch(limit=FETCH_LIMIT))
 
   @classmethod
@@ -69,11 +87,14 @@ class ChromiumBuilds(db.Model):
         'AND skia_rev=\'%s\';' % (chromium_rev, skia_rev))
 
   @classmethod
-  def get_oldest_pending_chromium_build(cls):
-    return (cls.all()
-               .filter('completed_time =', None)
-               .order('requested_time')
-               .fetch(limit=1))
+  def add_oldest_pending_chromium_build(cls, l):
+    """Adds the oldest pending task to the specified list."""
+    db_obj = (cls.all()
+                 .filter('completed_time =', None)
+                 .order('requested_time')
+                 .fetch(limit=1))
+    if db_obj:
+      l.append(db_obj[0])
 
   @classmethod
   def delete_chromium_build(cls, key):
@@ -113,7 +134,22 @@ class AdminTasks(db.Model):
   task_name = db.StringProperty(required=True)
   requested_time = db.DateTimeProperty(required=True)
   pagesets_type = db.StringProperty()
+  chromium_rev = db.StringProperty()
+  skia_rev = db.StringProperty()
   completed_time = db.DateTimeProperty()
+
+  def get_json_repr(self):
+    """Returns a JSON representation of this Data Model."""
+    return {
+        'AdminTask': {
+            'key': self.key().id_or_name(),
+            'username': self.username,
+            'task_name': self.task_name,
+            'pagesets_type': self.pagesets_type,
+            'chromium_rev': self.chromium_rev,
+            'skia_rev': self.skia_rev
+        }
+    }
 
   @classmethod
   def get_all_admin_tasks(cls, offset):
@@ -135,11 +171,14 @@ class AdminTasks(db.Model):
             key))
 
   @classmethod
-  def get_all_pending_admin_tasks(cls):
-    return (cls.all()
-               .filter('completed_time =', None)
-               .order('requested_time')
-               .fetch(limit=FETCH_LIMIT))
+  def add_oldest_pending_admin_task(cls, l):
+    """Adds the oldest pending task to the specified list."""
+    db_obj = (cls.all()
+                .filter('completed_time =', None)
+                .order('requested_time')
+                .fetch(limit=1))
+    if db_obj:
+      l.append(db_obj[0])
 
   @classmethod
   def is_admin_task_running(cls, task_name):
@@ -167,12 +206,26 @@ class LuaTasks(db.Model):
   lua_output_link = db.LinkProperty()
   description = db.StringProperty()
 
+  def get_json_repr(self):
+    """Returns a JSON representation of this Data Model."""
+    return {
+        'LuaTask': {
+            'key': self.key().id_or_name(),
+            'username': self.username,
+            'lua_script': self.lua_script,
+            'pagesets_type': self.pagesets_type
+        }
+    }
+
   @classmethod
-  def get_all_pending_lua_tasks(cls):
-    return (cls.all()
-               .filter('completed_time =', None)
-               .order('requested_time')
-               .fetch(limit=FETCH_LIMIT))
+  def add_oldest_pending_lua_task(cls, l):
+    """Adds the oldest pending task to the specified list."""
+    db_obj = (cls.all()
+                .filter('completed_time =', None)
+                .order('requested_time')
+                .fetch(limit=1))
+    if db_obj:
+      l.append(db_obj[0])
 
   @classmethod
   def get_all_lua_tasks(cls, offset):
@@ -205,18 +258,38 @@ class TelemetryTasks(db.Model):
   benchmark_name = db.StringProperty(required=True)
   benchmark_arguments = db.StringProperty()
   pagesets_type = db.StringProperty()
+  chromium_rev = db.StringProperty()
+  skia_rev = db.StringProperty()
   requested_time = db.DateTimeProperty(required=True)
   completed_time = db.DateTimeProperty()
   output_link = db.LinkProperty()
   whitelist_file = db.BlobProperty()
   description = db.StringProperty()
 
+  def get_json_repr(self):
+    """Returns a JSON representation of this Data Model."""
+    return {
+        'TelemetryTask': {
+            'key': self.key().id_or_name(),
+            'username': self.username,
+            'chromium_rev': self.chromium_rev,
+            'skia_rev': self.skia_rev,
+            'benchmark_name': self.benchmark_name,
+            'benchmark_arguments': self.benchmark_arguments,
+            'pagesets_type': self.pagesets_type,
+            'whitelist_file': self.whitelist_file
+        }
+    }
+
   @classmethod
-  def get_all_pending_telemetry_tasks(cls):
-    return (cls.all()
-               .filter('completed_time =', None)
-               .order('requested_time')
-               .fetch(limit=FETCH_LIMIT))
+  def add_oldest_pending_telemetry_task(cls, l):
+    """Adds the oldest pending task to the specified list."""
+    db_obj = (cls.all()
+                 .filter('completed_time =', None)
+                 .order('requested_time')
+                 .fetch(limit=1))
+    if db_obj:
+      l.append(db_obj[0])
 
   @classmethod
   def get_all_telemetry_tasks(cls, offset):
@@ -292,6 +365,11 @@ class AdminTasksPage(BasePage):
     requested_time = datetime.datetime.now()
     admin_task = self.request.get('admin_task')
     pagesets_type = self.request.get('pagesets_type')
+    if admin_task == 'Recreate Webpage Archives':
+      chromium_rev, skia_rev = self.request.get('chromium_build').split('-')
+    else:
+      # Other admin tasks do not care which Chromium build is used.
+      chromium_rev, skia_rev = (None, None)
 
     # There should be only one instance of an admin task running at a time.
     # Running multiple instances causes unpredictable and inconsistent behavior.
@@ -303,6 +381,8 @@ class AdminTasksPage(BasePage):
           username=self.user.email(),
           task_name=admin_task,
           pagesets_type=pagesets_type,
+          chromium_rev=chromium_rev,
+          skia_rev=skia_rev,
           requested_time=requested_time).put()
       self.redirect('admin_tasks')
 
@@ -316,6 +396,8 @@ class AdminTasksPage(BasePage):
     admin_tasks = AdminTasks.get_all_admin_tasks_of_user(self.user.email())
     template_values['admin_tasks'] = admin_tasks
     template_values['pageset_types'] = PAGESET_TYPES
+    chromium_builds = ChromiumBuilds.get_all_completed_chromium_builds()
+    template_values['chromium_builds'] = chromium_builds
 
     self.DisplayTemplate('admin_tasks.html', template_values)
 
@@ -517,6 +599,7 @@ class LandingPage(BasePage):
     benchmark_name = self.request.get('benchmark_name')
     benchmark_arguments = self.request.get('benchmark_arguments')
     pagesets_type = self.request.get('pagesets_type')
+    chromium_rev, skia_rev = self.request.get('chromium_build').split('-')
     requested_time = datetime.datetime.now()
     whitelist_file = self.request.get('whitelist_file')
     if whitelist_file:
@@ -539,6 +622,8 @@ class LandingPage(BasePage):
           benchmark_name=benchmark_name,
           benchmark_arguments=benchmark_arguments,
           pagesets_type=pagesets_type,
+          chromium_rev=chromium_rev,
+          skia_rev=skia_rev,
           requested_time=requested_time,
           whitelist_file=whitelist_file,
           description=description).put()
@@ -557,68 +642,10 @@ class LandingPage(BasePage):
         self.user.email())
     template_values['telemetry_tasks'] = telemetry_tasks
     template_values['pageset_types'] = PAGESET_TYPES
+    chromium_builds = ChromiumBuilds.get_all_completed_chromium_builds()
+    template_values['chromium_builds'] = chromium_builds
 
     self.DisplayTemplate('skia_telemetry_landingpage.html', template_values)
-
-
-class GetAdminTasksPage(BasePage):
-  """Returns a JSON of all pending admin tasks in the queue."""
-
-  def get(self):
-    admin_tasks = AdminTasks.get_all_pending_admin_tasks()
-    # Create a dict for JSON from the admin pending tasks.
-    tasks_dict = {}
-    count = 1
-    for task in admin_tasks:
-      task_dict = {}
-      task_dict['key'] = task.key().id_or_name()
-      task_dict['username'] = task.username
-      task_dict['task_name'] = task.task_name
-      task_dict['pagesets_type'] = task.pagesets_type
-      tasks_dict[count] = task_dict
-      count += 1
-    self.response.out.write(json.dumps(tasks_dict, sort_keys=True))
-
-
-class GetChromiumBuildTasksPage(BasePage):
-  """Returns a JSON of the oldest pending chromium build task in the queue."""
-
-  def get(self):
-    chromium_build_task = ChromiumBuilds.get_oldest_pending_chromium_build()
-
-    # Create a dict for JSON from the oldest pending task.
-    if chromium_build_task:
-      task = chromium_build_task[0]
-      task_dict = {
-        1: {
-            'key': task.key().id_or_name(),
-            'username': task.username,
-            'chromium_rev': task.chromium_rev,
-            'skia_rev': task.skia_rev
-        }
-      }
-    else:
-      task_dict = {}
-    self.response.out.write(json.dumps(task_dict, sort_keys=True))
-
-
-class GetLuaTasksPage(BasePage):
-  """Returns a JSON of all pending lua tasks in the queue."""
-
-  def get(self):
-    lua_tasks = LuaTasks.get_all_pending_lua_tasks()
-    # Create a dict for JSON from the lua pending tasks.
-    tasks_dict = {}
-    count = 1
-    for task in lua_tasks:
-      task_dict = {}
-      task_dict['key'] = task.key().id_or_name()
-      task_dict['username'] = task.username
-      task_dict['lua_script'] = task.lua_script
-      task_dict['pagesets_type'] = task.pagesets_type
-      tasks_dict[count] = task_dict
-      count += 1
-    self.response.out.write(json.dumps(tasks_dict, sort_keys=True))
 
 
 class UpdateAdminTasksPage(BasePage):
@@ -704,25 +731,25 @@ class UpdateLuaTasksPage(BasePage):
     self.response.out.write('completed_time: %s<br/>' % completed_time)
 
 
-class GetTelemetryTasksPage(BasePage):
-  """Returns a JSON of all telemetry tasks in the queue."""
+class GetClusterTelemetryTasksPage(BasePage):
+  """Returns a JSON of the oldest task in the queue."""
 
   def get(self):
-    telemetry_tasks = TelemetryTasks.get_all_pending_telemetry_tasks()
-    # Create a dict for JSON from the telemetry pending tasks.
-    tasks_dict = {}
-    count = 1
-    for task in telemetry_tasks:
-      task_dict = {}
-      task_dict['key'] = task.key().id_or_name()
-      task_dict['username'] = task.username
-      task_dict['benchmark_name'] = task.benchmark_name
-      task_dict['benchmark_arguments'] = task.benchmark_arguments
-      task_dict['pagesets_type'] = task.pagesets_type
-      task_dict['whitelist_file'] = task.whitelist_file
-      tasks_dict[count] = task_dict
-      count += 1
-    self.response.out.write(json.dumps(tasks_dict, indent=4, sort_keys=True))
+    # A list holding the different pending tasks.
+    tasks = []
+
+    TelemetryTasks.add_oldest_pending_telemetry_task(tasks)
+    AdminTasks.add_oldest_pending_admin_task(tasks)
+    ChromiumBuilds.add_oldest_pending_chromium_build(tasks)
+    LuaTasks.add_oldest_pending_lua_task(tasks)
+
+    task_dict = {}
+    if tasks:
+      oldest_task = reduce(lambda x, y: x if x.requested_time < y.requested_time
+                           else y, tasks)
+      task_dict = oldest_task.get_json_repr()
+
+    self.response.out.write(json.dumps(task_dict, indent=4, sort_keys=True))
 
 
 class UpdateInfoPage(BasePage):

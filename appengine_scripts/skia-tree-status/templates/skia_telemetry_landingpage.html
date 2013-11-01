@@ -4,16 +4,18 @@
   <center>
   <h2>Run Telemetry Benchmarks</h2>
 
-  {% if not is_google_chromium_user %}<br/>Must have a google or chromium account to trigger benchmarks (contact rmistry@)<br/><br/>{% endif %}
+  {% if not is_google_chromium_user %}
+    <br/>Must have a google or chromium account to trigger benchmarks (contact rmistry@)<br/><br/>
+  {% else %}
   <form action="/skia-telemetry" name="add_telemetry_task" method="post" enctype="multipart/form-data">
     <table cellpadding="5">
       <tr>
         <td>Benchmark to run</td>
-        <td><input type="text" size="35" name="benchmark_name" {% if admin %}value="skpicture_printer"{% endif %} {% if not is_google_chromium_user %}disabled{% endif %}/></td>
+        <td><input type="text" size="35" name="benchmark_name" {% if admin %}value="skpicture_printer"{% endif %}/></td>
       </tr>
       <tr>
         <td>Benchmark Arguments</td>
-        <td><input type="text" size="35" name="benchmark_arguments" {% if admin %}value="--skp-outdir=/home/default/storage/skps/"{% endif %} {% if not is_google_chromium_user %}disabled{% endif %}/></td>
+        <td><input type="text" size="35" name="benchmark_arguments" {% if admin %}value="--skp-outdir=/home/default/storage/skps/"{% endif %}/></td>
       </tr>
       <tr>
         <td>Pagesets Type</td>
@@ -24,21 +26,32 @@
             {% endfor %}
           </select>
       </td>
-
+      </tr>
+      <tr>
+        <td>Chromium Build</td>
+        <td>
+          <select name="chromium_build">
+            {% for chromium_build in chromium_builds %}
+              <option value="{{ chromium_build.chromium_rev }}-{{ chromium_build.skia_rev }}">{{ chromium_build.chromium_rev|slice:":7" }}-{{ chromium_build.skia_rev|slice:":7" }} (Chromium rev created on {{ chromium_build.chromium_rev_date}})</option>
+            {% endfor %}
+          </select>
+          (See Chromium Build details <a href='/skia-telemetry/chromium_builds'>here</a>)
+      </td>
       </tr>
       <tr>
         <td>Whitelist File</td>
-        <td><input type="file" name="whitelist_file" {% if not is_google_chromium_user %}disabled{% endif %}/> (Must contain one webpage per line)</td>
+        <td><input type="file" name="whitelist_file"/> (Must contain one webpage per line)</td>
       </tr>
       <tr>
         <td>Optional Description</td>
         <td><input type="text" name="description" size="35"></td>
       </tr>
       <tr>
-        <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task" {% if not is_google_chromium_user %}disabled{% endif %}></td>
+        <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task"></td>
       </tr>
     </table>
   </form>
+  {% endif %}
   <hr/>
 
 
@@ -52,6 +65,7 @@
       <td><b>Benchmark Name</b></td>
       <td><b>Benchmark Arguments</b></td>
       <td><b>Pagesets Type</b></td>
+      <td><b>Chromium Build</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Whitelist File</b></td>
@@ -64,6 +78,13 @@
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
       <td>{{ task.pagesets_type }}</td>
+      <td>
+        {% if task.chromium_rev and task.skia_rev %}
+          <a href='https://chromium.googlesource.com/chromium/src/+/{{ task.chromium_rev }}'>{{ task.chromium_rev|slice:":7" }}</a>-<a href='https://skia.googlesource.com/skia/+/{{ task.skia_rev }}'>{{ task.skia_rev|slice:":7" }}</a>
+        {% else %}
+          N/A
+        {% endif %}
+      </td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}
