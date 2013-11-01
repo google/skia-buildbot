@@ -16,6 +16,7 @@ source ../vm_config.sh
 # Update buildbot and trunk.
 gclient sync
 
+# Modify the below script with packages necessary for the new images!
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   # After VM crashes the slaves only contain one 'lost+found' directory in the
   # mounted scratch disk. This is our indication that the VM crashed recently.
@@ -25,21 +26,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   if [ "$NUM_DIRS" == "1" ]; then
     echo "skia-telemetry-worker$SLAVE_NUM crashed! Recovering it..."
     CMD="""
-echo Deleting SVN checkouts and creating Git checkouts;
-cd skia-repo;
-rm -rf buildbot trunk;
-sed -i 's/https\:\/\/skia\.googlecode\.com\/svn\/buildbot/https\:\/\/skia\.googlesource\.com\/buildbot\.git/g' .gclient;
-sed -i 's/https\:\/\/skia\.googlecode\.com\/svn\/trunk/https\:\/\/skia\.googlesource\.com\/skia\.git/g' .gclient;
-/home/default/depot_tools/gclient sync;
-echo =====Installing packages missing from the image=====;
-sudo apt-get update;
-sudo apt-get -y install libgif-dev libgl1-mesa-dev libglu-dev gdb unzip linux-tools parallel;
-echo =====Updating gsutil on the slave=====;
-sudo gsutil update -n;
-echo =====Adding the testing repository to sources.list and installing libc6=====
-sudo sh -c \"echo 'deb ftp://ftp.fr.debian.org/debian/ testing main contrib  non-free' >> /etc/apt/sources.list\";
-sudo apt-get update;
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y -t testing install libc6-dev;
+sudo chmod 777 ~/.gsutil;
 """
     ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
