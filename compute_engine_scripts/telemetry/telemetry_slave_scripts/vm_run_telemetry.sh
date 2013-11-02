@@ -63,9 +63,9 @@ fi
 
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Clean and create the skp output directory.
-  sudo chown -R default:default /home/default/storage/skps/$PAGESETS_TYPE
-  rm -rf /home/default/storage/skps/$PAGESETS_TYPE
-  mkdir -p /home/default/storage/skps/$PAGESETS_TYPE/
+  sudo chown -R default:default /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
+  rm -rf /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
+  mkdir -p /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
 fi
 
 OUTPUT_DIR=/home/default/storage/telemetry_outputs/$RUN_ID
@@ -120,30 +120,36 @@ gsutil cp /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm
 
 # Special handling for skpicture_printer, SKP files need to be copied to Google Storage.
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
-  gsutil rm -R gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/*
-  sudo chown -R default:default /home/default/storage/skps/$PAGESETS_TYPE
-  cd /home/default/storage/skps/$PAGESETS_TYPE
+  gsutil rm -R gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/*
+  sudo chown -R default:default /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
+  cd /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
   SKP_LIST=`find . -mindepth 1 -maxdepth 1 -type d  \( ! -iname ".*" \) | sed 's|^\./||g'`
   for SKP in $SKP_LIST; do
-    mv /home/default/storage/skps/$PAGESETS_TYPE/$SKP/layer_0.skp /home/default/storage/skps/$PAGESETS_TYPE/$SKP.skp
+    echo "Contents of SKP directory are:"
+    ls -l /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP/
+    echo "The largest file here is:"
+    LARGEST_SKP=`find /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP/* -maxdepth 1 -printf '%p\n' | sort -nr | head -1`
+    echo $LARGEST_SKP
+    # We are only interested in the largest SKP, move it into the SKP repository.
+    mv $LARGEST_SKP /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP.skp
   done
 
   # Leave only SKP files in the skps directory.
-  rm -rf /home/default/storage/skps/$PAGESETS_TYPE/*/
+  rm -rf /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/*/
 
   # Delete all SKP files less than 10K (they will be the ones with errors).
   find . -type f -size -10k
   find . -type f -size -10k -exec rm {} \;
 
   # Now copy the SKP files to Google Storage. 
-  gsutil cp /home/default/storage/skps/$PAGESETS_TYPE/* \
-    gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/
+  gsutil cp /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/* \
+    gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
 
   # Create a TIMESTAMP file and copy it to Google Storage.
   TIMESTAMP=`date +%s`
   echo $TIMESTAMP > /tmp/$TIMESTAMP
-  cp /tmp/$TIMESTAMP /home/default/storage/skps/$PAGESETS_TYPE/TIMESTAMP
-  gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/TIMESTAMP
+  cp /tmp/$TIMESTAMP /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/TIMESTAMP
+  gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/TIMESTAMP
   rm /tmp/$TIMESTAMP
 fi
 
