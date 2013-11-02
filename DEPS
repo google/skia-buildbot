@@ -16,8 +16,10 @@ vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   "chromium_revision": "179720",
   "depot_tools_revision": "223643",
-  "telemetry_chromium_revision": "213279",
-  "webpagereplay_revision": "511",
+  "telemetry_chromium_revision": "232633",
+  "webpagereplay_revision": "522",
+  "telemetry_webkit_trunk": "http://src.chromium.org/blink/trunk",
+  "telemetry_webkit_revision": "161228"
 }
 
 deps = {
@@ -32,6 +34,12 @@ deps = {
     Var("chromium_trunk") + "/src/build/android/pylib@" + Var("telemetry_chromium_revision"),
   "third_party/chromium_trunk/tools/crx_id":
     Var("chromium_trunk") + "/src/tools/crx_id@" + Var("telemetry_chromium_revision"),
+  "third_party/chromium_trunk/build/util":
+    Var("chromium_trunk") + "/src/build/util@" + Var("telemetry_chromium_revision"),
+  "third_party/chromium_trunk/third_party/flot":
+    Var("chromium_trunk") + "/src/third_party/flot@" + Var("telemetry_chromium_revision"),
+  "third_party/chromium_trunk/third_party/WebKit/PerformanceTests/resources":
+    Var("telemetry_webkit_trunk") + "/PerformanceTests/resources@" + Var("telemetry_webkit_revision"),
 
   # build/android/pylib/android_commands.py requires android_testrunner to be in third_party.
   "third_party/chromium_trunk/third_party/android_testrunner":
