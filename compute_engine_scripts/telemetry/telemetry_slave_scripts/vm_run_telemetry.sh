@@ -66,6 +66,7 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   sudo chown -R default:default /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
   rm -rf /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
   mkdir -p /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
+  EXTRA_ARGS="--skp-outdir=/home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/ $EXTRA_ARGS"
 fi
 
 OUTPUT_DIR=/home/default/storage/telemetry_outputs/$RUN_ID
