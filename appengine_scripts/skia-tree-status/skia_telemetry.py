@@ -181,14 +181,6 @@ class AdminTasks(db.Model):
       l.append(db_obj[0])
 
   @classmethod
-  def is_admin_task_running(cls, task_name):
-    admin_tasks = (cls.all()
-                      .filter('completed_time =', None)
-                      .filter('task_name =', task_name)
-                      .fetch(limit=1))
-    return admin_tasks != None and len(admin_tasks) != 0
-
-  @classmethod
   def delete_admin_task(cls, key):
     admin_tasks = cls.get_admin_task(key)
     if admin_tasks.count():
@@ -311,14 +303,6 @@ class TelemetryTasks(db.Model):
         'Key(\'TelemetryTasks\', %s);' % key)
 
   @classmethod
-  def is_skp_benchmark_running(cls):
-    skp_benchmarks = (cls.all()
-                         .filter('completed_time =', None)
-                         .filter('benchmark_name =', 'skpicture_printer')
-                         .fetch(limit=1))
-    return skp_benchmarks != None and len(skp_benchmarks) != 0
-
-  @classmethod
   def delete_telemetry_task(cls, key):
     telemetry_tasks = cls.get_telemetry_task(key)
     if telemetry_tasks.count():
@@ -371,20 +355,14 @@ class AdminTasksPage(BasePage):
       # Other admin tasks do not care which Chromium build is used.
       chromium_rev, skia_rev = (None, None)
 
-    # There should be only one instance of an admin task running at a time.
-    # Running multiple instances causes unpredictable and inconsistent behavior.
-    if AdminTasks.is_admin_task_running(admin_task):
-      self.redirect('/skia-telemetry/skia_telemetry_info_page?info_msg=%s'
-                    ' is already running!' % admin_task)
-    else:
-      AdminTasks(
-          username=self.user.email(),
-          task_name=admin_task,
-          pagesets_type=pagesets_type,
-          chromium_rev=chromium_rev,
-          skia_rev=skia_rev,
-          requested_time=requested_time).put()
-      self.redirect('admin_tasks')
+    AdminTasks(
+        username=self.user.email(),
+        task_name=admin_task,
+        pagesets_type=pagesets_type,
+        chromium_rev=chromium_rev,
+        skia_rev=skia_rev,
+        requested_time=requested_time).put()
+    self.redirect('admin_tasks')
 
   def _handle(self):
     """Sets the information to be displayed on the main page."""
@@ -426,21 +404,13 @@ class LuaScriptPage(BasePage):
     if not description:
       description = 'None'
 
-    # Lua scripts should not run if skpicture_printer is already running,
-    # because when that benchmark is running the local skps directory is empty
-    # till the benchmark completes (this takes a few hours).
-    if TelemetryTasks.is_skp_benchmark_running():
-      self.redirect('/skia-telemetry/skia_telemetry_info_page?info_msg=SKP '
-                    'files are in the process of being captured. Please try '
-                    'your Lua script in a few hours.')
-    else:
-      LuaTasks(
-          username=self.user.email(),
-          lua_script=lua_script,
-          pagesets_type=pagesets_type,
-          requested_time=requested_time,
-          description=description).put()
-      self.redirect('lua_script')
+    LuaTasks(
+        username=self.user.email(),
+        lua_script=lua_script,
+        pagesets_type=pagesets_type,
+        requested_time=requested_time,
+        description=description).put()
+    self.redirect('lua_script')
 
   def _handle(self):
     """Sets the information to be displayed on the main page."""
@@ -610,24 +580,17 @@ class LandingPage(BasePage):
     if not description:
       description = 'None'
 
-    # There should be only one instance of a skp benchmark running at a time.
-    # Running multiple instances causes unpredictable and inconsistent behavior.
-    if (benchmark_name == 'skpicture_printer' and
-        TelemetryTasks.is_skp_benchmark_running()):
-      self.redirect('/skia-telemetry/skia_telemetry_info_page?info_msg=%s'
-                    ' is already running!' % benchmark_name)
-    else:
-      TelemetryTasks(
-          username=self.user.email(),
-          benchmark_name=benchmark_name,
-          benchmark_arguments=benchmark_arguments,
-          pagesets_type=pagesets_type,
-          chromium_rev=chromium_rev,
-          skia_rev=skia_rev,
-          requested_time=requested_time,
-          whitelist_file=whitelist_file,
-          description=description).put()
-      self.redirect('/skia-telemetry')
+    TelemetryTasks(
+        username=self.user.email(),
+        benchmark_name=benchmark_name,
+        benchmark_arguments=benchmark_arguments,
+        pagesets_type=pagesets_type,
+        chromium_rev=chromium_rev,
+        skia_rev=skia_rev,
+        requested_time=requested_time,
+        whitelist_file=whitelist_file,
+        description=description).put()
+    self.redirect('/skia-telemetry')
 
 
   def _handle(self):
