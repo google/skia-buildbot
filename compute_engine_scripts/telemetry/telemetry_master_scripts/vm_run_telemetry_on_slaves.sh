@@ -116,7 +116,10 @@ fi
 # Copy the consolidated file into Google Storage.
 gsutil cp -a public-read $OUTPUT_DIR/$RUN_ID.$TELEMETRY_BENCHMARK.output \
   gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
+# Setting ACLs on massive files sometimes does not work so do it explicitly.
+gsutil setacl public-read gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
 OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
+SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave1/logs/$RUN_ID.log
 
 # Delete all tmp files.
 rm -rf /tmp/$RUN_ID*
@@ -139,7 +142,8 @@ Content-Type: text/html
 <html>
   <head/>
   <body>
-  The output of your script is available <a href='$OUTPUT_LINK'>here</a>.<br/>
+  The output of your script is available <a href='$OUTPUT_LINK'>here</a>.<br/><br/>
+  If the above output is blank and you expected output then please look for failures in the log file of the first slave <a href='$SLAVE_1_LOG_LINK'>here</a>.<br/>
   You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry'>here</a>.<br/><br/>
   Thanks!
   </body>
