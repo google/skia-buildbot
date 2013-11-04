@@ -31,23 +31,26 @@ Starting setup of ${VM_COMPLETE_NAME}.....
 FAILED=""
 
 echo "Install required packages."
+# TODO(rmistry): No parallel package for ubuntu, it is required for pdfviewer.
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
-  "sudo dpkg --add-architecture i386; " \
   "sudo apt-get update; " \
   "sudo apt-get -y install git make subversion postfix python-dev xvfb python-twisted-core " \
-  "vim gyp g++ pkg-config libgtk2.0-dev libglib2.0-dev libnss3-dev libgconf2-dev " \
-  "libpci-dev libgcrypt11-dev libgnome-keyring-dev libudev-dev libpulse-dev " \
-  "libcups2-dev libelf-dev gperf libbison-dev ia32-libs libxtst-dev libasound2-dev libxss-dev " \
-  "xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrillic xserver-xorg-core " \
-  "ttf-.*-fonts fonts-nanum fonts-tlwg-* fonts-kacst.* fonts-thai-tlwg libgl1-mesa-dev " \
-  "libgif-dev libglu-dev gdb unzip linux-tools parallel;" \
+  "vim gyp g++ gdb unzip linux-tools libgif-dev;" \
   || FAILED="$FAILED InstallPackages"
+echo
+
+echo "Update gsutil."
+$GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
+  "sudo gsutil update;" \
+  || FAILED="$FAILED Update gsutil"
 echo
 
 echo "Setup .bashrc."
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
   "echo 'PATH=\"/home/default/depot_tools:/usr/local/sbin:/usr/sbin:/sbin:$PATH\"' >> ~/.bashrc && " \
-  "echo 'alias ll=\"ls -l\"' >> ~/.bashrc;" \
+  "echo 'alias ll=\"ls -l\"' >> ~/.bashrc && " \
+  "echo 'alias m=\"cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts\"' >> ~/.bashrc && " \
+  "echo 'alias s=\"cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts\"' >> ~/.bashrc;" \
   || FAILED="$FAILED SetupBashrc"
 echo
 
@@ -58,11 +61,13 @@ $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
 echo
 
 echo "Setup automount script"
-$GCOMPUTE_CMD push --ssh_user=root $VM_COMPLETE_NAME \
-  image-files/automount-sdb /etc/init.d/
+$GCOMPUTE_CMD push --ssh_user=default $VM_COMPLETE_NAME \
+  image-files/automount-sdb /tmp/
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
+  "sudo cp /tmp/automount-sdb /etc/init.d/ && " \
   "sudo chmod 755 /etc/init.d/automount-sdb && " \
-  "sudo update-rc.d automount-sdb defaults" \
+  "sudo update-rc.d automount-sdb defaults &&" \
+  "sudo /etc/init.d/automount-sdb start" \
   || FAILED="$FAILED SetupAutomountScript"
 echo
 
@@ -76,7 +81,7 @@ echo "Checkout Skia Buildbot code"
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
   "mkdir ~/skia-repo/ && " \
   "cd ~/skia-repo/ && " \
-  "~/depot_tools/gclient config https://skia.googlecode.com/svn/buildbot && " \
+  "~/depot_tools/gclient config https://skia.googlesource.com/buildbot.git && " \
   "~/depot_tools/gclient sync;" \
   || FAILED="$FAILED CheckoutSkiaBuildbot"
 echo
@@ -84,10 +89,10 @@ echo
 echo "Checkout Skia Trunk code"
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
   "cd ~/skia-repo/ && " \
-  "sed -i '$ d' .gclient && " \
+  "sed -i '$ d' .gclient && sed -i '$ d' .gclient && " \
   "echo \"\"\"
   { 'name'        : 'trunk',
-    'url'         : 'https://skia.googlecode.com/svn/trunk',
+    'url'         : 'https://skia.googlesource.com/skia.git',
     'deps_file'   : 'DEPS',
     'managed'     : True,
     'custom_deps' : {
@@ -104,10 +109,6 @@ for REQUIRED_FILE in ${REQUIRED_FILES_FOR_IMAGE[@]}; do
     $REQUIRED_FILE /home/default/
 done
 
-echo "Rebooting the machine..."
-$GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME "sudo reboot;"
-echo
-
 if [[ $FAILED ]]; then
   echo
   echo "FAILURES: $FAILED"
@@ -116,9 +117,20 @@ if [[ $FAILED ]]; then
 fi
 
 echo
+echo "SSH into the master with:"
+echo "gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-master"
+echo "* Follow the instructions in https://developers.google.com/compute/docs/networking#mailserver using skia.buildbots@gmail.com"
+echo "* Run 'gclient sync' in /home/default/skia-repo/buildbot and enter the correct AppEngine password in /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt"
+echo "* Run Chromium's install-build-deps.sh"
+echo "* Run 'git config --global user.name' and 'git config --global user.email'"
+echo
+
+echo
 echo "You can take an image by running the following commands:"
-echo "sudo python /usr/share/imagebundle/image_bundle.py -r / -o /tmp/ --log_file=/tmp/abc.log"
+echo "sudo python /usr/share/imagebundle/image_bundle.py -r / -o /tmp/ --log_file=/tmp/image.log"
 echo "Copy the image to Google Storage."
-echo "gcutil --project=<project-id> addimage <image-name> <image-uri> --preferred_kernel=projects/google/global/kernels/<kernel-name>"
+echo "* gsutil config"
+echo "* gsutil cp /tmp/<your-image>.image.tar.gz gs://skia-images-1/"
+echo "gcutil --project=google.com:chromecompute addimage skiatelemetry-2-0-v20131101 gs://skia-images-1/<your-image>.image.tar.gz --preferred_kernel=projects/google/global/kernels/gce-v20130325"
 echo
 

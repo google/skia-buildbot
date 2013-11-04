@@ -27,6 +27,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     echo "skia-telemetry-worker$SLAVE_NUM crashed! Recovering it..."
     CMD="""
 sudo chmod 777 ~/.gsutil;
+sudo ln -s /usr/bin/perf_3.2.0-55 /usr/sbin/perf;
 """
     ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \

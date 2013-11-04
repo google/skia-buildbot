@@ -25,8 +25,9 @@ $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM_MASTER_NAME} \
   --service_account=default \
   --service_account_scopes="$SCOPES" \
   --network=skia \
-  --image=skiatelemetry-1-0-v20130524 \
-  --machine_type=n1-standard-8-d
+  --image=skiatelemetry-3-0-v20131101 \
+  --machine_type=n1-standard-8-d \
+  --nopersistent_boot_disk
 
 FREE_IP_INDEX=$(expr $FREE_IP_INDEX + 1)
 
@@ -38,9 +39,10 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     --service_account=default \
     --service_account_scopes="$SCOPES" \
     --network=skia \
-    --image=skiatelemetry-1-0-v20130524 \
+    --image=skiatelemetry-3-0-v20131101 \
     --machine_type=n1-standard-8-d \
-    --external_ip_address=${FREE_IP_LIST[$FREE_IP_INDEX]}
+    --external_ip_address=${FREE_IP_LIST[$FREE_IP_INDEX]} \
+    --nopersistent_boot_disk
   FREE_IP_INDEX=$(expr $FREE_IP_INDEX + 1)
 done
 
@@ -62,19 +64,16 @@ Check ./vm_status.sh to wait until the status is RUNNING
 SSH into the master with:
   gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-master
 and run:
+  * sudo chmod 777 ~/.gsutil
+  * Install the latest version of gcutil and then run
   * gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-worker1
 to setup gcutil promptless authentication from the master to its workers.
-  * Follow the instructions in
-https://developers.google.com/compute/docs/networking#mailserver using skia.buildbots@gmail.com
-    Run 'sudo cp /etc/resolv.conf /var/spool/postfix/etc/'
-  * Run 'sudo mv /etc/boto.cfg /etc/boto.cfg.bak'
-  * 'svn sync' /home/default/skia-repo/buildbot and enter the correct AppEngine password in /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt
-  * Run on all slaves and master: sudo sh -c "echo 'deb ftp://ftp.fr.debian.org/debian/ testing main contrib  non-free' >> /etc/apt/sources.list" followed by "sudo apt-get update" and "sudo DEBIAN_FRONTEND=noninteractive apt-get -y -t testing install libc6-dev"
-  * Run 'sudo apt-get update; sudo apt-get -y install libgif-dev libgl1-mesa-dev libglu-dev gdb unzip linux-tools parallel chromium; sudo gsutil update -n' on the slaves using vm_run_command_on_slaves.sh. These steps will not be required when the image is recaptured.
-  * Update buildbot and trunk directory of all slaves by running vm_run_command_on_slaves.sh (Will have to 'rm -rf third_party/externals/*' in trunk).
+  * 'gclient sync' /home/default/skia-repo/buildbot
   * Start the /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_poller.py script.
-  * Run 'git config --global user.name' and 'git config --global user.email' on the master.
-  * Trigger 'Rebuild Chrome' from http://skia-tree-status.appspot.com/skia-telemetry/.
-
+  * Run the following to be able to download massive files from gsutil:
+      sudo apt-get install gcc python-dev python-setuptools
+      sudo easy_install -U pip
+      sudo pip uninstall crcmod
+      sudo pip install -U crcmod
 INP
 
