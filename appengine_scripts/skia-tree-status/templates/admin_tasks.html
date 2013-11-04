@@ -69,7 +69,11 @@
         {% if task.completed_time %}
           {{ task.completed_time }}
         {% else %}
-          In Progress
+          {% ifequal task.key.id_or_name oldest_pending_task_key %}
+            In Progress
+          {% else %}
+            Waiting in Queue
+          {% endifequal %}
         {% endif %}
       </td>
       <td align="center">

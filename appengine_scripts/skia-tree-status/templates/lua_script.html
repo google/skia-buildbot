@@ -45,21 +45,33 @@
         {% if task.completed_time %}
           {{ task.completed_time }}
         {% else %}
-          In Progress
+          {% ifequal task.key.id_or_name oldest_pending_task_key %}
+            In Progress
+          {% else %}
+            Waiting in Queue
+          {% endifequal %}
         {% endif %}
       </td>
       <td align="center">
         {% if task.lua_script_link %}
           <a href='{{ task.lua_script_link }}' target='_blank'>script</a>
         {% else %}
-          In Progress
+          {% ifequal task.key.id_or_name oldest_pending_task_key %}
+            In Progress
+          {% else %}
+            Waiting in Queue
+          {% endifequal %}
         {% endif %}
       </td>
       <td align="center">
         {% if task.lua_output_link %}
           <a href='{{ task.lua_output_link }}' target='_blank'>output</a>
         {% else %}
-          In Progress
+          {% ifequal task.key.id_or_name oldest_pending_task_key %}
+            In Progress
+          {% else %}
+            Waiting in Queue
+          {% endifequal %}
         {% endif %}
       </td>
       <td align="center">

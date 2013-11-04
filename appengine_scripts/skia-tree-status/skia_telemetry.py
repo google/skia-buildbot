@@ -376,6 +376,7 @@ class AdminTasksPage(BasePage):
     template_values['pageset_types'] = PAGESET_TYPES
     chromium_builds = ChromiumBuilds.get_all_completed_chromium_builds()
     template_values['chromium_builds'] = chromium_builds
+    template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
 
     self.DisplayTemplate('admin_tasks.html', template_values)
 
@@ -423,6 +424,7 @@ class LuaScriptPage(BasePage):
     lua_tasks = LuaTasks.get_all_lua_tasks_of_user(self.user.email())
     template_values['lua_tasks'] = lua_tasks
     template_values['pageset_types'] = PAGESET_TYPES
+    template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
 
     self.DisplayTemplate('lua_script.html', template_values)
 
@@ -471,6 +473,7 @@ class ChromiumBuildsPage(BasePage):
 
     chromium_builds = ChromiumBuilds.get_all_chromium_builds()
     template_values['chromium_builds'] = chromium_builds
+    template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
 
     self.DisplayTemplate('chromium_builds.html', template_values)
 
@@ -518,6 +521,7 @@ class AllTasks(BasePage):
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
     template_values['pagination_limit'] = PAGINATION_LIMIT
+    template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
 
     # Set template values for Admin, Lua and Telemetry datamodels.
     self.set_pagination_templates_for_models(
@@ -607,6 +611,7 @@ class LandingPage(BasePage):
     template_values['pageset_types'] = PAGESET_TYPES
     chromium_builds = ChromiumBuilds.get_all_completed_chromium_builds()
     template_values['chromium_builds'] = chromium_builds
+    template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
 
     self.DisplayTemplate('skia_telemetry_landingpage.html', template_values)
 
@@ -694,24 +699,38 @@ class UpdateLuaTasksPage(BasePage):
     self.response.out.write('completed_time: %s<br/>' % completed_time)
 
 
+def get_oldest_task_json_dict():
+  """Returns the oldest pending task in a JSON dict."""
+  # A list holding the different pending tasks.
+  tasks = []
+
+  TelemetryTasks.add_oldest_pending_telemetry_task(tasks)
+  AdminTasks.add_oldest_pending_admin_task(tasks)
+  ChromiumBuilds.add_oldest_pending_chromium_build(tasks)
+  LuaTasks.add_oldest_pending_lua_task(tasks)
+
+  task_dict = {}
+  if tasks:
+    oldest_task = reduce(lambda x, y: x if x.requested_time < y.requested_time
+                         else y, tasks)
+    task_dict = oldest_task.get_json_repr()
+  return task_dict
+
+
+def get_oldest_pending_task_key():
+  """Returns the key of the oldest pending task or -1 if no pending tasks."""
+  oldest_pending_task_key = -1
+  task_dict = get_oldest_task_json_dict()
+  if task_dict:
+    oldest_pending_task_key = task_dict.values()[0]['key']
+  return oldest_pending_task_key
+
+
 class GetClusterTelemetryTasksPage(BasePage):
   """Returns a JSON of the oldest task in the queue."""
 
   def get(self):
-    # A list holding the different pending tasks.
-    tasks = []
-
-    TelemetryTasks.add_oldest_pending_telemetry_task(tasks)
-    AdminTasks.add_oldest_pending_admin_task(tasks)
-    ChromiumBuilds.add_oldest_pending_chromium_build(tasks)
-    LuaTasks.add_oldest_pending_lua_task(tasks)
-
-    task_dict = {}
-    if tasks:
-      oldest_task = reduce(lambda x, y: x if x.requested_time < y.requested_time
-                           else y, tasks)
-      task_dict = oldest_task.get_json_repr()
-
+    task_dict = get_oldest_task_json_dict()
     self.response.out.write(json.dumps(task_dict, indent=4, sort_keys=True))
 
 
