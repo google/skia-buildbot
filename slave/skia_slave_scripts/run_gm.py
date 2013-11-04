@@ -51,8 +51,12 @@ class RunGM(BuildStep):
     # Exercise alternative renderModes, but not on the slowest platforms.
     # See https://code.google.com/p/skia/issues/detail?id=1641 ('Run GM tests
     # with all rendering modes enabled, SOMETIMES')
+    # And not on Windows, which keeps running out of memory (sigh)
+    # See https://code.google.com/p/skia/issues/detail?id=1783 ('Win7 Test bots
+    # have out-of-memory issues')
     if (not 'Android' in self._builder_name and
-        not 'ChromeOS' in self._builder_name):
+        not 'ChromeOS' in self._builder_name and
+        not 'Win7' in self._builder_name):
       cmd.extend(['--deferred', '--pipe', '--replay', '--rtree', '--serialize',
                   '--tileGrid'])
 
