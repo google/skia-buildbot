@@ -158,9 +158,6 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   rm /tmp/$TIMESTAMP
 fi
 
-# Clean up the tmp directory because telemetry may have generated a lot of
-# temporary artifacts there and they take up disk space.
-sudo rm -rf /tmp/*
 # Clean up logs and the worker file.
 rm -rf ${OUTPUT_DIR}*
 delete_worker_file TELEMETRY_${RUN_ID}

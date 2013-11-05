@@ -125,6 +125,10 @@ SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/ben
 rm -rf /tmp/$RUN_ID*
 rm -rf ${OUTPUT_DIR}*
 
+# Delete all tmp files from the slaves because telemetry may have generated a
+# lot of temporary artifacts there and they take up disk space.
+bash vm_run_common_on_slaves.sh "sudo rm -rf /tmp/*"
+
 # Email the requester.
 BOUNDARY=`date +%s|md5sum`
 BOUNDARY=${BOUNDARY:0:32}
