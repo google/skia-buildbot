@@ -127,7 +127,7 @@ rm -rf ${OUTPUT_DIR}*
 
 # Delete all tmp files from the slaves because telemetry may have generated a
 # lot of temporary artifacts there and they take up disk space.
-bash vm_run_common_on_slaves.sh "sudo rm -rf /tmp/*"
+bash vm_run_command_on_slaves.sh "cd /tmp/; find . -maxdepth 1 -type d -name '*' -exec sudo rm -rf {} \\; find . -maxdepth 1 -type f -name '*' -exec sudo rm -rf {} \\;"
 
 # Email the requester.
 BOUNDARY=`date +%s|md5sum`
