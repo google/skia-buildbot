@@ -335,8 +335,6 @@ SLAVE_HOSTS = {
     'slaves': [
       ('skiabot-shuttle-win7-intel-special-000', '0'),
       ('skiabot-shuttle-win7-intel-special-001', '1'),
-      ('skiabot-shuttle-win7-intel-special-002', '2'),
-      ('skiabot-shuttle-win7-intel-special-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.119',
