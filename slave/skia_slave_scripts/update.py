@@ -7,7 +7,9 @@
 
 
 from common import chromium_utils
-from utils import gclient_utils, shell_utils
+from utils import file_utils
+from utils import gclient_utils
+from utils import shell_utils
 from build_step import BuildStep, BuildStepFailure
 import ast
 import os
@@ -89,21 +91,38 @@ class Update(BuildStep):
     # Run "gclient config" with the spec we just built.
     gclient_utils.Config(spec=gclient_spec)
 
-    if self._is_try:
-      # Clean our checkout to make sure we don't have a patch left over.
-      if os.path.isdir('skia') and os.path.isdir(os.path.join('skia', '.git')):
-        os.chdir('skia')
-        gclient_utils.Revert()
+    try:
+      if self._is_try:
+        # Clean our checkout to make sure we don't have a patch left over.
+        if (os.path.isdir('skia') and
+            os.path.isdir(os.path.join('skia', '.git'))):
+          os.chdir('skia')
+          gclient_utils.Revert()
         os.chdir(os.pardir)
 
-    # Run "gclient sync"
-    gclient_utils.Sync(
-        branches=[solution['name'] for solution in solution_dicts],
-        revision=self._revision,
-        verbose=True,
-        force=True,
-        delete_unversioned_trees=True)
-    got_revision = gclient_utils.GetCheckedOutHash()
+      # Run "gclient sync"
+      gclient_utils.Sync(
+          branches=[solution['name'] for solution in solution_dicts],
+          revision=self._revision,
+          verbose=True,
+          force=True,
+          delete_unversioned_trees=True)
+      got_revision = gclient_utils.GetCheckedOutHash()
+    except Exception:
+      # If the sync fails, clear the checkout and try again.
+      build_dir = os.path.abspath(os.curdir)
+      os.chdir(os.pardir)
+      file_utils.ClearDirectory(build_dir)
+      os.chdir(build_dir)
+      gclient_utils.Config(spec=gclient_spec)
+      gclient_utils.Sync(
+          branches=[solution['name'] for solution in solution_dicts],
+          revision=self._revision,
+          verbose=True,
+          force=True,
+          delete_unversioned_trees=True,
+          jobs=1)
+      got_revision = gclient_utils.GetCheckedOutHash()
 
     # If the revision we actually got differs from what was requested, raise an
     # exception.
