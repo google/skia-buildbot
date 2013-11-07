@@ -98,7 +98,7 @@ class Update(BuildStep):
             os.path.isdir(os.path.join('skia', '.git'))):
           os.chdir('skia')
           gclient_utils.Revert()
-        os.chdir(os.pardir)
+          os.chdir(os.pardir)
 
       # Run "gclient sync"
       gclient_utils.Sync(
