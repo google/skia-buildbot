@@ -141,7 +141,7 @@ Graph.Layout.SkiaLayout.prototype = {
       var sorted_keys = Object.keys(nodes_by_dependency).sort()
       for (var dep_index in sorted_keys) {
         var dep_id = sorted_keys[dep_index];
-        nodes_by_dependency[dep_id].sort();
+        nodes_by_dependency[dep_id].sort(compare_nodes);
         for (var node_index in nodes_by_dependency[dep_id]) {
           columns[column_index].push(nodes_by_dependency[dep_id][node_index]);
         }
