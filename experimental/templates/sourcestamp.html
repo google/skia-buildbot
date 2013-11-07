@@ -110,13 +110,43 @@ Graph.Layout.SkiaLayout.prototype = {
       delete current_node.depth;
     }
 
-    // Sort the nodes within each column so that we always get the same layout,
-    // regardless of how they are added.
-    for (var column_index in columns) {
-      columns[column_index].sort(compare_nodes);
-    }
     return columns;
 
+  },
+
+  // Reorder the nodes within each column. Nodes are grouped by the node to
+  // which their first outgoing edge points and are sorted alphabetically by
+  // id within those groups. Nodes with no outgoing edges move to the bottom of
+  // the column.
+  reorderColumns: function(columns) {
+    for (var column_index in columns) {
+      var nodes_by_dependency = {};
+      for (var node_index in columns[column_index]) {
+        var node = columns[column_index][node_index];
+        var dep_id = "zzzzzz"; // By default, put the node at the bottom.
+        for (var edge_index in node.edges) {
+          var target = node.edges[edge_index].target;
+          if (target != node) {
+            dep_id = target.id;
+            break;
+          }
+        }
+        if (!nodes_by_dependency[dep_id]) {
+          nodes_by_dependency[dep_id] = [node];
+        } else {
+          nodes_by_dependency[dep_id].push(node);
+        }
+      }
+      columns[column_index] = [];
+      var sorted_keys = Object.keys(nodes_by_dependency).sort()
+      for (var dep_index in sorted_keys) {
+        var dep_id = sorted_keys[dep_index];
+        nodes_by_dependency[dep_id].sort();
+        for (var node_index in nodes_by_dependency[dep_id]) {
+          columns[column_index].push(nodes_by_dependency[dep_id][node_index]);
+        }
+      }
+    }
   },
 
   // Given an array of arrays representing columns of nodes and the width and
@@ -143,6 +173,7 @@ Graph.Layout.SkiaLayout.prototype = {
 
   layout: function() {
     var columns = this.setColumns2();
+    this.reorderColumns(columns);
     this.layoutColumns(columns);
   },
 };
@@ -150,7 +181,7 @@ Graph.Layout.SkiaLayout.prototype = {
 
 // Custom render function for nodes of the graph.
 var render_node = function(r, n) {
-  var node_rect = r.rect(n.point[0], n.point[1], 120, 30);
+  var node_rect = r.rect(n.point[0], n.point[1], 280, 30);
   node_rect.attr({
       "fill": n.color,
       "href": n.href,
@@ -318,7 +349,7 @@ function updateBuildGraph(data) {
   }
 
   var graph_width = 800;
-  var graph_height = 400;
+  var graph_height = 800;
   var layouter = new Graph.Layout.SkiaLayout(graph, graph_width, graph_height);
   var renderer = new Graph.Renderer.Raphael("graph_canvas", graph, graph_width,
                                             graph_height);

@@ -149,6 +149,8 @@ class SourceStampJsonResource(JsonResource):
               str(pending_buildset['submitted_at'])
         if pending_buildset.get('complete_at'):
           pending_buildset['complete_at'] = str(pending_buildset['complete_at'])
+        if not pending_buildset.get('properties'):
+          pending_buildset['properties'] = {}
         pending_buildset['properties']['scheduler'] = \
             (pending_buildset['scheduler'], 'Scheduler')
         pending_buildset['properties']['dependencies'] = \
