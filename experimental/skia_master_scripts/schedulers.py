@@ -10,6 +10,7 @@ from twisted.internet import defer
 from twisted.python import log
 from buildbot import util
 from buildbot.db import buildsets
+from buildbot.process import properties
 from buildbot.scheduler import Nightly
 from buildbot.schedulers.basic import SingleBranchScheduler
 from buildbot.schedulers import base, triggerable
@@ -49,6 +50,7 @@ class DependencyChainScheduler(base.BaseScheduler):
   rather than waiting for them to be satisfied."""
 
   compare_attrs = base.BaseScheduler.compare_attrs + ('dependencies',)
+  props_from_dependencies = ['got_revision']
 
   def __init__(self, dependencies, name, builder_name, properties=None):
     """Initialize this DependencyChainScheduler.
@@ -116,17 +118,6 @@ class DependencyChainScheduler(base.BaseScheduler):
           if buildsets[i]['results'] in (SUCCESS, WARNINGS):
             unmet_deps.pop(scheduler)
           else:
-            # TODO(borenet): Multiple issues here:
-            #   - Are we sure we want to remove "canceled" pending buildsets
-            #     from the database? It might be nice to have them present but
-            #     with some note that says "canceled because a dep failed."
-            #   - We don't correctly propagate failures when a chain of
-            #     buildsets depends on a buildset which fails. Only buildsets
-            #     which depend directly on the failed buildset get canceled,
-            #     and the others remain. This functions correctly in that the
-            #     downstream buildsets don't submit build requests, but they
-            #     remain in the pending table, without any note about the fact
-            #     that they will never run.
             raise DependencyFailedError('Dependency failed: %s' % buildsets[i])
       return [scheduler_instance for
               scheduler_name, scheduler_instance in unmet_deps.items()]
@@ -164,25 +155,36 @@ class DependencyChainScheduler(base.BaseScheduler):
             .cancel_pending_buildsets(ssid, self.name))
 
   @util.deferredLocked('_pending_buildset_lock')
-  def _actually_add_buildset_for_source_stamp(self, ssid):
+  def _actually_add_buildset_for_source_stamp(self, ssid, build_props):
     """Unconditionally add Buildsets for the given Source Stamp, removing the
     associated pending Buildsets from the pending Buildsets table.
 
     Args:
         ssid: ID of the Source Stamp to build.
+        build_props: instance of properties.Properties; properties to add to the
+           build.
     """
+    def _added_buildsets(_unused_callback_result):
+      return (self.master.skia_db.pending_buildsets
+                  .cancel_pending_buildsets(ssid, self.name))
+
     def _got_pending(pending):
       dl = []
       for bs in pending:
+        props = properties.Properties()
+        props.updateFromProperties(build_props)
+        props.update({'ssid': ssid}, 'Scheduler')
+        props.update(bs['properties'] or {}, 'Scheduler')
         dl.append(
             base.BaseScheduler.addBuildsetForSourceStamp(self,
                 ssid=ssid,
                 reason=bs['reason'],
                 external_idstring=bs['external_idstring'],
-                properties=bs['properties']))
+                properties=props))
+      if not dl:
+        return defer.succeed(None)
       d = defer.DeferredList(dl)
-      d.addCallback(self.master.skia_db.pending_buildsets
-                        .cancel_pending_buildsets(ssid, self.name))
+      d.addCallback(_added_buildsets)
       return d
     d = self.master.skia_db.pending_buildsets.get_pending_buildsets(ssid,
                                                                     self.name)
@@ -190,7 +192,8 @@ class DependencyChainScheduler(base.BaseScheduler):
     return d
 
   def _maybe_add_buildset_for_source_stamp(self, unused_callback_param, ssid,
-                                           launch_dependencies, arguments):
+                                           launch_dependencies, arguments,
+                                           set_properties=None):
     """If all dependencies have been met for the given Source Stamp, add a build
     sets for each pending build for the given Source Stamp. If not, and if it
     was requested, launch the unmet dependencies for the given Source Stamp.
@@ -204,6 +207,8 @@ class DependencyChainScheduler(base.BaseScheduler):
             been satisfied.
         arguments: Dictionary of arguments to be passed to
             addBuildsetForSourceStamp.
+        set_properties: optional dictionary of build properties to be propagated
+            from a dependency to the current buildset.
     """
     def _got_dependencies(unmet_dependencies):
       if unmet_dependencies:
@@ -212,10 +217,14 @@ class DependencyChainScheduler(base.BaseScheduler):
                 for dep in unmet_dependencies]
           return defer.DeferredList(dl)
       else:
-        return self._actually_add_buildset_for_source_stamp(ssid=ssid)
+        # TODO(borenet): Actually get build properties from the dependencies.
+        props = properties.Properties()
+        if set_properties:
+          props.update(set_properties, 'Dependency')
+        return self._actually_add_buildset_for_source_stamp(ssid=ssid,
+                                                            build_props=props)
     d = self._unmet_deps_for_source_stamp(ssid)
     d.addCallback(_got_dependencies)
-    d.addErrback(self._cancel_pending_buildsets, ssid)
     return d
 
   @util.deferredLocked('_pending_buildset_lock')
@@ -352,13 +361,24 @@ class DependencyChainScheduler(base.BaseScheduler):
             builbot.status.results.
     """
 
-    def _got_buildset(buildset):
-      if buildset:
-        return self._maybe_add_buildset_for_source_stamp(
+    def _got_buildset_props(props, buildset):
+      properties_to_pass = {}
+      if props:
+        for k, v in props.iteritems():
+          if k in DependencyChainScheduler.props_from_dependencies:
+            properties_to_pass[k] = v[0]
+      return self._maybe_add_buildset_for_source_stamp(
             unused_callback_param=None,
             ssid=buildset['sourcestampid'],
             launch_dependencies=False,
-            arguments=None)
+            arguments=None,
+            set_properties=properties_to_pass)
+
+    def _got_buildset(buildset):
+      if buildset:
+        d = self.master.db.buildsets.getBuildsetProperties(buildset['bsid'])
+        d.addCallback(_got_buildset_props, buildset)
+        return d
       else:
         return defer.succeed(None)
 
