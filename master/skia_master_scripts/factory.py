@@ -555,19 +555,32 @@ class SkiaFactory(BuildFactory):
   def ApplyPatch(self, alternate_workdir=None, alternate_script=None):
     """ Apply a patch to the Skia code on the build slave. """
     def _GetPatch(build):
+      """Find information about the patch (if any) to apply.
+
+      Returns:
+          An encoded string containing a tuple of the form (level, url) which
+              indicates where to go to download the patch.
+      """
       if build.getSourceStamp().patch and \
           'patch_file_url' in build.getProperties():
+        # The presence of a patch attached to the Source Stamp and the
+        # 'patch_file_url' build property indicate that the patch came from the
+        # skia_try repo, and was probably submitted using the submit_try script
+        # or "gcl/git-cl try".
         patch = (build.getSourceStamp().patch[0],
                  build.getProperty('patch_file_url'))
         return str(patch).encode()
       elif 'issue' in build.getProperties() and \
           'patchset' in build.getProperties():
+        # The presence of the 'issue' and 'patchset' build properties indicates
+        # that the patch came from Rietveld.
         patch = '%s/download/issue%d_%d.diff' % (
             config_private.CODE_REVIEW_SITE.rstrip('/'),
             build.getProperty('issue'),
             build.getProperty('patchset'))
         # If the patch came from Rietveld, assume it came from a git repo and
-        # therefore it has a patch level of 1.
+        # therefore it has a patch level of 1. If this isn't the case, the
+        # slave-side script should detect it and use level 0 instead.
         return str((1, patch)).encode()
       else:
         patch = 'None'
