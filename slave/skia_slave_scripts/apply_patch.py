@@ -19,13 +19,11 @@ import urllib2
 
 
 if os.name == 'nt':
+  GIT = 'git.bat'
   SVN = 'svn.bat'
 else:
+  GIT = 'git'
   SVN = 'svn'
-
-WIN_PATCH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir,
-                                         os.pardir, 'third_party', 'GnuWin32',
-                                         'patch.exe'))
 
 
 class ApplyPatch(BuildStep):
@@ -34,13 +32,9 @@ class ApplyPatch(BuildStep):
       raise BuildStepFailure('No patch given!')
 
     # patch is a tuple of the form (int, str), where patch[0] is the "level" of
-    # the patch and patch[1] is the diff.
-    patch = literal_eval(self._args['patch'].decode())
-    # Assume that the patch level that was passed in is incorrect, since that
-    # is most often the case.  Instead use 1, because patches from git checkouts
-    # have an extra level.
-    patch_level = 1
-    patch_url = urllib.quote(patch[1], safe="%/:=&?~+!$,;'@()*[]")
+    # the patch and patch[1] is the URL of the diff.
+    patch_level, encoded_patch_url = literal_eval(self._args['patch'].decode())
+    patch_url = urllib.quote(encoded_patch_url, safe="%/:=&?~+!$,;'@()*[]")
     print 'Patch level: %d' % patch_level
     print 'Diff file URL:'
     print patch_url
@@ -64,15 +58,18 @@ class ApplyPatch(BuildStep):
       finally:
         patch_file.close()
       print 'Saved patch to %s' % patch_file.name
-  
-      # On Windows, use the patch.exe included in the checkout
-      if os.name == 'nt':
-        patcher = WIN_PATCH
-      else:
-        patcher = 'patch'
-  
-      shell_utils.Bash([patcher, '-p%d' % patch_level, '-i', patch_file.name,
-                        '-r', '-'])
+
+      try:
+        # First, check that the patch can be applied at the given level.
+        shell_utils.Bash([GIT, 'apply', '-p%d' % patch_level, patch_file.name,
+                          '--check'])
+      except shell_utils.CommandFailedException as e:
+        # If the patch can't be applied at the requested level, try 0 or 1,
+        # depending on what we just tried.
+        print e
+        patch_level = (patch_level + 1) % 2
+        print 'Trying patch level %d instead...' % patch_level
+      shell_utils.Bash([GIT, 'apply', '-p%d' % patch_level, patch_file.name])
 
     finally:
       shutil.rmtree(temp_dir)

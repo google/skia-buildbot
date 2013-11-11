@@ -566,7 +566,9 @@ class SkiaFactory(BuildFactory):
             config_private.CODE_REVIEW_SITE.rstrip('/'),
             build.getProperty('issue'),
             build.getProperty('patchset'))
-        return str((0, patch)).encode()
+        # If the patch came from Rietveld, assume it came from a git repo and
+        # therefore it has a patch level of 1.
+        return str((1, patch)).encode()
       else:
         patch = 'None'
       return patch
