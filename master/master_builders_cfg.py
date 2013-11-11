@@ -130,6 +130,7 @@ def Update(config, active_master, cfg):
   no_gpu = repr({'skia_gpu': '0'})
   clang = repr({'skia_clang_build': '1'})
   valgrind = repr({'skia_release_optimization_level': '1'})
+  pdfviewer = repr({'skia_run_pdfviewer_in_gm': '1'})
 
   # builder_specs is a dictionary whose keys are specifications for compile
   # builders and values are specifications for Test and Perf builders which will
@@ -182,7 +183,7 @@ def Update(config, active_master, cfg):
       ('Mac10.8',  'Clang',  'Release', 'x86',    None,          None,      True,  f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
                                                                                             ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],
       ('Mac10.8',  'Clang',  'Debug',   'x86_64', None,          None,      False, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8')],
-      ('Mac10.8',  'Clang',  'Release', 'x86_64', None,          None,      False, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
+      ('Mac10.8',  'Clang',  'Release', 'x86_64', None,          pdfviewer, False, f, p) : [('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          'base-macmini-10_8'),
                                                                                             ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', None,          None)],})
   p = skia_factory.TARGET_PLATFORM_WIN32
   builder_specs.update({
