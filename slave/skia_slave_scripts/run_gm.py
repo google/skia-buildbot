@@ -73,9 +73,10 @@ class RunGM(BuildStep):
       cmd.extend(['--config', 'defaults', 'msaa16'])
 
     if 'Valgrind' in self._builder_name:
-      # Poppler has lots of memory errors. Skip PDF so we don't have to see them
+      # Poppler has lots of memory errors. Skip PDF rasterisation so we don't
+      # have to see them
       # Bug: https://code.google.com/p/skia/issues/detail?id=1806
-      cmd.extend(['--excludeConfig', 'pdf'])
+      cmd.extend(['--pdfRasterizers'])
     if 'ZeroGPUCache' in self._builder_name:
       cmd.extend(['--gpuCacheSize', '0', '0', '--config', 'gpu'])
     if 'Nexus4' in self._builder_name:
