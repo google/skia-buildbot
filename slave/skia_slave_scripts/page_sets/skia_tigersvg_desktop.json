@@ -1,0 +1,12 @@
+{
+    "description": "Wikimedia Ghostscript Tiger SVG for Skia Desktop.",
+    "archive_data_file": "data/skia_tigersvg_desktop.json",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "http://upload.wikimedia.org/wikipedia/commons/f/fd/Ghostscript_Tiger.svg",
+            "wait_seconds": 5.0,
+            "why": "from fmalita"
+        }
+    ]
+}

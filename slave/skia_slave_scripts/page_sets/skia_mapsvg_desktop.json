@@ -1,0 +1,12 @@
+{
+    "description": "Wikimedia Map SVG for Skia Desktop.",
+    "archive_data_file": "data/skia_mapsvg_desktop.json",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "http://upload.wikimedia.org/wikipedia/commons/6/63/A_large_blank_world_map_with_oceans_marked_in_blue.svg",
+            "wait_seconds": 10.0,
+            "why": "from fmalita"
+        }
+    ]
+}

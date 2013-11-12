@@ -1,0 +1,12 @@
+{
+    "description": "Wikimedia Samoa Seal SVG for Skia Desktop.",
+    "archive_data_file": "data/skia_samoasvg_desktop.json",
+    "credentials_path": "data/credentials.json",
+    "pages": [
+        {
+            "url": "http://upload.wikimedia.org/wikipedia/commons/d/df/Seal_of_American_Samoa.svg",
+            "wait_seconds": 5.0,
+            "why": "from fmalita"
+        }
+    ]
+}
