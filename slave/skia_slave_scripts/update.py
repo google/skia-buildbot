@@ -48,7 +48,7 @@ def _MaybeUseSkiaLabMirror(revision=None):
     print ('SkiaLab git mirror appears to be accessible. Changing gitconfig to '
            'use the mirror.')
     shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
-                      '%.insteadOf' % config_section,
+                      '%s.insteadOf' % config_section,
                       SKIA_GIT_URL_TO_REPLACE])
   else:
     # Set the gitconfig NOT to substitute the remote URL for the mirror. This is
