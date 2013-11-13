@@ -31,6 +31,17 @@ def _MaybeUseSkiaLabMirror(revision=None):
           safety net; in the case that the mirror does not yet have this commit,
           we will use the remote repo instead.
   """
+  # Remove any previous URL overrides.
+  try:
+    configs = shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
+                                '--list']).splitlines()
+  except shell_utils.CommandFailedException:
+    configs = []
+  for config in configs:
+    if LOCAL_GIT_MIRROR_URL in config:
+      shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
+                        '--remove-section', config.split('.insteadof')[0]])
+
   # Attempt to reach the SkiaLab git mirror.
   mirror_is_accessible = False
   print 'Attempting to reach the SkiaLab git mirror...'
@@ -42,27 +53,15 @@ def _MaybeUseSkiaLabMirror(revision=None):
   except (shell_utils.CommandFailedException, shell_utils.TimeoutException):
     pass
 
-  config_section = 'url.\'%s\'' % LOCAL_GIT_MIRROR_URL
+  # Override the Skia git repo URL with the mirror URL if the mirror is
+  # accessible.
+  config_section = 'url.%s' % LOCAL_GIT_MIRROR_URL
   if mirror_is_accessible:
-    # Set the gitconfig to substitute the remote URL for the mirror.
     print ('SkiaLab git mirror appears to be accessible. Changing gitconfig to '
            'use the mirror.')
     shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
                       '%s.insteadOf' % config_section,
                       SKIA_GIT_URL_TO_REPLACE])
-  else:
-    # Set the gitconfig NOT to substitute the remote URL for the mirror. This is
-    # necessary if the local checkout was associated with the mirror in the past
-    # and the mirror is currently unavailable for some reason.
-    print ('SkiaLab git mirror is not accessible. Changing gitconfig not to use'
-           ' the mirror.')
-    try:
-      shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
-                        '--remove-section', config_section])
-    except shell_utils.CommandFailedException as e:
-      if not 'No such section!' in e.output:
-        print e.output
-        raise
 
   # Some debugging info that might help us figure things out...
   try:
