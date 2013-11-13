@@ -11,46 +11,61 @@ from utils import file_utils
 from utils import gclient_utils
 from utils import shell_utils
 from build_step import BuildStep, BuildStepFailure
+
 import ast
+import config_private
 import os
-import socket
 import sys
 
 
-# TODO(epoger): temporarily added to use the git mirror behind our NAT
-def _PopulateGitConfigFile():
-  print 'entering _PopulateGitConfigFile()...'
+LOCAL_GIT_MIRROR_URL = 'http://192.168.1.122/git-mirror/skia.git'
 
-  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  s.connect(('google.com', 80))
-  my_ipaddr = s.getsockname()[0]
-  print '  I think my IP address is "%s"' % my_ipaddr
 
-  git_path = shell_utils.Bash([gclient_utils.WHICH, gclient_utils.GIT])
-  if 'depot_tools' in git_path:
-    destpath = os.path.join(os.path.dirname(git_path), '.gitconfig')
+def _MaybeUseSkiaLabMirror(revision=None):
+  """If the SkiaLab mirror is reachable, set the gitconfig to use that instead
+  of the remote repo.
+
+  Args:
+      revision: optional string; commit hash to which we're syncing. This is a
+          safety net; in the case that the mirror does not yet have this commit,
+          we will use the remote repo instead.
+  """
+  # Attempt to reach the SkiaLab git mirror.
+  mirror_is_accessible = False
+  print 'Attempting to reach the SkiaLab git mirror...'
+  try:
+    shell_utils.Bash([gclient_utils.GIT, 'ls-remote', LOCAL_GIT_MIRROR_URL,
+                      revision or 'HEAD', '--exit-code'], timeout=10)
+    mirror_is_accessible = True
+  except (shell_utils.CommandFailedException, shell_utils.TimeoutException):
+    pass
+
+  if mirror_is_accessible:
+    # Set the gitconfig to substitute the remote URL for the mirror.
+    print ('SkiaLab git mirror appears to be accessible. Changing gitconfig to '
+           'use the mirror.')
+    shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
+                      'url."%s".insteadOf' % LOCAL_GIT_MIRROR_URL,
+                      config_private.SKIA_GIT_URL])
   else:
-    destpath = os.path.join(os.path.expanduser('~'), '.gitconfig')
-  destfile = open(destpath, 'w')
-  if my_ipaddr.startswith('192.168.1.'):
-    print ('  I think I am behind the NAT router. '
-           'Writing to .gitconfig file at "%s"...' % destpath)
-    git_config = ('[url "http://192.168.1.122/git-mirror/skia"]\n'
-                  '   insteadOf = https://skia.googlesource.com/skia\n')
-    destfile.write(git_config)
-  else:
-    print ('  I think I am NOT behind the NAT router. '
-           'Writing a blank .gitconfig file to "%s".' % destpath)
-    destfile.write('')
-  destfile.close()
+    # Set the gitconfig NOT to substitute the remote URL for the mirror. This is
+    # necessary if the local checkout was associated with the mirror in the past
+    # and the mirror is currently unavailable for some reason.
+    print ('SkiaLab git mirror is not accessible. Changing gitconfig not to use'
+           ' the mirror.')
+    try:
+      shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
+                        '--remove-section', 'url."%s"' % LOCAL_GIT_MIRROR_URL])
+    except shell_utils.CommandFailedException as e:
+      if not 'No such section!' in e.output:
+        print e.output
+        raise
 
   # Some debugging info that might help us figure things out...
-  cmd = [gclient_utils.GIT, 'config', '--global', '--list']
   try:
-    shell_utils.Bash(cmd)
-  except Exception as e:
-    print '  caught exception %s while trying to run command %s' % (e, cmd)
-  print 'leaving _PopulateGitConfigFile()'
+    shell_utils.Bash([gclient_utils.GIT, 'config', '--global', '--list'])
+  except shell_utils.CommandFailedException:
+    pass
 
 
 class Update(BuildStep):
@@ -67,7 +82,7 @@ class Update(BuildStep):
       print 'Removing old Skia checkout at %s' % os.path.abspath('trunk')
       chromium_utils.RemoveDirectory('trunk')
 
-    _PopulateGitConfigFile()
+    _MaybeUseSkiaLabMirror(self._revision)
 
     # We receive gclient_solutions as a list of dictionaries flattened into a
     # double-quoted string. This invocation of literal_eval converts that string
