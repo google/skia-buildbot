@@ -42,12 +42,13 @@ def _MaybeUseSkiaLabMirror(revision=None):
   except (shell_utils.CommandFailedException, shell_utils.TimeoutException):
     pass
 
+  config_section = 'url.\'%s\'' % LOCAL_GIT_MIRROR_URL
   if mirror_is_accessible:
     # Set the gitconfig to substitute the remote URL for the mirror.
     print ('SkiaLab git mirror appears to be accessible. Changing gitconfig to '
            'use the mirror.')
     shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
-                      'url."%s".insteadOf' % LOCAL_GIT_MIRROR_URL,
+                      '%.insteadOf' % config_section,
                       SKIA_GIT_URL_TO_REPLACE])
   else:
     # Set the gitconfig NOT to substitute the remote URL for the mirror. This is
@@ -57,7 +58,7 @@ def _MaybeUseSkiaLabMirror(revision=None):
            ' the mirror.')
     try:
       shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
-                        '--remove-section', 'url."%s"' % LOCAL_GIT_MIRROR_URL])
+                        '--remove-section', config_section])
     except shell_utils.CommandFailedException as e:
       if not 'No such section!' in e.output:
         print e.output
