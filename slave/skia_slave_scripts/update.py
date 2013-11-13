@@ -18,7 +18,8 @@ import os
 import sys
 
 
-LOCAL_GIT_MIRROR_URL = 'http://192.168.1.122/git-mirror/skia.git'
+LOCAL_GIT_MIRROR_URL = 'http://192.168.1.122/git-mirror/skia'
+SKIA_GIT_URL_TO_REPLACE = config_private.SKIA_GIT_URL[:-len('.git')]
 
 
 def _MaybeUseSkiaLabMirror(revision=None):
@@ -34,7 +35,8 @@ def _MaybeUseSkiaLabMirror(revision=None):
   mirror_is_accessible = False
   print 'Attempting to reach the SkiaLab git mirror...'
   try:
-    shell_utils.Bash([gclient_utils.GIT, 'ls-remote', LOCAL_GIT_MIRROR_URL,
+    shell_utils.Bash([gclient_utils.GIT, 'ls-remote',
+                      LOCAL_GIT_MIRROR_URL + '.git',
                       revision or 'HEAD', '--exit-code'], timeout=10)
     mirror_is_accessible = True
   except (shell_utils.CommandFailedException, shell_utils.TimeoutException):
@@ -46,7 +48,7 @@ def _MaybeUseSkiaLabMirror(revision=None):
            'use the mirror.')
     shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
                       'url."%s".insteadOf' % LOCAL_GIT_MIRROR_URL,
-                      config_private.SKIA_GIT_URL])
+                      SKIA_GIT_URL_TO_REPLACE])
   else:
     # Set the gitconfig NOT to substitute the remote URL for the mirror. This is
     # necessary if the local checkout was associated with the mirror in the past
