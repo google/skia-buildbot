@@ -9,7 +9,7 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -ne 4 ]; then
+if [ $# -ne 5 ]; then
   echo
   echo "Usage: `basename $0` 1 gs://chromium-skia-gm/telemetry/lua_scripts/test.lua" \
     "rmistry-2013-05-24.07-34-05"
@@ -19,6 +19,8 @@ if [ $# -ne 4 ]; then
   echo "The third argument is a unique run id (typically requester + timestamp)."
   echo "The fourth argument is the type of pagesets to create from the 1M list" \
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
+  echo "The fifth argument is the name of the directory where the chromium" \
+       "build which will be used for this run is stored."
   echo
   exit 1
 fi
@@ -27,6 +29,7 @@ SLAVE_NUM=$1
 LUA_SCRIPT_GS_LOCATION=$2
 RUN_ID=$3
 PAGESETS_TYPE=$4
+CHROMIUM_BUILD_DIR=$5
 
 source vm_utils.sh
 
@@ -49,10 +52,10 @@ if [ -e /etc/boto.cfg ]; then
 fi
 
 # Download the SKP files from Google Storage if the local TIMESTAMP is out of date.
-mkdir -p /home/default/storage/skps/$PAGESETS_TYPE/
-are_timestamps_equal /home/default/storage/skps/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE
+mkdir -p /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
+are_timestamps_equal /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
 if [ $? -eq 1 ]; then
-  gsutil cp gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/* /home/default/storage/skps/$PAGESETS_TYPE/
+  gsutil cp gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/* /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
 fi
 
 # Copy the lua script from Google Storage to /tmp.
@@ -60,7 +63,7 @@ gsutil cp $LUA_SCRIPT_GS_LOCATION /tmp/$LUA_FILE
 
 # Run lua_pictures.
 cd out/Release
-./lua_pictures --skpPath /home/default/storage/skps/$PAGESETS_TYPE/ --luaFile /tmp/$LUA_FILE > /tmp/$LUA_OUTPUT_FILE
+./lua_pictures --skpPath /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/ --luaFile /tmp/$LUA_FILE > /tmp/$LUA_OUTPUT_FILE
 
 # Copy the output of the lua script to Google Storage.
 gsutil cp /tmp/$LUA_OUTPUT_FILE gs://chromium-skia-gm/telemetry/lua-outputs/slave$SLAVE_NUM/$LUA_OUTPUT_FILE

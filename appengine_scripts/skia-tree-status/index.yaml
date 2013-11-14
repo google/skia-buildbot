@@ -232,6 +232,11 @@ indexes:
 
 - kind: TelemetryTasks
   properties:
+  - name: benchmark_name
+  - name: completed_time
+
+- kind: TelemetryTasks
+  properties:
   - name: completed_time
   - name: requested_time
 

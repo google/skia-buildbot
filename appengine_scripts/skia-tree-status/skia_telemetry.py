@@ -193,6 +193,8 @@ class LuaTasks(db.Model):
   lua_script = db.TextProperty(required=True)
   lua_script_link = db.LinkProperty()
   pagesets_type = db.StringProperty()
+  chromium_rev = db.StringProperty()
+  skia_rev = db.StringProperty()
   requested_time = db.DateTimeProperty(required=True)
   completed_time = db.DateTimeProperty()
   lua_output_link = db.LinkProperty()
@@ -205,7 +207,9 @@ class LuaTasks(db.Model):
             'key': self.key().id_or_name(),
             'username': self.username,
             'lua_script': self.lua_script,
-            'pagesets_type': self.pagesets_type
+            'pagesets_type': self.pagesets_type,
+            'chromium_rev': self.chromium_rev,
+            'skia_rev': self.skia_rev
         }
     }
 
@@ -272,6 +276,13 @@ class TelemetryTasks(db.Model):
             'whitelist_file': self.whitelist_file
         }
     }
+
+  @classmethod
+  def get_completed_skp_runs(cls):
+    """Returns all completed SKP runs."""
+    return db.GqlQuery(
+        'SELECT * FROM TelemetryTasks WHERE benchmark_name = '
+        '\'skpicture_printer\' AND completed_time != null;')
 
   @classmethod
   def add_oldest_pending_telemetry_task(cls, l):
@@ -401,7 +412,8 @@ class LuaScriptPage(BasePage):
     requested_time = datetime.datetime.now()
     lua_script = db.Text(self.request.get('lua_script'))
     description = self.request.get('description')
-    pagesets_type = self.request.get('pagesets_type')
+    pagesets_type, chromium_rev, skia_rev = self.request.get(
+        'pagesets_type_and_chromium_build').split('-')
     if not description:
       description = 'None'
 
@@ -409,6 +421,8 @@ class LuaScriptPage(BasePage):
         username=self.user.email(),
         lua_script=lua_script,
         pagesets_type=pagesets_type,
+        chromium_rev=chromium_rev,
+        skia_rev=skia_rev,
         requested_time=requested_time,
         description=description).put()
     self.redirect('lua_script')
@@ -423,8 +437,21 @@ class LuaScriptPage(BasePage):
 
     lua_tasks = LuaTasks.get_all_lua_tasks_of_user(self.user.email())
     template_values['lua_tasks'] = lua_tasks
-    template_values['pageset_types'] = PAGESET_TYPES
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
+
+    completed_skp_runs = TelemetryTasks.get_completed_skp_runs()
+    pagesets_to_builds = {}
+    for completed_skp_run in completed_skp_runs:
+      pagesets_type = completed_skp_run.pagesets_type
+      chromium_rev = completed_skp_run.chromium_rev
+      skia_rev = completed_skp_run.skia_rev
+      if pagesets_type and chromium_rev and skia_rev:
+        chromium_rev_date = ChromiumBuilds.get_chromium_build_with_revs(
+            chromium_rev, skia_rev)[0].chromium_rev_date
+        builds = pagesets_to_builds.get(pagesets_type, [])
+        builds.append((chromium_rev, skia_rev, chromium_rev_date))
+        pagesets_to_builds[pagesets_type] = builds
+    template_values['pagesets_to_builds'] = pagesets_to_builds
 
     self.DisplayTemplate('lua_script.html', template_values)
 

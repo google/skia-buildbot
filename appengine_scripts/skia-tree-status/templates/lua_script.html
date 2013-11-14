@@ -10,8 +10,16 @@
 <form name="luaForm" action="lua_script" method="post">
   Paste your Lua script here:<br/>
   <textarea name="lua_script" cols="80" rows="20" {% if not is_google_chromium_user %}disabled{% endif %}></textarea><br/><br/>
-  Pagesets Type:
-  <select name="pagesets_type">
+  SKP Repository:
+  <select name="pagesets_type_and_chromium_build">
+    {% for pageset_type, chromium_builds in pagesets_to_builds.items %}
+      {% for chromium_rev, skia_rev, chromium_rev_date in chromium_builds %}
+        <option value="{{ pageset_type }}-{{ chromium_rev }}-{{ skia_rev }}">
+          {{ pageset_type }} created with {{ chromium_rev|slice:":7" }}-{{ skia_rev|slice:":7" }} (Chromium rev created on {{ chromium_rev_date}})
+        </option>
+      {% endfor %}
+    {% endfor %}
+
     {% for pageset_type in pageset_types %}
       <option value="{{ pageset_type }}" {% ifequal pageset_type "Deeplinks" %}disabled{% endifequal %}>{{ pageset_type }}</option>
     {% endfor %}
@@ -30,6 +38,7 @@
     <tr bgcolor="#CCCCFF">
       <td><b>Description</b></td>
       <td><b>Pagesets Type</b></td>
+      <td><b>Chromium Build</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Lua Script Link</b></td>
@@ -40,6 +49,13 @@
     <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
       <td>{{ task.description }}</td>
       <td>{{ task.pagesets_type }}</td>
+      <td>
+        {% if task.chromium_rev and task.skia_rev %}
+          <a href='https://chromium.googlesource.com/chromium/src/+/{{ task.chromium_rev }}'>{{ task.chromium_rev|slice:":7" }}</a>-<a href='https://skia.googlesource.com/skia/+/{{ task.skia_rev }}'>{{ task.skia_rev|slice:":7" }}</a>
+        {% else %}
+          N/A
+        {% endif %}
+      </td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}

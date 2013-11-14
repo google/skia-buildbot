@@ -9,7 +9,7 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -ne 5 ]; then
+if [ $# -ne 6 ]; then
   echo
   echo "Usage: `basename $0` /tmp/test.lua" \
        "rmistry-2013-05-24.07-34-05 rmistry@google.com 1001"
@@ -18,8 +18,10 @@ if [ $# -ne 5 ]; then
   echo "The second argument is a unique run id (typically requester + timestamp)."
   echo "The third argument is the type of pagesets to create from the 1M list" \
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
-  echo "The fourth argument is the email address of the requester."
-  echo "The fifth argument is the key of the appengine lua task."
+  echo "The fourth argument is the name of the directory where the chromium" \
+       "build which will be used for this run is stored."
+  echo "The fifth argument is the email address of the requester."
+  echo "The sixth argument is the key of the appengine lua task."
   echo
   exit 1
 fi
@@ -27,8 +29,9 @@ fi
 LUA_SCRIPT_LOCAL_LOCATION=$1
 RUN_ID=$2
 PAGESETS_TYPE=$3
-REQUESTER_EMAIL=$4
-APPENGINE_KEY=$5
+CHROMIUM_BUILD_DIR=$4
+REQUESTER_EMAIL=$5
+APPENGINE_KEY=$6
 
 source ../vm_config.sh
 
@@ -52,7 +55,7 @@ mkdir $LOGS_DIR
 
 # Run vm_run_lua_on_skps.sh on all the slaves.
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  CMD="bash vm_run_lua_on_skps.sh $SLAVE_NUM $LUA_SCRIPT_GS_LOCATION $RUN_ID $PAGESETS_TYPE"
+  CMD="bash vm_run_lua_on_skps.sh $SLAVE_NUM $LUA_SCRIPT_GS_LOCATION $RUN_ID $PAGESETS_TYPE $CHROMIUM_BUILD_DIR"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
     -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/lua_output.$RUN_ID.txt 2>&1"

@@ -95,6 +95,7 @@
       <td><b>User</b></td>
       <td><b>Description</b></td>
       <td><b>Pagesets Type</b></td>
+      <td><b>Chromium Build</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Lua Script Link</b></td>
@@ -105,6 +106,13 @@
       <td>{{ task.username }}</td>
       <td>{{ task.description }}</td>
       <td>{{ task.pagesets_type }}</td>
+      <td>
+        {% if task.chromium_rev and task.skia_rev %}
+          <a href='https://chromium.googlesource.com/chromium/src/+/{{ task.chromium_rev }}'>{{ task.chromium_rev|slice:":7" }}</a>-<a href='https://skia.googlesource.com/skia/+/{{ task.skia_rev }}'>{{ task.skia_rev|slice:":7" }}</a>
+        {% else %}
+          N/A
+        {% endif %}
+      </td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}

@@ -96,6 +96,8 @@ def process_lua_task(task):
     print '%s is already being processed' % task_key
     return
   LUA_ENCOUNTERED_KEYS[task_key] = 1
+  chromium_build_dir = get_chromium_build_dir(task['chromium_rev'],
+                                              task['skia_rev'])
   # Create a run id.
   run_id = '%s-%s' % (task['username'].split('@')[0], time.time())
   lua_file = os.path.join(tempfile.gettempdir(), '%s.lua' % run_id)
@@ -105,8 +107,9 @@ def process_lua_task(task):
 
   # Now call the vm_run_lua_on_slaves.sh script.
   log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
-  cmd = 'bash vm_run_lua_on_slaves.sh %s %s %s %s %s' % (
-      lua_file, run_id, pagesets_type, task['username'], task_key)
+  cmd = 'bash vm_run_lua_on_slaves.sh %s %s %s %s %s %s' % (
+      lua_file, run_id, pagesets_type, chromium_build_dir, task['username'],
+      task_key)
   print 'Lua output will be available in %s' % log_file
   subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))
