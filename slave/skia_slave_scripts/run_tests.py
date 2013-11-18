@@ -10,6 +10,12 @@ import sys
 
 
 class RunTests(BuildStep):
+  def __init__(self, timeout=9600, no_output_timeout=2400, **kwargs):
+    super(RunTests, self).__init__(
+        timeout=timeout,
+        no_output_timeout=no_output_timeout,
+        **kwargs)
+
   def _Run(self):
     self._test_args.extend(['--tmpDir', self._device_dirs.TmpDir()])
     if 'Xoom' in self._builder_name:
