@@ -45,7 +45,7 @@ class ApplyPatch(BuildStep):
     temp_dir = tempfile.mkdtemp()
     try:
       patch_file_name = os.path.join(temp_dir, 'skiabot_patch')
-      patch_file = open(patch_file_name, 'w')
+      patch_file = open(patch_file_name, 'wb')
       try:
         if 'svn' in patch_url:
           # TODO(borenet): Create an svn_utils module and use it instead.  It
