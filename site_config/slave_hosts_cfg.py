@@ -29,7 +29,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.132',
-    'kvm_num': '2',
+    'kvm_num': 'A',
   },
 
   'skiabot-shuttle-ubuntu12-android-003': {
@@ -50,7 +50,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.110',
-    'kvm_num': '8',
+    'kvm_num': 'C',
   },
 
   'skiabot-shuttle-ubuntu12-xxx': {
@@ -64,8 +64,8 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-006', '6'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': '192.168.1.108',
-    'kvm_num': '7',
+    'ip': '192.168.1.109',
+    'kvm_num': 'B',
   },
 
   'skiabot-shuttle-ubuntu13-xxx': {
@@ -74,8 +74,8 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu13-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': '192.168.1.122',
-    'kvm_num': 'N/A',
+    'ip': '192.168.1.120',
+    'kvm_num': 'D',
   },
 
   'skia-compile1-a': {
@@ -207,7 +207,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.144',
-    'kvm_num': 'A',
+    'kvm_num': '2',
   },
 
   'skiabot-macmini-10_6-002': {
@@ -216,7 +216,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.121',
-    'kvm_num': 'D',
+    'kvm_num': '1',
   },
 
   'skiabot-macmini-10_7-001': {
@@ -228,7 +228,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.137',
-    'kvm_num': 'B',
+    'kvm_num': '3',
   },
 
   'skiabot-macmini-10_7-002': {
@@ -237,7 +237,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.124',
-    'kvm_num': 'C',
+    'kvm_num': '4',
   },
 
   'skiabot-macmini-10_8-001': {
@@ -248,8 +248,8 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_8-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': '192.168.1.140',
-    'kvm_num': 'F',
+    'ip': '192.168.1.113',
+    'kvm_num': '8',
   },
 
   'skiabot-macmini-10_8-002': {
@@ -258,7 +258,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.135',
-    'kvm_num': 'G',
+    'kvm_num': '6',
   },
 
   'skiabot-mac-10_6-compile': {
@@ -272,7 +272,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.111',
-    'kvm_num': 'N/A',
+    'kvm_num': '8',
   },
 
   'skiabot-mac-10_7-compile': {
@@ -289,8 +289,8 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_7-compile-009', '9'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': '192.168.1.120',
-    'kvm_num': 'N/A',
+    'ip': '192.168.1.104',
+    'kvm_num': '7',
   },
 
   'borenet-macpro.roam.corp.google.com': {
@@ -319,7 +319,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.139',
-    'kvm_num': '3',
+    'kvm_num': 'F',
   },
 
   'win7-intel-003': {
@@ -328,7 +328,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.114',
-    'kvm_num': '4',
+    'kvm_num': 'G',
   },
 
   'win7-intel-004': {
@@ -338,7 +338,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.119',
-    'kvm_num': '6',
+    'kvm_num': 'H',
   },
 
   'win7-compile1': {
@@ -346,8 +346,8 @@ SLAVE_HOSTS = {
       ('skiabot-win-compile-000', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': '192.168.1.101',
-    'kvm_num': 'N/A',
+    'ip': '192.168.1.100',
+    'kvm_num': '3',
   },
 
   'win7-compile2': {
@@ -355,8 +355,8 @@ SLAVE_HOSTS = {
       ('skiabot-win-compile-004', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': '192.168.1.113',
-    'kvm_num': 'N/A',
+    'ip': '192.168.1.112',
+    'kvm_num': '2',
   },
 
   'win8compile000': {
@@ -365,7 +365,7 @@ SLAVE_HOSTS = {
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.117',
-    'kvm_num': 'N/A',
+    'kvm_num': '4',
   },
 }
 

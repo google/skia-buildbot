@@ -18,7 +18,7 @@ import os
 import sys
 
 
-LOCAL_GIT_MIRROR_URL = 'http://192.168.1.122/git-mirror/skia'
+LOCAL_GIT_MIRROR_URL = 'http://192.168.1.120/git-mirror/skia'
 SKIA_GIT_URL_TO_REPLACE = config_private.SKIA_GIT_URL[:-len('.git')]
 
 
