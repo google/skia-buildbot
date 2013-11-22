@@ -59,17 +59,21 @@ class ApplyPatch(BuildStep):
         patch_file.close()
       print 'Saved patch to %s' % patch_file.name
 
+      def get_patch_cmd(level, patch_filename):
+        return [GIT, 'apply', '-p%d' % level, '-v', '--ignore-space-change',
+                '--ignore-whitespace', patch_filename]
+
       try:
         # First, check that the patch can be applied at the given level.
-        shell_utils.Bash([GIT, 'apply', '-p%d' % patch_level, patch_file.name,
-                          '--check'])
+        shell_utils.Bash(get_patch_cmd(patch_level, patch_file.name) +
+                         ['--check'])
       except shell_utils.CommandFailedException as e:
         # If the patch can't be applied at the requested level, try 0 or 1,
         # depending on what we just tried.
         print e
         patch_level = (patch_level + 1) % 2
         print 'Trying patch level %d instead...' % patch_level
-      shell_utils.Bash([GIT, 'apply', '-p%d' % patch_level, patch_file.name])
+      shell_utils.Bash(get_patch_cmd(patch_level, patch_file.name))
 
     finally:
       shutil.rmtree(temp_dir)
