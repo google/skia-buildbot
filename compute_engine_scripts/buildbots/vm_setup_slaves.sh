@@ -44,7 +44,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "if [[ -d android-sdk-linux ]]; then rm -rf android-sdk-linux; fi && " \
     "mv adt-bundle-linux-x86_64-20130729/sdk android-sdk-linux && " \
     "rm -rf adt-bundle-linux-x86_64-20130729 adt-bundle-linux-x86_64-20130729.zip && " \
-    "android-sdk-linux/tools/android update sdk --no-ui --filter android-15" \
+    "android-sdk-linux/tools/android update sdk --no-ui --filter android-19" \
     || FAILED="$FAILED AndroidSDK"
   echo
 
