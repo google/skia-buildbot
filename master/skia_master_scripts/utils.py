@@ -365,7 +365,6 @@ class SkiaHelper(master_config.Helper):
   def Update(self, c):
     super(SkiaHelper, self).Update(c)
     c['builders'].sort(key=lambda builder: builder['name'])
-    all_subdirs = SKIA_PRIMARY_SUBDIRS
     for s_name in self._schedulers:
       scheduler = self._schedulers[s_name]
       instance = None
@@ -443,25 +442,6 @@ class SkiaHelper(master_config.Helper):
             'The scheduler type is unrecognized %s' % scheduler['type'])
       scheduler['instance'] = instance
       c['schedulers'].append(instance)
-
-      # Find the union of all sets of subdirectories the builders care about.
-      if scheduler.has_key('branch'):
-        if not scheduler['branch'] in all_subdirs:
-          all_subdirs.append(scheduler['branch'])
-      if scheduler.has_key('branches'):
-        for branch in scheduler['branches']:
-          if not branch in all_subdirs:
-            all_subdirs.append(branch)
-
-    # Export the set to be used externally, making sure that it hasn't already
-    # been defined.
-    # pylint: disable=W0601
-    global skia_all_subdirs
-    try:
-      if skia_all_subdirs:
-        raise Exception('skia_all_subdirs has already been defined!')
-    except NameError:
-      skia_all_subdirs = all_subdirs
 
 
 def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
@@ -558,7 +538,7 @@ def CanMergeBuildRequests(req1, req2):
 
   Of the above, we want 1, 2, and 5.
   Instead of 3, we want to merge requests if both branches are the same or both
-  are listed in skia_all_subdirs. So we duplicate most of that logic here.
+  are listed in SKIA_PRIMARY_SUBDIRS. So we duplicate most of that logic here.
   Instead of 4, we want to make sure that neither request is a Trybot request.
   """
   # Verify that the repositories are the same (#1 above).
@@ -572,8 +552,8 @@ def CanMergeBuildRequests(req1, req2):
   # Verify that the branches are the same OR that both requests are from
   # branches we deem mergeable (modification of #3 above).
   if req1.source.branch != req2.source.branch:
-    if req1.source.branch not in skia_all_subdirs or \
-       req2.source.branch not in skia_all_subdirs:
+    if req1.source.branch not in SKIA_PRIMARY_SUBDIRS or \
+       req2.source.branch not in SKIA_PRIMARY_SUBDIRS:
       return False
 
   # If either is a try request, don't merge (#4 above).
