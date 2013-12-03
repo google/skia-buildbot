@@ -34,11 +34,12 @@ import config_private
 
 def RunTest(die_on_validation_failure=True):
   # Create a dummy password file if necessary.
-  password_file = os.path.join(buildbot_path, 'master',
-                               '.skia_buildbots_password')
-  if not os.path.isfile(password_file):
-    with open(password_file, 'w') as f:
-      f.write('dummy_password')
+  for password_file in ('.skia_buildbots_password', '.code_review_password',
+                        '.status_password'):
+    password_path = os.path.join(buildbot_path, 'master', password_file)
+    if not os.path.isfile(password_path):
+      with open(password_path, 'w') as f:
+        f.write('dummy_password')
 
   # Run the factory config test for each master.
   for build_master_class in config.Master.valid_masters:
