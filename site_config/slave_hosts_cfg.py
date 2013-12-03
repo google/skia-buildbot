@@ -55,7 +55,6 @@ SLAVE_HOSTS = {
 
   'skiabot-shuttle-ubuntu12-xxx': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-000', '0'),
       ('skiabot-shuttle-ubuntu12-001', '1'),
       ('skiabot-shuttle-ubuntu12-002', '2'),
       ('skiabot-shuttle-ubuntu12-003', '3'),
