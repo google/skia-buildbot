@@ -7,9 +7,12 @@
     "pages": [
         {
             "url": "https://mail.google.com/mail/",
-            "wait_seconds": 10,
             "why": "productivity, top google properties",
-            "credentials": "google"
+            "credentials": "google",
+            "navigate_steps" : [                                                
+              { "action": "navigate" },                                         
+              { "action": "wait", "seconds": 5 }
+            ]
         }
     ]
 }

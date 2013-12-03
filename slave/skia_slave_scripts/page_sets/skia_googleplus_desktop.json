@@ -7,8 +7,11 @@
         {
             "url": "https://plus.google.com/110031535020051778989/posts",
             "why": "social; top google property; Public profile; infinite scrolls",
-            "wait_seconds": 5.0,
-            "scroll_is_infinite": true
+            "scroll_is_infinite": true,
+            "navigate_steps" : [
+               { "action": "navigate" },
+               { "action": "wait", "seconds": 5 }
+            ]
         }
     ]
 }

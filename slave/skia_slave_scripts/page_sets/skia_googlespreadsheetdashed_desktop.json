@@ -6,8 +6,11 @@
         {
             "name": "Google Empty Dashed Spreadsheet",
             "url": "https://docs.google.com/spreadsheet/ccc?key=0ApnDjttF0gt9dGpRM0labXFaT3ExSFhWZWstR3dQSWc#gid=0",
-            "wait_seconds": 60.0,
-            "why": "from Tom W's list"
+            "why": "from Tom W's list",
+            "navigate_steps" : [                                                
+              { "action": "navigate" },                                         
+              { "action": "wait", "seconds": 60 }                                
+            ]
         }
     ]
 }

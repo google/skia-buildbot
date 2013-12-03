@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "https://www.google.com/#hl=en&q=barack+obama",
-            "wait_seconds": 5.0,
-            "why": "top google property; a google tab is often open"
+            "why": "top google property; a google tab is often open",
+            "navigate_steps" : [                                                
+              { "action": "navigate" },                                         
+              { "action": "wait", "seconds": 5 }                                
+            ]
         }
     ]
 }

@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://www.frantzen-lindeberg.com/se/",
-            "wait_seconds": 15.0,
-            "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
+            "why": "http://code.google.com/p/chromium/issues/detail?id=136555",
+            "navigate_steps" : [ 
+               { "action": "navigate" },
+               { "action": "wait", "seconds": 15 }
+            ]
         }
     ]
 }

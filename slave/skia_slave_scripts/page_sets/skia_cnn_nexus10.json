@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://www.cnn.com/2012/10/03/politics/michelle-obama-debate/index.html",
-            "wait_seconds": 15.0,
-            "why": "#2 news worldwide"
+            "why": "#2 news worldwide",
+            "navigate_steps" : [
+               { "action": "navigate" },
+               { "action": "wait", "seconds": 15 }
+            ]
         }
     ]
 }

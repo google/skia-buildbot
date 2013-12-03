@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://planet.mozilla.org/",
-            "wait_seconds": 15.0,
-            "why": ""
+            "why": "",
+            "navigate_steps" : [
+               { "action": "navigate" },
+               { "action": "wait", "seconds": 15 }
+            ]
         }
     ]
 }

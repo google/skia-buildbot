@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://en.m.wikipedia.org/wiki/List_of_The_X-Files_episodes#section_2",
-            "wait_seconds": 5.0,
-            "why": "#6 (Alexa) most visited worldwide; from robertphillips"
+            "why": "#6 (Alexa) most visited worldwide; from robertphillips",
+            "navigate_steps" : [
+               { "action": "navigate" },
+               { "action": "wait", "seconds": 5 }
+            ]
         }
     ]
 }
