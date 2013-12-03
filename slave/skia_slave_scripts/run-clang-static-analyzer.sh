@@ -35,6 +35,7 @@ if [ -d "$STATIC_ANALYZER_TEMPDIR" ]; then
 fi
 mkdir -p $STATIC_ANALYZER_TEMPDIR
 
+make clean
 
 # Run the clang static analyzer.
 # Details about the analyzer are here: http://clang-analyzer.llvm.org/.
