@@ -10,6 +10,7 @@
 
 import socket
 import skia_vars
+import sys
 
 # import base class from third_party/chromium_buildbot/site_config/
 import config_default
@@ -34,6 +35,7 @@ SKIA_PRIVATE_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
 AUTOGEN_SVN_BASEURL = skia_vars.GetGlobalVariable('autogen_svn_url')
 SKIA_GIT_URL = skia_vars.GetGlobalVariable('skia_git_url')
 TRY_SVN_BASEURL = skia_vars.GetGlobalVariable('try_svn_url')
+
 
 class Master(config_default.Master):
   googlecode_revlinktmpl = 'http://code.google.com/p/%s/source/browse?r=%s'
@@ -64,8 +66,24 @@ class Master(config_default.Master):
     code_review_site = \
         skia_vars.GetGlobalVariable('code_review_status_listener')
     tree_status_url = skia_vars.GetGlobalVariable('tree_status_url')
+    slaves_cfg = 'slaves.cfg'
 
-  class PrivateSkia(object):
+    def create_schedulers_and_builders(self, cfg):
+      """Create the Schedulers and Builders.
+
+      Args:
+          cfg: dict; configuration dict for the build master.
+      """
+      # This import needs to happen inside this function because modules
+      # imported by master_builders_cfg import this module.
+      import master_builders_cfg
+      master_builders_cfg.create_schedulers_and_builders(
+          sys.modules[__name__],
+          self,
+          cfg,
+          master_builders_cfg.setup_all_builders)
+
+  class PrivateSkia(Skia):
     project_name = 'PrivateSkia'
     project_url = skia_vars.GetGlobalVariable('project_url')
     # The private master host runs in Google Compute Engine.
@@ -79,7 +97,32 @@ class Master(config_default.Master):
     is_publicly_visible = False
     code_review_site = \
         skia_vars.GetGlobalVariable('code_review_status_listener')
-  
+    slaves_cfg = 'private_slaves.cfg'
+
+    def create_schedulers_and_builders(self, cfg):
+      """Create the Schedulers and Builders.
+
+      Args:
+          cfg: dict; configuration dict for the build master.
+      """
+      # These imports needs to happen inside this function because modules
+      # imported by master_builders_cfg import this module.
+      import master_builders_cfg
+      import master_private_builders_cfg
+      master_builders_cfg.create_schedulers_and_builders(
+          sys.modules[__name__],
+          self,
+          cfg,
+          master_private_builders_cfg.setup_all_builders)
+
+  valid_masters = [Skia, PrivateSkia]
+
+  @staticmethod
+  def get(master_name):
+    for master in Master.valid_masters:
+      if master_name == master.__name__:
+        return master()
+    raise Exception('Invalid master: %s' % master_name)
 
 class Archive(config_default.Archive):
   bogus_var = 'bogus_value'
