@@ -1,0 +1,163 @@
+{% extends "skia_telemetry_base.html" %}
+
+{% block content %}
+
+<center>
+{% if info_msg %}<font color="red"><b>{{ info_msg }}</b></font><br/><br/>{% endif %}
+
+<h2>Run Chromium patches on the top 10k webpages</h2>
+<br/>
+
+{% if not is_google_chromium_user %}
+  Must have a google or chromium account to trigger benchmarks (contact rmistry@)<br/><br/>
+{% else %}
+  <form name="ChromiumTryForm" action="chromium_try" method="post">
+  <table cellingpadding="5">
+    <tr>                                                                      
+      <td>Benchmark to run</td>                                               
+      <td>
+        <select name="benchmark_name"> 
+          {% for benchmark in supported_benchmarks %}                             
+            <option value="{{ benchmark }}">{{ benchmark }}</option>
+          {% endfor %}                                                        
+        </select>
+      </td>
+    </tr>                                                                     
+    <tr>                                                                      
+      <td>Benchmark Arguments</td>                                            
+      <td>
+        <input type="text" size="35" name="benchmark_arguments" value="--output-format=csv"/>
+        The Benchmark must output in CSV to do meaningful comparisions.
+      </td>
+    </tr>
+    <tr>                                                                        
+      <td>Variance Threshold</td>                                               
+      <td>                                                                      
+        <input type="text" name="variance_threshold" size"5" value="10"/>
+        10% is the recommended variance threshold to use when comparing column values.
+      </td>                                                                     
+    </tr>                                                                       
+    <tr>                                                                        
+      <td>Discard Outliers</td>                                               
+      <td>                                                                      
+        <input type="text" name="discard_outliers" size"5" value="10"/>
+        10% is the recommended percentage of outliers to discard from top and bottom.
+      </td>                                                                     
+    </tr>                                                                       
+    <tr>                                                                        
+      <td>Optional Description</td>                                             
+      <td><input type="text" name="description" size="35"></td>                 
+    </tr>
+     <tr>
+      <td>Patch Type</td>
+      <td>                                                                      
+        <select name="patch_type">
+          {% for patch_type in supported_patch_types %}
+            <option value="{{ patch_type }}">{{ patch_type }}</option>
+          {% endfor %}
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>Git patch</td>
+      <td>
+        <textarea name="patch" cols="80" rows="20"></textarea>
+      </td>
+    </tr>
+    <tr>                                                                      
+      <td colspan="2" align="center"><input type="submit" value="Queue Chromium Try Task"></td>
+    </tr>
+  </table>
+  </form>
+{% endif %}
+<hr/>
+
+  <h2>Your try runs history</h2>
+  <br/>
+
+  {% if chromium_try_tasks %}
+  <table border="1" cellpadding="5">
+    <tr bgcolor="#CCCCFF">
+      <td><b>Description</b></td>
+      <td><b>Benchmark Name</b></td>
+      <td><b>Benchmark Arguments</b></td>
+      <td><b>Variance Threshold</b></td>
+      <td><b>Discard Outliers</b></td>
+      <td><b>Patch Type</b></td>
+      <td><b>Requested Time</b></td>
+      <td><b>Completed Time</b></td>
+      <td><b>Patch Link</b></td>
+      <td><b>Build Log</b></td>
+      <td><b>Telemetry nopatch Log</b></td>
+      <td><b>Telemetry withpatch Log</b></td>
+      <td><b>HTML comparision</b></td>
+      <td><b>Delete</b></td>
+    </tr>
+    {% for task in chromium_try_tasks %}
+    <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
+      <td>{{ task.description }}</td>
+      <td>{{ task.benchmark_name }}</td>
+      <td>{{ task.benchmark_arguments }}</td>
+      <td>{{ task.variance_threshold }}</td>
+      <td>{{ task.discard_outliers }}</td>
+      <td>{{ task.patch_type }}</td>
+      <td>{{ task.requested_time }}</td>
+      <td>
+        {% if task.completed_time %}
+          {{ task.completed_time }}
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.patch_link %}
+          <a href='{{ task.patch_link }}' target='_blank'>patch</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.build_log_link %}
+          <a href='{{ task.build_log_link }}' target='_blank'>build_log</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.telemetry_nopatch_log_link %}
+          <a href='{{ task.telemetry_nopatch_log_link }}' target='_blank'>nopatch_log</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">                                                       
+        {% if task.telemetry_withpatch_log_link %}                                
+          <a href='{{ task.telemetry_withpatch_log_link }}' target='_blank'>withpatch_log</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}                                                             
+      </td>
+      <td align="center">                                                       
+        {% if task.html_output_link %}                                
+          <a href='{{ task.html_output_link }}' target='_blank'>output</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}                                                             
+      </td>
+      <td align="center">
+        <form action="chromium_try" name="delete_chromium_try_task" method="post">
+          <input type='hidden' name='delete' value='{{ task.key.id_or_name }}'>
+          <input type='submit' value='Delete'>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    No Previous runs yet.
+  {% endif %}
+  <br/>
+  <a href='all_tasks#chromium_try'>View runs of all users</a>
+</center>
+
+{% endblock %}

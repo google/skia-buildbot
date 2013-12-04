@@ -5,6 +5,17 @@ indexes:
   - name: completed_time
   - name: requested_time
 
+- kind: ChromiumTryTasks
+  properties:
+  - name: completed_time
+  - name: requested_time
+
+- kind: ChromiumTryTasks
+  properties:
+  - name: username
+  - name: requested_time
+    direction: desc
+
 - kind: Revision
   properties:
   - name: __key__

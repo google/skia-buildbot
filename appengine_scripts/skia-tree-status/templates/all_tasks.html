@@ -5,6 +5,94 @@
 <center>
   <br/><br/>
 
+  <a id='chromium_try'><h2>Chromium Try Tasks</h2></a>
+  <br/>
+
+  {% if chromium_try_tasks %}
+  <table border="1" cellpadding="5">
+    <tr bgcolor="#CCCCFF">
+      <td><b>User</b></td>
+      <td><b>Description</b></td>
+      <td><b>Benchmark Name</b></td>
+      <td><b>Benchmark Argument</b></td>
+      <td><b>Variance Threshold</b></td>
+      <td><b>Discard Outliers</b></td>
+      <td><b>Patch Type</b></td>
+      <td><b>Requested Time</b></td>
+      <td><b>Completed Time</b></td>
+      <td><b>Patch Link</b></td>
+      <td><b>Build Log</b></td>
+      <td><b>Telemetry nopatch Log</b></td>
+      <td><b>Telemetry withpatch Log</b></td>
+      <td><b>HTML comparision</b></td>
+    </tr>
+    {% for task in chromium_try_tasks %}
+    <tr {% if not task.completed_time %}bgcolor="#8FDF5F"{% endif %} >
+      <td>{{ task.username }}</td>
+      <td>{{ task.description }}</td>
+      <td>{{ task.benchmark_name }}</td>
+      <td>{{ task.benchmark_arguments }}</td>
+      <td>{{ task.variance_threshold }}</td>
+      <td>{{ task.discard_outliers }}</td>
+      <td>{{ task.patch_type }}</td>
+      <td>{{ task.requested_time }}</td>
+      <td>
+        {% if task.completed_time %}
+          {{ task.completed_time }}
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">                                                       
+        {% if task.patch_link %}                                                
+          <a href='{{ task.patch_link }}' target='_blank'>patch</a>             
+        {% else %}                                                              
+          {% include "col_status.html" %}                                       
+        {% endif %}                                                             
+      </td>                                                                     
+      <td align="center">                                                       
+        {% if task.build_log_link %}                                            
+          <a href='{{ task.build_log_link }}' target='_blank'>build_log</a>     
+        {% else %}                                                              
+          {% include "col_status.html" %}                                       
+        {% endif %}                                                             
+      </td>                                                                     
+      <td align="center">                                                       
+        {% if task.telemetry_nopatch_log_link %}                                
+          <a href='{{ task.telemetry_nopatch_log_link }}' target='_blank'>nopatch_log</a>
+        {% else %}                                                              
+          {% include "col_status.html" %}                                       
+        {% endif %}                                                             
+      </td>                                                                     
+      <td align="center">                                                       
+        {% if task.telemetry_withpatch_log_link %}                              
+          <a href='{{ task.telemetry_withpatch_log_link }}' target='_blank'>withpatch_log</a>
+        {% else %}                                                              
+          {% include "col_status.html" %}                                       
+        {% endif %}                                                             
+      </td>                                                                     
+      <td align="center">                                                       
+        {% if task.html_output_link %}                                          
+          <a href='{{ task.html_output_link }}' target='_blank'>output</a>      
+        {% else %}                                                              
+          {% include "col_status.html" %}                                       
+        {% endif %}                                                             
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+    {% if chromium_try_tasks_prev_offset == 0 or chromium_try_tasks_prev_offset %}
+      <a href='/skia-telemetry/all_tasks?chromium_try_tasks_offset={{ chromium_try_tasks_prev_offset }}#chromium_try_tasks'>Previous</a>
+    {% endif %}
+    {% if chromium_try_tasks_next_offset %}
+      <a href='/skia-telemetry/all_tasks?chromium_try_tasks_offset={{ chromium_try_tasks_next_offset }}#chromium_try_tasks'>Next</a>
+    {% endif %}
+  {% else %}
+    No Previous runs yet.
+  {% endif %}
+
+  <br/><br/>
+
   <a id='telemetry'><h2>All Telemetry benchmark runs history</h2></a>
   <br/>
 

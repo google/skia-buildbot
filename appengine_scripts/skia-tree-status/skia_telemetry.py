@@ -35,6 +35,19 @@ PAGESET_TYPES = (
     'Deeplinks',
 )
 
+# Constants for ChromiumTryPage.
+CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
+    'loading_trace',
+    'smoothness',
+    'rasterize_and_record'
+)
+
+CHROMIUM_TRY_SUPPORTED_PATCH_TYPES = (
+    'blink',
+    'chromium',
+    'skia'
+)
+
 # LKGR urls.
 CHROMIUM_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
 SKIA_LKGR_URL = 'http://skia-tree-status.appspot.com/git-lkgr'
@@ -246,6 +259,75 @@ class LuaTasks(db.Model):
     lua_tasks = cls.get_lua_task(key)
     if lua_tasks.count():
       lua_tasks[0].delete()
+
+
+class ChromiumTryTasks(db.Model):
+  """Data model for Chromium Try tasks."""
+  username = db.StringProperty(required=True)                                   
+  benchmark_name = db.StringProperty(required=True)                             
+  benchmark_arguments = db.StringProperty()
+  patch = db.BlobProperty(required=True)
+  variance_threshold = db.FloatProperty(required=True)
+  discard_outliers = db.FloatProperty(required=True)
+  requested_time = db.DateTimeProperty(required=True)
+  completed_time = db.DateTimeProperty()
+  description = db.StringProperty()
+  patch_type = db.StringProperty()
+  patch_link = db.LinkProperty()
+  build_log_link = db.LinkProperty()
+  telemetry_nopatch_log_link = db.LinkProperty()
+  telemetry_withpatch_log_link = db.LinkProperty()
+  html_output_link = db.LinkProperty()
+
+  def get_json_repr(self):                                                      
+    """Returns a JSON representation of this Data Model."""                     
+    return {
+        'ChromiumTryTask': {
+            'key': self.key().id_or_name(),
+            'username': self.username,
+            'benchmark_name': self.benchmark_name,
+            'benchmark_arguments': self.benchmark_arguments,
+            'patch_type': self.patch_type,
+            'patch': self.patch,
+            'variance_threshold': self.variance_threshold,
+            'discard_outliers': self.discard_outliers
+        }
+    }
+
+  @classmethod
+  def add_oldest_pending_chromium_try_task(cls, l):
+    """Adds the oldest pending task to the specified list."""
+    db_obj = (cls.all()
+                 .filter('completed_time =', None)
+                 .order('requested_time')
+                 .fetch(limit=1))
+    if db_obj:
+      l.append(db_obj[0])
+
+  @classmethod
+  def get_all_chromium_try_tasks(cls, offset):
+    return (cls.all()
+               .order('-requested_time')
+               .fetch(offset=offset, limit=PAGINATION_LIMIT))
+
+  @classmethod
+  def get_all_chromium_try_tasks_of_user(cls, user):
+    return (cls.all()
+               .filter('username =', user)
+               .order('-requested_time')
+               .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
+  def get_chromium_try_task(cls, key):
+    return db.GqlQuery(
+        'SELECT * FROM ChromiumTryTasks WHERE __key__ = '
+        'Key(\'ChromiumTryTasks\', %s);' % key)
+
+  @classmethod
+  def delete_chromium_try_task(cls, key):
+    chromium_try_tasks = cls.get_chromium_try_task(key)
+    if chromium_try_tasks.count():
+      chromium_try_tasks[0].delete()
 
 
 class TelemetryTasks(db.Model):
@@ -566,6 +648,11 @@ class AllTasks(BasePage):
         'telemetry_tasks',
         TelemetryTasks.get_all_telemetry_tasks,
         tasks_counter(TelemetryTasks))
+    self.set_pagination_templates_for_models(
+        template_values,
+        'chromium_try_tasks',
+        ChromiumTryTasks.get_all_chromium_try_tasks,
+        tasks_counter(ChromiumTryTasks))
 
     self.DisplayTemplate('all_tasks.html', template_values)
 
@@ -578,6 +665,66 @@ class AllTasks(BasePage):
       template_values['%s_next_offset' % model_str] = offset + PAGINATION_LIMIT
     if offset != 0:
       template_values['%s_prev_offset' % model_str] = offset - PAGINATION_LIMIT
+
+
+class ChromiumTryPage(BasePage):
+  """Displays the Chromium try page."""
+
+  @utils.require_user
+  def get(self):
+    return self._handle()
+
+  @utils.require_user
+  def post(self):
+    # Check if this is a delete chromium try task request.
+    delete_key = self.request.get('delete')
+    if delete_key:
+      ChromiumTryTasks.delete_chromium_try_task(delete_key)
+      self.redirect('chromium_try')
+      return
+
+    # It is an add chromium try task request.
+    benchmark_name = self.request.get('benchmark_name')
+    benchmark_arguments = self.request.get('benchmark_arguments')
+    variance_threshold = float(self.request.get('variance_threshold'))
+    discard_outliers = float(self.request.get('discard_outliers'))
+    description = self.request.get('description')
+    if not description:
+      description = 'None'
+    patch_type = self.request.get('patch_type')
+    patch = db.Blob(str(self.request.get('patch')))
+    requested_time = datetime.datetime.now()
+
+    ChromiumTryTasks(
+        username=self.user.email(),
+        benchmark_name=benchmark_name,
+        benchmark_arguments=benchmark_arguments,
+        patch_type=patch_type,
+        patch=patch,
+        variance_threshold=variance_threshold,
+        discard_outliers=discard_outliers,
+        requested_time=requested_time,
+        description=description).put()
+    self.redirect('chromium_try')
+
+  def _handle(self):
+    """Sets the information to be displayed on the main page."""
+
+    template_values = self.InitializeTemplate(
+        'Cluster Telemetry Chromium Tryserver')
+
+    add_telemetry_info_to_template(template_values, self.user.email(),
+                                   self.is_admin)
+
+    chromium_try_tasks = ChromiumTryTasks.get_all_chromium_try_tasks_of_user(
+        self.user.email())
+    template_values['supported_benchmarks'] = CHROMIUM_TRY_SUPPORTED_BENCHMARKS
+    template_values['supported_patch_types'] = (
+        CHROMIUM_TRY_SUPPORTED_PATCH_TYPES)
+    template_values['chromium_try_tasks'] = chromium_try_tasks
+    template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
+
+    self.DisplayTemplate('chromium_try.html', template_values)
 
 
 class LandingPage(BasePage):
@@ -659,6 +806,43 @@ class UpdateAdminTasksPage(BasePage):
     self.response.out.write('completed_time: %s<br/>' % completed_time)
 
 
+class UpdateChromiumTryTasksPage(BasePage):
+  """Updates a chromium try task using its key."""
+
+  @utils.admin_only
+  def post(self):
+    key = int(self.request.get('key'))
+    patch_link = self.request.get('patch_link')
+    build_log_link = self.request.get('build_log_link')
+    telemetry_nopatch_log_link = self.request.get(
+        'telemetry_nopatch_log_link')
+    telemetry_withpatch_log_link = self.request.get(
+        'telemetry_withpatch_log_link')
+    html_output_link = self.request.get('html_output_link')
+    completed_time = datetime.datetime.now()
+
+    chromium_try_task = ChromiumTryTasks.get_chromium_try_task(key)[0]
+    chromium_try_task.completed_time = completed_time
+    chromium_try_task.patch_link = patch_link
+    chromium_try_task.build_log_link = build_log_link
+    chromium_try_task.telemetry_nopatch_log_link = telemetry_nopatch_log_link
+    chromium_try_task.telemetry_withpatch_log_link = (
+        telemetry_withpatch_log_link)
+    chromium_try_task.html_output_link = html_output_link
+    chromium_try_task.put()
+
+    self.response.out.write('<br/><br/>Updated the datastore-<br/><br/>')
+    self.response.out.write('key: %s<br/>' % key)
+    self.response.out.write('patch_link: %s<br/>' % patch_link)
+    self.response.out.write('build_log_link: %s<br/>' % build_log_link)
+    self.response.out.write('telemetry_nopatch_log_link: %s<br/>' %
+                                telemetry_nopatch_log_link)
+    self.response.out.write('telemetry_withpatch_log_link: %s<br/>' %
+                                telemetry_withpatch_log_link)
+    self.response.out.write('html_output_link: %s<br/>' % html_output_link)
+    self.response.out.write('completed_time: %s<br/>' % completed_time)
+
+
 class UpdateChromiumBuildTasksPage(BasePage):
   """Updates a chromium build task using its key."""
 
@@ -735,6 +919,7 @@ def get_oldest_task_json_dict():
   AdminTasks.add_oldest_pending_admin_task(tasks)
   ChromiumBuilds.add_oldest_pending_chromium_build(tasks)
   LuaTasks.add_oldest_pending_lua_task(tasks)
+  ChromiumTryTasks.add_oldest_pending_chromium_try_task(tasks)
 
   task_dict = {}
   if tasks:
