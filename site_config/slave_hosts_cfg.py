@@ -53,6 +53,16 @@ SLAVE_HOSTS = {
     'kvm_num': 'C',
   },
 
+  'dummy-slave-host': {
+    'slaves': [
+      ('skia-private-slave-001', '0'),
+      ('skia-private-slave-002', '1'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'ip': 'N/A',
+    'kvm_num': 'N/A',
+  },
+
   'skiabot-shuttle-ubuntu12-xxx': {
     'slaves': [
       ('skiabot-shuttle-ubuntu12-001', '1'),

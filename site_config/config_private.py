@@ -66,7 +66,6 @@ class Master(config_default.Master):
     code_review_site = \
         skia_vars.GetGlobalVariable('code_review_status_listener')
     tree_status_url = skia_vars.GetGlobalVariable('tree_status_url')
-    slaves_cfg = 'slaves.cfg'
 
     def create_schedulers_and_builders(self, cfg):
       """Create the Schedulers and Builders.
@@ -97,7 +96,6 @@ class Master(config_default.Master):
     is_publicly_visible = False
     code_review_site = \
         skia_vars.GetGlobalVariable('code_review_status_listener')
-    slaves_cfg = 'private_slaves.cfg'
 
     def create_schedulers_and_builders(self, cfg):
       """Create the Schedulers and Builders.
