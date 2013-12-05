@@ -74,6 +74,10 @@ class CurrentSheriffPage(BasePage):
       data = json.dumps(upcoming_schedules[0].AsDict())
     else:
       data = json.dumps({})
+    callback = self.request.get('callback')
+    if callback:
+      data = callback + '(' + data + ')'
+    self.response.headers['Content-Type'] = 'application/json'
     self.response.out.write(data)
 
 

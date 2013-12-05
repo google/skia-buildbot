@@ -67,9 +67,10 @@ class GetBuilderStatusesPage(BasePage):
       tmp_dict['username'] = status.username
       builder_dict[status.builder_name] = tmp_dict
     html_output = json.dumps(builder_dict, sort_keys=True)
-    jsonp = self.request.get('jsonp')
-    if jsonp:
-      html_output = jsonp + '(' + html_output + ')'
+    callback = self.request.get('callback')
+    if callback:
+      html_output = callback + '(' + html_output + ')'
+    self.response.headers['Content-Type'] = 'application/json'
     self.response.out.write(html_output)
 
 
