@@ -57,6 +57,7 @@ class Master(config_default.Master):
     # The master host runs in Google Compute Engine.
     master_host = skia_vars.GetGlobalVariable('public_master_host')
     is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER_INTERNAL_FQDN
+    do_upload_results = True
     master_port = skia_vars.GetGlobalVariable('public_internal_port')
     slave_port = skia_vars.GetGlobalVariable('public_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('public_external_port')
@@ -88,6 +89,9 @@ class Master(config_default.Master):
     # The private master host runs in Google Compute Engine.
     master_host = skia_vars.GetGlobalVariable('private_master_host')
     is_production_host = socket.getfqdn() == SKIA_PRIVATE_MASTER_INTERNAL_FQDN
+    # Don't upload results on the private master, since we don't yet have a
+    # private destination for them.
+    do_upload_results = False
     master_port = skia_vars.GetGlobalVariable('private_internal_port')
     slave_port = skia_vars.GetGlobalVariable('private_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('private_external_port')

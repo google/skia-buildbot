@@ -47,20 +47,11 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-nexus10-001', '11'),
       ('skiabot-shuttle-ubuntu12-nexus10-003', '12'),
       ('skiabot-shuttle-ubuntu12-intel-rhb-001', '13'),
+      ('skiabot-shuttle-ubuntu12-logan-001', '13'),
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.110',
     'kvm_num': 'C',
-  },
-
-  'dummy-slave-host': {
-    'slaves': [
-      ('skia-private-slave-001', '0'),
-      ('skia-private-slave-002', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
   },
 
   'skiabot-shuttle-ubuntu12-xxx': {
@@ -91,6 +82,7 @@ SLAVE_HOSTS = {
     'slaves': [
       ('skiabot-linux-compile-vm-a-000', '0'),
       ('skiabot-linux-compile-vm-a-001', '1'),
+      ('skia-private-slave-001', '2'),
     ],
     'copies': _DEFAULT_COPIES,
     'ip': 'N/A',

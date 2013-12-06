@@ -105,6 +105,7 @@ NO_GPU = repr({'skia_gpu': '0'})
 CLANG = repr({'skia_clang_build': '1'})
 VALGRIND = repr({'skia_release_optimization_level': '1'})
 PDFVIEWER = repr({'skia_run_pdfviewer_in_gm': '1'})
+GYP_NVPR = repr({'skia_nv_path_rendering': '1'})
 
 
 def setup_builders_from_config_dict(builder_specs, helper, do_upload_results):
@@ -476,7 +477,8 @@ def create_schedulers_and_builders(config, active_master, cfg,
   helper.TryJobRietveld(utils.TRY_SCHEDULER_RIETVELD)
 
   # Only upload results if we're the production master.
-  do_upload_results = active_master.is_production_host
+  do_upload_results = (active_master.do_upload_results and
+                       active_master.is_production_host)
 
   # Call the passed-in builder setup function.
   builder_setup_func(helper=helper, do_upload_results=do_upload_results)
