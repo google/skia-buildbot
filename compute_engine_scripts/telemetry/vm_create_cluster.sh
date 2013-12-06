@@ -27,7 +27,8 @@ $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM_MASTER_NAME} \
   --network=skia \
   --image=skiatelemetry-3-0-v20131101 \
   --machine_type=n1-standard-8-d \
-  --nopersistent_boot_disk
+  --nopersistent_boot_disk \
+  --service_version=v1beta16
 
 FREE_IP_INDEX=$(expr $FREE_IP_INDEX + 1)
 
@@ -42,7 +43,8 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     --image=skiatelemetry-3-0-v20131101 \
     --machine_type=n1-standard-8-d \
     --external_ip_address=${FREE_IP_LIST[$FREE_IP_INDEX]} \
-    --nopersistent_boot_disk
+    --nopersistent_boot_disk \
+    --service_version=v1beta16
   FREE_IP_INDEX=$(expr $FREE_IP_INDEX + 1)
 done
 
@@ -75,5 +77,7 @@ to setup gcutil promptless authentication from the master to its workers.
       sudo easy_install -U pip
       sudo pip uninstall crcmod
       sudo pip install -U crcmod
+  * Install the following missing packages:
+      sudo apt-et install python-django
 INP
 
