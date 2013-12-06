@@ -69,6 +69,13 @@ Starting setup of ${VM_COMPLETE_NAME}.....
   echo
 
   echo
+  echo "===== Install missing packages. ====="
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
+    "sudo apt-get install python-django" \
+    || FAILED="$FAILED InstallPackages"
+  echo
+
+  echo
   echo "===== Copying over required master and slave files. ====="
   for REQUIRED_FILE in ${REQUIRED_FILES_FOR_SLAVES[@]}; do
     $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \             
