@@ -38,8 +38,7 @@ PAGESET_TYPES = (
 # Constants for ChromiumTryPage.
 CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
     'loading_trace',
-    'smoothness',
-    'rasterize_and_record'
+    'loading_profile'
 )
 
 CHROMIUM_TRY_SUPPORTED_PATCH_TYPES = (
