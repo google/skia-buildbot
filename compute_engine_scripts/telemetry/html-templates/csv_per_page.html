@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <title>Webpage results for '{{ fieldname }}'</title>
+    {% include "column_threshold_css.html" %}
+  </head>
+
+  <body>
+    <h2>Webpage results for '{{ fieldname }}'</h2>
+    <a href='{{ absolute_url }}index.html'>Back</a>
+    <br/><br/>
+    <table border="1" cellpadding="5">
+      <tr bgcolor="#CCCCFF">
+        <th>Page Name</th>
+        <th>Value</th>
+        <th>Value with Patch</th>
+        <th>Percentage Difference</th>
+      </tr>
+      {% for page_value in page_values %}
+        <tr>
+          <td>{{ page_value.page_name }}</td>
+          <td>{{ page_value.value1 }}</td>
+          <td>{{ page_value.value2 }}</td>
+          <td  {% if page_value.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_diff }}%</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

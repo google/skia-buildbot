@@ -63,6 +63,6 @@ if '__main__' == __name__:
            '--csv_dir')
   options, unused_args = option_parser.parse_args()
   if not options.csv_dir or not options.output_csv_name:
-    option_parser.error('Must specify bot csv_dir and output_csv_name')
+    option_parser.error('Must specify both csv_dir and output_csv_name')
 
   sys.exit(CsvMerger(options.csv_dir, options.output_csv_name).Merge())

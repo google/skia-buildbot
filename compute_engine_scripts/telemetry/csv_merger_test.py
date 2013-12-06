@@ -18,7 +18,7 @@ class TestCsvMerger(unittest.TestCase):
   def setUp(self):
     self._test_csv_dir = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        'test_data')
+        'test_data', 'csv_merger')
     self._actual_output = os.path.join(self._test_csv_dir,
                                        ACTUAL_OUTPUT_FILENAME)
 
