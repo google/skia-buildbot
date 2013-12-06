@@ -71,7 +71,6 @@ and run:
   * gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-worker1
 to setup gcutil promptless authentication from the master to its workers.
   * 'gclient sync' /home/default/skia-repo/buildbot
-  * Start the /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_poller.py script.
   * Run the following to be able to download massive files from gsutil:
       sudo apt-get install gcc python-dev python-setuptools
       sudo easy_install -U pip
@@ -79,5 +78,9 @@ to setup gcutil promptless authentication from the master to its workers.
       sudo pip install -U crcmod
   * Install the following missing packages:
       sudo apt-et install python-django
+  * Run vm_recover_slaves_from_crashes.sh
+  * Verify that all slavs are healthy by running:
+      bash vm_run_command_with_output_on_slaves.sh "ls -l storage/"
+  * Start the /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_poller.py script.
 INP
 
