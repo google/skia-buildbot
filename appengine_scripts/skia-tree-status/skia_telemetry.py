@@ -53,7 +53,41 @@ CHROMIUM_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
 SKIA_LKGR_URL = 'http://skia-tree-status.appspot.com/git-lkgr'
 
 
-class ChromiumBuilds(db.Model):
+class BaseTelemetryModel(db.Model):
+  """Base class for Telemetry Datamodels."""
+
+  def get_json_repr(self):
+    """Returns a JSON representation of this Data Model.
+
+    Must be implemented by subclasses.
+    """
+    raise NotImplementedError('Cannot directly use BaseTelemetryModel.')
+
+  @classmethod
+  def get_pending_tasks(cls):
+    """Returns all pending tasks."""
+    return (cls.all()
+               .filter('completed_time =', None)
+               .order('requested_time')
+               .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
+  def add_pending_tasks_in_json(cls, l):
+    """Adds all pending tasks in their JSON format to the specified list."""
+    db_obj = cls.get_pending_tasks()
+    if db_obj:
+      for db_model in db_obj:
+        l.append(db_model.get_json_repr())
+
+  @classmethod
+  def add_oldest_pending_task(cls, l):
+    """Adds the oldest pending task to the specified list."""
+    db_obj = cls.get_pending_tasks()
+    if db_obj:
+      l.append(db_obj[0])
+
+
+class ChromiumBuilds(BaseTelemetryModel):
   """Datamodel for Chromium builds."""
   chromium_rev = db.StringProperty(required=True)
   skia_rev = db.StringProperty(required=True)
@@ -70,7 +104,8 @@ class ChromiumBuilds(db.Model):
             'key': self.key().id_or_name(),
             'username': self.username,
             'chromium_rev': self.chromium_rev,
-            'skia_rev': self.skia_rev
+            'skia_rev': self.skia_rev,
+            'requested_time': str(self.requested_time)
         }
     }
 
@@ -98,16 +133,6 @@ class ChromiumBuilds(db.Model):
     return db.GqlQuery(
         'SELECT * FROM ChromiumBuilds WHERE chromium_rev=\'%s\' '
         'AND skia_rev=\'%s\';' % (chromium_rev, skia_rev))
-
-  @classmethod
-  def add_oldest_pending_chromium_build(cls, l):
-    """Adds the oldest pending task to the specified list."""
-    db_obj = (cls.all()
-                 .filter('completed_time =', None)
-                 .order('requested_time')
-                 .fetch(limit=1))
-    if db_obj:
-      l.append(db_obj[0])
 
   @classmethod
   def delete_chromium_build(cls, key):
@@ -141,7 +166,7 @@ def tasks_counter(cls):
   return cls.all(keys_only=True).count()
 
 
-class AdminTasks(db.Model):
+class AdminTasks(BaseTelemetryModel):
   """Data model for Admin tasks."""
   username = db.StringProperty(required=True)
   task_name = db.StringProperty(required=True)
@@ -160,7 +185,8 @@ class AdminTasks(db.Model):
             'task_name': self.task_name,
             'pagesets_type': self.pagesets_type,
             'chromium_rev': self.chromium_rev,
-            'skia_rev': self.skia_rev
+            'skia_rev': self.skia_rev,
+            'requested_time': str(self.requested_time)
         }
     }
 
@@ -184,23 +210,13 @@ class AdminTasks(db.Model):
             key))
 
   @classmethod
-  def add_oldest_pending_admin_task(cls, l):
-    """Adds the oldest pending task to the specified list."""
-    db_obj = (cls.all()
-                .filter('completed_time =', None)
-                .order('requested_time')
-                .fetch(limit=1))
-    if db_obj:
-      l.append(db_obj[0])
-
-  @classmethod
   def delete_admin_task(cls, key):
     admin_tasks = cls.get_admin_task(key)
     if admin_tasks.count():
       admin_tasks[0].delete()
 
 
-class LuaTasks(db.Model):
+class LuaTasks(BaseTelemetryModel):
   """Data model for Lua tasks."""
   username = db.StringProperty(required=True)
   lua_script = db.TextProperty(required=True)
@@ -222,19 +238,10 @@ class LuaTasks(db.Model):
             'lua_script': self.lua_script,
             'pagesets_type': self.pagesets_type,
             'chromium_rev': self.chromium_rev,
-            'skia_rev': self.skia_rev
+            'skia_rev': self.skia_rev,
+            'requested_time': str(self.requested_time)
         }
     }
-
-  @classmethod
-  def add_oldest_pending_lua_task(cls, l):
-    """Adds the oldest pending task to the specified list."""
-    db_obj = (cls.all()
-                .filter('completed_time =', None)
-                .order('requested_time')
-                .fetch(limit=1))
-    if db_obj:
-      l.append(db_obj[0])
 
   @classmethod
   def get_all_lua_tasks(cls, offset):
@@ -261,7 +268,7 @@ class LuaTasks(db.Model):
       lua_tasks[0].delete()
 
 
-class ChromiumTryTasks(db.Model):
+class ChromiumTryTasks(BaseTelemetryModel):
   """Data model for Chromium Try tasks."""
   username = db.StringProperty(required=True)                                   
   benchmark_name = db.StringProperty(required=True)                             
@@ -290,19 +297,10 @@ class ChromiumTryTasks(db.Model):
             'patch_type': self.patch_type,
             'patch': self.patch,
             'variance_threshold': self.variance_threshold,
-            'discard_outliers': self.discard_outliers
+            'discard_outliers': self.discard_outliers,
+            'requested_time': str(self.requested_time)
         }
     }
-
-  @classmethod
-  def add_oldest_pending_chromium_try_task(cls, l):
-    """Adds the oldest pending task to the specified list."""
-    db_obj = (cls.all()
-                 .filter('completed_time =', None)
-                 .order('requested_time')
-                 .fetch(limit=1))
-    if db_obj:
-      l.append(db_obj[0])
 
   @classmethod
   def get_all_chromium_try_tasks(cls, offset):
@@ -330,7 +328,7 @@ class ChromiumTryTasks(db.Model):
       chromium_try_tasks[0].delete()
 
 
-class TelemetryTasks(db.Model):
+class TelemetryTasks(BaseTelemetryModel):
   """Data model for Telemetry tasks."""
   username = db.StringProperty(required=True)
   benchmark_name = db.StringProperty(required=True)
@@ -355,7 +353,8 @@ class TelemetryTasks(db.Model):
             'benchmark_name': self.benchmark_name,
             'benchmark_arguments': self.benchmark_arguments,
             'pagesets_type': self.pagesets_type,
-            'whitelist_file': self.whitelist_file
+            'whitelist_file': self.whitelist_file,
+            'requested_time': str(self.requested_time)
         }
     }
 
@@ -365,16 +364,6 @@ class TelemetryTasks(db.Model):
     return db.GqlQuery(
         'SELECT * FROM TelemetryTasks WHERE benchmark_name = '
         '\'skpicture_printer\' AND completed_time != null;')
-
-  @classmethod
-  def add_oldest_pending_telemetry_task(cls, l):
-    """Adds the oldest pending task to the specified list."""
-    db_obj = (cls.all()
-                 .filter('completed_time =', None)
-                 .order('requested_time')
-                 .fetch(limit=1))
-    if db_obj:
-      l.append(db_obj[0])
 
   @classmethod
   def get_all_telemetry_tasks(cls, offset):
@@ -400,6 +389,16 @@ class TelemetryTasks(db.Model):
     telemetry_tasks = cls.get_telemetry_task(key)
     if telemetry_tasks.count():
       telemetry_tasks[0].delete()
+
+
+# List of Telemetry Data Models.
+TELEMETRY_DATA_MODELS = (
+    TelemetryTasks,
+    AdminTasks,
+    ChromiumBuilds,
+    LuaTasks,
+    ChromiumTryTasks
+)
 
 
 def add_telemetry_info_to_template(template_values, user_email,
@@ -585,6 +584,20 @@ class ChromiumBuildsPage(BasePage):
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
 
     self.DisplayTemplate('chromium_builds.html', template_values)
+
+
+class PendingTasksPage(BasePage):
+  """Displays all pending tasks in the Cluster Telemetry queue."""
+
+  @utils.require_user
+  def get(self):
+    template_values = self.InitializeTemplate('Pending Tasks')
+
+    add_telemetry_info_to_template(template_values, self.user.email(),
+                                   self.is_admin)
+    template_values['pending_tasks'] = get_all_pending_tasks()
+
+    self.DisplayTemplate('tasks_queue.html', template_values)
 
 
 class TelemetryInfoPage(BasePage):
@@ -915,11 +928,8 @@ def get_oldest_task_json_dict():
   # A list holding the different pending tasks.
   tasks = []
 
-  TelemetryTasks.add_oldest_pending_telemetry_task(tasks)
-  AdminTasks.add_oldest_pending_admin_task(tasks)
-  ChromiumBuilds.add_oldest_pending_chromium_build(tasks)
-  LuaTasks.add_oldest_pending_lua_task(tasks)
-  ChromiumTryTasks.add_oldest_pending_chromium_try_task(tasks)
+  for cls in TELEMETRY_DATA_MODELS:
+    cls.add_oldest_pending_task(tasks)
 
   task_dict = {}
   if tasks:
@@ -936,6 +946,20 @@ def get_oldest_pending_task_key():
   if task_dict:
     oldest_pending_task_key = task_dict.values()[0]['key']
   return oldest_pending_task_key
+
+
+def get_all_pending_tasks():
+  """Returns all pending tasks."""
+  # A list holding the different pending tasks.
+  pending_tasks = []
+
+  for cls in TELEMETRY_DATA_MODELS:
+    cls.add_pending_tasks_in_json(pending_tasks)
+
+  # Sort the list according to the requested_times (oldest first).
+  pending_tasks.sort(cmp=lambda x, y: cmp(x.values()[0]['requested_time'],
+                                          y.values()[0]['requested_time']))
+  return pending_tasks
 
 
 class GetClusterTelemetryTasksPage(BasePage):
