@@ -16,14 +16,14 @@ vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   "chromium_revision": "179720",
   "depot_tools_revision": "223643",
-  "telemetry_chromium_revision": "232633",
-  "webpagereplay_revision": "522",
+  "telemetry_chromium_revision": "239164",
+  "webpagereplay_revision": "528",
   "telemetry_webkit_trunk": "http://src.chromium.org/blink/trunk",
   "telemetry_webkit_revision": "161228"
 }
 
 deps = {
-  # Chromium trunk code for run_skpicture_printer.
+  # Chromium trunk code for running telemetry binaries.
   "third_party/chromium_trunk/tools/perf":
     Var("chromium_trunk") + "/src/tools/perf@" + Var("telemetry_chromium_revision"),
   "third_party/chromium_trunk/tools/telemetry":
@@ -40,6 +40,8 @@ deps = {
     Var("chromium_trunk") + "/src/third_party/flot@" + Var("telemetry_chromium_revision"),
   "third_party/chromium_trunk/third_party/WebKit/PerformanceTests/resources":
     Var("telemetry_webkit_trunk") + "/PerformanceTests/resources@" + Var("telemetry_webkit_revision"),
+  "third_party/chromium_trunk/third_party/webpagereplay":
+    "http://web-page-replay.googlecode.com/svn/trunk/@" + Var("webpagereplay_revision"),
 
   # build/android/pylib/android_commands.py requires android_testrunner to be in third_party.
   "third_party/chromium_trunk/third_party/android_testrunner":
