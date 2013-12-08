@@ -8,7 +8,7 @@
 
 from buildbot.process.properties import Properties
 from buildbot.schedulers.trysched import BadJobfile
-from buildbot.status.builder import EXCEPTION
+from buildbot.status.builder import EXCEPTION, FAILURE
 from buildbot.status.web import base as webstatus_base
 from buildbot.status.web.status_json import BuilderJsonResource
 from buildbot.status.web.status_json import BuildersJsonResource
@@ -18,6 +18,7 @@ from buildbot.status.web.status_json import JsonStatusResource
 from buildbot.status.web.status_json import MetricsJsonResource
 from buildbot.status.web.status_json import ProjectJsonResource
 from buildbot.status.web.status_json import SlavesJsonResource
+from master import build_utils
 from master import chromium_notifier
 from master import gatekeeper
 from master import try_job_base
@@ -36,6 +37,7 @@ import posixpath
 import slave_hosts_cfg
 import slaves_cfg
 import skia_vars
+import time
 import urllib2
 
 
@@ -452,15 +454,102 @@ def TryJobRietveldConstructor(
 try_job_rietveld.TryJobRietveld.__init__ = TryJobRietveldConstructor
 
 
-def GateKeeperIsInterestingBuilder(self, builder_status):
-  """ Override of gatekeeper.GateKeeper.isInterestingBuilder:
-  http://src.chromium.org/viewvc/chrome/trunk/tools/build/scripts/master/gatekeeper.py?view=markup
+class SkiaGateKeeper(gatekeeper.GateKeeper):
 
-  We modify it to actually check whether the builder should be considered by the
-  GateKeeper, as indicated in its category name.
-  """
-  return (GATEKEEPER_NAME in (builder_status.getCategory() or '') and
-          chromium_notifier.ChromiumNotifier.isInterestingBuilder(self,
-              builder_status))
+  # Contains the timestamp of when the tree was last closed.
+  _last_closure_build_start = 0
 
-gatekeeper.GateKeeper.isInterestingBuilder = GateKeeperIsInterestingBuilder
+  def isInterestingBuilder(self, builder_status):
+    """ Override of gatekeeper.GateKeeper.isInterestingBuilder:
+    http://src.chromium.org/viewvc/chrome/trunk/tools/build/scripts/master/gatekeeper.py?view=markup
+
+    We modify it to actually check whether the builder should be considered by
+    the GateKeeper, as indicated in its category name.
+    """
+    ret = (GATEKEEPER_NAME in (builder_status.getCategory() or '') and
+            chromium_notifier.ChromiumNotifier.isInterestingBuilder(self,
+                builder_status))
+    return ret
+
+  def isInterestingStep(self, build_status, step_status, results):
+    """ Override of gatekeeper.GateKeeper.isInterestingStep:
+    http://src.chromium.org/viewvc/chrome/trunk/tools/build/scripts/master/gatekeeper.py?view=markup
+
+    We modify it to compare timestamps instead of the original:
+    latest_revision <= self._last_closure_revision"""
+    # If we have not failed, or are not interested in this builder,
+    # then we have nothing to do.
+    if results[0] != FAILURE:
+      return False
+
+    # Check if the slave is still alive. We should not close the tree for
+    # inactive slaves.
+    slave_name = build_status.getSlavename()
+    if slave_name in self.master_status.getSlaveNames():
+      # @type self.master_status: L{buildbot.status.builder.Status}
+      # @type self.parent: L{buildbot.master.BuildMaster}
+      # @rtype getSlave(): L{buildbot.status.builder.SlaveStatus}
+      slave_status = self.master_status.getSlave(slave_name)
+      if slave_status and not slave_status.isConnected():
+        log.msg('[gatekeeper] Slave %s was disconnected, '
+                'not closing the tree' % slave_name)
+        return False
+
+    # If the previous build step failed with the same result, we don't care
+    # about this step.
+    previous_build_status = build_status.getPreviousBuild()
+    if previous_build_status:
+      step_name = self.getName(step_status)
+      step_type = self.getGenericName(step_name)
+      previous_steps = [step for step in previous_build_status.getSteps()
+                        if self.getGenericName(self.getName(step)) == step_type]
+      if len(previous_steps) == 1:
+        if previous_steps[0].getResults()[0] == FAILURE:
+          log.msg('[gatekeeper] Slave %s failed, but previously failed on '
+                  'the same step (%s). So not closing tree.' % (
+                      (step_name, slave_name)))
+          return False
+      else:
+        log.msg('[gatekeeper] len(previous_steps) == %d which is weird' %
+                len(previous_steps))
+
+    # If check_revisions=False that means that the tree closure request is
+    # coming from nightly scheduled bots, that need not necessarily have the
+    # revision info.
+    if not self.check_revisions:
+      return True
+
+    # If we don't have a version stamp nor a blame list, then this is most
+    # likely a build started manually, and we don't want to close the
+    # tree.
+    latest_revision = build_utils.getLatestRevision(build_status)
+    if not latest_revision or not build_status.getResponsibleUsers():
+      log.msg('[gatekeeper] Slave %s failed, but no version stamp, '
+              'so skipping.' % slave_name)
+      return False
+
+    # If the tree is open, we don't want to close it again for the same
+    # revision, or an earlier one in case the build that just finished is a
+    # slow one and we already fixed the problem and manually opened the tree.
+    ############################### Added by rmistry ###########################
+    # rmistry: Comparing the timestamps of when the build started to determine
+    # if it is an older build than the one that closed the tree.
+    if build_status.started <= self._last_closure_build_start:
+      log.msg('[gatekeeper] Slave %s failed, but we already closed it '
+              'for a previous revision (old=%s, new=%s)' % (
+                  slave_name, str(self._last_closure_revision),
+                  str(latest_revision)))
+      return False
+
+    # Set the last closure build start time.
+    self._last_closure_build_start = time.time()
+    ###########################################################################
+
+    log.msg('[gatekeeper] Decided to close tree because of slave %s '
+            'on revision %s' % (slave_name, str(latest_revision)))
+
+    # Up to here, in theory we'd check if the tree is closed but this is too
+    # slow to check here. Instead, take a look only when we want to close the
+    # tree.
+    return True
+
