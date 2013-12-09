@@ -35,7 +35,16 @@ gclient sync
 cd ../../../slave/skia_slave_scripts/utils/
 CHROMIUM_BUILD_DIR_BASE=/home/default/storage/chromium-builds/base
 mkdir -p $CHROMIUM_BUILD_DIR_BASE
-PYTHONPATH=/home/default/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/home/default/skia-repo/buildbot/site_config/:/home/default/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH
+SYNC_SKIA_IN_CHROME_CMD="PYTHONPATH=/home/default/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/home/default/skia-repo/buildbot/site_config/:/home/default/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH"
+eval $SYNC_SKIA_IN_CHROME_CMD
+
+
+if [ $? -ne 0 ]
+then
+  echo "There was an error. Deleting base directory and trying again..."
+  rm -rf $CHROMIUM_BUILD_DIR_BASE
+  eval $SYNC_SKIA_IN_CHROME_CMD
+fi
 
 if [ $? -ne 0 ]
 then
@@ -89,10 +98,10 @@ fi
 
 # Copy the log file to Google Storage.
 gsutil cp -a public-read $LOG_FILE_LOCATION \
-  gs://chromium-skia-gm/telemetry/admin-task-outputs/$REQUESTER_EMAIL-chromium.txt
+  gs://chromium-skia-gm/telemetry/admin-task-outputs/$REQUESTER_EMAIL-$APPENGINE_KEY-chromium.txt
 rm $LOG_FILE_LOCATION
 
-OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/admin-task-outputs/$REQUESTER_EMAIL-chromium.txt
+OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/admin-task-outputs/$REQUESTER_EMAIL-$APPENGINE_KEY-chromium.txt
 BOUNDARY=`date +%s|md5sum`
 BOUNDARY=${BOUNDARY:0:32}
 sendmail $REQUESTER_EMAIL <<EOF
