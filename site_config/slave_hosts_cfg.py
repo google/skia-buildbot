@@ -37,7 +37,6 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-nexuss-001', '0'),
       ('skiabot-shuttle-ubuntu12-nexuss-002', '1'),
       ('skiabot-shuttle-ubuntu12-xoom-001', '3'),
-      ('skiabot-shuttle-ubuntu12-xoom-002', '4'),
       ('skiabot-shuttle-ubuntu12-xoom-003', '5'),
       ('skiabot-shuttle-ubuntu12-galaxynexus-001', '6'),
       ('skiabot-shuttle-ubuntu12-nexus4-001', '7'),
