@@ -31,9 +31,9 @@ def setup_all_builders(helper, do_upload_results):
   f = android_factory.AndroidFactory
   p = skia_factory.TARGET_PLATFORM_LINUX
   builder_specs.update({
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',  'NvidiaLogan',  GYP_NVPR,  True,  f, p) : [('Test', 'Android',  'NvidiaLogan','Tegra5',      None,          'base-android-logan')],
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',  'NvidiaLogan',  GYP_NVPR,  True,  f, p) : [('Test', 'Android',  'NvidiaLogan','Tegra5',      None,          'base-android-logan'),
-                                                                                            ('Perf', 'Android',  'NvidiaLogan','Tegra5',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',  'NvidiaLogan',  GYP_NVPR,  True,  f, p) : [('Test', 'Android',  'Logan',      'Nvidia',      None,          'base-android-logan')],
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',  'NvidiaLogan',  GYP_NVPR,  True,  f, p) : [('Test', 'Android',  'Logan',      'Nvidia',      None,          'base-android-logan'),
+                                                                                            ('Perf', 'Android',  'Logan',      'Nvidia',      None,          None)],
   })
 
   master_builders_cfg.setup_builders_from_config_dict(builder_specs, helper,
