@@ -22,6 +22,12 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     var internalPort = "{{ internal_port }}";
     var externalPort = "{{ external_port }}";
 
+    // JSON data URL.
+    var tree_status_appspot_url = "{{ tree_status_baseurl }}";
+
+    // Per-builder status messages.
+    var builder_statuses = {};
+
     // How often, in milliseconds, to refresh the page.
     var refreshInterval = {{ refresh or default_refresh }} * 1000;
     var refreshTimer = null;
@@ -126,6 +132,82 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       }
     }
 
+    // Return the name of a non-anonymous function.
+    function getFunctionName(func) {
+      var name = func.toString();
+      name = name.substr("function ".length);
+      name = name.substr(0, name.indexOf("("));
+      return name;
+    }
+
+    // Use JSONP to retrieve data from the given URL. There are a few possible
+    // outcomes:
+    //   1. The server returns valid JSONP. In this case, the provided callback
+    //      will be called with the data as the parameter.
+    //   2. The server returns an error code (eg. if the requested URL isn't
+    //      valid). In this case, the provided errback will be called.
+    //   3. The server returns a success code but the response does not contain
+    //      valid JSONP. In this case, the callback cannot be called, since that
+    //      call is part of the JSONP response. Additionally, the errback will
+    //      not fire, since there is no way to dynamically insert a try/catch
+    //      around the response content, and the script tag's onError handler
+    //      only fires if the script could not be obtained from the server.
+    //
+    // Note: callback must NOT be an anonymous function.
+    //
+    function loadJSONP(url, callback, errback) {
+      var script = document.createElement("script");
+      var src = appendParamToURL(url, "callback", getFunctionName(callback));
+      script.setAttribute("src", src);
+      script.onError = errback
+      document.getElementsByTagName("head")[0].appendChild(script);
+    }
+
+    // Set the tree status.
+    function setTreeStatus(data) {
+      var tree_status_div = document.getElementById("tree_status_div");
+      if (tree_status_div) {
+        tree_status_div.className = "status-message " + data["general_state"];
+      }
+      var tree_status_message = document.getElementById("tree_status_message");
+      if (tree_status_message) {
+        tree_status_message.innerHTML = data["message"];
+      }
+    }
+
+    // Set the current sheriff.
+    function setSheriff(data) {
+      var sheriff_div = document.getElementById("sheriff_div");
+      if (sheriff_div) {
+        sheriff_div.innerHTML = data["username"];
+      }
+    }
+
+    // Set builder statuses.
+    function setBuilderStatuses(data) {
+      // Set the global builder status variable.
+      builder_statuses = data;
+
+      // Mark builders who have comments.
+      for (var builder_name in data) {
+        var comment_indicator = document.getElementById("commentIndicator_" + builder_name);
+        if (comment_indicator) {
+          comment_indicator.className += " BuilderHasComment";
+        }
+      }
+
+      // Optionally display the builder status message on the page.
+      var display_comment_elems = document.getElementsByClassName("DisplayBuilderComment");
+      for (var i = 0; i < display_comment_elems.length; ++i) {
+        var display_comment = display_comment_elems[i];
+        var builder_name = display_comment.id.slice("displayBuilderComment_".length);
+        display_comment.innerHTML = builderCommentText(builder_name);
+        if (builder_statuses[builder_name]) {
+          display_comment.className += " BuilderTooltip BuilderHasComment";
+        }
+      }
+    }
+
     // Function to call on page load. Reloads the page with appropriate options
     // if they are not already set.
     function init() {
@@ -163,11 +245,49 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           }
         }
       }
+
+      // Load JSON data from various places.
+
+      // Tree status.
+      loadJSONP(tree_status_appspot_url + "/banner-status?format=json",
+                setTreeStatus,
+                function() {
+                  setTreeStatus({
+                    "general_state": "",
+                    "message": "Failed to load tree status.",
+                  });
+                });
+
+      // Current sheriff.
+      loadJSONP(tree_status_appspot_url + "/current-sheriff",
+                setSheriff,
+                function() { setSheriff({"username": "unknown"}); });
+
+      // Builder statuses.
+      loadJSONP(tree_status_appspot_url + "/builder-status/get_builder_statuses",
+                setBuilderStatuses);
+
       refreshTimer = setTimeout(reloadPage, refreshInterval);
     }
 
+    // Get the comment text for a given builder.
+    function builderCommentText(builder_name) {
+      var comment = null;
+      if (builder_statuses[builder_name]) {
+        comment = builder_statuses[builder_name]["message"];
+      }
+      var edit_status_url = tree_status_appspot_url + "/builder-status/?selected_builder_name=" + builder_name;
+      var comment_html;
+      if (comment) {
+        comment_html = comment + ' (<a href="' + edit_status_url + '" target="_blank">edit</a>)';
+      } else {
+        comment_html = '<a href="' + edit_status_url + '" target="_blank">add a comment</a>';
+      }
+      return comment_html;
+    }
+
     // Display a builder tooltip.
-    function showBuilderTooltip(message, event) {
+    function showBuilderTooltip(builder_name, event) {
       var tooltipbox = document.getElementById('builderTooltip');
       if (tooltipbox) {
         var cursorPosTop = (window.event ? window.event.clientY : event.pageY)
@@ -176,7 +296,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         cursorPosTop  = cursorPosTop  + document.body.scrollTop + 5;
         cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
 
-        tooltipbox.innerHTML = message;
+        tooltipbox.innerHTML = builderCommentText(builder_name);
         tooltipbox.style.top = parseInt(cursorPosTop) + 'px';
         tooltipbox.style.left = parseInt(cursorPosLeft) + 'px';
         tooltipbox.style.display = "block";
@@ -336,9 +456,9 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     {% block header -%}
     <div id="skia_header" style="top:5px;">
       <a href="{{ tree_status_baseurl }}" target="_blank" style="text-decoration:inherit;">
-        <div id="skia-tree-status-div" width="100%" height="50" class="status-message {{ tree_status['general_state'] }}">
-          {{ tree_status['message'] }}
-          <div class="sheriff-message">Sheriff: {{ sheriff }}</div>
+        <div id="tree_status_div" width="100%" height="50" class="status-message">
+          <span id="tree_status_message"></span>
+          <div id="sheriff_div" class="sheriff-message"></div>
         </div>
       </a>
       <div id="container" style="float: left; width: 100%;">

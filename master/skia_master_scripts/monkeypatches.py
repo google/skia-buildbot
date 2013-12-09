@@ -33,12 +33,10 @@ from utils import GATEKEEPER_NAME
 import builder_name_schema
 import config_private
 import json
-import posixpath
 import slave_hosts_cfg
 import slaves_cfg
 import skia_vars
 import time
-import urllib2
 
 
 CQ_TRYBOTS = [
@@ -46,24 +44,6 @@ CQ_TRYBOTS = [
     'Build-Ubuntu12-GCC-x86_64-Release-Trybot',
     # 'Build-Win7-VS2010-x86-Release-Trybot',
 ]
-
-BANNER_STATUS_URL = \
-    posixpath.join(skia_vars.GetGlobalVariable('tree_status_baseurl'),
-                   'banner-status?format=json')
-BUILDER_STATUS_URL = \
-    posixpath.join(skia_vars.GetGlobalVariable('tree_status_baseurl'),
-                   'builder-status/get_builder_statuses')
-EDIT_BUILDER_STATUS_URL = \
-    posixpath.join(skia_vars.GetGlobalVariable('tree_status_baseurl'),
-                   'builder-status/?selected_builder_name=%s')
-EDIT_BUILDER_STATUS_LINK = \
-    ' (<a href="%s" target="_blank">edit</a>)' % EDIT_BUILDER_STATUS_URL
-ADD_BUILDER_STATUS_LINK = \
-    '<a href="%s" target="_blank">add a comment</a>' % EDIT_BUILDER_STATUS_URL
-SHERIFF_URL = \
-    posixpath.join(skia_vars.GetGlobalVariable('tree_status_baseurl'),
-                   'current-sheriff')
-
 
 ################################################################################
 ############################# Trybot Monkeypatches #############################
@@ -170,27 +150,8 @@ def HtmlResourceRender(self, request):
     if not subcategory in subcategories_by_category[category]:
       subcategories_by_category[category].append(subcategory)
 
-  # Get the tree status.
-  tree_status = json.load(urllib2.urlopen(BANNER_STATUS_URL))
-  ctx['tree_status'] = tree_status
   ctx['tree_status_baseurl'] = \
       skia_vars.GetGlobalVariable('tree_status_baseurl')
-
-  # Get the builder statuses.
-  builder_statuses = json.load(urllib2.urlopen(BUILDER_STATUS_URL))
-  ctx['builder_statuses'] = builder_statuses
-  ctx['get_builder_status_msg'] = \
-      lambda builder_name: (
-          (builder_statuses[builder_name]['message'] +
-           EDIT_BUILDER_STATUS_LINK % builder_name)
-          if builder_statuses.get(builder_name)
-          else ADD_BUILDER_STATUS_LINK % builder_name
-      )
-  ctx['escape_quotes'] = \
-      lambda input: input.replace('\'', '\\&#39;').replace('"', '&#34;')
-
-  # Get the current sheriff.
-  ctx['sheriff'] = json.load(urllib2.urlopen(SHERIFF_URL))['username']
 
   ctx['all_full_category_names'] = sorted(list(all_full_category_names))
   ctx['all_categories'] = sorted(list(all_categories))
