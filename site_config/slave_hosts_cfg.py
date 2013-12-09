@@ -2,6 +2,12 @@
 machines. """
 
 
+# Indicates that this machine is not connected to a KVM switch.
+NO_KVM_NUM = '(not on KVM)'
+
+# Indicates that this machine has no static IP address.
+NO_IP_ADDR = '(no static IP)'
+
 # Files to copy into buildslave checkouts.
 _DEFAULT_COPIES = [
   {
@@ -84,8 +90,8 @@ SLAVE_HOSTS = {
       ('skia-private-slave-001', '2'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-compile2-a': {
@@ -94,8 +100,8 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-003', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-compile3-a': {
@@ -104,8 +110,8 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-005', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-compile4-a': {
@@ -114,8 +120,8 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-007', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-compile5-a': {
@@ -124,8 +130,8 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-009', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-housekeeping-slave-a': {
@@ -133,8 +139,8 @@ SLAVE_HOSTS = {
       ('skia-housekeeping-slave-a', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-compile1-b': {
@@ -143,8 +149,8 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-compile2-b': {
@@ -153,8 +159,8 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-003', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-compile3-b': {
@@ -163,8 +169,8 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-005', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-compile4-b': {
@@ -173,8 +179,8 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-007', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-compile5-b': {
@@ -183,8 +189,8 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-009', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
   'skia-housekeeping-slave-b': {
@@ -192,8 +198,8 @@ SLAVE_HOSTS = {
       ('skia-housekeeping-slave-b', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
 ################################# Mac Machines #################################
@@ -307,8 +313,8 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_8-compile-009', '9'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': 'N/A',
-    'kvm_num': 'N/A',
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
   },
 
 ############################### Windows Machines ###############################
@@ -358,14 +364,39 @@ SLAVE_HOSTS = {
     'ip': '192.168.1.112',
     'kvm_num': '2',
   },
-
-  'win8compile000': {
+  'win8-gtx660-000': {
     'slaves': [
-      ('skiabot-win8-compile-000', '0'),
+      ('skiabot-shuttle-win8-gtx660-000', '0'),
+      ('skiabot-win8-compile-000', '1'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.108',
+    'kvm_num': 'A',
+  },
+  'win8-gtx660-001': {
+    'slaves': [
+      ('skiabot-shuttle-win8-gtx660-bench', '0'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.133',
+    'kvm_num': 'B',
+  },
+  'win8-hd7770-000': {
+    'slaves': [
+      ('skiabot-shuttle-win8-hd7770-000', '0'),
+      ('skiabot-win8-compile-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.117',
-    'kvm_num': '4',
+    'kvm_num': 'C',
+  },
+  'win8-hd7770-001': {
+    'slaves': [
+      ('skiabot-shuttle-win8-hd7770-bench', '0'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'ip': '192.168.1.107',
+    'kvm_num': 'D',
   },
 }
 

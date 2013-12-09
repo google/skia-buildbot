@@ -260,10 +260,18 @@ def setup_primary_builders(helper, do_upload_results):
       ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', GYP_DW,    False, f, p) : [('Test', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', 'base-shuttle-win7-intel-directwrite'),
                                                                                             ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'DirectWrite', None)],
       ('Win7',     'VS2010', 'Debug',   'x86',    'Exceptions',  GYP_EXC,   False, f, p) : [],
-      ('Win8',     'VS2012', 'Debug',   'x86',    None,          GYP_WIN8,  True,  f, p) : [],
-      ('Win8',     'VS2012', 'Release', 'x86',    None,          GYP_WIN8,  True,  f, p) : [],
-      ('Win8',     'VS2012', 'Debug',   'x86_64', None,          GYP_WIN8,  False, f, p) : [],
-      ('Win8',     'VS2012', 'Release', 'x86_64', None,          GYP_WIN8,  False, f, p) : []})
+      ('Win8',     'VS2012', 'Debug',   'x86',    None,          GYP_WIN8,  True,  f, p) : [('Test', 'Win8',     'ShuttleA',   'GTX660',      None,          'base-shuttle-win8-gtx660'),
+                                                                                            ('Test', 'Win8',     'ShuttleA',   'HD7770',      None,          'base-shuttle-win8-hd7770')],
+      ('Win8',     'VS2012', 'Release', 'x86',    None,          GYP_WIN8,  True,  f, p) : [('Test', 'Win8',     'ShuttleA',   'GTX660',      None,          'base-shuttle-win8-gtx660'),
+                                                                                            ('Perf', 'Win8',     'ShuttleA',   'GTX660',      None,          None),
+                                                                                            ('Test', 'Win8',     'ShuttleA',   'HD7770',      None,          'base-shuttle-win8-hd7770'),
+                                                                                            ('Perf', 'Win8',     'ShuttleA',   'HD7770',      None,          None)],
+      ('Win8',     'VS2012', 'Debug',   'x86_64', None,          GYP_WIN8,  False, f, p) : [('Test', 'Win8',     'ShuttleA',   'GTX660',      None,          'base-shuttle-win8-gtx660'),
+                                                                                            ('Test', 'Win8',     'ShuttleA',   'HD7770',      None,          'base-shuttle-win8-hd7770')],
+      ('Win8',     'VS2012', 'Release', 'x86_64', None,          GYP_WIN8,  False, f, p) : [('Test', 'Win8',     'ShuttleA',   'GTX660',      None,          'base-shuttle-win8-gtx660'),
+                                                                                            ('Perf', 'Win8',     'ShuttleA',   'GTX660',      None,          None),
+                                                                                            ('Test', 'Win8',     'ShuttleA',   'HD7770',      None,          'base-shuttle-win8-hd7770'),
+                                                                                            ('Perf', 'Win8',     'ShuttleA',   'HD7770',      None,          None)],})
   f = android_factory.AndroidFactory
   p = skia_factory.TARGET_PLATFORM_LINUX
   builder_specs.update({
