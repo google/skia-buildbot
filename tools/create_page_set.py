@@ -146,8 +146,12 @@ if '__main__' == __name__:
       continue
     pages.append({
         'url': qualified_website,
-        'why': '#%s in Alexa global.' % (index + 1)
-        })
+        'why': '#%s in Alexa global.' % (index + 1),
+        'navigate_steps': [
+            {'action': 'navigate'},
+            {'action': 'wait', 'seconds': 5}
+        ]
+    })
 
     # Output the JSON dictionary to a file.
     try:
