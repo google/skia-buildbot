@@ -109,6 +109,9 @@ def process_chromium_try_task(task):
   # Copy the patch to a local file.
   run_id = '%s-%s' % (username.split('@')[0], time.time())
   patch_txt = task['patch'].replace('\r\n', '\n')
+  # Add an extra newline at the end because git sometimes rejects patches due to
+  # missing newlines.
+  patch_txt += '\n'
   patch_file = os.path.join(tempfile.gettempdir(),
                             '%s.patch' % run_id)
   f = open(patch_file, 'w')

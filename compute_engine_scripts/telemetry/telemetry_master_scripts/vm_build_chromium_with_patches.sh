@@ -90,6 +90,7 @@ reset_chromium_checkout
 echo "== Applying the specified patch =="
 if [ "$PATCH_TYPE" == "chromium" ]; then
   # Stay in the current directory.
+  :
 elif [ "$PATCH_TYPE" == "skia" ]; then
   cd third_party/skia/
 elif [ "$PATCH_TYPE" == "blink" ]; then
