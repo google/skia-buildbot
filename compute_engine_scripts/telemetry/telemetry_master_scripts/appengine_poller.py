@@ -31,6 +31,7 @@ UPDATE_INFO_AFTER_SECS = 7200
 # processed are not triggered again.
 ADMIN_ENCOUNTERED_KEYS = {}
 CHROMIUM_BUILD_ENCOUNTERED_KEYS = {}
+CHROMIUM_TRY_ENCOUNTERED_KEYS = {}
 LUA_ENCOUNTERED_KEYS = {}
 TELEMETRY_ENCOUNTERED_KEYS = {}
 
@@ -85,6 +86,51 @@ def process_chromium_build_task(task):
   print 'Chromium build output will be available in %s' % log_file
   cmd = 'bash vm_build_chromium.sh %s %s %s %s %s' % (
       chromium_rev, skia_rev, username, task_key, log_file)
+  subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
+                   stderr=open(log_file, 'w'))
+
+
+def process_chromium_try_task(task):
+  # Extract required parameters.
+  task_key = task['key']
+  if task_key in CHROMIUM_TRY_ENCOUNTERED_KEYS:
+    print '%s is already being processed' % task_key
+    return
+  CHROMIUM_TRY_ENCOUNTERED_KEYS[task_key] = 1
+
+  username = task['username']
+  benchmark_name = task['benchmark_name']
+  benchmark_arguments = task['benchmark_arguments']
+  # Escape any quotes in benchmark arguments.
+  benchmark_arguments = benchmark_arguments.replace('"', r'\"')
+  patch_type = task['patch_type']
+  variance_threshold = task['variance_threshold']
+  discard_outliers = task['discard_outliers']
+  # Copy the patch to a local file.
+  run_id = '%s-%s' % (username.split('@')[0], time.time())
+  patch_txt = task['patch'].replace('\r\n', '\n')
+  patch_file = os.path.join(tempfile.gettempdir(),
+                            '%s.patch' % run_id)
+  f = open(patch_file, 'w')
+  f.write(patch_txt)
+  f.close()
+
+  log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
+  print 'Chromium try output will be available in %s' % log_file
+  cmd = ('bash vm_run_chromium_try.sh -p %(patch_file)s -t %(patch_type)s '
+         '-r %(run_id)s -v %(variance_threshold)s -o %(discard_outliers)s '
+         '-b %(benchmark_name)s -a %(benchmark_arguments)s -e %(username)s '
+         '-i %(task_key)s -l %(log_file)s' % {
+             'patch_file': patch_file,
+             'patch_type': patch_type,
+             'run_id': run_id,
+             'variance_threshold': variance_threshold,
+             'discard_outliers': discard_outliers,
+             'benchmark_name': benchmark_name,
+             'benchmark_arguments': benchmark_arguments,
+             'username': username,
+             'task_key': task_key,
+             'log_file': log_file})
   subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))
 
@@ -165,6 +211,7 @@ def get_chromium_build_dir(chromium_rev, skia_rev):
 TASK_TYPE_TO_PROCESSING_METHOD = {
     appengine_constants.ADMIN_TASK_NAME: process_admin_task,
     appengine_constants.CHROMIUM_BUILD_TASK_NAME: process_chromium_build_task,
+    appengine_constants.CHROMIUM_TRY_TASK_NAME: process_chromium_try_task,
     appengine_constants.LUA_TASK_NAME: process_lua_task,
     appengine_constants.TELEMETRY_TASK_NAME: process_telemetry_task,
 }

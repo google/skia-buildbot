@@ -14,6 +14,7 @@ GET_OLDEST_PENDING_TASK_SUBPATH = 'get_oldest_pending_task'
 
 ADMIN_TASK_NAME = 'AdminTask'
 CHROMIUM_BUILD_TASK_NAME = 'ChromiumBuildTask'
+CHROMIUM_TRY_TASK_NAME = 'ChromiumTryTask'
 TELEMETRY_TASK_NAME = 'TelemetryTask'
 LUA_TASK_NAME = 'LuaTask'
 

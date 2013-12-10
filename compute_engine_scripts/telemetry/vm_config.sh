@@ -15,6 +15,8 @@ NUM_SLAVES=${NUM_SLAVES:=100}
 NUM_WEBPAGES=${NUM_WEBPAGES:=1000000}
 MAX_WEBPAGES_PER_PAGESET=${MAX_WEBPAGES_PER_PAGESET:=1}
 
+ADMIN_EMAIL="rmistry@google.com"
+
 # The (Shared Fate) Zone is conceptually equivalent to a data center cell. VM
 # instances live in a zone.
 #

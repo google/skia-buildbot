@@ -2,6 +2,8 @@
 #
 # Starts the telemetry_slave_scripts/vm_run_telemetry.sh script on all
 # slaves.
+# Use TRYSERVER=true to skip uploading files to Google Storage or emailing
+# the requester.
 #
 # The script should be run from the skia-telemetry-master GCE instance's
 # /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
@@ -10,7 +12,7 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -lt 7 ]; then
+if [ $# -lt 5 ]; then
   echo
   echo "Usage: `basename $0` skpicture_printer" \
        "--skp-outdir=/home/default/storage/skps/ All" \
@@ -24,10 +26,10 @@ if [ $# -lt 7 ]; then
   echo "The fourth argument is the name of the directory where the chromium" \
        "build which will be used for this run is stored."
   echo "The fifth argument is a unique runid (typically requester + timestamp)."
-  echo "The sixth argument is the email address of the requester."
-  echo "The seventh argument is the key of the appengine telemetry task."
-  echo "The eighth argument is the location of the log file."
-  echo "The ninth argument is the local location of the optional whitelist file."
+  echo "The sixth argument is the email address of the requester (optional)."
+  echo "The seventh argument is the key of the appengine telemetry task (optional)."
+  echo "The eighth argument is the location of the log file (optional)."
+  echo "The ninth argument is the local location of the optional whitelist file (optional)."
   echo
   exit 1
 fi
@@ -113,27 +115,29 @@ if [[ "$EXTRA_ARGS" == *--output-format=csv* ]]; then
   python ../csv_merger.py --csv_dir=$OUTPUT_DIR --output_csv_name=${RUN_ID}.$TELEMETRY_BENCHMARK.output
 fi
 
-# Copy the consolidated file into Google Storage.
-gsutil cp -a public-read $OUTPUT_DIR/$RUN_ID.$TELEMETRY_BENCHMARK.output \
-  gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
-# Setting ACLs on massive files sometimes does not work so do it explicitly.
-gsutil setacl public-read gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
-OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
-SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave1/logs/$RUN_ID.log
-
-# Delete all tmp files.
-rm -rf /tmp/$RUN_ID*
-rm -rf ${OUTPUT_DIR}*
-
 # Delete all tmp files from the slaves because telemetry may have generated a
-# lot of temporary artifacts there and they take up disk space.
+# lot of temporary artifacts there and they take up root disk space.
 bash vm_run_command_on_slaves.sh "cd /tmp/; find . -maxdepth 1 -type d -name '*' -exec sudo rm -rf {} \\;"
 bash vm_run_command_on_slaves.sh "cd /tmp/; find . -maxdepth 1 -type f -name '*' -exec sudo rm -rf {} \\;"
 
-# Email the requester.
-BOUNDARY=`date +%s|md5sum`
-BOUNDARY=${BOUNDARY:0:32}
-sendmail $REQUESTER_EMAIL <<EOF
+# Copy the consolidated file into Google Storage.
+gsutil cp -a public-read $OUTPUT_DIR/$RUN_ID.$TELEMETRY_BENCHMARK.output \
+    gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
+# Setting ACLs on massive files sometimes does not work so do it explicitly.
+gsutil setacl public-read gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
+
+if [ ! -n "$TRYSERVER" ]; then
+  OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID.output.txt
+  SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave1/logs/$RUN_ID.log
+
+  # Delete all tmp files.
+  rm -rf /tmp/$RUN_ID*
+  rm -rf ${OUTPUT_DIR}*
+
+  # Email the requester.
+  BOUNDARY=`date +%s|md5sum`
+  BOUNDARY=${BOUNDARY:0:32}
+  sendmail $REQUESTER_EMAIL <<EOF
 subject:Your Telemetry benchmark task has completed!
 to:$REQUESTER_EMAIL
 from:skia.buildbot@gmail.com
@@ -158,9 +162,10 @@ Content-Type: text/html
 
 EOF
 
-# Mark this task as completed on AppEngine.
-PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&output_link=$OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_telemetry_task" -O /dev/null
+  # Mark this task as completed on AppEngine.
+  PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
+  wget --post-data "key=$APPENGINE_KEY&output_link=$OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_telemetry_task" -O /dev/null
+fi
 
 # Delete the log file since this task is now done.
 rm $LOG_FILE_LOCATION

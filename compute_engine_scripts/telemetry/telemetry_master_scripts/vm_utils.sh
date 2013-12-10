@@ -31,3 +31,44 @@ function is_slave_currently_executing() {
   echo false
 }
 
+function build_chromium {
+  GYP_GENERATORS='ninja' ./build/gyp_chromium
+  /home/default/depot_tools/ninja -C out/Release chrome
+  if [ $? -ne 0 ]
+  then
+    echo "There was an error building chromium $CHROMIUM_COMMIT_HASH + skia $SKIA_COMMIT_HASH"
+    exit 1
+  fi
+}
+
+function copy_build_to_google_storage {
+  dir_name=$1
+  chromium_build_dir=$2
+  # cd into the Release directory.
+  cd $chromium_build_dir/src/out/Release
+  # Move the not needed large directories.
+  mv gen /tmp/
+  mv obj /tmp/
+  # Clean the directory in Google Storage.
+  gsutil rm -R gs://chromium-skia-gm/telemetry/chromium-builds/$dir_name/*
+  # Copy the newly built chrome binary into Google Storage.
+  gsutil cp -r * gs://chromium-skia-gm/telemetry/chromium-builds/$dir_name/
+  # Move the large directories back.
+  mv /tmp/gen .
+  mv /tmp/obj .
+}
+
+function reset_chromium_checkout {
+  # TODO(rmistry): Investigate using gclient recurse to revert changes in all
+  # checkouts.
+  reset_cmd="git reset --hard HEAD; git clean -f -d"
+  # Reset Skia.
+  cd third_party/skia
+  eval $reset_cmd
+  # Reset Blink.
+  cd ../WebKit
+  eval $reset_cmd
+  # Reset Chromium.
+  cd ../..
+  eval $reset_cmd
+}
