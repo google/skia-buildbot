@@ -31,7 +31,10 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
     if self._suppressions_file:
       cmd.append('--suppressions=%s' % self._suppressions_file)
 
-    cmd.append(self._PathToBinary(app))
+    # TODO(borenet): Run valgrind in Debug mode temporarily.
+    #cmd.append(self._PathToBinary(app))
+    cmd.append(os.path.join('out', 'Debug', app))
+
     cmd.extend(args)
     return shell_utils.Bash(cmd)
 
