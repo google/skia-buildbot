@@ -8,6 +8,24 @@
 <h2>Run Chromium patches on the top 10k webpages</h2>
 <br/>
 
+{{ pending_tasks_count }} tasks currently in the <a align="center" href='pending_tasks'>Queue</a>
+<br/>
+<a href="javascript:toggleDetails();">Show/hide algorithm details</a>
+<script type="text/javascript">
+  function toggleDetails() {
+    var details = ["benchmark_details", "variance_details", "outliers_details"];
+    for (var i=0; i<details.length; i++) {
+      if (document.getElementById(details[i]).style.display == 'none') {
+        document.getElementById(details[i]).style.display = '';
+      } else {
+        document.getElementById(details[i]).style.display = 'none';
+      }
+    }
+  }
+</script>
+<br/>
+<br/>
+
 {% if not is_google_chromium_user %}
   Must have a google or chromium account to trigger benchmarks (contact rmistry@)<br/><br/>
 {% else %}
@@ -23,21 +41,21 @@
         </select>
       </td>
     </tr>                                                                     
-    <tr>                                                                      
+    <tr id="benchmark_details" style="display:none">                                                                      
       <td>Benchmark Arguments</td>                                            
       <td>
         <input type="text" size="35" name="benchmark_arguments" value="--output-format=csv"/>
         The Benchmark must output in CSV to do meaningful comparisions.
       </td>
     </tr>
-    <tr>                                                                        
+    <tr id="variance_details" style="display:none">
       <td>Variance Threshold</td>                                               
       <td>                                                                      
         <input type="text" name="variance_threshold" size"5" value="10"/>
         10% is the recommended variance threshold to use when comparing column values.
       </td>                                                                     
     </tr>                                                                       
-    <tr>                                                                        
+    <tr id="outliers_details" style="display:none">
       <td>Discard Outliers</td>                                               
       <td>                                                                      
         <input type="text" name="discard_outliers" size"5" value="10"/>
@@ -69,8 +87,6 @@
     </tr>
   </table>
 
-  <br/>
-  <a align="center" href='pending_tasks'>View Pending Tasks in Queue</a>
   <br/>
   <br/>
 

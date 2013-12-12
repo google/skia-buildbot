@@ -735,6 +735,7 @@ class ChromiumTryPage(BasePage):
         CHROMIUM_TRY_SUPPORTED_PATCH_TYPES)
     template_values['chromium_try_tasks'] = chromium_try_tasks
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
+    template_values['pending_tasks_count'] = len(get_all_pending_tasks())
 
     self.DisplayTemplate('chromium_try.html', template_values)
 
