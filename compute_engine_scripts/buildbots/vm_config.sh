@@ -50,7 +50,7 @@ SKIA_REPO_DIR="skia-repo"
 # We flip the default one as required by PCRs in bigcluster. We are allowed
 # us-central1-a and us-central1-b.
 # A short tag to use as part of the VM instance name
-ZONE_TAG=${ZONE_TAG:=b}
+ZONE_TAG=${ZONE_TAG:=a}
 # Make sure ZONE_TAG is either 'b' or 'a', they are the only ones allowed.
 if [ "$ZONE_TAG" == "a" ]; then
   OLD_ZONE_TAG="b"
