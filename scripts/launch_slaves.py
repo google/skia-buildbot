@@ -315,7 +315,7 @@ def main():
   ParseArgs(sys.argv[1:])
 
   # Sync the buildbot code.
-  subprocess.check_call([GCLIENT, 'sync', '--force'])
+  subprocess.check_call([GCLIENT, 'sync', '--force', '-j1'])
 
   # Obtain configuration information about this build slave host machine.
   slave_host = slave_hosts_cfg.GetSlaveHostConfig(socket.gethostname())
