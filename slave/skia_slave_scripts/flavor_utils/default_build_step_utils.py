@@ -168,9 +168,7 @@ class DefaultBuildStepUtils:
 
   def Compile(self, target):
     """ Compile the Skia executables. """
-    # TODO(borenet): It would be nice to increase code sharing here.
-    if 'VS2012' in self._step.builder_name:
-      os.environ['GYP_MSVS_VERSION'] = '2012'
+    # TODO(borenet): It would be nice to increase code sharing here.'
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     make_cmd = 'make'
