@@ -168,7 +168,12 @@ class DefaultBuildStepUtils:
 
   def Compile(self, target):
     """ Compile the Skia executables. """
-    # TODO(borenet): It would be nice to increase code sharing here.'
+    # TODO(borenet): It would be nice to increase code sharing here.
+    if 'Win8' in self._step.builder_name:
+      # TODO(borenet): Hack! At the very least, get the MSVS version from the
+      # builder name and pipe that through.
+      os.environ['GYP_MSVS_VERSION'] = '2013'
+      print 'GYP_MSVS_VERSION=%s' % os.environ['GYP_MSVS_VERSION']
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     make_cmd = 'make'
