@@ -26,7 +26,8 @@ class UpdateScripts(BuildStep):
     print 'chdir to %s' % BUILDBOT_DIR
     os.chdir(BUILDBOT_DIR)
 
-    gclient_utils.Sync()
+    gclient_utils.Sync(branches=['buildbot'])
+    print gclient_utils.GetCheckedOutHash()
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UpdateScripts))

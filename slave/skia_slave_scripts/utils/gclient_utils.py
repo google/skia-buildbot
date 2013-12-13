@@ -44,12 +44,24 @@ def Config(spec):
 
 
 def _GetLocalConfig():
-  """ Find and return the configuration for the local checkout. """
-  if not os.path.isfile(GCLIENT_FILE):
-    raise Exception('Unable to find %s' % GCLIENT_FILE)
+  """Find and return the configuration for the local checkout.
+
+  Returns: tuple of the form (checkout_root, solutions_dict), where
+      checkout_root is the path to the directory containing the .glient file,
+      and solutions_dict is the dictionary of solutions defined in .gclient.
+  """
+  checkout_root = os.path.abspath(os.curdir)
+  depth = len(checkout_root.split(os.path.sep))
+  # Start with the current working directory and move upwards until we find the
+  # .gclient file.
+  while not os.path.isfile(os.path.join(checkout_root, GCLIENT_FILE)):
+    if not depth:
+      raise Exception('Unable to find %s' % GCLIENT_FILE)
+    checkout_root = os.path.abspath(os.path.join(checkout_root, os.pardir))
+    depth -= 1
   config_vars = {}
-  exec(open(GCLIENT_FILE).read(), config_vars)
-  return config_vars['solutions']
+  exec(open(os.path.join(checkout_root, GCLIENT_FILE)).read(), config_vars)
+  return checkout_root, config_vars['solutions']
 
 
 def Sync(revision=None, force=False, delete_unversioned_trees=False,
@@ -77,9 +89,10 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
   # "gclient sync" just downloads all of the commits. In order to actually sync
   # to the desired commit, we have to "git reset" to that commit.
   start_dir = os.path.abspath(os.curdir)
-  if branches and SKIA_TRUNK in branches:
-    os.chdir(SKIA_TRUNK)
-    if revision:
+  checkout_root, _ = _GetLocalConfig()
+  for branch in (branches or []):
+    os.chdir(os.path.join(checkout_root, branch))
+    if revision and branch == SKIA_TRUNK:
       shell_utils.Bash([GIT, 'reset', '--hard', revision])
     else:
       shell_utils.Bash([GIT, 'checkout', 'origin/master', '-f'])
@@ -90,11 +103,11 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
 def GetCheckedOutHash():
   """ Determine what commit we actually got. If there are local modifications,
   raise an exception. """
-  config = _GetLocalConfig()
+  checkout_root, config_dict = _GetLocalConfig()
   current_directory = os.path.abspath(os.curdir)
 
   # Get the checked-out commit hash for the first gclient solution.
-  os.chdir(config[0]['name'])
+  os.chdir(os.path.join(checkout_root, config_dict[0]['name']))
   try:
     # First, print out the remote from which we synced, just for debugging.
     cmd = [GIT, 'remote', '-v']
