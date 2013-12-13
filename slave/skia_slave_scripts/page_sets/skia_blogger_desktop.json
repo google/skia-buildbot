@@ -7,8 +7,11 @@
         {
             "name": "Blogger",
             "url": "http://googlewebmastercentral.blogspot.com/",
-            "wait_seconds": 15.0,
-            "why": "#11 (Alexa global), google property; some blogger layouts have infinite scroll but more interesting"
+            "why": "#11 (Alexa global), google property; some blogger layouts have infinite scroll but more interesting",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

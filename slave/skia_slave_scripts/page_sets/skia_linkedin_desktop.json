@@ -7,8 +7,11 @@
         {
             "name": "LinkedIn",
             "url": "http://www.linkedin.com/in/linustorvalds",
-            "wait_seconds": 5.0,
-            "why": "#12 (Alexa global),Public profile"
+            "why": "#12 (Alexa global),Public profile",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

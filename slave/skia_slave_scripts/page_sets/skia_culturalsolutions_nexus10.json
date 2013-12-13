@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://culturalsolutions.co.uk/",
-            "wait_seconds": 15.0,
-            "why": "from parallax scrolling thread"
+            "why": "from parallax scrolling thread",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

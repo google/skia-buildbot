@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://uk.wsj.com/home-page",
-            "wait_seconds": 5.0,
-            "why": "for Clank CY"
+            "why": "for Clank CY",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://www.wowwiki.com/World_of_Warcraft:_Mists_of_Pandaria",
-            "wait_seconds": 15.0,
-            "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
+            "why": "http://code.google.com/p/chromium/issues/detail?id=136555",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

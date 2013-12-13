@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://www.amazon.com",
-            "wait_seconds": 5.0,
-            "why": "#1 world commerce website by visits; #3 commerce in the US by time spent"
+            "why": "#1 world commerce website by visits; #3 commerce in the US by time spent",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

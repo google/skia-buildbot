@@ -5,8 +5,11 @@
     "pages": [
         {
             "url": "http://upload.wikimedia.org/wikipedia/commons/f/fd/Ghostscript_Tiger.svg",
-            "wait_seconds": 5.0,
-            "why": "from fmalita"
+            "why": "from fmalita",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

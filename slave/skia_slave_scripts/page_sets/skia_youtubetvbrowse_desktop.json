@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "https://www.youtube.com/tv#/browse",
-            "wait_seconds": 15.0,
-            "why": "from bsalomon"
+            "why": "from bsalomon",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

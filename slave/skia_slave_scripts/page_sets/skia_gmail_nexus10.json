@@ -11,7 +11,7 @@
             "credentials": "google",
             "navigate_steps" : [                                                
               { "action": "navigate" },                                         
-              { "action": "wait", "seconds": 5 }
+              { "action": "wait", "seconds": 10 }
             ]
         }
     ]

@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://booking.com",
-            "wait_seconds": 5.0,
-            "why": "#1 Alexa recreation"
+            "why": "#1 Alexa recreation",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

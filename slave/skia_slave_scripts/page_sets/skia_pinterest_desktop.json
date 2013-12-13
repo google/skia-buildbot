@@ -8,8 +8,11 @@
             "name": "Pinterest",
             "url": "http://pinterest.com",
             "why": "#37 (Alexa global)",
-            "wait_seconds": 15.0,
-            "scroll_is_infinite": true
+            "scroll_is_infinite": true,
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

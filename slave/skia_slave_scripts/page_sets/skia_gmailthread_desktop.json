@@ -6,7 +6,6 @@
     "pages": [
         {
             "url": "https://mail.google.com/mail/?shva=1#inbox/13ba91194d0b8a2e",
-            "wait_seconds": 15.0,
             "why": "productivity, top google properties, long email thread",
             "credentials": "google",
             "navigate_steps" : [

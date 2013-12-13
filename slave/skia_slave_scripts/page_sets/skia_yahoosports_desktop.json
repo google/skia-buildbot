@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://sports.yahoo.com/",
-            "wait_seconds": 5.0,
-            "why": "#1 Alexa sports"
+            "why": "#1 Alexa sports",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

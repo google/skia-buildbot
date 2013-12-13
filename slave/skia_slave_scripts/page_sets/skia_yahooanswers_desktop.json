@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://answers.yahoo.com",
-            "wait_seconds": 5.0,
-            "why": "#1 Alexa reference"
+            "why": "#1 Alexa reference",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

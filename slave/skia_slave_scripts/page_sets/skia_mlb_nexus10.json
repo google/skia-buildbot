@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://mlb.mlb.com/index.jsp",
-            "wait_seconds": 15.0,
-            "why": "from Arrow scrolling thread"
+            "why": "from Arrow scrolling thread",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

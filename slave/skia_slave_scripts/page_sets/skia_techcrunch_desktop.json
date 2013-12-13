@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://techcrunch.com",
-            "wait_seconds": 15.0,
-            "why": "top tech blog"
+            "why": "top tech blog",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

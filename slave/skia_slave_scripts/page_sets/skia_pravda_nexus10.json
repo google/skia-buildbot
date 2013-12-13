@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://www.pravda.ru/",
-            "wait_seconds": 10.0,
-            "why": "cyrillic font test case"
+            "why": "cyrillic font test case",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 10 }                               
+            ]
         }
     ]
 }

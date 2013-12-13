@@ -7,10 +7,13 @@
         {
             "name": "Facebook",
             "url": "http://www.facebook.com/barackobama",
-            "wait_seconds": 5.0,
             "why": "top social,Public profile",
             "credentials": "facebook",
-            "scroll_is_infinite": true
+            "scroll_is_infinite": true,
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://www.cnet.com/",
-            "wait_seconds": 5.0,
-            "why": "from klobag"
+            "why": "from klobag",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

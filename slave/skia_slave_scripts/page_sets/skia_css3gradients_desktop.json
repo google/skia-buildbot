@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "https://www.webkit.org/blog/1424/css3-gradients/",
-            "wait_seconds": 15.0,
-            "why": "http://code.google.com/p/chromium/issues/detail?id=168448"
+            "why": "http://code.google.com/p/chromium/issues/detail?id=168448",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

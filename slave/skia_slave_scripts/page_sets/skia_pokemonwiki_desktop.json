@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://en.wikipedia.org/wiki/List_of_Pok%C3%A9mon",
-            "wait_seconds": 15.0,
-            "why": "http://code.google.com/p/chromium/issues/detail?id=136555"
+            "why": "http://code.google.com/p/chromium/issues/detail?id=136555",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

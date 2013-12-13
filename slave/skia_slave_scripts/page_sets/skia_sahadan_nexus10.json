@@ -7,8 +7,11 @@
     "pages": [
         {
             "url": "http://www.sahadan.com/canli_sonuclar/",
-            "wait_seconds": 15.0,
-            "why": "from Tom W's list"
+            "why": "from Tom W's list",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

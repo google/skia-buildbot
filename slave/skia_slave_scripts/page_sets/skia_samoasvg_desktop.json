@@ -5,8 +5,11 @@
     "pages": [
         {
             "url": "http://upload.wikimedia.org/wikipedia/commons/d/df/Seal_of_American_Samoa.svg",
-            "wait_seconds": 5.0,
-            "why": "from fmalita"
+            "why": "from fmalita",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

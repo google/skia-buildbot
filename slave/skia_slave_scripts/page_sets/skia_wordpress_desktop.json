@@ -7,8 +7,11 @@
         {
             "name": "Wordpress",
             "url": "http://en.blog.wordpress.com/2012/09/04/freshly-pressed-editors-picks-for-august-2012/",
-            "wait_seconds": 5.0,
-            "why": "#18 (Alexa global), Picked an interesting post"
+            "why": "#18 (Alexa global), Picked an interesting post",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

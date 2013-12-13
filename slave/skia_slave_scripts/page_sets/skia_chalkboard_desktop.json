@@ -5,8 +5,11 @@
     "pages": [
         {
             "url": "http://ie.microsoft.com/testdrive/Performance/Chalkboard/Images/Chalkboard.svg",
-            "wait_seconds": 15.0,
-            "why": "from fmalita"
+            "why": "from fmalita",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

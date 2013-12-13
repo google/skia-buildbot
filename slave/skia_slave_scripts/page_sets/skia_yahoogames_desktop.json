@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://games.yahoo.com",
-            "wait_seconds": 15.0,
-            "why": "#1 games according to Alexa (with actual games in it)"
+            "why": "#1 games according to Alexa (with actual games in it)",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }

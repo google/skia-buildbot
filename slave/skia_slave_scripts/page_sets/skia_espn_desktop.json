@@ -7,8 +7,11 @@
         {
             "name": "ESPN",
             "url": "http://espn.go.com",
-            "wait_seconds": 5.0,
-            "why": "#1 sports"
+            "why": "#1 sports",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

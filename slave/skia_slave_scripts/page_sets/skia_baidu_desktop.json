@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://www.baidu.com/s?wd=barack+obama&rsv_bp=0&rsv_spt=3&rsv_sug3=9&rsv_sug=0&rsv_sug4=3824&rsv_sug1=3&inputT=4920",
-            "wait_seconds": 5.0,
-            "why": "#5 (Alexa) most visited worldwide"
+            "why": "#5 (Alexa) most visited worldwide",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
         }
     ]
 }

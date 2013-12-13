@@ -6,8 +6,11 @@
     "pages": [
         {
             "url": "http://www.youtube.com/watch?v=PC57z-oDPLs",
-            "wait_seconds": 15.0,
-            "why": "#3 (Alexa global)"
+            "why": "#3 (Alexa global)",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 15 }                               
+            ]
         }
     ]
 }
