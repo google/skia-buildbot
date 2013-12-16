@@ -1,0 +1,20 @@
+{
+  "actual-results": {
+    "failed": null, 
+    "failure-ignored": null, 
+    "no-comparison": {
+      "file1.png" : [
+        "bitmap-64bitMD5", 
+        11111
+      ],
+      "file2.png" : [
+        "bitmap-64bitMD5", 
+        22222 
+      ],
+      "file3.png" : [
+        "bitmap-64bitMD5", 
+        33333
+      ]
+    }
+  }
+} 
