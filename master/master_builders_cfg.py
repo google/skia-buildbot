@@ -106,6 +106,9 @@ CLANG = repr({'skia_clang_build': '1'})
 VALGRIND = repr({'skia_release_optimization_level': '1'})
 PDFVIEWER = repr({'skia_run_pdfviewer_in_gm': '1'})
 GYP_NVPR = repr({'skia_nv_path_rendering': '1'})
+NVPR_WIN8 = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
+                  'qt_sdk': 'C:/Qt/Qt5.1.0/5.1.0/msvc2012_64/',
+                  'skia_nv_path_rendering': '1'})
 
 
 def setup_builders_from_config_dict(builder_specs, helper, do_upload_results):
@@ -271,7 +274,9 @@ def setup_primary_builders(helper, do_upload_results):
       ('Win8',     'VS2012', 'Release', 'x86_64', None,          GYP_WIN8,  False, f, p) : [('Test', 'Win8',     'ShuttleA',   'GTX660',      None,          'base-shuttle-win8-gtx660'),
                                                                                             ('Perf', 'Win8',     'ShuttleA',   'GTX660',      None,          None),
                                                                                             ('Test', 'Win8',     'ShuttleA',   'HD7770',      None,          'base-shuttle-win8-hd7770'),
-                                                                                            ('Perf', 'Win8',     'ShuttleA',   'HD7770',      None,          None)],})
+                                                                                            ('Perf', 'Win8',     'ShuttleA',   'HD7770',      None,          None)],
+      ('Win8',     'VS2012', 'Release', 'x86',    'NVPR',        NVPR_WIN8, True,  f, p) : [('Test', 'Win8',     'ShuttleA',   'GTX660',      'NVPR',        'base-shuttle-win8-gtx660-nvpr'),
+                                                                                            ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'NVPR',        None)],})
   f = android_factory.AndroidFactory
   p = skia_factory.TARGET_PLATFORM_LINUX
   builder_specs.update({
