@@ -14,6 +14,11 @@
     "type": "string",
     "description": "URL of the code review site's status listener."
   },
+  "commit_bot_username": {
+    "value": "commit-bot@chromium.org",
+    "type": "string",
+    "description": "Email address of the commit queue committer (commit-bot)"
+  },
   "console_default_rev_limit": {
     "value": "50",
     "type": "integer",

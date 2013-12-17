@@ -47,12 +47,22 @@ table td {
 
 div.BuilderTooltip {
   position: absolute;
+  display: none;
   border: 1px solid black;
   background-color: white;
   border-radius: 5px;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
-  padding: 5px;
+  padding: 10px;
+  z-index: 100;
+}
+
+div.BuilderTooltip:hover {
+  display: block;
+}
+
+a:hover + div.BuilderTooltip {
+  display: block;
 }
 
 a.BuilderHasComment,div.BuilderHasComment,td.BuilderHasComment {
@@ -284,7 +294,7 @@ td.Alt {
   white-space: nowrap;
 }
 
-.DevSlaveBox a {
+a.DevSlaveBox {
   opacity: 0.85;
   border-width: 1px;
   border-style: solid;

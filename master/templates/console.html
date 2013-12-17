@@ -6,6 +6,10 @@
 // <![CDATA[
 //
 
+// TODO(borenet): Load builders and revisions from the master's JSON interface.
+var builders = {{ builders }};
+var revisions = {{ revisions }};
+
 function addLinks(text) {
     if (text && text.indexOf("<a href=") == -1) {
         text = text.replace(
@@ -22,8 +26,6 @@ function toggleMore(id, visible) {
     document.getElementById(id + "_long_desc").style.display = "inline";
     document.getElementById(id + "_morelink").style.display = "none";
     document.getElementById(id + "_lesslink").style.display = "inline";
-    document.getElementById(id + "_long_desc").innerHTML =
-        addLinks(document.getElementById(id + "_long_desc").innerHTML);
   } else {
     document.getElementById(id + "_long_desc").style.display = "none";
     document.getElementById(id + "_morelink").style.display = "inline";
@@ -53,7 +55,7 @@ function showBuildBox(url, event) {
     // Reload the hidden frame with the build page we want to show.
     // The onload even on this frame will update the div and make it visible.
     document.getElementById("frameBox").src = url
-    
+
     // We don't want to reload the page.
     return false;
 }
@@ -93,6 +95,317 @@ function checkMouseLeave(element, event) {
   }
   else if (event.relatedTarget) {
     return !containsDOM(element, event.relatedTarget);
+  }
+}
+
+// Sort the categories, subcategories, and builders for display.
+function fixConsoleData() {
+  var new_builders = {};
+  var categories = Object.keys(builders);
+  categories.sort();
+  for (var category_index in categories) {
+    var category = categories[category_index];
+    new_builders[category] = {};
+    var subcategories = Object.keys(builders[category]);
+    subcategories.sort()
+    for (var subcategory_index in subcategories) {
+      var subcategory = subcategories[subcategory_index];
+      new_builders[category][subcategory] = builders[category][subcategory];
+      for (var cat_full in new_builders[category][subcategory]) {
+        new_builders[category][subcategory][cat_full].sort();
+      }
+    }
+  }
+  builders = new_builders;
+}
+
+// Create a new row with two spacer cells.
+function newRowWithSpacers(table) {
+  var row = table.insertRow(-1);
+  var spacer = row.insertCell(-1)
+  spacer.style.width = "1%";
+  var spacer = row.insertCell(-1)
+  spacer.style.width = "1%";
+  return row;
+}
+
+function newHyperlink(href, text, open_in_new_tab) {
+  var link = document.createElement("a");
+  link.href = href;
+  if (text) {
+    link.innerHTML = text;
+  }
+  if (open_in_new_tab == true) {
+    link.target = "_blank";
+  }
+  return link;
+}
+
+// Build the main console view table.
+function buildConsoleTable() {
+  fixConsoleData();
+
+  // The main console table.
+  var table = document.getElementById("console_table");
+
+  // Clear the table.
+  while (table.hasChildNodes()) {
+    table.removeChild(table.lastChild);
+  }
+
+  // Count the number of columns, starting with 2 for the spacer TDs, so that
+  // we can get the colspans right.
+  var total_cols = 2;
+
+  // Top row: Categories.
+  var top_row = newRowWithSpacers(table);
+
+  // Second row: Subcategories.
+  var second_row = newRowWithSpacers(table);
+
+  // Third row: Individual builder statuses.
+  var builder_row = newRowWithSpacers(table);
+
+  // Keep track of the first and last visible categories.
+  var first_category = null;
+  var last_category = null;
+
+  // This loop creates the content for the top three rows.
+  for (var category in builders) {
+    // Create the category headers with links to the waterfall for each.
+    var category_td = top_row.insertCell(-1);
+    category_td.id = "category_header_" + category;
+    var td_class = "DevStatus Alt category_" + category;
+    category_td.className = td_class;
+    var category_link = newHyperlink("/waterfall?");
+    var h3 = document.createElement("h3");
+    h3.innerHTML = category;
+    // Hyperlink to the waterfall page which displays all builders within this
+    // category. Each full category name is appended in the subsequent loops.
+    category_link.appendChild(h3);
+    category_td.appendChild(category_link);
+
+    if (!allCategories[category]) {
+      // Hide the column header for this category if the associated checkbox
+      // isn't checked.
+      category_td.style.display = "none";
+    } else {
+      // If the category is visible, mark it as a possible first or last visible
+      // category.
+      if (!first_category) {
+        first_category = category;
+      }
+      last_category = category;
+    }
+
+    // Keep track of the colspan (number of builders) for this category as we
+    // loop over the subcategories.
+    var category_colspan = 0;
+
+    // Loop over the subcategories.
+    for (var subcategory in builders[category]) {
+      // Create the subcategory headers with links to the waterfall for each.
+      var subcategory_td = second_row.insertCell(-1);
+      subcategory_td.className = "DevStatus category_" + category + "_subcategory_" + subcategory;
+      subcategory_td.colSpan = builders[category][subcategory].length;
+      // Hyperlink to the waterfall page which displays all builders within this
+      // subcategory. Each full category name is appended in the subsequent
+      // loops.
+      var subcategory_link = newHyperlink("/waterfall?", subcategory)
+      subcategory_td.appendChild(subcategory_link);
+
+      // Hide the column header for this subcategory if the associated checkbox
+      // isn't checked.
+      if (!(allCategories[category] && allSubcategories[subcategory])) {
+        subcategory_td.style.display = "none";
+      }
+
+      // Loop over the full category names (eg. "Build|Ubuntu12|GateKeeper")
+      // within each subcategory.
+      for (var cat_full in builders[category][subcategory]) {
+        // Create a wrapper cell to hold the builder statuses for this category.
+        var builder_wrapper_td = builder_row.insertCell(-1);
+        builder_wrapper_td.className = "DevSlave Alt category_" + category + "_subcategory_" + subcategory;
+        // Create a sub-table within the builder wrapper cell.
+        var builder_wrapper_table = document.createElement("table");
+        builder_wrapper_table.width = "100%";
+        builder_wrapper_td.appendChild(builder_wrapper_table);
+        var builder_wrapper_table_tr = builder_wrapper_table.insertRow(-1);
+        // Hide the builder wrapper cell if the current category and subcategory
+        // aren't both displaying.
+        if (!(allCategories[category] && allSubcategories[subcategory])) {
+          builder_wrapper_td.style.display = "none";
+        }
+
+        // Append the full category name to the category and subcategory
+        // waterfall links.
+        if (category_link.href.indexOf("?", category_link.href.length - 1) == -1) {
+          category_link.href += "&";
+        }
+        category_link.href += "category=" + cat_full;
+        if (subcategory_link.href.indexOf("?", subcategory_link.href.length - 1) == -1) {
+          subcategory_link.href += "&";
+        }
+        subcategory_link.href += "category=" + cat_full;
+
+        // Loop over the builders within this fully-qualified category.
+        for (var builder_index in builders[category][subcategory][cat_full]) {
+          // Create a colored cell with a link to this builder's status page.
+          var builder = builders[category][subcategory][cat_full][builder_index];
+          var builder_name = builder.builderName;
+          var builder_td = builder_wrapper_table_tr.insertCell(-1);
+          builder_td.className = "DevSlaveBox";
+          builder_td.builder_name = builder_name;
+          //builder_td.onmouseover = function(event) { showBuilderTooltip(this.builder_name, event); };
+          //builder_td.onmouseout = function(event) { hideBuilderTooltip(event); };
+          builder_link = newHyperlink(builder.url, "", true);
+          builder_link.id = "commentIndicator_" + builder_name;
+          builder_link.className = "DevSlaveBox " + builder.color;
+          if (builder_statuses[builder_name]) {
+            builder_link.classList.add("BuilderHasComment");
+          }
+          builder_td.appendChild(builder_link);
+
+          // Create the status tooltip for this builder.
+          var tooltip_div = document.createElement("div");
+          tooltip_div.className = "BuilderTooltip";
+          tooltip_div.innerHTML = builderCommentText(builder_name);
+          builder_td.appendChild(tooltip_div);
+        }
+        // Only count the columns which are being displayed toward the total
+        // colspan.
+        if (allCategories[category] && allSubcategories[subcategory]) {
+          total_cols++;
+        }
+      }
+      // Only cound the subcategories which are being displayed toward the
+      // categories' colspans.
+      if (allCategories[category] && allSubcategories[subcategory]) {
+        category_colspan += subcategory_td.colSpan;
+      }
+    }
+    category_td.colSpan = category_colspan;
+  }
+
+  // Round the corners of the first and last visible category headers.
+  document.getElementById("category_header_" + first_category).classList.add("first");
+  document.getElementById("category_header_" + last_category).classList.add("last")
+
+  // Build rows for each revision.
+  for (var rev_index in revisions) {
+    // Information about this revision.
+    var revision = revisions[rev_index];
+
+    // String which alternates between "" and " Alt"; used for creating
+    // alternating shades of gray.
+    var alt = "";
+    if (rev_index % 2) {
+      alt = " Alt";
+    }
+
+    // Row containing the commit hash, committer, and statuses for each builder
+    // at this revision.
+    var rev_status_tr = table.insertRow(-1);
+    // Cell containing the commit hash with a link to the commit in the
+    // repository.
+    var revision_td = rev_status_tr.insertCell(-1);
+    revision_td.className = "DevRev" + alt;
+    var revision_link = newHyperlink(revision.repository + "/+/" + revision.id,
+                                     revision.id.substring(0, 11),
+                                     true);
+    revision_td.appendChild(revision_link);
+    // Cell containing the committer's username.
+    var dev_name_td = rev_status_tr.insertCell(-1);
+    dev_name_td.className = "DevName" + alt;
+    dev_name_td.width = "1%";
+    dev_name_td.innerHTML = revision.who;
+
+    // Loop over the builders, obtaining the status and creating a build status
+    // popup link for each.
+    for (var category in builders) {
+      for (var subcategory in builders[category]) {
+        for (var cat_full in builders[category][subcategory]) {
+          // Wrapper cell containing statuses for builders in this fully-
+          // qualified category.
+          var build_status_td = rev_status_tr.insertCell(-1);
+          // Hide the build status cell if we're not displaying both the
+          // builder's category and subcategory.
+          if (!allCategories[category] || !allSubcategories[subcategory]) {
+            build_status_td.style.display = "none";
+          }
+          build_status_td.className = "DevStatus category_" + category + "_subcategory_" + subcategory + alt;
+          // Table which will hold the individual builder statuses.
+          var build_status_wrapper = document.createElement("table");
+          build_status_wrapper.width = "100%";
+          build_status_td.appendChild(build_status_wrapper);
+          var builder_wrapper_tr = build_status_wrapper.insertRow(-1);
+          // Loop over the builders in this fully-qualified category.
+          for (var builder_index in builders[category][subcategory][cat_full]) {
+            var builder = builders[category][subcategory][cat_full][builder_index];
+            // Loop over the list of builds at this revision for this builder.
+            // This is almost always a single build.
+            for (var build_index in revision.builds[builder.builderName]) {
+              var build = revision.builds[builder.builderName][build_index];
+              // Create a colored cell representing the result of this build,
+              // with a link to open a popup with more detailed build step
+              // statuses.
+              var build_td = builder_wrapper_tr.insertCell(-1);
+              build_td.className = "DevStatusBox";
+              var build_link = newHyperlink("#", "", true);
+              build_link.popup_url = build.url;
+              build_link.onclick = function(event) { showBuildBox(this.popup_url, event); return false; };
+              build_link.title = build.pageTitle;
+              build_link.className = "DevStatusBox " + build.color + " " + build.tag;
+              build_td.appendChild(build_link);
+            }
+          }
+        }
+      }
+    }
+
+    // Row containing the change description for this revision.
+    var rev_comment_tr = table.insertRow(-1);
+    var rev_comment_td = rev_comment_tr.insertCell(-1);
+    rev_comment_td.className = "DevComment" + alt;
+    rev_comment_td.colSpan = total_cols;
+    // Split the comment text into: first line (short) and remainder (long).
+    var comment_short_text_span = document.createElement("span");
+    rev_comment_td.appendChild(comment_short_text_span);
+    var comment_long_text_span = document.createElement("span");
+    comment_long_text_span.id = revision.id + "_long_desc";
+    comment_long_text_span.style.display = "none";
+    // Create "more" and "less" links.
+    var more_link = document.createElement("a");
+    more_link.href = "javascript:toggleMore('" + revision.id + "', true)";
+    more_link.id = revision.id + "_morelink";
+    more_link.innerHTML = "more";
+    rev_comment_td.appendChild(more_link);
+    var less_link = document.createElement("a");
+    less_link.href = "javascript:toggleMore('" + revision.id + "', false)";
+    less_link.id = revision.id + "_lesslink";
+    less_link.style.display = "none";
+    less_link.innerHTML = "less";
+    rev_comment_td.appendChild(less_link);
+    rev_comment_td.appendChild(comment_long_text_span);
+    var comment_text_lines = revision.comments.split("\n");
+    // Only include the "more" link if the comment has more than one line.
+    if (comment_text_lines.length > 1) {
+      comment_short_text_span.innerHTML = comment_text_lines[0] + " ... ";
+      var comment_long_text_para = document.createElement("p");
+      comment_long_text_span.appendChild(comment_long_text_para);
+      for (var comment_line = 1; comment_line < comment_text_lines.length; ++comment_line) {
+        comment_long_text_span.innerHTML += comment_text_lines[comment_line] + "<br/>";
+      }
+      comment_long_text_span.innerHTML = addLinks(comment_long_text_span.innerHTML);
+    } else {
+      comment_short_text_span.innerHTML = revision.comments;
+      more_link.style.display = "none";
+    }
+
+    // Spacing row just containing whitespace.
+    var rev_spacing_tr = table.insertRow(-1);
+    rev_spacing_tr.className = "DevStatusSpacing";
+    var rev_spacing_td = rev_spacing_tr.insertCell(-1);
   }
 }
 
@@ -157,166 +470,8 @@ function checkMouseLeave(element, event) {
 
 <br/>
 
-{% set alt_class = cycler('', 'Alt') %}
-
 <div align="center">
-<table width="96%">
-  
-  <tr>
-    <td width="1%">
-    </td>
-    <td width="1%">
-    </td>
-    {% for category in builders|sort %}
-      <td id="category_header_{{ category }}" class="DevStatus Alt {{ 'first' if loop.first else '' }} {{ 'last' if loop.last else '' }} category_{{ category }}"
-        {% set category_props = {'colspan': 0} %}
-        {% if category in hide_categories %}
-          style='display: none;'
-        {% else %}
-          {% for subcategory in builders[category] %}
-            {% if subcategory not in hide_subcategories %}
-              {% if category_props.update({'colspan': category_props['colspan'] + 1}) %}{% endif %}
-            {% endif %}
-          {% endfor %}
-          {% if not category_props['colspan'] %}
-            style='display: none;'
-          {% endif %}
-          colspan="{{ category_props['colspan'] }}"
-        {% endif %}>
-        <a href="/waterfall?{% for subcategory in builders[category] %}{% set outer_loop = loop %}{% for cat_full in builders[category][subcategory] %}category={{ cat_full }}{{ '' if loop.last and outer_loop.last else '&' }}{% endfor %}{% endfor %}"><h3>{{ category }}</h3></a>
-      </td>
-    {% endfor %}
-  </tr>
-  <tr class='DevStatusSpacing'>
-  </tr>
-
-  <tr>
-    <td width="1%">
-    </td>
-    <td width="1%">
-    </td>
-    {% for category in builders|sort %}
-      {% set outer_loop = loop %}
-      {% for subcategory in builders[category]|sort %}
-        <td class="DevStatus {{ 'first' if loop.first and outer_loop.first else '' }} {{ 'last' if loop.last and outer_loop.last else '' }} category_{{ category }}_subcategory_{{ subcategory }}"
-          {% if category in hide_categories or subcategory in hide_subcategories %}style='display: none;'{% endif %}>
-          <a href="/waterfall?{% for cat_full in builders[category][subcategory] %}category={{ cat_full }}{{ '' if loop.last else '&' }}{% endfor %}">{{ subcategory }}</a>
-        </td>
-      {% endfor %}
-    {% endfor %}
-  </tr>
-  <tr class='DevStatusSpacing'>
-  </tr>
-
-  <tr>
-    <td width="1%">
-    </td>
-    <td width="1%">
-    </td>
-  {% for category in builders|sort %}
-    {% for subcategory in builders[category]|sort %}
-      {% for cat_full in builders[category][subcategory]|sort %}
-        <td class='DevSlave Alt category_{{ category }}_subcategory_{{ subcategory }}'
-          {% if category in hide_categories or subcategory in hide_subcategories %}style='display: none;'{% endif %}>
-          <table width="100%">
-            <tr>
-            {% for b in builders[category][subcategory][cat_full]|sort %}
-              <td class='DevSlaveBox' onmouseover="showBuilderTooltip('{{ b.builderName }}', event)" onmouseout="hideBuilderTooltip(event)">
-                <a href='{{ b.url }}' class='DevSlaveBox {{ b.color }}' target="_blank" id="commentIndicator_{{ b.builderName }}">
-                </a>
-              </td>
-            {% endfor %}
-            </tr>
-          </table>
-        </td>
-      {% endfor %}
-    {% endfor %}
-  {% endfor %}
-  </tr>
-
-{% for r in revisions %}
-  {% set alt = alt_class.next() %}
-  {% set last = "last" if loop.last else "" %}
-
-  <tr>
-    <td class='DevRev {{ alt }}' width="1%">
-      <a href='{{ r.repository }}/+/{{ r.id }}' target="_blank">{{ r.id|shortrev(r.repository) }}</a>
-    </td>
-    <td class='DevName {{ alt }}' width="1%">
-      {% if r.who == "commit-bot@chromium.org" and 'Author: ' in r.comments %}
-        {{ r.comments.split('Author: ')[1].split('\n')[0] }} (commit-bot)
-      {% else %}
-        {{ r.who|user }}
-      {% endif %}
-    </td>
-
-  {% for category in builders|sort %}
-    {% for subcategory in builders[category]|sort %}
-      {% for cat_full in builders[category][subcategory]|sort %}
-        <td class='DevStatus {{ alt }} {{ last }} category_{{ category }}_subcategory_{{ subcategory }}'
-            {% if category in hide_categories or subcategory in hide_subcategories %}style='display: none;'{% endif %}>
-          <table width="100%">
-            <tr>
-            {% for builder in builders[category][subcategory][cat_full]|sort %}
-              {% for b in r.builds[builder.builderName] %}
-                <td class='DevStatusBox'>
-                  <a href='#' onclick='showBuildBox("{{ b.url }}", event); return false;'
-                     title='{{ b.pageTitle|e }}' class='DevStatusBox {{ b.color }} {{ b.tag }}'
-                     target="_blank"></a>
-                </td>
-              {% endfor %}
-            {% endfor %}
-            </tr>
-          </table>
-        </td>
-      {% endfor %}
-    {% endfor %}
-  {% endfor %}
-  </tr>
-   
-  <tr>
-    <td colspan="{{ r.span }}" class='DevComment {{ alt }}'>
-      {% if not ''.join(r.comments.split('\n')[1:]) %}
-      {{ r.comments }}
-      {% else %}
-      {{ r.comments.split('\n')[0] }} ...
-      <a href="javascript:toggleMore('{{ r.id }}', true)" id="{{ r.id }}_morelink">more</a>
-      <a href="javascript:toggleMore('{{ r.id }}', false)" id="{{ r.id }}_lesslink" style="display:none;">less</a>
-      <span id="{{ r.id }}_long_desc" style="display:none;">
-      <p>
-      {{ '<br/>'.join(r.comments.split('\n')[1:])|replace('  ','&nbsp; ') }}
-      </p>
-      </span>
-      {% endif %}
-    </td>
-  </tr>
- 
-  {% if r.details %}
-  <tr>
-    <td colspan="{{ r.span }}" class='DevDetails {{ alt }}'>
-      <ul style='margin: 0px; padding: 0 0 0 1.5em;'>
-    {% for d in r.details %}
-        <li>{{ d.buildername }}: {{ d.status }} - &nbsp;
-      {%- for l in d.logs -%}
-            <a href="{{ l.url }}">{{ l.name }}</a>
-      {%- endfor -%}
-        </li>
-    {% endfor %}
-      </ul>
-    </td>
-  </tr>    
-  {% endif %} 
-  
-  <tr class='DevStatusSpacing'>
-    <td>
-    </td>
-  </tr>  
-
-{% else %}
- <tr><td>No revisions available</td></tr>
-{% endfor %}
-  
-</table>
+<table id="console_table" width="96%"></table>
 </div>
 
 

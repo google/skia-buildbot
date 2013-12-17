@@ -112,10 +112,14 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       }
 
       // Don't allow reload if a builder tooltip is open.
-      var builderTooltip = document.getElementById("builderTooltip");
-      if (builderTooltip && builderTooltip.style.display != "none") {
-        console.log("Tooltip displaying.");
-        reloadIsAllowed = false;
+      var builderTooltips = document.getElementsByClassName("BuilderTooltip");
+      for (var tooltip_index in builderTooltips) {
+        var tooltip = builderTooltips[tooltip_index];
+        if (tooltip.style.display != "none") {
+          console.log("Tooltip displaying.");
+          reloadIsAllowed = false;
+          break;
+        }
       }
 
       if (reloadIsAllowed) {
@@ -206,6 +210,11 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           display_comment.className += " BuilderTooltip BuilderHasComment";
         }
       }
+
+      // Rebuild the console table, if applicable.
+      if (typeof buildConsoleTable == "function") {
+        buildConsoleTable();
+      }
     }
 
     // Function to call on page load. Reloads the page with appropriate options
@@ -267,7 +276,13 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       loadJSONP(tree_status_appspot_url + "/builder-status/get_builder_statuses",
                 setBuilderStatuses);
 
+      // Set the reload timer.
       refreshTimer = setTimeout(reloadPage, refreshInterval);
+
+      // Rebuild the console table, if applicable.
+      if (typeof buildConsoleTable == "function") {
+        buildConsoleTable();
+      }
     }
 
     // Get the comment text for a given builder.
@@ -279,9 +294,9 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       var edit_status_url = tree_status_appspot_url + "/builder-status/?selected_builder_name=" + builder_name;
       var comment_html;
       if (comment) {
-        comment_html = comment + ' (<a href="' + edit_status_url + '" target="_blank">edit</a>)';
+        comment_html = comment + ' (<a href="' + edit_status_url + '" class="" target="_blank">edit</a>)';
       } else {
-        comment_html = '<a href="' + edit_status_url + '" target="_blank">add a comment</a>';
+        comment_html = '<a href="' + edit_status_url + '" class="" target="_blank">add a comment</a>';
       }
       return comment_html;
     }
@@ -435,7 +450,14 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         allSubcategories[toChange[1]] = chkbox.checked;
       }
       window.history.replaceState("", "Checked box", buildURL());
-      refreshCategories();
+
+      // Rebuild the console table, if applicable, or fall back on attempting to
+      // hide the correct categories and subcategories.
+      if (typeof buildConsoleTable == "function") {
+        buildConsoleTable();
+      } else {
+        refreshCategories();
+      }
     }
 
     // Callback function to adjust the reload time.

@@ -22,6 +22,7 @@ from skia_master_scripts import utils
 from twisted.internet import defer
 
 import builder_name_schema
+import json
 import re
 import skia_vars
 import time
@@ -288,7 +289,7 @@ class ConsoleStatusResource(HtmlResource):
 
       b = {}
       b["color"] = "notstarted"
-      b["pageTitle"] = builder
+      b["pageTitle"] = builder_name
       b["url"] = "./builders/%s" % urllib.quote(builder_name, safe='() ')
       b["builderName"] = builder_name
       state, _ = status.getBuilder(builder_name).getState()
@@ -477,10 +478,10 @@ class ConsoleStatusResource(HtmlResource):
     subs["ANYBRANCH"] = ANYBRANCH
 
     if builder_list:
-      subs['builders'] = builder_list
+      builders = builder_list
     else:
-      subs['builders'] = {}
-
+      builders = {}
+    subs['builders'] = json.dumps(builders)
     subs['revisions'] = []
 
     # For each revision we show one line
@@ -490,7 +491,13 @@ class ConsoleStatusResource(HtmlResource):
       # Fill the dictionary with this new information
       r['id'] = revision.revision
       r['link'] = revision.revlink
-      r['who'] = utils.FixGitSvnEmail(revision.who)
+      if (skia_vars.GetGlobalVariable('commit_bot_username') in revision.who
+          and 'Author: ' in revision.comments):
+        who = revision.comments.split('Author: ')[1].split('\n')[0]
+        who += ' (commit-bot)'
+      else:
+        who = revision.who
+      r['who'] = utils.FixGitSvnEmail(who)
       r['date'] = revision.date
       r['comments'] = revision.comments
       r['repository'] = revision.repository
@@ -509,6 +516,8 @@ class ConsoleStatusResource(HtmlResource):
                         for category in builder_list]) + 2
 
       subs['revisions'].append(r)
+
+    subs['revisions'] = json.dumps(subs['revisions'])
 
     #
     # Display the footer of the page.
