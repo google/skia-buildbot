@@ -64,9 +64,10 @@ class UploadSKImageResults(BuildStep):
       dest_dir = posixpath.join(
           skia_vars.GetGlobalVariable('googlestorage_bucket'),
           'skimage', 'output')
-      gs_utils.CopyStorageDirectory(src_dir=src_dir,
-                                    dest_dir=dest_dir,
-                                    gs_acl=PLAYBACK_CANNED_ACL)
+      if os.listdir(src_dir):
+        gs_utils.CopyStorageDirectory(src_dir=src_dir,
+                                      dest_dir=dest_dir,
+                                      gs_acl=PLAYBACK_CANNED_ACL)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UploadSKImageResults))
