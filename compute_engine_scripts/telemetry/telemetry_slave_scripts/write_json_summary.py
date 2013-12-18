@@ -10,6 +10,11 @@ import json
 import optparse
 import os
 import posixpath
+import sys
+
+sys.path.append(
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+import json_summary_constants
 
 
 def WriteJsonSummary(nopatch_json, withpatch_json, output_file_path,
@@ -48,11 +53,11 @@ def WriteJsonSummary(nopatch_json, withpatch_json, output_file_path,
   # Compare checksums in both directories and output differences.
   file_differences = []
   slave_dict = {
-      'skps_location': gs_skp_dir,
-      'failed_files': file_differences,
-      'files_location_nopatch': posixpath.join(
+      json_summary_constants.JSONKEY_SKPS_LOCATION: gs_skp_dir,
+      json_summary_constants.JSONKEY_FAILED_FILES: file_differences,
+      json_summary_constants.JSONKEY_FILES_LOCATION_NOPATCH: posixpath.join(
           gs_output_dir, 'slave%s' % slave_num, 'nopatch-images'),
-      'files_location_withpatch': posixpath.join(
+      json_summary_constants.JSONKEY_FILES_LOCATION_WITHPATCH: posixpath.join(
           gs_output_dir, 'slave%s' % slave_num, 'withpatch-images')
   }
   json_summary = {
@@ -64,10 +69,11 @@ def WriteJsonSummary(nopatch_json, withpatch_json, output_file_path,
     assert algo1 == algo2, 'Different algorithms found'
     if checksum1 != checksum2:
       file_differences.append({
-          "file_name": file1
+          json_summary_constants.JSONKEY_FILE_NAME: file1
       })
   if file_differences:
-    slave_dict['failed_files_count'] = len(file_differences)
+    slave_dict[json_summary_constants.JSONKEY_FAILED_FILES_COUNT] = len(
+        file_differences)
     with open(output_file_path, 'w') as f:
       f.write(json.dumps(json_summary, indent=4, sort_keys=True))
 
