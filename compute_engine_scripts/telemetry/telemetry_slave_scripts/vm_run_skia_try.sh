@@ -1,0 +1,191 @@
+#!/bin/bash
+#
+# Applies a Skia patch and compares images of SKPs with render_pictures.
+#
+# The script should be run from the skia-telemetry-slave GCE instance's
+# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
+# directory.
+#
+# Copyright 2013 Google Inc. All Rights Reserved.
+# Author: rmistry@google.com (Ravi Mistry)
+
+
+function usage() {
+  cat << EOF
+
+usage: $0 options
+
+This script runs render pictures on SKPs with the specified patch and then runs
+render pictures on SKPs without the patch. The two sets of images are then
+compared and a JSON file is outputted detailing all failures.
+
+OPTIONS:
+  -h Show this message
+  -n The slave_num of this cluster telemetry slave
+  -p The location of the Skia patch in Google Storage
+  -t The type of pagesets to run against. Eg: All, Filtered, 100k, 10k
+  -b Which chromium build the SKPs were created with
+  -a Arguments to pass to render_pictures
+  -r The runid (typically requester + timestamp)
+  -g The Google Storage location where the log file should be uploaded to
+  -o The Google Storage location where the output file should be uploaded to
+  -l The location of the log file
+EOF
+}
+
+while getopts "hn:p:t:b:a:r:g:o:l:" OPTION
+do
+  case $OPTION in
+    h)
+      usage
+      exit 1
+      ;;
+    n)
+      SLAVE_NUM=$OPTARG
+      ;;
+    p)
+      SKIA_PATCH_GS_LOCATION=$OPTARG
+      ;;
+    t)
+      PAGESETS_TYPE=$OPTARG
+      ;;
+    b)
+      CHROMIUM_BUILD_DIR=$OPTARG
+      ;;
+    a)
+      RENDER_PICTURES_ARGS=$OPTARG
+      ;;
+    r)
+      RUN_ID=$OPTARG
+      ;;
+    g)
+      LOG_FILE_GS_LOCATION=$OPTARG
+      ;;
+    o)
+      OUTPUT_FILE_GS_LOCATION=$OPTARG
+      ;;
+    l)
+      LOG_FILE=$OPTARG
+      ;;
+    ?)
+      usage
+      exit
+      ;;
+  esac
+done
+
+if [[ -z $SLAVE_NUM ]] || [[ -z $SKIA_PATCH_GS_LOCATION ]] || \
+   [[ -z $PAGESETS_TYPE ]] || [[ -z $CHROMIUM_BUILD_DIR ]] || \
+   [[ -z $RENDER_PICTURES_ARGS ]] || [[ -z $RUN_ID ]] || [[ -z $LOG_FILE ]] ||
+   [[ -z $LOG_FILE_GS_LOCATION  ]] || [[ -z $OUTPUT_FILE_GS_LOCATION  ]]
+then
+  usage
+  exit 1
+fi
+
+source vm_utils.sh
+
+WORKER_FILE=SKIA-TRY.$RUN_ID
+create_worker_file $WORKER_FILE
+
+if [ -e /etc/boto.cfg ]; then                                                   
+  # Move boto.cfg since it may interfere with the ~/.boto file.                 
+  sudo mv /etc/boto.cfg /etc/boto.cfg.bak                                       
+fi
+
+# Download the Skia patch from Google Storage.
+SKIA_PATCH_FILE=/tmp/skia-patch.$RUN_ID
+gsutil cp $SKIA_PATCH_GS_LOCATION $SKIA_PATCH_FILE
+
+# Download the SKP files from Google Storage if the local TIMESTAMP is out of date.
+LOCAL_SKP_DIR=/home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
+GS_SKP_DIR=gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
+mkdir -p $LOCAL_SKP_DIR
+are_timestamps_equal $LOCAL_SKP_DIR $GS_SKP_DIR
+if [ $? -eq 1 ]; then
+  gsutil cp $GS_SKP_DIR/* $LOCAL_SKP_DIR
+fi
+
+SKIA_TRUNK_LOCATION=/home/default/skia-repo/trunk
+
+function cleanup_slave_before_exit {
+  reset_skia_checkout
+  copy_log_to_gs
+  delete_worker_file $WORKER_FILE
+  rm -rf /tmp/*${RUN_ID}* 
+}
+
+function build_tools {
+  GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
+}
+
+function reset_skia_checkout {
+    cd $SKIA_TRUNK_LOCATION
+    git reset --hard HEAD
+    git clean -f -d
+}
+
+function run_render_pictures {
+  output_dir=$1
+  ./out/Release/render_pictures -r $LOCAL_SKP_DIR $RENDER_PICTURES_ARGS -w $output_dir --writeJsonSummaryPath $output_dir/summary.json
+  if [ $? -ne 0 ]; then
+    echo "== Failure when running render_pictures. Exiting. =="
+    cleanup_slave_before_exit
+    exit 1
+  fi
+}
+
+function copy_log_to_gs {
+  gsutil cp -a public-read $LOG_FILE ${LOG_FILE_GS_LOCATION}/slave${SLAVE_NUM}/
+}
+
+# Ensure we are starting from a clean checkout and sync.
+cd $SKIA_TRUNK_LOCATION
+reset_skia_checkout
+make clean
+/home/default/depot_tools/gclient sync
+
+echo "== Applying the patch, building, and running render_pictures"
+git apply --index -p1 --verbose --ignore-whitespace --ignore-space-change $SKIA_PATCH_FILE
+if [ $? -ne 0 ]; then
+    echo "== Patch failed to apply. Exiting. =="
+    cleanup_slave_before_exit
+    exit 1
+fi
+build_tools
+OUTPUT_DIR_WITHPATCH=/tmp/withpatch-pictures-$RUN_ID
+mkdir -p $OUTPUT_DIR_WITHPATCH
+run_render_pictures $OUTPUT_DIR_WITHPATCH
+
+echo "== Removing the patch, building, and running render_pictures"
+reset_skia_checkout
+build_tools
+OUTPUT_DIR_NOPATCH=/tmp/nopatch-pictures-$RUN_ID
+mkdir -p $OUTPUT_DIR_NOPATCH
+run_render_pictures $OUTPUT_DIR_NOPATCH
+
+echo "== Comparing pictures and saving differences in JSON output file =="
+cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
+JSON_SUMMARY_DIR=/tmp/summary-$RUN_ID
+mkdir -p $JSON_SUMMARY_DIR
+python write_json_summary.py --nopatch_json=$OUTPUT_DIR_NOPATCH/summary.json \
+  --withpatch_json=$OUTPUT_DIR_WITHPATCH/summary.json \
+  --output_file_path=$JSON_SUMMARY_DIR/slave$SLAVE_NUM.json \
+  --gs_output_dir=$OUTPUT_FILE_GS_LOCATION \
+  --gs_skp_dir=$GS_SKP_DIR \
+  --slave_num=$SLAVE_NUM \
+  --gm_json_path=/home/default/skia-repo/trunk/gm/gm_json.py
+
+echo "== Copy everything to Google Storage =="
+# Get list of failed file names and upload only those to Google Storage.
+ARRAY=`cat $JSON_SUMMARY_DIR/slave${SLAVE_NUM}.json | grep 'fileName' | cut -d ':' -f 2 | cut -d "\"" -f2`
+for i in ${ARRAY[@]}; do
+  gsutil cp $OUTPUT_DIR_NOPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/
+  gsutil cp $OUTPUT_DIR_WITHPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/
+done
+# Set google.com permissions on the images.
+gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/*
+gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/*
+gsutil cp $JSON_SUMMARY_DIR/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/
+
+cleanup_slave_before_exit
