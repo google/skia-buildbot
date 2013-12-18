@@ -489,6 +489,7 @@ def get_skp_pagesets_to_builds():
           chromium_rev, skia_rev)[0].chromium_rev_date
       builds = pagesets_to_builds.get(pagesets_type, [])
       builds.append((chromium_rev, skia_rev, chromium_rev_date))
+      builds.sort(cmp=lambda x, y: cmp(x[2], y[2]), reverse=True)
       pagesets_to_builds[pagesets_type] = builds
   return pagesets_to_builds
 
@@ -796,8 +797,12 @@ class SkiaTryPage(BasePage):
 
     skia_try_tasks = SkiaTryTasks.get_all_skia_try_tasks_of_user(
         self.user.email())
-    template_values['pagesets_to_builds'] = (
-        get_skp_pagesets_to_builds())
+    pagesets_to_builds = get_skp_pagesets_to_builds()
+    # Only support 10k for now.
+    for pageset in pagesets_to_builds.keys():
+      if pageset != '10k':
+        del pagesets_to_builds[pageset]
+    template_values['pagesets_to_builds'] = pagesets_to_builds
     template_values['skia_try_tasks'] = skia_try_tasks
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
     template_values['pending_tasks_count'] = len(get_all_pending_tasks())
