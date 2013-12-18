@@ -34,6 +34,7 @@ CHROMIUM_BUILD_ENCOUNTERED_KEYS = {}
 CHROMIUM_TRY_ENCOUNTERED_KEYS = {}
 LUA_ENCOUNTERED_KEYS = {}
 TELEMETRY_ENCOUNTERED_KEYS = {}
+SKIA_TRY_ENCOUNTERED_KEYS = {}
 
 
 def process_admin_task(task):
@@ -90,6 +91,57 @@ def process_chromium_build_task(task):
                    stderr=open(log_file, 'w'))
 
 
+def fix_and_write_patch(patch, run_id):
+  """Modifies the patch for consumption by slaves and writes to local file."""
+  # Remove all carriage returns, appengine adds them to blobs.
+  patch_txt = patch.replace('\r\n', '\n')
+  # Add an extra newline at the end because git sometimes rejects patches due to
+  # missing newlines.
+  patch_txt += '\n'
+  patch_file = os.path.join(tempfile.gettempdir(),
+                            '%s.patch' % run_id)
+  f = open(patch_file, 'w')
+  f.write(patch_txt)
+  f.close()
+  return patch_file
+
+
+def process_skia_try_task(task):
+  # Extract required parameters.
+  task_key = task['key']
+  if task_key in SKIA_TRY_ENCOUNTERED_KEYS:
+    print '%s is already being processed' % task_key
+    return
+  SKIA_TRY_ENCOUNTERED_KEYS[task_key] = 1
+
+  username = task['username']
+  run_id = '%s-%s' % (username.split('@')[0], time.time())
+
+  patch_file = fix_and_write_patch(task['patch'], run_id)
+  pagesets_type = task['pagesets_type']
+  chromium_build_dir = get_chromium_build_dir(task['chromium_rev'],
+                                              task['skia_rev'])
+  render_pictures_args = task['render_pictures_args'].replace('"', r'\"')
+
+  log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
+
+  print 'Skia try output will be available in %s' % log_file
+  skia_try_cmd = [
+      'bash',
+      'vm_run_skia_try.sh',
+      '-p', str(patch_file),
+      '-t', str(pagesets_type),
+      '-r', str(run_id),
+      '-b', str(chromium_build_dir),
+      '-a', str(render_pictures_args),
+      '-e', str(username),
+      '-k', str(task_key),
+      '-l', str(log_file)
+  ]
+  subprocess.Popen(skia_try_cmd, stdout=open(log_file, 'w'),
+                   stderr=open(log_file, 'w'))
+  
+
 def process_chromium_try_task(task):
   # Extract required parameters.
   task_key = task['key']
@@ -108,17 +160,9 @@ def process_chromium_try_task(task):
   discard_outliers = task['discard_outliers']
   # Copy the patch to a local file.
   run_id = '%s-%s' % (username.split('@')[0], time.time())
-  patch_txt = task['patch'].replace('\r\n', '\n')
-  # Add an extra newline at the end because git sometimes rejects patches due to
-  # missing newlines.
-  patch_txt += '\n'
-  patch_file = os.path.join(tempfile.gettempdir(),
-                            '%s.patch' % run_id)
-  f = open(patch_file, 'w')
-  f.write(patch_txt)
-  f.close()
-
+  patch_file = fix_and_write_patch(task['patch'], run_id)
   log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
+
   print 'Chromium try output will be available in %s' % log_file
   cmd = ('bash vm_run_chromium_try.sh -p %(patch_file)s -t %(patch_type)s '
          '-r %(run_id)s -v %(variance_threshold)s -o %(discard_outliers)s '
@@ -217,6 +261,7 @@ TASK_TYPE_TO_PROCESSING_METHOD = {
     appengine_constants.CHROMIUM_TRY_TASK_NAME: process_chromium_try_task,
     appengine_constants.LUA_TASK_NAME: process_lua_task,
     appengine_constants.TELEMETRY_TASK_NAME: process_telemetry_task,
+    appengine_constants.SKIA_TRY_TASK_NAME: process_skia_try_task,
 }
 
 

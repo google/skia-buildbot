@@ -17,6 +17,7 @@ CHROMIUM_BUILD_TASK_NAME = 'ChromiumBuildTask'
 CHROMIUM_TRY_TASK_NAME = 'ChromiumTryTask'
 TELEMETRY_TASK_NAME = 'TelemetryTask'
 LUA_TASK_NAME = 'LuaTask'
+SKIA_TRY_TASK_NAME = 'SkiaTryTask'
 
 PAGESETS_ADMIN_TASK_NAME = 'Recreate Pagesets'
 PDFVIEWER_ADMIN_TASK_NAME = 'PDFViewer Diff'
