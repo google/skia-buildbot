@@ -32,7 +32,6 @@ PAGESET_TYPES = (
     'Filtered',
     '100k',
     '10k',
-    'Deeplinks',
 )
 
 # Constants for ChromiumTryPage.
@@ -267,6 +266,62 @@ class LuaTasks(BaseTelemetryModel):
       lua_tasks[0].delete()
 
 
+class SkiaTryTasks(BaseTelemetryModel):
+  """Data model for Skia Try tasks."""
+  username = db.StringProperty(required=True)                                   
+  patch = db.BlobProperty(required=True)
+  pagesets_type = db.StringProperty(required=True)
+  chromium_rev = db.StringProperty(required=True)
+  skia_rev = db.StringProperty(required=True)
+  render_pictures_args = db.StringProperty(required=True)
+  description = db.StringProperty()
+  requested_time = db.DateTimeProperty(required=True)
+  completed_time = db.DateTimeProperty()
+  patch_link = db.LinkProperty()
+  slave1_output_link = db.LinkProperty()
+  html_output_link = db.LinkProperty()
+
+  def get_json_repr(self):                                                      
+    """Returns a JSON representation of this Data Model."""                     
+    return {
+        'SkiaTryTask': {
+            'key': self.key().id_or_name(),
+            'username': self.username,
+            'patch': self.patch,
+            'pagesets_type': self.pagesets_type,
+            'chromium_rev': self.chromium_rev,
+            'skia_rev': self.skia_rev,
+            'render_pictures_args': self.render_pictures_args,
+            'requested_time': str(self.requested_time)
+        }
+    }
+
+  @classmethod
+  def get_all_skia_try_tasks(cls, offset):
+    return (cls.all()
+               .order('-requested_time')
+               .fetch(offset=offset, limit=PAGINATION_LIMIT))
+
+  @classmethod
+  def get_all_skia_try_tasks_of_user(cls, user):
+    return (cls.all()
+               .filter('username =', user)
+               .order('-requested_time')
+               .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
+  def get_skia_try_task(cls, key):
+    return db.GqlQuery(
+        'SELECT * FROM SkiaTryTasks WHERE __key__ = '
+        'Key(\'SkiaTryTasks\', %s);' % key)
+
+  @classmethod
+  def delete_skia_try_task(cls, key):
+    skia_try_tasks = cls.get_skia_try_task(key)
+    if skia_try_tasks.count():
+      skia_try_tasks[0].delete()
+
+
 class ChromiumTryTasks(BaseTelemetryModel):
   """Data model for Chromium Try tasks."""
   username = db.StringProperty(required=True)                                   
@@ -396,7 +451,8 @@ TELEMETRY_DATA_MODELS = (
     AdminTasks,
     ChromiumBuilds,
     LuaTasks,
-    ChromiumTryTasks
+    ChromiumTryTasks,
+    SkiaTryTasks
 )
 
 
@@ -418,6 +474,23 @@ def add_telemetry_info_to_template(template_values, user_email,
   template_values['is_google_chromium_user'] = is_google_chromium_user
   template_values['pagesets_source'] = telemetry_info.pagesets_source
   template_values['framework_msg'] = telemetry_info.framework_msg
+
+
+def get_skp_pagesets_to_builds():
+  """Returns a map of pagesets to the builds that have SKPs."""
+  completed_skp_runs = TelemetryTasks.get_completed_skp_runs()
+  pagesets_to_builds = {}
+  for completed_skp_run in completed_skp_runs:
+    pagesets_type = completed_skp_run.pagesets_type
+    chromium_rev = completed_skp_run.chromium_rev
+    skia_rev = completed_skp_run.skia_rev
+    if pagesets_type and chromium_rev and skia_rev:
+      chromium_rev_date = ChromiumBuilds.get_chromium_build_with_revs(
+          chromium_rev, skia_rev)[0].chromium_rev_date
+      builds = pagesets_to_builds.get(pagesets_type, [])
+      builds.append((chromium_rev, skia_rev, chromium_rev_date))
+      pagesets_to_builds[pagesets_type] = builds
+  return pagesets_to_builds
 
 
 class AdminTasksPage(BasePage):
@@ -518,20 +591,7 @@ class LuaScriptPage(BasePage):
     lua_tasks = LuaTasks.get_all_lua_tasks_of_user(self.user.email())
     template_values['lua_tasks'] = lua_tasks
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
-
-    completed_skp_runs = TelemetryTasks.get_completed_skp_runs()
-    pagesets_to_builds = {}
-    for completed_skp_run in completed_skp_runs:
-      pagesets_type = completed_skp_run.pagesets_type
-      chromium_rev = completed_skp_run.chromium_rev
-      skia_rev = completed_skp_run.skia_rev
-      if pagesets_type and chromium_rev and skia_rev:
-        chromium_rev_date = ChromiumBuilds.get_chromium_build_with_revs(
-            chromium_rev, skia_rev)[0].chromium_rev_date
-        builds = pagesets_to_builds.get(pagesets_type, [])
-        builds.append((chromium_rev, skia_rev, chromium_rev_date))
-        pagesets_to_builds[pagesets_type] = builds
-    template_values['pagesets_to_builds'] = pagesets_to_builds
+    template_values['pagesets_to_builds'] = get_skp_pagesets_to_builds()
 
     self.DisplayTemplate('lua_script.html', template_values)
 
@@ -643,6 +703,10 @@ class AllTasks(BasePage):
                                    self.is_admin)
     template_values['pagination_limit'] = PAGINATION_LIMIT
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
+    # The table shown on the all tasks page is the same as the other sub pages
+    # except that the username is also shown and the delete button is not
+    # shown.
+    template_values['alltaskspage'] = True
 
     # Set template values for Admin, Lua and Telemetry datamodels.
     self.set_pagination_templates_for_models(
@@ -665,6 +729,11 @@ class AllTasks(BasePage):
         'chromium_try_tasks',
         ChromiumTryTasks.get_all_chromium_try_tasks,
         tasks_counter(ChromiumTryTasks))
+    self.set_pagination_templates_for_models(
+        template_values,
+        'skia_try_tasks',
+        SkiaTryTasks.get_all_skia_try_tasks,
+        tasks_counter(SkiaTryTasks))
 
     self.DisplayTemplate('all_tasks.html', template_values)
 
@@ -677,6 +746,63 @@ class AllTasks(BasePage):
       template_values['%s_next_offset' % model_str] = offset + PAGINATION_LIMIT
     if offset != 0:
       template_values['%s_prev_offset' % model_str] = offset - PAGINATION_LIMIT
+
+
+class SkiaTryPage(BasePage):
+  """Displays the Skia try page."""
+
+  @utils.require_user
+  def get(self):
+    return self._handle()
+
+  @utils.require_user
+  def post(self):
+    # Check if this is a delete chromium try task request.
+    delete_key = self.request.get('delete')
+    if delete_key:
+      SkiaTryTasks.delete_skia_try_task(delete_key)
+      self.redirect('skia_try')
+      return
+
+    # It is an add skia try task request.
+    patch = db.Blob(str(self.request.get('patch')))
+    pagesets_type, chromium_rev, skia_rev = self.request.get(
+        'pagesets_type_and_chromium_build').split('-')
+    render_pictures_args = self.request.get('render_pictures_args')
+    description = self.request.get('description')
+    if not description:
+      description = 'None'
+    requested_time = datetime.datetime.now()
+
+    SkiaTryTasks(
+        username=self.user.email(),
+        patch=patch,
+        pagesets_type=pagesets_type,
+        chromium_rev=chromium_rev,
+        skia_rev=skia_rev,
+        render_pictures_args=render_pictures_args,
+        requested_time=requested_time,
+        description=description).put()
+    self.redirect('skia_try')
+
+  def _handle(self):
+    """Sets the information to be displayed on the main page."""
+
+    template_values = self.InitializeTemplate(
+        'Cluster Telemetry Skia Tryserver')
+
+    add_telemetry_info_to_template(template_values, self.user.email(),
+                                   self.is_admin)
+
+    skia_try_tasks = SkiaTryTasks.get_all_skia_try_tasks_of_user(
+        self.user.email())
+    template_values['pagesets_to_builds'] = (
+        get_skp_pagesets_to_builds())
+    template_values['skia_try_tasks'] = skia_try_tasks
+    template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
+    template_values['pending_tasks_count'] = len(get_all_pending_tasks())
+
+    self.DisplayTemplate('skia_try.html', template_values)
 
 
 class ChromiumTryPage(BasePage):
@@ -852,6 +978,32 @@ class UpdateChromiumTryTasksPage(BasePage):
                                 telemetry_nopatch_log_link)
     self.response.out.write('telemetry_withpatch_log_link: %s<br/>' %
                                 telemetry_withpatch_log_link)
+    self.response.out.write('html_output_link: %s<br/>' % html_output_link)
+    self.response.out.write('completed_time: %s<br/>' % completed_time)
+
+
+class UpdateSkiaTryTasksPage(BasePage):
+  """Updates a chromium try task using its key."""
+
+  @utils.admin_only
+  def post(self):
+    key = int(self.request.get('key'))
+    patch_link = self.request.get('patch_link')
+    slave1_output_link = self.request.get('slave1_output_link')
+    html_output_link = self.request.get('html_output_link')
+    completed_time = datetime.datetime.now()
+
+    skia_try_task = SkiaTryTasks.get_skia_try_task(key)[0]
+    skia_try_task.completed_time = completed_time
+    skia_try_task.patch_link = patch_link
+    skia_try_task.slave1_output_link = slave1_output_link
+    skia_try_task.html_output_link = html_output_link
+    skia_try_task.put()
+
+    self.response.out.write('<br/><br/>Updated the datastore-<br/><br/>')
+    self.response.out.write('key: %s<br/>' % key)
+    self.response.out.write('patch_link: %s<br/>' % patch_link)
+    self.response.out.write('slave1_output_link: %s<br/>' % slave1_output_link)
     self.response.out.write('html_output_link: %s<br/>' % html_output_link)
     self.response.out.write('completed_time: %s<br/>' % completed_time)
 

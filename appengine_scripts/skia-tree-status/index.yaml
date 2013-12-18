@@ -257,6 +257,17 @@ indexes:
   - name: requested_time
     direction: desc
 
+- kind: SkiaTryTasks
+  properties:
+  - name: completed_time
+  - name: requested_time
+
+- kind: SkiaTryTasks
+  properties:
+  - name: username
+  - name: requested_time
+    direction: desc
+
 - kind: VerificationEvent
   ancestor: yes
   properties:

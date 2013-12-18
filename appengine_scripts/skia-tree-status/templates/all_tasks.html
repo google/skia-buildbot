@@ -93,6 +93,24 @@
 
   <br/><br/>
 
+  <a id='skia_try'><h2>Skia Try Tasks</h2></a>
+  <br/>
+
+  {% if skia_try_tasks %}
+    {% include "skia_try_tasks_table.html" %}
+
+    {% if skia_try_tasks_prev_offset == 0 or skia_try_tasks_prev_offset %}
+      <a href='/skia-telemetry/all_tasks?skia_try_tasks_offset={{ skia_try_tasks_prev_offset }}#skia_try'>Previous</a>
+    {% endif %}
+    {% if skia_try_tasks_next_offset %}
+      <a href='/skia-telemetry/all_tasks?skia_try_tasks_offset={{ skia_try_tasks_next_offset }}#skia_try'>Next</a>
+    {% endif %}
+  {% else %}
+    No Previous runs yet.
+  {% endif %}
+
+  <br/><br/>
+
   <a id='telemetry'><h2>All Telemetry benchmark runs history</h2></a>
   <br/>
 

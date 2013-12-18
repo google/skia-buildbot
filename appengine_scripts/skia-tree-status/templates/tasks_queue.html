@@ -11,10 +11,10 @@
   {% if pending_tasks %}
     <table border="1" cellpadding="5">
       <tr bgcolor="#CCCCFF">
-        <th>Number in Queue</th>
-        <th>Task Type</th>
-        <th>Properties</th>
-        <th>Status</th>
+        <td><b>Number in Queue</b></td>
+        <td><b>Task Type</b></td>
+        <td><b>Properties</b></td>
+        <td><b>Status</b></td>
       </tr>
       {% for task in pending_tasks %}
         {% for task_type, values in task.items %}
