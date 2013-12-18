@@ -1,0 +1,16 @@
+{
+    "slave4": {
+        "failedFiles": [
+                {
+                    "fileName": "fileslave4-1.png"
+                }, 
+                {
+                    "fileName": "fileslave4-2.png"
+                }
+        ], 
+        "failedFilesCount": 2, 
+        "filesLocationNopatch": "gs://dummy-bucket/output-dir/slave4/nopatch-images", 
+        "filesLocationWithpatch": "gs://dummy-bucket/output-dir/slave4/withpatch-images", 
+        "skpsLocation": "gs://dummy-bucket/skps/slave4"
+    }
+}

@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <title>Image comparision failures for {{ slave_info.slave_name }}</title>
+  </head>
+
+  <body>
+    <h2>Image comparision failures for {{ slave_info.slave_name }}</h2>
+    <a href='{{ absolute_url }}index.html'>Back</a>
+    <br/><br/>
+    Can download this slave's SKPs with:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp {{ slave_info.skps_location }}/* /tmp/skps/</i><br/><br/>
+    Can download nopatch images with:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp {{ slave_info.files_location_nopatch }}/* /tmp/nopatch-imgs/</i><br/><br/>
+    Can download withpatch images with:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp {{ slave_info.files_location_withpatch }}/* /tmp/withpath-imgs/</i><br/><br/><br/>
+    
+    <table border="1" cellpadding="5">
+      <tr bgcolor="#CCCCFF">
+        <th>Failed Files</th>
+        <th>NoPatch Image</th>
+        <th>WithPatch Image</th>
+      </tr>
+      {% for failed_file in slave_info.failed_files %}
+        <tr>
+          <td align="center">{{ failed_file }}</td>
+          <td><a href='{{ gs_http_files_location_nopatch }}/{{ failed_file }}'><img src="{{ gs_http_files_location_nopatch }}/{{ failed_file }}" alt="nopatch/{{ failed_file }}" width="200" height="200"></a></td>
+          <td><a href='{{ gs_http_files_location_withpatch }}/{{ failed_file }}'><img src="{{ gs_http_files_location_withpatch }}/{{ failed_file }}" alt="withpatch/{{ failed_file }}" width="200" height"200"></a></td>
+        </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

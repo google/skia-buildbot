@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <title>Image comparision failures for slave1</title>
+  </head>
+
+  <body>
+    <h2>Image comparision failures for slave1</h2>
+    <a href='http://dummy-link.foobar/index.html'>Back</a>
+    <br/><br/>
+    Can download this slave's SKPs with:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp gs://dummy-bucket/skps/slave1/* /tmp/skps/</i><br/><br/>
+    Can download nopatch images with:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp gs://dummy-bucket/slave1/nopatch/* /tmp/nopatch-imgs/</i><br/><br/>
+    Can download withpatch images with:<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp gs://dummy-bucket/slave1/withpatch/* /tmp/withpath-imgs/</i><br/><br/><br/>
+    
+    <table border="1" cellpadding="5">
+      <tr bgcolor="#CCCCFF">
+        <th>Failed Files</th>
+        <th>NoPatch Image</th>
+        <th>WithPatch Image</th>
+      </tr>
+      
+        <tr>
+          <td align="center">fileslave1-1.png</td>
+          <td><a href='http://storage.cloud.google.com/dummy-bucket/slave1/nopatch/fileslave1-1.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave1/nopatch/fileslave1-1.png" alt="nopatch/fileslave1-1.png" width="200" height="200"></a></td>
+          <td><a href='http://storage.cloud.google.com/dummy-bucket/slave1/withpatch/fileslave1-1.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave1/withpatch/fileslave1-1.png" alt="withpatch/fileslave1-1.png" width="200" height"200"></a></td>
+        </tr>
+      
+        <tr>
+          <td align="center">fileslave1-2.png</td>
+          <td><a href='http://storage.cloud.google.com/dummy-bucket/slave1/nopatch/fileslave1-2.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave1/nopatch/fileslave1-2.png" alt="nopatch/fileslave1-2.png" width="200" height="200"></a></td>
+          <td><a href='http://storage.cloud.google.com/dummy-bucket/slave1/withpatch/fileslave1-2.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave1/withpatch/fileslave1-2.png" alt="withpatch/fileslave1-2.png" width="200" height"200"></a></td>
+        </tr>
+      
+    </table>
+  </body>
+</html>
