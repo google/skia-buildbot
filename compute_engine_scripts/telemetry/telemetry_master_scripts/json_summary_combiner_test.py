@@ -30,8 +30,13 @@ class TestJsonSummaryCombiner(unittest.TestCase):
         os.path.join(self._test_data_dir, 'differences'))
     for slave_name, slave_info in slave_name_to_info.items():
       self.assertEquals(
-          slave_info.failed_files,
-          ['file%s-1.png' % slave_name, 'file%s-2.png' % slave_name])
+          slave_info.failed_files_with_skp_loc,
+          [('file%s_1.png' % slave_name,
+            'gs://dummy-bucket/skps/%s/file%s_.skp' % (slave_name,
+                                                       slave_name)),
+           ('file%s_2.png' % slave_name,
+            'gs://dummy-bucket/skps/%s/file%s_.skp' % (slave_name,
+                                                       slave_name))])
       self.assertEquals(
           slave_info.skps_location,
           'gs://dummy-bucket/skps/%s' % slave_name)
@@ -51,20 +56,33 @@ class TestJsonSummaryCombiner(unittest.TestCase):
     slave_name_to_info = {
         'slave1': json_summary_combiner.SlaveInfo(
             slave_name='slave1',
-            failed_files=['fileslave1-1.png', 'fileslave1-2.png'],
+            failed_files_with_skp_loc=[
+                ('fileslave1_1.png',
+                 'gs://dummy-bucket/skps/slave1/fileslave1_.skp'),
+                ('fileslave1_2.png',
+                 'gs://dummy-bucket/skps/slave1/fileslave1_.skp')],
             skps_location='gs://dummy-bucket/skps/slave1',
             files_location_nopatch='gs://dummy-bucket/slave1/nopatch',
             files_location_withpatch='gs://dummy-bucket/slave1/withpatch'),
         'slave2': json_summary_combiner.SlaveInfo(
             slave_name='slave2',
-            failed_files=['fileslave2-1.png'],
+            failed_files_with_skp_loc=[
+                ('fileslave2_1.png',
+                 'gs://dummy-bucket/skps/slave2/fileslave2_.skp')],
             skps_location='gs://dummy-bucket/skps/slave2',
             files_location_nopatch='gs://dummy-bucket/slave2/nopatch',
             files_location_withpatch='gs://dummy-bucket/slave2/withpatch'),
         'slave3': json_summary_combiner.SlaveInfo(
             slave_name='slave3',
-            failed_files=['fileslave3-1.png', 'fileslave3-2.png',
-                          'fileslave3-3.png', 'fileslave3-4.png'],
+            failed_files_with_skp_loc=[
+                ('fileslave3_1.png',
+                 'gs://dummy-bucket/skps/slave3/fileslave3_.skp'),
+                ('fileslave3_2.png',
+                 'gs://dummy-bucket/skps/slave3/fileslave3_.skp'),
+                ('fileslave3_3.png',
+                 'gs://dummy-bucket/skps/slave3/fileslave3_.skp'),
+                ('fileslave3_4.png',
+                 'gs://dummy-bucket/skps/slave1/fileslave3_.skp')],
             skps_location='gs://dummy-bucket/skps/slave3',
             files_location_nopatch='gs://dummy-bucket/slave3/nopatch',
             files_location_withpatch='gs://dummy-bucket/slave3/withpatch'),

@@ -2,10 +2,12 @@
     "slave1": {
         "failedFiles": [
                 {
-                    "fileName": "fileslave1-1.png"
+                    "fileName": "fileslave1_1.png",
+                    "skpLocation": "gs://dummy-bucket/skps/slave1/fileslave1_.skp"
                 }, 
                 {
-                    "fileName": "fileslave1-2.png"
+                    "fileName": "fileslave1_2.png",
+                    "skpLocation": "gs://dummy-bucket/skps/slave1/fileslave1_.skp"
                 }
         ], 
         "failedFilesCount": 2, 

@@ -36,10 +36,10 @@ GS_FILES_LOCATION_WITH_PATCH_TEMPLATE_VAR = 'gs_http_files_location_withpatch'
 
 class SlaveInfo(object):
   """Container class that holds all slave data."""
-  def __init__(self, slave_name, failed_files, skps_location,
+  def __init__(self, slave_name, failed_files_with_skp_loc, skps_location,
                files_location_nopatch, files_location_withpatch):
     self.slave_name = slave_name
-    self.failed_files = failed_files
+    self.failed_files_with_skp_loc = failed_files_with_skp_loc
     self.files_location_nopatch = files_location_nopatch
     self.files_location_withpatch = files_location_withpatch
     self.skps_location = skps_location
@@ -56,12 +56,14 @@ def CombineJsonSummaries(json_summaries_dir):
 
     slave_name = data.keys()[0]
     slave_data = data[slave_name]
-    failed_files = []
+    failed_files_with_skp_loc = []
     for failed_file in slave_data[json_summary_constants.JSONKEY_FAILED_FILES]:
-      failed_files.extend(failed_file.values())
+      failed_file_name = failed_file[json_summary_constants.JSONKEY_FILE_NAME]
+      skp_location = failed_file[json_summary_constants.JSONKEY_SKP_LOCATION]
+      failed_files_with_skp_loc.append((failed_file_name, skp_location))
     slave_info = SlaveInfo(
         slave_name=slave_name,
-        failed_files=failed_files,
+        failed_files_with_skp_loc=failed_files_with_skp_loc,
         skps_location=slave_data[json_summary_constants.JSONKEY_SKPS_LOCATION],
         files_location_nopatch=slave_data[
             json_summary_constants.JSONKEY_FILES_LOCATION_NOPATCH],

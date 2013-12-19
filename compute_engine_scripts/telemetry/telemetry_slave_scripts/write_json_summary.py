@@ -69,13 +69,22 @@ def WriteJsonSummary(nopatch_json, withpatch_json, output_file_path,
     assert algo1 == algo2, 'Different algorithms found'
     if checksum1 != checksum2:
       file_differences.append({
-          json_summary_constants.JSONKEY_FILE_NAME: file1
+          json_summary_constants.JSONKEY_FILE_NAME: file1,
+          json_summary_constants.JSONKEY_SKP_LOCATION: posixpath.join(
+              gs_skp_dir, GetSkpFileName(file1))
       })
   if file_differences:
     slave_dict[json_summary_constants.JSONKEY_FAILED_FILES_COUNT] = len(
         file_differences)
     with open(output_file_path, 'w') as f:
       f.write(json.dumps(json_summary, indent=4, sort_keys=True))
+
+
+def GetSkpFileName(img_file_name):
+  """Determine the SKP file name from the image's file name."""
+  # TODO(rmistry): The below relies too much on the current output of render
+  # pictures to determine the root SKP.
+  return '%s_.skp' % '_'.join(img_file_name.split('_')[:-1])
 
 
 def GetFilesAndChecksums(json_location, gm_json_mod):

@@ -3,15 +3,15 @@
     "failed": null, 
     "failure-ignored": null, 
     "no-comparison": {
-      "file1.png" : [
+      "file_.png" : [
         "bitmap-64bitMD5", 
         11111
       ],
-      "file2.png" : [
+      "file_2.png" : [
         "bitmap-64bitMD5", 
         22222 
       ],
-      "file3.png" : [
+      "file_3.png" : [
         "bitmap-64bitMD5", 
         33333
       ]

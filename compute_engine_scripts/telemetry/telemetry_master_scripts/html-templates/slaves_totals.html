@@ -18,7 +18,7 @@
       {% for slave_name, slave_info in slave_name_to_info_items %}
         <tr>
           <td><a href='{{ absolute_url }}{{ slave_name }}.html'>{{ slave_name }}</a></td>
-          <td align="center">{{ slave_info.failed_files|length }}</td>
+          <td align="center">{{ slave_info.failed_files_with_skp_loc|length }}</td>
         </tr>
       {% endfor %}
     </table>
