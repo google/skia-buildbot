@@ -149,6 +149,8 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Now copy the SKP files to Google Storage. 
   gsutil cp /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/* \
     gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
+  # Set ACLs for only google.com accounts to read the SKPs.
+  gsutil acl ch -g google.com:READ gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/*
 
   # Create a TIMESTAMP file and copy it to Google Storage.
   TIMESTAMP=`date +%s`
