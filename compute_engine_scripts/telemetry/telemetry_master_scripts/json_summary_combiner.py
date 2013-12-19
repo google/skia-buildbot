@@ -60,7 +60,9 @@ def CombineJsonSummaries(json_summaries_dir):
     for failed_file in slave_data[json_summary_constants.JSONKEY_FAILED_FILES]:
       failed_file_name = failed_file[json_summary_constants.JSONKEY_FILE_NAME]
       skp_location = failed_file[json_summary_constants.JSONKEY_SKP_LOCATION]
-      failed_files_with_skp_loc.append((failed_file_name, skp_location))
+      failed_files_with_skp_loc.append(
+          (failed_file_name,
+           posixpath.join(STORAGE_HTTP_BASE, skp_location.lstrip('gs://'))))
     slave_info = SlaveInfo(
         slave_name=slave_name,
         failed_files_with_skp_loc=failed_files_with_skp_loc,
