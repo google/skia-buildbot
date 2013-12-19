@@ -45,6 +45,13 @@ CQ_TRYBOTS = [
     # 'Build-Win7-VS2010-x86-Release-Trybot',
 ]
 
+# The following users are allowed to run trybots even though they do not have
+# accounts in google.com or chromium.org
+TRYBOTS_REQUESTER_WHITELIST = [
+    'kkinnunen@nvidia.com'
+]
+
+
 ################################################################################
 ############################# Trybot Monkeypatches #############################
 ################################################################################
@@ -266,7 +273,8 @@ def TryJobRietveldSubmitJobs(self, jobs):
       # pylint: disable=W0212
       ########################## Added by rmistry ##########################
       if (job.get('requester') and not job['requester'].endswith('@google.com')
-          and not job['requester'].endswith('@chromium.org')):
+          and not job['requester'].endswith('@chromium.org')
+          and not job['requester'] in TRYBOTS_REQUESTER_WHITELIST):
         # Reject the job only if the requester has an email not ending in
         # google.com or chromium.org
         raise BadJobfile(
