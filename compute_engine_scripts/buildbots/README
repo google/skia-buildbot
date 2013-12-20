@@ -43,6 +43,15 @@ Utility functions used by vm_setup_master.sh and vm_setup_slaves.sh.
 Outputs the quota and all instances of google.com:skia-buildbots.
 
 
+How to create a Master Root Disk
+================================
+
+Create it with (changing names and zones as required):
+gcutil --project=google.com:skia-buildbots adddisk private-master-root-a \
+    --source_image=skia-buildbot-image --size_gb=10 --zone=us-central1-a \
+    --service_version=v1beta16
+
+
 Migrating instances before PCRs
 ===============================
 
