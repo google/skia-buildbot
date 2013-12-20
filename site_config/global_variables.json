@@ -97,7 +97,7 @@
     "description": "Internally-visible port on the private Skia build master."
   },
   "private_master_host": {
-    "value": "70.32.159.66",
+    "value": "8.34.217.98",
     "type": "string",
     "description": "Hostname (or IP address) that can be used to reach the private Skia build master."
   },
