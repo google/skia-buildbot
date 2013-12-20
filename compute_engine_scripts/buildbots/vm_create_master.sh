@@ -12,13 +12,14 @@ IP_ADDRESS=$(eval echo \$MASTER_IP_ADDRESS_${ZONE_TAG})
 
 $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM_MASTER_NAME}-${ZONE_TAG} \
   --zone=$ZONE \
-  --disk=master-root-${ZONE_TAG},deviceName=master-root,boot \
-  --disk=master-disk-${ZONE_TAG},deviceName=master-disk \
+  --disk=${VM_MASTER_NAME}-root-${ZONE_TAG},deviceName=master-root,boot \
+  --disk=${VM_MASTER_NAME}-disk-${ZONE_TAG},deviceName=master-disk \
   --external_ip_address=$IP_ADDRESS \
   --service_account=default \
   --service_account_scopes="$SCOPES" \
   --network=default \
-  --machine_type=$MASTER_MACHINE_TYPE
+  --machine_type=$MASTER_MACHINE_TYPE \
+  --service_version=v1beta16
 
 cat <<INP
 If you did not see a table print out above then the vm name may be running
