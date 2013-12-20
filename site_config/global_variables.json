@@ -89,10 +89,10 @@
   "private_external_port": {
     "value": "8241",
     "type": "integer",
-    "description": "Externally-visible port on the private Skia build master."
+    "description": "Externally-visible port on the private Skia build master; not intended to be accessible!"
   },
   "private_internal_port": {
-    "value": "8041",
+    "value": "10115",
     "type": "integer",
     "description": "Internally-visible port on the private Skia build master."
   },
@@ -107,7 +107,7 @@
     "description": "What the private Skia build master thinks its own FQDN is."
   },
   "private_slave_port": {
-    "value": "8141",
+    "value": "10116",
     "type": "integer",
     "description": "Port used by private build slaves."
   },
