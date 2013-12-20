@@ -23,7 +23,8 @@ for VM in $VM_SLAVE_NAMES; do
     --network=default \
     --machine_type=$SLAVES_MACHINE_TYPE \
     --image=$SKIA_BUILDBOT_IMAGE_NAME \
-    --nopersistent_boot_disk
+    --nopersistent_boot_disk \
+    --service_version=v1beta16
 
   if [[ $? != "0" ]]; then
     echo
