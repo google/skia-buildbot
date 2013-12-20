@@ -8,6 +8,7 @@
 from build_step import BuildStep
 from utils import shell_utils
 
+import builder_name_schema
 import os
 import sys
 
@@ -22,8 +23,11 @@ class CheckForRegressions(BuildStep):
   def _RunInternal(self, representation):
     path_to_check_bench_regressions = os.path.join('bench',
         'check_bench_regressions.py')
-    path_to_bench_expectations = os.path.join('bench',
-        'bench_expectations_%s.txt' % self._builder_name)
+    # TODO(borenet): We should move these expectations into expectations/bench.
+    path_to_bench_expectations = os.path.join(
+        'bench',
+        'bench_expectations_%s.txt' % builder_name_schema.GetWaterfallBot(
+            self._builder_name))
     if not os.path.isfile(path_to_bench_expectations):
       print 'Skip due to missing expectations: %s' % path_to_bench_expectations
       return
