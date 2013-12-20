@@ -64,7 +64,7 @@ class UploadSKImageResults(BuildStep):
       dest_dir = posixpath.join(
           skia_vars.GetGlobalVariable('googlestorage_bucket'),
           'skimage', 'output')
-      if os.listdir(src_dir):
+      if os.path.isdir(src_dir) and os.listdir(src_dir):
         gs_utils.CopyStorageDirectory(src_dir=src_dir,
                                       dest_dir=dest_dir,
                                       gs_acl=PLAYBACK_CANNED_ACL)
