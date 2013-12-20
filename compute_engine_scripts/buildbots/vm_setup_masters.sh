@@ -16,9 +16,10 @@ for REQUIRED_FILE in ${REQUIRED_FILES_FOR_MASTERS[@]}; do
   fi
 done
 
-VM_COMPLETE_NAME="${VM_NAME_BASE}-${VM_MASTER_NAME}-${ZONE_TAG}"
+for VM in $VM_MASTER_NAMES; do
+  VM_COMPLETE_NAME="${VM_NAME_BASE}-${VM}-${ZONE_TAG}"
 
-echo """
+  echo """
 
 ================================================
 Starting setup of ${VM_COMPLETE_NAME}.....
@@ -26,27 +27,29 @@ Starting setup of ${VM_COMPLETE_NAME}.....
 
 """
 
-checkout_depot_tools
+  checkout_depot_tools
 
-checkout_buildbot
+  checkout_buildbot
 
-echo
-echo "===== Copying over required master files. ====="
-for REQUIRED_FILE in ${REQUIRED_FILES_FOR_MASTER[@]}; do
-  $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
-    $REQUIRED_FILE /home/$PROJECT_USER/$SKIA_REPO_DIR/buildbot/master/
+  echo
+  echo "===== Copying over required master files. ====="
+  for REQUIRED_FILE in ${REQUIRED_FILES_FOR_MASTER[@]}; do
+    $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
+      $REQUIRED_FILE /home/$PROJECT_USER/$SKIA_REPO_DIR/buildbot/master/
+  done
+
+  echo
+  echo "===== Setting up launch-on-reboot ======"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
+    "cp $SKIA_REPO_DIR/buildbot/scripts/skiabot-master-start-on-boot.sh . && " \
+    "chmod a+x skiabot-master-start-on-boot.sh && " \
+    "echo \"@reboot /home/${PROJECT_USER}/skiabot-master-start-on-boot.sh ${SKIA_REPO_DIR}\" > reboot.txt && " \
+    "crontab -u $PROJECT_USER reboot.txt && " \
+    "rm reboot.txt" \
+    || echo "Failed to set up launch-on-reboot!"
+  echo
+
 done
-
-echo
-echo "===== Setting up launch-on-reboot ======"
-$GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
-  "cp $SKIA_REPO_DIR/buildbot/scripts/skiabot-master-start-on-boot.sh . && " \
-  "chmod a+x skiabot-master-start-on-boot.sh && " \
-  "echo \"@reboot /home/${PROJECT_USER}/skiabot-master-start-on-boot.sh ${SKIA_REPO_DIR}\" > reboot.txt && " \
-  "crontab -u $PROJECT_USER reboot.txt && " \
-  "rm reboot.txt" \
-  || echo "Failed to set up launch-on-reboot!"
-echo
 
 echo
 echo "After the new master instance is turned on, CQ and Rietveld needs to be"

@@ -9,11 +9,11 @@
 # The base names of the VM instances. Actual names are VM_NAME_BASE-name-zone
 VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
-# Master name, type and the IP address to use for each zone.
-VM_MASTER_NAME=${VM_MASTER_NAME:="master"}
-MASTER_MACHINE_TYPE="n1-standard-8"
-MASTER_IP_ADDRESS_a="108.170.217.252"
-MASTER_IP_ADDRESS_b="173.255.115.253"
+# Master names, type and their IP addresses to use for each zone.
+VM_MASTER_NAMES=${VM_MASTER_NAMES:="master private-master"}
+MASTER_MACHINE_TYPE="n1-highmem-2"
+MASTER_IP_ADDRESSES_a="108.170.217.252 8.34.217.98"
+MASTER_IP_ADDRESSES_b="173.255.115.253 8.34.217.86"
 
 # Slave names, type and their IP addresses.
 VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave compile1 compile2 compile3 compile4 compile5"}

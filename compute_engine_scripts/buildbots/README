@@ -12,14 +12,14 @@ Instantiates constants that are used by the below scripts.
 Creates the firewalls required for the Skia buildbots. Allows access from Google
 machines to port 10115. Allows access to ports 10116 and 10117 to everyone.
 
-- vm_create_master.sh
-Creates the master instance in the specified $ZONE_TAG.
+- vm_create_masters.sh
+Creates the master instances in the specified $ZONE_TAG.
 
 - vm_create_slaves.sh
 Creates the slaves instances in the specified $ZONE_TAG.
 
-- vm_delete_master.sh
-Deletes the master instance from the specified $ZONE_TAG.
+- vm_delete_masters.sh
+Deletes the master instances from the specified $ZONE_TAG.
 
 - vm_delete_slaves.sh
 Deletes the slaves instances from the specified $ZONE_TAG.
@@ -28,9 +28,9 @@ Deletes the slaves instances from the specified $ZONE_TAG.
 Installs necessary packages on a vanilla GCE instance. This script setups up the
 base image that is used by all Skia GCE instances.
 
-- vm_setup_master.sh
+- vm_setup_masters.sh
 Sets up the base image with packages and directories necessary for the buildbot
-master.
+masters.
 
 - vm_setup_slaves.sh
 Sets up the base image with packages and directories necessary for the buildbot
@@ -61,12 +61,12 @@ us-central1-b zones and will alternate between zone tags 'a' and 'b' during
 PCRs.
 
 The scripts should be executed in this order:
-* ZONE_TAG=$NEW_ZONE vm_create_master.sh
+* ZONE_TAG=$NEW_ZONE vm_create_masters.sh
 * ZONE_TAG=$OLD_ZONE vm_delete_slaves.sh
 * ZONE_TAG=$NEW_ZONE vm_create_slaves.sh
 * ZONE_TAG=$NEW_ZONE vm_setup_slaves.sh
 * ZONE_TAG=$NEW_ZONE vm_copy_buildbot_history.sh  (Takes about 15-30 mins)
-* ZONE_TAG=$OLD_ZONE vm_delete_master.sh  (Do NOT delete the persistent boot disk when prompted to)
+* ZONE_TAG=$OLD_ZONE vm_delete_masters.sh  (Do NOT delete the persistent boot disk when prompted to)
 
 After the above scripts are run, update gce_compile_bots_zone in
 global_variables.json to point to the $NEW_ZONE.
@@ -79,8 +79,8 @@ On rare occasions Google Compute Engine VMs crash. If the master crashes then
 please run the following (this section will be removed after the next PCR
 migration because we will then have the ability to automatically recover from
 crashes):
-* ZONE_TAG=a bash vm_delete_master.sh  (Do NOT delete the persistent boot disk when prompted to)
-* ZONE_TAG=a bash vm_create_master.sh
+* ZONE_TAG=a bash vm_delete_masters.sh  (Do NOT delete the persistent boot disk when prompted to)
+* ZONE_TAG=a bash vm_create_masters.sh
 
 For more details, see https://code.google.com/p/skia/issues/detail?id=1676
 ('Make the buildbot master self-recover if it crashes')

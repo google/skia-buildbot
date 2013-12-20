@@ -7,4 +7,6 @@
 
 source vm_config.sh
 
-$GCOMPUTE_CMD deleteinstance ${VM_NAME_BASE}-${VM_MASTER_NAME}-${ZONE_TAG}
+for VM in $VM_MASTER_NAMES; do
+  $GCOMPUTE_CMD deleteinstance ${VM_NAME_BASE}-${VM}-${ZONE_TAG}
+done
