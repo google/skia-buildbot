@@ -113,6 +113,8 @@ function cleanup_slave_before_exit {
   copy_log_to_gs
   delete_worker_file $WORKER_FILE
   rm -rf /tmp/*${RUN_ID}* 
+  rm -rf /tmp/diffs
+  rm -rf /tmp/whitediffs
 }
 
 function build_tools {
@@ -182,7 +184,7 @@ python write_json_summary.py \
   --gs_skp_dir=$GS_SKP_DIR \
   --slave_num=$SLAVE_NUM \
   --gm_json_path=/home/default/skia-repo/trunk/gm/gm_json.py \
-  --imagediffdb_patch=/home/default/skia-repo/trunk/gm/rebaseline_server/imagediffdb.py
+  --imagediffdb_path=/home/default/skia-repo/trunk/gm/rebaseline_server/imagediffdb.py
 
 echo "== Copy everything to Google Storage =="
 # Get list of failed file names and upload only those to Google Storage.
