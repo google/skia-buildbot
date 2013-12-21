@@ -153,14 +153,17 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 build_tools
-OUTPUT_DIR_WITHPATCH=/tmp/withpatch-pictures-$RUN_ID
+IMG_ROOT=/tmp/
+OUTPUT_DIR_WITHPATCH_DIR_NAME=withpatch-pictures-$RUN_ID
+OUTPUT_DIR_WITHPATCH=${IMG_ROOT}${OUTPUT_DIR_WITHPATCH_DIR_NAME}
 mkdir -p $OUTPUT_DIR_WITHPATCH
 run_render_pictures $OUTPUT_DIR_WITHPATCH
 
 echo "== Removing the patch, building, and running render_pictures"
 reset_skia_checkout
 build_tools
-OUTPUT_DIR_NOPATCH=/tmp/nopatch-pictures-$RUN_ID
+OUTPUT_DIR_NOPATCH_DIR_NAME=nopatch-pictures-$RUN_ID
+OUTPUT_DIR_NOPATCH=${IMG_ROOT}${OUTPUT_DIR_NOPATCH_DIR_NAME}
 mkdir -p $OUTPUT_DIR_NOPATCH
 run_render_pictures $OUTPUT_DIR_NOPATCH
 
@@ -168,13 +171,18 @@ echo "== Comparing pictures and saving differences in JSON output file =="
 cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
 JSON_SUMMARY_DIR=/tmp/summary-$RUN_ID
 mkdir -p $JSON_SUMMARY_DIR
-python write_json_summary.py --nopatch_json=$OUTPUT_DIR_NOPATCH/summary.json \
+python write_json_summary.py \
+  --img_root=$IMG_ROOT \
+  --nopatch_json=$OUTPUT_DIR_NOPATCH/summary.json \
+  --nopatch_img_dir_name=$OUTPUT_DIR_NOPATCH_DIR_NAME \
   --withpatch_json=$OUTPUT_DIR_WITHPATCH/summary.json \
+  --withpatch_img_dir_name=$OUTPUT_DIR_WITHPATCH_DIR_NAME \
   --output_file_path=$JSON_SUMMARY_DIR/slave$SLAVE_NUM.json \
   --gs_output_dir=$OUTPUT_FILE_GS_LOCATION \
   --gs_skp_dir=$GS_SKP_DIR \
   --slave_num=$SLAVE_NUM \
-  --gm_json_path=/home/default/skia-repo/trunk/gm/gm_json.py
+  --gm_json_path=/home/default/skia-repo/trunk/gm/gm_json.py \
+  --imagediffdb_patch=/home/default/skia-repo/trunk/gm/rebaseline_server/imagediffdb.py
 
 echo "== Copy everything to Google Storage =="
 # Get list of failed file names and upload only those to Google Storage.
@@ -183,9 +191,15 @@ for i in ${ARRAY[@]}; do
   gsutil cp $OUTPUT_DIR_NOPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/
   gsutil cp $OUTPUT_DIR_WITHPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/
 done
-# Set google.com permissions on the images.
+# Copy the diffs and whitediffs to Google Storage.
+gsutil cp $IMG_ROOT/diffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/
+gsutil cp $IMG_ROOT/whitediffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/
+
+# Set google.com permissions on all uploaded images.
 gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/*
 gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/*
+gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/*
+gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/*
 gsutil cp $JSON_SUMMARY_DIR/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/
 
 cleanup_slave_before_exit
