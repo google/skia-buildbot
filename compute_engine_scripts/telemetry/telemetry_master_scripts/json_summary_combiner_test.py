@@ -29,14 +29,24 @@ class TestJsonSummaryCombiner(unittest.TestCase):
     slave_name_to_info = json_summary_combiner.CombineJsonSummaries(
         os.path.join(self._test_data_dir, 'differences'))
     for slave_name, slave_info in slave_name_to_info.items():
-      self.assertEquals(
-          slave_info.failed_files_with_skp_loc,
-          [('file%s_1.png' % slave_name,
-            'http://storage.cloud.google.com/dummy-bucket/skps/%s/'
-            'file%s_.skp' % (slave_name, slave_name)),
-           ('file%s_2.png' % slave_name,
-            'http://storage.cloud.google.com/dummy-bucket/skps/%s/'
-            'file%s_.skp' % (slave_name, slave_name))])
+      slave_num = slave_name[-1]
+      file_count = 0
+      for file_info in slave_info.failed_files:
+        file_count += 1
+        self.assertEquals(file_info.file_name,
+                          'file%s_%s.png' % (slave_name, file_count))
+        self.assertEquals(file_info.skp_location,
+                          'http://storage.cloud.google.com/dummy-bucket/skps'
+                          '/%s/file%s_.skp' % (slave_name, slave_name))
+        self.assertEquals(file_info.num_pixels_differing,
+                          int('%s%s1' % (slave_num, file_count)))
+        self.assertEquals(file_info.percent_pixels_differing,
+                          int('%s%s2' % (slave_num, file_count)))
+        self.assertEquals(file_info.weighted_diff_measure,
+                          int('%s%s3' % (slave_num, file_count)))
+        self.assertEquals(file_info.max_diff_per_channel,
+                          int('%s%s4' % (slave_num, file_count)))
+
       self.assertEquals(
           slave_info.skps_location,
           'gs://dummy-bucket/skps/%s' % slave_name)
@@ -44,8 +54,11 @@ class TestJsonSummaryCombiner(unittest.TestCase):
           slave_info.files_location_nopatch,
           'gs://dummy-bucket/output-dir/%s/nopatch-images' % slave_name)
       self.assertEquals(
-          slave_info.files_location_withpatch,
-          'gs://dummy-bucket/output-dir/%s/withpatch-images' % slave_name)
+          slave_info.files_location_diffs,
+          'gs://dummy-bucket/output-dir/%s/diffs' % slave_name)
+      self.assertEquals(
+          slave_info.files_location_whitediffs,
+          'gs://dummy-bucket/output-dir/%s/whitediffs' % slave_name)
 
   def test_CombineJsonSummaries_NoDifferences(self):
     slave_name_to_info = json_summary_combiner.CombineJsonSummaries(
@@ -56,43 +69,63 @@ class TestJsonSummaryCombiner(unittest.TestCase):
     slave_name_to_info = {
         'slave1': json_summary_combiner.SlaveInfo(
             slave_name='slave1',
-            failed_files_with_skp_loc=[
-                ('fileslave1_1.png',
-                 'http://storage.cloud.google.com/dummy-bucket/skps/slave1/'
-                 'fileslave1_.skp'),
-                ('fileslave1_2.png',
-                 'http://storage.cloud.google.com/dummy-bucket/skps/slave1/'
-                 'fileslave1_.skp')],
+            failed_files=[
+                json_summary_combiner.FileInfo(
+                    'fileslave1_1.png',
+                    'http://storage.cloud.google.com/dummy-bucket/skps/slave1/'
+                    'fileslave1_.skp',
+                    111, 112, 113, 114),
+                json_summary_combiner.FileInfo(
+                    'fileslave1_2.png',
+                    'http://storage.cloud.google.com/dummy-bucket/skps/slave1/'
+                    'fileslave1_.skp',
+                    121, 122, 123, 124)],
             skps_location='gs://dummy-bucket/skps/slave1',
+            files_location_diffs='gs://dummy-bucket/slave1/diffs',
+            files_location_whitediffs='gs://dummy-bucket/slave1/whitediffs',
             files_location_nopatch='gs://dummy-bucket/slave1/nopatch',
             files_location_withpatch='gs://dummy-bucket/slave1/withpatch'),
         'slave2': json_summary_combiner.SlaveInfo(
             slave_name='slave2',
-            failed_files_with_skp_loc=[
-                ('fileslave2_1.png',
-                 'http://storage.cloud.google.com/dummy-bucket/skps/slave2/'
-                 'fileslave2_.skp')],
+            failed_files=[
+                json_summary_combiner.FileInfo(
+                    'fileslave2_1.png',
+                    'http://storage.cloud.google.com/dummy-bucket/skps/slave2/'
+                    'fileslave2_.skp',
+                    211, 212, 213, 214)],
             skps_location='gs://dummy-bucket/skps/slave2',
+            files_location_diffs='gs://dummy-bucket/slave2/diffs',
+            files_location_whitediffs='gs://dummy-bucket/slave2/whitediffs',
             files_location_nopatch='gs://dummy-bucket/slave2/nopatch',
             files_location_withpatch='gs://dummy-bucket/slave2/withpatch'),
         'slave3': json_summary_combiner.SlaveInfo(
             slave_name='slave3',
-            failed_files_with_skp_loc=[
-                ('fileslave3_1.png',
-                 'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
-                 'fileslave3_.skp'),
-                ('fileslave3_2.png',
-                 'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
-                 'fileslave3_.skp'),
-                ('fileslave3_3.png',
-                 'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
-                 'fileslave3_.skp'),
-                ('fileslave3_4.png',
-                 'http://storage.cloud.google.com/dummy-bucket/skps/slave1/'
-                 'fileslave3_.skp')],
+            failed_files=[
+                json_summary_combiner.FileInfo(
+                    'fileslave3_1.png',
+                    'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
+                    'fileslave3_.skp',
+                    311, 312, 313, 314),
+                json_summary_combiner.FileInfo(
+                    'fileslave3_2.png',
+                    'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
+                    'fileslave3_.skp',
+                    321, 322, 323, 324),
+                json_summary_combiner.FileInfo(
+                    'fileslave3_3.png',
+                    'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
+                    'fileslave3_.skp',
+                    331, 332, 333, 334),
+                json_summary_combiner.FileInfo(
+                    'fileslave3_4.png',
+                    'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
+                    'fileslave3_.skp',
+                    341, 342, 343, 344)],
             skps_location='gs://dummy-bucket/skps/slave3',
+            files_location_diffs='gs://dummy-bucket/slave3/diffs',
+            files_location_whitediffs='gs://dummy-bucket/slave3/whitediffs',
             files_location_nopatch='gs://dummy-bucket/slave3/nopatch',
-            files_location_withpatch='gs://dummy-bucket/slave3/withpatch'),
+            files_location_withpatch='gs://dummy-bucket/slave3/withpatch')
     }
     return slave_name_to_info
 

@@ -17,15 +17,22 @@ sys.path.append(
 import json_summary_constants
 
 
-def WriteJsonSummary(nopatch_json, withpatch_json, output_file_path,
-                     gs_output_dir, gs_skp_dir, slave_num, gm_json_path):
+def WriteJsonSummary(img_root, nopatch_json, nopatch_img_dir_name,
+                     withpatch_json, withpatch_img_dir_name, output_file_path,
+                     gs_output_dir, gs_skp_dir, slave_num, gm_json_path,
+                     imagediffdb_path):
   """Outputs the JSON summary of image comparisions.
 
   Args:
+    img_root: (str) The root directory on local disk where we store all images.
     nopatch_json: (str) Location of the nopatch render_pictures JSON summary
         file.
+    nopatch_img_dir_name: (str) Name of the directory that contains all nopatch
+        images.
     withpatch_json: (str) Location of the withpatch render_pictures JSON summary
         file.
+    withpatch_img_dir_name: (str) Name of the directory that contains all
+        withpatch images.
     output_file_path: (str) The local path to the JSON file that will be
         created by this function which will contain a summary of all file
         differences for this slave.
@@ -36,11 +43,16 @@ def WriteJsonSummary(nopatch_json, withpatch_json, output_file_path,
     slave_num: (str) The number of the cluster telemetry slave that is running
         this script.
     gm_json_path: (str) Local complete path to gm_json.py in Skia trunk.
+    imagediffdb_path: (str) Local complete path to imagediffdb.py in Skia trunk.
   """
 
   assert os.path.isfile(gm_json_path), 'Must specify a valid path to gm_json.py'
   gm_json_file = os.path.basename(gm_json_path)
   gm_json_mod = imp.load_source(gm_json_file, gm_json_path)
+  assert os.path.isfile(imagediffdb_path), (
+      'Must specify a valid path to imagediffdb_path.py')
+  imagediffdb_file = os.path.basename(imagediffdb_path)
+  imagediffdb_mod = imp.load_source(imagediffdb_file, imagediffdb_path)
 
   files_to_checksums1 =  GetFilesAndChecksums(nopatch_json, gm_json_mod)
   files_to_checksums2 =  GetFilesAndChecksums(withpatch_json, gm_json_mod)
@@ -58,7 +70,11 @@ def WriteJsonSummary(nopatch_json, withpatch_json, output_file_path,
       json_summary_constants.JSONKEY_FILES_LOCATION_NOPATCH: posixpath.join(
           gs_output_dir, 'slave%s' % slave_num, 'nopatch-images'),
       json_summary_constants.JSONKEY_FILES_LOCATION_WITHPATCH: posixpath.join(
-          gs_output_dir, 'slave%s' % slave_num, 'withpatch-images')
+          gs_output_dir, 'slave%s' % slave_num, 'withpatch-images'),
+      json_summary_constants.JSONKEY_FILES_LOCATION_DIFFS: posixpath.join(
+          gs_output_dir, 'slave%s' % slave_num, 'diffs'),
+      json_summary_constants.JSONKEY_FILES_LOCATION_WHITE_DIFFS: posixpath.join(
+          gs_output_dir, 'slave%s' % slave_num, 'whitediffs')
   }
   json_summary = {
       'slave%s' % slave_num: slave_dict
@@ -68,10 +84,27 @@ def WriteJsonSummary(nopatch_json, withpatch_json, output_file_path,
     algo2, checksum2 = files_to_checksums2[file1]
     assert algo1 == algo2, 'Different algorithms found'
     if checksum1 != checksum2:
+      # Call imagediffdb and then the diffs and metrics.
+      image_diff = imagediffdb_mod.DiffRecord(
+          storage_root=img_root,
+          expected_image_url=None,  # Do not need to download any img.
+          expected_image_locator=os.path.splitext(file1)[0],
+          actual_image_url=None,  # Do not need to download any img.
+          actual_image_locator=os.path.splitext(file1)[0],
+          expected_images_subdir=nopatch_img_dir_name,
+          actual_images_subdir=withpatch_img_dir_name)
       file_differences.append({
           json_summary_constants.JSONKEY_FILE_NAME: file1,
           json_summary_constants.JSONKEY_SKP_LOCATION: posixpath.join(
-              gs_skp_dir, GetSkpFileName(file1))
+              gs_skp_dir, GetSkpFileName(file1)),
+          json_summary_constants.JSONKEY_NUM_PIXELS_DIFFERING:
+              image_diff.get_num_pixels_differing(),
+          json_summary_constants.JSONKEY_PERCENT_PIXELS_DIFFERING:
+              image_diff.get_percent_pixels_differing(),
+          json_summary_constants.JSONKEY_WEIGHTED_DIFF_MEASURE:
+              image_diff.get_weighted_diff_measure(),
+          json_summary_constants.JSONKEY_MAX_DIFF_PER_CHANNEL:
+              image_diff.get_max_diff_per_channel()
       })
   if file_differences:
     slave_dict[json_summary_constants.JSONKEY_FAILED_FILES_COUNT] = len(
@@ -100,11 +133,20 @@ def GetFilesAndChecksums(json_location, gm_json_mod):
 if '__main__' == __name__:
   option_parser = optparse.OptionParser()
   option_parser.add_option(
+      '', '--img_root',
+      help='The root directory on local disk where we store all images.')
+  option_parser.add_option(
       '', '--nopatch_json',
       help='Location of the nopatch render_pictures JSON summary file.')
   option_parser.add_option(
+      '', '--nopatch_img_dir_name',
+      help='Name of the directory that contains all nopatch images.')
+  option_parser.add_option(
       '', '--withpatch_json',
       help='Location of the withpatch render_pictures JSON summary file.')
+  option_parser.add_option(
+      '', '--withpatch_img_dir_name',
+      help='Name of the directory that contains all withpatch images.')
   option_parser.add_option(
       '', '--output_file_path',
       help='The local path to the JSON file that will be created by this '
@@ -125,15 +167,24 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--gm_json_path',
       help='Local complete path to gm_json.py in Skia trunk.')
+  option_parser.add_option(
+      '', '--imagediffdb_path',
+      help='Local complete path to imagediffdb.py in Skia trunk.')
   options, unused_args = option_parser.parse_args()
   if (not options.nopatch_json or not options.withpatch_json
       or not options.output_file_path or not options.gs_output_dir
       or not options.gs_skp_dir or not options.slave_num
-      or not options.gm_json_path):
+      or not options.gm_json_path or not options.img_root
+      or not options.nopatch_img_dir_name or not options.withpatch_img_dir_name
+      or not options.imagediffdb_path):
     option_parser.error(
-        'Must specify nopatch_json, withpatch_json2, output_file_path, '
-        'gs_output_dir, gs_skp_dir, slave_num and gm_json_path.')
+        'Must specify img_root, nopatch_json, nopatch_img_dir_name, '
+        'withpatch_json, withpatch_img_dir_name, output_file_path, '
+        'gs_output_dir, gs_skp_dir, slave_num, gm_json_path and '
+        'imagediffdb_path.')
 
-  WriteJsonSummary(options.nopatch_json, options.withpatch_json, 
-                   options.output_file_path, options.gs_output_dir,
-                   options.gs_skp_dir, options.slave_num, options.gm_json_path)
+  WriteJsonSummary(options.img_root, options.nopatch_json,
+                   options.nopatch_img_dir_name, options.withpatch_json,
+                   options.withpatch_img_dir_name, options.output_file_path,
+                   options.gs_output_dir, options.gs_skp_dir, options.slave_num,
+                   options.gm_json_path, options.imagediffdb_path)

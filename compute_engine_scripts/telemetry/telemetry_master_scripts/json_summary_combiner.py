@@ -32,16 +32,40 @@ ABSOLUTE_URL_TEMPLATE_VAR = 'absolute_url'
 SLAVE_INFO_TEMPLATE_VAR = 'slave_info'
 GS_FILES_LOCATION_NO_PATCH_TEMPLATE_VAR = 'gs_http_files_location_nopatch'
 GS_FILES_LOCATION_WITH_PATCH_TEMPLATE_VAR = 'gs_http_files_location_withpatch'
+GS_FILES_LOCATION_DIFFS_TEMPLATE_VAR = 'gs_http_files_location_diffs'
+GS_FILES_LOCATION_WHITE_DIFFS_TEMPLATE_VAR = 'gs_http_files_location_whitediffs'
+
+
+class FileInfo(object):
+  """Container class that holds all file data."""
+  def __init__(self, file_name, skp_location, num_pixels_differing,
+               percent_pixels_differing, weighted_diff_measure,
+               max_diff_per_channel):
+    self.file_name = file_name
+    self.diff_file_name = _GetDiffFileName(self.file_name)
+    self.skp_location = skp_location
+    self.num_pixels_differing = num_pixels_differing
+    self.percent_pixels_differing = percent_pixels_differing
+    self.weighted_diff_measure = weighted_diff_measure
+    self.max_diff_per_channel = max_diff_per_channel
+
+
+def _GetDiffFileName(file_name):
+  file_name_no_ext, ext = os.path.splitext(file_name)
+  return '%s-vs-%s%s' % (file_name_no_ext, file_name_no_ext, ext)
 
 
 class SlaveInfo(object):
   """Container class that holds all slave data."""
-  def __init__(self, slave_name, failed_files_with_skp_loc, skps_location,
-               files_location_nopatch, files_location_withpatch):
+  def __init__(self, slave_name, failed_files, skps_location,
+               files_location_nopatch, files_location_withpatch,
+               files_location_diffs, files_location_whitediffs):
     self.slave_name = slave_name
-    self.failed_files_with_skp_loc = failed_files_with_skp_loc
+    self.failed_files = failed_files
     self.files_location_nopatch = files_location_nopatch
     self.files_location_withpatch = files_location_withpatch
+    self.files_location_diffs = files_location_diffs
+    self.files_location_whitediffs = files_location_whitediffs
     self.skps_location = skps_location
 
 
@@ -56,21 +80,43 @@ def CombineJsonSummaries(json_summaries_dir):
 
     slave_name = data.keys()[0]
     slave_data = data[slave_name]
-    failed_files_with_skp_loc = []
+    file_info_list = []
     for failed_file in slave_data[json_summary_constants.JSONKEY_FAILED_FILES]:
       failed_file_name = failed_file[json_summary_constants.JSONKEY_FILE_NAME]
-      skp_location = failed_file[json_summary_constants.JSONKEY_SKP_LOCATION]
-      failed_files_with_skp_loc.append(
-          (failed_file_name,
-           posixpath.join(STORAGE_HTTP_BASE, skp_location.lstrip('gs://'))))
+      skp_location = posixpath.join(
+          STORAGE_HTTP_BASE,
+          failed_file[
+              json_summary_constants.JSONKEY_SKP_LOCATION].lstrip('gs://'))
+      num_pixels_differing = failed_file[
+          json_summary_constants.JSONKEY_NUM_PIXELS_DIFFERING] 
+      percent_pixels_differing = failed_file[
+          json_summary_constants.JSONKEY_PERCENT_PIXELS_DIFFERING] 
+      weighted_diff_measure = failed_file[
+          json_summary_constants.JSONKEY_WEIGHTED_DIFF_MEASURE] 
+      max_diff_per_channel = failed_file[
+          json_summary_constants.JSONKEY_MAX_DIFF_PER_CHANNEL] 
+
+      file_info = FileInfo(
+          file_name=failed_file_name,
+          skp_location=skp_location,
+          num_pixels_differing=num_pixels_differing,
+          percent_pixels_differing=percent_pixels_differing,
+          weighted_diff_measure=weighted_diff_measure,
+          max_diff_per_channel=max_diff_per_channel)
+      file_info_list.append(file_info)
+
     slave_info = SlaveInfo(
         slave_name=slave_name,
-        failed_files_with_skp_loc=failed_files_with_skp_loc,
+        failed_files=file_info_list,
         skps_location=slave_data[json_summary_constants.JSONKEY_SKPS_LOCATION],
         files_location_nopatch=slave_data[
             json_summary_constants.JSONKEY_FILES_LOCATION_NOPATCH],
         files_location_withpatch=slave_data[
-            json_summary_constants.JSONKEY_FILES_LOCATION_WITHPATCH])
+            json_summary_constants.JSONKEY_FILES_LOCATION_WITHPATCH],
+        files_location_diffs=slave_data[
+            json_summary_constants.JSONKEY_FILES_LOCATION_DIFFS],
+        files_location_whitediffs=slave_data[
+            json_summary_constants.JSONKEY_FILES_LOCATION_WHITE_DIFFS])
     slave_name_to_info[slave_name] = slave_info
 
   return slave_name_to_info
@@ -104,7 +150,13 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url):
              slave_info.files_location_nopatch.lstrip('gs://')),
          GS_FILES_LOCATION_WITH_PATCH_TEMPLATE_VAR: posixpath.join(
              STORAGE_HTTP_BASE,
-             slave_info.files_location_withpatch.lstrip('gs://'))}
+             slave_info.files_location_withpatch.lstrip('gs://')),
+         GS_FILES_LOCATION_DIFFS_TEMPLATE_VAR: posixpath.join(
+             STORAGE_HTTP_BASE,
+             slave_info.files_location_diffs.lstrip('gs://')),
+         GS_FILES_LOCATION_WHITE_DIFFS_TEMPLATE_VAR: posixpath.join(
+             STORAGE_HTTP_BASE,
+             slave_info.files_location_whitediffs.lstrip('gs://'))}
     )
     with open(os.path.join(output_html_dir, '%s.html' % slave_name),
               'w') as per_slave_html:

@@ -3,16 +3,26 @@
         "failedFiles": [
                 {
                     "fileName": "fileslave2_1.png",
-                    "skpLocation": "gs://dummy-bucket/skps/slave2/fileslave2_.skp"
+                    "skpLocation": "gs://dummy-bucket/skps/slave2/fileslave2_.skp",
+                    "numPixelsDiffering": 211,                                   
+                    "percentPixelsDiffering": 212,                               
+                    "weightedDiffMeasure": 213,                                  
+                    "maxDiffPerChannel": 214
                 }, 
                 {
                     "fileName": "fileslave2_2.png",
-                    "skpLocation": "gs://dummy-bucket/skps/slave2/fileslave2_.skp"
+                    "skpLocation": "gs://dummy-bucket/skps/slave2/fileslave2_.skp",
+                    "numPixelsDiffering": 221,                                   
+                    "percentPixelsDiffering": 222,                               
+                    "weightedDiffMeasure": 223,                                  
+                    "maxDiffPerChannel": 224
                 }
         ], 
         "failedFilesCount": 2, 
         "filesLocationNopatch": "gs://dummy-bucket/output-dir/slave2/nopatch-images", 
         "filesLocationWithpatch": "gs://dummy-bucket/output-dir/slave2/withpatch-images", 
+        "filesLocationDiffs": "gs://dummy-bucket/output-dir/slave2/diffs",      
+        "filesLocationWhiteDiffs": "gs://dummy-bucket/output-dir/slave2/whitediffs",
         "skpsLocation": "gs://dummy-bucket/skps/slave2"
     }
 }
