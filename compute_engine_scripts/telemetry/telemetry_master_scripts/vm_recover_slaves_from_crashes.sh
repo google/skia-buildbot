@@ -56,6 +56,7 @@ sudo chmod 777 ~/.gsutil;
 sudo ln -s /usr/bin/perf_3.2.0-55 /usr/sbin/perf;
 cd ~/skia-repo;
 rm -rf trunk;
+sudo apt-get -y install python-imaging;
 /home/default/depot_tools/gclient sync;
 mkdir /home/default/storage/recovered;
 """
