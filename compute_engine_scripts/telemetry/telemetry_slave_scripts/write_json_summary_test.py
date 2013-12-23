@@ -20,8 +20,9 @@ class TestWriteJsonSummary(unittest.TestCase):
     self._test_json_dir = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), 'test_data')
     self._output_file_name = 'summary.json'
-    self._gm_json_path = os.path.join(self._test_json_dir, 'gm_json.py')
-    self._imagediffdb_path = os.path.join(self._test_json_dir, 'imagediffdb.py')
+    self._gm_json_path = os.path.join(self._test_json_dir, 'gm_json_mock.py')
+    self._imagediffdb_path = os.path.join(self._test_json_dir,
+                                          'imagediffdb_mock.py')
     self._actual_output_dir = tempfile.mkdtemp()
     self._actual_output_file_path = os.path.join(self._actual_output_dir,
                                                  self._output_file_name)

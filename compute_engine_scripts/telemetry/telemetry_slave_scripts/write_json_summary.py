@@ -27,12 +27,12 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_img_dir_name,
     img_root: (str) The root directory on local disk where we store all images.
     nopatch_json: (str) Location of the nopatch render_pictures JSON summary
         file.
-    nopatch_img_dir_name: (str) Name of the directory that contains all nopatch
-        images.
+    nopatch_img_dir_name: (str) Name of the directory within img_root that
+        contains all nopatch images.
     withpatch_json: (str) Location of the withpatch render_pictures JSON summary
         file.
-    withpatch_img_dir_name: (str) Name of the directory that contains all
-        withpatch images.
+    withpatch_img_dir_name: (str) Name of the directory within img_root that
+        contains all withpatch images.
     output_file_path: (str) The local path to the JSON file that will be
         created by this function which will contain a summary of all file
         differences for this slave.
@@ -47,12 +47,10 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_img_dir_name,
   """
 
   assert os.path.isfile(gm_json_path), 'Must specify a valid path to gm_json.py'
-  gm_json_file = os.path.basename(gm_json_path)
-  gm_json_mod = imp.load_source(gm_json_file, gm_json_path)
+  gm_json_mod = imp.load_source(gm_json_path, gm_json_path)
   assert os.path.isfile(imagediffdb_path), (
-      'Must specify a valid path to imagediffdb_path.py')
-  imagediffdb_file = os.path.basename(imagediffdb_path)
-  imagediffdb_mod = imp.load_source(imagediffdb_file, imagediffdb_path)
+      'Must specify a valid path to imagediffdb.py')
+  imagediffdb_mod = imp.load_source(imagediffdb_path, imagediffdb_path)
 
   files_to_checksums1 =  GetFilesAndChecksums(nopatch_json, gm_json_mod)
   files_to_checksums2 =  GetFilesAndChecksums(withpatch_json, gm_json_mod)
@@ -140,13 +138,15 @@ if '__main__' == __name__:
       help='Location of the nopatch render_pictures JSON summary file.')
   option_parser.add_option(
       '', '--nopatch_img_dir_name',
-      help='Name of the directory that contains all nopatch images.')
+      help='Name of the directory within img_root that contains all nopatch '
+           'images.')
   option_parser.add_option(
       '', '--withpatch_json',
       help='Location of the withpatch render_pictures JSON summary file.')
   option_parser.add_option(
       '', '--withpatch_img_dir_name',
-      help='Name of the directory that contains all withpatch images.')
+      help='Name of the directory within img_root that contains all withpatch '
+           'images.')
   option_parser.add_option(
       '', '--output_file_path',
       help='The local path to the JSON file that will be created by this '
