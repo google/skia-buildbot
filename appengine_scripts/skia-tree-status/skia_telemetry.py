@@ -274,6 +274,8 @@ class SkiaTryTasks(BaseTelemetryModel):
   chromium_rev = db.StringProperty(required=True)
   skia_rev = db.StringProperty(required=True)
   render_pictures_args = db.StringProperty(required=True)
+  mesa_nopatch_run = db.BooleanProperty(default=False)
+  mesa_withpatch_run = db.BooleanProperty(default=False)
   description = db.StringProperty()
   requested_time = db.DateTimeProperty(required=True)
   completed_time = db.DateTimeProperty()
@@ -292,6 +294,8 @@ class SkiaTryTasks(BaseTelemetryModel):
             'chromium_rev': self.chromium_rev,
             'skia_rev': self.skia_rev,
             'render_pictures_args': self.render_pictures_args,
+            'mesa_nopatch_run': self.mesa_nopatch_run,
+            'mesa_withpatch_run': self.mesa_withpatch_run,
             'requested_time': str(self.requested_time)
         }
     }
@@ -770,6 +774,8 @@ class SkiaTryPage(BasePage):
     pagesets_type, chromium_rev, skia_rev = self.request.get(
         'pagesets_type_and_chromium_build').split('-')
     render_pictures_args = self.request.get('render_pictures_args')
+    mesa_nopatch_run = self.request.get('mesa_nopatch_run') == 'True'
+    mesa_withpatch_run = self.request.get('mesa_withpatch_run') == 'True'
     description = self.request.get('description')
     if not description:
       description = 'None'
@@ -782,6 +788,8 @@ class SkiaTryPage(BasePage):
         chromium_rev=chromium_rev,
         skia_rev=skia_rev,
         render_pictures_args=render_pictures_args,
+        mesa_nopatch_run=mesa_nopatch_run,
+        mesa_withpatch_run=mesa_withpatch_run,
         requested_time=requested_time,
         description=description).put()
     self.redirect('skia_try')

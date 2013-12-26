@@ -26,6 +26,8 @@ OPTIONS:
   -t The type of pagesets to run against. Eg: All, Filtered, 100k, 10k
   -b Which chromium build the SKPs were created with
   -a Arguments to pass to render_pictures
+  -n Whether to build with mesa for the nopatch run
+  -w Whether to build with mesa for the withpatch run
   -r The runid (typically requester + timestamp)
   -g The Google Storage location where the log file should be uploaded to
   -o The Google Storage location where the output file should be uploaded to
@@ -33,7 +35,7 @@ OPTIONS:
 EOF
 }
 
-while getopts "hn:p:t:b:a:r:g:o:l:" OPTION
+while getopts "hn:p:t:b:a:r:n:w:g:o:l:" OPTION
 do
   case $OPTION in
     h)
@@ -54,6 +56,12 @@ do
       ;;
     a)
       RENDER_PICTURES_ARGS=$OPTARG
+      ;;
+    n)
+      MESA_NOPATCH_RUN=$OPTARG
+      ;;
+    w)
+      MESA_WITHPATCH_RUN=$OPTARG
       ;;
     r)
       RUN_ID=$OPTARG
@@ -76,7 +84,8 @@ done
 
 if [[ -z $SLAVE_NUM ]] || [[ -z $SKIA_PATCH_GS_LOCATION ]] || \
    [[ -z $PAGESETS_TYPE ]] || [[ -z $CHROMIUM_BUILD_DIR ]] || \
-   [[ -z $RENDER_PICTURES_ARGS ]] || [[ -z $RUN_ID ]] || [[ -z $LOG_FILE ]] ||
+   [[ -z $RENDER_PICTURES_ARGS ]] || [[ -z $MESA_NOPATCH_RUN ]] || \
+   [[ -z $MESA_WITHPATCH_RUN ]] || [[ -z $RUN_ID ]] || [[ -z $LOG_FILE ]] || \
    [[ -z $LOG_FILE_GS_LOCATION  ]] || [[ -z $OUTPUT_FILE_GS_LOCATION  ]]
 then
   usage
@@ -118,7 +127,14 @@ function cleanup_slave_before_exit {
 }
 
 function build_tools {
-  GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
+  if [ "$1" == "True" ]; then
+    echo "== Building Skia with mesa =="
+    MESA_GYP_DEFINES="skia_mesa=1"
+  else
+    echo "== Building Skia without mesa =="
+    unset MESA_GYP_DEFINES
+  fi
+  GYP_DEFINES="skia_warnings_as_errors=0 $MESA_GYP_DEFINES" make tools BUILDTYPE=Release
 }
 
 function reset_skia_checkout {
@@ -147,23 +163,23 @@ reset_skia_checkout
 make clean
 /home/default/depot_tools/gclient sync
 
-echo "== Applying the patch, building, and running render_pictures"
+echo "== Applying the patch, building, and running render_pictures =="
 git apply --index -p1 --verbose --ignore-whitespace --ignore-space-change $SKIA_PATCH_FILE
 if [ $? -ne 0 ]; then
     echo "== Patch failed to apply. Exiting. =="
     cleanup_slave_before_exit
     exit 1
 fi
-build_tools
+build_tools $MESA_WITHPATCH_RUN
 IMG_ROOT=/tmp/
 OUTPUT_DIR_WITHPATCH_DIR_NAME=withpatch-pictures-$RUN_ID
 OUTPUT_DIR_WITHPATCH=${IMG_ROOT}${OUTPUT_DIR_WITHPATCH_DIR_NAME}
 mkdir -p $OUTPUT_DIR_WITHPATCH
 run_render_pictures $OUTPUT_DIR_WITHPATCH
 
-echo "== Removing the patch, building, and running render_pictures"
+echo "== Removing the patch, building, and running render_pictures =="
 reset_skia_checkout
-build_tools
+build_tools $MESA_NOPATCH_RUN
 OUTPUT_DIR_NOPATCH_DIR_NAME=nopatch-pictures-$RUN_ID
 OUTPUT_DIR_NOPATCH=${IMG_ROOT}${OUTPUT_DIR_NOPATCH_DIR_NAME}
 mkdir -p $OUTPUT_DIR_NOPATCH

@@ -5,6 +5,8 @@
       <td><b>Pagesets Type</b></td>                                             
       <td><b>Chromium Build</b></td>                                            
       <td><b>Render Pictures Args</b></td>                                      
+      <td><b>NoPatch Mesa</b></td>                                      
+      <td><b>WithPatch Mesa</b></td>                                      
       <td><b>Requested Time</b></td>                                            
       <td><b>Completed Time</b></td>                                            
       <td><b>Patch Link</b></td>                                                
@@ -21,6 +23,8 @@
         <a href='https://chromium.googlesource.com/chromium/src/+/{{ task.chromium_rev }}'>{{ task.chromium_rev|slice:":7" }}</a>-<a href='https://skia.googlesource.com/skia/+/{{ task.skia_rev }}'>{{ task.skia_rev|slice:":7" }}</a>
       </td>                                                                     
       <td>{{ task.render_pictures_args }}</td>                                  
+      <td>{{ task.mesa_nopatch_run }}</td>                                  
+      <td>{{ task.mesa_withpatch_run }}</td>                                  
       <td>{{ task.requested_time }}</td>                                        
       <td>                                                                      
         {% if task.completed_time %}                                            

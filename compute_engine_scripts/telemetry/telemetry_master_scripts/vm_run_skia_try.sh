@@ -26,13 +26,15 @@ OPTIONS:
   -t The type of pagesets to run against. Eg: All, Filtered, 100k, 10k
   -b Which chromium build the SKPs were created with
   -a Arguments to pass to render_pictures
+  -n Whether to build with mesa for the nopatch run
+  -w Whether to build with mesa for the withpatch run
   -r The runid (typically requester + timestamp)
   -k Key of the App Engine Skia Try task
   -l The location of the log file
 EOF
 }
 
-while getopts "he:p:t:b:a:r:k:l:" OPTION
+while getopts "he:p:t:b:a:n:w:r:k:l:" OPTION
 do
   case $OPTION in
     h)
@@ -54,6 +56,12 @@ do
     a)
       RENDER_PICTURES_ARGS=$OPTARG
       ;;
+    n)
+      MESA_NOPATCH_RUN=$OPTARG
+      ;;
+    w)
+      MESA_WITHPATCH_RUN=$OPTARG
+      ;;
     r)
       RUN_ID=$OPTARG
       ;;
@@ -73,6 +81,7 @@ done
 if [[ -z $SKIA_PATCH_LOCATION ]] || [[ -z $REQUESTER_EMAIL ]] || \
    [[ -z $PAGESETS_TYPE ]] || [[ -z $CHROMIUM_BUILD_DIR ]] || \
    [[ -z $RENDER_PICTURES_ARGS ]] || [[ -z $RUN_ID ]] || \
+   [[ -z $MESA_NOPATCH_RUN]] || [[ -z $MESA_WITHPATCH_RUN ]] || \
    [[ -z $APPENGINE_KEY ]] || [[ -z $LOG_FILE ]]
 then
   usage
@@ -104,7 +113,7 @@ SLAVE_LOG_FILE="/tmp/skia-try.$RUN_ID.log"
 SLAVE_LOG_GS_LOCATION=gs://chromium-skia-gm/telemetry/skia-tryserver/logs/$RUN_ID
 SLAVE_OUTPUT_GS_LOCATION=gs://chromium-skia-gm/telemetry/skia-tryserver/outputs/$RUN_ID
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  CMD="bash vm_run_skia_try.sh -n $SLAVE_NUM -p $SKIA_PATCH_GS_LOCATION -t $PAGESETS_TYPE -b $CHROMIUM_BUILD_DIR -a \"$RENDER_PICTURES_ARGS\" -r $RUN_ID -g $SLAVE_LOG_GS_LOCATION -o $SLAVE_OUTPUT_GS_LOCATION -l $SLAVE_LOG_FILE"
+  CMD="bash vm_run_skia_try.sh -n $SLAVE_NUM -p $SKIA_PATCH_GS_LOCATION -t $PAGESETS_TYPE -b $CHROMIUM_BUILD_DIR -a \"$RENDER_PICTURES_ARGS\" -n $MESA_NOPATCH_RUN -w $MESA_WITHPATCH_RUN -r $RUN_ID -g $SLAVE_LOG_GS_LOCATION -o $SLAVE_OUTPUT_GS_LOCATION -l $SLAVE_LOG_FILE"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
     -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > $SLAVE_LOG_FILE 2>&1"
