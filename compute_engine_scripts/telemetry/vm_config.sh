@@ -21,7 +21,7 @@ ADMIN_EMAIL="rmistry@google.com"
 # instances live in a zone.
 #
 # We flip the default one as required by PCRs in bigcluster.
-ZONE_TAG=${ZONE_TAG:=b}
+ZONE_TAG=${ZONE_TAG:=a}
 ZONE=rtb-us-west1-$ZONE_TAG
 
 # The Project ID is found in the Compute tab of the dev console.
