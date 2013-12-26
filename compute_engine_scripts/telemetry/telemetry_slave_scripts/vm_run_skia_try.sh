@@ -26,7 +26,7 @@ OPTIONS:
   -t The type of pagesets to run against. Eg: All, Filtered, 100k, 10k
   -b Which chromium build the SKPs were created with
   -a Arguments to pass to render_pictures
-  -n Whether to build with mesa for the nopatch run
+  -m Whether to build with mesa for the nopatch run
   -w Whether to build with mesa for the withpatch run
   -r The runid (typically requester + timestamp)
   -g The Google Storage location where the log file should be uploaded to
@@ -35,7 +35,7 @@ OPTIONS:
 EOF
 }
 
-while getopts "hn:p:t:b:a:r:n:w:g:o:l:" OPTION
+while getopts "hn:p:t:b:a:r:m:w:g:o:l:" OPTION
 do
   case $OPTION in
     h)
@@ -57,7 +57,7 @@ do
     a)
       RENDER_PICTURES_ARGS=$OPTARG
       ;;
-    n)
+    m)
       MESA_NOPATCH_RUN=$OPTARG
       ;;
     w)
