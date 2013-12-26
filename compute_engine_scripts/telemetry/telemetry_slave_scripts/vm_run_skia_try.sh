@@ -179,6 +179,7 @@ run_render_pictures $OUTPUT_DIR_WITHPATCH
 
 echo "== Removing the patch, building, and running render_pictures =="
 reset_skia_checkout
+make clean
 build_tools $MESA_NOPATCH_RUN
 OUTPUT_DIR_NOPATCH_DIR_NAME=nopatch-pictures-$RUN_ID
 OUTPUT_DIR_NOPATCH=${IMG_ROOT}${OUTPUT_DIR_NOPATCH_DIR_NAME}
