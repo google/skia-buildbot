@@ -164,11 +164,16 @@ make clean
 /home/default/depot_tools/gclient sync
 
 echo "== Applying the patch, building, and running render_pictures =="
-git apply --index -p1 --verbose --ignore-whitespace --ignore-space-change $SKIA_PATCH_FILE
-if [ $? -ne 0 ]; then
-    echo "== Patch failed to apply. Exiting. =="
-    cleanup_slave_before_exit
-    exit 1
+if [[ -s $SKIA_PATCH_FILE ]]; then
+  git apply --index -p1 --verbose --ignore-whitespace --ignore-space-change $SKIA_PATCH_FILE
+  if [ $? -ne 0 ]; then
+      echo "== Patch failed to apply. Exiting. =="
+      cleanup_slave_before_exit
+      exit 1
+  fi
+  echo "== Applied patch successfully =="
+else
+  echo "== Empty patch specified =="
 fi
 build_tools $MESA_WITHPATCH_RUN
 IMG_ROOT=/tmp/

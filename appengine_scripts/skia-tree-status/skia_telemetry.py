@@ -269,7 +269,7 @@ class LuaTasks(BaseTelemetryModel):
 class SkiaTryTasks(BaseTelemetryModel):
   """Data model for Skia Try tasks."""
   username = db.StringProperty(required=True)                                   
-  patch = db.BlobProperty(required=True)
+  patch = db.BlobProperty()
   pagesets_type = db.StringProperty(required=True)
   chromium_rev = db.StringProperty(required=True)
   skia_rev = db.StringProperty(required=True)
