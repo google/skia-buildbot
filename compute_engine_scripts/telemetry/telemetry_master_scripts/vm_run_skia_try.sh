@@ -81,7 +81,7 @@ done
 if [[ -z $SKIA_PATCH_LOCATION ]] || [[ -z $REQUESTER_EMAIL ]] || \
    [[ -z $PAGESETS_TYPE ]] || [[ -z $CHROMIUM_BUILD_DIR ]] || \
    [[ -z $RENDER_PICTURES_ARGS ]] || [[ -z $RUN_ID ]] || \
-   [[ -z $MESA_NOPATCH_RUN]] || [[ -z $MESA_WITHPATCH_RUN ]] || \
+   [[ -z $MESA_NOPATCH_RUN ]] || [[ -z $MESA_WITHPATCH_RUN ]] || \
    [[ -z $APPENGINE_KEY ]] || [[ -z $LOG_FILE ]]
 then
   usage
