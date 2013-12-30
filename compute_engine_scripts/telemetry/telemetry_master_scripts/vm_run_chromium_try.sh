@@ -154,7 +154,7 @@ TELEMETRY_OUTPUT_2=https://storage.cloud.google.com/chromium-skia-gm/telemetry/b
 BOUNDARY=`date +%s|md5sum`
 BOUNDARY=${BOUNDARY:0:32}
 sendmail $REQUESTER_EMAIL <<EOF
-subject:Your Cluster Telemetry trybot run has completed!
+subject:Your Cluster Telemetry trybot run has completed! ($RUN_ID)
 to:$REQUESTER_EMAIL
 from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
