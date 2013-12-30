@@ -19,12 +19,8 @@
         <th>Failed Files</th>
         <th>NoPatch Image</th>
         <th>WithPatch Image</th>
-        <th>Diff</th>
-        <th>White Diff</th>
-        <th>Num Pixels Differing</th>
-        <th>Percent Pixels Differing</th>
-        <th>Weighted Diff Measure</th>
-        <th>Max Diff Per Channel</th>
+        <th>Differing pixels in white</th>
+        <th>Difference per pixel</th>
       </tr>
       {% for file_info in slave_info.failed_files %}
         <tr>
@@ -32,14 +28,24 @@
             {{ file_info.file_name }}<br/>
             <a href='{{ file_info.skp_location }}'>Download SKP</a>
           </td>
-          <td><a href='{{ gs_http_files_location_nopatch }}/{{ file_info.file_name }}'><img src="{{ gs_http_files_location_nopatch }}/{{ file_info.file_name }}" alt="nopatch/{{ file_info.file_name }}" width="200" height="200"></a></td>
-          <td><a href='{{ gs_http_files_location_withpatch }}/{{ file_info.file_name }}'><img src="{{ gs_http_files_location_withpatch }}/{{ file_info.file_name }}" alt="withpatch/{{ file_info.file_name }}" width="200" height="200"></a></td>
-          <td><a href='{{ gs_http_files_location_diffs }}/{{ file_info.diff_file_name }}'><img src="{{ gs_http_files_location_diffs }}/{{ file_info.diff_file_name }}" alt="diffs/{{ file_info.diff_file_name }}" width="200" height="200"></a></td>
-          <td><a href='{{ gs_http_files_location_whitediffs }}/{{ file_info.diff_file_name }}'><img src="{{ gs_http_files_location_whitediffs }}/{{ file_info.diff_file_name }}" alt="whitediffs/{{ file_info.diff_file_name }}" width="200" height="200"></a></td>
-          <td align="center">{{ file_info.num_pixels_differing }}</td>
-          <td align="center">{{ file_info.percent_pixels_differing }}</td>
-          <td align="center">{{ file_info.weighted_diff_measure }}</td>
-          <td align="center">{{ file_info.max_diff_per_channel }}</td>
+          <td>
+            <a href='{{ gs_http_files_location_nopatch }}/{{ file_info.file_name }}'><img src="{{ gs_http_files_location_nopatch }}/{{ file_info.file_name }}" alt="nopatch/{{ file_info.file_name }}" width="200" height="200"></a>
+            <br/><br/>
+          </td>
+          <td>
+            <a href='{{ gs_http_files_location_withpatch }}/{{ file_info.file_name }}'><img src="{{ gs_http_files_location_withpatch }}/{{ file_info.file_name }}" alt="withpatch/{{ file_info.file_name }}" width="200" height="200"></a>
+            <br/><br/>
+          </td>
+          <td>
+            <a href='{{ gs_http_files_location_whitediffs }}/{{ file_info.diff_file_name }}'><img src="{{ gs_http_files_location_whitediffs }}/{{ file_info.diff_file_name }}" alt="whitediffs/{{ file_info.diff_file_name }}" width="200" height="200"></a>
+            <br/>
+            {{ file_info.percent_pixels_differing }}% ({{ file_info.num_pixels_differing }})
+          </td>
+          <td>
+            <a href='{{ gs_http_files_location_diffs }}/{{ file_info.diff_file_name }}'><img src="{{ gs_http_files_location_diffs }}/{{ file_info.diff_file_name }}" alt="diffs/{{ file_info.diff_file_name }}" width="200" height="200"></a>
+            <br/>
+            {{ file_info.weighted_diff_measure }}% {{ file_info.max_diff_per_channel }}
+          </td>
         </tr>
       {% endfor %}
     </table>
