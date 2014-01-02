@@ -66,11 +66,13 @@ Check ./vm_status.sh to wait until the status is RUNNING
 SSH into the master with:
   gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-master
 and run:
+  * Make sure the scratch disk on the master is mounted correctly with 'df -v'.
   * sudo chmod 777 ~/.gsutil
   * Install the latest version of gcutil and then run
-  * gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-worker1
+    gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-worker1
 to setup gcutil promptless authentication from the master to its workers.
-  * 'gclient sync' /home/default/skia-repo/buildbot
+  * Add a ~/.netrc by generating a new password from https://chromium.googlesource.com/
+  * Run 'cd /home/default/skia-repo; rm -rf trunk && gclient sync'
   * Run the following to be able to download massive files from gsutil:
       sudo apt-get install gcc python-dev python-setuptools
       sudo easy_install -U pip
