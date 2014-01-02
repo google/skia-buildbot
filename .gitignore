@@ -4,12 +4,21 @@
 *.swp
 # Files created when running as a master.
 master/Build-*
+master/Canary-*
 master/Housekeeper*
 master/http*
 master/Perf-*
 master/state.sqlite*
 master/Test-*
 master/twistd*
+master/git_poller_skia.git/
+master/slaves.cfgc
+# Authentication files used by the buildbots.
+.*_password
+.*_username
+site_config/*_password
+site_config/*_username
+.boto
 # Third party files pulled by buildbot.
 third_party/chromium_buildbot/*
 third_party/chromium_trunk/*
