@@ -69,7 +69,7 @@ function copy_build_to_google_storage {
 function apply_patch {
   patch_location=$1
   patch_filesize=$(stat -c%s $patch_location)
-  if [ $patch_filesize > 1 ]; then
+  if [ $patch_filesize -gt 1 ]; then
     git apply --index -p1 --verbose --ignore-whitespace --ignore-space-change $patch_location
     if [ $? -ne 0 ]; then
       echo "== $patch_location Patch failed to apply. Exiting. =="
