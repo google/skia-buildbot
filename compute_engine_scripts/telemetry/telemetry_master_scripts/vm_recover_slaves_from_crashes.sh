@@ -58,6 +58,7 @@ cd ~/skia-repo;
 rm -rf trunk;
 sudo apt-get -y install python-imaging libosmesa-dev;
 /home/default/depot_tools/gclient sync;
+gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record.py /home/default/skia-repo/buildbot/third_party/chromium_trunk/tools/perf/measurements/
 mkdir /home/default/storage/recovered;
 """
     ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
