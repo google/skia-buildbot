@@ -17,10 +17,11 @@
       <td><b>Benchmark Argument</b></td>
       <td><b>Variance Threshold</b></td>
       <td><b>Discard Outliers</b></td>
-      <td><b>Patch Type</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
-      <td><b>Patch Link</b></td>
+      <td><b>Chromium Patch Link</b></td>
+      <td><b>Blink Patch Link</b></td>
+      <td><b>Skia Patch Link</b></td>
       <td><b>Build Log</b></td>
       <td><b>Telemetry nopatch Log</b></td>
       <td><b>Telemetry withpatch Log</b></td>
@@ -34,7 +35,6 @@
       <td>{{ task.benchmark_arguments }}</td>
       <td>{{ task.variance_threshold }}</td>
       <td>{{ task.discard_outliers }}</td>
-      <td>{{ task.patch_type }}</td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}
@@ -44,8 +44,22 @@
         {% endif %}
       </td>
       <td align="center">                                                       
-        {% if task.patch_link %}                                                
-          <a href='{{ task.patch_link }}' target='_blank'>patch</a>             
+        {% if task.chromium_patch_link %}                                                
+          <a href='{{ task.chromium_patch_link }}' target='_blank'>patch</a>             
+        {% else %}                                                              
+          {% include "col_status.html" %}                                       
+        {% endif %}                                                             
+      </td>                                                                     
+      <td align="center">                                                       
+        {% if task.blink_patch_link %}                                                
+          <a href='{{ task.blink_patch_link }}' target='_blank'>patch</a>             
+        {% else %}                                                              
+          {% include "col_status.html" %}                                       
+        {% endif %}                                                             
+      </td>                                                                     
+      <td align="center">                                                       
+        {% if task.skia_patch_link %}                                                
+          <a href='{{ task.skia_patch_link }}' target='_blank'>patch</a>             
         {% else %}                                                              
           {% include "col_status.html" %}                                       
         {% endif %}                                                             

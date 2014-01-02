@@ -41,12 +41,6 @@ CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
     'loading_profile'
 )
 
-CHROMIUM_TRY_SUPPORTED_PATCH_TYPES = (
-    'blink',
-    'chromium',
-    'skia'
-)
-
 # LKGR urls.
 CHROMIUM_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
 SKIA_LKGR_URL = 'http://skia-tree-status.appspot.com/git-lkgr'
@@ -332,14 +326,17 @@ class ChromiumTryTasks(BaseTelemetryModel):
   username = db.StringProperty(required=True)                                   
   benchmark_name = db.StringProperty(required=True)                             
   benchmark_arguments = db.StringProperty()
-  patch = db.BlobProperty(required=True)
+  skia_patch = db.BlobProperty()
+  chromium_patch = db.BlobProperty()
+  blink_patch = db.BlobProperty()
   variance_threshold = db.FloatProperty(required=True)
   discard_outliers = db.FloatProperty(required=True)
   requested_time = db.DateTimeProperty(required=True)
   completed_time = db.DateTimeProperty()
   description = db.StringProperty()
-  patch_type = db.StringProperty()
-  patch_link = db.LinkProperty()
+  skia_patch_link = db.LinkProperty()
+  chromium_patch_link = db.LinkProperty()
+  blink_patch_link = db.LinkProperty()
   build_log_link = db.LinkProperty()
   telemetry_nopatch_log_link = db.LinkProperty()
   telemetry_withpatch_log_link = db.LinkProperty()
@@ -353,8 +350,9 @@ class ChromiumTryTasks(BaseTelemetryModel):
             'username': self.username,
             'benchmark_name': self.benchmark_name,
             'benchmark_arguments': self.benchmark_arguments,
-            'patch_type': self.patch_type,
-            'patch': self.patch,
+            'skia_patch': self.skia_patch,
+            'chromium_patch': self.chromium_patch,
+            'blink_patch': self.blink_patch,
             'variance_threshold': self.variance_threshold,
             'discard_outliers': self.discard_outliers,
             'requested_time': str(self.requested_time)
@@ -843,16 +841,18 @@ class ChromiumTryPage(BasePage):
     description = self.request.get('description')
     if not description:
       description = 'None'
-    patch_type = self.request.get('patch_type')
-    patch = db.Blob(str(self.request.get('patch')))
+    skia_patch = db.Blob(str(self.request.get('skia_patch')))
+    chromium_patch = db.Blob(str(self.request.get('chromium_patch')))
+    blink_patch = db.Blob(str(self.request.get('blink_patch')))
     requested_time = datetime.datetime.now()
 
     ChromiumTryTasks(
         username=self.user.email(),
         benchmark_name=benchmark_name,
         benchmark_arguments=benchmark_arguments,
-        patch_type=patch_type,
-        patch=patch,
+        skia_patch=skia_patch,
+        chromium_patch=chromium_patch,
+        blink_patch=blink_patch,
         variance_threshold=variance_threshold,
         discard_outliers=discard_outliers,
         requested_time=requested_time,
@@ -871,8 +871,6 @@ class ChromiumTryPage(BasePage):
     chromium_try_tasks = ChromiumTryTasks.get_all_chromium_try_tasks_of_user(
         self.user.email())
     template_values['supported_benchmarks'] = CHROMIUM_TRY_SUPPORTED_BENCHMARKS
-    template_values['supported_patch_types'] = (
-        CHROMIUM_TRY_SUPPORTED_PATCH_TYPES)
     template_values['chromium_try_tasks'] = chromium_try_tasks
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
     template_values['pending_tasks_count'] = len(get_all_pending_tasks())
@@ -965,7 +963,9 @@ class UpdateChromiumTryTasksPage(BasePage):
   @utils.admin_only
   def post(self):
     key = int(self.request.get('key'))
-    patch_link = self.request.get('patch_link')
+    skia_patch_link = self.request.get('skia_patch_link')
+    chromium_patch_link = self.request.get('chromium_patch_link')
+    blink_patch_link = self.request.get('blink_patch_link')
     build_log_link = self.request.get('build_log_link')
     telemetry_nopatch_log_link = self.request.get(
         'telemetry_nopatch_log_link')
@@ -976,7 +976,9 @@ class UpdateChromiumTryTasksPage(BasePage):
 
     chromium_try_task = ChromiumTryTasks.get_chromium_try_task(key)[0]
     chromium_try_task.completed_time = completed_time
-    chromium_try_task.patch_link = patch_link
+    chromium_try_task.skia_patch_link = skia_patch_link
+    chromium_try_task.chromium_patch_link = chromium_patch_link
+    chromium_try_task.blink_patch_link = blink_patch_link
     chromium_try_task.build_log_link = build_log_link
     chromium_try_task.telemetry_nopatch_log_link = telemetry_nopatch_log_link
     chromium_try_task.telemetry_withpatch_log_link = (
@@ -986,7 +988,10 @@ class UpdateChromiumTryTasksPage(BasePage):
 
     self.response.out.write('<br/><br/>Updated the datastore-<br/><br/>')
     self.response.out.write('key: %s<br/>' % key)
-    self.response.out.write('patch_link: %s<br/>' % patch_link)
+    self.response.out.write('skia_patch_link: %s<br/>' % skia_patch_link)
+    self.response.out.write('chromium_patch_link: %s<br/>' %
+                            chromium_patch_link)
+    self.response.out.write('blink_patch_link: %s<br/>' % blink_patch_link)
     self.response.out.write('build_log_link: %s<br/>' % build_log_link)
     self.response.out.write('telemetry_nopatch_log_link: %s<br/>' %
                                 telemetry_nopatch_log_link)

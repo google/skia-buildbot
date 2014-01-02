@@ -10,6 +10,8 @@
 
 {{ pending_tasks_count }} tasks currently in the <a align="center" href='pending_tasks'>Queue</a>
 <br/>
+Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#'>here</a>
+<br/>
 <a href="javascript:toggleDetails();">Show/hide algorithm details</a>
 <script type="text/javascript">
   function toggleDetails() {
@@ -63,23 +65,25 @@
       </td>                                                                     
     </tr>                                                                       
     <tr>                                                                        
-      <td>Optional Description</td>                                             
+      <td>Description</td>                                             
       <td><input type="text" name="description" size="35"></td>                 
     </tr>
-     <tr>
-      <td>Patch Type</td>
-      <td>                                                                      
-        <select name="patch_type">
-          {% for patch_type in supported_patch_types %}
-            <option value="{{ patch_type }}">{{ patch_type }}</option>
-          {% endfor %}
-        </select>
+    <tr>
+      <td>Chromium Git patch (optional)<br/>Applied to Chromium ToT</td>
+      <td>
+        <textarea name="chromium_patch" cols="80" rows="20"></textarea>
       </td>
     </tr>
     <tr>
-      <td>Git patch</td>
+      <td>Blink Git patch (optional)<br/>Applied to Blink Rev in <a href='http://src.chromium.org/viewvc/chrome/trunk/src/DEPS'>DEPs</a></td>
       <td>
-        <textarea name="patch" cols="80" rows="20"></textarea>
+        <textarea name="blink_patch" cols="80" rows="20"></textarea>
+      </td>
+    </tr>
+    <tr>
+      <td>Skia Git patch (optional)<br/>Applied to Skia Rev in <a href='http://src.chromium.org/viewvc/chrome/trunk/src/DEPS'>DEPs</a></td>
+      <td>
+        <textarea name="skia_patch" cols="80" rows="20"></textarea>
       </td>
     </tr>
     <tr>                                                                      
@@ -105,10 +109,11 @@
       <td><b>Benchmark Arguments</b></td>
       <td><b>Variance Threshold</b></td>
       <td><b>Discard Outliers</b></td>
-      <td><b>Patch Type</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
-      <td><b>Patch Link</b></td>
+      <td><b>Chromium Patch Link</b></td>
+      <td><b>Blink Patch Link</b></td>
+      <td><b>Skia Patch Link</b></td>
       <td><b>Build Log</b></td>
       <td><b>Telemetry nopatch Log</b></td>
       <td><b>Telemetry withpatch Log</b></td>
@@ -122,7 +127,6 @@
       <td>{{ task.benchmark_arguments }}</td>
       <td>{{ task.variance_threshold }}</td>
       <td>{{ task.discard_outliers }}</td>
-      <td>{{ task.patch_type }}</td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}
@@ -132,8 +136,22 @@
         {% endif %}
       </td>
       <td align="center">
-        {% if task.patch_link %}
-          <a href='{{ task.patch_link }}' target='_blank'>patch</a>
+        {% if task.chromium_patch_link %}
+          <a href='{{ task.chromium_patch_link }}' target='_blank'>patch</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.blink_patch_link %}
+          <a href='{{ task.blink_patch_link }}' target='_blank'>patch</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.skia_patch_link %}
+          <a href='{{ task.skia_patch_link }}' target='_blank'>patch</a>
         {% else %}
           {% include "col_status.html" %}
         {% endif %}
