@@ -164,11 +164,11 @@ def process_chromium_try_task(task):
   # Copy the patch to a local file.
   run_id = '%s-%s' % (username.split('@')[0], time.time())
   chromium_patch_file = fix_and_write_patch(task['chromium_patch'],
-                                            run_id + '.chromium.')
+                                            run_id + '.chromium')
   blink_patch_file = fix_and_write_patch(task['blink_patch'],
-                                         run_id + '.blink.')
+                                         run_id + '.blink')
   skia_patch_file = fix_and_write_patch(task['skia_patch'],
-                                        run_id + '.skia.')
+                                        run_id + '.skia')
   log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
 
   print 'Chromium try output will be available in %s' % log_file

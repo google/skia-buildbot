@@ -41,7 +41,7 @@ function build_chromium {
     echo "== Not building with aura =="
   fi
   GYP_DEFINES=$AURA_GYP_DEFINES GYP_GENERATORS='ninja' ./build/gyp_chromium
-  GYP_DEFINES=$AURA_GYP_DEFINES /home/default/depot_tools/ninja -C out/Release chrome
+  /home/default/depot_tools/ninja -C out/Release chrome
   if [ $? -ne 0 ]
   then
     echo "There was an error building chromium $CHROMIUM_COMMIT_HASH + skia $SKIA_COMMIT_HASH"
@@ -69,7 +69,7 @@ function copy_build_to_google_storage {
 function apply_patch {
   patch_location=$1
   patch_filesize=$(stat -c%s $patch_location)
-  if [ $patch_filesize > 1]; then
+  if [ $patch_filesize > 1 ]; then
     git apply --index -p1 --verbose --ignore-whitespace --ignore-space-change $patch_location
     if [ $? -ne 0 ]; then
       echo "== $patch_location Patch failed to apply. Exiting. =="
