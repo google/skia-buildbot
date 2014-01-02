@@ -159,21 +159,27 @@ def process_chromium_try_task(task):
   benchmark_arguments = task['benchmark_arguments']
   # Escape any quotes in benchmark arguments.
   benchmark_arguments = benchmark_arguments.replace('"', r'\"')
-  patch_type = task['patch_type']
   variance_threshold = task['variance_threshold']
   discard_outliers = task['discard_outliers']
   # Copy the patch to a local file.
   run_id = '%s-%s' % (username.split('@')[0], time.time())
-  patch_file = fix_and_write_patch(task['patch'], run_id)
+  chromium_patch_file = fix_and_write_patch(task['chromium_patch'],
+                                            run_id + '.chromium.')
+  blink_patch_file = fix_and_write_patch(task['blink_patch'],
+                                         run_id + '.blink.')
+  skia_patch_file = fix_and_write_patch(task['skia_patch'],
+                                        run_id + '.skia.')
   log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
 
   print 'Chromium try output will be available in %s' % log_file
-  cmd = ('bash vm_run_chromium_try.sh -p %(patch_file)s -t %(patch_type)s '
+  cmd = ('bash vm_run_chromium_try.sh -p %(chromium_patch_file)s '
+         '-t %(blink_patch_file)s -s %(skia_patch_file)s '
          '-r %(run_id)s -v %(variance_threshold)s -o %(discard_outliers)s '
          '-b %(benchmark_name)s -a %(benchmark_arguments)s -e %(username)s '
          '-i %(task_key)s -l %(log_file)s' % {
-             'patch_file': patch_file,
-             'patch_type': patch_type,
+             'chromium_patch_file': chromium_patch_file,
+             'blink_patch_file': blink_patch_file,
+             'skia_patch_file': skia_patch_file,
              'run_id': run_id,
              'variance_threshold': variance_threshold,
              'discard_outliers': discard_outliers,

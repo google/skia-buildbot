@@ -16,24 +16,26 @@
 # /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
 # directory.
 
-if [ $# -ne 5 ]; then
+if [ $# -ne 6 ]; then
   echo
   echo "Usage: `basename $0` /tmp/patch chromium rmistry-2013-11-20.07-34-05 /tmp/logfile 1"
   echo
-  echo "The first argument is the location of the Patch."
-  echo "The second argument is the type of Patch (blink/chromium/skia)."
-  echo "The third argument is the unique runid (typically requester + timestamp)."
-  echo "The fourth argument is the location of the log file."
-  echo "The fifth argument is whether chromium should be built with aura. 1 means yes, 0 means no."
+  echo "The first argument is the location of the Chromium Patch."
+  echo "The second argument is the location of the Blink Patch."
+  echo "The third argument is the location of the Skia Patch."
+  echo "The fourth argument is the unique runid (typically requester + timestamp)."
+  echo "The fifth argument is the location of the log file."
+  echo "The sixth argument is whether chromium should be built with aura. 1 means yes, 0 means no."
   echo
   exit 1
 fi
 
-PATCH_LOCATION=$1
-PATCH_TYPE=$2
-RUN_ID=$3
-LOG_FILE_LOCATION=$4
-USE_AURA=$5
+CHROMIUM_PATCH_LOCATION=$1
+BLINK_PATCH_LOCATION=$2
+SKIA_PATCH_LOCATION=$3
+RUN_ID=$4
+LOG_FILE_LOCATION=$5
+USE_AURA=$6
 
 source vm_utils.sh
 
@@ -89,35 +91,22 @@ cd $CHROMIUM_BUILD_DIR_BASE/src/
 # Make sure we are starting from a clean slate.
 reset_chromium_checkout
 
-echo "== Applying the specified patch =="
-if [ "$PATCH_TYPE" == "chromium" ]; then
-  # Stay in the current directory.
-  :
-elif [ "$PATCH_TYPE" == "skia" ]; then
-  cd third_party/skia/
-elif [ "$PATCH_TYPE" == "blink" ]; then
-  cd third_party/WebKit/
-else
-  echo "== Do not recognize the patch type: $PATCH_TYPE =="
-  copy_build_log_to_gs
-  exit 1
-fi
+echo "== Applying the specified patches =="
+# Stay in the current directory for the chromium patch.
+apply_patch $CHROMIUM_PATCH_LOCATION
+# Apply blink patch.
+cd third_party/WebKit/
+apply_patch $BLINK_PATCH_LOCATION
+cd ../skia/
+apply_patch $SKIA_PATCH_LOCATION
 
-git apply --index -p1 --verbose --ignore-whitespace --ignore-space-change $PATCH_LOCATION
-if [ $? -ne 0 ]; then
-    echo "== Patch failed to apply. Exiting. =="
-    git reset --hard origin/master    
-    copy_build_log_to_gs
-    exit 1
-fi
-
-echo "== Building chromium with the patch =="
+echo "== Building chromium with the patches =="
 cd $CHROMIUM_BUILD_DIR_BASE/src/
 build_chromium
 echo "== Copy patch build to Google Storage =="
 copy_build_to_google_storage $DIR_NAME_WITH_PATCH $CHROMIUM_BUILD_DIR_BASE
 
-echo "== Building chromium without the patch =="
+echo "== Building chromium without the patches =="
 cd $CHROMIUM_BUILD_DIR_BASE/src/
 reset_chromium_checkout
 build_chromium

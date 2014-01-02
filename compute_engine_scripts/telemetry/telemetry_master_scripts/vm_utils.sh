@@ -66,6 +66,23 @@ function copy_build_to_google_storage {
   mv /tmp/obj .
 }
 
+function apply_patch {
+  patch_location=$1
+  patch_filesize=$(stat -c%s $patch_location)
+  if [ $patch_filesize > 1]; then
+    git apply --index -p1 --verbose --ignore-whitespace --ignore-space-change $patch_location
+    if [ $? -ne 0 ]; then
+      echo "== $patch_location Patch failed to apply. Exiting. =="
+      git reset --hard origin/master
+      copy_build_log_to_gs
+      exit 1
+    fi
+    echo "== Applied $patch_location patch successfully =="
+  else
+    echo "== Empty $patch_location patch specified =="
+  fi
+}
+
 function reset_chromium_checkout {
   # TODO(rmistry): Investigate using gclient recurse to revert changes in all
   # checkouts.

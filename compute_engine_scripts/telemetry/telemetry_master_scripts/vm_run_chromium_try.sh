@@ -15,8 +15,9 @@ This script runs the specified chromium patch on the GCE slaves.
 
 OPTIONS:
   -h Show this message
-  -p The location of the patch
-  -t The type of type (blink/chromium/skia)
+  -p The location of the Chromium patch
+  -t The location of the Blink patch
+  -s The location of the Skia patch
   -r The unique runid (typically requester + timestamp)
   -v The variance threshold for comparing the resultant CSV files
   -o The percentage of outliers to discard when comparing the result CSV files
@@ -28,7 +29,7 @@ OPTIONS:
 EOF
 }
 
-while getopts "hp:t:r:v:o:b:a:e:i:l:" OPTION
+while getopts "hp:t:s:r:v:o:b:a:e:i:l:" OPTION
 do
   case $OPTION in
     h)
@@ -36,10 +37,13 @@ do
       exit 1
       ;;
     p)
-      PATCH_LOCATION=$OPTARG
+      CHROMIUM_PATCH_LOCATION=$OPTARG
       ;;
     t)
-      PATCH_TYPE=$OPTARG
+      BLINK_PATCH_LOCATION=$OPTARG
+      ;;
+    s)
+      SKIA_PATCH_LOCATION=$OPTARG
       ;;
     r)
       RUN_ID=$OPTARG
@@ -72,11 +76,11 @@ do
   esac
 done
 
-if [[ -z $PATCH_LOCATION ]] || [[ -z $PATCH_TYPE ]] || \
+if [[ -z $CHROMIUM_PATCH_LOCATION ]] || [[ -z $BLINK_PATCH_LOCATION ]] || \
    [[ -z $VARIANCE_THRESHOLD ]] || [[ -z $DISCARD_OUTLIERS ]] || \
    [[ -z $TELEMETRY_BENCHMARK ]] || [[ -z $EXTRA_ARGS ]] || \
    [[ -z $REQUESTER_EMAIL ]] || [[ -z $APPENGINE_KEY ]] || \
-   [[ -z $LOG_FILE_LOCATION ]]
+   [[ -z $LOG_FILE_LOCATION ]] || [[ -z $SKIA_PATCH_LOCATION ]]
 then
   usage
   exit 1
@@ -86,8 +90,13 @@ fi
 gclient sync
 
 # Copy the patch to Google Storage.
-PATCH_GS_LOCATION=gs://chromium-skia-gm/telemetry/tryserver-patches/$RUN_ID.patch
-gsutil cp -a public-read $PATCH_LOCATION $PATCH_GS_LOCATION
+PATCHES_GS_LOCATION=gs://chromium-skia-gm/telemetry/tryserver-patches
+CHROMIUM_PATCH_GS_LOCATION=$PATCHES_GS_LOCATION/$RUN_ID.chromium.patch
+BLINK_PATCH_GS_LOCATION=$PATCHES_GS_LOCATION/$RUN_ID.blink.patch
+SKIA_PATCH_GS_LOCATION=$PATCHES_GS_LOCATION/$RUN_ID.skia.patch
+gsutil cp -a public-read $CHROMIUM_PATCH_LOCATION $CHROMIUM_PATCH_GS_LOCATION
+gsutil cp -a public-read $BLINK_PATCH_LOCATION $BLINK_PATCH_GS_LOCATION
+gsutil cp -a public-read $SKIA_PATCH_LOCATION $SKIA_PATCH_GS_LOCATION
 
 # If it is a rasterize_and_record benchmark request then use aura and add flag
 # to never skip measurement.
@@ -100,7 +109,8 @@ fi
 # Create the two required chromium builds (with patch and without the patch).
 TIMER="$(date +%s)"
 CHROMIUM_BUILD_LOG_FILE=/tmp/try-chromium-build-$RUN_ID
-bash vm_build_chromium_with_patches.sh $PATCH_LOCATION $PATCH_TYPE $RUN_ID \
+bash vm_build_chromium_with_patches.sh $CHROMIUM_PATCH_LOCATION \
+    $BLINK_PATCH_LOCATION $SKIA_PATCH_LOCATION $RUN_ID \
     $CHROMIUM_BUILD_LOG_FILE $USE_AURA &> $CHROMIUM_BUILD_LOG_FILE
 ret_value=$?
 CHROMIUM_BUILDS_TIME="$(($(date +%s)-TIMER))"
@@ -155,7 +165,10 @@ fi
 # Email the requester.
 HTML_OUTPUT_LINK=${HTML_OUTPUT_LINK_BASE}index.html
 CHROMIUM_BUILD_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserver-outputs/build-logs/$RUN_ID-chromium.txt
-PATCH_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserver-patches/$RUN_ID.patch
+PATCHES_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserver-patches
+CHROMIUM_PATCH_LINK=$PATCHES_LINK/$RUN_ID.chromium.patch
+BLINK_PATCH_LINK=$PATCHES_LINK/$RUN_ID.blink.patch
+SKIA_PATCH_LINK=$PATCHES_LINK/$RUN_ID.skia.patch
 TELEMETRY_OUTPUT_1=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_NOPATCH_ID.output.txt
 TELEMETRY_OUTPUT_2=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_WITHPATCH_ID.output.txt
 
@@ -177,7 +190,9 @@ Content-Type: text/html
   <body>
 
   The HTML output with differences between the base run and the patch run is <a href='$HTML_OUTPUT_LINK'>here</a>.<br/>
-  The patch you specified is <a href='$PATCH_LINK'>here</a><br/><br/>
+  The patch(es) you specified are here: 
+  <a href='$CHROMIUM_PATCH_LINK'>chromium</a>/<a href='$BLINK_PATCH_LINK'>blink</a>/<a href='$SKIA_PATCH_LINK'>skia</a>
+  <br/><br/>
 
   <table border="1" cellpadding="5">
     <tr>
@@ -213,7 +228,7 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&patch_link=$PATCH_LINK&build_log_link=$CHROMIUM_BUILD_LOG_LINK&telemetry_nopatch_log_link=$TELEMETRY_OUTPUT_1&telemetry_withpatch_log_link=$TELEMETRY_OUTPUT_2&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_chromium_try_tasks" -O /dev/null
+wget --post-data "key=$APPENGINE_KEY&chromium_patch_link=$CHROMIUM_PATCH_LINK&blink_patch_link=$BLINK_PATCH_LINK&skia_patch_link=$SKIA_PATCH_LINK&build_log_link=$CHROMIUM_BUILD_LOG_LINK&telemetry_nopatch_log_link=$TELEMETRY_OUTPUT_1&telemetry_withpatch_log_link=$TELEMETRY_OUTPUT_2&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_chromium_try_tasks" -O /dev/null
 
 # Delete all tmp files.
 rm -rf /tmp/*${RUN_ID}*
