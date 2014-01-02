@@ -36,7 +36,6 @@ import json
 import slave_hosts_cfg
 import slaves_cfg
 import skia_vars
-import time
 
 
 CQ_TRYBOTS = [
@@ -48,7 +47,8 @@ CQ_TRYBOTS = [
 # The following users are allowed to run trybots even though they do not have
 # accounts in google.com or chromium.org
 TRYBOTS_REQUESTER_WHITELIST = [
-    'kkinnunen@nvidia.com'
+    'kkinnunen@nvidia.com',
+    'ravimist@gmail.com'
 ]
 
 
@@ -425,9 +425,6 @@ try_job_rietveld.TryJobRietveld.__init__ = TryJobRietveldConstructor
 
 class SkiaGateKeeper(gatekeeper.GateKeeper):
 
-  # Contains the timestamp of when the tree was last closed.
-  _last_closure_build_start = 0
-
   def isInterestingBuilder(self, builder_status):
     """ Override of gatekeeper.GateKeeper.isInterestingBuilder:
     http://src.chromium.org/viewvc/chrome/trunk/tools/build/scripts/master/gatekeeper.py?view=markup
@@ -444,8 +441,9 @@ class SkiaGateKeeper(gatekeeper.GateKeeper):
     """ Override of gatekeeper.GateKeeper.isInterestingStep:
     http://src.chromium.org/viewvc/chrome/trunk/tools/build/scripts/master/gatekeeper.py?view=markup
 
-    We modify it to compare timestamps instead of the original:
-    latest_revision <= self._last_closure_revision"""
+    We modify it to comment out the SVN revision comparision to determine if the
+    current build is older because Skia uses commit hashes.
+    """
     # If we have not failed, or are not interested in this builder,
     # then we have nothing to do.
     if results[0] != FAILURE:
@@ -501,17 +499,17 @@ class SkiaGateKeeper(gatekeeper.GateKeeper):
     # revision, or an earlier one in case the build that just finished is a
     # slow one and we already fixed the problem and manually opened the tree.
     ############################### Added by rmistry ###########################
-    # rmistry: Comparing the timestamps of when the build started to determine
-    # if it is an older build than the one that closed the tree.
-    if build_status.started <= self._last_closure_build_start:
-      log.msg('[gatekeeper] Slave %s failed, but we already closed it '
-              'for a previous revision (old=%s, new=%s)' % (
-                  slave_name, str(self._last_closure_revision),
-                  str(latest_revision)))
-      return False
-
-    # Set the last closure build start time.
-    self._last_closure_build_start = time.time()
+    # rmistry: Commenting out the below SVN revision comparision because Skia
+    # uses commit hashes.
+    # TODO(rmistry): Figure out how to ensure that previous builds do not close
+    # the tree again.
+    #
+    # if latest_revision <= self._last_closure_revision:
+    #   log.msg('[gatekeeper] Slave %s failed, but we already closed it '
+    #           'for a previous revision (old=%s, new=%s)' % (
+    #               slave_name, str(self._last_closure_revision),
+    #               str(latest_revision)))
+    #   return False
     ###########################################################################
 
     log.msg('[gatekeeper] Decided to close tree because of slave %s '
