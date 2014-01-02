@@ -16,14 +16,15 @@
 # /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
 # directory.
 
-if [ $# -ne 4 ]; then
+if [ $# -ne 5 ]; then
   echo
-  echo "Usage: `basename $0` /tmp/patch chromium rmistry-2013-11-20.07-34-05 /tmp/logfile"
+  echo "Usage: `basename $0` /tmp/patch chromium rmistry-2013-11-20.07-34-05 /tmp/logfile 1"
   echo
   echo "The first argument is the location of the Patch."
   echo "The second argument is the type of Patch (blink/chromium/skia)."
   echo "The third argument is the unique runid (typically requester + timestamp)."
   echo "The fourth argument is the location of the log file."
+  echo "The fifth argument is whether chromium should be built with aura. 1 means yes, 0 means no."
   echo
   exit 1
 fi
@@ -32,6 +33,7 @@ PATCH_LOCATION=$1
 PATCH_TYPE=$2
 RUN_ID=$3
 LOG_FILE_LOCATION=$4
+USE_AURA=$5
 
 source vm_utils.sh
 

@@ -32,8 +32,16 @@ function is_slave_currently_executing() {
 }
 
 function build_chromium {
-  GYP_GENERATORS='ninja' ./build/gyp_chromium
-  /home/default/depot_tools/ninja -C out/Release chrome
+  if [ $USE_AURA -eq 1 ]
+  then
+    AURA_GYP_DEFINES="use_aura=1"
+    echo "== Building with aura =="
+  else
+    AURA_GYP_DEFINES=""
+    echo "== Not building with aura =="
+  fi
+  GYP_DEFINES=$AURA_GYP_DEFINES GYP_GENERATORS='ninja' ./build/gyp_chromium
+  GYP_DEFINES=$AURA_GYP_DEFINES /home/default/depot_tools/ninja -C out/Release chrome
   if [ $? -ne 0 ]
   then
     echo "There was an error building chromium $CHROMIUM_COMMIT_HASH + skia $SKIA_COMMIT_HASH"

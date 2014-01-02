@@ -89,11 +89,19 @@ gclient sync
 PATCH_GS_LOCATION=gs://chromium-skia-gm/telemetry/tryserver-patches/$RUN_ID.patch
 gsutil cp -a public-read $PATCH_LOCATION $PATCH_GS_LOCATION
 
+# If it is a rasterize_and_record benchmark request then use aura and add flag
+# to never skip measurement.
+if [ "$TELEMETRY_BENCHMARK" == "rasterize_and_record" ]; then
+  USE_AURA=1
+  EXTRA_ARGS="--never-skip-measurement=True --stop-wait-time=5 $EXTRA_ARGS"
+else
+  USE_AURA=0
+fi
 # Create the two required chromium builds (with patch and without the patch).
 TIMER="$(date +%s)"
 CHROMIUM_BUILD_LOG_FILE=/tmp/try-chromium-build-$RUN_ID
 bash vm_build_chromium_with_patches.sh $PATCH_LOCATION $PATCH_TYPE $RUN_ID \
-    $CHROMIUM_BUILD_LOG_FILE &> $CHROMIUM_BUILD_LOG_FILE
+    $CHROMIUM_BUILD_LOG_FILE $USE_AURA &> $CHROMIUM_BUILD_LOG_FILE
 ret_value=$?
 CHROMIUM_BUILDS_TIME="$(($(date +%s)-TIMER))"
 
