@@ -170,7 +170,7 @@ SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/ski
 HTML_OUTPUT_LINK=${ABSOLUTE_GS_LINK}index.html
 sendmail $REQUESTER_EMAIL,$ADMIN_EMAIL <<EOF
 subject:Results of your Skia Try run on Cluster Telemetry ($RUN_ID)
-to:$REQUESTER_EMAIL,$ADMINS
+to:$REQUESTER_EMAIL,$ADMIN_EMAIL
 from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
 
