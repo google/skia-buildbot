@@ -173,6 +173,7 @@ BLINK_PATCH_LINK=$PATCHES_LINK/$RUN_ID.blink.patch
 SKIA_PATCH_LINK=$PATCHES_LINK/$RUN_ID.skia.patch
 TELEMETRY_OUTPUT_1=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_NOPATCH_ID.output.txt
 TELEMETRY_OUTPUT_2=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_WITHPATCH_ID.output.txt
+SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave1/logs/$RUN_ID-withpatch.log
 
 BOUNDARY=`date +%s|md5sum`
 BOUNDARY=${BOUNDARY:0:32}
@@ -219,6 +220,7 @@ Content-Type: text/html
     </tr>
   </table><br/><br/>
 
+  The log file of the first slave is <a href='$SLAVE_1_LOG_LINK'>here</a>.<br/>
   You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry'>here</a>.<br/><br/>
   Thanks!
   </body>
