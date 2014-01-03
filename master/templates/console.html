@@ -100,6 +100,7 @@ function checkMouseLeave(element, event) {
 
 // Load the console page data.
 function loadConsoleData() {
+  console.log("loading console data...");
   loadJSONP('/console_json', fixConsoleData);
   var loading = document.getElementById("loading_div");
   if (loading) {
@@ -158,6 +159,7 @@ function newHyperlink(href, text, open_in_new_tab) {
 
 // Build the main console view table.
 function buildConsoleTable() {
+  console.log("buildConsoleTable()");
   // The main console table.
   var table = document.getElementById("console_table");
 
@@ -522,8 +524,28 @@ function buildConsoleTable() {
 
 
 <iframe id="frameBox" style="display: none;"></iframe>
-  
+
+<div id="log_div"></div>
+
 <script type="text/javascript">
+
+// TODO(borenet): Temporarily pipe all console output to a div on the page, for
+// easy debugging when the JS console is not available.
+var log_div = document.getElementById("log_div");
+console.old_log = function() {};
+if (typeof console != "undefined" && typeof console.log != "undefined") {
+  console.old_log = console.log;
+}
+console.log = function(msg) {
+  console.old_log(msg);
+  if (log_div) {
+    log_div.innerHTML += "<br/>" + msg;
+  } else {
+    console.old_log("halp! can't find log_div");
+  }
+};
+console.error = console.debug = console.info = console.log
+
 // replace 'onload="updateDiv(event);" with this, as iframe doesn't have onload event in xhtml
 window.onload = function() {
   document.getElementById('frameBox').onload = function(event) {
