@@ -419,6 +419,31 @@ function buildConsoleTable() {
       more_link.style.display = "none";
     }
 
+    // Optional row containing more information about the revision, for example
+    // test failures.
+    if (revision["details"] && revision["details"].length > 0) {
+      var details_tr = table.insertRow(-1);
+      var details_td = details_tr.insertCell(-1);
+      details_td.colSpan = total_cols;
+      details_td.className = "DevDetails" + alt;
+      var details_list = document.createElement("ul");
+      for (var detail_index in revision["details"]) {
+        var detail = revision["details"][detail_index];
+        var detail_item = document.createElement("li");
+        var detail_text = document.createElement("span");
+        detail_text.innerHTML = detail["buildername"] + ": " + detail["status"] + " - &nbsp;";
+        detail_item.appendChild(detail_text);
+        for (var log_index in detail["logs"]) {
+          var log = detail["logs"][log_index];
+          var log_link = document.createElement("a");
+          log_link.href = log["url"];
+          log_link.innerHTML = log["name"];
+          detail_item.appendChild(log_link);
+        }
+      }
+      details_td.appendChild(details_list);
+    }
+
     // Spacing row just containing whitespace.
     var rev_spacing_tr = table.insertRow(-1);
     rev_spacing_tr.className = "DevStatusSpacing";
