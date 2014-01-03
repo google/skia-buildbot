@@ -6,9 +6,9 @@
 // <![CDATA[
 //
 
-// TODO(borenet): Load builders and revisions from the master's JSON interface.
-var builders = {{ builders }};
-var revisions = {{ revisions }};
+// Data loaded from the master's JSON interface.
+var builders = {};
+var revisions = [];
 
 function addLinks(text) {
     if (text && text.indexOf("<a href=") == -1) {
@@ -98,25 +98,40 @@ function checkMouseLeave(element, event) {
   }
 }
 
+// Load the console page data.
+function loadConsoleData() {
+  loadJSONP('/console_json', fixConsoleData);
+  var loading = document.getElementById("loading_div");
+  if (loading) {
+    loading.style.display = "block";
+  }
+}
+
 // Sort the categories, subcategories, and builders for display.
-function fixConsoleData() {
+function fixConsoleData(data) {
   var new_builders = {};
-  var categories = Object.keys(builders);
+  var categories = Object.keys(data["builders"]);
   categories.sort();
   for (var category_index in categories) {
     var category = categories[category_index];
     new_builders[category] = {};
-    var subcategories = Object.keys(builders[category]);
+    var subcategories = Object.keys(data["builders"][category]);
     subcategories.sort()
     for (var subcategory_index in subcategories) {
       var subcategory = subcategories[subcategory_index];
-      new_builders[category][subcategory] = builders[category][subcategory];
+      new_builders[category][subcategory] = data["builders"][category][subcategory];
       for (var cat_full in new_builders[category][subcategory]) {
         new_builders[category][subcategory][cat_full].sort();
       }
     }
   }
   builders = new_builders;
+  revisions = data["revisions"];
+  var loading = document.getElementById("loading_div");
+  if (loading) {
+    loading.style.display = "none";
+  }
+  buildConsoleTable();
 }
 
 // Create a new row with two spacer cells.
@@ -143,8 +158,6 @@ function newHyperlink(href, text, open_in_new_tab) {
 
 // Build the main console view table.
 function buildConsoleTable() {
-  fixConsoleData();
-
   // The main console table.
   var table = document.getElementById("console_table");
 
@@ -288,8 +301,12 @@ function buildConsoleTable() {
   }
 
   // Round the corners of the first and last visible category headers.
-  document.getElementById("category_header_" + first_category).classList.add("first");
-  document.getElementById("category_header_" + last_category).classList.add("last")
+  if (first_category) {
+    document.getElementById("category_header_" + first_category).classList.add("first");
+  }
+  if (last_category) {
+    document.getElementById("category_header_" + last_category).classList.add("last")
+  }
 
   // Build rows for each revision.
   for (var rev_index in revisions) {
@@ -424,9 +441,6 @@ function buildConsoleTable() {
 {% if repository %}
         <br><b>Repository:</b> {{ repository|e }}
 {% endif %}
-{% if branch != ANYBRANCH %}
-        <br><b>Branch:</b> {{ branch|e }}
-{% endif %}
       </td>
       <td width="33%" align="center" class="center_align">
         <div align="center">
@@ -469,7 +483,7 @@ function buildConsoleTable() {
 </div>
 
 <br/>
-
+<div id="loading_div">Loading...</div>
 <div align="center">
 <table id="console_table" width="96%"></table>
 </div>

@@ -18,26 +18,23 @@ from buildbot.status.web.console import ANYBRANCH, \
                                         getResultsClass, \
                                         TimeRevisionComparator, \
                                         IntegerRevisionComparator
+from buildbot.status.web.status_json import JsonResource
 from skia_master_scripts import utils
 from twisted.internet import defer
 
 import builder_name_schema
-import json
 import re
 import skia_vars
 import time
 import urllib
 
 
-class ConsoleStatusResource(HtmlResource):
-  """Main console class. It displays a user-oriented status page.
-  Every change is a line in the page, and it shows the result of the first
-  build with this change for each slave."""
+class ConsoleJsonStatusResource(JsonResource):
+  """JSON interface for the console page."""
 
-  def __init__(self, order_by_time=False):
-    HtmlResource.__init__(self)
+  def __init__(self, status, order_by_time=False):
+    JsonResource.__init__(self, status)
 
-    self.status = None
     self.cache = CacheStatus()
 
     if order_by_time:
@@ -45,16 +42,87 @@ class ConsoleStatusResource(HtmlResource):
     else:
       self.comparator = IntegerRevisionComparator()
 
-  def getPageTitle(self, request):
-    status = self.getStatus(request)
-    title = status.getTitle()
-    if title:
-      return "BuildBot: %s" % title
-    else:
-      return "BuildBot"
+  def asDict(self, request):
+    cxt = {}
+    status = request.site.buildbot_service.getStatus()
 
-  def getChangeManager(self, request):
-    return request.site.buildbot_service.parent.change_svc
+    # get url parameters
+    # Categories to show information for.
+    categories = request.args.get("category", [])
+    # List of all builders to show on the page.
+    builders = request.args.get("builder", [])
+    # Repo used to filter the changes shown.
+    repository = request.args.get("repository", [None])[0]
+    # Branch used to filter the changes shown.
+    branch = request.args.get("branch", [ANYBRANCH])[0]
+    # List of all the committers name to display on the page.
+    dev_name = request.args.get("name", [])
+
+    # Debug information to display at the end of the page.
+    debug_info = cxt['debuginfo'] = dict()
+    debug_info["load_time"] = time.time()
+
+    # Keep only the revisions we care about.
+    # By default we process the last 40 revisions.
+    # If a dev name is passed, we look for the changes by this person in the
+    # last 160 revisions.
+    num_revs = int(request.args.get("revs", [40])[0])
+    if dev_name:
+      num_revs *= 4
+    num_builds = num_revs
+
+    # Get all changes we can find.  This is a DB operation, so it must use
+    # a deferred.
+    d = self.getAllChanges(request, status, debug_info)
+    def got_changes(all_changes):
+      debug_info["source_all"] = len(all_changes)
+
+      rev_filter = {}
+      if branch != ANYBRANCH:
+        rev_filter['branch'] = branch
+      if dev_name:
+        rev_filter['who'] = dev_name
+      rev_filter['repository'] = skia_vars.GetGlobalVariable('skia_git_url')
+      revisions = list(self.filterRevisions(all_changes, max_revs=num_revs,
+                                            rev_filter=rev_filter))
+      debug_info["revision_final"] = len(revisions)
+
+      # Fetch all the builds for all builders until we get the next build
+      # after last_revision.
+      builder_list = None
+      all_builds = None
+      if revisions:
+        last_revision = revisions[len(revisions) - 1].revision
+        debug_info["last_revision"] = last_revision
+
+        (builder_list, all_builds) = self.getAllBuildsForRevision(status,
+                                                                  request,
+                                                                  last_revision,
+                                                                  num_builds,
+                                                                  categories,
+                                                                  builders,
+                                                                  debug_info)
+
+      debug_info["added_blocks"] = 0
+      debug_info["from_cache"] = 0
+
+      if request.args.get("display_cache", None):
+        data = ""
+        data += "\nGlobal Cache\n"
+        data += self.cache.display()
+        return data
+
+      cxt.update(self.displayPage(request, status, builder_list,
+                                  all_builds, revisions, categories,
+                                  repository, branch, debug_info))
+      # Clean up the cache.
+      if debug_info["added_blocks"]:
+        self.cache.trim()
+      print cxt
+      return {'builders': cxt['builders'],
+              'revisions': cxt['revisions']}
+    d.addCallback(got_changes)
+    return d
 
   ##
   ## Data gathering functions
@@ -481,7 +549,7 @@ class ConsoleStatusResource(HtmlResource):
       builders = builder_list
     else:
       builders = {}
-    subs['builders'] = json.dumps(builders)
+    subs['builders'] = builders
     subs['revisions'] = []
 
     # For each revision we show one line
@@ -517,14 +585,28 @@ class ConsoleStatusResource(HtmlResource):
 
       subs['revisions'].append(r)
 
-    subs['revisions'] = json.dumps(subs['revisions'])
-
     #
     # Display the footer of the page.
     #
     debug_info["load_time"] = time.time() - debug_info["load_time"]
     return subs
 
+
+class ConsoleStatusResource(HtmlResource):
+  """Main console class. It displays a user-oriented status page.
+  Every change is a line in the page, and it shows the result of the first
+  build with this change for each slave."""
+
+  def getPageTitle(self, request):
+    status = self.getStatus(request)
+    title = status.getTitle()
+    if title:
+      return "BuildBot: %s" % title
+    else:
+      return "BuildBot"
+
+  def getChangeManager(self, request):
+    return request.site.buildbot_service.parent.change_svc
 
   def content(self, request, cxt):
     "This method builds the main console view display."
@@ -550,22 +632,6 @@ class ConsoleStatusResource(HtmlResource):
     if reload_time is not None and reload_time != 0:
       cxt['refresh'] = reload_time
 
-    # Debug information to display at the end of the page.
-    debug_info = cxt['debuginfo'] = dict()
-    debug_info["load_time"] = time.time()
-
-    # get url parameters
-    # Categories to show information for.
-    categories = request.args.get("category", [])
-    # List of all builders to show on the page.
-    builders = request.args.get("builder", [])
-    # Repo used to filter the changes shown.
-    repository = request.args.get("repository", [None])[0]
-    # Branch used to filter the changes shown.
-    branch = request.args.get("branch", [ANYBRANCH])[0]
-    # List of all the committers name to display on the page.
-    dev_name = request.args.get("name", [])
-
     # List of categories for which we load information but hide initially.
     hidden_categories_sets = request.args.get("hideCategories", [])
     hide_categories = []
@@ -580,71 +646,8 @@ class ConsoleStatusResource(HtmlResource):
       hide_subcategories.extend(subcategory_set.split(','))
     cxt['hide_subcategories'] = hide_subcategories
 
-    # and the data we want to render
-    status = self.getStatus(request)
+    templates = request.site.buildbot_service.templates
+    template = templates.get_template("console.html")
+    data = template.render(cxt)
 
-    # Keep only the revisions we care about.
-    # By default we process the last 40 revisions.
-    # If a dev name is passed, we look for the changes by this person in the
-    # last 160 revisions.
-    num_revs = int(request.args.get("revs", [40])[0])
-    if dev_name:
-      num_revs *= 4
-    num_builds = num_revs
-
-    # Get all changes we can find.  This is a DB operation, so it must use
-    # a deferred.
-    d = self.getAllChanges(request, status, debug_info)
-    def got_changes(all_changes):
-      debug_info["source_all"] = len(all_changes)
-
-      rev_filter = {}
-      if branch != ANYBRANCH:
-        rev_filter['branch'] = branch
-      if dev_name:
-        rev_filter['who'] = dev_name
-      rev_filter['repository'] = skia_vars.GetGlobalVariable('skia_git_url')
-      revisions = list(self.filterRevisions(all_changes, max_revs=num_revs,
-                                            rev_filter=rev_filter))
-      debug_info["revision_final"] = len(revisions)
-
-      # Fetch all the builds for all builders until we get the next build
-      # after last_revision.
-      builder_list = None
-      all_builds = None
-      if revisions:
-        last_revision = revisions[len(revisions) - 1].revision
-        debug_info["last_revision"] = last_revision
-
-        (builder_list, all_builds) = self.getAllBuildsForRevision(status,
-                                                                  request,
-                                                                  last_revision,
-                                                                  num_builds,
-                                                                  categories,
-                                                                  builders,
-                                                                  debug_info)
-
-      debug_info["added_blocks"] = 0
-      debug_info["from_cache"] = 0
-
-      if request.args.get("display_cache", None):
-        data = ""
-        data += "\nGlobal Cache\n"
-        data += self.cache.display()
-        return data
-
-      cxt.update(self.displayPage(request, status, builder_list,
-                                  all_builds, revisions, categories,
-                                  repository, branch, debug_info))
-
-      templates = request.site.buildbot_service.templates
-      template = templates.get_template("console.html")
-      data = template.render(cxt)
-
-      # Clean up the cache.
-      if debug_info["added_blocks"]:
-        self.cache.trim()
-
-      return data
-    d.addCallback(got_changes)
-    return d
+    return data

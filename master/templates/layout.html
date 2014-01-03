@@ -111,24 +111,13 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         reloadIsAllowed = false;
       }
 
-      // Don't allow reload if a builder tooltip is open.
-      var builderTooltips = document.getElementsByClassName("BuilderTooltip");
-      for (var tooltip_index in builderTooltips) {
-        var tooltip = builderTooltips[tooltip_index];
-        if (tooltip.style.display != "none") {
-          console.log("Tooltip displaying.");
-          reloadIsAllowed = false;
-          break;
-        }
-      }
-
       if (reloadIsAllowed) {
-        window.location.replace(window.location);
+        loadAllData();
       } else if (cancelledReloads >= maxCancelledReloads) {
         console.log("Forcing a reload because the number of " +
                     "previously-cancelled reloads exceeded " +
                     maxCancelledReloads + ".");
-        window.location.replace(window.location);
+        loadAllData();
       } else {
         console.log("Not reloading page because the user is interacting with it.");
         cancelledReloads++;
@@ -254,9 +243,11 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           }
         }
       }
+      loadAllData();
+    }
 
-      // Load JSON data from various places.
-
+    // Load JSON data from various places.
+    function loadAllData() {
       // Tree status.
       loadJSONP(tree_status_appspot_url + "/banner-status?format=json",
                 setTreeStatus,
@@ -279,9 +270,9 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       // Set the reload timer.
       refreshTimer = setTimeout(reloadPage, refreshInterval);
 
-      // Rebuild the console table, if applicable.
-      if (typeof buildConsoleTable == "function") {
-        buildConsoleTable();
+      // Load the console data, if applicable.
+      if (typeof loadConsoleData == "function") {
+        loadConsoleData();
       }
     }
 
