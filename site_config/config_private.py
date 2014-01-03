@@ -37,6 +37,10 @@ SKIA_GIT_URL = skia_vars.GetGlobalVariable('skia_git_url')
 TRY_SVN_BASEURL = skia_vars.GetGlobalVariable('try_svn_url')
 
 
+# Currently-active master instance; this is set in Master.set_active_master.
+_ACTIVE_MASTER = None
+
+
 class Master(config_default.Master):
   googlecode_revlinktmpl = 'http://code.google.com/p/%s/source/browse?r=%s'
   bot_password = 'epoger-temp-password'
@@ -117,14 +121,27 @@ class Master(config_default.Master):
           cfg,
           master_private_builders_cfg.setup_all_builders)
 
+  # List of the valid master classes.
   valid_masters = [Skia, PrivateSkia]
 
   @staticmethod
-  def get(master_name):
+  def set_active_master(master_name):
+    """Sets the master with the given name as active and returns its instance.
+
+    Args:
+        master_name: string; name of the desired build master.
+    """
+    global _ACTIVE_MASTER
     for master in Master.valid_masters:
       if master_name == master.__name__:
-        return master()
+        _ACTIVE_MASTER = master()
+        return _ACTIVE_MASTER
     raise Exception('Invalid master: %s' % master_name)
+
+  @staticmethod
+  def get_active_master():
+    """Returns the instance of the active build master."""
+    return _ACTIVE_MASTER
 
 class Archive(config_default.Archive):
   bogus_var = 'bogus_value'

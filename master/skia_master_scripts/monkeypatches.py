@@ -167,11 +167,24 @@ def HtmlResourceRender(self, request):
   ctx['default_refresh'] = \
       skia_vars.GetGlobalVariable('default_webstatus_refresh')
   ctx['skia_repo'] = config_private.SKIA_GIT_URL
-  ctx['internal_port'] = config_private.Master.Skia.master_port
-  ctx['external_port'] = config_private.Master.Skia.master_port_alt
+
+  active_master = config_private.Master.get_active_master()
+  ctx['internal_port'] = active_master.master_port
+  ctx['external_port'] = active_master.master_port_alt
   ctx['title_url'] = config_private.Master.Skia.project_url
   ctx['slave_hosts_cfg'] = slave_hosts_cfg.SLAVE_HOSTS
   ctx['slaves_cfg'] = slaves_cfg.SLAVES
+
+  ctx['active_master_name'] = active_master.project_name
+  ctx['is_internal_view'] = request.host.port == ctx['internal_port']
+  ctx['masters'] = []
+  for master in config_private.Master.valid_masters:
+    ctx['masters'].append({
+      'name': master.project_name,
+      'host': master.master_host,
+      'internal_port': master.master_port,
+      'external_port': master.master_port_alt,
+    })
   ##############################################################################
 
   d = defer.maybeDeferred(lambda : self.content(request, ctx))

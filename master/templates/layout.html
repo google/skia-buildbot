@@ -66,16 +66,16 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       {% endfor %}
     }
 
-    // Switch to the internal or external view.
-    function setInternalView(is_internal) {
-      var current_host = window.location.host;
-      var new_host = current_host.split(":")[0] + ":";
-      if (is_internal) {
-        new_host += internalPort;
-      } else {
-        new_host += externalPort;
+    // Switch to a new host/port.
+    function setHostAndPort(host, port) {
+      var current_host = window.location.host.split(":");
+      if (!host) {
+        host = current_host[0];
       }
-      window.location.host = new_host;
+      if (!port) {
+        port = current_host[1];
+      }
+      window.location.host = host + ":" + port;
     }
 
     // Parse the variables in the URL and return a key/value dictionary.
@@ -477,8 +477,8 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       <div id="container" style="float: left; width: 100%;">
         <div style="float:left; width:25%;">
         <form name="unused" action="javascript:void(0);">
-          <input type="radio" name="internal_external" value="external" id="radio_external" onClick="setInternalView(false);">External View<br>
-          <input type="radio" name="internal_external" value="internal" id="radio_internal" onClick="setInternalView(true);">Internal View
+          <input type="radio" name="internal_external" value="external" id="radio_external" onClick="setHostAndPort(null, '{{ external_port }}');">External View<br>
+          <input type="radio" name="internal_external" value="internal" id="radio_internal" onClick="setHostAndPort(null, '{{ internal_port }}');">Internal View
           <br/><nobr>Refresh (seconds): <input type="text" name="reload_time" value="{{ refresh or default_refresh }}" onChange="setReload(this)" style="width: 50px;" maxlength="4" /></nobr>
         </form>
         </div>
@@ -502,6 +502,20 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
   
         <div style="text-align:center; width: 50%; margin-left: 25%; margin-right: 25%">
           <div id="heading" style="font-size:3.5em; text-align:center;">Skia Buildbots</div>
+          <div>
+            <form name="unused" action="javascript:void(0);">
+              <nobr>Build Master:
+              {% for master in masters %}
+                <input type="radio" name="master_select"
+                  onClick="setHostAndPort('{{ master['host'] }}', '{{ master['internal_port'] if is_internal_view else master['external_port'] }}');"
+                  {% if master['name'] == active_master_name %}
+                  checked
+                  {% endif %}
+                >{{ master['name'] }}</input>
+              {% endfor %}
+              </nobr>
+            </form>
+          </div>
           <div style="text-align:center;">
             <form name="unused2">
               <p>
