@@ -36,7 +36,7 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
     <tr>                                                                      
       <td>Benchmark to run</td>                                               
       <td>
-        <select name="benchmark_name"> 
+        <select id="benchmark_name" name="benchmark_name" onchange="populateThreshold(this)"> 
           {% for benchmark in supported_benchmarks %}                             
             <option value="{{ benchmark }}">{{ benchmark }}</option>
           {% endfor %}                                                        
@@ -54,7 +54,7 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
       <td>Variance Threshold</td>                                               
       <td>                                                                      
         <input type="text" name="variance_threshold" size"5" value="5"/>
-        5% is the recommended variance threshold to use when comparing column values.
+        <a id="variance_threshold_info"></a>
       </td>                                                                     
     </tr>                                                                       
     <tr id="outliers_details" style="display:none">
@@ -95,6 +95,26 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
   <br/>
 
   </form>
+  <script>
+    function populateThreshold(sel) {
+      var form = sel.form,
+          value = sel.options[sel.selectedIndex].value;
+      switch(value) {
+        case 'rasterize_and_record':
+          form.variance_threshold.value = '1';
+          break;
+        default:
+          form.variance_threshold.value = '5';
+      }
+
+      // Update the variance threshold information message.
+      info_msg = '% is the recommended variance threshold to use for '
+      document.getElementById('variance_threshold_info').innerHTML = (
+          form.variance_threshold.value + info_msg + value);
+    }
+
+    populateThreshold(document.getElementById('benchmark_name'));
+  </script>
 {% endif %}
 <hr/>
 
