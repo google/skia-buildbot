@@ -15,6 +15,7 @@ from build_step import BuildStep, BuildStepFailure
 import ast
 import config_private
 import os
+import re
 import sys
 
 
@@ -31,17 +32,6 @@ def _MaybeUseSkiaLabMirror(revision=None):
           safety net; in the case that the mirror does not yet have this commit,
           we will use the remote repo instead.
   """
-  # Remove any previous URL overrides.
-  try:
-    configs = shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
-                                '--list']).splitlines()
-  except shell_utils.CommandFailedException:
-    configs = []
-  for config in configs:
-    if LOCAL_GIT_MIRROR_URL in config:
-      shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
-                        '--remove-section', config.split('.insteadof')[0]])
-
   # Attempt to reach the SkiaLab git mirror.
   mirror_is_accessible = False
   print 'Attempting to reach the SkiaLab git mirror...'
@@ -53,14 +43,41 @@ def _MaybeUseSkiaLabMirror(revision=None):
   except (shell_utils.CommandFailedException, shell_utils.TimeoutException):
     pass
 
-  # Override the Skia git repo URL with the mirror URL if the mirror is
-  # accessible.
-  config_section = 'url.%s' % LOCAL_GIT_MIRROR_URL
-  if mirror_is_accessible:
+  # Find the global git config entries and loop over them, removing the ones
+  # which aren't needed and adding a URL override for the git mirror if it is
+  # accessible and not already present.
+  try:
+    configs = shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
+                                '--list']).splitlines()
+  except shell_utils.CommandFailedException:
+    configs = []
+
+  already_overriding_url = False
+  for config in configs:
+    override_url = None
+    match = re.match('url.(.+).insteadof=', config)
+    if match:
+      override_url = match.groups()[0]
+    if override_url:
+      if override_url == LOCAL_GIT_MIRROR_URL and mirror_is_accessible:
+        print 'Already have URL override for SkiaLab git mirror.'
+        already_overriding_url = True
+      else:
+        print 'Removing unneeded URL override for %s' % override_url
+        try:
+          shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
+                            '--remove-section', config.split('.insteadof')[0]])
+        except shell_utils.CommandFailedException as e:
+          if 'No such section!' in e.output:
+            print '"insteadof" section already removed; continuing...'
+          else:
+            raise
+
+  if mirror_is_accessible and not already_overriding_url:
     print ('SkiaLab git mirror appears to be accessible. Changing gitconfig to '
            'use the mirror.')
     shell_utils.Bash([gclient_utils.GIT, 'config', '--global',
-                      '%s.insteadOf' % config_section,
+                      'url.%s.insteadOf' % LOCAL_GIT_MIRROR_URL,
                       SKIA_GIT_URL_TO_REPLACE])
 
   # Some debugging info that might help us figure things out...
