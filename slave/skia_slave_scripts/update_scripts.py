@@ -27,7 +27,7 @@ class UpdateScripts(BuildStep):
     os.chdir(BUILDBOT_DIR)
 
     gclient_utils.Sync(branches=['buildbot'])
-    print gclient_utils.GetCheckedOutHash()
+    print 'Skiabot scripts updated to %s' % gclient_utils.GetCheckedOutHash()
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UpdateScripts))

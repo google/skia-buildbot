@@ -123,7 +123,9 @@
                 'doStepIf': <Object>,
                 'env': {},
                 'flunkOnFailure': <Object>,
-                'get_props_from_stdout': None,
+                'get_props_from_stdout': {
+                    'buildbot_revision': 'Skiabot scripts updated to (\w+)',
+                },
                 'haltOnFailure': <Object>,
                 'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,

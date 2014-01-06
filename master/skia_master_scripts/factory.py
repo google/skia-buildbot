@@ -529,13 +529,16 @@ class SkiaFactory(BuildFactory):
 
   def UpdateScripts(self):
     """ Update the buildbot scripts on the build slave. """
-    self.AddSlaveScript(script=self.TargetPath.join('..', '..', '..', '..',
-                                                    '..', 'slave',
-                                                    'skia_slave_scripts',
-                                                    'update_scripts.py'),
-                        description='UpdateScripts',
-                        halt_on_failure=True,
-                        workdir='build')
+    self.AddSlaveScript(
+        script=self.TargetPath.join('..', '..', '..', '..',
+                                    '..', 'slave',
+                                    'skia_slave_scripts',
+                                    'update_scripts.py'),
+        description='UpdateScripts',
+        halt_on_failure=True,
+        get_props_from_stdout={'buildbot_revision':
+                                   'Skiabot scripts updated to (\w+)'},
+        workdir='build')
 
   def Update(self):
     """ Update the Skia code on the build slave. """
