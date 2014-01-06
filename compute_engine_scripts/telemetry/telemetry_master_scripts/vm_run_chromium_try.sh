@@ -234,6 +234,9 @@ EOF
 PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
 wget --post-data "key=$APPENGINE_KEY&chromium_patch_link=$CHROMIUM_PATCH_LINK&blink_patch_link=$BLINK_PATCH_LINK&skia_patch_link=$SKIA_PATCH_LINK&build_log_link=$CHROMIUM_BUILD_LOG_LINK&telemetry_nopatch_log_link=$TELEMETRY_OUTPUT_1&telemetry_withpatch_log_link=$TELEMETRY_OUTPUT_2&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_chromium_try_tasks" -O /dev/null
 
+# Copy log file to Google Storage.
+gsutil cp -a public-read $LOG_FILE_LOCATION gs://chromium-skia-gm/telemetry/tryserver-logs/
+
 # Delete all tmp files.
 rm -rf /tmp/*${RUN_ID}*
 rm -rf /home/default/storage/telemetry_outputs/${RUN_ID}*
