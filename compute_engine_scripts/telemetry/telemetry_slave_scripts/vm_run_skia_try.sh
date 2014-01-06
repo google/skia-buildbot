@@ -145,7 +145,13 @@ function reset_skia_checkout {
 
 function run_render_pictures {
   output_dir=$1
-  ./out/Release/render_pictures -r $LOCAL_SKP_DIR $RENDER_PICTURES_ARGS -w $output_dir --writeJsonSummaryPath $output_dir/summary.json
+  use_mesa=$2
+  if [ "$use_mesa" == "True" ]; then
+    render_pictures_args_of_run=$(echo $RENDER_PICTURES_ARGS | sed -e 's/--config [a-zA-Z0-9]*/--config mesa/g')
+  else
+    render_pictures_args_of_run=$RENDER_PICTURES_ARGS
+  fi
+  ./out/Release/render_pictures -r $LOCAL_SKP_DIR $render_pictures_args_of_run -w $output_dir --writeJsonSummaryPath $output_dir/summary.json
   if [ $? -ne 0 ]; then
     echo "== Failure when running render_pictures. Exiting. =="
     cleanup_slave_before_exit
@@ -181,7 +187,7 @@ IMG_ROOT=/tmp/
 OUTPUT_DIR_WITHPATCH_DIR_NAME=withpatch-pictures-$RUN_ID
 OUTPUT_DIR_WITHPATCH=${IMG_ROOT}${OUTPUT_DIR_WITHPATCH_DIR_NAME}
 mkdir -p $OUTPUT_DIR_WITHPATCH
-run_render_pictures $OUTPUT_DIR_WITHPATCH
+run_render_pictures $OUTPUT_DIR_WITHPATCH $MESA_WITHPATCH_RUN
 
 echo "== Removing the patch, building, and running render_pictures =="
 reset_skia_checkout
@@ -190,7 +196,7 @@ build_tools $MESA_NOPATCH_RUN
 OUTPUT_DIR_NOPATCH_DIR_NAME=nopatch-pictures-$RUN_ID
 OUTPUT_DIR_NOPATCH=${IMG_ROOT}${OUTPUT_DIR_NOPATCH_DIR_NAME}
 mkdir -p $OUTPUT_DIR_NOPATCH
-run_render_pictures $OUTPUT_DIR_NOPATCH
+run_render_pictures $OUTPUT_DIR_NOPATCH $MESA_NOPATCH_RUN
 
 echo "== Comparing pictures and saving differences in JSON output file =="
 cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
