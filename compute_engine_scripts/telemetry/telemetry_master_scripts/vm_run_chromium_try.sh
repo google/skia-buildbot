@@ -221,7 +221,7 @@ Content-Type: text/html
   </table><br/><br/>
 
   The log file of the first slave is <a href='$SLAVE_1_LOG_LINK'>here</a>.<br/>
-  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry'>here</a>.<br/><br/>
+  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/chromium_try'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>
