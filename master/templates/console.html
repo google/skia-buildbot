@@ -98,13 +98,24 @@ function checkMouseLeave(element, event) {
   }
 }
 
+// Obtain the current date and time in a nicely formatted string.
+function getDateString() {
+  var date = new Date();
+  return date.toDateString() + " at " + date.toTimeString();
+}
+
+// Set the "loading" message.
+function setLoadingMessage(msg) {
+  var loading = document.getElementById("loading_div");
+  if (loading) {
+    loading.innerHTML = msg;
+  }
+}
+
 // Load the console page data.
 function loadConsoleData() {
   loadJSONP('/console_json', fixConsoleData);
-  var loading = document.getElementById("loading_div");
-  if (loading) {
-    loading.style.display = "block";
-  }
+  setLoadingMessage("Loading...");
 }
 
 // Sort the categories, subcategories, and builders for display.
@@ -127,10 +138,7 @@ function fixConsoleData(data) {
   }
   builders = new_builders;
   revisions = data["revisions"];
-  var loading = document.getElementById("loading_div");
-  if (loading) {
-    loading.style.display = "none";
-  }
+  setLoadingMessage("Last loaded at " + getDateString());
   buildConsoleTable();
 }
 
@@ -460,7 +468,9 @@ function buildConsoleTable() {
 
 {% block content %}
 
-<h1>Console View</h1> 
+<h1>Console View</h1>
+
+<div id="loading_div"></div>
 
 <div align="center">
   <table width="95%" class="Grid" border="0" cellspacing="0">
@@ -511,7 +521,6 @@ function buildConsoleTable() {
 </div>
 
 <br/>
-<div id="loading_div">Loading...</div>
 <div align="center">
 <table id="console_table" width="96%"></table>
 </div>
