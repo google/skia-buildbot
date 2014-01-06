@@ -3,28 +3,37 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Run the Skia benchmarking executable. """
+"""Run the Skia benchmarking executable."""
 
-from build_step import BuildStep
-from utils import shell_utils
 import os
-import re
 import sys
 
+from build_step import BuildStep
 
 GIT = 'git.bat' if os.name == 'nt' else 'git'
-GIT_SVN_ID_MATCH_STR = 'git-svn-id: http://skia.googlecode.com/svn/trunk@(\d+)'
+GIT_SVN_ID_MATCH_STR = r'git-svn-id: http://skia.googlecode.com/svn/trunk@(\d+)'
 
 
 def BenchArgs(data_file):
-  """ Builds a list containing arguments to pass to bench.
+  """Builds a list containing arguments to pass to bench.
 
-  data_file: filepath to store the log output
+  Args:
+    data_file: filepath to store the log output
+  Returns:
+    list containing arguments to pass to bench
   """
   return ['--timers', 'wcg', '--logFile', data_file]
 
+# Device name -> extra arguments
+EXTRA_ARGS = {
+    'GalaxyNexus': ['--match', '~DeferredSurfaceCopy'],
+    'Nexus4': ['--config', 'defaults', 'MSAA4'],
+}
+
 
 class RunBench(BuildStep):
+  """A BuildStep that runs bench."""
+
   def __init__(self, timeout=9600, no_output_timeout=9600, **kwargs):
     super(RunBench, self).__init__(timeout=timeout,
                                    no_output_timeout=no_output_timeout,
@@ -38,8 +47,9 @@ class RunBench(BuildStep):
     args = ['-i', self._device_dirs.ResourceDir()]
     if self._perf_data_dir:
       args.extend(BenchArgs(self._BuildDataFile()))
-    if 'Nexus4' in self._builder_name:
-      args.extend(['--config', 'defaults', 'MSAA4'])
+    for device in EXTRA_ARGS:
+      if device in self._builder_name:
+        args.extend(EXTRA_ARGS[device])
     self._flavor_utils.RunFlavoredCmd('bench', args + self._bench_args)
 
 
