@@ -40,6 +40,7 @@ USE_AURA=$6
 source vm_utils.sh
 
 function copy_build_log_to_gs() {
+  echo "== Copying build log to gs =="
   gsutil cp -a public-read $LOG_FILE_LOCATION \
     gs://chromium-skia-gm/telemetry/tryserver-outputs/build-logs/$RUN_ID-chromium.txt
   rm $LOG_FILE_LOCATION

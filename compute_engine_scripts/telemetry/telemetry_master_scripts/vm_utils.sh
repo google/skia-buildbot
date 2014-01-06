@@ -45,6 +45,7 @@ function build_chromium {
   if [ $? -ne 0 ]
   then
     echo "There was an error building chromium $CHROMIUM_COMMIT_HASH + skia $SKIA_COMMIT_HASH"
+    copy_build_log_to_gs
     exit 1
   fi
 }
