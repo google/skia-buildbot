@@ -101,7 +101,10 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
           value = sel.options[sel.selectedIndex].value;
       switch(value) {
         case 'rasterize_and_record':
-          form.variance_threshold.value = '1';
+          form.variance_threshold.value = '0';
+          break;
+        case 'rasterize_and_record_micro':
+          form.variance_threshold.value = '0';
           break;
         default:
           form.variance_threshold.value = '5';

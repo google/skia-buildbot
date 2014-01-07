@@ -108,6 +108,11 @@ if [ "$TELEMETRY_BENCHMARK" == "rasterize_and_record" ]; then
 else
   USE_AURA=0
 fi
+# Use aura for rasterize_and_record_micro benchmark.
+if [ "$TELEMETRY_BENCHMARK" == "rasterize_and_record_micro" ]; then                   
+  USE_AURA=1                                                                    
+fi
+
 # Create the two required chromium builds (with patch and without the patch).
 TIMER="$(date +%s)"
 CHROMIUM_BUILD_LOG_FILE=/tmp/try-chromium-build-$RUN_ID
