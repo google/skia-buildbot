@@ -100,17 +100,11 @@ gsutil cp -a public-read $CHROMIUM_PATCH_LOCATION $CHROMIUM_PATCH_GS_LOCATION
 gsutil cp -a public-read $BLINK_PATCH_LOCATION $BLINK_PATCH_GS_LOCATION
 gsutil cp -a public-read $SKIA_PATCH_LOCATION $SKIA_PATCH_GS_LOCATION
 
-# If it is a rasterize_and_record benchmark request then use aura and add flag
-# to never skip measurement.
-if [ "$TELEMETRY_BENCHMARK" == "rasterize_and_record" ]; then
+# If it is a rasterize_and_record_micro benchmark request then use aura.
+if [ "$TELEMETRY_BENCHMARK" == "rasterize_and_record_micro" ]; then
   USE_AURA=1
-  EXTRA_ARGS="--never-skip-measurement=True --stop-wait-time=5 $EXTRA_ARGS"
 else
   USE_AURA=0
-fi
-# Use aura for rasterize_and_record_micro benchmark.
-if [ "$TELEMETRY_BENCHMARK" == "rasterize_and_record_micro" ]; then                   
-  USE_AURA=1                                                                    
 fi
 
 # Create the two required chromium builds (with patch and without the patch).
