@@ -33,6 +33,7 @@ from utils import GATEKEEPER_NAME
 import builder_name_schema
 import config_private
 import json
+import master_revision
 import slave_hosts_cfg
 import slaves_cfg
 import skia_vars
@@ -176,6 +177,7 @@ def HtmlResourceRender(self, request):
   ctx['slaves_cfg'] = slaves_cfg.SLAVES
 
   ctx['active_master_name'] = active_master.project_name
+  ctx['master_revision'] = active_master.running_revision
   ctx['is_internal_view'] = request.host.port == ctx['internal_port']
   ctx['masters'] = []
   for master in config_private.Master.valid_masters:
@@ -263,6 +265,16 @@ def JsonStatusResourceInit(self, status):
   ############################## Added by borenet ##############################
   # Added to have a place to get the list of steps which cannot fail on the CQ.
   self.putChild('cq_required_steps', CQRequiredStepsJsonResource(status))
+  ##############################################################################
+
+  ############################## Added by borenet ##############################
+  # Added to have a way to determine which code revision the master is running.
+  self.putChild('master_revision',
+                master_revision.MasterCheckedOutRevisionJsonResource(status))
+  running_rev = config_private.Master.get_active_master().running_revision
+  self.putChild('master_running_revision',
+                master_revision.MasterRunningRevisionJsonResource(
+                    status=status, running_revision=running_rev))
   ##############################################################################
 
   # This needs to be called before the first HelpResource().body call.

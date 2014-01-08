@@ -118,7 +118,6 @@ class ConsoleJsonStatusResource(JsonResource):
       # Clean up the cache.
       if debug_info["added_blocks"]:
         self.cache.trim()
-      print cxt
       return {'builders': cxt['builders'],
               'revisions': cxt['revisions']}
     d.addCallback(got_changes)

@@ -18,6 +18,9 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     <script type="text/javascript">
     "use strict";
 
+    // Revision of the buildbot code on the build master.
+    var javascript_revision = "{{ master_revision }}";
+
     // Ports used to access the buildbot webstatus pages.
     var internalPort = "{{ internal_port }}";
     var externalPort = "{{ external_port }}";
@@ -100,6 +103,25 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       return args;
     }
 
+    // If the currently running revision of this page differs from that of the
+    // build master, reload the whole page instead of just the JSON data.
+    function doReload() {
+      // Get the master's code revision.
+      loadJSONP("/json/master_revision",
+                gotMasterRevision,
+                null);
+    }
+
+    // Callback function for doReload.
+    function gotMasterRevision(data) {
+      if (data["master_checkedout_revision"] != javascript_revision) {
+        // Force a reload of the page if the master has a new revision.
+        location.reload(true);
+      } else {
+        loadAllData();
+      }
+    }
+
     // Reload the page, if the user isn't actively interacting with it.
     function reloadPage() {
       var reloadIsAllowed = true;
@@ -112,12 +134,12 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       }
 
       if (reloadIsAllowed) {
-        loadAllData();
+        doReload();
       } else if (cancelledReloads >= maxCancelledReloads) {
         console.log("Forcing a reload because the number of " +
                     "previously-cancelled reloads exceeded " +
                     maxCancelledReloads + ".");
-        loadAllData();
+        doReload();
       } else {
         console.log("Not reloading page because the user is interacting with it.");
         cancelledReloads++;

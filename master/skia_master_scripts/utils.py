@@ -26,7 +26,9 @@ from oauth2client.client import SignedJwtAssertionCredentials
 
 import builder_name_schema
 import config_private
+import os
 import skia_vars
+import subprocess
 
 
 GATEKEEPER_NAME = 'GateKeeper'
@@ -444,6 +446,7 @@ class SkiaHelper(master_config.Helper):
       c['schedulers'].append(instance)
 
 
+# Redefining name from outer scope (os) pylint:disable=W0621
 def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
                  gm_image_subdir, factory_type, extra_config=None,
                  perf_output_basedir=None, extra_repos=None, is_trybot=False,
@@ -492,7 +495,7 @@ def _MakeBuilderAndMaybeTrybotSet(do_trybots=True, **kwargs):
 def MakeBuilderSet(**kwargs):
   _MakeBuilderAndMaybeTrybotSet(**kwargs)
 
-
+# Redefining name from outer scope (os) pylint:disable=W0621
 def _MakeCompileBuilder(helper, scheduler, os, compiler, configuration,
                         target_arch, factory_type, is_trybot,
                         extra_config=None, **kwargs):
@@ -572,3 +575,13 @@ def CanMergeBuildRequests(req1, req2):
       return False
   
   return True
+
+
+def get_current_revision():
+  """Obtain the checked-out buildbot code revision."""
+  checkout_dir = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
+  if os.path.isdir(os.path.join(checkout_dir, '.git')):
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
+  elif os.path.isdir(os.path.join(checkout_dir, '.svn')):
+    return subprocess.check_output(['svnversion', '.']).strip()
+  raise Exception('Unable to determine version control system.')
