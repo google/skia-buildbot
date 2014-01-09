@@ -9,6 +9,7 @@
 from skia_master_scripts import android_factory
 from skia_master_scripts import canary_factory
 from skia_master_scripts import chromeos_factory
+from skia_master_scripts import deps_roll_factory
 from skia_master_scripts import drt_canary_factory
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import housekeeping_percommit_factory
@@ -340,6 +341,11 @@ def setup_housekeepers(helper, do_upload_results):
     (builder_name_schema.MakeBuilderName(role='Housekeeper',
                                          frequency='Nightly'),
      housekeeping_periodic_factory.HouseKeepingPeriodicFactory,
+     'skia_periodic'),
+    (builder_name_schema.MakeBuilderName(role='Housekeeper',
+                                         frequency='Nightly',
+                                         extra_config='DEPSRoll'),
+     deps_roll_factory.DepsRollFactory,
      'skia_periodic'),
   ]
   # Add the corresponding trybot builders to the above list.
