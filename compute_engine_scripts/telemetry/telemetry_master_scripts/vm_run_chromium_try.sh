@@ -103,6 +103,7 @@ gsutil cp -a public-read $SKIA_PATCH_LOCATION $SKIA_PATCH_GS_LOCATION
 # If it is a rasterize_and_record_micro benchmark request then use aura.
 if [ "$TELEMETRY_BENCHMARK" == "rasterize_and_record_micro" ]; then
   USE_AURA=1
+  EXTRA_ARGS="--rasterize-repeat=200 --record-repeat=200 $EXTRA_ARGS"
 else
   USE_AURA=0
 fi
