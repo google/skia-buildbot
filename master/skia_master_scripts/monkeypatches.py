@@ -28,7 +28,6 @@ from master.try_job_base import text_to_dict
 from twisted.internet import defer
 from twisted.python import log
 from twisted.web import server
-from utils import GATEKEEPER_NAME
 
 import builder_name_schema
 import config_private
@@ -37,6 +36,7 @@ import master_revision
 import slave_hosts_cfg
 import slaves_cfg
 import skia_vars
+import utils
 
 
 CQ_TRYBOTS = [
@@ -177,7 +177,7 @@ def HtmlResourceRender(self, request):
   ctx['slaves_cfg'] = slaves_cfg.SLAVES
 
   ctx['active_master_name'] = active_master.project_name
-  ctx['master_revision'] = active_master.running_revision
+  ctx['master_revision'] = utils.get_current_revision()
   ctx['is_internal_view'] = request.host.port == ctx['internal_port']
   ctx['masters'] = []
   for master in config_private.Master.valid_masters:
@@ -457,7 +457,7 @@ class SkiaGateKeeper(gatekeeper.GateKeeper):
     We modify it to actually check whether the builder should be considered by
     the GateKeeper, as indicated in its category name.
     """
-    ret = (GATEKEEPER_NAME in (builder_status.getCategory() or '') and
+    ret = (utils.GATEKEEPER_NAME in (builder_status.getCategory() or '') and
             chromium_notifier.ChromiumNotifier.isInterestingBuilder(self,
                 builder_status))
     return ret
