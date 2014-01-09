@@ -50,7 +50,7 @@ class ApplyPatch(BuildStep):
         if 'svn' in patch_url:
           # TODO(borenet): Create an svn_utils module and use it instead.  It
           # would be nice to find a way to share
-          # http://skia.googlecode.com/svn/trunk/tools/svn.py
+          # https://skia.googlesource.com/skia/+/master/tools/svn.py
           patch_contents = shell_utils.Bash([SVN, 'cat', patch_url], echo=False)
         else:
           patch_contents = urllib2.urlopen(patch_url).read()

@@ -30,6 +30,6 @@ if (bg.botStatusList) {
 
 var linksDiv = document.getElementById('links');
 linksDiv.innerHTML = 
-    '<a href="http://skia.googlecode.com/svn/buildbot/buildbots.html" ' + 
+    '<a href="https://rawgithub.com/google/skia-buildbot/master/buildbots.html" ' +
     'target=_blank>Console</a>&nbsp;<a href="' + statusLinkBase + 
     'waterfall" target=_blank>Waterfall</a>';

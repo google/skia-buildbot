@@ -18,9 +18,12 @@ mkdir -p $BUILDBOT_PYDOC_TEMPDIR
 cd $BUILDBOT_PYDOC_TEMPDIR
 
 if [ -d "buildbot" ]; then
-  svn update --accept theirs-full buildbot
+  pushd buildbot
+  git pull
+  git checkout origin/master
+  popd
 else
-  svn checkout http://skia.googlecode.com/svn/buildbot  # read-only
+  git clone https://skia.googlesource.com/buildbot.git
 fi
 if [ -d "buildbot-docs" ]; then
   svn update --accept theirs-full buildbot-docs
