@@ -26,8 +26,9 @@ def BenchArgs(data_file):
 
 # Device name -> extra arguments
 EXTRA_ARGS = {
-    'GalaxyNexus': ['--match', '~DeferredSurfaceCopy'],
+    'GalaxyNexus': ['--match', '~DeferredSurfaceCopy'],  # Crash: skbug.com/1687
     'Nexus4': ['--config', 'defaults', 'MSAA4'],
+    'NexusS': ['--match', '~DeferredSurfaceCopy'],       # Crash: skbug.com/1687
 }
 
 
