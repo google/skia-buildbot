@@ -144,6 +144,9 @@ if [ $ret_value -eq 0 ]; then
 
   # Delete the try chromium builds from the slaves so that they do not take up unneeded disk space.
   bash vm_run_command_on_slaves.sh "rm -rf ~/storage/chromium-builds/try-*"
+  # Make sure there are no left over processes on the slaves.
+  bash vm_run_command_on_slaves.sh "sudo pkill -9 -f chromium-builds"
+
 
   # Compare the resultant CSV files.
   NOPATCH_CSV="/home/default/storage/telemetry_outputs/${TELEMETRY_NOPATCH_ID}/${TELEMETRY_NOPATCH_ID}.$TELEMETRY_BENCHMARK.output"
