@@ -45,15 +45,18 @@ table td {
   min-width: 5em;
 }
 
-div.BuilderTooltip {
-  position: absolute;
-  display: none;
+div.RoundedRect {
   border: 1px solid black;
   background-color: white;
   border-radius: 5px;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
   padding: 10px;
+}
+
+div.BuilderTooltip {
+  position: absolute;
+  display: none;
   z-index: 100;
 }
 

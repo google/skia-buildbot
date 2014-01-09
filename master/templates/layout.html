@@ -218,7 +218,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         var builder_name = display_comment.id.slice("displayBuilderComment_".length);
         display_comment.innerHTML = builderCommentText(builder_name);
         if (builder_statuses[builder_name]) {
-          display_comment.className += " BuilderTooltip BuilderHasComment";
+          display_comment.className += " BuilderHasComment";
         }
       }
 
@@ -596,7 +596,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       Page built: <b>{{ time }}</b> ({{ tz }})
     </div>
     {% endblock -%}
-    <div id="builderTooltip" class="BuilderTooltip" style="display: none;" onmouseout="hideBuilderTooltip(event)"></div>
+    <div id="builderTooltip" class="BuilderTooltip RoundedRect" style="display: none;" onmouseout="hideBuilderTooltip(event)"></div>
     <script language="JavaScript">
       init();
     </script>

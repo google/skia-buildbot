@@ -277,8 +277,6 @@ function buildConsoleTable() {
           var builder_td = builder_wrapper_table_tr.insertCell(-1);
           builder_td.className = "DevSlaveBox";
           builder_td.builder_name = builder_name;
-          //builder_td.onmouseover = function(event) { showBuilderTooltip(this.builder_name, event); };
-          //builder_td.onmouseout = function(event) { hideBuilderTooltip(event); };
           builder_link = newHyperlink(builder.url, "", true);
           builder_link.id = "commentIndicator_" + builder_name;
           builder_link.className = "DevSlaveBox " + builder.color;
@@ -289,7 +287,7 @@ function buildConsoleTable() {
 
           // Create the status tooltip for this builder.
           var tooltip_div = document.createElement("div");
-          tooltip_div.className = "BuilderTooltip";
+          tooltip_div.className = "BuilderTooltip RoundedRect";
           tooltip_div.innerHTML = builderCommentText(builder_name);
           builder_td.appendChild(tooltip_div);
         }
