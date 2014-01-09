@@ -1,6 +1,28 @@
 <html>
   <head>
     <title>Image comparision failures for slave3</title>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js">
+    </script>
+    <script type="text/javascript">
+      var sort_by_increasing = false;
+      function sortRows(col_num) {
+        var rows = $('#slave_results tbody tr').get();
+        rows.sort(function(a,b) {
+
+          var A = $(a).children('td').eq(col_num).find('a').text();
+          var B = $(b).children('td').eq(col_num).find('a').text();
+
+          if (A < B) return sort_by_increasing ? -1 : 1;
+          else if (A > B) return sort_by_increasing ? 1 : -1;
+          else return 0;
+        });
+
+        $.each(rows, function(index, row) {
+          $('#slave_results').children('tbody').append(row);
+        });
+        sort_by_increasing = !sort_by_increasing;
+      }
+    </script>
   </head>
 
   <body>
@@ -12,20 +34,25 @@
     Can download nopatch images with:<br/>
     &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp gs://dummy-bucket/slave3/nopatch/* /tmp/nopatch-imgs/</i><br/><br/>
     Can download withpatch images with:<br/>
-    &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp gs://dummy-bucket/slave3/withpatch/* /tmp/withpath-imgs/</i><br/><br/><br/>
-    
-    <table border="1" cellpadding="5">
+    &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp gs://dummy-bucket/slave3/withpatch/* /tmp/withpath-imgs/</i><br/><br/>
+
+    Click on the linked column headers to sort rows.<br/><br/><br/>
+
+    <table border="1" cellpadding="5" id="slave_results">
+      <thead>
       <tr bgcolor="#CCCCFF">
-        <th>Failed Files</th>
+        <th><a href="#" onclick="sortRows(0); return false;">Failed Files</a></th>
         <th>NoPatch Image</th>
         <th>WithPatch Image</th>
-        <th>Differing pixels in white</th>
-        <th>Difference per pixel</th>
+        <th><a href="#" onclick="sortRows(3); return false;">Differing pixels in white</a></th>
+        <th><a href="#" onclick="sortRows(4); return false;">Difference per pixel</a></th>
       </tr>
+      </thead>
+      <tbody>
       
         <tr>
           <td align="center">
-            fileslave3_1.png<br/>
+            <a id='compare_value'>fileslave3_1.png</a><br/>
             <a href='http://storage.cloud.google.com/dummy-bucket/skps/slave3/fileslave3_.skp'>Download SKP</a>
           </td>
           <td>
@@ -39,18 +66,18 @@
           <td>
             <a href='http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_1-vs-fileslave3_1.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_1-vs-fileslave3_1.png" alt="whitediffs/fileslave3_1-vs-fileslave3_1.png" width="200" height="200"></a>
             <br/>
-            312% (311)
+            <a id='compare_value'>312</a>% (311)
           </td>
           <td>
             <a href='http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_1-vs-fileslave3_1.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_1-vs-fileslave3_1.png" alt="diffs/fileslave3_1-vs-fileslave3_1.png" width="200" height="200"></a>
             <br/>
-            313% 314
+            <a id='compare_value'>313</a>% 314
           </td>
         </tr>
       
         <tr>
           <td align="center">
-            fileslave3_2.png<br/>
+            <a id='compare_value'>fileslave3_2.png</a><br/>
             <a href='http://storage.cloud.google.com/dummy-bucket/skps/slave3/fileslave3_.skp'>Download SKP</a>
           </td>
           <td>
@@ -64,18 +91,18 @@
           <td>
             <a href='http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_2-vs-fileslave3_2.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_2-vs-fileslave3_2.png" alt="whitediffs/fileslave3_2-vs-fileslave3_2.png" width="200" height="200"></a>
             <br/>
-            322% (321)
+            <a id='compare_value'>322</a>% (321)
           </td>
           <td>
             <a href='http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_2-vs-fileslave3_2.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_2-vs-fileslave3_2.png" alt="diffs/fileslave3_2-vs-fileslave3_2.png" width="200" height="200"></a>
             <br/>
-            323% 324
+            <a id='compare_value'>323</a>% 324
           </td>
         </tr>
       
         <tr>
           <td align="center">
-            fileslave3_3.png<br/>
+            <a id='compare_value'>fileslave3_3.png</a><br/>
             <a href='http://storage.cloud.google.com/dummy-bucket/skps/slave3/fileslave3_.skp'>Download SKP</a>
           </td>
           <td>
@@ -89,18 +116,18 @@
           <td>
             <a href='http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_3-vs-fileslave3_3.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_3-vs-fileslave3_3.png" alt="whitediffs/fileslave3_3-vs-fileslave3_3.png" width="200" height="200"></a>
             <br/>
-            332% (331)
+            <a id='compare_value'>332</a>% (331)
           </td>
           <td>
             <a href='http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_3-vs-fileslave3_3.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_3-vs-fileslave3_3.png" alt="diffs/fileslave3_3-vs-fileslave3_3.png" width="200" height="200"></a>
             <br/>
-            333% 334
+            <a id='compare_value'>333</a>% 334
           </td>
         </tr>
       
         <tr>
           <td align="center">
-            fileslave3_4.png<br/>
+            <a id='compare_value'>fileslave3_4.png</a><br/>
             <a href='http://storage.cloud.google.com/dummy-bucket/skps/slave3/fileslave3_.skp'>Download SKP</a>
           </td>
           <td>
@@ -114,15 +141,16 @@
           <td>
             <a href='http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_4-vs-fileslave3_4.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_4-vs-fileslave3_4.png" alt="whitediffs/fileslave3_4-vs-fileslave3_4.png" width="200" height="200"></a>
             <br/>
-            342% (341)
+            <a id='compare_value'>342</a>% (341)
           </td>
           <td>
             <a href='http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_4-vs-fileslave3_4.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_4-vs-fileslave3_4.png" alt="diffs/fileslave3_4-vs-fileslave3_4.png" width="200" height="200"></a>
             <br/>
-            343% 344
+            <a id='compare_value'>343</a>% 344
           </td>
         </tr>
       
+      </tbody>
     </table>
   </body>
 </html>
