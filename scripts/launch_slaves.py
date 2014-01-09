@@ -137,7 +137,7 @@ class BuildSlaveManager(multiprocessing.Process):
     self._SyncSources()
 
     # Find the hostname of the master we're connecting to.
-    master_host = config.Master.get(self._master_name).master_host
+    master_host = config.Master.set_active_master(self._master_name).master_host
 
     os.chdir(os.path.join('buildbot', 'slave'))
     if os.name == 'nt':
