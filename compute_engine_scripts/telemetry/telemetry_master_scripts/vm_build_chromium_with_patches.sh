@@ -54,7 +54,7 @@ mkdir -p $CHROMIUM_BUILD_DIR_BASE
 git ls-remote https://chromium.googlesource.com/chromium/src.git --verify refs/heads/master &> /tmp/chromium-tot
 CHROMIUM_COMMIT_HASH=`cut -f1 /tmp/chromium-tot`
 # Find Skia's Git LKGR.
-wget -O /tmp/skia-lkgr http://skia-tree-status.appspot.com/git-lkgr
+for i in {1..10}; do wget -O /tmp/skia-lkgr http://skia-tree-status.appspot.com/git-lkgr && break || sleep 2; done
 SKIA_COMMIT_HASH=`cat /tmp/skia-lkgr`
 
 # Ensure copying to Google Storage will work.
