@@ -1,33 +1,11 @@
 <html>
   <head>
     <title>Image comparision failures for slave1</title>
-    <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/jquery-1.7.1.min.js">
-    </script>
-    <script type="text/javascript">
-      var sort_by_increasing = false;
-      function sortRows(col_num, use_float_comparision) {
-        var rows = $('#slave_results tbody tr').get();
-        rows.sort(function(a,b) {
-
-          var A = $(a).children('td').eq(col_num).find('a').text();
-          if (use_float_comparision) A = parseFloat(A);
-          var B = $(b).children('td').eq(col_num).find('a').text();
-          if (use_float_comparision) B = parseFloat(B);
-
-          if (A < B) return sort_by_increasing ? -1 : 1;
-          else if (A > B) return sort_by_increasing ? 1 : -1;
-          else return 0;
-        });
-
-        $.each(rows, function(index, row) {
-          $('#slave_results').children('tbody').append(row);
-        });
-        sort_by_increasing = !sort_by_increasing;
-      }
-    </script>
+    <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/togglecols.js"></script>
   </head>
 
-  <body>
+  <body onload="resetToggleArrows([0, 3, 4])">
     <h2>Image comparision failures for slave1</h2>
     <a href='index.html'>Back</a>
     <br/><br/>
@@ -43,11 +21,11 @@
     <table border="1" cellpadding="5" id="slave_results">
       <thead>
       <tr bgcolor="#CCCCFF">
-        <th><a href="#" onclick="sortRows(0, false); return false;">Failed Files</a></th>
+        <th><a href="#" onclick="sortRows(0, false, [0, 3, 4]); return false;">Failed Files</a><img src="" id="toggle-arrows-0"></th>
         <th>NoPatch Image</th>
         <th>WithPatch Image</th>
-        <th><a href="#" onclick="sortRows(3, true); return false;">Differing pixels in white</a></th>
-        <th><a href="#" onclick="sortRows(4, true); return false;">Difference per pixel</a></th>
+        <th><a href="#" onclick="sortRows(3, true, [0, 3, 4]); return false;">Differing pixels in white</a><img src="" id="toggle-arrows-3"></th>
+        <th><a href="#" onclick="sortRows(4, true, [0, 3, 4]); return false;">Difference per pixel</a><img src="" id="toggle-arrows-4"></th>
       </tr>
       </thead>
       <tbody>
