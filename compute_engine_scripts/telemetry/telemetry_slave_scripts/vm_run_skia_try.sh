@@ -167,7 +167,7 @@ function copy_log_to_gs {
 cd $SKIA_TRUNK_LOCATION
 reset_skia_checkout
 make clean
-/home/default/depot_tools/gclient sync
+for i in {1..3}; do /home/default/depot_tools/gclient sync && break || sleep 2; done
 
 echo "== Applying the patch, building, and running render_pictures =="
 PATCH_FILESIZE=$(stat -c%s $SKIA_PATCH_FILE)

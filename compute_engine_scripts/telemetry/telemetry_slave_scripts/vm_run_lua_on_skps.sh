@@ -40,7 +40,7 @@ create_worker_file $WORKER_FILE
 
 # Sync trunk.
 cd /home/default/skia-repo/trunk
-/home/default/depot_tools/gclient sync
+for i in {1..3}; do /home/default/depot_tools/gclient sync && break || sleep 2; done
 
 # Build tools.
 make clean

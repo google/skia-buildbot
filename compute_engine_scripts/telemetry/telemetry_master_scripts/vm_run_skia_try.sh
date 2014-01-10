@@ -106,7 +106,7 @@ SKIA_PATCH_GS_LINK=https://storage.cloud.google.com/$RELATIVE_SKIA_PATCH_GS_PATH
 gsutil cp -a public-read $SKIA_PATCH_LOCATION $SKIA_PATCH_GS_LOCATION
 
 # Update buildbot.
-gclient sync
+for i in {1..3}; do gclient sync && break || sleep 2; done
 
 # Run vm_run_skia_try.sh on all the slaves.
 SLAVE_LOG_FILE="/tmp/skia-try.$RUN_ID.log"
