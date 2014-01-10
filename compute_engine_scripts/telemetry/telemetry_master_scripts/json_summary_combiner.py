@@ -134,11 +134,20 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url):
       slave_name_to_info.items(), key=lambda tuple: tuple[0])
   rendered = loader.render_to_string(
       'slaves_totals.html',
-       {SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR: slave_name_to_info_items,
-        ABSOLUTE_URL_TEMPLATE_VAR: absolute_url}
+      {SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR: slave_name_to_info_items,
+       ABSOLUTE_URL_TEMPLATE_VAR: absolute_url}
   )
   with open(os.path.join(output_html_dir, 'index.html'), 'w') as index_html:
     index_html.write(rendered)
+
+  rendered = loader.render_to_string(
+      'list_of_all_files.html',
+      {SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR: slave_name_to_info_items,
+       ABSOLUTE_URL_TEMPLATE_VAR: absolute_url}
+  )
+  with open(os.path.join(output_html_dir,
+                         'list_of_all_files.html'), 'w') as files_html:
+    files_html.write(rendered)
 
   for slave_name, slave_info in slave_name_to_info_items:
     rendered = loader.render_to_string(
