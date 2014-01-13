@@ -39,12 +39,6 @@ import skia_vars
 import utils
 
 
-CQ_TRYBOTS = [
-    'Build-Mac10.7-Clang-x86-Release-Trybot',
-    'Build-Ubuntu12-GCC-x86_64-Release-Trybot',
-    # 'Build-Win7-VS2010-x86-Release-Trybot',
-]
-
 # The following users are allowed to run trybots even though they do not have
 # accounts in google.com or chromium.org
 TRYBOTS_REQUESTER_WHITELIST = [
@@ -224,7 +218,7 @@ class TryBuildersJsonResource(JsonResource):
     JsonResource.__init__(self, status)
     for builder_name in self.status.getBuilderNames():
       if builder_name_schema.IsTrybot(builder_name) and (
-          not include_only_cq_trybots or builder_name in CQ_TRYBOTS):
+          not include_only_cq_trybots or builder_name in slaves_cfg.CQ_TRYBOTS):
         self.putChild(builder_name,
                       BuilderJsonResource(status,
                                           status.getBuilder(builder_name)))
