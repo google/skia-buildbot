@@ -38,6 +38,7 @@ ARCH_TO_GYP_DEFINE = {
   'x86': {'skia_arch_width': '32'},
   'x86_64': {'skia_arch_width': '64'},
   'Arm7': {'skia_arch_width': '32'},
+  'MIPS': None,
   'NaCl': None,
 }
 
@@ -301,7 +302,8 @@ def setup_primary_builders(helper, do_upload_results):
                                                                                             ('Perf', 'Android',  'Xoom',       'Tegra2',      None,          None)],
       ('Ubuntu12', 'GCC',    'Debug',   'x86',    'IntelRhb',    None,      True,  f, p) : [('Test', 'Android',  'IntelRhb',   'SGX544',      None,          'base-android-intel-rhb')],
       ('Ubuntu12', 'GCC',    'Release', 'x86',    'IntelRhb',    None,      True,  f, p) : [('Test', 'Android',  'IntelRhb',   'SGX544',      None,          'base-android-intel-rhb'),
-                                                                                            ('Perf', 'Android',  'IntelRhb',   'SGX544',      None,          None)],})
+                                                                                            ('Perf', 'Android',  'IntelRhb',   'SGX544',      None,          None)],
+      ('Ubuntu12', 'GCC',    'Debug',   'MIPS',   'MIPS',        None,      True,  f, p) : [],})
   f = chromeos_factory.ChromeOSFactory
   builder_specs.update({
       ('Ubuntu12', 'GCC',    'Debug',   'x86',    'Alex',        None,      True,  f, p) : [('Test', 'ChromeOS', 'Alex',       'GMA3150',     None,          None)],
