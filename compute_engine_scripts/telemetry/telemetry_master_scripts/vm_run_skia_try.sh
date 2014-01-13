@@ -154,7 +154,10 @@ ABSOLUTE_GS_LINK=https://storage.cloud.google.com/$RELATIVE_HTML_OUTPUT
 python json_summary_combiner.py \
   --json_summaries_dir=$SUMMARIES_DIR \
   --output_html_dir=$HTML_OUTPUT_DIR \
-  --absolute_url=$ABSOLUTE_GS_LINK
+  --absolute_url=$ABSOLUTE_GS_LINK \
+  --render_pictures_args=$RENDER_PICTURES_ARGS \
+  --nopatch_mesa=$MESA_NOPATCH_RUN \
+  --withpatch_mesa=$MESA_WITHPATCH_RUN
 # Copy HTML output to Google Storage.
 gsutil cp -R $HTML_OUTPUT_DIR/* gs://$RELATIVE_HTML_OUTPUT
 # Set google.com domain ACL on the HTML files.

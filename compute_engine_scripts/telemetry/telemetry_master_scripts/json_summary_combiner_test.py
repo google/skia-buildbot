@@ -21,6 +21,9 @@ class TestJsonSummaryCombiner(unittest.TestCase):
         os.path.dirname(os.path.realpath(__file__)), 'test_data', 'combiner')
     self._actual_html_dir = tempfile.mkdtemp()
     self._absolute_url = 'http://dummy-link.foobar/'
+    self._render_pictures_args = '--test1=test --test2=test --test3'
+    self._nopatch_mesa = 'False'
+    self._withpatch_mesa = 'True'
 
   def tearDown(self):
     shutil.rmtree(self._actual_html_dir)
@@ -134,7 +137,10 @@ class TestJsonSummaryCombiner(unittest.TestCase):
     json_summary_combiner.OutputToHTML(
         slave_name_to_info=slave_name_to_info,
         output_html_dir=self._actual_html_dir,
-        absolute_url=self._absolute_url)
+        absolute_url=self._absolute_url,
+        render_pictures_args=self._render_pictures_args,
+        nopatch_mesa=self._nopatch_mesa,
+        withpatch_mesa=self._withpatch_mesa)
 
     html_expected_dir = os.path.join(self._test_data_dir, 'html_outputs',
                                      'differences_with_url')
@@ -149,7 +155,10 @@ class TestJsonSummaryCombiner(unittest.TestCase):
     json_summary_combiner.OutputToHTML(
         slave_name_to_info=slave_name_to_info,
         output_html_dir=self._actual_html_dir,
-        absolute_url='')
+        absolute_url='',
+        render_pictures_args=self._render_pictures_args,
+        nopatch_mesa=self._nopatch_mesa,
+        withpatch_mesa=self._withpatch_mesa)
 
     html_expected_dir = os.path.join(self._test_data_dir, 'html_outputs',
                                      'differences_no_url')
@@ -163,7 +172,10 @@ class TestJsonSummaryCombiner(unittest.TestCase):
     json_summary_combiner.OutputToHTML(
         slave_name_to_info={},
         output_html_dir=self._actual_html_dir,
-        absolute_url='')
+        absolute_url='',
+        render_pictures_args=self._render_pictures_args,
+        nopatch_mesa=self._nopatch_mesa,
+        withpatch_mesa=self._withpatch_mesa)
 
     html_expected_dir = os.path.join(self._test_data_dir, 'html_outputs',
                                      'nodifferences')

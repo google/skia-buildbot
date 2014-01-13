@@ -30,6 +30,9 @@ STORAGE_HTTP_BASE = 'http://storage.cloud.google.com'
 SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR = 'slave_name_to_info_items'
 ABSOLUTE_URL_TEMPLATE_VAR = 'absolute_url'
 SLAVE_INFO_TEMPLATE_VAR = 'slave_info'
+RENDER_PICTURES_ARGS_TEMPLATE_VAR = 'render_pictures_args'
+NOPATCH_MESA_TEMPLATE_VAR = 'nopatch_mesa'
+WITHPATCH_MESA_TEMPLATE_VAR = 'withpatch_mesa'
 GS_FILES_LOCATION_NO_PATCH_TEMPLATE_VAR = 'gs_http_files_location_nopatch'
 GS_FILES_LOCATION_WITH_PATCH_TEMPLATE_VAR = 'gs_http_files_location_withpatch'
 GS_FILES_LOCATION_DIFFS_TEMPLATE_VAR = 'gs_http_files_location_diffs'
@@ -122,7 +125,8 @@ def CombineJsonSummaries(json_summaries_dir):
   return slave_name_to_info
 
 
-def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url):
+def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
+                 render_pictures_args, nopatch_mesa, withpatch_mesa):
   """Outputs a slave name to SlaveInfo dict into HTML.
 
   Creates a top level HTML file that lists slave names to the number of failing
@@ -135,7 +139,10 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url):
   rendered = loader.render_to_string(
       'slaves_totals.html',
       {SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR: slave_name_to_info_items,
-       ABSOLUTE_URL_TEMPLATE_VAR: absolute_url}
+       ABSOLUTE_URL_TEMPLATE_VAR: absolute_url,
+       RENDER_PICTURES_ARGS_TEMPLATE_VAR: render_pictures_args,
+       NOPATCH_MESA_TEMPLATE_VAR: nopatch_mesa,
+       WITHPATCH_MESA_TEMPLATE_VAR: withpatch_mesa}
   )
   with open(os.path.join(output_html_dir, 'index.html'), 'w') as index_html:
     index_html.write(rendered)
@@ -186,12 +193,27 @@ if '__main__' == __name__:
       help='Servers like Google Storage require an absolute url for links '
            'within the HTML output files.',
       default='')
+  option_parser.add_option(
+      '', '--render_pictures_args',
+      help='The arguments specified by the user to the render_pictures binary.')
+  option_parser.add_option(
+      '', '--nopatch_mesa',
+      help='Specifies whether the nopatch run was compiled with mesa.')
+  option_parser.add_option(
+      '', '--withpatch_mesa',
+      help='Specifies whether the withpatch run was compiled with mesa.')
   options, unused_args = option_parser.parse_args()
-  if (not options.json_summaries_dir or not options.output_html_dir):
+  if (not options.json_summaries_dir or not options.output_html_dir
+      or not options.render_pictures_args or not options.nopatch_mesa
+      or not options.withpatch_mesa):
     option_parser.error(
-        'Must specify json_summaries_dir and output_html_dir')
+        'Must specify json_summaries_dir, output_html_dir, '
+        'render_pictures_args, nopatch_mesa and withpatch_mesa')
 
   OutputToHTML(
-      CombineJsonSummaries(options.json_summaries_dir),
-      options.output_html_dir,
-      options.absolute_url)
+      slave_name_to_info=CombineJsonSummaries(options.json_summaries_dir),
+      output_html_dir=options.output_html_dir,
+      absolute_url=options.absolute_url,
+      render_pictures_args=options.render_pictures_args,
+      nopatch_mesa=options.nopatch_mesa,
+      withpatch_mesa=options.withpatch_mesa)
