@@ -155,7 +155,7 @@ python json_summary_combiner.py \
   --json_summaries_dir=$SUMMARIES_DIR \
   --output_html_dir=$HTML_OUTPUT_DIR \
   --absolute_url=$ABSOLUTE_GS_LINK \
-  --render_pictures_args=$RENDER_PICTURES_ARGS \
+  --render_pictures_args="$RENDER_PICTURES_ARGS" \
   --nopatch_mesa=$MESA_NOPATCH_RUN \
   --withpatch_mesa=$MESA_WITHPATCH_RUN
 # Copy HTML output to Google Storage.
