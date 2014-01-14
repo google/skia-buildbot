@@ -79,7 +79,12 @@ def GetExtraFactoryArgs(compile_builder_info):
     elif compile_builder_info[0] == 'Win8':
       # On Win8, we build all targets at once, because of
       # https://code.google.com/p/skia/issues/detail?id=1331
-      return {'build_targets': ['most']}
+      args = {'build_targets': ['most']}
+      if compile_builder_info[4] == 'NVPR':
+        args['bench_pictures_cfg'] = 'nvpr'
+      else:
+        args['bench_pictures_cfg'] = 'default_msaa16'
+      return args
     else:
       return {}
   else:
