@@ -222,8 +222,7 @@ def setup_primary_builders(helper, do_upload_results):
       ('Ubuntu13', 'GCC4.8', 'Debug',   'x86_64', None,          None,      True,  f, p) : [],})
   f = xsan_factory.XsanFactory
   builder_specs.update({
-      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f, p) : [('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'ASAN',        None)],
-      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'TSAN',        None,      False, f, p) : [('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'TSAN',        None)],})
+      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f, p) : [('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'ASAN',        None)],})
   f = nacl_factory.NaClFactory
   builder_specs.update({
       ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,      True,  f, p) : [],

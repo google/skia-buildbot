@@ -8,8 +8,10 @@
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import moz2d_canary_factory
 from skia_master_scripts import utils
+from skia_master_scripts import xsan_factory
 
 import builder_name_schema
+import master_builders_cfg
 
 
 def setup_canaries(helper, do_upload_results):
@@ -64,7 +66,22 @@ def setup_all_builders(helper, do_upload_results):
       helper: instance of utils.SkiaHelper
       do_upload_results: bool; whether the builders should upload their results.
   """
-  # TODO(borenet): Non-canary builders will be set up here.
+  # builder_specs is a dictionary whose keys are specifications for compile
+  # builders and values are specifications for Test and Perf builders which will
+  # eventually *depend* on those compile builders.
+  builder_specs = {}
+  #
+  #                            COMPILE BUILDERS                                                                              TEST AND PERF BUILDERS
+  #
+  #    OS          Compiler  Config     Arch     Extra Config    GYP_DEFS   WERR             Role    OS          Model         GPU            Extra Config   GM Subdir
+  #
+  f = xsan_factory.XsanFactory
+  p = skia_factory.TARGET_PLATFORM_LINUX
+  builder_specs.update({
+      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'TSAN',        None,      False, f, p) : [('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'TSAN',        None)],
+  })
+
+  master_builders_cfg.setup_builders_from_config_dict(builder_specs, helper,
+                                                      do_upload_results)
 
   setup_canaries(helper, do_upload_results)
-
