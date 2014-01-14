@@ -51,6 +51,31 @@
     "type": "integer",
     "description": "How often (in seconds) to reload the buildbot status page if not specified."
   },
+  "fyi_external_port": {
+    "value": "10117",
+    "type": "integer",
+    "description": "Externally-visible port on the FYI Skia build master."
+  },
+  "fyi_internal_port": {
+    "value": "10115",
+    "type": "integer",
+    "description": "Internally-visible port on the FYI Skia build master."
+  },
+  "fyi_master_host": {
+    "value": "108.170.219.160",
+    "type": "string",
+    "description": "Hostname (or IP address) that can be used to reach the FYI Skia build master."
+  },
+  "fyi_master_internal_fqdn": {
+    "value": "skia-fyi-master-a.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "What the FYI Skia build master thinks its own FQDN is."
+  },
+  "fyi_slave_port": {
+    "value": "10116",
+    "type": "integer",
+    "description": "Port used by FYI build slaves."
+  },
   "gatekeeper_steps": {
     "value": [
         "Retry_BuildAll",

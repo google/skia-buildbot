@@ -15,7 +15,6 @@ from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import housekeeping_percommit_factory
 from skia_master_scripts import housekeeping_periodic_factory
 from skia_master_scripts import ios_factory
-from skia_master_scripts import moz2d_canary_factory
 from skia_master_scripts import nacl_factory
 from skia_master_scripts import utils
 from skia_master_scripts import xsan_factory
@@ -412,16 +411,6 @@ def setup_canaries(helper, do_upload_results):
           'component': 'shared_library',
         },
        }),
-      (builder_name_schema.MakeBuilderName(role='Canary',
-                                           project='Moz2D',
-                                           os='Ubuntu12',
-                                           compiler='GCC',
-                                           target_arch='x86_64',
-                                           configuration='Release'),
-       skia_factory.TARGET_PLATFORM_LINUX,
-       moz2d_canary_factory.Moz2DCanaryFactory,
-       'skia_rel',
-       {}),
       (builder_name_schema.MakeBuilderName(role='Canary',
                                            project='Chrome',
                                            os='Ubuntu12',
