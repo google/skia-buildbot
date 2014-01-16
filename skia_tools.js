@@ -21,7 +21,7 @@ var skiaTools = {
  *     variables file.
  */
 getVariable: function(varName) {
-  var url = "https://rawgithub.com/google/skia-buildbot/master/site_config/global_variables.json";
+  var url = "http://108.170.217.252:8000/buildbot/site_config/global_variables.json";
   try {
     var request = new XMLHttpRequest();
   } catch (error) {
