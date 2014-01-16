@@ -9,7 +9,8 @@
             "why": "from Tom W's list",
             "navigate_steps" : [                                                
               { "action": "navigate" },                                         
-              { "action": "wait", "seconds": 60 }                                
+              { "action": "navigate" },                                         
+              { "action": "wait", "seconds": 10 }                                
             ]
         }
     ]
