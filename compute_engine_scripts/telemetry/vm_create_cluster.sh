@@ -74,10 +74,7 @@ to setup gcutil promptless authentication from the master to its workers.
   * Add a ~/.netrc by generating a new password from https://chromium.googlesource.com/
   * Run 'cd /home/default/skia-repo; rm -rf trunk && gclient sync'
   * Run the following to be able to download massive files from gsutil:
-      sudo apt-get install gcc python-dev python-setuptools
-      sudo easy_install -U pip
-      sudo pip uninstall crcmod
-      sudo pip install -U crcmod
+      sudo apt-get install gcc python-dev python-setuptools && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod
   * Install the following missing packages:
       sudo apt-get install python-django
   * Run vm_recover_slaves_from_crashes.sh
