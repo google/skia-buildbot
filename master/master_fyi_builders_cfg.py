@@ -5,10 +5,10 @@
 # Sets up all the builders we want the FYI buildbot master to run.
 
 
+from master_builders_cfg import f_xsan, LINUX
 from skia_master_scripts import factory as skia_factory
 from skia_master_scripts import moz2d_canary_factory
 from skia_master_scripts import utils
-from skia_master_scripts import xsan_factory
 
 import builder_name_schema
 import master_builders_cfg
@@ -67,18 +67,14 @@ def setup_compile_builders(helper, do_upload_results):
       do_upload_results: bool; whether the builders should upload their
           results.
   """
-  # builder_specs is a list whose entries describe compile builders.
-  builder_specs = []
   #
   #                            COMPILE BUILDERS
   #
   #    OS          Compiler  Config     Arch      Extra Config GYP_DEFS   WERR   Factory Args
   #
-  f = xsan_factory.XsanFactory
-  p = skia_factory.TARGET_PLATFORM_LINUX
-  builder_specs.extend([
-      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'TSAN',      None,      False, {'sanitizer': 'thread'}, f, p)
-  ])
+  builder_specs = [
+      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'TSAN',      None,      False, {'sanitizer': 'thread'}, f_xsan, LINUX)
+  ]
 
   master_builders_cfg.setup_compile_builders_from_config_list(
       builder_specs, helper, do_upload_results)
@@ -91,18 +87,14 @@ def setup_test_and_perf_builders(helper, do_upload_results):
       helper: instance of utils.SkiaHelper
       do_upload_results: bool; whether the builders should upload their results.
   """
-  # builder_specs is a list whose entries describe Test and Perf builders.
-  builder_specs = []
   #
   #                            TEST AND PERF BUILDERS
   #
   #    Role    OS          Model          GPU       Arch      Config     Extra Config GYP_DEFS GM Subdir Factory Args
   #
-  f = xsan_factory.XsanFactory
-  p = skia_factory.TARGET_PLATFORM_LINUX
-  builder_specs.extend([
-      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',  'x86_64', 'Debug',   'TSAN',      None,    None, {'sanitizer': 'thread'}, f, p),
-  ])
+  builder_specs = [
+      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',  'x86_64', 'Debug',   'TSAN',      None,    None, {'sanitizer': 'thread'}, f_xsan, LINUX),
+  ]
 
   master_builders_cfg.setup_test_and_perf_builders_from_config_list(
       builder_specs, helper, do_upload_results)

@@ -6,18 +6,21 @@
 
 #pylint: disable=C0301
 
-from skia_master_scripts import android_factory
+from skia_master_scripts.android_factory import AndroidFactory as f_android
 from skia_master_scripts import canary_factory
-from skia_master_scripts import chromeos_factory
+from skia_master_scripts.chromeos_factory import ChromeOSFactory as f_cros
 from skia_master_scripts import deps_roll_factory
 from skia_master_scripts import drt_canary_factory
-from skia_master_scripts import factory as skia_factory
+from skia_master_scripts.factory import SkiaFactory as f_factory
 from skia_master_scripts import housekeeping_percommit_factory
 from skia_master_scripts import housekeeping_periodic_factory
-from skia_master_scripts import ios_factory
-from skia_master_scripts import nacl_factory
+from skia_master_scripts.ios_factory import iOSFactory as f_ios
+from skia_master_scripts.nacl_factory import NaClFactory as f_nacl
 from skia_master_scripts import utils
-from skia_master_scripts import xsan_factory
+from skia_master_scripts.xsan_factory import XsanFactory as f_xsan
+from skia_master_scripts.factory import TARGET_PLATFORM_LINUX as LINUX
+from skia_master_scripts.factory import TARGET_PLATFORM_WIN32 as WIN32
+from skia_master_scripts.factory import TARGET_PLATFORM_MAC as MAC
 
 import builder_name_schema
 import collections
@@ -163,11 +166,11 @@ def setup_test_and_perf_builders_from_config_list(builder_specs, helper,
     role = builder.role
     perf_output_basedir = None
     if role == builder_name_schema.BUILDER_ROLE_PERF:
-      if target_platform == skia_factory.TARGET_PLATFORM_LINUX:
+      if target_platform == LINUX:
         perf_output_basedir = perf_output_basedir_linux
-      elif target_platform == skia_factory.TARGET_PLATFORM_MAC:
+      elif target_platform == MAC:
         perf_output_basedir = perf_output_basedir_mac
-      elif target_platform == skia_factory.TARGET_PLATFORM_WIN32:
+      elif target_platform == WIN32:
         perf_output_basedir = perf_output_basedir_windows
     utils.MakeBuilderSet(
         helper=helper,
@@ -195,112 +198,97 @@ def setup_test_and_perf_builders(helper, do_upload_results):
       helper: instance of utils.SkiaHelper
       do_upload_results: bool; whether the builders should upload their results.
   """
-  # builder_specs is a list whose entries describe Test and Perf builders.
-  builder_specs = []
   #
   #                            TEST AND PERF BUILDERS
   #
   #    Role    OS          Model         GPU            Arch      Config     Extra Config    GYP_DEFS GM Subdir Factory Args
   #
-  f = skia_factory.SkiaFactory
-  p = skia_factory.TARGET_PLATFORM_LINUX
-  builder_specs.extend([
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Debug',   None,           None,      'base-shuttle_ubuntu12_ati5770', {}, f, p),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      'base-shuttle_ubuntu12_ati5770', {}, f, p),
-      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      None, {}, f, p),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   None,           None,      'base-shuttle_ubuntu12_ati5770', {}, f, p),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   'ZeroGPUCache', None,      None, {}, f, p),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      'base-shuttle_ubuntu12_ati5770', {}, f, p),
-      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      None, {}, f, p),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', 'Valgrind',     VALGRIND,  None, {'flavor': 'valgrind'}, f, p),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       'x86_64', 'Debug',   None,           NO_GPU,    'base-shuttle_ubuntu12_ati5770', {}, f, p),])
-  f = xsan_factory.XsanFactory
-  builder_specs.extend([
-      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'x86_64', 'Debug',   'ASAN',         None,      None, {'sanitizer': 'address'}, f, p),])
-  f = skia_factory.SkiaFactory
-  p = skia_factory.TARGET_PLATFORM_MAC
-  builder_specs.extend([
-      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           GYP_10_6,  'base-macmini', {}, f, p),
-      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  'base-macmini', {}, f, p),
-      ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  None, {}, f, p),
-      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           GYP_10_6,  'base-macmini', {}, f, p),
-      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  'base-macmini', {}, f, p),
-      ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  None, {}, f, p),
-      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      'base-macmini-lion-float', {}, f, p),
-      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      'base-macmini-lion-float', {}, f, p),
-      ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      None, {}, f, p),
-      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      'base-macmini-lion-float', {}, f, p),
-      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      'base-macmini-lion-float', {}, f, p),
-      ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      None, {}, f, p),
-      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      'base-macmini-10_8', {}, f, p),
-      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      'base-macmini-10_8', {}, f, p),
-      ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      None, {}, f, p),
-      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      'base-macmini-10_8', {}, f, p),
-      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, 'base-macmini-10_8', {}, f, p),
-      ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, None, {}, f, p),])
-  p = skia_factory.TARGET_PLATFORM_WIN32
-  builder_specs.extend([
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   None,           GYP_WIN7,  'base-shuttle-win7-intel-float', {}, f, p),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  'base-shuttle-win7-intel-float', {}, f, p),
-      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  None, {}, f, p),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Debug',   None,           GYP_WIN7,  'base-shuttle-win7-intel-float', {}, f, p),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  'base-shuttle-win7-intel-float', {}, f, p),
-      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  None, {}, f, p),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   'ANGLE',        GYP_ANGLE, 'base-shuttle-win7-intel-angle', {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f, p),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, 'base-shuttle-win7-intel-angle', {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f, p),
-      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, None, {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f, p),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   'DirectWrite',  GYP_DW,    'base-shuttle-win7-intel-directwrite', {}, f, p),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    'base-shuttle-win7-intel-directwrite', {}, f, p),
-      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    None, {}, f, p),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Debug',   None,           GYP_WIN8,  'base-shuttle-win8-gtx660', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  'base-shuttle-win8-gtx660', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  None, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Debug',   None,           GYP_WIN8,  'base-shuttle-win8-gtx660', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  'base-shuttle-win8-gtx660', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  None, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', 'NVPR',         NVPR_WIN8, 'base-shuttle-win8-gtx660-nvpr', {'build_targets': ['most'], 'bench_pictures_cfg': 'nvpr'}, f, p),
-      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', 'NVPR',         NVPR_WIN8, None, {'build_targets': ['most'], 'bench_pictures_cfg': 'nvpr'}, f, p),
-      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Debug',   None,           GYP_WIN8,  'base-shuttle-win8-hd7770', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  'base-shuttle-win8-hd7770', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Perf', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  None, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Debug',   None,           GYP_WIN8,  'base-shuttle-win8-hd7770', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  'base-shuttle-win8-hd7770', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Perf', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  None, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),])
-  f = android_factory.AndroidFactory
-  p = skia_factory.TARGET_PLATFORM_LINUX
-  builder_specs.extend([
-      ('Test', 'Android',  'NexusS',     'SGX540',      'Arm7',   'Debug',   None,           None,      'base-android-nexus-s', {'device': 'nexus_s'}, f, p),
-      ('Test', 'Android',  'NexusS',     'SGX540',      'Arm7',   'Release', None,           None,      'base-android-nexus-s', {'device': 'nexus_s'}, f, p),
-      ('Perf', 'Android',  'NexusS',     'SGX540',      'Arm7',   'Release', None,           None,      None, {'device': 'nexus_s'}, f, p),
-      ('Test', 'Android',  'Nexus4',     'Adreno320',   'Arm7',   'Debug',   None,           None,      'base-android-nexus-4', {'device': 'nexus_4'}, f, p),
-      ('Test', 'Android',  'Nexus4',     'Adreno320',   'Arm7',   'Release', None,           None,      'base-android-nexus-4', {'device': 'nexus_4'}, f, p),
-      ('Perf', 'Android',  'Nexus4',     'Adreno320',   'Arm7',   'Release', None,           None,      None, {'device': 'nexus_4'}, f, p),
-      ('Test', 'Android',  'Nexus7',     'Tegra3',      'Arm7',   'Debug',   None,           None,      'base-android-nexus-7', {'device': 'nexus_7'}, f, p),
-      ('Test', 'Android',  'Nexus7',     'Tegra3',      'Arm7',   'Release', None,           None,      'base-android-nexus-7', {'device': 'nexus_7'}, f, p),
-      ('Perf', 'Android',  'Nexus7',     'Tegra3',      'Arm7',   'Release', None,           None,      None, {'device': 'nexus_7'}, f, p),
-      ('Test', 'Android',  'Nexus10',    'MaliT604',    'Arm7',   'Debug',   None,           None,      'base-android-nexus-10', {'device': 'nexus_10'}, f, p),
-      ('Test', 'Android',  'Nexus10',    'MaliT604',    'Arm7',   'Release', None,           None,      'base-android-nexus-10', {'device': 'nexus_10'}, f, p),
-      ('Perf', 'Android',  'Nexus10',    'MaliT604',    'Arm7',   'Release', None,           None,      None, {'device': 'nexus_10'}, f, p),
-      ('Test', 'Android',  'GalaxyNexus','SGX540',      'Arm7',   'Debug',   None,           None,      'base-android-galaxy-nexus', {'device': 'galaxy_nexus'}, f, p),
-      ('Test', 'Android',  'GalaxyNexus','SGX540',      'Arm7',   'Release', None,           None,      'base-android-galaxy-nexus', {'device': 'galaxy_nexus'}, f, p),
-      ('Perf', 'Android',  'GalaxyNexus','SGX540',      'Arm7',   'Release', None,           None,      None, {'device': 'galaxy_nexus'}, f, p),
-      ('Test', 'Android',  'Xoom',       'Tegra2',      'Arm7',   'Debug',   None,           None,      'base-android-xoom', {'device': 'xoom'}, f, p),
-      ('Test', 'Android',  'Xoom',       'Tegra2',      'Arm7',   'Release', None,           None,      'base-android-xoom', {'device': 'xoom'}, f, p),
-      ('Perf', 'Android',  'Xoom',       'Tegra2',      'Arm7',   'Release', None,           None,      None, {'device': 'xoom'}, f, p),
-      ('Test', 'Android',  'IntelRhb',   'SGX544',      'x86',    'Debug',   None,           None,      'base-android-intel-rhb', {'device': 'intel_rhb'}, f, p),
-      ('Test', 'Android',  'IntelRhb',   'SGX544',      'x86',    'Release', None,           None,      'base-android-intel-rhb', {'device': 'intel_rhb'}, f, p),
-      ('Perf', 'Android',  'IntelRhb',   'SGX544',      'x86',    'Release', None,           None,      None, {'device': 'intel_rhb'}, f, p),])
-  f = chromeos_factory.ChromeOSFactory
-  builder_specs.extend([
-      ('Test', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Debug',   None,           None,      None, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Test', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Release', None,           None,      None, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Release', None,           None,      None, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Test', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Debug',   None,           None,      None, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Test', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Release', None,           None,      None, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Perf', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Release', None,           None,      None, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Test', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Debug',   None,           None,      None, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Test', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Release', None,           None,      None, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Perf', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Release', None,           None,      None, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f, p),])
+  builder_specs = [
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Debug',   None,           None,      'base-shuttle_ubuntu12_ati5770', {}, f_factory, LINUX),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      'base-shuttle_ubuntu12_ati5770', {}, f_factory, LINUX),
+      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      None, {}, f_factory, LINUX),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   None,           None,      'base-shuttle_ubuntu12_ati5770', {}, f_factory, LINUX),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   'ZeroGPUCache', None,      None, {}, f_factory, LINUX),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      'base-shuttle_ubuntu12_ati5770', {}, f_factory, LINUX),
+      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      None, {}, f_factory, LINUX),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', 'Valgrind',     VALGRIND,  None, {'flavor': 'valgrind'}, f_factory, LINUX),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       'x86_64', 'Debug',   None,           NO_GPU,    'base-shuttle_ubuntu12_ati5770', {}, f_factory, LINUX),
+      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'x86_64', 'Debug',   'ASAN',         None,      None, {'sanitizer': 'address'}, f_xsan, LINUX),
+      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           GYP_10_6,  'base-macmini', {}, f_factory, MAC),
+      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  'base-macmini', {}, f_factory, MAC),
+      ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  None, {}, f_factory, MAC),
+      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           GYP_10_6,  'base-macmini', {}, f_factory, MAC),
+      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  'base-macmini', {}, f_factory, MAC),
+      ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  None, {}, f_factory, MAC),
+      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      'base-macmini-lion-float', {}, f_factory, MAC),
+      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      'base-macmini-lion-float', {}, f_factory, MAC),
+      ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      None, {}, f_factory, MAC),
+      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      'base-macmini-lion-float', {}, f_factory, MAC),
+      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      'base-macmini-lion-float', {}, f_factory, MAC),
+      ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      None, {}, f_factory, MAC),
+      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      'base-macmini-10_8', {}, f_factory, MAC),
+      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      'base-macmini-10_8', {}, f_factory, MAC),
+      ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      None, {}, f_factory, MAC),
+      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      'base-macmini-10_8', {}, f_factory, MAC),
+      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, 'base-macmini-10_8', {}, f_factory, MAC),
+      ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, None, {}, f_factory, MAC),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   None,           GYP_WIN7,  'base-shuttle-win7-intel-float', {}, f_factory, WIN32),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  'base-shuttle-win7-intel-float', {}, f_factory, WIN32),
+      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  None, {}, f_factory, WIN32),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Debug',   None,           GYP_WIN7,  'base-shuttle-win7-intel-float', {}, f_factory, WIN32),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  'base-shuttle-win7-intel-float', {}, f_factory, WIN32),
+      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  None, {}, f_factory, WIN32),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   'ANGLE',        GYP_ANGLE, 'base-shuttle-win7-intel-angle', {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f_factory, WIN32),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, 'base-shuttle-win7-intel-angle', {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f_factory, WIN32),
+      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, None, {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f_factory, WIN32),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   'DirectWrite',  GYP_DW,    'base-shuttle-win7-intel-directwrite', {}, f_factory, WIN32),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    'base-shuttle-win7-intel-directwrite', {}, f_factory, WIN32),
+      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    None, {}, f_factory, WIN32),
+      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Debug',   None,           GYP_WIN8,  'base-shuttle-win8-gtx660', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  'base-shuttle-win8-gtx660', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  None, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Debug',   None,           GYP_WIN8,  'base-shuttle-win8-gtx660', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  'base-shuttle-win8-gtx660', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  None, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', 'NVPR',         NVPR_WIN8, 'base-shuttle-win8-gtx660-nvpr', {'build_targets': ['most'], 'bench_pictures_cfg': 'nvpr'}, f_factory, WIN32),
+      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', 'NVPR',         NVPR_WIN8, None, {'build_targets': ['most'], 'bench_pictures_cfg': 'nvpr'}, f_factory, WIN32),
+      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Debug',   None,           GYP_WIN8,  'base-shuttle-win8-hd7770', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  'base-shuttle-win8-hd7770', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Perf', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  None, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Debug',   None,           GYP_WIN8,  'base-shuttle-win8-hd7770', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  'base-shuttle-win8-hd7770', {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Perf', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  None, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Test', 'Android',  'NexusS',     'SGX540',      'Arm7',   'Debug',   None,           None,      'base-android-nexus-s', {'device': 'nexus_s'}, f_android, LINUX),
+      ('Test', 'Android',  'NexusS',     'SGX540',      'Arm7',   'Release', None,           None,      'base-android-nexus-s', {'device': 'nexus_s'}, f_android, LINUX),
+      ('Perf', 'Android',  'NexusS',     'SGX540',      'Arm7',   'Release', None,           None,      None, {'device': 'nexus_s'}, f_android, LINUX),
+      ('Test', 'Android',  'Nexus4',     'Adreno320',   'Arm7',   'Debug',   None,           None,      'base-android-nexus-4', {'device': 'nexus_4'}, f_android, LINUX),
+      ('Test', 'Android',  'Nexus4',     'Adreno320',   'Arm7',   'Release', None,           None,      'base-android-nexus-4', {'device': 'nexus_4'}, f_android, LINUX),
+      ('Perf', 'Android',  'Nexus4',     'Adreno320',   'Arm7',   'Release', None,           None,      None, {'device': 'nexus_4'}, f_android, LINUX),
+      ('Test', 'Android',  'Nexus7',     'Tegra3',      'Arm7',   'Debug',   None,           None,      'base-android-nexus-7', {'device': 'nexus_7'}, f_android, LINUX),
+      ('Test', 'Android',  'Nexus7',     'Tegra3',      'Arm7',   'Release', None,           None,      'base-android-nexus-7', {'device': 'nexus_7'}, f_android, LINUX),
+      ('Perf', 'Android',  'Nexus7',     'Tegra3',      'Arm7',   'Release', None,           None,      None, {'device': 'nexus_7'}, f_android, LINUX),
+      ('Test', 'Android',  'Nexus10',    'MaliT604',    'Arm7',   'Debug',   None,           None,      'base-android-nexus-10', {'device': 'nexus_10'}, f_android, LINUX),
+      ('Test', 'Android',  'Nexus10',    'MaliT604',    'Arm7',   'Release', None,           None,      'base-android-nexus-10', {'device': 'nexus_10'}, f_android, LINUX),
+      ('Perf', 'Android',  'Nexus10',    'MaliT604',    'Arm7',   'Release', None,           None,      None, {'device': 'nexus_10'}, f_android, LINUX),
+      ('Test', 'Android',  'GalaxyNexus','SGX540',      'Arm7',   'Debug',   None,           None,      'base-android-galaxy-nexus', {'device': 'galaxy_nexus'}, f_android, LINUX),
+      ('Test', 'Android',  'GalaxyNexus','SGX540',      'Arm7',   'Release', None,           None,      'base-android-galaxy-nexus', {'device': 'galaxy_nexus'}, f_android, LINUX),
+      ('Perf', 'Android',  'GalaxyNexus','SGX540',      'Arm7',   'Release', None,           None,      None, {'device': 'galaxy_nexus'}, f_android, LINUX),
+      ('Test', 'Android',  'Xoom',       'Tegra2',      'Arm7',   'Debug',   None,           None,      'base-android-xoom', {'device': 'xoom'}, f_android, LINUX),
+      ('Test', 'Android',  'Xoom',       'Tegra2',      'Arm7',   'Release', None,           None,      'base-android-xoom', {'device': 'xoom'}, f_android, LINUX),
+      ('Perf', 'Android',  'Xoom',       'Tegra2',      'Arm7',   'Release', None,           None,      None, {'device': 'xoom'}, f_android, LINUX),
+      ('Test', 'Android',  'IntelRhb',   'SGX544',      'x86',    'Debug',   None,           None,      'base-android-intel-rhb', {'device': 'intel_rhb'}, f_android, LINUX),
+      ('Test', 'Android',  'IntelRhb',   'SGX544',      'x86',    'Release', None,           None,      'base-android-intel-rhb', {'device': 'intel_rhb'}, f_android, LINUX),
+      ('Perf', 'Android',  'IntelRhb',   'SGX544',      'x86',    'Release', None,           None,      None, {'device': 'intel_rhb'}, f_android, LINUX),
+      ('Test', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Debug',   None,           None,      None, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Test', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Release', None,           None,      None, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Release', None,           None,      None, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Test', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Debug',   None,           None,      None, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Test', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Release', None,           None,      None, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Perf', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Release', None,           None,      None, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Test', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Debug',   None,           None,      None, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Test', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Release', None,           None,      None, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Perf', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Release', None,           None,      None, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+  ]
 
   setup_test_and_perf_builders_from_config_list(builder_specs, helper,
                                                 do_upload_results)
@@ -314,94 +302,74 @@ def setup_compile_builders(helper, do_upload_results):
       do_upload_results: bool; whether the builders should upload their
           results.
   """
-  # builder_specs is a list whose entries describe compile builders.
-  builder_specs = []
   #
   #                            COMPILE BUILDERS
   #
   #    OS          Compiler  Config     Arch     Extra Config    GYP_DEFS   WERR
   #
-  f = skia_factory.SkiaFactory
-  p = skia_factory.TARGET_PLATFORM_LINUX
-  builder_specs.extend([
-      ('Ubuntu12', 'GCC',    'Debug',   'x86',    None,          None,      True,  {}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'x86',    None,          None,      True,  {}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', None,          None,      True,  {}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'x86_64', None,          None,      True,  {}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'Valgrind',    VALGRIND,  False, {'flavor': 'valgrind'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       NO_GPU,    True,  {}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       NO_GPU,    True,  {}, f, p),
-      ('Ubuntu12', 'Clang',  'Debug',   'x86_64', None,          CLANG,     True,  {'environment_variables': {'CC': '/usr/bin/clang', 'CXX': '/usr/bin/clang++'}}, f, p),
-      ('Ubuntu13', 'GCC4.8', 'Debug',   'x86_64', None,          None,      True,  {}, f, p),])
-  f = xsan_factory.XsanFactory
-  builder_specs.extend([
-      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, {'sanitizer': 'address'}, f, p),])
-  f = nacl_factory.NaClFactory
-  builder_specs.extend([
-      ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,      True,  {}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'NaCl',   None,          None,      True,  {}, f, p),])
-  f = skia_factory.SkiaFactory
-  p = skia_factory.TARGET_PLATFORM_MAC
-  builder_specs.extend([
-      ('Mac10.6',  'GCC',    'Debug',   'x86',    None,          GYP_10_6,  True,  {}, f, p),
-      ('Mac10.6',  'GCC',    'Release', 'x86',    None,          GYP_10_6,  True,  {}, f, p),
-      ('Mac10.6',  'GCC',    'Debug',   'x86_64', None,          GYP_10_6,  False, {}, f, p),
-      ('Mac10.6',  'GCC',    'Release', 'x86_64', None,          GYP_10_6,  False, {}, f, p),
-      ('Mac10.7',  'Clang',  'Debug',   'x86',    None,          None,      True,  {}, f, p),
-      ('Mac10.7',  'Clang',  'Release', 'x86',    None,          None,      True,  {}, f, p),
-      ('Mac10.7',  'Clang',  'Debug',   'x86_64', None,          None,      False, {}, f, p),
-      ('Mac10.7',  'Clang',  'Release', 'x86_64', None,          None,      False, {}, f, p),
-      ('Mac10.8',  'Clang',  'Debug',   'x86',    None,          None,      True,  {}, f, p),
-      ('Mac10.8',  'Clang',  'Release', 'x86',    None,          None,      True,  {}, f, p),
-      ('Mac10.8',  'Clang',  'Debug',   'x86_64', None,          None,      False, {}, f, p),
-      ('Mac10.8',  'Clang',  'Release', 'x86_64', None,          PDFVIEWER, False, {}, f, p),])
-  p = skia_factory.TARGET_PLATFORM_WIN32
-  builder_specs.extend([
-      ('Win7',     'VS2010', 'Debug',   'x86',    None,          GYP_WIN7,  True,  {}, f, p),
-      ('Win7',     'VS2010', 'Release', 'x86',    None,          GYP_WIN7,  True,  {}, f, p),
-      ('Win7',     'VS2010', 'Debug',   'x86_64', None,          GYP_WIN7,  False, {}, f, p),
-      ('Win7',     'VS2010', 'Release', 'x86_64', None,          GYP_WIN7,  False, {}, f, p),
-      ('Win7',     'VS2010', 'Debug',   'x86',    'ANGLE',       GYP_ANGLE, True,  {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f, p),
-      ('Win7',     'VS2010', 'Release', 'x86',    'ANGLE',       GYP_ANGLE, True,  {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f, p),
-      ('Win7',     'VS2010', 'Debug',   'x86',    'DirectWrite', GYP_DW,    False, {}, f, p),
-      ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', GYP_DW,    False, {}, f, p),
-      ('Win7',     'VS2010', 'Debug',   'x86',    'Exceptions',  GYP_EXC,   False, {}, f, p),
-      ('Win8',     'VS2012', 'Debug',   'x86',    None,          GYP_WIN8,  True,  {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Win8',     'VS2012', 'Release', 'x86',    None,          GYP_WIN8,  True,  {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Win8',     'VS2012', 'Debug',   'x86_64', None,          GYP_WIN8,  False, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Win8',     'VS2012', 'Release', 'x86_64', None,          GYP_WIN8,  False, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f, p),
-      ('Win8',     'VS2012', 'Release', 'x86',    'NVPR',        NVPR_WIN8, True,  {'build_targets': ['most'], 'bench_pictures_cfg': 'nvpr'}, f, p),])
-  f = android_factory.AndroidFactory
-  p = skia_factory.TARGET_PLATFORM_LINUX
-  builder_specs.extend([
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'NexusS',      None,      True,  {'device': 'nexus_s'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'NexusS',      None,      True,  {'device': 'nexus_s'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus4',      None,      True,  {'device': 'nexus_4'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus4',      None,      True,  {'device': 'nexus_4'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus7',      None,      True,  {'device': 'nexus_7'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus7',      None,      True,  {'device': 'nexus_7'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus10',     None,      True,  {'device': 'nexus_10'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus10',     None,      True,  {'device': 'nexus_10'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'GalaxyNexus', None,      True,  {'device': 'galaxy_nexus'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'GalaxyNexus', None,      True,  {'device': 'galaxy_nexus'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Xoom',        None,      True,  {'device': 'xoom'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Xoom',        None,      True,  {'device': 'xoom'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'IntelRhb',    None,      True,  {'device': 'intel_rhb'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'x86',    'IntelRhb',    None,      True,  {'device': 'intel_rhb'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'Mips',   'Mips',        None,      True,  {'device': 'mips'}, f, p),])
-  f = chromeos_factory.ChromeOSFactory
-  builder_specs.extend([
-      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'Alex',        None,      True,  {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'x86',    'Alex',        None,      True,  {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'Link',        None,      True,  {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'Link',        None,      True,  {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Daisy',       None,      True,  {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f, p),
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Daisy',       None,      True,  {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f, p),])
-  f = ios_factory.iOSFactory
-  p = skia_factory.TARGET_PLATFORM_MAC
-  builder_specs.extend([
-      ('Mac10.7',  'Clang',  'Debug',   'Arm7',   'iOS',         GYP_IOS,   True,  {}, f, p),
-      ('Mac10.7',  'Clang',  'Release', 'Arm7',   'iOS',         GYP_IOS,   True,  {}, f, p),])
+  builder_specs = [
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',    None,          None,      True,  {}, f_factory, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'x86',    None,          None,      True,  {}, f_factory, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', None,          None,      True,  {}, f_factory, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', None,          None,      True,  {}, f_factory, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'Valgrind',    VALGRIND,  False, {'flavor': 'valgrind'}, f_factory, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'NoGPU',       NO_GPU,    True,  {}, f_factory, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       NO_GPU,    True,  {}, f_factory, LINUX),
+      ('Ubuntu12', 'Clang',  'Debug',   'x86_64', None,          CLANG,     True,  {'environment_variables': {'CC': '/usr/bin/clang', 'CXX': '/usr/bin/clang++'}}, f_factory, LINUX),
+      ('Ubuntu13', 'GCC4.8', 'Debug',   'x86_64', None,          None,      True,  {}, f_factory, LINUX),
+      ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, {'sanitizer': 'address'}, f_xsan, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,      True,  {}, f_nacl, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'NaCl',   None,          None,      True,  {}, f_nacl, LINUX),
+      ('Mac10.6',  'GCC',    'Debug',   'x86',    None,          GYP_10_6,  True,  {}, f_factory, MAC),
+      ('Mac10.6',  'GCC',    'Release', 'x86',    None,          GYP_10_6,  True,  {}, f_factory, MAC),
+      ('Mac10.6',  'GCC',    'Debug',   'x86_64', None,          GYP_10_6,  False, {}, f_factory, MAC),
+      ('Mac10.6',  'GCC',    'Release', 'x86_64', None,          GYP_10_6,  False, {}, f_factory, MAC),
+      ('Mac10.7',  'Clang',  'Debug',   'x86',    None,          None,      True,  {}, f_factory, MAC),
+      ('Mac10.7',  'Clang',  'Release', 'x86',    None,          None,      True,  {}, f_factory, MAC),
+      ('Mac10.7',  'Clang',  'Debug',   'x86_64', None,          None,      False, {}, f_factory, MAC),
+      ('Mac10.7',  'Clang',  'Release', 'x86_64', None,          None,      False, {}, f_factory, MAC),
+      ('Mac10.8',  'Clang',  'Debug',   'x86',    None,          None,      True,  {}, f_factory, MAC),
+      ('Mac10.8',  'Clang',  'Release', 'x86',    None,          None,      True,  {}, f_factory, MAC),
+      ('Mac10.8',  'Clang',  'Debug',   'x86_64', None,          None,      False, {}, f_factory, MAC),
+      ('Mac10.8',  'Clang',  'Release', 'x86_64', None,          PDFVIEWER, False, {}, f_factory, MAC),
+      ('Win7',     'VS2010', 'Debug',   'x86',    None,          GYP_WIN7,  True,  {}, f_factory, WIN32),
+      ('Win7',     'VS2010', 'Release', 'x86',    None,          GYP_WIN7,  True,  {}, f_factory, WIN32),
+      ('Win7',     'VS2010', 'Debug',   'x86_64', None,          GYP_WIN7,  False, {}, f_factory, WIN32),
+      ('Win7',     'VS2010', 'Release', 'x86_64', None,          GYP_WIN7,  False, {}, f_factory, WIN32),
+      ('Win7',     'VS2010', 'Debug',   'x86',    'ANGLE',       GYP_ANGLE, True,  {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f_factory, WIN32),
+      ('Win7',     'VS2010', 'Release', 'x86',    'ANGLE',       GYP_ANGLE, True,  {'gm_args': ['--config', 'angle'], 'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}, f_factory, WIN32),
+      ('Win7',     'VS2010', 'Debug',   'x86',    'DirectWrite', GYP_DW,    False, {}, f_factory, WIN32),
+      ('Win7',     'VS2010', 'Release', 'x86',    'DirectWrite', GYP_DW,    False, {}, f_factory, WIN32),
+      ('Win7',     'VS2010', 'Debug',   'x86',    'Exceptions',  GYP_EXC,   False, {}, f_factory, WIN32),
+      ('Win8',     'VS2012', 'Debug',   'x86',    None,          GYP_WIN8,  True,  {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Win8',     'VS2012', 'Release', 'x86',    None,          GYP_WIN8,  True,  {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Win8',     'VS2012', 'Debug',   'x86_64', None,          GYP_WIN8,  False, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Win8',     'VS2012', 'Release', 'x86_64', None,          GYP_WIN8,  False, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}, f_factory, WIN32),
+      ('Win8',     'VS2012', 'Release', 'x86',    'NVPR',        NVPR_WIN8, True,  {'build_targets': ['most'], 'bench_pictures_cfg': 'nvpr'}, f_factory, WIN32),
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'NexusS',      None,      True,  {'device': 'nexus_s'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'NexusS',      None,      True,  {'device': 'nexus_s'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus4',      None,      True,  {'device': 'nexus_4'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus4',      None,      True,  {'device': 'nexus_4'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus7',      None,      True,  {'device': 'nexus_7'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus7',      None,      True,  {'device': 'nexus_7'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus10',     None,      True,  {'device': 'nexus_10'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Nexus10',     None,      True,  {'device': 'nexus_10'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'GalaxyNexus', None,      True,  {'device': 'galaxy_nexus'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'GalaxyNexus', None,      True,  {'device': 'galaxy_nexus'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Xoom',        None,      True,  {'device': 'xoom'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Xoom',        None,      True,  {'device': 'xoom'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'IntelRhb',    None,      True,  {'device': 'intel_rhb'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'x86',    'IntelRhb',    None,      True,  {'device': 'intel_rhb'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'Mips',   'Mips',        None,      True,  {'device': 'mips'}, f_android, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'x86',    'Alex',        None,      True,  {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'x86',    'Alex',        None,      True,  {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'Link',        None,      True,  {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'Link',        None,      True,  {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Daisy',       None,      True,  {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'Daisy',       None,      True,  {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}, f_cros, LINUX),
+      ('Mac10.7',  'Clang',  'Debug',   'Arm7',   'iOS',         GYP_IOS,   True,  {}, f_ios, MAC),
+      ('Mac10.7',  'Clang',  'Release', 'Arm7',   'iOS',         GYP_IOS,   True,  {}, f_ios, MAC),
+  ]
 
   setup_compile_builders_from_config_list(builder_specs, helper,
                                           do_upload_results)
@@ -446,7 +414,7 @@ def setup_housekeepers(helper, do_upload_results):
     helper.Factory('f_%s' % builder_name,
         factory(
             do_upload_results=do_upload_results,
-            target_platform=skia_factory.TARGET_PLATFORM_LINUX,
+            target_platform=LINUX,
             builder_name=builder_name,
             do_patch_step=(scheduler == utils.TRY_SCHEDULERS_STR),
         ).Build())
@@ -468,7 +436,7 @@ def setup_canaries(helper, do_upload_results):
                                            compiler='Ninja',
                                            target_arch='x86_64',
                                            configuration='Default'),
-       skia_factory.TARGET_PLATFORM_LINUX,
+       LINUX,
        canary_factory.CanaryFactory,
        'skia_rel',
        {
@@ -483,7 +451,7 @@ def setup_canaries(helper, do_upload_results):
                                            compiler='Ninja',
                                            target_arch='x86',
                                            configuration='SharedLib'),
-       skia_factory.TARGET_PLATFORM_WIN32,
+       WIN32,
        canary_factory.CanaryFactory,
        'skia_rel',
        {
@@ -501,7 +469,7 @@ def setup_canaries(helper, do_upload_results):
                                            compiler='Ninja',
                                            target_arch='x86_64',
                                            configuration='DRT'),
-       skia_factory.TARGET_PLATFORM_LINUX,
+       LINUX,
        drt_canary_factory.DRTCanaryFactory,
        'skia_rel',
        {
