@@ -19,9 +19,12 @@ master/slaves.cfgc
 site_config/*_password
 site_config/*_username
 .boto
+# Data files used by webpages_playback.py
+slave/skia_slave_scripts/page_sets/data/*
 # Third party files pulled by buildbot.
 third_party/chromium_buildbot/*
 third_party/chromium_trunk/*
 third_party/depot_tools/*
 third_party/src/*
 tools/tests/factory_configuration/actual/
+

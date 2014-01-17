@@ -3,23 +3,23 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Archives or replays webpages and creates skps in a Google Storage location.
+"""Archives or replays webpages and creates SKPs in a Google Storage location.
 
-To archive webpages and store skp files (will be run rarely to update archives):
+To archive webpages and store SKP files (archives should be rarely updated):
 
 cd ../buildbot/slave/skia_slave_scripts
-python webpages_playback.py --dest_gsbase=gs://rmistry --record=True \
---page_sets=all --debugger=~/trunk/out/Release/debugger \
---browser_executable=~/chromium/out/Release/chrome
+python webpages_playback.py --dest_gsbase=gs://rmistry --record \
+--page_sets=all --skia_tools=/home/default/trunk/out/Debug/ \
+--browser_executable=/tmp/chromium/out/Release/chrome
 
 
-To replay archived webpages and re-generate skp files (should be run whenever
+To replay archived webpages and re-generate SKP files (should be run whenever
 SkPicture.PICTURE_VERSION changes):
 
 cd ../buildbot/slave/skia_slave_scripts
-python webpages_playback.py --dest_gsbase=gs://rmistry --record=False \
---page_sets=all --debugger=~/trunk/out/Release/debugger \
---browser_executable=~/chromium/out/Release/chrome
+python webpages_playback.py --dest_gsbase=gs://rmistry \
+--page_sets=all --skia_tools=/home/default/trunk/out/Debug/ \
+--browser_executable=/tmp/chromium/out/Release/chrome
 
 
 Specify the --page_sets flag (default value is 'all') to pick a list of which
@@ -30,16 +30,20 @@ page_sets/skia_wikipedia_galaxynexus.json
 
 The --browser_executable flag should point to the browser binary you want to use
 to capture archives and/or capture SKP files. Majority of the time it should be
-a newly built chrome binary. Please make sure that proxies are turned off in the
-binary.
+a newly built chrome binary.
 
 The --upload_to_gs flag controls whether generated artifacts will be uploaded
-to Google Storage (default value is 'False').
+to Google Storage (default value is False if not specified).
 
-The --debugger flag if specified will allow you to preview the captured skp
-before proceeding to the next page_set. It needs to point to a pre-built
-debugger. Eg: trunk/out/Release/debugger
+The --non-interactive flag controls whether the script will prompt the user
+(default value is False if not specified).
 
+The --skia_tools flag if specified will allow this script to run
+debugger, render_pictures, bench_pictures and render_pdfs on the captured
+SKP(s). The tools are run after all SKPs are succesfully captured to make sure
+they can be added to the buildbots with no breakages.
+To preview the captured SKP before proceeding to the next page_set specify both
+--skia_tools and --view_debugger_output.
 """
 
 import glob
@@ -48,10 +52,10 @@ import optparse
 import os
 import posixpath
 import shutil
+import subprocess
 import sys
 import tempfile
 import time
-import traceback
 
 
 # Set the PYTHONPATH for this script to include chromium_buildbot scripts,
@@ -65,7 +69,6 @@ sys.path.append(
 
 
 from slave import slave_utils
-from slave import svn
 from utils import file_utils
 from utils import gs_utils
 from utils import shell_utils
@@ -75,7 +78,7 @@ from playback_dirs import ROOT_PLAYBACK_DIR_NAME
 from playback_dirs import SKPICTURES_DIR_NAME
 
 
-# Local archive and skp directories.
+# Local archive and SKP directories.
 LOCAL_PLAYBACK_ROOT_DIR = os.path.join(
     tempfile.gettempdir(), ROOT_PLAYBACK_DIR_NAME)
 LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR = os.path.join(
@@ -93,7 +96,6 @@ TELEMETRY_BINARIES_DIR = os.path.join(
 CREDENTIALS_FILE_PATH = os.path.join(
     os.path.dirname(__file__), 'page_sets', 'data', 'credentials.json'
 )
-CREDENTIALS_MISSING_PASSWORD = '***'
 
 # Stdout that signifies that a recording has failed.
 RECORD_FAILURE_MSG = 'The recording has not been updated for these pages.'
@@ -104,16 +106,23 @@ SKP_BENCHMARK = 'skpicture_printer'
 # The max base name length of Skp files.
 MAX_SKP_BASE_NAME_LEN = 31
 
-# Dictionary of device to platform prefixes for skp files.
+# Dictionary of device to platform prefixes for SKP files.
 DEVICE_TO_PLATFORM_PREFIX = {
     'desktop': 'desk',
     'galaxynexus': 'mobi',
     'nexus10': 'tabl'
 }
 
+# How many times the record_wpr binary should be retried.
+RETRY_RECORD_WPR_COUNT = 5
+
+# Location of the credentials.json file in Google Storage.
+CREDENTIALS_GS_LOCATION = (
+    'gs://chromium-skia-gm/playback/credentials/credentials.json')
+
 
 class SkPicturePlayback(object):
-  """Class that archives or replays webpages and creates skps."""
+  """Class that archives or replays webpages and creates SKPs."""
 
   def __init__(self, parse_options):
     """Constructs a SkPicturePlayback BuildStep instance."""
@@ -124,20 +133,17 @@ class SkPicturePlayback(object):
     self._page_sets = self._ParsePageSets(parse_options.page_sets)
 
     self._dest_gsbase = parse_options.dest_gsbase
-    self._record = parse_options.record == 'True'
-    self._debugger = parse_options.debugger
-    self._upload_to_gs = parse_options.upload_to_gs == 'True'
+    self._record = parse_options.record
+    self._skia_tools = parse_options.skia_tools
+    self._non_interactive = parse_options.non_interactive
+    self._upload_to_gs = parse_options.upload_to_gs
 
     self._local_skp_dir = os.path.join(
         parse_options.output_dir, ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
     self._local_record_webpages_archive_dir = os.path.join(
         parse_options.output_dir, ROOT_PLAYBACK_DIR_NAME, 'webpages_archive')
 
-    self._trunk = parse_options.trunk
-    self._svn_username = parse_options.svn_username
-    self._svn_password = parse_options.svn_password
-
-    # List of skp files generated by this script.
+    # List of SKP files generated by this script.
     self._skp_files = []
 
   def _ParsePageSets(self, page_sets):
@@ -157,24 +163,24 @@ class SkPicturePlayback(object):
   def Run(self):
     """Run the SkPicturePlayback BuildStep."""
 
-    # Ensure that the credentials.json file has been edited.
-    with open(CREDENTIALS_FILE_PATH, 'r') as credentials_file:
-      parsed_json = json.load(credentials_file)
-      for key in parsed_json:
-        if parsed_json[key]["password"] == CREDENTIALS_MISSING_PASSWORD:
-          raise Exception(
-              "Please enter the correct password for %s in %s. Password is "
-              "stored in valentine (webpages_playback_credentials)." % (
-                  key, CREDENTIALS_FILE_PATH))
-
     # Ensure the right .boto file is used by gsutil.
-    if self._upload_to_gs and not (
-            gs_utils.DoesStorageObjectExist(self._dest_gsbase)):
+    if gs_utils.ReadTimeStampFile(
+        timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+        gs_base=self._dest_gsbase,
+        gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME,
+                                       SKPICTURES_DIR_NAME)) == "0":
       raise Exception(
           'Missing .boto file or .boto does not have the right credentials.'
           'Please see https://docs.google.com/a/google.com/document/d/1ZzHP6M5q'
           'ACA9nJnLqOZr2Hl0rjYqE4yQsQWAfVjKCzs/edit '
-          '(may have to request access)')
+          '(may have to request access). The .boto file will need to be placed '
+          'under third_party/chromium_buildbot/site_config/')
+
+    # Download the credentials file if it was not previously downloaded.
+    if not os.path.isfile(CREDENTIALS_FILE_PATH):
+      # Download the credentials.json file from Google Storage.
+      slave_utils.GSUtilDownloadFile(
+          src=CREDENTIALS_GS_LOCATION, dst=os.path.join('page_sets', 'data'))
 
     # Delete any left over data files in the data directory.
     for archive_file in glob.glob(
@@ -213,54 +219,40 @@ class SkPicturePlayback(object):
           '--browser-executable=%s' % self._browser_executable,
           page_set
         )
-        retry = True
-        while retry:
+        for _ in range(RETRY_RECORD_WPR_COUNT):
           output = shell_utils.Bash(record_wpr_cmd)
-          retry = False
           if RECORD_FAILURE_MSG in output:
-            user_input = raw_input(
-                "Would you like to rerun record_wpr? [y,n]")
-            if user_input == 'y':
-              retry = True
-            else:
-              raise Exception(output)
+            print output
+          else:
+            # Break out of the retry loop since there were no errors.
+            break
+        else:
+          # If we get here then record_wpr did not succeed and thus did not
+          # break out of the loop.
+          raise Exception('record_wpr failed for page_set: %s' % page_set)
+
       else:
         # Get the webpages archive so that it can be replayed.
         self._DownloadWebpagesArchive(wpr_data_file, page_set_basename)
 
-      accept_skp = False
-      while not accept_skp:
-        run_measurement_cmd = (
-            os.path.join(TELEMETRY_BINARIES_DIR, 'run_measurement'),
-            '--extra-browser-args=--disable-setuid-sandbox',
-            '--browser=exact',
-            '--browser-executable=%s' % self._browser_executable,
-            SKP_BENCHMARK,
-            page_set,
-            '-o',
-            '/tmp/test.skp',
-            '--skp-outdir=%s' % TMP_SKP_DIR
-        )
-        retry = True
-        while retry:
-          try:
-            shell_utils.Bash(run_measurement_cmd)
-            retry = False
-          except Exception, e:
-            traceback.print_exc()
-            user_input = raw_input(
-              "Would you like to retry the skp? [y,n]")
-            if user_input != 'y':
-              raise e
-
-        if self._debugger:
-          os.system('%s %s' % (self._debugger, os.path.join(TMP_SKP_DIR, '*')))
-          user_input = raw_input(
-              "Would you like to recapture the skp(s)? [y,n]")
-          accept_skp = False if user_input == 'y' else True
-        else:
-          # Always accept skps if debugger is not provided to preview.
-          accept_skp = True
+      run_measurement_cmd = (
+          os.path.join(TELEMETRY_BINARIES_DIR, 'run_measurement'),
+          '--extra-browser-args=--disable-setuid-sandbox',
+          '--browser=exact',
+          '--browser-executable=%s' % self._browser_executable,
+          SKP_BENCHMARK,
+          page_set,
+          '-o',
+          '/tmp/test.skp',
+          '--skp-outdir=%s' % TMP_SKP_DIR
+      )
+      try:
+        print '\n\n=======Capturing SKP of %s=======\n\n' % page_set
+        shell_utils.Bash(run_measurement_cmd)
+      except shell_utils.CommandFailedException:
+        # skpicture_printer sometimes fails with AssertionError but the captured
+        # SKP is still valid. This is a known issue.
+        pass
 
       if self._record:
         # Move over the created archive into the local webpages archive
@@ -272,64 +264,76 @@ class SkPicturePlayback(object):
             os.path.join(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, page_set_basename),
             self._local_record_webpages_archive_dir)
 
-      # Rename generated skp files into more descriptive names.
+      # Rename generated SKP files into more descriptive names.
       self._RenameSkpFiles(page_set)
 
     print '\n\n=======Capturing SKP files took %s seconds=======\n\n' % (
         time.time() - start_time)
 
+    if self._skia_tools:
+      render_pictures_cmd = [
+          os.path.join(self._skia_tools, 'render_pictures'),
+          '-r', self._local_skp_dir
+      ]
+      bench_pictures_cmd = [
+          os.path.join(self._skia_tools, 'bench_pictures'),
+          '-r', self._local_skp_dir,
+          '--logPerIter'
+      ]
+      render_pdfs_cmd = [
+          os.path.join(self._skia_tools, 'render_pdfs'),
+          self._local_skp_dir
+      ]
+
+      for tools_cmd in (render_pictures_cmd, bench_pictures_cmd,
+                        render_pdfs_cmd):
+        print '\n\n=======Running %s=======' % ' '.join(tools_cmd)
+        proc = subprocess.Popen(tools_cmd)
+        (code, output) = shell_utils.LogProcessAfterCompletion(proc, echo=False)
+        if code != 0:
+          raise Exception('%s failed!' % ' '.join(tools_cmd))
+
+      if not self._non_interactive:
+        print '\n\n=======Running debugger======='
+        os.system('%s %s' % (os.path.join(self._skia_tools, 'debugger'),
+                             os.path.join(self._local_skp_dir, '*')))
+
+    print '\n\n'
+
     if self._upload_to_gs:
+      print '\n\n=======Uploading to Google Storage=======\n\n'
       # Copy the directory structure in the root directory into Google Storage.
+      # TODO(rmistry): Uploading to a test directory, the real SKP directory
+      # will be used when we are sure everything is working as intended.
+      # There are two references to '-test' below that will have to be removed.
       gs_status = slave_utils.GSUtilCopyDir(
-          src_dir=LOCAL_PLAYBACK_ROOT_DIR, gs_base=self._dest_gsbase,
-          dest_dir=ROOT_PLAYBACK_DIR_NAME, gs_acl=PLAYBACK_CANNED_ACL)
+          src_dir=LOCAL_PLAYBACK_ROOT_DIR,
+          gs_base=self._dest_gsbase,
+          dest_dir=ROOT_PLAYBACK_DIR_NAME + '-test',
+          gs_acl=PLAYBACK_CANNED_ACL)
       if gs_status != 0:
         raise Exception(
             'ERROR: GSUtilCopyDir error %d. "%s" -> "%s/%s"' % (
                 gs_status, LOCAL_PLAYBACK_ROOT_DIR, self._dest_gsbase,
                 ROOT_PLAYBACK_DIR_NAME))
 
-      # Add a timestamp file to the skp directory in Google Storage so we can
+      # Add a timestamp file to the SKP directory in Google Storage so we can
       # use directory level rsync like functionality.
       gs_utils.WriteTimeStampFile(
           timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
           timestamp_value=time.time(),
           gs_base=self._dest_gsbase,
-          gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME,
+          gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME + '-test',
                                          SKPICTURES_DIR_NAME),
           gs_acl=PLAYBACK_CANNED_ACL,
           local_dir=LOCAL_PLAYBACK_ROOT_DIR)
-
-      # Submit a whitespace change if all required arguments have been provided.
-      if self._trunk and self._svn_username and self._svn_password:
-        repo = svn.Svn(self._trunk, self._svn_username, self._svn_password,
-                       additional_svn_flags=[
-                           '--trust-server-cert', '--no-auth-cache',
-                           '--non-interactive'])
-        whitespace_file = open(
-            os.path.join(self._trunk, 'whitespace.txt'), 'a')
-        try:
-          whitespace_file.write('\n')
-        finally:
-          whitespace_file.close()
-        if self._all_page_sets_specified:
-          commit_msg = 'All skp files in Google Storage have been updated'
-        else:
-          commit_msg = (
-              'Updated the following skp files on Google Storage: %s' % (
-                  self._skp_files))
-        # Adding a pattern that makes the commit msg show up as an annotation
-        # in the dashboard. Please see for more details:
-        # https://code.google.com/p/skia/issues/detail?id=1065
-        commit_msg += ' (AddDashboardAnnotation)'
-        # pylint: disable=W0212
-        repo._RunSvnCommand(
-            ['commit', '--message', commit_msg, 'whitespace.txt'])
+    else:
+      print '\n\n=======Not Uploading to Google Storage=======\n\n'
 
     return 0
 
   def _RenameSkpFiles(self, page_set):
-    """Rename generated skp files into more descriptive names.
+    """Rename generated SKP files into more descriptive names.
 
     Look into the subdirectory of TMP_SKP_DIR and find the most interesting
     .skp in there to be this page_set's representative .skp.
@@ -390,42 +394,39 @@ if '__main__' == __name__:
       help='Specifies the page sets to use to archive. Supports globs.',
       default='all')
   option_parser.add_option(
-      '', '--record',
+      '', '--record', action='store_true',
       help='Specifies whether a new website archive should be created.',
-      default='False')
+      default=False)
   option_parser.add_option(
       '', '--dest_gsbase',
       help='gs:// bucket_name, the bucket to upload the file to.',
       default='gs://chromium-skia-gm')
   option_parser.add_option(
-      '', '--debugger',
-      help=('Path to a debugger. You can preview a captured skp if a debugger '
-            'is specified.'),
+      '', '--skia_tools',
+      help=('Path to compiled Skia executable tools. '
+            'render_pictures/render_pdfs/bench_pictures is run on the set '
+            'after all SKPs are captured. If the script is run without '
+            '--non-interactive then the debugger is also run at the end. Debug '
+            'builds are recommended because they seem to catch more failures '
+            'than Release builds.'),
       default=None)
   option_parser.add_option(
-      '', '--upload_to_gs',
+      '', '--upload_to_gs', action='store_true',
       help='Does not upload to Google Storage if this is False.',
-      default='False')
+      default=False)
   option_parser.add_option(
       '', '--output_dir',
       help='Directory where SKPs and webpage archives will be outputted to.',
       default=tempfile.gettempdir())
   option_parser.add_option(
-      '', '--trunk',
-      help='Path to Skia trunk, used for whitespace commit.',
-      default=None)
-  option_parser.add_option(
-      '', '--svn_username',
-      help='SVN username, used for whitespace commit.',
-      default=None)
-  option_parser.add_option(
-      '', '--svn_password',
-      help='SVN password, used for whitespace commit.',
-      default=None)
-  option_parser.add_option(
       '', '--browser_executable',
       help='The exact browser executable to run.',
       default=None)
+  option_parser.add_option(
+      '', '--non-interactive', action='store_true',
+      help='Runs the script without any prompts. If this flag is specified and '
+           '--skia_tools is specified then the debugger is not run.',
+      default=False)
   options, unused_args = option_parser.parse_args()
 
   playback = SkPicturePlayback(options)
