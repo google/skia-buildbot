@@ -38,6 +38,10 @@ def run_on_slaves(cmd):
       subprocess.check_call(cmd)
     except subprocess.CalledProcessError:
       failed.append(slave)
+  if failed:
+    print 'The command failed on the following buildslaves:'
+    for failed_slave in failed:
+      print failed_slave
 
 
 if '__main__' == __name__:
