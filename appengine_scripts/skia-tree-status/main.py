@@ -14,6 +14,7 @@ from google.appengine.ext import webapp
 import base_page
 import builder_status
 import commit_queue
+import master_redirect
 import status
 import sheriff
 import skia_telemetry
@@ -37,6 +38,7 @@ URLS = [
   ('/builder-status/?', builder_status.BuilderStatusPage),
   ('/builder-status/get_builder_statuses?',
    builder_status.GetBuilderStatusesPage),
+  ('/buildbots$', master_redirect.MasterConsolePage),
   ('/cq/receiver/?', commit_queue.Receiver),
   ('/cq/?', commit_queue.Summary),
   ('/cq/top', commit_queue.TopScore),
@@ -44,6 +46,8 @@ URLS = [
   ('/cq/([^/]+)/(\d+)/?', commit_queue.Issue),
   ('/cq/([^/]+)/(\d+)/(\d+)/?', commit_queue.Issue),
   ('/current-sheriff/?', sheriff.CurrentSheriffPage),
+  # ('/repo-serving/$', master_redirect.MasterRepoServingPage),
+  ('/repo-serving/(.*)(\.(html))?$', master_redirect.MasterRepoServingPage),
   ('/sheriff/?', sheriff.SheriffPage),
   ('/skia-telemetry/?', skia_telemetry.LandingPage),
   ('/skia-telemetry/admin_tasks?', skia_telemetry.AdminTasksPage),

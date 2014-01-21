@@ -1,13 +1,13 @@
-application: skia-tree-status
+application: skia-tree-status-staging
 version: 1
 runtime: python27
 api_version: 1
 threadsafe: true
 
 handlers:
-- url: /(.*\.(html|js))
+- url: /(.*\.(js))
   static_files: static/\1
-  upload: static/(.*\.(html|js))
+  upload: static/(.*\.(js))
 
 # main will look for a replacement in blobstore, if not, will redirect to
 # static/
