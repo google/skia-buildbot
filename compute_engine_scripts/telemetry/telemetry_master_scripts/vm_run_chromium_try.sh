@@ -125,6 +125,11 @@ if [ $ret_value -eq 0 ]; then
   # Strip out the filename at the end.
   CHROMIUM_BUILD_DIR=${CHROMIUM_BUILD_DIR%/*}
 
+  # Reboot all slaves so that they start from a clean slate.
+  bash vm_run_command_on_slaves.sh "sudo reboot"
+  # Sleep for 4 mins for all slaves to come back up.
+  sleep 240
+
   # Run telemetry on the slaves using the specified benchmark.
   TELEMETRY_BUILD_LOG=/tmp/try-telemetry-nopatch-$RUN_ID
   TELEMETRY_NOPATCH_ID=$RUN_ID-nopatch
@@ -133,6 +138,11 @@ if [ $ret_value -eq 0 ]; then
       "$EXTRA_ARGS" 10k $CHROMIUM_BUILD_DIR $TELEMETRY_NOPATCH_ID \
       $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
   TELEMETRY_WITHOUT_PATCH_TIME="$(($(date +%s)-TIMER))"
+
+  # Reboot all slaves so that they start from a clean slate.
+  bash vm_run_command_on_slaves.sh "sudo reboot"
+  # Sleep for 4 mins for all slaves to come back up.
+  sleep 240
 
   # Run telemetry using the patch build.
   TELEMETRY_BUILD_LOG=/tmp/try-telemetry-withpatch-$RUN_ID

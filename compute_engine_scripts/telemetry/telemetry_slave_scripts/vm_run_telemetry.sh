@@ -91,9 +91,7 @@ for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*.json; do
        OUTPUT_DIR_ARG="-o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}"
     fi
     echo "=== Running: eval sudo DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing\" --browser-executable=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG ==="
-    echo before: `top -b -n 1 | grep 'Cpu(s)' | head -1`
     eval sudo DISPLAY=:0 timeout 300 tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing\" --browser-executable=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
-    echo after: `top -b -n 1 | grep 'Cpu(s)' | head -1`
     sudo chown default:default $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
