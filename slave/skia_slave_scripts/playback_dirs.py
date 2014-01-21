@@ -18,10 +18,9 @@ SKPICTURES_DIR_NAME = 'skps'
 class SkpPlaybackDirs(object):
   """Interface for required directories for skp playback BuildSteps."""
 
-  def __init__(self, builder_name, gm_image_subdir, perf_output_basedir):
+  def __init__(self, builder_name, perf_output_basedir):
     """Create an instance of SkpPlaybackDirs."""
     self._builder_name = builder_name
-    self._gm_image_subdir = gm_image_subdir
     self._perf_output_basedir = perf_output_basedir
 
   def PlaybackRootDir(self):
@@ -46,10 +45,9 @@ class SkpPlaybackDirs(object):
 class LocalSkpPlaybackDirs(SkpPlaybackDirs):
   """Encapsulates all required local dirs for skp playback BuildSteps."""
 
-  def __init__(self, builder_name, gm_image_subdir, perf_output_basedir):
+  def __init__(self, builder_name, perf_output_basedir):
     """Create an instance of LocalSkpPlaybackDirs."""
-    SkpPlaybackDirs.__init__(self, builder_name, gm_image_subdir,
-                             perf_output_basedir)
+    SkpPlaybackDirs.__init__(self, builder_name, perf_output_basedir)
 
     self._local_playback_root_dir = os.path.abspath(
         os.path.join(os.pardir, ROOT_PLAYBACK_DIR_NAME))
@@ -72,7 +70,7 @@ class LocalSkpPlaybackDirs(SkpPlaybackDirs):
   def PlaybackGmExpectedDir(self):
     """Returns the local playback gm-expected directory."""
     return os.path.join(
-        self._local_playback_root_dir, 'gm-expected', self._gm_image_subdir)
+        self._local_playback_root_dir, 'gm-expected', self._builder_name)
 
   def PlaybackPerfDataDir(self):
     """Returns the local playback perf data directory."""
@@ -90,10 +88,9 @@ class LocalSkpPlaybackDirs(SkpPlaybackDirs):
 class StorageSkpPlaybackDirs(SkpPlaybackDirs):
   """Encapsulates all required storage dirs for skp playback BuildSteps."""
 
-  def __init__(self, builder_name, gm_image_subdir, perf_output_basedir):
+  def __init__(self, builder_name, perf_output_basedir):
     """Create an instance of StorageSkpPlaybackDirs."""
-    SkpPlaybackDirs.__init__(self, builder_name, gm_image_subdir,
-                             perf_output_basedir)
+    SkpPlaybackDirs.__init__(self, builder_name, perf_output_basedir)
 
   def PlaybackRootDir(self):
     """Returns the relative storage playback root directory."""
@@ -106,13 +103,12 @@ class StorageSkpPlaybackDirs(SkpPlaybackDirs):
   def PlaybackGmActualDir(self):
     """Returns the relative storage playback gm-actual directory."""
     return posixpath.join(
-        ROOT_PLAYBACK_DIR_NAME, 'gm-actual', self._gm_image_subdir,
-        self._builder_name, self._gm_image_subdir)
+        ROOT_PLAYBACK_DIR_NAME, 'gm-actual', self._builder_name)
 
   def PlaybackGmExpectedDir(self):
     """Returns the relative storage playback gm-expected directory."""
     return posixpath.join(
-        ROOT_PLAYBACK_DIR_NAME, 'gm-expected', self._gm_image_subdir)
+        ROOT_PLAYBACK_DIR_NAME, 'gm-expected', self._builder_name)
 
   def PlaybackPerfDataDir(self):
     """Returns the relative playback perf data directory."""

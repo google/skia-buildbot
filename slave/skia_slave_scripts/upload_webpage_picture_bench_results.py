@@ -18,8 +18,7 @@ upload_webpage_picture_bench_results.py \
 --autogen_svn_baseurl "" --make_flags "" --test_args "" --gm_args "" \
 --bench_args "" --num_cores 8 --perf_output_basedir "../../../../perfdata" \
 --builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
---got_revision 0 --gm_image_subdir "" \
---dest_gsbase "gs://rmistry"
+--got_revision 0 --dest_gsbase "gs://rmistry"
 
 """
 

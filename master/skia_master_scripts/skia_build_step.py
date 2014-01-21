@@ -8,7 +8,6 @@
 from buildbot.status.logfile import STDOUT
 from master.log_parser import retcode_command
 import re
-import utils
 
 
 class SkiaBuildStep(retcode_command.ReturnCodeCommand):
@@ -89,29 +88,6 @@ def _HasProperty(step, prop):
   # pylint: disable=W0702
   except:
     return False
-
-
-def _CheckRebaselineChanges(changes, gm_image_subdir):
-  """ Determine whether a set of changes consists of only files in 'gm-expected'
-  and whether any of those files are in the given gm_image_subdir. Returns a
-  tuple consisting of two booleans: whether or not the commit consists of only
-  new baseline images, and whether or not baselines changed for the given
-  platform.
-
-  changes: a list of the changelists which are part of this build.
-  gm_image_subdir: the subdirectory inside gm-expected which corresponds to this
-      build slave's platform.
-  """
-  commit_is_only_baselines = True
-  platform_changed = False
-  for change in changes:
-    for changed_file in change.asDict()['files']:
-      for subdir in utils.SKIA_PRIMARY_SUBDIRS:
-        if subdir != 'gm-expected' and subdir in changed_file['name']:
-          commit_is_only_baselines = False
-      if gm_image_subdir in changed_file:
-        platform_changed = True
-  return commit_is_only_baselines, platform_changed
 
 
 def ShouldDoStep(step):

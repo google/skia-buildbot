@@ -18,8 +18,8 @@ compare_and_upload_webpage_gms.py \
 --autogen_svn_baseurl "" --make_flags "" --test_args "" --gm_args "" \
 --bench_args "" --num_cores 8 --perf_output_basedir "" \
 --builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
---got_revision 0 --gm_image_subdir base-shuttle_ubuntu12_ati5770 \
---is_try False --do_upload_results True --dest_gsbase gs://rmistry
+--got_revision 0 --is_try False --do_upload_results True \
+--dest_gsbase gs://rmistry
 
 """
 
@@ -52,10 +52,22 @@ GM_COMPARISON_LINES_TO_DELETE_IMAGES = [
 ]
 
 IMAGES_FOR_UPLOAD_CHUNKS = [
-  'base-macmini',
-  'base-macmini-lion-float',
-  'base-macmini-10_8',
-  'base-shuttle_ubuntu12_ati5770',
+  'Test-Mac10.6-MacMini4.1-GeForce320M-x86-Debug',
+  'Test-Mac10.6-MacMini4.1-GeForce320M-x86-Release',
+  'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Debug',
+  'Test-Mac10.6-MacMini4.1-GeForce320M-x86_64-Release',
+  'Test-Mac10.7-MacMini4.1-GeForce320M-x86-Debug',
+  'Test-Mac10.7-MacMini4.1-GeForce320M-x86-Release',
+  'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Debug',
+  'Test-Mac10.7-MacMini4.1-GeForce320M-x86_64-Release',
+  'Test-Mac10.8-MacMini4.1-GeForce320M-x86-Debug',
+  'Test-Mac10.8-MacMini4.1-GeForce320M-x86-Release',
+  'Test-Mac10.8-MacMini4.1-GeForce320M-x86_64-Debug',
+  'Test-Mac10.8-MacMini4.1-GeForce320M-x86_64-Release',
+  'Test-Ubuntu12-ShuttleA-ATI5770-x86-Debug',
+  'Test-Ubuntu12-ShuttleA-ATI5770-x86-Release',
+  'Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Debug',
+  'Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release',
 ]
 
 
@@ -83,7 +95,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
                          sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 
     self._upload_chunks = (
-        True if self._gm_image_subdir in IMAGES_FOR_UPLOAD_CHUNKS
+        True if self._builder_name in IMAGES_FOR_UPLOAD_CHUNKS
              else False)
 
     # Check if gm-expected exists on Google Storage.

@@ -50,11 +50,11 @@ class SkiaFactory(BuildFactory):
                do_patch_step=False, build_subdir='skia',
                target_platform=None, configuration=CONFIG_DEBUG,
                default_timeout=8*60*60, deps_target_os=None,
-               environment_variables=None, gm_image_subdir=None,
-               perf_output_basedir=None, builder_name=None, flavor=None,
-               make_flags=None, test_args=None, gm_args=None, bench_args=None,
-               bench_pictures_cfg='default', compile_warnings_as_errors=False,
-               gyp_defines=None, build_targets=None):
+               environment_variables=None, perf_output_basedir=None,
+               builder_name=None, flavor=None, make_flags=None, test_args=None,
+               gm_args=None, bench_args=None, bench_pictures_cfg='default',
+               compile_warnings_as_errors=False, gyp_defines=None,
+               build_targets=None):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
 
     do_upload_results: whether we should upload bench/gm results
@@ -70,8 +70,6 @@ class SkiaFactory(BuildFactory):
     deps_target_os: string; the target_os to be specified in the gclient config.
     environment_variables: dictionary of environment variables that should
         be passed to all commands
-    gm_image_subdir: directory containing images for comparison against results
-        of gm tool
     perf_output_basedir: path to directory under which to store performance
         data, or None if we don't want to store performance data
     builder_name: name of the builder associated with this factory
@@ -113,9 +111,6 @@ class SkiaFactory(BuildFactory):
           svn_url=other_repo[1], name=other_repo[0]).GetSpec())
 
     self._deps_target_os = deps_target_os
-
-    if gm_image_subdir:
-      properties['gm_image_subdir'] = gm_image_subdir
 
     # Set _default_clobber based on config.Master
     self._default_clobber = getattr(config.Master, 'default_clobber', False)
@@ -185,7 +180,6 @@ class SkiaFactory(BuildFactory):
         '--configuration', configuration,
         '--deps_target_os', self._deps_target_os or 'None',
         '--do_upload_results', str(self._do_upload_results),
-        '--gm_image_subdir', gm_image_subdir or 'None',
         '--builder_name', builder_name,
         '--target_platform', target_platform,
         '--revision', WithProperties('%(rev)s', rev=_DetermineRevision),
@@ -499,15 +493,13 @@ class SkiaFactory(BuildFactory):
     self.AddFlavoredSlaveScript(script='postbench.py', description='PostBench')
 
   def CompareGMs(self):
-    """ Run the "skdiff" tool to compare the "actual" GM images we just
-    generated to the baselines in _gm_image_subdir. """
+    """Compare the actually-generated GM images to the checked-in baselines."""
     self.AddSlaveScript(script='compare_gms.py', description='CompareGMs',
                         is_rebaseline_step=True)
   
   def CompareAndUploadWebpageGMs(self):
-    """ Run the "skdiff" tool to compare the "actual" GM images we just
-    generated to the baselines in _gm_image_subdir and uploads the actual
-    images if appropriate. """
+    """Compare the actually-generated images from render_pictures to their
+    expectations and upload the actual images if needed."""
     self.AddSlaveScript(script='compare_and_upload_webpage_gms.py',
                         description='CompareAndUploadWebpageGMs',
                         is_rebaseline_step=True)

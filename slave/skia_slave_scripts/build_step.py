@@ -155,7 +155,6 @@ class BuildStep(multiprocessing.Process):
       raise Exception('Unrecognized build flavor: %s\n%s' % (flavor, e))
 
     self._configuration = args['configuration']
-    self._gm_image_subdir = args['gm_image_subdir']
 
     self._target_platform = args['target_platform']
     self._deps_target_os = \
@@ -201,11 +200,11 @@ class BuildStep(multiprocessing.Process):
 
     # Adding the playback directory transfer objects.
     self._local_playback_dirs = LocalSkpPlaybackDirs(
-        self._builder_name, self._gm_image_subdir,
+        self._builder_name,
         None if args['perf_output_basedir'] == 'None'
             else args['perf_output_basedir'])
     self._storage_playback_dirs = StorageSkpPlaybackDirs(
-        self._builder_name, self._gm_image_subdir,
+        self._builder_name,
         None if args['perf_output_basedir'] == 'None'
             else args['perf_output_basedir'])
 

@@ -19,8 +19,8 @@ python ../../../../../../slave/skia_slave_scripts/check_gs_timestamps.py \
 --autogen_svn_baseurl "" --make_flags "" --test_args "" --gm_args "" \
 --bench_args "" --num_cores 8 --perf_output_basedir "" \
 --builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
---got_revision 0 --gm_image_subdir base-shuttle_ubuntu12_ati5770 \
---is_try False --do_upload_results True --dest_gsbase gs://rmistry
+--got_revision 0 --is_try False --do_upload_results True \
+--dest_gsbase gs://rmistry
 
 """
 

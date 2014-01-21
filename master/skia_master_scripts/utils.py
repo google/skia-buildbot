@@ -448,9 +448,8 @@ class SkiaHelper(master_config.Helper):
 
 # Redefining name from outer scope (os) pylint:disable=W0621
 def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
-                 gm_image_subdir, factory_type, extra_config=None,
-                 perf_output_basedir=None, extra_repos=None, is_trybot=False,
-                 **kwargs):
+                 factory_type, extra_config=None, perf_output_basedir=None,
+                 extra_repos=None, is_trybot=False, **kwargs):
   """ Creates a builder and scheduler. """
   B = helper.Builder
   F = helper.Factory
@@ -479,7 +478,6 @@ def _MakeBuilder(helper, role, os, model, gpu, configuration, arch,
       builder_name=builder_name,
       other_repos=repos_to_checkout,
       configuration=configuration,
-      gm_image_subdir=gm_image_subdir,
       do_patch_step=is_trybot,
       perf_output_basedir=perf_output_basedir,
       **kwargs
