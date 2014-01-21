@@ -8,7 +8,6 @@ import httplib
 import logging
 import urllib2
 
-from google.appengine.ext import webapp
 import base_page
 
 
