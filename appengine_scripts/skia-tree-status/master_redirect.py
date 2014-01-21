@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Page that redirects to the currently running Skia Buildbot master."""
+"""Pages that redirect to the currently running Skia Buildbot master."""
 
 import httplib
 import logging
@@ -30,7 +30,6 @@ def _get_destination_url(port=None, subparts=None):
     if subparts:
       destination_url += '/%s' % subparts
 
-    logging.error('Trying out %s' % master_ip)
     try:
       urllib2.urlopen(destination_url, timeout=10).getcode()
       return destination_url
@@ -45,7 +44,6 @@ def _get_destination_url(port=None, subparts=None):
 
 class MasterConsolePage(base_page.BasePage):
   """Redirects to the console page of the currently running buildbot master."""
-
   def get(self):
     destination_url = _get_destination_url(port=MASTER_CONSOLE_PORT,
                                            subparts=MASTER_CONSOLE_SUBPART)
@@ -54,7 +52,6 @@ class MasterConsolePage(base_page.BasePage):
 
 class MasterRepoServingPage(base_page.BasePage):
   """Redirects to the currently running buildbot master."""
-
   def get(self, slug, *args):
     destination_url = _get_destination_url(port=MASTER_REPO_SERVING_PORT,
                                            subparts=slug)
