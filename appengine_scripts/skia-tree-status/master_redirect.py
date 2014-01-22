@@ -15,23 +15,33 @@ import base_page
 # For faster response time these IPs should be switched when GCE instances are
 # migrated during PCRs.
 MASTER_IPS = ('108.170.217.252', '173.255.115.253')
-# Buildbot master ports.
-MASTER_CONSOLE_PORT = 10117
-MASTER_REPO_SERVING_PORT = 8000
-# Special subparts of master.
-MASTER_CONSOLE_SUBPART = 'console'
+# Map of service type to a tuple containing the (port, subpart, protocol).
+SERVICE_TYPE_TO_INFO = {
+    'buildbots': (10117, '', 'http'),
+    'repo-serving': (8000, '', 'http'),
+}
 
 
-def _get_destination_url(port=None, subparts=None):
+def _get_destination_url(service_type, slug):
+  (port, subpart, protocol) = SERVICE_TYPE_TO_INFO[service_type]
   for master_ip in MASTER_IPS:
     destination_url = 'http://%s' % master_ip
     if port:
       destination_url += ':%s' % port
-    if subparts:
-      destination_url += '/%s' % subparts
 
     try:
-      urllib2.urlopen(destination_url, timeout=10).getcode()
+      # Test if the destination URL is up.
+      urllib2.urlopen(destination_url, timeout=15).getcode()
+      if protocol:
+        # If the protocol has been specified then replace the destination URL
+        # with it. We do not use the protocol for the initial URL check, it
+        # should always be HTTP.
+        destination_url = destination_url.replace('http', protocol)
+        # Add the subpart and slug to the destination URL.
+        if subpart:
+          destination_url += '/%s' % subpart
+        if slug:
+          destination_url += '/%s' % slug
       return destination_url
     except httplib.HTTPException, e:
       logging.warning(e)
@@ -44,16 +54,16 @@ def _get_destination_url(port=None, subparts=None):
 
 class MasterConsolePage(base_page.BasePage):
   """Redirects to the console page of the currently running buildbot master."""
-  def get(self):
-    destination_url = _get_destination_url(port=MASTER_CONSOLE_PORT,
-                                           subparts=MASTER_CONSOLE_SUBPART)
+  def get(self, slug, *args):
+    destination_url = _get_destination_url(service_type='buildbots',
+                                           slug=slug)
     self.redirect(destination_url, True)
 
 
 class MasterRepoServingPage(base_page.BasePage):
   """Redirects to the currently running buildbot master."""
   def get(self, slug, *args):
-    destination_url = _get_destination_url(port=MASTER_REPO_SERVING_PORT,
-                                           subparts=slug)
+    destination_url = _get_destination_url(service_type='repo-serving',
+                                           slug=slug)
     self.redirect(destination_url, True)
 

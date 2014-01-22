@@ -61,4 +61,6 @@ echo "  access to chromiumcodereview-hr):"
 echo "  https://appengine.google.com/datastore/explorer?submitted=1&app_id=s~chromiumcodereview-hr&show_options=yes&version_id=1129-927a0ebf0e29.369505670897398781&viewby=gql&query=SELECT+*+FROM+BaseUrlTryServer+WHERE+tryserver_name%3D%27tryserver.skia%27&options=Run+Query"
 echo "* Enter the new json_url in"
 echo "  https://codereview.chromium.org/restricted/update_tryservers."
+echo "* Flip the order of the MASTER_IPS in https://skia.googlesource.com/buildbot/+/master/appengine_scripts/skia-tree-status/master_redirect.py"
+echo ""
 echo
