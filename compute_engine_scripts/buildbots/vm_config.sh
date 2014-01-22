@@ -23,6 +23,8 @@ SLAVES_MACHINE_TYPE="n1-standard-2-d"
 #   gcutil --project=google.com:skia-buildbots listaddresses
 SLAVE_IP_ADDRESSES_a="173.255.114.84 173.255.114.239 173.255.114.128 108.170.217.249 173.255.115.61 108.170.217.254"
 SLAVE_IP_ADDRESSES_b="108.170.217.253 108.170.217.250 108.170.217.251 108.170.217.247 108.170.217.248 108.170.217.246"
+# The following IP addresses are reserved for skia-android-canary:
+# 108.170.219.169 amd 108.170.219.168
 
 # The Skia buildbot GCE image name.
 SKIA_BUILDBOT_IMAGE_NAME="skia-buildbot-image"
