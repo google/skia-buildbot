@@ -21,7 +21,7 @@ SERVICE_TYPE_TO_INFO = {
     'repo-serving': (8000, '', 'http'),
 }
 # Timeout to use in urlopen when determining which IP is up.
-URLOPEN_TIMEOUT=15
+URLOPEN_TIMEOUT = 15
 
 
 # TODO(rmistry): Add unittests for this function.
