@@ -38,7 +38,7 @@ URLS = [
   ('/builder-status/?', builder_status.BuilderStatusPage),
   ('/builder-status/get_builder_statuses?',
    builder_status.GetBuilderStatusesPage),
-  ('/buildbots/(.*)$', master_redirect.MasterConsolePage),
+  ('/buildbots/(.*)$', master_redirect.MasterBuildbotPage),
   ('/cq/receiver/?', commit_queue.Receiver),
   ('/cq/?', commit_queue.Summary),
   ('/cq/top', commit_queue.TopScore),
