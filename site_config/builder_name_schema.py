@@ -65,6 +65,36 @@ def MakeBuilderName(role, extra_config=None, is_trybot=False, **kwargs):
   return BUILDER_NAME_SEP.join(name_parts)
 
 
+def BuilderNameFromObject(obj, is_trybot=False):
+  """Create a builder name based on properties of the given object.
+
+  Args:
+      obj: the object from which to create the builder name. The object must
+          have as properties:
+          - A valid builder role, as defined in the JSON file
+          - All properties listed in the JSON file for that role
+          - Optionally, an extra_config property
+      is_trybot: bool; whether or not the builder is a trybot.
+  Returns:
+      string which combines the properties of the given object into a valid
+          builder name.
+  """
+  #pylint: disable=E0602
+  schema = BUILDER_NAME_SCHEMA.get(obj.role)
+  if not schema:
+    raise ValueError('%s is not a recognized role.' % role)
+  name_parts = [obj.role]
+  for attr_name in schema:
+    attr_val = getattr(obj, attr_name)
+    name_parts.append(attr_val)
+  extra_config = getattr(obj, 'extra_config', None)
+  if extra_config:
+    name_parts.append(extra_config)
+  if is_trybot:
+    name_parts.append(TRYBOT_NAME_SUFFIX)
+  return BUILDER_NAME_SEP.join(name_parts)
+
+
 def IsTrybot(builder_name):
   """ Returns true if builder_name refers to a trybot (as opposed to a
   waterfall bot). """

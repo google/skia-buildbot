@@ -39,7 +39,17 @@ class Moz2DCanaryFactory(SkiaFactory):
                                'moz2d_revision': 'Moz2D updated to (\w+)'},
         workdir='build')
 
-  def Build(self, **kwargs):
+  def Build(self, role=builder_name_schema.BUILDER_ROLE_CANARY, clobber=None,
+            **kwargs):
+    """Build and return the complete BuildFactory.
+
+    role: string; type of builder.
+    clobber: boolean indicating whether we should clean before building
+    """
+    if role != builder_name_schema.BUILDER_ROLE_CANARY:
+      raise Exception('Canary builders must have role "%s"' %
+                      builder_name_schema.BUILDER_ROLE_CANARY)
+
     # Spoof the role as a compile builder so that this factory only runs the
     # update and compile steps.
     return SkiaFactory.Build(self,

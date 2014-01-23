@@ -6,6 +6,7 @@
 
 Overrides SkiaFactory with Periodic HouseKeeping steps."""
 
+import builder_name_schema
 import tempfile
 
 import skia_vars
@@ -21,11 +22,17 @@ from skia_master_scripts import factory as skia_factory
 class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
   """Overrides for HouseKeeping periodic builds."""
 
-  def Build(self, clobber=None):
+  def Build(self, role=builder_name_schema.BUILDER_ROLE_HOUSEKEEPER,
+            clobber=None):
     """Build and return the complete BuildFactory.
 
+    role: string; type of builder.
     clobber: boolean indicating whether we should clean before building
     """
+    if role != builder_name_schema.BUILDER_ROLE_HOUSEKEEPER:
+      raise Exception('Housekeeping builders must have role "%s"' %
+                      builder_name_schema.BUILDER_ROLE_HOUSEKEEPER)
+
     self.UpdateSteps()
     if clobber is None:
       clobber = self._default_clobber

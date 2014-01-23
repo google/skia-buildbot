@@ -4,6 +4,8 @@
 
 
 from buildbot.process.properties import WithProperties
+
+import builder_name_schema
 import factory
 import os
 
@@ -63,7 +65,15 @@ class DRTCanaryFactory(factory.SkiaFactory):
     self.AddFlavoredSlaveScript(script='chrome_drt_canary_upload_results.py',
                                 description='UploadTestResults')
 
-  def Build(self, **kwargs):
+  def Build(self, role=builder_name_schema.BUILDER_ROLE_CANARY, clobber=None):
+    """Build and return the complete BuildFactory.
+
+    role: string; type of builder.
+    """
+    if role != builder_name_schema.BUILDER_ROLE_CANARY:
+      raise Exception('Canary builders must have role "%s"' %
+                      builder_name_schema.BUILDER_ROLE_CANARY)
+
     self.UpdateScripts()
     self.Update(use_lkgr_skia=True)
     self.Compile(retry_without_werr_on_failure=True)

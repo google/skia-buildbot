@@ -6,6 +6,8 @@
 
 Overrides SkiaFactory with Per-commit HouseKeeping steps."""
 
+
+import builder_name_schema
 import os
 import tempfile
 
@@ -23,11 +25,17 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     skia_factory.SkiaFactory.__init__(self, build_targets=['tools', 'gm'],
                                       **kwargs)
 
-  def Build(self, clobber=None):
+  def Build(self, role=builder_name_schema.BUILDER_ROLE_HOUSEKEEPER,
+            clobber=None):
     """Build and return the complete BuildFactory.
 
+    role: string; type of builder.
     clobber: boolean indicating whether we should clean before building
     """
+    if role != builder_name_schema.BUILDER_ROLE_HOUSEKEEPER:
+      raise Exception('Housekeeping builders must have role "%s"' %
+                      builder_name_schema.BUILDER_ROLE_HOUSEKEEPER)
+
     self.UpdateSteps()
     self.Compile(clobber)
 

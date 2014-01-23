@@ -56,7 +56,15 @@ class CanaryFactory(factory.SkiaFactory):
                                    alternate_script=path_str,
                                    alternate_workdir=workdir)
 
-  def Build(self, **kwargs):
+  def Build(self, role=builder_name_schema.BUILDER_ROLE_CANARY, **kwargs):
+    """Build and return the complete BuildFactory.
+
+    role: string; type of builder.
+    """
+    if role != builder_name_schema.BUILDER_ROLE_CANARY:
+      raise Exception('Canary builders must have role "%s"' %
+                      builder_name_schema.BUILDER_ROLE_CANARY)
+
     # Spoof the role as a compile builder so that this factory only runs the
     # update and compile steps.
     return factory.SkiaFactory.Build(self,
