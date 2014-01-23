@@ -12,6 +12,14 @@ import os
 
 
 class XsanBuildStepUtils(DefaultBuildStepUtils):
+  def RunFlavoredCmd(self, app, args):
+    # Turn on Leak Sanitizer if we're running Address Sanitizer.
+    if self._step.args['sanitizer'] == 'address':
+      os.environ['ASAN_OPTIONS'] = 'detect_leaks=1'
+      os.environ['LSAN_OPTIONS'] = ('suppressions=' +
+                                    os.path.join('tools', 'lsan.supp'))
+    DefaultBuildStepUtils.RunFlavoredCmd(self, app, args)
+
   def Compile(self, target):
     # Run the xsan_build script.
     shell_utils.Bash(['which', 'clang'])
