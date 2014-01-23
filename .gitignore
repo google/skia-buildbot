@@ -2,6 +2,8 @@
 *.pyc
 # Files open in vi.
 *.swp
+# Compiled cfg files.
+*.cfgc
 # Files created when running as a master.
 master/Build-*
 master/Canary-*
