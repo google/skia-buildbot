@@ -15,7 +15,9 @@ import base_page
 # For faster response time these IPs should be switched when GCE instances are
 # migrated during PCRs.
 MASTER_IPS = ['108.170.217.252', '173.255.115.253']
-# Map of service type to a tuple containing the (port, subpart, protocol).
+# Map of service type to a tuple containing the (port, subpart, protocol). The
+# port and protocol must be specified, subpart can be an empty string if not
+# needed.
 SERVICE_TYPE_TO_INFO = {
     'buildbots': (10117, '', 'http'),
     'repo-serving': (8000, '', 'http'),
@@ -34,24 +36,19 @@ def _get_destination_url(service_type, slug):
   """
   (port, subpart, protocol) = SERVICE_TYPE_TO_INFO[service_type]
   for master_ip in MASTER_IPS:
-    destination_url = 'http://%s' % master_ip
-    if port:
-      destination_url += ':%s' % port
-
+    # The test URL is used for validating that the IP + Port combination is up.
+    test_url = 'http://%s:%s' % (master_ip, port)
     try:
-      # Test if the destination URL is up.
-      urllib2.urlopen(destination_url, timeout=URLOPEN_TIMEOUT).getcode()
-      if protocol:
-        # If the protocol has been specified then replace the destination URL
-        # with it. We do not use the protocol for the initial URL check, it
-        # should always be HTTP.
-        destination_url_with_path = destination_url.replace('http', protocol)
-        # Add the subpart and slug to the destination URL.
-        if subpart:
-          destination_url_with_path += '/%s' % subpart
-        if slug:
-          destination_url_with_path += '/%s' % slug
-      return destination_url_with_path
+      urllib2.urlopen(test_url, timeout=URLOPEN_TIMEOUT).getcode()
+      # Now that we verified that the test URL is up use the service's protocol
+      # to construct the destination URL.
+      destination_url = '%s://%s:%s' % (protocol, master_ip, port)
+      # Add the subpart and slug to the destination URL.
+      if subpart:
+        destination_url += '/%s' % subpart
+      if slug:
+        destination_url += '/%s' % slug
+      return destination_url
     except httplib.HTTPException, e:
       logging.warning(e)
 
