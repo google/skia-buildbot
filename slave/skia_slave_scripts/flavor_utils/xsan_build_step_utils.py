@@ -22,6 +22,8 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
 
   def Compile(self, target):
     # Run the xsan_build script.
+    os.environ['PATH'] = \
+        '/home/chrome-bot/llvm-3.4/Release+Asserts/bin:%s' % os.environ['PATH']
     shell_utils.Bash(['which', 'clang'])
     shell_utils.Bash(['clang', '--version'])
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
