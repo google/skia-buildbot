@@ -77,6 +77,7 @@ SLAVE_HOSTS = {
     'slaves': [
       ('skiabot-shuttle-ubuntu13-000', '0'),
       ('skiabot-shuttle-ubuntu13-001', '1'),
+      ('skiabot-shuttle-ubuntu13-002', '1'),
     ],
     'copies': _DEFAULT_COPIES,
     'ip': '192.168.1.120',
@@ -87,7 +88,6 @@ SLAVE_HOSTS = {
     'slaves': [
       ('skiabot-linux-compile-vm-a-000', '0'),
       ('skiabot-linux-compile-vm-a-001', '1'),
-      ('skia-private-slave-001', '2'),
     ],
     'copies': _DEFAULT_COPIES,
     'ip': NO_IP_ADDR,

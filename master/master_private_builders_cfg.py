@@ -9,29 +9,6 @@ import master_builders_cfg
 from master_builders_cfg import GYP_NVPR, f_android, LINUX
 
 
-def setup_compile_builders(helper, do_upload_results):
-  """Set up all compile builders for the private master.
-
-  Args:
-      helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their
-          results.
-  """
-  #
-  #                            COMPILE BUILDERS
-  #
-  #    OS,         Compiler, Config,    Arch,    Extra Config,   GYP_DEFS,  WERR, Factory,   Target,Extra Args
-  #
-  builder_specs = [
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',  'NvidiaLogan',  GYP_NVPR,  True, f_android, LINUX, {'device': 'nvidia_logan'}),
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',  'NvidiaLogan',  GYP_NVPR,  True, f_android, LINUX, {'device': 'nvidia_logan'}),
-  ]
-
-  master_builders_cfg.setup_builders_from_config_list(
-      builder_specs, helper, do_upload_results,
-      master_builders_cfg.CompileBuilder)
-
-
 def setup_test_and_perf_builders(helper, do_upload_results):
   """Set up all Test and Perf builders for the private master.
 
@@ -61,6 +38,5 @@ def setup_all_builders(helper, do_upload_results):
       helper: instance of utils.SkiaHelper
       do_upload_results: bool; whether the builders should upload their results.
   """
-  setup_compile_builders(helper, do_upload_results)
   setup_test_and_perf_builders(helper, do_upload_results)
 
