@@ -119,6 +119,7 @@ def get_gyp_defines(arch, gyp_defines_str=None):
 
 # Types of builders to be used below.
 class BaseBuilder:
+
   def _create(self, helper, do_upload_results, is_trybot=False):
     """Internal method used by create() to set up a builder.
 
@@ -129,9 +130,10 @@ class BaseBuilder:
     """
     builder_name = builder_name_schema.BuilderNameFromObject(self, is_trybot)
     if is_trybot:
+      # Override the scheduler for trybots.
       scheduler_name = utils.TRY_SCHEDULERS_STR
     else:
-      scheduler_name = 'skia_rel'
+      scheduler_name = getattr(self, 'scheduler', 'skia_rel')
 
     helper.Builder(builder_name, 'f_%s' % builder_name,
                    scheduler=scheduler_name)
