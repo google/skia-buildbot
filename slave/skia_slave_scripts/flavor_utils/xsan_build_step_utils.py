@@ -10,11 +10,13 @@ from utils import shell_utils
 
 import os
 
+LLVM_PATH = '/home/chrome-bot/llvm-3.4/Release+Asserts/bin/'
 
 class XsanBuildStepUtils(DefaultBuildStepUtils):
   def RunFlavoredCmd(self, app, args):
     # Turn on Leak Sanitizer if we're running Address Sanitizer.
     if self._step.args['sanitizer'] == 'address':
+      os.environ['ASAN_SYMBOLIZER_PATH'] = LLVM_PATH + 'llvm-symbolizer'
       os.environ['ASAN_OPTIONS'] = 'detect_leaks=1'
       os.environ['LSAN_OPTIONS'] = ('suppressions=' +
                                     os.path.join('tools', 'lsan.supp'))
@@ -22,8 +24,7 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
 
   def Compile(self, target):
     # Run the xsan_build script.
-    os.environ['PATH'] = \
-        '/home/chrome-bot/llvm-3.4/Release+Asserts/bin:%s' % os.environ['PATH']
+    os.environ['PATH'] = LLVM_PATH + ':' + os.environ['PATH']
     shell_utils.Bash(['which', 'clang'])
     shell_utils.Bash(['clang', '--version'])
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
