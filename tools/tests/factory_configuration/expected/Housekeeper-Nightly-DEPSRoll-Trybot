@@ -271,7 +271,10 @@
                 'doStepIf': <Object>,
                 'env': {},
                 'flunkOnFailure': <Object>,
-                'get_props_from_stdout': None,
+                'get_props_from_stdout': {
+                    'control_issue': 'Control Issue number: (\d+) ',
+                    'deps_roll_issue': 'Deps roll Issue number: (\d+) ',
+                },
                 'haltOnFailure': <Object>,
                 'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,

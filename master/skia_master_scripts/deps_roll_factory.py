@@ -33,6 +33,10 @@ class DepsRollFactory(canary_factory.CanaryFactory):
                       builder_name_schema.BUILDER_ROLE_HOUSEKEEPER)
     self.UpdateSteps()
     self.AddSlaveScript(script='do_deps_roll.py',
-                        description='DEPSRoll')
+                        description='DEPSRoll',
+                        get_props_from_stdout={
+                            'deps_roll_issue': 'Deps roll Issue number: (\d+) ',
+                            'control_issue': 'Control Issue number: (\d+) ',
+                        })
     self.Validate()
     return self

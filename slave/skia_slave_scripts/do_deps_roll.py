@@ -11,7 +11,6 @@ import os
 import sys
 
 from build_step import BuildStep
-from utils import shell_utils
 
 
 GIT = 'git.bat' if os.name == 'nt' else 'git'
@@ -21,15 +20,31 @@ class DEPSRoll(BuildStep):
   """BuildStep which creates and uploads a DEPS roll CL and sets off trybots."""
 
   def _Run(self):
-    roll_deps_script = os.path.join('third_party', 'skia', 'tools',
-                                    'roll_deps.py')
-    shell_utils.Bash(['python', roll_deps_script,
-                      '-c', os.curdir,
-                      '--git_hash', self._got_revision,
-                      '--git_path', GIT,
-                      '--skia_git_path', os.path.join('third_party', 'skia'),
-                      '--verbose',
-                      '--delete_branches'])
+    skia_path = os.path.join('third_party', 'skia')
+    roll_deps_path = os.path.join(skia_path, 'tools')
+    sys.path.append(roll_deps_path)
+    import roll_deps
+
+    class Options(object):
+      verbose = True
+      delete_branches = True
+      search_depth = 1
+      chromium_path = os.curdir
+      git_path = GIT
+      skip_cl_upload = False
+      bots = ''
+      skia_git_path = skia_path
+    options = Options()
+    config = roll_deps.DepsRollConfig(options)
+
+    revision, _ = \
+        roll_deps.revision_and_hash_from_partial(config, self._got_revision)
+
+    deps_issue, whitespace_issue = \
+        roll_deps.roll_deps(config, revision, self._got_revision)
+
+    print 'Deps roll', deps_issue
+    print 'Control', whitespace_issue
 
 
 if '__main__' == __name__:
