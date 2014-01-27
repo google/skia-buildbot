@@ -61,11 +61,11 @@ import time
 # Set the PYTHONPATH for this script to include chromium_buildbot scripts,
 # and site_config.
 sys.path.append(
-    os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_buildbot',
-                 'scripts'))
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir,
+                 os.pardir, 'third_party', 'chromium_buildbot', 'scripts'))
 sys.path.append(
-    os.path.join(os.pardir, os.pardir, 'third_party', 'chromium_buildbot',
-                 'site_config'))
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir,
+                 os.pardir, 'third_party', 'chromium_buildbot', 'site_config'))
 
 
 from slave import slave_utils
@@ -87,14 +87,15 @@ TMP_SKP_DIR = tempfile.mkdtemp()
 
 # Location of Telemetry binaries (record_wpr, run_measurement).
 TELEMETRY_BINARIES_DIR = os.path.join(
-    os.path.dirname(__file__), os.pardir, os.pardir, 'third_party',
-    'chromium_trunk', 'tools', 'perf'
+    os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir,
+    'third_party', 'chromium_trunk', 'tools', 'perf'
 )
 
 # Location of the credentials.json file and the string that represents missing
 # passwords.
 CREDENTIALS_FILE_PATH = os.path.join(
-    os.path.dirname(__file__), 'page_sets', 'data', 'credentials.json'
+    os.path.abspath(os.path.dirname(__file__)), 'page_sets', 'data',
+    'credentials.json'
 )
 
 # Stdout that signifies that a recording has failed.
@@ -151,7 +152,8 @@ class SkPicturePlayback(object):
       raise ValueError('Must specify atleast one page_set!')
     elif self._all_page_sets_specified:
       # Get everything from the page_sets directory.
-      return [os.path.join('page_sets', page_set)
+      return [os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                           'page_sets', page_set)
               for page_set in os.listdir('page_sets')
               if not os.path.isdir(os.path.join('page_sets', page_set))]
     elif '*' in page_sets:
