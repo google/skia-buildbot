@@ -1,0 +1,16 @@
+{
+    "description": "font_wipe Silk webpage for Skia Desktop.",
+    "archive_data_file": "data/skia_fontwipe_desktop.json",
+    "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
+    "pages": [
+        {
+            "url": "http://src.chromium.org/chrome/trunk/src/tools/perf/page_sets/key_silk_cases/font_wipe.html",
+            "why": "Page from Chromium's silk test cases",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
+        }
+    ]
+}

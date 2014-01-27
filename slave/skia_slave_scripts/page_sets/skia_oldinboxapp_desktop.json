@@ -1,0 +1,16 @@
+{
+    "description": "old_inbox_app Silk webpage for Skia Desktop.",
+    "archive_data_file": "data/skia_oldinboxapp_desktop.json",
+    "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
+    "pages": [
+        {
+            "url": "http://src.chromium.org/chrome/trunk/src/tools/perf/page_sets/key_silk_cases/old_inbox_app.html",
+            "why": "Page from Chromium's silk test cases",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 5 }                               
+            ]
+        }
+    ]
+}
