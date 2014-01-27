@@ -32,7 +32,7 @@ class DEPSRoll(BuildStep):
       chromium_path = os.curdir
       git_path = GIT
       skip_cl_upload = False
-      bots = ''
+      bots = ','.join(roll_deps.DEFAULT_BOTS_LIST)
       skia_git_path = skia_path
     options = Options()
     config = roll_deps.DepsRollConfig(options)
