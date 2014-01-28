@@ -6,7 +6,7 @@
 
 
 import master_builders_cfg
-from master_builders_cfg import GYP_NVPR, f_android, LINUX
+from master_builders_cfg import f_android, LINUX
 
 
 def setup_test_and_perf_builders(helper, do_upload_results):
@@ -22,9 +22,9 @@ def setup_test_and_perf_builders(helper, do_upload_results):
   #    Role,   OS,         Model,   GPU,      Arch,   Config,    Extra Config,GYP_DEFS, Factory,   Target,Extra Args
   #
   builder_specs = [
-      ('Test', 'Android',  'Logan', 'Nvidia', 'Arm7', 'Debug',   None,        GYP_NVPR, f_android, LINUX, {'device': 'nvidia_logan'}),
-      ('Test', 'Android',  'Logan', 'Nvidia', 'Arm7', 'Release', None,        GYP_NVPR, f_android, LINUX, {'device': 'nvidia_logan'}),
-      ('Perf', 'Android',  'Logan', 'Nvidia', 'Arm7', 'Release', None,        GYP_NVPR, f_android, LINUX, {'device': 'nvidia_logan'}),
+      ('Test', 'Android',  'Logan', 'Nvidia', 'Arm7', 'Debug',   None,        None,     f_android, LINUX, {'device': 'nvidia_logan'}),
+      ('Test', 'Android',  'Logan', 'Nvidia', 'Arm7', 'Release', None,        None,     f_android, LINUX, {'device': 'nvidia_logan'}),
+      ('Perf', 'Android',  'Logan', 'Nvidia', 'Arm7', 'Release', None,        None,     f_android, LINUX, {'device': 'nvidia_logan'}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(

@@ -84,10 +84,6 @@ NO_GPU = repr({'skia_gpu': '0'})
 CLANG = repr({'skia_clang_build': '1'})
 VALGRIND = repr({'skia_release_optimization_level': '1'})
 PDFVIEWER = repr({'skia_run_pdfviewer_in_gm': '1'})
-GYP_NVPR = repr({'skia_nv_path_rendering': '1'})
-NVPR_WIN8 = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
-                  'qt_sdk': 'C:/Qt/Qt5.1.0/5.1.0/msvc2012_64/',
-                  'skia_nv_path_rendering': '1'})
 GYP_SHARED = repr({'component': 'shared_library'})
 
 
@@ -315,8 +311,6 @@ def setup_test_and_perf_builders(helper, do_upload_results):
       ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Debug',   None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', 'NVPR',         NVPR_WIN8, f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'nvpr'}),
-      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', 'NVPR',         NVPR_WIN8, f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'nvpr'}),
       ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Debug',   None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Perf', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
@@ -390,7 +384,6 @@ def setup_compile_builders(helper, do_upload_results):
       ('Win8',     'VS2012', 'Release', 'x86',    None,          GYP_WIN8,  True,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Win8',     'VS2012', 'Debug',   'x86_64', None,          GYP_WIN8,  False, f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Win8',     'VS2012', 'Release', 'x86_64', None,          GYP_WIN8,  False, f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Win8',     'VS2012', 'Release', 'x86',    'NVPR',        NVPR_WIN8, True,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'nvpr'}),
       ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'NexusS',      None,      True,  f_android, LINUX, {'device': 'nexus_s'}),
       ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'NexusS',      None,      True,  f_android, LINUX, {'device': 'nexus_s'}),
       ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'Nexus4',      None,      True,  f_android, LINUX, {'device': 'nexus_4'}),
@@ -406,8 +399,8 @@ def setup_compile_builders(helper, do_upload_results):
       ('Ubuntu12', 'GCC',    'Debug',   'x86',    'IntelRhb',    None,      True,  f_android, LINUX, {'device': 'intel_rhb'}),
       ('Ubuntu12', 'GCC',    'Release', 'x86',    'IntelRhb',    None,      True,  f_android, LINUX, {'device': 'intel_rhb'}),
       ('Ubuntu12', 'GCC',    'Debug',   'Mips',   'Mips',        None,      True,  f_android, LINUX, {'device': 'mips'}),
-      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'NvidiaLogan', GYP_NVPR,  True,  f_android, LINUX, {'device': 'nvidia_logan'}),
-      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'NvidiaLogan', GYP_NVPR,  True,  f_android, LINUX, {'device': 'nvidia_logan'}),
+      ('Ubuntu12', 'GCC',    'Debug',   'Arm7',   'NvidiaLogan', None,      True,  f_android, LINUX, {'device': 'nvidia_logan'}),
+      ('Ubuntu12', 'GCC',    'Release', 'Arm7',   'NvidiaLogan', None,      True,  f_android, LINUX, {'device': 'nvidia_logan'}),
       ('Ubuntu12', 'GCC',    'Debug',   'x86',    'Alex',        None,      True,  f_cros,    LINUX, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}),
       ('Ubuntu12', 'GCC',    'Release', 'x86',    'Alex',        None,      True,  f_cros,    LINUX, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}),
       ('Ubuntu12', 'GCC',    'Debug',   'x86_64', 'Link',        None,      True,  f_cros,    LINUX, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}),
