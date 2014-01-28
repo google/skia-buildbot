@@ -5,7 +5,8 @@
 # Sets up all the builders we want the FYI buildbot master to run.
 
 
-from master_builders_cfg import f_xsan, LINUX
+from master_builders_cfg import f_deps, f_deps_results, f_percommit, f_periodic
+from master_builders_cfg import f_skps, f_xsan, HousekeepingBuilder, LINUX
 from skia_master_scripts import utils
 from skia_master_scripts.moz2d_canary_factory \
     import Moz2DCanaryFactory as f_moz2d
@@ -55,6 +56,31 @@ def setup_test_and_perf_builders(helper, do_upload_results):
       builder_specs, helper, do_upload_results, master_builders_cfg.Builder)
 
 
+def setup_housekeepers(helper, do_upload_results):
+  """Set up the Housekeeping builders.
+
+  Args:
+      helper: instance of utils.SkiaHelper
+      do_upload_results: bool; whether the builders should upload their results.
+  """
+  #
+  #                          HOUSEKEEPING BUILDERS
+  #
+  #   Frequency,    Scheduler,        Extra Config,       Factory,        Target, Extra Args
+  #
+  housekeepers = [
+      ('PerCommit', 'skia_rel',       None,               f_percommit,    LINUX,  {}),
+      ('Nightly',   'skia_nightly',   None,               f_periodic,     LINUX,  {}),
+      ('Nightly',   'skia_nightly',  'DEPSRoll',          f_deps,         LINUX,  {}),
+      ('Daily',     'skia_daily',    'DEPSRollResults',   f_deps_results, LINUX,  {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
+      ('Nightly',   'skia_ondemand', 'RecreateSKPs',      f_skps,         LINUX,  {}),
+  ]
+
+  master_builders_cfg.setup_builders_from_config_list(housekeepers, helper,
+                                                      do_upload_results,
+                                                      HousekeepingBuilder)
+
+
 def setup_all_builders(helper, do_upload_results):
   """Set up all builders for the FYI master.
 
@@ -64,3 +90,4 @@ def setup_all_builders(helper, do_upload_results):
   """
   setup_test_and_perf_builders(helper, do_upload_results)
   setup_canaries(helper, do_upload_results)
+  setup_housekeepers(helper=helper, do_upload_results=do_upload_results)

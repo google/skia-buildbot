@@ -338,30 +338,6 @@ def setup_test_and_perf_builders(helper, do_upload_results):
                                   do_upload_results, Builder)
 
 
-def setup_housekeepers(helper, do_upload_results):
-  """Set up the Housekeeping builders.
-
-  Args:
-      helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their results.
-  """
-  #
-  #                          HOUSEKEEPING BUILDERS
-  #
-  #   Frequency,    Scheduler,        Extra Config,       Factory,        Target, Extra Args
-  #
-  housekeepers = [
-      ('PerCommit', 'skia_rel',       None,               f_percommit,    LINUX,  {}),
-      ('Nightly',   'skia_nightly',   None,               f_periodic,     LINUX,  {}),
-      ('Nightly',   'skia_nightly',  'DEPSRoll',          f_deps,         LINUX,  {}),
-      ('Daily',     'skia_daily',    'DEPSRollResults',   f_deps_results, LINUX,  {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
-      ('Nightly',   'skia_ondemand', 'RecreateSKPs',      f_skps,         LINUX,  {}),
-  ]
-
-  setup_builders_from_config_list(housekeepers, helper,
-                                  do_upload_results, HousekeepingBuilder)
-
-
 def setup_canaries(helper, do_upload_results):
   """Set up the Canary builders.
 
@@ -393,7 +369,6 @@ def setup_all_builders(helper, do_upload_results):
   """
   setup_test_and_perf_builders(helper=helper,
                                do_upload_results=do_upload_results)
-  setup_housekeepers(helper=helper, do_upload_results=do_upload_results)
   setup_canaries(helper=helper, do_upload_results=do_upload_results)
 
 
