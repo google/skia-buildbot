@@ -7,6 +7,7 @@
 
 
 import buildbot.status.web.base as base
+import builder_name_schema
 
 from buildbot.status.web.status_json import JsonResource
 from twisted.python import log
@@ -24,6 +25,8 @@ class BuilderStatusesJsonResource(JsonResource):
     builders = request.args.get('builder', self.status.getBuilderNames())
     data = {'builders': []}
     for builder_name in builders:
+      if builder_name_schema.IsTrybot(builder_name):
+        continue
       try:
         builder_status = self.status.getBuilder(builder_name)
       except KeyError:
