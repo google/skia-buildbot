@@ -41,6 +41,10 @@ SKIA_FYI_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
 SKIA_ANDROID_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
     'android_master_internal_fqdn')
 
+# The Compile master.
+SKIA_COMPILE_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
+    'compile_master_internal_fqdn')
+
 AUTOGEN_SVN_BASEURL = skia_vars.GetGlobalVariable('autogen_svn_url')
 SKIA_GIT_URL = skia_vars.GetGlobalVariable('skia_git_url')
 TRY_SVN_BASEURL = skia_vars.GetGlobalVariable('try_svn_url')
@@ -190,8 +194,39 @@ class Master(config_default.Master):
           cfg,
           master_android_builders_cfg.setup_all_builders)
 
+  class CompileSkia(Skia):
+    project_name = 'CompileSkia'
+    project_url = skia_vars.GetGlobalVariable('project_url')
+    master_host = skia_vars.GetGlobalVariable('compile_master_host')
+    is_production_host = socket.getfqdn() == SKIA_COMPILE_MASTER_INTERNAL_FQDN
+    do_upload_results = True
+    master_port = skia_vars.GetGlobalVariable('compile_internal_port')
+    slave_port = skia_vars.GetGlobalVariable('compile_slave_port')
+    master_port_alt = skia_vars.GetGlobalVariable('compile_external_port')
+    tree_closing_notification_recipients = []
+    from_address = skia_vars.GetGlobalVariable('gce_smtp_user')
+    is_publicly_visible = True
+    code_review_site = \
+        skia_vars.GetGlobalVariable('code_review_status_listener')
+
+    def create_schedulers_and_builders(self, cfg):
+      """Create the Schedulers and Builders.
+
+      Args:
+          cfg: dict; configuration dict for the build master.
+      """
+      # These imports needs to happen inside this function because modules
+      # imported by master_builders_cfg import this module.
+      import master_builders_cfg
+      import master_compile_builders_cfg
+      master_builders_cfg.create_schedulers_and_builders(
+          sys.modules[__name__],
+          self,
+          cfg,
+          master_compile_builders_cfg.setup_all_builders)
+
   # List of the valid master classes.
-  valid_masters = [Skia, PrivateSkia, FYISkia, AndroidSkia]
+  valid_masters = [Skia, PrivateSkia, FYISkia, AndroidSkia, CompileSkia]
 
   @staticmethod
   def set_active_master(master_name):

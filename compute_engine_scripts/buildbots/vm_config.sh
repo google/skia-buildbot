@@ -10,10 +10,10 @@
 VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # Master names, type and their IP addresses to use for each zone.
-VM_MASTER_NAMES=${VM_MASTER_NAMES:="master private-master fyi-master android-master"}
+VM_MASTER_NAMES=${VM_MASTER_NAMES:="master private-master fyi-master android-master compile-master"}
 MASTER_MACHINE_TYPE="n1-highmem-2"
-MASTER_IP_ADDRESSES_a="108.170.217.252 8.34.217.98 108.170.219.160 108.170.219.162"
-MASTER_IP_ADDRESSES_b="173.255.115.253 8.34.217.86 108.170.219.161 108.170.219.163"
+MASTER_IP_ADDRESSES_a="108.170.217.252 8.34.217.98 108.170.219.160 108.170.219.162 108.170.219.164"
+MASTER_IP_ADDRESSES_b="173.255.115.253 8.34.217.86 108.170.219.161 108.170.219.163 108.170.219.165"
 
 # Slave names, type and their IP addresses.
 VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave compile1 compile2 compile3 compile4 compile5"}

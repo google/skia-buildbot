@@ -54,6 +54,31 @@
     "type": "integer",
     "description": "Maximum number of changes to load from history when building the console page."
   },
+  "compile_external_port": {
+    "value": "10117",
+    "type": "integer",
+    "description": "Externally-visible port on the Compile Skia build master."
+  },
+  "compile_internal_port": {
+    "value": "10115",
+    "type": "integer",
+    "description": "Internally-visible port on the Compile Skia build master."
+  },
+  "compile_master_host": {
+    "value": "108.170.219.164",
+    "type": "string",
+    "description": "Hostname (or IP address) that can be used to reach the Compile Skia build master."
+  },
+  "compile_master_internal_fqdn": {
+    "value": "skia-compile-master-a.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "What the Compile Skia build master thinks its own FQDN is."
+  },
+  "compile_slave_port": {
+    "value": "10116",
+    "type": "integer",
+    "description": "Port used by Compile build slaves."
+  },
   "cq_required_steps": {
     "value": [
       "BuildBench",
