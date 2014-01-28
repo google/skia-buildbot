@@ -11,6 +11,8 @@ from skia_master_scripts.canary_factory import CanaryFactory as f_canary
 from skia_master_scripts.chromeos_factory import ChromeOSFactory as f_cros
 from skia_master_scripts.deps_roll_factory import DepsRollFactory as f_deps
 from skia_master_scripts.drt_canary_factory import DRTCanaryFactory as f_drt
+from skia_master_scripts.recreate_skps_factory \
+    import RecreateSKPsFactory as f_skps
 from skia_master_scripts.factory import SkiaFactory as f_factory
 from skia_master_scripts.housekeeping_percommit_factory \
     import HouseKeepingPerCommitFactory as f_percommit
@@ -425,12 +427,13 @@ def setup_housekeepers(helper, do_upload_results):
   #
   #                          HOUSEKEEPING BUILDERS
   #
-  #   Frequency,    Scheduler,       Extra Config,Factory,     Target
+  #   Frequency,    Scheduler,       Extra Config,    Factory,     Target
   #
   housekeepers = [
-      ('PerCommit', 'skia_rel',      None,        f_percommit, LINUX),
-      ('Nightly',   'skia_periodic', None,        f_periodic,  LINUX),
-      ('Nightly',   'skia_periodic', 'DEPSRoll',  f_deps,      LINUX),
+      ('PerCommit', 'skia_rel',      None,            f_percommit, LINUX),
+      ('Nightly',   'skia_periodic', None,            f_periodic,  LINUX),
+      ('Nightly',   'skia_periodic', 'DEPSRoll',      f_deps,      LINUX),
+      ('Nightly',   'skia_ondemand', 'RecreateSKPs',  f_skps,      LINUX),
   ]
 
   setup_builders_from_config_list(housekeepers, helper,
@@ -493,6 +496,10 @@ def create_schedulers_and_builders(config, active_master, cfg,
   # Periodic Scheduler for Skia. The buildbot master follows UTC.
   # Setting it to 7AM UTC (2 AM EST).
   helper.PeriodicScheduler('skia_periodic', branch='trunk', minute=0, hour=7)
+
+  # On-demand Scheduler for Skia.
+  helper.PeriodicScheduler('skia_ondemand', branch='trunk', minute=0, hour=0,
+                           dayOfMonth='30', month='2')
 
   # Schedulers for Skia trybots.
   helper.TryJobSubversion(utils.TRY_SCHEDULER_SVN)
