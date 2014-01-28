@@ -28,6 +28,7 @@ from master.try_job_base import text_to_dict
 from twisted.internet import defer
 from twisted.python import log
 from twisted.web import server
+from webstatus import builder_statuses
 
 import builder_name_schema
 import config_private
@@ -269,6 +270,10 @@ def JsonStatusResourceInit(self, status):
   self.putChild('master_running_revision',
                 master_revision.MasterRunningRevisionJsonResource(
                     status=status, running_revision=running_rev))
+
+  # This page gives the result of the most recent build for each builder.
+  self.putChild('builder_statuses',
+                builder_statuses.BuilderStatusesJsonResource(status))
   ##############################################################################
 
   # This needs to be called before the first HelpResource().body call.
