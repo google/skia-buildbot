@@ -10,6 +10,8 @@ from skia_master_scripts.android_factory import AndroidFactory as f_android
 from skia_master_scripts.canary_factory import CanaryFactory as f_canary
 from skia_master_scripts.chromeos_factory import ChromeOSFactory as f_cros
 from skia_master_scripts.deps_roll_factory import DepsRollFactory as f_deps
+from skia_master_scripts.deps_roll_results_factory \
+    import DepsRollResultsFactory as f_deps_results
 from skia_master_scripts.drt_canary_factory import DRTCanaryFactory as f_drt
 from skia_master_scripts.recreate_skps_factory \
     import RecreateSKPsFactory as f_skps
@@ -171,7 +173,7 @@ CompileBuilderConfig = collections.namedtuple(
 HousekeepingBuilderConfig = collections.namedtuple(
     'HousekeepingBuilder',
     ['frequency', 'scheduler', 'extra_config', 'factory_type',
-     'target_platform'])
+     'target_platform', 'extra_factory_args'])
 
 
 CanaryBuilderConfig = collections.namedtuple(
@@ -219,7 +221,9 @@ class HousekeepingBuilder(BaseBuilder, HousekeepingBuilderConfig):
 
   @property
   def factory_args(self):
-    return {'target_platform': self.target_platform}
+    args = {'target_platform': self.target_platform}
+    args.update(self.extra_factory_args)
+    return args
 
 
 class CanaryBuilder(BaseBuilder, CanaryBuilderConfig):
@@ -427,13 +431,14 @@ def setup_housekeepers(helper, do_upload_results):
   #
   #                          HOUSEKEEPING BUILDERS
   #
-  #   Frequency,    Scheduler,       Extra Config,    Factory,     Target
+  #   Frequency,    Scheduler,        Extra Config,       Factory,        Target, Extra Args
   #
   housekeepers = [
-      ('PerCommit', 'skia_rel',      None,            f_percommit, LINUX),
-      ('Nightly',   'skia_periodic', None,            f_periodic,  LINUX),
-      ('Nightly',   'skia_periodic', 'DEPSRoll',      f_deps,      LINUX),
-      ('Nightly',   'skia_ondemand', 'RecreateSKPs',  f_skps,      LINUX),
+      ('PerCommit', 'skia_rel',       None,               f_percommit,    LINUX,  {}),
+      ('Nightly',   'skia_nightly',   None,               f_periodic,     LINUX,  {}),
+      ('Nightly',   'skia_nightly',  'DEPSRoll',          f_deps,         LINUX,  {}),
+      ('Daily',     'skia_daily',    'DEPSRollResults',   f_deps_results, LINUX,  {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
+      ('Nightly',   'skia_ondemand', 'RecreateSKPs',      f_skps,         LINUX,  {}),
   ]
 
   setup_builders_from_config_list(housekeepers, helper,
@@ -493,9 +498,13 @@ def create_schedulers_and_builders(config, active_master, cfg,
   # do not care about commits outside of SKIA_PRIMARY_SUBDIRS.
   helper.AnyBranchScheduler('skia_rel', branches=utils.SKIA_PRIMARY_SUBDIRS)
 
-  # Periodic Scheduler for Skia. The buildbot master follows UTC.
-  # Setting it to 7AM UTC (2 AM EST).
-  helper.PeriodicScheduler('skia_periodic', branch='trunk', minute=0, hour=7)
+  # Nightly Scheduler for Skia. The buildbot master follows UTC.
+  # Setting it to 3AM UTC (10 PM EST).
+  helper.PeriodicScheduler('skia_nightly', branch='trunk', minute=0, hour=3)
+
+  # Daily (morning) Scheduler for Skia. The buildbot master follows UTC.
+  # Setting it to 11AM UTC (6 AM EST).
+  helper.PeriodicScheduler('skia_daily', branch='trunk', minute=0, hour=11)
 
   # On-demand Scheduler for Skia.
   helper.PeriodicScheduler('skia_ondemand', branch='trunk', minute=0, hour=0,
