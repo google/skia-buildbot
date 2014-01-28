@@ -198,6 +198,13 @@ OUTPUT_DIR_NOPATCH=${IMG_ROOT}${OUTPUT_DIR_NOPATCH_DIR_NAME}
 mkdir -p $OUTPUT_DIR_NOPATCH
 run_render_pictures $OUTPUT_DIR_NOPATCH $MESA_NOPATCH_RUN
 
+echo "== Run skpdiff to get the CSV with perceptual similarity metrics =="
+SKPDIFF_OUTPUT_FILE=/tmp/skpdiff-$RUN_ID.csv
+./out/Release/skpdiff \
+  -f $OUTPUT_DIR_NOPATCH $OUTPUT_DIR_WITHPATCH \
+  --csv $SKPDIFF_OUTPUT_FILE \
+  -d perceptual
+
 echo "== Comparing pictures and saving differences in JSON output file =="
 cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
 JSON_SUMMARY_DIR=/tmp/summary-$RUN_ID
@@ -213,7 +220,8 @@ python write_json_summary.py \
   --gs_skp_dir=$GS_SKP_DIR \
   --slave_num=$SLAVE_NUM \
   --gm_json_path=/home/default/skia-repo/trunk/gm/gm_json.py \
-  --imagediffdb_path=/home/default/skia-repo/trunk/gm/rebaseline_server/imagediffdb.py
+  --imagediffdb_path=/home/default/skia-repo/trunk/gm/rebaseline_server/imagediffdb.py \
+  --skpdiff_output_csv=$SKPDIFF_OUTPUT_FILE
 
 echo "== Copy everything to Google Storage =="
 # Get list of failed file names and upload only those to Google Storage.

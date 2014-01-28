@@ -23,6 +23,7 @@ class TestWriteJsonSummary(unittest.TestCase):
     self._gm_json_path = os.path.join(self._test_json_dir, 'gm_json_mock.py')
     self._imagediffdb_path = os.path.join(self._test_json_dir,
                                           'imagediffdb_mock.py')
+    self._skpdiff_output_csv = os.path.join(self._test_json_dir, 'output.csv')
     self._actual_output_dir = tempfile.mkdtemp()
     self._actual_output_file_path = os.path.join(self._actual_output_dir,
                                                  self._output_file_name)
@@ -48,7 +49,8 @@ class TestWriteJsonSummary(unittest.TestCase):
         gs_skp_dir=self._gs_skp_dir,
         slave_num=self._slave_num,
         gm_json_path=self._gm_json_path,
-        imagediffdb_path=self._imagediffdb_path)
+        imagediffdb_path=self._imagediffdb_path,
+        skpdiff_output_csv=self._skpdiff_output_csv)
 
     self.assertTrue(
         filecmp.cmp(os.path.join(self._test_json_dir, self._output_file_name),
@@ -66,7 +68,8 @@ class TestWriteJsonSummary(unittest.TestCase):
         gs_skp_dir=self._gs_skp_dir,
         slave_num=self._slave_num,
         gm_json_path=self._gm_json_path,
-        imagediffdb_path=self._imagediffdb_path)
+        imagediffdb_path=self._imagediffdb_path,
+        skpdiff_output_csv=self._skpdiff_output_csv)
 
     self.assertFalse(os.path.isfile(self._actual_output_file_path))
 

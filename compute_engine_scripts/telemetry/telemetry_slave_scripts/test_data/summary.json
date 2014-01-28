@@ -6,6 +6,7 @@
                 "maxDiffPerChannel": 4, 
                 "numPixelsDiffering": 1, 
                 "percentPixelsDiffering": 2, 
+                "perceptualSimilarity": 0.3, 
                 "skpLocation": "gs://dummy-bucket/skps/file_.skp", 
                 "weightedDiffMeasure": 3
             }, 
@@ -14,6 +15,7 @@
                 "maxDiffPerChannel": 4, 
                 "numPixelsDiffering": 1, 
                 "percentPixelsDiffering": 2, 
+                "perceptualSimilarity": 0.1, 
                 "skpLocation": "gs://dummy-bucket/skps/file_.skp", 
                 "weightedDiffMeasure": 3
             }

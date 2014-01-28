@@ -5,6 +5,7 @@
 
 """Module that outputs an JSON summary containing the comparision of images."""
 
+import csv
 import imp
 import json
 import optparse
@@ -20,7 +21,7 @@ import json_summary_constants
 def WriteJsonSummary(img_root, nopatch_json, nopatch_img_dir_name,
                      withpatch_json, withpatch_img_dir_name, output_file_path,
                      gs_output_dir, gs_skp_dir, slave_num, gm_json_path,
-                     imagediffdb_path):
+                     imagediffdb_path, skpdiff_output_csv):
   """Outputs the JSON summary of image comparisions.
 
   Args:
@@ -44,6 +45,7 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_img_dir_name,
         this script.
     gm_json_path: (str) Local complete path to gm_json.py in Skia trunk.
     imagediffdb_path: (str) Local complete path to imagediffdb.py in Skia trunk.
+    skpdiff_output_csv: (str) Local complete path to the CSV output of skpdiff.
   """
 
   assert os.path.isfile(gm_json_path), 'Must specify a valid path to gm_json.py'
@@ -77,6 +79,12 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_img_dir_name,
   json_summary = {
       'slave%s' % slave_num: slave_dict
   }
+  # Read the skpdiff CSV output.
+  page_to_perceptual_similarity = {}
+  for row in csv.DictReader(open(skpdiff_output_csv, 'r')):
+    page_to_perceptual_similarity[row['key']] = float(
+        row[' perceptual'].strip())
+
   for file1 in files_to_checksums1:
     algo1, checksum1 = files_to_checksums1[file1]
     algo2, checksum2 = files_to_checksums2[file1]
@@ -102,7 +110,9 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_img_dir_name,
           json_summary_constants.JSONKEY_WEIGHTED_DIFF_MEASURE:
               image_diff.get_weighted_diff_measure(),
           json_summary_constants.JSONKEY_MAX_DIFF_PER_CHANNEL:
-              image_diff.get_max_diff_per_channel()
+              image_diff.get_max_diff_per_channel(),
+          json_summary_constants.JSONKEY_PERCEPTUAL_SIMILARITY:
+              page_to_perceptual_similarity[file1],
       })
   if file_differences:
     slave_dict[json_summary_constants.JSONKEY_FAILED_FILES_COUNT] = len(
@@ -170,21 +180,25 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--imagediffdb_path',
       help='Local complete path to imagediffdb.py in Skia trunk.')
+  option_parser.add_option(
+      '', '--skpdiff_output_csv',
+      help='Local complete path to the CSV output of skpdiff.')
   options, unused_args = option_parser.parse_args()
   if (not options.nopatch_json or not options.withpatch_json
       or not options.output_file_path or not options.gs_output_dir
       or not options.gs_skp_dir or not options.slave_num
       or not options.gm_json_path or not options.img_root
       or not options.nopatch_img_dir_name or not options.withpatch_img_dir_name
-      or not options.imagediffdb_path):
+      or not options.imagediffdb_path or not options.skpdiff_output_csv):
     option_parser.error(
         'Must specify img_root, nopatch_json, nopatch_img_dir_name, '
         'withpatch_json, withpatch_img_dir_name, output_file_path, '
-        'gs_output_dir, gs_skp_dir, slave_num, gm_json_path and '
-        'imagediffdb_path.')
+        'gs_output_dir, gs_skp_dir, slave_num, gm_json_path, '
+        'imagediffdb_path and skpdiff_output_csv.')
 
   WriteJsonSummary(options.img_root, options.nopatch_json,
                    options.nopatch_img_dir_name, options.withpatch_json,
                    options.withpatch_img_dir_name, options.output_file_path,
                    options.gs_output_dir, options.gs_skp_dir, options.slave_num,
-                   options.gm_json_path, options.imagediffdb_path)
+                   options.gm_json_path, options.imagediffdb_path,
+                   options.skpdiff_output_csv)

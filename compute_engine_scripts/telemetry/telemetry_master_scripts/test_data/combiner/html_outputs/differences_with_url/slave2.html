@@ -1,11 +1,13 @@
-<html>
+<html ng-app="diff_viewer">
   <head>
     <title>Image comparision failures for slave2</title>
     <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/togglecols.js"></script>
+    <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/angular.min.js"></script>
+    <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/diff_viewer.js"></script>
   </head>
 
-  <body onload="resetToggleArrows([0, 3, 4])">
+  <body onload="sortRows(0, false, [0, 2, 3, 4])">
     <h2>Image comparision failures for slave2</h2>
     <a href='http://dummy-link.foobar/index.html'>Back</a>
     <br/><br/>
@@ -16,42 +18,62 @@
     Can download withpatch images with:<br/>
     &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp gs://dummy-bucket/slave2/withpatch/* /tmp/withpath-imgs/</i><br/><br/>
 
-    Click on the linked column headers to sort rows.<br/><br/><br/>
+    Click on the linked column headers to sort rows.<br/>
+    Click on images in the 'Difference per pixel' column to magnify the other three images.<br/><br/><br/>
 
     <table border="1" cellpadding="5" id="slave_results">
       <thead>
       <tr bgcolor="#CCCCFF">
-        <th><a href="#" onclick="sortRows(0, false, [0, 3, 4]); return false;">Failed Files</a><img src="" id="toggle-arrows-0"></th>
+        <th><a href="#" onclick="sortRows(0, false, [0, 2, 3, 4]); return false;">Failed Files</a><img src="" id="toggle-arrows-0"></th>
         <th>NoPatch Image</th>
-        <th>WithPatch Image</th>
-        <th><a href="#" onclick="sortRows(3, true, [0, 3, 4]); return false;">Differing pixels in white</a><img src="" id="toggle-arrows-3"></th>
-        <th><a href="#" onclick="sortRows(4, true, [0, 3, 4]); return false;">Difference per pixel</a><img src="" id="toggle-arrows-4"></th>
+        <th><a href="#" onclick="sortRows(2, false, [0, 2, 3, 4]); return false;">WithPatch Image</a><img src="" id="toggle-arrows-2"></th>
+        <th><a href="#" onclick="sortRows(3, true, [0, 2, 3, 4]); return false;">Differing pixels in white</a><img src="" id="toggle-arrows-3"></th>
+        <th><a href="#" onclick="sortRows(4, true, [0, 2, 3, 4]); return false;">Difference per pixel</a><img src="" id="toggle-arrows-4"></th>
       </tr>
       </thead>
       <tbody>
       
-        <tr>
+        <tr ng-controller="ImageController">
           <td align="center">
             <a name='slave2-fileslave2_1.png' id='compare_value'>fileslave2_1.png</a><br/>
             <a href='http://storage.cloud.google.com/dummy-bucket/skps/slave2/fileslave2_.skp'>Download SKP</a>
           </td>
           <td>
-            <a href='http://storage.cloud.google.com/dummy-bucket/slave2/nopatch/fileslave2_1.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave2/nopatch/fileslave2_1.png" alt="nopatch/fileslave2_1.png" width="200" height="200"></a>
-            <br/><br/>
-          </td>
-          <td>
-            <a href='http://storage.cloud.google.com/dummy-bucket/slave2/withpatch/fileslave2_1.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave2/withpatch/fileslave2_1.png" alt="withpatch/fileslave2_1.png" width="200" height="200"></a>
-            <br/><br/>
-          </td>
-          <td>
-            <a href='http://storage.cloud.google.com/dummy-bucket/slave2/whitediffs/fileslave2_1-vs-fileslave2_1.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave2/whitediffs/fileslave2_1-vs-fileslave2_1.png" alt="whitediffs/fileslave2_1-vs-fileslave2_1.png" width="200" height="200"></a>
+            <a href='http://storage.cloud.google.com/dummy-bucket/slave2/nopatch/fileslave2_1.png' target="_blank">View Image</a>
             <br/>
+            <img-compare type="baseline"
+                         name="baseline"
+                         src="http://storage.cloud.google.com/dummy-bucket/slave2/nopatch/fileslave2_1.png"
+                         class="gm-image left-image" />
+          </td>
+          <td>
+            <a id='compare_value'>215</a>% (perceptual diff)
+            <a href='http://storage.cloud.google.com/dummy-bucket/slave2/withpatch/fileslave2_1.png' target="_blank">View Image</a>
+            <br/>
+            <img-compare type="test"
+                         name="test"
+                         src="http://storage.cloud.google.com/dummy-bucket/slave2/withpatch/fileslave2_1.png"
+                         class="gm-image right-image" />
+          </td>
+          <td>
             <a id='compare_value'>212</a>% (211)
+            <a href='http://storage.cloud.google.com/dummy-bucket/slave2/whitediffs/fileslave2_1-vs-fileslave2_1.png' target="_blank">View Image</a>
+            <br/>
+            <img-compare type="differingPixelsInWhite"
+                         class="left-image"
+                         src="http://storage.cloud.google.com/dummy-bucket/slave2/whitediffs/fileslave2_1.png" />
           </td>
           <td>
-            <a href='http://storage.cloud.google.com/dummy-bucket/slave2/diffs/fileslave2_1-vs-fileslave2_1.png'><img src="http://storage.cloud.google.com/dummy-bucket/slave2/diffs/fileslave2_1-vs-fileslave2_1.png" alt="diffs/fileslave2_1-vs-fileslave2_1.png" width="200" height="200"></a>
-            <br/>
             <a id='compare_value'>213</a>% 214
+            <a href='http://storage.cloud.google.com/dummy-bucket/slave2/diffs/fileslave2_1-vs-fileslave2_1.png' target="_blank">View Image</a>
+            <br/>
+            <img-compare type="differencePerPixel"
+                         class="left-image"
+                         src="http://storage.cloud.google.com/dummy-bucket/slave2/diffs/fileslave2_1-vs-fileslave2_1.png"
+                         ng-mousedown="MagnifyDraw($event, true)"
+                         ng-mousemove="MagnifyDraw($event, false)"
+                         ng-mouseup="MagnifyEnd($event)"
+                         ng-mouseleave="MagnifyEnd($event)" />
           </td>
         </tr>
       

@@ -77,12 +77,12 @@ class TestJsonSummaryCombiner(unittest.TestCase):
                     'fileslave1_1.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave1/'
                     'fileslave1_.skp',
-                    111, 112, 113, 114),
+                    111, 112, 113, 114, 115),
                 json_summary_combiner.FileInfo(
                     'fileslave1_2.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave1/'
                     'fileslave1_.skp',
-                    121, 122, 123, 124)],
+                    121, 122, 123, 124, 125)],
             skps_location='gs://dummy-bucket/skps/slave1',
             files_location_diffs='gs://dummy-bucket/slave1/diffs',
             files_location_whitediffs='gs://dummy-bucket/slave1/whitediffs',
@@ -95,7 +95,7 @@ class TestJsonSummaryCombiner(unittest.TestCase):
                     'fileslave2_1.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave2/'
                     'fileslave2_.skp',
-                    211, 212, 213, 214)],
+                    211, 212, 213, 214, 215)],
             skps_location='gs://dummy-bucket/skps/slave2',
             files_location_diffs='gs://dummy-bucket/slave2/diffs',
             files_location_whitediffs='gs://dummy-bucket/slave2/whitediffs',
@@ -108,22 +108,22 @@ class TestJsonSummaryCombiner(unittest.TestCase):
                     'fileslave3_1.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
                     'fileslave3_.skp',
-                    311, 312, 313, 314),
+                    311, 312, 313, 314, 315),
                 json_summary_combiner.FileInfo(
                     'fileslave3_2.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
                     'fileslave3_.skp',
-                    321, 322, 323, 324),
+                    321, 322, 323, 324, 325),
                 json_summary_combiner.FileInfo(
                     'fileslave3_3.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
                     'fileslave3_.skp',
-                    331, 332, 333, 334),
+                    331, 332, 333, 334, 335),
                 json_summary_combiner.FileInfo(
                     'fileslave3_4.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
                     'fileslave3_.skp',
-                    341, 342, 343, 344)],
+                    341, 342, 343, 344, 345)],
             skps_location='gs://dummy-bucket/skps/slave3',
             files_location_diffs='gs://dummy-bucket/slave3/diffs',
             files_location_whitediffs='gs://dummy-bucket/slave3/whitediffs',

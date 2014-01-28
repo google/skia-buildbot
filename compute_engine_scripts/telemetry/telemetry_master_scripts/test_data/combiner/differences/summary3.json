@@ -7,7 +7,8 @@
                     "numPixelsDiffering": 311,                                   
                     "percentPixelsDiffering": 312,                               
                     "weightedDiffMeasure": 313,                                  
-                    "maxDiffPerChannel": 314
+                    "maxDiffPerChannel": 314,
+                    "perceptualSimilarity": 315
                 }, 
                 {
                     "fileName": "fileslave3_2.png",
@@ -15,7 +16,8 @@
                     "numPixelsDiffering": 321,                                   
                     "percentPixelsDiffering": 322,                               
                     "weightedDiffMeasure": 323,                                  
-                    "maxDiffPerChannel": 324
+                    "maxDiffPerChannel": 324,
+                    "perceptualSimilarity": 325
                 }
         ], 
         "failedFilesCount": 2, 

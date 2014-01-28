@@ -43,7 +43,7 @@ class FileInfo(object):
   """Container class that holds all file data."""
   def __init__(self, file_name, skp_location, num_pixels_differing,
                percent_pixels_differing, weighted_diff_measure,
-               max_diff_per_channel):
+               max_diff_per_channel, perceptual_diff):
     self.file_name = file_name
     self.diff_file_name = _GetDiffFileName(self.file_name)
     self.skp_location = skp_location
@@ -51,6 +51,7 @@ class FileInfo(object):
     self.percent_pixels_differing = percent_pixels_differing
     self.weighted_diff_measure = weighted_diff_measure
     self.max_diff_per_channel = max_diff_per_channel
+    self.perceptual_diff = perceptual_diff
 
 
 def _GetDiffFileName(file_name):
@@ -91,13 +92,17 @@ def CombineJsonSummaries(json_summaries_dir):
           failed_file[
               json_summary_constants.JSONKEY_SKP_LOCATION].lstrip('gs://'))
       num_pixels_differing = failed_file[
-          json_summary_constants.JSONKEY_NUM_PIXELS_DIFFERING] 
+          json_summary_constants.JSONKEY_NUM_PIXELS_DIFFERING]
       percent_pixels_differing = failed_file[
-          json_summary_constants.JSONKEY_PERCENT_PIXELS_DIFFERING] 
+          json_summary_constants.JSONKEY_PERCENT_PIXELS_DIFFERING]
       weighted_diff_measure = failed_file[
-          json_summary_constants.JSONKEY_WEIGHTED_DIFF_MEASURE] 
+          json_summary_constants.JSONKEY_WEIGHTED_DIFF_MEASURE]
       max_diff_per_channel = failed_file[
-          json_summary_constants.JSONKEY_MAX_DIFF_PER_CHANNEL] 
+          json_summary_constants.JSONKEY_MAX_DIFF_PER_CHANNEL]
+      perceptual_similarity = failed_file[
+          json_summary_constants.JSONKEY_PERCEPTUAL_SIMILARITY]
+      # Convert the perceptual_similarity into the perceptual_diff.
+      perceptual_diff = 100 - (perceptual_similarity * 100)
 
       file_info = FileInfo(
           file_name=failed_file_name,
@@ -105,7 +110,8 @@ def CombineJsonSummaries(json_summaries_dir):
           num_pixels_differing=num_pixels_differing,
           percent_pixels_differing=percent_pixels_differing,
           weighted_diff_measure=weighted_diff_measure,
-          max_diff_per_channel=max_diff_per_channel)
+          max_diff_per_channel=max_diff_per_channel,
+          perceptual_diff=perceptual_diff)
       file_info_list.append(file_info)
 
     slave_info = SlaveInfo(
