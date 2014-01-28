@@ -1,4 +1,29 @@
 {
+  "android_external_port": {
+    "value": "10117",
+    "type": "integer",
+    "description": "Externally-visible port on the Android Skia build master."
+  },
+  "android_internal_port": {
+    "value": "10115",
+    "type": "integer",
+    "description": "Internally-visible port on the Android Skia build master."
+  },
+  "android_master_host": {
+    "value": "108.170.219.162",
+    "type": "string",
+    "description": "Hostname (or IP address) that can be used to reach the Android Skia build master."
+  },
+  "android_master_internal_fqdn": {
+    "value": "skia-android-master-a.c.skia-buildbots.google.com.internal",
+    "type": "string",
+    "description": "What the Android Skia build master thinks its own FQDN is."
+  },
+  "android_slave_port": {
+    "value": "10116",
+    "type": "integer",
+    "description": "Port used by Android build slaves."
+  },
   "autogen_svn_url": {
     "value": "https://skia-autogen.googlecode.com/svn",
     "type": "string",

@@ -37,6 +37,10 @@ SKIA_PRIVATE_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
 SKIA_FYI_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
     'fyi_master_internal_fqdn')
 
+# The Android master.
+SKIA_ANDROID_MASTER_INTERNAL_FQDN = skia_vars.GetGlobalVariable(
+    'android_master_internal_fqdn')
+
 AUTOGEN_SVN_BASEURL = skia_vars.GetGlobalVariable('autogen_svn_url')
 SKIA_GIT_URL = skia_vars.GetGlobalVariable('skia_git_url')
 TRY_SVN_BASEURL = skia_vars.GetGlobalVariable('try_svn_url')
@@ -63,7 +67,6 @@ class Master(config_default.Master):
   class Skia(object):
     project_name = 'Skia'
     project_url = skia_vars.GetGlobalVariable('project_url')
-    # The master host runs in Google Compute Engine.
     master_host = skia_vars.GetGlobalVariable('public_master_host')
     is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER_INTERNAL_FQDN
     do_upload_results = True
@@ -95,7 +98,6 @@ class Master(config_default.Master):
   class PrivateSkia(Skia):
     project_name = 'PrivateSkia'
     project_url = skia_vars.GetGlobalVariable('project_url')
-    # The private master host runs in Google Compute Engine.
     master_host = skia_vars.GetGlobalVariable('private_master_host')
     is_production_host = socket.getfqdn() == SKIA_PRIVATE_MASTER_INTERNAL_FQDN
     # Don't upload results on the private master, since we don't yet have a
@@ -129,7 +131,6 @@ class Master(config_default.Master):
   class FYISkia(Skia):
     project_name = 'FYISkia'
     project_url = skia_vars.GetGlobalVariable('project_url')
-    # The private master host runs in Google Compute Engine.
     master_host = skia_vars.GetGlobalVariable('fyi_master_host')
     is_production_host = socket.getfqdn() == SKIA_FYI_MASTER_INTERNAL_FQDN
     do_upload_results = True
@@ -158,8 +159,39 @@ class Master(config_default.Master):
           cfg,
           master_fyi_builders_cfg.setup_all_builders)
 
+  class AndroidSkia(Skia):
+    project_name = 'AndroidSkia'
+    project_url = skia_vars.GetGlobalVariable('project_url')
+    master_host = skia_vars.GetGlobalVariable('android_master_host')
+    is_production_host = socket.getfqdn() == SKIA_ANDROID_MASTER_INTERNAL_FQDN
+    do_upload_results = True
+    master_port = skia_vars.GetGlobalVariable('android_internal_port')
+    slave_port = skia_vars.GetGlobalVariable('android_slave_port')
+    master_port_alt = skia_vars.GetGlobalVariable('android_external_port')
+    tree_closing_notification_recipients = []
+    from_address = skia_vars.GetGlobalVariable('gce_smtp_user')
+    is_publicly_visible = True
+    code_review_site = \
+        skia_vars.GetGlobalVariable('code_review_status_listener')
+
+    def create_schedulers_and_builders(self, cfg):
+      """Create the Schedulers and Builders.
+
+      Args:
+          cfg: dict; configuration dict for the build master.
+      """
+      # These imports needs to happen inside this function because modules
+      # imported by master_builders_cfg import this module.
+      import master_builders_cfg
+      import master_android_builders_cfg
+      master_builders_cfg.create_schedulers_and_builders(
+          sys.modules[__name__],
+          self,
+          cfg,
+          master_android_builders_cfg.setup_all_builders)
+
   # List of the valid master classes.
-  valid_masters = [Skia, PrivateSkia, FYISkia]
+  valid_masters = [Skia, PrivateSkia, FYISkia, AndroidSkia]
 
   @staticmethod
   def set_active_master(master_name):
