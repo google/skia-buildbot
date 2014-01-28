@@ -43,31 +43,30 @@ class UploadSKImageResults(BuildStep):
                          sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 
   def _Run(self):
-    if self._do_upload_results:
-      # Copy actual-results.json to skimage/actuals
-      print '\n\n====Uploading skimage actual-results to Google Storage====\n\n'
-      src_dir = os.path.abspath(os.path.join(self._skimage_out_dir,
-                                             self._builder_name))
-      dest_dir = posixpath.join(
-          skia_vars.GetGlobalVariable('googlestorage_bucket'),
-          'skimage', 'actuals')
-      http_header_lines = ['Cache-Control:public,max-age=3600']
+    # Copy actual-results.json to skimage/actuals
+    print '\n\n====Uploading skimage actual-results to Google Storage====\n\n'
+    src_dir = os.path.abspath(os.path.join(self._skimage_out_dir,
+                                           self._builder_name))
+    dest_dir = posixpath.join(
+        skia_vars.GetGlobalVariable('googlestorage_bucket'),
+        'skimage', 'actuals')
+    http_header_lines = ['Cache-Control:public,max-age=3600']
+    gs_utils.CopyStorageDirectory(src_dir=src_dir,
+                                  dest_dir=dest_dir,
+                                  gs_acl='public-read',
+                                  http_header_lines=http_header_lines)
+
+    # Copy actual images to Google Storage at skimage/output. This will merge
+    # with the existing files.
+    print '\n\n========Uploading skimage results to Google Storage=======\n\n'
+    src_dir = os.path.abspath(os.path.join(self._skimage_out_dir, 'images'))
+    dest_dir = posixpath.join(
+        skia_vars.GetGlobalVariable('googlestorage_bucket'),
+        'skimage', 'output')
+    if os.path.isdir(src_dir) and os.listdir(src_dir):
       gs_utils.CopyStorageDirectory(src_dir=src_dir,
                                     dest_dir=dest_dir,
-                                    gs_acl='public-read',
-                                    http_header_lines=http_header_lines)
-
-      # Copy actual images to Google Storage at skimage/output. This will merge
-      # with the existing files.
-      print '\n\n========Uploading skimage results to Google Storage=======\n\n'
-      src_dir = os.path.abspath(os.path.join(self._skimage_out_dir, 'images'))
-      dest_dir = posixpath.join(
-          skia_vars.GetGlobalVariable('googlestorage_bucket'),
-          'skimage', 'output')
-      if os.path.isdir(src_dir) and os.listdir(src_dir):
-        gs_utils.CopyStorageDirectory(src_dir=src_dir,
-                                      dest_dir=dest_dir,
-                                      gs_acl=PLAYBACK_CANNED_ACL)
+                                    gs_acl=PLAYBACK_CANNED_ACL)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UploadSKImageResults))

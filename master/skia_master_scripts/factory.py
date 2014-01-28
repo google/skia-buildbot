@@ -646,10 +646,12 @@ class SkiaFactory(BuildFactory):
     self.RenderPdfs()
     self.RunDecodingTests()
     self.PostRender()
-    if self._do_upload_results:
-      self.UploadGMResults()
-      self.CompareAndUploadWebpageGMs()
-      self.UploadSKImageResults()
+
+    # For now, always upload GM results.
+    self.UploadGMResults()
+    self.CompareAndUploadWebpageGMs()
+    self.UploadSKImageResults()
+
     self.CompareGMs()
 
   def PerfSteps(self):
