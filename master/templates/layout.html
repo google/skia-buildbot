@@ -268,6 +268,50 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       loadAllData();
     }
 
+    // Display the most recent build for each builder on the given master.
+    function setLatestBuildsForMaster(master, master_builder_url, builders) {
+      var master_data_row = document.getElementById("results_summary_" + master);
+      // Clear any old results, up to the first cell which is the label.
+      while (master_data_row.cells.length > 1) {
+        master_data_row.deleteCell(-1);
+      }
+      // Add the new results.
+      for (var builder_index = 0; builder_index < builders.length; ++builder_index) {
+        var cell = master_data_row.insertCell(-1);
+        cell.className = "mini-box";
+        cell.style.padding = "0px";
+        cell.style.verticalAlign = "bottom";
+        var builder_name = builders[builder_index].name;
+        var outcome = builders[builder_index].outcome;
+        if (!outcome) {
+          outcome = "offline";
+        }
+        var link = document.createElement("a");
+        link.href = master_builder_url + builder_name;
+        link.title = builder_name;
+        link.target = "_blank";
+        link.innerHTML = " ";
+        cell.style.width = "10px";
+        link.style.width = "100%";
+        link.style.height = "100%";
+        link.className = outcome;
+        link.style.margin = "0px";
+        link.style.padding = "0px";
+        cell.appendChild(link);
+      }
+    }
+
+    // Callback functions for individual masters.
+    {% for master in masters %}
+    {% if not (not is_internal_view and master['name'] == 'PrivateSkia') %}
+    function setLatestBuildsFor{{ master['name'] }}(data) {
+      setLatestBuildsForMaster("{{ master['name'] }}",
+                               "http://{{ master['host'] }}:{{ master['internal_port'] if is_internal_view else master['external_port'] }}/waterfall?show=",
+                               data['builders']);
+    }
+    {% endif %}
+    {% endfor %}
+
     // Load JSON data from various places.
     function loadAllData() {
       // Tree status.
@@ -288,6 +332,15 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       // Builder statuses.
       loadJSONP(tree_status_appspot_url + "/builder-status/get_builder_statuses",
                 setBuilderStatuses);
+
+      // Last build result for each builder on each master.
+      var master_json_url = "";
+      {% for master in masters %}
+      {% if not (not is_internal_view and master['name'] == 'PrivateSkia') %}
+      master_json_url = "http://{{ master['host'] }}:{{ master['internal_port'] if is_internal_view else master['external_port'] }}/json/builder_statuses";
+      loadJSONP(master_json_url, setLatestBuildsFor{{ master['name'] }});
+      {% endif %}
+      {% endfor %}
 
       // Set the reload timer.
       refreshTimer = setTimeout(reloadPage, refreshInterval);
@@ -525,35 +578,19 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         <div style="text-align:center; width: 50%; margin-left: 25%; margin-right: 25%">
           <div id="heading" style="font-size:3.5em; text-align:center;">Skia Buildbots ({{ active_master_name }})</div>
           <div>
-            <form name="unused" action="javascript:void(0);">
-              <nobr>Build Master:
-              {% for master in masters %}
-                <input type="radio" name="master_select"
-                  onClick="setHostAndPort('{{ master['host'] }}', '{{ master['internal_port'] if is_internal_view else master['external_port'] }}');"
-                  {% if master['name'] == active_master_name %}
-                  checked
-                  {% endif %}
-                >{{ master['name'] }}</input>
-              {% endfor %}
-              </nobr>
-            </form>
+          <p>
+          Skia Build Masters:
+          <table>
+            {% for master in masters %}
+            {% if not (not is_internal_view and master['name'] == 'PrivateSkia') %}
+              <tr id="results_summary_{{ master['name'] }}">
+                <td style="text-align: right"><a href="http://{{ master['host'] }}:{{ master['internal_port'] if is_internal_view else master['external_port'] }}/console">{{ master['name'] }}</a></td>
+              </tr>
+            {% endif %}
+            {% endfor %}
+           </table>
           </div>
-          <div style="text-align:center;">
-            <form name="unused2">
-              <p>
-              <b>Category:</b>
-              {% for r in all_categories %}
-              <nobr><input type="checkbox" checked="true" id="chkbox_category_{{ r }}" name="category_chkbox" value="{{ r }}" onClick="checkboxClicked('chkbox_category_{{ r }}');">{{ r|trim }}</nobr>
-              {% endfor %}
-              </p>
-              <p>
-              <b>Subcategory:</b>
-              {% for subcategory in all_subcategories %}
-              <nobr><input type="checkbox" checked="true" id="chkbox_subcategory_{{ subcategory }}" name="subcategory_chkbox" value="{{ subcategory }}" onClick="checkboxClicked('chkbox_subcategory_{{ subcategory }}');">{{ subcategory|trim }}</nobr>
-              {% endfor %}
-              </p>
-            </form>
-          </div>
+          </p>
         </div>
       </div>
 
