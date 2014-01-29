@@ -5,9 +5,14 @@
     <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/togglecols.js"></script>
     <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/angular.min.js"></script>
     <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/diff_viewer.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        sortRows(0, false, [0, 2, 3, 4]);
+      });
+    </script>
   </head>
 
-  <body onload="resetToggleArrows([0, 2, 3, 4])">
+  <body>
     <h2>Image comparision failures for slave3</h2>
     <a href='index.html'>Back</a>
     <br/><br/>
@@ -19,6 +24,7 @@
     &nbsp;&nbsp;&nbsp;&nbsp;<i>gsutil cp gs://dummy-bucket/slave3/withpatch/* /tmp/withpath-imgs/</i><br/><br/>
 
     Click on the linked column headers to sort rows.<br/>
+    Maximum 20 webpages are displayed for each sort.<br/>
     Click on images in the 'Difference per pixel' column to magnify the other three images.<br/><br/><br/>
 
     <table border="1" cellpadding="5" id="slave_results">
