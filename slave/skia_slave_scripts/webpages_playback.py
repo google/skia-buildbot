@@ -152,10 +152,11 @@ class SkPicturePlayback(object):
       raise ValueError('Must specify atleast one page_set!')
     elif self._all_page_sets_specified:
       # Get everything from the page_sets directory.
-      return [os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                           'page_sets', page_set)
-              for page_set in os.listdir('page_sets')
-              if not os.path.isdir(os.path.join('page_sets', page_set))]
+      page_sets_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                   'page_sets')
+      return [os.path.join(page_sets_dir, page_set)
+              for page_set in os.listdir(page_sets_dir)
+              if not os.path.isdir(os.path.join(page_sets_dir, page_set))]
     elif '*' in page_sets:
       # Explode and return the glob.
       return glob.glob(page_sets)
