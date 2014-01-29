@@ -15,9 +15,10 @@
     <table border="1" cellpadding="5" id="slave_results">
       <thead>
       <tr bgcolor="#CCCCFF">
-        <th><a href="#" onclick="sortRows(0, false, [0, 1, 2]); return false;">Failed Files</a><img src="" id="toggle-arrows-0"></th>
-        <th><a href="#" onclick="sortRows(1, true, [0, 1, 2]); return false;">Differing pixels in white</a><img src="" id="toggle-arrows-1"></th>
-        <th><a href="#" onclick="sortRows(2, true, [0, 1, 2]); return false;">Difference per pixel</a><img src="" id="toggle-arrows-2"></th>
+        <th><a href="#" onclick="sortRows(0, false, [0, 1, 2, 3]); return false;">Failed Files</a><img src="" id="toggle-arrows-0"></th>
+        <th><a href="#" onclick="sortRows(1, false, [0, 1, 2, 3]); return false;">Perceptual diff</a><img src="" id="toggle-arrows-1"></th>
+        <th><a href="#" onclick="sortRows(2, true, [0, 1, 2, 3]); return false;">Differing pixels in white</a><img src="" id="toggle-arrows-2"></th>
+        <th><a href="#" onclick="sortRows(3, true, [0, 1, 2, 3]); return false;">Difference per pixel</a><img src="" id="toggle-arrows-3"></th>
       </tr>
       </thead>
       <tbody>
@@ -26,6 +27,9 @@
         <tr>
           <td align="center">
             <a id='compare_value' href='http://dummy-link.foobar/slave1.html#slave1-fileslave1_1.png'>fileslave1_1.png</a>
+          </td>
+          <td>
+            <a id='compare_value'>115</a>% (115)
           </td>
           <td>
             <a id='compare_value'>112</a>% (111)
@@ -38,6 +42,9 @@
         <tr>
           <td align="center">
             <a id='compare_value' href='http://dummy-link.foobar/slave1.html#slave1-fileslave1_2.png'>fileslave1_2.png</a>
+          </td>
+          <td>
+            <a id='compare_value'>125</a>% (125)
           </td>
           <td>
             <a id='compare_value'>122</a>% (121)
@@ -54,6 +61,9 @@
             <a id='compare_value' href='http://dummy-link.foobar/slave2.html#slave2-fileslave2_1.png'>fileslave2_1.png</a>
           </td>
           <td>
+            <a id='compare_value'>215</a>% (215)
+          </td>
+          <td>
             <a id='compare_value'>212</a>% (211)
           </td>
           <td>
@@ -68,6 +78,9 @@
             <a id='compare_value' href='http://dummy-link.foobar/slave3.html#slave3-fileslave3_1.png'>fileslave3_1.png</a>
           </td>
           <td>
+            <a id='compare_value'>315</a>% (315)
+          </td>
+          <td>
             <a id='compare_value'>312</a>% (311)
           </td>
           <td>
@@ -78,6 +91,9 @@
         <tr>
           <td align="center">
             <a id='compare_value' href='http://dummy-link.foobar/slave3.html#slave3-fileslave3_2.png'>fileslave3_2.png</a>
+          </td>
+          <td>
+            <a id='compare_value'>325</a>% (325)
           </td>
           <td>
             <a id='compare_value'>322</a>% (321)
@@ -92,6 +108,9 @@
             <a id='compare_value' href='http://dummy-link.foobar/slave3.html#slave3-fileslave3_3.png'>fileslave3_3.png</a>
           </td>
           <td>
+            <a id='compare_value'>335</a>% (335)
+          </td>
+          <td>
             <a id='compare_value'>332</a>% (331)
           </td>
           <td>
@@ -102,6 +121,9 @@
         <tr>
           <td align="center">
             <a id='compare_value' href='http://dummy-link.foobar/slave3.html#slave3-fileslave3_4.png'>fileslave3_4.png</a>
+          </td>
+          <td>
+            <a id='compare_value'>345</a>% (345)
           </td>
           <td>
             <a id='compare_value'>342</a>% (341)

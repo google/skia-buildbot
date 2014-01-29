@@ -15,9 +15,10 @@
     <table border="1" cellpadding="5" id="slave_results">
       <thead>
       <tr bgcolor="#CCCCFF">
-        <th><a href="#" onclick="sortRows(0, false, [0, 1, 2]); return false;">Failed Files</a><img src="" id="toggle-arrows-0"></th>
-        <th><a href="#" onclick="sortRows(1, true, [0, 1, 2]); return false;">Differing pixels in white</a><img src="" id="toggle-arrows-1"></th>
-        <th><a href="#" onclick="sortRows(2, true, [0, 1, 2]); return false;">Difference per pixel</a><img src="" id="toggle-arrows-2"></th>
+        <th><a href="#" onclick="sortRows(0, false, [0, 1, 2, 3]); return false;">Failed Files</a><img src="" id="toggle-arrows-0"></th>
+        <th><a href="#" onclick="sortRows(1, false, [0, 1, 2, 3]); return false;">Perceptual diff</a><img src="" id="toggle-arrows-1"></th>
+        <th><a href="#" onclick="sortRows(2, true, [0, 1, 2, 3]); return false;">Differing pixels in white</a><img src="" id="toggle-arrows-2"></th>
+        <th><a href="#" onclick="sortRows(3, true, [0, 1, 2, 3]); return false;">Difference per pixel</a><img src="" id="toggle-arrows-3"></th>
       </tr>
       </thead>
       <tbody>
@@ -26,6 +27,9 @@
         <tr>
           <td align="center">
             <a id='compare_value' href='{{ absolute_url }}{{ slave_info.slave_name }}.html#{{ slave_info.slave_name }}-{{ file_info.file_name }}'>{{ file_info.file_name }}</a>
+          </td>
+          <td>
+            <a id='compare_value'>{{ file_info.perceptual_diff }}</a>% ({{ file_info.perceptual_diff }})
           </td>
           <td>
             <a id='compare_value'>{{ file_info.percent_pixels_differing }}</a>% ({{ file_info.num_pixels_differing }})
