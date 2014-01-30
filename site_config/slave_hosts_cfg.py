@@ -295,8 +295,8 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_7-compile-009', '9'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': '192.168.1.104',
-    'kvm_num': '7',
+    'ip': '192.168.1.118',
+    'kvm_num': '5',
   },
 
   'skiabot-mac-10_8-compile': {
@@ -313,8 +313,8 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_8-compile-009', '9'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
+    'ip': '192.168.1.104',
+    'kvm_num': '7',
   },
 
 ############################### Windows Machines ###############################
