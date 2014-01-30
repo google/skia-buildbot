@@ -236,11 +236,23 @@ class Master(config_default.Master):
         master_name: string; name of the desired build master.
     """
     global _ACTIVE_MASTER
+    master = Master.get(master_name)
+    if master:
+      _ACTIVE_MASTER = master()
+      return _ACTIVE_MASTER
+    raise Exception('Invalid master: %s' % master_name)
+
+  @staticmethod
+  def get(master_name):
+    """Return the master with the given name or None if no such master exists.
+
+    Args:
+        master_name: string; name of the desired build master.
+    """
     for master in Master.valid_masters:
       if master_name == master.__name__:
-        _ACTIVE_MASTER = master()
-        return _ACTIVE_MASTER
-    raise Exception('Invalid master: %s' % master_name)
+        return master
+    return None
 
   @staticmethod
   def get_active_master():

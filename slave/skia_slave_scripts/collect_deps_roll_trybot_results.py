@@ -62,9 +62,10 @@ class CollectDEPSRollTrybotResults(BuildStep):
   def _Run(self):
     upstream_bot = self._args['upstream_bot']
 
+    active_master = config_private.Master.get(os.environ.get('TESTING_MASTER'))
     builder_json_url = 'http://%s:%s/json/builders/%s' % (
-        config_private.Master.Skia.master_host,
-        config_private.Master.Skia.master_port_alt,
+        active_master.master_host,
+        active_master.master_port_alt,
         upstream_bot)
 
     print 'Obtaining builder data from %s' % builder_json_url
