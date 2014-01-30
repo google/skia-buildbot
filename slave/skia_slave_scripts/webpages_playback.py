@@ -183,7 +183,7 @@ class SkPicturePlayback(object):
     if not os.path.isfile(CREDENTIALS_FILE_PATH):
       # Download the credentials.json file from Google Storage.
       slave_utils.GSUtilDownloadFile(
-          src=CREDENTIALS_GS_LOCATION, dst=os.path.join('page_sets', 'data'))
+          src=CREDENTIALS_GS_LOCATION, dst=CREDENTIALS_FILE_PATH)
 
     # Delete any left over data files in the data directory.
     for archive_file in glob.glob(
