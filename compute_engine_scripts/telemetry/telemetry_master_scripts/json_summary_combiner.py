@@ -30,6 +30,7 @@ STORAGE_HTTP_BASE = 'http://storage.cloud.google.com'
 SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR = 'slave_name_to_info_items'
 ABSOLUTE_URL_TEMPLATE_VAR = 'absolute_url'
 SLAVE_INFO_TEMPLATE_VAR = 'slave_info'
+FILE_INFO_TEMPLATE_VAR = 'file_info'
 RENDER_PICTURES_ARGS_TEMPLATE_VAR = 'render_pictures_args'
 NOPATCH_MESA_TEMPLATE_VAR = 'nopatch_mesa'
 WITHPATCH_MESA_TEMPLATE_VAR = 'withpatch_mesa'
@@ -183,6 +184,27 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
     with open(os.path.join(output_html_dir, '%s.html' % slave_name),
               'w') as per_slave_html:
       per_slave_html.write(rendered)
+    for file_info in slave_info.failed_files:
+      rendered = loader.render_to_string(
+          'single_file_details.html',
+          {FILE_INFO_TEMPLATE_VAR: file_info,
+         ABSOLUTE_URL_TEMPLATE_VAR: absolute_url,
+         GS_FILES_LOCATION_NO_PATCH_TEMPLATE_VAR: posixpath.join(
+             STORAGE_HTTP_BASE,
+             slave_info.files_location_nopatch.lstrip('gs://')),
+         GS_FILES_LOCATION_WITH_PATCH_TEMPLATE_VAR: posixpath.join(
+             STORAGE_HTTP_BASE,
+             slave_info.files_location_withpatch.lstrip('gs://')),
+         GS_FILES_LOCATION_DIFFS_TEMPLATE_VAR: posixpath.join(
+             STORAGE_HTTP_BASE,
+             slave_info.files_location_diffs.lstrip('gs://')),
+         GS_FILES_LOCATION_WHITE_DIFFS_TEMPLATE_VAR: posixpath.join(
+             STORAGE_HTTP_BASE,
+             slave_info.files_location_whitediffs.lstrip('gs://'))}
+      )
+      with open(os.path.join(output_html_dir, '%s.html' % file_info.file_name),
+                'w') as per_file_html:
+        per_file_html.write(rendered)
 
 
 if '__main__' == __name__:

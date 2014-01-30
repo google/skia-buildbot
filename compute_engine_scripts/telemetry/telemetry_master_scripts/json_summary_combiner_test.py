@@ -145,7 +145,11 @@ class TestJsonSummaryCombiner(unittest.TestCase):
     html_expected_dir = os.path.join(self._test_data_dir, 'html_outputs',
                                      'differences_with_url')
     for html_file in ('index.html', 'slave1.html', 'slave2.html',
-                      'slave3.html', 'list_of_all_files.html'):
+                      'slave3.html', 'list_of_all_files.html',
+                      'fileslave1_1.png.html', 'fileslave1_2.png.html',
+                      'fileslave2_1.png.html', 'fileslave3_1.png.html',
+                      'fileslave3_2.png.html', 'fileslave3_3.png.html',
+                      'fileslave3_4.png.html'):
       self.assertTrue(
           filecmp.cmp(os.path.join(html_expected_dir, html_file),
                       os.path.join(self._actual_html_dir, html_file)))
@@ -163,7 +167,11 @@ class TestJsonSummaryCombiner(unittest.TestCase):
     html_expected_dir = os.path.join(self._test_data_dir, 'html_outputs',
                                      'differences_no_url')
     for html_file in ('index.html', 'slave1.html', 'slave2.html',
-                      'slave3.html', 'list_of_all_files.html'):
+                      'slave3.html', 'list_of_all_files.html',
+                      'fileslave1_1.png.html', 'fileslave1_2.png.html',
+                      'fileslave2_1.png.html', 'fileslave3_1.png.html',
+                      'fileslave3_2.png.html', 'fileslave3_3.png.html',
+                      'fileslave3_4.png.html'):
       self.assertTrue(
           filecmp.cmp(os.path.join(html_expected_dir, html_file),
                       os.path.join(self._actual_html_dir, html_file)))

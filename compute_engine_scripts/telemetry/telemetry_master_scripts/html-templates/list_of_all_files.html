@@ -26,7 +26,7 @@
         {% for file_info in slave_info.failed_files %}
         <tr>
           <td align="center">
-            <a id='compare_value' href='{{ absolute_url }}{{ slave_info.slave_name }}.html#{{ slave_info.slave_name }}-{{ file_info.file_name }}'>{{ file_info.file_name }}</a>
+            <a id='compare_value' href='{{ absolute_url }}{{ file_info.file_name }}.html'>{{ file_info.file_name }}</a>
           </td>
           <td>
             <a id='compare_value'>{{ file_info.perceptual_diff }}</a>% ({{ file_info.perceptual_diff }})
