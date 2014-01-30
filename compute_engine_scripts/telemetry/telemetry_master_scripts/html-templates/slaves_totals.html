@@ -11,8 +11,7 @@
     NoPatch run compiled with mesa: {{ nopatch_mesa }}<br/>
     WithPatch run compiled with mesa: {{ withpatch_mesa  }}<br/><br/>
 
-    Click on a Slave to see the names of the failing files and their images.<br/>
-    To view all failing files click <a href='{{ absolute_url }}list_of_all_files.html'>here</a>.
+    To view all {{ failing_files_count }} failing files click <a href='{{ absolute_url }}list_of_all_files.html'>here</a>.
     <br/><br/><br/>
 
     <table border="1" cellpadding="5">
@@ -22,7 +21,7 @@
       </tr>
       {% for slave_name, slave_info in slave_name_to_info_items %}
         <tr>
-          <td><a href='{{ absolute_url }}{{ slave_name }}.html'>{{ slave_name }}</a></td>
+          <td>{{ slave_name }}</td>
           <td align="center">{{ slave_info.failed_files|length }}</td>
         </tr>
       {% endfor %}

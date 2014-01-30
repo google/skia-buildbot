@@ -34,6 +34,7 @@ FILE_INFO_TEMPLATE_VAR = 'file_info'
 RENDER_PICTURES_ARGS_TEMPLATE_VAR = 'render_pictures_args'
 NOPATCH_MESA_TEMPLATE_VAR = 'nopatch_mesa'
 WITHPATCH_MESA_TEMPLATE_VAR = 'withpatch_mesa'
+TOTAL_FAILING_FILES_TEMPLATE_VAR = 'failing_files_count'
 GS_FILES_LOCATION_NO_PATCH_TEMPLATE_VAR = 'gs_http_files_location_nopatch'
 GS_FILES_LOCATION_WITH_PATCH_TEMPLATE_VAR = 'gs_http_files_location_withpatch'
 GS_FILES_LOCATION_DIFFS_TEMPLATE_VAR = 'gs_http_files_location_diffs'
@@ -141,6 +142,11 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
   and displays the nopatch and withpatch images. X here corresponds to the
   number of slaves that have failing files.
   """
+  # Get total failing file count.
+  total_failing_files = 0
+  for slave_info in slave_name_to_info.values():
+    total_failing_files += len(slave_info.failed_files)
+
   slave_name_to_info_items = sorted(
       slave_name_to_info.items(), key=lambda tuple: tuple[0])
   rendered = loader.render_to_string(
@@ -149,7 +155,8 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
        ABSOLUTE_URL_TEMPLATE_VAR: absolute_url,
        RENDER_PICTURES_ARGS_TEMPLATE_VAR: render_pictures_args,
        NOPATCH_MESA_TEMPLATE_VAR: nopatch_mesa,
-       WITHPATCH_MESA_TEMPLATE_VAR: withpatch_mesa}
+       WITHPATCH_MESA_TEMPLATE_VAR: withpatch_mesa,
+       TOTAL_FAILING_FILES_TEMPLATE_VAR: total_failing_files}
   )
   with open(os.path.join(output_html_dir, 'index.html'), 'w') as index_html:
     index_html.write(rendered)
@@ -163,27 +170,7 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
                          'list_of_all_files.html'), 'w') as files_html:
     files_html.write(rendered)
 
-  for slave_name, slave_info in slave_name_to_info_items:
-    rendered = loader.render_to_string(
-        'failures_per_slave.html',
-        {SLAVE_INFO_TEMPLATE_VAR: slave_info,
-         ABSOLUTE_URL_TEMPLATE_VAR: absolute_url,
-         GS_FILES_LOCATION_NO_PATCH_TEMPLATE_VAR: posixpath.join(
-             STORAGE_HTTP_BASE,
-             slave_info.files_location_nopatch.lstrip('gs://')),
-         GS_FILES_LOCATION_WITH_PATCH_TEMPLATE_VAR: posixpath.join(
-             STORAGE_HTTP_BASE,
-             slave_info.files_location_withpatch.lstrip('gs://')),
-         GS_FILES_LOCATION_DIFFS_TEMPLATE_VAR: posixpath.join(
-             STORAGE_HTTP_BASE,
-             slave_info.files_location_diffs.lstrip('gs://')),
-         GS_FILES_LOCATION_WHITE_DIFFS_TEMPLATE_VAR: posixpath.join(
-             STORAGE_HTTP_BASE,
-             slave_info.files_location_whitediffs.lstrip('gs://'))}
-    )
-    with open(os.path.join(output_html_dir, '%s.html' % slave_name),
-              'w') as per_slave_html:
-      per_slave_html.write(rendered)
+  for slave_info in slave_name_to_info.values():
     for file_info in slave_info.failed_files:
       rendered = loader.render_to_string(
           'single_file_details.html',
