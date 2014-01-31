@@ -17,6 +17,9 @@ from utils import shell_utils
 class SKPsCapture(BuildStep):
   """BuildStep that captures the buildbot SKPs."""
 
+  def __init__(self, timeout=10800, **kwargs):
+    super(SKPsCapture, self).__init__(timeout=timeout, **kwargs)
+
   def _Run(self):
     webpages_playback_cmd = [
         'python', os.path.join(os.path.dirname(os.path.realpath(__file__)),

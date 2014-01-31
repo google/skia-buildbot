@@ -399,7 +399,7 @@ def create_schedulers_and_builders(config, active_master, cfg,
 
   # On-demand Scheduler for Skia.
   helper.PeriodicScheduler('skia_ondemand', branch='trunk', minute=0, hour=0,
-                           dayOfMonth='30', month='2')
+                           dayOfMonth=31, month=12)
 
   # Schedulers for Skia trybots.
   helper.TryJobSubversion(utils.TRY_SCHEDULER_SVN)
