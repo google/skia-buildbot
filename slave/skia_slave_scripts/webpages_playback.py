@@ -275,13 +275,12 @@ class SkPicturePlayback(object):
         # Rename generated SKP files into more descriptive names.
         try:
           self._RenameSkpFiles(page_set)
+          # Break out of the retry loop since there were no errors.
+          break
         except AssertionError:
           # There was a failure continue with the loop.
           traceback.print_exc()
           print '\n\n=======Retrying %s=======\n\n' % page_set
-          continue
-        # Break out of the retry loop since there were no errors.
-        break
       else:
         # If we get here then run_measurement did not succeed and thus did not
         # break out of the loop.
