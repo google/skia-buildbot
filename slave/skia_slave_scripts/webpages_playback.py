@@ -56,6 +56,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import traceback
 
 
 # Set the PYTHONPATH for this script to include chromium_buildbot scripts,
@@ -116,6 +117,8 @@ DEVICE_TO_PLATFORM_PREFIX = {
 
 # How many times the record_wpr binary should be retried.
 RETRY_RECORD_WPR_COUNT = 5
+# How many times the run_measurement binary should be retried.
+RETRY_RUN_MEASUREMENT_COUNT = 5
 
 # Location of the credentials.json file in Google Storage.
 CREDENTIALS_GS_LOCATION = (
@@ -249,26 +252,40 @@ class SkPicturePlayback(object):
           '/tmp/test.skp',
           '--skp-outdir=%s' % TMP_SKP_DIR
       )
-      try:
-        print '\n\n=======Capturing SKP of %s=======\n\n' % page_set
-        shell_utils.Bash(run_measurement_cmd)
-      except shell_utils.CommandFailedException:
-        # skpicture_printer sometimes fails with AssertionError but the captured
-        # SKP is still valid. This is a known issue.
-        pass
+      for _ in range(RETRY_RUN_MEASUREMENT_COUNT):
+        try:
+          print '\n\n=======Capturing SKP of %s=======\n\n' % page_set
+          shell_utils.Bash(run_measurement_cmd)
+        except shell_utils.CommandFailedException:
+          # skpicture_printer sometimes fails with AssertionError but the
+          # captured SKP is still valid. This is a known issue.
+          pass
 
-      if self._record:
-        # Move over the created archive into the local webpages archive
-        # directory.
-        shutil.move(
-            os.path.join(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, wpr_data_file),
-            self._local_record_webpages_archive_dir)
-        shutil.move(
-            os.path.join(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, page_set_basename),
-            self._local_record_webpages_archive_dir)
+        if self._record:
+          # Move over the created archive into the local webpages archive
+          # directory.
+          shutil.move(
+              os.path.join(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR, wpr_data_file),
+              self._local_record_webpages_archive_dir)
+          shutil.move(
+              os.path.join(LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR,
+                           page_set_basename),
+              self._local_record_webpages_archive_dir)
 
-      # Rename generated SKP files into more descriptive names.
-      self._RenameSkpFiles(page_set)
+        # Rename generated SKP files into more descriptive names.
+        try:
+          self._RenameSkpFiles(page_set)
+        except AssertionError:
+          # There was a failure continue with the loop.
+          traceback.print_exc()
+          print '\n\n=======Retrying %s=======\n\n' % page_set
+          continue
+        # Break out of the retry loop since there were no errors.
+        break
+      else:
+        # If we get here then run_measurement did not succeed and thus did not
+        # break out of the loop.
+        raise Exception('run_measurement failed for page_set: %s' % page_set)
 
     print '\n\n=======Capturing SKP files took %s seconds=======\n\n' % (
         time.time() - start_time)
