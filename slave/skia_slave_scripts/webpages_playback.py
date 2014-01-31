@@ -277,7 +277,7 @@ class SkPicturePlayback(object):
           self._RenameSkpFiles(page_set)
           # Break out of the retry loop since there were no errors.
           break
-        except AssertionError:
+        except Exception:
           # There was a failure continue with the loop.
           traceback.print_exc()
           print '\n\n=======Retrying %s=======\n\n' % page_set
