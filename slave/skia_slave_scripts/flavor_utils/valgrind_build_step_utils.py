@@ -33,7 +33,7 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
 
     cmd.append(self._PathToBinary(app))
     cmd.extend(args)
-    return shell_utils.Bash(cmd)
+    return shell_utils.run(cmd)
 
   def Compile(self, target):
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
@@ -47,4 +47,4 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
            ]
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
-    shell_utils.Bash(cmd)
+    shell_utils.run(cmd)

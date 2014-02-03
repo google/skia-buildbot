@@ -146,7 +146,7 @@ class ChromeosBuildStepUtils(DefaultBuildStepUtils):
 
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
-    shell_utils.Bash(cmd)
+    shell_utils.run(cmd)
 
   def GetDeviceDirs(self):
     """ Set the directories which will be used by the BuildStep. """

@@ -32,7 +32,7 @@ def GotADB(adb):
   adb: string; possible path to the ADB executable.
   """
   try:
-    shell_utils.Bash([adb, 'version'], echo=False)
+    shell_utils.run([adb, 'version'], echo=False)
     return True
   except Exception:
     return False
@@ -112,7 +112,7 @@ def RunADB(serial, cmd, echo=True, attempts=5, secs_between_attempts=10,
   """
   adb_cmd = [PATH_TO_ADB, '-s', serial]
   adb_cmd += cmd
-  shell_utils.BashRetry(adb_cmd, echo=echo, attempts=attempts,
+  shell_utils.run_retry(adb_cmd, echo=echo, attempts=attempts,
                         secs_between_attempts=secs_between_attempts)
 
 
@@ -128,7 +128,7 @@ def ADBShell(serial, cmd, echo=True):
   # the shell to print the exit code for the command and parse that from stdout.
   adb_cmd = '%s -s %s shell "%s; echo \$?"' % (PATH_TO_ADB, serial,
                                                ' '.join(cmd))
-  output = shell_utils.Bash(adb_cmd, shell=True, echo=echo)
+  output = shell_utils.run(adb_cmd, shell=True, echo=echo)
   output_lines = output.splitlines()
   try:
     real_exitcode = int(output_lines[-1].rstrip())
@@ -151,8 +151,10 @@ def ADBKill(serial, process, kill_app=False):
     ADBShell(serial, ['am', 'kill', process])
   else:
     try:
-      stdout = shell_utils.Bash('%s -s %s shell ps | grep %s' % (
-                                    PATH_TO_ADB, serial, process), shell=True)
+      stdout = shell_utils.run('%s -s %s shell ps | grep %s' % (PATH_TO_ADB,
+                                                                serial,
+                                                                process),
+                               shell=True)
     except Exception:
       return
     for line in stdout.split('\n'):
@@ -164,8 +166,10 @@ def ADBKill(serial, process, kill_app=False):
         ADBShell(serial, ['kill', pid])
     # Raise an exception if any Skia processes are still running.
     try:
-      stdout = shell_utils.Bash('%s -s %s shell ps | grep %s' % (
-                                    PATH_TO_ADB, serial, process), shell=True)
+      stdout = shell_utils.run('%s -s %s shell ps | grep %s' % (PATH_TO_ADB,
+                                                                serial,
+                                                                process),
+                               shell=True)
     except Exception:
       return
     if stdout:
@@ -185,7 +189,7 @@ def GetSerial(device_type):
   if not device_type in DEVICE_LOOKUP:
     raise ValueError('Unknown device: %s!' % device_type)
   device_name = DEVICE_LOOKUP[device_type]
-  output = shell_utils.BashRetry('%s devices' % PATH_TO_ADB, shell=True,
+  output = shell_utils.run_retry('%s devices' % PATH_TO_ADB, shell=True,
                                  attempts=5)
   print output
   lines = output.split('\n')
@@ -198,7 +202,7 @@ def GetSerial(device_type):
   for device_id in device_ids:
     print 'Finding type for id %s' % device_id
     # Get device name
-    name_line = shell_utils.BashRetry(
+    name_line = shell_utils.run_retry(
         '%s -s %s shell cat /system/build.prop | grep "ro.product.device="' % (
             PATH_TO_ADB, device_id), shell=True, attempts=5)
     print name_line
@@ -220,7 +224,7 @@ def SetCPUScalingMode(serial, mode):
   """
   if mode not in CPU_SCALING_MODES:
     raise ValueError('mode must be one of: %s' % CPU_SCALING_MODES)
-  cpu_dirs = shell_utils.Bash('%s -s %s shell ls /sys/devices/system/cpu' % (
+  cpu_dirs = shell_utils.run('%s -s %s shell ls /sys/devices/system/cpu' % (
       PATH_TO_ADB, serial), echo=False, shell=True)
   cpu_dirs_list = cpu_dirs.split('\n')
   regex = re.compile('cpu\d')
@@ -228,16 +232,16 @@ def SetCPUScalingMode(serial, mode):
     cpu_dir = cpu_dir_from_list.rstrip()
     if regex.match(cpu_dir):
       path = '/sys/devices/system/cpu/%s/cpufreq/scaling_governor' % cpu_dir
-      path_found = shell_utils.Bash('%s -s %s shell ls %s' % (
-                                        PATH_TO_ADB, serial, path),
-                                    echo=False, shell=True).rstrip()
+      path_found = shell_utils.run('%s -s %s shell ls %s' % (
+                                       PATH_TO_ADB, serial, path),
+                                   echo=False, shell=True).rstrip()
       if path_found == path:
         # Unfortunately, we can't directly change the scaling_governor file over
         # ADB. Instead, we write a script to do so, push it to the device, and
         # run it.
-        old_mode = shell_utils.Bash('%s -s %s shell cat %s' % (
-                                        PATH_TO_ADB, serial, path),
-                                    echo=False, shell=True).rstrip()
+        old_mode = shell_utils.run('%s -s %s shell cat %s' % (
+                                       PATH_TO_ADB, serial, path),
+                                   echo=False, shell=True).rstrip()
         print 'Current scaling mode for %s is: %s' % (cpu_dir, old_mode)
         filename = 'skia_cpuscale.sh'
         with open(filename, 'w') as script_file:
@@ -247,9 +251,9 @@ def SetCPUScalingMode(serial, mode):
         RunADB(serial, ['shell', filename], echo=True)
         RunADB(serial, ['shell', 'rm', '/system/bin/%s' % filename], echo=False)
         os.remove(filename)
-        new_mode = shell_utils.Bash('%s -s %s shell cat %s' % (
-                                        PATH_TO_ADB, serial, path),
-                                    echo=False, shell=True).rstrip()
+        new_mode = shell_utils.run('%s -s %s shell cat %s' % (
+                                       PATH_TO_ADB, serial, path),
+                                   echo=False, shell=True).rstrip()
         print 'New scaling mode for %s is: %s' % (cpu_dir, new_mode)
 
 
@@ -312,6 +316,6 @@ def RunSkia(serial, cmd, release, device):
     cmd_to_run.extend(['-d', device])
     cmd_to_run.extend(['-s', serial])
     cmd_to_run.extend(cmd)
-    shell_utils.Bash(cmd_to_run)
+    shell_utils.run(cmd_to_run)
   finally:
     RunADB(serial, ['logcat', '-d', '-v', 'time'])

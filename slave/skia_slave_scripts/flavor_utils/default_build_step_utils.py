@@ -88,7 +88,7 @@ class DefaultBuildStepUtils:
       cmd = ['catchsegv', self._PathToBinary(app)]
     else:
       cmd = [self._PathToBinary(app)]
-    shell_utils.Bash(cmd + args)
+    shell_utils.run(cmd + args)
 
   def ReadFileOnDevice(self, filepath):
     """ Read the contents of a file on the associated device. Subclasses should
@@ -183,13 +183,13 @@ class DefaultBuildStepUtils:
            ]
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
-    shell_utils.Bash(cmd)
+    shell_utils.run(cmd)
 
   def MakeClean(self):
     make_cmd = 'make'
     if os.name == 'nt':
       make_cmd = 'make.bat'
-    shell_utils.Bash([make_cmd, 'clean'])
+    shell_utils.run([make_cmd, 'clean'])
 
   def PreRun(self):
     """ Preprocessing step to run before the BuildStep itself. """

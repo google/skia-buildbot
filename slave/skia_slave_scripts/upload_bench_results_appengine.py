@@ -35,7 +35,7 @@ class UploadBenchResultsToAppengine(BuildStep):
     if os.name == 'nt':
       cmd.extend(['-i', 'c'])  # Ignore cpu time for Windows.
 
-    shell_utils.Bash(cmd)
+    shell_utils.run(cmd)
 
   def _Run(self):
     if self._perf_data_dir:

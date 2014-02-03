@@ -226,7 +226,7 @@ class SkPicturePlayback(object):
           page_set
         )
         for _ in range(RETRY_RECORD_WPR_COUNT):
-          output = shell_utils.Bash(record_wpr_cmd)
+          output = shell_utils.run(record_wpr_cmd)
           if RECORD_FAILURE_MSG in output:
             print output
           else:
@@ -255,7 +255,7 @@ class SkPicturePlayback(object):
       for _ in range(RETRY_RUN_MEASUREMENT_COUNT):
         try:
           print '\n\n=======Capturing SKP of %s=======\n\n' % page_set
-          shell_utils.Bash(run_measurement_cmd)
+          shell_utils.run(run_measurement_cmd)
         except shell_utils.CommandFailedException:
           # skpicture_printer sometimes fails with AssertionError but the
           # captured SKP is still valid. This is a known issue.
@@ -308,7 +308,8 @@ class SkPicturePlayback(object):
                         render_pdfs_cmd):
         print '\n\n=======Running %s=======' % ' '.join(tools_cmd)
         proc = subprocess.Popen(tools_cmd)
-        (code, output) = shell_utils.LogProcessAfterCompletion(proc, echo=False)
+        (code, output) = shell_utils.log_process_after_completion(proc,
+                                                                  echo=False)
         if code != 0:
           raise Exception('%s failed!' % ' '.join(tools_cmd))
 

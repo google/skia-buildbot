@@ -22,8 +22,8 @@ class ChromeDRTCanaryUploadResults(BuildStep):
     # Tar up the results.
     result_tarball = '%s_%s.tgz' % (self._builder_name,
                                     self._got_revision)
-    shell_utils.Bash(['tar', '-cvzf', os.path.join(os.pardir, result_tarball),
-                      self._flavor_utils.result_dir])
+    shell_utils.run(['tar', '-cvzf', os.path.join(os.pardir, result_tarball),
+                     self._flavor_utils.result_dir])
 
     # Upload to Google Storage
     upload_to_bucket.upload_to_bucket(

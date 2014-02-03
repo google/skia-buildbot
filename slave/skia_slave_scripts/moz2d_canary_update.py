@@ -22,7 +22,7 @@ class Moz2DCanaryUpdate(Update):
   def _Run(self):
     super(Moz2DCanaryUpdate, self)._Run()
     os.chdir(moz2d_canary_build_step_utils.MOZ2D_DIR)
-    moz2d_rev = shell_utils.Bash(['git', 'rev-parse', 'HEAD'],
+    moz2d_rev = shell_utils.run(['git', 'rev-parse', 'HEAD'],
                                  log_in_real_time=False)
     print 'Moz2D updated to %s' % moz2d_rev
 

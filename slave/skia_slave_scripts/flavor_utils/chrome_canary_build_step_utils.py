@@ -31,7 +31,7 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
            target,
            ]
     cmd.extend(self._step.make_flags)
-    shell_utils.Bash(cmd)
+    shell_utils.run(cmd)
 
   def MakeClean(self):
     if os.path.isdir('out'):
@@ -43,7 +43,7 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
     os.environ['GYP_GENERATORS'] = 'ninja'
     print 'GYP_GENERATORS="%s"' % os.environ['GYP_GENERATORS']
     python = 'python.bat' if os.name == 'nt' else 'python'
-    shell_utils.Bash([python, os.path.join('build', 'gyp_chromium')])
+    shell_utils.run([python, os.path.join('build', 'gyp_chromium')])
 
   @property
   def baseline_dir(self):

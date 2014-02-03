@@ -59,8 +59,8 @@ class TestGSUtils(unittest.TestCase):
     self._original_run_command = chromium_utils.RunCommand
     chromium_utils.RunCommand = _MockCommand
 
-    self._original_bash_run_command = shell_utils.Bash
-    shell_utils.Bash = _MockCommand
+    self._original_bash_run_command = shell_utils.run
+    shell_utils.run = _MockCommand
 
     self._original_gsutil_file_copy = slave_utils.GSUtilCopyFile
     slave_utils.GSUtilCopyFile = _MockGSUtilFileCopy
@@ -72,7 +72,7 @@ class TestGSUtils(unittest.TestCase):
 
   def tearDown(self):
     chromium_utils.RunCommand = self._original_run_command
-    shell_utils.Bash = self._original_bash_run_command
+    shell_utils.run = self._original_bash_run_command
     slave_utils.GSUtilCopyFile = self._original_gsutil_file_copy
     slave_utils.GSUtilDownloadFile = self._original_gsutil_download_file
     __builtin__.open = self._original_file

@@ -51,7 +51,7 @@ class ApplyPatch(BuildStep):
           # TODO(borenet): Create an svn_utils module and use it instead.  It
           # would be nice to find a way to share
           # https://skia.googlesource.com/skia/+/master/tools/svn.py
-          patch_contents = shell_utils.Bash([SVN, 'cat', patch_url], echo=False)
+          patch_contents = shell_utils.run([SVN, 'cat', patch_url], echo=False)
         else:
           patch_contents = urllib2.urlopen(patch_url).read()
         patch_file.write(patch_contents)
@@ -65,15 +65,15 @@ class ApplyPatch(BuildStep):
 
       try:
         # First, check that the patch can be applied at the given level.
-        shell_utils.Bash(get_patch_cmd(patch_level, patch_file.name) +
-                         ['--check'])
+        shell_utils.run(get_patch_cmd(patch_level, patch_file.name) +
+                        ['--check'])
       except shell_utils.CommandFailedException as e:
         # If the patch can't be applied at the requested level, try 0 or 1,
         # depending on what we just tried.
         print e
         patch_level = (patch_level + 1) % 2
         print 'Trying patch level %d instead...' % patch_level
-      shell_utils.Bash(get_patch_cmd(patch_level, patch_file.name))
+      shell_utils.run(get_patch_cmd(patch_level, patch_file.name))
 
     finally:
       shutil.rmtree(temp_dir)

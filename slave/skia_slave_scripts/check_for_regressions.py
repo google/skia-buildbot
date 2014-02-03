@@ -39,7 +39,7 @@ class CheckForRegressions(BuildStep):
            '-r', self._got_revision,
            ]
 
-    shell_utils.Bash(cmd)
+    shell_utils.run(cmd)
 
   def _Run(self):
     if self._perf_data_dir:

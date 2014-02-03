@@ -110,8 +110,8 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
       except Exception:
         # If we fail to kill the process, try rebooting the device, and wait for
         # it to come back up.
-        shell_utils.Bash([android_utils.PATH_TO_ADB, '-s', self._serial,
-                          'reboot'])
+        shell_utils.run([android_utils.PATH_TO_ADB, '-s', self._serial,
+                         'reboot'])
         time.sleep(60)
       android_utils.StopShell(self._serial)
     else:
@@ -136,13 +136,13 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
     cmd.extend(self._step.default_make_flags)
     if os.name != 'nt':
       try:
-        ccache = shell_utils.Bash(['which', 'ccache']).rstrip()
+        ccache = shell_utils.run(['which', 'ccache']).rstrip()
         if ccache:
           os.environ['ANDROID_MAKE_CCACHE'] = ccache
       except Exception:
         pass
     cmd.extend(self._step.make_flags)
-    shell_utils.Bash(cmd)
+    shell_utils.run(cmd)
 
   def PreRun(self):
     """ Preprocessing step to run before the BuildStep itself. """
@@ -151,7 +151,7 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
   def GetDeviceDirs(self):
     """ Set the directories which will be used by the BuildStep. """
     if self._serial:
-      device_scratch_dir = shell_utils.Bash(
+      device_scratch_dir = shell_utils.run(
           '%s -s %s shell echo \$EXTERNAL_STORAGE' % (
               android_utils.PATH_TO_ADB, self._serial),
           echo=True, shell=True).rstrip().split('\n')[-1]

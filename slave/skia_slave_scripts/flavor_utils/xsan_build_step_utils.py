@@ -16,8 +16,8 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
   def Compile(self, target):
     # Run the xsan_build script.
     os.environ['PATH'] = LLVM_PATH + ':' + os.environ['PATH']
-    shell_utils.Bash(['which', 'clang'])
-    shell_utils.Bash(['clang', '--version'])
+    shell_utils.run(['which', 'clang'])
+    shell_utils.run(['clang', '--version'])
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     cmd = [
@@ -29,4 +29,4 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
 
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
-    shell_utils.Bash(cmd)
+    shell_utils.run(cmd)

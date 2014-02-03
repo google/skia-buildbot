@@ -53,7 +53,7 @@ def CopyStorageDirectory(src_dir, dest_dir, gs_acl='private',
       command.extend(['-h', http_header_line])
   command.extend(['cp', '-a', gs_acl, '-R', src_dir, dest_dir])
   print 'Running command: %s' % command
-  shell_utils.Bash(command)
+  shell_utils.run(command)
 
 
 def MoveStorageDirectory(src_dir, dest_dir):

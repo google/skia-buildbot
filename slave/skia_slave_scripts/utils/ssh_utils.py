@@ -23,7 +23,7 @@ def PutSCP(local_path, remote_path, username, host, port, recurse=False):
   if recurse:
     cmd += ['-r']
   cmd += ['-P', port, local_path, '%s@%s:%s' % (username, host, remote_path)]
-  shell_utils.Bash(cmd)
+  shell_utils.run(cmd)
 
 def GetSCP(local_path, remote_path, username, host, port, recurse=False):
   """ Retrieve a file from the given host over SCP. Assumes that public key
@@ -41,7 +41,7 @@ def GetSCP(local_path, remote_path, username, host, port, recurse=False):
   if recurse:
     cmd += ['-r']
   cmd += ['-P', port, '%s@%s:%s' % (username, host, remote_path), local_path]
-  shell_utils.Bash(cmd)
+  shell_utils.run(cmd)
 
 def RunSSH(username, host, port, command, echo=True):
   """ Login to the given host and run the given command.
@@ -52,6 +52,6 @@ def RunSSH(username, host, port, command, echo=True):
   command: command to run on the server in list format
   """
   # TODO: This will hang for a while if the host does not recognize the client
-  return shell_utils.Bash(['ssh', '-p', port, '%s@%s' % (username, host),
-                           '%s' % (' '.join(command).replace('"', '\"'))],
-                          echo=echo)
+  return shell_utils.run(['ssh', '-p', port, '%s@%s' % (username, host),
+                          '%s' % (' '.join(command).replace('"', '\"'))],
+                         echo=echo)

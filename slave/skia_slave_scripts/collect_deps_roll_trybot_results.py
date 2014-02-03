@@ -93,9 +93,9 @@ class CollectDEPSRollTrybotResults(BuildStep):
     print 'DEPS Roll: ', deps_roll_issue
     print 'Whitespace (control): ', whitespace_issue
 
-    shell_utils.Bash(['python', os.path.join('tools', 'compare_codereview.py'),
-                      CODEREVIEW_URL_TMPL % whitespace_issue,
-                      CODEREVIEW_URL_TMPL % deps_roll_issue])
+    shell_utils.run(['python', os.path.join('tools', 'compare_codereview.py'),
+                     CODEREVIEW_URL_TMPL % whitespace_issue,
+                     CODEREVIEW_URL_TMPL % deps_roll_issue])
 
 
 if '__main__' == __name__:

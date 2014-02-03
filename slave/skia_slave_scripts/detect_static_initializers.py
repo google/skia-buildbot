@@ -22,8 +22,8 @@ class DetectStaticInitializers(BuildStep):
   def _Run(self):
     # Build the Skia libraries in Release mode.
     os.environ['GYP_DEFINES'] = 'skia_static_initializers=0'
-    shell_utils.Bash(['python', 'gyp_skia'])
-    shell_utils.Bash(['make', 'skia_lib', 'BUILDTYPE=Release', '--jobs'])
+    shell_utils.run(['python', 'gyp_skia'])
+    shell_utils.run(['make', 'skia_lib', 'BUILDTYPE=Release', '--jobs'])
 
     # Obtain the dump-static-initializers script.
     print 'Downloading %s' % DUMP_STATIC_INITIALIZERS_URL
@@ -35,9 +35,9 @@ class DetectStaticInitializers(BuildStep):
     results = []
     for built_file_name in os.listdir(os.path.join('out', 'Release')):
       if built_file_name.endswith('.a') or built_file_name.endswith('.so'):
-        output = shell_utils.Bash(['python', DUMP_STATIC_INITIALIZERS_FILENAME,
-                                   os.path.join('out', 'Release',
-                                                built_file_name)])
+        output = shell_utils.run(['python', DUMP_STATIC_INITIALIZERS_FILENAME,
+                                  os.path.join('out', 'Release',
+                                               built_file_name)])
         matches = re.search('Found (\d+) static initializers', output)
         if matches:
           num_found = int(matches.groups()[0])

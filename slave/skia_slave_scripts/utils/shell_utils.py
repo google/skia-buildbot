@@ -46,7 +46,7 @@ class TimeoutException(CommandFailedException):
   pass
 
 
-def BashAsync(cmd, echo=True, shell=False):
+def run_async(cmd, echo=True, shell=False):
   """ Run 'cmd' in a subprocess, returning a Popen class instance referring to
   that process.  (Non-blocking) """
   if echo:
@@ -99,8 +99,8 @@ class EnqueueThread(threading.Thread):
     self._stopped = True
 
 
-def LogProcessInRealTime(proc, echo=True, timeout=None, log_file=None,
-                         halt_on_output=None, print_timestamps=True):
+def log_process_in_real_time(proc, echo=True, timeout=None, log_file=None,
+                             halt_on_output=None, print_timestamps=True):
   """ Log the output of proc in real time until it completes. Return a tuple
   containing the exit code of proc and the contents of stdout.
 
@@ -153,10 +153,10 @@ def LogProcessInRealTime(proc, echo=True, timeout=None, log_file=None,
   return (code, ''.join(all_output))
 
 
-def LogProcessAfterCompletion(proc, echo=True, timeout=None, log_file=None):
+def log_process_after_completion(proc, echo=True, timeout=None, log_file=None):
   """ Wait for proc to complete and return a tuple containing the exit code of
-  proc and the contents of stdout. Unlike LogProcessInRealTime, does not attempt
-  to read stdout from proc in real time.
+  proc and the contents of stdout. Unlike log_process_in_real_time, does not
+  attempt to read stdout from proc in real time.
 
   proc: an instance of Popen referring to a running subprocess.
   echo: boolean indicating whether to print the output received from proc.stdout
@@ -182,8 +182,8 @@ def LogProcessAfterCompletion(proc, echo=True, timeout=None, log_file=None):
   return (code, output)
 
 
-def Bash(cmd, echo=True, shell=False, timeout=None, print_timestamps=True,
-         log_in_real_time=True):
+def run(cmd, echo=True, shell=False, timeout=None, print_timestamps=True,
+        log_in_real_time=True):
   """ Run 'cmd' in a shell and return the combined contents of stdout and
   stderr (Blocking).  Throws an exception if the command exits non-zero.
   
@@ -202,15 +202,15 @@ def Bash(cmd, echo=True, shell=False, timeout=None, print_timestamps=True,
       subprocess in real time instead of when the process finishes. If echo is
       False, we never log in real time, even if log_in_real_time is True.
   """
-  proc = BashAsync(cmd, echo=echo, shell=shell)
+  proc = run_async(cmd, echo=echo, shell=shell)
   # If we're not printing the output, we don't care if the output shows up in
   # real time, so don't bother.
   if log_in_real_time and echo:
-    (returncode, output) = LogProcessInRealTime(proc, echo=echo,
+    (returncode, output) = log_process_in_real_time(proc, echo=echo,
         timeout=timeout, print_timestamps=print_timestamps)
   else:
-    (returncode, output) = LogProcessAfterCompletion(proc, echo=echo,
-                                                     timeout=timeout)
+    (returncode, output) = log_process_after_completion(proc, echo=echo,
+                                                        timeout=timeout)
   if returncode != 0:
     raise CommandFailedException(
         output,
@@ -218,16 +218,16 @@ def Bash(cmd, echo=True, shell=False, timeout=None, print_timestamps=True,
   return output
 
 
-def BashRetry(cmd, echo=True, shell=False, attempts=1,
+def run_retry(cmd, echo=True, shell=False, attempts=1,
               secs_between_attempts=DEFAULT_SECS_BETWEEN_ATTEMPTS,
               timeout=None, print_timestamps=True):
-  """ Wrapper for Bash() which makes multiple attempts until either the command
+  """ Wrapper for run() which makes multiple attempts until either the command
   succeeds or the maximum number of attempts is reached. """
   attempt = 1
   while True:
     try:
-      return Bash(cmd, echo=echo, shell=shell, timeout=timeout,
-                  print_timestamps=print_timestamps)
+      return run(cmd, echo=echo, shell=shell, timeout=timeout,
+                 print_timestamps=print_timestamps)
     except CommandFailedException:
       if attempt >= attempts:
         raise

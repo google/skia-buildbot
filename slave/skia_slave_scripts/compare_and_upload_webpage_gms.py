@@ -208,8 +208,8 @@ class CompareAndUploadWebpageGMs(BuildStep):
     last_comparison_successful = self._ReadFromLastComparisonFile() == 'True'
     try:
       print '\n\n=========Running GM Comparison=========\n\n'
-      proc = shell_utils.BashAsync(cmd, echo=True, shell=False)
-      (returncode, gm_comparison_output) = shell_utils.LogProcessInRealTime(
+      proc = shell_utils.run_async(cmd, echo=True, shell=False)
+      (returncode, gm_comparison_output) = shell_utils.log_process_in_real_time(
           proc, echo=True, timeout=None)
       if returncode != 0:
         raise Exception('Command failed with code %d' % returncode)

@@ -31,7 +31,7 @@ class SKPsCapture(BuildStep):
     ]
     if not self._is_try:
       webpages_playback_cmd.append('--upload_to_gs')
-    shell_utils.Bash(webpages_playback_cmd)
+    shell_utils.run(webpages_playback_cmd)
 
     # Clean up any leftover browser instances. This can happen if there are
     # telemetry crashes, processes are not always cleaned up appropriately by
@@ -40,7 +40,7 @@ class SKPsCapture(BuildStep):
       'pkill', '-9', '-f', os.path.join(os.getcwd(),
                                         self._args['browser_executable'])
     ]
-    shell_utils.Bash(cleanup_cmd)
+    shell_utils.run(cleanup_cmd)
 
 
 if '__main__' == __name__:

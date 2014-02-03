@@ -23,10 +23,10 @@ class NaclBuildStepUtils(DefaultBuildStepUtils):
     cmd.extend(self._step.default_make_flags)
     if os.name != 'nt':
       try:
-        ccache = shell_utils.Bash(['which', 'ccache'], echo=False)
+        ccache = shell_utils.run(['which', 'ccache'], echo=False)
         if ccache:
           cmd.append('--use-ccache')
       except Exception:
         pass
     cmd.extend(self._step.make_flags)
-    shell_utils.Bash(cmd)
+    shell_utils.run(cmd)

@@ -35,7 +35,7 @@ GCLIENT_FILE = '.gclient'
 
 def _RunCmd(cmd):
   """ Run a "gclient ..." command. """
-  return shell_utils.Bash(['python', GCLIENT_PY] + cmd)
+  return shell_utils.run(['python', GCLIENT_PY] + cmd)
 
 
 def Config(spec):
@@ -93,9 +93,9 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
   for branch in (branches or []):
     os.chdir(os.path.join(checkout_root, branch))
     if revision and branch == SKIA_TRUNK:
-      shell_utils.Bash([GIT, 'reset', '--hard', revision])
+      shell_utils.run([GIT, 'reset', '--hard', revision])
     else:
-      shell_utils.Bash([GIT, 'checkout', 'origin/master', '-f'])
+      shell_utils.run([GIT, 'checkout', 'origin/master', '-f'])
     os.chdir(start_dir)
   return output
 
@@ -112,17 +112,17 @@ def GetCheckedOutHash():
     # First, print out the remote from which we synced, just for debugging.
     cmd = [GIT, 'remote', '-v']
     try:
-      shell_utils.Bash(cmd)
+      shell_utils.run(cmd)
     except shell_utils.CommandFailedException as e:
       print e
 
     # "git rev-parse HEAD" returns the commit hash for HEAD.
-    return shell_utils.Bash([GIT, 'rev-parse', 'HEAD'],
-                            log_in_real_time=False).rstrip('\n')
+    return shell_utils.run([GIT, 'rev-parse', 'HEAD'],
+                           log_in_real_time=False).rstrip('\n')
   finally:
     os.chdir(current_directory)
 
 
 def Revert():
-  shell_utils.Bash([GIT, 'clean', '-f', '-d'])
-  shell_utils.Bash([GIT, 'reset', '--hard', 'HEAD'])
+  shell_utils.run([GIT, 'clean', '-f', '-d'])
+  shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])

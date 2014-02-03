@@ -38,8 +38,8 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   """
   # Figure out what revision of Skia we should use.
   if not skia_revision:
-    output = shell_utils.Bash([GIT, 'ls-remote', SKIA_GIT_URL, '--verify',
-                               'refs/heads/master'])
+    output = shell_utils.run([GIT, 'ls-remote', SKIA_GIT_URL, '--verify',
+                              'refs/heads/master'])
     if output:
       skia_revision = shlex.split(output)[0]
     if not skia_revision:
@@ -51,7 +51,7 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   # finishes.
   if not os.path.isfile(GCLIENT_FILE):
     try:
-      shell_utils.Bash([FETCH, 'chromium', '--nosvn=True'])
+      shell_utils.run([FETCH, 'chromium', '--nosvn=True'])
     except shell_utils.CommandFailedException:
       pass
   if not os.path.isfile(GCLIENT_FILE):
@@ -105,8 +105,8 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
 
   # Find the actually-obtained Chrome revision.
   os.chdir('src')
-  actual_chrome_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD'],
-                                       log_in_real_time=False).rstrip()
+  actual_chrome_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
+                                      log_in_real_time=False).rstrip()
 
   if use_lkgr_skia:
     # Get the Skia revision requested by Chrome.
@@ -122,26 +122,26 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   os.chdir(skia_dir)
   try:
     # Determine whether we already have a Skia checkout. If so, just pull.
-    if not 'skia' in shell_utils.Bash([GIT, 'remote', '-v']):
+    if not 'skia' in shell_utils.run([GIT, 'remote', '-v']):
       raise Exception('%s does not contain a Skia checkout!' % skia_dir)
-    current_skia_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD']).rstrip()
+    current_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD']).rstrip()
     print 'Found existing Skia checkout at %s' % current_skia_rev
-    shell_utils.Bash([GIT, 'pull', 'origin', 'master'])
+    shell_utils.run([GIT, 'pull', 'origin', 'master'])
   except Exception:
     # If updating fails, assume that we need to check out Skia from scratch.
     os.chdir(os.pardir)
     chromium_utils.RemoveDirectory('skia')
-    shell_utils.Bash([GIT, 'clone', SKIA_GIT_URL, 'skia'])
+    shell_utils.run([GIT, 'clone', SKIA_GIT_URL, 'skia'])
     os.chdir('skia')
-  shell_utils.Bash([GIT, 'reset', '--hard', skia_revision])
+  shell_utils.run([GIT, 'reset', '--hard', skia_revision])
 
   # Find the actually-obtained Skia revision.
-  actual_skia_rev = shell_utils.Bash([GIT, 'rev-parse', 'HEAD'],
-                                     log_in_real_time=False).rstrip()
+  actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
+                                    log_in_real_time=False).rstrip()
 
   # Run gclient hooks
   os.chdir(os.path.join(os.pardir, os.pardir, os.pardir))
-  shell_utils.Bash([GCLIENT, 'runhooks'])
+  shell_utils.run([GCLIENT, 'runhooks'])
 
   # Verify that we got the requested revisions of Chrome and Skia.
   if skia_revision != actual_skia_rev:
