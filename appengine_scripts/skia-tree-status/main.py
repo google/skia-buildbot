@@ -33,8 +33,6 @@ URLS = [
   ('/allstatus/?', status.AllStatusPage),
   ('/banner-status/?', status.BannerStatusPage),
   ('/binary-status/?', status.BinaryStatusPage),
-  ('/lkgr?', status.LkgrPage),
-  ('/git-lkgr?', status.GitLkgrPage),
   ('/builder-status/?', builder_status.BuilderStatusPage),
   ('/builder-status/get_builder_statuses?',
    builder_status.GetBuilderStatusesPage),
@@ -46,6 +44,9 @@ URLS = [
   ('/cq/([^/]+)/(\d+)/?', commit_queue.Issue),
   ('/cq/([^/]+)/(\d+)/(\d+)/?', commit_queue.Issue),
   ('/current-sheriff/?', sheriff.CurrentSheriffPage),
+  ('/git-lkgr?', status.GitLkgrPage),
+  ('/lkgr?', status.LkgrPage),
+  ('/redirect/(.*)$', master_redirect.GenericRedirectionPage),
   ('/repo-serving/(.*)$', master_redirect.MasterRepoServingPage),
   ('/sheriff/?', sheriff.SheriffPage),
   ('/skia-telemetry/?', skia_telemetry.LandingPage),
@@ -84,4 +85,3 @@ status.bootstrap()
 sheriff.bootstrap()
 skia_telemetry.bootstrap()
 utils.bootstrap()
-
