@@ -43,7 +43,7 @@ class DownloadSKPs(BuildStep):
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
     print '\n\n========Downloading skp files from Google Storage========\n\n'
-    gs_utils.DownloadDirectoryContentsIfChanged(
+    gs_utils.download_directory_contents_if_changed(
         gs_base=dest_gsbase,
         gs_relative_dir=self._storage_playback_dirs.PlaybackSkpDir(),
         local_dir=self._local_playback_dirs.PlaybackSkpDir())
