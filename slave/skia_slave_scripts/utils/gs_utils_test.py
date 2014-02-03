@@ -21,6 +21,9 @@ sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
                              'scripts', 'common'))
 sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
                              'site_config'))
+sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
+                             'third_party', 'twisted_10_2'))
+
 
 import chromium_utils
 from slave import slave_utils
@@ -125,6 +128,12 @@ class TestGSUtils(unittest.TestCase):
       def close(self):
         pass
 
+      def __enter__(self):
+        return self
+
+      def __exit__(self, *args):
+        pass
+
       def write(self, string):
         pass
 
@@ -133,7 +142,7 @@ class TestGSUtils(unittest.TestCase):
     # Will be false because the tmp directory will have no TIMESTAMP in it.
     # pylint: disable=W0212
     self.assertFalse(
-        gs_utils._AreTimeStampsEqual(
+        gs_utils._are_timestamps_equal(
             local_dir=local_dir,
             gs_base=self._test_gs_base,
             gs_relative_dir=self._test_destdir))
@@ -143,7 +152,7 @@ class TestGSUtils(unittest.TestCase):
     # Will be false because the timestamps are different.
     # pylint: disable=W0212
     self.assertFalse(
-        gs_utils._AreTimeStampsEqual(
+        gs_utils._are_timestamps_equal(
             local_dir=local_dir,
             gs_base=self._test_gs_base,
             gs_relative_dir=self._test_destdir))
