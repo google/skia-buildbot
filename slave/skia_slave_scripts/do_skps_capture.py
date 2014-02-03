@@ -22,16 +22,24 @@ class SKPsCapture(BuildStep):
 
   def _Run(self):
     webpages_playback_cmd = [
-        'python', os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                               'webpages_playback.py'),
-        '--page_sets', self._args['page_sets'],
-        '--skia_tools', self._args['skia_tools'],
-        '--browser_executable', self._args['browser_executable'],
-        '--non-interactive'
+      'python', os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                             'webpages_playback.py'),
+      '--page_sets', self._args['page_sets'],
+      '--skia_tools', self._args['skia_tools'],
+      '--browser_executable', self._args['browser_executable'],
+      '--non-interactive'
     ]
     if not self._is_try:
       webpages_playback_cmd.append('--upload_to_gs')
     shell_utils.Bash(webpages_playback_cmd)
+
+    # Clean up any leftover browser instances. This can happen if there are
+    # telemetry crashes, processes are not always cleaned up appropriately by
+    # the webpagereplay and telemetry frameworks.
+    cleanup_cmd = [
+      'pkill', '-9', '-f', self._args['browser_executable']
+    ]
+    shell_utils.Bash(cleanup_cmd)
 
 
 if '__main__' == __name__:
