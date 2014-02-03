@@ -24,7 +24,7 @@ class DownloadSKImageFiles(BuildStep):
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
     print '\n\n========Downloading image files from Google Storage========\n\n'
     gs_relative_dir = posixpath.join('skimage', 'input')
-    gs_utils.DownloadDirectoryContentsIfChanged(
+    gs_utils.download_directory_contents_if_changed(
         gs_base=dest_gsbase,
         gs_relative_dir=gs_relative_dir,
         local_dir=self._skimage_in_dir)
