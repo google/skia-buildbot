@@ -46,7 +46,7 @@ class CheckGoogleStorageTimestamps(build_step.BuildStep):
     # from the final platform dir.
 
     # Get a list of all platform_dirs.
-    platform_dirs = gs_utils.ListStorageDirectory(
+    platform_dirs = gs_utils.list_storage_directory(
         dest_gsbase=dest_gsbase,
         subdir=posixpath.join(
             self._storage_playback_dirs.PlaybackRootDir(), 'gm-actual'))
@@ -54,7 +54,7 @@ class CheckGoogleStorageTimestamps(build_step.BuildStep):
     # Get a list of all platform_builder_dirs.
     platform_builder_dirs = []
     for platform_dir in platform_dirs:
-      platform_builder_dirs.extend(gs_utils.ListStorageDirectory(
+      platform_builder_dirs.extend(gs_utils.list_storage_directory(
           dest_gsbase=platform_dir,
           subdir=''))
     # TODO(rmistry): Ignoring Trybot builders for now. Enable them when they
@@ -67,7 +67,7 @@ class CheckGoogleStorageTimestamps(build_step.BuildStep):
     # Get the final list of all platform_builder_platform_dirs.
     platform_builder_platform_dirs = []
     for platform_and_builder_dir in platform_builder_dirs:
-      platform_builder_platform_dirs.extend(gs_utils.ListStorageDirectory(
+      platform_builder_platform_dirs.extend(gs_utils.list_storage_directory(
           dest_gsbase=platform_and_builder_dir,
           subdir=''))
 
@@ -75,11 +75,11 @@ class CheckGoogleStorageTimestamps(build_step.BuildStep):
     # each platform_builder_platform directory.
     failed_gm_actual_dirs = []
     for timestamp_dir in platform_builder_platform_dirs:
-      gm_actual_started_timestamp = gs_utils.ReadTimeStampFile(
+      gm_actual_started_timestamp = gs_utils.read_timestamp_file(
           timestamp_file_name=gs_utils.TIMESTAMP_STARTED_FILENAME,
           gs_base=timestamp_dir,
           gs_relative_dir='')
-      gm_actual_completed_timestamp = gs_utils.ReadTimeStampFile(
+      gm_actual_completed_timestamp = gs_utils.read_timestamp_file(
           timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
           gs_base=timestamp_dir,
           gs_relative_dir='')

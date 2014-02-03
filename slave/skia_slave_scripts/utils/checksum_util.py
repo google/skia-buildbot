@@ -81,7 +81,7 @@ def _GetRemoteFilesLookup(remote_root):
   """
   # Get list of all remote files in Google Storage.
   try:
-    remote_files = gs_utils.ListStorageDirectory(
+    remote_files = gs_utils.list_storage_directory(
         dest_gsbase=remote_root, subdir=HASHING_ALGORITHM)
   except Exception:
     # The directory does not exist yet.
@@ -144,7 +144,7 @@ def WriteThroughCache(local_root, remote_root, output_json_path,
     remote_filename = '%s_%s.%s' % (filename, hash_dict[HASHING_ALGORITHM],
                                     file_extension)
     if not remote_files_lookup.get(remote_filename):
-      gs_utils.CopyStorageDirectory(
+      gs_utils.copy_storage_directory(
           src_dir=os.path.join(local_root, filename),
           dest_dir=posixpath.join(remote_root, HASHING_ALGORITHM,
                                   remote_filename),
@@ -210,7 +210,7 @@ def ReadThroughCache(local_root, remote_root, input_json_path):
       file_extension = filename.split('.')[-1]
       remote_filename = '%s_%s.%s' % (filename, hash_dict[HASHING_ALGORITHM],
                                       file_extension)
-      gs_utils.CopyStorageDirectory(
+      gs_utils.copy_storage_directory(
           src_dir=posixpath.join(remote_root, HASHING_ALGORITHM,
                                  remote_filename),
           dest_dir=os.path.join(local_root, filename))

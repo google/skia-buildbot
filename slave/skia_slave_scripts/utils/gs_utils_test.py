@@ -77,25 +77,25 @@ class TestGSUtils(unittest.TestCase):
     slave_utils.GSUtilDownloadFile = self._original_gsutil_download_file
     __builtin__.open = self._original_file
 
-  def test_DeleteStorageObject(self):
+  def test_delete_storage_object(self):
     self._expected_command = ('%s rm -R superman' % GSUTIL_LOCATION)
-    gs_utils.DeleteStorageObject('superman')
+    gs_utils.delete_storage_object('superman')
 
-  def test_CopyStorageDirectory(self):
+  def test_copy_storage_directory(self):
     self._expected_command = (
         '%s cp -a public -R superman batman' % GSUTIL_LOCATION)
-    gs_utils.CopyStorageDirectory('superman', 'batman', 'public')
+    gs_utils.copy_storage_directory('superman', 'batman', 'public')
 
-  def test_DoesStorageObjectExist(self):
+  def test_does_storage_object_exist(self):
     self._expected_command = ('%s ls superman' % GSUTIL_LOCATION)
-    gs_utils.DoesStorageObjectExist('superman')
+    gs_utils.does_storage_object_exist('superman')
 
-  def test_WriteTimeStampFile(self):
+  def test_write_timestamp_file(self):
     self._test_temp_file = os.path.join(tempfile.gettempdir(), 'TIMESTAMP')
     self._test_gs_base = 'gs://test'
     self._test_destdir = 'testdir'
     self._test_gs_acl = 'private'
-    gs_utils.WriteTimeStampFile(
+    gs_utils.write_timestamp_file(
         timestamp_file_name='TIMESTAMP',
         timestamp_value=time.time(),
         gs_base=self._test_gs_base,

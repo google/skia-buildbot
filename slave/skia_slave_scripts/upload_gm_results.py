@@ -62,7 +62,7 @@ class UploadGMResults(BuildStep):
       # Upload the entire staging dir to Google Storage.
       # At present, this will merge the entire contents of [temp_root]/gm
       # into the existing contents of gs://chromium-skia-gm/gm .
-      gs_utils.CopyStorageDirectory(
+      gs_utils.copy_storage_directory(
           src_dir=os.path.abspath(os.path.join(temp_root, gm_actuals_subdir)),
           dest_dir=skia_vars.GetGlobalVariable('googlestorage_bucket'),
           gs_acl='public-read',

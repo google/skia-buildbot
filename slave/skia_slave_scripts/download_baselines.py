@@ -26,7 +26,7 @@ class DownloadBaselines(BuildStep):
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 
-    gm_expected_exists_on_storage = gs_utils.DoesStorageObjectExist(
+    gm_expected_exists_on_storage = gs_utils.does_storage_object_exist(
         posixpath.join(dest_gsbase,
                        self._storage_playback_dirs.PlaybackGmExpectedDir(),
                        gs_utils.TIMESTAMP_COMPLETED_FILENAME))

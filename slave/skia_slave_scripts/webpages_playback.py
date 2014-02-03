@@ -170,7 +170,7 @@ class SkPicturePlayback(object):
     """Run the SkPicturePlayback BuildStep."""
 
     # Ensure the right .boto file is used by gsutil.
-    if gs_utils.ReadTimeStampFile(
+    if gs_utils.read_timestamp_file(
         timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
         gs_base=self._dest_gsbase,
         gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME,
@@ -339,7 +339,7 @@ class SkPicturePlayback(object):
 
       # Add a timestamp file to the SKP directory in Google Storage so we can
       # use directory level rsync like functionality.
-      gs_utils.WriteTimeStampFile(
+      gs_utils.write_timestamp_file(
           timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
           timestamp_value=time.time(),
           gs_base=self._dest_gsbase,
@@ -396,8 +396,8 @@ class SkPicturePlayback(object):
     page_set_source = posixpath.join(
         self._dest_gsbase, ROOT_PLAYBACK_DIR_NAME, 'webpages_archive',
         page_set_basename)
-    if (gs_utils.DoesStorageObjectExist(wpr_source) and
-        gs_utils.DoesStorageObjectExist(page_set_source)):
+    if (gs_utils.does_storage_object_exist(wpr_source) and
+        gs_utils.does_storage_object_exist(page_set_source)):
       slave_utils.GSUtilDownloadFile(
           src=wpr_source, dst=LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR)
       slave_utils.GSUtilDownloadFile(

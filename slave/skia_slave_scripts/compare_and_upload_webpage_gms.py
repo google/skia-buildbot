@@ -99,12 +99,12 @@ class CompareAndUploadWebpageGMs(BuildStep):
              else False)
 
     # Check if gm-expected exists on Google Storage.
-    self._gm_expected_exists_on_storage = gs_utils.DoesStorageObjectExist(
+    self._gm_expected_exists_on_storage = gs_utils.does_storage_object_exist(
         posixpath.join(self._dest_gsbase,
                        self._storage_playback_dirs.PlaybackGmExpectedDir(),
                        gs_utils.TIMESTAMP_COMPLETED_FILENAME))
     # Check if gm-actual exists on Google Storage.
-    self._gm_actual_exists_on_storage = gs_utils.DoesStorageObjectExist(
+    self._gm_actual_exists_on_storage = gs_utils.does_storage_object_exist(
         posixpath.join(self._dest_gsbase,
                        self._storage_playback_dirs.PlaybackGmActualDir(),
                        gs_utils.TIMESTAMP_COMPLETED_FILENAME))
@@ -154,7 +154,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
     # Fail with a warning if the gm_actual directory on Google Storage is
     # currently being rebaselined else running this Build step will result in
     # data being in an inconsistent state.
-    if gs_utils.DoesStorageObjectExist(
+    if gs_utils.does_storage_object_exist(
         posixpath.join(self._dest_gsbase,
                        self._storage_playback_dirs.PlaybackGmActualDir(),
                        REBASELINE_IN_PROGRESS_FILENAME)):
@@ -177,7 +177,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
     if not self._gm_actual_exists_on_storage and self._do_upload_results:
       # Copy actual images to Google Storage since they do not exist yet.
       print '\n\n========Uploading gm-actual to Google Storage========\n\n'
-      gs_utils.UploadDirectoryContentsIfChanged(
+      gs_utils.upload_directory_contents_if_changed(
           gs_base=self._dest_gsbase,
           gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
           gs_acl=PLAYBACK_CANNED_ACL,
@@ -242,7 +242,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
                     [image for image in output_line.split() if 'png' in image])
 
           if images_to_delete_list:
-            gs_utils.DeleteDirectoryContents(
+            gs_utils.delete_directory_contents(
                 gs_base=self._dest_gsbase,
                 gs_relative_dir=(
                     self._storage_playback_dirs.PlaybackGmActualDir()),
@@ -250,7 +250,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
 
           if not images_to_delete_list or (
               images_to_delete_list and images_list):
-            gs_utils.UploadDirectoryContentsIfChanged(
+            gs_utils.upload_directory_contents_if_changed(
                 gs_base=self._dest_gsbase,
                 gs_relative_dir=(
                     self._storage_playback_dirs.PlaybackGmActualDir()),
@@ -276,7 +276,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
           not last_comparison_successful):
         print '\n\n======Last GM Comparison was unsuccessful======'
         print '======Uploading gm-actual to Google Storage======\n\n'
-        gs_utils.UploadDirectoryContentsIfChanged(
+        gs_utils.upload_directory_contents_if_changed(
             gs_base=self._dest_gsbase,
             gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir(),
             gs_acl=PLAYBACK_CANNED_ACL,
@@ -293,11 +293,11 @@ class CompareAndUploadWebpageGMs(BuildStep):
     Returns true iff the timestamp in this platform's gm-expected directory
     in Google Storage was uploaded more recently than its gm-actual directory.
     """
-    gs_actual_timestamp = gs_utils.ReadTimeStampFile(
+    gs_actual_timestamp = gs_utils.read_timestamp_file(
         timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
         gs_base=self._dest_gsbase,
         gs_relative_dir=self._storage_playback_dirs.PlaybackGmActualDir())
-    gs_expected_timestamp = gs_utils.ReadTimeStampFile(
+    gs_expected_timestamp = gs_utils.read_timestamp_file(
         timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
         gs_base=self._dest_gsbase,
         gs_relative_dir=self._storage_playback_dirs.PlaybackGmExpectedDir())

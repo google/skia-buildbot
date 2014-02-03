@@ -17,13 +17,15 @@ from slave import slave_utils
 import file_utils
 import shell_utils
 
+
 TIMESTAMP_STARTED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_STARTED'
 TIMESTAMP_COMPLETED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_COMPLETED'
 LAST_REBASELINED_BY_FILENAME = 'LAST_REBASELINED_BY'
 
 FILES_CHUNK = 500
 
-def DeleteStorageObject(object_name):
+
+def delete_storage_object(object_name):
   """Delete an object on Google Storage."""
   gsutil = slave_utils.GSUtilSetup()
   command = [gsutil]
@@ -32,8 +34,8 @@ def DeleteStorageObject(object_name):
   chromium_utils.RunCommand(command)
 
 
-def CopyStorageDirectory(src_dir, dest_dir, gs_acl='private',
-                         http_header_lines=None):
+def copy_storage_directory(src_dir, dest_dir, gs_acl='private',
+                           http_header_lines=None):
   """Copy a directory from/to Google Storage.
 
   params:
@@ -56,7 +58,7 @@ def CopyStorageDirectory(src_dir, dest_dir, gs_acl='private',
   shell_utils.run(command)
 
 
-def MoveStorageDirectory(src_dir, dest_dir):
+def move_storage_directory(src_dir, dest_dir):
   """Move a directory on Google Storage."""
   gsutil = slave_utils.GSUtilSetup()
   command = [gsutil]
@@ -65,7 +67,7 @@ def MoveStorageDirectory(src_dir, dest_dir):
   chromium_utils.RunCommand(command)
 
 
-def ListStorageDirectory(dest_gsbase, subdir):
+def list_storage_directory(dest_gsbase, subdir):
   """List the contents of the specified Storage directory."""
   gsbase_subdir = posixpath.join(dest_gsbase, subdir)
   status, output_gsutil_ls = slave_utils.GSUtilListBucket(gsbase_subdir, [])
@@ -81,7 +83,7 @@ def ListStorageDirectory(dest_gsbase, subdir):
   return gs_files
 
 
-def DoesStorageObjectExist(object_name):
+def does_storage_object_exist(object_name):
   """Checks if an object exists on Google Storage.
 
   Returns True if it exists else returns False.
@@ -93,30 +95,30 @@ def DoesStorageObjectExist(object_name):
   return chromium_utils.RunCommand(command) == 0
 
 
-def DownloadDirectoryContentsIfChanged(gs_base, gs_relative_dir, local_dir):
+def download_directory_contents_if_changed(gs_base, gs_relative_dir, local_dir):
   """Compares the TIMESTAMP_LAST_UPLOAD_COMPLETED and downloads if different.
 
-  The goal of DownloadDirectoryContentsIfChanged and
-  UploadDirectoryContentsIfChanged is to attempt to replicate directory level
-  rsync functionality to the Google Storage directories we care about.
+  The goal of download_directory_contents_if_changed and
+  upload_directory_contents_if_changed is to attempt to replicate directory
+  level rsync functionality to the Google Storage directories we care about.
   """
-  if _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
+  if _are_timestamps_equal(gs_base, gs_relative_dir, local_dir):
     print '\n\n=======Local directory is current=======\n\n'
   else:
     file_utils.create_clean_local_dir(local_dir)
     gs_source = posixpath.join(gs_base, gs_relative_dir, '*')
     slave_utils.GSUtilDownloadFile(src=gs_source, dst=local_dir)
-    if not _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
+    if not _are_timestamps_equal(gs_base, gs_relative_dir, local_dir):
       raise Exception('Failed to download from GS: %s' % gs_source)
 
 
-def _GetChunks(seq, n):
+def _get_chunks(seq, n):
   """Yield successive n-sized chunks from the specified sequence."""
   for i in xrange(0, len(seq), n):
     yield seq[i:i+n]
 
 
-def DeleteDirectoryContents(gs_base, gs_relative_dir, files_to_delete):
+def delete_directory_contents(gs_base, gs_relative_dir, files_to_delete):
   """Deletes the specified files from the Google Storage Directory.
 
   Args:
@@ -129,14 +131,15 @@ def DeleteDirectoryContents(gs_base, gs_relative_dir, files_to_delete):
   gs_dest = posixpath.join(gs_base, gs_relative_dir)
   if files_to_delete:
     for file_to_delete in files_to_delete:
-      DeleteStorageObject(object_name=posixpath.join(gs_dest, file_to_delete))
+      delete_storage_object(object_name=posixpath.join(gs_dest, file_to_delete))
   else:
-    DeleteStorageObject(gs_dest)
+    delete_storage_object(gs_dest)
 
 
-def UploadDirectoryContentsIfChanged(
-    gs_base, gs_relative_dir, gs_acl, local_dir, force_upload=False,
-    upload_chunks=False, files_to_upload=None):
+def upload_directory_contents_if_changed(gs_base, gs_relative_dir, gs_acl,
+                                         local_dir, force_upload=False,
+                                         upload_chunks=False,
+                                         files_to_upload=None):
   """Compares the TIMESTAMP_LAST_UPLOAD_COMPLETED and uploads if different.
 
   Args:
@@ -154,14 +157,14 @@ def UploadDirectoryContentsIfChanged(
         one at a time. The Google Storage directory is not cleaned before upload
         if files_to_upload is specified.
 
-  The goal of DownloadDirectoryContentsIfChanged and
-  UploadDirectoryContentsIfChanged is to attempt to replicate directory level
-  rsync functionality to the Google Storage directories we care about.
+  The goal of download_directory_contents_if_changed and
+  upload_directory_contents_if_changed is to attempt to replicate directory
+  level rsync functionality to the Google Storage directories we care about.
 
   Returns True if contents were uploaded, else returns False.
   """
-  if not force_upload and _AreTimeStampsEqual(gs_base, gs_relative_dir,
-                                              local_dir):
+  if not force_upload and _are_timestamps_equal(gs_base, gs_relative_dir,
+                                                local_dir):
     print '\n\n=======Local directory is current=======\n\n'
     return False
   else:
@@ -171,10 +174,10 @@ def UploadDirectoryContentsIfChanged(
 
     if not files_to_upload:
       print '\n\n=======Delete Storage directory before uploading=======\n\n'
-      DeleteStorageObject(gs_dest)
+      delete_storage_object(gs_dest)
 
     print '\n\n=======Writing new TIMESTAMP_LAST_UPLOAD_STARTED=======\n\n'
-    WriteTimeStampFile(
+    write_timestamp_file(
         timestamp_file_name=TIMESTAMP_STARTED_FILENAME,
         timestamp_value=timestamp_value, gs_base=gs_base,
         gs_relative_dir=gs_relative_dir, local_dir=local_dir, gs_acl=gs_acl)
@@ -188,7 +191,7 @@ def UploadDirectoryContentsIfChanged(
         local_files = [
             os.path.join(local_dir, local_file)
             for local_file in os.listdir(local_dir)]
-      for files_chunk in _GetChunks(local_files, FILES_CHUNK):
+      for files_chunk in _get_chunks(local_files, FILES_CHUNK):
         gsutil = slave_utils.GSUtilSetup()
         command = [gsutil, 'cp'] + files_chunk + [gs_dest]
         if chromium_utils.RunCommand(command) != 0:
@@ -207,14 +210,14 @@ def UploadDirectoryContentsIfChanged(
           raise Exception('Could not upload %s to Google Storage!' % local_src)
 
     print '\n\n=======Writing new TIMESTAMP_LAST_UPLOAD_COMPLETED=======\n\n'
-    WriteTimeStampFile(
+    write_timestamp_file(
         timestamp_file_name=TIMESTAMP_COMPLETED_FILENAME,
         timestamp_value=timestamp_value, gs_base=gs_base,
         gs_relative_dir=gs_relative_dir, local_dir=local_dir, gs_acl=gs_acl)
     return True
 
 
-def _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
+def _are_timestamps_equal(gs_base, gs_relative_dir, local_dir):
   """Compares the local TIMESTAMP with the TIMESTAMP from Google Storage."""
 
   local_timestamp_file = os.path.join(local_dir, TIMESTAMP_COMPLETED_FILENAME)
@@ -238,7 +241,7 @@ def _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
     storage_file_obj.close()
 
 
-def ReadTimeStampFile(timestamp_file_name, gs_base, gs_relative_dir):
+def read_timestamp_file(timestamp_file_name, gs_base, gs_relative_dir):
   """Reads the specified TIMESTAMP file from the specified GS dir.
 
   Returns 0 if the file is empty or does not exist.
@@ -255,9 +258,8 @@ def ReadTimeStampFile(timestamp_file_name, gs_base, gs_relative_dir):
     storage_file_obj.close()
 
 
-def WriteTimeStampFile(
-    timestamp_file_name, timestamp_value, gs_base=None, gs_relative_dir=None,
-    gs_acl=None, local_dir=None):
+def write_timestamp_file(timestamp_file_name, timestamp_value, gs_base=None,
+                         gs_relative_dir=None, gs_acl=None, local_dir=None):
   """Adds a timestamp file to a Google Storage and/or a Local Directory.
   
   If gs_base, gs_relative_dir and gs_acl are provided then the timestamp is
