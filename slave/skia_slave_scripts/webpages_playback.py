@@ -385,8 +385,8 @@ class SkPicturePlayback(object):
 
   def _CreateLocalStorageDirs(self):
     """Creates required local storage directories for this script."""
-    file_utils.CreateCleanLocalDir(self._local_record_webpages_archive_dir)
-    file_utils.CreateCleanLocalDir(self._local_skp_dir)
+    file_utils.create_clean_local_dir(self._local_record_webpages_archive_dir)
+    file_utils.create_clean_local_dir(self._local_skp_dir)
 
   def _DownloadWebpagesArchive(self, wpr_data_file, page_set_basename):
     """Downloads the webpages archive and its required page set from GS."""

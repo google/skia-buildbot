@@ -11,10 +11,11 @@ import stat
 from common import chromium_utils
 
 
-def ClearDirectory(directory):
-  """ Attempt to clear the contents of a directory. This should only be used
+def clear_directory(directory):
+  """Attempt to clear the contents of a directory. This should only be used
   when the directory itself cannot be removed for some reason. Otherwise,
-  chromium_utils.RemoveDirectory or CreateCleanLocalDir should be preferred. """
+  chromium_utils.RemoveDirectory or create_clean_local_dir should be preferred.
+  """
   for path in os.listdir(directory):
     abs_path = os.path.join(directory, path)
     if os.path.isdir(abs_path):
@@ -26,7 +27,7 @@ def ClearDirectory(directory):
       os.remove(abs_path)
 
 
-def CreateCleanLocalDir(directory):
+def create_clean_local_dir(directory):
   """If directory already exists, it is deleted and recreated."""
   if os.path.exists(directory):
     chromium_utils.RemoveDirectory(directory)

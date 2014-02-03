@@ -43,15 +43,15 @@ class TestFileUtils(unittest.TestCase):
     os.makedirs = self._original_makedirs
     chromium_utils.RemoveDirectory = self._original_remove_dir
 
-  def test_CreateCleanLocalDir_PathExists(self):
-    file_utils.CreateCleanLocalDir('/tmp/test')
+  def test_create_clean_local_dir_PathExists(self):
+    file_utils.create_clean_local_dir('/tmp/test')
     self.assertTrue(self._path_exists_called)
     self.assertTrue(self._make_dirs_called)
     self.assertTrue(self._remove_dir_called)
 
-  def test_CreateCleanLocalDir_PathDoesNotExists(self):
+  def test_create_clean_local_dir_PathDoesNotExists(self):
     self._path_exists_ret = False
-    file_utils.CreateCleanLocalDir('/tmp/test')
+    file_utils.create_clean_local_dir('/tmp/test')
     self.assertTrue(self._path_exists_called)
     self.assertTrue(self._make_dirs_called)
     self.assertFalse(self._remove_dir_called)

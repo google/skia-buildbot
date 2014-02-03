@@ -146,7 +146,7 @@ class Update(BuildStep):
       # If the sync fails, clear the checkout and try again.
       build_dir = os.path.abspath(os.curdir)
       os.chdir(os.pardir)
-      file_utils.ClearDirectory(build_dir)
+      file_utils.clear_directory(build_dir)
       os.chdir(build_dir)
       gclient_utils.Config(spec=gclient_spec)
       gclient_utils.Sync(

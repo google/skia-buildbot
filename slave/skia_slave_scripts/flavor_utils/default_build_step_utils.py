@@ -157,7 +157,7 @@ class DefaultBuildStepUtils:
   def CreateCleanHostDirectory(self, directory):
     """ Creates an empty directory on the host. Can be overridden by subclasses,
     but that should not be necessary. """
-    file_utils.CreateCleanLocalDir(directory)
+    file_utils.create_clean_local_dir(directory)
 
   def Install(self):
     """ Install the Skia executables. """

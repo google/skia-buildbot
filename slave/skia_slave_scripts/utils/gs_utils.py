@@ -103,7 +103,7 @@ def DownloadDirectoryContentsIfChanged(gs_base, gs_relative_dir, local_dir):
   if _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
     print '\n\n=======Local directory is current=======\n\n'
   else:
-    file_utils.CreateCleanLocalDir(local_dir)
+    file_utils.create_clean_local_dir(local_dir)
     gs_source = posixpath.join(gs_base, gs_relative_dir, '*')
     slave_utils.GSUtilDownloadFile(src=gs_source, dst=local_dir)
     if not _AreTimeStampsEqual(gs_base, gs_relative_dir, local_dir):
