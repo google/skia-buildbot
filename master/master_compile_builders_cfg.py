@@ -37,6 +37,7 @@ def setup_compile_builders(helper, do_upload_results):
       ('Ubuntu12', 'GCC',    'Release', 'x86_64', 'NoGPU',       NO_GPU,    True,  f_factory, LINUX, {}),
       ('Ubuntu12', 'Clang',  'Debug',   'x86_64', None,          CLANG,     True,  f_factory, LINUX, {'environment_variables': {'CC': '/usr/bin/clang', 'CXX': '/usr/bin/clang++'}}),
       ('Ubuntu13', 'GCC4.8', 'Debug',   'x86_64', None,          None,      True,  f_factory, LINUX, {}),
+      ('Ubuntu13', 'GCC4.8', 'Release', 'x86_64', None,          None,      True,  f_factory, LINUX, {}),
       ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f_xsan,    LINUX, {'sanitizer': 'address'}),
       ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'TSAN',        None,      False, f_xsan,    LINUX, {'sanitizer': 'thread'}),
       ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,      True,  f_nacl,    LINUX, {}),
