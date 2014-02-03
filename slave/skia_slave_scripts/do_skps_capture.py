@@ -37,7 +37,8 @@ class SKPsCapture(BuildStep):
     # telemetry crashes, processes are not always cleaned up appropriately by
     # the webpagereplay and telemetry frameworks.
     cleanup_cmd = [
-      'pkill', '-9', '-f', self._args['browser_executable']
+      'pkill', '-9', '-f', os.path.join(os.getcwd(),
+                                        self._args['browser_executable'])
     ]
     shell_utils.Bash(cleanup_cmd)
 
