@@ -26,7 +26,16 @@ $GCOMPUTE_CMD addinstance ${VM_CQ_NAME} \
   --network=skia \
   --image=skiatelemetry-1-0-v20130524 \
   --machine_type=n1-standard-8-d \
-  --nopersistent_boot_disk
+  --nopersistent_boot_disk \
+  --service_version=v1beta16
+
+if [ $? -ne 0 ]
+then
+  echo
+  echo "===== There was an error creating the instance. ====="
+  echo
+  exit 1
+fi
 
 FAILED=""
 
@@ -49,7 +58,8 @@ echo "===== Checkout commit-queue-internal. ====="
     "cd $COMMIT_QUEUE_INTERNAL_DIR && " \
     "/home/default/depot_tools/gclient config svn://svn.chromium.org/chrome-internal/trunk/tools/commit-queue --name commit-queue-internal && " \
     "svn ls svn://svn.chromium.org/chrome-internal --username rmistry@google.com && " \
-    "/home/default/depot_tools/gclient sync " \
+    "/home/default/depot_tools/gclient sync && " \
+    "cp -R commit-queue-internal ../skia-commit-queue/" \
     || FAILED="$FAILED CheckoutCommitQueueInternal"
 echo
 
@@ -92,10 +102,13 @@ Check ./vm_status.sh to wait until the status is RUNNING
 SSH into the CQ with:
   gcutil --project=google.com:chromecompute ssh --ssh_user=default ${VM_CQ_NAME}
 and start the commit queue for Skia using the following commands:
-  * Create ~/.netrc using skia-commit-bot's password from valentine.
+  * Create ~/.netrc using skia-commit-bot's password from valentine for googlesource.
   * cd ${COMMIT_QUEUE_DIR}/commit-queue
   * Apply the patch from https://codereview.chromium.org/22859063/ (if it is not already submitted).
   * Comment out the verifiers.append(try_job_on_rietveld..) line in projects.gen_skia
-  * Start the CQ with: PYTHONPATH=${COMMIT_QUEUE_INTERNAL_DIR}/commit-queue-internal/ python commit_queue.py --project=skia --no-dry-run --user=skia-commit-bot@chromium.org
+  * git config --global user.email "skia-commit-bot@chromium.org"
+  * git config --global user.name "Skia Commit Bot"
+  * Start the CQ with: python commit_queue.py --project=skia --no-dry-run --user=skia-commit-bot@chromium.org
+  * Ensure that it is reading the right committers list from commit-queue-internal.
 
 INP
