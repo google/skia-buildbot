@@ -1,0 +1,16 @@
+{
+    "description": "jsfiddle_humper_clip Silk webpage for Skia Desktop.",
+    "archive_data_file": "data/skia_jsfiddlehumperclip_desktop.json",
+    "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
+    "pages": [
+        {
+            "url": "http://jsfiddle.net/humper/cKB9D/3/embedded/result/",
+            "why": "Page from Chromium's silk test cases",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 10 }                               
+            ]
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "description": "mobile-news Silk webpage for Skia Desktop.",
+    "archive_data_file": "data/skia_mobilenews_desktop.json",
+    "credentials_path": "data/credentials.json",
+    "smoothness": { "action": "scroll" },
+    "pages": [
+        {
+            "url": "http://mobile-news.sandbox.google.com/news",
+            "why": "Page from Chromium's silk test cases",
+            "navigate_steps" : [                                                
+               { "action": "navigate" },                                        
+               { "action": "wait", "seconds": 10 }                               
+            ]
+        }
+    ]
+}
