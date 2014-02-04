@@ -10,7 +10,7 @@
             "credentials": "google",
             "navigate_steps" : [
               { "action": "navigate" },
-              { "action": "wait", "javascript": "window.gmonkey !== undefined && document.getElementById('gb') !== null" }
+              { "action": "wait", "seconds": 30 }
             ]
         }
     ]
