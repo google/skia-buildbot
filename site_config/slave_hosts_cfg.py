@@ -254,7 +254,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_8-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
-    'ip': '192.168.1.113',
+    'ip': '192.168.1.141',
     'kvm_num': '8',
   },
 
