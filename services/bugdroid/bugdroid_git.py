@@ -6,7 +6,8 @@
 """Bugdroid Git implementation for the Skia repositories.
 
 Execute the script with the following command:
-python bugdroid_git.py --repo /storage/skia-repos/skia
+python bugdroid_git.py --repo /storage/skia-repos/skia \
+                       --log-file-name skia-bugdroid-log.txt
 """
 
 import logging
@@ -45,6 +46,9 @@ def main():
   parser.add_option('-r', '--repo', dest='repo_location',
                     help='the complete path to the git repository bugdroid '
                          'should track.')
+  parser.add_option('-l', '--log-file-name', dest='log_file_name',
+                    help='the name of the bugdroid log file, it will be '
+                         'created in the same directory as this file.')
   (options, _args) = parser.parse_args()
 
   # Validate arguments.
@@ -54,7 +58,7 @@ def main():
 
   # Configure the logger
   folder_path = os.path.dirname(os.path.abspath(__file__))
-  log_file_path = os.path.join(folder_path, 'bugdroid_log.txt')
+  log_file_path = os.path.join(folder_path, options.log_file_name)
   logging.basicConfig(filename=log_file_path, level=logging.DEBUG, maxBytes=10)
 
   logging.debug('===========================================')
