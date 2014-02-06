@@ -141,10 +141,45 @@
     "type": "list",
     "description": "Steps which trigger the gatekeeper on failure."
   },
+  "gce_cluster": {
+    "value": "prod",
+    "type": "string",
+    "description": "The cluster in which the GCE instances run."
+  },
   "gce_compile_bots_zone": {
     "value": "a",
     "type": "string",
     "description": "The zone of the Compile buildbots on GCE."
+  },
+  "gce_project": {
+    "value": "google.com:skia-buildbots",
+    "type": "string",
+    "description": "The project name for the Skia GCE instances."
+  },
+  "gce_smtp_port": {
+    "value": "587",
+    "type": "integer",
+    "description": "SMTP port that is open on Skia GCE instances."
+  },
+  "gce_smtp_server": {
+    "value": "smtp.gmail.com",
+    "type": "string",
+    "description": "SMTP server that is accessible on Skia GCE instances."
+  },
+  "gce_smtp_use_tls": {
+    "value": "True",
+    "type": "boolean",
+    "description": "Whether SMTP should use TLS."
+  },
+  "gce_smtp_user": {
+    "value": "skia.buildbots@gmail.com",
+    "type": "string",
+    "description": "SMTP user which can send emails on Skia GCE instances."
+  },
+  "gce_username": {
+    "value": "default",
+    "type": "string",
+    "description": "The user name of the buildbots on Skia GCE instances."
   },
   "googlestorage_bucket": {
     "value": "gs://chromium-skia-gm",
@@ -221,6 +256,16 @@
     "type": "string",
     "description": "Template for links to specific revisions in Skia."
   },
+  "skialab_username": {
+    "value": "chrome-bot",
+    "type": "string",
+    "description": "User name of buildbots in SkiaLab."
+  },
+  "skialab_router_ip": {
+    "value": "172.23.215.237",
+    "type": "string",
+    "description": "IP address of the SkiaLab NAT router"
+  },
   "skia_dashboard_add_point_url": {
     "value": "https://skiadash.appspot.com/skia_add_points",
     "type": "string",
@@ -235,26 +280,6 @@
     "value": "http://skia.googlecode.com/svn",
     "type": "string",
     "description": "URL of the Skia SVN repository."
-  },
-  "gce_smtp_port": {
-    "value": "587",
-    "type": "integer",
-    "description": "SMTP port that is open on Skia GCE instances."
-  },
-  "gce_smtp_server": {
-    "value": "smtp.gmail.com",
-    "type": "string",
-    "description": "SMTP server that is accessible on Skia GCE instances."
-  },
-  "gce_smtp_use_tls": {
-    "value": "True",
-    "type": "boolean",
-    "description": "Whether SMTP should use TLS."
-  },
-  "gce_smtp_user": {
-    "value": "skia.buildbots@gmail.com",
-    "type": "string",
-    "description": "SMTP user which can send emails on Skia GCE instances."
   },
   "tree_status_baseurl": {
     "value": "https://skia-tree-status.appspot.com",

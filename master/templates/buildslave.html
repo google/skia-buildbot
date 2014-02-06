@@ -19,7 +19,8 @@ relevant in diagnosing failures.
       {% set alt_class = cycler('alt', '') %}
       {% for item in (('Hostname', slave_host_name),
                       ('IP', slave_host_cfg.get('ip')),
-                      ('KVM #', slave_host_cfg.get('kvm_num'))) %}
+                      ('KVM #', slave_host_cfg.get('kvm_num')),
+                      ('How to login', ' '.join(get_login_command(slave_host_name) or []))) %}
         {% if item[1] %}
           {% set alt = alt_class.next() %}
           <tr class="{{ alt }}"><td style="text-align: right;">{{ item[0] }}</td><td style="text-align: left;">{{ item[1] }}</td></tr>

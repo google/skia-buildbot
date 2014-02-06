@@ -2,6 +2,9 @@
 machines. """
 
 
+import skia_vars
+
+
 # Indicates that this machine is not connected to a KVM switch.
 NO_KVM_NUM = '(not on KVM)'
 
@@ -24,7 +27,41 @@ _DEFAULT_COPIES = [
   },
 ]
 
+GCE_CLUSTER = skia_vars.GetGlobalVariable('gce_cluster')
+GCE_PROJECT = skia_vars.GetGlobalVariable('gce_project')
+GCE_USERNAME = skia_vars.GetGlobalVariable('gce_username')
 
+SKIALAB_ROUTER_IP = skia_vars.GetGlobalVariable('skialab_router_ip')
+SKIALAB_USERNAME = skia_vars.GetGlobalVariable('skialab_username')
+
+# Procedures for logging in to the host machines.
+SKIA_LAB_LOGIN = 'SkiaLab Login'
+COMPUTE_ENGINE_LOGIN = 'Compute Engine Login'
+
+
+def skia_lab_login(hostname, host_data):
+  """Procedure for logging into SkiaLab machines."""
+  return [
+    'ssh', '%s@%s' % (SKIALAB_USERNAME, SKIALAB_ROUTER_IP),
+    'ssh', '%s@%s' % (SKIALAB_USERNAME, host_data['ip'])
+  ]
+
+
+def compute_engine_login(hostname, host_data):
+  """Procedure for logging into Skia GCE instances."""
+  return [
+    'gcutil', '--cluster=%s' % GCE_CLUSTER, '--project=%s' % GCE_PROJECT,
+    'ssh', '--ssh_user=%s' % GCE_USERNAME, hostname
+  ]
+
+
+LOGIN_CMD = {
+  SKIA_LAB_LOGIN: skia_lab_login,
+  COMPUTE_ENGINE_LOGIN: compute_engine_login,
+}
+
+
+# Data for all Skia build slave hosts.
 SLAVE_HOSTS = {
 
 ################################ Linux Machines ################################
@@ -34,6 +71,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-ati5770-001', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.132',
     'kvm_num': 'A',
   },
@@ -55,6 +93,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-logan-001', '13'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.110',
     'kvm_num': 'C',
   },
@@ -69,6 +108,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-006', '6'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.109',
     'kvm_num': 'B',
   },
@@ -80,6 +120,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu13-002', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.120',
     'kvm_num': 'D',
   },
@@ -90,6 +131,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -100,6 +142,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-003', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -110,6 +153,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-005', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -120,6 +164,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-007', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -130,6 +175,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-009', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -139,6 +185,7 @@ SLAVE_HOSTS = {
       ('skia-housekeeping-slave-a', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -149,6 +196,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -159,6 +207,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-003', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -169,6 +218,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-005', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -179,6 +229,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-007', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -189,6 +240,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-009', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -198,6 +250,7 @@ SLAVE_HOSTS = {
       ('skia-housekeeping-slave-b', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
   },
@@ -212,6 +265,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_6-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.144',
     'kvm_num': '2',
   },
@@ -221,6 +275,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_6-bench', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.121',
     'kvm_num': '1',
   },
@@ -233,6 +288,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_7-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.137',
     'kvm_num': '3',
   },
@@ -242,6 +298,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_7-bench', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.124',
     'kvm_num': '4',
   },
@@ -254,6 +311,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_8-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.141',
     'kvm_num': '8',
   },
@@ -263,6 +321,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_8-bench', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.135',
     'kvm_num': '6',
   },
@@ -277,6 +336,7 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_6-compile-005', '5'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.111',
     'kvm_num': '8',
   },
@@ -295,6 +355,7 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_7-compile-009', '9'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.118',
     'kvm_num': '5',
   },
@@ -313,6 +374,7 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_8-compile-009', '9'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.104',
     'kvm_num': '7',
   },
@@ -324,6 +386,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-win7-intel-bench', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
     'ip': '192.168.1.139',
     'kvm_num': 'F',
   },
@@ -333,6 +396,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-win7-intel-000', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
     'ip': '192.168.1.114',
     'kvm_num': 'G',
   },
@@ -343,6 +407,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-win7-intel-special-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
     'ip': '192.168.1.119',
     'kvm_num': 'H',
   },
@@ -352,6 +417,7 @@ SLAVE_HOSTS = {
       ('skiabot-win-compile-000', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
     'ip': '192.168.1.100',
     'kvm_num': '3',
   },
@@ -361,6 +427,7 @@ SLAVE_HOSTS = {
       ('skiabot-win-compile-004', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
     'ip': '192.168.1.112',
     'kvm_num': '2',
   },
@@ -370,6 +437,7 @@ SLAVE_HOSTS = {
       ('skiabot-win8-compile-000', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
     'ip': '192.168.1.108',
     'kvm_num': 'A',
   },
@@ -378,6 +446,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-win8-gtx660-bench', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
     'ip': '192.168.1.133',
     'kvm_num': 'B',
   },
@@ -387,6 +456,7 @@ SLAVE_HOSTS = {
       ('skiabot-win8-compile-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
     'ip': '192.168.1.117',
     'kvm_num': 'C',
   },
@@ -395,6 +465,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-win8-hd7770-bench', '0'),
     ],
     'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
     'ip': '192.168.1.107',
     'kvm_num': 'D',
   },
@@ -413,3 +484,16 @@ def GetSlaveHostConfig(hostname):
     'copies': _DEFAULT_COPIES,
   }
   return SLAVE_HOSTS.get(hostname, default_cfg)
+
+
+def get_login_command(hostname):
+  """Retrieve the command for logging in remotely to the given host machine."""
+  try:
+    host_data = SLAVE_HOSTS[hostname]
+  except KeyError:
+    raise ValueError('Unknown slave host %s' % hostname)
+  login_cmd = host_data['login_cmd']
+  if login_cmd:
+    return LOGIN_CMD[login_cmd](hostname, host_data)
+  return None
+
