@@ -21,6 +21,9 @@ master/slaves.cfgc
 site_config/*_password
 site_config/*_username
 .boto
+# Files used by bugdroid.
+.bugdroid_password
+services/bugdroid/bugdroid_log.txt
 # Data files used by webpages_playback.py
 slave/skia_slave_scripts/page_sets/data/*
 # Third party files pulled by buildbot.

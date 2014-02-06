@@ -2,27 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Bugdroid for Chromium and Chromium OS
+"""Bugdroid for Skia.
 
 Upload Change List information to code.google.com Issue Tracker systems.
-
-To be used as a post-receive git hook. Reference:
-http://www.kernel.org/pub/software/scm/git/docs/githooks.html#post-receive
-
 """
 
-import httplib
 import logging
 import logging.handlers
-import os
 import re
-import subprocess
-import sys
-import urllib
 
 #import the GData libraries
-import atom.core
-import atom.http_core
 import gdata.client
 import gdata.data
 import gdata.gauth
@@ -30,11 +19,11 @@ import gdata.projecthosting.client
 import gdata.projecthosting.data
 
 class Bugdroid(object):
-  def __init__(self, email, password, svn_trackers_to_ignore=[]):
+  def __init__(self, email, password):
     """ Get email address and password to login to the Issue Tracker System. """
     self.email = email
     self.password = password
-    self.svn_trackers_to_ignore = [x.lower() for x in svn_trackers_to_ignore[:]]
+    self.bugdroid_client = None
 
   def _check_bug_id_synonyms(self, bug_ids):
     """ Check if a tracker synonym was used """
@@ -58,11 +47,9 @@ class Bugdroid(object):
   def _get_bug_id(self, content, default_tracker):
     """ Get bug ID from the text file. """
     entries = []
-    bug_line = ''
     for line in content.splitlines(False):
       match = re.match(r'^BUG *=(.*)', line)
       if match:
-        bug_line = line
         for i in match.group(1).split(','):
           entries.extend(filter(None, [x.strip() for x in i.split()]))
 
@@ -74,52 +61,17 @@ class Bugdroid(object):
       # crosbug.com/p:123 in the synonym matcher
       r'|(\S+):([0-9]+)|(\b[0-9]+\b)')
 
-    # Determine if the change is from git-svn
-    git_svn_match = None
-    for line in content.splitlines(False):
-      svn_git_regex = r'git-svn-id: svn://svn.chromium.org/([^/]+)/'
-      webrtc_regex = r'git-svn-id: http://webrtc.googlecode.com/([^/]+)/'
-      git_svn_match = re.findall(svn_git_regex, line)
-      webrtc_match = re.findall(webrtc_regex, line)
-      if git_svn_match:
-        git_svn_match = git_svn_match[0].lower()
-        logging.debug('Found a git-svn issue: %s\nBug line: %s]\nRepo: %s' %
-                      (line, bug_line, git_svn_match))
-        # We are in git-svn mode.  That means especially for the first issue the
-        # user expects the default to be the project they are checking into.  So
-        # we are overriding the last_tracker with this git-svn project.
-        last_tracker = git_svn_match
-        break;
-      if webrtc_match:
-        git_svn_match = webrtc_match[0].lower()
-        logging.debug('Found a webrtc issue: %s\nBug line: %s]\nRepo: %s' %
-                      (line, bug_line, webrtc_match))
-        last_tracker = 'webrtc'
-        break;
-
     for new_item in entries:
       bug_numbers = re.findall(regex, new_item)
       for bug_tuple in bug_numbers:
-        if git_svn_match:
-          if (bug_tuple[1] and bug_tuple[2] and bug_tuple[1] not in
-              self.svn_trackers_to_ignore):
-            bug_ids.append('%s:%s' % (bug_tuple[1], bug_tuple[2]))
-            last_tracker = bug_tuple[1]
-          elif (bug_tuple[3] and bug_tuple[4] and bug_tuple[3] not in
-                self.svn_trackers_to_ignore):
-            bug_ids.append('%s:%s' % (bug_tuple[3], bug_tuple[4]))
-            last_tracker = bug_tuple[3]
-          elif bug_tuple[5] and last_tracker not in self.svn_trackers_to_ignore:
-            bug_ids.append('%s:%s' % (last_tracker, bug_tuple[5]))
-        else:
-          if bug_tuple[1] and bug_tuple[2]:
-            bug_ids.append('%s:%s' % (bug_tuple[1], bug_tuple[2]))
-            last_tracker = bug_tuple[1]
-          elif bug_tuple[3] and bug_tuple[4]:
-            bug_ids.append('%s:%s' % (bug_tuple[3], bug_tuple[4]))
-            last_tracker = bug_tuple[3]
-          elif bug_tuple[5]:
-            bug_ids.append('%s:%s' % (last_tracker, bug_tuple[5]))
+        if bug_tuple[1] and bug_tuple[2]:
+          bug_ids.append('%s:%s' % (bug_tuple[1], bug_tuple[2]))
+          last_tracker = bug_tuple[1]
+        elif bug_tuple[3] and bug_tuple[4]:
+          bug_ids.append('%s:%s' % (bug_tuple[3], bug_tuple[4]))
+          last_tracker = bug_tuple[3]
+        elif bug_tuple[5]:
+          bug_ids.append('%s:%s' % (last_tracker, bug_tuple[5]))
     bug_ids = self._check_bug_id_synonyms(bug_ids)
     bug_ids.sort(key=str.lower)
     return bug_ids
@@ -172,7 +124,7 @@ class Bugdroid(object):
       self.bugdroid_client = gdata.projecthosting.client.ProjectHostingClient()
       self.bugdroid_client.client_login(self.email,
                                       self.password,
-                                      source='google-chrome-os-bugdroid-1.4',
+                                      source='google-skia-bugdroid-1.0',
                                       service='code')
       login_success = True
     except gdata.client.BadAuthentication, e:
@@ -210,7 +162,7 @@ class Bugdroid(object):
     author = self._get_author(content)
 
     try:
-      update_result = self.bugdroid_client.update_issue(
+      self.bugdroid_client.update_issue(
           project_name,
           issue_id,
           self.email,
