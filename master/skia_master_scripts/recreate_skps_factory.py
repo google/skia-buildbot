@@ -80,7 +80,7 @@ class RecreateSKPsFactory(canary_factory.CanaryFactory):
         description='RecreateSKPs',
         args=['--page_sets', 'all',
               '--skia_tools', self.TargetPath.join(
-                  '..', '..', 'skia', 'src', 'out', 'Debug'),
+                  '..', '..', 'skia', 'skia', 'out', 'Debug'),
               '--browser_executable', self.TargetPath.join(
                   'out', 'Debug', 'chrome')],
         timeout=None,
