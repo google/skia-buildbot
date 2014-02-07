@@ -323,10 +323,13 @@ class SkPicturePlayback(object):
     if self._upload_to_gs:
       print '\n\n=======Uploading to Google Storage=======\n\n'
       # Copy the directory structure in the root directory into Google Storage.
+      # TODO(rmistry): Uploading to a test directory, the real SKP directory
+      # will be used when we are sure everything is working as intended.
+      # There are two references to '-test' below that will have to be removed.
       gs_status = slave_utils.GSUtilCopyDir(
           src_dir=LOCAL_PLAYBACK_ROOT_DIR,
           gs_base=self._dest_gsbase,
-          dest_dir=ROOT_PLAYBACK_DIR_NAME,
+          dest_dir=ROOT_PLAYBACK_DIR_NAME + '-test',
           gs_acl=PLAYBACK_CANNED_ACL)
       if gs_status != 0:
         raise Exception(
@@ -340,7 +343,7 @@ class SkPicturePlayback(object):
           timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
           timestamp_value=time.time(),
           gs_base=self._dest_gsbase,
-          gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME,
+          gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME + '-test',
                                          SKPICTURES_DIR_NAME),
           gs_acl=PLAYBACK_CANNED_ACL,
           local_dir=LOCAL_PLAYBACK_ROOT_DIR)
