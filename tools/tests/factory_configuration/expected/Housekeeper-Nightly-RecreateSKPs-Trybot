@@ -735,7 +735,7 @@
                     '--page_sets',
                     'all',
                     '--skia_tools',
-                    '../../skia/src/out/Debug',
+                    '../../skia/skia/out/Debug',
                     '--browser_executable',
                     'out/Debug/chrome',
                 ],
