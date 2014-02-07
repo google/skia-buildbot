@@ -21,12 +21,15 @@ class SKPsCapture(BuildStep):
     super(SKPsCapture, self).__init__(timeout=timeout, **kwargs)
 
   def _Run(self):
+    full_path_browser_executable = os.path.join(
+        os.getcwd(), self._args['browser_executable'])
+
     webpages_playback_cmd = [
       'python', os.path.join(os.path.dirname(os.path.realpath(__file__)),
                              'webpages_playback.py'),
       '--page_sets', self._args['page_sets'],
       '--skia_tools', self._args['skia_tools'],
-      '--browser_executable', self._args['browser_executable'],
+      '--browser_executable', full_path_browser_executable,
       '--non-interactive'
     ]
     if not self._is_try:
@@ -37,8 +40,7 @@ class SKPsCapture(BuildStep):
     # telemetry crashes, processes are not always cleaned up appropriately by
     # the webpagereplay and telemetry frameworks.
     cleanup_cmd = [
-      'pkill', '-9', '-f', os.path.join(os.getcwd(),
-                                        self._args['browser_executable'])
+      'pkill', '-9', '-f', full_path_browser_executable
     ]
     shell_utils.run(cleanup_cmd)
 
