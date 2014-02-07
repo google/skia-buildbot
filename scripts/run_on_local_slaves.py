@@ -9,40 +9,36 @@
 
 import os
 import socket
-import subprocess
 import sys
 
 
 buildbot_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                              os.pardir))
-sys.path.append(os.path.join(buildbot_path, 'site_config'))
+sys.path.append(os.path.join(buildbot_path))
 
-
-import slave_hosts_cfg
+from scripts import local_run
+from site_config import slave_hosts_cfg
 
 
 def run_on_slaves(cmd):
-  """Run the command on each buildslave on this machine.
+  """Run the command on each local buildslave, blocking until completion.
 
   Args:
-      cmd: string or list of strings; the command to run.
+      cmd: list of strings; the command to run.
+  Returns:
+      A dictionary of results with buildslave names as keys and individual
+      result dictionaries (with stdout, stderr, and returncode as keys) as
+      values.
   """
   slave_host = slave_hosts_cfg.GetSlaveHostConfig(socket.gethostname())
   slaves = slave_host['slaves']
-  failed = []
+  results = {}
   for (slave, _) in slaves:
-    print 'cd %s' % os.path.join(buildbot_path, slave, 'buildbot')
-    print cmd
     os.chdir(os.path.join(buildbot_path, slave, 'buildbot'))
-    try:
-      subprocess.check_call(cmd)
-    except subprocess.CalledProcessError:
-      failed.append(slave)
-  if failed:
-    print 'The command failed on the following buildslaves:'
-    for failed_slave in failed:
-      print failed_slave
+    res = local_run.run(cmd)
+    results[slave] = res
+  return results
 
 
 if '__main__' == __name__:
-  run_on_slaves(sys.argv[1:])
+  print local_run.encode_results(run_on_slaves(sys.argv[1:]))

@@ -2,6 +2,9 @@
 machines. """
 
 
+import ntpath
+import posixpath
+
 import skia_vars
 
 
@@ -74,6 +77,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.132',
     'kvm_num': 'A',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-shuttle-ubuntu12-android-003': {
@@ -96,6 +101,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.110',
     'kvm_num': 'C',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-shuttle-ubuntu12-xxx': {
@@ -111,6 +118,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.109',
     'kvm_num': 'B',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-shuttle-ubuntu13-xxx': {
@@ -123,6 +132,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.120',
     'kvm_num': 'D',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skia-compile1-a': {
@@ -134,6 +145,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-compile2-a': {
@@ -145,6 +158,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-compile3-a': {
@@ -156,6 +171,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-compile4-a': {
@@ -167,6 +184,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-compile5-a': {
@@ -178,6 +197,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-housekeeping-slave-a': {
@@ -188,6 +209,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-compile1-b': {
@@ -199,6 +222,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-compile2-b': {
@@ -210,6 +235,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-compile3-b': {
@@ -221,6 +248,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-compile4-b': {
@@ -232,6 +261,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-compile5-b': {
@@ -243,6 +274,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
   'skia-housekeeping-slave-b': {
@@ -253,6 +286,8 @@ SLAVE_HOSTS = {
     'login_cmd': COMPUTE_ENGINE_LOGIN,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
   },
 
 ################################# Mac Machines #################################
@@ -268,6 +303,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.144',
     'kvm_num': '2',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-macmini-10_6-002': {
@@ -278,6 +315,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.121',
     'kvm_num': '1',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-macmini-10_7-001': {
@@ -291,6 +330,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.137',
     'kvm_num': '3',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-macmini-10_7-002': {
@@ -301,6 +342,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.124',
     'kvm_num': '4',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-macmini-10_8-001': {
@@ -314,6 +357,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.141',
     'kvm_num': '8',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-macmini-10_8-002': {
@@ -324,6 +369,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.135',
     'kvm_num': '6',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-mac-10_6-compile': {
@@ -339,6 +386,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.111',
     'kvm_num': '8',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-mac-10_7-compile': {
@@ -358,6 +407,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.118',
     'kvm_num': '5',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'skiabot-mac-10_8-compile': {
@@ -377,6 +428,8 @@ SLAVE_HOSTS = {
     'login_cmd': SKIA_LAB_LOGIN,
     'ip': '192.168.1.104',
     'kvm_num': '7',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
 ############################### Windows Machines ###############################
@@ -389,6 +442,8 @@ SLAVE_HOSTS = {
     'login_cmd': None,
     'ip': '192.168.1.139',
     'kvm_num': 'F',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'win7-intel-003': {
@@ -399,6 +454,8 @@ SLAVE_HOSTS = {
     'login_cmd': None,
     'ip': '192.168.1.114',
     'kvm_num': 'G',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'win7-intel-004': {
@@ -410,6 +467,8 @@ SLAVE_HOSTS = {
     'login_cmd': None,
     'ip': '192.168.1.119',
     'kvm_num': 'H',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'win7-compile1': {
@@ -420,6 +479,8 @@ SLAVE_HOSTS = {
     'login_cmd': None,
     'ip': '192.168.1.100',
     'kvm_num': '3',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
   },
 
   'win7-compile2': {
@@ -430,6 +491,8 @@ SLAVE_HOSTS = {
     'login_cmd': None,
     'ip': '192.168.1.112',
     'kvm_num': '2',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
   },
   'win8-gtx660-000': {
     'slaves': [
@@ -440,6 +503,8 @@ SLAVE_HOSTS = {
     'login_cmd': None,
     'ip': '192.168.1.108',
     'kvm_num': 'A',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
   },
   'win8-gtx660-001': {
     'slaves': [
@@ -449,6 +514,8 @@ SLAVE_HOSTS = {
     'login_cmd': None,
     'ip': '192.168.1.133',
     'kvm_num': 'B',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
   },
   'win8-hd7770-000': {
     'slaves': [
@@ -459,6 +526,8 @@ SLAVE_HOSTS = {
     'login_cmd': None,
     'ip': '192.168.1.117',
     'kvm_num': 'C',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
   },
   'win8-hd7770-001': {
     'slaves': [
@@ -468,6 +537,8 @@ SLAVE_HOSTS = {
     'login_cmd': None,
     'ip': '192.168.1.107',
     'kvm_num': 'D',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
   },
 }
 
