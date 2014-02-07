@@ -558,7 +558,7 @@
                     '--bench_pictures_cfg',
                     'default',
                     '--gclient_solutions',
-                    '"['{ "name": "src", "url": "https://skia.googlesource.com/skia.git", "custom_deps": {},"custom_vars": {},},']"',
+                    '"['{ "name": "skia", "url": "https://skia.googlesource.com/skia.git", "custom_deps": {},"custom_vars": {},},']"',
                     '--flavor',
                     'default',
                 ],

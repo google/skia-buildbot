@@ -5,6 +5,8 @@
 """BuildFactory for a builder which recaptures the buildbot SKP repo."""
 
 
+from config_private import SKIA_GIT_URL
+from master.factory import gclient_factory
 from skia_master_scripts import canary_factory
 
 import builder_name_schema
@@ -48,11 +50,13 @@ class RecreateSKPsFactory(canary_factory.CanaryFactory):
     skia_slave_scripts_path = self.TargetPath.join(
         '..', '..', '..', '..', '..', 'slave',
         'skia_slave_scripts')
+    gclient_solutions = [gclient_factory.GClientSolution(
+        svn_url=SKIA_GIT_URL, name='skia').GetSpec()]
     self.AddSlaveScript(
         script=self.TargetPath.join(skia_slave_scripts_path, 'update.py'),
         description='SkiaUpdate',
         args=['--gclient_solutions',
-              '"%s"' % self._gclient_solutions] + flavor_args,
+              '"%s"' % gclient_solutions] + flavor_args,
         timeout=None,
         halt_on_failure=True,
         get_props_from_stdout={'got_revision':'Skia updated to (\w+)'},
