@@ -60,6 +60,32 @@ def cmd_results(stdout='', stderr='', returncode=1):
           'returncode': returncode}
 
 
+def _launch_cmd(cmd):
+  """Launch the given command. Non-blocking.
+
+  Args:
+      cmd: list of strings; command to run.
+  Returns:
+      subprocess.Popen instance.
+  """
+  return subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE,
+                          stdout=subprocess.PIPE)
+
+
+def _get_result(popen):
+  """Get the results from a running process. Blocks until the process completes.
+
+  Args:
+      popen: subprocess.Popen instance.
+  Returns:
+      A dictionary with stdout, stderr, and returncode as keys.
+  """
+  stdout, stderr = popen.communicate()
+  return cmd_results(stdout=stdout,
+                     stderr=stderr,
+                     returncode=popen.returncode)
+
+
 def run(cmd):
   """Run the command, block until it completes, and return a results dictionary.
 
@@ -69,14 +95,10 @@ def run(cmd):
       A dictionary with stdout, stderr, and returncode as keys.
   """
   try:
-    proc = subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE,
-                            stdout=subprocess.PIPE)
+    proc = _launch_cmd
   except OSError as e:
     return cmd_results(stderr=str(e))
-  stdout, stderr = proc.communicate()
-  return cmd_results(stdout=stdout,
-                     stderr=stderr,
-                     returncode=proc.returncode)
+  return _get_result(proc)
 
 
 def run_on_local_slaves(cmd):
@@ -92,11 +114,52 @@ def run_on_local_slaves(cmd):
   slave_host = slave_hosts_cfg.GetSlaveHostConfig(socket.gethostname())
   slaves = slave_host['slaves']
   results = {}
+  procs = []
   for (slave, _) in slaves:
     os.chdir(os.path.join(buildbot_path, slave, 'buildbot'))
-    res = run(cmd)
-    results[slave] = res
+    procs.append((slave, _launch_cmd(cmd)))
+
+  for slavename, proc in procs:
+    results[slavename] = _get_result(proc)
+
   return results
+
+
+def _launch_on_remote_host(slave_host_name, cmd):
+  """Launch the command on a remote slave host machine. Non-blocking.
+
+  Args:
+      slave_host_name: string; name of the slave host machine.
+      cmd: list of strings; command to run.
+  Returns:
+      subprocess.Popen instance.
+  """
+  login_cmd = slave_hosts_cfg.get_login_command(slave_host_name)
+  if not login_cmd:
+    raise ValueError('%s does not have a remote login procedure defined in '
+                     'slave_hosts_cfg.py.' % slave_host_name)
+  host = slave_hosts_cfg.SLAVE_HOSTS[slave_host_name]
+  path_to_buildbot = host['path_module'].join(*host['path_to_buildbot'])
+  path_to_run_cmd = host['path_module'].join(path_to_buildbot, 'scripts',
+                                               'run_cmd.py')
+  return _launch_cmd(login_cmd + ['python', path_to_run_cmd] + cmd)
+
+
+def _get_remote_host_results(slave_host_name, popen):
+  """Get the results from a running process. Blocks until the process completes.
+
+  Args:
+      slave_host_name: string; name of the remote host.
+      popen: subprocess.Popen instance.
+  Returns:
+      A dictionary of results with the remote host machine name as its only key
+      and individual result dictionaries (with stdout, stderr, and returncode as
+      keys) its value.
+  """
+  result = _get_result(popen)
+  if result['returncode']:
+    return { slave_host_name: result }
+  return { slave_host_name: decode_results(result['stdout']) }
 
 
 def run_on_remote_host(slave_host_name, cmd):
@@ -110,22 +173,12 @@ def run_on_remote_host(slave_host_name, cmd):
       and individual result dictionaries (with stdout, stderr, and returncode as
       keys) its value.
   """
-  login_cmd = slave_hosts_cfg.get_login_command(slave_host_name)
-  if not login_cmd:
-    raise ValueError('%s does not have a remote login procedure defined in '
-                     'slave_hosts_cfg.py.' % slave_host_name)
-  host = slave_hosts_cfg.SLAVE_HOSTS[slave_host_name]
-  path_to_buildbot = host['path_module'].join(*host['path_to_buildbot'])
-  path_to_run_cmd = host['path_module'].join(path_to_buildbot, 'scripts',
-                                               'run_cmd.py')
-  result = run(login_cmd + ['python', path_to_run_cmd] + cmd)
-  if result['returncode']:
-    return { slave_host_name: result }
-  return { slave_host_name: decode_results(result['stdout']) }
+  proc = _launch_on_remote_host(slave_host_name, cmd)
+  return _get_remote_host_results(slave_host_name, proc)
 
 
 def run_on_all_slave_hosts(cmd):
-  """Run the given command on all slave hosts, blocking until completion.
+  """Run the given command on all slave hosts, blocking until all complete.
 
   Args:
       cmd: list of strings; command to run.
@@ -135,12 +188,17 @@ def run_on_all_slave_hosts(cmd):
       values.
   """
   results = {}
+  procs = []
+
   for hostname in slave_hosts_cfg.SLAVE_HOSTS.iterkeys():
     if not slave_hosts_cfg.get_login_command(hostname):
-      results.update({hostname:
-                      cmd_results(stderr='No procedure for login.')})
-      continue
-    results.update(run_on_remote_host(hostname, cmd))
+      results.update({hostname: cmd_results(stderr='No procedure for login.')})
+    else:
+      procs.append((hostname, _launch_on_remote_host(hostname, cmd)))
+
+  for slavename, proc in procs:
+    results.update(_get_remote_host_results(slavename, proc))
+
   return results
 
 
