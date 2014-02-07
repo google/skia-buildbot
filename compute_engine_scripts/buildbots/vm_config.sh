@@ -43,6 +43,8 @@ REQUIRED_FILES_FOR_SLAVES=(~/.autogen_svn_username \
                            ~/.skia_svn_password \
                            ~/.boto)
 
+REQUIRED_FILES_FOR_BUGDROID=(~/.bugdroid_password)
+
 # The directory where the scratch disk is mounted.
 SKIA_REPO_DIR="skia-repo"
 
