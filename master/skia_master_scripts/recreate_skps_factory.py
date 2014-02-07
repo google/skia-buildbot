@@ -71,7 +71,7 @@ class RecreateSKPsFactory(canary_factory.CanaryFactory):
               'skia_arch_width=64'] + flavor_args,
         timeout=None,
         halt_on_failure=True,
-        workdir=self.TargetPath.join(skia_checkout, 'src'))
+        workdir=self.TargetPath.join(skia_checkout, 'skia'))
 
     # Invoke the do_skps_capture buildstep.
     self.AddSlaveScript(

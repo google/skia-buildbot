@@ -690,7 +690,7 @@
                 'is_rebaseline_step': <Object>,
                 'is_upload_step': <Object>,
                 'timeout': <Object>,
-                'workdir': 'build/src/../../skia/src',
+                'workdir': 'build/src/../../skia/skia',
             },
         ],
         [
