@@ -7,8 +7,10 @@
 """Run a command and report its results in machine-readable format."""
 
 
-import json
+import optparse
 import os
+import pickle
+import pprint
 import socket
 import subprocess
 import sys
@@ -30,10 +32,9 @@ def encode_results(results):
   Args:
       results: dict, the results of a command.
   Returns:
-      A JSONified string, bookended by BOOKEND_STR for easy parsing.
+      A hex-encoded string, bookended by BOOKEND_STR for easy parsing.
   """
-  return (BOOKEND_STR + json.dumps(results) +
-          BOOKEND_STR).decode('string-escape')
+  return BOOKEND_STR + pickle.dumps(results).encode('hex') + BOOKEND_STR
 
 
 def decode_results(results_str):
@@ -44,7 +45,7 @@ def decode_results(results_str):
   Returns:
       A dictionary of results.
   """
-  return json.loads(results_str.split(BOOKEND_STR)[1])
+  return pickle.loads(results_str.split(BOOKEND_STR)[1].decode('hex'))
 
 
 def cmd_results(stdout='', stderr='', returncode=1):
@@ -55,8 +56,8 @@ def cmd_results(stdout='', stderr='', returncode=1):
       stderr: string; stderr from a command.
       returncode: string; return code of a command.
   """
-  return {'stdout': stdout.encode('string-escape'),
-          'stderr': stderr.encode('string-escape'),
+  return {'stdout': stdout,
+          'stderr': stderr,
           'returncode': returncode}
 
 
@@ -95,7 +96,7 @@ def run(cmd):
       A dictionary with stdout, stderr, and returncode as keys.
   """
   try:
-    proc = _launch_cmd
+    proc = _launch_cmd(cmd)
   except OSError as e:
     return cmd_results(stderr=str(e))
   return _get_result(proc)
@@ -202,5 +203,59 @@ def run_on_all_slave_hosts(cmd):
   return results
 
 
+def print_results(results, pretty=False):
+  """Print the results of a command.
+
+  Args:
+      results: dict; the results from a command.
+      pretty: bool; whether or not to print in human-readable format.
+  """
+  if pretty:
+    print pprint.pformat(results)
+  else:
+    print repr(encode_results(results))
+
+
+def parse_args(positional_args=None):
+  """Common argument parser for scripts using this module.
+
+  Args:
+      positional_args: optional list of strings; extra positional arguments to
+          the script.
+  """
+  parser = optparse.OptionParser()
+  parser.disable_interspersed_args()
+  parser.add_option('-p', '--pretty', action='store_true', dest='pretty',
+                    help='Print output in a human-readable form.')
+
+  # Fixup the usage message to include the positional args.
+  cmd = 'cmd'
+  all_positional_args = (positional_args or []) + [cmd]
+  usage = parser.get_usage().rstrip()
+  for arg in all_positional_args:
+    usage += ' ' + arg
+  parser.set_usage(usage)
+
+  options, args = parser.parse_args()
+
+  # Set positional arguments.
+  for positional_arg in positional_args or []:
+    try:
+      setattr(options, positional_arg, args[0])
+    except IndexError:
+      parser.print_usage()
+      sys.exit(1)
+    args = args[1:]
+
+  # Everything else is part of the command to run.
+  try:
+    setattr(options, cmd, args)
+  except IndexError:
+    parser.print_usage()
+    sys.exit(1)
+  return options
+
+
 if '__main__' == __name__:
-  print encode_results(run(sys.argv[1:]))
+  parsed_args = parse_args()
+  print_results(run(parsed_args.cmd), parsed_args.pretty)

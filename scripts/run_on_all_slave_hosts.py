@@ -7,13 +7,10 @@
 """Run a command on all build slave host machines listed in slave_hosts_cfg."""
 
 
-import sys
-
 import run_cmd
 
 
 if '__main__' == __name__:
-  if len(sys.argv) < 2:
-    sys.stderr.write('Usage: %s <command>\n' % __file__)
-    sys.exit(1)
-  print run_cmd.encode_results(run_cmd.run_on_all_slave_hosts(sys.argv[1:]))
+  options = run_cmd.parse_args()
+  results = run_cmd.run_on_all_slave_hosts(options.cmd)
+  run_cmd.print_results(options.pretty)

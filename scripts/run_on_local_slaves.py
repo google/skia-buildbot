@@ -7,10 +7,10 @@
 """Run a command on all buildslaves on this machine."""
 
 
-import sys
-
 import run_cmd
 
 
 if '__main__' == __name__:
-  print run_cmd.encode_results(run_cmd.run_on_local_slaves(sys.argv[1:]))
+  options = run_cmd.parse_args()
+  results = run_cmd.run_on_local_slaves(options.cmd)
+  run_cmd.print_results(results, pretty=options.pretty)

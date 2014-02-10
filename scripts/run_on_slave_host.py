@@ -7,14 +7,10 @@
 """Run a command on a build slave host machine, listed in slave_hosts_cfg."""
 
 
-import sys
-
 import run_cmd
 
 
 if '__main__' == __name__:
-  if len(sys.argv) < 3:
-    sys.stderr.write('Usage: %s <slave_host_name> <command>\n' % __file__)
-    sys.exit(1)
-  print run_cmd.encode_results(run_cmd.run_on_remote_host(sys.argv[1],
-                                                          sys.argv[2:]))
+  options = run_cmd.parse_args(positional_args=['host'])
+  results = run_cmd.run_on_remote_host(options.host, options.cmd)
+  run_cmd.print_results(results, options.pretty)
