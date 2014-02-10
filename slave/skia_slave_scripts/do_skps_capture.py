@@ -30,10 +30,11 @@ class SKPsCapture(BuildStep):
       '--page_sets', self._args['page_sets'],
       '--skia_tools', self._args['skia_tools'],
       '--browser_executable', full_path_browser_executable,
-      '--non-interactive'
+      '--non-interactive',
+      '--upload_to_gs'
     ]
     if not self._is_try:
-      webpages_playback_cmd.append('--upload_to_gs')
+      webpages_playback_cmd.append('--upload_to_staging')
     shell_utils.run(webpages_playback_cmd)
 
     # Clean up any leftover browser instances. This can happen if there are

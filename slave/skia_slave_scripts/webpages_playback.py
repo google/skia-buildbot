@@ -141,6 +141,7 @@ class SkPicturePlayback(object):
     self._skia_tools = parse_options.skia_tools
     self._non_interactive = parse_options.non_interactive
     self._upload_to_gs = parse_options.upload_to_gs
+    self._upload_to_staging = parse_options.upload_to_staging
 
     self._local_skp_dir = os.path.join(
         parse_options.output_dir, ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
@@ -323,10 +324,14 @@ class SkPicturePlayback(object):
     if self._upload_to_gs:
       print '\n\n=======Uploading to Google Storage=======\n\n'
       # Copy the directory structure in the root directory into Google Storage.
+      dest_dir_name = ROOT_PLAYBACK_DIR_NAME
+      if self._upload_to_staging:
+        # TODO(rmistry): Use the author here instead of the timestamp.
+        dest_dir_name += '-staging-%s' % time.time()
       gs_status = slave_utils.GSUtilCopyDir(
           src_dir=LOCAL_PLAYBACK_ROOT_DIR,
           gs_base=self._dest_gsbase,
-          dest_dir=ROOT_PLAYBACK_DIR_NAME,
+          dest_dir=dest_dir_name,
           gs_acl=PLAYBACK_CANNED_ACL)
       if gs_status != 0:
         raise Exception(
@@ -340,10 +345,12 @@ class SkPicturePlayback(object):
           timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
           timestamp_value=time.time(),
           gs_base=self._dest_gsbase,
-          gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME,
-                                         SKPICTURES_DIR_NAME),
+          gs_relative_dir=posixpath.join(dest_dir_name, SKPICTURES_DIR_NAME),
           gs_acl=PLAYBACK_CANNED_ACL,
           local_dir=LOCAL_PLAYBACK_ROOT_DIR)
+
+      print '\n\n=======SKPs have been uploaded to %s =======\n\n' % (
+          posixpath.join(self._dest_gsbase, dest_dir_name, SKPICTURES_DIR_NAME))
     else:
       print '\n\n=======Not Uploading to Google Storage=======\n\n'
 
@@ -430,6 +437,11 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--upload_to_gs', action='store_true',
       help='Does not upload to Google Storage if this is False.',
+      default=False)
+  option_parser.add_option(
+      '', '--upload_to_staging', action='store_true',
+      help='Uploads to a staging directory in Google Storage if this flag is '
+           'specified',
       default=False)
   option_parser.add_option(
       '', '--output_dir',
