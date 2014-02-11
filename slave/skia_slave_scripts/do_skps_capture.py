@@ -28,7 +28,6 @@ class SKPsCapture(BuildStep):
       'python', os.path.join(os.path.dirname(os.path.realpath(__file__)),
                              'webpages_playback.py'),
       '--page_sets', self._args['page_sets'],
-      '--skia_tools', self._args['skia_tools'],
       '--browser_executable', full_path_browser_executable,
       '--non-interactive',
       '--upload_to_gs'
