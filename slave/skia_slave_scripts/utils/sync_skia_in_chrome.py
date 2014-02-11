@@ -80,6 +80,8 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
 
   # Run "gclient sync"
   try:
+    # Hack: We have to set some GYP_DEFINES, or upstream scripts will complain.
+    os.environ['GYP_DEFINES'] = os.environ.get('GYP_DEFINES') or ''
     gclient_utils.Sync(revision=str(chrome_revision), jobs=1, no_hooks=True,
         force=True,
         extra_args=(['--revision', 'src@%s' % chrome_revision]
