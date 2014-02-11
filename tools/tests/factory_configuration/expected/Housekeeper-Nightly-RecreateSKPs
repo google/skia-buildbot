@@ -524,7 +524,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../slave/skia_slave_scripts/do_skps_capture.py',
+                    '../../../../../../slave/skia_slave_scripts/do_skps_capture.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',

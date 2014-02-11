@@ -41,7 +41,7 @@ class RecreateSKPsFactory(canary_factory.CanaryFactory):
 
     # Invoke the do_skps_capture buildstep.
     skia_slave_scripts_path = self.TargetPath.join(
-        '..', '..', '..', '..', '..', 'slave',
+        '..', '..', '..', '..', '..', '..', 'slave',
         'skia_slave_scripts')
     self.AddSlaveScript(
         script=self.TargetPath.join(skia_slave_scripts_path,
