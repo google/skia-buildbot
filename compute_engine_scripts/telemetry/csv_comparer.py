@@ -44,13 +44,18 @@ class FieldNameValues(object):
 class CsvComparer(object):
   """Class that compares two telemetry CSV files and outputs HTML results."""
 
-  def __init__(self, csv_file1, csv_file2, output_html_dir,
+  def __init__(self, csv_file1, csv_file2, output_html_dir, requester_email,
+               chromium_patch_link, blink_patch_link, skia_patch_link,
                variance_threshold, absolute_url, min_pages_in_each_field,
                discard_outliers):
     """Constructs a CsvComparer instance."""
     self._csv_file1 = csv_file1
     self._csv_file2 = csv_file2
     self._output_html_dir = output_html_dir
+    self._requester_email = requester_email
+    self._chromium_patch_link = chromium_patch_link
+    self._blink_patch_link = blink_patch_link
+    self._skia_patch_link = skia_patch_link
     self._variance_threshold = float(variance_threshold)
     self._absolute_url = absolute_url
     self._min_pages_in_each_field = min_pages_in_each_field
@@ -196,6 +201,10 @@ class CsvComparer(object):
     rendered = loader.render_to_string(
         'csv_totals.html',
         {'sorted_fieldnames_totals_items': sorted_fieldnames_totals_items,
+         'requester_email': self._requester_email,
+         'chromium_patch_link': self._chromium_patch_link,
+         'blink_patch_link': self._blink_patch_link,
+         'skia_patch_link': self._skia_patch_link,
          'threshold': self._variance_threshold,
          'discard_outliers': self._discard_outliers,
          'min_webpages': self._min_pages_in_each_field,
@@ -233,6 +242,18 @@ if '__main__' == __name__:
       help='The absolute path of the HTML dir that will contain the results of'
            ' the comparision CSV.')
   option_parser.add_option(
+      '', '--requester_email',
+      help='Email address of the user who kicked off the run.')
+  option_parser.add_option(
+      '', '--chromium_patch_link',
+      help='Link to the Chromium patch used for this run.')
+  option_parser.add_option(
+      '', '--blink_patch_link',
+      help='Link to the Blink patch used for this run.')
+  option_parser.add_option(
+      '', '--skia_patch_link',
+      help='Link to the Skia patch used for this run.')
+  option_parser.add_option(
       '', '--variance_threshold',
       help='The allowable variance in percentage between total values for each '
            'field for the two CSVs.')
@@ -257,12 +278,18 @@ if '__main__' == __name__:
 
   options, unused_args = option_parser.parse_args()
   if not (options.csv_file1 and options.csv_file2 and options.output_html_dir
-          and options.variance_threshold):
-    option_parser.error('Must specify csv_file1, csv_file2, output_html_dir and'
-                        ' variance_threshold')
+          and options.variance_threshold and options.requester_email
+          and options.chromium_patch_link and options.blink_patch_link
+          and options.skia_patch_link):
+    option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
+                        'variance_threshold, requester_email, '
+                        'chromium_patch_link, blink_patch_link and '
+                        'skia_patch_link')
 
   sys.exit(CsvComparer(
       options.csv_file1, options.csv_file2, options.output_html_dir,
+      options.requester_email, options.chromium_patch_link,
+      options.blink_patch_link, options.skia_patch_link,
       options.variance_threshold, options.absolute_url,
       options.min_pages_in_each_field, options.discard_outliers).Compare())
 
