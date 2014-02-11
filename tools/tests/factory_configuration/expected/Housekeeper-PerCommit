@@ -738,6 +738,27 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
+                    'platform_tools/android/tests/run_all.py',
+                ],
+                'description': 'RunAndroidPlatformSelfTests',
+                'doStepIf': <Object>,
+                'env': {},
+                'flunkOnFailure': <Object>,
+                'get_props_from_stdout': None,
+                'haltOnFailure': <Object>,
+                'hideStepIf': <Object>,
+                'is_rebaseline_step': <Object>,
+                'is_upload_step': <Object>,
+                'timeout': <Object>,
+                'workdir': 'build/skia',
+            },
+        ],
+        [
+            <Object>,
+            {
+                'alwaysRun': <Object>,
+                'command': [
+                    'python',
                     '../../../../../../slave/skia_slave_scripts/detect_static_initializers.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',

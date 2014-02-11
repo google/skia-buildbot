@@ -39,6 +39,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     self.UpdateSteps()
     self.Compile(clobber)
 
+    # TODO(borenet): Move these to a self-tests bot (http://skbug.com/2144)
     # Build tools and run their unittests.
     self._skia_cmd_obj.AddRunCommand(
         command=self.TargetPath.join('tools', 'tests', 'run.sh'),
@@ -48,6 +49,12 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     self._skia_cmd_obj.AddRunCommand(
         command=self.TargetPath.join('gm', 'tests', 'run.sh'),
         description='RunGmSelfTests')
+
+    # Run unittests for Anroid platform_tools
+    self._skia_cmd_obj.AddRunCommand(
+        command=['python', self.TargetPath.join('platform_tools', 'android',
+                                                'tests', 'run_all.py')],
+        description='RunAndroidPlatformSelfTests')
 
     # Check for static initializers.
     self.AddSlaveScript(script='detect_static_initializers.py',
