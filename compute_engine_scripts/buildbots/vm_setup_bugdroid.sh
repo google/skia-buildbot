@@ -100,7 +100,7 @@ echo
 echo
 echo "To turn on bugdroid for the skia and buildbot repos run the following:"
 echo "* cd $SKIA_REPO_DIR/bugdroid/buildbot/services/bugdroid"
-echo "* nohup python bugdroid_git.py --repo ~/$SKIA_REPO_DIR/bugdroid/repos/buildbot --log-file-name buildbot-bugdroid-log.txt &"
-echo "* nohup python bugdroid_git.py --repo ~/$SKIA_REPO_DIR/bugdroid/repos/skia --log-file-name skia-bugdroid-log.txt &"
+echo "* nohup python bugdroid_git.py --repo ~/$SKIA_REPO_DIR/bugdroid/repos/buildbot --rev-link=https://skia.googlesource.com/buildbot/+/ --log-file-name buildbot-bugdroid-log.txt &"
+echo "* nohup python bugdroid_git.py --repo ~/$SKIA_REPO_DIR/bugdroid/repos/skia --rev-link=https://skia.googlesource.com/skia/+/ --log-file-name skia-bugdroid-log.txt &"
 echo
 

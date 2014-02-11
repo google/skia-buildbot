@@ -40,6 +40,9 @@ def main():
   parser.add_option('-e', '--default-project', dest='default_tracker',
                     help='the issue tracker to update if no project name is '
                          'given in the BUG= line', default='skia')
+  parser.add_option('-c', '--rev-link', dest='rev_link',
+                    help='the link to the committed revision in the repository '
+                         'Eg: https://skia.googlesource.com/skia/+/')
   parser.add_option('-v', '--version', dest='version_string',
                     help='the version string to be printed in the log.',
                     default='1.0')
@@ -115,7 +118,8 @@ def main():
         get_content_info = [
             'git',
             'show',
-            '--pretty=format:Commit: %H%n Email: %ae%n%n%s%n%n%b',
+            '--pretty=format:Commit: ' +
+                options.rev_link + '%h%n Email: %ae%n%n%s%n%n%b%n%ad',
             '--name-status'
         ]
         content = shell_utils.run(get_content_info)
