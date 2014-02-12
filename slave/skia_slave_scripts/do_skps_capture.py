@@ -32,7 +32,7 @@ class SKPsCapture(BuildStep):
       '--non-interactive',
       '--upload_to_gs'
     ]
-    if not self._is_try:
+    if self._is_try:
       webpages_playback_cmd.append('--upload_to_staging')
     shell_utils.run(webpages_playback_cmd)
 
