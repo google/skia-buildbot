@@ -389,17 +389,17 @@ def create_schedulers_and_builders(config, active_master, cfg,
   # do not care about commits outside of SKIA_PRIMARY_SUBDIRS.
   helper.AnyBranchScheduler('skia_rel', branches=utils.SKIA_PRIMARY_SUBDIRS)
 
+  # Scheduler for Skia that runs before the below Nightly Scheduler.
+  # Setting it to 12AM UTC (7 PM EST).
+  helper.PeriodicScheduler('skia_evening', branch='trunk', minute=0, hour=0)
+
   # Nightly Scheduler for Skia. The buildbot master follows UTC.
   # Setting it to 3AM UTC (10 PM EST).
   helper.PeriodicScheduler('skia_nightly', branch='trunk', minute=0, hour=3)
 
   # Daily (morning) Scheduler for Skia. The buildbot master follows UTC.
   # Setting it to 11AM UTC (6 AM EST).
-  helper.PeriodicScheduler('skia_daily', branch='trunk', minute=0, hour=11)
-
-  # On-demand Scheduler for Skia.
-  helper.PeriodicScheduler('skia_ondemand', branch='trunk', minute=0, hour=0,
-                           dayOfMonth=31, month=12)
+  helper.PeriodicScheduler('skia_morning', branch='trunk', minute=0, hour=11)
 
   # Schedulers for Skia trybots.
   helper.TryJobSubversion(utils.TRY_SCHEDULER_SVN)
