@@ -79,7 +79,7 @@ class RunGM(BuildStep):
       cmd.extend(['--pdfRasterizers'])
     if 'ZeroGPUCache' in self._builder_name:
       cmd.extend(['--gpuCacheSize', '0', '0', '--config', 'gpu'])
-    if 'Nexus4' in self._builder_name:
+    if 'Win7-ShuttleA-HD2000-x86-Release' in self._builder_name:
       cmd.extend(['--useDocumentInsteadOfDevice',
                   '--forcePerspectiveMatrix',
                   # Disabling the following tests because they crash GM in
