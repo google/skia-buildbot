@@ -171,8 +171,6 @@ if [ $ret_value -eq 0 ]; then
   HTML_OUTPUT_LINK_BASE=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserver-outputs/html-outputs/$RUN_ID/
   mkdir -p $HTML_OUTPUT_DIR
   cd ..
-  echo "RUNNING THE FOLLOWING csv_comparer.py command:"
-  echo "python csv_comparer.py --csv_file1=$NOPATCH_CSV --csv_file2=$WITHPATCH_CSV --output_html=$HTML_OUTPUT_DIR --variance_threshold=$VARIANCE_THRESHOLD --discard_outliers=$DISCARD_OUTLIERS --absolute_url=$HTML_OUTPUT_LINK_BASE --requester_email=$REQUESTER_EMAIL --chromium_patch_link=$CHROMIUM_PATCH_LINK --blink_patch_link=$BLINK_PATCH_LINK --skia_patch_link=$SKIA_PATCH_LINK"
   python csv_comparer.py --csv_file1=$NOPATCH_CSV --csv_file2=$WITHPATCH_CSV --output_html=$HTML_OUTPUT_DIR --variance_threshold=$VARIANCE_THRESHOLD --discard_outliers=$DISCARD_OUTLIERS --absolute_url=$HTML_OUTPUT_LINK_BASE --requester_email=$REQUESTER_EMAIL --chromium_patch_link=$CHROMIUM_PATCH_LINK --blink_patch_link=$BLINK_PATCH_LINK --skia_patch_link=$SKIA_PATCH_LINK
 
   # Copy the HTML files to Google Storage.
@@ -254,6 +252,6 @@ for i in {1..10}; do wget --post-data "key=$APPENGINE_KEY&chromium_patch_link=$C
 gsutil cp -a public-read $LOG_FILE_LOCATION gs://chromium-skia-gm/telemetry/tryserver-logs/
 
 # Delete all tmp files.
-# rm -rf /tmp/*${RUN_ID}*
-# rm -rf /home/default/storage/telemetry_outputs/${RUN_ID}*
+rm -rf /tmp/*${RUN_ID}*
+rm -rf /home/default/storage/telemetry_outputs/${RUN_ID}*
 
