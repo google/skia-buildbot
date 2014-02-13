@@ -40,26 +40,15 @@ fi
 FAILED=""
 
 COMMIT_QUEUE_DIR="/home/default/storage/skia-commit-queue"
-COMMIT_QUEUE_INTERNAL_DIR="/home/default/storage/internal"
-
-echo "===== Checkout Commit Queue. ====="
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_CQ_NAME \
-    "mkdir $COMMIT_QUEUE_DIR && " \
-    "cd $COMMIT_QUEUE_DIR && " \
-    "/home/default/depot_tools/gclient config https://src.chromium.org/chrome/trunk/tools/commit-queue && " \
-    "/home/default/depot_tools/gclient sync" \
-    || FAILED="$FAILED CheckoutCommitQueue"
-echo
 
 echo "===== Checkout commit-queue-internal. ====="
   echo "Use the password from https://chromium-access.appspot.com/"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_CQ_NAME \
-    "mkdir $COMMIT_QUEUE_INTERNAL_DIR && " \
-    "cd $COMMIT_QUEUE_INTERNAL_DIR && " \
-    "/home/default/depot_tools/gclient config svn://svn.chromium.org/chrome-internal/trunk/tools/commit-queue --name commit-queue-internal && " \
+    "mkdir $COMMIT_QUEUE_DIR && " \
+    "cd $COMMIT_QUEUE_DIR && " \
+    "/home/default/depot_tools/gclient config svn://svn.chromium.org/chrome-internal/trunk/tools/commit-queue --name commit-queue && " \
     "svn ls svn://svn.chromium.org/chrome-internal --username rmistry@google.com && " \
-    "/home/default/depot_tools/gclient sync && " \
-    "cp -R commit-queue-internal ../skia-commit-queue/" \
+    "/home/default/depot_tools/gclient sync" \
     || FAILED="$FAILED CheckoutCommitQueueInternal"
 echo
 
@@ -104,11 +93,9 @@ SSH into the CQ with:
 and start the commit queue for Skia using the following commands:
   * Create ~/.netrc using skia-commit-bot's password from valentine for googlesource.
   * cd ${COMMIT_QUEUE_DIR}/commit-queue
-  * Apply the patch from https://codereview.chromium.org/22859063/ (if it is not already submitted).
-  * Comment out the verifiers.append(try_job_on_rietveld..) line in projects.gen_skia
+  * Apply the patch from https://chromereviews.googleplex.com/24067015/ (if it is not already submitted).
   * git config --global user.email "skia-commit-bot@chromium.org"
   * git config --global user.name "Skia Commit Bot"
-  * Start the CQ with: python commit_queue.py --project=skia --no-dry-run --user=skia-commit-bot@chromium.org
-  * Ensure that it is reading the right committers list from commit-queue-internal.
+  * Start the CQ with: python commit_queue.py --project=skiabuildbot --no-dry-run --user=skia-commit-bot@chromium.org
 
 INP
