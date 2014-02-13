@@ -10,7 +10,7 @@
             "why": "",
             "navigate_steps" : [                                                
                { "action": "navigate" },                                        
-               { "action": "wait", "seconds": 15 }                               
+               { "action": "wait", "seconds": 30 }                               
             ]
         }
     ]
