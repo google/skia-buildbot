@@ -10,7 +10,7 @@
             "why": "#11 (Alexa global), google property; some blogger layouts have infinite scroll but more interesting",
             "navigate_steps" : [                                                
                { "action": "navigate" },                                        
-               { "action": "wait", "seconds": 15 }                               
+               { "action": "wait", "seconds": 60 }                               
             ]
         }
     ]
