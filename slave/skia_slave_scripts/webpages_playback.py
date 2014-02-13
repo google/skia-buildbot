@@ -118,7 +118,7 @@ DEVICE_TO_PLATFORM_PREFIX = {
 # How many times the record_wpr binary should be retried.
 RETRY_RECORD_WPR_COUNT = 5
 # How many times the run_measurement binary should be retried.
-RETRY_RUN_MEASUREMENT_COUNT = 10
+RETRY_RUN_MEASUREMENT_COUNT = 20
 
 # Location of the credentials.json file in Google Storage.
 CREDENTIALS_GS_LOCATION = (
