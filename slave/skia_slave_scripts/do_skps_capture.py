@@ -34,15 +34,17 @@ class SKPsCapture(BuildStep):
     ]
     if self._is_try:
       webpages_playback_cmd.append('--upload_to_staging')
-    shell_utils.run(webpages_playback_cmd)
 
-    # Clean up any leftover browser instances. This can happen if there are
-    # telemetry crashes, processes are not always cleaned up appropriately by
-    # the webpagereplay and telemetry frameworks.
-    cleanup_cmd = [
-      'pkill', '-9', '-f', full_path_browser_executable
-    ]
-    shell_utils.run(cleanup_cmd)
+    try:
+      shell_utils.run(webpages_playback_cmd)
+    finally:
+      # Clean up any leftover browser instances. This can happen if there are
+      # telemetry crashes, processes are not always cleaned up appropriately by
+      # the webpagereplay and telemetry frameworks.
+      cleanup_cmd = [
+        'pkill', '-9', '-f', full_path_browser_executable
+      ]
+      shell_utils.run(cleanup_cmd)
 
 
 if '__main__' == __name__:
