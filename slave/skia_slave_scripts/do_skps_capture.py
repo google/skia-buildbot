@@ -21,9 +21,13 @@ class SKPsCapture(BuildStep):
     super(SKPsCapture, self).__init__(timeout=timeout, **kwargs)
 
   def _Run(self):
-    # Start Xvfb on the bot. If DISPLAY:0 is already up then the command will
-    # silently fail.
-    os.system('sudo Xvfb :0 -screen 0 1280x1024x24 &')
+    try:
+      # Start Xvfb on the bot.
+      shell_utils.run('sudo Xvfb :0 -screen 0 1280x1024x24 &', shell=True)
+    except Exception:
+      # It is ok if the above command fails, it just means that DISPLAY=:0
+      # is already up.
+      pass
 
     full_path_browser_executable = os.path.join(
         os.getcwd(), self._args['browser_executable'])
