@@ -8,8 +8,8 @@ VM_NAME_BASE=${VM_NAME_BASE:='skia-telemetry'}
 
 VM_MASTER_NAME=${VM_MASTER_NAME:="master"}
 VM_SLAVE_NAME=${VM_SLAVE_NAME:="worker"}
-VM_CQ_NAME=${VM_CQ_NAME:="skia-commit-queue"}
-VM_CQ_IP_ADDRESS='108.170.221.255'
+VM_RECREATESKPS_BOT_NAME=${VM_RECREATESKPS_BOT_NAME:="skia-recreate-skps"}
+VM_RECREATESKPS_BOT_IP_ADDRESS='108.170.221.255'
 
 NUM_SLAVES=${NUM_SLAVES:=100}
 NUM_WEBPAGES=${NUM_WEBPAGES:=1000000}
@@ -38,6 +38,8 @@ GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD --zone=$ZONE ssh --ssh_user=$PROJECT_USER"
 CREATING_PAGESETS_ACTIVITY="CREATING_PAGESETS"
 RECORD_WPR_ACTIVITY="RECORD_WPR"
 
-REQUIRED_FILES_FOR_CQ=(~/.skia_status_pwd \
-                       ~/.googlecode_svn_pwd \
-                       ~/.gaia_pwd)
+REQUIRED_FILES_FOR_RECREATESKPS_BOT=(~/.autogen_svn_username \
+                                     ~/.autogen_svn_password \
+                                     ~/.skia_svn_username \
+                                     ~/.skia_svn_password \
+                                     ~/.boto)
