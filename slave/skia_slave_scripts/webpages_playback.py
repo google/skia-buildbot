@@ -220,6 +220,7 @@ class SkPicturePlayback(object):
         # Create an archive of the specified webpages if '--record=True' is
         # specified.
         record_wpr_cmd = (
+          'DISPLAY=:0',
           os.path.join(TELEMETRY_BINARIES_DIR, 'record_wpr'),
           '--extra-browser-args=--disable-setuid-sandbox',
           '--browser=exact',
@@ -243,6 +244,7 @@ class SkPicturePlayback(object):
         self._DownloadWebpagesArchive(wpr_data_file, page_set_basename)
 
       run_measurement_cmd = (
+          'DISPLAY=:0',
           os.path.join(TELEMETRY_BINARIES_DIR, 'run_measurement'),
           '--extra-browser-args=--disable-setuid-sandbox',
           '--browser=exact',
