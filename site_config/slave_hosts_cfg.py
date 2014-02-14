@@ -136,6 +136,19 @@ SLAVE_HOSTS = {
     'path_to_buildbot': ['buildbot'],
   },
 
+  # TODO(rmistry): Rename the below GCE instance to a more appropriate name.
+  'skia-commit-queue': {
+    'slaves': [
+      ('skia-recreate-skps', '0'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+  },
+
   'skia-compile1-a': {
     'slaves': [
       ('skiabot-linux-compile-vm-a-000', '0'),
