@@ -245,6 +245,7 @@ class SkPicturePlayback(object):
 
       run_measurement_cmd = (
           'DISPLAY=:0',
+          'timeout', '300',
           os.path.join(TELEMETRY_BINARIES_DIR, 'run_measurement'),
           '--extra-browser-args=--disable-setuid-sandbox',
           '--browser=exact',
