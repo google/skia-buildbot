@@ -52,7 +52,11 @@ class SKPsCapture(BuildStep):
       cleanup_cmd = [
         'pkill', '-9', '-f', full_path_browser_executable
       ]
-      shell_utils.run(cleanup_cmd)
+      try:
+        shell_utils.run(cleanup_cmd)
+      except Exception:
+        # Do not fail the build step if the cleanup command fails.
+        pass
 
 
 if '__main__' == __name__:
