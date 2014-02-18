@@ -327,7 +327,7 @@ class SkPicturePlayback(object):
     if self._upload_to_gs:
       print '\n\n=======Uploading to Google Storage=======\n\n'
       # Copy the directory structure in the root directory into Google Storage.
-      dest_dir_name = ROOT_PLAYBACK_DIR_NAME + 'test'
+      dest_dir_name = ROOT_PLAYBACK_DIR_NAME
       if self._upload_to_staging:
         # TODO(rmistry): Use the author here instead of the timestamp.
         dest_dir_name += '-staging-%s' % time.time()
