@@ -4,6 +4,8 @@
 *.swp
 # Compiled cfg files.
 *.cfgc
+# gclient files
+.gclient*
 # Files created when running as a master.
 master/Build-*
 master/Canary-*
