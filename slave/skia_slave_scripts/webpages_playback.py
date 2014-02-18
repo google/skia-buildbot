@@ -325,6 +325,16 @@ class SkPicturePlayback(object):
     print '\n\n'
 
     if self._upload_to_gs:
+      backup_location = posixpath.join(
+          self._dest_gsbase,
+          '%s-backup-%s' % (ROOT_PLAYBACK_DIR_NAME, time.time()))
+      print '\n\n=======Backing up old SKPs to %s =======\n\n' % (
+          backup_location)
+      gs_utils.copy_storage_directory(
+          src_dir=posixpath.join(
+              self._dest_gsbase, ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME),
+          dest_dir=backup_location)
+
       print '\n\n=======Uploading to Google Storage=======\n\n'
       # Copy the directory structure in the root directory into Google Storage.
       dest_dir_name = ROOT_PLAYBACK_DIR_NAME
@@ -352,7 +362,7 @@ class SkPicturePlayback(object):
           gs_acl=PLAYBACK_CANNED_ACL,
           local_dir=LOCAL_PLAYBACK_ROOT_DIR)
 
-      print '\n\n=======SKPs have been uploaded to %s =======\n\n' % (
+      print '\n\n=======New SKPs have been uploaded to %s =======\n\n' % (
           posixpath.join(self._dest_gsbase, dest_dir_name, SKPICTURES_DIR_NAME))
     else:
       print '\n\n=======Not Uploading to Google Storage=======\n\n'
