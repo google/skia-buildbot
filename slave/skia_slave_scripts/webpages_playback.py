@@ -334,6 +334,7 @@ class SkPicturePlayback(object):
           src_dir=posixpath.join(
               self._dest_gsbase, ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME),
           dest_dir=backup_location)
+      self._SetGoogleReadACLs(backup_location)
 
       print '\n\n=======Uploading to Google Storage=======\n\n'
       # Copy the directory structure in the root directory into Google Storage.
@@ -351,6 +352,8 @@ class SkPicturePlayback(object):
             'ERROR: GSUtilCopyDir error %d. "%s" -> "%s/%s"' % (
                 gs_status, LOCAL_PLAYBACK_ROOT_DIR, self._dest_gsbase,
                 ROOT_PLAYBACK_DIR_NAME))
+      self._SetGoogleReadACLs(
+          posixpath.join(self._dest_gsbase, dest_dir_name, SKPICTURES_DIR_NAME))
 
       # Add a timestamp file to the SKP directory in Google Storage so we can
       # use directory level rsync like functionality.
@@ -368,6 +371,19 @@ class SkPicturePlayback(object):
       print '\n\n=======Not Uploading to Google Storage=======\n\n'
 
     return 0
+
+  def _SetGoogleReadACLs(self, gs_dir):
+    """Sets the ACLs of all objects in the directory to google read-only.
+
+    This method assumes that there is a gsutil in the system PATH that is recent
+    enough to run the 'acl ch' command. The gsutil in chromium_buildbot is old
+    and cannot run this command.
+    """
+    update_acls_cmd = [
+        'gsutil', 'acl', 'ch', '-g', 'google.com:READ',
+        posixpath.join(gs_dir, '*')
+    ]
+    shell_utils.run(update_acls_cmd)
 
   def _RenameSkpFiles(self, page_set):
     """Rename generated SKP files into more descriptive names.
