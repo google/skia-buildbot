@@ -15,6 +15,7 @@ import optparse
 import os
 import sys
 import time
+import traceback
 
 from bugdroid import Bugdroid
 
@@ -29,6 +30,8 @@ import shell_utils
 SLEEP_BETWEEN_POLLS = 60
 # The user BugDroid is run as
 BUGDROID_USER = 'skia-commit-bot@chromium.org'
+# The number of times to retry the git fetch command if it fails.
+RETRY_FETCH_COUNT = 5
 
 
 def main():
@@ -91,7 +94,18 @@ def main():
 
       # Do a git fetch on the specified repository.
       git_fetch_cmd = ['git', 'fetch']
-      shell_utils.run(git_fetch_cmd)
+      for _ in range(RETRY_FETCH_COUNT):
+        try:
+          shell_utils.run(git_fetch_cmd)
+          break
+        except shell_utils.CommandFailedException:
+          # git fetch in bugdroid sometimes seems to fail with a 406. Retry when
+          # this happens.
+          traceback.print_exc()
+      else:
+        # If we get here then the git fetch command did not succeed and thus did
+        # not break out of the loop.
+        raise Exception('git fetch failed!')
 
       # Find all new commits.
       git_rev_list_cmd = [
