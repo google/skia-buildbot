@@ -126,7 +126,6 @@ $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
   "echo 'alias s=\"cd /home/$PROJECT_USER/$SKIA_REPO_DIR/buildbot/slave\"' >> /home/$PROJECT_USER/.bashrc && " \
   "echo 'alias ll=\"ls -l\"' >> /home/$PROJECT_USER/.bashrc && " \
   "echo 'export ANDROID_SDK_ROOT=/home/$PROJECT_USER/$SKIA_REPO_DIR/android-sdk-linux' >> /home/$PROJECT_USER/.bashrc &&" \
-  "echo 'export NACL_SDK_ROOT=/home/$PROJECT_USER/$SKIA_REPO_DIR/nacl_sdk/pepper_25' >> /home/$PROJECT_USER/.bashrc &&" \
   "echo 'source /home/$PROJECT_USER/.bashrc' >> /home/$PROJECT_USER/.bash_profile" \
   || FAILED="$FAILED SetupBashrc"
 echo

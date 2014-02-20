@@ -48,6 +48,8 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     || FAILED="$FAILED AndroidSDK"
   echo
 
+  NACL_PEPPER_VERSION="pepper_32"
+
   echo
   echo "===== Native Client SDK and NaClPorts. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
@@ -56,15 +58,8 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "if [[ -d nacl_sdk ]]; then rm -rf nacl_sdk; fi && " \
     "unzip nacl_sdk.zip && " \
     "rm nacl_sdk.zip && " \
-    "nacl_sdk/naclsdk update pepper_25 && " \
-    "export NACL_SDK_ROOT=/home/$PROJECT_USER/$SKIA_REPO_DIR/nacl_sdk/pepper_25 && " \
-    "mkdir -p naclports && " \
-    "cd naclports && " \
-    "/home/$PROJECT_USER/$SKIA_REPO_DIR/depot_tools/gclient config http://naclports.googlecode.com/svn/trunk/src && " \
-    "/home/$PROJECT_USER/$SKIA_REPO_DIR/depot_tools/gclient sync --delete_unversioned_trees --force --revision 711 && " \
-    "cd src && " \
-    "./make_all.sh zlib && " \
-    "./make_all.sh png" \
+    "nacl_sdk/naclsdk update $NACL_PEPPER_VERSION && " \
+    "echo 'export NACL_SDK_ROOT=/home/$PROJECT_USER/$SKIA_REPO_DIR/nacl_sdk/$NACL_PEPPER_VERSION' >> /home/$PROJECT_USER/.bashrc" \
     || FAILED="$FAILED NativeClient"
   echo
 
