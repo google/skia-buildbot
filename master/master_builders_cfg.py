@@ -390,8 +390,8 @@ def create_schedulers_and_builders(config, active_master, cfg,
   helper.AnyBranchScheduler('skia_rel', branches=utils.SKIA_PRIMARY_SUBDIRS)
 
   # Scheduler for Skia that runs before the below Nightly Scheduler.
-  # Setting it to 12AM UTC (7 PM EST).
-  helper.PeriodicScheduler('skia_evening', branch='trunk', minute=0, hour=0)
+  # Setting it to 1AM UTC (8 PM EST).
+  helper.PeriodicScheduler('skia_evening', branch='trunk', minute=0, hour=1)
 
   # Nightly Scheduler for Skia. The buildbot master follows UTC.
   # Setting it to 3AM UTC (10 PM EST).
