@@ -694,9 +694,10 @@ class SkiaFactory(BuildFactory):
         self._build_targets = ['skia_lib', 'tests', 'gm', 'tools', 'bench']
         if (('Win7' in self._builder_name and 'x86_64' in self._builder_name) or
             ('Ubuntu' in self._builder_name and 'x86-' in self._builder_name) or
-            'Mac10.6' in self._builder_name):
-          # Don't compile the debugger in 64-bit Win7, Mac 10.6, or 32-bit Linux
-          # since the Qt SDK doesn't include libraries for those platforms.
+            'Mac10.6' in self._builder_name or 'Mac10.7' in self._builder_name):
+          # Don't compile the debugger in 64-bit Win7, Mac 10.6, Mac 10.7, or
+          # 32-bit Linux since the Qt SDK doesn't include libraries for those
+          # platforms.
           self._build_targets.append('most')
         else:
           self._build_targets.append('everything')
