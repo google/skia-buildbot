@@ -56,6 +56,7 @@ sudo chmod 777 ~/.gsutil;
 sudo ln -s /usr/bin/perf_3.2.0-55 /usr/sbin/perf;
 cd ~/skia-repo;
 rm -rf trunk;
+rm -rf buildbot;
 sudo apt-get -y install python-imaging libosmesa-dev;
 /home/default/depot_tools/gclient sync;
 gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record.py /home/default/skia-repo/buildbot/third_party/chromium_trunk/tools/perf/measurements/
