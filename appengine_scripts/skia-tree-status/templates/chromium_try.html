@@ -37,13 +37,14 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
   <form name="ChromiumTryForm" action="chromium_try" method="post">
   <table cellingpadding="5">
     <tr>                                                                      
-      <td>Benchmark to run</td>                                               
+      <td>Benchmark to run</td>
       <td>
         <select id="benchmark_name" name="benchmark_name" onchange="populateThreshold(this)"> 
           {% for benchmark in supported_benchmarks %}                             
             <option value="{{ benchmark }}">{{ benchmark }}</option>
           {% endfor %}                                                        
         </select>
+        Uses the telemetry revision from this <a href='https://skia.googlesource.com/buildbot/+/master/DEPS'>DEPS</a> file.
       </td>
     </tr>                                                                     
     <tr id="benchmark_details" style="display:none">                                                                      
