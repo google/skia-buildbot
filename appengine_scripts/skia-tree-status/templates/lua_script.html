@@ -10,6 +10,9 @@
 <form name="luaForm" action="lua_script" method="post">
   Paste your Lua script here:<br/>
   <textarea name="lua_script" cols="80" rows="20" {% if not is_google_chromium_user %}disabled{% endif %}></textarea><br/><br/>
+  Paste your optional Lua aggregator script here:<br/>
+  (assume consolidated output is in a file called /tmp/lua-script)<br/>
+  <textarea name="lua_aggregator" cols="80" rows="20" {% if not is_google_chromium_user %}disabled{% endif %}></textarea><br/><br/>
   SKP Repository:
   <select name="pagesets_type_and_chromium_build">
     {% for pageset_type, chromium_builds in pagesets_to_builds.items %}
@@ -42,6 +45,7 @@
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Lua Script Link</b></td>
+      <td><b>Lua Aggregator Link</b></td>
       <td><b>Lua Output Link</b></td>
       <td><b>Delete</b></td>
     </tr>
@@ -77,6 +81,21 @@
           {% else %}
             Waiting in Queue
           {% endifequal %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if not task.lua_aggregator %}
+          N/A
+        {% else %}
+          {% if task.lua_aggregator_link %}                                           
+            <a href='{{ task.lua_aggregator_link }}' target='_blank'>script</a>       
+          {% else %}                                                              
+            {% ifequal task.key.id_or_name oldest_pending_task_key %}             
+              In Progress                                                         
+            {% else %}                                                            
+              Waiting in Queue                                                    
+            {% endifequal %}                                                      
+          {% endif %}                                                             
         {% endif %}
       </td>
       <td align="center">

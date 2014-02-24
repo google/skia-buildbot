@@ -21,6 +21,7 @@ if [ $# -ne 5 ]; then
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
   echo "The fifth argument is the name of the directory where the chromium" \
        "build which will be used for this run is stored."
+  echo "The sixth argument is the Google Storage location of the Lua aggregator script (optional)."
   echo
   exit 1
 fi
@@ -30,9 +31,11 @@ LUA_SCRIPT_GS_LOCATION=$2
 RUN_ID=$3
 PAGESETS_TYPE=$4
 CHROMIUM_BUILD_DIR=$5
+LUA_AGGREGATOR_GS_LOCATION=$6
 
 source vm_utils.sh
 
+AGGREGATOR_FILE=$RUN_ID.aggregator
 WORKER_FILE=LUA.$RUN_ID
 LUA_FILE=$RUN_ID.lua
 LUA_OUTPUT_FILE=$RUN_ID.lua-output
@@ -60,6 +63,11 @@ fi
 
 # Copy the lua script from Google Storage to /tmp.
 gsutil cp $LUA_SCRIPT_GS_LOCATION /tmp/$LUA_FILE
+
+if [[ ! -z "$LUA_AGGREGATOR_GS_LOCATION" ]]; then
+  # Copy the aggregator from Google Storage to /tmp.
+  gsutil cp $LUA_AGGREGATOR_GS_LOCATION /tmp/$AGGREGATOR_FILE
+fi
 
 # Run lua_pictures.
 cd out/Release

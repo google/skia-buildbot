@@ -213,7 +213,9 @@ class LuaTasks(BaseTelemetryModel):
   """Data model for Lua tasks."""
   username = db.StringProperty(required=True)
   lua_script = db.TextProperty(required=True)
+  lua_aggregator = db.TextProperty()
   lua_script_link = db.LinkProperty()
+  lua_aggregator_link = db.LinkProperty()
   pagesets_type = db.StringProperty()
   chromium_rev = db.StringProperty()
   skia_rev = db.StringProperty()
@@ -229,6 +231,7 @@ class LuaTasks(BaseTelemetryModel):
             'key': self.key().id_or_name(),
             'username': self.username,
             'lua_script': self.lua_script,
+            'lua_aggregator': self.lua_aggregator,
             'pagesets_type': self.pagesets_type,
             'chromium_rev': self.chromium_rev,
             'skia_rev': self.skia_rev,
@@ -568,6 +571,7 @@ class LuaScriptPage(BasePage):
     # It is an add lua task request.
     requested_time = datetime.datetime.now()
     lua_script = db.Text(self.request.get('lua_script'))
+    lua_aggregator = db.Text(self.request.get('lua_aggregator'))
     description = self.request.get('description')
     pagesets_type, chromium_rev, skia_rev = self.request.get(
         'pagesets_type_and_chromium_build').split('-')
@@ -577,6 +581,7 @@ class LuaScriptPage(BasePage):
     LuaTasks(
         username=self.user.email(),
         lua_script=lua_script,
+        lua_aggregator=lua_aggregator,
         pagesets_type=pagesets_type,
         chromium_rev=chromium_rev,
         skia_rev=skia_rev,
@@ -1083,6 +1088,9 @@ class UpdateLuaTasksPage(BasePage):
 
     lua_task = LuaTasks.get_lua_task(key)[0]
     lua_task.lua_script_link = db.Link(lua_script_link)
+    if self.request.get('lua_aggregator_link'):
+      lua_task.lua_aggregator_link = db.Link(self.request.get(
+          'lua_aggregator_link'))
     lua_task.lua_output_link = db.Link(lua_output_link)
     lua_task.completed_time = completed_time
     lua_task.put()

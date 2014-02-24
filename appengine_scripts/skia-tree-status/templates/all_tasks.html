@@ -219,6 +219,7 @@
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Lua Script Link</b></td>
+      <td><b>Lua Aggregator Link</b></td>
       <td><b>Lua Output Link</b></td>
     </tr>
     {% for task in lua_tasks %}
@@ -254,6 +255,21 @@
           {% else %}
             Waiting in Queue
           {% endifequal %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if not task.lua_aggregator %}
+          N/A
+        {% else %}
+          {% if task.lua_aggregator_link %}
+            <a href='{{ task.lua_aggregator_link }}' target='_blank'>script</a>
+          {% else %}
+            {% ifequal task.key.id_or_name oldest_pending_task_key %}
+              In Progress
+            {% else %}
+              Waiting in Queue
+            {% endifequal %}
+          {% endif %}
         {% endif %}
       </td>
       <td align="center">

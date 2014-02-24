@@ -213,6 +213,15 @@ def process_lua_task(task):
   cmd = 'bash vm_run_lua_on_slaves.sh %s %s %s %s %s %s' % (
       lua_file, run_id, pagesets_type, chromium_build_dir, task['username'],
       task_key)
+
+  if task.get('lua_aggregator'):
+    aggregator_file = os.path.join(tempfile.gettempdir(),
+                                   '%s.aggregator' % run_id)
+    f = open(aggregator_file, 'w')
+    f.write(task['lua_aggregator'])
+    f.close()
+    cmd += ' %s' % aggregator_file
+
   print 'Lua output will be available in %s' % log_file
   subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))

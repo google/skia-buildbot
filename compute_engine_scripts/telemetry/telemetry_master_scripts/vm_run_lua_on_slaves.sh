@@ -9,7 +9,7 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-if [ $# -ne 6 ]; then
+if [ $# -lt 6 ]; then
   echo
   echo "Usage: `basename $0` /tmp/test.lua" \
        "rmistry-2013-05-24.07-34-05 rmistry@google.com 1001"
@@ -22,6 +22,7 @@ if [ $# -ne 6 ]; then
        "build which will be used for this run is stored."
   echo "The fifth argument is the email address of the requester."
   echo "The sixth argument is the key of the appengine lua task."
+  echo "The seventh argument is the local location of the Lua aggregator script.(optional)"
   echo
   exit 1
 fi
@@ -32,6 +33,7 @@ PAGESETS_TYPE=$3
 CHROMIUM_BUILD_DIR=$4
 REQUESTER_EMAIL=$5
 APPENGINE_KEY=$6
+LUA_AGGREGATOR_LOCAL_LOCATION=$7
 
 source ../vm_config.sh
 
@@ -75,6 +77,17 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     $LOGS_DIR/$RUN_ID-$SLAVE_NUM.lua-output
   cat $LOGS_DIR/$RUN_ID-$SLAVE_NUM.lua-output >> $LOGS_DIR/$RUN_ID.lua-output
 done
+
+# Run the aggregator if specified.
+if [ -f $LUA_AGGREGATOR_LOCAL_LOCATION ]; then
+  cp $LOGS_DIR/$RUN_ID.lua-output /tmp/lua-output
+  lua $LUA_AGGREGATOR_LOCAL_LOCATION &> $LOGS_DIR/$RUN_ID.lua-output
+  rm /tmp/lua-output
+  # Copy the aggregator file into Google Storage.
+  gsutil cp -a public-read $LUA_AGGREGATOR_LOCAL_LOCATION \
+    gs://chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.aggregator.txt
+  AGGREGATOR_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.aggregator.txt
+fi
 
 # Copy the consolidated file into Google Storage.
 gsutil cp -a public-read $LOGS_DIR/$RUN_ID.lua-output \
@@ -120,5 +133,5 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&lua_script_link=$SCRIPT_LINK&lua_output_link=$OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_lua_task" -O /dev/null
+wget --post-data "key=$APPENGINE_KEY&lua_script_link=$SCRIPT_LINK&lua_output_link=$OUTPUT_LINK&lua_aggregator=$AGGREGATOR_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_lua_task" -O /dev/null
 
