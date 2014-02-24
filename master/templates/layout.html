@@ -205,9 +205,16 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
 
       // Mark builders who have comments.
       for (var builder_name in data) {
+	// Builder column headers.
         var comment_indicator = document.getElementById("commentIndicator_" + builder_name);
         if (comment_indicator) {
           comment_indicator.className += " BuilderHasComment";
+        }
+
+        // Summary boxes for all masters.
+        var summary_box = document.getElementById("summaryBox_" + builder_name);
+        if (summary_box) {
+          summary_box.className += " BuilderHasComment";
         }
       }
 
@@ -282,6 +289,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         cell.style.padding = "0px";
         cell.style.verticalAlign = "bottom";
         var builder_name = builders[builder_index].name;
+        cell.id = "summaryBox_" + builder_name
         var outcome = builders[builder_index].outcome;
         if (!outcome) {
           outcome = "offline";
@@ -297,6 +305,12 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         link.className = outcome;
         link.style.margin = "0px";
         link.style.padding = "0px";
+
+        // Decorate the result summary box if there's a comment for the builder.
+        if (builder_statuses[builder_name]) {
+          cell.className += " BuilderHasComment";
+        }
+
         cell.appendChild(link);
       }
     }
