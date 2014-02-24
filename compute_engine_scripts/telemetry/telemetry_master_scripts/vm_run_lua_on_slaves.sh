@@ -79,7 +79,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
 done
 
 # Run the aggregator if specified.
-if [ -f $LUA_AGGREGATOR_LOCAL_LOCATION ]; then
+if [ -n "$LUA_AGGREGATOR_LOCAL_LOCATION" ]; then
   cp $LOGS_DIR/$RUN_ID.lua-output /tmp/lua-output
   lua $LUA_AGGREGATOR_LOCAL_LOCATION &> $LOGS_DIR/$RUN_ID.lua-output
   rm /tmp/lua-output
