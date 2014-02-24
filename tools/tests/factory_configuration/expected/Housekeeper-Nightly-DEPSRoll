@@ -104,6 +104,7 @@
                 'description': 'UpdateScripts',
                 'doStepIf': <Object>,
                 'env': {},
+                'exception_on_failure': <Object>,
                 'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
                     'buildbot_revision': 'Skiabot scripts updated to (\w+)',
@@ -159,6 +160,7 @@
                 'description': 'Update',
                 'doStepIf': <Object>,
                 'env': {},
+                'exception_on_failure': <Object>,
                 'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
                     'chrome_revision': 'Chrome updated to (\w+)',
@@ -215,6 +217,7 @@
                 'description': 'DEPSRoll',
                 'doStepIf': <Object>,
                 'env': {},
+                'exception_on_failure': <Object>,
                 'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
                     'control_issue': 'Control Issue number: (\d+) ',

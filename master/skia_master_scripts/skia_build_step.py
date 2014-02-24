@@ -16,7 +16,8 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
   to by BuildStep.getProperty() are scoped for the entire duration of the build.
   """
   def __init__(self, is_upload_step=False, is_rebaseline_step=False,
-               get_props_from_stdout=None, **kwargs):
+               get_props_from_stdout=None, exception_on_failure=False,
+               **kwargs):
     """ Instantiates a new SkiaBuildStep.
 
     is_upload_step: boolean indicating whether this step should be skipped when
@@ -26,11 +27,17 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
     get_props_from_stdout: optional dictionary. Keys are strings indicating
         build properties to set based on the output of this step. Values are
         strings containing regular expressions for parsing the property from
-        the output of the step. 
+        the output of the step.
+    exception_on_failure: boolean indicating whether to raise an exception if
+        this step fails. This causes the step to go purple instead of red, and
+        causes the build to stop. Should be used if the build step's failure is
+        typically transient or results from an infrastructure failure rather
+        than a code change.
     """
     self._is_upload_step = is_upload_step
     self._is_rebaseline_step = is_rebaseline_step
     self._get_props_from_stdout = get_props_from_stdout
+    self._exception_on_failure = exception_on_failure
 
     # self._changed_props will be a dictionary containing the build properties
     # which were updated by this BuildStep. Those properties will be displayed
@@ -49,6 +56,8 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
   def commandComplete(self, cmd):
     """ Override of BuildStep's commandComplete method which allows us to parse
     build properties from the output of this step. """
+    if cmd.rc and self._exception_on_failure:
+      raise Exception('Command marked exception_on_failure failed.')
     if self._get_props_from_stdout and cmd.rc == 0:
       log = cmd.logs['stdio']
       stdout = ''.join(log.getChunks([STDOUT], onlyText=True))

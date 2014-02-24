@@ -104,6 +104,7 @@
                 'description': 'UpdateScripts',
                 'doStepIf': <Object>,
                 'env': {},
+                'exception_on_failure': <Object>,
                 'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
                     'buildbot_revision': 'Skiabot scripts updated to (\w+)',
@@ -161,6 +162,7 @@
                 'description': 'Update',
                 'doStepIf': <Object>,
                 'env': {},
+                'exception_on_failure': <Object>,
                 'flunkOnFailure': <Object>,
                 'get_props_from_stdout': {
                     'got_revision': 'Skia updated to (\w+)',
@@ -218,6 +220,7 @@
                 'description': 'CollectDEPSRollTrybotResults',
                 'doStepIf': <Object>,
                 'env': {},
+                'exception_on_failure': <Object>,
                 'flunkOnFailure': <Object>,
                 'get_props_from_stdout': None,
                 'haltOnFailure': <Object>,

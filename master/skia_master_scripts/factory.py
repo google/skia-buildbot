@@ -241,7 +241,7 @@ class SkiaFactory(BuildFactory):
                      halt_on_failure=False, is_upload_step=False,
                      is_rebaseline_step=False, get_props_from_stdout=None,
                      workdir=None, do_step_if=None, always_run=False,
-                     flunk_on_failure=True):
+                     flunk_on_failure=True, exception_on_failure=False):
     """ Add a BuildStep consisting of a python script.
 
     script: which slave-side python script to run.
@@ -267,6 +267,11 @@ class SkiaFactory(BuildFactory):
         previous step which had halt_on_failure has failed.
     flunk_on_failure: boolean indicating whether the whole build fails if this
         step fails.
+    exception_on_failure: boolean indicating whether to raise an exception if
+        this step fails. This causes the step to go purple instead of red, and
+        causes the build to stop. Should be used if the build step's failure is
+        typically transient or results from an infrastructure failure rather
+        than a code change.
     """
     arguments = list(self._common_args)
     if args:
@@ -283,7 +288,8 @@ class SkiaFactory(BuildFactory):
         workdir=workdir,
         do_step_if=do_step_if,
         always_run=always_run,
-        flunk_on_failure=flunk_on_failure)
+        flunk_on_failure=flunk_on_failure,
+        exception_on_failure=exception_on_failure)
 
   def AddFlavoredSlaveScript(self, script, args=None, **kwargs):
     """ Add a flavor-specific BuildStep.
@@ -433,23 +439,24 @@ class SkiaFactory(BuildFactory):
   def Install(self):
     """ Install the compiled executables. """
     self.AddFlavoredSlaveScript(script='install.py', description='Install',
-                                halt_on_failure=True)
+                                halt_on_failure=True, exception_on_failure=True)
 
   def DownloadSKPs(self):
     """ Download the SKPs. """
     self.AddSlaveScript(script='download_skps.py', description='DownloadSKPs',
-                        halt_on_failure=True)
+                        halt_on_failure=True, exception_on_failure=True)
 
   def DownloadSKImageFiles(self):
     """ Download image files for running skimage. """
     self.AddSlaveScript(script='download_skimage_files.py',
                         description='DownloadSKImageFiles',
-                        halt_on_failure=True)
+                        halt_on_failure=True, exception_on_failure=True)
 
   def DownloadBaselines(self):
     """ Download the GM baselines. """
     self.AddSlaveScript(script='download_baselines.py',
-                        description='DownloadBaselines', halt_on_failure=True)
+                        description='DownloadBaselines', halt_on_failure=True,
+                        exception_on_failure=True)
 
   def RunTests(self):
     """ Run the unit tests. """
@@ -467,7 +474,8 @@ class SkiaFactory(BuildFactory):
 
   def PreRender(self):
     """ Step to run before the render steps. """
-    self.AddFlavoredSlaveScript(script='prerender.py', description='PreRender')
+    self.AddFlavoredSlaveScript(script='prerender.py', description='PreRender',
+                                exception_on_failure=True)
 
   def RenderPictures(self):
     """ Run the "render_pictures" tool to generate images from .skp's. """
@@ -482,19 +490,25 @@ class SkiaFactory(BuildFactory):
   def PostRender(self):
     """ Step to run after the render steps. """
     self.AddFlavoredSlaveScript(script='postrender.py',
-                                description='PostRender')
+                                description='PostRender',
+                                exception_on_failure=True)
 
   def PreBench(self):
     """ Step to run before the benchmarking steps. """
-    self.AddFlavoredSlaveScript(script='prebench.py', description='PreBench')
+    self.AddFlavoredSlaveScript(script='prebench.py',
+                                description='PreBench',
+                                exception_on_failure=True)
 
   def PostBench(self):
     """ Step to run after the benchmarking steps. """
-    self.AddFlavoredSlaveScript(script='postbench.py', description='PostBench')
+    self.AddFlavoredSlaveScript(script='postbench.py',
+                                description='PostBench',
+                                exception_on_failure=True)
 
   def CompareGMs(self):
     """Compare the actually-generated GM images to the checked-in baselines."""
-    self.AddSlaveScript(script='compare_gms.py', description='CompareGMs',
+    self.AddSlaveScript(script='compare_gms.py',
+                        description='CompareGMs',
                         is_rebaseline_step=True)
   
   def CompareAndUploadWebpageGMs(self):
@@ -530,7 +544,8 @@ class SkiaFactory(BuildFactory):
         halt_on_failure=True,
         get_props_from_stdout={'buildbot_revision':
                                    'Skiabot scripts updated to (\w+)'},
-        workdir='build')
+        workdir='build',
+        exception_on_failure=True)
 
   def Update(self):
     """ Update the Skia code on the build slave. """
@@ -545,7 +560,8 @@ class SkiaFactory(BuildFactory):
         is_upload_step=False,
         is_rebaseline_step=True,
         get_props_from_stdout={'got_revision':'Skia updated to (\w+)'},
-        workdir='build')
+        workdir='build',
+        exception_on_failure=True)
 
   def ApplyPatch(self, alternate_workdir=None, alternate_script=None):
     """ Apply a patch to the Skia code on the build slave. """
@@ -586,12 +602,18 @@ class SkiaFactory(BuildFactory):
                        ' together.')
     args = ['--patch', WithProperties('%(patch)s', patch=_GetPatch)]
     if alternate_script:
-      self.AddSlaveScript(script=alternate_script, description='ApplyPatch',
-                          args=args, halt_on_failure=True,
-                          workdir=alternate_workdir)
+      self.AddSlaveScript(script=alternate_script,
+                          description='ApplyPatch',
+                          args=args,
+                          halt_on_failure=True,
+                          workdir=alternate_workdir,
+                          exception_on_failure=True)
     else:
-      self.AddSlaveScript(script='apply_patch.py', description='ApplyPatch',
-                          args=args, halt_on_failure=True)
+      self.AddSlaveScript(script='apply_patch.py',
+                          description='ApplyPatch',
+                          args=args,
+                          halt_on_failure=True,
+                          exception_on_failure=True)
 
   def UpdateSteps(self):
     """ Update the Skia sources. """
@@ -603,17 +625,20 @@ class SkiaFactory(BuildFactory):
   def UploadBenchResults(self):
     """ Upload bench results (performance data). """
     self.AddSlaveScript(script='upload_bench_results.py',
-                        description='UploadBenchResults')
+                        description='UploadBenchResults',
+                        exception_on_failure=True)
 
   def UploadBenchResultsToAppEngine(self):
     """ Upload bench results (performance data) to AppEngine. """
     self.AddSlaveScript(script='upload_bench_results_appengine.py',
-                        description='UploadBenchResultsToAppengine')
+                        description='UploadBenchResultsToAppengine',
+                        exception_on_failure=True)
 
   def UploadWebpagePictureBenchResults(self):
     """ Upload webpage picture bench results (performance data). """
     self.AddSlaveScript(script='upload_webpage_picture_bench_results.py',
-                        description='UploadWebpagePictureBenchResults')
+                        description='UploadWebpagePictureBenchResults',
+                        exception_on_failure=True)
 
 
   def UploadGMResults(self):
@@ -622,11 +647,13 @@ class SkiaFactory(BuildFactory):
             '--autogen_svn_password_file', self._autogen_svn_password_file]
     self.AddSlaveScript(script='upload_gm_results.py', args=args,
                         description='UploadGMResults', timeout=5400,
-                        is_rebaseline_step=True)
+                        is_rebaseline_step=True,
+                        exception_on_failure=True)
 
   def UploadSKImageResults(self):
     self.AddSlaveScript(script='upload_skimage_results.py',
-                        description="UploadSKImageResults")
+                        description='UploadSKImageResults',
+                        exception_on_failure=True)
 
   def CommonSteps(self, clobber=None):
     """ Steps which are run at the beginning of all builds. """

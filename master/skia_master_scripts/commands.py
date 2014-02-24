@@ -67,7 +67,8 @@ class SkiaCommands(commands.FactoryCommands):
                      halt_on_failure=False, is_upload_step=False,
                      is_rebaseline_step=False, get_props_from_stdout=None,
                      workdir=None, do_step_if=None,
-                     always_run=False, flunk_on_failure=True):
+                     always_run=False, flunk_on_failure=True,
+                     exception_on_failure=False):
     """Run a slave-side Python script as its own build step."""
     if workdir:
       path_to_script = script
@@ -84,13 +85,14 @@ class SkiaCommands(commands.FactoryCommands):
                        workdir=use_workdir,
                        do_step_if=do_step_if,
                        always_run=always_run,
-                       flunk_on_failure=flunk_on_failure)
+                       flunk_on_failure=flunk_on_failure,
+                       exception_on_failure=exception_on_failure)
 
   def AddRunCommand(self, command, description='Run', timeout=None,
                     halt_on_failure=False, is_upload_step=False,
                     is_rebaseline_step=False, get_props_from_stdout=None,
                     workdir=None, do_step_if=None, always_run=False,
-                    flunk_on_failure=True):
+                    flunk_on_failure=True, exception_on_failure=False):
     """Runs an arbitrary command, perhaps a binary we built."""
     if not timeout:
       timeout = self.default_timeout
@@ -105,6 +107,7 @@ class SkiaCommands(commands.FactoryCommands):
                          doStepIf=do_step_if or skia_build_step.ShouldDoStep,
                          alwaysRun=always_run,
                          flunkOnFailure=flunk_on_failure,
+                         exception_on_failure=exception_on_failure,
                          hideStepIf=lambda s: s.isSkipped())
 
   def AddRunCommandList(self, command_list, description='Run', timeout=None,
