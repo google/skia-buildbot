@@ -31,10 +31,10 @@
       {% for fieldname, fieldname_values in sorted_fieldnames_totals_items %}
         <tr>
           <td><a href='{{ absolute_url }}fieldname{{ forloop.counter }}.html'>{{ fieldname }}</a></td>
-          <td>{{ fieldname_values.value1 }}</td>
-          <td>{{ fieldname_values.value2 }}</td>
-          <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_change }}%</td>
-          <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_diff }}%</td>
+          <td>{{ fieldname_values.value1|floatformat:"-3" }}</td>
+          <td>{{ fieldname_values.value2|floatformat:"-3" }}</td>
+          <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_change|floatformat:"-3" }}%</td>
+          <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_diff|floatformat:"-3" }}%</td>
         </tr>
       {% endfor %}
     </table>

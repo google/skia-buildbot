@@ -19,10 +19,10 @@
       {% for page_value in page_values %}
         <tr>
           <td>{{ page_value.page_name }}</td>
-          <td>{{ page_value.value1 }}</td>
-          <td>{{ page_value.value2 }}</td>
-          <td  {% if page_value.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_change }}%</td>
-          <td  {% if page_value.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_diff }}%</td>
+          <td>{{ page_value.value1|floatformat:"-3" }}</td>
+          <td>{{ page_value.value2|floatformat:"-3" }}</td>
+          <td  {% if page_value.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_change|floatformat:"-3" }}%</td>
+          <td  {% if page_value.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_diff|floatformat:"-3" }}%</td>
         </tr>
       {% endfor %}
     </table>
