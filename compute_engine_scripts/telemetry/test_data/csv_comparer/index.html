@@ -16,7 +16,7 @@
     <br/>
     The specified patch(es) are: <a href='http://chromium-patch.com'>Chromium</a>/<a href='http://blink-patch.com'>Blink</a>/<a href='http://skia-patch.com'>Skia</a> (if no patch is specified the page will be empty)
     <br/><br/>
-    Threshold used: 10.0%
+    Percentage difference threshold used: 10.0%
     <br/>
     Outliers discarded from top and bottom: 12.5%
     <br/>
@@ -31,6 +31,7 @@
         <th>Fieldname</th>
         <th>Total</th>
         <th>Total with Patch</th>
+        <th>Percentage Change</th>
         <th>Percentage Difference</th>
       </tr>
       
@@ -38,6 +39,7 @@
           <td><a href='fieldname1.html'>field3</a></td>
           <td>18.0</td>
           <td>28.0</td>
+          <td class="abovethreshold" >55.5555555556%</td>
           <td class="abovethreshold" >43.4782608696%</td>
         </tr>
       

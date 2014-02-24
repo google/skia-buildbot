@@ -24,13 +24,20 @@ def _GetPercentageDiff(value1, value2):
   return 0 if avg == 0 else difference/avg * 100
 
 
+def _GetPercentageChange(value1, value2):
+  """Returns the percentage change between the specified values."""
+  difference = value2 - value1
+  return 0 if value1 == 0 else difference/value1 * 100
+
+
 class PageValues(object):
   """Container class to hold the values of a page name."""
-  def __init__(self, page_name, value1, value2, perc_diff):
+  def __init__(self, page_name, value1, value2, perc_diff, perc_change):
     self.page_name = page_name
     self.value1 = value1
     self.value2 = value2
     self.perc_diff = perc_diff
+    self.perc_change = perc_change
 
 
 class FieldNameValues(object):
@@ -134,7 +141,8 @@ class CsvComparer(object):
           if self._IsPercDiffAboveThreshold(perc_diff):
             # Add this page only if its diff is above the threshold.
             l = fieldnames_to_page_values.get(fieldname, [])
-            l.append(PageValues(page_name2, csv1_value, csv2_value, perc_diff))
+            l.append(PageValues(page_name2, csv1_value, csv2_value, perc_diff,
+                                _GetPercentageChange(csv1_value, csv2_value)))
             fieldnames_to_page_values[fieldname] = l
 
     # Calculate and add the percentage differences for each fieldname.
@@ -173,6 +181,8 @@ class CsvComparer(object):
           del fieldnames_to_totals[fieldname]
           continue
         fieldname_values.perc_diff = perc_diff
+        fieldname_values.perc_change = _GetPercentageChange(
+            fieldname_values.value1, fieldname_values.value2)
       else:
         # Only store fieldnames that are above the variance threshold.
         del fieldnames_to_totals[fieldname]

@@ -10,7 +10,7 @@
     <br/>
     The specified patch(es) are: <a href='{{ chromium_patch_link }}'>Chromium</a>/<a href='{{ blink_patch_link }}'>Blink</a>/<a href='{{ skia_patch_link }}'>Skia</a> (if no patch is specified the page will be empty)
     <br/><br/>
-    Threshold used: {{ threshold }}%
+    Percentage difference threshold used: {{ threshold }}%
     <br/>
     Outliers discarded from top and bottom: {{ discard_outliers }}%
     <br/>
@@ -25,6 +25,7 @@
         <th>Fieldname</th>
         <th>Total</th>
         <th>Total with Patch</th>
+        <th>Percentage Change</th>
         <th>Percentage Difference</th>
       </tr>
       {% for fieldname, fieldname_values in sorted_fieldnames_totals_items %}
@@ -32,6 +33,7 @@
           <td><a href='{{ absolute_url }}fieldname{{ forloop.counter }}.html'>{{ fieldname }}</a></td>
           <td>{{ fieldname_values.value1 }}</td>
           <td>{{ fieldname_values.value2 }}</td>
+          <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_change }}%</td>
           <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_diff }}%</td>
         </tr>
       {% endfor %}
