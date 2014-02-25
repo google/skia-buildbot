@@ -372,8 +372,8 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         comment = builder_statuses[builder_name]["message"];
       }
       var edit_status_url = tree_status_appspot_url + "/builder-status/?selected_builder_name=" + builder_name;
-      var file_bug_link = "<a href='http://code.google.com/p/skia/issues/entry?labels=BreakingTheBuildbots,Type-Defect,Priority-Medium&summary=" + builder_name + "'>file bug</a>";
-      var comment_html;
+      var file_bug_link = '<a href="http://code.google.com/p/skia/issues/entry?labels=BreakingTheBuildbots,Type-Defect,Priority-Medium&summary=' + builder_name + '" target="_blank">file bug</a>';
+      var comment_html = '<p style="font-weight: bold; line-height:105%">' + builder_name + '</p><p>';
       if (comment) {
         var re = new RegExp("skia:[0-9]+");
         var found_bugs = re.exec(comment);
@@ -381,15 +381,15 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           for (var i = 0; i < found_bugs.length; ++i) {
             var found_bug = found_bugs[i];
             var bug_number = found_bug.split(":")[1];
-            var bug_link = "<a href='https://code.google.com/p/skia/issues/detail?id=" + bug_number + "'>" + found_bug + "</a>";
+            var bug_link = '<a href="https://code.google.com/p/skia/issues/detail?id=' + bug_number + '" target="_blank">' + found_bug + '</a>';
             comment = comment.replace(found_bug, bug_link);
           }
         }
-        comment_html = comment + ' (<a href="' + edit_status_url + '" class="" target="_blank">edit</a>';
+        comment_html += comment + ' (<a href="' + edit_status_url + '" class="" target="_blank">edit</a>';
       } else {
-        comment_html = '(<a href="' + edit_status_url + '" class="" target="_blank">add comment</a>';
+        comment_html += '(<a href="' + edit_status_url + '" class="" target="_blank">add comment</a>';
       }
-      comment_html += " or " + file_bug_link + ")";
+      comment_html += ' or ' + file_bug_link + ')</p>';
       return comment_html;
     }
 
