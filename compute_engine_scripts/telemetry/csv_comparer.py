@@ -121,8 +121,14 @@ class CsvComparer(object):
             # be doing when one CSV has an empty value and the other does not.
             continue
           try:
-            csv1_value = float(csv1_row.get(fieldname))
-            csv2_value = float(csv2_row.get(fieldname))
+            if csv1_row[fieldname] == '-':
+              csv1_value = 0
+            else:
+              csv1_value = float(csv1_row.get(fieldname))
+            if csv2_row[fieldname] == '-':
+              csv2_value = 0
+            else:
+              csv2_value = float(csv2_row.get(fieldname))
           except ValueError:
             # We expected only floats, cannot compare strings. Skip this field.
             continue
