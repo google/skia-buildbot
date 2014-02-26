@@ -172,23 +172,22 @@ def process_chromium_try_task(task):
   log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
 
   print 'Chromium try output will be available in %s' % log_file
-  cmd = ('bash vm_run_chromium_try.sh -p %(chromium_patch_file)s '
-         '-t %(blink_patch_file)s -s %(skia_patch_file)s '
-         '-r %(run_id)s -v %(variance_threshold)s -o %(discard_outliers)s '
-         '-b %(benchmark_name)s -a %(benchmark_arguments)s -e %(username)s '
-         '-i %(task_key)s -l %(log_file)s' % {
-             'chromium_patch_file': chromium_patch_file,
-             'blink_patch_file': blink_patch_file,
-             'skia_patch_file': skia_patch_file,
-             'run_id': run_id,
-             'variance_threshold': variance_threshold,
-             'discard_outliers': discard_outliers,
-             'benchmark_name': benchmark_name,
-             'benchmark_arguments': benchmark_arguments,
-             'username': username,
-             'task_key': task_key,
-             'log_file': log_file})
-  subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
+  cmd = [
+      'bash',
+      'vm_run_chromium_try.sh',
+      '-p', str(chromium_patch_file),
+      '-t', str(blink_patch_file),
+      '-s', str(skia_patch_file),
+      '-r', str(run_id),
+      '-v', str(variance_threshold),
+      '-o', str(discard_outliers),
+      '-b', str(benchmark_name),
+      '-a', str(benchmark_arguments),
+      '-e', str(username),
+      '-i', str(task_key),
+      '-l', str(log_file),
+  ]
+  subprocess.Popen(cmd, stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))
 
 
