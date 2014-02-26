@@ -183,6 +183,8 @@ class CsvComparer(object):
         if (len(fieldnames_to_page_values[fieldname]) <
             self._min_pages_in_each_field):
           # This field does not have enough webpages, delete it from both maps.
+          print 'Removing because not enough webpages: %s' % fieldname
+          print len(fieldnames_to_page_values[fieldname])
           del fieldnames_to_page_values[fieldname]
           del fieldnames_to_totals[fieldname]
           continue
@@ -190,7 +192,8 @@ class CsvComparer(object):
         fieldname_values.perc_change = _GetPercentageChange(
             fieldname_values.value1, fieldname_values.value2)
       else:
-        # Only store fieldnames that are above the variance threshold.
+        # Only store fieldnames that are below the variance threshold.
+        print 'Removing because below the variance threshold: %s' % fieldname
         del fieldnames_to_totals[fieldname]
 
     # Delete keys in fieldnames_to_page_values that are not in
@@ -283,7 +286,7 @@ if '__main__' == __name__:
       help='The min number of pages that must have a fieldname. If a fieldname'
            'has less pages than this then it is not reported as a failure even'
            'if the percentage difference is more than the variance threshold.',
-      default=50)
+      default=10)
   option_parser.add_option(
       '', '--discard_outliers',
       help='Determines the percentage of the outliers that will be discarded'
