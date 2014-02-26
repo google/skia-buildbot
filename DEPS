@@ -16,35 +16,35 @@ vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   "chromium_revision": "179720",
   "depot_tools_revision": "223643",
-  "telemetry_chromium_revision": "239164",
-  "webpagereplay_revision": "528",
+  "telemetry_chromium_revision": "253293",
+  "webpagereplay_revision": "540",
   "telemetry_webkit_trunk": "http://src.chromium.org/blink/trunk",
-  "telemetry_webkit_revision": "161228"
+  "telemetry_webkit_revision": "167843"
 }
 
 deps = {
   # Chromium trunk code for running telemetry binaries.
-  "third_party/chromium_trunk/tools/perf":
+  "third_party/chromium_trunk/src/tools/perf":
     Var("chromium_trunk") + "/src/tools/perf@" + Var("telemetry_chromium_revision"),
-  "third_party/chromium_trunk/tools/telemetry":
+  "third_party/chromium_trunk/src/tools/telemetry":
     Var("chromium_trunk") + "/src/tools/telemetry@" + Var("telemetry_chromium_revision"),
-  "third_party/chromium_trunk/chrome/test/functional":
+  "third_party/chromium_trunk/src/chrome/test/functional":
     Var("chromium_trunk") + "/src/chrome/test/functional@" + Var("telemetry_chromium_revision"),
-  "third_party/chromium_trunk/build/android/pylib":
+  "third_party/chromium_trunk/src/build/android/pylib":
     Var("chromium_trunk") + "/src/build/android/pylib@" + Var("telemetry_chromium_revision"),
-  "third_party/chromium_trunk/tools/crx_id":
+  "third_party/chromium_trunk/src/tools/crx_id":
     Var("chromium_trunk") + "/src/tools/crx_id@" + Var("telemetry_chromium_revision"),
-  "third_party/chromium_trunk/build/util":
+  "third_party/chromium_trunk/src/build/util":
     Var("chromium_trunk") + "/src/build/util@" + Var("telemetry_chromium_revision"),
-  "third_party/chromium_trunk/third_party/flot":
+  "third_party/chromium_trunk/src/third_party/flot":
     Var("chromium_trunk") + "/src/third_party/flot@" + Var("telemetry_chromium_revision"),
-  "third_party/chromium_trunk/third_party/WebKit/PerformanceTests/resources":
+  "third_party/chromium_trunk/src/third_party/WebKit/PerformanceTests/resources":
     Var("telemetry_webkit_trunk") + "/PerformanceTests/resources@" + Var("telemetry_webkit_revision"),
-  "third_party/chromium_trunk/third_party/webpagereplay":
+  "third_party/chromium_trunk/src/third_party/webpagereplay":
     "http://web-page-replay.googlecode.com/svn/trunk/@" + Var("webpagereplay_revision"),
 
   # build/android/pylib/android_commands.py requires android_testrunner to be in third_party.
-  "third_party/chromium_trunk/third_party/android_testrunner":
+  "third_party/chromium_trunk/src/third_party/android_testrunner":
     Var("chromium_trunk") + "/src/third_party/android_testrunner@" + Var("chromium_revision"),
   
   # chrome_remote_control/replay_server.py requires webpagereplay to be in src/third_party.

@@ -89,7 +89,7 @@ TMP_SKP_DIR = tempfile.mkdtemp()
 # Location of Telemetry binaries (record_wpr, run_measurement).
 TELEMETRY_BINARIES_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir,
-    'third_party', 'chromium_trunk', 'tools', 'perf'
+    'third_party', 'chromium_trunk', 'src', 'tools', 'perf'
 )
 
 # Location of the credentials.json file and the string that represents missing
