@@ -360,7 +360,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           bugs_by_builder["{{ builder_name }}"] = null;
         }
         // Update the view.
-        setBuilderStatuses(builder_statuses);
+        setBuilderStatuses(bugs_by_builder);
       }
     }
     {% endfor %}
