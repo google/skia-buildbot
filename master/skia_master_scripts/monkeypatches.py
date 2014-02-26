@@ -156,8 +156,6 @@ def HtmlResourceRender(self, request):
   ctx['tree_status_baseurl'] = \
       skia_vars.GetGlobalVariable('tree_status_baseurl')
 
-  ctx['all_builders'] = all_builders
-
   ctx['all_full_category_names'] = sorted(list(all_full_category_names))
   ctx['all_categories'] = sorted(list(all_categories))
   ctx['all_subcategories'] = sorted(list(all_subcategories))

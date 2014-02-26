@@ -280,7 +280,7 @@ function buildConsoleTable() {
           builder_link = newHyperlink(builder.url, "", true);
           builder_link.id = "commentIndicator_" + builder_name;
           builder_link.className = "DevSlaveBox " + builder.color;
-          if (builder_statuses[builder_name] || bugs_by_builder[builder_name]) {
+          if (builder_statuses[builder_name]) {
             builder_link.classList.add("BuilderHasComment");
           }
           builder_td.appendChild(builder_link);

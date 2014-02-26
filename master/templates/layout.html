@@ -25,20 +25,11 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     var internalPort = "{{ internal_port }}";
     var externalPort = "{{ external_port }}";
 
-    // Googlecode issue API URL.
-    var issue_api_url = "http://code.google.com/feeds/issues/p/skia/issues/full";
-
-    // Label used on bugs which are breaking a particular bot.
-    var breaking_bot_label = "BreakingBot_";
-
     // JSON data URL.
     var tree_status_appspot_url = "{{ tree_status_baseurl }}";
 
     // Per-builder status messages.
     var builder_statuses = {};
-
-    // Bugs affecting particular bots.
-    var bugs_by_builder = {};
 
     // How often, in milliseconds, to refresh the page.
     var refreshInterval = {{ refresh or default_refresh }} * 1000;
@@ -214,7 +205,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
 
       // Mark builders who have comments.
       for (var builder_name in data) {
-        // Builder column headers.
+	// Builder column headers.
         var comment_indicator = document.getElementById("commentIndicator_" + builder_name);
         if (comment_indicator) {
           comment_indicator.className += " BuilderHasComment";
@@ -233,7 +224,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         var display_comment = display_comment_elems[i];
         var builder_name = display_comment.id.slice("displayBuilderComment_".length);
         display_comment.innerHTML = builderCommentText(builder_name);
-        if (builder_statuses[builder_name] || bugs_by_builder[builder_name]) {
+        if (builder_statuses[builder_name]) {
           display_comment.className += " BuilderHasComment";
         }
       }
@@ -316,7 +307,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         link.style.padding = "0px";
 
         // Decorate the result summary box if there's a comment for the builder.
-        if (builder_statuses[builder_name] || bugs_by_builder[builder_name]) {
+        if (builder_statuses[builder_name]) {
           cell.className += " BuilderHasComment";
         }
 
@@ -334,44 +325,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     }
     {% endif %}
     {% endfor %}
-
-    // Update the open bugs associated with the given builder.
-    {% for builder_name in all_builders %}
-    function gotBugs_{{ builder_name.replace('-', '_').replace('.', '_') }}(issue_feed) {
-      var issues_for_builder = issue_feed.feed.entry;
-      if (issues_for_builder) {
-        bugs_by_builder["{{ builder_name }}"] = [];
-        for (var i = 0; i < issues_for_builder.length; ++i) {
-          var labels = issues_for_builder[i]["issues$label"];
-          var got_correct_label = false;
-          for (var j = 0; j < labels.length; ++j) {
-            if (labels[j]["$t"] == breaking_bot_label + "{{ builder_name }}") {
-              got_correct_label = true;
-              break;
-            }
-          }
-          if (got_correct_label) {
-            var issue_number = issues_for_builder[i]["issues$id"]["$t"];
-            var issue_title = issues_for_builder[i].title["$t"];
-            bugs_by_builder["{{ builder_name }}"].push([issue_number, issue_title]);
-          }
-        }
-        if (bugs_by_builder["{{ builder_name }}"].length <= 0) {
-          bugs_by_builder["{{ builder_name }}"] = null;
-        }
-        // Update the view.
-        setBuilderStatuses(bugs_by_builder);
-      }
-    }
-    {% endfor %}
-
-    // Load the open bugs associated with the given builder.
-    function loadBugs() {
-      {% for builder_name in all_builders %}
-      var issues_url = issue_api_url + "?alt=json&can=open&label=" + breaking_bot_label + "{{builder_name }}";
-      loadJSONP(issues_url, gotBugs_{{ builder_name.replace('-', '_').replace('.', '_') }}, null);
-      {% endfor %}
-    }
 
     // Load JSON data from various places.
     function loadAllData() {
@@ -410,14 +363,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       if (typeof loadConsoleData == "function") {
         loadConsoleData();
       }
-
-      // Load the open bugs for each builder.
-      loadBugs();
-    }
-
-    // Create HTML for a link to a Skia bug.
-    function getBugLink(bug_number, text) {
-      return '<a href="https://code.google.com/p/skia/issues/detail?id=' + bug_number + '" target="_blank">' + text + '</a>';
     }
 
     // Get the comment text for a given builder.
@@ -427,7 +372,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         comment = builder_statuses[builder_name]["message"];
       }
       var edit_status_url = tree_status_appspot_url + "/builder-status/?selected_builder_name=" + builder_name;
-      var file_bug_link = '<a href="http://code.google.com/p/skia/issues/entry?labels=BreakingTheBuildbots,Type-Defect,Priority-Medium,' + breaking_bot_label + builder_name + '" target="_blank">file bug</a>';
+      var file_bug_link = '<a href="http://code.google.com/p/skia/issues/entry?labels=BreakingTheBuildbots,Type-Defect,Priority-Medium&summary=' + builder_name + '" target="_blank">file bug</a>';
       var comment_html = '<p style="font-weight: bold; line-height:105%">' + builder_name + '</p><p>';
       if (comment) {
         var re = new RegExp("skia:[0-9]+");
@@ -436,7 +381,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           for (var i = 0; i < found_bugs.length; ++i) {
             var found_bug = found_bugs[i];
             var bug_number = found_bug.split(":")[1];
-            var bug_link = getBugLink(bug_number, found_bug);
+            var bug_link = '<a href="https://code.google.com/p/skia/issues/detail?id=' + bug_number + '" target="_blank">' + found_bug + '</a>';
             comment = comment.replace(found_bug, bug_link);
           }
         }
@@ -445,20 +390,6 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         comment_html += '(<a href="' + edit_status_url + '" class="" target="_blank">add comment</a>';
       }
       comment_html += ' or ' + file_bug_link + ')</p>';
-
-      if (bugs_by_builder[builder_name]) {
-        comment_html += '<p style="line-height: 105%">Associated Bugs:<br/><ul>';
-        for (var i = 0; i < bugs_by_builder[builder_name].length; ++i) {
-          comment_html += "<li>";
-          var issue_number = bugs_by_builder[builder_name][i][0];
-          var issue_title = bugs_by_builder[builder_name][i][1];
-          var link = getBugLink(issue_number, issue_number + ": " + issue_title);
-          comment_html += link;
-          comment_html += "</li>";
-        }
-        comment_html += "</ul></p>";
-      }
-
       return comment_html;
     }
 
