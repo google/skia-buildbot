@@ -97,7 +97,7 @@
     "description": "URL that displays the current sheriff and his/her schedule."
   },
   "default_webstatus_refresh": {
-    "value": "60",
+    "value": "120",
     "type": "integer",
     "description": "How often (in seconds) to reload the buildbot status page if not specified."
   },
