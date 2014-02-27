@@ -91,7 +91,7 @@ def _GetBuildSlaveID(desired_slave_name):
   """ Returns the index of the build slave in the list of build slaves running
   on this machine, in the form of a string. """
   for host_dict in slave_hosts_cfg.SLAVE_HOSTS.itervalues():
-    for slave_name, slave_id in host_dict['slaves']:
+    for slave_name, slave_id in host_dict.slaves:
       if slave_name == desired_slave_name:
         return slave_id
   raise Exception('No build slave found with name %s' % desired_slave_name)
