@@ -2,8 +2,11 @@
 machines. """
 
 
+import collections
 import ntpath
+import os
 import posixpath
+import socket
 
 import skia_vars
 
@@ -37,35 +40,27 @@ GCE_USERNAME = skia_vars.GetGlobalVariable('gce_username')
 SKIALAB_ROUTER_IP = skia_vars.GetGlobalVariable('skialab_router_ip')
 SKIALAB_USERNAME = skia_vars.GetGlobalVariable('skialab_username')
 
+
 # Procedures for logging in to the host machines.
-SKIA_LAB_LOGIN = 'SkiaLab Login'
-COMPUTE_ENGINE_LOGIN = 'Compute Engine Login'
 
-
-def skia_lab_login(hostname, host_data):
+def skia_lab_login(hostname, config):
   """Procedure for logging into SkiaLab machines."""
   return [
     'ssh', '%s@%s' % (SKIALAB_USERNAME, SKIALAB_ROUTER_IP),
-    'ssh', '%s@%s' % (SKIALAB_USERNAME, host_data['ip'])
+    'ssh', '%s@%s' % (SKIALAB_USERNAME, config['ip'])
   ]
 
 
-def compute_engine_login(hostname, host_data):
+def compute_engine_login(hostname, config):
   """Procedure for logging into Skia GCE instances."""
   return [
     'gcutil', '--cluster=%s' % GCE_CLUSTER, '--project=%s' % GCE_PROJECT,
-    'ssh', '--ssh_user=%s' % GCE_USERNAME, hostname
+    'ssh', '--ssh_user=%s' % GCE_USERNAME, hostname,
   ]
 
 
-LOGIN_CMD = {
-  SKIA_LAB_LOGIN: skia_lab_login,
-  COMPUTE_ENGINE_LOGIN: compute_engine_login,
-}
-
-
 # Data for all Skia build slave hosts.
-SLAVE_HOSTS = {
+_slave_host_dicts = {
 
 ################################ Linux Machines ################################
 
@@ -74,7 +69,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-ati5770-001', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.132',
     'kvm_num': 'A',
     'path_module': posixpath,
@@ -98,7 +93,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-logan-001', '13'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.110',
     'kvm_num': 'C',
     'path_module': posixpath,
@@ -115,7 +110,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu12-006', '6'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.109',
     'kvm_num': 'B',
     'path_module': posixpath,
@@ -129,7 +124,7 @@ SLAVE_HOSTS = {
       ('skiabot-shuttle-ubuntu13-002', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.120',
     'kvm_num': 'D',
     'path_module': posixpath,
@@ -141,7 +136,7 @@ SLAVE_HOSTS = {
       ('skia-recreate-skps', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -154,7 +149,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -167,7 +162,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-003', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -180,7 +175,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-005', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -193,7 +188,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-007', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -206,7 +201,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-a-009', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -218,7 +213,7 @@ SLAVE_HOSTS = {
       ('skia-housekeeping-slave-a', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -231,7 +226,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -244,7 +239,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-003', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -257,7 +252,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-005', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -270,7 +265,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-007', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -283,7 +278,7 @@ SLAVE_HOSTS = {
       ('skiabot-linux-compile-vm-b-009', '1'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -295,7 +290,7 @@ SLAVE_HOSTS = {
       ('skia-housekeeping-slave-b', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': COMPUTE_ENGINE_LOGIN,
+    'login_cmd': compute_engine_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
@@ -312,7 +307,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_6-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.144',
     'kvm_num': '2',
     'path_module': posixpath,
@@ -324,7 +319,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_6-bench', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.121',
     'kvm_num': '1',
     'path_module': posixpath,
@@ -339,7 +334,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_7-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.137',
     'kvm_num': '3',
     'path_module': posixpath,
@@ -351,7 +346,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_7-bench', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.124',
     'kvm_num': '4',
     'path_module': posixpath,
@@ -366,7 +361,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_8-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.141',
     'kvm_num': '8',
     'path_module': posixpath,
@@ -378,7 +373,7 @@ SLAVE_HOSTS = {
       ('skiabot-macmini-10_8-bench', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.135',
     'kvm_num': '6',
     'path_module': posixpath,
@@ -395,7 +390,7 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_6-compile-005', '5'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.111',
     'kvm_num': '8',
     'path_module': posixpath,
@@ -416,7 +411,7 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_7-compile-009', '9'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.118',
     'kvm_num': '5',
     'path_module': posixpath,
@@ -437,7 +432,7 @@ SLAVE_HOSTS = {
       ('skiabot-mac-10_8-compile-009', '9'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': SKIA_LAB_LOGIN,
+    'login_cmd': skia_lab_login,
     'ip': '192.168.1.104',
     'kvm_num': '7',
     'path_module': posixpath,
@@ -555,28 +550,57 @@ SLAVE_HOSTS = {
 }
 
 
-def GetSlaveHostConfig(hostname):
-  """ Helper function for retrieving configuration information for a given slave
-  host machine. If no configuration exists for the given hostname, return a
-  default.
-
-  hostname: string; the hostname of the slave host machine.
-  """
-  default_cfg = {
-    'slaves': [(hostname, '0')],
-    'copies': _DEFAULT_COPIES,
-  }
-  return SLAVE_HOSTS.get(hostname, default_cfg)
+# Class which holds configuration data describing a build slave host.
+SlaveHostConfig = collections.namedtuple('SlaveHostConfig',
+                                         ('hostname, slaves, copies, login_cmd,'
+                                          ' ip, kvm_num, path_module,'
+                                          ' path_to_buildbot'))
 
 
-def get_login_command(hostname):
-  """Retrieve the command for logging in remotely to the given host machine."""
-  try:
-    host_data = SLAVE_HOSTS[hostname]
-  except KeyError:
-    raise ValueError('Unknown slave host %s' % hostname)
-  login_cmd = host_data['login_cmd']
+SLAVE_HOSTS = {}
+for (_hostname, _config) in _slave_host_dicts.iteritems():
+  login_cmd = _config.pop('login_cmd')
   if login_cmd:
-    return LOGIN_CMD[login_cmd](hostname, host_data)
-  return None
+    resolved_login_cmd = login_cmd(_hostname, _config)
+  else:
+    resolved_login_cmd = None
+  SLAVE_HOSTS[_hostname] = SlaveHostConfig(hostname=_hostname,
+                                           login_cmd=resolved_login_cmd,
+                                           **_config)
 
+
+def default_slave_host_config(hostname):
+  """Return a default configuration for the given hostname.
+
+  Assumes that the slave host is the machine on which this function is called.
+
+  Args:
+      hostname: string; name of the build slave host.
+  Returns:
+      SlaveHostConfig instance with configuration for this machine.
+  """
+  path_to_buildbot = os.path.join(os.path.dirname(__file__), os.pardir)
+  path_to_buildbot = os.path.abspath(path_to_buildbot).split(os.path.sep)
+  return SlaveHostConfig(
+    hostname=hostname,
+    slaves=[(hostname, '0')],
+    copies=_DEFAULT_COPIES,
+    login_cmd=None,
+    ip=socket.gethostbyname(socket.gethostname()),
+    kvm_num=None,
+    path_module=os.path,
+    path_to_buildbot=path_to_buildbot
+  )
+
+
+def get_slave_host_config(hostname):
+  """Helper function for retrieving slave host configuration information.
+
+  If the given hostname is unknown, returns a default config.
+
+  Args:
+      hostname: string; the hostname of the slave host machine.
+  Returns:
+      SlaveHostConfig instance representing the given host.
+  """
+  return SLAVE_HOSTS.get(hostname, default_slave_host_config(hostname))

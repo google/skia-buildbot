@@ -13,4 +13,4 @@ import run_cmd
 if '__main__' == __name__:
   options = run_cmd.parse_args()
   results = run_cmd.run_on_local_slaves(options.cmd)
-  run_cmd.print_results(results, pretty=options.pretty)
+  results.print_results(pretty=options.pretty)

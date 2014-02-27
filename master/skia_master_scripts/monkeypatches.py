@@ -169,7 +169,6 @@ def HtmlResourceRender(self, request):
   ctx['external_port'] = active_master.master_port_alt
   ctx['title_url'] = config_private.Master.Skia.project_url
   ctx['slave_hosts_cfg'] = slave_hosts_cfg.SLAVE_HOSTS
-  ctx['get_login_command'] = slave_hosts_cfg.get_login_command
   ctx['slaves_cfg'] = slaves_cfg.SLAVES
 
   ctx['active_master_name'] = active_master.project_name

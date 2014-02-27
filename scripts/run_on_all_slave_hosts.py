@@ -13,4 +13,4 @@ import run_cmd
 if '__main__' == __name__:
   options = run_cmd.parse_args()
   results = run_cmd.run_on_all_slave_hosts(options.cmd)
-  run_cmd.print_results(options.pretty)
+  results.print_results(pretty=options.pretty)

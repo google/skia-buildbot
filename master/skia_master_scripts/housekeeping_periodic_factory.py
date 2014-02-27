@@ -88,22 +88,7 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
                    % (SKIA_PUBLIC_MASTER_INTERNAL_FQDN,
                       disk_usage_script_path)),
           description='CheckMasterDiskUsage')
-      self._skia_cmd_obj.AddRunCommand(
-          command=(WithProperties('SKIA_COMPUTE_ENGINE_HOSTNAME=%(slavename)s '
-                                  'PERSISTENT_DISK_NAME='
-                                  '/home/default/skia-repo ' + \
-                                  disk_usage_script_path)),
-          description='CheckHousekeepingSlaveDiskUsage')
-      num_gce_compile_bots = skia_vars.GetGlobalVariable('num_gce_compile_bots')
-      gce_compile_bots_zone = skia_vars.GetGlobalVariable(
-          'gce_compile_bots_zone')
-      for compile_bot_index in range(1, num_gce_compile_bots + 1):
-        self._skia_cmd_obj.AddRunCommand(
-            command=('DELETE_TRYBOT_DIRS=True '
-                     'SKIA_COMPUTE_ENGINE_HOSTNAME=skia-compile%s-%s '
-                     'PERSISTENT_DISK_NAME=/home/default/skia-slave %s' % (
-                         compile_bot_index, gce_compile_bots_zone,
-                         disk_usage_script_path)),
-            description='CheckCompile%sDiskUsage' % compile_bot_index)
+      self.AddSlaveScript(script='check_buildslave_host_disk_usage.py',
+                          description='CheckBuildslaveHostDiskUsage')
     self.Validate()
     return self

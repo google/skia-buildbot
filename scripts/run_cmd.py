@@ -7,6 +7,7 @@
 """Run a command and report its results in machine-readable format."""
 
 
+import collections
 import optparse
 import os
 import pickle
@@ -21,44 +22,146 @@ sys.path.append(os.path.join(buildbot_path))
 
 from site_config import slave_hosts_cfg
 
-# We print this string before and after the important output from the command.
-# This makes it easy to ignore output from SSH, shells, etc.
-BOOKEND_STR = '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+
+class CommandResults(collections.namedtuple('CommandResults',
+                                            'stdout, stderr, returncode')):
+
+  # We print this string before and after the important output from the command.
+  # This makes it easy to ignore output from SSH, shells, etc.
+  BOOKEND_STR = '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+
+  def encode(self):
+    """Convert the results into a machine-readable string.
+
+    Returns:
+        A hex-encoded string, bookended by BOOKEND_STR for easy parsing.
+    """
+    return (CommandResults.BOOKEND_STR +
+            pickle.dumps(self.__dict__).encode('hex') +
+            CommandResults.BOOKEND_STR)
+
+  @staticmethod
+  def decode(results_str):
+    """Convert a machine-readable string into a CommandResults instance.
+
+    Args:
+        results_str: string; output from "run" or one of its siblings.
+    Returns:
+        A dictionary of results.
+    """
+    return CommandResults(**pickle.loads(
+        results_str.split(CommandResults.BOOKEND_STR)[1].decode('hex')))
+
+  @staticmethod
+  def make(stdout='', stderr='', returncode=1):
+    """Create CommandResults for a command.
+
+    Args:
+        stdout: string; stdout from a command.
+        stderr: string; stderr from a command.
+        returncode: string; return code of a command.
+    """
+    return CommandResults(stdout=stdout,
+                          stderr=stderr,
+                          returncode=returncode)
+
+  @property
+  def __dict__(self):
+    """Return a dictionary representation of this CommandResults instance.
+
+    Since collections.NamedTuple.__dict__ returns an OrderedDict, we have to
+    create this wrapper to get a normal dict.
+    """
+    return dict(super(CommandResults, self).__dict__)
+
+  def print_results(self, pretty=False):
+    """Print the results of a command.
+
+    Args:
+        pretty: bool; whether or not to print in human-readable format.
+    """
+    if pretty:
+      print pprint.pformat(self.__dict__)
+    else:
+      print repr(self.encode())
 
 
-def encode_results(results):
-  """Convert a dictionary of results into a machine-readable string.
+class ResolvableCommandElement(object):
+  """Base class for elements of commands which have different string values
+  depending on the properties of the host."""
+
+  def resolve(self, slave_host_name):
+    """Resolve this ResolvableCommandElement as appropriate.
+
+    Args:
+        slave_host_name: string; name of the slave host.
+    Returns:
+        string whose value depends on the given slave_host_name in some way.
+    """
+    raise NotImplementedError
+
+
+class BuildbotPath(ResolvableCommandElement):
+  """Path to the buildbot scripts checkout on a slave host machine."""
+
+  def resolve(self, slave_host_name):
+    """Return the resolved path to the buildbot checkout on a slave_host.
+
+    Args:
+        slave_host_name: string; name of the slave host.
+    Returns:
+        string; the path to the buildbot checkout.
+    """
+    host_data = slave_hosts_cfg.get_slave_host_config(slave_host_name)
+    return host_data.path_module.join(*host_data.path_to_buildbot)
+
+
+class ResolvablePath(ResolvableCommandElement):
+  """Represents a path."""
+
+  def __init__(self, *path_elems):
+    """Instantiate this ResolvablePath.
+
+    Args:
+        path_elems: strings or ResolvableCommandElements which will be joined to
+            form a path.
+    """
+    super(ResolvablePath, self).__init__()
+    self._path_elems = list(*path_elems)
+
+  def resolve(self, slave_host_name):
+    """Resolve this ResolvablePath as appropriate.
+
+    Args:
+        slave_host_name: string; name of the slave host.
+    Returns:
+        string whose value depends on the given slave_host_name in some way.
+    """
+    host_data = slave_hosts_cfg.get_slave_host_config(slave_host_name)
+    fixed_path_elems = _fixup_cmd(self._path_elems, slave_host_name)
+    return host_data.path_module.join(*fixed_path_elems)
+
+  @staticmethod
+  def buildbot_path(*path_elems):
+    """Convenience method; returns a path relative to the buildbot checkout."""
+    return ResolvablePath([BuildbotPath()] + list(path_elems))
+
+
+def _fixup_cmd(cmd, slave_host_name):
+  """Resolve the command into a list of strings.
 
   Args:
-      results: dict, the results of a command.
-  Returns:
-      A hex-encoded string, bookended by BOOKEND_STR for easy parsing.
+      cmd: list containing strings or ResolvableCommandElements.
+      slave_host_name: string; the name of the relevant slave host machine.
   """
-  return BOOKEND_STR + pickle.dumps(results).encode('hex') + BOOKEND_STR
-
-
-def decode_results(results_str):
-  """Convert a machine-readable string into a dictionary of results.
-
-  Args:
-      results_str: string; output from "run" or one of its siblings.
-  Returns:
-      A dictionary of results.
-  """
-  return pickle.loads(results_str.split(BOOKEND_STR)[1].decode('hex'))
-
-
-def cmd_results(stdout='', stderr='', returncode=1):
-  """Create a results dict for a command.
-
-  Args:
-      stdout: string; stdout from a command.
-      stderr: string; stderr from a command.
-      returncode: string; return code of a command.
-  """
-  return {'stdout': stdout,
-          'stderr': stderr,
-          'returncode': returncode}
+  new_cmd = []
+  for elem in cmd:
+    if isinstance(elem, ResolvableCommandElement):
+      resolved_elem = elem.resolve(slave_host_name)
+      new_cmd.append(resolved_elem)
+    else:
+      new_cmd.append(elem)
+  return new_cmd
 
 
 def _launch_cmd(cmd):
@@ -82,9 +185,9 @@ def _get_result(popen):
       A dictionary with stdout, stderr, and returncode as keys.
   """
   stdout, stderr = popen.communicate()
-  return cmd_results(stdout=stdout,
-                     stderr=stderr,
-                     returncode=popen.returncode)
+  return CommandResults.make(stdout=stdout,
+                             stderr=stderr,
+                             returncode=popen.returncode)
 
 
 def run(cmd):
@@ -98,7 +201,7 @@ def run(cmd):
   try:
     proc = _launch_cmd(cmd)
   except OSError as e:
-    return cmd_results(stderr=str(e))
+    return CommandResults.make(stderr=str(e))
   return _get_result(proc)
 
 
@@ -112,8 +215,8 @@ def run_on_local_slaves(cmd):
       result dictionaries (with stdout, stderr, and returncode as keys) as
       values.
   """
-  slave_host = slave_hosts_cfg.GetSlaveHostConfig(socket.gethostname())
-  slaves = slave_host['slaves']
+  slave_host = slave_hosts_cfg.get_slave_host_config(socket.gethostname())
+  slaves = slave_host.slaves
   results = {}
   procs = []
   for (slave, _) in slaves:
@@ -135,15 +238,16 @@ def _launch_on_remote_host(slave_host_name, cmd):
   Returns:
       subprocess.Popen instance.
   """
-  login_cmd = slave_hosts_cfg.get_login_command(slave_host_name)
+  host = slave_hosts_cfg.SLAVE_HOSTS[slave_host_name]
+  login_cmd = host.login_cmd
   if not login_cmd:
     raise ValueError('%s does not have a remote login procedure defined in '
                      'slave_hosts_cfg.py.' % slave_host_name)
-  host = slave_hosts_cfg.SLAVE_HOSTS[slave_host_name]
-  path_to_buildbot = host['path_module'].join(*host['path_to_buildbot'])
-  path_to_run_cmd = host['path_module'].join(path_to_buildbot, 'scripts',
-                                               'run_cmd.py')
-  return _launch_cmd(login_cmd + ['python', path_to_run_cmd] + cmd)
+  path_to_buildbot = host.path_module.join(*host.path_to_buildbot)
+  path_to_run_cmd = host.path_module.join(path_to_buildbot, 'scripts',
+                                          'run_cmd.py')
+  return _launch_cmd(login_cmd + ['python', path_to_run_cmd] +
+                     _fixup_cmd(cmd, slave_host_name))
 
 
 def _get_remote_host_results(slave_host_name, popen):
@@ -158,9 +262,13 @@ def _get_remote_host_results(slave_host_name, popen):
       keys) its value.
   """
   result = _get_result(popen)
-  if result['returncode']:
+  if result.returncode:
     return { slave_host_name: result }
-  return { slave_host_name: decode_results(result['stdout']) }
+  try:
+    return { slave_host_name: CommandResults.decode(result.stdout) }
+  except (pickle.UnpicklingError, IndexError):
+    error_msg = 'Could not decode result: %s' % result.stdout
+    return { slave_host_name: CommandResults.make(stderr=error_msg) }
 
 
 def run_on_remote_host(slave_host_name, cmd):
@@ -192,8 +300,9 @@ def run_on_all_slave_hosts(cmd):
   procs = []
 
   for hostname in slave_hosts_cfg.SLAVE_HOSTS.iterkeys():
-    if not slave_hosts_cfg.get_login_command(hostname):
-      results.update({hostname: cmd_results(stderr='No procedure for login.')})
+    if not slave_hosts_cfg.SLAVE_HOSTS[hostname].login_cmd:
+      results.update(
+          {hostname: CommandResults.make(stderr='No procedure for login.')})
     else:
       procs.append((hostname, _launch_on_remote_host(hostname, cmd)))
 
@@ -201,19 +310,6 @@ def run_on_all_slave_hosts(cmd):
     results.update(_get_remote_host_results(slavename, proc))
 
   return results
-
-
-def print_results(results, pretty=False):
-  """Print the results of a command.
-
-  Args:
-      results: dict; the results from a command.
-      pretty: bool; whether or not to print in human-readable format.
-  """
-  if pretty:
-    print pprint.pformat(results)
-  else:
-    print repr(encode_results(results))
 
 
 def parse_args(positional_args=None):
@@ -258,4 +354,4 @@ def parse_args(positional_args=None):
 
 if '__main__' == __name__:
   parsed_args = parse_args()
-  print_results(run(parsed_args.cmd), parsed_args.pretty)
+  run(parsed_args.cmd).print_results(pretty=parsed_args.pretty)

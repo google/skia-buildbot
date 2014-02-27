@@ -318,9 +318,9 @@ def main():
   subprocess.check_call([GCLIENT, 'sync', '--force', '-j1'])
 
   # Obtain configuration information about this build slave host machine.
-  slave_host = slave_hosts_cfg.GetSlaveHostConfig(socket.gethostname())
-  slaves = slave_host['slaves']
-  copies = slave_host['copies']
+  slave_host = slave_hosts_cfg.get_slave_host_config(socket.gethostname())
+  slaves = slave_host.slaves
+  copies = slave_host.copies
   print 'Attempting to launch build slaves:'
   for slavename, _ in slaves:
     print '  %s' % slavename

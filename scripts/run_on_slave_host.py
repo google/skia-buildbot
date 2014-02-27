@@ -13,4 +13,4 @@ import run_cmd
 if '__main__' == __name__:
   options = run_cmd.parse_args(positional_args=['host'])
   results = run_cmd.run_on_remote_host(options.host, options.cmd)
-  run_cmd.print_results(results, options.pretty)
+  results.print_results(pretty=options.pretty)
