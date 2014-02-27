@@ -82,7 +82,14 @@ done
 if [ -n "$LUA_AGGREGATOR_LOCAL_LOCATION" ]; then
   cp $LOGS_DIR/$RUN_ID.lua-output /tmp/lua-output
   lua $LUA_AGGREGATOR_LOCAL_LOCATION &> $LOGS_DIR/$RUN_ID.lua-output
+
+  # Copy the original slave output to Google Storage.
+  gsutil cp -a public-read /tmp/lua-output \
+    gs://chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.original-output.txt
+  ORIGINAL_OUTPUT_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.original-output.txt
+  ORIGINAL_OUTPUT_TXT="The pre-aggregated output is available <a href='$ORIGINAL_OUTPUT_LINK'>here</a>.<br/><br/>"
   rm /tmp/lua-output
+
   # Copy the aggregator file into Google Storage.
   gsutil cp -a public-read $LUA_AGGREGATOR_LOCAL_LOCATION \
     gs://chromium-skia-gm/telemetry/lua-outputs/consolidated-outputs/$RUN_ID.aggregator.txt
@@ -122,6 +129,7 @@ Content-Type: text/html
   <body>
   Time taken for the <a href='$SCRIPT_LINK'>script</a> run: $TIMER seconds.<br/>
   The output of your script is available <a href='$OUTPUT_LINK'>here</a>.<br/>
+  $ORIGINAL_OUTPUT_TXT
   You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/lua_script'>here</a>.<br/><br/>
   Thanks!
   </body>
