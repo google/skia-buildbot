@@ -56,7 +56,8 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
   def commandComplete(self, cmd):
     """ Override of BuildStep's commandComplete method which allows us to parse
     build properties from the output of this step. """
-    if cmd.rc and self._exception_on_failure:
+    if (cmd.rc not in (0, retcode_command.ReturnCodeCommand.RETCODE_WARNINGS)
+        and self._exception_on_failure):
       raise Exception('Command marked exception_on_failure failed.')
     if self._get_props_from_stdout and cmd.rc == 0:
       log = cmd.logs['stdio']
