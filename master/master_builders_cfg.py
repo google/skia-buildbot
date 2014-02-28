@@ -345,14 +345,26 @@ def setup_canaries(helper, do_upload_results):
       helper: instance of utils.SkiaHelper
       do_upload_results: bool; whether the builders should upload their results.
   """
+  # Targets which we think are important for the Chrome canaries. Discussion:
+  # https://code.google.com/p/skia/issues/detail?id=2227
+  chrome_build_targets = [
+      'chrome', 'base_unittests', 'cacheinvalidation_unittests',
+      'cc_unittests', 'chromedriver_unittests', 'components_unittests',
+      'content_unittests', 'crypto_unittests', 'google_apis_unittests',
+      'gpu_unittests', 'ipc_tests', 'jingle_unittests', 'media_unittests',
+      'net_unittests', 'ppapi_unittests', 'printing_unittests',
+      'remoting_unittests', 'sql_unittests', 'sync_unit_tests', 'ui_unittests',
+      'unit_tests', 'browser_tests', 'content_browsertests',
+      'interactive_ui_tests', 'sync_integration_tests'
+  ]
   #
   #                          CANARY BUILDERS
   #
   #    Project,  OS,         Compiler,Arch,     Configuration,Flavor,  Workdir,GYP_DEFINES,Factory,  Target,Extra Args
   #
   canaries = [
-      ('Chrome', 'Ubuntu12', 'Ninja', 'x86_64', 'Default',   'chrome', 'src',  None,       f_canary, LINUX, {'flavor': 'chrome', 'build_targets': ['chrome'], 'path_to_skia': ['third_party', 'skia']}),
-      ('Chrome', 'Win7',     'Ninja', 'x86',    'SharedLib', 'chrome', 'src',  GYP_SHARED, f_canary, WIN32, {'flavor': 'chrome', 'build_targets': ['chrome'], 'path_to_skia': ['third_party', 'skia']}),
+      ('Chrome', 'Ubuntu12', 'Ninja', 'x86_64', 'Default',   'chrome', 'src',  None,       f_canary, LINUX, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
+      ('Chrome', 'Win7',     'Ninja', 'x86',    'SharedLib', 'chrome', 'src',  GYP_SHARED, f_canary, WIN32, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
       ('Chrome', 'Ubuntu12', 'Ninja', 'x86_64', 'DRT',       None,     'src',  None,       f_drt,    LINUX, {'path_to_skia': ['third_party', 'skia']}),
   ]
 
