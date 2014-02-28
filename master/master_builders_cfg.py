@@ -401,6 +401,9 @@ def create_schedulers_and_builders(config, active_master, cfg,
   # do not care about commits outside of SKIA_PRIMARY_SUBDIRS.
   helper.AnyBranchScheduler('skia_rel', branches=utils.SKIA_PRIMARY_SUBDIRS)
 
+  # Scheduler for Skia that runs at 5:30 pm EST (10:30 pm UTC).
+  helper.PeriodicScheduler('skia_5:30pm', branch='trunk', minute=30, hour=10)
+
   # Scheduler for Skia that runs before the below Nightly Scheduler.
   # Setting it to 1AM UTC (8 PM EST).
   helper.PeriodicScheduler('skia_evening', branch='trunk', minute=0, hour=1)

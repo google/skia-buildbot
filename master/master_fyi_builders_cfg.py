@@ -71,9 +71,9 @@ def setup_housekeepers(helper, do_upload_results):
   housekeepers = [
       ('PerCommit', 'skia_rel',       None,               f_percommit,    LINUX,  {}),
       ('Nightly',   'skia_nightly',   None,               f_periodic,     LINUX,  {}),
-      ('Nightly',   'skia_nightly',  'DEPSRoll',          f_deps,         LINUX,  {}),
-      ('Daily',     'skia_morning',    'DEPSRollResults',   f_deps_results, LINUX,  {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
-      ('Nightly',   'skia_evening', 'RecreateSKPs',      f_skps,         LINUX,  {}),
+      ('Nightly',   'skia_5:30pm',    'DEPSRoll',         f_deps,         LINUX,  {}),
+      ('Daily',     'skia_morning',   'DEPSRollResults',  f_deps_results, LINUX,  {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
+      ('Nightly',   'skia_evening',   'RecreateSKPs',     f_skps,         LINUX,  {}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(housekeepers, helper,
