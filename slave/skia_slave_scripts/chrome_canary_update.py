@@ -7,8 +7,14 @@
 
 # build_step must be imported first, since it does some tweaking of PYTHONPATH.
 from build_step import BuildStep
+from utils import gclient_utils
+from utils import shell_utils
 from utils import sync_skia_in_chrome
+import shlex
 import sys
+
+
+CHROMIUM_REPO = 'https://chromium.googlesource.com/chromium/src.git'
 
 
 class ChromeCanaryUpdate(BuildStep):
@@ -21,12 +27,19 @@ class ChromeCanaryUpdate(BuildStep):
         **kwargs)
 
   def _Run(self):
-    (skia_rev, chrome_rev) = sync_skia_in_chrome.Sync(
+    if 'ToT' in self._builder_name:
+      chrome_rev = shlex.split(shell_utils.run(
+          [gclient_utils.GIT, 'ls-remote', CHROMIUM_REPO,
+           'refs/heads/master']))[0]
+    else:
+      chrome_rev = self._args.get('chrome_rev')
+
+    (got_skia_rev, got_chrome_rev) = sync_skia_in_chrome.Sync(
         skia_revision=self._revision,
-        chrome_revision=self._args.get('chrome_rev'),
+        chrome_revision=chrome_rev,
         use_lkgr_skia=('use_lkgr_skia' in self._args.keys()))
-    print 'Skia updated to %s' % skia_rev
-    print 'Chrome updated to %s' % chrome_rev
+    print 'Skia updated to %s' % got_skia_rev
+    print 'Chrome updated to %s' % got_chrome_rev
 
 
 if '__main__' == __name__:
