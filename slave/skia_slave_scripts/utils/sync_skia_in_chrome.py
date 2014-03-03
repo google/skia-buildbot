@@ -20,7 +20,7 @@ import sys
 CHROME_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
 FETCH = 'fetch.bat' if os.name == 'nt' else 'fetch'
 GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
-GIT = 'git.bat' if os.name == 'nt' else 'git'
+GIT = gclient_utils.GIT
 GCLIENT_FILE = '.gclient'
 PATH_TO_SKIA_IN_CHROME = os.path.join('src', 'third_party', 'skia', 'src')
 
@@ -82,8 +82,12 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   try:
     # Hack: We have to set some GYP_DEFINES, or upstream scripts will complain.
     os.environ['GYP_DEFINES'] = os.environ.get('GYP_DEFINES') or ''
-    gclient_utils.Sync(revision=str(chrome_revision), jobs=1, no_hooks=True,
+    gclient_utils.Sync(
+        revision=str(chrome_revision),
+        jobs=1,
+        no_hooks=True,
         force=True,
+        branches=['src'],
         extra_args=(['--revision', 'src@%s' % chrome_revision]
                         if chrome_revision else None))
   except shell_utils.CommandFailedException as e:
@@ -100,10 +104,14 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
     except OSError:
       # If the file no longer exists, just try again.
       pass
-    gclient_utils.Sync(revision=str(chrome_revision), jobs=1,
-        no_hooks=True, force=True,
+    gclient_utils.Sync(
+        revision=str(chrome_revision),
+        jobs=1,
+        no_hooks=True,
+        force=True,
+        branches=['src'],
         extra_args=(['--revision', 'src@%s' % chrome_revision]
-                         if chrome_revision else None))
+                        if chrome_revision else None))
 
   # Find the actually-obtained Chrome revision.
   os.chdir('src')
@@ -123,12 +131,15 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   print 'cd %s' % skia_dir
   os.chdir(skia_dir)
   try:
-    # Determine whether we already have a Skia checkout. If so, just pull.
+    # Determine whether we already have a Skia checkout. If so, just update.
     if not 'skia' in shell_utils.run([GIT, 'remote', '-v']):
       raise Exception('%s does not contain a Skia checkout!' % skia_dir)
     current_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD']).rstrip()
     print 'Found existing Skia checkout at %s' % current_skia_rev
-    shell_utils.run([GIT, 'pull', 'origin', 'master'])
+    shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
+    shell_utils.run([GIT, 'checkout', 'master'])
+    shell_utils.run([GIT, 'fetch'])
+    shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
   except Exception:
     # If updating fails, assume that we need to check out Skia from scratch.
     os.chdir(os.pardir)

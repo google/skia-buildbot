@@ -69,6 +69,19 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
          extra_args=None):
   """ Update the local checkout to the given revision, if provided, or to the
   most recent revision. """
+  start_dir = os.path.abspath(os.curdir)
+  for branch in (branches or []):
+    # Do whatever it takes to get up-to-date with origin/master.
+    if os.path.exists(branch):
+      os.chdir(branch)
+      # If there are local changes, "git checkout" will fail.
+      shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
+      # In case HEAD is detached...
+      shell_utils.run([GIT, 'checkout', 'master'])
+      # This updates us to origin/master even if master has diverged.
+      shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
+      os.chdir(start_dir)
+
   cmd = ['sync', '--no-nag-max']
   if verbose:
     cmd.append('--verbose')
@@ -88,14 +101,13 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
 
   # "gclient sync" just downloads all of the commits. In order to actually sync
   # to the desired commit, we have to "git reset" to that commit.
-  start_dir = os.path.abspath(os.curdir)
   checkout_root, _ = _GetLocalConfig()
   for branch in (branches or []):
     os.chdir(os.path.join(checkout_root, branch))
     if revision and branch == SKIA_TRUNK:
       shell_utils.run([GIT, 'reset', '--hard', revision])
     else:
-      shell_utils.run([GIT, 'checkout', 'origin/master', '-f'])
+      shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
     os.chdir(start_dir)
   return output
 
