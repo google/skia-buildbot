@@ -64,16 +64,33 @@ def _GetLocalConfig():
   return checkout_root, config_vars['solutions']
 
 
+def maybe_fix_identity(username='chrome-bot', email='skia.committer@gmail.com'):
+  """If either of user.name or user.email is not defined, define it."""
+  try:
+    shell_utils.run([GIT, 'config', '--get', 'user.name'])
+  except shell_utils.CommandFailedException:
+    shell_utils.run([GIT, 'config', 'user.name', '"%s"' % username])
+
+  try:
+    shell_utils.run([GIT, 'config', '--get', 'user.email'])
+  except shell_utils.CommandFailedException:
+    shell_utils.run([GIT, 'config', 'user.email', '"%s"' % email])
+
+
 def Sync(revision=None, force=False, delete_unversioned_trees=False,
          branches=None, verbose=False, jobs=None, no_hooks=False,
          extra_args=None):
   """ Update the local checkout to the given revision, if provided, or to the
   most recent revision. """
+
   start_dir = os.path.abspath(os.curdir)
   for branch in (branches or []):
     # Do whatever it takes to get up-to-date with origin/master.
     if os.path.exists(branch):
       os.chdir(branch)
+      # First, fix the git identity if needed.
+      maybe_fix_identity()
+
       # If there are local changes, "git checkout" will fail.
       shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
       # In case HEAD is detached...
