@@ -59,9 +59,9 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
 
   assert len(files_to_checksums_nopatch) == len(files_to_checksums_withpatch), (
       'Number of images in both JSON summary files are different')
-  assert (files_to_checksums_nopatch.keys() ==
-          files_to_checksums_withpatch.keys(),
-          'File names in both JSON summary files are different')
+  assert files_to_checksums_nopatch.keys() == \
+         files_to_checksums_withpatch.keys(), (
+             'File names in both JSON summary files are different')
 
   # Compare checksums in both directories and output differences.
   file_differences = []
