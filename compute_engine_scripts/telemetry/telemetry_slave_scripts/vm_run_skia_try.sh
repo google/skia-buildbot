@@ -116,6 +116,7 @@ if [ $? -eq 1 ]; then
 fi
 
 SKIA_TRUNK_LOCATION=/home/default/skia-repo/trunk
+TELEMETRY_SLAVE_SCRIPTS_DIR=/home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
 
 function cleanup_slave_before_exit {
   reset_skia_checkout
@@ -183,9 +184,8 @@ else
   echo "== Empty patch specified =="
 fi
 build_tools $MESA_WITHPATCH_RUN
-IMG_ROOT=/tmp/
-OUTPUT_DIR_WITHPATCH_DIR_NAME=withpatch-pictures-$RUN_ID
-OUTPUT_DIR_WITHPATCH=${IMG_ROOT}${OUTPUT_DIR_WITHPATCH_DIR_NAME}
+IMG_ROOT=/tmp
+OUTPUT_DIR_WITHPATCH=$IMG_ROOT/withpatch-pictures-$RUN_ID
 mkdir -p $OUTPUT_DIR_WITHPATCH
 run_render_pictures $OUTPUT_DIR_WITHPATCH $MESA_WITHPATCH_RUN
 
@@ -193,35 +193,25 @@ echo "== Removing the patch, building, and running render_pictures =="
 reset_skia_checkout
 make clean
 build_tools $MESA_NOPATCH_RUN
-OUTPUT_DIR_NOPATCH_DIR_NAME=nopatch-pictures-$RUN_ID
-OUTPUT_DIR_NOPATCH=${IMG_ROOT}${OUTPUT_DIR_NOPATCH_DIR_NAME}
+OUTPUT_DIR_NOPATCH=$IMG_ROOT/nopatch-pictures-$RUN_ID
 mkdir -p $OUTPUT_DIR_NOPATCH
 run_render_pictures $OUTPUT_DIR_NOPATCH $MESA_NOPATCH_RUN
 
-echo "== Run skpdiff to get the CSV with perceptual similarity metrics =="
-SKPDIFF_OUTPUT_FILE=/tmp/skpdiff-$RUN_ID.csv
-./out/Release/skpdiff \
-  -f $OUTPUT_DIR_NOPATCH $OUTPUT_DIR_WITHPATCH \
-  --csv $SKPDIFF_OUTPUT_FILE \
-  -d perceptual
-
 echo "== Comparing pictures and saving differences in JSON output file =="
-cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
 JSON_SUMMARY_DIR=/tmp/summary-$RUN_ID
 mkdir -p $JSON_SUMMARY_DIR
-python write_json_summary.py \
+python $TELEMETRY_SLAVE_SCRIPTS_DIR/write_json_summary.py \
   --img_root=$IMG_ROOT \
   --nopatch_json=$OUTPUT_DIR_NOPATCH/summary.json \
-  --nopatch_img_dir_name=$OUTPUT_DIR_NOPATCH_DIR_NAME \
+  --nopatch_images_base_url=file:/$OUTPUT_DIR_NOPATCH \
   --withpatch_json=$OUTPUT_DIR_WITHPATCH/summary.json \
-  --withpatch_img_dir_name=$OUTPUT_DIR_WITHPATCH_DIR_NAME \
+  --withpatch_images_base_url=file:/$OUTPUT_DIR_WITHPATCH \
   --output_file_path=$JSON_SUMMARY_DIR/slave$SLAVE_NUM.json \
   --gs_output_dir=$OUTPUT_FILE_GS_LOCATION \
   --gs_skp_dir=$GS_SKP_DIR \
   --slave_num=$SLAVE_NUM \
-  --gm_json_path=/home/default/skia-repo/trunk/gm/gm_json.py \
-  --imagediffdb_path=/home/default/skia-repo/trunk/gm/rebaseline_server/imagediffdb.py \
-  --skpdiff_output_csv=$SKPDIFF_OUTPUT_FILE
+  --gm_json_path=$SKIA_TRUNK_LOCATION/gm/gm_json.py \
+  --imagediffdb_path=$SKIA_TRUNK_LOCATION/gm/rebaseline_server/imagediffdb.py
 
 echo "== Copy everything to Google Storage =="
 # Get list of failed file names and upload only those to Google Storage.
