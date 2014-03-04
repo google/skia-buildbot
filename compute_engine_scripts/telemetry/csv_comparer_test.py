@@ -34,6 +34,8 @@ class TestCsvComparer(unittest.TestCase):
         chromium_patch_link='http://chromium-patch.com',
         blink_patch_link='http://blink-patch.com',
         skia_patch_link='http://skia-patch.com',
+        raw_csv_nopatch='http://raw-csv-nopatch.com',
+        raw_csv_withpatch='http://raw-csv-withpatch.com',
         variance_threshold=10,
         absolute_url='',
         min_pages_in_each_field=1,

@@ -54,7 +54,7 @@ class CsvComparer(object):
   def __init__(self, csv_file1, csv_file2, output_html_dir, requester_email,
                chromium_patch_link, blink_patch_link, skia_patch_link,
                variance_threshold, absolute_url, min_pages_in_each_field,
-               discard_outliers):
+               discard_outliers, raw_csv_nopatch, raw_csv_withpatch):
     """Constructs a CsvComparer instance."""
     self._csv_file1 = csv_file1
     self._csv_file2 = csv_file2
@@ -67,6 +67,8 @@ class CsvComparer(object):
     self._absolute_url = absolute_url
     self._min_pages_in_each_field = min_pages_in_each_field
     self._discard_outliers = float(discard_outliers)
+    self._raw_csv_nopatch = raw_csv_nopatch
+    self._raw_csv_withpatch = raw_csv_withpatch
 
   def _IsPercDiffAboveThreshold(self, perc_diff):
     """Compares the specified diff to the variance threshold.
@@ -224,6 +226,8 @@ class CsvComparer(object):
          'chromium_patch_link': self._chromium_patch_link,
          'blink_patch_link': self._blink_patch_link,
          'skia_patch_link': self._skia_patch_link,
+         'raw_csv_nopatch': self._raw_csv_nopatch,
+         'raw_csv_withpatch': self._raw_csv_withpatch,
          'threshold': self._variance_threshold,
          'discard_outliers': self._discard_outliers,
          'min_webpages': self._min_pages_in_each_field,
@@ -294,21 +298,30 @@ if '__main__' == __name__:
            'number of webpages in a field are 10 then the 1st and 10th'
            'webpages are discarded.',
       default=10)
+  option_parser.add_option(
+      '', '--raw_csv_nopatch',
+      help='Link to the raw CSV output of the nopatch run.')
+  option_parser.add_option(
+      '', '--raw_csv_withpatch',
+      help='Link to the raw CSV output of the withpatch run.')
 
   options, unused_args = option_parser.parse_args()
   if not (options.csv_file1 and options.csv_file2 and options.output_html_dir
           and options.variance_threshold and options.requester_email
           and options.chromium_patch_link and options.blink_patch_link
-          and options.skia_patch_link):
+          and options.skia_patch_link and options.raw_csv_nopatch
+          and options.raw_csv_withpatch):
     option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
                         'variance_threshold, requester_email, '
-                        'chromium_patch_link, blink_patch_link and '
-                        'skia_patch_link')
+                        'chromium_patch_link, blink_patch_link, '
+                        'skia_patch_link, raw_csv_nopatch and '
+                        'raw_csv_withpatch')
 
   sys.exit(CsvComparer(
       options.csv_file1, options.csv_file2, options.output_html_dir,
       options.requester_email, options.chromium_patch_link,
       options.blink_patch_link, options.skia_patch_link,
       options.variance_threshold, options.absolute_url,
-      options.min_pages_in_each_field, options.discard_outliers).Compare())
+      options.min_pages_in_each_field, options.discard_outliers,
+      options.raw_csv_nopatch, options.raw_csv_withpatch).Compare())
 

@@ -121,6 +121,8 @@ PATCHES_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserv
 CHROMIUM_PATCH_LINK=$PATCHES_LINK/$RUN_ID.chromium.patch
 BLINK_PATCH_LINK=$PATCHES_LINK/$RUN_ID.blink.patch
 SKIA_PATCH_LINK=$PATCHES_LINK/$RUN_ID.skia.patch
+TELEMETRY_OUTPUT_1=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_NOPATCH_ID.output.txt
+TELEMETRY_OUTPUT_2=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_WITHPATCH_ID.output.txt
 
 # Run telemetry benchmarks only if the chromium build succeeded.
 if [ $ret_value -eq 0 ]; then
@@ -171,7 +173,7 @@ if [ $ret_value -eq 0 ]; then
   HTML_OUTPUT_LINK_BASE=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserver-outputs/html-outputs/$RUN_ID/
   mkdir -p $HTML_OUTPUT_DIR
   cd ..
-  python csv_comparer.py --csv_file1=$NOPATCH_CSV --csv_file2=$WITHPATCH_CSV --output_html=$HTML_OUTPUT_DIR --variance_threshold=$VARIANCE_THRESHOLD --discard_outliers=$DISCARD_OUTLIERS --absolute_url=$HTML_OUTPUT_LINK_BASE --requester_email=$REQUESTER_EMAIL --chromium_patch_link=$CHROMIUM_PATCH_LINK --blink_patch_link=$BLINK_PATCH_LINK --skia_patch_link=$SKIA_PATCH_LINK
+  python csv_comparer.py --csv_file1=$NOPATCH_CSV --csv_file2=$WITHPATCH_CSV --output_html=$HTML_OUTPUT_DIR --variance_threshold=$VARIANCE_THRESHOLD --discard_outliers=$DISCARD_OUTLIERS --absolute_url=$HTML_OUTPUT_LINK_BASE --requester_email=$REQUESTER_EMAIL --chromium_patch_link=$CHROMIUM_PATCH_LINK --blink_patch_link=$BLINK_PATCH_LINK --skia_patch_link=$SKIA_PATCH_LINK --raw_csv_nopatch=$TELEMETRY_OUTPUT_1 --raw_csv_withpath=$TELEMETRY_OUTPUT_2
 
   # Copy the HTML files to Google Storage.
   gsutil cp -a public-read $HTML_OUTPUT_DIR/*.html gs://chromium-skia-gm/telemetry/tryserver-outputs/html-outputs/$RUN_ID/
@@ -185,8 +187,6 @@ fi
 # Email the requester.
 HTML_OUTPUT_LINK=${HTML_OUTPUT_LINK_BASE}index.html
 CHROMIUM_BUILD_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserver-outputs/build-logs/$RUN_ID-chromium.txt
-TELEMETRY_OUTPUT_1=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_NOPATCH_ID.output.txt
-TELEMETRY_OUTPUT_2=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_WITHPATCH_ID.output.txt
 SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave1/logs/$RUN_ID-withpatch.log
 
 BOUNDARY=`date +%s|md5sum`
