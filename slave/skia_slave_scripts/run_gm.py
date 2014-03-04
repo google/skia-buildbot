@@ -67,6 +67,8 @@ class RunGM(BuildStep):
           'Nexus10' in self._builder_name or
           'Nexus4' in self._builder_name):
       cmd.extend(['--config', 'defaults', 'msaa4'])
+    elif 'ANGLE' in self._builder_name:
+      cmd.extend(['--config', 'angle'])
     elif (not 'NoGPU' in self._builder_name and
           not 'ChromeOS' in self._builder_name and
           not 'GalaxyNexus' in self._builder_name):
