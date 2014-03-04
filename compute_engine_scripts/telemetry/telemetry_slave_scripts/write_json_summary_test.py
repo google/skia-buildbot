@@ -6,6 +6,8 @@
 """Tests for module write_json_summary.py"""
 
 import filecmp
+import io
+import json
 import os
 import shutil
 import tempfile
@@ -17,6 +19,9 @@ import write_json_summary
 class TestWriteJsonSummary(unittest.TestCase):
 
   def setUp(self):
+    self.longMessage = True
+    self.maxDiff = None
+
     self._test_json_dir = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), 'test_data')
     self._output_file_name = 'summary.json'
@@ -36,6 +41,22 @@ class TestWriteJsonSummary(unittest.TestCase):
   def tearDown(self):
     shutil.rmtree(self._actual_output_dir)
 
+  def assertJsonFilesEqual(self, expected, actual):
+    """Assert contents of two JSON files are equal, displaying any diffs.
+
+    Args:
+      expected: (str) Path to JSON file with desired content.
+      actual: (str) Path to JSON file to evaluate.
+    """
+    if filecmp.cmp(expected, actual):
+      return
+    with io.open(expected, mode='r') as expected_filehandle:
+      expected_dict = json.load(expected_filehandle)
+    with io.open(actual, mode='r') as actual_filehandle:
+      actual_dict = json.load(actual_filehandle)
+    self.assertEqual(expected_dict, actual_dict, msg=(
+        '\n\nexpectation (%s) differed from actual (%s)' % (expected, actual)))
+
   def test_DifferentFiles(self):
     write_json_summary.WriteJsonSummary(
         img_root=self._img_root,
@@ -49,10 +70,9 @@ class TestWriteJsonSummary(unittest.TestCase):
         slave_num=self._slave_num,
         gm_json_path=self._gm_json_path,
         imagediffdb_path=self._imagediffdb_path)
-
-    self.assertTrue(
-        filecmp.cmp(os.path.join(self._test_json_dir, self._output_file_name),
-                    self._actual_output_file_path))
+    self.assertJsonFilesEqual(
+        expected=os.path.join(self._test_json_dir, self._output_file_name),
+        actual=self._actual_output_file_path)
 
   def test_NoDifferentFiles(self):
     write_json_summary.WriteJsonSummary(
@@ -67,7 +87,6 @@ class TestWriteJsonSummary(unittest.TestCase):
         slave_num=self._slave_num,
         gm_json_path=self._gm_json_path,
         imagediffdb_path=self._imagediffdb_path)
-
     self.assertFalse(os.path.isfile(self._actual_output_file_path))
 
 
