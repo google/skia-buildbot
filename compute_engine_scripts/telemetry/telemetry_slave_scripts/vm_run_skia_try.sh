@@ -203,9 +203,9 @@ mkdir -p $JSON_SUMMARY_DIR
 python $TELEMETRY_SLAVE_SCRIPTS_DIR/write_json_summary.py \
   --img_root=$IMG_ROOT \
   --nopatch_json=$OUTPUT_DIR_NOPATCH/summary.json \
-  --nopatch_images_base_url=file:/$OUTPUT_DIR_NOPATCH \
+  --nopatch_images_base_url=file://$OUTPUT_DIR_NOPATCH \
   --withpatch_json=$OUTPUT_DIR_WITHPATCH/summary.json \
-  --withpatch_images_base_url=file:/$OUTPUT_DIR_WITHPATCH \
+  --withpatch_images_base_url=file://$OUTPUT_DIR_WITHPATCH \
   --output_file_path=$JSON_SUMMARY_DIR/slave$SLAVE_NUM.json \
   --gs_output_dir=$OUTPUT_FILE_GS_LOCATION \
   --gs_skp_dir=$GS_SKP_DIR \
