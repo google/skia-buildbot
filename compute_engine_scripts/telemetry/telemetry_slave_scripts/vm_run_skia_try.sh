@@ -124,6 +124,7 @@ function cleanup_slave_before_exit {
   delete_worker_file $WORKER_FILE
   rm -rf /tmp/*${RUN_ID}* 
   rm -rf /tmp/diffs
+  rm -rf /tmp/images
   rm -rf /tmp/whitediffs
 }
 
