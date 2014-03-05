@@ -585,7 +585,7 @@ def default_slave_host_config(hostname):
     slaves=[(hostname, '0')],
     copies=_DEFAULT_COPIES,
     login_cmd=None,
-    ip='127.0.0.1',
+    ip=None,
     kvm_num=None,
     path_module=os.path,
     path_to_buildbot=path_to_buildbot
