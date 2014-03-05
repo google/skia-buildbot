@@ -7,11 +7,14 @@
 
 from master_builders_cfg import f_deps, f_deps_results, f_percommit, f_periodic
 from master_builders_cfg import f_skps, f_xsan, HousekeepingBuilder, LINUX
-from skia_master_scripts import utils
+
+# Schedulers
+from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, S_EVENING, S_MORNING
+from master_builders_cfg import S_RECREATE_SKPS
+
 from skia_master_scripts.moz2d_canary_factory \
     import Moz2DCanaryFactory as f_moz2d
 
-import builder_name_schema
 import master_builders_cfg
 
 
@@ -25,10 +28,10 @@ def setup_canaries(helper, do_upload_results):
   #
   #                          CANARY BUILDERS
   #
-  #    Project,  OS,        Compiler, Arch,     Configuration, Flavor,  Workdir, GYP_DEFINES, Factory, Platform, Extra Args
+  #    Project,  OS,        Compiler, Arch,     Configuration, Flavor,  Workdir, GYP_DEFINES, Factory, Platform, Scheduler, Extra Args
   #
   builder_specs = [
-      ('Moz2D', 'Ubuntu12', 'GCC',    'x86_64', 'Release',     None,    'skia',  None,        f_moz2d, LINUX,    {})
+      ('Moz2D', 'Ubuntu12', 'GCC',    'x86_64', 'Release',     None,    'skia',  None,        f_moz2d, LINUX,    S_PERCOMMIT, {})
   ]
 
   master_builders_cfg.setup_builders_from_config_list(
@@ -46,10 +49,10 @@ def setup_test_and_perf_builders(helper, do_upload_results):
   #
   #                            TEST AND PERF BUILDERS
   #
-  #    Role,   OS,         Model,         GPU,      Arch,     Config,    Extra Config,GYP_DEFS,Factory,Target, Extra Args
+  #    Role,   OS,         Model,         GPU,      Arch,     Config,    Extra Config,GYP_DEFS,Factory,Target, Scheduler, Extra Args
   #
   builder_specs = [
-      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',  'x86_64', 'Debug',   'TSAN',      None,    f_xsan, LINUX,  {'sanitizer': 'thread'}),
+      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',  'x86_64', 'Debug',   'TSAN',      None,    f_xsan, LINUX,  S_PERCOMMIT, {'sanitizer': 'thread'}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(
@@ -66,14 +69,14 @@ def setup_housekeepers(helper, do_upload_results):
   #
   #                          HOUSEKEEPING BUILDERS
   #
-  #   Frequency,    Scheduler,        Extra Config,       Factory,        Target, Extra Args
+  #   Frequency,    Extra Config,       Factory,        Target, Scheduler,       Extra Args
   #
   housekeepers = [
-      ('PerCommit', 'skia_rel',       None,               f_percommit,    LINUX,  {}),
-      ('Nightly',   'skia_nightly',   None,               f_periodic,     LINUX,  {}),
-      ('Nightly',   'skia_5:30pm',    'DEPSRoll',         f_deps,         LINUX,  {}),
-      ('Daily',     'skia_morning',   'DEPSRollResults',  f_deps_results, LINUX,  {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
-      ('Nightly',   'skia_evening',   'RecreateSKPs',     f_skps,         LINUX,  {}),
+      ('PerCommit', None,               f_percommit,    LINUX,  S_PERCOMMIT,     {}),
+      ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,       {}),
+      ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  S_EVENING,       {}),
+      ('Daily',     'DEPSRollResults',  f_deps_results, LINUX,  S_MORNING,       {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
+      ('Nightly',   'RecreateSKPs',     f_skps,         LINUX,  S_RECREATE_SKPS, {}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(housekeepers, helper,

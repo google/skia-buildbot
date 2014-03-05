@@ -13,12 +13,11 @@ import re
 # requires Google APIs client library for Python; see
 # https://code.google.com/p/google-api-python-client/wiki/Installation
 from apiclient.discovery import build
-from buildbot.scheduler import AnyBranchScheduler
+from buildbot.scheduler import Dependent
+from buildbot.scheduler import Scheduler
 from buildbot.schedulers import timed
 from buildbot.schedulers.filter import ChangeFilter
-from buildbot.util import NotABranch
 from config_private import TRY_SVN_BASEURL
-from master import master_config
 from master import try_job_svn
 from master import try_job_rietveld
 from master.builders_pools import BuildersPools
@@ -250,12 +249,6 @@ def FileBug(summary, description, owner=None, ccs=None, labels=None):
   return result
 
 
-# Base set of branches for which we trigger rebuilds on all builders. Schedulers
-# may trigger builds on a superset of this list to include, for example, the
-# 'android' branch or a subfolder of 'gm-expected'.
-SKIA_PRIMARY_SUBDIRS = ['buildbot', 'trunk']
-
-
 # Skip buildbot runs of a CL if its commit log message contains the following
 # substring.
 SKIP_BUILDBOT_SUBSTRING = '(SkipBuildbotRuns)'
@@ -301,14 +294,12 @@ def UnderscoresToCapWords(string):
 
 # Since we can't modify the existing Helper class, we subclass it here,
 # overriding the necessary parts to get things working as we want.
-# Specifically, the Helper class hardcodes each registered scheduler to be
-# instantiated as a 'Scheduler,' which aliases 'SingleBranchScheduler.'  We add
-# an 'AnyBranchScheduler' method and change the implementation of Update() to
-# instantiate the proper type.
-
-# TODO(borenet): modify this code upstream so that we don't need this override.	
-# BUG: http://code.google.com/p/skia/issues/detail?id=761
-class SkiaHelper(master_config.Helper):
+class SkiaHelper(object):
+  def __init__(self, defaults):
+    self._defaults = defaults
+    self._builders = []
+    self._factories = {}
+    self._schedulers = {}
 
   def Builder(self, name, factory, gatekeeper=None, scheduler=None,
               builddir=None, auto_reboot=False, notify_on_missing=False):
@@ -316,41 +307,48 @@ class SkiaHelper(master_config.Helper):
     name_parts = name.split(builder_name_schema.BUILDER_NAME_SEP)
     category = name_parts[0]
     subcategory = name_parts[1] if len(name_parts) > 1 else 'default'
-    old_category = self._defaults.get('category')
-    self._defaults['category'] = '|'.join((category, subcategory))
-    super(SkiaHelper, self).Builder(name=name, factory=factory,
-                                    gatekeeper=gatekeeper, scheduler=scheduler,
-                                    builddir=builddir, auto_reboot=auto_reboot,
-                                    notify_on_missing=notify_on_missing)
-    self._defaults['category'] = old_category
+    full_category = '|'.join((category, subcategory))
+    self._builders.append({'name': name,
+                           'factory': factory,
+                           'gatekeeper': gatekeeper,
+                           'schedulers': scheduler.split('|'),
+                           'builddir': builddir,
+                           'category': full_category,
+                           'auto_reboot': auto_reboot,
+                           'notify_on_missing': notify_on_missing})
 
-  def AnyBranchScheduler(self, name, branches, treeStableTimer=60,
-                         categories=None):
-    if name in self._schedulers:
-      raise ValueError('Scheduler %s already exist' % name)
-    self._schedulers[name] = {'type': 'AnyBranchScheduler',
-                              'branches': branches,
-                              'treeStableTimer': treeStableTimer,
-                              'builders': [],
-                              'categories': categories}
-
-  def PeriodicScheduler(self, name, branch, minute=0, hour='*', dayOfMonth='*',
+  def PeriodicScheduler(self, name, minute=0, hour='*', dayOfMonth='*',
                         month='*', dayOfWeek='*'):
-    """Configures the periodic build scheduler.
-
-    The timezone the PeriodicScheduler is run in is the timezone of the buildbot
-    master. Currently this is EST because it runs in Atlanta.
-    """
+    """Helper method for the Periodic scheduler."""
     if name in self._schedulers:
-      raise ValueError('Scheduler %s already exist' % name)
+      raise ValueError('Scheduler %s already exists' % name)
     self._schedulers[name] = {'type': 'PeriodicScheduler',
-                              'branch': branch,
                               'builders': [],
                               'minute': minute,
                               'hour': hour,
                               'dayOfMonth': dayOfMonth,
                               'month': month,
                               'dayOfWeek': dayOfWeek}
+
+  def Dependent(self, name, parent):
+    if name in self._schedulers:
+      raise ValueError('Scheduler %s already exists' % name)
+    self._schedulers[name] = {'type': 'Dependent',
+                              'parent': parent,
+                              'builders': []}
+
+  def Factory(self, name, factory):
+    if name in self._factories:
+      raise ValueError('Factory %s already exists' % name)
+    self._factories[name] = factory
+
+  def Scheduler(self, name, treeStableTimer=60, categories=None):
+    if name in self._schedulers:
+      raise ValueError('Scheduler %s already exists' % name)
+    self._schedulers[name] = {'type': 'Scheduler',
+                              'treeStableTimer': treeStableTimer,
+                              'builders': [],
+                              'categories': categories}
 
   def TryJobSubversion(self, name):
     """ Adds a Subversion-based try scheduler. """
@@ -365,12 +363,34 @@ class SkiaHelper(master_config.Helper):
     self._schedulers[name] = {'type': 'TryJobRietveld', 'builders': []}
 
   def Update(self, c):
-    super(SkiaHelper, self).Update(c)
-    c['builders'].sort(key=lambda builder: builder['name'])
+    for builder in self._builders:
+      # Update the schedulers with the builder.
+      schedulers = builder['schedulers']
+      if schedulers:
+        for scheduler in schedulers:
+          self._schedulers[scheduler]['builders'].append(builder['name'])
+
+      # Construct the category.
+      categories = []
+      if builder.get('category', None):
+        categories.append(builder['category'])
+      if builder.get('gatekeeper', None):
+        categories.extend(builder['gatekeeper'].split('|'))
+      category = '|'.join(categories)
+
+      # Append the builder to the list.
+      new_builder = {'name': builder['name'],
+                     'factory': self._factories[builder['factory']],
+                     'category': category,
+                     'auto_reboot': builder['auto_reboot']}
+      if builder['builddir']:
+        new_builder['builddir'] = builder['builddir']
+      c['builders'].append(new_builder)
+
+    # Process the main schedulers.
     for s_name in self._schedulers:
       scheduler = self._schedulers[s_name]
-      instance = None
-      if scheduler['type'] == 'AnyBranchScheduler':
+      if scheduler['type'] == 'Scheduler':
         def filter_fn(change, builders):
           """Filters out if change.comments contains certain keywords.
 
@@ -404,33 +424,33 @@ class SkiaHelper(master_config.Helper):
             branch=skia_vars.GetGlobalVariable('master_branch_name'),
             filter_fn=filter_fn)
 
-        instance = AnyBranchScheduler(name=s_name,
-                                      branch=NotABranch,
-                                      branches=NotABranch,
-                                      treeStableTimer=
-                                          scheduler['treeStableTimer'],
-                                      builderNames=scheduler['builders'],
-                                      categories=scheduler['categories'],
-                                      change_filter=skia_change_filter)
-      elif scheduler['type'] == 'PeriodicScheduler':
-        instance = timed.Nightly(name=s_name,
-                                 branch=scheduler['branch'],
-                                 builderNames=scheduler['builders'],
-                                 minute=scheduler['minute'],
-                                 hour=scheduler['hour'],
-                                 dayOfMonth=scheduler['dayOfMonth'],
-                                 month=scheduler['month'],
-                                 dayOfWeek=scheduler['dayOfWeek'])
-      elif scheduler['type'] == 'TryJobSubversion':
-        pools = BuildersPools(s_name)
-        pools[s_name].extend(scheduler['builders'])
-        instance = try_job_svn.TryJobSubversion(
+        instance = Scheduler(name=s_name,
+                             treeStableTimer=scheduler['treeStableTimer'],
+                             builderNames=scheduler['builders'],
+                             change_filter=skia_change_filter)
+        c['schedulers'].append(instance)
+        self._schedulers[s_name]['instance'] = instance
+
+    # Process the periodic schedulers.
+    for s_name in self._schedulers:
+      scheduler = self._schedulers[s_name]
+      if scheduler['type'] == 'PeriodicScheduler':
+        instance = timed.Nightly(
             name=s_name,
-            svn_url=TRY_SVN_BASEURL,
-            last_good_urls={'skia': None},
-            code_review_sites={'skia': config_private.CODE_REVIEW_SITE},
-            pools=pools)
-      elif scheduler['type'] == 'TryJobRietveld':
+            branch=skia_vars.GetGlobalVariable('master_branch_name'),
+            builderNames=scheduler['builders'],
+            minute=scheduler['minute'],
+            hour=scheduler['hour'],
+            dayOfMonth=scheduler['dayOfMonth'],
+            month=scheduler['month'],
+            dayOfWeek=scheduler['dayOfWeek'])
+        c['schedulers'].append(instance)
+        self._schedulers[s_name]['instance'] = instance
+
+    # Process the Rietveld-based try schedulers.
+    for s_name in self._schedulers:
+      scheduler = self._schedulers[s_name]
+      if scheduler['type'] == 'TryJobRietveld':
         pools = BuildersPools(s_name)
         pools[s_name].extend(scheduler['builders'])
         instance = try_job_rietveld.TryJobRietveld(
@@ -439,11 +459,34 @@ class SkiaHelper(master_config.Helper):
             last_good_urls={'skia': None},
             code_review_sites={'skia': config_private.CODE_REVIEW_SITE},
             project='skia')
-      else:
-        raise ValueError(
-            'The scheduler type is unrecognized %s' % scheduler['type'])
-      scheduler['instance'] = instance
-      c['schedulers'].append(instance)
+        c['schedulers'].append(instance)
+        self._schedulers[s_name]['instance'] = instance
+
+    # Process the svn-based try schedulers.
+    for s_name in self._schedulers:
+      scheduler = self._schedulers[s_name]
+      if scheduler['type'] == 'TryJobSubversion':
+        pools = BuildersPools(s_name)
+        pools[s_name].extend(scheduler['builders'])
+        instance = try_job_svn.TryJobSubversion(
+            name=s_name,
+            svn_url=TRY_SVN_BASEURL,
+            last_good_urls={'skia': None},
+            code_review_sites={'skia': config_private.CODE_REVIEW_SITE},
+            pools=pools)
+        c['schedulers'].append(instance)
+        self._schedulers[s_name]['instance'] = instance
+
+    # Process the dependent schedulers.
+    for s_name in self._schedulers:
+      scheduler = self._schedulers[s_name]
+      if scheduler['type'] == 'Dependent':
+        instance = Dependent(
+            s_name,
+            self._schedulers[scheduler['parent']]['instance'],
+            scheduler['builders'])
+        c['schedulers'].append(instance)
+        self._schedulers[s_name]['instance'] = instance
 
 
 def CanMergeBuildRequests(req1, req2):
@@ -458,9 +501,7 @@ def CanMergeBuildRequests(req1, req2):
      (not req1.source.changes and not req2.source.changes and \
       req1.source.revision == req2.source.revision) 
 
-  Of the above, we want 1, 2, and 5.
-  Instead of 3, we want to merge requests if both branches are the same or both
-  are listed in SKIA_PRIMARY_SUBDIRS. So we duplicate most of that logic here.
+  Of the above, we want 1, 2, 3, and 5.
   Instead of 4, we want to make sure that neither request is a Trybot request.
   """
   # Verify that the repositories are the same (#1 above).
@@ -471,12 +512,9 @@ def CanMergeBuildRequests(req1, req2):
   if req1.source.project != req2.source.project:
     return False
 
-  # Verify that the branches are the same OR that both requests are from
-  # branches we deem mergeable (modification of #3 above).
+  # Verify that the branches are the same (#3 above).
   if req1.source.branch != req2.source.branch:
-    if req1.source.branch not in SKIA_PRIMARY_SUBDIRS or \
-       req2.source.branch not in SKIA_PRIMARY_SUBDIRS:
-      return False
+    return False
 
   # If either is a try request, don't merge (#4 above).
   if (builder_name_schema.IsTrybot(req1.buildername) or

@@ -49,6 +49,14 @@ PERF_OUTPUT_BASEDIR = {
 }
 
 
+# Schedulers used by the build master.
+S_PERCOMMIT = 'skia_percommit_scheduler'
+S_NIGHTLY = 'skia_nightly_scheduler'
+S_MORNING = 'skia_morning_scheduler'
+S_EVENING = 'skia_evening_scheduler'
+S_RECREATE_SKPS = 'skia_recreate_skps_scheduler'
+
+
 defaults = {}
 
 
@@ -133,7 +141,7 @@ class BaseBuilder:
       # Override the scheduler for trybots.
       scheduler_name = utils.TRY_SCHEDULERS_STR
     else:
-      scheduler_name = getattr(self, 'scheduler', 'skia_rel')
+      scheduler_name = self.scheduler
 
     helper.Builder(builder_name, 'f_%s' % builder_name,
                    scheduler=scheduler_name)
@@ -160,27 +168,28 @@ class BaseBuilder:
 BuilderConfig = collections.namedtuple(
     'Builder',
     ['role', 'os', 'model', 'gpu', 'arch', 'configuration', 'extra_config',
-     'gyp_defines', 'factory_type', 'target_platform', 'extra_factory_args'])
+     'gyp_defines', 'factory_type', 'target_platform', 'scheduler',
+     'extra_factory_args'])
 
 
 CompileBuilderConfig = collections.namedtuple(
     'CompileBuilder',
     ['os', 'compiler', 'configuration', 'target_arch', 'extra_config',
      'gyp_defines', 'warnings_as_errors', 'factory_type', 'target_platform',
-     'extra_factory_args'])
+     'scheduler', 'extra_factory_args'])
 
 
 HousekeepingBuilderConfig = collections.namedtuple(
     'HousekeepingBuilder',
-    ['frequency', 'scheduler', 'extra_config', 'factory_type',
-     'target_platform', 'extra_factory_args'])
+    ['frequency', 'extra_config', 'factory_type', 'target_platform',
+     'scheduler', 'extra_factory_args'])
 
 
 CanaryBuilderConfig = collections.namedtuple(
     'CanaryBuilder',
     ['project', 'os', 'compiler', 'target_arch', 'configuration', 'flavor',
      'build_subdir', 'gyp_defines', 'factory_type', 'target_platform',
-     'extra_factory_args'])
+     'scheduler', 'extra_factory_args'])
 
 
 class Builder(BaseBuilder, BuilderConfig):
@@ -268,70 +277,70 @@ def setup_test_and_perf_builders(helper, do_upload_results):
   #
   #                            TEST AND PERF BUILDERS
   #
-  #    Role,   OS,         Model,        GPU,           Arch,     Config,    Extra Config,   GYP_DEFS,  Factory,   Target,Extra Args
+  #    Role,   OS,         Model,        GPU,           Arch,     Config,    Extra Config,   GYP_DEFS,  Factory,   Target, Scheduler,   Extra Args
   #
   builder_specs = [
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Debug',   None,           None,      f_factory, LINUX, {}),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      f_factory, LINUX, {}),
-      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      f_factory, LINUX, {}),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   None,           None,      f_factory, LINUX, {}),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   'ZeroGPUCache', None,      f_factory, LINUX, {}),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      f_factory, LINUX, {}),
-      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      f_factory, LINUX, {}),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', 'Valgrind',     VALGRIND,  f_factory, LINUX, {'flavor': 'valgrind'}),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       'x86_64', 'Debug',   None,           NO_GPU,    f_factory, LINUX, {}),
-      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'x86_64', 'Debug',   'ASAN',         None,      f_xsan,    LINUX, {'sanitizer': 'address'}),
-      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           GYP_10_6,  f_factory, MAC,   {}),
-      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  f_factory, MAC,   {}),
-      ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  f_factory, MAC,   {}),
-      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           GYP_10_6,  f_factory, MAC,   {}),
-      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  f_factory, MAC,   {}),
-      ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  f_factory, MAC,   {}),
-      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      f_factory, MAC,   {}),
-      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,   {}),
-      ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,   {}),
-      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      f_factory, MAC,   {}),
-      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      f_factory, MAC,   {}),
-      ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      f_factory, MAC,   {}),
-      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      f_factory, MAC,   {}),
-      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,   {}),
-      ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,   {}),
-      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      f_factory, MAC,   {}),
-      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, f_factory, MAC,   {}),
-      ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, f_factory, MAC,   {}),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   None,           GYP_WIN7,  f_factory, WIN32, {}),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  f_factory, WIN32, {}),
-      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  f_factory, WIN32, {}),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Debug',   None,           GYP_WIN7,  f_factory, WIN32, {}),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  f_factory, WIN32, {}),
-      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  f_factory, WIN32, {}),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   'ANGLE',        GYP_ANGLE, f_factory, WIN32, {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, f_factory, WIN32, {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
-      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, f_factory, WIN32, {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   'DirectWrite',  GYP_DW,    f_factory, WIN32, {}),
-      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    f_factory, WIN32, {}),
-      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    f_factory, WIN32, {}),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Debug',   None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Debug',   None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Debug',   None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Perf', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Debug',   None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Perf', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Test', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Debug',   None,           None,      f_cros,    LINUX, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}),
-      ('Test', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Release', None,           None,      f_cros,    LINUX, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}),
-      ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Release', None,           None,      f_cros,    LINUX, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}),
-      ('Test', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Debug',   None,           None,      f_cros,    LINUX, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}),
-      ('Test', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Release', None,           None,      f_cros,    LINUX, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}),
-      ('Perf', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Release', None,           None,      f_cros,    LINUX, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}),
-      ('Test', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Debug',   None,           None,      f_cros,    LINUX, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}),
-      ('Test', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Release', None,           None,      f_cros,    LINUX, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}),
-      ('Perf', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Release', None,           None,      f_cros,    LINUX, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Debug',   None,           None,      f_factory, LINUX,  S_PERCOMMIT, {}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT, {}),
+      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT, {}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   None,           None,      f_factory, LINUX,  S_PERCOMMIT, {}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   'ZeroGPUCache', None,      f_factory, LINUX,  S_PERCOMMIT, {}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT, {}),
+      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT, {}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', 'Valgrind',     VALGRIND,  f_factory, LINUX,  S_PERCOMMIT, {'flavor': 'valgrind'}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       'x86_64', 'Debug',   None,           NO_GPU,    f_factory, LINUX,  S_PERCOMMIT, {}),
+      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'x86_64', 'Debug',   'ASAN',         None,      f_xsan,    LINUX,  S_PERCOMMIT, {'sanitizer': 'address'}),
+      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Perf', 'Mac10.6',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Perf', 'Mac10.7',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Perf', 'Mac10.8',  'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, f_factory, MAC,    S_PERCOMMIT, {}),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Debug',   None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   'ANGLE',        GYP_ANGLE, f_factory, WIN32,  S_PERCOMMIT, {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, f_factory, WIN32,  S_PERCOMMIT, {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
+      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, f_factory, WIN32,  S_PERCOMMIT, {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Debug',   'DirectWrite',  GYP_DW,    f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Test', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Perf', 'Win7',     'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Debug',   None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Debug',   None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Test', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Perf', 'Win8',     'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Debug',   None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Perf', 'Win8',     'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Debug',   None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Test', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Perf', 'Win8',     'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Test', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Debug',   None,           None,      f_cros,    LINUX,  S_PERCOMMIT, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Test', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Release', None,           None,      f_cros,    LINUX,  S_PERCOMMIT, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Perf', 'ChromeOS', 'Alex',       'GMA3150',     'x86',    'Release', None,           None,      f_cros,    LINUX,  S_PERCOMMIT, {'board': 'x86-alex', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Test', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Debug',   None,           None,      f_cros,    LINUX,  S_PERCOMMIT, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Test', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Release', None,           None,      f_cros,    LINUX,  S_PERCOMMIT, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Perf', 'ChromeOS', 'Link',       'HD4000',      'x86_64', 'Release', None,           None,      f_cros,    LINUX,  S_PERCOMMIT, {'board': 'link', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Test', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Debug',   None,           None,      f_cros,    LINUX,  S_PERCOMMIT, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Test', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Release', None,           None,      f_cros,    LINUX,  S_PERCOMMIT, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Perf', 'ChromeOS', 'Daisy',      'MaliT604',    'Arm7',   'Release', None,           None,      f_cros,    LINUX,  S_PERCOMMIT, {'board': 'daisy', 'bench_pictures_cfg': 'no_gpu'}),
   ]
 
   setup_builders_from_config_list(builder_specs, helper,
@@ -360,13 +369,13 @@ def setup_canaries(helper, do_upload_results):
   #
   #                          CANARY BUILDERS
   #
-  #    Project,  OS,         Compiler,Arch,     Configuration,Flavor,  Workdir,GYP_DEFINES,Factory,  Target,Extra Args
+  #    Project,  OS,         Compiler,Arch,     Configuration,Flavor,  Workdir,GYP_DEFINES,Factory,  Target, Scheduler,   Extra Args
   #
   canaries = [
-      ('Chrome', 'Ubuntu12', 'Ninja', 'x86_64', 'Default',   'chrome', 'src',  None,       f_canary, LINUX, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
-      ('Chrome', 'Ubuntu12', 'Ninja', 'x86_64', 'DRT',       None,     'src',  None,       f_drt,    LINUX, {'path_to_skia': ['third_party', 'skia']}),
-      ('Chrome', 'Ubuntu12', 'Ninja', 'x86_64', 'ToT',       'chrome', 'src',  None,       f_canary, LINUX, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
-      ('Chrome', 'Win7',     'Ninja', 'x86',    'SharedLib', 'chrome', 'src',  GYP_SHARED, f_canary, WIN32, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
+      ('Chrome', 'Ubuntu12', 'Ninja', 'x86_64', 'Default',   'chrome', 'src',  None,       f_canary, LINUX,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
+      ('Chrome', 'Ubuntu12', 'Ninja', 'x86_64', 'DRT',       None,     'src',  None,       f_drt,    LINUX,  S_PERCOMMIT, {'path_to_skia': ['third_party', 'skia']}),
+      ('Chrome', 'Ubuntu12', 'Ninja', 'x86_64', 'ToT',       'chrome', 'src',  None,       f_canary, LINUX,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
+      ('Chrome', 'Win7',     'Ninja', 'x86',    'SharedLib', 'chrome', 'src',  GYP_SHARED, f_canary, WIN32,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
   ]
 
   setup_builders_from_config_list(canaries, helper, do_upload_results,
@@ -398,24 +407,23 @@ def create_schedulers_and_builders(config, active_master, cfg,
   """
   helper = utils.SkiaHelper(defaults)
 
-  # Default (per-commit) Scheduler for Skia. Only use this for builders which
-  # do not care about commits outside of SKIA_PRIMARY_SUBDIRS.
-  helper.AnyBranchScheduler('skia_rel', branches=utils.SKIA_PRIMARY_SUBDIRS)
+  # Default (per-commit) Scheduler for Skia.
+  helper.Scheduler(S_PERCOMMIT)
 
   # Scheduler for Skia that runs at 5:30 pm EST (10:30 pm UTC).
-  helper.PeriodicScheduler('skia_5:30pm', branch='trunk', minute=30, hour=10)
+  helper.PeriodicScheduler(S_EVENING, minute=30, hour=10)
 
-  # Scheduler for Skia that runs before the below Nightly Scheduler.
+  # Scheduler for the RecreateSKPs bot which runs before the Nightly Scheduler.
   # Setting it to 1AM UTC (8 PM EST).
-  helper.PeriodicScheduler('skia_evening', branch='trunk', minute=0, hour=1)
+  helper.PeriodicScheduler(S_RECREATE_SKPS, minute=0, hour=1)
 
   # Nightly Scheduler for Skia. The buildbot master follows UTC.
   # Setting it to 3AM UTC (10 PM EST).
-  helper.PeriodicScheduler('skia_nightly', branch='trunk', minute=0, hour=3)
+  helper.PeriodicScheduler(S_NIGHTLY, minute=0, hour=3)
 
   # Daily (morning) Scheduler for Skia. The buildbot master follows UTC.
   # Setting it to 11AM UTC (6 AM EST).
-  helper.PeriodicScheduler('skia_morning', branch='trunk', minute=0, hour=11)
+  helper.PeriodicScheduler(S_MORNING, minute=0, hour=11)
 
   # Schedulers for Skia trybots.
   helper.TryJobSubversion(utils.TRY_SCHEDULER_SVN)
