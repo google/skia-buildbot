@@ -112,7 +112,7 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
               diff_record.get_weighted_diff_measure(),
           json_summary_constants.JSONKEY_MAX_DIFF_PER_CHANNEL:
               diff_record.get_max_diff_per_channel(),
-          json_summary_constants.JSONKEY_PERCEPTUAL_SIMILARITY:
+          json_summary_constants.JSONKEY_PERCEPTUAL_DIFF:
               diff_record.get_perceptual_difference(),
       })
   if file_differences:

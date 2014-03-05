@@ -102,10 +102,8 @@ def CombineJsonSummaries(json_summaries_dir):
           json_summary_constants.JSONKEY_WEIGHTED_DIFF_MEASURE]
       max_diff_per_channel = failed_file[
           json_summary_constants.JSONKEY_MAX_DIFF_PER_CHANNEL]
-      perceptual_similarity = failed_file[
-          json_summary_constants.JSONKEY_PERCEPTUAL_SIMILARITY]
-      # Convert the perceptual_similarity into the perceptual_diff.
-      perceptual_diff = 100 - (perceptual_similarity * 100)
+      perceptual_diff = failed_file[
+          json_summary_constants.JSONKEY_PERCEPTUAL_DIFF]
 
       file_info = FileInfo(
           file_name=failed_file_name,
