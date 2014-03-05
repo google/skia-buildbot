@@ -6,7 +6,6 @@ import collections
 import ntpath
 import os
 import posixpath
-import socket
 
 import skia_vars
 
@@ -586,7 +585,7 @@ def default_slave_host_config(hostname):
     slaves=[(hostname, '0')],
     copies=_DEFAULT_COPIES,
     login_cmd=None,
-    ip=socket.gethostbyname(socket.gethostname()),
+    ip='127.0.0.1',
     kvm_num=None,
     path_module=os.path,
     path_to_buildbot=path_to_buildbot
