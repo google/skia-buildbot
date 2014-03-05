@@ -5,7 +5,6 @@
 
 """Module that outputs an JSON summary containing the comparision of images."""
 
-import csv
 import imp
 import json
 import optparse
@@ -90,14 +89,17 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
       # TODO(epoger): It seems silly that we add this DiffRecord to ImageDiffDB
       # and then pull it out again right away, but this is a stepping-stone
       # to using ImagePairSet instead of replicating its behavior here.
+      image_locator_base = os.path.splitext(filename)[0]
+      image_locator_nopatch = image_locator_base + '_nopatch'
+      image_locator_withpatch = image_locator_base + '_withpatch'
       image_diff_db.add_image_pair(
           expected_image_url=posixpath.join(nopatch_images_base_url, filename),
-          expected_image_locator=checksum_nopatch,
+          expected_image_locator=image_locator_nopatch,
           actual_image_url=posixpath.join(withpatch_images_base_url, filename),
-          actual_image_locator=checksum_withpatch)
+          actual_image_locator=image_locator_withpatch)
       diff_record = image_diff_db.get_diff_record(
-          expected_image_locator=checksum_nopatch,
-          actual_image_locator=checksum_withpatch)
+          expected_image_locator=image_locator_nopatch,
+          actual_image_locator=image_locator_withpatch)
       file_differences.append({
           json_summary_constants.JSONKEY_FILE_NAME: filename,
           json_summary_constants.JSONKEY_SKP_LOCATION: posixpath.join(

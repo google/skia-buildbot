@@ -58,7 +58,8 @@ class FileInfo(object):
 
 def _GetDiffFileName(file_name):
   file_name_no_ext, ext = os.path.splitext(file_name)
-  return '%s-vs-%s%s' % (file_name_no_ext, file_name_no_ext, ext)
+  return '%s_nopatch-vs-%s_withpatch%s' % (
+      file_name_no_ext, file_name_no_ext, ext)
 
 
 class SlaveInfo(object):
