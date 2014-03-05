@@ -121,8 +121,8 @@ PATCHES_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserv
 CHROMIUM_PATCH_LINK=$PATCHES_LINK/$RUN_ID.chromium.patch
 BLINK_PATCH_LINK=$PATCHES_LINK/$RUN_ID.blink.patch
 SKIA_PATCH_LINK=$PATCHES_LINK/$RUN_ID.skia.patch
-TELEMETRY_OUTPUT_1=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_NOPATCH_ID.output.txt
-TELEMETRY_OUTPUT_2=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$TELEMETRY_WITHPATCH_ID.output.txt
+TELEMETRY_OUTPUT_1=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID-nopatch.output.txt
+TELEMETRY_OUTPUT_2=https://storage.cloud.google.com/chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/consolidated-outputs/$RUN_ID-withpatch.output.txt
 
 # Run telemetry benchmarks only if the chromium build succeeded.
 if [ $ret_value -eq 0 ]; then
