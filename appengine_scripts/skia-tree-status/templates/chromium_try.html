@@ -211,7 +211,7 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
       <td align="center">
         <form action="chromium_try" name="delete_chromium_try_task" method="post">
           <input type='hidden' name='delete' value='{{ task.key.id_or_name }}'>
-          <input type='submit' value='Delete'>
+          <input type='submit' value='Delete' {% ifequal task.key.id_or_name oldest_pending_task_key %}disabled{% endifequal %}>
         </form>
       </td>
     </tr>

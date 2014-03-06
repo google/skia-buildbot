@@ -112,7 +112,7 @@
       <td align="center">
         <form action="lua_script" name="delete_lua_task" method="post">
           <input type='hidden' name='delete' value='{{ task.key.id_or_name }}'>
-          <input type='submit' value='Delete'>
+          <input type='submit' value='Delete' {% ifequal task.key.id_or_name oldest_pending_task_key %}disabled{% endifequal %}>
         </form>
       </td>
     </tr>

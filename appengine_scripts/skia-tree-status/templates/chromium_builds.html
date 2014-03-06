@@ -94,7 +94,7 @@
       <td align="center">
         <form action="chromium_builds" name="delete_chromium_build" method="post">
           <input type='hidden' name='delete' value='{{ build.key.id_or_name }}'>
-          <input type='submit' value='Delete' {% if not is_google_chromium_user %}disabled{% endif %}>
+          <input type='submit' value='Delete' {% if not is_google_chromium_user %}disabled{% endif %} {% ifequal build.key.id_or_name oldest_pending_task_key %}disabled{% endifequal %}>
         </form>
       </td>
     </tr>
