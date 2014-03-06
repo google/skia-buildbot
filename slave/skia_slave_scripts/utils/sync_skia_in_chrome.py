@@ -15,6 +15,7 @@ import re
 import shell_utils
 import shlex
 import sys
+import urllib2
 
 
 CHROME_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
@@ -45,6 +46,10 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
     if not skia_revision:
       raise Exception('Could not determine current Skia revision!')
   skia_revision = str(skia_revision)
+
+  # Use Chrome LKGR, since gclient_utils will force a sync to origin/master.
+  if not chrome_revision:
+    chrome_revision = urllib2.urlopen(CHROME_LKGR_URL).read()
 
   # Run "fetch chromium". The initial run is allowed to fail after it does some
   # work. At the least, we expect the .gclient file to be present when it
@@ -83,13 +88,10 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
     # Hack: We have to set some GYP_DEFINES, or upstream scripts will complain.
     os.environ['GYP_DEFINES'] = os.environ.get('GYP_DEFINES') or ''
     gclient_utils.Sync(
-        revision=str(chrome_revision),
+        revisions=[('src', chrome_revision)],
         jobs=1,
         no_hooks=True,
-        force=True,
-        branches=['src'],
-        extra_args=(['--revision', 'src@%s' % chrome_revision]
-                        if chrome_revision else None))
+        force=True)
   except shell_utils.CommandFailedException as e:
     # We frequently see sync failures because a lock file wasn't deleted. In
     # that case, delete the lock file and try again.
@@ -105,13 +107,10 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
       # If the file no longer exists, just try again.
       pass
     gclient_utils.Sync(
-        revision=str(chrome_revision),
+        revisions=[('src', chrome_revision)],
         jobs=1,
         no_hooks=True,
-        force=True,
-        branches=['src'],
-        extra_args=(['--revision', 'src@%s' % chrome_revision]
-                        if chrome_revision else None))
+        force=True)
 
   # Find the actually-obtained Chrome revision.
   os.chdir('src')

@@ -77,14 +77,23 @@ def maybe_fix_identity(username='chrome-bot', email='skia.committer@gmail.com'):
     shell_utils.run([GIT, 'config', 'user.email', '"%s"' % email])
 
 
-def Sync(revision=None, force=False, delete_unversioned_trees=False,
-         branches=None, verbose=False, jobs=None, no_hooks=False,
-         extra_args=None):
-  """ Update the local checkout to the given revision, if provided, or to the
-  most recent revision. """
+def Sync(revisions=None, force=False, delete_unversioned_trees=False,
+         verbose=False, jobs=None, no_hooks=False, extra_args=None):
+  """ Update the local checkout using gclient.
+
+  Args:
+      revisions: optional list of (branch, revision) tuples indicating which
+          projects to sync to which revisions.
+      force: whether to run with --force.
+      delete_unversioned_trees: whether to run with --delete-unversioned-trees.
+      verbose: whether to run with --verbose.
+      jobs: optional argument for the --jobs flag.
+      no_hooks: whether to run with --nohooks.
+      extra_args: optional list; any additional arguments.
+  """
 
   start_dir = os.path.abspath(os.curdir)
-  for branch in (branches or []):
+  for branch, _ in (revisions or []):
     # Do whatever it takes to get up-to-date with origin/master.
     if os.path.exists(branch):
       os.chdir(branch)
@@ -110,18 +119,18 @@ def Sync(revision=None, force=False, delete_unversioned_trees=False,
     cmd.append('-j%d' % jobs)
   if no_hooks:
     cmd.append('--nohooks')
-  if revision and branches and SKIA_TRUNK in branches:
-    cmd.extend(['--revision', '%s@%s' % (SKIA_TRUNK, revision)])
+  for branch, revision in (revisions or []):
+    if revision:
+      cmd.extend(['--revision', '%s@%s' % (branch, revision)])
   if extra_args:
     cmd.extend(extra_args)
   output = _RunCmd(cmd)
 
   # "gclient sync" just downloads all of the commits. In order to actually sync
   # to the desired commit, we have to "git reset" to that commit.
-  checkout_root, _ = _GetLocalConfig()
-  for branch in (branches or []):
-    os.chdir(os.path.join(checkout_root, branch))
-    if revision and branch == SKIA_TRUNK:
+  for branch, revision in (revisions or []):
+    os.chdir(branch)
+    if revision:
       shell_utils.run([GIT, 'reset', '--hard', revision])
     else:
       shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])

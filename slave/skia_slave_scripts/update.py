@@ -108,6 +108,8 @@ class Update(BuildStep):
     # into a list of strings.
     solutions = ast.literal_eval(self._args['gclient_solutions'][1:-1])
 
+    # TODO(borenet): Move the gclient solutions parsing logic into a function.
+
     # Parse each solution dictionary from a string and add it to a list, while
     # building a string to pass as a spec to gclient, to indicate which
     # branches should be downloaded.
@@ -125,6 +127,16 @@ class Update(BuildStep):
     # Run "gclient config" with the spec we just built.
     gclient_utils.Config(spec=gclient_spec)
 
+    revisions = []
+    for solution in solution_dicts:
+      if solution['name'] == gclient_utils.SKIA_TRUNK:
+        revisions.append((solution['name'], self._revision))
+      else:
+        url_split = solution['url'].split('@')
+        if len(url_split) > 1:
+          revision = url_split[1]
+          revisions.append((solution['name'], revision))
+
     try:
       if self._is_try:
         # Clean our checkout to make sure we don't have a patch left over.
@@ -136,8 +148,7 @@ class Update(BuildStep):
 
       # Run "gclient sync"
       gclient_utils.Sync(
-          branches=[solution['name'] for solution in solution_dicts],
-          revision=self._revision,
+          revisions=revisions,
           verbose=True,
           force=True,
           delete_unversioned_trees=True)
@@ -150,8 +161,7 @@ class Update(BuildStep):
       os.chdir(build_dir)
       gclient_utils.Config(spec=gclient_spec)
       gclient_utils.Sync(
-          branches=[solution['name'] for solution in solution_dicts],
-          revision=self._revision,
+          revisions=revisions,
           verbose=True,
           force=True,
           delete_unversioned_trees=True,
