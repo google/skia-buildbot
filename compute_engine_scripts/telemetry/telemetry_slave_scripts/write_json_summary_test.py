@@ -10,8 +10,16 @@ import io
 import json
 import os
 import shutil
+import sys
 import tempfile
 import unittest
+
+# Add mock versions of gm/ and gm/rebaseline_server/ modules to PYTHONPATH,
+# as needed by write_json_summary
+PARENT_DIR = os.path.dirname(os.path.realpath(__file__))
+MOCKS_DIR = os.path.join(PARENT_DIR, 'mocks')
+if MOCKS_DIR not in sys.path:
+  sys.path.append(MOCKS_DIR)
 
 import write_json_summary
 
@@ -22,12 +30,8 @@ class TestWriteJsonSummary(unittest.TestCase):
     self.longMessage = True
     self.maxDiff = None
 
-    self._test_json_dir = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'test_data')
+    self._test_json_dir = os.path.join(PARENT_DIR, 'test_data')
     self._output_file_name = 'summary.json'
-    self._gm_json_path = os.path.join(self._test_json_dir, 'gm_json_mock.py')
-    self._imagediffdb_path = os.path.join(self._test_json_dir,
-                                          'imagediffdb_mock.py')
     self._actual_output_dir = tempfile.mkdtemp()
     self._actual_output_file_path = os.path.join(self._actual_output_dir,
                                                  self._output_file_name)
@@ -67,9 +71,7 @@ class TestWriteJsonSummary(unittest.TestCase):
         output_file_path=self._actual_output_file_path,
         gs_output_dir=self._gs_output_dir,
         gs_skp_dir=self._gs_skp_dir,
-        slave_num=self._slave_num,
-        gm_json_path=self._gm_json_path,
-        imagediffdb_path=self._imagediffdb_path)
+        slave_num=self._slave_num)
     self.assertJsonFilesEqual(
         expected=os.path.join(self._test_json_dir, self._output_file_name),
         actual=self._actual_output_file_path)
@@ -84,9 +86,7 @@ class TestWriteJsonSummary(unittest.TestCase):
         output_file_path=self._actual_output_file_path,
         gs_output_dir=self._gs_output_dir,
         gs_skp_dir=self._gs_skp_dir,
-        slave_num=self._slave_num,
-        gm_json_path=self._gm_json_path,
-        imagediffdb_path=self._imagediffdb_path)
+        slave_num=self._slave_num)
     self.assertFalse(os.path.isfile(self._actual_output_file_path))
 
 
