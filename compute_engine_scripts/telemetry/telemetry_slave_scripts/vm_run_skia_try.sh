@@ -202,6 +202,10 @@ mkdir -p $OUTPUT_DIR_NOPATCH
 run_render_pictures $OUTPUT_DIR_NOPATCH $MESA_NOPATCH_RUN
 
 echo "== Comparing pictures and saving differences in JSON output file =="
+# TODO(epoger) Added some temporary debug info to help with https://codereview.chromium.org/185413022/#msg26
+echo "PYTHONPATH is '$PYTHONPATH'"
+echo "ls $SKIA_TRUNK_LOCATION/gm : $(ls $SKIA_TRUNK_LOCATION/gm)"
+echo "ls $SKIA_TRUNK_LOCATION/gm/rebaseline_server : $(ls $SKIA_TRUNK_LOCATION/gm/rebaseline_server)"
 JSON_SUMMARY_DIR=/tmp/summary-$RUN_ID
 mkdir -p $JSON_SUMMARY_DIR
 python $TELEMETRY_SLAVE_SCRIPTS_DIR/write_json_summary.py \

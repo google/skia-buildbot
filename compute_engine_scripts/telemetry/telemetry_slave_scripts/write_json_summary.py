@@ -21,6 +21,7 @@ try:
   import gm_json
   import imagediffdb
 except ImportError:
+  print 'sys.path is [%s]' % sys.path
   traceback.print_exc()
   raise Exception('You need to add gm/ and gm/rebaseline_server to PYTHONPATH')
 
