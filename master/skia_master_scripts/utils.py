@@ -387,6 +387,8 @@ class SkiaHelper(object):
         new_builder['builddir'] = builder['builddir']
       c['builders'].append(new_builder)
 
+    c['builders'].sort(key=lambda builder: builder['name'])
+
     # Process the main schedulers.
     for s_name in self._schedulers:
       scheduler = self._schedulers[s_name]
