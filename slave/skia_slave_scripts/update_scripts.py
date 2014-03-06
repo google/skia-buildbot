@@ -6,8 +6,10 @@
 """ Check out the Skia buildbot scripts. """
 
 from utils import gclient_utils
+from utils import shell_utils
 from build_step import BuildStep
 import os
+import shlex
 import sys
 
 
@@ -15,7 +17,9 @@ import sys
 # defined before the build step is run, since __file__ is a relative path and
 # will not be valid after changing directories in BuildStep.__init__().
 BUILDBOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            os.pardir, os.pardir))
+                                            os.pardir, os.pardir, os.pardir))
+
+BUILDBOT_GIT_URL = 'https://skia.googlesource.com/buildbot.git'
 
 
 class UpdateScripts(BuildStep):
@@ -26,7 +30,17 @@ class UpdateScripts(BuildStep):
     print 'chdir to %s' % BUILDBOT_DIR
     os.chdir(BUILDBOT_DIR)
 
-    gclient_utils.Sync(verbose=True, force=True)
+    # Be sure that we sync to the most recent commit.
+    buildbot_revision = None
+    output = shell_utils.run([gclient_utils.GIT, 'ls-remote', BUILDBOT_GIT_URL,
+                              '--verify', 'refs/heads/master'])
+    if output:
+      buildbot_revision = shlex.split(output)[0]
+    if not buildbot_revision:
+      raise Exception('Could not determine current Skia buildbot revision!')
+
+    gclient_utils.Sync(revisions=[('buildbot', buildbot_revision)],
+                       verbose=True, force=True)
     print 'Skiabot scripts updated to %s' % gclient_utils.GetCheckedOutHash()
 
 if '__main__' == __name__:
