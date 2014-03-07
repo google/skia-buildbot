@@ -11,7 +11,7 @@ import os
 import sys
 
 
-BENCH_REPEAT_COUNT = 20
+BENCH_REPEAT_COUNT = 1
 
 
 class BenchPictures(BuildStep):
