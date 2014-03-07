@@ -7,7 +7,7 @@
 
 from utils import gclient_utils
 from utils import shell_utils
-from build_step import BuildStep
+from build_step import BuildStep, BuildStepWarning
 import os
 import shlex
 import sys
@@ -32,16 +32,27 @@ class UpdateScripts(BuildStep):
 
     # Be sure that we sync to the most recent commit.
     buildbot_revision = None
-    output = shell_utils.run([gclient_utils.GIT, 'ls-remote', BUILDBOT_GIT_URL,
-                              '--verify', 'refs/heads/master'])
-    if output:
-      buildbot_revision = shlex.split(output)[0]
+    warn_on_exit = False
+    try:
+      output = shell_utils.run([gclient_utils.GIT, 'ls-remote',
+                                BUILDBOT_GIT_URL, '--verify',
+                                'refs/heads/master'])
+      if output:
+        buildbot_revision = shlex.split(output)[0]
+    except shell_utils.CommandFailedException:
+      pass
     if not buildbot_revision:
-      raise Exception('Could not determine current Skia buildbot revision!')
+      buildbot_revision = 'origin/master'
+      warn_on_exit = True
 
     gclient_utils.Sync(revisions=[('buildbot', buildbot_revision)],
                        verbose=True, force=True)
     print 'Skiabot scripts updated to %s' % gclient_utils.GetCheckedOutHash()
+
+    if warn_on_exit:
+      raise BuildStepWarning('Could not determine buildbot revision. Attempted '
+                             'to sync to origin/master.')
+
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UpdateScripts))
