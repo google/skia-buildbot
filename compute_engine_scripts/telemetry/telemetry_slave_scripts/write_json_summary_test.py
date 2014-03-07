@@ -14,12 +14,7 @@ import sys
 import tempfile
 import unittest
 
-# Add mock versions of gm/ and gm/rebaseline_server/ modules to PYTHONPATH,
-# as needed by write_json_summary
 PARENT_DIR = os.path.dirname(os.path.realpath(__file__))
-MOCKS_DIR = os.path.join(PARENT_DIR, 'mocks')
-if MOCKS_DIR not in sys.path:
-  sys.path.append(MOCKS_DIR)
 
 import write_json_summary
 
@@ -31,6 +26,7 @@ class TestWriteJsonSummary(unittest.TestCase):
     self.maxDiff = None
 
     self._test_json_dir = os.path.join(PARENT_DIR, 'test_data')
+    self._mocks_dir = os.path.join(PARENT_DIR, 'mocks')
     self._output_file_name = 'summary.json'
     self._actual_output_dir = tempfile.mkdtemp()
     self._actual_output_file_path = os.path.join(self._actual_output_dir,
@@ -71,7 +67,8 @@ class TestWriteJsonSummary(unittest.TestCase):
         output_file_path=self._actual_output_file_path,
         gs_output_dir=self._gs_output_dir,
         gs_skp_dir=self._gs_skp_dir,
-        slave_num=self._slave_num)
+        slave_num=self._slave_num,
+        additions_to_sys_path=[self._mocks_dir])
     self.assertJsonFilesEqual(
         expected=os.path.join(self._test_json_dir, self._output_file_name),
         actual=self._actual_output_file_path)
@@ -86,7 +83,8 @@ class TestWriteJsonSummary(unittest.TestCase):
         output_file_path=self._actual_output_file_path,
         gs_output_dir=self._gs_output_dir,
         gs_skp_dir=self._gs_skp_dir,
-        slave_num=self._slave_num)
+        slave_num=self._slave_num,
+        additions_to_sys_path=[self._mocks_dir])
     self.assertFalse(os.path.isfile(self._actual_output_file_path))
 
 

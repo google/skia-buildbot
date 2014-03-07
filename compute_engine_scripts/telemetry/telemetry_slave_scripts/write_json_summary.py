@@ -12,23 +12,17 @@ import posixpath
 import sys
 import traceback
 
+# TODO(epoger): Should this sys.path modification be handled using
+# additions_to_sys_path below?
 sys.path.append(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 import json_summary_constants
 
-# Modules from skia's gm/ and gm/rebaseline_server/ dirs.
-try:
-  import gm_json
-  import imagediffdb
-except ImportError:
-  print 'sys.path is [%s]' % sys.path
-  traceback.print_exc()
-  raise Exception('You need to add gm/ and gm/rebaseline_server to PYTHONPATH')
-
 
 def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
                      withpatch_json, withpatch_images_base_url,
-                     output_file_path, gs_output_dir, gs_skp_dir, slave_num):
+                     output_file_path, gs_output_dir, gs_skp_dir, slave_num,
+                     additions_to_sys_path):
   """Outputs the JSON summary of image comparisions.
 
   Args:
@@ -50,9 +44,29 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
         this cluster telemetry slave.
     slave_num: (str) The number of the cluster telemetry slave that is running
         this script.
+    additions_to_sys_path: ([str]) A list of path components to add to sys.path;
+        typically used to provide rebaseline_server Python modules.
   """
-  files_to_checksums_nopatch = GetFilesAndChecksums(nopatch_json)
-  files_to_checksums_withpatch = GetFilesAndChecksums(withpatch_json)
+  # TODO(epoger): temporary printout to aid in debugging
+  # https://code.google.com/p/skia/issues/detail?id=2268 ('vm_run_skia_try.sh
+  # failing after https://codereview.chromium.org/185413022')
+  print 'additions_to_sys_path: %s' % additions_to_sys_path
+
+  for dirpath in additions_to_sys_path:
+    if dirpath not in sys.path:
+      sys.path.append(dirpath)
+
+  # Modules from skia's gm/ and gm/rebaseline_server/ dirs.
+  try:
+    import gm_json
+    import imagediffdb
+  except ImportError:
+    print 'sys.path is [%s]' % sys.path
+    traceback.print_exc()
+    raise Exception('You need to add gm/ and gm/rebaseline_server to sys.path')
+
+  files_to_checksums_nopatch = GetFilesAndChecksums(gm_json, nopatch_json)
+  files_to_checksums_withpatch = GetFilesAndChecksums(gm_json, withpatch_json)
 
   assert len(files_to_checksums_nopatch) == len(files_to_checksums_withpatch), (
       'Number of images in both JSON summary files are different')
@@ -127,12 +141,12 @@ def GetSkpFileName(img_file_name):
   return '%s_.skp' % '_'.join(img_file_name.split('_')[:-1])
 
 
-def GetFilesAndChecksums(json_location):
+def GetFilesAndChecksums(gm_json_mod, json_location):
   """Reads the JSON summary and returns dict of files to checksums."""
-  data = gm_json.LoadFromFile(json_location)
+  data = gm_json_mod.LoadFromFile(json_location)
   if data:
-    return data[gm_json.JSONKEY_ACTUALRESULTS][
-        gm_json.JSONKEY_ACTUALRESULTS_NOCOMPARISON]
+    return data[gm_json_mod.JSONKEY_ACTUALRESULTS][
+        gm_json_mod.JSONKEY_ACTUALRESULTS_NOCOMPARISON]
   else:
     return {}
 
@@ -171,6 +185,10 @@ if '__main__' == __name__:
       '', '--slave_num',
       help='The number of the cluster telemetry slave that is running this '
            'script.')
+  option_parser.add_option(
+      '', '--add_to_sys_path',
+      action='append',
+      help='Directory to add to sys.path.  May be repeated.')
   options, unused_args = option_parser.parse_args()
   if (not options.nopatch_json or not options.withpatch_json
       or not options.output_file_path or not options.gs_output_dir
@@ -186,4 +204,5 @@ if '__main__' == __name__:
   WriteJsonSummary(options.img_root, options.nopatch_json,
                    options.nopatch_images_base_url, options.withpatch_json,
                    options.withpatch_images_base_url, options.output_file_path,
-                   options.gs_output_dir, options.gs_skp_dir, options.slave_num)
+                   options.gs_output_dir, options.gs_skp_dir, options.slave_num,
+                   options.add_to_sys_path)

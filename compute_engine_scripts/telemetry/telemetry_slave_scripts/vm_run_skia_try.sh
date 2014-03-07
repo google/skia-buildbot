@@ -115,10 +115,7 @@ if [ $? -eq 1 ]; then
   gsutil cp $GS_SKP_DIR/* $LOCAL_SKP_DIR
 fi
 
-# Allow our Python code to import certain modules from the Skia repo.
 SKIA_TRUNK_LOCATION=/home/default/skia-repo/trunk
-PYTHONPATH=$PYTHONPATH:$SKIA_TRUNK_LOCATION/gm:$SKIA_TRUNK_LOCATION/gm/rebaseline_server
-
 TELEMETRY_SLAVE_SCRIPTS_DIR=/home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
 
 function cleanup_slave_before_exit {
@@ -217,7 +214,9 @@ python $TELEMETRY_SLAVE_SCRIPTS_DIR/write_json_summary.py \
   --output_file_path=$JSON_SUMMARY_DIR/slave$SLAVE_NUM.json \
   --gs_output_dir=$OUTPUT_FILE_GS_LOCATION \
   --gs_skp_dir=$GS_SKP_DIR \
-  --slave_num=$SLAVE_NUM
+  --slave_num=$SLAVE_NUM \
+  --add_to_sys_path=$SKIA_TRUNK_LOCATION/gm \
+  --add_to_sys_path=$SKIA_TRUNK_LOCATION/gm/rebaseline_server
 
 echo "== Copy everything to Google Storage =="
 # Get list of failed file names and upload only those to Google Storage.
