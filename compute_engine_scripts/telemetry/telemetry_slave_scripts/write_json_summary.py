@@ -12,8 +12,6 @@ import posixpath
 import sys
 import traceback
 
-# TODO(epoger): Should this sys.path modification be handled using
-# additions_to_sys_path below?
 sys.path.append(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 import json_summary_constants
@@ -47,11 +45,6 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
     additions_to_sys_path: ([str]) A list of path components to add to sys.path;
         typically used to provide rebaseline_server Python modules.
   """
-  # TODO(epoger): temporary printout to aid in debugging
-  # https://code.google.com/p/skia/issues/detail?id=2268 ('vm_run_skia_try.sh
-  # failing after https://codereview.chromium.org/185413022')
-  print 'additions_to_sys_path: %s' % additions_to_sys_path
-
   for dirpath in additions_to_sys_path:
     if dirpath not in sys.path:
       sys.path.append(dirpath)
