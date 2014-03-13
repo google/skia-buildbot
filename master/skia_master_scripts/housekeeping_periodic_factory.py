@@ -88,7 +88,6 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
                    % (SKIA_PUBLIC_MASTER_INTERNAL_FQDN,
                       disk_usage_script_path)),
           description='CheckMasterDiskUsage')
-      self.AddSlaveScript(script='check_buildslave_host_disk_usage.py',
-                          description='CheckBuildslaveHostDiskUsage')
+
     self.Validate()
     return self

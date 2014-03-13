@@ -14,6 +14,8 @@ from master_builders_cfg import S_RECREATE_SKPS
 
 from skia_master_scripts.moz2d_canary_factory \
     import Moz2DCanaryFactory as f_moz2d
+from skia_master_scripts.housekeeping_monitoring_factory \
+    import HouseKeepingMonitoringFactory as f_monitor
 
 import master_builders_cfg
 
@@ -77,6 +79,7 @@ def setup_housekeepers(helper, do_upload_results):
       ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  S_EVENING,       {}),
       ('Daily',     'DEPSRollResults',  f_deps_results, LINUX,  S_MORNING,       {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
       ('Nightly',   'RecreateSKPs',     f_skps,         LINUX,  S_RECREATE_SKPS, {}),
+      ('Nightly',   'Monitoring',       f_monitor,      LINUX,  S_NIGHTLY,       {}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(housekeepers, helper,
