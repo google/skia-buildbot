@@ -307,6 +307,7 @@ def run_on_all_slave_hosts(cmd):
       procs.append((hostname, _launch_on_remote_host(hostname, cmd)))
 
   for slavename, proc in procs:
+    print 'Awaiting results from %s' % slavename
     results.update(_get_remote_host_results(slavename, proc))
 
   return results
