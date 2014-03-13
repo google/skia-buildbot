@@ -44,10 +44,8 @@ SKIALAB_USERNAME = skia_vars.GetGlobalVariable('skialab_username')
 
 def skia_lab_login(hostname, config):
   """Procedure for logging into SkiaLab machines."""
-  # The multiple "-t"s are needed in order to force tty allocation, which gives
-  # us the expected interactive behavior, even with two levels of SSH.
   return [
-    'ssh', '-t', '-t', '%s@%s' % (SKIALAB_USERNAME, SKIALAB_ROUTER_IP),
+    'ssh', '%s@%s' % (SKIALAB_USERNAME, SKIALAB_ROUTER_IP),
     'ssh', '%s@%s' % (SKIALAB_USERNAME, config['ip'])
   ]
 
