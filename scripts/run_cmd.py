@@ -172,8 +172,6 @@ def _launch_cmd(cmd):
   Returns:
       subprocess.Popen instance.
   """
-  print ' '.join(cmd)
-  subprocess.call(cmd)
   return subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE,
                           stdout=subprocess.PIPE)
 
@@ -186,9 +184,6 @@ def _get_result(popen):
   Returns:
       A dictionary with stdout, stderr, and returncode as keys.
   """
-  for fd in (popen.stdout, popen.stderr):
-    for line in iter(fd.readline, ''):
-      print line
   stdout, stderr = popen.communicate()
   return CommandResults.make(stdout=stdout,
                              stderr=stderr,
@@ -312,7 +307,6 @@ def run_on_all_slave_hosts(cmd):
       procs.append((hostname, _launch_on_remote_host(hostname, cmd)))
 
   for slavename, proc in procs:
-    print 'Awaiting results from %s' % slavename
     results.update(_get_remote_host_results(slavename, proc))
 
   return results
