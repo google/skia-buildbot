@@ -185,6 +185,8 @@ def _get_result(popen):
   Returns:
       A dictionary with stdout, stderr, and returncode as keys.
   """
+  print popen.stdout.read()
+  print popen.stderr.read()
   stdout, stderr = popen.communicate()
   return CommandResults.make(stdout=stdout,
                              stderr=stderr,
