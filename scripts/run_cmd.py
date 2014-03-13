@@ -72,7 +72,7 @@ class CommandResults(collections.namedtuple('CommandResults',
     Since collections.NamedTuple.__dict__ returns an OrderedDict, we have to
     create this wrapper to get a normal dict.
     """
-    return dict(super(CommandResults, self).__dict__)
+    return dict(self._asdict())
 
   def print_results(self, pretty=False):
     """Print the results of a command.
