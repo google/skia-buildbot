@@ -172,6 +172,7 @@ def _launch_cmd(cmd):
   Returns:
       subprocess.Popen instance.
   """
+  print ' '.join(cmd)
   return subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE,
                           stdout=subprocess.PIPE)
 
