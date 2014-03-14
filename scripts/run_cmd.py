@@ -15,6 +15,7 @@ import pprint
 import socket
 import subprocess
 import sys
+import traceback
 
 buildbot_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                              os.pardir))
@@ -23,8 +24,8 @@ sys.path.append(os.path.join(buildbot_path))
 from site_config import slave_hosts_cfg
 
 
-class CommandResults(collections.namedtuple('CommandResults',
-                                            'stdout, stderr, returncode')):
+class BaseCommandResults(object):
+  """Base class for CommandResults classes."""
 
   # We print this string before and after the important output from the command.
   # This makes it easy to ignore output from SSH, shells, etc.
@@ -36,9 +37,7 @@ class CommandResults(collections.namedtuple('CommandResults',
     Returns:
         A hex-encoded string, bookended by BOOKEND_STR for easy parsing.
     """
-    return (CommandResults.BOOKEND_STR +
-            pickle.dumps(self.__dict__).encode('hex') +
-            CommandResults.BOOKEND_STR)
+    raise NotImplementedError()
 
   @staticmethod
   def decode(results_str):
@@ -49,30 +48,26 @@ class CommandResults(collections.namedtuple('CommandResults',
     Returns:
         A dictionary of results.
     """
-    return CommandResults(**pickle.loads(
-        results_str.split(CommandResults.BOOKEND_STR)[1].decode('hex')))
-
-  @staticmethod
-  def make(stdout='', stderr='', returncode=1):
-    """Create CommandResults for a command.
-
-    Args:
-        stdout: string; stdout from a command.
-        stderr: string; stderr from a command.
-        returncode: string; return code of a command.
-    """
-    return CommandResults(stdout=stdout,
-                          stderr=stderr,
-                          returncode=returncode)
-
-  @property
-  def __dict__(self):
-    """Return a dictionary representation of this CommandResults instance.
-
-    Since collections.NamedTuple.__dict__ returns an OrderedDict, we have to
-    create this wrapper to get a normal dict.
-    """
-    return dict(self._asdict())
+    decoded_dict = pickle.loads(
+        results_str.split(BaseCommandResults.BOOKEND_STR)[1].decode('hex'))
+    errors = []
+    # First, try to interpret the dict as SingleCommandResults.
+    try:
+      # This will fail unless decoded_dict has the following set of keys:
+      # ('returncode', 'stdout', 'stderr')
+      return SingleCommandResults(**decoded_dict)
+    except TypeError:
+      errors.append(traceback.format_exc())
+    # Next, try to interpret the dict as MultiCommandResults.
+    try:
+      results_dict = {}
+      for (slavename, results) in decoded_dict.iteritems():
+        results_dict[slavename] = BaseCommandResults.decode(results)
+      return MultiCommandResults(results_dict)
+    except Exception:
+      errors.append(traceback.format_exc())
+    raise Exception('Unable to decode CommandResults from dict:\n\n%s\n%s'
+                    % ('\n'.join(errors), decoded_dict))
 
   def print_results(self, pretty=False):
     """Print the results of a command.
@@ -83,7 +78,96 @@ class CommandResults(collections.namedtuple('CommandResults',
     if pretty:
       print pprint.pformat(self.__dict__)
     else:
-      print repr(self.encode())
+      print self.encode()
+
+
+class SingleCommandResults(collections.namedtuple('CommandResults_tuple',
+                                                  'stdout, stderr, returncode'),
+                           BaseCommandResults):
+  """Results for a single command. Properties: stdout, stderr, and returncode"""
+
+  def encode(self):
+    """Convert the results into a machine-readable string.
+
+    Returns:
+        A hex-encoded string, bookended by BOOKEND_STR for easy parsing.
+    """
+    return (BaseCommandResults.BOOKEND_STR +
+            pickle.dumps(self.__dict__).encode('hex') +
+            BaseCommandResults.BOOKEND_STR)
+
+  @staticmethod
+  def make(stdout='', stderr='', returncode=1):
+    """Create CommandResults for a command.
+
+    Args:
+        stdout: string; stdout from a command.
+        stderr: string; stderr from a command.
+        returncode: string; return code of a command.
+    """
+    return SingleCommandResults(stdout=stdout,
+                                stderr=stderr,
+                                returncode=returncode)
+
+  @property
+  def __dict__(self):
+    """Return a dictionary representation of this CommandResults instance.
+
+    Since collections.NamedTuple.__dict__ returns an OrderedDict, we have to
+    create this wrapper to get a normal dict.
+    """
+    return dict(self._asdict())
+
+
+class MultiCommandResults(BaseCommandResults):
+  """Encapsulates CommandResults for multiple buildslaves or hosts.
+
+  MultiCommandResults can form tree structures whose leaves are instances of
+  SingleComamandResults and interior nodes are instances of MultiCommandResults:
+
+  MultiCommandResults({
+      'remote_slave_host_name': MultiCommandResults({
+              'slave_name': SingleCommandResults,
+              'slave_name2': SingleCommandResults,
+          }),
+      'local_slave_name': SingleCommandResults,
+  })
+  """
+
+  def __init__(self, results):
+    """Instantiate the MultiCommandResults.
+
+    Args:
+        results: dict whose keys are slavenames or slave host names and values
+            are instances of a BaseCommandResults subclass.
+    """
+    super(MultiCommandResults, self).__init__()
+    self._dict = {}
+    for (slavename, result) in results.iteritems():
+      if not issubclass(result.__class__, BaseCommandResults):
+        raise ValueError('%s is not a subclass of BaseCommandResults.'
+                         % result.__class__)
+      self._dict[slavename] = result
+
+  def __getitem__(self, key):
+    return self._dict[key]
+
+  def encode(self):
+    """Convert the results into a machine-readable string.
+
+    Returns:
+        A hex-encoded string, bookended by BOOKEND_STR for easy parsing.
+    """
+    encoded_dict = dict([(key, value.encode())
+                         for (key, value) in self._dict.iteritems()])
+    return (BaseCommandResults.BOOKEND_STR +
+            pickle.dumps(encoded_dict).encode('hex') +
+            BaseCommandResults.BOOKEND_STR)
+
+  @property
+  def __dict__(self):
+    return dict([(key, value.__dict__)
+                 for (key, value) in self._dict.iteritems()])
 
 
 class ResolvableCommandElement(object):
@@ -182,12 +266,16 @@ def _get_result(popen):
   Args:
       popen: subprocess.Popen instance.
   Returns:
-      A dictionary with stdout, stderr, and returncode as keys.
+      CommandResults instance, decoded from the results of the process.
   """
   stdout, stderr = popen.communicate()
-  return CommandResults.make(stdout=stdout,
-                             stderr=stderr,
-                             returncode=popen.returncode)
+  try:
+    return BaseCommandResults.decode(stdout)
+  except Exception:
+    pass
+  return SingleCommandResults.make(stdout=stdout,
+                                   stderr=stderr,
+                                   returncode=popen.returncode)
 
 
 def run(cmd):
@@ -196,12 +284,12 @@ def run(cmd):
   Args:
       cmd: string or list of strings; the command to run.
   Returns:
-      A dictionary with stdout, stderr, and returncode as keys.
+      CommandResults instance, decoded from the results of the command.
   """
   try:
     proc = _launch_cmd(cmd)
   except OSError as e:
-    return CommandResults.make(stderr=str(e))
+    return SingleCommandResults.make(stderr=str(e))
   return _get_result(proc)
 
 
@@ -211,9 +299,8 @@ def run_on_local_slaves(cmd):
   Args:
       cmd: list of strings; the command to run.
   Returns:
-      A dictionary of results with buildslave names as keys and individual
-      result dictionaries (with stdout, stderr, and returncode as keys) as
-      values.
+      MultiCommandResults instance containing the results of the command on each
+      of the local slaves.
   """
   slave_host = slave_hosts_cfg.get_slave_host_config(socket.gethostname())
   slaves = slave_host.slaves
@@ -221,12 +308,15 @@ def run_on_local_slaves(cmd):
   procs = []
   for (slave, _) in slaves:
     os.chdir(os.path.join(buildbot_path, slave, 'buildbot'))
-    procs.append((slave, _launch_cmd(cmd)))
+    try:
+      procs.append((slave, _launch_cmd(cmd)))
+    except OSError as e:
+      results[slave] = SingleCommandResults.make(stderr=str(e))
 
   for slavename, proc in procs:
     results[slavename] = _get_result(proc)
 
-  return results
+  return MultiCommandResults(results)
 
 
 def _launch_on_remote_host(slave_host_name, cmd):
@@ -250,66 +340,83 @@ def _launch_on_remote_host(slave_host_name, cmd):
                      _fixup_cmd(cmd, slave_host_name))
 
 
-def _get_remote_host_results(slave_host_name, popen):
-  """Get the results from a running process. Blocks until the process completes.
-
-  Args:
-      slave_host_name: string; name of the remote host.
-      popen: subprocess.Popen instance.
-  Returns:
-      A dictionary of results with the remote host machine name as its only key
-      and individual result dictionaries (with stdout, stderr, and returncode as
-      keys) its value.
-  """
-  result = _get_result(popen)
-  if result.returncode:
-    return { slave_host_name: result }
-  try:
-    return { slave_host_name: CommandResults.decode(result.stdout) }
-  except (pickle.UnpicklingError, IndexError):
-    error_msg = 'Could not decode result: %s' % result.stdout
-    return { slave_host_name: CommandResults.make(stderr=error_msg) }
-
-
 def run_on_remote_host(slave_host_name, cmd):
   """Run a command on a remote slave host machine, blocking until completion.
 
   Args:
       slave_host_name: string; name of the slave host machine.
-      cmd: list of strings; command to run.
+      cmd: list of strings or ResolvableCommandElements; the command to run.
   Returns:
-      A dictionary of results with the remote host machine name as its only key
-      and individual result dictionaries (with stdout, stderr, and returncode as
-      keys) its value.
+      CommandResults instance containing the results of the command.
   """
   proc = _launch_on_remote_host(slave_host_name, cmd)
-  return _get_remote_host_results(slave_host_name, proc)
+  return _get_result(proc)
+
+
+def _get_remote_slaves_cmd(cmd):
+  """Build a command which runs the command on all slaves on a remote host.
+
+  Args:
+      cmd: list of strings or ResolvableCommandElements; the command to run.
+  Returns:
+      list of strings or ResolvableCommandElements; a command which results in
+      the given command being run on all of the slaves on the remote host.
+  """
+  return ['python',
+          ResolvablePath.buildbot_path('scripts',
+                                       'run_on_local_slaves.py')] + cmd
+
+
+def run_on_remote_slaves(slave_host_name, cmd):
+  """Run a command on each buildslave on a remote slave host machine, blocking
+  until completion.
+
+  Args:
+      slave_host_name: string; name of the slave host machine.
+      cmd: list of strings or ResolvableCommandElements; the command to run.
+  Returns:
+      MultiCommandResults instance with results from each slave on the remote
+      host.
+  """
+  proc = _launch_on_remote_host(slave_host_name, _get_remote_slaves_cmd(cmd))
+  return _get_result(proc)
 
 
 def run_on_all_slave_hosts(cmd):
   """Run the given command on all slave hosts, blocking until all complete.
 
   Args:
-      cmd: list of strings; command to run.
+      cmd: list of strings or ResolvableCommandElements; the command to run.
   Returns:
-      A dictionary of results with host machine names as keys and individual
-      result dictionaries (with stdout, stderr, and returncode as keys) as
-      values.
+      MultiCommandResults instance with results from each remote slave host.
   """
   results = {}
   procs = []
 
   for hostname in slave_hosts_cfg.SLAVE_HOSTS.iterkeys():
     if not slave_hosts_cfg.SLAVE_HOSTS[hostname].login_cmd:
-      results.update(
-          {hostname: CommandResults.make(stderr='No procedure for login.')})
+      results.update({
+          hostname: SingleCommandResults.make(stderr='No procedure for login.'),
+      })
     else:
       procs.append((hostname, _launch_on_remote_host(hostname, cmd)))
 
   for slavename, proc in procs:
-    results.update(_get_remote_host_results(slavename, proc))
+    results[slavename] = _get_result(proc)
 
-  return results
+  return MultiCommandResults(results)
+
+
+def run_on_all_slaves_on_all_hosts(cmd):
+  """Run the given command on all slaves on all hosts. Blocks until completion.
+
+  Args:
+      cmd: list of strings or ResolvableCommandElements; the command to run.
+  Returns:
+      MultiCommandResults instance with results from each slave on each remote
+      slave host.
+  """
+  return run_on_all_slave_hosts(_get_remote_slaves_cmd(cmd))
 
 
 def parse_args(positional_args=None):
