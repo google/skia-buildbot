@@ -147,6 +147,16 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   find . -type f -size -10k
   find . -type f -size -10k -exec rm {} \;
 
+  # Remove invalid SKPs found using the skpinfo binary.
+  # Sync trunk and build tools.
+  cd /home/default/skia-repo/trunk
+  for i in {1..3}; do /home/default/depot_tools/gclient sync && break || sleep 2; done
+  make clean
+  GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
+  echo "=====Calling remove_invalid_skps.py====="
+  cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
+  python remove_invalid_skps.py --skp_dir=/home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/ --path_to_skpinfo=/home/default/skia-repo/trunk/out/Release/skpinfo
+
   # Now copy the SKP files to Google Storage. 
   gsutil cp /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/* \
     gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
