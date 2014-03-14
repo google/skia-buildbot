@@ -6,6 +6,8 @@
 """ Check for regressions in bench data. """
 
 from build_step import BuildStep
+from config_private import AUTOGEN_SVN_BASEURL
+from slave import slave_utils
 from utils import shell_utils
 
 import builder_name_schema
@@ -21,16 +23,28 @@ class CheckForRegressions(BuildStep):
         **kwargs)
 
   def _RunInternal(self, representation):
+    # Reads expectations from skia-autogen svn repo using 'svn cat'.
+    expectations_filename = ('bench_expectations_' +
+        builder_name_schema.GetWaterfallBot(self.builder_name) + '.txt')
+    url = '/'.join([AUTOGEN_SVN_BASEURL, 'bench', expectations_filename])
+
+    svn_binary = slave_utils.SubversionExe()
+    try:
+      output = shell_utils.run([svn_binary, 'cat', url])
+    except shell_utils.CommandFailedException:
+      print 'Skip due to missing expectations: %s' % url
+      return
+
     path_to_check_bench_regressions = os.path.join('bench',
         'check_bench_regressions.py')
-    # TODO(borenet): We should move these expectations into expectations/bench.
+
+    # Writes the expectations from svn repo to the local file.
     path_to_bench_expectations = os.path.join(
-        'bench',
-        'bench_expectations_%s.txt' % builder_name_schema.GetWaterfallBot(
-            self._builder_name))
-    if not os.path.isfile(path_to_bench_expectations):
-      print 'Skip due to missing expectations: %s' % path_to_bench_expectations
-      return
+        self._perf_range_input_dir, expectations_filename)
+    os.makedirs(self._perf_range_input_dir)
+    with open(path_to_bench_expectations, 'w') as file_handle:
+      file_handle.write(output)
+
     cmd = ['python', path_to_check_bench_regressions,
            '-a', representation,
            '-b', self._builder_name,

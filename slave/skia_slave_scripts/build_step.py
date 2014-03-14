@@ -210,15 +210,18 @@ class BuildStep(multiprocessing.Process):
 
     self._skp_dir = self._local_playback_dirs.PlaybackSkpDir()
 
-    # Figure out where we are going to store performance output.
+    # Figure out where we are going to store performance related data.
     if args['perf_output_basedir'] != 'None':
       self._perf_data_dir = os.path.join(args['perf_output_basedir'],
                                          self._builder_name, 'data')
       self._perf_graphs_dir = os.path.join(args['perf_output_basedir'],
                                            self._builder_name, 'graphs')
+      self._perf_range_input_dir = os.path.join(
+          args['perf_output_basedir'], self._builder_name, 'expectations')
     else:
       self._perf_data_dir = None
       self._perf_graphs_dir = None
+      self._perf_range_input_dir = None
 
     self._skimage_in_dir = os.path.join(os.pardir, 'skimage_in')
 
