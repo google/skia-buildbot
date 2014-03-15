@@ -12,6 +12,7 @@ from utils import shell_utils
 
 import builder_name_schema
 import os
+import shutil
 import sys
 
 
@@ -41,6 +42,7 @@ class CheckForRegressions(BuildStep):
     # Writes the expectations from svn repo to the local file.
     path_to_bench_expectations = os.path.join(
         self._perf_range_input_dir, expectations_filename)
+    shutil.rmtree(self._perf_range_input_dir, ignore_errors=True)
     os.makedirs(self._perf_range_input_dir)
     with open(path_to_bench_expectations, 'w') as file_handle:
       file_handle.write(output)
