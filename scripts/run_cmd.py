@@ -152,6 +152,18 @@ class MultiCommandResults(BaseCommandResults):
   def __getitem__(self, key):
     return self._dict[key]
 
+  def __iter__(self):
+    return self._dict.__iter__()
+
+  def __len__(self):
+    return self._dict.__len__()
+
+  def iteritems(self):
+    return self._dict.iteritems()
+
+  def iterkeys(self):
+    return self._dict.iterkeys()
+
   def encode(self):
     """Convert the results into a machine-readable string.
 
