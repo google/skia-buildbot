@@ -248,15 +248,19 @@ def _fixup_cmd(cmd, slave_host_name):
   return new_cmd
 
 
-def _launch_cmd(cmd):
+def _launch_cmd(cmd, cwd=None):
   """Launch the given command. Non-blocking.
 
   Args:
       cmd: list of strings; command to run.
+      cwd: working directory in which to run the process. Defaults to the root
+          of the buildbot checkout containing this file.
   Returns:
       subprocess.Popen instance.
   """
-  return subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE,
+  if not cwd:
+    cwd = buildbot_path
+  return subprocess.Popen(cmd, shell=False, cwd=cwd, stderr=subprocess.PIPE,
                           stdout=subprocess.PIPE)
 
 
@@ -307,9 +311,10 @@ def run_on_local_slaves(cmd):
   results = {}
   procs = []
   for (slave, _) in slaves:
-    os.chdir(os.path.join(buildbot_path, slave, 'buildbot'))
     try:
-      procs.append((slave, _launch_cmd(cmd)))
+      proc = _launch_cmd(cmd, cwd=os.path.join(buildbot_path, slave,
+                                               'buildbot'))
+      procs.append((slave, proc))
     except OSError as e:
       results[slave] = SingleCommandResults.make(stderr=str(e))
 
