@@ -37,9 +37,8 @@ class UpdateAllSlaveHosts(BuildStep):
                               'refs/heads/master'])
     buildbot_revision = shlex.split(output)[0]
 
-    gclient_path = run_cmd.ResolvablePath.buildbot_path('third_party',
-                                                        'depot_tools',
-                                                        'gclient')
+    gclient_path = run_cmd.ResolvablePath('third_party', 'depot_tools',
+                                          'gclient')
     sync_cmd = [gclient_path, 'sync', '--force', '--revision',
                 'buildbot@%s' % buildbot_revision]
     results = run_cmd.run_on_all_slave_hosts(sync_cmd)
