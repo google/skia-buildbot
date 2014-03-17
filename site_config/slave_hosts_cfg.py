@@ -138,17 +138,18 @@ _slave_host_dicts = {
     'remote_access': True,
   },
 
+  # This host is in the chromecompute project.
   'skia-recreate-skps': {
     'slaves': [
       ('skia-recreate-skps', '0'),
     ],
     'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
+    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': True,
+    'remote_access': False,
   },
 
   'skia-compile1-a': {
