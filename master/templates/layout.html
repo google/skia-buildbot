@@ -385,9 +385,9 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
             comment = comment.replace(found_bug, bug_link);
           }
         }
-        comment_html += comment + ' (<a href="' + edit_status_url + '" class="" target="_blank">edit</a>';
+        comment_html += comment + '</p><p> (<a href="' + edit_status_url + '" class="" target="_blank">edit</a>';
       } else {
-        comment_html += '(<a href="' + edit_status_url + '" class="" target="_blank">add comment</a>';
+        comment_html += '</p><p>(<a href="' + edit_status_url + '" class="" target="_blank">add comment</a>';
       }
       comment_html += ' or ' + file_bug_link + ')</p>';
       return comment_html;

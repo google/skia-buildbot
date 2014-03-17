@@ -59,6 +59,7 @@ div.BuilderTooltip {
   display: none;
   z-index: 100;
   text-align: left;
+  margin-left: -200px;
 }
 
 div.BuilderTooltip:hover {
