@@ -399,6 +399,8 @@ def run_on_all_slave_hosts(cmd):
   procs = []
 
   for hostname in slave_hosts_cfg.SLAVE_HOSTS.iterkeys():
+    if not slave_hosts_cfg.SLAVE_HOSTS[hostname].remote_access:
+      continue
     if not slave_hosts_cfg.SLAVE_HOSTS[hostname].login_cmd:
       results.update({
           hostname: SingleCommandResults.make(stderr='No procedure for login.'),

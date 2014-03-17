@@ -35,6 +35,10 @@ _DEFAULT_COPIES = [
 GCE_CLUSTER = skia_vars.GetGlobalVariable('gce_cluster')
 GCE_PROJECT = skia_vars.GetGlobalVariable('gce_project')
 GCE_USERNAME = skia_vars.GetGlobalVariable('gce_username')
+GCE_ZONE = skia_vars.GetGlobalVariable('gce_compile_bots_zone')
+
+GCE_COMPILE_A_ONLINE = GCE_ZONE == 'a'
+GCE_COMPILE_B_ONLINE = GCE_ZONE == 'b'
 
 SKIALAB_ROUTER_IP = skia_vars.GetGlobalVariable('skialab_router_ip')
 SKIALAB_USERNAME = skia_vars.GetGlobalVariable('skialab_username')
@@ -73,6 +77,7 @@ _slave_host_dicts = {
     'kvm_num': 'A',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-shuttle-ubuntu12-android-003': {
@@ -97,6 +102,7 @@ _slave_host_dicts = {
     'kvm_num': 'C',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-shuttle-ubuntu12-xxx': {
@@ -114,6 +120,7 @@ _slave_host_dicts = {
     'kvm_num': 'B',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-shuttle-ubuntu13-xxx': {
@@ -128,6 +135,7 @@ _slave_host_dicts = {
     'kvm_num': 'D',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skia-recreate-skps': {
@@ -140,6 +148,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': True,
   },
 
   'skia-compile1-a': {
@@ -153,6 +162,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_A_ONLINE,
   },
 
   'skia-compile2-a': {
@@ -166,6 +176,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_A_ONLINE,
   },
 
   'skia-compile3-a': {
@@ -179,6 +190,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_A_ONLINE,
   },
 
   'skia-compile4-a': {
@@ -192,6 +204,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_A_ONLINE,
   },
 
   'skia-compile5-a': {
@@ -205,6 +218,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_A_ONLINE,
   },
 
   'skia-housekeeping-slave-a': {
@@ -217,6 +231,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_A_ONLINE,
   },
 
   'skia-compile1-b': {
@@ -230,6 +245,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_B_ONLINE,
   },
 
   'skia-compile2-b': {
@@ -243,6 +259,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_B_ONLINE,
   },
 
   'skia-compile3-b': {
@@ -256,6 +273,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_B_ONLINE,
   },
 
   'skia-compile4-b': {
@@ -269,6 +287,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_B_ONLINE,
   },
 
   'skia-compile5-b': {
@@ -282,6 +301,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_B_ONLINE,
   },
 
   'skia-housekeeping-slave-b': {
@@ -294,6 +314,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_B_ONLINE,
   },
 
 ################################# Mac Machines #################################
@@ -311,6 +332,7 @@ _slave_host_dicts = {
     'kvm_num': '2',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-macmini-10_6-002': {
@@ -323,6 +345,7 @@ _slave_host_dicts = {
     'kvm_num': '1',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-macmini-10_7-001': {
@@ -338,6 +361,7 @@ _slave_host_dicts = {
     'kvm_num': '3',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-macmini-10_7-002': {
@@ -350,6 +374,7 @@ _slave_host_dicts = {
     'kvm_num': '4',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-macmini-10_8-001': {
@@ -365,6 +390,7 @@ _slave_host_dicts = {
     'kvm_num': '8',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-macmini-10_8-002': {
@@ -377,6 +403,7 @@ _slave_host_dicts = {
     'kvm_num': '6',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-mac-10_6-compile': {
@@ -394,6 +421,7 @@ _slave_host_dicts = {
     'kvm_num': '8',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-mac-10_7-compile': {
@@ -415,6 +443,7 @@ _slave_host_dicts = {
     'kvm_num': '5',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
   'skiabot-mac-10_8-compile': {
@@ -436,6 +465,7 @@ _slave_host_dicts = {
     'kvm_num': '7',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
   },
 
 ############################### Windows Machines ###############################
@@ -450,6 +480,7 @@ _slave_host_dicts = {
     'kvm_num': 'F',
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
   },
 
   'win7-intel-003': {
@@ -462,6 +493,7 @@ _slave_host_dicts = {
     'kvm_num': 'G',
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
   },
 
   'win7-intel-004': {
@@ -475,6 +507,7 @@ _slave_host_dicts = {
     'kvm_num': 'H',
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
   },
 
   'win7-compile1': {
@@ -487,6 +520,7 @@ _slave_host_dicts = {
     'kvm_num': '3',
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
   },
 
   'win7-compile2': {
@@ -499,6 +533,7 @@ _slave_host_dicts = {
     'kvm_num': '2',
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
   },
   'win8-gtx660-000': {
     'slaves': [
@@ -511,6 +546,7 @@ _slave_host_dicts = {
     'kvm_num': 'A',
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
   },
   'win8-gtx660-001': {
     'slaves': [
@@ -522,6 +558,7 @@ _slave_host_dicts = {
     'kvm_num': 'B',
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
   },
   'win8-hd7770-000': {
     'slaves': [
@@ -534,6 +571,7 @@ _slave_host_dicts = {
     'kvm_num': 'C',
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
   },
   'win8-hd7770-001': {
     'slaves': [
@@ -545,6 +583,7 @@ _slave_host_dicts = {
     'kvm_num': 'D',
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
   },
 }
 
@@ -553,7 +592,7 @@ _slave_host_dicts = {
 SlaveHostConfig = collections.namedtuple('SlaveHostConfig',
                                          ('hostname, slaves, copies, login_cmd,'
                                           ' ip, kvm_num, path_module,'
-                                          ' path_to_buildbot'))
+                                          ' path_to_buildbot, remote_access'))
 
 
 SLAVE_HOSTS = {}
@@ -588,7 +627,8 @@ def default_slave_host_config(hostname):
     ip=None,
     kvm_num=None,
     path_module=os.path,
-    path_to_buildbot=path_to_buildbot
+    path_to_buildbot=path_to_buildbot,
+    remote_access=False,
   )
 
 
