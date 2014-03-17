@@ -31,7 +31,8 @@ class CheckForRegressions(BuildStep):
 
     svn_binary = slave_utils.SubversionExe()
     try:
-      output = shell_utils.run([svn_binary, 'cat', url])
+      output = shell_utils.run(
+          [svn_binary, 'cat', '--non-interactive', '--trust-server-cert' , url])
     except shell_utils.CommandFailedException:
       print 'Skip due to missing expectations: %s' % url
       return
