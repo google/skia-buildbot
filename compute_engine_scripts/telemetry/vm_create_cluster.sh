@@ -26,7 +26,7 @@ $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM_MASTER_NAME} \
   --service_account_scopes="$SCOPES" \
   --network=skia \
   --image=skiatelemetry-3-0-v20131101 \
-  --machine_type=n1-standard-8-d \
+  --machine_type=rtb-n1-standard-8-d \
   --nopersistent_boot_disk \
   --service_version=v1beta16
 
@@ -41,7 +41,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     --service_account_scopes="$SCOPES" \
     --network=skia \
     --image=skiatelemetry-3-0-v20131101 \
-    --machine_type=n1-standard-8-d \
+    --machine_type=rtb-n1-standard-8-d \
     --external_ip_address=${FREE_IP_LIST[$FREE_IP_INDEX]} \
     --nopersistent_boot_disk \
     --service_version=v1beta16

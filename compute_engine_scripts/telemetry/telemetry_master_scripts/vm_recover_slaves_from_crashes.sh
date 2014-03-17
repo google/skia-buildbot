@@ -35,7 +35,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
       --service_account_scopes="https://www.googleapis.com/auth/devstorage.full_control" \
       --network=skia \
       --image=skiatelemetry-3-0-v20131101 \
-      --machine_type=n1-standard-4-d \
+      --machine_type=rtb-n1-standard-8-d \
       --external_ip_address=108.170.222.${SLAVE_NUM} \
       --nopersistent_boot_disk \
       --service_version=v1beta16
