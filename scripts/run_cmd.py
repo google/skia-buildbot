@@ -223,7 +223,7 @@ class ResolvablePath(ResolvableCommandElement):
             form a path.
     """
     super(ResolvablePath, self).__init__()
-    self._path_elems = list(*path_elems)
+    self._path_elems = list(path_elems)
 
   def resolve(self, slave_host_name):
     """Resolve this ResolvablePath as appropriate.
