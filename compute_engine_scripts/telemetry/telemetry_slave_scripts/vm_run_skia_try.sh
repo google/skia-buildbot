@@ -230,6 +230,9 @@ gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatc
 gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/*
 gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/*
 gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/*
-gsutil cp $JSON_SUMMARY_DIR/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/
+
+# Copy the summary file to Google Storage and set google.com permissions.
+gsutil cp $JSON_SUMMARY_DIR/slave${SLAVE_NUM}.json $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/
+gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/slave${SLAVE_NUM}.json
 
 cleanup_slave_before_exit
