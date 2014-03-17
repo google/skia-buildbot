@@ -10,6 +10,7 @@ from utils import shell_utils
 from build_step import BuildStep, BuildStepWarning
 import os
 import shlex
+import skia_vars
 import sys
 
 
@@ -19,7 +20,7 @@ import sys
 BUILDBOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                             os.pardir, os.pardir, os.pardir))
 
-BUILDBOT_GIT_URL = 'https://skia.googlesource.com/buildbot.git'
+BUILDBOT_GIT_URL = skia_vars.GetGlobalVariable('buildbot_git_url')
 
 
 class UpdateScripts(BuildStep):

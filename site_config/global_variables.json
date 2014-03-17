@@ -29,6 +29,11 @@
     "type": "string",
     "description": "URL of the SVN repo used for auto-generated assets."
   },
+  "buildbot_git_url": {
+    "value": "https://skia.googlesource.com/buildbot.git",
+    "type": "string",
+    "description": "URL of the git repository for Skia's buildbot code."
+  },
   "code_review_site": {
     "value": "https://chromiumcodereview.appspot.com/",
     "type": "string",
