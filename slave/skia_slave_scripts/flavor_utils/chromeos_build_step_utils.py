@@ -15,8 +15,7 @@ class ChromeosBuildStepUtils(SshBuildStepUtils):
     SshBuildStepUtils.__init__(self, build_step_instance)
     self._remote_dir = '/usr/local/skiabot'
     systemtype = 'chromeos-' + self._step.args['board']
-    self._build_dir = os.path.join(
-      'out', 'config', systemtype, self._step.configuration)
+    self._build_dir = os.path.join('out', 'config', systemtype)
 
   def Compile(self, target):
     """ Compile the Skia executables. """
