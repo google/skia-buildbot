@@ -137,6 +137,19 @@ class BuildStep(multiprocessing.Process):
     # Add CWD to the PYTHONPATH
     sys.path.append(os.getcwd())
 
+    self._configuration = args['configuration']
+
+    self._target_platform = args['target_platform']
+    self._deps_target_os = \
+        None if args['deps_target_os'] == 'None' else args['deps_target_os']
+    self._revision = \
+        None if args['revision'] == 'None' or args['revision'] == 'HEAD' \
+        else args['revision']
+    self._got_revision = \
+        None if args['got_revision'] == 'None' else args['got_revision']
+    self._do_upload_results = (False if args['do_upload_results'] == 'None'
+                               else args['do_upload_results'] == 'True')
+
     # Import the flavor-specific build step utils module.
     flavor = args.get('flavor', 'default')
     try:
@@ -153,19 +166,6 @@ class BuildStep(multiprocessing.Process):
       self._flavor_utils = flavor_utils_class(self)
     except (ImportError, IOError) as e:
       raise Exception('Unrecognized build flavor: %s\n%s' % (flavor, e))
-
-    self._configuration = args['configuration']
-
-    self._target_platform = args['target_platform']
-    self._deps_target_os = \
-        None if args['deps_target_os'] == 'None' else args['deps_target_os']
-    self._revision = \
-        None if args['revision'] == 'None' or args['revision'] == 'HEAD' \
-        else args['revision']
-    self._got_revision = \
-        None if args['got_revision'] == 'None' else args['got_revision']
-    self._do_upload_results = (False if args['do_upload_results'] == 'None'
-                               else args['do_upload_results'] == 'True')
 
     # Trybots should use expectations from the corresponding waterfall bot.
     # This fixes https://code.google.com/p/skia/issues/detail?id=1552
