@@ -26,6 +26,8 @@ class HouseKeepingMonitoringFactory(skia_factory.SkiaFactory):
 
     self.AddSlaveScript(script='update_all_slave_hosts.py',
                         description='UpdateSlaveHosts')
+    self.AddSlaveScript(script='update_all_buildslave_checkouts.py',
+                        description='UpdateAllBuildslaves')
     self.AddSlaveScript(script='check_buildslave_host_disk_usage.py',
                         description='CheckBuildslaveHostDiskUsage')
     self.Validate()
