@@ -56,6 +56,9 @@ class CanaryFactory(factory.SkiaFactory):
                                    alternate_script=path_str,
                                    alternate_workdir=workdir)
 
+  def CCUnitTests(self):
+    self.AddSlaveScript(script='cc_unittests.py', description='cc_unittests')
+
   def Build(self, role=builder_name_schema.BUILDER_ROLE_CANARY, **kwargs):
     """Build and return the complete BuildFactory.
 
@@ -65,7 +68,8 @@ class CanaryFactory(factory.SkiaFactory):
       raise Exception('Canary builders must have role "%s"' %
                       builder_name_schema.BUILDER_ROLE_CANARY)
 
-    # Spoof the role as a compile builder so that this factory only runs the
-    # update and compile steps.
-    return factory.SkiaFactory.Build(self,
-        role=builder_name_schema.BUILDER_ROLE_BUILD, **kwargs)
+    self.UpdateSteps()
+    self.Compile(clobber=False, retry_without_werr_on_failure=True)
+    self.CCUnitTests()
+    self.Validate()
+    return self
