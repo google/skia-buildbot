@@ -7,6 +7,7 @@
 
 from master_builders_cfg import f_deps, f_deps_results, f_percommit, f_periodic
 from master_builders_cfg import f_skps, f_xsan, HousekeepingBuilder, LINUX
+from master_builders_cfg import f_a64mod
 
 # Schedulers
 from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, S_EVENING, S_MORNING
@@ -51,10 +52,11 @@ def setup_test_and_perf_builders(helper, do_upload_results):
   #
   #                            TEST AND PERF BUILDERS
   #
-  #    Role,   OS,         Model,         GPU,      Arch,     Config,    Extra Config,GYP_DEFS,Factory,Target, Scheduler, Extra Args
+  #    Role,   OS,         Model,         GPU,      Arch,      Config,   Extra Config,GYP_DEFS,Factory,  Target, Scheduler,   Extra Args
   #
   builder_specs = [
-      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',  'x86_64', 'Debug',   'TSAN',      None,    f_xsan, LINUX,  S_PERCOMMIT, {'sanitizer': 'thread'}),
+      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',  'x86_64',  'Debug',  'TSAN',      None,    f_xsan,   LINUX,  S_PERCOMMIT, {'sanitizer': 'thread'}),
+      ('Test', 'Linux',    'Bare',       'NoGPU',   'Arm8_64', 'Debug',  None,        None,    f_a64mod, LINUX,  S_PERCOMMIT, {'board': 'arm64emu', 'bench_pictures_cfg': 'no_gpu'}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(

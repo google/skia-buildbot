@@ -10,7 +10,7 @@ import sys
 
 
 class RunTests(BuildStep):
-  def __init__(self, timeout=9600, no_output_timeout=2400, **kwargs):
+  def __init__(self, timeout=18000, no_output_timeout=2400, **kwargs):
     super(RunTests, self).__init__(
         timeout=timeout,
         no_output_timeout=no_output_timeout,
@@ -18,6 +18,8 @@ class RunTests(BuildStep):
 
   def _Run(self):
     self._test_args.extend(['--tmpDir', self._device_dirs.TmpDir()])
+    self._test_args.extend(['--resourcePath', self._device_dirs.ResourceDir()])
+    self._test_args.extend(['--verbose'])
     if 'Xoom' in self._builder_name:
       # WritePixels fails on Xoom due to a bug which won't be fixed very soon.
       # http://code.google.com/p/skia/issues/detail?id=1699

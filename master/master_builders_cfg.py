@@ -7,6 +7,8 @@
 #pylint: disable=C0301
 
 from skia_master_scripts.android_factory import AndroidFactory as f_android
+from skia_master_scripts.arm64model_factory \
+    import Arm64ModelFactory as f_a64mod
 from skia_master_scripts.canary_factory import CanaryFactory as f_canary
 from skia_master_scripts.chromeos_factory import ChromeOSFactory as f_cros
 from skia_master_scripts.deps_roll_factory import DepsRollFactory as f_deps
@@ -66,6 +68,7 @@ ARCH_TO_GYP_DEFINE = {
   'x86': {'skia_arch_width': '32'},
   'x86_64': {'skia_arch_width': '64'},
   'Arm7': {'skia_arch_width': '32'},
+  'Arm8_64': {'skia_arch_width': '64'},
   'Mips': None,
   'NaCl': None,
 }

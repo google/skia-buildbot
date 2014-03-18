@@ -35,7 +35,7 @@ EXTRA_ARGS = {
 class RunBench(BuildStep):
   """A BuildStep that runs bench."""
 
-  def __init__(self, timeout=9600, no_output_timeout=9600, **kwargs):
+  def __init__(self, timeout=18000, no_output_timeout=9600, **kwargs):
     super(RunBench, self).__init__(timeout=timeout,
                                    no_output_timeout=no_output_timeout,
                                    **kwargs)

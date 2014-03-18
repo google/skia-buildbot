@@ -151,6 +151,12 @@ def MergeIntoSvn(options):
       os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, 'site_config')
   svn_username_path = os.path.join(site_config_path, options.svn_username_file)
   svn_password_path = os.path.join(site_config_path, options.svn_password_file)
+  if not (os.path.isfile(svn_username_path)
+          and os.path.isfile(svn_password_path)):
+    raise Exception(
+      'Skipping MergeIntoSvn step: missing username or password file.\n'
+      '  username file: %s\n  password file: %s\n' % (
+        os.path.abspath(svn_username_path), os.path.abspath(svn_password_path)))
   svn_username = ReadFirstLineOfFileAsString(svn_username_path).rstrip()
   svn_password = ReadFirstLineOfFileAsString(svn_password_path).rstrip()
 
@@ -216,8 +222,8 @@ def MergeIntoSvn(options):
     # Add one file at a time, because otherwise Windows can choke on a command
     # line that's too long (if there are lots of files).
     repo.AddFiles([new_file])
- 
-  # Set required svn properties on certain file extensions. 
+
+  # Set required svn properties on certain file extensions.
   _SetProperty(_FindFiles(mergedir, '.html'), 'svn:mime-type',
                'text/html', repo)
   _SetProperty(_FindFiles(mergedir, '.css'), 'svn:mime-type', 'text/css', repo)

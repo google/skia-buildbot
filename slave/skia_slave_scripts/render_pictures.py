@@ -15,6 +15,10 @@ DEFAULT_TILE_Y = 256
 
 
 class RenderPictures(BuildStep):
+  def __init__(self, timeout=18000, no_output_timeout=9600, **kwargs):
+    super(RenderPictures, self).__init__(
+      timeout=timeout, no_output_timeout=no_output_timeout, **kwargs)
+
   def DoRenderPictures(self, args, config='8888', write_images=True):
     # For now, don't run on Android, since it takes too long and we don't use
     # the results.

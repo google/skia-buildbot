@@ -222,6 +222,19 @@ _slave_host_dicts = {
     'remote_access': GCE_COMPILE_A_ONLINE,
   },
 
+  'skia-experimental-master-a': {
+    'slaves': [
+      ('skiabot-linux-vm-001', '0'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': compute_engine_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_A_ONLINE,
+  },
+
   'skia-housekeeping-slave-a': {
     'slaves': [
       ('skia-housekeeping-slave-a', '0'),
