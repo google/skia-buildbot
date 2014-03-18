@@ -39,8 +39,8 @@ def get_disk_usage_percent(stdout):
 
 class CheckSlaveHostsDiskUsage(BuildStep):
   def _Run(self):
-    disk_usage_script = run_cmd.ResolvablePath.buildbot_path(
-        'third_party', 'disk_usage', 'disk_usage.py')
+    disk_usage_script = run_cmd.ResolvablePath('third_party', 'disk_usage',
+                                               'disk_usage.py')
     results = run_cmd.run_on_all_slave_hosts(['python', disk_usage_script])
     failed = []
     over_threshold = False

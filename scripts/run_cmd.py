@@ -197,21 +197,6 @@ class ResolvableCommandElement(object):
     raise NotImplementedError
 
 
-class BuildbotPath(ResolvableCommandElement):
-  """Path to the buildbot scripts checkout on a slave host machine."""
-
-  def resolve(self, slave_host_name):
-    """Return the resolved path to the buildbot checkout on a slave_host.
-
-    Args:
-        slave_host_name: string; name of the slave host.
-    Returns:
-        string; the path to the buildbot checkout.
-    """
-    host_data = slave_hosts_cfg.get_slave_host_config(slave_host_name)
-    return host_data.path_module.join(*host_data.path_to_buildbot)
-
-
 class ResolvablePath(ResolvableCommandElement):
   """Represents a path."""
 
@@ -236,11 +221,6 @@ class ResolvablePath(ResolvableCommandElement):
     host_data = slave_hosts_cfg.get_slave_host_config(slave_host_name)
     fixed_path_elems = _fixup_cmd(self._path_elems, slave_host_name)
     return host_data.path_module.join(*fixed_path_elems)
-
-  @staticmethod
-  def buildbot_path(*path_elems):
-    """Convenience method; returns a path relative to the buildbot checkout."""
-    return ResolvablePath([BuildbotPath()] + list(path_elems))
 
 
 def _fixup_cmd(cmd, slave_host_name):
@@ -379,9 +359,7 @@ def _get_remote_slaves_cmd(cmd):
       list of strings or ResolvableCommandElements; a command which results in
       the given command being run on all of the slaves on the remote host.
   """
-  return ['python',
-          ResolvablePath.buildbot_path('scripts',
-                                       'run_on_local_slaves.py')] + cmd
+  return ['python', ResolvablePath('scripts', 'run_on_local_slaves.py')] + cmd
 
 
 def run_on_remote_slaves(slave_host_name, cmd):
