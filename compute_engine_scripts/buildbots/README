@@ -64,13 +64,16 @@ us-central1-b zones and will alternate between zone tags 'a' and 'b' during
 PCRs.
 
 The scripts should be executed in this order:
-* ZONE_TAG=$NEW_ZONE vm_create_masters.sh
-* ZONE_TAG=$OLD_ZONE vm_delete_slaves.sh
-* ZONE_TAG=$NEW_ZONE vm_create_slaves.sh
-* ZONE_TAG=$NEW_ZONE vm_setup_slaves.sh
-* ZONE_TAG=$NEW_ZONE vm_copy_buildbot_history.sh  (Takes about 15-30 mins)
-* ZONE_TAG=$OLD_ZONE vm_delete_masters.sh  (Do NOT delete the persistent boot disk when prompted to)
+* ZONE_TAG=$NEW_ZONE ./vm_create_masters.sh
+* ZONE_TAG=$OLD_ZONE ./vm_delete_slaves.sh
+* ZONE_TAG=$NEW_ZONE ./vm_create_slaves.sh
+* ZONE_TAG=$NEW_ZONE ./vm_setup_slaves.sh
+* ZONE_TAG=$NEW_ZONE ./vm_copy_buildbot_history.sh  (Takes about 15-30 mins)
+* ZONE_TAG=$OLD_ZONE ./vm_delete_masters.sh  (Do NOT delete the persistent boot disk when prompted to)
 * Run vm_setup_bugdroid.sh to setup bugdroid on a particular GCE instance
+* ZONE_TAG=$OLD_ZONE ./vm_delete_rebaseline_servers.sh  (DO delete the persistent boot disk when prompted to)
+* ZONE_TAG=$NEW_ZONE ./vm_create_rebaseline_servers.sh
+* ZONE_TAG=$NEW_ZONE ./vm_setup_rebaseline_servers.sh
 
 After the above scripts are run, update gce_compile_bots_zone in
 global_variables.json to point to the $NEW_ZONE.
