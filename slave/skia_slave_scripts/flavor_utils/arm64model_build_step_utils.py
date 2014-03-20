@@ -20,6 +20,10 @@ class Arm64ModelBuildStepUtils(SshBuildStepUtils):
     self._working_dir = os.path.abspath(self._step.args.get(
         'working_dir', os.path.join(os.pardir, os.pardir, 'arm64bareLinux')))
 
+    key_file = os.path.join(self._working_dir, 'key')
+    if os.path.isfile(key_file):
+      ssh_utils.SSHAdd(key_file)
+
   def RunGYP(self):
     # barelinux_make handles gyp
     pass
