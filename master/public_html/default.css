@@ -383,6 +383,8 @@ div.BuildWaterfall {
   display: none;
   border-width: 1px;
   border-style: solid;
+  transform: translate(-80%, 0);
+  -webkit-transform: translate(-80%, 0);
 }
 
 /* LastBuild, BuildStep states */
