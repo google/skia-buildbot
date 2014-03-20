@@ -134,6 +134,19 @@ class SshDestination(object):
     return RunSSH(self.user, self.host, self.port, command, echo=echo)
 
 
+def search_within_string(input_string, pattern):
+  """Search for regular expression in a string.
+
+  input_string: (string) to be searched
+  pattern: (string) to be passed to re.compile, with a symbolic
+           group named 'return'.
+  default: what to return if no match
+
+  Returns a string or None
+  """
+  match = re.search(pattern, input_string)
+  return match.group('return') if match else None
+
 def SSHAdd(key_file):
   """ Call ssh-add, and call ssh-agent if necessary.
   """
@@ -142,11 +155,15 @@ def SSHAdd(key_file):
     shell_utils.run(['ssh-add', key_file])
     return
   except shell_utils.CommandFailedException:
-    ssh_agent_output = shell_utils.run(['ssh-agent'])
-    ssh_auth_sock = re.search(
-      r'SSH_AUTH_SOCK=([^;]*);', ssh_agent_output).group(1)
-    ssh_agent_pid = re.search(
-      r'SSH_AGENT_PID=([^;]*);', ssh_agent_output).group(1)
+    ssh_agent_output = shell_utils.run(['ssh-agent', '-s'])
+    if not ssh_agent_output:
+      raise Exception('ssh-agent did not print anything')
+    ssh_auth_sock = search_within_string(
+      ssh_agent_output, r'SSH_AUTH_SOCK=(?P<return>[^;]*);')
+    ssh_agent_pid = search_within_string(
+      ssh_agent_output, r'SSH_AGENT_PID=(?P<return>[^;]*);')
+    if not (ssh_auth_sock and ssh_agent_pid):
+      raise Exception('ssh-agent did not print meaningful data')
     os.environ['SSH_AUTH_SOCK'] = ssh_auth_sock
     os.environ['SSH_AGENT_PID'] = ssh_agent_pid
     atexit.register(os.kill, int(ssh_agent_pid), signal.SIGTERM)
