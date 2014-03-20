@@ -152,10 +152,12 @@ def SSHAdd(key_file):
   """
   assert os.path.isfile(key_file)
   try:
-    shell_utils.run(['ssh-add', key_file])
+    shell_utils.run(['ssh-add', key_file],
+                    log_in_real_time=False)
     return
   except shell_utils.CommandFailedException:
-    ssh_agent_output = shell_utils.run(['ssh-agent', '-s'])
+    ssh_agent_output = shell_utils.run(['ssh-agent', '-s'],
+                                       log_in_real_time=False)
     if not ssh_agent_output:
       raise Exception('ssh-agent did not print anything')
     ssh_auth_sock = search_within_string(
