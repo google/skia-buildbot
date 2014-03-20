@@ -5,6 +5,7 @@
 import os
 
 from utils import shell_utils
+from utils import ssh_utils
 from flavor_utils.ssh_build_step_utils import SshBuildStepUtils
 
 class Arm64ModelBuildStepUtils(SshBuildStepUtils):
@@ -45,7 +46,7 @@ class Arm64ModelBuildStepUtils(SshBuildStepUtils):
 
     key_file = os.path.join(self._working_dir, 'key')
     assert os.path.isfile(key_file)
-    shell_utils.run(['ssh-add', key_file])
+    ssh_utils.SSHAdd(key_file)
 
     platform_bin = os.path.join('platform_tools', 'barelinux', 'bin')
     make_cmd = [
