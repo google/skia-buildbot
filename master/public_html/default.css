@@ -59,7 +59,8 @@ div.BuilderTooltip {
   display: none;
   z-index: 100;
   text-align: left;
-  margin-left: -200px;
+  transform: translate(-80%, 0);
+  -webkit-transform: translate(-80%, 0);
 }
 
 div.BuilderTooltip:hover {
