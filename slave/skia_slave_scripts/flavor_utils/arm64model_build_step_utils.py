@@ -58,4 +58,4 @@ class Arm64ModelBuildStepUtils(SshBuildStepUtils):
       'skia_gpu=0 skia_arch_type=arm skia_arch_width=64 '
       ' armv7=1 armv8=1 arm_neon=0 arm_thumb=0'
       ]
-    shell_utils.run(make_cmd)
+    shell_utils.run(make_cmd, log_in_real_time=False)
