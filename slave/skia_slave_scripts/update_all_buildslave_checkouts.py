@@ -12,10 +12,7 @@ the buildbot scripts on a single host machine.
 """
 
 
-from utils import gclient_utils
-from utils import shell_utils
 import os
-import shlex
 import skia_vars
 import sys
 
@@ -32,15 +29,9 @@ BUILDBOT_GIT_URL = skia_vars.GetGlobalVariable('buildbot_git_url')
 
 class UpdateAllBuildslaves(BuildStep):
   def _Run(self):
-    output = shell_utils.run([gclient_utils.GIT, 'ls-remote',
-                              BUILDBOT_GIT_URL, '--verify',
-                              'refs/heads/master'])
-    buildbot_revision = shlex.split(output)[0]
-
-    gclient_path = run_cmd.ResolvablePath('third_party', 'depot_tools',
-                                          'gclient')
-    sync_cmd = [gclient_path, 'sync', '--force', '--revision',
-                'buildbot@%s' % buildbot_revision]
+    script_path = run_cmd.ResolvablePath('slave', 'skia_slave_scripts', 'utils',
+                                         'force_update_checkout.py')
+    sync_cmd = ['python', script_path]
     results = run_cmd.run_on_all_slaves_on_all_hosts(sync_cmd)
     failed = []
     for host in results.iterkeys():
