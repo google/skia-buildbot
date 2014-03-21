@@ -80,6 +80,35 @@ _slave_host_dicts = {
     'remote_access': True,
   },
 
+  'skiabot-shuttle-ubuntu12-gtx660-001': {
+    'slaves': [
+      ('skiabot-shuttle-ubuntu12-gtx660-000', '0'),
+      ('skiabot-shuttle-ubuntu12-gtx660-001', '0'),
+      ('skiabot-shuttle-ubuntu12-gtx660-002', '0'),
+      ('skiabot-shuttle-ubuntu12-gtx660-003', '0'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': skia_lab_login,
+    'ip': '192.168.1.113',
+    'kvm_num': 'E',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
+  },
+
+  'skiabot-shuttle-ubuntu12-gtx660-002': {
+    'slaves': [
+      ('skiabot-shuttle-ubuntu12-gtx660-bench', '0'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': skia_lab_login,
+    'ip': '192.168.1.122',
+    'kvm_num': 'F',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
+  },
+
   'skiabot-shuttle-ubuntu12-android-003': {
     'slaves': [
       ('skiabot-shuttle-ubuntu12-nexuss-001', '0'),

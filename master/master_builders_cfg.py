@@ -285,13 +285,13 @@ def setup_test_and_perf_builders(helper, do_upload_results):
   #    Role,   OS,         Model,        GPU,           Arch,     Config,    Extra Config,   GYP_DEFS,  Factory,   Target, Scheduler,       Extra Args
   #
   builder_specs = [
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Debug',   None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
-      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86',    'Release', None,           None,      f_factory, LINUX,  S_COMMIT_OR_SKP, {}),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'GTX660',      'x86',    'Debug',   None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'GTX660',      'x86',    'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
+      ('Perf', 'Ubuntu12', 'ShuttleA',   'GTX660',      'x86',    'Release', None,           None,      f_factory, LINUX,  S_COMMIT_OR_SKP, {}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'GTX660',      'x86_64', 'Debug',   None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
+      ('Test', 'Ubuntu12', 'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
+      ('Perf', 'Ubuntu12', 'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Debug',   'ZeroGPUCache', None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
-      ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
-      ('Perf', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Test', 'Ubuntu12', 'ShuttleA',   'ATI5770',     'x86_64', 'Release', 'Valgrind',     VALGRIND,  f_factory, LINUX,  S_PERCOMMIT,     {'flavor': 'valgrind'}),
       ('Test', 'Ubuntu12', 'ShuttleA',   'NoGPU',       'x86_64', 'Debug',   None,           NO_GPU,    f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',      'x86_64', 'Debug',   'ASAN',         None,      f_xsan,    LINUX,  S_PERCOMMIT,     {'sanitizer': 'address'}),
