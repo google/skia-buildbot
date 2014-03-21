@@ -22,7 +22,9 @@ import gclient_utils
 import shell_utils
 import skia_vars
 
+
 BUILDBOT_GIT_URL = skia_vars.GetGlobalVariable('buildbot_git_url')
+GOT_REVISION_PATTERN = 'Skiabot scripts updated to %s'
 
 
 def force_update():
@@ -44,7 +46,7 @@ def force_update():
   gclient_utils.Sync(revisions=[('buildbot', buildbot_revision)],
                      verbose=True, force=True)
   got_revision = gclient_utils.GetCheckedOutHash()
-  print 'Skiabot scripts updated to %s' % got_revision
+  print GOT_REVISION_PATTERN % got_revision
 
   return gclient_utils.GetCheckedOutHash()
 

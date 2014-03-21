@@ -13,6 +13,7 @@ checkout of the buildbot scripts on a single host machine.
 
 
 import os
+import re
 import skia_vars
 import sys
 
@@ -22,6 +23,7 @@ sys.path.append(os.path.join(buildbot_path))
 
 from build_step import BuildStep, BuildStepWarning
 from scripts import run_cmd
+from utils import force_update_checkout
 
 
 BUILDBOT_GIT_URL = skia_vars.GetGlobalVariable('buildbot_git_url')
@@ -36,12 +38,24 @@ class UpdateAllSlaveHosts(BuildStep):
     failed = []
     for host in results.iterkeys():
       print host,
+      # Check and report the results of the command for each build slave host.
       if results[host].returncode != 0:
+        # If the command failed (or we failed to log in), print the output and
+        # report a failure.
         failed.append(host)
-        print ':\nstdout:\n%s\nstderr:\n%s\n\n' % (results[host].stdout,
-                                                   results[host].stderr)
+        results[host].print_results(pretty=True)
       else:
-        print
+        # If the command succeeded, find and print the commit hash we synced
+        # to.  If we can't find it, then something must have failed, so
+        # print the output and report a failure.
+        match = re.search(
+            force_update_checkout.GOT_REVISION_PATTERN % ('(\w+)'),
+            results[host].stdout)
+        if match:
+          print '\t%s' % match.group(1)
+        else:
+          failed.append(host)
+          results[host].print_results(pretty=True)
 
     if failed:
       print
