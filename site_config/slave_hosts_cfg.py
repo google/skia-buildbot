@@ -154,14 +154,27 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu13-xxx': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu13-000', '0'),
-      ('skiabot-shuttle-ubuntu13-001', '1'),
-      ('skiabot-shuttle-ubuntu13-002', '1'),
+      ('skiabot-shuttle-ubuntu13-003', '3')
     ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
     'ip': '192.168.1.120',
     'kvm_num': 'D',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
+  },
+
+  'skiabot-shuttle-ubuntu13-002': {
+    'slaves': [
+      ('skiabot-shuttle-ubuntu13-000', '0'),
+      ('skiabot-shuttle-ubuntu13-001', '1'),
+      ('skiabot-shuttle-ubuntu13-002', '2'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': skia_lab_login,
+    'ip': '192.168.1.115',
+    'kvm_num': 'G',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
