@@ -10,7 +10,7 @@ import sys
 
 
 class RunTests(BuildStep):
-  def __init__(self, timeout=18000, no_output_timeout=2400, **kwargs):
+  def __init__(self, timeout=9600, no_output_timeout=2400, **kwargs):
     super(RunTests, self).__init__(
         timeout=timeout,
         no_output_timeout=no_output_timeout,

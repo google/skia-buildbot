@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import os
 import sys
 
@@ -27,6 +28,12 @@ class Arm64ModelBuildStepUtils(SshBuildStepUtils):
       print >> sys.stderr, 'testing ssh connection...',
       self._ssh.Run(['echo', '[success from ssh]'])
       print >> sys.stderr, 'Success!'
+
+    old_timeout = self._step.timeout
+    self._step.timeout *= 10
+    print 'Extended timeout from %s to %s.' % (
+      datetime.timedelta(0, old_timeout),
+      datetime.timedelta(0, self._step.timeout))
 
   def RunGYP(self):
     # barelinux_make handles gyp
