@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import sys
 
 from utils import shell_utils
 from utils import ssh_utils
@@ -23,6 +24,9 @@ class Arm64ModelBuildStepUtils(SshBuildStepUtils):
     key_file = os.path.join(self._working_dir, 'key')
     if os.path.isfile(key_file):
       ssh_utils.SSHAdd(key_file)
+      print >> sys.stderr, 'testing ssh connection...',
+      self._ssh.Run(['echo', '[success from ssh]'])
+      print >> sys.stderr, 'Success!'
 
   def RunGYP(self):
     # barelinux_make handles gyp
@@ -47,10 +51,6 @@ class Arm64ModelBuildStepUtils(SshBuildStepUtils):
       'gcc-linaro-aarch64-linux-gnu-4.8-2013.12_linux',
       'bin')
     assert os.path.isdir(toolchain_bin)
-
-    key_file = os.path.join(self._working_dir, 'key')
-    assert os.path.isfile(key_file)
-    ssh_utils.SSHAdd(key_file)
 
     platform_bin = os.path.join('platform_tools', 'barelinux', 'bin')
     make_cmd = [
