@@ -49,7 +49,7 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
       self._skia_cmd_obj.AddRunCommand(
           command='python %s' % sanitize_script_path,
           description='RunSanitization')
-      if self._do_upload_results:
+      if self._do_upload_render_results:
         merge_dir_path = self.TargetPath.join(tempfile.gettempdir(),
                                               'sanitize-merge')
         # Cleanup the previous (if any) sanitize merge dir.

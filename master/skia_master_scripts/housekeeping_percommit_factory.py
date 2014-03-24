@@ -79,7 +79,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
           command='BUILDBOT_PYDOC_TEMPDIR=%s bash %s' % (
               buildbot_pydoc_working_dir, update_buildbot_pydoc_path),
           description='UpdateBuildbotPydoc')
-      if self._do_upload_results:
+      if self._do_upload_render_results:
         # Upload Buildbot Pydoc.
         self._skia_cmd_obj.AddMergeIntoSvn(
             source_dir_path=self.TargetPath.join(
@@ -107,7 +107,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
           command='DOXYGEN_TEMPDIR=%s DOXYGEN_COMMIT=false bash %s' % (
               doxygen_working_dir, update_doxygen_path),
           description='UpdateDoxygen')
-      if self._do_upload_results:
+      if self._do_upload_render_results:
         # Upload Doxygen.
         self._skia_cmd_obj.AddMergeIntoSvn(
             source_dir_path=self.TargetPath.join(

@@ -84,7 +84,7 @@ class DRTCanaryFactory(factory.SkiaFactory):
       self.ApplyPatch()
     self.Compile(retry_without_werr_on_failure=True)
     self.RunWebkitTests(new_baseline=False)
-    if self._do_upload_results:
+    if self._do_upload_render_results:
       self.UploadTestResults()
     self.Validate()
     return self

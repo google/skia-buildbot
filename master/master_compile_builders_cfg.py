@@ -14,13 +14,16 @@ from master_builders_cfg import PDFVIEWER, S_PERCOMMIT, VALGRIND, WIN32
 import master_builders_cfg
 
 
-def setup_compile_builders(helper, do_upload_results):
+def setup_compile_builders(helper, do_upload_render_results,
+                           do_upload_bench_results):
   """Set up the Compile builders.
 
   Args:
       helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their
-          results.
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
   """
   #
   #                            COMPILE BUILDERS
@@ -95,15 +98,21 @@ def setup_compile_builders(helper, do_upload_results):
   ]
 
   master_builders_cfg.setup_builders_from_config_list(builder_specs, helper,
-                                                      do_upload_results,
+                                                      do_upload_render_results,
+                                                      do_upload_bench_results,
                                                       CompileBuilder)
 
 
-def setup_all_builders(helper, do_upload_results):
+def setup_all_builders(helper, do_upload_render_results,
+                       do_upload_bench_results):
   """Set up all builders for the Compile master.
 
   Args:
       helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their results.
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
   """
-  setup_compile_builders(helper, do_upload_results)
+  setup_compile_builders(helper, do_upload_render_results,
+                         do_upload_bench_results)

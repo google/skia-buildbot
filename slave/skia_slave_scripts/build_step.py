@@ -147,8 +147,6 @@ class BuildStep(multiprocessing.Process):
         else args['revision']
     self._got_revision = \
         None if args['got_revision'] == 'None' else args['got_revision']
-    self._do_upload_results = (False if args['do_upload_results'] == 'None'
-                               else args['do_upload_results'] == 'True')
 
     # Import the flavor-specific build step utils module.
     flavor = args.get('flavor', 'default')

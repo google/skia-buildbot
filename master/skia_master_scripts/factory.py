@@ -46,18 +46,18 @@ _COMPILE_NO_WERR_PREFIX = 'Retry_NoWarningsAsErrors_' + _COMPILE_STEP_PREFIX
 class SkiaFactory(BuildFactory):
   """Encapsulates data and methods common to the Skia master.cfg files."""
 
-  def __init__(self, other_repos=None, do_upload_results=False,
-               do_patch_step=False, build_subdir='skia',
-               target_platform=None, configuration=CONFIG_DEBUG,
-               default_timeout=8*60*60, deps_target_os=None,
-               environment_variables=None, perf_output_basedir=None,
-               builder_name=None, flavor=None, make_flags=None, test_args=None,
-               gm_args=None, bench_args=None, bench_pictures_cfg='default',
-               compile_warnings_as_errors=False, gyp_defines=None,
-               build_targets=None):
+  def __init__(self, other_repos=None, do_upload_render_results=False,
+               do_upload_bench_results=False, do_patch_step=False,
+               build_subdir='skia', target_platform=None,
+               configuration=CONFIG_DEBUG, default_timeout=8*60*60,
+               deps_target_os=None, environment_variables=None,
+               perf_output_basedir=None, builder_name=None, flavor=None,
+               make_flags=None, test_args=None, gm_args=None, bench_args=None,
+               bench_pictures_cfg='default', compile_warnings_as_errors=False,
+               gyp_defines=None, build_targets=None):
     """Instantiates a SkiaFactory as appropriate for this target_platform.
-
-    do_upload_results: whether we should upload bench/gm results
+    do_upload_render_results: whether we should upload render results
+    do_upload_bench_results: whether we should upload bench results
     do_patch_step: whether the build should include a step which applies a
         patch.  This is only applicable for trybots.
     build_subdir: subdirectory to check out and then build within
@@ -115,9 +115,9 @@ class SkiaFactory(BuildFactory):
     # Set _default_clobber based on config.Master
     self._default_clobber = getattr(config.Master, 'default_clobber', False)
 
-    self._do_upload_results = do_upload_results
-    self._do_upload_bench_results = do_upload_results and \
-        perf_output_basedir != None
+    self._do_upload_render_results = do_upload_render_results
+    self._do_upload_bench_results = (do_upload_bench_results and
+                                     perf_output_basedir != None)
     self._do_patch_step = do_patch_step
 
     if not environment_variables:
@@ -179,7 +179,6 @@ class SkiaFactory(BuildFactory):
         '--autogen_svn_baseurl', AUTOGEN_SVN_BASEURL,
         '--configuration', configuration,
         '--deps_target_os', self._deps_target_os or 'None',
-        '--do_upload_results', str(self._do_upload_results),
         '--builder_name', builder_name,
         '--target_platform', target_platform,
         '--revision', WithProperties('%(rev)s', rev=_DetermineRevision),
@@ -688,10 +687,10 @@ class SkiaFactory(BuildFactory):
     self.RunDecodingTests()
     self.PostRender()
 
-    # For now, always upload GM results.
-    self.UploadGMResults()
-    self.CompareAndUploadWebpageGMs()
-    self.UploadSKImageResults()
+    if self._do_upload_render_results:
+      self.UploadGMResults()
+      self.CompareAndUploadWebpageGMs()
+      self.UploadSKImageResults()
 
     self.CompareGMs()
 

@@ -133,12 +133,16 @@ def get_gyp_defines(arch, gyp_defines_str=None):
 # Types of builders to be used below.
 class BaseBuilder:
 
-  def _create(self, helper, do_upload_results, is_trybot=False):
+  def _create(self, helper, do_upload_render_results, do_upload_bench_results,
+              is_trybot=False):
     """Internal method used by create() to set up a builder.
 
     Args:
         helper: instance of utils.SkiaHelper
-        do_upload_results: bool; whether the builder should upload its results.
+        do_upload_render_results: bool; whether the builder should upload its
+            render results.
+        do_upload_bench_results: bool; whether the builder should upload its
+            bench results.
         is_trybot: bool; whether or not the builder is a trybot.
     """
     builder_name = builder_name_schema.BuilderNameFromObject(self, is_trybot)
@@ -153,21 +157,28 @@ class BaseBuilder:
     helper.Factory('f_%s' % builder_name, self.factory_type(
         builder_name=builder_name,
         do_patch_step=is_trybot,
-        do_upload_results=do_upload_results,
+        do_upload_render_results=do_upload_render_results,
+        do_upload_bench_results=do_upload_bench_results,
         **self.factory_args
     ).Build(**({'role': self.role} if hasattr(self, 'role') else {})))
 
-  def create(self, helper, do_upload_results, do_trybots=True):
+  def create(self, helper, do_upload_render_results, do_upload_bench_results,
+             do_trybots=True):
     """Sets up a builder based on this configuration object.
 
     Args:
         helper: instance of utils.SkiaHelper
-        do_upload_results: bool; whether the builder should upload its results.
+        do_upload_render_results: bool; whether the builder should upload its
+            render results.
+        do_upload_bench_results: bool; whether the builder should upload its
+            bench results.
         is_trybot: bool; whether or not to create an associated try builder.
     """
-    self._create(helper, do_upload_results, is_trybot=False)
+    self._create(helper, do_upload_render_results, do_upload_bench_results,
+                 is_trybot=False)
     if do_trybots:
-      self._create(helper, do_upload_results, is_trybot=True)
+      self._create(helper, do_upload_render_results, do_upload_bench_results,
+                   is_trybot=True)
 
 
 BuilderConfig = collections.namedtuple(
@@ -256,28 +267,35 @@ class CanaryBuilder(BaseBuilder, CanaryBuilderConfig):
 
 
 def setup_builders_from_config_list(builder_specs, helper,
-                                    do_upload_results, builder_format):
+                                    do_upload_render_results,
+                                    do_upload_bench_results, builder_format):
   """Takes a list of tuples describing builders and creates actual builders.
 
   Args:
       builder_specs: list of tuples following the one of the above formats.
       helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their
-          results.
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
       builder_format: one of the above formats.
   """
   for builder_tuple in sorted(builder_specs):
     builder = builder_format(*builder_tuple)
-    builder.create(helper, do_upload_results)
+    builder.create(helper, do_upload_render_results, do_upload_bench_results)
 
 
 
-def setup_test_and_perf_builders(helper, do_upload_results):
+def setup_test_and_perf_builders(helper, do_upload_render_results,
+                                 do_upload_bench_results):
   """Set up the Test and Perf builders.
 
   Args:
       helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their results.
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
   """
   #
   #                            TEST AND PERF BUILDERS
@@ -349,15 +367,19 @@ def setup_test_and_perf_builders(helper, do_upload_results):
   ]
 
   setup_builders_from_config_list(builder_specs, helper,
-                                  do_upload_results, Builder)
+                                  do_upload_render_results,
+                                  do_upload_bench_results, Builder)
 
 
-def setup_canaries(helper, do_upload_results):
+def setup_canaries(helper, do_upload_render_results, do_upload_bench_results):
   """Set up the Canary builders.
 
   Args:
       helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their results.
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
   """
   # Targets which we think are important for the Chrome canaries. Discussion:
   # https://code.google.com/p/skia/issues/detail?id=2227
@@ -383,16 +405,20 @@ def setup_canaries(helper, do_upload_results):
       ('Chrome', 'Win7',     'Ninja', 'x86',    'SharedLib', 'chrome', 'src',  GYP_SHARED, f_canary, WIN32,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
   ]
 
-  setup_builders_from_config_list(canaries, helper, do_upload_results,
-                                  CanaryBuilder)
+  setup_builders_from_config_list(canaries, helper, do_upload_render_results,
+                                  do_upload_bench_results, CanaryBuilder)
 
 
-def setup_housekeepers(helper, do_upload_results):
+def setup_housekeepers(helper, do_upload_render_results,
+                       do_upload_bench_results):
   """Set up the Housekeeping builders.
 
   Args:
       helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their results.
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
   """
   #
   #                          HOUSEKEEPING BUILDERS
@@ -403,21 +429,33 @@ def setup_housekeepers(helper, do_upload_results):
       ('Nightly',   'RecreateSKPs',     f_skps,         LINUX,  S_RECREATE_SKPS, {}),
   ]
 
-  setup_builders_from_config_list(housekeepers, helper, do_upload_results,
+  setup_builders_from_config_list(housekeepers, helper,
+                                  do_upload_render_results,
+                                  do_upload_bench_results,
                                   HousekeepingBuilder)
 
 
-def setup_all_builders(helper, do_upload_results):
+def setup_all_builders(helper, do_upload_render_results,
+                       do_upload_bench_results):
   """Set up all builders for this master.
 
   Args:
       helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their results.
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
   """
-  setup_test_and_perf_builders(helper=helper,
-                               do_upload_results=do_upload_results)
-  setup_canaries(helper=helper, do_upload_results=do_upload_results)
-  setup_housekeepers(helper=helper, do_upload_results=do_upload_results)
+  setup_test_and_perf_builders(
+      helper=helper,
+      do_upload_render_results=do_upload_render_results,
+      do_upload_bench_results=do_upload_bench_results)
+  setup_canaries(helper=helper,
+                 do_upload_render_results=do_upload_render_results,
+                 do_upload_bench_results=do_upload_bench_results)
+  setup_housekeepers(helper=helper,
+                     do_upload_render_results=do_upload_render_results,
+                     do_upload_bench_results=do_upload_bench_results)
 
 
 def create_schedulers_and_builders(config, active_master, cfg,
@@ -458,11 +496,10 @@ def create_schedulers_and_builders(config, active_master, cfg,
   helper.TryJobSubversion(utils.TRY_SCHEDULER_SVN)
   helper.TryJobRietveld(utils.TRY_SCHEDULER_RIETVELD)
 
-  # Only upload results if we're the production master.
-  do_upload_results = (active_master.do_upload_results and
-                       active_master.is_production_host)
-
   # Call the passed-in builder setup function.
-  builder_setup_func(helper=helper, do_upload_results=do_upload_results)
+  builder_setup_func(
+      helper=helper,
+      do_upload_render_results=active_master.do_upload_render_results,
+      do_upload_bench_results=active_master.do_upload_bench_results)
 
   return helper.Update(cfg)

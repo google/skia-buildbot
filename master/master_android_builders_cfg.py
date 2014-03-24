@@ -10,12 +10,16 @@ from master_builders_cfg import f_android, LINUX, S_PERCOMMIT, S_COMMIT_OR_SKP
 import master_builders_cfg
 
 
-def setup_test_and_perf_builders(helper, do_upload_results):
+def setup_test_and_perf_builders(helper, do_upload_render_results,
+                                 do_upload_bench_results):
   """Set up all Test and Perf builders for the private master.
 
   Args:
       helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their results.
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
   """
   #
   #                            TEST AND PERF BUILDERS
@@ -47,14 +51,23 @@ def setup_test_and_perf_builders(helper, do_upload_results):
   ]
 
   master_builders_cfg.setup_builders_from_config_list(
-      builder_specs, helper, do_upload_results, master_builders_cfg.Builder)
+      builder_specs,
+      helper,
+      do_upload_render_results,
+      do_upload_bench_results,
+      master_builders_cfg.Builder)
 
 
-def setup_all_builders(helper, do_upload_results):
+def setup_all_builders(helper, do_upload_render_results,
+                       do_upload_bench_results):
   """Set up all builders for the FYI master.
 
   Args:
       helper: instance of utils.SkiaHelper
-      do_upload_results: bool; whether the builders should upload their results.
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
   """
-  setup_test_and_perf_builders(helper, do_upload_results)
+  setup_test_and_perf_builders(helper, do_upload_render_results,
+                               do_upload_bench_results)

@@ -18,8 +18,7 @@ compare_and_upload_webpage_gms.py \
 --autogen_svn_baseurl "" --make_flags "" --test_args "" --gm_args "" \
 --bench_args "" --num_cores 8 --perf_output_basedir "" \
 --builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
---got_revision 0 --is_try False --do_upload_results True \
---dest_gsbase gs://rmistry
+--got_revision 0 --is_try False --dest_gsbase gs://rmistry
 
 """
 
@@ -174,7 +173,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
       shutil.copytree(self._local_playback_dirs.PlaybackGmActualDir(),
                       self._local_playback_dirs.PlaybackGmExpectedDir())
 
-    if not self._gm_actual_exists_on_storage and self._do_upload_results:
+    if not self._gm_actual_exists_on_storage:
       # Copy actual images to Google Storage since they do not exist yet.
       print '\n\n========Uploading gm-actual to Google Storage========\n\n'
       gs_utils.upload_directory_contents_if_changed(
@@ -215,7 +214,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
         raise Exception('Command failed with code %d' % returncode)
     except Exception as e:
       print '\n\n=========GM Comparison Failed!=========\n\n'
-      if self._do_upload_results and self._gm_actual_exists_on_storage:
+      if self._gm_actual_exists_on_storage:
 
         gm_expected_timestamp_newer = self._isGMExpectedTimestampNewer()
         if gm_expected_timestamp_newer or last_comparison_successful:
@@ -272,8 +271,7 @@ class CompareAndUploadWebpageGMs(BuildStep):
         raise BuildStepWarning(e)
     else:
       print '\n\n=========GM Comparison Succeeded!=========\n\n'
-      if (self._do_upload_results and self._gm_actual_exists_on_storage and
-          not last_comparison_successful):
+      if (self._gm_actual_exists_on_storage and not last_comparison_successful):
         print '\n\n======Last GM Comparison was unsuccessful======'
         print '======Uploading gm-actual to Google Storage======\n\n'
         gs_utils.upload_directory_contents_if_changed(

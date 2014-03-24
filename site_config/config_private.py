@@ -73,7 +73,8 @@ class Master(config_default.Master):
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('public_master_host')
     is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER_INTERNAL_FQDN
-    do_upload_results = True
+    _skip_render_results_upload = False
+    _skip_bench_results_upload = False
     master_port = skia_vars.GetGlobalVariable('public_internal_port')
     slave_port = skia_vars.GetGlobalVariable('public_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('public_external_port')
@@ -83,6 +84,14 @@ class Master(config_default.Master):
     code_review_site = \
         skia_vars.GetGlobalVariable('code_review_status_listener')
     tree_status_url = skia_vars.GetGlobalVariable('tree_status_url')
+
+    @property
+    def do_upload_render_results(self):
+      return self.is_production_host and not self._skip_render_results_upload
+
+    @property
+    def do_upload_bench_results(self):
+      return self.is_production_host and not self._skip_bench_results_upload
 
     def create_schedulers_and_builders(self, cfg):
       """Create the Schedulers and Builders.
@@ -104,9 +113,10 @@ class Master(config_default.Master):
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('private_master_host')
     is_production_host = socket.getfqdn() == SKIA_PRIVATE_MASTER_INTERNAL_FQDN
-    # Don't upload results on the private master, since we don't yet have a
-    # private destination for them.
-    do_upload_results = False
+    _skip_render_results_upload = False
+    # Don't upload bench results on the private master, since we don't yet have
+    # a private destination for them.
+    _skip_bench_results_upload = True
     master_port = skia_vars.GetGlobalVariable('private_internal_port')
     slave_port = skia_vars.GetGlobalVariable('private_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('private_external_port')
@@ -137,7 +147,8 @@ class Master(config_default.Master):
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('fyi_master_host')
     is_production_host = socket.getfqdn() == SKIA_FYI_MASTER_INTERNAL_FQDN
-    do_upload_results = True
+    _skip_render_results_upload = False
+    _skip_bench_results_upload = False
     master_port = skia_vars.GetGlobalVariable('fyi_internal_port')
     slave_port = skia_vars.GetGlobalVariable('fyi_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('fyi_external_port')
@@ -168,7 +179,8 @@ class Master(config_default.Master):
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('android_master_host')
     is_production_host = socket.getfqdn() == SKIA_ANDROID_MASTER_INTERNAL_FQDN
-    do_upload_results = True
+    _skip_render_results_upload = False
+    _skip_bench_results_upload = False
     master_port = skia_vars.GetGlobalVariable('android_internal_port')
     slave_port = skia_vars.GetGlobalVariable('android_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('android_external_port')
@@ -199,7 +211,8 @@ class Master(config_default.Master):
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('compile_master_host')
     is_production_host = socket.getfqdn() == SKIA_COMPILE_MASTER_INTERNAL_FQDN
-    do_upload_results = True
+    _skip_render_results_upload = False
+    _skip_bench_results_upload = False
     master_port = skia_vars.GetGlobalVariable('compile_internal_port')
     slave_port = skia_vars.GetGlobalVariable('compile_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('compile_external_port')
