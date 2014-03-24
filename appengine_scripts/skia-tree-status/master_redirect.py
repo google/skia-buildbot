@@ -14,16 +14,22 @@ import base_page
 # Static IP addresses of our various services.
 # For faster response time these IPs should be reordered when GCE instances are
 # migrated during PCRs (preferred server should be listed first).
-BUILDBOT_MASTER_IPS =   ['108.170.217.252', '173.255.115.253']
-REBASELINE_SERVER_IPS = ['108.170.217.246']
+BUILDBOT_MASTER_IPS =         ['108.170.217.252', '173.255.115.253']
+FYI_BUILDBOT_MASTER_IPS =     ['108.170.219.160', '108.170.219.161']
+ANDROID_BUILDBOT_MASTER_IPS = ['108.170.219.162', '108.170.219.163']
+COMPILE_BUILDBOT_MASTER_IPS = ['108.170.219.164', '108.170.219.165']
+REBASELINE_SERVER_IPS =       ['108.170.217.246']
 
 # Map of service type to (list_of_possible_ip_addrs, port, subpart, protocol).
 # The list_of_possible_ip_addrs, port, and protocol must be specified;
 # subpart can be an empty string if not needed.
 SERVICE_TYPE_TO_INFO = {
-    'buildbots':          (  BUILDBOT_MASTER_IPS, 10117, '', 'http'),
-    'rebaseline-server':  (REBASELINE_SERVER_IPS, 10117, '', 'http'),
-    'repo-serving':       (  BUILDBOT_MASTER_IPS,  8000, '', 'http'),
+    'buildbots':          (        BUILDBOT_MASTER_IPS, 10117, '', 'http'),
+    'fyi-buildbots':      (    FYI_BUILDBOT_MASTER_IPS, 10117, '', 'http'),
+    'android-buildbots':  (ANDROID_BUILDBOT_MASTER_IPS, 10117, '', 'http'),
+    'compile-buildbots':  (COMPILE_BUILDBOT_MASTER_IPS, 10117, '', 'http'),
+    'rebaseline-server':  (      REBASELINE_SERVER_IPS, 10117, '', 'http'),
+    'repo-serving':       (        BUILDBOT_MASTER_IPS,  8000, '', 'http'),
 }
 # Timeout to use in urlopen when determining which IP is up.
 URLOPEN_TIMEOUT = 15
