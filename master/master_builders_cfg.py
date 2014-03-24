@@ -387,6 +387,26 @@ def setup_canaries(helper, do_upload_results):
                                   CanaryBuilder)
 
 
+def setup_housekeepers(helper, do_upload_results):
+  """Set up the Housekeeping builders.
+
+  Args:
+      helper: instance of utils.SkiaHelper
+      do_upload_results: bool; whether the builders should upload their results.
+  """
+  #
+  #                          HOUSEKEEPING BUILDERS
+  #
+  #   Frequency,    Extra Config,       Factory,        Target, Scheduler,       Extra Args
+  #
+  housekeepers = [
+      ('Nightly',   'RecreateSKPs',     f_skps,         LINUX,  S_RECREATE_SKPS, {}),
+  ]
+
+  setup_builders_from_config_list(housekeepers, helper, do_upload_results,
+                                  HousekeepingBuilder)
+
+
 def setup_all_builders(helper, do_upload_results):
   """Set up all builders for this master.
 
@@ -397,6 +417,7 @@ def setup_all_builders(helper, do_upload_results):
   setup_test_and_perf_builders(helper=helper,
                                do_upload_results=do_upload_results)
   setup_canaries(helper=helper, do_upload_results=do_upload_results)
+  setup_housekeepers(helper=helper, do_upload_results=do_upload_results)
 
 
 def create_schedulers_and_builders(config, active_master, cfg,
