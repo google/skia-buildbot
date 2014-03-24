@@ -218,11 +218,13 @@ class BuildStep(multiprocessing.Process):
                                            self._builder_name, 'graphs')
       self._perf_range_input_dir = os.path.join(
           args['perf_output_basedir'], self._builder_name, 'expectations')
+      self._perf_autogen_upload_dir = os.path.join(
+          args['perf_output_basedir'], self._builder_name, 'autogen_upload')
     else:
       self._perf_data_dir = None
       self._perf_graphs_dir = None
       self._perf_range_input_dir = None
-
+      self._perf_autogen_upload_dir = None
     self._skimage_in_dir = os.path.join(os.pardir, 'skimage_in')
 
     self._skimage_expected_dir = os.path.join('expectations', 'skimage')

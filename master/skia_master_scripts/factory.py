@@ -628,6 +628,20 @@ class SkiaFactory(BuildFactory):
                         description='UploadBenchResults',
                         exception_on_failure=True)
 
+  def GenerateBenchExpectations(self):
+    """ Calculate bench (performance data) expectations and save to file. """
+    self.AddSlaveScript(script='generate_bench_expectations.py',
+                        description='GenerateBenchExpectations', timeout=600,
+                        exception_on_failure=True)
+
+  def UploadBenchExpectations(self):
+    """ Upload bench expectations file to skia-autogen SVN repo. """
+    args = ['--autogen_svn_username_file', self._autogen_svn_username_file,
+            '--autogen_svn_password_file', self._autogen_svn_password_file]
+    self.AddSlaveScript(script='upload_bench_expectations.py', args=args,
+                        description='UploadBenchExpectations', timeout=5400,
+                        exception_on_failure=True)
+
   def UploadBenchResultsToAppEngine(self):
     """ Upload bench results (performance data) to AppEngine. """
     self.AddSlaveScript(script='upload_bench_results_appengine.py',
