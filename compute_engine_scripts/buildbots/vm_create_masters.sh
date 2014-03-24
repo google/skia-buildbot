@@ -17,14 +17,14 @@ for VM in $VM_MASTER_NAMES; do
 
   $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM}-${ZONE_TAG} \
     --zone=$ZONE \
-    --disk=${VM}-root-${ZONE_TAG},deviceName=master-root,boot \
-    --disk=${VM}-disk-${ZONE_TAG},deviceName=master-disk \
+    --disk=${VM_NAME_BASE}-${VM}-disk-${ZONE_TAG},deviceName=master-disk \
     --external_ip_address=$IP_ADDRESS \
     --service_account=default \
     --service_account_scopes="$SCOPES" \
     --network=default \
     --machine_type=$MASTER_MACHINE_TYPE \
-    --service_version=v1beta16
+    --image=$SKIA_BUILDBOT_IMAGE_NAME_V1 \
+    --persistent_boot_disk
 
   if [[ $? != "0" ]]; then
     echo

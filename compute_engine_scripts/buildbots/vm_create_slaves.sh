@@ -9,7 +9,7 @@ source vm_config.sh
 
 COUNTER=0
 # Get the IP addresses array for the requested zone.
-IP_ADDRESSES_ARR=($(eval echo \$SLAVE_IP_ADDRESSES_${ZONE_TAG}))
+IP_ADDRESSES_ARR=($SLAVE_IP_ADDRESSES)
 
 for VM in $VM_SLAVE_NAMES; do
   IP_ADDRESS=${IP_ADDRESSES_ARR[$COUNTER]}
@@ -17,14 +17,14 @@ for VM in $VM_SLAVE_NAMES; do
 
   $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM}-${ZONE_TAG} \
     --zone=$ZONE \
+    --disk=${VM_NAME_BASE}-${VM}-disk-${ZONE_TAG},deviceName=slave-disk \
     --external_ip_address=$IP_ADDRESS \
     --service_account=default \
     --service_account_scopes="$SCOPES" \
     --network=default \
     --machine_type=$SLAVES_MACHINE_TYPE \
-    --image=$SKIA_BUILDBOT_IMAGE_NAME \
-    --nopersistent_boot_disk \
-    --service_version=v1beta16
+    --image=$SKIA_BUILDBOT_IMAGE_NAME_V1 \
+    --persistent_boot_disk
 
   if [[ $? != "0" ]]; then
     echo

@@ -59,6 +59,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     "unzip nacl_sdk.zip && " \
     "rm nacl_sdk.zip && " \
     "nacl_sdk/naclsdk update $NACL_PEPPER_VERSION && " \
+    "sed -i /NACL_SDK_ROOT/d /home/$PROJECT_USER/.bashrc && " \
     "echo 'export NACL_SDK_ROOT=/home/$PROJECT_USER/$SKIA_REPO_DIR/nacl_sdk/$NACL_PEPPER_VERSION' >> /home/$PROJECT_USER/.bashrc" \
     || FAILED="$FAILED NativeClient"
   echo
@@ -74,7 +75,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
   echo
   echo "===== Copying over required master and slave files. ====="
   for REQUIRED_FILE in ${REQUIRED_FILES_FOR_SLAVES[@]}; do
-    $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \             
+    $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
       $REQUIRED_FILE /home/$PROJECT_USER/
     $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
       $REQUIRED_FILE /home/$PROJECT_USER/$SKIA_REPO_DIR/
