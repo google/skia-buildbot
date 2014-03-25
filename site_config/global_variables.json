@@ -152,7 +152,7 @@
     "description": "The cluster in which the GCE instances run."
   },
   "gce_compile_bots_zone": {
-    "value": "a",
+    "value": "b",
     "type": "string",
     "description": "The zone of the Compile buildbots on GCE."
   },
