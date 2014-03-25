@@ -475,7 +475,7 @@ def create_schedulers_and_builders(config, active_master, cfg,
   helper.Scheduler(S_PERCOMMIT)
 
   # Scheduler for Skia that runs at 5:30 pm EST (10:30 pm UTC).
-  helper.PeriodicScheduler(S_EVENING, minute=30, hour=10)
+  helper.PeriodicScheduler(S_EVENING, minute=30, hour=22)
 
   # Scheduler for the RecreateSKPs bot which runs before the Nightly Scheduler.
   # Setting it to 1AM UTC (8 PM EST).
