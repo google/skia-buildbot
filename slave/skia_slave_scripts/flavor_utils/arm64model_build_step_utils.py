@@ -59,14 +59,11 @@ class Arm64ModelBuildStepUtils(SshBuildStepUtils):
       'bin')
     assert os.path.isdir(toolchain_bin)
 
-    platform_bin = os.path.join('platform_tools', 'barelinux', 'bin')
     make_cmd = [
-      os.path.join(platform_bin, 'barelinux_make'),
+      os.path.join(platform_bin, 'arm64_make'),
       '-o', self._build_dir,
       '-c', os.path.join(toolchain_bin, 'aarch64-linux-gnu-gcc'),
       '-x', os.path.join(toolchain_bin, 'aarch64-linux-gnu-g++'),
       '-t', self._step.configuration,
-      'skia_gpu=0 skia_arch_type=arm skia_arch_width=64 '
-      ' armv7=1 armv8=1 arm_neon=0 arm_thumb=0'
       ]
     shell_utils.run(make_cmd, log_in_real_time=False)
