@@ -30,24 +30,24 @@ ALL_EMAIL_TYPES = (
     STATUS_EMAIL_TYPE
 )
 
-CURRENT_SHERIFF_JSON_URL = skia_vars.GetGlobalVariable('current_sheriff_url')
+NEXT_SHERIFF_JSON_URL = skia_vars.GetGlobalVariable('next_sheriff_url')
 DEFAULT_EMAIL_SENDER = 'skia.buildbots@gmail.com'
 ADDITIONAL_EMAIL_RECIPIENTS = ['skiabot@google.com']
 
 
 def _GetSheriffDetails():
-  """Returns the current sheriff and his/her schedule."""
-  connection = urllib2.urlopen(CURRENT_SHERIFF_JSON_URL)
+  """Returns the next sheriff and his/her schedule."""
+  connection = urllib2.urlopen(NEXT_SHERIFF_JSON_URL)
   sheriff_details = json.loads(connection.read())
   connection.close()
   return sheriff_details
 
 
 def EmailSheriff():
-  """Sends an email to the current sheriff."""
+  """Sends an email to the next sheriff."""
   sheriff_details = _GetSheriffDetails()
   if not sheriff_details:
-    raise Exception('%s returned no data!' % CURRENT_SHERIFF_JSON_URL)
+    raise Exception('%s returned no data!' % NEXT_SHERIFF_JSON_URL)
 
   sheriff_email = sheriff_details['username']
   sheriff_username = sheriff_email.split('@')[0]
@@ -59,10 +59,13 @@ def EmailSheriff():
 Hi %s,
 
 
-You are the Skia sheriff for the week (%s - %s).
+You will be the Skia sheriff and DEPS roller for the coming week (%s - %s).
 
 Documentation for sheriffs is here:
 https://sites.google.com/site/skiadocs/developer-documentation/tree-sheriff
+
+Documentation for how to do DEPS rolls is here:
+https://docs.google.com/a/google.com/document/d/1FpZcTplr_WbtLgbxZT7Wr0hfx1vd3S31kHIqABHjp40/edit
 
 The schedule for sheriffs is here:
 http://skia-tree-status.appspot.com/sheriff
@@ -76,7 +79,7 @@ Thanks!
 \n\n""" % (sheriff_username, sheriff_details['schedule_start'],
            sheriff_details['schedule_end'])
 
-  subject = '%s is the new sheriff' % sheriff_username
+  subject = '%s is the next Skia Sheriff' % sheriff_username
   SendEmail(DEFAULT_EMAIL_SENDER, recipients, subject, body)
 
 
@@ -88,7 +91,7 @@ def EmailStatus():
 
   sheriff_details = _GetSheriffDetails()
   if not sheriff_details:
-    raise Exception('%s returned no data!' % CURRENT_SHERIFF_JSON_URL)
+    raise Exception('%s returned no data!' % NEXT_SHERIFF_JSON_URL)
 
   body = """
 Hello all,

@@ -101,6 +101,11 @@
     "type": "string",
     "description": "URL that displays the current sheriff and his/her schedule."
   },
+  "next_sheriff_url": {
+    "value": "https://skia-tree-status.appspot.com/next-sheriff",
+    "type": "string",
+    "description": "URL that displays the next sheriff and his/her schedule."
+  },
   "default_webstatus_refresh": {
     "value": "60",
     "type": "integer",

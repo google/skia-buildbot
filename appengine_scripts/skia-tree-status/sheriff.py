@@ -81,6 +81,24 @@ class CurrentSheriffPage(BasePage):
     self.response.out.write(data)
 
 
+class NextSheriffPage(BasePage):
+  """Displays the next sheriff and schedule in JSON."""
+
+  def get(self):
+    self.response.headers['Content-Type'] = 'application/json'
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
+    upcoming_schedules = SheriffSchedules.get_upcoming_schedules()
+    if upcoming_schedules and len(upcoming_schedules) > 1:
+      data = json.dumps(upcoming_schedules[1].AsDict())
+    else:
+      data = json.dumps({})
+    callback = self.request.get('callback')
+    if callback:
+      data = callback + '(' + data + ')'
+    self.response.headers['Content-Type'] = 'application/json'
+    self.response.out.write(data)
+
+
 class SheriffPage(BasePage):
   """Displays the list and rotation schedule of all sheriffs."""
 
