@@ -64,7 +64,7 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
   #
   builder_specs = [
       ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',  'x86_64',  'Debug',  'TSAN',      None,    f_xsan,   LINUX,  S_PERCOMMIT, {'sanitizer': 'thread'}),
-      ('Test', 'Linux',    'Bare',       'NoGPU',   'Arm8_64', 'Debug',  None,        None,    f_a64mod, LINUX,  S_PERCOMMIT, {'board': 'arm64emu', 'bench_pictures_cfg': 'no_gpu'}),
+      ('Test', 'Linux',    'Bare',       'NoGPU',   'Arm8_64', 'Debug',  None,        None,    f_a64mod, LINUX,  S_PERCOMMIT, {'board': 'arm64emu', 'bench_pictures_cfg': 'no_gpu', 'default_timeout': 100000}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(
