@@ -62,6 +62,7 @@ done
 
 # Copy the webpages_archive directory to Google Storage.
 gsutil rm -R gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/*
+sudo chown -R default:default /home/default/storage/webpages_archive/$PAGESETS_TYPE
 gsutil cp /home/default/storage/webpages_archive/$PAGESETS_TYPE/* \
   gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/
 
