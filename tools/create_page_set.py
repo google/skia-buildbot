@@ -75,7 +75,7 @@ if '__main__' == __name__:
   option_parser.add_option(
       '-p', '--pagesets_type',
       help='The type of pagesets to create from the 1M list. Eg: All, '
-           'Filtered, 100k, 10k, Deeplinks',
+           'Filtered, 100k, 10k, Deeplinks, IndexSample10k',
       default='All')
   options, unused_args = option_parser.parse_args()
 
@@ -104,15 +104,15 @@ if '__main__' == __name__:
   json_dict = {
       '_comment': 'Generated on %s by %s using create_page_set.py' % (
           datetime.now(), getpass.getuser()),
-      'description': 'Top %s-%s Alexa global.' % (options.start_number,
-                                                  options.end_number),
+      'description': 'Number %s from the random index sample.' % (
+          options.start_number),
       'archive_data_file': os.path.join(
           '/', 'home', 'default', 'storage', 'webpages_archive',
           options.pagesets_type,
           'alexa%s-%s.json' % (options.start_number, options.end_number)),
       'pages': pages,
       'smoothness': { 'action': 'scroll'},
-      'user_agent_type': 'desktop',
+      'user_agent_type': 'mobile',
   }
 
   blacklisted_webpages = (open(options.blacklist).readlines()
@@ -120,17 +120,11 @@ if '__main__' == __name__:
 
   for index in xrange(int(options.start_number) - 1, int(options.end_number)):
     line = csv_contents[index]
-    if options.csv_file:
-      try:
-        (unused_number, website, qualified_website) = line.strip().split(',')
-      except ValueError:
-        print '%s is not mapped to a qualified website.' % (
-            line.strip().split(',')[1])
-        continue
+    website = line.strip()
+    if website.startswith('https://'):
+      qualified_website = website
     else:
-      (unused_number, website) = line.strip().split(',')
-      # Qualified website was not provided in the CSV, construct it.
-      qualified_website = 'http://www.%s' % website
+      qualified_website = 'http://%s' % website
 
     website_filename = '%s%s_%s_desktop' % (
         ALEXA_PREFIX, index + 1, website.replace('.', '-').replace('/', '-'))

@@ -31,10 +31,10 @@ source ../vm_config.sh
 # Update buildbot.
 gclient sync
 
-# If PAGESETS_TYPE is 100k or 10k then adjust NUM_WEBPAGES.
+# If PAGESETS_TYPE is 100k or 10k or IndexSample10k then adjust NUM_WEBPAGES.
 if [ "$PAGESETS_TYPE" == "100k" ]; then
   NUM_WEBPAGES=100000
-elif [ "$PAGESETS_TYPE" == "10k" ]; then
+elif [ "$PAGESETS_TYPE" == "10k" || "$PAGESETS_TYPE" == "IndexSample10k" ]; then
   NUM_WEBPAGES=10000
 fi
 

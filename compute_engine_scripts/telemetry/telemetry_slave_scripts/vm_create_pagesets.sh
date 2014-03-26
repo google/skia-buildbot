@@ -40,10 +40,10 @@ rm -rf page_sets/*.json
 # CLean and create directories where page_sets will be stored.
 rm -rf ~/storage/page_sets/$PAGESETS_TYPE/*
 
-# If PAGESETS_TYPE is 100k or 10k then adjust NUM_WEBPAGES.
+# If PAGESETS_TYPE is 100k or 10k or IndexSample10k then adjust NUM_WEBPAGES.
 if [ "$PAGESETS_TYPE" == "100k" ]; then
   NUM_WEBPAGES=100000
-elif [ "$PAGESETS_TYPE" == "10k" ]; then
+elif [ "$PAGESETS_TYPE" == "10k" || "$PAGESETS_TYPE" == "IndexSample10k" ]; then
   NUM_WEBPAGES=10000
 fi
 
@@ -61,14 +61,21 @@ if [ -e /etc/boto.cfg ]; then
   sudo mv /etc/boto.cfg /etc/boto.cfg.bak
 fi
 
-# Download the top-1m.csv with qualified websites from Google Storage.
-gsutil cp gs://chromium-skia-gm/telemetry/csv/top-1m.csv page_sets/top-1m.csv
+if [ "$PAGESETS_TYPE" == "IndexSample10k" ]; then
+  CSV_PATH="page_sets/index-sample-10k.csv"
+  # Download the sample 10k from Google Storage.
+  gsutil cp gs://chromium-skia-gm/telemetry/csv/index-sample-10k.csv $CSV_PATH
+else
+  CSV_PATH="page_sets/top-1m.csv"
+  # Download the top-1m.csv with qualified websites from Google Storage.
+  gsutil cp gs://chromium-skia-gm/telemetry/csv/top-1m.csv $CSV_PATH
+fi
 
 # Run create_page_set.py
 for PAGESET_NUM in $(seq 1 $NUM_PAGESETS_PER_SLAVE); do
   END=$(expr $START + $MAX_WEBPAGES_PER_PAGESET - 1)
   python create_page_set.py -s $START -e $END \
-    -c page_sets/top-1m.csv $BLACKLIST_ARG -p $PAGESETS_TYPE
+    -c $CSV_PATH $BLACKLIST_ARG -p $PAGESETS_TYPE
   START=$(expr $END + 1)
 done
 # Copy page_sets to the local directory.

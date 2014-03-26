@@ -32,6 +32,7 @@ PAGESET_TYPES = (
     'Filtered',
     '100k',
     '10k',
+    'IndexSample10k',
 )
 
 # Constants for ChromiumTryPage.
