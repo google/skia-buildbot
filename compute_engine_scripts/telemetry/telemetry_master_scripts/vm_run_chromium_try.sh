@@ -26,10 +26,11 @@ OPTIONS:
   -e The email address of the requester
   -i The key of the appengine telemetry task
   -l The location of the log file
+  -y The pageset type to run against (Eg: 10k/IndexSample10k)
 EOF
 }
 
-while getopts "hp:t:s:r:v:o:b:a:e:i:l:" OPTION
+while getopts "hp:t:s:r:v:o:b:a:e:i:l:y:" OPTION
 do
   case $OPTION in
     h)
@@ -69,6 +70,9 @@ do
     l)
       LOG_FILE_LOCATION=$OPTARG
       ;;
+    y)
+      PAGESET_TYPE=$OPTARG
+      ;;
     ?)
       usage
       exit
@@ -80,7 +84,8 @@ if [[ -z $CHROMIUM_PATCH_LOCATION ]] || [[ -z $BLINK_PATCH_LOCATION ]] || \
    [[ -z $VARIANCE_THRESHOLD ]] || [[ -z $DISCARD_OUTLIERS ]] || \
    [[ -z $TELEMETRY_BENCHMARK ]] || [[ -z $EXTRA_ARGS ]] || \
    [[ -z $REQUESTER_EMAIL ]] || [[ -z $APPENGINE_KEY ]] || \
-   [[ -z $LOG_FILE_LOCATION ]] || [[ -z $SKIA_PATCH_LOCATION ]]
+   [[ -z $LOG_FILE_LOCATION ]] || [[ -z $SKIA_PATCH_LOCATION ]] || \
+   [[ -z $PAGESET_TYPE ]]
 then
   usage
   exit 1
@@ -142,7 +147,7 @@ if [ $ret_value -eq 0 ]; then
   TELEMETRY_NOPATCH_ID=$RUN_ID-nopatch
   TIMER="$(date +%s)"
   TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
-      "$EXTRA_ARGS" 10k $CHROMIUM_BUILD_DIR $TELEMETRY_NOPATCH_ID \
+      "$EXTRA_ARGS" $PAGESET_TYPE $CHROMIUM_BUILD_DIR $TELEMETRY_NOPATCH_ID \
       $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
   TELEMETRY_WITHOUT_PATCH_TIME="$(($(date +%s)-TIMER))"
 
@@ -156,7 +161,7 @@ if [ $ret_value -eq 0 ]; then
   TELEMETRY_WITHPATCH_ID=$RUN_ID-withpatch
   TIMER="$(date +%s)"
   TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
-      "$EXTRA_ARGS" 10k $CHROMIUM_BUILD_DIR-withpatch $TELEMETRY_WITHPATCH_ID \
+      "$EXTRA_ARGS" $PAGESET_TYPE $CHROMIUM_BUILD_DIR-withpatch $TELEMETRY_WITHPATCH_ID \
       $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
   TELEMETRY_WITH_PATCH_TIME="$(($(date +%s)-TIMER))"
 

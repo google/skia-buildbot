@@ -161,6 +161,7 @@ def process_chromium_try_task(task):
   benchmark_arguments = benchmark_arguments.replace('"', r'\"')
   variance_threshold = task['variance_threshold']
   discard_outliers = task['discard_outliers']
+  pageset_type = task['pageset_type']
   # Copy the patch to a local file.
   run_id = '%s-%s' % (username.split('@')[0], time.time())
   chromium_patch_file = fix_and_write_patch(task['chromium_patch'],
@@ -186,6 +187,7 @@ def process_chromium_try_task(task):
       '-e', str(username),
       '-i', str(task_key),
       '-l', str(log_file),
+      '-y', str(pageset_type),
   ]
   subprocess.Popen(cmd, stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))

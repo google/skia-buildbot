@@ -330,6 +330,7 @@ class ChromiumTryTasks(BaseTelemetryModel):
   username = db.StringProperty(required=True)                                   
   benchmark_name = db.StringProperty(required=True)                             
   benchmark_arguments = db.StringProperty()
+  pageset_type = db.StringProperty()
   skia_patch = db.BlobProperty()
   chromium_patch = db.BlobProperty()
   blink_patch = db.BlobProperty()
@@ -354,6 +355,7 @@ class ChromiumTryTasks(BaseTelemetryModel):
             'username': self.username,
             'benchmark_name': self.benchmark_name,
             'benchmark_arguments': self.benchmark_arguments,
+            'pageset_type': self.pageset_type,
             'skia_patch': self.skia_patch,
             'chromium_patch': self.chromium_patch,
             'blink_patch': self.blink_patch,
@@ -842,6 +844,7 @@ class ChromiumTryPage(BasePage):
     # It is an add chromium try task request.
     benchmark_name = self.request.get('benchmark_name')
     benchmark_arguments = self.request.get('benchmark_arguments')
+    pageset_type = self.request.get('pageset_type')
     variance_threshold = float(self.request.get('variance_threshold'))
     discard_outliers = float(self.request.get('discard_outliers'))
     description = self.request.get('description')
@@ -856,6 +859,7 @@ class ChromiumTryPage(BasePage):
         username=self.user.email(),
         benchmark_name=benchmark_name,
         benchmark_arguments=benchmark_arguments,
+        pageset_type=pageset_type,
         skia_patch=skia_patch,
         chromium_patch=chromium_patch,
         blink_patch=blink_patch,
@@ -876,6 +880,9 @@ class ChromiumTryPage(BasePage):
 
     chromium_try_tasks = ChromiumTryTasks.get_all_chromium_try_tasks_of_user(
         self.user.email())
+    # Only support all 10k pagesets for now.
+    template_values['pagesets'] = filter(lambda pageset: '10k' in pageset,
+                                         PAGESET_TYPES)
     template_values['supported_benchmarks'] = CHROMIUM_TRY_SUPPORTED_BENCHMARKS
     template_values['chromium_try_tasks'] = chromium_try_tasks
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()

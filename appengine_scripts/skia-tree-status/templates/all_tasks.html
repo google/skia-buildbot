@@ -17,6 +17,7 @@
       <td><b>Benchmark Argument</b></td>
       <td><b>Variance Threshold</b></td>
       <td><b>Discard Outliers</b></td>
+      <td><b>Pagesets Type</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Chromium Patch Link</b></td>
@@ -35,6 +36,13 @@
       <td>{{ task.benchmark_arguments }}</td>
       <td>{{ task.variance_threshold }}</td>
       <td>{{ task.discard_outliers }}</td>
+      <td>
+        {% if task.pageset_type %}
+          {{ task.pageset_type }}
+        {% else %}
+          10k
+        {% endif %}
+      </td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}

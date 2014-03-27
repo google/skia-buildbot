@@ -67,6 +67,16 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
         <input type="text" name="discard_outliers" size"5" value="10"/>
         10% is the recommended percentage of outliers to discard from top and bottom.
       </td>                                                                     
+    </tr>
+    <tr>
+      <td>Pagesets Type</td>
+      <td>
+        <select id="pageset_type" name="pageset_type">
+          {% for pageset in pagesets %}
+            <option value="{{ pageset }}">{{ pageset }}</option>
+          {% endfor %}
+        </select>
+      </td>
     </tr>                                                                       
     <tr>                                                                        
       <td>Description</td>                                             
@@ -133,6 +143,7 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
       <td><b>Benchmark Arguments</b></td>
       <td><b>Variance Threshold</b></td>
       <td><b>Discard Outliers</b></td>
+      <td><b>Pagesets Type</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
       <td><b>Chromium Patch Link</b></td>
@@ -151,6 +162,13 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
       <td>{{ task.benchmark_arguments }}</td>
       <td>{{ task.variance_threshold }}</td>
       <td>{{ task.discard_outliers }}</td>
+      <td>
+        {% if task.pageset_type %}
+          {{ task.pageset_type }}
+        {% else %}
+          10k
+        {% endif %}
+      </td>
       <td>{{ task.requested_time }}</td>
       <td>
         {% if task.completed_time %}
