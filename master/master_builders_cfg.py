@@ -55,11 +55,12 @@ PERF_OUTPUT_BASEDIR = {
 S_PERCOMMIT = 'skia_percommit_scheduler'
 S_NIGHTLY = 'skia_nightly_scheduler'
 S_MORNING = 'skia_morning_scheduler'
-S_EVENING = 'skia_evening_scheduler'
 S_RECREATE_SKPS = 'skia_recreate_skps_scheduler'
 S_POST_RECREATE_SKPS = 'skia_post_recreate_skps_scheduler'
 S_COMMIT_OR_SKP = '|'.join((S_PERCOMMIT, S_POST_RECREATE_SKPS))
 
+S_5AM = 'skia_5AM_UTC'
+S_5PM = 'skia_5PM_UTC'
 
 defaults = {}
 
@@ -474,8 +475,9 @@ def create_schedulers_and_builders(config, active_master, cfg,
   # Default (per-commit) Scheduler for Skia.
   helper.Scheduler(S_PERCOMMIT)
 
-  # Scheduler for Skia that runs at 5:30 pm EST (10:30 pm UTC).
-  helper.PeriodicScheduler(S_EVENING, minute=30, hour=22)
+  # Schedulers that run at 5 AM and 5 PM UTC, 12 EST or 1 EDT.
+  helper.PeriodicScheduler(S_5AM, minute=0, hour=5)
+  helper.PeriodicScheduler(S_5PM, minute=0, hour=17)
 
   # Scheduler for the RecreateSKPs bot which runs before the Nightly Scheduler.
   # Setting it to 1AM UTC (8 PM EST).

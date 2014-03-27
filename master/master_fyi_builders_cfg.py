@@ -9,7 +9,7 @@ from master_builders_cfg import f_a64mod, f_deps, f_deps_results, f_percommit
 from master_builders_cfg import f_periodic, f_xsan, HousekeepingBuilder, LINUX
 
 # Schedulers
-from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, S_EVENING, S_MORNING
+from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, S_5AM, S_5PM, S_MORNING
 
 from skia_master_scripts.moz2d_canary_factory \
     import Moz2DCanaryFactory as f_moz2d
@@ -94,7 +94,8 @@ def setup_housekeepers(helper, do_upload_render_results,
   housekeepers = [
       ('PerCommit', None,               f_percommit,    LINUX,  S_PERCOMMIT,     {}),
       ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,       {}),
-      ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  S_EVENING,       {}),
+      ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  S_5AM,           {}),
+      ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  S_5PM,           {}),
       ('Daily',     'DEPSRollResults',  f_deps_results, LINUX,  S_MORNING,       {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
       ('Nightly',   'Monitoring',       f_monitor,      LINUX,  S_NIGHTLY,       {}),
   ]
