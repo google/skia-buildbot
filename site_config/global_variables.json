@@ -247,12 +247,12 @@
     "description": "Internally-visible port on the Skia build master."
   },
   "public_master_host": {
-    "value": "108.170.217.252",
+    "value": "108.170.220.120",
     "type": "string",
     "description": "Hostname (or IP address) that can be used to reach the public Skia build master."
   },
   "public_master_internal_fqdn": {
-    "value": "skia-master-a.c.skia-buildbots.google.com.internal",
+    "value": "skia-master-b.c.skia-buildbots.google.com.internal",
     "type": "string",
     "description": "What the public Skia build master thinks its own FQDN is."
   },

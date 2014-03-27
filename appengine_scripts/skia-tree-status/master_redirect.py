@@ -14,7 +14,7 @@ import base_page
 # Static IP addresses of our various services.
 # For faster response time these IPs should be reordered when GCE instances are
 # migrated during PCRs (preferred server should be listed first).
-BUILDBOT_MASTER_IPS =         ['108.170.217.252', '173.255.115.253']
+BUILDBOT_MASTER_IPS =         ['108.170.220.120', '108.170.220.117']
 FYI_BUILDBOT_MASTER_IPS =     ['108.170.219.160', '108.170.219.161']
 ANDROID_BUILDBOT_MASTER_IPS = ['108.170.219.162', '108.170.219.163']
 COMPILE_BUILDBOT_MASTER_IPS = ['108.170.219.164', '108.170.219.165']
