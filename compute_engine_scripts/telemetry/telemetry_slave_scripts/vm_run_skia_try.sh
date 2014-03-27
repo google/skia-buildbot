@@ -155,9 +155,12 @@ function run_render_pictures {
   fi
   ./out/Release/render_pictures -r $LOCAL_SKP_DIR $render_pictures_args_of_run -w $output_dir --writeJsonSummaryPath $output_dir/summary.json
   if [ $? -ne 0 ]; then
-    echo "== Failure when running render_pictures. Exiting. =="
-    cleanup_slave_before_exit
-    exit 1
+    echo "== Failures when running render_pictures. =="
+    # TODO(rmistry): Commenting out the below because some SKPs fail during
+    # rendering sometimes, but this is inconsistent and not reproducable.
+    # echo "== Failure when running render_pictures. Exiting. =="
+    # cleanup_slave_before_exit
+    # exit 1
   fi
 }
 
