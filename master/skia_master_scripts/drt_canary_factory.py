@@ -23,7 +23,9 @@ class DRTCanaryFactory(factory.SkiaFactory):
     """
     factory.SkiaFactory.__init__(self,
                                  flavor='chrome_canary',
-                                 build_targets=['content_shell'],
+                                 build_targets=['content_shell',
+                                                'dump_syms',
+                                                'minidump_stackwalk'],
                                  **kwargs)
     self._path_to_skia = self.TargetPath.join(*path_to_skia)
 
