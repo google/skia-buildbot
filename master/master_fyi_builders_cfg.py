@@ -89,15 +89,14 @@ def setup_housekeepers(helper, do_upload_render_results,
   #
   #                          HOUSEKEEPING BUILDERS
   #
-  #   Frequency,    Extra Config,       Factory,        Target, Scheduler,       Extra Args
+  #   Frequency,    Extra Config,       Factory,        Target, Scheduler,                Extra Args
   #
   housekeepers = [
-      ('PerCommit', None,               f_percommit,    LINUX,  S_PERCOMMIT,     {}),
-      ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,       {}),
-      ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  S_5AM,           {}),
-      ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  S_5PM,           {}),
-      ('Daily',     'DEPSRollResults',  f_deps_results, LINUX,  S_MORNING,       {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
-      ('Nightly',   'Monitoring',       f_monitor,      LINUX,  S_NIGHTLY,       {}),
+      ('PerCommit', None,               f_percommit,    LINUX,  S_PERCOMMIT,              {}),
+      ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,                {}),
+      ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  '|'.join((S_5AM, S_5PM)), {}),
+      ('Daily',     'DEPSRollResults',  f_deps_results, LINUX,  S_MORNING,                {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
+      ('Nightly',   'Monitoring',       f_monitor,      LINUX,  S_NIGHTLY,                {}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(housekeepers, helper,
