@@ -31,7 +31,7 @@ source ../vm_config.sh
 create_worker_file $CREATING_PAGESETS_ACTIVITY
 
 # Sync buildbot.
-/home/default/depot_tools/gclient sync
+# /home/default/depot_tools/gclient sync
 
 # Move into the buildbot/tools directory.
 cd ../../../tools

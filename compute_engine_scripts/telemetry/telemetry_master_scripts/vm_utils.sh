@@ -13,7 +13,7 @@ function get_current_work_on_slave() {
   slave=$1
   current_work=`ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -q -p 22 default@108.170.222.$slave -- "ls /home/default/storage/current_work"`
+    -A -q -p 22 default@108.170.192.$slave -- "ls /home/default/storage/current_work"`
   echo $current_work
 }
 

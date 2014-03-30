@@ -14,7 +14,7 @@ source vm_config.sh
 SCOPES="https://www.googleapis.com/auth/devstorage.full_control"
 
 for SLAVE_NUM in $(seq 0 $NUM_SLAVES); do
-  FREE_IP_LIST[$SLAVE_NUM]='108.170.222.'$SLAVE_NUM
+  FREE_IP_LIST[$SLAVE_NUM]='108.170.192.'$SLAVE_NUM
 done
 FREE_IP_INDEX=0
 
@@ -25,10 +25,16 @@ $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM_MASTER_NAME} \
   --service_account=default \
   --service_account_scopes="$SCOPES" \
   --network=skia \
-  --image=skiatelemetry-3-0-v20131101 \
-  --machine_type=rtb-n1-standard-8-d \
-  --nopersistent_boot_disk \
-  --service_version=v1beta16
+  --image=skiatelemetry-7-0-ubuntu1304 \
+  --machine_type=lmt-n1-standard-8-d \
+  --auto_delete_boot_disk
+
+
+# --external_ip_address=${FREE_IP_LIST[$FREE_IP_INDEX]} \
+# --machine_type=n1-standard-1 \
+# --image=debian-7-wheezy-v20140318 \
+# --machine_type=lmt-n1-standard-8-d \
+# --image=skiatelemetry-7-0-ubuntu1310 \
 
 FREE_IP_INDEX=$(expr $FREE_IP_INDEX + 1)
 
@@ -40,11 +46,11 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     --service_account=default \
     --service_account_scopes="$SCOPES" \
     --network=skia \
-    --image=skiatelemetry-3-0-v20131101 \
-    --machine_type=rtb-n1-standard-8-d \
+    --image=skiatelemetry-7-0-ubuntu1310 \
+    --machine_type=lmt-n1-standard-8-d \
     --external_ip_address=${FREE_IP_LIST[$FREE_IP_INDEX]} \
-    --nopersistent_boot_disk \
-    --service_version=v1beta16
+    --persistent_boot_disk \
+    --auto_delete_boot_disk
   FREE_IP_INDEX=$(expr $FREE_IP_INDEX + 1)
 done
 
@@ -64,19 +70,19 @@ Check ./vm_status.sh to wait until the status is RUNNING
 
 
 SSH into the master with:
-  gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-master
+  gcutil --project=google.com:chromecompute ssh --ssh_user=default cluster-telemetry-master
 and run:
   * Make sure the scratch disk on the master is mounted correctly with 'df -v'.
-  * sudo chmod 777 ~/.gsutil
   * Install the latest version of gcutil and then run
-    gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-worker1
+    gcutil --project=google.com:chromecompute ssh --ssh_user=default cluster-telemetry-worker1
 to setup gcutil promptless authentication from the master to its workers.
   * Add a ~/.netrc by generating a new password from https://chromium.googlesource.com/
-  * Run 'cd /home/default/skia-repo; rm -rf trunk && gclient sync'
-  * Run the following to be able to download massive files from gsutil:
-      sudo apt-get install lua5.1 gcc python-dev python-setuptools && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod
+  * Set 'git config --global user.name' and 'git config --global user.email'
+  * Run 'cd /home/default/skia-repo; gclient sync'
+  * rm /home/default/google-cloud-sdk/bin/gsutil; ln -s /home/default/google-cloud-sdk/platform/gsutil/gsutil /home/default/google-cloud-sdk/bin/gsutil;
   * Install the following missing packages:
       sudo apt-get install python-django
+  * sudo ln -s /home/default/google-cloud-sdk/bin/gsutil /usr/sbin/gsutil
   * Run vm_recover_slaves_from_crashes.sh
   * Verify that all slaves are healthy by running:
       bash vm_run_command_with_output_on_slaves.sh "ls -l storage/"

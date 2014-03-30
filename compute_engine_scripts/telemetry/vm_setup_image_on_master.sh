@@ -34,8 +34,9 @@ echo "Install required packages."
 # TODO(rmistry): No parallel package for ubuntu, it is required for pdfviewer.
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
   "sudo apt-get update; " \
-  "sudo apt-get -y install git make subversion postfix python-dev xvfb python-twisted-core " \
-  "vim gyp g++ gdb unzip linux-tools libgif-dev;" \
+  "sudo apt-get -y install subversion git make postfix python-dev libfreetype6-dev xvfb python-twisted-core libpng-dev zlib1g-dev fontconfig libfontconfig-dev libglu-dev " \
+  "vim gyp g++ gdb unzip linux-tools libgif-dev python-imaging libosmesa-dev linux-tools-3.11.0-17-generic && " \
+  "sudo apt-get install gcc python-dev python-setuptools && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod" \
   || FAILED="$FAILED InstallPackages"
 echo
 
@@ -118,16 +119,19 @@ fi
 
 echo
 echo "SSH into the master with:"
-echo "gcutil --project=google.com:chromecompute ssh --ssh_user=default skia-telemetry-master"
+echo "gcutil --project=google.com:chromecompute ssh --ssh_user=default cluster-telemetry-master"
 echo "* Follow the instructions in https://developers.google.com/compute/docs/networking#mailserver using skia.buildbots@gmail.com"
 echo "* Run 'gclient sync' in /home/default/skia-repo/buildbot and enter the correct AppEngine password in /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt"
 echo "* Run Chromium's install-build-deps.sh"
 echo "* Run 'git config --global user.name' and 'git config --global user.email'"
+echo "* Install Google Cloud SDK: https://developers.google.com/cloud/sdk/#Quick_Start"
+echo "* Setup backward and forward .inputrc search"
+echo "Add .netrc file for chromium.googlesource.com and chromium-review.googlesource.com"
 echo
 
 echo
 echo "You can take an image by running the following commands:"
-echo "sudo python /usr/share/imagebundle/image_bundle.py -r / -o /tmp/ --log_file=/tmp/image.log"
+echo "sudo gcimagebundle -d /dev/sda -o /tmp/ --log_file=/tmp/image.log"
 echo "Copy the image to Google Storage."
 echo "* gsutil config"
 echo "* gsutil cp /tmp/<your-image>.image.tar.gz gs://skia-images-1/"

@@ -134,7 +134,7 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
     echo "Contents of SKP directory are:"
     ls -l /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP/
     echo "The largest file here is:"
-    LARGEST_SKP=`find /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP/* -maxdepth 1 -printf '%p\n' | sort -nr | head -1`
+    LARGEST_SKP=`find /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP/* -printf '%s %p\n' | sort -nr | head -1`
     echo $LARGEST_SKP
     # We are only interested in the largest SKP, move it into the SKP repository.
     mv $LARGEST_SKP /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP.skp
@@ -150,7 +150,7 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Remove invalid SKPs found using the skpinfo binary.
   # Sync trunk and build tools.
   cd /home/default/skia-repo/trunk
-  for i in {1..3}; do /home/default/depot_tools/gclient sync && break || sleep 2; done
+  # for i in {1..3}; do /home/default/depot_tools/gclient sync && break || sleep 2; done
   make clean
   GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
   echo "=====Calling remove_invalid_skps.py====="

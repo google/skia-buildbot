@@ -14,7 +14,7 @@
 source ../vm_config.sh
 
 # Update buildbot and trunk.
-gclient sync
+# gclient sync
 
 CRASHED_INSTANCES=""
 
@@ -23,22 +23,22 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
 
   ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -q -p 22 default@108.170.222.$SLAVE_NUM -- "uptime" &> /dev/null
+    -A -q -p 22 default@108.170.192.$SLAVE_NUM -- "uptime" &> /dev/null
   if [ $? -ne 0 ]
   then
     echo "skia-telemetry-worker$SLAVE_NUM is not responding, deleting it."
-    gcutil --project=google.com:chromecompute deleteinstance skia-telemetry-worker$SLAVE_NUM -f
+    gcutil --project=google.com:chromecompute deleteinstance skia-telemetry-worker$SLAVE_NUM -f --delete_boot_pd
     echo "Recreating skia-telemetry-worker$SLAVE_NUM"
+    # Update this!
     gcutil --project=google.com:chromecompute addinstance skia-telemetry-worker${SLAVE_NUM} \
       --zone=$ZONE \
       --service_account=default \
       --service_account_scopes="https://www.googleapis.com/auth/devstorage.full_control" \
       --network=skia \
-      --image=skiatelemetry-3-0-v20131101 \
-      --machine_type=rtb-n1-standard-8-d \
-      --external_ip_address=108.170.222.${SLAVE_NUM} \
-      --nopersistent_boot_disk \
-      --service_version=v1beta16
+      --image=skiatelemetry-7-0-ubuntu1304 \
+      --machine_type=lmt-n1-standard-8-d \
+      --external_ip_address=108.170.192.${SLAVE_NUM} \
+      --auto_delete_boot_disk
 
     echo "Sleeping for 2 mins to give the instance time to come up and mount its scratch disk."
     sleep 120
@@ -48,24 +48,20 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   # mounted scratch disk. This is our indication that the VM crashed recently.
   NUM_DIRS=`ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -q -p 22 default@108.170.222.$SLAVE_NUM -- "ls -d ~/storage/*/ | wc -l"`
+    -A -q -p 22 default@108.170.192.$SLAVE_NUM -- "ls -d ~/storage/*/ | wc -l"`
   if [ "$NUM_DIRS" == "1" ]; then
     echo "skia-telemetry-worker$SLAVE_NUM crashed! Recovering it..."
     CMD="""
-sudo chmod 777 ~/.gsutil;
-sudo ln -s /usr/bin/perf_3.2.0-55 /usr/sbin/perf;
 cd ~/skia-repo;
-rm -rf trunk;
-rm -rf buildbot;
-sudo apt-get -y install python-imaging libosmesa-dev;
 /home/default/depot_tools/gclient sync;
-gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record_micro.py /home/default/skia-repo/buildbot/third_party/chromium_trunk/src/tools/perf/measurements/rasterize_and_record_micro.py
-sudo apt-get install gcc python-dev python-setuptools && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod
+gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record_micro.py /home/default/skia-repo/buildbot/third_party/chromium_trunk/src/tools/perf/measurements/rasterize_and_record_micro.py;
+rm /home/default/google-cloud-sdk/bin/gsutil; ln -s /home/default/google-cloud-sdk/platform/gsutil/gsutil /home/default/google-cloud-sdk/bin/gsutil;
+sudo ln -s /home/default/google-cloud-sdk/bin/gsutil /usr/sbin/gsutil;
 mkdir /home/default/storage/recovered;
 """
     ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-      -A -q -p 22 default@108.170.222.$SLAVE_NUM -- "$CMD"
+      -A -q -p 22 default@108.170.192.$SLAVE_NUM -- "$CMD"
     CRASHED_INSTANCES="$CRASHED_INSTANCES skia-telemetry-worker$SLAVE_NUM"
   else
     echo "skia-telemetry-worker$SLAVE_NUM has not crashed."

@@ -30,7 +30,7 @@ APPENGINE_KEY=$4
 LOG_FILE_LOCATION=$5
 
 # Update buildbot.
-gclient sync
+# gclient sync
 
 cd ../../../slave/skia_slave_scripts/utils/
 CHROMIUM_BUILD_DIR_BASE=/home/default/storage/chromium-builds/base

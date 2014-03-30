@@ -14,4 +14,4 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
 done
 
 # Delete the telemetry master and all its slaves.
-$GCOMPUTE_CMD deleteinstance ${VM_INSTANCES} --zone=$ZONE
+$GCOMPUTE_CMD deleteinstance ${VM_INSTANCES} --zone=$ZONE --delete_boot_pd

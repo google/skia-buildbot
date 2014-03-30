@@ -50,7 +50,7 @@ LUA_SCRIPT_GS_LOCATION=gs://chromium-skia-gm/telemetry/lua-scripts/$RUN_ID.lua.t
 gsutil cp -a public-read $LUA_SCRIPT_LOCAL_LOCATION $LUA_SCRIPT_GS_LOCATION 
 
 # Update buildbot.
-gclient sync
+# gclient sync
 
 LOGS_DIR=/home/default/storage/lua_logs
 mkdir $LOGS_DIR
@@ -60,7 +60,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_lua_on_skps.sh $SLAVE_NUM $LUA_SCRIPT_GS_LOCATION $RUN_ID $PAGESETS_TYPE $CHROMIUM_BUILD_DIR"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/lua_output.$RUN_ID.txt 2>&1"
+    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; $CMD > /tmp/lua_output.$RUN_ID.txt 2>&1"
 done
 
 # Check to see if all slaves are done

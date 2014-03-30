@@ -57,13 +57,9 @@ GOOGLE_ROLE=desktop
 GOOGLE_TRACK=stable
 """ | sudo tee -a /etc/lsb-release
 
-# Create a sym link to perf_3.2.
-sudo rm /usr/bin/perf
-sudo ln -s /usr/bin/perf_3.2 /usr/bin/perf
-
 # Sync buildbot code to head.
 cd /home/default/skia-repo/buildbot
-/home/default/depot_tools/gclient sync
+# /home/default/depot_tools/gclient sync
 
 # Start an Xvfb display on :0.
 sudo Xvfb :0 -screen 0 1280x1024x24 &

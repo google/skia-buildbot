@@ -17,14 +17,14 @@ if [ -e /etc/boto.cfg ]; then
 fi
 
 # Update buildbot.
-gclient sync
+# gclient sync
 
 # Run vm_create_rank_csv.py on all the slaves.
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="python vm_create_rank_csv.py --slave_num=$SLAVE_NUM"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; $CMD 2>&1"
+    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; $CMD 2>&1"
 done
 
 # Check to see if all slaves are done

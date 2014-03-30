@@ -106,7 +106,7 @@ SKIA_PATCH_GS_LINK=https://storage.cloud.google.com/$RELATIVE_SKIA_PATCH_GS_PATH
 gsutil cp -a public-read $SKIA_PATCH_LOCATION $SKIA_PATCH_GS_LOCATION
 
 # Update buildbot.
-for i in {1..3}; do gclient sync && break || sleep 2; done
+# for i in {1..3}; do gclient sync && break || sleep 2; done
 
 # Run vm_run_skia_try.sh on all the slaves.
 SLAVE_LOG_FILE="/tmp/skia-try.$RUN_ID.log"
@@ -116,7 +116,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_skia_try.sh -n $SLAVE_NUM -p $SKIA_PATCH_GS_LOCATION -t $PAGESETS_TYPE -b $CHROMIUM_BUILD_DIR -a \"$RENDER_PICTURES_ARGS\" -m $MESA_NOPATCH_RUN -w $MESA_WITHPATCH_RUN -r $RUN_ID -g $SLAVE_LOG_GS_LOCATION -o $SLAVE_OUTPUT_GS_LOCATION -l $SLAVE_LOG_FILE"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.222.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > $SLAVE_LOG_FILE 2>&1"
+    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; $CMD > $SLAVE_LOG_FILE 2>&1"
 done
 
 # Sleep for a minute to give the slaves some time to start processing.

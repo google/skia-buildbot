@@ -4,7 +4,7 @@
 GCUTIL=`which gcutil`
 
 # The base names of the VM instances. Actual names are VM_NAME_BASE+name.
-VM_NAME_BASE=${VM_NAME_BASE:='skia-telemetry'}
+VM_NAME_BASE=${VM_NAME_BASE:='cluster-telemetry'}
 
 VM_MASTER_NAME=${VM_MASTER_NAME:="master"}
 VM_SLAVE_NAME=${VM_SLAVE_NAME:="worker"}
@@ -21,8 +21,8 @@ ADMIN_EMAIL="rmistry@google.com"
 # instances live in a zone.
 #
 # We flip the default one as required by PCRs in bigcluster.
-ZONE_TAG=${ZONE_TAG:=a}
-ZONE=rtb-us-west1-$ZONE_TAG
+ZONE_TAG=${ZONE_TAG:=b}
+ZONE=us-central2-$ZONE_TAG
 
 # The Project ID is found in the Compute tab of the dev console.
 # https://cloud.google.com/console#c=p&pid=182615506979
