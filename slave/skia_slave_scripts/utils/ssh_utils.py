@@ -11,7 +11,8 @@ import re
 import shell_utils
 import signal
 
-def PutSCP(local_path, remote_path, username, host, port, recurse=False):
+def PutSCP(local_path, remote_path, username, host, port, recurse=False,
+           options=None):
   """ Send a file to the given host over SCP. Assumes that public key
   authentication is set up between the client and server.
 
@@ -21,16 +22,20 @@ def PutSCP(local_path, remote_path, username, host, port, recurse=False):
   host: hostname or ip address of the server
   port: port on the server to use
   recurse: boolean indicating whether to transmit everything in a folder
+  options: list of extra options to pass to scp
   """
   # TODO: This will hang for a while if the host does not recognize the client
   cmd = ['scp']
+  if options:
+    cmd.extend(options)
   if recurse:
-    cmd += ['-r']
-  cmd += ['-P', port, local_path, '%s@%s:%s' % (username, host, remote_path)]
+    cmd.append('-r')
+  cmd.extend(
+    ['-P', port, local_path, '%s@%s:%s' % (username, host, remote_path)])
   shell_utils.run(cmd)
 
 
-def MultiPutSCP(local_paths, remote_path, username, host, port):
+def MultiPutSCP(local_paths, remote_path, username, host, port, options=None):
   """ Send files to the given host over SCP. Assumes that public key
   authentication is set up between the client and server.
 
@@ -39,16 +44,20 @@ def MultiPutSCP(local_paths, remote_path, username, host, port):
   username: ssh login name
   host: hostname or ip address of the server
   port: port on the server to use
+  options: list of extra options to pass to scp
   """
   # TODO: This will hang for a while if the host does not recognize the client
-  target = '%s@%s:%s' % (username, host, remote_path)
-  cmd = ['scp', '-r', '-P', port]
-  cmd += local_paths
-  cmd.append(target)
+  cmd = ['scp']
+  if options:
+    cmd.extend(options)
+  cmd.extend(['-r', '-P', port])
+  cmd.extend(local_paths)
+  cmd.append('%s@%s:%s' % (username, host, remote_path))
   shell_utils.run(cmd)
 
 
-def GetSCP(local_path, remote_path, username, host, port, recurse=False):
+def GetSCP(local_path, remote_path, username, host, port, recurse=False,
+           options=None):
   """ Retrieve a file from the given host over SCP. Assumes that public key
   authentication is set up between the client and server.
 
@@ -58,26 +67,34 @@ def GetSCP(local_path, remote_path, username, host, port, recurse=False):
   host: hostname or ip address of the server
   port: port on the server to use
   recurse: boolean indicating whether to transmit everything in a folder
+  options: list of extra options to pass to scp
   """
   # TODO: This will hang for a while if the host does not recognize the client
   cmd = ['scp']
+  if options:
+    cmd.extend(options)
   if recurse:
-    cmd += ['-r']
-  cmd += ['-P', port, '%s@%s:%s' % (username, host, remote_path), local_path]
+    cmd.append('-r')
+  cmd.extend(
+    ['-P', port, '%s@%s:%s' % (username, host, remote_path), local_path])
   shell_utils.run(cmd)
 
 
-def RunSSHCmd(username, host, port, command, echo=True):
+def RunSSHCmd(username, host, port, command, echo=True, options=None):
   """ Login to the given host and run the given command.
 
   username: ssh login name
   host: hostname or ip address of the server
   port: port on the server to use
   command: (string) command to run on the server
+  options: list of extra options to pass to ssh
   """
   # TODO: This will hang for a while if the host does not recognize the client
-  return shell_utils.run(
-    ['ssh', '-p', port, '%s@%s' % (username, host), command], echo=echo)
+  cmd = ['ssh']
+  if options:
+    cmd.extend(options)
+  cmd.extend(['-p', port, '%s@%s' % (username, host), command])
+  return shell_utils.run(cmd, echo=echo)
 
 
 def ShellEscape(arg):
@@ -87,51 +104,54 @@ def ShellEscape(arg):
   return '"%s"' % arg if re.search(r'[\' \t\r\n]', arg) else arg
 
 
-def RunSSH(username, host, port, command, echo=True):
+def RunSSH(username, host, port, command, echo=True, options=None):
   """ Login to the given host and run the given command.
 
   username: ssh login name
   host: hostname or ip address of the server
   port: port on the server to use
   command: command to run on the server in list format
+  options: list of extra options to pass to ssh
   """
   cmd = ' '.join(ShellEscape(arg) for arg in command)
-  return RunSSHCmd(username, host, port, cmd, echo=echo)
+  return RunSSHCmd(username, host, port, cmd, echo=echo, options=options)
 
 
 class SshDestination(object):
   """ Convenience class to remember a host, port, and username.
   Wraps the other functions in this module.
   """
-  def __init__(self, host, port, username):
+  def __init__(self, host, port, username, options=None):
     """
     host - (string) hostname of the target
     port - (string or int) sshd port on the target
     username - (string) remote username
+    options - (list of strings) extra options to pass to ssh and scp.
     """
     self.host = host
     self.port = str(port)
     self.user = username
+    self.options = options
 
   def Put(self, local_path, remote_path, recurse=False):
-    return PutSCP(
-      local_path, remote_path, self.user,
-      self.host, self.port, recurse=recurse)
+    return PutSCP(local_path, remote_path, self.user, self.host,
+                  self.port, recurse=recurse, options=self.options)
 
   def MultiPut(self, local_paths, remote_path):
-    return MultiPutSCP(
-      local_paths, remote_path, self.user, self.host, self.port)
+    return MultiPutSCP(local_paths, remote_path, self.user, self.host,
+                       self.port, options=self.options)
 
   def Get(self, local_path, remote_path, recurse=False):
-    return GetSCP(
-      local_path, remote_path, self.user,
-      self.host, self.port, recurse=recurse)
+    return GetSCP(local_path, remote_path, self.user,
+                  self.host, self.port, recurse=recurse, options=self.options)
 
   def RunCmd(self, command, echo=True):
-    return RunSSHCmd(self.user, self.host, self.port, command, echo=echo)
+    return RunSSHCmd(self.user, self.host, self.port, command,
+                     echo=echo, options=self.options)
 
   def Run(self, command, echo=True):
-    return RunSSH(self.user, self.host, self.port, command, echo=echo)
+    return RunSSH(self.user, self.host, self.port, command,
+                  echo=echo, options=self.options)
 
 
 def search_within_string(input_string, pattern):

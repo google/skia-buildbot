@@ -24,6 +24,8 @@ class SshBuildStepUtils(DefaultBuildStepUtils):
       args.get('ssh_host', 'localhost'),
       args.get('ssh_port', 22),
       args.get('ssh_user', 'root'))
+    if self._ssh.host == 'localhost':
+      self._ssh.options = ['-o', 'NoHostAuthenticationForLocalhost=yes']
 
     self._build_dir = args.get('skia_out', os.path.abspath('out'))
     self._remote_dir = args.get('remote_dir', 'skia')
