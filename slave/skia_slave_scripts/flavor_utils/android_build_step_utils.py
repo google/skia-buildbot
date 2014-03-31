@@ -117,6 +117,10 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
     else:
       android_utils.ADBKill(self._serial, 'com.skia', kill_app=True)
 
+  def RunGYP(self):
+    print 'android_ninja handles gyp'
+    pass
+
   def Compile(self, target):
     """ Compile the Skia executables. """
     os.environ['SKIA_ANDROID_VERBOSE_SETUP'] = '1'
@@ -128,12 +132,13 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
     os.environ['ANDROID_SDK_ROOT'] = self._step.args['android_sdk_root']
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
-    cmd = [os.path.join('platform_tools', 'android', 'bin', 'android_make'),
+    os.environ['BUILDTYPE'] = self._step.configuration
+    print 'BUILDTYPE="%s"' % os.environ['BUILDTYPE']
+    cmd = [os.path.join('platform_tools', 'android', 'bin', 'android_ninja'),
            target,
            '-d', self._step.args['device'],
-           'BUILDTYPE=%s' % self._step.configuration,
            ]
-    cmd.extend(self._step.default_make_flags)
+    cmd.extend(self._step.default_ninja_flags)
     if os.name != 'nt':
       try:
         ccache = shell_utils.run(['which', 'ccache']).rstrip()
