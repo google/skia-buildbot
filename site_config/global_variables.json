@@ -10,12 +10,12 @@
     "description": "Internally-visible port on the Android Skia build master."
   },
   "android_master_host": {
-    "value": "108.170.219.162",
+    "value": "108.170.220.21",
     "type": "string",
     "description": "Hostname (or IP address) that can be used to reach the Android Skia build master."
   },
   "android_master_internal_fqdn": {
-    "value": "skia-android-master-a.c.skia-buildbots.google.com.internal",
+    "value": "skia-android-master-b.c.skia-buildbots.google.com.internal",
     "type": "string",
     "description": "What the Android Skia build master thinks its own FQDN is."
   },
@@ -70,12 +70,12 @@
     "description": "Internally-visible port on the Compile Skia build master."
   },
   "compile_master_host": {
-    "value": "108.170.219.164",
+    "value": "108.170.220.76",
     "type": "string",
     "description": "Hostname (or IP address) that can be used to reach the Compile Skia build master."
   },
   "compile_master_internal_fqdn": {
-    "value": "skia-compile-master-a.c.skia-buildbots.google.com.internal",
+    "value": "skia-compile-master-b.c.skia-buildbots.google.com.internal",
     "type": "string",
     "description": "What the Compile Skia build master thinks its own FQDN is."
   },
@@ -122,12 +122,12 @@
     "description": "Internally-visible port on the FYI Skia build master."
   },
   "fyi_master_host": {
-    "value": "108.170.219.160",
+    "value": "108.170.220.102",
     "type": "string",
     "description": "Hostname (or IP address) that can be used to reach the FYI Skia build master."
   },
   "fyi_master_internal_fqdn": {
-    "value": "skia-fyi-master-a.c.skia-buildbots.google.com.internal",
+    "value": "skia-fyi-master-b.c.skia-buildbots.google.com.internal",
     "type": "string",
     "description": "What the FYI Skia build master thinks its own FQDN is."
   },

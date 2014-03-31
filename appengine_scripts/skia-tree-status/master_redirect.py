@@ -15,10 +15,10 @@ import base_page
 # For faster response time these IPs should be reordered when GCE instances are
 # migrated during PCRs (preferred server should be listed first).
 BUILDBOT_MASTER_IPS =         ['108.170.220.120', '108.170.220.117']
-FYI_BUILDBOT_MASTER_IPS =     ['108.170.219.160', '108.170.219.161']
-ANDROID_BUILDBOT_MASTER_IPS = ['108.170.219.162', '108.170.219.163']
-COMPILE_BUILDBOT_MASTER_IPS = ['108.170.219.164', '108.170.219.165']
-REBASELINE_SERVER_IPS =       ['108.170.217.246']
+FYI_BUILDBOT_MASTER_IPS =     ['108.170.220.102', '108.170.220.123']
+ANDROID_BUILDBOT_MASTER_IPS = ['108.170.220.21', '108.170.220.122']
+COMPILE_BUILDBOT_MASTER_IPS = ['108.170.220.76', '108.170.220.75']
+REBASELINE_SERVER_IPS =       ['108.170.220.121']
 
 # Map of service type to (list_of_possible_ip_addrs, port, subpart, protocol).
 # The list_of_possible_ip_addrs, port, and protocol must be specified;
