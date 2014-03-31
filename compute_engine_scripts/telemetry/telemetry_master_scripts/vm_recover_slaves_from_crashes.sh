@@ -26,11 +26,11 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     -A -q -p 22 default@108.170.192.$SLAVE_NUM -- "uptime" &> /dev/null
   if [ $? -ne 0 ]
   then
-    echo "skia-telemetry-worker$SLAVE_NUM is not responding, deleting it."
-    gcutil --project=google.com:chromecompute deleteinstance skia-telemetry-worker$SLAVE_NUM -f --delete_boot_pd
-    echo "Recreating skia-telemetry-worker$SLAVE_NUM"
+    echo "cluster-telemetry-worker$SLAVE_NUM is not responding, deleting it."
+    gcutil --project=google.com:chromecompute deleteinstance cluster-telemetry-worker$SLAVE_NUM -f --delete_boot_pd
+    echo "Recreating cluster-telemetry-worker$SLAVE_NUM"
     # Update this!
-    gcutil --project=google.com:chromecompute addinstance skia-telemetry-worker${SLAVE_NUM} \
+    gcutil --project=google.com:chromecompute addinstance cluster-telemetry-worker${SLAVE_NUM} \
       --zone=$ZONE \
       --service_account=default \
       --service_account_scopes="https://www.googleapis.com/auth/devstorage.full_control" \
@@ -50,21 +50,22 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
     -A -q -p 22 default@108.170.192.$SLAVE_NUM -- "ls -d ~/storage/*/ | wc -l"`
   if [ "$NUM_DIRS" == "1" ]; then
-    echo "skia-telemetry-worker$SLAVE_NUM crashed! Recovering it..."
+    echo "cluster-telemetry-worker$SLAVE_NUM crashed! Recovering it..."
     CMD="""
 cd ~/skia-repo;
 /home/default/depot_tools/gclient sync;
 gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record_micro.py /home/default/skia-repo/buildbot/third_party/chromium_trunk/src/tools/perf/measurements/rasterize_and_record_micro.py;
 rm /home/default/google-cloud-sdk/bin/gsutil; ln -s /home/default/google-cloud-sdk/platform/gsutil/gsutil /home/default/google-cloud-sdk/bin/gsutil;
 sudo ln -s /home/default/google-cloud-sdk/bin/gsutil /usr/sbin/gsutil;
+sudo ln -sf /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.0;
 mkdir /home/default/storage/recovered;
 """
     ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
       -A -q -p 22 default@108.170.192.$SLAVE_NUM -- "$CMD"
-    CRASHED_INSTANCES="$CRASHED_INSTANCES skia-telemetry-worker$SLAVE_NUM"
+    CRASHED_INSTANCES="$CRASHED_INSTANCES cluster-telemetry-worker$SLAVE_NUM"
   else
-    echo "skia-telemetry-worker$SLAVE_NUM has not crashed."
+    echo "cluster-telemetry-worker$SLAVE_NUM has not crashed."
   fi
   echo "-----------------------------------------------------------"
 done
