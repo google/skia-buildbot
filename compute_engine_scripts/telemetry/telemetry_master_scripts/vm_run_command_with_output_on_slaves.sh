@@ -23,7 +23,7 @@ fi
 CMD=$1
 
 # Update buildbot.
-# gclient sync
+gclient sync
 
 echo "About to run $CMD on all slaves..."
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do

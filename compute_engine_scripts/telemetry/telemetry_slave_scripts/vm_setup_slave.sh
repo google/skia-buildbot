@@ -59,7 +59,7 @@ GOOGLE_TRACK=stable
 
 # Sync buildbot code to head.
 cd /home/default/skia-repo/buildbot
-# /home/default/depot_tools/gclient sync
+/home/default/depot_tools/gclient sync
 
 # Start an Xvfb display on :0.
 sudo Xvfb :0 -screen 0 1280x1024x24 &

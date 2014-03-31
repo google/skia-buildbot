@@ -33,7 +33,7 @@ source ../vm_config.sh
 source vm_utils.sh
 
 # Update buildbot.
-# gclient sync
+gclient sync
 
 # Check if any slave is in the process of capturing archives.
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
@@ -51,7 +51,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_capture_archives.sh $SLAVE_NUM $PAGESETS_TYPE $CHROMIUM_BUILD_DIR"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; $CMD > /tmp/capture_archives_output.txt 2>&1"
+    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/capture_archives_output.txt 2>&1"
 done
 
 # Check to see if the slaves are done capturing archives.

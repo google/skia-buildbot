@@ -14,7 +14,7 @@
 source ../vm_config.sh
 
 # Update buildbot and trunk.
-# gclient sync
+gclient sync
 
 CRASHED_INSTANCES=""
 
@@ -29,7 +29,6 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     echo "cluster-telemetry-worker$SLAVE_NUM is not responding, deleting it."
     gcutil --project=google.com:chromecompute deleteinstance cluster-telemetry-worker$SLAVE_NUM -f --delete_boot_pd
     echo "Recreating cluster-telemetry-worker$SLAVE_NUM"
-    # Update this!
     gcutil --project=google.com:chromecompute addinstance cluster-telemetry-worker${SLAVE_NUM} \
       --zone=$ZONE \
       --service_account=default \
@@ -58,6 +57,7 @@ gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record_micro.py 
 rm /home/default/google-cloud-sdk/bin/gsutil; ln -s /home/default/google-cloud-sdk/platform/gsutil/gsutil /home/default/google-cloud-sdk/bin/gsutil;
 sudo ln -s /home/default/google-cloud-sdk/bin/gsutil /usr/sbin/gsutil;
 sudo ln -sf /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.0;
+sudo apt-get -y install haveged && sudo /etc/init.d/haveged start;
 mkdir /home/default/storage/recovered;
 """
     ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \

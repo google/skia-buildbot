@@ -50,7 +50,7 @@ LUA_SCRIPT_GS_LOCATION=gs://chromium-skia-gm/telemetry/lua-scripts/$RUN_ID.lua.t
 gsutil cp -a public-read $LUA_SCRIPT_LOCAL_LOCATION $LUA_SCRIPT_GS_LOCATION 
 
 # Update buildbot.
-# gclient sync
+gclient sync
 
 LOGS_DIR=/home/default/storage/lua_logs
 mkdir $LOGS_DIR

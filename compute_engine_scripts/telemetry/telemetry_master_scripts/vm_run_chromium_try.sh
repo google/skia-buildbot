@@ -94,7 +94,7 @@ fi
 source ../vm_config.sh
 
 # Update buildbot.
-# for i in {1..3}; do gclient sync && break || sleep 2; done
+for i in {1..3}; do gclient sync && break || sleep 2; done
 
 # Copy the patch to Google Storage.
 PATCHES_GS_LOCATION=gs://chromium-skia-gm/telemetry/tryserver-patches

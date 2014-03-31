@@ -13,7 +13,7 @@ source ../vm_config.sh
 source vm_utils.sh
 
 # Update buildbot.
-# gclient sync
+gclient sync
 
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   result=$(get_current_work_on_slave $SLAVE_NUM)

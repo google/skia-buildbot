@@ -29,7 +29,7 @@ source vm_utils.sh
 source ../vm_config.sh
 
 # Update buildbot.
-# gclient sync
+gclient sync
 
 # If PAGESETS_TYPE is 100k or 10k or IndexSample10k then adjust NUM_WEBPAGES.
 if [ "$PAGESETS_TYPE" == "100k" ]; then
@@ -47,7 +47,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   START=$(expr $END + 1)
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; $CMD > /tmp/create_pagesets_output.txt 2>&1"
+    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/create_pagesets_output.txt 2>&1"
 done
 
 # Check to see if the slaves are done creating page_sets.

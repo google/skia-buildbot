@@ -153,7 +153,7 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Remove invalid SKPs found using the skpinfo binary.
   # Sync trunk and build tools.
   cd /home/default/skia-repo/trunk
-  # for i in {1..3}; do /home/default/depot_tools/gclient sync && break || sleep 2; done
+  for i in {1..3}; do /home/default/depot_tools/gclient sync && break || sleep 2; done
   make clean
   GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
   echo "=====Calling remove_invalid_skps.py====="

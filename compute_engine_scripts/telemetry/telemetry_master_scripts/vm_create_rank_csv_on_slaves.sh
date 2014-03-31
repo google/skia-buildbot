@@ -17,7 +17,7 @@ if [ -e /etc/boto.cfg ]; then
 fi
 
 # Update buildbot.
-# gclient sync
+gclient sync
 
 # Run vm_create_rank_csv.py on all the slaves.
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
