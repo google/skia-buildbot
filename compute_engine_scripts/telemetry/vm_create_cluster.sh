@@ -25,7 +25,7 @@ $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM_MASTER_NAME} \
   --service_account=default \
   --service_account_scopes="$SCOPES" \
   --network=skia \
-  --image=skiatelemetry-7-0-ubuntu1304 \
+  --image=skiatelemetry-6-0-ubuntu1310 \
   --machine_type=lmt-n1-standard-8-d \
   --auto_delete_boot_disk
 
@@ -34,7 +34,7 @@ $GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM_MASTER_NAME} \
 # --machine_type=n1-standard-1 \
 # --image=debian-7-wheezy-v20140318 \
 # --machine_type=lmt-n1-standard-8-d \
-# --image=skiatelemetry-7-0-ubuntu1310 \
+# --image=skiatelemetry-6-0-ubuntu1310 \
 
 FREE_IP_INDEX=$(expr $FREE_IP_INDEX + 1)
 
@@ -46,7 +46,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     --service_account=default \
     --service_account_scopes="$SCOPES" \
     --network=skia \
-    --image=skiatelemetry-7-0-ubuntu1310 \
+    --image=skiatelemetry-6-0-ubuntu1310 \
     --machine_type=lmt-n1-standard-8-d \
     --external_ip_address=${FREE_IP_LIST[$FREE_IP_INDEX]} \
     --persistent_boot_disk \

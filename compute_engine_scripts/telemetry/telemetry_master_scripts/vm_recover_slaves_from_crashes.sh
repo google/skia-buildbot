@@ -35,7 +35,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
       --service_account=default \
       --service_account_scopes="https://www.googleapis.com/auth/devstorage.full_control" \
       --network=skia \
-      --image=skiatelemetry-7-0-ubuntu1304 \
+      --image=skiatelemetry-6-0-ubuntu1310 \
       --machine_type=lmt-n1-standard-8-d \
       --external_ip_address=108.170.192.${SLAVE_NUM} \
       --auto_delete_boot_disk
