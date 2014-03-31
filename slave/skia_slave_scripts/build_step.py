@@ -191,12 +191,10 @@ class BuildStep(multiprocessing.Process):
 
     if os.name == 'nt':
       self._default_make_flags = []
-      self._default_ninja_flags = []
     else:
       # Set the jobs limit to 4, since we have multiple slaves running on each
       # machine.
       self._default_make_flags = ['--jobs', '4', '--max-load=4.0']
-      self._default_ninja_flags = ['-j', '4', '-l', '4.0']
 
     # Adding the playback directory transfer objects.
     self._local_playback_dirs = LocalSkpPlaybackDirs(
@@ -246,14 +244,9 @@ class BuildStep(multiprocessing.Process):
   def args(self):
     return self._args
 
-  # TODO(epoger): remove default_make_flags property once all builds use ninja
   @property
   def default_make_flags(self):
     return self._default_make_flags
-
-  @property
-  def default_ninja_flags(self):
-    return self._default_ninja_flags
 
   @property
   def make_flags(self):
