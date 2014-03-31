@@ -135,7 +135,9 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
     ls -l /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP/
     echo "The largest file here is:"
     SKP_OUTPUT=`find /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP/* -printf '%s %p\n' | sort -nr | head -1`
-    IFS=';' read -r id LARGEST_SKP <<< "$SKP_OUTPUT"
+    echo $SKP_OUTPUT
+    IFS=' ' read -r id LARGEST_SKP <<< "$SKP_OUTPUT"
+    # IFS=' ' read -r a b c d e f g h LARGEST_SKP <<< "$SKP_OUTPUT"
     echo $LARGEST_SKP
     # We are only interested in the largest SKP, move it into the SKP repository.
     mv $LARGEST_SKP /home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/$SKP.skp
