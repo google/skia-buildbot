@@ -18,16 +18,17 @@ for REQUIRED_FILE in ${REQUIRED_FILES_FOR_RECREATESKPS_BOT[@]}; do
 done
 
 # Create the Skia recreate SKPs instance.
+# TODO(rmistry): Update the below command to use the new skiabuildbot image
+# after it is captured.
 $GCOMPUTE_CMD addinstance ${VM_RECREATESKPS_BOT_NAME} \
   --zone=$ZONE \
   --external_ip_address=${VM_RECREATESKPS_BOT_IP_ADDRESS} \
   --service_account=default \
   --service_account_scopes="$SCOPES" \
   --network=skia \
-  --image=skiatelemetry-3-0-v20131101 \
-  --machine_type=rtb-n1-standard-8-d \
-  --nopersistent_boot_disk \
-  --service_version=v1beta16
+  --image=skiatelemetry-6-0-ubuntu1310 \
+  --machine_type=lmt-n1-standard-8-d \
+  --auto_delete_boot_disk
 
 if [ $? -ne 0 ]
 then
@@ -106,7 +107,6 @@ Wait until the status is RUNNING
 SSH into the instance with:
   gcutil --project=google.com:chromecompute ssh --ssh_user=default ${VM_RECREATESKPS_BOT_NAME}
 and run the following commands:
-  * Run the commands from telemetry_master_scripts/vm_recover_slaves_from_crashes.sh
   * cd $SKIA_REPO_DIR
   * nohup python buildbot/scripts/launch_slaves.py &
 
