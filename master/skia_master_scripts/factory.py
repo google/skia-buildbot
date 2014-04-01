@@ -18,6 +18,7 @@ from skia_master_scripts import commands as skia_commands
 import builder_name_schema
 import config
 import config_private
+import master_builders_cfg
 import ntpath
 import os
 import posixpath
@@ -704,6 +705,20 @@ class SkiaFactory(BuildFactory):
     if self._do_upload_bench_results:
       self.UploadBenchResults()
 
+  def PerfRebaseline(self):
+    """Steps which update the Perf baselines from the results of this build."""
+    def _should_do_perf_rebaseline(step):
+      try:
+        return (step.getProperty('scheduler') ==
+                master_builders_cfg.S_POST_RECREATE_SKPS)
+      except Exception:
+        return False
+
+    self.AddSlaveScript(script='update_perf_baselines.py',
+                        description='UpdatePerfBaselines',
+                        exception_on_failure=True,
+                        do_step_if=_should_do_perf_rebaseline)
+
   def Build(self, role=None, clobber=None):
     """Build and return the complete BuildFactory.
 
@@ -762,5 +777,6 @@ class SkiaFactory(BuildFactory):
           raise ValueError('BuildPerfOnly should run in %s configuration.' %
                            CONFIG_RELEASE)
         self.PerfSteps()
+        self.PerfRebaseline()
     self.Validate()
     return self
