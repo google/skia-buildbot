@@ -72,7 +72,7 @@ fi
 if [ "$TELEMETRY_BENCHMARK" == "smoothness" ]; then
   # A synthetic scroll needs to be able to output at least two frames. Make the
   # viewport size smaller than the page size.
-  EXTRA_ARGS="--window-size=1280,512 $EXTRA_ARGS"
+  EXTRA_BROWSER_ARGS="--window-size=1280,512"
 fi
 
 OUTPUT_DIR=/home/default/storage/telemetry_outputs/$RUN_ID
@@ -96,7 +96,7 @@ for page_set in /home/default/storage/page_sets/$PAGESETS_TYPE/*.json; do
        # Need to capture output for all benchmarks except skpicture_printer.
        OUTPUT_DIR_ARG="-o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}"
     fi
-    echo "=== Running: eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing\" --browser-executable=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG ==="
+    echo "=== Running: eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing $EXTRA_BROWSER_ARGS\" --browser-executable=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG ==="
     eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing\" --browser-executable=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
     sudo chown default:default $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
     if [ $? -eq 124 ]; then
