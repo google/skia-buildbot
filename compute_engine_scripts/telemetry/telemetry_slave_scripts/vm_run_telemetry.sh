@@ -69,6 +69,12 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   EXTRA_ARGS="--skp-outdir=/home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/ $EXTRA_ARGS"
 fi
 
+if [ "$TELEMETRY_BENCHMARK" == "smoothness" ]; then
+  # A synthetic scroll needs to be able to output at least two frames. Make the
+  # viewport size smaller than the page size.
+  EXTRA_ARGS="--window-size=1280,512 $EXTRA_ARGS"
+fi
+
 OUTPUT_DIR=/home/default/storage/telemetry_outputs/$RUN_ID
 mkdir -p $OUTPUT_DIR
 

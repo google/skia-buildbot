@@ -54,6 +54,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
 cd ~/skia-repo;
 /home/default/depot_tools/gclient sync;
 gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record_micro.py /home/default/skia-repo/buildbot/third_party/chromium_trunk/src/tools/perf/measurements/rasterize_and_record_micro.py;
+gsutil cp gs://chromium-skia-gm/telemetry/patches/desktop_browser_backend.py /home/default/skia-repo/buildbot/third_party/chromium_trunk/src/tools/telemetry/telemetry/core/backends/chrome/desktop_browser_backend.py;
 rm /home/default/google-cloud-sdk/bin/gsutil; ln -s /home/default/google-cloud-sdk/platform/gsutil/gsutil /home/default/google-cloud-sdk/bin/gsutil;
 sudo ln -s /home/default/google-cloud-sdk/bin/gsutil /usr/sbin/gsutil;
 sudo ln -sf /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libudev.so.0;
