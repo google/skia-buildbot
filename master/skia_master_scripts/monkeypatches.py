@@ -34,6 +34,7 @@ import builder_name_schema
 import config_private
 import json
 import master_revision
+import re
 import slave_hosts_cfg
 import slaves_cfg
 import skia_vars
@@ -544,3 +545,9 @@ class SkiaGateKeeper(gatekeeper.GateKeeper):
     # tree.
     return True
 
+
+# Fix try_job_base.TryJobBase._EMAIL_VALIDATOR to handle *.info. This was fixed
+# in https://codereview.chromium.org/216293005 but we need this monkeypatch to
+# pick it up without a DEPS roll.
+try_job_base.TryJobBase._EMAIL_VALIDATOR = re.compile(
+    r'[a-zA-Z0-9][a-zA-Z0-9\.\+\-\_]*@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,}$')
