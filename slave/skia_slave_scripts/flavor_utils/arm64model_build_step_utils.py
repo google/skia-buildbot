@@ -22,12 +22,13 @@ class Arm64ModelBuildStepUtils(SshBuildStepUtils):
     self._working_dir = os.path.abspath(self._step.args.get(
         'working_dir', os.path.join(os.pardir, os.pardir, 'arm64bareLinux')))
 
-    key_file = os.path.join(self._working_dir, 'key')
-    if os.path.isfile(key_file):
+    if type(build_step_instance).__name__ not in ['RunGYP', 'Compile']:
+      # SSH connection not needed and host may not exist yet in these steps.
+      key_file = os.path.join(self._working_dir, 'key')
+      assert os.path.isfile(key_file)
       ssh_utils.SSHAdd(key_file)
-      print >> sys.stderr, 'testing ssh connection...',
-      self._ssh.Run(['echo', '[success from ssh]'])
-      print >> sys.stderr, 'Success!'
+      print >> sys.stderr, 'Testing ssh connection...'
+      self._ssh.Run(['echo', 'SUCCESS FROM SSH'])
 
     old_timeout = self._step.timeout
     self._step.timeout *= 10
