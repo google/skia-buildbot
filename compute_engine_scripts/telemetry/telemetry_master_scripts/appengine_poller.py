@@ -173,22 +173,36 @@ def process_chromium_try_task(task):
   log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
 
   print 'Chromium try output will be available in %s' % log_file
-  cmd = [
-      'bash',
-      'vm_run_chromium_try.sh',
-      '-p', str(chromium_patch_file),
-      '-t', str(blink_patch_file),
-      '-s', str(skia_patch_file),
-      '-r', str(run_id),
-      '-v', str(variance_threshold),
-      '-o', str(discard_outliers),
-      '-b', str(benchmark_name),
-      '-a', str(benchmark_arguments),
-      '-e', str(username),
-      '-i', str(task_key),
-      '-l', str(log_file),
-      '-y', str(pageset_type),
-  ]
+
+  if benchmark_name == 'pixeldiffs':
+    cmd = [
+        'bash',
+        'vm_run_pixeldiffs_try.sh',
+        '-p', str(chromium_patch_file),
+        '-t', str(blink_patch_file),
+        '-s', str(skia_patch_file),
+        '-r', str(run_id),
+        '-e', str(username),
+        '-i', str(task_key),
+        '-l', str(log_file),
+    ]
+  else:
+    cmd = [
+        'bash',
+        'vm_run_chromium_try.sh',
+        '-p', str(chromium_patch_file),
+        '-t', str(blink_patch_file),
+        '-s', str(skia_patch_file),
+        '-r', str(run_id),
+        '-v', str(variance_threshold),
+        '-o', str(discard_outliers),
+        '-b', str(benchmark_name),
+        '-a', str(benchmark_arguments),
+        '-e', str(username),
+        '-i', str(task_key),
+        '-l', str(log_file),
+        '-y', str(pageset_type),
+    ]
   subprocess.Popen(cmd, stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))
 
