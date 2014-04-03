@@ -31,6 +31,17 @@ function is_slave_currently_executing() {
   echo false
 }
 
+function build_content_shell {
+  GYP_GENERATORS='ninja' ./build/gyp_chromium
+  /home/default/depot_tools/ninja -C out/Release content_shell
+  if [ $? -ne 0 ]
+  then
+    echo "There was an error building content_shell $CHROMIUM_COMMIT_HASH + skia $SKIA_COMMIT_HASH"
+    copy_build_log_to_gs
+    exit 1
+  fi
+}
+
 function build_chromium {
   if [ $USE_AURA -eq 1 ]
   then

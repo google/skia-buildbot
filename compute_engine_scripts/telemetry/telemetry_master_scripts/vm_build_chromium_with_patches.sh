@@ -12,6 +12,8 @@
 # * Builds Chromium.
 # * Copies both builds to Google Storage.
 #
+# Use "PIXEL_DIFFS=true" to build content_shell instead of chrome.
+#
 # The script should be run from the skia-telemetry-master GCE instance's
 # /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
 # directory.
@@ -47,7 +49,13 @@ function copy_build_log_to_gs() {
 }
 
 cd ../../../slave/skia_slave_scripts/utils/
-CHROMIUM_BUILD_DIR_BASE=/home/default/storage/chromium-builds/tryserver-base
+if [ ! -n "$PIXEL_DIFFS" ]; then
+  echo "== Using tryserver-base =="
+  CHROMIUM_BUILD_DIR_BASE=/home/default/storage/chromium-builds/tryserver-base
+else
+  echo "== Using pixeldiffs-base =="
+  CHROMIUM_BUILD_DIR_BASE=/home/default/storage/chromium-builds/pixeldiffs-base
+fi
 mkdir -p $CHROMIUM_BUILD_DIR_BASE
 
 # Find Chromium's ToT
@@ -103,14 +111,26 @@ apply_patch $SKIA_PATCH_LOCATION
 
 echo "== Building chromium with the patches =="
 cd $CHROMIUM_BUILD_DIR_BASE/src/
-build_chromium
+if [ ! -n "$PIXEL_DIFFS" ]; then
+  echo "== Building chromium =="
+  build_chromium
+else
+  echo "== Building content_shell =="
+  build_content_shell
+fi
 echo "== Copy patch build to Google Storage =="
 copy_build_to_google_storage $DIR_NAME_WITH_PATCH $CHROMIUM_BUILD_DIR_BASE
 
 echo "== Building chromium without the patches =="
 cd $CHROMIUM_BUILD_DIR_BASE/src/
 reset_chromium_checkout
-build_chromium
+if [ ! -n "$PIXEL_DIFFS" ]; then
+  echo "== Building chromium =="
+  build_chromium
+else
+  echo "== Building content_shell =="
+  build_content_shell
+fi
 echo "== Copy build with no patch to Google Storage =="
 copy_build_to_google_storage $DIR_NAME $CHROMIUM_BUILD_DIR_BASE
 
