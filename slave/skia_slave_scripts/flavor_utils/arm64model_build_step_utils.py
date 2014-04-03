@@ -61,10 +61,11 @@ class Arm64ModelBuildStepUtils(SshBuildStepUtils):
     assert os.path.isdir(toolchain_bin)
 
     make_cmd = [
+      'sh', '-x',
       os.path.join(platform_bin, 'arm64_make'),
       '-o', self._build_dir,
       '-c', os.path.join(toolchain_bin, 'aarch64-linux-gnu-gcc'),
       '-x', os.path.join(toolchain_bin, 'aarch64-linux-gnu-g++'),
       '-t', self._step.configuration,
       ]
-    shell_utils.run(make_cmd, log_in_real_time=False)
+    shell_utils.run(make_cmd)
