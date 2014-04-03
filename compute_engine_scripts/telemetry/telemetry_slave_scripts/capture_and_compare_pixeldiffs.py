@@ -15,146 +15,107 @@
 #
 # In future it might be possible to extend this to other kinds of differences,
 # e.g. page load times.
+#
+# pylint: disable=C0301
+# The original file is from http://src.chromium.org/viewvc/chrome/trunk/src/tools/real_world_impact/real_world_impact.py
+# It was written by johnme@ and modified by pdr@.
+# rmistry@ has renamed the file and modified it to run on the Cluster telemetry
+# 100 slaves (http://skia-tree-status.appspot.com/skia-telemetry/chromium_try).
 
 import argparse
 from argparse import RawTextHelpFormatter
-from contextlib import closing
 import datetime
 import errno
 from distutils.spawn import find_executable
 from operator import itemgetter
 import multiprocessing
 import os
+import posixpath
 import re
-from cStringIO import StringIO
 import subprocess
 import sys
 import textwrap
 import time
-from urllib2 import urlopen
 from urlparse import urlparse
 import webbrowser
-from zipfile import ZipFile
 
-from nsfw_urls import nsfw_urls
 
 action = None
 allow_js = False
-additional_content_shell_flags = ""
-chromium_src_root = ""
-chromium_out_dir = ""
-image_diff = ""
-content_shell = ""
-output_dir = ""
-num_sites = 100
+additional_content_shell_flags = ''
+output_dir = ''
+image_diff = ''
+content_shell = ''
 urls = []
 print_lock = multiprocessing.Lock()
 
 
-def MakeDirsIfNotExist(dir):
+def MakeDirsIfNotExist(directory):
   try:
-    os.makedirs(dir)
+    os.makedirs(directory)
   except OSError as e:
     if e.errno != errno.EEXIST:
       raise
 
 
-def SetupPathsAndOut():
-  global chromium_src_root, chromium_out_dir, output_dir
-  global image_diff, content_shell
-  chromium_src_root = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                   os.pardir,
-                                                   os.pardir))
-  # Find out directory (might be out_linux for users of cr).
-  for out_suffix in ["_linux", ""]:
-    out_dir = os.path.join(chromium_src_root, "out" + out_suffix)
-    if os.path.exists(out_dir):
-      chromium_out_dir = out_dir
-      break
-  if not chromium_out_dir:
-    return False
-
-  this_script_name = "real_world_impact"
-  output_dir = os.path.join(chromium_out_dir,
-                            "Release",
-                            this_script_name)
+def SetupPaths():
   MakeDirsIfNotExist(output_dir)
-
-  image_diff = os.path.join(chromium_out_dir, "Release", "image_diff")
-
-  if sys.platform == 'darwin':
-    content_shell = os.path.join(chromium_out_dir, "Release",
-                    "Content Shell.app/Contents/MacOS/Content Shell")
-  elif sys.platform.startswith('linux'):
-    content_shell = os.path.join(chromium_out_dir, "Release",
-                    "content_shell")
-  elif sys.platform.startswith('win'):
-    content_shell = os.path.join(chromium_out_dir, "Release",
-                    "content_shell.exe")
   return True
 
 
 def CheckPrerequisites():
-  if not find_executable("wget"):
-    print "wget not found! Install wget and re-run this."
+  if not find_executable('wget'):
+    print 'wget not found! Install wget and re-run this.'
     return False
   if not os.path.exists(image_diff):
-    print "image_diff not found (%s)!" % image_diff
-    print "Build the image_diff target and re-run this."
+    print 'image_diff not found (%s)!' % image_diff
+    print 'Build the image_diff target and re-run this.'
     return False
   if not os.path.exists(content_shell):
-    print "Content shell not found (%s)!" % content_shell
-    print "Build Release/content_shell and re-run this."
+    print 'Content shell not found (%s)!' % content_shell
+    print 'Build Release/content_shell and re-run this.'
     return False
   return True
 
 
-def PickSampleUrls():
+def PickSampleUrls(start_number, end_number, csv_path):
   global urls
-  data_dir = os.path.join(output_dir, "data")
+  data_dir = os.path.join(output_dir, 'data')
   MakeDirsIfNotExist(data_dir)
 
-  # Download Alexa top 1,000,000 sites
-  # TODO(johnme): Should probably update this when it gets too stale...
-  csv_path = os.path.join(data_dir, "top-1m.csv")
-  if not os.path.exists(csv_path):
-    print "Downloading list of top 1,000,000 sites from Alexa..."
-    csv_url = "http://s3.amazonaws.com/alexa-static/top-1m.csv.zip"
-    with closing(urlopen(csv_url)) as stream:
-      ZipFile(StringIO(stream.read())).extract("top-1m.csv", data_dir)
-
-  bad_urls_path = os.path.join(data_dir, "bad_urls.txt")
+  bad_urls_path = os.path.join(data_dir, 'bad_urls.txt')
   if os.path.exists(bad_urls_path):
     with open(bad_urls_path) as f:
       bad_urls = set(f.read().splitlines())
   else:
     bad_urls = set()
 
-  # See if we've already selected a sample of size num_sites (this way, if you
-  # call this script with arguments "before N" then "after N", where N is the
-  # same number, we'll use the same sample, as expected!).
-  urls_path = os.path.join(data_dir, "%06d_urls.txt" % num_sites)
+  # See if we've already selected the same sample previously (this way, if you
+  # call this script with arguments
+  # '--start_number=1 --end_number=10 --action=before' then
+  # '--start_number=1 --end_number=10 --action=after', we'll use the same
+  # sample, as expected!).
+  urls_path = os.path.join(data_dir, '%d-%d_urls.txt' % (start_number,
+                                                         end_number))
   if not os.path.exists(urls_path):
     if action == 'compare':
-      print ("Error: you must run 'before %d' and 'after %d' before "
-             "running 'compare %d'") % (num_sites, num_sites, num_sites)
+      print ('Error: you must run "--action=before" and "--action=after" '
+             'before running "--action=compare"')
       return False
-    print "Picking %d sample urls..." % num_sites
+    print 'Picking %d-%d from the Alexa list...' % (start_number, end_number)
 
-    # TODO(johnme): For now this just gets the top num_sites entries. In future
-    # this should pick a weighted random sample. For example, it could fit a
-    # power-law distribution, which is a good model of website popularity
-    # (http://www.useit.com/alertbox/9704b.html).
     urls = []
-    remaining_num_sites = num_sites
+    current_rank = 0
     with open(csv_path) as f:
       for entry in f:
-        if remaining_num_sites <= 0:
+        current_rank += 1
+        if current_rank < start_number:
+          continue
+        elif current_rank > end_number:
           break
-        remaining_num_sites -= 1
         hostname = entry.strip().split(',')[1]
         if not '/' in hostname:  # Skip Alexa 1,000,000 entries that have paths.
-          url = "http://%s/" % hostname
+          url = 'http://%s/' % hostname
           if not url in bad_urls:
             urls.append(url)
     # Don't write these to disk yet; we'll do that in SaveWorkingUrls below
@@ -165,44 +126,46 @@ def PickSampleUrls():
   return True
 
 
-def SaveWorkingUrls():
+def SaveWorkingUrls(start_number, end_number):
   # TODO(johnme): Update the list if a url that used to work goes offline.
-  urls_path = os.path.join(output_dir, "data", "%06d_urls.txt" % num_sites)
+  urls_path = os.path.join(output_dir, 'data', '%d-%d_urls.txt' % (start_number,
+                                                                   end_number))
   if not os.path.exists(urls_path):
     with open(urls_path, 'w') as f:
       f.writelines(u + '\n' for u in urls)
 
 
-def PrintElapsedTime(elapsed, detail=""):
+def PrintElapsedTime(elapsed, detail=''):
   elapsed = round(elapsed * 10) / 10.0
   m = elapsed / 60
   s = elapsed % 60
-  print "Took %dm%.1fs" % (m, s), detail
+  print 'Took %dm%.1fs' % (m, s), detail
 
 
 def DownloadStaticCopyTask(url):
   url_parts = urlparse(url)
-  host_dir = os.path.join(output_dir, "data", url_parts.hostname)
+  host_dir = os.path.join(output_dir, 'data', url_parts.hostname)
   # Use wget for now, as does a reasonable job of spidering page dependencies
   # (e.g. CSS, JS, images).
   success = True
   try:
-    subprocess.check_call(["wget",
-                           "--execute", "robots=off",
-                           ("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS "
-                            "X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) C"
-                            "hrome/32.0.1700.14 Safari/537.36"),
-                           "--page-requisites",
-                           "--span-hosts",
-                           "--adjust-extension",
-                           "--convert-links",
-                           "--directory-prefix=" + host_dir,
-                           "--force-directories",
-                           "--default-page=index.html",
-                           "--no-check-certificate",
-                           "--timeout=5", # 5s timeout
-                           "--tries=2",
-                           "--quiet",
+    subprocess.check_call(['timeout', '60',
+                           'wget',
+                           '--execute', 'robots=off',
+                           ('--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS '
+                            'X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) C'
+                            'hrome/32.0.1700.14 Safari/537.36'),
+                           '--page-requisites',
+                           '--span-hosts',
+                           '--adjust-extension',
+                           '--convert-links',
+                           '--directory-prefix=' + host_dir,
+                           '--force-directories',
+                           '--default-page=index.html',
+                           '--no-check-certificate',
+                           '--timeout=5', # 5s timeout
+                           '--tries=2',
+                           '--quiet',
                            url])
   except KeyboardInterrupt:
     success = False
@@ -211,37 +174,37 @@ def DownloadStaticCopyTask(url):
     # yet still produce a renderable index.html
     pass #success = False
   if success:
-    download_path = os.path.join(host_dir, url_parts.hostname, "index.html")
+    download_path = os.path.join(host_dir, url_parts.hostname, 'index.html')
     if not os.path.exists(download_path):
       success = False
     else:
       with print_lock:
-        print "Downloaded:", url
+        print 'Downloaded:', url
   if not success:
     with print_lock:
-      print "Failed to download:", url
+      print 'Failed to download:', url
     return False
   return True
 
 
-def DownloadStaticCopies():
+def DownloadStaticCopies(start_number, end_number):
   global urls
   new_urls = []
   for url in urls:
     url_parts = urlparse(url)
-    host_dir = os.path.join(output_dir, "data", url_parts.hostname)
-    download_path = os.path.join(host_dir, url_parts.hostname, "index.html")
+    host_dir = os.path.join(output_dir, 'data', url_parts.hostname)
+    download_path = os.path.join(host_dir, url_parts.hostname, 'index.html')
     if not os.path.exists(download_path):
       new_urls.append(url)
 
   if new_urls:
-    print "Downloading static copies of %d sites..." % len(new_urls)
+    print 'Downloading static copies of %d sites...' % len(new_urls)
     start_time = time.time()
 
     results = multiprocessing.Pool(20).map(DownloadStaticCopyTask, new_urls)
-    failed_urls = [new_urls[i] for i,ret in enumerate(results) if not ret]
+    failed_urls = [new_urls[i] for i, ret in enumerate(results) if not ret]
     if failed_urls:
-      bad_urls_path = os.path.join(output_dir, "data", "bad_urls.txt")
+      bad_urls_path = os.path.join(output_dir, 'data', 'bad_urls.txt')
       with open(bad_urls_path, 'a') as f:
         f.writelines(u + '\n' for u in failed_urls)
       failed_urls_set = set(failed_urls)
@@ -249,16 +212,16 @@ def DownloadStaticCopies():
 
     PrintElapsedTime(time.time() - start_time)
 
-  SaveWorkingUrls()
+  SaveWorkingUrls(start_number, end_number)
 
 
 def RunDrtTask(url):
   url_parts = urlparse(url)
-  host_dir = os.path.join(output_dir, "data", url_parts.hostname)
-  html_path = os.path.join(host_dir, url_parts.hostname, "index.html")
+  host_dir = os.path.join(output_dir, 'data', url_parts.hostname)
+  html_path = os.path.join(host_dir, url_parts.hostname, 'index.html')
 
   if not allow_js:
-    nojs_path = os.path.join(host_dir, url_parts.hostname, "index-nojs.html")
+    nojs_path = os.path.join(host_dir, url_parts.hostname, 'index-nojs.html')
     if not os.path.exists(nojs_path):
       with open(html_path) as f:
         html = f.read()
@@ -276,26 +239,28 @@ def RunDrtTask(url):
 
   start_time = time.time()
 
-  with open(os.devnull, "w") as fnull:
-    p = subprocess.Popen([content_shell,
-                          "--dump-render-tree",
-                          additional_content_shell_flags,
-                          # The single quote is not a typo, it's a separator!
-                          html_path + "'--pixel-test"
-                         ],
-                         shell=False,
+  with open(os.devnull, 'w') as fnull:
+    dump_tree_cmd = [content_shell,
+                     '--dump-render-tree',
+                     additional_content_shell_flags,
+                     # The escaped single quote is not a typo, it's a separator!
+                     html_path + "\\'--pixel-test"
+                    ]
+    p = subprocess.Popen(' '.join(dump_tree_cmd),
+                         shell=True,
                          stdout=subprocess.PIPE,
                          stderr=fnull)
   result = p.stdout.read()
-  PNG_START = b"\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"
-  PNG_END = b"\x49\x45\x4E\x44\xAE\x42\x60\x82"
+
+  PNG_START = b'\x89\x50\x4E\x47\x0D\x0A\x1A\x0A'
+  PNG_END = b'\x49\x45\x4E\x44\xAE\x42\x60\x82'
   try:
     start = result.index(PNG_START)
     end = result.rindex(PNG_END) + 8
   except ValueError:
     return False
 
-  png_path = os.path.join(output_dir, action, url_parts.hostname + ".png")
+  png_path = os.path.join(output_dir, action, url_parts.hostname + '.png')
   MakeDirsIfNotExist(os.path.dirname(png_path))
   with open(png_path, 'wb') as f:
     f.write(result[start:end])
@@ -304,26 +269,25 @@ def RunDrtTask(url):
 
 
 def RunDrt():
-  print "Taking screenshots of %d pages..." % len(urls)
+  print 'Taking screenshots of %d pages...' % len(urls)
   start_time = time.time()
 
   results = multiprocessing.Pool().map(RunDrtTask, urls, 1)
 
   max_time, url = max(t for t in results if t)
-  elapsed_detail = "(slowest: %.2fs on %s)" % (max_time, url)
+  elapsed_detail = '(slowest: %.2fs on %s)' % (max_time, url)
   PrintElapsedTime(time.time() - start_time, elapsed_detail)
 
 
 def CompareResultsTask(url):
   url_parts = urlparse(url)
-  before_path = os.path.join(output_dir, "before", url_parts.hostname + ".png")
-  after_path = os.path.join(output_dir, "after", url_parts.hostname + ".png")
-  diff_path = os.path.join(output_dir, "diff", url_parts.hostname + ".png")
-  MakeDirsIfNotExist(os.path.join(output_dir, "diff"))
+  before_path = os.path.join(output_dir, 'before', url_parts.hostname + '.png')
+  after_path = os.path.join(output_dir, 'after', url_parts.hostname + '.png')
+  diff_path = os.path.join(output_dir, 'diff', url_parts.hostname + '.png')
+  MakeDirsIfNotExist(os.path.join(output_dir, 'diff'))
 
-  # TODO(johnme): Don't hardcode "real_world_impact".
-  red_path = ("data:image/gif;base64,R0lGODlhAQABAPAAAP8AAP///yH5BAAAAAAALAAAAA"
-              "ABAAEAAAICRAEAOw==")
+  red_path = ('data:image/gif;base64,R0lGODlhAQABAPAAAP8AAP///yH5BAAAAAAALAAAAA'
+              'ABAAEAAAICRAEAOw==')
 
   before_exists = os.path.exists(before_path)
   after_exists = os.path.exists(after_path)
@@ -335,28 +299,28 @@ def CompareResultsTask(url):
     return (200, url, red_path)
 
   # Get percentage difference.
-  p = subprocess.Popen([image_diff, "--histogram",
+  p = subprocess.Popen([image_diff, '--histogram',
                         before_path, after_path],
                         shell=False,
                         stdout=subprocess.PIPE)
-  output,_ = p.communicate()
+  output, _ = p.communicate()
   if p.returncode == 0:
     return (0, url, before_path)
   diff_match = re.match(r'histogram diff: (\d+\.\d{2})% (?:passed|failed)\n'
                          'exact diff: (\d+\.\d{2})% (?:passed|failed)', output)
   if not diff_match:
-    raise Exception("image_diff output format changed")
+    raise Exception('image_diff output format changed')
   histogram_diff = float(diff_match.group(1))
   exact_diff = float(diff_match.group(2))
   combined_diff = max(histogram_diff + exact_diff / 8, 0.001)
 
   # Produce diff PNG.
-  subprocess.call([image_diff, "--diff", before_path, after_path, diff_path])
+  subprocess.call([image_diff, '--diff', before_path, after_path, diff_path])
   return (combined_diff, url, diff_path)
 
 
-def CompareResults():
-  print "Running image_diff on %d pages..." % len(urls)
+def CompareResults(start_number, end_number, gs_url_prefix):
+  print 'Running image_diff on %d pages...' % len(urls)
   start_time = time.time()
 
   results = multiprocessing.Pool().map(CompareResultsTask, urls)
@@ -364,7 +328,7 @@ def CompareResults():
 
   PrintElapsedTime(time.time() - start_time)
 
-  now = datetime.datetime.today().strftime("%a %Y-%m-%d %H:%M")
+  now = datetime.datetime.today().strftime('%a %Y-%m-%d %H:%M')
   html_start = textwrap.dedent("""\
   <!DOCTYPE html>
   <html>
@@ -376,8 +340,8 @@ def CompareResults():
 
     var before = true;
     function toggle() {
-      var newFolder = before ? "before" : "after";
-      togglingImg.src = togglingImg.src.replace(/before|after|diff/, newFolder);
+      var newFolder = before ? "\/before" : "\/after";
+      togglingImg.src = togglingImg.src.replace(/\/before|\/after|\/diff/, newFolder);
       before = !before;
       toggleTimer = setTimeout(toggle, 300);
     }
@@ -400,17 +364,17 @@ def CompareResults():
       var newFolder;
       switch (keyCode) {
         case 49: //'1'
-          newFolder = "before"; break;
+          newFolder = "\/before"; break;
         case 50: //'2'
-          newFolder = "after"; break;
+          newFolder = "\/after"; break;
         case 51: //'3'
-          newFolder = "diff"; break;
+          newFolder = "\/diff"; break;
         default:
           return;
       }
       var imgs = document.getElementsByTagName("img");
       for (var i = 0; i < imgs.length; i++) {
-        imgs[i].src = imgs[i].src.replace(/before|after|diff/, newFolder);
+        imgs[i].src = imgs[i].src.replace(/\/before|\/after|\/diff/, newFolder);
       }
     };
   </script>
@@ -444,14 +408,14 @@ def CompareResults():
       document.body.className = "details-supported";
     </script>
     <!--<div class="nsfw-spacer"></div>-->
-    <p class="nsfw-warning">Warning: sites below are taken from the Alexa top %d
-    and may be NSFW.</p>
+    <p class="nsfw-warning">Warning: sites below are taken from the Alexa
+    top %d-%d and may be NSFW.</p>
     <!--<div class="nsfw-spacer"></div>-->
     <h1>Real World Impact report %s</h1>
     <p class="info">Press 1, 2 and 3 to switch between before, after and diff
     screenshots respectively; or hover over the images to rapidly alternate
     between before and after.</p>
-  """ % (now, num_sites, now))
+  """ % (now, start_number, end_number, now))
 
   html_same_row = """\
   <h2>No difference on <a href="%s">%s</a>.</h2>
@@ -463,57 +427,47 @@ def CompareResults():
        onmouseover="startToggle(this)" onmouseout="stopToggle(this)">
   """
 
-  html_nsfw_diff_row = """\
-  <h2>%7.3f%% difference on <a href="%s">%s</a>:</h2>
-  <details>
-    <summary>This site may be NSFW. Click to expand/collapse.</summary>
-    <img src="%s" width="800" height="600"
-         onmouseover="startToggle(this)" onmouseout="stopToggle(this)">
-  </details>
-  """
-
   html_end = textwrap.dedent("""\
   </body>
   </html>""")
 
-  html_path = os.path.join(output_dir, "diff.html")
+  html_path = os.path.join(output_dir, 'diff.html')
   with open(html_path, 'w') as f:
     f.write(html_start)
     for (diff_float, url, diff_path) in results:
       diff_path = os.path.relpath(diff_path, output_dir)
       if diff_float == 0:
         f.write(html_same_row % (url, url))
-      elif url in nsfw_urls:
-        f.write(html_nsfw_diff_row % (diff_float, url, url, diff_path))
       else:
-        f.write(html_diff_row % (diff_float, url, url, diff_path))
+        f.write(html_diff_row % (
+            diff_float, url, url, posixpath.join(gs_url_prefix, diff_path)))
     f.write(html_end)
 
-  webbrowser.open_new_tab("file://" + html_path)
+  webbrowser.open_new_tab('file://' + html_path)
 
 
 def main(argv):
-  global num_sites, action, allow_js, additional_content_shell_flags
+  global action, allow_js, output_dir, additional_content_shell_flags, \
+         image_diff, content_shell
 
   parser = argparse.ArgumentParser(
       formatter_class=RawTextHelpFormatter,
-      description="Compare the real world impact of a content shell change.",
+      description='Compare the real world impact of a content shell change.',
       epilog=textwrap.dedent("""\
           Example usage:
             1. Build content_shell in out/Release without any changes.
-            2. Run: %s before [num sites to test (default %d)].
+            2. Run: %s --action=before --start_number=1 --end_number=10
             3. Either:
                  a. Apply your controversial patch and rebuild content_shell.
                  b. Pass --additional_flags="--enable_your_flag" in step 4.
-            4. Run: %s after [num sites to test (default %d)].
-            5. Run: %s compare [num sites to test (default %d)].
-               This will open the results in your web browser.
-          """ % (argv[0], num_sites, argv[0], num_sites, argv[0], num_sites)))
-  parser.add_argument("--allow_js", help="Don't disable Javascript",
-                      action="store_true")
-  parser.add_argument("--additional_flags",
-                      help="Additional flags to pass to content shell")
-  parser.add_argument("action",
+            4. Run: %s --action=after --start_number=1 --end_number=10
+            5. Run: %s --action=compare --start_number=1 --end_number=10
+          """ % (argv[0], argv[0], argv[0])))
+  parser.add_argument('--allow_js', help='Do not disable Javascript',
+                      action='store_true')
+  parser.add_argument('--additional_flags',
+                      help='Additional flags to pass to content shell')
+  parser.add_argument('--action',
                       help=textwrap.dedent("""\
                         Action to perform.
                           download - Just download the sites.
@@ -521,16 +475,40 @@ def main(argv):
                           after - Run content shell and record 'after' result.
                           compare - Compare before and after results.
                       """),
-                      choices=["download", "before", "after", "compare"])
-  parser.add_argument("num_sites",
-                      help="Number of sites (default %s)" % num_sites,
-                      type=int, default=num_sites, nargs='?')
+                      choices=['download', 'before', 'after', 'compare'],
+                      required=True)
+  parser.add_argument('--start_number',
+                      help='Specifies which website rank (in Alexa\'s list) to '
+                           'start with',
+                      type=int, required=True)
+  parser.add_argument('--end_number',
+                      help='Specifies which website rank (in Alexa\'s list) to '
+                           'end with',
+                      type=int, required=True)
+  parser.add_argument('--output_dir',
+                      help='Directory where output files will be stored',
+                      required=True)
+  parser.add_argument('--csv_path',
+                      help='Path to the Alexa top 1M webpages CSV',
+                      required=True)
+  parser.add_argument('--chromium_out_dir',
+                      help='Path to Chromium build\'s out directory.',
+                      required=True)
+  parser.add_argument('--gs_url_prefix',
+                      help='The GS prefix to use which points to img files.',
+                      required=True)
+
   args = parser.parse_args()
 
   action = args.action
-
-  if (args.num_sites):
-    num_sites = args.num_sites
+  output_dir = os.path.join(args.output_dir, 'real_world_impact')
+  gs_url_prefix = args.gs_url_prefix
+  chromium_out_dir = args.chromium_out_dir
+  image_diff = os.path.join(chromium_out_dir, 'image_diff')
+  content_shell = os.path.join(chromium_out_dir, 'content_shell')
+  csv_path = args.csv_path
+  start_number = args.start_number
+  end_number = args.end_number
 
   if (args.allow_js):
     allow_js = args.allow_js
@@ -538,13 +516,14 @@ def main(argv):
   if (args.additional_flags):
     additional_content_shell_flags = args.additional_flags
 
-  if not SetupPathsAndOut() or not CheckPrerequisites() or not PickSampleUrls():
+  if not SetupPaths() or not CheckPrerequisites() or not PickSampleUrls(
+      start_number, end_number, csv_path):
     return 1
 
   if action == 'compare':
-    CompareResults()
+    CompareResults(start_number, end_number, gs_url_prefix)
   else:
-    DownloadStaticCopies()
+    DownloadStaticCopies(start_number, end_number)
     if action != 'download':
       RunDrt()
   return 0
