@@ -181,7 +181,7 @@ _slave_host_dicts = {
   },
 
   # This host is in the chromecompute project.
-  'skia-recreate-skps': {
+  'skia-recreate-skps-bot': {
     'slaves': [
       ('skia-recreate-skps', '0'),
     ],
