@@ -173,4 +173,5 @@ gsutil cp -a public-read $LOG_FILE ${LOG_FILE_GS_LOCATION}/slave${SLAVE_NUM}/
 # Clean up.
 rm -rf $OUTPUT_DIR
 rm -rf $LOG_FILE
+rm -rf /tmp/top-1m.csv
 delete_worker_file $WORKER_FILE
