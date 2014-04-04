@@ -125,7 +125,7 @@ if [ $ret_value -eq 0 ]; then
   START=1
   for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     END=$(expr $START + $NUM_WEBPAGES_PER_SLAVE - 1)
-    CMD="bash vm_run_pixeldiffs_try.sh -n $SLAVE_NUM -b $CHROMIUM_BUILD_DIR -p ${CHROMIUM_BUILD_DIR}-withpatch -s $START -e $END -r $RUN_ID -g gs://chromium-skia-gm/telemetry/pixeldiffs/logs/${RUN_ID} -o gs://chromium-skia-gm/telemetry/pixeldiffs/outputs/${RUN_ID} -l /tmp/pixeldiffs-${RUN_ID}_output.txt"
+    CMD="bash vm_run_pixeldiffs_try.sh -n $SLAVE_NUM -b $CHROMIUM_BUILD_DIR -p ${CHROMIUM_BUILD_DIR}-withpatch -s $START -e $END -r $RUN_ID -g gs://chromium-skia-gm/telemetry/pixeldiffs/logs/${RUN_ID}/ -o gs://chromium-skia-gm/telemetry/pixeldiffs/outputs/${RUN_ID} -l /tmp/pixeldiffs-${RUN_ID}_output.txt"
     START=$(expr $END + 1)
     ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
