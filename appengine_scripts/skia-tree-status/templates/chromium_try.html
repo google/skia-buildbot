@@ -12,7 +12,13 @@
 <br/>
 Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#'>here</a>
 <br/></br>
-<b>Note:</b> The perf measurements are run on <a href='https://cloud.google.com/products/compute-engine/'>GCE</a> instances. There could be variance in runs depending on if there are other VMs running<br/>on the same physical machine. Please account for upto 1% variance in your runs till the framework moves to bare metal perf machines.
+
+<b>Note:</b>
+<br/>
+* The perf measurements are run on <a href='https://cloud.google.com/products/compute-engine/'>GCE</a> instances. There could be variance in runs depending on if there are other VMs running<br/>on the same physical machine. Please account for upto 1% variance in your runs till the framework moves to bare metal machines.
+<br/><br/>
+* The 'pixeldiffs' benchmark runs the <a href='https://skia.googlesource.com/buildbot/+/master/compute_engine_scripts/telemetry/telemetry_slave_scripts/capture_and_compare_pixeldiffs.py'>capture_and_compare_pixeldiffs.py</a> script against the live top 10k webpages (not using their<br/>archives). Images from this benchmark are visible to only @google.com accounts.
+
 <br/>
 <br/>
 <a href="javascript:toggleDetails();">Show/hide algorithm details</a>
