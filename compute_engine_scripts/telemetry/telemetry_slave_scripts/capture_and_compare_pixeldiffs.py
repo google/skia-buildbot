@@ -435,11 +435,7 @@ def CompareResults(start_number, end_number, gs_url_prefix):
   with open(html_path, 'w') as f:
     f.write(html_start)
     for (diff_float, url, diff_path) in results:
-      print 'DEBUGGING....'
-      print diff_path
-      print output_dir
       diff_path = os.path.relpath(diff_path, output_dir)
-      print diff_path
       if diff_float == 0:
         f.write(html_same_row % (url, url))
       else:
