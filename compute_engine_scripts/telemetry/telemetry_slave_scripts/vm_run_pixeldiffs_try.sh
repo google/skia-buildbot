@@ -117,7 +117,8 @@ sudo Xvfb :0 -screen 0 1280x1024x24 &
 OUTPUT_DIR=/home/default/storage/pixeldiffs/${RUN_ID}
 mkdir -p $OUTPUT_DIR
 
-# Run the "before" command pointing to the nopatch build.
+echo
+echo "== Running the \"before\" command pointing to the nopatch build =="
 DISPLAY=:0 python capture_and_compare_pixeldiffs.py \
     --additional_flags="--disable-setuid-sandbox --enable-software-compositing" \
     --output_dir=$OUTPUT_DIR --csv_path=/tmp/top-1m.csv \
@@ -125,7 +126,8 @@ DISPLAY=:0 python capture_and_compare_pixeldiffs.py \
     --gs_url_prefix=https://storage.cloud.google.com/chromium-skia-gm/telemetry/pixeldiffs/outputs/$RUN_ID/slave$SLAVE_NUM \
     --start_number=$START_RANK --end_number=$END_RANK --action=before
 
-# Run the "after" command pointing to the withpatch build.
+echo
+echo "== Running the \"after\" command pointing to the nopatch build =="
 DISPLAY=:0 python capture_and_compare_pixeldiffs.py \
     --additional_flags="--disable-setuid-sandbox --enable-software-compositing" \
     --output_dir=$OUTPUT_DIR --csv_path=/tmp/top-1m.csv \
@@ -133,7 +135,8 @@ DISPLAY=:0 python capture_and_compare_pixeldiffs.py \
     --gs_url_prefix=https://storage.cloud.google.com/chromium-skia-gm/telemetry/pixeldiffs/outputs/$RUN_ID/slave$SLAVE_NUM \
     --start_number=$START_RANK --end_number=$END_RANK --action=after
 
-# Run the "compare" command.
+echo
+echo "== Running the \"compare\" command =="
 DISPLAY=:0 python capture_and_compare_pixeldiffs.py \
     --additional_flags="--disable-setuid-sandbox --enable-software-compositing" \
     --output_dir=$OUTPUT_DIR --csv_path=/tmp/top-1m.csv \
