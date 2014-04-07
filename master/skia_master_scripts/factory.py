@@ -39,6 +39,7 @@ CONFIG_RELEASE = 'Release'
 CONFIGURATIONS = [CONFIG_DEBUG, CONFIG_RELEASE]
 
 
+_RUNGYP_STEP_DESCRIPTION = 'RunGYP'
 _COMPILE_STEP_PREFIX = 'Build'
 _COMPILE_RETRY_PREFIX = 'Retry_' + _COMPILE_STEP_PREFIX
 _COMPILE_NO_WERR_PREFIX = 'Retry_NoWarningsAsErrors_' + _COMPILE_STEP_PREFIX
@@ -300,10 +301,15 @@ class SkiaFactory(BuildFactory):
     flavor_args = ['--flavor', self._flavor or 'default']
     self.AddSlaveScript(script, args=list(args or []) + flavor_args, **kwargs)
 
-  def RunGYP(self):
-    """ Run GYP to generate build files. """
-    self.AddFlavoredSlaveScript(script='run_gyp.py', description='RunGYP',
-                                halt_on_failure=True,
+  def RunGYP(self, description=_RUNGYP_STEP_DESCRIPTION, do_step_if=None):
+    """ Run GYP to generate build files.
+
+    description: string; description of this BuildStep.
+    do_step_if: optional, function which determines whether or not to run this
+        step.
+    """
+    self.AddFlavoredSlaveScript(script='run_gyp.py', description=description,
+                                halt_on_failure=True, do_step_if=do_step_if,
                                 args=['--gyp_defines',
                                       ' '.join('%s=%s' % (k, v) for k, v in
                                                self._gyp_defines.items())])
@@ -365,30 +371,32 @@ class SkiaFactory(BuildFactory):
       """ Determine whether the retry step should run. """
       if not maybe_retry_with_clobber:
         return False
-      compile_failed = False
+      gyp_or_compile_failed = False
       retry_failed = False
       for build_step in step.build.getStatus().getSteps():
         if (build_step.isFinished() and
             build_step.getResults()[0] == builder.FAILURE):
           if build_step.getName().startswith(_COMPILE_STEP_PREFIX):
-            compile_failed = True
+            gyp_or_compile_failed = True
+          elif build_step.getName() == _RUNGYP_STEP_DESCRIPTION:
+            gyp_or_compile_failed = True
           elif build_step.getName().startswith(_COMPILE_RETRY_PREFIX):
             retry_failed = True
-      return compile_failed and not retry_failed
+      return gyp_or_compile_failed and not retry_failed
 
     def ShouldRetryWithoutWarnings(step):
       """ Determine whether the retry-without-warnings-as-errors step should
       run. """
       if not retry_without_werr_on_failure:
         return False
-      compile_failed = False
+      gyp_or_compile_failed = False
       retry_failed = False
       no_warning_retry_failed = False
       for build_step in step.build.getStatus().getSteps():
         if (build_step.isFinished() and
             build_step.getResults()[0] == builder.FAILURE):
           if build_step.getName().startswith(_COMPILE_STEP_PREFIX):
-            compile_failed = True
+            gyp_or_compile_failed = True
           elif build_step.getName().startswith(_COMPILE_RETRY_PREFIX):
             retry_failed = True
           elif build_step.getName().startswith(
@@ -402,7 +410,7 @@ class SkiaFactory(BuildFactory):
       if maybe_retry_with_clobber:
         return retry_failed
       # Only run the retry if the initial compile has failed.
-      return compile_failed
+      return gyp_or_compile_failed
 
     for build_target in self._build_targets:
       self.Make(target=build_target,
@@ -415,6 +423,8 @@ class SkiaFactory(BuildFactory):
     # Try again with a clean build.
     self.AddFlavoredSlaveScript(script='clean.py', description='Clean',
                                 do_step_if=ShouldRetryWithClobber)
+    self.RunGYP(description=_COMPILE_RETRY_PREFIX + _RUNGYP_STEP_DESCRIPTION,
+                do_step_if=ShouldRetryWithClobber)
     for build_target in self._build_targets:
       self.Make(target=build_target,
                 description=_COMPILE_RETRY_PREFIX + \
@@ -428,6 +438,8 @@ class SkiaFactory(BuildFactory):
     self.AddFlavoredSlaveScript(script='clean.py', description='Clean',
                                 always_run=True,
                                 do_step_if=ShouldRetryWithoutWarnings)
+    self.RunGYP(description=_COMPILE_NO_WERR_PREFIX + _RUNGYP_STEP_DESCRIPTION,
+                do_step_if=ShouldRetryWithoutWarnings)
     for build_target in self._build_targets:
       self.Make(target=build_target,
                 description=_COMPILE_NO_WERR_PREFIX + \
