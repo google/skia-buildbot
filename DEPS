@@ -50,13 +50,18 @@ deps = {
   "third_party/src/third_party/webpagereplay":
     "http://web-page-replay.googlecode.com/svn/trunk/@" + Var("webpagereplay_revision"),
   
-  # Chromium buildbot code.
+  # Chromium buildbot code, pinned at an old revision for compatibility with our
+  # buildbot code.
   "third_party/chromium_buildbot":
     Var("chromium_trunk") + "/tools/build@" + Var("chromium_revision"),
   "third_party/chromium_buildbot/scripts/command_wrapper/bin":
     Var("chromium_trunk") + "/tools/command_wrapper/bin@" + Var("chromium_revision"),
   "third_party/depot_tools":
     Var("chromium_trunk") + "/tools/depot_tools",
+
+  # Tip-of-tree Chromium buildbot code.
+  "third_party/chromium_buildbot_tot":
+    Var("chromium_trunk") + "/tools/build",
 
   # Dependencies of the Chromium buildbot code.
   # I tried to use From() to link to Chromium's /tools/build/DEPS dependencies,
