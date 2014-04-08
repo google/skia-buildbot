@@ -22,15 +22,15 @@ FAILED=""
 echo "==Install required packages=="
 sudo apt-get update;
 sudo apt-get install linux-tools python-django libgif-dev && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod \
-  || FAILED="$FAILED InstallPackages"
+|| FAILED="$FAILED InstallPackages"
 echo
 
 echo "Checkout Skia Buildbot code"
 mkdir /b/storage/;
-mkdir /b/skia-repo/ && \
+mkdir /b/skia-repo/;
 cd /b/skia-repo/ && \
 gclient config https://skia.googlesource.com/buildbot.git && \
-gclient sync; \
+gclient sync \
 || FAILED="$FAILED CheckoutSkiaBuildbot"
 echo
 
@@ -47,7 +47,7 @@ echo """
     'safesync_url': '',
   },
 ]
-""" >> .gclient && gclient sync; \
+""" >> .gclient && gclient sync \
 || FAILED="$FAILED CheckoutSkiaTrunk"
 echo
 
