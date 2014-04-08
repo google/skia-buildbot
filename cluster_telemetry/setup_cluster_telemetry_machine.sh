@@ -29,8 +29,8 @@ echo "Checkout Skia Buildbot code"
 mkdir /b/storage/;
 mkdir /b/skia-repo/;
 cd /b/skia-repo/ && \
-gclient config https://skia.googlesource.com/buildbot.git && \
-gclient sync \
+/b/depot_tools/gclient config https://skia.googlesource.com/buildbot.git && \
+/b/depot_tools/gclient sync \
 || FAILED="$FAILED CheckoutSkiaBuildbot"
 echo
 
@@ -47,7 +47,7 @@ echo """
     'safesync_url': '',
   },
 ]
-""" >> .gclient && gclient sync \
+""" >> .gclient && /b/depot_tools/gclient sync \
 || FAILED="$FAILED CheckoutSkiaTrunk"
 echo
 
