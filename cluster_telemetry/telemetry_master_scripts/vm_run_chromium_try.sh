@@ -240,7 +240,7 @@ Content-Type: text/html
   </table><br/><br/>
 
   The log file of the first slave is <a href='$SLAVE_1_LOG_LINK'>here</a>.<br/>
-  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/chromium_try'>here</a>.<br/><br/>
+  You can schedule more runs <a href='https://skia-tree-status-staging.appspot.com/skia-telemetry/chromium_try'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>
@@ -251,7 +251,7 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
-for i in {1..10}; do wget --post-data "key=$APPENGINE_KEY&chromium_patch_link=$CHROMIUM_PATCH_LINK&blink_patch_link=$BLINK_PATCH_LINK&skia_patch_link=$SKIA_PATCH_LINK&build_log_link=$CHROMIUM_BUILD_LOG_LINK&telemetry_nopatch_log_link=$TELEMETRY_OUTPUT_1&telemetry_withpatch_log_link=$TELEMETRY_OUTPUT_2&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_chromium_try_tasks" -O /dev/null && break || sleep 2; done
+for i in {1..10}; do wget --post-data "key=$APPENGINE_KEY&chromium_patch_link=$CHROMIUM_PATCH_LINK&blink_patch_link=$BLINK_PATCH_LINK&skia_patch_link=$SKIA_PATCH_LINK&build_log_link=$CHROMIUM_BUILD_LOG_LINK&telemetry_nopatch_log_link=$TELEMETRY_OUTPUT_1&telemetry_withpatch_log_link=$TELEMETRY_OUTPUT_2&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status-staging.appspot.com/skia-telemetry/update_chromium_try_tasks" -O /dev/null && break || sleep 2; done
 
 # Copy log file to Google Storage.
 gsutil cp -a public-read $LOG_FILE_LOCATION gs://chromium-skia-gm/telemetry/tryserver-logs/

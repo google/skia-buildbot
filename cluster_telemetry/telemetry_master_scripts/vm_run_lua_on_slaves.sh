@@ -125,7 +125,7 @@ Content-Type: text/html
   Time taken for the <a href='$SCRIPT_LINK'>script</a> run: $TIMER seconds.<br/>
   The output of your script is available <a href='$OUTPUT_LINK'>here</a>.<br/>
   $ORIGINAL_OUTPUT_TXT
-  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/lua_script'>here</a>.<br/><br/>
+  You can schedule more runs <a href='https://skia-tree-status-staging.appspot.com/skia-telemetry/lua_script'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>
@@ -136,5 +136,5 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&lua_script_link=$SCRIPT_LINK&lua_output_link=$OUTPUT_LINK&lua_aggregator_link=$AGGREGATOR_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_lua_task" -O /dev/null
+wget --post-data "key=$APPENGINE_KEY&lua_script_link=$SCRIPT_LINK&lua_output_link=$OUTPUT_LINK&lua_aggregator_link=$AGGREGATOR_LINK&password=$PASSWORD" "https://skia-tree-status-staging.appspot.com/skia-telemetry/update_lua_task" -O /dev/null
 

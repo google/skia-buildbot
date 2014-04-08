@@ -184,7 +184,7 @@ Content-Type: text/html
   The HTML output with differences between the base run and the patch run is <a href='$HTML_OUTPUT_LINK'>here</a>.<br/>
   If the above output is blank then please look for failures in the log file of the first slave <a href='$SLAVE_1_LOG_LINK'>here</a>.<br/><br/>
   The patch you specified is <a href='$SKIA_PATCH_GS_LINK'>here.</a><br/>
-  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/skia_try'>here</a>.<br/><br/>
+  You can schedule more runs <a href='https://skia-tree-status-staging.appspot.com/skia-telemetry/skia_try'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>
@@ -195,7 +195,7 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
-for i in {1..10}; do wget --post-data "key=$APPENGINE_KEY&patch_link=$SKIA_PATCH_GS_LINK&slave1_output_link=$SLAVE_1_LOG_LINK&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_skia_try_task" -O /dev/null && break || sleep 2; done
+for i in {1..10}; do wget --post-data "key=$APPENGINE_KEY&patch_link=$SKIA_PATCH_GS_LINK&slave1_output_link=$SLAVE_1_LOG_LINK&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status-staging.appspot.com/skia-telemetry/update_skia_try_task" -O /dev/null && break || sleep 2; done
 
 # Delete all tmp files.
 rm -rf /tmp/*${RUN_ID}*
