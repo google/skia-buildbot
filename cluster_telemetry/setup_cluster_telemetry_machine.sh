@@ -21,7 +21,7 @@ FAILED=""
 
 echo "==Install required packages=="
 sudo apt-get update;
-sudo apt-get install linux-tools python-django libgif-dev && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod \
+sudo apt-get -y install linux-tools python-django libgif-dev && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod \
 || FAILED="$FAILED InstallPackages"
 echo
 
