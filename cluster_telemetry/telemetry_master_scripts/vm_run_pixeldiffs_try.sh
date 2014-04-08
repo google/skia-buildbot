@@ -69,7 +69,7 @@ then
   exit 1
 fi
 
-source ../vm_config.sh
+source ../config.sh
 source vm_utils.sh
 
 # Update buildbot.
@@ -113,7 +113,7 @@ if [ $ret_value -eq 0 ]; then
   gsutil cp /tmp/top-1m.csv gs://chromium-skia-gm/telemetry/pixeldiffs/csv/top-1m-${RUN_ID}.csv
 
   # Delete the try chromium builds from the slaves so that they do not take up unneeded disk space.
-  bash vm_run_command_on_slaves.sh "rm -rf ~/storage/chromium-builds/try-*"
+  bash vm_run_command_on_slaves.sh "rm -rf /b/storage/chromium-builds/try-*"
   # Make sure there are no left over processes on the slaves.
   bash vm_run_command_on_slaves.sh "sudo pkill -9 -f chromium-builds"
 
@@ -128,8 +128,8 @@ if [ $ret_value -eq 0 ]; then
     CMD="bash vm_run_pixeldiffs_try.sh -n $SLAVE_NUM -b $CHROMIUM_BUILD_DIR -p ${CHROMIUM_BUILD_DIR}-withpatch -s $START -e $END -r $RUN_ID -g gs://chromium-skia-gm/telemetry/pixeldiffs/logs/${RUN_ID}/ -o gs://chromium-skia-gm/telemetry/pixeldiffs/outputs/${RUN_ID} -l /tmp/pixeldiffs-${RUN_ID}_output.txt"
     START=$(expr $END + 1)
     ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
-      -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-      -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/pixeldiffs-${RUN_ID}_output.txt 2>&1"
+      -o StrictHostKeyChecking=no \
+      -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/pixeldiffs-${RUN_ID}_output.txt 2>&1"
   done
 
   # Sleep for a minute to give the slaves some time to start processing.
@@ -142,19 +142,19 @@ if [ $ret_value -eq 0 ]; then
     for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
       RET=$( is_slave_currently_executing $SLAVE_NUM PIXELDIFFS.${RUN_ID} )
       if $RET; then
-        echo "skia-telemetry-worker$SLAVE_NUM is still running PIXELDIFFS.${RUN_ID}"
+        echo "cluster-telemetry-worker$SLAVE_NUM is still running PIXELDIFFS.${RUN_ID}"
         echo "Sleeping for a minute and then retrying"
         SLAVES_STILL_PROCESSING=true
         sleep 60
         break
       else
-        echo "skia-telemetry-worker$SLAVE_NUM is done processing."
+        echo "cluster-telemetry-worker$SLAVE_NUM is done processing."
       fi
     done
   done
 
   # Delete the try chromium builds from the slaves so that they do not take up unneeded disk space.
-  bash vm_run_command_on_slaves.sh "rm -rf ~/storage/chromium-builds/try-*"
+  bash vm_run_command_on_slaves.sh "rm -rf /b/storage/chromium-builds/try-*"
   # Make sure there are no left over processes on the slaves.
   bash vm_run_command_on_slaves.sh "sudo pkill -9 -f chromium-builds"
 
@@ -233,7 +233,7 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
+PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
 for i in {1..10}; do wget --post-data "key=$APPENGINE_KEY&chromium_patch_link=$CHROMIUM_PATCH_LINK&blink_patch_link=$BLINK_PATCH_LINK&skia_patch_link=$SKIA_PATCH_LINK&build_log_link=$CHROMIUM_BUILD_LOG_LINK&telemetry_nopatch_log_link=$SLAVE_1_LOG_LINK&telemetry_withpatch_log_link=$SLAVE_1_LOG_LINK&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_chromium_try_tasks" -O /dev/null && break || sleep 2; done
 
 # Copy log file to Google Storage.

@@ -2,8 +2,8 @@
 #
 # Starts the telemetry_slave_scripts/vm_run_skia_try.sh script on all slaves.
 #
-# The script should be run from the skia-telemetry-master GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
+# The script should be run from the cluster-telemetry-master GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -88,16 +88,11 @@ then
   exit 1
 fi
 
-source ../vm_config.sh
+source ../config.sh
 source vm_utils.sh
 
 # Start the timer.
 TIMER="$(date +%s)"
-
-if [ -e /etc/boto.cfg ]; then
-  # Move boto.cfg since it may interfere with the ~/.boto file.
-  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
-fi
 
 # Copy the local lua script to Google Storage.
 RELATIVE_SKIA_PATCH_GS_PATH=chromium-skia-gm/telemetry/skia-tryserver/patches/$RUN_ID.patch
@@ -115,8 +110,8 @@ SLAVE_OUTPUT_GS_LOCATION=gs://chromium-skia-gm/telemetry/skia-tryserver/outputs/
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_skia_try.sh -n $SLAVE_NUM -p $SKIA_PATCH_GS_LOCATION -t $PAGESETS_TYPE -b $CHROMIUM_BUILD_DIR -a \"$RENDER_PICTURES_ARGS\" -m $MESA_NOPATCH_RUN -w $MESA_WITHPATCH_RUN -r $RUN_ID -g $SLAVE_LOG_GS_LOCATION -o $SLAVE_OUTPUT_GS_LOCATION -l $SLAVE_LOG_FILE"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
-    -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > $SLAVE_LOG_FILE 2>&1"
+    -o StrictHostKeyChecking=no \
+    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > $SLAVE_LOG_FILE 2>&1"
 done
 
 # Sleep for a minute to give the slaves some time to start processing.
@@ -129,26 +124,26 @@ while $SLAVES_STILL_PROCESSING ; do
   for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     RET=$( is_slave_currently_executing $SLAVE_NUM SKIA-TRY.${RUN_ID} )
     if $RET; then
-      echo "skia-telemetry-worker$SLAVE_NUM is still running SKIA-TRY.${RUN_ID}"
+      echo "cluster-telemetry-worker$SLAVE_NUM is still running SKIA-TRY.${RUN_ID}"
       echo "Sleeping for a minute and then retrying"
       SLAVES_STILL_PROCESSING=true
       sleep 60
       break
     else
-      echo "skia-telemetry-worker$SLAVE_NUM is done processing."
+      echo "cluster-telemetry-worker$SLAVE_NUM is done processing."
     fi
   done
 done
 
 # Download JSON summary files from all the slaves.
-SUMMARIES_DIR=/home/default/storage/skia-tryserver/summaries/$RUN_ID
-HTML_OUTPUT_DIR=/home/default/storage/skia-tryserver/html-outputs/$RUN_ID
+SUMMARIES_DIR=/b/storage/skia-tryserver/summaries/$RUN_ID
+HTML_OUTPUT_DIR=/b/storage/skia-tryserver/html-outputs/$RUN_ID
 mkdir -p $SUMMARIES_DIR $HTML_OUTPUT_DIR
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   gsutil cp $SLAVE_OUTPUT_GS_LOCATION/slave$SLAVE_NUM/slave$SLAVE_NUM.json $SUMMARIES_DIR/
 done
 # Output HTML from the slave summaries.
-cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
+cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 RELATIVE_HTML_OUTPUT=chromium-skia-gm/telemetry/skia-tryserver/html-outputs/$RUN_ID/
 ABSOLUTE_GS_LINK=https://storage.cloud.google.com/$RELATIVE_HTML_OUTPUT
 python json_summary_combiner.py \
@@ -199,7 +194,7 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
+PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
 for i in {1..10}; do wget --post-data "key=$APPENGINE_KEY&patch_link=$SKIA_PATCH_GS_LINK&slave1_output_link=$SLAVE_1_LOG_LINK&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_skia_try_task" -O /dev/null && break || sleep 2; done
 
 # Delete all tmp files.

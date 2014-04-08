@@ -4,8 +4,8 @@
 # capture_and_compare_pixeldiffs.py script to download webpages and create the
 # output HTML.
 #
-# The script should be run from the skia-telemetry-slave GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
+# The script should be run from the cluster-telemetry-slave GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts
 # directory.
 #
 # Copyright 2014 Google Inc. All Rights Reserved.
@@ -91,21 +91,16 @@ source vm_utils.sh
 WORKER_FILE=PIXELDIFFS.$RUN_ID
 create_worker_file $WORKER_FILE
 
-if [ -e /etc/boto.cfg ]; then
-  # Move boto.cfg since it may interfere with the ~/.boto file.
-  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
-fi
-
 # Download the nopatch and withpatch builds from Google Storage.
 build_dir_array=( "${CHROMIUM_BUILD_DIR_NO_PATCH}" "${CHROMIUM_BUILD_DIR_WITH_PATCH}" )
 for build_dir in "${build_dir_array[@]}"
 do
-  rm -rf /home/default/storage/chromium-builds/${build_dir}*;
-  mkdir -p /home/default/storage/chromium-builds/${build_dir};
+  rm -rf /b/storage/chromium-builds/${build_dir}*;
+  mkdir -p /b/storage/chromium-builds/${build_dir};
   gsutil cp -R gs://chromium-skia-gm/telemetry/chromium-builds/${build_dir}/* \
-      /home/default/storage/chromium-builds/${build_dir}
-  sudo chmod 777 /home/default/storage/chromium-builds/${build_dir}/content_shell
-  sudo chmod 777 /home/default/storage/chromium-builds/${build_dir}/image_diff
+      /b/storage/chromium-builds/${build_dir}
+  sudo chmod 777 /b/storage/chromium-builds/${build_dir}/content_shell
+  sudo chmod 777 /b/storage/chromium-builds/${build_dir}/image_diff
 done
 
 # Download Alexa top 1M CSV from Google Storage.
@@ -114,7 +109,7 @@ gsutil cp gs://chromium-skia-gm/telemetry/pixeldiffs/csv/top-1m-${RUN_ID}.csv /t
 # Start an Xvfb display on :0.
 sudo Xvfb :0 -screen 0 1280x1024x24 &
 
-OUTPUT_DIR=/home/default/storage/pixeldiffs/${RUN_ID}
+OUTPUT_DIR=/b/storage/pixeldiffs/${RUN_ID}
 mkdir -p $OUTPUT_DIR
 
 echo
@@ -122,7 +117,7 @@ echo "== Running the \"before\" command pointing to the nopatch build =="
 DISPLAY=:0 python capture_and_compare_pixeldiffs.py \
     --additional_flags="--disable-setuid-sandbox --enable-software-compositing" \
     --output_dir=$OUTPUT_DIR --csv_path=/tmp/top-1m.csv \
-    --chromium_out_dir=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR_NO_PATCH} \
+    --chromium_out_dir=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR_NO_PATCH} \
     --gs_url_prefix=https://storage.cloud.google.com/chromium-skia-gm/telemetry/pixeldiffs/outputs/$RUN_ID/slave$SLAVE_NUM \
     --start_number=$START_RANK --end_number=$END_RANK --action=before
 
@@ -131,7 +126,7 @@ echo "== Running the \"after\" command pointing to the nopatch build =="
 DISPLAY=:0 python capture_and_compare_pixeldiffs.py \
     --additional_flags="--disable-setuid-sandbox --enable-software-compositing" \
     --output_dir=$OUTPUT_DIR --csv_path=/tmp/top-1m.csv \
-    --chromium_out_dir=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR_WITH_PATCH} \
+    --chromium_out_dir=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR_WITH_PATCH} \
     --gs_url_prefix=https://storage.cloud.google.com/chromium-skia-gm/telemetry/pixeldiffs/outputs/$RUN_ID/slave$SLAVE_NUM \
     --start_number=$START_RANK --end_number=$END_RANK --action=after
 
@@ -140,7 +135,7 @@ echo "== Running the \"compare\" command =="
 DISPLAY=:0 python capture_and_compare_pixeldiffs.py \
     --additional_flags="--disable-setuid-sandbox --enable-software-compositing" \
     --output_dir=$OUTPUT_DIR --csv_path=/tmp/top-1m.csv \
-    --chromium_out_dir=/home/default/storage/chromium-builds/${CHROMIUM_BUILD_DIR_WITH_PATCH} \
+    --chromium_out_dir=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR_WITH_PATCH} \
     --gs_url_prefix=https://storage.cloud.google.com/chromium-skia-gm/telemetry/pixeldiffs/outputs/$RUN_ID/slave$SLAVE_NUM \
     --start_number=$START_RANK --end_number=$END_RANK --action=compare
 

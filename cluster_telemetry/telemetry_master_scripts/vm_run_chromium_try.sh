@@ -91,7 +91,7 @@ then
   exit 1
 fi
 
-source ../vm_config.sh
+source ../config.sh
 
 # Update buildbot.
 for i in {1..3}; do gclient sync && break || sleep 2; done
@@ -166,14 +166,14 @@ if [ $ret_value -eq 0 ]; then
   TELEMETRY_WITH_PATCH_TIME="$(($(date +%s)-TIMER))"
 
   # Delete the try chromium builds from the slaves so that they do not take up unneeded disk space.
-  bash vm_run_command_on_slaves.sh "rm -rf ~/storage/chromium-builds/try-*"
+  bash vm_run_command_on_slaves.sh "rm -rf /b/storage/chromium-builds/try-*"
   # Make sure there are no left over processes on the slaves.
   bash vm_run_command_on_slaves.sh "sudo pkill -9 -f chromium-builds"
 
 
   # Compare the resultant CSV files.
-  NOPATCH_CSV="/home/default/storage/telemetry_outputs/${TELEMETRY_NOPATCH_ID}/${TELEMETRY_NOPATCH_ID}.$TELEMETRY_BENCHMARK.output"
-  WITHPATCH_CSV="/home/default/storage/telemetry_outputs/${TELEMETRY_WITHPATCH_ID}/${TELEMETRY_WITHPATCH_ID}.$TELEMETRY_BENCHMARK.output"
+  NOPATCH_CSV="/b/storage/telemetry_outputs/${TELEMETRY_NOPATCH_ID}/${TELEMETRY_NOPATCH_ID}.$TELEMETRY_BENCHMARK.output"
+  WITHPATCH_CSV="/b/storage/telemetry_outputs/${TELEMETRY_WITHPATCH_ID}/${TELEMETRY_WITHPATCH_ID}.$TELEMETRY_BENCHMARK.output"
   HTML_OUTPUT_DIR="/tmp/html-$RUN_ID"
   HTML_OUTPUT_LINK_BASE=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserver-outputs/html-outputs/$RUN_ID/
   mkdir -p $HTML_OUTPUT_DIR
@@ -250,7 +250,7 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
+PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
 for i in {1..10}; do wget --post-data "key=$APPENGINE_KEY&chromium_patch_link=$CHROMIUM_PATCH_LINK&blink_patch_link=$BLINK_PATCH_LINK&skia_patch_link=$SKIA_PATCH_LINK&build_log_link=$CHROMIUM_BUILD_LOG_LINK&telemetry_nopatch_log_link=$TELEMETRY_OUTPUT_1&telemetry_withpatch_log_link=$TELEMETRY_OUTPUT_2&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_chromium_try_tasks" -O /dev/null && break || sleep 2; done
 
 # Copy log file to Google Storage.
@@ -258,5 +258,5 @@ gsutil cp -a public-read $LOG_FILE_LOCATION gs://chromium-skia-gm/telemetry/trys
 
 # Delete all tmp files.
 rm -rf /tmp/*${RUN_ID}*
-rm -rf /home/default/storage/telemetry_outputs/${RUN_ID}*
+rm -rf /b/storage/telemetry_outputs/${RUN_ID}*
 

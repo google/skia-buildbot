@@ -2,8 +2,8 @@
 #
 # Create pagesets for this slave.
 #
-# The script should be run from the skia-telemetry-slave GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
+# The script should be run from the cluster-telemetry-slave GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -26,19 +26,19 @@ WEBPAGES_START=$2
 PAGESETS_TYPE=$3
 
 source vm_utils.sh
-source ../vm_config.sh
+source ../config.sh
 
 create_worker_file $CREATING_PAGESETS_ACTIVITY
 
 # Sync buildbot.
-/home/default/depot_tools/gclient sync
+/b/depot_tools/gclient sync
 
 # Move into the buildbot/tools directory.
-cd ../../../tools
+cd ../../tools
 # Delete the old page_sets.
 rm -rf page_sets/*.json
-# CLean and create directories where page_sets will be stored.
-rm -rf ~/storage/page_sets/$PAGESETS_TYPE/*
+# Clean and create directories where page_sets will be stored.
+rm -rf /b/storage/page_sets/$PAGESETS_TYPE/*
 
 # If PAGESETS_TYPE is 100k or 10k or IndexSample10k then adjust NUM_WEBPAGES.
 if [ "$PAGESETS_TYPE" == "100k" ]; then
@@ -55,11 +55,6 @@ fi
 NUM_WEBPAGES_PER_SLAVE=$(($NUM_WEBPAGES/$NUM_SLAVES))
 NUM_PAGESETS_PER_SLAVE=$(($NUM_WEBPAGES_PER_SLAVE/$MAX_WEBPAGES_PER_PAGESET))
 START=$WEBPAGES_START
-
-if [ -e /etc/boto.cfg ]; then
-  # Move boto.cfg since it may interfere with the ~/.boto file.
-  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
-fi
 
 if [ "$PAGESETS_TYPE" == "IndexSample10k" ]; then
   CSV_PATH="page_sets/index-sample-10k.csv"
@@ -79,18 +74,18 @@ for PAGESET_NUM in $(seq 1 $NUM_PAGESETS_PER_SLAVE); do
   START=$(expr $END + 1)
 done
 # Copy page_sets to the local directory.
-mkdir -p ~/storage/page_sets/$PAGESETS_TYPE
-mv page_sets/*.json ~/storage/page_sets/$PAGESETS_TYPE/
+mkdir -p /b/storage/page_sets/$PAGESETS_TYPE
+mv page_sets/*.json /b/storage/page_sets/$PAGESETS_TYPE/
 
 # Clean the directory in Google Storage.
 gsutil rm -R gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/*
 # Copy the page_sets into Google Storage.
-gsutil cp ~/storage/page_sets/$PAGESETS_TYPE/*json gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
+gsutil cp /b/storage/page_sets/$PAGESETS_TYPE/*json gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
 
 # Create a TIMESTAMP file and copy it to Google Storage.
 TIMESTAMP=`date +%s`
 echo $TIMESTAMP > /tmp/$TIMESTAMP
-cp /tmp/$TIMESTAMP ~/storage/page_sets/$PAGESETS_TYPE/TIMESTAMP
+cp /tmp/$TIMESTAMP /b/storage/page_sets/$PAGESETS_TYPE/TIMESTAMP
 gsutil cp /tmp/$TIMESTAMP gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/TIMESTAMP
 rm /tmp/$TIMESTAMP
 

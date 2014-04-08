@@ -2,14 +2,14 @@
 #
 # Runs a specified command on all slaves.
 #
-# The script should be run from the skia-telemetry-master GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
+# The script should be run from the cluster-telemetry-master GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-source ../vm_config.sh
+source ../config.sh
 
 if [ $# -ne 1 ]; then
   echo
@@ -28,12 +28,12 @@ gclient sync
 echo "About to run $CMD on all slaves..."
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   echo
-  echo "Running the cmd on skia-telemetry-worker$SLAVE_NUM..."
+  echo "Running the cmd on cluster-telemetry-worker$SLAVE_NUM..."
   cmd_output=`ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
-    -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -q -p 22 default@108.170.192.$SLAVE_NUM -- "$CMD"`
+    -o StrictHostKeyChecking=no -i \
+    -A -q -p 22 build${SLAVE_NUM}-b5 -- "$CMD"`
   if [ "$cmd_output" ]; then
-    echo "===== skia-telemetry-worker$SLAVE_NUM output: ====="
+    echo "===== cluster-telemetry-worker$SLAVE_NUM output: ====="
     echo $cmd_output
     echo "============================================"
   fi

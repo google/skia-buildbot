@@ -3,8 +3,8 @@
 # Build chromium LKGR and skia ToT on the telemetry master instance and then
 # push it to Google storage for the workers to consume.
 #
-# The script should be run from the skia-telemetry-master GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
+# The script should be run from the cluster-telemetry-master GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -32,10 +32,10 @@ LOG_FILE_LOCATION=$5
 # Update buildbot.
 gclient sync
 
-cd ../../../slave/skia_slave_scripts/utils/
-CHROMIUM_BUILD_DIR_BASE=/home/default/storage/chromium-builds/base
+cd ../../slave/skia_slave_scripts/utils/
+CHROMIUM_BUILD_DIR_BASE=/b/storage/chromium-builds/base
 mkdir -p $CHROMIUM_BUILD_DIR_BASE
-SYNC_SKIA_IN_CHROME_CMD="PYTHONPATH=/home/default/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/home/default/skia-repo/buildbot/site_config/:/home/default/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH"
+SYNC_SKIA_IN_CHROME_CMD="PYTHONPATH=/b/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/b/skia-repo/buildbot/site_config/:/b/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH"
 eval $SYNC_SKIA_IN_CHROME_CMD
 
 
@@ -55,7 +55,7 @@ else
   # Construct directory name from chromium and skia's truncated commit hashes.
   DIR_NAME=${CHROMIUM_COMMIT_HASH:0:7}-${SKIA_COMMIT_HASH:0:7}
   # This is the directory that will be uploaded to google storage.
-  CHROMIUM_BUILD_DIR=/home/default/storage/chromium-builds/$DIR_NAME
+  CHROMIUM_BUILD_DIR=/b/storage/chromium-builds/$DIR_NAME
   mkdir -p $CHROMIUM_BUILD_DIR
   cp -R ${CHROMIUM_BUILD_DIR_BASE}/* ${CHROMIUM_BUILD_DIR}/
   cd $CHROMIUM_BUILD_DIR/src/
@@ -66,7 +66,7 @@ else
 
   # Build chromium.
   GYP_GENERATORS='ninja' ./build/gyp_chromium
-  /home/default/depot_tools/ninja -C out/Release chrome
+  /b/depot_tools/ninja -C out/Release chrome
 
   # Copy to Google Storage only if chromium successfully built.
   if [ $? -ne 0 ]
@@ -78,11 +78,6 @@ else
     cd $CHROMIUM_BUILD_DIR/src/out/Release
     # Delete the large subdirectories not needed to run the binary.
     rm -rf gen obj
-
-    if [ -e /etc/boto.cfg ]; then
-      # Move boto.cfg since it may interfere with the ~/.boto file.
-      sudo mv /etc/boto.cfg /etc/boto.cfg.bak
-    fi
 
     # Clean the directory in Google Storage.
     gsutil rm -R gs://chromium-skia-gm/telemetry/chromium-builds/${DIR_NAME}/*
@@ -130,6 +125,6 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
+PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
 wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD&chromium_rev_date=$CHROMIUM_REV_DATE&build_log_link=$OUTPUT_LINK" "https://skia-tree-status.appspot.com/skia-telemetry/update_chromium_build_tasks" -O /dev/null
 

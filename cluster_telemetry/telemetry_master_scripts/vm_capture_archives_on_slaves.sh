@@ -3,8 +3,8 @@
 # Starts the telemetry_slave_scripts/vm_capture_archives.sh script on all
 # slaves.
 #
-# The script should be run from the skia-telemetry-master GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
+# The script should be run from the cluster-telemetry-master GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -29,7 +29,7 @@ APPENGINE_KEY=$2
 PAGESETS_TYPE=$3
 CHROMIUM_BUILD_DIR=$4
 
-source ../vm_config.sh
+source ../config.sh
 source vm_utils.sh
 
 # Update buildbot.
@@ -40,7 +40,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   result=$(is_slave_currently_executing $SLAVE_NUM $RECORD_WPR_ACTIVITY)
   if $result; then
     echo
-    echo "skia-telemetry-worker$SLAVE_NUM is currently capturing archives!"
+    echo "cluster-telemetry-worker$SLAVE_NUM is currently capturing archives!"
     echo "Please rerun this script after it is done."
     echo
     exit 1
@@ -50,8 +50,8 @@ done
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_capture_archives.sh $SLAVE_NUM $PAGESETS_TYPE $CHROMIUM_BUILD_DIR"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
-    -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/capture_archives_output.txt 2>&1"
+    -o StrictHostKeyChecking=no \
+    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/capture_archives_output.txt 2>&1"
 done
 
 # Check to see if the slaves are done capturing archives.
@@ -61,13 +61,13 @@ while $SLAVES_STILL_PROCESSING ; do
   for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     RET=$( is_slave_currently_executing $SLAVE_NUM $RECORD_WPR_ACTIVITY )
     if $RET; then
-      echo "skia-telemetry-worker$SLAVE_NUM is still running $RECORD_WPR_ACTIVITY"
+      echo "cluster-telemetry-worker$SLAVE_NUM is still running $RECORD_WPR_ACTIVITY"
       echo "Sleeping for a minute and then retrying"
       SLAVES_STILL_PROCESSING=true
       sleep 60
       break
     else
-      echo "skia-telemetry-worker$SLAVE_NUM is done processing."
+      echo "cluster-telemetry-worker$SLAVE_NUM is done processing."
     fi
   done
 done
@@ -98,5 +98,5 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
+PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
 wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_admin_task" -O /dev/null

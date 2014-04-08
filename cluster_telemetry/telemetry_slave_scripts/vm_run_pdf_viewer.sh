@@ -3,8 +3,8 @@
 # Generates diff results for pdf viewer into a CSV file and copies it to Google
 # Storage.
 #
-# The script should be run from the skia-telemetry-slave GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
+# The script should be run from the cluster-telemetry-slave GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -34,28 +34,23 @@ create_worker_file $WORKER_FILE
 TOOLS=`pwd`
 
 # Sync trunk.
-cd /home/default/skia-repo/trunk
-/home/default/depot_tools/gclient sync
+cd /b/skia-repo/trunk
+/b/depot_tools/gclient sync
 
 # Build tools, pdfviewer and skpdiff.
 make tools BUILDTYPE=Release
 ./gyp_skia gyp/pdfviewer.gyp
 make pdfviewer BUILDTYPE=Release
 
-if [ -e /etc/boto.cfg ]; then
-  # Move boto.cfg since it may interfere with the ~/.boto file.
-  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
-fi
-
 # Download the SKP files from Google Storage if the local TIMESTAMP is out of date.
-mkdir -p /home/default/storage/skps/$PAGESETS_TYPE/
-are_timestamps_equal /home/default/storage/skps/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE
+mkdir -p /b/storage/skps/$PAGESETS_TYPE/
+are_timestamps_equal /b/storage/skps/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE
 if [ $? -eq 1 ]; then
-  gsutil cp gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/* /home/default/storage/skps/$PAGESETS_TYPE/
+  gsutil cp gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/* /b/storage/skps/$PAGESETS_TYPE/
 fi
 
 # Create directories for outputs of this script.
-LOGS_DIR=/home/default/storage/pdf_logs/$RUN_ID
+LOGS_DIR=/b/storage/pdf_logs/$RUN_ID
 mkdir -p $LOGS_DIR/expected
 mkdir -p $LOGS_DIR/pdf
 mkdir -p $LOGS_DIR/actual
@@ -68,12 +63,12 @@ safe_logs_dir=$(printf '%s\n' "$LOGS_DIR" | sed 's/[\&/]/\\&/g')
 
 # Run render_pictures, render_pdfs, pdfviewer and skpdiff, in parallel - will use by all available cores
 # Allow 5 minutes (300 seconds) for each skp to be proccessed.
-ls /home/default/storage/skps/$PAGESETS_TYPE/*.skp | sed "s/^/${safe_tools}\/vm_timeout\.sh -t 300 ${safe_tools}\/vm_pdf_viewer_run_one_skp.sh ${safe_logs_dir} /" | parallel
+ls /b/storage/skps/$PAGESETS_TYPE/*.skp | sed "s/^/${safe_tools}\/vm_timeout\.sh -t 300 ${safe_tools}\/vm_pdf_viewer_run_one_skp.sh ${safe_logs_dir} /" | parallel
 
 # Merge all csv files in one result.csv file
 cat $LOGS_DIR/csv/* | sort | uniq -u >$LOGS_DIR/result/result.csv
 
-ls /home/default/storage/skps/$PAGESETS_TYPE/ | sed "s/\.skp//" >$LOGS_DIR/result/skp.csv
+ls /b/storage/skps/$PAGESETS_TYPE/ | sed "s/\.skp//" >$LOGS_DIR/result/skp.csv
 ls $LOGS_DIR/expected/ | sed "s/\.png//" >$LOGS_DIR/result/expected.csv
 ls $LOGS_DIR/pdf/ | sed "s/\.pdf//" >$LOGS_DIR/result/pdf.csv
 ls $LOGS_DIR/actual/ | sed "s/\.png//" >$LOGS_DIR/result/actual.csv
@@ -94,6 +89,6 @@ done
 gsutil cp /tmp/pdfviewer-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/pdfviewer/slave$SLAVE_NUM/logs/${RUN_ID}.log
 
 # Clean up logs and the worker file.
-rm -rf /home/default/storage/pdf_logs/*${RUN_ID}*
+rm -rf /b/storage/pdf_logs/*${RUN_ID}*
 rm -rf /tmp/*${RUN_ID}*
 delete_worker_file $WORKER_FILE

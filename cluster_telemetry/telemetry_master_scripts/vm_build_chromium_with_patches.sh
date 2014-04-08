@@ -14,8 +14,8 @@
 #
 # Use "PIXEL_DIFFS=true" to build content_shell instead of chrome.
 #
-# The script should be run from the skia-telemetry-master GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
+# The script should be run from the cluster-telemetry-master GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 # directory.
 
 if [ $# -ne 6 ]; then
@@ -48,13 +48,13 @@ function copy_build_log_to_gs() {
   rm $LOG_FILE_LOCATION
 }
 
-cd ../../../slave/skia_slave_scripts/utils/
+cd ../../slave/skia_slave_scripts/utils/
 if [ ! -n "$PIXEL_DIFFS" ]; then
   echo "== Using tryserver-base =="
-  CHROMIUM_BUILD_DIR_BASE=/home/default/storage/chromium-builds/tryserver-base
+  CHROMIUM_BUILD_DIR_BASE=/b/storage/chromium-builds/tryserver-base
 else
   echo "== Using pixeldiffs-base =="
-  CHROMIUM_BUILD_DIR_BASE=/home/default/storage/chromium-builds/pixeldiffs-base
+  CHROMIUM_BUILD_DIR_BASE=/b/storage/chromium-builds/pixeldiffs-base
 fi
 mkdir -p $CHROMIUM_BUILD_DIR_BASE
 
@@ -65,15 +65,9 @@ CHROMIUM_COMMIT_HASH=`cut -f1 /tmp/chromium-tot`
 for i in {1..10}; do wget -O /tmp/skia-lkgr http://skia-tree-status.appspot.com/git-lkgr && break || sleep 2; done
 SKIA_COMMIT_HASH=`cat /tmp/skia-lkgr`
 
-# Ensure copying to Google Storage will work.
-if [ -e /etc/boto.cfg ]; then
-  # Move boto.cfg since it may interfere with the ~/.boto file.
-  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
-fi
-
 # Chromium sync command using Chromium ToT and Skia LKGR.
 echo "== Syncing with chromium $CHROMIUM_COMMIT_HASH + skia $SKIA_COMMIT_HASH =="
-SYNC_SKIA_IN_CHROME_CMD="PYTHONPATH=/home/default/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/home/default/skia-repo/buildbot/site_config/:/home/default/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH"
+SYNC_SKIA_IN_CHROME_CMD="PYTHONPATH=/b/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/b/skia-repo/buildbot/site_config/:/b/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH"
 
 eval $SYNC_SKIA_IN_CHROME_CMD
 

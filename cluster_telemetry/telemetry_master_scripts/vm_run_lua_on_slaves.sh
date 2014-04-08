@@ -2,8 +2,8 @@
 #
 # Starts the telemetry_slave_scripts/vm_run_run_on_skps.sh script on all slaves.
 #
-# The script should be run from the skia-telemetry-master GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
+# The script should be run from the cluster-telemetry-master GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -35,15 +35,10 @@ REQUESTER_EMAIL=$5
 APPENGINE_KEY=$6
 LUA_AGGREGATOR_LOCAL_LOCATION=$7
 
-source ../vm_config.sh
+source ../config.sh
 
 # Start the timer.
 TIMER="$(date +%s)"
-
-if [ -e /etc/boto.cfg ]; then
-  # Move boto.cfg since it may interfere with the ~/.boto file.
-  sudo mv /etc/boto.cfg /etc/boto.cfg.bak
-fi
 
 # Copy the local lua script to Google Storage.
 LUA_SCRIPT_GS_LOCATION=gs://chromium-skia-gm/telemetry/lua-scripts/$RUN_ID.lua.txt
@@ -52,15 +47,15 @@ gsutil cp -a public-read $LUA_SCRIPT_LOCAL_LOCATION $LUA_SCRIPT_GS_LOCATION
 # Update buildbot.
 gclient sync
 
-LOGS_DIR=/home/default/storage/lua_logs
+LOGS_DIR=/b/storage/lua_logs
 mkdir $LOGS_DIR
 
 # Run vm_run_lua_on_skps.sh on all the slaves.
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_lua_on_skps.sh $SLAVE_NUM $LUA_SCRIPT_GS_LOCATION $RUN_ID $PAGESETS_TYPE $CHROMIUM_BUILD_DIR"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
-    -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; $CMD > /tmp/lua_output.$RUN_ID.txt 2>&1"
+    -o StrictHostKeyChecking=no \
+    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; $CMD > /tmp/lua_output.$RUN_ID.txt 2>&1"
 done
 
 # Check to see if all slaves are done
@@ -140,6 +135,6 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
+PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
 wget --post-data "key=$APPENGINE_KEY&lua_script_link=$SCRIPT_LINK&lua_output_link=$OUTPUT_LINK&lua_aggregator_link=$AGGREGATOR_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_lua_task" -O /dev/null
 

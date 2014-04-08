@@ -2,8 +2,8 @@
 #
 # Applies a Skia patch and compares images of SKPs with render_pictures.
 #
-# The script should be run from the skia-telemetry-slave GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
+# The script should be run from the cluster-telemetry-slave GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -97,17 +97,12 @@ source vm_utils.sh
 WORKER_FILE=SKIA-TRY.$RUN_ID
 create_worker_file $WORKER_FILE
 
-if [ -e /etc/boto.cfg ]; then                                                   
-  # Move boto.cfg since it may interfere with the ~/.boto file.                 
-  sudo mv /etc/boto.cfg /etc/boto.cfg.bak                                       
-fi
-
 # Download the Skia patch from Google Storage.
 SKIA_PATCH_FILE=/tmp/skia-patch.$RUN_ID
 gsutil cp $SKIA_PATCH_GS_LOCATION $SKIA_PATCH_FILE
 
 # Download the SKP files from Google Storage if the local TIMESTAMP is out of date.
-LOCAL_SKP_DIR=/home/default/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
+LOCAL_SKP_DIR=/b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
 GS_SKP_DIR=gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
 mkdir -p $LOCAL_SKP_DIR
 are_timestamps_equal $LOCAL_SKP_DIR $GS_SKP_DIR
@@ -115,8 +110,8 @@ if [ $? -eq 1 ]; then
   gsutil cp $GS_SKP_DIR/* $LOCAL_SKP_DIR
 fi
 
-SKIA_TRUNK_LOCATION=/home/default/skia-repo/trunk
-TELEMETRY_SLAVE_SCRIPTS_DIR=/home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
+SKIA_TRUNK_LOCATION=/b/skia-repo/trunk
+TELEMETRY_SLAVE_SCRIPTS_DIR=/b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts
 
 function cleanup_slave_before_exit {
   reset_skia_checkout
@@ -169,7 +164,7 @@ function copy_log_to_gs {
 cd $SKIA_TRUNK_LOCATION
 reset_skia_checkout
 make clean
-for i in {1..3}; do /home/default/depot_tools/gclient sync && break || sleep 2; done
+for i in {1..3}; do /b/depot_tools/gclient sync && break || sleep 2; done
 
 echo "== Applying the patch, building, and running render_pictures =="
 PATCH_FILESIZE=$(stat -c%s $SKIA_PATCH_FILE)

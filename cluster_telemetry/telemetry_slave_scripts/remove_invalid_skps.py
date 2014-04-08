@@ -13,7 +13,7 @@ import sys
 # Set the PYTHONPATH for this script to include shell_utils.
 sys.path.append(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir,
-                 os.pardir, os.pardir, 'slave', 'skia_slave_scripts'))
+                 os.pardir, 'slave', 'skia_slave_scripts'))
 from utils import shell_utils
 
 

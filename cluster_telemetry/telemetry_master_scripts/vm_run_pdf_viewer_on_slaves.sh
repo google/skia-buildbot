@@ -3,8 +3,8 @@
 # Starts the telemetry_slave_scripts/vm_run_pdf_viewer.sh script on all
 # slaves.
 #
-# The script should be run from the skia-telemetry-master GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
+# The script should be run from the cluster-telemetry-master GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -31,7 +31,7 @@ PAGESETS_TYPE=$3
 APPENGINE_KEY=$4
 LOG_FILE_LOCATION=$5
 
-source ../vm_config.sh
+source ../config.sh
 source vm_utils.sh
 
 # Update buildbot.
@@ -41,8 +41,8 @@ gclient sync
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_pdf_viewer.sh $SLAVE_NUM $RUN_ID $PAGESETS_TYPE"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
-    -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/pdfviewer-${RUN_ID}_output.txt 2>&1"
+    -o StrictHostKeyChecking=no \
+    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/pdfviewer-${RUN_ID}_output.txt 2>&1"
 done
 
 # Sleep for a minute to give the slaves some time to start processing.
@@ -55,19 +55,19 @@ while $SLAVES_STILL_PROCESSING ; do
   for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     RET=$( is_slave_currently_executing $SLAVE_NUM PDF_VIEWER.${RUN_ID} )
     if $RET; then
-      echo "skia-telemetry-worker$SLAVE_NUM is still running PDF_VIEWER.${RUN_ID}"
+      echo "cluster-telemetry-worker$SLAVE_NUM is still running PDF_VIEWER.${RUN_ID}"
       echo "Sleeping for a minute and then retrying"
       SLAVES_STILL_PROCESSING=true
       sleep 60
       break
     else
-      echo "skia-telemetry-worker$SLAVE_NUM is done processing."
+      echo "cluster-telemetry-worker$SLAVE_NUM is done processing."
     fi
   done
 done
 
 # Copy over the outputs from all slaves and consolidate them into one file.
-LOGS_DIR=/home/default/storage/pdf_logs
+LOGS_DIR=/b/storage/pdf_logs
 files=( "expected-skp.csv" "pdf-skp.csv" "actual-skp.csv" "csv-skp.csv" "csv-actual.csv" "result.csv" )
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   mkdir -p $LOGS_DIR/$RUN_ID/$SLAVE_NUM
@@ -116,7 +116,7 @@ Content-Type: text/html
 EOF
 
 # Mark this task as completed on AppEngine.
-PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
+PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
 wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_admin_task" -O /dev/null
 
 # Delete the log file since this task is now done.

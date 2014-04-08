@@ -5,8 +5,8 @@
 # Use TRYSERVER=true to skip uploading files to Google Storage or emailing
 # the requester.
 #
-# The script should be run from the skia-telemetry-master GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts
+# The script should be run from the cluster-telemetry-master GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -15,7 +15,7 @@
 if [ $# -lt 5 ]; then
   echo
   echo "Usage: `basename $0` skpicture_printer" \
-       "--skp-outdir=/home/default/storage/skps/ All" \
+       "--skp-outdir=/b/storage/skps/ All" \
        "a1234b-c5678d rmistry-2013-05-24.07-34-05" \
        "rmistry@google.com 1001 /tmp/logfile"
   echo
@@ -44,7 +44,7 @@ APPENGINE_KEY=$7
 LOG_FILE_LOCATION=$8
 WHITELIST_LOCAL_LOCATION=$9
 
-source ../vm_config.sh
+source ../config.sh
 source vm_utils.sh 
 
 # Update buildbot.
@@ -55,7 +55,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   result=$(is_slave_currently_executing $SLAVE_NUM $RECORD_WPR_ACTIVITY)
   if $result; then
     echo
-    echo "skia-telemetry-worker$SLAVE_NUM is currently capturing archives!"
+    echo "cluster-telemetry-worker$SLAVE_NUM is currently capturing archives!"
     echo "Please rerun this script after it is done."
     echo
     exit 1
@@ -72,8 +72,8 @@ fi
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $CHROMIUM_BUILD_DIR $RUN_ID $WHITELIST_GS_LOCATION"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
-    -o StrictHostKeyChecking=no -i /home/default/.ssh/google_compute_engine \
-    -A -p 22 default@108.170.192.$SLAVE_NUM -- "source .bashrc; cd skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts; /home/default/depot_tools/gclient sync; $CMD > /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt 2>&1"
+    -o StrictHostKeyChecking=no \
+    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt 2>&1"
 done
 
 # Sleep for a minute to give the slaves some time to start processing.
@@ -86,20 +86,20 @@ while $SLAVES_STILL_PROCESSING ; do
   for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     RET=$( is_slave_currently_executing $SLAVE_NUM TELEMETRY_${RUN_ID} )
     if $RET; then
-      echo "skia-telemetry-worker$SLAVE_NUM is still running TELEMETRY_${RUN_ID}"
+      echo "cluster-telemetry-worker$SLAVE_NUM is still running TELEMETRY_${RUN_ID}"
       echo "Sleeping for a minute and then retrying"
       SLAVES_STILL_PROCESSING=true
       sleep 60
       break
     else
-      echo "skia-telemetry-worker$SLAVE_NUM is done processing."
+      echo "cluster-telemetry-worker$SLAVE_NUM is done processing."
     fi
   done
 done
 
 # Copy over the outputs from all slaves and consolidate them into one file with
 # special handling for CSV files.
-OUTPUT_DIR=/home/default/storage/telemetry_outputs/$RUN_ID
+OUTPUT_DIR=/b/storage/telemetry_outputs/$RUN_ID
 mkdir -p $OUTPUT_DIR
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   gsutil cp gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/outputs/$RUN_ID.output \
@@ -163,7 +163,7 @@ Content-Type: text/html
 EOF
 
   # Mark this task as completed on AppEngine.
-  PASSWORD=`cat /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt`
+  PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
   wget --post-data "key=$APPENGINE_KEY&output_link=$OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_telemetry_task" -O /dev/null
 fi
 

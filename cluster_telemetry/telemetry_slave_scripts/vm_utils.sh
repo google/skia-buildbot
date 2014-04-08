@@ -2,8 +2,8 @@
 #
 # Utility functions for the telemetry slave scripts.
 #
-# The script should be run from the skia-telemetry-slave GCE instance's
-# /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts
+# The script should be run from the cluster-telemetry-slave GCE instance's
+# /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts
 # directory.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -12,11 +12,11 @@
 # Functions which can be called by the telemetry slave scripts to create or
 # delete current_work files.
 function create_worker_file {
-  mkdir -p /home/default/storage/current_work/
-  touch /home/default/storage/current_work/$1
+  mkdir -p /b/storage/current_work/
+  touch /b/storage/current_work/$1
 }
 function delete_worker_file {
-  rm /home/default/storage/current_work/$1
+  rm /b/storage/current_work/$1
 }
 
 # Function which can be called by the telemetry slave scripts to test for
