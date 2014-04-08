@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <title>Results of Cluster Telemetry Tryserver Run</title>
+    {% include "column_threshold_css.html" %}
+  </head>
+
+  <body>
+    <h2>Results of Cluster Telemetry Tryserver Run</h2>
+    Run requester: {{ requester_email }}
+    <br/>
+    The specified patch(es) are: <a href='{{ chromium_patch_link }}'>Chromium</a>/<a href='{{ blink_patch_link }}'>Blink</a>/<a href='{{ skia_patch_link }}'>Skia</a> (if no patch is specified the page will be empty)
+    <br/>
+    The raw CSVs used to create the below tables are here: <a href='{{ raw_csv_nopatch }}'>nopatch</a>/<a href='{{ raw_csv_withpatch }}'>withpatch</a>
+    <br/><br/>
+    Percentage difference threshold used: {{ threshold }}%
+    <br/>
+    Outliers discarded from top and bottom: {{ discard_outliers }}%
+    <br/>
+    Fieldnames displayed only if they were outputted by minimum {{ min_webpages }} webpages.
+    <br/><br/>
+    Click on a fieldname to see the webpages breakdown.
+    <br/><br/><br/>
+
+    {% if sorted_fieldnames_totals_items %}
+    <table border="1" cellpadding="5">
+      <tr bgcolor="#CCCCFF">
+        <th>Fieldname</th>
+        <th>Total</th>
+        <th>Total with Patch</th>
+        <th>Percentage Change</th>
+        <th>Percentage Difference</th>
+      </tr>
+      {% for fieldname, fieldname_values in sorted_fieldnames_totals_items %}
+        <tr>
+          <td><a href='{{ absolute_url }}fieldname{{ forloop.counter }}.html'>{{ fieldname }}</a></td>
+          <td>{{ fieldname_values.value1|floatformat:"-3" }}</td>
+          <td>{{ fieldname_values.value2|floatformat:"-3" }}</td>
+          <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_change|floatformat:"-3" }}%</td>
+          <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_diff|floatformat:"-3" }}%</td>
+        </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+      <h4>All webpages were within the threshold!</h4>
+    {% endif %}
+  </body>
+</html>

@@ -1,0 +1,43 @@
+<html>
+  <head>
+    <title>Results of Cluster Telemetry Pixeldiff Run</title>
+  </head>
+
+  <body>
+    <h2>Results of Cluster Telemetry Pixeldiff Run</h2>
+    Run requester: {{ requester_email }}
+    <br/>
+    The specified patch(es) are: <a href='{{ chromium_patch_link }}'>Chromium</a>/<a href='{{ blink_patch_link }}'>Blink</a>/<a href='{{ skia_patch_link }}'>Skia</a> (if no patch was specified the page will be empty)
+    <br/><br/>
+
+    {% if slave_infos %}
+
+    Click on a slave to see its failing webpages.
+    <br/><br/><br/>
+
+    <table border="1" cellpadding="5">
+      <tr bgcolor="#CCCCFF">
+        <th>Slave</th>
+        <th>Total failing webpages</th>
+        <th>URLs that failed to load</th>
+      </tr>
+      {% for slave_info in slave_infos %}
+        <tr>
+          <td><a href='{{ slave_info.slave_diff_html_loc }}' target='_blank'>{{ slave_info.slave_name }}</a></td>
+          <td align="center">{{ slave_info.failed_webpages_length }}</td>
+          <td align="center">
+            {% if slave_info.failed_to_load_urls_loc %}
+              <a href='{{ slave_info.failed_to_load_urls_loc }}' target='_blank'>bad_urls.txt</a>
+            {% else %}
+              None
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+
+    {% else %}
+      <h4>All webpages matched!</h4>
+    {% endif %}
+  </body>
+</html>

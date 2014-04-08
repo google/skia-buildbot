@@ -1,0 +1,30 @@
+{
+    "slave1": {
+        "failedFiles": [
+            {
+                "fileName": "file_3.png", 
+                "maxDiffPerChannel": 4, 
+                "numPixelsDiffering": 1, 
+                "percentPixelsDiffering": 2, 
+                "perceptualDiff": 5, 
+                "skpLocation": "gs://dummy-bucket/skps/file_.skp", 
+                "weightedDiffMeasure": 3
+            }, 
+            {
+                "fileName": "file_.png", 
+                "maxDiffPerChannel": 4, 
+                "numPixelsDiffering": 1, 
+                "percentPixelsDiffering": 2, 
+                "perceptualDiff": 5, 
+                "skpLocation": "gs://dummy-bucket/skps/file_.skp", 
+                "weightedDiffMeasure": 3
+            }
+        ], 
+        "failedFilesCount": 2, 
+        "filesLocationDiffs": "gs://dummy-bucket/output-dir/slave1/diffs", 
+        "filesLocationNopatch": "gs://dummy-bucket/output-dir/slave1/nopatch-images", 
+        "filesLocationWhiteDiffs": "gs://dummy-bucket/output-dir/slave1/whitediffs", 
+        "filesLocationWithpatch": "gs://dummy-bucket/output-dir/slave1/withpatch-images", 
+        "skpsLocation": "gs://dummy-bucket/skps"
+    }
+}
