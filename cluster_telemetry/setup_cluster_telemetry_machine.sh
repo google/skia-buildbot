@@ -64,6 +64,7 @@ echo "* Install Google Cloud SDK: https://developers.google.com/cloud/sdk/#Quick
 echo "* Setup chrome-bot in sudoers."
 echo "* Setup passwordless access from the master to the other slaves."
 echo "* Run 'gclient sync' in /b/skia-repo/buildbot and enter the correct AppEngine password in /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt"
+echo "* Create a symlink from /home/default to /b for the old pagesets and archives"
 echo "* gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record_micro.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/perf/measurements/rasterize_and_record_micro.py"
-echo "* /b/google-cloud-sdk/platform/gsutil/gsutil cp gs://chromium-skia-gm/telemetry/patches/desktop_browser_backend.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/telemetry/telemetry/core/backends/chrome/desktop_browser_backend.py"
+echo "* gsutil cp gs://chromium-skia-gm/telemetry/patches/desktop_browser_backend.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/telemetry/telemetry/core/backends/chrome/desktop_browser_backend.py"
 echo
