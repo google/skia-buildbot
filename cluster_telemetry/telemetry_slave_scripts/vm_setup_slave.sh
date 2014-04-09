@@ -20,6 +20,7 @@ mkdir -p /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/
 are_timestamps_equal /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR} gs://chromium-skia-gm/telemetry/chromium-builds/${CHROMIUM_BUILD_DIR}
 if [ $? -eq 1 ]; then
   rm -rf /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}*
+  mkdir -p /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/
   gsutil cp -R gs://chromium-skia-gm/telemetry/chromium-builds/${CHROMIUM_BUILD_DIR}/* \
     /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/
   sudo chmod 777 /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome
