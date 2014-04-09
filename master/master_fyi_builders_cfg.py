@@ -15,6 +15,7 @@ from skia_master_scripts.moz2d_canary_factory \
     import Moz2DCanaryFactory as f_moz2d
 from skia_master_scripts.housekeeping_monitoring_factory \
     import HouseKeepingMonitoringFactory as f_monitor
+from skia_master_scripts.auto_roll_factory import AutoRollFactory as f_autoroll
 
 import master_builders_cfg
 
@@ -93,6 +94,9 @@ def setup_housekeepers(helper, do_upload_render_results,
   #
   housekeepers = [
       ('PerCommit', None,               f_percommit,    LINUX,  S_PERCOMMIT,              {}),
+      # TODO(borenet): Eventually either the AutoRoll or
+      # DEPSRoll+DEPSRollResults bot will "win". Remove the other at that time.
+      ('PerCommit', 'AutoRoll',         f_autoroll,     LINUX,  S_PERCOMMIT,              {}),
       ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,                {}),
       ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  '|'.join((S_5AM, S_5PM)), {}),
       ('Daily',     'DEPSRollResults',  f_deps_results, LINUX,  S_MORNING,                {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
