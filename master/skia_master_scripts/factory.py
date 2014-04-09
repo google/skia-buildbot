@@ -747,6 +747,12 @@ class SkiaFactory(BuildFactory):
       self.PreRender()
       self.RunGM()
       self.PostRender()
+    elif 'TSAN' in self._builder_name and 'Test' in self._builder_name:
+      self._build_targets = ['tests']
+      self.UpdateSteps()
+      self.Compile(clobber)
+      self.Install()
+      self.RunTests()
     elif not role:
       # If no role is provided, just run everything.
       if not self._build_targets:
