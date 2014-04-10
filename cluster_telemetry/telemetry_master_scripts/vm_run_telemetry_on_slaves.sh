@@ -68,9 +68,10 @@ if [[ ! -z "$WHITELIST_LOCAL_LOCATION" ]]; then
   gsutil cp -a public-read $WHITELIST_LOCAL_LOCATION $WHITELIST_GS_LOCATION
 fi
 
+REPEAT_TELEMETRY_RUNS=${REPEAT_TELEMETRY_RUNS:=5}
 
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $CHROMIUM_BUILD_DIR $RUN_ID $WHITELIST_GS_LOCATION"
+  CMD="REPEAT_TELEMETRY_RUNS=$REPEAT_TELEMETRY_RUNS bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $CHROMIUM_BUILD_DIR $RUN_ID $WHITELIST_GS_LOCATION"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
     -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt 2>&1"
