@@ -74,7 +74,7 @@ do
     y)
       PAGESET_TYPE=$OPTARG
       ;;
-    y)
+    n)
       REPEAT_TELEMETRY_RUNS=$OPTARG
       ;;
     ?)
