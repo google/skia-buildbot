@@ -1,20 +1,29 @@
 {
+  "header": {
+    "type": "ChecksummedImages",
+    "revision": 1
+  },
   "actual-results": {
-    "failed": null, 
-    "failure-ignored": null, 
-    "no-comparison": {
-      "file_.png" : [
-        "bitmap-64bitMD5", 
-        11111
-      ],
-      "file_2.png" : [
-        "bitmap-64bitMD5", 
-        22222 
-      ],
-      "file_3.png" : [
-        "bitmap-64bitMD5", 
-        33333
-      ]
+    "skpfileA.skp": {
+      "whole-image": {
+        "checksumAlgorithm": "bitmap-64bitMD5",
+        "checksumValue": 11111,
+        "comparisonResult": "no-comparison",
+        "filepath": "skpfileA_skp.png"
+      }
+    },
+    "skpfileB.skp": {
+      "tiled-images": [{
+        "checksumAlgorithm": "bitmap-64bitMD5",
+        "checksumValue": 22222,
+        "comparisonResult": "no-comparison",
+        "filepath": "skpfileB_skp-tile0.png"
+      }, {
+        "checksumAlgorithm": "bitmap-64bitMD5",
+        "checksumValue": 33333,
+        "comparisonResult": "no-comparison",
+        "filepath": "skpfileB_skp-tile1.png"
+      }]
     }
   }
 } 

@@ -16,6 +16,23 @@ sys.path.append(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 import json_summary_constants
 
+# TODO(epoger): These constants must be kept in sync with the ones in
+# https://skia.googlesource.com/skia/+/master/tools/PictureRenderer.cpp
+JSONKEY_HEADER = 'header'
+JSONKEY_HEADER_TYPE = 'type'
+JSONKEY_HEADER_REVISION = 'revision'
+JSONKEY_IMAGE_CHECKSUMALGORITHM = 'checksumAlgorithm'
+JSONKEY_IMAGE_CHECKSUMVALUE = 'checksumValue'
+JSONKEY_IMAGE_COMPARISONRESULT = 'comparisonResult'
+JSONKEY_IMAGE_FILEPATH = 'filepath'
+JSONKEY_SOURCE_TILEDIMAGES = 'tiled-images'
+JSONKEY_SOURCE_WHOLEIMAGE = 'whole-image'
+
+JSONVALUE_HEADER_TYPE = 'ChecksummedImages'
+JSONVALUE_HEADER_REVISION = 1
+
+IMAGE_SOURCE = 'imageSource'
+
 
 def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
                      withpatch_json, withpatch_images_base_url,
@@ -58,14 +75,16 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
     traceback.print_exc()
     raise Exception('You need to add gm/ and gm/rebaseline_server to sys.path')
 
-  files_to_checksums_nopatch = GetFilesAndChecksums(gm_json, nopatch_json)
-  files_to_checksums_withpatch = GetFilesAndChecksums(gm_json, withpatch_json)
+  all_image_descriptions_nopatch = GetImageDescriptions(gm_json, nopatch_json)
+  all_image_descriptions_withpatch = GetImageDescriptions(
+      gm_json, withpatch_json)
 
-  assert len(files_to_checksums_nopatch) == len(files_to_checksums_withpatch), (
-      'Number of images in both JSON summary files are different')
-  assert files_to_checksums_nopatch.keys() == \
-         files_to_checksums_withpatch.keys(), (
-             'File names in both JSON summary files are different')
+  assert (len(all_image_descriptions_nopatch) ==
+          len(all_image_descriptions_withpatch)), \
+          'Number of images in the two JSON summary files are different'
+  assert (all_image_descriptions_nopatch.keys() ==
+          all_image_descriptions_withpatch.keys()), \
+          'SKP filenames in the two JSON summary files are different'
 
   # Compare checksums in both directories and output differences.
   file_differences = []
@@ -86,29 +105,45 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
   }
 
   image_diff_db = imagediffdb.ImageDiffDB(storage_root=img_root)
-  for filename in files_to_checksums_nopatch:
-    algo_nopatch, checksum_nopatch = files_to_checksums_nopatch[filename]
-    algo_withpatch, checksum_withpatch = files_to_checksums_withpatch[filename]
-    assert algo_nopatch == algo_withpatch, 'Different checksum algorithms found'
+  for image_filepath in all_image_descriptions_nopatch:
+    image_desc_nopatch = all_image_descriptions_nopatch[image_filepath]
+    image_desc_withpatch = all_image_descriptions_withpatch[image_filepath]
+
+    algo_nopatch = image_desc_nopatch[JSONKEY_IMAGE_CHECKSUMALGORITHM]
+    algo_withpatch = image_desc_withpatch[JSONKEY_IMAGE_CHECKSUMALGORITHM]
+    assert algo_nopatch == algo_withpatch, 'Different checksum algorithms'
+
+    imagefile_nopatch = image_desc_nopatch[JSONKEY_IMAGE_FILEPATH]
+    imagefile_withpatch = image_desc_withpatch[JSONKEY_IMAGE_FILEPATH]
+    assert imagefile_nopatch == imagefile_withpatch, 'Different imagefile names'
+
+    skpfile_nopatch = image_desc_nopatch[IMAGE_SOURCE]
+    skpfile_withpatch = image_desc_withpatch[IMAGE_SOURCE]
+    assert skpfile_nopatch == skpfile_withpatch, 'Different skpfile names'
+
+    checksum_nopatch = image_desc_nopatch[JSONKEY_IMAGE_CHECKSUMVALUE]
+    checksum_withpatch = image_desc_withpatch[JSONKEY_IMAGE_CHECKSUMVALUE]
     if checksum_nopatch != checksum_withpatch:
       # TODO(epoger): It seems silly that we add this DiffRecord to ImageDiffDB
       # and then pull it out again right away, but this is a stepping-stone
       # to using ImagePairSet instead of replicating its behavior here.
-      image_locator_base = os.path.splitext(filename)[0]
+      image_locator_base = os.path.splitext(imagefile_nopatch)[0]
       image_locator_nopatch = image_locator_base + '_nopatch'
       image_locator_withpatch = image_locator_base + '_withpatch'
       image_diff_db.add_image_pair(
-          expected_image_url=posixpath.join(nopatch_images_base_url, filename),
+          expected_image_url=posixpath.join(
+              nopatch_images_base_url, image_filepath),
           expected_image_locator=image_locator_nopatch,
-          actual_image_url=posixpath.join(withpatch_images_base_url, filename),
+          actual_image_url=posixpath.join(
+              withpatch_images_base_url, image_filepath),
           actual_image_locator=image_locator_withpatch)
       diff_record = image_diff_db.get_diff_record(
           expected_image_locator=image_locator_nopatch,
           actual_image_locator=image_locator_withpatch)
       file_differences.append({
-          json_summary_constants.JSONKEY_FILE_NAME: filename,
+          json_summary_constants.JSONKEY_FILE_NAME: imagefile_nopatch,
           json_summary_constants.JSONKEY_SKP_LOCATION: posixpath.join(
-              gs_skp_dir, GetSkpFileName(filename)),
+              gs_skp_dir, skpfile_nopatch),
           json_summary_constants.JSONKEY_NUM_PIXELS_DIFFERING:
               diff_record.get_num_pixels_differing(),
           json_summary_constants.JSONKEY_PERCENT_PIXELS_DIFFERING:
@@ -127,19 +162,46 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
       f.write(json.dumps(json_summary, indent=4, sort_keys=True))
 
 
-def GetSkpFileName(img_file_name):
-  """Determine the SKP file name from the image's file name."""
-  # TODO(rmistry): The below relies too much on the current output of render
-  # pictures to determine the root SKP.
-  return '%s_.skp' % '_'.join(img_file_name.split('_')[:-1])
+def GetImageDescriptions(gm_json_mod, json_location):
+  """Reads the JSON summary and returns {ImageFilePath: ImageDescription} dict.
 
+  Each ImageDescription is a dict of this form:
+  {
+    JSONKEY_IMAGE_CHECKSUMALGORITHM: 'bitmap-64bitMD5',
+    JSONKEY_IMAGE_CHECKSUMVALUE: 5815827069051002745,
+    JSONKEY_IMAGE_COMPARISONRESULT: 'no-comparison',
+    JSONKEY_IMAGE_FILEPATH: 'red_skp-tile0.png', # equals ImageFilePath dict key
+    IMAGE_SOURCE: 'red.skp'
+  }
+  """
+  json_data = gm_json_mod.LoadFromFile(json_location)
+  if json_data:
+    header_type = json_data[JSONKEY_HEADER][JSONKEY_HEADER_TYPE]
+    if header_type != JSONVALUE_HEADER_TYPE:
+      raise Exception('expected header_type %s but found %s' % (
+          JSONVALUE_HEADER_TYPE, header_type))
+    header_revision = json_data[JSONKEY_HEADER][JSONKEY_HEADER_REVISION]
+    if header_revision != JSONVALUE_HEADER_REVISION:
+      raise Exception('expected header_revision %s but found %s' % (
+          JSONVALUE_HEADER_REVISION, header_revision))
 
-def GetFilesAndChecksums(gm_json_mod, json_location):
-  """Reads the JSON summary and returns dict of files to checksums."""
-  data = gm_json_mod.LoadFromFile(json_location)
-  if data:
-    return data[gm_json_mod.JSONKEY_ACTUALRESULTS][
-        gm_json_mod.JSONKEY_ACTUALRESULTS_NOCOMPARISON]
+    actual_results = json_data[gm_json_mod.JSONKEY_ACTUALRESULTS]
+    newdict = {}
+    for skp_file in actual_results:
+      whole_image_description = actual_results[skp_file].get(
+          JSONKEY_SOURCE_WHOLEIMAGE, None)
+      all_image_descriptions = actual_results[skp_file].get(
+          JSONKEY_SOURCE_TILEDIMAGES, [])
+      if whole_image_description:
+        all_image_descriptions.append(whole_image_description)
+      for image_description in all_image_descriptions:
+        image_filepath = image_description[JSONKEY_IMAGE_FILEPATH]
+        image_description[IMAGE_SOURCE] = skp_file
+        if image_filepath in newdict:
+          raise Exception('found two images with same filepath %s' %
+                          image_filepath)
+        newdict[image_filepath] = image_description
+    return newdict
   else:
     return {}
 
