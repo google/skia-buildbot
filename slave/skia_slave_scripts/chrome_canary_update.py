@@ -34,10 +34,15 @@ class ChromeCanaryUpdate(BuildStep):
     else:
       chrome_rev = self._args.get('chrome_rev')
 
+    override_skia_checkout = True
+    if 'AutoRoll' in self._builder_name:
+      override_skia_checkout = False
+
     (got_skia_rev, got_chrome_rev) = sync_skia_in_chrome.Sync(
         skia_revision=self._revision,
         chrome_revision=chrome_rev,
-        use_lkgr_skia=('use_lkgr_skia' in self._args.keys()))
+        use_lkgr_skia=('use_lkgr_skia' in self._args.keys()),
+        override_skia_checkout=override_skia_checkout)
     print 'Skia updated to %s' % got_skia_rev
     print 'Chrome updated to %s' % got_chrome_rev
 

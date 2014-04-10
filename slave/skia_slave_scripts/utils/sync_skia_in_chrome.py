@@ -26,7 +26,8 @@ GCLIENT_FILE = '.gclient'
 PATH_TO_SKIA_IN_CHROME = os.path.join('src', 'third_party', 'skia', 'src')
 
 
-def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
+def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
+         override_skia_checkout=True):
   """ Create and sync a checkout of Skia inside a checkout of Chrome. Returns
   a tuple containing the actually-obtained revision of Skia and the actually-
   obtained revision of Chrome.
@@ -36,6 +37,10 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   chrome_revision: revision of Chrome to sync. If None, will use the LKGR.
   use_lkgr_skia: boolean; if True, leaves Skia at the revision requested by
       Chrome instead of using skia_revision.
+  override_skia_checkout: boolean; whether or not to replace the default Skia
+      checkout, which is actually a set of three subdirectory checkouts in
+      third_party/skia: src, include, and gyp, with a single checkout of skia at
+      the root level. Default is True.
   """
   # Figure out what revision of Skia we should use.
   if not skia_revision:
@@ -62,26 +67,27 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   if not os.path.isfile(GCLIENT_FILE):
     raise Exception('Could not fetch chromium!')
 
-  # Hack the .gclient file to use LKGR and NOT check out Skia.
-  gclient_vars = {}
-  execfile(GCLIENT_FILE, gclient_vars)
-  for solution in gclient_vars['solutions']:
-    if solution['name'] == 'src':
-      solution['safesync_url'] = CHROME_LKGR_URL
-      if not solution.get('custom_deps'):
-        solution['custom_deps'] = {}
-      solution['managed'] = True
-      solution['custom_deps']['src/third_party/skia/gyp'] = None
-      solution['custom_deps']['src/third_party/skia/include'] = None
-      solution['custom_deps']['src/third_party/skia/src'] = None
-      break
-  print 'Writing %s:' % GCLIENT_FILE
-  with open(GCLIENT_FILE, 'w') as gclient_file:
-    for k, v in gclient_vars.iteritems():
-      if not k.startswith('_'):
-        write_str = '%s = %s\n' % (str(k), str(v))
-        print write_str
-        gclient_file.write(write_str)
+  if override_skia_checkout:
+    # Hack the .gclient file to use LKGR and NOT check out Skia.
+    gclient_vars = {}
+    execfile(GCLIENT_FILE, gclient_vars)
+    for solution in gclient_vars['solutions']:
+      if solution['name'] == 'src':
+        solution['safesync_url'] = CHROME_LKGR_URL
+        if not solution.get('custom_deps'):
+          solution['custom_deps'] = {}
+        solution['managed'] = True
+        solution['custom_deps']['src/third_party/skia/gyp'] = None
+        solution['custom_deps']['src/third_party/skia/include'] = None
+        solution['custom_deps']['src/third_party/skia/src'] = None
+        break
+    print 'Writing %s:' % GCLIENT_FILE
+    with open(GCLIENT_FILE, 'w') as gclient_file:
+      for k, v in gclient_vars.iteritems():
+        if not k.startswith('_'):
+          write_str = '%s = %s\n' % (str(k), str(v))
+          print write_str
+          gclient_file.write(write_str)
 
   # Run "gclient sync"
   try:
@@ -117,46 +123,50 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False):
   actual_chrome_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
                                       log_in_real_time=False).rstrip()
 
-  if use_lkgr_skia:
-    # Get the Skia revision requested by Chrome.
-    deps_vars = {}
-    deps_vars['Var'] = lambda x: deps_vars['vars'][x]
-    execfile('DEPS', deps_vars)
-    skia_revision = deps_vars['vars']['skia_hash']
-    print 'Overriding skia_revision with %s' % skia_revision
-
-  # Check out Skia.
   skia_dir = os.path.join('third_party', 'skia')
-  print 'cd %s' % skia_dir
-  os.chdir(skia_dir)
-  try:
-    # Determine whether we already have a Skia checkout. If so, just update.
-    if not 'skia' in shell_utils.run([GIT, 'remote', '-v']):
-      raise Exception('%s does not contain a Skia checkout!' % skia_dir)
-    current_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD']).rstrip()
-    print 'Found existing Skia checkout at %s' % current_skia_rev
-    shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
-    shell_utils.run([GIT, 'checkout', 'master'])
-    shell_utils.run([GIT, 'fetch'])
-    shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
-  except Exception:
-    # If updating fails, assume that we need to check out Skia from scratch.
-    os.chdir(os.pardir)
-    chromium_utils.RemoveDirectory('skia')
-    shell_utils.run([GIT, 'clone', SKIA_GIT_URL, 'skia'])
-    os.chdir('skia')
-  shell_utils.run([GIT, 'reset', '--hard', skia_revision])
+  src_dir = os.getcwd()
+  if override_skia_checkout:
+    if use_lkgr_skia:
+      # Get the Skia revision requested by Chrome.
+      deps_vars = {}
+      deps_vars['Var'] = lambda x: deps_vars['vars'][x]
+      execfile('DEPS', deps_vars)
+      skia_revision = deps_vars['vars']['skia_hash']
+      print 'Overriding skia_revision with %s' % skia_revision
+
+    # Check out Skia.
+    print 'cd %s' % skia_dir
+    os.chdir(skia_dir)
+    try:
+      # Determine whether we already have a Skia checkout. If so, just update.
+      if not 'skia' in shell_utils.run([GIT, 'remote', '-v']):
+        raise Exception('%s does not contain a Skia checkout!' % skia_dir)
+      current_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD']).rstrip()
+      print 'Found existing Skia checkout at %s' % current_skia_rev
+      shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
+      shell_utils.run([GIT, 'checkout', 'master'])
+      shell_utils.run([GIT, 'fetch'])
+      shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
+    except Exception:
+      # If updating fails, assume that we need to check out Skia from scratch.
+      os.chdir(os.pardir)
+      chromium_utils.RemoveDirectory('skia')
+      shell_utils.run([GIT, 'clone', SKIA_GIT_URL, 'skia'])
+      os.chdir('skia')
+    shell_utils.run([GIT, 'reset', '--hard', skia_revision])
+  else:
+    os.chdir(os.path.join(skia_dir, 'src'))
 
   # Find the actually-obtained Skia revision.
   actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
                                     log_in_real_time=False).rstrip()
 
   # Run gclient hooks
-  os.chdir(os.path.join(os.pardir, os.pardir, os.pardir))
+  os.chdir(src_dir)
   shell_utils.run([GCLIENT, 'runhooks'])
 
   # Verify that we got the requested revisions of Chrome and Skia.
-  if skia_revision != actual_skia_rev:
+  if skia_revision != actual_skia_rev and override_skia_checkout:
     raise Exception('Requested Skia revision %s but got %s!' % (
         repr(skia_revision), repr(actual_skia_rev)))
   if chrome_revision and chrome_revision != actual_chrome_rev:
