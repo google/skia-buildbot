@@ -30,6 +30,6 @@ if (bg.botStatusList) {
 
 var linksDiv = document.getElementById('links');
 linksDiv.innerHTML = 
-    '<a href="http://108.170.217.252:8000/buildbot/buildbots.html" ' +
+    '<a href="http://skia-tree-status.appspot.com/repo-serving/buildbot/buildbots.html" ' +
     'target=_blank>Console</a>&nbsp;<a href="' + statusLinkBase + 
     'waterfall" target=_blank>Waterfall</a>';
