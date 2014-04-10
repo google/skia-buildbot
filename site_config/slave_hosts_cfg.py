@@ -462,24 +462,6 @@ _slave_host_dicts = {
     'remote_access': True,
   },
 
-  'skiabot-mac-10_6-compile': {
-    'slaves': [
-      ('skiabot-mac-10_6-compile-000', '0'),
-      ('skiabot-mac-10_6-compile-001', '1'),
-      ('skiabot-mac-10_6-compile-002', '2'),
-      ('skiabot-mac-10_6-compile-003', '3'),
-      ('skiabot-mac-10_6-compile-004', '4'),
-      ('skiabot-mac-10_6-compile-005', '5'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': skia_lab_login,
-    'ip': '192.168.1.111',
-    'kvm_num': '8',
-    'path_module': posixpath,
-    'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
-  },
-
   'skiabot-mac-10_7-compile': {
     'slaves': [
       ('skiabot-mac-10_7-compile-000', '0'),

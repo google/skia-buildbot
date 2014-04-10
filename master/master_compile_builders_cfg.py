@@ -6,7 +6,7 @@
 
 
 from master_builders_cfg import CLANG, CompileBuilder, f_android, f_cros
-from master_builders_cfg import f_factory, f_ios, f_nacl, f_xsan, GYP_10_6
+from master_builders_cfg import f_factory, f_ios, f_nacl, f_xsan
 from master_builders_cfg import GYP_ANGLE, GYP_DW, GYP_EXC, GYP_IOS
 from master_builders_cfg import GYP_WIN7, GYP_WIN8, LINUX, MAC, NO_GPU
 from master_builders_cfg import PDFVIEWER, S_PERCOMMIT, VALGRIND, WIN32
@@ -45,10 +45,6 @@ def setup_compile_builders(helper, do_upload_render_results,
       ('Ubuntu13', 'Clang',  'Debug',   'x86_64', 'TSAN',        None,      False, f_xsan,    LINUX,  S_PERCOMMIT, {'sanitizer': 'thread'}),
       ('Ubuntu12', 'GCC',    'Debug',   'NaCl',   None,          None,      True,  f_nacl,    LINUX,  S_PERCOMMIT, {}),
       ('Ubuntu12', 'GCC',    'Release', 'NaCl',   None,          None,      True,  f_nacl,    LINUX,  S_PERCOMMIT, {}),
-      ('Mac10.6',  'GCC',    'Debug',   'x86',    None,          GYP_10_6,  True,  f_factory, MAC,    S_PERCOMMIT, {}),
-      ('Mac10.6',  'GCC',    'Release', 'x86',    None,          GYP_10_6,  True,  f_factory, MAC,    S_PERCOMMIT, {}),
-      ('Mac10.6',  'GCC',    'Debug',   'x86_64', None,          GYP_10_6,  False, f_factory, MAC,    S_PERCOMMIT, {}),
-      ('Mac10.6',  'GCC',    'Release', 'x86_64', None,          GYP_10_6,  False, f_factory, MAC,    S_PERCOMMIT, {}),
       ('Mac10.7',  'Clang',  'Debug',   'x86',    None,          None,      True,  f_factory, MAC,    S_PERCOMMIT, {}),
       ('Mac10.7',  'Clang',  'Release', 'x86',    None,          None,      True,  f_factory, MAC,    S_PERCOMMIT, {}),
       ('Mac10.7',  'Clang',  'Debug',   'x86_64', None,          None,      False, f_factory, MAC,    S_PERCOMMIT, {}),
