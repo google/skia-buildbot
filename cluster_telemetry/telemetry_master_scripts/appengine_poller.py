@@ -269,6 +269,7 @@ def process_telemetry_task(task):
       benchmark_name,
       benchmark_arguments,
       pagesets_type,
+      '1',
       chromium_build_dir,
       run_id,
       username,

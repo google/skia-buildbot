@@ -22,10 +22,11 @@ if [ $# -lt 5 ]; then
   echo "The third argument are the extra arguments that the benchmark needs."
   echo "The fourth argument is the type of pagesets to create from the 1M list" \
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
-  echo "The fifth argument is the name of the directory where the chromium" \
+  echo "The fifth argument is the number of times the benchmark should be repeated."
+  echo "The sixth argument is the name of the directory where the chromium" \
        "build which will be used for this run is stored."
-  echo "The sixth argument is the runid (typically requester + timestamp)."
-  echo "The seventh optional argument is the Google Storage location of the URL" \
+  echo "The seventh argument is the runid (typically requester + timestamp)."
+  echo "The eighth optional argument is the Google Storage location of the URL" \
        "whitelist."
   echo
   exit 1
@@ -35,9 +36,10 @@ SLAVE_NUM=$1
 TELEMETRY_BENCHMARK=$2
 EXTRA_ARGS=$3
 PAGESETS_TYPE=$4
-CHROMIUM_BUILD_DIR=$5
-RUN_ID=$6
-WHITELIST_GS_LOCATION=$7
+REPEAT_TELEMETRY_RUNS=$5
+CHROMIUM_BUILD_DIR=$6
+RUN_ID=$7
+WHITELIST_GS_LOCATION=$8
 
 WHITELIST_FILE=whitelist.$RUN_ID
 
@@ -62,7 +64,6 @@ if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
 fi
 
 # The number of times to repeate telemetry page_set runs.
-REPEAT_TELEMETRY_RUNS=${REPEAT_TELEMETRY_RUNS:=1}
 
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Clean and create the skp output directory.

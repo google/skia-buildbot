@@ -23,13 +23,14 @@ if [ $# -lt 5 ]; then
   echo "The second argument are the extra arguments that the benchmark needs."
   echo "The third argument is the type of pagesets to create from the 1M list" \
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
-  echo "The fourth argument is the name of the directory where the chromium" \
+  echo "The fourth argument is the number of times to repeat the benchmark run.""
+  echo "The fifth argument is the name of the directory where the chromium" \
        "build which will be used for this run is stored."
-  echo "The fifth argument is a unique runid (typically requester + timestamp)."
-  echo "The sixth argument is the email address of the requester (optional)."
-  echo "The seventh argument is the key of the appengine telemetry task (optional)."
-  echo "The eighth argument is the location of the log file (optional)."
-  echo "The ninth argument is the local location of the optional whitelist file (optional)."
+  echo "The sixth argument is a unique runid (typically requester + timestamp)."
+  echo "The seventh argument is the email address of the requester (optional)."
+  echo "The eighth argument is the key of the appengine telemetry task (optional)."
+  echo "The ninth argument is the location of the log file (optional)."
+  echo "The tenth argument is the local location of the optional whitelist file (optional)."
   echo
   exit 1
 fi
@@ -37,12 +38,13 @@ fi
 TELEMETRY_BENCHMARK=$1
 EXTRA_ARGS=$2
 PAGESETS_TYPE=$3
-CHROMIUM_BUILD_DIR=$4
-RUN_ID=$5
-REQUESTER_EMAIL=$6
-APPENGINE_KEY=$7
-LOG_FILE_LOCATION=$8
-WHITELIST_LOCAL_LOCATION=$9
+REPEAT_TELEMETRY_RUNS=$4
+CHROMIUM_BUILD_DIR=$5
+RUN_ID=$6
+REQUESTER_EMAIL=$7
+APPENGINE_KEY=$8
+LOG_FILE_LOCATION=$9
+WHITELIST_LOCAL_LOCATION=$10
 
 source ../config.sh
 source vm_utils.sh 
@@ -68,10 +70,8 @@ if [[ ! -z "$WHITELIST_LOCAL_LOCATION" ]]; then
   gsutil cp -a public-read $WHITELIST_LOCAL_LOCATION $WHITELIST_GS_LOCATION
 fi
 
-REPEAT_TELEMETRY_RUNS=${REPEAT_TELEMETRY_RUNS:=1}
-
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  CMD="REPEAT_TELEMETRY_RUNS=$REPEAT_TELEMETRY_RUNS bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $CHROMIUM_BUILD_DIR $RUN_ID $WHITELIST_GS_LOCATION"
+  CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $REPEAT_TELEMETRY_RUNS $CHROMIUM_BUILD_DIR $RUN_ID $WHITELIST_GS_LOCATION"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
     -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt 2>&1"
