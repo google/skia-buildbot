@@ -159,6 +159,7 @@ def process_chromium_try_task(task):
   benchmark_arguments = task['benchmark_arguments']
   # Escape any quotes in benchmark arguments.
   benchmark_arguments = benchmark_arguments.replace('"', r'\"')
+  num_repeated_runs = task['num_repeated_runs']
   variance_threshold = task['variance_threshold']
   discard_outliers = task['discard_outliers']
   pageset_type = task['pageset_type']
@@ -202,6 +203,7 @@ def process_chromium_try_task(task):
         '-i', str(task_key),
         '-l', str(log_file),
         '-y', str(pageset_type),
+        '-n', str(num_repeated_runs),
     ]
   subprocess.Popen(cmd, stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))

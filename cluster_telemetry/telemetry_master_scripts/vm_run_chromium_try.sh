@@ -27,10 +27,11 @@ OPTIONS:
   -i The key of the appengine telemetry task
   -l The location of the log file
   -y The pageset type to run against (Eg: 10k/IndexSample10k)
+  -n Number of times to run each pageset
 EOF
 }
 
-while getopts "hp:t:s:r:v:o:b:a:e:i:l:y:" OPTION
+while getopts "hp:t:s:r:v:o:b:a:e:i:l:y:n:" OPTION
 do
   case $OPTION in
     h)
@@ -72,6 +73,9 @@ do
       ;;
     y)
       PAGESET_TYPE=$OPTARG
+      ;;
+    y)
+      REPEAT_TELEMETRY_RUNS=$OPTARG
       ;;
     ?)
       usage
@@ -147,7 +151,7 @@ if [ $ret_value -eq 0 ]; then
   TELEMETRY_BUILD_LOG=/tmp/try-telemetry-nopatch-$RUN_ID
   TELEMETRY_NOPATCH_ID=$RUN_ID-nopatch
   TIMER="$(date +%s)"
-  TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
+  REPEAT_TELEMETRY_RUNS=$REPEAT_TELEMETRY_RUNS && TRYSERVER=true && bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
       "$EXTRA_ARGS" $PAGESET_TYPE $CHROMIUM_BUILD_DIR $TELEMETRY_NOPATCH_ID \
       $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
   TELEMETRY_WITHOUT_PATCH_TIME="$(($(date +%s)-TIMER))"
@@ -162,7 +166,7 @@ if [ $ret_value -eq 0 ]; then
   TELEMETRY_BUILD_LOG=/tmp/try-telemetry-withpatch-$RUN_ID
   TELEMETRY_WITHPATCH_ID=$RUN_ID-withpatch
   TIMER="$(date +%s)"
-  TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
+  REPEAT_TELEMETRY_RUNS=$REPEAT_TELEMETRY_RUNS && TRYSERVER=true && bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
       "$EXTRA_ARGS" $PAGESET_TYPE $CHROMIUM_BUILD_DIR-withpatch $TELEMETRY_WITHPATCH_ID \
       $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
   TELEMETRY_WITH_PATCH_TIME="$(($(date +%s)-TIMER))"

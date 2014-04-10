@@ -62,7 +62,7 @@ if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
 fi
 
 # The number of times to repeate telemetry page_set runs.
-REPEAT_TELEMETRY_RUNS=${REPEAT_TELEMETRY_RUNS:=3}
+REPEAT_TELEMETRY_RUNS=${REPEAT_TELEMETRY_RUNS:=1}
 
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Clean and create the skp output directory.
