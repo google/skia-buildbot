@@ -373,6 +373,19 @@ _slave_host_dicts = {
     'remote_access': GCE_COMPILE_B_ONLINE,
   },
 
+  'skia-android-canary-b': {
+    'slaves': [
+      ('skia-android-canary', '0'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': compute_engine_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_B_ONLINE,
+  },
+
 ################################# Mac Machines #################################
 
   'skiabot-macmini-10_6-001': {

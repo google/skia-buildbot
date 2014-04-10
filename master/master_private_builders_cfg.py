@@ -8,6 +8,9 @@
 import master_builders_cfg
 from master_builders_cfg import f_android, LINUX, S_PERCOMMIT
 
+from skia_master_scripts.android_roll_factory import AndroidRollFactory as \
+    f_androidroll
+
 
 def setup_test_and_perf_builders(helper, do_upload_render_results,
                                  do_upload_bench_results):
@@ -39,6 +42,33 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
       master_builders_cfg.Builder)
 
 
+def setup_housekeepers(helper, do_upload_render_results,
+                       do_upload_bench_results):
+  """Set up the Housekeeping builders.
+
+  Args:
+      helper: instance of utils.SkiaHelper
+      do_upload_render_results: bool; whether the builders should upload their
+          render results.
+      do_upload_bench_results: bool; whether the builders should upload their
+          bench results.
+  """
+  #
+  #                          HOUSEKEEPING BUILDERS
+  #
+  #   Frequency,    Extra Config,       Factory,        Target, Scheduler,                Extra Args
+  #
+  housekeepers = [
+      ('PerCommit', 'AndroidRoll',      f_androidroll,  LINUX,  S_PERCOMMIT,              {}),
+  ]
+
+  master_builders_cfg.setup_builders_from_config_list(
+      housekeepers, helper,
+      do_upload_render_results,
+      do_upload_bench_results,
+      master_builders_cfg.HousekeepingBuilder)
+
+
 def setup_all_builders(helper, do_upload_render_results,
                        do_upload_bench_results):
   """Set up all builders for the private master.
@@ -52,4 +82,6 @@ def setup_all_builders(helper, do_upload_render_results,
   """
   setup_test_and_perf_builders(helper, do_upload_render_results,
                                do_upload_bench_results)
-
+  setup_housekeepers(helper=helper,
+                     do_upload_render_results=do_upload_render_results,
+                     do_upload_bench_results=do_upload_bench_results)
