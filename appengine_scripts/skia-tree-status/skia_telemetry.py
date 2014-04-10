@@ -336,6 +336,7 @@ class ChromiumTryTasks(BaseTelemetryModel):
   skia_patch = db.BlobProperty()
   chromium_patch = db.BlobProperty()
   blink_patch = db.BlobProperty()
+  num_repeated_runs = db.IntegerProperty()
   variance_threshold = db.FloatProperty(required=True)
   discard_outliers = db.FloatProperty(required=True)
   requested_time = db.DateTimeProperty(required=True)
@@ -361,6 +362,7 @@ class ChromiumTryTasks(BaseTelemetryModel):
             'skia_patch': self.skia_patch,
             'chromium_patch': self.chromium_patch,
             'blink_patch': self.blink_patch,
+            'num_repeated_runs': self.num_repeated_runs,
             'variance_threshold': self.variance_threshold,
             'discard_outliers': self.discard_outliers,
             'requested_time': str(self.requested_time)
@@ -847,6 +849,7 @@ class ChromiumTryPage(BasePage):
     benchmark_name = self.request.get('benchmark_name')
     benchmark_arguments = self.request.get('benchmark_arguments')
     pageset_type = self.request.get('pageset_type')
+    num_repeated_runs = int(self.request.get('num_repeated_runs'))
     variance_threshold = float(self.request.get('variance_threshold'))
     discard_outliers = float(self.request.get('discard_outliers'))
     description = self.request.get('description')
@@ -865,6 +868,7 @@ class ChromiumTryPage(BasePage):
         skia_patch=skia_patch,
         chromium_patch=chromium_patch,
         blink_patch=blink_patch,
+        num_repeated_runs=num_repeated_runs,
         variance_threshold=variance_threshold,
         discard_outliers=discard_outliers,
         requested_time=requested_time,

@@ -15,6 +15,7 @@
       <td><b>Description</b></td>
       <td><b>Benchmark Name</b></td>
       <td><b>Benchmark Argument</b></td>
+      <td><b>Repeat Runs</b></td>
       <td><b>Variance Threshold</b></td>
       <td><b>Discard Outliers</b></td>
       <td><b>Pagesets Type</b></td>
@@ -34,6 +35,13 @@
       <td>{{ task.description }}</td>
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
+      <td>
+        {% if task.num_repeated_runs %}
+          {{ task.num_repeated_runs }}
+        {% else %}
+          1
+        {% endif %}
+      </td>
       <td>{{ task.variance_threshold }}</td>
       <td>{{ task.discard_outliers }}</td>
       <td>

@@ -10,21 +10,12 @@
 
 {{ pending_tasks_count }} tasks currently in the <a align="center" href='pending_tasks'>Queue</a>
 <br/>
-Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#'>here</a>
+Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#'>here</a>
 <br/></br>
-
-<b>Note:</b>
-<br/>
-* The perf measurements are run on <a href='https://cloud.google.com/products/compute-engine/'>GCE</a> instances. There could be variance in runs depending on if there are other VMs running<br/>on the same physical machine. Please account for upto 1% variance in your runs till the framework moves to bare metal machines.
-<br/><br/>
-* The 'pixeldiffs' benchmark runs the <a href='https://skia.googlesource.com/buildbot/+/master/compute_engine_scripts/telemetry/telemetry_slave_scripts/capture_and_compare_pixeldiffs.py'>capture_and_compare_pixeldiffs.py</a> script against the live top 10k webpages (not using their<br/>archives). Images from this benchmark are visible to only @google.com accounts.
-
-<br/>
-<br/>
 <a href="javascript:toggleDetails();">Show/hide algorithm details</a>
 <script type="text/javascript">
   function toggleDetails() {
-    var details = ["benchmark_details", "variance_details", "outliers_details"];
+    var details = ["benchmark_details", "variance_details", "outliers_details", "repeated_runs"];
     for (var i=0; i<details.length; i++) {
       if (document.getElementById(details[i]).style.display == 'none') {
         document.getElementById(details[i]).style.display = '';
@@ -60,6 +51,17 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
         The Benchmark must output in CSV to do meaningful comparisions.
       </td>
     </tr>
+    <tr id="repeated_runs" style="display:none">
+      <td>Repeat Pageset Runs</td>
+      <td>
+        <select id="num_repeated_runs" name="num_repeated_runs">
+          <option value="1">1</option>
+          <option value="3" selected>3</option>
+          <option value="5">5</option>
+        </select>
+        Repeats each pageset and takes median of results. More documentation is here.
+      </td>
+    </tr>
     <tr id="variance_details" style="display:none">
       <td>Variance Threshold</td>                                               
       <td>                                                                      
@@ -70,8 +72,7 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
     <tr id="outliers_details" style="display:none">
       <td>Discard Outliers</td>                                               
       <td>                                                                      
-        <input type="text" name="discard_outliers" size"5" value="10"/>
-        10% is the recommended percentage of outliers to discard from top and bottom.
+        <input type="text" name="discard_outliers" size"5" value="0"/>
       </td>                                                                     
     </tr>
     <tr>
@@ -130,7 +131,7 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
           form.variance_threshold.value = '0';
           break;
         default:
-          form.variance_threshold.value = '5';
+          form.variance_threshold.value = '0';
       }
 
       // Update the variance threshold information message.
@@ -153,6 +154,7 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
       <td><b>Description</b></td>
       <td><b>Benchmark Name</b></td>
       <td><b>Benchmark Arguments</b></td>
+      <td><b>Repeat Runs</b></td>
       <td><b>Variance Threshold</b></td>
       <td><b>Discard Outliers</b></td>
       <td><b>Pagesets Type</b></td>
@@ -172,6 +174,13 @@ Documentation for Chromium Tryserver is <a href='https://docs.google.com/a/chrom
       <td>{{ task.description }}</td>
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
+      <td>
+        {% if task.num_repeated_runs %}
+          {{ task.num_repeated_runs }}
+        {% else %}
+          1
+        {% endif %}
+      </td>
       <td>{{ task.variance_threshold }}</td>
       <td>{{ task.discard_outliers }}</td>
       <td>
