@@ -61,12 +61,17 @@ if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
   gsutil cp $WHITELIST_GS_LOCATION /tmp/$WHITELIST_FILE
 fi
 
+# The number of times to repeate telemetry page_set runs.
+REPEAT_TELEMETRY_RUNS=${REPEAT_TELEMETRY_RUNS:=3}
+
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Clean and create the skp output directory.
   sudo chown -R chrome-bot:chrome-bot /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
   rm -rf /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
   mkdir -p /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
   EXTRA_ARGS="--skp-outdir=/b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/ $EXTRA_ARGS"
+  # Only do one run for SKPs.
+  REPEAT_TELEMETRY_RUNS=1
 fi
 
 if [ "$TELEMETRY_BENCHMARK" == "smoothness" ]; then
@@ -77,6 +82,12 @@ fi
 
 OUTPUT_DIR=/b/storage/telemetry_outputs/$RUN_ID
 mkdir -p $OUTPUT_DIR
+
+# Change all local page_sets to use 0 wait seconds.
+find /home/default/storage/page_sets/$PAGESETS_TYPE/ -type f -exec sed -i "s/\"seconds\": 5/\"seconds\": 0/g" {} \;
+
+# Start the timer.
+TIMER="$(date +%s)"
 
 for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.json; do
   if [[ -f $page_set ]]; then
@@ -97,8 +108,14 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.json; do
        OUTPUT_DIR_ARG="-o $OUTPUT_DIR/${RUN_ID}.${page_set_basename}"
     fi
     echo "=== Running: eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing $EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG ==="
-    eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
-    sudo chown chrome-bot:chrome-bot $OUTPUT_DIR/${RUN_ID}.${page_set_basename}
+
+    for current_run in `seq 1 $REPEAT_TELEMETRY_RUNS`;
+    do
+      echo "This is run number $current_run"
+      eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS ${OUTPUT_DIR_ARG}.${current_run}
+      sudo chown chrome-bot:chrome-bot $OUTPUT_DIR/${RUN_ID}.${page_set_basename}.${current_run}
+    done
+
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
     else
@@ -106,6 +123,9 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.json; do
     fi
   fi
 done
+
+TELEMETRY_TIME="$(($(date +%s)-TIMER))"
+echo "Going through all page_sets took $TELEMETRY_TIME seconds"
 
 # Consolidate outputs from all page sets into a single file with special
 # handling for CSV files.
