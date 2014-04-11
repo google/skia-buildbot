@@ -12,6 +12,8 @@
     <br/>
     The raw CSVs used to create the below tables are here: <a href='{{ raw_csv_nopatch }}'>nopatch</a>/<a href='{{ raw_csv_withpatch }}'>withpatch</a>
     <br/><br/>
+    Each pageset was repeated: {{ num_repeated }} time{% if num_repeated > 1 %}s{% endif %}
+    <br/>
     Percentage difference threshold used: {{ threshold }}%
     <br/>
     Outliers discarded from top and bottom: {{ discard_outliers }}%
@@ -35,8 +37,8 @@
           <td><a href='{{ absolute_url }}fieldname{{ forloop.counter }}.html'>{{ fieldname }}</a></td>
           <td>{{ fieldname_values.value1|floatformat:"-3" }}</td>
           <td>{{ fieldname_values.value2|floatformat:"-3" }}</td>
-          <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_change|floatformat:"-3" }}%</td>
-          <td {% if fieldname_values.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_diff|floatformat:"-3" }}%</td>
+          <td {% if fieldname_values.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_change|floatformat:"-3" }}%</td>
+          <td {% if fieldname_values.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %} >{{ fieldname_values.perc_diff|floatformat:"-3" }}%</td>
         </tr>
       {% endfor %}
     </table>

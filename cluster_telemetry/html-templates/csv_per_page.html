@@ -8,6 +8,11 @@
     <h2>Webpage results for '{{ fieldname }}'</h2>
     <a href='{{ absolute_url }}index.html'>Back</a>
     <br/><br/>
+    Discarded <b>{{ discarded_webpages|length }}</b> webpages because they were in the {{discard_outliers}}% outliers.
+    View discarded webpages <a href="#discarded_webpages">here</a>.<br/>
+    Total <b>{{ page_values|length }}</b> webpages displayed.
+    <br/><br/>
+
     <table border="1" cellpadding="5">
       <tr bgcolor="#CCCCFF">
         <th>Page Name</th>
@@ -21,10 +26,38 @@
           <td>{{ page_value.page_name }}</td>
           <td>{{ page_value.value1|floatformat:"-3" }}</td>
           <td>{{ page_value.value2|floatformat:"-3" }}</td>
-          <td  {% if page_value.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_change|floatformat:"-3" }}%</td>
-          <td  {% if page_value.perc_diff < 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_diff|floatformat:"-3" }}%</td>
+          <td  {% if page_value.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_change|floatformat:"-3" }}%</td>
+          <td  {% if page_value.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_diff|floatformat:"-3" }}%</td>
         </tr>
       {% endfor %}
     </table>
+
+    <br/><br/><br/>
+    <a id="discarded_webpages"></a>
+    <b>Discarded webpages (were not included in totals calculations):</b>
+    {% if discarded_webpages %}
+    <br/>
+    <table border="1" cellpadding="5">
+      <tr bgcolor="#CCCCFF">
+        <th>Page Name</th>
+        <th>Value</th>
+        <th>Value with Patch</th>
+        <th>Percentage Change</th>
+        <th>Percentage Difference</th>
+      </tr>
+      {% for page_value in discarded_webpages %}
+        <tr>
+          <td>{{ page_value.page_name }}</td>
+          <td>{{ page_value.value1|floatformat:"-3" }}</td>
+          <td>{{ page_value.value2|floatformat:"-3" }}</td>
+          <td  {% if page_value.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_change|floatformat:"-3" }}%</td>
+          <td  {% if page_value.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_diff|floatformat:"-3" }}%</td>
+        </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+      None
+    {% endif %}
+
   </body>
 </html>
