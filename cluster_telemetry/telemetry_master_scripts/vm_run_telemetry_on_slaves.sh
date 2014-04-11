@@ -23,7 +23,7 @@ if [ $# -lt 5 ]; then
   echo "The second argument are the extra arguments that the benchmark needs."
   echo "The third argument is the type of pagesets to create from the 1M list" \
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
-  echo "The fourth argument is the number of times to repeat the benchmark run.""
+  echo "The fourth argument is the number of times to repeat the benchmark run."
   echo "The fifth argument is the name of the directory where the chromium" \
        "build which will be used for this run is stored."
   echo "The sixth argument is a unique runid (typically requester + timestamp)."
