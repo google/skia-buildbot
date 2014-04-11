@@ -16,7 +16,7 @@ from utils import shell_utils
 
 # TODO(borenet): Set up an automated account for this:
 # https://code.google.com/p/chromium/issues/detail?id=339824
-DEPS_ROLL_AUTHOR = 'borenet@google.com'
+DEPS_ROLL_AUTHOR = 'robertphillips@chromium.org'
 
 
 class AutoRoll(BuildStep):
