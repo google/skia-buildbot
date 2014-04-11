@@ -115,7 +115,7 @@ Content-Type: text/html
   <body>
   You had requested a build with the Chromium commit hash <a href='https://chromium.googlesource.com/chromium/src/+/${CHROMIUM_COMMIT_HASH}'>${CHROMIUM_COMMIT_HASH:0:7}</a> and the Skia commit hash <a href='https://skia.googlesource.com/skia/+/${SKIA_COMMIT_HASH}'>${SKIA_COMMIT_HASH:0:7}</a>.<br/>
   The build log is available <a href='$OUTPUT_LINK'>here</a>.<br/>
-  You can schedule more runs <a href='https://skia-tree-status-staging.appspot.com/skia-telemetry/chromium_builds'>here</a>.<br/><br/>
+  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/chromium_builds'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>
@@ -126,5 +126,5 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD&chromium_rev_date=$CHROMIUM_REV_DATE&build_log_link=$OUTPUT_LINK" "https://skia-tree-status-staging.appspot.com/skia-telemetry/update_chromium_build_tasks" -O /dev/null
+wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD&chromium_rev_date=$CHROMIUM_REV_DATE&build_log_link=$OUTPUT_LINK" "https://skia-tree-status.appspot.com/skia-telemetry/update_chromium_build_tasks" -O /dev/null
 

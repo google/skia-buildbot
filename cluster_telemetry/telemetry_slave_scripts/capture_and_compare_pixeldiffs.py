@@ -20,7 +20,7 @@
 # The original file is from http://src.chromium.org/viewvc/chrome/trunk/src/tools/real_world_impact/real_world_impact.py
 # It was written by johnme@ and modified by pdr@.
 # rmistry@ has renamed the file and modified it to run on the Cluster telemetry
-# 100 slaves (http://skia-tree-status-staging.appspot.com/skia-telemetry/chromium_try).
+# 100 slaves (http://skia-tree-status.appspot.com/skia-telemetry/chromium_try).
 
 import argparse
 from argparse import RawTextHelpFormatter

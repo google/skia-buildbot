@@ -154,7 +154,7 @@ Content-Type: text/html
   <body>
   The output of your script is available <a href='$OUTPUT_LINK'>here</a>.<br/><br/>
   If the above output is blank and you expected output then please look for failures in the log file of the first slave <a href='$SLAVE_1_LOG_LINK'>here</a>.<br/>
-  You can schedule more runs <a href='https://skia-tree-status-staging.appspot.com/skia-telemetry'>here</a>.<br/><br/>
+  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>
@@ -165,7 +165,7 @@ EOF
 
   # Mark this task as completed on AppEngine.
   PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
-  wget --post-data "key=$APPENGINE_KEY&output_link=$OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status-staging.appspot.com/skia-telemetry/update_telemetry_task" -O /dev/null
+  wget --post-data "key=$APPENGINE_KEY&output_link=$OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_telemetry_task" -O /dev/null
 fi
 
 # Delete the log file since this task is now done.

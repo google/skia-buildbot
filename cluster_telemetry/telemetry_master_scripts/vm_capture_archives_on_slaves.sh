@@ -88,7 +88,7 @@ Content-Type: text/html
 <html>
   <head/>
   <body>
-  You can schedule more runs <a href='https://skia-tree-status-staging.appspot.com/skia-telemetry/admin_tasks'>here</a>.<br/><br/>
+  You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/admin_tasks'>here</a>.<br/><br/>
   Thanks!
   </body>
 </html>
@@ -99,4 +99,4 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
-wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD" "https://skia-tree-status-staging.appspot.com/skia-telemetry/update_admin_task" -O /dev/null
+wget --post-data "key=$APPENGINE_KEY&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_admin_task" -O /dev/null
