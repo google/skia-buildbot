@@ -7,16 +7,33 @@
 """Sync the Android sources."""
 
 
+import os
 import sys
 
 from build_step import BuildStep
+from utils import shell_utils
+
+
+ANDROID_CHECKOUT_PATH = os.path.join(os.pardir, 'android_repo')
+ANDROID_REPO_URL = ('https://googleplex-android.googlesource.com/a/platform/'
+                    'manifest')
+REPO = os.path.join(os.path.expanduser('~'), 'bin', 'repo')
 
 
 class SyncAndroid(BuildStep):
   """BuildStep which syncs the Android sources."""
 
   def _Run(self):
-    print 'No-op for now...'
+    try:
+      os.makedirs(ANDROID_CHECKOUT_PATH)
+    except OSError:
+      pass
+    print 'cd %s' % ANDROID_CHECKOUT_PATH
+    os.chdir(ANDROID_CHECKOUT_PATH)
+
+    shell_utils.run([REPO, 'init', '-u', ANDROID_REPO_URL, '-g',
+                     'all,-notdefault,-darwin', '-b', 'master-skia'])
+    shell_utils.run([REPO, 'sync', '-j32'])
 
 
 if '__main__' == __name__:
