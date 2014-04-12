@@ -6,7 +6,7 @@
 """Python utility to merge many CSV files into a single file.
 
 If there are multiple CSV files with the same TELEMETRY_PAGE_NAME_KEY then the
-median of all values is stored in the resultant CSV file.
+smallest of all values is stored in the resultant CSV file.
 """
 
 
@@ -37,17 +37,13 @@ class CsvMerger(object):
       field_names.update(csv.DictReader(open(csv_file, 'r')).fieldnames)
     return field_names
 
-  def _GetMedian(self, l):
-    """Returns the median value from the specified list."""
+  def _GetSmallest(self, l):
+    """Returns the smallest value from the specified list."""
     l.sort()
-    length = len(l)
-    if not length % 2:
-      return (l[(length/2) - 1] + l[length/2]) / 2
-    else:
-      return l[length/2]
+    return l[0]
 
-  def _GetRowWithMedianValues(self, rows):
-    """Parses the specified rows and returns a single row with median values."""
+  def _GetRowWithSmallestValues(self, rows):
+    """Parses the specified rows and returns a row with the smallest values."""
     fieldname_to_values = {}
     for row in rows:
       for fieldname in row:
@@ -64,18 +60,18 @@ class CsvMerger(object):
         else:
           fieldname_to_values[fieldname] = [value]
 
-    median_row = {}
+    smallest_row = {}
     for fieldname, values in fieldname_to_values.items():
       if fieldname == TELEMETRY_PAGE_NAME_KEY:
-        median_row[fieldname] = values
+        smallest_row[fieldname] = values
         continue
-      median_row[fieldname] = self._GetMedian(values)
+      smallest_row[fieldname] = self._GetSmallest(values)
 
     print
     print 'For rows: %s' % rows
-    print 'Median row is %s' % median_row
+    print 'Smallest row is %s' % smallest_row
     print
-    return median_row
+    return smallest_row
 
   def Merge(self):
     """Method that does the CSV merging."""
@@ -85,11 +81,11 @@ class CsvMerger(object):
 
     # List that will contain all rows read from the CSV files. It will also
     # combine all rows found with the same TELEMETRY_PAGE_NAME_KEY into one
-    # with median values.
+    # with smallest values.
     csv_rows = []
 
     # Dictionary containing all the encountered page names. If a page name that
-    # is already in the dictionary is encountered then the median of its
+    # is already in the dictionary is encountered then the smallest of its
     # values is used.
     page_names_to_rows = {}
 
@@ -111,10 +107,10 @@ class CsvMerger(object):
     if page_names_to_rows:
       for page_name in page_names_to_rows:
         rows = page_names_to_rows[page_name]
-        median_row = self._GetRowWithMedianValues(rows)
-        # Add a single row that contains median values from all rows with the
+        smallest_row = self._GetRowWithSmallestValues(rows)
+        # Add a single row that contains smallest values from all rows with the
         # same TELEMETRY_PAGE_NAME_KEY.
-        csv_rows.append(median_row)
+        csv_rows.append(smallest_row)
 
     # Write all rows in csv_rows to the specified output CSV.
     dict_writer = csv.DictWriter(open(self._output_csv_name, 'w'), field_names)
