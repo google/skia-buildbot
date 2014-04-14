@@ -26,8 +26,8 @@ OPTIONS:
   -t The type of pagesets to run against. Eg: All, Filtered, 100k, 10k
   -b Which chromium build the SKPs were created with
   -a Arguments to pass to render_pictures
-  -m Whether to build with mesa for the nopatch run
-  -w Whether to build with mesa for the withpatch run
+  -m Whether to build with GPU for the nopatch run
+  -w Whether to build with GPU for the withpatch run
   -r The runid (typically requester + timestamp)
   -g The Google Storage location where the log file should be uploaded to
   -o The Google Storage location where the output file should be uploaded to
@@ -58,10 +58,10 @@ do
       RENDER_PICTURES_ARGS=$OPTARG
       ;;
     m)
-      MESA_NOPATCH_RUN=$OPTARG
+      GPU_NOPATCH_RUN=$OPTARG
       ;;
     w)
-      MESA_WITHPATCH_RUN=$OPTARG
+      GPU_WITHPATCH_RUN=$OPTARG
       ;;
     r)
       RUN_ID=$OPTARG
@@ -84,8 +84,8 @@ done
 
 if [[ -z $SLAVE_NUM ]] || [[ -z $SKIA_PATCH_GS_LOCATION ]] || \
    [[ -z $PAGESETS_TYPE ]] || [[ -z $CHROMIUM_BUILD_DIR ]] || \
-   [[ -z $RENDER_PICTURES_ARGS ]] || [[ -z $MESA_NOPATCH_RUN ]] || \
-   [[ -z $MESA_WITHPATCH_RUN ]] || [[ -z $RUN_ID ]] || [[ -z $LOG_FILE ]] || \
+   [[ -z $RENDER_PICTURES_ARGS ]] || [[ -z $GPU_NOPATCH_RUN ]] || \
+   [[ -z $GPU_WITHPATCH_RUN ]] || [[ -z $RUN_ID ]] || [[ -z $LOG_FILE ]] || \
    [[ -z $LOG_FILE_GS_LOCATION  ]] || [[ -z $OUTPUT_FILE_GS_LOCATION  ]]
 then
   usage
@@ -124,14 +124,7 @@ function cleanup_slave_before_exit {
 }
 
 function build_tools {
-  if [ "$1" == "True" ]; then
-    echo "== Building Skia with mesa =="
-    MESA_GYP_DEFINES="skia_mesa=1"
-  else
-    echo "== Building Skia without mesa =="
-    unset MESA_GYP_DEFINES
-  fi
-  GYP_DEFINES="skia_warnings_as_errors=0 $MESA_GYP_DEFINES" make tools BUILDTYPE=Release
+  GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
 }
 
 function reset_skia_checkout {
@@ -142,9 +135,9 @@ function reset_skia_checkout {
 
 function run_render_pictures {
   output_dir=$1
-  use_mesa=$2
-  if [ "$use_mesa" == "True" ]; then
-    render_pictures_args_of_run=$(echo $RENDER_PICTURES_ARGS | sed -e 's/--config [a-zA-Z0-9]*/--config mesa/g')
+  use_gpu=$2
+  if [ "$use_gpu" == "True" ]; then
+    render_pictures_args_of_run=$(echo $RENDER_PICTURES_ARGS | sed -e 's/--config [a-zA-Z0-9]*/--config gpu/g')
   else
     render_pictures_args_of_run=$RENDER_PICTURES_ARGS
   fi
@@ -179,19 +172,19 @@ if [ $PATCH_FILESIZE != 1 ]; then
 else
   echo "== Empty patch specified =="
 fi
-build_tools $MESA_WITHPATCH_RUN
+build_tools
 IMG_ROOT=/tmp
 OUTPUT_DIR_WITHPATCH=$IMG_ROOT/withpatch-pictures-$RUN_ID
 mkdir -p $OUTPUT_DIR_WITHPATCH
-run_render_pictures $OUTPUT_DIR_WITHPATCH $MESA_WITHPATCH_RUN
+run_render_pictures $OUTPUT_DIR_WITHPATCH $GPU_WITHPATCH_RUN
 
 echo "== Removing the patch, building, and running render_pictures =="
 reset_skia_checkout
 make clean
-build_tools $MESA_NOPATCH_RUN
+build_tools
 OUTPUT_DIR_NOPATCH=$IMG_ROOT/nopatch-pictures-$RUN_ID
 mkdir -p $OUTPUT_DIR_NOPATCH
-run_render_pictures $OUTPUT_DIR_NOPATCH $MESA_NOPATCH_RUN
+run_render_pictures $OUTPUT_DIR_NOPATCH $GPU_NOPATCH_RUN
 
 echo "== Comparing pictures and saving differences in JSON output file =="
 JSON_SUMMARY_DIR=/tmp/summary-$RUN_ID

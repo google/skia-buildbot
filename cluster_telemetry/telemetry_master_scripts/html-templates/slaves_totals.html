@@ -8,8 +8,8 @@
 
     {% if slave_name_to_info_items %}
     RenderPictures args: {{ render_pictures_args }}<br/>
-    NoPatch run compiled with mesa: {{ nopatch_mesa }}<br/>
-    WithPatch run compiled with mesa: {{ withpatch_mesa  }}<br/><br/>
+    NoPatch render_pictures run with GPU: {{ nopatch_gpu }}<br/>
+    WithPatch render_pictures run with GPU: {{ withpatch_gpu  }}<br/><br/>
 
     To view all {{ failing_files_count }} failing files click <a href='{{ absolute_url }}list_of_all_files.html'>here</a>.
     <br/><br/><br/>

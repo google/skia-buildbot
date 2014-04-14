@@ -32,8 +32,8 @@ ABSOLUTE_URL_TEMPLATE_VAR = 'absolute_url'
 SLAVE_INFO_TEMPLATE_VAR = 'slave_info'
 FILE_INFO_TEMPLATE_VAR = 'file_info'
 RENDER_PICTURES_ARGS_TEMPLATE_VAR = 'render_pictures_args'
-NOPATCH_MESA_TEMPLATE_VAR = 'nopatch_mesa'
-WITHPATCH_MESA_TEMPLATE_VAR = 'withpatch_mesa'
+NOPATCH_GPU_TEMPLATE_VAR = 'nopatch_gpu'
+WITHPATCH_GPU_TEMPLATE_VAR = 'withpatch_gpu'
 TOTAL_FAILING_FILES_TEMPLATE_VAR = 'failing_files_count'
 GS_FILES_LOCATION_NO_PATCH_TEMPLATE_VAR = 'gs_http_files_location_nopatch'
 GS_FILES_LOCATION_WITH_PATCH_TEMPLATE_VAR = 'gs_http_files_location_withpatch'
@@ -133,7 +133,7 @@ def CombineJsonSummaries(json_summaries_dir):
 
 
 def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
-                 render_pictures_args, nopatch_mesa, withpatch_mesa):
+                 render_pictures_args, nopatch_gpu, withpatch_gpu):
   """Outputs a slave name to SlaveInfo dict into HTML.
 
   Creates a top level HTML file that lists slave names to the number of failing
@@ -153,8 +153,8 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
       {SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR: slave_name_to_info_items,
        ABSOLUTE_URL_TEMPLATE_VAR: absolute_url,
        RENDER_PICTURES_ARGS_TEMPLATE_VAR: render_pictures_args,
-       NOPATCH_MESA_TEMPLATE_VAR: nopatch_mesa,
-       WITHPATCH_MESA_TEMPLATE_VAR: withpatch_mesa,
+       NOPATCH_GPU_TEMPLATE_VAR: nopatch_gpu,
+       WITHPATCH_GPU_TEMPLATE_VAR: withpatch_gpu,
        TOTAL_FAILING_FILES_TEMPLATE_VAR: total_failing_files}
   )
   with open(os.path.join(output_html_dir, 'index.html'), 'w') as index_html:
@@ -211,23 +211,25 @@ if '__main__' == __name__:
       '', '--render_pictures_args',
       help='The arguments specified by the user to the render_pictures binary.')
   option_parser.add_option(
-      '', '--nopatch_mesa',
-      help='Specifies whether the nopatch run was compiled with mesa.')
+      '', '--nopatch_gpu',
+      help='Specifies whether the nopatch render_pictures run was done with '
+           'GPU.')
   option_parser.add_option(
-      '', '--withpatch_mesa',
-      help='Specifies whether the withpatch run was compiled with mesa.')
+      '', '--withpatch_gpu',
+      help='Specifies whether the withpatch render_pictures run was done with '
+           'GPU.')
   options, unused_args = option_parser.parse_args()
   if (not options.json_summaries_dir or not options.output_html_dir
-      or not options.render_pictures_args or not options.nopatch_mesa
-      or not options.withpatch_mesa):
+      or not options.render_pictures_args or not options.nopatch_gpu
+      or not options.withpatch_gpu):
     option_parser.error(
         'Must specify json_summaries_dir, output_html_dir, '
-        'render_pictures_args, nopatch_mesa and withpatch_mesa')
+        'render_pictures_args, nopatch_gpu and withpatch_gpu')
 
   OutputToHTML(
       slave_name_to_info=CombineJsonSummaries(options.json_summaries_dir),
       output_html_dir=options.output_html_dir,
       absolute_url=options.absolute_url,
       render_pictures_args=options.render_pictures_args,
-      nopatch_mesa=options.nopatch_mesa,
-      withpatch_mesa=options.withpatch_mesa)
+      nopatch_gpu=options.nopatch_gpu,
+      withpatch_gpu=options.withpatch_gpu)

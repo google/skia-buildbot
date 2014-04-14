@@ -122,8 +122,8 @@ def process_skia_try_task(task):
   chromium_build_dir = get_chromium_build_dir(task['chromium_rev'],
                                               task['skia_rev'])
   render_pictures_args = task['render_pictures_args'].replace('"', r'\"')
-  mesa_nopatch_run = task['mesa_nopatch_run']
-  mesa_withpatch_run = task['mesa_withpatch_run']
+  gpu_nopatch_run = task['gpu_nopatch_run']
+  gpu_withpatch_run = task['gpu_withpatch_run']
 
   log_file = os.path.join(tempfile.gettempdir(), '%s.output' % run_id)
 
@@ -136,8 +136,8 @@ def process_skia_try_task(task):
       '-r', str(run_id),
       '-b', str(chromium_build_dir),
       '-a', str(render_pictures_args),
-      '-n', str(mesa_nopatch_run),
-      '-w', str(mesa_withpatch_run),
+      '-n', str(gpu_nopatch_run),
+      '-w', str(gpu_withpatch_run),
       '-e', str(username),
       '-k', str(task_key),
       '-l', str(log_file)

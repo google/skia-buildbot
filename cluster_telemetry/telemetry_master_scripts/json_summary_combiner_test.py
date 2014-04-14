@@ -22,8 +22,8 @@ class TestJsonSummaryCombiner(unittest.TestCase):
     self._actual_html_dir = tempfile.mkdtemp()
     self._absolute_url = 'http://dummy-link.foobar/'
     self._render_pictures_args = '--test1=test --test2=test --test3'
-    self._nopatch_mesa = 'False'
-    self._withpatch_mesa = 'True'
+    self._nopatch_gpu = 'False'
+    self._withpatch_gpu = 'True'
 
   def tearDown(self):
     shutil.rmtree(self._actual_html_dir)
@@ -139,8 +139,8 @@ class TestJsonSummaryCombiner(unittest.TestCase):
         output_html_dir=self._actual_html_dir,
         absolute_url=self._absolute_url,
         render_pictures_args=self._render_pictures_args,
-        nopatch_mesa=self._nopatch_mesa,
-        withpatch_mesa=self._withpatch_mesa)
+        nopatch_gpu=self._nopatch_gpu,
+        withpatch_gpu=self._withpatch_gpu)
 
     html_expected_dir = os.path.join(self._test_data_dir, 'html_outputs',
                                      'differences_with_url')
@@ -160,8 +160,8 @@ class TestJsonSummaryCombiner(unittest.TestCase):
         output_html_dir=self._actual_html_dir,
         absolute_url='',
         render_pictures_args=self._render_pictures_args,
-        nopatch_mesa=self._nopatch_mesa,
-        withpatch_mesa=self._withpatch_mesa)
+        nopatch_gpu=self._nopatch_gpu,
+        withpatch_gpu=self._withpatch_gpu)
 
     html_expected_dir = os.path.join(self._test_data_dir, 'html_outputs',
                                      'differences_no_url')
@@ -180,8 +180,8 @@ class TestJsonSummaryCombiner(unittest.TestCase):
         output_html_dir=self._actual_html_dir,
         absolute_url='',
         render_pictures_args=self._render_pictures_args,
-        nopatch_mesa=self._nopatch_mesa,
-        withpatch_mesa=self._withpatch_mesa)
+        nopatch_gpu=self._nopatch_gpu,
+        withpatch_gpu=self._withpatch_gpu)
 
     html_expected_dir = os.path.join(self._test_data_dir, 'html_outputs',
                                      'nodifferences')

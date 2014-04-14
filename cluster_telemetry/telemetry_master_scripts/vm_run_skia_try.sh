@@ -26,8 +26,8 @@ OPTIONS:
   -t The type of pagesets to run against. Eg: All, Filtered, 100k, 10k
   -b Which chromium build the SKPs were created with
   -a Arguments to pass to render_pictures
-  -n Whether to build with mesa for the nopatch run
-  -w Whether to build with mesa for the withpatch run
+  -n Whether to run render_pictures with GPU for the nopatch run
+  -w Whether to run render_pictures with GPU for the withpatch run
   -r The runid (typically requester + timestamp)
   -k Key of the App Engine Skia Try task
   -l The location of the log file
@@ -57,10 +57,10 @@ do
       RENDER_PICTURES_ARGS=$OPTARG
       ;;
     n)
-      MESA_NOPATCH_RUN=$OPTARG
+      GPU_NOPATCH_RUN=$OPTARG
       ;;
     w)
-      MESA_WITHPATCH_RUN=$OPTARG
+      GPU_WITHPATCH_RUN=$OPTARG
       ;;
     r)
       RUN_ID=$OPTARG
@@ -81,7 +81,7 @@ done
 if [[ -z $SKIA_PATCH_LOCATION ]] || [[ -z $REQUESTER_EMAIL ]] || \
    [[ -z $PAGESETS_TYPE ]] || [[ -z $CHROMIUM_BUILD_DIR ]] || \
    [[ -z $RENDER_PICTURES_ARGS ]] || [[ -z $RUN_ID ]] || \
-   [[ -z $MESA_NOPATCH_RUN ]] || [[ -z $MESA_WITHPATCH_RUN ]] || \
+   [[ -z $GPU_NOPATCH_RUN ]] || [[ -z $GPU_WITHPATCH_RUN ]] || \
    [[ -z $APPENGINE_KEY ]] || [[ -z $LOG_FILE ]]
 then
   usage
@@ -108,7 +108,7 @@ SLAVE_LOG_FILE="/tmp/skia-try.$RUN_ID.log"
 SLAVE_LOG_GS_LOCATION=gs://chromium-skia-gm/telemetry/skia-tryserver/logs/$RUN_ID
 SLAVE_OUTPUT_GS_LOCATION=gs://chromium-skia-gm/telemetry/skia-tryserver/outputs/$RUN_ID
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  CMD="bash vm_run_skia_try.sh -n $SLAVE_NUM -p $SKIA_PATCH_GS_LOCATION -t $PAGESETS_TYPE -b $CHROMIUM_BUILD_DIR -a \"$RENDER_PICTURES_ARGS\" -m $MESA_NOPATCH_RUN -w $MESA_WITHPATCH_RUN -r $RUN_ID -g $SLAVE_LOG_GS_LOCATION -o $SLAVE_OUTPUT_GS_LOCATION -l $SLAVE_LOG_FILE"
+  CMD="bash vm_run_skia_try.sh -n $SLAVE_NUM -p $SKIA_PATCH_GS_LOCATION -t $PAGESETS_TYPE -b $CHROMIUM_BUILD_DIR -a \"$RENDER_PICTURES_ARGS\" -m $GPU_NOPATCH_RUN -w $GPU_WITHPATCH_RUN -r $RUN_ID -g $SLAVE_LOG_GS_LOCATION -o $SLAVE_OUTPUT_GS_LOCATION -l $SLAVE_LOG_FILE"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
     -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > $SLAVE_LOG_FILE 2>&1"
@@ -151,8 +151,8 @@ python json_summary_combiner.py \
   --output_html_dir=$HTML_OUTPUT_DIR \
   --absolute_url=$ABSOLUTE_GS_LINK \
   --render_pictures_args="$RENDER_PICTURES_ARGS" \
-  --nopatch_mesa=$MESA_NOPATCH_RUN \
-  --withpatch_mesa=$MESA_WITHPATCH_RUN
+  --nopatch_gpu=$GPU_NOPATCH_RUN \
+  --withpatch_gpu=$GPU_WITHPATCH_RUN
 # Copy HTML output to Google Storage.
 gsutil cp -R $HTML_OUTPUT_DIR/* gs://$RELATIVE_HTML_OUTPUT
 # Set google.com domain ACL on the HTML files.
