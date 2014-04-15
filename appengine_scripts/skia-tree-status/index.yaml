@@ -257,6 +257,11 @@ indexes:
   - name: requested_time
     direction: desc
 
+- kind: SheriffSchedules
+  properties:
+  - name: username
+  - name: schedule_end
+
 - kind: SkiaTryTasks
   properties:
   - name: completed_time

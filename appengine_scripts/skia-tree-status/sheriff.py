@@ -16,6 +16,11 @@ import utils
 
 FETCH_LIMIT = 50
 
+HEADER_CONTENT_TYPE = 'Content-Type'
+HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = 'Access-Control-Allow-Origin'
+
+JSON_CONTENT_TYPE = 'application/json'
+
 
 class Sheriffs(db.Model):
   """Contains the list of Sheriffs"""
@@ -27,7 +32,7 @@ class Sheriffs(db.Model):
 
 
 class SheriffSchedules(db.Model):
-  """Sheriffs and their schedules."""
+  """A single sheriff oncall rotation (one person, one time interval)."""
   schedule_start = db.DateTimeProperty(required=True)
   schedule_end = db.DateTimeProperty(required=True)
   username = db.StringProperty(required=True)
@@ -36,6 +41,13 @@ class SheriffSchedules(db.Model):
   def get_upcoming_schedules(cls):
     return (cls.all()
                .filter('schedule_end >', datetime.datetime.now())
+               .order('schedule_end')
+               .fetch(limit=FETCH_LIMIT))
+
+  @classmethod
+  def get_schedules_for_sheriff(cls, sheriff):
+    return (cls.all()
+               .filter('username =', sheriff)
                .order('schedule_end')
                .fetch(limit=FETCH_LIMIT))
 
@@ -55,20 +67,44 @@ class SheriffSchedules(db.Model):
     for schedule in schedules:
       schedule.delete()
 
-  def AsDict(self):
+  def AsDict(self, display_year=False):
     data = super(SheriffSchedules, self).AsDict()
     data['username'] = self.username
-    data['schedule_start'] = self.schedule_start.strftime('%m/%d')
-    data['schedule_end'] = self.schedule_end.strftime('%m/%d')
+
+    date_format = '%m/%d/%y' if display_year else '%m/%d'
+    data['schedule_start'] = self.schedule_start.strftime(date_format)
+    data['schedule_end'] = self.schedule_end.strftime(date_format)
     return data
+
+
+class QuerySheriffPage(BasePage):
+  """Displays the schedules of the provided sheriff."""
+
+  def get(self):
+    self.response.headers[HEADER_CONTENT_TYPE] = JSON_CONTENT_TYPE
+    self.response.headers[HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = '*'
+
+    username = self.request.get('username')
+    data = json.dumps({})
+    for sheriff in Sheriffs.get_all_sheriffs():
+      if sheriff.username.startswith(username):
+        schedules = []
+        for schedule in SheriffSchedules.get_schedules_for_sheriff(
+            sheriff.username):
+          schedules.append(schedule.AsDict(display_year=True))
+        data = json.dumps({sheriff.username: schedules})
+        break
+
+    self.response.out.write(data)
 
 
 class CurrentSheriffPage(BasePage):
   """Displays the current sheriff and schedule in JSON."""
 
   def get(self):
-    self.response.headers['Content-Type'] = 'application/json'
-    self.response.headers['Access-Control-Allow-Origin'] = '*'
+    self.response.headers[HEADER_CONTENT_TYPE] = JSON_CONTENT_TYPE
+    self.response.headers[HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = '*'
+
     upcoming_schedules = SheriffSchedules.get_upcoming_schedules()
     if upcoming_schedules:
       data = json.dumps(upcoming_schedules[0].AsDict())
@@ -77,7 +113,6 @@ class CurrentSheriffPage(BasePage):
     callback = self.request.get('callback')
     if callback:
       data = callback + '(' + data + ')'
-    self.response.headers['Content-Type'] = 'application/json'
     self.response.out.write(data)
 
 
@@ -85,8 +120,9 @@ class NextSheriffPage(BasePage):
   """Displays the next sheriff and schedule in JSON."""
 
   def get(self):
-    self.response.headers['Content-Type'] = 'application/json'
-    self.response.headers['Access-Control-Allow-Origin'] = '*'
+    self.response.headers[HEADER_CONTENT_TYPE] = JSON_CONTENT_TYPE
+    self.response.headers[HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = '*'
+
     upcoming_schedules = SheriffSchedules.get_upcoming_schedules()
     if upcoming_schedules and len(upcoming_schedules) > 1:
       data = json.dumps(upcoming_schedules[1].AsDict())
@@ -95,7 +131,6 @@ class NextSheriffPage(BasePage):
     callback = self.request.get('callback')
     if callback:
       data = callback + '(' + data + ')'
-    self.response.headers['Content-Type'] = 'application/json'
     self.response.out.write(data)
 
 
