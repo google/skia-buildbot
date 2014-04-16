@@ -5,39 +5,62 @@
 # Copyright 2014 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
-source config.sh
+if [ -n "$1" ]; then
+  CT_MACHINE=$1
+else
+  echo
+  echo "Usage: bash `basename $0` build1-b5"
+  echo
+  echo "The first argument is the hostname or IP address of the Cluster" \
+       "Telemetry machine we want to setup."
+  echo
+  exit 1
+fi
 
-VM_COMPLETE_NAME=`hostname`
+REQUIRED_FILES_FOR_CT_MACHINE=(~/.boto \
+                               ~/.bashrc \
+                               ~/.inputrc \
+                               /b/google-cloud-sdk)
+
+echo """
+Before proceeding with this script please ensure that:
+* This machine can access $CT_MACHINE with passwordless ssh.
+* chrome-bot has passwordless sudo access on $CT_MACHINE.
+"""
+read -p "Press [Enter] key to continue..."
 
 echo """
 
 ================================================
-Starting setup of ${VM_COMPLETE_NAME}.....
+Starting setup of ${CT_MACHINE}.....
 ================================================
 
 """
 
-FAILED=""
+for REQUIRED_FILE in ${REQUIRED_FILES_FOR_CT_MACHINE[@]}; do
+  if [ ! -e $REQUIRED_FILE ];
+  then
+    echo "This machine is missing $REQUIRED_FILE!"
+    exit 1
+  else
+    scp -r -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no ${REQUIRED_FILE} ${CT_MACHINE}:${REQUIRED_FILE}
+  fi
+done
 
-echo "==Install required packages=="
+
+CMD="""
+# Install required packages.
 sudo apt-get update;
-sudo apt-get -y install linux-tools python-django libgif-dev && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod \
-|| FAILED="$FAILED InstallPackages"
-echo
+sudo apt-get -y install linux-tools python-django libgif-dev && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod;
 
-echo "Checkout Skia Buildbot code"
+# Checkout Skia's buildbot and trunk repositories.
 mkdir /b/storage/;
 mkdir /b/skia-repo/;
-cd /b/skia-repo/ && \
-/b/depot_tools/gclient config https://skia.googlesource.com/buildbot.git && \
-/b/depot_tools/gclient sync \
-|| FAILED="$FAILED CheckoutSkiaBuildbot"
-echo
-
-echo "Checkout Skia Trunk code"
-cd /b/skia-repo/ && \
-sed -i '$ d' .gclient && sed -i '$ d' .gclient && \
-echo """
+cd /b/skia-repo/;
+/b/depot_tools/gclient config https://skia.googlesource.com/buildbot.git;
+/b/depot_tools/gclient sync;
+sed -i '$ d' .gclient && sed -i '$ d' .gclient;
+echo \"\"\"
   { 'name'        : 'trunk',
     'url'         : 'https://skia.googlesource.com/skia.git',
     'deps_file'   : 'DEPS',
@@ -47,24 +70,23 @@ echo """
     'safesync_url': '',
   },
 ]
-""" >> .gclient && /b/depot_tools/gclient sync \
-|| FAILED="$FAILED CheckoutSkiaTrunk"
-echo
+\"\"\" >> .gclient;
+/b/depot_tools/gclient sync;
 
-if [[ $FAILED ]]; then
-  echo
-  echo "FAILURES: $FAILED"
-  echo "Please manually fix these errors."
-  echo
-fi
+# Copy required patches from Google Storage.
+gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record_micro.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/perf/measurements/rasterize_and_record_micro.py;
+gsutil cp gs://chromium-skia-gm/telemetry/patches/desktop_browser_backend.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/telemetry/telemetry/core/backends/chrome/desktop_browser_backend.py;
+
+# Create symlink from /b to /home/default for the old page_set paths.
+sudo ln -s /b /home/default;
+"""
+ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no \
+  -A -q -p 22 $CT_MACHINE -- "$CMD"
+
 
 echo
-echo "* Copy .boto, .bashrc and .inputrc to the machine."
-echo "* Install Google Cloud SDK: https://developers.google.com/cloud/sdk/#Quick_Start OR copy /b/google-cloud-sdk from another cluster telemetry machine."
-echo "* Setup chrome-bot in sudoers."
-echo "* Setup passwordless access from the master to the other slaves."
-echo "* Run 'gclient sync' in /b/skia-repo/buildbot and enter the correct AppEngine password in /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt"
-echo "* Create a symlink from /home/default to /b for the old pagesets and archives"
-echo "* gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record_micro.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/perf/measurements/rasterize_and_record_micro.py"
-echo "* gsutil cp gs://chromium-skia-gm/telemetry/patches/desktop_browser_backend.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/telemetry/telemetry/core/backends/chrome/desktop_browser_backend.py"
+echo "The setup script has completed!"
+echo
+echo "Remaining steps:"
+echo "* If you are setting up the master then enter the correct AppEngine password in /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt"
 echo
