@@ -65,7 +65,13 @@ class MergeIntoAndroid(BuildStep):
     shell_utils.run([GIT, 'fetch', UPSTREAM_REMOTE_NAME])
 
     # Start the merge.
-    shell_utils.run([GIT, 'merge', UPSTREAM_BRANCH_NAME, '--no-commit'])
+    try:
+      shell_utils.run([GIT, 'merge', UPSTREAM_BRANCH_NAME, '--no-commit'])
+    except shell_utils.CommandFailedException:
+      # Merge conflict. There may be a more elegant solution, but for now, undo
+      # the merge, and allow (/make) a human to do it.
+      shell_utils.run([GIT, 'merge', '--abort'])
+      raise Exception('Merge failed. Fall back to manual human merge.')
 
     # FIXME (scroggo): If we put all of Skia into Android (see skbug.com/2416),
     # it might make sense to do a commit now, and use a separate build step for
@@ -85,22 +91,6 @@ class MergeIntoAndroid(BuildStep):
     gyp_to_android.main()
     shell_utils.run([GIT, 'add', 'Android.mk'])
     shell_utils.run([GIT, 'add', ANDROID_USER_CONFIG])
-
-    # Remove the files Android doesn't want or need.
-    # FIXME: This complicates the merge process. Is it worth it?
-    # See skbug.com/2416.
-    shell_utils.run([GIT, 'rm', '-rf', 'DEPS', 'Doxyfile', 'Makefile',
-                     'make.py', 'debugger/', 'experimental/', 'samplecode/',
-                     'platform_tools/'])
-
-    # Now check to see that we haven't left any merge conflicts.
-    if len(shell_utils.run([GIT, 'ls-files', '-u'])) > 0:
-      # FIXME (scroggo): We're now in a bad state. How does someone fix this?
-      # Log into the bot and clean it up? How do we stop the bot from
-      # continuing to attempt merges?
-      # For now, abandon the merge, so the next attempt can start cleanly.
-      shell_utils.run([GIT, 'merge', '--abort'])
-      raise Exception('Merge needs fixing!')
 
     # Create a new branch.
     shell_utils.run([REPO, 'start', 'merge', '.'])
