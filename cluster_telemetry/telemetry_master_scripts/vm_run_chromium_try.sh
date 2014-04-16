@@ -187,7 +187,7 @@ if [ $ret_value -eq 0 ]; then
     fi
   done
   if [[ $CRASHED_INSTANCES ]]; then
-    CRASHED_INSTANCES_HTML="<b>Note:</b> The following slaves are down and their results are missing from the report: $CRASHED_INSTANCES<br/>"
+    CRASHED_INSTANCES_HTML="<b>Note:</b> The following slaves are down and their results are missing from the report: <b>$CRASHED_INSTANCES</b><br/><br/>"
   fi
 
   # Compare the resultant CSV files.
