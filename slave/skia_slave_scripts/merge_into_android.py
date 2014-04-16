@@ -97,7 +97,7 @@ class MergeIntoAndroid(BuildStep):
 
     # Figure out the revision being merged, and use it to write the commit
     # message.
-    commit_message = shell_utils.run([GIT, 'show', UPSTREAM_BRANCH_NAME, '-q'])
+    commit_message = shell_utils.run([GIT, 'show', UPSTREAM_BRANCH_NAME])
     rev_index = commit_message.find(GIT_SVN_ID) + len(GIT_SVN_ID)
     rev_end = commit_message.find(' ', rev_index)
     revision = commit_message[rev_index:rev_end]
