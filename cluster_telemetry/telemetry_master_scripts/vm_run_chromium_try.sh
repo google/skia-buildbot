@@ -176,6 +176,19 @@ if [ $ret_value -eq 0 ]; then
   # Make sure there are no left over processes on the slaves.
   bash vm_run_command_on_slaves.sh "sudo pkill -9 -f chromium-builds"
 
+  for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
+    ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
+      -o StrictHostKeyChecking=no \
+      -A -q -p 22 build${SLAVE_NUM}-b5 -- "uptime" &> /dev/null
+    if [ $? -ne 0 ]
+    then
+      echo "build$SLAVE_NUM-b5 is not responding!"
+      CRASHED_INSTANCES="$CRASHED_INSTANCES build$SLAVE_NUM-b5"
+    fi
+  done
+  if [[ $CRASHED_INSTANCES ]]; then
+    CRASHED_INSTANCES_HTML="<b>Note:</b> The following slaves are down and their results are missing from the report: $CRASHED_INSTANCES<br/>"
+  fi
 
   # Compare the resultant CSV files.
   NOPATCH_CSV="/b/storage/telemetry_outputs/${TELEMETRY_NOPATCH_ID}/${TELEMETRY_NOPATCH_ID}.$TELEMETRY_BENCHMARK.output"
@@ -184,7 +197,7 @@ if [ $ret_value -eq 0 ]; then
   HTML_OUTPUT_LINK_BASE=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserver-outputs/html-outputs/$RUN_ID/
   mkdir -p $HTML_OUTPUT_DIR
   cd ..
-  python csv_comparer.py --csv_file1=$NOPATCH_CSV --csv_file2=$WITHPATCH_CSV --output_html=$HTML_OUTPUT_DIR --variance_threshold=$VARIANCE_THRESHOLD --discard_outliers=$DISCARD_OUTLIERS --absolute_url=$HTML_OUTPUT_LINK_BASE --requester_email=$REQUESTER_EMAIL --chromium_patch_link=$CHROMIUM_PATCH_LINK --blink_patch_link=$BLINK_PATCH_LINK --skia_patch_link=$SKIA_PATCH_LINK --raw_csv_nopatch=$TELEMETRY_OUTPUT_1 --raw_csv_withpatch=$TELEMETRY_OUTPUT_2 --num_repeated=$REPEAT_TELEMETRY_RUNS
+  python csv_comparer.py --csv_file1=$NOPATCH_CSV --csv_file2=$WITHPATCH_CSV --output_html=$HTML_OUTPUT_DIR --variance_threshold=$VARIANCE_THRESHOLD --discard_outliers=$DISCARD_OUTLIERS --absolute_url=$HTML_OUTPUT_LINK_BASE --requester_email=$REQUESTER_EMAIL --chromium_patch_link=$CHROMIUM_PATCH_LINK --blink_patch_link=$BLINK_PATCH_LINK --skia_patch_link=$SKIA_PATCH_LINK --raw_csv_nopatch=$TELEMETRY_OUTPUT_1 --raw_csv_withpatch=$TELEMETRY_OUTPUT_2 --num_repeated=$REPEAT_TELEMETRY_RUNS --crashed_instances="$CRASHED_INSTANCES"
 
   # Copy the HTML files to Google Storage.
   gsutil cp -a public-read $HTML_OUTPUT_DIR/*.html gs://chromium-skia-gm/telemetry/tryserver-outputs/html-outputs/$RUN_ID/
@@ -245,6 +258,7 @@ Content-Type: text/html
     </tr>
   </table><br/><br/>
 
+  $CRASHED_INSTANCES_HTML
   The log file of the first slave is <a href='$SLAVE_1_LOG_LINK'>here</a>.<br/>
   You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/chromium_try'>here</a>.<br/><br/>
   Thanks!
