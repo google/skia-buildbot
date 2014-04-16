@@ -1,3 +1,0 @@
-The files in this directory should be stored in the following Google Storage
-bucket with public-read permissions:
-gsutil cp -a public-read * gs://chromium-skia-gm/telemetry/hosted-files/

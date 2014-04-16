@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Setup the telemetry instance image.
+# Setup the instance image on chromecompute.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
@@ -116,18 +116,6 @@ if [[ $FAILED ]]; then
   echo "Please manually fix these errors."
   echo
 fi
-
-echo
-echo "SSH into the master with:"
-echo "gcutil --project=google.com:chromecompute ssh --ssh_user=default cluster-telemetry-master"
-echo "* Follow the instructions in https://developers.google.com/compute/docs/networking#mailserver using skia.buildbots@gmail.com"
-echo "* Run 'gclient sync' in /home/default/skia-repo/buildbot and enter the correct AppEngine password in /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts/appengine_password.txt"
-echo "* Run Chromium's install-build-deps.sh"
-echo "* Run 'git config --global user.name' and 'git config --global user.email'"
-echo "* Install Google Cloud SDK: https://developers.google.com/cloud/sdk/#Quick_Start"
-echo "* Setup backward and forward .inputrc search"
-echo "Add .netrc file for chromium.googlesource.com and chromium-review.googlesource.com"
-echo
 
 echo
 echo "You can take an image by running the following commands:"
