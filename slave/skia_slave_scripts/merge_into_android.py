@@ -37,6 +37,8 @@ PLATFORM_TOOLS_BIN = os.path.join('platform_tools', 'android', 'bin')
 GIT_SVN_ID = 'http://skia.googlecode.com/svn/trunk@'
 GIT = 'git'
 
+LOCAL_BRANCH_NAME = 'merge'
+
 class MergeIntoAndroid(BuildStep):
   """BuildStep which merges Skia into Android, with a generated Android.mk and
   SkUserConfig.h"""
@@ -92,8 +94,11 @@ class MergeIntoAndroid(BuildStep):
     shell_utils.run([GIT, 'add', 'Android.mk'])
     shell_utils.run([GIT, 'add', ANDROID_USER_CONFIG])
 
+    # Remove upstream user config, which is no longer needed.
+    shell_utils.run(['rm', UPSTREAM_USER_CONFIG])
+
     # Create a new branch.
-    shell_utils.run([REPO, 'start', 'merge', '.'])
+    shell_utils.run([REPO, 'start', LOCAL_BRANCH_NAME, '.'])
 
     # Figure out the revision being merged, and use it to write the commit
     # message.
@@ -101,13 +106,18 @@ class MergeIntoAndroid(BuildStep):
     rev_index = commit_message.find(GIT_SVN_ID) + len(GIT_SVN_ID)
     rev_end = commit_message.find(' ', rev_index)
     revision = commit_message[rev_index:rev_end]
-    shell_utils.run([GIT, 'commit', '-m', 'Merge Skia at r' + revision])
+
+    try:
+      shell_utils.run([GIT, 'commit', '-m', 'Merge Skia at r' + revision])
+    except shell_utils.CommandFailedException:
+      # It is possible that someone else already did the merge (for example, if
+      # they are testing a build slave). Clean up and exit.
+      shell_utils.run([REPO, 'abandon', LOCAL_BRANCH_NAME])
+      raise Exception('Nothing to merge; did someone already merge r%s?'
+                      % revision)
 
     # Now push to master-skia branch
     shell_utils.run([GIT, 'push', MASTER_SKIA_URL, MASTER_SKIA_REFS])
-
-    # Remove upstream user config, which is no longer needed.
-    shell_utils.run(['rm', UPSTREAM_USER_CONFIG])
 
     # Our branch is no longer needed. Remove it.
     shell_utils.run([REPO, 'sync', '-j32', '.'])
