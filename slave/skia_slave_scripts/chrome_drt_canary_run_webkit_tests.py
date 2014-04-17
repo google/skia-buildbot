@@ -32,7 +32,10 @@ class ChromeDRTCanaryRunWebkitTests(BuildStep):
     if 'write_results' in self._args:
       cmd.append('--results-directory=%s' % self._flavor_utils.result_dir)
     try:
-      shell_utils.run(cmd)
+      # Temporarily making this build step a no-op. Details are in
+      # https://code.google.com/p/skia/issues/detail?id=2394
+      # shell_utils.run(cmd)
+      pass
     except Exception as e:
       # Allow this step to fail with a warning, since we expect to see a lot of
       # failures which aren't our fault. Instead, we care about the diffs.
