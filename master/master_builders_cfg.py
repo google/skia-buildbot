@@ -502,6 +502,15 @@ def create_schedulers_and_builders(config, active_master, cfg,
   # Call the passed-in builder setup function.
   builder_setup_func(
       helper=helper,
+      # TODO(epoger): Maybe pass the following "tweaks" as a single object,
+      # rather than requiring us to list them all out?
+      #
+      # To resolve https://code.google.com/p/skia/issues/detail?id=2432
+      # ('buildbots: don't run UpdateScripts if running on non-production
+      # master'), I wanted to add a third boolean flag (do_update_scripts),
+      # but I saw that I would need to add it in so many places I was
+      # discouraged.  If the merged all the flags into a single object it
+      # would be easier to add more flags.
       do_upload_render_results=active_master.do_upload_render_results,
       do_upload_bench_results=active_master.do_upload_bench_results)
 
