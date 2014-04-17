@@ -351,14 +351,12 @@ if '__main__' == __name__:
           and options.variance_threshold and options.requester_email
           and options.chromium_patch_link and options.blink_patch_link
           and options.skia_patch_link and options.raw_csv_nopatch
-          and options.raw_csv_withpatch and options.num_repeated
-          and options.crashed_instances):
+          and options.raw_csv_withpatch and options.num_repeated):
     option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
                         'variance_threshold, requester_email, '
                         'chromium_patch_link, blink_patch_link, '
                         'skia_patch_link, raw_csv_nopatch, '
-                        'raw_csv_withpatch, num_repeated and '
-                        'crashed_instances')
+                        'raw_csv_withpatch and num_repeated')
 
   sys.exit(CsvComparer(
       options.csv_file1, options.csv_file2, options.output_html_dir,
