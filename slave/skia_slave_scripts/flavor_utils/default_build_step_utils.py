@@ -204,13 +204,17 @@ class DefaultBuildStepUtils:
     """ Set the directories which will be used by the BuildStep. """
     return DeviceDirs(
         perf_data_dir=self._step.perf_data_dir,
+        # TODO(epoger): Instead, set gm_actual_dir to self._step._gm_actual_dir
+        # and remove os.path.join() with self._builder_name in postrender.py ?
+        # (CopyDirectoryContentsToHost fails if the paths are different when
+        # host==device, so why not just make them inherently equal?)
         gm_actual_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
         gm_expected_dir=os.path.join(os.pardir, os.pardir, 'gm', 'expected'),
         resource_dir=self._step.resource_dir,
         skimage_in_dir=self._step.skimage_in_dir,
         skimage_expected_dir=self._step.skimage_expected_dir,
         skimage_out_dir=self._step.skimage_out_dir,
-        skp_dir=self._step.local_playback_dirs.PlaybackSkpDir(),
+        skp_dir=self._step.skp_dir,
         skp_perf_dir=self._step.perf_data_dir,
-        skp_out_dir=self._step.local_playback_dirs.PlaybackGmActualDir(),
+        skp_out_dir=self._step.skp_out_dir,
         tmp_dir=os.path.join(os.pardir, 'tmp'))

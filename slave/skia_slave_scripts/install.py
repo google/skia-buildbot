@@ -18,7 +18,7 @@ class Install(BuildStep):
     skps_need_updating = True
     try:
       # Only push if the existing set is out of date.
-      host_timestamp = open(os.path.join(self._skp_dir,
+      host_timestamp = open(os.path.join(self.skp_dir,
           gs_utils.TIMESTAMP_COMPLETED_FILENAME)).read()
       device_timestamp = self._flavor_utils.ReadFileOnDevice(
           os.path.join(self._device_dirs.SKPDir(),
@@ -33,7 +33,7 @@ class Install(BuildStep):
       print 'Could not get timestamps: %s' % e
     if skps_need_updating:
       self._flavor_utils.CopyDirectoryContentsToDevice(
-          self._skp_dir, self._device_dirs.SKPDir())
+          self.skp_dir, self._device_dirs.SKPDir())
 
     # Push resources to the device.
     self._flavor_utils.CopyDirectoryContentsToDevice(

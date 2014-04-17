@@ -8,7 +8,6 @@
 from build_step import BuildStep
 from utils import gs_utils
 from utils import sync_bucket_subdir
-import compare_and_upload_webpage_gms
 import os
 import sys
 
@@ -24,19 +23,6 @@ class DownloadSKPs(BuildStep):
     """Creates required local storage directories for this script."""
     if not os.path.exists(self._local_playback_dirs.PlaybackSkpDir()):
       os.makedirs(self._local_playback_dirs.PlaybackSkpDir())
-
-    if os.path.exists(self._local_playback_dirs.PlaybackGmActualDir()):
-      # Delete everything except the timestamp and last comparison files.
-      for path, _dirs, files in os.walk(
-          self._local_playback_dirs.PlaybackGmActualDir()):
-        if gs_utils.TIMESTAMP_COMPLETED_FILENAME in files:
-          files.remove(gs_utils.TIMESTAMP_COMPLETED_FILENAME)
-        if compare_and_upload_webpage_gms.LAST_COMPARISON_FILENAME in files:
-          files.remove(compare_and_upload_webpage_gms.LAST_COMPARISON_FILENAME)
-        for gm_actual_file in files:
-          os.remove(os.path.join(path, gm_actual_file))
-    else:
-      os.makedirs(self._local_playback_dirs.PlaybackGmActualDir())
 
   def _DownloadSKPsFromStorage(self):
     """Copies over skp files from Google Storage if the timestamps differ."""
