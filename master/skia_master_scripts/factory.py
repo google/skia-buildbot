@@ -89,6 +89,13 @@ class SkiaFactory(BuildFactory):
     """
     properties = {}
 
+    skipsteps = os.environ.get(
+        config_private.SKIPSTEPS_ENVIRONMENT_VARIABLE, None)
+    if skipsteps:
+      self._skipsteps = skipsteps.split(',')
+    else:
+      self._skipsteps = []
+
     if not make_flags:
       make_flags = []
     self._make_flags = make_flags
@@ -246,7 +253,8 @@ class SkiaFactory(BuildFactory):
     """ Add a BuildStep consisting of a python script.
 
     script: which slave-side python script to run.
-    description: string briefly describing the BuildStep.
+    description: string briefly describing the BuildStep; if this description
+        is in the self._skipsteps list, this BuildStep will be skipped.
     args: optional list of strings; arguments to pass to the script.
     timeout: optional integer; maximum time for the BuildStep to complete.
     halt_on_failure: boolean indicating whether to continue the build if this
@@ -274,6 +282,9 @@ class SkiaFactory(BuildFactory):
         typically transient or results from an infrastructure failure rather
         than a code change.
     """
+    if description in self._skipsteps:
+      print 'Step %s found in self._skipsteps; skipping it.' % description
+      return
     arguments = list(self._common_args)
     if args:
       arguments += args

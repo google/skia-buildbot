@@ -61,6 +61,7 @@
     '_skia_cmd_obj': <Object>,
     '_skia_svn_password_file': '.skia_svn_password',
     '_skia_svn_username_file': '.skia_svn_username',
+    '_skipsteps': [],
     '_workdir': 'build/skia',
     'properties': <Object>,
     'steps': [
