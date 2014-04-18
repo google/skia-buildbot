@@ -188,6 +188,15 @@ class DefaultBuildStepUtils:
            ]
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
+
+    # TODO(epoger): Maybe remove this once we fix the underlying problem in
+    # https://code.google.com/p/skia/issues/detail?id=2393 ('recurring RunGYP
+    # failures on multiple Test-Win7-ShuttleA-HD2000-* bots')
+    print 'about to run cmd %s' % cmd
+    cwd = os.getcwd()
+    print 'cwd is %s' % cwd
+    print 'contents of cwd are %s' % os.listdir(cwd)
+
     shell_utils.run(cmd)
 
   def MakeClean(self):
