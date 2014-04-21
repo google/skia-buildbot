@@ -53,3 +53,29 @@ def GetAbsPath(relative_path):
   for path_part in path_parts:
     abs_path = os.path.abspath(os.path.join(abs_path, path_part))
   return abs_path
+
+
+class ChDir(object):
+  """Enter and exit the given directory appropriately."""
+
+  def __init__(self, directory):
+    """Instantiate the ChDir.
+
+    Args:
+        directory: string; the directory to enter.
+    """
+    self._destination = directory
+    self._origin = None
+
+  def __enter__(self):
+    """Change to the destination directory.
+
+    Does not check whether the directory exists.
+    """
+    self._origin = os.getcwd()
+    os.chdir(self._destination)
+
+  def __exit__(self, *args):
+    """Change back to the original directory."""
+    os.chdir(self._origin)
+

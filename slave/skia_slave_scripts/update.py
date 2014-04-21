@@ -9,6 +9,7 @@
 from common import chromium_utils
 from utils import file_utils
 from utils import gclient_utils
+from utils import misc
 from utils import shell_utils
 from build_step import BuildStep, BuildStepFailure
 
@@ -96,11 +97,6 @@ class Update(BuildStep):
                                  **kwargs)
 
   def _Run(self):
-    # If an old SVN checkout of Skia exists, remove it.
-    if os.path.isdir('trunk'):
-      print 'Removing old Skia checkout at %s' % os.path.abspath('trunk')
-      chromium_utils.RemoveDirectory('trunk')
-
     _MaybeUseSkiaLabMirror(self._revision)
 
     # We receive gclient_solutions as a list of dictionaries flattened into a
@@ -142,9 +138,8 @@ class Update(BuildStep):
         # Clean our checkout to make sure we don't have a patch left over.
         if (os.path.isdir('skia') and
             os.path.isdir(os.path.join('skia', '.git'))):
-          os.chdir('skia')
-          gclient_utils.Revert()
-          os.chdir(os.pardir)
+          with misc.ChDir('skia'):
+            gclient_utils.Revert()
 
       # Run "gclient sync"
       gclient_utils.Sync(
@@ -155,10 +150,15 @@ class Update(BuildStep):
       got_revision = gclient_utils.GetCheckedOutHash()
     except Exception:
       # If the sync fails, clear the checkout and try again.
+
+      # Attempt to remove the skia directory first.
+      if os.path.isdir('skia'):
+        chromium_utils.RemoveDirectory('skia')
+      # Now, remove *everything* in the build directory.
       build_dir = os.path.abspath(os.curdir)
-      os.chdir(os.pardir)
-      file_utils.clear_directory(build_dir)
-      os.chdir(build_dir)
+      with misc.ChDir(os.pardir):
+        file_utils.clear_directory(build_dir)
+      # Try to sync again.
       gclient_utils.Config(spec=gclient_spec)
       gclient_utils.Sync(
           revisions=revisions,
