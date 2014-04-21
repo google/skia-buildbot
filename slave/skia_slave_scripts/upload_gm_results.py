@@ -3,8 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Upload actual GM results to the skia-autogen SVN repository to aid in
-rebaselining. """
+""" Upload actual GM results to the cloud to allow for rebaselining."""
 
 from build_step import BuildStep
 from common import chromium_utils
@@ -16,6 +15,11 @@ import shutil
 import skia_vars
 import sys
 import tempfile
+
+
+# Subdir within the skia-autogen repo to upload actual GM results into.
+# TODO(epoger): Maybe share this subdir name with build_step.py?
+GM_ACTUAL_SUBDIR = 'gm-actual'
 
 
 # Class we can set attributes on, to emulate optparse-parsed options.
@@ -70,23 +74,33 @@ class UploadGMResults(BuildStep):
     finally:
       shutil.rmtree(temp_root)
 
-  def _SVNUploadDir(self, src_dir):
-    """Upload the entire contents of src_dir to the skia-autogen SVN repo."""
+  def _SVNUploadDir(self, src_dir, dest_subdir, step_name):
+    """Upload the entire contents of src_dir to the skia-autogen SVN repo.
 
-    # TODO these constants should actually be shared by multiple build steps
+    Args:
+      src_dir: (string) directory to upload contents of
+      dest_subdir: (string) subdir on the skia-autogen repo to upload into;
+          we will append a builder_name subdirectory within this one
+      step_name: (string) name of the step that is performing this action
+    """
+    # TODO(epoger): We should be able to get gm_merge_basedir from
+    # BuildStep._gm_merge_basedir, rather than generating it again here
+    # (and running the risk of a mismatch).
+    # Or perhaps stop using a particular directory for this purpose (since we
+    # clear it out before writing anything into it), and use a tempdir.
     gm_merge_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'merge')
-    gm_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL, 'gm-actual')
+    gm_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL, dest_subdir)
     autogen_svn_username_file = self._args['autogen_svn_username_file']
     autogen_svn_password_file = self._args['autogen_svn_password_file']
 
     # Call MergeIntoSvn to actually perform the work.
-    # TODO: We should do something a bit more sophisticated, to address
+    # TODO(epoger): We should do something a bit more sophisticated, to address
     # https://code.google.com/p/skia/issues/detail?id=720 ('UploadGMs step
     # should be skipped when re-running old revisions of the buildbot')
     merge_options = Options()
     # pylint: disable=W0201
-    merge_options.commit_message = 'UploadGMResults of r%s on %s' % (
-        self._got_revision, self._args['builder_name'])
+    merge_options.commit_message = '%s of r%s on %s' % (
+        step_name, self._got_revision, self._args['builder_name'])
     # pylint: disable=W0201
     merge_options.dest_svn_url = '%s/%s' % (
         gm_actual_svn_baseurl, self._args['builder_name'])
@@ -111,9 +125,18 @@ class UploadGMResults(BuildStep):
     merge_options.svn_username_file = autogen_svn_username_file
     merge_into_svn.MergeIntoSvn(merge_options)
 
-  def _SVNUploadJsonFiles(self, src_dir):
-    """Upload just the JSON files within src_dir to the skia-autogen
-    SVN repo."""
+  def _SVNUploadJsonFiles(self, src_dir, dest_subdir, step_name=None):
+    """Upload just the JSON files within src_dir to the skia-autogen SVN repo.
+
+    Args:
+      src_dir: (string) directory to upload contents of
+      dest_subdir: (string) subdir on the skia-autogen repo to upload into;
+          we will append a builder_name subdirectory within this one
+      step_name: (string) name of the step that is performing this action;
+          defaults to self.__class__.__name__
+    """
+    if not step_name:
+      step_name = self.__class__.__name__
     tempdir = tempfile.mkdtemp()
     all_files = sorted(os.listdir(src_dir))
     def filematcher(filename):
@@ -124,14 +147,17 @@ class UploadGMResults(BuildStep):
     for filename in files_to_upload:
       src_filepath = os.path.join(src_dir, filename)
       shutil.copy(src_filepath, tempdir)
-    self._SVNUploadDir(src_dir=tempdir)
+    self._SVNUploadDir(src_dir=tempdir, dest_subdir=dest_subdir,
+                       step_name=step_name)
     shutil.rmtree(tempdir)
 
   def _Run(self):
+    # TODO(epoger): Can't we get gm_output_dir from BuildStep._gm_actual_dir ?
     gm_output_dir = os.path.join(os.pardir, os.pardir, 'gm', 'actual',
                                  self._args['builder_name'])
     self._GSUploadAllImages(src_dir=gm_output_dir)
-    self._SVNUploadJsonFiles(src_dir=gm_output_dir)
+    self._SVNUploadJsonFiles(src_dir=gm_output_dir,
+                             dest_subdir=GM_ACTUAL_SUBDIR)
 
 
 if '__main__' == __name__:

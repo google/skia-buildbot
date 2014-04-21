@@ -533,11 +533,16 @@ class SkiaFactory(BuildFactory):
     self.AddSlaveScript(script='compare_gms.py',
                         description='CompareGMs',
                         is_rebaseline_step=True)
-  
+
   def CompareAndUploadWebpageGMs(self):
     """Compare the actually-generated images from render_pictures to their
     expectations and upload the actual images if needed."""
-    self.AddSlaveScript(script='compare_and_upload_webpage_gms.py',
+    # TODO(epoger): Maybe instead of adding these extra args to only CERTAIN
+    # steps (and thus requiring a master restart when we want to add them to
+    # more steps), maybe we should just provide these extra args to ALL steps?
+    args = ['--autogen_svn_username_file', self._autogen_svn_username_file,
+            '--autogen_svn_password_file', self._autogen_svn_password_file]
+    self.AddSlaveScript(script='compare_and_upload_webpage_gms.py', args=args,
                         description='CompareAndUploadWebpageGMs',
                         is_rebaseline_step=True)
 
