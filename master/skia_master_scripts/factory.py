@@ -763,12 +763,22 @@ class SkiaFactory(BuildFactory):
       self.PreRender()
       self.RunGM()
       self.PostRender()
-    elif 'TSAN' in self._builder_name and 'Test' in self._builder_name:
+    elif ('TSAN' in self._builder_name and
+          role == builder_name_schema.BUILDER_ROLE_TEST):
       self._build_targets = ['tests']
       self.UpdateSteps()
       self.Compile(clobber)
       self.Install()
       self.RunTests()
+    elif ('Valgrind' in self._builder_name and
+          role == builder_name_schema.BUILDER_ROLE_TEST):
+      if not self._build_targets:
+        self._build_targets = ['most']
+      self.CommonSteps(clobber)
+      self.NonPerfSteps()
+      self.PreBench()
+      self.RunBench()
+      self.PostBench()
     elif not role:
       # If no role is provided, just run everything.
       if not self._build_targets:
