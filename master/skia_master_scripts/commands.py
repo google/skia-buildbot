@@ -4,7 +4,11 @@
 
 """Set of utilities to add commands to a buildbot factory.
 
-This is based on commands.py and adds skia-specific commands."""
+This is based on commands.py and adds skia-specific commands.
+
+TODO(borenet): Do we need this file at all?  Can't we just do everything
+in factory.py?  (See https://codereview.chromium.org/248053003/ )
+"""
 
 
 from buildbot.process.properties import WithProperties
@@ -63,6 +67,7 @@ class SkiaCommands(commands.FactoryCommands):
                         is_upload_step=True,
                         is_rebaseline_step=is_rebaseline_step)
 
+  # TODO(borenet): Can kwargs be used to simplify this function declaration?
   def AddSlaveScript(self, script, args, description, timeout=None,
                      halt_on_failure=False, is_upload_step=False,
                      is_rebaseline_step=False, get_props_from_stdout=None,
@@ -88,6 +93,7 @@ class SkiaCommands(commands.FactoryCommands):
                        flunk_on_failure=flunk_on_failure,
                        exception_on_failure=exception_on_failure)
 
+  # TODO(borenet): Can kwargs be used to simplify this function declaration?
   def AddRunCommand(self, command, description='Run', timeout=None,
                     halt_on_failure=False, is_upload_step=False,
                     is_rebaseline_step=False, get_props_from_stdout=None,
@@ -110,6 +116,7 @@ class SkiaCommands(commands.FactoryCommands):
                          exception_on_failure=exception_on_failure,
                          hideStepIf=lambda s: s.isSkipped())
 
+  # TODO(borenet): Can kwargs be used to simplify this function declaration?
   def AddRunCommandList(self, command_list, description='Run', timeout=None,
                         halt_on_failure=False, is_upload_step=False,
                         is_rebaseline_step=False):

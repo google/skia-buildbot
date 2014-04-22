@@ -34,7 +34,6 @@ class CanaryFactory(factory.SkiaFactory):
         description='Update',
         timeout=None,
         halt_on_failure=True,
-        is_upload_step=False,
         is_rebaseline_step=True,
         get_props_from_stdout={'got_revision':
                                    'Skia updated to (\w+)',

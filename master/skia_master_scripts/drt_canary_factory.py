@@ -40,7 +40,6 @@ class DRTCanaryFactory(factory.SkiaFactory):
         description='Update',
         timeout=None,
         halt_on_failure=True,
-        is_upload_step=False,
         is_rebaseline_step=True,
         get_props_from_stdout=(
             {'chrome_revision': 'Chrome updated to (\w+)',
@@ -65,7 +64,8 @@ class DRTCanaryFactory(factory.SkiaFactory):
 
   def UploadTestResults(self):
     self.AddFlavoredSlaveScript(script='chrome_drt_canary_upload_results.py',
-                                description='UploadTestResults')
+                                description='UploadTestResults',
+                                is_upload_render_step=True)
 
   def Build(self, role=builder_name_schema.BUILDER_ROLE_CANARY, clobber=None):
     """Build and return the complete BuildFactory.
@@ -86,7 +86,6 @@ class DRTCanaryFactory(factory.SkiaFactory):
       self.ApplyPatch()
     self.Compile(retry_without_werr_on_failure=True)
     self.RunWebkitTests(new_baseline=False)
-    if self._do_upload_render_results:
-      self.UploadTestResults()
+    self.UploadTestResults()
     self.Validate()
     return self

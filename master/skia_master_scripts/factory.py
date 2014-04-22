@@ -245,8 +245,10 @@ class SkiaFactory(BuildFactory):
         print 'Warning: Factory configuration for %s does not match ' \
               'expectation!' % self._builder_name
 
+  # TODO(borenet): Can kwargs be used to simplify this function declaration?
   def AddSlaveScript(self, script, description, args=None, timeout=None,
-                     halt_on_failure=False, is_upload_step=False,
+                     halt_on_failure=False,
+                     is_upload_render_step=False, is_upload_bench_step=False,
                      is_rebaseline_step=False, get_props_from_stdout=None,
                      workdir=None, do_step_if=None, always_run=False,
                      flunk_on_failure=True, exception_on_failure=False):
@@ -259,8 +261,10 @@ class SkiaFactory(BuildFactory):
     timeout: optional integer; maximum time for the BuildStep to complete.
     halt_on_failure: boolean indicating whether to continue the build if this
         step fails.
-    is_upload_step: boolean indicating whether this step should be skipped when
-        the buildbot is not performing uploads.
+    is_upload_render_step: boolean; if true, only run if
+        self._do_upload_render_results is True
+    is_upload_bench_step: boolean; if true, only run if
+        self._do_upload_bench_results is True
     is_rebaseline_step: boolean indicating whether this step is required for
         rebaseline-only builds.
     get_props_from_stdout: optional dictionary. Keys are strings indicating
@@ -285,6 +289,13 @@ class SkiaFactory(BuildFactory):
     if description in self._skipsteps:
       print 'Step %s found in self._skipsteps; skipping it.' % description
       return
+    if is_upload_render_step and not self._do_upload_render_results:
+      print 'Skipping upload_render step %s' % description
+      return
+    if is_upload_bench_step and not self._do_upload_bench_results:
+      print 'Skipping upload_bench step %s' % description
+      return
+
     arguments = list(self._common_args)
     if args:
       arguments += args
@@ -294,7 +305,7 @@ class SkiaFactory(BuildFactory):
         description=description,
         timeout=timeout,
         halt_on_failure=halt_on_failure,
-        is_upload_step=is_upload_step,
+        is_upload_step=is_upload_render_step or is_upload_bench_step,
         is_rebaseline_step=is_rebaseline_step,
         get_props_from_stdout=get_props_from_stdout,
         workdir=workdir,
@@ -544,7 +555,7 @@ class SkiaFactory(BuildFactory):
             '--autogen_svn_password_file', self._autogen_svn_password_file]
     self.AddSlaveScript(script='compare_and_upload_webpage_gms.py', args=args,
                         description='CompareAndUploadWebpageGMs',
-                        is_rebaseline_step=True)
+                        is_upload_render_step=True, is_rebaseline_step=True)
 
   def RunBench(self):
     """ Run "bench", piping the output somewhere so we can graph
@@ -585,7 +596,6 @@ class SkiaFactory(BuildFactory):
         args=args,
         timeout=None,
         halt_on_failure=True,
-        is_upload_step=False,
         is_rebaseline_step=True,
         get_props_from_stdout={'got_revision':'Skia updated to (\w+)'},
         workdir='build',
@@ -654,7 +664,7 @@ class SkiaFactory(BuildFactory):
     """ Upload bench results (performance data). """
     self.AddSlaveScript(script='upload_bench_results.py',
                         description='UploadBenchResults',
-                        exception_on_failure=True)
+                        exception_on_failure=True, is_upload_bench_step=True)
 
   def GenerateBenchExpectations(self):
     """ Calculate bench (performance data) expectations and save to file. """
@@ -689,12 +699,13 @@ class SkiaFactory(BuildFactory):
             '--autogen_svn_password_file', self._autogen_svn_password_file]
     self.AddSlaveScript(script='upload_gm_results.py', args=args,
                         description='UploadGMResults', timeout=5400,
-                        is_rebaseline_step=True,
+                        is_upload_render_step=True, is_rebaseline_step=True,
                         exception_on_failure=True)
 
   def UploadSKImageResults(self):
     self.AddSlaveScript(script='upload_skimage_results.py',
                         description='UploadSKImageResults',
+                        is_upload_render_step=True,
                         exception_on_failure=True)
 
   def CommonSteps(self, clobber=None):
@@ -715,12 +726,9 @@ class SkiaFactory(BuildFactory):
     self.RenderPdfs()
     self.RunDecodingTests()
     self.PostRender()
-
-    if self._do_upload_render_results:
-      self.UploadGMResults()
-      self.CompareAndUploadWebpageGMs()
-      self.UploadSKImageResults()
-
+    self.UploadGMResults()
+    self.CompareAndUploadWebpageGMs()
+    self.UploadSKImageResults()
     self.CompareGMs()
 
   def PerfSteps(self):
@@ -730,8 +738,7 @@ class SkiaFactory(BuildFactory):
     self.BenchPictures()
     self.PostBench()
     self.CheckForRegressions()
-    if self._do_upload_bench_results:
-      self.UploadBenchResults()
+    self.UploadBenchResults()
 
   def PerfRebaseline(self):
     """Steps which update the Perf baselines from the results of this build."""
