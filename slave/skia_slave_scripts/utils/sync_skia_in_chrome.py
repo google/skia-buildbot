@@ -166,10 +166,12 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   shell_utils.run([GCLIENT, 'runhooks'])
 
   # Fix the submodules so that they don't show up in "git status"
-  submodule_cmd = ('\'git config -f '
-                   '$toplevel/.git/config submodule.$name.ignore all\'')
-  shell_utils.run(' '.join([GIT, 'submodule', 'foreach', submodule_cmd]),
-                  shell=True)
+  # This fails on Windows...
+  if os.name != 'nt':
+    submodule_cmd = ('\'git config -f '
+                     '$toplevel/.git/config submodule.$name.ignore all\'')
+    shell_utils.run(' '.join([GIT, 'submodule', 'foreach', submodule_cmd]),
+                    shell=True)
 
   # Verify that we got the requested revisions of Chrome and Skia.
   if skia_revision != actual_skia_rev and override_skia_checkout:
