@@ -775,7 +775,19 @@ class SkiaFactory(BuildFactory):
       if not self._build_targets:
         self._build_targets = ['most']
       self.CommonSteps(clobber)
-      self.NonPerfSteps()
+      # TODO(borenet):When https://code.google.com//p/skia/issues/detail?id=1711
+      # is fixed, run self.NonPerfSteps() instead of the below steps.
+      self.DownloadBaselines()
+      self.DownloadSKImageFiles()
+      self.PreRender()
+      self.RunTests()
+      self.RunGM()
+      self.RenderPictures()
+      self.RenderPdfs()
+      self.RunDecodingTests()
+      self.PostRender()
+      # (end steps which need to be replaced once #1711 is fixed)
+
       self.PreBench()
       self.RunBench()
       self.PostBench()
