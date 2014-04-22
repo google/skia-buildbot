@@ -21,6 +21,10 @@ import upload_gm_results
 
 class CompareAndUploadWebpageGMs(upload_gm_results.UploadGMResults):
 
+  def __init__(self, attempts=3, **kwargs):
+    super(CompareAndUploadWebpageGMs, self).__init__(
+        attempts=attempts, **kwargs)
+
   def _Run(self):
     # TODO(epoger): Temporary hack to make this work until a master restart
     # causes these arguments to be passed to this slave script.
