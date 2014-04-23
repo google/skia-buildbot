@@ -118,7 +118,7 @@ DEVICE_TO_PLATFORM_PREFIX = {
 # How many times the record_wpr binary should be retried.
 RETRY_RECORD_WPR_COUNT = 5
 # How many times the run_measurement binary should be retried.
-RETRY_RUN_MEASUREMENT_COUNT = 20
+RETRY_RUN_MEASUREMENT_COUNT = 30
 
 # Location of the credentials.json file in Google Storage.
 CREDENTIALS_GS_LOCATION = (
@@ -285,6 +285,7 @@ class SkPicturePlayback(object):
           # There was a failure continue with the loop.
           traceback.print_exc()
           print '\n\n=======Retrying %s=======\n\n' % page_set
+          time.sleep(10)
       else:
         # If we get here then run_measurement did not succeed and thus did not
         # break out of the loop.
