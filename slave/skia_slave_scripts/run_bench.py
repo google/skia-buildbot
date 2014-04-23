@@ -29,6 +29,8 @@ EXTRA_ARGS = {
     'GalaxyNexus': ['--match', '~DeferredSurfaceCopy'],  # Crash: skbug.com/1687
     'Nexus4': ['--config', 'defaults', 'MSAA4'],
     'NexusS': ['--match', '~DeferredSurfaceCopy'],       # Crash: skbug.com/1687
+    'Valgrind': ['--runOnce', 'true', '--configs', '8888', 'GPU',
+                 'NONRENDERING'],
 }
 
 
@@ -48,9 +50,9 @@ class RunBench(BuildStep):
     args = ['-i', self._device_dirs.ResourceDir()]
     if self._perf_data_dir:
       args.extend(BenchArgs(self._BuildDataFile()))
-    for device in EXTRA_ARGS:
-      if device in self._builder_name:
-        args.extend(EXTRA_ARGS[device])
+    for builder_name_fragment in EXTRA_ARGS:
+      if builder_name_fragment in self._builder_name:
+        args.extend(EXTRA_ARGS[builder_name_fragment])
     self._flavor_utils.RunFlavoredCmd('bench', args + self._bench_args)
 
 
