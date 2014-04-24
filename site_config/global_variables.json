@@ -151,11 +151,6 @@
     "type": "list",
     "description": "Steps which trigger the gatekeeper on failure."
   },
-  "gce_cluster": {
-    "value": "prod",
-    "type": "string",
-    "description": "The cluster in which the GCE instances run."
-  },
   "gce_compile_bots_zone": {
     "value": "b",
     "type": "string",

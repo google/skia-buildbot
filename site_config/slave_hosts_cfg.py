@@ -6,8 +6,20 @@ import collections
 import ntpath
 import os
 import posixpath
+import sys
 
 import skia_vars
+
+
+buildbot_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                             os.pardir))
+sys.path.append(buildbot_path)
+
+
+from compute_engine_scripts.compute_engine_cfg import \
+    PROJECT_USER as CHROMECOMPUTE_USERNAME
+from compute_engine_scripts.compute_engine_cfg import \
+    PROJECT_ID as CHROMECOMPUTE_PROJECT
 
 
 # Indicates that this machine is not connected to a KVM switch.
@@ -32,13 +44,13 @@ _DEFAULT_COPIES = [
   },
 ]
 
-GCE_CLUSTER = skia_vars.GetGlobalVariable('gce_cluster')
 GCE_PROJECT = skia_vars.GetGlobalVariable('gce_project')
 GCE_USERNAME = skia_vars.GetGlobalVariable('gce_username')
 GCE_ZONE = skia_vars.GetGlobalVariable('gce_compile_bots_zone')
 
 GCE_COMPILE_A_ONLINE = GCE_ZONE == 'a'
 GCE_COMPILE_B_ONLINE = GCE_ZONE == 'b'
+GCE_COMPILE_C_ONLINE = True
 
 SKIALAB_ROUTER_IP = skia_vars.GetGlobalVariable('skialab_router_ip')
 SKIALAB_USERNAME = skia_vars.GetGlobalVariable('skialab_username')
@@ -59,6 +71,14 @@ def compute_engine_login(hostname, config):
   return [
     'gcutil', '--project=%s' % GCE_PROJECT,
     'ssh', '--ssh_user=%s' % GCE_USERNAME, hostname,
+  ]
+
+
+def chromecompute_login(hostname, config):
+  """Procedure for logging into ChromeCompute GCE instances."""
+  return [
+    'gcutil', '--project=%s' % CHROMECOMPUTE_PROJECT,
+    'ssh', '--ssh_user=%s' % CHROMECOMPUTE_USERNAME, hostname,
   ]
 
 
@@ -194,6 +214,7 @@ _slave_host_dicts = {
     'remote_access': False,
   },
 
+  # TODO(borenet): Remove skia-compileN-a once we're sure the new GCE bots work.
   'skia-compile1-a': {
     'slaves': [
       ('skiabot-linux-compile-vm-a-000', '0'),
@@ -290,6 +311,7 @@ _slave_host_dicts = {
     'remote_access': GCE_COMPILE_A_ONLINE,
   },
 
+  # TODO(borenet): Remove skia-compileN-b once we're sure the new GCE bots work.
   'skia-compile1-b': {
     'slaves': [
       ('skiabot-linux-compile-vm-b-000', '0'),
@@ -385,6 +407,1533 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
     'remote_access': GCE_COMPILE_B_ONLINE,
+  },
+
+  'skia-vm-001': {
+    'slaves': [
+      ('skiabot-linux-compile-001', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-002': {
+    'slaves': [
+      ('skiabot-linux-compile-002', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-003': {
+    'slaves': [
+      ('skiabot-linux-compile-003', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-004': {
+    'slaves': [
+      ('skiabot-linux-compile-004', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-005': {
+    'slaves': [
+      ('skiabot-linux-compile-005', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-006': {
+    'slaves': [
+      ('skiabot-linux-compile-006', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-007': {
+    'slaves': [
+      ('skiabot-linux-compile-007', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-008': {
+    'slaves': [
+      ('skiabot-linux-compile-008', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-009': {
+    'slaves': [
+      ('skiabot-linux-compile-009', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-010': {
+    'slaves': [
+      ('skiabot-linux-compile-010', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-011': {
+    'slaves': [
+      ('skiabot-linux-compile-011', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-012': {
+    'slaves': [
+      ('skiabot-linux-compile-012', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-013': {
+    'slaves': [
+      ('skiabot-linux-compile-013', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-014': {
+    'slaves': [
+      ('skiabot-linux-compile-014', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-015': {
+    'slaves': [
+      ('skiabot-linux-compile-015', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-016': {
+    'slaves': [
+      ('skiabot-linux-compile-016', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-017': {
+    'slaves': [
+      ('skiabot-linux-compile-017', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-018': {
+    'slaves': [
+      ('skiabot-linux-compile-018', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-019': {
+    'slaves': [
+      ('skiabot-linux-compile-019', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-020': {
+    'slaves': [
+      ('skiabot-linux-compile-020', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-021': {
+    'slaves': [
+      ('skiabot-linux-compile-021', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-022': {
+    'slaves': [
+      ('skiabot-linux-compile-022', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-023': {
+    'slaves': [
+      ('skiabot-linux-compile-023', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-024': {
+    'slaves': [
+      ('skiabot-linux-compile-024', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-025': {
+    'slaves': [
+      ('skiabot-linux-compile-025', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-026': {
+    'slaves': [
+      ('skiabot-linux-compile-026', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-027': {
+    'slaves': [
+      ('skiabot-linux-compile-027', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-028': {
+    'slaves': [
+      ('skiabot-linux-compile-028', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-029': {
+    'slaves': [
+      ('skiabot-linux-compile-029', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-030': {
+    'slaves': [
+      ('skiabot-linux-compile-030', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-031': {
+    'slaves': [
+      ('skiabot-linux-compile-031', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-032': {
+    'slaves': [
+      ('skiabot-linux-compile-032', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-033': {
+    'slaves': [
+      ('skiabot-linux-compile-033', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-034': {
+    'slaves': [
+      ('skiabot-linux-compile-034', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-035': {
+    'slaves': [
+      ('skiabot-linux-compile-035', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-036': {
+    'slaves': [
+      ('skiabot-linux-compile-036', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-037': {
+    'slaves': [
+      ('skiabot-linux-compile-037', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-038': {
+    'slaves': [
+      ('skiabot-linux-compile-038', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-039': {
+    'slaves': [
+      ('skiabot-linux-compile-039', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-040': {
+    'slaves': [
+      ('skiabot-linux-compile-040', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-041': {
+    'slaves': [
+      ('skiabot-linux-compile-041', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-042': {
+    'slaves': [
+      ('skiabot-linux-compile-042', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-043': {
+    'slaves': [
+      ('skiabot-linux-compile-043', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-044': {
+    'slaves': [
+      ('skiabot-linux-compile-044', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-045': {
+    'slaves': [
+      ('skiabot-linux-compile-045', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-046': {
+    'slaves': [
+      ('skiabot-linux-compile-046', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-047': {
+    'slaves': [
+      ('skiabot-linux-compile-047', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-048': {
+    'slaves': [
+      ('skiabot-linux-compile-048', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-049': {
+    'slaves': [
+      ('skiabot-linux-compile-049', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-050': {
+    'slaves': [
+      ('skiabot-linux-compile-050', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-051': {
+    'slaves': [
+      ('skiabot-linux-canary-001', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-052': {
+    'slaves': [
+      ('skiabot-linux-canary-002', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-053': {
+    'slaves': [
+      ('skiabot-linux-canary-003', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-054': {
+    'slaves': [
+      ('skiabot-linux-canary-004', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-055': {
+    'slaves': [
+      ('skiabot-linux-canary-005', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-056': {
+    'slaves': [
+      ('skiabot-linux-canary-006', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-057': {
+    'slaves': [
+      ('skiabot-linux-canary-007', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-058': {
+    'slaves': [
+      ('skiabot-linux-canary-008', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-059': {
+    'slaves': [
+      ('skiabot-linux-canary-009', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-060': {
+    'slaves': [
+      ('skiabot-linux-canary-010', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-061': {
+    'slaves': [
+      ('skiabot-linux-canary-011', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-062': {
+    'slaves': [
+      ('skiabot-linux-canary-012', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-063': {
+    'slaves': [
+      ('skiabot-linux-canary-013', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-064': {
+    'slaves': [
+      ('skiabot-linux-canary-014', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-065': {
+    'slaves': [
+      ('skiabot-linux-canary-015', '0')
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-066': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-067': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-068': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-069': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-070': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-071': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-072': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-073': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-074': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-075': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-076': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-077': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-078': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-079': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-080': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-081': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-082': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-083': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-084': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-085': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-086': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-087': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-088': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-089': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-090': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-091': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-092': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-093': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-094': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-095': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-096': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-097': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-098': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-099': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-100': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-101': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-102': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-103': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-104': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-105': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-106': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-107': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-108': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-109': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-110': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-111': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-112': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-113': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-114': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-115': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-116': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-117': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-118': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-119': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-120': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-121': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-122': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-123': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-124': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-125': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-126': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
+  },
+
+  'skia-vm-127': {
+    'slaves': [],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
 ################################# Mac Machines #################################
