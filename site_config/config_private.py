@@ -49,8 +49,9 @@ AUTOGEN_SVN_BASEURL = skia_vars.GetGlobalVariable('autogen_svn_url')
 SKIA_GIT_URL = skia_vars.GetGlobalVariable('skia_git_url')
 TRY_SVN_BASEURL = skia_vars.GetGlobalVariable('try_svn_url')
 
-# This env variable contains a comma-separated list of build steps to skip.
+# Env variables containing a list of build steps to skip, and a list NOT to skip
 SKIPSTEPS_ENVIRONMENT_VARIABLE = 'TESTING_SKIPSTEPS'
+DONTSKIPSTEPS_ENVIRONMENT_VARIABLE = 'TESTING_DONTSKIPSTEPS'
 
 
 # Currently-active master instance; this is set in Master.set_active_master.

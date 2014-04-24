@@ -8,6 +8,7 @@
 
 import difflib
 import httplib2
+import os
 import re
 
 # requires Google APIs client library for Python; see
@@ -36,6 +37,22 @@ TRY_SCHEDULER_SVN = 'skia_try_svn'
 TRY_SCHEDULER_RIETVELD = 'skia_try_rietveld'
 TRY_SCHEDULERS = [TRY_SCHEDULER_SVN, TRY_SCHEDULER_RIETVELD]
 TRY_SCHEDULERS_STR = '|'.join(TRY_SCHEDULERS)
+
+
+def GetListFromEnvVar(name, splitstring=','):
+  """ Returns contents of an environment variable, as a list.
+
+  If the environment variable is unset or set to empty-string, this returns
+  an empty list.
+
+  name: string; name of the environment variable to read
+  splitstring: string with which to split the env var into list items
+  """
+  unsplit = os.environ.get(name, None)
+  if unsplit:
+    return unsplit.split(',')
+  else:
+    return []
 
 
 def StringDiff(expected, actual):

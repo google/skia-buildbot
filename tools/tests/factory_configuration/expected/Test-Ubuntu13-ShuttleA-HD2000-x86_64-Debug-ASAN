@@ -46,6 +46,7 @@
     '_do_patch_step': <Object>,
     '_do_upload_bench_results': <Object>,
     '_do_upload_render_results': <Object>,
+    '_dontskipsteps': [],
     '_env_vars': {},
     '_flavor': 'xsan',
     '_gclient_solutions': [

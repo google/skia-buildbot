@@ -69,9 +69,10 @@ def RunTest(die_on_validation_failure=True):
 
 
 def main():
-  # While running our test, ignore this environment variable.
-  # It will remain set in the user's environment, once this program exits.
+  # While running our test, ignore these environment variables.
+  # They will remain set in the user's environment, once this program exits.
   os.environ[config_private.SKIPSTEPS_ENVIRONMENT_VARIABLE] = ''
+  os.environ[config_private.DONTSKIPSTEPS_ENVIRONMENT_VARIABLE] = ''
 
   if '--rebaseline' in sys.argv:
     print 'Generating new actuals.'
