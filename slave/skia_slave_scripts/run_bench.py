@@ -29,7 +29,7 @@ EXTRA_ARGS = {
     'GalaxyNexus': ['--match', '~DeferredSurfaceCopy'],  # Crash: skbug.com/1687
     'Nexus4': ['--config', 'defaults', 'MSAA4'],
     'NexusS': ['--match', '~DeferredSurfaceCopy'],       # Crash: skbug.com/1687
-    'Valgrind': ['--runOnce', 'true', '--configs', '8888', 'GPU',
+    'Valgrind': ['--runOnce', 'true', '--config', '8888', 'GPU',
                  'NONRENDERING'],
 }
 
