@@ -274,7 +274,7 @@ class SkiaFactory(BuildFactory):
         the script. If this is provided, then the script must be given relative
         to this directory.
     do_step_if: optional, function which determines whether or not to run the
-        step.
+        step.  The function is not evaluated until runtime.
     always_run: boolean indicating whether this step should run even if a
         previous step which had halt_on_failure has failed.
     flunk_on_failure: boolean indicating whether the whole build fails if this
@@ -573,18 +573,24 @@ class SkiaFactory(BuildFactory):
                         description='CheckForRegressions')
 
   def UpdateScripts(self):
-    """ Update the buildbot scripts on the build slave. """
-    self.AddSlaveScript(
-        script=self.TargetPath.join('..', '..', '..', '..',
-                                    '..', 'slave',
-                                    'skia_slave_scripts',
-                                    'update_scripts.py'),
-        description='UpdateScripts',
-        halt_on_failure=True,
-        get_props_from_stdout={'buildbot_revision':
+    """ Update the buildbot scripts on the build slave.
+
+    Only runs in production. See http://skbug.com/2432
+    """
+    description = 'UpdateScripts'
+    if ((config_private.Master.get_active_master().is_production_host) or
+        (description in self._dontskipsteps)):
+      self.AddSlaveScript(
+          script=self.TargetPath.join('..', '..', '..', '..',
+                                      '..', 'slave',
+                                      'skia_slave_scripts',
+                                      'update_scripts.py'),
+          description=description,
+          halt_on_failure=True,
+          get_props_from_stdout={'buildbot_revision':
                                    'Skiabot scripts updated to (\w+)'},
-        workdir='build',
-        exception_on_failure=True)
+          workdir='build',
+          exception_on_failure=True)
 
   def Update(self):
     """ Update the Skia code on the build slave. """
