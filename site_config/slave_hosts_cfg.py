@@ -1255,7 +1255,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-066': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-000', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1266,7 +1268,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-067': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-001', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1277,7 +1281,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-068': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-002', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1288,7 +1294,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-069': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-003', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1299,7 +1307,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-070': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-004', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1310,7 +1320,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-071': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-005', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1321,7 +1333,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-072': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-006', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1332,7 +1346,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-073': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-007', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1343,7 +1359,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-074': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-008', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1354,7 +1372,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-075': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-tester-009', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
