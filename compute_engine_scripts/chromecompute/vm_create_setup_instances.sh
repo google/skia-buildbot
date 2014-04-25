@@ -75,7 +75,7 @@ done
 cat <<INP
 
 Start the bots on the instances with:
-* cd $SKIA_REPO_DIR
-* nohup python buildbot/scripts/launch_slaves.py &
+* cd $SKIA_REPO_DIR/buildbot
+* nohup python scripts/launch_slaves.py &
 
 INP

@@ -14,7 +14,8 @@ function install_packages {
     "sudo apt-get -y install haveged python-django openjdk-7-jre-headless zlib1g-dev:i386 libgif-dev:i386 libpng12-dev:i386 fontconfig:i386 libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 ccache g++-multilib && " \
     "sudo cp /usr/lib/i386-linux-gnu/libpng.so /usr/lib32/ && " \
     "sudo cp /usr/lib/i386-linux-gnu/libpng12.so.0 /usr/lib32/ && " \
-    "sudo apt-get -y install libpng12-dev libgtk2.0-dev && " \
+    "sudo apt-get -y install libpng12-dev libgtk2.0-dev ant clang-3.4 openjdk-7-jdk realpath libqt4-dev-bin libqt4-core libqt4-gui libqt4-dev:i386 && " \
+    "sudo apt-get -y remove python-zope.interface && " \
     "sudo easy_install zope.interface" \
     || FAILED="$FAILED InstallPackages"
   echo
@@ -32,7 +33,13 @@ function setup_symlinks {
     "sudo ln -s -f /usr/lib/i386-linux-gnu/libfreetype.so.6 /usr/lib32/libfreetype.so && " \
     "sudo ln -s -f /usr/lib/x86_64-linux-gnu/libgif.so.4.1.6 /usr/lib/x86_64-linux-gnu/libgif.so && " \
     "sudo ln -s -f /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib/x86_64-linux-gnu/libGL.so && " \
-    "sudo ln -s -f /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib/x86_64-linux-gnu/libGLU.so" \
+    "sudo ln -s -f /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib/x86_64-linux-gnu/libGLU.so && " \
+    "sudo ln -s /usr/lib/x86_64-linux-gnu/libQtCore.so.4 /usr/lib/x86_64-linux-gnu/libQtCore.so && " \
+    "sudo ln -s /usr/lib/x86_64-linux-gnu/libQtGui.so.4 /usr/lib/x86_64-linux-gnu/libQtGui.so && " \
+    "sudo ln -s /usr/lib/x86_64-linux-gnu/libQtOpenGL.so.4 /usr/lib/x86_64-linux-gnu/libQtOpenGL.so && " \
+    "sudo ln -s /home/default/storage/skia-repo /home/chrome-bot && " \
+    "sudo rm /usr/bin/moc && sudo ln -s /usr/bin/moc-qt4 /usr/bin/moc && " \
+    "sudo rm -rf /usr/bin/qmake && sudo ln -s /usr/bin/qmake-qt4 /usr/bin/qmake" \
     || FAILED="$FAILED InstallPackages"
   echo
 }
