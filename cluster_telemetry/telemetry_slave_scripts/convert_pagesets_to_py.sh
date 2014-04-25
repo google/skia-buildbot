@@ -18,6 +18,8 @@ fi
 SLAVE_NUM=$1
 PAGESETS_TYPE=$2
 
+source vm_utils.sh
+
 # Download the page_sets from Google Storage if the local TIMESTAMP is out of
 # date.
 mkdir -p /b/storage/page_sets/$PAGESETS_TYPE/
