@@ -74,7 +74,6 @@ echo \"\"\"
 /b/depot_tools/gclient sync;
 
 # Copy required patches from Google Storage.
-gsutil cp gs://chromium-skia-gm/telemetry/patches/rasterize_and_record_micro.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/perf/measurements/rasterize_and_record_micro.py;
 gsutil cp gs://chromium-skia-gm/telemetry/patches/desktop_browser_backend.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/telemetry/telemetry/core/backends/chrome/desktop_browser_backend.py;
 
 # Create symlink from /b to /home/default for the old page_set paths.

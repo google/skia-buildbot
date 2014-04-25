@@ -84,13 +84,10 @@ fi
 OUTPUT_DIR=/b/storage/telemetry_outputs/$RUN_ID
 mkdir -p $OUTPUT_DIR
 
-# Change all local page_sets to use 0 wait seconds.
-find /home/default/storage/page_sets/$PAGESETS_TYPE/ -type f -exec sed -i "s/\"seconds\": 5/\"seconds\": 0/g" {} \;
-
 # Start the timer.
 TIMER="$(date +%s)"
 
-for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.json; do
+for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
   if [[ -f $page_set ]]; then
     if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
       check_pageset_url_in_whitelist $page_set /tmp/$WHITELIST_FILE
@@ -186,7 +183,7 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts
   python remove_invalid_skps.py --skp_dir=/b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/ --path_to_skpinfo=/b/skia-repo/trunk/out/Release/skpinfo
 
-  # Now copy the SKP files to Google Storage. 
+  # Now copy the SKP files to Google Storage.
   gsutil cp /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/* \
     gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
   # Set ACLs for only google.com accounts to read the SKPs.

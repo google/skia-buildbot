@@ -39,7 +39,7 @@ source vm_setup_slave.sh
 mkdir -p /b/storage/webpages_archive/$PAGESETS_TYPE/
 rm -rf /b/storage/webpages_archive/$PAGESETS_TYPE/*
 
-for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*; do
+for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
     pageset_basename=`basename $page_set`
