@@ -42,6 +42,9 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.json; do
   url=`awk '/\"url\"/{print $NF}' $page_set`
   url=`strip_from_val $url`
 
+  user_agent_type=`awk '/\"user_agent_type\"/{print $NF}' $page_set`
+  user_agent_type=`strip_from_val $user_agent_type`
+
   rank=`cat $page_set | grep \"why\"\: | awk '{FS=":"; print $2}'`
   rank=`strip_from_val $rank`
 
@@ -63,7 +66,7 @@ class TypicalAlexaPage(page_module.PageWithDefaultRunNavigate):
 
   def __init__(self, url, page_set):
     super(TypicalAlexaPage, self).__init__(url=url, page_set=page_set)
-    self.user_agent_type = 'desktop'
+    self.user_agent_type = '$user_agent_type'
     self.archive_data_file = '$archive_data_file'
 
   def RunSmoothness(self, action_runner):
@@ -76,7 +79,7 @@ class TypicalAlexaPageSet(page_set_module.PageSet):
 
   def __init__(self):
     super(TypicalAlexaPageSet, self).__init__(
-      user_agent_type='desktop',
+      user_agent_type='$user_agent_type',
       archive_data_file='$archive_data_file')
 
     urls_list = [
