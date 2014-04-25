@@ -174,6 +174,8 @@ def HtmlResourceRender(self, request):
 
   ctx['active_master_name'] = active_master.project_name
   ctx['master_revision'] = utils.get_current_revision()
+  ctx['master_running_revision'] = active_master.running_revision
+  ctx['master_launch_datetime'] = active_master.launch_datetime
   ctx['is_internal_view'] = request.host.port == ctx['internal_port']
   ctx['masters'] = []
   for master in config_private.Master.valid_masters:

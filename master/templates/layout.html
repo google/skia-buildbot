@@ -581,9 +581,31 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           <input type="radio" name="internal_external" value="external" id="radio_external" onClick="setHostAndPort(null, '{{ external_port }}');">External View<br>
           <input type="radio" name="internal_external" value="internal" id="radio_internal" onClick="setHostAndPort(null, '{{ internal_port }}');">Internal View
           <br/><nobr>Refresh (seconds): <input type="text" name="reload_time" value="{{ refresh or default_refresh }}" onChange="setReload(this)" style="width: 50px;" maxlength="4" /></nobr>
+          <div>
+            {% if master_launch_datetime %}
+            <br/>
+            master launched at {{ master_launch_datetime.strftime('%Y-%m-%d %H:%M:%S UTC') }}
+
+            <br/>
+            <span title="master_running_revision: git hash of code at which the buildbot master was launched">
+              <u>master_running_revision</u>
+            </span> is
+            <a href="https://skia.googlesource.com/buildbot.git/+/{{ master_running_revision }}">
+              {{ master_running_revision|truncate(8, True, "") }}
+            </a>
+
+            <br/>
+            <span title="master_revision: git hash of code currently checked out on master">
+              <u>master_revision</u>
+            </span> is
+            <a href="https://skia.googlesource.com/buildbot.git/+/{{ master_revision }}">
+              {{ master_revision|truncate(8, True, "") }}
+            </a>
+            {% endif %}
+          </div>
         </form>
         </div>
-  
+
         <div id="links" style="float:right; width:25%;">
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="https://sites.google.com/site/skiadocs/developer-documentation/the-skia-buildbots/1-overview" target="_blank">Full Skia documentation</a><br/></li></ul></div>
           <div style="float:right; width: 195px;"><ul style="margin: 0px 0px 0px 25px; padding:0;"><li><a href="{{ tree_status_baseurl }}" target="_blank">Skia Tree Status Manager</a><br/></li></ul></div>
