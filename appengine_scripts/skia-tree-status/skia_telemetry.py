@@ -29,8 +29,6 @@ PDF_ADMINS = (
 
 PAGESET_TYPES = (
     'All',
-    'Filtered',
-    '100k',
     '10k',
     'IndexSample10k',
 )
@@ -269,7 +267,7 @@ class LuaTasks(BaseTelemetryModel):
 
 class SkiaTryTasks(BaseTelemetryModel):
   """Data model for Skia Try tasks."""
-  username = db.StringProperty(required=True)                                   
+  username = db.StringProperty(required=True)
   patch = db.BlobProperty()
   pagesets_type = db.StringProperty(required=True)
   chromium_rev = db.StringProperty(required=True)
@@ -284,8 +282,8 @@ class SkiaTryTasks(BaseTelemetryModel):
   slave1_output_link = db.LinkProperty()
   html_output_link = db.LinkProperty()
 
-  def get_json_repr(self):                                                      
-    """Returns a JSON representation of this Data Model."""                     
+  def get_json_repr(self):
+    """Returns a JSON representation of this Data Model."""
     return {
         'SkiaTryTask': {
             'key': self.key().id_or_name(),
@@ -329,8 +327,8 @@ class SkiaTryTasks(BaseTelemetryModel):
 
 class ChromiumTryTasks(BaseTelemetryModel):
   """Data model for Chromium Try tasks."""
-  username = db.StringProperty(required=True)                                   
-  benchmark_name = db.StringProperty(required=True)                             
+  username = db.StringProperty(required=True)
+  benchmark_name = db.StringProperty(required=True)
   benchmark_arguments = db.StringProperty()
   pageset_type = db.StringProperty()
   skia_patch = db.BlobProperty()
@@ -350,8 +348,8 @@ class ChromiumTryTasks(BaseTelemetryModel):
   telemetry_withpatch_log_link = db.LinkProperty()
   html_output_link = db.LinkProperty()
 
-  def get_json_repr(self):                                                      
-    """Returns a JSON representation of this Data Model."""                     
+  def get_json_repr(self):
+    """Returns a JSON representation of this Data Model."""
     return {
         'ChromiumTryTask': {
             'key': self.key().id_or_name(),
@@ -1206,7 +1204,7 @@ class UpdateInfoPage(BasePage):
         num_webpages_per_pageset))
     self.response.out.write('num_skp_files: %s<br/>' % num_skp_files)
     self.response.out.write('last_updated: %s' % last_updated)
-   
+
 
 def bootstrap():
   # Guarantee that at least one instance of the required tables exist.
@@ -1220,7 +1218,7 @@ def bootstrap():
         num_webpages_per_pageset=0,
         num_skp_files=0,
         last_updated=datetime.datetime.now()).put()
-  
+
   if db.GqlQuery('SELECT __key__ FROM TelemetryTasks').get() is None:
     TelemetryTasks(
         username='Admin',
