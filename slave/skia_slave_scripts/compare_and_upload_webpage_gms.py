@@ -26,13 +26,6 @@ class CompareAndUploadWebpageGMs(upload_gm_results.UploadGMResults):
         attempts=attempts, **kwargs)
 
   def _Run(self):
-    # TODO(epoger): Temporary hack to make this work until a master restart
-    # causes these arguments to be passed to this slave script.
-    if 'autogen_svn_username_file' not in self._args:
-      self._args['autogen_svn_username_file'] = '.autogen_svn_username'
-    if 'autogen_svn_password_file' not in self._args:
-      self._args['autogen_svn_password_file'] = '.autogen_svn_password'
-
     self._SVNUploadJsonFiles(src_dir=self.skp_out_dir,
                              dest_subdir='rendered-skps')
 

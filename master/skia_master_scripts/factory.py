@@ -287,13 +287,10 @@ class SkiaFactory(BuildFactory):
     """
     if description not in self._dontskipsteps:
       if description in self._skipsteps:
-        print 'Step %s found in self._skipsteps; skipping it.' % description
         return
       if is_upload_render_step and not self._do_upload_render_results:
-        print 'Skipping upload_render step %s' % description
         return
       if is_upload_bench_step and not self._do_upload_bench_results:
-        print 'Skipping upload_bench step %s' % description
         return
 
     arguments = list(self._common_args)
@@ -485,12 +482,6 @@ class SkiaFactory(BuildFactory):
     self.AddSlaveScript(script='download_skimage_files.py',
                         description='DownloadSKImageFiles',
                         halt_on_failure=True, exception_on_failure=True)
-
-  def DownloadBaselines(self):
-    """ Download the GM baselines. """
-    self.AddSlaveScript(script='download_baselines.py',
-                        description='DownloadBaselines', halt_on_failure=True,
-                        exception_on_failure=True)
 
   def RunTests(self):
     """ Run the unit tests. """
@@ -723,7 +714,6 @@ class SkiaFactory(BuildFactory):
 
   def NonPerfSteps(self):
     """ Add correctness testing BuildSteps. """
-    self.DownloadBaselines()
     self.DownloadSKImageFiles()
     self.PreRender()
     self.RunTests()
@@ -790,7 +780,6 @@ class SkiaFactory(BuildFactory):
       self.CommonSteps(clobber)
       # TODO(borenet):When https://code.google.com//p/skia/issues/detail?id=1711
       # is fixed, run self.NonPerfSteps() instead of the below steps.
-      self.DownloadBaselines()
       self.DownloadSKImageFiles()
       self.PreRender()
       self.RunTests()
