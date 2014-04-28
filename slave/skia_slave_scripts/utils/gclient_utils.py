@@ -12,6 +12,7 @@ import os
 import shell_utils
 
 
+DEFAULT_GCLIENT_CACHE = os.path.join(os.path.expanduser('~'), '.gclient_cache')
 GIT = 'git.bat' if os.name == 'nt' else 'git'
 WHICH = 'where' if os.name == 'nt' else 'which'
 SKIA_TRUNK = 'skia'
