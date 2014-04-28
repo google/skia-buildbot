@@ -116,9 +116,6 @@ class Update(BuildStep):
       solution_dicts += ast.literal_eval(solution)
     gclient_spec += ']'
 
-    # Use a cache-dir.
-    gclient_spec += '\ncache_dir = \'%s\'' % gclient_utils.DEFAULT_GCLIENT_CACHE
-
     # Set the DEPS target_os if necessary.
     if self._deps_target_os:
       gclient_spec += '\ntarget_os = ["%s"]' % self._deps_target_os
