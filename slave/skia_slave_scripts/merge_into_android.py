@@ -86,6 +86,7 @@ class MergeIntoAndroid(BuildStep):
       gyp_to_android.main()
       shell_utils.run([GIT, 'add', 'Android.mk'])
       shell_utils.run([GIT, 'add', ANDROID_USER_CONFIG])
+      shell_utils.run([GIT, 'add', os.path.join('tests', 'Android.mk')])
 
       # Remove upstream user config, which is no longer needed.
       shell_utils.run(['rm', UPSTREAM_USER_CONFIG])
