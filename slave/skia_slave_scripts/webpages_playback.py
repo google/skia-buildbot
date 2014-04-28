@@ -47,7 +47,6 @@ To preview the captured SKP before proceeding to the next page_set specify both
 """
 
 import glob
-import json
 import optparse
 import os
 import posixpath
@@ -209,12 +208,6 @@ class SkPicturePlayback(object):
 
       page_set_basename = os.path.basename(page_set)
       wpr_data_file = page_set.split(os.path.sep)[-1].split('.')[0] + '_000.wpr'
-      # Get some properties from the page_set JSON.
-      with open(page_set, 'r') as page_set_file:
-        parsed_json = json.load(page_set_file)
-        # Much of this script will do bizarre things if there's
-        # more than one page per page set.  See skia:1723.
-        assert len(parsed_json.get('pages', [])) == 1
 
       if self._record:
         # Create an archive of the specified webpages if '--record=True' is
