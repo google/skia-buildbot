@@ -22,7 +22,7 @@ from skia_master_scripts import factory as skia_factory
 class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
   """Overrides for HouseKeeping per-commit builds."""
   def __init__(self, **kwargs):
-    skia_factory.SkiaFactory.__init__(self, build_targets=['tools', 'gm'],
+    skia_factory.SkiaFactory.__init__(self, build_targets=['tools', 'gm', 'dm'],
                                       **kwargs)
 
   def Build(self, role=builder_name_schema.BUILDER_ROLE_HOUSEKEEPER,
@@ -49,6 +49,8 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     self._skia_cmd_obj.AddRunCommand(
         command=self.TargetPath.join('gm', 'tests', 'run.sh'),
         description='RunGmSelfTests')
+
+    self.AddSlaveScript('run_dm.py', description='RunDM')
 
     # Run unittests for Anroid platform_tools
     self._skia_cmd_obj.AddRunCommand(
