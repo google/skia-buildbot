@@ -54,6 +54,8 @@ class ApplyPatch(BuildStep):
           patch_contents = shell_utils.run([SVN, 'cat', patch_url], echo=False)
         else:
           patch_contents = urllib2.urlopen(patch_url).read()
+        if not patch_contents:
+          raise Exception('Got an empty patch!')
         patch_file.write(patch_contents)
       finally:
         patch_file.close()
