@@ -87,9 +87,9 @@ _slave_host_dicts = {
 
 ################################ Linux Machines ################################
 
-  'skiabot-shuttle-ubuntu12-ati5770-001': {
+  'skiabot-shuttle-ubuntu12-gtx550ti-001': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-ati5770-001', '0'),
+      ('skiabot-shuttle-ubuntu12-gtx550ti-001', '0'),
     ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
