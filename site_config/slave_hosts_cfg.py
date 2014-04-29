@@ -156,7 +156,6 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu12-xxx': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-001', '1'),
       ('skiabot-shuttle-ubuntu12-002', '2'),
       ('skiabot-shuttle-ubuntu12-003', '3'),
       ('skiabot-shuttle-ubuntu12-004', '4'),
@@ -213,77 +212,6 @@ _slave_host_dicts = {
     'remote_access': False,
   },
 
-  # TODO(borenet): Remove skia-compileN-a once we're sure the new GCE bots work.
-  'skia-compile1-a': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-a-000', '0'),
-      ('skiabot-linux-compile-vm-a-001', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_A_ONLINE,
-  },
-
-  'skia-compile2-a': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-a-002', '0'),
-      ('skiabot-linux-compile-vm-a-003', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_A_ONLINE,
-  },
-
-  'skia-compile3-a': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-a-004', '0'),
-      ('skiabot-linux-compile-vm-a-005', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_A_ONLINE,
-  },
-
-  'skia-compile4-a': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-a-006', '0'),
-      ('skiabot-linux-compile-vm-a-007', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_A_ONLINE,
-  },
-
-  'skia-compile5-a': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-a-008', '0'),
-      ('skiabot-linux-compile-vm-a-009', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_A_ONLINE,
-  },
-
   'skia-experimental-master-a': {
     'slaves': [
       ('skiabot-linux-vm-001', '0'),
@@ -308,77 +236,6 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
     'remote_access': GCE_COMPILE_A_ONLINE,
-  },
-
-  # TODO(borenet): Remove skia-compileN-b once we're sure the new GCE bots work.
-  'skia-compile1-b': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-b-000', '0'),
-      ('skiabot-linux-compile-vm-b-001', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_B_ONLINE,
-  },
-
-  'skia-compile2-b': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-b-002', '0'),
-      ('skiabot-linux-compile-vm-b-003', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_B_ONLINE,
-  },
-
-  'skia-compile3-b': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-b-004', '0'),
-      ('skiabot-linux-compile-vm-b-005', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_B_ONLINE,
-  },
-
-  'skia-compile4-b': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-b-006', '0'),
-      ('skiabot-linux-compile-vm-b-007', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_B_ONLINE,
-  },
-
-  'skia-compile5-b': {
-    'slaves': [
-      ('skiabot-linux-compile-vm-b-008', '0'),
-      ('skiabot-linux-compile-vm-b-009', '1'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_B_ONLINE,
   },
 
   'skia-housekeeping-slave-b': {
