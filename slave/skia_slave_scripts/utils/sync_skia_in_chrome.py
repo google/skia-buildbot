@@ -130,7 +130,7 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
       # Get the Skia revision requested by Chrome.
       deps_vars = {}
       deps_vars['Var'] = lambda x: deps_vars['vars'][x]
-      execfile('DEPS', deps_vars)
+      execfile(os.path.join('src', 'DEPS'), deps_vars)
       skia_revision = deps_vars['vars']['skia_hash']
       print 'Overriding skia_revision with %s' % skia_revision
 
