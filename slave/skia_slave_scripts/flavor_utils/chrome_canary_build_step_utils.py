@@ -18,6 +18,14 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
     self._baseline_dir = os.path.join(os.pardir, 'webkit-master')
     self._result_dir = os.path.join(os.pardir, 'layouttest_results')
 
+  def RunFlavoredCmd(self, app, args):
+    """Run the executable through runtest.py"""
+    runtest = os.path.join(os.pardir, os.pardir, os.pardir, os.pardir,
+                           'scripts', 'slave', 'runtest.py')
+    cmd = ['python', runtest, '--target', self._step.configuration, app,
+           '--xvfb']  + args
+    shell_utils.run(cmd)
+
   def Compile(self, target):
     if not os.path.isdir('out'):
       self.RunGYP()

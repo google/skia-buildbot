@@ -56,7 +56,8 @@ class CanaryFactory(factory.SkiaFactory):
                                    alternate_workdir=workdir)
 
   def CCUnitTests(self):
-    self.AddSlaveScript(script='cc_unittests.py', description='cc_unittests')
+    self.AddFlavoredSlaveScript(script='cc_unittests.py',
+                                description='cc_unittests')
 
   def Build(self, role=builder_name_schema.BUILDER_ROLE_CANARY, **kwargs):
     """Build and return the complete BuildFactory.

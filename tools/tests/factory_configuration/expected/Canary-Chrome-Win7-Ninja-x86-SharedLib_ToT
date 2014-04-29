@@ -4860,6 +4860,8 @@
                     'False',
                     '--bench_pictures_cfg',
                     'default',
+                    '--flavor',
+                    'chrome_canary',
                 ],
                 'description': 'cc_unittests',
                 'doStepIf': <Object>,
