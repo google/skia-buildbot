@@ -73,9 +73,11 @@ class ChDir(object):
     Does not check whether the directory exists.
     """
     self._origin = os.getcwd()
+    print 'chdir %s' % self._destination
     os.chdir(self._destination)
 
   def __exit__(self, *args):
     """Change back to the original directory."""
+    print 'chdir %s' % self._origin
     os.chdir(self._origin)
 

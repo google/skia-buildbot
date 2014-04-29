@@ -158,10 +158,8 @@ class Update(BuildStep):
       # Now, remove *everything* in the build directory.
       build_dir = os.path.abspath(os.curdir)
       with misc.ChDir(os.pardir):
-        print 'chdir %s' % os.getcwd()
         print 'Attempting to clear %s' % build_dir
         file_utils.clear_directory(build_dir)
-      print 'chdir %s' % os.getcwd()
       # Try to sync again.
       print 'Attempting to sync again.'
       gclient_utils.Config(spec=gclient_spec)

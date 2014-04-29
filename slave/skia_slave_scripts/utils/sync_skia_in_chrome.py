@@ -10,6 +10,7 @@ from common import chromium_utils
 from optparse import OptionParser
 
 import gclient_utils
+import misc
 import os
 import re
 import shell_utils
@@ -119,12 +120,11 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
         force=True)
 
   # Find the actually-obtained Chrome revision.
-  os.chdir('src')
-  actual_chrome_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
-                                      log_in_real_time=False).rstrip()
+  with misc.ChDir('src'):
+    actual_chrome_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
+                                        log_in_real_time=False).rstrip()
 
-  skia_dir = os.path.join('third_party', 'skia')
-  src_dir = os.getcwd()
+  skia_dir = os.path.join('src', 'third_party', 'skia')
   if override_skia_checkout:
     if use_lkgr_skia:
       # Get the Skia revision requested by Chrome.
@@ -135,43 +135,43 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
       print 'Overriding skia_revision with %s' % skia_revision
 
     # Check out Skia.
-    print 'cd %s' % skia_dir
-    os.chdir(skia_dir)
-    try:
-      # Determine whether we already have a Skia checkout. If so, just update.
-      if not 'skia' in shell_utils.run([GIT, 'remote', '-v']):
-        raise Exception('%s does not contain a Skia checkout!' % skia_dir)
-      current_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD']).rstrip()
-      print 'Found existing Skia checkout at %s' % current_skia_rev
-      shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
-      shell_utils.run([GIT, 'checkout', 'master'])
-      shell_utils.run([GIT, 'fetch'])
-      shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
-    except Exception:
-      # If updating fails, assume that we need to check out Skia from scratch.
-      os.chdir(os.pardir)
-      chromium_utils.RemoveDirectory('skia')
-      shell_utils.run([GIT, 'clone', SKIA_GIT_URL, 'skia'])
-      os.chdir('skia')
-    shell_utils.run([GIT, 'reset', '--hard', skia_revision])
+    with misc.ChDir(skia_dir):
+      try:
+        # Determine whether we already have a Skia checkout. If so, just update.
+        if not 'skia' in shell_utils.run([GIT, 'remote', '-v']):
+          raise Exception('%s does not contain a Skia checkout!' % skia_dir)
+        current_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD']).rstrip()
+        print 'Found existing Skia checkout at %s' % current_skia_rev
+        shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
+        shell_utils.run([GIT, 'checkout', 'master'])
+        shell_utils.run([GIT, 'fetch'])
+        shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
+      except Exception:
+        # If updating fails, assume that we need to check out Skia from scratch.
+        with misc.ChDir(os.pardir):
+          chromium_utils.RemoveDirectory('skia')
+          shell_utils.run([GIT, 'clone', SKIA_GIT_URL, 'skia'])
+      shell_utils.run([GIT, 'reset', '--hard', skia_revision])
+      # Find the actually-obtained Skia revision.
+      actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
+                                        log_in_real_time=False).rstrip()
   else:
-    os.chdir(os.path.join(skia_dir, 'src'))
-
-  # Find the actually-obtained Skia revision.
-  actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
-                                    log_in_real_time=False).rstrip()
+    with misc.ChDir(os.path.join(skia_dir, 'src')):
+      # Find the actually-obtained Skia revision.
+      actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
+                                        log_in_real_time=False).rstrip()
 
   # Run gclient hooks
-  os.chdir(src_dir)
-  shell_utils.run([GCLIENT, 'runhooks'])
+  with misc.ChDir('src'):
+    shell_utils.run([GCLIENT, 'runhooks'])
 
-  # Fix the submodules so that they don't show up in "git status"
-  # This fails on Windows...
-  if os.name != 'nt':
-    submodule_cmd = ('\'git config -f '
-                     '$toplevel/.git/config submodule.$name.ignore all\'')
-    shell_utils.run(' '.join([GIT, 'submodule', 'foreach', submodule_cmd]),
-                    shell=True)
+    # Fix the submodules so that they don't show up in "git status"
+    # This fails on Windows...
+    if os.name != 'nt':
+      submodule_cmd = ('\'git config -f '
+                       '$toplevel/.git/config submodule.$name.ignore all\'')
+      shell_utils.run(' '.join([GIT, 'submodule', 'foreach', submodule_cmd]),
+                      shell=True)
 
   # Verify that we got the requested revisions of Chrome and Skia.
   if skia_revision != actual_skia_rev and override_skia_checkout:
@@ -198,15 +198,11 @@ def Main():
                     default=os.curdir)
   (options, _) = parser.parse_args()
   dest_dir = os.path.abspath(options.destination)
-  cur_dir = os.path.abspath(os.curdir)
-  os.chdir(dest_dir)
-  try:
+  with misc.ChDir(dest_dir):
     actual_skia_rev, actual_chrome_rev = Sync(options.skia_revision,
                                               options.chrome_revision)
     print 'Chrome synced to %s' % actual_chrome_rev
     print 'Skia synced to %s' % actual_skia_rev
-  finally:
-    os.chdir(cur_dir)
 
 
 if __name__ == '__main__':

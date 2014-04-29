@@ -7,6 +7,7 @@
 
 from common import chromium_utils
 from default_build_step_utils import DefaultBuildStepUtils
+from utils import misc
 from utils import shell_utils
 
 import os
@@ -18,14 +19,14 @@ MOZ2D_DIR = 'moz2d'
 class Moz2DCanaryBuildStepUtils(DefaultBuildStepUtils):
   def Compile(self, target):
     if target == 'moz2d':
-      os.chdir(os.path.join(os.pardir, MOZ2D_DIR))
-      shell_utils.run(['make', '-f', 'Makefile.standalone',
-                       'MOZ2D_SKIA=../skia'])
+      with misc.ChDir(os.path.join(os.pardir, MOZ2D_DIR)):
+        shell_utils.run(['make', '-f', 'Makefile.standalone',
+                         'MOZ2D_SKIA=../skia'])
     else:
       DefaultBuildStepUtils.Compile(self, target)
 
   def MakeClean(self):
     DefaultBuildStepUtils.MakeClean(self)
-    os.chdir(os.path.join(os.pardir, MOZ2D_DIR))
-    if os.path.isdir('release'):
-      chromium_utils.RemoveDirectory('release')
+    with misc.ChDir(os.path.join(os.pardir, MOZ2D_DIR)):
+      if os.path.isdir('release'):
+        chromium_utils.RemoveDirectory('release')

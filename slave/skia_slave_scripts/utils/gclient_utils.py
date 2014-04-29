@@ -8,6 +8,7 @@
 
 from common import find_depot_tools
 
+import misc
 import os
 import shell_utils
 
@@ -91,24 +92,21 @@ def Sync(revisions=None, force=False, delete_unversioned_trees=False,
       no_hooks: whether to run with --nohooks.
       extra_args: optional list; any additional arguments.
   """
-
-  start_dir = os.path.abspath(os.curdir)
   for branch, _ in (revisions or []):
     # Do whatever it takes to get up-to-date with origin/master.
     if os.path.exists(branch):
-      os.chdir(branch)
-      # First, fix the git identity if needed.
-      maybe_fix_identity()
+      with misc.ChDir(branch):
+        # First, fix the git identity if needed.
+        maybe_fix_identity()
 
-      # If there are local changes, "git checkout" will fail.
-      shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
-      # In case HEAD is detached...
-      shell_utils.run([GIT, 'checkout', 'master'])
-      # Always fetch, in case we're unmanaged.
-      shell_utils.run([GIT, 'fetch'])
-      # This updates us to origin/master even if master has diverged.
-      shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
-      os.chdir(start_dir)
+        # If there are local changes, "git checkout" will fail.
+        shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
+        # In case HEAD is detached...
+        shell_utils.run([GIT, 'checkout', 'master'])
+        # Always fetch, in case we're unmanaged.
+        shell_utils.run([GIT, 'fetch'])
+        # This updates us to origin/master even if master has diverged.
+        shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
 
   cmd = ['sync', '--no-nag-max']
   if verbose:
@@ -131,12 +129,11 @@ def Sync(revisions=None, force=False, delete_unversioned_trees=False,
   # "gclient sync" just downloads all of the commits. In order to actually sync
   # to the desired commit, we have to "git reset" to that commit.
   for branch, revision in (revisions or []):
-    os.chdir(branch)
-    if revision:
-      shell_utils.run([GIT, 'reset', '--hard', revision])
-    else:
-      shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
-    os.chdir(start_dir)
+    with misc.ChDir(branch):
+      if revision:
+        shell_utils.run([GIT, 'reset', '--hard', revision])
+      else:
+        shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
   return output
 
 
@@ -144,11 +141,9 @@ def GetCheckedOutHash():
   """ Determine what commit we actually got. If there are local modifications,
   raise an exception. """
   checkout_root, config_dict = _GetLocalConfig()
-  current_directory = os.path.abspath(os.curdir)
 
   # Get the checked-out commit hash for the first gclient solution.
-  os.chdir(os.path.join(checkout_root, config_dict[0]['name']))
-  try:
+  with misc.ChDir(os.path.join(checkout_root, config_dict[0]['name'])):
     # First, print out the remote from which we synced, just for debugging.
     cmd = [GIT, 'remote', '-v']
     try:
@@ -159,8 +154,6 @@ def GetCheckedOutHash():
     # "git rev-parse HEAD" returns the commit hash for HEAD.
     return shell_utils.run([GIT, 'rev-parse', 'HEAD'],
                            log_in_real_time=False).rstrip('\n')
-  finally:
-    os.chdir(current_directory)
 
 
 def Revert():

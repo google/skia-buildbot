@@ -19,6 +19,7 @@ sys.path.append(os.path.join(BUILDBOT_DIR, 'third_party', 'chromium_buildbot',
                              'scripts'))
 
 import gclient_utils
+import misc
 import shell_utils
 import skia_vars
 
@@ -28,27 +29,26 @@ GOT_REVISION_PATTERN = 'Skiabot scripts updated to %s'
 
 
 def force_update():
-  os.chdir(os.path.join(BUILDBOT_DIR, os.pardir))
+  with misc.ChDir(os.path.join(BUILDBOT_DIR, os.pardir)):
+    # Be sure that we sync to the most recent commit.
+    buildbot_revision = None
+    try:
+      output = shell_utils.run([gclient_utils.GIT, 'ls-remote',
+                                BUILDBOT_GIT_URL, '--verify',
+                                'refs/heads/master'])
+      if output:
+        buildbot_revision = shlex.split(output)[0]
+    except shell_utils.CommandFailedException:
+      pass
+    if not buildbot_revision:
+      buildbot_revision = 'origin/master'
 
-  # Be sure that we sync to the most recent commit.
-  buildbot_revision = None
-  try:
-    output = shell_utils.run([gclient_utils.GIT, 'ls-remote',
-                              BUILDBOT_GIT_URL, '--verify',
-                              'refs/heads/master'])
-    if output:
-      buildbot_revision = shlex.split(output)[0]
-  except shell_utils.CommandFailedException:
-    pass
-  if not buildbot_revision:
-    buildbot_revision = 'origin/master'
+    gclient_utils.Sync(revisions=[('buildbot', buildbot_revision)],
+                       verbose=True, force=True)
+    got_revision = gclient_utils.GetCheckedOutHash()
+    print GOT_REVISION_PATTERN % got_revision
 
-  gclient_utils.Sync(revisions=[('buildbot', buildbot_revision)],
-                     verbose=True, force=True)
-  got_revision = gclient_utils.GetCheckedOutHash()
-  print GOT_REVISION_PATTERN % got_revision
-
-  return gclient_utils.GetCheckedOutHash()
+    return gclient_utils.GetCheckedOutHash()
 
 
 if __name__ == '__main__':

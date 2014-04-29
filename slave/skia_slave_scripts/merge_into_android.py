@@ -46,7 +46,6 @@ class MergeIntoAndroid(BuildStep):
 
   def _Run(self):
     with misc.ChDir(EXTERNAL_SKIA):
-      print 'cd %s' % EXTERNAL_SKIA
 
       # Set up git config properly.
       shell_utils.run([GIT, 'config', 'user.email',

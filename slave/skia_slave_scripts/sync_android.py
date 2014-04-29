@@ -11,6 +11,7 @@ import os
 import sys
 
 from build_step import BuildStep
+from utils import misc
 from utils import shell_utils
 
 
@@ -28,17 +29,15 @@ class SyncAndroid(BuildStep):
       os.makedirs(ANDROID_CHECKOUT_PATH)
     except OSError:
       pass
-    print 'cd %s' % ANDROID_CHECKOUT_PATH
-    os.chdir(ANDROID_CHECKOUT_PATH)
+    with misc.ChDir(ANDROID_CHECKOUT_PATH):
+      if not os.path.exists(REPO):
+        # Download repo.
+        shell_utils.run(['curl', REPO_URL, '>', REPO])
+        shell_utils.run(['chmod', 'a+x', REPO])
 
-    if not os.path.exists(REPO):
-      # Download repo.
-      shell_utils.run(['curl', REPO_URL, '>', REPO])
-      shell_utils.run(['chmod', 'a+x', REPO])
-
-    shell_utils.run([REPO, 'init', '-u', ANDROID_REPO_URL, '-g',
-                     'all,-notdefault,-darwin', '-b', 'master-skia'])
-    shell_utils.run([REPO, 'sync', '-j32'])
+      shell_utils.run([REPO, 'init', '-u', ANDROID_REPO_URL, '-g',
+                       'all,-notdefault,-darwin', '-b', 'master-skia'])
+      shell_utils.run([REPO, 'sync', '-j32'])
 
 
 if '__main__' == __name__:
