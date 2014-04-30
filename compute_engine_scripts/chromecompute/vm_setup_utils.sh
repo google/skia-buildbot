@@ -14,7 +14,7 @@ function install_packages {
     "sudo apt-get -y install haveged python-django openjdk-7-jre-headless zlib1g-dev:i386 libgif-dev:i386 libpng12-dev:i386 fontconfig:i386 libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 ccache g++-multilib && " \
     "sudo cp /usr/lib/i386-linux-gnu/libpng.so /usr/lib32/ && " \
     "sudo cp /usr/lib/i386-linux-gnu/libpng12.so.0 /usr/lib32/ && " \
-    "sudo apt-get -y install libpng12-dev libgtk2.0-dev ant clang-3.4 openjdk-7-jdk realpath libqt4-dev-bin libqt4-core libqt4-gui libqt4-dev:i386 && " \
+    "sudo apt-get -y install libpng12-dev libgtk2.0-dev ant clang-3.4 openjdk-7-jdk realpath libqt4-dev-bin libqt4-core libqt4-gui libqt4-dev:i386 icewm && " \
     "sudo apt-get -y remove python-zope.interface && " \
     "sudo easy_install zope.interface" \
     || FAILED="$FAILED InstallPackages"
