@@ -160,7 +160,7 @@ class SkPicturePlayback(object):
       return [os.path.join(page_sets_dir, page_set)
               for page_set in os.listdir(page_sets_dir)
               if not os.path.isdir(os.path.join(page_sets_dir, page_set)) and
-                 not page_set.endswith('.pyc')]
+                 page_set.endswith('.py')]
     elif '*' in page_sets:
       # Explode and return the glob.
       return glob.glob(page_sets)
