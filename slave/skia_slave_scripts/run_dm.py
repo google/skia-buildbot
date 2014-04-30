@@ -11,7 +11,9 @@ import sys
 
 class RunDM(BuildStep):
   def _Run(self):
-    cmd = []
+    # TODO(borenet): --nogpu is only needed for the housekeeper. Remove this
+    # flag when DM is running everywhere.
+    cmd = ['--nogpu']
     self._flavor_utils.RunFlavoredCmd('dm', cmd)
 
 
