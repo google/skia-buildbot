@@ -13,18 +13,7 @@ import os
 class ValgrindBuildStepUtils(DefaultBuildStepUtils):
   def __init__(self, build_step_instance):
     DefaultBuildStepUtils.__init__(self, build_step_instance)
-    classname = self._step.__class__.__name__
-    if classname == 'RunTests':
-      self._suppressions_file = os.path.join('tests', 'valgrind.supp')
-    elif classname == 'RunGM':
-      self._suppressions_file = os.path.join('gm', 'valgrind.supp')
-    elif classname == 'RunBench':
-      self._suppressions_file = os.path.join('bench', 'valgrind.supp')
-    elif classname in ('RenderPictures', 'RenderPdfs', 'BenchPictures',
-                       'RunDecodingTests'):
-      self._suppressions_file = os.path.join('tools', 'valgrind.supp')
-    else:
-      self._suppressions_file = None
+    self._suppressions_file = os.path.join('tools', 'valgrind.supp')
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
