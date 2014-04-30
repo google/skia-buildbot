@@ -1058,7 +1058,7 @@
                 'alwaysRun': <Object>,
                 'command': [
                     'python',
-                    '../../../../../../slave/skia_slave_scripts/render_pictures.py',
+                    '../../../../../../slave/skia_slave_scripts/render_skps.py',
                     '--autogen_svn_baseurl',
                     'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
@@ -1092,7 +1092,7 @@
                     '--flavor',
                     'valgrind',
                 ],
-                'description': 'RenderPictures',
+                'description': 'RenderSKPs',
                 'doStepIf': <Object>,
                 'env': {},
                 'exception_on_failure': <Object>,

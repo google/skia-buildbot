@@ -502,10 +502,10 @@ class SkiaFactory(BuildFactory):
     self.AddFlavoredSlaveScript(script='prerender.py', description='PreRender',
                                 exception_on_failure=True)
 
-  def RenderPictures(self):
-    """ Run the "render_pictures" tool to generate images from .skp's. """
-    self.AddFlavoredSlaveScript(script='render_pictures.py',
-                                description='RenderPictures')
+  def RenderSKPs(self):
+    """ Generate images from .skp's. """
+    self.AddFlavoredSlaveScript(script='render_skps.py',
+                                description='RenderSKPs')
 
   def RenderPdfs(self):
     """ Run the "render_pdfs" tool to generate pdfs from .skp's. """
@@ -536,17 +536,11 @@ class SkiaFactory(BuildFactory):
                         description='CompareGMs',
                         is_rebaseline_step=True)
 
-  def CompareAndUploadWebpageGMs(self):
-    """Compare the actually-generated images from render_pictures to their
-    expectations and upload the actual images if needed."""
-    # TODO(epoger): Maybe instead of adding these extra args to only CERTAIN
-    # steps (and thus requiring a master restart when we want to add them to
-    # more steps), maybe we should just provide these extra args to ALL steps?
-    args = ['--autogen_svn_username_file', self._autogen_svn_username_file,
-            '--autogen_svn_password_file', self._autogen_svn_password_file]
-    self.AddSlaveScript(script='compare_and_upload_webpage_gms.py', args=args,
-                        description='CompareAndUploadWebpageGMs',
-                        is_upload_render_step=True, is_rebaseline_step=True)
+  def CompareRenderedSKPs(self):
+    """Compare the actual image results of SKP rendering to expectations."""
+    self.AddSlaveScript(script='compare_rendered_skps.py',
+                        description='CompareRenderedSKPs',
+                        is_rebaseline_step=True)
 
   def RunBench(self):
     """ Run "bench", piping the output somewhere so we can graph
@@ -699,6 +693,17 @@ class SkiaFactory(BuildFactory):
                         is_upload_render_step=True, is_rebaseline_step=True,
                         exception_on_failure=True)
 
+  def UploadRenderedSKPs(self):
+    """Upload the actual image results of SKP rendering."""
+    # TODO(epoger): Maybe instead of adding these extra args to only CERTAIN
+    # steps (and thus requiring a master restart when we want to add them to
+    # more steps), maybe we should just provide these extra args to ALL steps?
+    args = ['--autogen_svn_username_file', self._autogen_svn_username_file,
+            '--autogen_svn_password_file', self._autogen_svn_password_file]
+    self.AddSlaveScript(script='upload_rendered_skps.py', args=args,
+                        description='UploadRenderedSKPs',
+                        is_upload_render_step=True, is_rebaseline_step=True)
+
   def UploadSKImageResults(self):
     self.AddSlaveScript(script='upload_skimage_results.py',
                         description='UploadSKImageResults',
@@ -718,14 +723,15 @@ class SkiaFactory(BuildFactory):
     self.PreRender()
     self.RunTests()
     self.RunGM()
-    self.RenderPictures()
+    self.RenderSKPs()
     self.RenderPdfs()
     self.RunDecodingTests()
     self.PostRender()
     self.UploadGMResults()
-    self.CompareAndUploadWebpageGMs()
+    self.UploadRenderedSKPs()
     self.UploadSKImageResults()
     self.CompareGMs()
+    self.CompareRenderedSKPs()
 
   def PerfSteps(self):
     """ Add performance testing BuildSteps. """
@@ -784,7 +790,7 @@ class SkiaFactory(BuildFactory):
       self.PreRender()
       self.RunTests()
       self.RunGM()
-      self.RenderPictures()
+      self.RenderSKPs()
       self.RenderPdfs()
       self.RunDecodingTests()
       self.PostRender()
