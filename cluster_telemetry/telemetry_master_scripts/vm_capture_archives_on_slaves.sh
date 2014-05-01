@@ -54,6 +54,9 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/capture_archives_output.txt 2>&1"
 done
 
+# Sleep for 2 minutes to give the slaves some time to start processing.
+sleep 120
+
 # Check to see if the slaves are done capturing archives.
 SLAVES_STILL_PROCESSING=true
 while $SLAVES_STILL_PROCESSING ; do
