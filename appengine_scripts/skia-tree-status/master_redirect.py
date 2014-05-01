@@ -36,7 +36,7 @@ URLOPEN_TIMEOUT = 15
 
 
 # TODO(rmistry): Add unittests for this function.
-def _get_destination_url(service_type, slug):
+def _get_destination_url(service_type, slug, query_string=None):
   """Returns a complete destination URL from the service type and slug.
 
   This function first determines which master from the possible_ips list is up.
@@ -48,6 +48,8 @@ def _get_destination_url(service_type, slug):
         If None, use the first path element within slug as the service_type.
     slug: string; Path elements that appengine handed us to deal with--we append
         this to the server-specific URL we create here.
+    query_string: string; The query parameters of the URL, everything after the
+        first ?. Optional.
 
   Returns:
     A destination URL.
@@ -74,6 +76,8 @@ def _get_destination_url(service_type, slug):
         destination_url += '/%s' % subpart
       if remaining_slug:
         destination_url += '/%s' % remaining_slug
+      if query_string:
+        destination_url += '?%s' % query_string
       return destination_url
     except httplib.HTTPException, e:
       logging.warning(e)
@@ -88,7 +92,8 @@ class GenericRedirectionPage(base_page.BasePage):
   """Generic redirector which lets _get_destination_url() figure out the
   service_type."""
   def get(self, slug, *args):
-    destination_url = _get_destination_url(service_type=None, slug=slug)
+    destination_url = _get_destination_url(
+        service_type=None, slug=slug, query_string=self.request.query_string)
     self.redirect(destination_url, True)
 
 
