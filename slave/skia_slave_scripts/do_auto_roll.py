@@ -24,7 +24,7 @@ class AutoRoll(BuildStep):
   """BuildStep which runs the Blink AutoRoll bot."""
 
   def _Run(self):
-    auto_roll = os.path.join(misc.BUILDBOT_PATH,
+    auto_roll = os.path.join(misc.BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot_tot', 'scripts', 'tools',
                              'blink_roller', 'auto_roll.py')
     chrome_path = os.path.join(os.pardir, 'src')
