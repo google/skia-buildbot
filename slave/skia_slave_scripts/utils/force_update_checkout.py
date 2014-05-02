@@ -12,14 +12,13 @@ import os
 import shlex
 import sys
 
-BUILDBOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            os.pardir, os.pardir, os.pardir))
-sys.path.append(os.path.join(BUILDBOT_DIR, 'site_config'))
-sys.path.append(os.path.join(BUILDBOT_DIR, 'third_party', 'chromium_buildbot',
-                             'scripts'))
+import misc
+
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'site_config'))
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'scripts'))
 
 import gclient_utils
-import misc
 import shell_utils
 import skia_vars
 
@@ -29,7 +28,7 @@ GOT_REVISION_PATTERN = 'Skiabot scripts updated to %s'
 
 
 def force_update():
-  with misc.ChDir(os.path.join(BUILDBOT_DIR, os.pardir)):
+  with misc.ChDir(os.path.join(misc.BUILDBOT_PATH, os.pardir)):
     # Be sure that we sync to the most recent commit.
     buildbot_revision = None
     try:

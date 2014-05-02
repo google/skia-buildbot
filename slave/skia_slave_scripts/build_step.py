@@ -23,10 +23,8 @@ from utils import misc
 
 
 # Add important directories to the PYTHONPATH
-buildbot_root = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                             os.pardir, os.pardir)
-sys.path.append(os.path.join(buildbot_root, 'site_config'))
-sys.path.append(os.path.join(buildbot_root, 'master'))
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'site_config'))
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'master'))
 
 import builder_name_schema
 import slave_hosts_cfg

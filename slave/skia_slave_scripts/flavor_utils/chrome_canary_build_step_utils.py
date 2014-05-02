@@ -7,6 +7,7 @@
 
 from default_build_step_utils import DefaultBuildStepUtils
 from common import chromium_utils
+from utils import misc
 from utils import shell_utils
 
 import os
@@ -20,8 +21,9 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
 
   def RunFlavoredCmd(self, app, args):
     """Run the executable through runtest.py"""
-    runtest = os.path.join(os.pardir, os.pardir, os.pardir, os.pardir,
-                           'scripts', 'slave', 'runtest.py')
+    runtest = os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                           'chromium_buildbot', 'scripts', 'slave',
+                           'runtest.py')
     cmd = ['python', runtest, '--target', self._step.configuration, app,
            '--xvfb']  + args
     shell_utils.run(cmd)

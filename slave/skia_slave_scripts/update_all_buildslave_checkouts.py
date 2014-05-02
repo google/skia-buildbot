@@ -12,18 +12,17 @@ the buildbot scripts on a single host machine.
 """
 
 
-import os
 import re
 import skia_vars
 import sys
 
-buildbot_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                             os.pardir, os.pardir))
-sys.path.append(os.path.join(buildbot_path))
-
 from build_step import BuildStep, BuildStepWarning
-from scripts import run_cmd
 from utils import force_update_checkout
+from utils import misc
+
+sys.path.append(misc.BUILDBOT_PATH)
+
+from scripts import run_cmd
 
 
 BUILDBOT_GIT_URL = skia_vars.GetGlobalVariable('buildbot_git_url')

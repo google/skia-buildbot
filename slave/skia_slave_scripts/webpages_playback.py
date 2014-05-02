@@ -57,21 +57,19 @@ import tempfile
 import time
 import traceback
 
+from utils import file_utils
+from utils import gs_utils
+from utils import misc
+from utils import shell_utils
 
 # Set the PYTHONPATH for this script to include chromium_buildbot scripts,
 # and site_config.
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir,
-                 os.pardir, 'third_party', 'chromium_buildbot', 'scripts'))
-sys.path.append(
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir,
-                 os.pardir, 'third_party', 'chromium_buildbot', 'site_config'))
-
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'scripts'))
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'site_config'))
 
 from slave import slave_utils
-from utils import file_utils
-from utils import gs_utils
-from utils import shell_utils
 
 from build_step import PLAYBACK_CANNED_ACL
 from playback_dirs import ROOT_PLAYBACK_DIR_NAME
@@ -86,10 +84,8 @@ LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR = os.path.join(
 TMP_SKP_DIR = tempfile.mkdtemp()
 
 # Location of Telemetry binaries (record_wpr, run_measurement).
-TELEMETRY_BINARIES_DIR = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)), os.pardir, os.pardir,
-    'third_party', 'chromium_trunk', 'src', 'tools', 'perf'
-)
+TELEMETRY_BINARIES_DIR = os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                                      'chromium_trunk', 'src', 'tools', 'perf')
 
 # Location of the credentials.json file and the string that represents missing
 # passwords.

@@ -11,6 +11,7 @@ import os
 import sys
 
 from build_step import BuildStep
+from utils import misc
 from utils import shell_utils
 
 
@@ -23,8 +24,7 @@ class AutoRoll(BuildStep):
   """BuildStep which runs the Blink AutoRoll bot."""
 
   def _Run(self):
-    auto_roll = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             os.pardir, os.pardir, 'third_party',
+    auto_roll = os.path.join(misc.BUILDBOT_PATH,
                              'chromium_buildbot_tot', 'scripts', 'tools',
                              'blink_roller', 'auto_roll.py')
     chrome_path = os.path.join(os.pardir, 'src')

@@ -147,8 +147,7 @@ def MergeIntoSvn(options):
   """
   # Get path to SVN username and password files.
   # (Patterned after slave_utils.py's logic to find the .boto file.)
-  site_config_path = os.path.join(
-      os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, 'site_config')
+  site_config_path = os.path.join(misc.BUILDBOT_PATH, 'site_config')
   svn_username_path = os.path.join(site_config_path, options.svn_username_file)
   svn_password_path = os.path.join(site_config_path, options.svn_password_file)
   if not (os.path.isfile(svn_username_path)

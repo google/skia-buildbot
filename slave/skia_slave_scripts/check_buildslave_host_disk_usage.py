@@ -7,15 +7,14 @@
 """Verify that the buildslave host machines are under a disk usage threshold."""
 
 
-import os
 import re
 import sys
 
-buildbot_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                             os.pardir, os.pardir))
-sys.path.append(os.path.join(buildbot_path))
-
 from build_step import BuildStep, BuildStepWarning, BuildStepFailure
+from utils import misc
+
+sys.path.append(misc.BUILDBOT_PATH)
+
 from scripts import run_cmd
 
 

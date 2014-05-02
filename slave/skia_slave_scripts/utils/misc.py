@@ -8,6 +8,12 @@
 import os
 
 
+# Absolute path to the root of this Skia buildbot checkout.
+BUILDBOT_PATH = os.path.realpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    os.pardir, os.pardir, os.pardir))
+
+
 def ArgsToDict(argv):
   """ Collect command-line arguments of the form '--key value' into a
   dictionary.  Fail if the arguments do not fit this format. """

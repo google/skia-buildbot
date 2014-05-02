@@ -6,6 +6,7 @@
 """Tests for module gs_utils."""
 
 import __builtin__
+import misc
 import os
 import shell_utils
 import sys
@@ -13,16 +14,15 @@ import tempfile
 import time
 
 # Appending to PYTHONPATH to find common.
-buildbot_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                             os.pardir, os.pardir, os.pardir)
-sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
-                             'scripts'))
-sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
-                             'scripts', 'common'))
-sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
-                             'site_config'))
-sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
-                             'third_party', 'twisted_10_2'))
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'scripts'))
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'scripts', 'common'))
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'site_config'))
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'third_party',
+                             'twisted_10_2'))
 
 
 import chromium_utils
