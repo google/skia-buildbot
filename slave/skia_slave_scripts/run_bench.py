@@ -24,13 +24,15 @@ def BenchArgs(data_file):
   """
   return ['--timers', 'wcg', '--logFile', data_file]
 
-# Device name -> extra arguments
+# Device name -> extra arguments. Name can be full builder name or a fragment.
 EXTRA_ARGS = {
     'GalaxyNexus': ['--match', '~DeferredSurfaceCopy'],  # Crash: skbug.com/1687
     'Nexus4': ['--config', 'defaults', 'MSAA4'],
     'NexusS': ['--match', '~DeferredSurfaceCopy'],       # Crash: skbug.com/1687
     'Valgrind': ['--runOnce', 'true', '--config', '8888', 'GPU',
                  'NONRENDERING'],
+    'Perf-Win8-ShuttleA-GTX660-x86-Release': [
+        '--match', '~giantdashline'],                    # Crash: skbug.com/2505
 }
 
 
@@ -50,9 +52,9 @@ class RunBench(BuildStep):
     args = ['-i', self._device_dirs.ResourceDir()]
     if self._perf_data_dir:
       args.extend(BenchArgs(self._BuildDataFile()))
-    for builder_name_fragment in EXTRA_ARGS:
-      if builder_name_fragment in self._builder_name:
-        args.extend(EXTRA_ARGS[builder_name_fragment])
+    for builder_name_or_fragment in EXTRA_ARGS:
+      if builder_name_or_fragment in self._builder_name:
+        args.extend(EXTRA_ARGS[builder_name_or_fragment])
     self._flavor_utils.RunFlavoredCmd('bench', args + self._bench_args)
 
 
