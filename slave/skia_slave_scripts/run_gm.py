@@ -76,7 +76,7 @@ class RunGM(BuildStep):
     elif (not 'NoGPU' in self._builder_name and
           not 'ChromeOS' in self._builder_name and
           not 'GalaxyNexus' in self._builder_name and
-          not 'IntelRHB' in self._builder_name):
+          not 'IntelRhb' in self._builder_name):
       cmd.extend(['--config', 'defaults', 'msaa16'])
 
     if 'Valgrind' in self._builder_name:
