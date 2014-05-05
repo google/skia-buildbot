@@ -25,7 +25,7 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
                            'chromium_buildbot', 'scripts', 'slave',
                            'runtest.py')
     cmd = ['python', runtest, '--target', self._step.configuration, app,
-           '--xvfb']  + args
+           '--xvfb', '--build-dir', 'out']  + args
     shell_utils.run(cmd)
 
   def Compile(self, target):
