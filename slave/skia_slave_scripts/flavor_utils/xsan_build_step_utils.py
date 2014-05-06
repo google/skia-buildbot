@@ -30,3 +30,7 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
     cmd.extend(self._step.default_make_flags)
     cmd.extend(self._step.make_flags)
     shell_utils.run(cmd)
+
+  def RunFlavoredCmd(self, app, args):
+    os.environ['TSAN_OPTIONS'] = 'suppressions=tools/tsan.supp'
+    return shell_utils.run([self._PathToBinary(app)] + args)
