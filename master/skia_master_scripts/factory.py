@@ -492,6 +492,10 @@ class SkiaFactory(BuildFactory):
     self.AddFlavoredSlaveScript(script='run_decoding_tests.py',
                                 description='RunDecodingTests')
 
+  def RunDM(self):
+    """Run DM."""
+    self.AddFlavoredSlaveScript('run_dm.py', description='RunDM')
+
   def RunGM(self):
     """ Run the "GM" tool, saving the images to disk. """
     self.AddFlavoredSlaveScript(script='run_gm.py', description='GenerateGMs',
@@ -774,11 +778,12 @@ class SkiaFactory(BuildFactory):
       self.PostRender()
     elif ('TSAN' in self._builder_name and
           role == builder_name_schema.BUILDER_ROLE_TEST):
-      self._build_targets = ['tests']
+      self._build_targets = ['tests', 'dm']
       self.UpdateSteps()
       self.Compile(clobber)
       self.Install()
       self.RunTests()
+      self.RunDM()
     elif ('Valgrind' in self._builder_name and
           role == builder_name_schema.BUILDER_ROLE_TEST):
       if not self._build_targets:

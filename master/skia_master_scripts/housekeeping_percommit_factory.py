@@ -50,7 +50,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
         command=self.TargetPath.join('gm', 'tests', 'run.sh'),
         description='RunGmSelfTests')
 
-    self.AddSlaveScript('run_dm.py', description='RunDM')
+    self.RunDM()
 
     # Run unittests for Anroid platform_tools
     self._skia_cmd_obj.AddRunCommand(
