@@ -44,7 +44,6 @@
     '_do_patch_step': <Object>,
     '_do_upload_bench_results': <Object>,
     '_do_upload_render_results': <Object>,
-    '_dontskipsteps': [],
     '_env_vars': {},
     '_flavor': None,
     '_gclient_solutions': [
@@ -61,9 +60,10 @@
     '_skia_cmd_obj': <Object>,
     '_skia_svn_password_file': '.skia_svn_password',
     '_skia_svn_username_file': '.skia_svn_username',
-    '_skipsteps': [],
     '_workdir': 'build\skia',
+    'dontskipsteps': [],
     'properties': <Object>,
+    'skipsteps': [],
     'steps': [
         [
             <Object>,

@@ -89,9 +89,9 @@ class SkiaFactory(BuildFactory):
     """
     properties = {}
 
-    self._skipsteps = utils.GetListFromEnvVar(
+    self.skipsteps = utils.GetListFromEnvVar(
         config_private.SKIPSTEPS_ENVIRONMENT_VARIABLE)
-    self._dontskipsteps = utils.GetListFromEnvVar(
+    self.dontskipsteps = utils.GetListFromEnvVar(
         config_private.DONTSKIPSTEPS_ENVIRONMENT_VARIABLE)
 
     if not make_flags:
@@ -254,8 +254,8 @@ class SkiaFactory(BuildFactory):
 
     script: which slave-side python script to run.
     description: string briefly describing the BuildStep; if this description
-        is in the self._skipsteps list, this BuildStep will be skipped--unless
-        it's in the self._dontskipsteps list, in which case we run it!
+        is in the self.skipsteps list, this BuildStep will be skipped--unless
+        it's in the self.dontskipsteps list, in which case we run it!
     args: optional list of strings; arguments to pass to the script.
     timeout: optional integer; maximum time for the BuildStep to complete.
     halt_on_failure: boolean indicating whether to continue the build if this
@@ -285,8 +285,8 @@ class SkiaFactory(BuildFactory):
         typically transient or results from an infrastructure failure rather
         than a code change.
     """
-    if description not in self._dontskipsteps:
-      if description in self._skipsteps:
+    if description not in self.dontskipsteps:
+      if description in self.skipsteps:
         return
       if is_upload_render_step and not self._do_upload_render_results:
         return
@@ -568,7 +568,7 @@ class SkiaFactory(BuildFactory):
     """
     description = 'UpdateScripts'
     if ((config_private.Master.get_active_master().is_production_host) or
-        (description in self._dontskipsteps)):
+        (description in self.dontskipsteps)):
       self.AddSlaveScript(
           script=self.TargetPath.join('..', '..', '..', '..',
                                       '..', 'slave',

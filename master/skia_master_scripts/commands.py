@@ -100,6 +100,10 @@ class SkiaCommands(commands.FactoryCommands):
                     workdir=None, do_step_if=None, always_run=False,
                     flunk_on_failure=True, exception_on_failure=False):
     """Runs an arbitrary command, perhaps a binary we built."""
+    if description not in self.factory.dontskipsteps:
+      if description in self.factory.skipsteps:
+        return
+
     if not timeout:
       timeout = self.default_timeout
     self.factory.addStep(skia_build_step.SkiaBuildStep,
