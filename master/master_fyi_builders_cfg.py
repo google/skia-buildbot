@@ -20,6 +20,10 @@ from skia_master_scripts.auto_roll_factory import AutoRollFactory as f_autoroll
 import master_builders_cfg
 
 
+# GYP_DEFINES.
+MOZ2D = repr({'skia_moz2d': '1'})
+
+
 def setup_canaries(helper, do_upload_render_results, do_upload_bench_results):
   """Set up the Canary builders.
 
@@ -36,7 +40,7 @@ def setup_canaries(helper, do_upload_render_results, do_upload_bench_results):
   #    Project,  OS,        Compiler, Arch,     Configuration, Flavor,  Workdir, GYP_DEFINES, Factory, Platform, Scheduler, Extra Args
   #
   builder_specs = [
-      ('Moz2D', 'Ubuntu12', 'GCC',    'x86_64', 'Release',     None,    'skia',  None,        f_moz2d, LINUX,    S_PERCOMMIT, {})
+      ('Moz2D', 'Ubuntu12', 'GCC',    'x86_64', 'Release',     None,    'skia',  MOZ2D,       f_moz2d, LINUX,    S_PERCOMMIT, {})
   ]
 
   master_builders_cfg.setup_builders_from_config_list(
