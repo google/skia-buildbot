@@ -20,12 +20,17 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
     self._result_dir = os.path.join(os.pardir, 'layouttest_results')
 
   def RunFlavoredCmd(self, app, args):
-    """Run the executable through runtest.py"""
-    runtest = os.path.join(misc.BUILDBOT_PATH, 'third_party',
-                           'chromium_buildbot', 'scripts', 'slave',
-                           'runtest.py')
-    cmd = ['python', runtest, '--target', self._step.configuration, app,
-           '--xvfb', '--build-dir', 'out']  + args
+    """Run the executable."""
+    # Run through runtest.py everywhere but Windows, where it doesn't work for
+    # some reason (see http://skbug.com/2520).
+    if os.name == 'nt':
+      cmd = [self._PathToBinary(app)] + args
+    else:
+      runtest = os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'scripts', 'slave',
+                             'runtest.py')
+      cmd = ['python', runtest, '--target', self._step.configuration, app,
+             '--xvfb', '--build-dir', 'out']  + args
     shell_utils.run(cmd)
 
   def Compile(self, target):
