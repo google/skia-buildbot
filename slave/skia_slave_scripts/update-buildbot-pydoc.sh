@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+# TODO(epoger): Once https://codereview.chromium.org/277673002 ('stop
+# generating/uploading buildbot PyDoc') has been committed and the master has
+# been restarted to pick it up, we can delete this file.
+#
 # Runs Epydoc on buildbot code and stores its results in the skia-autogen repo,
 # so that they can be browsed at
 # http://skia-autogen.googlecode.com/svn/buildbot-docs/index.html

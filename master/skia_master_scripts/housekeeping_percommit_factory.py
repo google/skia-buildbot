@@ -62,38 +62,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     self.AddSlaveScript(script='detect_static_initializers.py',
                         description='DetectStaticInitializers')
 
-    if not self._do_patch_step:  # Do not run Pydoc & Doxygen steps if try job.
-      # Generate and upload Buildbot Pydoc documentation.
-      buildbot_pydoc_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL,
-                                                     'buildbot-docs')
-      # pylint: disable=W0212
-      update_buildbot_pydoc_path = self.TargetPath.join(
-          self._skia_cmd_obj._local_slave_script_dir,
-          'update-buildbot-pydoc.sh')
-      buildbot_pydoc_working_dir = self.TargetPath.join(
-          tempfile.gettempdir(), 'buildbot-docs')
-      # Cleanup the previous (if any) buildbot pydoc working dir.
-      self._skia_cmd_obj.AddRunCommand(
-          command='rm -rf %s' % buildbot_pydoc_working_dir,
-          description='CleanupBuildbotPydoc')
-      # Generate Buildbot Pydoc documentation.
-      self._skia_cmd_obj.AddRunCommand(
-          command='BUILDBOT_PYDOC_TEMPDIR=%s bash %s' % (
-              buildbot_pydoc_working_dir, update_buildbot_pydoc_path),
-          description='UpdateBuildbotPydoc')
-      if self._do_upload_render_results:
-        # Upload Buildbot Pydoc.
-        self._skia_cmd_obj.AddMergeIntoSvn(
-            source_dir_path=self.TargetPath.join(
-                buildbot_pydoc_working_dir, 'buildbot-docs'),
-            dest_svn_url=buildbot_pydoc_actual_svn_baseurl,
-            merge_dir_path=os.path.join(buildbot_pydoc_working_dir, 'merge'),
-            svn_username_file=self._autogen_svn_username_file,
-            svn_password_file=self._autogen_svn_password_file,
-            commit_message=WithProperties(
-                'UploadBuildbotPydoc of r%%(%s:-)s on %s' % (
-                    'revision', self._builder_name)),
-            description='UploadBuildbotPydoc')
+    if not self._do_patch_step:  # Do not run Doxygen steps if try job.
 
       # Generate and upload Doxygen documentation.
       doxygen_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL, 'docs')
