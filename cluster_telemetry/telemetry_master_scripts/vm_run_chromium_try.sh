@@ -145,6 +145,10 @@ if [ $ret_value -eq 0 ]; then
   CHROMIUM_BUILD_DIR=${GS_BUILD_PATH#*/chromium-builds/}
   # Strip out the filename at the end.
   CHROMIUM_BUILD_DIR=${CHROMIUM_BUILD_DIR%/*}
+  if [ "$TARGET_PLATFORM" == "Android" ]; then
+    # Strip out one more layer for Android builds (they have only one apks dir).
+    CHROMIUM_BUILD_DIR=${CHROMIUM_BUILD_DIR%/*}
+  fi
 
   # Below may no longer be needed after the move to bare-metal machines.
   # Reboot all slaves so that they start from a clean slate.
