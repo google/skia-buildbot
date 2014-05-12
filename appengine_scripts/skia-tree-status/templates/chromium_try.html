@@ -33,19 +33,19 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
 {% else %}
   <form name="ChromiumTryForm" action="chromium_try" method="post">
   <table cellingpadding="5">
-    <tr>                                                                      
+    <tr>
       <td>Benchmark to run</td>
       <td>
-        <select id="benchmark_name" name="benchmark_name" onchange="populateThreshold(this)"> 
-          {% for benchmark in supported_benchmarks %}                             
+        <select id="benchmark_name" name="benchmark_name" onchange="populateThreshold(this)">
+          {% for benchmark in supported_benchmarks %}
             <option value="{{ benchmark }}">{{ benchmark }}</option>
-          {% endfor %}                                                        
+          {% endfor %}
         </select>
         Uses the telemetry revision from this <a href='https://skia.googlesource.com/buildbot/+/master/DEPS'>DEPS</a> file.
       </td>
-    </tr>                                                                     
-    <tr id="benchmark_details" style="display:none">                                                                      
-      <td>Benchmark Arguments</td>                                            
+    </tr>
+    <tr id="benchmark_details" style="display:none">
+      <td>Benchmark Arguments</td>
       <td>
         <input type="text" size="35" name="benchmark_arguments" value="--output-format=csv"/>
         The Benchmark must output in CSV to do meaningful comparisions.
@@ -63,17 +63,26 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
       </td>
     </tr>
     <tr id="variance_details" style="display:none">
-      <td>Variance Threshold</td>                                               
-      <td>                                                                      
+      <td>Variance Threshold</td>
+      <td>
         <input type="text" name="variance_threshold" size"5" value="5"/>
         <a id="variance_threshold_info"></a>
-      </td>                                                                     
-    </tr>                                                                       
+      </td>
+    </tr>
     <tr id="outliers_details" style="display:none">
-      <td>Discard Outliers</td>                                               
-      <td>                                                                      
+      <td>Discard Outliers</td>
+      <td>
         <input type="text" name="discard_outliers" size"5" value="0"/>
-      </td>                                                                     
+      </td>
+    </tr>
+    <tr>
+      <td>Target Platform</td>
+      <td>
+        <select id="target_platform" name="target_platform">
+          <option value="Linux">Linux (100 Ubuntu12.04 machines)</option>
+          <option value="Android">Android (25 N5 devices)</option>
+        </select>
+      </td>
     </tr>
     <tr>
       <td>Pagesets Type</td>
@@ -84,10 +93,10 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
           {% endfor %}
         </select>
       </td>
-    </tr>                                                                       
-    <tr>                                                                        
-      <td>Description</td>                                             
-      <td><input type="text" name="description" size="35"></td>                 
+    </tr>
+    <tr>
+      <td>Description</td>
+      <td><input type="text" name="description" size="35"></td>
     </tr>
     <tr>
       <td>Chromium Git patch (optional)<br/>Applied to Chromium ToT</td>
@@ -107,7 +116,7 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
         <textarea name="skia_patch" cols="80" rows="15"></textarea>
       </td>
     </tr>
-    <tr>                                                                      
+    <tr>
       <td colspan="2" align="center"><input type="submit" value="Queue Chromium Try Task"></td>
     </tr>
   </table>
@@ -154,6 +163,7 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
       <td><b>Description</b></td>
       <td><b>Benchmark Name</b></td>
       <td><b>Benchmark Arguments</b></td>
+      <td><b>Target Platform</b></td>
       <td><b>Repeat Runs</b></td>
       <td><b>Variance Threshold</b></td>
       <td><b>Discard Outliers</b></td>
@@ -174,6 +184,13 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
       <td>{{ task.description }}</td>
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
+      <td>
+        {% if task.target_platform %}
+          {{ task.target_platform }}
+        {% else %}
+          Linux
+        {% endif %}
+      </td>
       <td>
         {% if task.num_repeated_runs %}
           {{ task.num_repeated_runs }}
@@ -233,19 +250,19 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
           {% include "col_status.html" %}
         {% endif %}
       </td>
-      <td align="center">                                                       
-        {% if task.telemetry_withpatch_log_link %}                                
+      <td align="center">
+        {% if task.telemetry_withpatch_log_link %}
           <a href='{{ task.telemetry_withpatch_log_link }}' target='_blank'>withpatch_log</a>
         {% else %}
           {% include "col_status.html" %}
-        {% endif %}                                                             
+        {% endif %}
       </td>
-      <td align="center">                                                       
-        {% if task.html_output_link %}                                
+      <td align="center">
+        {% if task.html_output_link %}
           <a href='{{ task.html_output_link }}' target='_blank'>output</a>
         {% else %}
           {% include "col_status.html" %}
-        {% endif %}                                                             
+        {% endif %}
       </td>
       <td align="center">
         <form action="chromium_try" name="delete_chromium_try_task" method="post">

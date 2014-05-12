@@ -15,6 +15,7 @@
       <td><b>Description</b></td>
       <td><b>Benchmark Name</b></td>
       <td><b>Benchmark Argument</b></td>
+      <td><b>Target Platform</b></td>
       <td><b>Repeat Runs</b></td>
       <td><b>Variance Threshold</b></td>
       <td><b>Discard Outliers</b></td>
@@ -35,6 +36,13 @@
       <td>{{ task.description }}</td>
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
+      <td>
+        {% if task.target_platform %}
+          {{ task.target_platform }}
+        {% else %}
+          Linux
+        {% endif %}
+      </td>
       <td>
         {% if task.num_repeated_runs %}
           {{ task.num_repeated_runs }}
@@ -59,54 +67,54 @@
           {% include "col_status.html" %}
         {% endif %}
       </td>
-      <td align="center">                                                       
-        {% if task.chromium_patch_link %}                                                
-          <a href='{{ task.chromium_patch_link }}' target='_blank'>patch</a>             
-        {% else %}                                                              
-          {% include "col_status.html" %}                                       
-        {% endif %}                                                             
-      </td>                                                                     
-      <td align="center">                                                       
-        {% if task.blink_patch_link %}                                                
-          <a href='{{ task.blink_patch_link }}' target='_blank'>patch</a>             
-        {% else %}                                                              
-          {% include "col_status.html" %}                                       
-        {% endif %}                                                             
-      </td>                                                                     
-      <td align="center">                                                       
-        {% if task.skia_patch_link %}                                                
-          <a href='{{ task.skia_patch_link }}' target='_blank'>patch</a>             
-        {% else %}                                                              
-          {% include "col_status.html" %}                                       
-        {% endif %}                                                             
-      </td>                                                                     
-      <td align="center">                                                       
-        {% if task.build_log_link %}                                            
-          <a href='{{ task.build_log_link }}' target='_blank'>build_log</a>     
-        {% else %}                                                              
-          {% include "col_status.html" %}                                       
-        {% endif %}                                                             
-      </td>                                                                     
-      <td align="center">                                                       
-        {% if task.telemetry_nopatch_log_link %}                                
+      <td align="center">
+        {% if task.chromium_patch_link %}
+          <a href='{{ task.chromium_patch_link }}' target='_blank'>patch</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.blink_patch_link %}
+          <a href='{{ task.blink_patch_link }}' target='_blank'>patch</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.skia_patch_link %}
+          <a href='{{ task.skia_patch_link }}' target='_blank'>patch</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.build_log_link %}
+          <a href='{{ task.build_log_link }}' target='_blank'>build_log</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.telemetry_nopatch_log_link %}
           <a href='{{ task.telemetry_nopatch_log_link }}' target='_blank'>nopatch_log</a>
-        {% else %}                                                              
-          {% include "col_status.html" %}                                       
-        {% endif %}                                                             
-      </td>                                                                     
-      <td align="center">                                                       
-        {% if task.telemetry_withpatch_log_link %}                              
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.telemetry_withpatch_log_link %}
           <a href='{{ task.telemetry_withpatch_log_link }}' target='_blank'>withpatch_log</a>
-        {% else %}                                                              
-          {% include "col_status.html" %}                                       
-        {% endif %}                                                             
-      </td>                                                                     
-      <td align="center">                                                       
-        {% if task.html_output_link %}                                          
-          <a href='{{ task.html_output_link }}' target='_blank'>output</a>      
-        {% else %}                                                              
-          {% include "col_status.html" %}                                       
-        {% endif %}                                                             
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
+      </td>
+      <td align="center">
+        {% if task.html_output_link %}
+          <a href='{{ task.html_output_link }}' target='_blank'>output</a>
+        {% else %}
+          {% include "col_status.html" %}
+        {% endif %}
       </td>
     </tr>
     {% endfor %}

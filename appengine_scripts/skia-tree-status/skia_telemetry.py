@@ -330,6 +330,7 @@ class ChromiumTryTasks(BaseTelemetryModel):
   username = db.StringProperty(required=True)
   benchmark_name = db.StringProperty(required=True)
   benchmark_arguments = db.StringProperty()
+  target_platform = db.StringProperty()
   pageset_type = db.StringProperty()
   skia_patch = db.BlobProperty()
   chromium_patch = db.BlobProperty()
@@ -356,6 +357,7 @@ class ChromiumTryTasks(BaseTelemetryModel):
             'username': self.username,
             'benchmark_name': self.benchmark_name,
             'benchmark_arguments': self.benchmark_arguments,
+            'target_platform': self.target_platform,
             'pageset_type': self.pageset_type,
             'skia_patch': self.skia_patch,
             'chromium_patch': self.chromium_patch,
@@ -846,6 +848,7 @@ class ChromiumTryPage(BasePage):
     # It is an add chromium try task request.
     benchmark_name = self.request.get('benchmark_name')
     benchmark_arguments = self.request.get('benchmark_arguments')
+    target_platform = self.request.get('target_platform')
     pageset_type = self.request.get('pageset_type')
     num_repeated_runs = int(self.request.get('num_repeated_runs'))
     variance_threshold = float(self.request.get('variance_threshold'))
@@ -862,6 +865,7 @@ class ChromiumTryPage(BasePage):
         username=self.user.email(),
         benchmark_name=benchmark_name,
         benchmark_arguments=benchmark_arguments,
+        target_platform=target_platform,
         pageset_type=pageset_type,
         skia_patch=skia_patch,
         chromium_patch=chromium_patch,
