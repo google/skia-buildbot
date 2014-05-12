@@ -23,10 +23,11 @@ if [ $# -lt 5 ]; then
   echo "The fourth argument is the type of pagesets to create from the 1M list" \
        "Eg: All, Filtered, 100k, 10k, Deeplinks."
   echo "The fifth argument is the number of times the benchmark should be repeated."
-  echo "The sixth argument is the name of the directory where the chromium" \
+  echo "The sixth argument is the platform the benchmark should run on (Android / Linux)."
+  echo "The seventh argument is the name of the directory where the chromium" \
        "build which will be used for this run is stored."
-  echo "The seventh argument is the runid (typically requester + timestamp)."
-  echo "The eighth optional argument is the Google Storage location of the URL" \
+  echo "The eighth argument is the runid (typically requester + timestamp)."
+  echo "The ninth optional argument is the Google Storage location of the URL" \
        "whitelist."
   echo
   exit 1
@@ -37,17 +38,32 @@ TELEMETRY_BENCHMARK=$2
 EXTRA_ARGS=$3
 PAGESETS_TYPE=$4
 REPEAT_TELEMETRY_RUNS=$5
-CHROMIUM_BUILD_DIR=$6
-RUN_ID=$7
-WHITELIST_GS_LOCATION=$8
+TARGET_PLATFORM=$6
+CHROMIUM_BUILD_DIR=$7
+RUN_ID=$8
+WHITELIST_GS_LOCATION=$9
 
 WHITELIST_FILE=whitelist.$RUN_ID
+
+if [ "$TARGET_PLATFORM" == "Android" ]; then
+  # Verify that this slave has adb installed, if it does not then exit.
+  adb version
+  if [ $? -ne 0 ]; then
+    echo "adb not installed. Exiting.."
+    gsutil cp -a public-read /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/logs/${RUN_ID}.log
+    exit 1
+  fi
+fi
+
 
 source vm_utils.sh
 
 create_worker_file TELEMETRY_${RUN_ID}
 
 source vm_setup_slave.sh
+
+# Install the APK on the Android device.
+adb install -r /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/apks/ChromeShell.apk
 
 # Download the webpage_archives from Google Storage if the local TIMESTAMP is
 # out of date.
@@ -110,7 +126,11 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
     for current_run in `seq 1 $REPEAT_TELEMETRY_RUNS`;
     do
       echo "This is run number $current_run"
-      eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing $EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
+      if [ "$TARGET_PLATFORM" == "Android" ]; then
+        eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
+      else
+        eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing $EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
+      fi
       sudo chown chrome-bot:chrome-bot $OUTPUT_DIR/${RUN_ID}.${page_set_basename}.${current_run}
     done
 

@@ -157,6 +157,7 @@ def process_chromium_try_task(task):
   username = task['username']
   benchmark_name = task['benchmark_name']
   benchmark_arguments = task['benchmark_arguments']
+  target_platform = task['target_platform']
   # Escape any quotes in benchmark arguments.
   benchmark_arguments = benchmark_arguments.replace('"', r'\"')
   num_repeated_runs = task['num_repeated_runs']
@@ -204,6 +205,7 @@ def process_chromium_try_task(task):
         '-l', str(log_file),
         '-y', str(pageset_type),
         '-n', str(num_repeated_runs),
+        '-m', str(target_platform),
     ]
   subprocess.Popen(cmd, stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))

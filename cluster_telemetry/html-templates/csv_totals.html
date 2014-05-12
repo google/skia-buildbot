@@ -8,10 +8,19 @@
     <h2>Results of Cluster Telemetry Tryserver Run</h2>
     Run requester: {{ requester_email }}
     <br/>
+    The run was done on: {{ target_platform }} slaves
+    <br/>
     The specified patch(es) are: <a href='{{ chromium_patch_link }}'>Chromium</a>/<a href='{{ blink_patch_link }}'>Blink</a>/<a href='{{ skia_patch_link }}'>Skia</a> (if no patch is specified the page will be empty)
     <br/>
     The raw CSVs used to create the below tables are here: <a href='{{ raw_csv_nopatch }}'>nopatch</a>/<a href='{{ raw_csv_withpatch }}'>withpatch</a>
-    <br/>{% if crashed_instances %}<br/><b>Note:</b> The following slaves are down and their results are missing from the report: <b>{{ crashed_instances }}</b><br/>{% endif %}<br/>
+    <br/>
+    {% if crashed_instances %}
+      <br/><b>Note:</b> The following slaves are down and their results are missing from the report: <b>{{ crashed_instances }}</b><br/>
+    {% endif %}
+    {% if missing_devices %}
+      <br/><b>Note:</b> Android devices in the following slaves are down and their results are missing from the report: <b>{{ missing_devices }}</b><br/>
+    {% endif %}
+    <br/>
     Each pageset was repeated: {{ num_repeated }} time{% if num_repeated > 1 %}s{% endif %}
     <br/>
     Percentage difference threshold used: {{ threshold }}%

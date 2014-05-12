@@ -56,7 +56,8 @@ class CsvComparer(object):
                chromium_patch_link, blink_patch_link, skia_patch_link,
                variance_threshold, absolute_url, min_pages_in_each_field,
                discard_outliers, raw_csv_nopatch, raw_csv_withpatch,
-               num_repeated, crashed_instances):
+               num_repeated, target_platform, crashed_instances,
+               missing_devices):
     """Constructs a CsvComparer instance."""
     self._csv_file1 = csv_file1
     self._csv_file2 = csv_file2
@@ -72,7 +73,9 @@ class CsvComparer(object):
     self._raw_csv_nopatch = raw_csv_nopatch
     self._raw_csv_withpatch = raw_csv_withpatch
     self._num_repeated = num_repeated
+    self._target_platform = target_platform
     self._crashed_instances = crashed_instances
+    self._missing_devices = missing_devices
 
   def _IsPercDiffSameOrAboveThreshold(self, perc_diff):
     """Compares the specified diff to the variance threshold.
@@ -263,7 +266,9 @@ class CsvComparer(object):
          'discard_outliers': self._discard_outliers,
          'min_webpages': self._min_pages_in_each_field,
          'num_repeated': self._num_repeated,
+         'target_platform': self._target_platform,
          'crashed_instances': self._crashed_instances,
+         'missing_devices': self._missing_devices,
          'absolute_url': self._absolute_url})
     index_html = open(os.path.join(self._output_html_dir, 'index.html'), 'w')
     index_html.write(rendered)
@@ -345,18 +350,25 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--crashed_instances',
       help='Text that lists any crashed instances.')
+  option_parser.add_option(
+      '', '--missing_devices',
+      help='Text that lists all instances with missing Android devices.')
+  option_parser.add_option(
+      '', '--target_platform',
+      help='The platform telemetry benchmarks/measuremetns were run on.')
 
   options, unused_args = option_parser.parse_args()
   if not (options.csv_file1 and options.csv_file2 and options.output_html_dir
           and options.variance_threshold and options.requester_email
           and options.chromium_patch_link and options.blink_patch_link
           and options.skia_patch_link and options.raw_csv_nopatch
-          and options.raw_csv_withpatch and options.num_repeated):
+          and options.raw_csv_withpatch and options.num_repeated
+          and options.target_platform):
     option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
                         'variance_threshold, requester_email, '
                         'chromium_patch_link, blink_patch_link, '
                         'skia_patch_link, raw_csv_nopatch, '
-                        'raw_csv_withpatch and num_repeated')
+                        'raw_csv_withpatch, num_repeated and target_platform')
 
   sys.exit(CsvComparer(
       options.csv_file1, options.csv_file2, options.output_html_dir,
@@ -365,5 +377,6 @@ if '__main__' == __name__:
       options.variance_threshold, options.absolute_url,
       options.min_pages_in_each_field, options.discard_outliers,
       options.raw_csv_nopatch, options.raw_csv_withpatch,
-      options.num_repeated, options.crashed_instances).Compare())
+      options.num_repeated, options.target_platform,
+      options.crashed_instances, options.missing_devices).Compare())
 

@@ -4,6 +4,7 @@
 # slaves.
 # Use TRYSERVER=true to skip uploading files to Google Storage or emailing
 # the requester.
+# Use TARGET_PLATFORM=Linux to specify what the target platform should be.
 #
 # The script should be run from the cluster-telemetry-master GCE instance's
 # /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
@@ -64,6 +65,9 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   fi
 done
 
+TARGET_PLATFORM=${TARGET_PLATFORM:="Linux"}
+echo "== The TARGET_PLATFORM is $TARGET_PLATFORM =="
+
 if [[ ! -z "$WHITELIST_LOCAL_LOCATION" ]]; then
   # Copy the whitelist to Google Storage.
   WHITELIST_GS_LOCATION=gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/whitelists/$RUN_ID.whitelist
@@ -71,7 +75,7 @@ if [[ ! -z "$WHITELIST_LOCAL_LOCATION" ]]; then
 fi
 
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $REPEAT_TELEMETRY_RUNS $CHROMIUM_BUILD_DIR $RUN_ID $WHITELIST_GS_LOCATION"
+  CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $REPEAT_TELEMETRY_RUNS $TARGET_PLATFORM $CHROMIUM_BUILD_DIR $RUN_ID $WHITELIST_GS_LOCATION"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
     -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt 2>&1"

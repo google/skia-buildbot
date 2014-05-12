@@ -28,10 +28,11 @@ OPTIONS:
   -l The location of the log file
   -y The pageset type to run against (Eg: 10k/IndexSample10k)
   -n Number of times to run each pageset
+  -m The target platform to run the telemetry benchmarks on (Android / Linux)
 EOF
 }
 
-while getopts "hp:t:s:r:v:o:b:a:e:i:l:y:n:" OPTION
+while getopts "hp:t:s:r:v:o:b:a:e:i:l:y:n:m:" OPTION
 do
   case $OPTION in
     h)
@@ -77,6 +78,9 @@ do
     n)
       REPEAT_TELEMETRY_RUNS=$OPTARG
       ;;
+    m)
+      TARGET_PLATFORM=$OPTARG
+      ;;
     ?)
       usage
       exit
@@ -89,7 +93,7 @@ if [[ -z $CHROMIUM_PATCH_LOCATION ]] || [[ -z $BLINK_PATCH_LOCATION ]] || \
    [[ -z $TELEMETRY_BENCHMARK ]] || [[ -z $EXTRA_ARGS ]] || \
    [[ -z $REQUESTER_EMAIL ]] || [[ -z $APPENGINE_KEY ]] || \
    [[ -z $LOG_FILE_LOCATION ]] || [[ -z $SKIA_PATCH_LOCATION ]] || \
-   [[ -z $PAGESET_TYPE ]]
+   [[ -z $PAGESET_TYPE ]] || [[ -z $TARGET_PLATFORM ]]
 then
   usage
   exit 1
@@ -120,9 +124,10 @@ USE_AURA=0
 # Create the two required chromium builds (with patch and without the patch).
 TIMER="$(date +%s)"
 CHROMIUM_BUILD_LOG_FILE=/tmp/try-chromium-build-$RUN_ID
+
 bash vm_build_chromium_with_patches.sh $CHROMIUM_PATCH_LOCATION \
     $BLINK_PATCH_LOCATION $SKIA_PATCH_LOCATION $RUN_ID \
-    $CHROMIUM_BUILD_LOG_FILE $USE_AURA &> $CHROMIUM_BUILD_LOG_FILE
+    $CHROMIUM_BUILD_LOG_FILE $USE_AURA $TARGET_PLATFORM &> $CHROMIUM_BUILD_LOG_FILE
 ret_value=$?
 CHROMIUM_BUILDS_TIME="$(($(date +%s)-TIMER))"
 
@@ -151,7 +156,7 @@ if [ $ret_value -eq 0 ]; then
   TELEMETRY_BUILD_LOG=/tmp/try-telemetry-nopatch-$RUN_ID
   TELEMETRY_NOPATCH_ID=$RUN_ID-nopatch
   TIMER="$(date +%s)"
-  TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
+  TARGET_PLATFORM=$TARGET_PLATFORM TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
       "$EXTRA_ARGS" $PAGESET_TYPE $REPEAT_TELEMETRY_RUNS $CHROMIUM_BUILD_DIR $TELEMETRY_NOPATCH_ID \
       $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
   TELEMETRY_WITHOUT_PATCH_TIME="$(($(date +%s)-TIMER))"
@@ -166,7 +171,7 @@ if [ $ret_value -eq 0 ]; then
   TELEMETRY_BUILD_LOG=/tmp/try-telemetry-withpatch-$RUN_ID
   TELEMETRY_WITHPATCH_ID=$RUN_ID-withpatch
   TIMER="$(date +%s)"
-  TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
+  TARGET_PLATFORM=$TARGET_PLATFORM TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
       "$EXTRA_ARGS" $PAGESET_TYPE $REPEAT_TELEMETRY_RUNS $CHROMIUM_BUILD_DIR-withpatch $TELEMETRY_WITHPATCH_ID \
       $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
   TELEMETRY_WITH_PATCH_TIME="$(($(date +%s)-TIMER))"
@@ -190,6 +195,22 @@ if [ $ret_value -eq 0 ]; then
     CRASHED_INSTANCES_HTML="<b>Note:</b> The following slaves are down and their results are missing from the report: <b>$CRASHED_INSTANCES</b><br/><br/>"
   fi
 
+  if [ "$TARGET_PLATFORM" == "Android" ]; then
+    for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
+      ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
+        -o StrictHostKeyChecking=no \
+        -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb version" &> /dev/null
+      if [ $? -ne 0 ]
+      then
+        echo "build$SLAVE_NUM-b5 is not responding!"
+        MISSING_DEVICES="$MISSING_DEVICES build$SLAVE_NUM-b5"
+      fi
+    done
+    if [[ $MISSING_DEVICES ]]; then
+      MISSING_DEVICES_HTML="<b>Note:</b> The following slaves are missing android devices and their results are missing from the report: <b>$MISSING_DEVICES</b><br/><br/>"
+    fi
+  fi
+
   # Compare the resultant CSV files.
   NOPATCH_CSV="/b/storage/telemetry_outputs/${TELEMETRY_NOPATCH_ID}/${TELEMETRY_NOPATCH_ID}.$TELEMETRY_BENCHMARK.output"
   WITHPATCH_CSV="/b/storage/telemetry_outputs/${TELEMETRY_WITHPATCH_ID}/${TELEMETRY_WITHPATCH_ID}.$TELEMETRY_BENCHMARK.output"
@@ -197,7 +218,7 @@ if [ $ret_value -eq 0 ]; then
   HTML_OUTPUT_LINK_BASE=https://storage.cloud.google.com/chromium-skia-gm/telemetry/tryserver-outputs/html-outputs/$RUN_ID/
   mkdir -p $HTML_OUTPUT_DIR
   cd ..
-  python csv_comparer.py --csv_file1=$NOPATCH_CSV --csv_file2=$WITHPATCH_CSV --output_html=$HTML_OUTPUT_DIR --variance_threshold=$VARIANCE_THRESHOLD --discard_outliers=$DISCARD_OUTLIERS --absolute_url=$HTML_OUTPUT_LINK_BASE --requester_email=$REQUESTER_EMAIL --chromium_patch_link=$CHROMIUM_PATCH_LINK --blink_patch_link=$BLINK_PATCH_LINK --skia_patch_link=$SKIA_PATCH_LINK --raw_csv_nopatch=$TELEMETRY_OUTPUT_1 --raw_csv_withpatch=$TELEMETRY_OUTPUT_2 --num_repeated=$REPEAT_TELEMETRY_RUNS --crashed_instances="$CRASHED_INSTANCES"
+  python csv_comparer.py --csv_file1=$NOPATCH_CSV --csv_file2=$WITHPATCH_CSV --output_html=$HTML_OUTPUT_DIR --variance_threshold=$VARIANCE_THRESHOLD --discard_outliers=$DISCARD_OUTLIERS --absolute_url=$HTML_OUTPUT_LINK_BASE --requester_email=$REQUESTER_EMAIL --chromium_patch_link=$CHROMIUM_PATCH_LINK --blink_patch_link=$BLINK_PATCH_LINK --skia_patch_link=$SKIA_PATCH_LINK --raw_csv_nopatch=$TELEMETRY_OUTPUT_1 --raw_csv_withpatch=$TELEMETRY_OUTPUT_2 --num_repeated=$REPEAT_TELEMETRY_RUNS --target_platform=$TARGET_PLATFORM --crashed_instances="$CRASHED_INSTANCES" --missing_devices="$MISSING_DEVICES"
 
   # Copy the HTML files to Google Storage.
   gsutil cp -a public-read $HTML_OUTPUT_DIR/*.html gs://chromium-skia-gm/telemetry/tryserver-outputs/html-outputs/$RUN_ID/
@@ -231,7 +252,7 @@ Content-Type: text/html
   <body>
 
   The HTML output with differences between the base run and the patch run is <a href='$HTML_OUTPUT_LINK'>here</a>.<br/>
-  The patch(es) you specified are here: 
+  The patch(es) you specified are here:
   <a href='$CHROMIUM_PATCH_LINK'>chromium</a>/<a href='$BLINK_PATCH_LINK'>blink</a>/<a href='$SKIA_PATCH_LINK'>skia</a>
   <br/><br/>
 
@@ -259,6 +280,7 @@ Content-Type: text/html
   </table><br/><br/>
 
   $CRASHED_INSTANCES_HTML
+  $MISSING_DEVICES_HTML
   The log file of the first slave is <a href='$SLAVE_1_LOG_LINK'>here</a>.<br/>
   You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/chromium_try'>here</a>.<br/><br/>
   Thanks!

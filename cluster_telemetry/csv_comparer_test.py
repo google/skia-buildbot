@@ -48,7 +48,9 @@ class TestCsvComparer(unittest.TestCase):
         min_pages_in_each_field=1,
         discard_outliers=12.5,
         num_repeated=3,
-        crashed_instances='build1-b5 build10-b5')
+        target_platform='Android',
+        crashed_instances='build1-b5 build10-b5',
+        missing_devices='build99-b5 build100-b5')
     comparer.Compare()
     self._AssertHTMLFiles('discard_outliers')
 
@@ -68,7 +70,9 @@ class TestCsvComparer(unittest.TestCase):
         min_pages_in_each_field=0,
         discard_outliers=0,
         num_repeated=3,
-        crashed_instances='')
+        target_platform='Linux',
+        crashed_instances='',
+        missing_devices='')
     comparer.Compare()
     self._AssertHTMLFiles('keep_outliers', ('fieldname2.html',))
 

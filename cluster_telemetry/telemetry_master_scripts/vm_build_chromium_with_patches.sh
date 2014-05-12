@@ -18,7 +18,7 @@
 # /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 # directory.
 
-if [ $# -ne 6 ]; then
+if [ $# -ne 7 ]; then
   echo
   echo "Usage: `basename $0` /tmp/patch chromium rmistry-2013-11-20.07-34-05 /tmp/logfile 1"
   echo
@@ -28,6 +28,7 @@ if [ $# -ne 6 ]; then
   echo "The fourth argument is the unique runid (typically requester + timestamp)."
   echo "The fifth argument is the location of the log file."
   echo "The sixth argument is whether chromium should be built with aura. 1 means yes, 0 means no."
+  echo "The seventh argument is the target platform the build will be run on (Android/Linux)."
   echo
   exit 1
 fi
@@ -38,6 +39,7 @@ SKIA_PATCH_LOCATION=$3
 RUN_ID=$4
 LOG_FILE_LOCATION=$5
 USE_AURA=$6
+TARGET_PLATFORM=$7
 
 source vm_utils.sh
 
@@ -49,7 +51,11 @@ function copy_build_log_to_gs() {
 }
 
 cd ../../slave/skia_slave_scripts/utils/
-if [ ! -n "$PIXEL_DIFFS" ]; then
+if [ "$TARGET_PLATFORM" == "Android" ]; then
+  echo "== Using android-base =="
+  CHROMIUM_BUILD_DIR_BASE=/b/storage/chromium-builds/android-base
+  FETCH_TARGET_ARG="--fetch_target=android"
+elif [ ! -n "$PIXEL_DIFFS" ]; then
   echo "== Using tryserver-base =="
   CHROMIUM_BUILD_DIR_BASE=/b/storage/chromium-builds/tryserver-base
 else
@@ -67,7 +73,7 @@ SKIA_COMMIT_HASH=`cat /tmp/skia-lkgr`
 
 # Chromium sync command using Chromium ToT and Skia LKGR.
 echo "== Syncing with chromium $CHROMIUM_COMMIT_HASH + skia $SKIA_COMMIT_HASH =="
-SYNC_SKIA_IN_CHROME_CMD="PYTHONPATH=/b/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/b/skia-repo/buildbot/site_config/:/b/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH"
+SYNC_SKIA_IN_CHROME_CMD="PYTHONPATH=/b/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/b/skia-repo/buildbot/site_config/:/b/skia-repo/buildbot/third_party/chromium_buildbot/scripts/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH $FETCH_TARGET_ARG"
 
 eval $SYNC_SKIA_IN_CHROME_CMD
 
@@ -105,7 +111,10 @@ apply_patch $SKIA_PATCH_LOCATION
 
 echo "== Building chromium with the patches =="
 cd $CHROMIUM_BUILD_DIR_BASE/src/
-if [ ! -n "$PIXEL_DIFFS" ]; then
+if [ "$TARGET_PLATFORM" == "Android" ]; then
+  echo "== Building chrome_shell_apk =="
+  build_chrome_shell_apk
+elif [ ! -n "$PIXEL_DIFFS" ]; then
   echo "== Building chromium =="
   build_chromium
 else
@@ -118,7 +127,10 @@ copy_build_to_google_storage $DIR_NAME_WITH_PATCH $CHROMIUM_BUILD_DIR_BASE
 echo "== Building chromium without the patches =="
 cd $CHROMIUM_BUILD_DIR_BASE/src/
 reset_chromium_checkout
-if [ ! -n "$PIXEL_DIFFS" ]; then
+if [ "$TARGET_PLATFORM" == "Android" ]; then
+  echo "== Building chrome_shell_apk =="
+  build_chrome_shell_apk
+elif [ ! -n "$PIXEL_DIFFS" ]; then
   echo "== Building chromium =="
   build_chromium
 else
