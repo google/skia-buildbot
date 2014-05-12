@@ -20,6 +20,9 @@ class DEPSRoll(BuildStep):
   """BuildStep which creates and uploads a DEPS roll CL and sets off trybots."""
 
   def _Run(self):
+    # TODO(borenet): Just delete this bot once we're sure that AutoRoll is the
+    # way forward.
+    return
     skia_path = os.path.join('third_party', 'skia')
     roll_deps_path = os.path.join(skia_path, 'tools')
     sys.path.append(roll_deps_path)
