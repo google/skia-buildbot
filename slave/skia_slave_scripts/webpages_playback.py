@@ -57,17 +57,18 @@ import tempfile
 import time
 import traceback
 
-from utils import file_utils
-from utils import gs_utils
-from utils import misc
-from utils import shell_utils
 
+from utils import misc
 # Set the PYTHONPATH for this script to include chromium_buildbot scripts,
 # and site_config.
 sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot', 'scripts'))
 sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot', 'site_config'))
+
+from utils import file_utils
+from utils import gs_utils
+from utils import shell_utils
 
 from slave import slave_utils
 
