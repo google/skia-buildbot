@@ -159,7 +159,6 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-002', '2'),
       ('skiabot-shuttle-ubuntu12-003', '3'),
       ('skiabot-shuttle-ubuntu12-004', '4'),
-      ('skiabot-shuttle-ubuntu12-005', '5'),
       ('skiabot-shuttle-ubuntu12-006', '6'),
     ],
     'copies': _DEFAULT_COPIES,
