@@ -55,8 +55,8 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
       <td>Repeat Pageset Runs</td>
       <td>
         <select id="num_repeated_runs" name="num_repeated_runs">
-          <option value="1">1</option>
-          <option value="3" selected>3</option>
+          <option value="1" selected>1</option>
+          <option value="3">3</option>
           <option value="5">5</option>
         </select>
         Repeats each pageset and takes smallest values. More documentation is <a href='https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.rlyfe3y13j6m'>here</a>.
@@ -78,7 +78,7 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
     <tr>
       <td>Target Platform</td>
       <td>
-        <select id="target_platform" name="target_platform">
+        <select id="target_platform" name="target_platform" onchange="setPagesetsType(this);">
           <option value="Linux">Linux (100 Ubuntu12.04 machines)</option>
           <option value="Android">Android (25 N5 devices)</option>
         </select>
@@ -88,8 +88,8 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
       <td>Pagesets Type</td>
       <td>
         <select id="pageset_type" name="pageset_type">
-          {% for pageset in pagesets %}
-            <option value="{{ pageset }}">{{ pageset }}</option>
+          {% for pageset, desc in pagesets.items %}
+            <option value="{{ pageset }}">{{ desc }}</option>
           {% endfor %}
         </select>
       </td>
@@ -126,6 +126,20 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
 
   </form>
   <script>
+    function setPagesetsType(sel) {
+      var form = sel.form,
+          value = sel.options[sel.selectedIndex].value;
+      switch(value) {
+        case 'Android':
+          form.pageset_type.value = 'Mobile10k';
+          break;
+        case 'Linux':
+          form.pageset_type.value = '10k';
+          break;
+      }
+    }
+    setPagesetsType(document.getElementById('target_platform'));
+
     function populateThreshold(sel) {
       var form = sel.form,
           value = sel.options[sel.selectedIndex].value;

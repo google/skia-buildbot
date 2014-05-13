@@ -27,11 +27,12 @@ PDF_ADMINS = (
     'rmistry@google.com',
 )
 
-PAGESET_TYPES = (
-    'All',
-    '10k',
-    'IndexSample10k',
-)
+PAGESET_TYPES = {
+    'All': 'Top 1M (with desktop user-agent)',
+    '10k': 'Top 10k (with desktop user-agent)',
+    'Mobile10k': 'Top 10k (with mobile user-agent)',
+    'IndexSample10k': 'IndexSample 10k (with mobile user-agent)'
+}
 
 # Constants for ChromiumTryPage.
 CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
@@ -889,8 +890,8 @@ class ChromiumTryPage(BasePage):
     chromium_try_tasks = ChromiumTryTasks.get_all_chromium_try_tasks_of_user(
         self.user.email())
     # Only support all 10k pagesets for now.
-    template_values['pagesets'] = filter(lambda pageset: '10k' in pageset,
-                                         PAGESET_TYPES)
+    template_values['pagesets'] = dict((k, v) for k, v in PAGESET_TYPES.items()
+                                              if '10k' in k)
     template_values['supported_benchmarks'] = CHROMIUM_TRY_SUPPORTED_BENCHMARKS
     template_values['chromium_try_tasks'] = chromium_try_tasks
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()

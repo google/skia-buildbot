@@ -14,8 +14,8 @@
     <tr>
       <td>
         <select name="pagesets_type">
-          {% for pageset_type in pageset_types %}
-            <option value="{{ pageset_type }}" {% ifequal pageset_type "Deeplinks" %}disabled{% endifequal %}>{{ pageset_type }}</option>
+          {% for pageset_type, desc in pageset_types.items %}
+            <option value="{{ pageset_type }}">{{ desc }}</option>
           {% endfor %}
         </select>
       </td>
