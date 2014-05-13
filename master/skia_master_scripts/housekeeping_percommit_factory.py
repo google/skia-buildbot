@@ -8,11 +8,7 @@ Overrides SkiaFactory with Per-commit HouseKeeping steps."""
 
 
 import builder_name_schema
-import os
-import tempfile
 
-from buildbot.process.properties import WithProperties
-from config_private import AUTOGEN_SVN_BASEURL
 from skia_master_scripts import factory as skia_factory
 
 
@@ -40,63 +36,31 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     self.Compile(clobber)
 
     # TODO(borenet): Move these to a self-tests bot (http://skbug.com/2144)
-    # Build tools and run their unittests.
-    self._skia_cmd_obj.AddRunCommand(
-        command=self.TargetPath.join('tools', 'tests', 'run.sh'),
-        description='RunToolSelfTests')
-
-    # Build GM and run its unittests.
-    self._skia_cmd_obj.AddRunCommand(
-        command=self.TargetPath.join('gm', 'tests', 'run.sh'),
-        description='RunGmSelfTests')
-
+    self.AddSlaveScript(script='run_tool_self_tests.py',
+                        description='RunToolSelfTests')
+    self.AddSlaveScript(script='run_gm_self_tests.py',
+                        description='RunGmSelfTests')
     self.RunDM()
 
     # Run unittests for Anroid platform_tools
-    self._skia_cmd_obj.AddRunCommand(
-        command=['python', self.TargetPath.join('platform_tools', 'android',
-                                                'tests', 'run_all.py')],
-        description='RunAndroidPlatformSelfTests')
+    self.AddSlaveScript(script='run_android_platform_self_tests.py',
+                        description='RunAndroidPlatformSelfTests')
 
     # Check for static initializers.
     self.AddSlaveScript(script='detect_static_initializers.py',
                         description='DetectStaticInitializers')
 
     if not self._do_patch_step:  # Do not run Doxygen steps if try job.
+      self.AddSlaveScript(script='generate_doxygen.py',
+                          description='GenerateDoxygen')
+      args = ['--autogen_svn_username_file', self._autogen_svn_username_file,
+              '--autogen_svn_password_file', self._autogen_svn_password_file]
+      self.AddSlaveScript(script='upload_doxygen.py', args=args,
+                          description='UploadDoxygen',
+                          is_upload_render_step=True)
 
-      # Generate and upload Doxygen documentation.
-      doxygen_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL, 'docs')
-      update_doxygen_path = self.TargetPath.join('tools', 'update-doxygen.sh')
-      doxygen_working_dir = self.TargetPath.join(
-          tempfile.gettempdir(), 'doxygen')
-      # Cleanup the previous (if any) doxygen working dir.
-      self._skia_cmd_obj.AddRunCommand(
-          command='rm -rf %s' % doxygen_working_dir,
-          description='CleanupDoxygen')
-      # Generate Doxygen documentation.
-      self._skia_cmd_obj.AddRunCommand(
-          command='DOXYGEN_TEMPDIR=%s DOXYGEN_COMMIT=false bash %s' % (
-              doxygen_working_dir, update_doxygen_path),
-          description='UpdateDoxygen')
-      if self._do_upload_render_results:
-        # Upload Doxygen.
-        self._skia_cmd_obj.AddMergeIntoSvn(
-            source_dir_path=self.TargetPath.join(
-                doxygen_working_dir, 'docs'),
-            dest_svn_url=doxygen_actual_svn_baseurl,
-            merge_dir_path=os.path.join(doxygen_working_dir, 'merge'),
-            svn_username_file=self._autogen_svn_username_file,
-            svn_password_file=self._autogen_svn_password_file,
-            commit_message=WithProperties(
-                'UploadDoxygen of r%%(%s:-)s on %s' % (
-                    'revision', self._builder_name)),
-            description='UploadDoxygen')
-
-    self._skia_cmd_obj.AddRunCommand(
-        command='python run_unittests', description='BuildbotSelfTests',
-        workdir=self.TargetPath.join(os.pardir, os.pardir, os.pardir,
-                                     os.pardir))
-
+    self.AddSlaveScript(script='run_buildbot_self_tests.py',
+                        description='BuildbotSelfTests')
     self.AddSlaveScript(script='check_compile_times.py',
                         description='CheckCompileTimes')
     self.Validate()
