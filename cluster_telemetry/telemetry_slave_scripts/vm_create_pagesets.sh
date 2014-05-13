@@ -36,14 +36,14 @@ create_worker_file $CREATING_PAGESETS_ACTIVITY
 # Move into the buildbot/tools directory.
 cd ../../tools
 # Delete the old page_sets.
-rm -rf page_sets/*.json
+rm -rf page_sets/*.py
 # Clean and create directories where page_sets will be stored.
 rm -rf /b/storage/page_sets/$PAGESETS_TYPE/*
 
 # If PAGESETS_TYPE is 100k or 10k or IndexSample10k then adjust NUM_WEBPAGES.
 if [ "$PAGESETS_TYPE" == "100k" ]; then
   NUM_WEBPAGES=100000
-elif [ "$PAGESETS_TYPE" == "10k" ] || [ "$PAGESETS_TYPE" == "IndexSample10k" ]; then
+elif [ "$PAGESETS_TYPE" == "10k" ] || [ "$PAGESETS_TYPE" == "Mobile10k" ] ||  [ "$PAGESETS_TYPE" == "IndexSample10k" ]; then
   NUM_WEBPAGES=10000
 fi
 
@@ -60,6 +60,14 @@ if [ "$PAGESETS_TYPE" == "IndexSample10k" ]; then
   CSV_PATH="page_sets/index-sample-10k.csv"
   # Download the sample 10k from Google Storage.
   gsutil cp gs://chromium-skia-gm/telemetry/csv/index-sample-10k.csv $CSV_PATH
+  # Use a mobile useragent.
+  USERAGENT_ARG="-u mobile"
+elif [ "$PAGESETS_TYPE" == "Mobile10k" ]; then
+  CSV_PATH="page_sets/android-top-1m.csv"
+  # Download the sample 10k from Google Storage.
+  gsutil cp gs://chromium-skia-gm/telemetry/csv/android-top-1m.csv $CSV_PATH
+  # Use a mobile useragent.
+  USERAGENT_ARG="-u mobile"
 else
   CSV_PATH="page_sets/top-1m.csv"
   # Download the top-1m.csv with qualified websites from Google Storage.
@@ -70,17 +78,17 @@ fi
 for PAGESET_NUM in $(seq 1 $NUM_PAGESETS_PER_SLAVE); do
   END=$(expr $START + $MAX_WEBPAGES_PER_PAGESET - 1)
   python create_page_set.py -s $START -e $END \
-    -c $CSV_PATH $BLACKLIST_ARG -p $PAGESETS_TYPE
+    -c $CSV_PATH $BLACKLIST_ARG -p $PAGESETS_TYPE $USERAGENT_ARG
   START=$(expr $END + 1)
 done
 # Copy page_sets to the local directory.
 mkdir -p /b/storage/page_sets/$PAGESETS_TYPE
-mv page_sets/*.json /b/storage/page_sets/$PAGESETS_TYPE/
+mv page_sets/*.py /b/storage/page_sets/$PAGESETS_TYPE/
 
 # Clean the directory in Google Storage.
 gsutil rm -R gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/*
 # Copy the page_sets into Google Storage.
-gsutil cp /b/storage/page_sets/$PAGESETS_TYPE/*json gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
+gsutil cp /b/storage/page_sets/$PAGESETS_TYPE/*py gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
 
 # Create a TIMESTAMP file and copy it to Google Storage.
 TIMESTAMP=`date +%s`

@@ -3,40 +3,27 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Downloads CSV of top 1M webpages and creates a JSON telemetry page_set.
+"""Creates a Python telemetry page_set from the specified webpages CSV.
 
 This module does the following steps:
 * Downloads a ZIP from http://s3.amazonaws.com/alexa-static/top-1m.csv.zip
 * Unpacks it and reads its contents in memory.
-* Writes out multiple JSON page sets from the CSV file for the specified number
-  of webpages.
-
-Note: Blacklisted webpages will not be added to the outputted JSON page_set. If
-you request 100 webpages and 5 of them are blacklisted then the page_set will
-only contain 95 webpages.
+* Writes out multiple Python page sets from the CSV file for the specified
+  number of webpages.
 
 Sample Usage:
   python create_page_set.py -s 1 -e 10000
 
 Running the above command will create 10000 different page sets.
-The outputted page sets are intended to be used by the webpages_playback.py
-script.
-Sample usage of the webpages_playback.py script with the outputted page sets:
-  python webpages_playback.py --record=True /
-  --page_sets=../../tools/page_sets/*.json /
-  --do_not_upload_to_gs=True --output_dir=/network/accessible/moint/point/
 """
 
 __author__ = 'Ravi Mistry'
 
-import getpass
-import json
 import optparse
 import os
 import urllib
 import zipfile
 
-from datetime import datetime
 from StringIO import StringIO
 
 
@@ -59,11 +46,6 @@ if '__main__' == __name__:
            'page_set',
       default='10000')
   option_parser.add_option(
-      '-b', '--blacklist',
-      help='Location of a black_list file which specifies which webpages '
-           'should not be converted into page_sets.',
-      default='')
-  option_parser.add_option(
       '-c', '--csv_file',
       help='Location of a filtered alexa top 1M CSV file. Each row should '
            'have 3 entries, 1st will be rank, 2nd will be domain name and '
@@ -75,8 +57,13 @@ if '__main__' == __name__:
   option_parser.add_option(
       '-p', '--pagesets_type',
       help='The type of pagesets to create from the 1M list. Eg: All, '
-           'Filtered, 100k, 10k, Deeplinks, IndexSample10k',
+           '100k, 10k, IndexSample10k, Mobile10k',
       default='All')
+  option_parser.add_option(
+      '-u', '--useragent_type',
+      help='The type of user agent to use in the pagesets. Eg: desktop, '
+           'mobile, tablet',
+      default='desktop')
   options, unused_args = option_parser.parse_args()
 
   # Validate arguments.
@@ -99,61 +86,60 @@ if '__main__' == __name__:
     raise Exception('Please specify -e/--end_number less than or equal to %s' %
               len(csv_contents))
 
-  # Populate the JSON dictionary.
-  pages = []
-  json_dict = {
-      '_comment': 'Generated on %s by %s using create_page_set.py' % (
-          datetime.now(), getpass.getuser()),
-      'description': 'Number %s from the random index sample.' % (
-          options.start_number),
-      'archive_data_file': os.path.join(
-          '/', 'home', 'default', 'storage', 'webpages_archive',
-          options.pagesets_type,
-          'alexa%s-%s.json' % (options.start_number, options.end_number)),
-      'pages': pages,
-      'smoothness': { 'action': 'scroll'},
-      'user_agent_type': 'mobile',
-  }
-
-  blacklisted_webpages = (open(options.blacklist).readlines()
-                          if options.blacklist else [])
-
+  websites = []
   for index in xrange(int(options.start_number) - 1, int(options.end_number)):
     line = csv_contents[index]
     website = line.strip()
-    if website.startswith('https://'):
+    if website.startswith('https://') or website.startswith('http://'):
       qualified_website = website
     else:
-      qualified_website = 'http://%s' % website
+      qualified_website = 'http://www.%s' % website
+    websites.append(qualified_website)
 
-    website_filename = '%s%s_%s_desktop' % (
-        ALEXA_PREFIX, index + 1, website.replace('.', '-').replace('/', '-'))
+  archive_data_file = os.path.join(
+      '/', 'b', 'storage', 'webpages_archive',
+      options.pagesets_type,
+      'alexa%s-%s.json' % (options.start_number, options.end_number))
 
-    skip_webpage = False
-    for blacklisted_webpage in blacklisted_webpages:
-      if blacklisted_webpage.rstrip() in website_filename:
-        skip_webpage = True
-        break
-    if skip_webpage:
-      print 'Skipping %s because it is in the provided blacklist file!' % (
-          website_filename)
-      continue
-    pages.append({
-        'url': qualified_website,
-        'why': '#%s in random index sample.' % (index + 1),
-        'navigate_steps': [
-            {'action': 'navigate'},
-            {'action': 'wait', 'seconds': 5}
-        ]
-    })
+  page_set_content = """
+# Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+# pylint: disable=W0401,W0614
 
-    # Output the JSON dictionary to a file.
-    try:
-      with open(os.path.join('page_sets', 'alexa%s-%s.json' % (
-                    options.start_number, options.end_number)),
-                'w') as outfile:
-        json.dump(json_dict, outfile, indent=4)
-    except Exception, e:
-      print 'Skipping %s because it failed with Exception: %s' % (
-          website_filename, e)
+from telemetry.page.actions.all_page_actions import *
+from telemetry.page import page as page_module
+from telemetry.page import page_set as page_set_module
+
+
+class TypicalAlexaPage(page_module.PageWithDefaultRunNavigate):
+
+  def __init__(self, url, page_set):
+    super(TypicalAlexaPage, self).__init__(url=url, page_set=page_set)
+    self.user_agent_type = '%s'
+    self.archive_data_file = '%s'
+
+  def RunSmoothness(self, action_runner):
+    action_runner.RunAction(ScrollAction())
+
+
+class TypicalAlexaPageSet(page_set_module.PageSet):
+
+  def __init__(self):
+    super(TypicalAlexaPageSet, self).__init__(
+      user_agent_type='%s',
+      archive_data_file='%s')
+
+    urls_list = %s
+
+    for url in urls_list:
+      self.AddPage(TypicalAlexaPage(url, self))
+""" % (options.useragent_type, archive_data_file, options.useragent_type,
+       archive_data_file, str(websites))
+
+  # Output the pageset to a file.
+  with open(os.path.join('page_sets', 'alexa%s-%s.py' % (
+                options.start_number, options.end_number)),
+            'w') as outfile:
+    outfile.write(page_set_content)
 
