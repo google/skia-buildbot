@@ -129,7 +129,7 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
         echo "== Running eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
         eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
       else
-        echo "== Running eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing $EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
+        echo "== Running eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting $EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
         eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-software-compositing $EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
       fi
       sudo chown chrome-bot:chrome-bot $OUTPUT_DIR/${RUN_ID}.${page_set_basename}.${current_run}
