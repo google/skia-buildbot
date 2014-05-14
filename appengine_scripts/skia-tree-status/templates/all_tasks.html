@@ -14,7 +14,9 @@
       <td><b>User</b></td>
       <td><b>Description</b></td>
       <td><b>Benchmark Name</b></td>
-      <td><b>Benchmark Argument</b></td>
+      <td><b>Benchmark Args</b></td>
+      <td><b>Browser Args (nopatch)</b></td>
+      <td><b>Browser Args (withpatch)</b></td>
       <td><b>Target Platform</b></td>
       <td><b>Repeat Runs</b></td>
       <td><b>Variance Threshold</b></td>
@@ -36,6 +38,8 @@
       <td>{{ task.description }}</td>
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
+      <td>{{ task.browser_args_1 }}</td>
+      <td>{{ task.browser_args_2 }}</td>
       <td>
         {% if task.target_platform %}
           {{ task.target_platform }}

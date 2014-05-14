@@ -12,10 +12,11 @@
 <br/>
 Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#'>here</a>
 <br/></br>
-<a href="javascript:toggleDetails();">Show/hide algorithm details</a>
+<a href="javascript:toggleDetails();">Show/hide run details</a>
 <script type="text/javascript">
   function toggleDetails() {
-    var details = ["benchmark_details", "variance_details", "outliers_details", "repeated_runs"];
+    var details = ["benchmark_details", "variance_details", "outliers_details",
+                   "repeated_runs", "browser_args_1_id", "browser_args_2_id"];
     for (var i=0; i<details.length; i++) {
       if (document.getElementById(details[i]).style.display == 'none') {
         document.getElementById(details[i]).style.display = '';
@@ -51,6 +52,20 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
         The Benchmark must output in CSV to do meaningful comparisions.
       </td>
     </tr>
+    <tr id="browser_args_1_id" style="display:none">
+      <td>Browser Arguments (nopatch run)</td>
+      <td>
+        <input type="text" size="100" name="browser_args_1" value=""/>
+      </td>
+    </tr>
+    <tr id="browser_args_2_id" style="display:none">
+      <td>Browser Arguments (withpatch run)</td>
+      <td>
+        <input type="text" size="100" name="browser_args_2" value=""/>
+      </td>
+    </tr>
+    <tr id="repeated_runs" style="display:none">
+    <tr id="repeated_runs" style="display:none">
     <tr id="repeated_runs" style="display:none">
       <td>Repeat Pageset Runs</td>
       <td>
@@ -78,7 +93,7 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
     <tr>
       <td>Target Platform</td>
       <td>
-        <select id="target_platform" name="target_platform" onchange="setPagesetsType(this);">
+        <select id="target_platform" name="target_platform" onchange="setPlatformDefaults(this);">
           <option value="Linux">Linux (100 Ubuntu12.04 machines)</option>
           <option value="Android">Android (25 N5 devices)</option>
         </select>
@@ -126,19 +141,26 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
 
   </form>
   <script>
-    function setPagesetsType(sel) {
+    function setPlatformDefaults(sel) {
       var form = sel.form,
           value = sel.options[sel.selectedIndex].value;
       switch(value) {
         case 'Android':
           form.pageset_type.value = 'Mobile10k';
+          form.browser_args_1.value = '';
+          form.browser_args_2.value = '';
           break;
         case 'Linux':
           form.pageset_type.value = '10k';
+          default_browser_args = '--disable-setuid-sandbox '
+                                 + '--enable-threaded-compositing '
+                                 + '--enable-impl-side-painting';
+          form.browser_args_1.value = default_browser_args;
+          form.browser_args_2.value = default_browser_args;
           break;
       }
     }
-    setPagesetsType(document.getElementById('target_platform'));
+    setPlatformDefaults(document.getElementById('target_platform'));
 
     function populateThreshold(sel) {
       var form = sel.form,
@@ -176,7 +198,9 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
     <tr bgcolor="#CCCCFF">
       <td><b>Description</b></td>
       <td><b>Benchmark Name</b></td>
-      <td><b>Benchmark Arguments</b></td>
+      <td><b>Benchmark Args</b></td>
+      <td><b>Browser Args (nopatch)</b></td>
+      <td><b>Browser Args (withpatch)</b></td>
       <td><b>Target Platform</b></td>
       <td><b>Repeat Runs</b></td>
       <td><b>Variance Threshold</b></td>
@@ -198,6 +222,8 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
       <td>{{ task.description }}</td>
       <td>{{ task.benchmark_name }}</td>
       <td>{{ task.benchmark_arguments }}</td>
+      <td>{{ task.browser_args_1 }}</td>
+      <td>{{ task.browser_args_2 }}</td>
       <td>
         {% if task.target_platform %}
           {{ task.target_platform }}
