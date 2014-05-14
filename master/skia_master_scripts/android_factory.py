@@ -34,5 +34,4 @@ class AndroidFactory(skia_factory.SkiaFactory):
                           '--has_root', WithProperties('%(has_root:-True)s'),
                           '--android_sdk_root',
                               WithProperties('%(android_sdk_root)s')]
-    self._default_clobber = True
 

@@ -374,13 +374,10 @@ class SkiaFactory(BuildFactory):
     if clobber is None:
       clobber = self._default_clobber
 
-    # Trybots should always clean.
-    if clobber or self._do_patch_step:
+
+    if clobber:
       self.AddFlavoredSlaveScript(script='clean.py', description='Clean',
                                   halt_on_failure=True)
-
-    # Always re-run gyp before compiling.
-    self.RunGYP()
 
     # Only retry with clobber if we've requested it AND we aren't clobbering on
     # the first build.
@@ -442,8 +439,6 @@ class SkiaFactory(BuildFactory):
     # Try again with a clean build.
     self.AddFlavoredSlaveScript(script='clean.py', description='Clean',
                                 do_step_if=ShouldRetryWithClobber)
-    self.RunGYP(description=_COMPILE_RETRY_PREFIX + _RUNGYP_STEP_DESCRIPTION,
-                do_step_if=ShouldRetryWithClobber)
     for build_target in self._build_targets:
       self.Make(target=build_target,
                 description=_COMPILE_RETRY_PREFIX + \
@@ -457,8 +452,6 @@ class SkiaFactory(BuildFactory):
     self.AddFlavoredSlaveScript(script='clean.py', description='Clean',
                                 always_run=True,
                                 do_step_if=ShouldRetryWithoutWarnings)
-    self.RunGYP(description=_COMPILE_NO_WERR_PREFIX + _RUNGYP_STEP_DESCRIPTION,
-                do_step_if=ShouldRetryWithoutWarnings)
     for build_target in self._build_targets:
       self.Make(target=build_target,
                 description=_COMPILE_NO_WERR_PREFIX + \
@@ -815,7 +808,7 @@ class SkiaFactory(BuildFactory):
       # Compile-only builder.
       self.UpdateSteps()
       if not self._build_targets:
-        self._build_targets = ['skia_lib', 'tests', 'gm', 'tools', 'bench']
+        self._build_targets = []
         if (('Win7' in self._builder_name and 'x86_64' in self._builder_name) or
             ('Ubuntu' in self._builder_name and 'x86-' in self._builder_name) or
             'Mac10.6' in self._builder_name or 'Mac10.7' in self._builder_name):
