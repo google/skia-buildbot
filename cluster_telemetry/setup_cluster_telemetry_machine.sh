@@ -51,7 +51,7 @@ done
 CMD="""
 # Install required packages.
 sudo apt-get update;
-sudo apt-get -y install linux-tools python-django libgif-dev && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod;
+sudo apt-get -y install linux-tools python-django libgif-dev lua5.2 && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod;
 
 # Checkout Skia's buildbot and trunk repositories.
 mkdir /b/storage/;
