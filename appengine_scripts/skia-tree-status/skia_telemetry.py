@@ -31,7 +31,8 @@ PAGESET_TYPES = {
     'All': 'Top 1M (with desktop user-agent)',
     '10k': 'Top 10k (with desktop user-agent)',
     'Mobile10k': 'Top 10k (with mobile user-agent)',
-    'IndexSample10k': 'IndexSample 10k (with mobile user-agent)'
+    'IndexSample10k': 'IndexSample 10k (with mobile user-agent)',
+    'GPURasterSet': 'GPU Raster Set (with mobile user-agent)',
 }
 
 # Constants for ChromiumTryPage.
@@ -899,7 +900,7 @@ class ChromiumTryPage(BasePage):
         self.user.email())
     # Only support all 10k pagesets for now.
     template_values['pagesets'] = dict((k, v) for k, v in PAGESET_TYPES.items()
-                                              if '10k' in k)
+                                              if '10k' in k or 'GPU' in k)
     template_values['supported_benchmarks'] = CHROMIUM_TRY_SUPPORTED_BENCHMARKS
     template_values['chromium_try_tasks'] = chromium_try_tasks
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
