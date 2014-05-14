@@ -11,9 +11,6 @@ from skia_master_scripts.arm64model_factory \
     import Arm64ModelFactory as f_a64mod
 from skia_master_scripts.canary_factory import CanaryFactory as f_canary
 from skia_master_scripts.chromeos_factory import ChromeOSFactory as f_cros
-from skia_master_scripts.deps_roll_factory import DepsRollFactory as f_deps
-from skia_master_scripts.deps_roll_results_factory \
-    import DepsRollResultsFactory as f_deps_results
 from skia_master_scripts.drt_canary_factory import DRTCanaryFactory as f_drt
 from skia_master_scripts.recreate_skps_factory \
     import RecreateSKPsFactory as f_skps
@@ -54,13 +51,10 @@ PERF_OUTPUT_BASEDIR = {
 # Schedulers used by the build master.
 S_PERCOMMIT = 'skia_percommit_scheduler'
 S_NIGHTLY = 'skia_nightly_scheduler'
-S_MORNING = 'skia_morning_scheduler'
 S_RECREATE_SKPS = 'skia_recreate_skps_scheduler'
 S_POST_RECREATE_SKPS = 'skia_post_recreate_skps_scheduler'
 S_COMMIT_OR_SKP = '|'.join((S_PERCOMMIT, S_POST_RECREATE_SKPS))
 
-S_5AM = 'skia_5AM_UTC'
-S_5PM = 'skia_5PM_UTC'
 
 defaults = {}
 
@@ -476,10 +470,6 @@ def create_schedulers_and_builders(config, active_master, cfg,
   # Default (per-commit) Scheduler for Skia.
   helper.Scheduler(S_PERCOMMIT)
 
-  # Schedulers that run at 5 AM and 5 PM UTC, 12 EST or 1 EDT.
-  helper.PeriodicScheduler(S_5AM, minute=0, hour=5)
-  helper.PeriodicScheduler(S_5PM, minute=0, hour=17)
-
   # Scheduler for the RecreateSKPs bot which runs before the Nightly Scheduler.
   # Setting it to 1AM UTC (8 PM EST).
   helper.PeriodicScheduler(S_RECREATE_SKPS, minute=0, hour=1)
@@ -490,10 +480,6 @@ def create_schedulers_and_builders(config, active_master, cfg,
   # Nightly Scheduler for Skia. The buildbot master follows UTC.
   # Setting it to 3AM UTC (10 PM EST).
   helper.PeriodicScheduler(S_NIGHTLY, minute=0, hour=3)
-
-  # Daily (morning) Scheduler for Skia. The buildbot master follows UTC.
-  # Setting it to 11AM UTC (6 AM EST).
-  helper.PeriodicScheduler(S_MORNING, minute=0, hour=11)
 
   # Schedulers for Skia trybots.
   helper.TryJobSubversion(utils.TRY_SCHEDULER_SVN)

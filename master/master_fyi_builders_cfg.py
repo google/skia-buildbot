@@ -5,11 +5,11 @@
 # Sets up all the builders we want the FYI buildbot master to run.
 
 
-from master_builders_cfg import f_a64mod, f_deps, f_deps_results, f_percommit
-from master_builders_cfg import f_periodic, f_xsan, HousekeepingBuilder, LINUX
+from master_builders_cfg import f_a64mod, f_percommit, f_periodic, f_xsan
+from master_builders_cfg import HousekeepingBuilder, LINUX
 
 # Schedulers
-from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, S_5AM, S_5PM, S_MORNING
+from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY
 
 from skia_master_scripts.moz2d_canary_factory \
     import Moz2DCanaryFactory as f_moz2d
@@ -102,8 +102,6 @@ def setup_housekeepers(helper, do_upload_render_results,
       # DEPSRoll+DEPSRollResults bot will "win". Remove the other at that time.
       ('PerCommit', 'AutoRoll',         f_autoroll,     LINUX,  S_PERCOMMIT,              {}),
       ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,                {}),
-      ('Nightly',   'DEPSRoll',         f_deps,         LINUX,  '|'.join((S_5AM, S_5PM)), {}),
-      ('Daily',     'DEPSRollResults',  f_deps_results, LINUX,  S_MORNING,                {'deps_roll_builder': 'Housekeeper-Nightly-DEPSRoll'}),
       ('Nightly',   'Monitoring',       f_monitor,      LINUX,  S_NIGHTLY,                {}),
   ]
 
