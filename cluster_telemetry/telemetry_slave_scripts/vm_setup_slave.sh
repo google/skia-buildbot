@@ -14,6 +14,10 @@
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
 
+# When the Cluster Telemetry bare-metal machines crash they are sometimes
+# recreated with /tmp set to only root access.
+sudo chmod 777 /tmp
+
 # Download the chrome binary from Google Storage if the local TIMESTAMP is out
 # of date.
 mkdir -p /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/
