@@ -28,10 +28,11 @@ if [ $# -lt 5 ]; then
   echo "The fifth argument is the name of the directory where the chromium" \
        "build which will be used for this run is stored."
   echo "The sixth argument is a unique runid (typically requester + timestamp)."
-  echo "The seventh argument is the email address of the requester (optional)."
-  echo "The eighth argument is the key of the appengine telemetry task (optional)."
-  echo "The ninth argument is the location of the log file (optional)."
-  echo "The tenth argument is the local location of the optional whitelist file (optional)."
+  echo "The seventh argument is the extra browser args to use when running telemetry."
+  echo "The eighth argument is the email address of the requester (optional)."
+  echo "The ninth argument is the key of the appengine telemetry task (optional)."
+  echo "The tenth argument is the location of the log file (optional)."
+  echo "The eleventh argument is the local location of the optional whitelist file (optional)."
   echo
   exit 1
 fi
@@ -42,13 +43,14 @@ PAGESETS_TYPE=$3
 REPEAT_TELEMETRY_RUNS=$4
 CHROMIUM_BUILD_DIR=$5
 RUN_ID=$6
-REQUESTER_EMAIL=$7
-APPENGINE_KEY=$8
-LOG_FILE_LOCATION=$9
-WHITELIST_LOCAL_LOCATION=${10}
+EXTRA_BROWSER_ARGS=$7
+REQUESTER_EMAIL=$8
+APPENGINE_KEY=$9
+LOG_FILE_LOCATION=${10}
+WHITELIST_LOCAL_LOCATION=${11}
 
 source ../config.sh
-source vm_utils.sh 
+source vm_utils.sh
 
 # Update buildbot.
 gclient sync
@@ -75,7 +77,7 @@ if [[ ! -z "$WHITELIST_LOCAL_LOCATION" ]]; then
 fi
 
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $REPEAT_TELEMETRY_RUNS $TARGET_PLATFORM $CHROMIUM_BUILD_DIR $RUN_ID $WHITELIST_GS_LOCATION"
+  CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $REPEAT_TELEMETRY_RUNS $TARGET_PLATFORM $CHROMIUM_BUILD_DIR $RUN_ID \"$EXTRA_BROWSER_ARGS\" $WHITELIST_GS_LOCATION"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
     -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt 2>&1"

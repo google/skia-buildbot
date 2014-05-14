@@ -27,7 +27,8 @@ if [ $# -lt 5 ]; then
   echo "The seventh argument is the name of the directory where the chromium" \
        "build which will be used for this run is stored."
   echo "The eighth argument is the runid (typically requester + timestamp)."
-  echo "The ninth optional argument is the Google Storage location of the URL" \
+  echo "The ninth argument is the extra browser arguments to send to telemetry."
+  echo "The tenth optional argument is the Google Storage location of the URL" \
        "whitelist."
   echo
   exit 1
@@ -41,7 +42,8 @@ REPEAT_TELEMETRY_RUNS=$5
 TARGET_PLATFORM=$6
 CHROMIUM_BUILD_DIR=$7
 RUN_ID=$8
-WHITELIST_GS_LOCATION=$9
+EXTRA_BROWSER_ARGS=$9
+WHITELIST_GS_LOCATION=${10}
 
 WHITELIST_FILE=whitelist.$RUN_ID
 
@@ -94,7 +96,7 @@ fi
 if [ "$TELEMETRY_BENCHMARK" == "smoothness" ]; then
   # A synthetic scroll needs to be able to output at least two frames. Make the
   # viewport size smaller than the page size.
-  EXTRA_BROWSER_ARGS="--window-size=1280,512"
+  EXTRA_BROWSER_ARGS="--window-size=1280,512 $EXTRA_BROWSER_ARGS"
 fi
 
 OUTPUT_DIR=/b/storage/telemetry_outputs/$RUN_ID
@@ -129,8 +131,8 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
         echo "== Running eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
         eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
       else
-        echo "== Running eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting $EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
-        eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting $EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
+        echo "== Running eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
+        eval sudo DISPLAY=:0 timeout 300 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
       fi
       sudo chown chrome-bot:chrome-bot $OUTPUT_DIR/${RUN_ID}.${page_set_basename}.${current_run}
     done

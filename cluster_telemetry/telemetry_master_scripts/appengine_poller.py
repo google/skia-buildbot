@@ -144,7 +144,7 @@ def process_skia_try_task(task):
   ]
   subprocess.Popen(skia_try_cmd, stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))
-  
+
 
 def process_chromium_try_task(task):
   # Extract required parameters.
@@ -164,6 +164,8 @@ def process_chromium_try_task(task):
   variance_threshold = task['variance_threshold']
   discard_outliers = task['discard_outliers']
   pageset_type = task['pageset_type']
+  browser_args_1 = task['browser_args_1']
+  browser_args_2 = task['browser_args_2']
   # Copy the patch to a local file.
   run_id = '%s-%s' % (username.split('@')[0], time.time())
   chromium_patch_file = fix_and_write_patch(task['chromium_patch'],
@@ -206,6 +208,8 @@ def process_chromium_try_task(task):
         '-y', str(pageset_type),
         '-n', str(num_repeated_runs),
         '-m', str(target_platform),
+        '-x', str(browser_args_1),
+        '-z', str(browser_args_2),
     ]
   subprocess.Popen(cmd, stdout=open(log_file, 'w'),
                    stderr=open(log_file, 'w'))
@@ -274,6 +278,8 @@ def process_telemetry_task(task):
       '1',
       chromium_build_dir,
       run_id,
+      ('--disable-setuid-sandbox --enable-threaded-compositing '
+       '--enable-impl-side-painting'),
       username,
       str(task_key),
       log_file

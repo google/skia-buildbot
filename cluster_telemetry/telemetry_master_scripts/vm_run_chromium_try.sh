@@ -29,10 +29,12 @@ OPTIONS:
   -y The pageset type to run against (Eg: 10k/IndexSample10k)
   -n Number of times to run each pageset
   -m The target platform to run the telemetry benchmarks on (Android / Linux)
+  -x Browser arguments to specify when running telemetry nopatch run
+  -z Browser arguments to specify when running telemetry withpatch run
 EOF
 }
 
-while getopts "hp:t:s:r:v:o:b:a:e:i:l:y:n:m:" OPTION
+while getopts "hp:t:s:r:v:o:b:a:e:i:l:y:n:m:x:z:" OPTION
 do
   case $OPTION in
     h)
@@ -80,6 +82,12 @@ do
       ;;
     m)
       TARGET_PLATFORM=$OPTARG
+      ;;
+    x)
+      EXTRA_BROWSER_ARGS_1=$OPTARG
+      ;;
+    z)
+      EXTRA_BROWSER_ARGS_2=$OPTARG
       ;;
     ?)
       usage
@@ -162,7 +170,7 @@ if [ $ret_value -eq 0 ]; then
   TIMER="$(date +%s)"
   TARGET_PLATFORM=$TARGET_PLATFORM TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
       "$EXTRA_ARGS" $PAGESET_TYPE $REPEAT_TELEMETRY_RUNS $CHROMIUM_BUILD_DIR $TELEMETRY_NOPATCH_ID \
-      $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
+      "$EXTRA_BROWSER_ARGS_1" $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
   TELEMETRY_WITHOUT_PATCH_TIME="$(($(date +%s)-TIMER))"
 
   # Below may no longer be needed after the move to bare-metal machines.
@@ -177,7 +185,7 @@ if [ $ret_value -eq 0 ]; then
   TIMER="$(date +%s)"
   TARGET_PLATFORM=$TARGET_PLATFORM TRYSERVER=true bash vm_run_telemetry_on_slaves.sh $TELEMETRY_BENCHMARK \
       "$EXTRA_ARGS" $PAGESET_TYPE $REPEAT_TELEMETRY_RUNS $CHROMIUM_BUILD_DIR-withpatch $TELEMETRY_WITHPATCH_ID \
-      $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
+      "$EXTRA_BROWSER_ARGS_2" $REQUESTER_EMAIL $APPENGINE_KEY $TELEMETRY_BUILD_LOG &> $TELEMETRY_BUILD_LOG
   TELEMETRY_WITH_PATCH_TIME="$(($(date +%s)-TIMER))"
 
   # Delete the try chromium builds from the slaves so that they do not take up unneeded disk space.
