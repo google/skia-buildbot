@@ -104,6 +104,10 @@ class SkiaCommands(commands.FactoryCommands):
       if description in self.factory.skipsteps:
         return
 
+    # If a developer has marked the step as dontskip, make sure it will run.
+    if description in self.factory.dontskipsteps:
+      do_step_if = True
+
     if not timeout:
       timeout = self.default_timeout
     self.factory.addStep(skia_build_step.SkiaBuildStep,
