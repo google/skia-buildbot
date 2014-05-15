@@ -57,7 +57,7 @@ class CsvComparer(object):
                variance_threshold, absolute_url, min_pages_in_each_field,
                discard_outliers, raw_csv_nopatch, raw_csv_withpatch,
                num_repeated, target_platform, crashed_instances,
-               missing_devices):
+               missing_devices, browser_args_nopatch, browser_args_withpatch):
     """Constructs a CsvComparer instance."""
     self._csv_file1 = csv_file1
     self._csv_file2 = csv_file2
@@ -76,6 +76,8 @@ class CsvComparer(object):
     self._target_platform = target_platform
     self._crashed_instances = crashed_instances
     self._missing_devices = missing_devices
+    self._browser_args_nopatch = browser_args_nopatch
+    self._browser_args_withpatch = browser_args_withpatch
 
   def _IsPercDiffSameOrAboveThreshold(self, perc_diff):
     """Compares the specified diff to the variance threshold.
@@ -269,6 +271,8 @@ class CsvComparer(object):
          'target_platform': self._target_platform,
          'crashed_instances': self._crashed_instances,
          'missing_devices': self._missing_devices,
+         'browser_args_nopatch': self._browser_args_nopatch,
+         'browser_args_withpatch': self._browser_args_withpatch,
          'absolute_url': self._absolute_url})
     index_html = open(os.path.join(self._output_html_dir, 'index.html'), 'w')
     index_html.write(rendered)
@@ -356,6 +360,12 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--target_platform',
       help='The platform telemetry benchmarks/measuremetns were run on.')
+  option_parser.add_option(
+      '', '--browser_args_nopatch',
+      help='The browser args that were used for the nopatch run.')
+  option_parser.add_option(
+      '', '--browser_args_withpatch',
+      help='The browser args that were used for the withpatch run.')
 
   options, unused_args = option_parser.parse_args()
   if not (options.csv_file1 and options.csv_file2 and options.output_html_dir
@@ -378,5 +388,6 @@ if '__main__' == __name__:
       options.min_pages_in_each_field, options.discard_outliers,
       options.raw_csv_nopatch, options.raw_csv_withpatch,
       options.num_repeated, options.target_platform,
-      options.crashed_instances, options.missing_devices).Compare())
+      options.crashed_instances, options.missing_devices,
+      options.browser_args_nopatch, options.browser_args_withpatch).Compare())
 
