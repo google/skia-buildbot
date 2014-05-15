@@ -105,6 +105,7 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
             <option value="{{ pageset }}">{{ desc }}</option>
           {% endfor %}
         </select>
+        <a id="pageset_type_info"></a>
       </td>
     </tr>
     <tr>
@@ -163,8 +164,16 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
     function populateThreshold(sel) {
       var form = sel.form,
           value = sel.options[sel.selectedIndex].value;
+      document.getElementById('pageset_type_info').innerHTML = '';
       switch(value) {
         case 'rasterize_and_record_micro':
+          form.variance_threshold.value = '0';
+          break;
+        case 'repaint':
+          form.pageset_type.value = 'GPURasterSet';
+          document.getElementById('pageset_type_info').innerHTML = (
+              'GPU Raster Set is currently the only pageset that works with ' +
+              'repaint');
           form.variance_threshold.value = '0';
           break;
         case 'pixeldiffs':
