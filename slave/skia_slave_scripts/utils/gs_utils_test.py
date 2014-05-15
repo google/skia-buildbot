@@ -86,7 +86,7 @@ class TestGSUtils(unittest.TestCase):
 
   def test_copy_storage_directory(self):
     self._expected_command = (
-        '%s cp -a public -R superman batman' % GSUTIL_LOCATION)
+        '%s -m cp -a public -R superman batman' % GSUTIL_LOCATION)
     gs_utils.copy_storage_directory('superman', 'batman', 'public')
 
   def test_does_storage_object_exist(self):

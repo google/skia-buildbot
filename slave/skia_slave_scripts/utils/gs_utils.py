@@ -47,9 +47,12 @@ def copy_storage_directory(src_dir, dest_dir, gs_acl='private',
   The copy operates as a "merge with overwrite": any files in src_dir will be
   "overlaid" on top of the existing content in dest_dir.  Existing files with
   the same names will be overwritten.
+
+  Performs the copy in multithreaded mode, in case there are a large number of
+  files.
   """
   gsutil = slave_utils.GSUtilSetup()
-  command = [gsutil]
+  command = [gsutil, '-m']
   if http_header_lines:
     for http_header_line in http_header_lines:
       command.extend(['-h', http_header_line])
