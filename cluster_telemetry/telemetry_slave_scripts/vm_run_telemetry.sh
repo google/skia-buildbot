@@ -72,7 +72,7 @@ adb install -r /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/apks/ChromeShell
 mkdir -p /b/storage/webpages_archive/$PAGESETS_TYPE/
 are_timestamps_equal /b/storage/webpages_archive/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE
 if [ $? -eq 1 ]; then
-  gsutil cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/* \
+  gsutil -m cp gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/* \
     /b/storage/webpages_archive/$PAGESETS_TYPE
 fi
 
@@ -207,7 +207,7 @@ if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   python remove_invalid_skps.py --skp_dir=/b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/ --path_to_skpinfo=/b/skia-repo/trunk/out/Release/skpinfo
 
   # Now copy the SKP files to Google Storage.
-  gsutil cp /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/* \
+  gsutil -m cp /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/* \
     gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
   # Set ACLs for only google.com accounts to read the SKPs.
   gsutil acl ch -g google.com:READ gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/*

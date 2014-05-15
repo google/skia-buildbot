@@ -82,7 +82,7 @@ else
     # Clean the directory in Google Storage.
     gsutil rm -R gs://chromium-skia-gm/telemetry/chromium-builds/${DIR_NAME}/*
     # Copy the newly built chrome binary into Google Storage.
-    gsutil cp -r * gs://chromium-skia-gm/telemetry/chromium-builds/${DIR_NAME}/
+    gsutil -m cp -r * gs://chromium-skia-gm/telemetry/chromium-builds/${DIR_NAME}/
     # Create a TIMESTAMP file and copy it to Google Storage.
     TIMESTAMP=`date +%s`
     echo $TIMESTAMP > /tmp/$TIMESTAMP

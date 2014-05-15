@@ -88,7 +88,7 @@ mv page_sets/*.py /b/storage/page_sets/$PAGESETS_TYPE/
 # Clean the directory in Google Storage.
 gsutil rm -R gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/*
 # Copy the page_sets into Google Storage.
-gsutil cp /b/storage/page_sets/$PAGESETS_TYPE/*py gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
+gsutil -m cp /b/storage/page_sets/$PAGESETS_TYPE/*py gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
 
 # Create a TIMESTAMP file and copy it to Google Storage.
 TIMESTAMP=`date +%s`

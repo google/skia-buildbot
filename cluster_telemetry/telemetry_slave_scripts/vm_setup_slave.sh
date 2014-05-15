@@ -25,7 +25,7 @@ are_timestamps_equal /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR} gs://chrom
 if [ $? -eq 1 ]; then
   rm -rf /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}*
   mkdir -p /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/
-  for i in {1..5}; do gsutil cp -R gs://chromium-skia-gm/telemetry/chromium-builds/${CHROMIUM_BUILD_DIR}/* /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/ && break || sleep 5; done
+  for i in {1..5}; do gsutil -m cp -R gs://chromium-skia-gm/telemetry/chromium-builds/${CHROMIUM_BUILD_DIR}/* /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/ && break || sleep 5; done
   sudo chmod 777 /b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome
 fi
 
@@ -34,7 +34,7 @@ fi
 mkdir -p /b/storage/page_sets/$PAGESETS_TYPE/
 are_timestamps_equal /b/storage/page_sets/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE
 if [ $? -eq 1 ]; then
-  gsutil cp gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/* \
+  gsutil -m cp gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/* \
     /b/storage/page_sets/$PAGESETS_TYPE/
 fi
 

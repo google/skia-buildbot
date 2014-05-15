@@ -66,7 +66,7 @@ do
       RUN_ID=$OPTARG
       ;;
     k)
-      APPENGINE_KEY=$OPTARG 
+      APPENGINE_KEY=$OPTARG
       ;;
     l)
       LOG_FILE=$OPTARG
@@ -154,7 +154,7 @@ python json_summary_combiner.py \
   --nopatch_gpu=$GPU_NOPATCH_RUN \
   --withpatch_gpu=$GPU_WITHPATCH_RUN
 # Copy HTML output to Google Storage.
-gsutil cp -R $HTML_OUTPUT_DIR/* gs://$RELATIVE_HTML_OUTPUT
+gsutil -m cp -R $HTML_OUTPUT_DIR/* gs://$RELATIVE_HTML_OUTPUT
 # Set google.com domain ACL on the HTML files.
 gsutil acl ch -g google.com:READ gs://${RELATIVE_HTML_OUTPUT}*
 

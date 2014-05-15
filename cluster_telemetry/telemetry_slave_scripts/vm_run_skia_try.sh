@@ -107,7 +107,7 @@ GS_SKP_DIR=gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$
 mkdir -p $LOCAL_SKP_DIR
 are_timestamps_equal $LOCAL_SKP_DIR $GS_SKP_DIR
 if [ $? -eq 1 ]; then
-  gsutil cp $GS_SKP_DIR/* $LOCAL_SKP_DIR
+  gsutil -m cp $GS_SKP_DIR/* $LOCAL_SKP_DIR
 fi
 
 SKIA_TRUNK_LOCATION=/b/skia-repo/trunk
@@ -117,7 +117,7 @@ function cleanup_slave_before_exit {
   reset_skia_checkout
   copy_log_to_gs
   delete_worker_file $WORKER_FILE
-  rm -rf /tmp/*${RUN_ID}* 
+  rm -rf /tmp/*${RUN_ID}*
   rm -rf /tmp/diffs
   rm -rf /tmp/images
   rm -rf /tmp/whitediffs
@@ -206,12 +206,12 @@ echo "== Copy everything to Google Storage =="
 # Get list of failed file names and upload only those to Google Storage.
 ARRAY=`cat $JSON_SUMMARY_DIR/slave${SLAVE_NUM}.json | grep 'fileName' | cut -d ':' -f 2 | cut -d "\"" -f2`
 for i in ${ARRAY[@]}; do
-  gsutil cp $OUTPUT_DIR_NOPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/
-  gsutil cp $OUTPUT_DIR_WITHPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/
+  gsutil -m cp $OUTPUT_DIR_NOPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/
+  gsutil -m cp $OUTPUT_DIR_WITHPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/
 done
 # Copy the diffs and whitediffs to Google Storage.
-gsutil cp $IMG_ROOT/diffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/
-gsutil cp $IMG_ROOT/whitediffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/
+gsutil -m cp $IMG_ROOT/diffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/
+gsutil -m cp $IMG_ROOT/whitediffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/
 
 # Set google.com permissions on all uploaded images.
 gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/*

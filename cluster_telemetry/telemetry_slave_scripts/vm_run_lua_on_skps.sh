@@ -50,7 +50,7 @@ GYP_DEFINES="skia_warnings_as_errors=0" make tools BUILDTYPE=Release
 mkdir -p /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
 are_timestamps_equal /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR
 if [ $? -eq 1 ]; then
-  gsutil cp gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/* /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
+  gsutil -m cp gs://chromium-skia-gm/telemetry/skps/slave$SLAVE_NUM/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/* /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/
 fi
 
 # Copy the lua script from Google Storage to /tmp.

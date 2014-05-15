@@ -63,7 +63,7 @@ done
 # Copy the webpages_archive directory to Google Storage.
 gsutil rm -R gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/*
 sudo chown -R chrome-bot:chrome-bot /b/storage/webpages_archive/$PAGESETS_TYPE
-gsutil cp /b/storage/webpages_archive/$PAGESETS_TYPE/* \
+gsutil -m cp /b/storage/webpages_archive/$PAGESETS_TYPE/* \
   gs://chromium-skia-gm/telemetry/webpages_archive/slave$SLAVE_NUM/$PAGESETS_TYPE/
 
 # Create a TIMESTAMP file and copy it to Google Storage.

@@ -92,7 +92,7 @@ function copy_build_to_google_storage {
     # Clean the directory in Google Storage.
     gsutil rm -R gs://chromium-skia-gm/telemetry/chromium-builds/$dir_name/*
     # Copy the newly built chrome binary into Google Storage.
-    gsutil cp -r * gs://chromium-skia-gm/telemetry/chromium-builds/$dir_name/
+    gsutil -m cp -r * gs://chromium-skia-gm/telemetry/chromium-builds/$dir_name/
     # Move the large directories back.
     mv /tmp/gen .
     mv /tmp/obj .
