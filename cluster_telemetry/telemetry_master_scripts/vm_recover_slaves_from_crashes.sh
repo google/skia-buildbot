@@ -28,6 +28,13 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   then
     echo "cluster-telemetry-worker$SLAVE_NUM is not responding!"
     CRASHED_INSTANCES="$CRASHED_INSTANCES cluster-telemetry-worker$SLAVE_NUM"
+  else
+    DEVICES=`ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
+      -o StrictHostKeyChecking=no \
+      -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb devices | grep offline"`
+    if [ "$DEVICES" != "" ]; then
+      CRASHED_INSTANCES="$CRASHED_INSTANCES build$SLAVE_NUM-b5(N5 offline)"
+    fi
   fi
 
 done
