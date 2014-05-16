@@ -10,7 +10,7 @@
 import os
 import sys
 
-from build_step import BuildStep
+from build_step import BuildStep, BuildStepWarning
 import skia_vars
 from sync_android import ANDROID_CHECKOUT_PATH, REPO
 from utils.gclient_utils import GIT
@@ -31,12 +31,6 @@ UPSTREAM_USER_CONFIG = 'include/config/SkUserConfig.h'
 EXTERNAL_SKIA = os.path.join(ANDROID_CHECKOUT_PATH, 'external', 'skia')
 # Path to gyp_to_android.py, relative to EXTERNAL_SKIA.
 PLATFORM_TOOLS_BIN = os.path.join('platform_tools', 'android', 'bin')
-
-# Used to determine the revision number, which will be entered as part of the
-# commit message. TODO (scroggo): What should the commit message say when we
-# switch to git and there is no revision number? (Or will there be one? See
-# skbug.com/1639).
-GIT_SVN_ID = 'http://skia.googlecode.com/svn/trunk@'
 
 LOCAL_BRANCH_NAME = 'merge'
 
@@ -95,19 +89,18 @@ class MergeIntoAndroid(BuildStep):
 
       # Figure out the revision being merged, and use it to write the commit
       # message.
-      commit_message = shell_utils.run([GIT, 'show', UPSTREAM_BRANCH_NAME])
-      rev_index = commit_message.find(GIT_SVN_ID) + len(GIT_SVN_ID)
-      rev_end = commit_message.find(' ', rev_index)
-      revision = commit_message[rev_index:rev_end]
+      revision = shell_utils.run([GIT, 'show', '--format="%H from %cD"', '-s'])
+      # Remove trailing newline.
+      revision.rstrip()
 
       try:
-        shell_utils.run([GIT, 'commit', '-m', 'Merge Skia at r' + revision])
+        shell_utils.run([GIT, 'commit', '-m', 'Merge Skia at ' + revision])
       except shell_utils.CommandFailedException:
         # It is possible that someone else already did the merge (for example,
         # if they are testing a build slave). Clean up and exit.
         shell_utils.run([REPO, 'abandon', LOCAL_BRANCH_NAME])
-        raise Exception('Nothing to merge; did someone already merge r%s?'
-                        % revision)
+        raise BuildStepWarning('Nothing to merge; did someone already merge'
+                               ' %s?' % revision)
 
       # Now push to master-skia branch
       shell_utils.run([GIT, 'push', MASTER_SKIA_URL, MASTER_SKIA_REFS])
