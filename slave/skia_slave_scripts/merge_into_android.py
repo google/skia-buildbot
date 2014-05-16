@@ -80,6 +80,9 @@ class MergeIntoAndroid(BuildStep):
       shell_utils.run([GIT, 'add', 'Android.mk'])
       shell_utils.run([GIT, 'add', ANDROID_USER_CONFIG])
       shell_utils.run([GIT, 'add', os.path.join('tests', 'Android.mk')])
+      shell_utils.run([GIT, 'add', os.path.join('bench', 'Android.mk')])
+      shell_utils.run([GIT, 'add', os.path.join('gm', 'Android.mk')])
+      shell_utils.run([GIT, 'add', os.path.join('dm', 'Android.mk')])
 
       # Remove upstream user config, which is no longer needed.
       shell_utils.run(['rm', UPSTREAM_USER_CONFIG])
