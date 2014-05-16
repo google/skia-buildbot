@@ -7,12 +7,15 @@
   <script language="JavaScript">
   "use strict";
 
+  var selectedMaster = null;
+
   // Build result codes.
   var SUCCESS = 0;
 
   // Number of revisions which should be loaded.
   // TODO(borenet): Make this configurable in the UI.
-  var REVS_TO_LOAD = 100;
+  var DEFAULT_REVS_TO_LOAD = 10;
+  var revsToLoad = DEFAULT_REVS_TO_LOAD;
 
   // Configuration options for the charts
   var LINE_CHART_OPTIONS = {
@@ -136,12 +139,12 @@
    * a set of builders.
    * @param {Array.<string>} displayBuilders List of builders which should be
    *     included in the chart.
-   * @param {Array.<number>} allRevs List of revision numbers which should be
+   * @param {Array.<string>} allRevs List of revision hashes which should be
    *     included in the chart.
    */
   function drawLineChart(displayBuilders, allRevs) {
     var table = new google.visualization.DataTable();
-    table.addColumn("number", "Revision");
+    table.addColumn("string", "Revision");
     for (var i = 0; i < displayBuilders.length; i++) {
       table.addColumn("number", displayBuilders[i]);
       table.addColumn({"type": "string", "role": "annotation"});
@@ -190,7 +193,7 @@
         var rev = allRevs[selected.row];
         var buildNum = data[rev][builder].getNumber();
         console.log("Selected: " + builder + " @ " + rev);
-        var url = skiaTools.host() + ":" + skiaTools.port() +
+        var url = "http://" + selectedMaster.getHost() + ":" + selectedMaster.getPort() +
             "/buildstatus?builder=" + builder + "&number=" + buildNum;
         var rightContent = "<iframe style=\"width:100%; height:100%; "
                          + "padding:0px; margin=0px; overflow:scroll;\" src=\""
@@ -200,21 +203,6 @@
       }
     });
     lineChart.draw(table, LINE_CHART_OPTIONS);
-
-    var firstRev = allRevs[0];
-    var lastRev = allRevs[allRevs.length - 1];
-    var lineChartRangeFilter = new google.visualization.ChartRangeFilter(
-        document.getElementById("line_chart_range_filter_div"));
-    google.visualization.events.addListener(lineChartRangeFilter,
-        "statechange",
-        function() {
-          var range = lineChartRangeFilter.getState().range;
-          LINE_CHART_OPTIONS.hAxis.viewWindow = {min: range.start,
-                                                 max: range.end};
-          lineChart.draw(table, LINE_CHART_OPTIONS);
-        });
-    lineChartRangeFilter.draw(table, LINE_CHART_RANGE_FILTER_OPTIONS,
-        {"range": {"start": firstRev, "end": lastRev}});
     setRightContent("");
   }
 
@@ -222,7 +210,7 @@
    * Draw a bar chart illustrating the running times of each step in a given
    * build for a given builder.
    * @param {string} builder The builder whose build should be displayed.
-   * @param {number} revision The revision of the build to display.
+   * @param {string} revision The revision of the build to display.
    * @param {number} viewWindowMax The width of the viewing window. This is
    *     provided instead of being determined from the data so that each bar
    *     graph can be displayed with the same scale.
@@ -258,8 +246,8 @@
     var barChart = new google.visualization.BarChart(
         document.getElementById("bar_chart_div"));
     var options = BAR_CHART_OPTIONS;
-    options["title"] = builder + ": Build #" + buildData.getNumber() + ", r" +
-        revision;
+    options["title"] = builder + ": Build #" + buildData.getNumber() + " (" +
+        buildData.getRevision() + ")";
     options["hAxis"]["viewWindow"] = {"max": viewWindowMax};
     barChart.draw(table, BAR_CHART_OPTIONS);
   }
@@ -291,29 +279,47 @@
         var builder = displayBuilders[i];
         if (!gotData[builder] || gotData[builder] == undefined) {
           console.log("Loading builds for " + builder + "...");
-          var cachedBuilds = builderData[builder].getCachedBuilds();
-          var lastBuild = cachedBuilds[cachedBuilds.length - 1];
-          var dataForBuilder = skiaTools.loadBuildsForBuilder(builder,
-                                                              lastBuild,
-                                                              REVS_TO_LOAD);
-          for (var rev in dataForBuilder) {
-            var revisionNumber = parseInt(rev);
-            if (allRevs.indexOf(revisionNumber) == -1) {
-              allRevs.push(revisionNumber);
+          var builderObj = builderData[builder];
+          var dataForBuilder = builderObj.loadBuilds(revsToLoad);
+          for (var buildNum in dataForBuilder) {
+            var rev = dataForBuilder[buildNum].getRevision();
+            if (allRevs.indexOf(rev) == -1) {
+              allRevs.push(rev);
             }
-            if (data[revisionNumber] == undefined) {
-              data[revisionNumber] = {};
+            if (data[rev] == undefined) {
+              data[rev] = {};
             }
-            data[revisionNumber][builder] = dataForBuilder[revisionNumber];
+            data[rev][builder] = dataForBuilder[buildNum];
           }
           gotData[builder] = true;
           console.log("Loaded builds for " + builder + ".");
         }
       }
-      allRevs.sort();
+      //allRevs.sort(); // TODO(borenet): Need to sort by revision datetime.
       drawLineChart(displayBuilders, allRevs);
       setMessage("");
     }, 0);
+  }
+
+  /**
+   * Callback function called when the selected build master has changed. Loads
+   * the builders for the master in the master_menu dropdown.
+   */
+  function selectMaster() {
+    selectedMaster = new skiaTools.Master(
+        document.getElementById("master_menu").value);
+    setMessage("Loading builders for " + selectedMaster.getName() +
+               " master...");
+    var builders = selectedMaster.loadBuilders();
+    builderData = {};
+    for (var builderNum = 0; builderNum < builders.length; builderNum++) {
+      var builder = builders[builderNum];
+      builderData[builder.getName()] = builder;
+      gotData[builder.getName()] = false;
+    }
+    skiaTools.populateMenu("builder_menu", Object.keys(builderData));
+    setMessage("Loaded builders.");
+    setMessage("Select one or more builders.");
   }
 
   /**
@@ -321,20 +327,13 @@
    * data to be loaded and the builder menu populated.
    */
   function init() {
-    setMessage("Loading builders...");
+    setMessage("Loading masters...");
     setTimeout(function() {
-      var builders = skiaTools.loadBuilders();
-      var allBuilders = [];
-      builderData = {};
-      for (var builderNum = 0; builderNum < builders.length; builderNum++) {
-        var builder = builders[builderNum];
-        builderData[builder.getName()] = builder;
-        allBuilders.push(builder.getName());
-        gotData[builder.getName()] = false;
-      }
-      skiaTools.populateMenu("builder_menu", allBuilders);
-      setMessage("Loaded builders.");
-      setMessage("Select one or more builders.");
+      var masters = skiaTools.loadMasterList();
+      skiaTools.populateMenu("master_menu", masters);
+      document.getElementById("master_menu").selectedIndex = -1;
+      setMessage("Loaded masters.");
+      setMessage("Please select a build master.");
     }, 0);
   }
   </script>
@@ -345,13 +344,21 @@
     </div>
     <div id="main_content_area" style="width:100%; height:90%; padding:0px; margin:0px;">
       <div id="builder_menu_div" style="float:left; width:18%; height:100%; padding:0px; margin:0px;">
+        <p>
+        Master:<br/>
+        <select id="master_menu" onChange="selectMaster();">
+          <option value="" noselect></option>
+        </select>
+        </p>
+        <p>
         Builders:<br/>
         <select id="builder_menu" multiple="multiple"
-            style="width:100%; height:95%; margin:0px; padding:0px;">
+            style="width:100%; height:90%; margin:0px; padding:0px;">
             </select>
         <br/>
         <input type="button" onClick="selectBuilders()"
             value="Update Selection"/>
+        </p>
       </div>
       <div id="charts_div" style="float:left; width:67%; padding:0px; margin:0px">
         <div id="logging_div" style="width:100%; padding:0px; margin:0px"></div>
