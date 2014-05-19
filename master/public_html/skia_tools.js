@@ -15,9 +15,80 @@
 var skiaTools = {
 
 globalVariables: null,
+googlesourceURL: "https://skia.googlesource.com",
 
 masterHostSuffix: "_master_host",
 masterPortSuffix: "_external_port",
+
+/**
+ * Retrieve the Git log for the Skia repository.
+ *
+ * @param {string} startHash
+ * @param {string} endHash
+ */
+gitLog: function(startHash, endHash) {
+  var url = this.googlesourceURL + "/skia/+log/" + startHash + ".." + endHash + "?format=JSON";
+  try {
+    var request = new XMLHttpRequest();
+  } catch (error) {
+    alert(error);
+  }
+  request.open("GET", url, false);
+  request.send();
+
+  // Remove the first line, which is garbage.
+  var responseLines = request.responseText.split('\n');
+  responseLines.splice(0, 1);
+
+  return JSON.parse(responseLines.join('\n'))["log"];
+},
+
+/**
+ * Object used for managing Git history.
+ */
+GitHistory: function() {
+  this.gotRev = {};
+  this.allRevisions = [];
+  this.lastFetchedRev = "HEAD";
+
+  /**
+   * loadCommits
+   *
+   * @param oldestCommit {string} Load this commit and all newer commits.
+   */
+  this.loadCommits = function(oldestCommit) {
+    var newCommits = skiaTools.gitLog(oldestCommit + "~1", this.lastFetchedRev);
+    for (var i = 0; i < newCommits.length; ++i) {
+      var commitHash = newCommits[i].commit;
+      this.allRevisions.push(commitHash);
+      this.gotRev[commitHash] = true;
+    }
+    this.lastFetchedRev = newCommits[newCommits.length - 1].commit;
+  }
+
+  /**
+   * getRevList
+   *
+   * @return {array.<string>} Array of commit hashes in chronological order.
+   */
+  this.getRevList = function() {
+    var revList = Array.prototype.slice.call(this.allRevisions);
+    revList.reverse(); // Sort newest to oldest.
+    return revList;
+  }
+
+  /**
+   * ensureLoaded
+   *
+   * @param commit {string} If this commit has not yet been loaded, load this
+   *     and all newer commits.
+   */
+  this.ensureLoaded = function(commit) {
+    if (!this.gotRev[commit]) {
+      this.loadCommits(commit);
+    }
+  }
+},
 
 /**
  * Convenience function for populating a ComboBox or ListBox with a list of
@@ -42,7 +113,8 @@ populateMenu: function(menuId, items) {
  * Load the global_variables.json file.
  */
 loadGlobalVariables: function() {
-  var url = "https://skia.googlesource.com/buildbot/+/master/site_config/global_variables.json?format=TEXT";
+  var url = this.googlesourceURL + "/buildbot/+/master/site_config/" +
+      "global_variables.json?format=TEXT";
   try {
     var request = new XMLHttpRequest();
   } catch (error) {

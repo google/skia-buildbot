@@ -17,6 +17,9 @@
   var DEFAULT_REVS_TO_LOAD = 10;
   var revsToLoad = DEFAULT_REVS_TO_LOAD;
 
+  // Object to manage Git revision history.
+  var gitHistory = new skiaTools.GitHistory();
+
   // Configuration options for the charts
   var LINE_CHART_OPTIONS = {
       "title": "Build Times",
@@ -139,10 +142,8 @@
    * a set of builders.
    * @param {Array.<string>} displayBuilders List of builders which should be
    *     included in the chart.
-   * @param {Array.<string>} allRevs List of revision hashes which should be
-   *     included in the chart.
    */
-  function drawLineChart(displayBuilders, allRevs) {
+  function drawLineChart(displayBuilders) {
     var table = new google.visualization.DataTable();
     table.addColumn("string", "Revision");
     for (var i = 0; i < displayBuilders.length; i++) {
@@ -152,13 +153,14 @@
     var lineChartColsPerBuilder = 2;
     var longestBuildTime = -1;
     var rows = [];
+    var allRevs = gitHistory.getRevList();
     for (var revIdx = 0; revIdx < allRevs.length; revIdx++) {
       var rev = allRevs[revIdx];
       var row = [rev];
       for (var builderIdx = 0; builderIdx < displayBuilders.length;
            builderIdx++) {
         var builder = displayBuilders[builderIdx];
-        if (data[rev][builder] != undefined) {
+        if (data[rev] != undefined && data[rev][builder] != undefined) {
           var time = data[rev][builder].getElapsedTime();
           if (time > longestBuildTime) {
             longestBuildTime = time;
@@ -274,7 +276,6 @@
     clearCharts();
     setMessage(msg);
     setTimeout(function(){
-      var allRevs = [];
       for (var i = 0; i < displayBuilders.length; i++) {
         var builder = displayBuilders[i];
         if (!gotData[builder] || gotData[builder] == undefined) {
@@ -283,10 +284,8 @@
           var dataForBuilder = builderObj.loadBuilds(revsToLoad);
           for (var buildNum in dataForBuilder) {
             var rev = dataForBuilder[buildNum].getRevision();
-            if (allRevs.indexOf(rev) == -1) {
-              allRevs.push(rev);
-            }
-            if (data[rev] == undefined) {
+            gitHistory.ensureLoaded(rev);
+            if (!data[rev]) {
               data[rev] = {};
             }
             data[rev][builder] = dataForBuilder[buildNum];
@@ -295,8 +294,7 @@
           console.log("Loaded builds for " + builder + ".");
         }
       }
-      //allRevs.sort(); // TODO(borenet): Need to sort by revision datetime.
-      drawLineChart(displayBuilders, allRevs);
+      drawLineChart(displayBuilders);
       setMessage("");
     }, 0);
   }
