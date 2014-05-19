@@ -188,14 +188,8 @@ class BuildStep(multiprocessing.Process):
     self._bench_args = shlex.split(args['bench_args'].replace('"', ''))
     self._is_try = args['is_try'] == 'True'
 
-    if os.name == 'nt':
-      self._default_make_flags = []
-      self._default_ninja_flags = []
-    else:
-      # Set the jobs limit to 4, since we have multiple slaves running on each
-      # machine.
-      self._default_make_flags = ['--jobs', '4', '--max-load=4.0']
-      self._default_ninja_flags = ['-j', '4', '-l', '4.0']
+    self._default_make_flags = []
+    self._default_ninja_flags = []
 
     # Adding the playback directory transfer objects.
     self._local_playback_dirs = LocalSkpPlaybackDirs(
