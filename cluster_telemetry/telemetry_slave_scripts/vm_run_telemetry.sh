@@ -55,6 +55,12 @@ if [ "$TARGET_PLATFORM" == "Android" ]; then
     gsutil cp -a public-read /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/logs/${RUN_ID}.log
     exit 1
   fi
+  OFFLINE_DEVICES=`adb devices | grep offline`
+  if [ "$OFFLINE_DEVICES" != "" ]; then
+    echo "Android device is offline. Exiting.."
+    gsutil cp -a public-read /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/logs/${RUN_ID}.log
+    exit 1
+  fi
 fi
 
 

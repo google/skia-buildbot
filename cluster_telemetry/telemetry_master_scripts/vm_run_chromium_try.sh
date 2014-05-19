@@ -209,12 +209,11 @@ if [ $ret_value -eq 0 ]; then
 
   if [ "$TARGET_PLATFORM" == "Android" ]; then
     for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-      ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
+      OFFLINE_DEVICES=`ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
         -o StrictHostKeyChecking=no \
-        -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb version" &> /dev/null
-      if [ $? -ne 0 ]
-      then
-        echo "build$SLAVE_NUM-b5 is not responding!"
+        -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb devices | grep offline"`
+      if [ "$OFFLINE_DEVICES" != "" ]; then
+        echo "build$SLAVE_NUM-b5 device is offline!"
         MISSING_DEVICES="$MISSING_DEVICES build$SLAVE_NUM-b5"
       fi
     done
