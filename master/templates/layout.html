@@ -278,6 +278,9 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     // Display the most recent build for each builder on the given master.
     function setLatestBuildsForMaster(master, master_builder_url, builders) {
       var master_data_row = document.getElementById("results_summary_" + master);
+      if (!master_data_row) {
+        return;
+      }
       // Clear any old results, up to the first cell which is the label.
       while (master_data_row.cells.length > 1) {
         master_data_row.deleteCell(-1);

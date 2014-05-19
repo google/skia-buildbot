@@ -254,16 +254,21 @@ BuildStep: function(name, elapsedTime, result, stdio) {
 /**
  * Information about a builder.
  */
-Builder: function(name, master, basedir, cachedBuilds, category, currentBuilds, slaves,
-                 state) {
-  this.name          = name;
-  this.master        = master;
-  this.basedir       = basedir;
-  this.cachedBuilds  = cachedBuilds;
-  this.category      = category;
-  this.currentBuilds = currentBuilds;
-  this.slaves        = slaves;
-  this.state         = state;
+Builder: function(name, master, basedir, cachedBuilds, category, currentBuilds,
+                  slaves, state) {
+  this.name                = name;
+  this.master              = master;
+  this.basedir             = basedir;
+  // alreadyLoadedBuilds differs from the passed-in cachedBuilds; the passed-in
+  // parameter refers to the builds which the build master has cached. This
+  // property is a set of builds which have been loaded from the build master
+  // and stored here for future use.
+  this.alreadyLoadedBuilds = {};
+  this.category            = category;
+  this.currentBuilds       = currentBuilds;
+  this.lastBuild           = cachedBuilds[cachedBuilds.length - 1];
+  this.slaves              = slaves;
+  this.state               = state;
 
   /**
    * getName
@@ -281,13 +286,6 @@ Builder: function(name, master, basedir, cachedBuilds, category, currentBuilds, 
   this.getBaseDir       = function() { return this.basedir; }
 
   /**
-   * getCachedBuilds
-   *
-   * @return {Array.<number>} List of recent builds for this builder.
-   */
-  this.getCachedBuilds  = function() { return this.cachedBuilds; }
-
-  /**
    * getCategory
    *
    * @return {string} Category of this builder. This is the heading under
@@ -302,6 +300,14 @@ Builder: function(name, master, basedir, cachedBuilds, category, currentBuilds, 
    *     builder.
    */
   this.getCurrentBuilds = function() { return this.currentBuilds; }
+
+  /**
+   * getLastBuild
+   *
+   * @return {number} The build number of the last completed build for this
+   *     builder.
+   */
+  this.getLastBuild = function() { return this.lastBuild; }
 
   /**
    * getSlaves
@@ -418,12 +424,14 @@ Builder: function(name, master, basedir, cachedBuilds, category, currentBuilds, 
    */
   this.loadBuilds = function(numRevs) {
     var data = {};
-    var cachedBuilds = this.getCachedBuilds();
-    var lastBuild = cachedBuilds[cachedBuilds.length - 1];
-    for (var buildNum = lastBuild; buildNum >= lastBuild - numRevs; buildNum--) {
-      var build = this.loadDataForBuild(buildNum, false, false);
-      if (null == build) { continue; }
-      var buildNum = build.getNumber();
+    var lastBuild = this.getLastBuild();
+    for (var buildNum = lastBuild; buildNum >= lastBuild - numRevs && buildNum >= 0; buildNum--) {
+      var build = this.alreadyLoadedBuilds[buildNum];
+      if (!build) {
+        build = this.loadDataForBuild(buildNum, false, false);
+        if (!build) { continue; }
+        this.alreadyLoadedBuilds[buildNum] = build;
+      }
       data[buildNum] = build;
     }
     return data;

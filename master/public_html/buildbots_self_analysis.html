@@ -12,10 +12,8 @@
   // Build result codes.
   var SUCCESS = 0;
 
-  // Number of revisions which should be loaded.
-  // TODO(borenet): Make this configurable in the UI.
-  var DEFAULT_REVS_TO_LOAD = 10;
-  var revsToLoad = DEFAULT_REVS_TO_LOAD;
+  // Number of builds which should be loaded.
+  var DEFAULT_BUILDS_TO_LOAD = 10;
 
   // Object to manage Git revision history.
   var gitHistory = new skiaTools.GitHistory();
@@ -66,14 +64,6 @@
 
   // High-level information about each builder.
   var builderData = null;
-
-  // Data for all builds for all builders, indexed by revision number. Filled in
-  // on-demand.
-  var data = {};
-
-  // Dictionary with builder names as keys and booleans as values, indicating
-  // whether or not build data has been obtained for each builder.
-  var gotData = {};
 
   // Load the Visualization API
   google.load("visualization", "1.0", {"packages":["corechart", "controls"]});
@@ -142,8 +132,10 @@
    * a set of builders.
    * @param {Array.<string>} displayBuilders List of builders which should be
    *     included in the chart.
+   * @param {object} data Dictionary containing builds for various builders,
+   *     indexed by commit hash.
    */
-  function drawLineChart(displayBuilders) {
+  function drawLineChart(displayBuilders, data) {
     var table = new google.visualization.DataTable();
     table.addColumn("string", "Revision");
     for (var i = 0; i < displayBuilders.length; i++) {
@@ -157,10 +149,12 @@
     for (var revIdx = 0; revIdx < allRevs.length; revIdx++) {
       var rev = allRevs[revIdx];
       var row = [rev];
+      var rowHasData = false;
       for (var builderIdx = 0; builderIdx < displayBuilders.length;
            builderIdx++) {
         var builder = displayBuilders[builderIdx];
         if (data[rev] != undefined && data[rev][builder] != undefined) {
+          rowHasData = true;
           var time = data[rev][builder].getElapsedTime();
           if (time > longestBuildTime) {
             longestBuildTime = time;
@@ -176,7 +170,10 @@
           row.push(null);
         }
       }
-      rows.push(row);
+      // Skip revisions which have no builds.
+      if (rowHasData) {
+        rows.push(row);
+      }
     }
     table.addRows(rows);
 
@@ -192,16 +189,17 @@
         var builderIdx = Math.floor(
             (selected.column - 1) / lineChartColsPerBuilder);
         builder = displayBuilders[builderIdx];
-        var rev = allRevs[selected.row];
+        var rev = rows[selected.row][0]
         var buildNum = data[rev][builder].getNumber();
         console.log("Selected: " + builder + " @ " + rev);
-        var url = "http://" + selectedMaster.getHost() + ":" + selectedMaster.getPort() +
-            "/buildstatus?builder=" + builder + "&number=" + buildNum;
+        var url = "http://" + selectedMaster.getHost() + ":" +
+            selectedMaster.getPort() + "/buildstatus?builder=" + builder +
+            "&number=" + buildNum;
         var rightContent = "<iframe style=\"width:100%; height:100%; "
                          + "padding:0px; margin=0px; overflow:scroll;\" src=\""
                          + url + "\"></iframe>";
         setRightContent(rightContent);
-        drawBarChart(builder, rev, longestBuildTime);
+        drawBarChart(builder, rev, longestBuildTime, data);
       }
     });
     lineChart.draw(table, LINE_CHART_OPTIONS);
@@ -216,8 +214,10 @@
    * @param {number} viewWindowMax The width of the viewing window. This is
    *     provided instead of being determined from the data so that each bar
    *     graph can be displayed with the same scale.
+   * @param {object} data Dictionary containing builds for various builders,
+   *     indexed by commit hash.
    */
-  function drawBarChart(builder, revision, viewWindowMax) {
+  function drawBarChart(builder, revision, viewWindowMax, data) {
     var table = new google.visualization.DataTable();
     table.addColumn("string", "Step");
     table.addColumn("number", "Time");
@@ -260,6 +260,10 @@
    * to be created for that data.
    */
   function selectBuilders() {
+    if (!selectedMaster) {
+      console.warn("selectBuilders: No master selected!");
+      return;
+    }
     var displayBuilders = [];
     var msg = "<p style=\"font-size:0.8em;\">Loading builds for builders:<ul>";
     var menu = document.getElementById("builder_menu");
@@ -276,25 +280,24 @@
     clearCharts();
     setMessage(msg);
     setTimeout(function(){
+      var data = {};
+      var buildsToLoad = document.getElementById("builds_to_load").value;
       for (var i = 0; i < displayBuilders.length; i++) {
         var builder = displayBuilders[i];
-        if (!gotData[builder] || gotData[builder] == undefined) {
-          console.log("Loading builds for " + builder + "...");
-          var builderObj = builderData[builder];
-          var dataForBuilder = builderObj.loadBuilds(revsToLoad);
-          for (var buildNum in dataForBuilder) {
-            var rev = dataForBuilder[buildNum].getRevision();
-            gitHistory.ensureLoaded(rev);
-            if (!data[rev]) {
-              data[rev] = {};
-            }
-            data[rev][builder] = dataForBuilder[buildNum];
+        console.log("Loading builds for " + builder + "...");
+        var builderObj = builderData[builder];
+        var dataForBuilder = builderObj.loadBuilds(buildsToLoad);
+        for (var buildNum in dataForBuilder) {
+          var rev = dataForBuilder[buildNum].getRevision();
+          gitHistory.ensureLoaded(rev);
+          if (!data[rev]) {
+            data[rev] = {};
           }
-          gotData[builder] = true;
-          console.log("Loaded builds for " + builder + ".");
+          data[rev][builder] = dataForBuilder[buildNum];
         }
+        console.log("Loaded builds for " + builder + ".");
       }
-      drawLineChart(displayBuilders);
+      drawLineChart(displayBuilders, data);
       setMessage("");
     }, 0);
   }
@@ -313,7 +316,6 @@
     for (var builderNum = 0; builderNum < builders.length; builderNum++) {
       var builder = builders[builderNum];
       builderData[builder.getName()] = builder;
-      gotData[builder.getName()] = false;
     }
     skiaTools.populateMenu("builder_menu", Object.keys(builderData));
     setMessage("Loaded builders.");
@@ -326,6 +328,7 @@
    */
   function init() {
     setMessage("Loading masters...");
+    document.getElementById("builds_to_load").value = DEFAULT_BUILDS_TO_LOAD;
     setTimeout(function() {
       var masters = skiaTools.loadMasterList();
       skiaTools.populateMenu("master_menu", masters);
@@ -342,21 +345,27 @@
     </div>
     <div id="main_content_area" style="width:100%; height:90%; padding:0px; margin:0px;">
       <div id="builder_menu_div" style="float:left; width:18%; height:100%; padding:0px; margin:0px;">
-        <p>
-        Master:<br/>
-        <select id="master_menu" onChange="selectMaster();">
-          <option value="" noselect></option>
-        </select>
-        </p>
-        <p>
-        Builders:<br/>
-        <select id="builder_menu" multiple="multiple"
-            style="width:100%; height:90%; margin:0px; padding:0px;">
+        <div style="width:100%;">
+          <div style="float:left; width:50%;">
+            Master:<br/>
+            <select id="master_menu" onChange="selectMaster();">
+              <option value="" noselect></option>
             </select>
-        <br/>
-        <input type="button" onClick="selectBuilders()"
-            value="Update Selection"/>
-        </p>
+          </div>
+          <div>
+            <nobr>Builds to load:</nobr><br/>
+            <input type="text" id="builds_to_load" value="" />
+          </div>
+        </div>
+        <div>
+          Builders:<br/>
+          <select id="builder_menu" multiple="multiple"
+              style="width:100%; height:90%; margin:0px; padding:0px;">
+              </select>
+          <br/>
+          <input type="button" onClick="selectBuilders()"
+              value="Update Selection"/>
+        </div>
       </div>
       <div id="charts_div" style="float:left; width:67%; padding:0px; margin:0px">
         <div id="logging_div" style="width:100%; padding:0px; margin:0px"></div>
