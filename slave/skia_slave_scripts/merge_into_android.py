@@ -92,7 +92,8 @@ class MergeIntoAndroid(BuildStep):
 
       # Figure out the revision being merged, and use it to write the commit
       # message.
-      revision = shell_utils.run([GIT, 'show', '--format="%H from %cD"', '-s'])
+      revision = shell_utils.run([GIT, 'show', UPSTREAM_BRANCH_NAME,
+                                  '--format="%H from %cD"', '-s'])
       # Remove trailing newline.
       revision.rstrip()
 
