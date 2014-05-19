@@ -87,7 +87,7 @@ if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
   gsutil cp $WHITELIST_GS_LOCATION /tmp/$WHITELIST_FILE
 fi
 
-# The number of times to repeate telemetry page_set runs.
+# The number of times to repeat telemetry page_set runs.
 
 if [ "$TELEMETRY_BENCHMARK" == "skpicture_printer" ]; then
   # Clean and create the skp output directory.
@@ -103,6 +103,15 @@ if [ "$TELEMETRY_BENCHMARK" == "smoothness" ]; then
   # A synthetic scroll needs to be able to output at least two frames. Make the
   # viewport size smaller than the page size.
   EXTRA_BROWSER_ARGS="--window-size=1280,512 $EXTRA_BROWSER_ARGS"
+fi
+
+# Increase the timeout only if the GPURasterSet pageset is used since it has
+# multiple pages in each pageset and could thus take longer than the default
+# timeout.
+if [ "$PAGESETS_TYPE" == "GPURasterSet" ]; then
+  TELEMETRY_TIMEOUT=900
+else
+  TELEMETRY_TIMEOUT=300
 fi
 
 OUTPUT_DIR=/b/storage/telemetry_outputs/$RUN_ID
@@ -134,11 +143,11 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
       fi
       echo "This is run number $current_run"
       if [ "$TARGET_PLATFORM" == "Android" ]; then
-        echo "== Running eval sudo DISPLAY=:0 timeout 600 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
-        eval sudo DISPLAY=:0 timeout 600 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
+        echo "== Running eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
+        eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
       else
-        echo "== Running eval sudo DISPLAY=:0 timeout 600 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
-        eval sudo DISPLAY=:0 timeout 600 src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
+        echo "== Running eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
+        eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
       fi
       sudo chown chrome-bot:chrome-bot $OUTPUT_DIR/${RUN_ID}.${page_set_basename}.${current_run}
     done
