@@ -5,6 +5,7 @@
 
 """Tests for module csv_merger."""
 
+import datetime
 import filecmp
 import os
 import shutil
@@ -22,8 +23,22 @@ class TestCsvComparer(unittest.TestCase):
         'test_data', 'csv_comparer')
     self._actual_output_dir = tempfile.mkdtemp()
 
+    # Set mocks.
+    class _MockUtcNow(object):
+      @staticmethod
+      def strftime(format_str):
+        self.assertEquals('%Y-%m-%d %H:%M UTC', format_str)
+        return '2014-05-19 16:50 UTC'
+    class _MockDatetime(object):
+      @staticmethod
+      def utcnow():
+        return _MockUtcNow()
+    self._original_datetime = datetime.datetime
+    datetime.datetime = _MockDatetime
+
   def tearDown(self):
     shutil.rmtree(self._actual_output_dir)
+    datetime.datetime = self._original_datetime
 
   def _AssertHTMLFiles(self, sub_dir, additional_files=()):
     # Ensure that the two html files we care about are as expected.
@@ -52,7 +67,9 @@ class TestCsvComparer(unittest.TestCase):
         crashed_instances='build1-b5 build10-b5',
         missing_devices='build99-b5 build100-b5',
         browser_args_nopatch='--test=1',
-        browser_args_withpatch='--test=2')
+        browser_args_withpatch='--test=2',
+        pageset_type='Mobile10k',
+    )
     comparer.Compare()
     self._AssertHTMLFiles('discard_outliers')
 
@@ -76,7 +93,9 @@ class TestCsvComparer(unittest.TestCase):
         crashed_instances='',
         missing_devices='',
         browser_args_nopatch='',
-        browser_args_withpatch='')
+        browser_args_withpatch='',
+        pageset_type='10k',
+    )
     comparer.Compare()
     self._AssertHTMLFiles('keep_outliers', ('fieldname2.html',))
 

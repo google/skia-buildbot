@@ -8,8 +8,10 @@
     <h2>Results of Cluster Telemetry Tryserver Run</h2>
     Run requester: {{ requester_email }}
     <br/>
+    This report was created on {{ html_report_date }}
     <br/>
-    The run was done on: {{ target_platform }} slaves
+    <br/>
+    The run was done on {{ target_platform }} slaves using the {{ pageset_type }} page set
     <br/>
     The specified patch(es) are: <a href='{{ chromium_patch_link }}'>Chromium</a>/<a href='{{ blink_patch_link }}'>Blink</a>/<a href='{{ skia_patch_link }}'>Skia</a> (if no patch is specified the page will be empty)
     <br/>

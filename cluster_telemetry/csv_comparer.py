@@ -7,6 +7,7 @@
 
 
 import csv
+import datetime
 import optparse
 import os
 import sys
@@ -57,7 +58,8 @@ class CsvComparer(object):
                variance_threshold, absolute_url, min_pages_in_each_field,
                discard_outliers, raw_csv_nopatch, raw_csv_withpatch,
                num_repeated, target_platform, crashed_instances,
-               missing_devices, browser_args_nopatch, browser_args_withpatch):
+               missing_devices, browser_args_nopatch, browser_args_withpatch,
+               pageset_type):
     """Constructs a CsvComparer instance."""
     self._csv_file1 = csv_file1
     self._csv_file2 = csv_file2
@@ -78,6 +80,7 @@ class CsvComparer(object):
     self._missing_devices = missing_devices
     self._browser_args_nopatch = browser_args_nopatch
     self._browser_args_withpatch = browser_args_withpatch
+    self._pageset_type = pageset_type
 
   def _IsPercDiffSameOrAboveThreshold(self, perc_diff):
     """Compares the specified diff to the variance threshold.
@@ -251,6 +254,8 @@ class CsvComparer(object):
 
   def OutputToHTML(self, fieldnames_to_totals, fieldnames_to_page_values,
                    fieldnames_to_discards, html_dir):
+    # Calculate the current UTC time.
+    html_report_date = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
     # Output the main totals HTML page.
     sorted_fieldnames_totals_items = sorted(
         fieldnames_to_totals.items(), key=lambda tuple: tuple[1].perc_diff,
@@ -273,7 +278,10 @@ class CsvComparer(object):
          'missing_devices': self._missing_devices,
          'browser_args_nopatch': self._browser_args_nopatch,
          'browser_args_withpatch': self._browser_args_withpatch,
-         'absolute_url': self._absolute_url})
+         'absolute_url': self._absolute_url,
+         'pageset_type': self._pageset_type,
+         'html_report_date': html_report_date,
+        })
     index_html = open(os.path.join(self._output_html_dir, 'index.html'), 'w')
     index_html.write(rendered)
 
@@ -366,6 +374,9 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--browser_args_withpatch',
       help='The browser args that were used for the withpatch run.')
+  option_parser.add_option(
+      '', '--pageset_type',
+      help='The page set type this run was done on.')
 
   options, unused_args = option_parser.parse_args()
   if not (options.csv_file1 and options.csv_file2 and options.output_html_dir
@@ -373,12 +384,13 @@ if '__main__' == __name__:
           and options.chromium_patch_link and options.blink_patch_link
           and options.skia_patch_link and options.raw_csv_nopatch
           and options.raw_csv_withpatch and options.num_repeated
-          and options.target_platform):
+          and options.target_platform and options.pageset_type):
     option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
                         'variance_threshold, requester_email, '
                         'chromium_patch_link, blink_patch_link, '
                         'skia_patch_link, raw_csv_nopatch, '
-                        'raw_csv_withpatch, num_repeated and target_platform')
+                        'raw_csv_withpatch, num_repeated, pageset_type '
+                        'and target_platform')
 
   sys.exit(CsvComparer(
       options.csv_file1, options.csv_file2, options.output_html_dir,
@@ -389,5 +401,6 @@ if '__main__' == __name__:
       options.raw_csv_nopatch, options.raw_csv_withpatch,
       options.num_repeated, options.target_platform,
       options.crashed_instances, options.missing_devices,
-      options.browser_args_nopatch, options.browser_args_withpatch).Compare())
+      options.browser_args_nopatch, options.browser_args_withpatch,
+      options.pageset_type).Compare())
 
