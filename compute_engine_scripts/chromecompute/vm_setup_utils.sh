@@ -11,7 +11,7 @@ function install_packages {
   echo "Install Required packages"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
     "sudo dpkg --add-architecture i386 && sudo apt-get update && " \
-    "sudo apt-get -y install haveged python-django openjdk-7-jre-headless zlib1g-dev:i386 libgif-dev:i386 libpng12-dev:i386 fontconfig:i386 libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 ccache g++-multilib && " \
+    "sudo apt-get -y install haveged python-django openjdk-7-jre-headless zlib1g-dev:i386 libgif-dev:i386 libpng12-dev:i386 fontconfig:i386 libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 ccache g++-multilib libpoppler-cpp-dev libpoppler-cpp0:i386 && " \
     "sudo cp /usr/lib/i386-linux-gnu/libpng.so /usr/lib32/ && " \
     "sudo cp /usr/lib/i386-linux-gnu/libpng12.so.0 /usr/lib32/ && " \
     "sudo apt-get -y install libpng12-dev libgtk2.0-dev ant clang-3.4 openjdk-7-jdk realpath libqt4-dev-bin libqt4-core libqt4-gui libqt4-dev:i386 icewm && " \
@@ -38,6 +38,7 @@ function setup_symlinks {
     "sudo ln -s /usr/lib/x86_64-linux-gnu/libQtGui.so.4 /usr/lib/x86_64-linux-gnu/libQtGui.so && " \
     "sudo ln -s /usr/lib/x86_64-linux-gnu/libQtOpenGL.so.4 /usr/lib/x86_64-linux-gnu/libQtOpenGL.so && " \
     "sudo ln -s /home/default/storage/skia-repo /home/chrome-bot && " \
+    "sudo ln -s /usr/lib/i386-linux-gnu/libpoppler-cpp.so.0 /usr/lib/i386-linux-gnu/libpoppler-cpp.so && " \
     "sudo rm /usr/bin/moc && sudo ln -s /usr/bin/moc-qt4 /usr/bin/moc && " \
     "sudo rm -rf /usr/bin/qmake && sudo ln -s /usr/bin/qmake-qt4 /usr/bin/qmake" \
     || FAILED="$FAILED InstallPackages"
