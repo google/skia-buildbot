@@ -9,6 +9,8 @@ import os
 import sys
 
 from build_step import BuildStep
+from utils import gclient_utils
+from utils import misc
 
 GIT = 'git.bat' if os.name == 'nt' else 'git'
 GIT_SVN_ID_MATCH_STR = r'git-svn-id: http://skia.googlecode.com/svn/trunk@(\d+)'
@@ -48,10 +50,19 @@ class RunBench(BuildStep):
     return os.path.join(self._device_dirs.PerfDir(),
                         'bench_%s_data' % self._got_revision)
 
+  def _BuildJSONDataFile(self):
+    git_timestamp = gclient_utils.GetGitRepoPOSIXTimestamp()
+    return os.path.join(
+        self._device_dirs.PerfDir(), 'microbench_%s_%s.json' % (
+            self._got_revision, git_timestamp))
+
   def _Run(self):
     args = ['-i', self._device_dirs.ResourceDir()]
     if self._perf_data_dir:
       args.extend(BenchArgs(self._BuildDataFile()))
+      args.extend(['--outResultsFile', self._BuildJSONDataFile()])
+      # Add --outResultsFile flag here because it breaks bench_pictures.py
+      # if it was placed in there.
     for builder_name_or_fragment in EXTRA_ARGS:
       if builder_name_or_fragment in self._builder_name:
         args.extend(EXTRA_ARGS[builder_name_or_fragment])

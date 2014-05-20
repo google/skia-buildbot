@@ -156,6 +156,15 @@ def GetCheckedOutHash():
                            log_in_real_time=False).rstrip('\n')
 
 
+def GetGitRepoPOSIXTimestamp():
+  """Returns the POSIX timestamp for the current Skia commit as in int."""
+  git_show_command = [GIT, 'show', '--format=%at', '-s']
+  raw_timestamp = shell_utils.run(
+      git_show_command, log_in_real_time=False, echo=False,
+      print_timestamps=False)
+  return int(raw_timestamp)
+
+
 def Revert():
   shell_utils.run([GIT, 'clean', '-f', '-d'])
   shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])

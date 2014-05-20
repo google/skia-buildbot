@@ -74,9 +74,7 @@ def SyncBucketSubdir(directory, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
     for file_name in to_download:
       match = re.search(filenames_filter, file_name)
       if not match:
-        raise Exception('ERROR: found filename %s on remote filesystem'
-                        'that does not match filter %s' % (file_name,
-                                                           filenames_filter))
+        continue
 
   # Uploads only files not present on the cloud storage
   if do_upload:
@@ -85,8 +83,8 @@ def SyncBucketSubdir(directory, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
       if file_name not in IGNORE_UPLOAD_FILENAMES:
         match = re.search(filenames_filter, file_name)
         if not match:
-          raise Exception('ERROR: %s trying to upload unknown file name.' % (
-                          file_name))
+          # Ignore other files, rather than raising an exception
+          continue
         # Ignore force builds without a revision number.
         if match.group(1) != '':
           upload_to_bucket.upload_to_bucket(os.path.join(directory, file_name),

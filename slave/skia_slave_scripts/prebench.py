@@ -6,6 +6,7 @@
 """ Prepare runtime resources that are needed by Bench builders but not
     Test builders. """
 
+from utils import misc
 from build_step import BuildStep
 import sys
 
@@ -13,7 +14,7 @@ import sys
 class PreBench(BuildStep):
   def _Run(self):
     if self._perf_data_dir:
-      # Create the perf data dir if it doesn't exist.
+      # Create the data dir if it doesn't exist.
       self._flavor_utils.CreateCleanDeviceDirectory(self._device_dirs.PerfDir())
 
 

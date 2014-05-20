@@ -100,7 +100,7 @@ class BuildStep(multiprocessing.Process):
   def __init__(self, args, attempts=1, timeout=DEFAULT_TIMEOUT,
                no_output_timeout=DEFAULT_NO_OUTPUT_TIMEOUT):
     """ Constructs a BuildStep instance.
-    
+
     args: dictionary containing arguments to this BuildStep.
     attempts: how many times to try this BuildStep before giving up.
     timeout: maximum time allowed for this BuildStep.
@@ -341,7 +341,7 @@ class BuildStep(multiprocessing.Process):
   def RunBuildStep(StepType):
     """ Run a BuildStep, possibly making multiple attempts and handling
     timeouts.
-    
+
     StepType: class type which subclasses BuildStep, indicating what step should
         be run. StepType should override _Run().
     """

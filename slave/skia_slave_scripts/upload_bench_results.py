@@ -10,6 +10,7 @@ from utils import sync_bucket_subdir
 
 import posixpath
 import sys
+from datetime import datetime
 
 
 class UploadBenchResults(BuildStep):
@@ -27,11 +28,29 @@ class UploadBenchResults(BuildStep):
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 
-    return sync_bucket_subdir.SyncBucketSubdir(directory=self._GetPerfDataDir(),
-               dest_gsbase=dest_gsbase,
-               subdir=self._GetBucketSubdir(),
-               do_upload=True,
-               do_download=False)
+    res_sync_data = sync_bucket_subdir.SyncBucketSubdir(
+        directory=self._GetPerfDataDir(),
+        dest_gsbase=dest_gsbase,
+        subdir=self._GetBucketSubdir(),
+        do_upload=True,
+        do_download=False)
+
+    now = datetime.utcnow()
+    gs_json_path = '/'.join((str(now.year).zfill(4), str(now.month).zfill(2),
+        str(now.day).zfill(2), str(now.hour).zfill(2)))
+    gs_dir = 'stats-json/{}/{}'.format(gs_json_path, self._builder_name)
+    res_sync_json = sync_bucket_subdir.SyncBucketSubdir(
+        directory=self._GetPerfDataDir(),
+        dest_gsbase=dest_gsbase,
+        subdir=gs_dir,
+        # TODO(kelvinly): Set up some way to configure this,
+        # rather than hard coding it
+        do_upload=True,
+        do_download=False,
+        filenames_filter=
+            'microbench_({})_[0-9]+\.json'.format(self._got_revision))
+
+    return res_sync_json or res_sync_data
 
   def _Run(self):
     if self._is_try:
