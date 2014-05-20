@@ -106,9 +106,6 @@ done
 # Download Alexa top 1M CSV from Google Storage.
 gsutil cp gs://chromium-skia-gm/telemetry/pixeldiffs/csv/top-1m-${RUN_ID}.csv /tmp/top-1m.csv
 
-# Start an Xvfb display on :0.
-sudo Xvfb :0 -screen 0 1280x1024x24 &
-
 OUTPUT_DIR=/b/storage/pixeldiffs/${RUN_ID}
 mkdir -p $OUTPUT_DIR
 

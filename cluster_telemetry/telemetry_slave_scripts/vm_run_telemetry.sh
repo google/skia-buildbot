@@ -133,7 +133,6 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
     fi
     echo "========== Processing $page_set =========="
     page_set_basename=`basename $page_set`
-    check_and_run_xvfb
 
     for current_run in `seq 1 $REPEAT_TELEMETRY_RUNS`;
     do

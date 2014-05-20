@@ -67,13 +67,3 @@ function check_pageset_url_in_whitelist {
   return 1
 }
 
-# Check if Xvfb is running if it is not then start it else do nothing.
-function check_and_run_xvfb {
-  output=`ps -ef | grep 'sudo Xvfb' | grep -v grep`
-  if [ $? -eq 1 ]; then
-    # Start an Xvfb display on :0.
-    echo "Xvfb is not working, restarting it.."
-    sudo Xvfb :0 -screen 0 1280x1024x24 &
-  fi
-}
-

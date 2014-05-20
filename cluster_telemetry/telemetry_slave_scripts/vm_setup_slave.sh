@@ -5,7 +5,6 @@
 # * Copies over the chrome binary from Google Storage.
 # * Copies over the page_sets for this slave from Google Storage.
 # * Syncs the Skia buildbot checkout.
-# * Creates an Xvfb display on :0.
 #
 # The script should be run from the cluster-telemetry-slave GCE instance's
 # /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts
@@ -45,7 +44,5 @@ sudo chmod 777 /b/skia-repo/buildbot/third_party/src/webpagereplay_logs/logs.txt
 cd /b/skia-repo/buildbot
 /b/depot_tools/gclient sync
 
-# Start an Xvfb display on :0.
-sudo Xvfb :0 -screen 0 1280x1024x24 &
 cd third_party/chromium_trunk/
 

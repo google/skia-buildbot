@@ -49,7 +49,6 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
       cp  /b/storage/webpages_archive/All/${pageset_filename}* /b/storage/webpages_archive/$PAGESETS_TYPE/
       echo "========== $page_set copied over from All =========="
     else
-      check_and_run_xvfb
       sudo DISPLAY=:0 timeout 600 src/tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $page_set
       if [ $? -eq 124 ]; then
         echo "========== $page_set timed out! =========="
