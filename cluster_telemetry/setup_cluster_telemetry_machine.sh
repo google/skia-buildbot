@@ -78,6 +78,15 @@ gsutil cp gs://chromium-skia-gm/telemetry/patches/desktop_browser_backend.py /b/
 
 # Create symlink from /b to /home/default for the old page_set paths.
 sudo ln -s /b /home/default;
+
+# Setup a headless xserver.
+sudo apt-get -y install lightdm-gtk-greeter mesa-utils;
+sudo gsutil cp gs://chromium-skia-gm/telemetry/patches/edid.bin /etc/X11/;
+sudo gsutil cp gs://chromium-skia-gm/telemetry/patches/xorg.conf /etc/X11/;
+sudo service lightdm start;
+echo 'sudo cp /var/run/lightdm/root/:0 ~/.Xauthority' >> ~/.bashrc;
+echo 'sudo chown chrome-bot:chrome-bot ~/.Xauthority' >> ~/.bashrc;
+sudo reboot;
 """
 ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no \
   -A -q -p 22 $CT_MACHINE -- "$CMD"
