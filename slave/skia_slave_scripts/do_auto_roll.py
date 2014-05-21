@@ -23,7 +23,7 @@ from site_config import skia_vars
 
 # TODO(borenet): Set up an automated account for this:
 # https://code.google.com/p/chromium/issues/detail?id=339824
-DEPS_ROLL_AUTHOR = 'borenet@google.com'
+DEPS_ROLL_AUTHOR = 'robertphillips@google.com'
 HTML_CONTENT = '''
 <html>
 <head>
