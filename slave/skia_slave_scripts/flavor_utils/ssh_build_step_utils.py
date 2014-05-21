@@ -173,7 +173,9 @@ class SshBuildStepUtils(DefaultBuildStepUtils):
       skimage_out_dir=prefix + 'skimage_out',
       skp_dir=prefix + 'skp',
       skp_perf_dir=prefix + 'skp_perf',
-      skp_out_dir=prefix + 'skp_out',
+      playback_actual_images_dir=prefix + 'playback_actual_images',
+      playback_actual_summaries_dir=prefix + 'playback_actual_summaries',
+      playback_expected_summaries_dir=prefix + 'playback_expected_summaries',
       tmp_dir=prefix + 'tmp_dir')
 
   def MakeClean(self):

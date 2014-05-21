@@ -119,7 +119,6 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
 
   def RunGYP(self):
     print 'android_ninja handles gyp'
-    pass
 
   def Compile(self, target):
     """ Compile the Skia executables. """
@@ -164,14 +163,18 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
               android_utils.PATH_TO_ADB, self._serial),
           echo=True, shell=True).rstrip().split('\n')[-1]
       prefix = posixpath.join(device_scratch_dir, 'skiabot', 'skia_')
-      return DeviceDirs(perf_data_dir=prefix + 'perf',
-                        gm_actual_dir=prefix + 'gm_actual',
-                        gm_expected_dir=prefix + 'gm_expected',
-                        resource_dir=prefix + 'resources',
-                        skimage_in_dir=prefix + 'skimage_in',
-                        skimage_expected_dir=prefix + 'skimage_expected',
-                        skimage_out_dir=prefix + 'skimage_out',
-                        skp_dir=prefix + 'skp',
-                        skp_perf_dir=prefix + 'skp_perf',
-                        skp_out_dir=prefix + 'skp_out',
-                        tmp_dir=prefix + 'tmp_dir')
+      return DeviceDirs(
+          perf_data_dir=prefix + 'perf',
+          gm_actual_dir=prefix + 'gm_actual',
+          gm_expected_dir=prefix + 'gm_expected',
+          resource_dir=prefix + 'resources',
+          skimage_in_dir=prefix + 'skimage_in',
+          skimage_expected_dir=prefix + 'skimage_expected',
+          skimage_out_dir=prefix + 'skimage_out',
+          skp_dir=prefix + 'skp',
+          skp_perf_dir=prefix + 'skp_perf',
+          playback_actual_images_dir=prefix + 'playback_actual_images',
+          playback_actual_summaries_dir=prefix + 'playback_actual_summaries',
+          playback_expected_summaries_dir=(
+              prefix + 'playback_expected_summaries'),
+          tmp_dir=prefix + 'tmp_dir')
