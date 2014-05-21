@@ -10,28 +10,15 @@ import sys
 
 
 class PostRender(BuildStep):
-  def _RunAfterGenerateGMs(self):
+  def _Run(self):
     self._flavor_utils.CopyDirectoryContentsToHost(
         self._flavor_utils.DevicePathJoin(self._device_dirs.GMActualDir(),
                                           self._builder_name),
                                                    self._gm_actual_dir)
-
-  def _RunAfterRunDecodingTests(self):
+    self._flavor_utils.CopyDirectoryContentsToHost(
+        self._device_dirs.SKPOutDir(), self.skp_out_dir)
     self._flavor_utils.CopyDirectoryContentsToHost(
         self._device_dirs.SKImageOutDir(), self._skimage_out_dir)
-
-  def _RunAfterRenderSKPs(self):
-    self._flavor_utils.CopyDirectoryContentsToHost(
-        self._device_dirs.PlaybackActualImagesDir(),
-        self.playback_actual_images_dir)
-    self._flavor_utils.CopyDirectoryContentsToHost(
-        self._device_dirs.PlaybackActualSummariesDir(),
-        self.playback_actual_summaries_dir)
-
-  def _Run(self):
-    self._RunAfterGenerateGMs()
-    self._RunAfterRunDecodingTests()
-    self._RunAfterRenderSKPs()
 
 
 if '__main__' == __name__:

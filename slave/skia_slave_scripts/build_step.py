@@ -191,12 +191,6 @@ class BuildStep(multiprocessing.Process):
     self._default_make_flags = []
     self._default_ninja_flags = []
 
-    # TODO(epoger): Throughout the buildbot code, we use various terms to refer
-    # to the same thing: "skps", "pictures", "replay", "playback".
-    # We should pick one of those terms, and rename things so that we are
-    # consistent.
-    # See https://codereview.chromium.org/295753002/ for additional discussion.
-
     # Adding the playback directory transfer objects.
     self._local_playback_dirs = LocalSkpPlaybackDirs(
         self._builder_name,
@@ -208,12 +202,7 @@ class BuildStep(multiprocessing.Process):
             else args['perf_output_basedir'])
 
     self.skp_dir = self._local_playback_dirs.PlaybackSkpDir()
-    self.playback_actual_images_dir = (
-        self._local_playback_dirs.PlaybackActualImagesDir())
-    self.playback_actual_summaries_dir = (
-        self._local_playback_dirs.PlaybackActualSummariesDir())
-    self.playback_expected_summaries_dir = (
-        self._local_playback_dirs.PlaybackExpectedSummariesDir())
+    self.skp_out_dir = self._local_playback_dirs.PlaybackImageResultsDir()
 
     # Figure out where we are going to store performance related data.
     if args['perf_output_basedir'] != 'None':
