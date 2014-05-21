@@ -16,7 +16,9 @@ from utils import shell_utils
 class DeviceDirs(object):
   def __init__(self, perf_data_dir, gm_actual_dir, gm_expected_dir,
                resource_dir, skimage_in_dir, skimage_expected_dir,
-               skimage_out_dir, skp_dir, skp_perf_dir, skp_out_dir, tmp_dir):
+               skimage_out_dir, skp_dir, skp_perf_dir,
+               playback_actual_images_dir, playback_actual_summaries_dir,
+               playback_expected_summaries_dir, tmp_dir):
     self._perf_data_dir = perf_data_dir
     self._gm_actual_dir = gm_actual_dir
     self._gm_expected_dir = gm_expected_dir
@@ -26,17 +28,33 @@ class DeviceDirs(object):
     self._skimage_out_dir = skimage_out_dir
     self._skp_dir = skp_dir
     self._skp_perf_dir = skp_perf_dir
-    self._skp_out_dir = skp_out_dir
+    self._playback_actual_images_dir = playback_actual_images_dir
+    self._playback_actual_summaries_dir = playback_actual_summaries_dir
+    self._playback_expected_summaries_dir = playback_expected_summaries_dir
     self._tmp_dir = tmp_dir
 
   def GMActualDir(self):
-    return  self._gm_actual_dir
+    """Holds images and JSON summary written out by the 'gm' tool."""
+    return self._gm_actual_dir
 
   def GMExpectedDir(self):
+    """Holds expectations JSON summary read by the 'gm' tool."""
     return self._gm_expected_dir
 
   def PerfDir(self):
     return self._perf_data_dir
+
+  def PlaybackActualImagesDir(self):
+    """Holds image files written out by the 'render_pictures' tool."""
+    return self._playback_actual_images_dir
+
+  def PlaybackActualSummariesDir(self):
+    """Holds actual-result JSON summaries written by 'render_pictures' tool."""
+    return self._playback_actual_summaries_dir
+
+  def PlaybackExpectedSummariesDir(self):
+    """Holds expected-result JSON summaries read by 'render_pictures' tool."""
+    return self._playback_expected_summaries_dir
 
   def ResourceDir(self):
     return self._resource_dir
@@ -51,13 +69,11 @@ class DeviceDirs(object):
     return self._skimage_out_dir
 
   def SKPDir(self):
+    """Holds SKP files that are consumed by RenderSKPs and BenchPictures."""
     return self._skp_dir
 
   def SKPPerfDir(self):
     return self._skp_perf_dir
-
-  def SKPOutDir(self):
-    return self._skp_out_dir
 
   def TmpDir(self):
     return self._tmp_dir
@@ -106,7 +122,13 @@ class DefaultBuildStepUtils:
     """ Copy the contents of a host-side directory to a clean directory on the
     device side. Subclasses should override this method with one appropriate for
     copying the contents of a host-side directory to a clean device-side
-    directory."""
+    directory.
+
+    TODO(epoger): Clarify the description a bit: this method does not expect
+    device_dir to be an empty directory before it is called.  Implementations
+    of this method for other device types create an empty directory at
+    device_dir as the first step.
+    """
     # For "normal" builders who don't have an attached device, we expect
     # host_dir and device_dir to be the same.
     if host_dir != device_dir:
@@ -210,7 +232,11 @@ class DefaultBuildStepUtils:
     pass
 
   def GetDeviceDirs(self):
-    """ Set the directories which will be used by the BuildStep. """
+    """ Set the directories which will be used by the BuildStep.
+
+    In the case of DefaultBuildStepUtils, host_dirs and device_dirs are the
+    same, which is why CopyDirectoryContentsToDevice() is a no-op.
+    """
     return DeviceDirs(
         perf_data_dir=self._step.perf_data_dir,
         # TODO(epoger): Instead, set gm_actual_dir to self._step._gm_actual_dir
@@ -225,5 +251,8 @@ class DefaultBuildStepUtils:
         skimage_out_dir=self._step.skimage_out_dir,
         skp_dir=self._step.skp_dir,
         skp_perf_dir=self._step.perf_data_dir,
-        skp_out_dir=self._step.skp_out_dir,
+        playback_actual_images_dir=self._step.playback_actual_images_dir,
+        playback_actual_summaries_dir=self._step.playback_actual_summaries_dir,
+        playback_expected_summaries_dir=(
+            self._step.playback_expected_summaries_dir),
         tmp_dir=os.path.join(os.pardir, 'tmp'))

@@ -17,7 +17,7 @@ import sys
 
 class PreRender(BuildStep):
 
-  def _Run(self):
+  def _RunBeforeGenerateGMs(self):
     # Prepare directory to hold GM expectations.
     self._flavor_utils.CreateCleanDeviceDirectory(
         self._device_dirs.GMExpectedDir())
@@ -53,9 +53,8 @@ class PreRender(BuildStep):
     self._flavor_utils.CreateCleanDeviceDirectory(
         self._flavor_utils.DevicePathJoin(self._device_dirs.GMActualDir(),
                                           self._builder_name))
-    self._flavor_utils.CreateCleanHostDirectory(self.skp_out_dir)
-    self._flavor_utils.CreateCleanDeviceDirectory(self._device_dirs.SKPOutDir())
 
+  def _RunBeforeRunDecodingTests(self):
     # Copy expectations file and images to decode in skimage to device.
     self._flavor_utils.CreateCleanDeviceDirectory(
         self._device_dirs.SKImageExpectedDir())
@@ -88,11 +87,38 @@ class PreRender(BuildStep):
     self._flavor_utils.CopyDirectoryContentsToDevice(
         self._skimage_in_dir, self._device_dirs.SKImageInDir())
 
-
     # Create a directory for the output of skimage
     self._flavor_utils.CreateCleanHostDirectory(self._skimage_out_dir)
     self._flavor_utils.CreateCleanDeviceDirectory(
         self._device_dirs.SKImageOutDir())
+
+  def _RunBeforeRenderSKPs(self):
+    # SKP files have already been installed by DownloadSKPs, so we don't need
+    # to do that here.
+
+    # Install JSON summaries of image expectations.
+    if not os.path.isdir(self.playback_expected_summaries_dir):
+      os.makedirs(self.playback_expected_summaries_dir)
+    self._flavor_utils.CopyDirectoryContentsToDevice(
+        self.playback_expected_summaries_dir,
+        self._device_dirs.PlaybackExpectedSummariesDir())
+
+    # Prepare directory to hold actually-generated images.
+    self._flavor_utils.CreateCleanHostDirectory(
+        self.playback_actual_images_dir)
+    self._flavor_utils.CreateCleanDeviceDirectory(
+        self._device_dirs.PlaybackActualImagesDir())
+
+    # Prepare directory to hold JSON summaries of actually-generated images.
+    self._flavor_utils.CreateCleanHostDirectory(
+        self.playback_actual_summaries_dir)
+    self._flavor_utils.CreateCleanDeviceDirectory(
+        self._device_dirs.PlaybackActualSummariesDir())
+
+  def _Run(self):
+    self._RunBeforeGenerateGMs()
+    self._RunBeforeRunDecodingTests()
+    self._RunBeforeRenderSKPs()
 
 
 if '__main__' == __name__:

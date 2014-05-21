@@ -7,7 +7,6 @@
 
 from build_step import BuildStep
 import build_step
-import os
 import sys
 
 
@@ -20,16 +19,16 @@ class RunGM(BuildStep):
       timeout=timeout, no_output_timeout=no_output_timeout, **kwargs)
 
   def _Run(self):
-    output_dir = os.path.join(self._device_dirs.GMActualDir(),
-                              self._builder_name)
+    output_dir = self._flavor_utils.DevicePathJoin(
+        self._device_dirs.GMActualDir(), self._builder_name)
     cmd = ['--verbose',
            '--writeChecksumBasedFilenames',
            # Don't bother writing out image files that match our expectations--
            # we know that previous runs have already uploaded those!
            '--mismatchPath', output_dir,
            '--missingExpectationsPath', output_dir,
-           '--writeJsonSummaryPath', os.path.join(output_dir,
-                                                  JSON_SUMMARY_FILENAME),
+           '--writeJsonSummaryPath', self._flavor_utils.DevicePathJoin(
+               output_dir, JSON_SUMMARY_FILENAME),
            '--ignoreErrorTypes',
                'IntentionallySkipped', 'MissingExpectations',
                'ExpectationsMismatch',

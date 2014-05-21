@@ -12,9 +12,12 @@ import posixpath
 # The playback root directory name will be used both locally and on Google
 # Storage.
 ROOT_PLAYBACK_DIR_NAME = 'playback'
+
 # These subdirectory names will be used both locally and on Google Storage.
+ACTUAL_IMAGES_DIR_NAME = 'actualImages'
+ACTUAL_SUMMARIES_DIR_NAME = 'actualSummaries'
+EXPECTED_SUMMARIES_DIR_NAME = 'expectedSummaries'
 SKPICTURES_DIR_NAME = 'skps'
-IMAGERESULTS_DIR_NAME = 'imageResults'
 
 
 class SkpPlaybackDirs(object):
@@ -25,20 +28,26 @@ class SkpPlaybackDirs(object):
     self._builder_name = builder_name
     self._perf_output_basedir = perf_output_basedir
 
-  def PlaybackRootDir(self):
-    raise NotImplementedError("PlaybackRootDir is unimplemented!")
+  def PlaybackActualImagesDir(self):
+    raise NotImplementedError("PlaybackActualImagesDir is unimplemented")
 
-  def PlaybackSkpDir(self):
-    raise NotImplementedError("PlaybackSkpDir is unimplemented!")
+  def PlaybackActualSummariesDir(self):
+    raise NotImplementedError("PlaybackActualSummariesDir is unimplemented")
 
-  def PlaybackImageResultsDir(self):
-    raise NotImplementedError("PlaybackImageResultsDir is unimplemented")
+  def PlaybackExpectedSummariesDir(self):
+    raise NotImplementedError("PlaybackExpectedSummariesDir is unimplemented")
 
   def PlaybackPerfDataDir(self):
     raise NotImplementedError("PlaybackPerfDataDir is unimplemented")
 
   def PlaybackPerfGraphsDir(self):
     raise NotImplementedError("PlaybackPerfGraphsDir is unimplemented")
+
+  def PlaybackRootDir(self):
+    raise NotImplementedError("PlaybackRootDir is unimplemented!")
+
+  def PlaybackSkpDir(self):
+    raise NotImplementedError("PlaybackSkpDir is unimplemented!")
 
 
 class LocalSkpPlaybackDirs(SkpPlaybackDirs):
@@ -60,11 +69,22 @@ class LocalSkpPlaybackDirs(SkpPlaybackDirs):
     return os.path.join(
         self._local_playback_root_dir, SKPICTURES_DIR_NAME)
 
-  def PlaybackImageResultsDir(self):
+  def PlaybackActualImagesDir(self):
     """Returns the local playback image output directory."""
     return os.path.join(
-        self._local_playback_root_dir, IMAGERESULTS_DIR_NAME,
+        self._local_playback_root_dir, ACTUAL_IMAGES_DIR_NAME,
         self._builder_name)
+
+  def PlaybackActualSummariesDir(self):
+    """Returns the local playback JSON-summary output directory."""
+    return os.path.join(
+        self._local_playback_root_dir, ACTUAL_SUMMARIES_DIR_NAME,
+        self._builder_name)
+
+  def PlaybackExpectedSummariesDir(self):
+    """Returns the local playback JSON-summary input directory."""
+    return os.path.abspath(os.path.join(
+        'expectations', 'skp', self._builder_name))
 
   def PlaybackPerfDataDir(self):
     """Returns the local playback perf data directory."""
@@ -94,10 +114,20 @@ class StorageSkpPlaybackDirs(SkpPlaybackDirs):
     """Returns the relative storage playback skp directory."""
     return posixpath.join(ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
 
-  def PlaybackImageResultsDir(self):
+  def PlaybackActualImagesDir(self):
     """Returns the relative storage playback image output directory."""
     return posixpath.join(
-        ROOT_PLAYBACK_DIR_NAME, IMAGERESULTS_DIR_NAME, self._builder_name)
+        ROOT_PLAYBACK_DIR_NAME, ACTUAL_IMAGES_DIR_NAME, self._builder_name)
+
+  def PlaybackActualSummariesDir(self):
+    """Returns the relative storage playback JSON-summary output directory."""
+    return posixpath.join(
+        ROOT_PLAYBACK_DIR_NAME, ACTUAL_SUMMARIES_DIR_NAME, self._builder_name)
+
+  def PlaybackExpectedSummariesDir(self):
+    """Returns the relative storage playback JSON-summary input directory."""
+    return posixpath.join(
+        ROOT_PLAYBACK_DIR_NAME, EXPECTED_SUMMARIES_DIR_NAME, self._builder_name)
 
   def PlaybackPerfDataDir(self):
     """Returns the relative playback perf data directory."""
