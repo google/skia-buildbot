@@ -120,6 +120,8 @@ RETRY_RUN_MEASUREMENT_COUNT = 30
 CREDENTIALS_GS_LOCATION = (
     'gs://chromium-skia-gm/playback/credentials/credentials.json')
 
+X11_DISPLAY = os.getenv('DISPLAY', ':0')
+
 
 class SkPicturePlayback(object):
   """Class that archives or replays webpages and creates SKPs."""
@@ -138,6 +140,7 @@ class SkPicturePlayback(object):
     self._non_interactive = parse_options.non_interactive
     self._upload_to_gs = parse_options.upload_to_gs
     self._upload_to_staging = parse_options.upload_to_staging
+    self._skip_all_gs_access = parse_options.skip_all_gs_access
 
     self._local_skp_dir = os.path.join(
         parse_options.output_dir, ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
@@ -168,7 +171,7 @@ class SkPicturePlayback(object):
     """Run the SkPicturePlayback BuildStep."""
 
     # Ensure the right .boto file is used by gsutil.
-    if gs_utils.read_timestamp_file(
+    if not self._skip_all_gs_access and gs_utils.read_timestamp_file(
         timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
         gs_base=self._dest_gsbase,
         gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME,
@@ -181,7 +184,20 @@ class SkPicturePlayback(object):
           'under third_party/chromium_buildbot/site_config/')
 
     # Download the credentials file if it was not previously downloaded.
-    if not os.path.isfile(CREDENTIALS_FILE_PATH):
+    if self._skip_all_gs_access:
+      print """\n\nPlease create a %s file that contains:
+      {
+        "google": {
+          "username": "google_testing_account_username",
+          "password": "google_testing_account_password"
+        },
+        "facebook": {
+          "username": "facebook_testing_account_username",
+          "password": "facebook_testing_account_password"
+        }
+      }\n\n""" % CREDENTIALS_FILE_PATH
+      raw_input("Please press a key when you are ready to proceed...")
+    elif not os.path.isfile(CREDENTIALS_FILE_PATH):
       # Download the credentials.json file from Google Storage.
       slave_utils.GSUtilDownloadFile(
           src=CREDENTIALS_GS_LOCATION, dst=CREDENTIALS_FILE_PATH)
@@ -211,7 +227,7 @@ class SkPicturePlayback(object):
         # Create an archive of the specified webpages if '--record=True' is
         # specified.
         record_wpr_cmd = (
-          'DISPLAY=:0',
+          'DISPLAY=%s' % X11_DISPLAY,
           os.path.join(TELEMETRY_BINARIES_DIR, 'record_wpr'),
           '--extra-browser-args=--disable-setuid-sandbox',
           '--browser=exact',
@@ -231,11 +247,12 @@ class SkPicturePlayback(object):
           raise Exception('record_wpr failed for page_set: %s' % page_set)
 
       else:
-        # Get the webpages archive so that it can be replayed.
-        self._DownloadWebpagesArchive(wpr_data_file, page_set_basename)
+        if not self._skip_all_gs_access:
+          # Get the webpages archive so that it can be replayed.
+          self._DownloadWebpagesArchive(wpr_data_file, page_set_basename)
 
       run_measurement_cmd = (
-          'DISPLAY=:0',
+          'DISPLAY=%s' % X11_DISPLAY,
           'timeout', '300',
           os.path.join(TELEMETRY_BINARIES_DIR, 'run_measurement'),
           '--extra-browser-args=--disable-setuid-sandbox',
@@ -316,7 +333,7 @@ class SkPicturePlayback(object):
 
     print '\n\n'
 
-    if self._upload_to_gs:
+    if not self._skip_all_gs_access and self._upload_to_gs:
       backup_location = posixpath.join(
           self._dest_gsbase,
           '%s-backup-%s' % (ROOT_PLAYBACK_DIR_NAME, time.time()))
@@ -361,6 +378,8 @@ class SkPicturePlayback(object):
           posixpath.join(self._dest_gsbase, dest_dir_name, SKPICTURES_DIR_NAME))
     else:
       print '\n\n=======Not Uploading to Google Storage=======\n\n'
+      print 'Generated resources are available in %s\n\n' % (
+          LOCAL_PLAYBACK_ROOT_DIR)
 
     return 0
 
@@ -438,6 +457,13 @@ if '__main__' == __name__:
       '', '--page_sets',
       help='Specifies the page sets to use to archive. Supports globs.',
       default='all')
+  option_parser.add_option(
+      '', '--skip_all_gs_access', action='store_true',
+      help='All Google Storage interactions will be skipped if this flag is '
+           'specified. This is useful for cases where the user does not have '
+           'the required .boto file but would like to generate webpage '
+           'archives and SKPs from the Skia page sets.',
+      default=False)
   option_parser.add_option(
       '', '--record', action='store_true',
       help='Specifies whether a new website archive should be created.',
