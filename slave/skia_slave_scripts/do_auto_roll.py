@@ -8,16 +8,32 @@
 
 
 import os
+import re
 import sys
 
 from build_step import BuildStep
+from slave import slave_utils
 from utils import misc
 from utils import shell_utils
+
+sys.path.append(misc.BUILDBOT_PATH)
+
+from site_config import skia_vars
 
 
 # TODO(borenet): Set up an automated account for this:
 # https://code.google.com/p/chromium/issues/detail?id=339824
-DEPS_ROLL_AUTHOR = 'robertphillips@google.com'
+DEPS_ROLL_AUTHOR = 'borenet@google.com'
+HTML_CONTENT = '''
+<html>
+<head>
+<meta http-equiv="refresh" content="0; url=https://codereview.chromium.org/%s/" />
+</head>
+</html>
+'''
+ISSUE_REGEXP = (
+    r'Issue created. URL: https://codereview.chromium.org/(?P<issue>\d+)')
+UPLOAD_FILENAME = 'depsroll.html'
 
 
 class AutoRoll(BuildStep):
@@ -30,7 +46,19 @@ class AutoRoll(BuildStep):
     chrome_path = os.path.join(os.pardir, 'src')
     # python auto_roll.py <project> <author> <path to chromium/src>
     cmd = ['python', auto_roll, 'skia', DEPS_ROLL_AUTHOR, chrome_path]
-    shell_utils.run(cmd)
+    output = shell_utils.run(cmd)
+
+    match = re.search(ISSUE_REGEXP, output)
+    if match:
+      issue = match.group('issue')
+      print 'Found issue #', issue
+      with open(UPLOAD_FILENAME, 'w') as f:
+        f.write(HTML_CONTENT % issue)
+      slave_utils.GSUtilCopyFile(
+          filename=UPLOAD_FILENAME,
+          gs_base=skia_vars.GetGlobalVariable('googlestorage_bucket'),
+          subdir=None,
+          gs_acl='public-read')
 
 
 if '__main__' == __name__:
