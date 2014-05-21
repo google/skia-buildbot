@@ -14,6 +14,7 @@ import os
 import re
 import shell_utils
 import shlex
+import svn_to_git
 import sys
 import urllib2
 
@@ -27,6 +28,21 @@ PATH_TO_SKIA_IN_CHROME = os.path.join('src', 'third_party', 'skia', 'src')
 DEFAULT_FETCH_TARGET = 'chromium'
 
 
+def GetDepsVar(deps_filepath, variable):
+  """Read the given DEPS file and return the value of the given variable.
+
+  Args:
+      deps_filepath: string; path to a DEPS file.
+      variable: string; name of the variable whose value should be returned.
+  Returns:
+      string; value of the requested variable.
+  """
+  deps_vars = {}
+  deps_vars['Var'] = lambda x: deps_vars['vars'][x]
+  execfile(deps_filepath, deps_vars)
+  return deps_vars['vars'][variable]
+
+
 def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
          override_skia_checkout=True, fetch_target=DEFAULT_FETCH_TARGET):
   """ Create and sync a checkout of Skia inside a checkout of Chrome. Returns
@@ -36,8 +52,8 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   skia_revision: revision of Skia to sync. If None, will attempt to determine
       the most recent Skia revision. Ignored if use_lkgr_skia is True.
   chrome_revision: revision of Chrome to sync. If None, will use the LKGR.
-  use_lkgr_skia: boolean; if True, leaves Skia at the revision requested by
-      Chrome instead of using skia_revision.
+  use_lkgr_skia: boolean; if True, leaves Skia at the revision given in Chrome's
+      DEPS file.
   override_skia_checkout: boolean; whether or not to replace the default Skia
       checkout, which is actually a set of three subdirectory checkouts in
       third_party/skia: src, include, and gyp, with a single checkout of skia at
@@ -129,14 +145,6 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   skia_dir = os.path.join('third_party', 'skia')
   src_dir = os.getcwd()
   if override_skia_checkout:
-    if use_lkgr_skia:
-      # Get the Skia revision requested by Chrome.
-      deps_vars = {}
-      deps_vars['Var'] = lambda x: deps_vars['vars'][x]
-      execfile('DEPS', deps_vars)
-      skia_revision = deps_vars['vars']['skia_hash']
-      print 'Overriding skia_revision with %s' % skia_revision
-
     # Check out Skia.
     print 'cd %s' % skia_dir
     os.chdir(skia_dir)
@@ -156,6 +164,17 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
       chromium_utils.RemoveDirectory('skia')
       shell_utils.run([GIT, 'clone', SKIA_GIT_URL, 'skia'])
       os.chdir('skia')
+
+    if use_lkgr_skia:
+      # Get the Skia revision specified in Chrome's DEPS file.
+      deps_skia_revision = GetDepsVar(os.path.join(src_dir, 'DEPS'),
+                                      'skia_revision')
+      # skia_revision is currently an SVN revision number in DEPS. We need to
+      # find the corresponding Git commit hash.
+      skia_revision = svn_to_git.GitHashFromSvnRev(deps_skia_revision)
+
+      print 'Overriding skia_revision with %s' % skia_revision
+
     shell_utils.run([GIT, 'reset', '--hard', skia_revision])
   else:
     os.chdir(os.path.join(skia_dir, 'src'))
