@@ -120,7 +120,8 @@ class SshBuildStepUtils(DefaultBuildStepUtils):
         path = os.path.join(host_dir, filename)
         if os.path.isfile(path):
           upload_list.append(path)
-    self.PushMultipleFilesToDevice(upload_list, device_dir)
+    if upload_list:
+      self.PushMultipleFilesToDevice(upload_list, device_dir)
     ts_filepath = os.path.join(host_dir, gs_utils.TIMESTAMP_COMPLETED_FILENAME)
     if os.path.isfile(ts_filepath):
       self.PushFileToDevice(ts_filepath, device_dir)
