@@ -13,7 +13,7 @@
   var SUCCESS = 0;
 
   // Number of builds which should be loaded.
-  var DEFAULT_BUILDS_TO_LOAD = 10;
+  var DEFAULT_BUILDS_TO_LOAD = 50;
 
   // Object to manage Git revision history.
   var gitHistory = new skiaTools.GitHistory();
@@ -64,6 +64,8 @@
 
   // High-level information about each builder.
   var builderData = null;
+
+  var loadStart = null;
 
   // Load the Visualization API
   google.load("visualization", "1.0", {"packages":["corechart", "controls"]});
@@ -136,6 +138,12 @@
    *     indexed by commit hash.
    */
   function drawLineChart(displayBuilders, data) {
+    var message = "";
+    if (loadStart) {
+      var elapsedSeconds = (new Date().getTime() - loadStart) / 1000;
+      message = "Loaded data in " + elapsedSeconds + " seconds.";
+    }
+    setMessage(message);
     var table = new google.visualization.DataTable();
     table.addColumn("string", "Revision");
     for (var i = 0; i < displayBuilders.length; i++) {
@@ -264,6 +272,7 @@
       console.warn("selectBuilders: No master selected!");
       return;
     }
+    loadStart = new Date().getTime();
     var displayBuilders = [];
     var msg = "<p style=\"font-size:0.8em;\">Loading builds for builders:<ul>";
     var menu = document.getElementById("builder_menu");
@@ -279,27 +288,35 @@
     msg += "</ul></p>";
     clearCharts();
     setMessage(msg);
-    setTimeout(function(){
-      var data = {};
-      var buildsToLoad = document.getElementById("builds_to_load").value;
-      for (var i = 0; i < displayBuilders.length; i++) {
-        var builder = displayBuilders[i];
-        console.log("Loading builds for " + builder + "...");
-        var builderObj = builderData[builder];
-        var dataForBuilder = builderObj.loadBuilds(buildsToLoad);
+    var data = {};
+
+    var revsToLoad = [];
+    var buildsToLoad = document.getElementById("builds_to_load").value;
+    var buildersToLoad = Array.prototype.slice.call(displayBuilders);
+    for (var i = 0; i < displayBuilders.length; i++) {
+      var builder = displayBuilders[i];
+      var builderObj = builderData[builder];
+      builderObj.loadBuilds(buildsToLoad, function(builder, dataForBuilder) {
         for (var buildNum in dataForBuilder) {
           var rev = dataForBuilder[buildNum].getRevision();
-          gitHistory.ensureLoaded(rev);
+          if (revsToLoad.indexOf(rev) == -1) {
+            revsToLoad.push(rev);
+          }
           if (!data[rev]) {
             data[rev] = {};
           }
           data[rev][builder] = dataForBuilder[buildNum];
         }
-        console.log("Loaded builds for " + builder + ".");
-      }
-      drawLineChart(displayBuilders, data);
-      setMessage("");
-    }, 0);
+        console.log("Got builds for " + builder);
+        buildersToLoad.splice(buildersToLoad.indexOf(builder), 1);
+        if (buildersToLoad.length == 0) {
+          // Ensure that all revision data has been loaded, draw the chart.
+          gitHistory.ensureLoaded(revsToLoad, function() {
+            drawLineChart(displayBuilders, data);
+          });
+        }
+      });
+    }
   }
 
   /**
@@ -311,15 +328,16 @@
         document.getElementById("master_menu").value);
     setMessage("Loading builders for " + selectedMaster.getName() +
                " master...");
-    var builders = selectedMaster.loadBuilders();
-    builderData = {};
-    for (var builderNum = 0; builderNum < builders.length; builderNum++) {
-      var builder = builders[builderNum];
-      builderData[builder.getName()] = builder;
-    }
-    skiaTools.populateMenu("builder_menu", Object.keys(builderData));
-    setMessage("Loaded builders.");
-    setMessage("Select one or more builders.");
+    selectedMaster.loadBuilders(function(builders) {
+      builderData = {};
+      for (var builderNum = 0; builderNum < builders.length; builderNum++) {
+        var builder = builders[builderNum];
+        builderData[builder.getName()] = builder;
+      }
+      skiaTools.populateMenu("builder_menu", Object.keys(builderData));
+      setMessage("Loaded builders.");
+      setMessage("Select one or more builders.");
+    });
   }
 
   /**
@@ -329,13 +347,12 @@
   function init() {
     setMessage("Loading masters...");
     document.getElementById("builds_to_load").value = DEFAULT_BUILDS_TO_LOAD;
-    setTimeout(function() {
-      var masters = skiaTools.loadMasterList();
+    skiaTools.loadMasterList(function(masters) {
       skiaTools.populateMenu("master_menu", masters);
       document.getElementById("master_menu").selectedIndex = -1;
       setMessage("Loaded masters.");
       setMessage("Please select a build master.");
-    }, 0);
+    });
   }
   </script>
   </head>

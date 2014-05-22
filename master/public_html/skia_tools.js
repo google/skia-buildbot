@@ -20,27 +20,33 @@ googlesourceURL: "https://skia.googlesource.com",
 masterHostSuffix: "_master_host",
 masterPortSuffix: "_external_port",
 
+
 /**
  * Retrieve the Git log for the Skia repository.
  *
  * @param {string} startHash
  * @param {string} endHash
+ * @param {function(Array.<Object>)} callback Call this function with the
+ *     decoded JSON from the Git log when the data has loaded.
  */
-gitLog: function(startHash, endHash) {
-  var url = this.googlesourceURL + "/skia/+log/" + startHash + ".." + endHash + "?format=JSON";
+gitLog: function(startHash, endHash, callback) {
+  var url = this.googlesourceURL + "/skia/+log/" + startHash + ".." + endHash +
+      "?format=JSON";
   try {
     var request = new XMLHttpRequest();
   } catch (error) {
     alert(error);
   }
-  request.open("GET", url, false);
+  request.open("GET", url, true);
+  request.onreadystatechange = function() {
+    if (request.readyState != 4) { return; }
+    // Remove the first line, which is garbage.
+    var responseLines = request.responseText.split('\n');
+    responseLines.splice(0, 1);
+
+    callback(JSON.parse(responseLines.join('\n'))["log"]);
+  };
   request.send();
-
-  // Remove the first line, which is garbage.
-  var responseLines = request.responseText.split('\n');
-  responseLines.splice(0, 1);
-
-  return JSON.parse(responseLines.join('\n'))["log"];
 },
 
 /**
@@ -54,22 +60,26 @@ GitHistory: function() {
   /**
    * loadCommits
    *
-   * @param oldestCommit {string} Load this commit and all newer commits.
+   * @param {string} oldestCommit Load this commit and all newer commits.
+   * @param {function} callback Call this function when finished.
    */
-  this.loadCommits = function(oldestCommit) {
-    var newCommits = skiaTools.gitLog(oldestCommit + "~1", this.lastFetchedRev);
-    for (var i = 0; i < newCommits.length; ++i) {
-      var commitHash = newCommits[i].commit;
-      this.allRevisions.push(commitHash);
-      this.gotRev[commitHash] = true;
-    }
-    this.lastFetchedRev = newCommits[newCommits.length - 1].commit;
+  this.loadCommits = function(oldestCommit, callback) {
+    var thisInstance = this;
+    skiaTools.gitLog(oldestCommit + "~1", this.lastFetchedRev, function(newCommits) {
+      for (var i = 0; i < newCommits.length; ++i) {
+        var commitHash = newCommits[i].commit;
+        thisInstance.allRevisions.push(commitHash);
+        thisInstance.gotRev[commitHash] = true;
+      }
+      thisInstance.lastFetchedRev = newCommits[newCommits.length - 1].commit;
+      callback();
+    });
   }
 
   /**
    * getRevList
    *
-   * @return {array.<string>} Array of commit hashes in chronological order.
+   * @return {Array.<string>} Array of commit hashes in chronological order.
    */
   this.getRevList = function() {
     var revList = Array.prototype.slice.call(this.allRevisions);
@@ -80,13 +90,24 @@ GitHistory: function() {
   /**
    * ensureLoaded
    *
-   * @param commit {string} If this commit has not yet been loaded, load this
-   *     and all newer commits.
+   * @param {Array.<string>} commitList Load commits from history until all
+   *     commits in commitList have been loaded. This will be significantly
+   *     faster if the list is in chronological order.
+   * @param {function} callback Call this function when finished.
    */
-  this.ensureLoaded = function(commit) {
-    if (!this.gotRev[commit]) {
-      this.loadCommits(commit);
-    }
+  this.ensureLoaded = function(commitList, callback) {
+    var thisInstance = this;
+    var areAllLoaded = function() {
+      for (var i = 0; i < commitList.length; i++) {
+        var commit = commitList[i];
+        if (!thisInstance.gotRev[commit]) {
+          thisInstance.loadCommits(commit, areAllLoaded);
+          return;
+        }
+      }
+      callback();
+    };
+    areAllLoaded();
   }
 },
 
@@ -111,8 +132,11 @@ populateMenu: function(menuId, items) {
 
 /**
  * Load the global_variables.json file.
+ *
+ * @param {function} callback Call this function when finished.
  */
-loadGlobalVariables: function() {
+loadGlobalVariables: function(callback) {
+  var thisInstance = this;
   var url = this.googlesourceURL + "/buildbot/+/master/site_config/" +
       "global_variables.json?format=TEXT";
   try {
@@ -120,25 +144,35 @@ loadGlobalVariables: function() {
   } catch (error) {
     alert(error);
   }
-  request.open("GET", url, false);
+  request.open("GET", url, true);
+  request.onreadystatechange = function() {
+    if (request.readyState != 4) { return; }
+    thisInstance.globalVariables = JSON.parse(atob(request.responseText));
+    callback();
+  }
   request.send();
-  this.globalVariables = JSON.parse(atob(request.responseText));
 },
 
 /**
  * Retrieve the given variable.
  *
- * @return The value for the requested variable, as defined in the global
- *     variables file, or undefined if it is not found.
+ * @param {function(string)} callback Call this function with the value of the
+ *     requested variable, as defined in the global variables file, or
+ *     undefined if it is not found.
  */
-getVariable: function(varName) {
+getVariable: function(varName, callback) {
+  var thisInstance = this;
+  var readGlobalVariable = function() {
+    if (!thisInstance.globalVariables[varName]) {
+      callback(undefined);
+    }
+    callback(thisInstance.globalVariables[varName].value);
+  };
   if (!this.globalVariables) {
-    this.loadGlobalVariables();
+    this.loadGlobalVariables(readGlobalVariable);
+  } else {
+    readGlobalVariable();
   }
-  if (!this.globalVariables[varName]) {
-    return undefined;
-  }
-  return this.globalVariables[varName].value;
 },
 
 /**
@@ -326,8 +360,7 @@ Builder: function(name, master, basedir, cachedBuilds, category, currentBuilds,
   this.getState         = function() { return this.state; }
 
   /**
-   * Obtain information about a single build from the buildbot master. This is
-   * synchronous and should be assumed to be very slow.
+   * Obtain information about a single build from the buildbot master.
    *
    * @param {number} build The number of the build which should be retrieved.
    * @param {boolean} loadUnfinished Whether or not to load data for unfinished
@@ -335,106 +368,128 @@ Builder: function(name, master, basedir, cachedBuilds, category, currentBuilds,
    * @param {boolean} loadUnknownRevs Whether or not to load data for builds
    *     which do not have an associated revision number. This occurs when the
    *     source checkout step fails.
-   *
-   * @return {object|null} A Build instance containing information about the
-   *     requested build.
+   * @param {function(string, number, Build|null)} callback Call this function
+   *     with a builder name, build number, and a Build instance containing
+   *     information about the requested build when loaded.
    */
-  this.loadDataForBuild = function(build, loadUnfinished, loadUnknownRevs) {
-    var buildData = this.master.loadData("builders/" + this.getName() +
-        "/builds/" + build + "/steps");
+  this.loadDataForBuild = function(build, loadUnfinished, loadUnknownRevs,
+                                   callback) {
+    var thisInstance = this;
+    var buildURL = "builders/" + this.getName() + "/builds/" + build + "/steps";
+    this.master.loadData(buildURL, function(buildData) {
+      // Build step results.
+      var SUCCESS = 0;
+      var FAILURE = 2;
+      var SKIPPED = 3;
 
-    // Build step results.
-    var SUCCESS = 0;
-    var FAILURE = 2;
-    var SKIPPED = 3;
+      var steps = [];
+      var result = 0;
+      var startTime = 0;
+      var endTime = 0;
+      var revision = undefined;
+      var gotRevisionStr = "got_revision: ";
+      for (var step in buildData) {
+        var stepData = buildData[step];
+        if (stepData["isStarted"] && !stepData["isFinished"] &&
+            !loadUnfinished) {
+          // If the build isn't finished, ignore it
+          callback(thisInstance.getName(), build, null);
+        }
+        if (!stepData["isStarted"]) {
+          continue;
+        }
+        if (stepData["name"] == "Update") {
+          // The buildbot's JSON interface stores results as an array in which
+          // the first element is an integer indicating success or failure.
+          if (stepData["isStarted"] && stepData["isFinished"] &&
+              stepData["results"][0] == 0) {
+            // The "text" field is an array containing extra information about
+            // the build step. In the case of the Update step, its second
+            // element is a string indicating the revision obtained for the
+            // current build.
+            revision = stepData["text"][1].substring(gotRevisionStr.length);
+          } else if (!loadUnknownRevs) {
+            // If the Update step failed, we can't attach a revision, so we have
+            // to ignore this build.
+            console.log("Warning: Can't get a revision for build #" + build +
+                        ". Skipping.");
+            callback(thisInstance.getName(), build, null);
+          }
+        }
+        var times = stepData["times"];
+        var stepTime = times[1] - times[0];
+        if (startTime == 0) {
+          startTime = times[0];
+        }
+        endTime = times[1];
+        var stdout = null;
+        try {
+          stdout = stepData["logs"][0][1];
+        } catch(e) {
+          stdout = "None";
+        }
 
-    var steps = [];
-    var result = 0;
-    var startTime = 0;
-    var endTime = 0;
-    var revision = undefined;
-    var gotRevisionStr = "got_revision: ";
-    for (var step in buildData) {
-      var stepData = buildData[step];
-      if (stepData["isStarted"] && !stepData["isFinished"] &&
-          !loadUnfinished) {
-        // If the build isn't finished, ignore it
-        return null;
-      }
-      if (!stepData["isStarted"]) {
-        continue;
-      }
-      if (stepData["name"] == "Update") {
-        // The buildbot's JSON interface stores results as an array in which
-        // the first element is an integer indicating success or failure.
-        if (stepData["isStarted"] && stepData["isFinished"] &&
-            stepData["results"][0] == 0) {
-          // The "text" field is an array containing extra information about
-          // the build step. In the case of the Update step, its second element
-          // is a string indicating the revision obtained for the current
-          // build.
-          revision = stepData["text"][1].substring(gotRevisionStr.length);
-        } else if (!loadUnknownRevs) {
-          // If the Update step failed, we can't attach a revision, so we have
-          // to ignore this build.
-          console.log("Warning: Can't get a revision for build #" + build +
-                      ". Skipping.");
-          return null;
+        var buildStep = new skiaTools.BuildStep(stepData["name"], stepTime,
+                                                stepData["results"][0], stdout);
+        steps.push(buildStep);
+
+        if (buildStep.getResult() != SUCCESS &&
+            buildStep.getResult() != SKIPPED) {
+          result = FAILURE;
         }
       }
-      var times = stepData["times"];
-      var stepTime = times[1] - times[0];
-      if (startTime == 0) {
-        startTime = times[0];
-      }
-      endTime = times[1];
-      var stdout = null;
-      try {
-        stdout = stepData["logs"][0][1];
-      } catch(e) {
-        stdout = "None";
+      if (revision == undefined) {
+        console.log("Warning: could not find a revision for build #" + build);
       }
 
-      var buildStep = new skiaTools.BuildStep(stepData["name"], stepTime,
-                                              stepData["results"][0], stdout);
-      steps.push(buildStep);
-
-      if (buildStep.getResult() != SUCCESS &&
-          buildStep.getResult() != SKIPPED) {
-        result = FAILURE;
-      }
-    }
-    if (revision == undefined) {
-      console.log("Warning: could not find a revision for build #" + build);
-    }
-
-    return new skiaTools.Build(this.getName(), build, revision, result,
-                               startTime, endTime, steps);
+      callback(thisInstance.getName(), build, new skiaTools.Build(
+          thisInstance.getName(), build, revision, result, startTime, endTime,
+          steps));
+    });
   }
 
   /**
    * Obtain information about the builds for a single builder. Works backward
    * from the last known build, loading builds until the requested number of
    * builds has been fulfilled or all of the builder's builds have been loaded.
-   * This is synchronous and should be assumed to be very slow.
    *
-   * @param {number} numRevs The number of revisions to load.
-   *
-   * @return {object} Instances of Build for the builder, indexed by revision.
+   * @param {number} numBuilds The number of builds to load.
+   * @param {function(string, Object)} callback Call this function with the
+   *     builder name and a dictionary of instances of Build for the builder,
+   *     indexed by revision.
    */
-  this.loadBuilds = function(numRevs) {
-    var data = {};
+  this.loadBuilds = function(numBuilds, callback) {
     var lastBuild = this.getLastBuild();
-    for (var buildNum = lastBuild; buildNum >= lastBuild - numRevs && buildNum >= 0; buildNum--) {
+    var loading = [];
+    var thisInstance = this;
+    var doneLoading = function() {
+      var data = {};
+      for (var buildNum = lastBuild; buildNum >= lastBuild - numBuilds && buildNum >= 0; buildNum--) {
+        var build = thisInstance.alreadyLoadedBuilds[buildNum];
+        if (build) {
+          data[buildNum] = build;
+        }
+      }
+      callback(thisInstance.getName(), data);
+    };
+    for (var buildNum = lastBuild; buildNum >= lastBuild - numBuilds && buildNum >= 0; buildNum--) {
       var build = this.alreadyLoadedBuilds[buildNum];
       if (!build) {
-        build = this.loadDataForBuild(buildNum, false, false);
-        if (!build) { continue; }
-        this.alreadyLoadedBuilds[buildNum] = build;
+        loading.push(buildNum);
+        this.loadDataForBuild(buildNum, false, false, function(builder, buildNum, build) {
+          loading.splice(loading.indexOf(buildNum), 1);
+          thisInstance.alreadyLoadedBuilds[buildNum] = build;
+          if (loading.length == 0) {
+            doneLoading();
+          }
+        });
+      } else {
+        data[buildNum] = build;
+        if (loading.length == 0) {
+          doneLoading();
+        }
       }
-      data[buildNum] = build;
     }
-    return data;
   }
 },
 
@@ -462,7 +517,7 @@ BuildSlave: function(admin, builders, connected, currentBuilds, host, name,
   /**
    * getBuilders
    *
-   * @return {object} Dictionary whose keys are builder names and values are
+   * @return {Object} Dictionary whose keys are builder names and values are
    *     lists of build numbers indicating which builds for which builders this
    *     slave has performed.
    */
@@ -479,7 +534,7 @@ BuildSlave: function(admin, builders, connected, currentBuilds, host, name,
   /**
    * getCurrentBuilds
    *
-   * @return {Array.<object>} List of dictionaries containing information about
+   * @return {Array.<Object>} List of dictionaries containing information about
    *     currently-running builds on this slave.
    */
   this.getCurrentBuilds = function() { return this.currentBuilds; }
@@ -506,69 +561,103 @@ BuildSlave: function(admin, builders, connected, currentBuilds, host, name,
   this.getVersion       = function() { return this.version; }
 
   /**
-   * Obtain information about recent builds for a build slave. This is
-   * synchronous and should be assumed to be very slow.
+   * Obtain information about recent builds for a build slave.
    *
    * @param {number} rangeMin Builds before this time will not be loaded.
-   * @param {number} currentTime The time at which {@code slaveDict} was obtained
-   *     from the build master. This value is passed in rather than obtaining the
-   *     current time at the call of this function in case the state of the build
-   *     slave has changed since {@code slaveDict} was obtained.
-   *
-   * @return {Array.<Build>} List of Build objects.
+   * @param {number} currentTime The time at which {@code slaveDict} was
+   *     obtained from the build master. This value is passed in rather than
+   *     obtaining the current time at the call of this function in case the
+   *     state of the build slave has changed since {@code slaveDict} was
+   *     obtained.
+   * @param {function(Array.<Build>)} callback Call this function with a list
+   *     of Build objects when loaded.
    */
-  this.loadBuilds = function(rangeMin, currentTime) {
+  this.loadBuilds = function(rangeMin, currentTime, callback) {
     var builders = this.getBuilders();
     var buildList = [];
-    for (var builder in builders) {
-      var builderObj = new skiaTools.Builder(builder, this.master);
-      var builds = builders[builder];
-      for (var buildIdx = 0; buildIdx < builds.length; buildIdx++) {
-        var buildNum = builds[buildIdx];
-        var build = builderObj.loadDataForBuild(buildNum, true, true);
-        if (build) {
-          buildList.push(build);
-          if (build.getEndTime() < rangeMin || build.getStartTime() < rangeMin) {
-            break;
-          }
+    var thisInstance = this;
+    var getRunningBuilds = function() {
+      var runningBuilds = thisInstance.getCurrentBuilds();
+      for (var buildIdx = 0; buildIdx < runningBuilds.length; buildIdx++) {
+        var buildData = runningBuilds[buildIdx];
+        buildList.push(new thisInstance.Build(buildData["builderName"],
+                                              buildData["number"],
+                                              -1, 0, buildData["times"][0],
+                                              currentTime + 1, []));
+      }
+      buildList.sort(function(a, b) {
+        return a.getStartTime() - b.getStartTime();
+      });
+      callback(buildList);
+    };
+
+    var loadingBuilders = {};
+
+    var gotBuild = function(builder, buildNum, build) {
+      buildList.push(build);
+      if (build != null &&
+          (build.getEndTime() < rangeMin ||
+           build.getStartTime() < rangeMin ||
+           build.getNumber() == 0)) {
+        delete loadingBuilders[builder];
+        if (Object.keys(loadingBuilders).length == 0) {
+          getRunningBuilds();
         }
+      } else {
+        var builderObj = loadingBuilders[builder];
+        builderObj.loadDataForBuild(buildNum - 1, true, true, gotBuild);
       }
     }
-    var runningBuilds = this.getCurrentBuilds();
-    for (var buildIdx = 0; buildIdx < runningBuilds.length; buildIdx++) {
-      var buildData = runningBuilds[buildIdx];
-      buildList.push(new this.Build(buildData["builderName"],
-                                    buildData["number"],
-                                    -1, 0, buildData["times"][0],
-                                    currentTime + 1, []));
+
+    for (var builder in builders) {
+      var builderObj = new skiaTools.Builder(builder,
+                                             this.master,
+                                             null,
+                                             [-1],
+                                             null,
+                                             null,
+                                             null,
+                                             null);
+      var builds = builders[builder];
+      if (builds.length > 0) {
+        loadingBuilders[builder] = builderObj;
+        builderObj.loadDataForBuild(builds[0], true, true, gotBuild);
+      }
     }
-    buildList.sort(function(a, b) {
-      return a.getStartTime() - b.getStartTime();
-    });
-    return buildList;
   }
 },
 
-loadMasterList: function() {
+loadMasterList: function(callback) {
   var masters = [];
-  if (!this.globalVariables) {
-    this.loadGlobalVariables();
-  }
-  for (var key in this.globalVariables) {
-    var suffixIndex = key.indexOf(
-        skiaTools.masterHostSuffix,
-        key.length - skiaTools.masterHostSuffix.length);
-    if (suffixIndex !== -1) {
-      masters.push(key.substring(0, suffixIndex));
+  var thisInstance = this;
+  var gotVariables = function() {
+    for (var key in thisInstance.globalVariables) {
+      var suffixIndex = key.indexOf(
+          skiaTools.masterHostSuffix,
+          key.length - skiaTools.masterHostSuffix.length);
+      if (suffixIndex !== -1) {
+        masters.push(key.substring(0, suffixIndex));
+      }
     }
+    callback(masters);
   }
-  return masters;
+  if (!thisInstance.globalVariables) {
+    this.loadGlobalVariables(gotVariables);
+  } else {
+    gotVariables();
+  }
 },
 
 Master: function(name) {
   this.name = name;
-  this.host = skiaTools.getVariable(name + skiaTools.masterHostSuffix);
-  this.port = skiaTools.getVariable(name + skiaTools.masterPortSuffix);
+
+  var thisInstance = this;
+  skiaTools.getVariable(name + skiaTools.masterHostSuffix, function(host) {
+    thisInstance.host = host;
+  });
+  skiaTools.getVariable(name + skiaTools.masterPortSuffix, function(port) {
+    thisInstance.port = port;
+  });
 
   /**
    * getName
@@ -595,13 +684,14 @@ Master: function(name) {
    * loadData
    *
    * Sends an {@code XMLHttpRequest} to the buildbot master, parses the JSON in
-   * the response, and returns a dictionary. This is synchronous and should be
-   * assumed to be very slow.
+   * the response, and returns a dictionary.
    *
    * @param {string} subdir Subdirectory of the buildbot master's JSON
    *     interface to query.
+   * @param {function(Object)} callback Call this function with the decoded
+   *     JSON data when loaded.
    */
-  this.loadData         = function(subdir) {
+  this.loadData = function(subdir, callback) {
     try {
       var request = new XMLHttpRequest();
     } catch (error) {
@@ -609,61 +699,67 @@ Master: function(name) {
     }
     var url = "http://" + this.getHost() + ":" + this.getPort() + "/json/" +
         subdir;
-    request.open("GET", url, false);
+    request.open("GET", url, true);
+    request.onreadystatechange = function() {
+      if (request.readyState != 4) { return; }
+      callback(JSON.parse(request.responseText));
+    }
     request.send(null);
-    return JSON.parse(request.responseText);
   }
 
   /**
-   * Obtain high-level information about known builders. This is synchronous and
-   * should be assumed to be very slow.
+   * Obtain high-level information about known builders.
    *
-   * @return {Array.<Builder>} A list of Builder objects.
+   * @param {Array.<Builder>} callback Call this function with a list of
+   *     Builder objects when loaded.
    */
-  this.loadBuilders = function() {
-    var builders = [];
-    var buildersData = this.loadData("builders");
-    for (var builderName in buildersData) {
-      var builderData = buildersData[builderName];
-      builders.push(new skiaTools.Builder(builderName, this,
-                                          builderData["basedir"],
-                                          builderData["cachedBuilds"],
-                                          builderData["category"],
-                                          builderData["currentBuilds"],
-                                          builderData["slaves"],
-                                          builderData["state"]));
-    }
-    return builders;
+  this.loadBuilders = function(callback) {
+    var thisInstance = this;
+    this.loadData("builders", function(buildersData) {
+      var builders = [];
+      for (var builderName in buildersData) {
+        var builderData = buildersData[builderName];
+        var builder = new skiaTools.Builder(builderName,
+                                            thisInstance,
+                                            builderData["basedir"],
+                                            builderData["cachedBuilds"],
+                                            builderData["category"],
+                                            builderData["currentBuilds"],
+                                            builderData["slaves"],
+                                            builderData["state"]);
+        builders.push(builder);
+      }
+      callback(builders);
+    });
   }
 
   /**
-   * Obtain high-level information about known build slaves. This is synchronous
-   * and should be assumed to be very slow.
+   * Obtain high-level information about known build slaves.
    *
-   * @return {Array.<BuildSlave>} A list of BuildSlave objects.
+   * @param {function(Array.<BuildSlave>)} callback Call this function with a
+   *     list of BuildSlave objects when loaded.
    */
-  this.loadSlaves = function(host, port) {
+  this.loadSlaves = function(callback) {
     var slaves = [];
-    var slavesData = this.loadData("slaves");
+    var thisInstance = this;
+    this.loadData("slaves", function(slavesData) {
     for (var slave in slavesData) {
-      var slaveData = slavesData[slave];
-      var currentBuilds = slaveData["currentBuilds"];
-      if (currentBuilds == undefined) {
-        currentBuilds = [];
+        var slaveData = slavesData[slave];
+        var currentBuilds = slaveData["currentBuilds"];
+        if (currentBuilds == undefined) {
+          currentBuilds = [];
+        }
+        slaves.push(new skiaTools.BuildSlave(slaveData["admin"],
+                                             slaveData["builders"],
+                                             slaveData["connected"],
+                                             currentBuilds,
+                                             slaveData["host"],
+                                             slaveData["name"],
+                                             thisInstance,
+                                             slaveData["version"]));
       }
-      for (var buildIdx = 0; buildIdx < currentBuilds.length; buildIdx++) {
-
-      }
-      slaves.push(new skiaTools.BuildSlave(slaveData["admin"],
-                                           slaveData["builders"],
-                                           slaveData["connected"],
-                                           currentBuilds,
-                                           slaveData["host"],
-                                           slaveData["name"],
-                                           this,
-                                           slaveData["version"]));
-    }
-    return slaves;
+      callback(slaves);
+    });
   }
 
 },

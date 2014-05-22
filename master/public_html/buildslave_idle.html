@@ -103,6 +103,7 @@
          seconds from epoch.
    */
   function drawLineChart(displaySlaves, rangeMin, rangeMax) {
+    setMessage("");
     var table = new google.visualization.DataTable();
     table.addColumn("datetime", "Time");
     var dateMin = new Date(rangeMin * 1000);
@@ -280,20 +281,23 @@
     msg += "</ul></p>";
     clearCharts();
     setMessage(msg);
-    setTimeout(function(){
-      for (var i = 0; i < displaySlaves.length; i++) {
-        var slave = displaySlaves[i];
-        if (!gotData[slave] || gotData[slave] == undefined) {
-          console.log("Loading builds for " + slave + "...");
-          var buildList = data[slave].loadBuilds(MIN_TIME, CURRENT_TIME);
+    var slavesToLoad = [];
+    for (var i = 0; i < displaySlaves.length; i++) {
+      var slave = displaySlaves[i];
+      if (!gotData[slave] || gotData[slave] == undefined) {
+        console.log("Loading builds for " + slave + "...");
+        slavesToLoad.push(slave);
+        data[slave].loadBuilds(MIN_TIME, CURRENT_TIME, function(buildList) {
           data[slave]["allBuilds"] = buildList;
           gotData[slave] = true;
           console.log("Loaded builds for " + slave + ".");
-        }
+          slavesToLoad.splice(slave, 1);
+          if (slavesToLoad.length == 0) {
+            drawLineChart(displaySlaves, MIN_TIME, CURRENT_TIME);
+          }
+        });
       }
-      drawLineChart(displaySlaves, MIN_TIME, CURRENT_TIME);
-      setMessage("");
-    }, 0);
+    }
   }
 
   /**
@@ -304,8 +308,7 @@
     var masterSelect = document.getElementById("master_menu");
     selectedMaster = new skiaTools.Master(masterSelect.value);
     setMessage("Loading buildslaves for " + selectedMaster.getName() + " master...");
-    setTimeout(function() {
-      var slaveData = selectedMaster.loadSlaves();
+    selectedMaster.loadSlaves(function(slaveData) {
       var allSlaves = [];
       data = {};
       for (var slaveIdx = 0; slaveIdx < slaveData.length; slaveIdx++) {
@@ -317,7 +320,7 @@
       skiaTools.populateMenu("slave_menu", allSlaves);
       setMessage("Loaded buildslaves.");
       setMessage("Select one or more buildslaves.");
-    }, 0);
+    });
   }
 
   /**
@@ -326,13 +329,12 @@
    */
   function init() {
     setMessage("Loading masters...");
-    setTimeout(function() {
-      var masters = skiaTools.loadMasterList();
+    skiaTools.loadMasterList(function(masters) {
       skiaTools.populateMenu("master_menu", masters);
       document.getElementById("master_menu").selectedIndex = -1;
       setMessage("Loaded masters.");
       setMessage("Please select a build master.");
-    }, 0);
+    });
   }
   </script>
   </head>
