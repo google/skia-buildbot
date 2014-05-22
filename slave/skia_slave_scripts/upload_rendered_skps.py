@@ -27,12 +27,13 @@ class UploadRenderedSKPs(upload_gm_results.UploadGMResults):
     # Upload individual image files to Google Storage.
     src_dir = os.path.abspath(self.playback_actual_images_dir)
     if os.listdir(src_dir):
-      dest_dir=posixpath.join(
-              skia_vars.GetGlobalVariable('googlestorage_bucket'), SUBDIR_NAME)
+      dest_dir = posixpath.join(
+          skia_vars.GetGlobalVariable('googlestorage_bucket'), SUBDIR_NAME)
       print 'Uploading image files from %s to %s.' % (
           src_dir, dest_dir)
-      gs_utils.copy_storage_directory(src_dir=src_dir, dest_dir=dest_dir,
-                                      gs_acl=PLAYBACK_CANNED_ACL)
+      gs_utils.upload_dir_contents(
+          local_src_dir=src_dir, remote_dest_dir=dest_dir,
+          gs_acl=PLAYBACK_CANNED_ACL)
     else:
       print ('No image files in %s, so skipping upload to Google Storage.' %
              src_dir)

@@ -144,10 +144,10 @@ def WriteThroughCache(local_root, remote_root, output_json_path,
     remote_filename = '%s_%s.%s' % (filename, hash_dict[HASHING_ALGORITHM],
                                     file_extension)
     if not remote_files_lookup.get(remote_filename):
-      gs_utils.copy_storage_directory(
-          src_dir=os.path.join(local_root, filename),
-          dest_dir=posixpath.join(remote_root, HASHING_ALGORITHM,
-                                  remote_filename),
+      gs_utils.upload_dir_contents(
+          local_src_dir=os.path.join(local_root, filename),
+          remote_dest_dir=posixpath.join(remote_root, HASHING_ALGORITHM,
+                                         remote_filename),
           gs_acl=gs_acl)
 
   # Output a mapping of all local files to their hashes into a JSON file.
@@ -210,10 +210,10 @@ def ReadThroughCache(local_root, remote_root, input_json_path):
       file_extension = filename.split('.')[-1]
       remote_filename = '%s_%s.%s' % (filename, hash_dict[HASHING_ALGORITHM],
                                       file_extension)
-      gs_utils.copy_storage_directory(
-          src_dir=posixpath.join(remote_root, HASHING_ALGORITHM,
-                                 remote_filename),
-          dest_dir=os.path.join(local_root, filename))
+      gs_utils.download_dir_contents(
+          remote_src_dir=posixpath.join(remote_root, HASHING_ALGORITHM,
+                                        remote_filename),
+          local_dest_dir=os.path.join(local_root, filename))
 
 
 if '__main__' == __name__:
@@ -225,4 +225,3 @@ if '__main__' == __name__:
       local_root='/tmp/local_root2',
       remote_root='gs://chromium-skia-gm/test/checksum-test',
       input_json_path='/tmp/json_root/test.json')
-

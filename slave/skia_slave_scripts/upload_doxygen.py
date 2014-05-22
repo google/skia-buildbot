@@ -25,9 +25,9 @@ GS_CACHE_CONTROL_HEADER = 'Cache-Control:public,max-age=3600'
 
 class UploadDoxygen(BuildStep):
   def _Run(self):
-    gs_utils.copy_storage_directory(
-        src_dir=generate_doxygen.DOXYGEN_WORKING_DIR,
-        dest_dir=DOXYGEN_GSUTIL_PATH,
+    gs_utils.upload_dir_contents(
+        local_src_dir=generate_doxygen.DOXYGEN_WORKING_DIR,
+        remote_dest_dir=DOXYGEN_GSUTIL_PATH,
         gs_acl='public-read',
         http_header_lines=[GS_CACHE_CONTROL_HEADER])
 

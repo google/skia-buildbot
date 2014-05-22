@@ -339,10 +339,10 @@ class SkPicturePlayback(object):
           '%s-backup-%s' % (ROOT_PLAYBACK_DIR_NAME, time.time()))
       print '\n\n=======Backing up old SKPs to %s =======\n\n' % (
           backup_location)
-      gs_utils.copy_storage_directory(
-          src_dir=posixpath.join(
+      gs_utils.copy_dir_contents(
+          remote_src_dir=posixpath.join(
               self._dest_gsbase, ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME),
-          dest_dir=backup_location)
+          remote_dest_dir=backup_location)
       self._SetGoogleReadACLs(backup_location)
 
       print '\n\n=======Uploading to Google Storage=======\n\n'

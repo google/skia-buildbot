@@ -34,8 +34,8 @@ def delete_storage_object(object_name):
   chromium_utils.RunCommand(command)
 
 
-def copy_storage_directory(src_dir, dest_dir, gs_acl='private',
-                           http_header_lines=None):
+def _copy_storage_directory(src_dir, dest_dir, gs_acl='private',
+                            http_header_lines=None):
   """Copy a directory from/to Google Storage.
 
   params:
@@ -59,6 +59,67 @@ def copy_storage_directory(src_dir, dest_dir, gs_acl='private',
   command.extend(['cp', '-a', gs_acl, '-R', src_dir, dest_dir])
   print 'Running command: %s' % command
   shell_utils.run(command)
+
+
+def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
+                        http_header_lines=None):
+  """Upload contents of a local directory to Google Storage.
+
+  params:
+    local_src_dir: directory on local disk to upload contents of
+    remote_dest_dir: GS URL (gs://BUCKETNAME/PATH)
+    gs_acl: which predefined ACL to apply to the files on Google Storage; see
+        https://developers.google.com/storage/docs/accesscontrol#extension
+    http_header_lines: a list of HTTP header strings to add, if any
+
+  The copy operates as a "merge with overwrite": any files in src_dir will be
+  "overlaid" on top of the existing content in dest_dir.  Existing files with
+  the same names will be overwritten.
+
+  Performs the copy in multithreaded mode, in case there are a large number of
+  files.
+  """
+  _copy_storage_directory(src_dir=local_src_dir, dest_dir=remote_dest_dir,
+                          gs_acl=gs_acl, http_header_lines=http_header_lines)
+
+
+def download_dir_contents(remote_src_dir, local_dest_dir):
+  """Download contents of a Google Storage directory to local disk.
+
+  params:
+    remote_src_dir: GS URL (gs://BUCKETNAME/PATH)
+    local_dest_dir: directory on local disk to write the contents into
+
+  The copy operates as a "merge with overwrite": any files in src_dir will be
+  "overlaid" on top of the existing content in dest_dir.  Existing files with
+  the same names will be overwritten.
+
+  Performs the copy in multithreaded mode, in case there are a large number of
+  files.
+  """
+  _copy_storage_directory(src_dir=remote_src_dir, dest_dir=local_dest_dir)
+
+
+def copy_dir_contents(remote_src_dir, remote_dest_dir, gs_acl='private',
+                      http_header_lines=None):
+  """Copy contents of one Google Storage directory to another.
+
+  params:
+    remote_src_dir: source GS URL (gs://BUCKETNAME/PATH)
+    remote_dest_dir: dest GS URL (gs://BUCKETNAME/PATH)
+    gs_acl: which predefined ACL to apply to the new files; see
+        https://developers.google.com/storage/docs/accesscontrol#extension
+    http_header_lines: a list of HTTP header strings to add, if any
+
+  The copy operates as a "merge with overwrite": any files in src_dir will be
+  "overlaid" on top of the existing content in dest_dir.  Existing files with
+  the same names will be overwritten.
+
+  Performs the copy in multithreaded mode, in case there are a large number of
+  files.
+  """
+  _copy_storage_directory(src_dir=remote_src_dir, dest_dir=remote_dest_dir,
+                          gs_acl=gs_acl, http_header_lines=http_header_lines)
 
 
 def move_storage_directory(src_dir, dest_dir):

@@ -51,10 +51,10 @@ class UploadSKImageResults(BuildStep):
         skia_vars.GetGlobalVariable('googlestorage_bucket'),
         'skimage', 'actuals')
     http_header_lines = ['Cache-Control:public,max-age=3600']
-    gs_utils.copy_storage_directory(src_dir=src_dir,
-                                    dest_dir=dest_dir,
-                                    gs_acl='public-read',
-                                    http_header_lines=http_header_lines)
+    gs_utils.upload_dir_contents(local_src_dir=src_dir,
+                                 remote_dest_dir=dest_dir,
+                                 gs_acl='public-read',
+                                 http_header_lines=http_header_lines)
 
     # Copy actual images to Google Storage at skimage/output. This will merge
     # with the existing files.
@@ -64,9 +64,9 @@ class UploadSKImageResults(BuildStep):
         skia_vars.GetGlobalVariable('googlestorage_bucket'),
         'skimage', 'output')
     if os.path.isdir(src_dir) and os.listdir(src_dir):
-      gs_utils.copy_storage_directory(src_dir=src_dir,
-                                      dest_dir=dest_dir,
-                                      gs_acl=PLAYBACK_CANNED_ACL)
+      gs_utils.upload_dir_contents(local_src_dir=src_dir,
+                                   remote_dest_dir=dest_dir,
+                                   gs_acl=PLAYBACK_CANNED_ACL)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UploadSKImageResults))

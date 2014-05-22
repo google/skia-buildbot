@@ -84,10 +84,22 @@ class TestGSUtils(unittest.TestCase):
     self._expected_command = ('%s rm -R superman' % GSUTIL_LOCATION)
     gs_utils.delete_storage_object('superman')
 
-  def test_copy_storage_directory(self):
+  def test_upload_dir_contents(self):
     self._expected_command = (
         '%s -m cp -a public -R superman batman' % GSUTIL_LOCATION)
-    gs_utils.copy_storage_directory('superman', 'batman', 'public')
+    gs_utils.upload_dir_contents('superman', 'batman', 'public')
+
+  def test_download_dir_contents(self):
+    # TODO(epoger): The "-a" flag is meaningless when downloading from
+    # Google Storage.  We should change download_dir_contents to not pass it.
+    self._expected_command = (
+        '%s -m cp -a private -R superman batman' % GSUTIL_LOCATION)
+    gs_utils.download_dir_contents('superman', 'batman')
+
+  def test_copy_dir_contents(self):
+    self._expected_command = (
+        '%s -m cp -a public -R superman batman' % GSUTIL_LOCATION)
+    gs_utils.copy_dir_contents('superman', 'batman', 'public')
 
   def test_does_storage_object_exist(self):
     self._expected_command = ('%s ls superman' % GSUTIL_LOCATION)
