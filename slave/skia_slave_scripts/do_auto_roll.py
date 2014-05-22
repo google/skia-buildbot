@@ -27,6 +27,8 @@ DEPS_ROLL_AUTHOR = 'robertphillips@google.com'
 HTML_CONTENT = '''
 <html>
 <head>
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="-1">
 <meta http-equiv="refresh" content="0; url=https://codereview.chromium.org/%s/" />
 </head>
 </html>
