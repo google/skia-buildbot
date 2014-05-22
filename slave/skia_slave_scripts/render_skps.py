@@ -49,11 +49,6 @@ class RenderSKPs(BuildStep):
       BuildStepWarning if there was a problem, but the step should keep going.
       Something else if there was a major problem and we should give up now.
     """
-    # For now, don't run on Android, since it takes too long and we don't use
-    # the results.
-    if 'Android' in self._builder_name:
-      return
-
     json_summary_filename = JSON_SUMMARY_FILENAME_FORMATTER % description
     json_expectations_devicepath = self._flavor_utils.DevicePathJoin(
         self._device_dirs.PlaybackExpectedSummariesDir(), json_summary_filename)
