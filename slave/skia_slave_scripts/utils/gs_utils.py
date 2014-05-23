@@ -51,6 +51,15 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
 
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
+
+  TODO(epoger): Add a "noclobber" mode that will not upload any files would
+  overwrite existing files in Google Storage.
+
+  TODO(epoger): Consider adding a do_compress parameter that would compress
+  the file using gzip before upload, and add a "Content-Encoding:gzip" header
+  so that HTTP downloads of the file would be unzipped automatically.
+  See https://developers.google.com/storage/docs/gsutil/addlhelp/
+              WorkingWithObjectMetadata#content-encoding
   """
   gsutil = slave_utils.GSUtilSetup()
   command = [gsutil, '-m']

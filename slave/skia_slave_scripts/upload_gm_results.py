@@ -66,6 +66,10 @@ class UploadGMResults(BuildStep):
       # Upload the entire staging dir to Google Storage.
       # At present, this will merge the entire contents of [temp_root]/gm
       # into the existing contents of gs://chromium-skia-gm/gm .
+      #
+      # TODO(epoger): Add a "noclobber" mode to gs_utils.upload_dir_contents()
+      # and use it here so we don't re-upload image files we already have
+      # in Google Storage.
       gs_utils.upload_dir_contents(
           local_src_dir=os.path.abspath(
               os.path.join(temp_root, gm_actuals_subdir)),

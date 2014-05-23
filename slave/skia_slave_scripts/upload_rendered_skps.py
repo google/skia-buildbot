@@ -25,6 +25,15 @@ class UploadRenderedSKPs(upload_gm_results.UploadGMResults):
 
   def _Run(self):
     # Upload individual image files to Google Storage.
+    #
+    # TODO(epoger): Add a "noclobber" mode to gs_utils.upload_dir_contents()
+    # and use it here so we don't re-upload image files we already have
+    # in Google Storage.
+    #
+    # TODO(epoger): Change ACLs of files uploaded to Google Storage to
+    # google.com:READ .  See _SetGoogleReadACLs() in
+    # https://skia.googlesource.com/buildbot/+/master/slave/skia_slave_scripts/
+    #         webpages_playback.py
     src_dir = os.path.abspath(self.playback_actual_images_dir)
     if os.listdir(src_dir):
       dest_dir = posixpath.join(
@@ -39,10 +48,6 @@ class UploadRenderedSKPs(upload_gm_results.UploadGMResults):
              src_dir)
 
     # Upload image summaries (checksums) to skia-autogen.
-    #
-    # TODO(epoger): Change ACLs of files uploaded to Google Storage to
-    # google.com:READ .  See _SetGoogleReadACLs() in
-    # https://skia.googlesource.com/buildbot/+/master/slave/skia_slave_scripts/webpages_playback.py
     self._SVNUploadJsonFiles(src_dir=self.playback_actual_summaries_dir,
                              dest_subdir=SUBDIR_NAME)
 
