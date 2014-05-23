@@ -3,58 +3,39 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-""" Upload bench expectation file to the skia-autogen SVN repository. """
 
-from build_step import BuildStep
-from common import chromium_utils
-from config_private import AUTOGEN_SVN_BASEURL
-from utils import merge_into_svn
+"""Upload new bench expectations for this bot."""
+
+
 import os
 import shutil
 import sys
-import tempfile
+import time
 
-
-# Class we can set attributes on, to emulate optparse-parsed options.
-# See upload_gm_results.py for details.
-class Options(object):
-  pass
+from build_step import BuildStep
+from utils import misc
 
 
 class UploadBenchExpectations(BuildStep):
-  def __init__(self, timeout=300, **kwargs):
-    super(UploadBenchExpectations, self).__init__(timeout=timeout, **kwargs)
-
-  def _SVNUploadDir(self, src_dir):
-    """Upload the entire contents of src_dir to the skia-autogen SVN repo."""
-
-    # TODO these constants should actually be shared by multiple build steps
-    bench_merge_basedir = os.path.join(os.pardir, os.pardir, 'bench', 'merge')
-    bench_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL, 'bench')
-    autogen_svn_username_file = self._args['autogen_svn_username_file']
-    autogen_svn_password_file = self._args['autogen_svn_password_file']
-
-    # Call MergeIntoSvn to actually perform the work.
-    merge_options = Options()
-    # pylint: disable=W0201
-    merge_options.commit_message = 'UploadBenchExpectations of %s on %s.' % (
-        self._got_revision, self._args['builder_name'])
-    # pylint: disable=W0201
-    merge_options.dest_svn_url = bench_actual_svn_baseurl
-    # pylint: disable=W0201
-    merge_options.merge_dir_path = bench_merge_basedir
-
-    chromium_utils.RemoveDirectory(merge_options.merge_dir_path)
-    # pylint: disable=W0201
-    merge_options.source_dir_path = src_dir
-    # pylint: disable=W0201
-    merge_options.svn_password_file = autogen_svn_password_file
-    # pylint: disable=W0201
-    merge_options.svn_username_file = autogen_svn_username_file
-    merge_into_svn.MergeIntoSvn(merge_options)
+  """Takes the perf bench expectation file created from
+  GenerateBenchExpectations, updates the corresponding file in Skia repo, and
+  commits the change.
+  """
 
   def _Run(self):
-    self._SVNUploadDir(src_dir=self._perf_autogen_upload_dir)
+    dst_dir = os.path.join(os.getcwd(), 'expectations/bench')
+    commit_msg = """bench rebase after %s (SkipBuildbotRuns)
+
+This CL was created by Skia bots in UpdatePerfBaselines.
+
+Bypassing commit queue trybots:
+NOTRY=true""" % self._got_revision[:7]
+    with misc.GitBranch('tmp_perf_rebase_branch_%s' % time.time(), commit_msg,
+                        upload=True, commit_queue=False):
+      for item in os.listdir(self._perf_range_input_dir):
+        src_file = os.path.join(self._perf_range_input_dir, item)
+        if os.path.isfile(src_file):
+          shutil.copy(src_file, dst_dir)
 
 
 if '__main__' == __name__:

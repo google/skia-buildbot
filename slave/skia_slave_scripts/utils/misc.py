@@ -7,6 +7,8 @@
 
 import os
 
+import shell_utils
+
 
 # Absolute path to the root of this Skia buildbot checkout.
 BUILDBOT_PATH = os.path.realpath(os.path.join(
@@ -86,4 +88,34 @@ class ChDir(object):
     """Change back to the original directory."""
     print 'chdir %s' % self._origin
     os.chdir(self._origin)
+
+
+class GitBranch(object):
+  """Class to manage git branches.
+
+  This class allows one to create a new branch in a repository to make changes,
+  then it commits the changes, switches to master branch, and deletes the
+  created temporary branch upon exit.
+  """
+  def __init__(self, branch_name, commit_msg, upload=True, commit_queue=False):
+    self._branch_name = branch_name
+    self._commit_msg = commit_msg
+    self._upload = upload
+    self._commit_queue = commit_queue
+
+  def __enter__(self):
+    shell_utils.run(['git', 'reset', '--hard', 'HEAD'])
+    shell_utils.run(['git', 'checkout', '-b', self._branch_name, '-t',
+                     'origin/master'])
+
+  def __exit__(self, *args):
+    shell_utils.run(['git', 'commit', '-a', '-m', self._commit_msg])
+    if self._upload:
+      upload_cmd = ['git', 'cl', 'upload', '-f', '--bypass-hooks',
+                    '--bypass-watchlists']
+      if self._commit_queue:
+        upload_cmd.append('--use-commit-queue')
+      shell_utils.run(upload_cmd)
+      shell_utils.run(['git', 'checkout', 'master'])
+      shell_utils.run(['git', 'branch', '-D', self._branch_name])
 

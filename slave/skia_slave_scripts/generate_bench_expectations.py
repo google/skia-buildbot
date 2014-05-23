@@ -9,7 +9,6 @@ from build_step import BuildStep
 from utils import file_utils
 from utils import shell_utils
 
-import builder_name_schema
 import os
 import sys
 
@@ -26,9 +25,9 @@ class GenerateBenchExpectations(BuildStep):
     path_to_gen_bench_expectations = os.path.join('bench',
         'gen_bench_expectations.py')
     expectation_filename = 'bench_expectations_' + self._builder_name + '.txt'
-    path_to_expectation_file = os.path.join(self._perf_autogen_upload_dir,
+    path_to_expectation_file = os.path.join(self._perf_range_input_dir,
                                             expectation_filename)
-    file_utils.create_clean_local_dir(self._perf_autogen_upload_dir)
+    file_utils.create_clean_local_dir(self._perf_range_input_dir)
     cmd = ['python', path_to_gen_bench_expectations,
            '-a', representation,
            '-b', self._builder_name,

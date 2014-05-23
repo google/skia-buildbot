@@ -650,23 +650,18 @@ class SkiaFactory(BuildFactory):
 
   def UploadBenchResults(self):
     """ Upload bench results (performance data). """
+    def _should_do_upload_bench_results(step):
+      try:
+        return (step.getProperty('scheduler') !=
+                master_builders_cfg.S_POST_RECREATE_SKPS)
+      except Exception:
+        return False
+
     self.AddSlaveScript(script='upload_bench_results.py',
                         description='UploadBenchResults',
-                        exception_on_failure=True, is_upload_bench_step=True)
-
-  def GenerateBenchExpectations(self):
-    """ Calculate bench (performance data) expectations and save to file. """
-    self.AddSlaveScript(script='generate_bench_expectations.py',
-                        description='GenerateBenchExpectations', timeout=600,
-                        exception_on_failure=True)
-
-  def UploadBenchExpectations(self):
-    """ Upload bench expectations file to skia-autogen SVN repo. """
-    args = ['--autogen_svn_username_file', self._autogen_svn_username_file,
-            '--autogen_svn_password_file', self._autogen_svn_password_file]
-    self.AddSlaveScript(script='upload_bench_expectations.py', args=args,
-                        description='UploadBenchExpectations', timeout=5400,
-                        exception_on_failure=True)
+                        exception_on_failure=True,
+                        is_upload_bench_step=True,
+                        do_step_if=_should_do_upload_bench_results)
 
   def UploadBenchResultsToAppEngine(self):
     """ Upload bench results (performance data) to AppEngine. """
@@ -739,19 +734,24 @@ class SkiaFactory(BuildFactory):
     self.CheckForRegressions()
     self.UploadBenchResults()
 
-  def PerfRebaseline(self):
-    """Steps which update the Perf baselines from the results of this build."""
-    def _should_do_perf_rebaseline(step):
+  def UpdateBenchExpectations(self):
+    """ Calculate bench (performance data) expectations and upload to repo. """
+    def _should_do_update_bench_expectations(step):
       try:
         return (step.getProperty('scheduler') ==
                 master_builders_cfg.S_POST_RECREATE_SKPS)
       except Exception:
         return False
 
-    self.AddSlaveScript(script='update_perf_baselines.py',
-                        description='UpdatePerfBaselines',
+    self.AddSlaveScript(script='generate_bench_expectations.py',
+                        description='GenerateBenchExpectations', timeout=600,
                         exception_on_failure=True,
-                        do_step_if=_should_do_perf_rebaseline)
+                        do_step_if=_should_do_update_bench_expectations)
+
+    self.AddSlaveScript(script='upload_bench_expectations.py',
+                        description='UploadBenchExpectations',
+                        exception_on_failure=True,
+                        do_step_if=_should_do_update_bench_expectations)
 
   def Build(self, role=None, clobber=None):
     """Build and return the complete BuildFactory.
@@ -839,6 +839,6 @@ class SkiaFactory(BuildFactory):
           raise ValueError('BuildPerfOnly should run in %s configuration.' %
                            CONFIG_RELEASE)
         self.PerfSteps()
-        self.PerfRebaseline()
+        self.UpdateBenchExpectations()
     self.Validate()
     return self
