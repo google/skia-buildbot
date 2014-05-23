@@ -27,12 +27,9 @@ class ChromeCanaryUpdate(BuildStep):
         **kwargs)
 
   def _Run(self):
-    if 'ToT' in self._builder_name:
-      chrome_rev = shlex.split(shell_utils.run(
-          [gclient_utils.GIT, 'ls-remote', CHROMIUM_REPO,
-           'refs/heads/master']))[0]
-    else:
-      chrome_rev = self._args.get('chrome_rev')
+    chrome_rev = shlex.split(shell_utils.run(
+        [gclient_utils.GIT, 'ls-remote', CHROMIUM_REPO,
+         'refs/heads/master']))[0]
 
     override_skia_checkout = True
     if 'AutoRoll' in self._builder_name:

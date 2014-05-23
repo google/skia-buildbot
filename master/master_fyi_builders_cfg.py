@@ -98,8 +98,6 @@ def setup_housekeepers(helper, do_upload_render_results,
   #
   housekeepers = [
       ('PerCommit', None,               f_percommit,    LINUX,  S_PERCOMMIT,              {}),
-      # TODO(borenet): Eventually either the AutoRoll or
-      # DEPSRoll+DEPSRollResults bot will "win". Remove the other at that time.
       ('PerCommit', 'AutoRoll',         f_autoroll,     LINUX,  S_PERCOMMIT,              {}),
       ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,                {}),
       ('Nightly',   'Monitoring',       f_monitor,      LINUX,  S_NIGHTLY,                {}),
