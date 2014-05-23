@@ -9,6 +9,7 @@ import __builtin__
 import misc
 import os
 import shell_utils
+import shutil
 import sys
 import tempfile
 import time
@@ -33,7 +34,6 @@ import unittest
 
 GSUTIL_LOCATION = slave_utils.GSUtilSetup()
 
-
 TEST_TIMESTAMP = '1354128965'
 TEST_TIMESTAMP_2 = '1354128985'
 
@@ -46,6 +46,7 @@ class TestGSUtils(unittest.TestCase):
     self._test_gs_base = None
     self._test_destdir = None
     self._test_gs_acl = None
+    self._local_tempdir = tempfile.mkdtemp()
 
     def _MockCommand(command):
       self.assertEquals(self._expected_command, ' '.join(command))
@@ -67,7 +68,7 @@ class TestGSUtils(unittest.TestCase):
 
     self._original_gsutil_file_copy = slave_utils.GSUtilCopyFile
     slave_utils.GSUtilCopyFile = _MockGSUtilFileCopy
-    
+
     self._original_gsutil_download_file = slave_utils.GSUtilDownloadFile
     slave_utils.GSUtilDownloadFile = _MockGSUtilDownloadFile
 
@@ -79,21 +80,57 @@ class TestGSUtils(unittest.TestCase):
     slave_utils.GSUtilCopyFile = self._original_gsutil_file_copy
     slave_utils.GSUtilDownloadFile = self._original_gsutil_download_file
     __builtin__.open = self._original_file
+    shutil.rmtree(self._local_tempdir)
 
   def test_delete_storage_object(self):
     self._expected_command = ('%s rm -R superman' % GSUTIL_LOCATION)
     gs_utils.delete_storage_object('superman')
 
-  def test_upload_dir_contents(self):
+  def test_upload_dir_contents_empty(self):
+    self._expected_command = 'I do not expect any command to run'
+    gs_utils.upload_dir_contents(
+        local_src_dir=self._local_tempdir, remote_dest_dir='remote_dest_dir',
+        gs_acl='public')
+
+  def test_upload_dir_contents_one_file(self):
     self._expected_command = (
-        '%s -m cp -a public -R superman batman' % GSUTIL_LOCATION)
-    gs_utils.upload_dir_contents('superman', 'batman', 'public')
+        '%s -m cp -a public %s remote_dest_dir/file1' % (
+            GSUTIL_LOCATION, os.path.join(self._local_tempdir, 'file1')))
+    with open(os.path.join(self._local_tempdir, 'file1'), 'w'):
+      pass
+    gs_utils.upload_dir_contents(
+        local_src_dir=self._local_tempdir, remote_dest_dir='remote_dest_dir',
+        gs_acl='public')
+
+  def test_upload_dir_contents_one_dir(self):
+    self._expected_command = (
+        '%s -m cp -a public -R %s remote_dest_dir/subdir' % (
+            GSUTIL_LOCATION, os.path.join(self._local_tempdir, 'subdir')))
+    subdir_path = os.path.join(self._local_tempdir, 'subdir')
+    os.mkdir(subdir_path)
+    with open(os.path.join(subdir_path, 'file1'), 'w'):
+      pass
+    with open(os.path.join(subdir_path, 'file2'), 'w'):
+      pass
+    gs_utils.upload_dir_contents(
+        local_src_dir=self._local_tempdir, remote_dest_dir='remote_dest_dir',
+        gs_acl='public')
+
+  def test_upload_dir_contents_multiple_files(self):
+    self._expected_command = (
+        '%s -m cp -a public -R %s remote_dest_dir' % (
+            GSUTIL_LOCATION, self._local_tempdir))
+    with open(os.path.join(self._local_tempdir, 'file1'), 'w'):
+      pass
+    with open(os.path.join(self._local_tempdir, 'file2'), 'w'):
+      pass
+    gs_utils.upload_dir_contents(
+        local_src_dir=self._local_tempdir, remote_dest_dir='remote_dest_dir',
+        gs_acl='public')
 
   def test_download_dir_contents(self):
-    # TODO(epoger): The "-a" flag is meaningless when downloading from
-    # Google Storage.  We should change download_dir_contents to not pass it.
     self._expected_command = (
-        '%s -m cp -a private -R superman batman' % GSUTIL_LOCATION)
+        '%s -m cp -R superman batman' % GSUTIL_LOCATION)
     gs_utils.download_dir_contents('superman', 'batman')
 
   def test_copy_dir_contents(self):
@@ -116,13 +153,12 @@ class TestGSUtils(unittest.TestCase):
         gs_base=self._test_gs_base,
         gs_relative_dir=self._test_destdir,
         gs_acl=self._test_gs_acl,
-        local_dir=tempfile.mkdtemp())
+        local_dir=self._local_tempdir)
 
   def test_AreTimeStampsEqual(self):
     self._test_gs_base = 'gs://test'
     self._test_destdir = 'testdir'
-
-    local_dir = tempfile.mkdtemp()  
+    local_dir = self._local_tempdir
 
     class _MockFile():
       def __init__(self, name, attributes):
@@ -158,9 +194,9 @@ class TestGSUtils(unittest.TestCase):
             local_dir=local_dir,
             gs_base=self._test_gs_base,
             gs_relative_dir=self._test_destdir))
- 
+
     self._test_temp_file = os.path.join(local_dir, 'TIMESTAMP')
-  
+
     # Will be false because the timestamps are different.
     # pylint: disable=W0212
     self.assertFalse(

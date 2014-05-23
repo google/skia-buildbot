@@ -34,33 +34,6 @@ def delete_storage_object(object_name):
   chromium_utils.RunCommand(command)
 
 
-def _copy_storage_directory(src_dir, dest_dir, gs_acl='private',
-                            http_header_lines=None):
-  """Copy a directory from/to Google Storage.
-
-  params:
-    src_dir
-    dest_dir
-    gs_acl
-    http_header_lines: a list of HTTP header strings to add, if any
-
-  The copy operates as a "merge with overwrite": any files in src_dir will be
-  "overlaid" on top of the existing content in dest_dir.  Existing files with
-  the same names will be overwritten.
-
-  Performs the copy in multithreaded mode, in case there are a large number of
-  files.
-  """
-  gsutil = slave_utils.GSUtilSetup()
-  command = [gsutil, '-m']
-  if http_header_lines:
-    for http_header_line in http_header_lines:
-      command.extend(['-h', http_header_line])
-  command.extend(['cp', '-a', gs_acl, '-R', src_dir, dest_dir])
-  print 'Running command: %s' % command
-  shell_utils.run(command)
-
-
 def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
                         http_header_lines=None):
   """Upload contents of a local directory to Google Storage.
@@ -79,8 +52,39 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
   """
-  _copy_storage_directory(src_dir=local_src_dir, dest_dir=remote_dest_dir,
-                          gs_acl=gs_acl, http_header_lines=http_header_lines)
+  gsutil = slave_utils.GSUtilSetup()
+  command = [gsutil, '-m']
+  if http_header_lines:
+    for http_header_line in http_header_lines:
+      command.extend(['-h', http_header_line])
+  command.extend(['cp', '-a', gs_acl])
+
+  # Depending on how many files there are in local_src_dir, we have to call
+  # gsutil differently.  See http://skbug.com/2596 .
+  filenames = os.listdir(local_src_dir)
+  if not filenames:
+    print 'Dir %s is empty, no files to upload.' % local_src_dir
+  elif len(filenames) > 1:
+    # Simple case: gsutil will create multiple files within remote_dest_dir.
+    command.extend(['-R', local_src_dir, remote_dest_dir])
+    print 'Running command: %s' % command
+    shell_utils.run(command)
+  else:
+    filename = filenames[0]
+    local_src_filepath = os.path.join(local_src_dir, filename)
+    remote_dest_filepath = posixpath.join(remote_dest_dir, filename)
+    if os.path.isdir(local_src_filepath):
+      # Oh boy.  This subdir is subject to the same problem; depending on how
+      # many files it holds, we may need to handle it differently.  Recurse!
+      upload_dir_contents(
+          local_src_dir=local_src_filepath,
+          remote_dest_dir=remote_dest_filepath,
+          gs_acl=gs_acl, http_header_lines=http_header_lines)
+    else:
+      # It's a single file, so we can just copy it without -R.
+      command.extend([local_src_filepath, remote_dest_filepath])
+      print 'Running command: %s' % command
+      shell_utils.run(command)
 
 
 def download_dir_contents(remote_src_dir, local_dest_dir):
@@ -97,7 +101,11 @@ def download_dir_contents(remote_src_dir, local_dest_dir):
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
   """
-  _copy_storage_directory(src_dir=remote_src_dir, dest_dir=local_dest_dir)
+  gsutil = slave_utils.GSUtilSetup()
+  command = [gsutil, '-m']
+  command.extend(['cp', '-R', remote_src_dir, local_dest_dir])
+  print 'Running command: %s' % command
+  shell_utils.run(command)
 
 
 def copy_dir_contents(remote_src_dir, remote_dest_dir, gs_acl='private',
@@ -118,8 +126,14 @@ def copy_dir_contents(remote_src_dir, remote_dest_dir, gs_acl='private',
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
   """
-  _copy_storage_directory(src_dir=remote_src_dir, dest_dir=remote_dest_dir,
-                          gs_acl=gs_acl, http_header_lines=http_header_lines)
+  gsutil = slave_utils.GSUtilSetup()
+  command = [gsutil, '-m']
+  if http_header_lines:
+    for http_header_line in http_header_lines:
+      command.extend(['-h', http_header_line])
+  command.extend(['cp', '-a', gs_acl, '-R', remote_src_dir, remote_dest_dir])
+  print 'Running command: %s' % command
+  shell_utils.run(command)
 
 
 def move_storage_directory(src_dir, dest_dir):
