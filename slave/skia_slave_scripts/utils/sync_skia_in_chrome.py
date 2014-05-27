@@ -14,7 +14,6 @@ import os
 import re
 import shell_utils
 import shlex
-import svn_to_git
 import sys
 import urllib2
 
@@ -165,12 +164,8 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
 
     if use_lkgr_skia:
       # Get the Skia revision specified in Chrome's DEPS file.
-      deps_skia_revision = GetDepsVar(os.path.join(src_dir, 'DEPS'),
-                                      'skia_revision')
-      # skia_revision is currently an SVN revision number in DEPS. We need to
-      # find the corresponding Git commit hash.
-      skia_revision = svn_to_git.GitHashFromSvnRev(deps_skia_revision)
-
+      skia_revision = GetDepsVar(os.path.join(src_dir, 'DEPS'),
+                                 'skia_revision')
       print 'Overriding skia_revision with %s' % skia_revision
 
     shell_utils.run([GIT, 'reset', '--hard', skia_revision])
