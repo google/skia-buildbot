@@ -5,7 +5,7 @@
 
 """ Upload benchmark performance data results. """
 
-from build_step import BuildStep, BuildStepWarning
+from build_step import BuildStep
 from utils import sync_bucket_subdir
 
 import json
@@ -26,14 +26,18 @@ class UploadBenchResults(BuildStep):
     return self._perf_data_dir
 
   def _GetBucketSubdir(self):
-    return posixpath.join('perfdata', self._builder_name)
+    subdirs = ['perfdata', self._builder_name]
+    if self._is_try:
+      # Trybots need to isolate their results by build number.
+      subdirs.append(self._build_number)
+    return posixpath.join(*subdirs)
 
   def _RunInternal(self):
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
 
     # Upload the normal bench logs
-    res_sync_data = sync_bucket_subdir.SyncBucketSubdir(
+    sync_bucket_subdir.SyncBucketSubdir(
         directory=self._GetPerfDataDir(),
         dest_gsbase=dest_gsbase,
         subdir=self._GetBucketSubdir(),
@@ -62,7 +66,7 @@ class UploadBenchResults(BuildStep):
     gs_json_path = '/'.join((str(now.year).zfill(4), str(now.month).zfill(2),
         str(now.day).zfill(2), str(now.hour).zfill(2)))
     gs_dir = 'stats-json/{}/{}'.format(gs_json_path, self._builder_name)
-    res_sync_json = sync_bucket_subdir.SyncBucketSubdir(
+    sync_bucket_subdir.SyncBucketSubdir(
         directory=self._GetPerfDataDir(),
         dest_gsbase=dest_gsbase,
         subdir=gs_dir,
@@ -73,12 +77,7 @@ class UploadBenchResults(BuildStep):
         filenames_filter=
             'microbench_({})_[0-9]+\.json'.format(self._got_revision))
 
-    return 0
-
   def _Run(self):
-    if self._is_try:
-      raise BuildStepWarning('Not yet uploading results for try jobs.') # TODO
-
     self._RunInternal()
 
 

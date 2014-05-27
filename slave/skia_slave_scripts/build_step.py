@@ -116,6 +116,7 @@ class BuildStep(multiprocessing.Process):
     self.attempts = attempts
 
     self._builder_name = args['builder_name']
+    self._build_number = args['build_number']
     self._slavename = os.environ['TESTING_SLAVENAME']
 
     # Change to the correct working directory. This is needed on Windows, where

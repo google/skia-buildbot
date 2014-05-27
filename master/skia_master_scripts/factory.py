@@ -187,6 +187,7 @@ class SkiaFactory(BuildFactory):
         '--configuration', configuration,
         '--deps_target_os', self._deps_target_os or 'None',
         '--builder_name', builder_name,
+        '--build_number', WithProperties('%(buildnumber)s'),
         '--target_platform', target_platform,
         '--revision', WithProperties('%(rev)s', rev=_DetermineRevision),
         '--got_revision', WithProperties('%(got_revision:-None)s'),
