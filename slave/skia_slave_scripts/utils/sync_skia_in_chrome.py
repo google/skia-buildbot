@@ -96,9 +96,7 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
         if not solution.get('custom_deps'):
           solution['custom_deps'] = {}
         solution['managed'] = True
-        solution['custom_deps']['src/third_party/skia/gyp'] = None
-        solution['custom_deps']['src/third_party/skia/include'] = None
-        solution['custom_deps']['src/third_party/skia/src'] = None
+        solution['custom_deps']['src/third_party/skia'] = None
         break
     print 'Writing %s:' % GCLIENT_FILE
     with open(GCLIENT_FILE, 'w') as gclient_file:
