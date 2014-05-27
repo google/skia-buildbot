@@ -44,7 +44,6 @@ URLS = [
   ('/cq/([^/]+)/(\d+)/?', commit_queue.Issue),
   ('/cq/([^/]+)/(\d+)/(\d+)/?', commit_queue.Issue),
   ('/current-sheriff/?', sheriff.CurrentSheriffPage),
-  ('/git-lkgr?', status.GitLkgrPage),
   ('/lkgr?', status.LkgrPage),
   ('/next-sheriff/?', sheriff.NextSheriffPage),
   ('/query-sheriff/?', sheriff.QuerySheriffPage),

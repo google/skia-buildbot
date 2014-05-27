@@ -4,6 +4,7 @@
 
 """Status management pages."""
 
+import HTMLParser
 import datetime
 import json
 import logging
@@ -194,9 +195,14 @@ class LkgrPage(BasePage):
     """Displays Skia's LKGR."""
     try:
       chromium_deps = urllib2.urlopen(CHROMIUM_DEPS_FILE)
+      html_parser = HTMLParser.HTMLParser()
       for line in chromium_deps.readlines():
+        # Decode HTML entities.
+        line = html_parser.unescape(line)
         if 'skia_revision' in line:
-          skia_lkgr = re.match('.*skia_revision.*?([0-9]+).*', line).group(1)
+          skia_lkgr = re.match(
+              r'.*"skia_revision": "(?P<revision>[0-9a-fA-F]{2,40})".*',
+              line).group('revision')
           break
       else:
         raise Exception('Could not find skia_revision!')
@@ -204,33 +210,6 @@ class LkgrPage(BasePage):
       skia_lkgr = -1
       logging.error(e)
     self.response.out.write(skia_lkgr)
-
-
-class GitLkgrPage(BasePage):
-  """Displays Skia's Git LKGR.
-
-  Parses Chromium's DEPS file to get this information. The justification for
-  this is that a Skia rev makes it into Chromium after passing all required
-  tests.
-  """
-
-  def get(self):
-    """Displays Skia's Git LKGR."""
-    try:
-      chromium_deps = urllib2.urlopen(CHROMIUM_DEPS_FILE)
-      for line in chromium_deps.readlines():
-        # Put in quotes to make regex matching simpler.
-        line = line.replace('&quot;', '"')
-        if 'skia_hash' in line:
-          skia_git_lkgr = re.match('.*skia_hash.*?([0-9,a-z]+).*',
-                                   line).group(1)
-          break
-      else:
-        raise Exception('Could not find skia_hash!')
-    except Exception, e:
-      skia_git_lkgr = -1
-      logging.error(e)
-    self.response.out.write(skia_git_lkgr)
 
 
 class BannerStatusPage(BasePage):

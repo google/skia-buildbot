@@ -47,7 +47,7 @@ CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
 
 # LKGR urls.
 CHROMIUM_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
-SKIA_LKGR_URL = 'http://skia-tree-status.appspot.com/git-lkgr'
+SKIA_LKGR_URL = 'http://skia-tree-status.appspot.com/lkgr'
 
 
 class BaseTelemetryModel(db.Model):
