@@ -227,7 +227,6 @@ _slave_host_dicts = {
   'skia-housekeeping-slave-b': {
     'slaves': [
       ('skia-housekeeping-slave-b', '0'),
-      ('skiabot-shuttle-ubuntu12-007', '1'),
     ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': compute_engine_login,
@@ -1240,7 +1239,9 @@ _slave_host_dicts = {
   },
 
   'skia-vm-077': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-vm-002', '0'),
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1258,7 +1259,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-079': {
@@ -1269,7 +1270,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-080': {
@@ -1280,7 +1281,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-081': {
@@ -1291,7 +1292,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-082': {
@@ -1302,7 +1303,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-083': {
@@ -1313,7 +1314,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-084': {
@@ -1324,7 +1325,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-085': {
@@ -1335,7 +1336,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-086': {
@@ -1346,7 +1347,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-087': {
@@ -1357,7 +1358,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-088': {
@@ -1368,7 +1369,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-089': {
@@ -1379,7 +1380,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-090': {
@@ -1390,7 +1391,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-091': {
@@ -1401,7 +1402,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-092': {
@@ -1412,7 +1413,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-093': {
@@ -1423,7 +1424,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-094': {
@@ -1434,7 +1435,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-095': {
@@ -1445,7 +1446,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-096': {
@@ -1456,7 +1457,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-097': {
@@ -1467,7 +1468,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-098': {
@@ -1478,7 +1479,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-099': {
@@ -1489,7 +1490,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-100': {
@@ -1500,7 +1501,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-101': {
@@ -1511,7 +1512,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-102': {
@@ -1522,7 +1523,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-103': {
@@ -1533,7 +1534,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-104': {
@@ -1544,7 +1545,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-105': {
@@ -1555,7 +1556,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-106': {
@@ -1566,7 +1567,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-107': {
@@ -1577,7 +1578,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-108': {
@@ -1588,7 +1589,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-109': {
@@ -1599,7 +1600,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-110': {
@@ -1610,7 +1611,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-111': {
@@ -1621,7 +1622,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-112': {
@@ -1632,7 +1633,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-113': {
@@ -1643,7 +1644,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-114': {
@@ -1654,7 +1655,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-115': {
@@ -1665,7 +1666,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-116': {
@@ -1676,7 +1677,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-117': {
@@ -1687,7 +1688,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-118': {
@@ -1698,7 +1699,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-119': {
@@ -1709,7 +1710,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-120': {
@@ -1720,7 +1721,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-121': {
@@ -1731,7 +1732,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-122': {
@@ -1742,7 +1743,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-123': {
@@ -1753,7 +1754,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-124': {
@@ -1764,7 +1765,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-125': {
@@ -1775,7 +1776,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-126': {
@@ -1786,7 +1787,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
   'skia-vm-127': {
@@ -1797,7 +1798,7 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_C_ONLINE,
+    'remote_access': False,
   },
 
 ################################# Mac Machines #################################
