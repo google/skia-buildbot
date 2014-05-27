@@ -4,6 +4,7 @@
 
 """ Utilities for generic build steps. """
 
+import errno
 import os
 import shutil
 import sys
@@ -169,8 +170,16 @@ class DefaultBuildStepUtils:
 
   def CreateCleanDeviceDirectory(self, directory):
     """ Creates an empty directory on an attached device. Subclasses with
-    attached devices should override. """
-    file_utils.create_clean_local_dir(directory)
+    attached devices should override. For builders with no attached device, just
+    make sure that the directory exists, since we may want to keep data. """
+    # TODO(borenet): This should actually clean the directory, but we don't
+    # because we want to avoid deleting historical bench data which we might
+    # need.
+    try:
+      os.makedirs(directory)
+    except OSError as e:
+      if e.errno != errno.EEXIST:
+        raise
 
   def CreateCleanHostDirectory(self, directory):
     """ Creates an empty directory on the host. Can be overridden by subclasses,
