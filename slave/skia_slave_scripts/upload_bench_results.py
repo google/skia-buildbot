@@ -52,15 +52,18 @@ class UploadBenchResults(BuildStep):
              file_name):
         json_file_name = os.path.join(self._GetPerfDataDir(), file_name)
         break
+
     if json_file_name:
-      json_file = open(json_file_name, 'r+')
-      json_data = json.load(json_file)
+      json_data = {}
+
+      with open(json_file_name) as json_file:
+        json_data = json.load(json_file)
+
       json_data['machine'] = self._builder_name
       json_data['commitHash'] = self._got_revision
-      json_file.seek(0)
-      json.dump(json_data, json_file)
-      json_file.truncate()
-      json_file.close()
+
+      with open(json_file_name, 'w') as json_file:
+        json.dump(json_data, json_file)
 
     now = datetime.utcnow()
     gs_json_path = '/'.join((str(now.year).zfill(4), str(now.month).zfill(2),
