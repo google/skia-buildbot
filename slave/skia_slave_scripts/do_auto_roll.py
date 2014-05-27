@@ -21,9 +21,8 @@ sys.path.append(misc.BUILDBOT_PATH)
 from site_config import skia_vars
 
 
-# TODO(borenet): Set up an automated account for this:
-# https://code.google.com/p/chromium/issues/detail?id=339824
-DEPS_ROLL_AUTHOR = 'robertphillips@google.com'
+DEPS_ROLL_AUTHOR = 'skia-deps-roller@chromium.org'
+DEPS_ROLL_NAME = 'Skia DEPS Roller'
 HTML_CONTENT = '''
 <html>
 <head>
@@ -42,6 +41,9 @@ class AutoRoll(BuildStep):
   """BuildStep which runs the Blink AutoRoll bot."""
 
   def _Run(self):
+    shell_utils.run(['git', 'config', '--local', 'user.name', DEPS_ROLL_NAME])
+    shell_utils.run(['git', 'config', '--local', 'user.email',
+                     DEPS_ROLL_AUTHOR])
     auto_roll = os.path.join(misc.BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot_tot', 'scripts', 'tools',
                              'blink_roller', 'auto_roll.py')
