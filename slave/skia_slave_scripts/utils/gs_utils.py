@@ -124,6 +124,9 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
 
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
+  TODO(epoger): Disabled multithreaded copy because some files were not being
+  uploaded, without an error being reported.  See http://skbug.com/2618 ('The
+  Case of the Missing Mandrills')
 
   TODO(epoger): Add a "noclobber" mode that will not upload any files would
   overwrite existing files in Google Storage.
@@ -135,7 +138,7 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
               WorkingWithObjectMetadata#content-encoding
   """
   gsutil = slave_utils.GSUtilSetup()
-  command = [gsutil, '-m']
+  command = [gsutil]
   if http_header_lines:
     for http_header_line in http_header_lines:
       command.extend(['-h', http_header_line])
@@ -182,9 +185,12 @@ def download_dir_contents(remote_src_dir, local_dest_dir):
 
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
+  TODO(epoger): Disabled multithreaded copy because some files were not being
+  uploaded, without an error being reported.  See http://skbug.com/2618 ('The
+  Case of the Missing Mandrills')
   """
   gsutil = slave_utils.GSUtilSetup()
-  command = [gsutil, '-m']
+  command = [gsutil]
   command.extend(['cp', '-R', remote_src_dir, local_dest_dir])
   print 'Running command: %s' % command
   shell_utils.run(command)
@@ -207,9 +213,12 @@ def copy_dir_contents(remote_src_dir, remote_dest_dir, gs_acl='private',
 
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
+  TODO(epoger): Disabled multithreaded copy because some files were not being
+  uploaded, without an error being reported.  See http://skbug.com/2618 ('The
+  Case of the Missing Mandrills')
   """
   gsutil = slave_utils.GSUtilSetup()
-  command = [gsutil, '-m']
+  command = [gsutil]
   if http_header_lines:
     for http_header_line in http_header_lines:
       command.extend(['-h', http_header_line])

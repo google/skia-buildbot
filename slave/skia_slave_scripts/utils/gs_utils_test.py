@@ -103,7 +103,7 @@ class TestGSUtils(unittest.TestCase):
 
   def test_upload_dir_contents_one_file(self):
     self._expected_command = (
-        '%s -m cp -a public %s remote_dest_dir/file1' % (
+        '%s cp -a public %s remote_dest_dir/file1' % (
             GSUTIL_LOCATION, os.path.join(self._local_tempdir, 'file1')))
     with open(os.path.join(self._local_tempdir, 'file1'), 'w'):
       pass
@@ -113,7 +113,7 @@ class TestGSUtils(unittest.TestCase):
 
   def test_upload_dir_contents_one_dir(self):
     self._expected_command = (
-        '%s -m cp -a public -R %s remote_dest_dir/subdir' % (
+        '%s cp -a public -R %s remote_dest_dir/subdir' % (
             GSUTIL_LOCATION, os.path.join(self._local_tempdir, 'subdir')))
     subdir_path = os.path.join(self._local_tempdir, 'subdir')
     os.mkdir(subdir_path)
@@ -127,7 +127,7 @@ class TestGSUtils(unittest.TestCase):
 
   def test_upload_dir_contents_multiple_files(self):
     self._expected_command = (
-        '%s -m cp -a public -R %s remote_dest_dir' % (
+        '%s cp -a public -R %s remote_dest_dir' % (
             GSUTIL_LOCATION, self._local_tempdir))
     with open(os.path.join(self._local_tempdir, 'file1'), 'w'):
       pass
@@ -139,12 +139,12 @@ class TestGSUtils(unittest.TestCase):
 
   def test_download_dir_contents(self):
     self._expected_command = (
-        '%s -m cp -R superman batman' % GSUTIL_LOCATION)
+        '%s cp -R superman batman' % GSUTIL_LOCATION)
     gs_utils.download_dir_contents('superman', 'batman')
 
   def test_copy_dir_contents(self):
     self._expected_command = (
-        '%s -m cp -a public -R superman batman' % GSUTIL_LOCATION)
+        '%s cp -a public -R superman batman' % GSUTIL_LOCATION)
     gs_utils.copy_dir_contents('superman', 'batman', 'public')
 
   def test_does_storage_object_exist(self):
