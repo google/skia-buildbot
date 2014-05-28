@@ -71,18 +71,9 @@ class PreRender(BuildStep):
           skimage_subdir)
       skimage_device_expectations = self._flavor_utils.DevicePathJoin(
           skimage_device_subdir, skimage_expected_filename)
-      # For builders without an attached device, PushFileToDevice will fail
-      # when attempting to copy a file to itself. In this case, there is no
-      # need to copy. Only do the push when there is an attached device,
-      # which corresponds to the case that the filepaths are equal.
-      # TODO(scroggo): Once
-      # https://code.google.com/p/skia/issues/detail?id=1571 is fixed, this
-      # check can go away.
-      if skimage_device_expectations != skimage_host_expectations:
-        # Create the subdir on the device.
-        self._flavor_utils.CreateCleanDeviceDirectory(skimage_device_subdir)
-        self._flavor_utils.PushFileToDevice(skimage_host_expectations,
-            skimage_device_expectations)
+      self._flavor_utils.CreateCleanDeviceDirectory(skimage_device_subdir)
+      self._flavor_utils.PushFileToDevice(skimage_host_expectations,
+          skimage_device_expectations)
 
     self._flavor_utils.CopyDirectoryContentsToDevice(
         self._skimage_in_dir, self._device_dirs.SKImageInDir())
