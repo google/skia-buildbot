@@ -6,8 +6,18 @@
 """ Verify that the Android device is attached and functioning properly """
 
 
-from utils import android_utils, misc
+import os
 import sys
+
+BUILDBOT_PATH = os.path.realpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    os.pardir, os.pardir))
+sys.path.append(BUILDBOT_PATH)
+CHROMIUM_BUILDBOT = os.path.join(BUILDBOT_PATH, 'third_party',
+                                'chromium_buildbot')
+sys.path.append(os.path.join(CHROMIUM_BUILDBOT, 'scripts'))
+
+from utils import android_utils, misc
 
 
 class AndroidVerifyDevice:
