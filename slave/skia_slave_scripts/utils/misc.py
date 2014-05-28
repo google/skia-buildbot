@@ -5,8 +5,8 @@
 
 """ This module contains miscellaneous tools used by the buildbot scripts. """
 
+import gclient_utils
 import os
-
 import shell_utils
 
 
@@ -104,18 +104,19 @@ class GitBranch(object):
     self._commit_queue = commit_queue
 
   def __enter__(self):
-    shell_utils.run(['git', 'reset', '--hard', 'HEAD'])
-    shell_utils.run(['git', 'checkout', '-b', self._branch_name, '-t',
-                     'origin/master'])
+    shell_utils.run([gclient_utils.GIT, 'reset', '--hard', 'HEAD'])
+    shell_utils.run([gclient_utils.GIT, 'checkout', '-b', self._branch_name,
+                     '-t', 'origin/master'])
 
   def __exit__(self, *args):
-    shell_utils.run(['git', 'commit', '-a', '-m', self._commit_msg])
+    shell_utils.run([gclient_utils.GIT, 'commit', '-a', '-m',
+                     self._commit_msg])
     if self._upload:
-      upload_cmd = ['git', 'cl', 'upload', '-f', '--bypass-hooks',
+      upload_cmd = [gclient_utils.GIT, 'cl', 'upload', '-f', '--bypass-hooks',
                     '--bypass-watchlists']
       if self._commit_queue:
         upload_cmd.append('--use-commit-queue')
       shell_utils.run(upload_cmd)
-      shell_utils.run(['git', 'checkout', 'master'])
-      shell_utils.run(['git', 'branch', '-D', self._branch_name])
+      shell_utils.run([gclient_utils.GIT, 'checkout', 'master'])
+      shell_utils.run([gclient_utils.GIT, 'branch', '-D', self._branch_name])
 
