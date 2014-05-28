@@ -5,8 +5,10 @@
 
 """This module contains utilities related to Google Storage manipulations."""
 
+import hashlib
 import os
 import posixpath
+import re
 import shutil
 import tempfile
 import time
@@ -23,6 +25,9 @@ TIMESTAMP_COMPLETED_FILENAME = 'TIMESTAMP_LAST_UPLOAD_COMPLETED'
 LAST_REBASELINED_BY_FILENAME = 'LAST_REBASELINED_BY'
 
 FILES_CHUNK = 500
+BUFSIZE = 64 * 1024
+
+ETAG_REGEX = re.compile(r'ETag:\s*(\S+)')
 
 
 def delete_storage_object(object_name):
@@ -32,6 +37,74 @@ def delete_storage_object(object_name):
   command.extend(['rm', '-R', object_name])
   print 'Running command: %s' % command
   chromium_utils.RunCommand(command)
+
+
+def upload_file(local_src_path, remote_dest_path, gs_acl='private',
+                http_header_lines=None, only_if_modified=False):
+  """Upload contents of a local file to Google Storage.
+
+  params:
+    local_src_path: path to file on local disk
+    remote_dest_path: GS URL (gs://BUCKETNAME/PATH)
+    gs_acl: which predefined ACL to apply to the file on Google Storage; see
+        https://developers.google.com/storage/docs/accesscontrol#extension
+    http_header_lines: a list of HTTP header strings to add, if any
+    only_if_modified: if True, only upload the file if it would actually change
+        the content on Google Storage (uploads the file if remote_dest_path
+        does not exist, or if it exists but has different contents than
+        local_src_path).  Note that this may take longer than just uploading the
+        file without checking first, due to extra round-trips!
+
+  TODO(epoger): Consider adding a do_compress parameter that would compress
+  the file using gzip before upload, and add a "Content-Encoding:gzip" header
+  so that HTTP downloads of the file would be unzipped automatically.
+  See https://developers.google.com/storage/docs/gsutil/addlhelp/
+              WorkingWithObjectMetadata#content-encoding
+  """
+  gsutil = slave_utils.GSUtilSetup()
+
+  if only_if_modified:
+    # Return early if we don't need to do the upload.
+    command = [gsutil, 'ls', '-L', remote_dest_path]
+    try:
+      ls_output = shell_utils.run(command)
+      matches = ETAG_REGEX.search(ls_output)
+      if matches:
+        # TODO(epoger): In my testing, this has always returned an MD5 hash
+        # that is comparable to local_md5 below.  But from my reading of
+        # https://developers.google.com/storage/docs/hashes-etags , this is
+        # not something we can always rely on ("composite objects don't support
+        # MD5 hashes"; I'm not sure if we ever encounter composite objects,
+        # though).  It would be good for us to find a more reliable hash, but
+        # I haven't found a way to get one out of gsutil yet.
+        #
+        # For now: if the remote_md5 is not found, or is computed in
+        # such a way that is different from local_md5, then we will re-upload
+        # the file even if it did not change.
+        remote_md5 = matches.group(1)
+        hasher = hashlib.md5()
+        with open(local_src_path, 'rb') as filereader:
+          while True:
+            data = filereader.read(BUFSIZE)
+            if not data:
+              break
+            hasher.update(data)
+        local_md5 = hasher.hexdigest()
+        if local_md5 == remote_md5:
+          print ('local_src_path %s and remote_dest_path %s have same hash %s' %
+                 (local_src_path, remote_dest_path, local_md5))
+          return
+    except shell_utils.CommandFailedException:
+      # remote_dest_path probably does not exist. Go ahead and do the upload.
+      pass
+
+  command = [gsutil]
+  if http_header_lines:
+    for http_header_line in http_header_lines:
+      command.extend(['-h', http_header_line])
+  command.extend(['cp', '-a', gs_acl, local_src_path, remote_dest_path])
+  print 'Running command: %s' % command
+  shell_utils.run(command)
 
 
 def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',

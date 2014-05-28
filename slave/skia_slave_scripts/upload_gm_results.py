@@ -10,12 +10,15 @@ from common import chromium_utils
 from config_private import AUTOGEN_SVN_BASEURL
 from utils import gs_utils, merge_into_svn
 import os
+import posixpath
 import re
 import shutil
 import skia_vars
 import sys
 import tempfile
 
+
+GS_SUMMARIES_BUCKET = 'gs://chromium-skia-gm-summaries'
 
 # Subdir within the skia-autogen repo to upload actual GM results into.
 # TODO(epoger): Maybe share this subdir name with build_step.py?
@@ -149,9 +152,19 @@ class UploadGMResults(BuildStep):
     files_to_upload = filter(filematcher, all_files)
     print 'Uploading %d JSON files to skia-autogen: %s...' % (
         len(files_to_upload), files_to_upload)
+    gs_dest_dir = posixpath.join(
+        GS_SUMMARIES_BUCKET, self._args['builder_name'])
     for filename in files_to_upload:
-      src_filepath = os.path.join(src_dir, filename)
-      shutil.copy(src_filepath, tempdir)
+      src_path = os.path.join(src_dir, filename)
+      # Copy the file into tempdir for eventual upload to skia-autogen
+      shutil.copy(src_path, tempdir)
+      # Also upload the file to Google Storage (eventually, we will ONLY upload
+      # it to Google Storage, but for now we still need it in skia-autogen)
+      gs_dest_path = posixpath.join(gs_dest_dir, filename)
+      gs_utils.upload_file(
+          local_src_path=src_path, remote_dest_path=gs_dest_path,
+          gs_acl='public-read', only_if_modified=True,
+          http_header_lines=['Cache-Control:public,max-age=3600'])
     self._SVNUploadDir(src_dir=tempdir, dest_subdir=dest_subdir,
                        step_name=step_name)
     shutil.rmtree(tempdir)

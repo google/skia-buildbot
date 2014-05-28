@@ -86,6 +86,15 @@ class TestGSUtils(unittest.TestCase):
     self._expected_command = ('%s rm -R superman' % GSUTIL_LOCATION)
     gs_utils.delete_storage_object('superman')
 
+  def test_upload_file(self):
+    self._expected_command = (
+        '%s cp -a public /fake/local/src/path gs://fake/remote/dest/path' %
+        GSUTIL_LOCATION)
+    gs_utils.upload_file(
+        local_src_path='/fake/local/src/path',
+        remote_dest_path='gs://fake/remote/dest/path',
+        gs_acl='public')
+
   def test_upload_dir_contents_empty(self):
     self._expected_command = 'I do not expect any command to run'
     gs_utils.upload_dir_contents(
