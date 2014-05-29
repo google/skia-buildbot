@@ -108,7 +108,8 @@ def upload_file(local_src_path, remote_dest_path, gs_acl='private',
 
 
 def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
-                        http_header_lines=None):
+                        http_header_lines=None,
+                        upload_files_individually=True):
   """Upload contents of a local directory to Google Storage.
 
   params:
@@ -117,16 +118,13 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
     gs_acl: which predefined ACL to apply to the files on Google Storage; see
         https://developers.google.com/storage/docs/accesscontrol#extension
     http_header_lines: a list of HTTP header strings to add, if any
+    upload_files_individually: if True, upload each file in a separate gsutil
+        call; added in attempt to fix http://skbug.com/2618 ('The Case of the
+        Missing Mandrills')
 
   The copy operates as a "merge with overwrite": any files in src_dir will be
   "overlaid" on top of the existing content in dest_dir.  Existing files with
   the same names will be overwritten.
-
-  Performs the copy in multithreaded mode, in case there are a large number of
-  files.
-  TODO(epoger): Disabled multithreaded copy because some files were not being
-  uploaded, without an error being reported.  See http://skbug.com/2618 ('The
-  Case of the Missing Mandrills')
 
   TODO(epoger): Add a "noclobber" mode that will not upload any files would
   overwrite existing files in Google Storage.
@@ -139,10 +137,24 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
   """
   gsutil = slave_utils.GSUtilSetup()
   command = [gsutil]
+  if not upload_files_individually:
+    command.extend(['-m'])
   if http_header_lines:
     for http_header_line in http_header_lines:
       command.extend(['-h', http_header_line])
   command.extend(['cp', '-a', gs_acl])
+
+  if upload_files_individually:
+    abs_local_src_dir = os.path.abspath(local_src_dir)
+    for (abs_dirpath, _, filenames) in os.walk(abs_local_src_dir):
+      remote_dest_subdir = _convert_to_posixpath(os.path.relpath(
+          abs_dirpath, os.path.dirname(abs_local_src_dir)))
+      for filename in filenames:
+        abs_filepath = os.path.join(abs_dirpath, filename)
+        remote_dest_filepath = posixpath.join(
+            remote_dest_dir, remote_dest_subdir, filename)
+        shell_utils.run(command + [abs_filepath, remote_dest_filepath])
+    return
 
   # Depending on how many files there are in local_src_dir, we have to call
   # gsutil differently.  See http://skbug.com/2596 .
@@ -164,7 +176,8 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
       upload_dir_contents(
           local_src_dir=local_src_filepath,
           remote_dest_dir=remote_dest_filepath,
-          gs_acl=gs_acl, http_header_lines=http_header_lines)
+          gs_acl=gs_acl, http_header_lines=http_header_lines,
+          upload_files_individually=upload_files_individually)
     else:
       # It's a single file, so we can just copy it without -R.
       command.extend([local_src_filepath, remote_dest_filepath])
@@ -185,12 +198,9 @@ def download_dir_contents(remote_src_dir, local_dest_dir):
 
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
-  TODO(epoger): Disabled multithreaded copy because some files were not being
-  uploaded, without an error being reported.  See http://skbug.com/2618 ('The
-  Case of the Missing Mandrills')
   """
   gsutil = slave_utils.GSUtilSetup()
-  command = [gsutil]
+  command = [gsutil, '-m']
   command.extend(['cp', '-R', remote_src_dir, local_dest_dir])
   print 'Running command: %s' % command
   shell_utils.run(command)
@@ -213,12 +223,9 @@ def copy_dir_contents(remote_src_dir, remote_dest_dir, gs_acl='private',
 
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
-  TODO(epoger): Disabled multithreaded copy because some files were not being
-  uploaded, without an error being reported.  See http://skbug.com/2618 ('The
-  Case of the Missing Mandrills')
   """
   gsutil = slave_utils.GSUtilSetup()
-  command = [gsutil]
+  command = [gsutil, '-m']
   if http_header_lines:
     for http_header_line in http_header_lines:
       command.extend(['-h', http_header_line])
@@ -447,3 +454,11 @@ def write_timestamp_file(timestamp_file_name, timestamp_value, gs_base=None,
   if gs_base and gs_relative_dir and gs_acl:
     slave_utils.GSUtilCopyFile(filename=timestamp_file, gs_base=gs_base,
                                subdir=gs_relative_dir, gs_acl=gs_acl)
+
+
+def _convert_to_posixpath(localpath):
+  """Convert localpath to posix format."""
+  if os.sep == '/':
+    return localpath
+  else:
+    return '/'.join(localpath.split(os.sep))
