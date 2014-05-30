@@ -7,7 +7,7 @@
 
 import os
 
-from utils.git_utils import GIT
+from git_utils import GIT
 import shell_utils
 
 

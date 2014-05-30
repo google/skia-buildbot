@@ -62,10 +62,10 @@ class UpdateSkpVersion(BuildStep):
             m = re.match(r'bench_expectations_(?P<builder>.+)\.txt',
                          expectations_file)
             if m:
-              bots_to_trigger.append(m.group('builder') + '-Trybot')
+              bots_to_trigger.extend(['-b', m.group('builder') + '-Trybot'])
 
-        try_cmd = [GIT, 'cl', 'try', '-b',
-                   ','.join(bots_to_trigger), '-m', 'tryserver.skia']
+        try_cmd = [GIT, 'cl', 'try', '-m', 'tryserver.skia']
+        try_cmd.extend(bots_to_trigger)
         shell_utils.run(try_cmd)
 
         # Find the issue number.
