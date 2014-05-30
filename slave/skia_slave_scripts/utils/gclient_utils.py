@@ -8,14 +8,18 @@
 
 from common import find_depot_tools
 
+from git_utils import GIT
 import misc
 import os
 import shell_utils
 
 
-GIT = 'git.bat' if os.name == 'nt' else 'git'
 WHICH = 'where' if os.name == 'nt' else 'which'
 SKIA_TRUNK = 'skia'
+
+
+# TODO(borenet): There are a number of Git commands in this file.  They should
+# probably be added to git_utils.
 
 
 def _GetGclientPy():

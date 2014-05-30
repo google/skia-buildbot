@@ -7,7 +7,7 @@
 
 # build_step must be imported first, since it does some tweaking of PYTHONPATH.
 from build_step import BuildStep
-from utils import gclient_utils
+from utils.git_utils import GIT
 from utils import shell_utils
 from utils import sync_skia_in_chrome
 import shlex
@@ -28,7 +28,7 @@ class ChromeCanaryUpdate(BuildStep):
 
   def _Run(self):
     chrome_rev = shlex.split(shell_utils.run(
-        [gclient_utils.GIT, 'ls-remote', CHROMIUM_REPO,
+        [GIT, 'ls-remote', CHROMIUM_REPO,
          'refs/heads/master']))[0]
 
     override_skia_checkout = True

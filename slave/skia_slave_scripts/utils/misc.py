@@ -7,7 +7,7 @@
 
 import os
 
-import gclient_utils
+from utils.git_utils import GIT
 import shell_utils
 
 
@@ -106,18 +106,18 @@ class GitBranch(object):
     self._patch_set = 0
 
   def __enter__(self):
-    shell_utils.run([gclient_utils.GIT, 'reset', '--hard', 'HEAD'])
-    shell_utils.run([gclient_utils.GIT, 'checkout', 'master'])
-    if self._branch_name in shell_utils.run([gclient_utils.GIT, 'branch']):
-      shell_utils.run([gclient_utils.GIT, 'branch', '-D', self._branch_name])
-    shell_utils.run([gclient_utils.GIT, 'checkout', '-b', self._branch_name,
+    shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
+    shell_utils.run([GIT, 'checkout', 'master'])
+    if self._branch_name in shell_utils.run([GIT, 'branch']):
+      shell_utils.run([GIT, 'branch', '-D', self._branch_name])
+    shell_utils.run([GIT, 'checkout', '-b', self._branch_name,
                      '-t', 'origin/master'])
     return self
 
   def commit_and_upload(self, use_commit_queue=False):
-    shell_utils.run([gclient_utils.GIT, 'commit', '-a', '-m',
+    shell_utils.run([GIT, 'commit', '-a', '-m',
                      self._commit_msg])
-    upload_cmd = [gclient_utils.GIT, 'cl', 'upload', '-f', '--bypass-hooks',
+    upload_cmd = [GIT, 'cl', 'upload', '-f', '--bypass-hooks',
                   '--bypass-watchlists']
     self._patch_set += 1
     if self._patch_set > 1:
@@ -133,6 +133,6 @@ class GitBranch(object):
         if exc_type is None:
           self.commit_and_upload(use_commit_queue=self._commit_queue)
       finally:
-        shell_utils.run([gclient_utils.GIT, 'checkout', 'master'])
-        shell_utils.run([gclient_utils.GIT, 'branch', '-D', self._branch_name])
+        shell_utils.run([GIT, 'checkout', 'master'])
+        shell_utils.run([GIT, 'branch', '-D', self._branch_name])
 

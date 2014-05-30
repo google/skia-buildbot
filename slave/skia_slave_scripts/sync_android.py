@@ -13,13 +13,26 @@ import sys
 from build_step import BuildStep
 from utils import misc
 from utils import shell_utils
+from utils.gclient_utils import GIT
 
 
 ANDROID_CHECKOUT_PATH = os.path.join(os.pardir, 'android_repo')
 ANDROID_REPO_URL = ('https://googleplex-android.googlesource.com/a/platform/'
                     'manifest')
+GIT_COOKIE_AUTHDAEMON = os.path.join(os.path.expanduser('~'), 'gcompute-tools',
+                                     'git-cookie-authdaemon')
 REPO_URL = 'http://commondatastorage.googleapis.com/git-repo-downloads/repo'
 REPO = os.path.join(os.path.expanduser('~'), 'bin', 'repo')
+
+def Authenticate():
+  shell_utils.run([GIT, 'config', 'user.email',
+                   '"31977622648@project.gserviceaccount.com"'])
+  shell_utils.run([GIT, 'config', 'user.name',
+                   '"Skia_Android Canary Bot"'])
+  # Authenticate. This is only required on the actual build slave - not on
+  # a test slave on someone's machine, where the file does not exist.
+  if os.path.exists(GIT_COOKIE_AUTHDAEMON):
+    shell_utils.run([GIT_COOKIE_AUTHDAEMON])
 
 class SyncAndroid(BuildStep):
   """BuildStep which syncs the Android sources."""
@@ -34,6 +47,8 @@ class SyncAndroid(BuildStep):
         # Download repo.
         shell_utils.run(['curl', REPO_URL, '>', REPO])
         shell_utils.run(['chmod', 'a+x', REPO])
+
+      Authenticate()
 
       shell_utils.run([REPO, 'init', '-u', ANDROID_REPO_URL, '-g',
                        'all,-notdefault,-darwin', '-b', 'master-skia'])

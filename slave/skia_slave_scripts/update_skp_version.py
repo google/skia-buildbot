@@ -11,7 +11,7 @@ import sys
 import time
 
 from build_step import BuildStep
-from utils import gclient_utils
+from utils.git_utils import GIT
 from utils import misc
 from utils import shell_utils
 
@@ -38,9 +38,9 @@ class UpdateSkpVersion(BuildStep):
 
   def _Run(self):
     with misc.ChDir(PATH_TO_SKIA):
-      shell_utils.run([gclient_utils.GIT, 'config', '--local', 'user.name',
+      shell_utils.run([GIT, 'config', '--local', 'user.name',
                        SKIA_COMMITTER_NAME])
-      shell_utils.run([gclient_utils.GIT, 'config', '--local', 'user.email',
+      shell_utils.run([GIT, 'config', '--local', 'user.email',
                        SKIA_COMMITTER_EMAIL])
 
       version_file = 'SKP_VERSION'
@@ -64,12 +64,12 @@ class UpdateSkpVersion(BuildStep):
             if m:
               bots_to_trigger.append(m.group('builder') + '-Trybot')
 
-        try_cmd = [gclient_utils.GIT, 'cl', 'try', '-b',
+        try_cmd = [GIT, 'cl', 'try', '-b',
                    ','.join(bots_to_trigger), '-m', 'tryserver.skia']
         shell_utils.run(try_cmd)
 
         # Find the issue number.
-        output = shell_utils.run([gclient_utils.GIT, 'cl', 'issue']).rstrip()
+        output = shell_utils.run([GIT, 'cl', 'issue']).rstrip()
         codereview_url = re.match(r'Issue number: \d+ \((?P<url>.+)\)',
                                   output).group('url')
 

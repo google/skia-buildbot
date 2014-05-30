@@ -7,6 +7,7 @@
 
 
 from common import chromium_utils
+from utils.git_utils import GIT
 from utils import file_utils
 from utils import gclient_utils
 from utils import misc
@@ -37,7 +38,7 @@ def _MaybeUseSkiaLabMirror(revision=None):
   mirror_is_accessible = False
   print 'Attempting to reach the SkiaLab git mirror...'
   try:
-    shell_utils.run([gclient_utils.GIT, 'ls-remote',
+    shell_utils.run([GIT, 'ls-remote',
                      LOCAL_GIT_MIRROR_URL + '.git',
                      revision or 'HEAD', '--exit-code'], timeout=10)
     mirror_is_accessible = True
@@ -48,7 +49,7 @@ def _MaybeUseSkiaLabMirror(revision=None):
   # which aren't needed and adding a URL override for the git mirror if it is
   # accessible and not already present.
   try:
-    configs = shell_utils.run([gclient_utils.GIT, 'config', '--global',
+    configs = shell_utils.run([GIT, 'config', '--global',
                                '--list']).splitlines()
   except shell_utils.CommandFailedException:
     configs = []
@@ -66,7 +67,7 @@ def _MaybeUseSkiaLabMirror(revision=None):
       else:
         print 'Removing unneeded URL override for %s' % override_url
         try:
-          shell_utils.run([gclient_utils.GIT, 'config', '--global',
+          shell_utils.run([GIT, 'config', '--global',
                            '--remove-section', config.split('.insteadof')[0]])
         except shell_utils.CommandFailedException as e:
           if 'No such section!' in e.output:
@@ -77,13 +78,13 @@ def _MaybeUseSkiaLabMirror(revision=None):
   if mirror_is_accessible and not already_overriding_url:
     print ('SkiaLab git mirror appears to be accessible. Changing gitconfig to '
            'use the mirror.')
-    shell_utils.run([gclient_utils.GIT, 'config', '--global',
+    shell_utils.run([GIT, 'config', '--global',
                      'url.%s.insteadOf' % LOCAL_GIT_MIRROR_URL,
                      SKIA_GIT_URL_TO_REPLACE])
 
   # Some debugging info that might help us figure things out...
   try:
-    shell_utils.run([gclient_utils.GIT, 'config', '--global', '--list'])
+    shell_utils.run([GIT, 'config', '--global', '--list'])
   except shell_utils.CommandFailedException:
     pass
 

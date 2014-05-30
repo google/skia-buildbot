@@ -9,6 +9,7 @@ from config_private import SKIA_GIT_URL
 from common import chromium_utils
 from optparse import OptionParser
 
+from git_utils import GIT
 import gclient_utils
 import os
 import re
@@ -21,7 +22,6 @@ import urllib2
 CHROME_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
 FETCH = 'fetch.bat' if os.name == 'nt' else 'fetch'
 GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
-GIT = gclient_utils.GIT
 GCLIENT_FILE = '.gclient'
 PATH_TO_SKIA_IN_CHROME = os.path.join('src', 'third_party', 'skia', 'src')
 DEFAULT_FETCH_TARGET = 'chromium'
