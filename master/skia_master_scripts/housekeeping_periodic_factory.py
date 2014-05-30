@@ -7,11 +7,7 @@
 Overrides SkiaFactory with Periodic HouseKeeping steps."""
 
 import builder_name_schema
-import tempfile
 
-import skia_vars
-
-from buildbot.process.properties import WithProperties
 from config_private import SKIA_PUBLIC_MASTER_INTERNAL_FQDN
 from skia_master_scripts import factory as skia_factory
 
@@ -38,33 +34,6 @@ class HouseKeepingPeriodicFactory(skia_factory.SkiaFactory):
       clobber = self._default_clobber
     if clobber:
       self.AddSlaveScript(script='clean.py', description='Clean')
-
-    if not self._do_patch_step:  # Do not run the sanitizer if it is a try job.
-      sanitize_script_path = self.TargetPath.join('tools',
-                                                  'sanitize_source_files.py')
-      skia_trunk_svn_baseurl = '%s/%s' % (
-          skia_vars.GetGlobalVariable('skia_svn_url').replace('http', 'https'),
-          'trunk')
-      # Run the sanitization script.
-      self._skia_cmd_obj.AddRunCommand(
-          command='python %s' % sanitize_script_path,
-          description='RunSanitization')
-      if self._do_upload_render_results:
-        merge_dir_path = self.TargetPath.join(tempfile.gettempdir(),
-                                              'sanitize-merge')
-        # Cleanup the previous (if any) sanitize merge dir.
-        self._skia_cmd_obj.AddRunCommand(
-          command='rm -rf %s' % merge_dir_path, description='Cleanup')
-        # Upload sanitized files.
-        self._skia_cmd_obj.AddMergeIntoSvn(
-            source_dir_path='.',
-            dest_svn_url=skia_trunk_svn_baseurl,
-            merge_dir_path=merge_dir_path,
-            svn_username_file=self._skia_svn_username_file,
-            svn_password_file=self._skia_svn_password_file,
-            commit_message=WithProperties(
-                'Sanitizing source files in %s' % self._builder_name),
-            description='UploadSanitizedFiles')
 
     # pylint: disable=W0212
     clang_static_analyzer_script_path = self.TargetPath.join(
