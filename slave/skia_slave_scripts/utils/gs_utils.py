@@ -110,7 +110,7 @@ def upload_file(local_src_path, remote_dest_path, gs_acl='private',
 
 def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
                         http_header_lines=None,
-                        upload_files_individually=True):
+                        upload_files_individually=True, noclobber=False):
   """Upload contents of a local directory to Google Storage.
 
   params:
@@ -122,13 +122,13 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
     upload_files_individually: if True, upload each file in a separate gsutil
         call; added in attempt to fix http://skbug.com/2618 ('The Case of the
         Missing Mandrills')
+    noclobber: if True, existing files or objects at the destination will not
+        be overwritten; this will save retransmitting data, but the additional
+        HTTP requests may make small object transfers slower and more expensive.
 
   The copy operates as a "merge with overwrite": any files in src_dir will be
   "overlaid" on top of the existing content in dest_dir.  Existing files with
   the same names will be overwritten.
-
-  TODO(epoger): Add a "noclobber" mode that will not upload any files would
-  overwrite existing files in Google Storage.
 
   TODO(epoger): Consider adding a do_compress parameter that would compress
   the file using gzip before upload, and add a "Content-Encoding:gzip" header
@@ -144,6 +144,8 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
     for http_header_line in http_header_lines:
       command.extend(['-h', http_header_line])
   command.extend(['cp', '-a', gs_acl])
+  if noclobber:
+    command.extend(['-n'])
 
   if upload_files_individually:
     abs_local_src_dir = os.path.abspath(local_src_dir)
@@ -186,16 +188,19 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
       shell_utils.run(command)
 
 
-def download_dir_contents(remote_src_dir, local_dest_dir):
+def download_dir_contents(remote_src_dir, local_dest_dir, noclobber=False):
   """Download contents of a Google Storage directory to local disk.
 
   params:
     remote_src_dir: GS URL (gs://BUCKETNAME/PATH)
     local_dest_dir: directory on local disk to write the contents into
+    noclobber: if True, existing files or objects at the destination will not
+        be overwritten; this will save retransmitting data, but the additional
+        HTTP requests may make small object transfers slower and more expensive.
 
   The copy operates as a "merge with overwrite": any files in src_dir will be
   "overlaid" on top of the existing content in dest_dir.  Existing files with
-  the same names will be overwritten.
+  the same names will be overwritten, unless noclobber==True.
 
   Performs the copy in multithreaded mode, in case there are a large number of
   files.
@@ -203,6 +208,8 @@ def download_dir_contents(remote_src_dir, local_dest_dir):
   gsutil = slave_utils.GSUtilSetup()
   command = [gsutil, '-m']
   command.extend(['cp', '-R', remote_src_dir, local_dest_dir])
+  if noclobber:
+    command.extend(['-n'])
   print 'Running command: %s' % command
   shell_utils.run(command)
 
