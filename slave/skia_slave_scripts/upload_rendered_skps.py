@@ -26,10 +26,9 @@ class UploadRenderedSKPs(BuildStep):
   def _Run(self):
     # Upload individual image files to Google Storage.
     #
-    # Since our image files are named based on the image checksum, we know
-    # that the contents of a given image filename never change.  So we can
-    # use "noclobber" to speed up the upload--if we have already uploaded
-    # a file by that name, there is no need to update it.
+    # TODO(epoger): Add a "noclobber" mode to gs_utils.upload_dir_contents()
+    # and use it here so we don't re-upload image files we already have
+    # in Google Storage.
     #
     # TODO(epoger): Change ACLs of files uploaded to Google Storage to
     # google.com:READ .  See _SetGoogleReadACLs() in
@@ -42,7 +41,7 @@ class UploadRenderedSKPs(BuildStep):
       print 'Uploading image files from %s to %s.' % (src_dir, dest_dir)
       gs_utils.upload_dir_contents(
           local_src_dir=src_dir, remote_dest_dir=dest_dir,
-          gs_acl=PLAYBACK_CANNED_ACL, noclobber=True)
+          gs_acl=PLAYBACK_CANNED_ACL)
     else:
       print ('No image files in %s, so skipping upload to Google Storage.' %
              src_dir)

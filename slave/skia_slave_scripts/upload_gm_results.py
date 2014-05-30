@@ -70,15 +70,14 @@ class UploadGMResults(BuildStep):
       # At present, this will merge the entire contents of [temp_root]/gm
       # into the existing contents of gs://chromium-skia-gm/gm .
       #
-      # Since our image files are named based on the image checksum, we know
-      # that the contents of a given image filename never change.  So we can
-      # use "noclobber" to speed up the upload--if we have already uploaded
-      # a file by that name, there is no need to update it.
+      # TODO(epoger): Add a "noclobber" mode to gs_utils.upload_dir_contents()
+      # and use it here so we don't re-upload image files we already have
+      # in Google Storage.
       gs_utils.upload_dir_contents(
           local_src_dir=os.path.abspath(
               os.path.join(temp_root, gm_actuals_subdir)),
           remote_dest_dir=skia_vars.GetGlobalVariable('googlestorage_bucket'),
-          gs_acl='public-read', noclobber=True,
+          gs_acl='public-read',
           http_header_lines=['Cache-Control:public,max-age=3600'])
     finally:
       shutil.rmtree(temp_root)
