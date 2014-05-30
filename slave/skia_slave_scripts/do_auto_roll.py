@@ -21,8 +21,8 @@ sys.path.append(misc.BUILDBOT_PATH)
 from site_config import skia_vars
 
 
-DEPS_ROLL_AUTHOR = 'robertphillips@google.com'
-DEPS_ROLL_NAME = 'Robert Phillips'
+DEPS_ROLL_AUTHOR = 'skia-deps-roller@chromium.org'
+DEPS_ROLL_NAME = 'Skia DEPS Roller'
 HTML_CONTENT = '''
 <html>
 <head>
