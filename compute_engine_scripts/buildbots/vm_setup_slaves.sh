@@ -75,7 +75,8 @@ Starting setup of ${VM_COMPLETE_NAME}.....
   echo
   echo "===== Setup symlinks. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
-    "sudo ln -s /usr/lib/i386-linux-gnu/libpoppler-cpp.so.0 /usr/lib/i386-linux-gnu/libpoppler-cpp.so" \
+    "sudo ln -s /usr/lib/i386-linux-gnu/libpoppler-cpp.so.0 /usr/lib/i386-linux-gnu/libpoppler-cpp.so && " \
+    "sudo ln -s /home/default/google-cloud-sdk/bin/gsutil /usr/local/bin/gsutil" \
     || FAILED="$FAILED SetupSymlinks"
   echo
 

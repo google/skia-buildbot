@@ -40,7 +40,8 @@ function setup_symlinks {
     "sudo ln -s /home/default/storage/skia-repo /home/chrome-bot && " \
     "sudo ln -s /usr/lib/i386-linux-gnu/libpoppler-cpp.so.0 /usr/lib/i386-linux-gnu/libpoppler-cpp.so && " \
     "sudo rm /usr/bin/moc && sudo ln -s /usr/bin/moc-qt4 /usr/bin/moc && " \
-    "sudo rm -rf /usr/bin/qmake && sudo ln -s /usr/bin/qmake-qt4 /usr/bin/qmake" \
+    "sudo rm -rf /usr/bin/qmake && sudo ln -s /usr/bin/qmake-qt4 /usr/bin/qmake && " \
+    "sudo ln -s /home/default/google-cloud-sdk/bin/gsutil /usr/local/bin/gsutil" \
     || FAILED="$FAILED InstallPackages"
   echo
 }
