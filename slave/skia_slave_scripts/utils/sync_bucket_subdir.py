@@ -30,6 +30,7 @@ IGNORE_UPLOAD_FILENAMES = ('.DS_Store')
 
 def SyncBucketSubdir(directory, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
     do_upload=True, do_download=True, filenames_filter=KNOWN_FILENAMES,
+    exclude_json=False,
     min_download_revision=0):
   """ synchronizes a local directory with a cloud one
 
@@ -84,6 +85,9 @@ def SyncBucketSubdir(directory, dest_gsbase=DEFAULT_PERFDATA_GS_BASE, subdir='',
         match = re.search(filenames_filter, file_name)
         if not match:
           # Ignore other files, rather than raising an exception
+          continue
+        # Ignore JSON files if the flag is set.
+        if exclude_json and file_name.endswith('.json'):
           continue
         # Ignore force builds without a revision number.
         if match.group(1) != '':
