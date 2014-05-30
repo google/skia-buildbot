@@ -17,8 +17,8 @@ from utils import shell_utils
 
 
 PATH_TO_SKIA = os.path.join('third_party', 'skia')
-SKIA_COMMITTER_EMAIL = 'skia.committer@gmail.com'
-SKIA_COMMITTER_NAME = 'Skia Committer'
+SKIA_COMMITTER_EMAIL = 'borenet@google.com'
+SKIA_COMMITTER_NAME = 'Eric Boren'
 WAIT_TIME_BETWEEN_CHECKS = 300 # Seconds.
 
 # Rather than calling the script using the shell, just import it.
