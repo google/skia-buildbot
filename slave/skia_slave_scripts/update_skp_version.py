@@ -17,6 +17,8 @@ from utils import shell_utils
 
 
 PATH_TO_SKIA = os.path.join('third_party', 'skia')
+SKIA_COMMITTER_EMAIL = 'skia.committer@gmail.com'
+SKIA_COMMITTER_NAME = 'Skia Committer'
 WAIT_TIME_BETWEEN_CHECKS = 300 # Seconds.
 
 # Rather than calling the script using the shell, just import it.
@@ -36,6 +38,11 @@ class UpdateSkpVersion(BuildStep):
 
   def _Run(self):
     with misc.ChDir(PATH_TO_SKIA):
+      shell_utils.run([gclient_utils.GIT, 'config', '--local', 'user.name',
+                       SKIA_COMMITTER_NAME])
+      shell_utils.run([gclient_utils.GIT, 'config', '--local', 'user.email',
+                       SKIA_COMMITTER_EMAIL])
+
       version_file = 'SKP_VERSION'
       skp_version = self._args.get('skp_version')
       with misc.GitBranch(branch_name='update_skp_version',
