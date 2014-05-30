@@ -19,8 +19,8 @@ from utils.gclient_utils import GIT
 ANDROID_CHECKOUT_PATH = os.path.join(os.pardir, 'android_repo')
 ANDROID_REPO_URL = ('https://googleplex-android.googlesource.com/a/platform/'
                     'manifest')
-GIT_COOKIE_AUTHDAEMON = os.path.join(os.path.expanduser('~'), 'gcompute-tools',
-                                     'git-cookie-authdaemon')
+GIT_COOKIE_AUTHDAEMON = os.path.join(os.path.expanduser('~'), 'skia-repo',
+                                     'gcompute-tools', 'git-cookie-authdaemon')
 REPO_URL = 'http://commondatastorage.googleapis.com/git-repo-downloads/repo'
 REPO = os.path.join(os.path.expanduser('~'), 'bin', 'repo')
 
@@ -33,6 +33,8 @@ def Authenticate():
   # a test slave on someone's machine, where the file does not exist.
   if os.path.exists(GIT_COOKIE_AUTHDAEMON):
     shell_utils.run([GIT_COOKIE_AUTHDAEMON])
+  else:
+    print 'No authentication file. Did you authenticate?'
 
 class SyncAndroid(BuildStep):
   """BuildStep which syncs the Android sources."""
