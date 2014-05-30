@@ -7,6 +7,7 @@
 
 import os
 
+import gclient_utils
 import shell_utils
 
 
@@ -102,20 +103,36 @@ class GitBranch(object):
     self._commit_msg = commit_msg
     self._upload = upload
     self._commit_queue = commit_queue
+    self._patch_set = 0
 
   def __enter__(self):
-    shell_utils.run(['git', 'reset', '--hard', 'HEAD'])
-    shell_utils.run(['git', 'checkout', '-b', self._branch_name, '-t',
-                     'origin/master'])
+    shell_utils.run([gclient_utils.GIT, 'reset', '--hard', 'HEAD'])
+    shell_utils.run([gclient_utils.GIT, 'checkout', 'master'])
+    if self._branch_name in shell_utils.run([gclient_utils.GIT, 'branch']):
+      shell_utils.run([gclient_utils.GIT, 'branch', '-D', self._branch_name])
+    shell_utils.run([gclient_utils.GIT, 'checkout', '-b', self._branch_name,
+                     '-t', 'origin/master'])
+    return self
 
-  def __exit__(self, *args):
-    shell_utils.run(['git', 'commit', '-a', '-m', self._commit_msg])
+  def commit_and_upload(self, use_commit_queue=False):
+    shell_utils.run([gclient_utils.GIT, 'commit', '-a', '-m',
+                     self._commit_msg])
+    upload_cmd = [gclient_utils.GIT, 'cl', 'upload', '-f', '--bypass-hooks',
+                  '--bypass-watchlists']
+    self._patch_set += 1
+    if self._patch_set > 1:
+      upload_cmd.extend(['-t', 'Patch set %d' % self._patch_set])
+    if use_commit_queue:
+      upload_cmd.append('--use-commit-queue')
+    shell_utils.run(upload_cmd)
+
+  def __exit__(self, exc_type, _value, _traceback):
     if self._upload:
-      upload_cmd = ['git', 'cl', 'upload', '-f', '--bypass-hooks',
-                    '--bypass-watchlists']
-      if self._commit_queue:
-        upload_cmd.append('--use-commit-queue')
-      shell_utils.run(upload_cmd)
-      shell_utils.run(['git', 'checkout', 'master'])
-      shell_utils.run(['git', 'branch', '-D', self._branch_name])
+      # Only upload if no error occurred.
+      try:
+        if exc_type is None:
+          self.commit_and_upload(use_commit_queue=self._commit_queue)
+      finally:
+        shell_utils.run([gclient_utils.GIT, 'checkout', 'master'])
+        shell_utils.run([gclient_utils.GIT, 'branch', '-D', self._branch_name])
 

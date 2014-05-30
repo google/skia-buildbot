@@ -5,6 +5,7 @@
 """BuildFactory for a builder which recaptures the buildbot SKP repo."""
 
 
+from buildbot.process.properties import WithProperties
 from skia_master_scripts import canary_factory
 
 import builder_name_schema
@@ -52,7 +53,16 @@ class RecreateSKPsFactory(canary_factory.CanaryFactory):
                   'out', 'Debug', 'chrome')],
         timeout=None,
         halt_on_failure=True,
-        workdir=self._workdir)
+        workdir=self._workdir,
+        get_props_from_stdout={'skp_version': r'SKP_VERSION=(\d+)'})
+
+    self.AddSlaveScript(
+        script=self.TargetPath.join(skia_slave_scripts_path,
+                                    'update_skp_version.py'),
+        description='UpdateSkpVersion',
+        workdir=self._workdir,
+        args=['--skp_version', WithProperties('%(skp_version)s')]
+    )
 
     self.Validate()  # Run the factory configuration test.
     return self

@@ -110,9 +110,13 @@ class StorageSkpPlaybackDirs(SkpPlaybackDirs):
     """Returns the relative storage playback root directory."""
     return ROOT_PLAYBACK_DIR_NAME
 
-  def PlaybackSkpDir(self):
+  # pylint: disable=W0221
+  def PlaybackSkpDir(self, skp_version=None):
     """Returns the relative storage playback skp directory."""
-    return posixpath.join(ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME)
+    playback_dir = ROOT_PLAYBACK_DIR_NAME
+    if skp_version:
+      playback_dir += '_%s' % skp_version
+    return posixpath.join(playback_dir, SKPICTURES_DIR_NAME)
 
   def PlaybackActualImagesDir(self):
     """Returns the relative storage playback image output directory."""

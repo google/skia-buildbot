@@ -139,7 +139,7 @@ class SkPicturePlayback(object):
     self._skia_tools = parse_options.skia_tools
     self._non_interactive = parse_options.non_interactive
     self._upload_to_gs = parse_options.upload_to_gs
-    self._upload_to_staging = parse_options.upload_to_staging
+    self._alternate_upload_dir = parse_options.alternate_upload_dir
     self._skip_all_gs_access = parse_options.skip_all_gs_access
 
     self._local_skp_dir = os.path.join(
@@ -334,23 +334,11 @@ class SkPicturePlayback(object):
     print '\n\n'
 
     if not self._skip_all_gs_access and self._upload_to_gs:
-      backup_location = posixpath.join(
-          self._dest_gsbase,
-          '%s-backup-%s' % (ROOT_PLAYBACK_DIR_NAME, time.time()))
-      print '\n\n=======Backing up old SKPs to %s =======\n\n' % (
-          backup_location)
-      gs_utils.copy_dir_contents(
-          remote_src_dir=posixpath.join(
-              self._dest_gsbase, ROOT_PLAYBACK_DIR_NAME, SKPICTURES_DIR_NAME),
-          remote_dest_dir=backup_location)
-      self._SetGoogleReadACLs(backup_location)
-
       print '\n\n=======Uploading to Google Storage=======\n\n'
       # Copy the directory structure in the root directory into Google Storage.
       dest_dir_name = ROOT_PLAYBACK_DIR_NAME
-      if self._upload_to_staging:
-        # TODO(rmistry): Use the author here instead of the timestamp.
-        dest_dir_name += '-staging-%s' % time.time()
+      if self._alternate_upload_dir:
+        dest_dir_name = self._alternate_upload_dir
       gs_status = slave_utils.GSUtilCopyDir(
           src_dir=LOCAL_PLAYBACK_ROOT_DIR,
           gs_base=self._dest_gsbase,
@@ -390,10 +378,8 @@ class SkPicturePlayback(object):
     enough to run the 'acl ch' command. The gsutil in chromium_buildbot is old
     and cannot run this command.
     """
-    update_acls_cmd = [
-        'gsutil', 'acl', 'ch', '-g', 'google.com:READ',
-        posixpath.join(gs_dir, '*')
-    ]
+    update_acls_cmd = ['gsutil', 'acl', 'ch', '-g', 'google.com:READ',
+                       posixpath.join(gs_dir, '*')]
     shell_utils.run(update_acls_cmd)
 
   def _RenameSkpFiles(self, page_set):
@@ -471,7 +457,7 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--dest_gsbase',
       help='gs:// bucket_name, the bucket to upload the file to.',
-      default='gs://chromium-skia-gm')
+      default=gs_utils.DEFAULT_DEST_GSBASE)
   option_parser.add_option(
       '', '--skia_tools',
       help=('Path to compiled Skia executable tools. '
@@ -486,10 +472,10 @@ if '__main__' == __name__:
       help='Does not upload to Google Storage if this is False.',
       default=False)
   option_parser.add_option(
-      '', '--upload_to_staging', action='store_true',
-      help='Uploads to a staging directory in Google Storage if this flag is '
+      '', '--alternate_upload_dir',
+      help='Uploads to a different directory in Google Storage if this flag is '
            'specified',
-      default=False)
+      default=None)
   option_parser.add_option(
       '', '--output_dir',
       help='Directory where SKPs and webpage archives will be outputted to.',
