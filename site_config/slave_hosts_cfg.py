@@ -197,20 +197,6 @@ _slave_host_dicts = {
     'remote_access': True,
   },
 
-  # This host is in the chromecompute project.
-  'skia-recreate-skps-bot': {
-    'slaves': [
-      ('skia-recreate-skps', '0'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': None,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': False,
-  },
-
   'skia-housekeeping-slave-a': {
     'slaves': [
       ('skia-housekeeping-slave-a', '0'),
@@ -1252,14 +1238,16 @@ _slave_host_dicts = {
   },
 
   'skia-vm-078': {
-    'slaves': [],
+    'slaves': [
+      ('skia-recreate-skps', '0')
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': False,
+    'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
   'skia-vm-079': {
