@@ -186,10 +186,15 @@
     "type": "string",
     "description": "The user name of the buildbots on Skia GCE instances."
   },
+  "gm_summaries_bucket": {
+    "value": "chromium-skia-gm-summaries",
+    "type": "string",
+    "description": "Google Cloud Storage bucket we use for GM actual-result.json files."
+  },
   "googlestorage_bucket": {
     "value": "gs://chromium-skia-gm",
     "type": "string",
-    "description": "Root of our Google Storage tree."
+    "description": "Google Cloud Storage bucket we use for most things."
   },
   "master_branch_name": {
     "value": "master",
