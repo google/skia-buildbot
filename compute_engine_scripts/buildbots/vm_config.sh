@@ -26,6 +26,8 @@ SLAVE_IP_ADDRESSES="108.170.220.73 108.170.220.26 108.170.220.96 108.170.220.108
 # 108.170.220.94
 # The following IP address is used by webtry (jcgregorio's instance):
 # 108.170.220.126
+# The following IP address is used by skia-perf (bensong's instance):
+# 108.170.220.208
 
 # rebaseline_server names, type and their IP addresses to use for each zone.
 VM_REBASELINESERVER_NAMES=${VM_REBASELINESERVER_NAMES:="rebaseline-server-1"}
