@@ -18,6 +18,12 @@ from utils import shell_utils
 
 
 CHROMIUM_SKIA = 'https://chromium.googlesource.com/skia.git'
+COMMIT_MSG = '''Update SKP version to %s
+
+Automatic commit by the RecreateSKPs bot.
+
+TBR=
+'''
 PATH_TO_SKIA = os.path.join('third_party', 'skia')
 SKIA_COMMITTER_EMAIL = 'borenet@google.com'
 SKIA_COMMITTER_NAME = 'Eric Boren'
@@ -35,7 +41,7 @@ def wait():
 
 
 class UpdateSkpVersion(BuildStep):
-  def __init__(self, timeout=12800, **kwargs):
+  def __init__(self, timeout=28800, **kwargs):
     super(UpdateSkpVersion, self).__init__(timeout=timeout, **kwargs)
 
   def _Run(self):
@@ -51,7 +57,7 @@ class UpdateSkpVersion(BuildStep):
       version_file = 'SKP_VERSION'
       skp_version = self._args.get('skp_version')
       with misc.GitBranch(branch_name='update_skp_version',
-                          commit_msg='Update SKP version to %s' % skp_version,
+                          commit_msg=COMMIT_MSG % skp_version,
                           commit_queue=not self._is_try) as branch:
 
         # First, upload a version of the CL with just the SKP version changed.
