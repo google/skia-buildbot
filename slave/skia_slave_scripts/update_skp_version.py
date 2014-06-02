@@ -11,11 +11,13 @@ import sys
 import time
 
 from build_step import BuildStep
+from config_private import SKIA_GIT_URL
 from utils.git_utils import GIT
 from utils import misc
 from utils import shell_utils
 
 
+CHROMIUM_SKIA = 'https://chromium.googlesource.com/skia.git'
 PATH_TO_SKIA = os.path.join('third_party', 'skia')
 SKIA_COMMITTER_EMAIL = 'borenet@google.com'
 SKIA_COMMITTER_NAME = 'Eric Boren'
@@ -42,6 +44,9 @@ class UpdateSkpVersion(BuildStep):
                        SKIA_COMMITTER_NAME])
       shell_utils.run([GIT, 'config', '--local', 'user.email',
                        SKIA_COMMITTER_EMAIL])
+      if CHROMIUM_SKIA in shell_utils.run([GIT, 'remote', '-v']):
+        shell_utils.run([GIT, 'remote', 'set-url', 'origin', SKIA_GIT_URL,
+                         CHROMIUM_SKIA])
 
       version_file = 'SKP_VERSION'
       skp_version = self._args.get('skp_version')
