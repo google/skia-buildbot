@@ -12,8 +12,6 @@ from skia_master_scripts.arm64model_factory \
 from skia_master_scripts.canary_factory import CanaryFactory as f_canary
 from skia_master_scripts.chromeos_factory import ChromeOSFactory as f_cros
 from skia_master_scripts.drt_canary_factory import DRTCanaryFactory as f_drt
-from skia_master_scripts.recreate_skps_factory \
-    import RecreateSKPsFactory as f_skps
 from skia_master_scripts.factory import SkiaFactory as f_factory
 from skia_master_scripts.housekeeping_percommit_factory \
     import HouseKeepingPerCommitFactory as f_percommit
@@ -51,9 +49,6 @@ PERF_OUTPUT_BASEDIR = {
 # Schedulers used by the build master.
 S_PERCOMMIT = 'skia_percommit_scheduler'
 S_NIGHTLY = 'skia_nightly_scheduler'
-S_RECREATE_SKPS = 'skia_recreate_skps_scheduler'
-S_POST_RECREATE_SKPS = 'skia_post_recreate_skps_scheduler'
-S_COMMIT_OR_SKP = '|'.join((S_PERCOMMIT, S_POST_RECREATE_SKPS))
 
 
 defaults = {}
@@ -300,7 +295,7 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
   builder_specs = [
       ('Test', 'Ubuntu12',    'ShuttleA',   'GTX660',      'x86',    'Debug',   None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Test', 'Ubuntu12',    'ShuttleA',   'GTX660',      'x86',    'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
-      ('Perf', 'Ubuntu12',    'ShuttleA',   'GTX660',      'x86',    'Release', None,           None,      f_factory, LINUX,  S_COMMIT_OR_SKP, {}),
+      ('Perf', 'Ubuntu12',    'ShuttleA',   'GTX660',      'x86',    'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT, {}),
       ('Test', 'Ubuntu12',    'ShuttleA',   'GTX660',      'x86_64', 'Debug',   None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Test', 'Ubuntu12',    'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Perf', 'Ubuntu12',    'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
@@ -322,31 +317,31 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
       ('Perf', 'Mac10.7',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
       ('Test', 'Mac10.8',     'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
       ('Test', 'Mac10.8',     'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
-      ('Perf', 'Mac10.8',     'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_COMMIT_OR_SKP,     {}),
+      ('Perf', 'Mac10.8',     'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
       ('Test', 'Mac10.8',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
       ('Test', 'Mac10.8',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, f_factory, MAC,    S_PERCOMMIT,     {}),
       ('Perf', 'Mac10.8',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           PDFVIEWER, f_factory, MAC,    S_PERCOMMIT,     {}),
       ('Test', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Debug',   None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT,     {}),
       ('Test', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT,     {}),
-      ('Perf', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  f_factory, WIN32,  S_COMMIT_OR_SKP, {}),
+      ('Perf', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Release', None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT, {}),
       ('Test', 'Win7',        'ShuttleA',   'HD2000',      'x86_64', 'Debug',   None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT,     {}),
       ('Test', 'Win7',        'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT,     {}),
       ('Perf', 'Win7',        'ShuttleA',   'HD2000',      'x86_64', 'Release', None,           GYP_WIN7,  f_factory, WIN32,  S_PERCOMMIT,     {}),
       ('Test', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Debug',   'ANGLE',        GYP_ANGLE, f_factory, WIN32,  S_PERCOMMIT,     {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
       ('Test', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, f_factory, WIN32,  S_PERCOMMIT,     {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
-      ('Perf', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, f_factory, WIN32,  S_COMMIT_OR_SKP,     {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
+      ('Perf', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Release', 'ANGLE',        GYP_ANGLE, f_factory, WIN32,  S_PERCOMMIT,     {'bench_args': ['--config', 'ANGLE'], 'bench_pictures_cfg': 'angle'}),
       ('Test', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Debug',   'DirectWrite',  GYP_DW,    f_factory, WIN32,  S_PERCOMMIT,     {}),
       ('Test', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    f_factory, WIN32,  S_PERCOMMIT,     {}),
       ('Perf', 'Win7',        'ShuttleA',   'HD2000',      'x86',    'Release', 'DirectWrite',  GYP_DW,    f_factory, WIN32,  S_PERCOMMIT,     {}),
       ('Test', 'Win8',        'ShuttleA',   'GTX660',      'x86',    'Debug',   None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Test', 'Win8',        'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Perf', 'Win8',        'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_COMMIT_OR_SKP,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Perf', 'Win8',        'ShuttleA',   'GTX660',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Test', 'Win8',        'ShuttleA',   'GTX660',      'x86_64', 'Debug',   None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Test', 'Win8',        'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Perf', 'Win8',        'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Test', 'Win8',        'ShuttleA',   'HD7770',      'x86',    'Debug',   None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Test', 'Win8',        'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
-      ('Perf', 'Win8',        'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_COMMIT_OR_SKP,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
+      ('Perf', 'Win8',        'ShuttleA',   'HD7770',      'x86',    'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Test', 'Win8',        'ShuttleA',   'HD7770',      'x86_64', 'Debug',   None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Test', 'Win8',        'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
       ('Perf', 'Win8',        'ShuttleA',   'HD7770',      'x86_64', 'Release', None,           GYP_WIN8,  f_factory, WIN32,  S_PERCOMMIT,     {'build_targets': ['most'], 'bench_pictures_cfg': 'default_msaa16'}),
@@ -403,32 +398,6 @@ def setup_canaries(helper, do_upload_render_results, do_upload_bench_results):
                                   do_upload_bench_results, CanaryBuilder)
 
 
-def setup_housekeepers(helper, do_upload_render_results,
-                       do_upload_bench_results):
-  """Set up the Housekeeping builders.
-
-  Args:
-      helper: instance of utils.SkiaHelper
-      do_upload_render_results: bool; whether the builders should upload their
-          render results.
-      do_upload_bench_results: bool; whether the builders should upload their
-          bench results.
-  """
-  #
-  #                          HOUSEKEEPING BUILDERS
-  #
-  #   Frequency,    Extra Config,       Factory,        Target, Scheduler,       Extra Args
-  #
-  housekeepers = [
-      ('Nightly',   'RecreateSKPs',     f_skps,         LINUX,  S_RECREATE_SKPS, {}),
-  ]
-
-  setup_builders_from_config_list(housekeepers, helper,
-                                  do_upload_render_results,
-                                  do_upload_bench_results,
-                                  HousekeepingBuilder)
-
-
 def setup_all_builders(helper, do_upload_render_results,
                        do_upload_bench_results):
   """Set up all builders for this master.
@@ -447,9 +416,6 @@ def setup_all_builders(helper, do_upload_render_results,
   setup_canaries(helper=helper,
                  do_upload_render_results=do_upload_render_results,
                  do_upload_bench_results=do_upload_bench_results)
-  setup_housekeepers(helper=helper,
-                     do_upload_render_results=do_upload_render_results,
-                     do_upload_bench_results=do_upload_bench_results)
 
 
 def create_schedulers_and_builders(config, active_master, cfg,
@@ -467,13 +433,6 @@ def create_schedulers_and_builders(config, active_master, cfg,
 
   # Default (per-commit) Scheduler for Skia.
   helper.Scheduler(S_PERCOMMIT)
-
-  # Scheduler for the RecreateSKPs bot which runs before the Nightly Scheduler.
-  # Setting it to 1AM UTC (8 PM EST).
-  helper.PeriodicScheduler(S_RECREATE_SKPS, minute=0, hour=1)
-
-  # Scheduler which triggers Perf bots after the RecreateSKPs bot finishes.
-  helper.Dependent(S_POST_RECREATE_SKPS, parent=S_RECREATE_SKPS)
 
   # Nightly Scheduler for Skia. The buildbot master follows UTC.
   # Setting it to 3AM UTC (10 PM EST).

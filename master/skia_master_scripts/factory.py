@@ -18,7 +18,6 @@ from skia_master_scripts import commands as skia_commands
 import builder_name_schema
 import config
 import config_private
-import master_builders_cfg
 import ntpath
 import os
 import posixpath
@@ -651,18 +650,10 @@ class SkiaFactory(BuildFactory):
 
   def UploadBenchResults(self):
     """ Upload bench results (performance data). """
-    def _should_do_upload_bench_results(step):
-      try:
-        return (step.getProperty('scheduler') !=
-                master_builders_cfg.S_POST_RECREATE_SKPS)
-      except Exception:
-        return False
-
     self.AddSlaveScript(script='upload_bench_results.py',
                         description='UploadBenchResults',
                         exception_on_failure=True,
-                        is_upload_bench_step=True,
-                        do_step_if=_should_do_upload_bench_results)
+                        is_upload_bench_step=True)
 
   def UploadBenchResultsToAppEngine(self):
     """ Upload bench results (performance data) to AppEngine. """
@@ -734,25 +725,6 @@ class SkiaFactory(BuildFactory):
     self.PostBench()
     self.CheckForRegressions()
     self.UploadBenchResults()
-
-  def UpdateBenchExpectations(self):
-    """ Calculate bench (performance data) expectations and upload to repo. """
-    def _should_do_update_bench_expectations(step):
-      try:
-        return (step.getProperty('scheduler') ==
-                master_builders_cfg.S_POST_RECREATE_SKPS)
-      except Exception:
-        return False
-
-    self.AddSlaveScript(script='generate_bench_expectations.py',
-                        description='GenerateBenchExpectations', timeout=600,
-                        exception_on_failure=True,
-                        do_step_if=_should_do_update_bench_expectations)
-
-    self.AddSlaveScript(script='upload_bench_expectations.py',
-                        description='UploadBenchExpectations',
-                        exception_on_failure=True,
-                        do_step_if=_should_do_update_bench_expectations)
 
   def Build(self, role=None, clobber=None):
     """Build and return the complete BuildFactory.
@@ -840,6 +812,5 @@ class SkiaFactory(BuildFactory):
           raise ValueError('BuildPerfOnly should run in %s configuration.' %
                            CONFIG_RELEASE)
         self.PerfSteps()
-        self.UpdateBenchExpectations()
     self.Validate()
     return self

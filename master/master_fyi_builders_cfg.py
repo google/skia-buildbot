@@ -10,12 +10,13 @@ from master_builders_cfg import HousekeepingBuilder, LINUX
 
 # Schedulers
 from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY
-
-from skia_master_scripts.moz2d_canary_factory \
-    import Moz2DCanaryFactory as f_moz2d
+from skia_master_scripts.auto_roll_factory import AutoRollFactory as f_autoroll
 from skia_master_scripts.housekeeping_monitoring_factory \
     import HouseKeepingMonitoringFactory as f_monitor
-from skia_master_scripts.auto_roll_factory import AutoRollFactory as f_autoroll
+from skia_master_scripts.moz2d_canary_factory \
+    import Moz2DCanaryFactory as f_moz2d
+from skia_master_scripts.recreate_skps_factory \
+    import RecreateSKPsFactory as f_skps
 
 import master_builders_cfg
 
@@ -94,13 +95,14 @@ def setup_housekeepers(helper, do_upload_render_results,
   #
   #                          HOUSEKEEPING BUILDERS
   #
-  #   Frequency,    Extra Config,       Factory,        Target, Scheduler,                Extra Args
+  #   Frequency,    Extra Config,       Factory,        Target, Scheduler,   Extra Args
   #
   housekeepers = [
-      ('PerCommit', None,               f_percommit,    LINUX,  S_PERCOMMIT,              {}),
-      ('PerCommit', 'AutoRoll',         f_autoroll,     LINUX,  S_PERCOMMIT,              {}),
-      ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,                {}),
-      ('Nightly',   'Monitoring',       f_monitor,      LINUX,  S_NIGHTLY,                {}),
+      ('PerCommit', None,               f_percommit,    LINUX,  S_PERCOMMIT, {}),
+      ('PerCommit', 'AutoRoll',         f_autoroll,     LINUX,  S_PERCOMMIT, {}),
+      ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,   {}),
+      ('Nightly',   'Monitoring',       f_monitor,      LINUX,  S_NIGHTLY,   {}),
+      ('Nightly',   'RecreateSKPs',     f_skps,         LINUX,  S_NIGHTLY,   {}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(housekeepers, helper,
