@@ -10,9 +10,9 @@
 import os
 import sys
 
-from build_step import BuildStep, BuildStepWarning
+from build_step import BuildStep, BuildStepFailure, BuildStepWarning
 import skia_vars
-from sync_android import ANDROID_CHECKOUT_PATH, REPO
+from sync_android import ANDROID_CHECKOUT_PATH, REPO, Authenticate
 from utils.git_utils import GIT
 from utils import git_utils
 from utils import misc
@@ -38,6 +38,15 @@ sys.path.append(PLATFORM_TOOLS_BIN)
 import gyp_to_android
 
 LOCAL_BRANCH_NAME = 'merge'
+
+
+def RepoAbandon(branch):
+  """Run 'repo abandon <branch>'
+
+  'repo abandon' is similar to 'git branch -D', and is only necessary after
+  a branch created by 'repo start' is no longer needed."""
+  shell_utils.run([REPO, 'abandon', branch])
+
 
 class MergeIntoAndroid(BuildStep):
   """BuildStep which merges Skia into Android, with a generated Android.mk and
@@ -146,12 +155,23 @@ class MergeIntoAndroid(BuildStep):
         except shell_utils.CommandFailedException:
           # It is possible that someone else already did the merge (for example,
           # if they are testing a build slave). Clean up and exit.
-          shell_utils.run([REPO, 'abandon', LOCAL_BRANCH_NAME])
+          RepoAbandon(LOCAL_BRANCH_NAME)
           raise BuildStepWarning('Nothing to merge; did someone already merge '
                 '%s?' % commit_to_merge)
 
+        # For some reason, sometimes the bot's authentication from sync_android
+        # does not carry over to this step. Authenticate again.
+        Authenticate()
+
         # Now push to master-skia branch
-        shell_utils.run([GIT, 'push', MASTER_SKIA_URL, MASTER_SKIA_REFS])
+        try:
+          shell_utils.run([GIT, 'push', MASTER_SKIA_URL, MASTER_SKIA_REFS])
+        except shell_utils.CommandFailedException:
+          # It's possible someone submitted in between our sync and push or
+          # push failed for some other reason. Abandon and let the next attempt
+          # try again.
+          RepoAbandon(LOCAL_BRANCH_NAME)
+          raise BuildStepFailure('git push failed!')
 
         # Our branch is no longer needed. Remove it.
         shell_utils.run([REPO, 'sync', '-j32', '.'])
