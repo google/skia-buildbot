@@ -5,9 +5,13 @@
 # Sets up all the builders we want the private buildbot master to run.
 
 
-import master_builders_cfg
-from master_builders_cfg import f_android, LINUX, S_PERCOMMIT
+#pylint: disable=C0301
 
+
+import master_builders_cfg
+from master_builders_cfg import LINUX, S_PERCOMMIT
+
+from skia_master_scripts.android_factory import AndroidFactory as f_android
 from skia_master_scripts.android_roll_factory import AndroidRollFactory as \
     f_androidroll
 

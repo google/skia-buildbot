@@ -5,11 +5,20 @@
 # Sets up all the builders we want the Compile buildbot master to run.
 
 
-from master_builders_cfg import CLANG, CompileBuilder, f_android, f_cros
-from master_builders_cfg import f_factory, f_ios, f_nacl, f_xsan
+#pylint: disable=C0301
+
+
+from master_builders_cfg import CLANG, CompileBuilder
 from master_builders_cfg import GYP_ANGLE, GYP_DW, GYP_EXC, GYP_IOS
 from master_builders_cfg import GYP_WIN7, GYP_WIN8, LINUX, MAC, NO_GPU
 from master_builders_cfg import PDFVIEWER, S_PERCOMMIT, VALGRIND, WIN32
+
+from skia_master_scripts.android_factory import AndroidFactory as f_android
+from skia_master_scripts.chromeos_factory import ChromeOSFactory as f_cros
+from skia_master_scripts.factory import SkiaFactory as f_factory
+from skia_master_scripts.ios_factory import iOSFactory as f_ios
+from skia_master_scripts.nacl_factory import NaClFactory as f_nacl
+from skia_master_scripts.xsan_factory import XsanFactory as f_xsan
 
 import master_builders_cfg
 

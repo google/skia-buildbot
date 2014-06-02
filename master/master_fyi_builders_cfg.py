@@ -5,18 +5,26 @@
 # Sets up all the builders we want the FYI buildbot master to run.
 
 
-from master_builders_cfg import f_a64mod, f_percommit, f_periodic, f_xsan
-from master_builders_cfg import HousekeepingBuilder, LINUX
+#pylint: disable=C0301
 
-# Schedulers
+
+from master_builders_cfg import HousekeepingBuilder, LINUX
 from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY
+
+from skia_master_scripts.arm64model_factory import \
+    Arm64ModelFactory as f_a64mod
 from skia_master_scripts.auto_roll_factory import AutoRollFactory as f_autoroll
-from skia_master_scripts.housekeeping_monitoring_factory \
-    import HouseKeepingMonitoringFactory as f_monitor
-from skia_master_scripts.moz2d_canary_factory \
-    import Moz2DCanaryFactory as f_moz2d
-from skia_master_scripts.recreate_skps_factory \
-    import RecreateSKPsFactory as f_skps
+from skia_master_scripts.housekeeping_monitoring_factory import \
+    HouseKeepingMonitoringFactory as f_monitor
+from skia_master_scripts.housekeeping_percommit_factory import \
+    HouseKeepingPerCommitFactory as f_percommit
+from skia_master_scripts.housekeeping_periodic_factory import \
+    HouseKeepingPeriodicFactory as f_periodic
+from skia_master_scripts.moz2d_canary_factory import \
+    Moz2DCanaryFactory as f_moz2d
+from skia_master_scripts.recreate_skps_factory import \
+    RecreateSKPsFactory as f_skps
+from skia_master_scripts.xsan_factory import XsanFactory as f_xsan
 
 import master_builders_cfg
 

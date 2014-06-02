@@ -4,21 +4,14 @@
 
 # Sets up all the builders we want this buildbot master to run.
 
+
 #pylint: disable=C0301
 
-from skia_master_scripts.android_factory import AndroidFactory as f_android
-from skia_master_scripts.arm64model_factory \
-    import Arm64ModelFactory as f_a64mod
+
 from skia_master_scripts.canary_factory import CanaryFactory as f_canary
 from skia_master_scripts.chromeos_factory import ChromeOSFactory as f_cros
 from skia_master_scripts.drt_canary_factory import DRTCanaryFactory as f_drt
 from skia_master_scripts.factory import SkiaFactory as f_factory
-from skia_master_scripts.housekeeping_percommit_factory \
-    import HouseKeepingPerCommitFactory as f_percommit
-from skia_master_scripts.housekeeping_periodic_factory \
-    import HouseKeepingPeriodicFactory as f_periodic
-from skia_master_scripts.ios_factory import iOSFactory as f_ios
-from skia_master_scripts.nacl_factory import NaClFactory as f_nacl
 from skia_master_scripts import utils
 from skia_master_scripts.xsan_factory import XsanFactory as f_xsan
 from skia_master_scripts.factory import TARGET_PLATFORM_LINUX as LINUX

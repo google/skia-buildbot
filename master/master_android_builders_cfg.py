@@ -5,7 +5,11 @@
 # Sets up all the builders we want the FYI buildbot master to run.
 
 
-from master_builders_cfg import f_android, LINUX, S_PERCOMMIT
+#pylint: disable=C0301
+
+
+from skia_master_scripts.android_factory import AndroidFactory as f_android
+from master_builders_cfg import LINUX, S_PERCOMMIT
 
 import master_builders_cfg
 
