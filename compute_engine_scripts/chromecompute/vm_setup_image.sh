@@ -74,7 +74,7 @@ echo
 
 echo "Checkout depot_tools"
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
-  "svn checkout http://src.chromium.org/svn/trunk/tools/depot_tools;" \
+  "git clone https://chromium.googlesource.com/chromium/tools/depot_tools" \
   || FAILED="$FAILED CheckoutDepotTools"
 echo
 
