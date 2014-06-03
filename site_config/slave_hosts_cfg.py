@@ -185,8 +185,6 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu13-002': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu13-001', '1'),
-      ('skiabot-shuttle-ubuntu13-002', '2'),
     ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -1251,7 +1249,10 @@ _slave_host_dicts = {
   },
 
   'skia-vm-079': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-sanitizer-000-A', '1'),
+      ('skiabot-linux-sanitizer-000-T', '2'),
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1262,7 +1263,10 @@ _slave_host_dicts = {
   },
 
   'skia-vm-080': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-sanitizer-001-A', '1'),
+      ('skiabot-linux-sanitizer-001-T', '2'),
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1273,7 +1277,10 @@ _slave_host_dicts = {
   },
 
   'skia-vm-081': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-sanitizer-002-A', '1'),
+      ('skiabot-linux-sanitizer-002-T', '2'),
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
@@ -1284,7 +1291,10 @@ _slave_host_dicts = {
   },
 
   'skia-vm-082': {
-    'slaves': [],
+    'slaves': [
+      ('skiabot-linux-sanitizer-003-A', '1'),
+      ('skiabot-linux-sanitizer-003-T', '2'),
+    ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
