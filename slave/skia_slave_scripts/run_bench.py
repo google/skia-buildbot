@@ -10,6 +10,7 @@ import sys
 
 from build_step import BuildStep
 from utils import gclient_utils
+from utils import misc
 
 GIT = 'git.bat' if os.name == 'nt' else 'git'
 GIT_SVN_ID_MATCH_STR = r'git-svn-id: http://skia.googlecode.com/svn/trunk@(\d+)'
