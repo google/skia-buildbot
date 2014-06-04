@@ -438,7 +438,7 @@ def read_timestamp_file(timestamp_file_name, gs_base, gs_relative_dir):
 def write_timestamp_file(timestamp_file_name, timestamp_value, gs_base=None,
                          gs_relative_dir=None, gs_acl=None, local_dir=None):
   """Adds a timestamp file to a Google Storage and/or a Local Directory.
-  
+
   If gs_base, gs_relative_dir and gs_acl are provided then the timestamp is
   written to Google Storage. If local_dir is provided then the timestamp is
   written to a local directory.
