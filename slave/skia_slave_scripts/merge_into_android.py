@@ -12,7 +12,7 @@ import sys
 
 from build_step import BuildStep, BuildStepFailure, BuildStepWarning
 import skia_vars
-from sync_android import ANDROID_CHECKOUT_PATH, REPO, Authenticate
+from sync_android import ANDROID_CHECKOUT_PATH, REPO, GitAuthenticate
 from utils.git_utils import GIT
 from utils import git_utils
 from utils import misc
@@ -161,21 +161,20 @@ class MergeIntoAndroid(BuildStep):
 
         # For some reason, sometimes the bot's authentication from sync_android
         # does not carry over to this step. Authenticate again.
-        Authenticate()
+        with GitAuthenticate():
+          # Now push to master-skia branch
+          try:
+            shell_utils.run([GIT, 'push', MASTER_SKIA_URL, MASTER_SKIA_REFS])
+          except shell_utils.CommandFailedException:
+            # It's possible someone submitted in between our sync and push or
+            # push failed for some other reason. Abandon and let the next
+            # attempt try again.
+            RepoAbandon(LOCAL_BRANCH_NAME)
+            raise BuildStepFailure('git push failed!')
 
-        # Now push to master-skia branch
-        try:
-          shell_utils.run([GIT, 'push', MASTER_SKIA_URL, MASTER_SKIA_REFS])
-        except shell_utils.CommandFailedException:
-          # It's possible someone submitted in between our sync and push or
-          # push failed for some other reason. Abandon and let the next attempt
-          # try again.
-          RepoAbandon(LOCAL_BRANCH_NAME)
-          raise BuildStepFailure('git push failed!')
-
-        # Our branch is no longer needed. Remove it.
-        shell_utils.run([REPO, 'sync', '-j32', '.'])
-        shell_utils.run([REPO, 'prune', '.'])
+          # Our branch is no longer needed. Remove it.
+          shell_utils.run([REPO, 'sync', '-j32', '.'])
+          shell_utils.run([REPO, 'prune', '.'])
 
 
 if '__main__' == __name__:
