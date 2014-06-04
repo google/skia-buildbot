@@ -1,0 +1,15 @@
+This directory contains scripts to automate the creation, setup and deletion of
+Skia's GCE Perf Server machine.
+
+
+Directory Contents
+==================
+
+- vm_create_server.sh
+Creates a perf server instance in the specified $ZONE_TAG.
+
+- vm_setup_server.sh
+Sets up the perf server with required packages and directories.
+
+- vm_delete_server.sh
+Deletes the perf server instance in the specified $ZONE_TAG.
