@@ -11,14 +11,13 @@
 from master_builders_cfg import CLANG, CompileBuilder
 from master_builders_cfg import GYP_ANGLE, GYP_DW, GYP_EXC, GYP_IOS
 from master_builders_cfg import GYP_WIN7, GYP_WIN8, LINUX, MAC, NO_GPU
-from master_builders_cfg import PDFVIEWER, S_PERCOMMIT, VALGRIND, WIN32
+from master_builders_cfg import PDFVIEWER, S_PERCOMMIT, WIN32
 
 from skia_master_scripts.android_factory import AndroidFactory as f_android
 from skia_master_scripts.chromeos_factory import ChromeOSFactory as f_cros
 from skia_master_scripts.factory import SkiaFactory as f_factory
 from skia_master_scripts.ios_factory import iOSFactory as f_ios
 from skia_master_scripts.nacl_factory import NaClFactory as f_nacl
-from skia_master_scripts.xsan_factory import XsanFactory as f_xsan
 
 import master_builders_cfg
 
@@ -44,12 +43,9 @@ def setup_compile_builders(helper, do_upload_render_results,
       ('Ubuntu13.10', 'GCC4.8', 'Release', 'x86',    None,          None,      True,  f_factory, LINUX,  S_PERCOMMIT, {}),
       ('Ubuntu13.10', 'GCC4.8', 'Debug',   'x86_64', None,          None,      True,  f_factory, LINUX,  S_PERCOMMIT, {}),
       ('Ubuntu13.10', 'GCC4.8', 'Release', 'x86_64', None,          None,      True,  f_factory, LINUX,  S_PERCOMMIT, {}),
-      ('Ubuntu13.10', 'GCC4.8', 'Release', 'x86_64', 'Valgrind',    VALGRIND,  False, f_factory, LINUX,  S_PERCOMMIT, {'flavor': 'valgrind'}),
       ('Ubuntu13.10', 'GCC4.8', 'Debug',   'x86_64', 'NoGPU',       NO_GPU,    True,  f_factory, LINUX,  S_PERCOMMIT, {}),
       ('Ubuntu13.10', 'GCC4.8', 'Release', 'x86_64', 'NoGPU',       NO_GPU,    True,  f_factory, LINUX,  S_PERCOMMIT, {}),
       ('Ubuntu13.10', 'Clang',  'Debug',   'x86_64', None,          CLANG,     True,  f_factory, LINUX,  S_PERCOMMIT, {'environment_variables': {'CC': '/usr/bin/clang', 'CXX': '/usr/bin/clang++'}}),
-      ('Ubuntu13.10', 'Clang',  'Debug',   'x86_64', 'ASAN',        None,      False, f_xsan,    LINUX,  S_PERCOMMIT, {'sanitizer': 'address'}),
-      ('Ubuntu13.10', 'Clang',  'Debug',   'x86_64', 'TSAN',        None,      False, f_xsan,    LINUX,  S_PERCOMMIT, {'sanitizer': 'thread'}),
       ('Ubuntu13.10', 'GCC4.8', 'Debug',   'NaCl',   None,          None,      True,  f_nacl,    LINUX,  S_PERCOMMIT, {}),
       ('Ubuntu13.10', 'GCC4.8', 'Release', 'NaCl',   None,          None,      True,  f_nacl,    LINUX,  S_PERCOMMIT, {}),
       ('Mac10.7',     'Clang',  'Debug',   'x86',    None,          None,      True,  f_factory, MAC,    S_PERCOMMIT, {}),

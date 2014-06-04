@@ -9,7 +9,7 @@
 
 
 from master_builders_cfg import HousekeepingBuilder, LINUX
-from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY
+from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, NO_GPU
 
 from skia_master_scripts.arm64model_factory import \
     Arm64ModelFactory as f_a64mod
@@ -77,8 +77,8 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
   #    Role,   OS,         Model,         GPU,      Arch,      Config,   Extra Config,GYP_DEFS,Factory,  Target, Scheduler,   Extra Args
   #
   builder_specs = [
-      ('Test', 'Ubuntu13', 'ShuttleA',   'HD2000',  'x86_64',  'Debug',  'TSAN',      None,    f_xsan,   LINUX,  S_PERCOMMIT, {'sanitizer': 'thread'}),
-      ('Test', 'Linux',    'Bare',       'NoGPU',   'Arm8_64', 'Debug',  None,        None,    f_a64mod, LINUX,  S_PERCOMMIT, {'board': 'arm64emu', 'bench_pictures_cfg': 'no_gpu', 'default_timeout': 100000}),
+      ('Test', 'Ubuntu13.10', 'GCE',   'NoGPU',  'x86_64',  'Release', 'TSAN',      NO_GPU,  f_xsan,   LINUX,  S_PERCOMMIT, {'sanitizer': 'thread'}),
+      ('Test', 'Linux',       'Bare',  'NoGPU',  'Arm8_64', 'Debug',   None,        None,    f_a64mod, LINUX,  S_PERCOMMIT, {'board': 'arm64emu', 'bench_pictures_cfg': 'no_gpu', 'default_timeout': 100000}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(
