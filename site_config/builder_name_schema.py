@@ -120,3 +120,22 @@ def _WithoutSuffix(string, suffix):
     raise ValueError('_WithoutSuffix: string %s does not end with suffix %s' % (
         string, suffix))
   return string[:-len(suffix)]
+
+
+def DictForBuilderName(builder_name):
+  """Makes a dictionary containing details about the builder from its name."""
+  split_name = builder_name.split(BUILDER_NAME_SEP)
+  result = {}
+  if split_name[0] in BUILDER_NAME_SCHEMA.keys():
+    key_list = BUILDER_NAME_SCHEMA[split_name[0]]
+    for idx, key in enumerate(key_list):
+      result[key] = split_name[idx+1]
+    if len(split_name) > len(key_list):
+      result['extraConfig'] = BUILDER_NAME_SEP.join(
+          split_name[len(split_name):])
+  else:
+    raise ValueError("DictForBuilderName: Unable to determine buildbot type "
+        "from builder name; no builder data emitted")
+  return result
+
+

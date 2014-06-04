@@ -5,10 +5,12 @@
 
 """ Run the Skia bench_pictures executable. """
 
-from build_step import BuildStep
-from run_bench import BenchArgs
 import os
 import sys
+
+from build_step import BuildStep
+from run_bench import BenchArgs
+from utils import gclient_utils
 
 
 BENCH_REPEAT_COUNT = 10
@@ -28,10 +30,17 @@ class BenchPictures(BuildStep):
         filename.replace('-', '').replace(':', '-'))
     return full_path
 
+  def _BuildJSONDataFile(self, args):
+    git_timestamp = gclient_utils.GetGitRepoPOSIXTimestamp()
+    return '%s_%s.json' % (
+        self._BuildDataFile(args),
+        git_timestamp)
+
   def _DoBenchPictures(self, args):
     arguments = ['-r', self._device_dirs.SKPDir()] + args
     if self._perf_data_dir:
       arguments.extend(BenchArgs(data_file=self._BuildDataFile(args)))
+      arguments.extend(['--jsonLog', self._BuildJSONDataFile(args)])
       # For bench_pictures we use the --repeat and --logPerIter flags so that we
       # can compensate for noisy performance.
       arguments.extend(['--repeat', str(BENCH_REPEAT_COUNT), '--logPerIter'])

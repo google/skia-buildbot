@@ -169,6 +169,20 @@ def GetGitRepoPOSIXTimestamp():
   return int(raw_timestamp)
 
 
+# than extract the number for the current repo
+def GetGitNumber(commit_hash):
+  """Returns the GIT number for the current Skia commit as in int."""
+  try:
+    git_show_command = [GIT, 'number']
+    git_number = shell_utils.run(
+        git_show_command, log_in_real_time=False, echo=False,
+        print_timestamps=False)
+    return int(git_number)
+  except shell_utils.CommandFailedException:
+    print 'GetGitNumber: Unable to get git number, returning -1'
+    return -1
+
+
 def Revert():
   shell_utils.run([GIT, 'clean', '-f', '-d'])
   shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
