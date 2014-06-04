@@ -61,6 +61,8 @@ if [ "$TARGET_PLATFORM" == "Android" ]; then
     gsutil cp -a public-read /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/logs/${RUN_ID}.log
     exit 1
   fi
+  # Make sure adb shell is running as root.
+  adb root
 fi
 
 
@@ -142,6 +144,8 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
       fi
       echo "This is run number $current_run"
       if [ "$TARGET_PLATFORM" == "Android" ]; then
+        # Enable CPU and GPU throttling.
+        adb shell "stop mpdecision; echo 1 > /sys/devices/system/cpu/cpu1/online; echo 1 > /sys/devices/system/cpu/cpu2/online; echo 1 > /sys/devices/system/cpu/cpu3/online; echo 1190400 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq; echo 1190400 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq; echo 1190400 > /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq; echo 1190400 > /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq; echo 200000000 > /sys/class/kgsl/kgsl-3d0/max_gpuclk"
         echo "== Running eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
         eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
       else
