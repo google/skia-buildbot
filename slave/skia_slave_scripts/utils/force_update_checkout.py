@@ -18,8 +18,8 @@ sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'site_config'))
 sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot', 'scripts'))
 
-from git_utils import GIT
 import gclient_utils
+import git_utils
 import shell_utils
 import skia_vars
 
@@ -33,11 +33,7 @@ def force_update():
     # Be sure that we sync to the most recent commit.
     buildbot_revision = None
     try:
-      # TODO(borenet): Make this a function in git_utils. Something like,
-      # "GetRemoteMasterHash"
-      output = shell_utils.run([GIT, 'ls-remote',
-                                BUILDBOT_GIT_URL, '--verify',
-                                'refs/heads/master'])
+      output = git_utils.GetRemoteMasterHash(BUILDBOT_GIT_URL)
       if output:
         buildbot_revision = shlex.split(output)[0]
     except shell_utils.CommandFailedException:

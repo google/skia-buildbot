@@ -40,3 +40,7 @@ def MergeAbort():
 def ShortHash(commit):
   """Return short hash of the specified commit."""
   return shell_utils.run([GIT, 'show', commit, '--format=%h', '-s']).rstrip()
+
+def GetRemoteMasterHash(git_url):
+  return shell_utils.run([GIT, 'ls-remote', git_url, '--verify',
+                          'refs/heads/master'])
