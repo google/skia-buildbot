@@ -52,8 +52,6 @@ REQUIRED_FILES_FOR_SLAVES=(~/.autogen_svn_username \
                            ~/.skia_svn_password \
                            ~/.boto)
 
-REQUIRED_FILES_FOR_BUGDROID=(~/.bugdroid_password)
-
 REQUIRED_FILES_FOR_REBASELINESERVER=(files-to-copy/kick-rebaseline-server.sh \
                                      files-to-copy/rebaseline-server-crontab)
 

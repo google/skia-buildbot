@@ -1,5 +1,0 @@
-The files in this directory have been copied over from
-http://src.chromium.org/svn/trunk/tools/bugdroid/ and modified for Skia needs.
-
-This directory will be deleted once Chromium Infrastructure hosts Bugdroid
-on a ganeti instance and includes Skia as a supported project.

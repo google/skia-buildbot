@@ -24,9 +24,6 @@ Deletes the master instances from the specified $ZONE_TAG.
 - vm_delete_slaves.sh
 Deletes the slaves instances from the specified $ZONE_TAG.
 
-- vm_setup_bugdroid.sh
-Takes in the hostname of a GCE instance and sets up bugdroid on that instance.
-
 - vm_setup_image.sh
 Installs necessary packages on a vanilla GCE instance. This script setups up the
 base image that is used by all Skia GCE instances.
@@ -70,7 +67,6 @@ The scripts should be executed in this order:
 * ZONE_TAG=$NEW_ZONE ./vm_setup_slaves.sh
 * ZONE_TAG=$NEW_ZONE ./vm_copy_buildbot_history.sh  (Takes about 15-30 mins)
 * ZONE_TAG=$OLD_ZONE ./vm_delete_masters.sh  (Do NOT delete the persistent boot disk when prompted to)
-* Run vm_setup_bugdroid.sh to setup bugdroid on a particular GCE instance
 * ZONE_TAG=$OLD_ZONE ./vm_delete_rebaseline_servers.sh  (DO delete the persistent boot disk when prompted to)
 * ZONE_TAG=$NEW_ZONE ./vm_create_rebaseline_servers.sh
 * ZONE_TAG=$NEW_ZONE ./vm_setup_rebaseline_servers.sh
