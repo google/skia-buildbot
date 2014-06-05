@@ -56,8 +56,18 @@ class MergeIntoAndroid(BuildStep):
     with misc.ChDir(EXTERNAL_SKIA):
       # Check to see whether there is an upstream yet.
       if not UPSTREAM_REMOTE_NAME in shell_utils.run([GIT, 'remote', 'show']):
-        shell_utils.run([GIT, 'remote', 'add', UPSTREAM_REMOTE_NAME,
-                         SKIA_REPO_URL])
+        try:
+          shell_utils.run([GIT, 'remote', 'add', UPSTREAM_REMOTE_NAME,
+                           SKIA_REPO_URL])
+        except shell_utils.CommandFailedException as e:
+          if 'remote %s already exists' % UPSTREAM_REMOTE_NAME in e.output:
+            # Accept this error. The upstream remote name should have been in
+            # the output of git remote show, which would have made us skip this
+            # redundant command anyway.
+            print ('%s was already added. Why did it not show in git remote'
+                   ' show?' % UPSTREAM_REMOTE_NAME)
+          else:
+            raise e
 
       # Update the upstream remote.
       shell_utils.run([GIT, 'fetch', UPSTREAM_REMOTE_NAME])
