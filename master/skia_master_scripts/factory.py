@@ -21,6 +21,7 @@ import config_private
 import ntpath
 import os
 import posixpath
+import skia_vars
 import utils
 
 
@@ -531,6 +532,10 @@ class SkiaFactory(BuildFactory):
     """Compare the actually-generated GM images to the checked-in baselines."""
     self.AddSlaveScript(script='compare_gms.py',
                         description='CompareGMs',
+                        get_props_from_stdout={
+                            'latest_gm_failures_url':
+                            '%s([^\n]*)\n' % skia_vars.GetGlobalVariable(
+                                'latest_gm_failures_preamble')},
                         is_rebaseline_step=True)
 
   def CompareRenderedSKPs(self):

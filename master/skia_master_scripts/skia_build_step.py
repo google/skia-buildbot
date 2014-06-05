@@ -56,23 +56,33 @@ class SkiaBuildStep(retcode_command.ReturnCodeCommand):
   def commandComplete(self, cmd):
     """ Override of BuildStep's commandComplete method which allows us to parse
     build properties from the output of this step. """
-    if (cmd.rc not in (0, retcode_command.ReturnCodeCommand.RETCODE_WARNINGS)
-        and self._exception_on_failure):
-      raise Exception('Command marked exception_on_failure failed.')
-    if self._get_props_from_stdout and cmd.rc == 0:
+
+    # We make a best effort to parse the properties out of stdout, whether
+    # the command succeeded or failed.  If the command succeeded, we
+    # definitely expect the property to be found in stdout--if not, raise
+    # an exception.
+    if self._get_props_from_stdout:
       log = cmd.logs['stdio']
       stdout = ''.join(log.getChunks([STDOUT], onlyText=True))
       self._changed_props = {}
       for prop, regex in self._get_props_from_stdout.iteritems():
         matches = re.search(regex, stdout)
         if not matches:
-          raise Exception('Unable to parse %s from stdout.' % prop)
+          if cmd.rc == 0:
+            raise Exception('Unable to parse %s from stdout.' % prop)
+          continue
         groups = matches.groups()
         if len(groups) != 1:
-          raise Exception('Multiple matches for "%s"' % regex)
+          if cmd.rc == 0:
+            raise Exception('Multiple matches for "%s"' % regex)
+          continue
         prop_value = groups[0]
         self.setProperty(prop, prop_value, ''.join(self.description))
         self._changed_props[prop] = prop_value
+
+    if (cmd.rc not in (0, retcode_command.ReturnCodeCommand.RETCODE_WARNINGS)
+        and self._exception_on_failure):
+      raise Exception('Command marked exception_on_failure failed.')
     retcode_command.ReturnCodeCommand.commandComplete(self, cmd)
 
   def getText(self, cmd, results):

@@ -1245,7 +1245,11 @@
                 'env': {},
                 'exception_on_failure': <Object>,
                 'flunkOnFailure': <Object>,
-                'get_props_from_stdout': None,
+                'get_props_from_stdout': {
+                    'latest_gm_failures_url': 'View latest GM failures for this builder at: ([^
+]*)
+',
+                },
                 'haltOnFailure': <Object>,
                 'hideStepIf': <Object>,
                 'is_rebaseline_step': <Object>,

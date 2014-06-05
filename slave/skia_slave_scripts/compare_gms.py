@@ -12,6 +12,12 @@ import sys
 from build_step import BuildStep, BuildStepWarning
 from utils import misc
 import run_gm
+import skia_vars
+
+LIVE_REBASELINE_SERVER_BASEURL = (
+    'http://skia-tree-status.appspot.com/redirect/rebaseline-server/'
+    'static/view.html#/view.html')
+
 
 class CompareGMs(BuildStep):
   def _Run(self):
@@ -24,7 +30,12 @@ class CompareGMs(BuildStep):
     # This import must happen after BuildStep.__init__ because it requires that
     # CWD is in PYTHONPATH, and BuildStep.__init__ may change the CWD.
     from gm import display_json_results
-    if not display_json_results.Display(json_summary_path):
+    success = display_json_results.Display(json_summary_path)
+    print ('%s<a href="%s?resultsToLoad=/results/failures&builder=%s">'
+           'link</a>' % (
+               skia_vars.GetGlobalVariable('latest_gm_failures_preamble'),
+               LIVE_REBASELINE_SERVER_BASEURL, self._builder_name))
+    if not success:
       if self._builder_name in may_fail_with_warning:
         raise BuildStepWarning('Expectations mismatch in %s!' %
                                json_summary_path)

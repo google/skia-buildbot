@@ -196,6 +196,11 @@
     "type": "string",
     "description": "Google Cloud Storage bucket we use for most things."
   },
+  "latest_gm_failures_preamble": {
+    "value": "View latest GM failures for this builder at: ",
+    "type": "string",
+    "description": "Wording that leads up to URL pointing at latest GM results for this builder."
+  },
   "master_branch_name": {
     "value": "master",
     "type": "string",
