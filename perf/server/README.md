@@ -11,6 +11,17 @@ Please refer to compute_engine_scripts/perfserver/README under the repo for
 instructions on creating and destroying the instance. The rest of this document
 is what to do once the instance is created.
 
+  gcutil --project=google.com:skia-buildbots addinstance skia-perf-b \
+    --zone=us-central2-b --external_ip_address=108.170.220.208 \
+    --service_account=default \
+    --service_account_scopes="https://www.googleapis.com/auth/devstorage.full_control" \
+    --network=default --machine_type=n1-standard-1 --image=backports-debian-7-wheezy-v20140605 \
+    --persistent_boot_disk
+
+SSH into the instance
+
+  gcutil --project=google.com:skia-buildbots ssh --ssh_user=default skia-perf-b
+
 Do the first time
 =================
 
