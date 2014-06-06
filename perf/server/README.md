@@ -41,6 +41,10 @@ then run the following so it applies:
 
     sudo /etc/init.d/monit restart
 
+Then restart squid to pick up the new config file:
+
+    sudo /etc/init.d/squid3 restart
+
 This means that monit will poll every two seconds that our application is up
 and running.
 
