@@ -7,7 +7,7 @@
 
 # build_step must be imported first, since it does some tweaking of PYTHONPATH.
 from build_step import BuildStep
-from utils.git_utils import GIT
+from utils import git_utils
 from utils import shell_utils
 from utils import sync_skia_in_chrome
 import shlex
@@ -27,9 +27,7 @@ class ChromeCanaryUpdate(BuildStep):
         **kwargs)
 
   def _Run(self):
-    chrome_rev = shlex.split(shell_utils.run(
-        [GIT, 'ls-remote', CHROMIUM_REPO,
-         'refs/heads/master']))[0]
+    chrome_rev = shlex.split(git_utils.GetRemoteMasterHash(CHROMIUM_REPO))[0]
 
     override_skia_checkout = True
     if 'AutoRoll' in self._builder_name:

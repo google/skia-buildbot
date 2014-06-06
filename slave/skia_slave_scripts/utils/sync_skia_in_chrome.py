@@ -11,6 +11,7 @@ from optparse import OptionParser
 
 from git_utils import GIT
 import gclient_utils
+import git_utils
 import os
 import re
 import shell_utils
@@ -62,8 +63,7 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   """
   # Figure out what revision of Skia we should use.
   if not skia_revision:
-    output = shell_utils.run([GIT, 'ls-remote', SKIA_GIT_URL, '--verify',
-                              'refs/heads/master'])
+    output = git_utils.GetRemoteMasterHash(SKIA_GIT_URL)
     if output:
       skia_revision = shlex.split(output)[0]
     if not skia_revision:
