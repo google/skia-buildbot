@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# Don't execute this script directly, instead it is copied into the perf
+# user's directory and executed as the user perf by the perf_setup.sh
+# script.
+#
+# See the README file for detailed installation instructions.
+cd
+pwd
+
+# Install Go
+if [ -d go ]; then
+  echo Go already installed.
+else
+  wget https://go.googlecode.com/files/go1.2.1.linux-amd64.tar.gz
+  tar -xzf go1.2.1.linux-amd64.tar.gz
+fi
+
+
+if [-d buildbot]; then
+  (cd buildbot && git pull);
+else
+  git clone https://skia.googlesource.com/buildbot
+fi
+
+mkdir=$HOME/golib
+export GOROOT=$HOME/go
+export GOPATH=$HOME/golib
+export PATH=$PATH:$GOROOT/bin
+
+cd ~/buildbot/perf/server
+go get -d
+go build perf.go

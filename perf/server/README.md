@@ -1,9 +1,42 @@
 SkiaPerf Server
 ===============
 
-Reads Skia performance data from databases and serves interactive dashboards for easy exploration and annotations.
+Reads Skia performance data from databases and serves interactive dashboards
+for easy exploration and annotations.
 
 Server Setup
 ============
 
-Please refer to compute_engine_scripts/perfserver/README under the repo.
+Please refer to compute_engine_scripts/perfserver/README under the repo for
+instructions on creating and destroying the instance. The rest of this document
+is what to do once the instance is created.
+
+Do the first time
+=================
+
+The following things only need to be done once.
+
+1. SSH into the server as default.
+2. sudo apt-get install git
+3. git clone https://skia.googlesource.com/buildbot
+4. cd ~/buildbot/perf/server/setup
+5. ./perf_setup.sh
+
+Change /etc/monit/monitrc to:
+
+    set daemon 2
+
+then run the following so it applies:
+
+    sudo /etc/init.d/monit restart
+
+This means that monit will poll every two seconds that our application is up
+and running.
+
+To update the code
+==================
+
+1. SSH into the server as default.
+2. cd ~/buildbot/perf/server/setup
+3. git pull
+4. ./perf_setup.sh

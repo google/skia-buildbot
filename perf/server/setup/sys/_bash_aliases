@@ -1,0 +1,5 @@
+# A GCE .bashrc file will import ~/.bash_aliases if it exists. This let's us
+# add to the # environment variables without completely overwriting the .bashrc.
+export GOROOT=$HOME/go
+export GOPATH=$HOME/golib
+export PATH=$PATH:$GOROOT/bin

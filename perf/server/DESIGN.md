@@ -16,7 +16,9 @@ Perf Stats Database
 Annotations Database
 --------------------
 
-A Cloud SQL (a cloud version of MySQL) database is used to keep information on Skia git revisions and their corresponding annotations. The database will be updated when users add/edit/delete annotations via the dashboard UI.
+A Cloud SQL (a cloud version of MySQL) database is used to keep information on
+Skia git revisions and their corresponding annotations. The database will be
+updated when users add/edit/delete annotations via the dashboard UI.
 
 All passwords for MySQL are stored in valentine (search "skia perf").
 
@@ -35,35 +37,53 @@ Initial setup of the database, the users, and the tables:
 
     // Table for storing annotations.
     CREATE TABLE notes (
-      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      notes VARCHAR(200),
-      UNIQUE INDEX (id));
+      id     INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      notes  VARCHAR(200),
+      UNIQUE INDEX (id)
+    );
 
     // Table for storing git revision information.
     CREATE TABLE githash (
-      ts INT NOT NULL PRIMARY KEY,
-      gitnumber INT NOT NULL,
-      githash VARCHAR(40) NOT NULL,
-      author VARCHAR(40) NOT NULL,
-      message VARCHAR(200) NOT NULL,
-      UNIQUE INDEX (ts));
+      ts        INT           NOT NULL PRIMARY KEY,
+      gitnumber INT           NOT NULL,
+      githash   VARCHAR(40)   NOT NULL,
+      author    VARCHAR(40)   NOT NULL,
+      message   VARCHAR(200)  NOT NULL,
+      UNIQUE INDEX (ts)
+    );
 
     // Table for mapping revisions and annotations. This support many-to-many
     // mapping.
     CREATE TABLE githashnotes (
-      ts INT NOT NULL,
-      id INT NOT NULL,
+      ts INT   NOT NULL,
+      id INT   NOT NULL,
+
       FOREIGN KEY (ts) REFERENCES githash(ts),
       FOREIGN KEY (id) REFERENCES notes(id),
-      UNIQUE INDEX (ts, id));
+      UNIQUE INDEX (ts, id)
+    );
 
-Password for the database will be stored in the metadata instance. To see the current password stored in metadata and the fingerprint:
+Password for the database will be stored in the metadata instance. To see the
+current password stored in metadata and the fingerprint:
 
     gcutil --project=google.com:skia-buildbots getinstance [skia-perf GCE instance]
 
-To set the mysql password that webtry is to use:
+To set the mysql password that perf is to use:
 
     gcutil --project=google.com:skia-buildbots setinstancemetadata [skia-perf GCE instance] --metadata=readonly:[password-from-valentine] --metadata=readwrite:[password-from-valentine] --fingerprint=[the metadata fingerprint]
+
+
+Startup and config
+------------------
+The server is started and stopped via:
+
+    sudo /etc/init.d/perf [start|stop|restart]
+
+But sysv init only handles starting and stopping a program once, so we use
+Monit to monitor the application and restart it if it crashes. The config
+is in:
+
+    /etc/monit/conf.d/perf
 
 Installation
 ------------
