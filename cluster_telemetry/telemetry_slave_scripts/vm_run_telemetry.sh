@@ -111,7 +111,7 @@ fi
 # multiple pages in each pageset and could thus take longer than the default
 # timeout.
 if [ "$PAGESETS_TYPE" == "GPURasterSet" ]; then
-  TELEMETRY_TIMEOUT=900
+  TELEMETRY_TIMEOUT=1800
 else
   TELEMETRY_TIMEOUT=300
 fi
