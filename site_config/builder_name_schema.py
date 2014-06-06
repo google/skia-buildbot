@@ -128,6 +128,7 @@ def DictForBuilderName(builder_name):
   result = {}
   if split_name[0] in BUILDER_NAME_SCHEMA.keys():
     key_list = BUILDER_NAME_SCHEMA[split_name[0]]
+    result['role'] = split_name[0]
     for idx, key in enumerate(key_list):
       result[key] = split_name[idx+1]
     if len(split_name) > len(key_list):

@@ -180,7 +180,7 @@ class UploadBenchResults(BuildStep):
                 new_row['params']['skpSize'] = skp_size[1:]
                 # TODO: Grab tile/grid info if it exists.
                 # new_row['params']['tileConfig'] = tileSet['name']
-                new_row['params']['measurementType'] = 'measured'
+                new_row['params']['measurementType'] = measurement
                 key = '_'.join([
                     base_key,
                     bench['name'],
