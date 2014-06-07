@@ -10,14 +10,9 @@ from utils import shell_utils
 
 import os
 
-LLVM_PATH = '/home/chrome-bot/llvm-3.4/Release+Asserts/bin/'
-
 class XsanBuildStepUtils(DefaultBuildStepUtils):
   def Compile(self, target):
     # Run the xsan_build script.
-    os.environ['PATH'] = LLVM_PATH + ':' + os.environ['PATH']
-    shell_utils.run(['which', 'clang'])
-    shell_utils.run(['clang', '--version'])
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     cmd = [
@@ -32,5 +27,8 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
     shell_utils.run(cmd)
 
   def RunFlavoredCmd(self, app, args):
+    # New versions of ASAN run LSAN by default.  We're not yet clean for that.
+    os.environ['ASAN_OPTIONS'] = 'detect_leaks=0'
+    # Point TSAN at our suppressions file.
     os.environ['TSAN_OPTIONS'] = 'suppressions=tools/tsan.supp'
     return shell_utils.run([self._PathToBinary(app)] + args)
