@@ -44,6 +44,7 @@ import utils
 # The following users are allowed to run trybots even though they do not have
 # accounts in google.com or chromium.org
 TRYBOTS_REQUESTER_WHITELIST = [
+    'henrik.smiding@intel.com',
     'kkinnunen@nvidia.com',
     'ravimist@gmail.com'
 ]
@@ -308,7 +309,7 @@ def TryJobRietveldSubmitJobs(self, jobs):
             'TryJobRietveld rejecting job from %s' % job['requester'])
       ######################################################################
       ########################## Added by borenet ##########################
-      if not (job.get('baseurl') and 
+      if not (job.get('baseurl') and
               config_private.Master.Skia.project_name.lower() in
                   job['baseurl']):
         raise BadJobfile('TryJobRietveld rejecting job with unknown baseurl: %s'
