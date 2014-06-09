@@ -16,5 +16,5 @@ REQUIRED_FILES_FOR_SKIA_BOTS=(~/.autogen_svn_username \
                               ~/.skia_svn_password \
                               ~/.boto)
 
-GCOMPUTE_CMD="$GCUTIL --cluster=prod --project=$PROJECT_ID"
+GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
 GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD --zone=$ZONE ssh --ssh_user=$PROJECT_USER"
