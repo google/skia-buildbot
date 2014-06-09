@@ -38,7 +38,9 @@ Initial setup of the database, the users, and the tables:
     // Table for storing annotations.
     CREATE TABLE notes (
       id     INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      notes  VARCHAR(200),
+      type   TINYINT,
+      author VARCHAR(40),
+      notes  VARCHAR(200)  NOT NULL,
       UNIQUE INDEX (id)
     );
 
@@ -62,6 +64,26 @@ Initial setup of the database, the users, and the tables:
       FOREIGN KEY (id) REFERENCES notes(id),
       UNIQUE INDEX (ts, id)
     );
+
+Common queries that the dashboard will use:
+
+    INSERT INTO notes (type, author, notes) VALUES (1, 'bsalomon', 'Alert!');
+
+    SELECT LAST_INSERT_ID();
+
+    INSERT INTO githashnotes (ts, id) VALUES (<githash_ts>, <last_insert_id>);
+
+The above set of commands will usually be used together to add new annotations
+and associate them with corresponding git commits. The commands below remove an
+annotation and its associations with any commit.
+
+    DELETE FROM githashnotes WHERE id = <id_to_delete>;
+
+    DELETE FROM notes WHERE id = <id_to_delete>;
+
+Since the data size is relatively small, the dashboard server can keep a copy of
+all recent commit info (e.g., for constructing a "blamelist"), annotations, and
+their many-to-many relationship for use in the context.
 
 Password for the database will be stored in the metadata instance. To see the
 current password stored in metadata and the fingerprint:
