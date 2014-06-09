@@ -1934,6 +1934,19 @@ _slave_host_dicts = {
 
 ############################### Windows Machines ###############################
 
+  'win7-intel-001': {
+    'slaves': [
+      ('skiabot-shuttle-win7-intel-special-001', '0'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': None,
+    'ip': '192.168.1.138',
+    'kvm_num': 'H',
+    'path_module': ntpath,
+    'path_to_buildbot': ['buildbot'],
+    'remote_access': False,
+  },
+
   'win7-intel-002': {
     'slaves': [
       ('skiabot-shuttle-win7-intel-bench', '0'),
@@ -1963,7 +1976,6 @@ _slave_host_dicts = {
   'win7-intel-004': {
     'slaves': [
       ('skiabot-shuttle-win7-intel-special-000', '0'),
-      ('skiabot-shuttle-win7-intel-special-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': None,
