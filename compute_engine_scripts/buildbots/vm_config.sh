@@ -46,6 +46,8 @@ REQUIRED_FILES_FOR_MASTER=(~/.code_review_password \
                            ~/.status_password \
                            ~/.skia_buildbots_password)
 
+# TODO(epoger): Once a master restart has picked up
+# https://codereview.chromium.org/320893002/ , we can delete the autogen lines.
 REQUIRED_FILES_FOR_SLAVES=(~/.autogen_svn_username \
                            ~/.autogen_svn_password \
                            ~/.skia_svn_username \

@@ -6,9 +6,7 @@
 """ Upload actual GM results to the cloud to allow for rebaselining."""
 
 from build_step import BuildStep
-from common import chromium_utils
-from config_private import AUTOGEN_SVN_BASEURL
-from utils import gs_utils, merge_into_svn
+from utils import gs_utils
 import os
 import posixpath
 import re
@@ -19,17 +17,6 @@ import tempfile
 
 
 GS_SUMMARIES_BUCKET = 'gs://chromium-skia-gm-summaries'
-
-# Subdir within the skia-autogen repo to upload actual GM results into.
-# TODO(epoger): Maybe share this subdir name with build_step.py?
-GM_ACTUAL_SUBDIR = 'gm-actual'
-
-
-# Class we can set attributes on, to emulate optparse-parsed options.
-# TODO: Remove the need for this by passing parameters into MergeIntoSvn() some
-# other way
-class Options(object):
-  pass
 
 
 class UploadGMResults(BuildStep):
@@ -82,100 +69,38 @@ class UploadGMResults(BuildStep):
     finally:
       shutil.rmtree(temp_root)
 
-  def _SVNUploadDir(self, src_dir, dest_subdir, step_name):
-    """Upload the entire contents of src_dir to the skia-autogen SVN repo.
+  def _GSUploadJsonFiles(self, src_dir, step_name=None):
+    """Upload just the JSON files within src_dir to GS_SUMMARIES_BUCKET.
 
     Args:
       src_dir: (string) directory to upload contents of
-      dest_subdir: (string) subdir on the skia-autogen repo to upload into;
-          we will append a builder_name subdirectory within this one
-      step_name: (string) name of the step that is performing this action
-    """
-    # TODO(epoger): We should be able to get gm_merge_basedir from
-    # BuildStep._gm_merge_basedir, rather than generating it again here
-    # (and running the risk of a mismatch).
-    # Or perhaps stop using a particular directory for this purpose (since we
-    # clear it out before writing anything into it), and use a tempdir.
-    gm_merge_basedir = os.path.join(os.pardir, os.pardir, 'gm', 'merge')
-    gm_actual_svn_baseurl = '%s/%s' % (AUTOGEN_SVN_BASEURL, dest_subdir)
-    autogen_svn_username_file = self._args['autogen_svn_username_file']
-    autogen_svn_password_file = self._args['autogen_svn_password_file']
-
-    # Call MergeIntoSvn to actually perform the work.
-    # TODO(epoger): We should do something a bit more sophisticated, to address
-    # https://code.google.com/p/skia/issues/detail?id=720 ('UploadGMs step
-    # should be skipped when re-running old revisions of the buildbot')
-    merge_options = Options()
-    # pylint: disable=W0201
-    merge_options.commit_message = '%s of r%s on %s' % (
-        step_name, self._got_revision, self._args['builder_name'])
-    # pylint: disable=W0201
-    merge_options.dest_svn_url = '%s/%s' % (
-        gm_actual_svn_baseurl, self._args['builder_name'])
-    # pylint: disable=W0201
-    merge_options.merge_dir_path = os.path.join(gm_merge_basedir,
-                                                self._args['builder_name'])
-    # Clear out the merge_dir, in case it has old imagefiles in it from the
-    # bad old days when we were still uploading actual images to skia-autogen.
-    # This resolves https://code.google.com/p/skia/issues/detail?id=1362 ('some
-    # buildbots are still uploading image files to skia-autogen after r9709')
-    #
-    # We wouldn't want to do this for a mergedir like that used for the
-    # Doxygen docs, since that dir holds so many files.. but this mergedir
-    # only holds the actual-results.json file now.  So the overhead of
-    # downloading that file from the repo every time isn't a big deal.
-    chromium_utils.RemoveDirectory(merge_options.merge_dir_path)
-    # pylint: disable=W0201
-    merge_options.source_dir_path = src_dir
-    # pylint: disable=W0201
-    merge_options.svn_password_file = autogen_svn_password_file
-    # pylint: disable=W0201
-    merge_options.svn_username_file = autogen_svn_username_file
-    merge_into_svn.MergeIntoSvn(merge_options)
-
-  def _SVNUploadJsonFiles(self, src_dir, dest_subdir, step_name=None):
-    """Upload just the JSON files within src_dir to the skia-autogen SVN repo.
-
-    Args:
-      src_dir: (string) directory to upload contents of
-      dest_subdir: (string) subdir on the skia-autogen repo to upload into;
-          we will append a builder_name subdirectory within this one
       step_name: (string) name of the step that is performing this action;
           defaults to self.__class__.__name__
     """
     if not step_name:
       step_name = self.__class__.__name__
-    tempdir = tempfile.mkdtemp()
     all_files = sorted(os.listdir(src_dir))
     def filematcher(filename):
       return filename.endswith('.json')
     files_to_upload = filter(filematcher, all_files)
-    print 'Uploading %d JSON files to skia-autogen: %s...' % (
+    print 'Uploading %d JSON files to Google Storage: %s...' % (
         len(files_to_upload), files_to_upload)
     gs_dest_dir = posixpath.join(
         GS_SUMMARIES_BUCKET, self._args['builder_name'])
     for filename in files_to_upload:
       src_path = os.path.join(src_dir, filename)
-      # Copy the file into tempdir for eventual upload to skia-autogen
-      shutil.copy(src_path, tempdir)
-      # Also upload the file to Google Storage (eventually, we will ONLY upload
-      # it to Google Storage, but for now we still need it in skia-autogen)
       gs_dest_path = posixpath.join(gs_dest_dir, filename)
       gs_utils.upload_file(
           local_src_path=src_path, remote_dest_path=gs_dest_path,
           gs_acl='public-read', only_if_modified=True,
           http_header_lines=['Cache-Control:public,max-age=3600'])
-    self._SVNUploadDir(src_dir=tempdir, dest_subdir=dest_subdir,
-                       step_name=step_name)
-    shutil.rmtree(tempdir)
 
   def _Run(self):
     # TODO(epoger): Can't we get gm_output_dir from BuildStep._gm_actual_dir ?
     gm_output_dir = os.path.join(os.pardir, os.pardir, 'gm', 'actual',
                                  self._args['builder_name'])
     self._GSUploadAllImages(src_dir=gm_output_dir)
-    self._SVNUploadJsonFiles(src_dir=gm_output_dir,
-                             dest_subdir=GM_ACTUAL_SUBDIR)
+    self._GSUploadJsonFiles(src_dir=gm_output_dir)
 
 
 if '__main__' == __name__:

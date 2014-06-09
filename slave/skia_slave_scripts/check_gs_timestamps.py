@@ -16,7 +16,7 @@ PYTHONPATH=../../../../scripts:\
 ../../../../site_config \
 python ../../../../../../slave/skia_slave_scripts/check_gs_timestamps.py \
 --configuration "Debug" --target_platform "" --revision 0 \
---autogen_svn_baseurl "" --make_flags "" --test_args "" --gm_args "" \
+--make_flags "" --test_args "" --gm_args "" \
 --bench_args "" --num_cores 8 --perf_output_basedir "" \
 --builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
 --got_revision 0 --is_try False --dest_gsbase gs://rmistry

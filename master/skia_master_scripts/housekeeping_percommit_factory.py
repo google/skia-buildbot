@@ -53,9 +53,7 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
     if not self._do_patch_step:  # Do not run Doxygen steps if try job.
       self.AddSlaveScript(script='generate_doxygen.py',
                           description='GenerateDoxygen')
-      args = ['--autogen_svn_username_file', self._autogen_svn_username_file,
-              '--autogen_svn_password_file', self._autogen_svn_password_file]
-      self.AddSlaveScript(script='upload_doxygen.py', args=args,
+      self.AddSlaveScript(script='upload_doxygen.py',
                           description='UploadDoxygen',
                           is_upload_render_step=True)
 

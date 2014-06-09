@@ -47,26 +47,6 @@ class SkiaCommands(commands.FactoryCommands):
     self._local_slave_script_dir = self.PathJoin(
         '..', '..', '..', '..', '..', '..', 'slave', 'skia_slave_scripts')
 
-  def AddMergeIntoSvn(self, source_dir_path, dest_svn_url, merge_dir_path,
-                      svn_username_file, svn_password_file,
-                      commit_message=None, description='MergeIntoSvn',
-                      timeout=None, is_rebaseline_step=False):
-    """Adds a step that commits all files within a directory to a special SVN
-    repository."""
-    if not commit_message:
-      commit_message = 'automated svn commit of %s step' % description
-    args = ['--commit_message', commit_message,
-            '--dest_svn_url', dest_svn_url,
-            '--merge_dir_path', merge_dir_path,
-            '--source_dir_path', source_dir_path,
-            '--svn_password_file', svn_password_file,
-            '--svn_username_file', svn_username_file,
-            ]
-    self.AddSlaveScript(script=self.PathJoin('utils', 'merge_into_svn.py'),
-                        args=args, description=description, timeout=timeout,
-                        is_upload_step=True,
-                        is_rebaseline_step=is_rebaseline_step)
-
   # TODO(borenet): Can kwargs be used to simplify this function declaration?
   def AddSlaveScript(self, script, args, description, timeout=None,
                      halt_on_failure=False, is_upload_step=False,

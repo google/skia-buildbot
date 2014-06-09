@@ -15,7 +15,7 @@ PYTHONPATH=../../../../site_config:\
 python ../../../../../../slave/skia_slave_scripts/\
 upload_webpage_picture_bench_results.py \
 --configuration "" --target_platform "" --revision 0 \
---autogen_svn_baseurl "" --make_flags "" --test_args "" --gm_args "" \
+--make_flags "" --test_args "" --gm_args "" \
 --bench_args "" --num_cores 8 --perf_output_basedir "../../../../perfdata" \
 --builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
 --got_revision 0 --dest_gsbase "gs://rmistry"
@@ -46,4 +46,3 @@ class UploadWebpagePictureBenchResults(UploadBenchResults):
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UploadWebpagePictureBenchResults))
-

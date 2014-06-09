@@ -1,7 +1,5 @@
 {
     'TargetPath': <Object>,
-    '_autogen_svn_password_file': '.autogen_svn_password',
-    '_autogen_svn_username_file': '.autogen_svn_username',
     '_build_targets': [
         'chrome',
         'base_unittests',
@@ -31,8 +29,6 @@
     ],
     '_builder_name': 'Canary-Chrome-Win7-Ninja-x86-SharedLib_ToT-Trybot',
     '_common_args': [
-        '--autogen_svn_baseurl',
-        'https://skia-autogen.googlecode.com/svn',
         '--configuration',
         'Debug',
         '--deps_target_os',
@@ -97,8 +93,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\slave\skia_slave_scripts\update_scripts.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -153,8 +147,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\slave\skia_slave_scripts\chrome_canary_update.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -210,8 +202,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\..\..\slave\skia_slave_scripts\apply_patch.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -266,8 +256,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -326,8 +314,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -386,8 +372,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -446,8 +430,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -506,8 +488,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -566,8 +546,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -626,8 +604,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -686,8 +662,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -746,8 +720,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -806,8 +778,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -866,8 +836,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -926,8 +894,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -986,8 +952,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1046,8 +1010,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1106,8 +1068,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1166,8 +1126,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1226,8 +1184,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1286,8 +1242,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1346,8 +1300,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1406,8 +1358,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1466,8 +1416,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1526,8 +1474,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1586,8 +1532,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1646,8 +1590,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1706,8 +1648,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1766,8 +1706,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\clean.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1822,8 +1760,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1882,8 +1818,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -1942,8 +1876,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2002,8 +1934,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2062,8 +1992,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2122,8 +2050,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2182,8 +2108,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2242,8 +2166,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2302,8 +2224,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2362,8 +2282,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2422,8 +2340,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2482,8 +2398,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2542,8 +2456,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2602,8 +2514,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2662,8 +2572,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2722,8 +2630,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2782,8 +2688,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2842,8 +2746,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2902,8 +2804,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -2962,8 +2862,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3022,8 +2920,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3082,8 +2978,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3142,8 +3036,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3202,8 +3094,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3262,8 +3152,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3322,8 +3210,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\clean.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3378,8 +3264,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3438,8 +3322,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3498,8 +3380,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3558,8 +3438,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3618,8 +3496,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3678,8 +3554,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3738,8 +3612,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3798,8 +3670,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3858,8 +3728,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3918,8 +3786,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -3978,8 +3844,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4038,8 +3902,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4098,8 +3960,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4158,8 +4018,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4218,8 +4076,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4278,8 +4134,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4338,8 +4192,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4398,8 +4250,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4458,8 +4308,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4518,8 +4366,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4578,8 +4424,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4638,8 +4482,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4698,8 +4540,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4758,8 +4598,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4818,8 +4656,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\compile.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -4878,8 +4714,6 @@
                 'command': [
                     'python',
                     '..\..\..\..\..\..\slave\skia_slave_scripts\cc_unittests.py',
-                    '--autogen_svn_baseurl',
-                    'https://skia-autogen.googlecode.com/svn',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
