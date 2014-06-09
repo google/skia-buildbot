@@ -95,6 +95,7 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
           <option value="Android">Android (100 N5 devices)</option>
           <option value="Linux">Linux (100 Ubuntu12.04 machines)</option>
         </select>
+        <a id="target_platform_info"></a>
       </td>
     </tr>
     <tr>
@@ -148,6 +149,8 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
           form.pageset_type.value = 'Mobile10k';
           form.browser_args_1.value = '';
           form.browser_args_2.value = '';
+          document.getElementById('target_platform_info').innerHTML = (
+              'The N5 devices are CPU and GPU throttled. Details <a href="https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.n3ut8285ydby">here</a>.')
           break;
         case 'Linux':
           form.pageset_type.value = '10k';
@@ -156,6 +159,7 @@ Documentation for Chromium Tryserver and benchmarks is <a href='https://docs.goo
                                  + '--enable-impl-side-painting';
           form.browser_args_1.value = default_browser_args;
           form.browser_args_2.value = default_browser_args;
+          document.getElementById('target_platform_info').innerHTML = ''
           break;
       }
     }
