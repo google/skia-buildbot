@@ -167,22 +167,22 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
       shell_utils.run(command + [abs_filepath, remote_dest_filepath])
 
 
-def download_dir_contents(remote_src_dir, local_dest_dir):
+def download_dir_contents(remote_src_dir, local_dest_dir, multi=True):
   """Download contents of a Google Storage directory to local disk.
 
   params:
     remote_src_dir: GS URL (gs://BUCKETNAME/PATH)
     local_dest_dir: directory on local disk to write the contents into
+    multi: boolean; whether to perform the copy in multithreaded mode.
 
   The copy operates as a "merge with overwrite": any files in src_dir will be
   "overlaid" on top of the existing content in dest_dir.  Existing files with
   the same names will be overwritten.
-
-  Performs the copy in multithreaded mode, in case there are a large number of
-  files.
   """
   gsutil = slave_utils.GSUtilSetup()
-  command = [gsutil, '-m']
+  command = [gsutil]
+  if multi:
+    command.append('-m')
   command.extend(['cp', '-R', remote_src_dir, local_dest_dir])
   print 'Running command: %s' % command
   shell_utils.run(command)

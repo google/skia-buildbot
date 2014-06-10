@@ -41,7 +41,8 @@ class DownloadSKPs(BuildStep):
       print '\n\n========Downloading skp files from Google Storage========\n\n'
       gs_utils.download_dir_contents(
           remote_src_dir=posixpath.join(dest_gsbase, gs_relative_dir),
-          local_dest_dir=self._local_playback_dirs.PlaybackRootDir())
+          local_dest_dir=self._local_playback_dirs.PlaybackRootDir(),
+          multi=False)
       with open(actual_version_file, 'w') as f:
         f.write(expected_skp_version)
 
