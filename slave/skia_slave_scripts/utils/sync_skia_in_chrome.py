@@ -176,6 +176,10 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
                                     log_in_real_time=False).rstrip()
 
+  # Experiment to see if fastbuild is any faster for our Windows Chrome canary.
+  os.environ['GYP_DEFINES'] = os.environ['GYP_DEFINES'] + ' fastbuild=2'
+  print 'GYP_DEFINES=' + os.environ['GYP_DEFINES']
+
   # Run gclient hooks
   os.chdir(src_dir)
   shell_utils.run([GCLIENT, 'runhooks'])
