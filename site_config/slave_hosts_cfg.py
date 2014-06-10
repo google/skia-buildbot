@@ -1938,7 +1938,7 @@ _slave_host_dicts = {
 
   'win7-intel-001': {
     'slaves': [
-      ('skiabot-shuttle-win7-intel-special-001', '0'),
+      ('skiabot-win-canary-001', '0'),
     ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': None,
