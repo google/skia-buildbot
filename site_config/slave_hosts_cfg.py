@@ -22,6 +22,8 @@ from compute_engine_scripts.compute_engine_cfg import \
     PROJECT_ID as CHROMECOMPUTE_PROJECT
 
 
+CHROMECOMPUTE_BUILDBOT_PATH = ['storage', 'skia-repo', 'buildbot']
+
 # Indicates that this machine is not connected to a KVM switch.
 NO_KVM_NUM = '(not on KVM)'
 
@@ -245,7 +247,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -258,7 +260,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -271,7 +273,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -284,7 +286,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -297,7 +299,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -310,7 +312,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -323,7 +325,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -336,7 +338,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -349,7 +351,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -362,7 +364,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -375,7 +377,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -388,7 +390,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -401,7 +403,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -414,7 +416,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -427,7 +429,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -440,7 +442,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -453,7 +455,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -466,7 +468,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -479,7 +481,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -492,7 +494,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -505,7 +507,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -518,7 +520,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -531,7 +533,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -544,7 +546,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -557,7 +559,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -570,7 +572,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -583,7 +585,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -596,7 +598,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -609,7 +611,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -622,7 +624,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -635,7 +637,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -648,7 +650,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -661,7 +663,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -674,7 +676,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -687,7 +689,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -700,7 +702,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -713,7 +715,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -726,7 +728,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -739,7 +741,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -752,7 +754,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -765,7 +767,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -778,7 +780,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -791,7 +793,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -804,7 +806,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -817,7 +819,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -830,7 +832,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -843,7 +845,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -856,7 +858,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -869,7 +871,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -882,7 +884,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -895,7 +897,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -908,7 +910,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -921,7 +923,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -934,7 +936,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -947,7 +949,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -960,7 +962,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -973,7 +975,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -986,7 +988,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -999,7 +1001,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1012,7 +1014,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1025,7 +1027,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1038,7 +1040,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1051,7 +1053,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1064,7 +1066,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1077,7 +1079,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1090,7 +1092,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1103,7 +1105,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1116,7 +1118,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1129,7 +1131,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1142,7 +1144,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1155,7 +1157,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1168,7 +1170,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1181,7 +1183,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1194,7 +1196,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1207,7 +1209,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1220,7 +1222,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1233,7 +1235,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1246,7 +1248,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
   },
 
@@ -1260,7 +1262,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1274,7 +1276,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1288,7 +1290,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1313,7 +1315,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1324,7 +1326,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1335,7 +1337,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1346,7 +1348,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1357,7 +1359,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1368,7 +1370,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1379,7 +1381,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1390,7 +1392,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1401,7 +1403,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1412,7 +1414,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1423,7 +1425,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1434,7 +1436,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1445,7 +1447,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1456,7 +1458,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1467,7 +1469,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1478,7 +1480,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1489,7 +1491,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1500,7 +1502,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1511,7 +1513,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1522,7 +1524,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1533,7 +1535,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1544,7 +1546,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1555,7 +1557,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1566,7 +1568,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1577,7 +1579,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1588,7 +1590,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1599,7 +1601,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1610,7 +1612,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1621,7 +1623,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1632,7 +1634,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1643,7 +1645,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1654,7 +1656,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1665,7 +1667,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1676,7 +1678,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1687,7 +1689,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1698,7 +1700,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1709,7 +1711,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1720,7 +1722,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1731,7 +1733,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1742,7 +1744,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1753,7 +1755,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1764,7 +1766,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1775,7 +1777,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1786,7 +1788,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
@@ -1797,7 +1799,7 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
   },
 
