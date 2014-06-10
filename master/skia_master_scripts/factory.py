@@ -181,6 +181,8 @@ class SkiaFactory(BuildFactory):
       bench_args = []
 
     self._common_args = [
+        # See http://skbug.com/2663 before deleting the next line.
+        '--autogen_svn_baseurl', 'bogusValueToFixSkBug2663',
         '--configuration', configuration,
         '--deps_target_os', self._deps_target_os or 'None',
         '--builder_name', builder_name,

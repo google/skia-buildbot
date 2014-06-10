@@ -6,6 +6,8 @@
     ],
     '_builder_name': 'Test-Ubuntu13.10-GCE-NoGPU-x86_64-Release-TSAN',
     '_common_args': [
+        '--autogen_svn_baseurl',
+        'bogusValueToFixSkBug2663',
         '--configuration',
         'Release',
         '--deps_target_os',
@@ -72,6 +74,8 @@
                 'command': [
                     'python',
                     '../../../../../slave/skia_slave_scripts/update_scripts.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -128,6 +132,8 @@
                 'command': [
                     'python',
                     '../../../../../slave/skia_slave_scripts/update.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -186,6 +192,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -246,6 +254,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -306,6 +316,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/clean.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -362,6 +374,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -422,6 +436,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -482,6 +498,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/clean.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -538,6 +556,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -598,6 +618,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -658,6 +680,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/install.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -714,6 +738,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/run_tests.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -770,6 +796,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/run_dm.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',

@@ -3,6 +3,8 @@
     '_build_targets': [],
     '_builder_name': 'Housekeeper-Nightly-Monitoring',
     '_common_args': [
+        '--autogen_svn_baseurl',
+        'bogusValueToFixSkBug2663',
         '--configuration',
         'Debug',
         '--deps_target_os',
@@ -65,6 +67,8 @@
                 'command': [
                     'python',
                     '../../../../../slave/skia_slave_scripts/update_scripts.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -119,6 +123,8 @@
                 'command': [
                     'python',
                     '../../../../../slave/skia_slave_scripts/update.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -175,6 +181,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/update_all_slave_hosts.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -227,6 +235,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/update_all_buildslave_checkouts.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',
@@ -279,6 +289,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/check_buildslave_host_disk_usage.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Debug',
                     '--deps_target_os',

@@ -5,6 +5,8 @@
     ],
     '_builder_name': 'Perf-ChromeOS-Daisy-MaliT604-Arm7-Release-Trybot',
     '_common_args': [
+        '--autogen_svn_baseurl',
+        'bogusValueToFixSkBug2663',
         '--configuration',
         'Release',
         '--deps_target_os',
@@ -74,6 +76,8 @@
                 'command': [
                     'python',
                     '../../../../../slave/skia_slave_scripts/update_scripts.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -134,6 +138,8 @@
                 'command': [
                     'python',
                     '../../../../../slave/skia_slave_scripts/update.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -196,6 +202,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/apply_patch.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -256,6 +264,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/download_skps.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -314,6 +324,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -378,6 +390,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/clean.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -438,6 +452,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -502,6 +518,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/clean.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -562,6 +580,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/compile.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -626,6 +646,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/install.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -686,6 +708,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/prebench.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -746,6 +770,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/run_bench.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -806,6 +832,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/bench_pictures.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -866,6 +894,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/postbench.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -926,6 +956,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/check_for_regressions.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
@@ -984,6 +1016,8 @@
                 'command': [
                     'python',
                     '../../../../../../slave/skia_slave_scripts/upload_bench_results.py',
+                    '--autogen_svn_baseurl',
+                    'bogusValueToFixSkBug2663',
                     '--configuration',
                     'Release',
                     '--deps_target_os',
