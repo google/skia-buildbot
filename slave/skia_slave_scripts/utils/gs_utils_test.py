@@ -8,6 +8,7 @@
 import __builtin__
 import misc
 import os
+import posixpath
 import shell_utils
 import shutil
 import sys
@@ -26,7 +27,6 @@ sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
                              'twisted_10_2'))
 
 
-import chromium_utils
 from slave import slave_utils
 import gs_utils
 import unittest
@@ -41,7 +41,7 @@ TEST_TIMESTAMP_2 = '1354128985'
 class TestGSUtils(unittest.TestCase):
 
   def setUp(self):
-    self._expected_command = None
+    self._expected_commands = []
     self._test_temp_file = None
     self._test_gs_base = None
     self._test_destdir = None
@@ -49,7 +49,7 @@ class TestGSUtils(unittest.TestCase):
     self._local_tempdir = tempfile.mkdtemp()
 
     def _MockCommand(command):
-      self.assertEquals(self._expected_command, ' '.join(command))
+      self.assertEquals(self._expected_commands.pop(0), ' '.join(command))
 
     def _MockGSUtilFileCopy(filename, gs_base, subdir, gs_acl):
       self.assertEquals(self._test_temp_file, filename)
@@ -59,9 +59,6 @@ class TestGSUtils(unittest.TestCase):
 
     def _MockGSUtilDownloadFile(src, dst):
       pass
-
-    self._original_run_command = chromium_utils.RunCommand
-    chromium_utils.RunCommand = _MockCommand
 
     self._original_bash_run_command = shell_utils.run
     shell_utils.run = _MockCommand
@@ -75,7 +72,7 @@ class TestGSUtils(unittest.TestCase):
     self._original_file = __builtin__.open
 
   def tearDown(self):
-    chromium_utils.RunCommand = self._original_run_command
+    self.assertEquals(len(self._expected_commands), 0)
     shell_utils.run = self._original_bash_run_command
     slave_utils.GSUtilCopyFile = self._original_gsutil_file_copy
     slave_utils.GSUtilDownloadFile = self._original_gsutil_download_file
@@ -83,72 +80,88 @@ class TestGSUtils(unittest.TestCase):
     shutil.rmtree(self._local_tempdir)
 
   def test_delete_storage_object(self):
-    self._expected_command = ('%s rm -R superman' % GSUTIL_LOCATION)
+    self._expected_commands = [('%s rm -R superman' % GSUTIL_LOCATION)]
     gs_utils.delete_storage_object('superman')
 
   def test_upload_file(self):
-    self._expected_command = (
+    self._expected_commands = [(
         '%s cp -a public /fake/local/src/path gs://fake/remote/dest/path' %
-        GSUTIL_LOCATION)
+        GSUTIL_LOCATION)]
     gs_utils.upload_file(
         local_src_path='/fake/local/src/path',
         remote_dest_path='gs://fake/remote/dest/path',
         gs_acl='public')
 
   def test_upload_dir_contents_empty(self):
-    self._expected_command = 'I do not expect any command to run'
+    self._expected_commands = []
     gs_utils.upload_dir_contents(
         local_src_dir=self._local_tempdir, remote_dest_dir='remote_dest_dir',
-        gs_acl='public', upload_files_individually=False)
+        gs_acl='public')
 
   def test_upload_dir_contents_one_file(self):
-    self._expected_command = (
-        '%s -m cp -a public %s remote_dest_dir/file1' % (
-            GSUTIL_LOCATION, os.path.join(self._local_tempdir, 'file1')))
-    with open(os.path.join(self._local_tempdir, 'file1'), 'w'):
-      pass
-    gs_utils.upload_dir_contents(
-        local_src_dir=self._local_tempdir, remote_dest_dir='remote_dest_dir',
-        gs_acl='public', upload_files_individually=False)
-
-  def test_upload_dir_contents_one_dir(self):
-    self._expected_command = (
-        '%s -m cp -a public -R %s remote_dest_dir/subdir' % (
-            GSUTIL_LOCATION, os.path.join(self._local_tempdir, 'subdir')))
-    subdir_path = os.path.join(self._local_tempdir, 'subdir')
-    os.mkdir(subdir_path)
-    with open(os.path.join(subdir_path, 'file1'), 'w'):
-      pass
-    with open(os.path.join(subdir_path, 'file2'), 'w'):
-      pass
-    gs_utils.upload_dir_contents(
-        local_src_dir=self._local_tempdir, remote_dest_dir='remote_dest_dir',
-        gs_acl='public', upload_files_individually=False)
+    """Upload src_dir containing one file, and no subdirs."""
+    self._test_upload_dir_contents(filenames=['file1'])
 
   def test_upload_dir_contents_multiple_files(self):
-    self._expected_command = (
-        '%s -m cp -a public -R %s remote_dest_dir' % (
-            GSUTIL_LOCATION, self._local_tempdir))
-    with open(os.path.join(self._local_tempdir, 'file1'), 'w'):
-      pass
-    with open(os.path.join(self._local_tempdir, 'file2'), 'w'):
-      pass
+    """Upload src_dir containing multiple files, and no subdirs."""
+    self._test_upload_dir_contents(filenames=['file1', 'file2'])
+
+  def _test_upload_dir_contents(self, filenames):
+    """Helper function for upload_dir_contents() unittests.
+
+    Args:
+      filenames: basenames of files to create within local_src_dir
+    """
+    # Account for http://skbug.com/2658 ('gs_utils.upload_dir_contents()
+    # adds an extra level of directories under remote_dest_dir')
+    extra_dir_level = os.path.basename(self._local_tempdir)
+
+    local_src_dir = self._local_tempdir
+    remote_dest_dir = 'remote_dest_dir'
+    for filename in filenames:
+      self._expected_commands.append('%s cp -a public %s %s' % (
+          GSUTIL_LOCATION,
+          os.path.join(local_src_dir, filename),
+          posixpath.join(remote_dest_dir, extra_dir_level, filename)))
+      with open(os.path.join(local_src_dir, filename), 'w'):
+        pass
     gs_utils.upload_dir_contents(
-        local_src_dir=self._local_tempdir, remote_dest_dir='remote_dest_dir',
-        gs_acl='public', upload_files_individually=False)
+        local_src_dir=local_src_dir, remote_dest_dir=remote_dest_dir,
+        gs_acl='public')
+
+  def test_upload_dir_contents_one_dir(self):
+    """Upload src_dir containing a subdir, which in turn contains files."""
+    # Account for http://skbug.com/2658 ('gs_utils.upload_dir_contents()
+    # adds an extra level of directories under remote_dest_dir')
+    extra_dir_level = os.path.basename(self._local_tempdir)
+
+    local_src_dir = self._local_tempdir
+    remote_dest_dir = 'remote_dest_dir'
+    subdir = 'subdir'
+    os.mkdir(os.path.join(local_src_dir, subdir))
+    for filename in ['file1', 'file2']:
+      self._expected_commands.append('%s cp -a public %s %s' % (
+          GSUTIL_LOCATION,
+          os.path.join(local_src_dir, subdir, filename),
+          posixpath.join(remote_dest_dir, extra_dir_level, subdir, filename)))
+      with open(os.path.join(local_src_dir, subdir, filename), 'w'):
+        pass
+    gs_utils.upload_dir_contents(
+        local_src_dir=local_src_dir, remote_dest_dir=remote_dest_dir,
+        gs_acl='public')
 
   def test_download_dir_contents(self):
-    self._expected_command = (
-        '%s -m cp -R superman batman' % GSUTIL_LOCATION)
+    self._expected_commands = [(
+        '%s -m cp -R superman batman' % GSUTIL_LOCATION)]
     gs_utils.download_dir_contents('superman', 'batman')
 
   def test_copy_dir_contents(self):
-    self._expected_command = (
-        '%s -m cp -a public -R superman batman' % GSUTIL_LOCATION)
+    self._expected_commands = [(
+        '%s -m cp -a public -R superman batman' % GSUTIL_LOCATION)]
     gs_utils.copy_dir_contents('superman', 'batman', 'public')
 
   def test_does_storage_object_exist(self):
-    self._expected_command = ('%s ls superman' % GSUTIL_LOCATION)
+    self._expected_commands = [('%s ls superman' % GSUTIL_LOCATION)]
     gs_utils.does_storage_object_exist('superman')
 
   def test_write_timestamp_file(self):

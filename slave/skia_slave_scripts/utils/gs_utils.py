@@ -3,7 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""This module contains utilities related to Google Storage manipulations."""
+"""This module contains utilities related to Google Storage manipulations.
+
+TODO(epoger): Make this use google-api-python-client rather than the gsutil
+tool.  See http://skbug.com/2618 .
+"""
 
 import hashlib
 import os
@@ -13,7 +17,6 @@ import shutil
 import tempfile
 import time
 
-from common import chromium_utils
 from slave import slave_utils
 
 import file_utils
@@ -37,7 +40,7 @@ def delete_storage_object(object_name):
   command = [gsutil]
   command.extend(['rm', '-R', object_name])
   print 'Running command: %s' % command
-  chromium_utils.RunCommand(command)
+  shell_utils.run(command)
 
 
 def upload_file(local_src_path, remote_dest_path, gs_acl='private',
@@ -109,8 +112,7 @@ def upload_file(local_src_path, remote_dest_path, gs_acl='private',
 
 
 def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
-                        http_header_lines=None,
-                        upload_files_individually=True):
+                        http_header_lines=None):
   """Upload contents of a local directory to Google Storage.
 
   params:
@@ -119,13 +121,24 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
     gs_acl: which predefined ACL to apply to the files on Google Storage; see
         https://developers.google.com/storage/docs/accesscontrol#extension
     http_header_lines: a list of HTTP header strings to add, if any
-    upload_files_individually: if True, upload each file in a separate gsutil
-        call; added in attempt to fix http://skbug.com/2618 ('The Case of the
-        Missing Mandrills')
+
+  WARNING: This currently adds an extra level of directories under
+  remote_dest_dir.  See http://skbug.com/2658 .
 
   The copy operates as a "merge with overwrite": any files in src_dir will be
   "overlaid" on top of the existing content in dest_dir.  Existing files with
   the same names will be overwritten.
+
+  We upload each file as a separate call to gsutil.  This takes longer than
+  calling "gsutil -m cp -R <source> <dest>", which can perform the uploads in
+  parallel... but in http://skbug.com/2618 ('The Case of the Missing
+  Mandrills') we figured out that was silently failing in some cases!
+
+  TODO(epoger): Use the google-api-python-client API, like we do in
+  https://skia.googlesource.com/skia/+/master/tools/pyutils/gs_utils.py ,
+  rather than calling out to the gsutil tool.  See http://skbug.com/2618
+
+  TODO(epoger): Upload multiple files simultaneously to reduce latency.
 
   TODO(epoger): Add a "noclobber" mode that will not upload any files would
   overwrite existing files in Google Storage.
@@ -138,52 +151,20 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
   """
   gsutil = slave_utils.GSUtilSetup()
   command = [gsutil]
-  if not upload_files_individually:
-    command.extend(['-m'])
   if http_header_lines:
     for http_header_line in http_header_lines:
       command.extend(['-h', http_header_line])
   command.extend(['cp', '-a', gs_acl])
 
-  if upload_files_individually:
-    abs_local_src_dir = os.path.abspath(local_src_dir)
-    for (abs_dirpath, _, filenames) in os.walk(abs_local_src_dir):
-      remote_dest_subdir = _convert_to_posixpath(os.path.relpath(
-          abs_dirpath, os.path.dirname(abs_local_src_dir)))
-      for filename in filenames:
-        abs_filepath = os.path.join(abs_dirpath, filename)
-        remote_dest_filepath = posixpath.join(
-            remote_dest_dir, remote_dest_subdir, filename)
-        shell_utils.run(command + [abs_filepath, remote_dest_filepath])
-    return
-
-  # Depending on how many files there are in local_src_dir, we have to call
-  # gsutil differently.  See http://skbug.com/2596 .
-  filenames = os.listdir(local_src_dir)
-  if not filenames:
-    print 'Dir %s is empty, no files to upload.' % local_src_dir
-  elif len(filenames) > 1:
-    # Simple case: gsutil will create multiple files within remote_dest_dir.
-    command.extend(['-R', local_src_dir, remote_dest_dir])
-    print 'Running command: %s' % command
-    shell_utils.run(command)
-  else:
-    filename = filenames[0]
-    local_src_filepath = os.path.join(local_src_dir, filename)
-    remote_dest_filepath = posixpath.join(remote_dest_dir, filename)
-    if os.path.isdir(local_src_filepath):
-      # Oh boy.  This subdir is subject to the same problem; depending on how
-      # many files it holds, we may need to handle it differently.  Recurse!
-      upload_dir_contents(
-          local_src_dir=local_src_filepath,
-          remote_dest_dir=remote_dest_filepath,
-          gs_acl=gs_acl, http_header_lines=http_header_lines,
-          upload_files_individually=upload_files_individually)
-    else:
-      # It's a single file, so we can just copy it without -R.
-      command.extend([local_src_filepath, remote_dest_filepath])
-      print 'Running command: %s' % command
-      shell_utils.run(command)
+  abs_local_src_dir = os.path.abspath(local_src_dir)
+  for (abs_dirpath, _, filenames) in os.walk(abs_local_src_dir):
+    remote_dest_subdir = _convert_to_posixpath(os.path.relpath(
+        abs_dirpath, os.path.dirname(abs_local_src_dir)))
+    for filename in sorted(filenames):
+      abs_filepath = os.path.join(abs_dirpath, filename)
+      remote_dest_filepath = posixpath.join(
+          remote_dest_dir, remote_dest_subdir, filename)
+      shell_utils.run(command + [abs_filepath, remote_dest_filepath])
 
 
 def download_dir_contents(remote_src_dir, local_dest_dir):
@@ -241,7 +222,7 @@ def move_storage_directory(src_dir, dest_dir):
   command = [gsutil]
   command.extend(['mv', '-p', src_dir, dest_dir])
   print 'Running command: %s' % command
-  chromium_utils.RunCommand(command)
+  shell_utils.run(command)
 
 
 def list_storage_directory(dest_gsbase, subdir):
@@ -269,7 +250,11 @@ def does_storage_object_exist(object_name):
   command = [gsutil]
   command.extend(['ls', object_name])
   print 'Running command: %s' % command
-  return chromium_utils.RunCommand(command) == 0
+  try:
+    shell_utils.run(command)
+    return True
+  except shell_utils.CommandFailedException:
+    return False
 
 
 def download_directory_contents_if_changed(gs_base, gs_relative_dir, local_dir):
@@ -371,7 +356,9 @@ def upload_directory_contents_if_changed(gs_base, gs_relative_dir, gs_acl,
       for files_chunk in _get_chunks(local_files, FILES_CHUNK):
         gsutil = slave_utils.GSUtilSetup()
         command = [gsutil, 'cp'] + files_chunk + [gs_dest]
-        if chromium_utils.RunCommand(command) != 0:
+        try:
+          shell_utils.run(command)
+        except shell_utils.CommandFailedException:
           raise Exception(
               'Could not upload the chunk to Google Storage! The chunk: %s'
               % files_chunk)
