@@ -10,6 +10,7 @@
 from ast import literal_eval
 from build_step import BuildStep, BuildStepFailure
 from utils import shell_utils
+from utils.git_utils import GIT
 import os
 import shutil
 import sys
@@ -19,10 +20,8 @@ import urllib2
 
 
 if os.name == 'nt':
-  GIT = 'git.bat'
   SVN = 'svn.bat'
 else:
-  GIT = 'git'
   SVN = 'svn'
 
 

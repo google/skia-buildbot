@@ -11,9 +11,6 @@ import sys
 from build_step import BuildStep
 from utils import gclient_utils
 
-GIT = 'git.bat' if os.name == 'nt' else 'git'
-GIT_SVN_ID_MATCH_STR = r'git-svn-id: http://skia.googlecode.com/svn/trunk@(\d+)'
-
 
 def BenchArgs(data_file):
   """Builds a list containing arguments to pass to bench.
