@@ -185,7 +185,7 @@ class UploadBenchResults(BuildStep):
                     base_key,
                     bench['name'],
                     tileSet['name'],
-                    'measured'
+                    measurement
                 ])
                 config_info = tileSet['name'].split('_')
                 token_name = None
