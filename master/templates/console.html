@@ -114,7 +114,7 @@ function setLoadingMessage(msg) {
 
 // Load the console page data.
 function loadConsoleData() {
-  loadJSONP('/console_json', fixConsoleData);
+  loadJSONP('/console_json?limit=200', fixConsoleData);
   setLoadingMessage("Loading...");
 }
 
