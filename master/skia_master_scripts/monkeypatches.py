@@ -436,6 +436,10 @@ def TryJobRietveldConstructor(
   # pylint: disable=W0212
   endpoint = self._GetRietveldEndPointForProject(code_review_sites, project)
 ############################### Added by rmistry ###############################
+  # rmistry: Adding '&master=tryserver.skia' to the endpoint to help filter the
+  # number of pending try patchsets returned. More details are in
+  # https://code.google.com/p/skia/issues/detail?id=2659
+  endpoint += '&master=tryserver.skia'
   # rmistry: Increased the polling time from 10 seconds to 1 min because 10
   # seconds is too short for us. The RietveldPoller stops working if the time is
   # too short.
