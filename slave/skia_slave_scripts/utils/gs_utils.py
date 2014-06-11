@@ -122,9 +122,6 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
         https://developers.google.com/storage/docs/accesscontrol#extension
     http_header_lines: a list of HTTP header strings to add, if any
 
-  WARNING: This currently adds an extra level of directories under
-  remote_dest_dir.  See http://skbug.com/2658 .
-
   The copy operates as a "merge with overwrite": any files in src_dir will be
   "overlaid" on top of the existing content in dest_dir.  Existing files with
   the same names will be overwritten.
@@ -157,14 +154,21 @@ def upload_dir_contents(local_src_dir, remote_dest_dir, gs_acl='private',
   command.extend(['cp', '-a', gs_acl])
 
   abs_local_src_dir = os.path.abspath(local_src_dir)
-  for (abs_dirpath, _, filenames) in os.walk(abs_local_src_dir):
-    remote_dest_subdir = _convert_to_posixpath(os.path.relpath(
-        abs_dirpath, os.path.dirname(abs_local_src_dir)))
+  for (abs_src_dirpath, _, filenames) in os.walk(abs_local_src_dir):
+    if abs_src_dirpath == abs_local_src_dir:
+      # This file is within local_src_dir; no need to add subdirs to
+      # abs_dest_dirpath.
+      abs_dest_dirpath = remote_dest_dir
+    else:
+      # This file is within a subdir, so add subdirs to abs_dest_dirpath.
+      abs_dest_dirpath = posixpath.join(
+          remote_dest_dir,
+          _convert_to_posixpath(
+              os.path.relpath(abs_src_dirpath, abs_local_src_dir)))
     for filename in sorted(filenames):
-      abs_filepath = os.path.join(abs_dirpath, filename)
-      remote_dest_filepath = posixpath.join(
-          remote_dest_dir, remote_dest_subdir, filename)
-      shell_utils.run(command + [abs_filepath, remote_dest_filepath])
+      abs_src_filepath = os.path.join(abs_src_dirpath, filename)
+      abs_dest_filepath = posixpath.join(abs_dest_dirpath, filename)
+      shell_utils.run(command + [abs_src_filepath, abs_dest_filepath])
 
 
 def download_dir_contents(remote_src_dir, local_dest_dir, multi=True):

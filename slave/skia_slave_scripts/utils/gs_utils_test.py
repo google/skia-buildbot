@@ -112,17 +112,13 @@ class TestGSUtils(unittest.TestCase):
     Args:
       filenames: basenames of files to create within local_src_dir
     """
-    # Account for http://skbug.com/2658 ('gs_utils.upload_dir_contents()
-    # adds an extra level of directories under remote_dest_dir')
-    extra_dir_level = os.path.basename(self._local_tempdir)
-
     local_src_dir = self._local_tempdir
     remote_dest_dir = 'remote_dest_dir'
     for filename in filenames:
       self._expected_commands.append('%s cp -a public %s %s' % (
           GSUTIL_LOCATION,
           os.path.join(local_src_dir, filename),
-          posixpath.join(remote_dest_dir, extra_dir_level, filename)))
+          posixpath.join(remote_dest_dir, filename)))
       with open(os.path.join(local_src_dir, filename), 'w'):
         pass
     gs_utils.upload_dir_contents(
@@ -131,10 +127,6 @@ class TestGSUtils(unittest.TestCase):
 
   def test_upload_dir_contents_one_dir(self):
     """Upload src_dir containing a subdir, which in turn contains files."""
-    # Account for http://skbug.com/2658 ('gs_utils.upload_dir_contents()
-    # adds an extra level of directories under remote_dest_dir')
-    extra_dir_level = os.path.basename(self._local_tempdir)
-
     local_src_dir = self._local_tempdir
     remote_dest_dir = 'remote_dest_dir'
     subdir = 'subdir'
@@ -143,7 +135,7 @@ class TestGSUtils(unittest.TestCase):
       self._expected_commands.append('%s cp -a public %s %s' % (
           GSUTIL_LOCATION,
           os.path.join(local_src_dir, subdir, filename),
-          posixpath.join(remote_dest_dir, extra_dir_level, subdir, filename)))
+          posixpath.join(remote_dest_dir, subdir, filename)))
       with open(os.path.join(local_src_dir, subdir, filename), 'w'):
         pass
     gs_utils.upload_dir_contents(

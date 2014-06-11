@@ -63,7 +63,9 @@ class UploadGMResults(BuildStep):
       gs_utils.upload_dir_contents(
           local_src_dir=os.path.abspath(
               os.path.join(temp_root, gm_actuals_subdir)),
-          remote_dest_dir=skia_vars.GetGlobalVariable('googlestorage_bucket'),
+          remote_dest_dir=posixpath.join(
+              skia_vars.GetGlobalVariable('googlestorage_bucket'),
+              gm_actuals_subdir),
           gs_acl='public-read',
           http_header_lines=['Cache-Control:public,max-age=3600'])
     finally:

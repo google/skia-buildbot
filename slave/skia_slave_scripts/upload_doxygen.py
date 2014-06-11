@@ -15,8 +15,10 @@ from utils import gs_utils
 import generate_doxygen
 import skia_vars
 
+# It's silly that we include 'doxygen' in the destination path twice, but
+# that's to maintain current behavior while fixing http://skbug.com/2658 .
 DOXYGEN_GSUTIL_PATH = posixpath.join(
-    skia_vars.GetGlobalVariable('googlestorage_bucket'), 'doxygen')
+    skia_vars.GetGlobalVariable('googlestorage_bucket'), 'doxygen', 'doxygen')
 
 # Directives for HTTP caching of these files served out by Google Storage.
 # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
