@@ -12,6 +12,8 @@ from utils import shell_utils
 
 import os
 
+# If you're trying to change GYP flags in here, you're too late!
+# GYP only runs as part of runhooks in sync_skia_in_chrome.py.
 
 class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
   def __init__(self, build_step_instance):
@@ -34,12 +36,6 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
     shell_utils.run(cmd)
 
   def Compile(self, target):
-    if not os.path.isdir('out'):
-      self.RunGYP()
-    if 'VS2012' in self._step.builder_name:
-      os.environ['GYP_MSVS_VERSION'] = '2012'
-    os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
-    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     make_cmd = 'ninja'
     cmd = [make_cmd,
            '-C', os.path.join('out', self._step.configuration),
@@ -51,14 +47,6 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
   def MakeClean(self):
     if os.path.isdir('out'):
       chromium_utils.RemoveDirectory('out')
-
-  def RunGYP(self):
-    os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
-    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
-    os.environ['GYP_GENERATORS'] = 'ninja'
-    print 'GYP_GENERATORS="%s"' % os.environ['GYP_GENERATORS']
-    python = 'python.bat' if os.name == 'nt' else 'python'
-    shell_utils.run([python, os.path.join('build', 'gyp_chromium')])
 
   @property
   def baseline_dir(self):

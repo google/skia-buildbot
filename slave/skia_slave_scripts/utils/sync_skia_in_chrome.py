@@ -176,9 +176,13 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
                                     log_in_real_time=False).rstrip()
 
-  # Experiment to see if fastbuild is any faster for our Windows Chrome canary.
-  os.environ['GYP_DEFINES'] = os.environ['GYP_DEFINES'] + ' fastbuild=2'
-  print 'GYP_DEFINES=' + os.environ['GYP_DEFINES']
+  # It turns out we need to set ALL our GYP defines here.
+  # runhooks is the only time GYP runs in our Chrome canary builds.
+  defs = os.environ['GYP_DEFINES']
+  defs += ' fastbuild=2'  # Experiment: is fastbuild faster for Windows?
+  defs += ' component=shared_library'
+  os.environ['GYP_DEFINES'] = defs
+  print 'GYP_DEFINES=' + defs
 
   # Run gclient hooks
   os.chdir(src_dir)
