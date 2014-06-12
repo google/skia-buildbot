@@ -645,6 +645,12 @@ class ConsoleStatusResource(HtmlResource):
       hide_subcategories.extend(subcategory_set.split(','))
     cxt['hide_subcategories'] = hide_subcategories
 
+    # Console event-loading limits.
+    cxt['default_console_limit'] = \
+        skia_vars.GetGlobalVariable('console_default_rev_limit')
+    cxt['max_console_limit'] = \
+        skia_vars.GetGlobalVariable('console_max_rev_limit')
+
     templates = request.site.buildbot_service.templates
     template = templates.get_template("console.html")
     data = template.render(cxt)

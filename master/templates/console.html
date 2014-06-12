@@ -10,6 +10,14 @@
 var builders = {};
 var revisions = [];
 
+// Number of events to load from the master.
+var console_limit = {{ default_console_limit }};
+var default_console_limit = {{ default_console_limit }};
+var max_console_limit = {{ max_console_limit }};
+
+// Minimum number of revisions to display on the console.
+var min_display_revisions = 25;
+
 function addLinks(text) {
     if (text && text.indexOf("<a href=") == -1) {
         text = text.replace(
@@ -114,12 +122,23 @@ function setLoadingMessage(msg) {
 
 // Load the console page data.
 function loadConsoleData() {
-  loadJSONP('/console_json?limit=200', fixConsoleData);
+  // Note: We don't include "&revs=" here because that would artificially limit
+  // the number of revisions we get back and therefore prevent us from being
+  // able to scale back console_limit when it no longer needs to be very big.
+  loadJSONP('/console_json?limit=' + console_limit, fixConsoleData);
   setLoadingMessage("Loading...");
 }
 
 // Sort the categories, subcategories, and builders for display.
 function fixConsoleData(data) {
+  if (data["revisions"].length < min_display_revisions) {
+    console_limit = Math.min(console_limit * 2, max_console_limit);
+    loadConsoleData();
+    return;
+  }
+  if (data["revisions"].length > min_display_revisions * 2) {
+    console_limit = Math.max(console_limit / 1.5, default_console_limit);
+  }
   var new_builders = {};
   var categories = Object.keys(data["builders"]);
   categories.sort();
