@@ -443,8 +443,13 @@ def TryJobRietveldConstructor(
   # rmistry: Increased the polling time from 10 seconds to 1 min because 10
   # seconds is too short for us. The RietveldPoller stops working if the time is
   # too short.
+  # rmistry: Increased the polling time from 1 min to 15 mins to workaround
+  # tryjobs getting picked up multiple times by Skia's tryservers. Details are
+  # in https://code.google.com/p/skia/issues/detail?id=2659. This change should
+  # be reverted after jrobbins's https://codereview.appspot.com/106980043/ is
+  # live in Rietveld.
   # pylint: disable=W0212
-  self._poller = try_job_rietveld._RietveldPoller(endpoint, interval=60)
+  self._poller = try_job_rietveld._RietveldPoller(endpoint, interval=15 * 60)
 ################################################################################
   # pylint: disable=W0212
   self._valid_users = try_job_rietveld._ValidUserPoller(interval=12 * 60 * 60)
