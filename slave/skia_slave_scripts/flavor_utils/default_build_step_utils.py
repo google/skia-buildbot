@@ -190,6 +190,10 @@ class DefaultBuildStepUtils:
     if 'Win8' in self._step.builder_name:
       os.environ['GYP_MSVS_VERSION'] = '2012'
       print 'GYP_MSVS_VERSION="%s"' % os.environ['GYP_MSVS_VERSION']
+
+    os.environ['CHROME_PATH'] = os.path.join(os.path.expanduser('~'), 'src')
+    print 'CHROME_PATH="%s"' % os.environ['CHROME_PATH']
+
     os.environ['GYP_DEFINES'] = self._step.args['gyp_defines']
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     make_cmd = 'make'
