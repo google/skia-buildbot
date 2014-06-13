@@ -124,6 +124,16 @@ function setup_crontab {
   echo
 }
 
+function fix_gsutil_path {
+  echo
+  echo "===== Fixing gsutil path ======"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+    "sudo rm /usr/local/bin/gsutil && " \
+    "sudo ln -s /home/default/google-cloud-sdk/platform/gsutil/gsutil /usr/local/bin/gsutil" \
+     || FAILED="$FAILED FixGsutilPath"
+  echo
+}
+
 function copy_files {
   echo
   echo "===== Copying over required files. ====="
@@ -131,7 +141,18 @@ function copy_files {
       $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
         $REQUIRED_FILE /home/$PROJECT_USER/
       $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+        $REQUIRED_FILE /home/$PROJECT_USER/storage/
+      $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
         $REQUIRED_FILE /home/$PROJECT_USER/storage/skia-repo/
     done
+  echo
+}
+
+function reboot {
+  echo
+  echo "===== Rebooting the instance ======"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+    "sudo reboot" \
+    || FAILED="$FAILED Reboot"
   echo
 }

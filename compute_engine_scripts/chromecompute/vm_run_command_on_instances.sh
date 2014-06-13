@@ -27,5 +27,8 @@ CMD=$1
 echo "About to run $CMD on instances..."
 for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+  echo "========== $INSTANCE_NAME =========="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME "$CMD"
+  echo "===================================="
 done
+

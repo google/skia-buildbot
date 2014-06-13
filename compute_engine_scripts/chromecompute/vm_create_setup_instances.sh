@@ -22,13 +22,15 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
   $GCOMPUTE_CMD addinstance ${INSTANCE_NAME} \
     --zone=$ZONE \
+    --disk=skia-disk-`printf "%03d" ${MACHINE_IP}` \
     --external_ip_address=${IP_ADDRESS_WITHOUT_MACHINE_PART}.${MACHINE_IP} \
     --service_account=$PROJECT_USER \
     --service_account_scopes="$SCOPES" \
     --network=$SKIA_NETWORK_NAME \
     --image=$SKIA_BOT_IMAGE_NAME \
     --machine_type=$SKIA_BOT_MACHINE_TYPE \
-    --auto_delete_boot_disk
+    --auto_delete_boot_disk \
+    --wait_until_running
 
   if [ $? -ne 0 ]
   then
@@ -39,8 +41,8 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   fi
 done
 
-echo "===== Wait 3 mins for all $BOT_COUNT instances to come up. ====="
-sleep 180
+echo "===== Wait 4 mins for all $BOT_COUNT instances to come up. ====="
+sleep 240
 
 
 # Looping through all bots and setting them up.
@@ -61,7 +63,11 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
   setup_crontab
 
+  fix_gsutil_path
+
   copy_files
+
+  reboot
 
   if [[ $FAILED ]]; then
     echo

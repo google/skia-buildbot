@@ -14,9 +14,11 @@ SKIA_NETWORK_NAME = 'skia'
 SKIA_REPO_DIR = '/home/%s/storage/skia-repo' % PROJECT_USER
 SCOPES = 'https://www.googleapis.com/auth/devstorage.full_control'
 SKIA_BOT_IMAGE_NAME = 'skiatelemetry-6-0-ubuntu1310'
-SKIA_BOT_MACHINE_TYPE = 'lmt-n1-standard-8-d'
+# TODO(rmistry): Use n1-standard-8 when b/13454172 is resolved.
+SKIA_BOT_MACHINE_TYPE = 'n1-standard-4'
 IP_ADDRESS_WITHOUT_MACHINE_PART = '108.170.192'
 VM_BOT_NAME = 'skia-vm'
+PERSISTENT_DISK_SIZE_GB = 300
 
 # The Project ID is found in the Compute tab of the dev console.
 # https://cloud.google.com/console#c=p&pid=182615506979
