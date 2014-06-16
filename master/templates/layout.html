@@ -69,6 +69,28 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       {% endfor %}
     }
 
+    function addLinks(text) {
+      // Linkify arbitrary URLs.
+      var new_text = "";
+      if (text && text.indexOf("<a href=") == -1) {
+        new_text = text.replace(
+            /(https?:\/\/.+?)(\s|\t|<|\n|\r|$)/g, '<a href="$1" target="_blank">$1</a>$2');
+      }
+
+      // Linkify instances of "skia:123".
+      var re = new RegExp("skia:[0-9]+");
+      var found_bugs = re.exec(new_text);
+      if (found_bugs) {
+        for (var i = 0; i < found_bugs.length; ++i) {
+          var found_bug = found_bugs[i];
+          var bug_number = found_bug.split(":")[1];
+          var bug_link = '<a href="https://code.google.com/p/skia/issues/detail?id=' + bug_number + '" target="_blank">' + found_bug + '</a>';
+          new_text = new_text.replace(found_bug, bug_link);
+        }
+      }
+      return new_text;
+    }
+
     // Switch to a new host/port.
     function setHostAndPort(host, port) {
       var current_host = window.location.host.split(":");
@@ -205,7 +227,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
 
       // Mark builders who have comments.
       for (var builder_name in data) {
-	// Builder column headers.
+        // Builder column headers.
         var comment_indicator = document.getElementById("commentIndicator_" + builder_name);
         if (comment_indicator) {
           comment_indicator.className += " BuilderHasComment";
@@ -223,7 +245,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       for (var i = 0; i < display_comment_elems.length; ++i) {
         var display_comment = display_comment_elems[i];
         var builder_name = display_comment.id.slice("displayBuilderComment_".length);
-        display_comment.innerHTML = builderCommentText(builder_name);
+        buildComment(builder_name, display_comment);
         if (builder_statuses[builder_name]) {
           display_comment.className += " BuilderHasComment";
         }
@@ -369,31 +391,45 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     }
 
     // Get the comment text for a given builder.
-    function builderCommentText(builder_name) {
+    function buildComment(builder_name, container) {
+      var file_bug_link = document.createElement("a");
+      file_bug_link.href = "http://code.google.com/p/skia/issues/entry?labels=BreakingTheBuildbots,Type-Defect,Priority-Medium&summary=" + builder_name;
+      file_bug_link.target = "_blank";
+      file_bug_link.appendChild(document.createTextNode("file bug"));
+
+      var edit_status_url = tree_status_appspot_url + "/builder-status/?selected_builder_name=" + builder_name;
+      var edit_status_link = document.createElement("a");
+      edit_status_link.href = edit_status_url;
+      edit_status_link.target = "_blank";
+
+      var builder_para = document.createElement("p");
+      builder_para.style.fontWeight = "bold";
+      builder_para.style.lineHeight = "105%";
+      builder_para.appendChild(document.createTextNode(builder_name));
+      container.appendChild(builder_para);
+
+      var comment_para = document.createElement("p");
+
       var comment = null;
       if (builder_statuses[builder_name]) {
         comment = builder_statuses[builder_name]["message"];
       }
-      var edit_status_url = tree_status_appspot_url + "/builder-status/?selected_builder_name=" + builder_name;
-      var file_bug_link = '<a href="http://code.google.com/p/skia/issues/entry?labels=BreakingTheBuildbots,Type-Defect,Priority-Medium&summary=' + builder_name + '" target="_blank">file bug</a>';
-      var comment_html = '<p style="font-weight: bold; line-height:105%">' + builder_name + '</p><p>';
       if (comment) {
-        var re = new RegExp("skia:[0-9]+");
-        var found_bugs = re.exec(comment);
-        if (found_bugs) {
-          for (var i = 0; i < found_bugs.length; ++i) {
-            var found_bug = found_bugs[i];
-            var bug_number = found_bug.split(":")[1];
-            var bug_link = '<a href="https://code.google.com/p/skia/issues/detail?id=' + bug_number + '" target="_blank">' + found_bug + '</a>';
-            comment = comment.replace(found_bug, bug_link);
-          }
-        }
-        comment_html += comment + '</p><p> (<a href="' + edit_status_url + '" class="" target="_blank">edit</a>';
+        comment_para.appendChild(document.createTextNode(comment));
+        comment_para.innerHTML = addLinks(comment_para.innerHTML);
+        edit_status_link.appendChild(document.createTextNode("edit"));
       } else {
-        comment_html += '</p><p>(<a href="' + edit_status_url + '" class="" target="_blank">add comment</a>';
+        edit_status_link.appendChild(document.createTextNode("add comment"));
       }
-      comment_html += ' or ' + file_bug_link + ')</p>';
-      return comment_html;
+      container.appendChild(comment_para);
+
+      var links_para = document.createElement("p");
+      links_para.appendChild(document.createTextNode("("));
+      links_para.appendChild(edit_status_link);
+      links_para.appendChild(document.createTextNode(" or "));
+      links_para.appendChild(file_bug_link);
+      links_para.appendChild(document.createTextNode(")"));
+      container.appendChild(links_para);
     }
 
     // Display a builder tooltip.
@@ -406,7 +442,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         cursorPosTop  = cursorPosTop  + document.body.scrollTop + 5;
         cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
 
-        tooltipbox.innerHTML = builderCommentText(builder_name);
+        buildComment(builder_name, tooltipbox);
         tooltipbox.style.top = parseInt(cursorPosTop) + 'px';
         tooltipbox.style.left = parseInt(cursorPosLeft) + 'px';
         tooltipbox.style.display = "block";
