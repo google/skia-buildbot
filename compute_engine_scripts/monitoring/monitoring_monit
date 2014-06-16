@@ -1,0 +1,3 @@
+check process webtry with pidfile /var/run/apache2.pid
+   start program = "/etc/init.d/apache2 start"
+   stop program = "/etc/init.d/apache2 stop"

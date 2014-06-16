@@ -42,6 +42,9 @@ Utility functions used by vm_setup_master.sh and vm_setup_slaves.sh.
 - vm_status.sh
 Outputs the quota and all instances of google.com:skia-buildbots.
 
+- /compute_engine_scripts/monitoring
+Setup scripts to create/setup/delete skiamonitor.org, a Graphite server.
+
 
 How to create a Master Root Disk
 ================================

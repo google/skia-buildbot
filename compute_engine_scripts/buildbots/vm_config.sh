@@ -24,10 +24,14 @@ SLAVES_MACHINE_TYPE="n1-standard-2"
 SLAVE_IP_ADDRESSES="108.170.220.73 108.170.220.26 108.170.220.96 108.170.220.108 108.170.220.55 108.170.220.69"
 # The following IP addresses are reserved for skia-android-canary:
 # 108.170.220.94
-# The following IP address is used by webtry (jcgregorio's instance):
+# The following IP address is used by skia-webtry (jcgregorio's instance):
 # 108.170.220.126
 # The following IP address is used by skia-perf (bensong's instance):
 # 108.170.220.208
+# The following IP address is used by skia-monitor (jcgregorio's instance):
+MONITORING_IP_ADDRESS=108.170.220.59
+MONITORING_IMAGE=backports-debian-7-wheezy-v20140331
+MONITORING_MACHINE_TYPE=n1-standard-1
 
 # rebaseline_server names, type and their IP addresses to use for each zone.
 VM_REBASELINESERVER_NAMES=${VM_REBASELINESERVER_NAMES:="rebaseline-server-1"}
