@@ -36,7 +36,6 @@
                          class="gm-image left-image" />
           </td>
           <td>
-            <a id='compare_value'>{{ file_info.perceptual_diff }}</a>% (perceptual diff)
             <a href='{{ gs_http_files_location_withpatch }}/{{ file_info.file_name }}' target="_blank">View Image</a>
             <br/>
             <img-compare type="test"
@@ -53,7 +52,7 @@
                          src="{{ gs_http_files_location_whitediffs }}/{{ file_info.diff_file_name }}" />
           </td>
           <td>
-            <a id='compare_value'>{{ file_info.weighted_diff_measure }}</a>% {{ file_info.max_diff_per_channel }}
+            <a id='compare_value'>{{ file_info.perceptual_diff }}</a>% (perceptual diff) | {{ file_info.max_diff_per_channel }}
             <a href='{{ gs_http_files_location_diffs }}/{{ file_info.diff_file_name }}' target="_blank">View Image</a>
             <br/>
             <img-compare type="differencePerPixel"

@@ -28,9 +28,6 @@ class DiffRecord(object):
   def get_percent_pixels_differing(self):
     return 2
 
-  def get_weighted_diff_measure(self):
-    return 3
-
   def get_max_diff_per_channel(self):
     return 4
 

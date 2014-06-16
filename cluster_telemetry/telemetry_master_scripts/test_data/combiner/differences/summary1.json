@@ -6,7 +6,6 @@
                     "skpLocation": "gs://dummy-bucket/skps/slave1/fileslave1_.skp",
                     "numPixelsDiffering": 111,
                     "percentPixelsDiffering": 112,
-                    "weightedDiffMeasure": 113,
                     "maxDiffPerChannel": 114,
                     "perceptualDiff": 115
                 }, 
@@ -15,7 +14,6 @@
                     "skpLocation": "gs://dummy-bucket/skps/slave1/fileslave1_.skp",
                     "numPixelsDiffering": 121,
                     "percentPixelsDiffering": 122,
-                    "weightedDiffMeasure": 123,
                     "maxDiffPerChannel": 124,
                     "perceptualDiff": 125
                 }

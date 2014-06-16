@@ -44,14 +44,13 @@ GS_FILES_LOCATION_WHITE_DIFFS_TEMPLATE_VAR = 'gs_http_files_location_whitediffs'
 class FileInfo(object):
   """Container class that holds all file data."""
   def __init__(self, file_name, skp_location, num_pixels_differing,
-               percent_pixels_differing, weighted_diff_measure,
+               percent_pixels_differing,
                max_diff_per_channel, perceptual_diff):
     self.file_name = file_name
     self.diff_file_name = _GetDiffFileName(self.file_name)
     self.skp_location = skp_location
     self.num_pixels_differing = num_pixels_differing
     self.percent_pixels_differing = percent_pixels_differing
-    self.weighted_diff_measure = weighted_diff_measure
     self.max_diff_per_channel = max_diff_per_channel
     self.perceptual_diff = perceptual_diff
 
@@ -98,8 +97,6 @@ def CombineJsonSummaries(json_summaries_dir):
           json_summary_constants.JSONKEY_NUM_PIXELS_DIFFERING]
       percent_pixels_differing = failed_file[
           json_summary_constants.JSONKEY_PERCENT_PIXELS_DIFFERING]
-      weighted_diff_measure = failed_file[
-          json_summary_constants.JSONKEY_WEIGHTED_DIFF_MEASURE]
       max_diff_per_channel = failed_file[
           json_summary_constants.JSONKEY_MAX_DIFF_PER_CHANNEL]
       perceptual_diff = failed_file[
@@ -110,7 +107,6 @@ def CombineJsonSummaries(json_summaries_dir):
           skp_location=skp_location,
           num_pixels_differing=num_pixels_differing,
           percent_pixels_differing=percent_pixels_differing,
-          weighted_diff_measure=weighted_diff_measure,
           max_diff_per_channel=max_diff_per_channel,
           perceptual_diff=perceptual_diff)
       file_info_list.append(file_info)

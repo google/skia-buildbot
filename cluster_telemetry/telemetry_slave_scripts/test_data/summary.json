@@ -7,8 +7,7 @@
                 "numPixelsDiffering": 1,
                 "percentPixelsDiffering": 2,
                 "perceptualDiff": 5,
-                "skpLocation": "gs://dummy-bucket/skps/skpfileA.skp",
-                "weightedDiffMeasure": 3
+                "skpLocation": "gs://dummy-bucket/skps/skpfileA.skp"
             },
             {
                 "fileName": "skpfileB_skp-tile1.png",
@@ -16,8 +15,7 @@
                 "numPixelsDiffering": 1,
                 "percentPixelsDiffering": 2,
                 "perceptualDiff": 5,
-                "skpLocation": "gs://dummy-bucket/skps/skpfileB.skp",
-                "weightedDiffMeasure": 3
+                "skpLocation": "gs://dummy-bucket/skps/skpfileB.skp"
             }
         ], 
         "failedFilesCount": 2,

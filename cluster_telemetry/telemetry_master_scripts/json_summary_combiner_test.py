@@ -45,8 +45,6 @@ class TestJsonSummaryCombiner(unittest.TestCase):
                           int('%s%s1' % (slave_num, file_count)))
         self.assertEquals(file_info.percent_pixels_differing,
                           int('%s%s2' % (slave_num, file_count)))
-        self.assertEquals(file_info.weighted_diff_measure,
-                          int('%s%s3' % (slave_num, file_count)))
         self.assertEquals(file_info.max_diff_per_channel,
                           int('%s%s4' % (slave_num, file_count)))
 
@@ -77,12 +75,12 @@ class TestJsonSummaryCombiner(unittest.TestCase):
                     'fileslave1_1.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave1/'
                     'fileslave1_.skp',
-                    111, 112, 113, 114, 115),
+                    111, 112, 114, 115),
                 json_summary_combiner.FileInfo(
                     'fileslave1_2.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave1/'
                     'fileslave1_.skp',
-                    121, 122, 123, 124, 125)],
+                    121, 122, 124, 125)],
             skps_location='gs://dummy-bucket/skps/slave1',
             files_location_diffs='gs://dummy-bucket/slave1/diffs',
             files_location_whitediffs='gs://dummy-bucket/slave1/whitediffs',
@@ -95,7 +93,7 @@ class TestJsonSummaryCombiner(unittest.TestCase):
                     'fileslave2_1.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave2/'
                     'fileslave2_.skp',
-                    211, 212, 213, 214, 215)],
+                    211, 212, 214, 215)],
             skps_location='gs://dummy-bucket/skps/slave2',
             files_location_diffs='gs://dummy-bucket/slave2/diffs',
             files_location_whitediffs='gs://dummy-bucket/slave2/whitediffs',
@@ -108,22 +106,22 @@ class TestJsonSummaryCombiner(unittest.TestCase):
                     'fileslave3_1.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
                     'fileslave3_.skp',
-                    311, 312, 313, 314, 315),
+                    311, 312, 314, 315),
                 json_summary_combiner.FileInfo(
                     'fileslave3_2.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
                     'fileslave3_.skp',
-                    321, 322, 323, 324, 325),
+                    321, 322, 324, 325),
                 json_summary_combiner.FileInfo(
                     'fileslave3_3.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
                     'fileslave3_.skp',
-                    331, 332, 333, 334, 335),
+                    331, 332, 334, 335),
                 json_summary_combiner.FileInfo(
                     'fileslave3_4.png',
                     'http://storage.cloud.google.com/dummy-bucket/skps/slave3/'
                     'fileslave3_.skp',
-                    341, 342, 343, 344, 345)],
+                    341, 342, 344, 345)],
             skps_location='gs://dummy-bucket/skps/slave3',
             files_location_diffs='gs://dummy-bucket/slave3/diffs',
             files_location_whitediffs='gs://dummy-bucket/slave3/whitediffs',
@@ -192,4 +190,3 @@ class TestJsonSummaryCombiner(unittest.TestCase):
 
 if __name__ == '__main__':
   unittest.main()
-

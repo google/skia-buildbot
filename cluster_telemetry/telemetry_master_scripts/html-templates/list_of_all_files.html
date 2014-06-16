@@ -35,7 +35,7 @@
             <a id='compare_value'>{{ file_info.percent_pixels_differing }}</a>% ({{ file_info.num_pixels_differing }})
           </td>
           <td>
-            <a id='compare_value'>{{ file_info.weighted_diff_measure }}</a>% {{ file_info.max_diff_per_channel }}
+            <a id='compare_value'>{{ file_info.perceptual_diff }}</a>% {{ file_info.max_diff_per_channel }}
           </td>
         </tr>
         {% endfor %}
