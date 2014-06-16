@@ -21,7 +21,8 @@ cd graphite-web
 python setup.py  install --prefix=/home/www-data/graphite \
   --install-lib=/home/www-data/graphite/lib
 
-cd /home/www-data
+HOME=/home/www-data
+cd $HOME
 # Install Go
 if [ -d go ]; then
   echo Go already installed.
@@ -30,7 +31,6 @@ else
   tar -xzf go1.2.1.linux-amd64.tar.gz
 fi
 
-HOME=/home/www-data
 mkdir=$HOME/golib
 # Prebuilt Go binaries default to /usr/local/go
 export GOROOT=$HOME/go
