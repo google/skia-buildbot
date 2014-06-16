@@ -20,3 +20,30 @@ fi
 cd graphite-web
 python setup.py  install --prefix=/home/www-data/graphite \
   --install-lib=/home/www-data/graphite/lib
+
+cd /home/www-data
+# Install Go
+if [ -d go ]; then
+  echo Go already installed.
+else
+  wget https://go.googlecode.com/files/go1.2.1.linux-amd64.tar.gz
+  tar -xzf go1.2.1.linux-amd64.tar.gz
+fi
+
+HOME=/home/www-data
+mkdir=$HOME/golib
+# Prebuilt Go binaries default to /usr/local/go
+export GOROOT=$HOME/go
+export GOPATH=$HOME/golib
+export PATH=$PATH:$GOROOT/bin
+
+# Get buildbot code so we can build the prober.
+if [ -d buildbot ]; then
+  (cd buildbot && git pull);
+else
+  git clone https://skia.googlesource.com/buildbot
+fi
+
+cd buildbot/compute_engine_scripts/monitoring/prober
+go get -d
+go build

@@ -1,0 +1,37 @@
+{
+   "skfiddle": {
+     "url": "http://skfiddle.com",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skfiddle_compile_good": {
+     "url": "http://skfiddle.com",
+     "method": "POST",
+     "expected": [200],
+     "body": "{\"code\":\"\",\"name\":\"\",\"source\":0}",
+     "mimetype": "application/json"
+   },
+   "skfiddle_compile_bad": {
+     "url": "http://skfiddle.com",
+     "method": "POST",
+     "expected": [200],
+     "body": "{\"code\":\"#include <map>\",\"name\":\"\",\"source\":0}",
+     "mimetype": "application/json"
+   },
+   "skiaperf": {
+     "url": "http://skiaperf.com",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiamonitor": {
+     "url": "http://skiamonitor.com",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   }
+}

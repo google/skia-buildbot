@@ -25,11 +25,12 @@ sudo chown www-data:default /home/www-data
 
 # Vars to use with 'install'.
 PARAMS="-D --verbose --backup=none --group=default --owner=www-data --preserve-timestamps"
-EXE_PARAMS="$PARAMS --mode=766"
-CONFIG_PARAMS="$PARAMS  --mode=666"
+ROOT_PARAMS="-D --verbose --backup=none --group=root --owner=root --preserve-timestamps"
+EXE_FILE="--mode=755"
+CONFIG_FILE="--mode=666"
 
 # Copy over scripts we will run as www-data.
-sudo install $EXE_PARAMS continue_install.sh continue_install2.sh /home/www-data
+sudo install $PARAMS $EXE_FILE continue_install.sh continue_install2.sh /home/www-data
 
 # The continue_install.sh script installs local per-user copies of ceres,
 # whisper, carbon and graphite-web.
@@ -37,10 +38,11 @@ sudo su www-data -c /home/www-data/continue_install.sh
 
 # Now that the default installs are in place, overwrite the installs with our
 # custom config files.
-sudo install $CONFIG_PARAMS graphite.wsgi carbon.conf storage-schemas.conf \
+sudo install $PARAMS $CONFIG_FILE graphite.wsgi carbon.conf storage-schemas.conf \
   /home/www-data/graphite/conf
-sudo install $CONFIG_PARAMS local_settings.py /home/www-data/graphite/lib/graphite/
-sudo install $CONFIG_PARAMS monitoring_monit /etc/monit/conf.d/monitoring
+sudo install $PARAMS $CONFIG_FILE local_settings.py /home/www-data/graphite/lib/graphite/
+sudo install $ROOT_PARAMS $CONFIG_FILE -T monitoring_monit /etc/monit/conf.d/monitoring
+sudo install $ROOT_PARAMS $EXE_FILE -T prober_init /etc/init.d/prober
 
 # Now run the continue_install2.sh script as www-data, which creates the
 # sqlite database if needed and starts the carbon service.
@@ -50,4 +52,6 @@ sudo su www-data -c /home/www-data/continue_install2.sh
 # application, and restart the server.
 sudo cp httpd.conf /etc/apache2/conf.d/graphite.conf
 sudo /etc/init.d/monit restart
+sudo /etc/init.d/monit -t
 sudo /etc/init.d/apache2 restart
+sudo /etc/init.d/prober restart
