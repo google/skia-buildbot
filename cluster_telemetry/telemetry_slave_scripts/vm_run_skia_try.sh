@@ -214,10 +214,10 @@ gsutil -m cp $IMG_ROOT/diffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/
 gsutil -m cp $IMG_ROOT/whitediffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/
 
 # Set google.com permissions on all uploaded images.
-gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/*
-gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/*
-gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/*
-gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/*
+gsutil -m acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/*
+gsutil -m acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/*
+gsutil -m acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/*
+gsutil -m acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/*
 
 # Copy the summary file to Google Storage and set google.com permissions.
 gsutil cp $JSON_SUMMARY_DIR/slave${SLAVE_NUM}.json $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/

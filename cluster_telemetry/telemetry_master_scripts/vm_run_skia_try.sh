@@ -156,7 +156,7 @@ python json_summary_combiner.py \
 # Copy HTML output to Google Storage.
 gsutil -m cp -R $HTML_OUTPUT_DIR/* gs://$RELATIVE_HTML_OUTPUT
 # Set google.com domain ACL on the HTML files.
-gsutil acl ch -g google.com:READ gs://${RELATIVE_HTML_OUTPUT}*
+gsutil -m acl ch -g google.com:READ gs://${RELATIVE_HTML_OUTPUT}*
 
 # End the timer.
 TIMER="$(($(date +%s)-TIMER))"
