@@ -33,5 +33,5 @@ class ConfigParseTest(unittest.TestCase):
     })
 
 
-if __name__ = '__file__':
+if __name__ == '__file__':
   unittest.main()

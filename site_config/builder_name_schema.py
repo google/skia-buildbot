@@ -132,7 +132,7 @@ def DictForBuilderName(builder_name):
     for idx, key in enumerate(key_list):
       result[key] = split_name[idx+1]
     if len(split_name) > len(key_list):
-      result['extraConfig'] = BUILDER_NAME_SEP.join(
+      result['badParams'] = BUILDER_NAME_SEP.join(
           split_name[len(split_name):])
   else:
     raise ValueError("DictForBuilderName: Unable to determine buildbot type "

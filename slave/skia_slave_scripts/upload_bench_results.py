@@ -192,6 +192,7 @@ class UploadBenchResults(BuildStep):
     new_json_data['timestamp'] = gclient_utils.GetGitRepoPOSIXTimestamp()
     new_json_data['gitHash'] = self._got_revision
     new_json_data['gitNumber'] = gclient_utils.GetGitNumber(self._got_revision)
+    # NOTE: site_config/build_name_schema.py also affects the schema
 
     # Get trybot params
     new_json_data.update(self._GetTrybotDict())
@@ -235,6 +236,7 @@ class UploadBenchResults(BuildStep):
                 new_row['value'] = value
                 json.dump(new_row, json_picture_write)
                 json_picture_write.write('\n')
+      # NOTE: site_config/build_name_schema.py also affects the schema
 
       # Load in expectations data
       TYPE_DICT = {'': 'wall', 'c': 'cpu', 'g': 'gpu'}
