@@ -2,7 +2,7 @@
 #
 # Script to setup a GCE instance to run the perf server.
 # For full instructions see the README file.
-sudo apt-get install monit squid3 gcc
+sudo apt-get install monit squid3 gcc mercurial
 echo "Adding the perf user account"
 sudo adduser perf
 
@@ -18,3 +18,4 @@ sudo cp sys/perf_squid /etc/squid3/squid.conf
 sudo chmod 744 /etc/init.d/perf
 # Confirm that monit is happy.
 sudo monit -t
+sudo /etc/init.d/perf restart

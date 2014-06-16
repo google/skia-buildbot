@@ -17,10 +17,16 @@ else
 fi
 
 
-if [ -d buildbot]; then
+if [ -d buildbot ]; then
   (cd buildbot && git pull);
 else
   git clone https://skia.googlesource.com/buildbot
+fi
+
+if [ -d skia ]; then
+  (cd skia && git pull);
+else
+  git clone https://skia.googlesource.com/skia
 fi
 
 mkdir=$HOME/golib
@@ -30,4 +36,4 @@ export PATH=$PATH:$GOROOT/bin
 
 cd ~/buildbot/perf/server
 go get -d
-go build perf.go
+go build -o perf

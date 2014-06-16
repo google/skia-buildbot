@@ -35,7 +35,7 @@ var (
 // flags
 var (
 	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	doOauth    = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup.")
+	doOauth    = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	gitRepoDir = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 )
 

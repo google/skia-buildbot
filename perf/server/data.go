@@ -17,6 +17,7 @@ import (
 )
 
 import (
+	"code.google.com/p/goauth2/compute/serviceaccount"
 	"code.google.com/p/goauth2/oauth"
 	"code.google.com/p/google-api-go-client/bigquery/v2"
 	"github.com/oxtoacart/webbrowser"
@@ -458,7 +459,10 @@ func NewData(doOauth bool, gitRepoDir string) (*Data, error) {
 			return nil, fmt.Errorf("Failed to auth: %s", err)
 		}
 	} else {
-		client = http.DefaultClient
+		client, err = serviceaccount.NewClient(nil)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to auth using a service account: %s", err)
+		}
 	}
 	service, err := bigquery.New(client)
 	if err != nil {
