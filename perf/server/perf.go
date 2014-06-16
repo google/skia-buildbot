@@ -1,3 +1,7 @@
+// Copyright (c) 2014 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file.
+
 package main
 
 import (
@@ -30,7 +34,13 @@ var (
 
 // flags
 var (
-	port = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	doOauth    = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup.")
+	gitRepoDir = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+)
+
+var (
+	data *Data
 )
 
 func init() {
@@ -96,6 +106,15 @@ func reportError(w http.ResponseWriter, r *http.Request, err error, message stri
 	http.Error(w, message, 500)
 }
 
+// jsonHandler handles the GET for the JSON requests.
+func jsonHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("JSON Handler: %q\n", r.URL.Path)
+	if r.Method == "GET" {
+		w.Header().Set("Content-Type", "application/json")
+		data.AsJSON(w)
+	}
+}
+
 // mainHandler handles the GET and POST of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Main Handler: %q\n", r.URL.Path)
@@ -109,9 +128,20 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.Parse()
+
+	log.Println("Begin loading data.")
+	var err error
+	data, err = NewData(*doOauth, *gitRepoDir)
+	if err != nil {
+		log.Fatalln("Failed initial load of data from BigQuery: ", err)
+	}
+
 	// Resources are served directly.
 	http.Handle("/res/", autogzip.Handle(http.FileServer(http.Dir("./"))))
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
+	http.HandleFunc("/json/", autogzip.HandleFunc(jsonHandler))
+
+	log.Println("Ready to serve.")
 	log.Fatal(http.ListenAndServe(*port, nil))
 }
