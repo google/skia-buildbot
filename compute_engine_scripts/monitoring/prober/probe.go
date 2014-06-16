@@ -26,6 +26,7 @@ var (
 
 const (
 	SAMPLE_PERIOD = time.Minute
+	TIMEOUT       = time.Duration(20 * time.Second)
 )
 
 // Probe is a single endpoint we are probing.
@@ -76,6 +77,11 @@ func In(n int, list []int) bool {
 	return false
 }
 
+// dialTimeout is a dialer that sets a timeout.
+func dialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, TIMEOUT)
+}
+
 func main() {
 	flag.Parse()
 	log.Println("Looking for Carbon server.")
@@ -100,7 +106,13 @@ func main() {
 	}
 	var resp *http.Response
 	var begin time.Time
-	c := &http.Client{}
+
+	// Create a client that uses our dialer with a timeout.
+	c := &http.Client{
+		Transport: &http.Transport{
+			Dial: dialTimeout,
+		},
+	}
 	for _ = range time.Tick(SAMPLE_PERIOD) {
 		for name, probe := range *cfg {
 			log.Println("Running probe: ", name)
