@@ -139,9 +139,7 @@ done
 SUMMARIES_DIR=/b/storage/skia-tryserver/summaries/$RUN_ID
 HTML_OUTPUT_DIR=/b/storage/skia-tryserver/html-outputs/$RUN_ID
 mkdir -p $SUMMARIES_DIR $HTML_OUTPUT_DIR
-for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
-  gsutil cp $SLAVE_OUTPUT_GS_LOCATION/slave$SLAVE_NUM/slave$SLAVE_NUM.json $SUMMARIES_DIR/
-done
+gsutil -m cp $SLAVE_OUTPUT_GS_LOCATION/slave*/slave*.json $SUMMARIES_DIR/
 # Output HTML from the slave summaries.
 cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
 RELATIVE_HTML_OUTPUT=chromium-skia-gm/telemetry/skia-tryserver/html-outputs/$RUN_ID/
