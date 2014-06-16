@@ -56,6 +56,43 @@ def ReadExpectations(filename):
   return expectations
 
 
+def _ParseConfig(config, tileSet=None, idx=0):
+  """Converts a config string into a dictionary of configuration values."""
+  config_info = config.split('_')
+  params = {}
+  token_name = None
+  for token in config_info:
+    if token_name:
+      if token_name == 'grid':
+        params['bbh'] = 'grid_{}'.format(token)
+      else:
+        params[token_name] = token
+      token_name = None
+    elif token in ['scalar', 'viewport', 'grid']:
+      token_name = token
+      if token == 'scalar':
+        token_name = 'scale'
+    elif token in ['8888', 'gpu', 'msaa4', 'nvprmsaa4',
+                   'nvprmsaa16']:
+      params['config'] = token
+    elif token in ['rtree', 'quadtree', 'grid']:
+      params['bbh'] = token
+    elif token in ['simple', 'record', 'tile']:
+      params['mode'] = token
+      if tileSet and token == 'tile':
+        params['mode'] = '_'.join(
+            'tile',
+            idx % tileSet['tx'],
+            idx // tileSet['ty'])
+    else:
+      if 'badParams' not in params:
+        params['badParams'] = token
+      else:
+        params['badParams'] += '_' + token
+  return params
+
+
+
 class UploadBenchResults(BuildStep):
 
   def __init__(self, attempts=5, **kwargs):
@@ -187,31 +224,8 @@ class UploadBenchResults(BuildStep):
                     tileSet['name'],
                     measurement
                 ])
-                config_info = tileSet['name'].split('_')
-                token_name = None
-                for token in config_info:
-                  if token_name:
-                    if token_name == 'grid':
-                      new_row['params']['bbh'] = 'grid_{}'.format(token)
-                    else:
-                      new_row['params'][token_name] = token
-                    token_name = None
-                  elif token in ['scalar', 'viewport', 'grid']:
-                    token_name = token
-                    if token == 'scalar':
-                      token_name = 'scale'
-                  elif token in ['8888', 'gpu', 'msaa4', 'nvprmsaa4',
-                                 'nvprmsaa16']:
-                    new_row['params']['config'] = token
-                  elif token in ['rtree', 'quadtree', 'grid']:
-                    new_row['params']['bbh'] = token
-                  elif token in ['simple', 'record', 'tile']:
-                    new_row['params']['mode'] = token
-                    if token == 'tile':
-                      new_row['params']['mode'] = '_'.join(
-                          'tile',
-                          idx % tileSet['tx'],
-                          idx // tileSet['ty'])
+                new_params = _ParseConfig(tileSet['name'], tileSet, idx)
+                new_row['params'].update(new_params)
 
                 # Get 25th percentile
                 percentile = int(round(
@@ -223,16 +237,20 @@ class UploadBenchResults(BuildStep):
                 json_picture_write.write('\n')
 
       # Load in expectations data
+      TYPE_DICT = {'': 'wall', 'c': 'cpu', 'g': 'gpu'}
       for key in expectations.keys():
         for idx, name in [(0, 'lower'), (1, 'upper'), (2, 'expected')]:
           new_row = copy.deepcopy(new_json_data)
           stripped_bench_name = '{}.skp'.format(key.split('.skp')[0])
-          skp_size = key.split('.skp')[1]
+          config_info = key.split('.skp')[1].split('_')
           new_row['key'] = self._builder_name + '_' + key + name
           new_row['value'] = expectations[key][idx]
           new_row['params']['benchName'] = stripped_bench_name
-          new_row['params']['measurementType'] = name
-          new_row['params']['skpSize'] = skp_size
+          new_row['params']['measurementType'] = '_'.join([
+              name,
+              TYPE_DICT[config_info[-1]]])
+          new_params = _ParseConfig(key.split('.skp')[1])
+          new_row['params'].update(new_params)
           json.dump(new_row, json_picture_write)
           json_picture_write.write('\n')
 
@@ -268,6 +286,7 @@ class UploadBenchResults(BuildStep):
       new_json_data['params'] = builder_name_schema.DictForBuilderName(
           self._builder_name)
       new_json_data['params']['builderName'] = self._builder_name
+      new_json_data['params']['scale'] = 1.0
       new_json_data['buildNumber'] = int(self._build_number)
       new_json_data['timestamp'] = gclient_utils.GetGitRepoPOSIXTimestamp()
       new_json_data['gitHash'] = self._got_revision
