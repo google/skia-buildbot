@@ -17,7 +17,7 @@ else
 fi
 
 
-if [-d buildbot]; then
+if [ -d buildbot]; then
   (cd buildbot && git pull);
 else
   git clone https://skia.googlesource.com/buildbot
