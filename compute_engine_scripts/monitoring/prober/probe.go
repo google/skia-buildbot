@@ -90,7 +90,16 @@ func main() {
 		log.Fatalln("Failed to resolve the Carbon server: ", err)
 	}
 	log.Println("Found Carbon server.")
-	go metrics.Graphite(metrics.DefaultRegistry, SAMPLE_PERIOD, *prefix, addr)
+
+	// We have two sets of metrics, one for the probes and one for the probe
+	// server itself.
+	serverRegistry := metrics.NewRegistry()
+	metrics.RegisterRuntimeMemStats(serverRegistry)
+	go metrics.CaptureRuntimeMemStats(serverRegistry, SAMPLE_PERIOD)
+	go metrics.Graphite(serverRegistry, SAMPLE_PERIOD, "probeserver", addr)
+
+	probeRegistry := metrics.NewRegistry()
+	go metrics.Graphite(probeRegistry, SAMPLE_PERIOD, *prefix, addr)
 
 	// TODO(jcgregorio) Monitor config file and reload if it changes.
 	cfg, err := readConfigFile(*config)
@@ -100,9 +109,9 @@ func main() {
 	log.Println("Successfully read config file.")
 	// Register counters for each probe.
 	for name, probe := range *cfg {
-		probe.Success = metrics.NewRegisteredCounter(name+".success", metrics.DefaultRegistry)
-		probe.Failure = metrics.NewRegisteredCounter(name+".failure", metrics.DefaultRegistry)
-		probe.Latency = metrics.NewRegisteredTimer(name+".latency", metrics.DefaultRegistry)
+		probe.Success = metrics.NewRegisteredCounter(name+".success", probeRegistry)
+		probe.Failure = metrics.NewRegisteredCounter(name+".failure", probeRegistry)
+		probe.Latency = metrics.NewRegisteredTimer(name+".latency", probeRegistry)
 	}
 	var resp *http.Response
 	var begin time.Time
@@ -125,6 +134,7 @@ func main() {
 				log.Println("Error: unknown method: ", probe.Method)
 				continue
 			}
+			resp.Body.Close()
 			d := time.Since(begin)
 			// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 			if err == nil && In(resp.StatusCode, probe.Expected) {
