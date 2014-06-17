@@ -160,22 +160,20 @@ class PresubmitEvent(VerificationEvent):
     return '<%s>' % cls.name
 
 
+def create_html_links(message):
+  r = re.compile(r"(\(?)(https?://[^ )]+)(\)?)")
+  return r.sub(r'\1<a href="\2">\2</a>\3', message)
+
+
 class CommitEvent(VerificationEvent):
   name = 'commit'
   output = db.TextProperty()
-  revision = db.IntegerProperty()
   url = db.StringProperty()
 
   @property
   def as_html(self):
-    out = '<pre class="output">%s</pre>' % cgi.escape(self.output)
-    if self.url:
-      out += '<a href="%s">Revision %s</a>' % (
-        cgi.escape(self.url),
-        cgi.escape(str(self.revision)))
-    elif self.revision:
-      out += '<br>Revision %s' % cgi.escape(str(self.revision))
-    return out
+    return '<pre class="output">%s</pre>' % create_html_links(
+        cgi.escape(self.output))
 
   @classmethod
   def to_key(cls, _):
@@ -215,7 +213,8 @@ class WhyNotEvent(VerificationEvent):
 
   @property
   def as_html(self):
-    return '<pre class="output">%s</pre>' % cgi.escape(self.message)
+    return '<pre class="output">%s</pre>' % create_html_links(
+        cgi.escape(self.message))
 
   @classmethod
   def to_key(cls, _):
@@ -323,132 +322,6 @@ class CQBasePage(BasePage):
       else:
         user = self.user.email()
     return user
-
-
-class OwnerStats(object):
-  """CQ usage statistics for a single user."""
-  def __init__(self, now, owner, last_day, last_week, last_month, forever):
-    # Since epoch in float.
-    self.now = now
-    # User instance.
-    self.owner = owner
-    assert all(isinstance(i, PendingCommit) for i in last_day)
-    self.last_day = last_day
-    assert all(isinstance(i, PendingCommit) for i in last_week)
-    self.last_week = last_week
-    assert isinstance(last_month, int)
-    self.last_month = last_month
-    assert isinstance(forever, int)
-    self.forever = forever
-    # Gamify ALL the things!
-    self.points = (
-        len(self.last_day) * 10 +
-        len(self.last_week) * 5 +
-        self.last_month * 2 +
-        self.forever)
-
-
-class OwnerQuery(object):
-  def __init__(self, owner_key, now):
-    self.owner_key = owner_key
-    self.now = now
-    since = lambda x: now - datetime.timedelta(days=x)
-    self._owner = db.get_async(owner_key)
-    self._last_day = self._pendings().filter('created >=', since(1)).run()
-    self._last_week = self._pendings().filter(
-        'created >=', since(7)).filter('created <', since(1)).run()
-    # These block.
-    self.last_month = self._pendings().filter(
-        'created >=', since(30)).count()
-    self.forever = self._pendings(keys_only=True).count()
-
-  def _pendings(self, **kwargs):
-    return PendingCommit.all(**kwargs).ancestor(self.owner_key)
-
-  def to_stats(self):
-    obj = OwnerStats(
-        self.now,
-        self._owner.get_result(),
-        list(self._last_day),
-        list(self._last_week),
-        self.last_month,
-        self.forever)
-    memcache.add(
-        self.owner_key.name(), obj, 2*60*60, namespace='cq_owner_stats')
-    return obj
-
-
-def to_link(pending):
-  return '<a href="/cq/%s/%s/%s">%s</a>' % (
-      pending.parent_key().name()[1:-1],
-      pending.issue,
-      pending.patchset,
-      pending.issue)
-
-
-def get_owner_stats(owner_key, now):
-  """Returns an OnwerStats instance for the Owner."""
-  obj = memcache.get(owner_key.name(), 'cq_owner_stats')
-  if obj:
-    return obj
-  return OwnerQuery(owner_key, now).to_stats()
-
-
-def monthly_top_contributors():
-  """Returns the top monthly contributors as a list of OwnerStats."""
-  obj = memcache.get('monthly', 'cq_top')
-  if not obj:
-    now = datetime.datetime.utcnow()
-    last_pendings = PendingCommit.all(
-        keys_only=True).order('-created').fetch(1000)
-    # Make it use asynchronous queries.
-    obj = [
-        get_owner_stats(o, now) for o in set(p.parent() for p in last_pendings)
-    ]
-    memcache.add('monthly', obj, 2*60*60, namespace='cq_top')
-  return obj
-
-
-class Summary(CQBasePage):
-  def _get_as_html(self, _):
-    owners = []
-    for stats in monthly_top_contributors():
-      data = {
-        'email': stats.owner.email,
-        'last_day': ', '.join(to_link(i) for i in stats.last_day),
-        'last_week': ', '.join(to_link(i) for i in stats.last_week),
-        'last_month': stats.last_month,
-        'forever': stats.forever,
-      }
-      owners.append(data)
-    owners.sort(key=lambda x: -x['last_month'])
-    template_values = self.InitializeTemplate(self.APP_NAME + ' Commit queue')
-    template_values['data'] = owners
-    self.DisplayTemplate('cq_owners.html', template_values, use_cache=True)
-
-
-class TopScore(CQBasePage):
-  def _get_as_html(self, _):
-    owners = [
-      {
-        'name': stats.owner.email.split('@', 1)[0].upper(),
-        'points': stats.points,
-      }
-      for stats in monthly_top_contributors()
-    ]
-    owners.sort(key=lambda x: -x['points'])
-    for i in xrange(len(owners)):
-      if i == 0:
-        owners[i]['rank'] = '1st'
-      elif i == 1:
-        owners[i]['rank'] = '2nd'
-      elif i == 2:
-        owners[i]['rank'] = '3rd'
-      else:
-        owners[i]['rank'] = '%dth' % (i + 1)
-    template_values = self.InitializeTemplate(self.APP_NAME + ' Commit queue')
-    template_values['data'] = owners
-    self.DisplayTemplate('cq_top_score.html', template_values, use_cache=True)
 
 
 class User(CQBasePage):

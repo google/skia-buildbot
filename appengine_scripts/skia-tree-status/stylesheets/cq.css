@@ -12,11 +12,11 @@ table.issue, table.issue td, table.issue th {
 }
 
 table.issue .timestamp {
-  width: 200px;
+  width: 20px;
 }
 
 table.issue .type {
-  width: 100px;
+  width: 20px;
 }
 
 table.issue .message .output {
