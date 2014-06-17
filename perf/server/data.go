@@ -27,6 +27,14 @@ const (
 	// JSON doesn't support NaN or +/- Inf, so we need a valid float
 	// to signal missing data that also has a compact JSON representation.
 	MISSING_DATA_SENTINEL = 1e100
+
+	// Don't consider data before this time. May be due to schema changes, etc.
+	// Note that the limit is exclusive, this date does not contain good data.
+	// TODO(jcgregorio) Make into a flag.
+	BEGINNING_OF_TIME = "20140614"
+
+	// Limit the number of commits we hold in memory and do bulk analysis on.
+	MAX_COMMITS_IN_MEMORY = 30
 )
 
 // Shouldn't need auth when running from GCE, but will need it for local dev.
@@ -99,11 +107,17 @@ type Annotation struct {
 
 // Commit is information about each Git commit.
 type Commit struct {
-	CommitTime    time.Time    `json:"commit_time"`
-	Hash          string       `json:"hash"`
-	GitNumber     int          `json:"git_number"`
+	CommitTime    int64        `json:"commit_time" bq:"timestamp"`
+	Hash          string       `json:"hash"        bq:"gitHash"`
+	GitNumber     int64        `json:"git_number"  bq:"gitNumber"`
 	CommitMessage string       `json:"commit_msg"`
 	Annotations   []Annotation `json:"annotations,omitempty"`
+}
+
+func NewCommit() *Commit {
+	return &Commit{
+		Annotations: []Annotation{},
+	}
 }
 
 // Choices is a list of possible values for a param. See AllData.
@@ -114,46 +128,95 @@ type Choices []string
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type AllData struct {
-	Traces   []Trace            `json:"traces"`
+	Traces   []*Trace           `json:"traces"`
 	ParamSet map[string]Choices `json:"param_set"`
-	Commits  []Commit           `json:"commits"`
+	Commits  []*Commit          `json:"commits"`
+}
+
+// DateIter allows for easily iterating backwards, one day at a time, until
+// reaching the BEGINNING_OF_TIME.
+type DateIter struct {
+	day       time.Time
+	firstLoop bool
+}
+
+func NewDateIter() *DateIter {
+	return &DateIter{
+		day:       time.Now(),
+		firstLoop: true,
+	}
+}
+
+// Next is the iterator step function to be used in a for loop.
+func (i *DateIter) Next() bool {
+	if i.firstLoop {
+		i.firstLoop = false
+		return true
+	}
+	i.day = i.day.Add(-24 * time.Hour)
+	return i.Date() != BEGINNING_OF_TIME
+}
+
+// Date returns the day formatted as we use them on BigQuery table name suffixes.
+func (i *DateIter) Date() string {
+	return i.day.Format("20060102")
 }
 
 // gitCommitsWithTestData returns the list of commits that have perf data
 // associated with them.
 //
+// Returns a list of dates of tables we had to query, the list of commits ordered
+// from oldest to newest, and an error code.
+//
 // Not all commits will have perf data, the builders don't necessarily run for
-// each commit.
-func gitCommitsWithTestData(service *bigquery.Service) (map[string]bool, error) {
-	query := `
+// each commit.  Will limit itself to returning only the number of days that
+// are needed to get MAX_COMMITS_IN_MEMORY.
+func gitCommitsWithTestData(service *bigquery.Service) ([]string, []*Commit, error) {
+	dateList := []string{}
+	allCommits := make([]*Commit, 0)
+	queryTemplate := `
 SELECT
-  gitHash
+  gitHash, FIRST(timestamp) as timestamp, FIRST(gitNumber) as gitNumber
 FROM
-  (TABLE_DATE_RANGE(perf_skps_v2.skpbench,
-      DATE_ADD(CURRENT_TIMESTAMP(),
-        -2,
-        'DAY'),
-      CURRENT_TIMESTAMP()))
+  perf_skps_v2.skpbench%s
 GROUP BY
-  gitHash;
+  gitHash
+ORDER BY
+  timestamp DESC;
   `
-	iter, err := NewRowIter(service, query)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to query for the Git hashes used: %s", err)
-	}
-
-	hashes := make(map[string]bool)
-	for iter.Next() {
-		h := &struct {
-			Hash string `bq:"gitHash"`
-		}{}
-		err := iter.Decode(h)
+	// Loop over table going backward until we find 30 commits, or hit the BEGINNING_OF_TIME.
+	dates := NewDateIter()
+	totalCommits := 0
+	for dates.Next() {
+		query := fmt.Sprintf(queryTemplate, dates.Date())
+		iter, err := NewRowIter(service, query)
 		if err != nil {
-			return nil, fmt.Errorf("Failed reading hashes from BigQuery: %s", err)
+			return nil, allCommits, fmt.Errorf("Failed to query for the Git hashes used: %s", err)
 		}
-		hashes[h.Hash] = true
+
+		for iter.Next() {
+			c := NewCommit()
+			if err := iter.Decode(c); err != nil {
+				return nil, allCommits, fmt.Errorf("Failed reading hashes from BigQuery: %s", err)
+			}
+			totalCommits++
+			if len(allCommits) < MAX_COMMITS_IN_MEMORY {
+				allCommits = append(allCommits, c)
+			} else {
+				break
+			}
+		}
+		dateList = append(dateList, dates.Date())
+		if totalCommits >= MAX_COMMITS_IN_MEMORY {
+			break
+		}
 	}
-	return hashes, nil
+	// Now reverse allCommits so that it is oldest first.
+	reversedCommits := make([]*Commit, len(allCommits), len(allCommits))
+	for i, c := range allCommits {
+		reversedCommits[len(allCommits)-i-1] = c
+	}
+	return dateList, reversedCommits, nil
 }
 
 // GitHash represents information on a single Git commit.
@@ -163,6 +226,8 @@ type GitHash struct {
 }
 
 // readCommitsFromGit reads the commit history from a Git repository.
+//
+// Don't bother with this for now, will eventually need for commit message.
 func readCommitsFromGit(dir string) ([]GitHash, error) {
 	cmd := exec.Command("git", strings.Split("log --format=%H%x20%ci", " ")...)
 	cmd.Dir = dir
@@ -347,7 +412,7 @@ func (r *RowIter) Decode(s interface{}) error {
 				}
 				sv.Field(i).SetInt(parsedInt)
 			default:
-				return fmt.Errorf("can't decode into field of type: %s", sv.Field(i).Kind())
+				return fmt.Errorf("can't decode into field of type: %s %s", columnName, sv.Field(i).Kind())
 			}
 		}
 	}
@@ -355,56 +420,77 @@ func (r *RowIter) Decode(s interface{}) error {
 }
 
 // populateTraces reads the measurement data from BigQuery and populates the Traces.
-func populateTraces(service *bigquery.Service, all *AllData, hashToIndex map[string]int, numSamples int) error {
-	type Measurement struct {
-		Value float64 `bq:"value"`
-		Key   string  `bq:"key"`
-		Hash  string  `bq:"gitHash"`
-	}
+//
+// dates is the list of table date suffixes that we will need to iterate over.
+// earliestTimestamp is the timestamp of the earliest commit.
+func populateTraces(service *bigquery.Service, all *AllData, hashToIndex map[string]int, numSamples int, dates []string, earliestTimestamp int64) error {
+	// Keep a map of key to Trace.
+	allTraces := map[string]*Trace{}
 
 	// Now query the actual samples.
-	query := `
-	   SELECT
-	     *
-	   FROM
-	     (TABLE_DATE_RANGE(perf_skps_v2.skpbench,
-	         DATE_ADD(CURRENT_TIMESTAMP(),
-	           -2,
-	           'DAY'),
-	         CURRENT_TIMESTAMP()))
-     WHERE
-       params.benchName="tabl_worldjournal.skp"
-           OR
-       params.benchName="desk_amazon.skp"
-	   ORDER BY
-	     key DESC,
-	     timestamp DESC;
+	queryTemplate := `
+   SELECT
+    *
+   FROM
+    perf_skps_v2.skpbench%s
+   WHERE
+     isTrybot=false
+     AND (
+        params.measurementType="gpu" OR
+        params.measurementType="cpu" OR
+        params.measurementType="wall"
+        )
+      AND
+        timestamp >= %d
+      AND (
+        params.benchName="tabl_worldjournal.skp"
+                   OR
+        params.benchName="desk_amazon.skp"
+        )
+   ORDER BY
+     key DESC,
+     timestamp DESC;
 	     `
-	iter, err := NewRowIter(service, query)
-	if err != nil {
-		return fmt.Errorf("Failed to query data from BigQuery: %s", err)
-	}
-	var trace *Trace = nil
-	currentKey := ""
-	for iter.Next() {
-		m := &Measurement{}
-		if err := iter.Decode(m); err != nil {
-			return fmt.Errorf("Failed to decode Measurement from BigQuery: %s", err)
+	// Query each table one day at a time. This protects us from schema changes.
+	for _, date := range dates {
+		query := fmt.Sprintf(queryTemplate, date, earliestTimestamp)
+		iter, err := NewRowIter(service, query)
+		if err != nil {
+			return fmt.Errorf("Failed to query data from BigQuery: %s", err)
 		}
-		if m.Key != currentKey {
-			if trace != nil {
-				all.Traces = append(all.Traces, *trace)
+		var trace *Trace = nil
+		currentKey := ""
+		for iter.Next() {
+			m := &struct {
+				Value float64 `bq:"value"`
+				Key   string  `bq:"key"`
+				Hash  string  `bq:"gitHash"`
+			}{}
+			if err := iter.Decode(m); err != nil {
+				return fmt.Errorf("Failed to decode Measurement from BigQuery: %s", err)
 			}
-			currentKey = m.Key
-			trace = NewTrace(numSamples)
-			trace.Params = iter.DecodeParams()
-			trace.Key = m.Key
-		}
-		if index, ok := hashToIndex[m.Hash]; ok {
-			trace.Values[index] = m.Value
+			if m.Key != currentKey {
+				currentKey = m.Key
+				// If we haven't seen this key before, create a new Trace for it and store
+				// the Trace in allTraces.
+				if _, ok := allTraces[currentKey]; !ok {
+					trace = NewTrace(numSamples)
+					trace.Params = iter.DecodeParams()
+					trace.Key = currentKey
+					allTraces[currentKey] = trace
+				} else {
+					trace = allTraces[currentKey]
+				}
+			}
+			if index, ok := hashToIndex[m.Hash]; ok {
+				trace.Values[index] = m.Value
+			}
 		}
 	}
-	all.Traces = append(all.Traces, *trace)
+	// Flatten allTraces into all.Traces.
+	for _, trace := range allTraces {
+		all.Traces = append(all.Traces, trace)
+	}
 
 	return nil
 }
@@ -449,7 +535,7 @@ func populateParamSet(all *AllData) {
 // NewData loads the data the first time and then starts a go routine to
 // preiodically refresh the data.
 //
-// TODO(jcgregorio) Actuall do the bit where we start a go routine.
+// TODO(jcgregorio) Actually do the bit where we start a go routine.
 func NewData(doOauth bool, gitRepoDir string) (*Data, error) {
 	var err error
 	var client *http.Client
@@ -469,29 +555,10 @@ func NewData(doOauth bool, gitRepoDir string) (*Data, error) {
 		return nil, fmt.Errorf("Failed to create a new BigQuery service object: %s", err)
 	}
 
-	// First query and get the list of hashes we are interested in and use that
-	// and the git log results to fill in the Commits.
-	allGitHashes, err := readCommitsFromGit(gitRepoDir)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to read hashes from Git log: %s", err)
-	}
-
-	hashesTested, err := gitCommitsWithTestData(service)
+	dates, commits, err := gitCommitsWithTestData(service)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read hashes from BigQuery: %s", err)
 	}
-
-	// Order the git hashes by commit log order.
-	commits := make([]Commit, 0, len(hashesTested))
-	for i := len(allGitHashes) - 1; i >= 0; i-- {
-		h := allGitHashes[i]
-		if _, ok := hashesTested[h.Hash]; ok {
-			commits = append(commits, Commit{Hash: h.Hash, CommitTime: h.TimeStamp})
-		}
-	}
-
-	// The number of samples that appear in each trace.
-	numSamples := len(commits)
 
 	// A mapping of Git hashes to where they appear in the Commits array, also the index
 	// at which a measurement gets stored in the Values array.
@@ -501,12 +568,12 @@ func NewData(doOauth bool, gitRepoDir string) (*Data, error) {
 	}
 
 	all := &AllData{
-		Traces:   make([]Trace, 0, 0),
+		Traces:   make([]*Trace, 0, 0),
 		ParamSet: make(map[string]Choices),
 		Commits:  commits,
 	}
 
-	if err := populateTraces(service, all, hashToIndex, numSamples); err != nil {
+	if err := populateTraces(service, all, hashToIndex, len(commits), dates, commits[0].CommitTime); err != nil {
 		// Fail fast, monit will restart us if we fail for some reason.
 		panic(err)
 	}
