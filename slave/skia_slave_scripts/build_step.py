@@ -137,6 +137,8 @@ class BuildStep(multiprocessing.Process):
     sys.path.append(os.getcwd())
 
     self._configuration = args['configuration']
+    if os.name == 'nt' and 'x86_64' in self._builder_name:
+      self._configuration += '_x64'
 
     self._target_platform = args['target_platform']
     self._deps_target_os = \
