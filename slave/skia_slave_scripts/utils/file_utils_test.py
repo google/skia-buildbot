@@ -5,11 +5,18 @@
 
 """Tests for module file_utils."""
 
-import file_utils
 import os
+import sys
 import unittest
 
+import misc
+# Appending to PYTHONPATH to find common.
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'scripts'))
+import file_utils
+
 from common import chromium_utils
+
 
 class TestFileUtils(unittest.TestCase):
 

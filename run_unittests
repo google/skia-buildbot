@@ -56,16 +56,8 @@ if __name__ == '__main__':
   print 'Found %d tests.' % len(tests_to_run)
   errors = []
   for test in tests_to_run:
-    env = os.environ.copy()
-    python_path = env.get('PYTHONPATH', '')
-    python_path = os.pathsep.join(
-        [python_path, os.path.join(BUILDBOT_PATH,
-                                   'third_party', 'chromium_buildbot',
-                                   'scripts')])
-    env['PYTHONPATH'] = python_path
-
     proc = subprocess.Popen(['python', test], stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, env=env)
+                            stderr=subprocess.STDOUT)
     if proc.wait() != 0:
       errors.append(proc.communicate()[0])
   if errors:
