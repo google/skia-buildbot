@@ -33,7 +33,14 @@ class DRTCanaryFactory(factory.SkiaFactory):
   def Update(self, use_lkgr_skia=False):
     """ Override of Update() which may sync Skia to LKGR instead of
     self._revision, without setting got_revision. """
-    self.AddSlaveScript(
+    args = ['--gyp_defines',
+            ' '.join('%s=%s' % (k, v) for k, v in self._gyp_defines.items())]
+    if use_lkgr_skia:
+      args.extend(['--use_lkgr_skia', 'True'])
+    else:
+      args.extend(['--chrome_rev', WithProperties('%(chrome_revision)s')])
+
+    self.AddFlavoredSlaveScript(
         script=self.TargetPath.join(os.pardir, os.pardir, os.pardir, os.pardir,
                                     os.pardir, 'slave', 'skia_slave_scripts',
                                     '%s_update.py' % self._flavor),
@@ -47,8 +54,7 @@ class DRTCanaryFactory(factory.SkiaFactory):
             else {'chrome_revision2': 'Chrome updated to (\w+)',
                   'got_revision': 'Skia updated to (\w+)'}),
         workdir='build',
-        args=(['--use_lkgr_skia', 'True'] if use_lkgr_skia
-              else ['--chrome_rev', WithProperties('%(chrome_revision)s')]))
+        args=args)
 
   def PreTest(self):
     """ Step to run before running tests. """
