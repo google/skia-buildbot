@@ -33,6 +33,8 @@ PAGESET_TYPES = {
     'Mobile10k': 'Top 10k (with mobile user-agent)',
     'IndexSample10k': 'IndexSample 10k (with mobile user-agent)',
     'GPURasterSet': 'GPU Raster Set (with mobile user-agent)',
+    'KeyMobileSites': 'Key Mobile Sites (with mobile user-agent)',
+    'KeySilkCases': 'Key Silk Cases (with mobile user-agent)',
 }
 
 # Constants for ChromiumTryPage.
@@ -826,7 +828,7 @@ class SkiaTryPage(BasePage):
     pagesets_to_builds = get_skp_pagesets_to_builds()
     # Only support all 10k pagesets for now.
     for pageset in pagesets_to_builds.keys():
-      if '10k' not in pageset and 'GPU' not in pageset:
+      if '10k' not in pageset and 'GPU' not in pageset and 'Key' not in pageset:
         del pagesets_to_builds[pageset]
     template_values['pagesets_to_builds'] = pagesets_to_builds
     template_values['skia_try_tasks'] = skia_try_tasks
@@ -901,7 +903,8 @@ class ChromiumTryPage(BasePage):
         self.user.email())
     # Only support all 10k pagesets for now.
     template_values['pagesets'] = dict((k, v) for k, v in PAGESET_TYPES.items()
-                                              if '10k' in k or 'GPU' in k)
+                                              if '10k' in k or 'GPU' in k
+                                                            or 'Key' in k)
     template_values['supported_benchmarks'] = CHROMIUM_TRY_SUPPORTED_BENCHMARKS
     template_values['chromium_try_tasks'] = chromium_try_tasks
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
