@@ -467,6 +467,11 @@ class SkiaGateKeeper(gatekeeper.GateKeeper):
     ret = (utils.GATEKEEPER_NAME in (builder_status.getCategory() or '') and
             chromium_notifier.ChromiumNotifier.isInterestingBuilder(self,
                 builder_status))
+    log.msg('[gatekeeper-debug] builder_status.getCategory(): %s' % (
+        builder_status.getCategory()))
+    log.msg('[gatekeeper-debug] isInterestingBuilder: %s' % (
+        chromium_notifier.ChromiumNotifier.isInterestingBuilder(
+            self, builder_status)))
     return ret
 
   def isInterestingStep(self, build_status, step_status, results):

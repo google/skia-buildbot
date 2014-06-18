@@ -219,7 +219,7 @@ class Master(config_default.Master):
     master_port = skia_vars.GetGlobalVariable('compile_internal_port')
     slave_port = skia_vars.GetGlobalVariable('compile_slave_port')
     master_port_alt = skia_vars.GetGlobalVariable('compile_external_port')
-    tree_closing_notification_recipients = []
+    tree_closing_notification_recipients = ['skia-commit@googlegroups.com']
     from_address = skia_vars.GetGlobalVariable('gce_smtp_user')
     is_publicly_visible = True
     code_review_site = \
