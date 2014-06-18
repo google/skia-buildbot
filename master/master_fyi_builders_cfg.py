@@ -9,7 +9,7 @@
 
 
 from master_builders_cfg import HousekeepingBuilder, LINUX
-from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, NO_GPU
+from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, S_15MINS, NO_GPU
 
 from skia_master_scripts.arm64model_factory import \
     Arm64ModelFactory as f_a64mod
@@ -107,7 +107,7 @@ def setup_housekeepers(helper, do_upload_render_results,
   #
   housekeepers = [
       ('PerCommit', None,               f_percommit,    LINUX,  S_PERCOMMIT, {}),
-      ('PerCommit', 'AutoRoll',         f_autoroll,     LINUX,  S_PERCOMMIT, {}),
+      ('PerCommit', 'AutoRoll',         f_autoroll,     LINUX,  S_15MINS,    {}),
       ('Nightly',   None,               f_periodic,     LINUX,  S_NIGHTLY,   {}),
       ('Nightly',   'Monitoring',       f_monitor,      LINUX,  S_NIGHTLY,   {}),
       ('Nightly',   'RecreateSKPs',     f_skps,         LINUX,  S_NIGHTLY,   {}),

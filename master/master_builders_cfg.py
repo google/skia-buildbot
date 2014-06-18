@@ -42,6 +42,7 @@ PERF_OUTPUT_BASEDIR = {
 # Schedulers used by the build master.
 S_PERCOMMIT = 'skia_percommit_scheduler'
 S_NIGHTLY = 'skia_nightly_scheduler'
+S_15MINS = 'skia_15_minute_scheduler'
 
 
 defaults = {}
@@ -430,6 +431,11 @@ def create_schedulers_and_builders(config, active_master, cfg,
   # Nightly Scheduler for Skia. The buildbot master follows UTC.
   # Setting it to 3AM UTC (10 PM EST).
   helper.PeriodicScheduler(S_NIGHTLY, minute=0, hour=3)
+
+  # Scheduler which fires every 15 minutes.
+  frequency_mins = 15
+  minutes = [i*frequency_mins for i in xrange(60/frequency_mins)]
+  helper.PeriodicScheduler(S_15MINS, minute=minutes)
 
   # Schedulers for Skia trybots.
   helper.TryJobSubversion(utils.TRY_SCHEDULER_SVN)
