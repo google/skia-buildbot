@@ -20,7 +20,7 @@ def BenchArgs(data_file):
   Returns:
     list containing arguments to pass to bench
   """
-  return ['--timers', 'wcg', '--logFile', data_file]
+  return ['--timers', 'wg', '--logFile', data_file]
 
 # Device name -> extra arguments. Name can be full builder name or a fragment.
 EXTRA_ARGS = {
