@@ -244,6 +244,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       var display_comment_elems = document.getElementsByClassName("DisplayBuilderComment");
       for (var i = 0; i < display_comment_elems.length; ++i) {
         var display_comment = display_comment_elems[i];
+        display_comment.innerHTML = "";
         var builder_name = display_comment.id.slice("displayBuilderComment_".length);
         buildComment(builder_name, display_comment);
         if (builder_statuses[builder_name]) {
