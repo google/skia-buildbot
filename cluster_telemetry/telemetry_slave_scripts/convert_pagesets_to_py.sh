@@ -6,7 +6,7 @@
 
 if [ $# -ne 2 ]; then
   echo
-  echo "Usage: `basename $0` All"
+  echo "Usage: `basename $0` 1 All"
   echo
   echo "The first argument is the slave_num of this telemetry slave."
   echo "The second argument is the type of pagesets to create from the 1M" \
@@ -35,62 +35,8 @@ function strip_from_val {
   echo ${val%\"\,}
 }
 
-for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.json; do
-  archive_data_file=`awk '/\"archive_data_file\"/{print $NF}' $page_set`
-  archive_data_file=`strip_from_val $archive_data_file`
-
-  url=`awk '/\"url\"/{print $NF}' $page_set`
-  url=`strip_from_val $url`
-
-  user_agent_type=`awk '/\"user_agent_type\"/{print $NF}' $page_set`
-  user_agent_type=`strip_from_val $user_agent_type`
-
-  rank=`cat $page_set | grep \"why\"\: | awk '{FS=":"; print $2}'`
-  rank=`strip_from_val $rank`
-
-  file_name=`basename $page_set`
-  file=${file_name%.json}
-
-  cat >/b/storage/page_sets/$PAGESETS_TYPE/$file.py <<EOL
-# Copyright 2014 The Chromium Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
-# pylint: disable=W0401,W0614
-
-from telemetry.page.actions.all_page_actions import *
-from telemetry.page import page as page_module
-from telemetry.page import page_set as page_set_module
-
-
-class TypicalAlexaPage(page_module.PageWithDefaultRunNavigate):
-
-  def __init__(self, url, page_set):
-    super(TypicalAlexaPage, self).__init__(url=url, page_set=page_set)
-    self.user_agent_type = '$user_agent_type'
-    self.archive_data_file = '$archive_data_file'
-
-  def RunSmoothness(self, action_runner):
-    action_runner.RunAction(ScrollAction())
-
-
-class TypicalAlexaPageSet(page_set_module.PageSet):
-
-  """ Pages designed to represent the median, not highly optimized web """
-
-  def __init__(self):
-    super(TypicalAlexaPageSet, self).__init__(
-      user_agent_type='$user_agent_type',
-      archive_data_file='$archive_data_file')
-
-    urls_list = [
-      # Why: Alexa games $rank
-      '$url',
-    ]
-
-    for url in urls_list:
-      self.AddPage(TypicalAlexaPage(url, self))
-EOL
-
+for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
+  sed -i s/PageWithDefaultRunNavigate/Page/g $page_set
 done
 
 

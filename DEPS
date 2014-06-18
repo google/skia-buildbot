@@ -15,10 +15,10 @@ use_relative_paths = True
 vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   "chromium_revision": "179720",
-  "telemetry_chromium_revision": "265664",
-  "webpagereplay_revision": "544",
+  "telemetry_chromium_revision": "278114",
+  "webpagereplay_revision": "546",
   "telemetry_webkit_trunk": "http://src.chromium.org/blink/trunk",
-  "telemetry_webkit_revision": "172351"
+  "telemetry_webkit_revision": "176408"
 }
 
 deps = {
