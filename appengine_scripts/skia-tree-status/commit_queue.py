@@ -200,7 +200,8 @@ class AbortEvent(VerificationEvent):
 
   @property
   def as_html(self):
-    return '<pre class="output">%s</pre>' % cgi.escape(self.output)
+    return '<pre class="output">%s</pre>' % create_html_links(
+        cgi.escape(self.output))
 
   @classmethod
   def to_key(cls, _):
