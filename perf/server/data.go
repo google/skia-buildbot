@@ -437,7 +437,6 @@ func populateTraces(service *bigquery.Service, all *AllData, hashToIndex map[str
      isTrybot=false
      AND (
         params.measurementType="gpu" OR
-        params.measurementType="cpu" OR
         params.measurementType="wall"
         )
       AND
