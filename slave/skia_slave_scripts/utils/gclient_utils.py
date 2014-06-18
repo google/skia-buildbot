@@ -186,3 +186,20 @@ def GetGitNumber(commit_hash):
 def Revert():
   shell_utils.run([GIT, 'clean', '-f', '-d'])
   shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
+
+
+def RunHooks(gyp_defines=None, gyp_generators=None):
+  """ Run "gclient runhooks".
+
+  Args:
+      gyp_defines: optional string; GYP_DEFINES to be passed to Gyp.
+      gyp_generators: optional string; which GYP_GENERATORS to use.
+  """
+  if gyp_defines:
+    os.environ['GYP_DEFINES'] = gyp_defines
+    print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
+  if gyp_generators:
+    os.environ['GYP_GENERATORS'] = gyp_generators
+    print 'GYP_GENERATORS="%s"' % os.environ['GYP_GENERATORS']
+
+  _RunCmd(['runhooks'])

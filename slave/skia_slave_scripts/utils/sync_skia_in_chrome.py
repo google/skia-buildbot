@@ -44,7 +44,8 @@ def GetDepsVar(deps_filepath, variable):
 
 
 def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
-         override_skia_checkout=True, fetch_target=DEFAULT_FETCH_TARGET):
+         override_skia_checkout=True, fetch_target=DEFAULT_FETCH_TARGET,
+         gyp_defines=None, gyp_generators=None):
   """ Create and sync a checkout of Skia inside a checkout of Chrome. Returns
   a tuple containing the actually-obtained revision of Skia and the actually-
   obtained revision of Chrome.
@@ -60,6 +61,8 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
       the root level. Default is True.
   fetch_target: string; Calls the fetch tool in depot_tools with the specified
       argument. Default is DEFAULT_FETCH_TARGET.
+  gyp_defines: optional string; GYP_DEFINES to be passed to Gyp.
+  gyp_generators: optional string; which GYP_GENERATORS to use.
   """
   # Figure out what revision of Skia we should use.
   if not skia_revision:
@@ -176,17 +179,9 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
                                     log_in_real_time=False).rstrip()
 
-  # It turns out we need to set ALL our GYP defines here.
-  # runhooks is the only time GYP runs in our Chrome canary builds.
-  defs = os.environ['GYP_DEFINES']
-  defs += ' fastbuild=2'  # Experiment: is fastbuild faster for Windows?
-  defs += ' component=shared_library'
-  os.environ['GYP_DEFINES'] = defs
-  print 'GYP_DEFINES=' + defs
-
   # Run gclient hooks
   os.chdir(src_dir)
-  shell_utils.run([GCLIENT, 'runhooks'])
+  gclient_utils.RunHooks(gyp_defines=gyp_defines, gyp_generators=gyp_generators)
 
   # Fix the submodules so that they don't show up in "git status"
   # This fails on Windows...

@@ -7,13 +7,16 @@
 
 from default_build_step_utils import DefaultBuildStepUtils
 from common import chromium_utils
+from utils import gclient_utils
 from utils import misc
 from utils import shell_utils
 
 import os
 
-# If you're trying to change GYP flags in here, you're too late!
-# GYP only runs as part of runhooks in sync_skia_in_chrome.py.
+
+# Experiment to see if fastbuild is any faster for our Windows Chrome canary.
+EXTRA_GYP_DEFINES = ' fastbuild=2 component=shared_library'
+
 
 class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
   def __init__(self, build_step_instance):
@@ -36,6 +39,8 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
     shell_utils.run(cmd)
 
   def Compile(self, target):
+    if not os.path.isdir('out'):
+      self.RunGYP()
     make_cmd = 'ninja'
     cmd = [make_cmd,
            '-C', os.path.join('out', self._step.configuration),
@@ -48,6 +53,10 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
     if os.path.isdir('out'):
       chromium_utils.RemoveDirectory('out')
 
+  def RunGYP(self):
+    gclient_utils.RunHooks(gyp_defines=self.gyp_defines,
+                           gyp_generators=self.gyp_generators)
+
   @property
   def baseline_dir(self):
     return self._baseline_dir
@@ -55,3 +64,11 @@ class ChromeCanaryBuildStepUtils(DefaultBuildStepUtils):
   @property
   def result_dir(self):
     return self._result_dir
+
+  @property
+  def gyp_defines(self):
+    return self._step.args['gyp_defines'] + EXTRA_GYP_DEFINES
+
+  @property
+  def gyp_generators(self):
+    return 'ninja'

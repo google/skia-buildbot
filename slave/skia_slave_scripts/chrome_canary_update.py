@@ -8,7 +8,6 @@
 # build_step must be imported first, since it does some tweaking of PYTHONPATH.
 from build_step import BuildStep
 from utils import git_utils
-from utils import shell_utils
 from utils import sync_skia_in_chrome
 import shlex
 import sys
@@ -37,7 +36,9 @@ class ChromeCanaryUpdate(BuildStep):
         skia_revision=self._revision,
         chrome_revision=chrome_rev,
         use_lkgr_skia=('use_lkgr_skia' in self._args.keys()),
-        override_skia_checkout=override_skia_checkout)
+        override_skia_checkout=override_skia_checkout,
+        gyp_defines=self._flavor_utils.gyp_defines,
+        gyp_generators=self._flavor_utils.gyp_generators)
     print 'Skia updated to %s' % got_skia_rev
     print 'Chrome updated to %s' % got_chrome_rev
 

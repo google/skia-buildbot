@@ -27,10 +27,12 @@ class CanaryFactory(factory.SkiaFactory):
     self._path_to_skia = self.TargetPath.join(*path_to_skia)
 
   def Update(self):
-    self.AddSlaveScript(
+    self.AddFlavoredSlaveScript(
         script=self.TargetPath.join('..', '..', '..', '..', '..', 'slave',
                                     'skia_slave_scripts',
                                     '%s_update.py' % self._flavor),
+        args=['--gyp_defines',
+              ' '.join('%s=%s' % (k, v) for k, v in self._gyp_defines.items())],
         description='Update',
         timeout=None,
         halt_on_failure=True,
