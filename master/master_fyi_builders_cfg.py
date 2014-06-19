@@ -9,7 +9,7 @@
 
 
 from master_builders_cfg import HousekeepingBuilder, LINUX
-from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, S_15MINS, NO_GPU
+from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, S_15MINS
 
 from skia_master_scripts.arm64model_factory import \
     Arm64ModelFactory as f_a64mod
@@ -24,7 +24,6 @@ from skia_master_scripts.moz2d_canary_factory import \
     Moz2DCanaryFactory as f_moz2d
 from skia_master_scripts.recreate_skps_factory import \
     RecreateSKPsFactory as f_skps
-from skia_master_scripts.xsan_factory import XsanFactory as f_xsan
 
 import master_builders_cfg
 
@@ -77,7 +76,6 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
   #    Role,   OS,         Model,         GPU,      Arch,      Config,   Extra Config,GYP_DEFS,Factory,  Target, Scheduler,   Extra Args
   #
   builder_specs = [
-      ('Test', 'Ubuntu13.10', 'GCE',   'NoGPU',  'x86_64',  'Release', 'TSAN',      NO_GPU,  f_xsan,   LINUX,  S_PERCOMMIT, {'sanitizer': 'thread'}),
       ('Test', 'Linux',       'Bare',  'NoGPU',  'Arm8_64', 'Debug',   None,        None,    f_a64mod, LINUX,  S_PERCOMMIT, {'board': 'arm64emu', 'bench_pictures_cfg': 'no_gpu', 'default_timeout': 100000}),
   ]
 
