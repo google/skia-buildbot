@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -22,6 +23,7 @@ import (
 	"code.google.com/p/google-api-go-client/bigquery/v2"
 	"github.com/golang/glog"
 	"github.com/oxtoacart/webbrowser"
+	"github.com/rcrowley/go-metrics"
 )
 
 const (
@@ -36,18 +38,33 @@ const (
 
 	// Limit the number of commits we hold in memory and do bulk analysis on.
 	MAX_COMMITS_IN_MEMORY = 30
+
+	REFRESH_PERIOD = time.Minute * 30
 )
 
 // Shouldn't need auth when running from GCE, but will need it for local dev.
 // TODO(jcgregorio) Move to reading this from client_secrets.json and void these keys at that point.
-var config = &oauth.Config{
-	ClientId:     "470362608618-nlbqngfl87f4b3mhqqe9ojgaoe11vrld.apps.googleusercontent.com",
-	ClientSecret: "J4YCkfMXFJISGyuBuVEiH60T",
-	Scope:        bigquery.BigqueryScope,
-	AuthURL:      "https://accounts.google.com/o/oauth2/auth",
-	TokenURL:     "https://accounts.google.com/o/oauth2/token",
-	RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
-	TokenCache:   oauth.CacheFile("bqtoken.data"),
+var (
+	config = &oauth.Config{
+		ClientId:     "470362608618-nlbqngfl87f4b3mhqqe9ojgaoe11vrld.apps.googleusercontent.com",
+		ClientSecret: "J4YCkfMXFJISGyuBuVEiH60T",
+		Scope:        bigquery.BigqueryScope,
+		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
+		TokenURL:     "https://accounts.google.com/o/oauth2/token",
+		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
+		TokenCache:   oauth.CacheFile("bqtoken.data"),
+	}
+
+	lastSkpUpdate          = time.Now()
+	timeSinceLastSkpUpdate = metrics.NewRegisteredGauge("data.bigquery.skps.refresh.time_since_last_update", metrics.DefaultRegistry)
+)
+
+func init() {
+	go func() {
+		for _ = range time.Tick(time.Minute) {
+			timeSinceLastSkpUpdate.Update(int64(time.Since(lastSkpUpdate).Seconds()))
+		}
+	}()
 }
 
 // runFlow runs through a 3LO OAuth 2.0 flow to get credentials for BigQuery.
@@ -132,6 +149,9 @@ type AllData struct {
 	Traces   []*Trace           `json:"traces"`
 	ParamSet map[string]Choices `json:"param_set"`
 	Commits  []*Commit          `json:"commits"`
+	mutex    sync.Mutex
+	service  *bigquery.Service
+	fullData bool
 }
 
 // DateIter allows for easily iterating backwards, one day at a time, until
@@ -426,9 +446,20 @@ func (r *RowIter) Decode(s interface{}) error {
 //
 // dates is the list of table date suffixes that we will need to iterate over.
 // earliestTimestamp is the timestamp of the earliest commit.
-func populateTraces(service *bigquery.Service, all *AllData, hashToIndex map[string]int, numSamples int, dates []string, earliestTimestamp int64, fullData bool) error {
+func (all *AllData) populateTraces(dates []string, fullData bool) error {
 	// Keep a map of key to Trace.
 	allTraces := map[string]*Trace{}
+
+	numSamples := len(all.Commits)
+
+	earliestTimestamp := all.Commits[0].CommitTime
+
+	// A mapping of Git hashes to where they appear in the Commits array, also the index
+	// at which a measurement gets stored in the Values array.
+	hashToIndex := make(map[string]int)
+	for i, commit := range all.Commits {
+		hashToIndex[commit.Hash] = i
+	}
 
 	// Restricted set of traces if we don't want full data.
 	restrictedSet := `
@@ -464,7 +495,7 @@ func populateTraces(service *bigquery.Service, all *AllData, hashToIndex map[str
 	// Query each table one day at a time. This protects us from schema changes.
 	for _, date := range dates {
 		query := fmt.Sprintf(queryTemplate, date, earliestTimestamp, restrictedSet)
-		iter, err := NewRowIter(service, query)
+		iter, err := NewRowIter(all.service, query)
 		if err != nil {
 			return fmt.Errorf("Failed to query data from BigQuery: %s", err)
 		}
@@ -513,13 +544,16 @@ type Data struct {
 
 // AsJSON serializes the data as JSON.
 func (d *Data) AsJSON(w io.Writer) error {
+	d.all.mutex.Lock()
+	defer d.all.mutex.Unlock()
+
 	// TODO(jcgregorio) Keep a cache of the gzipped JSON around and serve that as long as it's fresh.
 	return json.NewEncoder(w).Encode(d.all)
 }
 
 // populateParamSet returns the set of all possible values for all the 'params'
 // in AllData.
-func populateParamSet(all *AllData) {
+func (all *AllData) populateParamSet() {
 	// First pull the data out into a map of sets.
 	type ChoiceSet map[string]bool
 	c := make(map[string]ChoiceSet)
@@ -543,10 +577,33 @@ func populateParamSet(all *AllData) {
 	}
 }
 
+func (all *AllData) populate() error {
+	all.mutex.Lock()
+	defer all.mutex.Unlock()
+
+	dates, commits, err := gitCommitsWithTestData(all.service)
+	if err != nil {
+		return fmt.Errorf("Failed to read hashes from BigQuery: %s", err)
+	}
+	glog.Info("Successfully read hashes from BigQuery")
+
+	all.Commits = commits
+
+	if err := all.populateTraces(dates, all.fullData); err != nil {
+		return fmt.Errorf("Failed to read traces from BigQuery: %s", err)
+	}
+	glog.Info("Successfully read traces from BigQuery")
+
+	all.populateParamSet()
+
+	lastSkpUpdate = time.Now()
+
+	return nil
+}
+
 // NewData loads the data the first time and then starts a go routine to
 // preiodically refresh the data.
 //
-// TODO(jcgregorio) Actually do the bit where we start a go routine.
 func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 	var err error
 	var client *http.Client
@@ -566,30 +623,25 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 		return nil, fmt.Errorf("Failed to create a new BigQuery service object: %s", err)
 	}
 
-	dates, commits, err := gitCommitsWithTestData(service)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to read hashes from BigQuery: %s", err)
-	}
-
-	// A mapping of Git hashes to where they appear in the Commits array, also the index
-	// at which a measurement gets stored in the Values array.
-	hashToIndex := make(map[string]int)
-	for i, commit := range commits {
-		hashToIndex[commit.Hash] = i
-	}
-
 	all := &AllData{
 		Traces:   make([]*Trace, 0, 0),
 		ParamSet: make(map[string]Choices),
-		Commits:  commits,
+		Commits:  make([]*Commit, 0, 0),
+		service:  service,
+		fullData: fullData,
 	}
 
-	if err := populateTraces(service, all, hashToIndex, len(commits), dates, commits[0].CommitTime, fullData); err != nil {
+	if err := all.populate(); err != nil {
 		// Fail fast, monit will restart us if we fail for some reason.
-		panic(err)
+		glog.Fatal(err)
 	}
-
-	populateParamSet(all)
+	go func() {
+		for _ = range time.Tick(REFRESH_PERIOD) {
+			if err := all.populate(); err != nil {
+				glog.Errorln("Failed to refresh data from BigQuery: ", err)
+			}
+		}
+	}()
 
 	return &Data{all: all}, nil
 }

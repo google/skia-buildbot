@@ -11,6 +11,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -22,6 +23,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/rcrowley/go-metrics"
 )
 
 var (
@@ -46,6 +48,11 @@ var (
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+
+	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
+	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
+	addr, _ := net.ResolveTCPAddr("tcp", "skia-monitoring-b:2003")
+	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "skiaperf", addr)
 
 	// Change the current working directory to the directory of the executable.
 	var err error
