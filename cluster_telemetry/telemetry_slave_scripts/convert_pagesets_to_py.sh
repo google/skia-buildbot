@@ -25,15 +25,9 @@ source vm_utils.sh
 mkdir -p /b/storage/page_sets/$PAGESETS_TYPE/
 are_timestamps_equal /b/storage/page_sets/$PAGESETS_TYPE gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE
 if [ $? -eq 1 ]; then
-  gsutil cp gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/* \
+  gsutil -m cp gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/* \
     /b/storage/page_sets/$PAGESETS_TYPE/
 fi
-
-function strip_from_val {
-  val=$1
-  val=${val#\"}
-  echo ${val%\"\,}
-}
 
 for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
   sed -i s/PageWithDefaultRunNavigate/Page/g $page_set
@@ -41,7 +35,7 @@ done
 
 
 # Copy the python page_sets into Google Storage.
-gsutil cp /b/storage/page_sets/$PAGESETS_TYPE/*py gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
+gsutil -m cp /b/storage/page_sets/$PAGESETS_TYPE/*py gs://chromium-skia-gm/telemetry/page_sets/slave$SLAVE_NUM/$PAGESETS_TYPE/
 # Create a TIMESTAMP file and copy it to Google Storage.
 TIMESTAMP=`date +%s`
 echo $TIMESTAMP > /tmp/$TIMESTAMP
