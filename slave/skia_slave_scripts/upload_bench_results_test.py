@@ -15,6 +15,8 @@ sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot', 'scripts'))
 sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot', 'site_config'))
+sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                             'chromium_buildbot', 'third_party', 'twisted_8_1'))
 import upload_bench_results
 
 
