@@ -39,6 +39,16 @@ source vm_setup_slave.sh
 mkdir -p /b/storage/webpages_archive/$PAGESETS_TYPE/
 rm -rf /b/storage/webpages_archive/$PAGESETS_TYPE/*
 
+# Increase the timeout only when pagesets are used which have multiple pages in 
+# them and could thus take longer than the default timeout.                     
+if [ "$PAGESETS_TYPE" == "KeyMobileSites" -o "$PAGESETS_TYPE" == "KeySilkCases" ]; then
+  RECORD_TIMEOUT=2700                                                        
+elif [ "$PAGESETS_TYPE" == "GPURasterSet" ]; then                               
+  RECORD_TIMEOUT=1800                                                        
+else                                                                            
+  RECORD_TIMEOUT=300                                                         
+fi
+
 for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
   if [[ -f $page_set ]]; then
     echo "========== Processing $page_set =========="
@@ -49,7 +59,7 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
       cp  /b/storage/webpages_archive/All/${pageset_filename}* /b/storage/webpages_archive/$PAGESETS_TYPE/
       echo "========== $page_set copied over from All =========="
     else
-      sudo DISPLAY=:0 timeout 600 src/tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $page_set
+      sudo DISPLAY=:0 timeout $RECORD_TIMEOUT src/tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $page_set
       if [ $? -eq 124 ]; then
         echo "========== $page_set timed out! =========="
       else

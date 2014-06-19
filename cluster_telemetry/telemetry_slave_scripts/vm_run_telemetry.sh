@@ -107,10 +107,11 @@ if [ "$TELEMETRY_BENCHMARK" == "smoothness" ]; then
   EXTRA_BROWSER_ARGS="--window-size=1280,512 $EXTRA_BROWSER_ARGS"
 fi
 
-# Increase the timeout only if the GPURasterSet pageset is used since it has
-# multiple pages in each pageset and could thus take longer than the default
-# timeout.
-if [ "$PAGESETS_TYPE" == "GPURasterSet" ]; then
+# Increase the timeout only when pagesets are used which have multiple pages in 
+# them and could thus take longer than the default timeout.
+if [ "$PAGESETS_TYPE" == "KeyMobileSites" -o "$PAGESETS_TYPE" == "KeySilkCases" ]; then
+  TELEMETRY_TIMEOUT=2700
+elif [ "$PAGESETS_TYPE" == "GPURasterSet" ]; then
   TELEMETRY_TIMEOUT=1800
 else
   TELEMETRY_TIMEOUT=300
@@ -146,8 +147,8 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
       if [ "$TARGET_PLATFORM" == "Android" ]; then
         # Enable CPU and GPU throttling.
         adb shell "stop mpdecision; echo 1 > /sys/devices/system/cpu/cpu1/online; echo 1 > /sys/devices/system/cpu/cpu2/online; echo 1 > /sys/devices/system/cpu/cpu3/online; echo 1190400 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq; echo 1190400 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq; echo 1190400 > /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq; echo 1190400 > /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq; echo 200000000 > /sys/class/kgsl/kgsl-3d0/max_gpuclk"
-        echo "== Running eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
-        eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chromium-testshell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
+        echo "== Running eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chrome-shell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
+        eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chrome-shell $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
       else
         echo "== Running eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG =="
         eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set $EXTRA_ARGS $OUTPUT_DIR_ARG
