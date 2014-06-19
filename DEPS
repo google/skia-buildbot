@@ -15,6 +15,7 @@ use_relative_paths = True
 vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   "chromium_revision": "179720",
+  "chromium_git": "https://chromium.googlesource.com",
   "telemetry_chromium_revision": "278114",
   "webpagereplay_revision": "546",
   "telemetry_webkit_trunk": "http://src.chromium.org/blink/trunk",
@@ -53,20 +54,20 @@ deps = {
   "third_party/chromium_buildbot":
     Var("chromium_trunk") + "/tools/build@" + Var("chromium_revision"),
   "third_party/chromium_buildbot/scripts/command_wrapper/bin":
-    Var("chromium_trunk") + "/tools/command_wrapper/bin@" + Var("chromium_revision"),
+    Var("chromium_git") + "/chromium/tools/command_wrapper/bin.git@2eeebba9a512cae9e4e9312f5ec728dbdad80bd0",
   "third_party/depot_tools":
-    Var("chromium_trunk") + "/tools/depot_tools",
+    Var("chromium_git") + "/chromium/tools/depot_tools.git",
 
   # Tip-of-tree Chromium buildbot code.
   "third_party/chromium_buildbot_tot":
-    Var("chromium_trunk") + "/tools/build",
+    Var("chromium_git") + "/chromium/tools/build.git",
 
   # Dependencies of the Chromium buildbot code.
   # I tried to use From() to link to Chromium's /tools/build/DEPS dependencies,
   # but I couldn't get it to work... so I have hard-coded these dependencies.
   "third_party/chromium_buildbot/third_party/gsutil":
-    "svn://svn.chromium.org/gsutil/trunk/src@261",
+    Var("chromium_git") + "/external/gsutil/src.git@b41305d0b538bae46777e1d9562ecec0149f8d44",
   "third_party/chromium_buildbot/third_party/gsutil/boto":
-    "svn://svn.chromium.org/boto@7",
+    Var("chromium_git") + "/external/boto.git@98fc59a5896f4ea990a4d527548204fed8f06c64",
 }
 
