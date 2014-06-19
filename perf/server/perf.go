@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -21,6 +20,7 @@ import (
 import (
 	"github.com/fiorix/go-web/autogzip"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang/glog"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -37,6 +37,7 @@ var (
 	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	doOauth    = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	gitRepoDir = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+	fullData   = flag.Bool("full_data", false, "Request a small subset of the data from BigQuery (default) or the full set of data.")
 )
 
 var (
@@ -50,10 +51,10 @@ func init() {
 	var err error
 	cwd, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		log.Fatalln(err)
+		glog.Fatalln(err)
 	}
 	if err := os.Chdir(cwd); err != nil {
-		log.Fatalln(err)
+		glog.Fatalln(err)
 	}
 
 	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
@@ -62,28 +63,28 @@ func init() {
 	// See https://developers.google.com/compute/docs/metadata#custom.
 	req, err := http.NewRequest("GET", "http://metadata/computeMetadata/v1/instance/attributes/readwrite", nil)
 	if err != nil {
-		log.Fatalln(err)
+		glog.Fatalln(err)
 	}
 	client := http.Client{}
 	req.Header.Add("X-Google-Metadata-Request", "True")
 	if resp, err := client.Do(req); err == nil {
 		password, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatalln("ERROR: Failed to read password from metadata server:", err)
+			glog.Fatalln("Failed to read password from metadata server:", err)
 		}
 		// The IP address of the database is found here:
 		//    https://console.developers.google.com/project/31977622648/sql/instances/skiaperf/overview
 		// And 3306 is the default port for MySQL.
 		db, err = sql.Open("mysql", fmt.Sprintf("readwrite:%s@tcp(173.194.104.24:3306)/skia?parseTime=true", password))
 		if err != nil {
-			log.Fatalln("ERROR: Failed to open connection to SQL server:", err)
+			glog.Fatalln("Failed to open connection to SQL server:", err)
 		}
 	} else {
-		log.Println("INFO: Failed to find metadata, unable to connect to MySQL server (Expected when running locally):", err)
+		glog.Infoln("Failed to find metadata, unable to connect to MySQL server (Expected when running locally):", err)
 		// Fallback to sqlite for local use.
 		db, err = sql.Open("sqlite3", "./perf.db")
 		if err != nil {
-			log.Fatalln("ERROR: Failed to open:", err)
+			glog.Fatalln("Failed to open:", err)
 		}
 		// TODO(jcgregorio) Add CREATE TABLE commands here for local testing.
 	}
@@ -93,7 +94,7 @@ func init() {
 		c := time.Tick(1 * time.Minute)
 		for _ = range c {
 			if err := db.Ping(); err != nil {
-				log.Println("ERROR: Database failed to respond:", err)
+				glog.Warningln("Database failed to respond:", err)
 			}
 		}
 	}()
@@ -101,14 +102,14 @@ func init() {
 
 // reportError formats an HTTP error response and also logs the detailed error message.
 func reportError(w http.ResponseWriter, r *http.Request, err error, message string) {
-	log.Println("Error:", message, err)
+	glog.Errorln(message, err)
 	w.Header().Set("Content-Type", "text/plain")
 	http.Error(w, message, 500)
 }
 
 // jsonHandler handles the GET for the JSON requests.
 func jsonHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("JSON Handler: %q\n", r.URL.Path)
+	glog.Infof("JSON Handler: %q\n", r.URL.Path)
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "application/json")
 		data.AsJSON(w)
@@ -117,11 +118,11 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 
 // mainHandler handles the GET and POST of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Main Handler: %q\n", r.URL.Path)
+	glog.Infof("Main Handler: %q\n", r.URL.Path)
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
 		if err := indexTemplate.Execute(w, struct{}{}); err != nil {
-			log.Println("ERROR: Failed to expand template:", err)
+			glog.Errorln("Failed to expand template:", err)
 		}
 	}
 }
@@ -129,11 +130,11 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 
-	log.Println("Begin loading data.")
+	glog.Infoln("Begin loading data.")
 	var err error
-	data, err = NewData(*doOauth, *gitRepoDir)
+	data, err = NewData(*doOauth, *gitRepoDir, *fullData)
 	if err != nil {
-		log.Fatalln("Failed initial load of data from BigQuery: ", err)
+		glog.Fatalln("Failed initial load of data from BigQuery: ", err)
 	}
 
 	// Resources are served directly.
@@ -142,6 +143,6 @@ func main() {
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc("/json/", autogzip.HandleFunc(jsonHandler))
 
-	log.Println("Ready to serve.")
-	log.Fatal(http.ListenAndServe(*port, nil))
+	glog.Infoln("Ready to serve.")
+	glog.Fatal(http.ListenAndServe(*port, nil))
 }

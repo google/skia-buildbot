@@ -20,6 +20,7 @@ import (
 	"code.google.com/p/goauth2/compute/serviceaccount"
 	"code.google.com/p/goauth2/oauth"
 	"code.google.com/p/google-api-go-client/bigquery/v2"
+	"github.com/golang/glog"
 	"github.com/oxtoacart/webbrowser"
 )
 
@@ -191,7 +192,8 @@ ORDER BY
 		query := fmt.Sprintf(queryTemplate, dates.Date())
 		iter, err := NewRowIter(service, query)
 		if err != nil {
-			return nil, allCommits, fmt.Errorf("Failed to query for the Git hashes used: %s", err)
+			glog.Warningln("Tried to query a table that didn't exist", dates.Date(), err)
+			continue
 		}
 
 		for iter.Next() {
@@ -207,6 +209,7 @@ ORDER BY
 			}
 		}
 		dateList = append(dateList, dates.Date())
+		glog.Infof("Finding hashes with data, finished day %s, total commits so far %d", dates.Date(), totalCommits)
 		if totalCommits >= MAX_COMMITS_IN_MEMORY {
 			break
 		}
@@ -412,7 +415,7 @@ func (r *RowIter) Decode(s interface{}) error {
 				}
 				sv.Field(i).SetInt(parsedInt)
 			default:
-				return fmt.Errorf("can't decode into field of type: %s %s", columnName, sv.Field(i).Kind())
+				return fmt.Errorf("Can't decode into field of type: %s %s", columnName, sv.Field(i).Kind())
 			}
 		}
 	}
@@ -423,9 +426,18 @@ func (r *RowIter) Decode(s interface{}) error {
 //
 // dates is the list of table date suffixes that we will need to iterate over.
 // earliestTimestamp is the timestamp of the earliest commit.
-func populateTraces(service *bigquery.Service, all *AllData, hashToIndex map[string]int, numSamples int, dates []string, earliestTimestamp int64) error {
+func populateTraces(service *bigquery.Service, all *AllData, hashToIndex map[string]int, numSamples int, dates []string, earliestTimestamp int64, fullData bool) error {
 	// Keep a map of key to Trace.
 	allTraces := map[string]*Trace{}
+
+	// Restricted set of traces if we don't want full data.
+	restrictedSet := `
+      AND (
+        params.benchName="tabl_worldjournal.skp"
+                   OR
+        params.benchName="desk_amazon.skp"
+        )
+  `
 
 	// Now query the actual samples.
 	queryTemplate := `
@@ -441,18 +453,17 @@ func populateTraces(service *bigquery.Service, all *AllData, hashToIndex map[str
         )
       AND
         timestamp >= %d
-      AND (
-        params.benchName="tabl_worldjournal.skp"
-                   OR
-        params.benchName="desk_amazon.skp"
-        )
+      %s
    ORDER BY
      key DESC,
      timestamp DESC;
 	     `
+	if fullData {
+		restrictedSet = ""
+	}
 	// Query each table one day at a time. This protects us from schema changes.
 	for _, date := range dates {
-		query := fmt.Sprintf(queryTemplate, date, earliestTimestamp)
+		query := fmt.Sprintf(queryTemplate, date, earliestTimestamp, restrictedSet)
 		iter, err := NewRowIter(service, query)
 		if err != nil {
 			return fmt.Errorf("Failed to query data from BigQuery: %s", err)
@@ -485,6 +496,7 @@ func populateTraces(service *bigquery.Service, all *AllData, hashToIndex map[str
 				trace.Values[index] = m.Value
 			}
 		}
+		glog.Infof("Loading data, finished day %s", date)
 	}
 	// Flatten allTraces into all.Traces.
 	for _, trace := range allTraces {
@@ -535,7 +547,7 @@ func populateParamSet(all *AllData) {
 // preiodically refresh the data.
 //
 // TODO(jcgregorio) Actually do the bit where we start a go routine.
-func NewData(doOauth bool, gitRepoDir string) (*Data, error) {
+func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 	var err error
 	var client *http.Client
 	if doOauth {
@@ -572,7 +584,7 @@ func NewData(doOauth bool, gitRepoDir string) (*Data, error) {
 		Commits:  commits,
 	}
 
-	if err := populateTraces(service, all, hashToIndex, len(commits), dates, commits[0].CommitTime); err != nil {
+	if err := populateTraces(service, all, hashToIndex, len(commits), dates, commits[0].CommitTime, fullData); err != nil {
 		// Fail fast, monit will restart us if we fail for some reason.
 		panic(err)
 	}
