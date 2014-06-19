@@ -43,6 +43,15 @@ def _RunCmd(cmd):
   return shell_utils.run(['python', GCLIENT_PY] + cmd)
 
 
+def GClient():
+  """Run "gclient" without any command.
+
+  This is useful because gclient installs things and updates itself, and we may
+  want it to do so before we attempt to do other things.
+  """
+  return _RunCmd([])
+
+
 def Config(spec):
   """ Configure a local checkout. """
   return _RunCmd(['config', '--spec=%s' % spec])

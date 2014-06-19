@@ -30,6 +30,10 @@ GOT_REVISION_PATTERN = 'Skiabot scripts updated to %s'
 
 def force_update():
   with misc.ChDir(os.path.join(misc.BUILDBOT_PATH, os.pardir)):
+    # Run "gclient" before doing anything else to ensure that we get the
+    # necessary stuff installed.
+    gclient_utils.GClient()
+
     # Be sure that we sync to the most recent commit.
     buildbot_revision = None
     try:

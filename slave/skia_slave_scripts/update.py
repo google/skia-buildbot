@@ -98,6 +98,10 @@ class Update(BuildStep):
                                  **kwargs)
 
   def _Run(self):
+    # Run "gclient" before doing anything else to ensure that we get the
+    # necessary stuff installed.
+    gclient_utils.GClient()
+
     _MaybeUseSkiaLabMirror(self._revision)
 
     # We receive gclient_solutions as a list of dictionaries flattened into a
