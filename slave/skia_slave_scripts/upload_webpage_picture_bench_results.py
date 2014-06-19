@@ -16,7 +16,7 @@ python ../../../../../../slave/skia_slave_scripts/\
 upload_webpage_picture_bench_results.py \
 --configuration "" --target_platform "" --revision 0 \
 --make_flags "" --test_args "" --gm_args "" \
---bench_args "" --num_cores 8 --perf_output_basedir "../../../../perfdata" \
+--bench_args "" -perf_output_basedir "../../../../perfdata" \
 --builder_name Test-Ubuntu12-ShuttleA-ATI5770-x86_64-Release \
 --got_revision 0 --dest_gsbase "gs://rmistry"
 

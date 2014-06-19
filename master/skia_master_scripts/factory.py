@@ -195,7 +195,6 @@ class SkiaFactory(BuildFactory):
         '--test_args', '"%s"' % ' '.join(test_args),
         '--gm_args', '"%s"' % ' '.join(gm_args),
         '--bench_args', '"%s"' % ' '.join(bench_args),
-        '--num_cores', WithProperties('%(num_cores:-None)s'),
         '--is_try', str(self._do_patch_step),
         '--bench_pictures_cfg', bench_pictures_cfg,
         ]
