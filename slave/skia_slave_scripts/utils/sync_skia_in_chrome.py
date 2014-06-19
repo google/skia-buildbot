@@ -6,12 +6,12 @@
 """ Create (if needed) and sync a nested checkout of Skia inside of Chrome. """
 
 from config_private import SKIA_GIT_URL
-from common import chromium_utils
 from optparse import OptionParser
 
 from git_utils import GIT
 import gclient_utils
 import git_utils
+import misc
 import os
 import re
 import shell_utils
@@ -88,32 +88,16 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   if not os.path.isfile(GCLIENT_FILE):
     raise Exception('Could not fetch %s!' % fetch_target)
 
-  if override_skia_checkout:
-    # Hack the .gclient file to use LKGR and NOT check out Skia.
-    gclient_vars = {}
-    execfile(GCLIENT_FILE, gclient_vars)
-    for solution in gclient_vars['solutions']:
-      if solution['name'] == 'src':
-        solution['safesync_url'] = CHROME_LKGR_URL
-        if not solution.get('custom_deps'):
-          solution['custom_deps'] = {}
-        solution['managed'] = True
-        solution['custom_deps']['src/third_party/skia'] = None
-        break
-    print 'Writing %s:' % GCLIENT_FILE
-    with open(GCLIENT_FILE, 'w') as gclient_file:
-      for k, v in gclient_vars.iteritems():
-        if not k.startswith('_'):
-          write_str = '%s = %s\n' % (str(k), str(v))
-          print write_str
-          gclient_file.write(write_str)
-
   # Run "gclient sync"
+  revisions = [('src', chrome_revision)]
+  if not use_lkgr_skia:
+    revisions.append(('src/third_party/skia', skia_revision))
+
   try:
     # Hack: We have to set some GYP_DEFINES, or upstream scripts will complain.
     os.environ['GYP_DEFINES'] = os.environ.get('GYP_DEFINES') or ''
     gclient_utils.Sync(
-        revisions=[('src', chrome_revision)],
+        revisions=revisions,
         jobs=1,
         no_hooks=True,
         force=True)
@@ -132,7 +116,7 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
       # If the file no longer exists, just try again.
       pass
     gclient_utils.Sync(
-        revisions=[('src', chrome_revision)],
+        revisions=revisions,
         jobs=1,
         no_hooks=True,
         force=True)
@@ -142,45 +126,13 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   actual_chrome_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
                                       log_in_real_time=False).rstrip()
 
-  skia_dir = os.path.join('third_party', 'skia')
-  src_dir = os.getcwd()
-  if override_skia_checkout:
-    # Check out Skia.
-    print 'cd %s' % skia_dir
-    os.chdir(skia_dir)
-    try:
-      # Determine whether we already have a Skia checkout. If so, just update.
-      if not 'skia' in shell_utils.run([GIT, 'remote', '-v']):
-        raise Exception('%s does not contain a Skia checkout!' % skia_dir)
-      current_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD']).rstrip()
-      print 'Found existing Skia checkout at %s' % current_skia_rev
-      shell_utils.run([GIT, 'reset', '--hard', 'HEAD'])
-      shell_utils.run([GIT, 'checkout', 'master'])
-      shell_utils.run([GIT, 'fetch'])
-      shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
-    except Exception:
-      # If updating fails, assume that we need to check out Skia from scratch.
-      os.chdir(os.pardir)
-      chromium_utils.RemoveDirectory('skia')
-      shell_utils.run([GIT, 'clone', SKIA_GIT_URL, 'skia'])
-      os.chdir('skia')
-
-    if use_lkgr_skia:
-      # Get the Skia revision specified in Chrome's DEPS file.
-      skia_revision = GetDepsVar(os.path.join(src_dir, 'DEPS'),
-                                 'skia_revision')
-      print 'Overriding skia_revision with %s' % skia_revision
-
-    shell_utils.run([GIT, 'reset', '--hard', skia_revision])
-  else:
-    os.chdir(os.path.join(skia_dir, 'src'))
 
   # Find the actually-obtained Skia revision.
-  actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
-                                    log_in_real_time=False).rstrip()
+  with misc.ChDir(os.path.join('third_party', 'skia')):
+    actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
+                                      log_in_real_time=False).rstrip()
 
   # Run gclient hooks
-  os.chdir(src_dir)
   gclient_utils.RunHooks(gyp_defines=gyp_defines, gyp_generators=gyp_generators)
 
   # Fix the submodules so that they don't show up in "git status"
