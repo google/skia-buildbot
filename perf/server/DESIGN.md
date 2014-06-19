@@ -6,12 +6,91 @@ Overview
 --------
 Provides interactive dashboard for Skia performance data.
 
+Code Locations
+--------------
+
+The code for the server along with VM instance setup scripts is kept in:
+
+  * https://skia.googlesource.com/buildbot/+/master/perf/server
+
 
 Architecture
 ------------
 
+This is the general flow of data for the Skia performance application.
+The frontend is available as http://skiaperf.com.
+
+       +-------------+
+       |             |
+       |   Browser   |
+       |             |
+       |             |
+       |             |
+       +----------^--+
+                  |
+    +------------------+----+--+
+    | GCE Instance|skia-perf-b |
+    |             |            |
+    | +-----------+----------+ |
+    | |     Squid3           | |
+    | |                      | |
+    | +--------^-------------+ |
+    |          |               |
+    | +--------+-------------+ |
+    | | Application (Go)     | |
+    | |                      | |
+    | +----^-----------^-----+ |
+    |      |           |       |
+    +--------------------------+
+           |           |
+    +------+---+    +--+--------+
+    | BigQuery |    |   MySQL   |
+    |          |    |           |
+    |          |    |           |
+    |          |    |           |
+    |          |    |           |
+    |          |    |           |
+    +----------+    +-----------+
+
+
 Perf Stats Database
 -------------------
+
+The data for the performance metrics are kept in the BigQuery tables stored
+in the google.com:chrome-skia project. Note that this is a different project
+from where the data is accessed, which is by VM instances running under
+the google.com:skia-buildbots project. For this to work the service account
+email of the VM needs to be added to the permissions group of the
+google.com:chrome-skia project. If this isn't done then the BigQuery access
+will fail with a 403 error.
+
+
+Logs
+----
+
+We use the https://github.com/golang/glog for logging, which puts Google style
+Error, Warning and Info logs in /tmp on the server under the 'perf' account.
+
+
+Debugging Tips
+--------------
+
+Starting the application is done via /etc/init.d/perf which does the
+backgrounding itself via start-stop-daemon, which means that if the app
+crashes when first starting then nothing will make it to the logs. To debug
+the cause in that case edit /etc/init.d/perf and remove the --background
+flag and then run:
+
+  $ sudo /etc/init.d/perf start
+
+And you should get stdout and stderr output.
+
+Monitoring
+----------
+
+Monitoring of the application is done via Graphite at http://skiamonitor.com.
+Both system and application level metrics are monitored.
+
 
 Annotations Database
 --------------------
