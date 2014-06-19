@@ -464,6 +464,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         cursorPosTop  = cursorPosTop  + document.body.scrollTop + 5;
         cursorPosLeft = cursorPosLeft  + document.body.scrollLeft;
 
+        tooltipbox.innerHTML = "";
         buildComment(builder_name, tooltipbox);
         tooltipbox.style.top = parseInt(cursorPosTop) + 'px';
         tooltipbox.style.left = parseInt(cursorPosLeft) + 'px';
