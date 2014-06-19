@@ -1,10 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Skia Perf</title>
-    <meta charset="utf-8" />
+<link href="res/css/main.css" rel="stylesheet" />
+<!-- Exclamation point from Wikipedia:http://upload.wikimedia.org/wikipedia/commons/2/2e/Exclamation_mark_red.png  -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">
+</script>
+<!-- Gonna have to figure out the proper path in a real project later.. -->
+<script src="res/js/flot/jquery.flot.js"></script>
+<script src="res/js/flot/jquery.flot.crosshair.js"></script>
+<script src="res/js/flot/jquery.flot.navigate.js"></script>
+<script src="res/js/logic.js"></script>
 </head>
 <body>
-  Content goes here.
+    <div class="wrapper">
+        <div class="plot-wrapper">
+            <div id="chart">
+            </div>
+            <input id="min-zoom" class="zoom-control" type="range"></input>
+            <input id="min-zoom-value" class="zoom-input"></input>
+            <input id="max-zoom" class="zoom-control" type="range"></input>
+            <input id="max-zoom-value" class="zoom-input"></input>
+        </div>
+        <div id="legend">
+            <table><tbody></tbody></table>
+        </div>
+        <div>
+            <form id="results-form" action="" method="POST">
+                <table><tr id="line-form">
+                </tr></table>
+                <input id="add-lines" type="button"
+                    value="Add lines"></input>
+                <input type=radio name=schema-type value=perf checked>Perf</input>
+                <input type=radio name=schema-type value=micr>Microbench</input>
+            </form>
+            <div id='line-num'></div>
+        </div>
+
+    </div>
+    <div id="note">
+        <div id="data"></div>
+    </div>
+    <div id="notification">
+        <div id="notification-text">Please turn on Javascript</div>
+    </div>
 </body>
 </html>

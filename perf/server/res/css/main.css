@@ -1,0 +1,66 @@
+/**
+ * Copyright (c) 2014 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file */ 
+
+.full {
+    width:100%;
+}
+
+td {
+    vertical-align:top;
+}
+
+.wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    width:100%;
+}
+
+.plot-wrapper {
+    display: block;
+    width: 800px;
+}
+
+#chart {
+    /* Maybe make this bigger? */
+    width: 800px;
+    height: 480px;
+    float: left;
+}
+
+.zoom-control {
+    width: 75%;
+}
+
+.zoom-input {
+    width: 20%;
+}
+
+#legend {
+    width: 20em;
+    height: 240px;
+    overflow: auto;
+}
+
+#note {
+    border: 1px solid lightgrey;
+    padding: 1em; 
+    position: absolute;
+    background-color: white;
+}
+
+#notification {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+}
+
+#notification-text {
+    background-color: lightyellow;
+    padding: 0.7em;
+    float: center;
+    display: table;
+    margin: 0 auto;
+    font-size: large;
+}

@@ -38,3 +38,9 @@ tools/tests/factory_configuration/actual/
 # Eclipse project files
 .project
 .pydevproject
+# Server executables/config
+perf/server/bqtoken.data
+perf/server/perf
+perf/server/perf.db
+perf/server/data
+perf/server/server
