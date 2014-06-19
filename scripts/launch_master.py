@@ -9,9 +9,18 @@ between launches. This script is intended to be run at boot time. """
 
 
 import os
+import socket
 import subprocess
 import sys
 import time
+
+BUILDBOT_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                              os.pardir))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'site_config'))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
+                             'site_config'))
+
+import config_private
 
 
 # File where the PID of the running master is stored
@@ -24,7 +33,7 @@ PID_TIMEOUT = 10.0
 
 def _SyncSources():
   """ Run 'gclient sync' on the buildbot sources. """
-  path_to_gclient = os.path.join(os.pardir, os.pardir, 'depot_tools',
+  path_to_gclient = os.path.join(BUILDBOT_PATH, 'third_party', 'depot_tools',
                                  'gclient.py')
   cmd = ['python', path_to_gclient, 'sync']
   if not subprocess.call(cmd) == 0:
@@ -32,23 +41,23 @@ def _SyncSources():
     print 'WARNING: Failed to update sources.'
 
 
-def _LaunchMaster(private=False):
-  """ Launch the build master and return its PID.
-
-  private: boolean designating whether or not to set the master as private.
-  """
+def _LaunchMaster():
+  """ Launch the build master and return its PID. """
   # Make sure the master is stopped.
-  cmd = ['make', 'stop']
-  kill_proc = subprocess.Popen(cmd)
-  kill_proc.wait()
+  subprocess.call(['make', 'stop'])
 
   # Launch the master
   cmd = ['make', 'start']
-  env = dict(os.environ)
-  if private:
-    env['PRIVATE_MASTER'] = 'True'
-  launch_proc = subprocess.Popen(cmd, env=env)
-  launch_proc.wait()
+  if not os.environ.get('TESTING_MASTER'):
+    for master in config_private.Master.valid_masters:
+      if socket.getfqdn() == master.master_fqdn:
+        master_name = master.__name__
+        print 'Using master %s' % master_name
+        os.environ['TESTING_MASTER'] = master_name
+        break
+    else:
+      print 'Could not find a matching production master. Using default.'
+  subprocess.call(cmd)
 
   # Wait for the pid file to be written, then use it to obtain the master's pid
   pid_file = None
@@ -75,15 +84,13 @@ def IsRunning(pid):
     return False
   if os.name == 'nt':
     cmd = ['tasklist', '/FI', '"PID eq %s"' % pid]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
-    if proc.wait() != 0:
-      raise Exception('Unable to poll process with PID %s' % pid)
-    is_running = pid in proc.communicate()[0]
+    output = subprocess.check_output(cmd, stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT)
+    is_running = pid in output
   else:
     cmd = ['cat', '/proc/%s/stat' % pid]
-    is_running = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT).wait() == 0
+    is_running = subprocess.call(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT) == 0
   return is_running
 
 
@@ -96,14 +103,11 @@ def _BlockUntilFinished(pid):
     time.sleep(1)
 
 
-def _UpdateAndRunMaster(private=False):
+def _UpdateAndRunMaster():
   """ Update the buildbot sources and run the build master, blocking until it
-  finishes.
-  
-  private: boolean designating whether or not to set the master as private.
-  """
+  finishes. """
   _SyncSources()
-  pid = _LaunchMaster(private=private)
+  pid = _LaunchMaster()
   print 'Launched build master with PID: %s' % pid
   _BlockUntilFinished(pid)
   print 'Master process has finished.'
@@ -111,15 +115,13 @@ def _UpdateAndRunMaster(private=False):
 
 def main():
   """ Alternately sync the buildbot source and launch the build master. """
-  private = '--private' in sys.argv
   loop = '--noloop' not in sys.argv
-  master_path = os.path.join(os.path.split(os.path.abspath(__file__))[0],
-                             os.pardir, 'master')
+  master_path = os.path.join(BUILDBOT_PATH, 'master')
   os.chdir(master_path)
-  _UpdateAndRunMaster(private=private)
+  _UpdateAndRunMaster()
   while loop:
     print 'Restarting the build master.'
-    _UpdateAndRunMaster(private=private)
+    _UpdateAndRunMaster()
 
 if '__main__' == __name__:
   sys.exit(main())

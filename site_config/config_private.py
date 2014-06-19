@@ -75,6 +75,7 @@ class Master(config_default.Master):
     project_name = 'Skia'
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('public_master_host')
+    master_fqdn = SKIA_PUBLIC_MASTER_INTERNAL_FQDN
     is_production_host = socket.getfqdn() == SKIA_PUBLIC_MASTER_INTERNAL_FQDN
     _skip_render_results_upload = False
     _skip_bench_results_upload = False
@@ -115,6 +116,7 @@ class Master(config_default.Master):
     project_name = 'PrivateSkia'
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('private_master_host')
+    master_fqdn = SKIA_PRIVATE_MASTER_INTERNAL_FQDN
     is_production_host = socket.getfqdn() == SKIA_PRIVATE_MASTER_INTERNAL_FQDN
     _skip_render_results_upload = False
     # Don't upload bench results on the private master, since we don't yet have
@@ -149,6 +151,7 @@ class Master(config_default.Master):
     project_name = 'FYISkia'
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('fyi_master_host')
+    master_fqdn = SKIA_FYI_MASTER_INTERNAL_FQDN
     is_production_host = socket.getfqdn() == SKIA_FYI_MASTER_INTERNAL_FQDN
     _skip_render_results_upload = False
     _skip_bench_results_upload = False
@@ -181,6 +184,7 @@ class Master(config_default.Master):
     project_name = 'AndroidSkia'
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('android_master_host')
+    master_fqdn = SKIA_ANDROID_MASTER_INTERNAL_FQDN
     is_production_host = socket.getfqdn() == SKIA_ANDROID_MASTER_INTERNAL_FQDN
     _skip_render_results_upload = False
     _skip_bench_results_upload = False
@@ -213,6 +217,7 @@ class Master(config_default.Master):
     project_name = 'CompileSkia'
     project_url = skia_vars.GetGlobalVariable('project_url')
     master_host = skia_vars.GetGlobalVariable('compile_master_host')
+    master_fqdn = SKIA_COMPILE_MASTER_INTERNAL_FQDN
     is_production_host = socket.getfqdn() == SKIA_COMPILE_MASTER_INTERNAL_FQDN
     _skip_render_results_upload = False
     _skip_bench_results_upload = False
