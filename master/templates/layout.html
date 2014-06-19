@@ -200,6 +200,16 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       document.getElementsByTagName("head")[0].appendChild(script);
     }
 
+    // Use an XmlHttpRequest to retrieve data from the given URL.
+    function loadXML(url, callback) {
+      var req = new XMLHttpRequest();
+      req.open("GET", url, true);
+      req.onreadystatechange = function() {
+        if (req.readyState == 4) { callback(req.responseText); }
+      };
+      req.send();
+    }
+
     // Set the tree status.
     function setTreeStatus(data) {
       var tree_status_div = document.getElementById("tree_status_div");
@@ -216,7 +226,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     function setSheriff(data) {
       var sheriff_div = document.getElementById("sheriff_div");
       if (sheriff_div) {
-        sheriff_div.innerHTML = data["username"];
+        sheriff_div.innerHTML = "Sheriff: " + data["username"];
       }
     }
 
@@ -352,6 +362,14 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
     {% endif %}
     {% endfor %}
 
+    // Callback function for AutoRoll bot status.
+    function gotARBStatus(data) {
+      var arb_status_div = document.getElementById("arb_status_div");
+      if (arb_status_div) {
+        arb_status_div.innerHTML = "AutoRoll Status: " + addLinks(data);
+      }
+    }
+
     // Load JSON data from various places.
     function loadAllData() {
       // Tree status.
@@ -381,6 +399,9 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
       loadJSONP(master_json_url, setLatestBuildsFor{{ master['name'] }});
       {% endif %}
       {% endfor %}
+
+      // AutoRoll bot status.
+      loadXML("http://chromium-skia-gm.storage.googleapis.com/arb_status.html", gotARBStatus);
 
       // Set the reload timer.
       refreshTimer = setTimeout(reloadPage, refreshInterval);
@@ -613,6 +634,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
         <div id="tree_status_div" width="100%" height="50" class="status-message">
           <span id="tree_status_message"></span>
           <div id="sheriff_div" class="sheriff-message"></div>
+          <div id="arb_status_div" class="arb-status"></div>
         </div>
       </a>
       <div id="container" style="float: left; width: 100%;">
