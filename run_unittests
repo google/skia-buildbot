@@ -21,9 +21,11 @@ sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
 
 
 NO_CRAWL_DIRS = [
+  '.git',
+  '.svn',
+  'common',
   'git_poller_skia.git',
   'third_party',
-  '.svn',
 ]
 
 
