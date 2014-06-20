@@ -10,7 +10,7 @@ from buildbot.status.status_push import StatusPush
 
 
 _DEFAULT_PORT = 2004    # Default port of pickled messages to Graphite
-_SERVER_ADDRESS = 'skia-notification-b:2004'
+_SERVER_ADDRESS = 'skia-monitoring-b:2004'
 
 def _sanitizeGraphiteNames(string):
   return string.replace('.', '_').replace(' ', '_')
