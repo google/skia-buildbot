@@ -1,8 +1,8 @@
 build:
-	GOPATH=$(GOPATH):`pwd` go build -o perf
+	GOPATH=$(GOPATH):`pwd` go build -o perf server
 
 test:
-	GOPATH=$(GOPATH):`pwd` go test kmeans
+	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace
 
 verbosetests:
-	GOPATH=$(GOPATH):`pwd` go test kmeans -v
+	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace -v

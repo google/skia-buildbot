@@ -26,26 +26,14 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
-const (
-	// JSON doesn't support NaN or +/- Inf, so we need a valid float
-	// to signal missing data that also has a compact JSON representation.
-	MISSING_DATA_SENTINEL = 1e100
-
-	// Don't consider data before this time. May be due to schema changes, etc.
-	// Note that the limit is exclusive, this date does not contain good data.
-	// TODO(jcgregorio) Make into a flag.
-	BEGINNING_OF_TIME = "20140614"
-
-	// Limit the number of commits we hold in memory and do bulk analysis on.
-	MAX_COMMITS_IN_MEMORY = 30
-
-	REFRESH_PERIOD = time.Minute * 30
+import (
+	"config"
 )
 
 // Shouldn't need auth when running from GCE, but will need it for local dev.
 // TODO(jcgregorio) Move to reading this from client_secrets.json and void these keys at that point.
 var (
-	config = &oauth.Config{
+	oauthConfig = &oauth.Config{
 		ClientId:     "470362608618-nlbqngfl87f4b3mhqqe9ojgaoe11vrld.apps.googleusercontent.com",
 		ClientSecret: "J4YCkfMXFJISGyuBuVEiH60T",
 		Scope:        bigquery.BigqueryScope,
@@ -107,7 +95,7 @@ func NewTrace(numSamples int) *Trace {
 		Trybot: false,
 	}
 	for i, _ := range t.Values {
-		t.Values[i] = MISSING_DATA_SENTINEL
+		t.Values[i] = config.MISSING_DATA_SENTINEL
 	}
 	return t
 }
@@ -175,7 +163,7 @@ func (i *DateIter) Next() bool {
 		return true
 	}
 	i.day = i.day.Add(-24 * time.Hour)
-	return i.Date() != BEGINNING_OF_TIME
+	return i.Date() != config.BEGINNING_OF_TIME
 }
 
 // Date returns the day formatted as we use them on BigQuery table name suffixes.
@@ -222,7 +210,7 @@ ORDER BY
 				return nil, allCommits, fmt.Errorf("Failed reading hashes from BigQuery: %s", err)
 			}
 			totalCommits++
-			if len(allCommits) < MAX_COMMITS_IN_MEMORY {
+			if len(allCommits) < config.MAX_COMMITS_IN_MEMORY {
 				allCommits = append(allCommits, c)
 			} else {
 				break
@@ -230,7 +218,7 @@ ORDER BY
 		}
 		dateList = append(dateList, dates.Date())
 		glog.Infof("Finding hashes with data, finished day %s, total commits so far %d", dates.Date(), totalCommits)
-		if totalCommits >= MAX_COMMITS_IN_MEMORY {
+		if totalCommits >= config.MAX_COMMITS_IN_MEMORY {
 			break
 		}
 	}
@@ -608,7 +596,7 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 	var err error
 	var client *http.Client
 	if doOauth {
-		client, err = runFlow(config)
+		client, err = runFlow(oauthConfig)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to auth: %s", err)
 		}
@@ -636,7 +624,7 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 		glog.Fatal(err)
 	}
 	go func() {
-		for _ = range time.Tick(REFRESH_PERIOD) {
+		for _ = range time.Tick(config.REFRESH_PERIOD) {
 			if err := all.populate(); err != nil {
 				glog.Errorln("Failed to refresh data from BigQuery: ", err)
 			}

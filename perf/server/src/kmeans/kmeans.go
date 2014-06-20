@@ -1,3 +1,7 @@
+// Copyright (c) 2014 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file.
+//
 // kmeans implements a generic k-means clustering algorithm.
 //
 // To use this code create a type that implements Clusterable and also
