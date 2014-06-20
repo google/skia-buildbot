@@ -8,7 +8,7 @@ from telemetry.page import page as page_module
 from telemetry.page import page_set as page_set_module
 
 
-class SkiaBuildbotDesktopPage(page_module.PageWithDefaultRunNavigate):
+class SkiaBuildbotDesktopPage(page_module.Page):
 
   def __init__(self, url, page_set):
     super(SkiaBuildbotDesktopPage, self).__init__(url=url, page_set=page_set)
@@ -20,11 +20,8 @@ class SkiaBuildbotDesktopPage(page_module.PageWithDefaultRunNavigate):
     action_runner.RunAction(ScrollAction())
 
   def RunNavigateSteps(self, action_runner):
-    action_runner.RunAction(NavigateAction())
-    action_runner.RunAction(WaitAction(
-      {
-        'seconds': 20
-      }))
+    action_runner.NavigateToPage(self)
+    action_runner.Wait(20)
 
 
 class SkiaBuildbotPageSet(page_set_module.PageSet):
