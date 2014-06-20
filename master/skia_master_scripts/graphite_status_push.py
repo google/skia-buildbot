@@ -10,7 +10,7 @@ from buildbot.status.status_push import StatusPush
 
 
 _DEFAULT_PORT = 2004    # Default port of pickled messages to Graphite
-_SERVER_ADDRESS = 'skia-monitoring-b:2004'
+_SERVER_ADDRESS = 'skia-monitoring-b:%s' % _DEFAULT_PORT
 
 def _sanitizeGraphiteNames(string):
   return string.replace('.', '_').replace(' ', '_')
@@ -67,9 +67,10 @@ class GraphiteStatusPush(StatusPush):
       if len(self.serverAddress.split(':')) > 1:
         port_num = int(self.serverAddress.split(':')[1])
       sock.connect((ip_address, port_num))
-      message = pickle.dumps(valid_events)
-      header = struct.pack('!L', len(message))
-      sock.sendall(header + message)
+      for start in range(0, len(valid_events), 100):
+        message = pickle.dumps(valid_events[start:start+100])
+        header = struct.pack('!L', len(message))
+        sock.sendall(header + message)
     except Exception:
       print 'GraphiteStatusPush: unable to connect to server'
       self.queue.insertBackChunk(events)
