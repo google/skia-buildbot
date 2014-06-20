@@ -16,6 +16,7 @@ vars = {
   "chromium_trunk": "http://src.chromium.org/svn/trunk",
   "chromium_revision": "179720",
   "chromium_git": "https://chromium.googlesource.com",
+  "skia_git": "https://skia.googlesource.com",
   "telemetry_chromium_revision": "278114",
   "webpagereplay_revision": "546",
   "telemetry_webkit_trunk": "http://src.chromium.org/blink/trunk",
@@ -23,6 +24,10 @@ vars = {
 }
 
 deps = {
+  # Utilities shared between the Skia and Skia-Buildbot repositories.
+  "common":
+    Var("skia_git") + "/common.git@9bda9ca2f55b584189b83457d1cfea7805713f64",
+
   # Chromium trunk code for running telemetry binaries.
   "third_party/chromium_trunk/src/tools/perf":
     Var("chromium_trunk") + "/src/tools/perf@" + Var("telemetry_chromium_revision"),
