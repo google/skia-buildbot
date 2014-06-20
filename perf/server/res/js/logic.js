@@ -41,8 +41,14 @@ function getLegendKeys() {
 
 function addToLegend(key) {
   if ($('#legend').find('[id=\'' + key + '\']').length > 0) { return; }
-  return $('#legend table tbody').append('<tr><td><input type=checkbox id=' +
-      key + ' checked>' + key + '</input></td>' +
+
+  return $('#legend table tbody').append(
+      '<tr><td><input type=checkbox id=' + key + ' checked></input>' +
+        '<div class=legend-box-outer>' +
+            '<div class=legend-box-inner>' + 
+            '</div>'+
+        '</div>'+
+          key + '</td>' +
       '<td><a href=#target id=' + key +
       '_remove>Remove</a></td></tr>');
 }
@@ -279,6 +285,18 @@ function plotStuff(source) {
     });
     plotRef.setupGrid();
     plotRef.draw();
+    // Update the legend's colors
+    $('#legend input').each(function() {
+      var color = 'white';
+      var _this = this;
+      plotRef.getData().forEach(function(series) {
+        if(series.label == _this.id) {
+          color = series.color;
+        }
+      });
+      this.parentElement.getElementsByClassName('legend-box-inner')[0].
+            style.border = '5px solid ' + color;
+    });
   }
 }
 
@@ -361,14 +379,7 @@ function plotInit() {
     plotRef = $('#chart').plot(plotData.getProcessedPlotData(),
         {
           legend: {
-            labelFormatter: function(label) {
-              if (label.slice(0, 2) != '__') {
-                return label;
-              } else {
-                return null;
-              }
-            },
-            sorted: true
+            show: false
           },
           grid: {
             hoverable: true,
@@ -740,6 +751,15 @@ window.addEventListener('load', function() {
   document.getElementById('max-zoom-value').
       addEventListener('blur', zoomBlurHandler);
 
+  document.getElementById('nuke-plot').addEventListener('click', function(e) {
+    console.log('all lines removed');
+    while (plotData.getVisibleKeys().length > 0) {
+      plotData.makeInvisible(last(plotData.getVisibleKeys()));
+    }
+    $('#legend table tbody').children().remove();
+    updateHistory();
+    e.preventDefault();
+  });
 
   Array.prototype.forEach.call(document.getElementsByName('schema-type'), 
           function(e) {
@@ -761,14 +781,14 @@ window.addEventListener('load', function() {
         plotData.makeInvisible(last(plotData.getVisibleKeys()));
       }
       $('#legend table tbody').children().remove();
+      for (var j = 0; j < newVisible.length; j++) {
+        plotData.makeVisible(newVisible[j]);
+      }
       for (var i = 0; i < newLegend.length; i++) {
         console.log('Adding ' + newLegend[i] + 'to legend');
         addToLegend(newLegend[i]);
       }
-      for (var j = 0; j < newVisible.length; j++) {
-        plotData.makeVisible(newVisible[j]);
-      }
-    }
+   }
     plotStuff(plotData);
   });
 });

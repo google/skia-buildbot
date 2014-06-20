@@ -64,3 +64,15 @@ td {
     margin: 0 auto;
     font-size: large;
 }
+
+.legend-box-outer {
+    border: 1px solid #ccc;
+    padding: 1px;
+    display: inline-block;
+}
+
+.legend-box-inner {
+    width: 4px;
+    height: 0;
+    overflow: hidden;
+}
