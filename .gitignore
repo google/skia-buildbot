@@ -6,6 +6,8 @@
 *.cfgc
 # gclient files
 .gclient*
+# common code
+common
 # Files created when running as a master.
 master/Build-*
 master/Canary-*
