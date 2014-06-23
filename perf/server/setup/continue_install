@@ -36,4 +36,4 @@ export PATH=$PATH:$GOROOT/bin
 
 cd ~/buildbot/perf/server
 go get -d
-go build -o perf
+make
