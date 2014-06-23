@@ -116,17 +116,17 @@ func TestFullKmeans(t *testing.T) {
 	centroids = Do(observations, centroids, calculateCentroid)
 	centroids = Do(observations, centroids, calculateCentroid)
 	centroids = Do(observations, centroids, calculateCentroid)
-	clusters := GetClusters(observations, centroids)
+	clusters, _ := GetClusters(observations, centroids)
 	if got, want := len(centroids), 3; got != want {
 		t.Errorf("Wrong length of centroids: Got %d, Want %d", got, want)
 	}
-	if got, want := len(clusters[0]), 3; got != want {
+	if got, want := len(clusters[0]), 3+1; got != want {
 		t.Errorf("Wrong length of clusters[0]: Got %d, Want %d", got, want)
 	}
-	if got, want := len(clusters[1]), 2; got != want {
+	if got, want := len(clusters[1]), 2+1; got != want {
 		t.Errorf("Wrong length of clusters[1]: Got %d, Want %d", got, want)
 	}
-	if got, want := len(clusters[2]), 1; got != want {
+	if got, want := len(clusters[2]), 1+1; got != want {
 		t.Errorf("Wrong length of clusters[2]: Got %d, Want %d", got, want)
 	}
 }

@@ -6,6 +6,7 @@
 package ctrace
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -24,6 +25,7 @@ const (
 type ClusterableTrace struct {
 	Key    string
 	Values []float64
+	Params map[string]string
 }
 
 func (t *ClusterableTrace) Distance(other kmeans.Clusterable) float64 {
@@ -37,9 +39,13 @@ func (t *ClusterableTrace) Distance(other kmeans.Clusterable) float64 {
 	return math.Sqrt(sum)
 }
 
+func (t *ClusterableTrace) String() string {
+	return fmt.Sprintf("%s %#v", t.Key, t.Values[:2])
+}
+
 // NewFullTrace takes data you would find in a Trace and returns a
 // ClusterableTrace usable for kmeans clustering.
-func NewFullTrace(key string, values []float64) *ClusterableTrace {
+func NewFullTrace(key string, values []float64, params map[string]string) *ClusterableTrace {
 	norm := make([]float64, len(values))
 
 	// Find the first non-sentinel data point.
@@ -86,6 +92,7 @@ func NewFullTrace(key string, values []float64) *ClusterableTrace {
 	return &ClusterableTrace{
 		Key:    key,
 		Values: norm,
+		Params: params,
 	}
 }
 
@@ -104,7 +111,7 @@ func CalculateCentroid(members []kmeans.Clusterable) kmeans.Clusterable {
 		mean[i] = mean[i] / numMembers
 	}
 	return &ClusterableTrace{
-		Key:    "",
+		Key:    "I'm a centroid!",
 		Values: mean,
 	}
 }

@@ -13,7 +13,6 @@ package kmeans
 
 import (
 	"math"
-	"math/rand"
 	"sort"
 )
 
@@ -27,7 +26,7 @@ type Clusterable interface {
 type CalculateCentroid func([]Clusterable) Clusterable
 
 // closestCentroid returns the index of the closest centroid to this observation.
-func closestCentroid(observation Clusterable, centroids []Clusterable) int {
+func closestCentroid(observation Clusterable, centroids []Clusterable) (int, float64) {
 	var bestDistance float64 = math.MaxFloat64
 	bestIndex := -1
 	for j, c := range centroids {
@@ -36,13 +35,14 @@ func closestCentroid(observation Clusterable, centroids []Clusterable) int {
 			bestIndex = j
 		}
 	}
-	return bestIndex
+	return bestIndex, bestDistance
 }
 
-// Do does a single iteration of Loyd's Algorithm, taking an array of observations and
-// a set of centroids along with a function to calcaulate new centroids for a cluster.
-// It returns an updated array of centroids. Note that the centroids array passed in gets modified
-// so the best way to call the function is:
+// Do does a single iteration of Loyd's Algorithm, taking an array of
+// observations and a set of centroids along with a function to calcaulate new
+// centroids for a cluster.  It returns an updated array of centroids. Note
+// that the centroids array passed in gets modified so the best way to call the
+// function is:
 //
 //  centroids = Do(observations, centroids, f)
 //
@@ -54,7 +54,7 @@ func Do(observations, centroids []Clusterable, f CalculateCentroid) []Clusterabl
 
 	// Find the closest centroid for each observation.
 	for i, o := range observations {
-		cluster[i] = closestCentroid(o, centroids)
+		cluster[i], _ = closestCentroid(o, centroids)
 	}
 
 	newCentroids := make([]Clusterable, 0, len(centroids))
@@ -82,37 +82,40 @@ func (p SortableClusterSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // GetClusters returns the observations categorized into the clusters they fit
 // into.  The return value is sorted by the number of members of the cluster.
-func GetClusters(observations, centroids []Clusterable) [][]Clusterable {
-	r := make([][]Clusterable, len(centroids), len(centroids))
+// The very first element of each cluster is the centroid, the remainging
+// members are the observations that are in the cluster.
+func GetClusters(observations, centroids []Clusterable) ([][]Clusterable, float64) {
+	r := make([][]Clusterable, len(centroids))
 	for i, _ := range r {
-		r[i] = make([]Clusterable, 0)
+		// The first trace is always the centroid for the cluster.
+		r[i] = []Clusterable{centroids[i]}
 	}
+	totalError := 0.0
 	for _, o := range observations {
-		index := closestCentroid(o, centroids)
+		index, clusterError := closestCentroid(o, centroids)
+		totalError += clusterError
 		r[index] = append(r[index], o)
 	}
 	sort.Sort(SortableClusterSlice(r))
-	return r
-}
-
-// ChooseK will choose a starting set of centroids at random from a set of observations.
-//
-// TODO(jcgregorio) Choosing w/o replacement would be better.
-func ChooseK(observations []Clusterable, k int) []Clusterable {
-	popN := len(observations)
-	centroids := make([]Clusterable, k, k)
-	for i := 0; i < k; i++ {
-		centroids[i] = observations[rand.Intn(popN)]
-	}
-	return centroids
+	return r, totalError
 }
 
 // KMeans runs the k-means clustering algorithm over a set of observations and
 // returns the centroids and clusters.
-func KMeans(observations []Clusterable, k, iters int, f CalculateCentroid) ([]Clusterable, [][]Clusterable) {
-	centroids := ChooseK(observations, k)
+//
+// TODO(jcgregorio) Should just iterate until total error stops changing.
+func KMeans(observations, centroids []Clusterable, k, iters int, f CalculateCentroid) ([]Clusterable, [][]Clusterable) {
 	for i := 0; i < iters; i++ {
 		centroids = Do(observations, centroids, f)
 	}
-	return centroids, GetClusters(observations, centroids)
+	clusters, _ := GetClusters(observations, centroids)
+	return centroids, clusters
+}
+
+// TotalError calculates the total error between the centroids and the
+// observations.
+func TotalError(observations, centroids []Clusterable) float64 {
+	_, totalError := GetClusters(observations, centroids)
+
+	return totalError
 }

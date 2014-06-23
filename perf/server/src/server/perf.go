@@ -30,6 +30,9 @@ var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
 
+	// clusterTemplate is the /clusters/ page we serve.
+	clusterTemplate *template.Template = nil
+
 	// db is the database, nil if we don't have an SQL database to store data into.
 	db *sql.DB = nil
 )
@@ -67,6 +70,7 @@ func init() {
 	}
 
 	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
+	clusterTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/clusters.html")))
 
 	// Connect to MySQL server. First, get the password from the metadata server.
 	// See https://developers.google.com/compute/docs/metadata#custom.
@@ -143,6 +147,17 @@ func reportError(w http.ResponseWriter, r *http.Request, err error, message stri
 	http.Error(w, message, 500)
 }
 
+// clusterHandler handles the GET of the clusters page.
+func clusterHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Cluster Handler: %q\n", r.URL.Path)
+	if r.Method == "GET" {
+		w.Header().Set("Content-Type", "text/html")
+		if err := clusterTemplate.Execute(w, data.ClusterSummaries()); err != nil {
+			glog.Errorln("Failed to expand template:", err)
+		}
+	}
+}
+
 // jsonHandler handles the GET for the JSON requests.
 func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("JSON Handler: %q\n", r.URL.Path)
@@ -152,7 +167,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// mainHandler handles the GET and POST of the main page.
+// mainHandler handles the GET of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Main Handler: %q\n", r.URL.Path)
 	if r.Method == "GET" {
@@ -178,6 +193,7 @@ func main() {
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc("/json/", autogzip.HandleFunc(jsonHandler))
+	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

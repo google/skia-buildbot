@@ -8,9 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os/exec"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -28,6 +30,17 @@ import (
 
 import (
 	"config"
+	"ctrace"
+	"kmeans"
+)
+
+const (
+	NUM_SAMPLE_TRACES_PER_CLUSTER = 10
+
+	// K is the k in k-means.
+	K = 100
+
+	KMEANS_ITERATIONS = 10
 )
 
 // Shouldn't need auth when running from GCE, but will need it for local dev.
@@ -43,8 +56,10 @@ var (
 		TokenCache:   oauth.CacheFile("bqtoken.data"),
 	}
 
-	lastSkpUpdate          = time.Now()
-	timeSinceLastSkpUpdate = metrics.NewRegisteredGauge("data.bigquery.skps.refresh.time_since_last_update", metrics.DefaultRegistry)
+	lastSkpUpdate             = time.Now()
+	timeSinceLastSkpUpdate    = metrics.NewRegisteredGauge("data.bigquery.skps.refresh.time_since_last_update", metrics.DefaultRegistry)
+	skpUpdateLatency          = metrics.NewRegisteredTimer("data.bigquery.skps.refresh.latency", metrics.DefaultRegistry)
+	clusterCalculationLatency = metrics.NewRegisteredTimer("cluster.skps.latency", metrics.DefaultRegistry)
 )
 
 func init() {
@@ -126,6 +141,31 @@ func NewCommit() *Commit {
 	}
 }
 
+// ValueWeight is a weight proportional to the number of times the parameter
+// Value appears in a cluster. Used in ClusterSummary.
+type ValueWeight struct {
+	Value  string
+	Weight int
+}
+
+// ClusterSummary is a summary of a single cluster of traces.
+type ClusterSummary struct {
+	// Traces contains at most NUM_SAMPLE_TRACES_PER_CLUSTER sample traces, the first is the centroid.
+	Traces [][][]float64
+
+	// Keys of all the members of the Cluster.
+	Keys []string
+
+	// ParamSummaries is a summary of all the parameters in the cluster.
+	ParamSummaries [][]ValueWeight
+}
+
+// ClusterSummaries is one summary for each cluster that the k-means clustering
+// found.
+type ClusterSummaries struct {
+	Clusters []*ClusterSummary
+}
+
 // Choices is a list of possible values for a param. See AllData.
 type Choices []string
 
@@ -134,12 +174,12 @@ type Choices []string
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type AllData struct {
-	Traces   []*Trace           `json:"traces"`
-	ParamSet map[string]Choices `json:"param_set"`
-	Commits  []*Commit          `json:"commits"`
-	mutex    sync.Mutex
-	service  *bigquery.Service
-	fullData bool
+	Traces           []*Trace           `json:"traces"`
+	ParamSet         map[string]Choices `json:"param_set"`
+	Commits          []*Commit          `json:"commits"`
+	service          *bigquery.Service
+	fullData         bool
+	clusterSummaries *ClusterSummaries
 }
 
 // DateIter allows for easily iterating backwards, one day at a time, until
@@ -194,6 +234,7 @@ ORDER BY
   timestamp DESC;
   `
 	// Loop over table going backward until we find 30 commits, or hit the BEGINNING_OF_TIME.
+	glog.Info("gitCommitsWithTestData: starting.")
 	dates := NewDateIter()
 	totalCommits := 0
 	for dates.Next() {
@@ -527,13 +568,21 @@ func (all *AllData) populateTraces(dates []string, fullData bool) error {
 
 // Data is the full set of traces for the last N days all parsed into structs.
 type Data struct {
-	all *AllData
+	mutex sync.Mutex
+	all   *AllData
+}
+
+func (d *Data) ClusterSummaries() *ClusterSummaries {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+
+	return d.all.clusterSummaries
 }
 
 // AsJSON serializes the data as JSON.
 func (d *Data) AsJSON(w io.Writer) error {
-	d.all.mutex.Lock()
-	defer d.all.mutex.Unlock()
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 
 	// TODO(jcgregorio) Keep a cache of the gzipped JSON around and serve that as long as it's fresh.
 	return json.NewEncoder(w).Encode(d.all)
@@ -565,10 +614,155 @@ func (all *AllData) populateParamSet() {
 	}
 }
 
-func (all *AllData) populate() error {
-	all.mutex.Lock()
-	defer all.mutex.Unlock()
+// chooseK chooses a random sample of k observations. Used as the starting
+// point for the k-means clustering.
+func chooseK(observations []kmeans.Clusterable, k int) []kmeans.Clusterable {
+	popN := len(observations)
+	centroids := make([]kmeans.Clusterable, k)
+	for i := 0; i < k; i++ {
+		o := observations[rand.Intn(popN)].(*ctrace.ClusterableTrace)
+		cp := &ctrace.ClusterableTrace{
+			Key:    "I'm a centroid",
+			Values: make([]float64, len(o.Values)),
+		}
+		copy(cp.Values, o.Values)
+		centroids[i] = cp
+	}
+	return centroids
+}
 
+// traceToFlot converts the data into a format acceptable to the Flot plotting
+// library.
+//
+// Flot expects data formatted as an array of [x, y] pairs.
+func traceToFlot(t *ctrace.ClusterableTrace) [][]float64 {
+	ret := make([][]float64, len(t.Values))
+	for i, x := range t.Values {
+		ret[i] = []float64{float64(i), x}
+	}
+	return ret
+}
+
+// blacklist of a list of Params that we don't want showing up in the
+// clustering word cloud. Should need to go away as we clean up the data
+// coming into BigQuery.
+//
+// The bool value doesn't matter, merely appearing in the map is enough to be
+// blacklisted.
+var blacklist = map[string]bool{
+	"scale":         true,
+	"mode":          true,
+	"role":          true,
+	"skpSize":       true,
+	"viewport":      true,
+	"configuration": true,
+}
+
+// ValueWeightSortable is a utility class for sorting the ValueWeight's by Weight.
+type ValueWeightSortable []ValueWeight
+
+func (p ValueWeightSortable) Len() int           { return len(p) }
+func (p ValueWeightSortable) Less(i, j int) bool { return p[i].Weight > p[j].Weight } // Descending.
+func (p ValueWeightSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// getParamSummaries summaries all the parameters for all observations in a cluster.
+//
+// The return value is an array of []ValueWeight's, one []ValueWeight per
+// parameter. The members of each []ValueWeight are sorted by the Weight, with
+// higher Weight's first.
+func getParamSummaries(cluster []kmeans.Clusterable) [][]ValueWeight {
+	// For each cluster member increment each parameters count.
+	type ValueMap map[string]int
+	counts := map[string]ValueMap{}
+	clusterSize := float64(len(cluster))
+	// First figure out what parameters and values appear in the cluster.
+	for _, o := range cluster {
+		for k, v := range o.(*ctrace.ClusterableTrace).Params {
+			if _, ok := blacklist[k]; ok {
+				continue
+			}
+			if v == "" {
+				continue
+			}
+			if _, ok := counts[k]; !ok {
+				counts[k] = ValueMap{}
+				counts[k][v] = 0
+			}
+			counts[k][v] += 1
+		}
+	}
+	// Now calculate the weights for each parameter value.  The weight of each
+	// value is proportional to the number of times it appears on an observation
+	// versus all other values for the same parameter.
+	ret := make([][]ValueWeight, 0)
+	for _, count := range counts {
+		weights := []ValueWeight{}
+		for value, weight := range count {
+			weights = append(weights, ValueWeight{
+				Value:  value,
+				Weight: int(14*float64(weight)/clusterSize) + 12,
+			})
+		}
+		sort.Sort(ValueWeightSortable(weights))
+		ret = append(ret, weights)
+	}
+
+	return ret
+}
+
+// GetClusterSummaries returns a summaries for each cluster.
+func (all *AllData) GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterSummaries {
+	ret := &ClusterSummaries{
+		Clusters: make([]*ClusterSummary, len(centroids)),
+	}
+	allClusters, _ := kmeans.GetClusters(observations, centroids)
+	for i, cluster := range allClusters {
+		// cluster is just an array of the observations for a given cluster.
+		numSampleTraces := len(cluster)
+		if numSampleTraces > NUM_SAMPLE_TRACES_PER_CLUSTER {
+			numSampleTraces = NUM_SAMPLE_TRACES_PER_CLUSTER
+		}
+		summary := &ClusterSummary{
+			Keys:           make([]string, len(cluster)),
+			Traces:         make([][][]float64, numSampleTraces),
+			ParamSummaries: getParamSummaries(cluster),
+		}
+		for j, o := range cluster {
+			summary.Keys[j] = o.(*ctrace.ClusterableTrace).Key
+		}
+		for j := 0; j < numSampleTraces; j++ {
+			summary.Traces[j] = traceToFlot(cluster[j].(*ctrace.ClusterableTrace))
+		}
+		ret.Clusters[i] = summary
+	}
+
+	return ret
+}
+
+// populateClusters runs k-means clustering over the trace shapes and returns
+// the clustering of those shapes via all.clusterSummaries.
+func (all *AllData) populateClusters() {
+	begin := time.Now()
+	observations := make([]kmeans.Clusterable, len(all.Traces))
+	for i, t := range all.Traces {
+		observations[i] = ctrace.NewFullTrace(t.Key, t.Values, t.Params)
+	}
+
+	// Create K starting centroids.
+	centroids := chooseK(observations, K)
+	for i := 0; i < KMEANS_ITERATIONS; i++ {
+		centroids = kmeans.Do(observations, centroids, ctrace.CalculateCentroid)
+		glog.Infof("Total Error: %f\n", kmeans.TotalError(observations, centroids))
+	}
+	all.clusterSummaries = all.GetClusterSummaries(observations, centroids)
+	d := time.Since(begin)
+	clusterCalculationLatency.Update(d)
+	glog.Infof("Finished anomaly detection in %f s", d.Seconds())
+}
+
+// populate populates the AllData struct with info from BigQuery.
+func (all *AllData) populate() error {
+	begin := time.Now()
 	dates, commits, err := gitCommitsWithTestData(all.service)
 	if err != nil {
 		return fmt.Errorf("Failed to read hashes from BigQuery: %s", err)
@@ -584,7 +778,12 @@ func (all *AllData) populate() error {
 
 	all.populateParamSet()
 
+	all.populateClusters()
+
 	lastSkpUpdate = time.Now()
+	d := time.Since(begin)
+	skpUpdateLatency.Update(d)
+	glog.Infof("Finished loading skp data from BigQuery in %f s", d.Seconds())
 
 	return nil
 }
@@ -623,13 +822,26 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 		// Fail fast, monit will restart us if we fail for some reason.
 		glog.Fatal(err)
 	}
+	d := &Data{all: all}
 	go func() {
 		for _ = range time.Tick(config.REFRESH_PERIOD) {
+
+			all := &AllData{
+				Traces:   make([]*Trace, 0, 0),
+				ParamSet: make(map[string]Choices),
+				Commits:  make([]*Commit, 0, 0),
+				service:  service,
+				fullData: fullData,
+			}
+
 			if err := all.populate(); err != nil {
 				glog.Errorln("Failed to refresh data from BigQuery: ", err)
 			}
+			d.mutex.Lock()
+			d.all = all
+			d.mutex.Unlock()
 		}
 	}()
 
-	return &Data{all: all}, nil
+	return d, nil
 }

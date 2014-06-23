@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clusters</title>
+    <meta charset="utf-8" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="/res/js/flot/jquery.flot.js"></script>
+    <link rel="stylesheet" href="/res/css/clusters.css" type="text/css">
+    <script src="/res/js/clusters.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+<p>Clustering of measurement traces by shape.</p>
+
+    <!-- Draw a plot and a word cloud for each cluster.  -->
+    {{range $i, $summary := .Clusters}}
+      <div id="placeholder{{$i}}" class=graph></div>
+      Cluster has {{len $summary.Keys}} members.
+      <button type="submit" class=expander>+</button>
+      <!-- Draw a word cloud based on the parameters for each member of cluster.  -->
+      <div class=cloud>
+        {{range $summary.ParamSummaries}}
+        <div class=cloudParam>
+          {{range .}}
+          <div style="font-size:{{.Weight}}px">{{.Value}} </div>
+          {{end}}
+        </div>
+        {{end}}
+      </div>
+    {{end}}
+  <script type="text/javascript" charset="utf-8">
+    window.addEventListener('load', function() {
+    {{range $i, $summary := .Clusters}}
+      $.plot("#placeholder{{$i}}",
+        [
+      {{range $j, $trace := $summary.Traces}}
+        {{if $j}},{{end}}
+        {
+          color: "{{if $j}}lightgrey{{else}}black{{end}}",
+          data: {{$trace}}
+        }
+      {{end}}
+        // Redraw the first line, the centroid, so it shows up on top.
+        ,{
+          color: "black",
+          data: {{index $summary.Traces 0}}
+        }
+      ], {});
+    {{end}}
+  });
+  </script>
+</body>
+</html>
