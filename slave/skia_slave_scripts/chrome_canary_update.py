@@ -7,13 +7,8 @@
 
 # build_step must be imported first, since it does some tweaking of PYTHONPATH.
 from build_step import BuildStep
-from utils import git_utils
 from utils import sync_skia_in_chrome
-import shlex
 import sys
-
-
-CHROMIUM_REPO = 'https://chromium.googlesource.com/chromium/src.git'
 
 
 class ChromeCanaryUpdate(BuildStep):
@@ -26,17 +21,14 @@ class ChromeCanaryUpdate(BuildStep):
         **kwargs)
 
   def _Run(self):
-    chrome_rev = shlex.split(git_utils.GetRemoteMasterHash(CHROMIUM_REPO))[0]
-
-    override_skia_checkout = True
-    if 'AutoRoll' in self._builder_name:
-      override_skia_checkout = False
-
+    chrome_rev = self._args.get('chrome_rev',
+                                sync_skia_in_chrome.CHROME_REV_MASTER)
+    skia_rev = (sync_skia_in_chrome.SKIA_REV_DEPS
+                    if self._args.get('use_lkgr_skia')
+                else (self._revision or sync_skia_in_chrome.SKIA_REV_MASTER))
     (got_skia_rev, got_chrome_rev) = sync_skia_in_chrome.Sync(
-        skia_revision=self._revision,
+        skia_revision=skia_rev,
         chrome_revision=chrome_rev,
-        use_lkgr_skia=('use_lkgr_skia' in self._args.keys()),
-        override_skia_checkout=override_skia_checkout,
         gyp_defines=self._flavor_utils.gyp_defines,
         gyp_generators=self._flavor_utils.gyp_generators)
     print 'Skia updated to %s' % got_skia_rev

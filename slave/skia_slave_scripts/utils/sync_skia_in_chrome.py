@@ -20,12 +20,23 @@ import sys
 import urllib2
 
 
+CHROME_GIT_URL = 'https://chromium.googlesource.com/chromium/src.git'
 CHROME_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
 FETCH = 'fetch.bat' if os.name == 'nt' else 'fetch'
 GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
 GCLIENT_FILE = '.gclient'
 PATH_TO_SKIA_IN_CHROME = os.path.join('src', 'third_party', 'skia', 'src')
 DEFAULT_FETCH_TARGET = 'chromium'
+
+# Sync Chrome to LKGR.
+CHROME_REV_LKGR = 'CHROME_REV_LKGR'
+# Sync Chrome to origin/master.
+CHROME_REV_MASTER = 'CHROME_REV_MASTER'
+
+# Code revision specified by DEPS.
+SKIA_REV_DEPS = 'SKIA_REV_DEPS'
+# Sync to origin/master.
+SKIA_REV_MASTER = 'SKIA_REV_MASTER'
 
 
 def GetDepsVar(deps_filepath, variable):
@@ -43,29 +54,24 @@ def GetDepsVar(deps_filepath, variable):
   return deps_vars['vars'][variable]
 
 
-def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
-         override_skia_checkout=True, fetch_target=DEFAULT_FETCH_TARGET,
+def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
+         fetch_target=DEFAULT_FETCH_TARGET,
          gyp_defines=None, gyp_generators=None):
   """ Create and sync a checkout of Skia inside a checkout of Chrome. Returns
   a tuple containing the actually-obtained revision of Skia and the actually-
   obtained revision of Chrome.
 
-  skia_revision: revision of Skia to sync. If None, will attempt to determine
-      the most recent Skia revision. Ignored if use_lkgr_skia is True.
-  chrome_revision: revision of Chrome to sync. If None, will use the LKGR.
-  use_lkgr_skia: boolean; if True, leaves Skia at the revision given in Chrome's
-      DEPS file.
-  override_skia_checkout: boolean; whether or not to replace the default Skia
-      checkout, which is actually a set of three subdirectory checkouts in
-      third_party/skia: src, include, and gyp, with a single checkout of skia at
-      the root level. Default is True.
+  skia_revision: revision of Skia to sync. Should be a commit hash or one of
+      (SKIA_REV_DEPS, SKIA_REV_MASTER).
+  chrome_revision: revision of Chrome to sync. Should be a commit hash or one
+      of (CHROME_REV_LKGR, CHROME_REV_MASTER).
   fetch_target: string; Calls the fetch tool in depot_tools with the specified
       argument. Default is DEFAULT_FETCH_TARGET.
   gyp_defines: optional string; GYP_DEFINES to be passed to Gyp.
   gyp_generators: optional string; which GYP_GENERATORS to use.
   """
   # Figure out what revision of Skia we should use.
-  if not skia_revision:
+  if skia_revision == SKIA_REV_MASTER:
     output = git_utils.GetRemoteMasterHash(SKIA_GIT_URL)
     if output:
       skia_revision = shlex.split(output)[0]
@@ -74,8 +80,11 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
   skia_revision = str(skia_revision)
 
   # Use Chrome LKGR, since gclient_utils will force a sync to origin/master.
-  if not chrome_revision:
+  if chrome_revision == CHROME_REV_LKGR:
     chrome_revision = urllib2.urlopen(CHROME_LKGR_URL).read()
+  elif chrome_revision == CHROME_REV_MASTER:
+    chrome_revision = shlex.split(
+        git_utils.GetRemoteMasterHash(CHROME_GIT_URL))[0]
 
   # Run "fetch chromium". The initial run is allowed to fail after it does some
   # work. At the least, we expect the .gclient file to be present when it
@@ -90,7 +99,7 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
 
   # Run "gclient sync"
   revisions = [('src', chrome_revision)]
-  if not use_lkgr_skia:
+  if skia_revision != SKIA_REV_DEPS:
     revisions.append(('src/third_party/skia', skia_revision))
 
   try:
@@ -144,7 +153,7 @@ def Sync(skia_revision=None, chrome_revision=None, use_lkgr_skia=False,
                     shell=True)
 
   # Verify that we got the requested revisions of Chrome and Skia.
-  if skia_revision != actual_skia_rev and override_skia_checkout:
+  if skia_revision != actual_skia_rev and skia_revision != SKIA_REV_DEPS:
     raise Exception('Requested Skia revision %s but got %s!' % (
         repr(skia_revision), repr(actual_skia_rev)))
   if chrome_revision and chrome_revision != actual_chrome_rev:
@@ -160,8 +169,8 @@ def Main():
                     help=('Desired revision of Skia. Defaults to the most '
                           'recent revision.'))
   parser.add_option('--chrome_revision',
-                    help=('Desired revision of Chrome. Defaults to the Last '
-                          'Known Good Revision.'))
+                    help=('Desired revision of Chrome. Defaults to the most '
+                          'recent revision.'))
   parser.add_option('--destination',
                     help=('Where to sync the code. Defaults to the current '
                           'directory.'),
@@ -172,17 +181,13 @@ def Main():
                     default=DEFAULT_FETCH_TARGET)
   (options, _) = parser.parse_args()
   dest_dir = os.path.abspath(options.destination)
-  cur_dir = os.path.abspath(os.curdir)
-  os.chdir(dest_dir)
-  try:
+  with misc.ChDir(dest_dir):
     actual_skia_rev, actual_chrome_rev = Sync(
-        skia_revision=options.skia_revision,
-        chrome_revision=options.chrome_revision,
+        skia_revision=options.skia_revision or SKIA_REV_MASTER,
+        chrome_revision=options.chrome_revision or CHROME_REV_MASTER,
         fetch_target=options.fetch_target)
     print 'Chrome synced to %s' % actual_chrome_rev
     print 'Skia synced to %s' % actual_skia_rev
-  finally:
-    os.chdir(cur_dir)
 
 
 if __name__ == '__main__':
