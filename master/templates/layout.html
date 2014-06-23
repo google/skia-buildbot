@@ -79,7 +79,7 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
 
       // Linkify instances of "skia:123".
       var re = new RegExp("skia:[0-9]+");
-      var found_bugs = re.exec(new_text);
+      var found_bugs = new_text.match(/skia:[0-9]+/g);
       if (found_bugs) {
         for (var i = 0; i < found_bugs.length; ++i) {
           var found_bug = found_bugs[i];
