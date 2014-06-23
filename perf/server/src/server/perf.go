@@ -47,6 +47,8 @@ var (
 )
 
 func init() {
+	flag.Parse()
+
 	rand.Seed(time.Now().UnixNano())
 
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
@@ -93,7 +95,34 @@ func init() {
 		if err != nil {
 			glog.Fatalln("Failed to open:", err)
 		}
-		// TODO(jcgregorio) Add CREATE TABLE commands here for local testing.
+		sql := `CREATE TABLE notes (
+	     id     INT       NOT NULL PRIMARY KEY,
+	     type   TINYINT,
+	     author TEXT,
+	     notes  TEXT      NOT NULL
+	     )`
+	        _, err = db.Exec(sql)
+		glog.Infoln("Status creating sqlite table for notes:", err)
+		sql = `CREATE TABLE githash (
+	     ts        TIMESTAMP    NOT NULL PRIMARY KEY,
+	     gitnumber INT          NOT NULL,
+	     githash   VARCHAR(40)  NOT NULL,
+	     author    TEXT         NOT NULL,
+	     message   TEXT         NOT NULL
+	     )`
+
+	        _, err = db.Exec(sql)
+		glog.Infoln("Status creating sqlite table for githash:", err)
+
+		sql = `CREATE TABLE githashnotes (
+	     ts TIMESTAMP  NOT NULL,
+	     id INT        NOT NULL,
+	     FOREIGN KEY (ts) REFERENCES githash(ts),
+	     FOREIGN KEY (id) REFERENCES notes(id)
+	     )`
+
+	        _, err = db.Exec(sql)
+		glog.Infoln("Status creating sqlite table for githashnotes:", err)
 	}
 
 	// Ping the database to keep the connection fresh.

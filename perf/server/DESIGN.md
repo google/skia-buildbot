@@ -116,28 +116,28 @@ Initial setup of the database, the users, and the tables:
 
     // Table for storing annotations.
     CREATE TABLE notes (
-      id     INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      id     INT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
       type   TINYINT,
-      author VARCHAR(40),
-      notes  VARCHAR(200)  NOT NULL,
+      author TEXT,
+      notes  TEXT      NOT NULL,
       UNIQUE INDEX (id)
     );
 
     // Table for storing git revision information.
     CREATE TABLE githash (
-      ts        INT           NOT NULL PRIMARY KEY,
+      ts        TIMESTAMP     NOT NULL PRIMARY KEY,
       gitnumber INT           NOT NULL,
       githash   VARCHAR(40)   NOT NULL,
-      author    VARCHAR(40)   NOT NULL,
-      message   VARCHAR(200)  NOT NULL,
+      author    TEXT          NOT NULL,
+      message   TEXT          NOT NULL,
       UNIQUE INDEX (ts)
     );
 
     // Table for mapping revisions and annotations. This support many-to-many
     // mapping.
     CREATE TABLE githashnotes (
-      ts INT   NOT NULL,
-      id INT   NOT NULL,
+      ts TIMESTAMP  NOT NULL,
+      id INT        NOT NULL,
 
       FOREIGN KEY (ts) REFERENCES githash(ts),
       FOREIGN KEY (id) REFERENCES notes(id),
