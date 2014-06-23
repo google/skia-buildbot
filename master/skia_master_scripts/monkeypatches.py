@@ -464,16 +464,20 @@ class SkiaGateKeeper(gatekeeper.GateKeeper):
     We modify it to actually check whether the builder should be considered by
     the GateKeeper, as indicated in its category name.
     """
-    ret = (utils.GATEKEEPER_NAME in (builder_status.getCategory() or '') and
-            chromium_notifier.ChromiumNotifier.isInterestingBuilder(self,
-                builder_status))
-    log.msg('[gatekeeper-debug] builder_status.getCategory(): %s' % (
-        builder_status.getCategory()))
-    log.msg('[gatekeeper-debug] isInterestingBuilder: %s' % (
+
+    ret = (not builder_name_schema.IsTrybot(builder_status.getName()) and
+           chromium_notifier.ChromiumNotifier.isInterestingBuilder(self,
+               builder_status))
+    log.msg('[gatekeeper-debug2] ======================')
+    log.msg('[gatekeeper-debug2] is not trybot: %s' % (
+        not builder_name_schema.IsTrybot(builder_status.getName())))
+    log.msg('[gatekeeper-debug2] isInterestingBuilder: %s' % (
         chromium_notifier.ChromiumNotifier.isInterestingBuilder(
             self, builder_status)))
-    log.msg('[gatekeeper-debug] builder_status.getName(): %s' % (
+    log.msg('[gatekeeper-debug2] builder_status.getName(): %s' % (
         builder_status.getName()))
+    log.msg('[gatekeeper-debug2] ret: %s' % ret)
+    log.msg('[gatekeeper-debug2] ======================')
     return ret
 
   def isInterestingStep(self, build_status, step_status, results):
