@@ -108,9 +108,9 @@ func init() {
 	        _, err = db.Exec(sql)
 		glog.Infoln("Status creating sqlite table for notes:", err)
 		sql = `CREATE TABLE githash (
-	     ts        TIMESTAMP    NOT NULL PRIMARY KEY,
+	     githash   VARCHAR(40)  NOT NULL PRIMARY KEY,
+	     ts        TIMESTAMP    NOT NULL,
 	     gitnumber INT          NOT NULL,
-	     githash   VARCHAR(40)  NOT NULL,
 	     author    TEXT         NOT NULL,
 	     message   TEXT         NOT NULL
 	     )`
@@ -119,9 +119,10 @@ func init() {
 		glog.Infoln("Status creating sqlite table for githash:", err)
 
 		sql = `CREATE TABLE githashnotes (
-	     ts TIMESTAMP  NOT NULL,
-	     id INT        NOT NULL,
-	     FOREIGN KEY (ts) REFERENCES githash(ts),
+	     githash VARCHAR(40)  NOT NULL,
+	     ts      TIMESTAMP    NOT NULL,
+	     id      INT          NOT NULL,
+	     FOREIGN KEY (githash) REFERENCES githash(githash),
 	     FOREIGN KEY (id) REFERENCES notes(id)
 	     )`
 

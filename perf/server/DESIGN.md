@@ -119,29 +119,27 @@ Initial setup of the database, the users, and the tables:
       id     INT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
       type   TINYINT,
       author TEXT,
-      notes  TEXT      NOT NULL,
-      UNIQUE INDEX (id)
+      notes  TEXT      NOT NULL
     );
 
     // Table for storing git revision information.
     CREATE TABLE githash (
-      ts        TIMESTAMP     NOT NULL PRIMARY KEY,
+      githash   VARCHAR(40)   NOT NULL PRIMARY KEY,
+      ts        TIMESTAMP     NOT NULL,
       gitnumber INT           NOT NULL,
-      githash   VARCHAR(40)   NOT NULL,
       author    TEXT          NOT NULL,
-      message   TEXT          NOT NULL,
-      UNIQUE INDEX (ts)
+      message   TEXT          NOT NULL
     );
 
     // Table for mapping revisions and annotations. This support many-to-many
     // mapping.
     CREATE TABLE githashnotes (
-      ts TIMESTAMP  NOT NULL,
-      id INT        NOT NULL,
+      githash VARCHAR(40)  NOT NULL,
+      ts      TIMESTAMP    NOT NULL,
+      id      INT          NOT NULL,
 
-      FOREIGN KEY (ts) REFERENCES githash(ts),
-      FOREIGN KEY (id) REFERENCES notes(id),
-      UNIQUE INDEX (ts, id)
+      FOREIGN KEY (githash) REFERENCES githash(githash),
+      FOREIGN KEY (id) REFERENCES notes(id)
     );
 
 Common queries that the dashboard will use:

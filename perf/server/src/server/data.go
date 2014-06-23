@@ -128,10 +128,10 @@ type Annotation struct {
 
 // Commit is information about each Git commit.
 type Commit struct {
-	CommitTime    int64        `json:"commit_time" bq:"timestamp"`
-	Hash          string       `json:"hash"        bq:"gitHash"`
-	GitNumber     int64        `json:"git_number"  bq:"gitNumber"`
-	CommitMessage string       `json:"commit_msg"`
+	CommitTime    int64        `json:"commit_time" bq:"timestamp" db:"ts"`
+	Hash          string       `json:"hash"        bq:"gitHash"   db:"githash"`
+	GitNumber     int64        `json:"git_number"  bq:"gitNumber" db:"gitnumber"`
+	CommitMessage string       `json:"commit_msg"                 db:"message"`
 	Annotations   []Annotation `json:"annotations,omitempty"`
 }
 
@@ -139,6 +139,34 @@ func NewCommit() *Commit {
 	return &Commit{
 		Annotations: []Annotation{},
 	}
+}
+
+// readCommitsFromDB Gets commit information from SQL database.
+// Returns map[Hash]->Commit
+func readCommitsFromDB() (map[string]Commit, error) {
+	m := make(map[string]Commit)
+	rows, err := db.Query("SELECT ts, githash, gitnumber, message FROM githash")
+	if err != nil {
+		return m, fmt.Errorf("Failed to query githash table: %s", err)
+	}
+
+	for rows.Next() {
+		var ts time.Time
+		var githash string
+		var gitnumber int64
+		var message string
+		if err := rows.Scan(&ts, &githash, &gitnumber, &message); err != nil {
+			glog.Infoln("Row scan error: ", err)
+			continue
+		}
+		commit := NewCommit()
+		commit.CommitTime = ts.Unix()
+		commit.Hash = githash
+		commit.GitNumber = gitnumber
+		commit.CommitMessage = message
+		m[githash] = *commit
+	}
+	return m, nil
 }
 
 // ValueWeight is a weight proportional to the number of times the parameter
@@ -221,6 +249,12 @@ func (i *DateIter) Date() string {
 // each commit.  Will limit itself to returning only the number of days that
 // are needed to get MAX_COMMITS_IN_MEMORY.
 func gitCommitsWithTestData(service *bigquery.Service) ([]string, []*Commit, error) {
+	// Get a map of commit records
+	commitMap, err := readCommitsFromDB()
+	if err != nil {
+		glog.Warningln("Did not get commit map: ", err)
+	}
+
 	dateList := []string{}
 	allCommits := make([]*Commit, 0)
 	queryTemplate := `
@@ -249,6 +283,10 @@ ORDER BY
 			c := NewCommit()
 			if err := iter.Decode(c); err != nil {
 				return nil, allCommits, fmt.Errorf("Failed reading hashes from BigQuery: %s", err)
+			}
+			// Populate commit info if available.
+			if val, ok := commitMap[c.Hash]; ok {
+				*c = val
 			}
 			totalCommits++
 			if len(allCommits) < config.MAX_COMMITS_IN_MEMORY {
