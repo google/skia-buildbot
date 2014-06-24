@@ -64,6 +64,8 @@ function removeFromLegend(key) {
 
 
 var plotData = (function() {
+  var firstDataLoad = true; // Flag to stop loadData from using the query string
+                            // after the initial load
   var data = {};
   var visibleKeys = [];     // List of currently visible lines
   var cachedKeys = [];     // List of currently cached lines
@@ -227,6 +229,23 @@ var plotData = (function() {
           addLineData(newKey, line);
         });
         schema.updateSchema();
+
+        // Load data from query string
+        if(window.location.hash && firstDataLoad) {
+          var processedSearch = window.location.hash.slice(1).split('&');
+          processedSearch.forEach(function(str) {
+            var name = str.split('=')[0];
+            var data = unTree('', decodeURIComponent(str.split('=')[1]));
+            if(name == 'legend') {
+              data.forEach(function(d) { 
+                addToLegend(d);
+                plotData.makeVisible(d); 
+              });
+            }
+          });
+          firstDataLoad = false;
+          plotStuff(plotData);
+        }
       });
     },
 
@@ -515,7 +534,6 @@ var schema = (function() {
         curSchema[key].sort();
         var width = Math.max.apply(null, curSchema[key].
             map(function(k) {
-          console.log(k);
           return k.length;
         }));
         $('#line-form').append(
@@ -630,15 +648,113 @@ var schema = (function() {
 })();
 
 
+function makePlainURL() {
+  return [window.location.protocol, '//', window.location.host,
+      window.location.pathname].join('');
+}
+
+/* Make a tree string from the given parameters
+ * This hopefully provides some compression without entirely destroying legibility
+ * The tree string looks something like ca..t~n~., which represents ['cat', 'can']
+ * Grammar's something like:
+ * node = <string> | <prefix> ".." [node "~"]+ "."  */
+function makeTree(prefix, strs) {
+  if(strs.length == 0) {
+    return prefix;
+  } else if(strs.length == 1) {
+    return prefix + strs[0];
+  } else {
+    var lastPrefix = '';
+    var groups = [];
+    var hadEmptyString = strs.some(function(s) {return s.length == 0;});
+
+    // Remove empty strings
+    strs = strs.filter(function(s) {return s.length != 0;});
+    if(hadEmptyString) {
+      groups.push(['']);
+    }
+    strs.sort();
+    // Greedily group strings together, first by the first letter
+    strs.forEach(function(str) {
+      // Make a new group if the string starts with a different character
+      if(lastPrefix.length == 0 || str[0] != lastPrefix) {
+        lastPrefix = str[0];
+        groups.push([]);
+      }
+      last(groups).push(str);
+    });
+    var getLongestMatch = function(strs) {
+      var longestMatch = 0;
+      var shortestString = Math.min.apply(null, 
+          strs.map(function(str) {return str.length;}));
+      while(longestMatch < shortestString &&
+          strs.every(function(str) {
+              return str[longestMatch] == strs[0][longestMatch]})) {
+        longestMatch++;
+      }
+      return longestMatch;
+    };
+    return prefix + '..' + groups.map(function(group) {
+      var longestMatch = getLongestMatch(group);
+      var shortenedStrings = group.map(function(str) {
+        return str.slice(longestMatch);
+      });
+      return makeTree(group[0].slice(0, longestMatch), shortenedStrings);
+    }).join('~') + '~.';
+  }
+}
+
+
+/** Creates a string for the URL using the legend and visible state data.*/
+function makeQueryString() {
+  var legend = getLegendKeys();
+  // TODO: Convert both of these in prefix trees, encode in query string
+  return 'legend=' + encodeURIComponent(makeTree('', legend));
+}
+
+
+/** Unpacks a tree string. Unencoded key go through without change.*/
+function unTree(prefix, string) {
+  if(string.indexOf('..') == -1 && string.indexOf('~.') == -1) {
+    return [prefix + string];
+  }
+  var newPrefix = string.split('..')[0];
+  // Find the  outermost '..' and '.~', 
+  // everything inside of that is a child of this one.
+  var childrenStr = string.slice(string.indexOf('..') + '..'.length,
+      string.lastIndexOf('~.'));
+  // Separate out the children by walking the string and finding the '~' that
+  // match the outer most layer
+  var currentDepth = 0;
+  var lastChildEnd = -1;
+  var children = [];
+  for(var i = 0; i < childrenStr.length; i++) {
+    if(childrenStr[i] == '~' && currentDepth == 0) {
+      children.push(childrenStr.slice(lastChildEnd+1, i));
+      lastChildEnd = i;
+    } else if(childrenStr[i] == '.' && childrenStr[i+1] == '.') {
+      currentDepth++;
+      i++;
+    } else if(childrenStr[i] == '~' && childrenStr[i+1] == '.') {
+      currentDepth--;
+      i++;
+    }
+  }
+  children.push(childrenStr.slice(lastChildEnd+1));
+  return children.reduce(function(prev, child) {
+    return prev.concat(unTree(prefix + newPrefix, child));
+  }, []);
+}
+
+
 /** Updates the page history to match the currently selected lines. */
 function updateHistory() {
   var legend = getLegendKeys();
   var historyState = {
-    legendState: legend,
-    visibleState: plotData.getVisibleKeys()
+    legendState: legend
   };
-  window.history.replaceState(historyState, 'foo', window.location.href);
-  // TODO: Encode the state in the url as well.
+  window.history.replaceState(historyState, 'foo', 
+          makePlainURL() + '#' + makeQueryString());
 }
 
 
@@ -646,13 +762,12 @@ function updateHistory() {
 function addHistory() {
   var legend = getLegendKeys();
   var historyState = {
-    legendState: legend,
-    visibleState: plotData.getVisibleKeys()
+    legendState: legend
   };
   console.log(historyState);
-  window.history.pushState(historyState, 'foo', window.location.href);
+  window.history.pushState(historyState, 'foo', 
+          makePlainURL() + '#' + makeQueryString());
 }
-
 
 // Make the plot
 window.addEventListener('load', function() {
@@ -773,23 +888,21 @@ window.addEventListener('load', function() {
   window.addEventListener('popstate', function(event) {
     console.log(event);
     var state = event.state;
-    if (state && state.legendState && state.visibleState) {
+    if (state && state.legendState) {
       // TODO: Do this more intelligently.
       var newLegend = state.legendState;
-      var newVisible = state.visibleState;
       while (plotData.getVisibleKeys().length > 0) {
         plotData.makeInvisible(last(plotData.getVisibleKeys()));
       }
       $('#legend table tbody').children().remove();
-      for (var j = 0; j < newVisible.length; j++) {
-        plotData.makeVisible(newVisible[j]);
-      }
       for (var i = 0; i < newLegend.length; i++) {
         console.log('Adding ' + newLegend[i] + 'to legend');
         addToLegend(newLegend[i]);
+        plotData.makeVisible(newLegend[i]);
       }
-   }
+    }
     plotStuff(plotData);
   });
+
 });
 
