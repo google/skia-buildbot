@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 )
 
@@ -26,6 +27,10 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
+import (
+	"config"
+)
+
 var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
@@ -35,6 +40,10 @@ var (
 
 	// db is the database, nil if we don't have an SQL database to store data into.
 	db *sql.DB = nil
+
+	jsonHandlerPath = regexp.MustCompile(`/json/([a-z]*)$`)
+
+	clustersHandlerPath = regexp.MustCompile(`/clusters/([a-z]*)$`)
 )
 
 // flags
@@ -105,7 +114,7 @@ func init() {
 	     author TEXT,
 	     notes  TEXT      NOT NULL
 	     )`
-	        _, err = db.Exec(sql)
+		_, err = db.Exec(sql)
 		glog.Infoln("Status creating sqlite table for notes:", err)
 		sql = `CREATE TABLE githash (
 	     githash   VARCHAR(40)  NOT NULL PRIMARY KEY,
@@ -115,7 +124,7 @@ func init() {
 	     message   TEXT         NOT NULL
 	     )`
 
-	        _, err = db.Exec(sql)
+		_, err = db.Exec(sql)
 		glog.Infoln("Status creating sqlite table for githash:", err)
 
 		sql = `CREATE TABLE githashnotes (
@@ -126,7 +135,7 @@ func init() {
 	     FOREIGN KEY (id) REFERENCES notes(id)
 	     )`
 
-	        _, err = db.Exec(sql)
+		_, err = db.Exec(sql)
 		glog.Infoln("Status creating sqlite table for githashnotes:", err)
 	}
 
@@ -151,9 +160,18 @@ func reportError(w http.ResponseWriter, r *http.Request, err error, message stri
 // clusterHandler handles the GET of the clusters page.
 func clusterHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Cluster Handler: %q\n", r.URL.Path)
+	match := clustersHandlerPath.FindStringSubmatch(r.URL.Path)
+	if match == nil {
+		http.NotFound(w, r)
+		return
+	}
+	if len(match) != 2 {
+		reportError(w, r, fmt.Errorf("Clusters Handler regexp wrong number of matches: %#v", match), "Not Found")
+		return
+	}
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
-		if err := clusterTemplate.Execute(w, data.ClusterSummaries()); err != nil {
+		if err := clusterTemplate.Execute(w, data.ClusterSummaries(config.DatasetName(match[1]))); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
 	}
@@ -162,9 +180,18 @@ func clusterHandler(w http.ResponseWriter, r *http.Request) {
 // jsonHandler handles the GET for the JSON requests.
 func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("JSON Handler: %q\n", r.URL.Path)
+	match := jsonHandlerPath.FindStringSubmatch(r.URL.Path)
+	if match == nil {
+		http.NotFound(w, r)
+		return
+	}
+	if len(match) != 2 {
+		reportError(w, r, fmt.Errorf("JSON Handler regexp wrong number of matches: %#v", match), "Not Found")
+		return
+	}
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "application/json")
-		data.AsJSON(w)
+		data.AsJSON(config.DatasetName(match[1]), w)
 	}
 }
 

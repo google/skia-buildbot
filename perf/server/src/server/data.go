@@ -194,14 +194,14 @@ type ClusterSummaries struct {
 	Clusters []*ClusterSummary
 }
 
-// Choices is a list of possible values for a param. See AllData.
+// Choices is a list of possible values for a param. See Dataset.
 type Choices []string
 
-// AllData is the top level struct we return via JSON to the UI.
+// Dataset is the top level struct we return via JSON to the UI.
 //
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
-type AllData struct {
+type Dataset struct {
 	Traces           []*Trace           `json:"traces"`
 	ParamSet         map[string]Choices `json:"param_set"`
 	Commits          []*Commit          `json:"commits"`
@@ -239,6 +239,16 @@ func (i *DateIter) Date() string {
 	return i.day.Format("20060102")
 }
 
+func tablePrefixFromDatasetName(name config.DatasetName) string {
+	switch name {
+	case config.DATASET_SKP:
+		return "perf_skps_v2.skpbench"
+	case config.DATASET_MICRO:
+		return "perf_bench_v2.microbench"
+	}
+	return "perf_skps_v2.skpbench"
+}
+
 // gitCommitsWithTestData returns the list of commits that have perf data
 // associated with them.
 //
@@ -248,7 +258,7 @@ func (i *DateIter) Date() string {
 // Not all commits will have perf data, the builders don't necessarily run for
 // each commit.  Will limit itself to returning only the number of days that
 // are needed to get MAX_COMMITS_IN_MEMORY.
-func gitCommitsWithTestData(service *bigquery.Service) ([]string, []*Commit, error) {
+func gitCommitsWithTestData(datasetName config.DatasetName, service *bigquery.Service) ([]string, []*Commit, error) {
 	// Get a map of commit records
 	commitMap, err := readCommitsFromDB()
 	if err != nil {
@@ -261,7 +271,7 @@ func gitCommitsWithTestData(service *bigquery.Service) ([]string, []*Commit, err
 SELECT
   gitHash, FIRST(timestamp) as timestamp, FIRST(gitNumber) as gitNumber
 FROM
-  perf_skps_v2.skpbench%s
+  %s%s
 GROUP BY
   gitHash
 ORDER BY
@@ -272,7 +282,7 @@ ORDER BY
 	dates := NewDateIter()
 	totalCommits := 0
 	for dates.Next() {
-		query := fmt.Sprintf(queryTemplate, dates.Date())
+		query := fmt.Sprintf(queryTemplate, tablePrefixFromDatasetName(datasetName), dates.Date())
 		iter, err := NewRowIter(service, query)
 		if err != nil {
 			glog.Warningln("Tried to query a table that didn't exist", dates.Date(), err)
@@ -513,7 +523,7 @@ func (r *RowIter) Decode(s interface{}) error {
 //
 // dates is the list of table date suffixes that we will need to iterate over.
 // earliestTimestamp is the timestamp of the earliest commit.
-func (all *AllData) populateTraces(dates []string, fullData bool) error {
+func (all *Dataset) populateTraces(datasetName config.DatasetName, dates []string, fullData bool) error {
 	// Keep a map of key to Trace.
 	allTraces := map[string]*Trace{}
 
@@ -529,7 +539,7 @@ func (all *AllData) populateTraces(dates []string, fullData bool) error {
 	}
 
 	// Restricted set of traces if we don't want full data.
-	restrictedSet := `
+	additionalPredicates := `
       AND (
         params.benchName="tabl_worldjournal.skp"
                    OR
@@ -537,18 +547,37 @@ func (all *AllData) populateTraces(dates []string, fullData bool) error {
         )
   `
 
-	// Now query the actual samples.
-	queryTemplate := `
-   SELECT
-    *
-   FROM
-    perf_skps_v2.skpbench%s
-   WHERE
-     isTrybot=false
+	if datasetName == config.DATASET_MICRO {
+		additionalPredicates = `
+      AND (
+        params.testName="draw_stroke_rrect_miter_640_480"
+                   OR
+        params.testName="shadermask_BW_FF_640_480"
+        )
+  `
+	}
+	if fullData {
+		additionalPredicates = ""
+	}
+	datasetPredicates := `
      AND (
         params.measurementType="gpu" OR
         params.measurementType="wall"
         )
+  `
+	if datasetName == config.DATASET_MICRO {
+		datasetPredicates = ""
+	}
+	// Now query the actual samples.
+	// TODO(jcgregorio) Convert into a text template.
+	queryTemplate := `
+   SELECT
+    *
+   FROM
+    %s%s
+   WHERE
+     isTrybot=false
+     %s
       AND
         timestamp >= %d
       %s
@@ -556,12 +585,10 @@ func (all *AllData) populateTraces(dates []string, fullData bool) error {
      key DESC,
      timestamp DESC;
 	     `
-	if fullData {
-		restrictedSet = ""
-	}
 	// Query each table one day at a time. This protects us from schema changes.
 	for _, date := range dates {
-		query := fmt.Sprintf(queryTemplate, date, earliestTimestamp, restrictedSet)
+		query := fmt.Sprintf(queryTemplate, tablePrefixFromDatasetName(datasetName), date, datasetPredicates, earliestTimestamp, additionalPredicates)
+		glog.Infof("Query: %q", query)
 		iter, err := NewRowIter(all.service, query)
 		if err != nil {
 			return fmt.Errorf("Failed to query data from BigQuery: %s", err)
@@ -607,28 +634,39 @@ func (all *AllData) populateTraces(dates []string, fullData bool) error {
 // Data is the full set of traces for the last N days all parsed into structs.
 type Data struct {
 	mutex sync.Mutex
-	all   *AllData
+	data  map[config.DatasetName]*Dataset
 }
 
-func (d *Data) ClusterSummaries() *ClusterSummaries {
+// allDataFromName returns the dataset for the given name. If no match is found
+// it returns the SKP dataset.
+func (d *Data) allDataFromName(name config.DatasetName) *Dataset {
+	if data, ok := d.data[name]; ok {
+		return data
+	} else {
+		return d.data[config.DATASET_SKP]
+	}
+}
+
+func (d *Data) ClusterSummaries(name config.DatasetName) *ClusterSummaries {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 
-	return d.all.clusterSummaries
+	return d.allDataFromName(name).clusterSummaries
+
 }
 
 // AsJSON serializes the data as JSON.
-func (d *Data) AsJSON(w io.Writer) error {
+func (d *Data) AsJSON(name config.DatasetName, w io.Writer) error {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 
 	// TODO(jcgregorio) Keep a cache of the gzipped JSON around and serve that as long as it's fresh.
-	return json.NewEncoder(w).Encode(d.all)
+	return json.NewEncoder(w).Encode(d.allDataFromName(name))
 }
 
 // populateParamSet returns the set of all possible values for all the 'params'
-// in AllData.
-func (all *AllData) populateParamSet() {
+// in Dataset.
+func (all *Dataset) populateParamSet() {
 	// First pull the data out into a map of sets.
 	type ChoiceSet map[string]bool
 	c := make(map[string]ChoiceSet)
@@ -749,7 +787,7 @@ func getParamSummaries(cluster []kmeans.Clusterable) [][]ValueWeight {
 }
 
 // GetClusterSummaries returns a summaries for each cluster.
-func (all *AllData) GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterSummaries {
+func (all *Dataset) GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterSummaries {
 	ret := &ClusterSummaries{
 		Clusters: make([]*ClusterSummary, len(centroids)),
 	}
@@ -779,7 +817,7 @@ func (all *AllData) GetClusterSummaries(observations, centroids []kmeans.Cluster
 
 // populateClusters runs k-means clustering over the trace shapes and returns
 // the clustering of those shapes via all.clusterSummaries.
-func (all *AllData) populateClusters() {
+func (all *Dataset) populateClusters() {
 	begin := time.Now()
 	observations := make([]kmeans.Clusterable, len(all.Traces))
 	for i, t := range all.Traces {
@@ -798,10 +836,10 @@ func (all *AllData) populateClusters() {
 	glog.Infof("Finished anomaly detection in %f s", d.Seconds())
 }
 
-// populate populates the AllData struct with info from BigQuery.
-func (all *AllData) populate() error {
+// populate populates the Dataset struct with info from BigQuery.
+func (all *Dataset) populate(datasetName config.DatasetName) error {
 	begin := time.Now()
-	dates, commits, err := gitCommitsWithTestData(all.service)
+	dates, commits, err := gitCommitsWithTestData(datasetName, all.service)
 	if err != nil {
 		return fmt.Errorf("Failed to read hashes from BigQuery: %s", err)
 	}
@@ -809,7 +847,7 @@ func (all *AllData) populate() error {
 
 	all.Commits = commits
 
-	if err := all.populateTraces(dates, all.fullData); err != nil {
+	if err := all.populateTraces(datasetName, dates, all.fullData); err != nil {
 		return fmt.Errorf("Failed to read traces from BigQuery: %s", err)
 	}
 	glog.Info("Successfully read traces from BigQuery")
@@ -826,9 +864,19 @@ func (all *AllData) populate() error {
 	return nil
 }
 
+// NewDataset returns an new Dataset object ready to be filled with data via populate().
+func NewDataset(service *bigquery.Service, fullData bool) *Dataset {
+	return &Dataset{
+		Traces:   make([]*Trace, 0),
+		ParamSet: make(map[string]Choices),
+		Commits:  make([]*Commit, 0),
+		service:  service,
+		fullData: fullData,
+	}
+}
+
 // NewData loads the data the first time and then starts a go routine to
 // preiodically refresh the data.
-//
 func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 	var err error
 	var client *http.Client
@@ -847,37 +895,29 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create a new BigQuery service object: %s", err)
 	}
-
-	all := &AllData{
-		Traces:   make([]*Trace, 0, 0),
-		ParamSet: make(map[string]Choices),
-		Commits:  make([]*Commit, 0, 0),
-		service:  service,
-		fullData: fullData,
+	d := &Data{
+		data: make(map[config.DatasetName]*Dataset),
 	}
 
-	if err := all.populate(); err != nil {
-		// Fail fast, monit will restart us if we fail for some reason.
-		glog.Fatal(err)
+	for _, name := range config.ALL_DATASET_NAMES {
+		data := NewDataset(service, fullData)
+		if err := data.populate(name); err != nil {
+			glog.Fatal(err)
+		}
+		d.data[name] = data
 	}
-	d := &Data{all: all}
+
 	go func() {
 		for _ = range time.Tick(config.REFRESH_PERIOD) {
-
-			all := &AllData{
-				Traces:   make([]*Trace, 0, 0),
-				ParamSet: make(map[string]Choices),
-				Commits:  make([]*Commit, 0, 0),
-				service:  service,
-				fullData: fullData,
+			for _, name := range config.ALL_DATASET_NAMES {
+				data := NewDataset(service, fullData)
+				if err := data.populate(name); err != nil {
+					glog.Errorln("Failed to refresh skp data from BigQuery: ", err)
+				}
+				d.mutex.Lock()
+				d.data[name] = data
+				d.mutex.Unlock()
 			}
-
-			if err := all.populate(); err != nil {
-				glog.Errorln("Failed to refresh data from BigQuery: ", err)
-			}
-			d.mutex.Lock()
-			d.all = all
-			d.mutex.Unlock()
 		}
 	}()
 
