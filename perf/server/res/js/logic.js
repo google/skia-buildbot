@@ -15,6 +15,105 @@ function last(ary) {
 }
 
 
+/** A safe wrapper around a dictionaryish object */
+function PagedDictionary(attrs) {
+  var dict = {};
+  var index = [];
+  var current = null;
+  // Adds extra attributes to extend functionality as needed
+  for(var attr in attrs) {
+    if(attrs.hasOwnProperty(attr)) {
+      this[attr] = attrs[attr];
+    }
+  }
+  /* Returns true if the dictionary has something with that index. */
+  this.has = function(id) {
+    return index.indexOf(id) != -1;
+  };
+  /* Returns the value currently being pointed to. */
+  this.cur = function() {
+    if(current) {
+      return dict[current];
+    } else {
+      return null;
+    }
+  };
+  /* Returns the current key being used as a pointer. */
+  this.currentId = function() {
+    return current;
+  };
+  /* Returns the value matching the key if it exists, null otherwise. */
+  this.get = function(id) {
+    if(this.has(id)) {
+      return dict[id];
+    } else {
+      return null;
+    }
+  };
+  /* Adds a value to the dictionary. */
+  this.add = function(id, val) {
+    if(!this.has(id)) {
+      index.push(id);
+    }
+    dict[id] = val;
+  };
+  /* Adds a value to the dictionary, and has the current pointer point to it. */
+  this.push = function(id, val) {
+    this.add(id, val);
+    this.makeCurrent(id);
+  };
+  /* Points current at a particular value. */
+  this.makeCurrent = function(id) {
+    if(this.has(id)) {
+      current = id;
+      return true;
+    } else {
+      return false;
+    }
+  };
+  /* Returns a list of existing keys. */
+  this.index = function() {
+    return index;
+  };
+  // TODO: Make map function
+  /* Removes a value from the dictionary. */
+  this.remove = function(id) {
+    if(!this.has(id)) {
+      dict[id] = null;
+      index.splice(index.indexOf(id),1);
+    }
+  };
+  /* Sets a value for a given key, returns false if it fails. */
+  this.set = function(id, val) {
+    if(this.has(id)) {
+      dict[id] = val;
+      return true;
+    } else {
+      return false; 
+    }
+  };
+  /* Returns the position of a key in the key list. */
+  this.indexOf = function(idx) {
+    return index.indexOf(idx);
+  }
+  /* Looks up the index for a given item. */
+  this.rlookup = function(val) {
+    for(var i = 0; i < dict.length; i++) {
+      if(this.dict[index[i]] == val) {
+        return index[i];
+      } else {
+        return null;
+      }
+    }
+  };
+  /* Returns the private variables for debugging purposes. */
+  this.debug = function() {
+    return {dict: dict, index: index, current: current};
+  };
+}
+
+
+var commitData = {};
 var commitToTimestamp = {};
 var commits = [];
 var currentTimestamp = null;
@@ -64,38 +163,43 @@ function removeFromLegend(key) {
 
 
 var plotData = (function() {
-  var firstDataLoad = true; // Flag to stop loadData from using the query string
-                            // after the initial load
-  var data = {};
-  var visibleKeys = [];     // List of currently visible lines
-  var cachedKeys = [];     // List of currently cached lines
+  var dict = new PagedDictionary();
+  // Dictionary of datasets. Each dataset should be an object like 
+  // {
+  //    data: new PagedDictionary(), // Dictionary of cached datasets
+  //    visibleKeys: []             // Visible traces
+  // }
+  // TODO(kelvinly): Replace dictionary with WeakMap
+
+  function cur() {
+    return dict.cur();
+  }
+
 
   function getKeys() {
-    return cachedKeys;
-    // TODO: Replace with something better when the server is smarter.
+    return cur().index();
   }
 
 
   function isCached(key) {
-    return cachedKeys.indexOf(key) != -1;
+    return cur().has(key);
   }
 
 
   function isVisible(key) {
-    return visibleKeys.indexOf(key) != -1;
+    return cur().visibleKeys.indexOf(key) != -1;
   }
 
 
   function addLineData(key, newData) {
     if (!isCached(key)) {
-      data[key] = newData;
-      cachedKeys.push(key);
+      cur().add(key, newData);
     } else {
       // NOTE: This may be a performance bottleneck. Need more data.
       // This may also cause issues
       // if the server fails to respect data ranges
-      data[key].push.apply(newData);
-      data[key].sort();
+      cur().get(key).push.apply(newData);
+      cur().get(key).sort();
     }
   }
 
@@ -103,7 +207,7 @@ var plotData = (function() {
   function getLine(key, callback) {
     if (isCached(key)) {
       // TODO: Get more data if the current range is partially empty
-      callback(data[key]);
+      callback(cur().get(key));
     }
     // TODO: Query the server for more trace data
     console.log('WARNING: Querying for individual traces not' +
@@ -113,16 +217,17 @@ var plotData = (function() {
   return {
     /** Returns the list of visible lines. This is a reference, so modifications
      * to it change the visibility of the plot lines. */
-    getVisibleKeys: function() {return visibleKeys;},
+    getVisibleKeys: function() { return cur().visibleKeys; },
 
 
     /** Returns the data in a FLOT-readable manner. */
     getProcessedPlotData: function() {
       var outOfBoundPoints = [];
-      var lines = visibleKeys.map(function(key) {
-        return {label: key,
-            data: data[key],
-            color: cachedKeys.indexOf(key)};
+      var lines = cur().visibleKeys.map(function(key) {
+        return {
+          label: key,
+          data: cur().get(key),
+          color: cur().indexOf(key)};
       });
       var maxLines = Math.max.apply(null, lines.map(function(series) {
         return Math.max.apply(null, series.data.map(function(e) {
@@ -137,7 +242,7 @@ var plotData = (function() {
     makeVisible: function(key, nodraw) {
       if (isCached(key)) {
         if (!isVisible(key)) {
-          visibleKeys.push(key);
+          cur().visibleKeys.push(key);
           if (!nodraw) {
             plotStuff(this);
           }
@@ -150,10 +255,12 @@ var plotData = (function() {
 
 
     /** Removes a line from the graph. */
-    makeInvisible: function(key) {
+    makeInvisible: function(key, nodraw) {
       if (isVisible(key)) {
-        visibleKeys.splice(visibleKeys.indexOf(key), 1);
-        plotStuff(this);
+        cur().visibleKeys.splice(cur().visibleKeys.indexOf(key), 1);
+        if(!nodraw) {
+          plotStuff(this);
+        }
       }
     },
 
@@ -182,8 +289,28 @@ var plotData = (function() {
      * cache, as well as passing appropriate data to the schema object
      * for its use.
      */
-    loadData: function(schema_type) {
-       $.getJSON('json/' + schema_type, function(json) {
+    loadData: function(schema_type, callback) {
+      console.log('Loading data for ' + schema_type);
+      // Check to see if it's already been loaded or not
+      if(dict.has(schema_type)) {
+        dict.makeCurrent(schema_type);
+        schema.switchSchema(schema_type);
+
+        $('#legend table tbody').children().remove();
+        cur().visibleKeys.forEach(function(key) {
+          addToLegend(key);
+        });
+        plotStuff(this);
+
+        if(callback) {
+          callback();
+        }
+      }
+      $.getJSON('json/' + schema_type, function(json) {
+        dict.push(schema_type, new PagedDictionary({
+          visibleKeys: []
+        }));
+        console.log(json);
         var orderedTimestamps = [];
         if (json['param_set']) {
           schema.load(schema_type, json['param_set']);
@@ -194,6 +321,9 @@ var plotData = (function() {
           if (hash && timeStamp && (commits.indexOf(hash) == -1)) {
             commits.push(hash);
             commitToTimestamp[hash] = timeStamp;
+            if(commit['commit_msg']) {
+              commitData[hash] = commit['commit_msg'];
+            }
           }
           orderedTimestamps.push(timeStamp);
         });
@@ -226,25 +356,13 @@ var plotData = (function() {
           schema.check(keys);
 
           var newKey = keys.join(KEY_DELIMITER);
+          // console.log('adding line ' + newKey);
           addLineData(newKey, line);
         });
         schema.updateSchema();
 
-        // Load data from query string
-        if(window.location.hash && firstDataLoad) {
-          var processedSearch = window.location.hash.slice(1).split('&');
-          processedSearch.forEach(function(str) {
-            var name = str.split('=')[0];
-            var data = unTree('', decodeURIComponent(str.split('=')[1]));
-            if(name == 'legend') {
-              data.forEach(function(d) { 
-                addToLegend(d);
-                plotData.makeVisible(d); 
-              });
-            }
-          });
-          firstDataLoad = false;
-          plotStuff(plotData);
+        if(callback) {
+          callback();
         }
       });
     },
@@ -277,11 +395,7 @@ var plotData = (function() {
     /** Returns the private variables of the function. Useful for console
      * debugging. */
     debug: function() {
-      return {
-        data: data,
-        visibleKeys: visibleKeys,
-        cachedKeys: cachedKeys,
-      };
+      return dict;
     }
   };
 })();
@@ -291,7 +405,6 @@ var plotData = (function() {
 function plotStuff(source) {
   if (plotRef) {
     var lines = source.getProcessedPlotData();
-    updateSlidersFromChart(lines);
     plotRef.setData(lines);
     var options = plotRef.getOptions();
     options.xaxes.forEach(function(axis) {
@@ -304,6 +417,9 @@ function plotStuff(source) {
     });
     plotRef.setupGrid();
     plotRef.draw();
+    if(source.getVisibleKeys().length > 0) {
+      updateSlidersFromChart(lines);
+    }
     // Update the legend's colors
     $('#legend input').each(function() {
       var color = 'white';
@@ -318,6 +434,7 @@ function plotStuff(source) {
     });
   }
 }
+
 
 var zoomMin = null;
 var zoomMax = null;
@@ -360,9 +477,16 @@ function updateSlidersFromChart(plotData) {
     newSliderZoomMaxSet = xaxis.max;
   }
   $('#min-zoom').val(newSliderZoomMinSet);
-  $('#min-zoom-value').val(newSliderZoomMinSet);
+  $('#min-zoom-value').val(toRFC(newSliderZoomMinSet));
   $('#max-zoom').val(newSliderZoomMaxSet);
-  $('#max-zoom-value').val(newSliderZoomMaxSet);
+  $('#max-zoom-value').val(toRFC(newSliderZoomMaxSet));
+}
+
+
+/** Returns the datetime compatible version of a POSIX timestamp.*/
+function toRFC(timestamp) {
+  // Slice off the ending 'Z'
+  return new Date(timestamp*1000).toISOString().slice(0, -1);
 }
 
 
@@ -384,9 +508,9 @@ function updateSlidersFromZoom() {
   var xMin = xaxis.min;
   var xMax = xaxis.max;
   $('#min-zoom').val(xMin);
-  $('#min-zoom-value').val(xMin);
+  $('#min-zoom-value').val(toRFC(xMin));
   $('#max-zoom').val(xMax);
-  $('#max-zoom-value').val(xMax);
+  $('#max-zoom-value').val(toRFC(xMax));
 }
 
 var lastHighlightedPoint = null;
@@ -396,7 +520,7 @@ var lastHighlightedPoint = null;
 function plotInit() {
   if (!plotRef) {
     plotRef = $('#chart').plot(plotData.getProcessedPlotData(),
-        {
+      {
           legend: {
             show: false
           },
@@ -407,9 +531,38 @@ function plotInit() {
             clickable: true
           },
           xaxis: {
-            tickFormatter: function(val, axis) {
-              var valDate = new Date(val * 1000);
-              return valDate.toString();
+            ticks: function(axis) {
+              var range = axis.max - axis.min;
+              // Different possible tick intervals, ranging from a second to
+              // about a year
+              var scaleFactors = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 2*60, 
+                                  4*60, 5*60, 15*60, 20*60, 30*60, 
+                                  60*60, 2*60*60, 3*60*60, 4*60*60,
+                                  5*60*60, 6*60*60, 12*60*60, 24*60*60, 
+                                  7*24*60*60, 30*24*60*60, 2*30*24*60*60,
+                                  4*30*24*60*60, 6*30*24*60*60, 365*24*60*60];
+              var MAX_TICKS = 5;
+              var i = 0;
+              while(range/scaleFactors[i] > MAX_TICKS && i < scaleFactors.length) {
+                i++;
+              }
+              var scaleFactor = scaleFactors[i];
+              var cur = scaleFactor*Math.ceil(axis.min/scaleFactor);
+              var ticks = [];
+              do {
+                var tickDate = new Date(cur*1000);
+                var formattedTime = tickDate.toString();
+                if(scaleFactor >= 24*60*60) {
+                  formattedTime = tickDate.toDateString();
+                } else {
+                  // TODO: Find a way to make a string with only the hour or minute
+                  formattedTime = tickDate.toDateString() + '<br \\>' +
+                    tickDate.toTimeString();
+                }
+                ticks.push([cur, formattedTime]);
+                cur += scaleFactor;
+              } while(cur < axis.max);
+              return ticks;
             }
           },
           yaxis: {
@@ -457,8 +610,19 @@ function makePopup(evt, pos, item) {
   notePad.hide();
   notePad.css({'top': item.pageY + 10, 'left': item.pageX});
   // TODO: add more useful data
-  $('#note #data').html('Timestamp: ' + item.datapoint[0] + '<br />value: ' +
-      item.datapoint[1] + '');
+  var hash = timestampToCommit(item.datapoint[0]);
+  var hashData = '';
+  var commitMsg = '';
+  if(hash.length > 0 && commitData[hash]) {
+    hashData = 'hash: ' + hash + '<br />';
+    commitMsg = 'commit message: ' + commitData[hash];
+  }
+  $('#note #data').html(
+      hashData +
+      'timestamp: ' + item.datapoint[0] + '<br />' +
+      'value: ' + item.datapoint[1] + '<br />' +
+      commitMsg
+      );
   notePad.show();
 }
 
@@ -476,10 +640,7 @@ function notifyUser(text, replace) {
 
 /** Manages the schema for the option bar and keys for the plot data. */
 var schema = (function() {
-  var schemaType = '';
-  var curSchema = {};
-  var otherSchemas = [];
-  var otherSchemaData = {};
+  var schemaData = new PagedDictionary();
   return {
 
     /** Loads data into the schema. */
@@ -491,48 +652,57 @@ var schema = (function() {
           'upper_wall', 'lower_wall', 'expected_wall'];
       var newSchema = {};
 
-      schemaType = newName;
       for (var key in data) {
         if (data.hasOwnProperty(key) &&
             omitFields.indexOf(key) == -1) {
           newSchema[key] = data[key];
         }
       }
-      // TODO: Store the old schema data somewhere,
-      // if there is already a schema
-      curSchema = newSchema;
-      if (curSchema['measurementType']) {
-        var newType = curSchema['measurementType'].filter(
+      if (newSchema['measurementType']) {
+        var newType = newSchema['measurementType'].filter(
           function(e) {
             console.log(e);
             return expectationTypes.indexOf(e) == -1;
           }
         );
-        curSchema['measurementType'] = newType;
+        newSchema['measurementType'] = newType;
       }
-      console.log(curSchema);
+      schemaData.push(newName, newSchema);
+      console.log(schemaData.cur());
+    },
+
+    /** Switches to a different schema*/
+    switchSchema: function(newSchemaName) {
+      schemaData.makeCurrent(newSchemaName);
+      this.updateSchema();
     },
 
     /** Returns a list of keys in the schema. */
     getKeys: function() {
       var keys = [];
-      for (var key in curSchema) {
-        if (curSchema.hasOwnProperty(key)) {
+      for (var key in schemaData.cur()) {
+        if (schemaData.cur().hasOwnProperty(key)) {
           keys.push(key);
         }
       }
       return keys;
     },
 
+
+    /** Returns the name of the currently loaded schema. */
+    getCurrentSchema: function() {
+      return schemaData.currentId();
+    },
+
+
     /** Updates the option boxes to reflect the current state of the schema. */
     updateSchema: function() {
       var keys = this.getKeys();
       var _this = this;
-      console.log(keys);
       $('#line-form').children().remove();
       keys.forEach(function(key) {
-        curSchema[key].sort();
-        var width = Math.max.apply(null, curSchema[key].
+        schemaData.cur()[key].sort();
+        var width = Math.max.apply(null, schemaData.cur()[key].
             map(function(k) {
           return k.length;
         }));
@@ -559,31 +729,36 @@ var schema = (function() {
      * to reflect the string the user has entered. */
     updateOptions: function(id) {
       var query = $('#' + id + '-name').val();
-      var results = curSchema[id].filter(function(candidate) {
-        return candidate.slice(0, query.length) == query;
+      var results = schemaData.cur()[id].filter(function(candidate) {
+        return candidate.indexOf(query) != -1;
       });  // TODO: If this is too slow, swap with binary search
       if (results.length < 1) {
-        matchLengths = curSchema[id].map(function(candidate) {
-          var i = 0;
-          var minLen = Math.min(candidate.length, query.length);
-          for (i = 0; i < minLen; i++) {
-            if (candidate[i] != query[i]) {
-              break;
+        matchLengths = schemaData.cur()[id].map(function(candidate) {
+          var maxMatch = 0;
+          for(var start = 0; start < candidate.length; start++) {
+            var i = 0;
+            for (; start + i < candidate.length && i < query.length; i++) {
+              if (candidate[start + i] != query[i]) {
+                break;
+              }
+            }
+            if(i > maxMatch) {
+              maxMatch = i;
             }
           }
-          return i;
+          return maxMatch;
         });
         maxMatch = Math.max.apply(null, matchLengths);
-        results = curSchema[id].filter(function(_, idx) {
+        results = schemaData.cur()[id].filter(function(_, idx) {
           return matchLengths[idx] >= maxMatch;
         });
       }
-      if (curSchema[id].filter(function(val) {
-          return val == '';}).length > 0) {
-        results.push('');
-      }
       $('#' + id + '-results').html(results.map(function(c) {
-        return '<option value=' + c + '>' + c + '</option>';
+        if(c.length > 0) {
+          return '<option value=' + c + '>' + c + '</option>';
+        } else {
+          return '<option value=' + c + '>(none)</option>';
+        }
       }).join(''));
       var updateStuff = function() {
         // NOTE: Very inefficient right now.
@@ -593,7 +768,7 @@ var schema = (function() {
         var options = new Array(lines[0].length);
         var keys = schema.getKeys();
         for (var i = 0; i < options.length; i++) {
-          options[i] = curSchema[keys[i]].slice(0);
+          options[i] = schemaData.cur()[keys[i]].slice(0);
         }
         lines.forEach(function(l) {
           for (var i = 0; i < options.length; i++) {
@@ -627,22 +802,17 @@ var schema = (function() {
       var order = this.getKeys();
       // console.log(keys);
       for (var i = 0; i < order.length; i++) {
-        if (curSchema[order[i]].indexOf(keys[i]) == -1 &&
+        if (schemaData.cur()[order[i]].indexOf(keys[i]) == -1 &&
             order[i] != 'measurementType') {
           console.log(keys[i]);
-          curSchema[order[i]].push(keys[i]);
+          schemaData.cur()[order[i]].push(keys[i]);
         }
       }
     },
 
     /** Returns the private variables for debugging purposes. */
     debug: function() {
-      return {
-        schemaType: schemaType,
-        curSchema: curSchema,
-        otherSchemas: otherSchemas,
-        otherSchemaData: otherSchemaData
-      };
+      return schemaData;
     }
   };
 })();
@@ -706,10 +876,10 @@ function makeTree(prefix, strs) {
 
 
 /** Creates a string for the URL using the legend and visible state data.*/
-function makeQueryString() {
+function makeHashString() {
   var legend = getLegendKeys();
-  // TODO: Convert both of these in prefix trees, encode in query string
-  return 'legend=' + encodeURIComponent(makeTree('', legend));
+  return 'set=' + schema.getCurrentSchema() + '&' +
+      'legend=' + encodeURIComponent(makeTree('', legend));
 }
 
 
@@ -754,7 +924,7 @@ function updateHistory() {
     legendState: legend
   };
   window.history.replaceState(historyState, 'foo', 
-          makePlainURL() + '#' + makeQueryString());
+          makePlainURL() + '#' + makeHashString());
 }
 
 
@@ -766,15 +936,45 @@ function addHistory() {
   };
   console.log(historyState);
   window.history.pushState(historyState, 'foo', 
-          makePlainURL() + '#' + makeQueryString());
+          makePlainURL() + '#' + makeHashString());
 }
 
 // Make the plot
 window.addEventListener('load', function() {
   // Load JSON with hash to timestamp conversions.
   // May or may not be needed in the end, but
-  plotInit();
-  plotData.loadData('perf');
+
+  var initStuff = function() {
+    // Load data from query string
+    if(window.location.hash) {
+      var processedSearch = window.location.hash.slice(1).split('&');
+      processedSearch.forEach(function(str) {
+        var name = str.split('=')[0];
+        var data = unTree('', decodeURIComponent(str.split('=')[1]));
+        if(name == 'legend' && str.split('=')[1] > 0) {
+          data.forEach(function(d) { 
+            addToLegend(d);
+            plotData.makeVisible(d); 
+          });
+        }
+      });
+    }
+    plotInit();
+    if(plotData.getVisibleKeys().length > 0) {
+      updateSlidersFromChart(plotData.getProcessedPlotData());
+    }
+  };
+
+  if(!window.location.hash) {
+    plotData.loadData('skps', initStuff);
+  } else {
+    var targetSet = window.location.hash.split('&').filter(function(line) {
+      return line.indexOf('set=') != -1;
+    });
+    if(targetSet.length > 0) {
+      plotData.loadData(targetSet[0].split('=')[1], initStuff);
+    }
+  }
 
   $('#notification').hide();
   $('#note').hide();
@@ -804,8 +1004,6 @@ window.addEventListener('load', function() {
     }
   });
 
-  // TODO: Make work with schema, and also add in history support.
-  // Add trigger for adding lines to the graph.
   document.getElementById('add-lines').addEventListener('click', function() {
     console.log('add click');
     plotData.getAvailableLines().forEach(function(ary) {
@@ -813,6 +1011,8 @@ window.addEventListener('load', function() {
     });
     plotStuff(plotData);
     addHistory();
+    // Clear selections
+    schema.updateSchema();
     return false;
   });
 
@@ -830,8 +1030,8 @@ window.addEventListener('load', function() {
             attr('max'));
         }
       }
-      $('#min-zoom-value').val(newMin);
-      $('#max-zoom-value').val(newMax);
+      $('#min-zoom-value').val(toRFC(newMin));
+      $('#max-zoom-value').val(toRFC(newMax));
       $('#min-zoom').val(newMin);
       $('#max-zoom').val(newMax);
       updateChartFromSliders();
@@ -845,8 +1045,10 @@ window.addEventListener('load', function() {
   var zoomBlurHandler = function() {
     console.log('zoom change');
     if (plotData.getVisibleKeys().length > 0) {
-      var newMin = parseInt($('#min-zoom-value').val());
-      var newMax = parseInt($('#max-zoom-value').val());
+      var newMin = Date.parse($('#min-zoom-value').val())/1000;
+      var newMax = Date.parse($('#max-zoom-value').val())/1000;
+      console.log(newMin);
+      console.log(newMax);
       if (isNaN(newMin) || isNaN(newMax) ||
           newMin < $('#min-zoom').attr('min') ||
           newMax > $('#max-zoom').attr('max')) {
@@ -856,6 +1058,8 @@ window.addEventListener('load', function() {
       }
       var realMin = Math.min(newMin, newMax);
       var realMax = Math.max(newMin, newMax);
+      console.log(realMin);
+      console.log(realMax);
       $('#min-zoom').val(realMin);
       $('#max-zoom').val(realMax);
       updateChartFromSliders();
@@ -869,8 +1073,9 @@ window.addEventListener('load', function() {
   document.getElementById('nuke-plot').addEventListener('click', function(e) {
     console.log('all lines removed');
     while (plotData.getVisibleKeys().length > 0) {
-      plotData.makeInvisible(last(plotData.getVisibleKeys()));
+      plotData.makeInvisible(last(plotData.getVisibleKeys()), true);
     }
+    plotStuff(plotData);
     $('#legend table tbody').children().remove();
     updateHistory();
     e.preventDefault();
@@ -882,6 +1087,7 @@ window.addEventListener('load', function() {
       console.log('schema change');
       var newSchema = this.value;
       plotData.loadData(newSchema);
+      updateHistory();
     });
   });
 
@@ -905,4 +1111,3 @@ window.addEventListener('load', function() {
   });
 
 });
-

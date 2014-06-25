@@ -19,12 +19,12 @@ td {
 
 .plot-wrapper {
     display: block;
-    width: 800px;
+    width: 1024px;
 }
 
 #chart {
     /* Maybe make this bigger? */
-    width: 800px;
+    width: 1024px;
     height: 480px;
     float: left;
 }
@@ -34,7 +34,7 @@ td {
 }
 
 .zoom-input {
-    width: 20%;
+    width: 15em;
 }
 
 #legend {
