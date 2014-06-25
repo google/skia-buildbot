@@ -120,10 +120,10 @@ func NewTrace(numSamples int) *Trace {
 // Will map to the table of annotation notes in MySQL. See DESIGN.md
 // for the MySQL schema.
 type Annotation struct {
-	ID     int    `json:"id"`
-	Notes  string `json:"notes"`
-	Author string `json:"author"`
-	Type   int    `json:"type"`
+	ID     int    `json:"id"    db:"id"`
+	Notes  string `json:"notes" db:"notes"`
+	Author string `json:"author db:"author"`
+	Type   int    `json:"type"  db:"type"`
 }
 
 // Commit is information about each Git commit.
@@ -142,9 +142,10 @@ func NewCommit() *Commit {
 }
 
 // readCommitsFromDB Gets commit information from SQL database.
-// Returns map[Hash]->Commit
-func readCommitsFromDB() (map[string]Commit, error) {
-	m := make(map[string]Commit)
+// Returns map[Hash]->*Commit
+// TODO(bensong): read in a range of commits instead of the whole history.
+func readCommitsFromDB() (map[string]*Commit, error) {
+	m := make(map[string]*Commit)
 	rows, err := db.Query("SELECT ts, githash, gitnumber, message FROM githash")
 	if err != nil {
 		return m, fmt.Errorf("Failed to query githash table: %s", err)
@@ -156,7 +157,7 @@ func readCommitsFromDB() (map[string]Commit, error) {
 		var gitnumber int64
 		var message string
 		if err := rows.Scan(&ts, &githash, &gitnumber, &message); err != nil {
-			glog.Infoln("Row scan error: ", err)
+			glog.Infoln("Commits row scan error: ", err)
 			continue
 		}
 		commit := NewCommit()
@@ -164,8 +165,37 @@ func readCommitsFromDB() (map[string]Commit, error) {
 		commit.Hash = githash
 		commit.GitNumber = gitnumber
 		commit.CommitMessage = message
-		m[githash] = *commit
+		m[githash] = commit
 	}
+
+	// Gets annotations and puts them into corresponding commit struct.
+	rows, err = db.Query(`SELECT
+	    githashnotes.githash, githashnotes.id,
+	    notes.type, notes.author, notes.notes
+	    FROM githashnotes
+	    INNER JOIN notes
+	    ON githashnotes.id=notes.id
+	    ORDER BY githashnotes.id`)
+	if err != nil {
+		return m, fmt.Errorf("Failed to read annotations: %s", err)
+	}
+
+	for rows.Next() {
+		var githash string
+		var id int
+		var notetype int
+		var author string
+		var notes string
+		if err := rows.Scan(&githash, &id, &notetype, &author, &notes); err != nil {
+			glog.Infoln("Annotations row scan error: ", err)
+			continue
+		}
+		if _, ok := m[githash]; ok {
+			annotation := Annotation{id, notes, author, notetype}
+			m[githash].Annotations = append(m[githash].Annotations, annotation)
+		}
+	}
+
 	return m, nil
 }
 
@@ -250,7 +280,7 @@ func tablePrefixFromDatasetName(name config.DatasetName) string {
 }
 
 // gitCommitsWithTestData returns the list of commits that have perf data
-// associated with them.
+// associated with them. Populates commit info from commitMap if possible.
 //
 // Returns a list of dates of tables we had to query, the list of commits ordered
 // from oldest to newest, and an error code.
@@ -258,13 +288,7 @@ func tablePrefixFromDatasetName(name config.DatasetName) string {
 // Not all commits will have perf data, the builders don't necessarily run for
 // each commit.  Will limit itself to returning only the number of days that
 // are needed to get MAX_COMMITS_IN_MEMORY.
-func gitCommitsWithTestData(datasetName config.DatasetName, service *bigquery.Service) ([]string, []*Commit, error) {
-	// Get a map of commit records
-	commitMap, err := readCommitsFromDB()
-	if err != nil {
-		glog.Warningln("Did not get commit map: ", err)
-	}
-
+func gitCommitsWithTestData(datasetName config.DatasetName, service *bigquery.Service, commitMap map[string]*Commit) ([]string, []*Commit, error) {
 	dateList := []string{}
 	allCommits := make([]*Commit, 0)
 	queryTemplate := `
@@ -296,7 +320,7 @@ ORDER BY
 			}
 			// Populate commit info if available.
 			if val, ok := commitMap[c.Hash]; ok {
-				*c = val
+				*c = *val
 			}
 			totalCommits++
 			if len(allCommits) < config.MAX_COMMITS_IN_MEMORY {
@@ -837,9 +861,9 @@ func (all *Dataset) populateClusters() {
 }
 
 // populate populates the Dataset struct with info from BigQuery.
-func (all *Dataset) populate(datasetName config.DatasetName) error {
+func (all *Dataset) populate(datasetName config.DatasetName, commitMap map[string]*Commit) error {
 	begin := time.Now()
-	dates, commits, err := gitCommitsWithTestData(datasetName, all.service)
+	dates, commits, err := gitCommitsWithTestData(datasetName, all.service, commitMap)
 	if err != nil {
 		return fmt.Errorf("Failed to read hashes from BigQuery: %s", err)
 	}
@@ -899,9 +923,15 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 		data: make(map[config.DatasetName]*Dataset),
 	}
 
+	// Get a map of commit records
+	commitMap, err := readCommitsFromDB()
+	if err != nil {
+		glog.Warningln("Did not get commit map: ", err)
+	}
+
 	for _, name := range config.ALL_DATASET_NAMES {
 		data := NewDataset(service, fullData)
-		if err := data.populate(name); err != nil {
+		if err := data.populate(name, commitMap); err != nil {
 			glog.Fatal(err)
 		}
 		d.data[name] = data
@@ -909,9 +939,15 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 
 	go func() {
 		for _ = range time.Tick(config.REFRESH_PERIOD) {
+			// Get the latest map of commit records
+			commitMap, err := readCommitsFromDB()
+			if err != nil {
+				glog.Warningln("Did not get new commit map: ", err)
+			}
+
 			for _, name := range config.ALL_DATASET_NAMES {
 				data := NewDataset(service, fullData)
-				if err := data.populate(name); err != nil {
+				if err := data.populate(name, commitMap); err != nil {
 					glog.Errorln("Failed to refresh skp data from BigQuery: ", err)
 				}
 				d.mutex.Lock()
