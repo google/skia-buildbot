@@ -46,3 +46,8 @@ perf/server/perf
 perf/server/perf.db
 perf/server/data
 perf/server/server
+perf/server/third_party
+perf/server/node_modules
+perf/server/res/js/perf.js
+perf/server/res/js/perf-debug.js
+perf/server/res/css/perf.css

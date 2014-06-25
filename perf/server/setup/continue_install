@@ -36,4 +36,5 @@ export PATH=$PATH:$GOROOT/bin
 
 cd ~/buildbot/perf/server
 go get -d
+npm install
 make

@@ -2,7 +2,7 @@
 #
 # Script to setup a GCE instance to run the perf server.
 # For full instructions see the README file.
-sudo apt-get install monit squid3 gcc mercurial make
+sudo apt-get install monit squid3 gcc mercurial make nodejs nodejs-legacy
 echo "Adding the perf user account"
 sudo adduser perf
 
