@@ -168,13 +168,13 @@ class UploadBenchResults(BuildStep):
         if not pictures_timestamp:
           pictures_timestamp = file_name.split('_')[-1].split('.json')[0]
 
-    for full_file_name in json_file_list:
-      print 'Uploading file %s' % full_file_name
-      self._UploadResults(dest_gsbase, 'pics-json-v2', full_file_name)
-
     if not json_file_list:
       # No data, so no need to upload SKP expectations
       return
+
+    for full_file_name in json_file_list:
+      print 'Uploading file %s' % full_file_name
+      self._UploadResults(dest_gsbase, 'pics-json-v2', full_file_name)
 
     new_json_data = {}
     new_json_data['params'] = builder_name_schema.DictForBuilderName(
