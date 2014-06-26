@@ -176,6 +176,9 @@ class UploadBenchResults(BuildStep):
       print 'Uploading file %s' % full_file_name
       self._UploadResults(dest_gsbase, 'pics-json-v2', full_file_name)
 
+    if not expectations:
+      return
+
     new_json_data = {}
     new_json_data['params'] = builder_name_schema.DictForBuilderName(
         self._builder_name)
