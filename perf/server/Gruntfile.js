@@ -5,7 +5,7 @@ module.exports = function(grunt) {
     // Install all the packages listed in the bower.json file.
     shell: {
       bower_install: {
-         command: 'bower install'
+         command: './node_modules/.bin/bower install'
       }
     },
     // Concatenate all the third_party files we use into a single file.
