@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 )
 
@@ -65,7 +67,20 @@ var (
 	timeSinceLastSkpUpdate    = metrics.NewRegisteredGauge("data.bigquery.skps.refresh.time_since_last_update", metrics.DefaultRegistry)
 	skpUpdateLatency          = metrics.NewRegisteredTimer("data.bigquery.skps.refresh.latency", metrics.DefaultRegistry)
 	clusterCalculationLatency = metrics.NewRegisteredTimer("cluster.skps.latency", metrics.DefaultRegistry)
+
+	// BigQuery query as a template.
+	traceQueryTemplate *template.Template
 )
+
+// TraceQuery is the data to pass into traceQueryTemplate when expanding the template.
+type TraceQuery struct {
+	TablePrefix          string
+	Date                 string
+	DatasetPredicates    string
+	AdditionalPredicates string
+	GitHash              string
+	Timestamp            int64
+}
 
 func init() {
 	go func() {
@@ -73,6 +88,23 @@ func init() {
 			timeSinceLastSkpUpdate.Update(int64(time.Since(lastSkpUpdate).Seconds()))
 		}
 	}()
+
+	traceQueryTemplate = template.Must(template.New("traceQueryTemplate").Parse(`
+   SELECT
+    *
+   FROM
+   {{.TablePrefix}}{{.Date}}
+   WHERE
+     isTrybot=false
+     AND (gitHash = {{GitHash}})")
+     {{.DatasetPredicates}}
+      AND
+        timestamp >= {{.Timestamp}}
+     {{.AdditionalPredicates}}
+   ORDER BY
+     key DESC,
+     timestamp DESC;
+	     `))
 }
 
 // dialTimeout is a dialer that sets a timeout.
@@ -297,14 +329,15 @@ func tablePrefixFromDatasetName(name config.DatasetName) string {
 // gitCommitsWithTestData returns the list of commits that have perf data
 // associated with them. Populates commit info from commitMap if possible.
 //
-// Returns a list of dates of tables we had to query, the list of commits ordered
-// from oldest to newest, and an error code.
+// Returns a map of [dates of tables we had to query] to the list of git hashes
+// that appear in those tables, and a list of commits ordered from oldest
+// to newest.
 //
 // Not all commits will have perf data, the builders don't necessarily run for
 // each commit.  Will limit itself to returning only the number of days that
 // are needed to get MAX_COMMITS_IN_MEMORY.
-func gitCommitsWithTestData(datasetName config.DatasetName, service *bigquery.Service, commitMap map[string]*Commit) ([]string, []*Commit, error) {
-	dateList := []string{}
+func gitCommitsWithTestData(datasetName config.DatasetName, service *bigquery.Service, commitMap map[string]*Commit) (map[string][]string, []*Commit, error) {
+	dateMap := make(map[string][]string)
 	allCommits := make([]*Commit, 0)
 	queryTemplate := `
 SELECT
@@ -328,11 +361,13 @@ ORDER BY
 			continue
 		}
 
+		gitHashesForDay := []string{}
 		for iter.Next() {
 			c := NewCommit()
 			if err := iter.Decode(c); err != nil {
 				return nil, allCommits, fmt.Errorf("Failed reading hashes from BigQuery: %s", err)
 			}
+			gitHashesForDay = append(gitHashesForDay, c.Hash)
 			// Populate commit info if available.
 			if val, ok := commitMap[c.Hash]; ok {
 				*c = *val
@@ -344,7 +379,7 @@ ORDER BY
 				break
 			}
 		}
-		dateList = append(dateList, dates.Date())
+		dateMap[dates.Date()] = gitHashesForDay
 		glog.Infof("Finding hashes with data, finished day %s, total commits so far %d", dates.Date(), totalCommits)
 		if totalCommits >= config.MAX_COMMITS_IN_MEMORY {
 			break
@@ -355,7 +390,7 @@ ORDER BY
 	for i, c := range allCommits {
 		reversedCommits[len(allCommits)-i-1] = c
 	}
-	return dateList, reversedCommits, nil
+	return dateMap, reversedCommits, nil
 }
 
 // GitHash represents information on a single Git commit.
@@ -560,9 +595,10 @@ func (r *RowIter) Decode(s interface{}) error {
 
 // populateTraces reads the measurement data from BigQuery and populates the Traces.
 //
-// dates is the list of table date suffixes that we will need to iterate over.
+// dates is a maps of table date suffixes that we will need to iterate over that map to the githashes
+// that each of those days contain.
 // earliestTimestamp is the timestamp of the earliest commit.
-func (all *Dataset) populateTraces(datasetName config.DatasetName, dates []string, fullData bool) error {
+func (all *Dataset) populateTraces(datasetName config.DatasetName, dates map[string][]string, fullData bool) error {
 	// Keep a map of key to Trace.
 	allTraces := map[string]*Trace{}
 
@@ -607,57 +643,55 @@ func (all *Dataset) populateTraces(datasetName config.DatasetName, dates []strin
 	if datasetName == config.DATASET_MICRO {
 		datasetPredicates = ""
 	}
-	// Now query the actual samples.
-	// TODO(jcgregorio) Convert into a text template.
-	queryTemplate := `
-   SELECT
-    *
-   FROM
-    %s%s
-   WHERE
-     isTrybot=false
-     %s
-      AND
-        timestamp >= %d
-      %s
-   ORDER BY
-     key DESC,
-     timestamp DESC;
-	     `
+
 	// Query each table one day at a time. This protects us from schema changes.
-	for _, date := range dates {
-		query := fmt.Sprintf(queryTemplate, tablePrefixFromDatasetName(datasetName), date, datasetPredicates, earliestTimestamp, additionalPredicates)
-		glog.Infof("Query: %q", query)
-		iter, err := NewRowIter(all.service, query)
-		if err != nil {
-			return fmt.Errorf("Failed to query data from BigQuery: %s", err)
-		}
-		var trace *Trace = nil
-		currentKey := ""
-		for iter.Next() {
-			m := &struct {
-				Value float64 `bq:"value"`
-				Key   string  `bq:"key"`
-				Hash  string  `bq:"gitHash"`
-			}{}
-			if err := iter.Decode(m); err != nil {
-				return fmt.Errorf("Failed to decode Measurement from BigQuery: %s", err)
+	for date, gitHashes := range dates {
+		for _, gitHash := range gitHashes {
+			traceQueryParams := TraceQuery{
+				TablePrefix:          tablePrefixFromDatasetName(datasetName),
+				Date:                 date,
+				DatasetPredicates:    datasetPredicates,
+				AdditionalPredicates: additionalPredicates,
+				GitHash:              gitHash,
+				Timestamp:            earliestTimestamp,
 			}
-			if m.Key != currentKey {
-				currentKey = m.Key
-				// If we haven't seen this key before, create a new Trace for it and store
-				// the Trace in allTraces.
-				if _, ok := allTraces[currentKey]; !ok {
-					trace = NewTrace(numSamples)
-					trace.Params = iter.DecodeParams()
-					trace.Key = currentKey
-					allTraces[currentKey] = trace
-				} else {
-					trace = allTraces[currentKey]
+			query := &bytes.Buffer{}
+			err := traceQueryTemplate.Execute(query, traceQueryParams)
+			if err != nil {
+				return fmt.Errorf("Failed to construct a query: %s", err)
+			}
+			glog.Infof("Query: %q", query)
+			iter, err := NewRowIter(all.service, query.String())
+			if err != nil {
+				return fmt.Errorf("Failed to query data from BigQuery: %s", err)
+			}
+			var trace *Trace = nil
+			currentKey := ""
+			for iter.Next() {
+				m := &struct {
+					Value float64 `bq:"value"`
+					Key   string  `bq:"key"`
+					Hash  string  `bq:"gitHash"`
+				}{}
+				if err := iter.Decode(m); err != nil {
+					return fmt.Errorf("Failed to decode Measurement from BigQuery: %s", err)
 				}
-			}
-			if index, ok := hashToIndex[m.Hash]; ok {
-				trace.Values[index] = m.Value
+				if m.Key != currentKey {
+					currentKey = m.Key
+					// If we haven't seen this key before, create a new Trace for it and store
+					// the Trace in allTraces.
+					if _, ok := allTraces[currentKey]; !ok {
+						trace = NewTrace(numSamples)
+						trace.Params = iter.DecodeParams()
+						trace.Key = currentKey
+						allTraces[currentKey] = trace
+					} else {
+						trace = allTraces[currentKey]
+					}
+				}
+				if index, ok := hashToIndex[m.Hash]; ok {
+					trace.Values[index] = m.Value
+				}
 			}
 		}
 		glog.Infof("Loading data, finished day %s", date)

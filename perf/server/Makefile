@@ -1,5 +1,5 @@
 build: res/css/perf.css res/js/perf.js
-	GOPATH=$(GOPATH):`pwd` go build -o perf server
+	GOPATH=$(GOPATH):`pwd` go build -o perf -v server
 
 test:
 	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace
