@@ -96,7 +96,7 @@ func init() {
    {{.TablePrefix}}{{.Date}}
    WHERE
      isTrybot=false
-     AND (gitHash = {{GitHash}})")
+     AND (gitHash = "{{.GitHash}}")
      {{.DatasetPredicates}}
       AND
         timestamp >= {{.Timestamp}}
