@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"net"
 	"net/http"
 	"os/exec"
 	"reflect"
@@ -41,6 +42,9 @@ const (
 	K = 100
 
 	KMEANS_ITERATIONS = 10
+
+	// TIMEOUT is the http timeout when making BigQuery requests.
+	TIMEOUT = time.Duration(time.Minute)
 )
 
 // Shouldn't need auth when running from GCE, but will need it for local dev.
@@ -56,6 +60,7 @@ var (
 		TokenCache:   oauth.CacheFile("bqtoken.data"),
 	}
 
+	// TODO(jcgregorio) Fix metrics so that skps and microbenches are reported separately.
 	lastSkpUpdate             = time.Now()
 	timeSinceLastSkpUpdate    = metrics.NewRegisteredGauge("data.bigquery.skps.refresh.time_since_last_update", metrics.DefaultRegistry)
 	skpUpdateLatency          = metrics.NewRegisteredTimer("data.bigquery.skps.refresh.latency", metrics.DefaultRegistry)
@@ -70,9 +75,19 @@ func init() {
 	}()
 }
 
+// dialTimeout is a dialer that sets a timeout.
+func dialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, TIMEOUT)
+}
+
 // runFlow runs through a 3LO OAuth 2.0 flow to get credentials for BigQuery.
 func runFlow(config *oauth.Config) (*http.Client, error) {
-	transport := &oauth.Transport{Config: config}
+	transport := &oauth.Transport{
+		Config: config,
+		Transport: &http.Transport{
+			Dial: dialTimeout,
+		},
+	}
 	if _, err := config.TokenCache.Token(); err != nil {
 		url := config.AuthCodeURL("")
 		fmt.Printf(`Your browser has been opened to visit:
@@ -949,6 +964,7 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 				data := NewDataset(service, fullData)
 				if err := data.populate(name, commitMap); err != nil {
 					glog.Errorln("Failed to refresh skp data from BigQuery: ", err)
+					break
 				}
 				d.mutex.Lock()
 				d.data[name] = data
