@@ -41,6 +41,13 @@ class BenchPictures(BuildStep):
     if self._perf_data_dir:
       arguments.extend(BenchArgs(data_file=self._BuildDataFile(args)))
       arguments.extend(['--jsonLog', self._BuildJSONDataFile(args)])
+      arguments.extend(['--builderName', self._builder_name])
+      arguments.extend(['--buildNumber', self._build_number])
+      arguments.extend(['--timestamp',
+                        gclient_utils.GetGitRepoPOSIXTimestamp()])
+      arguments.extend(['--gitHash', self._revision])
+      arguments.extend(['--gitNumber',
+                        gclient_utils.GetGitNumber(self._revision)])
       # For bench_pictures we use the --repeat and --logPerIter flags so that we
       # can compensate for noisy performance.
       arguments.extend(['--repeat', str(BENCH_REPEAT_COUNT), '--logPerIter'])

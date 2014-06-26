@@ -152,7 +152,6 @@ class UploadBenchResults(BuildStep):
         '^bench_{}_data_skp_(.*)_([0-9]*)\.json$'.format(self._got_revision))
     file_list = os.listdir(self._GetPerfDataDir())
     expectations = {}
-    json_total = {}
     pictures_timestamp = ''
 
     try:
@@ -170,19 +169,8 @@ class UploadBenchResults(BuildStep):
           pictures_timestamp = file_name.split('_')[-1].split('.json')[0]
 
     for full_file_name in json_file_list:
-      with open(full_file_name) as json_pictures:
-        print 'Loading file %s' % full_file_name
-        json_pictures_data = json.load(json_pictures)
-
-        if json_total:
-          json_total['benches'].extend(json_pictures_data['benches'])
-        elif json_pictures_data:
-          json_total = json_pictures_data
-
-    json_data = json_total
-    if not json_data:
-      print 'Unable to load SKP JSON data'
-      return
+      print 'Uploading file %s' % full_file_name
+      self._UploadResults(dest_gsbase, 'pics-json-v2', full_file_name)
 
     new_json_data = {}
     new_json_data['params'] = builder_name_schema.DictForBuilderName(
@@ -197,47 +185,11 @@ class UploadBenchResults(BuildStep):
     # Get trybot params
     new_json_data.update(self._GetTrybotDict())
 
-    base_key = self._builder_name
-
     # Load in bench data
     json_write_name = 'skpbench_%s_%s.json' % (self._got_revision,
                                                pictures_timestamp)
     full_json_write_name = os.path.join(self._GetPerfDataDir(), json_write_name)
     with open(full_json_write_name, 'w') as json_picture_write:
-      # NOTE(kelvinly): this results in identical keys for test runs
-      # using >1 tile per tileset
-      for bench in json_data['benches']:
-        stripped_bench_name = '{}.skp'.format(bench['name'].split('.skp')[0])
-        skp_size = bench['name'].split('.skp')[1]
-        for tileSet in bench['tileSets']:
-          for idx, tiles in enumerate(tileSet['tiles']):
-            for measurement in ['cpu', 'gpu', 'wall']:
-              if measurement in tiles['data'].keys():
-                new_row = copy.deepcopy(new_json_data)
-                new_row['params']['benchName'] = stripped_bench_name
-                new_row['params']['skpSize'] = skp_size[1:]
-                # TODO: Grab tile/grid info if it exists.
-                # new_row['params']['tileConfig'] = tileSet['name']
-                new_row['params']['measurementType'] = measurement
-                key = '_'.join([
-                    base_key,
-                    bench['name'],
-                    tileSet['name'],
-                    measurement
-                ])
-                new_params = _ParseConfig(tileSet['name'], tileSet, idx)
-                new_row['params'].update(new_params)
-
-                # Get 25th percentile
-                percentile = int(round(
-                    0.25*len(tiles['data'][measurement]) + 0.5))
-                value = sorted(tiles['data'][measurement])[percentile]
-                new_row['key'] = key
-                new_row['value'] = value
-                json.dump(new_row, json_picture_write)
-                json_picture_write.write('\n')
-      # NOTE: site_config/build_name_schema.py also affects the schema
-
       # Load in expectations data
       TYPE_DICT = {'': 'wall', 'c': 'cpu', 'g': 'gpu'}
       for key in expectations.keys():
