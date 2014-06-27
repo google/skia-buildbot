@@ -6,11 +6,15 @@
 /* Never edit perf.css, only edit main.css and then run 'make css'.  */
 
 .full {
-    width:100%;
+    width: 100%;
 }
 
 td {
-    vertical-align:top;
+    vertical-align: top;
+}
+
+.waiting {
+    cursor: wait;
 }
 
 .wrapper {

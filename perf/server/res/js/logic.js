@@ -15,6 +15,16 @@ function last(ary) {
 }
 
 
+function $$(query, par) {
+  var id = function(e) { return e; };
+  if(!par) {
+    return Array.prototype.map.call(document.querySelectorAll(query), id);
+  } else {
+    return Array.prototype.map.call(par.querySelectorAll(query), id);
+  }
+}
+
+
 /** A safe wrapper around a dictionaryish object */
 function PagedDictionary(attrs) {
   var dict = {};
@@ -128,10 +138,32 @@ function timestampToCommit(timestamp) {
 }
 
 
+/** Get all the SKP changes in the range.*/
+function getMarkings() {
+  if(plotData.getVisibleKeys().length <= 0) { return []; }
+  var skpPhrase = 'Update SKP version to ';
+  var updates = commits.filter(function(commit) {
+    return commitData[commit] && commitData[commit].slice(0, skpPhrase) == skpPhrase;
+  }).map(function(commit) {
+    return [parseInt(commitData[commit].substr(skpPhrase.length)),
+        commitToTimestamp[commit]];
+  });
+  var markings = [];
+  for(var i = 1; i < updates.length; i++) {
+    if(updates[i][0] % 2 == 0) {
+      markings.push([updates[i-1][1], updates[i][1]]);
+    }
+  }
+  return markings.map(function(pair) {
+    return { xaxis: {from: pair[0], to: pair[1]}, color: '#cccccc'};
+  });
+}
+
+
 function getLegendKeys() {
   var keys = [];
-  $('#legend input').each(function() {
-    keys.push(this.id);
+  $$('#legend input').forEach(function(elem) {
+    keys.push(elem.id);
   });
   console.log('getLegendNames(): ' + keys);
   return keys;
@@ -139,9 +171,11 @@ function getLegendKeys() {
 
 
 function addToLegend(key) {
-  if ($('#legend').find('[id=\'' + key + '\']').length > 0) { return; }
+  if($$('#legend').filter(function(e) {
+    return e.id == key;
+  }).length > 0) { return; }
 
-  return $('#legend table tbody').append(
+  $$('#legend table tbody')[0].innerHTML += (
       '<tr><td><input type=checkbox id=' + key + ' checked></input>' +
         '<div class=legend-box-outer>' +
             '<div class=legend-box-inner>' + 
@@ -156,9 +190,35 @@ function addToLegend(key) {
 function removeFromLegend(key) {
   console.log('Removing from legend: ' + key);
   plotData.makeInvisible(key);
-  $('#legend table tbody').find('[id=\'' + key + '\']').
-      parent().parent().remove();
+  $$('#legend input').forEach(function(e) {
+    if(e.id == key) {
+      e.parentNode.parentNode.remove();
+    }
+  });
   addHistory();
+}
+
+
+function loadJSON(uri, success) {
+  var req = new XMLHttpRequest();
+  document.body.classList.add('waiting');
+  req.addEventListener('load', function() {
+    if(req.response) {
+      if(req.responseType == 'json') {
+        success(req.response);
+      } else {
+        success(JSON.parse(req.response));
+      }
+    }
+  });
+  req.addEventListener('loadend', function() {
+    document.body.classList.remove('waiting');
+  });
+  req.addEventListener('error', function() {
+    notifyUser('Unable to retrieve' + uri);
+  });
+  req.open('GET', uri, true);
+  req.send();
 }
 
 
@@ -291,12 +351,17 @@ var plotData = (function() {
      */
     loadData: function(schema_type, callback) {
       console.log('Loading data for ' + schema_type);
+      var _this = this;
       // Check to see if it's already been loaded or not
       if(dict.has(schema_type)) {
         dict.makeCurrent(schema_type);
         schema.switchSchema(schema_type);
 
-        $('#legend table tbody').children().remove();
+        $$('#legend table tbody').forEach(function(e) {
+          while(e.hasChildNodes()) {
+            e.removeChild(e.childNodes[0]);
+          }
+        });
         cur().visibleKeys.forEach(function(key) {
           addToLegend(key);
         });
@@ -305,8 +370,20 @@ var plotData = (function() {
         if(callback) {
           callback();
         }
+      } else {
+        // Still clear out the legend if it hasn't been loaded
+        if(cur()) {
+          // Clear the list
+          cur().visibleKeys.splice(cur().visibleKeys.length);
+        }
+        $$('#legend table tbody').forEach(function(e) {
+          while(e.hasChildNodes()) {
+            e.removeChild(e.childNodes[0]);
+          }
+        });
+        plotStuff(this);
       }
-      $.getJSON('json/' + schema_type, function(json) {
+      loadJSON('json/' + schema_type, function(json) {
         dict.push(schema_type, new PagedDictionary({
           visibleKeys: []
         }));
@@ -361,6 +438,7 @@ var plotData = (function() {
         });
         schema.updateSchema();
 
+        plotStuff(_this);
         if(callback) {
           callback();
         }
@@ -370,14 +448,14 @@ var plotData = (function() {
     
     /** Returns the list of lines currently selected in the option boxes.*/
     getAvailableLines: function() {
-      var selected = $('#line-form').children().children('select').
-          map(function(idx, e) {
+      var selected = $$('#line-form select').map(function(e, idx) {
         return {
           id: idx,
-          validElems: $(this).children(':selected').map(function() {
-            return this.value;
-          }).get() };
-      }).get().filter(function(elem) {
+          validElems: $$(':checked', e).map(function(elem) {
+            return elem.value;
+          })
+        };
+      }).filter(function(elem) {
         return elem.validElems.length > 0;
       });
       var validKeys = getKeys().map(function(key) {
@@ -421,16 +499,15 @@ function plotStuff(source) {
       updateSlidersFromChart(lines);
     }
     // Update the legend's colors
-    $('#legend input').each(function() {
+    $$('#legend input').forEach(function(e) {
       var color = 'white';
-      var _this = this;
       plotRef.getData().forEach(function(series) {
-        if(series.label == _this.id) {
+        if(series.label == e.id) {
           color = series.color;
         }
       });
-      this.parentElement.getElementsByClassName('legend-box-inner')[0].
-            style.border = '5px solid ' + color;
+      $$('.legend-box-inner', e.parentElement)[0].
+          style.border = '5px solid ' + color;
     });
   }
 }
@@ -463,8 +540,12 @@ function updateSlidersFromChart(plotData) {
         return point[0];
       }));
     }));
-    $('#min-zoom, #max-zoom').attr('min', newSliderMin);
-    $('#min-zoom, #max-zoom').attr('max', newSliderMax);
+    $$('#min-zoom, #max-zoom').forEach(function(e) {
+      e.setAttribute('min', newSliderMin);
+    });
+    $$('#min-zoom, #max-zoom').forEach(function(e) {
+      e.setAttribute('max', newSliderMax);
+    });
   }
 
   var xaxis = plotRef.getOptions().xaxes[0];
@@ -476,10 +557,10 @@ function updateSlidersFromChart(plotData) {
     newSliderZoomMinSet = xaxis.min;
     newSliderZoomMaxSet = xaxis.max;
   }
-  $('#min-zoom').val(newSliderZoomMinSet);
-  $('#min-zoom-value').val(toRFC(newSliderZoomMinSet));
-  $('#max-zoom').val(newSliderZoomMaxSet);
-  $('#max-zoom-value').val(toRFC(newSliderZoomMaxSet));
+  $$('#min-zoom')[0].value = newSliderZoomMinSet;
+  $$('#min-zoom-value')[0].value = toRFC(newSliderZoomMinSet);
+  $$('#max-zoom')[0].value = newSliderZoomMaxSet;
+  $$('#max-zoom-value')[0].value = toRFC(newSliderZoomMaxSet);
 }
 
 
@@ -492,8 +573,8 @@ function toRFC(timestamp) {
 
 /** Sets the plot's horizontal zoom to match that given in the sliders.*/
 function updateChartFromSliders() {
-  var xMin = $('#min-zoom').val();
-  var xMax = $('#max-zoom').val();
+  var xMin = $$('#min-zoom')[0].value;
+  var xMax = $$('#max-zoom')[0].value;
   var xaxis = plotRef.getOptions().xaxes[0];
   xaxis.min = xMin;
   xaxis.max = xMax;
@@ -507,10 +588,10 @@ function updateSlidersFromZoom() {
   var xaxis = plotRef.getOptions().xaxes[0];
   var xMin = xaxis.min;
   var xMax = xaxis.max;
-  $('#min-zoom').val(xMin);
-  $('#min-zoom-value').val(toRFC(xMin));
-  $('#max-zoom').val(xMax);
-  $('#max-zoom-value').val(toRFC(xMax));
+  $$('#min-zoom')[0].value = xMin;
+  $$('#min-zoom-value')[0].value = toRFC(xMin);
+  $$('#max-zoom')[0].value = xMax;
+  $$('#max-zoom-value')[0].value = toRFC(xMax);
 }
 
 var lastHighlightedPoint = null;
@@ -528,7 +609,8 @@ function plotInit() {
             hoverable: true,
             autoHighlight: true,
             mouseActiveRadius: 10,
-            clickable: true
+            clickable: true,
+            markings: getMarkings
           },
           xaxis: {
             ticks: function(axis) {
@@ -613,11 +695,15 @@ function makePopup(evt, pos, item) {
   var hash = timestampToCommit(item.datapoint[0]);
   var hashData = '';
   var commitMsg = '';
-  if(hash.length > 0 && commitData[hash]) {
-    hashData = 'hash: ' + hash + '<br />';
-    commitMsg = 'commit message: ' + commitData[hash];
+  if(hash.length > 0) {
+    hashData = 'hash: ' +
+      '<a href=https://github.com/google/skia/commit/' + hash + '>' + 
+          hash + '</a><br />';
+    if(commitData[hash]) {
+      commitMsg = 'commit message: ' + commitData[hash];
+    }
   }
-  $('#note #data').html(
+  $$('#note #data')[0].innerHTML = (
       hashData +
       'timestamp: ' + item.datapoint[0] + '<br />' +
       'value: ' + item.datapoint[1] + '<br />' +
@@ -632,6 +718,7 @@ function notifyUser(text, replace) {
   if (!$('#notification').is(':visible') && !replace) {
     $('#notification-text').html(text);
     $('#notification').show().delay(5000).fadeOut(1000).hide(10);
+    // If you find a way to convert this to non-jQuery, I'll replace it.
   } else {
     window.setTimeout(notifyUser, 400, text);
   }
@@ -675,6 +762,7 @@ var schema = (function() {
     switchSchema: function(newSchemaName) {
       schemaData.makeCurrent(newSchemaName);
       this.updateSchema();
+      updateHistory();
     },
 
     /** Returns a list of keys in the schema. */
@@ -719,7 +807,7 @@ var schema = (function() {
         var inputHandler = (function(safeKey) {
           return function() {_this.updateOptions(safeKey);};})(key);
         // NOTE: This may break.
-        document.getElementById(key + '-name').addEventListener('input',
+        $$('#' + key + '-name')[0].addEventListener('input',
             inputHandler);
       }, this);
       keys.forEach(function(key) {_this.updateOptions(key)});
@@ -753,17 +841,17 @@ var schema = (function() {
           return matchLengths[idx] >= maxMatch;
         });
       }
-      $('#' + id + '-results').html(results.map(function(c) {
+      $$('#' + id + '-results')[0].innerHTML = results.map(function(c) {
         if(c.length > 0) {
           return '<option value=' + c + '>' + c + '</option>';
         } else {
           return '<option value=' + c + '>(none)</option>';
         }
-      }).join(''));
+      }).join('');
       var updateStuff = function() {
         // NOTE: Very inefficient right now.
         var lines = plotData.getAvailableLines();
-        $('#line-num').html(lines.length + ' lines selected.');
+        $$('#line-num')[0].innerHTML = lines.length + ' lines selected.';
         if (lines.length == 0) return;
         var options = new Array(lines[0].length);
         var keys = schema.getKeys();
@@ -778,21 +866,20 @@ var schema = (function() {
           }
         });
         for (var i = 0; i < options.length; i++) {
-          var elements = $('#' + keys[i] + '-results').children();
-          elements.each(function() {
-            if (!this.getAttribute('disabled') &&
-                options[i].indexOf(this.value) != -1) {
+          $$('#' + keys[i] + '-results option').forEach(function(e) {
+            if (!e.getAttribute('disabled') &&
+                options[i].indexOf(e.value) != -1) {
               if (keys[i] == id) return;
-              this.setAttribute('disabled', true);
-            } else if (this.getAttribute('disabled') &&
-                options[i].indexOf(this.value) == -1) {
-              this.disabled = false;
+              e.setAttribute('disabled', true);
+            } else if (e.getAttribute('disabled') &&
+                options[i].indexOf(e.value) == -1) {
+              e.disabled = false;
             }
           });
         }
       };
       updateStuff();
-      document.getElementById(id + '-results').addEventListener('change',
+      $$('#' + id + '-results')[0].addEventListener('change',
               updateStuff);
     },
 
@@ -944,14 +1031,20 @@ window.addEventListener('load', function() {
   // Load JSON with hash to timestamp conversions.
   // May or may not be needed in the end, but
 
+  var hashUseless = true;
   var initStuff = function() {
     // Load data from query string
     if(window.location.hash) {
       var processedSearch = window.location.hash.slice(1).split('&');
       processedSearch.forEach(function(str) {
+        if(str.split('=').length <= 1) {
+          hashUseless = true;
+          return;
+        }
         var name = str.split('=')[0];
         var data = unTree('', decodeURIComponent(str.split('=')[1]));
-        if(name == 'legend' && str.split('=')[1] > 0) {
+        if(name == 'legend' && str.split('=')[1].length > 0) {
+          console.log('got legend: ' + str.split('=')[1]);
           data.forEach(function(d) { 
             addToLegend(d);
             plotData.makeVisible(d); 
@@ -962,10 +1055,11 @@ window.addEventListener('load', function() {
     plotInit();
     if(plotData.getVisibleKeys().length > 0) {
       updateSlidersFromChart(plotData.getProcessedPlotData());
+      plotStuff(plotData);
     }
   };
 
-  if(!window.location.hash) {
+  if(!window.location.hash || hashUseless) {
     plotData.loadData('skps', initStuff);
   } else {
     var targetSet = window.location.hash.split('&').filter(function(line) {
@@ -980,8 +1074,7 @@ window.addEventListener('load', function() {
   $('#note').hide();
 
   // Add trigger for checkmarks
-  document.getElementById('legend').
-        addEventListener('click', function(e) {
+  $$('#legend')[0].addEventListener('click', function(e) {
     console.log('legend click');
     var target = e.target;
     if ((target.nodeName == 'INPUT') &&
@@ -1004,7 +1097,7 @@ window.addEventListener('load', function() {
     }
   });
 
-  document.getElementById('add-lines').addEventListener('click', function() {
+  $$('#add-lines')[0].addEventListener('click', function() {
     console.log('add click');
     plotData.getAvailableLines().forEach(function(ary) {
       plotData.getAndAddLine(ary.join(KEY_DELIMITER), undefined, true);
@@ -1019,39 +1112,37 @@ window.addEventListener('load', function() {
   var zoomChangeHandler = function() {
     console.log('zoom change');
     if (plotData.getVisibleKeys().length > 0) {
-      var newMin = $('#min-zoom').val();
-      var newMax = $('#max-zoom').val();
+      var newMin = $$('#min-zoom')[0].value;
+      var newMax = $$('#max-zoom')[0].value;
       if (newMin > newMax) {
         if (newMax = this.value) {
-          newMin = Math.max(newMax - MIN_XRANGE, $('#min-zoom').
-            attr('min'));
+          newMin = Math.max(newMax - MIN_XRANGE, $$('#min-zoom')[0].
+            getAttribute('min'));
         } else {
-          newMax = Math.min(newMin + MIN_XRANGE, $('#max-zoom').
-            attr('max'));
+          newMax = Math.min(newMin + MIN_XRANGE, $$('#max-zoom')[0].
+            getAttribute('max'));
         }
       }
-      $('#min-zoom-value').val(toRFC(newMin));
-      $('#max-zoom-value').val(toRFC(newMax));
-      $('#min-zoom').val(newMin);
-      $('#max-zoom').val(newMax);
+      $$('#min-zoom-value')[0].value = toRFC(newMin);
+      $$('#max-zoom-value')[0].value = toRFC(newMax);
+      $$('#min-zoom')[0].value = newMin;
+      $$('#max-zoom')[0].value = newMax;
       updateChartFromSliders();
     }
   };
-  document.getElementById('min-zoom').
-        addEventListener('input', zoomChangeHandler);
-  document.getElementById('max-zoom').
-        addEventListener('input', zoomChangeHandler);
+  $$('#min-zoom')[0].addEventListener('input', zoomChangeHandler);
+  $$('#max-zoom')[0].addEventListener('input', zoomChangeHandler);
 
   var zoomBlurHandler = function() {
     console.log('zoom change');
     if (plotData.getVisibleKeys().length > 0) {
-      var newMin = Date.parse($('#min-zoom-value').val())/1000;
-      var newMax = Date.parse($('#max-zoom-value').val())/1000;
+      var newMin = Date.parse($$('#min-zoom-value')[0].value)/1000;
+      var newMax = Date.parse($$('#max-zoom-value')[0].value)/1000;
       console.log(newMin);
       console.log(newMax);
       if (isNaN(newMin) || isNaN(newMax) ||
-          newMin < $('#min-zoom').attr('min') ||
-          newMax > $('#max-zoom').attr('max')) {
+          newMin < $$('#min-zoom')[0].getAttribute('min') ||
+          newMax > $$('#max-zoom')[0].getAttribute('max')) {
         console.log('invalid input');
         notifyUser('Invalid input');
         return;
@@ -1060,29 +1151,29 @@ window.addEventListener('load', function() {
       var realMax = Math.max(newMin, newMax);
       console.log(realMin);
       console.log(realMax);
-      $('#min-zoom').val(realMin);
-      $('#max-zoom').val(realMax);
+      $$('#min-zoom')[0].value = realMin;
+      $$('#max-zoom')[0].value = realMax;
       updateChartFromSliders();
     }
   };
-  document.getElementById('min-zoom-value').
-      addEventListener('blur', zoomBlurHandler);
-  document.getElementById('max-zoom-value').
-      addEventListener('blur', zoomBlurHandler);
+  $$('#min-zoom-value')[0].addEventListener('blur', zoomBlurHandler);
+  $$('#max-zoom-value')[0].addEventListener('blur', zoomBlurHandler);
 
-  document.getElementById('nuke-plot').addEventListener('click', function(e) {
+  $$('#nuke-plot')[0].addEventListener('click', function(e) {
     console.log('all lines removed');
     while (plotData.getVisibleKeys().length > 0) {
       plotData.makeInvisible(last(plotData.getVisibleKeys()), true);
     }
     plotStuff(plotData);
-    $('#legend table tbody').children().remove();
+    var legendBody = $$('#legend table tbody')[0];
+    while(legendBody.hasChildNodes()) {
+      legendBody.removeChild(legendBody.children[0]);
+    }
     updateHistory();
     e.preventDefault();
   });
 
-  Array.prototype.forEach.call(document.getElementsByName('schema-type'), 
-          function(e) {
+  $$('[name=schema-type]').forEach(function(e) {
     e.addEventListener('change', function() {
       console.log('schema change');
       var newSchema = this.value;
