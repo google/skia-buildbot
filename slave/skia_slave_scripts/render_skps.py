@@ -22,9 +22,8 @@ DEFAULT_TILE_Y = 256
 CONFIGS = {
     'defaults': [],
     'deferImageDecoding': ['--deferImageDecoding', '--useVolatileCache'],
-    'grid': ['--bbh', 'grid', str(DEFAULT_TILE_X), str(DEFAULT_TILE_X),
-             '--clone', '1'],
-    'rtree': ['--bbh', 'rtree', '--clone', '2'],
+    'grid': ['--bbh', 'grid', str(DEFAULT_TILE_X), str(DEFAULT_TILE_X) ],
+    'rtree': ['--bbh', 'rtree' ],
 }
 
 
