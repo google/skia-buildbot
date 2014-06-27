@@ -6,6 +6,20 @@ package config
 
 import "time"
 
+// BeginningOfTime holds the start time we have data since.
+type BeginningOfTime time.Time
+
+// TableSuffix returns BeginningOfTime in the BigQuery table suffix format.
+func (b BeginningOfTime)BqTableSuffix() string {
+	return time.Time(b).Format("20060102")
+}
+
+// GitHashColumn returns BeginningOfTime in the format of SQL table TIMESTAMP
+// column.
+func (b BeginningOfTime)SqlTsColumn() string {
+	return time.Time(b).Format("2006-01-02 15:04:05")
+}
+
 const (
 	// JSON doesn't support NaN or +/- Inf, so we need a valid float
 	// to signal missing data that also has a compact JSON representation.
@@ -13,9 +27,6 @@ const (
 
 	// Don't consider data before this time. May be due to schema changes, etc.
 	// Note that the limit is exclusive, this date does not contain good data.
-	// TODO(jcgregorio) Make into a flag.
-	BEGINNING_OF_TIME = "20140614"
-
 	// Limit the number of commits we hold in memory and do bulk analysis on.
 	MAX_COMMITS_IN_MEMORY = 30
 
@@ -31,4 +42,9 @@ const (
 	DATASET_MICRO DatasetName = "micro"
 )
 
-var ALL_DATASET_NAMES = []DatasetName{DATASET_SKP, DATASET_MICRO}
+var (
+	ALL_DATASET_NAMES = []DatasetName{DATASET_SKP, DATASET_MICRO}
+
+	// TODO(jcgregorio) Make into a flag.
+	BEGINNING_OF_TIME = BeginningOfTime(time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC))
+)
