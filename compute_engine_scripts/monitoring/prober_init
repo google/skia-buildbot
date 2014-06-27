@@ -23,8 +23,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia uptime and latency Prober."
 NAME=prober
 DAEMON=/home/www-data/buildbot/compute_engine_scripts/monitoring/prober/prober
-DAEMON_ARGS="--carbon=localhost:2003
---config=/home/www-data/buildbot/compute_engine_scripts/monitoring/prober/probers.json"
+DAEMON_ARGS="--carbon=localhost:2003 --config=/home/www-data/buildbot/compute_engine_scripts/monitoring/prober/probers.json,/home/www-data/buildbot/compute_engine_scripts/monitoring/prober/buildbots.json"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
