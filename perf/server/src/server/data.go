@@ -6,13 +6,16 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
+	"path"
 	"reflect"
 	"sort"
 	"strconv"
@@ -74,12 +77,11 @@ var (
 
 // TraceQuery is the data to pass into traceQueryTemplate when expanding the template.
 type TraceQuery struct {
-	TablePrefix          string
-	Date                 string
-	DatasetPredicates    string
-	AdditionalPredicates string
-	GitHash              string
-	Timestamp            int64
+	TablePrefix       string
+	Date              string
+	DatasetPredicates string
+	GitHash           string
+	Timestamp         int64
 }
 
 func init() {
@@ -100,7 +102,6 @@ func init() {
      {{.DatasetPredicates}}
       AND
         timestamp >= {{.Timestamp}}
-     {{.AdditionalPredicates}}
    ORDER BY
      key DESC,
      timestamp DESC;
@@ -292,7 +293,6 @@ type Dataset struct {
 	Commits          []*Commit          `json:"commits"`
 	ExtraCommits     []*Commit          `json:"extra_commits"`
 	service          *bigquery.Service
-	fullData         bool
 	clusterSummaries *ClusterSummaries
 }
 
@@ -399,7 +399,7 @@ ORDER BY
 			break
 		}
 	}
-	if len(allCommits) > 1 {  // Try populate extraCommits.
+	if len(allCommits) > 1 { // Try populate extraCommits.
 		maxTs := allCommits[0].CommitTime
 		minTs := allCommits[len(allCommits)-1].CommitTime
 		for k, v := range commitMap {
@@ -623,7 +623,7 @@ func (r *RowIter) Decode(s interface{}) error {
 // dates is a maps of table date suffixes that we will need to iterate over that map to the githashes
 // that each of those days contain.
 // earliestTimestamp is the timestamp of the earliest commit.
-func (all *Dataset) populateTraces(datasetName config.DatasetName, dates map[string][]string, fullData bool) error {
+func (all *Dataset) populateTraces(datasetName config.DatasetName, dates map[string][]string) error {
 	// Keep a map of key to Trace.
 	allTraces := map[string]*Trace{}
 
@@ -636,28 +636,6 @@ func (all *Dataset) populateTraces(datasetName config.DatasetName, dates map[str
 	hashToIndex := make(map[string]int)
 	for i, commit := range all.Commits {
 		hashToIndex[commit.Hash] = i
-	}
-
-	// Restricted set of traces if we don't want full data.
-	additionalPredicates := `
-      AND (
-        params.benchName="tabl_worldjournal.skp"
-                   OR
-        params.benchName="desk_amazon.skp"
-        )
-  `
-
-	if datasetName == config.DATASET_MICRO {
-		additionalPredicates = `
-      AND (
-        params.testName="draw_stroke_rrect_miter_640_480"
-                   OR
-        params.testName="shadermask_BW_FF_640_480"
-        )
-  `
-	}
-	if fullData {
-		additionalPredicates = ""
 	}
 	datasetPredicates := `
      AND (
@@ -673,12 +651,11 @@ func (all *Dataset) populateTraces(datasetName config.DatasetName, dates map[str
 	for date, gitHashes := range dates {
 		for _, gitHash := range gitHashes {
 			traceQueryParams := TraceQuery{
-				TablePrefix:          tablePrefixFromDatasetName(datasetName),
-				Date:                 date,
-				DatasetPredicates:    datasetPredicates,
-				AdditionalPredicates: additionalPredicates,
-				GitHash:              gitHash,
-				Timestamp:            earliestTimestamp,
+				TablePrefix:       tablePrefixFromDatasetName(datasetName),
+				Date:              date,
+				DatasetPredicates: datasetPredicates,
+				GitHash:           gitHash,
+				Timestamp:         earliestTimestamp,
 			}
 			query := &bytes.Buffer{}
 			err := traceQueryTemplate.Execute(query, traceQueryParams)
@@ -753,13 +730,21 @@ func (d *Data) ClusterSummaries(name config.DatasetName) *ClusterSummaries {
 
 }
 
-// AsJSON serializes the data as JSON.
-func (d *Data) AsJSON(name config.DatasetName, w io.Writer) error {
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
-
-	// TODO(jcgregorio) Keep a cache of the gzipped JSON around and serve that as long as it's fresh.
-	return json.NewEncoder(w).Encode(d.allDataFromName(name))
+// AsGzippedJSON returns the Dataset as gzipped JSON.
+//
+// The Dataset is already available in the form of a gzipped JSON file on disk,
+// so use that instead of re-serializing and gzipping it again here.
+func (Data) AsGzippedJSON(tileDir string, name config.DatasetName, w io.Writer) error {
+	filename := path.Join(tileDir, string(name)+".gz")
+	f, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("Couldn't open zipped tile for reading: %s", err)
+	}
+	defer f.Close()
+	if _, err := io.Copy(w, f); err != nil {
+		return fmt.Errorf("Failed writing tile back to the UI: %s", err)
+	}
+	return nil
 }
 
 // populateParamSet returns the set of all possible values for all the 'params'
@@ -934,24 +919,62 @@ func (all *Dataset) populateClusters() {
 	glog.Infof("Finished anomaly detection in %f s", d.Seconds())
 }
 
-// populate populates the Dataset struct with info from BigQuery.
-func (all *Dataset) populate(datasetName config.DatasetName, commitMap map[string]*Commit) error {
+// populate populates the Dataset struct with info from BigQuery or the tileDir.
+//
+// Data will only be loaded from tileDir if firstLoad is true. Data will always
+// be written back to tileDir after loading from BigQuery.
+func (all *Dataset) populate(datasetName config.DatasetName, commitMap map[string]*Commit, tileDir string, firstLoad bool) error {
 	begin := time.Now()
 	dates, commits, extra_commits, err := gitCommits(datasetName, all.service, commitMap)
 	if err != nil {
 		return fmt.Errorf("Failed to read hashes from BigQuery: %s", err)
 	}
 	glog.Info("Successfully read hashes from BigQuery")
-
 	all.Commits = commits
 	all.ExtraCommits = extra_commits
 
-	if err := all.populateTraces(datasetName, dates, all.fullData); err != nil {
-		return fmt.Errorf("Failed to read traces from BigQuery: %s", err)
-	}
-	glog.Info("Successfully read traces from BigQuery")
+	filename := path.Join(tileDir, string(datasetName)+".gz")
+	_, err = os.Stat(filename)
+	fileExists := !os.IsNotExist(err)
+	if firstLoad && fileExists {
+		f, err := os.Open(filename)
+		if err != nil {
+			return fmt.Errorf("Couldn't open saved dataset: %s", err)
+		}
+		defer f.Close()
 
-	all.populateParamSet()
+		r, err := gzip.NewReader(f)
+		if err != nil {
+			return fmt.Errorf("Failed reading gzipped tile data: %s", err)
+		}
+		defer r.Close()
+
+		if err := json.NewDecoder(r).Decode(all); err != nil {
+			return fmt.Errorf("Error decoding saved dataset: %s", err)
+		}
+		glog.Info("Successfully read traces from disk.")
+	} else {
+		if err := all.populateTraces(datasetName, dates); err != nil {
+			return fmt.Errorf("Failed to read traces from BigQuery: %s", err)
+		}
+		glog.Info("Successfully read traces from BigQuery")
+		all.populateParamSet()
+
+		os.MkdirAll(tileDir, 0755)
+
+		f, err := os.Create(filename)
+		if err != nil {
+			return fmt.Errorf("Couldn't create file for writing dataset: %s", err)
+		}
+		defer f.Close()
+
+		w := gzip.NewWriter(f)
+		defer w.Close()
+
+		if err := json.NewEncoder(w).Encode(all); err != nil {
+			return fmt.Errorf("Couldn't write dataset: %s", err)
+		}
+	}
 
 	all.populateClusters()
 
@@ -964,19 +987,23 @@ func (all *Dataset) populate(datasetName config.DatasetName, commitMap map[strin
 }
 
 // NewDataset returns an new Dataset object ready to be filled with data via populate().
-func NewDataset(service *bigquery.Service, fullData bool) *Dataset {
+func NewDataset(service *bigquery.Service) *Dataset {
 	return &Dataset{
 		Traces:   make([]*Trace, 0),
 		ParamSet: make(map[string]Choices),
 		Commits:  make([]*Commit, 0),
 		service:  service,
-		fullData: fullData,
 	}
 }
 
 // NewData loads the data the first time and then starts a go routine to
 // preiodically refresh the data.
-func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
+//
+// If there are existing gzip files in tileDir then those will be used instead
+// of trying to load data from BigQuery at startup. Regardless of where the
+// data comes from at startup, after each time data is pulled from BigQuery the
+// data will be written to tileDir.
+func NewData(doOauth bool, gitRepoDir string, tileDir string) (*Data, error) {
 	var err error
 	var client *http.Client
 	if doOauth {
@@ -1005,8 +1032,8 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 	}
 
 	for _, name := range config.ALL_DATASET_NAMES {
-		data := NewDataset(service, fullData)
-		if err := data.populate(name, commitMap); err != nil {
+		data := NewDataset(service)
+		if err := data.populate(name, commitMap, tileDir, true); err != nil {
 			glog.Fatal(err)
 		}
 		d.data[name] = data
@@ -1021,8 +1048,8 @@ func NewData(doOauth bool, gitRepoDir string, fullData bool) (*Data, error) {
 			}
 
 			for _, name := range config.ALL_DATASET_NAMES {
-				data := NewDataset(service, fullData)
-				if err := data.populate(name, commitMap); err != nil {
+				data := NewDataset(service)
+				if err := data.populate(name, commitMap, tileDir, false); err != nil {
 					glog.Errorln("Failed to refresh skp data from BigQuery: ", err)
 					break
 				}

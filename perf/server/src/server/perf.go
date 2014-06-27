@@ -51,7 +51,7 @@ var (
 	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	doOauth    = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	gitRepoDir = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	fullData   = flag.Bool("full_data", false, "Request a small subset of the data from BigQuery (default) or the full set of data.")
+	tileDir    = flag.String("tile_dir", "/tmp/tiles", "What directory to look for tiles in.")
 )
 
 var (
@@ -191,7 +191,10 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "application/json")
-		data.AsJSON(config.DatasetName(match[1]), w)
+		// TODO(jcgregorio) Detect if they didn't send Accept-Encoding. But really,
+		// they want to use gzip.
+		w.Header().Set("Content-Encoding", "gzip")
+		data.AsGzippedJSON(*tileDir, config.DatasetName(match[1]), w)
 	}
 }
 
@@ -211,7 +214,7 @@ func main() {
 
 	glog.Infoln("Begin loading data.")
 	var err error
-	data, err = NewData(*doOauth, *gitRepoDir, *fullData)
+	data, err = NewData(*doOauth, *gitRepoDir, *tileDir)
 	if err != nil {
 		glog.Fatalln("Failed initial load of data from BigQuery: ", err)
 	}
@@ -220,7 +223,7 @@ func main() {
 	http.Handle("/res/", autogzip.Handle(http.FileServer(http.Dir("./"))))
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
-	http.HandleFunc("/json/", autogzip.HandleFunc(jsonHandler))
+	http.HandleFunc("/json/", jsonHandler) // We pre-gzip this ourselves.
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
 
 	glog.Infoln("Ready to serve.")

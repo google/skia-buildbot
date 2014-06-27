@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia perf application."
 NAME=perf
 DAEMON=/home/perf/buildbot/perf/server/$NAME
-DAEMON_ARGS="--oauth=false --git_repo_dir=/home/perf/skia --full_data"
+DAEMON_ARGS="--oauth=false --git_repo_dir=/home/perf/skia"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
