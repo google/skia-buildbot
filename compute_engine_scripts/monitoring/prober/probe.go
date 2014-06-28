@@ -185,10 +185,10 @@ func main() {
 				continue
 			}
 			bodyTestResults := true
-			if probe.bodyTest != nil {
+			if err != nil && probe.bodyTest != nil && resp.Body != nil {
 				bodyTestResults = probe.bodyTest(resp.Body)
 			}
-			if resp.Body != nil {
+			if err != nil && resp.Body != nil {
 				resp.Body.Close()
 			}
 			d := time.Since(begin)
