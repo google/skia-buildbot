@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -56,6 +57,11 @@ var (
 
 var (
 	data *Data
+)
+
+const (
+	// Maximum allowed data POST size.
+	MAX_POST_SIZE = 64000
 )
 
 func init() {
@@ -177,6 +183,26 @@ func clusterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// annotationsHandler handles POST requests to the annotations page.
+func annotationsHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Annotations Handler: %q\n", r.URL.Path)
+	if r.Method == "POST" {
+		buf := bytes.NewBuffer(make([]byte, 0, MAX_POST_SIZE))
+		n, err := buf.ReadFrom(r.Body)
+		if err != nil {
+			reportError(w, r, err, "Failed to read annotation request body to buffer.")
+			return
+		}
+		if n == MAX_POST_SIZE {
+			reportError(w, r, err, fmt.Sprintf("Annotation request size >= max post size %d.", MAX_POST_SIZE))
+			return
+		}
+		if err := applyAnnotation(buf); err != nil {
+			reportError(w, r, fmt.Errorf("Annotation update error: %s", err), "Failed to change annotation in db.")
+		}
+	}
+}
+
 // jsonHandler handles the GET for the JSON requests.
 func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("JSON Handler: %q\n", r.URL.Path)
@@ -225,6 +251,7 @@ func main() {
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc("/json/", jsonHandler) // We pre-gzip this ourselves.
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
+	http.HandleFunc("/annotations/", autogzip.HandleFunc(annotationsHandler))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

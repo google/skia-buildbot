@@ -190,6 +190,126 @@ func NewCommit() *Commit {
 	}
 }
 
+// AnnotationOp holds information about annotation operations.
+//
+// "Operation" is one of "add", "edit", "delete". "Hashes" is slice of githash
+// strings associated with the annotation.
+type AnnotationOp struct {
+	Annotation Annotation `json:"annotation"`
+	Operation  string     `json:"operation"`
+	Hashes     []string   `json:"hashes"`
+}
+
+// validateAnnotation pre-checks if an AnnotationOp object looks valid.
+//
+// This does not guarantee no database operation errors, as the data may be
+// missing or have foreign key restrictions, but it should catch most common
+// mistakes.
+//
+// Returns error with message, nil if it does not detect any violations.
+func validateAnnotation(op AnnotationOp) (err error) {
+	switch op.Operation {
+	case "add":
+		// "add" must have nonempty Notes and Hashes.
+		if strings.TrimSpace(op.Annotation.Notes) == "" || len(op.Hashes) == 0 {
+			return fmt.Errorf("'add' operation cannot have empty Notes or Hashes.")
+		}
+	case "edit":
+		// "edit" must have non-negative ID and nonempty Notes.
+		if strings.TrimSpace(op.Annotation.Notes) == "" || op.Annotation.ID < 0 {
+			return fmt.Errorf("'edit' operation cannot have empty Notes '%s' or negative ID %d.", op.Annotation.Notes, op.Annotation.ID)
+		}
+	case "delete":
+		// "delete" must have non-negative ID.
+		if op.Annotation.ID < 0 {
+			return fmt.Errorf("'delete' operation cannot have negative ID: %d.", op.Annotation.ID)
+		}
+	default:
+		return fmt.Errorf("Unknown operation: ", op.Operation)
+	}
+	return nil
+}
+
+// applyAnnotation makes changes in the annotation DB based on the given data.
+func applyAnnotation(buf *bytes.Buffer) (err error) {
+	op := AnnotationOp{}
+	if err := json.Unmarshal(buf.Bytes(), &op); err != nil {
+		return fmt.Errorf("Failed to unmarshal the annotation: %s", err)
+	}
+	if err := validateAnnotation(op); err != nil {
+		return fmt.Errorf("Invalid AnnotationOp: %s", err)
+	}
+
+	switch op.Operation {
+	case "add":
+		// Use transaction to ensure atomic operations.
+		if _, err := db.Exec("BEGIN"); err != nil {
+			return fmt.Errorf("Error starting transaction in add: ", err)
+		}
+		res, err := db.Exec(`INSERT INTO notes
+		     (type, author, notes)
+		     VALUES (?, ?, ?)`, op.Annotation.Type, op.Annotation.Author, op.Annotation.Notes)
+		if err != nil {
+			db.Exec("ROLLBACK")
+			return fmt.Errorf("Error executing sql: ", err)
+		}
+		id, err := res.LastInsertId()
+		if err != nil {
+			db.Exec("ROLLBACK")
+			return fmt.Errorf("Error getting LastInsertId: ", err)
+		}
+		for i := range op.Hashes {
+			_, err := db.Exec(`INSERT INTO githashnotes
+			     (githash, ts, id)
+			     VALUES (?,
+				     (SELECT ts FROM githash WHERE githash=?),
+			             ?)`, op.Hashes[i], op.Hashes[i], id)
+			if err != nil {
+				db.Exec("ROLLBACK")
+				return fmt.Errorf("Error executing sql: ", err)
+			}
+		}
+		if _, err := db.Exec("COMMIT"); err != nil {
+			db.Exec("ROLLBACK")
+			return fmt.Errorf("Error commiting transaction in add: ", err)
+		}
+		return nil
+	case "edit":
+		_, err := db.Exec(`UPDATE notes
+		     SET notes  = ?,
+                         author = ?,
+			 type   = ?
+		     WHERE id = ?`, op.Annotation.Notes, op.Annotation.Author, op.Annotation.Type, op.Annotation.ID)
+		if err != nil {
+			return fmt.Errorf("Error executing sql: ", err)
+		}
+		return nil
+	case "delete":
+		if _, err := db.Exec("BEGIN"); err != nil {
+			return fmt.Errorf("Error starting transaction in delete: ", err)
+		}
+		if _, err := db.Exec(`DELETE FROM notes
+		     WHERE id = ?`, op.Annotation.ID); err != nil {
+			db.Exec("ROLLBACK")
+			return fmt.Errorf("Error executing sql: ", err)
+		}
+		if _, err := db.Exec(`DELETE FROM githashnotes
+		     WHERE id = ?`, op.Annotation.ID); err != nil {
+			db.Exec("ROLLBACK")
+			return fmt.Errorf("Error executing sql: ", err)
+		}
+		if _, err := db.Exec("COMMIT"); err != nil {
+			db.Exec("ROLLBACK")
+			return fmt.Errorf("Error commiting transaction in delete: ", err)
+		}
+		return nil
+	default:
+		return fmt.Errorf("Unknown operation: ", op.Operation)
+	}
+	return nil
+}
+
+
 // readCommitsFromDB Gets commit information from SQL database.
 // Returns map[Hash]->*Commit
 // TODO(bensong): read in a range of commits instead of the whole history.
