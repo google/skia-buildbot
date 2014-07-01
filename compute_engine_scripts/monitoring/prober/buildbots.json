@@ -43,6 +43,22 @@
       ],
       "mimetype":"application/json",
       "bodytest":"buildbotJSON"
+   },
+   "experimental_master_1_host":{
+      "url":"http://108.170.220.127:10117/console_json",
+      "method":"GET",
+      "expected":[
+         200
+      ],
+      "mimetype":"application/json"
+   },
+   "experimental_master_2_host":{
+      "url":"http://108.170.199.152:10117/console_json",
+      "method":"GET",
+      "expected":[
+         200
+      ],
+      "mimetype":"application/json"
    }
 }
 
