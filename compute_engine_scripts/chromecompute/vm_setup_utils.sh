@@ -115,11 +115,7 @@ function setup_crontab {
   echo
   echo "===== Setting up launch-on-reboot ======"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "cp $SKIA_REPO_DIR/buildbot/scripts/skiabot-vm-slave-start-on-boot.sh . && " \
-    "chmod a+x skiabot-vm-slave-start-on-boot.sh && " \
-    "echo \"@reboot export PATH=\$PATH:/home/$PROJECT_USER/depot_tools; /home/$PROJECT_USER/skiabot-vm-slave-start-on-boot.sh storage/skia-repo\" > reboot.txt && " \
-    "crontab -u $PROJECT_USER reboot.txt && " \
-    "rm reboot.txt" \
+    "python $SKIA_REPO_DIR/buildbot/scripts/launch_on_reboot.py"
     || FAILED="$FAILED LaunchOnReboot"
   echo
 }

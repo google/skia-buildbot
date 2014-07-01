@@ -56,6 +56,9 @@ GCE_COMPILE_A_ONLINE = GCE_ZONE == 'a'
 GCE_COMPILE_B_ONLINE = GCE_ZONE == 'b'
 GCE_COMPILE_C_ONLINE = True
 
+LAUNCH_SCRIPT_UNIX = ['scripts', 'skiabot-slave-start-on-boot.sh']
+LAUNCH_SCRIPT_WIN = ['scripts', 'skiabot-slave-start-on-boot.bat']
+
 SKIALAB_ROUTER_IP = skia_vars.GetGlobalVariable('skialab_router_ip')
 SKIALAB_USERNAME = skia_vars.GetGlobalVariable('skialab_username')
 
@@ -102,6 +105,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-shuttle-ubuntu12-gtx660-001': {
@@ -118,6 +122,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-shuttle-ubuntu12-gtx660-002': {
@@ -131,6 +136,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-shuttle-ubuntu12-android-003': {
@@ -156,6 +162,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-shuttle-ubuntu12-xxx': {
@@ -171,6 +178,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-shuttle-ubuntu13-xxx': {
@@ -184,6 +192,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-shuttle-ubuntu13-002': {
@@ -196,6 +205,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-housekeeping-slave-a': {
@@ -209,6 +219,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
     'remote_access': GCE_COMPILE_A_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-housekeeping-slave-b': {
@@ -222,6 +233,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
     'remote_access': GCE_COMPILE_B_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-android-canary-b': {
@@ -235,6 +247,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
     'remote_access': GCE_COMPILE_B_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-001': {
@@ -248,6 +261,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-002': {
@@ -261,6 +275,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-003': {
@@ -274,6 +289,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-004': {
@@ -287,6 +303,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-005': {
@@ -300,6 +317,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-006': {
@@ -313,6 +331,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-007': {
@@ -326,6 +345,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-008': {
@@ -339,6 +359,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-009': {
@@ -352,6 +373,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-010': {
@@ -365,6 +387,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-011': {
@@ -378,6 +401,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-012': {
@@ -391,6 +415,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-013': {
@@ -404,6 +429,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-014': {
@@ -417,6 +443,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-015': {
@@ -430,6 +457,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-016': {
@@ -443,6 +471,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-017': {
@@ -456,6 +485,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-018': {
@@ -469,6 +499,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-019': {
@@ -482,6 +513,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-020': {
@@ -495,6 +527,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-021': {
@@ -508,6 +541,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-022': {
@@ -521,6 +555,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-023': {
@@ -534,6 +569,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-024': {
@@ -547,6 +583,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-025': {
@@ -560,6 +597,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-026': {
@@ -573,6 +611,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-027': {
@@ -586,6 +625,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-028': {
@@ -599,6 +639,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-029': {
@@ -612,6 +653,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-030': {
@@ -625,6 +667,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-031': {
@@ -638,6 +681,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-032': {
@@ -651,6 +695,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-033': {
@@ -664,6 +709,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-034': {
@@ -677,6 +723,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-035': {
@@ -690,6 +737,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-036': {
@@ -703,6 +751,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-037': {
@@ -716,6 +765,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-038': {
@@ -729,6 +779,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-039': {
@@ -742,6 +793,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-040': {
@@ -755,6 +807,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-041': {
@@ -768,6 +821,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-042': {
@@ -781,6 +835,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-043': {
@@ -794,6 +849,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-044': {
@@ -807,6 +863,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-045': {
@@ -820,6 +877,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-046': {
@@ -833,6 +891,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-047': {
@@ -846,6 +905,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-048': {
@@ -859,6 +919,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-049': {
@@ -872,6 +933,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-050': {
@@ -885,6 +947,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-051': {
@@ -898,6 +961,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-052': {
@@ -911,6 +975,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-053': {
@@ -924,6 +989,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-054': {
@@ -937,6 +1003,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-055': {
@@ -950,6 +1017,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-056': {
@@ -963,6 +1031,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-057': {
@@ -976,6 +1045,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-058': {
@@ -989,6 +1059,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-059': {
@@ -1002,6 +1073,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-060': {
@@ -1015,6 +1087,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-061': {
@@ -1028,6 +1101,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-062': {
@@ -1041,6 +1115,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-063': {
@@ -1054,6 +1129,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-064': {
@@ -1067,6 +1143,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-065': {
@@ -1080,6 +1157,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-066': {
@@ -1093,6 +1171,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-067': {
@@ -1106,6 +1185,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-068': {
@@ -1119,6 +1199,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-069': {
@@ -1132,6 +1213,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-070': {
@@ -1145,6 +1227,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-071': {
@@ -1158,6 +1241,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-072': {
@@ -1171,6 +1255,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-073': {
@@ -1184,6 +1269,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-074': {
@@ -1197,6 +1283,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-075': {
@@ -1210,6 +1297,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-076': {
@@ -1223,6 +1311,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-077': {
@@ -1236,6 +1325,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-078': {
@@ -1249,6 +1339,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-079': {
@@ -1263,6 +1354,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-080': {
@@ -1277,6 +1369,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-081': {
@@ -1291,6 +1384,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-082': {
@@ -1305,6 +1399,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['skia-repo', 'buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-083': {
@@ -1318,6 +1413,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-084': {
@@ -1329,6 +1425,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-085': {
@@ -1340,6 +1437,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-086': {
@@ -1351,6 +1449,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-087': {
@@ -1362,6 +1461,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-088': {
@@ -1373,6 +1473,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-089': {
@@ -1384,6 +1485,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-090': {
@@ -1395,6 +1497,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-091': {
@@ -1406,6 +1509,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-092': {
@@ -1417,6 +1521,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-093': {
@@ -1428,6 +1533,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-094': {
@@ -1439,6 +1545,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-095': {
@@ -1450,6 +1557,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-096': {
@@ -1461,6 +1569,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-097': {
@@ -1472,6 +1581,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-098': {
@@ -1483,6 +1593,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-099': {
@@ -1494,6 +1605,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-100': {
@@ -1507,6 +1619,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-101': {
@@ -1520,6 +1633,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-102': {
@@ -1533,6 +1647,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-103': {
@@ -1546,6 +1661,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-104': {
@@ -1559,6 +1675,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-105': {
@@ -1572,6 +1689,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-106': {
@@ -1585,6 +1703,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-107': {
@@ -1598,6 +1717,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-108': {
@@ -1611,6 +1731,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-109': {
@@ -1624,6 +1745,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-110': {
@@ -1635,6 +1757,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-111': {
@@ -1646,6 +1769,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-112': {
@@ -1657,6 +1781,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-113': {
@@ -1668,6 +1793,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-114': {
@@ -1679,6 +1805,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-115': {
@@ -1690,6 +1817,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-116': {
@@ -1701,6 +1829,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-117': {
@@ -1712,6 +1841,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-118': {
@@ -1723,6 +1853,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-119': {
@@ -1734,6 +1865,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-120': {
@@ -1745,6 +1877,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-121': {
@@ -1756,6 +1889,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-122': {
@@ -1767,6 +1901,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-123': {
@@ -1778,6 +1913,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-124': {
@@ -1789,6 +1925,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-125': {
@@ -1800,6 +1937,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-126': {
@@ -1811,6 +1949,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skia-vm-127': {
@@ -1822,6 +1961,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
 ################################# Mac Machines #################################
@@ -1840,6 +1980,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-macmini-10_6-002': {
@@ -1853,6 +1994,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-macmini-10_7-001': {
@@ -1869,6 +2011,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-macmini-10_7-002': {
@@ -1882,6 +2025,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-macmini-10_8-001': {
@@ -1898,6 +2042,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-macmini-10_8-002': {
@@ -1911,6 +2056,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-mac-10_7-compile': {
@@ -1933,6 +2079,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
   'skiabot-mac-10_8-compile': {
@@ -1955,6 +2102,7 @@ _slave_host_dicts = {
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
 ############################### Windows Machines ###############################
@@ -1970,6 +2118,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'win7-intel-002': {
@@ -1983,6 +2132,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'win7-intel-003': {
@@ -1996,6 +2146,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'win7-intel-004': {
@@ -2009,6 +2160,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'win7-compile1': {
@@ -2022,6 +2174,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'win7-compile2': {
@@ -2035,6 +2188,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'win8-gtx660-000': {
@@ -2049,6 +2203,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'win8-gtx660-001': {
@@ -2062,6 +2217,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'win8-hd7770-000': {
@@ -2076,6 +2232,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'win8-hd7770-001': {
@@ -2089,6 +2246,7 @@ _slave_host_dicts = {
     'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
     'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 }
 
@@ -2097,7 +2255,8 @@ _slave_host_dicts = {
 SlaveHostConfig = collections.namedtuple('SlaveHostConfig',
                                          ('hostname, slaves, copies, login_cmd,'
                                           ' ip, kvm_num, path_module,'
-                                          ' path_to_buildbot, remote_access'))
+                                          ' path_to_buildbot, remote_access,'
+                                          ' launch_script'))
 
 
 SLAVE_HOSTS = {}
@@ -2124,6 +2283,7 @@ def default_slave_host_config(hostname):
   """
   path_to_buildbot = os.path.join(os.path.dirname(__file__), os.pardir)
   path_to_buildbot = os.path.abspath(path_to_buildbot).split(os.path.sep)
+  launch_script = LAUNCH_SCRIPT_WIN if os.name == 'nt' else LAUNCH_SCRIPT_UNIX
   return SlaveHostConfig(
     hostname=hostname,
     slaves=[(hostname, '0')],
@@ -2134,6 +2294,7 @@ def default_slave_host_config(hostname):
     path_module=os.path,
     path_to_buildbot=path_to_buildbot,
     remote_access=False,
+    launch_script=launch_script,
   )
 
 
