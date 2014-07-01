@@ -176,17 +176,19 @@ type Annotation struct {
 
 // Commit is information about each Git commit.
 type Commit struct {
-	CommitTime    int64        `json:"commit_time" bq:"timestamp" db:"ts"`
-	Hash          string       `json:"hash"        bq:"gitHash"   db:"githash"`
-	GitNumber     int64        `json:"git_number"  bq:"gitNumber" db:"gitnumber"`
-	Author        string       `json:"author"                     db:"author"`
-	CommitMessage string       `json:"commit_msg"                 db:"message"`
-	Annotations   []Annotation `json:"annotations,omitempty"`
+	CommitTime    int64         `json:"commit_time" bq:"timestamp" db:"ts"`
+	Hash          string        `json:"hash"        bq:"gitHash"   db:"githash"`
+	GitNumber     int64         `json:"git_number"  bq:"gitNumber" db:"gitnumber"`
+	Author        string        `json:"author"                     db:"author"`
+	CommitMessage string        `json:"commit_msg"                 db:"message"`
+	TailCommits   []*Commit     `json:"tail_commits,omitempty"`
+	Annotations   []*Annotation `json:"annotations,omitempty"`
 }
 
 func NewCommit() *Commit {
 	return &Commit{
-		Annotations: []Annotation{},
+		TailCommits: []*Commit{},
+		Annotations: []*Annotation{},
 	}
 }
 
@@ -311,15 +313,47 @@ func applyAnnotation(buf *bytes.Buffer) (err error) {
 
 
 // readCommitsFromDB Gets commit information from SQL database.
-// Returns map[Hash]->*Commit
+// Returns a slice of *Commit in reverse timestamp order.
 // TODO(bensong): read in a range of commits instead of the whole history.
-func readCommitsFromDB() (map[string]*Commit, error) {
+func readCommitsFromDB() ([]*Commit, error) {
+	// m maps githash string into slice of associated *Annotations.
+	m := make(map[string][]*Annotation)
+	// Gets annotations and puts them into map m.
+	rows, err := db.Query(`SELECT
+	    githashnotes.githash, githashnotes.id,
+	    notes.type, notes.author, notes.notes
+	    FROM githashnotes
+	    INNER JOIN notes
+	    ON githashnotes.id=notes.id
+	    ORDER BY githashnotes.id`)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read annotations: %s", err)
+	}
+
+	for rows.Next() {
+		var githash string
+		var id int
+		var notetype int
+		var author string
+		var notes string
+		if err := rows.Scan(&githash, &id, &notetype, &author, &notes); err != nil {
+			glog.Infoln("Annotations row scan error: ", err)
+			continue
+		}
+		if _, ok := m[githash]; !ok {
+			m[githash] = make([]*Annotation, 0)
+		}
+		annotation := Annotation{id, notes, author, notetype}
+		m[githash] = append(m[githash], &annotation)
+	}
+
 	sql := fmt.Sprintf(`SELECT
 	     ts, githash, gitnumber, author, message
 	     FROM githash
-	     WHERE ts >= '%s'`, config.BEGINNING_OF_TIME.SqlTsColumn())
-	m := make(map[string]*Commit)
-	rows, err := db.Query(sql)
+	     WHERE ts >= '%s'
+	     ORDER BY ts DESC`, config.BEGINNING_OF_TIME.SqlTsColumn())
+	s := make([]*Commit, 0)
+	rows, err = db.Query(sql)
 	if err != nil {
 		glog.Warningln("Error querying githash table in db: ", err)
 		return nil, fmt.Errorf("Failed to query githash table: %s", err)
@@ -341,38 +375,13 @@ func readCommitsFromDB() (map[string]*Commit, error) {
 		commit.GitNumber = gitnumber
 		commit.Author = author
 		commit.CommitMessage = message
-		m[githash] = commit
-	}
-
-	// Gets annotations and puts them into corresponding commit struct.
-	rows, err = db.Query(`SELECT
-	    githashnotes.githash, githashnotes.id,
-	    notes.type, notes.author, notes.notes
-	    FROM githashnotes
-	    INNER JOIN notes
-	    ON githashnotes.id=notes.id
-	    ORDER BY githashnotes.id`)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to read annotations: %s", err)
-	}
-
-	for rows.Next() {
-		var githash string
-		var id int
-		var notetype int
-		var author string
-		var notes string
-		if err := rows.Scan(&githash, &id, &notetype, &author, &notes); err != nil {
-			glog.Infoln("Annotations row scan error: ", err)
-			continue
-		}
 		if _, ok := m[githash]; ok {
-			annotation := Annotation{id, notes, author, notetype}
-			m[githash].Annotations = append(m[githash].Annotations, annotation)
+			commit.Annotations = m[githash]
 		}
+		s = append(s, commit)
 	}
 
-	return m, nil
+	return s, nil
 }
 
 // ValueWeight is a weight proportional to the number of times the parameter
@@ -411,7 +420,6 @@ type Dataset struct {
 	Traces           []*Trace           `json:"traces"`
 	ParamSet         map[string]Choices `json:"param_set"`
 	Commits          []*Commit          `json:"commits"`
-	ExtraCommits     []*Commit          `json:"extra_commits"`
 	service          *bigquery.Service
 	clusterSummaries *ClusterSummaries
 }
@@ -455,23 +463,19 @@ func tablePrefixFromDatasetName(name config.DatasetName) string {
 	return "perf_skps_v2.skpbench"
 }
 
-// gitCommits returns lists of commits that have perf data associated with them,
-// and extra commits within the timestamp range. Populates commit info from
-// commitMap if possible.
+// gitCommits returns lists of commits that have perf data associated with them.
+// Populates commit info and tail_commits from commitHistory if possible.
 //
 // Returns a map of [dates of tables we had to query] to the list of git hashes
 // that appear in those tables, and a list of commits with data ordered from
-// oldest to newest, plus the list of commits within the range without data.
+// oldest to newest.
 //
 // Not all commits will have perf data, the builders don't necessarily run for
 // each commit.  Will limit itself to returning only the number of days that
 // are needed to get MAX_COMMITS_IN_MEMORY.
-func gitCommits(datasetName config.DatasetName, service *bigquery.Service, commitMap map[string]*Commit) (map[string][]string, []*Commit, []*Commit, error) {
+func gitCommits(datasetName config.DatasetName, service *bigquery.Service, commitHistory []*Commit) (map[string][]string, []*Commit, error) {
 	dateMap := make(map[string][]string)
 	allCommits := make([]*Commit, 0)
-	// hashMap keeps hashes added to allCommits, map to true.
-	hashMap := make(map[string]bool)
-	extraCommits := make([]*Commit, 0)
 	queryTemplate := `
 SELECT
   gitHash, FIRST(timestamp) as timestamp, FIRST(gitNumber) as gitNumber
@@ -482,8 +486,10 @@ GROUP BY
 ORDER BY
   timestamp DESC;
   `
-	// Loop over table going backward until we find 30 commits, or hit the BEGINNING_OF_TIME.
+	// Loop over table going backward until we find MAX_COMMITS_IN_MEMORY+1 commits, or hit the BEGINNING_OF_TIME.
 	glog.Info("gitCommits: starting.")
+	// historyIdx keeps the current index of commitHistory.
+	historyIdx := 0
 	dates := NewDateIter()
 	totalCommits := 0
 	for dates.Next() {
@@ -498,16 +504,21 @@ ORDER BY
 		for iter.Next() {
 			c := NewCommit()
 			if err := iter.Decode(c); err != nil {
-				return nil, allCommits, extraCommits, fmt.Errorf("Failed reading hashes from BigQuery: %s", err)
+				return nil, allCommits, fmt.Errorf("Failed reading hashes from BigQuery: %s", err)
 			}
 			gitHashesForDay = append(gitHashesForDay, c.Hash)
-			// Populate commit info if available.
-			if val, ok := commitMap[c.Hash]; ok {
-				*c = *val
+			// Scan commitHistory and populate commit info if available.
+			for ; historyIdx < len(commitHistory) && commitHistory[historyIdx].CommitTime >= c.CommitTime; historyIdx++ {
+				if commitHistory[historyIdx].Hash == c.Hash {
+					*c = *commitHistory[historyIdx]
+				} else if len(allCommits) > 0 {
+					// Append to tail_commit
+					tailCommits := &allCommits[len(allCommits)-1].TailCommits
+					*tailCommits = append(*tailCommits, commitHistory[historyIdx])
+				}
 			}
-			hashMap[c.Hash] = true
 			totalCommits++
-			if len(allCommits) < config.MAX_COMMITS_IN_MEMORY {
+			if len(allCommits) <= config.MAX_COMMITS_IN_MEMORY {
 				allCommits = append(allCommits, c)
 			} else {
 				break
@@ -519,23 +530,16 @@ ORDER BY
 			break
 		}
 	}
-	if len(allCommits) > 1 { // Try populate extraCommits.
-		maxTs := allCommits[0].CommitTime
-		minTs := allCommits[len(allCommits)-1].CommitTime
-		for k, v := range commitMap {
-			if _, found := hashMap[k]; !found {
-				if v.CommitTime >= minTs && v.CommitTime <= maxTs {
-					extraCommits = append(extraCommits, v)
-				}
-			}
-		}
+	// Removes the extra allCommits if applicable.
+	if len(allCommits) == config.MAX_COMMITS_IN_MEMORY {
+		allCommits = allCommits[:len(allCommits)-1]
 	}
 	// Now reverse allCommits so that it is oldest first.
 	reversedCommits := make([]*Commit, len(allCommits), len(allCommits))
 	for i, c := range allCommits {
 		reversedCommits[len(allCommits)-i-1] = c
 	}
-	return dateMap, reversedCommits, extraCommits, nil
+	return dateMap, reversedCommits, nil
 }
 
 // GitHash represents information on a single Git commit.
@@ -1043,15 +1047,14 @@ func (all *Dataset) populateClusters() {
 //
 // Data will only be loaded from tileDir if firstLoad is true. Data will always
 // be written back to tileDir after loading from BigQuery.
-func (all *Dataset) populate(datasetName config.DatasetName, commitMap map[string]*Commit, tileDir string, firstLoad bool) error {
+func (all *Dataset) populate(datasetName config.DatasetName, commitHistory []*Commit, tileDir string, firstLoad bool) error {
 	begin := time.Now()
-	dates, commits, extra_commits, err := gitCommits(datasetName, all.service, commitMap)
+	dates, commits, err := gitCommits(datasetName, all.service, commitHistory)
 	if err != nil {
 		return fmt.Errorf("Failed to read hashes from BigQuery: %s", err)
 	}
 	glog.Info("Successfully read hashes from BigQuery")
 	all.Commits = commits
-	all.ExtraCommits = extra_commits
 
 	filename := path.Join(tileDir, string(datasetName)+".gz")
 	_, err = os.Stat(filename)
@@ -1146,14 +1149,14 @@ func NewData(doOauth bool, gitRepoDir string, tileDir string) (*Data, error) {
 	}
 
 	// Get a map of commit records
-	commitMap, err := readCommitsFromDB()
+	commitHistory, err := readCommitsFromDB()
 	if err != nil {
-		glog.Warningln("Did not get commit map: ", err)
+		glog.Warningln("Did not get commit slice: ", err)
 	}
 
 	for _, name := range config.ALL_DATASET_NAMES {
 		data := NewDataset(service)
-		if err := data.populate(name, commitMap, tileDir, true); err != nil {
+		if err := data.populate(name, commitHistory, tileDir, true); err != nil {
 			glog.Fatal(err)
 		}
 		d.data[name] = data
@@ -1162,14 +1165,14 @@ func NewData(doOauth bool, gitRepoDir string, tileDir string) (*Data, error) {
 	go func() {
 		for _ = range time.Tick(config.REFRESH_PERIOD) {
 			// Get the latest map of commit records
-			commitMap, err := readCommitsFromDB()
+			commitHistory, err := readCommitsFromDB()
 			if err != nil {
-				glog.Warningln("Did not get new commit map: ", err)
+				glog.Warningln("Did not get new commit slice: ", err)
 			}
 
 			for _, name := range config.ALL_DATASET_NAMES {
 				data := NewDataset(service)
-				if err := data.populate(name, commitMap, tileDir, false); err != nil {
+				if err := data.populate(name, commitHistory, tileDir, false); err != nil {
 					glog.Errorln("Failed to refresh skp data from BigQuery: ", err)
 					break
 				}
