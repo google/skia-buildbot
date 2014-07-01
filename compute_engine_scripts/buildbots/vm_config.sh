@@ -12,8 +12,8 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 # Master names, type and their IP addresses to use for each zone.
 VM_MASTER_NAMES=${VM_MASTER_NAMES:="master private-master fyi-master android-master compile-master experimental-master-1 experimental-master-2"}
 MASTER_MACHINE_TYPE="n1-highmem-2"
-MASTER_IP_ADDRESSES_a="108.170.220.117 108.170.220.115 108.170.220.123 108.170.220.122 108.170.220.75 108.170.220.127 108.170.219.46"
-MASTER_IP_ADDRESSES_b="108.170.220.120 108.170.220.27 108.170.220.102 108.170.220.21 108.170.220.76 108.170.220.89 108.170.219.48"
+MASTER_IP_ADDRESSES_a="108.170.220.117 108.170.220.115 108.170.220.123 108.170.220.122 108.170.220.75 108.170.220.89 130.211.237.179"
+MASTER_IP_ADDRESSES_b="108.170.220.120 108.170.220.27 108.170.220.102 108.170.220.21 108.170.220.76 108.170.220.127 108.170.199.152"
 
 # Slave names, type and their IP addresses.
 VM_SLAVE_NAMES=${VM_SLAVE_NAMES:="housekeeping-slave compile1 compile2 compile3 compile4 compile5"}
@@ -92,5 +92,5 @@ PROJECT_USER="default"
 
 # gcutil commands.
 GCUTIL=`which gcutil`
-GCOMPUTE_CMD="$GCUTIL --cluster=prod --project=$PROJECT_ID"
+GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
 GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER"
