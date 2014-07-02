@@ -11,14 +11,10 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
-	"reflect"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -27,16 +23,17 @@ import (
 
 import (
 	"code.google.com/p/goauth2/compute/serviceaccount"
-	"code.google.com/p/goauth2/oauth"
 	"code.google.com/p/google-api-go-client/bigquery/v2"
 	"github.com/golang/glog"
-	"github.com/oxtoacart/webbrowser"
 	"github.com/rcrowley/go-metrics"
 )
 
 import (
+	"auth"
+	"bqutil"
 	"config"
 	"ctrace"
+	"db"
 	"kmeans"
 )
 
@@ -55,15 +52,6 @@ const (
 // Shouldn't need auth when running from GCE, but will need it for local dev.
 // TODO(jcgregorio) Move to reading this from client_secrets.json and void these keys at that point.
 var (
-	oauthConfig = &oauth.Config{
-		ClientId:     "470362608618-nlbqngfl87f4b3mhqqe9ojgaoe11vrld.apps.googleusercontent.com",
-		ClientSecret: "J4YCkfMXFJISGyuBuVEiH60T",
-		Scope:        bigquery.BigqueryScope,
-		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
-		TokenURL:     "https://accounts.google.com/o/oauth2/token",
-		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
-		TokenCache:   oauth.CacheFile("bqtoken.data"),
-	}
 
 	// TODO(jcgregorio) Fix metrics so that skps and microbenches are reported separately.
 	lastSkpUpdate             = time.Now()
@@ -106,37 +94,6 @@ func init() {
      key DESC,
      timestamp DESC;
 	     `))
-}
-
-// dialTimeout is a dialer that sets a timeout.
-func dialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, TIMEOUT)
-}
-
-// runFlow runs through a 3LO OAuth 2.0 flow to get credentials for BigQuery.
-func runFlow(config *oauth.Config) (*http.Client, error) {
-	transport := &oauth.Transport{
-		Config: config,
-		Transport: &http.Transport{
-			Dial: dialTimeout,
-		},
-	}
-	if _, err := config.TokenCache.Token(); err != nil {
-		url := config.AuthCodeURL("")
-		fmt.Printf(`Your browser has been opened to visit:
-
-  %s
-
-Enter the verification code:`, url)
-		webbrowser.Open(url)
-		var code string
-		fmt.Scan(&code)
-		if _, err := transport.Exchange(code); err != nil {
-			return nil, err
-		}
-	}
-
-	return transport.Client(), nil
 }
 
 // Trace represents all the values of a single measurement over time.
@@ -245,39 +202,39 @@ func applyAnnotation(buf *bytes.Buffer) (err error) {
 	switch op.Operation {
 	case "add":
 		// Use transaction to ensure atomic operations.
-		if _, err := db.Exec("BEGIN"); err != nil {
+		if _, err := db.DB.Exec("BEGIN"); err != nil {
 			return fmt.Errorf("Error starting transaction in add: ", err)
 		}
-		res, err := db.Exec(`INSERT INTO notes
+		res, err := db.DB.Exec(`INSERT INTO notes
 		     (type, author, notes)
 		     VALUES (?, ?, ?)`, op.Annotation.Type, op.Annotation.Author, op.Annotation.Notes)
 		if err != nil {
-			db.Exec("ROLLBACK")
+			db.DB.Exec("ROLLBACK")
 			return fmt.Errorf("Error executing sql: ", err)
 		}
 		id, err := res.LastInsertId()
 		if err != nil {
-			db.Exec("ROLLBACK")
+			db.DB.Exec("ROLLBACK")
 			return fmt.Errorf("Error getting LastInsertId: ", err)
 		}
 		for i := range op.Hashes {
-			_, err := db.Exec(`INSERT INTO githashnotes
+			_, err := db.DB.Exec(`INSERT INTO githashnotes
 			     (githash, ts, id)
 			     VALUES (?,
 				     (SELECT ts FROM githash WHERE githash=?),
 			             ?)`, op.Hashes[i], op.Hashes[i], id)
 			if err != nil {
-				db.Exec("ROLLBACK")
+				db.DB.Exec("ROLLBACK")
 				return fmt.Errorf("Error executing sql: ", err)
 			}
 		}
-		if _, err := db.Exec("COMMIT"); err != nil {
-			db.Exec("ROLLBACK")
+		if _, err := db.DB.Exec("COMMIT"); err != nil {
+			db.DB.Exec("ROLLBACK")
 			return fmt.Errorf("Error commiting transaction in add: ", err)
 		}
 		return nil
 	case "edit":
-		_, err := db.Exec(`UPDATE notes
+		_, err := db.DB.Exec(`UPDATE notes
 		     SET notes  = ?,
                          author = ?,
 			 type   = ?
@@ -287,21 +244,21 @@ func applyAnnotation(buf *bytes.Buffer) (err error) {
 		}
 		return nil
 	case "delete":
-		if _, err := db.Exec("BEGIN"); err != nil {
+		if _, err := db.DB.Exec("BEGIN"); err != nil {
 			return fmt.Errorf("Error starting transaction in delete: ", err)
 		}
-		if _, err := db.Exec(`DELETE FROM notes
+		if _, err := db.DB.Exec(`DELETE FROM notes
 		     WHERE id = ?`, op.Annotation.ID); err != nil {
-			db.Exec("ROLLBACK")
+			db.DB.Exec("ROLLBACK")
 			return fmt.Errorf("Error executing sql: ", err)
 		}
-		if _, err := db.Exec(`DELETE FROM githashnotes
+		if _, err := db.DB.Exec(`DELETE FROM githashnotes
 		     WHERE id = ?`, op.Annotation.ID); err != nil {
-			db.Exec("ROLLBACK")
+			db.DB.Exec("ROLLBACK")
 			return fmt.Errorf("Error executing sql: ", err)
 		}
-		if _, err := db.Exec("COMMIT"); err != nil {
-			db.Exec("ROLLBACK")
+		if _, err := db.DB.Exec("COMMIT"); err != nil {
+			db.DB.Exec("ROLLBACK")
 			return fmt.Errorf("Error commiting transaction in delete: ", err)
 		}
 		return nil
@@ -311,7 +268,6 @@ func applyAnnotation(buf *bytes.Buffer) (err error) {
 	return nil
 }
 
-
 // readCommitsFromDB Gets commit information from SQL database.
 // Returns a slice of *Commit in reverse timestamp order.
 // TODO(bensong): read in a range of commits instead of the whole history.
@@ -319,7 +275,7 @@ func readCommitsFromDB() ([]*Commit, error) {
 	// m maps githash string into slice of associated *Annotations.
 	m := make(map[string][]*Annotation)
 	// Gets annotations and puts them into map m.
-	rows, err := db.Query(`SELECT
+	rows, err := db.DB.Query(`SELECT
 	    githashnotes.githash, githashnotes.id,
 	    notes.type, notes.author, notes.notes
 	    FROM githashnotes
@@ -353,7 +309,7 @@ func readCommitsFromDB() ([]*Commit, error) {
 	     WHERE ts >= '%s'
 	     ORDER BY ts DESC`, config.BEGINNING_OF_TIME.SqlTsColumn())
 	s := make([]*Commit, 0)
-	rows, err = db.Query(sql)
+	rows, err = db.DB.Query(sql)
 	if err != nil {
 		glog.Warningln("Error querying githash table in db: ", err)
 		return nil, fmt.Errorf("Failed to query githash table: %s", err)
@@ -494,7 +450,7 @@ ORDER BY
 	totalCommits := 0
 	for dates.Next() {
 		query := fmt.Sprintf(queryTemplate, tablePrefixFromDatasetName(datasetName), dates.Date())
-		iter, err := NewRowIter(service, query)
+		iter, err := bqutil.NewRowIter(service, query)
 		if err != nil {
 			glog.Warningln("Tried to query a table that didn't exist", dates.Date(), err)
 			continue
@@ -542,206 +498,6 @@ ORDER BY
 	return dateMap, reversedCommits, nil
 }
 
-// GitHash represents information on a single Git commit.
-type GitHash struct {
-	Hash      string
-	TimeStamp time.Time
-}
-
-// readCommitsFromGit reads the commit history from a Git repository.
-//
-// Don't bother with this for now, will eventually need for commit message.
-func readCommitsFromGit(dir string) ([]GitHash, error) {
-	cmd := exec.Command("git", strings.Split("log --format=%H%x20%ci", " ")...)
-	cmd.Dir = dir
-	b, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to run Git: %s", err)
-	}
-	lines := strings.Split(string(b), "\n")
-	hashes := make([]GitHash, 0, len(lines))
-	for _, line := range lines {
-		parts := strings.SplitN(line, " ", 2)
-		if len(parts) == 2 {
-			t, err := time.Parse("2006-01-02 15:04:05 -0700", parts[1])
-			if err != nil {
-				return nil, fmt.Errorf("Failed parsing Git log timestamp: %s", err)
-			}
-			hashes = append(hashes, GitHash{Hash: parts[0], TimeStamp: t})
-		}
-	}
-	return hashes, nil
-}
-
-// RowIter is a utility for reading data from a BigQuery query response.
-//
-// RowIter will iterate over all the results, even if they span more than one
-// page of results. It automatically uses page tokens to iterate over all the
-// pages to retrieve all results.
-type RowIter struct {
-	response      *bigquery.GetQueryResultsResponse
-	jobId         string
-	service       *bigquery.Service
-	nextPageToken string
-	row           int
-}
-
-// poll until the job is complete.
-func (r *RowIter) poll() error {
-	var queryResponse *bigquery.GetQueryResultsResponse
-	for {
-		var err error
-		queryCall := r.service.Jobs.GetQueryResults("google.com:chrome-skia", r.jobId)
-		if r.nextPageToken != "" {
-			queryCall.PageToken(r.nextPageToken)
-		}
-		queryResponse, err = queryCall.Do()
-		if err != nil {
-			return err
-		}
-		if queryResponse.JobComplete {
-			break
-		}
-		time.Sleep(time.Second)
-	}
-	r.nextPageToken = queryResponse.PageToken
-	r.response = queryResponse
-	return nil
-}
-
-// NewRowIter starts a query and returns a RowIter for iterating through the
-// results.
-func NewRowIter(service *bigquery.Service, query string) (*RowIter, error) {
-	job := &bigquery.Job{
-		Configuration: &bigquery.JobConfiguration{
-			Query: &bigquery.JobConfigurationQuery{
-				Query: query,
-			},
-		},
-	}
-	jobResponse, err := service.Jobs.Insert("google.com:chrome-skia", job).Do()
-	if err != nil {
-		return nil, err
-	}
-
-	r := &RowIter{
-		jobId:   jobResponse.JobReference.JobId,
-		service: service,
-		row:     -1, // Start at -1 so the first call to Next() puts us at the 0th Row.
-	}
-	return r, r.poll()
-}
-
-// Next moves to the next row in the response and returns true as long as data
-// is availble, returning false when the end of the results are reached.
-//
-// Calling Next() the first time actually points the iterator at the first row,
-// which makes it possible to use Next if a for loop:
-//
-//    for iter.Next() { ... }
-//
-func (r *RowIter) Next() bool {
-	r.row++
-	if r.row >= len(r.response.Rows) {
-		if r.nextPageToken != "" {
-			r.poll()
-			r.row = 0
-			return len(r.response.Rows) > 0
-		} else {
-			return false
-		}
-	}
-	return true
-}
-
-// DecodeParams pulls all the values in the params record out as a map[string]string.
-//
-// The schema for each table has a nested record called 'params' that contains
-// various axes along which queries could be built, such as the gpu the test was
-// run against. Pull out the entire record as a generic map[string]string.
-func (r *RowIter) DecodeParams() map[string]string {
-	row := r.response.Rows[r.row]
-	schema := r.response.Schema
-	params := map[string]string{}
-	for i, cell := range row.F {
-		if cell.V != nil {
-			name := schema.Fields[i].Name
-			if strings.HasPrefix(name, "params_") {
-				params[strings.TrimPrefix(name, "params_")] = cell.V.(string)
-			}
-		}
-	}
-	return params
-}
-
-// Decode uses struct tags to decode a single row into a struct.
-//
-// For example, given a struct:
-//
-//   type A struct {
-//     Name string   `bq:"name"`
-//     Value float64 `bq:"measurement"`
-//   }
-//
-// And a BigQuery table that contained two columns named "name" and
-// "measurement". Then calling Decode as follows would parse the column values
-// for "name" and "measurement" and place them in the Name and Value fields
-// respectively.
-//
-//   a = &A{}
-//   iter.Decode(a)
-//
-// Implementation Details:
-//
-//   If a tag names a column that doesn't exist, the field is merely ignored,
-//   i.e. it is left unchanged from when it was passed into Decode.
-//
-//   Not all columns need to be tagged in the struct.
-//
-//   The decoder doesn't handle nested structs, only the top level fields are decoded.
-//
-//   The decoder only handles struct fields of type string, int, int32, int64,
-//   float, float32 and float64.
-func (r *RowIter) Decode(s interface{}) error {
-	row := r.response.Rows[r.row]
-	schema := r.response.Schema
-	// Collapse the data in the row into a map[string]string.
-	rowMap := map[string]string{}
-	for i, cell := range row.F {
-		if cell.V != nil {
-			rowMap[schema.Fields[i].Name] = cell.V.(string)
-		}
-	}
-
-	// Then iter over the fields of 's' and set them from the row data.
-	sv := reflect.ValueOf(s).Elem()
-	st := sv.Type()
-	for i := 0; i < sv.NumField(); i++ {
-		columnName := st.Field(i).Tag.Get("bq")
-		if columnValue, ok := rowMap[columnName]; ok {
-			switch sv.Field(i).Kind() {
-			case reflect.String:
-				sv.Field(i).SetString(columnValue)
-			case reflect.Float32, reflect.Float64:
-				f, err := strconv.ParseFloat(columnValue, 64)
-				if err != nil {
-					return err
-				}
-				sv.Field(i).SetFloat(f)
-			case reflect.Int32, reflect.Int64:
-				parsedInt, err := strconv.ParseInt(columnValue, 10, 64)
-				if err != nil {
-					return err
-				}
-				sv.Field(i).SetInt(parsedInt)
-			default:
-				return fmt.Errorf("Can't decode into field of type: %s %s", columnName, sv.Field(i).Kind())
-			}
-		}
-	}
-	return nil
-}
-
 // populateTraces reads the measurement data from BigQuery and populates the Traces.
 //
 // dates is a maps of table date suffixes that we will need to iterate over that map to the githashes
@@ -787,7 +543,7 @@ func (all *Dataset) populateTraces(datasetName config.DatasetName, dates map[str
 				return fmt.Errorf("Failed to construct a query: %s", err)
 			}
 			glog.Infof("Query: %q", query)
-			iter, err := NewRowIter(all.service, query.String())
+			iter, err := bqutil.NewRowIter(all.service, query.String())
 			if err != nil {
 				return fmt.Errorf("Failed to query data from BigQuery: %s", err)
 			}
@@ -1130,7 +886,7 @@ func NewData(doOauth bool, gitRepoDir string, tileDir string) (*Data, error) {
 	var err error
 	var client *http.Client
 	if doOauth {
-		client, err = runFlow(oauthConfig)
+		client, err = auth.RunFlow()
 		if err != nil {
 			return nil, fmt.Errorf("Failed to auth: %s", err)
 		}
