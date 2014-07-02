@@ -37,11 +37,13 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
 	"text/template"
 	"time"
 )
 
 import (
+	"code.google.com/p/goauth2/compute/serviceaccount"
 	"code.google.com/p/google-api-go-client/bigquery/v2"
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
@@ -425,11 +427,19 @@ func buildTile(service *bigquery.Service, datasetName config.DatasetName, dates 
 }
 
 func main() {
-	client, err := auth.RunFlow()
-	if err != nil {
-		glog.Fatalf("Failed to auth: %s", err)
+	var err error
+	var client *http.Client
+	if *doOauth {
+		client, err = auth.RunFlow()
+		if err != nil {
+			glog.Fatalf("Failed to auth: %s", err)
+		}
+	} else {
+		client, err = serviceaccount.NewClient(nil)
+		if err != nil {
+			glog.Fatalf("Failed to auth using a service account: %s", err)
+		}
 	}
-
 	service, err := bigquery.New(client)
 	if err != nil {
 		glog.Fatalf("Failed to create a new BigQuery service object: %s", err)
