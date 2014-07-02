@@ -38,3 +38,4 @@ cd ~/buildbot/perf/server
 go get -d
 npm install
 make
+make tile

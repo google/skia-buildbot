@@ -2,6 +2,10 @@ check process perf with pidfile /var/run/perf.pid
    start program = "/etc/init.d/perf start"
    stop program = "/etc/init.d/perf stop"
 
+check process tilebuilder with pidfile /var/run/tilebuilder.pid
+   start program = "/etc/init.d/tilebuilder start"
+   stop program = "/etc/init.d/tilebuilder stop"
+
 check process squid3 with pidfile /var/run/squid3.pid
    start program = "/etc/init.d/squid3 start"
    stop program = "/etc/init.d/squid3 stop"
