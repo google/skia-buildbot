@@ -50,6 +50,11 @@ module.exports = function(grunt) {
         dest: 'res/css/<%= pkg.name %>.css'
       },
     },
+    karma: {
+      unit: {
+        configFile: 'karma.conf.js'
+      }
+    }
   });
 
   // Load the plugins for the above commands.
@@ -60,6 +65,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-autoprefixer');
+  grunt.loadNpmTasks('grunt-karma');
 
   // By default run all the commands in the right sequence to build our custom
   // minified third_party JS.
@@ -70,4 +76,7 @@ module.exports = function(grunt) {
 
   // A target to build just the CSS.
   grunt.registerTask('css', ['autoprefixer']);
+
+  // A target to build just the CSS.
+  grunt.registerTask('test', ['karma']);
 };

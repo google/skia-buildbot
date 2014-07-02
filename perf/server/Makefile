@@ -7,6 +7,7 @@ tile:
 
 test:
 	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace
+	./node_modules/.bin/grunt test
 
 verbosetests:
 	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace -v
