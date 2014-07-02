@@ -1,6 +1,10 @@
 build: res/css/perf.css res/js/perf.js
 	GOPATH=$(GOPATH):`pwd` go build -o perf -v server
 
+tile:
+	GOPATH=$(GOPATH):`pwd` go build -v tilebuilder
+
+
 test:
 	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace
 
