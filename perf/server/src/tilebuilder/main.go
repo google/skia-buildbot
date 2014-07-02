@@ -125,8 +125,7 @@ func init() {
 
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
 	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
-	//addr, _ := net.ResolveTCPAddr("tcp", "skia-monitoring-b:2003")
-	addr, _ := net.ResolveTCPAddr("tcp", "localhost:2003")
+	addr, _ := net.ResolveTCPAddr("tcp", "skia-monitoring-b:2003")
 	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "tilepipeline", addr)
 
 	flag.Parse()
