@@ -425,6 +425,52 @@ func buildTile(service *bigquery.Service, datasetName config.DatasetName, dates 
 	return tile, nil
 }
 
+func updateAllTileSets(service *bigquery.Service) {
+	for _, datasetName := range config.ALL_DATASET_NAMES {
+		begin := time.Now()
+		store := filetilestore.NewFileTileStore(*tileDir, string(datasetName))
+
+		startTime, nextTile, err := startConditions(store)
+		if err != nil {
+			glog.Errorf("Failed to compute start conditions for dataset %s: %s", string(datasetName), err)
+			continue
+		}
+
+		dates, commits, err := gitCommits(service, datasetName, startTime)
+		if err != nil {
+			glog.Errorf("Failed to read commits for dataset %s: %s", string(datasetName), err)
+			continue
+		}
+		glog.Infof("Found %d new commits across %d days for dataset %s", len(commits), len(dates), string(datasetName))
+		for i := 0; i < len(commits); i += config.TILE_SIZE {
+			end := i + config.TILE_SIZE
+			if end > len(commits) {
+				end = len(commits)
+			}
+			tile, err := buildTile(service, datasetName, dates, commits[i:end])
+			if err != nil {
+				glog.Errorf("Failed to write tile: %d scale: 0: %s\n", nextTile, err)
+				break
+			}
+			tile.Scale = 0
+			tile.TileIndex = nextTile
+			if err := store.Put(0, nextTile, tile); err != nil {
+				glog.Errorf("Failed to write tile %s for dataset %s: %s", nextTile, string(datasetName), err)
+				break
+			}
+			glog.Infof("Write tile: %d scale: %d\n", tile.TileIndex, tile.Scale)
+			nextTile += 1
+		}
+		// TODO(jcgregorio) Now write out new tiles for scales 1,2,etc. Also make
+		// sure to merge intermediate commits, but summarize the commit message.
+		name := string(datasetName)
+		lastTileUpdate[name] = time.Now()
+		d := time.Since(begin)
+		updateLatency[name].Update(d)
+		glog.Infof("Finished loading Tile data for dataset %s from BigQuery in %f s", name, d.Seconds())
+	}
+}
+
 func main() {
 	var err error
 	var client *http.Client
@@ -444,49 +490,8 @@ func main() {
 		glog.Fatalf("Failed to create a new BigQuery service object: %s", err)
 	}
 
+	updateAllTileSets(service)
 	for _ = range time.Tick(SAMPLE_PERIOD) {
-		for _, datasetName := range config.ALL_DATASET_NAMES {
-			begin := time.Now()
-			store := filetilestore.NewFileTileStore(*tileDir, string(datasetName))
-
-			startTime, nextTile, err := startConditions(store)
-			if err != nil {
-				glog.Errorf("Failed to compute start conditions for dataset %s: %s", string(datasetName), err)
-				continue
-			}
-
-			dates, commits, err := gitCommits(service, datasetName, startTime)
-			if err != nil {
-				glog.Errorf("Failed to read commits for dataset %s: %s", string(datasetName), err)
-				continue
-			}
-			glog.Infof("Found %d new commits across %d days for dataset %s", len(commits), len(dates), string(datasetName))
-			for i := 0; i < len(commits); i += config.TILE_SIZE {
-				end := i + config.TILE_SIZE
-				if end > len(commits) {
-					end = len(commits)
-				}
-				tile, err := buildTile(service, datasetName, dates, commits[i:end])
-				if err != nil {
-					glog.Errorf("Failed to write tile: %d scale: 0: %s\n", nextTile, err)
-					break
-				}
-				tile.Scale = 0
-				tile.TileIndex = nextTile
-				if err := store.Put(0, nextTile, tile); err != nil {
-					glog.Errorf("Failed to write tile %s for dataset %s: %s", nextTile, string(datasetName), err)
-					break
-				}
-				glog.Infof("Write tile: %d scale: %d\n", tile.TileIndex, tile.Scale)
-				nextTile += 1
-			}
-			// TODO(jcgregorio) Now write out new tiles for scales 1,2,etc. Also make
-			// sure to merge intermediate commits, but summarize the commit message.
-			name := string(datasetName)
-			lastTileUpdate[name] = time.Now()
-			d := time.Since(begin)
-			updateLatency[name].Update(d)
-			glog.Infof("Finished loading Tile data for dataset %s from BigQuery in %f s", name, d.Seconds())
-		}
+		updateAllTileSets(service)
 	}
 }
