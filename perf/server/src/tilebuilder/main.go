@@ -1,5 +1,5 @@
-// tilebuilder is an application that periodically loads new data from for
-// quick and easy consumption by the skiaperf UI.
+// tilebuilder is an application that periodically loads new data from BigQuery
+// for quick and easy consumption by the skiaperf UI.
 //
 //  The algorithm
 //  -------------
@@ -174,6 +174,7 @@ func tablePrefixFromDatasetName(name config.DatasetName) string {
 //
 // TODO(bensong): read in a range of commits instead of the whole history.
 func readCommitsFromDB() ([]*types.Commit, error) {
+	glog.Infoln("readCommitsFromDB starting")
 	sql := fmt.Sprintf(`SELECT
 	     ts, githash, gitnumber, author, message
 	     FROM githash
@@ -183,6 +184,8 @@ func readCommitsFromDB() ([]*types.Commit, error) {
 	rows, err := db.DB.Query(sql)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query githash table: %s", err)
+	} else {
+		glog.Infoln("executed query")
 	}
 
 	for rows.Next() {
@@ -195,6 +198,7 @@ func readCommitsFromDB() ([]*types.Commit, error) {
 			glog.Errorf("Commits row scan error: ", err)
 			continue
 		}
+		glog.Infoln("readCommitsFromDB in row")
 		commit := types.NewCommit()
 		commit.CommitTime = ts.Unix()
 		commit.Hash = githash
@@ -426,17 +430,23 @@ func buildTile(service *bigquery.Service, datasetName config.DatasetName, dates 
 }
 
 func updateAllTileSets(service *bigquery.Service) {
+	glog.Infof("Starting to update all tile sets.")
 	for _, datasetName := range config.ALL_DATASET_NAMES {
+		glog.Infof("Starting to update tileset %s.", string(datasetName))
 		begin := time.Now()
+
 		store := filetilestore.NewFileTileStore(*tileDir, string(datasetName))
 
 		startTime, nextTile, err := startConditions(store)
+		glog.Infoln("Found startTime", startTime, "nextTile", nextTile)
 		if err != nil {
 			glog.Errorf("Failed to compute start conditions for dataset %s: %s", string(datasetName), err)
 			continue
 		}
 
+		glog.Infoln("Getting commits")
 		dates, commits, err := gitCommits(service, datasetName, startTime)
+		glog.Infoln("Found commits", commits)
 		if err != nil {
 			glog.Errorf("Failed to read commits for dataset %s: %s", string(datasetName), err)
 			continue

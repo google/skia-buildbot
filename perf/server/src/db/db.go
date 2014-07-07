@@ -85,6 +85,7 @@ func init() {
 			if err := DB.Ping(); err != nil {
 				glog.Warningln("Database failed to respond:", err)
 			}
+			glog.Infof("db: Successful ping")
 		}
 	}()
 }
