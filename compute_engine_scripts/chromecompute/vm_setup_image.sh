@@ -74,7 +74,7 @@ echo
 
 echo "Checkout depot_tools"
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
-  "git clone https://chromium.googlesource.com/chromium/tools/depot_tools" \
+  "git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git" \
   || FAILED="$FAILED CheckoutDepotTools"
 echo
 

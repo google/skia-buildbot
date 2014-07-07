@@ -67,7 +67,7 @@ Starting setup of ${VM_COMPLETE_NAME}.....
   echo
   echo "===== Install missing packages. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
-    "sudo apt-get install python-django libpoppler-cpp-dev libpoppler-cpp0:i386 && " \
+    "sudo apt-get -y install python-django libpoppler-cpp-dev libpoppler-cpp0:i386 && " \
     "sudo easy_install zope.interface" \
     || FAILED="$FAILED InstallPackages"
   echo

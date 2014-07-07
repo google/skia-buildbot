@@ -11,7 +11,7 @@ function checkout_depot_tools {
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
     "mkdir -p $SKIA_REPO_DIR; " \
     "cd $SKIA_REPO_DIR && " \
-    "git clone https://chromium.googlesource.com/chromium/tools/depot_tools" \
+    "git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git" \
     || FAILED="$FAILED DepotTools"
   echo
 }
