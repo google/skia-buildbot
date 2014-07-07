@@ -45,9 +45,9 @@ class BenchPictures(BuildStep):
       arguments.extend(['--buildNumber', str(self._build_number)])
       arguments.extend(['--timestamp',
                         str(gclient_utils.GetGitRepoPOSIXTimestamp())])
-      arguments.extend(['--gitHash', self._revision])
+      arguments.extend(['--gitHash', self._got_revision])
       arguments.extend(['--gitNumber',
-                        str(gclient_utils.GetGitNumber(self._revision))])
+                        str(gclient_utils.GetGitNumber(self._got_revision))])
       # For bench_pictures we use the --repeat and --logPerIter flags so that we
       # can compensate for noisy performance.
       arguments.extend(['--repeat', str(BENCH_REPEAT_COUNT), '--logPerIter'])
