@@ -1,4 +1,4 @@
-build: res/css/perf.css res/js/perf.js
+build: res/css/perf.css res/js/perf.js ingest
 	GOPATH=$(GOPATH):`pwd` go build -o perf -v server
 
 tile:
@@ -11,6 +11,9 @@ test:
 
 verbosetests:
 	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace -v
+
+ingest: src/ingest/ingest.go src/ingest/ingest_main.go
+	go build src/ingest/ingest.go src/ingest/ingest_main.go
 
 # Rebuild the third_party Javascript we use, i.e. Flot.
 res/js/perf.js: node_modules

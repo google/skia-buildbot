@@ -46,6 +46,9 @@ perf/server/perf
 perf/server/perf.db
 perf/server/data
 perf/server/server
+perf/server/ingest
+perf/server/ingest.lock
+perf/server/ingestbqtoken.data
 perf/server/third_party
 perf/server/node_modules
 perf/server/res/js/perf.js
