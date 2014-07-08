@@ -7,13 +7,16 @@ import socket
 import struct
 
 from buildbot.status.status_push import StatusPush
+from buildbot.status import results
 
 
 _DEFAULT_PORT = 2004    # Default port of pickled messages to Graphite
 _SERVER_ADDRESS = 'skia-monitoring-b:%s' % _DEFAULT_PORT
 
+
 def _sanitizeGraphiteNames(string):
   return string.replace('.', '_').replace(' ', '_')
+
 
 class GraphiteStatusPush(StatusPush):
   """Uploads data to Graphite. Documentation for Graphite at
@@ -39,8 +42,6 @@ class GraphiteStatusPush(StatusPush):
     # Record only stepFinished events
     for event in events:
       if event['event'] == 'stepFinished':
-        start = event['payload']['step']['times'][0]
-        end = event['payload']['step']['times'][1]
         builder_name = findInList('buildername', event['payload']['properties'])
         master_name = findInList('master', event['payload']['properties'])
         key = '.'.join([
@@ -49,10 +50,28 @@ class GraphiteStatusPush(StatusPush):
             _sanitizeGraphiteNames(builder_name),
             _sanitizeGraphiteNames(event['payload']['step']['name'])
         ])
+
+        # Step duration.
+        start = event['payload']['step']['times'][0]
+        end = event['payload']['step']['times'][1]
+        # The output is also a triplet, (name, (timestamp, value))
         valid_events.append(
             ('.'.join([key, 'duration']),
                 (end, end - start)))
-        # The output is also a triplet, (name, (timestamp, value))
+
+        # Step result.
+        result = event['payload']['step'].get('results', [0])[0]
+        failure = 0
+        success = 0
+        if result != results.SKIPPED:
+          if result in (results.SUCCESS, results.WARNINGS):
+            success = 1
+          else:
+            failure = 1
+          valid_events.append(('.'.join((key, 'result')), (end, result)))
+          valid_events.append(('.'.join((key, 'success')), (end, success)))
+          valid_events.append(('.'.join((key, 'failure')), (end, failure)))
+
     if len(valid_events) <= 0:
       print 'GraphiteStatusPush: No valid events to send'
       return self.queueNextServerPush()
