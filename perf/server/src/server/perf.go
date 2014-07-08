@@ -105,6 +105,7 @@ type ShortcutResponse struct {
 
 // showcutHandler handles the POST and GET requests of the shortcut page.
 func shortcutHandler(w http.ResponseWriter, r *http.Request) {
+    // TODO(kelvinly/jcgregorio?): Add unit testing later
     match := shortcutHandlerPath.FindStringSubmatch(r.URL.Path)
     if match == nil {
             http.NotFound(w, r)
