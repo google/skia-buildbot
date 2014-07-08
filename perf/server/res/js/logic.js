@@ -4,24 +4,54 @@
  * found in the LICENSE file */
 /** Provides the logic behind the performance visualization webpage. */
 
-var KEY_DELIMITER = ':';
-var NUM_SHOW_RESULTS = 100000;
-var MIN_XRANGE = 3600;
-var plotRef = null;
-var numBitmapsLeft = 0;
+function assert(cond, msg) {
+  if(!cond) {
+    throw msg || "Assertion failed";
+  }
+}
+
 
 function last(ary) {
   return ary[ary.length - 1];
 }
 
 
+function getKeys(dict) {
+  var keys = [];
+  for(var key in dict) {
+    if(dict.hasOwnProperty(key)) {
+      keys.push(key);
+    }
+  }
+  return keys;
+}
+
+
+function getArg(key) {
+  var keypairs = window.location.hash.slice(1).split('&').map(function(p) {
+      return p.split('=', 2);});
+  for(var i = 0; i < keypairs.length; i++) {
+    if(keypairs[i][0] == key && keypairs[i][1].length > 0) {
+      return decodeURIComponent(keypairs[i][1]);
+    }
+  }
+  return null;
+}
+
+
+var id = function(e) { return e; };
+
+
 function $$(query, par) {
-  var id = function(e) { return e; };
   if(!par) {
     return Array.prototype.map.call(document.querySelectorAll(query), id);
   } else {
     return Array.prototype.map.call(par.querySelectorAll(query), id);
   }
+}
+
+function $$$(query, par) {
+  return par ? par.querySelector(query) : document.querySelector(query);
 }
 
 
@@ -122,93 +152,64 @@ function PagedDictionary(attrs) {
   };
 }
 
-
-var commitData = {};
-var commitToTimestamp = {};
-var commits = [];
-var currentTimestamp = null;
-
-function timestampToCommit(timestamp) {
-  for (var i = 0; i < commits.length; i++) {
-    if (commitToTimestamp[commits[i]] == timestamp) {
-      return commits[i];
-    }
+/* Unordered data structure with O(1) add, remove, and index.*/
+// Benchmarked remarkably well against vector.splice()/push()
+function Vector() {
+  var data = [];
+  var firstEmpty = 0;
+  if(arguments) {
+    data = Array.prototype.map.call(arguments, id);
+    firstEmpty = data.length;
   }
-  return '';
-}
-
-
-/** Get all the SKP changes in the range.*/
-function getMarkings() {
-  if(plotData.getVisibleKeys().length <= 0) { return []; }
-  var skpPhrase = 'Update SKP version to ';
-  var updates = commits.filter(function(commit) {
-    return commitData[commit] && commitData[commit].slice(0, skpPhrase) == skpPhrase;
-  }).map(function(commit) {
-    return [parseInt(commitData[commit].substr(skpPhrase.length)),
-        commitToTimestamp[commit]];
-  });
-  var markings = [];
-  for(var i = 1; i < updates.length; i++) {
-    if(updates[i][0] % 2 == 0) {
-      markings.push([updates[i-1][1], updates[i][1]]);
+  this.get = function(idx) {
+    assert(idx < firstEmpty);
+    return data[idx];
+  },
+  this.push = function(elem) {
+    data[firstEmpty] = elem;
+    firstEmpty++;
+  };
+  this.pop = function(idx) {
+    assert(idx < firstEmpty && firstEmpty > 0);
+    var result = data[idx];
+    data[idx] = data[firstEmpty - 1];
+    data[firstEmpty - 1] = null;
+    firstEmpty--;
+    return result;
+  };
+  this.all = function() {
+    return data.slice(0, firstEmpty);
+  };
+  this.remove = function(elem) {
+    var i = 0;
+    while(i < firstEmpty && data[i] != elem) { i++; }
+    this.pop(i);
+  };
+  this.map = function() {
+    return Array.prototype.map.apply(this.all(), arguments);
+  };
+  this.has = function(val) {
+    for(var i = 0; i < firstEmpty; i++) {
+      if(data[i] == val) { return true; }
     }
-  }
-  return markings.map(function(pair) {
-    return { xaxis: {from: pair[0], to: pair[1]}, color: '#cccccc'};
-  });
+    return false;
+  };
 }
 
 
-function getLegendKeys() {
-  var keys = [];
-  $$('#legend input').forEach(function(elem) {
-    keys.push(elem.id);
-  });
-  console.log('getLegendNames(): ' + keys);
-  return keys;
-}
-
-
-function addToLegend(key) {
-  if($$('#legend').filter(function(e) {
-    return e.id == key;
-  }).length > 0) { return; }
-
-  $$('#legend table tbody')[0].innerHTML += (
-      '<tr><td><input type=checkbox id=' + key + ' checked></input>' +
-        '<div class=legend-box-outer>' +
-            '<div class=legend-box-inner>' + 
-            '</div>'+
-        '</div>'+
-          key + '</td>' +
-      '<td><a href=#target id=' + key +
-      '_remove>Remove</a></td></tr>');
-}
-
-
-function removeFromLegend(key) {
-  console.log('Removing from legend: ' + key);
-  plotData.makeInvisible(key);
-  $$('#legend input').forEach(function(e) {
-    if(e.id == key) {
-      e.parentNode.parentNode.remove();
-    }
-  });
-  addHistory();
-}
-
-
-function loadJSON(uri, success) {
+function loadJSON(uri, success, fail) {
   var req = new XMLHttpRequest();
   document.body.classList.add('waiting');
   req.addEventListener('load', function() {
-    if(req.response) {
+    console.log(req);
+    if(req.response && req.status == 200) {
       if(req.responseType == 'json') {
         success(req.response);
       } else {
         success(JSON.parse(req.response));
       }
+    } else {
+      fail();
     }
   });
   req.addEventListener('loadend', function() {
@@ -216,352 +217,1065 @@ function loadJSON(uri, success) {
   });
   req.addEventListener('error', function() {
     notifyUser('Unable to retrieve' + uri);
+    fail();
   });
   req.open('GET', uri, true);
   req.send();
 }
 
 
-var plotData = (function() {
-  var dict = new PagedDictionary();
-  // Dictionary of datasets. Each dataset should be an object like 
-  // {
-  //    data: new PagedDictionary(), // Dictionary of cached datasets
-  //    visibleKeys: []             // Visible traces
-  // }
-  // TODO(kelvinly): Replace dictionary with WeakMap
+/** Sends the user a notification on the bottom bar. */
+function notifyUser(text, replace) {
+  if (!$('#notification').is(':visible') && !replace) {
+    $('#notification-text').html(text);
+    $('#notification').show().delay(5000).fadeOut(1000).hide(10);
+    // If you find a way to convert this to non-jQuery, I'll replace it.
+  } else {
+    window.setTimeout(notifyUser, 400, text);
+  }
+}
 
-  function cur() {
-    return dict.cur();
+
+/** Splits a particular component out of a list of objects.*/
+function getComponent(ary, name) {
+  return ary.map(function(e) { return e[name]; });
+}
+
+
+/** Removes all the children owned by the element.*/
+function killChildren(e) {
+  while(e.hasChildNodes()) {
+    e.removeChild(e.children[0]);
+  }
+}
+
+
+// FUTURE(kelvinly): Try using a dirty flag instead of two representations
+// to see if it's more efficient.
+/** Encapsulates the legend state.*/
+var legend = (function() {
+  var internalLegend = [];
+  var externalLegend = [];
+  // Each legend marker has two values, a key and a color
+  // The external legend also has a pointer to its DOM element called elem.
+  var legendBody = null;
+
+  function addToDOM(e) {
+    console.log('addToDOM called');
+    // console.log(e);
+    assert(e.key && e.color);
+    assert(legendBody);
+    var container = document.createElement('tr');
+    var checkContainer = document.createElement('td');
+    var checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = true;
+    checkbox.id = e.key;
+    var outerColor = document.createElement('div');
+    outerColor.classList.add('legend-box-outer');
+    var innerColor = document.createElement('div');
+    innerColor.classList.add('legend-box-inner');
+    innerColor.style.border = '5px solid ' + e.color;
+    var text = document.createTextNode(e.key);
+    var linkContainer = document.createElement('td');
+    var link = document.createElement('a');
+    link.href = '#';
+    link.innerText = 'Remove';
+    link.id = e.key + '_remove';
+    
+    container.appendChild(checkContainer);
+    container.appendChild(linkContainer);
+    
+    checkContainer.appendChild(checkbox);
+    checkContainer.appendChild(outerColor);
+    checkContainer.appendChild(text);
+
+    linkContainer.appendChild(link);
+    outerColor.appendChild(innerColor);
+
+    legendBody.appendChild(container);
+    return {key: e.key, color: e.color, elem: container};
   }
 
+  function rawAdd(key, color) {
+    assert(getComponent(internalLegend, 'key').indexOf(key) == -1);
 
-  function getKeys() {
-    return cur().index();
+    var newPair = {key:key, color:color};
+    internalLegend.push(newPair);
+    externalLegend.push(addToDOM(newPair));
   }
-
-
-  function isCached(key) {
-    return cur().has(key);
-  }
-
-
-  function isVisible(key) {
-    return cur().visibleKeys.indexOf(key) != -1;
-  }
-
-
-  function addLineData(key, newData) {
-    if (!isCached(key)) {
-      cur().add(key, newData);
-    } else {
-      // NOTE: This may be a performance bottleneck. Need more data.
-      // This may also cause issues
-      // if the server fails to respect data ranges
-      cur().get(key).push.apply(newData);
-      cur().get(key).sort();
-    }
-  }
-
-
-  function getLine(key, callback) {
-    if (isCached(key)) {
-      // TODO: Get more data if the current range is partially empty
-      callback(cur().get(key));
-    }
-    // TODO: Query the server for more trace data
-    console.log('WARNING: Querying for individual traces not' +
-        'currently implemented');
-  }
-
   return {
-    /** Returns the list of visible lines. This is a reference, so modifications
-     * to it change the visibility of the plot lines. */
-    getVisibleKeys: function() { return cur().visibleKeys; },
-
-
-    /** Returns the data in a FLOT-readable manner. */
-    getProcessedPlotData: function() {
-      var outOfBoundPoints = [];
-      var lines = cur().visibleKeys.map(function(key) {
-        return {
-          label: key,
-          data: cur().get(key),
-          color: cur().indexOf(key)};
+    /** Updates the colors for the elements.*/
+    updateColors: function(plotRef) {
+      var dataRef = plotRef.getData();
+      internalLegend.forEach(function(legendMarker) {
+        legendMarker.color = legendMarker.color || 'white';
+        dataRef.forEach(function(series) {
+          if(legendMarker.key == series.label) {
+            legendMarker.color = series.color;
+          }
+        });
       });
-      var maxLines = Math.max.apply(null, lines.map(function(series) {
-        return Math.max.apply(null, series.data.map(function(e) {
-          return e[0];
-        }));
-      }));
-      return lines;
     },
-
-
-    /** Adds a line to the graph. */
-    makeVisible: function(key, nodraw) {
-      if (isCached(key)) {
-        if (!isVisible(key)) {
-          cur().visibleKeys.push(key);
-          if (!nodraw) {
-            plotStuff(this);
+    /** Refreshes the DOM to match the internal state.*/
+    refresh: function() {
+      var synced, color_synced = true;
+      synced = internalLegend.length == externalLegend.length;
+      // NOTE: Restructure control flow?
+      internalLegend.forEach(function(elem, idx) {
+        if(!synced) {
+          return;
+        } else {
+          if(elem.key != externalLegend[idx].key) {
+            synced = false;
+            color_synced = false;
+          }
+          if(elem.color != externalLegend[idx].color) {
+            color_synced = false;
           }
         }
+      });
+      if(synced && color_synced) {
+        console.log('legend.refresh: legends synced');
+        return;
+      } else if(synced && !color_synced) {
+        console.log('legend.refresh: fixing colors');
+        // Fix the colors
+        $$('tr', legendBody).forEach(function(e, idx) {
+          assert($$$('input', e).id == internalLegend[idx].key);
+
+          $$$('.legend-box-inner', e).style.
+            border = '5px solid ' + internalLegend[idx].color;
+        });
       } else {
-        console.log('makeVisible: uncached line requested.');
-        this.getAndAddLine(key);
+        killChildren($$$('#legend table tbody'));
+        externalLegend = [];
+        // Regenerate a new legend
+        var _this = this;
+        internalLegend.forEach(function(e) {
+          externalLegend.push(addToDOM(e, _this));
+        });
       }
     },
-
-
-    /** Removes a line from the graph. */
-    makeInvisible: function(key, nodraw) {
-      if (isVisible(key)) {
-        cur().visibleKeys.splice(cur().visibleKeys.indexOf(key), 1);
+    remove: function(key) {
+      var children = [];
+      externalLegend.forEach(function(e, idx) {
+        if(e.key == key) {
+          children.push(e.elem);
+        }
+      });
+      children.forEach(function(c) {
+        assert(c.parentNode);
+        c.parentNode.removeChild(c);
+      });
+      internalLegend = internalLegend.filter(function(e) {
+        return e.key != key;
+      });
+      externalLegend = externalLegend.filter(function(e) {
+        return e.key != key;
+      });
+    },
+    /* Sets up the private variables, and a few of the relevant UI controls.*/
+    init: function(showHandler, hideHandler, drawHandler) {
+      console.log('Initializing legend');
+      assert(showHandler && hideHandler);
+      legendBody = $$$('#legend table tbody');
+      var _this = this;
+      $$$('#nuke-plot').addEventListener('click', function(e) {
+        internalLegend.forEach(function(keypair) {
+          plotData.hide(keypair.key);
+        });
+        killChildren($$$('#legend table tbody'));
+        internalLegend = [];
+        externalLegend = [];
+        drawHandler();
+        e.preventDefault();
+      });
+      legendBody.addEventListener('click', function(e) {
+        if('INPUT' == e.target.nodeName) {
+          if(e.target.checked) {
+            console.log(e.target.id + ' checked');
+            showHandler(e.target.id);
+          } else {
+            console.log(e.target.id + ' unchecked');
+            hideHandler(e.target.id);
+          }
+          drawHandler();
+        } else if('A' == e.target.nodeName) {
+          console.log(e.target.id + ' removed');
+          if(document.getElementById(e.target.id.slice(0,-'_remove'.length)).checked) {
+            hideHandler(e.target.id.slice(0,-'_remove'.length));
+          }
+          _this.remove(e.target.id.slice(0,-'_remove'.length));
+          drawHandler();
+        }
+      });
+      /* Adds a key to the legend, and makes it visible on the chart.*/
+      this.add = function(key, color, nodraw) {
+        if(getComponent(internalLegend, 'key').indexOf(key) != -1) {
+          return;
+        }
+        rawAdd(key, color);
+        showHandler(key);
         if(!nodraw) {
-          plotStuff(this);
+          drawHandler();
         }
-      }
+      };
+      /* Adds an array of keys to the legend, and makes them visible 
+       * on the chart.*/
+      this.addMany = function(ary) {
+        ary.forEach(function(a) { _this.add(a.key, a.color, true); });
+        drawHandler();
+      };
     },
-
-
-    /** Adds a line to the graph, calling the callback after it's successfully
-     * been loaded. */
-    getAndAddLine: function(key, callback, nodraw) {
-      console.log(key);
-      var _this = this;
-      getLine(key, function(newData) {
-        addLineData(key, newData);
-        addToLegend(key);
-        _this.makeVisible(key, nodraw);
-        if (!nodraw) {
-          plotStuff(this);
-        }
-        if (callback) {
-          callback();
-        }
-      });
-    },
-
-
-    
-    /** Gets the data of the given dataset type, and loads the data into its
-     * cache, as well as passing appropriate data to the schema object
-     * for its use.
-     */
-    loadData: function(schema_type, callback) {
-      console.log('Loading data for ' + schema_type);
-      var _this = this;
-      // Check to see if it's already been loaded or not
-      if(dict.has(schema_type)) {
-        dict.makeCurrent(schema_type);
-        schema.switchSchema(schema_type);
-
-        $$('#legend table tbody').forEach(function(e) {
-          while(e.hasChildNodes()) {
-            e.removeChild(e.childNodes[0]);
-          }
-        });
-        cur().visibleKeys.forEach(function(key) {
-          addToLegend(key);
-        });
-        plotStuff(this);
-
-        if(callback) {
-          callback();
-        }
-      } else {
-        // Still clear out the legend if it hasn't been loaded
-        if(cur()) {
-          // Clear the list
-          cur().visibleKeys.splice(cur().visibleKeys.length);
-        }
-        $$('#legend table tbody').forEach(function(e) {
-          while(e.hasChildNodes()) {
-            e.removeChild(e.childNodes[0]);
-          }
-        });
-        plotStuff(this);
-      }
-      loadJSON('json/' + schema_type, function(json) {
-        dict.push(schema_type, new PagedDictionary({
-          visibleKeys: []
-        }));
-        console.log(json);
-        var orderedTimestamps = [];
-        if (json['param_set']) {
-          schema.load(schema_type, json['param_set']);
-        }
-        json['commits'].forEach(function(commit) {
-          var hash = commit['hash'];
-          var timeStamp = commit['commit_time'];
-          if (hash && timeStamp && (commits.indexOf(hash) == -1)) {
-            commits.push(hash);
-            commitToTimestamp[hash] = timeStamp;
-            if(commit['commit_msg']) {
-              commitData[hash] = commit['commit_msg'];
-            }
-          }
-          orderedTimestamps.push(timeStamp);
-        });
-        var orderedKeys = schema.getKeys();
-        json['traces'].forEach(function(trace) {
-          var line = [];
-          var values = trace['values'];
-          if (!trace['key']) return;
-          for (var i = 0; i < values.length; i++) {
-            if (values[i] > 1e+40) {
-              continue;
-            }
-            line.push([orderedTimestamps[i], values[i]]);
-          }
-          var keys = [];
-          for (var key in trace['params']) {
-            if (trace['params'].hasOwnProperty(key)) {
-              if (orderedKeys.indexOf(key) != -1) {
-                keys[orderedKeys.indexOf(key)] =
-                    trace['params'][key];
-              }
-            }
-          }
-          // Set all the unused values to empty strings.
-          for (var i = 0; i < orderedKeys.length; i++) {
-            if (!keys[i]) {
-              keys[i] = '';
-            }
-          }
-          schema.check(keys);
-
-          var newKey = keys.join(KEY_DELIMITER);
-          // console.log('adding line ' + newKey);
-          addLineData(newKey, line);
-        });
-        schema.updateSchema();
-
-        plotStuff(_this);
-        if(callback) {
-          callback();
-        }
-      });
-    },
-
-    
-    /** Returns the list of lines currently selected in the option boxes.*/
-    getAvailableLines: function() {
-      var selected = $$('#line-form select').map(function(e, idx) {
-        return {
-          id: idx,
-          validElems: $$(':checked', e).map(function(elem) {
-            return elem.value;
-          })
-        };
-      }).filter(function(elem) {
-        return elem.validElems.length > 0;
-      });
-      var validKeys = getKeys().map(function(key) {
-        return key.split(KEY_DELIMITER);
-      });
-      selected.forEach(function(keyset) {
-        validKeys = validKeys.filter(function(key) {
-          return keyset.validElems.indexOf(key[keyset.id]) != -1;
-        });
-      });
-      return validKeys;
-    },
-
-
-    /** Returns the private variables of the function. Useful for console
-     * debugging. */
     debug: function() {
-      return dict;
+      return [internalLegend, externalLegend, legendBody];
     }
   };
 })();
 
 
-/** Updates the plot with new data. */
-function plotStuff(source) {
-  if (plotRef) {
-    var lines = source.getProcessedPlotData();
-    plotRef.setData(lines);
-    var options = plotRef.getOptions();
-    options.xaxes.forEach(function(axis) {
-      axis.max = null;
-      axis.min = null;
+/** Attempts to merge requests for the same resource, waits 50 ms before sending
+ * a request */
+var jsonRequest = (function() {
+  var waitingHandlers = [];
+  var freshFiles = [];
+
+  function makeRequest(uri, callback) {
+    var ref = {uri: uri, callbacks: [callback]};
+    waitingHandlers.push(ref);
+
+    var removeSelf = function() {
+      var idx = waitingHandlers.indexOf(ref);
+      assert(idx != -1);
+      waitingHandlers.splice(idx, 1);
+    };
+
+    loadJSON(ref.uri, function(data) {
+      console.log('jsonRequest: ' + ref.uri + ' received');
+      var freshIdx = getComponent(freshFiles, 'uri').indexOf(uri);
+      if(freshIdx == -1) {
+        freshFiles.push({uri: uri, time: Date.now(), data: data});
+      } else {
+        freshFiles[freshIdx].data = data;
+        freshFiles[freshIdx].time = Date.now();
+      }
+      ref.callbacks.forEach(function(callback) {
+        assert(callback);
+        callback(data, true);
+      });
+      removeSelf();
+    }, function() {
+      ref.callbacks.forEach(function(callback) {
+        assert(callback);
+        callback(data, false);
+      });
+      removeSelf();
     });
-    options.yaxes.forEach(function(axis) {
-      axis.max = null;
-      axis.min = null;
-    });
-    plotRef.setupGrid();
-    plotRef.draw();
-    if(source.getVisibleKeys().length > 0) {
-      updateSlidersFromChart(lines);
+  }
+  return {
+    askFor: function(uri, callback) {
+      var idx = getComponent(waitingHandlers, 'uri').indexOf(uri);
+      var freshIdx = getComponent(freshFiles, 'uri').indexOf(uri);
+      if(idx != -1) {
+        // Add to to that handler's callbacks.
+        waitingHandlers[idx].callbacks.push(callback);
+      } else if(freshIdx != -1) {
+        if(Date.now() - freshFiles[freshIdx].time < 5*60*1000) {
+          // Good enough
+          callback(freshFiles[freshIdx].data, true);
+          return;
+        } else {
+          // Not fresh enough any more
+          freshFiles.splice(freshIdx, 1);
+          makeRequest(uri, callback);
+        }
+      } else {
+        makeRequest(uri, callback);
+      }
+    },
+    forceReload: function(uri, callback) {
+      var freshIdx = getComponent(freshFiles, 'uri').indexOf(uri);
+      while(freshIdx != -1) {
+        freshFiles.splice(freshIdx, 1);
+        freshIdx = getComponent(freshFiles, 'uri').indexOf(uri);
+      }
+      makeRequest(uri, callback);
+    },
+    askForTile: function(scale, tileNumber, dataset, 
+            options, callback, forcerefresh) {
+      if(!forcerefresh) {
+        // FUTURE: Use other passed in data
+        this.askFor('json/' + dataset /* + makeArgs(options) */, callback);
+      } else {
+        // FUTURE: Use other passed in data
+        this.forceRefresh('json/' + dataset /* + makeArgs(options) */, callback);
+      }
+    },
+    debug: function() {
+      return [freshFiles, waitingHandlers];
     }
-    // Update the legend's colors
-    $$('#legend input').forEach(function(e) {
-      var color = 'white';
-      plotRef.getData().forEach(function(series) {
-        if(series.label == e.id) {
-          color = series.color;
+  };
+})();
+
+
+// Stores a set of traces for a single key, over all tiles and ranges. The
+// constuctor takes in a set of data to start it off.
+function Trace(newData, newTileID, newScale) {
+  var data = [];
+  data[parseInt(newScale)] = [];
+  data[parseInt(newScale)][parseInt(newTileID)] = newData.slice(); 
+  // Will replace with shallow copy if not performant
+  // FUTURE: Assumes input data is sorted
+
+  function getscales() {
+    var result = [];
+    for(var key in data) {
+      if(data.hasOwnProperty(key)) {
+        result.push(parseInt(key));
+      }
+    }
+    return result;
+  }
+
+  function getTiles(scale) {
+    if(!data[scale]) {
+      return [];
+    }
+    var result = [];
+    for(var key in data[scale]) {
+      if(data[scale].hasOwnProperty(key)) {
+        result.push(parseInt(key));
+      }
+    }
+    return result;
+  }
+
+  /* Adds a set of data to the trace.*/
+  this.add = function(newData, tileId, scale) {
+    assert(newData.length > 0);
+    if(!data[scale]) {
+      data[scale] = [];
+    }
+    if(!data[scale][tileId] || (newData.length >= data[scale][tileId].length)) {
+      data[scale][tileId] = newData.slice();  // FUTURE: If too slow, replace with
+                                              // shallow copy
+    }
+  };
+
+  this.get = function(tileId, scale) {
+    return (data[scale] && data[scale][tileId]) || [];
+  };
+
+  this.getRange = function(start, end, scale) {
+    // FUTURE: Add support for downsampling on scale mismatch
+    assert(start <= end);
+    var results = [];
+    var tiles = data[scale];
+    getTiles(scale).forEach(function(tileIdx) {
+      if(tiles[tileIdx][0][0] <= end && last(tiles[tileIdx])[0] >= start) {
+        var result = [];
+        var i = 0;
+        while(tiles[tileIdx][i][0] < start) {
+          assert(i < tiles[tileIdx].length);
+          i++;
+        }
+        if(i > 0) {
+          // Add one just before the range if possible
+          i--;
+        }
+        while(i < tiles[tileIdx].length && tiles[tileIdx][i][0] <= end) {
+          result.push(tiles[tileIdx][i]);
+          i++;
+        }
+        if(i < tiles[tileIdx].length) {
+          // Also add one just after
+          result.push(tiles[tileIdx][i]);
+        }
+        results.push(result);
+      }
+    });
+    return results;
+  }
+
+  /* Returns true if the trace has data in that tile and scale.*/
+  this.contains = function(tileid, scale) {
+    return !!(data[scale] && data[scale][tileid]);
+  };
+
+  this.debug = function() {
+    return data;
+  };
+}
+
+
+var traceDict = (function() {
+  var cache = new PagedDictionary();
+  // A dictionary of keys to Trace objects
+
+  function loadData(data, tileId, dataset, scale) {
+    console.log('traceDict: loadData called. tileId = ' + tileId + 
+        ', scale = ' + scale);
+    // Look for the key in the data, and store that. If no key specified, store
+    // as much data as possible.
+    assert(data['traces'] && data['commits']);
+
+    var commitAry = getComponent(data['commits'], 'commit_time');
+    data['traces'].forEach(function(trace) {
+      var newKey = schema.makeLegendKey(trace);
+      var processedData = [];
+      for(var i = 0; i < trace['values'].length; i++) {
+        if(trace['values'][i] < 1e+99) {
+          processedData.push([commitAry[i], trace['values'][i]]);
+        }
+      }
+      if(cache.has(newKey)) {
+        cache.get(newKey).add(processedData, tileId, scale);
+      } else {
+        cache.add(newKey, new Trace(processedData, tileId, scale));
+      }
+    });
+  }
+  return {
+    getTraces: function(toGet, callback) {
+      var result = {};
+      var count = toGet.length;
+      var writeResults = function(key, data) {
+        result[key] = data;
+        count--;
+        if(count <= 0) {
+          callback(result);
+        }
+      };
+      var failResults = function() {
+        count--;
+        if(count <= 0) {
+          callback(result);
+        }
+      };
+      toGet.forEach(function(metadata) {
+        // NOTE: Assumes getTileNumbers returns in numeric order
+        commitDict.getTileNumbers(metadata.range, function(tileData) {
+          var tileNums = tileData[0];
+          var scale = tileData[1];
+          var tileCount = tileNums.length;
+          var tileData = [];
+          var writeSegment = function(tileId, data) {
+            tileData.push.apply(tileData, data);
+            tileCount--;
+            if(tileCount <= 0) {
+              writeResults(metadata.key, tileData);
+            }
+          };
+          var writeFromCache = function(tileId) {
+            writeSegment(tileId, cache.get(metadata.key).get(tileId, scale));
+          };
+          tileNums.forEach(function(tileId) {
+            if(cache.has(metadata.key) && 
+                cache.get(metadata.key).contains(tileId, scale)) {
+              //console.log('trace segment ' + metadata.key + ':' +
+                  //tileId + ':' + scale + ' found in cache');
+              writeFromCache(tileId);
+            } else {
+              //console.log('traceDict.getTraces: line ' + metadata.key + ' not cached.');
+              var dataset = metadata.key.split(':')[0];
+              jsonRequest.askForTile(scale, tileId, dataset, {} /* individual trace set here */,
+                  function(data) {
+                loadData(data, tileId, dataset, scale);
+                // FUTURE: Check to see if this causes race conditions?
+                if(cache.has(metadata.key) && 
+                    cache.get(metadata.key).contains(tileId, scale)) {
+                  //console.log('trace segement ' + metadata.key + ':' + 
+                      //tileId + ':' + scale + ' found after loading');
+                  writeFromCache(tileId);
+                } else {
+                  tileCount--;
+                  console.log('This line appears to not be in selected tile.');
+                }
+              });
+            }
+          });
+        });
+      });
+    },
+    /* Returns the number of traces that are cached from the array of lines
+     * passed in.*/
+    countCached: function(keyArray) {
+      var count = 0;
+      keyArray.forEach(function(key) {
+        if(cache.has(key)) { count ++; }
+      });
+      return count;
+    },
+    init: function() {
+      console.log('Initializing traceDict');
+      // Nothing here; data's loaded when requested
+    },
+    debug: function() {
+      return cache;
+    }
+  };
+})();
+
+
+var commitDict = (function() {
+  var dataDict = new PagedDictionary();
+  // Uses timestamp plus scale as keys, {hash, commit_msg, blamelist}, etc as values
+  var callbacks = new Vector();
+
+  /* Calls a function for each non empty element of callbackentries.
+   * If the function returns true, then after iterating, remove that
+   * element. */
+  function iterateAndPopCallback(fun) {
+    var toRemove = callbacks.map(function(e, idx) {
+      if(fun(e)) {
+        return idx;
+      } else {
+        return null;
+      }
+    }).filter(function(e) {return e != null;});
+    // Iterate in reverse, since removing an element will only disturb the
+    // ones with a higher index than it
+    for(var i = toRemove.length - 1; i >= 0; i--) {
+      callbacks.pop(toRemove[i]);
+    }
+  }
+
+  return {
+    /* Gets all the data associated with a timestamp.*/
+    getAssociatedData: function(timestamp, scale, callback) {
+      if(dataDict.has(scale) && dataDict.get(scale).has(timestamp)) {
+        return dataDict.get(scale).get(timestamp);
+      } else if(callback) {
+        callbacks.push({lookup: timestamp, scale: scale, callback: callback});
+        return null;
+      }
+    },
+    /* Call the callback with the hash for the given timestamp.*/
+    timestampToHash: function(timestamp, scale, callback) {
+      var res = this.getAssociatedData(timestamp, scale, function(res) {
+        assert(res && res.hash);
+        callback(res.hash);
+      });
+      return res && res.hash;
+    },
+    /* Updates the dictionaries with the JSON data.*/
+    update: function(data, isManifest) {
+      console.log('commitDict.update called: isManifest=' + isManifest);
+      console.log(data);
+      // Load new data, then see if any of the callbacks are now valid
+      if(isManifest) {
+        // it's a manifest JSON
+        // FUTURE
+        assert(false, "Unimplemented");
+      } else {
+        // it's a tile JSON
+        // FUTURE: Remove hack when the JSON has the right format
+        data['scale'] = data['scale'] || 0;
+
+        assert(data && data['commits']); // FUTURE: add: && data['scale']);
+        var commits = data['commits'];
+        var scale = 0; // FUTURE: Replace with: parseInt(data['scale']);
+        commits.forEach(function(commit) {
+          assert(commit['commit_time']);
+          if(!dataDict.has(scale)) {
+            dataDict.add(scale, new PagedDictionary());
+          }
+          if(!dataDict.get(scale).has(commit['commit_time'])) {
+            dataDict.get(scale).add(parseInt(commit['commit_time']), commit);
+          }
+        });
+      }
+      iterateAndPopCallback(function(entry) {
+        assert(entry.callback);
+        if(callbackObject.hasOwnProperty('lookup')) { // Then it's a timestamp look up
+          var res = getAssociatedData(entry.timestamp, entry.scale, null);
+          if(res != null) {
+            entry.callback(res);
+          }
+          return res != null; // Remove the entry if the get was successful
+        }
+        return false;
+      });
+    },
+    /* Looks only through the available commit data, returning the array
+     * of values foundIt returns true on.*/
+    lazySearch: function(foundIt) {
+      var searchSpace = dataDict.index();
+      var results = [];
+      searchSpace.forEach(function(key) {
+        var maybeResult = dataDict.get(key);
+        if(foundIt(maybeResult)) {
+          results.push(maybeResult);
         }
       });
-      $$('.legend-box-inner', e.parentElement)[0].
-          style.border = '5px solid ' + color;
-    });
+      return results;
+    },
+    /* It'll call the callback when it can pass the tile numbers and scale
+     * for the range.*/
+    getTileNumbers: function(range, callback) {
+      // FUTURE: Actually make work when we have tiles
+      callback([[0], 0]);
+    },
+    /* Called on start up.*/
+    init: function() {
+      console.log('Initializing commitDict');
+      var _this = this;
+      // FUTURE: Also load manifest
+      jsonRequest.askForTile(0, -1, 'skps', {'use_commit_data': true}, 
+          function(data, success) {
+            if(success) {
+              _this.update(data);
+            } else {
+              console.log('traceDict.init failed to retrieve data');
+            }
+          });
+    },
+    debug: function() {
+      return [dataDict, callbacks];
+    }
+  };
+})();
+
+
+var schema = (function() {
+  var KEY_DELIMITER = ':';
+  var currentDataset;
+  var schemaDict = new PagedDictionary(); 
+  var hiddenChildren = new PagedDictionary();
+  // Contains a dictionary of dictionary of config key-values
+  var validKeyParts = {
+    'micro': ['dataset', 'builderName', 'system', 'testName', 'gpuConfig',
+        'measurementType'],
+    'skps': ['dataset', 'builderName', 'benchName', 'config',
+        'scale', 'measurementType']
+  };
+  var keysWithEmpty = ['config'];
+  var lineList = [];
+  // List of all lines keys
+
+  // Makes sure the children of root match the given model
+  // Model has the format
+  // [
+  //   { 
+  //      nodeType: <string>,   // Required
+  //      id: <string>,
+  //      style: { ... },
+  //      attributes: { ... },
+  //      text: <string>,
+  //      children: [models]
+  //   }
+  // ]
+  function diffReplace(root, model) {
+    var checkSet = function(obj, fieldName, value) {
+      if(obj[fieldName] != value) {
+        obj[fieldName] = value;
+      }
+    }
+    var checkSetAttr = function(node, fieldName, value) {
+      if(node.getAttribute(fieldName) != value) {
+        node.setAttribute(fieldName, value);
+      }
+    }
+    var specialCases = ['children', 'text', 'attributes', 'style'];
+    for(var i = 0; i < model.length; i++) {
+      assert(model[i].nodeType);
+      if(i >= root.children.length || 
+          root.children[i].nodeName != model[i].nodeType.toUpperCase()) {
+        root.appendChild(document.createElement(model[i].nodeType));
+      }
+      var curChild = root.children[i];
+      for(var name in model[i]) {
+        if(model[i].hasOwnProperty(name) && specialCases.indexOf(name) == -1) {
+          checkSet(curChild, name, model[i][name]);
+        }
+      }
+      if(model[i].text) { checkSet(curChild, 'innerText', model[i].text); }
+      for(var styleName in model[i].style) {
+        if(model[i].style.hasOwnProperty(styleName)) {
+          checkSet(curChild.style, styleName, model[i].style[styleName]);
+        }
+      }
+      for(var attrName in model[i].attributes) {
+        if(model[i].attributes.hasOwnProperty(attrName)) {
+          checkSetAttr(curChild, attrName, model[i].attributes[attrName]);
+        }
+      }
+      if(model[i].children) {
+        diffReplace(curChild, model[i].children);
+      }
+    }
+    // Get rid of extras
+    while(root.length > model.length) {
+      root.removeChild(last(root.children));
+    }
   }
-}
 
-
-var zoomMin = null;
-var zoomMax = null;
-
-
-/** Using the data from the plot reference it's passed, it sets the horizontal
- * zoom controls to appropriate settings. */
-function updateSlidersFromChart(plotData) {
-  var newSliderMax;
-  var newSliderMin;
-  var newSliderZoomMaxSet;
-  var newSliderZoomMinSet;
-  console.log('slider update from chart');
-  // Assume default settings
-  if (plotData) {
-    var data = plotData.map(function(series) {
-      return series.data;
+  function getOptions() {
+    var keyParts = $$('#line-table select');
+    var options = {};
+    keyParts.forEach(function(keyPart) {
+      partName = keyPart.id.slice(0, -'-results'.length);
+      $$('option:checked', keyPart).forEach(function(selectedOption) {
+        if(!options[partName]) { options[partName] = []; }
+        options[partName].push(selectedOption.value);
+      });
     });
-    newSliderMin = Math.min.apply(null, data.map(function(set) {
-      return Math.min.apply(null, set.map(function(point) {
-        return point[0];
+    options['dataset'] = currentDataset;
+    return options;
+  }
+
+  return {
+    /* Returns a string given the key elements in trace.*/
+    makeLegendKey: function(trace, dataset) {
+      assert(trace['params']);
+      if(!dataset) {
+        assert(trace['params']['dataset']);
+        dataset = trace['params']['dataset'];
+      } else if(!trace['params']['dataset']) {
+        trace['params']['dataset'] = dataset;
+      }
+      assert(validKeyParts[dataset]);
+      return validKeyParts[dataset].map(function(part) {
+        return trace['params'][part] || '';
+      }).join(KEY_DELIMITER);
+    },
+    /* Updates the schema given data in the JSON input.*/
+    update: function(data, datasetName) {
+      console.log('schema.update called: datasetName=' + datasetName);
+      console.log(data);
+      assert(data['param_set']);
+      // Update internal structure
+      if(!schemaDict.has(datasetName)) {
+        schemaDict.add(datasetName, new PagedDictionary());
+      }
+      var keys = [];
+      for(var key in data['param_set']) {
+        if(data['param_set'].hasOwnProperty(key) && 
+            validKeyParts[datasetName].indexOf(key) != -1) {
+          keys.push(key);
+        }
+      }
+      keys.forEach(function(key) {
+        if(schemaDict.get(datasetName).has(key)) {
+          var newParams = data['param_set'][key].filter(function(param) {
+            return schemaDict.get(datasetName).get(key).indexOf(param) == -1;
+          });
+          schemaDict.get(datasetName).get(key).push.apply(newParams);
+        } else {
+          schemaDict.get(datasetName).add(key, data['param_set'][key]);
+        }
+        if(keysWithEmpty.indexOf(key) != -1 && 
+            schemaDict.get(datasetName).get(key).indexOf('') == -1) {
+          schemaDict.get(datasetName).get(key).push('');
+        }
+      });
+
+      if(data['traces']) {
+        data['traces'].forEach(function(trace) {
+          lineList.push(this.makeLegendKey(trace, datasetName));
+        }, this);
+      }
+      this.updateDOM();
+    },
+    /* Given the input options, returns the ones that define real traces and
+     * their number.
+     * options is a dictionary keyed with the key part name and has the
+     * selected values as its value.*/
+    getValidOptions: function(options, dataset) {
+      // FUTURE: Replace with tree if not performing well enough
+      assert(validKeyParts[dataset]);
+      var mapOptions = function(key) {
+        // Return the split string if it's valid, false otherwise.
+        var parts = key.split(KEY_DELIMITER);
+        return key.split(KEY_DELIMITER).every(function(part, idx) {
+          return !options[validKeyParts[dataset][idx]] ||
+              options[validKeyParts[dataset][idx]].indexOf(part) != -1;
+        }) && parts;
+      };
+      var validLines = lineList.map(mapOptions);
+      var optionDicts = {};
+      var count = 0;
+      // Get all the valid options
+      for(var i = 1; i < validKeyParts.length; i++) {
+        var tmpDict = {};
+        for(var j = 0; j < validLines.length; j++) {
+          if(validLines) {
+            //O(1) set addition! There's a little latency on the microbench
+            // options bar, hopefully this helps with that..
+            tmpDict[validLines[j][i]] = true;
+            count++;
+          }
+        }
+        var tmpOptions = [];
+        for(var k in tmpDict) {
+          if(tmpDict.hasOwnProperty(k)) {
+            tmpOptions.push(k);
+          }
+        }
+        optionDicts[validKeyParts[i]] = tmpOptions;
+      }
+      return [optionDicts, count];
+    },
+    /* Returns a list of valid lines given the selected options.*/
+    getValidLines: function(options, dataset) {
+      // FUTURE: Replace with tree if not performing well enough
+      assert(validKeyParts[dataset]);
+      var mapOptions = function(key) {
+        // Return the split string if it's valid, false otherwise.
+        var parts = key.split(KEY_DELIMITER);
+        return parts.every(function(part, idx) {
+          return !options[validKeyParts[dataset][idx]] ||
+              options[validKeyParts[dataset][idx]].indexOf(part) != -1;
+        }) && key;
+      };
+      var validLines = lineList.map(mapOptions);
+      // console.log(validLines);
+      return validLines.filter(id);
+    },
+    /* Updates the selection boxes to match the ones currently in the schema.*/
+    updateDOM: function() {
+      assert(currentDataset);
+      console.log('schema.updateDOM: start');
+      if(!schemaDict.has(currentDataset)) {
+        console.log('schema.updateDOM: Schema for selected dataset not ' +
+            'currently loaded; sending request.');
+        var _this = this;
+        jsonRequest.askForTile(0, -1, currentDataset, {'get_params_data': true},
+            function(data, success) {
+              if(success) {
+                console.log('schema.updateDOM: received data.');
+                _this.update(data, currentDataset);
+              }
+            });
+        return;
+      }
+      assert($$$('#line-table'));
+      var inputRoot;
+      if($$$('#' + currentDataset + '-set')) {
+        inputRoot = $$$('#' + currentDataset + '-set');
+        assert(inputRoot.parentElement == $$$('#line-table'));
+      } else {
+        inputRoot = document.createElement('tr');
+        inputRoot.id = currentDataset + '-set';
+      }
+      var curDict = schemaDict.get(currentDataset);
+      curDict.index().forEach(function(part) {
+        curDict.get(part).sort();
+      });
+      var getWidth = function(part) {
+        var longestLine = Math.max.apply(null, 
+            curDict.get(part).map(function(names) {
+                return names.length;
+            }));
+        return 0.75 * longestLine + 0.5;
+      }
+      var selectedValues = {};
+      $$('select', inputRoot).forEach(function(opt) {
+        var partName = opt.id.slice(0, -'-results'.length);
+        selectedValues[partName] = {};
+        $$('option', opt).forEach(function(maybeSelected) {
+          if(maybeSelected.selected) {
+            selectedValues[partName][maybeSelected.value] = true;
+          }
+        });
+      });
+      var makeSelectModel = function(part) {
+        return curDict.get(part).map(function(option) {
+          return {
+            nodeType: 'option',
+            value: option,
+            text: option.length > 0 ? option : '(none)',
+            selected: !!(selectedValues[part] && selectedValues[part][option])
+          };
+        });
+      };
+      diffReplace(inputRoot, validKeyParts[currentDataset].slice(1).map(
+            function(part) {
+        return {
+          nodeType: 'td',
+          children: [
+            {
+              nodeType: 'input',
+              id: part + '-input',
+              style: {
+                width: getWidth(part) + 'em'
+              }
+            },
+            {
+              nodeType: 'select',
+              id: part + '-results',
+              attributes: {
+                multiple: 'yes'
+              },
+              style: {
+                width: getWidth(part) + 'em',
+                overflow: 'auto'
+              },
+              children: makeSelectModel(part)
+            }
+          ]
+        };
       }));
-    }));
-    newSliderMax = Math.max.apply(null, data.map(function(set) {
-      return Math.max.apply(null, set.map(function(point) {
-        return point[0];
-      }));
-    }));
-    $$('#min-zoom, #max-zoom').forEach(function(e) {
-      e.setAttribute('min', newSliderMin);
-    });
-    $$('#min-zoom, #max-zoom').forEach(function(e) {
-      e.setAttribute('max', newSliderMax);
-    });
-  }
+      // Hide the other ones
+      $$('tr', $$$('#line-table')).forEach(function(e) {
+        e.style.display = 'none';
+      });
+      $$$('#line-table').appendChild(inputRoot);
+      inputRoot.style.display = '';
+    },
 
-  var xaxis = plotRef.getOptions().xaxes[0];
-  if (xaxis.min == null || xaxis.max == null) {
-    console.log('axes reset');
-    newSliderZoomMinSet = newSliderMin;
-    newSliderZoomMaxSet = newSliderMax;
-  } else {
-    newSliderZoomMinSet = xaxis.min;
-    newSliderZoomMaxSet = xaxis.max;
-  }
-  $$('#min-zoom')[0].value = newSliderZoomMinSet;
-  $$('#min-zoom-value')[0].value = toRFC(newSliderZoomMinSet);
-  $$('#max-zoom')[0].value = newSliderZoomMaxSet;
-  $$('#max-zoom-value')[0].value = toRFC(newSliderZoomMaxSet);
-}
+    /* Greys out elements as needed. Doesn't grey out any more in the currentRow.*/
+    updateDisabledDOM: function(currentRow) {
+      // Currently unimplemented because it seems like people found it confusing
+      // TODO: Fix greyed out areas
+    },
+
+    /* Grabs all the possible line names.*/
+    init: function() {
+      console.log('Initializing schema');
+      // Load line metadata, update client controls
+      currentDataset = getArg('set') || 'skps';
+      jsonRequest.askForTile(0, -1, currentDataset, {include_commit_data: true},
+          function(data, success) {
+            if(success) {_this.update(data, currentDataset);}
+          });
+      var _this = this;
+      var updateLineCount = function() {
+          var lines = _this.getValidLines(getOptions(), currentDataset);
+          var count = lines.length;
+          var cacheCount = traceDict.countCached(lines);
+          $$$('#line-num').innerHTML = count + ' valid lines, ' + 
+              cacheCount + ' cached lines';
+      };
+      $$('input[name=\'schema-type\']').forEach(function(e) {
+        console.log('schema: Adding event listener for ' + e.value);
+        console.log(e);
+        if(e.value == currentDataset) { e.checked = true; }
+        e.addEventListener('change', function() {
+          console.log('schema change');
+          var newSchema = this.value;
+          console.log(newSchema);
+          currentDataset = newSchema;
+          _this.updateDOM();
+          updateLineCount();
+        });
+      });
+      $$$('#add-lines').addEventListener('click', function(e) {
+        // Find relevant lines, add to legend and plot
+        var options = getOptions();
+        var lines = _this.getValidLines(options, currentDataset).map(function(l) {
+          return {key: l, color: 'white'};
+        });
+        legend.addMany(lines);
+        // console.log(lines);
+        /*
+        lines.forEach(function(line) {
+          legend.add(line, 'white');
+        });
+        */
+        plotData.data(plotData.makePlotCallback());
+      });
+      // Attach event listeners to parent of all schema nodes
+      $$$('#line-table').addEventListener('input', function(e) {
+        console.log('line-table: input event listener called');
+        // console.log(e);
+        var inputId = e.target.id.slice(0,-'-input'.length);
+        console.log('called for ' + e.target.id);
+        if(e.target.nodeName == 'INPUT') {
+          if(!currentDataset) {
+            console.log('line-table.input: no schema currently loaded. Ignoring.');
+            return;
+          }
+          var query = e.target.value;
+          var dataset = schemaDict.get(currentDataset).get(inputId);
+          assert(dataset != null);
+          var results = dataset.filter(function(candidate) {
+            return candidate.indexOf(query) != -1;
+          });  // FUTURE: If this is too slow, swap with binary search
+          if (results.length < 1) {
+            matchLengths = dataset.map(function(candidate) {
+              var maxMatch = 0;
+              for(var start = 0; start < candidate.length; start++) {
+                var i = 0;
+                for (; start + i < candidate.length && i < query.length; i++) {
+                  if (candidate[start + i] != query[i]) {
+                    break;
+                  }
+                }
+                if(i > maxMatch) {
+                  maxMatch = i;
+                }
+              }
+              return maxMatch;
+            });
+            maxMatch = Math.max.apply(null, matchLengths);
+            results = dataset.filter(function(_, idx) {
+              return matchLengths[idx] >= maxMatch;
+            });
+          }
+          console.log('search results: ');
+          console.log(results);
+          if(!hiddenChildren.has(currentDataset)) {
+            hiddenChildren.add(currentDataset, new PagedDictionary());
+          }
+          if(!hiddenChildren.get(currentDataset).has(inputId)) {
+            hiddenChildren.get(currentDataset).add(inputId, []);
+          }
+          var hiddenResults = hiddenChildren.get(currentDataset).
+              get(inputId);
+          var removed = [];
+          // Insert appropriate nodes back into the array
+          hiddenResults.forEach(function(e, idx) {
+            if(results.indexOf(e.value) != -1) {
+              var resultsChildren = $$$('#' + inputId + '-results').children;
+              for(var i = 0; i < resultsChildren.length; i++) {
+                if(resultsChildren[i].value > e.value) {
+                  $$$('#' + inputId + '-results').insertBefore(
+                    e, resultsChildren[i]);
+                  removed.push(idx);
+                  return;
+                }
+              }
+              $$$('#' + inputId + '-results').insertBefore(e, null);
+              removed.push(idx);
+            }
+          });
+          for(var i = removed.length - 1; i >= 0; i--) {
+            hiddenResults.splice(removed[i], 1);
+          }
+          $$('#' + inputId + '-results option').forEach(function(e) {
+            if(results.indexOf(e.value) != -1) {
+              e.style.display = '';
+            } else {
+              hiddenResults.push(e);
+              e.parentNode.removeChild(e);
+            }
+          });
+          console.log('hidden nodes:');
+          console.log(hiddenResults);
+        }
+      });
+      $$$('#line-table').addEventListener('click', function(e) {
+        console.log('#line-table.click called');
+        //console.log(e);
+        if(e.target.nodeName == 'OPTION') {
+          console.log('#line-table select.click event listener called');
+          // Update the line count
+          updateLineCount();
+        }
+      });
+    },
+    debug: function() {
+      return [schemaDict, currentDataset, lineList];
+    }
+  };
+})();
+
+
+var history = (function() {
+  // TODO: Re-add history features, etc.
+})();
 
 
 /** Returns the datetime compatible version of a POSIX timestamp.*/
@@ -571,46 +1285,120 @@ function toRFC(timestamp) {
 }
 
 
-/** Sets the plot's horizontal zoom to match that given in the sliders.*/
-function updateChartFromSliders() {
-  var xMin = $$('#min-zoom')[0].value;
-  var xMax = $$('#max-zoom')[0].value;
-  var xaxis = plotRef.getOptions().xaxes[0];
-  xaxis.min = xMin;
-  xaxis.max = xMax;
-  plotRef.setupGrid();
-  plotRef.draw();
-}
+var plotData = (function() {
+  var plotRef;
+  var isLogPlot;
+  var visibleKeys = new Vector();
+  function getVisibleKeys() {
+    return visibleKeys.all();
+  }
+  function toZoomValue(min, max) {
+    return 60*60/(max - min);
+  }
+  function fromZoomValue(curMin, curMax, zoomValue) {
+    if(zoomValue < 0.005) {
+      zoomValue = 0.005;
+    }
+    var range = 60*60/zoomValue;
+    var midpoint = 0.5*(curMin + curMax);
+    return [midpoint - range/2, midpoint + range/2];
+  }
+  function plotClickHandler(evt, pos, item) {
+    var notePad = $('#note');
+    if(!item) {
+      notePad.hide();
+      return;
+    }
+    notePad.hide();
+    notePad.css({'top': item.pageY + 10, 'left': item.pageX});
+    commitDict.getTileNumbers(getCurRange(), function(tileData) {
+      var postNote = function(commitData) {
+        console.log(commitData);
+        var hashMsg = '';
+        var commitMsg = '';
+        var authorMsg = '';
+        if(commitData['hash']) {
+          var hash = commitData['hash'];
+          hashMsg = 'hash: <a href=https://github.com/google/skia/commit/' + 
+            hash + ' target=_blank>' + hash + '</a><br />';
+        }
+        if(commitData['commit_msg']) {
+          commitMsg = 'commit message: ' + commitData['commit_msg'] + 
+              '<br />';
+        }
+        if(commitData['author']) {
+          authorMsg = 'author: ' + commitData['author'] + '<br />';
+        }
+        $$('#note #data')[0].innerHTML = (
+            hashMsg +
+            'timestamp: ' + item.datapoint[0] + '<br />' +
+            'value: ' + item.datapoint[1] + '<br />' +
+            authorMsg + commitMsg
+            );
+        notePad.show();
+      };
+      var relatedData = commitDict.getAssociatedData(
+          item.datapoint[0], tileData[1], postNote);
+      if(relatedData) {
+        postNote(relatedData);
+      }
+    });
+  }
+  function plotZoomHandler(evt, pos, item) {
+    var range = getCurRange();
+    $$$('#zoom').value = toZoomValue(range[0], range[1]);
+    $$$('#start').value = toRFC(range[0]);
+    $$$('#end').value = toRFC(range[1]);
+    // TODO: Get more plot data as needed; see if the new range
+    // requires new tiles, and if so call data(makePlotCallback())
+  }
+  function plotPanHandler(evt, pos, item) {
+    var range = getCurRange();
+    $$$('#start').value = toRFC(range[0]);
+    $$$('#end').value = toRFC(range[1]);
+    // TODO: Get more plot data as needed; see if the new range
+    // requires new tiles, and if so call data(makePlotCallback())
+  }
+  /* Returns the current visible range. Null to load the latest tile.*/
+  function getCurRange() {
+    var data = plotRef.getData();
+    var xaxis = plotRef.getOptions().xaxes[0];
+    var min = null;
+    var max = null;
+    if(xaxis.min != null && xaxis.max != null) {
+      min = xaxis.min;
+      max = xaxis.max;
+    } else if(plotRef.getData().length > 0) {
+      min = Math.min.apply(null, data.map(function(set) {
+        return Math.min.apply(null, set.data.map(function(point) {
+          return point[0];
+        }));
+      }));
+      max = Math.max.apply(null, data.map(function(set) {
+        return Math.max.apply(null, set.data.map(function(point) {
+          return point[0];
+        }));
+      }));
+    }
+    return [min, max];
+  }
 
-
-/** Sets the sliders to match the zoom in the plot.*/
-function updateSlidersFromZoom() {
-  var xaxis = plotRef.getOptions().xaxes[0];
-  var xMin = xaxis.min;
-  var xMax = xaxis.max;
-  $$('#min-zoom')[0].value = xMin;
-  $$('#min-zoom-value')[0].value = toRFC(xMin);
-  $$('#max-zoom')[0].value = xMax;
-  $$('#max-zoom-value')[0].value = toRFC(xMax);
-}
-
-var lastHighlightedPoint = null;
-
-
-/** Initializes the FLOT plot. */
-function plotInit() {
-  if (!plotRef) {
-    plotRef = $('#chart').plot(plotData.getProcessedPlotData(),
-      {
+  return {
+    /* Initializes the plot.*/
+    init: function() {
+      console.log('Initializing plotData');
+      isLogPlot = false;
+      plotRef = $('#chart').plot([],
+        {
           legend: {
             show: false
           },
           grid: {
             hoverable: true,
             autoHighlight: true,
-            mouseActiveRadius: 10,
+            mouseActiveRadius: 16,
             clickable: true,
-            markings: getMarkings
+            markings: this.getMarkings
           },
           xaxis: {
             ticks: function(axis) {
@@ -637,7 +1425,7 @@ function plotInit() {
                 if(scaleFactor >= 24*60*60) {
                   formattedTime = tickDate.toDateString();
                 } else {
-                  // TODO: Find a way to make a string with only the hour or minute
+                  // FUTURE: Find a way to make a string with only the hour or minute
                   formattedTime = tickDate.toDateString() + '<br \\>' +
                     tickDate.toTimeString();
                 }
@@ -649,6 +1437,8 @@ function plotInit() {
           },
           yaxis: {
             /* zoomRange: false */
+            transform: function(v) { return isLogPlot? Math.log(v) : v; },
+            inverseTransform: function(v) { return isLogPlot? Math.exp(v) : v; }
           },
           crosshair: {
             mode: 'xy'
@@ -661,544 +1451,178 @@ function plotInit() {
             frameRate: 60
           }
         }).data('plot');
-    $('#chart').bind('plotclick', function(evt, pos, item) {
-      $('#note').hide();
-      if (lastHighlightedPoint) {
-        plotRef.unhighlight(lastHighlightedPoint.series,
-          lastHighlightedPoint.datapoint);
-      } else {
-        lastHighlightedPointed = null;
-      }
-      if (item) {
-        currentTimestamp = item.datapoint[0];
+      $('#chart').bind('plotclick', plotClickHandler);
+      $('#chart').bind('plotzoom', plotZoomHandler);
+      $('#chart').bind('plotpan', plotPanHandler);
 
-        plotRef.highlight(item.series, item.datapoint);
-        lastHighlightedPoint = item;
-        makePopup(evt, pos, item);
-      }
-    });
+      // Initialize zoom ranges
+      $$$('#zoom').setAttribute('min', 0);
+      $$$('#zoom').setAttribute('max', 1);
+      $$$('#zoom').setAttribute('step', 0.001);
 
-    $('#chart').bind('plotpan', updateSlidersFromZoom);
-    $('#chart').bind('plotzoom', updateSlidersFromZoom);
-  }
-}
+      // Zoom binding
+      $$$('#zoom').addEventListener('input', function() {
+        var curRange = getCurRange();
+        var newRange = fromZoomValue(curRange[0], curRange[1],
+            $$$('#zoom').value);
+        var xaxis = plotRef.getOptions().xaxes[0];
+        xaxis.min = newRange[0];
+        xaxis.max = newRange[1];
+        plotRef.setupGrid();
+        plotRef.draw();
+      });
 
-
-/** Makes the plot popup. */
-function makePopup(evt, pos, item) {
-  // Move the div with id "notes" to the desired point,
-  // and post useful information in there
-  var notePad = $('#note');
-  notePad.hide();
-  notePad.css({'top': item.pageY + 10, 'left': item.pageX});
-  // TODO: add more useful data
-  var hash = timestampToCommit(item.datapoint[0]);
-  var hashData = '';
-  var commitMsg = '';
-  if(hash.length > 0) {
-    hashData = 'hash: ' +
-      '<a href=https://github.com/google/skia/commit/' + hash + '>' + 
-          hash + '</a><br />';
-    if(commitData[hash]) {
-      commitMsg = 'commit message: ' + commitData[hash];
-    }
-  }
-  $$('#note #data')[0].innerHTML = (
-      hashData +
-      'timestamp: ' + item.datapoint[0] + '<br />' +
-      'value: ' + item.datapoint[1] + '<br />' +
-      commitMsg
-      );
-  notePad.show();
-}
-
-
-/** Sends the user a notification on the bottom bar. */
-function notifyUser(text, replace) {
-  if (!$('#notification').is(':visible') && !replace) {
-    $('#notification-text').html(text);
-    $('#notification').show().delay(5000).fadeOut(1000).hide(10);
-    // If you find a way to convert this to non-jQuery, I'll replace it.
-  } else {
-    window.setTimeout(notifyUser, 400, text);
-  }
-}
-
-
-/** Manages the schema for the option bar and keys for the plot data. */
-var schema = (function() {
-  var schemaData = new PagedDictionary();
-  return {
-
-    /** Loads data into the schema. */
-    load: function(newName, data) {
-      var omitFields = ['arch', 'role', 'os', 'gpu', 'configuration',
-          'model', 'badParams', 'bbh', 'mode', 'skpSize',
-          'viewport', 'extraConfig'];
-      var expectationTypes = ['upper', 'lower', 'expected',
-          'upper_wall', 'lower_wall', 'expected_wall'];
-      var newSchema = {};
-
-      for (var key in data) {
-        if (data.hasOwnProperty(key) &&
-            omitFields.indexOf(key) == -1) {
-          newSchema[key] = data[key];
-        }
-      }
-      if (newSchema['measurementType']) {
-        var newType = newSchema['measurementType'].filter(
-          function(e) {
-            console.log(e);
-            return expectationTypes.indexOf(e) == -1;
-          }
-        );
-        newSchema['measurementType'] = newType;
-      }
-      schemaData.push(newName, newSchema);
-      console.log(schemaData.cur());
-    },
-
-    /** Switches to a different schema*/
-    switchSchema: function(newSchemaName) {
-      schemaData.makeCurrent(newSchemaName);
-      this.updateSchema();
-      updateHistory();
-    },
-
-    /** Returns a list of keys in the schema. */
-    getKeys: function() {
-      var keys = [];
-      for (var key in schemaData.cur()) {
-        if (schemaData.cur().hasOwnProperty(key)) {
-          keys.push(key);
-        }
-      }
-      return keys;
-    },
-
-
-    /** Returns the name of the currently loaded schema. */
-    getCurrentSchema: function() {
-      return schemaData.currentId();
-    },
-
-
-    /** Updates the option boxes to reflect the current state of the schema. */
-    updateSchema: function() {
-      var keys = this.getKeys();
-      var _this = this;
-      $('#line-form').children().remove();
-      keys.forEach(function(key) {
-        schemaData.cur()[key].sort();
-        var width = Math.max.apply(null, schemaData.cur()[key].
-            map(function(k) {
-          return k.length;
-        }));
-        $('#line-form').append(
-          '<td>' +
-            '<input id=\"' + key + '-name\"' +
-              ' style=\" width:' + (0.5 * width + 1) + 'em;\"' +
-              ' autocomplete=on>' +
-            '</input>' +
-            '<select id=\"' + key + '-results\" style=\"' +
-              'width:100%;overflow:auto;\" multiple=\"yes\">' +
-            '</select>' +
-          '</td>');
-        var inputHandler = (function(safeKey) {
-          return function() {_this.updateOptions(safeKey);};})(key);
-        // NOTE: This may break.
-        $$('#' + key + '-name')[0].addEventListener('input',
-            inputHandler);
-      }, this);
-      keys.forEach(function(key) {_this.updateOptions(key)});
-    },
-
-    /** Updates the individual selection in the options box of the given id
-     * to reflect the string the user has entered. */
-    updateOptions: function(id) {
-      var query = $('#' + id + '-name').val();
-      var results = schemaData.cur()[id].filter(function(candidate) {
-        return candidate.indexOf(query) != -1;
-      });  // TODO: If this is too slow, swap with binary search
-      if (results.length < 1) {
-        matchLengths = schemaData.cur()[id].map(function(candidate) {
-          var maxMatch = 0;
-          for(var start = 0; start < candidate.length; start++) {
-            var i = 0;
-            for (; start + i < candidate.length && i < query.length; i++) {
-              if (candidate[start + i] != query[i]) {
-                break;
-              }
-            }
-            if(i > maxMatch) {
-              maxMatch = i;
-            }
-          }
-          return maxMatch;
-        });
-        maxMatch = Math.max.apply(null, matchLengths);
-        results = schemaData.cur()[id].filter(function(_, idx) {
-          return matchLengths[idx] >= maxMatch;
-        });
-      }
-      $$('#' + id + '-results')[0].innerHTML = results.map(function(c) {
-        if(c.length > 0) {
-          return '<option value=' + c + '>' + c + '</option>';
+      // Set up go button binding
+      $$$('#back-to-the-future').addEventListener('click', function(e) {
+        var newMin = Date.parse($$$('#start').value)/1000;
+        var newMax = Date.parse($$$('#end').value)/1000;
+        if(isNaN(newMin) || isNaN(newMax)) {
+          console.log('#back-to-the-future.click: invalid input');
         } else {
-          return '<option value=' + c + '>(none)</option>';
+          var realMin = Math.min(newMin, newMax);
+          var realMax = Math.max(newMin, newMax);
+          var xaxis = plotRef.getOptions().xaxes[0];
+          xaxis.min = realMin;
+          xaxis.max = realMax;
+          plotRef.setupGrid();
+          plotRef.draw();
         }
-      }).join('');
-      var updateStuff = function() {
-        // NOTE: Very inefficient right now.
-        var lines = plotData.getAvailableLines();
-        $$('#line-num')[0].innerHTML = lines.length + ' lines selected.';
-        if (lines.length == 0) return;
-        var options = new Array(lines[0].length);
-        var keys = schema.getKeys();
-        for (var i = 0; i < options.length; i++) {
-          options[i] = schemaData.cur()[keys[i]].slice(0);
-        }
-        lines.forEach(function(l) {
-          for (var i = 0; i < options.length; i++) {
-            if (options[i].indexOf(l[i]) != -1) {
-              options[i].splice(options[i].indexOf(l[i]), 1);
-            }
-          }
-        });
-        for (var i = 0; i < options.length; i++) {
-          $$('#' + keys[i] + '-results option').forEach(function(e) {
-            if (!e.getAttribute('disabled') &&
-                options[i].indexOf(e.value) != -1) {
-              if (keys[i] == id) return;
-              e.setAttribute('disabled', true);
-            } else if (e.getAttribute('disabled') &&
-                options[i].indexOf(e.value) == -1) {
-              e.disabled = false;
-            }
-          });
-        }
-      };
-      updateStuff();
-      $$('#' + id + '-results')[0].addEventListener('change',
-              updateStuff);
-    },
+      });
 
-    /** Adds in any keys the schema may be missing that appear in the
-     * given key. */
-    check: function(keys) {
-      var order = this.getKeys();
-      // console.log(keys);
-      for (var i = 0; i < order.length; i++) {
-        if (schemaData.cur()[order[i]].indexOf(keys[i]) == -1 &&
-            order[i] != 'measurementType') {
-          console.log(keys[i]);
-          schemaData.cur()[order[i]].push(keys[i]);
+      $$$('#islog').addEventListener('click', function(e) {
+        var willLogPlot = $$$('#islog').checked;
+        if(isLogPlot != willLogPlot) {
+          isLogPlot = willLogPlot;
+          plotRef.setupGrid();
+          plotRef.draw();
+        }
+      });
+    },
+    /* Returns usable plot data.*/
+    data: function(callback) {
+      var processAndCall = function(dataDict) {
+        console.log('data.get callback:');
+        console.log(dataDict);
+        var results = [];
+        for(var trace in dataDict) {
+          if(dataDict.hasOwnProperty(trace)) {
+            // Convert data to Flot readable format
+            var curTrace = dataDict[trace];
+            results.push({
+              label: trace,
+              data: curTrace
+            });
+          }
+        }
+        //console.log(results);
+        callback(results);
+      };
+      //console.log('visible keys: ');
+      //console.log(visibleKeys.all());
+      var currentRange = getCurRange();
+      // Process keys before passing to traceDict
+      var processedKeys = visibleKeys.all().map(function(key) {
+        return {
+          key: key,
+          range: currentRange
+        };
+      });
+      traceDict.getTraces(processedKeys, processAndCall);
+    },
+    getMarkings: function() {
+      if(visibleKeys.all().length <= 0) { return []; }
+      return [];
+      var skpPhrase = 'Update SKP version to ';
+      var updates = commitDict.lazySearch(function(commitData) {
+        return commitData['commit_msg'] && 
+            commitData['commit_msg'].slice(0, skpPhrase) == skpPhrase;
+      }).map(function(commitData) {
+        return [parseInt(commitData['commit_msg'].substr(skpPhrase.length)),
+            commitData['commit_time']];
+      });
+      var markings = [];
+      for(var i = 1; i < updates.length; i++) {
+        if(updates[i][0] % 2 == 0) {
+          markings.push([updates[i-1][1], updates[i][1]]);
         }
       }
+      return markings.map(function(pair) {
+        return { xaxis: {from: pair[0], to: pair[1]}, color: '#cccccc'};
+      });
     },
-
-    /** Returns the private variables for debugging purposes. */
+    /* Plots the given data.*/
+    plot: function(data) {
+      // Plot the given data
+      plotRef.setData(data);
+      var options = plotRef.getOptions();
+      options.xaxes.forEach(function(axis) {
+        axis.max = null;
+        axis.min = null;
+      });
+      options.yaxes.forEach(function(axis) {
+        axis.max = null;
+        axis.min = null;
+      });
+      plotRef.setupGrid();
+      plotRef.draw();
+      // Push changes to legend
+      legend.updateColors(plotRef);
+      legend.refresh();
+      // Then push changes to zoom control and date controls
+      var range = this.getCurrentRange();
+      $$$('#zoom').value = toZoomValue(range[0], range[1]);
+      $$$('#start').value = toRFC(range[0]);
+      $$$('#end').value = toRFC(range[1]);
+    },
+    /* Produces a wrapper that can be used in any context.*/
+    makePlotCallback: function() {
+      var _this = this;
+      return function(data) {
+        _this.plot(data);
+      };
+    },
+    /* Returns the current visible range. Null to load the latest tile.*/
+    getCurrentRange: function() {
+      return getCurRange();
+    },
+    /* Sets the plot to display the key next time it is plotted.*/
+    show: function(key) {
+      if(!visibleKeys.has(key)) {
+        visibleKeys.push(key);
+      }
+    },
+    /* Hides a trace from the plot the next time it is plotted.*/
+    hide: function(key) {
+      visibleKeys.remove(key);
+    },
     debug: function() {
-      return schemaData;
+      return [plotRef, visibleKeys];
     }
   };
 })();
 
 
-function makePlainURL() {
-  return [window.location.protocol, '//', window.location.host,
-      window.location.pathname].join('');
-}
-
-/* Make a tree string from the given parameters
- * This hopefully provides some compression without entirely destroying legibility
- * The tree string looks something like ca..t~n~., which represents ['cat', 'can']
- * Grammar's something like:
- * node = <string> | <prefix> ".." [node "~"]+ "."  */
-function makeTree(prefix, strs) {
-  if(strs.length == 0) {
-    return prefix;
-  } else if(strs.length == 1) {
-    return prefix + strs[0];
-  } else {
-    var lastPrefix = '';
-    var groups = [];
-    var hadEmptyString = strs.some(function(s) {return s.length == 0;});
-
-    // Remove empty strings
-    strs = strs.filter(function(s) {return s.length != 0;});
-    if(hadEmptyString) {
-      groups.push(['']);
-    }
-    strs.sort();
-    // Greedily group strings together, first by the first letter
-    strs.forEach(function(str) {
-      // Make a new group if the string starts with a different character
-      if(lastPrefix.length == 0 || str[0] != lastPrefix) {
-        lastPrefix = str[0];
-        groups.push([]);
-      }
-      last(groups).push(str);
-    });
-    var getLongestMatch = function(strs) {
-      var longestMatch = 0;
-      var shortestString = Math.min.apply(null, 
-          strs.map(function(str) {return str.length;}));
-      while(longestMatch < shortestString &&
-          strs.every(function(str) {
-              return str[longestMatch] == strs[0][longestMatch]})) {
-        longestMatch++;
-      }
-      return longestMatch;
-    };
-    return prefix + '..' + groups.map(function(group) {
-      var longestMatch = getLongestMatch(group);
-      var shortenedStrings = group.map(function(str) {
-        return str.slice(longestMatch);
-      });
-      return makeTree(group[0].slice(0, longestMatch), shortenedStrings);
-    }).join('~') + '~.';
-  }
-}
-
-
-/** Creates a string for the URL using the legend and visible state data.*/
-function makeHashString() {
-  var legend = getLegendKeys();
-  return 'set=' + schema.getCurrentSchema() + '&' +
-      'legend=' + encodeURIComponent(makeTree('', legend));
-}
-
-
-/** Unpacks a tree string. Unencoded key go through without change.*/
-function unTree(prefix, string) {
-  if(string.indexOf('..') == -1 && string.indexOf('~.') == -1) {
-    return [prefix + string];
-  }
-  var newPrefix = string.split('..')[0];
-  // Find the  outermost '..' and '.~', 
-  // everything inside of that is a child of this one.
-  var childrenStr = string.slice(string.indexOf('..') + '..'.length,
-      string.lastIndexOf('~.'));
-  // Separate out the children by walking the string and finding the '~' that
-  // match the outer most layer
-  var currentDepth = 0;
-  var lastChildEnd = -1;
-  var children = [];
-  for(var i = 0; i < childrenStr.length; i++) {
-    if(childrenStr[i] == '~' && currentDepth == 0) {
-      children.push(childrenStr.slice(lastChildEnd+1, i));
-      lastChildEnd = i;
-    } else if(childrenStr[i] == '.' && childrenStr[i+1] == '.') {
-      currentDepth++;
-      i++;
-    } else if(childrenStr[i] == '~' && childrenStr[i+1] == '.') {
-      currentDepth--;
-      i++;
-    }
-  }
-  children.push(childrenStr.slice(lastChildEnd+1));
-  return children.reduce(function(prev, child) {
-    return prev.concat(unTree(prefix + newPrefix, child));
-  }, []);
-}
-
-
-/** Updates the page history to match the currently selected lines. */
-function updateHistory() {
-  var legend = getLegendKeys();
-  var historyState = {
-    legendState: legend
-  };
-  window.history.replaceState(historyState, 'foo', 
-          makePlainURL() + '#' + makeHashString());
-}
-
-
-/** Adds a page history state to match the change in selected lines. */
-function addHistory() {
-  var legend = getLegendKeys();
-  var historyState = {
-    legendState: legend
-  };
-  console.log(historyState);
-  window.history.pushState(historyState, 'foo', 
-          makePlainURL() + '#' + makeHashString());
-}
-
-// Make the plot
-window.addEventListener('load', function() {
-  // Load JSON with hash to timestamp conversions.
-  // May or may not be needed in the end, but
-
-  var hashUseless = true;
-  var initStuff = function() {
-    // Load data from query string
-    if(window.location.hash) {
-      var processedSearch = window.location.hash.slice(1).split('&');
-      processedSearch.forEach(function(str) {
-        if(str.split('=').length <= 1) {
-          hashUseless = true;
-          return;
-        }
-        var name = str.split('=')[0];
-        var data = unTree('', decodeURIComponent(str.split('=')[1]));
-        if(name == 'legend' && str.split('=')[1].length > 0) {
-          console.log('got legend: ' + str.split('=')[1]);
-          data.forEach(function(d) { 
-            addToLegend(d);
-            plotData.makeVisible(d); 
-          });
-        }
-      });
-    }
-    plotInit();
-    if(plotData.getVisibleKeys().length > 0) {
-      updateSlidersFromChart(plotData.getProcessedPlotData());
-      plotStuff(plotData);
-    }
-  };
-
-  if(!window.location.hash || hashUseless) {
-    plotData.loadData('skps', initStuff);
-  } else {
-    var targetSet = window.location.hash.split('&').filter(function(line) {
-      return line.indexOf('set=') != -1;
-    });
-    if(targetSet.length > 0) {
-      plotData.loadData(targetSet[0].split('=')[1], initStuff);
-    }
-  }
-
-  $('#notification').hide();
-  $('#note').hide();
-
-  // Add trigger for checkmarks
-  $$('#legend')[0].addEventListener('click', function(e) {
-    console.log('legend click');
-    var target = e.target;
-    if ((target.nodeName == 'INPUT') &&
-        (target.type == 'checkbox')) {
-      if (!target.checked) {
-        plotData.makeInvisible(target.id);
-      } else {
-        plotData.makeVisible(target.id);
-       }
-    } else if (target.nodeName == 'A') {
-      removeFromLegend(target.id.slice(0, -'_remove'.length));
-      e.preventDefault();
-    }
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, init()ing components');
+  commitDict.init();
+  plotData.init();
+  traceDict.init();
+  schema.init();
+  legend.init(function(key) {
+    plotData.show(key);
+  }, function(key) {
+    plotData.hide(key);
+  }, function() {
+    plotData.data(plotData.makePlotCallback());
   });
 
   document.body.addEventListener('click', function(e) {
-    console.log('body click');
-    if (!$(e.target).parents().is('#note,#chart')) {
+    if(!$(e.target).parents().is('#note,#chart')) {
       $('#note').hide();
     }
   });
 
-  $$('#add-lines')[0].addEventListener('click', function() {
-    console.log('add click');
-    plotData.getAvailableLines().forEach(function(ary) {
-      plotData.getAndAddLine(ary.join(KEY_DELIMITER), undefined, true);
-    });
-    plotStuff(plotData);
-    addHistory();
-    // Clear selections
-    schema.updateSchema();
-    return false;
-  });
 
-  var zoomChangeHandler = function() {
-    console.log('zoom change');
-    if (plotData.getVisibleKeys().length > 0) {
-      var newMin = $$('#min-zoom')[0].value;
-      var newMax = $$('#max-zoom')[0].value;
-      if (newMin > newMax) {
-        if (newMax = this.value) {
-          newMin = Math.max(newMax - MIN_XRANGE, $$('#min-zoom')[0].
-            getAttribute('min'));
-        } else {
-          newMax = Math.min(newMin + MIN_XRANGE, $$('#max-zoom')[0].
-            getAttribute('max'));
-        }
-      }
-      $$('#min-zoom-value')[0].value = toRFC(newMin);
-      $$('#max-zoom-value')[0].value = toRFC(newMax);
-      $$('#min-zoom')[0].value = newMin;
-      $$('#max-zoom')[0].value = newMax;
-      updateChartFromSliders();
-    }
-  };
-  $$('#min-zoom')[0].addEventListener('input', zoomChangeHandler);
-  $$('#max-zoom')[0].addEventListener('input', zoomChangeHandler);
-
-  var zoomBlurHandler = function() {
-    console.log('zoom change');
-    if (plotData.getVisibleKeys().length > 0) {
-      var newMin = Date.parse($$('#min-zoom-value')[0].value)/1000;
-      var newMax = Date.parse($$('#max-zoom-value')[0].value)/1000;
-      console.log(newMin);
-      console.log(newMax);
-      if (isNaN(newMin) || isNaN(newMax) ||
-          newMin < $$('#min-zoom')[0].getAttribute('min') ||
-          newMax > $$('#max-zoom')[0].getAttribute('max')) {
-        console.log('invalid input');
-        notifyUser('Invalid input');
-        return;
-      }
-      var realMin = Math.min(newMin, newMax);
-      var realMax = Math.max(newMin, newMax);
-      console.log(realMin);
-      console.log(realMax);
-      $$('#min-zoom')[0].value = realMin;
-      $$('#max-zoom')[0].value = realMax;
-      updateChartFromSliders();
-    }
-  };
-  $$('#min-zoom-value')[0].addEventListener('blur', zoomBlurHandler);
-  $$('#max-zoom-value')[0].addEventListener('blur', zoomBlurHandler);
-
-  $$('#nuke-plot')[0].addEventListener('click', function(e) {
-    console.log('all lines removed');
-    while (plotData.getVisibleKeys().length > 0) {
-      plotData.makeInvisible(last(plotData.getVisibleKeys()), true);
-    }
-    plotStuff(plotData);
-    var legendBody = $$('#legend table tbody')[0];
-    while(legendBody.hasChildNodes()) {
-      legendBody.removeChild(legendBody.children[0]);
-    }
-    updateHistory();
-    e.preventDefault();
-  });
-
-  $$('[name=schema-type]').forEach(function(e) {
-    e.addEventListener('change', function() {
-      console.log('schema change');
-      var newSchema = this.value;
-      plotData.loadData(newSchema);
-      updateHistory();
-    });
-  });
-
-  window.addEventListener('popstate', function(event) {
-    console.log(event);
-    var state = event.state;
-    if (state && state.legendState) {
-      // TODO: Do this more intelligently.
-      var newLegend = state.legendState;
-      while (plotData.getVisibleKeys().length > 0) {
-        plotData.makeInvisible(last(plotData.getVisibleKeys()));
-      }
-      $('#legend table tbody').children().remove();
-      for (var i = 0; i < newLegend.length; i++) {
-        console.log('Adding ' + newLegend[i] + 'to legend');
-        addToLegend(newLegend[i]);
-        plotData.makeVisible(newLegend[i]);
-      }
-    }
-    plotStuff(plotData);
-  });
-
+  $('#note').hide();
+  $('#notification').hide();
 });

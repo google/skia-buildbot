@@ -12,21 +12,27 @@
         <div class="plot-wrapper">
             <div id="chart">
             </div>
-            <input id="min-zoom" class="zoom-control" type="range"></input>
-            <input id="min-zoom-value" class="zoom-input" type="datetime-local"></input>
-            <input id="max-zoom" class="zoom-control" type="range"></input>
-            <input id="max-zoom-value" class="zoom-input" type="datetime-local"></input>
+            <div>
+                <input id="zoom" class="zoom-control" type="range"></input>
+            </div>
+            <div>
+                <input id="start" class="zoom-input"
+                    type="datetime-local"></input>
+                <input id="end" class="zoom-input"
+                    type="datetime-local"></input>
+                <input id="back-to-the-future" type="button" value="Go"></input>
+            </div>
         </div>
         <div>
             <div id="legend">
                 <table><tbody></tbody></table>
             </div>
             <a id="nuke-plot" href="#">Remove all</a>
+            <input id="islog" type="checkbox">Use log scale</input>
         </div>
         <div>
             <form id="results-form" action="" method="POST">
-                <table><tr id="line-form">
-                </tr></table>
+                <table id="line-table"></table>
                 <input id="add-lines" type="button"
                     value="Add lines"></input>
                 <input type=radio name=schema-type value=skps checked>Perf</input>
@@ -38,6 +44,7 @@
     </div>
     <div id="note">
         <div id="data"></div>
+        <div id="blamelist"></div>
         <div id="annotations"></div>
     </div>
     <div id="notification">
