@@ -8,14 +8,27 @@ module.exports = function(grunt) {
          command: './node_modules/.bin/bower install'
       }
     },
+    bower: {
+      dev: {
+         dest: './third_party/out'
+      }
+    },
     // Concatenate all the third_party files we use into a single file.
     concat: {
       dist: {
         src: [
-          'third_party/bower_components/jquery/dist/jquery.js',
+          'third_party/out/jquery.js',
           'third_party/bower_components/flot/jquery.flot.js',
           'third_party/bower_components/flot/jquery.flot.crosshair.js',
-          'third_party/bower_components/flot/jquery.flot.navigate.js'
+          'third_party/bower_components/flot/jquery.flot.navigate.js',
+
+          'third_party/out/WeakMap.js',
+          'third_party/out/classlist.js',
+          'third_party/out/pointerevents.dev.js',
+          'third_party/out/MutationObserver.js',
+          'third_party/out/CustomElements.js',
+          'third_party/out/HTMLImports.js',
+
         ],
         dest: 'res/js/<%= pkg.name %>-debug.js'
       }
@@ -69,10 +82,10 @@ module.exports = function(grunt) {
 
   // By default run all the commands in the right sequence to build our custom
   // minified third_party JS.
-  grunt.registerTask('default', ['shell:bower_install', 'concat', 'uglify']);
+  grunt.registerTask('default', ['shell:bower_install', 'bower', 'concat', 'uglify']);
 
   // A target to build an unminified version, for debugging.
-  grunt.registerTask('debug-js', ['shell:bower_install', 'concat', 'copy:simple']);
+  grunt.registerTask('debug-js', ['shell:bower_install', 'bower', 'concat', 'copy:simple']);
 
   // A target to build just the CSS.
   grunt.registerTask('css', ['autoprefixer']);

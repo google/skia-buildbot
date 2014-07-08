@@ -1,8 +1,7 @@
 {
   "name": "perf",
   "version": "0.1.0",
-  "authors": [
-  ],
+  "authors": [],
   "description": "skiaperf.com",
   "license": "BSD",
   "private": true,
@@ -15,6 +14,9 @@
     "tests"
   ],
   "dependencies": {
-    "flot": "~0.8.3"
+    "flot": "~0.8.3",
+    "pointerevents-polyfill": "~0.2.0",
+    "CustomElements": "~0.2.4",
+    "HTMLImports": "~0.2.3"
   }
 }
