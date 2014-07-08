@@ -76,6 +76,14 @@ func init() {
 
 		_, err = DB.Exec(sql)
 		glog.Infoln("Status creating sqlite table for githashnotes:", err)
+
+                sql = `CREATE TABLE shortcuts (
+            id      INT         NOT NULL PRIMARY KEY,
+            traces  MEDIUMTEXT  NOT NULL
+            )`
+
+                _, err = DB.Exec(sql)
+                glog.Infoln("Status creating sqlite table for shortcuts:", err)
 	}
 
 	// Ping the database to keep the connection fresh.

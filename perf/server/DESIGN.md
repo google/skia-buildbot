@@ -245,6 +245,11 @@ Initial setup of the database, the users, and the tables:
       FOREIGN KEY (id) REFERENCES notes(id)
     );
 
+    CREATE TABLE shortcuts (
+      id      INT             NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      traces  MEDIUMTEXT      NOT NULL
+    );
+
 Common queries that the dashboard will use:
 
     INSERT INTO notes (type, author, notes) VALUES (1, 'bsalomon', 'Alert!');
