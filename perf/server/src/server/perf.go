@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -104,6 +105,19 @@ func clusterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
 		if err := clusterTemplate.Execute(w, data.ClusterSummaries(config.DatasetName(match[1]))); err != nil {
+			glog.Errorln("Failed to expand template:", err)
+		}
+	} else if r.Method == "POST" { // POST for now, move to GET later for custom clusters.
+		k, err := strconv.ParseInt(r.FormValue("k"), 10, 32)
+		if err != nil {
+			reportError(w, r, err, fmt.Sprintf("k parameter must be an integer %s.", r.FormValue("k")))
+		}
+		stddev, err := strconv.ParseFloat(r.FormValue("stddev"), 64)
+		if err != nil {
+			reportError(w, r, err, fmt.Sprintf("stddev parameter must be a float %s.", r.FormValue("stddev")))
+		}
+		w.Header().Set("Content-Type", "text/html")
+		if err := clusterTemplate.Execute(w, data.ClusterSummariesFor(config.DatasetName(match[1]), int(k), stddev)); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
 	}

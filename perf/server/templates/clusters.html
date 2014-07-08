@@ -11,6 +11,14 @@
 </head>
 <body>
 <p>Clustering of measurement traces by shape.</p>
+    <details>
+      <summary>Traces clustered into {{.K}} clusters. Traces with stddev&lt;{{.StdDevThreshhold}} won't have their standard deviation normalized to 1.0.</summary>
+      <form action="" method="post" accept-charset="utf-8">
+        <p><label for="stddev">StdDev Threshhold:</label> <input type="text" name="stddev" value="{{.StdDevThreshhold}}" id="stddev"></p>
+        <p><label for="k">Num Clusters:</label> <input type="text" name="k" value="{{.K}}" id="k"></p>
+        <p><input type="submit" value="Recalculate"></p>
+      </form>
+    </details>
 
     <!-- Draw a plot and a word cloud for each cluster.  -->
     {{range $i, $summary := .Clusters}}

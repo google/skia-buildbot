@@ -25,7 +25,7 @@ func TestDistance(t *testing.T) {
 }
 
 func TestNewFullTraceKey(t *testing.T) {
-	ct := NewFullTrace("foo", []float64{1, -1}, map[string]string{"foo": "bar"})
+	ct := NewFullTrace("foo", []float64{1, -1}, map[string]string{"foo": "bar"}, MIN_STDDEV)
 	if got, want := ct.Key, "foo"; got != want {
 		t.Errorf("Key not set: Got %s Want %s", got, want)
 	}
@@ -64,7 +64,7 @@ func TestNewFullTrace(t *testing.T) {
 		},
 	}
 	for _, tc := range testcases {
-		ct := NewFullTrace("foo", tc.Values, map[string]string{})
+		ct := NewFullTrace("foo", tc.Values, map[string]string{}, MIN_STDDEV)
 		if got, want := ct.Values[0], 1.0; near(got, want) != tc.Near {
 			t.Errorf("Normalization failed for values %#v: near(Got %f, Want %f) != %t", tc.Values, got, want, tc.Near)
 		}

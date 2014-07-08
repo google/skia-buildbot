@@ -362,7 +362,9 @@ type ClusterSummary struct {
 // ClusterSummaries is one summary for each cluster that the k-means clustering
 // found.
 type ClusterSummaries struct {
-	Clusters []*ClusterSummary
+	Clusters         []*ClusterSummary
+	StdDevThreshhold float64
+	K                int
 }
 
 // Choices is a list of possible values for a param. See Dataset.
@@ -610,6 +612,10 @@ func (d *Data) ClusterSummaries(name config.DatasetName) *ClusterSummaries {
 
 }
 
+func (d *Data) ClusterSummariesFor(name config.DatasetName, k int, stddevThreshhold float64) *ClusterSummaries {
+	return d.allDataFromName(name).calculateClusterSummaries(k, stddevThreshhold)
+}
+
 // AsGzippedJSON returns the Dataset as gzipped JSON.
 //
 // The Dataset is already available in the form of a gzipped JSON file on disk,
@@ -750,7 +756,7 @@ func getParamSummaries(cluster []kmeans.Clusterable) [][]ValueWeight {
 }
 
 // GetClusterSummaries returns a summaries for each cluster.
-func (all *Dataset) GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterSummaries {
+func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterSummaries {
 	ret := &ClusterSummaries{
 		Clusters: make([]*ClusterSummary, len(centroids)),
 	}
@@ -778,25 +784,34 @@ func (all *Dataset) GetClusterSummaries(observations, centroids []kmeans.Cluster
 	return ret
 }
 
-// populateClusters runs k-means clustering over the trace shapes and returns
-// the clustering of those shapes via all.clusterSummaries.
-func (all *Dataset) populateClusters() {
-	begin := time.Now()
+// calculateClusterSummaries runs k-means clustering over the trace shapes.
+func (all *Dataset) calculateClusterSummaries(k int, stddevThreshhold float64) *ClusterSummaries {
 	observations := make([]kmeans.Clusterable, len(all.Traces))
 	for i, t := range all.Traces {
-		observations[i] = ctrace.NewFullTrace(t.Key, t.Values, t.Params)
+		observations[i] = ctrace.NewFullTrace(t.Key, t.Values, t.Params, stddevThreshhold)
 	}
 
 	// Create K starting centroids.
-	centroids := chooseK(observations, K)
+	centroids := chooseK(observations, k)
+	// TODO(jcgregorio) Keep iterating until the total error stops changing.
 	for i := 0; i < KMEANS_ITERATIONS; i++ {
 		centroids = kmeans.Do(observations, centroids, ctrace.CalculateCentroid)
 		glog.Infof("Total Error: %f\n", kmeans.TotalError(observations, centroids))
 	}
-	all.clusterSummaries = all.GetClusterSummaries(observations, centroids)
+	clusterSummaries := GetClusterSummaries(observations, centroids)
+	clusterSummaries.K = k
+	clusterSummaries.StdDevThreshhold = stddevThreshhold
+	return clusterSummaries
+}
+
+// populateClusters runs k-means clustering over the trace shapes and returns
+// the clustering of those shapes via all.clusterSummaries.
+func (all *Dataset) populateClusters() {
+	begin := time.Now()
+	all.clusterSummaries = all.calculateClusterSummaries(K, ctrace.MIN_STDDEV)
 	d := time.Since(begin)
 	clusterCalculationLatency.Update(d)
-	glog.Infof("Finished anomaly detection in %f s", d.Seconds())
+	glog.Infof("Finished clustering in %f s", d.Seconds())
 }
 
 // populate populates the Dataset struct with info from BigQuery or the tileDir.

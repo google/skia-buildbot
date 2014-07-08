@@ -22,3 +22,9 @@
   flex-flow: column nowrap;
   margin:  1em;
 }
+
+details {
+  background-color: aliceblue;
+  padding: 1em;
+  border: solid lightgray 1px;
+}

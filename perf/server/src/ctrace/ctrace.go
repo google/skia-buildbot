@@ -18,7 +18,7 @@ import (
 const (
 	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
 	// than this and we presume it's a standard deviation of zero.
-	MIN_STDDEV = 1e-6
+	MIN_STDDEV = 0.01
 )
 
 // ClusterableTrace contains Trace data and implements kmeans.Clusterable.
@@ -45,7 +45,7 @@ func (t *ClusterableTrace) String() string {
 
 // NewFullTrace takes data you would find in a Trace and returns a
 // ClusterableTrace usable for kmeans clustering.
-func NewFullTrace(key string, values []float64, params map[string]string) *ClusterableTrace {
+func NewFullTrace(key string, values []float64, params map[string]string, minStdDev float64) *ClusterableTrace {
 	norm := make([]float64, len(values))
 
 	// Find the first non-sentinel data point.
