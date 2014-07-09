@@ -115,7 +115,7 @@ function setup_crontab {
   echo
   echo "===== Setting up launch-on-reboot ======"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "python $SKIA_REPO_DIR/buildbot/scripts/launch_on_reboot.py"
+    "python $SKIA_REPO_DIR/buildbot/scripts/launch_on_reboot.py" \
     || FAILED="$FAILED LaunchOnReboot"
   echo
 }
@@ -133,7 +133,7 @@ function fix_gsutil_path {
 function copy_files {
   echo
   echo "===== Copying over required files. ====="
-    for REQUIRED_FILE in ${REQUIRED_FILES_FOR_SKIA_BOTS[@]}; do
+    for REQUIRED_FILE in ${REQUIRED_FILES_FOR_BOTS[@]}; do
       $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
         $REQUIRED_FILE /home/$PROJECT_USER/
       $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \

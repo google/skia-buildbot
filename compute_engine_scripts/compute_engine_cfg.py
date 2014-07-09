@@ -13,9 +13,12 @@ PROJECT_USER = 'default'
 SKIA_NETWORK_NAME = 'skia'
 SKIA_REPO_DIR = '/home/%s/storage/skia-repo' % PROJECT_USER
 SCOPES = 'https://www.googleapis.com/auth/devstorage.full_control'
-SKIA_BOT_IMAGE_NAME = 'skiatelemetry-6-0-ubuntu1310'
-# TODO(rmistry): Use n1-standard-8 when b/13454172 is resolved.
-SKIA_BOT_MACHINE_TYPE = 'n1-standard-4'
+SKIA_BOT_LINUX_IMAGE_NAME = 'skiatelemetry-6-0-ubuntu1310'
+SKIA_BOT_WIN_IMAGE_NAME = 'windows-server-2008-r2-dc'
+SKIA_BOT_MACHINE_TYPE = os.environ.get(
+    'SKIA_BOT_MACHINE_TYPE', 'n1-standard-16')
+# Options are Linux and Windows.
+VM_INSTANCE_OS = os.environ.get('VM_INSTANCE_OS', 'Linux')
 IP_ADDRESS_WITHOUT_MACHINE_PART = '108.170.192'
 VM_BOT_NAME = 'skia-vm'
 PERSISTENT_DISK_SIZE_GB = 300
@@ -30,6 +33,7 @@ PROJECT_ID = 'google.com:chromecompute'
 # We flip the default one as required by PCRs in bigcluster.
 ZONE_TAG = os.environ.get('ZONE_TAG', 'b')
 ZONE = 'us-central2-%s' % ZONE_TAG
+WINDOWS_ZONE = 'us-central2-windows'
 
 # The below constants determine which instances the delete and create/setup
 # scripts apply to.
