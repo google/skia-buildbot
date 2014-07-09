@@ -14,3 +14,5 @@ gcutil --project=$PROJECT_ID addinstance skia-monitoring-$ZONE_TAG \
                  --machine_type=$MONITORING_MACHINE_TYPE \
                  --image=$MONITORING_IMAGE \
                  --persistent_boot_disk
+
+gcutil --project=$PROJECT_ID attachdisk --disk=skia-monitoring-data-$ZONE_TAG skia-monitoring-$ZONE_TAG

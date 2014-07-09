@@ -21,6 +21,21 @@ Do once
 Make sure to 'set daemon 2' in /etc/monit/monitrc so that monit
 runs every 2 seconds.
 
+After the setup has completed once, do the following
+
+    sudo su www-data
+    cd /home/www-data/graphite/store/
+    rm -rf whisper
+    ln -s /mnt/graphite-data/whisper whisper
+
+If the data disk doesn't exist you will need to create it and attach it using
+the following:
+
+  sudo mkdir -p /mnt/graphite-data
+  sudo /usr/share/google/safe_format_and_mount -m "mkfs.ext4 -F" \
+    /dev/disk/by-id/google-skia-monitoring-data-$ZONE_TAG /mnt/graphite-data
+
+
 Do on update
 ------------
 
