@@ -4,7 +4,7 @@
  * found in the LICENSE file */
 /** Provides the logic behind the performance visualization webpage. */
 
-function assert(cond, msg) {
+function assert_(cond, msg) {
   if(!cond) {
     throw msg || "Assertion failed";
   }
@@ -162,7 +162,7 @@ function Vector() {
     firstEmpty = data.length;
   }
   this.get = function(idx) {
-    assert(idx < firstEmpty);
+    assert_(idx < firstEmpty);
     return data[idx];
   },
   this.push = function(elem) {
@@ -170,7 +170,7 @@ function Vector() {
     firstEmpty++;
   };
   this.pop = function(idx) {
-    assert(idx < firstEmpty && firstEmpty > 0);
+    assert_(idx < firstEmpty && firstEmpty > 0);
     var result = data[idx];
     data[idx] = data[firstEmpty - 1];
     data[firstEmpty - 1] = null;
@@ -263,8 +263,8 @@ var legend = (function() {
   function addToDOM(e) {
     console.log('addToDOM called');
     // console.log(e);
-    assert(e.key && e.color);
-    assert(legendBody);
+    assert_(e.key && e.color);
+    assert_(legendBody);
     var container = document.createElement('tr');
     var checkContainer = document.createElement('td');
     var checkbox = document.createElement('input');
@@ -298,7 +298,7 @@ var legend = (function() {
   }
 
   function rawAdd(key, color) {
-    assert(getComponent(internalLegend, 'key').indexOf(key) == -1);
+    assert_(getComponent(internalLegend, 'key').indexOf(key) == -1);
 
     var newPair = {key:key, color:color};
     internalLegend.push(newPair);
@@ -342,7 +342,7 @@ var legend = (function() {
         console.log('legend.refresh: fixing colors');
         // Fix the colors
         $$('tr', legendBody).forEach(function(e, idx) {
-          assert($$$('input', e).id == internalLegend[idx].key);
+          assert_($$$('input', e).id == internalLegend[idx].key);
 
           $$$('.legend-box-inner', e).style.
             border = '5px solid ' + internalLegend[idx].color;
@@ -365,7 +365,7 @@ var legend = (function() {
         }
       });
       children.forEach(function(c) {
-        assert(c.parentNode);
+        assert_(c.parentNode);
         c.parentNode.removeChild(c);
       });
       internalLegend = internalLegend.filter(function(e) {
@@ -378,7 +378,7 @@ var legend = (function() {
     /* Sets up the private variables, and a few of the relevant UI controls.*/
     init: function(showHandler, hideHandler, drawHandler) {
       console.log('Initializing legend');
-      assert(showHandler && hideHandler);
+      assert_(showHandler && hideHandler);
       legendBody = $$$('#legend table tbody');
       var _this = this;
       $$$('#nuke-plot').addEventListener('click', function(e) {
@@ -447,7 +447,7 @@ var jsonRequest = (function() {
 
     var removeSelf = function() {
       var idx = waitingHandlers.indexOf(ref);
-      assert(idx != -1);
+      assert_(idx != -1);
       waitingHandlers.splice(idx, 1);
     };
 
@@ -461,13 +461,13 @@ var jsonRequest = (function() {
         freshFiles[freshIdx].time = Date.now();
       }
       ref.callbacks.forEach(function(callback) {
-        assert(callback);
+        assert_(callback);
         callback(data, true);
       });
       removeSelf();
     }, function() {
       ref.callbacks.forEach(function(callback) {
-        assert(callback);
+        assert_(callback);
         callback(data, false);
       });
       removeSelf();
@@ -553,7 +553,7 @@ function Trace(newData, newTileID, newScale) {
 
   /* Adds a set of data to the trace.*/
   this.add = function(newData, tileId, scale) {
-    assert(newData.length > 0);
+    assert_(newData.length > 0);
     if(!data[scale]) {
       data[scale] = [];
     }
@@ -569,7 +569,7 @@ function Trace(newData, newTileID, newScale) {
 
   this.getRange = function(start, end, scale) {
     // FUTURE: Add support for downsampling on scale mismatch
-    assert(start <= end);
+    assert_(start <= end);
     var results = [];
     var tiles = data[scale];
     getTiles(scale).forEach(function(tileIdx) {
@@ -577,7 +577,7 @@ function Trace(newData, newTileID, newScale) {
         var result = [];
         var i = 0;
         while(tiles[tileIdx][i][0] < start) {
-          assert(i < tiles[tileIdx].length);
+          assert_(i < tiles[tileIdx].length);
           i++;
         }
         if(i > 0) {
@@ -618,7 +618,7 @@ var traceDict = (function() {
         ', scale = ' + scale);
     // Look for the key in the data, and store that. If no key specified, store
     // as much data as possible.
-    assert(data['traces'] && data['commits']);
+    assert_(data['traces'] && data['commits']);
 
     var commitAry = getComponent(data['commits'], 'commit_time');
     data['traces'].forEach(function(trace) {
@@ -754,7 +754,7 @@ var commitDict = (function() {
     /* Call the callback with the hash for the given timestamp.*/
     timestampToHash: function(timestamp, scale, callback) {
       var res = this.getAssociatedData(timestamp, scale, function(res) {
-        assert(res && res.hash);
+        assert_(res && res.hash);
         callback(res.hash);
       });
       return res && res.hash;
@@ -767,17 +767,17 @@ var commitDict = (function() {
       if(isManifest) {
         // it's a manifest JSON
         // FUTURE
-        assert(false, "Unimplemented");
+        assert_(false, "Unimplemented");
       } else {
         // it's a tile JSON
         // FUTURE: Remove hack when the JSON has the right format
         data['scale'] = data['scale'] || 0;
 
-        assert(data && data['commits']); // FUTURE: add: && data['scale']);
+        assert_(data && data['commits']); // FUTURE: add: && data['scale']);
         var commits = data['commits'];
         var scale = 0; // FUTURE: Replace with: parseInt(data['scale']);
         commits.forEach(function(commit) {
-          assert(commit['commit_time']);
+          assert_(commit['commit_time']);
           if(!dataDict.has(scale)) {
             dataDict.add(scale, new PagedDictionary());
           }
@@ -787,7 +787,7 @@ var commitDict = (function() {
         });
       }
       iterateAndPopCallback(function(entry) {
-        assert(entry.callback);
+        assert_(entry.callback);
         if(callbackObject.hasOwnProperty('lookup')) { // Then it's a timestamp look up
           var res = getAssociatedData(entry.timestamp, entry.scale, null);
           if(res != null) {
@@ -879,7 +879,7 @@ var schema = (function() {
     }
     var specialCases = ['children', 'text', 'attributes', 'style'];
     for(var i = 0; i < model.length; i++) {
-      assert(model[i].nodeType);
+      assert_(model[i].nodeType);
       if(i >= root.children.length || 
           root.children[i].nodeName != model[i].nodeType.toUpperCase()) {
         root.appendChild(document.createElement(model[i].nodeType));
@@ -928,14 +928,14 @@ var schema = (function() {
   return {
     /* Returns a string given the key elements in trace.*/
     makeLegendKey: function(trace, dataset) {
-      assert(trace['params']);
+      assert_(trace['params']);
       if(!dataset) {
-        assert(trace['params']['dataset']);
+        assert_(trace['params']['dataset']);
         dataset = trace['params']['dataset'];
       } else if(!trace['params']['dataset']) {
         trace['params']['dataset'] = dataset;
       }
-      assert(validKeyParts[dataset]);
+      assert_(validKeyParts[dataset]);
       return validKeyParts[dataset].map(function(part) {
         return trace['params'][part] || '';
       }).join(KEY_DELIMITER);
@@ -944,7 +944,7 @@ var schema = (function() {
     update: function(data, datasetName) {
       console.log('schema.update called: datasetName=' + datasetName);
       console.log(data);
-      assert(data['param_set']);
+      assert_(data['param_set']);
       // Update internal structure
       if(!schemaDict.has(datasetName)) {
         schemaDict.add(datasetName, new PagedDictionary());
@@ -984,7 +984,7 @@ var schema = (function() {
      * selected values as its value.*/
     getValidOptions: function(options, dataset) {
       // FUTURE: Replace with tree if not performing well enough
-      assert(validKeyParts[dataset]);
+      assert_(validKeyParts[dataset]);
       var mapOptions = function(key) {
         // Return the split string if it's valid, false otherwise.
         var parts = key.split(KEY_DELIMITER);
@@ -1020,7 +1020,7 @@ var schema = (function() {
     /* Returns a list of valid lines given the selected options.*/
     getValidLines: function(options, dataset) {
       // FUTURE: Replace with tree if not performing well enough
-      assert(validKeyParts[dataset]);
+      assert_(validKeyParts[dataset]);
       var mapOptions = function(key) {
         // Return the split string if it's valid, false otherwise.
         var parts = key.split(KEY_DELIMITER);
@@ -1035,7 +1035,7 @@ var schema = (function() {
     },
     /* Updates the selection boxes to match the ones currently in the schema.*/
     updateDOM: function() {
-      assert(currentDataset);
+      assert_(currentDataset);
       console.log('schema.updateDOM: start');
       if(!schemaDict.has(currentDataset)) {
         console.log('schema.updateDOM: Schema for selected dataset not ' +
@@ -1050,11 +1050,11 @@ var schema = (function() {
             });
         return;
       }
-      assert($$$('#line-table'));
+      assert_($$$('#line-table'));
       var inputRoot;
       if($$$('#' + currentDataset + '-set')) {
         inputRoot = $$$('#' + currentDataset + '-set');
-        assert(inputRoot.parentElement == $$$('#line-table'));
+        assert_(inputRoot.parentElement == $$$('#line-table'));
       } else {
         inputRoot = document.createElement('tr');
         inputRoot.id = currentDataset + '-set';
@@ -1189,7 +1189,7 @@ var schema = (function() {
           }
           var query = e.target.value;
           var dataset = schemaDict.get(currentDataset).get(inputId);
-          assert(dataset != null);
+          assert_(dataset != null);
           var results = dataset.filter(function(candidate) {
             return candidate.indexOf(query) != -1;
           });  // FUTURE: If this is too slow, swap with binary search

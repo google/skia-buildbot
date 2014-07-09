@@ -17,6 +17,7 @@
     "flot": "~0.8.3",
     "pointerevents-polyfill": "~0.2.0",
     "CustomElements": "~0.2.4",
-    "HTMLImports": "~0.2.3"
+    "HTMLImports": "~0.2.3",
+    "observe-js": "~0.3.3"
   }
 }

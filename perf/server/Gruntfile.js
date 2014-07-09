@@ -21,6 +21,7 @@ module.exports = function(grunt) {
           'third_party/bower_components/flot/jquery.flot.js',
           'third_party/bower_components/flot/jquery.flot.crosshair.js',
           'third_party/bower_components/flot/jquery.flot.navigate.js',
+          'third_party/bower_components/observe-js/src/observe.js',
 
           'third_party/out/WeakMap.js',
           'third_party/out/classlist.js',

@@ -16,11 +16,11 @@ ingest: src/ingest/ingest.go src/ingest/ingest_main.go
 	go build src/ingest/ingest.go src/ingest/ingest_main.go
 
 # Rebuild the third_party Javascript we use, i.e. Flot.
-res/js/perf.js: node_modules
+res/js/perf.js: node_modules Gruntfile.js bower.json
 	./node_modules/.bin/grunt
 
 # Build serving CSS from input CSS.
-res/css/perf.css: node_modules res/css/main.css
+res/css/perf.css: node_modules res/css/main.css Gruntfile.js bower.json
 	./node_modules/.bin/grunt css
 
 node_modules: package.json
