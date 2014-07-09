@@ -4,32 +4,24 @@
 
 # Setup script for Windows bots.
 
+$DebugPreference = "Continue"
 $ErrorActionPreference = "Stop"
 $WarningPreference = "Continue"
 
 $user = "chrome-bot"
 $userDir = "c:\Users\$user"
+$logFile = "$userDir\win_setup.log"
 
 Set-Location -Path $userDir
 
-
-# Update DNS Server for internet access.
-$wmi = `
-    Get-WmiObject win32_networkadapterconfiguration -filter "ipenabled = 'true'"
-$wmi.SetDNSServerSearchOrder("8.8.8.8")
-
-# Create temp directory.
-$tmp = "$userDir\tmp"
-if (!(Test-Path ($tmp))) {
-  new-item $tmp -itemtype directory
+Function log($msg) {
+  Write-Debug $msg
+  Add-Content $logFile "$msg`n"
 }
 
-# Create helpers.
-$webclient = New-Object System.Net.WebClient
-$shell = new-object -com shell.application
 Function unzip($fileName, $folder = "C:\") {
   $zip = $shell.NameSpace($fileName)
-  Write-Host "Unzip $filename to $folder"
+  log "Unzip $filename to $folder"
   foreach($item in $zip.items()) {
     $shell.Namespace($folder).copyhere($item)
   }
@@ -66,12 +58,27 @@ Function banner($title) {
   }
   $titleLine = $titleLine.PadLeft($padding + $len, $padChar)
   $titleLine = $titleLine.PadRight($bannerWidth, $padChar)
-  Write-Host ""
-  Write-Host "".PadRight($bannerWidth, $padChar)
-  Write-Host $titleLine
-  Write-Host "".PadRight($bannerWidth, $padChar)
-  Write-Host ""
+  log ""
+  log "".PadRight($bannerWidth, $padChar)
+  log $titleLine
+  log "".PadRight($bannerWidth, $padChar)
+  log ""
 }
+
+# Update DNS Server for internet access.
+$wmi = `
+    Get-WmiObject win32_networkadapterconfiguration -filter "ipenabled = 'true'"
+$wmi.SetDNSServerSearchOrder("8.8.8.8")
+
+# Create temp directory.
+$tmp = "$userDir\tmp"
+if (!(Test-Path ($tmp))) {
+  new-item $tmp -itemtype directory
+}
+
+# Create helpers.
+$webclient = New-Object System.Net.WebClient
+$shell = new-object -com shell.application
 
 banner "Install Visual Studio C++ 2008 redistributable (x86)."
 $fileName = "$tmp\vcredist_x86.exe"
