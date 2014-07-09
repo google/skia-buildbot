@@ -169,55 +169,13 @@ func tablePrefixFromDatasetName(name config.DatasetName) string {
 	return "perf_skps_v2.skpbench"
 }
 
-// readCommitsFromDB Gets commit information from SQL database and returns a
-// slice of *Commit in reverse timestamp order.
-//
-// TODO(bensong): read in a range of commits instead of the whole history.
-func readCommitsFromDB() ([]*types.Commit, error) {
-	glog.Infoln("readCommitsFromDB starting")
-	sql := fmt.Sprintf(`SELECT
-	     ts, githash, gitnumber, author, message
-	     FROM githash
-	     WHERE ts >= '%s'
-	     ORDER BY ts DESC`, config.BEGINNING_OF_TIME.SqlTsColumn())
-	s := make([]*types.Commit, 0)
-	rows, err := db.DB.Query(sql)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to query githash table: %s", err)
-	} else {
-		glog.Infoln("executed query")
-	}
-
-	for rows.Next() {
-		var ts time.Time
-		var githash string
-		var gitnumber int64
-		var author string
-		var message string
-		if err := rows.Scan(&ts, &githash, &gitnumber, &author, &message); err != nil {
-			glog.Errorf("Commits row scan error: ", err)
-			continue
-		}
-		glog.Infoln("readCommitsFromDB in row")
-		commit := types.NewCommit()
-		commit.CommitTime = ts.Unix()
-		commit.Hash = githash
-		commit.GitNumber = gitnumber
-		commit.Author = author
-		commit.CommitMessage = message
-		s = append(s, commit)
-	}
-
-	return s, nil
-}
-
 // gitCommits returns all the Commits that have associated test data, going
 // from now back to 'startTime'.
 func gitCommits(service *bigquery.Service, datasetName config.DatasetName, startTime config.QuerySince) (map[string][]string, []*types.Commit, error) {
 	dateMap := make(map[string][]string)
 	allCommits := make([]*types.Commit, 0)
 
-	commitHistory, err := readCommitsFromDB()
+	commitHistory, err := db.readCommitsFromDB()
 	if err != nil {
 		return nil, nil, fmt.Errorf("gitCommits: Did not get the commits history from the database: ", err)
 	}

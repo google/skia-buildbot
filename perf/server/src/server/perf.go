@@ -218,9 +218,28 @@ func annotationsHandler(w http.ResponseWriter, r *http.Request) {
 			reportError(w, r, err, fmt.Sprintf("Annotation request size >= max post size %d.", MAX_POST_SIZE))
 			return
 		}
-		if err := applyAnnotation(buf); err != nil {
+		if err := db.ApplyAnnotation(buf); err != nil {
 			reportError(w, r, fmt.Errorf("Annotation update error: %s", err), "Failed to change annotation in db.")
 		}
+	} else if r.Method == "GET" {
+		startTS, err := strconv.ParseInt(r.FormValue("start"), 10, 64)
+		if err != nil {
+			reportError(w, r, fmt.Errorf("Error parsing startTS: %s", err), "Failed to get startTS for querying annotations.")
+			return
+		}
+		endTS, err := strconv.ParseInt(r.FormValue("end"), 10, 64)
+		if err != nil {
+			reportError(w, r, fmt.Errorf("Error parsing endTS: %s", err), "Failed to get endTS for querying annotations.")
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		annotations, err := db.GetAnnotations(startTS, endTS)
+		if err != nil {
+			reportError(w, r, fmt.Errorf("Error getting annotations: %s", err), "Failed to read and return annotations from db.")
+			return
+		}
+		w.Write(annotations)
 	}
 }
 

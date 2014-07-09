@@ -15,7 +15,6 @@ import (
 	"os"
 	"path"
 	"sort"
-	"strings"
 	"sync"
 	"text/template"
 	"time"
@@ -35,6 +34,7 @@ import (
 	"ctrace"
 	"db"
 	"kmeans"
+	"types"
 )
 
 const (
@@ -120,226 +120,6 @@ func NewTrace(numSamples int) *Trace {
 	return t
 }
 
-// Annotations for commits.
-//
-// Will map to the table of annotation notes in MySQL. See DESIGN.md
-// for the MySQL schema.
-type Annotation struct {
-	ID     int    `json:"id"     db:"id"`
-	Notes  string `json:"notes"  db:"notes"`
-	Author string `json:"author" db:"author"`
-	Type   int    `json:"type"   db:"type"`
-}
-
-// Commit is information about each Git commit.
-type Commit struct {
-	CommitTime    int64         `json:"commit_time" bq:"timestamp" db:"ts"`
-	Hash          string        `json:"hash"        bq:"gitHash"   db:"githash"`
-	GitNumber     int64         `json:"git_number"  bq:"gitNumber" db:"gitnumber"`
-	Author        string        `json:"author"                     db:"author"`
-	CommitMessage string        `json:"commit_msg"                 db:"message"`
-	TailCommits   []*Commit     `json:"tail_commits,omitempty"`
-	Annotations   []*Annotation `json:"annotations,omitempty"`
-}
-
-func NewCommit() *Commit {
-	return &Commit{
-		TailCommits: []*Commit{},
-		Annotations: []*Annotation{},
-	}
-}
-
-// AnnotationOp holds information about annotation operations.
-//
-// "Operation" is one of "add", "edit", "delete". "Hashes" is slice of githash
-// strings associated with the annotation.
-type AnnotationOp struct {
-	Annotation Annotation `json:"annotation"`
-	Operation  string     `json:"operation"`
-	Hashes     []string   `json:"hashes"`
-}
-
-// validateAnnotation pre-checks if an AnnotationOp object looks valid.
-//
-// This does not guarantee no database operation errors, as the data may be
-// missing or have foreign key restrictions, but it should catch most common
-// mistakes.
-//
-// Returns error with message, nil if it does not detect any violations.
-func validateAnnotation(op AnnotationOp) (err error) {
-	switch op.Operation {
-	case "add":
-		// "add" must have nonempty Notes and Hashes.
-		if strings.TrimSpace(op.Annotation.Notes) == "" || len(op.Hashes) == 0 {
-			return fmt.Errorf("'add' operation cannot have empty Notes or Hashes.")
-		}
-	case "edit":
-		// "edit" must have non-negative ID and nonempty Notes.
-		if strings.TrimSpace(op.Annotation.Notes) == "" || op.Annotation.ID < 0 {
-			return fmt.Errorf("'edit' operation cannot have empty Notes '%s' or negative ID %d.", op.Annotation.Notes, op.Annotation.ID)
-		}
-	case "delete":
-		// "delete" must have non-negative ID.
-		if op.Annotation.ID < 0 {
-			return fmt.Errorf("'delete' operation cannot have negative ID: %d.", op.Annotation.ID)
-		}
-	default:
-		return fmt.Errorf("Unknown operation: ", op.Operation)
-	}
-	return nil
-}
-
-// applyAnnotation makes changes in the annotation DB based on the given data.
-func applyAnnotation(buf *bytes.Buffer) (err error) {
-	op := AnnotationOp{}
-	if err := json.Unmarshal(buf.Bytes(), &op); err != nil {
-		return fmt.Errorf("Failed to unmarshal the annotation: %s", err)
-	}
-	if err := validateAnnotation(op); err != nil {
-		return fmt.Errorf("Invalid AnnotationOp: %s", err)
-	}
-
-	switch op.Operation {
-	case "add":
-		// Use transaction to ensure atomic operations.
-		if _, err := db.DB.Exec("BEGIN"); err != nil {
-			return fmt.Errorf("Error starting transaction in add: ", err)
-		}
-		res, err := db.DB.Exec(`INSERT INTO notes
-		     (type, author, notes)
-		     VALUES (?, ?, ?)`, op.Annotation.Type, op.Annotation.Author, op.Annotation.Notes)
-		if err != nil {
-			db.DB.Exec("ROLLBACK")
-			return fmt.Errorf("Error executing sql: ", err)
-		}
-		id, err := res.LastInsertId()
-		if err != nil {
-			db.DB.Exec("ROLLBACK")
-			return fmt.Errorf("Error getting LastInsertId: ", err)
-		}
-		for i := range op.Hashes {
-			_, err := db.DB.Exec(`INSERT INTO githashnotes
-			     (githash, ts, id)
-			     VALUES (?,
-				     (SELECT ts FROM githash WHERE githash=?),
-			             ?)`, op.Hashes[i], op.Hashes[i], id)
-			if err != nil {
-				db.DB.Exec("ROLLBACK")
-				return fmt.Errorf("Error executing sql: ", err)
-			}
-		}
-		if _, err := db.DB.Exec("COMMIT"); err != nil {
-			db.DB.Exec("ROLLBACK")
-			return fmt.Errorf("Error commiting transaction in add: ", err)
-		}
-		return nil
-	case "edit":
-		_, err := db.DB.Exec(`UPDATE notes
-		     SET notes  = ?,
-                         author = ?,
-			 type   = ?
-		     WHERE id = ?`, op.Annotation.Notes, op.Annotation.Author, op.Annotation.Type, op.Annotation.ID)
-		if err != nil {
-			return fmt.Errorf("Error executing sql: ", err)
-		}
-		return nil
-	case "delete":
-		if _, err := db.DB.Exec("BEGIN"); err != nil {
-			return fmt.Errorf("Error starting transaction in delete: ", err)
-		}
-		if _, err := db.DB.Exec(`DELETE FROM notes
-		     WHERE id = ?`, op.Annotation.ID); err != nil {
-			db.DB.Exec("ROLLBACK")
-			return fmt.Errorf("Error executing sql: ", err)
-		}
-		if _, err := db.DB.Exec(`DELETE FROM githashnotes
-		     WHERE id = ?`, op.Annotation.ID); err != nil {
-			db.DB.Exec("ROLLBACK")
-			return fmt.Errorf("Error executing sql: ", err)
-		}
-		if _, err := db.DB.Exec("COMMIT"); err != nil {
-			db.DB.Exec("ROLLBACK")
-			return fmt.Errorf("Error commiting transaction in delete: ", err)
-		}
-		return nil
-	default:
-		return fmt.Errorf("Unknown operation: ", op.Operation)
-	}
-	return nil
-}
-
-// readCommitsFromDB Gets commit information from SQL database.
-// Returns a slice of *Commit in reverse timestamp order.
-// TODO(bensong): read in a range of commits instead of the whole history.
-func readCommitsFromDB() ([]*Commit, error) {
-	// m maps githash string into slice of associated *Annotations.
-	m := make(map[string][]*Annotation)
-	// Gets annotations and puts them into map m.
-	rows, err := db.DB.Query(`SELECT
-	    githashnotes.githash, githashnotes.id,
-	    notes.type, notes.author, notes.notes
-	    FROM githashnotes
-	    INNER JOIN notes
-	    ON githashnotes.id=notes.id
-	    ORDER BY githashnotes.id`)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to read annotations: %s", err)
-	}
-
-	for rows.Next() {
-		var githash string
-		var id int
-		var notetype int
-		var author string
-		var notes string
-		if err := rows.Scan(&githash, &id, &notetype, &author, &notes); err != nil {
-			glog.Infoln("Annotations row scan error: ", err)
-			continue
-		}
-		if _, ok := m[githash]; !ok {
-			m[githash] = make([]*Annotation, 0)
-		}
-		annotation := Annotation{id, notes, author, notetype}
-		m[githash] = append(m[githash], &annotation)
-	}
-
-	sql := fmt.Sprintf(`SELECT
-	     ts, githash, gitnumber, author, message
-	     FROM githash
-	     WHERE ts >= '%s'
-	     ORDER BY ts DESC`, config.BEGINNING_OF_TIME.SqlTsColumn())
-	s := make([]*Commit, 0)
-	rows, err = db.DB.Query(sql)
-	if err != nil {
-		glog.Warningln("Error querying githash table in db: ", err)
-		return nil, fmt.Errorf("Failed to query githash table: %s", err)
-	}
-
-	for rows.Next() {
-		var ts time.Time
-		var githash string
-		var gitnumber int64
-		var author string
-		var message string
-		if err := rows.Scan(&ts, &githash, &gitnumber, &author, &message); err != nil {
-			glog.Infoln("Commits row scan error: ", err)
-			continue
-		}
-		commit := NewCommit()
-		commit.CommitTime = ts.Unix()
-		commit.Hash = githash
-		commit.GitNumber = gitnumber
-		commit.Author = author
-		commit.CommitMessage = message
-		if _, ok := m[githash]; ok {
-			commit.Annotations = m[githash]
-		}
-		s = append(s, commit)
-	}
-
-	return s, nil
-}
-
 // ValueWeight is a weight proportional to the number of times the parameter
 // Value appears in a cluster. Used in ClusterSummary.
 type ValueWeight struct {
@@ -377,7 +157,7 @@ type Choices []string
 type Dataset struct {
 	Traces           []*Trace           `json:"traces"`
 	ParamSet         map[string]Choices `json:"param_set"`
-	Commits          []*Commit          `json:"commits"`
+	Commits          []*types.Commit          `json:"commits"`
 	service          *bigquery.Service
 	clusterSummaries *ClusterSummaries
 }
@@ -431,9 +211,9 @@ func tablePrefixFromDatasetName(name config.DatasetName) string {
 // Not all commits will have perf data, the builders don't necessarily run for
 // each commit.  Will limit itself to returning only the number of days that
 // are needed to get MAX_COMMITS_IN_MEMORY.
-func gitCommits(datasetName config.DatasetName, service *bigquery.Service, commitHistory []*Commit) (map[string][]string, []*Commit, error) {
+func gitCommits(datasetName config.DatasetName, service *bigquery.Service, commitHistory []*types.Commit) (map[string][]string, []*types.Commit, error) {
 	dateMap := make(map[string][]string)
-	allCommits := make([]*Commit, 0)
+	allCommits := make([]*types.Commit, 0)
 	queryTemplate := `
 SELECT
   gitHash, FIRST(timestamp) as timestamp, FIRST(gitNumber) as gitNumber
@@ -460,7 +240,7 @@ ORDER BY
 
 		gitHashesForDay := []string{}
 		for iter.Next() {
-			c := NewCommit()
+			c := types.NewCommit()
 			if err := iter.Decode(c); err != nil {
 				return nil, allCommits, fmt.Errorf("Failed reading hashes from BigQuery: %s", err)
 			}
@@ -493,7 +273,7 @@ ORDER BY
 		allCommits = allCommits[:len(allCommits)-1]
 	}
 	// Now reverse allCommits so that it is oldest first.
-	reversedCommits := make([]*Commit, len(allCommits), len(allCommits))
+	reversedCommits := make([]*types.Commit, len(allCommits), len(allCommits))
 	for i, c := range allCommits {
 		reversedCommits[len(allCommits)-i-1] = c
 	}
@@ -818,7 +598,7 @@ func (all *Dataset) populateClusters() {
 //
 // Data will only be loaded from tileDir if firstLoad is true. Data will always
 // be written back to tileDir after loading from BigQuery.
-func (all *Dataset) populate(datasetName config.DatasetName, commitHistory []*Commit, tileDir string, firstLoad bool) error {
+func (all *Dataset) populate(datasetName config.DatasetName, commitHistory []*types.Commit, tileDir string, firstLoad bool) error {
 	begin := time.Now()
 	dates, commits, err := gitCommits(datasetName, all.service, commitHistory)
 	if err != nil {
@@ -885,7 +665,7 @@ func NewDataset(service *bigquery.Service) *Dataset {
 	return &Dataset{
 		Traces:   make([]*Trace, 0),
 		ParamSet: make(map[string]Choices),
-		Commits:  make([]*Commit, 0),
+		Commits:  make([]*types.Commit, 0),
 		service:  service,
 	}
 }
@@ -920,7 +700,7 @@ func NewData(doOauth bool, gitRepoDir string, tileDir string) (*Data, error) {
 	}
 
 	// Get a map of commit records
-	commitHistory, err := readCommitsFromDB()
+	commitHistory, err := db.ReadCommitsFromDB()
 	if err != nil {
 		glog.Warningln("Did not get commit slice: ", err)
 	}
@@ -936,7 +716,7 @@ func NewData(doOauth bool, gitRepoDir string, tileDir string) (*Data, error) {
 	go func() {
 		for _ = range time.Tick(config.REFRESH_PERIOD) {
 			// Get the latest map of commit records
-			commitHistory, err := readCommitsFromDB()
+			commitHistory, err := db.ReadCommitsFromDB()
 			if err != nil {
 				glog.Warningln("Did not get new commit slice: ", err)
 			}
