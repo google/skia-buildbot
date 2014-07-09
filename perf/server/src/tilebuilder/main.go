@@ -38,6 +38,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sort"
 	"text/template"
 	"time"
 )
@@ -154,6 +155,8 @@ func startConditions(store types.TileStore) (config.QuerySince, int, error) {
 			}
 			// Start querying from the timestamp of the last commit in the last full tile.
 			startTime = config.NewQuerySince(time.Unix(tile.Commits[len(tile.Commits)-1].CommitTime, 0))
+			glog.Infof("Picking from range: First: %v", time.Unix(tile.Commits[0].CommitTime, 0))
+			glog.Infof("Picking from range: Last: %v", time.Unix(tile.Commits[len(tile.Commits)-1].CommitTime, 0))
 		}
 	}
 	return startTime, nextTile, nil
@@ -169,13 +172,23 @@ func tablePrefixFromDatasetName(name config.DatasetName) string {
 	return "perf_skps_v2.skpbench"
 }
 
+type CommitSlice []*types.Commit
+
+type CommitSliceSortable []*types.Commit
+
+func (p CommitSliceSortable) Len() int           { return len(p) }
+func (p CommitSliceSortable) Less(i, j int) bool { return p[i].CommitTime < p[j].CommitTime }
+func (p CommitSliceSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 // gitCommits returns all the Commits that have associated test data, going
 // from now back to 'startTime'.
 func gitCommits(service *bigquery.Service, datasetName config.DatasetName, startTime config.QuerySince) (map[string][]string, []*types.Commit, error) {
 	dateMap := make(map[string][]string)
 	allCommits := make([]*types.Commit, 0)
 
-	commitHistory, err := db.readCommitsFromDB()
+	commitHashMap := make(map[string]bool)
+
+	commitHistory, err := db.ReadCommitsFromDB()
 	if err != nil {
 		return nil, nil, fmt.Errorf("gitCommits: Did not get the commits history from the database: ", err)
 	}
@@ -223,18 +236,22 @@ ORDER BY
 				}
 			}
 			totalCommits++
-			allCommits = append(allCommits, c)
+			// Data may show up for a commit across more than one day, track if a
+			// commit has already been added, and only add if new.
+			if _, ok := commitHashMap[c.Hash]; !ok {
+				commitHashMap[c.Hash] = true
+				allCommits = append(allCommits, c)
+			}
 		}
 		dateMap[dates.Date()] = gitHashesForDay
 		glog.Infof("Finding hashes with data, finished day %s, total commits so far %d", dates.Date(), totalCommits)
 
 	}
-	// Now reverse allCommits so that it is oldest first.
-	reversedCommits := make([]*types.Commit, len(allCommits), len(allCommits))
-	for i, c := range allCommits {
-		reversedCommits[len(allCommits)-i-1] = c
+	sort.Sort(CommitSliceSortable(allCommits))
+	for _, c := range allCommits {
+		glog.Infof("gitCommits: allcommits: %s %d\n", c.Hash, c.CommitTime)
 	}
-	return dateMap, reversedCommits, nil
+	return dateMap, allCommits, nil
 }
 
 // populateParamSet returns the set of all possible values for all the 'params'
@@ -396,7 +413,7 @@ func updateAllTileSets(service *bigquery.Service) {
 		store := filetilestore.NewFileTileStore(*tileDir, string(datasetName))
 
 		startTime, nextTile, err := startConditions(store)
-		glog.Infoln("Found startTime", startTime, "nextTile", nextTile)
+		glog.Infoln("Found startTime", startTime.SqlTsColumn(), "nextTile", nextTile)
 		if err != nil {
 			glog.Errorf("Failed to compute start conditions for dataset %s: %s", string(datasetName), err)
 			continue
