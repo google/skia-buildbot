@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 $WarningPreference = "Continue"
 
 $user = "chrome-bot"
-$userDir = "c:\Users\$user"
+$userDir = "c:\setup\$user"
 $logFile = "$userDir\win_setup.log"
 
 Set-Location -Path $userDir
