@@ -16,8 +16,9 @@ sys.path.append(BUILDBOT_PATH)
 CHROMIUM_BUILDBOT = os.path.join(BUILDBOT_PATH, 'third_party',
                                 'chromium_buildbot')
 sys.path.append(os.path.join(CHROMIUM_BUILDBOT, 'scripts'))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'common'))
 
-from utils import android_utils, misc
+from py.utils import android_utils, misc
 
 
 class AndroidVerifyDevice:

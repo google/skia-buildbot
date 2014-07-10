@@ -6,7 +6,7 @@
 
 from flavor_utils.ssh_build_step_utils import SshBuildStepUtils
 from slave import slave_utils
-from utils import shell_utils
+from py.utils import shell_utils
 import os
 
 

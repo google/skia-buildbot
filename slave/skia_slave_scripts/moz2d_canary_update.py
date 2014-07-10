@@ -9,8 +9,8 @@
 from build_step import BuildStep
 from flavor_utils import moz2d_canary_build_step_utils
 from update import Update
-from utils import misc
-from utils import shell_utils
+from py.utils import misc
+from py.utils import shell_utils
 
 import sys
 

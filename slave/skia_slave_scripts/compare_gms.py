@@ -10,7 +10,7 @@ import os
 import sys
 
 from build_step import BuildStep, BuildStepWarning
-from utils import misc
+from py.utils import misc
 import run_gm
 import skia_vars
 

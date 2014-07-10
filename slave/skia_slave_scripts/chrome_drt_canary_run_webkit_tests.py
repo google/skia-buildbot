@@ -6,7 +6,7 @@
 """ Run the WebKit tests. """
 
 from build_step import BuildStep, BuildStepWarning
-from utils import shell_utils
+from py.utils import shell_utils
 import os
 import sys
 

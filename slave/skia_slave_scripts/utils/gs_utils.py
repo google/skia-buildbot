@@ -17,10 +17,10 @@ import shutil
 import tempfile
 import time
 
+from py.utils import shell_utils
 from slave import slave_utils
 
 import file_utils
-import shell_utils
 
 
 DEFAULT_DEST_GSBASE = 'gs://chromium-skia-gm'

@@ -6,13 +6,14 @@
 """ Check out the Skia sources. """
 
 
+from build_step import BuildStep, BuildStepFailure
+
 from common import chromium_utils
-from utils.git_utils import GIT
+from py.utils.git_utils import GIT
 from utils import file_utils
 from utils import gclient_utils
-from utils import misc
-from utils import shell_utils
-from build_step import BuildStep, BuildStepFailure
+from py.utils import misc
+from py.utils import shell_utils
 
 import ast
 import config_private

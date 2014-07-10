@@ -7,14 +7,14 @@
 
 from config_private import SKIA_GIT_URL
 from optparse import OptionParser
+from py.utils.git_utils import GIT
+from py.utils import git_utils
+from py.utils import misc
+from py.utils import shell_utils
 
-from git_utils import GIT
 import gclient_utils
-import git_utils
-import misc
 import os
 import re
-import shell_utils
 import shlex
 import sys
 import urllib2

@@ -8,8 +8,8 @@
 from default_build_step_utils import DefaultBuildStepUtils, DeviceDirs
 from slave import slave_utils
 from utils import gs_utils
-from utils import shell_utils
-from utils import ssh_utils
+from py.utils import shell_utils
+from py.utils import ssh_utils
 import os
 import posixpath
 import shutil

@@ -6,7 +6,7 @@
 """ Upload benchmark results to AppEngine.. """
 
 from build_step import BuildStep
-from utils import shell_utils
+from py.utils import shell_utils
 
 import os
 import skia_vars

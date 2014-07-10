@@ -18,7 +18,7 @@ import sys
 
 from build_step import BuildStep, BuildStepWarning
 from utils import force_update_checkout
-from utils import misc
+from py.utils import misc
 
 sys.path.append(misc.BUILDBOT_PATH)
 

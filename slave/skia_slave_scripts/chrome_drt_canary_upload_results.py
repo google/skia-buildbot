@@ -6,7 +6,7 @@
 """ Run this before running any tests. """
 
 from build_step import BuildStep
-from utils import shell_utils
+from py.utils import shell_utils
 from utils import upload_to_bucket
 import os
 import posixpath

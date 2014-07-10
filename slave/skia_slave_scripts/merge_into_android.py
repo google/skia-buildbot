@@ -13,10 +13,10 @@ import sys
 from build_step import BuildStep, BuildStepFailure, BuildStepWarning
 import skia_vars
 from sync_android import ANDROID_CHECKOUT_PATH, REPO, GitAuthenticate
-from utils.git_utils import GIT
-from utils import git_utils
-from utils import misc
-from utils import shell_utils
+from py.utils.git_utils import GIT
+from py.utils import git_utils
+from py.utils import misc
+from py.utils import shell_utils
 
 SKIA_REPO_URL = skia_vars.GetGlobalVariable('skia_git_url')
 SKIA_REV_URL = skia_vars.GetGlobalVariable('revlink_tmpl')

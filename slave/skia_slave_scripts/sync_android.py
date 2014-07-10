@@ -12,8 +12,8 @@ import shlex
 import sys
 
 from build_step import BuildStep
-from utils import misc
-from utils import shell_utils
+from py.utils import misc
+from py.utils import shell_utils
 from utils.gclient_utils import GIT
 
 

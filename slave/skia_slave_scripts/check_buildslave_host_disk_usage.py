@@ -11,7 +11,7 @@ import re
 import sys
 
 from build_step import BuildStep, BuildStepWarning, BuildStepFailure
-from utils import misc
+from py.utils import misc
 
 sys.path.append(misc.BUILDBOT_PATH)
 

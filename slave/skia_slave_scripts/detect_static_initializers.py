@@ -5,8 +5,8 @@
 
 """ Detect static initializers in compiled Skia code. """
 
-from utils import shell_utils
 from build_step import BuildStep, BuildStepWarning
+from py.utils import shell_utils
 import os
 import re
 import sys

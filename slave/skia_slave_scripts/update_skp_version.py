@@ -12,9 +12,9 @@ import time
 
 from build_step import BuildStep
 from config_private import SKIA_GIT_URL
-from utils.git_utils import GIT
-from utils import misc
-from utils import shell_utils
+from py.utils.git_utils import GIT
+from py.utils import misc
+from py.utils import shell_utils
 
 
 CHROMIUM_SKIA = 'https://chromium.googlesource.com/skia.git'

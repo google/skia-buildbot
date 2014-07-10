@@ -13,8 +13,8 @@ import sys
 
 from build_step import BuildStep
 from slave import slave_utils
-from utils import misc
-from utils import shell_utils
+from py.utils import misc
+from py.utils import shell_utils
 
 sys.path.append(misc.BUILDBOT_PATH)
 

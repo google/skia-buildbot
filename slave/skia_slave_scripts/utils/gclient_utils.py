@@ -8,10 +8,10 @@
 
 from common import find_depot_tools
 
-from git_utils import GIT
-import misc
+from py.utils.git_utils import GIT
+from py.utils import shell_utils
+from py.utils import misc
 import os
-import shell_utils
 
 
 WHICH = 'where' if os.name == 'nt' else 'which'

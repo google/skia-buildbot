@@ -6,8 +6,8 @@ import datetime
 import os
 import sys
 
-from utils import shell_utils
-from utils import ssh_utils
+from py.utils import shell_utils
+from py.utils import ssh_utils
 from flavor_utils.ssh_build_step_utils import SshBuildStepUtils
 
 class Arm64ModelBuildStepUtils(SshBuildStepUtils):

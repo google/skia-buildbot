@@ -13,7 +13,7 @@ To test:
     --source_filepath=../../../DEPS --dest_gsbase=gs://chromium-skia-gm
 """
 
-from utils import misc
+from py.utils import misc
 import optparse
 import os
 import sys

@@ -9,14 +9,16 @@ import os
 import sys
 import unittest
 
-from utils import misc
+BUILDBOT_PATH = os.path.realpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir))
+
 # Appending to PYTHONPATH to find common and config.
-sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot', 'scripts'))
-sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
+sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot', 'site_config'))
-sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
-                             'chromium_buildbot', 'third_party', 'twisted_8_1'))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
+                             'third_party', 'twisted_8_1'))
 import upload_bench_results
 
 

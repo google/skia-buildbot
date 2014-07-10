@@ -9,7 +9,7 @@ import shutil
 import sys
 
 from utils import file_utils
-from utils import shell_utils
+from py.utils import shell_utils
 
 
 class DeviceDirs(object):

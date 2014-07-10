@@ -11,7 +11,8 @@ import shutil
 import sys
 
 from build_step import BuildStep
-from utils import file_utils, shell_utils
+from utils import file_utils
+from py.utils import shell_utils
 
 DOXYFILE_BASENAME = 'Doxyfile'  # must match name of Doxyfile in skia root
 DOXYGEN_BINARY = 'doxygen'

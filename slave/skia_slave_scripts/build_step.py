@@ -19,16 +19,22 @@ import traceback
 
 from playback_dirs import LocalSkpPlaybackDirs
 from playback_dirs import StorageSkpPlaybackDirs
-from utils import misc
 
+BUILDBOT_PATH = os.path.realpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir))
 
 # Add important directories to the PYTHONPATH
-sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'site_config'))
-sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'master'))
+sys.path.append(os.path.join(BUILDBOT_PATH))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'site_config'))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'master'))
+sys.path.insert(0, os.path.join(BUILDBOT_PATH, 'common'))
 
 import builder_name_schema
 import slave_hosts_cfg
 import slaves_cfg
+
+from py.utils import misc
+
 
 DEFAULT_TIMEOUT = 4800
 DEFAULT_NO_OUTPUT_TIMEOUT = 3600

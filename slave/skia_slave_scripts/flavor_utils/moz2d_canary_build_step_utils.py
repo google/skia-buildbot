@@ -7,8 +7,8 @@
 
 from common import chromium_utils
 from default_build_step_utils import DefaultBuildStepUtils
-from utils import misc
-from utils import shell_utils
+from py.utils import misc
+from py.utils import shell_utils
 
 import os
 

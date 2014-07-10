@@ -17,12 +17,8 @@ import skia_vars
 import sys
 
 from build_step import BuildStep, BuildStepWarning
-from utils import force_update_checkout
-from utils import misc
-
-sys.path.append(misc.BUILDBOT_PATH)
-
 from scripts import run_cmd
+from utils import force_update_checkout
 
 
 BUILDBOT_GIT_URL = skia_vars.GetGlobalVariable('buildbot_git_url')

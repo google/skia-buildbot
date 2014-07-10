@@ -5,9 +5,9 @@
 """ Utilities for Android build steps. """
 
 from default_build_step_utils import DefaultBuildStepUtils, DeviceDirs
-from utils import android_utils
+from py.utils import android_utils
 from utils import gs_utils
-from utils import shell_utils
+from py.utils import shell_utils
 
 import os
 import posixpath

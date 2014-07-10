@@ -9,7 +9,7 @@ import os
 import sys
 
 from build_step import BuildStep
-from utils import shell_utils
+from py.utils import shell_utils
 
 
 class RunGmSelfTests(BuildStep):

@@ -6,7 +6,7 @@
 """ Check for regressions in bench data. """
 
 from build_step import BuildStep
-from utils import shell_utils
+from py.utils import shell_utils
 
 import builder_name_schema
 import os

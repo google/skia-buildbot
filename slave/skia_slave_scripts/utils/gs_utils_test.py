@@ -6,27 +6,28 @@
 """Tests for module gs_utils."""
 
 import __builtin__
-import misc
 import os
 import posixpath
-import shell_utils
 import shutil
 import sys
 import tempfile
 import time
 
 # Appending to PYTHONPATH to find common.
-sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
-                             'chromium_buildbot', 'scripts'))
-sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
-                             'chromium_buildbot', 'scripts', 'common'))
-sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
-                             'chromium_buildbot', 'site_config'))
-sys.path.append(os.path.join(misc.BUILDBOT_PATH, 'third_party',
-                             'chromium_buildbot', 'third_party',
-                             'twisted_10_2'))
+BUILDBOT_PATH = os.path.realpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, os.pardir)
+)
+sys.path.append(os.path.join(BUILDBOT_PATH, 'common'))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
+                             'scripts'))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
+                             'scripts', 'common'))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
+                             'site_config'))
+sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
+                             'third_party', 'twisted_10_2'))
 
-
+from py.utils import shell_utils
 from slave import slave_utils
 import gs_utils
 import unittest
