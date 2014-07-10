@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -28,9 +27,10 @@ var (
 	DB *sql.DB = nil
 )
 
-func init() {
-	flag.Parse()
-
+// Init must be called once before DB is used.
+//
+// Since it used glog, make sure it is also called after flag.Parse is called.
+func Init() {
 	// Connect to MySQL server. First, get the password from the metadata server.
 	// See https://developers.google.com/compute/docs/metadata#custom.
 	req, err := http.NewRequest("GET", "http://metadata/computeMetadata/v1/instance/attributes/readwrite", nil)
@@ -88,13 +88,13 @@ func init() {
 		_, err = DB.Exec(sql)
 		glog.Infoln("Status creating sqlite table for githashnotes:", err)
 
-                sql = `CREATE TABLE shortcuts (
+		sql = `CREATE TABLE shortcuts (
             id      INT         NOT NULL PRIMARY KEY,
             traces  MEDIUMTEXT  NOT NULL
             )`
 
-                _, err = DB.Exec(sql)
-                glog.Infoln("Status creating sqlite table for shortcuts:", err)
+		_, err = DB.Exec(sql)
+		glog.Infoln("Status creating sqlite table for shortcuts:", err)
 	}
 
 	// Ping the database to keep the connection fresh.
@@ -304,7 +304,7 @@ func GetAnnotations(startTS, endTS int64) ([]byte, error) {
 
 	b, err := json.Marshal(m)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to marshal JSON annotations: %s", err);
+		return nil, fmt.Errorf("Failed to marshal JSON annotations: %s", err)
 	}
 	return b, nil
 }

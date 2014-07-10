@@ -3,13 +3,15 @@ package main
 import (
 	"flag"
 	"time"
+)
 
-        "github.com/golang/glog"
+import (
+	"github.com/golang/glog"
 )
 
 var (
-	runOnce = flag.Bool("run_once", false, "Determines if the ingestor will run a single time or at intervals")
-	pollInterval  = flag.Duration("poll_every", time.Duration(900) * time.Second, "Number of seconds between polls")
+	runOnce       = flag.Bool("run_once", false, "Determines if the ingestor will run a single time or at intervals")
+	pollInterval  = flag.Duration("poll_every", time.Duration(900)*time.Second, "Number of seconds between polls")
 	useOAuth      = flag.Bool("oauth", true, "Run OAuth to authenticate user")
 	bqDestDataset = flag.String("bq_dataset", "", "Destination BQ dataset for custom jobs")
 	bqDestTable   = flag.String("bq_table", "", "Destination BQ table for custom jobs")
@@ -26,11 +28,11 @@ func main() {
 		switch {
 		case !(*runOnce):
 			for _ = range time.Tick(*pollInterval) {
-                                err := ingester.NormalUpdate()
-                                if err != nil {
-                                    glog.Errorln("Update failed with error")
-                                    glog.Errorln(err)
-                                }
+				err := ingester.NormalUpdate()
+				if err != nil {
+					glog.Errorln("Update failed with error")
+					glog.Errorln(err)
+				}
 				time.Sleep(time.Duration(*pollInterval) * time.Second)
 			}
 		case len(*bqDestDataset) > 0 || len(*bqDestTable) > 0 || len(*csSrcDir) > 0:

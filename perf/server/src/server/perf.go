@@ -6,7 +6,7 @@ package main
 
 import (
 	"bytes"
-        "encoding/json"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -16,7 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-        "sort"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -29,7 +29,7 @@ import (
 
 import (
 	"config"
-        "db"
+	"db"
 )
 
 var (
@@ -43,7 +43,7 @@ var (
 
 	clustersHandlerPath = regexp.MustCompile(`/clusters/([a-z]*)$`)
 
-        shortcutHandlerPath = regexp.MustCompile(`/shortcuts/([0-9]*)$`)
+	shortcutHandlerPath = regexp.MustCompile(`/shortcuts/([0-9]*)$`)
 )
 
 // flags
@@ -63,9 +63,7 @@ const (
 	MAX_POST_SIZE = 64000
 )
 
-func init() {
-	flag.Parse()
-
+func Init() {
 	rand.Seed(time.Now().UnixNano())
 
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
@@ -85,7 +83,6 @@ func init() {
 
 	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
 	clusterTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/clusters.html")))
-
 }
 
 // reportError formats an HTTP error response and also logs the detailed error message.
@@ -96,79 +93,79 @@ func reportError(w http.ResponseWriter, r *http.Request, err error, message stri
 }
 
 type TracesShortcut struct {
-    Keys []string     `json:"keys"`
+	Keys []string `json:"keys"`
 }
 
 type ShortcutResponse struct {
-    Id      int64       `json:"id"`
+	Id int64 `json:"id"`
 }
 
 // showcutHandler handles the POST and GET requests of the shortcut page.
 func shortcutHandler(w http.ResponseWriter, r *http.Request) {
-    // TODO(kelvinly/jcgregorio?): Add unit testing later
-    match := shortcutHandlerPath.FindStringSubmatch(r.URL.Path)
-    if match == nil {
-            http.NotFound(w, r)
-            return
-    }
-    if r.Method == "GET" {
-        var traces string
-        err := db.DB.QueryRow(`SELECT traces FROM shortcuts WHERE id =?`, match[1]).Scan(&traces)
-        if err != nil {
-            reportError(w, r, err, "Error while looking up shortcut.")
-            return
-        }
-        w.Header().Set("Content-Type", "application/json")
-        w.Write([]byte(traces))
-    } else if r.Method == "POST" {
-        r.ParseForm()
-        if traces := r.Form.Get("data"); len(traces) <= 0 {
-            reportError(w, r, fmt.Errorf("Unable to extract list of traces."), "Unable to process request.")
-            return
-        } else {
-            // Validate by successfully marshalling and unmarshalling
-            var marshalledShortcuts TracesShortcut
-            err := json.Unmarshal([]byte(traces), &marshalledShortcuts)
-            if err != nil {
-                reportError(w, r, err, "Error while validating input.")
-                return
-            }
-            // Sort them so any set of traces will always result in the same
-            // JSON
-            if len(marshalledShortcuts.Keys) <= 0 {
-                reportError(w, r, fmt.Errorf("Invalid input."), "Unable to process request.")
-                return
-            }
-            sort.Strings(marshalledShortcuts.Keys)
-            formattedKeys, err := json.Marshal(marshalledShortcuts)
-            if err != nil {
-                reportError(w, r, err, "Error while validating input.")
-                return
-            }
-            result, err := db.DB.Exec(`INSERT INTO shortcuts (traces) VALUES (?)`,
-                    string(formattedKeys))
-            if err != nil {
-                reportError(w, r, err, fmt.Sprintf("Error while inserting traces %s", traces))
-                return
-            }
-            id, err := result.LastInsertId()
-            if err != nil {
-                reportError(w, r, err, "Error while looking at ID of new traces.")
-                return
-            }
-            w.Header().Set("Content-Type", "application/text")
-            responseBytes, err := json.Marshal(ShortcutResponse { Id: id })
-            if err != nil {
-                reportError(w, r, err, "Error while marshalling response.")
-                return
-            }
-            _, err = w.Write(responseBytes)
-            if err != nil {
-                reportError(w, r, err, "Error while writing result.")
-                return
-            }
-        }
-    }
+	// TODO(kelvinly/jcgregorio?): Add unit testing later
+	match := shortcutHandlerPath.FindStringSubmatch(r.URL.Path)
+	if match == nil {
+		http.NotFound(w, r)
+		return
+	}
+	if r.Method == "GET" {
+		var traces string
+		err := db.DB.QueryRow(`SELECT traces FROM shortcuts WHERE id =?`, match[1]).Scan(&traces)
+		if err != nil {
+			reportError(w, r, err, "Error while looking up shortcut.")
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(traces))
+	} else if r.Method == "POST" {
+		r.ParseForm()
+		if traces := r.Form.Get("data"); len(traces) <= 0 {
+			reportError(w, r, fmt.Errorf("Unable to extract list of traces."), "Unable to process request.")
+			return
+		} else {
+			// Validate by successfully marshalling and unmarshalling
+			var marshalledShortcuts TracesShortcut
+			err := json.Unmarshal([]byte(traces), &marshalledShortcuts)
+			if err != nil {
+				reportError(w, r, err, "Error while validating input.")
+				return
+			}
+			// Sort them so any set of traces will always result in the same
+			// JSON
+			if len(marshalledShortcuts.Keys) <= 0 {
+				reportError(w, r, fmt.Errorf("Invalid input."), "Unable to process request.")
+				return
+			}
+			sort.Strings(marshalledShortcuts.Keys)
+			formattedKeys, err := json.Marshal(marshalledShortcuts)
+			if err != nil {
+				reportError(w, r, err, "Error while validating input.")
+				return
+			}
+			result, err := db.DB.Exec(`INSERT INTO shortcuts (traces) VALUES (?)`,
+				string(formattedKeys))
+			if err != nil {
+				reportError(w, r, err, fmt.Sprintf("Error while inserting traces %s", traces))
+				return
+			}
+			id, err := result.LastInsertId()
+			if err != nil {
+				reportError(w, r, err, "Error while looking at ID of new traces.")
+				return
+			}
+			w.Header().Set("Content-Type", "application/text")
+			responseBytes, err := json.Marshal(ShortcutResponse{Id: id})
+			if err != nil {
+				reportError(w, r, err, "Error while marshalling response.")
+				return
+			}
+			_, err = w.Write(responseBytes)
+			if err != nil {
+				reportError(w, r, err, "Error while writing result.")
+				return
+			}
+		}
+	}
 }
 
 // clusterHandler handles the GET of the clusters page.
@@ -278,6 +275,8 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 
+	Init()
+	db.Init()
 	glog.Infoln("Begin loading data.")
 	var err error
 	data, err = NewData(*doOauth, *gitRepoDir, *tileDir)
@@ -290,7 +289,7 @@ func main() {
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc("/json/", jsonHandler) // We pre-gzip this ourselves.
-        http.HandleFunc("/shortcuts/", shortcutHandler)
+	http.HandleFunc("/shortcuts/", shortcutHandler)
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
 	http.HandleFunc("/annotations/", autogzip.HandleFunc(annotationsHandler))
 

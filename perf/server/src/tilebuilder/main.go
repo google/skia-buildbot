@@ -88,7 +88,7 @@ type TraceQuery struct {
 	Timestamp         int64
 }
 
-func init() {
+func Init() {
 	// Initialize the metrics.
 	for _, datasetName := range config.ALL_DATASET_NAMES {
 		name := string(datasetName)
@@ -129,7 +129,6 @@ func init() {
 	addr, _ := net.ResolveTCPAddr("tcp", "skia-monitoring-b:2003")
 	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "tilepipeline", addr)
 
-	flag.Parse()
 }
 
 // startConditions returns the time from which queries should be made, the index
@@ -457,6 +456,8 @@ func updateAllTileSets(service *bigquery.Service) {
 }
 
 func main() {
+	flag.Parse()
+	Init()
 	var err error
 	var client *http.Client
 	if *doOauth {
