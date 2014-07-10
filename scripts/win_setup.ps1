@@ -32,16 +32,16 @@ Function addToPath($dir) {
   If (!$dir) { Return }
 
   # Retrieve the current PATH from the registry.
-  $envRegPath = ('Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\' +
-                 'Control\Session Manager\Environment')
+  $envRegPath = ("Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\" +
+                 "Control\Session Manager\Environment")
   $oldPath = (Get-ItemProperty -Path $envRegPath -Name PATH).Path
 
   # Don't add duplicates to PATH.
   $oldPath.Split(";") | ForEach { If ($_ -eq $dir) { Return } }
 
   # Override PATH
-  $newPath=$oldPath+’;’+$dir
-  Set-ItemProperty -Path $envRegPath -Name PATH –Value $newPath
+  $newPath=$oldPath+";"+$dir
+  Set-ItemProperty -Path $envRegPath -Name PATH -Value $newPath
   $actualPath = (Get-ItemProperty -Path $envRegPath -Name PATH).Path
   $ENV:PATH = $actualPath
 }
@@ -64,6 +64,10 @@ Function banner($title) {
   log "".PadRight($bannerWidth, $padChar)
   log ""
 }
+
+# TODO(borenet): This top-level try/catch is really stupid, but I don't know
+# how to get errors logged to a file.
+try {
 
 # Update DNS Server for internet access.
 $wmi = `
@@ -146,3 +150,10 @@ if (!(Test-Path ("$winDbgFolder\x64"))) {
 $x64lib = ("$depotToolsPath\win_toolchain\vs2013_files\win8sdk\Debuggers\lib\" +
            "x64\dbghelp.lib")
 $shell.NameSpace("$winDbgFolder\x64").copyhere($x64lib, 0x14)
+
+
+} catch {
+  log "ERROR:"
+  log $_.Message
+}
+
