@@ -6,7 +6,7 @@
 
 from default_build_step_utils import DefaultBuildStepUtils, DeviceDirs
 from py.utils import android_utils
-from utils import gs_utils
+from utils import old_gs_utils as gs_utils
 from py.utils import shell_utils
 
 import os

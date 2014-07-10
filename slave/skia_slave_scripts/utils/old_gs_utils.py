@@ -5,8 +5,10 @@
 
 """This module contains utilities related to Google Storage manipulations.
 
-TODO(epoger): Make this use google-api-python-client rather than the gsutil
-tool.  See http://skbug.com/2618 .
+TODO(epoger): Replace this old gs_utils.py with a new one, within the common
+repo, that uses google-api-python-client rather than the gsutil tool.
+See http://skbug.com/2618 ('buildbot code: use google-api-python-client instead
+of gsutil tool')
 """
 
 import hashlib

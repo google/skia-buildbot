@@ -12,7 +12,7 @@ import posixpath
 import skia_vars
 import sys
 
-from utils import gs_utils
+from utils import old_gs_utils as gs_utils
 from utils import sync_bucket_subdir
 from build_step import PLAYBACK_CANNED_ACL
 from build_step import BuildStep

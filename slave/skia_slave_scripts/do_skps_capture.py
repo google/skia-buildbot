@@ -12,7 +12,7 @@ import posixpath
 import sys
 
 from build_step import BuildStep
-from utils import gs_utils
+from utils import old_gs_utils as gs_utils
 from py.utils import shell_utils
 
 

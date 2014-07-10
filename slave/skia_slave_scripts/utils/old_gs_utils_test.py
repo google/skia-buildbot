@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Tests for module gs_utils."""
+"""Tests for module old_gs_utils."""
 
 import __builtin__
 import os
@@ -29,7 +29,7 @@ sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
 
 from py.utils import shell_utils
 from slave import slave_utils
-import gs_utils
+import old_gs_utils as gs_utils
 import unittest
 
 

@@ -69,7 +69,7 @@ sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
                              'site_config'))
 
 from utils import file_utils
-from utils import gs_utils
+from utils import old_gs_utils as gs_utils
 from py.utils import misc
 from py.utils import shell_utils
 

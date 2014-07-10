@@ -10,7 +10,7 @@ import posixpath
 import sys
 
 from build_step import BuildStep, PLAYBACK_CANNED_ACL
-from utils import gs_utils
+from utils import old_gs_utils as gs_utils
 import skia_vars
 
 GS_SUMMARIES_BUCKET = 'gs://chromium-skia-skp-summaries'

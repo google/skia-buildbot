@@ -26,7 +26,7 @@ python ../../../../../../slave/skia_slave_scripts/check_gs_timestamps.py \
 import posixpath
 import sys
 
-from utils import gs_utils
+from utils import old_gs_utils as gs_utils
 from utils import sync_bucket_subdir
 
 import build_step

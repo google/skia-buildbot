@@ -6,7 +6,7 @@
 """ Upload actual GM results to the cloud to allow for rebaselining."""
 
 from build_step import BuildStep
-from utils import gs_utils
+from utils import old_gs_utils as gs_utils
 import os
 import posixpath
 import re

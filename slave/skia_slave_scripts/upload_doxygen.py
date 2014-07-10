@@ -3,15 +3,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# pylint: disable=C0301
 """Uploads Doxygen documentation to Google Storage, where it can be browsed at
 http://chromium-skia-gm.commondatastorage.googleapis.com/doxygen/doxygen/html/index.html
 """
+# pylint: enable=C0301
 
 import posixpath
 import sys
 
 from build_step import BuildStep
-from utils import gs_utils
+from utils import old_gs_utils as gs_utils
 import generate_doxygen
 import skia_vars
 
