@@ -46,6 +46,7 @@ perf/server/perf
 perf/server/perf.db
 perf/server/data
 perf/server/server
+perf/server/tilebuilder
 perf/server/ingest
 perf/server/ingest.lock
 perf/server/ingestbqtoken.data
