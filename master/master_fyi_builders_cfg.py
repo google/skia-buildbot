@@ -76,7 +76,7 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
   #    Role,   OS,         Model,         GPU,      Arch,      Config,   Extra Config,GYP_DEFS,Factory,  Target, Scheduler,   Extra Args
   #
   builder_specs = [
-      ('Test', 'Linux',       'Bare',  'NoGPU',  'Arm8_64', 'Debug',   None,        None,    f_a64mod, LINUX,  S_PERCOMMIT, {'board': 'arm64emu', 'bench_pictures_cfg': 'no_gpu', 'default_timeout': 100000}),
+      ('Test', 'Linux',       'Bare',  'NoGPU',     'Arm64',   'Debug',  None,        None,    f_a64mod, LINUX,  S_PERCOMMIT, {'board': 'arm64emu', 'bench_pictures_cfg': 'no_gpu', 'default_timeout': 100000}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(

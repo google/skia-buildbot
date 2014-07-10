@@ -52,8 +52,10 @@ ARCH_TO_GYP_DEFINE = {
   'x86': {'skia_arch_width': '32'},
   'x86_64': {'skia_arch_width': '64'},
   'Arm7': {'skia_arch_width': '32'},
-  'Arm8_64': {'skia_arch_width': '64'},
-  'Mips': None,
+  'Arm64': {'skia_arch_width': '64'},
+  'Mips': {'skia_arch_width': '32'},
+  'Mips64': {'skia_arch_width': '64'},
+  'MipsDSP2': {'skia_arch_width': '32'},
   'NaCl': None,
 }
 
