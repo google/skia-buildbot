@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -127,6 +128,14 @@ type ValueWeight struct {
 	Weight int
 }
 
+// StepFit stores information on the best Step Function fit on a trace.
+// Deviation is the Least Absolute Deviation divided by the step size.
+// TurningPoint is the point index from where the Step Function changes value.
+type StepFit struct {
+	Deviation float64
+	StepSize  float64
+}
+
 // ClusterSummary is a summary of a single cluster of traces.
 type ClusterSummary struct {
 	// Traces contains at most NUM_SAMPLE_TRACES_PER_CLUSTER sample traces, the first is the centroid.
@@ -137,6 +146,9 @@ type ClusterSummary struct {
 
 	// ParamSummaries is a summary of all the parameters in the cluster.
 	ParamSummaries [][]ValueWeight
+
+	// StepFit is info on the best Step Function fit of the centroid.
+	StepFit StepFit
 }
 
 // ClusterSummaries is one summary for each cluster that the k-means clustering
@@ -535,6 +547,46 @@ func getParamSummaries(cluster []kmeans.Clusterable) [][]ValueWeight {
 	return ret
 }
 
+// average calculates and returns the average value of the given []float64.
+func average(xs[]float64)float64 {
+	total := 0.0
+	for _,v := range xs {
+		total += v
+	}
+	return total / float64(len(xs))
+}
+
+// sse calculates and returns the sum squared error from the given base of []float64.
+func sse(xs[]float64, base float64)float64 {
+	total := 0.0
+	for _,v := range xs {
+		total += math.Pow(v - base, 2)
+	}
+	return total
+}
+
+// getStepFit takes one []float64 trace and calculates and returns its StepFit.
+func getStepFit(trace []float64) StepFit {
+	deviation := math.MaxFloat64
+	stepSize := -1.0
+	for i := range trace {
+		if i == 0 {
+			continue
+		}
+		y0 := average(trace[:i])
+		y1 := average(trace[i:])
+		if y0 == y1 {
+			continue
+		}
+		d := math.Sqrt(sse(trace[:i], y0) + sse(trace[i:], y1)) / float64(len(trace))
+		if d < deviation {
+			deviation = d
+			stepSize = math.Abs(y0 - y1)
+		}
+	}
+	return StepFit{deviation, stepSize}
+}
+
 // GetClusterSummaries returns a summaries for each cluster.
 func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterSummaries {
 	ret := &ClusterSummaries{
@@ -551,6 +603,8 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterS
 			Keys:           make([]string, len(cluster)),
 			Traces:         make([][][]float64, numSampleTraces),
 			ParamSummaries: getParamSummaries(cluster),
+			// Try fit on the centroid.
+			StepFit:        getStepFit(cluster[0].(*ctrace.ClusterableTrace).Values),
 		}
 		for j, o := range cluster {
 			summary.Keys[j] = o.(*ctrace.ClusterableTrace).Key

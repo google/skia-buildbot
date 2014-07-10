@@ -23,7 +23,7 @@
     <!-- Draw a plot and a word cloud for each cluster.  -->
     {{range $i, $summary := .Clusters}}
       <div id="placeholder{{$i}}" class=graph></div>
-      Cluster has {{len $summary.Keys}} members.
+      Cluster has {{len $summary.Keys}} members, with StepFit deviation {{$summary.StepFit.Deviation}} in step size {{$summary.StepFit.StepSize}}.
       <button type="submit" class=expander>+</button>
       <!-- Draw a word cloud based on the parameters for each member of cluster.  -->
       <div class=cloud>
