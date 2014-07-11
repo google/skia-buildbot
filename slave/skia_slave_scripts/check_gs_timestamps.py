@@ -26,13 +26,12 @@ python ../../../../../../slave/skia_slave_scripts/check_gs_timestamps.py \
 import posixpath
 import sys
 
+from build_step import BuildStep
 from utils import old_gs_utils as gs_utils
 from utils import sync_bucket_subdir
 
-import build_step
 
-
-class CheckGoogleStorageTimestamps(build_step.BuildStep):
+class CheckGoogleStorageTimestamps(BuildStep):
 
   def _Run(self):
     dest_gsbase = (self._args.get('dest_gsbase') or
@@ -107,4 +106,4 @@ class CheckGoogleStorageTimestamps(build_step.BuildStep):
 
 
 if '__main__' == __name__:
-  sys.exit(build_step.BuildStep.RunBuildStep(CheckGoogleStorageTimestamps))
+  sys.exit(BuildStep.RunBuildStep(CheckGoogleStorageTimestamps))
