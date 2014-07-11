@@ -36,6 +36,9 @@ var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
 
+	// index2Template is the main index.html page we serve.
+	index2Template *template.Template = nil
+
 	// clusterTemplate is the /clusters/ page we serve.
 	clusterTemplate *template.Template = nil
 
@@ -82,6 +85,7 @@ func Init() {
 	}
 
 	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
+	index2Template = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index2.html")))
 	clusterTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/clusters.html")))
 }
 
@@ -261,6 +265,17 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// main2Handler handles the GET of the main page.
+func main2Handler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Main2 Handler: %q\n", r.URL.Path)
+	if r.Method == "GET" {
+		w.Header().Set("Content-Type", "text/html")
+		if err := index2Template.Execute(w, struct{}{}); err != nil {
+			glog.Errorln("Failed to expand template:", err)
+		}
+	}
+}
+
 // mainHandler handles the GET of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Main Handler: %q\n", r.URL.Path)
@@ -288,6 +303,7 @@ func main() {
 	http.Handle("/res/", autogzip.Handle(http.FileServer(http.Dir("./"))))
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
+	http.HandleFunc("/index2", autogzip.HandleFunc(main2Handler))
 	http.HandleFunc("/json/", jsonHandler) // We pre-gzip this ourselves.
 	http.HandleFunc("/shortcuts/", shortcutHandler)
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
