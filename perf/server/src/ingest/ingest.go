@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+        "net"
 	"net/http"
 	"sort"
 	"strconv"
@@ -18,6 +19,8 @@ import (
 	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/golang/glog"
 	"github.com/oxtoacart/webbrowser"
+
+        "github.com/rcrowley/go-metrics"
 )
 
 var (
@@ -31,6 +34,11 @@ var (
 		RedirectURL: "urn:ietf:wg:oauth:2.0:oob",
 		TokenCache:  oauth.CacheFile("ingestbqtoken.data"),
 	}
+
+        datasetsWithMetrics = []string{"perf_skps_gotest", "perf_bench_gotest"}
+        bytesAddedGauge = map[string]metrics.Gauge{}
+        bytesSuccessfullyAddedGauge = map[string]metrics.Gauge{}
+        ingestionLatency metrics.Timer
 )
 
 const (
@@ -38,6 +46,20 @@ const (
 	BEGINNING_OF_TIME  = 1401840000
 	_CS_PROJECT_BUCKET = "chromium-skia-gm"
 )
+
+func Init() {
+    for _, dataset := range(datasetsWithMetrics) {
+        bytesAddedGauge[dataset] = metrics.NewRegisteredGauge(fmt.Sprintf("ingest.%s.bytes_in", dataset), metrics.DefaultRegistry)
+        bytesSuccessfullyAddedGauge[dataset] = metrics.NewRegisteredGauge(fmt.Sprintf("ingest.%s.bytes_out", dataset), metrics.DefaultRegistry)
+    }
+
+    ingestionLatency = metrics.NewRegisteredTimer("ingest.time_elapsed", metrics.DefaultRegistry)
+
+    metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
+    go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
+    addr, _ := net.ResolveTCPAddr("tcp", "jcgregorio.cnc:2003")
+    go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "ingester", addr)
+}
 
 // authBigQuery authenticates and returns a usable bigquery Service object.
 func authBigQuery(useOauth bool) (*bigquery.Service, error) {
@@ -394,11 +416,45 @@ func isFinished(job *Job, finished []*Job) bool {
 	return false
 }
 
+// getDatasetName extracts the dataset name from a job, returning nil if it can't find it.
+func getDatasetName(job* bigquery.Job) string {
+    if job.Configuration == nil {
+        return ""
+    }
+    if job.Configuration.Load == nil {
+        return ""
+    }
+    // Is this one required?
+    if job.Configuration.Load.DestinationTable == nil {
+        return ""
+    }
+    return job.Configuration.Load.DestinationTable.DatasetId
+}
+
+// isMetricked determines whether a job has an associated gauge to update.
+func isMetricked(job* bigquery.Job) bool {
+    jobDataset := getDatasetName(job)
+    for _, datasetName := range datasetsWithMetrics {
+        if datasetName == jobDataset {
+            return true
+        }
+    }
+    return false
+}
+
 // waitForJobs blocks until all the BigQuery jobs return as completed, and prints
 // out each one's statuses.
 func waitForJobs(bq *bigquery.Service, jobs []Job) {
 	finished := make([]*Job, 0)
-	begin := time.Now()
+        begin := time.Now()
+        bytesAdded := make(map[string]int64)
+        bytesSuccess := make(map[string]int64)
+
+        for _, dataset := range datasetsWithMetrics {
+            bytesAdded[dataset] = 0
+            bytesSuccess[dataset] = 0
+        }
+
 	for len(finished) < len(jobs) && time.Since(begin) < 10*time.Minute {
 		for i, _ := range jobs {
 			if !isFinished(&jobs[i], finished) {
@@ -412,11 +468,25 @@ func waitForJobs(bq *bigquery.Service, jobs []Job) {
 					formatOut, _ := json.Marshal(resp)
 					glog.Infoln(string(formatOut))
 					finished = append(finished, &jobs[i])
+
+                                        if isMetricked(resp) {
+                                            datasetName := getDatasetName(resp)
+                                            bytesAdded[datasetName] += resp.Statistics.Load.InputFileBytes
+                                            bytesSuccess[datasetName] += resp.Statistics.Load.OutputBytes
+                                        }
 				}
 			}
 		}
 		time.Sleep(15 * time.Second)
 	}
+
+        for _, dataset := range datasetsWithMetrics {
+            glog.Infoln("Jobs for ", dataset)
+            glog.Infoln("bytes in: ", bytesAdded[dataset])
+            glog.Infoln("bytes out: ", bytesSuccess[dataset])
+            bytesAddedGauge[dataset].Update(bytesAdded[dataset])
+            bytesSuccessfullyAddedGauge[dataset].Update(bytesSuccess[dataset])
+        }
 }
 
 type CustomRequest struct {
@@ -506,6 +576,7 @@ func (is *IngestService) CustomUpdate(request *CustomRequest) {
 // directories for new files, and uploading them to the default BigQuery datasets
 func (is *IngestService) NormalUpdate() error {
 	glog.Infoln("ingest: Update request received")
+        begin := time.Now()
 	bq, err := authBigQuery(is.useOAuth)
 	if err != nil {
 		return fmt.Errorf("Unable to get BigQuery service: %s", err)
@@ -515,12 +586,16 @@ func (is *IngestService) NormalUpdate() error {
 		return fmt.Errorf("Unable to get Cloud Storage service: %s", err)
 	}
 	jobs := make([]Job, 0)
-	microSuccess, jobs := runAndRepeat(bq, cs, jobs, "perf_bench_v2", "microbench", "stats-json-v2")
-	skpSuccess, jobs := runAndRepeat(bq, cs, jobs, "perf_skps_v2", "skpbench", "pics-json-v2")
-	glog.Infoln("Waiting for jobs to finish..")
+        // TODO: Move these strings into config
+	microSuccess, jobs := runAndRepeat(bq, cs, jobs, "perf_bench_gotest", "microbench", "stats-json-v2")
+	skpSuccess, jobs := runAndRepeat(bq, cs, jobs, "perf_skps_gotest", "skpbench", "pics-json-v2")
+        glog.Infoln("Waiting for jobs to finish..")
 	waitForJobs(bq, jobs)
 	success := microSuccess + skpSuccess
 	glog.Infoln(success, "datasets possibly added")
 	glog.Infoln("ingest: request completed")
+
+        timeElapsed := time.Since(begin)
+        ingestionLatency.Update(timeElapsed)
 	return nil
 }

@@ -23,17 +23,16 @@ var (
 
 func main() {
 	flag.Parse()
+        Init()
 	ingester := NewIngestService(*useOAuth)
 	if ingester != nil {
 		switch {
 		case !(*runOnce):
 			for _ = range time.Tick(*pollInterval) {
-				err := ingester.NormalUpdate()
-				if err != nil {
-					glog.Errorln("Update failed with error")
-					glog.Errorln(err)
-				}
-				time.Sleep(time.Duration(*pollInterval) * time.Second)
+                                err := ingester.NormalUpdate()
+                                if err != nil {
+                                        glog.Errorln("Update failed with error", err)
+                                }
 			}
 		case len(*bqDestDataset) > 0 || len(*bqDestTable) > 0 || len(*csSrcDir) > 0:
 			glog.Infoln("Running custom request")
