@@ -843,6 +843,7 @@ var schema = (function() {
   var currentDataset;
   var schemaDict = new PagedDictionary(); 
   var hiddenChildren = new PagedDictionary();
+  var oldKeyToLegendKey = {};
   // Contains a dictionary of dictionary of config key-values
   var validKeyParts = {
     'micro': ['dataset', 'builderName', 'system', 'testName', 'gpuConfig',
@@ -926,6 +927,9 @@ var schema = (function() {
   }
 
   return {
+    oldToLegend: function(key) {
+      return oldKeyToLegendKey[key];
+    },
     /* Returns a string given the key elements in trace.*/
     makeLegendKey: function(trace, dataset) {
       assert_(trace['params']);
@@ -974,8 +978,10 @@ var schema = (function() {
       if(data['traces']) {
         data['traces'].forEach(function(trace) {
           lineList.push(this.makeLegendKey(trace, datasetName));
+          oldKeyToLegendKey[trace['key']] = this.makeLegendKey(trace, datasetName);
         }, this);
       }
+      loadShortcut();
       this.updateDOM();
     },
     /* Given the input options, returns the ones that define real traces and
@@ -1626,3 +1632,42 @@ document.addEventListener('DOMContentLoaded', function() {
   $('#note').hide();
   $('#notification').hide();
 });
+
+// Very, very hackish, since this is a temporary fix until the new world order is established
+var loadShortcut = (function() {
+  var alreadyDone = false;
+  return function(doAnyways) {
+    if(getArg('shortcut')) {
+
+      if(alreadyDone && !doAnyways) {
+        return;
+      } else {
+        alreadyDone = true;
+      }
+
+      var shortcutId = parseInt(getArg('shortcut'));
+      loadJSON('/shortcuts/' + shortcutId, function(data) {
+        console.log(data);
+        if(!data['keys']) {
+          console.log('Invalid shortcut: ' + shortcutId);
+          return;
+        }
+        if(!doAnyways && data['keys'].indexOf('MICROBENCHMICROBENCHMICROBENCH') != -1) {
+          jsonRequest.askFor('json/micro', function(data) {
+            schema.update(data, 'micro');
+            loadShortcut(true);
+          });
+        }
+        console.log('Shortcut keys:');
+        console.log(data);
+        var legendKeys = data['keys'].map(function(oldKey) {
+          return {
+            key: schema.oldToLegend(oldKey),
+            color: 'white'
+          };
+        });
+        legend.addMany(legendKeys.filter(function(k) {return !!k.key;}));
+      });
+    }
+  };
+}());
