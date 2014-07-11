@@ -1,0 +1,302 @@
+<html>
+  <head>
+  <title>Skia Buildstep Dashboard</title>
+  <link rel="icon" href="favicon.ico">
+  <script language="JavaScript">
+  "use strict";
+
+  // Rows and columns of buildStep data.
+  var buildStepColumns = null;
+  var buildStepRows = null;
+
+  // Timestamp of when we started loading data. Used to compute load time.
+  var loadStart = null;
+
+  // Metrics to load from Graphite.
+  // Takes the form: [[metric_name, default, merge_function], ...]
+  var metrics = [["success", 0, "sum"],
+                 ["failure", 0, "sum"],
+                 ["duration", 0, "avg"]];
+
+  // Metrics to derive from the loaded metrics above. We display these in the
+  // table. Takes the form: [[metric_name, derivation_fn], ...], where
+  // derivation_fn is a function which takes as a parameter a dictionary
+  // containing values for all of the above metrics for a given buildStep.
+  var derivedMetrics = [
+    ["Duration", function(stepData) {
+      return stepData["duration"];
+    }],
+    ["Failure Rate", function(stepData) {
+      var success = parseFloat(stepData["success"]);
+      var failure = parseFloat(stepData["failure"]);
+      var totalRuns = success + failure;
+      var failureRate = failure / totalRuns;
+      if (totalRuns <= 0) {
+        failureRate = 0;
+      }
+      return failureRate;
+    }],
+    ["Total Runs", function(stepData) {
+      var success = parseFloat(stepData["success"]);
+      var failure = parseFloat(stepData["failure"]);
+      return success + failure;
+    }],
+  ];
+
+  // Use the second data column as the default sort index, since that typically
+  // indicates the most important column which isn't a label.
+  var defaultSortIndex = 1;
+
+  // sortOrder determines whether to sort increasing or decreasing.
+  var sortOrder = -1;
+
+  // lastSortIndex is used when sorting columns to determine whether we last
+  // sorted by the column we're sorting now. If so, we negate the sortOrder.
+  var lastSortIndex = null;
+
+  /**
+   * Display text or HTML in the logging div.
+   *
+   * @param {string} msg The HTML or text to display.
+   */
+  function setMessage(msg) {
+    console.log(msg);
+    document.getElementById("logging_div").innerHTML = msg;
+  }
+
+  /**
+   * Function to call when starting to load data.
+   */
+  function loadingStart(url) {
+    document.body.style.cursor = "wait";
+    document.getElementById("display_div").style.display = "none";
+    loadStart = new Date().getTime();
+    setMessage("Loading data from " + url);
+  }
+
+  /**
+   * Function to call when done loading data.
+   */
+  function loadingDone() {
+    document.body.style.cursor = "auto";
+    document.getElementById("display_div").style.display = "block";
+    var message = "";
+    if (loadStart) {
+      var elapsedSeconds = (new Date().getTime() - loadStart) / 1000;
+      message = "Loaded data in " + elapsedSeconds + " seconds.";
+    }
+    setMessage(message);
+  }
+
+  /**
+   * Load data from the given URL using JSONP.
+   *
+   * @param {string} url The URL from which to load data.
+   * @param {string} callbackName The name of the function to use as a callback.
+   */
+  function loadJSONP(url, callbackName) {
+    var script = document.createElement("script");
+    var join = "&";
+    if (url.indexOf("?") < 0) {
+      join = "?";
+    }
+    script.src = url + join + "jsonp=" + callbackName;
+    document.head.appendChild(script);
+  }
+
+  /**
+   * Sort the buildStepRows on the given column.
+   *
+   * @param {number} sortIndex The index of the column by which to sort.
+   */
+  function sortRows(sortIndex) {
+    // Sort the table rows by sortIndex.
+    if (sortIndex == lastSortIndex &&
+        lastSortIndex != null &&
+        lastSortIndex != undefined) {
+      sortOrder = -sortOrder;
+    }
+    if (null == sortIndex || undefined == sortIndex) {
+      sortIndex = defaultSortIndex;
+    }
+    buildStepRows.sort(function(a, b) {
+      if (a[sortIndex] > b[sortIndex]) { return sortOrder; }
+      if (a[sortIndex] < b[sortIndex]) { return -sortOrder; }
+      return 0;
+    });
+    lastSortIndex = sortIndex;
+  }
+
+  /**
+   * Rebuild the data table.
+   *
+   * @param {number} sortIndex The index of the column by which to sort.
+   */
+  function rebuildTable(sortIndex) {
+    sortRows(sortIndex);
+
+    var table = document.createElement("table");
+    var thead = document.createElement("thead");
+
+    for (var i = 0; i < buildStepColumns.length; ++i) {
+      var th = document.createElement("th");
+      th.style.padding = "5px";
+      th.style.textAlign = "right";
+      var sortLink = document.createElement("a");
+      sortLink.href = "#";
+      sortLink.innerHTML = buildStepColumns[i];
+      sortLink.id = "sort_" + i;
+      sortLink.addEventListener("click", function(event) {
+        rebuildTable(parseInt(event.target.id.split("_")[1]));
+      });
+      th.appendChild(sortLink);
+      thead.appendChild(th);
+    }
+
+    table.appendChild(thead);
+
+    for (var i = 0; i < buildStepRows.length; ++i) {
+      var tr = document.createElement("tr");
+      for (var j = 0; j < buildStepRows[i].length; ++j) {
+        var td = document.createElement("td");
+        td.style.padding = "5px";
+        td.style.textAlign = "right";
+        var value = buildStepRows[i][j];
+        if (typeof value == "number") {
+          value = parseFloat(value).toFixed(2);
+        }
+        td.innerHTML = value;
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+    var displayDiv = document.getElementById("display_div");
+    var oldTable = document.getElementById("data_table");
+    displayDiv.removeChild(oldTable);
+    table.id = "data_table";
+    displayDiv.appendChild(table);
+  }
+
+  /**
+   * Callback function for receiving data from Graphite. Organizes the data and
+   * rebuilds the data table.
+   *
+   * @param {Array<Object>} data Data obtained from Graphite.
+   */
+  function gotGraphiteData(data) {
+    // Organize the data by buildStep.
+    var buildStepData = {};
+    for (var i = 0; i < data.length; ++i) {
+      var splitName = data[i]["target"].split(".");
+      var stepName = splitName[0];
+      var resultType = splitName[1];
+      var datapoints = data[i]["datapoints"];
+      var result = 0;
+      if (datapoints.length > 0) {
+        result = datapoints[datapoints.length - 1][0];
+      }
+      if (result == null) {
+        result = 0;
+      }
+      if (!buildStepData[stepName]) {
+        buildStepData[stepName] = {};
+      }
+      buildStepData[stepName][resultType] = result;
+    }
+
+    // Create the set of columns
+    buildStepColumns = ["Step"];
+    for (var i = 0; i < derivedMetrics.length; ++i) {
+      buildStepColumns.push(derivedMetrics[i][0]);
+    }
+
+    // Create a row of data for each buildStep.
+    buildStepRows = [];
+    for (var stepName in buildStepData) {
+      var row = [stepName];
+      // Fix any missing or bad data.
+      for (var i = 0; i < metrics.length; ++i) {
+        var metricName = metrics[i][0];
+        var defaultValue = metrics[i][1];
+        if (!buildStepData[stepName][metricName]) {
+          buildStepData[stepName][metricName] = defaultValue;
+        }
+      }
+      // Fill in the data row.
+      for (var i = 0; i < derivedMetrics.length; ++i) {
+        row.push(derivedMetrics[i][1](buildStepData[stepName]));
+      }
+      buildStepRows.push(row);
+    }
+    rebuildTable(lastSortIndex);
+    loadingDone();
+  }
+
+  /**
+   * Load data from Graphite.
+   */
+  function loadGraphiteData() {
+    var timePeriod = document.getElementById("time_period").value;
+    var masterFilter = document.getElementById("build_master_filter").value;
+    var builderFilter = document.getElementById("builder_filter").value;
+    var buildStepFilter = document.getElementById("build_step_filter").value;
+    var metricPrefix = ["buildbot", masterFilter, builderFilter,
+                        buildStepFilter].join(".");
+    var url = "http://skiamonitor.com/render?format=json&from=-" + timePeriod;
+    for (var i = 0; i < metrics.length; ++i) {
+      var metric = metrics[i][0];
+      var summaryMode = metrics[i][2];
+      var fullMetricName = metricPrefix + "." + metric;
+      var groupByNode = "groupByNode(" + fullMetricName + ",3,%22" +
+                        summaryMode + "%22)";
+      var summarize = "summarize(" + groupByNode + ",%22" + timePeriod +
+                      "%22,%22" + summaryMode + "%22,true)";
+      var aliasByNode = "aliasByNode(" + summarize + ",0)";
+      var aliasSub = "aliasSub(" + aliasByNode + ",%22$%22,%22." + metric +
+                     "%22)";
+      var fullTarget = "&target=" + aliasSub;
+      url += fullTarget;
+    }
+
+    loadingStart(url);
+    loadJSONP(url, "gotGraphiteData");
+  }
+  </script>
+  </head>
+  <body>
+    <div id="heading" style="font-size:2.5em; text-align:center; height:7%;">
+      Skia Buildstep Dashboard
+    </div>
+    <div id="main_content_area" style="width:100%; height:90%; padding:0px;
+        margin:0px;">
+      <div id="menu_div"
+          style="float:left; width:18%; height:100%; padding:0px; margin:0px;">
+        <div style="width:100%;">
+          <div>
+            <nobr>Time period:</nobr><br/>
+            <input type="text" id="time_period" value="24h" /><br/>
+            <nobr>Build master filter:</nobr><br/>
+            <input type="text" id="build_master_filter" value="*" /><br/>
+            <nobr>Builder filter:</nobr><br/>
+            <input type="text" id="builder_filter" value="*" /><br/>
+            <nobr>Build step filter:</nobr><br/>
+            <input type="text" id="build_step_filter" value="*" /><br/>
+          </div>
+        </div>
+        <div>
+          <input type="button" onClick="loadGraphiteData()" value="Load Data"/>
+        </div>
+      </div>
+      <div id="charts_div"
+          style="float:left; width:82%; padding:0px; margin:0px">
+        <div id="logging_div" style="width:100%; padding:0px; margin:0px"></div>
+        <div id="display_div"
+            style="width:100%; padding:0px; margin:0px; display:none;">
+          Click a column header to sort that column.
+          <div id="data_table"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
