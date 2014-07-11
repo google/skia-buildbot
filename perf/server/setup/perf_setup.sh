@@ -16,6 +16,8 @@ sudo cp sys/perf_init /etc/init.d/perf
 sudo chmod 744 /etc/init.d/perf
 sudo cp sys/tilebuilder_init /etc/init.d/tilebuilder
 sudo chmod 744 /etc/init.d/tilebuilder
+sudo cp sys/ingester_init /etc/init.d/ingester
+sudo chmod 744 /etc/init.d/ingester
 sudo cp sys/perf_monit /etc/monit/conf.d/perf
 sudo cp sys/perf_squid /etc/squid3/squid.conf
 # Confirm that monit is happy.
@@ -23,3 +25,4 @@ sudo monit -t
 sudo monit reload
 sudo /etc/init.d/perf restart
 sudo /etc/init.d/tilebuilder restart
+sudo /etc/init.d/ingester restart

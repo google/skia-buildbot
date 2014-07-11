@@ -39,3 +39,4 @@ go get -d
 npm install
 make
 make tile
+make ingest
