@@ -5,38 +5,49 @@
   <script language="JavaScript">
   "use strict";
 
-  // Rows and columns of buildStep data.
-  var buildStepColumns = null;
-  var buildStepRows = null;
-
   // Timestamp of when we started loading data. Used to compute load time.
   var loadStart = null;
 
+  // Used to store information about what data is currently being loaded.
+  var currentlyLoadingData = null;
+
   // Metrics to load from Graphite.
-  // Takes the form: [[metric_name, default, merge_function], ...]
-  var metrics = [["success", 0, "sum"],
-                 ["failure", 0, "sum"],
-                 ["duration", 0, "avg"]];
+  // Takes the form: [[metric_name, merge_function], ...]
+  var metrics = [["success", "sum"],
+                 ["failure", "sum"],
+                 ["duration", "avg"]];
 
   // Metrics to derive from the loaded metrics above. We display these in the
   // table. Takes the form: [[metric_name, derivation_fn], ...], where
   // derivation_fn is a function which takes as a parameter a dictionary
-  // containing values for all of the above metrics for a given buildStep.
+  // containing values for all of the above metrics for a given buildStep and
+  // returns a value, which may be null.
   var derivedMetrics = [
     ["Duration", function(stepData) {
+      if (stepData["duration"] == undefined) {
+        return null;
+      }
       return stepData["duration"];
     }],
     ["Failure Rate", function(stepData) {
+      if (stepData["success"] == undefined ||
+          stepData["failure"] == undefined) {
+        return null;
+      }
       var success = parseFloat(stepData["success"]);
       var failure = parseFloat(stepData["failure"]);
       var totalRuns = success + failure;
       var failureRate = failure / totalRuns;
       if (totalRuns <= 0) {
-        failureRate = 0;
+        return null;
       }
       return failureRate;
     }],
     ["Total Runs", function(stepData) {
+      if (stepData["success"] == undefined ||
+          stepData["failure"] == undefined) {
+        return null;
+      }
       var success = parseFloat(stepData["success"]);
       var failure = parseFloat(stepData["failure"]);
       return success + failure;
@@ -46,13 +57,6 @@
   // Use the second data column as the default sort index, since that typically
   // indicates the most important column which isn't a label.
   var defaultSortIndex = 1;
-
-  // sortOrder determines whether to sort increasing or decreasing.
-  var sortOrder = -1;
-
-  // lastSortIndex is used when sorting columns to determine whether we last
-  // sorted by the column we're sorting now. If so, we negate the sortOrder.
-  var lastSortIndex = null;
 
   /**
    * Display text or HTML in the logging div.
@@ -65,27 +69,38 @@
   }
 
   /**
-   * Function to call when starting to load data.
+   * Function to call when starting to load data. Prints the given URL and
+   * stores some data for retrieval on loadingDone().
+   *
+   * @param {string} url The URL that we're loading.
+   * @param {Object} data Arbitrary data to store.s
    */
-  function loadingStart(url) {
+  function loadingStart(url, data) {
     document.body.style.cursor = "wait";
-    document.getElementById("display_div").style.display = "none";
+    document.getElementById("buildstep_div").style.display = "none";
+    document.getElementById("builder_div").style.display = "none";
     loadStart = new Date().getTime();
     setMessage("Loading data from " + url);
+    currentlyLoadingData = data;
   }
 
   /**
-   * Function to call when done loading data.
+   * Function to call when done loading data. Returns any data stored on
+   * loadingStart().
    */
   function loadingDone() {
     document.body.style.cursor = "auto";
-    document.getElementById("display_div").style.display = "block";
+    document.getElementById("buildstep_div").style.display = "block";
+    document.getElementById("builder_div").style.display = "block";
     var message = "";
     if (loadStart) {
       var elapsedSeconds = (new Date().getTime() - loadStart) / 1000;
       message = "Loaded data in " + elapsedSeconds + " seconds.";
     }
     setMessage(message);
+    var retData = currentlyLoadingData;
+    currentlyLoadingData = null;
+    return retData;
   }
 
   /**
@@ -105,90 +120,15 @@
   }
 
   /**
-   * Sort the buildStepRows on the given column.
+   * Re-organize Graphite data into a dictionary.
    *
-   * @param {number} sortIndex The index of the column by which to sort.
+   * @param {Array<Object>} data Data to organize.
    */
-  function sortRows(sortIndex) {
-    // Sort the table rows by sortIndex.
-    if (sortIndex == lastSortIndex &&
-        lastSortIndex != null &&
-        lastSortIndex != undefined) {
-      sortOrder = -sortOrder;
-    }
-    if (null == sortIndex || undefined == sortIndex) {
-      sortIndex = defaultSortIndex;
-    }
-    buildStepRows.sort(function(a, b) {
-      if (a[sortIndex] > b[sortIndex]) { return sortOrder; }
-      if (a[sortIndex] < b[sortIndex]) { return -sortOrder; }
-      return 0;
-    });
-    lastSortIndex = sortIndex;
-  }
-
-  /**
-   * Rebuild the data table.
-   *
-   * @param {number} sortIndex The index of the column by which to sort.
-   */
-  function rebuildTable(sortIndex) {
-    sortRows(sortIndex);
-
-    var table = document.createElement("table");
-    var thead = document.createElement("thead");
-
-    for (var i = 0; i < buildStepColumns.length; ++i) {
-      var th = document.createElement("th");
-      th.style.padding = "5px";
-      th.style.textAlign = "right";
-      var sortLink = document.createElement("a");
-      sortLink.href = "#";
-      sortLink.innerHTML = buildStepColumns[i];
-      sortLink.id = "sort_" + i;
-      sortLink.addEventListener("click", function(event) {
-        rebuildTable(parseInt(event.target.id.split("_")[1]));
-      });
-      th.appendChild(sortLink);
-      thead.appendChild(th);
-    }
-
-    table.appendChild(thead);
-
-    for (var i = 0; i < buildStepRows.length; ++i) {
-      var tr = document.createElement("tr");
-      for (var j = 0; j < buildStepRows[i].length; ++j) {
-        var td = document.createElement("td");
-        td.style.padding = "5px";
-        td.style.textAlign = "right";
-        var value = buildStepRows[i][j];
-        if (typeof value == "number") {
-          value = parseFloat(value).toFixed(2);
-        }
-        td.innerHTML = value;
-        tr.appendChild(td);
-      }
-      table.appendChild(tr);
-    }
-    var displayDiv = document.getElementById("display_div");
-    var oldTable = document.getElementById("data_table");
-    displayDiv.removeChild(oldTable);
-    table.id = "data_table";
-    displayDiv.appendChild(table);
-  }
-
-  /**
-   * Callback function for receiving data from Graphite. Organizes the data and
-   * rebuilds the data table.
-   *
-   * @param {Array<Object>} data Data obtained from Graphite.
-   */
-  function gotGraphiteData(data) {
-    // Organize the data by buildStep.
-    var buildStepData = {};
+  function graphiteDataDict(data) {
+    var dataDict = {};
     for (var i = 0; i < data.length; ++i) {
       var splitName = data[i]["target"].split(".");
-      var stepName = splitName[0];
+      var name = splitName.slice(0, splitName.length - 1).join(".");
       var resultType = splitName[1];
       var datapoints = data[i]["datapoints"];
       var result = 0;
@@ -198,57 +138,228 @@
       if (result == null) {
         result = 0;
       }
-      if (!buildStepData[stepName]) {
-        buildStepData[stepName] = {};
+      if (!dataDict[name]) {
+        dataDict[name] = {};
       }
-      buildStepData[stepName][resultType] = result;
+      dataDict[name][resultType] = result;
+      dataDict[name]["name"] = name;
     }
-
-    // Create the set of columns
-    buildStepColumns = ["Step"];
-    for (var i = 0; i < derivedMetrics.length; ++i) {
-      buildStepColumns.push(derivedMetrics[i][0]);
-    }
-
-    // Create a row of data for each buildStep.
-    buildStepRows = [];
-    for (var stepName in buildStepData) {
-      var row = [stepName];
-      // Fix any missing or bad data.
-      for (var i = 0; i < metrics.length; ++i) {
-        var metricName = metrics[i][0];
-        var defaultValue = metrics[i][1];
-        if (!buildStepData[stepName][metricName]) {
-          buildStepData[stepName][metricName] = defaultValue;
-        }
-      }
-      // Fill in the data row.
-      for (var i = 0; i < derivedMetrics.length; ++i) {
-        row.push(derivedMetrics[i][1](buildStepData[stepName]));
-      }
-      buildStepRows.push(row);
-    }
-    rebuildTable(lastSortIndex);
-    loadingDone();
+    return dataDict;
   }
 
   /**
-   * Load data from Graphite.
+   * Create lists of column names and rows given a data dictionary.
+   *
+   * @param {Object} dataDict data to organize into columns and rows.
    */
-  function loadGraphiteData() {
-    var timePeriod = document.getElementById("time_period").value;
-    var masterFilter = document.getElementById("build_master_filter").value;
-    var builderFilter = document.getElementById("builder_filter").value;
-    var buildStepFilter = document.getElementById("build_step_filter").value;
-    var metricPrefix = ["buildbot", masterFilter, builderFilter,
-                        buildStepFilter].join(".");
+  function getColsAndRows(dataDict) {
+    // Create the set of columns
+    var cols = ["Name"];
+    for (var i = 0; i < derivedMetrics.length; ++i) {
+      cols.push(derivedMetrics[i][0]);
+    }
+
+    // Create a row of data for each buildStep.
+    var rows = [];
+    for (var name in dataDict) {
+      var row = [name];
+      // Fill in the data row.
+      for (var i = 0; i < derivedMetrics.length; ++i) {
+        var value = derivedMetrics[i][1](dataDict[name]);
+        row.push(value);
+      }
+      rows.push(row);
+    }
+    return [cols, rows]
+  }
+
+  /**
+   * Build the data table given a set of data.
+   *
+   * @param {Array<Object>} data The data to put into the table.
+   * @param {string} title The title of the table.
+   * @param {string} containerId ID of the container to hold the table.
+   */
+  function makeTableFromData(data, title, containerId) {
+    var buildStepData = graphiteDataDict(data);
+    var colsAndRows = getColsAndRows(buildStepData);
+    rebuildTable(title, colsAndRows[0], colsAndRows[1], containerId,
+                 null, true);
+  }
+
+  /**
+   * Sort the rows on the given column index.
+   *
+   * @param {Array<Array>} rows The rows to sort.
+   * @param {number} sortIndex The index of the column by which to sort.
+   * @param {number} sortOrder 1 or -1; determines whether to sort ascending or
+   *     descending.
+   */
+  function sortRows(rows, sortIndex, sortOrder) {
+    // Sort the table rows by sortIndex.
+    if (null == sortIndex || undefined == sortIndex) {
+      sortIndex = defaultSortIndex;
+    }
+    rows.sort(function(a, b) {
+      if (null == a) { return -sortOrder; }
+      if (null == b) { return sortOrder; }
+      if (null == a[sortIndex]) { return -sortOrder; }
+      if (null == b[sortIndex]) { return sortOrder; }
+      if (a[sortIndex] > b[sortIndex]) { return sortOrder; }
+      if (a[sortIndex] < b[sortIndex]) { return -sortOrder; }
+      return 0;
+    });
+  }
+
+  /**
+   * Rebuild the data table.
+   *
+   * @param {string} title The title of the table.
+   * @param {Array<string>} cols Array of column names.
+   * @param {Array<Array>} rows Array of row data.
+   * @param {string} containerId ID of the container where the table goes.
+   * @param {number} sortIndex The index of the column by which to sort.
+   * @param {boolean} reload Whether or not we reloaded data. This affects the
+   *     sorting of rows.
+   */
+  function rebuildTable(title, cols, rows, containerId, sortIndex, reload) {
+    var tableId = containerId + "_table";
+    var oldTable = document.getElementById(tableId);
+    var lastSortIndex = null;
+    var sortOrder = -1;
+    if (oldTable) {
+      lastSortIndex = oldTable.sortIndex;
+      if (reload) {
+        sortIndex = lastSortIndex;
+      } else if (sortIndex == lastSortIndex) {
+        sortOrder = -oldTable.sortOrder;
+      }
+    }
+    sortRows(rows, sortIndex, sortOrder);
+
+    var table = document.createElement("table");
+    table.sortIndex = sortIndex;
+    table.sortOrder = sortOrder;
+    var thead = document.createElement("thead");
+
+    for (var i = 0; i < cols.length; ++i) {
+      var th = document.createElement("th");
+      th.style.padding = "5px";
+      th.style.textAlign = "right";
+      var sortLink = document.createElement("a");
+      sortLink.href = "#";
+      sortLink.innerHTML = cols[i];
+      sortLink.tableTitle = title;
+      sortLink.containerId = containerId;
+      sortLink.sortIndex = i;
+      sortLink.rowsObj = rows;
+      sortLink.colsObj = cols;
+      sortLink.addEventListener("click", function(event) {
+        var cols = event.target.colsObj;
+        var rows = event.target.rowsObj;
+        var containerId = event.target.containerId;
+        var sortIndex = event.target.sortIndex;
+        var tableTitle = event.target.tableTitle;
+        rebuildTable(tableTitle, cols, rows, containerId, sortIndex, false);
+      });
+      th.appendChild(sortLink);
+      thead.appendChild(th);
+    }
+
+    table.appendChild(thead);
+
+    for (var i = 0; i < rows.length; ++i) {
+      var tr = document.createElement("tr");
+      for (var j = 0; j < rows[i].length; ++j) {
+        var td = document.createElement("td");
+        td.style.padding = "5px";
+        td.style.textAlign = "right";
+        var value = rows[i][j];
+        if (typeof value == "number") {
+          value = parseFloat(value).toFixed(2);
+        }
+        // Add links for builder breakdowns to the first column.
+        if (tableId == "buildstep_div_table" && j == 0) {
+          var a = document.createElement("a");
+          a.href = "#";
+          a.buildStepName = value;
+          a.addEventListener("click", function(event) {
+            var name = event.target.buildStepName;
+            loadGraphiteData(null, null, null, name,
+                             name + " on ...", "builder_div");
+          });
+          a.innerHTML = value;
+          td.appendChild(a);
+        } else {
+          td.innerHTML = value;
+        }
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+    var container = document.getElementById(containerId);
+    container.innerHTML = "";
+    table.id = tableId;
+    var h2 = document.createElement("h2");
+    h2.style.textAlign = "center";
+    h2.innerHTML = title;
+    container.appendChild(h2);
+    container.appendChild(table);
+  }
+
+  /**
+   * Callback function for receiving data from Graphite. Organizes the data and
+   * rebuilds the data table.
+   *
+   * @param {Array<Object>} data Data obtained from Graphite.
+   */
+  function gotGraphiteData(data) {
+    var loadingData = loadingDone();
+    makeTableFromData(data, loadingData["tableTitle"],
+                      loadingData["containerId"]);
+  }
+
+  /**
+   * Helper function for building Graphite data URLs. If any of the parameters
+   * are not provided, it obtains defaults from the text boxes on the page.
+   *
+   * @param {string} timePeriod Time period over which to retrieve data.
+   * @param {string} masterFilter Filter the data by build master.
+   * @param {string} builderFilter Filter the data by builder.
+   * @param {string} buildStepFilter Filter the data by build step.
+   */
+  function makeGraphiteURL(timePeriod, masterFilter, builderFilter,
+                           buildStepFilter) {
+    if (!timePeriod) {
+      timePeriod = document.getElementById("time_period").value;
+    }
+    if (!masterFilter) {
+      masterFilter = document.getElementById("build_master_filter").value;
+    }
+    if (!builderFilter) {
+      builderFilter = document.getElementById("builder_filter").value;
+    }
+    if (!buildStepFilter) {
+      buildStepFilter = document.getElementById("build_step_filter").value;
+    }
     var url = "http://skiamonitor.com/render?format=json&from=-" + timePeriod;
+    var metricPrefixParts = ["buildbot", masterFilter, builderFilter,
+                             buildStepFilter]
+    var metricPrefix = metricPrefixParts.join(".");
+
+    // Group by the last non-wildcarded metric part.
+    var groupNode = 0;
+    for (var i = 1; i < metricPrefixParts.length; ++i) {
+      if (metricPrefixParts[i].indexOf("*") >= 0) {
+        groupNode++;
+      }
+    }
     for (var i = 0; i < metrics.length; ++i) {
       var metric = metrics[i][0];
-      var summaryMode = metrics[i][2];
+      var summaryMode = metrics[i][1];
       var fullMetricName = metricPrefix + "." + metric;
-      var groupByNode = "groupByNode(" + fullMetricName + ",3,%22" +
-                        summaryMode + "%22)";
+      var groupByNode = "groupByNode(" + fullMetricName + "," + groupNode +
+                        ",%22" + summaryMode + "%22)";
       var summarize = "summarize(" + groupByNode + ",%22" + timePeriod +
                       "%22,%22" + summaryMode + "%22,true)";
       var aliasByNode = "aliasByNode(" + summarize + ",0)";
@@ -257,44 +368,61 @@
       var fullTarget = "&target=" + aliasSub;
       url += fullTarget;
     }
+    return url;
+  }
 
-    loadingStart(url);
+  /**
+   * Load data from Graphite.
+   */
+  function loadGraphiteData(timePeriod, masterFilter, builderFilter,
+                            buildStepFilter, tableTitle, containerId) {
+    var url = makeGraphiteURL(timePeriod, masterFilter, builderFilter,
+                              buildStepFilter);
+    var data = {"tableTitle": tableTitle, "containerId": containerId};
+    loadingStart(url, data);
     loadJSONP(url, "gotGraphiteData");
   }
+
+  /**
+   * Function called when the "Load data" button is clicked.
+   */
+  function loadDataClick() {
+    document.getElementById('builder_div').innerHTML = '';
+    loadGraphiteData(null, null, null, null, "Build Steps", "buildstep_div")
+  }
+
   </script>
   </head>
   <body>
     <div id="heading" style="font-size:2.5em; text-align:center; height:7%;">
       Skia Buildstep Dashboard
     </div>
+    <div style="text-align:center;">
+      Click a column header to sort that column. Click a buildstep to see its
+      results broken down into builders.
+    </div>
     <div id="main_content_area" style="width:100%; height:90%; padding:0px;
         margin:0px;">
       <div id="menu_div"
           style="float:left; width:18%; height:100%; padding:0px; margin:0px;">
         <div style="width:100%;">
-          <div>
-            <nobr>Time period:</nobr><br/>
-            <input type="text" id="time_period" value="24h" /><br/>
-            <nobr>Build master filter:</nobr><br/>
-            <input type="text" id="build_master_filter" value="*" /><br/>
-            <nobr>Builder filter:</nobr><br/>
-            <input type="text" id="builder_filter" value="*" /><br/>
-            <nobr>Build step filter:</nobr><br/>
-            <input type="text" id="build_step_filter" value="*" /><br/>
-          </div>
+          <nobr>Time period:</nobr><br/>
+          <input type="text" id="time_period" value="24h" /><br/>
+          <nobr>Build master filter:</nobr><br/>
+          <input type="text" id="build_master_filter" value="*" /><br/>
+          <nobr>Builder filter:</nobr><br/>
+          <input type="text" id="builder_filter" value="*" /><br/>
+          <nobr>Build step filter:</nobr><br/>
+          <input type="text" id="build_step_filter" value="*" /><br/>
+          <input type="button" onClick="loadDataClick();" value="Load Data"/>
         </div>
-        <div>
-          <input type="button" onClick="loadGraphiteData()" value="Load Data"/>
-        </div>
-      </div>
-      <div id="charts_div"
-          style="float:left; width:82%; padding:0px; margin:0px">
         <div id="logging_div" style="width:100%; padding:0px; margin:0px"></div>
-        <div id="display_div"
-            style="width:100%; padding:0px; margin:0px; display:none;">
-          Click a column header to sort that column.
-          <div id="data_table"></div>
-        </div>
+      </div>
+      <div id="buildstep_div"
+          style="float:left; width:41%; padding:0px; margin:0px">
+      </div>
+      <div id="builder_div"
+          style="float:left; width:41%; padding:0px; margin:0px">
       </div>
     </div>
   </body>
