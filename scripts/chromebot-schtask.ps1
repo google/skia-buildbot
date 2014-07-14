@@ -126,6 +126,11 @@ $x64lib = ("$depotToolsPath\win_toolchain\vs2013_files\win8sdk\Debuggers\lib\" +
            "x64\dbghelp.lib")
 $shell.NameSpace("$winDbgFolder\x64").copyhere($x64lib, 0x14)
 
+banner "Launch the Slave"
+cd buildbot
+cmd /c "call python scripts\launch_slaves.py"
+
+banner "The Task ended"
 
 } catch {
   log "ERROR:"
