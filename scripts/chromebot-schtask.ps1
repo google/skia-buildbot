@@ -111,6 +111,9 @@ $gclientSpec = ( `
 cmd /c "gclient config --spec=$gclientSpec"
 cmd /c "gclient sync --force --verbose -j1"
 
+banner "Copy .boto file"
+$shell.NameSpace($userDir).copyhere("c:\.boto", 0x14)
+
 banner "Copy WinDbg Files"
 $winDbgFolder = "c:\DbgHelp"
 if (!(Test-Path ($winDbgFolder))) {
