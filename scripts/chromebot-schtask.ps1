@@ -109,7 +109,7 @@ $gclientSpec = ( `
   "'safesync_url': ''," +
   "},]`"")
 cmd /c "gclient config --spec=$gclientSpec"
-cmd /c "gclient sync --force --verbose"
+cmd /c "gclient sync --force --verbose -j1"
 
 banner "Copy WinDbg Files"
 $winDbgFolder = "c:\DbgHelp"
