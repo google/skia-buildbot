@@ -95,7 +95,7 @@ class DefaultBuildStepUtils:
   def ListBuildStepExecutables(self):
     """ Called by subclasses that may need to install the executables. """
     return ['tests', 'gm', 'render_pictures', 'render_pdfs',
-            'bench', 'bench_pictures', 'skimage']
+            'bench', 'bench_pictures', 'skimage', 'nanobench']
 
   def _PathToBinary(self, binary):
     """ Returns the path to the given built executable. """

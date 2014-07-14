@@ -547,6 +547,11 @@ class SkiaFactory(BuildFactory):
     results over time. """
     self.AddFlavoredSlaveScript(script='run_bench.py', description='RunBench')
 
+  def RunNanobench(self):
+    """ Run "nanobench" """
+    self.AddFlavoredSlaveScript(script='run_nanobench.py',
+                                description='RunNanobench')
+
   def BenchPictures(self):
     """ Run "bench_pictures" """
     self.AddFlavoredSlaveScript(script='bench_pictures.py',
@@ -717,6 +722,7 @@ class SkiaFactory(BuildFactory):
     """ Add performance testing BuildSteps. """
     self.PreBench()
     self.RunBench()
+    self.RunNanobench()
     self.BenchPictures()
     self.PostBench()
     self.CheckForRegressions()
