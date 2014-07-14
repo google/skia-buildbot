@@ -51,7 +51,7 @@ var (
 
 	shortcutHandlerPath = regexp.MustCompile(`/shortcuts/([0-9]*)$`)
 
-        // The three capture groups are dataset, tile scale, and tile number.
+	// The three capture groups are dataset, tile scale, and tile number.
 	tileHandlerPath = regexp.MustCompile(`/tiles/([a-z]*)/([0-9]*)/([-0-9]*)$`)
 )
 
@@ -110,7 +110,10 @@ func reportError(w http.ResponseWriter, r *http.Request, err error, message stri
 }
 
 type TracesShortcut struct {
-	Keys []string `json:"keys"`
+	Keys    []string `json:"keys"`
+	Dataset string   `json:"dataset"`
+        Tiles   []int    `json:"tiles"`
+        Scale   int      `json:"scale"`
 }
 
 type ShortcutResponse struct {
@@ -300,7 +303,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	tileScale, err := strconv.ParseInt(match[2], 10, 0)
 	if err != nil {
 		reportError(w, r, err, "Failed parsing tile scale.")
-                return
+		return
 	}
 	tileNumber, err := strconv.ParseInt(match[3], 10, 0)
 	if err != nil {
@@ -323,9 +326,9 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, keyName := range tracesRequested {
-                if len(keyName) <= 0 {
-                        continue
-                }
+		if len(keyName) <= 0 {
+			continue
+		}
 		var rawTrace *types.Trace
 		count := 0
 		// Unpack trace name and find the trace.
