@@ -64,5 +64,33 @@ var (
 	ALL_DATASET_NAMES = []DatasetName{DATASET_SKP, DATASET_MICRO}
 
 	// TODO(jcgregorio) Make into a flag.
-	BEGINNING_OF_TIME = QuerySince(time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC))
+	BEGINNING_OF_TIME          = QuerySince(time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC))
+	HUMAN_READABLE_PARAM_NAMES = map[string]string{
+		"antialias":       "Antialiasing",
+		"arch":            "CPU Architecture",
+		"bbh":             "BBH Setting",
+		"benchName":       "SKP Name",
+		"builderName":     "Builder Name",
+		"config":          "Picture Configuration",
+		"configuration":   "Build Configuration",
+		"clip":            "Clip",
+		"dither":          "Dither",
+		"gpu":             "GPU Type",
+		"gpuConfig":       "GPU Configuration",
+		"measurementType": "Measurement Type",
+		"mode":            "Mode Configuration",
+		"model":           "Buildbot Model",
+		"os":              "OS",
+		"role":            "Buildbot Role",
+		"rotate":          "Rotate",
+		"scale":           "Scale Setting",
+		"skpSize":         "SKP Size",
+		"system":          "System Type",
+		"testName":        "Test Name",
+		"viewport":        "Viewport Size",
+	}
+	KEY_PARAM_ORDER = map[string][]string{
+		string(DATASET_SKP):   []string{"builderName", "benchName", "config", "scale", "measurementType"},
+		string(DATASET_MICRO): []string{"builderName", "testName", "config", "scale", "measurementType"},
+	}
 )

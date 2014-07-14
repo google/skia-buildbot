@@ -18,6 +18,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,6 +31,8 @@ import (
 import (
 	"config"
 	"db"
+	"filetilestore"
+	"types"
 )
 
 var (
@@ -47,6 +50,9 @@ var (
 	clustersHandlerPath = regexp.MustCompile(`/clusters/([a-z]*)$`)
 
 	shortcutHandlerPath = regexp.MustCompile(`/shortcuts/([0-9]*)$`)
+
+        // The three capture groups are dataset, tile scale, and tile number.
+	tileHandlerPath = regexp.MustCompile(`/tiles/([a-z]*)/([0-9]*)/([-0-9]*)$`)
 )
 
 // flags
@@ -59,6 +65,8 @@ var (
 
 var (
 	data *Data
+
+	tileStores map[string]types.TileStore
 )
 
 const (
@@ -87,6 +95,11 @@ func Init() {
 	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
 	index2Template = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index2.html")))
 	clusterTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/clusters.html")))
+
+	tileStores = make(map[string]types.TileStore)
+	for _, name := range config.ALL_DATASET_NAMES {
+		tileStores[string(name)] = filetilestore.NewFileTileStore(*tileDir, string(name))
+	}
 }
 
 // reportError formats an HTTP error response and also logs the detailed error message.
@@ -244,6 +257,179 @@ func annotationsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// makeKeyFromParams creates a trace key given the list of parameters it needs to include and the trace's parameter list.
+func makeKeyFromParams(paramList []string, params map[string]string) string {
+	newKey := make([]string, len(paramList))
+	for i, paramName := range paramList {
+		if name, ok := params[paramName]; ok {
+			newKey[i] = name
+		} else {
+			newKey[i] = ""
+		}
+	}
+	return strings.Join(newKey, ":")
+}
+
+// getTile retrieves a tile from the disk
+func getTile(dataset string, tileScale, tileNumber int) (*types.Tile, error) {
+	// TODO: Use some sort of cache
+	tileStore, ok := tileStores[dataset]
+	if !ok {
+		return nil, fmt.Errorf("Unable to access dataset store for %s", dataset)
+	}
+	tile, err := tileStore.Get(int(tileScale), int(tileNumber))
+	if err != nil || tile == nil {
+		return nil, fmt.Errorf("Unable to get tile from tilestore: ", err)
+	}
+	return tile, nil
+}
+
+// tileHandler accepts URIs like /tiles/skps/0/1?traces=Some:long:trace:here&omit_commits=true
+// where the URI format is /tiles/<dataset-name>/<tile-scale>/<tile-number>
+// It accepts a comma-delimited string of keys as traces, and
+// also omit_commits, omit_traces, and omit_names, which each cause the corresponding
+// section (described more thoroughly in types.go) to be omitted from the JSON
+func tileHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Tile Handler: %q\n", r.URL.Path)
+	match := tileHandlerPath.FindStringSubmatch(r.URL.Path)
+	if r.Method != "GET" || match == nil || len(match) != 4 {
+		http.NotFound(w, r)
+		return
+	}
+	dataset := match[1]
+	tileScale, err := strconv.ParseInt(match[2], 10, 0)
+	if err != nil {
+		reportError(w, r, err, "Failed parsing tile scale.")
+                return
+	}
+	tileNumber, err := strconv.ParseInt(match[3], 10, 0)
+	if err != nil {
+		reportError(w, r, err, "Failed parsing tile number.")
+		return
+	}
+	tile, err := getTile(dataset, int(tileScale), int(tileNumber))
+	if err != nil {
+		reportError(w, r, err, "Failed to retrieve tile.")
+		return
+	}
+	tracesRequested := strings.Split(r.FormValue("traces"), ",")
+	omitCommits := r.FormValue("omit_commits") != ""
+	omitParams := r.FormValue("omit_params") != ""
+	omitNames := r.FormValue("omit_names") != ""
+	result := types.NewGUITile(int(tileScale), int(tileNumber))
+	paramList, ok := config.KEY_PARAM_ORDER[dataset]
+	if !ok {
+		reportError(w, r, err, "Unable to read parameter list for dataset: ")
+		return
+	}
+	for _, keyName := range tracesRequested {
+                if len(keyName) <= 0 {
+                        continue
+                }
+		var rawTrace *types.Trace
+		count := 0
+		// Unpack trace name and find the trace.
+		keyParts := strings.Split(keyName, ":")
+		for _, tileTrace := range tile.Traces {
+			tracesMatch := true
+			for i, keyPart := range keyParts {
+				if len(keyPart) > 0 {
+					if traceParam, exists := tileTrace.Params[paramList[i]]; !exists || traceParam != keyPart {
+						tracesMatch = false
+						break
+					}
+					// If it doesn't exist in the key, it should also not exist in
+					// the trace parameters
+				} else if traceParam, exists := tileTrace.Params[paramList[i]]; exists && len(traceParam) <= 0 {
+					tracesMatch = false
+					break
+				}
+			}
+			if tracesMatch {
+				rawTrace = tileTrace
+				// NOTE: Not breaking out of the loop
+				// for now to see if there are multiple
+				// traces that match any given trace
+				count += 1
+			}
+		}
+		// No matches
+		if count <= 0 || rawTrace == nil {
+			continue
+		} else {
+			if count > 1 {
+				glog.Warningln(count, "matches found for ", keyName)
+			}
+		}
+		newTraceData := make([][2]float64, 0)
+		for i, traceVal := range rawTrace.Values {
+			if traceVal != config.MISSING_DATA_SENTINEL {
+				newTraceData = append(newTraceData, [2]float64{
+					float64(tile.Commits[i].CommitTime),
+					traceVal,
+					// We should have 53 significand bits, so this should work correctly basically forever
+				})
+			}
+		}
+		if len(newTraceData) > 0 {
+			result.Traces = append(result.Traces, types.TraceGUI{
+				Data: newTraceData,
+				Key:  keyName,
+			})
+		}
+	}
+	if !omitCommits {
+		result.Commits = tile.Commits
+	}
+	if !omitNames {
+		for _, trace := range tile.Traces {
+			result.NameList = append(result.NameList, makeKeyFromParams(paramList, trace.Params))
+		}
+	}
+	if !omitParams {
+		// NOTE: When constructing ParamSet, we need to make sure there are empty strings
+		// where there's at least one key missing that parameter.
+		// TODO: Fix this in tile generation rather than here.
+		result.ParamSet = make([][]string, len(paramList))
+		for i := range result.ParamSet {
+			if readableName, ok := config.HUMAN_READABLE_PARAM_NAMES[paramList[i]]; !ok {
+				glog.Warningln(fmt.Sprintf("%s does not exist in the readable parameter names list", paramList[i]))
+				result.ParamSet[i] = []string{paramList[i]}
+			} else {
+				result.ParamSet[i] = []string{readableName}
+			}
+		}
+		for _, trace := range tile.Traces {
+			for i := range result.ParamSet {
+				traceValue, ok := trace.Params[paramList[i]]
+				if !ok {
+					traceValue = ""
+				}
+				traceValueIsInParamSet := false
+				for _, param := range []string(result.ParamSet[i]) {
+					if param == traceValue {
+						traceValueIsInParamSet = true
+					}
+				}
+				if !traceValueIsInParamSet {
+					result.ParamSet[i] = append(result.ParamSet[i], traceValue)
+				}
+			}
+		}
+	}
+	// Marshal and send
+	marshaledResult, err := json.Marshal(result)
+	if err != nil {
+		reportError(w, r, err, "Failed to marshal JSON.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(marshaledResult)
+	if err != nil {
+		reportError(w, r, err, "Error while marshalling results.")
+	}
+}
+
 // jsonHandler handles the GET for the JSON requests.
 func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("JSON Handler: %q\n", r.URL.Path)
@@ -306,6 +492,7 @@ func main() {
 	http.HandleFunc("/index2", autogzip.HandleFunc(main2Handler))
 	http.HandleFunc("/json/", jsonHandler) // We pre-gzip this ourselves.
 	http.HandleFunc("/shortcuts/", shortcutHandler)
+	http.HandleFunc("/tiles/", tileHandler)
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
 	http.HandleFunc("/annotations/", autogzip.HandleFunc(annotationsHandler))
 

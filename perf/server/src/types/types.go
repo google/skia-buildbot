@@ -86,6 +86,32 @@ func NewTile() *Tile {
 	}
 }
 
+// TraceGUI is used in TileGUI.
+type TraceGUI struct {
+	Data [][2]float64 `json:"data"`
+	Key  string       `json:"key"`
+}
+
+// TileGUI is the JSON the server serves for tile requests.
+type TileGUI struct {
+	Traces    []TraceGUI `json:"traces,omitempty"`
+	ParamSet  [][]string `json:"params,omitempty"`
+	Commits   []*Commit  `json:"commits,omitempty"`
+	NameList  []string   `json:"names,omitempty"`
+	Scale     int        `json:"scale"`
+	TileIndex int        `json:"tileIndex"`
+}
+
+func NewGUITile(scale int, tileIndex int) *TileGUI {
+	return &TileGUI{
+		Traces:    make([]TraceGUI, 0),
+		ParamSet:  make([][]string, 0),
+		Commits:   make([]*Commit, 0),
+		Scale:     scale,
+		TileIndex: tileIndex,
+	}
+}
+
 // TileStore is an interface representing the ability to save and restore Tiles.
 type TileStore interface {
 	Put(scale, index int, tile *Tile) error

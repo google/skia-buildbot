@@ -169,7 +169,7 @@ type Choices []string
 type Dataset struct {
 	Traces           []*Trace           `json:"traces"`
 	ParamSet         map[string]Choices `json:"param_set"`
-	Commits          []*types.Commit          `json:"commits"`
+	Commits          []*types.Commit    `json:"commits"`
 	service          *bigquery.Service
 	clusterSummaries *ClusterSummaries
 }
@@ -548,19 +548,19 @@ func getParamSummaries(cluster []kmeans.Clusterable) [][]ValueWeight {
 }
 
 // average calculates and returns the average value of the given []float64.
-func average(xs[]float64)float64 {
+func average(xs []float64) float64 {
 	total := 0.0
-	for _,v := range xs {
+	for _, v := range xs {
 		total += v
 	}
 	return total / float64(len(xs))
 }
 
 // sse calculates and returns the sum squared error from the given base of []float64.
-func sse(xs[]float64, base float64)float64 {
+func sse(xs []float64, base float64) float64 {
 	total := 0.0
-	for _,v := range xs {
-		total += math.Pow(v - base, 2)
+	for _, v := range xs {
+		total += math.Pow(v-base, 2)
 	}
 	return total
 }
@@ -578,7 +578,7 @@ func getStepFit(trace []float64) StepFit {
 		if y0 == y1 {
 			continue
 		}
-		d := math.Sqrt(sse(trace[:i], y0) + sse(trace[i:], y1)) / float64(len(trace))
+		d := math.Sqrt(sse(trace[:i], y0)+sse(trace[i:], y1)) / float64(len(trace))
 		if d < deviation {
 			deviation = d
 			stepSize = math.Abs(y0 - y1)
@@ -604,7 +604,7 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterS
 			Traces:         make([][][]float64, numSampleTraces),
 			ParamSummaries: getParamSummaries(cluster),
 			// Try fit on the centroid.
-			StepFit:        getStepFit(cluster[0].(*ctrace.ClusterableTrace).Values),
+			StepFit: getStepFit(cluster[0].(*ctrace.ClusterableTrace).Values),
 		}
 		for j, o := range cluster {
 			summary.Keys[j] = o.(*ctrace.ClusterableTrace).Key

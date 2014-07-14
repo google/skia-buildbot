@@ -91,13 +91,13 @@ func (store FileTileStore) Get(scale, index int) (*types.Tile, error) {
 	t := types.NewTile()
 	dec := gob.NewDecoder(f)
 	if err := dec.Decode(t); err != nil {
-		return nil, fmt.Errorf("Failed to dencode tile %s: %s", filename, err)
+		return nil, fmt.Errorf("Failed to decode tile %s: %s", filename, err)
 	}
 
 	return t, nil
 }
 
-// NewFileTileStore creates a new TileStore that is back by the file system,
+// NewFileTileStore creates a new TileStore that is backed by the file system,
 // where dir is the directory name and datasetName is the name of the dataset.
 func NewFileTileStore(dir, datasetName string) types.TileStore {
 	return FileTileStore{
