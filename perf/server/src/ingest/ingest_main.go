@@ -19,20 +19,21 @@ var (
 	schema        = flag.String("schema", "", "Custom schema to use")
 	timestamp     = flag.Int64("timestamp", -1, "Timestamp of last data entry into BQ")
 	oneshot       = flag.Bool("one_shot", false, "To run until finished or just once")
+	logOnly       = flag.Bool("log_only", false, "Go through the motions, but don't actually push data into BigQuery.")
 )
 
 func main() {
 	flag.Parse()
-        Init()
+	Init()
 	ingester := NewIngestService(*useOAuth)
 	if ingester != nil {
 		switch {
 		case !(*runOnce):
 			for _ = range time.Tick(*pollInterval) {
-                                err := ingester.NormalUpdate()
-                                if err != nil {
-                                        glog.Errorln("Update failed with error", err)
-                                }
+				err := ingester.NormalUpdate()
+				if err != nil {
+					glog.Errorln("Update failed with error", err)
+				}
 			}
 		case len(*bqDestDataset) > 0 || len(*bqDestTable) > 0 || len(*csSrcDir) > 0:
 			glog.Infoln("Running custom request")

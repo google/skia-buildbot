@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia JSON ingester application."
 NAME=ingest
 DAEMON=/home/perf/buildbot/perf/server/$NAME
-DAEMON_ARGS=""
+DAEMON_ARGS="--log_only=true"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
