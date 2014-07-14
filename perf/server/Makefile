@@ -4,7 +4,6 @@ build: res/css/perf.css res/js/perf.js ingest
 tile:
 	GOPATH=$(GOPATH):`pwd` go build -v tilebuilder
 
-
 test:
 	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace
 	./node_modules/.bin/grunt test
@@ -14,6 +13,9 @@ verbosetests:
 
 ingest: src/ingest/ingest.go src/ingest/ingest_main.go
 	go build src/ingest/ingest.go src/ingest/ingest_main.go
+
+tool: src/ingest/ingest.go
+	GOPATH=$(GOPATH):`pwd` go build -v tiletool
 
 # Rebuild the third_party Javascript we use, i.e. Flot.
 res/js/perf.js: node_modules Gruntfile.js bower.json
