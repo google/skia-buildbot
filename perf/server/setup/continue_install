@@ -29,6 +29,7 @@ else
   git clone https://skia.googlesource.com/skia
 fi
 
+mkdir=/tmp/glog
 mkdir=$HOME/golib
 export GOROOT=$HOME/go
 export GOPATH=$HOME/golib
@@ -40,3 +41,4 @@ npm install
 make
 make tile
 make ingest
+make logs 

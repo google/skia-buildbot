@@ -1,12 +1,12 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          perf
+# Provides:          tilebuilder
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Start perf.
-# Description:       Web server for Skia performance monitoring.
+# Description:       Builds tiles from BigQuery data..
 ### END INIT INFO
 
 # Author: Joe Gregorio <jcgregorio@google.com>
@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia tilebuilder application."
 NAME=tilebuilder
 DAEMON=/home/perf/buildbot/perf/server/$NAME
-DAEMON_ARGS="--oauth=false --tile_dir=/home/perf/tileStore"
+DAEMON_ARGS="--oauth=false --tile_dir=/home/perf/tileStore --log_dir=/tmp/glog"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 

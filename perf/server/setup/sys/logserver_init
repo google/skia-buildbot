@@ -1,15 +1,15 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          ingester
+# Provides:          logserver
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Start perf.
-# Description:       Moves Google Storage data into BigQuery.
+# Description:       Serves the log file directory via HTTP.
 ### END INIT INFO
 
-# Author: Joe Gregorio <jcgregorio@google.com> (copied by Kelvin Ly)
+# Author: Joe Gregorio <jcgregorio@google.com>
 #
 # Copied from /etc/init.d/skeleton and modified only the following
 # environment variables and updated the start-stop-daemon calls
@@ -19,10 +19,10 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="The Skia JSON ingester application."
-NAME=ingest
+DESC="The Skia log server application."
+NAME=logserver
 DAEMON=/home/perf/buildbot/perf/server/$NAME
-DAEMON_ARGS="--log_only=true --oauth=false --log_dir=/tmp/glog"
+DAEMON_ARGS=""
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 

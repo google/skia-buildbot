@@ -14,6 +14,10 @@ verbosetests:
 ingest: src/ingest/ingest.go src/ingest/ingest_main.go
 	go build src/ingest/ingest.go src/ingest/ingest_main.go
 
+logs:
+	GOPATH=$(GOPATH):`pwd` go build -v logserver
+
+
 tool: src/ingest/ingest.go
 	GOPATH=$(GOPATH):`pwd` go build -v tiletool
 
