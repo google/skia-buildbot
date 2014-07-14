@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# Setup script for Windows bots.
+# Scheduled task for chrome-bot for Windows bots.
 
 $DebugPreference = "Continue"
 $ErrorActionPreference = "Stop"
@@ -10,7 +10,7 @@ $WarningPreference = "Continue"
 
 $user = "chrome-bot"
 $userDir = "c:\setup\$user"
-$logFile = "$userDir\win_setup.log"
+$logFile = "$userDir\schtask.log"
 
 Set-Location -Path $userDir
 
@@ -31,19 +31,8 @@ Function addToPath($dir) {
   # Don't add empty strings.
   If (!$dir) { Return }
 
-  # Retrieve the current PATH from the registry.
-  $envRegPath = ("Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\" +
-                 "Control\Session Manager\Environment")
-  $oldPath = (Get-ItemProperty -Path $envRegPath -Name PATH).Path
-
-  # Don't add duplicates to PATH.
-  $oldPath.Split(";") | ForEach { If ($_ -eq $dir) { Return } }
-
-  # Override PATH
-  $newPath=$oldPath+";"+$dir
-  Set-ItemProperty -Path $envRegPath -Name PATH -Value $newPath
-  $actualPath = (Get-ItemProperty -Path $envRegPath -Name PATH).Path
-  $ENV:PATH = $actualPath
+  # Add dir to the path.
+  $ENV:PATH = $ENV:PATH + ";" + $dir
 }
 
 Function banner($title) {
@@ -69,11 +58,6 @@ Function banner($title) {
 # how to get errors logged to a file.
 try {
 
-# Update DNS Server for internet access.
-$wmi = `
-    Get-WmiObject win32_networkadapterconfiguration -filter "ipenabled = 'true'"
-$wmi.SetDNSServerSearchOrder("8.8.8.8")
-
 # Create temp directory.
 $tmp = "$userDir\tmp"
 if (!(Test-Path ($tmp))) {
@@ -83,15 +67,6 @@ if (!(Test-Path ($tmp))) {
 # Create helpers.
 $webclient = New-Object System.Net.WebClient
 $shell = new-object -com shell.application
-
-banner "Install Visual Studio C++ 2008 redistributable (x86)."
-$fileName = "$tmp\vcredist_x86.exe"
-if (!(Test-Path ($fileName))) {
-  $url = ("http://download.microsoft.com/download/1/1/1/" +
-          "1116b75a-9ec3-481a-a3c8-1777b5381140/vcredist_x86.exe")
-  $webclient.DownloadFile($url, $fileName)
-  cmd /c $fileName /q
-}
 
 banner "Install depot tools."
 $fileName = "$tmp\depot_tools.zip"
