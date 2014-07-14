@@ -40,7 +40,6 @@ class HouseKeepingPerCommitFactory(skia_factory.SkiaFactory):
                         description='RunToolSelfTests')
     self.AddSlaveScript(script='run_gm_self_tests.py',
                         description='RunGmSelfTests')
-    self.RunDM()
 
     # Run unittests for Anroid platform_tools
     self.AddSlaveScript(script='run_android_platform_self_tests.py',

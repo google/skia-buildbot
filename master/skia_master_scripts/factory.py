@@ -707,6 +707,7 @@ class SkiaFactory(BuildFactory):
     self.DownloadSKImageFiles()
     self.PreRender()
     self.RunTests()
+    self.RunDM()
     self.RunGM()
     self.RenderSKPs()
     self.RenderPdfs()

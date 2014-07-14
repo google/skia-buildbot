@@ -11,12 +11,11 @@ import sys
 
 class RunDM(BuildStep):
   def _Run(self):
-    args = ['-v']
-    if 'Housekeeper' in self._builder_name:
-      args.append('--nogpu')
-
+    args = [
+      '--verbose',
+      '--resourcePath', self._device_dirs.ResourceDir(),
+    ]
     self._flavor_utils.RunFlavoredCmd('dm', args)
-
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RunDM))
