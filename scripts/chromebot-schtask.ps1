@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 $WarningPreference = "Continue"
 
 $user = "chrome-bot"
-$userDir = "c:\setup\$user"
+$userDir = "c:\Users\$user"
 $logFile = "$userDir\schtask.log"
 
 Set-Location -Path $userDir
