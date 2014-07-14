@@ -458,6 +458,7 @@ func updateAllTileSets(service *bigquery.Service) {
 func main() {
 	flag.Parse()
 	Init()
+	db.Init()
 	var err error
 	var client *http.Client
 	if *doOauth {
