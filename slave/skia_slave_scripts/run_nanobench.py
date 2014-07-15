@@ -44,10 +44,6 @@ class RunNanobench(BuildStep):
       # Segfaults when run as GPU bench.  Very large texture?
       match.append('~blurroundrect')
 
-    if self._AllMatch('Win', 'Release'):
-      # Appears we're falling into an infinite loop.
-      run_nanobench = False
-
     if match:
       args.append('--match')
       args.extend(match)
