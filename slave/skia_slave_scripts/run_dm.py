@@ -24,7 +24,10 @@ class RunDM(BuildStep):
     run_dm = True
     match  = []
 
-    # Disable failing tests.
+    # No idea why this test has started failing everywehere.
+    # Not obviously correlated with any code change.
+    match.append('~PremulAlphaRoundTrip')
+
     if self._AnyMatch('ChromeOS', 'DirectWrite'):
       match.append('~bitmapscroll')
 
@@ -37,11 +40,12 @@ class RunDM(BuildStep):
     if self._AnyMatch('Tegra'):
       match.append('~downsamplebitmap_text')
 
-    # No idea why this test has started failing.
-    # Not obviously correlated with any code change.
-    match.append('~PremulAlphaRoundTrip')
+    if self._AnyMatch('Xoom'):
+      match.append('~WritePixels')  # skia:1699
 
-    # Disable crashing tests.
+    if self._AnyMatch('GalaxyNexus', 'NexusS'):
+      match.append('~DeferredSurfaceCopy')  # skia:1687
+
     if self._AllMatch('10.6', 'Debug'):
       # Not sure what's failing exactly, so disable DM entirely.
       run_dm = False
