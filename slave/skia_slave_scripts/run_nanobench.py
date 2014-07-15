@@ -25,11 +25,35 @@ class RunNanobench(BuildStep):
             self._device_dirs.PerfDir(),
             'nanobench_%s_%s.json' % ( self._got_revision, git_timestamp))
 
+  def _AnyMatch(self, *args):
+    return any(arg in self._builder_name for arg in args)
+
+  def _AllMatch(self, *args):
+    return all(arg in self._builder_name for arg in args)
+
   def _Run(self):
     args = ['-i', self._device_dirs.ResourceDir()]
     if self._perf_data_dir:
       args.extend(['--outResultsFile', self._JSONPath()])
-    self._flavor_utils.RunFlavoredCmd('nanobench', args)
+
+    run_nanobench = True
+    match  = []
+
+    # Disable known problems.
+    if self._AnyMatch('Win7', 'Android'):
+      # Segfaults when run as GPU bench.  Very large texture?
+      match.append('~blurroundrect')
+
+    if self._AllMatch('Win', 'Release'):
+      # Appears we're falling into an infinite loop.
+      run_nanobench = False
+
+    if match:
+      args.append('--match')
+      args.extend(match)
+
+    if run_nanobench:
+      self._flavor_utils.RunFlavoredCmd('nanobench', args)
 
 
 if '__main__' == __name__:
