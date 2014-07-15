@@ -50,6 +50,10 @@ class RunDM(BuildStep):
       # Not sure what's failing exactly, so disable DM entirely.
       run_dm = False
 
+    if self._AllMatch('IntelRhb'):
+      # Problem dynamically linking to libskia.so?
+      run_dm = False
+
     if match:
       args.append('--match')
       args.extend(match)
