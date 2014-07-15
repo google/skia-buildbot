@@ -24,11 +24,6 @@
     "type": "integer",
     "description": "Port used by Android build slaves."
   },
-  "autogen_svn_url": {
-    "value": "https://skia-autogen.googlecode.com/svn",
-    "type": "string",
-    "description": "URL of the SVN repo used for auto-generated assets.  TODO(epoger): Delete after master restart that picks up https://codereview.chromium.org/320893002"
-  },
   "buildbot_git_url": {
     "value": "https://skia.googlesource.com/buildbot.git",
     "type": "string",

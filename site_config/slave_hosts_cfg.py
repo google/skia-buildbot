@@ -36,16 +36,6 @@ _DEFAULT_COPIES = [
     "source": ".boto",
     "destination": "buildbot/third_party/chromium_buildbot/site_config",
   },
-  # TODO(epoger): Once a master restart has picked up
-  # https://codereview.chromium.org/320893002/ , remove these autogen lines.
-  {
-    "source": ".autogen_svn_username",
-    "destination": "buildbot/site_config",
-  },
-  {
-    "source": ".autogen_svn_password",
-    "destination": "buildbot/site_config",
-  },
 ]
 
 GCE_PROJECT = skia_vars.GetGlobalVariable('gce_project')
