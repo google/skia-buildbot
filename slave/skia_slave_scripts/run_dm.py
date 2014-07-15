@@ -28,8 +28,14 @@ class RunDM(BuildStep):
     if self._AnyMatch('ChromeOS', 'DirectWrite'):
       match.append('~bitmapscroll')
 
-    if self._AnyMatch('Win7'):
+    if self._AnyMatch('Win7', 'Android'):
       match.append('~blurroundrect')
+
+    if self._AnyMatch('Android'):
+      match.append('~giantbitmap')
+
+    if self._AnyMatch('Tegra'):
+      match.append('~downsamplebitmap_text')
 
     # Disable crashing tests.
     if self._AllMatch('10.6', 'Debug'):
