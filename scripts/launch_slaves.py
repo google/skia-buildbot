@@ -54,7 +54,7 @@ PID_TIMEOUT = 60.0
 
 
 logger = None
-    
+
 
 # TODO(borenet): Share this code with launch_master.py.
 def IsRunning(pid):
@@ -121,6 +121,13 @@ class BuildSlaveManager(multiprocessing.Process):
     proc = subprocess.Popen([gclient, 'sync', '-j1', '--force'])
     if proc.wait() != 0:
       raise Exception('Sync failed.')
+
+    if os.name == 'nt':
+      os.environ['WIN_TOOLS_FORCE'] = '1'
+      subprocess.check_call([os.path.join(os.getcwd(), 'buildbot',
+                                          'third_party', 'depot_tools',
+                                          gclient)])
+      del os.environ['WIN_TOOLS_FORCE']
 
     # Perform Copies
     for copy in self._copies:
