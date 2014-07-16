@@ -57,10 +57,11 @@ var (
 
 // flags
 var (
-	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	doOauth    = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	gitRepoDir = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	tileDir    = flag.String("tile_dir", "/tmp/tiles", "What directory to look for tiles in.")
+	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	doOauth      = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	gitRepoDir   = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+	tileDir      = flag.String("tile_dir", "/tmp/tiles", "What directory to look for tiles in.")
+	tileStoreDir = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tilebuilder tiles in.")
 )
 
 var (
@@ -98,7 +99,7 @@ func Init() {
 
 	tileStores = make(map[string]types.TileStore)
 	for _, name := range config.ALL_DATASET_NAMES {
-		tileStores[string(name)] = filetilestore.NewFileTileStore(*tileDir, string(name))
+		tileStores[string(name)] = filetilestore.NewFileTileStore(*tileStoreDir, string(name))
 	}
 }
 
@@ -112,8 +113,8 @@ func reportError(w http.ResponseWriter, r *http.Request, err error, message stri
 type TracesShortcut struct {
 	Keys    []string `json:"keys"`
 	Dataset string   `json:"dataset"`
-        Tiles   []int    `json:"tiles"`
-        Scale   int      `json:"scale"`
+	Tiles   []int    `json:"tiles"`
+	Scale   int      `json:"scale"`
 }
 
 type ShortcutResponse struct {
