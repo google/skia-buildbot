@@ -476,6 +476,14 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
+        fileServer := http.FileServer(http.Dir("./"))
+        return func(w http.ResponseWriter, r *http.Request) {
+                w.Header().Add("Cache-Control", string(300))
+                fileServer.ServeHTTP(w, r)
+        }
+}
+
 func main() {
 	flag.Parse()
 
@@ -489,7 +497,7 @@ func main() {
 	}
 
 	// Resources are served directly.
-	http.Handle("/res/", autogzip.Handle(http.FileServer(http.Dir("./"))))
+	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc("/index2", autogzip.HandleFunc(main2Handler))
