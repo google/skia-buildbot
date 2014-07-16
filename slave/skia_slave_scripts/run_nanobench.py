@@ -50,7 +50,7 @@ class RunNanobench(BuildStep):
 
     if self._AnyMatch('Nexus7'):
       # Crashes in GPU mode.
-      match.append('~draw_stroke_rrect_miter')
+      match.append('~draw_stroke')
 
     if match:
       args.append('--match')
