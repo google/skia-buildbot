@@ -10,7 +10,8 @@ $(python ../compute_engine_cfg.py)
 REQUIRED_FILES_FOR_LINUX_BOTS=(~/.skia_svn_username \
                                ~/.skia_svn_password \
                                ~/.boto)
-REQUIRED_FILES_FOR_WIN_BOTS=(/tmp/chrome-bot.txt)
+REQUIRED_FILES_FOR_WIN_BOTS=(/tmp/chrome-bot.txt \
+                             ~/.boto)
 
 GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
 GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD --zone=$ZONE ssh --ssh_user=$PROJECT_USER"

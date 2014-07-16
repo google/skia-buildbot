@@ -12,14 +12,27 @@ source vm_setup_utils.sh
 if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_LINUX_IMAGE_NAME
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_LINUX_BOTS[@]}
+  WAIT_TIME_AFTER_CREATION_SECS=240
 elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_WIN_IMAGE_NAME
   ZONE=$WINDOWS_ZONE
+
+  ORIG_STARTUP_SCRIPT="../../scripts/win_setup.ps1"
+  MODIFIED_STARTUP_SCRIPT="/tmp/win_setup.ps1"
+  # Set chrome-bot's password in win_setup.ps1
+  cp $ORIG_STARTUP_SCRIPT $MODIFIED_STARTUP_SCRIPT
+  sed -i "s/CHROME_BOT_PASSWORD/$(echo $(cat /tmp/gce.txt) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
+  sed -i "s/GS_ACCESS_KEY_ID/$(echo $(cat ~/.boto | sed -n 2p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
+  sed -i "s/GS_SECRET_ACCESS_KEY/$(echo $(cat ~/.boto | sed -n 3p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
+
   METADATA_ARGS="--metadata=gce-initial-windows-user:chrome-bot \
                  --metadata_from_file=gce-initial-windows-password:/tmp/chrome-bot.txt \
-                 --metadata_from_file=sysprep-oobe-script-ps1:../../scripts/win_setup.ps1"
+                 --metadata_from_file=sysprep-oobe-script-ps1:$MODIFIED_STARTUP_SCRIPT"
   DISK_ARGS="--boot_disk_size_gb=$PERSISTENT_DISK_SIZE_GB"
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_WIN_BOTS[@]}
+  # We have to wait longer for windows because sysprep can take a while to
+  # complete.
+  WAIT_TIME_AFTER_CREATION_SECS=900
 else
   echo "$VM_INSTANCE_OS is not recognized!"
   exit 1
@@ -63,15 +76,16 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 done
 
 echo
-echo "===== Wait 4 mins for all $BOT_COUNT instances to come up. ====="
+echo "===== Wait $WAIT_TIME_AFTER_CREATION_SECS secs for all instances to" \
+     "come up. ====="
 echo
-sleep 240
+sleep $WAIT_TIME_AFTER_CREATION_SECS
 
-if [ "$VM_INSTANCE_OS" == "Linux" ]; then
-  # Looping through all bots and setting them up.
-  for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
-    INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+# Looping through all bots and setting them up.
+for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
+  INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
 
+  if [ "$VM_INSTANCE_OS" == "Linux" ]; then
     FAILED=""
 
     install_packages
@@ -84,13 +98,15 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
 
     setup_nacl
 
-    setup_crontab
-
     fix_gsutil_path
 
     copy_files
 
-    reboot
+    if [ "$VM_IS_BUILDBOT" = True ]; then
+      setup_crontab
+
+      reboot
+    fi
 
     if [[ $FAILED ]]; then
       echo
@@ -98,8 +114,12 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
       echo "Please manually fix these errors."
       echo
     fi
-  done
-fi
+
+  elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
+    # Restart the windows instance to run chrome-bot's scheduled task.
+    $GCOMPUTE_CMD resetinstance $INSTANCE_NAME
+  fi
+done
 
 cat <<INP
 

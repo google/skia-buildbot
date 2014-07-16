@@ -22,6 +22,9 @@ VM_INSTANCE_OS = os.environ.get('VM_INSTANCE_OS', 'Linux')
 IP_ADDRESS_WITHOUT_MACHINE_PART = '108.170.192'
 VM_BOT_NAME = 'skia-vm'
 PERSISTENT_DISK_SIZE_GB = 300
+# If this is true then the VM instances will automatically try to connect to the
+# buildbot master.
+VM_IS_BUILDBOT = os.environ.get('VM_IS_BUILDBOT', True)
 
 # The Project ID is found in the Compute tab of the dev console.
 # https://cloud.google.com/console#c=p&pid=182615506979
