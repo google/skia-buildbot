@@ -13,6 +13,7 @@ import time
 from build_step import BuildStep
 from config_private import SKIA_GIT_URL
 from py.utils.git_utils import GIT
+from py.utils import git_utils
 from py.utils import misc
 from py.utils import shell_utils
 
@@ -56,9 +57,9 @@ class UpdateSkpVersion(BuildStep):
 
       version_file = 'SKP_VERSION'
       skp_version = self._args.get('skp_version')
-      with misc.GitBranch(branch_name='update_skp_version',
-                          commit_msg=COMMIT_MSG % skp_version,
-                          commit_queue=not self._is_try) as branch:
+      with git_utils.GitBranch(branch_name='update_skp_version',
+                               commit_msg=COMMIT_MSG % skp_version,
+                               commit_queue=not self._is_try) as branch:
 
         # First, upload a version of the CL with just the SKP version changed.
         with open(version_file, 'w') as f:

@@ -26,7 +26,7 @@ vars = {
 deps = {
   # Utilities shared between the Skia and Skia-Buildbot repositories.
   "common":
-    Var("skia_git") + "/common.git@c92e6d8058240b0804b28fdc4f78261b7133431d",
+    Var("skia_git") + "/common.git@ac762a93094a8a45e2793820ababd280766eef2a",
 
   # Chromium trunk code for running telemetry binaries.
   "third_party/chromium_trunk/src/tools/perf":
@@ -70,9 +70,16 @@ deps = {
   # Dependencies of the Chromium buildbot code.
   # I tried to use From() to link to Chromium's /tools/build/DEPS dependencies,
   # but I couldn't get it to work... so I have hard-coded these dependencies.
+  #
+  # TODO(borenet): Maybe use recursedeps for these?  But hopefully we'll be
+  # completely upstreamed soon anyway, and we won't need to bother.
   "third_party/chromium_buildbot/third_party/gsutil":
     Var("chromium_git") + "/external/gsutil/src.git@b41305d0b538bae46777e1d9562ecec0149f8d44",
   "third_party/chromium_buildbot/third_party/gsutil/boto":
     Var("chromium_git") + "/external/boto.git@98fc59a5896f4ea990a4d527548204fed8f06c64",
 }
+
+recursedeps = [
+  "common",
+]
 
