@@ -127,7 +127,7 @@ func getLatestBQTimestamp(service *bigquery.Service, datasetName string, tablePr
 	results := result.LastModifiedTime / 1000
 	tables, err := getValidTables(service, datasetName)
 	if err != nil {
-		glog.Warningln("Error in retrieving tables: %s", err)
+		glog.Warningf("Error in retrieving tables: %s\n", err)
 		return BEGINNING_OF_TIME
 	}
 	for _, table := range tables {
@@ -149,7 +149,7 @@ func getLatestBQTimestamp(service *bigquery.Service, datasetName string, tablePr
 	for _, table := range tables {
 		result, err := service.Tables.Get(_BQ_PROJECT_NAME, datasetName, table).Do()
 		if err != nil {
-			glog.Errorln("Failed to retrieve table: %s", err)
+			glog.Errorf("Failed to retrieve table: %s\n", err)
 			return BEGINNING_OF_TIME
 		}
 		if result.LastModifiedTime/1000 > results {
@@ -209,7 +209,7 @@ func getFilesFromGSDir(service *storage.Service, directory string, bucket string
 			if updateTimestamp > lowestTimestamp {
 				newParsedTime, err := parseTimestamp(result.Name)
 				if err != nil {
-					glog.Errorln("Failed to parse timestamp for %s: %s", result.Name, err)
+					glog.Errorf("Failed to parse timestamp for %s: %s\n", result.Name, err)
 					continue
 				}
 				results = append(results,
@@ -397,14 +397,14 @@ func runAndRepeat(bq *bigquery.Service, cs *storage.Service, jobs []Job, dataset
 	totalSuccess := 0
 	numSuccess, jobs, err := smartCopy(bq, cs, jobs, dataset, prefix, sourceBucketSubdir, timestamp)
 	if err != nil {
-		glog.Warningln("Error occurred during smartCopy: %s", err)
+		glog.Warningf("Error occurred during smartCopy: %s\n", err)
 	}
 	totalSuccess += numSuccess
 	for numSuccess > 0 {
 		timestamp, newtimestamp = newtimestamp, time.Now().Unix()
 		numSuccess, jobs, err = smartCopy(bq, cs, jobs, dataset, prefix, sourceBucketSubdir, timestamp)
 		if err != nil {
-			glog.Warningln("Error occurred during smartCopy: %s", err)
+			glog.Warningf("Error occurred during smartCopy: %s\n", err)
 		}
 		totalSuccess += numSuccess
 	}
