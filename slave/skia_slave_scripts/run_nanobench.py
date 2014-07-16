@@ -48,6 +48,10 @@ class RunNanobench(BuildStep):
       # Appears we're falling into an infinite loop.
       run_nanobench = False
 
+    if self._AnyMatch('Nexus7'):
+      # Crashes in GPU mode.
+      match.append('~draw_stroke_rrect_miter')
+
     if match:
       args.append('--match')
       args.extend(match)
