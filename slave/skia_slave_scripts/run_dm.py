@@ -24,9 +24,6 @@ class RunDM(BuildStep):
     run_dm = True
     match  = []
 
-    if self._AnyMatch('ChromeOS', 'DirectWrite'):
-      match.append('~bitmapscroll')
-
     if self._AnyMatch('Win7', 'Android'):
       match.append('~blurroundrect')
 
