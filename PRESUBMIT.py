@@ -5,6 +5,7 @@
 
 """Presubmit checks for the buildbot code."""
 
+
 import os
 import subprocess
 import sys
@@ -31,6 +32,48 @@ def _RunBuildbotTests(input_api, output_api):
     results.append(output_api.PresubmitPromptWarning(
         message='One or more buildbot tests failed.',
         long_text=long_text))
+  return results
+
+
+def _CheckNonAscii(input_api, output_api):
+  """Check for non-ASCII characters and throw warnings if any are found."""
+  results = []
+  files_with_unicode_lines = []
+  # We keep track of the longest file (in line count) so that we can pad the
+  # numbers when displaying output. This makes it easier to see the indention.
+  max_lines_in_any_file = 0
+  file_extensions = ('bat', 'cfg', 'cmd', 'conf', 'css', 'gyp', 'gypi', 'htm',
+                     'html', 'js', 'json', 'ps1', 'py', 'sh', 'tac', 'yaml')
+  for affected_file in input_api.AffectedSourceFiles(None):
+    affected_filepath = affected_file.LocalPath()
+    if affected_filepath.split('.')[-1] not in file_extensions:
+      continue
+    unicode_lines = []
+    with open(affected_filepath, 'r+b') as f:
+      total_lines = 0
+      for line in f:
+        total_lines += 1
+        try:
+          line.decode('ascii')
+        except UnicodeDecodeError:
+          unicode_lines.append((total_lines, line.rstrip()))
+    if unicode_lines:
+      files_with_unicode_lines.append((affected_filepath, unicode_lines))
+      if total_lines > max_lines_in_any_file:
+        max_lines_in_any_file = total_lines
+
+  if files_with_unicode_lines:
+    padding = len(str(max_lines_in_any_file))
+    long_text = 'The following files contain non-ASCII characters:\n'
+    for filename, unicode_lines in files_with_unicode_lines:
+      long_text += '  %s\n' % filename
+      for line_num, line in unicode_lines:
+        long_text += '    %s: %s\n' % (str(line_num).rjust(padding), line)
+      long_text += '\n'
+    results.append(output_api.PresubmitPromptWarning(
+        message='Some files contain non-ASCII characters.',
+        long_text=long_text))
+
   return results
 
 
@@ -111,8 +154,7 @@ def _CheckTreeStatus(input_api, output_api, json_url):
       # prompts to be failures.
       display_skip_keyword_prompt = True
   else:
-    # pylint: disable=W0212
-    tree_status = tree_status_results[0]._message
+    tree_status = tree_status_results[0]._message  # pylint: disable=W0212
     display_skip_keyword_prompt = True
 
   if (display_skip_keyword_prompt
@@ -128,7 +170,11 @@ def _CheckTreeStatus(input_api, output_api, json_url):
 
 
 def CheckChangeOnUpload(input_api, output_api):
-  return CheckChange(input_api, output_api)
+  results = CheckChange(input_api, output_api)
+  # Give warnings for non-ASCII characters on upload but not commit, since they
+  # may be intentional.
+  results.extend(_CheckNonAscii(input_api, output_api))
+  return results
 
 
 def CheckChangeOnCommit(input_api, output_api):
@@ -137,4 +183,3 @@ def CheckChangeOnCommit(input_api, output_api):
       _CheckTreeStatus(input_api, output_api, json_url=(
           SKIA_TREE_STATUS_URL + '/banner-status?format=json')))
   return results
-
