@@ -16,7 +16,6 @@ import copy
 import json
 import os
 import os.path
-import posixpath
 import re
 import sys
 from datetime import datetime
@@ -101,20 +100,17 @@ class UploadBenchResults(BuildStep):
   def _GetPerfDataDir(self):
     return self._perf_data_dir
 
-  def _GetBucketSubdir(self):
-    subdirs = ['perfdata', self._builder_name]
-    if self._is_try:
-      # Trybots need to isolate their results by build number.
-      subdirs.append(self._build_number)
-    return posixpath.join(*subdirs)
-
-  def _RunNormalUpload(self, dest_gsbase):
+  def _RunLogUpload(self, dest_gsbase):
     # Upload the normal bench logs
     print "Uploading normal data files"
+    subdir_path = '/'.join(('perfdata', self._builder_name))
+    if self._is_try:
+      # Trybots need to isolate their results by build number.
+      subdir_path = '/'.join((subdir_path, str(self._build_number)))
     sync_bucket_subdir.SyncBucketSubdir(
         directory=self._GetPerfDataDir(),
         dest_gsbase=dest_gsbase,
-        subdir=self._GetBucketSubdir(),
+        subdir=subdir_path,
         do_upload=True,
         exclude_json=True,
         do_download=False)
@@ -134,17 +130,19 @@ class UploadBenchResults(BuildStep):
     return result
 
 
-  def _UploadResults(self, dest_gsbase, gs_subdir, full_json_path):
+  def _UploadJSONResults(self, dest_gsbase, gs_subdir, full_json_path):
     now = datetime.utcnow()
     gs_json_path = '/'.join((str(now.year).zfill(4), str(now.month).zfill(2),
                             str(now.day).zfill(2), str(now.hour).zfill(2)))
     gs_dir = '/'.join((gs_subdir, gs_json_path, self._builder_name))
+    if self._is_try:
+      gs_dir = '/'.join(('trybot', gs_dir, self.build_number))
     upload_to_bucket.upload_to_bucket(
         full_json_path,
         '/'.join((dest_gsbase, gs_dir)))
 
 
-  def _RunSKPBenchUpload(self, dest_gsbase):
+  def _RunSKPBenchJSONUpload(self, dest_gsbase):
     """Upload SPK bench JSON data, after converting the JSON format."""
     print "Uploading SPK bench JSON data"
 
@@ -174,7 +172,7 @@ class UploadBenchResults(BuildStep):
 
     for full_file_name in json_file_list:
       print 'Uploading file %s' % full_file_name
-      self._UploadResults(dest_gsbase, 'pics-json-v2', full_file_name)
+      self._UploadJSONResults(dest_gsbase, 'pics-json-v2', full_file_name)
 
     if not expectations:
       return
@@ -215,10 +213,10 @@ class UploadBenchResults(BuildStep):
           json.dump(new_row, json_picture_write)
           json_picture_write.write('\n')
 
-    self._UploadResults(dest_gsbase, 'pics-json-v2', full_json_write_name)
+    self._UploadJSONResults(dest_gsbase, 'pics-json-v2', full_json_write_name)
 
 
-  def _RunBenchUpload(self, dest_gsbase):
+  def _RunBenchJSONUpload(self, dest_gsbase):
     """Uploads bench JSON data, after modifying the format."""
     # Find and open the bench JSON file to add in additional fields, then upload
     file_list = os.listdir(self._GetPerfDataDir())
@@ -293,14 +291,14 @@ class UploadBenchResults(BuildStep):
                 json.dump(new_row, json_write_file)
                 json_write_file.write('\n')
 
-      self._UploadResults(dest_gsbase, 'stats-json-v2', json_write_name)
+      self._UploadJSONResults(dest_gsbase, 'stats-json-v2', json_write_name)
 
   def _RunInternal(self):
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
-    self._RunNormalUpload(dest_gsbase)
-    self._RunBenchUpload(dest_gsbase)
-    self._RunSKPBenchUpload(dest_gsbase)
+    self._RunLogUpload(dest_gsbase)
+    self._RunBenchJSONUpload(dest_gsbase)
+    self._RunSKPBenchJSONUpload(dest_gsbase)
 
 
   def _Run(self):
