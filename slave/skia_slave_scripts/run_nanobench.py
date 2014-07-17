@@ -40,12 +40,13 @@ class RunNanobench(BuildStep):
     match  = []
 
     # Disable known problems.
-    if self._AnyMatch('Win7', 'Android'):
+    if self._AnyMatch('Android'):
       # Segfaults when run as GPU bench.  Very large texture?
       match.append('~blurroundrect')
 
-    if self._AnyMatch('Win7'):
-      args.append('-V')
+    if self._AnyMatch('HD2000'):
+      # GPU benches seem to hang on HD2000.  Not sure why.
+      args.append('--nogpu')
 
     if self._AnyMatch('Nexus7'):
       # Crashes in GPU mode.
