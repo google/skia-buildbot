@@ -146,6 +146,7 @@ class MergeIntoAndroid(BuildStep):
         git_utils.Add('Android.mk')
         git_utils.Add(ANDROID_USER_CONFIG)
         git_utils.Add(os.path.join('tests', 'Android.mk'))
+        git_utils.Add(os.path.join('tools', 'Android.mk'))
         git_utils.Add(os.path.join('bench', 'Android.mk'))
         git_utils.Add(os.path.join('gm', 'Android.mk'))
         git_utils.Add(os.path.join('dm', 'Android.mk'))
