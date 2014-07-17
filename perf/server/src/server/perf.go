@@ -320,7 +320,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	omitCommits := r.FormValue("omit_commits") != ""
 	omitParams := r.FormValue("omit_params") != ""
 	omitNames := r.FormValue("omit_names") != ""
-	result := types.NewGUITile(int(tileScale), int(tileNumber))
+	result := types.NewGUITile(tile.Scale, tile.TileIndex)
 	paramList, ok := config.KEY_PARAM_ORDER[dataset]
 	if !ok {
 		reportError(w, r, err, "Unable to read parameter list for dataset: ")

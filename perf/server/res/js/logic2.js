@@ -28,6 +28,7 @@
   // Query and Legend can change traces.
   var traces = [
       {
+        /*
         // All of these keys and values should be exactly what Flot consumes.
         data: [[1, 1.1], [20, 30]],
         label: "key1",
@@ -40,21 +41,26 @@
         color: "",
         show: false,
       },
+        */
     ];
 
   // Query watches queryInfo.
   // Dataset can change queryInfo.
   var queryInfo = {
     allKeys: [
+      /*
       ["desk_gmailthread.skp", "cpu",  "arm"],
       ["desk_gmailthread.skp", "cpu",  "x86"],
       ["desk_mapsvg.skp",      "wall", "x86"],
+      */
     ],
     // The header name is the first value in each array.
     params: [
+      /*
       ["benchName", "desk_gmailthread.skp", "desk_mapsvg.skp" ],
       ["timer", "wall", "cpu"], // 1
       ["arch", "arm7", "x86", "x86_64"], // 2
+      */
     ]
   }
 
@@ -78,59 +84,20 @@
 
   function Legend() {
     new ArrayObserver(traces).open(function(slices) {
-      $$$('#legend').textContent = "Selection has changed! " + traces.length;
-    });
-
-    $$$('#removeTrace').addEventListener('click', function() {
-      traces.splice(0, 1);
-    });
-    $$$('#toggleTrace').addEventListener('click', function() {
-      var t = traces[0];
-      traces[0] = {
-        data: t.data,
-        label: t.label,
-        color: t.color,
-        show: !t.show
-      };
     });
   }
 
   function Query() {
     function onParamChange() {
-      $$$('#query').textContent = "Params have changed!";
     }
     new ArrayObserver(queryInfo.params).open(onParamChange);
     new ArrayObserver(queryInfo.allKeys).open(onParamChange);
-
-    var i = 0;
-    $$$('#addTrace').addEventListener('click', function() {
-      traces.push(
-        {
-          data: [[1.2, 2.1], [20, 35]],
-          label: "key" + i,
-          color: "",
-          show: false,
-        });
-      i += 1;
-    });
   }
 
   function Dataset() {
     var dataSet = "skps";
-    var tileNum = [0, 1];
+    var tileNum = [-1];
     var scale =  0;
-
-    $$$('#changeTile').addEventListener('click', function() {
-
-      traces.splice(0, traces.length,
-        {
-          data: [[1.2, 2.1], [20, 35]],
-          label: "key",
-          color: "",
-          show: false,
-        });
-      queryInfo.params.push(["a", "b", "c"]);
-    });
   }
 
   /** microtasks

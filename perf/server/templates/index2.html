@@ -2,22 +2,33 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width"/>
+    <meta name="viewport" content="width=device-width" />
+    <link href="res/css/perf.css" rel="stylesheet" />
     <script src="res/js/perf.js"></script>
     <script src="res/js/logic2.js"></script>
 </head>
 <body>
-    <h2>Plot</h2>
-    <div id="plot"></div>
-
-    <h2>Legend</h2>
-    <div id="legend"> </div>
-    <button type="submit" id="removeTrace">Remove Trace</button>
-    <button type="submit" id="toggleTrace">Toggle Trace</button>
-
-    <h2>Query</h2>
-    <div id="query"> </div>
-    <button type="submit" id="addTrace">Add Trace</button>
-    <button type="submit" id="changeTile">Change Tile</button>
+    <div class="wrapper">
+        <div class="plot-wrapper">
+            <div id="chart">
+            </div>
+            <div>
+        </div>
+        <div>
+            <div id="legend">
+                <table><tbody></tbody></table>
+            </div>
+        </div>
+        <div>
+            <form id="query-form" action="" method="POST">
+                <table><tr id="inputs"></tr></table>
+                <input id="add-lines" type="button"
+                    value="Add lines"></input>
+                <input type=radio name=schema-type value=skps checked>Perf</input>
+                <input type=radio name=schema-type value=micro>Microbench</input>
+            </form>
+            <div id='query-text'></div>
+        </div>
+    </div>
 </body>
 </html>
