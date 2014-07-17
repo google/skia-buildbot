@@ -33,6 +33,10 @@ class RunDM(BuildStep):
     if self._AnyMatch('Xoom'):
       match.append('~WritePixels')  # skia:1699
 
+    if self._AllMatch('IntelRhb'):
+      # Problem dynamically linking to libskia.so?
+      run_dm = False
+
     if match:
       args.append('--match')
       args.extend(match)
