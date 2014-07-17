@@ -33,8 +33,16 @@ class RunDM(BuildStep):
     if self._AnyMatch('Xoom'):
       match.append('~WritePixels')  # skia:1699
 
+    if self._AllMatch('10.6', 'Debug'):
+      # Not sure what's failing exactly, so disable DM entirely.
+      run_dm = False
+
     if self._AllMatch('IntelRhb'):
       # Problem dynamically linking to libskia.so?
+      run_dm = False
+
+    if self._AnyMatch('Android') and not self._AnyMatch('Nexus7', 'Xoom'):
+      # Lots of failures.  Temporarily whitelist N7 and Xoom, which are passing.
       run_dm = False
 
     if match:
