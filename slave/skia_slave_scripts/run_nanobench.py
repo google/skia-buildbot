@@ -21,8 +21,8 @@ class RunNanobench(BuildStep):
                                        no_output_timeout=no_output_timeout,
                                        **kwargs)
 
-  def _KeyParam(self):
-    """Build a unique key from the builder name.
+  def _KeyParams(self):
+    """Build a unique key from the builder name (as a list).
 
     E.g.:  os Mac10.6 model MacMini4.1 gpu GeForce320M arch x86
 
@@ -40,8 +40,11 @@ class RunNanobench(BuildStep):
     for name in blacklist:
       if name in params:
         del params[name]
-    keys = sorted(params.keys())
-    return ' '.join([k + ' ' + params[k] for k in keys])
+    flat = []
+    for k in sorted(params.keys()):
+      flat.append(k)
+      flat.append(params[k])
+    return flat
 
   def _JSONPath(self):
     git_timestamp = gclient_utils.GetGitRepoPOSIXTimestamp()
@@ -60,9 +63,10 @@ class RunNanobench(BuildStep):
     if self._perf_data_dir:
       args.extend([
         '--outResultsFile', self._JSONPath(),
-        '--key', self._KeyParam(),
         '--gitHash', self._got_revision,
-        ])
+      ])
+      args.append('--key')
+      args.extend(self._KeyParams())
 
     run_nanobench = True
     match  = []
