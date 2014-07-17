@@ -23,6 +23,10 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
+import (
+	"gs"
+)
+
 var (
 	bqOauthConfig = &oauth.Config{
 		ClientId:     "470362608618-nlbqngfl87f4b3mhqqe9ojgaoe11vrld.apps.googleusercontent.com",
@@ -44,7 +48,6 @@ var (
 const (
 	_BQ_PROJECT_NAME   = "google.com:chrome-skia"
 	BEGINNING_OF_TIME  = 1401840000
-	_CS_PROJECT_BUCKET = "chromium-skia-gm"
 )
 
 func Init() {
@@ -228,51 +231,6 @@ func getFilesFromGSDir(service *storage.Service, directory string, bucket string
 	return results
 }
 
-// getLatestGSDirs gets the appropriate directory names in which data
-// would be stored between the given timestamp and now.
-func getLatestGSDirs(timestamp int64, bsSubdir string) []string {
-	oldTime := time.Unix(timestamp, 0).UTC()
-	glog.Infoln("Old time: ", oldTime)
-	newTime := time.Now().UTC()
-	lastAddedTime := oldTime
-	results := make([]string, 0)
-	newYear, newMonth, newDay := newTime.Date()
-	newHour := newTime.Hour()
-	lastYear, lastMonth, _ := lastAddedTime.Date()
-	if lastYear != newYear {
-		for i := lastMonth; i < 12; i++ {
-			results = append(results, fmt.Sprintf("%04d/%02d", lastYear, lastMonth))
-		}
-		for i := lastYear + 1; i < newYear; i++ {
-			results = append(results, fmt.Sprintf("%04d", i))
-		}
-		lastAddedTime = time.Date(newYear, 0, 1, 0, 0, 0, 0, time.UTC)
-	}
-	lastYear, lastMonth, _ = lastAddedTime.Date()
-	if lastMonth != newMonth {
-		for i := lastMonth; i < newMonth; i++ {
-			results = append(results, fmt.Sprintf("%04d/%02d", lastYear, i))
-		}
-		lastAddedTime = time.Date(newYear, newMonth, 1, 0, 0, 0, 0, time.UTC)
-	}
-	lastYear, lastMonth, lastDay := lastAddedTime.Date()
-	if lastDay != newDay {
-		for i := lastDay; i < newDay; i++ {
-			results = append(results, fmt.Sprintf("%04d/%02d/%02d", lastYear, lastMonth, i))
-		}
-		lastAddedTime = time.Date(newYear, newMonth, newDay, 0, 0, 0, 0, time.UTC)
-	}
-	lastYear, lastMonth, lastDay = lastAddedTime.Date()
-	lastHour := lastAddedTime.Hour()
-	for i := lastHour; i < newHour+1; i++ {
-		results = append(results, fmt.Sprintf("%04d/%02d/%02d/%02d", lastYear, lastMonth, lastDay, i))
-	}
-	for i := range results {
-		results[i] = fmt.Sprintf("%s/%s", bsSubdir, results[i])
-	}
-	return results
-}
-
 // getSchema returns the schema dictionary for the given dataset
 func getSchema(name string) (*bigquery.TableSchema, error) {
 
@@ -303,7 +261,7 @@ func smartCopy(bq *bigquery.Service, cs *storage.Service, jobs []Job, dataset, p
 	}
 	glog.Infoln("Using timestamp ", realTimestamp)
 	// Get all the JSON files with a timestamp after that
-	dirs := getLatestGSDirs(realTimestamp, sourceBucketSubdir)
+	dirs := gs.GetLatestGSDirs(realTimestamp, time.Now().Unix(), sourceBucketSubdir)
 	glog.Infoln("Looking in dirs: ", dirs)
 	tables, _ := getValidTables(bq, dataset)
 	glog.Infoln("Found existing tables: ", tables)
@@ -314,7 +272,7 @@ func smartCopy(bq *bigquery.Service, cs *storage.Service, jobs []Job, dataset, p
 
 	jsonUris := make(map[string][]string)
 	for _, dir := range dirs {
-		files := getFilesFromGSDir(cs, dir, _CS_PROJECT_BUCKET, realTimestamp)
+		files := getFilesFromGSDir(cs, dir, gs.GS_PROJECT_BUCKET, realTimestamp)
 		for _, file := range files {
 			dateSuffix := toDateSuffix(file.day)
 			if _, ok := jsonUris[dateSuffix]; !ok {

@@ -32,6 +32,7 @@ import (
 	"config"
 	"db"
 	"filetilestore"
+	"gs"
 	"types"
 )
 
@@ -46,6 +47,8 @@ var (
 	clusterTemplate *template.Template = nil
 
 	jsonHandlerPath = regexp.MustCompile(`/json/([a-z]*)$`)
+
+	trybotsHandlerPath = regexp.MustCompile(`/trybots/([0-9A-Za-z-/]*)$`)
 
 	clustersHandlerPath = regexp.MustCompile(`/clusters/([a-z]*)$`)
 
@@ -73,6 +76,9 @@ var (
 const (
 	// Maximum allowed data POST size.
 	MAX_POST_SIZE = 64000
+
+	// Recent number of days to look for trybot data.
+	TRYBOT_DAYS_BACK = 7
 )
 
 func Init() {
@@ -186,6 +192,39 @@ func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+}
+
+// trybotHandler handles the GET for trybot data.
+func trybotHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Trybot Handler: %q\n", r.URL.Path)
+	match := trybotsHandlerPath.FindStringSubmatch(r.URL.Path)
+	if match == nil {
+		http.NotFound(w, r)
+		return
+	}
+	if len(match) != 2 {
+		reportError(w, r, fmt.Errorf("Trybot Handler regexp wrong number of matches: %#v", match), "Not Found")
+		return
+	}
+	if r.Method == "GET" {
+		daysBack, err := strconv.ParseInt(r.FormValue("daysback"), 10, 64)
+		if err != nil {
+			glog.Warningln("No valid daysback given; using the default.")
+			daysBack = TRYBOT_DAYS_BACK
+		}
+		endTS, err := strconv.ParseInt(r.FormValue("end"), 10, 64)
+		if err != nil {
+			glog.Warningln("No valid end ts given; using the default.")
+			endTS = time.Now().Unix()
+		}
+		w.Header().Set("Content-Type", "application/json")
+		results, err := gs.GetTryResults(match[1], endTS, int(daysBack))
+		if err != nil {
+			reportError(w, r, err, "Error getting storage results.")
+			return
+		}
+		w.Write(results)
 	}
 }
 
@@ -478,11 +517,11 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-        fileServer := http.FileServer(http.Dir("./"))
-        return func(w http.ResponseWriter, r *http.Request) {
-                w.Header().Add("Cache-Control", string(300))
-                fileServer.ServeHTTP(w, r)
-        }
+	fileServer := http.FileServer(http.Dir("./"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", string(300))
+		fileServer.ServeHTTP(w, r)
+	}
 }
 
 func main() {
@@ -505,6 +544,7 @@ func main() {
 	http.HandleFunc("/json/", jsonHandler) // We pre-gzip this ourselves.
 	http.HandleFunc("/shortcuts/", shortcutHandler)
 	http.HandleFunc("/tiles/", tileHandler)
+	http.HandleFunc("/trybots/", autogzip.HandleFunc(trybotHandler))
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
 	http.HandleFunc("/annotations/", autogzip.HandleFunc(annotationsHandler))
 

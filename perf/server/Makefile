@@ -12,7 +12,7 @@ verbosetests:
 	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace -v
 
 ingest: src/ingest/ingest.go src/ingest/ingest_main.go
-	go build src/ingest/ingest.go src/ingest/ingest_main.go
+	GOPATH=$(GOPATH):`pwd` go build src/ingest/ingest.go src/ingest/ingest_main.go
 
 logs:
 	GOPATH=$(GOPATH):`pwd` go build -v logserver
