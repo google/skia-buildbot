@@ -45,8 +45,7 @@ class RunNanobench(BuildStep):
       match.append('~blurroundrect')
 
     if self._AnyMatch('Win7'):
-      # Seems to be getting hung up in here.
-      match.append('~gradient')
+      args.append('-V')
 
     if self._AnyMatch('Nexus7'):
       # Crashes in GPU mode.
