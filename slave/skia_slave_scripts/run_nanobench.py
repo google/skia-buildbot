@@ -44,6 +44,10 @@ class RunNanobench(BuildStep):
       # Segfaults when run as GPU bench.  Very large texture?
       match.append('~blurroundrect')
 
+    if self._AnyMatch('Win7'):
+      # Seems to be getting hung up in here.
+      match.append('~gradient')
+
     if self._AnyMatch('Nexus7'):
       # Crashes in GPU mode.
       match.append('~draw_stroke')
