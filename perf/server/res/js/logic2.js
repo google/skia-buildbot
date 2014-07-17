@@ -23,12 +23,12 @@
  *   - Allows the user to move among tiles, change scale, etc.
  *
  */
-(function() {
+var skiaperf = (function() {
   // Plot and Legend watch traces.
   // Query and Legend can change traces.
   var traces = [
-      {
         /*
+      {
         // All of these keys and values should be exactly what Flot consumes.
         data: [[1, 1.1], [20, 30]],
         label: "key1",
@@ -65,6 +65,7 @@
   }
 
   function $$(query, par) {
+    var id = function(e) { return e; };
     if(!par) {
       return Array.prototype.map.call(document.querySelectorAll(query), id);
     } else {
@@ -87,8 +88,58 @@
     });
   }
 
+  /**
+   * Sets up the event handlers related to the query controls in the interface.
+   * The callbacks in this function use and observe {@code queryInfo},
+   * and modifies {@code traces}.
+   */
   function Query() {
+    /**
+     * Syncs the DOM to match the current state of queryInfo.
+     * It currently removes all the existing elements and then 
+     * generates a new set that matches the queryInfo data.
+     */
     function onParamChange() {
+      console.log('onParamChange() triggered');
+      var queryTable = $$$('#inputs');
+      while(queryTable.hasChildNodes()) { 
+        queryTable.removeChild(queryTable.lastChild);
+      }
+
+      for(var i = 0; i < queryInfo.params.length; i++) {
+        var column = document.createElement('td');
+
+        var longest = Math.max.apply(null, queryInfo.params[i].map(function(p) {
+          return p.length;
+        }));
+        var minWidth = 0.75*longest + 0.5;
+
+        var input = document.createElement('input');
+        input.id = 'input_' + i;
+        input.style.width = minWidth + 'em';
+
+        var header = document.createElement('h4');
+        header.innerText = queryInfo.params[i][0];
+
+        var select = document.createElement('select');
+        select.id = 'select_' + i;
+        select.style.width = minWidth + 'em';
+        select.style.overflow = 'auto';
+        select.setAttribute('multiple', 'yes');
+
+        for(var j = 1; j < queryInfo.params[i].length; j++) {
+          var option = document.createElement('option');
+          option.value = queryInfo.params[i][j];
+          option.innerText = queryInfo.params[i][j].length > 0?
+              queryInfo.params[i][j] : '(none)';
+          select.appendChild(option);
+        }
+
+        column.appendChild(header);
+        column.appendChild(input);
+        column.appendChild(select);
+        queryTable.appendChild(column);
+      }
     }
     new ArrayObserver(queryInfo.params).open(onParamChange);
     new ArrayObserver(queryInfo.allKeys).open(onParamChange);
@@ -124,5 +175,10 @@
   } else {
     this.addEventListener('load', onLoad);
   }
+
+  return {
+    traces: traces,
+    queryInfo: queryInfo
+  };
 
 }());
