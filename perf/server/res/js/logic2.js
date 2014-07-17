@@ -33,13 +33,17 @@ var skiaperf = (function() {
         data: [[1, 1.1], [20, 30]],
         label: "key1",
         color: "",
-        show: false,
+        lines: {
+          show: false
+        }
       },
       {
         data: [[1.2, 2.1], [20, 35]],
         label: "key2",
         color: "",
-        show: false,
+        lines: {
+          show: false
+        }
       },
         */
     ];
@@ -62,11 +66,11 @@ var skiaperf = (function() {
       ["arch", "arm7", "x86", "x86_64"], // 2
       */
     ]
-  }
+  };
 
   function $$(query, par) {
     var id = function(e) { return e; };
-    if(!par) {
+    if (!par) {
       return Array.prototype.map.call(document.querySelectorAll(query), id);
     } else {
       return Array.prototype.map.call(par.querySelectorAll(query), id);
@@ -77,9 +81,88 @@ var skiaperf = (function() {
     return par ? par.querySelector(query) : document.querySelector(query);
   }
 
+  /**
+   * Sets up the callbacks related to the plot.
+   * Plot observes traces.
+   */
   function Plot() {
+
+    /**
+     * Reference to the underlying Flot plot object.
+     */
+    var plotRef = $('#chart').plot([],
+        {
+          legend: {
+            show: false
+          },
+          grid: {
+            hoverable: true,
+            autoHighlight: true,
+            mouseActiveRadius: 16,
+            clickable: true
+          },
+          xaxis: {
+            ticks: function(axis) {
+              var range = axis.max - axis.min;
+              // Different possible tick intervals, ranging from a second to
+              // about a year
+              var scaleFactors = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 120,
+                                  240, 300, 900, 1200, 1800, 3600, 7200,
+                                  10800, 14400, 18000, 21600, 43200, 86400,
+                                  604800, 2592000, 5184000, 10368000, 
+                                  15552000, 31536000];
+              var MAX_TICKS = 5;
+              var i = 0;
+              while (range / scaleFactors[i] > MAX_TICKS &&
+                  i < scaleFactors.length) {
+                i++;
+              }
+              var scaleFactor = scaleFactors[i];
+              var cur = scaleFactor * Math.ceil(axis.min / scaleFactor);
+              var ticks = [];
+              do {
+                var tickDate = new Date(cur * 1000);
+                var formattedTime = tickDate.toString();
+                if (scaleFactor >= 24 * 60 * 60) {
+                  formattedTime = tickDate.toDateString();
+                } else {
+                  // FUTURE: Find a way to make a string with only the hour or minute
+                  formattedTime = tickDate.toDateString() + '<br \\>' +
+                    tickDate.toTimeString();
+                }
+                ticks.push([cur, formattedTime]);
+                cur += scaleFactor;
+              } while (cur < axis.max);
+              return ticks;
+            }
+          },
+          crosshair: {
+            mode: 'xy'
+          },
+          zoom: {
+            interactive: true
+          },
+          pan: {
+            interactive: true,
+            frameRate: 60
+          }
+        }).data('plot');
+
+    // Redraw the plot when traces are modified.
     new ArrayObserver(traces).open(function(slices) {
-      $$$('#plot').textContent = "Selection has changed! " + traces.length;
+      plotRef.setData(traces);
+      var options = plotRef.getOptions();
+      var cleanAxes = function(axis) {
+        axis.max = null;
+        axis.min = null;
+      };
+      options.xaxes.forEach(cleanAxes);
+      options.yaxes.forEach(cleanAxes);
+      plotRef.setupGrid();
+      plotRef.draw();
+
+      var data = plotRef.getData();
+      console.log(data);
     });
   }
 
@@ -96,23 +179,23 @@ var skiaperf = (function() {
   function Query() {
     /**
      * Syncs the DOM to match the current state of queryInfo.
-     * It currently removes all the existing elements and then 
+     * It currently removes all the existing elements and then
      * generates a new set that matches the queryInfo data.
      */
     function onParamChange() {
       console.log('onParamChange() triggered');
       var queryTable = $$$('#inputs');
-      while(queryTable.hasChildNodes()) { 
+      while (queryTable.hasChildNodes()) {
         queryTable.removeChild(queryTable.lastChild);
       }
 
-      for(var i = 0; i < queryInfo.params.length; i++) {
+      for (var i = 0; i < queryInfo.params.length; i++) {
         var column = document.createElement('td');
 
         var longest = Math.max.apply(null, queryInfo.params[i].map(function(p) {
           return p.length;
         }));
-        var minWidth = 0.75*longest + 0.5;
+        var minWidth = 0.75 * longest + 0.5;
 
         var input = document.createElement('input');
         input.id = 'input_' + i;
@@ -127,10 +210,10 @@ var skiaperf = (function() {
         select.style.overflow = 'auto';
         select.setAttribute('multiple', 'yes');
 
-        for(var j = 1; j < queryInfo.params[i].length; j++) {
+        for (var j = 1; j < queryInfo.params[i].length; j++) {
           var option = document.createElement('option');
           option.value = queryInfo.params[i][j];
-          option.innerText = queryInfo.params[i][j].length > 0?
+          option.innerText = queryInfo.params[i][j].length > 0 ?
               queryInfo.params[i][j] : '(none)';
           select.appendChild(option);
         }
@@ -146,9 +229,9 @@ var skiaperf = (function() {
   }
 
   function Dataset() {
-    var dataSet = "skps";
+    var dataSet = 'skps';
     var tileNum = [-1];
-    var scale =  0;
+    var scale = 0;
   }
 
   /** microtasks
@@ -170,7 +253,7 @@ var skiaperf = (function() {
   };
 
   // If loaded via HTML Imports then DOMContentLoaded will be long done.
-  if (document.readyState != "loading") {
+  if (document.readyState != 'loading') {
     onLoad();
   } else {
     this.addEventListener('load', onLoad);
