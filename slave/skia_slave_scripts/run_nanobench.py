@@ -11,6 +11,8 @@ import sys
 from build_step import BuildStep
 from utils import gclient_utils
 
+import builder_name_schema
+
 class RunNanobench(BuildStep):
   """A BuildStep that runs nanobench."""
 
@@ -18,6 +20,28 @@ class RunNanobench(BuildStep):
     super(RunNanobench, self).__init__(timeout=timeout,
                                        no_output_timeout=no_output_timeout,
                                        **kwargs)
+
+  def _KeyParam(self):
+    """Build a unique key from the builder name.
+
+    E.g.:  os Mac10.6 model MacMini4.1 gpu GeForce320M arch x86
+
+    This info is used by nanobench in its JSON output.
+    """
+    params = builder_name_schema.DictForBuilderName(self._builder_name)
+    blacklist = ['configuration', 'role', 'is_trybot']
+    # Don't include role (always Perf) or configuration (always Release).
+    # TryBots can use the same exact key as they are uploaded to a different
+    # location.
+    #
+    # It would be great to simplify this even further, but right now we have
+    # two models for the same GPU (GalaxyNexus/NexusS for SGX540) and two
+    # gpus for the same model (ShuttleA for GTX660/HD7770).
+    for name in blacklist:
+      if name in params:
+        del params[name]
+    keys = sorted(params.keys())
+    return ' '.join([k + ' ' + params[k] for k in keys])
 
   def _JSONPath(self):
     git_timestamp = gclient_utils.GetGitRepoPOSIXTimestamp()
@@ -34,7 +58,11 @@ class RunNanobench(BuildStep):
   def _Run(self):
     args = ['-i', self._device_dirs.ResourceDir()]
     if self._perf_data_dir:
-      args.extend(['--outResultsFile', self._JSONPath()])
+      args.extend([
+        '--outResultsFile', self._JSONPath(),
+        '--key', self._KeyParam(),
+        '--gitHash', self._got_revision,
+        ])
 
     run_nanobench = True
     match  = []
