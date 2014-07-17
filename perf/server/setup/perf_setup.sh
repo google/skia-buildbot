@@ -16,8 +16,8 @@ sudo cp sys/perf_init /etc/init.d/perf
 sudo chmod 744 /etc/init.d/perf
 sudo cp sys/tilebuilder_init /etc/init.d/tilebuilder
 sudo chmod 744 /etc/init.d/tilebuilder
-sudo cp sys/ingester_init /etc/init.d/ingester
-sudo chmod 744 /etc/init.d/ingester
+sudo cp sys/ingest_init /etc/init.d/ingest
+sudo chmod 744 /etc/init.d/ingest
 sudo cp sys/logserver_init /etc/init.d/logserver
 sudo chmod 744 /etc/init.d/logserver
 sudo cp sys/perf_monit /etc/monit/conf.d/perf
@@ -27,5 +27,5 @@ sudo monit -t
 sudo monit reload
 sudo /etc/init.d/perf restart
 sudo /etc/init.d/tilebuilder restart
-sudo /etc/init.d/ingester restart
+sudo /etc/init.d/ingest restart
 sudo /etc/init.d/logserver restart

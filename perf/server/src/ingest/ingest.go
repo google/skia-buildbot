@@ -58,7 +58,7 @@ func Init() {
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
 	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
 	addr, _ := net.ResolveTCPAddr("tcp", "jcgregorio.cnc:2003")
-	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "ingester", addr)
+	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "ingest", addr)
 }
 
 // authBigQuery authenticates and returns a usable bigquery Service object.

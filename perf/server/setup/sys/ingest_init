@@ -1,6 +1,6 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          ingester
+# Provides:          ingest
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
@@ -19,7 +19,7 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="The Skia JSON ingester application."
+DESC="The Skia JSON ingest application."
 NAME=ingest
 DAEMON=/home/perf/buildbot/perf/server/$NAME
 DAEMON_ARGS="--log_only=true --oauth=false --log_dir=/tmp/glog"
