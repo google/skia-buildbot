@@ -8,6 +8,7 @@
 
 import difflib
 import httplib2
+import json
 import os
 import re
 
@@ -61,58 +62,25 @@ def StringDiff(expected, actual):
                                       actual.splitlines(1)))
 
 
-def _IndentStr(indent):
-  return '    ' * (indent + 1)
-
-
-def ToString(obj, indent=0):
+def ToString(obj):
   """ Returns a string representation of the given object. This differs from the
   built-in string function in that it does not give memory locations.
 
   obj: the object to print.
-  indent: integer; the current indent level.
   """
-  if isinstance(obj, list):
-    return _ListToString(obj, indent)
-  elif isinstance(obj, dict):
-    return _DictToString(obj, indent)
-  elif isinstance(obj, tuple):
-    return _ListToString(obj, indent)
-  elif isinstance(obj, str):
-    return '\'%s\'' % obj
-  elif obj is None:
-    return 'None'
-  else:
-    return '<Object>'
-
-
-def _ListToString(list_var, indent):
-  if not list_var:
-    return '[]'
-  indent_str = _IndentStr(indent)
-  val = '[\n'
-  indent += 1
-  val += ''.join(['%s%s,\n' % (indent_str, ToString(elem, indent)) \
-                  for elem in list_var])
-  indent -= 1
-  indent_str = _IndentStr(indent - 1)
-  val += indent_str + ']'
-  return val
-
-
-def _DictToString(d, indent):
-  if not d:
-    return '{}'
-  indent_str = _IndentStr(indent)
-  val = '{\n'
-  indent += 1
-  val += ''.join(['%s%s: %s,\n' % (indent_str, ToString(k, indent),
-                                   ToString(d[k], indent)) \
-                  for k in sorted(d.keys())])
-  indent -= 1
-  indent_str = _IndentStr(indent - 1)
-  val += indent_str + '}'
-  return val
+  def sanitize(obj):
+    if isinstance(obj, list) or isinstance(obj, tuple):
+      return [sanitize(sub_obj) for sub_obj in obj]
+    elif isinstance(obj, dict):
+      rv = {}
+      for k, v in obj.iteritems():
+        rv[k] = sanitize(v)
+      return rv
+    elif isinstance(obj, str) or obj is None:
+      return obj
+    else:
+      return '<Object>'
+  return json.dumps(sanitize(obj), indent=4, sort_keys=True)
 
 
 def FixGitSvnEmail(addr):
