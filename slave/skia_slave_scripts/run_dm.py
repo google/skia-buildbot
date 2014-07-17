@@ -24,30 +24,14 @@ class RunDM(BuildStep):
     run_dm = True
     match  = []
 
-    if self._AnyMatch('Win7', 'Android'):
-      match.append('~blurroundrect')
-
     if self._AnyMatch('Android'):
       match.append('~giantbitmap')
-      match.append('~filterindiabox')
 
     if self._AnyMatch('Tegra'):
       match.append('~downsamplebitmap_text')
 
     if self._AnyMatch('Xoom'):
       match.append('~WritePixels')  # skia:1699
-
-    if self._AllMatch('10.6', 'Debug'):
-      # Not sure what's failing exactly, so disable DM entirely.
-      run_dm = False
-
-    if self._AllMatch('IntelRhb'):
-      # Problem dynamically linking to libskia.so?
-      run_dm = False
-
-    if self._AnyMatch('Android') and not self._AnyMatch('Nexus7', 'Xoom'):
-      # Lots of failures.  Temporarily whitelist N7 and Xoom, which are passing.
-      run_dm = False
 
     if match:
       args.append('--match')
