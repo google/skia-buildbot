@@ -109,8 +109,7 @@ def GetWaterfallBot(builder_name):
   #pylint: disable=E0602
   if not IsTrybot(builder_name):
     return builder_name
-  return _WithoutSuffix(builder_name, BUILDER_NAME_SEP +
-                        TRYBOT_NAME_SUFFIX)
+  return _WithoutSuffix(builder_name, BUILDER_NAME_SEP + TRYBOT_NAME_SUFFIX)
 
 
 def _WithoutSuffix(string, suffix):
@@ -124,19 +123,32 @@ def _WithoutSuffix(string, suffix):
 
 def DictForBuilderName(builder_name):
   """Makes a dictionary containing details about the builder from its name."""
+  #pylint: disable=E0602
   split_name = builder_name.split(BUILDER_NAME_SEP)
-  result = {}
+
+  def pop_front():
+    try:
+      return split_name.pop(0)
+    except:
+      raise ValueError('Invalid builder name: %s' % builder_name)
+
+  result = {'is_trybot': False}
+
+  if split_name[-1] == TRYBOT_NAME_SUFFIX:
+    result['is_trybot'] = True
+    split_name.pop()
+
   if split_name[0] in BUILDER_NAME_SCHEMA.keys():
     key_list = BUILDER_NAME_SCHEMA[split_name[0]]
-    result['role'] = split_name[0]
-    for idx, key in enumerate(key_list):
-      result[key] = split_name[idx+1]
-    if len(split_name) > len(key_list):
-      result['badParams'] = BUILDER_NAME_SEP.join(
-          split_name[len(split_name):])
+    result['role'] = pop_front()
+    for key in key_list:
+      result[key] = pop_front()
+    if split_name:
+      result['extra_config'] = pop_front()
+    if split_name:
+      raise ValueError('Invalid builder name: %s' % builder_name)
   else:
-    raise ValueError("DictForBuilderName: Unable to determine buildbot type "
-        "from builder name; no builder data emitted")
+    raise ValueError('Invalid builder name: %s' % builder_name)
   return result
 
 
