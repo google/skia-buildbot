@@ -10,7 +10,7 @@
 
 from master_builders_cfg import CLANG, CompileBuilder
 from master_builders_cfg import GYP_ANGLE, GYP_DW, GYP_EXC, GYP_IOS
-from master_builders_cfg import GYP_WIN7, GYP_WIN8, LINUX, MAC, NO_GPU
+from master_builders_cfg import GYP_WIN7, LINUX, MAC, NO_GPU
 from master_builders_cfg import PDFVIEWER, S_PERCOMMIT, WIN32
 
 from skia_master_scripts.android_factory import AndroidFactory as f_android
@@ -56,19 +56,15 @@ def setup_compile_builders(helper, do_upload_render_results,
       ('Mac10.8',     'Clang',  'Release', 'x86',    None,          None,      True,  f_factory, MAC,    S_PERCOMMIT, {}),
       ('Mac10.8',     'Clang',  'Debug',   'x86_64', None,          None,      False, f_factory, MAC,    S_PERCOMMIT, {}),
       ('Mac10.8',     'Clang',  'Release', 'x86_64', None,          PDFVIEWER, False, f_factory, MAC,    S_PERCOMMIT, {}),
-      ('Win7',        'VS2010', 'Debug',   'x86',    None,          GYP_WIN7,  True,  f_factory, WIN32,  S_PERCOMMIT, {}),
-      ('Win7',        'VS2010', 'Release', 'x86',    None,          GYP_WIN7,  True,  f_factory, WIN32,  S_PERCOMMIT, {}),
-      ('Win7',        'VS2010', 'Debug',   'x86_64', None,          GYP_WIN7,  False, f_factory, WIN32,  S_PERCOMMIT, {}),
-      ('Win7',        'VS2010', 'Release', 'x86_64', None,          GYP_WIN7,  False, f_factory, WIN32,  S_PERCOMMIT, {}),
-      ('Win7',        'VS2010', 'Debug',   'x86',    'ANGLE',       GYP_ANGLE, True,  f_factory, WIN32,  S_PERCOMMIT, {}),
-      ('Win7',        'VS2010', 'Release', 'x86',    'ANGLE',       GYP_ANGLE, True,  f_factory, WIN32,  S_PERCOMMIT, {}),
-      ('Win7',        'VS2010', 'Debug',   'x86',    'DirectWrite', GYP_DW,    False, f_factory, WIN32,  S_PERCOMMIT, {}),
-      ('Win7',        'VS2010', 'Release', 'x86',    'DirectWrite', GYP_DW,    False, f_factory, WIN32,  S_PERCOMMIT, {}),
-      ('Win7',        'VS2010', 'Debug',   'x86',    'Exceptions',  GYP_EXC,   False, f_factory, WIN32,  S_PERCOMMIT, {}),
-      ('Win8',        'VS2012', 'Debug',   'x86',    None,          GYP_WIN8,  True,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most']}),
-      ('Win8',        'VS2012', 'Release', 'x86',    None,          GYP_WIN8,  True,  f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most']}),
-      ('Win8',        'VS2012', 'Debug',   'x86_64', None,          GYP_WIN8,  False, f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most']}),
-      ('Win8',        'VS2012', 'Release', 'x86_64', None,          GYP_WIN8,  False, f_factory, WIN32,  S_PERCOMMIT, {'build_targets': ['most']}),
+      ('Win',         'VS2013', 'Debug',   'x86',    None,          GYP_WIN7,  True,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Win',         'VS2013', 'Release', 'x86',    None,          GYP_WIN7,  True,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Win',         'VS2013', 'Debug',   'x86_64', None,          GYP_WIN7,  False, f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Win',         'VS2013', 'Release', 'x86_64', None,          GYP_WIN7,  False, f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Win',         'VS2013', 'Debug',   'x86',    'ANGLE',       GYP_ANGLE, True,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Win',         'VS2013', 'Release', 'x86',    'ANGLE',       GYP_ANGLE, True,  f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Win',         'VS2013', 'Debug',   'x86',    'DirectWrite', GYP_DW,    False, f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Win',         'VS2013', 'Release', 'x86',    'DirectWrite', GYP_DW,    False, f_factory, WIN32,  S_PERCOMMIT, {}),
+      ('Win',         'VS2013', 'Debug',   'x86',    'Exceptions',  GYP_EXC,   False, f_factory, WIN32,  S_PERCOMMIT, {}),
       ('Ubuntu13.10', 'GCC4.8', 'Debug',   'Arm7',   'Android',         None,  True,  f_android, LINUX,  S_PERCOMMIT, {'device': 'arm_v7_thumb'}),
       ('Ubuntu13.10', 'GCC4.8', 'Release', 'Arm7',   'Android',         None,  True,  f_android, LINUX,  S_PERCOMMIT, {'device': 'arm_v7_thumb'}),
       ('Ubuntu13.10', 'GCC4.8', 'Debug',   'Arm7',   'Android_NoThumb', None,  True,  f_android, LINUX,  S_PERCOMMIT, {'device': 'arm_v7'}),

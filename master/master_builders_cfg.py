@@ -388,7 +388,7 @@ def setup_canaries(helper, do_upload_render_results, do_upload_bench_results):
   canaries = [
       ('Chrome', 'Ubuntu13.10', 'Ninja', 'x86_64', 'DRT',            None,     'src',  None,       f_drt,    LINUX,  S_PERCOMMIT, {'path_to_skia': ['third_party', 'skia']}),
       ('Chrome', 'Ubuntu13.10', 'Ninja', 'x86_64', 'ToT',            'chrome', 'src',  None,       f_canary, LINUX,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
-      ('Chrome', 'Win7',        'Ninja', 'x86',    'SharedLib_ToT',  'chrome', 'src',  GYP_SHARED, f_canary, WIN32,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
+      ('Chrome', 'Win',         'Ninja', 'x86',    'SharedLib_ToT',  'chrome', 'src',  GYP_SHARED, f_canary, WIN32,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
   ]
 
   setup_builders_from_config_list(canaries, helper, do_upload_render_results,
