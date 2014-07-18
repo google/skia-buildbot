@@ -109,7 +109,7 @@ var skiaperf = (function() {
               var scaleFactors = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 120,
                                   240, 300, 900, 1200, 1800, 3600, 7200,
                                   10800, 14400, 18000, 21600, 43200, 86400,
-                                  604800, 2592000, 5184000, 10368000, 
+                                  604800, 2592000, 5184000, 10368000,
                                   15552000, 31536000];
               var MAX_TICKS = 5;
               var i = 0;
@@ -166,8 +166,69 @@ var skiaperf = (function() {
     });
   }
 
+
+  /**
+   * Renders the legend and keeps it in sync with the visible traces.
+   * Legend watches traces, and changes the elements inside of #legend-table
+   * to match traces. Currently it removes all the elements and regenerates
+   * them all from a template, but this seems to work well enough for the
+   * time being.
+   */
   function Legend() {
+    var legendTemplate = $$$('#legend-entry');
     new ArrayObserver(traces).open(function(slices) {
+      // FUTURE: Make more efficient if necessary
+      // Clean legend element
+      var legendTable = $$$('#legend table tbody');
+      while (legendTable.hasChildNodes()) {
+        legendTable.removeChild(legendTable.lastChild);
+      }
+      traces.forEach(function(trace) {
+        // Add a new trace to the legend.
+        var traceName = trace.label;
+        var newLegendEntry = legendTemplate.content.cloneNode(true);
+        var checkbox = $$$('input', newLegendEntry);
+        checkbox.checked = !!trace.lines.show;
+        checkbox.id = traceName;
+        var label = $$$('label', newLegendEntry);
+        label.setAttribute('for', traceName);
+        label.innerText = traceName;
+        $$$('a', newLegendEntry).id = 'remove_' + traceName;
+
+        legendTable.appendChild(newLegendEntry);
+      });
+    });
+
+    $$$('#legend tbody').addEventListener('click', function(e) {
+      if (e.target.nodeName == 'INPUT') {
+        for (var i = 0; i < traces.length; i++) {
+          if (traces[i].label == e.target.id) {
+            traces[i] = {
+              color: traces[i].color,
+              data: traces[i].data,
+              label: traces[i].label,
+              lines: {
+                show: e.target.checked
+              }
+            };
+            break;
+          }
+        }
+        if (i == traces.length) {
+          console.log('Error: legend contains invalid trace');
+        }
+      } else if (e.target.nodeName == 'A') {
+        var targetName = e.target.id.slice('remove_'.length);
+        for (var i = 0; i < traces.length; i++) {
+          if (traces[i].label == targetName) {
+            traces.splice(i, 1);
+            break;
+          }
+        }
+        if (i == traces.length) {
+          console.log('Error: legend contains invalid trace');
+        }
+      }
     });
   }
 
