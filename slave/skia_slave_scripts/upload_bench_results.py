@@ -136,7 +136,7 @@ class UploadBenchResults(BuildStep):
                             str(now.day).zfill(2), str(now.hour).zfill(2)))
     gs_dir = '/'.join((gs_subdir, gs_json_path, self._builder_name))
     if self._is_try:
-      gs_dir = '/'.join(('trybot', gs_dir, self.build_number))
+      gs_dir = '/'.join(('trybot', gs_dir, self._build_number))
     upload_to_bucket.upload_to_bucket(
         full_json_path,
         '/'.join((dest_gsbase, gs_dir)))
