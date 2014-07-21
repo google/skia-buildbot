@@ -48,7 +48,7 @@ var skiaperf = (function() {
         */
     ];
 
-  // Query watches queryInfo.
+  // Query uses queryInfo.
   // Dataset can change queryInfo.
   var queryInfo = {
     allKeys: [
@@ -67,6 +67,11 @@ var skiaperf = (function() {
       */
     ]
   };
+  // Query watches queryChange.
+  // Dataset can change queryChange.
+  var queryChange = { counter: 0 };
+  // queryChange is used because Observe-js has trouble dealing with the large
+  // array changes that happen when Dataset swaps queryInfo data.
 
   function $$(query, par) {
     var id = function(e) { return e; };
@@ -77,9 +82,11 @@ var skiaperf = (function() {
     }
   }
 
+
   function $$$(query, par) {
     return par ? par.querySelector(query) : document.querySelector(query);
   }
+
 
   /**
    * Sets up the callbacks related to the plot.
@@ -232,6 +239,7 @@ var skiaperf = (function() {
     });
   }
 
+
   /**
    * Sets up the event handlers related to the query controls in the interface.
    * The callbacks in this function use and observe {@code queryInfo},
@@ -285,15 +293,137 @@ var skiaperf = (function() {
         queryTable.appendChild(column);
       }
     }
-    new ArrayObserver(queryInfo.params).open(onParamChange);
-    new ArrayObserver(queryInfo.allKeys).open(onParamChange);
+    new ObjectObserver(queryChange).open(onParamChange);
   }
 
+
+  /**
+   * Manages the set of keys the user can query over.
+   */
   function Dataset() {
+    // These describe the current "window" of data we're looking at.
     var dataSet = 'skps';
-    var tileNum = [-1];
+    var tileNums = [-1];
     var scale = 0;
+
+    /**
+     * Helps make requests for a set of tiles.
+     * Makes a XMLHttpRequest for using the data in {@code dataSet}, 
+     * {@code tileNums}, and {@code scale}, using the data in moreParams
+     * as requery query parameters. Calls finished with the data or
+     * an empty object when finished.
+     */
+    function requestTiles(finished, moreParams) {
+      var onloaderror = function() {
+        finished({});
+      };
+
+      var onloadfinish = function() {
+        document.body.classList.remove('waiting');
+      };
+
+      var request = new XMLHttpRequest();
+
+      var onjsonload = function() {
+        if (request.response && request.status == 200) {
+          if (request.responseType == 'json') {
+            finished(request.response);
+          } else {
+            finished(JSON.parse(request.response));
+          }
+        }
+      };
+
+      var params = '';
+       if(moreParams) {
+        Object.keys(moreParams).forEach(function(key) {
+          params += encodeURIComponent(key) + '=' + 
+              encodeURI(moreParams[key]) + '&';
+        });
+      }
+
+      request.open('GET', ['tiles', dataSet, scale, tileNums.join(',')].
+            join('/') + '?' + params);
+      document.body.classList.add('waiting');
+      request.addEventListener('load', onjsonload);
+      request.addEventListener('error', onloaderror);
+      request.addEventListener('loadend', onloadfinish);
+      request.send();
+    }
+
+
+
+    /**
+     * Updates queryInfo.params and queryInfo.allKeys.
+     * It requests the tile key data from all the tiles in tileNum, and
+     * sets the queryInfo data to union of each tile's queryInfo data.
+     */
+    var update = function() {
+      var totalParams = [];
+      var newNames = {};
+      var processJSON = function(json) {
+        console.log('Dataset update start');
+        if (json['tiles']) {
+          json['tiles'].forEach(function(tile) {
+            if (tile['params']) {
+              // NOTE: Replace with hash map-based thing if not fast enough
+              for (var i = 0; i < tile['params'].length; i++) {
+                if (!totalParams[i]) {
+                  totalParams[i] = [];
+                  totalParams[i][0] = tile['params'][i][0];
+                }
+                for (var j = 1; j < tile['params'][i].length; j++) {
+                  if (totalParams[i].indexOf(tile['params'][i][j]) == -1) {
+                    totalParams[i].push(tile['params'][i][j]);
+                  }
+                }
+              }
+            }
+            if (tile['names']) {
+              tile['names'].forEach(function(name) {
+                newNames[name] = true;
+              });
+            }
+          });
+        }
+
+        while (queryInfo.allKeys.length > 0) { queryInfo.allKeys.pop(); }
+        var newNameList = Object.keys(newNames);
+        for (var i = 0; i < newNameList.length; i++) {
+          queryInfo.allKeys.push(newNameList[i]);
+        }
+        for (var i = 0; i < totalParams.length; i++) {
+          // Sort params, but keep the name of the column in the first slot
+          var tmp = totalParams[i].splice(0, 1)[0];
+          totalParams[i].sort();
+          totalParams[i].splice(0, 0, tmp);
+        }
+        while (queryInfo.params.length > 0) { queryInfo.params.pop(); }
+        for (var i = 0; i < totalParams.length; i++) {
+          queryInfo.params.push(totalParams[i]);
+        }
+        console.log('Dataset update end');
+        queryChange.counter++;
+      };
+
+      requestTiles(processJSON, '');
+    };
+
+
+    // Sets up the event binding on the radio controls.
+    $$('input[name=schema-type]').forEach(function(e) {
+      if (e.value == dataSet) { e.checked = true; }
+      e.addEventListener('change', function() {
+        while (traces.length) { traces.pop(); }
+        dataSet = this.value;
+        console.log(dataSet);
+        update();
+      });
+    });
+
+    update();
   }
+
 
   /** microtasks
    *
@@ -304,6 +434,7 @@ var skiaperf = (function() {
     setTimeout(microtasks, 125);
   }
 
+
   function onLoad() {
     Plot();
     Legend();
@@ -311,7 +442,7 @@ var skiaperf = (function() {
     Dataset();
 
     microtasks();
-  };
+  }
 
   // If loaded via HTML Imports then DOMContentLoaded will be long done.
   if (document.readyState != 'loading') {

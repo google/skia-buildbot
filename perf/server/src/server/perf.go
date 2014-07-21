@@ -55,7 +55,7 @@ var (
 	shortcutHandlerPath = regexp.MustCompile(`/shortcuts/([0-9]*)$`)
 
 	// The three capture groups are dataset, tile scale, and tile number.
-	tileHandlerPath = regexp.MustCompile(`/tiles/([a-z]*)/([0-9]*)/([-0-9]*)$`)
+	tileHandlerPath = regexp.MustCompile(`/tiles/([a-z]*)/([0-9]*)/([-0-9,]*)$`)
 )
 
 // flags
@@ -327,6 +327,10 @@ func getTile(dataset string, tileScale, tileNumber int) (*types.Tile, error) {
 	return tile, nil
 }
 
+type TilesResponse struct {
+    Tiles   []*types.TileGUI    `json:"tiles"`
+}
+
 // tileHandler accepts URIs like /tiles/skps/0/1?traces=Some:long:trace:here&omit_commits=true
 // where the URI format is /tiles/<dataset-name>/<tile-scale>/<tile-number>
 // It accepts a comma-delimited string of keys as traces, and
@@ -345,123 +349,138 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 		reportError(w, r, err, "Failed parsing tile scale.")
 		return
 	}
-	tileNumber, err := strconv.ParseInt(match[3], 10, 0)
-	if err != nil {
-		reportError(w, r, err, "Failed parsing tile number.")
-		return
-	}
-	tile, err := getTile(dataset, int(tileScale), int(tileNumber))
-	if err != nil {
-		reportError(w, r, err, "Failed to retrieve tile.")
-		return
-	}
-	tracesRequested := strings.Split(r.FormValue("traces"), ",")
-	omitCommits := r.FormValue("omit_commits") != ""
-	omitParams := r.FormValue("omit_params") != ""
-	omitNames := r.FormValue("omit_names") != ""
-	result := types.NewGUITile(tile.Scale, tile.TileIndex)
-	paramList, ok := config.KEY_PARAM_ORDER[dataset]
-	if !ok {
-		reportError(w, r, err, "Unable to read parameter list for dataset: ")
-		return
-	}
-	for _, keyName := range tracesRequested {
-		if len(keyName) <= 0 {
-			continue
-		}
-		var rawTrace *types.Trace
-		count := 0
-		// Unpack trace name and find the trace.
-		keyParts := strings.Split(keyName, ":")
-		for _, tileTrace := range tile.Traces {
-			tracesMatch := true
-			for i, keyPart := range keyParts {
-				if len(keyPart) > 0 {
-					if traceParam, exists := tileTrace.Params[paramList[i]]; !exists || traceParam != keyPart {
-						tracesMatch = false
-						break
-					}
-					// If it doesn't exist in the key, it should also not exist in
-					// the trace parameters
-				} else if traceParam, exists := tileTrace.Params[paramList[i]]; exists && len(traceParam) <= 0 {
-					tracesMatch = false
-					break
-				}
-			}
-			if tracesMatch {
-				rawTrace = tileTrace
-				// NOTE: Not breaking out of the loop
-				// for now to see if there are multiple
-				// traces that match any given trace
-				count += 1
-			}
-		}
-		// No matches
-		if count <= 0 || rawTrace == nil {
-			continue
-		} else {
-			if count > 1 {
-				glog.Warningln(count, "matches found for ", keyName)
-			}
-		}
-		newTraceData := make([][2]float64, 0)
-		for i, traceVal := range rawTrace.Values {
-			if traceVal != config.MISSING_DATA_SENTINEL {
-				newTraceData = append(newTraceData, [2]float64{
-					float64(tile.Commits[i].CommitTime),
-					traceVal,
-					// We should have 53 significand bits, so this should work correctly basically forever
-				})
-			}
-		}
-		if len(newTraceData) > 0 {
-			result.Traces = append(result.Traces, types.TraceGUI{
-				Data: newTraceData,
-				Key:  keyName,
-			})
-		}
-	}
-	if !omitCommits {
-		result.Commits = tile.Commits
-	}
-	if !omitNames {
-		for _, trace := range tile.Traces {
-			result.NameList = append(result.NameList, makeKeyFromParams(paramList, trace.Params))
-		}
-	}
-	if !omitParams {
-		// NOTE: When constructing ParamSet, we need to make sure there are empty strings
-		// where there's at least one key missing that parameter.
-		// TODO: Fix this in tile generation rather than here.
-		result.ParamSet = make([][]string, len(paramList))
-		for i := range result.ParamSet {
-			if readableName, ok := config.HUMAN_READABLE_PARAM_NAMES[paramList[i]]; !ok {
-				glog.Warningln(fmt.Sprintf("%s does not exist in the readable parameter names list", paramList[i]))
-				result.ParamSet[i] = []string{paramList[i]}
-			} else {
-				result.ParamSet[i] = []string{readableName}
-			}
-		}
-		for _, trace := range tile.Traces {
-			for i := range result.ParamSet {
-				traceValue, ok := trace.Params[paramList[i]]
-				if !ok {
-					traceValue = ""
-				}
-				traceValueIsInParamSet := false
-				for _, param := range []string(result.ParamSet[i]) {
-					if param == traceValue {
-						traceValueIsInParamSet = true
-					}
-				}
-				if !traceValueIsInParamSet {
-					result.ParamSet[i] = append(result.ParamSet[i], traceValue)
-				}
-			}
-		}
-	}
+        tileNumberStrings := strings.Split(match[3], ",")
+        tileNumbers := make([]int, 0, len(tileNumberStrings))
+        for _, tileNumberStr := range tileNumberStrings {
+                tileNumber, err := strconv.ParseInt(tileNumberStr, 10, 0)
+                if err != nil {
+                        glog.Warningf("Failed parsing tile number %s", tileNumberStr)
+                        continue
+                }
+                tileNumbers = append(tileNumbers, int(tileNumber))
+        }
+        if len(tileNumbers) <= 0 {
+                reportError(w, r, err, "No valid tile numbers passed in.")
+                return
+        }
+
+        tracesRequested := strings.Split(r.FormValue("traces"), ",")
+        omitCommits := r.FormValue("omit_commits") != ""
+        omitParams := r.FormValue("omit_params") != ""
+        omitNames := r.FormValue("omit_names") != ""
+        paramList, ok := config.KEY_PARAM_ORDER[dataset]
+
+        allTiles := TilesResponse{ Tiles: make([]*types.TileGUI, 0, len(tileNumbers)) }
+        for _, tileNumber := range tileNumbers {
+                tile, err := getTile(dataset, int(tileScale), int(tileNumber))
+                if err != nil {
+                        reportError(w, r, err, "Failed to retrieve tile.")
+                        return
+                }
+                guiTile := types.NewGUITile(tile.Scale, tile.TileIndex)
+                if !ok {
+                        reportError(w, r, err, "Unable to read parameter list for dataset: ")
+                        return
+                }
+                for _, keyName := range tracesRequested {
+                        if len(keyName) <= 0 {
+                                continue
+                        }
+                        var rawTrace *types.Trace
+                        count := 0
+                        // Unpack trace name and find the trace.
+                        keyParts := strings.Split(keyName, ":")
+                        for _, tileTrace := range tile.Traces {
+                                tracesMatch := true
+                                for i, keyPart := range keyParts {
+                                        if len(keyPart) > 0 {
+                                                if traceParam, exists := tileTrace.Params[paramList[i]]; !exists || traceParam != keyPart {
+                                                        tracesMatch = false
+                                                        break
+                                                }
+                                                // If it doesn't exist in the key, it should also not exist in
+                                                // the trace parameters
+                                        } else if traceParam, exists := tileTrace.Params[paramList[i]]; exists && len(traceParam) <= 0 {
+                                                tracesMatch = false
+                                                break
+                                        }
+                                }
+                                if tracesMatch {
+                                        rawTrace = tileTrace
+                                        // NOTE: Not breaking out of the loop
+                                        // for now to see if there are multiple
+                                        // traces that match any given trace
+                                        count += 1
+                                }
+                        }
+                        // No matches
+                        if count <= 0 || rawTrace == nil {
+                                continue
+                        } else {
+                                if count > 1 {
+                                        glog.Warningln(count, "matches found for ", keyName)
+                                }
+                        }
+                        newTraceData := make([][2]float64, 0)
+                        for i, traceVal := range rawTrace.Values {
+                                if traceVal != config.MISSING_DATA_SENTINEL {
+                                        newTraceData = append(newTraceData, [2]float64{
+                                                float64(tile.Commits[i].CommitTime),
+                                                traceVal,
+                                                // We should have 53 significand bits, so this should work correctly basically forever
+                                        })
+                                }
+                        }
+                        if len(newTraceData) > 0 {
+                                guiTile.Traces = append(guiTile.Traces, types.TraceGUI{
+                                        Data: newTraceData,
+                                        Key:  keyName,
+                                })
+                        }
+                }
+                if !omitCommits {
+                        guiTile.Commits = tile.Commits
+                }
+                if !omitNames {
+                        for _, trace := range tile.Traces {
+                                guiTile.NameList = append(guiTile.NameList, makeKeyFromParams(paramList, trace.Params))
+                        }
+                }
+                if !omitParams {
+                        // NOTE: When constructing ParamSet, we need to make sure there are empty strings
+                        // where there's at least one key missing that parameter.
+                        // TODO: Fix this in tile generation rather than here.
+                        guiTile.ParamSet = make([][]string, len(paramList))
+                        for i := range guiTile.ParamSet {
+                                if readableName, ok := config.HUMAN_READABLE_PARAM_NAMES[paramList[i]]; !ok {
+                                        glog.Warningln(fmt.Sprintf("%s does not exist in the readable parameter names list", paramList[i]))
+                                        guiTile.ParamSet[i] = []string{paramList[i]}
+                                } else {
+                                        guiTile.ParamSet[i] = []string{readableName}
+                                }
+                        }
+                        for _, trace := range tile.Traces {
+                                for i := range guiTile.ParamSet {
+                                        traceValue, ok := trace.Params[paramList[i]]
+                                        if !ok {
+                                                traceValue = ""
+                                        }
+                                        traceValueIsInParamSet := false
+                                        for _, param := range []string(guiTile.ParamSet[i]) {
+                                                if param == traceValue {
+                                                        traceValueIsInParamSet = true
+                                                }
+                                        }
+                                        if !traceValueIsInParamSet {
+                                                guiTile.ParamSet[i] = append(guiTile.ParamSet[i], traceValue)
+                                        }
+                                }
+                        }
+                }
+                allTiles.Tiles = append(allTiles.Tiles, guiTile)
+        }
 	// Marshal and send
-	marshaledResult, err := json.Marshal(result)
+	marshaledResult, err := json.Marshal(allTiles)
 	if err != nil {
 		reportError(w, r, err, "Failed to marshal JSON.")
 		return
