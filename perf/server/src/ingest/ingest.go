@@ -8,7 +8,6 @@ import (
 	"strings"
         "time"
 )
-
 import (
 	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/golang/glog"
@@ -17,16 +16,21 @@ import (
 )
 
 import (
-	"gs"
+        "gs"
+        "types"
 )
 
 var (
+        // commitToTile describes the mapping from git hash to scale 0 tile number.
+        commitToTile map[string]int
+        // hashRegex describes the regex used to capture git commit hashes.
         hashRegex = regexp.MustCompile("[0-9a-f]+")
 )
 
 const (
 	_BQ_PROJECT_NAME   = "google.com:chrome-skia"
 	BEGINNING_OF_TIME  = 1401840000
+        MAX_INGEST_FRAGMENT = 4096
 )
 
 func Init() {
@@ -145,7 +149,7 @@ func getFiles(cs *storage.Service, prefix, sourceBucketSubdir string, timestamp 
 
 	jsonUris := make(map[string][]string)
 	for _, dir := range dirs {
-		files := getFilesFromGSDir(cs, dir, _CS_PROJECT_BUCKET, realTimestamp)
+		files := getFilesFromGSDir(cs, dir, gs.GS_PROJECT_BUCKET, realTimestamp)
 		for _, fileName := range files {
 			fileHash, err := getFileHash(fileName)
                         if err != nil {
@@ -159,6 +163,67 @@ func getFiles(cs *storage.Service, prefix, sourceBucketSubdir string, timestamp 
 		}
 	}
         return jsonUris, nil
+}
+
+// submitFragments takes a list of fragments and applies them to the appropriate tiles in TileStore.
+func submitFragments(t types.TileStore, iter types.TileFragmentIter) {
+        // TODO: Add support for different scales. Currently assumes scale is always zero.
+        tileMap := make(map[int][]types.TileFragment)
+        count := 0
+        for iter.Next() {
+                fragment := iter.TileFragment()
+                if tileNum, exists := commitToTile[fragment.TileCoordinate().Commit]; !exists {
+                        glog.Errorf("Commit does not exist in table: %s", fragment.TileCoordinate().Commit)
+                        continue
+                } else {
+                        if _, exists := tileMap[tileNum]; !exists {
+                                tileMap[tileNum] = make([]types.TileFragment, 0, 1)
+                        }
+                        tileMap[tileNum] = append(tileMap[tileNum], fragment)
+                }
+                count += 1
+                // Flush the current fragments to the tiles when there's too many.
+                if count >= MAX_INGEST_FRAGMENT {
+                        for i, fragments := range tileMap {
+                                // NOTE: This seems wrong. The version of tile that's being modified
+                                // is the version stored in cache. We're breaking thread safety
+                                // without any hint in the code that we are, because it seems
+                                // like Get() assumes the tile it sends will not be modified.
+                                // Should Get() return a deep copy of the Tile, or should we
+                                // make a deep copy here?
+                                tile, err := t.Get(0, i)
+                                if err != nil {
+                                        glog.Errorf("Failed to get tile number %i: %s", i, err)
+                                        // TODO: Keep track of failed fragments
+                                        continue
+                                }
+                                for _, fragment := range fragments {
+                                        fragment.UpdateTile(tile)
+                                }
+                                t.Put(0, i, tile)
+                                // TODO: writeTimestamp, so that it'll restart at roughly the right
+                                // point on sudden failure.
+                        }
+                        count = 0
+                        tileMap = make(map[int][]types.TileFragment)
+                }
+        }
+        // Flush any remaining fragments.
+        for i, fragments := range tileMap {
+                // NOTE: Same problem as above.
+                tile, err := t.Get(0, i)
+                if err != nil {
+                        glog.Errorf("Failed to get tile number %i: %s", i, err)
+                        // TODO: Keep track of failed fragments
+                        continue
+                }
+                for _, fragment := range fragments {
+                        fragment.UpdateTile(tile)
+                }
+                t.Put(0, i, tile)
+                // TODO: writeTimestamp, so that it'll restart at roughly the right
+                // point on sudden failure.
+        }
 }
 
 // RunIngester runs a single run of the ingestion cycle (or at least will shortly).

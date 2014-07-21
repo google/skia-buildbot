@@ -86,6 +86,37 @@ func NewTile() *Tile {
 	}
 }
 
+// TileCoordinate describes where a TraceFragment is, with respect to the tiling system.
+// It is used to sort TileFragments, and ensure the correct update calls are made.
+type TileCoordinate struct {
+        // Scale is the tile scale it belongs to.
+        Scale int
+        // Commits is the git commit hash it belongs to.
+        Commit string
+}
+
+// TileFragment represents a piece of data that should be added to tiles. This
+// should allow for easier transition between JSON file formats, as each new
+// format would only need to provide some way of generating TileFragments.
+type TileFragment interface {
+        // UpdateTile should update the tile passed in with the data
+        // stored in the fragment. It isn't assumed to be idempotent.
+        UpdateTile(*Tile) error
+        // Coordinates should return a TileCoordinate that corresponds to the data
+        // in the fragment.
+        TileCoordinate() TileCoordinate
+}
+
+// TileFragmentIter provides an iterator interface over a TileFragment resource.
+type TileFragmentIter interface {
+        // TileFragment() provides a tile fragment.
+        TileFragment() TileFragment
+        // Next() returns whether there are any more fragments left to get from the iterator, and 
+        // removes the current tile fragment from the iterator, except on the first call.
+        Next() bool
+}
+
+
 // TraceGUI is used in TileGUI.
 type TraceGUI struct {
 	Data [][2]float64 `json:"data"`
