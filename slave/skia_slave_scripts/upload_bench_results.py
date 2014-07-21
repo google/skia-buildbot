@@ -8,16 +8,18 @@
 from build_step import BuildStep
 from utils import sync_bucket_subdir
 from utils import gclient_utils
-from utils import upload_to_bucket
+from utils import old_gs_utils as gs_utils
 
 import builder_name_schema
 
 import copy
+import gzip
 import json
 import os
 import os.path
 import re
 import sys
+import tempfile
 from datetime import datetime
 
 
@@ -130,16 +132,31 @@ class UploadBenchResults(BuildStep):
     return result
 
 
-  def _UploadJSONResults(self, dest_gsbase, gs_subdir, full_json_path):
+  def _UploadJSONResults(self, dest_gsbase, gs_subdir, full_json_path,
+                         gzipped=False):
     now = datetime.utcnow()
     gs_json_path = '/'.join((str(now.year).zfill(4), str(now.month).zfill(2),
                             str(now.day).zfill(2), str(now.hour).zfill(2)))
     gs_dir = '/'.join((gs_subdir, gs_json_path, self._builder_name))
     if self._is_try:
       gs_dir = '/'.join(('trybot', gs_dir, self._build_number))
-    upload_to_bucket.upload_to_bucket(
-        full_json_path,
-        '/'.join((dest_gsbase, gs_dir)))
+    full_path_to_upload = full_json_path
+    file_to_upload = os.path.basename(full_path_to_upload)
+    http_header = ['Content-Type:application/json']
+    if gzipped:
+      http_header.append('Content-Encoding:gzip')
+      gzipped_file = os.path.join(tempfile.gettempdir(), file_to_upload)
+      # Apply gzip.
+      with open(full_path_to_upload, 'rb') as f_in:
+        with gzip.open(gzipped_file, 'wb') as f_out:
+          f_out.writelines(f_in)
+      full_path_to_upload = gzipped_file
+    #TODO(bensong): switch to new gs_utils once it supports http headers.
+    gs_utils.upload_file(
+        full_path_to_upload,
+        '/'.join((dest_gsbase, gs_dir, file_to_upload)),
+        gs_acl='public-read',
+        http_header_lines=http_header)
 
 
   def _RunSKPBenchJSONUpload(self, dest_gsbase):
@@ -293,12 +310,33 @@ class UploadBenchResults(BuildStep):
 
       self._UploadJSONResults(dest_gsbase, 'stats-json-v2', json_write_name)
 
+  def _RunNanoBenchJSONUpload(self, dest_gsbase):
+    """Uploads gzipped nanobench JSON data."""
+    # Find the nanobench JSON
+    file_list = os.listdir(self._GetPerfDataDir())
+    RE_FILE_SEARCH = re.compile(
+        'nanobench_({})_[0-9]+\.json'.format(self._got_revision))
+    nanobench_name = None
+
+    for file_name in file_list:
+      if RE_FILE_SEARCH.search(file_name):
+        nanobench_name = file_name
+        break
+
+    if nanobench_name:
+      nanobench_json_file = os.path.join(self._GetPerfDataDir(),
+                                         nanobench_name)
+
+      self._UploadJSONResults(dest_gsbase, 'nano-json-v1', nanobench_json_file,
+                              gzipped=True)
+
   def _RunInternal(self):
     dest_gsbase = (self._args.get('dest_gsbase') or
                    sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE)
     self._RunLogUpload(dest_gsbase)
     self._RunBenchJSONUpload(dest_gsbase)
     self._RunSKPBenchJSONUpload(dest_gsbase)
+    self._RunNanoBenchJSONUpload(dest_gsbase)
 
 
   def _Run(self):
