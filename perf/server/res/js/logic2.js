@@ -10,6 +10,9 @@
  *     - A list of objects that can be passed directly to Flot for display.
  *   queryInfo
  *     - A list of all the keys and the parameters the user can search by.
+ *   commitData
+ *     - A dictionary from the timestamp of a commit (converted to a string)
+ *       to an object containing all the data about that commit.
  *
  * There are four objects that interact with those data structures:
  *
@@ -47,6 +50,13 @@ var skiaperf = (function() {
       },
         */
     ];
+
+  /**
+   * Contains all the information about each commit.
+   * It uses an {@code Object} as a dictionary, where the key is the time of
+   * the commit. Dataset modifies commitData, Plot sometimes reads it.
+   */
+  var commitData = {};
 
   // Query uses queryInfo.
   // Dataset can change queryInfo.
@@ -384,6 +394,11 @@ var skiaperf = (function() {
                 newNames[name] = true;
               });
             }
+            if (tile['commits']) {
+              tile['commits'].forEach(function(commit) {
+                commitData[parseInt(commit['commit_time']) + ''] = commit;
+              });
+            }
           });
         }
 
@@ -453,7 +468,8 @@ var skiaperf = (function() {
 
   return {
     traces: traces,
-    queryInfo: queryInfo
+    queryInfo: queryInfo,
+    commitData: commitData
   };
 
 }());
