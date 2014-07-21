@@ -12,9 +12,9 @@ import posixpath
 import skia_vars
 import sys
 
-from utils import old_gs_utils as gs_utils
+from utils import gs_utils
+from utils import old_gs_utils
 from utils import sync_bucket_subdir
-from build_step import PLAYBACK_CANNED_ACL
 from build_step import BuildStep
 
 SKP_TIMEOUT_MULTIPLIER = 8
@@ -51,10 +51,10 @@ class UploadSKImageResults(BuildStep):
         skia_vars.GetGlobalVariable('googlestorage_bucket'),
         'skimage', 'actuals', self._builder_name)
     http_header_lines = ['Cache-Control:public,max-age=3600']
-    gs_utils.upload_dir_contents(local_src_dir=src_dir,
-                                 remote_dest_dir=dest_dir,
-                                 gs_acl='public-read',
-                                 http_header_lines=http_header_lines)
+    old_gs_utils.upload_dir_contents(local_src_dir=src_dir,
+                                     remote_dest_dir=dest_dir,
+                                     gs_acl='public-read',
+                                     http_header_lines=http_header_lines)
 
     # Copy actual images to Google Storage at skimage/output. This will merge
     # with the existing files.
@@ -64,9 +64,9 @@ class UploadSKImageResults(BuildStep):
         skia_vars.GetGlobalVariable('googlestorage_bucket'),
         'skimage', 'output', 'images')
     if os.path.isdir(src_dir) and os.listdir(src_dir):
-      gs_utils.upload_dir_contents(local_src_dir=src_dir,
-                                   remote_dest_dir=dest_dir,
-                                   gs_acl=PLAYBACK_CANNED_ACL)
+      old_gs_utils.upload_dir_contents(
+          local_src_dir=src_dir, remote_dest_dir=dest_dir,
+          gs_acl=gs_utils.GSUtils.PLAYBACK_CANNED_ACL)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UploadSKImageResults))

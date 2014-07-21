@@ -69,13 +69,13 @@ sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
                              'site_config'))
 
 from utils import file_utils
-from utils import old_gs_utils as gs_utils
+from utils import gs_utils
+from utils import old_gs_utils
 from py.utils import misc
 from py.utils import shell_utils
 
 from slave import slave_utils
 
-from build_step import PLAYBACK_CANNED_ACL
 from playback_dirs import ROOT_PLAYBACK_DIR_NAME
 from playback_dirs import SKPICTURES_DIR_NAME
 
@@ -174,8 +174,8 @@ class SkPicturePlayback(object):
     """Run the SkPicturePlayback BuildStep."""
 
     # Ensure the right .boto file is used by gsutil.
-    if not self._skip_all_gs_access and gs_utils.read_timestamp_file(
-        timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+    if not self._skip_all_gs_access and old_gs_utils.read_timestamp_file(
+        timestamp_file_name=old_gs_utils.TIMESTAMP_COMPLETED_FILENAME,
         gs_base=self._dest_gsbase,
         gs_relative_dir=posixpath.join(ROOT_PLAYBACK_DIR_NAME,
                                        SKPICTURES_DIR_NAME)) == "0":
@@ -346,7 +346,7 @@ class SkPicturePlayback(object):
           src_dir=LOCAL_PLAYBACK_ROOT_DIR,
           gs_base=self._dest_gsbase,
           dest_dir=dest_dir_name,
-          gs_acl=PLAYBACK_CANNED_ACL)
+          gs_acl=gs_utils.GSUtils.PLAYBACK_CANNED_ACL)
       if gs_status != 0:
         raise Exception(
             'ERROR: GSUtilCopyDir error %d. "%s" -> "%s/%s"' % (
@@ -357,12 +357,12 @@ class SkPicturePlayback(object):
 
       # Add a timestamp file to the SKP directory in Google Storage so we can
       # use directory level rsync like functionality.
-      gs_utils.write_timestamp_file(
-          timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+      old_gs_utils.write_timestamp_file(
+          timestamp_file_name=old_gs_utils.TIMESTAMP_COMPLETED_FILENAME,
           timestamp_value=time.time(),
           gs_base=self._dest_gsbase,
           gs_relative_dir=posixpath.join(dest_dir_name, SKPICTURES_DIR_NAME),
-          gs_acl=PLAYBACK_CANNED_ACL,
+          gs_acl=gs_utils.GSUtils.PLAYBACK_CANNED_ACL,
           local_dir=LOCAL_PLAYBACK_ROOT_DIR)
 
       print '\n\n=======New SKPs have been uploaded to %s =======\n\n' % (
@@ -429,8 +429,8 @@ class SkPicturePlayback(object):
     page_set_source = posixpath.join(
         self._dest_gsbase, ROOT_PLAYBACK_DIR_NAME, 'webpages_archive',
         page_set_basename)
-    if (gs_utils.does_storage_object_exist(wpr_source) and
-        gs_utils.does_storage_object_exist(page_set_source)):
+    if (old_gs_utils.does_storage_object_exist(wpr_source) and
+        old_gs_utils.does_storage_object_exist(page_set_source)):
       slave_utils.GSUtilDownloadFile(
           src=wpr_source, dst=LOCAL_REPLAY_WEBPAGES_ARCHIVE_DIR)
       slave_utils.GSUtilDownloadFile(
@@ -460,7 +460,7 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--dest_gsbase',
       help='gs:// bucket_name, the bucket to upload the file to.',
-      default=gs_utils.DEFAULT_DEST_GSBASE)
+      default=old_gs_utils.DEFAULT_DEST_GSBASE)
   option_parser.add_option(
       '', '--skia_tools',
       help=('Path to compiled Skia executable tools. '

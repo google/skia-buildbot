@@ -9,8 +9,9 @@ import os
 import posixpath
 import sys
 
-from build_step import BuildStep, PLAYBACK_CANNED_ACL
-from utils import old_gs_utils as gs_utils
+from build_step import BuildStep
+from utils import gs_utils
+from utils import old_gs_utils
 import skia_vars
 
 GS_SUMMARIES_BUCKET = 'gs://chromium-skia-skp-summaries'
@@ -30,20 +31,20 @@ class UploadRenderedSKPs(BuildStep):
     # and use it here so we don't re-upload image files we already have
     # in Google Storage.
     #
-    # TODO(epoger): Change ACLs of files uploaded to Google Storage to
-    # google.com:READ .  See _SetGoogleReadACLs() in
-    # https://skia.googlesource.com/buildbot/+/master/slave/skia_slave_scripts/
-    #         webpages_playback.py
+    gs = gs_utils.GSUtils()
+    gs_bucket = gs.without_gs_prefix(
+        skia_vars.GetGlobalVariable('googlestorage_bucket'))
+
     src_dir = os.path.abspath(self.playback_actual_images_dir)
     if os.listdir(src_dir):
-      dest_dir = posixpath.join(
-          skia_vars.GetGlobalVariable('googlestorage_bucket'), SUBDIR_NAME)
-      print 'Uploading image files from %s to %s.' % (src_dir, dest_dir)
-      gs_utils.upload_dir_contents(
-          local_src_dir=src_dir, remote_dest_dir=dest_dir,
-          gs_acl=PLAYBACK_CANNED_ACL)
+      print 'Uploading image files from %s to bucket=%s, dir=%s' % (
+          src_dir, gs_bucket, SUBDIR_NAME)
+      gs.upload_dir_contents(
+          source_dir=src_dir, dest_bucket=gs_bucket, dest_dir=SUBDIR_NAME,
+          predefined_acl=gs.PLAYBACK_CANNED_ACL,
+          fine_grained_acl_list=gs.PLAYBACK_FINEGRAINED_ACL_LIST)
     else:
-      print ('No image files in %s, so skipping upload to Google Storage.' %
+      print ('Skipping upload to Google Storage, because no image files in %s' %
              src_dir)
 
     # Upload image summaries (checksums) to Google Storage.
@@ -56,12 +57,20 @@ class UploadRenderedSKPs(BuildStep):
       for filename in filenames:
         src_path = os.path.join(src_dir, filename)
         dest_path = posixpath.join(dest_dir, filename)
-        gs_utils.upload_file(
+        # It's important to only upload the summary file when it has changed,
+        # because we use the history of the file in Google Storage to tell us
+        # when any of the results changed.
+        #
+        # TODO(epoger): Once gs_utils.upload_file() supports only_if_modified
+        # parameter, start using it, so we can set fine_grained_acl_list like
+        # we do above... we'll need that for google.com users to be able to
+        # download the summary files.
+        old_gs_utils.upload_file(
             local_src_path=src_path, remote_dest_path=dest_path,
-            gs_acl=PLAYBACK_CANNED_ACL, only_if_modified=True)
+            gs_acl=gs_utils.GSUtils.PLAYBACK_CANNED_ACL, only_if_modified=True)
     else:
-      print ('No image summaries in %s, so skipping upload to Google Storage.' %
-             src_dir)
+      print ('Skipping upload to Google Storage, because no image summaries '
+             'in %s' % src_dir)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UploadRenderedSKPs))

@@ -37,11 +37,11 @@ sys.path.append(
     os.path.join(os.pardir, 'third_party', 'chromium_buildbot', 'site_config'))
 sys.path.append(os.path.join(os.pardir, 'slave', 'skia_slave_scripts'))
 
-from build_step import PLAYBACK_CANNED_ACL
 from common import chromium_utils
 from slave import slave_utils
 from slave import svn
 from utils import gs_utils
+from utils import old_gs_utils
 from utils import sync_bucket_subdir
 
 import compare_and_upload_webpage_gms
@@ -116,7 +116,7 @@ dest_gsbase = sync_bucket_subdir.DEFAULT_PERFDATA_GS_BASE
 
 
 # Ensure the right .boto file is used by gsutil.
-if not gs_utils.DoesStorageObjectExist(dest_gsbase):
+if not old_gs_utils.DoesStorageObjectExist(dest_gsbase):
   raise Exception(
       'Missing .boto file or .boto does not have the right credentials. Please '
       'see https://docs.google.com/a/google.com/document/d/1ZzHP6M5qACA9nJnLq'
@@ -142,18 +142,18 @@ for gm_image_subdir in gm_images_seq:
       dest_gsbase, storage_playback_dirs.PlaybackGmExpectedDir())
 
   print '\n\n=======Throw an Exception if gm_actual_dir does not exist======='
-  if not gs_utils.DoesStorageObjectExist(gm_actual_dir):
+  if not old_gs_utils.DoesStorageObjectExist(gm_actual_dir):
     raise Exception("%s does not exist in Google Storage!" % gm_actual_dir)
 
   print '\n\n=======Wait if gm_actual_dir is being updated======='
   keep_waiting = True
   while(keep_waiting):
-    gm_actual_started_timestamp = gs_utils.ReadTimeStampFile(
-        timestamp_file_name=gs_utils.TIMESTAMP_STARTED_FILENAME,
+    gm_actual_started_timestamp = old_gs_utils.ReadTimeStampFile(
+        timestamp_file_name=old_gs_utils.TIMESTAMP_STARTED_FILENAME,
         gs_base=dest_gsbase,
         gs_relative_dir=storage_playback_dirs.PlaybackGmActualDir())
-    gm_actual_completed_timestamp = gs_utils.ReadTimeStampFile(
-        timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+    gm_actual_completed_timestamp = old_gs_utils.ReadTimeStampFile(
+        timestamp_file_name=old_gs_utils.TIMESTAMP_COMPLETED_FILENAME,
         gs_base=dest_gsbase,
         gs_relative_dir=storage_playback_dirs.PlaybackGmActualDir())
     if gm_actual_started_timestamp != gm_actual_completed_timestamp:
@@ -164,28 +164,28 @@ for gm_image_subdir in gm_images_seq:
       keep_waiting = False
 
   print '\n\n=======Add the REBASELINE_IN_PROGRESS lock file======='
-  gs_utils.WriteTimeStampFile(
+  old_gs_utils.WriteTimeStampFile(
       timestamp_file_name=(
           compare_and_upload_webpage_gms.REBASELINE_IN_PROGRESS_FILENAME),
       timestamp_value=time.time(),
       gs_base=dest_gsbase,
       gs_relative_dir=storage_playback_dirs.PlaybackGmActualDir(),
-      gs_acl=PLAYBACK_CANNED_ACL)
+      gs_acl=gs_utils.GSUtils.PLAYBACK_CANNED_ACL)
 
   print '\n\n=======Delete contents of gm_expected_dir======='
-  gs_utils.DeleteStorageObject(gm_expected_dir)
+  old_gs_utils.DeleteStorageObject(gm_expected_dir)
 
   print '\n\n=====Copy all contents from gm_actual_dir to gm_expected_dir======'
 
   # Gather list of all files.
-  gm_actual_contents = gs_utils.ListStorageDirectory(
+  gm_actual_contents = old_gs_utils.ListStorageDirectory(
       dest_gsbase, storage_playback_dirs.PlaybackGmActualDir())
 
   # Remove REBASELINE, TIMESTAMP_* and COMPARISON files from the list.
   for file_to_remove in (
       compare_and_upload_webpage_gms.REBASELINE_IN_PROGRESS_FILENAME,
-      gs_utils.TIMESTAMP_STARTED_FILENAME,
-      gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+      old_gs_utils.TIMESTAMP_STARTED_FILENAME,
+      old_gs_utils.TIMESTAMP_COMPLETED_FILENAME,
       compare_and_upload_webpage_gms.LAST_COMPARISON_FILENAME):
     gs_file_to_remove = posixpath.join(gm_actual_dir, file_to_remove)
     if gs_file_to_remove in gm_actual_contents:
@@ -193,8 +193,8 @@ for gm_image_subdir in gm_images_seq:
 
   # Copy over files in chunks.
   # pylint: disable=W0212
-  for files_chunk in gs_utils._GetChunks(gm_actual_contents,
-                                         gs_utils.FILES_CHUNK):
+  for files_chunk in old_gs_utils._GetChunks(gm_actual_contents,
+                                             old_gs_utils.FILES_CHUNK):
     gsutil = slave_utils.GSUtilSetup()
     command = ([gsutil, 'cp'] + files_chunk +
                [posixpath.join(gm_expected_dir, '')])
@@ -204,27 +204,27 @@ for gm_image_subdir in gm_images_seq:
           % files_chunk)
 
   print '\n\n=======Delete the REBASELINE_IN_PROGRESS lock file======='
-  gs_utils.DeleteStorageObject(
+  old_gs_utils.DeleteStorageObject(
       posixpath.join(
           gm_actual_dir,
           compare_and_upload_webpage_gms.REBASELINE_IN_PROGRESS_FILENAME))
 
   print '\n\n=======Update gm_expected_dir timestamp======='
-  gs_utils.WriteTimeStampFile(
-      timestamp_file_name=gs_utils.TIMESTAMP_COMPLETED_FILENAME,
+  old_gs_utils.WriteTimeStampFile(
+      timestamp_file_name=old_gs_utils.TIMESTAMP_COMPLETED_FILENAME,
       timestamp_value=time.time(),
       gs_base=dest_gsbase,
       gs_relative_dir=storage_playback_dirs.PlaybackGmExpectedDir(),
-      gs_acl=PLAYBACK_CANNED_ACL,
+      gs_acl=gs_utils.GSUtils.PLAYBACK_CANNED_ACL,
       local_dir=None)
 
   print '\n\n=======Add LAST_REBASELINED_BY file======='
-  gs_utils.WriteTimeStampFile(
-      timestamp_file_name=gs_utils.LAST_REBASELINED_BY_FILENAME,
+  old_gs_utils.WriteTimeStampFile(
+      timestamp_file_name=old_gs_utils.LAST_REBASELINED_BY_FILENAME,
       timestamp_value=getpass.getuser(),
       gs_base=dest_gsbase,
       gs_relative_dir=storage_playback_dirs.PlaybackGmExpectedDir(),
-      gs_acl=PLAYBACK_CANNED_ACL,
+      gs_acl=gs_utils.GSUtils.PLAYBACK_CANNED_ACL,
       local_dir=None)
 
 
