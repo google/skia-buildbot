@@ -11,8 +11,6 @@
 from master_builders_cfg import HousekeepingBuilder, LINUX
 from master_builders_cfg import S_PERCOMMIT, S_NIGHTLY, S_15MINS
 
-from skia_master_scripts.arm64model_factory import \
-    Arm64ModelFactory as f_a64mod
 from skia_master_scripts.auto_roll_factory import AutoRollFactory as f_autoroll
 from skia_master_scripts.housekeeping_monitoring_factory import \
     HouseKeepingMonitoringFactory as f_monitor
@@ -59,34 +57,6 @@ def setup_canaries(helper, do_upload_render_results, do_upload_bench_results):
       master_builders_cfg.CanaryBuilder)
 
 
-def setup_test_and_perf_builders(helper, do_upload_render_results,
-                                 do_upload_bench_results):
-  """Set up all Test and Perf builders for the private master.
-
-  Args:
-      helper: instance of utils.SkiaHelper
-      do_upload_render_results: bool; whether the builders should upload their
-          render results.
-      do_upload_bench_results: bool; whether the builders should upload their
-          bench results.
-  """
-  #
-  #                            TEST AND PERF BUILDERS
-  #
-  #    Role,   OS,         Model,         GPU,      Arch,      Config,   Extra Config,GYP_DEFS,Factory,  Target, Scheduler,   Extra Args
-  #
-  builder_specs = [
-      ('Test', 'Linux',       'Bare',  'NoGPU',     'Arm64',   'Debug',  None,        None,    f_a64mod, LINUX,  S_PERCOMMIT, {'board': 'arm64emu', 'bench_pictures_cfg': 'no_gpu', 'default_timeout': 100000}),
-  ]
-
-  master_builders_cfg.setup_builders_from_config_list(
-      builder_specs,
-      helper,
-      do_upload_render_results,
-      do_upload_bench_results,
-      master_builders_cfg.Builder)
-
-
 def setup_housekeepers(helper, do_upload_render_results,
                        do_upload_bench_results):
   """Set up the Housekeeping builders.
@@ -128,8 +98,6 @@ def setup_all_builders(helper, do_upload_render_results,
       do_upload_bench_results: bool; whether the builders should upload their
           bench results.
   """
-  setup_test_and_perf_builders(helper, do_upload_render_results,
-                               do_upload_bench_results)
   setup_canaries(helper, do_upload_render_results, do_upload_bench_results)
   setup_housekeepers(helper=helper,
                      do_upload_render_results=do_upload_render_results,

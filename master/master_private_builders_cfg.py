@@ -30,12 +30,15 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
   #
   #                            TEST AND PERF BUILDERS
   #
-  #    Role,   OS,         Model,   GPU,      Arch,   Config,    Extra Config,GYP_DEFS, Factory,   Target, Scheduler,   Extra Args
+  #    Role,   OS,         Model,       GPU,        Arch,   Config,    Extra Config,GYP_DEFS, Factory,   Target, Scheduler,   Extra Args
   #
   builder_specs = [
-      ('Test', 'Android',  'Logan', 'Nvidia', 'Arm7', 'Debug',   None,        None,     f_android, LINUX,  S_PERCOMMIT, {'device': 'nvidia_logan'}),
-      ('Test', 'Android',  'Logan', 'Nvidia', 'Arm7', 'Release', None,        None,     f_android, LINUX,  S_PERCOMMIT, {'device': 'nvidia_logan'}),
-      ('Perf', 'Android',  'Logan', 'Nvidia', 'Arm7', 'Release', None,        None,     f_android, LINUX,  S_PERCOMMIT, {'device': 'nvidia_logan'}),
+      ('Test', 'Android',  'Logan',     'Nvidia',  'Arm7',  'Debug',   None,        None,     f_android, LINUX,  S_PERCOMMIT, {'device': 'nvidia_logan'}),
+      ('Test', 'Android',  'Logan',     'Nvidia',  'Arm7',  'Release', None,        None,     f_android, LINUX,  S_PERCOMMIT, {'device': 'nvidia_logan'}),
+      ('Perf', 'Android',  'Logan',     'Nvidia',  'Arm7',  'Release', None,        None,     f_android, LINUX,  S_PERCOMMIT, {'device': 'nvidia_logan'}),
+      ('Test', 'Android',  'Reference', 'Unknown', 'Arm64', 'Debug',   None,        None,     f_android, LINUX,  S_PERCOMMIT, {'device': 'arm64'}),
+      ('Test', 'Android',  'Reference', 'Unknown', 'Arm64', 'Release', None,        None,     f_android, LINUX,  S_PERCOMMIT, {'device': 'arm64'}),
+      ('Perf', 'Android',  'Reference', 'Unknown', 'Arm64', 'Release', None,        None,     f_android, LINUX,  S_PERCOMMIT, {'device': 'arm64'}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(
