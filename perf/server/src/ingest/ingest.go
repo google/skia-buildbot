@@ -1,9 +1,12 @@
 package main
 
 import (
+        "encoding/json"
+        "flag"
 	"fmt"
 	"net"
 	"net/http"
+        "os"
         "regexp"
 	"strings"
         "time"
@@ -25,6 +28,8 @@ var (
         commitToTile map[string]int
         // hashRegex describes the regex used to capture git commit hashes.
         hashRegex = regexp.MustCompile("[0-9a-f]+")
+
+        timestampPath = flag.String("timestamp_path", "./timestamp.json", "Path where timestamp data for ingester runs will be stored.")
 )
 
 const (
@@ -38,6 +43,65 @@ func Init() {
 	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
 	addr, _ := net.ResolveTCPAddr("tcp", "jcgregorio.cnc:2003")
 	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "ingest", addr)
+}
+
+// readTimestamp reads the local timestamp file and returns the entry it was asked for.
+// This file is used to keep record of the last time the ingester was run, so the
+// next run over looks for files that occurred after this run.
+// If an entry doesn't exist it returns BEGINNING_OF_TIME, and an error
+// and BEGINNING_OF_TIME if something else fails in the process.
+
+// Timestamp files look something like:
+// {
+//      "micro":1445363563,
+//      "skps":1445363453
+// }
+func readTimestamp(name string) (int64, error) {
+        timestampFile, err := os.Open(*timestampPath)
+        if err != nil {
+                return BEGINNING_OF_TIME, fmt.Errorf("Failed to read file %s: %s", *timestampPath, err)
+        }
+        defer timestampFile.Close()
+        var timestamps map[string]int64
+        err = json.NewDecoder(timestampFile).Decode(&timestamps)
+        if err != nil {
+                return BEGINNING_OF_TIME, fmt.Errorf("Failed to parse file %s: %s", *timestampPath, err)
+        }
+        if result, ok := timestamps[name]; !ok {
+                return BEGINNING_OF_TIME, nil
+        } else {
+                return result, nil
+        }
+}
+
+// writeTimestamp reads the local timestamp file, adds an entry with the given name and value,
+// and writes the file back to disk.
+func writeTimestamp(name string, newTimestamp int64) error {
+        var timestamps map[string]int64
+        timestampFile, err := os.Open(*timestampPath)
+        if err != nil {
+                // File probably doesn't exist, so we'll use an empty dictionary.
+                glog.Warningf("Failed to read file %s: %s", *timestampPath, err)
+                timestamps = make(map[string]int64)
+        } else {
+                err = json.NewDecoder(timestampFile).Decode(&timestamps)
+                if err != nil {
+                        return fmt.Errorf("Failed to parse file %s: %s", *timestampPath, err)
+                }
+        }
+        timestampFile.Close()
+
+        timestamps[name] = newTimestamp
+        writeTimestampFile, err := os.Create(*timestampPath)
+        if err != nil {
+                return fmt.Errorf("Failed to open file %s for writing: %s", *timestampPath, err)
+        }
+        err = json.NewEncoder(writeTimestampFile).Encode(&timestamps)
+        writeTimestampFile.Close()
+        if err != nil {
+                return fmt.Errorf("Failed to write to file %s: %s", *timestampPath, err)
+        }
+        return nil
 }
 
 // getStorageService returns a Cloud Storage service.
