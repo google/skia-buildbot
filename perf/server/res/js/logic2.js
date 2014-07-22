@@ -115,13 +115,33 @@ var skiaperf = (function() {
     return par ? par.querySelector(query) : document.querySelector(query);
   }
 
-
+  /**
+   * Converts from a POSIX timestamp to a truncated RFC timestamp that
+   * datetime controls can read.
+   */
+  function toRFC(timestamp) {
+    return new Date(timestamp*1000).toISOString().slice(0, -1);
+  }
 
   /**
    * Sets up the callbacks related to the plot.
    * Plot observes traces.
    */
   function Plot() {
+    /**
+     * Stores the edges of the plot to keep the zoom controls in sync.
+     * plotEdges is watched to update the zoom and time controls in the UI,
+     * and is modified when traces is modified, or the user pans or zooms the
+     * plot.
+     */
+    var plotEdges = [null, null];
+
+    /**
+     * Used to determine if the scale of the y-axis of the plot.
+     * If it's true, a logarithmic scale will be used. If false, a linear
+     * scale will be used.
+     */
+    var isLogPlot = false;
 
     /**
      * Reference to the underlying Flot plot object.
@@ -172,6 +192,11 @@ var skiaperf = (function() {
               return ticks;
             }
           },
+          yaxis: {
+            /* zoomRange: false */
+            transform: function(v) { return isLogPlot? Math.log(v) : v; },
+            inverseTransform: function(v) { return isLogPlot? Math.exp(v) : v; }
+          },
           crosshair: {
             mode: 'xy'
           },
@@ -183,6 +208,106 @@ var skiaperf = (function() {
             frameRate: 60
           }
         }).data('plot');
+
+    /**
+     * Updates plotEdges to match the current edges of the plot.
+     * This calculates the new plot edges and stores them in plotEdges, using
+     * either the {@code xaxis} Flot object or the maximum and minimum of the
+     * trace data.
+     */
+    var updateEdges = function() {
+      var data = plotRef.getData();
+      var xaxis = plotRef.getOptions().xaxes[0];
+      var min = null;
+      var max = null;
+      if(xaxis.min != null && xaxis.max != null) {
+        min = xaxis.min;
+        max = xaxis.max;
+      } else if(data.length > 0) {
+        min = Math.min.apply(null, data.map(function(set) {
+          return Math.min.apply(null, set.data.map(function(point) {
+            return point[0];
+          }));
+        }));
+        max = Math.max.apply(null, data.map(function(set) {
+          return Math.max.apply(null, set.data.map(function(point) {
+            return point[0];
+          }));
+        }));
+      }
+
+      plotEdges[0] = min;
+      plotEdges[1] = max;
+    };
+
+    $$$('#islog').addEventListener('click', function() {
+      if($$$('#islog').checked != isLogPlot) {
+        isLogPlot = $$$('#islog').checked;
+        plotRef.setupGrid();
+        plotRef.draw();
+      }
+    });
+    $('#chart').bind('plotclick', function(evt, pos, item) {
+      if(!item) { return; }
+      var note = document.createElement('div');
+      var fields = [['commit_time', 'Commit time'],
+                    ['hash', 'Commit hash'],
+                    ['git_number', 'Git number'],
+                    ['author', 'Author'],
+                    ['commit_msg', 'Commit message']];
+      note.classList.add('note');
+      var timestamp = parseInt(item.datapoint[0]) + '';
+      var commit = commitData[timestamp];
+      note.innerHTML = 'Value: ' + item.datapoint[1] + '<br />';
+      if(commit) {
+        console.log(commit);
+        fields.forEach(function(field) {
+          if(commit[field[0]]) {
+            if(field[0] != 'hash') {
+              note.innerHTML += field[1] + ': ' + commit[field[0]] + '<br />';
+            } else {
+              var hashVal = commit[field[0]];
+              note.innerHTML += field[1] + ': ' + 
+                  '<a href=https://skia.googlesource.com/skia/+/' + hashVal + 
+                  '>' + hashVal + '</a><br />';
+            }
+          }
+        });
+      } else {
+        note.innerHTML += 'Commit time: ' + parseInt(item.datapoint[0]) + '<br />';
+      }
+      // TODO: Add annotations
+      note.style.top = item.pageY + 10 + 'px';
+      note.style.left = item.pageX + 10 + 'px';
+      note.setAttribute('tabindex', 0);
+
+
+      var removeChild = function(e) {
+        var newActive = e.relatedTarget;
+        console.log(newActive);
+        while(newActive != null && newActive != note) {
+          newActive = newActive.parentElement;
+        }
+        // Focus just moved from the element to inside the element;
+        // stil good.
+        if(newActive == note) { return; }
+
+        document.body.removeChild(note);
+        note.removeEventListener('blur', removeChild);
+      };
+
+
+      note.addEventListener('blur', removeChild);
+      document.body.appendChild(note);
+      note.focus();
+    });
+
+    $('#chart').bind('plotzoom', updateEdges);
+    $('#chart').bind('plotpan', updateEdges);
+
+    $$$('#zoom').setAttribute('min', -20);
+    $$$('#zoom').setAttribute('max', 0);
+    $$$('#zoom').setAttribute('step', 0.01);
 
     // Redraw the plot when traces are modified.
     new ArrayObserver(traces).open(function(slices) {
@@ -198,10 +323,52 @@ var skiaperf = (function() {
       plotRef.draw();
 
       var data = plotRef.getData();
-      console.log(data);
       data.forEach(function(trace) {
         plotColors[trace.label] = trace.color;
       });
+      updateEdges();
+    });
+    new ArrayObserver(plotEdges).open(function() {
+      if(plotEdges[0] != null) {
+        $$$('#start').value = toRFC(plotEdges[0]);
+      }
+      if(plotEdges[1] != null) {
+        $$$('#end').value = toRFC(plotEdges[1]);
+      }
+      if(plotEdges[0] != null && plotEdges[1] != null) {
+        $$$('#zoom').value = -Math.log(plotEdges[1] - plotEdges[0]);
+      }
+    });
+    $$$('#back-to-the-future').addEventListener('click', function(e) {
+      var newMin = Date.parse($$$('#start').value)/1000;
+      var newMax = Date.parse($$$('#end').value)/1000;
+      if(isNaN(newMin) || isNaN(newMax)) {
+        console.log('#back-to-the-future click handler: invalid input(s)');
+      } else {
+        plotEdges[0] = newMin;
+        plotEdges[1] = newMax;
+        var xaxis = plotRef.getOptions().xaxes[0];
+        xaxis.min = plotEdges[0];
+        xaxis.max = plotEdges[1];
+        plotRef.setupGrid();
+        plotRef.draw();
+      }
+    });
+    $$$('#zoom').addEventListener('input', function() {
+      var center = (plotEdges[0] + plotEdges[1])/2;
+      var newRange = Math.exp(-$$$('#zoom').value);
+      var xaxis = plotRef.getOptions().xaxes[0];
+      plotEdges[0] = center - newRange/2;
+      plotEdges[1] = center + newRange/2;
+      xaxis.min = plotEdges[0];
+      xaxis.max = plotEdges[1];
+      plotRef.setupGrid();
+      plotRef.draw();
+    });
+
+    $$$('#nuke-plot').addEventListener('click', function(e) {
+      traces.splice(0, traces.length);
+      e.preventDefault();
     });
   }
 
