@@ -12,10 +12,10 @@ import sys
 from build_step import BuildStep
 from utils import gs_utils
 from utils import old_gs_utils
-import skia_vars
 
+# TODO(epoger): Move these bucket names into global_variables.
+GS_IMAGES_BUCKET    = 'gs://chromium-skia-skp-images'
 GS_SUMMARIES_BUCKET = 'gs://chromium-skia-skp-summaries'
-SUBDIR_NAME = 'rendered-skps'
 
 
 class UploadRenderedSKPs(BuildStep):
@@ -32,15 +32,14 @@ class UploadRenderedSKPs(BuildStep):
     # in Google Storage.
     #
     gs = gs_utils.GSUtils()
-    gs_bucket = gs.without_gs_prefix(
-        skia_vars.GetGlobalVariable('googlestorage_bucket'))
+    gs_bucket = gs.without_gs_prefix(GS_IMAGES_BUCKET)
 
     src_dir = os.path.abspath(self.playback_actual_images_dir)
     if os.listdir(src_dir):
-      print 'Uploading image files from %s to bucket=%s, dir=%s' % (
-          src_dir, gs_bucket, SUBDIR_NAME)
+      print 'Uploading image files from %s to root dir of bucket=%s' % (
+          src_dir, gs_bucket)
       gs.upload_dir_contents(
-          source_dir=src_dir, dest_bucket=gs_bucket, dest_dir=SUBDIR_NAME,
+          source_dir=src_dir, dest_bucket=gs_bucket, dest_dir=None,
           predefined_acl=gs.PLAYBACK_CANNED_ACL,
           fine_grained_acl_list=gs.PLAYBACK_FINEGRAINED_ACL_LIST)
     else:
