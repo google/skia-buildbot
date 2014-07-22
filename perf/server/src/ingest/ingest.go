@@ -1,6 +1,7 @@
 package main
 
 import (
+        "bytes"
         "encoding/json"
         "flag"
 	"fmt"
@@ -28,13 +29,22 @@ var (
         commitToTile map[string]int
         // hashRegex describes the regex used to capture git commit hashes.
         hashRegex = regexp.MustCompile("[0-9a-f]+")
-
+        // timestampToCount is a map from the git hash to the number of commits
+        // after FIRST_COMMIT, starting with FIRST_COMMIT until now.
+        // Since each tile contains a set number of commits, the tile number of a
+        // commit hash can be found by dividing this number by the number of
+        // commits per tile.
+        timestampToCounter = make(map[CommitHash]int)
+        // TODO: Will need a mutex around this once timestampToCounter is actually used.
         timestampPath = flag.String("timestamp_path", "./timestamp.json", "Path where timestamp data for ingester runs will be stored.")
 )
 
 const (
 	_BQ_PROJECT_NAME   = "google.com:chrome-skia"
 	BEGINNING_OF_TIME  = 1401840000
+        FIRST_COMMIT = "3f73e8c8d589e0d5a1f75327b4aa22c1e745732d"
+        // One commit before FIRST_COMMIT, used to avoid some one-off errors.
+        BEFORE_FIRST_COMMIT = "373dd9b52f88158edd1e24419e6d937efaf59d55"
         MAX_INGEST_FRAGMENT = 4096
 )
 
@@ -43,6 +53,129 @@ func Init() {
 	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
 	addr, _ := net.ResolveTCPAddr("tcp", "jcgregorio.cnc:2003")
 	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "ingest", addr)
+}
+
+type CommitHash string
+
+type SkiaCommitEntry struct {
+        // We're getting a lot of nice data here. Should we use more of it?
+        Commit      CommitHash `json:"commit"`
+}
+
+type SkiaJSON struct {
+        Log        []SkiaCommitEntry `json:"log"`
+        Next        string          `json:"next"`
+}
+
+// getCommitPage gets a single page of commits from GoogleSource.
+func getCommitPage(start string) (*SkiaJSON, error) {
+        uriName := "https://skia.googlesource.com/skia/+log/" + start + "?format=json"
+        glog.Infoln("Looking at commits: " + uriName)
+        resp, err := http.Get(uriName)
+        if err != nil {
+                return nil, fmt.Errorf("Failed to retrieve Skia JSON starting with hash %s: %s\n", start, err)
+        }
+        defer resp.Body.Close()
+        result := new(SkiaJSON)
+        buf := new(bytes.Buffer)
+        buf.ReadFrom(resp.Body)
+        rawJSON := buf.Bytes()
+        // The JSON has some garbage on the first line that stops it from parsing.
+        // This removes that.
+        maybeStrip := bytes.IndexAny(rawJSON, "\n")
+        if maybeStrip >= 0 {
+                rawJSON = rawJSON[maybeStrip:]
+        }
+        err = json.Unmarshal(rawJSON, result)
+        if err != nil {
+                return nil, fmt.Errorf("Failed to parse Skia JSON: %s\n", err)
+        }
+        return result, nil
+}
+
+// getCommits looks up the commits starting with start, and returns an array
+// for all the commits since that first one.
+func getCommits(start string) ([]CommitHash, error) {
+        // Unfortunately, skia.googlesource.com only supports going backwards
+        // from a given commit, so this will be a little tricky. Basically
+        // this will go backwards from HEAD until it finds the page with the
+        // desired commit, then append all of the pages together in the right
+        // order and return that.
+        hashPages := make([]*SkiaJSON, 0, 1)
+
+        indexOfStart := func(s *SkiaJSON) int {
+                for i, commit := range s.Log {
+                        if commit.Commit == CommitHash(start) {
+                                return i
+                        }
+                }
+                return -1
+        }
+        curPage, err := getCommitPage("HEAD")
+        if err != nil {
+                return []CommitHash{}, fmt.Errorf("Failed to get first set of commits: %s")
+        }
+        for indexOfStart(curPage) == -1 {
+                hashPages = append(hashPages, curPage)
+                curPage, err = getCommitPage(curPage.Next)
+                if err != nil {
+                        return []CommitHash{}, fmt.Errorf("Failed to get commits for %s: %s", curPage.Next, err)
+                }
+        }
+
+        // Now copy and return the appropriate commits.
+        result := make([]CommitHash, 0)
+        for i := indexOfStart(curPage); i >= 0; i-- {
+                result = append(result, curPage.Log[i].Commit)
+        }
+        if len(hashPages) <= 1 {
+                return result, nil
+        }
+        hashPages = hashPages[:len(hashPages)-1]
+
+        // Now copy for all the remaining pages. In reverse!
+        for len(hashPages) > 0 {
+                curPage = hashPages[len(hashPages)-1]
+                for i := len(curPage.Log)-1; i >= 0; i-- {
+                        result = append(result, CommitHash(curPage.Log[i].Commit))
+                }
+                hashPages = hashPages[:len(hashPages)-1]
+        }
+        return result, nil
+}
+
+// updateTimestampMap updates timestampToTileID, starting at FIRST_COMMIT if it's empty.
+// TODO: Save hash info to disk.
+func updateTimestampMap() {
+        count := -1
+        lastCommit := BEFORE_FIRST_COMMIT
+        // Get the largest count currently in the latest map, if one exists
+        for key, counter := range timestampToCounter {
+                if counter > count {
+                        count = counter
+                        lastCommit = string(key)
+                }
+        }
+
+        // Get all the commits
+        commits, err := getCommits(lastCommit)
+        if err != nil {
+                glog.Errorf("Unable to get new commits: %s\n", err)
+                return
+        }
+        if len(commits) <= 1 {
+                glog.Info("No new commits")
+                return
+        }
+        // getCommits includes lastCommit in response, so the first element 
+        // needs to be sliced off.
+        newCommits := commits[1:]
+        count++
+
+        for _, commit := range newCommits {
+                timestampToCounter[commit] = count
+                count++
+        }
 }
 
 // readTimestamp reads the local timestamp file and returns the entry it was asked for.
@@ -152,51 +285,6 @@ func getFilesFromGSDir(service *storage.Service, directory string, bucket string
 	return results
 }
 
-// getLatestGSDirs gets the appropriate directory names in which data
-// would be stored between the given timestamp and now.
-func getLatestGSDirs(timestamp int64, bsSubdir string) []string {
-	oldTime := time.Unix(timestamp, 0).UTC()
-	glog.Infoln("Old time: ", oldTime)
-	newTime := time.Now().UTC()
-	lastAddedTime := oldTime
-	results := make([]string, 0)
-	newYear, newMonth, newDay := newTime.Date()
-	newHour := newTime.Hour()
-	lastYear, lastMonth, _ := lastAddedTime.Date()
-	if lastYear != newYear {
-		for i := lastMonth; i < 12; i++ {
-			results = append(results, fmt.Sprintf("%04d/%02d", lastYear, lastMonth))
-		}
-		for i := lastYear + 1; i < newYear; i++ {
-			results = append(results, fmt.Sprintf("%04d", i))
-		}
-		lastAddedTime = time.Date(newYear, 0, 1, 0, 0, 0, 0, time.UTC)
-	}
-	lastYear, lastMonth, _ = lastAddedTime.Date()
-	if lastMonth != newMonth {
-		for i := lastMonth; i < newMonth; i++ {
-			results = append(results, fmt.Sprintf("%04d/%02d", lastYear, i))
-		}
-		lastAddedTime = time.Date(newYear, newMonth, 1, 0, 0, 0, 0, time.UTC)
-	}
-	lastYear, lastMonth, lastDay := lastAddedTime.Date()
-	if lastDay != newDay {
-		for i := lastDay; i < newDay; i++ {
-			results = append(results, fmt.Sprintf("%04d/%02d/%02d", lastYear, lastMonth, i))
-		}
-		lastAddedTime = time.Date(newYear, newMonth, newDay, 0, 0, 0, 0, time.UTC)
-	}
-	lastYear, lastMonth, lastDay = lastAddedTime.Date()
-	lastHour := lastAddedTime.Hour()
-	for i := lastHour; i < newHour+1; i++ {
-		results = append(results, fmt.Sprintf("%04d/%02d/%02d/%02d", lastYear, lastMonth, lastDay, i))
-	}
-	for i := range results {
-		results[i] = fmt.Sprintf("%s/%s", bsSubdir, results[i])
-	}
-	return results
-}
-
 // getFiles loads the new files from Cloud Storage into the BigQuery, returning them as a map keyed by git hash.
 func getFiles(cs *storage.Service, prefix, sourceBucketSubdir string, timestamp int64) (map[string][]string , error) {
         var realTimestamp int64
@@ -290,6 +378,7 @@ func submitFragments(t types.TileStore, iter types.TileFragmentIter) {
 
 // RunIngester runs a single run of the ingestion cycle (or at least will shortly).
 func RunIngester() {
+    /*
     cs, err := getStorageService()
     if err != nil {
             glog.Errorf("getFiles failed to create storage service: %s\n", err)
@@ -299,4 +388,10 @@ func RunIngester() {
             glog.Errorf("getFiles failed with error: %s\n", err)
     }
     glog.Infoln(fileMap)
+    */
+    updateTimestampMap()
+    fmt.Println(timestampToCounter)
+    time.Sleep(30*time.Minute)
+    updateTimestampMap()
+    fmt.Println(timestampToCounter)
 }
