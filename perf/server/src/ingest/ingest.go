@@ -249,17 +249,15 @@ func submitFragments(t types.TileStore, iter types.TileFragmentIter) {
                 // Flush the current fragments to the tiles when there's too many.
                 if count >= MAX_INGEST_FRAGMENT {
                         for i, fragments := range tileMap {
-                                // NOTE: This seems wrong. The version of tile that's being modified
-                                // is the version stored in cache. We're breaking thread safety
-                                // without any hint in the code that we are, because it seems
-                                // like Get() assumes the tile it sends will not be modified.
-                                // Should Get() return a deep copy of the Tile, or should we
-                                // make a deep copy here?
-                                tile, err := t.Get(0, i)
+                                tile, err := t.GetModifiable(0, i)
                                 if err != nil {
                                         glog.Errorf("Failed to get tile number %i: %s", i, err)
                                         // TODO: Keep track of failed fragments
                                         continue
+                                }
+                                // If the tile didn't exist before, make a new one.
+                                if tile == nil {
+                                        tile = types.NewTile()
                                 }
                                 for _, fragment := range fragments {
                                         fragment.UpdateTile(tile)

@@ -108,7 +108,6 @@ func (store *FileTileStore) Put(scale, index int, tile *types.Tile) error {
 // getLastTile gets a copy of the last tile for the given scale from disk. Its
 // thread safety comes from not using the tile store cache at all.
 func (store *FileTileStore) getLastTile(scale int) (*types.Tile, error) {
-        // TODO: Check last modified to see if we need to reload it
         tilePath := path.Join(store.dir, store.datasetName, fmt.Sprintf("%d/*.gob", scale))
         matches, _ := filepath.Glob(tilePath)
         if matches == nil {
@@ -152,6 +151,7 @@ func openTile(filename string) (*types.Tile, error) {
 // Get returns a tile from the file tile store, storing it into cache if it is
 // not already there. It is threadsafe because it locks the tile store's mutex
 // before accessing the cache.
+// NOTE: Assumes the caller does not modify the copy it returns
 func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
         store.lock.Lock();
         defer store.lock.Unlock();
@@ -168,7 +168,11 @@ func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
 	fileData, err := os.Stat(filename)
 	// File probably isn't there, so return nil
 	if err != nil {
-		return nil, fmt.Errorf("Tile %d,%d not found in file system.", scale, index)
+                if !os.IsNotExist(err) {
+                        return nil, fmt.Errorf("Tile %d,%d retrieval caused error : %s.", scale, index, err)
+                } else {
+                        return nil, nil
+                }
 	}
 	fileLastModified := fileData.ModTime()
 	for i, entry := range store.cache {
@@ -200,6 +204,25 @@ func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
 			scale:        scale,
 			index:        index,
 		})
+        return t, nil
+}
+
+// GetModifiable returns a tile from disk.
+// This ensures the tile can be modified without affecting the cache.
+// NOTE: Currently relies on getLastTile returning a new copy in all cases.
+func (store *FileTileStore) GetModifiable(scale, index int) (*types.Tile, error) {
+        store.lock.Lock();
+        defer store.lock.Unlock();
+	// -1 means find the last tile for the given scale.
+	if index == -1 {
+                return store.getLastTile(scale)
+	}
+	filename, err := store.tileFilename(scale, index)
+        fmt.Println(filename)
+	t, err := openTile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve tile %s: %s", filename, err)
+	}
         return t, nil
 }
 

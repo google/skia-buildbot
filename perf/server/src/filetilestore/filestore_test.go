@@ -171,11 +171,29 @@ func TestFileTileGet(t *testing.T) {
         // tile.
         t.Log("Fourth test set started. Testing non existent tile Get().")
         getValue4, err := ts.Get(0, 42)
-        if err == nil {
-                t.Errorf("FileTileStore.Get succeeded on nonexistent tile: %s\n", err)
+        if err != nil {
+                t.Errorf("FileTileStore.Get failed on nonexistent tile: %s\n", err)
+        }
+        if getValue4 != nil {
+                t.Errorf("FileTileStore.Get returns nonnil on nonexistent tile: %s\n", err)
                 dumpTile(getValue4, t)
         }
         t.Log("Fourth test set completed.")
+        t.Log("Fifth test start. Testing GetModifiable().")
+        getValue5, err := ts.GetModifiable(0, 0)
+        if err != nil {
+                t.Errorf("FileTileStore.GetModifiable failed :%s\n", err)
+        } else {
+                getValue5.TileIndex = 7
+                getValue5, err := ts.Get(0, 0)
+                if err != nil {
+                        t.Errorf("FileTileStore.Get failed :%s\n", err)
+                } else {
+                        if got, want := getValue5.TileIndex, 0; got != want {
+                                t.Errorf("FileTileStore.Get failed: tile index modified via GetModifiable call\n")
+                        }
+                }
+        }
 }
 
 func dumpTile(tile *types.Tile, t *testing.T) {
