@@ -244,6 +244,7 @@ _slave_host_dicts = {
   'skia-vm-001': {
     'slaves': [
       ('skiabot-linux-compile-000', '0'),
+      ('skiabot-linux-vm-001', '1'),
     ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -634,7 +635,6 @@ _slave_host_dicts = {
   'skia-vm-029': {
     'slaves': [
       ('skiabot-linux-vm-000', '0'),
-      ('skiabot-linux-vm-001', '1'),
       ('skiabot-linux-vm-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
