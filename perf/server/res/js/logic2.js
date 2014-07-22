@@ -27,8 +27,12 @@
  *
  */
 var skiaperf = (function() {
-  // Plot and Legend watch traces.
-  // Query and Legend can change traces.
+  /**
+   * Stores the trace data.
+   * Formatted so it can be directly fed into Flot generate the plot,
+   * Plot and Legend observe traces, and Query and Legend can make changes to
+   * traces.
+   */
   var traces = [
         /*
       {
@@ -50,6 +54,12 @@ var skiaperf = (function() {
       },
         */
     ];
+  /**
+   * Stores the color of each trace in rgb format. 
+   * Plot can change plotColors, and legend watches plotColors.
+   */
+  var plotColors = {};
+
 
   /**
    * Contains all the information about each commit.
@@ -58,8 +68,16 @@ var skiaperf = (function() {
    */
   var commitData = {};
 
-  // Query uses queryInfo.
-  // Dataset can change queryInfo.
+  /**
+   * Stores the different parameters that can be used to specify a trace.
+   * The {@code allKeys} field contains an array of strings representing each
+   * possible trace.
+   * The {@code params} field contains an array of arrays, each array 
+   * representing a single parameter that can be set, with the first element of
+   * the array being the human readable name for it, and each followin element
+   * a different possibility of what to set it to.
+   * Query observe queryInfo, and Dataset can modify queryInfo.
+   */
   var queryInfo = {
     allKeys: [
       /*
@@ -96,6 +114,7 @@ var skiaperf = (function() {
   function $$$(query, par) {
     return par ? par.querySelector(query) : document.querySelector(query);
   }
+
 
 
   /**
@@ -180,16 +199,19 @@ var skiaperf = (function() {
 
       var data = plotRef.getData();
       console.log(data);
+      data.forEach(function(trace) {
+        plotColors[trace.label] = trace.color;
+      });
     });
   }
 
 
   /**
    * Renders the legend and keeps it in sync with the visible traces.
-   * Legend watches traces, and changes the elements inside of #legend-table
-   * to match traces. Currently it removes all the elements and regenerates
-   * them all from a template, but this seems to work well enough for the
-   * time being.
+   * {@code Legend} watches traces, and changes the elements inside of
+   * #legend-table to match traces. Currently it removes all the elements
+   * and regenerates them all from a template, but this seems to work well
+   * enough for the time being.
    */
   function Legend() {
     var legendTemplate = $$$('#legend-entry');
@@ -211,6 +233,8 @@ var skiaperf = (function() {
         label.setAttribute('for', traceName);
         label.innerText = traceName;
         $$$('a', newLegendEntry).id = 'remove_' + traceName;
+        $$$('.legend-box-inner', newLegendEntry).style.border = '5px solid ' +
+            (plotColors[traceName] ? plotColors[traceName] : 'white');
 
         legendTable.appendChild(newLegendEntry);
       });
@@ -247,15 +271,70 @@ var skiaperf = (function() {
         }
       }
     });
+    new ObjectObserver(plotColors).open(function() {
+      $$('#legend tr').forEach(function(traceElem) {
+        // Get id, see if the color needs to be updated
+        var traceName = $$$('input', traceElem).id;
+        if(plotColors[traceName]) {
+          var newStyleString = '5 px solid ' + plotColors[traceName];
+          var innerBox = $$$('.legend-box-inner', traceElem);
+          if(innerBox.style.border != newStyleString) {
+            innerBox.style.border = newStyleString;
+          }
+        }
+      });
+    });
   }
 
 
   /**
    * Sets up the event handlers related to the query controls in the interface.
    * The callbacks in this function use and observe {@code queryInfo},
-   * and modifies {@code traces}.
+   * and modifies {@code traces}. Takes the object {@code Dataset} creates
+   * as input.
    */
-  function Query() {
+  function Query(dataset) {
+    /**
+     * Stores the store of DOM elements not currently visible.
+     * {@code hiddenChildren} is used when a user enters text into one of the 
+     * input boxes, to store the children don't meet their criteria.
+     */
+    var hiddenChildren = {};
+
+    /**
+     * Returns a list of strings of trace keys that match the selected options.
+     * Checks the UI controls for the selected options, and uses queryInfo.allKeys
+     * to find the ones that match it.
+     */
+    function getMatchingTraces() {
+      var matching = [];
+      var selectedOptions = new Array(queryInfo.params.length);
+      // Get relevant keys
+      for(var i = 0; i < queryInfo.params.length; i++) {
+        selectedOptions[i] = [];
+        $$('#select_' + i + ' option:checked').forEach(function(elem) {
+          selectedOptions[i].push(elem.value);
+        });
+      }
+      console.log(selectedOptions);
+      queryInfo.allKeys.forEach(function(key) {
+        var splitKey = key.split(':');
+        var isMatching = true;
+        for(var i = 0; i < selectedOptions.length; i++) {
+          if(selectedOptions[i].length > 0) {
+            if(!selectedOptions[i].some(function(e) { return e == splitKey[i]; })) {
+              isMatching = false;
+              break;
+            }
+          }
+        }
+        if(isMatching) {
+          matching.push(key);
+        }
+      });
+      return matching;
+    }
+
     /**
      * Syncs the DOM to match the current state of queryInfo.
      * It currently removes all the existing elements and then
@@ -304,18 +383,170 @@ var skiaperf = (function() {
       }
     }
     new ObjectObserver(queryChange).open(onParamChange);
+
+    /**
+     * Updates the visible traces based on what the user inputs.
+     * This appends traces to traces when the user presses the #add-lines
+     * button.
+     */
+    var updateTraces = function() {
+      // TODO: Chunk requests to improve efficiency, and not break
+      // on loading too many traces at once.
+      // TODO: Diff new trace list with old traces to ask for only what we need
+      var allTraces = [];
+      traces.forEach(function(t) { allTraces.push(t.label); });
+      getMatchingTraces().forEach(function(t) {
+        if(allTraces.indexOf(t) == -1) {
+          allTraces.push(t);
+        }
+      });
+      console.log(allTraces);
+
+      var pushToTraces = function(data) {
+        var newTileNums = [];
+        var traceData = {};
+        console.log(data);
+        // Process the new data.
+        if(data['tiles']) {
+          data['tiles'].forEach(function(tile) {
+            console.log(tile);
+            var num = tile['tileIndex'];
+            if(newTileNums.indexOf(num) == -1) {
+              newTileNums.push(num);
+            }
+            if(tile['traces']) {
+              tile['traces'].forEach(function(trace) {
+                if(!traceData[trace['key']]) {
+                  traceData[trace['key']] = [];
+                }
+                traceData[trace['key']][num] = trace['data'];
+              });
+            }
+          });
+        }
+
+        // Clear out the old trace data
+        while(traces.length > 0) { traces.pop(); }
+
+        // Put in the new tile numbers
+        if(newTileNums.length >= dataset.tileNums.length) {
+          newTileNums.sort(function(a, b) { return a - b; });
+          console.log(newTileNums);
+          while(dataset.tileNums.length > 0) { dataset.tileNums.pop(); }
+          newTileNums.forEach(function(num) { dataset.tileNums.push(num); });
+        }
+        console.log(traceData);
+
+        var newTraceNames = Object.keys(traceData);
+        newTraceNames.forEach(function(traceName) {
+          var mergedTraceData = [];
+          // Combine the trace segments in the right order
+          for(var i = 0; i < dataset.tileNums.length; i++) {
+            if(traceData[traceName][dataset.tileNums[i]]) {
+              Array.prototype.push.apply(mergedTraceData, 
+                  traceData[traceName][dataset.tileNums[i]]);
+            }
+          }
+          traces.push({
+            data: mergedTraceData,
+            label: traceName,
+            lines: {
+              show: true
+            }
+          });
+        });
+      };
+
+      dataset.requestTiles(pushToTraces, {
+        'traces': allTraces,    // This tells it to get trace data.
+        'omit_commits': true,   // These should get turned into strings
+        'omit_params': true,    // within requestTiles. 
+        'omit_names': true      // Automatic type conversion!
+      });
+    };
+
+    // Add handlers to the query controls.
+    $$$('#add-lines').addEventListener('click', function() {
+      updateTraces();
+    });
+    $$$('#inputs').addEventListener('change', function(e) {
+      var count = getMatchingTraces().length;
+      $$$('#query-text').innerHTML = count + ' lines selected';
+    });
+    $$$('#inputs').addEventListener('input', function(e) {
+      if(e.target.nodeName == 'INPUT') {
+        var query = e.target.value.toLowerCase();
+        var column = parseInt(e.target.id.slice('input_'.length));
+        var possibleValues = queryInfo.params[column].slice(1).map(function(s) {
+          return s.toLowerCase();
+        });
+        var results = possibleValues.filter(function(candidate) {
+          return candidate.indexOf(query) != -1;
+        });
+        if(results.length < 1) {
+          var matchLengths = possibleValues.map(function(candidate) {
+            var maxMatch = 0;
+            for(var start = 0; start < candidate.length; start++) {
+              var i = 0;
+              for(; start + i < candidate.length && query.length; i++) {
+                if(candidate[start + i] != query[i]) {
+                  break;
+                }
+              }
+              if(i > maxMatch) { 
+                maxMatch = i;
+              }
+            }
+            return maxMatch;
+          });
+          var maxMatch = Math.max.apply(null, matchLengths);
+          results = possibleValues.filter(function(_, idx) {
+            return matchLengths[idx] >= maxMatch;
+          });
+        }
+        if(!hiddenChildren[column]) { hiddenChildren[column] = []; }
+        var removed = [];
+        hiddenChildren[column].forEach(function(e, idx) {
+          if(results.indexOf(e.value.toLowerCase()) != -1) {
+            var selectChildren = $$$('#select_' + column).children;
+            for(var i = 0; i < selectChildren.length; i++) {
+              if(selectChildren[i].value > e.value) {
+                $$$('#select_' + column).insertBefore(e, selectChildren[i]);
+                removed.push(idx);
+                return;
+              }
+            }
+            $$$('#select_' + column).insertBefore(e, null);
+            removed.push(idx);
+          }
+         });
+        for(var i = removed.length - 1; i >= 0; i--) {
+          hiddenChildren[column].splice(removed[i], 1);
+        }
+        $$('#select_' + column + ' option').forEach(function(e) {
+          if(results.indexOf(e.value.toLowerCase()) == -1) {
+            hiddenChildren[column].push(e);
+            e.parentNode.removeChild(e);
+          }
+        });
+      }
+    });
   }
 
 
   /**
    * Manages the set of keys the user can query over.
+   * Returns an object containing a reference to requestTiles and
+   * tileNums
    */
   function Dataset() {
+    // TODO: Describe where these are used better
     // These describe the current "window" of data we're looking at.
     var dataSet = 'skps';
     var tileNums = [-1];
     var scale = 0;
 
+    
     /**
      * Helps make requests for a set of tiles.
      * Makes a XMLHttpRequest for using the data in {@code dataSet}, 
@@ -323,7 +554,7 @@ var skiaperf = (function() {
      * as requery query parameters. Calls finished with the data or
      * an empty object when finished.
      */
-    function requestTiles(finished, moreParams) {
+    var requestTiles = function(finished, moreParams) {
       var onloaderror = function() {
         finished({});
       };
@@ -360,7 +591,6 @@ var skiaperf = (function() {
       request.addEventListener('loadend', onloadfinish);
       request.send();
     }
-
 
 
     /**
@@ -421,7 +651,8 @@ var skiaperf = (function() {
         queryChange.counter++;
       };
 
-      requestTiles(processJSON, '');
+      requestTiles(processJSON, {});
+
     };
 
 
@@ -431,12 +662,17 @@ var skiaperf = (function() {
       e.addEventListener('change', function() {
         while (traces.length) { traces.pop(); }
         dataSet = this.value;
+        tileNums = [-1];
         console.log(dataSet);
         update();
       });
     });
 
     update();
+    return {
+      'requestTiles': requestTiles,
+      'tileNums': tileNums
+    };
   }
 
 
@@ -451,10 +687,10 @@ var skiaperf = (function() {
 
 
   function onLoad() {
+    var dataset = Dataset();
+    Query(dataset);
     Plot();
     Legend();
-    Query();
-    Dataset();
 
     microtasks();
   }
@@ -468,6 +704,7 @@ var skiaperf = (function() {
 
   return {
     traces: traces,
+    plotColors: plotColors,
     queryInfo: queryInfo,
     commitData: commitData
   };
