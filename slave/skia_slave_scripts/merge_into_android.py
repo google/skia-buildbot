@@ -134,6 +134,7 @@ class MergeIntoAndroid(BuildStep):
         shell_utils.run([GIT, 'reset', 'HEAD', UPSTREAM_USER_CONFIG])
 
         # Now generate Android.mk and SkUserConfig.h
+        gyp_failed = False
         try:
           gyp_to_android.main()
         except AssertionError as e:
@@ -142,14 +143,17 @@ class MergeIntoAndroid(BuildStep):
           git_utils.MergeAbort()
           raise Exception('Failed to generate makefiles for %s. Fall back to '
                           'manual human merge.' % commit_to_merge)
+        except SystemExit as e:
+          gyp_failed = True
 
-        git_utils.Add('Android.mk')
-        git_utils.Add(ANDROID_USER_CONFIG)
-        git_utils.Add(os.path.join('tests', 'Android.mk'))
-        git_utils.Add(os.path.join('tools', 'Android.mk'))
-        git_utils.Add(os.path.join('bench', 'Android.mk'))
-        git_utils.Add(os.path.join('gm', 'Android.mk'))
-        git_utils.Add(os.path.join('dm', 'Android.mk'))
+        if not gyp_failed:
+          git_utils.Add('Android.mk')
+          git_utils.Add(ANDROID_USER_CONFIG)
+          git_utils.Add(os.path.join('tests', 'Android.mk'))
+          git_utils.Add(os.path.join('tools', 'Android.mk'))
+          git_utils.Add(os.path.join('bench', 'Android.mk'))
+          git_utils.Add(os.path.join('gm', 'Android.mk'))
+          git_utils.Add(os.path.join('dm', 'Android.mk'))
 
         # Remove upstream user config, which is no longer needed.
         os.remove(UPSTREAM_USER_CONFIG)
@@ -161,6 +165,8 @@ class MergeIntoAndroid(BuildStep):
           orig_msg = shell_utils.run([GIT, 'show', commit_to_merge,
                                       '--format="%s"', '-s']).rstrip()
           message = 'Merge %s into master-skia\n\n' + SKIA_REV_URL
+          if gyp_failed:
+            message += '\n\nFIXME: Failed to generate makefiles!'
           shell_utils.run([GIT, 'commit', '-m', message % (orig_msg,
                                                            commit_to_merge)])
         except shell_utils.CommandFailedException:
@@ -186,6 +192,14 @@ class MergeIntoAndroid(BuildStep):
           # Our branch is no longer needed. Remove it.
           shell_utils.run([REPO, 'sync', '-j32', '.'])
           shell_utils.run([REPO, 'prune', '.'])
+
+        # If gyp failed, this probably means there was an error in the gyp
+        # files. We still want to push the commit. This way, when it gets
+        # fixed with a future commit, we don't remain hung up on this one.
+        if gyp_failed:
+          raise BuildStepFailure('Merged %s, but failed to generate makefiles.'
+                                 ' Is there a mistake in the gyp files?' %
+                                 commit_to_merge)
 
 
 if '__main__' == __name__:
