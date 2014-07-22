@@ -5,7 +5,7 @@ tile:
 	GOPATH=$(GOPATH):`pwd` go build -v tilebuilder
 
 test:
-	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace
+	GOPATH=$(GOPATH):`pwd` go test kmeans ctrace filetilestore
 	./node_modules/.bin/grunt test
 
 verbosetests:

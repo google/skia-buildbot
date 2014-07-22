@@ -105,7 +105,7 @@ func Init() {
 
 	tileStores = make(map[string]types.TileStore)
 	for _, name := range config.ALL_DATASET_NAMES {
-		tileStores[string(name)] = filetilestore.NewFileTileStore(*tileStoreDir, string(name))
+		tileStores[string(name)] = filetilestore.NewFileTileStore(*tileStoreDir, string(name), 10*time.Minute)
 	}
 }
 
@@ -320,7 +320,9 @@ func getTile(dataset string, tileScale, tileNumber int) (*types.Tile, error) {
 	if !ok {
 		return nil, fmt.Errorf("Unable to access dataset store for %s", dataset)
 	}
+        start := time.Now()
 	tile, err := tileStore.Get(int(tileScale), int(tileNumber))
+        glog.Infoln("Time for tile load: ", time.Since(start).Nanoseconds())
 	if err != nil || tile == nil {
 		return nil, fmt.Errorf("Unable to get tile from tilestore: ", err)
 	}
@@ -338,6 +340,7 @@ type TilesResponse struct {
 // section (described more thoroughly in types.go) to be omitted from the JSON
 func tileHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Tile Handler: %q\n", r.URL.Path)
+        handlerStart := time.Now()
 	match := tileHandlerPath.FindStringSubmatch(r.URL.Path)
 	if r.Method != "GET" || match == nil || len(match) != 4 {
 		http.NotFound(w, r)
@@ -490,6 +493,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		reportError(w, r, err, "Error while marshalling results.")
 	}
+        glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
 }
 
 // jsonHandler handles the GET for the JSON requests.

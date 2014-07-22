@@ -114,7 +114,7 @@ func main() {
 	valid := true
 	for _, name := range config.ALL_DATASET_NAMES {
 		fmt.Printf("Validating dataset: %s\n", string(name))
-		store := filetilestore.NewFileTileStore(*tileDir, string(name))
+		store := filetilestore.NewFileTileStore(*tileDir, string(name), 0)
 		valid = valid && validateDataset(store)
 	}
 	if !valid {

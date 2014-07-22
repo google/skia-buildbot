@@ -409,7 +409,7 @@ func updateAllTileSets(service *bigquery.Service) {
 		glog.Infof("Starting to update tileset %s.", string(datasetName))
 		begin := time.Now()
 
-		store := filetilestore.NewFileTileStore(*tileDir, string(datasetName))
+		store := filetilestore.NewFileTileStore(*tileDir, string(datasetName), 0)
 
 		startTime, nextTile, err := startConditions(store)
 		glog.Infoln("Found startTime", startTime.SqlTsColumn(), "nextTile", nextTile)
