@@ -436,6 +436,7 @@ var skiaperf = (function() {
         if (i == traces.length) {
           console.log('Error: legend contains invalid trace');
         }
+        e.preventDefault();
       }
     });
     new ObjectObserver(plotColors).open(function() {
@@ -554,19 +555,22 @@ var skiaperf = (function() {
     /**
      * Updates the visible traces based on what the user inputs.
      * This appends traces to traces when the user presses the #add-lines
-     * button.
+     * button. The addNewLines fields determine whether the query controls
+     * will be checked and if the selected lines will be added.
      */
-    var updateTraces = function() {
+    var updateTraces = function(addNewLines) {
       // TODO: Chunk requests to improve efficiency, and not break
       // on loading too many traces at once.
       // TODO: Diff new trace list with old traces to ask for only what we need
       var allTraces = [];
       traces.forEach(function(t) { allTraces.push(t.label); });
-      getMatchingTraces().forEach(function(t) {
-        if(allTraces.indexOf(t) == -1) {
-          allTraces.push(t);
-        }
-      });
+      if(addNewLines) {
+        getMatchingTraces().forEach(function(t) {
+          if(allTraces.indexOf(t) == -1) {
+            allTraces.push(t);
+          }
+        });
+      }
       console.log(allTraces);
 
       var pushToTraces = function(data) {
@@ -634,7 +638,7 @@ var skiaperf = (function() {
 
     // Add handlers to the query controls.
     $$$('#add-lines').addEventListener('click', function() {
-      updateTraces();
+      updateTraces(true);
     });
     $$$('#inputs').addEventListener('change', function(e) {
       var count = getMatchingTraces().length;
@@ -697,6 +701,41 @@ var skiaperf = (function() {
           }
         });
       }
+    });
+
+    // Tile control handlers
+    $$$('#add-left').addEventListener('click', function(e) {
+      if(dataset.tileNums[0] >= 1) {
+        dataset.tileNums.splice(0, 0, dataset.tileNums[0] - 1);
+        updateTraces(false);
+      }
+      e.preventDefault();
+    });
+    $$$('#shift-left').addEventListener('click', function(e) {
+      var toRemove = [];
+      for(var i = 0; i < dataset.tileNums.length; i++) {
+        dataset.tileNums[i]--;
+        if(dataset.tileNums[i] < 0) {
+          toRemove.push(i);
+        }
+      }
+      for(var i = toRemove.length - 1; i >= 0; i--) {
+        dataset.tileNums.splice(toRemove[i], 1);
+      }
+      updateTraces(false);
+      e.preventDefault();
+    });
+    $$$('#add-right').addEventListener('click', function(e) {
+      dataset.tileNums.push(dataset.tileNums[dataset.tileNums.length - 1] + 1);
+      updateTraces(false);
+      e.preventDefault();
+    });
+    $$$('#shift-right').addEventListener('click', function(e) {
+      for(var i = 0; i < dataset.tileNums.length; i++) {
+        dataset.tileNums[i]++;
+      }
+      updateTraces(false);
+      e.preventDefault();
     });
   }
 
@@ -834,6 +873,8 @@ var skiaperf = (function() {
         update();
       });
     });
+
+
 
     update();
     return {

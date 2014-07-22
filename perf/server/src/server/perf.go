@@ -377,8 +377,8 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
         for _, tileNumber := range tileNumbers {
                 tile, err := getTile(dataset, int(tileScale), int(tileNumber))
                 if err != nil {
-                        reportError(w, r, err, "Failed to retrieve tile.")
-                        return
+                        glog.Warning("Failed to retrieve tile:", err)
+                        continue
                 }
                 guiTile := types.NewGUITile(tile.Scale, tile.TileIndex)
                 if !ok {
