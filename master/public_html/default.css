@@ -42,7 +42,8 @@ table td {
 }
 
 .LastBuild,.Activity,.Builder,.BuildStep {
-  min-width: 5em;
+  width: 155px;
+  max-width: 155px;
 }
 
 div.RoundedRect {

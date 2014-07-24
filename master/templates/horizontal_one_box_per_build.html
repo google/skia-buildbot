@@ -14,7 +14,9 @@
 {% block content %}
     <table style="width: 100%"><tr>
       {% for b in builders %}
-        <td valign=bottom class=mini-box><a href='{{ b.url }}' class='{{ b.outcome }}' title='{{ b.name }}' target=_blank> {{ b.name if b.show_name else '' }} </a></td>
+        {% if not 'Trybot' in b.name %}
+          <td valign=bottom class=mini-box><a href='{{ b.url }}' class='{{ b.outcome }}' title='{{ b.name }}' target=_blank> {{ b.name if b.show_name else '' }} </a></td>
+        {% endif %}
       {% endfor %}
     </tr></table>
 {% endblock content %}
