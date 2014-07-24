@@ -26,7 +26,7 @@ vars = {
 deps = {
   # Utilities shared between the Skia and Skia-Buildbot repositories.
   "common":
-    Var("skia_git") + "/common.git@15e9438a3e57ae078db7a76266e9cf1237ac0d40",
+    Var("skia_git") + "/common.git@6d096df9431e61c163796c43adbf31a0c911a843",
 
   # Chromium trunk code for running telemetry binaries.
   "third_party/chromium_trunk/src/tools/perf":
