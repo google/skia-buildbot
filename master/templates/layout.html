@@ -691,6 +691,10 @@ http://src.chromium.org/viewvc/chrome/trunk/tools/build/third_party/buildbot_8_4
           <p>
           Skia Build Masters:
           <table>
+            <tr id="results_summary_client_skia">
+              <td style="text-align: right"><a href="http://build.chromium.org/p/client.skia/console">client.skia</a></td>
+              <td colspan="1000"><iframe width="100%" height="20" frameborder="0" scrolling="no" src="http://build.chromium.org/p/client.skia/horizontal_one_box_per_builder"></iframe></td>
+            </tr>
             {% for master in masters %}
             {% if not (not is_internal_view and master['name'] == 'PrivateSkia') %}
               <tr id="results_summary_{{ master['name'] }}">
