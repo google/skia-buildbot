@@ -310,7 +310,7 @@ var skiaperf = (function() {
     $$$('#zoom').setAttribute('step', 0.01);
 
     // Redraw the plot when traces are modified.
-    new ArrayObserver(traces).open(function(slices) {
+    Object.observe(traces, function(slices) {
       plotRef.setData(traces);
       var options = plotRef.getOptions();
       var cleanAxes = function(axis) {
@@ -328,7 +328,7 @@ var skiaperf = (function() {
       });
       updateEdges();
     });
-    new ArrayObserver(plotEdges).open(function() {
+    Object.observe(plotEdges, function() {
       if(plotEdges[0] != null) {
         $$$('#start').value = toRFC(plotEdges[0]);
       }
@@ -385,7 +385,7 @@ var skiaperf = (function() {
    */
   function Legend() {
     var legendTemplate = $$$('#legend-entry');
-    new ArrayObserver(traces).open(function(slices) {
+    Object.observe(traces, function(slices) {
       // FUTURE: Make more efficient if necessary
       // Clean legend element
       var legendTable = $$$('#legend table tbody');
@@ -401,7 +401,7 @@ var skiaperf = (function() {
         checkbox.id = traceName;
         var label = $$$('label', newLegendEntry);
         label.setAttribute('for', traceName);
-        label.innerText = traceName;
+        label.textContent = traceName;
         $$$('a', newLegendEntry).id = 'remove_' + traceName;
         $$$('.legend-box-inner', newLegendEntry).style.border = '5px solid ' +
             (plotColors[traceName] ? plotColors[traceName] : 'white');
@@ -442,7 +442,7 @@ var skiaperf = (function() {
         e.preventDefault();
       }
     });
-    new ObjectObserver(plotColors).open(function() {
+    Object.observe(plotColors, function() {
       $$('#legend tr').forEach(function(traceElem) {
         // Get id, see if the color needs to be updated
         var traceName = $$$('input', traceElem).id;
@@ -531,7 +531,7 @@ var skiaperf = (function() {
         input.style.width = minWidth + 'em';
 
         var header = document.createElement('h4');
-        header.innerText = queryInfo.params[i][0];
+        header.textContent = queryInfo.params[i][0];
 
         var select = document.createElement('select');
         select.id = 'select_' + i;
@@ -542,7 +542,7 @@ var skiaperf = (function() {
         for (var j = 1; j < queryInfo.params[i].length; j++) {
           var option = document.createElement('option');
           option.value = queryInfo.params[i][j];
-          option.innerText = queryInfo.params[i][j].length > 0 ?
+          option.textContent = queryInfo.params[i][j].length > 0 ?
               queryInfo.params[i][j] : '(none)';
           select.appendChild(option);
         }
@@ -553,7 +553,7 @@ var skiaperf = (function() {
         queryTable.appendChild(column);
       }
     }
-    new ObjectObserver(queryChange).open(onParamChange);
+    Object.observe(queryChange, onParamChange);
 
     /**
      * Updates the visible traces based on what the user inputs.
@@ -602,9 +602,11 @@ var skiaperf = (function() {
         // Clear out the old trace data
         while(traces.length > 0) { traces.pop(); }
 
+        console.log('newTileNums: ');
+        console.log(newTileNums);
+        newTileNums.sort(function(a, b) { return a - b; });
         // Put in the new tile numbers
         if(newTileNums.length >= dataset.tileNums.length) {
-          newTileNums.sort(function(a, b) { return a - b; });
           console.log(newTileNums);
           while(dataset.tileNums.length > 0) { dataset.tileNums.pop(); }
           newTileNums.forEach(function(num) { dataset.tileNums.push(num); });
@@ -709,7 +711,7 @@ var skiaperf = (function() {
     // Tile control handlers
     $$$('#add-left').addEventListener('click', function(e) {
       if(dataset.tileNums[0] >= 1) {
-        dataset.tileNums.splice(0, 0, dataset.tileNums[0] - 1);
+        dataset.tileNums.unshift(dataset.tileNums[0] - 1);
         updateTraces(false);
       }
       e.preventDefault();
@@ -718,12 +720,9 @@ var skiaperf = (function() {
       var toRemove = [];
       for(var i = 0; i < dataset.tileNums.length; i++) {
         dataset.tileNums[i]--;
-        if(dataset.tileNums[i] < 0) {
-          toRemove.push(i);
-        }
       }
-      for(var i = toRemove.length - 1; i >= 0; i--) {
-        dataset.tileNums.splice(toRemove[i], 1);
+      if(dataset.tileNums[0] < 0 && dataset.tileNums.length > 1) {
+        dataset.tileNums.shift();
       }
       updateTraces(false);
       e.preventDefault();
@@ -827,11 +826,27 @@ var skiaperf = (function() {
                   }
                 }
               }
+
+              for (var i = 0; i < totalParams.length; i++) {
+                // Sort params, but keep the name of the column in the first slot
+                var tmp = totalParams[i].splice(0, 1)[0];
+                totalParams[i].sort();
+                totalParams[i].splice(0, 0, tmp);
+              }
+              while (queryInfo.params.length > 0) { queryInfo.params.pop(); }
+              for (var i = 0; i < totalParams.length; i++) {
+                queryInfo.params.push(totalParams[i]);
+              }
             }
             if (tile['names']) {
               tile['names'].forEach(function(name) {
                 newNames[name] = true;
               });
+              while (queryInfo.allKeys.length > 0) { queryInfo.allKeys.pop(); }
+              var newNameList = Object.keys(newNames);
+              for (var i = 0; i < newNameList.length; i++) {
+                queryInfo.allKeys.push(newNameList[i]);
+              }
             }
             if (tile['commits']) {
               tile['commits'].forEach(function(commit) {
@@ -840,28 +855,11 @@ var skiaperf = (function() {
             }
           });
         }
-
-        while (queryInfo.allKeys.length > 0) { queryInfo.allKeys.pop(); }
-        var newNameList = Object.keys(newNames);
-        for (var i = 0; i < newNameList.length; i++) {
-          queryInfo.allKeys.push(newNameList[i]);
-        }
-        for (var i = 0; i < totalParams.length; i++) {
-          // Sort params, but keep the name of the column in the first slot
-          var tmp = totalParams[i].splice(0, 1)[0];
-          totalParams[i].sort();
-          totalParams[i].splice(0, 0, tmp);
-        }
-        while (queryInfo.params.length > 0) { queryInfo.params.pop(); }
-        for (var i = 0; i < totalParams.length; i++) {
-          queryInfo.params.push(totalParams[i]);
-        }
-        console.log('Dataset update end');
+       console.log('Dataset update end');
         queryChange.counter++;
       };
 
       requestTiles(processJSON, {});
-
     };
 
 
@@ -871,12 +869,17 @@ var skiaperf = (function() {
       e.addEventListener('change', function() {
         while (traces.length) { traces.pop(); }
         dataSet = this.value;
-        tileNums = [-1];
+        while(tileNums.length) { tileNums.pop() };
+        tileNums.push(-1);
         console.log(dataSet);
         update();
       });
     });
 
+    Object.observe(tileNums, function() {
+      console.log('tileNums change!');
+      update();
+    });
 
 
     update();
@@ -892,7 +895,6 @@ var skiaperf = (function() {
    * Gets the Object.observe delivered.
    */
   function microtasks() {
-    Platform.performMicrotaskCheckpoint();
     setTimeout(microtasks, 125);
   }
 
@@ -904,6 +906,9 @@ var skiaperf = (function() {
     Legend();
 
     microtasks();
+    Object.observe(dataset.tileNums, function() {
+      console.log('tileNums changed!');
+    });
   }
 
   // If loaded via HTML Imports then DOMContentLoaded will be long done.

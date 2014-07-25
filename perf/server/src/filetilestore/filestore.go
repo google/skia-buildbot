@@ -181,11 +181,12 @@ func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
 	}
 	fileLastModified := fileData.ModTime()
 	for i, entry := range store.cache {
-		if entry.scale == scale && entry.index == index {
+		if entry.scale != scale || entry.index != index {
                         continue
                 }
                 if !entry.lastModified.Equal(fileLastModified) {
                         // Replace the tile in the cache entry with the new one
+                        glog.Infof("FileTileStore: cache miss: %d, %d", scale, index)
                         newEntry, err := openTile(filename)
                         if err != nil {
                                 return nil, fmt.Errorf("Failed to retrieve tile %s: %s", filename, err)
@@ -193,11 +194,13 @@ func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
                         store.cache[i].tile = newEntry
                         store.cache[i].lastModified = fileLastModified
                 }
+                glog.Infof("FileTileStore: cache hit: %d, %d", scale, index)
                 // Increment the frequency counter and return the tile
                 store.cache[i].countUsed += 1
                 return store.cache[i].tile, nil
 	}
 	// Not in cache
+        glog.Infof("FileTileStore: cache miss: %d, %d", scale, index)
 	t, err := openTile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to retrieve tile %s: %s", filename, err)
