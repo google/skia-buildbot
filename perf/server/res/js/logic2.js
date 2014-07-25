@@ -367,6 +367,9 @@ var skiaperf = (function() {
     });
 
     $$$('#nuke-plot').addEventListener('click', function(e) {
+      $$('option:checked').forEach(function(elem) {
+        elem.selected = false;
+      });
       traces.splice(0, traces.length);
       e.preventDefault();
     });
