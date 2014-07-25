@@ -27,12 +27,9 @@ class UploadRenderedSKPs(BuildStep):
 
     # Upload individual image files to Google Storage.
     #
-    # TODO(epoger): Consider using UploadIf.IF_NEW so we don't re-upload image
-    # files we already have in Google Storage.  For now, though, we use
-    # UploadIf.ALWAYS, because in a limited test (5 ~30Kbyte files) it was
-    # faster to just upload the contents without checking first.
-    # See http://skbug.com/2778 ('gs_utils: when uploading IF_NEW, batch up
-    # checks for existing files within a single remote directory')
+    # Use UploadIf.IF_NEW so we don't re-upload image files we already have in
+    # Google Storage (we use checksum-based filenames, so if there is already a
+    # file with a given name, we know its contents are up-to-date).
     src_dir = os.path.abspath(self.playback_actual_images_dir)
     dest_bucket = gs.without_gs_prefix(GS_IMAGES_BUCKET)
     if os.listdir(src_dir):
@@ -40,7 +37,7 @@ class UploadRenderedSKPs(BuildStep):
           src_dir, dest_bucket)
       gs.upload_dir_contents(
           source_dir=src_dir, dest_bucket=dest_bucket, dest_dir=None,
-          upload_if=gs.UploadIf.ALWAYS,
+          upload_if=gs.UploadIf.IF_NEW,
           predefined_acl=gs.PLAYBACK_CANNED_ACL,
           fine_grained_acl_list=gs.PLAYBACK_FINEGRAINED_ACL_LIST)
     else:
