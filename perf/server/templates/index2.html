@@ -65,11 +65,38 @@
                 <table><tr id="inputs"></tr></table>
                 <input id="add-lines" type="button"
                     value="Add lines"></input>
-                <input type=radio name=schema-type value=skps checked>Perf</input>
-                <input type=radio name=schema-type value=micro>Microbench</input>
+                <input type="radio" name="schema-type" value="skps" checked>Perf</input>
+                <input type="radio" name="schema-type" value="micro">Microbench</input>
             </form>
-            <div id='query-text'></div>
+            <div id="query-text"></div>
         </div>
+    </div>
+    <template id="plot-note">
+        <div class="note" tabindex="0">
+            <div id="info">
+            </div>
+            <div id="messages">
+            </div>
+            <hr />
+            <form>
+                <input id="username" type="text" placeholder="Username here"></input><br />
+                <textarea id="annotation-message"></textarea><br />
+                <input type="radio" name="annotation-level" value="0" checked>Info</input>
+                <input type="radio" name="annotation-level" value="1">Warning</input>
+                <input type="radio" name="annotation-level" value="2">Problem</input>
+                <input id="submit-annotation" type="button" value="Submit annotation note"></input>
+            </form>
+        </div>
+    </template>
+    <template id="annotation">
+        <div id="wrapper">
+            <hr />
+            Author: <span id="author">(none?)</span> <br />
+            <span id="notes"></span>
+        </div>
+    </template>
+    <div class="notification">
+        <div class="notification-text" id="msg"></div>
     </div>
 </body>
 </html>

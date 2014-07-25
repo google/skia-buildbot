@@ -124,6 +124,13 @@ var skiaperf = (function() {
   }
 
   /**
+   * Notifies the user.
+   */
+  function notifyUser(msg) {
+    alert(msg);
+  }
+
+  /**
    * Sets up the callbacks related to the plot.
    * Plot observes traces.
    */
@@ -137,11 +144,63 @@ var skiaperf = (function() {
     var plotEdges = [null, null];
 
     /**
+     * Stores the annotations currently visible on the plot. This is updated
+     * whenever plotEdges is changed, with a slightly delay to avoid
+     * sending too many requests to the server. The hash is used as a key to
+     * either an object like 
+     * {
+     *   id: 7,
+     *   notes: "Something happened here",
+     *   author: "bensong",
+     *   type: 0
+     * }
+     * or null.
+     */
+    var annotations = {};
+
+    /**
      * Used to determine if the scale of the y-axis of the plot.
      * If it's true, a logarithmic scale will be used. If false, a linear
      * scale will be used.
      */
     var isLogPlot = false;
+
+    /**
+     * Draws vertical lines that pass through the times of the loaded annotations.
+     * Declared here so it can be used in plotRef's initialization.
+     */
+    var drawAnnotations = function(plot, context) {
+      var yaxes = plot.getAxes().yaxis;
+      var offsets = plot.getPlotOffset();
+      Object.keys(annotations).forEach(function(timestamp) {
+        var lineStart = plot.p2c({'x': timestamp, 'y': yaxes.max});
+        var lineEnd = plot.p2c({'x': timestamp, 'y': yaxes.min});
+        context.save();
+        var maxLevel = -1;
+        annotations[timestamp].forEach(function(annotation) {
+          if (annotation.type > maxLevel) {
+            maxLevel = annotation.type;
+          }
+        });
+        switch (maxLevel) {
+          case 1:
+            context.strokeStyle = 'dark yellow';
+            break;
+          case 2:
+            context.strokeStyle = 'red';
+            break;
+          default:
+            context.strokeStyle = 'grey';
+        }
+        context.beginPath();
+        context.moveTo(lineStart.left + offsets.left,
+            lineStart.top + offsets.top);
+        context.lineTo(lineEnd.left + offsets.left, lineEnd.top + offsets.top);
+        context.closePath();
+        context.stroke();
+        context.restore();
+      });
+    };
 
     /**
      * Reference to the underlying Flot plot object.
@@ -206,6 +265,9 @@ var skiaperf = (function() {
           pan: {
             interactive: true,
             frameRate: 60
+          },
+          hooks: {
+            draw: [drawAnnotations]
           }
         }).data('plot');
 
@@ -247,39 +309,67 @@ var skiaperf = (function() {
         plotRef.draw();
       }
     });
+
     $('#chart').bind('plotclick', function(evt, pos, item) {
       if(!item) { return; }
-      var note = document.createElement('div');
+      var noteFragment = $$$('#plot-note').content.cloneNode(true);
+      var note = $$$('.note', noteFragment);
+      var noteText = '';
       var fields = [['commit_time', 'Commit time'],
                     ['hash', 'Commit hash'],
                     ['git_number', 'Git number'],
                     ['author', 'Author'],
                     ['commit_msg', 'Commit message']];
-      note.classList.add('note');
       var timestamp = parseInt(item.datapoint[0]) + '';
       var commit = commitData[timestamp];
-      note.innerHTML = 'Value: ' + item.datapoint[1] + '<br />';
+      noteText = 'Value: ' + item.datapoint[1] + '<br />';
       if(commit) {
         console.log(commit);
         fields.forEach(function(field) {
           if(commit[field[0]]) {
             if(field[0] != 'hash') {
-              note.innerHTML += field[1] + ': ' + commit[field[0]] + '<br />';
+              noteText += field[1] + ': ' + commit[field[0]] + '<br />';
             } else {
               var hashVal = commit[field[0]];
-              note.innerHTML += field[1] + ': ' + 
+              noteText += field[1] + ': ' + 
                   '<a href=https://skia.googlesource.com/skia/+/' + hashVal + 
                   '>' + hashVal + '</a><br />';
             }
           }
         });
       } else {
-        note.innerHTML += 'Commit time: ' + parseInt(item.datapoint[0]) + '<br />';
+        noteText += 'Commit time: ' + parseInt(item.datapoint[0]) + '<br />';
       }
-      // TODO: Add annotations
+      // Add annotations
+      var timestampAsString = parseInt(item.datapoint[0]) + '';
+      if(annotations[timestampAsString]) {
+        var topNode = $$$('#messages', noteFragment);
+        annotations[timestampAsString].forEach(function(annotation) {
+          var annotationNode = $$$('#annotation').content.cloneNode(true);
+          if(annotation['author']) {
+            $$$('#author', annotationNode).textContent = annotation['author'];
+          }
+          if(annotation['notes']) {
+            $$$('#notes', annotationNode).textContent = annotation['notes'];
+          }
+          // Set the text color based on the alert level.
+          var wrapper = $$$('#wrapper', annotationNode);
+          switch(annotation['type']) {
+            case 2:
+              wrapper.style.color = 'red';
+              break;
+            case 1:
+              wrapper.style.color = 'dark yellow';
+              break;
+            default:
+              wrapper.style.color = 'black';
+          }
+          topNode.appendChild(annotationNode);
+        });
+      }
+      $$$('#info', note).innerHTML = noteText;
       note.style.top = item.pageY + 10 + 'px';
       note.style.left = item.pageX + 10 + 'px';
-      note.setAttribute('tabindex', 0);
 
 
       var removeChild = function(e) {
@@ -293,11 +383,64 @@ var skiaperf = (function() {
         if(newActive == note) { return; }
 
         document.body.removeChild(note);
+        $$$('#submit-annotation', note).
+            removeEventListener('click', submitAnnotation);
         note.removeEventListener('blur', removeChild);
       };
 
+      var submitAnnotation = function() {
+        var submitRequest = new XMLHttpRequest();
+        var annotationUsername = $$$('#username', note).value;
+        var annotationMessage = $$$('#annotation-message', note).value;
+        var annotationType = parseInt($$$('input[name=\"annotation-level\"]:checked',
+            note).value);
+        var annotationHash = '';
+        if (commitData[timestampAsString]) {
+          annotationHash = commitData[timestampAsString]['hash'];
+        }
+        if (annotationUsername.length == 0 || annotationMessage.length == 0 ||
+            annotationHash.length == 0) {
+          console.log('WARNING: At least one invalid field in annotation; not' +
+              ' submitting');
+          notifyUser('Please fill in all the annotation fields before' +
+              ' submitting.');
+          return;
+        }
+        var newAnnotation = {
+          'id': -1,
+          'type': annotationType,
+          'author': annotationUsername,
+          'notes': annotationMessage
+        };
+        console.log(JSON.stringify(newAnnotation));
+        submitRequest.open('POST', 'annotations/');
+        submitRequest.addEventListener('load', function() {
+          if (submitRequest.status == 200) {
+            if (!annotations[timestampAsString]) {
+              annotations[timestampAsString] = [];
+            }
+            annotations[timestampAsString].push(newAnnotation);
+            // TODO: Add to the note if it's still visible.
+          } else if (submitRequest.status == 500) {
+            console.log('ERROR: Annotation submit failed: ',
+                submitRequest.responseText);
+            notifyUser('Annotation submit failed: ' + 
+                submitRequest.responseText);
+          }
+        });
+        submitRequest.setRequestHeader('Content-Type', 
+            'application/json;charset=UTF-8');
+        submitRequest.send(JSON.stringify({
+          'operation': 'add',
+          'annotation': newAnnotation,
+          'hashes': [annotationHash]
+        }));
+      };
 
-      note.addEventListener('blur', removeChild);
+
+      $$$('#submit-annotation', note).
+          addEventListener('click', submitAnnotation);
+      note.addEventListener('blur', removeChild, true);
       document.body.appendChild(note);
       note.focus();
     });
@@ -310,7 +453,8 @@ var skiaperf = (function() {
     $$$('#zoom').setAttribute('step', 0.01);
 
     // Redraw the plot when traces are modified.
-    Object.observe(traces, function(slices) {
+    Array.observe(traces, function(splices) {
+      console.log(splices);
       plotRef.setData(traces);
       var options = plotRef.getOptions();
       var cleanAxes = function(axis) {
@@ -339,6 +483,49 @@ var skiaperf = (function() {
         $$$('#zoom').value = -Math.log(plotEdges[1] - plotEdges[0]);
       }
     });
+
+    // Update annotation points
+    Object.observe(commitData, function() {
+      console.log(Object.keys(commitData));
+      var timestamps = Object.keys(commitData).map(function(e) { 
+        return parseInt(e);
+      });
+      console.log(timestamps);
+      var startTime = Math.min.apply(null, timestamps);
+      var endTime = Math.max.apply(null, timestamps);
+      var req = new XMLHttpRequest();
+      req.open('GET', 'annotations/?start=' + startTime + '&end=' + endTime);
+      console.log('annotations/?start=' + startTime + '&end=' + endTime);
+      req.addEventListener('load', function() {
+        if(!req.response || req.status != 200) {
+          return;
+        }
+        var data = req.response;
+        if(req.responseType != 'json') {
+          data = JSON.parse(req.response);
+        }
+        console.log(data);
+        var commitToTimestamp = {};
+        Object.keys(commitData).forEach(function(timestamp) {
+          if(commitData[timestamp]['hash']) {
+            commitToTimestamp[commitData[timestamp]['hash']] = timestamp;
+          }
+        });
+        Object.keys(data).forEach(function(hash) {
+          if (commitToTimestamp[hash]) {
+            annotations[commitToTimestamp[hash]] = data[hash];
+          } else {
+            console.log('WARNING: Annotation taken for commit not stored in' +
+                ' commitData');
+          }
+        });
+        // Redraw to get the new lines
+        plotRef.draw();
+      });
+      req.send();
+      timeoutId = null;
+    });
+
     $$$('#back-to-the-future').addEventListener('click', function(e) {
       var newMin = Date.parse($$$('#start').value)/1000;
       var newMax = Date.parse($$$('#end').value)/1000;
