@@ -17,11 +17,12 @@ class RunDecodingTests(BuildStep):
     cmd = ['-r', self._device_dirs.SKImageInDir(), '--noreencode',
            '--writeChecksumBasedFilenames', '--config', '8888']
 
+    waterfall_name = builder_name_schema.GetWaterfallBot(self._builder_name)
+
     # Read expectations, which were downloaded/copied to the device.
     # If this bot is a trybot, read the expected results of the waterfall bot.
     expectations_file = self._flavor_utils.DevicePathJoin(
-      self._device_dirs.SKImageExpectedDir(),
-      builder_name_schema.GetWaterfallBot(self._builder_name),
+      self._device_dirs.SKImageExpectedDir(), waterfall_name,
       GM_EXPECTATIONS_FILENAME)
 
     have_expectations = self._flavor_utils.DevicePathExists(expectations_file)
@@ -49,10 +50,22 @@ class RunDecodingTests(BuildStep):
     # failure. Then we'll know to update the expectations with the results of
     # running the tests.
     # TODO(scroggo): Skipping the TSAN bot, where we'll never have
-    # expectations. A better way might be to have expty expectations. See
+    # expectations. A better way might be to have empty expectations. See
     # https://code.google.com/p/skia/issues/detail?id=1711
     if not have_expectations and not 'TSAN' in self._builder_name:
-      raise BuildStepFailure("Missing expectations file " + expectations_file)
+      name = self._builder_name
+      msg = (('Missing expectations file %s.\n'
+              'In order to blindly use the actual results as the expectations,'
+              '\nrun the following commands once UploadSKImageResults '
+              'succeeds:\n') % expectations_file)
+      cmds = (('$ gsutil cp -R gs://chromium-skia-gm/skimage/actuals/%s '
+               'expectations/skimage/%s\n') % (name, waterfall_name))
+
+      cmds += (('$ mv expectations/skimage/%s/actual-results.json '
+                'expectations/skimage/%s/%s\n') %
+               (waterfall_name, waterfall_name, GM_EXPECTATIONS_FILENAME))
+      cmds += '\nThen check in using git.\n'
+      raise BuildStepFailure(msg + cmds)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RunDecodingTests))
