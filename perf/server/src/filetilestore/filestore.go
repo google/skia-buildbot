@@ -68,6 +68,11 @@ func (store FileTileStore) tileFilename(scale, index int) (string, error) {
 // Put writes a tile to the drive, and also updates the cache entry for it
 // if one exists. It uses the mutex to ensure thread safety.
 func (store *FileTileStore) Put(scale, index int, tile *types.Tile) error {
+        // Make sure the scale and tile index are correct.
+        if tile.Scale != scale || tile.TileIndex != index {
+                return fmt.Errorf("Tile scale %d and index %d do not match real tile scale %d and index %d", scale, index, tile.Scale, tile.TileIndex)
+        }
+
 	if index < 0 {
 		return fmt.Errorf("Can't write Tiles with an index < 0: %d", index)
 	}
