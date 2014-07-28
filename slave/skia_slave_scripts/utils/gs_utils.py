@@ -6,6 +6,7 @@
 """Wrapper around common repo's gs_utils.py with buildbot-specific overrides."""
 
 # System-level imports
+import logging
 import os
 import sys
 
@@ -41,7 +42,9 @@ class GSUtils(superclass_module.GSUtils):
 
   def __init__(self, boto_file_path=_DEFAULT_BOTO_FILE_PATH):
     """Override constructor to use buildbot credentials by default."""
-    super(GSUtils, self).__init__(boto_file_path=boto_file_path)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    super(GSUtils, self).__init__(boto_file_path=boto_file_path, logger=logger)
 
   @staticmethod
   def with_gs_prefix(bucket_name):
