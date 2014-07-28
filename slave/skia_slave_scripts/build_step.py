@@ -8,7 +8,6 @@ import config
 # pylint: disable=W0611
 import flavor_utils
 import imp
-import logging
 import multiprocessing
 import os
 import shlex
@@ -40,7 +39,6 @@ from py.utils import misc
 DEFAULT_TIMEOUT = 4800
 DEFAULT_NO_OUTPUT_TIMEOUT = 3600
 DEFAULT_NUM_CORES = 2
-LOGGING_FORMAT = '%(asctime)-15s %(levelname)s:%(message)s'
 
 
 GM_EXPECTATIONS_FILENAME = 'expected-results.json'
@@ -112,8 +110,6 @@ class BuildStep(multiprocessing.Process):
         any output.
     """
     multiprocessing.Process.__init__(self)
-    self.logger = logging.getLogger()
-    self.logger.setLevel(logging.INFO)
 
     self._args = dict(args)
 
@@ -357,9 +353,8 @@ class BuildStep(multiprocessing.Process):
     StepType: class type which subclasses BuildStep, indicating what step should
         be run. StepType should override _Run().
     """
-    stdout_wrapper = BuildStepLogger()
-    logging.basicConfig(format=LOGGING_FORMAT, stream=stdout_wrapper)
-
+    # pylint: disable=W0612
+    logger = BuildStepLogger()
     args = misc.ArgsToDict(sys.argv)
     attempt = 0
     while True:

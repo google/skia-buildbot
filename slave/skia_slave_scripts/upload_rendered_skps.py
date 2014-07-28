@@ -31,17 +31,16 @@ class UploadRenderedSKPs(BuildStep):
     src_dir = os.path.abspath(self.playback_actual_images_dir)
     dest_bucket = gs.without_gs_prefix(GS_IMAGES_BUCKET)
     if os.listdir(src_dir):
-      self.logger.info('Uploading image files from %s to gs://%s/' % (
-          src_dir, dest_bucket))
+      print 'Uploading image files from %s to gs://%s/' % (
+          src_dir, dest_bucket)
       gs.upload_dir_contents(
           source_dir=src_dir, dest_bucket=dest_bucket, dest_dir=None,
           upload_if=gs.UploadIf.IF_NEW,
           predefined_acl=gs.PLAYBACK_CANNED_ACL,
           fine_grained_acl_list=gs.PLAYBACK_FINEGRAINED_ACL_LIST)
     else:
-      self.logger.info(
-          'Skipping upload to Google Storage, because no image files in %s' %
-          src_dir)
+      print ('Skipping upload to Google Storage, because no image files in %s' %
+             src_dir)
 
     # Upload image summaries (checksums) to Google Storage.
     #
@@ -52,7 +51,7 @@ class UploadRenderedSKPs(BuildStep):
     dest_bucket = gs.without_gs_prefix(GS_SUMMARIES_BUCKET)
     dest_dir = self._args['builder_name']
     if os.listdir(src_dir):
-      self.logger.info('Uploading image summaries from %s to gs://%s/%s' % (
+      print ('Uploading image summaries from %s to gs://%s/%s' % (
           src_dir, dest_bucket, dest_dir))
       gs.upload_dir_contents(
           source_dir=src_dir, dest_bucket=dest_bucket, dest_dir=dest_dir,
@@ -60,9 +59,8 @@ class UploadRenderedSKPs(BuildStep):
           predefined_acl=gs.PLAYBACK_CANNED_ACL,
           fine_grained_acl_list=gs.PLAYBACK_FINEGRAINED_ACL_LIST)
     else:
-      self.logger.info(
-          'Skipping upload to Google Storage, because no image summaries '
-          'in %s' % src_dir)
+      print ('Skipping upload to Google Storage, because no image summaries '
+             'in %s' % src_dir)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(UploadRenderedSKPs))
