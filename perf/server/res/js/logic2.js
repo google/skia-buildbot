@@ -147,7 +147,7 @@ var skiaperf = (function() {
      * Stores the annotations currently visible on the plot. This is updated
      * whenever plotEdges is changed, with a slightly delay to avoid
      * sending too many requests to the server. The hash is used as a key to
-     * either an object like 
+     * either an object like
      * {
      *   id: 7,
      *   notes: "Something happened here",
@@ -203,6 +203,42 @@ var skiaperf = (function() {
     };
 
     /**
+     * Gets background markings on SKP version changes.
+     */
+    var getMarkings = function(axes) {
+      if(traces.length <= 0 || !plotEdges[0] || !plotEdges[1]) {
+        return []; }
+      var skpPhrase = 'Update SKP version to ';
+      var updates = Object.keys(commitData).map(function(timestamp) {
+        return commitData[timestamp];
+      }).filter(function(c) {
+        return c.commit_time &&
+            c.commit_time >= plotEdges[0] && c.commit_time <= plotEdges[1];
+      }).filter(function(c) {
+        return c.commit_msg && c.commit_msg.indexOf(skpPhrase) >= 0;
+      }).map(function(c) {
+        return c.commit_time;
+      });
+      if (updates.length == 0 || updates[0] > plotEdges[0]) {
+        updates.unshift(plotEdges[0]);
+      }
+      if (updates[updates.length - 1] < plotEdges[1]) {
+        updates.push(plotEdges[1]);
+      }
+      var markings = [];
+      for(var i = 1; i < updates.length; i++) {
+        if(i % 2 == 0) {
+          markings.push([updates[i-1], updates[i]]);
+        }
+      }
+      // Alternate white and grey vertical strips.
+      var m = markings.map(function(pair) {
+        return { xaxis: {from: pair[0], to: pair[1]}, color: '#eeeeee'};
+      });
+      return m;
+    };
+
+    /**
      * Reference to the underlying Flot plot object.
      */
     var plotRef = $('#chart').plot([],
@@ -214,7 +250,8 @@ var skiaperf = (function() {
             hoverable: true,
             autoHighlight: true,
             mouseActiveRadius: 16,
-            clickable: true
+            clickable: true,
+            markings: getMarkings
           },
           xaxis: {
             ticks: function(axis) {
