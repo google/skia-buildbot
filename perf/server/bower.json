@@ -20,5 +20,8 @@
     "HTMLImports": "~0.2.3",
     "observe-js": "~0.3.3",
     "Object.observe": "jdarling/Object.observe"
+  },
+  "resolutions": {
+    "WeakMap": "~0.2.1"
   }
 }

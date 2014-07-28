@@ -19,6 +19,7 @@ import (
 )
 
 import (
+        "config"
 	"types"
 )
 
@@ -97,7 +98,7 @@ type DirInfo struct {
 // includes "key" and "value" fields in perf/server/(microbench|skpbench).json.
 type JSONPerfInput struct {
 	Value float64 `json:"value"`
-	Key   string  `json:"key"`
+        Params map[string]interface{} `json:"params"`
 }
 
 // requestForStorageURL returns an http.Request for a given Cloud Storage URL.
@@ -117,11 +118,11 @@ func requestForStorageURL(url string) (*http.Request, error) {
 	return r, nil
 }
 
-// getTryData takes a prefix path, and returns the trybot JSON data stored in
+// getTryData takes a prefix path and dataset, and returns the trybot JSON data stored in
 // Google Storage under the prefix.
 //
 // The given prefix path is the path to a trybot build result, such as:
-// "trybot/pics-json-v2/2014/07/16/01/Perf-Win7-ShuttleA-HD2000-x86-Release-Trybot/57"
+// "trybots/micro/2014/07/16/01/Perf-Win7-ShuttleA-HD2000-x86-Release-Trybot/57"
 //
 // Currently it takes in JSON format that's used for BigQuery ingestion, and
 // outputs in the TileGUI format defined in src/types. Only the Traces fields
@@ -130,7 +131,7 @@ func requestForStorageURL(url string) (*http.Request, error) {
 //
 // TODO(bensong) adjust input/output formats as needed by the inputs and the
 // frontend.
-func getTryData(prefix string) ([]byte, error) {
+func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
 	gs, err := GetStorageService()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get GS service: %s", nil)
@@ -169,9 +170,15 @@ func getTryData(prefix string) ([]byte, error) {
 					0.0, // Commit timestamp is unused.
 					i.Value,
 				})
+                                if _, exists := i.Params["builderName"]; !exists {
+                                        continue
+                                }
+                                // Remove the -Trybot prefix so the trybot keys
+                                // and normal keys match.
+                                i.Params["builderName"] = strings.Replace(fmt.Sprint(i.Params["builderName"]), "-Trybot", "", 1)
 				t.Traces = append(t.Traces, types.TraceGUI{
 					Data: newData,
-					Key:  i.Key,
+					Key:  config.MakeKeyFromParams(dataset, i.Params),
 				})
 			}
 		}
@@ -202,9 +209,11 @@ func getTryData(prefix string) ([]byte, error) {
 // TODO(bensong): add metrics for GS roundtrip time and failure rates.
 func GetTryResults(urlpath string, endTS int64, daysback int) ([]byte, error) {
 	dirParts := strings.Split(urlpath, "/")
+        datasetName := config.DATASET_SKP
 	dataset := "pics-json-v2"
 	dataFilePrefix := "bench_"
 	if k, ok := dirMap[dirParts[0]]; ok {
+                datasetName = config.DatasetName(dirParts[0])
 		dataset = k[0]
 		dataFilePrefix = k[1]
 	}
@@ -254,6 +263,6 @@ func GetTryResults(urlpath string, endTS int64, daysback int) ([]byte, error) {
 		if trymatch == nil { // This should never happen after the check above?
 			return nil, fmt.Errorf("Cannot find trybot path in regexp for: %s\n", urlpath)
 		}
-		return getTryData(path.Join("trybot", dataset, trymatch[1], dataFilePrefix))
+		return getTryData(path.Join("trybot", dataset, trymatch[1], dataFilePrefix), datasetName)
 	}
 }

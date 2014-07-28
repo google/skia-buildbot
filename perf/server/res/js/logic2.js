@@ -76,7 +76,9 @@ var skiaperf = (function() {
    * representing a single parameter that can be set, with the first element of
    * the array being the human readable name for it, and each followin element
    * a different possibility of what to set it to.
-   * Query observe queryInfo, and Dataset can modify queryInfo.
+   * The {@code trybotResults} fields contains a dictionary of trace keys,
+   * whose values are the trybot results for each trace.
+   * Query observe queryInfo, and Dataset and Query can modify queryInfo.
    */
   var queryInfo = {
     allKeys: [
@@ -93,7 +95,12 @@ var skiaperf = (function() {
       ["timer", "wall", "cpu"], // 1
       ["arch", "arm7", "x86", "x86_64"], // 2
       */
-    ]
+    ],
+    trybotResults: {
+      /*
+       'trace:key': 13.234  // The value of the trybot result.
+      */
+    }
   };
   // Query watches queryChange.
   // Dataset can change queryChange.
@@ -173,6 +180,10 @@ var skiaperf = (function() {
       var yaxes = plot.getAxes().yaxis;
       var offsets = plot.getPlotOffset();
       Object.keys(annotations).forEach(function(timestamp) {
+        // Check to see if it's inside the plot before drawing.
+        if (timestamp < plotEdges[0] || timestamp > plotEdges[1]) {
+          return;
+        }
         var lineStart = plot.p2c({'x': timestamp, 'y': yaxes.max});
         var lineEnd = plot.p2c({'x': timestamp, 'y': yaxes.min});
         context.save();
@@ -199,6 +210,31 @@ var skiaperf = (function() {
         context.closePath();
         context.stroke();
         context.restore();
+      });
+    };
+
+    /**
+     * Draws trybot lines for traces that have a matching trybot results.
+     */
+    var drawTrybotResults = function(plot, context) {
+      var offsets = plot.getPlotOffset();
+      var xaxes = plot.getAxes().xaxis;
+      var series = plot.getData();
+      series.forEach(function(trace) {
+        if (queryInfo.trybotResults[trace.label] && trace.lines.show) {
+          var matchingTrybotResult = queryInfo.trybotResults[trace.label];
+          context.save();
+          var lineStart = plot.p2c({'x': xaxes.min, 'y': matchingTrybotResult});
+          var lineEnd = plot.p2c({'x': xaxes.max, 'y': matchingTrybotResult});
+          context.strokeStyle = trace.color;
+          context.beginPath();
+          context.moveTo(lineStart.left + offsets.left,
+              lineStart.top + offsets.top);
+          context.lineTo(lineEnd.left + offsets.left, lineEnd.top + offsets.top);
+          context.closePath();
+          context.stroke();
+          context.restore();
+        }
       });
     };
 
@@ -304,7 +340,7 @@ var skiaperf = (function() {
             frameRate: 60
           },
           hooks: {
-            draw: [drawAnnotations]
+            draw: [drawAnnotations, drawTrybotResults]
           }
         }).data('plot');
 
@@ -544,7 +580,7 @@ var skiaperf = (function() {
         console.log(data);
         var commitToTimestamp = {};
         Object.keys(commitData).forEach(function(timestamp) {
-          if(commitData[timestamp]['hash']) {
+          if (commitData[timestamp]['hash']) {
             commitToTimestamp[commitData[timestamp]['hash']] = timestamp;
           }
         });
@@ -560,7 +596,6 @@ var skiaperf = (function() {
         plotRef.draw();
       });
       req.send();
-      timeoutId = null;
     });
 
     $$$('#back-to-the-future').addEventListener('click', function(e) {
@@ -730,6 +765,41 @@ var skiaperf = (function() {
       return matching;
     }
 
+
+    /**
+     * Returns a list of trybot result keys that match the selected options.
+     * Behaves very similarly to getMatchingTraces().
+     */
+    function getMatchingTrybotTraces() {
+      var matching = [];
+      var selectedOptions = new Array(queryInfo.params.length);
+      // Get relevant keys
+      for(var i = 0; i < queryInfo.params.length; i++) {
+        selectedOptions[i] = [];
+        $$('#select_' + i + ' option:checked').forEach(function(elem) {
+          selectedOptions[i].push(elem.value);
+        });
+      }
+      console.log(selectedOptions);
+      Object.keys(queryInfo.trybotResults).forEach(function(key) {
+        var splitKey = key.split(':');
+        var isMatching = true;
+        for(var i = 0; i < selectedOptions.length; i++) {
+          if(selectedOptions[i].length > 0) {
+            if(!selectedOptions[i].some(function(e) { return e == splitKey[i]; })) {
+              isMatching = false;
+              break;
+            }
+          }
+        }
+        if(isMatching) {
+          matching.push(key);
+        }
+      });
+      return matching;
+    }
+
+
     /**
      * Syncs the DOM to match the current state of queryInfo.
      * It currently removes all the existing elements and then
@@ -871,7 +941,9 @@ var skiaperf = (function() {
     });
     $$$('#inputs').addEventListener('change', function(e) {
       var count = getMatchingTraces().length;
-      $$$('#query-text').innerHTML = count + ' lines selected';
+      var trybotCount = getMatchingTrybotTraces().length;
+      $$$('#query-text').innerHTML = count + ' lines selected<br />' +
+          trybotCount + ' lines with trybot results';
     });
     $$$('#inputs').addEventListener('input', function(e) {
       if(e.target.nodeName == 'INPUT') {
@@ -931,6 +1003,83 @@ var skiaperf = (function() {
         });
       }
     });
+
+    // Update the list of trybot results, based on the tiles that we're currently over.
+    Object.observe(commitData, function() {
+      console.log('Updating trybot list');
+      // Find the maximum and minimum timestamps to figure out the 
+      // {@code daysback} and {@code end} to send.
+      var timestamps = Object.keys(commitData).map(function(ts) {return parseInt(ts);});
+      var end = Math.max.apply(null, timestamps);
+      var start = Math.min.apply(null, timestamps);
+      var daysback = Math.ceil((end - start) / (60 * 60 * 24));
+      console.log('trybots/' + dataset.dataSet + '?daysback=' + daysback + '&end=' + end);
+      var req = new XMLHttpRequest();
+      req.open('GET', 'trybots/' + dataset.dataSet + '?daysback=' + daysback + '&end=' + end);
+      req.addEventListener('load', function() {
+        if (!req.response || req.status != 200) {
+          return;
+        }
+        var data = req.response;
+        if (req.responseType != 'json') {
+          data = JSON.parse(req.response);
+        }
+        console.log(data);
+        // Clear out the old list.
+        var trybotOptions = $$$('#trybot');
+        while (trybotOptions.hasChildNodes()) {
+          trybotOptions.removeChild(trybotOptions.lastChild);
+        }
+        if (data['dirs'] && Array.isArray(data['dirs'])) {
+          console.log('Refreshing trybot list');
+          // Add a (none) option.
+          var defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = '(none)';
+          defaultOption.selected = true;
+          trybotOptions.appendChild(defaultOption);
+
+          data['dirs'].forEach(function(trybotResult) {
+            var newOption = document.createElement('option');
+            newOption.value = trybotResult;
+            newOption.textContent = trybotResult;
+            trybotOptions.appendChild(newOption);
+          });
+        }
+      });
+      req.send();
+    });
+
+    $$$('#trybot').addEventListener('change', function() {
+      queryInfo.trybotResults = {};
+
+      var selectedResults = $$$('#trybot option:checked').value;
+      if (selectedResults == '') {
+        return;
+      }
+      // Grab the trybot results, and replace queryInfo.trybotResults with it.
+      var req = new XMLHttpRequest();
+      req.open('GET', 'trybots/' + dataset.dataSet + '/' + selectedResults);
+      req.addEventListener('load', function() {
+        if (!req.response || req.status != 200) {
+          return;
+        }
+        var data = req.response;
+        if (req.responseType != 'json') {
+          data = JSON.parse(req.response);
+        }
+        if (data['traces'] && Array.isArray(data['traces'])) {
+          data['traces'].forEach(function(trace) {
+            if (trace['key'] && trace['data'] && trace['data'][0] &&
+                trace['data'][0][1]) {
+              queryInfo.trybotResults[trace['key']] = trace['data'][0][1];
+            }
+          });
+        }
+      });
+      req.send();
+    });
+
 
     // Tile control handlers
     $$$('#add-left').addEventListener('click', function(e) {
@@ -1109,7 +1258,8 @@ var skiaperf = (function() {
     update();
     return {
       'requestTiles': requestTiles,
-      'tileNums': tileNums
+      'tileNums': tileNums,
+      'dataSet': dataSet
     };
   }
 

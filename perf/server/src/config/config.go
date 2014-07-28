@@ -4,7 +4,11 @@
 
 package config
 
-import "time"
+import (
+        "fmt"
+        "strings"
+        "time"
+)
 
 // QuerySince holds the start time we have data since.
 // Don't consider data before this time. May be due to schema changes, etc.
@@ -94,3 +98,18 @@ var (
 		string(DATASET_MICRO): []string{"builderName", "testName", "config", "scale", "measurementType"},
 	}
 )
+
+// MakeKeyFromParams creates a trace key given the dataset the trace is from and
+// the trace's parameter list.
+func MakeKeyFromParams(dataset DatasetName, params map[string]interface{}) string {
+        paramList := KEY_PARAM_ORDER[string(dataset)]
+	newKey := make([]string, len(paramList))
+	for i, paramName := range paramList {
+		if value, ok := params[paramName]; ok {
+			newKey[i] = fmt.Sprint(value)
+		} else {
+			newKey[i] = ""
+		}
+	}
+	return strings.Join(newKey, ":")
+}

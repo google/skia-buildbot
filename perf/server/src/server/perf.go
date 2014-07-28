@@ -300,18 +300,6 @@ func annotationsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// makeKeyFromParams creates a trace key given the list of parameters it needs to include and the trace's parameter list.
-func makeKeyFromParams(paramList []string, params map[string]string) string {
-	newKey := make([]string, len(paramList))
-	for i, paramName := range paramList {
-		if name, ok := params[paramName]; ok {
-			newKey[i] = name
-		} else {
-			newKey[i] = ""
-		}
-	}
-	return strings.Join(newKey, ":")
-}
 
 // getTile retrieves a tile from the disk
 func getTile(dataset string, tileScale, tileNumber int) (*types.Tile, error) {
@@ -446,7 +434,11 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
                 }
                 if !omitNames {
                         for _, trace := range tile.Traces {
-                                guiTile.NameList = append(guiTile.NameList, makeKeyFromParams(paramList, trace.Params))
+                                newParamMap := make(map[string]interface{})
+                                for key, val := range trace.Params {
+                                        newParamMap[key] = interface{}(val)
+                                }
+                                guiTile.NameList = append(guiTile.NameList, config.MakeKeyFromParams(config.DatasetName(dataset), newParamMap))
                         }
                 }
                 if !omitParams {
