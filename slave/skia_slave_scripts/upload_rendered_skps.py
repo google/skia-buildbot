@@ -26,10 +26,8 @@ class UploadRenderedSKPs(BuildStep):
     gs = gs_utils.GSUtils()
 
     # Upload any new image files to Google Storage.
-    #
-    # TODO(epoger): We use checksum-based filenames, so we ought to be able to
-    # use UploadIf.IF_NEW... but just in case any of the files was corrupted
-    # in a previous upload, we use IF_MODIFIED for now.
+    # We use checksum-based filenames, so any files which have already been
+    # uploaded don't need to be uploaded again.
     src_dir = os.path.abspath(self.playback_actual_images_dir)
     dest_bucket = gs.without_gs_prefix(GS_IMAGES_BUCKET)
     if os.listdir(src_dir):
@@ -37,7 +35,7 @@ class UploadRenderedSKPs(BuildStep):
           src_dir, dest_bucket)
       gs.upload_dir_contents(
           source_dir=src_dir, dest_bucket=dest_bucket, dest_dir=None,
-          upload_if=gs.UploadIf.IF_MODIFIED,
+          upload_if=gs.UploadIf.IF_NEW,
           predefined_acl=gs.PLAYBACK_CANNED_ACL,
           fine_grained_acl_list=gs.PLAYBACK_FINEGRAINED_ACL_LIST)
     else:
