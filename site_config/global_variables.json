@@ -187,7 +187,7 @@
     "description": "Google Cloud Storage bucket we use for GM actual-result.json files."
   },
   "googlestorage_bucket": {
-    "value": "gs://chromium-skia-gm",
+    "value": "chromium-skia-gm",
     "type": "string",
     "description": "Google Cloud Storage bucket we use for most things."
   },

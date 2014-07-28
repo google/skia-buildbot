@@ -12,9 +12,10 @@ import re
 import sys
 
 from build_step import BuildStep
-from slave import slave_utils
 from py.utils import misc
 from py.utils import shell_utils
+from slave import slave_utils
+from utils import gs_utils
 
 sys.path.append(misc.BUILDBOT_PATH)
 
@@ -72,6 +73,8 @@ class AutoRoll(BuildStep):
                              'chromium_buildbot_tot', 'scripts', 'tools',
                              'blink_roller', 'auto_roll.py')
     chrome_path = os.path.join(os.pardir, 'src')
+    bucket_url = gs_utils.GSUtils.with_gs_prefix(
+        skia_vars.GetGlobalVariable('googlestorage_bucket'))
     # python auto_roll.py <project> <author> <path to chromium/src>
     cmd = ['python', auto_roll, 'skia', DEPS_ROLL_AUTHOR, chrome_path]
 
@@ -90,7 +93,7 @@ class AutoRoll(BuildStep):
         f.write(HTML_CONTENT % (ISSUE_URL_TEMPLATE % {'issue': issue}))
       slave_utils.GSUtilCopyFile(
           filename=FILENAME_CURRENT_ATTEMPT,
-          gs_base=skia_vars.GetGlobalVariable('googlestorage_bucket'),
+          gs_base=bucket_url,
           subdir=None,
           gs_acl='public-read')
 
@@ -106,7 +109,7 @@ class AutoRoll(BuildStep):
         f.write(roll_status)
       slave_utils.GSUtilCopyFile(
           filename=FILENAME_ROLL_STATUS,
-          gs_base=skia_vars.GetGlobalVariable('googlestorage_bucket'),
+          gs_base=bucket_url,
           subdir=None,
           gs_acl='public-read')
 

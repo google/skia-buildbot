@@ -47,9 +47,10 @@ class UploadSKImageResults(BuildStep):
     print '\n\n====Uploading skimage actual-results to Google Storage====\n\n'
     src_dir = os.path.abspath(os.path.join(self._skimage_out_dir,
                                            self._builder_name))
+    bucket_url = gs_utils.GSUtils.with_gs_prefix(
+        skia_vars.GetGlobalVariable('googlestorage_bucket'))
     dest_dir = posixpath.join(
-        skia_vars.GetGlobalVariable('googlestorage_bucket'),
-        'skimage', 'actuals', self._builder_name)
+        bucket_url, 'skimage', 'actuals', self._builder_name)
     http_header_lines = ['Cache-Control:public,max-age=3600']
     old_gs_utils.upload_dir_contents(local_src_dir=src_dir,
                                      remote_dest_dir=dest_dir,
@@ -61,8 +62,7 @@ class UploadSKImageResults(BuildStep):
     print '\n\n========Uploading skimage results to Google Storage=======\n\n'
     src_dir = os.path.abspath(os.path.join(self._skimage_out_dir, 'images'))
     dest_dir = posixpath.join(
-        skia_vars.GetGlobalVariable('googlestorage_bucket'),
-        'skimage', 'output', 'images')
+        bucket_url, 'skimage', 'output', 'images')
     if os.path.isdir(src_dir) and os.listdir(src_dir):
       old_gs_utils.upload_dir_contents(
           local_src_dir=src_dir, remote_dest_dir=dest_dir,

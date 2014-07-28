@@ -6,7 +6,8 @@
 """ Upload actual GM results to the cloud to allow for rebaselining."""
 
 from build_step import BuildStep
-from utils import old_gs_utils as gs_utils
+from utils import gs_utils
+from utils import old_gs_utils
 import os
 import posixpath
 import re
@@ -60,12 +61,12 @@ class UploadGMResults(BuildStep):
       # TODO(epoger): Add a "noclobber" mode to gs_utils.upload_dir_contents()
       # and use it here so we don't re-upload image files we already have
       # in Google Storage.
-      gs_utils.upload_dir_contents(
+      bucket_url = gs_utils.GSUtils.with_gs_prefix(
+          skia_vars.GetGlobalVariable('googlestorage_bucket'))
+      old_gs_utils.upload_dir_contents(
           local_src_dir=os.path.abspath(
               os.path.join(temp_root, gm_actuals_subdir)),
-          remote_dest_dir=posixpath.join(
-              skia_vars.GetGlobalVariable('googlestorage_bucket'),
-              gm_actuals_subdir),
+          remote_dest_dir=posixpath.join(bucket_url, gm_actuals_subdir),
           gs_acl='public-read',
           http_header_lines=['Cache-Control:public,max-age=3600'])
     finally:
@@ -92,7 +93,7 @@ class UploadGMResults(BuildStep):
     for filename in files_to_upload:
       src_path = os.path.join(src_dir, filename)
       gs_dest_path = posixpath.join(gs_dest_dir, filename)
-      gs_utils.upload_file(
+      old_gs_utils.upload_file(
           local_src_path=src_path, remote_dest_path=gs_dest_path,
           gs_acl='public-read', only_if_modified=True,
           http_header_lines=['Cache-Control:public,max-age=3600'])

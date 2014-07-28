@@ -7,6 +7,7 @@
 
 from build_step import BuildStep
 from py.utils import shell_utils
+from utils import gs_utils
 from utils import upload_to_bucket
 import os
 import posixpath
@@ -26,14 +27,16 @@ class ChromeDRTCanaryUploadResults(BuildStep):
                      self._flavor_utils.result_dir])
 
     # Upload to Google Storage
+    bucket_url = gs_utils.GSUtils.with_gs_prefix(
+        skia_vars.GetGlobalVariable('googlestorage_bucket'))
     upload_to_bucket.upload_to_bucket(
         os.path.join(os.pardir, result_tarball),
-        skia_vars.GetGlobalVariable('googlestorage_bucket'),
+        bucket_url,
         subdir=GS_DRT_SUBDIR)
 
     print 'To download the tarball, run this command:'
     gs_url = posixpath.join(
-        skia_vars.GetGlobalVariable('googlestorage_bucket'),
+        bucket_url,
         GS_DRT_SUBDIR,
         result_tarball)
     print 'gsutil cp %s <local_dir>' % gs_url
