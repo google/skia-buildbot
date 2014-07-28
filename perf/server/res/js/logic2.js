@@ -413,6 +413,43 @@ var skiaperf = (function() {
       } else {
         noteText += 'Commit time: ' + parseInt(item.datapoint[0]) + '<br />';
       }
+      // Get data from commits between this commit and the last one.
+      var i = -1;
+      var blamelistText = '';
+      var seriesData = item.series.data;
+      for (; seriesData[i + 1][0] < parseInt(item.datapoint[0]) 
+            && i + 1 < seriesData.length; i++) { ; }
+      if (i >= 0 && i < seriesData.length) {
+        var lastTimestamp = item.series.data[i][0];
+        var tailCommits = Object.keys(commitData).filter(function(timestamp) {
+          return parseInt(timestamp) > lastTimestamp && 
+              parseInt(timestamp) < item.datapoint[0];
+        });
+        var blamelistData = tailCommits.map(function(timestamp) {
+          return commitData[timestamp + ''];
+        });
+        // Sort in descending order. I think.
+        blamelistData.sort(function(a, b) {
+          return b.commit_time - a.commit_time;
+        });
+        blamelistData.forEach(function(aCommit) {
+          fields.forEach(function(field) {
+            if(aCommit[field[0]]) {
+              if(field[0] != 'hash') {
+                blamelistText += field[1] + ': ' + aCommit[field[0]] + '<br />';
+              } else {
+                var hashVal = aCommit[field[0]];
+                blamelistText += field[1] + ': ' + 
+                    '<a href=https://skia.googlesource.com/skia/+/' + hashVal + 
+                    '>' + hashVal + '</a><br />';
+              }
+            }
+          });
+          blamelistText += '<hr />';
+        });
+      }
+      console.log(blamelistText);
+
       // Add annotations
       var timestampAsString = parseInt(item.datapoint[0]) + '';
       if(annotations[timestampAsString]) {
@@ -441,8 +478,14 @@ var skiaperf = (function() {
         });
       }
       $$$('#info', note).innerHTML = noteText;
+      $$$('#more-info', note).innerHTML = blamelistText;
       note.style.top = item.pageY + 10 + 'px';
       note.style.left = item.pageX + 10 + 'px';
+
+      var toggleBlamelist = function(e) {
+        $$$('#more-info', note).classList.toggle('hidden');
+        e.preventDefault();
+      };
 
 
       var removeChild = function(e) {
@@ -458,6 +501,7 @@ var skiaperf = (function() {
         document.body.removeChild(note);
         $$$('#submit-annotation', note).
             removeEventListener('click', submitAnnotation);
+        $$$('#toggle', note).removeEventListener('click', toggleBlamelist);
         note.removeEventListener('blur', removeChild);
       };
 
@@ -513,6 +557,7 @@ var skiaperf = (function() {
 
       $$$('#submit-annotation', note).
           addEventListener('click', submitAnnotation);
+      $$$('#toggle', note).addEventListener('click', toggleBlamelist);
       note.addEventListener('blur', removeChild, true);
       document.body.appendChild(note);
       note.focus();
