@@ -42,7 +42,7 @@ CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
     'rasterize_and_record_micro',
     'repaint',
     'pixeldiffs',
-    'smoothness',
+    # 'smoothness',
     'loading_trace',
     'loading_profile'
 )
