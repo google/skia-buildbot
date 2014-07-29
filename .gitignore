@@ -32,7 +32,7 @@ services/bugdroid/bugdroid_log.txt
 slave/skia_slave_scripts/page_sets/data/*
 # Third party files pulled by buildbot.
 third_party/chromium_buildbot/*
-third_party/chromium_buildbot_tot/*
+third_party/build/*
 third_party/chromium_trunk/*
 third_party/depot_tools/*
 third_party/src/*
