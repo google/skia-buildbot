@@ -64,7 +64,7 @@ deps = {
     Var("chromium_git") + "/chromium/tools/depot_tools.git",
 
   # Tip-of-tree Chromium buildbot code.
-  "third_party/build":
+  "third_party/chromium_buildbot_tot":
     Var("chromium_git") + "/chromium/tools/build.git",
 
   # Dependencies of the Chromium buildbot code.
@@ -81,6 +81,5 @@ deps = {
 
 recursedeps = [
   "common",
-  "third_party/build",
 ]
 
