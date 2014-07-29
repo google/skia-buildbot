@@ -26,8 +26,8 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     -A -q -p 22 build${SLAVE_NUM}-b5 -- "uptime" &> /dev/null
   if [ $? -ne 0 ]
   then
-    echo "cluster-telemetry-worker$SLAVE_NUM is not responding!"
-    CRASHED_INSTANCES="$CRASHED_INSTANCES cluster-telemetry-worker$SLAVE_NUM"
+    echo "build$SLAVE_NUM-b5 is not responding!"
+    CRASHED_INSTANCES="$CRASHED_INSTANCES build$SLAVE_NUM-b5"
   else
     OFFLINE_DEVICES=`ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no \
@@ -57,8 +57,9 @@ Content-Type: text/html
 <html>
   <head/>
   <body>
-The following instances crashed and have been recovered:<br/>
-$CRASHED_INSTANCES
+The following instances crashed:<br/>
+$CRASHED_INSTANCES<br/>
+Please file a ticket to chrome-labs-tech-ticket@ <br/>
   </body>
 </html>
 
