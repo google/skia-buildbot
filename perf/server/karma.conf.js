@@ -31,7 +31,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'res/js/perf.js',
-      'res/js/logic.js',
+      'res/js/logic2.js',
       'tests/*.js'
     ],
 

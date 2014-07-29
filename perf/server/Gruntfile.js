@@ -70,7 +70,23 @@ module.exports = function(grunt) {
       unit: {
         configFile: 'karma.conf.js'
       }
+    },
+    jshint: {
+      options: {
+        eqeqeq: false,
+        eqnull: true,
+        sub: true,
+        shadow: true,
+        reporter: 'lint/reporter.js',
+        globals: {
+          jQuery: true
+        }
+      },
+      main: [
+        'res/js/logic2.js'
+      ]
     }
+
   });
 
   // Load the plugins for the above commands.
@@ -82,6 +98,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-autoprefixer');
   grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
 
   // By default run all the commands in the right sequence to build our custom
   // minified third_party JS.

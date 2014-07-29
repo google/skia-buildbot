@@ -27,6 +27,8 @@
  *
  */
 var skiaperf = (function() {
+  "use strict";
+
   /**
    * Stores the trace data.
    * Formatted so it can be directly fed into Flot generate the plot,
@@ -55,7 +57,7 @@ var skiaperf = (function() {
         */
     ];
   /**
-   * Stores the color of each trace in rgb format. 
+   * Stores the color of each trace in rgb format.
    * Plot can change plotColors, and legend watches plotColors.
    */
   var plotColors = {};
@@ -108,18 +110,19 @@ var skiaperf = (function() {
   // queryChange is used because Observe-js has trouble dealing with the large
   // array changes that happen when Dataset swaps queryInfo data.
 
-  function $$(query, par) {
-    var id = function(e) { return e; };
-    if (!par) {
-      return Array.prototype.map.call(document.querySelectorAll(query), id);
-    } else {
-      return Array.prototype.map.call(par.querySelectorAll(query), id);
+  function $$(query, ele) {
+    if (!ele) {
+      ele = document;
     }
+    return Array.prototype.map.call(ele.querySelectorAll(query), function(e) { return e; });
   }
 
 
-  function $$$(query, par) {
-    return par ? par.querySelector(query) : document.querySelector(query);
+  function $$$(query, ele) {
+    if (!ele) {
+      ele = document;
+    }
+    return ele.querySelector(query);
   }
 
   /**
@@ -127,7 +130,7 @@ var skiaperf = (function() {
    * datetime controls can read.
    */
   function toRFC(timestamp) {
-    return new Date(timestamp*1000).toISOString().slice(0, -1);
+    return new Date(timestamp * 1000).toISOString().slice(0, -1);
   }
 
   /**
@@ -141,7 +144,7 @@ var skiaperf = (function() {
    * Sets up the callbacks related to the plot.
    * Plot observes traces.
    */
-  function Plot() {
+  function newPlot() {
     /**
      * Stores the edges of the plot to keep the zoom controls in sync.
      * plotEdges is watched to update the zoom and time controls in the UI,
@@ -242,8 +245,9 @@ var skiaperf = (function() {
      * Gets background markings on SKP version changes.
      */
     var getMarkings = function(axes) {
-      if(traces.length <= 0 || !plotEdges[0] || !plotEdges[1]) {
-        return []; }
+      if (traces.length <= 0 || !plotEdges[0] || !plotEdges[1]) {
+        return [];
+      }
       var skpPhrase = 'Update SKP version to ';
       var updates = Object.keys(commitData).map(function(timestamp) {
         return commitData[timestamp];
@@ -255,15 +259,15 @@ var skiaperf = (function() {
       }).map(function(c) {
         return c.commit_time;
       });
-      if (updates.length == 0 || updates[0] > plotEdges[0]) {
+      if (updates.length === 0 || updates[0] > plotEdges[0]) {
         updates.unshift(plotEdges[0]);
       }
       if (updates[updates.length - 1] < plotEdges[1]) {
         updates.push(plotEdges[1]);
       }
       var markings = [];
-      for(var i = 1; i < updates.length; i++) {
-        if(i % 2 == 0) {
+      for (var i = 1; i < updates.length; i++) {
+        if (i % 2 === 0) {
           markings.push([updates[i-1], updates[i]]);
         }
       }
@@ -414,11 +418,10 @@ var skiaperf = (function() {
         noteText += 'Commit time: ' + parseInt(item.datapoint[0]) + '<br />';
       }
       // Get data from commits between this commit and the last one.
-      var i = -1;
       var blamelistText = '';
       var seriesData = item.series.data;
-      for (; seriesData[i + 1][0] < parseInt(item.datapoint[0]) 
-            && i + 1 < seriesData.length; i++) { ; }
+      for (var i = -1; seriesData[i + 1][0] < parseInt(item.datapoint[0]) && i + 1 < seriesData.length; i++) {
+      }
       if (i >= 0 && i < seriesData.length) {
         var lastTimestamp = item.series.data[i][0];
         var tailCommits = Object.keys(commitData).filter(function(timestamp) {
@@ -515,8 +518,8 @@ var skiaperf = (function() {
         if (commitData[timestampAsString]) {
           annotationHash = commitData[timestampAsString]['hash'];
         }
-        if (annotationUsername.length == 0 || annotationMessage.length == 0 ||
-            annotationHash.length == 0) {
+        if (annotationUsername.length === 0 || annotationMessage.length === 0 ||
+            annotationHash.length === 0) {
           console.log('WARNING: At least one invalid field in annotation; not' +
               ' submitting');
           notifyUser('Please fill in all the annotation fields before' +
@@ -687,7 +690,7 @@ var skiaperf = (function() {
    * and regenerates them all from a template, but this seems to work well
    * enough for the time being.
    */
-  function Legend() {
+  function newLegend() {
     var legendTemplate = $$$('#legend-entry');
     Object.observe(traces, function(slices) {
       // FUTURE: Make more efficient if necessary
@@ -768,7 +771,7 @@ var skiaperf = (function() {
    * and modifies {@code traces}. Takes the object {@code Dataset} creates
    * as input.
    */
-  function Query(dataset) {
+  function newQuery(dataset) {
     /**
      * Stores the store of DOM elements not currently visible.
      * {@code hiddenChildren} is used when a user enters text into one of the 
@@ -784,20 +787,26 @@ var skiaperf = (function() {
     function getMatchingTraces() {
       var matching = [];
       var selectedOptions = new Array(queryInfo.params.length);
+
+      function _push(elem) {
+        selectedOptions[i].push(elem.value);
+      }
+
       // Get relevant keys
       for(var i = 0; i < queryInfo.params.length; i++) {
         selectedOptions[i] = [];
-        $$('#select_' + i + ' option:checked').forEach(function(elem) {
-          selectedOptions[i].push(elem.value);
-        });
+        $$('#select_' + i + ' option:checked').forEach(_push);
       }
       console.log(selectedOptions);
       queryInfo.allKeys.forEach(function(key) {
         var splitKey = key.split(':');
+        function _eqKey(e) {
+          return e == splitKey[i];
+        }
         var isMatching = true;
-        for(var i = 0; i < selectedOptions.length; i++) {
-          if(selectedOptions[i].length > 0) {
-            if(!selectedOptions[i].some(function(e) { return e == splitKey[i]; })) {
+        for (var i = 0; i < selectedOptions.length; i++) {
+          if (selectedOptions[i].length > 0) {
+            if (!selectedOptions[i].some(_eqKey)) {
               isMatching = false;
               break;
             }
@@ -818,20 +827,26 @@ var skiaperf = (function() {
     function getMatchingTrybotTraces() {
       var matching = [];
       var selectedOptions = new Array(queryInfo.params.length);
+
+      function _push(elem) {
+        selectedOptions[i].push(elem.value);
+      }
+
       // Get relevant keys
       for(var i = 0; i < queryInfo.params.length; i++) {
         selectedOptions[i] = [];
-        $$('#select_' + i + ' option:checked').forEach(function(elem) {
-          selectedOptions[i].push(elem.value);
-        });
+        $$('#select_' + i + ' option:checked').forEach(_push);
       }
       console.log(selectedOptions);
       Object.keys(queryInfo.trybotResults).forEach(function(key) {
         var splitKey = key.split(':');
+        function _eqKey(e) {
+          return e == splitKey[i];
+        }
         var isMatching = true;
         for(var i = 0; i < selectedOptions.length; i++) {
           if(selectedOptions[i].length > 0) {
-            if(!selectedOptions[i].some(function(e) { return e == splitKey[i]; })) {
+            if(!selectedOptions[i].some(_eqKey)) {
               isMatching = false;
               break;
             }
@@ -857,12 +872,12 @@ var skiaperf = (function() {
         queryTable.removeChild(queryTable.lastChild);
       }
 
+      function _len(p) { return p.length; }
+
       for (var i = 0; i < queryInfo.params.length; i++) {
         var column = document.createElement('td');
 
-        var longest = Math.max.apply(null, queryInfo.params[i].map(function(p) {
-          return p.length;
-        }));
+        var longest = Math.max.apply(null, queryInfo.params[i].map(_len));
         var minWidth = 0.75 * longest + 0.5;
 
         var input = document.createElement('input');
@@ -1099,7 +1114,7 @@ var skiaperf = (function() {
       queryInfo.trybotResults = {};
 
       var selectedResults = $$$('#trybot option:checked').value;
-      if (selectedResults == '') {
+      if (selectedResults === '') {
         return;
       }
       // Grab the trybot results, and replace queryInfo.trybotResults with it.
@@ -1165,7 +1180,7 @@ var skiaperf = (function() {
    * Returns an object containing a reference to requestTiles and
    * tileNums
    */
-  function Dataset() {
+  function newDataset() {
     // TODO: Describe where these are used better
     // These describe the current "window" of data we're looking at.
     var dataSet = 'skps';
@@ -1202,10 +1217,9 @@ var skiaperf = (function() {
       };
 
       var params = '';
-       if(moreParams) {
+      if (moreParams) {
         Object.keys(moreParams).forEach(function(key) {
-          params += encodeURIComponent(key) + '=' + 
-              encodeURI(moreParams[key]) + '&';
+          params += encodeURIComponent(key) + '=' + encodeURI(moreParams[key]) + '&';
         });
       }
 
@@ -1216,7 +1230,7 @@ var skiaperf = (function() {
       request.addEventListener('error', onloaderror);
       request.addEventListener('loadend', onloadfinish);
       request.send();
-    }
+    };
 
 
     /**
@@ -1287,7 +1301,7 @@ var skiaperf = (function() {
       e.addEventListener('change', function() {
         while (traces.length) { traces.pop(); }
         dataSet = this.value;
-        while(tileNums.length) { tileNums.pop() };
+        while(tileNums.length) { tileNums.pop(); }
         tileNums.push(-1);
         console.log(dataSet);
         update();
@@ -1319,10 +1333,10 @@ var skiaperf = (function() {
 
 
   function onLoad() {
-    var dataset = Dataset();
-    Query(dataset);
-    Plot();
-    Legend();
+    var dataset = newDataset();
+    newQuery(dataset);
+    newPlot();
+    newLegend();
 
     microtasks();
     Object.observe(dataset.tileNums, function() {
@@ -1334,14 +1348,16 @@ var skiaperf = (function() {
   if (document.readyState != 'loading') {
     onLoad();
   } else {
-    this.addEventListener('load', onLoad);
+    window.addEventListener('load', onLoad);
   }
 
   return {
     traces: traces,
     plotColors: plotColors,
     queryInfo: queryInfo,
-    commitData: commitData
+    commitData: commitData,
+    $$: $$,
+    $$$: $$$
   };
 
 }());
