@@ -86,14 +86,15 @@ class AutoRoll(BuildStep):
       output = e.output
       exception = e
 
+    bucket_url = gs_utils.GSUtils.with_gs_prefix(
+        skia_vars.GetGlobalVariable('googlestorage_bucket'))
+
     match = re.search(REGEXP_ISSUE_CREATED, output)
     if match:
       issue = match.group('issue')
       print 'Found issue #', issue
       with open(FILENAME_CURRENT_ATTEMPT, 'w') as f:
         f.write(HTML_CONTENT % (ISSUE_URL_TEMPLATE % {'issue': issue}))
-      bucket_url = gs_utils.GSUtils.with_gs_prefix(
-          skia_vars.GetGlobalVariable('googlestorage_bucket'))
       slave_utils.GSUtilCopyFile(
           filename=FILENAME_CURRENT_ATTEMPT,
           gs_base=bucket_url,
