@@ -68,9 +68,9 @@ var (
 const (
 	_BQ_PROJECT_NAME   = "google.com:chrome-skia"
 	BEGINNING_OF_TIME  = 1401840000
-        FIRST_COMMIT = "4962140c9e6623b29417a2fb9ad903641fb0159c"
+        //FIRST_COMMIT = "4962140c9e6623b29417a2fb9ad903641fb0159c"
         // One commit before FIRST_COMMIT, used to avoid some one-off errors.
-        BEFORE_FIRST_COMMIT = "df1640d413c16abf4527960642aca41581808699"
+        //BEFORE_FIRST_COMMIT = "df1640d413c16abf4527960642aca41581808699"
         MAX_INGEST_FRAGMENT = 32768
 )
 
@@ -164,7 +164,7 @@ func getCommitPage(start string) (*SkiaJSON, error) {
 // getCommits looks up the commits starting with start, and returns an array
 // for all the commit hashes, along with an array of all the TileFragments
 // representing the data for the commits.
-func getCommits(start string) ([]CommitHash, []types.TileFragment, error) {
+func getCommits(startTimestamp int64) ([]CommitHash, []types.TileFragment, error) {
         // Unfortunately, skia.googlesource.com only supports going backwards
         // from a given commit, so this will be a little tricky. Basically
         // this will go backwards from HEAD until it finds the page with the
@@ -174,8 +174,10 @@ func getCommits(start string) ([]CommitHash, []types.TileFragment, error) {
         hashPages := make([]*SkiaJSON, 0, 1)
 
         indexOfStart := func(s *SkiaJSON) int {
+                startTime := time.Unix(startTimestamp, 0)
                 for i, commit := range s.Log {
-                        if commit.Commit == CommitHash(start) {
+                        commitTime, err := time.Parse("Mon Jan 2 15:04:05 2006 -0700", commit.Author.Time)
+                        if err == nil && !commitTime.After(startTime) {
                                 return i
                         }
                 }
@@ -200,10 +202,9 @@ func getCommits(start string) ([]CommitHash, []types.TileFragment, error) {
                 result = append(result, curPage.Log[i].Commit)
                 fragments = append(fragments, curPage.Log[i])
         }
-        if len(hashPages) <= 1 {
+        if len(hashPages) <= 0 {
                 return result, fragments, nil
         }
-        hashPages = hashPages[:len(hashPages)-1]
 
         // Now copy for all the remaining pages. In reverse!
         for len(hashPages) > 0 {
@@ -223,17 +224,10 @@ func getCommits(start string) ([]CommitHash, []types.TileFragment, error) {
 func updateHashCounterMap() []types.TileFragment {
 
         count := -1
-        lastCommit := BEFORE_FIRST_COMMIT
-        // Get the largest count currently in the latest map, if one exists
-        for key, counter := range hashToCounter {
-                if counter > count {
-                        count = counter
-                        lastCommit = string(key)
-                }
-        }
 
         // Get all the commits
-        commits, fragments, err := getCommits(lastCommit)
+        lastTimestamp, _ := readTimestamp("lastHashCounterUpdate")
+        commits, fragments, err := getCommits(lastTimestamp)
         if err != nil {
                 glog.Errorf("Unable to get new commits: %s\n", err)
                 return []types.TileFragment{}
@@ -266,7 +260,7 @@ func updateHashCounterMap() []types.TileFragment {
 //      "micro":1445363563,
 //      "skps":1445363453
 // }
-func readTimestamp(name config.DatasetName) (int64, error) {
+func readTimestamp(name string) (int64, error) {
         timestampFile, err := os.Open(*timestampPath)
         if err != nil {
                 return BEGINNING_OF_TIME, fmt.Errorf("Failed to read file %s: %s", *timestampPath, err)
@@ -286,7 +280,7 @@ func readTimestamp(name config.DatasetName) (int64, error) {
 
 // writeTimestamp reads the local timestamp file, adds an entry with the given name and value,
 // and writes the file back to disk.
-func writeTimestamp(name config.DatasetName, newTimestamp int64) error {
+func writeTimestamp(name string, newTimestamp int64) error {
         var timestamps map[string]int64
         timestampFile, err := os.Open(*timestampPath)
         if err != nil {
@@ -638,6 +632,7 @@ func submitFragments(t types.TileStore, iter types.TileFragmentIter, dataset con
         tileMap := make(map[int][]types.TileFragment)
         count := 0
 
+        startTime := time.Now()
         startJSONTime := time.Now()
         for iter.Next() {
                 // Time how long it takes to get process the new JSON fragmnet.
@@ -711,10 +706,8 @@ func submitFragments(t types.TileStore, iter types.TileFragmentIter, dataset con
                 startTileTime := time.Now()
                 t.Put(0, i, tile)
                 datasetMetrics[dataset].elapsedTimePerTileFlush.Update(time.Since(startTileTime))
-                // TODO: writeTimestamp, so that it'll restart at roughly the right
-                // point on sudden failure.
         }
-        writeTimestamp(dataset, time.Now().Unix())
+        writeTimestamp(string(dataset), startTime.Unix())
 }
 
 // IngestForDataset runs the ingestion pipeline for the given dataset, using JSON files from gs_subdir,
@@ -722,7 +715,7 @@ func submitFragments(t types.TileStore, iter types.TileFragmentIter, dataset con
 // It uses readTimestamp and writeTimestamp to keep track of how much of the data
 // has already been written.
 func IngestForDataset(dataset config.DatasetName, gs_subdir string, otherFragments types.TileFragmentIter, cs *storage.Service) {
-    timestamp, err := readTimestamp(dataset)
+    timestamp, err := readTimestamp(string(dataset))
     if err != nil {
             glog.Infof("Error while reading timestamp: %s", err)
     }
@@ -747,7 +740,7 @@ func IngestForDataset(dataset config.DatasetName, gs_subdir string, otherFragmen
     submitFragments(datasetTilestore, otherFragments, dataset)
     submitFragments(datasetTilestore, &filesIter, dataset)
     glog.Infoln("Fragment submission finished. Writing timestamp..")
-    writeTimestamp(dataset, newTimestamp)
+    writeTimestamp(string(dataset), newTimestamp)
 }
 
 // RunIngester runs a single run of the ingestion cycle (or at least will shortly).
@@ -758,6 +751,6 @@ func RunIngester() {
     if err != nil {
             glog.Errorf("getFiles failed to create storage service: %s\n", err)
     }
-    IngestForDataset("micro", "stats-json-v2", NewFragmentArrayIter(fragments), cs)
+    //IngestForDataset("micro", "stats-json-v2", NewFragmentArrayIter(fragments), cs)
     IngestForDataset("skps", "pics-json-v2", NewFragmentArrayIter(fragments), cs)
 }
