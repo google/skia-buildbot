@@ -291,6 +291,16 @@
     "type": "string",
     "description": "URL of the Skia SVN repository."
   },
+  "skp_images_bucket": {
+    "value": "chromium-skia-skp-images",
+    "type": "string",
+    "description": "Google Cloud Storage bucket in which we store actual SKP rendering images."
+  },
+  "skp_summaries_bucket": {
+    "value": "chromium-skia-skp-summaries",
+    "type": "string",
+    "description": "Google Cloud Storage bucket in which we store actual SKP rendering summaries."
+  },
   "tree_status_baseurl": {
     "value": "https://skia-tree-status.appspot.com",
     "type": "string",

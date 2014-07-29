@@ -57,18 +57,3 @@ class GSUtils(superclass_module.GSUtils):
       return bucket_name
     else:
       return _GS_PREFIX + str(bucket_name)
-
-  @staticmethod
-  def without_gs_prefix(bucket_name):
-    """Returns the bucket_name without _GS_PREFIX at the front.
-
-    If bucket_name does not start with _GS_PREFIX, returns bucket_name as is.
-
-    Examples:
-      bucket1 -> bucket1
-      gs://bucket2 -> bucket2
-    """
-    if bucket_name.startswith(_GS_PREFIX):
-      return bucket_name[len(_GS_PREFIX):]
-    else:
-      return bucket_name

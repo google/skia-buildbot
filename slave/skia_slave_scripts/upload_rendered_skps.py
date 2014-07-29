@@ -10,10 +10,7 @@ import sys
 
 from build_step import BuildStep
 from utils import gs_utils
-
-# TODO(epoger): Move these bucket names into global_variables.
-GS_IMAGES_BUCKET    = 'gs://chromium-skia-skp-images'
-GS_SUMMARIES_BUCKET = 'gs://chromium-skia-skp-summaries'
+import skia_vars
 
 
 class UploadRenderedSKPs(BuildStep):
@@ -21,6 +18,9 @@ class UploadRenderedSKPs(BuildStep):
   def __init__(self, attempts=3, **kwargs):
     super(UploadRenderedSKPs, self).__init__(
         attempts=attempts, **kwargs)
+    self._gs_images_bucket = skia_vars.GetGlobalVariable('skp_images_bucket')
+    self._gs_summaries_bucket = skia_vars.GetGlobalVariable(
+        'skp_summaries_bucket')
 
   def _Run(self):
     gs = gs_utils.GSUtils()
@@ -29,7 +29,7 @@ class UploadRenderedSKPs(BuildStep):
     # We use checksum-based filenames, so any files which have already been
     # uploaded don't need to be uploaded again.
     src_dir = os.path.abspath(self.playback_actual_images_dir)
-    dest_bucket = gs.without_gs_prefix(GS_IMAGES_BUCKET)
+    dest_bucket = self._gs_images_bucket
     if os.listdir(src_dir):
       print 'Uploading image files from %s to gs://%s/' % (
           src_dir, dest_bucket)
@@ -48,7 +48,7 @@ class UploadRenderedSKPs(BuildStep):
     # because we use the history of the file in Google Storage to tell us
     # when any of the results changed.
     src_dir = os.path.abspath(self.playback_actual_summaries_dir)
-    dest_bucket = gs.without_gs_prefix(GS_SUMMARIES_BUCKET)
+    dest_bucket = self._gs_summaries_bucket
     dest_dir = self._args['builder_name']
     if os.listdir(src_dir):
       print ('Uploading image summaries from %s to gs://%s/%s' % (
