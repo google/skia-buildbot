@@ -101,10 +101,10 @@ type JSONPerfInput struct {
         Params map[string]interface{} `json:"params"`
 }
 
-// requestForStorageURL returns an http.Request for a given Cloud Storage URL.
+// RequestForStorageURL returns an http.Request for a given Cloud Storage URL.
 // This is workaround of a known issue: embedded slashes in URLs require use of
 // URL.Opaque property
-func requestForStorageURL(url string) (*http.Request, error) {
+func RequestForStorageURL(url string) (*http.Request, error) {
 	r, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("HTTP new request error: %s", err)
@@ -144,7 +144,7 @@ func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
 			return nil, fmt.Errorf("Google Storage request error: %s", err)
 		}
 		for _, result := range resp.Items {
-			r, err := requestForStorageURL(result.MediaLink)
+			r, err := RequestForStorageURL(result.MediaLink)
 			if err != nil {
 				return nil, fmt.Errorf("Google Storage MediaLink request error: %s", err)
 			}
@@ -178,7 +178,7 @@ func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
                                 i.Params["builderName"] = strings.Replace(fmt.Sprint(i.Params["builderName"]), "-Trybot", "", 1)
 				t.Traces = append(t.Traces, types.TraceGUI{
 					Data: newData,
-					Key:  config.MakeKeyFromParams(dataset, i.Params),
+					Key:  string(types.MakeTraceKey(i.Params, dataset)),
 				})
 			}
 		}

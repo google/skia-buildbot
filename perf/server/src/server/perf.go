@@ -70,7 +70,7 @@ var (
 var (
 	data *Data
 
-	tileStores map[string]types.TileStore
+	tileStores map[config.DatasetName]types.TileStore
 )
 
 const (
@@ -103,9 +103,9 @@ func Init() {
 	index2Template = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index2.html")))
 	clusterTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/clusters.html")))
 
-	tileStores = make(map[string]types.TileStore)
+	tileStores = make(map[config.DatasetName]types.TileStore)
 	for _, name := range config.ALL_DATASET_NAMES {
-		tileStores[string(name)] = filetilestore.NewFileTileStore(*tileStoreDir, string(name), 10*time.Minute)
+		tileStores[name] = filetilestore.NewFileTileStore(*tileStoreDir, string(name), 10*time.Minute)
 	}
 }
 
@@ -300,9 +300,8 @@ func annotationsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 // getTile retrieves a tile from the disk
-func getTile(dataset string, tileScale, tileNumber int) (*types.Tile, error) {
+func getTile(dataset config.DatasetName, tileScale, tileNumber int) (*types.Tile, error) {
 	// TODO: Use some sort of cache
 	tileStore, ok := tileStores[dataset]
 	if !ok {
@@ -334,7 +333,11 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	dataset := match[1]
+	dataset := config.DatasetName(match[1])
+        if dataset != config.DATASET_SKP && dataset != config.DATASET_MICRO {
+                reportError(w, r, fmt.Errorf("Invalid dataset specified: %s", dataset), "")
+                return
+        }
 	tileScale, err := strconv.ParseInt(match[2], 10, 0)
 	if err != nil {
 		reportError(w, r, err, "Failed parsing tile scale.")
@@ -378,43 +381,13 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
                                 continue
                         }
                         var rawTrace *types.Trace
-                        count := 0
-                        // Unpack trace name and find the trace.
-                        keyParts := strings.Split(keyName, ":")
-                        for _, tileTrace := range tile.Traces {
-                                tracesMatch := true
-                                for i, keyPart := range keyParts {
-                                        if len(keyPart) > 0 {
-                                                if traceParam, exists := tileTrace.Params[paramList[i]]; !exists || traceParam != keyPart {
-                                                        tracesMatch = false
-                                                        break
-                                                }
-                                                // If it doesn't exist in the key, it should also not exist in
-                                                // the trace parameters
-                                        } else if traceParam, exists := tileTrace.Params[paramList[i]]; exists && len(traceParam) <= 0 {
-                                                tracesMatch = false
-                                                break
-                                        }
-                                }
-                                if tracesMatch {
-                                        rawTrace = tileTrace
-                                        // NOTE: Not breaking out of the loop
-                                        // for now to see if there are multiple
-                                        // traces that match any given trace
-                                        count += 1
-                                }
-                        }
-                        // No matches
-                        if count <= 0 || rawTrace == nil {
+                        if rawTrace, ok = tile.Traces[types.TraceKey(keyName)]; !ok {
+                                glog.Infof("Missing trace data in tile %d for %s\n", tileNumber, keyName)
                                 continue
-                        } else {
-                                if count > 1 {
-                                        glog.Warningln(count, "matches found for ", keyName)
-                                }
                         }
                         newTraceData := make([][2]float64, 0)
                         for i, traceVal := range rawTrace.Values {
-                                if traceVal != config.MISSING_DATA_SENTINEL {
+                                if traceVal != config.MISSING_DATA_SENTINEL && tile.Commits[i] != nil {
                                         newTraceData = append(newTraceData, [2]float64{
                                                 float64(tile.Commits[i].CommitTime),
                                                 traceVal,
@@ -433,18 +406,11 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
                         guiTile.Commits = tile.Commits
                 }
                 if !omitNames {
-                        for _, trace := range tile.Traces {
-                                newParamMap := make(map[string]interface{})
-                                for key, val := range trace.Params {
-                                        newParamMap[key] = interface{}(val)
-                                }
-                                guiTile.NameList = append(guiTile.NameList, config.MakeKeyFromParams(config.DatasetName(dataset), newParamMap))
+                        for key, _ := range tile.Traces {
+                                guiTile.NameList = append(guiTile.NameList, key)
                         }
                 }
                 if !omitParams {
-                        // NOTE: When constructing ParamSet, we need to make sure there are empty strings
-                        // where there's at least one key missing that parameter.
-                        // TODO: Fix this in tile generation rather than here.
                         guiTile.ParamSet = make([][]string, len(paramList))
                         for i := range guiTile.ParamSet {
                                 if readableName, ok := config.HUMAN_READABLE_PARAM_NAMES[paramList[i]]; !ok {
@@ -454,22 +420,13 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
                                         guiTile.ParamSet[i] = []string{readableName}
                                 }
                         }
-                        for _, trace := range tile.Traces {
-                                for i := range guiTile.ParamSet {
-                                        traceValue, ok := trace.Params[paramList[i]]
-                                        if !ok {
-                                                traceValue = ""
-                                        }
-                                        traceValueIsInParamSet := false
-                                        for _, param := range []string(guiTile.ParamSet[i]) {
-                                                if param == traceValue {
-                                                        traceValueIsInParamSet = true
-                                                }
-                                        }
-                                        if !traceValueIsInParamSet {
-                                                guiTile.ParamSet[i] = append(guiTile.ParamSet[i], traceValue)
-                                        }
+                        for i := range guiTile.ParamSet {
+                                paramValues, ok := tile.ParamSet[paramList[i]]
+                                if !ok {
+                                        reportError(w, r, fmt.Errorf("Unable to find param set for %s in tile %d", paramList[i], tileNumber), "")
+                                        return
                                 }
+                                guiTile.ParamSet[i] = append(guiTile.ParamSet[i], []string(paramValues)...)
                         }
                 }
                 allTiles.Tiles = append(allTiles.Tiles, guiTile)

@@ -21,6 +21,7 @@ import (
 
 import (
         "config"
+        "filetilestore"
         "gs"
         "types"
 )
@@ -34,21 +35,43 @@ var (
         // commit hash can be found by dividing this number by the number of
         // commits per tile.
         hashToCounter = make(map[CommitHash]int)
-        // TODO: Will need a mutex around this once hashToCounter is actually used.
-        timestampPath = flag.String("timestamp_path", "./timestamp.json", "Path where timestamp data for ingester runs will be stored.")
+        // Not going to mutex because I'll just ensure it's only updated while 
+        // it's not being used.
 
-        importantParameters = map[string][]string{
-            // TODO
+        timestampPath = flag.String("timestamp_path", "./timestamp.json", "Path where timestamp data for ingester runs will be stored.")
+        tileDir = flag.String("tiles_dir", "/tmp/test/", "Path where tiles will be placed.")
+)
+
+// DatasetMetrics stores all the dataset metrics for a single dataset
+type DatasetMetrics struct {
+        // Time spent processing a single fragment
+        elapsedTimePerFragment      metrics.Timer
+        // Time spent processing a single JSON record
+        elapsedTimePerJSONRecord    metrics.Timer
+        // Time spent performing a tilestore.Put()
+        elapsedTimePerTileFlush     metrics.Timer
+}
+
+func NewDatasetMetrics(dataset config.DatasetName) *DatasetMetrics {
+        datasetStr := string(dataset)
+        return &DatasetMetrics{
+                elapsedTimePerFragment: metrics.NewRegisteredTimer(fmt.Sprintf("ingester.%s.time_per_fragment", datasetStr), metrics.DefaultRegistry),
+                elapsedTimePerJSONRecord: metrics.NewRegisteredTimer(fmt.Sprintf("ingester.%s.time_per_json", datasetStr), metrics.DefaultRegistry),
+                elapsedTimePerTileFlush: metrics.NewRegisteredTimer(fmt.Sprintf("ingester.%s.time_per_write", datasetStr), metrics.DefaultRegistry),
         }
+}
+
+var (
+        datasetMetrics = make(map[config.DatasetName]*DatasetMetrics)
 )
 
 const (
 	_BQ_PROJECT_NAME   = "google.com:chrome-skia"
 	BEGINNING_OF_TIME  = 1401840000
-        FIRST_COMMIT = "3f73e8c8d589e0d5a1f75327b4aa22c1e745732d"
+        FIRST_COMMIT = "4962140c9e6623b29417a2fb9ad903641fb0159c"
         // One commit before FIRST_COMMIT, used to avoid some one-off errors.
-        BEFORE_FIRST_COMMIT = "373dd9b52f88158edd1e24419e6d937efaf59d55"
-        MAX_INGEST_FRAGMENT = 4096
+        BEFORE_FIRST_COMMIT = "df1640d413c16abf4527960642aca41581808699"
+        MAX_INGEST_FRAGMENT = 32768
 )
 
 func Init() {
@@ -56,18 +79,60 @@ func Init() {
 	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
 	addr, _ := net.ResolveTCPAddr("tcp", "jcgregorio.cnc:2003")
 	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "ingest", addr)
+
+        for _, dataset := range config.ALL_DATASET_NAMES {
+                datasetMetrics[dataset] = NewDatasetMetrics(dataset)
+        }
 }
 
 type CommitHash string
 
+type SkiaCommitAuthor struct {
+        Name        string      `json:"name"`
+        Time        string      `json:"time"`
+}
+
 type SkiaCommitEntry struct {
         // We're getting a lot of nice data here. Should we use more of it?
-        Commit      CommitHash `json:"commit"`
+        Commit      CommitHash          `json:"commit"`
+        Author      SkiaCommitAuthor    `json:"author"`
+        Message     string              `json:"message"`
 }
 
 type SkiaJSON struct {
         Log        []SkiaCommitEntry `json:"log"`
         Next        string          `json:"next"`
+}
+
+func (s SkiaCommitEntry) UpdateTile(t* types.Tile) error {
+        if count, exists := hashToCounter[s.Commit]; exists && count >= t.TileIndex * config.TILE_SIZE && count < (1 + t.TileIndex) * config.TILE_SIZE {
+                pos := count % config.TILE_SIZE
+                if len(t.Commits) < config.TILE_SIZE {
+                        t.Commits = append(t.Commits, make([]*types.Commit, config.TILE_SIZE - len(t.Commits))...)
+                }
+                commitTime, err := time.Parse("Mon Jan 2 15:04:05 2006 -0700", s.Author.Time)
+                if err != nil {
+                        return fmt.Errorf("Unable to convert git time to Unix time: %s", err)
+                }
+                t.Commits[pos] = &types.Commit{
+                        CommitTime: commitTime.Unix(),
+                        Hash: string(s.Commit),
+                        GitNumber: -1,
+                        Author: s.Author.Name,
+                        CommitMessage: s.Message,
+                        TailCommits: make([]*types.Commit, 0),
+                }
+                return nil
+        }
+        glog.Warningln("Commit entry fragment called on wrong tile.")
+        return nil
+}
+
+func (s SkiaCommitEntry) TileCoordinate() types.TileCoordinate {
+        return types.TileCoordinate{
+                Scale: 0,
+                Commit: string(s.Commit),
+        }
 }
 
 // getCommitPage gets a single page of commits from GoogleSource.
@@ -97,13 +162,15 @@ func getCommitPage(start string) (*SkiaJSON, error) {
 }
 
 // getCommits looks up the commits starting with start, and returns an array
-// for all the commits since that first one.
-func getCommits(start string) ([]CommitHash, error) {
+// for all the commit hashes, along with an array of all the TileFragments
+// representing the data for the commits.
+func getCommits(start string) ([]CommitHash, []types.TileFragment, error) {
         // Unfortunately, skia.googlesource.com only supports going backwards
         // from a given commit, so this will be a little tricky. Basically
         // this will go backwards from HEAD until it finds the page with the
         // desired commit, then append all of the pages together in the right
         // order and return that.
+        glog.Infoln("Getting commits...")
         hashPages := make([]*SkiaJSON, 0, 1)
 
         indexOfStart := func(s *SkiaJSON) int {
@@ -116,23 +183,25 @@ func getCommits(start string) ([]CommitHash, error) {
         }
         curPage, err := getCommitPage("HEAD")
         if err != nil {
-                return []CommitHash{}, fmt.Errorf("Failed to get first set of commits: %s")
+                return []CommitHash{}, []types.TileFragment{}, fmt.Errorf("Failed to get first set of commits: %s")
         }
         for indexOfStart(curPage) == -1 {
                 hashPages = append(hashPages, curPage)
                 curPage, err = getCommitPage(curPage.Next)
                 if err != nil {
-                        return []CommitHash{}, fmt.Errorf("Failed to get commits for %s: %s", curPage.Next, err)
+                        return []CommitHash{}, []types.TileFragment{}, fmt.Errorf("Failed to get commits for %s: %s", curPage.Next, err)
                 }
         }
 
         // Now copy and return the appropriate commits.
         result := make([]CommitHash, 0)
+        fragments := make([]types.TileFragment, 0)
         for i := indexOfStart(curPage); i >= 0; i-- {
                 result = append(result, curPage.Log[i].Commit)
+                fragments = append(fragments, curPage.Log[i])
         }
         if len(hashPages) <= 1 {
-                return result, nil
+                return result, fragments, nil
         }
         hashPages = hashPages[:len(hashPages)-1]
 
@@ -141,15 +210,18 @@ func getCommits(start string) ([]CommitHash, error) {
                 curPage = hashPages[len(hashPages)-1]
                 for i := len(curPage.Log)-1; i >= 0; i-- {
                         result = append(result, CommitHash(curPage.Log[i].Commit))
+                        fragments = append(fragments, curPage.Log[i])
                 }
                 hashPages = hashPages[:len(hashPages)-1]
         }
-        return result, nil
+        return result, fragments, nil
 }
 
 // updateHashCounterMap updates hashToCounter, starting at FIRST_COMMIT if it's empty.
+// It returns a list of tile fragments that will store the commit data.
 // TODO: Save hash info to disk.
-func updateHashCounterMap() {
+func updateHashCounterMap() []types.TileFragment {
+
         count := -1
         lastCommit := BEFORE_FIRST_COMMIT
         // Get the largest count currently in the latest map, if one exists
@@ -161,14 +233,14 @@ func updateHashCounterMap() {
         }
 
         // Get all the commits
-        commits, err := getCommits(lastCommit)
+        commits, fragments, err := getCommits(lastCommit)
         if err != nil {
                 glog.Errorf("Unable to get new commits: %s\n", err)
-                return
+                return []types.TileFragment{}
         }
         if len(commits) <= 1 {
                 glog.Info("No new commits")
-                return
+                return []types.TileFragment{}
         }
         // getCommits includes lastCommit in response, so the first element 
         // needs to be sliced off.
@@ -179,6 +251,8 @@ func updateHashCounterMap() {
                 hashToCounter[commit] = count
                 count++
         }
+
+        return fragments
 }
 
 // readTimestamp reads the local timestamp file and returns the entry it was asked for.
@@ -192,7 +266,7 @@ func updateHashCounterMap() {
 //      "micro":1445363563,
 //      "skps":1445363453
 // }
-func readTimestamp(name string) (int64, error) {
+func readTimestamp(name config.DatasetName) (int64, error) {
         timestampFile, err := os.Open(*timestampPath)
         if err != nil {
                 return BEGINNING_OF_TIME, fmt.Errorf("Failed to read file %s: %s", *timestampPath, err)
@@ -203,7 +277,7 @@ func readTimestamp(name string) (int64, error) {
         if err != nil {
                 return BEGINNING_OF_TIME, fmt.Errorf("Failed to parse file %s: %s", *timestampPath, err)
         }
-        if result, ok := timestamps[name]; !ok {
+        if result, ok := timestamps[string(name)]; !ok {
                 return BEGINNING_OF_TIME, nil
         } else {
                 return result, nil
@@ -212,7 +286,7 @@ func readTimestamp(name string) (int64, error) {
 
 // writeTimestamp reads the local timestamp file, adds an entry with the given name and value,
 // and writes the file back to disk.
-func writeTimestamp(name string, newTimestamp int64) error {
+func writeTimestamp(name config.DatasetName, newTimestamp int64) error {
         var timestamps map[string]int64
         timestampFile, err := os.Open(*timestampPath)
         if err != nil {
@@ -227,7 +301,7 @@ func writeTimestamp(name string, newTimestamp int64) error {
         }
         timestampFile.Close()
 
-        timestamps[name] = newTimestamp
+        timestamps[string(name)] = newTimestamp
         writeTimestampFile, err := os.Create(*timestampPath)
         if err != nil {
                 return fmt.Errorf("Failed to open file %s for writing: %s", *timestampPath, err)
@@ -243,19 +317,25 @@ func writeTimestamp(name string, newTimestamp int64) error {
 // JSONv2Record stores data from a single record in a JSON v2 file. This is the
 // format for the JSON stored in {stats,pictures}-json-v2 Google Storage files.
 type JSONv2Record struct {
-        Params      map[string]string       `json:"params"`
+        Params      map[string]interface{}  `json:"params"`
+        // There are two trybot flags because the JSON format
+        // changed from using one of these to the other one. Thus, we now have
+        // two fields to make sure we capture at least one of them.
+        // This should stop being a problem when we migrate over to JSON v3.
         IsTrybot    bool                    `json:"isTrybot"`
+        IsTrybot2   bool                    `json:"is_trybot"`
         Value       float64                 `json:"value"`
         Hash        string                  `json:"gitHash"`
 
         // This is used to determine which set of parameters it should have/use.
-        Dataset     string
+        Dataset     config.DatasetName
 }
 
-func NewJSONv2Record(in, dataset string) (*JSONv2Record, error) {
+func NewJSONv2Record(in string, dataset config.DatasetName) (*JSONv2Record, error) {
         newRecord := &JSONv2Record {
-                Params: make(map[string]string),
-                IsTrybot : false,
+                Params: make(map[string]interface{}),
+                IsTrybot: false,
+                IsTrybot2: false,
                 Value: 1e+100,
                 Hash: "",
         }
@@ -267,7 +347,7 @@ func NewJSONv2Record(in, dataset string) (*JSONv2Record, error) {
 // Implementation of TileFragment for JSONv2Record.
 func (r *JSONv2Record) UpdateTile(t *types.Tile) error {
         // There should be no trybot data in the tile.
-        if r.IsTrybot {
+        if r.IsTrybot || r.IsTrybot2 {
                 return nil
         }
         counter, exists := hashToCounter[CommitHash(r.Hash)]
@@ -277,43 +357,20 @@ func (r *JSONv2Record) UpdateTile(t *types.Tile) error {
         if counter < config.TILE_SIZE * t.TileIndex || counter >= config.TILE_SIZE * (t.TileIndex + 1) {
                 return fmt.Errorf("UpdateTile called on wrong tile.")
         }
-        // Find the trace whose important parameters match those of this fragment.
+
+        fragmentKey := types.MakeTraceKey(r.Params, r.Dataset)
+
         var match *types.Trace
-        // Again, counting duplicate entries.
-        count := 0
-        for _, trace := range t.Traces {
-                // This for loop will break on nonmatch.
-                for _, param := range importantParameters[r.Dataset] {
+        if match, exists = t.Traces[fragmentKey]; !exists {
+                match = types.NewTrace(config.TILE_SIZE)
+                t.Traces[fragmentKey] = match
+                // See if it uses a new parameter that needs to be added to the tile.ParamSet.
+                for _, param := range config.KEY_PARAM_ORDER[r.Dataset] {
                         var fragVal string
-                        var tileVal string
-                        if fragVal, exists = r.Params[param]; !exists {
+                        if rawFragVal, exists := r.Params[param]; !exists {
                                 fragVal = ""
-                        }
-                        if tileVal, exists = trace.Params[param]; !exists {
-                                tileVal = ""
-                        }
-                        if fragVal != tileVal {
-                                break
-                        }
-                }
-                // Match!
-                count += 1
-                // Multiple matches (should be eliminated eventually!)
-                if count > 1 {
-                        glog.Infoln("Fragment matches multiple entries")
-                }
-                match = trace
-        }
-        if match == nil {
-                t.Traces = append(t.Traces, types.NewTrace(config.TILE_SIZE))
-                match = t.Traces[len(t.Traces) - 1]
-                // Populate match.Params, and also see if it uses a new parameter that needs to be added to the tile.ParamSet.
-                for _, param := range importantParameters[r.Dataset] {
-                        var fragVal string
-                        if fragVal, exists := r.Params[param]; exists {
-                                match.Params[param] = fragVal
                         } else {
-                                match.Params[param] = ""
+                                fragVal = fmt.Sprint(rawFragVal)
                         }
                         if _, exists = t.ParamSet[param]; !exists {
                                 t.ParamSet[param] = make([]string, 0, 1)
@@ -326,12 +383,17 @@ func (r *JSONv2Record) UpdateTile(t *types.Tile) error {
                                 }
                         }
                         if !alreadyExists {
+                                glog.Info("Adding new param..")
                                 t.ParamSet[param] = append(t.ParamSet[param], fragVal)
                         }
                 }
         }
         index := counter % config.TILE_SIZE
-        match.Values[index] = r.Value
+        if match.Values[index] == config.MISSING_DATA_SENTINEL {
+                match.Values[index] = r.Value
+        } else {
+                glog.Infof("Duplicate entry found for %s, hash %s", string(fragmentKey), r.Hash)
+        }
 
         return nil
 }
@@ -353,17 +415,24 @@ type JSONv2FileIter struct {
         currentRecord *JSONv2Record
 
         //dataset stores the name of the dataset this iterator belongs to
-        dataset string
+        dataset config.DatasetName
 }
 
 // NewJSONv2FileIter retrieve a file from the passed in URI, and splits into separate JSON records.
-func NewJSONv2FileIter(uri, dataset string) *JSONv2FileIter {
+// NOTE: The passed in URI is assumed to be in public access Google Storage
+func NewJSONv2FileIter(uri string, dataset config.DatasetName) *JSONv2FileIter {
+        glog.Infof("Creating new JSONv2FileIter for %s\n", uri)
         newIter := &JSONv2FileIter{
                 records: make([]string, 0),
                 currentRecord: nil,
                 dataset: dataset,
         }
-        resp, err := http.Get(uri)
+        request, err := gs.RequestForStorageURL(uri)
+        if err != nil {
+                glog.Errorf("Unable to create Storage MediaURI request: %s\n", err)
+                return newIter
+        }
+        resp, err := http.DefaultClient.Do(request)
         if err != nil {
                 glog.Errorf("Unable to retrieve URI while creating file iterator: %s", err)
                 return newIter
@@ -387,10 +456,18 @@ func (fi *JSONv2FileIter) Next() bool {
         if len(fi.records) <= 0 {
                 return false
         }
-        newRecord, err := NewJSONv2Record(fi.records[0], fi.dataset)
-        fi.currentRecord = newRecord
+        curJSON := fi.records[0]
         fi.records = fi.records[1:]
+        // Grab the next one if the current one's blank.
+        if curJSON == "" {
+                return fi.Next()
+        }
+        newRecord, err := NewJSONv2Record(curJSON, fi.dataset)
+        fi.currentRecord = newRecord
         if err != nil {
+                glog.Infof("Error while parsing record: %s\n", err)
+                glog.Infoln("JSON dump:")
+                glog.Infoln(curJSON)
                 return fi.Next()
                 // See note in JSVONv2FilesIter.Next(); same deal.
         }
@@ -406,18 +483,17 @@ func (fi *JSONv2FileIter) TileFragment() types.TileFragment {
 // It basically wraps around JSONv2FileIter to allow for seamless iteration
 // over a group of GS files.
 type JSONv2FilesIter struct {
-        // uris is a slice that contains all the remaining URIs that need to
-        // be retrieved and iterated over.
-        uris            []string
         // currentIter contains the current iterator that is being iterated over.
         currentIter     *JSONv2FileIter
         // dataset stores the dataset name this iterator belongs to.
-        dataset string
+        dataset config.DatasetName
+        // uris stores the URIs left to retrieve and parse
+        uris []string
 }
 
 // NewJSONv2FilesIter creates a new TileFragmentIter that will iterate over all
 // the records in those files.
-func NewJSONv2FilesIter(uris []string, dataset string) JSONv2FilesIter {
+func NewJSONv2FilesIter(uris []string, dataset config.DatasetName) JSONv2FilesIter {
         return JSONv2FilesIter{
                 uris: uris,
                 currentIter: nil,
@@ -446,6 +522,31 @@ func (fsi *JSONv2FilesIter) Next() bool {
 func (fsi *JSONv2FilesIter) TileFragment() types.TileFragment {
         if fsi.currentIter != nil {
                 return fsi.currentIter.TileFragment()
+        }
+        return nil
+}
+
+// FragmentArrayIter wraps an iterator around a slice of TileFragments.
+type FragmentArrayIter struct {
+        fragments       []types.TileFragment
+        curPos          int
+}
+
+func NewFragmentArrayIter(fragments []types.TileFragment) *FragmentArrayIter {
+        return &FragmentArrayIter{
+                fragments: fragments,
+                curPos: -1,
+        }
+}
+
+func (fai *FragmentArrayIter) Next() bool {
+        fai.curPos++
+        return fai.curPos < len(fai.fragments)
+}
+
+func (fai *FragmentArrayIter) TileFragment() types.TileFragment {
+        if fai.curPos >= 0 && fai.curPos < len(fai.fragments) {
+                return fai.fragments[fai.curPos]
         }
         return nil
 }
@@ -499,7 +600,7 @@ func getFilesFromGSDir(service *storage.Service, directory string, bucket string
 	return results
 }
 
-// getFiles loads the new files from Cloud Storage into the BigQuery, returning them as a map keyed by git hash.
+// getFiles retrieves a list of files from Cloud Storage, returning them as a map keyed by git hash.
 func getFiles(cs *storage.Service, prefix, sourceBucketSubdir string, timestamp int64) (map[string][]string , error) {
         var realTimestamp int64
         if timestamp < BEGINNING_OF_TIME {
@@ -532,11 +633,16 @@ func getFiles(cs *storage.Service, prefix, sourceBucketSubdir string, timestamp 
 }
 
 // submitFragments takes a list of fragments and applies them to the appropriate tiles in TileStore.
-func submitFragments(t types.TileStore, iter types.TileFragmentIter) {
+func submitFragments(t types.TileStore, iter types.TileFragmentIter, dataset config.DatasetName) {
         // TODO: Add support for different scales. Currently assumes scale is always zero.
         tileMap := make(map[int][]types.TileFragment)
         count := 0
+
+        startJSONTime := time.Now()
         for iter.Next() {
+                // Time how long it takes to get process the new JSON fragmnet.
+                datasetMetrics[dataset].elapsedTimePerJSONRecord.Update(time.Since(startJSONTime))
+
                 fragment := iter.TileFragment()
                 if hashCount, exists := hashToCounter[CommitHash(fragment.TileCoordinate().Commit)]; !exists {
                         glog.Errorf("Commit does not exist in table: %s", fragment.TileCoordinate().Commit)
@@ -549,12 +655,15 @@ func submitFragments(t types.TileStore, iter types.TileFragmentIter) {
                         tileMap[tileNum] = append(tileMap[tileNum], fragment)
                 }
                 count += 1
+
                 // Flush the current fragments to the tiles when there's too many.
                 if count >= MAX_INGEST_FRAGMENT {
+                        glog.Infoln("Submitting fragments..")
                         for i, fragments := range tileMap {
+                                glog.Infof("Writing to tile %d\n", i)
                                 tile, err := t.GetModifiable(0, i)
                                 if err != nil {
-                                        glog.Errorf("Failed to get tile number %i: %s", i, err)
+                                        glog.Errorf("Failed to get tile number %d: %s", i, err)
                                         // TODO: Keep track of failed fragments
                                         continue
                                 }
@@ -565,50 +674,90 @@ func submitFragments(t types.TileStore, iter types.TileFragmentIter) {
                                         tile.TileIndex = i
                                 }
                                 for _, fragment := range fragments {
+                                        startFragmentTime := time.Now()
                                         fragment.UpdateTile(tile)
+                                        datasetMetrics[dataset].elapsedTimePerJSONRecord.Update(time.Since(startFragmentTime))
                                 }
+
+                                // Measure how long it takes to Put() a tile.
+                                startTileTime := time.Now()
                                 t.Put(0, i, tile)
+                                datasetMetrics[dataset].elapsedTimePerTileFlush.Update(time.Since(startTileTime))
+
                                 // TODO: writeTimestamp, so that it'll restart at roughly the right
                                 // point on sudden failure.
                         }
                         count = 0
                         tileMap = make(map[int][]types.TileFragment)
                 }
+
+                startJSONTime = time.Now()
         }
+        glog.Infoln("Submitting remaining fragments..")
         // Flush any remaining fragments.
         for i, fragments := range tileMap {
-                // NOTE: Same problem as above.
-                tile, err := t.Get(0, i)
+                tile, err := t.GetModifiable(0, i)
+                glog.Infof("Writing to tile %d\n", i)
                 if err != nil {
                         glog.Errorf("Failed to get tile number %i: %s", i, err)
                         // TODO: Keep track of failed fragments
                         continue
                 }
                 for _, fragment := range fragments {
+                        startFragmentTime := time.Now()
                         fragment.UpdateTile(tile)
+                        datasetMetrics[dataset].elapsedTimePerJSONRecord.Update(time.Since(startFragmentTime))
                 }
+                startTileTime := time.Now()
                 t.Put(0, i, tile)
+                datasetMetrics[dataset].elapsedTimePerTileFlush.Update(time.Since(startTileTime))
                 // TODO: writeTimestamp, so that it'll restart at roughly the right
                 // point on sudden failure.
         }
+        writeTimestamp(dataset, time.Now().Unix())
+}
+
+// IngestForDataset runs the ingestion pipeline for the given dataset, using JSON files from gs_subdir,
+// accessing the JSON via cs, and updating the tiles with the fragments passed in otherFragments.
+// It uses readTimestamp and writeTimestamp to keep track of how much of the data
+// has already been written.
+func IngestForDataset(dataset config.DatasetName, gs_subdir string, otherFragments types.TileFragmentIter, cs *storage.Service) {
+    timestamp, err := readTimestamp(dataset)
+    if err != nil {
+            glog.Infof("Error while reading timestamp: %s", err)
+    }
+    newTimestamp := time.Now().Unix()
+    fileMap, err := getFiles(cs, string(dataset), gs_subdir, timestamp)
+    if err != nil {
+            glog.Errorf("getFiles failed with error: %s\n", err)
+    }
+    // Flatten the map. There's probably some benefit to sorting it by tile,
+    // but for now we'll just flatten it.
+    uriListSize := 0
+    for _, uris := range fileMap {
+            uriListSize += len(uris)
+    }
+    allUris := make([]string, 0, uriListSize)
+    for _, uris := range fileMap {
+            allUris = append(allUris, uris...)
+    }
+    //glog.Infoln("Final files list: ", allUris)
+    filesIter := NewJSONv2FilesIter(allUris, dataset)
+    datasetTilestore := filetilestore.NewFileTileStore(*tileDir, string(dataset), -1)
+    submitFragments(datasetTilestore, otherFragments, dataset)
+    submitFragments(datasetTilestore, &filesIter, dataset)
+    glog.Infoln("Fragment submission finished. Writing timestamp..")
+    writeTimestamp(dataset, newTimestamp)
 }
 
 // RunIngester runs a single run of the ingestion cycle (or at least will shortly).
 func RunIngester() {
-    /*
+    fragments := updateHashCounterMap()
+    //glog.Infoln(hashToCounter)
     cs, err := getStorageService()
     if err != nil {
             glog.Errorf("getFiles failed to create storage service: %s\n", err)
     }
-    fileMap, err := getFiles(cs, "micro", "stats-json-v2", BEGINNING_OF_TIME)
-    if err != nil {
-            glog.Errorf("getFiles failed with error: %s\n", err)
-    }
-    glog.Infoln(fileMap)
-    */
-    updateHashCounterMap()
-    fmt.Println(hashToCounter)
-    time.Sleep(30*time.Minute)
-    updateHashCounterMap()
-    fmt.Println(hashToCounter)
+    IngestForDataset("micro", "stats-json-v2", NewFragmentArrayIter(fragments), cs)
+    IngestForDataset("skps", "pics-json-v2", NewFragmentArrayIter(fragments), cs)
 }

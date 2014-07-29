@@ -1,6 +1,8 @@
 package types
 
 import (
+        "fmt"
+        "strings"
 	"time"
 )
 
@@ -10,10 +12,9 @@ import (
 
 // Trace represents all the values of a single measurement over time.
 type Trace struct {
-	Key    string            `json:"key"`
 	Values []float64         `json:"values"`
-	Params map[string]string `json:"params"`
 	Trybot bool              `json:"trybot"`
+        Params map[string]string `json:"trybot"`
 }
 
 // NewTrace allocates a new Trace set up for the given number of samples.
@@ -23,7 +24,7 @@ type Trace struct {
 func NewTrace(numSamples int) *Trace {
 	t := &Trace{
 		Values: make([]float64, numSamples, numSamples),
-		Params: make(map[string]string),
+                Params: make(map[string]string),
 		Trybot: false,
 	}
 	for i, _ := range t.Values {
@@ -62,12 +63,15 @@ func NewCommit() *Commit {
 // Choices is a list of possible values for a param. See Tile.
 type Choices []string
 
+// TraceKey is a key used to index into the Traces map in a Tile.
+type TraceKey string
+
 // Tile is a 32 commit slice of data.
 //
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type Tile struct {
-	Traces   []*Trace           `json:"traces"`
+	Traces   map[TraceKey]*Trace   `json:"traces"`
 	ParamSet map[string]Choices `json:"param_set"`
 	Commits  []*Commit          `json:"commits"`
 
@@ -80,10 +84,23 @@ type Tile struct {
 // NewTile returns an new Tile object ready to be filled with data via populate().
 func NewTile() *Tile {
 	return &Tile{
-		Traces:   make([]*Trace, 0),
+		Traces:   make(map[TraceKey]*Trace),
 		ParamSet: make(map[string]Choices),
 		Commits:  make([]*Commit, 0),
 	}
+}
+
+func MakeTraceKey(params map[string]interface{}, dataset config.DatasetName) TraceKey {
+        paramNames := config.KEY_PARAM_ORDER[dataset]
+        newKeyParts := make([]string, 0, len(paramNames))
+        for _, paramName := range paramNames {
+                if keyPart, exists := params[paramName]; exists {
+                        newKeyParts = append(newKeyParts, fmt.Sprint(keyPart))
+                } else {
+                        newKeyParts = append(newKeyParts, "")
+                }
+        }
+        return TraceKey(strings.Join(newKeyParts, ":"))
 }
 
 // TileCoordinate describes where a TraceFragment is, with respect to the tiling system.
@@ -128,7 +145,7 @@ type TileGUI struct {
 	Traces    []TraceGUI `json:"traces,omitempty"`
 	ParamSet  [][]string `json:"params,omitempty"`
 	Commits   []*Commit  `json:"commits,omitempty"`
-	NameList  []string   `json:"names,omitempty"`
+	NameList  []TraceKey `json:"names,omitempty"`
 	Scale     int        `json:"scale"`
 	TileIndex int        `json:"tileIndex"`
 }

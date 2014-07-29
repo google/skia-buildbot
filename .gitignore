@@ -49,7 +49,7 @@ perf/server/server
 perf/server/tilebuilder
 perf/server/tiletool
 perf/server/ingest
-perf/server/ingest.lock
+perf/server/timestamp.json
 perf/server/ingestbqtoken.data
 perf/server/third_party
 perf/server/node_modules

@@ -226,7 +226,22 @@ func (store *FileTileStore) GetModifiable(scale, index int) (*types.Tile, error)
                 return store.getLastTile(scale)
 	}
 	filename, err := store.tileFilename(scale, index)
-        fmt.Println(filename)
+        if err != nil {
+                return nil, fmt.Errorf("Unable to create a file name for the tile %d, %d: %s\n", scale, index, err)
+        }
+        //fmt.Println(filename)
+	_, err = os.Stat(filename)
+	// File probably isn't there, so return a new tile.
+	if err != nil {
+                if !os.IsNotExist(err) {
+                        return nil, fmt.Errorf("Tile %d,%d retrieval caused error : %s.", scale, index, err)
+                } else {
+                        newTile := types.NewTile()
+                        newTile.Scale = scale
+                        newTile.TileIndex = index
+                        return newTile, nil
+                }
+	}
 	t, err := openTile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to retrieve tile %s: %s", filename, err)

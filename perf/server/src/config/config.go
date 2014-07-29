@@ -5,8 +5,6 @@
 package config
 
 import (
-        "fmt"
-        "strings"
         "time"
 )
 
@@ -93,23 +91,9 @@ var (
 		"testName":        "Test Name",
 		"viewport":        "Viewport Size",
 	}
-	KEY_PARAM_ORDER = map[string][]string{
-		string(DATASET_SKP):   []string{"builderName", "benchName", "config", "scale", "measurementType"},
-		string(DATASET_MICRO): []string{"builderName", "testName", "config", "scale", "measurementType"},
+        // TODO: Make sure these are sufficient for a key
+	KEY_PARAM_ORDER = map[DatasetName][]string{
+		DATASET_SKP:   []string{"builderName", "benchName", "config", "scale", "measurementType", "configuration", "mode"},
+		DATASET_MICRO: []string{"builderName", "testName", "config", "scale", "measurementType"},
 	}
 )
-
-// MakeKeyFromParams creates a trace key given the dataset the trace is from and
-// the trace's parameter list.
-func MakeKeyFromParams(dataset DatasetName, params map[string]interface{}) string {
-        paramList := KEY_PARAM_ORDER[string(dataset)]
-	newKey := make([]string, len(paramList))
-	for i, paramName := range paramList {
-		if value, ok := params[paramName]; ok {
-			newKey[i] = fmt.Sprint(value)
-		} else {
-			newKey[i] = ""
-		}
-	}
-	return strings.Join(newKey, ":")
-}
