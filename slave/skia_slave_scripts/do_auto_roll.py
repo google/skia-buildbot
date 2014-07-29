@@ -66,15 +66,16 @@ class AutoRoll(BuildStep):
   """BuildStep which runs the Blink AutoRoll bot."""
 
   def _Run(self):
-    shell_utils.run(['git', 'config', '--local', 'user.name', DEPS_ROLL_NAME])
-    shell_utils.run(['git', 'config', '--local', 'user.email',
-                     DEPS_ROLL_AUTHOR])
+    chrome_path = os.path.join(os.pardir, 'src')
+    with misc.ChDir(chrome_path):
+      shell_utils.run(['git', 'config', '--local', 'user.name', DEPS_ROLL_NAME])
+      shell_utils.run(['git', 'config', '--local', 'user.email',
+                       DEPS_ROLL_AUTHOR])
+
     auto_roll = os.path.join(misc.BUILDBOT_PATH, 'third_party',
                              'chromium_buildbot_tot', 'scripts', 'tools',
                              'blink_roller', 'auto_roll.py')
-    chrome_path = os.path.join(os.pardir, 'src')
-    bucket_url = gs_utils.GSUtils.with_gs_prefix(
-        skia_vars.GetGlobalVariable('googlestorage_bucket'))
+
     # python auto_roll.py <project> <author> <path to chromium/src>
     cmd = ['python', auto_roll, 'skia', DEPS_ROLL_AUTHOR, chrome_path]
 
@@ -91,6 +92,8 @@ class AutoRoll(BuildStep):
       print 'Found issue #', issue
       with open(FILENAME_CURRENT_ATTEMPT, 'w') as f:
         f.write(HTML_CONTENT % (ISSUE_URL_TEMPLATE % {'issue': issue}))
+      bucket_url = gs_utils.GSUtils.with_gs_prefix(
+          skia_vars.GetGlobalVariable('googlestorage_bucket'))
       slave_utils.GSUtilCopyFile(
           filename=FILENAME_CURRENT_ATTEMPT,
           gs_base=bucket_url,
