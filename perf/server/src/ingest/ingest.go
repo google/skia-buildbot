@@ -101,14 +101,18 @@ type SkiaCommitEntry struct {
 
 type SkiaJSON struct {
         Log        []SkiaCommitEntry `json:"log"`
-        Next        string          `json:"next"`
+        Next        string           `json:"next"`
 }
 
 func (s SkiaCommitEntry) UpdateTile(t* types.Tile) error {
         if count, exists := hashToCounter[s.Commit]; exists && count >= t.TileIndex * config.TILE_SIZE && count < (1 + t.TileIndex) * config.TILE_SIZE {
                 pos := count % config.TILE_SIZE
                 if len(t.Commits) < config.TILE_SIZE {
+                        curLen := len(t.Commits)
                         t.Commits = append(t.Commits, make([]*types.Commit, config.TILE_SIZE - len(t.Commits))...)
+                        for i := curLen; i < len(t.Commits); i++ {
+                                t.Commits[i] = types.NewCommit()
+                        }
                 }
                 commitTime, err := time.Parse("Mon Jan 2 15:04:05 2006 -0700", s.Author.Time)
                 if err != nil {
@@ -694,7 +698,7 @@ func submitFragments(t types.TileStore, iter types.TileFragmentIter, dataset con
                 tile, err := t.GetModifiable(0, i)
                 glog.Infof("Writing to tile %d\n", i)
                 if err != nil {
-                        glog.Errorf("Failed to get tile number %i: %s", i, err)
+                        glog.Errorf("Failed to get tile number %d: %s", i, err)
                         // TODO: Keep track of failed fragments
                         continue
                 }
@@ -705,6 +709,9 @@ func submitFragments(t types.TileStore, iter types.TileFragmentIter, dataset con
                 }
                 startTileTime := time.Now()
                 t.Put(0, i, tile)
+                if err != nil {
+                        glog.Errorf("Failed to store tile %d: %s", i, err)
+                }
                 datasetMetrics[dataset].elapsedTimePerTileFlush.Update(time.Since(startTileTime))
         }
         writeTimestamp(string(dataset), startTime.Unix())

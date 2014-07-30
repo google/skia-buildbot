@@ -296,15 +296,18 @@ func NewFileTileStore(dir, datasetName string, checkEvery time.Duration) types.T
 		lastTile:    make(map[int]*types.Tile),
                 lock:        sync.Mutex{},
 	}
-        store.refreshLastTiles()
-	// Refresh the lastTile entries every ten minutes
-	go func() {
-                if checkEvery > 0 {
-                        store.refreshLastTiles()
+        if checkEvery > 0 {
+                // NOTE: This probably stops the tilestore from being garbage
+                // collected. Not an issue as far as I can tell, but should
+                // we try to handle this correctly?
+
+                store.refreshLastTiles()
+                // Refresh the lastTile entries periodically.
+                go func() {
                         for _ = range time.Tick(checkEvery) {
                                 store.refreshLastTiles()
                         }
-                }
-	}()
+                }()
+        }
 	return store
 }
