@@ -14,12 +14,18 @@ import unittest
 
 import slave_hosts_cfg
 
+
 buildbot_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                              os.pardir)
+chromium_buildbot_tot = os.path.join(buildbot_path, 'third_party', 'build')
 sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
                              'site_config'))
 
-SLAVES_CFG = os.path.join(buildbot_path, 'master', 'slaves.cfg')
+SLAVES_CFG_FILES = [
+  os.path.join(buildbot_path, 'master', 'slaves.cfg'),
+  os.path.join(chromium_buildbot_tot, 'masters', 'master.client.skia',
+               'slaves.cfg')
+]
 
 
 class SlaveHostsCfgTest(unittest.TestCase):
@@ -29,10 +35,12 @@ class SlaveHostsCfgTest(unittest.TestCase):
   def runTest(self):
     """ Run the test. """
 
-    # First, read the slaves.cfg file.
-    slaves_cfg = {}
-    execfile(SLAVES_CFG, slaves_cfg)
-    slaves = slaves_cfg['slaves']
+    # First, read the slaves.cfg files.
+    slaves = []
+    for slaves_cfg_file in SLAVES_CFG_FILES:
+      slaves_cfg = {}
+      execfile(slaves_cfg_file, slaves_cfg)
+      slaves.extend(slaves_cfg['slaves'])
 
     # Verify that every slave listed by a slave host is defined exactly once in
     # slaves.cfg.
@@ -67,6 +75,7 @@ class SlaveHostsCfgTest(unittest.TestCase):
       for slave_name, slave_id in slave_host_data.slaves:
         self.assertFalse(slave_id in known_ids,
             'Slave %s has non-unique id %s' % (slave_name, slave_id))
+
 
 if __name__ == '__main__':
   unittest.main()

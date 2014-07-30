@@ -689,6 +689,20 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
+  'skia-vm-101': {
+    'slaves': [
+      ('skiabot-linux-tester-004', '0'),
+    ],
+    'copies': _DEFAULT_COPIES,
+    'login_cmd': chromecompute_login,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
+    'remote_access': GCE_COMPILE_C_ONLINE,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
 ################################# Mac Machines #################################
 
   'skiabot-macmini-10_6-001': {
@@ -929,6 +943,51 @@ _slave_host_dicts = {
     'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
+
+############################ Machines in Chrome Golo ###########################
+
+  'build3-a3': {
+    'slaves': [
+      ('build3-a3', '0'),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': None,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'build4-a3': {
+    'slaves': [
+      ('build4-a3', '0'),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': None,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'build5-a3': {
+    'slaves': [
+      ('build5-a3', '0'),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
 }
 
 
