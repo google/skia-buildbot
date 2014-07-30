@@ -17,7 +17,8 @@ import slave_hosts_cfg
 
 buildbot_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                              os.pardir)
-chromium_buildbot_tot = os.path.join(buildbot_path, 'third_party', 'build')
+chromium_buildbot_tot = os.path.join(buildbot_path, 'third_party',
+                                     'chromium_buildbot_tot')
 sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
                              'site_config'))
 
