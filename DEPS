@@ -17,10 +17,10 @@ vars = {
   "chromium_revision": "179720",
   "chromium_git": "https://chromium.googlesource.com",
   "skia_git": "https://skia.googlesource.com",
-  "telemetry_chromium_revision": "278114",
+  "telemetry_chromium_revision": "286171",
   "webpagereplay_revision": "546",
   "telemetry_webkit_trunk": "http://src.chromium.org/blink/trunk",
-  "telemetry_webkit_revision": "176408"
+  "telemetry_webkit_revision": "179099"
 }
 
 deps = {
