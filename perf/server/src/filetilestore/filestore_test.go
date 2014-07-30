@@ -51,9 +51,8 @@ func TestFileTileGet(t *testing.T) {
         // NOTE: This needs to match what's created by tileFilename
         fileName := strings.Join([]string{randomFullPath, "0000.gob"}, string(os.PathSeparator))
         err = makeFakeTile(fileName, &types.Tile{
-                Traces: []*types.Trace{
-                        &types.Trace{
-                                Key: "test_key",
+                Traces: map[types.TraceKey]*types.Trace{
+                        types.TraceKey("test"): &types.Trace{
                                 Values: []float64{0.0, 1.4, -2},
                                 Params: map[string]string{"test": "parameter"},
                                 Trybot: false,
@@ -101,7 +100,7 @@ func TestFileTileGet(t *testing.T) {
         t.Log("First test set completed.")
 
         err = makeFakeTile(fileName, &types.Tile{
-                Traces: []*types.Trace{},
+                Traces: map[types.TraceKey]*types.Trace{},
                 ParamSet: map[string]types.Choices{
                         "test": types.Choices([]string{"parameter",}),
                 },
@@ -182,18 +181,26 @@ func TestFileTileGet(t *testing.T) {
         t.Log("Fifth test start. Testing GetModifiable().")
         getValue5, err := ts.GetModifiable(0, 0)
         if err != nil {
-                t.Errorf("FileTileStore.GetModifiable failed :%s\n", err)
+                t.Errorf("FileTileStore.GetModifiable failed: %s\n", err)
         } else {
                 getValue5.TileIndex = 7
                 getValue5, err := ts.Get(0, 0)
                 if err != nil {
-                        t.Errorf("FileTileStore.Get failed :%s\n", err)
+                        t.Errorf("FileTileStore.Get failed: %s\n", err)
                 } else {
                         if got, want := getValue5.TileIndex, 0; got != want {
                                 t.Errorf("FileTileStore.Get failed: tile index modified via GetModifiable call\n")
                         }
                 }
         }
+        t.Log("Fifth test set completed.")
+        t.Log("Sixth test set start. Testing empty tile Put() and Get().")
+        ts.Put(0, 1, types.NewTile())
+        _, err = ts.Get(0, 1)
+        if err != nil {
+                t.Errorf("FileTileStore.GetModifiable failed: %s\n", err)
+        }
+        t.Log("Sixth test set completed.")
 }
 
 func dumpTile(tile *types.Tile, t *testing.T) {

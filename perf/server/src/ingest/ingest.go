@@ -360,7 +360,7 @@ func (r *JSONv2Record) UpdateTile(t *types.Tile) error {
 
         var match *types.Trace
         if match, exists = t.Traces[fragmentKey]; !exists {
-                match = types.NewTrace(config.TILE_SIZE)
+                match = types.NewTrace()
                 t.Traces[fragmentKey] = match
                 // See if it uses a new parameter that needs to be added to the tile.ParamSet.
                 for _, param := range config.KEY_PARAM_ORDER[r.Dataset] {

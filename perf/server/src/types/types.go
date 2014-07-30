@@ -21,9 +21,9 @@ type Trace struct {
 //
 // The Trace Values are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
-func NewTrace(numSamples int) *Trace {
+func NewTrace() *Trace {
 	t := &Trace{
-		Values: make([]float64, numSamples, numSamples),
+		Values: make([]float64, config.TILE_SIZE, config.TILE_SIZE),
                 Params: make(map[string]string),
 		Trybot: false,
 	}
@@ -83,11 +83,15 @@ type Tile struct {
 
 // NewTile returns an new Tile object ready to be filled with data via populate().
 func NewTile() *Tile {
-	return &Tile{
+        t := &Tile{
 		Traces:   make(map[TraceKey]*Trace),
 		ParamSet: make(map[string]Choices),
-		Commits:  make([]*Commit, 0),
+		Commits:  make([]*Commit, config.TILE_SIZE, config.TILE_SIZE),
 	}
+        for i := range t.Commits {
+                t.Commits[i] = NewCommit()
+        }
+        return t
 }
 
 func MakeTraceKey(params map[string]interface{}, dataset config.DatasetName) TraceKey {
