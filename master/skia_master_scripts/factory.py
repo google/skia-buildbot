@@ -619,7 +619,9 @@ class SkiaFactory(BuildFactory):
           'patchset' in build.getProperties():
         # The presence of the 'issue' and 'patchset' build properties indicates
         # that the patch came from Rietveld.
-        patch = '%s/download/issue%d_%d.diff' % (
+        # Don't assume that the 'issue' and 'patchset' build properties are
+        # always integer type, even though they should contain integers.
+        patch = '%s/download/issue%s_%s.diff' % (
             config_private.CODE_REVIEW_SITE.rstrip('/'),
             build.getProperty('issue'),
             build.getProperty('patchset'))
