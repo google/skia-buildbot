@@ -5,7 +5,7 @@
 package config
 
 import (
-        "time"
+	"time"
 )
 
 // QuerySince holds the start time we have data since.
@@ -91,7 +91,7 @@ var (
 		"testName":        "Test Name",
 		"viewport":        "Viewport Size",
 	}
-        // TODO: Make sure these are sufficient for a key
+	// TODO: Make sure these are sufficient for a key
 	KEY_PARAM_ORDER = map[DatasetName][]string{
 		DATASET_SKP:   []string{"builderName", "benchName", "config", "scale", "measurementType", "configuration", "mode"},
 		DATASET_MICRO: []string{"builderName", "testName", "config", "scale", "measurementType"},

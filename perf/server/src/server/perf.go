@@ -307,9 +307,9 @@ func getTile(dataset config.DatasetName, tileScale, tileNumber int) (*types.Tile
 	if !ok {
 		return nil, fmt.Errorf("Unable to access dataset store for %s", dataset)
 	}
-        start := time.Now()
+	start := time.Now()
 	tile, err := tileStore.Get(int(tileScale), int(tileNumber))
-        glog.Infoln("Time for tile load: ", time.Since(start).Nanoseconds())
+	glog.Infoln("Time for tile load: ", time.Since(start).Nanoseconds())
 	if err != nil || tile == nil {
 		return nil, fmt.Errorf("Unable to get tile from tilestore: ", err)
 	}
@@ -317,7 +317,7 @@ func getTile(dataset config.DatasetName, tileScale, tileNumber int) (*types.Tile
 }
 
 type TilesResponse struct {
-    Tiles   []*types.TileGUI    `json:"tiles"`
+	Tiles []*types.TileGUI `json:"tiles"`
 }
 
 // tileHandler accepts URIs like /tiles/skps/0/1?traces=Some:long:trace:here&omit_commits=true
@@ -327,110 +327,110 @@ type TilesResponse struct {
 // section (described more thoroughly in types.go) to be omitted from the JSON
 func tileHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Tile Handler: %q\n", r.URL.Path)
-        handlerStart := time.Now()
+	handlerStart := time.Now()
 	match := tileHandlerPath.FindStringSubmatch(r.URL.Path)
 	if r.Method != "GET" || match == nil || len(match) != 4 {
 		http.NotFound(w, r)
 		return
 	}
 	dataset := config.DatasetName(match[1])
-        if dataset != config.DATASET_SKP && dataset != config.DATASET_MICRO {
-                reportError(w, r, fmt.Errorf("Invalid dataset specified: %s", dataset), "")
-                return
-        }
+	if dataset != config.DATASET_SKP && dataset != config.DATASET_MICRO {
+		reportError(w, r, fmt.Errorf("Invalid dataset specified: %s", dataset), "")
+		return
+	}
 	tileScale, err := strconv.ParseInt(match[2], 10, 0)
 	if err != nil {
 		reportError(w, r, err, "Failed parsing tile scale.")
 		return
 	}
-        tileNumberStrings := strings.Split(match[3], ",")
-        tileNumbers := make([]int, 0, len(tileNumberStrings))
-        for _, tileNumberStr := range tileNumberStrings {
-                tileNumber, err := strconv.ParseInt(tileNumberStr, 10, 0)
-                if err != nil {
-                        glog.Warningf("Failed parsing tile number %s", tileNumberStr)
-                        continue
-                }
-                tileNumbers = append(tileNumbers, int(tileNumber))
-        }
-        if len(tileNumbers) <= 0 {
-                reportError(w, r, err, "No valid tile numbers passed in.")
-                return
-        }
+	tileNumberStrings := strings.Split(match[3], ",")
+	tileNumbers := make([]int, 0, len(tileNumberStrings))
+	for _, tileNumberStr := range tileNumberStrings {
+		tileNumber, err := strconv.ParseInt(tileNumberStr, 10, 0)
+		if err != nil {
+			glog.Warningf("Failed parsing tile number %s", tileNumberStr)
+			continue
+		}
+		tileNumbers = append(tileNumbers, int(tileNumber))
+	}
+	if len(tileNumbers) <= 0 {
+		reportError(w, r, err, "No valid tile numbers passed in.")
+		return
+	}
 
-        tracesRequested := strings.Split(r.FormValue("traces"), ",")
-        omitCommits := r.FormValue("omit_commits") != ""
-        omitParams := r.FormValue("omit_params") != ""
-        omitNames := r.FormValue("omit_names") != ""
-        paramList, ok := config.KEY_PARAM_ORDER[dataset]
+	tracesRequested := strings.Split(r.FormValue("traces"), ",")
+	omitCommits := r.FormValue("omit_commits") != ""
+	omitParams := r.FormValue("omit_params") != ""
+	omitNames := r.FormValue("omit_names") != ""
+	paramList, ok := config.KEY_PARAM_ORDER[dataset]
 
-        allTiles := TilesResponse{ Tiles: make([]*types.TileGUI, 0, len(tileNumbers)) }
-        for _, tileNumber := range tileNumbers {
-                tile, err := getTile(dataset, int(tileScale), int(tileNumber))
-                if err != nil {
-                        glog.Warning("Failed to retrieve tile:", err)
-                        continue
-                }
-                guiTile := types.NewGUITile(tile.Scale, tile.TileIndex)
-                if !ok {
-                        reportError(w, r, err, "Unable to read parameter list for dataset: ")
-                        return
-                }
-                for _, keyName := range tracesRequested {
-                        if len(keyName) <= 0 {
-                                continue
-                        }
-                        var rawTrace *types.Trace
-                        if rawTrace, ok = tile.Traces[types.TraceKey(keyName)]; !ok {
-                                glog.Infof("Missing trace data in tile %d for %s\n", tileNumber, keyName)
-                                continue
-                        }
-                        newTraceData := make([][2]float64, 0)
-                        for i, traceVal := range rawTrace.Values {
-                                if traceVal != config.MISSING_DATA_SENTINEL && tile.Commits[i] != nil {
-                                        newTraceData = append(newTraceData, [2]float64{
-                                                float64(tile.Commits[i].CommitTime),
-                                                traceVal,
-                                                // We should have 53 significand bits, so this should work correctly basically forever
-                                        })
-                                }
-                        }
-                        if len(newTraceData) > 0 {
-                                guiTile.Traces = append(guiTile.Traces, types.TraceGUI{
-                                        Data: newTraceData,
-                                        Key:  keyName,
-                                })
-                        }
-                }
-                if !omitCommits {
-                        guiTile.Commits = tile.Commits
-                }
-                if !omitNames {
-                        for key, _ := range tile.Traces {
-                                guiTile.NameList = append(guiTile.NameList, key)
-                        }
-                }
-                if !omitParams {
-                        guiTile.ParamSet = make([][]string, len(paramList))
-                        for i := range guiTile.ParamSet {
-                                if readableName, ok := config.HUMAN_READABLE_PARAM_NAMES[paramList[i]]; !ok {
-                                        glog.Warningln(fmt.Sprintf("%s does not exist in the readable parameter names list", paramList[i]))
-                                        guiTile.ParamSet[i] = []string{paramList[i]}
-                                } else {
-                                        guiTile.ParamSet[i] = []string{readableName}
-                                }
-                        }
-                        for i := range guiTile.ParamSet {
-                                paramValues, ok := tile.ParamSet[paramList[i]]
-                                if !ok {
-                                        reportError(w, r, fmt.Errorf("Unable to find param set for %s in tile %d", paramList[i], tileNumber), "")
-                                        return
-                                }
-                                guiTile.ParamSet[i] = append(guiTile.ParamSet[i], []string(paramValues)...)
-                        }
-                }
-                allTiles.Tiles = append(allTiles.Tiles, guiTile)
-        }
+	allTiles := TilesResponse{Tiles: make([]*types.TileGUI, 0, len(tileNumbers))}
+	for _, tileNumber := range tileNumbers {
+		tile, err := getTile(dataset, int(tileScale), int(tileNumber))
+		if err != nil {
+			glog.Warning("Failed to retrieve tile:", err)
+			continue
+		}
+		guiTile := types.NewGUITile(tile.Scale, tile.TileIndex)
+		if !ok {
+			reportError(w, r, err, "Unable to read parameter list for dataset: ")
+			return
+		}
+		for _, keyName := range tracesRequested {
+			if len(keyName) <= 0 {
+				continue
+			}
+			var rawTrace *types.Trace
+			if rawTrace, ok = tile.Traces[types.TraceKey(keyName)]; !ok {
+				glog.Infof("Missing trace data in tile %d for %s\n", tileNumber, keyName)
+				continue
+			}
+			newTraceData := make([][2]float64, 0)
+			for i, traceVal := range rawTrace.Values {
+				if traceVal != config.MISSING_DATA_SENTINEL && tile.Commits[i] != nil {
+					newTraceData = append(newTraceData, [2]float64{
+						float64(tile.Commits[i].CommitTime),
+						traceVal,
+						// We should have 53 significand bits, so this should work correctly basically forever
+					})
+				}
+			}
+			if len(newTraceData) > 0 {
+				guiTile.Traces = append(guiTile.Traces, types.TraceGUI{
+					Data: newTraceData,
+					Key:  keyName,
+				})
+			}
+		}
+		if !omitCommits {
+			guiTile.Commits = tile.Commits
+		}
+		if !omitNames {
+			for key, _ := range tile.Traces {
+				guiTile.NameList = append(guiTile.NameList, key)
+			}
+		}
+		if !omitParams {
+			guiTile.ParamSet = make([][]string, len(paramList))
+			for i := range guiTile.ParamSet {
+				if readableName, ok := config.HUMAN_READABLE_PARAM_NAMES[paramList[i]]; !ok {
+					glog.Warningln(fmt.Sprintf("%s does not exist in the readable parameter names list", paramList[i]))
+					guiTile.ParamSet[i] = []string{paramList[i]}
+				} else {
+					guiTile.ParamSet[i] = []string{readableName}
+				}
+			}
+			for i := range guiTile.ParamSet {
+				paramValues, ok := tile.ParamSet[paramList[i]]
+				if !ok {
+					reportError(w, r, fmt.Errorf("Unable to find param set for %s in tile %d", paramList[i], tileNumber), "")
+					return
+				}
+				guiTile.ParamSet[i] = append(guiTile.ParamSet[i], []string(paramValues)...)
+			}
+		}
+		allTiles.Tiles = append(allTiles.Tiles, guiTile)
+	}
 	// Marshal and send
 	marshaledResult, err := json.Marshal(allTiles)
 	if err != nil {
@@ -442,7 +442,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		reportError(w, r, err, "Error while marshalling results.")
 	}
-        glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
+	glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
 }
 
 // jsonHandler handles the GET for the JSON requests.

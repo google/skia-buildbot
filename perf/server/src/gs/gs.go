@@ -19,7 +19,7 @@ import (
 )
 
 import (
-        "config"
+	"config"
 	"types"
 )
 
@@ -97,8 +97,8 @@ type DirInfo struct {
 // JSONPerfInput stores the input JSON data that we care about. Currently this
 // includes "key" and "value" fields in perf/server/(microbench|skpbench).json.
 type JSONPerfInput struct {
-	Value float64 `json:"value"`
-        Params map[string]interface{} `json:"params"`
+	Value  float64                `json:"value"`
+	Params map[string]interface{} `json:"params"`
 }
 
 // RequestForStorageURL returns an http.Request for a given Cloud Storage URL.
@@ -170,12 +170,12 @@ func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
 					0.0, // Commit timestamp is unused.
 					i.Value,
 				})
-                                if _, exists := i.Params["builderName"]; !exists {
-                                        continue
-                                }
-                                // Remove the -Trybot prefix so the trybot keys
-                                // and normal keys match.
-                                i.Params["builderName"] = strings.Replace(fmt.Sprint(i.Params["builderName"]), "-Trybot", "", 1)
+				if _, exists := i.Params["builderName"]; !exists {
+					continue
+				}
+				// Remove the -Trybot prefix so the trybot keys
+				// and normal keys match.
+				i.Params["builderName"] = strings.Replace(fmt.Sprint(i.Params["builderName"]), "-Trybot", "", 1)
 				t.Traces = append(t.Traces, types.TraceGUI{
 					Data: newData,
 					Key:  string(types.MakeTraceKey(i.Params, dataset)),
@@ -209,11 +209,11 @@ func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
 // TODO(bensong): add metrics for GS roundtrip time and failure rates.
 func GetTryResults(urlpath string, endTS int64, daysback int) ([]byte, error) {
 	dirParts := strings.Split(urlpath, "/")
-        datasetName := config.DATASET_SKP
+	datasetName := config.DATASET_SKP
 	dataset := "pics-json-v2"
 	dataFilePrefix := "bench_"
 	if k, ok := dirMap[dirParts[0]]; ok {
-                datasetName = config.DatasetName(dirParts[0])
+		datasetName = config.DatasetName(dirParts[0])
 		dataset = k[0]
 		dataFilePrefix = k[1]
 	}

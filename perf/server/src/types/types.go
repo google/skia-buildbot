@@ -1,8 +1,8 @@
 package types
 
 import (
-        "fmt"
-        "strings"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -14,7 +14,7 @@ import (
 type Trace struct {
 	Values []float64         `json:"values"`
 	Trybot bool              `json:"trybot"`
-        Params map[string]string `json:"trybot"`
+	Params map[string]string `json:"trybot"`
 }
 
 // NewTrace allocates a new Trace set up for the given number of samples.
@@ -24,7 +24,7 @@ type Trace struct {
 func NewTrace() *Trace {
 	t := &Trace{
 		Values: make([]float64, config.TILE_SIZE, config.TILE_SIZE),
-                Params: make(map[string]string),
+		Params: make(map[string]string),
 		Trybot: false,
 	}
 	for i, _ := range t.Values {
@@ -71,9 +71,9 @@ type TraceKey string
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type Tile struct {
-	Traces   map[TraceKey]*Trace   `json:"traces"`
-	ParamSet map[string]Choices `json:"param_set"`
-	Commits  []*Commit          `json:"commits"`
+	Traces   map[TraceKey]*Trace `json:"traces"`
+	ParamSet map[string]Choices  `json:"param_set"`
+	Commits  []*Commit           `json:"commits"`
 
 	// What is the scale of this Tile, i.e. it contains every Nth point, where
 	// N=const.TILE_SCALE^Scale.
@@ -83,60 +83,59 @@ type Tile struct {
 
 // NewTile returns an new Tile object ready to be filled with data via populate().
 func NewTile() *Tile {
-        t := &Tile{
+	t := &Tile{
 		Traces:   make(map[TraceKey]*Trace),
 		ParamSet: make(map[string]Choices),
 		Commits:  make([]*Commit, config.TILE_SIZE, config.TILE_SIZE),
 	}
-        for i := range t.Commits {
-                t.Commits[i] = NewCommit()
-        }
-        return t
+	for i := range t.Commits {
+		t.Commits[i] = NewCommit()
+	}
+	return t
 }
 
 func MakeTraceKey(params map[string]interface{}, dataset config.DatasetName) TraceKey {
-        paramNames := config.KEY_PARAM_ORDER[dataset]
-        newKeyParts := make([]string, 0, len(paramNames))
-        for _, paramName := range paramNames {
-                if keyPart, exists := params[paramName]; exists {
-                        newKeyParts = append(newKeyParts, fmt.Sprint(keyPart))
-                } else {
-                        newKeyParts = append(newKeyParts, "")
-                }
-        }
-        return TraceKey(strings.Join(newKeyParts, ":"))
+	paramNames := config.KEY_PARAM_ORDER[dataset]
+	newKeyParts := make([]string, 0, len(paramNames))
+	for _, paramName := range paramNames {
+		if keyPart, exists := params[paramName]; exists {
+			newKeyParts = append(newKeyParts, fmt.Sprint(keyPart))
+		} else {
+			newKeyParts = append(newKeyParts, "")
+		}
+	}
+	return TraceKey(strings.Join(newKeyParts, ":"))
 }
 
 // TileCoordinate describes where a TraceFragment is, with respect to the tiling system.
 // It is used to sort TileFragments, and ensure the correct update calls are made.
 type TileCoordinate struct {
-        // Scale is the tile scale it belongs to.
-        Scale int
-        // Commits is the git commit hash it belongs to.
-        Commit string
+	// Scale is the tile scale it belongs to.
+	Scale int
+	// Commits is the git commit hash it belongs to.
+	Commit string
 }
 
 // TileFragment represents a piece of data that should be added to tiles. This
 // should allow for easier transition between JSON file formats, as each new
 // format would only need to provide some way of generating TileFragments.
 type TileFragment interface {
-        // UpdateTile should update the tile passed in with the data
-        // stored in the fragment. It isn't assumed to be idempotent.
-        UpdateTile(*Tile) error
-        // Coordinates should return a TileCoordinate that corresponds to the data
-        // in the fragment.
-        TileCoordinate() TileCoordinate
+	// UpdateTile should update the tile passed in with the data
+	// stored in the fragment. It isn't assumed to be idempotent.
+	UpdateTile(*Tile) error
+	// Coordinates should return a TileCoordinate that corresponds to the data
+	// in the fragment.
+	TileCoordinate() TileCoordinate
 }
 
 // TileFragmentIter provides an iterator interface over a TileFragment resource.
 type TileFragmentIter interface {
-        // TileFragment() provides a tile fragment.
-        TileFragment() TileFragment
-        // Next() returns whether there are any more fragments left to get from the iterator, and 
-        // removes the current tile fragment from the iterator, except on the first call.
-        Next() bool
+	// TileFragment() provides a tile fragment.
+	TileFragment() TileFragment
+	// Next() returns whether there are any more fragments left to get from the iterator, and
+	// removes the current tile fragment from the iterator, except on the first call.
+	Next() bool
 }
-
 
 // TraceGUI is used in TileGUI.
 type TraceGUI struct {
@@ -171,13 +170,13 @@ type TileStore interface {
 	// Get returns the Tile for a given scale and index. Pass in -1 for index to
 	// get the last tile for a given scale. Each tile contains its tile index and
 	// scale. Get returns (nil, nil) if you pass in -1 and there is no data in
-	// the store yet. The implementation of TileStore can assume that 
-        // the caller will not modify the tile it returns.
+	// the store yet. The implementation of TileStore can assume that
+	// the caller will not modify the tile it returns.
 	Get(scale, index int) (*Tile, error)
 
-        // GetModifiable behaves identically to Get, except it always returns a 
-        // copy that can be modified.
-        GetModifiable(scale, index int) (*Tile, error)
+	// GetModifiable behaves identically to Get, except it always returns a
+	// copy that can be modified.
+	GetModifiable(scale, index int) (*Tile, error)
 }
 
 // DateIter allows for easily iterating backwards, one day at a time, until
