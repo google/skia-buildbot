@@ -748,13 +748,20 @@ func IngestForDataset(dataset config.DatasetName, gs_subdir string, otherFragmen
 }
 
 // RunIngester runs a single run of the ingestion cycle (or at least will shortly).
-func RunIngester() {
+// prefixMapping maps from the dataset name to the GS directory where that data
+// is stored.
+func RunIngester(prefixMappings map[config.DatasetName]string) {
+	glog.Infoln("Ingestion run started.")
 	fragments := updateHashCounterMap()
 	//glog.Infoln(hashToCounter)
 	cs, err := getStorageService()
 	if err != nil {
 		glog.Errorf("getFiles failed to create storage service: %s\n", err)
 	}
-	IngestForDataset("micro", "stats-json-v2", NewFragmentArrayIter(fragments), cs)
-	IngestForDataset("skps", "pics-json-v2", NewFragmentArrayIter(fragments), cs)
+	for dataset, gsSubdir := range prefixMappings {
+		// Make sure the hash counter map is as close to up to date as it can be.
+		fragments = append(fragments, updateHashCounterMap()...)
+		IngestForDataset(dataset, gsSubdir, NewFragmentArrayIter(fragments), cs)
+	}
+	glog.Infoln("Ingestion run ended.")
 }
