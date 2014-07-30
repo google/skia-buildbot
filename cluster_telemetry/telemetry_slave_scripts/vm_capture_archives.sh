@@ -44,16 +44,16 @@ rm -rf /b/storage/webpages_archive/$PAGESETS_TYPE/*
 # appropriate names for the page sets when calling record_wpr.
 if [ "$PAGESETS_TYPE" == "KeyMobileSites" ]; then
   RECORD_TIMEOUT=2700                                                        
-  PAGESET_NAME="key_mobile_sites_page_set"                                                         
+  PAGESET_NAME="key_mobile_sites_page_set"
 elif [ "$PAGESETS_TYPE" == "KeySilkCases" ]; then
-  RECORD_TIMEOUT=2700                                                        
-  PAGESET_NAME="key_silk_cases_page_set"                                                         
+  RECORD_TIMEOUT=2700
+  PAGESET_NAME="key_silk_cases_page_set"
 elif [ "$PAGESETS_TYPE" == "GPURasterSet" ]; then                               
   RECORD_TIMEOUT=1800                                                        
-  PAGESET_NAME="gpu_rasterization_page_set"                                                         
+  PAGESET_NAME="gpu_rasterization_page_set"
 else                                                                            
   RECORD_TIMEOUT=300
-  PAGESET_NAME="typical_alexa_page_set"                                                         
+  PAGESET_NAME="typical_alexa_page_set"
 fi
 
 for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
