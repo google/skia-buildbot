@@ -86,7 +86,7 @@ def CheckChange(input_api, output_api):
 
   The following are the presubmit checks:
   * Pylint is run if the change contains any .py files.
-  * Enforces max length for all lines is 80.
+  * Enforces max length for all lines is 100.
   * Checks that the user didn't add TODO(name) without an owner.
   * Checks that there is no stray whitespace at source lines end.
   * Checks that there are no tab characters in any of the text files.
@@ -116,8 +116,11 @@ def CheckChange(input_api, output_api):
       white_list=affected_python_files)
 
   # Use 100 for max length for files other than python. Python length is
-  # already checked during the Pylint above.
-  results += input_api.canned_checks.CheckLongLines(input_api, output_api, 100)
+  # already checked during the Pylint above. No max length for Go files.
+  whitelist = ['go', 'html', 'py']
+  results += input_api.canned_checks.CheckLongLines(input_api, output_api, 100,
+      source_file_filter=lambda x: x.LocalPath().split('.')[-1] not in whitelist
+      )
   results += input_api.canned_checks.CheckChangeTodoHasOwner(
       input_api, output_api)
   results += input_api.canned_checks.CheckChangeHasNoStrayWhitespace(
