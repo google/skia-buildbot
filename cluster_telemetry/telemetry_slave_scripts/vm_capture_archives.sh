@@ -40,13 +40,20 @@ mkdir -p /b/storage/webpages_archive/$PAGESETS_TYPE/
 rm -rf /b/storage/webpages_archive/$PAGESETS_TYPE/*
 
 # Increase the timeout only when pagesets are used which have multiple pages in 
-# them and could thus take longer than the default timeout.                     
-if [ "$PAGESETS_TYPE" == "KeyMobileSites" -o "$PAGESETS_TYPE" == "KeySilkCases" ]; then
+# them and could thus take longer than the default timeout. Also, specify the
+# appropriate names for the page sets when calling record_wpr.
+if [ "$PAGESETS_TYPE" == "KeyMobileSites" ]; then
   RECORD_TIMEOUT=2700                                                        
+  PAGESET_NAME="key_mobile_sites_page_set"                                                         
+elif [ "$PAGESETS_TYPE" == "KeySilkCases" ]; then
+  RECORD_TIMEOUT=2700                                                        
+  PAGESET_NAME="key_silk_cases_page_set"                                                         
 elif [ "$PAGESETS_TYPE" == "GPURasterSet" ]; then                               
   RECORD_TIMEOUT=1800                                                        
+  PAGESET_NAME="gpu_rasterization_page_set"                                                         
 else                                                                            
-  RECORD_TIMEOUT=300                                                         
+  RECORD_TIMEOUT=300
+  PAGESET_NAME="typical_alexa_page_set"                                                         
 fi
 
 for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
@@ -59,7 +66,12 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
       cp  /b/storage/webpages_archive/All/${pageset_filename}* /b/storage/webpages_archive/$PAGESETS_TYPE/
       echo "========== $page_set copied over from All =========="
     else
-      sudo DISPLAY=:0 timeout $RECORD_TIMEOUT src/tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $page_set
+      # Copy the page set into the page_sets directory for record_wpr to find.
+      cp $page_set src/tools/perf/page_sets/$pageset_basename
+      sudo DISPLAY=:0 timeout $RECORD_TIMEOUT src/tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $PAGESET_NAME
+      # Delete the page set from the page_sets directory now that we are done
+      # with it.
+      rm  src/tools/perf/page_sets/$pageset_basename
       if [ $? -eq 124 ]; then
         echo "========== $page_set timed out! =========="
       else

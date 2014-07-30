@@ -30,7 +30,9 @@ if [ $? -eq 1 ]; then
 fi
 
 for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
-  sed -i s/PageWithDefaultRunNavigate/Page/g $page_set
+  sed -i s/"from telemetry.page.actions.all_page_actions import \*"//g $page_set
+  sed -i s/action_runner.RunAction\(ScrollAction\(\)\)/action_runner.ScrollElement\(\)/g $page_set
+  sed -i s/"action_runner.RunAction(RepaintContinuouslyAction({'seconds': 5}))"/"action_runner.RepaintContinuously(seconds=5)"/g $page_set
 done
 
 
