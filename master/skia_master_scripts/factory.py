@@ -197,6 +197,7 @@ class SkiaFactory(BuildFactory):
         '--bench_args', '"%s"' % ' '.join(bench_args),
         '--is_try', str(self._do_patch_step),
         '--bench_pictures_cfg', bench_pictures_cfg,
+        '--issue_number', WithProperties('%(issue:-None)s'),
         ]
     BuildFactory.__init__(self, build_factory_properties=properties)
 
