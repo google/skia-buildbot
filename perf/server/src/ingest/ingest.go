@@ -758,6 +758,6 @@ func RunIngester() {
     if err != nil {
             glog.Errorf("getFiles failed to create storage service: %s\n", err)
     }
-    //IngestForDataset("micro", "stats-json-v2", NewFragmentArrayIter(fragments), cs)
+    IngestForDataset("micro", "stats-json-v2", NewFragmentArrayIter(fragments), cs)
     IngestForDataset("skps", "pics-json-v2", NewFragmentArrayIter(fragments), cs)
 }
