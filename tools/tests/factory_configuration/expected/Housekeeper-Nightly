@@ -32,7 +32,9 @@
         "--is_try", 
         "False", 
         "--bench_pictures_cfg", 
-        "default"
+        "default", 
+        "--issue_number", 
+        "<Object>"
     ], 
     "_configuration": "Debug", 
     "_default_clobber": "<Object>", 
@@ -94,7 +96,9 @@
                     "--is_try", 
                     "False", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "UpdateScripts", 
                 "doStepIf": "<Object>", 
@@ -149,6 +153,8 @@
                     "False", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--gclient_solutions", 
                     "\"['{ \"name\": \"skia\", \"url\": \"https://skia.googlesource.com/skia.git\", \"custom_deps\": {},\"custom_vars\": {},},']\""
                 ], 
@@ -223,7 +229,9 @@
                     "--is_try", 
                     "False", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "CheckGoogleStorageTimestamps", 
                 "doStepIf": "<Object>", 

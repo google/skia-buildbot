@@ -36,7 +36,9 @@
         "--is_try", 
         "True", 
         "--bench_pictures_cfg", 
-        "default"
+        "default", 
+        "--issue_number", 
+        "<Object>"
     ], 
     "_configuration": "Debug", 
     "_default_clobber": "<Object>", 
@@ -98,7 +100,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "UpdateScripts", 
                 "doStepIf": "<Object>", 
@@ -153,6 +157,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--gclient_solutions", 
                     "\"['{ \"name\": \"skia\", \"url\": \"https://skia.googlesource.com/skia.git\", \"custom_deps\": {},\"custom_vars\": {},},']\""
                 ], 
@@ -209,6 +215,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--patch", 
                     "<Object>"
                 ], 
@@ -263,6 +271,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "tools", 
                     "--gyp_defines", 
@@ -321,6 +331,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "gm", 
                     "--gyp_defines", 
@@ -379,6 +391,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "dm", 
                     "--gyp_defines", 
@@ -437,6 +451,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -491,6 +507,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "tools", 
                     "--gyp_defines", 
@@ -549,6 +567,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "gm", 
                     "--gyp_defines", 
@@ -607,6 +627,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "dm", 
                     "--gyp_defines", 
@@ -665,6 +687,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -719,6 +743,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "tools", 
                     "--gyp_defines", 
@@ -777,6 +803,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "gm", 
                     "--gyp_defines", 
@@ -835,6 +863,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "dm", 
                     "--gyp_defines", 
@@ -892,7 +922,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "RunToolSelfTests", 
                 "doStepIf": "<Object>", 
@@ -944,7 +976,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "RunGmSelfTests", 
                 "doStepIf": "<Object>", 
@@ -996,7 +1030,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "RunAndroidPlatformSelfTests", 
                 "doStepIf": "<Object>", 
@@ -1048,7 +1084,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "DetectStaticInitializers", 
                 "doStepIf": "<Object>", 
@@ -1100,7 +1138,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "BuildbotSelfTests", 
                 "doStepIf": "<Object>", 
@@ -1152,7 +1192,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "CheckCompileTimes", 
                 "doStepIf": "<Object>", 

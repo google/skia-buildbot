@@ -34,7 +34,9 @@
         "--is_try", 
         "True", 
         "--bench_pictures_cfg", 
-        "default"
+        "default", 
+        "--issue_number", 
+        "<Object>"
     ], 
     "_configuration": "Release", 
     "_default_clobber": "<Object>", 
@@ -97,7 +99,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "UpdateScripts", 
                 "doStepIf": "<Object>", 
@@ -152,6 +156,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--gclient_solutions", 
                     "\"['{ \"name\": \"skia\", \"url\": \"https://skia.googlesource.com/skia.git\", \"custom_deps\": {},\"custom_vars\": {},},']\""
                 ], 
@@ -208,6 +214,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--patch", 
                     "<Object>"
                 ], 
@@ -261,7 +269,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "DownloadSKPs", 
                 "doStepIf": "<Object>", 
@@ -314,6 +324,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "most", 
                     "--gyp_defines", 
@@ -372,6 +384,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -426,6 +440,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "most", 
                     "--gyp_defines", 
@@ -484,6 +500,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -538,6 +556,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--target", 
                     "most", 
                     "--gyp_defines", 
@@ -596,6 +616,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -649,7 +671,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "DownloadSKImageFiles", 
                 "doStepIf": "<Object>", 
@@ -702,6 +726,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -756,6 +782,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -810,6 +838,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -864,6 +894,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -918,6 +950,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -972,6 +1006,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -1026,6 +1062,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -1080,6 +1118,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--flavor", 
                     "default"
                 ], 
@@ -1133,7 +1173,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "UploadGMResults", 
                 "doStepIf": "<Object>", 
@@ -1185,7 +1227,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "UploadRenderedSKPs", 
                 "doStepIf": "<Object>", 
@@ -1237,7 +1281,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "UploadSKImageResults", 
                 "doStepIf": "<Object>", 
@@ -1289,7 +1335,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "CompareGMs", 
                 "doStepIf": "<Object>", 
@@ -1343,7 +1391,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "CompareRenderedSKPs", 
                 "doStepIf": "<Object>", 

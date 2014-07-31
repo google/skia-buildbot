@@ -32,7 +32,9 @@
         "--is_try", 
         "True", 
         "--bench_pictures_cfg", 
-        "default"
+        "default", 
+        "--issue_number", 
+        "<Object>"
     ], 
     "_configuration": "Debug", 
     "_default_clobber": "<Object>", 
@@ -95,7 +97,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "UpdateScripts", 
                 "doStepIf": "<Object>", 
@@ -150,6 +154,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--gyp_defines", 
                     "skia_warnings_as_errors=0", 
                     "--flavor", 
@@ -209,6 +215,8 @@
                     "True", 
                     "--bench_pictures_cfg", 
                     "default", 
+                    "--issue_number", 
+                    "<Object>", 
                     "--patch", 
                     "<Object>"
                 ], 
@@ -262,7 +270,9 @@
                     "--is_try", 
                     "True", 
                     "--bench_pictures_cfg", 
-                    "default"
+                    "default", 
+                    "--issue_number", 
+                    "<Object>"
                 ], 
                 "description": "AutoRoll", 
                 "doStepIf": "<Object>", 
