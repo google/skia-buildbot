@@ -405,7 +405,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if !omitCommits {
 			guiTile.Commits = make([]*types.Commit, 0, config.TILE_SIZE)
-			for i := range guiTile.Commits {
+			for i := range tile.Commits {
 				// Make sure it's not an empty tile by seeing
 				// if the CommitTime is greater that the default of zero.
 				if tile.Commits[i] != nil && tile.Commits[i].CommitTime > 0 {
