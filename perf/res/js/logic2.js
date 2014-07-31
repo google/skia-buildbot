@@ -499,7 +499,11 @@ var skiaperf = (function() {
         fields.forEach(function(field) {
           if(commit[field[0]]) {
             if(field[0] != 'hash') {
-              noteText += field[1] + ': ' + commit[field[0]] + '<br />';
+              // Replace all newlines with <br />'s.
+              var processedLine = (commit[field[0]] + '').
+                  replace(/\n/g, '<br />');
+              console.log(processedLine);
+              noteText += field[1] + ': ' + processedLine + '<br />';
             } else {
               var hashVal = commit[field[0]];
               noteText += field[1] + ': ' + 
@@ -533,7 +537,10 @@ var skiaperf = (function() {
           fields.forEach(function(field) {
             if(aCommit[field[0]]) {
               if(field[0] != 'hash') {
-                blamelistText += field[1] + ': ' + aCommit[field[0]] + '<br />';
+                // Replace all newlines with <br />'s.
+                var processedLine = (aCommit[field[0]] + '').
+                    replace(/\n/g, '<br />');
+                blamelistText += field[1] + ': ' + processedLine + '<br />';
               } else {
                 var hashVal = aCommit[field[0]];
                 blamelistText += field[1] + ': ' + 
@@ -554,13 +561,13 @@ var skiaperf = (function() {
         annotations[timestampAsString].forEach(function(annotation) {
           var annotationNode = $$$('#annotation').content.cloneNode(true);
           if(annotation['author']) {
-            $$$('#author', annotationNode).textContent = annotation['author'];
+            $$$('.author', annotationNode).textContent = annotation['author'];
           }
           if(annotation['notes']) {
-            $$$('#notes', annotationNode).textContent = annotation['notes'];
+            $$$('.notes', annotationNode).textContent = annotation['notes'];
           }
           // Set the text color based on the alert level.
-          var wrapper = $$$('#wrapper', annotationNode);
+          var wrapper = $$$('.wrapper', annotationNode);
           switch(annotation['type']) {
             case 2:
               wrapper.style.color = 'red';
@@ -574,13 +581,13 @@ var skiaperf = (function() {
           topNode.appendChild(annotationNode);
         });
       }
-      $$$('#info', note).innerHTML = noteText;
-      $$$('#more-info', note).innerHTML = blamelistText;
+      $$$('.info', note).innerHTML = noteText;
+      $$$('.more-info', note).innerHTML = blamelistText;
       note.style.top = item.pageY + 10 + 'px';
       note.style.left = item.pageX + 10 + 'px';
 
       var toggleBlamelist = function(e) {
-        $$$('#more-info', note).classList.toggle('hidden');
+        $$$('.more-info', note).classList.toggle('hidden');
         e.preventDefault();
       };
 
@@ -596,16 +603,31 @@ var skiaperf = (function() {
         if(newActive == note) { return; }
 
         document.body.removeChild(note);
-        $$$('#submit-annotation', note).
+        $$$('.make-solo', note).removeEventListener('click', hideOthers);
+        $$$('.submit-annotation', note).
             removeEventListener('click', submitAnnotation);
-        $$$('#toggle', note).removeEventListener('click', toggleBlamelist);
+        $$$('.toggle', note).removeEventListener('click', toggleBlamelist);
         note.removeEventListener('blur', removeChild);
+      };
+
+      var hideOthers = function() {
+        if (commit) {
+          for(var i = 0; i < traces.length; i++) {
+            traces[i] = {
+              data: traces[i].data,
+              label: traces[i].label,
+              lines: {
+                show: traces[i].label == item.series.label
+              }
+            };
+          }
+        }
       };
 
       var submitAnnotation = function() {
         var submitRequest = new XMLHttpRequest();
-        var annotationUsername = $$$('#username', note).value;
-        var annotationMessage = $$$('#annotation-message', note).value;
+        var annotationUsername = $$$('.username', note).value;
+        var annotationMessage = $$$('.annotation-message', note).value;
         var annotationType = parseInt($$$('input[name=\"annotation-level\"]:checked',
             note).value);
         var annotationHash = '';
@@ -652,9 +674,10 @@ var skiaperf = (function() {
       };
 
 
-      $$$('#submit-annotation', note).
+      $$$('.submit-annotation', note).
           addEventListener('click', submitAnnotation);
-      $$$('#toggle', note).addEventListener('click', toggleBlamelist);
+      $$$('.toggle', note).addEventListener('click', toggleBlamelist);
+      $$$('.make-solo', note).addEventListener('click', hideOthers);
       note.addEventListener('blur', removeChild, true);
       document.body.appendChild(note);
       note.focus();
@@ -667,10 +690,7 @@ var skiaperf = (function() {
     $$$('#zoom').setAttribute('max', 0);
     $$$('#zoom').setAttribute('step', 0.01);
 
-    // Redraw the plot when traces are modified.
-    Object.observe(traces, function(splices) {
-      console.log(splices);
-      plotRef.setData(traces);
+    $$$('#reset-axes').addEventListener('click', function(e) {
       var options = plotRef.getOptions();
       var cleanAxes = function(axis) {
         axis.max = null;
@@ -678,6 +698,17 @@ var skiaperf = (function() {
       };
       options.xaxes.forEach(cleanAxes);
       options.yaxes.forEach(cleanAxes);
+
+      plotRef.setupGrid();
+      plotRef.draw();
+
+      e.preventDefault();
+    });
+
+    // Redraw the plot when traces are modified.
+    Array.observe(traces, function(splices) {
+      console.log(splices);
+      plotRef.setData(traces);
       plotRef.setupGrid();
       plotRef.draw();
 
@@ -986,6 +1017,7 @@ var skiaperf = (function() {
         select.style.width = minWidth + 'em';
         select.style.overflow = 'auto';
         select.setAttribute('multiple', 'yes');
+        select.setAttribute('size', 16);
 
         for (var j = 1; j < queryInfo.params[i].length; j++) {
           var option = document.createElement('option');
@@ -1193,6 +1225,7 @@ var skiaperf = (function() {
           defaultOption.selected = true;
           trybotOptions.appendChild(defaultOption);
 
+          data['dirs'].sort();
           data['dirs'].forEach(function(trybotResult) {
             var newOption = document.createElement('option');
             newOption.value = trybotResult;
@@ -1209,6 +1242,7 @@ var skiaperf = (function() {
 
       var selectedResults = $$$('#trybot option:checked').value;
       if (selectedResults === '') {
+        queryInfo.trybotResults = {};
         return;
       }
       // Grab the trybot results, and replace queryInfo.trybotResults with it.

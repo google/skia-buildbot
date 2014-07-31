@@ -34,11 +34,17 @@
         </div>
         <div>
             <a id="nuke-plot" href="#">Remove all</a>
+            <a id="reset-axes" href="#">Reset axes</a>
             <label>
                 <input id="islog" type="checkbox"></input>
                 Use log scale
             </label>
-            <div id="legend">
+            <form id="trybot-form" action="" method="POST">
+                <select id="trybot">
+                    <option value="">(none)</option>
+                </select>
+           </form>
+           <div id="legend">
                 <table>
                     <tbody>
                         <template id="legend-entry">
@@ -65,45 +71,41 @@
                 <table><tr id="inputs"></tr></table>
                 <input id="add-lines" type="button"
                     value="Add lines"></input>
-                <input type="radio" name="schema-type" value="skps" checked>Perf</input>
+                <input type="radio" name="schema-type" value="skps" checked>SKP Bench</input>
                 <input type="radio" name="schema-type" value="micro">Microbench</input>
             </form>
             <div id="query-text"></div>
-            <form id="trybot-form" action="" method="POST">
-                <select id="trybot">
-                    <option value="">(none)</option>
-                </select>
-            </form>
         </div>
     </div>
     <template id="plot-note">
         <div class="note" tabindex="0">
-            <div id="info">
+            <div class="info">
             </div>
+            <a class="make-solo" href="#">Deselect other lines</a>
             <hr />
             <h4>Previous commits</h4>
-            <div class="hidden" id="more-info">
+            <div class="hidden more-info">
             </div>
-            <a id="toggle" href="#">Expand/shrink</a>
+            <a class="toggle" href="#">Expand/shrink</a>
             <h4>Annotations</h4>
-            <div id="messages">
+            <div class="messages">
             </div>
             <hr />
             <form>
-                <input id="username" type="text" placeholder="Username here"></input><br />
-                <textarea id="annotation-message"></textarea><br />
+                <input class="username" type="text" placeholder="Username here"></input><br />
+                <textarea class="annotation-message"></textarea><br />
                 <input type="radio" name="annotation-level" value="0" checked>Info</input>
                 <input type="radio" name="annotation-level" value="1">Warning</input>
                 <input type="radio" name="annotation-level" value="2">Problem</input>
-                <input id="submit-annotation" type="button" value="Submit annotation note"></input>
+                <input class="submit-annotation" type="button" value="Submit annotation note"></input>
             </form>
         </div>
     </template>
     <template id="annotation">
-        <div id="wrapper">
+        <div class="wrapper">
             <hr />
-            Author: <span id="author">(none?)</span> <br />
-            <span id="notes"></span>
+            Author: <span class="author">(none?)</span> <br />
+            <span class="notes"></span>
         </div>
     </template>
     <div class="notification">
