@@ -7,7 +7,7 @@ import (
 )
 
 import (
-	"config"
+	"skia.googlesource.com/buildbot.git/perf/go/config"
 )
 
 var (
