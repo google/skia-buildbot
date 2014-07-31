@@ -139,7 +139,11 @@ class UploadBenchResults(BuildStep):
                             str(now.day).zfill(2), str(now.hour).zfill(2)))
     gs_dir = '/'.join((gs_subdir, gs_json_path, self._builder_name))
     if self._is_try:
-      gs_dir = '/'.join(('trybot', gs_dir, self._build_number))
+      if (not self._args.get('issue_number') or
+          self._args['issue_number'] == 'None'):
+        raise Exception('issue_number build property is missing!')
+      gs_dir = '/'.join(('trybot', gs_dir, self._build_number,
+                         self._args['issue_number']))
     full_path_to_upload = full_json_path
     file_to_upload = os.path.basename(full_path_to_upload)
     http_header = ['Content-Type:application/json']
