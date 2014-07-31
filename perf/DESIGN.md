@@ -20,6 +20,7 @@ Architecture
 This is the general flow of data for the Skia performance application.
 The frontend is available at http://skiaperf.com.
 
+```
                                          
                +-------------+             
                |             |             
@@ -68,6 +69,8 @@ The frontend is available at http://skiaperf.com.
                  |          |              
                  +----------+              
                                          
+```
+
 Perf is a Go application that serves the HTML, CSS, JS and the JSON representations
 that the JS needs. It loads test results in the form of 'tiles' from the Tile Repo.
 It combines that data with data about commits and annotations from the MySQL data base
