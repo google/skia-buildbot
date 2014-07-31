@@ -33,14 +33,16 @@ class RunDM(BuildStep):
     if self._AnyMatch('Xoom'):
       match.append('~WritePixels')  # skia:1699
 
-    if self._AllMatch('10.6', 'Debug'):
-      # Not sure what's failing exactly, so disable DM entirely.
-      run_dm = False
+    # Disabling blacklisting to evaluate what's still failing.
 
-    if (self._AnyMatch('Android')
-            and not self._AnyMatch('Nexus7', 'Xoom', 'IntelRhb')):
-      # Lots of failures.  Whitelist what's passing.
-      run_dm = False
+    #if self._AllMatch('10.6', 'Debug'):
+    #  # Not sure what's failing exactly, so disable DM entirely.
+    #  run_dm = False
+
+    #if (self._AnyMatch('Android')
+    #        and not self._AnyMatch('Nexus7', 'Xoom', 'IntelRhb')):
+    #  # Lots of failures.  Whitelist what's passing.
+    #  run_dm = False
 
     if match:
       args.append('--match')
