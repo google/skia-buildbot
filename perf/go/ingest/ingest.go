@@ -424,22 +424,36 @@ func NewJSONv2FileIter(uri string, dataset config.DatasetName) *JSONv2FileIter {
 		currentRecord: nil,
 		dataset:       dataset,
 	}
-	request, err := gs.RequestForStorageURL(uri)
-	if err != nil {
-		glog.Errorf("Unable to create Storage MediaURI request: %s\n", err)
-		return newIter
+	var buf *bytes.Buffer
+	curNumTries := 0
+	success := false
+	for !success && curNumTries < config.MAX_URI_GET_TRIES {
+		curNumTries += 1
+		request, err := gs.RequestForStorageURL(uri)
+		if err != nil {
+			glog.Errorf("Unable to create Storage MediaURI request: %s\n", err)
+			continue
+		}
+		resp, err := http.DefaultClient.Do(request)
+		defer resp.Body.Close()
+		if err != nil {
+			glog.Errorf("Unable to retrieve URI while creating file iterator: %s", err)
+			continue
+		}
+		if resp.StatusCode != 200 {
+			glog.Errorln("URI retrieval failed")
+			continue
+		}
+		buf = new(bytes.Buffer)
+		_, err = buf.ReadFrom(resp.Body)
+		if err != nil {
+			glog.Errorf("Unable to read from response body while creating file iterator: %s", err)
+			continue
+		}
+		success = true
 	}
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		glog.Errorf("Unable to retrieve URI while creating file iterator: %s", err)
-		return newIter
-	}
-	defer resp.Body.Close()
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(resp.Body)
-	if err != nil {
-		glog.Errorf("Unable to read from response body while creating file iterator: %s", err)
-		return newIter
+	if !success {
+		return nil
 	}
 	newIter.records = strings.Split(buf.String(), "\n")
 	return newIter
@@ -483,7 +497,7 @@ type JSONv2FilesIter struct {
 	currentIter *JSONv2FileIter
 	// dataset stores the dataset name this iterator belongs to.
 	dataset config.DatasetName
-	// uris stores the URIs left to retrieve and parse
+	// uris stores the URIs left to retrieve and parse.
 	uris []string
 }
 

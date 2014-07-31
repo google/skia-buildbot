@@ -50,6 +50,9 @@ const (
 	// Limit the number of commits we hold in memory and do bulk analysis on.
 	MAX_COMMITS_IN_MEMORY = 32
 
+	// Limit the number of times the ingester tries to get a file before giving up.
+	MAX_URI_GET_TRIES = 4
+
 	// How often data is refreshed from BigQuery.
 	// TODO(jcgregorio) Move to push once it's feasible.
 	REFRESH_PERIOD = time.Minute * 30
