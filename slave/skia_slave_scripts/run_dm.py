@@ -37,12 +37,9 @@ class RunDM(BuildStep):
       # Not sure what's failing exactly, so disable DM entirely.
       run_dm = False
 
-    if self._AllMatch('IntelRhb'):
-      # Problem dynamically linking to libskia.so?
-      run_dm = False
-
-    if self._AnyMatch('Android') and not self._AnyMatch('Nexus7', 'Xoom'):
-      # Lots of failures.  Temporarily whitelist N7 and Xoom, which are passing.
+    if (self._AnyMatch('Android')
+            and not self._AnyMatch('Nexus7', 'Xoom', 'IntelRhb')):
+      # Lots of failures.  Whitelist what's passing.
       run_dm = False
 
     if match:
