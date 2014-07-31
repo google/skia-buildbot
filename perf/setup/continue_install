@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Don't execute this script directly, instead it is copied into the perf
+# user's directory and executed as the user perf by the perf_setup.sh
+# script.
+#
+# See the README file for detailed installation instructions.
+cd
+pwd
+
+# Install Go
+if [ -d go ]; then
+  echo Go already installed.
+else
+  wget https://go.googlecode.com/files/go1.2.1.linux-amd64.tar.gz
+  tar -xzf go1.2.1.linux-amd64.tar.gz
+fi
+
+
+if [ -d buildbot ]; then
+  (cd buildbot && git pull);
+else
+  git clone https://skia.googlesource.com/buildbot
+fi
+
+mkdir=/tmp/glog
+mkdir=$HOME/golib
+export GOROOT=$HOME/go
+export GOPATH=$HOME/golib
+export PATH=$PATH:$GOROOT/bin
+
+go get -u skia.googlesource.com/buildbot.git/
+go install skia.googlesource.com/buildbot.git/perf/go/skiaperf
+go install skia.googlesource.com/buildbot.git/perf/go/ingest
+go install skia.googlesource.com/buildbot.git/perf/go/tilebuilder
+go install skia.googlesource.com/buildbot.git/perf/go/logserver
+
+# Stil need to run make to build the JS.
+cd $GOPATH/src/skia.googlesource.com/buildbot.git/perf/
+make

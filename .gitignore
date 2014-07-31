@@ -41,18 +41,12 @@ tools/tests/factory_configuration/actual/
 .project
 .pydevproject
 # Server executables/config
-perf/server/bqtoken.data
-perf/server/perf
-perf/server/perf.db
-perf/server/data
-perf/server/server
-perf/server/tilebuilder
-perf/server/tiletool
-perf/server/ingest
-perf/server/timestamp.json
-perf/server/ingestbqtoken.data
-perf/server/third_party
-perf/server/node_modules
-perf/server/res/js/perf.js
-perf/server/res/js/perf-debug.js
-perf/server/res/css/perf.css
+perf/bqtoken.data
+perf/perf.db
+perf/timestamp.json
+perf/ingestbqtoken.data
+perf/third_party
+perf/node_modules
+perf/res/js/perf.js
+perf/res/js/perf-debug.js
+perf/res/css/perf.css
