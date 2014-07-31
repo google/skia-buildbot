@@ -362,6 +362,10 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	omitParams := r.FormValue("omit_params") != ""
 	omitNames := r.FormValue("omit_names") != ""
 	paramList, ok := config.KEY_PARAM_ORDER[dataset]
+	if !ok {
+		reportError(w, r, err, "Unable to read parameter list for dataset: ")
+		return
+	}
 
 	allTiles := TilesResponse{Tiles: make([]*types.TileGUI, 0, len(tileNumbers))}
 	for _, tileNumber := range tileNumbers {
@@ -371,10 +375,6 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		guiTile := types.NewGUITile(tile.Scale, tile.TileIndex)
-		if !ok {
-			reportError(w, r, err, "Unable to read parameter list for dataset: ")
-			return
-		}
 		for _, keyName := range tracesRequested {
 			if len(keyName) <= 0 {
 				continue
