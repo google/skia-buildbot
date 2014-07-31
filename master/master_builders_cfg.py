@@ -81,7 +81,6 @@ GYP_GDI = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
 GYP_EXC = repr({'skia_win_debuggers_path': 'c:/DbgHelp',
                 'qt_sdk': 'C:/Qt/4.8.5/',
                 'skia_win_exceptions': '1'})
-GYP_10_6 = repr({'skia_osx_sdkroot': 'macosx10.6'})
 GYP_IOS = repr({'skia_os': 'ios'})
 NO_GPU = repr({'skia_gpu': '0'})
 CLANG = repr({'skia_clang_build': '1'})
@@ -300,12 +299,12 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
       ('Test', 'Ubuntu13.10', 'ShuttleA',   'NoGPU',       'x86_64', 'Debug',   None,           NO_GPU,    f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Test', 'Ubuntu13.10', 'GCE',        'NoGPU',       'x86_64', 'Debug',   'ASAN',         NO_GPU,    f_xsan,    LINUX,  S_PERCOMMIT,     {'sanitizer': 'address'}),
       ('Test', 'Ubuntu13.10', 'GCE',        'NoGPU',       'x86_64', 'Release', 'TSAN',         NO_GPU,    f_xsan,    LINUX,  S_PERCOMMIT,     {'sanitizer': 'thread'}),
-      ('Test', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT,     {}),
-      ('Test', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT,     {}),
-      ('Perf', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT, {}),
-      ('Test', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT,     {}),
-      ('Test', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT,     {}),
-      ('Perf', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           GYP_10_6,  f_factory, MAC,    S_PERCOMMIT,     {}),
+      ('Test', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
+      ('Test', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
+      ('Perf', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
+      ('Test', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
+      ('Test', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
+      ('Perf', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
       ('Test', 'Mac10.7',     'MacMini4.1', 'GeForce320M', 'x86',    'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
       ('Test', 'Mac10.7',     'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
       ('Perf', 'Mac10.7',     'MacMini4.1', 'GeForce320M', 'x86',    'Release', None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),

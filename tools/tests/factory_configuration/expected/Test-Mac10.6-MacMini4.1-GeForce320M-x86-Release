@@ -51,7 +51,6 @@
     ], 
     "_gyp_defines": {
         "skia_arch_width": "32", 
-        "skia_osx_sdkroot": "macosx10.6", 
         "skia_warnings_as_errors": "0"
     }, 
     "_make_flags": [], 
@@ -274,7 +273,7 @@
                     "--target", 
                     "most", 
                     "--gyp_defines", 
-                    "skia_arch_width=32 skia_osx_sdkroot=macosx10.6 skia_warnings_as_errors=0", 
+                    "skia_arch_width=32 skia_warnings_as_errors=0", 
                     "--flavor", 
                     "default"
                 ], 
@@ -390,7 +389,7 @@
                     "--target", 
                     "most", 
                     "--gyp_defines", 
-                    "skia_arch_width=32 skia_osx_sdkroot=macosx10.6 skia_warnings_as_errors=0", 
+                    "skia_arch_width=32 skia_warnings_as_errors=0", 
                     "--flavor", 
                     "default"
                 ], 
@@ -506,7 +505,7 @@
                     "--target", 
                     "most", 
                     "--gyp_defines", 
-                    "skia_arch_width=32 skia_osx_sdkroot=macosx10.6 skia_warnings_as_errors=0", 
+                    "skia_arch_width=32 skia_warnings_as_errors=0", 
                     "--flavor", 
                     "default"
                 ], 
