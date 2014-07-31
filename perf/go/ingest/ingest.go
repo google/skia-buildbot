@@ -77,7 +77,7 @@ const (
 func Init() {
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
 	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
-	addr, _ := net.ResolveTCPAddr("tcp", "jcgregorio.cnc:2003")
+	addr, _ := net.ResolveTCPAddr("tcp", "skia-monitoring-b:2003")
 	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "ingest", addr)
 
 	for _, dataset := range config.ALL_DATASET_NAMES {
