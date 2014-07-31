@@ -8,6 +8,8 @@
 .gclient*
 # common code
 common
+# TAGS
+*TAGS
 # Files created when running as a master.
 master/Build-*
 master/Canary-*

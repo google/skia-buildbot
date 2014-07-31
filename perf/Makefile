@@ -50,3 +50,6 @@ lint:
 
 .PHONY: all
 all: build tilebuilder ingest tool logs
+
+TAGS:
+	etags --recurse res/ go/

@@ -36,6 +36,9 @@ func validateTile(tile *types.Tile, oldestTS int64) error {
 		if *echoHashes {
 			fmt.Println("Hash:", c.Hash, c.CommitTime)
 		}
+		if c.CommitTime == 0 {
+			continue
+		}
 		if c.CommitTime > oldestTS {
 			fmt.Printf("ERROR: Tiles out of order: Commit (%s) %d timestamp is %s, which appears after %s\n", c.Hash, i, time.Unix(c.CommitTime, 0), time.Unix(oldestTS, 0))
 		}
