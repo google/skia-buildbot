@@ -7,10 +7,6 @@ import (
 )
 
 import (
-	"github.com/golang/glog"
-)
-
-import (
 	"config"
 )
 

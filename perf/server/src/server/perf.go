@@ -387,7 +387,9 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			newTraceData := make([][2]float64, 0)
 			for i, traceVal := range rawTrace.Values {
-				if traceVal != config.MISSING_DATA_SENTINEL && tile.Commits[i] != nil {
+				// Make sure it's not an empty tile by seeing
+				// if the CommitTime is greater that the default of zero.
+				if traceVal != config.MISSING_DATA_SENTINEL && tile.Commits[i] != nil && tile.Commits[i].CommitTime > 0 {
 					newTraceData = append(newTraceData, [2]float64{
 						float64(tile.Commits[i].CommitTime),
 						traceVal,
@@ -403,7 +405,14 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if !omitCommits {
-			guiTile.Commits = tile.Commits
+			guiTile.Commits = make([]*types.Commit, 0, config.TILE_SIZE)
+			for i := range guiTile.Commits {
+				// Make sure it's not an empty tile by seeing
+				// if the CommitTime is greater that the default of zero.
+				if tile.Commits[i] != nil && tile.Commits[i].CommitTime > 0 {
+					guiTile.Commits = append(guiTile.Commits, tile.Commits[i])
+				}
+			}
 		}
 		if !omitNames {
 			for key, _ := range tile.Traces {
