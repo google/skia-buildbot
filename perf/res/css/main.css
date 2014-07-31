@@ -99,3 +99,10 @@ td {
     height: 0;
     overflow: hidden;
 }
+
+.plot-label {
+    position: absolute;
+    border: 1px solid black;
+    background-color: white;
+    padding: 8px;
+}

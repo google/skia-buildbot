@@ -176,6 +176,12 @@ var skiaperf = (function() {
     var isLogPlot = false;
 
     /**
+     * Stores the name of the currently selected line, used in the drawSeries
+     * hook to highlight that line.
+     */
+    var curHighlightedLine = null;
+
+    /**
      * Draws vertical lines that pass through the times of the loaded annotations.
      * Declared here so it can be used in plotRef's initialization.
      */
@@ -279,6 +285,23 @@ var skiaperf = (function() {
     };
 
     /**
+     * Hook for drawSeries.
+     * If curHighlightedLine is not null, drawHighlightedLine highlights
+     * the line by increasing its line width.
+     */
+    var drawHighlightedLine = function(plot, canvascontext, series) {
+      if (!series.lines) { 
+        series.lines = {};
+      }
+      series.lines.lineWidth = series.label == curHighlightedLine ? 5 : 2;
+
+      if (!series.points) {
+        series.points = {};
+      }
+      series.points.show = (series.label == curHighlightedLine);
+    };
+
+    /**
      * Reference to the underlying Flot plot object.
      */
     var plotRef = $('#chart').plot([],
@@ -344,7 +367,8 @@ var skiaperf = (function() {
             frameRate: 60
           },
           hooks: {
-            draw: [drawAnnotations, drawTrybotResults]
+            draw: [drawAnnotations, drawTrybotResults],
+            drawSeries: [drawHighlightedLine]
           }
         }).data('plot');
 
@@ -387,6 +411,75 @@ var skiaperf = (function() {
       }
     });
 
+    $('#chart').bind('plothover', (function() {
+      var lastLabel = null;
+      return function(evt, pos, item) {
+        if (traces.length > 0 && pos.x && pos.y) {
+          // Find the trace with the closest perpendicular distance, and
+          // highlight the trace if it's within N units of pos.
+          var closestTraceIndex = 0;
+          var closestDistance = Number.POSITIVE_INFINITY;
+          for (var i = 0; i < traces.length; i++) {
+            var curTraceData = traces[i].data;
+            if (curTraceData.length <= 1) { continue; }
+            var j = 1;
+            // Find the pair of datapoints where 
+            // data[j-1][0] < pos.x < data[j][0].
+            // We want j to also never equal curTraceData.length, so we limit
+            // it to curTraceData.length - 1.
+            while(j < curTraceData.length - 1 && curTraceData[j][0] < pos.x) {
+              j++;
+            }
+            // Make sure j - 1 >= 0.
+            if (j == 0) { j ++; }
+            var xDelta = curTraceData[j][0] - curTraceData[j - 1][0];
+            var yDelta = curTraceData[j][1] - curTraceData[j - 1][1];
+            var lenDelta = Math.sqrt(xDelta*xDelta + yDelta*yDelta);
+            // assert(lenDelta > 0);
+            var perpDist = Math.abs(((pos.x - curTraceData[j][0]) * yDelta -
+                (pos.y - curTraceData[j][1]) * xDelta) / lenDelta);
+            if (perpDist < closestDistance) {
+              closestTraceIndex = i;
+              closestDistance = perpDist;
+            }
+            // Using the perpendicular distance may actually be overkill, come
+            // to think of it...
+          }
+
+          var lastHighlightedLine = curHighlightedLine;
+          // Remove the old label.
+          if (lastLabel) { 
+            document.body.removeChild(lastLabel); 
+            lastLabel = null;
+            curHighlightedLine = null;
+          }
+
+          var yaxis = plotRef.getAxes().yaxis;
+          var maxDist = 0.15 * (yaxis.max - yaxis.min);
+          if (closestDistance < maxDist) {
+            // Highlight that trace.
+            // Okay, trace highlighting doesn't actually work without a plugin.
+            // Should I look for a plugin to do this?
+
+            // For now I'll just stick a div with the plot label to the right
+            // of the plot.
+            var labelDiv = document.createElement('div');
+            labelDiv.style.top = pos.pageY + 'px';
+            labelDiv.style.left = (plotRef.getPlotOffset().left +
+                plotRef.width() + 20) + 'px';
+            labelDiv.classList.add('plot-label');
+            labelDiv.textContent = traces[closestTraceIndex].label;
+            document.body.appendChild(labelDiv);
+            lastLabel = labelDiv;
+            curHighlightedLine = traces[closestTraceIndex].label;
+          }
+          if (lastHighlightedLine != curHighlightedLine) {
+            plotRef.draw();
+          }
+        }
+      };
+    }()));
+
     $('#chart').bind('plotclick', function(evt, pos, item) {
       if(!item) { return; }
       var noteFragment = $$$('#plot-note').content.cloneNode(true);
@@ -399,7 +492,8 @@ var skiaperf = (function() {
                     ['commit_msg', 'Commit message']];
       var timestamp = parseInt(item.datapoint[0]) + '';
       var commit = commitData[timestamp];
-      noteText = 'Value: ' + item.datapoint[1] + '<br />';
+      noteText = 'Trace: ' + item.series.label + '<br />';
+      noteText += 'Value: ' + item.datapoint[1] + '<br />';
       if(commit) {
         console.log(commit);
         fields.forEach(function(field) {
@@ -574,7 +668,7 @@ var skiaperf = (function() {
     $$$('#zoom').setAttribute('step', 0.01);
 
     // Redraw the plot when traces are modified.
-    Array.observe(traces, function(splices) {
+    Object.observe(traces, function(splices) {
       console.log(splices);
       plotRef.setData(traces);
       var options = plotRef.getOptions();
