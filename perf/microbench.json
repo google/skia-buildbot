@@ -25,13 +25,13 @@
             "type": "STRING"
         },
         {
-            "name": "is_trybot",
-            "type": "BOOLEAN"
-        },
-        {
             "name": "params",
             "type": "RECORD",
             "fields": [
+                {
+                    "name": "is_trybot",
+                    "type": "BOOLEAN"
+                },
                 {
                     "name": "builderName",
                     "type": "STRING"
