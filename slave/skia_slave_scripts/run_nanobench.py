@@ -59,7 +59,9 @@ class RunNanobench(BuildStep):
     return all(arg in self._builder_name for arg in args)
 
   def _Run(self):
-    args = ['-i', self._device_dirs.ResourceDir()]
+    args = ['-i', self._device_dirs.ResourceDir(),
+            '--skps', self._device_dirs.SKPDir(),
+            '--scales', '1.0', '1.1']
     if self._perf_data_dir:
       args.extend([
         '--outResultsFile', self._JSONPath(),
