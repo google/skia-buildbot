@@ -33,16 +33,10 @@ class RunDM(BuildStep):
     if self._AnyMatch('Xoom'):
       match.append('~WritePixels')  # skia:1699
 
-    # Disabling blacklisting to evaluate what's still failing.
-
-    #if self._AllMatch('10.6', 'Debug'):
-    #  # Not sure what's failing exactly, so disable DM entirely.
-    #  run_dm = False
-
-    #if (self._AnyMatch('Android')
-    #        and not self._AnyMatch('Nexus7', 'Xoom', 'IntelRhb')):
-    #  # Lots of failures.  Whitelist what's passing.
-    #  run_dm = False
+    # Nexus S and Galaxy Nexus are still crashing.
+    # Maybe the GPU's the problem?
+    if self._AnyMatch('SGX540'):
+      args.append('--nogpu')
 
     if match:
       args.append('--match')
