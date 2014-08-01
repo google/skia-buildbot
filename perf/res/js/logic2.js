@@ -1056,9 +1056,12 @@ var skiaperf = (function() {
       }
       console.log(allTraces);
 
-      var pushToTraces = function(data) {
-        var newTileNums = [];
-        var traceData = {};
+      var chunksLeft = 0;
+
+      var newTileNums = [];
+      var traceData = {};
+
+      var processData = function(data) {
         console.log(data);
         // Process the new data.
         if(data['tiles']) {
@@ -1078,7 +1081,17 @@ var skiaperf = (function() {
             }
           });
         }
+      };
 
+      var loadData = function(data) {
+        processData(data);
+        chunksLeft--;
+        if (chunksLeft <= 0) {
+          pushToTraces();
+        }
+      };
+
+      var pushToTraces = function() {
         // Clear out the old trace data
         while(traces.length > 0) { traces.pop(); }
 
@@ -1113,12 +1126,21 @@ var skiaperf = (function() {
         });
       };
 
-      dataset.requestTiles(pushToTraces, {
-        'traces': allTraces,    // This tells it to get trace data.
-        'omit_commits': true,   // These should get turned into strings
-        'omit_params': true,    // within requestTiles. 
-        'omit_names': true      // Automatic type conversion!
-      });
+      // Chunk the trace names into sets of 50, and send a new request for each
+      // chunk. This is to avoid hitting the URI length limit.
+      for (var i = 0; i < allTraces.length; i += 50) {
+        chunksLeft++;
+        dataset.requestTiles(loadData, {
+          // This tells it to get trace data.
+          'traces': allTraces.slice(i, i + 50),
+          // These should get turned into strings
+          // within requestTiles. 
+          // Automatic type conversion!
+          'omit_commits': true,
+          'omit_params': true,
+          'omit_names': true
+        });
+      }
     };
 
     // Add handlers to the query controls.

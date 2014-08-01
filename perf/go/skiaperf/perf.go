@@ -66,6 +66,7 @@ var (
 	gitRepoDir   = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	tileDir      = flag.String("tile_dir", "/tmp/tiles", "What directory to look for tiles in.")
 	tileStoreDir = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tilebuilder tiles in.")
+	noBq         = flag.Bool("nobq", false, "Turns off the BQ section of the trace handlers.")
 )
 
 var (
@@ -511,7 +512,9 @@ func main() {
 	db.Init()
 	glog.Infoln("Begin loading data.")
 	var err error
-	data, err = NewData(*doOauth, *gitRepoDir, *tileDir)
+	if !*noBq {
+		data, err = NewData(*doOauth, *gitRepoDir, *tileDir)
+	}
 	if err != nil {
 		glog.Fatalln("Failed initial load of data from BigQuery: ", err)
 	}
