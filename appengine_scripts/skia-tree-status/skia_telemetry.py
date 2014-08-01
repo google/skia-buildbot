@@ -33,7 +33,7 @@ PAGESET_TYPES = {
     'Mobile10k': 'Top 10k (with mobile user-agent)',
     'IndexSample10k': 'IndexSample 10k (with mobile user-agent)',
     'GPURasterSet': 'GPU Raster Set (with mobile user-agent)',
-    'KeyMobileSites': 'Key Mobile Sites (with mobile user-agent)',
+    # 'KeyMobileSites': 'Key Mobile Sites (with mobile user-agent)',
     'KeySilkCases': 'Key Silk Cases (with mobile user-agent)',
 }
 
