@@ -25,6 +25,10 @@
             "type": "STRING"
         },
         {
+            "name": "isTrybot",
+            "type": "BOOLEAN"
+        },
+        {
             "name": "params",
             "type": "RECORD",
             "fields": [
