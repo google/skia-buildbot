@@ -524,7 +524,9 @@ func main() {
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc("/index2", autogzip.HandleFunc(main2Handler))
-	http.HandleFunc("/json/", jsonHandler) // We pre-gzip this ourselves.
+	if !*noBq {
+		http.HandleFunc("/json/", jsonHandler) // We pre-gzip this ourselves.
+	}
 	http.HandleFunc("/shortcuts/", shortcutHandler)
 	http.HandleFunc("/tiles/", tileHandler)
 	http.HandleFunc("/trybots/", autogzip.HandleFunc(trybotHandler))
