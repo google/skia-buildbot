@@ -91,10 +91,8 @@
             </div>
             <a class="make-solo" href="#">Deselect other lines</a>
             <hr />
-            <h4>Previous commits</h4>
-            <div class="hidden more-info">
+            <div class="more-info">
             </div>
-            <a class="toggle" href="#">Expand/shrink</a>
             <h4>Annotations</h4>
             <div class="messages">
             </div>
@@ -108,6 +106,14 @@
                 <input class="submit-annotation" type="button" value="Submit annotation note"></input>
             </form>
         </div>
+    </template>
+    <template id="expandable">
+        <span class="visible">
+        </span>
+        <details>
+            <summary>See more</summary>
+            <span class="expandable"></span>
+        </details>
     </template>
     <template id="annotation">
         <div class="wrapper">

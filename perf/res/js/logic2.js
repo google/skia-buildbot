@@ -421,7 +421,9 @@ var skiaperf = (function() {
           var closestDistance = Number.POSITIVE_INFINITY;
           for (var i = 0; i < traces.length; i++) {
             var curTraceData = traces[i].data;
-            if (curTraceData.length <= 1) { continue; }
+            if (curTraceData.length <= 1 || !traces[i].lines.show) {
+              continue;
+            }
             var j = 1;
             // Find the pair of datapoints where 
             // data[j-1][0] < pos.x < data[j][0].
@@ -480,40 +482,70 @@ var skiaperf = (function() {
       };
     }()));
 
+    // escapeNewlines replaces newlines with <br />'s
+    var escapeNewlines = function(str) {
+      return (str + '').replace(/\n/g, '<br />');
+    }
+
+    // makeCommitBlock uses the timestamp and traceName, and fills in the
+    // parentDiv with the relevant data. Returns true on success, false on no data.
+    var makeCommitBlock = function(parentDiv, timestamp) {
+      var noteText = '';
+      var alwaysVisibleFields = [['author', 'Author'],
+                    ['commit_msg', 'Commit message']];
+      var hiddenFields = [['commit_msg', 'Commit message'],
+                    ['commit_time', 'Commit time'],
+                    ['hash', 'Commit hash'],
+                    ['git_number', 'Git number']];
+      var commit = commitData[timestamp];
+      if (!commit) { return false; }
+      var expandTemplate = $$$('#expandable').content.cloneNode(true);
+      var visibleText = '';
+      var hiddenText = '';
+      alwaysVisibleFields.forEach(function(field) {
+        if (commit[field[0]]) {
+          if (field[0] != 'commit_msg') {
+            visibleText += field[1] + ': ' + escapeNewlines(commit[field[0]]) +
+                '<br />';
+          } else {
+            visibleText += 'Commit message: ' +
+                commit['commit_msg'].split('\n')[0];
+          }
+        }
+      });
+      hiddenFields.forEach(function(field) {
+        if (commit[field[0]]) {
+          if (field[0] == 'commit_msg') {
+            hiddenText += commit['commit_msg'].
+                split('\n').slice(1).join('<br />') + '<br />';
+          } else if (field[0] == 'hash') {
+            var hashVal = commit['hash'];
+            hiddenText += field[1] + ': ' + 
+                '<a href=https://skia.googlesource.com/skia/+/' + hashVal + 
+                '>' + hashVal + '</a><br />';
+          } else {
+            hiddenText += field[1] + ': ' + escapeNewlines(commit[field[0]]) +
+                '<br />';
+          }
+        }
+      });
+      $$$('.visible', expandTemplate).innerHTML = visibleText;
+      var expandableSpan = $$$('.expandable', expandTemplate);
+      expandableSpan.innerHTML = hiddenText;
+      parentDiv.appendChild(expandTemplate);
+      return true;
+    };
+
     $('#chart').bind('plotclick', function(evt, pos, item) {
       if(!item) { return; }
       var noteFragment = $$$('#plot-note').content.cloneNode(true);
       var note = $$$('.note', noteFragment);
-      var noteText = '';
-      var fields = [['commit_time', 'Commit time'],
-                    ['hash', 'Commit hash'],
-                    ['git_number', 'Git number'],
-                    ['author', 'Author'],
-                    ['commit_msg', 'Commit message']];
-      var timestamp = parseInt(item.datapoint[0]) + '';
-      var commit = commitData[timestamp];
-      noteText = 'Trace: ' + item.series.label + '<br />';
-      noteText += 'Value: ' + item.datapoint[1] + '<br />';
-      if(commit) {
-        console.log(commit);
-        fields.forEach(function(field) {
-          if(commit[field[0]]) {
-            if(field[0] != 'hash') {
-              // Replace all newlines with <br />'s.
-              var processedLine = (commit[field[0]] + '').
-                  replace(/\n/g, '<br />');
-              console.log(processedLine);
-              noteText += field[1] + ': ' + processedLine + '<br />';
-            } else {
-              var hashVal = commit[field[0]];
-              noteText += field[1] + ': ' + 
-                  '<a href=https://skia.googlesource.com/skia/+/' + hashVal + 
-                  '>' + hashVal + '</a><br />';
-            }
-          }
-        });
-      } else {
-        noteText += 'Commit time: ' + parseInt(item.datapoint[0]) + '<br />';
+      var topSection = $$$('.info', noteFragment);
+      topSection.innerHTML = 'Trace: ' + item.series.label +
+          '<br />Value: ' + item.datapoint[1] + '<br />';
+      var timestamp = parseInt(item.datapoint[0] + '');
+      if (!makeCommitBlock(topSection, timestamp)) {
+        topSection.innerHTML += 'Commit time: ' + timestamp + '<br />';
       }
       // Get data from commits between this commit and the last one.
       var blamelistText = '';
@@ -521,6 +553,7 @@ var skiaperf = (function() {
       for (var i = -1; seriesData[i + 1][0] < parseInt(item.datapoint[0]) && i + 1 < seriesData.length; i++) {
       }
       if (i >= 0 && i < seriesData.length) {
+        var moreInfo = $$$('.more-info', noteFragment);
         var lastTimestamp = item.series.data[i][0];
         var tailCommits = Object.keys(commitData).filter(function(timestamp) {
           return parseInt(timestamp) > lastTimestamp && 
@@ -534,25 +567,10 @@ var skiaperf = (function() {
           return b.commit_time - a.commit_time;
         });
         blamelistData.forEach(function(aCommit) {
-          fields.forEach(function(field) {
-            if(aCommit[field[0]]) {
-              if(field[0] != 'hash') {
-                // Replace all newlines with <br />'s.
-                var processedLine = (aCommit[field[0]] + '').
-                    replace(/\n/g, '<br />');
-                blamelistText += field[1] + ': ' + processedLine + '<br />';
-              } else {
-                var hashVal = aCommit[field[0]];
-                blamelistText += field[1] + ': ' + 
-                    '<a href=https://skia.googlesource.com/skia/+/' + hashVal + 
-                    '>' + hashVal + '</a><br />';
-              }
-            }
-          });
-          blamelistText += '<hr />';
+          makeCommitBlock(moreInfo, aCommit.commit_time);
+          moreInfo.appendChild(document.createElement('hr'));
         });
       }
-      console.log(blamelistText);
 
       // Add annotations
       var timestampAsString = parseInt(item.datapoint[0]) + '';
@@ -581,16 +599,8 @@ var skiaperf = (function() {
           topNode.appendChild(annotationNode);
         });
       }
-      $$$('.info', note).innerHTML = noteText;
-      $$$('.more-info', note).innerHTML = blamelistText;
       note.style.top = item.pageY + 10 + 'px';
       note.style.left = item.pageX + 10 + 'px';
-
-      var toggleBlamelist = function(e) {
-        $$$('.more-info', note).classList.toggle('hidden');
-        e.preventDefault();
-      };
-
 
       var removeChild = function(e) {
         var newActive = e.relatedTarget;
@@ -604,14 +614,12 @@ var skiaperf = (function() {
 
         document.body.removeChild(note);
         $$$('.make-solo', note).removeEventListener('click', hideOthers);
-        $$$('.submit-annotation', note).
-            removeEventListener('click', submitAnnotation);
-        $$$('.toggle', note).removeEventListener('click', toggleBlamelist);
+        $$$('.submit-annotation', note).removeEventListener('click', submitAnnotation);
         note.removeEventListener('blur', removeChild);
       };
 
       var hideOthers = function() {
-        if (commit) {
+        if (commitData[timestamp]) {
           for(var i = 0; i < traces.length; i++) {
             traces[i] = {
               data: traces[i].data,
@@ -676,7 +684,6 @@ var skiaperf = (function() {
 
       $$$('.submit-annotation', note).
           addEventListener('click', submitAnnotation);
-      $$$('.toggle', note).addEventListener('click', toggleBlamelist);
       $$$('.make-solo', note).addEventListener('click', hideOthers);
       note.addEventListener('blur', removeChild, true);
       document.body.appendChild(note);

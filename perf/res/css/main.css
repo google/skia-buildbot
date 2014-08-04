@@ -54,6 +54,7 @@ td {
     padding: 1em; 
     position: absolute;
     background-color: white;
+    z-index: 1000;
 }
 
 .hidden {
@@ -101,6 +102,7 @@ td {
 }
 
 .plot-label {
+    z-index: -1;
     position: absolute;
     border: 1px solid black;
     background-color: white;
