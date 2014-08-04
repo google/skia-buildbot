@@ -107,11 +107,13 @@ import (
 var (
 	elapsedTimePerUpdate metrics.Timer
 	perfMetricsProcessed metrics.Counter
+	client               *http.Client
 )
 
 func Init() {
 	elapsedTimePerUpdate = metrics.NewRegisteredTimer("ingester.nano.update", metrics.DefaultRegistry)
 	perfMetricsProcessed = metrics.NewRegisteredCounter("ingester.nano.processed", metrics.DefaultRegistry)
+	client = util.NewTimeoutClient()
 }
 
 // Ingester does the work of loading JSON files from Google Storage and putting
@@ -520,7 +522,7 @@ func (b BenchFile) FetchAndParse() (*BenchData, error) {
 			glog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
 			continue
 		}
-		resp, err := http.DefaultClient.Do(request)
+		resp, err := client.Do(request)
 		if err != nil {
 			glog.Warningf("Unable to retrieve URI while creating file iterator: %s", err)
 			continue

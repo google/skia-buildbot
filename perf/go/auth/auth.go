@@ -1,16 +1,15 @@
 package auth
 
 import (
-	"code.google.com/p/goauth2/oauth"
 	"fmt"
 	"net"
 	"net/http"
 	"time"
-)
 
-import (
+	"code.google.com/p/goauth2/oauth"
 	"code.google.com/p/google-api-go-client/bigquery/v2"
 	"github.com/oxtoacart/webbrowser"
+	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
 const (
@@ -40,7 +39,7 @@ func RunFlow() (*http.Client, error) {
 	transport := &oauth.Transport{
 		Config: oauthConfig,
 		Transport: &http.Transport{
-			Dial: dialTimeout,
+			Dial: util.DialTimeout,
 		},
 	}
 	if _, err := oauthConfig.TokenCache.Token(); err != nil {
