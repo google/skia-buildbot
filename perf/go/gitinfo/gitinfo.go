@@ -7,18 +7,15 @@ import (
 	"sort"
 	"strings"
 	"time"
-)
 
-// gitHash represents information on a single Git commit.
-type gitHash struct {
-	hash      string
-	timeStamp time.Time
-}
+	"github.com/golang/glog"
+)
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
-	dir    string
-	hashes []*gitHash
+	dir        string
+	hashes     []string
+	timestamps map[string]time.Time // Key is the hash.
 }
 
 // NewGitInfo creates a new GitInfo for the Git repository found in directory
@@ -27,7 +24,7 @@ type GitInfo struct {
 func NewGitInfo(dir string, pull bool) (*GitInfo, error) {
 	g := &GitInfo{
 		dir:    dir,
-		hashes: []*gitHash{},
+		hashes: []string{},
 	}
 	return g, g.Update(pull)
 }
@@ -35,6 +32,7 @@ func NewGitInfo(dir string, pull bool) (*GitInfo, error) {
 // Update refreshes the history that GitInfo stores for the repo. If pull is
 // true then git pull is performed before refreshing.
 func (g *GitInfo) Update(pull bool) error {
+	glog.Info("Beginning Update.")
 	if pull {
 		cmd := exec.Command("git", "pull")
 		cmd.Dir = g.dir
@@ -44,27 +42,28 @@ func (g *GitInfo) Update(pull bool) error {
 		}
 	}
 
-	hashes, err := readCommitsFromGit(g.dir)
+	hashes, timestamps, err := readCommitsFromGit(g.dir)
 	if err != nil {
 		return err
 	}
 	g.hashes = hashes
+	g.timestamps = timestamps
 	return nil
 }
 
-// Details returns the subject and body for the given commit.
-func (g *GitInfo) Details(hash string) (string, string, error) {
-	cmd := exec.Command("git", "log", "-n", "1", "--format=format:%s%n%b", hash)
+// Details returns the author, subject and timestamp for the given commit.
+func (g *GitInfo) Details(hash string) (string, string, time.Time, error) {
+	cmd := exec.Command("git", "log", "-n", "1", "--format=format:%an%x20(%ae)%n%s", hash)
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
 	if err != nil {
-		return "", "", fmt.Errorf("Failed to execute Git: %s", err)
+		return "", "", time.Time{}, fmt.Errorf("Failed to execute Git: %s", err)
 	}
 	lines := strings.SplitN(string(b), "\n", 2)
 	if len(lines) == 2 {
-		return lines[0], lines[1], nil
+		return lines[0], lines[1], g.timestamps[hash], nil
 	} else {
-		return lines[0], "", nil
+		return lines[0], "", time.Time{}, nil
 	}
 }
 
@@ -72,11 +71,17 @@ func (g *GitInfo) Details(hash string) (string, string, error) {
 func (g *GitInfo) From(start time.Time) []string {
 	ret := []string{}
 	for _, h := range g.hashes {
-		if h.timeStamp.After(start) {
-			ret = append(ret, h.hash)
+		if g.timestamps[h].After(start) {
+			ret = append(ret, h)
 		}
 	}
 	return ret
+}
+
+// gitHash represents information on a single Git commit.
+type gitHash struct {
+	hash      string
+	timeStamp time.Time
 }
 
 type gitHashSlice []*gitHash
@@ -86,25 +91,32 @@ func (p gitHashSlice) Less(i, j int) bool { return p[i].timeStamp.Before(p[j].ti
 func (p gitHashSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // readCommitsFromGit reads the commit history from a Git repository.
-func readCommitsFromGit(dir string) ([]*gitHash, error) {
+func readCommitsFromGit(dir string) ([]string, map[string]time.Time, error) {
 	cmd := exec.Command("git", "log", "--format=format:%H%x20%ci")
 	cmd.Dir = dir
 	b, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to execute git log: %s - %s", err, string(b))
+		return nil, nil, fmt.Errorf("Failed to execute git log: %s - %s", err, string(b))
 	}
 	lines := strings.Split(string(b), "\n")
-	hashes := make([]*gitHash, 0, len(lines))
+	gitHashes := make([]*gitHash, 0, len(lines))
+	timestamps := map[string]time.Time{}
 	for _, line := range lines {
 		parts := strings.SplitN(line, " ", 2)
 		if len(parts) == 2 {
 			t, err := time.Parse("2006-01-02 15:04:05 -0700", parts[1])
 			if err != nil {
-				return nil, fmt.Errorf("Failed parsing Git log timestamp: %s", err)
+				return nil, nil, fmt.Errorf("Failed parsing Git log timestamp: %s", err)
 			}
-			hashes = append(hashes, &gitHash{hash: parts[0], timeStamp: t})
+			hash := parts[0]
+			gitHashes = append(gitHashes, &gitHash{hash: hash, timeStamp: t})
+			timestamps[hash] = t
 		}
 	}
-	sort.Sort(gitHashSlice(hashes))
-	return hashes, nil
+	sort.Sort(gitHashSlice(gitHashes))
+	hashes := make([]string, len(gitHashes), len(gitHashes))
+	for i, h := range gitHashes {
+		hashes[i] = h.hash
+	}
+	return hashes, timestamps, nil
 }
