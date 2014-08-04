@@ -1,6 +1,6 @@
-check process perf with pidfile /var/run/perf.pid
-   start program = "/etc/init.d/perf start"
-   stop program = "/etc/init.d/perf stop"
+check process perf with pidfile /var/run/skiaperf.pid
+   start program = "/etc/init.d/skiaperf start"
+   stop program = "/etc/init.d/skiaperf stop"
 
 check process tilebuilder with pidfile /var/run/tilebuilder.pid
    start program = "/etc/init.d/tilebuilder start"
