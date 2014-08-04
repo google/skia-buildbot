@@ -87,6 +87,7 @@ CLANG = repr({'skia_clang_build': '1'})
 VALGRIND = repr({'skia_release_optimization_level': '1'})
 PDFVIEWER = repr({'skia_run_pdfviewer_in_gm': '1'})
 GYP_SHARED = repr({'component': 'shared_library'})
+NO_GPU_SHARED = repr({'skia_gpu': '0', 'skia_shared_lib': '1'})
 
 
 def get_gyp_defines(arch, gyp_defines_str=None):
@@ -296,7 +297,8 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
       ('Perf', 'Ubuntu12',    'ShuttleA',   'GTX660',      'x86_64', 'Release', None,           None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Test', 'Ubuntu12',    'ShuttleA',   'GTX550Ti',    'x86_64', 'Debug',   'ZeroGPUCache', None,      f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Test', 'Ubuntu12',    'ShuttleA',   'GTX550Ti',    'x86_64', 'Release', 'Valgrind',     VALGRIND,  f_factory, LINUX,  S_PERCOMMIT,     {'flavor': 'valgrind'}),
-      ('Test', 'Ubuntu13.10', 'ShuttleA',   'NoGPU',       'x86_64', 'Debug',   None,           NO_GPU,    f_factory, LINUX,  S_PERCOMMIT,     {}),
+      ('Test', 'Ubuntu13.10', 'GCE',        'NoGPU',       'x86_64', 'Debug',   None,      NO_GPU,         f_factory, LINUX,  S_PERCOMMIT,     {}),
+      ('Test', 'Ubuntu13.10', 'GCE',        'NoGPU',       'x86_64', 'Release', 'Shared',  NO_GPU_SHARED,  f_factory, LINUX,  S_PERCOMMIT,     {}),
       ('Test', 'Ubuntu13.10', 'GCE',        'NoGPU',       'x86_64', 'Debug',   'ASAN',         NO_GPU,    f_xsan,    LINUX,  S_PERCOMMIT,     {'sanitizer': 'address'}),
       ('Test', 'Ubuntu13.10', 'GCE',        'NoGPU',       'x86_64', 'Release', 'TSAN',         NO_GPU,    f_xsan,    LINUX,  S_PERCOMMIT,     {'sanitizer': 'thread'}),
       ('Test', 'Mac10.6',     'MacMini4.1', 'GeForce320M', 'x86_64', 'Debug',   None,           None,      f_factory, MAC,    S_PERCOMMIT,     {}),
