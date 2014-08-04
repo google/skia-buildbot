@@ -29,6 +29,11 @@ func (b QuerySince) SqlTsColumn() string {
 	return time.Time(b).Format("2006-01-02 15:04:05")
 }
 
+// Unix returns the unix timestamp.
+func (b QuerySince) Unix() int64 {
+	return time.Time(b).Unix()
+}
+
 func NewQuerySince(t time.Time) QuerySince {
 	return QuerySince(t)
 }

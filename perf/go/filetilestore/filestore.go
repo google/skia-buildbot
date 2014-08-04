@@ -168,7 +168,6 @@ func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
 		}
 	}
 	filename, err := store.tileFilename(scale, index)
-	fmt.Println(filename)
 	fileData, err := os.Stat(filename)
 	// File probably isn't there, so return nil
 	if err != nil {
@@ -228,7 +227,6 @@ func (store *FileTileStore) GetModifiable(scale, index int) (*types.Tile, error)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create a file name for the tile %d, %d: %s\n", scale, index, err)
 	}
-	//fmt.Println(filename)
 	_, err = os.Stat(filename)
 	// File probably isn't there, so return a new tile.
 	if err != nil {
@@ -276,7 +274,7 @@ func (store *FileTileStore) refreshLastTiles() {
 	for scale := 0; scale <= MAX_CACHE_SCALE; scale++ {
 		newLastTile, err := store.getLastTile(scale)
 		if err != nil {
-			glog.Errorf("Unable to retrieve last tile for scale %d: %s", scale, err)
+			glog.Warningf("Unable to retrieve last tile for scale %d: %s", scale, err)
 			continue
 		}
 		store.lastTile[scale] = newLastTile

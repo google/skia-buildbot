@@ -44,8 +44,6 @@ func GetStorageService() (*storage.Service, error) {
 
 // GetLatestGSDirs gets the appropriate directory names in which data
 // would be stored between the given timestamp range.
-//
-// Adapted from perf/server/src/ingest/ingest.go for future sharing.
 func GetLatestGSDirs(startTS int64, endTS int64, bsSubdir string) []string {
 	startTime := time.Unix(startTS, 0).UTC()
 	glog.Infoln("GS dir start time: ", startTime)
