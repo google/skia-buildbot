@@ -32,8 +32,13 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     OFFLINE_DEVICES=`ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no \
       -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb devices | grep offline"`
+    MISSING_DEVICES=`ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
+      -o StrictHostKeyChecking=no \
+      -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb devices | grep device | grep -v devices"`
     if [ "$OFFLINE_DEVICES" != "" ]; then
       CRASHED_INSTANCES="$CRASHED_INSTANCES build$SLAVE_NUM-b5(N5 offline)"
+    elif [ "$MISSING_DEVICES" == "" ]; then
+      CRASHED_INSTANCES="$CRASHED_INSTANCES build$SLAVE_NUM-b5(N5 missing)"
     fi
   fi
 

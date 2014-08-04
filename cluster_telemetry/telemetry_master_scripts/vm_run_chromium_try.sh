@@ -212,8 +212,14 @@ if [ $ret_value -eq 0 ]; then
       OFFLINE_DEVICES=`ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
         -o StrictHostKeyChecking=no \
         -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb devices | grep offline"`
+      DISCONNECTED_DEVICES=`ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
+      -o StrictHostKeyChecking=no \
+      -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb devices | grep device | grep -v devices"`
       if [ "$OFFLINE_DEVICES" != "" ]; then
         echo "build$SLAVE_NUM-b5 device is offline!"
+        MISSING_DEVICES="$MISSING_DEVICES build$SLAVE_NUM-b5"
+      elif [ "$DISCONNECTED_DEVICES" == "" ]; then
+        echo "build$SLAVE_NUM-b5 device is missing!"
         MISSING_DEVICES="$MISSING_DEVICES build$SLAVE_NUM-b5"
       fi
     done

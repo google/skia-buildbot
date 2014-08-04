@@ -56,8 +56,13 @@ if [ "$TARGET_PLATFORM" == "Android" ]; then
     exit 1
   fi
   OFFLINE_DEVICES=`adb devices | grep offline`
+  MISSING_DEVICES=`adb devices | grep device | grep -v devices`
   if [ "$OFFLINE_DEVICES" != "" ]; then
     echo "Android device is offline. Exiting.."
+    gsutil cp -a public-read /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/logs/${RUN_ID}.log
+    exit 1
+  elif [ "$MISSING_DEVICES" == "" ]; then
+    echo "Android device is missing. Exiting.."
     gsutil cp -a public-read /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt gs://chromium-skia-gm/telemetry/benchmarks/$TELEMETRY_BENCHMARK/slave$SLAVE_NUM/logs/${RUN_ID}.log
     exit 1
   fi
