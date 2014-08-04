@@ -476,10 +476,6 @@ class SkiaFactory(BuildFactory):
                         description='DownloadSKImageFiles',
                         halt_on_failure=True, exception_on_failure=True)
 
-  def RunTests(self):
-    """ Run the unit tests. """
-    self.AddFlavoredSlaveScript(script='run_tests.py', description='RunTests')
-
   def RunDecodingTests(self):
     """ Run tests of image decoders. """
     self.AddFlavoredSlaveScript(script='run_decoding_tests.py',
@@ -709,7 +705,6 @@ class SkiaFactory(BuildFactory):
     """ Add correctness testing BuildSteps. """
     self.DownloadSKImageFiles()
     self.PreRender()
-    self.RunTests()
     self.RunDM()
     self.RunGM()
     self.RenderSKPs()
@@ -750,11 +745,10 @@ class SkiaFactory(BuildFactory):
       self.PostRender()
     elif ('TSAN' in self._builder_name and
           role == builder_name_schema.BUILDER_ROLE_TEST):
-      self._build_targets = ['tests', 'dm']
+      self._build_targets = ['dm']
       self.UpdateSteps()
       self.Compile(clobber)
       self.Install()
-      self.RunTests()
       self.RunDM()
     elif ('Valgrind' in self._builder_name and
           role == builder_name_schema.BUILDER_ROLE_TEST):
@@ -765,7 +759,6 @@ class SkiaFactory(BuildFactory):
       # is fixed, run self.NonPerfSteps() instead of the below steps.
       self.DownloadSKImageFiles()
       self.PreRender()
-      self.RunTests()
       self.RunGM()
       self.RenderSKPs()
       self.RenderPdfs()
