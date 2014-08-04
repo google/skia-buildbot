@@ -305,7 +305,10 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int) {
 				tile.Traces[types.TraceKey(key)] = trace
 
 				// Construct the Traces params from all the options.
-				params := map[string]string{}
+				params := map[string]string{
+					"test":   testName,
+					"config": configName,
+				}
 				for k, v := range benchData.Key {
 					params[k] = v
 				}

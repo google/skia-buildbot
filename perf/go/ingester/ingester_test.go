@@ -103,6 +103,8 @@ func TestAddBenchDataToTile(t *testing.T) {
 			"model":                       "ShuttleA",
 			"os":                          "Ubuntu12",
 			"system":                      "UNIX",
+			"test":                        "DeferredSurfaceCopy_discardable_640_480",
+			"config":                      "gpu",
 			"GL_RENDERER":                 "GeForce GTX 660/PCIe/SSE2",
 			"GL_SHADING_LANGUAGE_VERSION": "4.40 NVIDIA via Cg compiler",
 			"GL_VENDOR":                   "NVIDIA Corporation",
