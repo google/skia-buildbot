@@ -195,7 +195,7 @@ func (tt *TileTracker) Move(hash string) error {
 	hashNumber := tt.hashToNumber[hash]
 	tileNum := hashNumber / config.TILE_SIZE
 	if tileNum != tt.lastTileNum {
-		glog.Info("Moving from tile %d to %d", tt.lastTileNum, tileNum)
+		glog.Infof("Moving from tile %d to %d", tt.lastTileNum, tileNum)
 		if tt.lastTileNum != -1 {
 			tt.tileStore.Put(0, tt.lastTileNum, tt.currentTile)
 		}

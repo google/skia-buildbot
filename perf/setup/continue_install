@@ -23,6 +23,12 @@ else
   git clone https://skia.googlesource.com/buildbot
 fi
 
+if [ -d skia ]; then
+  (cd skia && git pull);
+else
+  git clone https://skia.googlesource.com/skia
+fi
+
 mkdir=/tmp/glog
 mkdir=$HOME/golib
 export GOROOT=$HOME/go
