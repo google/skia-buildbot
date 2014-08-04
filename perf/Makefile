@@ -8,7 +8,7 @@ tilebuilder:
 
 .PHONY: test
 test:
-	go test ./go/kmeans ./go/ctrace ./go/filetilestore ./go/gitinfo
+	go test ./go/kmeans ./go/ctrace ./go/filetilestore ./go/gitinfo ./go/gs
 	./node_modules/.bin/grunt --no-color test
 
 .PHONY: ingest

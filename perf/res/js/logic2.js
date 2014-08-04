@@ -1212,10 +1212,24 @@ var skiaperf = (function() {
       }
     });
 
+    // resetSelect resets the given select (by name, such as '#issue') to
+    // contain only one option with text '(none)' and value ''.
+    function resetSelect(select) {
+        var selectObj = $$$(select);
+        while (selectObj.hasChildNodes()) {
+          selectObj.removeChild(selectObj.lastChild);
+        }
+        var defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '(none)';
+        defaultOption.selected = true;
+        selectObj.appendChild(defaultOption);
+    }
+
     // Update the list of trybot results, based on the tiles that we're currently over.
     Object.observe(commitData, function() {
       console.log('Updating trybot list');
-      // Find the maximum and minimum timestamps to figure out the 
+      // Find the maximum and minimum timestamps to figure out the
       // {@code daysback} and {@code end} to send.
       var timestamps = Object.keys(commitData).map(function(ts) {return parseInt(ts);});
       var end = Math.max.apply(null, timestamps);
@@ -1233,30 +1247,100 @@ var skiaperf = (function() {
           data = JSON.parse(req.response);
         }
         console.log(data);
-        // Clear out the old list.
+        // Clear out the old lists.
+        var requesterOptions = $$$('#requester');
+        resetSelect('#requester');
+        var issueOptions = $$$('#issue');
+        resetSelect('#issue');
         var trybotOptions = $$$('#trybot');
-        while (trybotOptions.hasChildNodes()) {
-          trybotOptions.removeChild(trybotOptions.lastChild);
-        }
-        if (data['dirs'] && Array.isArray(data['dirs'])) {
+        resetSelect('#trybot');
+        if (data['results'] && Array.isArray(data['results'])) {
           console.log('Refreshing trybot list');
-          // Add a (none) option.
-          var defaultOption = document.createElement('option');
-          defaultOption.value = '';
-          defaultOption.textContent = '(none)';
-          defaultOption.selected = true;
-          trybotOptions.appendChild(defaultOption);
-
-          data['dirs'].sort();
-          data['dirs'].forEach(function(trybotResult) {
-            var newOption = document.createElement('option');
-            newOption.value = trybotResult;
-            newOption.textContent = trybotResult;
-            trybotOptions.appendChild(newOption);
+          data['results'].sort();
+          data['results'].forEach(function(requester) {
+            if (requester['issues'] && requester['requester']) {
+              var newROption = document.createElement('option');
+              newROption.value = requester['requester'];
+              newROption.textContent = requester['requester'];
+              requesterOptions.appendChild(newROption);
+              for (var issue in requester['issues']) {
+                if (!requester['issues'].hasOwnProperty(issue) ||
+                    !Array.isArray(requester['issues'][issue])) {
+                  continue;
+                }
+                var newIOption = document.createElement('option');
+                newIOption.value = issue;
+                newIOption.textContent = issue;
+                newIOption.dataset.requester = requester['requester'];
+                issueOptions.appendChild(newIOption);
+                requester['issues'][issue].sort();
+                requester['issues'][issue].forEach(function(trybotResult) {
+                  var newTOption = document.createElement('option');
+                  newTOption.value = trybotResult;
+                  newTOption.textContent = trybotResult;
+                  newTOption.dataset.requester = requester['requester'];
+                  newTOption.dataset.issue = issue;
+                  trybotOptions.appendChild(newTOption);
+                });
+              }
+            }
           });
         }
       });
       req.send();
+    });
+
+    // sortOptions sorts the options in the select name (such as '#issue')
+    // given. Also resets the selected value to ''.
+    function sortOptions(select) {
+      var to_sort = [];
+      $$(select + ' option').forEach(function(e) {
+        to_sort.push(e);
+      });
+      to_sort.sort(function(a, b) {
+        if (a.disabled === b.disabled) {
+          if (a.value < b.value) {
+            return -1;
+          } else {
+            return 1;
+          }
+        } else if (a.disabled) {
+          return 1;
+        } else {
+          return -1;
+        }
+      });
+      to_sort.forEach(function(i, idx) {
+        $$$(select).appendChild(i);
+        if (i.value === '') {
+        }
+      });
+      $$$(select).value = '';
+    }
+
+    $$$('#requester').addEventListener('change', function() {
+      var selectedRequester = $$$('#requester option:checked').value;
+      $$('#issue option').forEach(function(e) {
+        if (selectedRequester !== '' &&
+            e.dataset.requester === selectedRequester) {
+          e.disabled=false;
+        } else {
+          e.disabled=true;
+        }
+      });
+      sortOptions('#issue');
+    });
+
+    $$$('#issue').addEventListener('change', function() {
+      var selectedIssue = $$$('#issue option:checked').value;
+      $$('#trybot option').forEach(function(e) {
+        if (selectedIssue !== '' && e.dataset.issue === selectedIssue) {
+          e.disabled=false;
+        } else {
+          e.disabled=true;
+        }
+      });
+      sortOptions('#trybot');
     });
 
     $$$('#trybot').addEventListener('change', function() {

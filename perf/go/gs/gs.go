@@ -42,10 +42,22 @@ func GetStorageService() (*storage.Service, error) {
 	return storage.New(http.DefaultClient)
 }
 
+// lastDate takes a year and month, and returns the last day of the month.
+//
+// This is done by going to the first day 0:00 of the next month, subtracting an
+// hour, then returning the date.
+func lastDate(year int, month time.Month) int {
+	return time.Date(year, month+1, 1, 0, 0, 0, 0, time.UTC).Add(-time.Hour).Day()
+}
+
 // GetLatestGSDirs gets the appropriate directory names in which data
 // would be stored between the given timestamp range.
+//
+// The returning directories cover the range till the date of startTS, and may
+// be precise to the hour.
 func GetLatestGSDirs(startTS int64, endTS int64, bsSubdir string) []string {
 	startTime := time.Unix(startTS, 0).UTC()
+	startYear, startMonth, startDay := startTime.Date()
 	glog.Infoln("GS dir start time: ", startTime)
 	endTime := time.Unix(endTS, 0).UTC()
 	lastAddedTime := startTime
@@ -54,18 +66,33 @@ func GetLatestGSDirs(startTS int64, endTS int64, bsSubdir string) []string {
 	newHour := endTime.Hour()
 	lastYear, lastMonth, _ := lastAddedTime.Date()
 	if lastYear != newYear {
-		for i := lastMonth; i < 12; i++ {
-			results = append(results, fmt.Sprintf("%04d/%02d", lastYear, lastMonth))
+		for i := lastYear; i < newYear; i++ {
+			if i != startYear {
+				results = append(results, fmt.Sprintf("%04d", i))
+			} else {
+				for j := startMonth; j <= time.December; j++ {
+					if j == startMonth && startDay > 1 {
+						for k := startDay; k <= lastDate(i, j); k++ {
+							results = append(results, fmt.Sprintf("%04d/%02d/%02d", i, j, k))
+						}
+					} else {
+						results = append(results, fmt.Sprintf("%04d/%02d", i, j))
+					}
+				}
+			}
 		}
-		for i := lastYear + 1; i < newYear; i++ {
-			results = append(results, fmt.Sprintf("%04d", i))
-		}
-		lastAddedTime = time.Date(newYear, 0, 1, 0, 0, 0, 0, time.UTC)
+		lastAddedTime = time.Date(newYear, time.January, 1, 0, 0, 0, 0, time.UTC)
 	}
 	lastYear, lastMonth, _ = lastAddedTime.Date()
 	if lastMonth != newMonth {
 		for i := lastMonth; i < newMonth; i++ {
-			results = append(results, fmt.Sprintf("%04d/%02d", lastYear, i))
+			if i != startMonth {
+				results = append(results, fmt.Sprintf("%04d/%02d", lastYear, i))
+			} else {
+				for j := startDay; j <= lastDate(lastYear, i); j++ {
+					results = append(results, fmt.Sprintf("%04d/%02d/%02d", lastYear, i, j))
+				}
+			}
 		}
 		lastAddedTime = time.Date(newYear, newMonth, 1, 0, 0, 0, 0, time.UTC)
 	}
@@ -87,9 +114,29 @@ func GetLatestGSDirs(startTS int64, endTS int64, bsSubdir string) []string {
 	return results
 }
 
-// DirInfo stores directory information on Google Storage bench files.
-type DirInfo struct {
-	Dirs []string `json:"dirs"`
+// RunInfo stores trybot run result info for a requester.
+//
+// Issues maps a string representing Reitveld issue info to a slice of dirs
+// containing its try results. A sample dir looks like:
+// "2014/07/31/18/Perf-Win7-ShuttleA-HD2000-x86-Release-Trybot/75/423413006"
+type RunInfo struct {
+	Requester string              `json:"requester"`
+	Issues    map[string][]string `json:"issues"`
+}
+
+// TryInfo stores try result information on Google Storage bench files.
+type TryInfo struct {
+	Results []*RunInfo `json:"results"`
+}
+
+// IssueInfo stores information on a specific issue.
+//
+// Information is read from the Reitveld JSON api, for instance,
+// https://codereview.chromium.org/api/427903003
+// Only information we care about is stored.
+type IssueInfo struct {
+	Owner   string `json:"owner"`
+	Subject string `json:"subject"`
 }
 
 // JSONPerfInput stores the input JSON data that we care about. Currently this
@@ -120,7 +167,7 @@ func RequestForStorageURL(url string) (*http.Request, error) {
 // Google Storage under the prefix.
 //
 // The given prefix path is the path to a trybot build result, such as:
-// "trybots/micro/2014/07/16/01/Perf-Win7-ShuttleA-HD2000-x86-Release-Trybot/57"
+// "trybots/micro/2014/07/16/01/Perf-Win7-ShuttleA-HD2000-x86-Release-Trybot/57/423413006"
 //
 // Currently it takes in JSON format that's used for BigQuery ingestion, and
 // outputs in the TileGUI format defined in src/types. Only the Traces fields
@@ -198,8 +245,7 @@ func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
 // Google Storage.
 //
 // When a full bench path is not given (only the optional dataset info), returns
-// a JSON bytes like:
-// {"dirs":["2014/07/16/01/Perf-Win7-ShuttleA-HD2000-x86-Release-Trybot/57"]}
+// a JSON bytes marshalled from TryInfo.
 //
 // If a valid urlpath is given for a specific try run, returns JSON from
 // getTryData() above.
@@ -216,8 +262,8 @@ func GetTryResults(urlpath string, endTS int64, daysback int) ([]byte, error) {
 		dataFilePrefix = k[1]
 	}
 	if len(dirParts) == 1 { // Tries to return list of try result dirs.
-		results := &DirInfo{
-			Dirs: []string{},
+		results := &TryInfo{
+			Results: []*RunInfo{},
 		}
 		dirs := GetLatestGSDirs(time.Unix(endTS, 0).UTC().AddDate(0, 0, 0-daysback).Unix(), endTS, "trybot/"+dataset)
 		if len(dirs) == 0 {
@@ -249,8 +295,60 @@ func GetTryResults(urlpath string, endTS int64, daysback int) ([]byte, error) {
 				}
 			}
 		}
+		requesterIssues := map[string][]string{}
+		issueDirs := map[string][]string{}
+		issueDescription := map[string]string{}
+
 		for k := range m {
-			results.Dirs = append(results.Dirs, k)
+			if match := trybotDataPath.FindStringSubmatch(k); match == nil {
+				glog.Infoln("Unexpected try path, skipping: ", k)
+				continue
+			}
+			s := strings.Split(k, "/")
+			issue := s[len(s)-1]
+			if _, ok := issueDirs[issue]; !ok {
+				issueDirs[issue] = []string{}
+			}
+			issueDirs[issue] = append(issueDirs[issue], k)
+
+			if _, ok := issueDescription[issue]; ok {
+				continue
+			}
+			resp, err := http.Get("https://codereview.chromium.org/api/" + issue)
+			defer resp.Body.Close()
+			owner := "unknown"
+			description := "unknown"
+			if err != nil {
+				glog.Warningln("Could not get Reitveld info, use unknown: ", err)
+			} else {
+				body, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					glog.Warningln("Could not read Reitveld info, use unknown: ", err)
+				}
+				i := IssueInfo{}
+				if err := json.Unmarshal(body, &i); err != nil {
+					glog.Warningln("Could not unmarshal Reitveld info, use unknown: ", err)
+				} else {
+					owner = i.Owner
+					description = i.Subject
+				}
+			}
+			issueDescription[issue] = description
+			if _, ok := requesterIssues[owner]; !ok {
+				requesterIssues[owner] = []string{}
+			}
+			requesterIssues[owner] = append(requesterIssues[owner], issue)
+		}
+		for k, v := range requesterIssues {
+			issues := map[string][]string{}
+			for _, i := range v {
+				issues[i+": "+issueDescription[i]] = issueDirs[i]
+			}
+			r := &RunInfo{
+				Requester: k,
+				Issues:    issues,
+			}
+			results.Results = append(results.Results, r)
 		}
 		return json.Marshal(results)
 	} else { // Tries to read stats from the given dir.

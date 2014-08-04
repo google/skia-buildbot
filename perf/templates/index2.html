@@ -39,9 +39,17 @@
                 <input id="islog" type="checkbox"></input>
                 Use log scale
             </label>
+            <br>
+            <label>Select trybot requester, issue, and result to show:</label>
             <form id="trybot-form" action="" method="POST">
-                <select id="trybot">
+                <select id="requester">
                     <option value="">(none)</option>
+                </select>
+                <select id="issue">
+                    <option data-requester="" value="">(none)</option>
+                </select>
+                <select id="trybot">
+                    <option data-requester="" data-issue="" value="">(none)</option>
                 </select>
            </form>
            <div id="legend">
