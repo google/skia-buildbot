@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 # pylint: disable=W0401,W0614
 
-from telemetry.page.actions.all_page_actions import *
+
 from telemetry.page import page as page_module
 from telemetry.page import page_set as page_set_module
 
@@ -17,7 +17,7 @@ class SkiaBuildbotDesktopPage(page_module.Page):
     self.credentials_path = 'data/credentials.json'
 
   def RunSmoothness(self, action_runner):
-    action_runner.RunAction(ScrollAction())
+    action_runner.ScrollElement()
 
   def RunNavigateSteps(self, action_runner):
     action_runner.NavigateToPage(self)
