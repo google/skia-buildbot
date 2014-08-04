@@ -1,0 +1,122 @@
+{
+    "gitHash": "fe4a4029a080bc955e9588d05a6cd9eb490845d4", 
+    "key": {
+        "arch": "x86", 
+        "gpu": "GTX660", 
+        "model": "ShuttleA", 
+        "os": "Ubuntu12"
+    }, 
+    "options": {
+        "system": "UNIX"
+    }, 
+    "results": {
+        "ChunkAlloc_PushPop_640_480": {
+            "nonrendering": {
+                "max_ms": 0.01532897916666667, 
+                "mean_ms": 0.01492227395833333, 
+                "median_ms": 0.01487157291666667, 
+                "min_ms": 0.01485466666666667, 
+                "options": {
+                    "source_type": "bench"
+                }, 
+                "stddev_ms": 0.0001468627481304756
+            }
+        }, 
+        "ChunkAlloc_Push_640_480": {
+            "nonrendering": {
+                "max_ms": 0.009673540983606557, 
+                "mean_ms": 0.00959110081967213, 
+                "median_ms": 0.009587647540983608, 
+                "min_ms": 0.009535795081967214, 
+                "options": {
+                    "source_type": "bench"
+                }, 
+                "stddev_ms": 3.38091229628177e-05
+            }
+        }, 
+        "DeferredSurfaceCopy_discardable_640_480": {
+            "565": {
+                "max_ms": 2.337462, 
+                "mean_ms": 2.257133, 
+                "median_ms": 2.249487, 
+                "min_ms": 2.215988, 
+                "options": {
+                    "source_type": "bench"
+                }, 
+                "stddev_ms": 0.03677419612536308
+            }, 
+            "8888": {
+                "max_ms": 4.684291, 
+                "mean_ms": 2.5059716, 
+                "median_ms": 2.273428, 
+                "min_ms": 2.223606, 
+                "options": {
+                    "source_type": "bench"
+                }, 
+                "stddev_ms": 0.7659451879970407
+            }, 
+            "gpu": {
+                "max_ms": 0.1290162156862745, 
+                "mean_ms": 0.1211532254901961, 
+                "median_ms": 0.1207926274509804, 
+                "min_ms": 0.1157132745098039, 
+                "options": {
+                    "GL_RENDERER": "GeForce GTX 660/PCIe/SSE2", 
+                    "GL_SHADING_LANGUAGE_VERSION": "4.40 NVIDIA via Cg compiler", 
+                    "GL_VENDOR": "NVIDIA Corporation", 
+                    "GL_VERSION": "4.4.0 NVIDIA 331.49", 
+                    "source_type": "bench"
+                }, 
+                "stddev_ms": 0.00522263872245406
+            }
+        }, 
+        "DeferredSurfaceCopy_nonDiscardable_640_480": {
+            "565": {
+                "max_ms": 3.00317, 
+                "mean_ms": 2.9206455, 
+                "median_ms": 2.917633, 
+                "min_ms": 2.865907, 
+                "options": {
+                    "source_type": "bench"
+                }, 
+                "stddev_ms": 0.04710033915482988
+            }, 
+            "8888": {
+                "max_ms": 6.444801, 
+                "mean_ms": 3.473905200000001, 
+                "median_ms": 2.891013, 
+                "min_ms": 2.855735, 
+                "options": {
+                    "source_type": "bench"
+                }, 
+                "stddev_ms": 1.280125595259552
+            }, 
+            "gpu": {
+                "max_ms": 0.3899365714285715, 
+                "mean_ms": 0.3787172785714287, 
+                "median_ms": 0.3833255, 
+                "min_ms": 0.3698998571428572, 
+                "options": {
+                    "GL_RENDERER": "GeForce GTX 660/PCIe/SSE2", 
+                    "GL_SHADING_LANGUAGE_VERSION": "4.40 NVIDIA via Cg compiler", 
+                    "GL_VENDOR": "NVIDIA Corporation", 
+                    "GL_VERSION": "4.4.0 NVIDIA 331.49", 
+                    "source_type": "bench"
+                }, 
+                "stddev_ms": 0.008520427098274955
+            }
+        }, 
+        "Deque_PushAllPopAll_640_480": {
+            "nonrendering": {
+                "max_ms": 0.02084645918367347, 
+                "mean_ms": 0.02055788163265306, 
+                "median_ms": 0.02072079591836735, 
+                "min_ms": 0.01964637755102041, 
+                "options": {
+                    "source_type": "bench"
+                }, 
+                "stddev_ms": 0.0003722617874010393
+            }
+        }
+    }
+}

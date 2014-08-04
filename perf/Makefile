@@ -8,7 +8,7 @@ tilebuilder:
 
 .PHONY: test
 test:
-	go test ./go/kmeans ./go/ctrace ./go/filetilestore ./go/gitinfo ./go/gs
+	go test ./go/kmeans ./go/ctrace ./go/filetilestore ./go/gitinfo ./go/ingester
 	./node_modules/.bin/grunt --no-color test
 
 .PHONY: ingest
@@ -51,5 +51,5 @@ lint:
 .PHONY: all
 all: build tilebuilder ingest tool logs
 
-TAGS:
+tags:
 	etags --recurse res/ go/
