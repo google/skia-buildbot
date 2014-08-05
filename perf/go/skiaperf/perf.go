@@ -56,7 +56,7 @@ var (
 	shortcutHandlerPath = regexp.MustCompile(`/shortcuts/([0-9]*)$`)
 
 	// The three capture groups are dataset, tile scale, and tile number.
-	tileHandlerPath = regexp.MustCompile(`/tiles/([a-z]*)/([0-9]*)/([-0-9,]*)$`)
+	tileHandlerPath = regexp.MustCompile(`/tiles/([0-9]*)/([-0-9,]*)$`)
 )
 
 // flags
@@ -72,7 +72,7 @@ var (
 var (
 	data *Data
 
-	tileStores map[config.DatasetName]types.TileStore
+	nanoTileStore types.TileStore
 )
 
 const (
@@ -103,10 +103,7 @@ func Init() {
 	index2Template = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index2.html")))
 	clusterTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/clusters.html")))
 
-	tileStores = make(map[config.DatasetName]types.TileStore)
-	for _, name := range config.ALL_DATASET_NAMES {
-		tileStores[name] = filetilestore.NewFileTileStore(*tileStoreDir, string(name), 10*time.Minute)
-	}
+	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, "nano", 10*time.Minute)
 }
 
 // reportError formats an HTTP error response and also logs the detailed error message.
@@ -301,14 +298,9 @@ func annotationsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // getTile retrieves a tile from the disk
-func getTile(dataset config.DatasetName, tileScale, tileNumber int) (*types.Tile, error) {
-	// TODO: Use some sort of cache
-	tileStore, ok := tileStores[dataset]
-	if !ok {
-		return nil, fmt.Errorf("Unable to access dataset store for %s", dataset)
-	}
+func getTile(tileScale, tileNumber int) (*types.Tile, error) {
 	start := time.Now()
-	tile, err := tileStore.Get(int(tileScale), int(tileNumber))
+	tile, err := nanoTileStore.Get(int(tileScale), int(tileNumber))
 	glog.Infoln("Time for tile load: ", time.Since(start).Nanoseconds())
 	if err != nil || tile == nil {
 		return nil, fmt.Errorf("Unable to get tile from tilestore: ", err)
@@ -320,8 +312,8 @@ type TilesResponse struct {
 	Tiles []*types.TileGUI `json:"tiles"`
 }
 
-// tileHandler accepts URIs like /tiles/skps/0/1?traces=Some:long:trace:here&omit_commits=true
-// where the URI format is /tiles/<dataset-name>/<tile-scale>/<tile-number>
+// tileHandler accepts URIs like /tiles/0/1?traces=Some:long:trace:here&omit_commits=true
+// where the URI format is /tiles/<tile-scale>/<tile-number>
 // It accepts a comma-delimited string of keys as traces, and
 // also omit_commits, omit_traces, and omit_names, which each cause the corresponding
 // section (described more thoroughly in types.go) to be omitted from the JSON
@@ -329,21 +321,16 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Tile Handler: %q\n", r.URL.Path)
 	handlerStart := time.Now()
 	match := tileHandlerPath.FindStringSubmatch(r.URL.Path)
-	if r.Method != "GET" || match == nil || len(match) != 4 {
+	if r.Method != "GET" || match == nil || len(match) != 3 {
 		http.NotFound(w, r)
 		return
 	}
-	dataset := config.DatasetName(match[1])
-	if dataset != config.DATASET_SKP && dataset != config.DATASET_MICRO {
-		reportError(w, r, fmt.Errorf("Invalid dataset specified: %s", dataset), "")
-		return
-	}
-	tileScale, err := strconv.ParseInt(match[2], 10, 0)
+	tileScale, err := strconv.ParseInt(match[1], 10, 0)
 	if err != nil {
 		reportError(w, r, err, "Failed parsing tile scale.")
 		return
 	}
-	tileNumberStrings := strings.Split(match[3], ",")
+	tileNumberStrings := strings.Split(match[2], ",")
 	tileNumbers := make([]int, 0, len(tileNumberStrings))
 	for _, tileNumberStr := range tileNumberStrings {
 		tileNumber, err := strconv.ParseInt(tileNumberStr, 10, 0)
@@ -362,29 +349,69 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	omitCommits := r.FormValue("omit_commits") != ""
 	omitParams := r.FormValue("omit_params") != ""
 	omitNames := r.FormValue("omit_names") != ""
-	paramList, ok := config.KEY_PARAM_ORDER[dataset]
-	if !ok {
-		reportError(w, r, err, "Unable to read parameter list for dataset: ")
-		return
-	}
+	paramList := config.NANO_PARAM_ORDER
 
 	allTiles := TilesResponse{Tiles: make([]*types.TileGUI, 0, len(tileNumbers))}
 	for _, tileNumber := range tileNumbers {
-		tile, err := getTile(dataset, int(tileScale), int(tileNumber))
+		tile, err := getTile(int(tileScale), int(tileNumber))
 		if err != nil {
 			glog.Warning("Failed to retrieve tile:", err)
 			continue
 		}
 		guiTile := types.NewGUITile(tile.Scale, tile.TileIndex)
-		for _, keyName := range tracesRequested {
-			if len(keyName) <= 0 {
+		traceParams := make([][]string, 0, len(tracesRequested))
+		traceMatches := make([]bool, 0, len(tracesRequested))
+		// Filter out the invalid traces and split the valid ones into
+		// their components.
+		for _, traceGuiKey := range tracesRequested {
+			if len(traceGuiKey) <= 0 {
 				continue
 			}
-			var rawTrace *types.Trace
-			if rawTrace, ok = tile.Traces[types.TraceKey(keyName)]; !ok {
-				glog.Infof("Missing trace data in tile %d for %s\n", tileNumber, keyName)
+			keyParts := strings.Split(traceGuiKey, ":")
+			if len(keyParts) < len(paramList) {
 				continue
 			}
+			traceParams = append(traceParams, keyParts)
+			traceMatches = append(traceMatches, false)
+		}
+		foundTraces := make([]*types.Trace, 0, len(traceParams))
+		numFound := 0
+		// Iterate over all tile.Traces, check each one to see
+		// if it matches the params for one of the requested
+		// traces. Repeat until all traces have been iterated
+		// or all requested traces have been found.
+		for _, trace := range tile.Traces {
+			if numFound >= len(traceParams) {
+				break
+			}
+			for i, traceParam := range traceParams {
+				if traceMatches[i] {
+					continue
+				}
+				matches := true
+				for j, paramPart := range traceParam {
+					if val, exists := trace.Params[paramList[j]]; exists {
+						if val != paramPart {
+							matches = false
+							break
+						}
+					} else {
+						if paramPart != "" {
+							matches = false
+							break
+						}
+					}
+				}
+				if matches {
+					foundTraces = append(foundTraces, trace)
+					traceMatches[i] = true
+					numFound++
+				}
+			}
+		}
+
+		// For each trace in foundTraces, process it to send to the user.
+		for _, rawTrace := range foundTraces {
 			newTraceData := make([][2]float64, 0)
 			for i, traceVal := range rawTrace.Values {
 				// Make sure it's not an empty tile by seeing
@@ -400,10 +427,11 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 			if len(newTraceData) > 0 {
 				guiTile.Traces = append(guiTile.Traces, types.TraceGUI{
 					Data: newTraceData,
-					Key:  keyName,
+					Key:  string(types.MakeTraceKeyFromStrings(rawTrace.Params)),
 				})
 			}
 		}
+
 		if !omitCommits {
 			guiTile.Commits = make([]*types.Commit, 0, config.TILE_SIZE)
 			for i := range tile.Commits {
@@ -415,8 +443,8 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if !omitNames {
-			for key, _ := range tile.Traces {
-				guiTile.NameList = append(guiTile.NameList, key)
+			for _, trace := range tile.Traces {
+				guiTile.NameList = append(guiTile.NameList, types.MakeTraceKeyFromStrings(trace.Params))
 			}
 		}
 		if !omitParams {

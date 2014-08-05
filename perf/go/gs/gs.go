@@ -223,7 +223,7 @@ func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
 				i.Params["builderName"] = strings.Replace(fmt.Sprint(i.Params["builderName"]), "-Trybot", "", 1)
 				t.Traces = append(t.Traces, types.TraceGUI{
 					Data: newData,
-					Key:  string(types.MakeTraceKey(i.Params, dataset)),
+					Key:  string(types.MakeTraceKey(i.Params)),
 				})
 			}
 		}

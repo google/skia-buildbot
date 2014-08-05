@@ -96,12 +96,9 @@ var (
 		"scale":           "Scale Setting",
 		"skpSize":         "SKP Size",
 		"system":          "System Type",
+		"test":            "Test Name",
 		"testName":        "Test Name",
 		"viewport":        "Viewport Size",
 	}
-	// TODO: Make sure these are sufficient for a key
-	KEY_PARAM_ORDER = map[DatasetName][]string{
-		DATASET_SKP:   []string{"builderName", "benchName", "config", "scale", "measurementType", "configuration", "mode"},
-		DATASET_MICRO: []string{"builderName", "testName", "config", "scale", "measurementType"},
-	}
+	NANO_PARAM_ORDER = []string{"arch", "system", "os", "model", "gpu", "test", "config"}
 )

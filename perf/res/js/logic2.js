@@ -1242,9 +1242,9 @@ var skiaperf = (function() {
       var end = Math.max.apply(null, timestamps);
       var start = Math.min.apply(null, timestamps);
       var daysback = Math.ceil((end - start) / (60 * 60 * 24));
-      console.log('trybots/' + dataset.dataSet + '?daysback=' + daysback + '&end=' + end);
+      console.log('trybots/nano?daysback=' + daysback + '&end=' + end);
       var req = new XMLHttpRequest();
-      req.open('GET', 'trybots/' + dataset.dataSet + '?daysback=' + daysback + '&end=' + end);
+      req.open('GET', 'trybots/nano?daysback=' + daysback + '&end=' + end);
       req.addEventListener('load', function() {
         if (!req.response || req.status != 200) {
           return;
@@ -1360,7 +1360,7 @@ var skiaperf = (function() {
       }
       // Grab the trybot results, and replace queryInfo.trybotResults with it.
       var req = new XMLHttpRequest();
-      req.open('GET', 'trybots/' + dataset.dataSet + '/' + selectedResults);
+      req.open('GET', 'trybots/nano/' + selectedResults);
       req.addEventListener('load', function() {
         if (!req.response || req.status != 200) {
           return;
@@ -1424,16 +1424,14 @@ var skiaperf = (function() {
   function newDataset() {
     // TODO: Describe where these are used better
     // These describe the current "window" of data we're looking at.
-    var dataSet = 'skps';
     var tileNums = [-1];
     var scale = 0;
 
-    
     /**
      * Helps make requests for a set of tiles.
-     * Makes a XMLHttpRequest for using the data in {@code dataSet}, 
+     * Makes a XMLHttpRequest for using the data in 
      * {@code tileNums}, and {@code scale}, using the data in moreParams
-     * as requery query parameters. Calls finished with the data or
+     * as request query parameters. Calls finished with the data or
      * an empty object when finished.
      */
     var requestTiles = function(finished, moreParams) {
@@ -1464,7 +1462,7 @@ var skiaperf = (function() {
         });
       }
 
-      request.open('GET', ['tiles', dataSet, scale, tileNums.join(',')].
+      request.open('GET', ['tiles', scale, tileNums.join(',')].
             join('/') + '?' + params);
       document.body.classList.add('waiting');
       request.addEventListener('load', onjsonload);
@@ -1535,20 +1533,6 @@ var skiaperf = (function() {
       requestTiles(processJSON, {});
     };
 
-
-    // Sets up the event binding on the radio controls.
-    $$('input[name=schema-type]').forEach(function(e) {
-      if (e.value == dataSet) { e.checked = true; }
-      e.addEventListener('change', function() {
-        while (traces.length) { traces.pop(); }
-        dataSet = this.value;
-        while(tileNums.length) { tileNums.pop(); }
-        tileNums.push(-1);
-        console.log(dataSet);
-        update();
-      });
-    });
-
     Object.observe(tileNums, function() {
       console.log('tileNums change!');
       update();
@@ -1559,7 +1543,6 @@ var skiaperf = (function() {
     return {
       'requestTiles': requestTiles,
       'tileNums': tileNums,
-      'dataSet': dataSet
     };
   }
 

@@ -94,12 +94,25 @@ func NewTile() *Tile {
 	return t
 }
 
-func MakeTraceKey(params map[string]interface{}, dataset config.DatasetName) TraceKey {
-	paramNames := config.KEY_PARAM_ORDER[dataset]
+func MakeTraceKey(params map[string]interface{}) TraceKey {
+	paramNames := config.NANO_PARAM_ORDER
 	newKeyParts := make([]string, 0, len(paramNames))
 	for _, paramName := range paramNames {
 		if keyPart, exists := params[paramName]; exists {
 			newKeyParts = append(newKeyParts, fmt.Sprint(keyPart))
+		} else {
+			newKeyParts = append(newKeyParts, "")
+		}
+	}
+	return TraceKey(strings.Join(newKeyParts, ":"))
+}
+
+func MakeTraceKeyFromStrings(params map[string]string) TraceKey {
+	paramNames := config.NANO_PARAM_ORDER
+	newKeyParts := make([]string, 0, len(paramNames))
+	for _, paramName := range paramNames {
+		if keyPart, exists := params[paramName]; exists {
+			newKeyParts = append(newKeyParts, keyPart)
 		} else {
 			newKeyParts = append(newKeyParts, "")
 		}
