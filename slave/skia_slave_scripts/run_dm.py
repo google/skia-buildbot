@@ -24,11 +24,6 @@ class RunDM(BuildStep):
     run_dm = True
     match  = []
 
-    if self._AnyMatch('Alex'):
-      # This machine looks to be running out of heap.
-      # Running with fewer threads may help.
-      args.extend(['--threads', '1'])
-
     if self._AnyMatch('Android'):
       match.append('~giantbitmap')
 
