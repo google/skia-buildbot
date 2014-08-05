@@ -6,6 +6,7 @@
 """ Monkeypatches to override upstream code. """
 
 
+from buildbot.changes.gitpoller import GitPoller
 from buildbot.process.properties import Properties
 from buildbot.schedulers.trysched import BadJobfile
 from buildbot.status.builder import EXCEPTION, FAILURE
@@ -569,3 +570,15 @@ class SkiaGateKeeper(gatekeeper.GateKeeper):
 # pick it up without a DEPS roll.
 try_job_base.TryJobBase._EMAIL_VALIDATOR = re.compile(
     r'[a-zA-Z0-9][a-zA-Z0-9\.\+\-\_]*@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,}$')
+
+
+# Add logging to GitPoller._stop_on_failure
+def _stop_on_failure(self, f):
+  "utility method to stop the service when a failure occurs"
+  log.err('GitPoller stopping due to failure: %s' % str(f))
+  if self.running:
+    d = defer.maybeDeferred(lambda : self.stopService())
+    d.addErrback(log.err, 'while stopping broken GitPoller service')
+  return f
+
+GitPoller._stop_on_failure = _stop_on_failure
