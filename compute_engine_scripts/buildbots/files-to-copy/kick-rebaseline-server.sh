@@ -30,5 +30,8 @@ make gyp >>$LOGS 2>&1
 make tools BUILDTYPE=Release >>$LOGS 2>&1
 popd $TRUNK
 
-$TRUNK/gm/rebaseline_server/server.py --port 10117 --export --reload 300 >>$LOGS 2>&1 &
+# Added --truncate test flag in here for now, so we can start exercising
+# the new SKP results differ without killing the server with heavy load.
+# TODO(rmistry): Once we move this to a beefier GCE instance, add "--threads 8"
+$TRUNK/gm/rebaseline_server/server.py --port 10117 --export --reload 300 --truncate >>$LOGS 2>&1 &
 echo $! >$PIDFILE
