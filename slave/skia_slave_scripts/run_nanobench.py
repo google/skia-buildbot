@@ -62,7 +62,9 @@ class RunNanobench(BuildStep):
     args = ['-i', self._device_dirs.ResourceDir(),
             '--skps', self._device_dirs.SKPDir(),
             '--scales', '1.0', '1.1']
-    if self._perf_data_dir:
+    if self._AnyMatch('Valgrind'):
+      args.append('--runOnce')  # Don't care about performance on Valgrind.
+    elif self._perf_data_dir:
       args.extend([
         '--outResultsFile', self._JSONPath(),
         '--gitHash', self._got_revision,
@@ -70,9 +72,7 @@ class RunNanobench(BuildStep):
       args.append('--key')
       args.extend(self._KeyParams())
 
-    run_nanobench = True
     match  = []
-
     # Disable known problems.
     if self._AnyMatch('Android'):
       # Segfaults when run as GPU bench.  Very large texture?
@@ -90,8 +90,7 @@ class RunNanobench(BuildStep):
       args.append('--match')
       args.extend(match)
 
-    if run_nanobench:
-      self._flavor_utils.RunFlavoredCmd('nanobench', args)
+    self._flavor_utils.RunFlavoredCmd('nanobench', args)
 
 
 if '__main__' == __name__:

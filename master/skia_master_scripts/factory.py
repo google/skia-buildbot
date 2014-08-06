@@ -539,11 +539,6 @@ class SkiaFactory(BuildFactory):
                         description='CompareRenderedSKPs',
                         is_rebaseline_step=True)
 
-  def RunBench(self):
-    """ Run "bench", piping the output somewhere so we can graph
-    results over time. """
-    self.AddFlavoredSlaveScript(script='run_bench.py', description='RunBench')
-
   def RunNanobench(self):
     """ Run "nanobench" """
     self.AddFlavoredSlaveScript(script='run_nanobench.py',
@@ -720,7 +715,6 @@ class SkiaFactory(BuildFactory):
   def PerfSteps(self):
     """ Add performance testing BuildSteps. """
     self.PreBench()
-    self.RunBench()
     self.RunNanobench()
     self.BenchPictures()
     self.PostBench()
@@ -765,9 +759,8 @@ class SkiaFactory(BuildFactory):
       self.RunDecodingTests()
       self.PostRender()
       # (end steps which need to be replaced once #1711 is fixed)
-
       self.PreBench()
-      self.RunBench()
+      self.RunNanobench()
       self.PostBench()
     elif not role:
       # If no role is provided, just run everything.

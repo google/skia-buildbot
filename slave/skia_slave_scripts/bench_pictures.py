@@ -9,8 +9,17 @@ import os
 import sys
 
 from build_step import BuildStep
-from run_bench import BenchArgs
 from utils import gclient_utils
+
+def BenchArgs(data_file):
+  """Builds a list containing arguments to pass to bench.
+
+  Args:
+    data_file: filepath to store the log output
+  Returns:
+    list containing arguments to pass to bench
+  """
+  return ['--timers', 'wg', '--logFile', data_file]
 
 
 BENCH_REPEAT_COUNT = 10

@@ -1088,7 +1088,7 @@
                 "alwaysRun": "<Object>", 
                 "command": [
                     "python", 
-                    "../../../../../../slave/skia_slave_scripts/run_bench.py", 
+                    "../../../../../../slave/skia_slave_scripts/run_nanobench.py", 
                     "--autogen_svn_baseurl", 
                     "bogusValueToFixSkBug2663", 
                     "--configuration", 
@@ -1124,7 +1124,7 @@
                     "--flavor", 
                     "valgrind"
                 ], 
-                "description": "RunBench", 
+                "description": "RunNanobench", 
                 "doStepIf": "<Object>", 
                 "env": {}, 
                 "exception_on_failure": "<Object>", 
