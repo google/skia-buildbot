@@ -35,7 +35,7 @@ MONITORING_MACHINE_TYPE=n1-standard-1
 
 # rebaseline_server names, type and their IP addresses to use for each zone.
 VM_REBASELINESERVER_NAMES=${VM_REBASELINESERVER_NAMES:="rebaseline-server-1"}
-REBASELINESERVER_MACHINE_TYPE="g1-small"
+REBASELINESERVER_MACHINE_TYPE="n1-highmem-8"
 REBASELINESERVER_IP_ADDRESSES_a="108.170.220.121"
 REBASELINESERVER_IP_ADDRESSES_b=$REBASELINESERVER_IP_ADDRESSES_a
 
@@ -55,7 +55,8 @@ REQUIRED_FILES_FOR_SLAVES=(~/.skia_svn_username \
                            ~/.boto)
 
 REQUIRED_FILES_FOR_REBASELINESERVER=(files-to-copy/kick-rebaseline-server.sh \
-                                     files-to-copy/rebaseline-server-crontab)
+                                     files-to-copy/rebaseline-server-crontab \
+                                     ~/.boto)
 
 # The directory where the scratch disk is mounted.
 SKIA_REPO_DIR="skia-repo"

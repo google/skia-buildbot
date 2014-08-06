@@ -47,4 +47,24 @@ Starting setup of ${VM_COMPLETE_NAME}.....
     || echo "Failed to install crontab!"
   echo
 
+  # TODO(rmistry): The skia-buildbot-image-v1 image has an incorrect symlink
+  # from /tmp to ~/skia-repo. This happened because /tmp was not big enough to
+  # capture the image using GCE scripts. Once the symlink was created the image
+  # could be captured but the symlink ended up persisting in the image.
+  echo
+  echo "===== Fix symlink from /tmp to ~/skia-repo ====="
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
+    "sudo unlink /tmp && " \
+    "sudo mkdir /tmp && " \
+    "sudo chmod 1777 /tmp" \
+    || echo "Failed to fix /tmp!"
+  echo
+
+  echo
+  echo "===== Reboot instance to automatically start the server ====="
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
+    "sudo reboot" \
+    || echo "Failed to reboot the instance!"
+  echo
+
 done
