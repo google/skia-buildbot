@@ -26,8 +26,9 @@ class RunDM(BuildStep):
 
     if self._AnyMatch('Alex'):
       # This machine looks to be running out of heap.
-      # Running with fewer threads may help.
-      args.extend(['--threads', '1'])
+      # Pipe is the mode that uses most memory, and is well tested elsewhere.
+      # An alternative is to run with --threads 1, but that's slow.
+      args.append('--nopipe')
 
     if self._AnyMatch('Android'):
       match.append('~giantbitmap')
