@@ -12,16 +12,12 @@ class RunDM(BuildStep):
   def _AnyMatch(self, *args):
     return any(arg in self._builder_name for arg in args)
 
-  def _AllMatch(self, *args):
-    return all(arg in self._builder_name for arg in args)
-
   def _Run(self):
     args = [
       '--verbose',
       '--resourcePath', self._device_dirs.ResourceDir(),
     ]
 
-    run_dm = True
     match  = []
 
     if self._AnyMatch('Alex'):
@@ -47,8 +43,14 @@ class RunDM(BuildStep):
       args.append('--match')
       args.extend(match)
 
-    if run_dm:
-      self._flavor_utils.RunFlavoredCmd('dm', args)
+    self._flavor_utils.RunFlavoredCmd('dm', args)
+
+    # See skia:2789
+    if self._AnyMatch('Valgrind'):
+      abandonGpuContext = list(args)
+      abandonGpuContext.append('--abandonGpuContext')
+      abandonGpuContext.append('--nocpu')
+      self._flavor_utils.RunFlavoredCmd('dm', abandonGpuContext)
 
 if '__main__' == __name__:
   sys.exit(BuildStep.RunBuildStep(RunDM))

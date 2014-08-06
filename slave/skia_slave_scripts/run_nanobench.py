@@ -55,9 +55,6 @@ class RunNanobench(BuildStep):
   def _AnyMatch(self, *args):
     return any(arg in self._builder_name for arg in args)
 
-  def _AllMatch(self, *args):
-    return all(arg in self._builder_name for arg in args)
-
   def _Run(self):
     args = ['-i', self._device_dirs.ResourceDir(),
             '--skps', self._device_dirs.SKPDir(),
@@ -91,6 +88,13 @@ class RunNanobench(BuildStep):
       args.extend(match)
 
     self._flavor_utils.RunFlavoredCmd('nanobench', args)
+
+    # See skia:2789
+    if self._AnyMatch('Valgrind'):
+      abandonGpuContext = list(args)
+      abandonGpuContext.append('--abandonGpuContext')
+      abandonGpuContext.append('--nocpu')
+      self._flavor_utils.RunFlavoredCmd('nanobench', abandonGpuContext)
 
 
 if '__main__' == __name__:
