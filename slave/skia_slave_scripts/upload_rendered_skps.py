@@ -5,12 +5,18 @@
 
 """Uploads the results of render_skps.py."""
 
+import contextlib
 import os
 import sys
+import urllib
 
 from build_step import BuildStep
 from utils import gs_utils
 import skia_vars
+
+PREFETCH_URL_FORMATTER = (
+    'http://skia-tree-status.appspot.com/redirect/rebaseline-server/prefetch/'
+    'setADir={set_a_dir}&setBDir={set_b_dir}')
 
 
 class UploadRenderedSKPs(BuildStep):
@@ -58,6 +64,15 @@ class UploadRenderedSKPs(BuildStep):
           upload_if=gs.UploadIf.IF_MODIFIED,
           predefined_acl=gs.PLAYBACK_CANNED_ACL,
           fine_grained_acl_list=gs.PLAYBACK_FINEGRAINED_ACL_LIST)
+      # Tell rebaseline_server to prefetch latest SKP results.
+      prefetch_url = PREFETCH_URL_FORMATTER.format(
+          set_a_dir=urllib.quote('gs://%s/%s' % (dest_bucket, dest_dir),
+                                 safe=''),
+          set_b_dir=urllib.quote('repo:expectations/skp/%s' % dest_dir,
+                                 safe=''))
+      print ('Triggering prefetch URL %s' % prefetch_url)
+      with contextlib.closing(urllib.urlopen(prefetch_url)):
+        pass
     else:
       print ('Skipping upload to Google Storage, because no image summaries '
              'in %s' % src_dir)
