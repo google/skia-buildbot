@@ -753,6 +753,7 @@ class SkiaFactory(BuildFactory):
       # is fixed, run self.NonPerfSteps() instead of the below steps.
       self.DownloadSKImageFiles()
       self.PreRender()
+      self.RunDM()
       self.RunGM()
       self.RenderSKPs()
       self.RenderPdfs()
