@@ -31,8 +31,6 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
   #    Role,   OS,         Model,        GPU,           Arch,     Config,    Extra Config,   GYP_DEFS,  Factory,   Target, Scheduler,   Extra Args
   #
   builder_specs = [
-      ('Test', 'Android',  'NexusS',     'SGX540',      'Arm7',   'Debug',   None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'nexus_s'}),
-      ('Test', 'Android',  'NexusS',     'SGX540',      'Arm7',   'Release', None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'nexus_s'}),
       ('Test', 'Android',  'Nexus4',     'Adreno320',   'Arm7',   'Debug',   None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'nexus_4'}),
       ('Test', 'Android',  'Nexus4',     'Adreno320',   'Arm7',   'Release', None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'nexus_4'}),
       ('Perf', 'Android',  'Nexus4',     'Adreno320',   'Arm7',   'Release', None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'nexus_4'}),
