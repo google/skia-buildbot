@@ -60,7 +60,7 @@ class RunNanobench(BuildStep):
             '--skps', self._device_dirs.SKPDir(),
             '--scales', '1.0', '1.1']
     if self._AnyMatch('Valgrind'):
-      args.append('--runOnce')  # Don't care about performance on Valgrind.
+      args.extend(['--loops', '1'])  # Don't care about performance on Valgrind.
     elif self._perf_data_dir:
       args.extend([
         '--outResultsFile', self._JSONPath(),
