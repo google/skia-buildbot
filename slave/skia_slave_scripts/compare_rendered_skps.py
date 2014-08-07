@@ -9,12 +9,18 @@
 import sys
 
 from build_step import BuildStep
+import upload_rendered_skps
 
 
 class CompareRenderedSKPs(BuildStep):
 
   def _Run(self):
-    print 'TODO(epoger): Not yet implemented; see http://skbug.com/1942'
+    print ('To view the latest SKP renderings by this builder, see:\n%s' %
+           upload_rendered_skps.rebaseline_server_url(
+               directive='static/live-view.html#/live-view.html?',
+               builder_name=self._builder_name))
+    print ''
+    print 'TODO(epoger): Compare not yet implemented; see http://skbug.com/1942'
 
 
 if '__main__' == __name__:
