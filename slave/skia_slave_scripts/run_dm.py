@@ -16,6 +16,7 @@ class RunDM(BuildStep):
     args = [
       '--verbose',
       '--resourcePath', self._device_dirs.ResourceDir(),
+      '--skps', self._device_dirs.SKPDir(),
     ]
 
     match  = []
