@@ -1,77 +1,119 @@
 /**
  * Copyright (c) 2014 The Chromium Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file */ 
+ * found in the LICENSE file */
 
 /* Never edit perf.css, only edit main.css and then run 'make css'.  */
 
-.full {
-    width: 100%;
-}
-
-td {
-    vertical-align: top;
+h4 {
+  margin: 0.5em 0;
 }
 
 .waiting {
     cursor: wait;
 }
 
-.wrapper {
+#page-wrapper {
     display: flex;
     flex-wrap: wrap;
+    flex-direction: row;
     width:100%;
 }
 
-.plot-wrapper {
+#plot-and-query-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    width:65%;
+}
+
+
+#plot-wrapper {
     display: block;
-    width: 1024px;
+    width: 100%;
+}
+
+#query-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    width:100%;
+}
+
+#note {
+    margin: 1em;
+    width: 30%;
+}
+
+#note .subject,
+#note .subject a {
+    color: rgb(99, 99, 18);
+}
+
+#note .key-value {
+  margin: 0;
+  padding: 0;
+}
+
+#note .key{
+  font-weight: bold;
+}
+
+#note td {
+  padding: 3px;
+}
+
+#note table {
+  padding: 3px;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+#note td.key {
+  text-align: right;
+}
+
+table, td {
+  border: none;
+}
+
+
+#inputs,
+#inputs #more {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  width:100%;
+}
+
+
+.query-select {
+  overflow: auto;
+  margin: 0.3em;
+}
+
+.query-node {
+  margin: 0 0.5em;
 }
 
 #chart {
     /* Maybe make this bigger? */
-    width: 1024px;
-    height: 480px;
-    float: left;
-}
-
-.zoom-control {
-    width: 75%;
-}
-
-.zoom-input {
-    width: 15em;
-}
-
-#legend {
     width: 100%;
-    height: 240px;
-    overflow: auto;
+    height: 640px;
 }
 
-.note {
-    border: 1px solid lightgrey;
-    padding: 1em; 
-    position: absolute;
-    background-color: white;
-    z-index: 1000;
-}
 
-.hidden {
+#inputs #more.hidden {
     display: none;
-}
-
-.zooooom {
-    width: 100%;
-    display: flex;
 }
 
 .centered {
     flex-grow: 1;
 }
 
-#zoom {
-    width: 100%;
+#plot-label {
+  border: solid lightgray 1px;
+  padding: 3px;
 }
 
 #notification {
@@ -89,22 +131,3 @@ td {
     font-size: large;
 }
 
-.legend-box-outer {
-    border: 1px solid #ccc;
-    padding: 1px;
-    display: inline-block;
-}
-
-.legend-box-inner {
-    width: 4px;
-    height: 0;
-    overflow: hidden;
-}
-
-.plot-label {
-    z-index: -1;
-    position: absolute;
-    border: 1px solid black;
-    background-color: white;
-    padding: 8px;
-}

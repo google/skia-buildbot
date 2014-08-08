@@ -88,7 +88,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 			fmt.Errorf("Wrong number of traces: Got %d Want %d", got, want)
 		}
 		key := "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_discardable_640_480:gpu"
-		trace, ok := tile.Traces[types.TraceKey(key)]
+		trace, ok := tile.Traces[key]
 		if !ok {
 			fmt.Errorf("Missing expected key: %s", key)
 		}

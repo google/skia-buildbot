@@ -338,12 +338,12 @@ func populateTraces(tile *types.Tile, service *bigquery.Service, datasetName con
 					currentKey = m.Key
 					// If we haven't seen this key before, create a new Trace for it and store
 					// the Trace in tile.Traces.
-					if _, ok := tile.Traces[types.TraceKey(currentKey)]; !ok {
+					if _, ok := tile.Traces[currentKey]; !ok {
 						trace = types.NewTrace()
 						trace.Params = iter.DecodeParams()
-						tile.Traces[types.TraceKey(currentKey)] = trace
+						tile.Traces[currentKey] = trace
 					} else {
-						trace = tile.Traces[types.TraceKey(currentKey)]
+						trace = tile.Traces[currentKey]
 					}
 				}
 				if index, ok := hashToIndex[m.Hash]; ok {

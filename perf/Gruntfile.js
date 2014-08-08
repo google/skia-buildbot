@@ -6,6 +6,22 @@ module.exports = function(grunt) {
     shell: {
       bower_install: {
          command: './node_modules/.bin/bower install'
+      },
+      install_npo: {
+         command: 'npm install',
+         options: {
+           execOptions: {
+             cwd: 'third_party/bower_components/native-promise-only/'
+           }
+         }
+      },
+      build_npo: {
+         command: 'node build.js',
+         options: {
+           execOptions: {
+             cwd: 'third_party/bower_components/native-promise-only/'
+           }
+         }
       }
     },
     bower: {
@@ -23,6 +39,7 @@ module.exports = function(grunt) {
           'third_party/bower_components/flot/jquery.flot.navigate.js',
           'third_party/bower_components/observe-js/src/observe.js',
           'third_party/bower_components/Object.observe/Object.observe.poly.js',
+          'third_party/bower_components/native-promise-only/npo.js',
 
 
           'third_party/out/WeakMap.js',
@@ -102,7 +119,7 @@ module.exports = function(grunt) {
 
   // By default run all the commands in the right sequence to build our custom
   // minified third_party JS.
-  grunt.registerTask('default', ['shell:bower_install', 'bower', 'concat', 'uglify']);
+  grunt.registerTask('default', ['shell:bower_install', 'shell:install_npo', 'shell:build_npo', 'bower', 'concat', 'uglify']);
 
   // A target to build an unminified version, for debugging.
   grunt.registerTask('debug-js', ['shell:bower_install', 'bower', 'concat', 'copy:simple']);

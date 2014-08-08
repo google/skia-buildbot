@@ -78,6 +78,41 @@ func (g *GitInfo) From(start time.Time) []string {
 	return ret
 }
 
+// From returns a --name-only short log for every commit between begin and end.
+//
+// If end is "" then it returns just the short log for the single commit at
+// begin.
+//
+// Example response:
+//
+//    commit b7988a21fdf23cc4ace6145a06ea824aa85db099
+//    Author: Joe Gregorio <jcgregorio@google.com>
+//    Date:   Tue Aug 5 16:19:48 2014 -0400
+//
+//        A description of the commit.
+//
+//    perf/go/skiaperf/perf.go
+//    perf/go/types/types.go
+//    perf/res/js/logic.js
+//
+func (g *GitInfo) Log(begin, end string) (string, error) {
+	command := []string{"log", "--name-only"}
+	hashrange := begin
+	if end != "" {
+		hashrange += ".." + end
+		command = append(command, hashrange)
+	} else {
+		command = append(command, "-n", "1", hashrange)
+	}
+	cmd := exec.Command("git", command...)
+	cmd.Dir = g.dir
+	b, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
 // gitHash represents information on a single Git commit.
 type gitHash struct {
 	hash      string

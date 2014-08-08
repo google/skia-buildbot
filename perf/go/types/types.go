@@ -1,10 +1,6 @@
 package types
 
-import (
-	"fmt"
-	"strings"
-	"time"
-)
+import "time"
 
 import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"
@@ -14,7 +10,7 @@ import (
 type Trace struct {
 	Values []float64         `json:"values"`
 	Trybot bool              `json:"trybot"`
-	Params map[string]string `json:"trybot"`
+	Params map[string]string `json:"params"`
 }
 
 // NewTrace allocates a new Trace set up for the given number of samples.
@@ -60,19 +56,13 @@ func NewCommit() *Commit {
 	}
 }
 
-// Choices is a list of possible values for a param. See Tile.
-type Choices []string
-
-// TraceKey is a key used to index into the Traces map in a Tile.
-type TraceKey string
-
 // Tile is a 32 commit slice of data.
 //
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type Tile struct {
-	Traces   map[TraceKey]*Trace `json:"traces"`
-	ParamSet map[string]Choices  `json:"param_set"`
+	Traces   map[string]*Trace   `json:"traces"`
+	ParamSet map[string][]string `json:"param_set"`
 	Commits  []*Commit           `json:"commits"`
 
 	// What is the scale of this Tile, i.e. it contains every Nth point, where
@@ -84,8 +74,8 @@ type Tile struct {
 // NewTile returns an new Tile object ready to be filled with data via populate().
 func NewTile() *Tile {
 	t := &Tile{
-		Traces:   make(map[TraceKey]*Trace),
-		ParamSet: make(map[string]Choices),
+		Traces:   make(map[string]*Trace),
+		ParamSet: make(map[string][]string),
 		Commits:  make([]*Commit, config.TILE_SIZE, config.TILE_SIZE),
 	}
 	for i := range t.Commits {
@@ -94,85 +84,27 @@ func NewTile() *Tile {
 	return t
 }
 
-func MakeTraceKey(params map[string]interface{}) TraceKey {
-	paramNames := config.NANO_PARAM_ORDER
-	newKeyParts := make([]string, 0, len(paramNames))
-	for _, paramName := range paramNames {
-		if keyPart, exists := params[paramName]; exists {
-			newKeyParts = append(newKeyParts, fmt.Sprint(keyPart))
-		} else {
-			newKeyParts = append(newKeyParts, "")
-		}
-	}
-	return TraceKey(strings.Join(newKeyParts, ":"))
-}
-
-func MakeTraceKeyFromStrings(params map[string]string) TraceKey {
-	paramNames := config.NANO_PARAM_ORDER
-	newKeyParts := make([]string, 0, len(paramNames))
-	for _, paramName := range paramNames {
-		if keyPart, exists := params[paramName]; exists {
-			newKeyParts = append(newKeyParts, keyPart)
-		} else {
-			newKeyParts = append(newKeyParts, "")
-		}
-	}
-	return TraceKey(strings.Join(newKeyParts, ":"))
-}
-
-// TileCoordinate describes where a TraceFragment is, with respect to the tiling system.
-// It is used to sort TileFragments, and ensure the correct update calls are made.
-type TileCoordinate struct {
-	// Scale is the tile scale it belongs to.
-	Scale int
-	// Commits is the git commit hash it belongs to.
-	Commit string
-}
-
-// TileFragment represents a piece of data that should be added to tiles. This
-// should allow for easier transition between JSON file formats, as each new
-// format would only need to provide some way of generating TileFragments.
-type TileFragment interface {
-	// UpdateTile should update the tile passed in with the data
-	// stored in the fragment. It isn't assumed to be idempotent.
-	UpdateTile(*Tile) error
-	// Coordinates should return a TileCoordinate that corresponds to the data
-	// in the fragment.
-	TileCoordinate() TileCoordinate
-}
-
-// TileFragmentIter provides an iterator interface over a TileFragment resource.
-type TileFragmentIter interface {
-	// TileFragment() provides a tile fragment.
-	TileFragment() TileFragment
-	// Next() returns whether there are any more fragments left to get from the iterator, and
-	// removes the current tile fragment from the iterator, except on the first call.
-	Next() bool
-}
-
 // TraceGUI is used in TileGUI.
 type TraceGUI struct {
-	Data [][2]float64 `json:"data"`
-	Key  string       `json:"key"`
+	Data   [][2]float64      `json:"data"`
+	Label  string            `json:"label"`
+	Params map[string]string `json:"_params"`
 }
 
 // TileGUI is the JSON the server serves for tile requests.
 type TileGUI struct {
-	Traces    []TraceGUI `json:"traces,omitempty"`
-	ParamSet  [][]string `json:"params,omitempty"`
-	Commits   []*Commit  `json:"commits,omitempty"`
-	NameList  []TraceKey `json:"names,omitempty"`
-	Scale     int        `json:"scale"`
-	TileIndex int        `json:"tileIndex"`
+	ParamSet map[string][]string `json:"paramset,omitempty"`
+	Commits  []*Commit           `json:"commits,omitempty"`
+	Scale    int                 `json:"scale"`
+	Tiles    []int               `json:"tiles"`
 }
 
-func NewGUITile(scale int, tileIndex int) *TileGUI {
+func NewTileGUI(scale int, tileIndex int) *TileGUI {
 	return &TileGUI{
-		Traces:    make([]TraceGUI, 0),
-		ParamSet:  make([][]string, 0),
-		Commits:   make([]*Commit, 0),
-		Scale:     scale,
-		TileIndex: tileIndex,
+		ParamSet: make(map[string][]string, 0),
+		Commits:  make([]*Commit, 0),
+		Scale:    scale,
+		Tiles:    []int{tileIndex},
 	}
 }
 

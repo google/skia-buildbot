@@ -181,7 +181,7 @@ func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get GS service: %s", nil)
 	}
-	t := types.NewGUITile(-1, -1) // Tile level/number don't matter here.
+	t := types.NewTileGUI(-1, -1) // Tile level/number don't matter here.
 	req := gs.Objects.List(GS_PROJECT_BUCKET).Prefix(prefix)
 	for req != nil {
 		resp, err := req.Do()
@@ -189,6 +189,7 @@ func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
 			return nil, fmt.Errorf("Google Storage request error: %s", err)
 		}
 		for _, result := range resp.Items {
+			// Use ingester.BenchFile here.
 			r, err := RequestForStorageURL(result.MediaLink)
 			if err != nil {
 				return nil, fmt.Errorf("Google Storage MediaLink request error: %s", err)
@@ -221,10 +222,12 @@ func getTryData(prefix string, dataset config.DatasetName) ([]byte, error) {
 				// Remove the -Trybot prefix so the trybot keys
 				// and normal keys match.
 				i.Params["builderName"] = strings.Replace(fmt.Sprint(i.Params["builderName"]), "-Trybot", "", 1)
-				t.Traces = append(t.Traces, types.TraceGUI{
-					Data: newData,
-					Key:  string(types.MakeTraceKey(i.Params)),
-				})
+				/*
+					t.Traces = append(t.Traces, types.TraceGUI{
+						Data: newData,
+						Label:  string(types.MakeTraceKey(i.Params)),
+					})
+				*/
 			}
 		}
 		if len(resp.NextPageToken) > 0 {

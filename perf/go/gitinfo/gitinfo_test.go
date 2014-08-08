@@ -85,3 +85,51 @@ func TestFrom(t *testing.T) {
 		}
 	}
 }
+
+func TestLog(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := r.Log("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `commit 7a669cfa3f4cd3482a4fd03989f75efcc7595f7f
+Author: Joe Gregorio <jcgregorio@google.com>
+Date:   Wed Jul 30 08:00:42 2014 -0400
+
+    First "checkin"
+    
+    With quotes.
+
+README.txt
+`
+
+	if got != want {
+		t.Errorf("Log failed: \nGot  %q \nWant %q", got, want)
+	}
+
+	got, err = r.Log("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want = `commit 8652a6df7dc8a7e6addee49f6ed3c2308e36bd18
+Author: Joe Gregorio <jcgregorio@google.com>
+Date:   Wed Jul 30 08:01:55 2014 -0400
+
+    Added code. No body.
+
+README.txt
+hello.go
+`
+
+	if got != want {
+		t.Errorf("Log failed: \nGot  %q \nWant %q", got, want)
+	}
+
+}

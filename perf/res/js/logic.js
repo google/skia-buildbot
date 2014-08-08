@@ -1,1372 +1,358 @@
 /**
- * Copyright (c) 2014 The Chromium Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file */
-/** Provides the logic behind the performance visualization webpage. */
+ * The communication between parts of the code will be done by using Object.observe
+ * on common data structures.
+ *
+ * The data structures are 'traces', 'queryInfo', 'commitData', 'dataset':
+ *
+ *   traces
+ *     - A list of objects that can be passed directly to Flot for display.
+ *   queryInfo
+ *     - A list of all the keys and the parameters the user can search by.
+ *   commitData
+ *     - A list of commits for the current set of tiles.
+ *   dataset
+ *     - The current scale and range of tiles we are working with.
+ *
+ * There are four objects that interact with those data structures:
+ *
+ * Plot
+ *   - Handles plotting the data in traces via Flot.
+ * Query
+ *   - Allows the user to select which traces to display.
+ * Dataset
+ *   - Allows the user to move among tiles, change scale, etc.
+ *
+ */
+var skiaperf = (function() {
+  "use strict";
 
-function assert_(cond, msg) {
-  if(!cond) {
-    throw msg || "Assertion failed";
-  }
-}
+  /**
+   * Stores the trace data.
+   * Formatted so it can be directly fed into Flot generate the plot,
+   * Plot observes traces, and Query can make changes to traces.
+   */
+  var traces = [
+      /*
+      {
+        // All of these keys and values should be exactly what Flot consumes.
+        data: [[1, 1.1], [20, 30]],
+        label: "key1",
+        color: "",
+        lines: {
+          show: false
+        }
+      },
+      ...
+      */
+    ];
 
+  /**
+   * Contains all the information about each commit.
+   * It uses an {@code Object} as a dictionary, where the key is the time of
+   * the commit.
+   *
+   * Dataset modifies commitData.
+   * Plot reads it.
+   */
+  var commitData = {};
 
-function last(ary) {
-  return ary[ary.length - 1];
-}
-
-
-function getKeys(dict) {
-  var keys = [];
-  for(var key in dict) {
-    if(dict.hasOwnProperty(key)) {
-      keys.push(key);
-    }
-  }
-  return keys;
-}
-
-
-function getArg(key) {
-  var keypairs = window.location.hash.slice(1).split('&').map(function(p) {
-      return p.split('=', 2);});
-  for(var i = 0; i < keypairs.length; i++) {
-    if(keypairs[i][0] == key && keypairs[i][1].length > 0) {
-      return decodeURIComponent(keypairs[i][1]);
-    }
-  }
-  return null;
-}
-
-
-var id = function(e) { return e; };
-
-
-function $$(query, par) {
-  if(!par) {
-    return Array.prototype.map.call(document.querySelectorAll(query), id);
-  } else {
-    return Array.prototype.map.call(par.querySelectorAll(query), id);
-  }
-}
-
-function $$$(query, par) {
-  return par ? par.querySelector(query) : document.querySelector(query);
-}
-
-
-/** A safe wrapper around a dictionaryish object */
-function PagedDictionary(attrs) {
-  var dict = {};
-  var index = [];
-  var current = null;
-  // Adds extra attributes to extend functionality as needed
-  for(var attr in attrs) {
-    if(attrs.hasOwnProperty(attr)) {
-      this[attr] = attrs[attr];
-    }
-  }
-  /* Returns true if the dictionary has something with that index. */
-  this.has = function(id) {
-    return index.indexOf(id) != -1;
-  };
-  /* Returns the value currently being pointed to. */
-  this.cur = function() {
-    if(current) {
-      return dict[current];
-    } else {
-      return null;
-    }
-  };
-  /* Returns the current key being used as a pointer. */
-  this.currentId = function() {
-    return current;
-  };
-  /* Returns the value matching the key if it exists, null otherwise. */
-  this.get = function(id) {
-    if(this.has(id)) {
-      return dict[id];
-    } else {
-      return null;
-    }
-  };
-  /* Adds a value to the dictionary. */
-  this.add = function(id, val) {
-    if(!this.has(id)) {
-      index.push(id);
-    }
-    dict[id] = val;
-  };
-  /* Adds a value to the dictionary, and has the current pointer point to it. */
-  this.push = function(id, val) {
-    this.add(id, val);
-    this.makeCurrent(id);
-  };
-  /* Points current at a particular value. */
-  this.makeCurrent = function(id) {
-    if(this.has(id)) {
-      current = id;
-      return true;
-    } else {
-      return false;
-    }
-  };
-  /* Returns a list of existing keys. */
-  this.index = function() {
-    return index;
-  };
-  // TODO: Make map function
-  /* Removes a value from the dictionary. */
-  this.remove = function(id) {
-    if(!this.has(id)) {
-      dict[id] = null;
-      index.splice(index.indexOf(id),1);
-    }
-  };
-  /* Sets a value for a given key, returns false if it fails. */
-  this.set = function(id, val) {
-    if(this.has(id)) {
-      dict[id] = val;
-      return true;
-    } else {
-      return false; 
-    }
-  };
-  /* Returns the position of a key in the key list. */
-  this.indexOf = function(idx) {
-    return index.indexOf(idx);
-  }
-  /* Looks up the index for a given item. */
-  this.rlookup = function(val) {
-    for(var i = 0; i < dict.length; i++) {
-      if(this.dict[index[i]] == val) {
-        return index[i];
-      } else {
-        return null;
-      }
-    }
-  };
-  /* Returns the private variables for debugging purposes. */
-  this.debug = function() {
-    return {dict: dict, index: index, current: current};
-  };
-}
-
-/* Unordered data structure with O(1) add, remove, and index.*/
-// Benchmarked remarkably well against vector.splice()/push()
-function Vector() {
-  var data = [];
-  var firstEmpty = 0;
-  if(arguments) {
-    data = Array.prototype.map.call(arguments, id);
-    firstEmpty = data.length;
-  }
-  this.get = function(idx) {
-    assert_(idx < firstEmpty);
-    return data[idx];
-  },
-  this.push = function(elem) {
-    data[firstEmpty] = elem;
-    firstEmpty++;
-  };
-  this.pop = function(idx) {
-    assert_(idx < firstEmpty && firstEmpty > 0);
-    var result = data[idx];
-    data[idx] = data[firstEmpty - 1];
-    data[firstEmpty - 1] = null;
-    firstEmpty--;
-    return result;
-  };
-  this.all = function() {
-    return data.slice(0, firstEmpty);
-  };
-  this.remove = function(elem) {
-    var i = 0;
-    while(i < firstEmpty && data[i] != elem) { i++; }
-    this.pop(i);
-  };
-  this.map = function() {
-    return Array.prototype.map.apply(this.all(), arguments);
-  };
-  this.has = function(val) {
-    for(var i = 0; i < firstEmpty; i++) {
-      if(data[i] == val) { return true; }
-    }
-    return false;
-  };
-}
-
-
-function loadJSON(uri, success, fail) {
-  var req = new XMLHttpRequest();
-  document.body.classList.add('waiting');
-  req.addEventListener('load', function() {
-    console.log(req);
-    if(req.response && req.status == 200) {
-      if(req.responseType == 'json') {
-        success(req.response);
-      } else {
-        success(JSON.parse(req.response));
-      }
-    } else {
-      fail();
-    }
-  });
-  req.addEventListener('loadend', function() {
-    document.body.classList.remove('waiting');
-  });
-  req.addEventListener('error', function() {
-    notifyUser('Unable to retrieve' + uri);
-    fail();
-  });
-  req.open('GET', uri, true);
-  req.send();
-}
-
-
-/** Sends the user a notification on the bottom bar. */
-function notifyUser(text, replace) {
-  if (!$('#notification').is(':visible') && !replace) {
-    $('#notification-text').html(text);
-    $('#notification').show().delay(5000).fadeOut(1000).hide(10);
-    // If you find a way to convert this to non-jQuery, I'll replace it.
-  } else {
-    window.setTimeout(notifyUser, 400, text);
-  }
-}
-
-
-/** Splits a particular component out of a list of objects.*/
-function getComponent(ary, name) {
-  return ary.map(function(e) { return e[name]; });
-}
-
-
-/** Removes all the children owned by the element.*/
-function killChildren(e) {
-  while(e.hasChildNodes()) {
-    e.removeChild(e.children[0]);
-  }
-}
-
-
-// FUTURE(kelvinly): Try using a dirty flag instead of two representations
-// to see if it's more efficient.
-/** Encapsulates the legend state.*/
-var legend = (function() {
-  var internalLegend = [];
-  var externalLegend = [];
-  // Each legend marker has two values, a key and a color
-  // The external legend also has a pointer to its DOM element called elem.
-  var legendBody = null;
-
-  function addToDOM(e) {
-    console.log('addToDOM called');
-    // console.log(e);
-    assert_(e.key && e.color);
-    assert_(legendBody);
-    var container = document.createElement('tr');
-    var checkContainer = document.createElement('td');
-    var checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = true;
-    checkbox.id = e.key;
-    var outerColor = document.createElement('div');
-    outerColor.classList.add('legend-box-outer');
-    var innerColor = document.createElement('div');
-    innerColor.classList.add('legend-box-inner');
-    innerColor.style.border = '5px solid ' + e.color;
-    var text = document.createTextNode(e.key);
-    var linkContainer = document.createElement('td');
-    var link = document.createElement('a');
-    link.href = '#';
-    link.innerText = 'Remove';
-    link.id = e.key + '_remove';
-    
-    container.appendChild(checkContainer);
-    container.appendChild(linkContainer);
-    
-    checkContainer.appendChild(checkbox);
-    checkContainer.appendChild(outerColor);
-    checkContainer.appendChild(text);
-
-    linkContainer.appendChild(link);
-    outerColor.appendChild(innerColor);
-
-    legendBody.appendChild(container);
-    return {key: e.key, color: e.color, elem: container};
-  }
-
-  function rawAdd(key, color) {
-    assert_(getComponent(internalLegend, 'key').indexOf(key) == -1);
-
-    var newPair = {key:key, color:color};
-    internalLegend.push(newPair);
-    externalLegend.push(addToDOM(newPair));
-  }
-  return {
-    /** Updates the colors for the elements.*/
-    updateColors: function(plotRef) {
-      var dataRef = plotRef.getData();
-      internalLegend.forEach(function(legendMarker) {
-        legendMarker.color = legendMarker.color || 'white';
-        dataRef.forEach(function(series) {
-          if(legendMarker.key == series.label) {
-            legendMarker.color = series.color;
-          }
-        });
-      });
+  /**
+   * Stores the different parameters that can be used to specify a trace.
+   * The {@code params} field contains an array of arrays, each array
+   * representing a single parameter that can be set, with the first element of
+   * the array being the human readable name for it, and each followin element
+   * a different possibility of what to set it to.
+   * The {@code trybotResults} fields contains a dictionary of trace keys,
+   * whose values are the trybot results for each trace.
+   * Query observe queryInfo, and Dataset and Query can modify queryInfo.
+   */
+  var queryInfo = {
+    params: {
+      /*
+      "benchName": ["desk_gmailthread.skp", "desk_mapsvg.skp" ],
+      "timer":     ["wall", "cpu"],
+      "arch":      ["arm7", "x86", "x86_64"],
+      */
     },
-    /** Refreshes the DOM to match the internal state.*/
-    refresh: function() {
-      var synced, color_synced = true;
-      synced = internalLegend.length == externalLegend.length;
-      // NOTE: Restructure control flow?
-      internalLegend.forEach(function(elem, idx) {
-        if(!synced) {
-          return;
+    trybotResults: {
+      /*
+       'trace:key': 13.234  // The value of the trybot result.
+      */
+    }
+  };
+
+  /**
+   * The current scale and set of tiles we are viewing.
+   *
+   * Dataset can change this.
+   * Query observes this and updates traces and queryInfo.params when it changes.
+   */
+  var dataset = {
+    scale: 0,
+    tiles: [-1]
+  };
+
+  // Query watches queryChange.
+  // Dataset can change queryChange.
+  //
+  // queryChange is used because Observe-js has trouble dealing with the large
+  // array changes that happen when Dataset swaps queryInfo data.
+  var queryChange = { counter: 0 };
+
+
+  /******************************************
+   * Utility functions used across this file.
+   ******************************************/
+
+  /**
+   * $$ returns a real JS array of DOM elements that match the CSS query selector.
+   *
+   * A shortcut for jQuery-like $ behavior.
+   **/
+  function $$(query, ele) {
+    if (!ele) {
+      ele = document;
+    }
+    return Array.prototype.map.call(ele.querySelectorAll(query), function(e) { return e; });
+  }
+
+
+  /**
+   * $$$ returns the DOM element that match the CSS query selector.
+   *
+   * A shortcut for document.querySelector.
+   **/
+  function $$$(query, ele) {
+    if (!ele) {
+      ele = document;
+    }
+    return ele.querySelector(query);
+  }
+
+  /**
+   * clearChildren removes all children of the passed in node.
+   */
+  function clearChildren(ele) {
+    while (ele.firstChild) {
+      ele.removeChild(ele.firstChild);
+    }
+  }
+
+
+  // escapeNewlines replaces newlines with <br />'s
+  function escapeNewlines(str) {
+    return (str + '').replace(/\n/g, '<br />');
+  }
+
+  // Returns a Promise that uses XMLHttpRequest to make a request to the given URL.
+  function get(url) {
+    // Return a new promise.
+    return new Promise(function(resolve, reject) {
+      // Do the usual XHR stuff
+      var req = new XMLHttpRequest();
+      req.open('GET', url);
+
+      req.onload = function() {
+        // This is called even on 404 etc
+        // so check the status
+        if (req.status == 200) {
+          // Resolve the promise with the response text
+          resolve(req.response);
         } else {
-          if(elem.key != externalLegend[idx].key) {
-            synced = false;
-            color_synced = false;
-          }
-          if(elem.color != externalLegend[idx].color) {
-            color_synced = false;
-          }
-        }
-      });
-      if(synced && color_synced) {
-        console.log('legend.refresh: legends synced');
-        return;
-      } else if(synced && !color_synced) {
-        console.log('legend.refresh: fixing colors');
-        // Fix the colors
-        $$('tr', legendBody).forEach(function(e, idx) {
-          assert_($$$('input', e).id == internalLegend[idx].key);
-
-          $$$('.legend-box-inner', e).style.
-            border = '5px solid ' + internalLegend[idx].color;
-        });
-      } else {
-        killChildren($$$('#legend table tbody'));
-        externalLegend = [];
-        // Regenerate a new legend
-        var _this = this;
-        internalLegend.forEach(function(e) {
-          externalLegend.push(addToDOM(e, _this));
-        });
-      }
-    },
-    remove: function(key) {
-      var children = [];
-      externalLegend.forEach(function(e, idx) {
-        if(e.key == key) {
-          children.push(e.elem);
-        }
-      });
-      children.forEach(function(c) {
-        assert_(c.parentNode);
-        c.parentNode.removeChild(c);
-      });
-      internalLegend = internalLegend.filter(function(e) {
-        return e.key != key;
-      });
-      externalLegend = externalLegend.filter(function(e) {
-        return e.key != key;
-      });
-    },
-    /* Sets up the private variables, and a few of the relevant UI controls.*/
-    init: function(showHandler, hideHandler, drawHandler) {
-      console.log('Initializing legend');
-      assert_(showHandler && hideHandler);
-      legendBody = $$$('#legend table tbody');
-      var _this = this;
-      $$$('#nuke-plot').addEventListener('click', function(e) {
-        internalLegend.forEach(function(keypair) {
-          plotData.hide(keypair.key);
-        });
-        killChildren($$$('#legend table tbody'));
-        internalLegend = [];
-        externalLegend = [];
-        drawHandler();
-        e.preventDefault();
-      });
-      legendBody.addEventListener('click', function(e) {
-        if('INPUT' == e.target.nodeName) {
-          if(e.target.checked) {
-            console.log(e.target.id + ' checked');
-            showHandler(e.target.id);
-          } else {
-            console.log(e.target.id + ' unchecked');
-            hideHandler(e.target.id);
-          }
-          drawHandler();
-        } else if('A' == e.target.nodeName) {
-          console.log(e.target.id + ' removed');
-          if(document.getElementById(e.target.id.slice(0,-'_remove'.length)).checked) {
-            hideHandler(e.target.id.slice(0,-'_remove'.length));
-          }
-          _this.remove(e.target.id.slice(0,-'_remove'.length));
-          drawHandler();
-        }
-      });
-      /* Adds a key to the legend, and makes it visible on the chart.*/
-      this.add = function(key, color, nodraw) {
-        if(getComponent(internalLegend, 'key').indexOf(key) != -1) {
-          return;
-        }
-        rawAdd(key, color);
-        showHandler(key);
-        if(!nodraw) {
-          drawHandler();
+          // Otherwise reject with the status text
+          // which will hopefully be a meaningful error
+          reject(Error(req.statusText));
         }
       };
-      /* Adds an array of keys to the legend, and makes them visible 
-       * on the chart.*/
-      this.addMany = function(ary) {
-        ary.forEach(function(a) { _this.add(a.key, a.color, true); });
-        drawHandler();
+
+      // Handle network errors
+      req.onerror = function() {
+        reject(Error("Network Error"));
       };
-    },
-    debug: function() {
-      return [internalLegend, externalLegend, legendBody];
-    }
-  };
-})();
 
-
-/** Attempts to merge requests for the same resource, waits 50 ms before sending
- * a request */
-var jsonRequest = (function() {
-  var waitingHandlers = [];
-  var freshFiles = [];
-
-  function makeRequest(uri, callback) {
-    var ref = {uri: uri, callbacks: [callback]};
-    waitingHandlers.push(ref);
-
-    var removeSelf = function() {
-      var idx = waitingHandlers.indexOf(ref);
-      assert_(idx != -1);
-      waitingHandlers.splice(idx, 1);
-    };
-
-    loadJSON(ref.uri, function(data) {
-      console.log('jsonRequest: ' + ref.uri + ' received');
-      var freshIdx = getComponent(freshFiles, 'uri').indexOf(uri);
-      if(freshIdx == -1) {
-        freshFiles.push({uri: uri, time: Date.now(), data: data});
-      } else {
-        freshFiles[freshIdx].data = data;
-        freshFiles[freshIdx].time = Date.now();
-      }
-      ref.callbacks.forEach(function(callback) {
-        assert_(callback);
-        callback(data, true);
-      });
-      removeSelf();
-    }, function() {
-      ref.callbacks.forEach(function(callback) {
-        assert_(callback);
-        callback(data, false);
-      });
-      removeSelf();
+      // Make the request
+      req.send();
     });
   }
-  return {
-    askFor: function(uri, callback) {
-      var idx = getComponent(waitingHandlers, 'uri').indexOf(uri);
-      var freshIdx = getComponent(freshFiles, 'uri').indexOf(uri);
-      if(idx != -1) {
-        // Add to to that handler's callbacks.
-        waitingHandlers[idx].callbacks.push(callback);
-      } else if(freshIdx != -1) {
-        if(Date.now() - freshFiles[freshIdx].time < 5*60*1000) {
-          // Good enough
-          callback(freshFiles[freshIdx].data, true);
-          return;
-        } else {
-          // Not fresh enough any more
-          freshFiles.splice(freshIdx, 1);
-          makeRequest(uri, callback);
-        }
-      } else {
-        makeRequest(uri, callback);
-      }
-    },
-    forceReload: function(uri, callback) {
-      var freshIdx = getComponent(freshFiles, 'uri').indexOf(uri);
-      while(freshIdx != -1) {
-        freshFiles.splice(freshIdx, 1);
-        freshIdx = getComponent(freshFiles, 'uri').indexOf(uri);
-      }
-      makeRequest(uri, callback);
-    },
-    askForTile: function(scale, tileNumber, dataset, 
-            options, callback, forcerefresh) {
-      if(!forcerefresh) {
-        // FUTURE: Use other passed in data
-        this.askFor('json/' + dataset /* + makeArgs(options) */, callback);
-      } else {
-        // FUTURE: Use other passed in data
-        this.forceRefresh('json/' + dataset /* + makeArgs(options) */, callback);
-      }
-    },
-    debug: function() {
-      return [freshFiles, waitingHandlers];
-    }
-  };
-})();
 
 
-// Stores a set of traces for a single key, over all tiles and ranges. The
-// constuctor takes in a set of data to start it off.
-function Trace(newData, newTileID, newScale) {
-  var data = [];
-  data[parseInt(newScale)] = [];
-  data[parseInt(newScale)][parseInt(newTileID)] = newData.slice(); 
-  // Will replace with shallow copy if not performant
-  // FUTURE: Assumes input data is sorted
-
-  function getscales() {
-    var result = [];
-    for(var key in data) {
-      if(data.hasOwnProperty(key)) {
-        result.push(parseInt(key));
-      }
-    }
-    return result;
+  /**
+   * Converts from a POSIX timestamp to a truncated RFC timestamp that
+   * datetime controls can read.
+   */
+  function toRFC(timestamp) {
+    return new Date(timestamp * 1000).toISOString().slice(0, -1);
   }
 
-  function getTiles(scale) {
-    if(!data[scale]) {
+  /**
+   * Notifies the user.
+   */
+  function notifyUser(err) {
+    alert(err);
+  }
+
+
+  /**
+   * Sets up the callbacks related to the plot.
+   * Plot observes traces.
+   */
+  function Plot() {
+    /**
+     * Stores the edges of the plot to keep the zoom controls in sync.
+     * plotEdges is watched to update the zoom and time controls in the UI,
+     * and is modified when traces is modified, or the user pans or zooms the
+     * plot.
+     */
+    this.plotEdges = [null, null];
+
+    /**
+     * Stores the annotations currently visible on the plot. This is updated
+     * whenever plotEdges is changed, with a slightly delay to avoid
+     * sending too many requests to the server. The hash is used as a key to
+     * either an object like
+     * {
+     *   id: 7,
+     *   notes: "Something happened here",
+     *   author: "bensong",
+     *   type: 0
+     * }
+     * or null.
+     */
+    this.annotations = {};
+
+    /**
+     * Used to determine if the scale of the y-axis of the plot.
+     * If it's true, a logarithmic scale will be used. If false, a linear
+     * scale will be used.
+     */
+    this.isLogPlot = false;
+
+    /**
+     * Stores the name of the currently selected line, used in the drawSeries
+     * hook to highlight that line.
+     */
+    this.curHighlightedLine = null;
+
+    /**
+     * Reference to the underlying Flot data.
+     */
+    this.plotRef = null;
+
+    /**
+     * The element is used to display commit and annotation info.
+     */
+    this.note = null;
+
+    /**
+     * The element displays the current trace we're hovering over.
+     */
+    this.plotLabel = null;
+  };
+
+
+  /**
+   * Draws vertical lines that pass through the times of the loaded annotations.
+   * Declared here so it can be used in plotRef's initialization.
+   */
+  Plot.prototype.drawAnnotations = function(plot, context) {
+    var yaxes = plot.getAxes().yaxis;
+    var offsets = plot.getPlotOffset();
+    Object.keys(this.annotations).forEach(function(timestamp) {
+      // Check to see if it's inside the plot before drawing.
+      if (timestamp < this.plotEdges[0] || timestamp > this.plotEdges[1]) {
+        return;
+      }
+      var lineStart = plot.p2c({'x': timestamp, 'y': yaxes.max});
+      var lineEnd = plot.p2c({'x': timestamp, 'y': yaxes.min});
+      context.save();
+      var maxLevel = -1;
+      this.annotations[timestamp].forEach(function(annotation) {
+        if (annotation.type > maxLevel) {
+          maxLevel = annotation.type;
+        }
+      });
+      switch (maxLevel) {
+        case 1:
+          context.strokeStyle = 'dark yellow';
+          break;
+        case 2:
+          context.strokeStyle = 'red';
+          break;
+        default:
+          context.strokeStyle = 'grey';
+      }
+      context.beginPath();
+      context.moveTo(lineStart.left + offsets.left,
+          lineStart.top + offsets.top);
+      context.lineTo(lineEnd.left + offsets.left, lineEnd.top + offsets.top);
+      context.closePath();
+      context.stroke();
+      context.restore();
+    });
+  };
+
+
+  /**
+   * Gets background markings on SKP version changes.
+   */
+  Plot.prototype.getMarkings = function(axes) {
+    if (traces.length <= 0 || !this.plotEdges[0] || !this.plotEdges[1]) {
       return [];
     }
-    var result = [];
-    for(var key in data[scale]) {
-      if(data[scale].hasOwnProperty(key)) {
-        result.push(parseInt(key));
-      }
-    }
-    return result;
-  }
-
-  /* Adds a set of data to the trace.*/
-  this.add = function(newData, tileId, scale) {
-    assert_(newData.length > 0);
-    if(!data[scale]) {
-      data[scale] = [];
-    }
-    if(!data[scale][tileId] || (newData.length >= data[scale][tileId].length)) {
-      data[scale][tileId] = newData.slice();  // FUTURE: If too slow, replace with
-                                              // shallow copy
-    }
-  };
-
-  this.get = function(tileId, scale) {
-    return (data[scale] && data[scale][tileId]) || [];
-  };
-
-  this.getRange = function(start, end, scale) {
-    // FUTURE: Add support for downsampling on scale mismatch
-    assert_(start <= end);
-    var results = [];
-    var tiles = data[scale];
-    getTiles(scale).forEach(function(tileIdx) {
-      if(tiles[tileIdx][0][0] <= end && last(tiles[tileIdx])[0] >= start) {
-        var result = [];
-        var i = 0;
-        while(tiles[tileIdx][i][0] < start) {
-          assert_(i < tiles[tileIdx].length);
-          i++;
-        }
-        if(i > 0) {
-          // Add one just before the range if possible
-          i--;
-        }
-        while(i < tiles[tileIdx].length && tiles[tileIdx][i][0] <= end) {
-          result.push(tiles[tileIdx][i]);
-          i++;
-        }
-        if(i < tiles[tileIdx].length) {
-          // Also add one just after
-          result.push(tiles[tileIdx][i]);
-        }
-        results.push(result);
-      }
+    var skpPhrase = 'Update SKP version to ';
+    var updates = Object.keys(commitData).map(function(timestamp) {
+      return commitData[timestamp];
+    }).filter(function(c) {
+      return c.commit_time &&
+        c.commit_time >= this.plotEdges[0] && c.commit_time <= this.plotEdges[1];
+    }).filter(function(c) {
+      return c.commit_msg && c.commit_msg.indexOf(skpPhrase) >= 0;
+    }).map(function(c) {
+      return c.commit_time;
     });
-    return results;
-  }
-
-  /* Returns true if the trace has data in that tile and scale.*/
-  this.contains = function(tileid, scale) {
-    return !!(data[scale] && data[scale][tileid]);
-  };
-
-  this.debug = function() {
-    return data;
-  };
-}
-
-
-var traceDict = (function() {
-  var cache = new PagedDictionary();
-  // A dictionary of keys to Trace objects
-
-  function loadData(data, tileId, dataset, scale) {
-    console.log('traceDict: loadData called. tileId = ' + tileId + 
-        ', scale = ' + scale);
-    // Look for the key in the data, and store that. If no key specified, store
-    // as much data as possible.
-    assert_(data['traces'] && data['commits']);
-
-    var commitAry = getComponent(data['commits'], 'commit_time');
-    data['traces'].forEach(function(trace) {
-      var newKey = schema.makeLegendKey(trace);
-      var processedData = [];
-      for(var i = 0; i < trace['values'].length; i++) {
-        if(trace['values'][i] < 1e+99) {
-          processedData.push([commitAry[i], trace['values'][i]]);
-        }
+    if (updates.length === 0 || updates[0] > this.plotEdges[0]) {
+      updates.unshift(this.plotEdges[0]);
+    }
+    if (updates[updates.length - 1] < this.plotEdges[1]) {
+      updates.push(this.plotEdges[1]);
+    }
+    var markings = [];
+    for (var i = 1; i < updates.length; i++) {
+      if (i % 2 === 0) {
+        markings.push([updates[i-1], updates[i]]);
       }
-      if(cache.has(newKey)) {
-        cache.get(newKey).add(processedData, tileId, scale);
-      } else {
-        cache.add(newKey, new Trace(processedData, tileId, scale));
-      }
+    }
+    // Alternate white and grey vertical strips.
+    var m = markings.map(function(pair) {
+      return { xaxis: {from: pair[0], to: pair[1]}, color: '#eeeeee'};
     });
-  }
-  return {
-    getTraces: function(toGet, callback) {
-      var result = {};
-      var count = toGet.length;
-      var writeResults = function(key, data) {
-        result[key] = data;
-        count--;
-        if(count <= 0) {
-          callback(result);
-        }
-      };
-      var failResults = function() {
-        count--;
-        if(count <= 0) {
-          callback(result);
-        }
-      };
-      toGet.forEach(function(metadata) {
-        // NOTE: Assumes getTileNumbers returns in numeric order
-        commitDict.getTileNumbers(metadata.range, function(tileData) {
-          var tileNums = tileData[0];
-          var scale = tileData[1];
-          var tileCount = tileNums.length;
-          var tileData = [];
-          var writeSegment = function(tileId, data) {
-            tileData.push.apply(tileData, data);
-            tileCount--;
-            if(tileCount <= 0) {
-              writeResults(metadata.key, tileData);
-            }
-          };
-          var writeFromCache = function(tileId) {
-            writeSegment(tileId, cache.get(metadata.key).get(tileId, scale));
-          };
-          tileNums.forEach(function(tileId) {
-            if(cache.has(metadata.key) && 
-                cache.get(metadata.key).contains(tileId, scale)) {
-              //console.log('trace segment ' + metadata.key + ':' +
-                  //tileId + ':' + scale + ' found in cache');
-              writeFromCache(tileId);
-            } else {
-              //console.log('traceDict.getTraces: line ' + metadata.key + ' not cached.');
-              var dataset = metadata.key.split(':')[0];
-              jsonRequest.askForTile(scale, tileId, dataset, {} /* individual trace set here */,
-                  function(data) {
-                loadData(data, tileId, dataset, scale);
-                // FUTURE: Check to see if this causes race conditions?
-                if(cache.has(metadata.key) && 
-                    cache.get(metadata.key).contains(tileId, scale)) {
-                  //console.log('trace segement ' + metadata.key + ':' + 
-                      //tileId + ':' + scale + ' found after loading');
-                  writeFromCache(tileId);
-                } else {
-                  tileCount--;
-                  console.log('This line appears to not be in selected tile.');
-                }
-              });
-            }
-          });
-        });
-      });
-    },
-    /* Returns the number of traces that are cached from the array of lines
-     * passed in.*/
-    countCached: function(keyArray) {
-      var count = 0;
-      keyArray.forEach(function(key) {
-        if(cache.has(key)) { count ++; }
-      });
-      return count;
-    },
-    init: function() {
-      console.log('Initializing traceDict');
-      // Nothing here; data's loaded when requested
-    },
-    debug: function() {
-      return cache;
-    }
+    return m;
   };
-})();
 
-
-var commitDict = (function() {
-  var dataDict = new PagedDictionary();
-  // Uses timestamp plus scale as keys, {hash, commit_msg, blamelist}, etc as values
-  var callbacks = new Vector();
-
-  /* Calls a function for each non empty element of callbackentries.
-   * If the function returns true, then after iterating, remove that
-   * element. */
-  function iterateAndPopCallback(fun) {
-    var toRemove = callbacks.map(function(e, idx) {
-      if(fun(e)) {
-        return idx;
-      } else {
-        return null;
-      }
-    }).filter(function(e) {return e != null;});
-    // Iterate in reverse, since removing an element will only disturb the
-    // ones with a higher index than it
-    for(var i = toRemove.length - 1; i >= 0; i--) {
-      callbacks.pop(toRemove[i]);
+  /**
+   * Hook for drawSeries.
+   * If curHighlightedLine is not null, drawHighlightedLine highlights
+   * the line by increasing its line width.
+   */
+  Plot.prototype.drawHighlightedLine = function(plot, canvascontext, series) {
+    if (!series.lines) {
+      series.lines = {};
     }
-  }
+    series.lines.lineWidth = series.label == this.curHighlightedLine ? 5 : 1;
 
-  return {
-    /* Gets all the data associated with a timestamp.*/
-    getAssociatedData: function(timestamp, scale, callback) {
-      if(dataDict.has(scale) && dataDict.get(scale).has(timestamp)) {
-        return dataDict.get(scale).get(timestamp);
-      } else if(callback) {
-        callbacks.push({lookup: timestamp, scale: scale, callback: callback});
-        return null;
-      }
-    },
-    /* Call the callback with the hash for the given timestamp.*/
-    timestampToHash: function(timestamp, scale, callback) {
-      var res = this.getAssociatedData(timestamp, scale, function(res) {
-        assert_(res && res.hash);
-        callback(res.hash);
-      });
-      return res && res.hash;
-    },
-    /* Updates the dictionaries with the JSON data.*/
-    update: function(data, isManifest) {
-      console.log('commitDict.update called: isManifest=' + isManifest);
-      console.log(data);
-      // Load new data, then see if any of the callbacks are now valid
-      if(isManifest) {
-        // it's a manifest JSON
-        // FUTURE
-        assert_(false, "Unimplemented");
-      } else {
-        // it's a tile JSON
-        // FUTURE: Remove hack when the JSON has the right format
-        data['scale'] = data['scale'] || 0;
-
-        assert_(data && data['commits']); // FUTURE: add: && data['scale']);
-        var commits = data['commits'];
-        var scale = 0; // FUTURE: Replace with: parseInt(data['scale']);
-        commits.forEach(function(commit) {
-          assert_(commit['commit_time']);
-          if(!dataDict.has(scale)) {
-            dataDict.add(scale, new PagedDictionary());
-          }
-          if(!dataDict.get(scale).has(commit['commit_time'])) {
-            dataDict.get(scale).add(parseInt(commit['commit_time']), commit);
-          }
-        });
-      }
-      iterateAndPopCallback(function(entry) {
-        assert_(entry.callback);
-        if(callbackObject.hasOwnProperty('lookup')) { // Then it's a timestamp look up
-          var res = getAssociatedData(entry.timestamp, entry.scale, null);
-          if(res != null) {
-            entry.callback(res);
-          }
-          return res != null; // Remove the entry if the get was successful
-        }
-        return false;
-      });
-    },
-    /* Looks only through the available commit data, returning the array
-     * of values foundIt returns true on.*/
-    lazySearch: function(foundIt) {
-      var searchSpace = dataDict.index();
-      var results = [];
-      searchSpace.forEach(function(key) {
-        var maybeResult = dataDict.get(key);
-        if(foundIt(maybeResult)) {
-          results.push(maybeResult);
-        }
-      });
-      return results;
-    },
-    /* It'll call the callback when it can pass the tile numbers and scale
-     * for the range.*/
-    getTileNumbers: function(range, callback) {
-      // FUTURE: Actually make work when we have tiles
-      callback([[0], 0]);
-    },
-    /* Called on start up.*/
-    init: function() {
-      console.log('Initializing commitDict');
-      var _this = this;
-      // FUTURE: Also load manifest
-      jsonRequest.askForTile(0, -1, 'skps', {'use_commit_data': true}, 
-          function(data, success) {
-            if(success) {
-              _this.update(data);
-            } else {
-              console.log('traceDict.init failed to retrieve data');
-            }
-          });
-    },
-    debug: function() {
-      return [dataDict, callbacks];
+    if (!series.points) {
+      series.points = {};
     }
+    series.points.show = (series.label == this.curHighlightedLine);
   };
-})();
 
-
-var schema = (function() {
-  var KEY_DELIMITER = ':';
-  var currentDataset;
-  var schemaDict = new PagedDictionary(); 
-  var hiddenChildren = new PagedDictionary();
-  var oldKeyToLegendKey = {};
-  // Contains a dictionary of dictionary of config key-values
-  var validKeyParts = {
-    'micro': ['dataset', 'builderName', 'system', 'testName', 'gpuConfig',
-        'measurementType'],
-    'skps': ['dataset', 'builderName', 'benchName', 'config',
-        'scale', 'measurementType']
-  };
-  var keysWithEmpty = ['config'];
-  var lineList = [];
-  // List of all lines keys
-
-  // Makes sure the children of root match the given model
-  // Model has the format
-  // [
-  //   { 
-  //      nodeType: <string>,   // Required
-  //      id: <string>,
-  //      style: { ... },
-  //      attributes: { ... },
-  //      text: <string>,
-  //      children: [models]
-  //   }
-  // ]
-  function diffReplace(root, model) {
-    var checkSet = function(obj, fieldName, value) {
-      if(obj[fieldName] != value) {
-        obj[fieldName] = value;
-      }
-    }
-    var checkSetAttr = function(node, fieldName, value) {
-      if(node.getAttribute(fieldName) != value) {
-        node.setAttribute(fieldName, value);
-      }
-    }
-    var specialCases = ['children', 'text', 'attributes', 'style'];
-    for(var i = 0; i < model.length; i++) {
-      assert_(model[i].nodeType);
-      if(i >= root.children.length || 
-          root.children[i].nodeName != model[i].nodeType.toUpperCase()) {
-        root.appendChild(document.createElement(model[i].nodeType));
-      }
-      var curChild = root.children[i];
-      for(var name in model[i]) {
-        if(model[i].hasOwnProperty(name) && specialCases.indexOf(name) == -1) {
-          checkSet(curChild, name, model[i][name]);
-        }
-      }
-      if(model[i].text) { checkSet(curChild, 'innerText', model[i].text); }
-      for(var styleName in model[i].style) {
-        if(model[i].style.hasOwnProperty(styleName)) {
-          checkSet(curChild.style, styleName, model[i].style[styleName]);
-        }
-      }
-      for(var attrName in model[i].attributes) {
-        if(model[i].attributes.hasOwnProperty(attrName)) {
-          checkSetAttr(curChild, attrName, model[i].attributes[attrName]);
-        }
-      }
-      if(model[i].children) {
-        diffReplace(curChild, model[i].children);
-      }
-    }
-    // Get rid of extras
-    while(root.length > model.length) {
-      root.removeChild(last(root.children));
-    }
-  }
-
-  function getOptions() {
-    var keyParts = $$('#line-table select');
-    var options = {};
-    keyParts.forEach(function(keyPart) {
-      partName = keyPart.id.slice(0, -'-results'.length);
-      $$('option:checked', keyPart).forEach(function(selectedOption) {
-        if(!options[partName]) { options[partName] = []; }
-        options[partName].push(selectedOption.value);
-      });
-    });
-    options['dataset'] = currentDataset;
-    return options;
-  }
-
-  return {
-    oldToLegend: function(key) {
-      return oldKeyToLegendKey[key];
-    },
-    /* Returns a string given the key elements in trace.*/
-    makeLegendKey: function(trace, dataset) {
-      assert_(trace['params']);
-      if(!dataset) {
-        assert_(trace['params']['dataset']);
-        dataset = trace['params']['dataset'];
-      } else if(!trace['params']['dataset']) {
-        trace['params']['dataset'] = dataset;
-      }
-      assert_(validKeyParts[dataset]);
-      return validKeyParts[dataset].map(function(part) {
-        return trace['params'][part] || '';
-      }).join(KEY_DELIMITER);
-    },
-    /* Updates the schema given data in the JSON input.*/
-    update: function(data, datasetName) {
-      console.log('schema.update called: datasetName=' + datasetName);
-      console.log(data);
-      assert_(data['param_set']);
-      // Update internal structure
-      if(!schemaDict.has(datasetName)) {
-        schemaDict.add(datasetName, new PagedDictionary());
-      }
-      var keys = [];
-      for(var key in data['param_set']) {
-        if(data['param_set'].hasOwnProperty(key) && 
-            validKeyParts[datasetName].indexOf(key) != -1) {
-          keys.push(key);
-        }
-      }
-      keys.forEach(function(key) {
-        if(schemaDict.get(datasetName).has(key)) {
-          var newParams = data['param_set'][key].filter(function(param) {
-            return schemaDict.get(datasetName).get(key).indexOf(param) == -1;
-          });
-          schemaDict.get(datasetName).get(key).push.apply(newParams);
-        } else {
-          schemaDict.get(datasetName).add(key, data['param_set'][key]);
-        }
-        if(keysWithEmpty.indexOf(key) != -1 && 
-            schemaDict.get(datasetName).get(key).indexOf('') == -1) {
-          schemaDict.get(datasetName).get(key).push('');
-        }
-      });
-
-      if(data['traces']) {
-        data['traces'].forEach(function(trace) {
-          lineList.push(this.makeLegendKey(trace, datasetName));
-          oldKeyToLegendKey[trace['key']] = this.makeLegendKey(trace, datasetName);
-        }, this);
-      }
-      loadShortcut();
-      this.updateDOM();
-    },
-    /* Given the input options, returns the ones that define real traces and
-     * their number.
-     * options is a dictionary keyed with the key part name and has the
-     * selected values as its value.*/
-    getValidOptions: function(options, dataset) {
-      // FUTURE: Replace with tree if not performing well enough
-      assert_(validKeyParts[dataset]);
-      var mapOptions = function(key) {
-        // Return the split string if it's valid, false otherwise.
-        var parts = key.split(KEY_DELIMITER);
-        return key.split(KEY_DELIMITER).every(function(part, idx) {
-          return !options[validKeyParts[dataset][idx]] ||
-              options[validKeyParts[dataset][idx]].indexOf(part) != -1;
-        }) && parts;
-      };
-      var validLines = lineList.map(mapOptions);
-      var optionDicts = {};
-      var count = 0;
-      // Get all the valid options
-      for(var i = 1; i < validKeyParts.length; i++) {
-        var tmpDict = {};
-        for(var j = 0; j < validLines.length; j++) {
-          if(validLines) {
-            //O(1) set addition! There's a little latency on the microbench
-            // options bar, hopefully this helps with that..
-            tmpDict[validLines[j][i]] = true;
-            count++;
-          }
-        }
-        var tmpOptions = [];
-        for(var k in tmpDict) {
-          if(tmpDict.hasOwnProperty(k)) {
-            tmpOptions.push(k);
-          }
-        }
-        optionDicts[validKeyParts[i]] = tmpOptions;
-      }
-      return [optionDicts, count];
-    },
-    /* Returns a list of valid lines given the selected options.*/
-    getValidLines: function(options, dataset) {
-      // FUTURE: Replace with tree if not performing well enough
-      assert_(validKeyParts[dataset]);
-      var mapOptions = function(key) {
-        // Return the split string if it's valid, false otherwise.
-        var parts = key.split(KEY_DELIMITER);
-        return parts.every(function(part, idx) {
-          return !options[validKeyParts[dataset][idx]] ||
-              options[validKeyParts[dataset][idx]].indexOf(part) != -1;
-        }) && key;
-      };
-      var validLines = lineList.map(mapOptions);
-      // console.log(validLines);
-      return validLines.filter(id);
-    },
-    /* Updates the selection boxes to match the ones currently in the schema.*/
-    updateDOM: function() {
-      assert_(currentDataset);
-      console.log('schema.updateDOM: start');
-      if(!schemaDict.has(currentDataset)) {
-        console.log('schema.updateDOM: Schema for selected dataset not ' +
-            'currently loaded; sending request.');
-        var _this = this;
-        jsonRequest.askForTile(0, -1, currentDataset, {'get_params_data': true},
-            function(data, success) {
-              if(success) {
-                console.log('schema.updateDOM: received data.');
-                _this.update(data, currentDataset);
-              }
-            });
-        return;
-      }
-      assert_($$$('#line-table'));
-      var inputRoot;
-      if($$$('#' + currentDataset + '-set')) {
-        inputRoot = $$$('#' + currentDataset + '-set');
-        assert_(inputRoot.parentElement == $$$('#line-table'));
-      } else {
-        inputRoot = document.createElement('tr');
-        inputRoot.id = currentDataset + '-set';
-      }
-      var curDict = schemaDict.get(currentDataset);
-      curDict.index().forEach(function(part) {
-        curDict.get(part).sort();
-      });
-      var getWidth = function(part) {
-        var longestLine = Math.max.apply(null, 
-            curDict.get(part).map(function(names) {
-                return names.length;
-            }));
-        return 0.75 * longestLine + 0.5;
-      }
-      var selectedValues = {};
-      $$('select', inputRoot).forEach(function(opt) {
-        var partName = opt.id.slice(0, -'-results'.length);
-        selectedValues[partName] = {};
-        $$('option', opt).forEach(function(maybeSelected) {
-          if(maybeSelected.selected) {
-            selectedValues[partName][maybeSelected.value] = true;
-          }
-        });
-      });
-      var makeSelectModel = function(part) {
-        return curDict.get(part).map(function(option) {
-          return {
-            nodeType: 'option',
-            value: option,
-            text: option.length > 0 ? option : '(none)',
-            selected: !!(selectedValues[part] && selectedValues[part][option])
-          };
-        });
-      };
-      diffReplace(inputRoot, validKeyParts[currentDataset].slice(1).map(
-            function(part) {
-        return {
-          nodeType: 'td',
-          children: [
-            {
-              nodeType: 'input',
-              id: part + '-input',
-              style: {
-                width: getWidth(part) + 'em'
-              }
-            },
-            {
-              nodeType: 'select',
-              id: part + '-results',
-              attributes: {
-                multiple: 'yes'
-              },
-              style: {
-                width: getWidth(part) + 'em',
-                overflow: 'auto'
-              },
-              children: makeSelectModel(part)
-            }
-          ]
-        };
-      }));
-      // Hide the other ones
-      $$('tr', $$$('#line-table')).forEach(function(e) {
-        e.style.display = 'none';
-      });
-      $$$('#line-table').appendChild(inputRoot);
-      inputRoot.style.display = '';
-    },
-
-    /* Greys out elements as needed. Doesn't grey out any more in the currentRow.*/
-    updateDisabledDOM: function(currentRow) {
-      // Currently unimplemented because it seems like people found it confusing
-      // TODO: Fix greyed out areas
-    },
-
-    /* Grabs all the possible line names.*/
-    init: function() {
-      console.log('Initializing schema');
-      // Load line metadata, update client controls
-      currentDataset = getArg('set') || 'skps';
-      jsonRequest.askForTile(0, -1, currentDataset, {include_commit_data: true},
-          function(data, success) {
-            if(success) {_this.update(data, currentDataset);}
-          });
-      var _this = this;
-      var updateLineCount = function() {
-          var lines = _this.getValidLines(getOptions(), currentDataset);
-          var count = lines.length;
-          var cacheCount = traceDict.countCached(lines);
-          $$$('#line-num').innerHTML = count + ' valid lines, ' + 
-              cacheCount + ' cached lines';
-      };
-      $$('input[name=\'schema-type\']').forEach(function(e) {
-        console.log('schema: Adding event listener for ' + e.value);
-        console.log(e);
-        if(e.value == currentDataset) { e.checked = true; }
-        e.addEventListener('change', function() {
-          console.log('schema change');
-          var newSchema = this.value;
-          console.log(newSchema);
-          currentDataset = newSchema;
-          _this.updateDOM();
-          updateLineCount();
-        });
-      });
-      $$$('#add-lines').addEventListener('click', function(e) {
-        // Find relevant lines, add to legend and plot
-        var options = getOptions();
-        var lines = _this.getValidLines(options, currentDataset).map(function(l) {
-          return {key: l, color: 'white'};
-        });
-        legend.addMany(lines);
-        // console.log(lines);
-        /*
-        lines.forEach(function(line) {
-          legend.add(line, 'white');
-        });
-        */
-        plotData.data(plotData.makePlotCallback());
-      });
-      // Attach event listeners to parent of all schema nodes
-      $$$('#line-table').addEventListener('input', function(e) {
-        console.log('line-table: input event listener called');
-        // console.log(e);
-        var inputId = e.target.id.slice(0,-'-input'.length);
-        console.log('called for ' + e.target.id);
-        if(e.target.nodeName == 'INPUT') {
-          if(!currentDataset) {
-            console.log('line-table.input: no schema currently loaded. Ignoring.');
-            return;
-          }
-          var query = e.target.value;
-          var dataset = schemaDict.get(currentDataset).get(inputId);
-          assert_(dataset != null);
-          var results = dataset.filter(function(candidate) {
-            return candidate.indexOf(query) != -1;
-          });  // FUTURE: If this is too slow, swap with binary search
-          if (results.length < 1) {
-            matchLengths = dataset.map(function(candidate) {
-              var maxMatch = 0;
-              for(var start = 0; start < candidate.length; start++) {
-                var i = 0;
-                for (; start + i < candidate.length && i < query.length; i++) {
-                  if (candidate[start + i] != query[i]) {
-                    break;
-                  }
-                }
-                if(i > maxMatch) {
-                  maxMatch = i;
-                }
-              }
-              return maxMatch;
-            });
-            maxMatch = Math.max.apply(null, matchLengths);
-            results = dataset.filter(function(_, idx) {
-              return matchLengths[idx] >= maxMatch;
-            });
-          }
-          console.log('search results: ');
-          console.log(results);
-          if(!hiddenChildren.has(currentDataset)) {
-            hiddenChildren.add(currentDataset, new PagedDictionary());
-          }
-          if(!hiddenChildren.get(currentDataset).has(inputId)) {
-            hiddenChildren.get(currentDataset).add(inputId, []);
-          }
-          var hiddenResults = hiddenChildren.get(currentDataset).
-              get(inputId);
-          var removed = [];
-          // Insert appropriate nodes back into the array
-          hiddenResults.forEach(function(e, idx) {
-            if(results.indexOf(e.value) != -1) {
-              var resultsChildren = $$$('#' + inputId + '-results').children;
-              for(var i = 0; i < resultsChildren.length; i++) {
-                if(resultsChildren[i].value > e.value) {
-                  $$$('#' + inputId + '-results').insertBefore(
-                    e, resultsChildren[i]);
-                  removed.push(idx);
-                  return;
-                }
-              }
-              $$$('#' + inputId + '-results').insertBefore(e, null);
-              removed.push(idx);
-            }
-          });
-          for(var i = removed.length - 1; i >= 0; i--) {
-            hiddenResults.splice(removed[i], 1);
-          }
-          $$('#' + inputId + '-results option').forEach(function(e) {
-            if(results.indexOf(e.value) != -1) {
-              e.style.display = '';
-            } else {
-              hiddenResults.push(e);
-              e.parentNode.removeChild(e);
-            }
-          });
-          console.log('hidden nodes:');
-          console.log(hiddenResults);
-        }
-      });
-      $$$('#line-table').addEventListener('click', function(e) {
-        console.log('#line-table.click called');
-        //console.log(e);
-        if(e.target.nodeName == 'OPTION') {
-          console.log('#line-table select.click event listener called');
-          // Update the line count
-          updateLineCount();
-        }
-      });
-    },
-    debug: function() {
-      return [schemaDict, currentDataset, lineList];
-    }
-  };
-})();
-
-
-var history = (function() {
-  // TODO: Re-add history features, etc.
-})();
-
-
-/** Returns the datetime compatible version of a POSIX timestamp.*/
-function toRFC(timestamp) {
-  // Slice off the ending 'Z'
-  return new Date(timestamp*1000).toISOString().slice(0, -1);
-}
-
-
-var plotData = (function() {
-  var plotRef;
-  var isLogPlot;
-  var visibleKeys = new Vector();
-  function getVisibleKeys() {
-    return visibleKeys.all();
-  }
-  function toZoomValue(min, max) {
-    return 60*60/(max - min);
-  }
-  function fromZoomValue(curMin, curMax, zoomValue) {
-    if(zoomValue < 0.005) {
-      zoomValue = 0.005;
-    }
-    var range = 60*60/zoomValue;
-    var midpoint = 0.5*(curMin + curMax);
-    return [midpoint - range/2, midpoint + range/2];
-  }
-  function plotClickHandler(evt, pos, item) {
-    var notePad = $('#note');
-    if(!item) {
-      notePad.hide();
-      return;
-    }
-    notePad.hide();
-    notePad.css({'top': item.pageY + 10, 'left': item.pageX});
-    commitDict.getTileNumbers(getCurRange(), function(tileData) {
-      var postNote = function(commitData) {
-        console.log(commitData);
-        var hashMsg = '';
-        var commitMsg = '';
-        var authorMsg = '';
-        if(commitData['hash']) {
-          var hash = commitData['hash'];
-          hashMsg = 'hash: <a href=https://github.com/google/skia/commit/' + 
-            hash + ' target=_blank>' + hash + '</a><br />';
-        }
-        if(commitData['commit_msg']) {
-          commitMsg = 'commit message: ' + commitData['commit_msg'] + 
-              '<br />';
-        }
-        if(commitData['author']) {
-          authorMsg = 'author: ' + commitData['author'] + '<br />';
-        }
-        $$('#note #data')[0].innerHTML = (
-            hashMsg +
-            'timestamp: ' + item.datapoint[0] + '<br />' +
-            'value: ' + item.datapoint[1] + '<br />' +
-            authorMsg + commitMsg
-            );
-        notePad.show();
-      };
-      var relatedData = commitDict.getAssociatedData(
-          item.datapoint[0], tileData[1], postNote);
-      if(relatedData) {
-        postNote(relatedData);
-      }
-    });
-  }
-  function plotZoomHandler(evt, pos, item) {
-    var range = getCurRange();
-    $$$('#zoom').value = toZoomValue(range[0], range[1]);
-    $$$('#start').value = toRFC(range[0]);
-    $$$('#end').value = toRFC(range[1]);
-    // TODO: Get more plot data as needed; see if the new range
-    // requires new tiles, and if so call data(makePlotCallback())
-  }
-  function plotPanHandler(evt, pos, item) {
-    var range = getCurRange();
-    $$$('#start').value = toRFC(range[0]);
-    $$$('#end').value = toRFC(range[1]);
-    // TODO: Get more plot data as needed; see if the new range
-    // requires new tiles, and if so call data(makePlotCallback())
-  }
-  /* Returns the current visible range. Null to load the latest tile.*/
-  function getCurRange() {
+  /**
+   * Updates plotEdges to match the current edges of the plot.
+   * This calculates the new plot edges and stores them in plotEdges, using
+   * either the {@code xaxis} Flot object or the maximum and minimum of the
+   * trace data.
+   */
+  Plot.prototype.updateEdges = function() {
     var data = plotRef.getData();
     var xaxis = plotRef.getOptions().xaxes[0];
     var min = null;
@@ -1374,7 +360,7 @@ var plotData = (function() {
     if(xaxis.min != null && xaxis.max != null) {
       min = xaxis.min;
       max = xaxis.max;
-    } else if(plotRef.getData().length > 0) {
+    } else if(data.length > 0) {
       min = Math.min.apply(null, data.map(function(set) {
         return Math.min.apply(null, set.data.map(function(point) {
           return point[0];
@@ -1386,15 +372,36 @@ var plotData = (function() {
         }));
       }));
     }
-    return [min, max];
+
+    this.plotEdges[0] = min;
+    this.plotEdges[1] = max;
+  };
+
+
+  /**
+   * addParamToNote adds a single key, value parameter pair to the note card.
+   */
+  Plot.prototype.addParamToNote = function(parent, key, value) {
+    var node = $$$('#note-param').content.cloneNode(true);
+    $$$('.key', node).textContent = key;
+    $$$('.value', node).textContent = value;
+    parent.appendChild(node);
   }
 
-  return {
-    /* Initializes the plot.*/
-    init: function() {
-      console.log('Initializing plotData');
-      isLogPlot = false;
-      plotRef = $('#chart').plot([],
+  /**
+   * attach hooks up all the controls to the Plot instance.
+   */
+  Plot.prototype.attach = function() {
+    var plot_ = this;
+
+    this.note = $$$('#note');
+    this.plotLabel = $$$('#plot-label');
+
+
+    /**
+     * Reference to the underlying Flot plot object.
+     */
+    this.plotRef = $('#chart').plot([],
         {
           legend: {
             show: false
@@ -1404,47 +411,14 @@ var plotData = (function() {
             autoHighlight: true,
             mouseActiveRadius: 16,
             clickable: true,
-            markings: this.getMarkings
+            markings: plot_.getMarkings.bind(plot_)
           },
           xaxis: {
-            ticks: function(axis) {
-              var range = axis.max - axis.min;
-              // Different possible tick intervals, ranging from a second to
-              // about a year
-              var scaleFactors = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 2*60, 
-                                  4*60, 5*60, 15*60, 20*60, 30*60, 
-                                  60*60, 2*60*60, 3*60*60, 4*60*60,
-                                  5*60*60, 6*60*60, 12*60*60, 24*60*60, 
-                                  7*24*60*60, 30*24*60*60, 2*30*24*60*60,
-                                  4*30*24*60*60, 6*30*24*60*60, 365*24*60*60];
-              var MAX_TICKS = 5;
-              var i = 0;
-              while(range/scaleFactors[i] > MAX_TICKS && i < scaleFactors.length) {
-                i++;
-              }
-              var scaleFactor = scaleFactors[i];
-              var cur = scaleFactor*Math.ceil(axis.min/scaleFactor);
-              var ticks = [];
-              do {
-                var tickDate = new Date(cur*1000);
-                var formattedTime = tickDate.toString();
-                if(scaleFactor >= 24*60*60) {
-                  formattedTime = tickDate.toDateString();
-                } else {
-                  // FUTURE: Find a way to make a string with only the hour or minute
-                  formattedTime = tickDate.toDateString() + '<br \\>' +
-                    tickDate.toTimeString();
-                }
-                ticks.push([cur, formattedTime]);
-                cur += scaleFactor;
-              } while(cur < axis.max);
-              return ticks;
-            }
           },
           yaxis: {
             /* zoomRange: false */
-            transform: function(v) { return isLogPlot? Math.log(v) : v; },
-            inverseTransform: function(v) { return isLogPlot? Math.exp(v) : v; }
+            transform: function(v) { return plot_.isLogPlot? Math.log(v) : v; },
+            inverseTransform: function(v) { return plot_.isLogPlot? Math.exp(v) : v; }
           },
           crosshair: {
             mode: 'xy'
@@ -1455,219 +429,363 @@ var plotData = (function() {
           pan: {
             interactive: true,
             frameRate: 60
+          },
+          hooks: {
+            draw: [plot_.drawAnnotations.bind(plot_)],
+            drawSeries: [plot_.drawHighlightedLine.bind(plot_)]
           }
         }).data('plot');
-      $('#chart').bind('plotclick', plotClickHandler);
-      $('#chart').bind('plotzoom', plotZoomHandler);
-      $('#chart').bind('plotpan', plotPanHandler);
 
-      // Initialize zoom ranges
-      $$$('#zoom').setAttribute('min', 0);
-      $$$('#zoom').setAttribute('max', 1);
-      $$$('#zoom').setAttribute('step', 0.001);
 
-      // Zoom binding
-      $$$('#zoom').addEventListener('input', function() {
-        var curRange = getCurRange();
-        var newRange = fromZoomValue(curRange[0], curRange[1],
-            $$$('#zoom').value);
-        var xaxis = plotRef.getOptions().xaxes[0];
-        xaxis.min = newRange[0];
-        xaxis.max = newRange[1];
-        plotRef.setupGrid();
-        plotRef.draw();
-      });
+    $('#chart').bind('plothover', (function() {
+      return function(evt, pos, item) {
+        if (traces.length > 0 && pos.x && pos.y) {
+          // Find the trace with the closest perpendicular distance, and
+          // highlight the trace if it's within N units of pos.
+          var closestTraceIndex = 0;
+          var closestDistance = Number.POSITIVE_INFINITY;
+          for (var i = 0; i < traces.length; i++) {
+            var curTraceData = traces[i].data;
+            if (curTraceData.length <= 1 || !traces[i].lines.show) {
+              continue;
+            }
+            var j = 1;
+            // Find the pair of datapoints where
+            // data[j-1][0] < pos.x < data[j][0].
+            // We want j to also never equal curTraceData.length, so we limit
+            // it to curTraceData.length - 1.
+            while(j < curTraceData.length - 1 && curTraceData[j][0] < pos.x) {
+              j++;
+            }
+            // Make sure j - 1 >= 0.
+            if (j == 0) {
+              j ++;
+            }
+            var xDelta = curTraceData[j][0] - curTraceData[j - 1][0];
+            var yDelta = curTraceData[j][1] - curTraceData[j - 1][1];
+            var lenDelta = Math.sqrt(xDelta*xDelta + yDelta*yDelta);
+            var perpDist = Math.abs(((pos.x - curTraceData[j][0]) * yDelta -
+                  (pos.y - curTraceData[j][1]) * xDelta) / lenDelta);
+            if (perpDist < closestDistance) {
+              closestTraceIndex = i;
+              closestDistance = perpDist;
+            }
+          }
 
-      // Set up go button binding
-      $$$('#back-to-the-future').addEventListener('click', function(e) {
-        var newMin = Date.parse($$$('#start').value)/1000;
-        var newMax = Date.parse($$$('#end').value)/1000;
-        if(isNaN(newMin) || isNaN(newMax)) {
-          console.log('#back-to-the-future.click: invalid input');
-        } else {
-          var realMin = Math.min(newMin, newMax);
-          var realMax = Math.max(newMin, newMax);
-          var xaxis = plotRef.getOptions().xaxes[0];
-          xaxis.min = realMin;
-          xaxis.max = realMax;
-          plotRef.setupGrid();
-          plotRef.draw();
-        }
-      });
+          var lastHighlightedLine = plot_.curHighlightedLine;
 
-      $$$('#islog').addEventListener('click', function(e) {
-        var willLogPlot = $$$('#islog').checked;
-        if(isLogPlot != willLogPlot) {
-          isLogPlot = willLogPlot;
-          plotRef.setupGrid();
-          plotRef.draw();
-        }
-      });
-    },
-    /* Returns usable plot data.*/
-    data: function(callback) {
-      var processAndCall = function(dataDict) {
-        console.log('data.get callback:');
-        console.log(dataDict);
-        var results = [];
-        for(var trace in dataDict) {
-          if(dataDict.hasOwnProperty(trace)) {
-            // Convert data to Flot readable format
-            var curTrace = dataDict[trace];
-            results.push({
-              label: trace,
-              data: curTrace
-            });
+          var yaxis = plot_.plotRef.getAxes().yaxis;
+          var maxDist = 0.15 * (yaxis.max - yaxis.min);
+          if (closestDistance < maxDist) {
+            // Highlight that trace.
+            plot_.plotLabel.value = traces[closestTraceIndex].label;
+            plot_.curHighlightedLine = traces[closestTraceIndex].label;
+          }
+          if (lastHighlightedLine != plot_.curHighlightedLine) {
+            plot_.plotRef.draw();
           }
         }
-        //console.log(results);
-        callback(results);
       };
-      //console.log('visible keys: ');
-      //console.log(visibleKeys.all());
-      var currentRange = getCurRange();
-      // Process keys before passing to traceDict
-      var processedKeys = visibleKeys.all().map(function(key) {
-        return {
-          key: key,
-          range: currentRange
-        };
-      });
-      traceDict.getTraces(processedKeys, processAndCall);
-    },
-    getMarkings: function() {
-      if(visibleKeys.all().length <= 0) { return []; }
-      return [];
-      var skpPhrase = 'Update SKP version to ';
-      var updates = commitDict.lazySearch(function(commitData) {
-        return commitData['commit_msg'] && 
-            commitData['commit_msg'].slice(0, skpPhrase) == skpPhrase;
-      }).map(function(commitData) {
-        return [parseInt(commitData['commit_msg'].substr(skpPhrase.length)),
-            commitData['commit_time']];
-      });
-      var markings = [];
-      for(var i = 1; i < updates.length; i++) {
-        if(updates[i][0] % 2 == 0) {
-          markings.push([updates[i-1][1], updates[i][1]]);
-        }
-      }
-      return markings.map(function(pair) {
-        return { xaxis: {from: pair[0], to: pair[1]}, color: '#cccccc'};
-      });
-    },
-    /* Plots the given data.*/
-    plot: function(data) {
-      // Plot the given data
-      plotRef.setData(data);
-      var options = plotRef.getOptions();
-      options.xaxes.forEach(function(axis) {
-        axis.max = null;
-        axis.min = null;
-      });
-      options.yaxes.forEach(function(axis) {
-        axis.max = null;
-        axis.min = null;
-      });
-      plotRef.setupGrid();
-      plotRef.draw();
-      // Push changes to legend
-      legend.updateColors(plotRef);
-      legend.refresh();
-      // Then push changes to zoom control and date controls
-      var range = this.getCurrentRange();
-      $$$('#zoom').value = toZoomValue(range[0], range[1]);
-      $$$('#start').value = toRFC(range[0]);
-      $$$('#end').value = toRFC(range[1]);
-    },
-    /* Produces a wrapper that can be used in any context.*/
-    makePlotCallback: function() {
-      var _this = this;
-      return function(data) {
-        _this.plot(data);
-      };
-    },
-    /* Returns the current visible range. Null to load the latest tile.*/
-    getCurrentRange: function() {
-      return getCurRange();
-    },
-    /* Sets the plot to display the key next time it is plotted.*/
-    show: function(key) {
-      if(!visibleKeys.has(key)) {
-        visibleKeys.push(key);
-      }
-    },
-    /* Hides a trace from the plot the next time it is plotted.*/
-    hide: function(key) {
-      visibleKeys.remove(key);
-    },
-    debug: function() {
-      return [plotRef, visibleKeys];
-    }
-  };
-})();
+    }()));
 
-
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM loaded, init()ing components');
-  commitDict.init();
-  plotData.init();
-  traceDict.init();
-  schema.init();
-  legend.init(function(key) {
-    plotData.show(key);
-  }, function(key) {
-    plotData.hide(key);
-  }, function() {
-    plotData.data(plotData.makePlotCallback());
-  });
-
-  document.body.addEventListener('click', function(e) {
-    if(!$(e.target).parents().is('#note,#chart')) {
-      $('#note').hide();
-    }
-  });
-
-
-  $('#note').hide();
-  $('#notification').hide();
-});
-
-// Very, very hackish, since this is a temporary fix until the new world order is established
-var loadShortcut = (function() {
-  var alreadyDone = false;
-  return function(doAnyways) {
-    if(getArg('shortcut')) {
-
-      if(alreadyDone && !doAnyways) {
+    $('#chart').bind('plotclick', function(evt, pos, item) {
+      if (!item) {
         return;
-      } else {
-        alreadyDone = true;
+      }
+      $$$('#note').dataset.key = item.series.label;
+
+      // First, find the range of CLs we are interested in.
+      var thisCommitOffset = item.datapoint[0];
+      var thisCommit = commitData[thisCommitOffset].hash;
+      var query = '?begin=' + thisCommit;
+      if (item.dataIndex > 0) {
+        var previousCommitOffset = item.series.data[item.dataIndex-1][0]
+        var previousCommit = commitData[previousCommitOffset].hash;
+        query = '?begin=' + previousCommit + '&end=' + thisCommit;
+      }
+      // Fill in commit info from the server.
+      get('/commits/' + query).then(function(html){
+        $$$('#note .commits').innerHTML = html;
+      });
+
+      // Add params to the note.
+      var parent = $$$('#note .params');
+      clearChildren(parent);
+      plot_.addParamToNote(parent, 'id', item.series.label);
+      var keylist = Object.keys(item.series._params).sort().reverse();
+      for (var i = 0; i < keylist.length; i++) {
+        var key = keylist[i];
+        plot_.addParamToNote(parent, key, item.series._params[key]);
       }
 
-      var shortcutId = parseInt(getArg('shortcut'));
-      loadJSON('/shortcuts/' + shortcutId, function(data) {
-        console.log(data);
-        if(!data['keys']) {
-          console.log('Invalid shortcut: ' + shortcutId);
-          return;
+      $$$('#note').classList.remove("hidden");
+
+    });
+
+    $$$('.make-solo').addEventListener('click', function(e) {
+      var key = $$$('#note').dataset.key;
+      if (key) {
+        var trace = null;
+        var len = traces.length;
+        for (var i=0; i<len; i++) {
+          if (traces[i].label == key) {
+            trace = traces[i];
+          }
         }
-        if(!doAnyways && data['keys'].indexOf('MICROBENCHMICROBENCHMICROBENCH') != -1) {
-          jsonRequest.askFor('json/micro', function(data) {
-            schema.update(data, 'micro');
-            loadShortcut(true);
-          });
+        if (trace) {
+          traces.splice(0, len, trace);
         }
-        console.log('Shortcut keys:');
-        console.log(data);
-        var legendKeys = data['keys'].map(function(oldKey) {
-          return {
-            key: schema.oldToLegend(oldKey),
-            color: 'white'
-          };
-        });
-        legend.addMany(legendKeys.filter(function(k) {return !!k.key;}));
+      }
+      e.preventDefault();
+    });
+
+    $$$('#reset-axes').addEventListener('click', function(e) {
+      var options = plot_.plotRef.getOptions();
+      var cleanAxes = function(axis) {
+        axis.max = null;
+        axis.min = null;
+      };
+      options.xaxes.forEach(cleanAxes);
+      options.yaxes.forEach(cleanAxes);
+
+      plot_.plotRef.setupGrid();
+      plot_.plotRef.draw();
+
+      e.preventDefault();
+    });
+
+    // Redraw the plot when traces are modified.
+    //
+    // FIXME: Our polyfill doesn't have Array.observe, so this fails on FireFox.
+    Array.observe(traces, function(splices) {
+      console.log(splices);
+      plot_.plotRef.setData(traces);
+      plot_.plotRef.setupGrid();
+      plot_.plotRef.draw();
+      plot_.updateEdges();
+    });
+
+
+    Object.observe(plot_.plotEdges, function() {
+      if(plot_.plotEdges[0] != null) {
+        $$$('#start').value = toRFC(plot_.plotEdges[0]);
+      }
+      if(plot_.plotEdges[1] != null) {
+        $$$('#end').value = toRFC(plot_.plotEdges[1]);
+      }
+      if(plot_.plotEdges[0] != null && plot_.plotEdges[1] != null) {
+        $$$('#zoom').value = -Math.log(plot_.plotEdges[1] - plot_.plotEdges[0]);
+      }
+    });
+
+    // Update annotation points
+    Object.observe(commitData, function() {
+      console.log(Object.keys(commitData));
+      var timestamps = Object.keys(commitData).map(function(e) {
+        return parseInt(e);
       });
+      console.log(timestamps);
+      var startTime = Math.min.apply(null, timestamps);
+      var endTime = Math.max.apply(null, timestamps);
+      get('annotations/?start=' + startTime + '&end=' + endTime).then(JSON.parse).then(function(json){
+        var commitToTimestamp = {};
+        Object.keys(commitData).forEach(function(timestamp) {
+          if (commitData[timestamp]['hash']) {
+            commitToTimestamp[commitData[timestamp]['hash']] = timestamp;
+          }
+        });
+        Object.keys(json).forEach(function(hash) {
+          if (commitToTimestamp[hash]) {
+            plot_.annotations[commitToTimestamp[hash]] = json[hash];
+          } else {
+            console.log('WARNING: Annotation taken for commit not stored in' +
+                ' commitData');
+          }
+        });
+        // Redraw to get the new lines
+        plot_.plotRef.draw();
+      });
+      req.send();
+    });
+
+    $$$('#nuke-plot').addEventListener('click', function(e) {
+      // Clear the param selections.
+      $$('option:checked').forEach(function(elem) {
+        elem.selected = false;
+      });
+      traces.splice(0, traces.length);
+      $$$('#note').classList.add("hidden");
+      $$$('#query-text').textContent = '';
+      plot_.plotLabel.value = "";
+      plot_.curHighlightedLine = "";
+
+      e.preventDefault();
+    });
+  }
+
+
+  /**
+   * Sets up the event handlers related to the query controls in the interface.
+   * The callbacks in this function use and observe {@code queryInfo},
+   * and modifies {@code traces}. Takes the object {@code Dataset} creates
+   * as input.
+   */
+  function Query() {
+  };
+
+  // attach hooks up all the controls that Query uses.
+  Query.prototype.attach = function() {
+
+    var query_ = this;
+
+    Object.observe(queryChange, this.onParamChange);
+
+    // Add handlers to the query controls.
+    $$$('#add-lines').addEventListener('click', function() {
+      get('/query/0/-1/traces/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
+        json["traces"].forEach(function(t) {
+          t["lines"] = { show:true };
+          traces.push(t);
+        });
+      }).catch(notifyUser);
+    });
+
+    $$$('#inputs').addEventListener('change', function(e) {
+      get('/query/0/-1/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
+        $$$('#query-text').innerHTML = json["matches"] + ' lines selected<br />';
+      });
+    });
+
+    // TODO add observer on dataset and update the current traces if any are displayed.
+    get('/tiles/0/-1/').then(JSON.parse).then(function(json){
+      queryInfo.params = json.paramset;
+      dataset.scale= json.scale;
+      dataset.tiles = json.tiles;
+      commitData = json.commits;
+      queryChange.counter += 1;
+    });
+
+    $$$('#more-inputs').addEventListener('click', function(e) {
+      $$$('#more').classList.toggle('hidden');
+    });
+  }
+
+  Query.prototype.selectionsAsQuery = function() {
+    var sel = [];
+    var num = Object.keys(queryInfo.params).length;
+    for(var i = 0; i < num; i++) {
+      var key = $$$('#select_' + i).name
+        $$('#select_' + i + ' option:checked').forEach(function(ele) {
+          sel.push(encodeURIComponent(key) + '=' + encodeURIComponent(ele.value));
+        });
     }
+    return sel.join('&')
+  };
+
+
+  /**
+   * Syncs the DOM to match the current state of queryInfo.
+   * It currently removes all the existing elements and then
+   * generates a new set that matches the queryInfo data.
+   */
+  Query.prototype.onParamChange = function() {
+    console.log('onParamChange() triggered');
+    var queryDiv = $$$('#inputs');
+    var detailsDiv= $$$('#inputs #more');
+    // Remove all old nodes.
+    $$('#inputs .query-node').forEach(function(ele) {
+      ele.parentNode.removeChild(ele)
+    });
+
+    var whitelist = ['test', 'system', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
+    var keylist = Object.keys(queryInfo.params).sort().reverse();
+
+    for (var i = 0; i < keylist.length; i++) {
+      var node = $$$('#query-select').content.cloneNode(true);
+      var key = keylist[i];
+
+      $$$('h4', node).textContent = key;
+
+      var select = $$$('select', node);
+      select.id = 'select_' + i;
+      select.name = key;
+
+      var options = queryInfo.params[key].sort();
+      options.forEach(function(op) {
+        var option = document.createElement('option');
+        option.value = op;
+        option.textContent = op.length > 0 ?  op : '(none)';
+        select.appendChild(option);
+      });
+
+      if (whitelist.indexOf(key) == -1) {
+        detailsDiv.insertBefore(node, detailsDiv.firstElementChild);
+      } else {
+        queryDiv.insertBefore(node, queryDiv.firstElementChild);
+      }
+    }
+  }
+
+  // resetSelect resets the given select (by name, such as '#issue') to
+  // contain only one option with text '(none)' and value ''.
+  Query.prototype.resetSelect = function(select) {
+    var selectObj = $$$(select);
+    clearChildren(selectObj);
+    var defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = '(none)';
+    defaultOption.selected = true;
+    selectObj.appendChild(defaultOption);
+  }
+
+  /**
+   * Manages the set of keys the user can query over.
+   * Returns an object containing a reference to requestTiles and
+   * tileNums
+   */
+  function Dataset() {
+  };
+
+  Dataset.prototype.attach = function() {
+    // TODO(jcgregorio) add in tile moving controls and monitor them from here.
+  };
+
+
+
+  /**
+   * Gets the Object.observe events delivered, only in the case we are
+   * using a polyfill.
+   */
+  function microtasks() {
+    setTimeout(microtasks, 125);
+  }
+
+
+  function onLoad() {
+    var dataset = new Dataset();
+    dataset.attach();
+
+    var query = new Query();
+    query.attach();
+
+    var plot = new Plot();
+    plot.attach();
+
+    microtasks();
+    Object.observe(dataset, function() {
+      console.log('dataset changed!', dataset);
+    });
+  }
+
+  // If loaded via HTML Imports then DOMContentLoaded will be long done.
+  if (document.readyState != 'loading') {
+    onLoad();
+  } else {
+    window.addEventListener('load', onLoad);
+  }
+
+  return {
+    $$: $$,
+    $$$: $$$,
   };
 }());

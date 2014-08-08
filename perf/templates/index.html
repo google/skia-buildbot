@@ -1,54 +1,68 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width"/>
+    <meta name="viewport" content="width=device-width" />
     <link href="res/css/perf.css" rel="stylesheet" />
     <script src="res/js/perf.js"></script>
     <script src="res/js/logic.js"></script>
-</head>
-<body>
-    <div class="wrapper">
-        <div class="plot-wrapper">
-            <div id="chart">
-            </div>
-            <div>
-                <input id="zoom" class="zoom-control" type="range"></input>
-            </div>
-            <div>
-                <input id="start" class="zoom-input"
-                    type="datetime-local"></input>
-                <input id="end" class="zoom-input"
-                    type="datetime-local"></input>
-                <input id="back-to-the-future" type="button" value="Go"></input>
-            </div>
+  </head>
+  <body>
+    <div id="page-wrapper">
+
+      <div id="plot-and-query-wrapper">
+
+        <div id="plot-wrapper">
+          <input type="text" disabled value="" placeholder="Highlighted Trace ID" id="plot-label" size=80>
+          <div id="chart"> </div>
         </div>
-        <div>
-            <div id="legend">
-                <table><tbody></tbody></table>
+          <a id="nuke-plot" href="#">Remove all</a>
+          <a id="reset-axes" href="#">Reset axes</a>
+
+        <div id="query-wrapper">
+          <div>
+            <button id="add-lines">Add lines</button> <span id="query-text"></span>
+            <div id="inputs">
+              <br>
+              <p id="more-inputs">More...</p>
+              <div id="more" class="hidden">
+              </div>
             </div>
-            <a id="nuke-plot" href="#">Remove all</a>
-            <input id="islog" type="checkbox">Use log scale</input>
-        </div>
-        <div>
-            <form id="results-form" action="" method="POST">
-                <table id="line-table"></table>
-                <input id="add-lines" type="button"
-                    value="Add lines"></input>
-                <input type=radio name=schema-type value=skps checked>Perf</input>
-                <input type=radio name=schema-type value=micro>Microbench</input>
-            </form>
-            <div id='line-num'></div>
+          </div>
         </div>
 
+      </div> <!-- end of plot-and-query-wrapper -->
+
+
+      <div id="note" class="hidden">
+        <a class="make-solo" href="#">Deselect other lines</a>
+        <hr>
+        <table border="0" cellspacing="5" cellpadding="5">
+          <tbody class="params"></tbody>
+        </table>
+        <hr>
+        <div class="commits"></div>
+      </div>
+
+    </div> <!-- end of page-wrapper -->
+
+    <!-- Templates -->
+
+    <template id="query-select">
+    <div class="query-node">
+      <h4></h4>
+      <select name="" class="query-select" multiple size="16">
+      </select>
     </div>
-    <div id="note">
-        <div id="data"></div>
-        <div id="blamelist"></div>
-        <div id="annotations"></div>
+    </template>
+
+    <template id="note-param">
+    <tr><td class="key"></td><td class="value"></td></tr>
+    </template>
+
+    <div class="notification">
+      <div class="notification-text" id="msg"></div>
     </div>
-    <div id="notification">
-        <div id="notification-text">Please turn on Javascript</div>
-    </div>
-</body>
+
+  </body>
 </html>

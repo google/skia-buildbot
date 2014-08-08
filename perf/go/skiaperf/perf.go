@@ -9,17 +9,18 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	ehtml "html"
 	"html/template"
 	"math/rand"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -31,18 +32,18 @@ import (
 
 import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"skia.googlesource.com/buildbot.git/perf/go/ctrace"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
+	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/gs"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
 var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
-
-	// index2Template is the main index.html page we serve.
-	index2Template *template.Template = nil
 
 	// clusterTemplate is the /clusters/ page we serve.
 	clusterTemplate *template.Template = nil
@@ -56,7 +57,14 @@ var (
 	shortcutHandlerPath = regexp.MustCompile(`/shortcuts/([0-9]*)$`)
 
 	// The three capture groups are dataset, tile scale, and tile number.
-	tileHandlerPath = regexp.MustCompile(`/tiles/([0-9]*)/([-0-9,]*)$`)
+	tileHandlerPath = regexp.MustCompile(`/tiles/([0-9]*)/([-0-9]*)/$`)
+
+	// The three capture groups are tile scale, tile number, and an optional 'trace.
+	queryHandlerPath = regexp.MustCompile(`/query/([0-9]*)/([-0-9]*)/(traces/)?$`)
+
+	git *gitinfo.GitInfo = nil
+
+	commitLinkifyRe = regexp.MustCompile("(?m)^commit (.*)$")
 )
 
 // flags
@@ -66,12 +74,9 @@ var (
 	gitRepoDir   = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	tileDir      = flag.String("tile_dir", "/tmp/tiles", "What directory to look for tiles in.")
 	tileStoreDir = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tilebuilder tiles in.")
-	noBq         = flag.Bool("nobq", false, "Turns off the BQ section of the trace handlers.")
 )
 
 var (
-	data *Data
-
 	nanoTileStore types.TileStore
 )
 
@@ -100,10 +105,15 @@ func Init() {
 	}
 
 	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
-	index2Template = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index2.html")))
 	clusterTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/clusters.html")))
 
 	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, "nano", 10*time.Minute)
+
+	var err error
+	git, err = gitinfo.NewGitInfo(*gitRepoDir, true)
+	if err != nil {
+		glog.Fatal(err)
+	}
 }
 
 // reportError formats an HTTP error response and also logs the detailed error message.
@@ -237,22 +247,31 @@ func clusterHandler(w http.ResponseWriter, r *http.Request) {
 		reportError(w, r, fmt.Errorf("Clusters Handler regexp wrong number of matches: %#v", match), "Not Found")
 		return
 	}
+
+	tile, err := nanoTileStore.Get(0, -1)
+	if err != nil {
+		reportError(w, r, err, fmt.Sprintf("Failed to load tile."))
+		return
+	}
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
-		if err := clusterTemplate.Execute(w, data.ClusterSummaries(config.DatasetName(match[1]))); err != nil {
+
+		if err := clusterTemplate.Execute(w, calculateClusterSummaries(tile, K, ctrace.MIN_STDDEV)); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
 	} else if r.Method == "POST" { // POST for now, move to GET later for custom clusters.
 		k, err := strconv.ParseInt(r.FormValue("k"), 10, 32)
 		if err != nil {
 			reportError(w, r, err, fmt.Sprintf("k parameter must be an integer %s.", r.FormValue("k")))
+			return
 		}
 		stddev, err := strconv.ParseFloat(r.FormValue("stddev"), 64)
 		if err != nil {
 			reportError(w, r, err, fmt.Sprintf("stddev parameter must be a float %s.", r.FormValue("stddev")))
+			return
 		}
 		w.Header().Set("Content-Type", "text/html")
-		if err := clusterTemplate.Execute(w, data.ClusterSummariesFor(config.DatasetName(match[1]), int(k), stddev)); err != nil {
+		if err := clusterTemplate.Execute(w, calculateClusterSummaries(tile, int(k), stddev)); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
 	}
@@ -308,15 +327,29 @@ func getTile(tileScale, tileNumber int) (*types.Tile, error) {
 	return tile, nil
 }
 
-type TilesResponse struct {
-	Tiles []*types.TileGUI `json:"tiles"`
-}
-
-// tileHandler accepts URIs like /tiles/0/1?traces=Some:long:trace:here&omit_commits=true
+// tileHandler accepts URIs like /tiles/0/1
 // where the URI format is /tiles/<tile-scale>/<tile-number>
-// It accepts a comma-delimited string of keys as traces, and
-// also omit_commits, omit_traces, and omit_names, which each cause the corresponding
-// section (described more thoroughly in types.go) to be omitted from the JSON
+//
+// It returns JSON of the form:
+//
+//  {
+//    tiles: [20],
+//    scale: 0,
+//    paramset: {
+//      "os": ["Android", "ChromeOS", ..],
+//      "arch": ["Arm7", "x86", ...],
+//    },
+//    commits: [
+//      {
+//        "commit_time": 140329432,
+//        "hash": "0e03478100ea",
+//        "author": "someone@google.com",
+//        "commit_msg": "The subject line of the commit.",
+//      },
+//      ...
+//    ]
+//  }
+//
 func tileHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Tile Handler: %q\n", r.URL.Path)
 	handlerStart := time.Now()
@@ -330,146 +363,24 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 		reportError(w, r, err, "Failed parsing tile scale.")
 		return
 	}
-	tileNumberStrings := strings.Split(match[2], ",")
-	tileNumbers := make([]int, 0, len(tileNumberStrings))
-	for _, tileNumberStr := range tileNumberStrings {
-		tileNumber, err := strconv.ParseInt(tileNumberStr, 10, 0)
-		if err != nil {
-			glog.Warningf("Failed parsing tile number %s", tileNumberStr)
-			continue
-		}
-		tileNumbers = append(tileNumbers, int(tileNumber))
-	}
-	if len(tileNumbers) <= 0 {
-		reportError(w, r, err, "No valid tile numbers passed in.")
+	tileNumber, err := strconv.ParseInt(match[2], 10, 0)
+	if err != nil {
+		reportError(w, r, err, "Failed parsing tile number.")
 		return
 	}
-
-	tracesRequested := strings.Split(r.FormValue("traces"), ",")
-	omitCommits := r.FormValue("omit_commits") != ""
-	omitParams := r.FormValue("omit_params") != ""
-	omitNames := r.FormValue("omit_names") != ""
-	paramList := config.NANO_PARAM_ORDER
-
-	allTiles := TilesResponse{Tiles: make([]*types.TileGUI, 0, len(tileNumbers))}
-	for _, tileNumber := range tileNumbers {
-		tile, err := getTile(int(tileScale), int(tileNumber))
-		if err != nil {
-			glog.Warning("Failed to retrieve tile:", err)
-			continue
-		}
-		guiTile := types.NewGUITile(tile.Scale, tile.TileIndex)
-		traceParams := make([][]string, 0, len(tracesRequested))
-		traceMatches := make([]bool, 0, len(tracesRequested))
-		// Filter out the invalid traces and split the valid ones into
-		// their components.
-		for _, traceGuiKey := range tracesRequested {
-			if len(traceGuiKey) <= 0 {
-				continue
-			}
-			keyParts := strings.Split(traceGuiKey, ":")
-			if len(keyParts) < len(paramList) {
-				continue
-			}
-			traceParams = append(traceParams, keyParts)
-			traceMatches = append(traceMatches, false)
-		}
-		foundTraces := make([]*types.Trace, 0, len(traceParams))
-		numFound := 0
-		// Iterate over all tile.Traces, check each one to see
-		// if it matches the params for one of the requested
-		// traces. Repeat until all traces have been iterated
-		// or all requested traces have been found.
-		for _, trace := range tile.Traces {
-			if numFound >= len(traceParams) {
-				break
-			}
-			for i, traceParam := range traceParams {
-				if traceMatches[i] {
-					continue
-				}
-				matches := true
-				for j, paramPart := range traceParam {
-					if val, exists := trace.Params[paramList[j]]; exists {
-						if val != paramPart {
-							matches = false
-							break
-						}
-					} else {
-						if paramPart != "" {
-							matches = false
-							break
-						}
-					}
-				}
-				if matches {
-					foundTraces = append(foundTraces, trace)
-					traceMatches[i] = true
-					numFound++
-				}
-			}
-		}
-
-		// For each trace in foundTraces, process it to send to the user.
-		for _, rawTrace := range foundTraces {
-			newTraceData := make([][2]float64, 0)
-			for i, traceVal := range rawTrace.Values {
-				// Make sure it's not an empty tile by seeing
-				// if the CommitTime is greater that the default of zero.
-				if traceVal != config.MISSING_DATA_SENTINEL && tile.Commits[i] != nil && tile.Commits[i].CommitTime > 0 {
-					newTraceData = append(newTraceData, [2]float64{
-						float64(tile.Commits[i].CommitTime),
-						traceVal,
-						// We should have 53 significand bits, so this should work correctly basically forever
-					})
-				}
-			}
-			if len(newTraceData) > 0 {
-				guiTile.Traces = append(guiTile.Traces, types.TraceGUI{
-					Data: newTraceData,
-					Key:  string(types.MakeTraceKeyFromStrings(rawTrace.Params)),
-				})
-			}
-		}
-
-		if !omitCommits {
-			guiTile.Commits = make([]*types.Commit, 0, config.TILE_SIZE)
-			for i := range tile.Commits {
-				// Make sure it's not an empty tile by seeing
-				// if the CommitTime is greater that the default of zero.
-				if tile.Commits[i] != nil && tile.Commits[i].CommitTime > 0 {
-					guiTile.Commits = append(guiTile.Commits, tile.Commits[i])
-				}
-			}
-		}
-		if !omitNames {
-			for _, trace := range tile.Traces {
-				guiTile.NameList = append(guiTile.NameList, types.MakeTraceKeyFromStrings(trace.Params))
-			}
-		}
-		if !omitParams {
-			guiTile.ParamSet = make([][]string, len(paramList))
-			for i := range guiTile.ParamSet {
-				if readableName, ok := config.HUMAN_READABLE_PARAM_NAMES[paramList[i]]; !ok {
-					glog.Warningln(fmt.Sprintf("%s does not exist in the readable parameter names list", paramList[i]))
-					guiTile.ParamSet[i] = []string{paramList[i]}
-				} else {
-					guiTile.ParamSet[i] = []string{readableName}
-				}
-			}
-			for i := range guiTile.ParamSet {
-				paramValues, ok := tile.ParamSet[paramList[i]]
-				if !ok {
-					reportError(w, r, fmt.Errorf("Unable to find param set for %s in tile %d", paramList[i], tileNumber), "")
-					return
-				}
-				guiTile.ParamSet[i] = append(guiTile.ParamSet[i], []string(paramValues)...)
-			}
-		}
-		allTiles.Tiles = append(allTiles.Tiles, guiTile)
+	glog.Infof("tile: %d %d", tileScale, tileNumber)
+	tile, err := getTile(int(tileScale), int(tileNumber))
+	if err != nil {
+		reportError(w, r, err, "Failed retrieving tile.")
+		return
 	}
+	// TODO if -1 then merge the last two tiles.
+
+	guiTile := types.NewTileGUI(tile.Scale, tile.TileIndex)
+	guiTile.Commits = tile.Commits
+	guiTile.ParamSet = tile.ParamSet
 	// Marshal and send
-	marshaledResult, err := json.Marshal(allTiles)
+	marshaledResult, err := json.Marshal(guiTile)
 	if err != nil {
 		reportError(w, r, err, "Failed to marshal JSON.")
 		return
@@ -482,36 +393,194 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
 }
 
-// jsonHandler handles the GET for the JSON requests.
-func jsonHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("JSON Handler: %q\n", r.URL.Path)
-	match := jsonHandlerPath.FindStringSubmatch(r.URL.Path)
-	if match == nil {
+// traceMatches returns true if a trace has Params that match the given query.
+func traceMatches(trace *types.Trace, query url.Values) bool {
+	for k, values := range query {
+		if _, ok := trace.Params[k]; !ok || !util.In(trace.Params[k], values) {
+			return false
+		}
+	}
+	return true
+}
+
+// queryHandler handles queries for and about traces.
+//
+// Queries look like:
+//
+//     /query/0/-1/?arch=Arm7&arch=x86&scale=1
+//
+// Where they keys and values in the query params are from the ParamSet.
+// Repeated parameters are matched via OR. I.e. the above query will include
+// anything that has an arch of Arm7 or x86.
+//
+// The first two path paramters are tile scale and tile number, where -1 means
+// the last tile at the given scale.
+//
+// The normal response is JSON of the form:
+//
+// {
+//   "matches": 187,
+// }
+//
+// If the path is:
+//
+//    /query/0/-1/traces/?arch=Arm7&arch=x86&scale=1
+//
+// Then the response is the set of traces that match that query.
+//
+//  {
+//    "traces": [
+//      {
+//        // All of these keys and values should be exactly what Flot consumes.
+//        data: [[1, 1.1], [20, 30]],
+//        label: "key1",
+//        _params: {"os: "Android", ...}
+//      },
+//      {
+//        data: [[1.2, 2.1], [20, 35]],
+//        label: "key2",
+//        _params: {"os: "Android", ...}
+//      }
+//    ]
+//  }
+//
+// TODO Add ability to query across a range of tiles.
+func queryHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Query Handler: %q\n", r.URL.Path)
+	match := queryHandlerPath.FindStringSubmatch(r.URL.Path)
+	glog.Infof("%#v", match)
+	if r.Method != "GET" || match == nil || len(match) != 4 {
 		http.NotFound(w, r)
 		return
 	}
-	if len(match) != 2 {
-		reportError(w, r, fmt.Errorf("JSON Handler regexp wrong number of matches: %#v", match), "Not Found")
+	if err := r.ParseForm(); err != nil {
+		reportError(w, r, err, "Failed to parse query params.")
+	}
+	tileScale, err := strconv.ParseInt(match[1], 10, 0)
+	if err != nil {
+		reportError(w, r, err, "Failed parsing tile scale.")
 		return
 	}
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "application/json")
-		// TODO(jcgregorio) Detect if they didn't send Accept-Encoding. But really,
-		// they want to use gzip.
-		w.Header().Set("Content-Encoding", "gzip")
-		data.AsGzippedJSON(*tileDir, config.DatasetName(match[1]), w)
+	tileNumber, err := strconv.ParseInt(match[2], 10, 0)
+	if err != nil {
+		reportError(w, r, err, "Failed parsing tile number.")
+		return
+	}
+	glog.Infof("tile: %d %d", tileScale, tileNumber)
+	tile, err := getTile(int(tileScale), int(tileNumber))
+	if err != nil {
+		reportError(w, r, err, "Failed retrieving tile.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if match[3] == "" {
+		// We only want the count.
+		total := 0
+		for _, tr := range tile.Traces {
+			if traceMatches(tr, r.Form) {
+				total++
+			}
+		}
+		glog.Info("Count: ", total)
+		inc := json.NewEncoder(w)
+		if err := inc.Encode(map[string]int{"matches": total}); err != nil {
+			reportError(w, r, err, "Error while encoding query response.")
+			return
+		}
+	} else {
+		// We want the matching traces.
+		ret := []*types.TraceGUI{}
+
+		for key, tr := range tile.Traces {
+			if traceMatches(tr, r.Form) {
+				tg := traceGuiFromTrace(tr, key, tile)
+				if tg != nil {
+					ret = append(ret, tg)
+				}
+			}
+		}
+		inc := json.NewEncoder(w)
+		if err := inc.Encode(map[string][]*types.TraceGUI{"traces": ret}); err != nil {
+			reportError(w, r, err, "Error while encoding query response.")
+			return
+		}
 	}
 }
 
-// main2Handler handles the GET of the main page.
-func main2Handler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Main2 Handler: %q\n", r.URL.Path)
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "text/html")
-		if err := index2Template.Execute(w, struct{}{}); err != nil {
-			glog.Errorln("Failed to expand template:", err)
+// traceGuiFromTrace returns a populated TraceGUI from the given trace.
+func traceGuiFromTrace(trace *types.Trace, key string, tile *types.Tile) *types.TraceGUI {
+	newTraceData := make([][2]float64, 0)
+	for i, v := range trace.Values {
+		if v != config.MISSING_DATA_SENTINEL && tile.Commits[i] != nil && tile.Commits[i].CommitTime > 0 {
+			//newTraceData = append(newTraceData, [2]float64{float64(tile.Commits[i].CommitTime), v})
+			newTraceData = append(newTraceData, [2]float64{float64(i), v})
 		}
 	}
+	if len(newTraceData) > 0 {
+		return &types.TraceGUI{
+			Data:   newTraceData,
+			Label:  key,
+			Params: trace.Params,
+		}
+	} else {
+		return nil
+	}
+}
+
+// commitsHandler handles requests for commits.
+//
+// The ParamSet is the set of available parameters and their possible values
+// based on the set of traces in a tile.
+//
+// Queries look like:
+//
+//     /commits/?begin=hash1&end=hash2
+//
+//  or if there is only one hash:
+//
+//     /commits/?begin=hash
+//
+// The response is HTML of the form:
+//
+//  <pre>
+//    commit <a href="http://skia.googlesource....">5bdbd13d8833d23e0da552f6817ae0b5a4e849e5</a>
+//    Author: Joe Gregorio <jcgregorio@google.com>
+//    Date:   Wed Aug 6 16:16:18 2014 -0400
+//
+//        Back to plotting lines.
+//
+//        perf/go/skiaperf/perf.go
+//        perf/go/types/types.go
+//        perf/res/js/logic.js
+//
+//    commit <a
+//    ...
+//  </pre>
+//
+//
+// TODO Add ability to query across a range of tiles.
+func commitsHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Query Handler: %q\n", r.URL.Path)
+	if r.Method != "GET" {
+		http.NotFound(w, r)
+		return
+	}
+	begin := r.FormValue("begin")
+	if len(begin) != 40 {
+		reportError(w, r, fmt.Errorf("Invalid hash format: %s", begin), "Error while looking up hashes.")
+		return
+	}
+	end := r.FormValue("end")
+	body, err := git.Log(begin, end)
+	// TODO search and replace the githash with a link to skia.googlesource.com
+	if err != nil {
+		reportError(w, r, err, "Error while looking up hashes.")
+		return
+	}
+	escaped := ehtml.EscapeString(body)
+	linkified := commitLinkifyRe.ReplaceAllString(escaped, "<span class=subject>commit <a href=\"https://skia.googlesource.com/skia/+/${1}\" target=\"_blank\">${1}</a></span>")
+
+	w.Write([]byte(fmt.Sprintf("<pre>%s</pre>", linkified)))
 }
 
 // mainHandler handles the GET of the main page.
@@ -539,24 +608,15 @@ func main() {
 	Init()
 	db.Init()
 	glog.Infoln("Begin loading data.")
-	var err error
-	if !*noBq {
-		data, err = NewData(*doOauth, *gitRepoDir, *tileDir)
-	}
-	if err != nil {
-		glog.Fatalln("Failed initial load of data from BigQuery: ", err)
-	}
 
 	// Resources are served directly.
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
-	http.HandleFunc("/index2", autogzip.HandleFunc(main2Handler))
-	if !*noBq {
-		http.HandleFunc("/json/", jsonHandler) // We pre-gzip this ourselves.
-	}
 	http.HandleFunc("/shortcuts/", shortcutHandler)
 	http.HandleFunc("/tiles/", tileHandler)
+	http.HandleFunc("/query/", queryHandler)
+	http.HandleFunc("/commits/", commitsHandler)
 	http.HandleFunc("/trybots/", autogzip.HandleFunc(trybotHandler))
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
 	http.HandleFunc("/annotations/", autogzip.HandleFunc(annotationsHandler))

@@ -302,9 +302,9 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int) {
 			key := fmt.Sprintf("%s:%s:%s", keyPrefix, testName, configName)
 			var trace *types.Trace
 			var ok bool
-			if trace, ok = tile.Traces[types.TraceKey(key)]; !ok {
+			if trace, ok = tile.Traces[key]; !ok {
 				trace = types.NewTrace()
-				tile.Traces[types.TraceKey(key)] = trace
+				tile.Traces[key] = trace
 
 				// Construct the Traces params from all the options.
 				params := map[string]string{

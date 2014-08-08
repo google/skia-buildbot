@@ -19,7 +19,8 @@
     "CustomElements": "~0.2.4",
     "HTMLImports": "~0.2.3",
     "observe-js": "~0.3.3",
-    "Object.observe": "jdarling/Object.observe"
+    "Object.observe": "jdarling/Object.observe",
+    "native-promise-only": "~0.7.5-e"
   },
   "resolutions": {
     "WeakMap": "~0.2.1"

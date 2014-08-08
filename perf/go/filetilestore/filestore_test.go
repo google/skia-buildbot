@@ -49,15 +49,15 @@ func TestFileTileGet(t *testing.T) {
 	// NOTE: This needs to match what's created by tileFilename
 	fileName := strings.Join([]string{randomFullPath, "0000.gob"}, string(os.PathSeparator))
 	err = makeFakeTile(fileName, &types.Tile{
-		Traces: map[types.TraceKey]*types.Trace{
-			types.TraceKey("test"): &types.Trace{
+		Traces: map[string]*types.Trace{
+			"test": &types.Trace{
 				Values: []float64{0.0, 1.4, -2},
 				Params: map[string]string{"test": "parameter"},
 				Trybot: false,
 			},
 		},
-		ParamSet: map[string]types.Choices{
-			"test": types.Choices([]string{"parameter"}),
+		ParamSet: map[string][]string{
+			"test": []string{"parameter"},
 		},
 		Commits: []*types.Commit{
 			&types.Commit{
@@ -98,9 +98,9 @@ func TestFileTileGet(t *testing.T) {
 	t.Log("First test set completed.")
 
 	err = makeFakeTile(fileName, &types.Tile{
-		Traces: map[types.TraceKey]*types.Trace{},
-		ParamSet: map[string]types.Choices{
-			"test": types.Choices([]string{"parameter"}),
+		Traces: map[string]*types.Trace{},
+		ParamSet: map[string][]string{
+			"test": []string{"parameter"},
 		},
 		Commits: []*types.Commit{
 			&types.Commit{
