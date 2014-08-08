@@ -2,10 +2,6 @@ check process perf with pidfile /var/run/skiaperf.pid
    start program = "/etc/init.d/skiaperf start"
    stop program = "/etc/init.d/skiaperf stop"
 
-check process tilebuilder with pidfile /var/run/tilebuilder.pid
-   start program = "/etc/init.d/tilebuilder start"
-   stop program = "/etc/init.d/tilebuilder stop"
-
 check process ingest with pidfile /var/run/ingest.pid
    start program = "/etc/init.d/ingest start"
    stop program = "/etc/init.d/ingest stop"

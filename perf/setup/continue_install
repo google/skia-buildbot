@@ -38,7 +38,6 @@ export PATH=$PATH:$GOROOT/bin
 go get -u skia.googlesource.com/buildbot.git/
 go install skia.googlesource.com/buildbot.git/perf/go/skiaperf
 go install skia.googlesource.com/buildbot.git/perf/go/ingest
-go install skia.googlesource.com/buildbot.git/perf/go/tilebuilder
 go install skia.googlesource.com/buildbot.git/perf/go/logserver
 
 # Stil need to run make to build the JS.

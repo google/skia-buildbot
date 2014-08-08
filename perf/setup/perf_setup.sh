@@ -14,8 +14,6 @@ sudo su perf -c /home/perf/continue_install
 
 sudo cp sys/perf_init /etc/init.d/skiaperf
 sudo chmod 744 /etc/init.d/skiaperf
-sudo cp sys/tilebuilder_init /etc/init.d/tilebuilder
-sudo chmod 744 /etc/init.d/tilebuilder
 sudo cp sys/ingest_init /etc/init.d/ingest
 sudo chmod 744 /etc/init.d/ingest
 sudo cp sys/logserver_init /etc/init.d/logserver
@@ -26,6 +24,5 @@ sudo cp sys/perf_squid /etc/squid3/squid.conf
 sudo monit -t
 sudo monit reload
 sudo /etc/init.d/skiaperf restart
-sudo /etc/init.d/tilebuilder restart
 sudo /etc/init.d/ingest restart
 sudo /etc/init.d/logserver restart
