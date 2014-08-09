@@ -134,6 +134,19 @@ func (store *FileTileStore) getLastTile(scale int) (*types.Tile, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open last tile file %s", lastTileName)
 	}
+	// If possible, merge with the previous tile.
+	if index > 0 {
+		prevFilename, err := store.tileFilename(scale, index-1)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to get filename for scale %d, index %d", scale, index)
+		}
+		prevTile, err := openTile(prevFilename)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to open prev tile file %s", prevFilename)
+		}
+		tileData = types.Merge(prevTile, tileData)
+	}
+
 	return tileData, nil
 }
 

@@ -7,8 +7,15 @@ tilebuilder:
 	go install -v ./go/tilebuilder
 
 .PHONY: test
-test:
-	go test ./go/kmeans ./go/ctrace ./go/filetilestore ./go/gitinfo ./go/ingester
+test: testgo testjs
+	echo
+
+.PHONY: testgo
+testgo:
+	go test ./go/kmeans ./go/ctrace ./go/filetilestore ./go/gitinfo ./go/ingester ./go/types
+
+.PHONY: testjs
+testjs:
 	./node_modules/.bin/grunt --no-color test
 
 .PHONY: ingest

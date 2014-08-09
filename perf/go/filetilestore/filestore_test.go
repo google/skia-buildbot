@@ -76,7 +76,7 @@ func TestFileTileGet(t *testing.T) {
 		t.Skip("Failed to create fake tile, skipping test: %s\n", err)
 		return
 	}
-	ts := NewFileTileStore(randomPath, "test", 1*time.Second)
+	ts := NewFileTileStore(randomPath, "test", 10*time.Millisecond)
 	t.Log("First test set started. Testing basic tile Get().")
 	getValue, err := ts.Get(0, 0)
 	if err != nil {
@@ -145,7 +145,7 @@ func TestFileTileGet(t *testing.T) {
 	// the 0th tile, since there's only one tile in storage.
 	t.Log("Third test set started. Testing last tile Get().")
 	// Sleep for a few seconds to allow the lastTile updater to run.
-	time.Sleep(3 * time.Second)
+	time.Sleep(3 * time.Millisecond)
 	getValue3, err := ts.Get(0, -1)
 	if err != nil {
 		t.Errorf("FileTileStore.Get failed: %s\n", err)

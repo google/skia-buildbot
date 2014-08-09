@@ -107,6 +107,10 @@ table, td {
     display: none;
 }
 
+.hidden {
+    display: none;
+}
+
 .centered {
     flex-grow: 1;
 }

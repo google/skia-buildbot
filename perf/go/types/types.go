@@ -4,6 +4,7 @@ import "time"
 
 import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
 // Trace represents all the values of a single measurement over time.
@@ -18,8 +19,16 @@ type Trace struct {
 // The Trace Values are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
 func NewTrace() *Trace {
+	return newTraceN(config.TILE_SIZE)
+}
+
+// newTraceN allocates a new Trace set up for the given number of samples.
+//
+// The Trace Values are pre-filled in with the missing data sentinel since not
+// all tests will be run on all commits.
+func newTraceN(n int) *Trace {
 	t := &Trace{
-		Values: make([]float64, config.TILE_SIZE, config.TILE_SIZE),
+		Values: make([]float64, n, n),
 		Params: make(map[string]string),
 		Trybot: false,
 	}
@@ -56,7 +65,7 @@ func NewCommit() *Commit {
 	}
 }
 
-// Tile is a 32 commit slice of data.
+// Tile is a config.TILE_SIZE commit slice of data.
 //
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
@@ -71,7 +80,7 @@ type Tile struct {
 	TileIndex int `json:"tileIndex"`
 }
 
-// NewTile returns an new Tile object ready to be filled with data via populate().
+// NewTile returns an new Tile object.
 func NewTile() *Tile {
 	t := &Tile{
 		Traces:   make(map[string]*Trace),
@@ -151,4 +160,71 @@ func (i *DateIter) Next() bool {
 // Date returns the day formatted as we use them on BigQuery table name suffixes.
 func (i *DateIter) Date() string {
 	return i.day.Format("20060102")
+}
+
+// Merge the two Tiles, presuming tile1 comes before tile2.
+func Merge(tile1, tile2 *Tile) *Tile {
+	n := len(tile1.Commits) + len(tile2.Commits)
+	n1 := len(tile1.Commits)
+	t := &Tile{
+		Traces:   make(map[string]*Trace),
+		ParamSet: make(map[string][]string),
+		Commits:  make([]*Commit, n, n),
+	}
+	for i := range t.Commits {
+		t.Commits[i] = NewCommit()
+	}
+
+	// Merge the Commits.
+	for i, c := range tile1.Commits {
+		t.Commits[i] = c
+	}
+	for i, c := range tile2.Commits {
+		t.Commits[n1+i] = c
+	}
+
+	// Merge the Traces.
+	seen := map[string]bool{}
+	for key, trace := range tile1.Traces {
+		seen[key] = true
+		mergedTrace := newTraceN(n)
+		mergedTrace.Params = trace.Params
+		for i, v := range trace.Values {
+			mergedTrace.Values[i] = v
+		}
+		if trace2, ok := tile2.Traces[key]; ok {
+			for i, v := range trace2.Values {
+				mergedTrace.Values[n1+i] = v
+			}
+		}
+		t.Traces[key] = mergedTrace
+	}
+	// Now add in the traces that are only in tile2.
+	for key, trace := range tile2.Traces {
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		mergedTrace := newTraceN(n)
+		mergedTrace.Params = trace.Params
+		for i, v := range trace.Values {
+			mergedTrace.Values[n1+i] = v
+		}
+		t.Traces[key] = mergedTrace
+	}
+
+	// Recreate the ParamSet.
+	for _, trace := range t.Traces {
+		for k, v := range trace.Params {
+			if _, ok := t.ParamSet[k]; !ok {
+				t.ParamSet[k] = []string{v}
+			} else if !util.In(v, t.ParamSet[k]) {
+				t.ParamSet[k] = append(t.ParamSet[k], v)
+			}
+		}
+	}
+
+	t.Scale = tile1.Scale
+	t.TileIndex = tile1.TileIndex
+
+	return t
 }
