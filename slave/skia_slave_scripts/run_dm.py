@@ -43,6 +43,10 @@ class RunDM(BuildStep):
       args.append('--match')
       args.extend(match)
 
+    # Valgrind is slow.
+    if self._AnyMatch('Valgrind'):
+      self.timeout *= 5
+
     self._flavor_utils.RunFlavoredCmd('dm', args)
 
     # See skia:2789
