@@ -78,7 +78,7 @@ func (g *GitInfo) From(start time.Time) []string {
 	return ret
 }
 
-// From returns a --name-only short log for every commit between begin and end.
+// From returns a --name-only short log for every commit in (begin, end].
 //
 // If end is "" then it returns just the short log for the single commit at
 // begin.

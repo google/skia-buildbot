@@ -144,7 +144,7 @@ func TestFileTileGet(t *testing.T) {
 	// Test its ability to find the last tile, which should be the same as
 	// the 0th tile, since there's only one tile in storage.
 	t.Log("Third test set started. Testing last tile Get().")
-	// Sleep for a few seconds to allow the lastTile updater to run.
+	// Sleep for a few milliseconds to allow the lastTile updater to run.
 	time.Sleep(3 * time.Millisecond)
 	getValue3, err := ts.Get(0, -1)
 	if err != nil {

@@ -13,7 +13,7 @@
  *   dataset
  *     - The current scale and range of tiles we are working with.
  *
- * There are four objects that interact with those data structures:
+ * There are three objects that interact with those data structures:
  *
  * Plot
  *   - Handles plotting the data in traces via Flot.
@@ -401,7 +401,7 @@ var skiaperf = (function() {
     /**
      * Reference to the underlying Flot plot object.
      */
-    this.plotRef = $('#chart').plot([],
+    this.plotRef = jQuery('#chart').plot([],
         {
           legend: {
             show: false
@@ -437,7 +437,7 @@ var skiaperf = (function() {
         }).data('plot');
 
 
-    $('#chart').bind('plothover', (function() {
+    jQuery('#chart').bind('plothover', (function() {
       return function(evt, pos, item) {
         if (traces.length > 0 && pos.x && pos.y) {
           // Find the trace with the closest perpendicular distance, and
@@ -488,7 +488,7 @@ var skiaperf = (function() {
       };
     }()));
 
-    $('#chart').bind('plotclick', function(evt, pos, item) {
+    jQuery('#chart').bind('plotclick', function(evt, pos, item) {
       if (!item) {
         return;
       }
