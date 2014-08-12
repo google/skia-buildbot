@@ -37,6 +37,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/gs"
+	"skia.googlesource.com/buildbot.git/perf/go/human"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
@@ -136,7 +137,7 @@ type ShortcutResponse struct {
 
 // showcutHandler handles the POST and GET requests of the shortcut page.
 func shortcutHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO(kelvinly/jcgregorio?): Add unit testing later
+	// TODO(jcgregorio): Add unit tests.
 	match := shortcutHandlerPath.FindStringSubmatch(r.URL.Path)
 	if match == nil {
 		http.NotFound(w, r)
@@ -347,6 +348,10 @@ func getTile(tileScale, tileNumber int) (*types.Tile, error) {
 //        "commit_msg": "The subject line of the commit.",
 //      },
 //      ...
+//    ],
+//    ticks: [
+//      [1.5, "Mon"],
+//      [3.5, "Tue"]
 //    ]
 //  }
 //
@@ -374,11 +379,20 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 		reportError(w, r, err, "Failed retrieving tile.")
 		return
 	}
-	// TODO if -1 then merge the last two tiles.
 
 	guiTile := types.NewTileGUI(tile.Scale, tile.TileIndex)
 	guiTile.Commits = tile.Commits
 	guiTile.ParamSet = tile.ParamSet
+
+	ts := []int64{}
+	for _, c := range tile.Commits {
+		if c.CommitTime != 0 {
+			ts = append(ts, c.CommitTime)
+		}
+	}
+	glog.Infof("%#v", ts)
+	guiTile.Ticks = human.FlotTickMarks(ts)
+
 	// Marshal and send
 	marshaledResult, err := json.Marshal(guiTile)
 	if err != nil {
@@ -572,7 +586,6 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	end := r.FormValue("end")
 	body, err := git.Log(begin, end)
-	// TODO search and replace the githash with a link to skia.googlesource.com
 	if err != nil {
 		reportError(w, r, err, "Error while looking up hashes.")
 		return

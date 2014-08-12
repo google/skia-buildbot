@@ -20,10 +20,32 @@ var choices = []struct {
 	Duration time.Duration
 	Op       TimeOp
 }{
-	{24 * 7 * time.Hour, func(t time.Time) string { return t.Format("Jan") }}, // Month
-	{48 * time.Hour, func(t time.Time) string { return t.Format("2") }},       // Day of month
-	{24 * time.Hour, func(t time.Time) string { return t.Format("Mon") }},     // Weekdays
-	{2 * time.Hour, func(t time.Time) string { return t.Format("3pm") }},      // Hours
+	{24 * 7 * 4 * time.Hour, func(t time.Time) string { return t.Format("Jan") }},             // Month
+	{24 * 3 * time.Hour, func(t time.Time) string { return t.Format("2") + suffix(t.Day()) }}, // Day of month
+	{24 * time.Hour, func(t time.Time) string { return t.Format("Mon") }},                     // Weekdays
+	{2 * time.Hour, func(t time.Time) string { return t.Format("3pm") }},                      // Hours
+}
+
+// suffix returns the correct suffix for a day number.
+//
+// For making human friendly dates:
+//
+//  1st, 2nd, 3rd, etc.
+//
+func suffix(day int) string {
+	// The rules are pretty simple, everything ends in "th", except numbers that
+	// end in 1, 2 or 3 which end in "st", "nd" and "rd" respectively. The only
+	// exceptions are the teens (10 - 19) which always end in "th".
+	if day >= 4 && day <= 20 {
+		return "th"
+	} else if day%10 == 1 {
+		return "st"
+	} else if day%10 == 2 {
+		return "nd"
+	} else if day%10 == 3 {
+		return "rd"
+	}
+	return "th"
 }
 
 // opFromHours takes a number of hours and from that returns a function that
@@ -36,7 +58,7 @@ func opFromHours(duration time.Duration) (TimeOp, error) {
 	// The first one that would generate more than MIN_TICKS for the given number
 	// of hours is chosen and that TimeOp is returned.
 	var Op TimeOp = nil
-	for _, c := range choices {
+	for i, c := range choices {
 		if duration > c.Duration {
 			Op = c.Op
 			break
@@ -86,6 +108,7 @@ func TickMarks(timestamps []int64, in *time.Location) []*Tick {
 	}
 	ret := []*Tick{}
 	if len(timestamps) < 2 {
+		glog.Warning("Insufficient number of commits: %d", len(timestamps))
 		return ret
 	}
 
@@ -98,6 +121,7 @@ func TickMarks(timestamps []int64, in *time.Location) []*Tick {
 		return ret
 	}
 	last := op(begin)
+	ret = append(ret, &Tick{X: 0, Value: last})
 	for i, t := range timestamps {
 		if tickValue := op(time.Unix(t, 0).In(loc)); last != tickValue {
 			last = tickValue
@@ -115,6 +139,7 @@ func TickMarks(timestamps []int64, in *time.Location) []*Tick {
 func FlotTickMarks(ts []int64) []interface{} {
 	loc, err := time.LoadLocation("America/New_York")
 	if err != nil {
+		glog.Errorf("Failed to load the timezone: %s", err)
 		return []interface{}{}
 	}
 	return ToFlot(TickMarks(ts, loc))

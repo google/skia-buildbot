@@ -31,6 +31,10 @@ func TestTickMarks(t *testing.T) {
 	}
 	expected := []*Tick{
 		{
+			X:     0,
+			Value: "Jun",
+		},
+		{
 			X:     0.5,
 			Value: "Jul",
 		},
@@ -49,12 +53,16 @@ func TestTickMarks(t *testing.T) {
 	}
 	expected = []*Tick{
 		{
+			X:     0,
+			Value: "1st",
+		},
+		{
 			X:     0.5,
-			Value: "3",
+			Value: "3rd",
 		},
 		{
 			X:     1.5,
-			Value: "5",
+			Value: "5th",
 		},
 	}
 	testTickMarks(t, ts, expected)
@@ -67,6 +75,10 @@ func TestTickMarks(t *testing.T) {
 		time.Date(2014, 8, 1, 13, 30, 0, 0, time.UTC).Unix(),
 	}
 	expected = []*Tick{
+		{
+			X:     0,
+			Value: "1am",
+		},
 		{
 			X:     0.5,
 			Value: "2am",
@@ -90,6 +102,10 @@ func TestTickMarks(t *testing.T) {
 	}
 	expected = []*Tick{
 		{
+			X:     0,
+			Value: "Fri",
+		},
+		{
 			X:     0.5,
 			Value: "Sat",
 		},
@@ -107,6 +123,10 @@ func TestTickMarks(t *testing.T) {
 	}
 	got := string(b)
 	want := `[
+  [
+    0,
+    "Fri"
+  ],
   [
     0.5,
     "Sat"

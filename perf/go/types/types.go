@@ -106,6 +106,7 @@ type TileGUI struct {
 	Commits  []*Commit           `json:"commits,omitempty"`
 	Scale    int                 `json:"scale"`
 	Tiles    []int               `json:"tiles"`
+	Ticks    []interface{}       `json:"ticks"`
 }
 
 func NewTileGUI(scale int, tileIndex int) *TileGUI {

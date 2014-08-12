@@ -48,13 +48,14 @@ var skiaperf = (function() {
 
   /**
    * Contains all the information about each commit.
-   * It uses an {@code Object} as a dictionary, where the key is the time of
-   * the commit.
+   *
+   * A list of commit objects where the offset of the commit in the list
+   * matches the offset of the value in the trace.
    *
    * Dataset modifies commitData.
    * Plot reads it.
    */
-  var commitData = {};
+  var commitData = [];
 
   /**
    * Stores the different parameters that can be used to specify a trace.
@@ -82,14 +83,15 @@ var skiaperf = (function() {
   };
 
   /**
-   * The current scale and set of tiles we are viewing.
+   * The current scale, set of tiles, and tick marks for the data we are viewing.
    *
    * Dataset can change this.
    * Query observes this and updates traces and queryInfo.params when it changes.
    */
   var dataset = {
     scale: 0,
-    tiles: [-1]
+    tiles: [-1],
+    ticks: []
   };
 
   // Query watches queryChange.
@@ -414,6 +416,7 @@ var skiaperf = (function() {
             markings: plot_.getMarkings.bind(plot_)
           },
           xaxis: {
+            ticks: []
           },
           yaxis: {
             /* zoomRange: false */
@@ -560,6 +563,9 @@ var skiaperf = (function() {
     Array.observe(traces, function(splices) {
       console.log(splices);
       plot_.plotRef.setData(traces);
+      if (dataset.ticks.length) {
+        plot_.plotRef.getOptions().xaxes[0]["ticks"] = dataset.ticks;
+      }
       plot_.plotRef.setupGrid();
       plot_.plotRef.draw();
       plot_.updateEdges();
@@ -661,6 +667,7 @@ var skiaperf = (function() {
       queryInfo.params = json.paramset;
       dataset.scale= json.scale;
       dataset.tiles = json.tiles;
+      dataset.ticks = json.ticks;
       commitData = json.commits;
       queryChange.counter += 1;
     });
