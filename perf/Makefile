@@ -2,10 +2,6 @@
 build: res/css/perf.css res/js/perf.js
 	go install -v ./go/skiaperf
 
-.PHONY: tilebuilder
-tilebuilder:
-	go install -v ./go/tilebuilder
-
 .PHONY: test
 test: testgo testjs
 	echo
@@ -56,7 +52,7 @@ lint:
 	grunt --no-color jshint:main
 
 .PHONY: all
-all: build tilebuilder ingest tool logs
+all: build ingest tool logs
 
 tags:
 	etags --recurse res/ go/
