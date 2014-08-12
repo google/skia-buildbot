@@ -9,6 +9,12 @@ from build_step import BuildStep
 import sys
 
 class RunDM(BuildStep):
+  def __init__(self, *args, **kwargs):
+    super(RunDM, self).__init__(*args, **kwargs)
+    # Valgrind is slow.
+    if self._AnyMatch('Valgrind'):
+      self.timeout *= 5
+
   def _AnyMatch(self, *args):
     return any(arg in self._builder_name for arg in args)
 
@@ -42,10 +48,6 @@ class RunDM(BuildStep):
     if match:
       args.append('--match')
       args.extend(match)
-
-    # Valgrind is slow.
-    if self._AnyMatch('Valgrind'):
-      self.timeout *= 5
 
     self._flavor_utils.RunFlavoredCmd('dm', args)
 
