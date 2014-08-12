@@ -200,18 +200,9 @@ var skiaperf = (function() {
    */
   function Plot() {
     /**
-     * Stores the edges of the plot to keep the zoom controls in sync.
-     * plotEdges is watched to update the zoom and time controls in the UI,
-     * and is modified when traces is modified, or the user pans or zooms the
-     * plot.
-     */
-    this.plotEdges = [null, null];
-
-    /**
-     * Stores the annotations currently visible on the plot. This is updated
-     * whenever plotEdges is changed, with a slightly delay to avoid
-     * sending too many requests to the server. The hash is used as a key to
-     * either an object like
+     * Stores the annotations currently visible on the plot. The hash is used
+     * as a key to either an object like:
+     *
      * {
      *   id: 7,
      *   notes: "Something happened here",
@@ -260,10 +251,6 @@ var skiaperf = (function() {
     var yaxes = plot.getAxes().yaxis;
     var offsets = plot.getPlotOffset();
     Object.keys(this.annotations).forEach(function(timestamp) {
-      // Check to see if it's inside the plot before drawing.
-      if (timestamp < this.plotEdges[0] || timestamp > this.plotEdges[1]) {
-        return;
-      }
       var lineStart = plot.p2c({'x': timestamp, 'y': yaxes.max});
       var lineEnd = plot.p2c({'x': timestamp, 'y': yaxes.min});
       context.save();
@@ -295,43 +282,6 @@ var skiaperf = (function() {
 
 
   /**
-   * Gets background markings on SKP version changes.
-   */
-  Plot.prototype.getMarkings = function(axes) {
-    if (traces.length <= 0 || !this.plotEdges[0] || !this.plotEdges[1]) {
-      return [];
-    }
-    var skpPhrase = 'Update SKP version to ';
-    var updates = Object.keys(commitData).map(function(timestamp) {
-      return commitData[timestamp];
-    }).filter(function(c) {
-      return c.commit_time &&
-        c.commit_time >= this.plotEdges[0] && c.commit_time <= this.plotEdges[1];
-    }).filter(function(c) {
-      return c.commit_msg && c.commit_msg.indexOf(skpPhrase) >= 0;
-    }).map(function(c) {
-      return c.commit_time;
-    });
-    if (updates.length === 0 || updates[0] > this.plotEdges[0]) {
-      updates.unshift(this.plotEdges[0]);
-    }
-    if (updates[updates.length - 1] < this.plotEdges[1]) {
-      updates.push(this.plotEdges[1]);
-    }
-    var markings = [];
-    for (var i = 1; i < updates.length; i++) {
-      if (i % 2 === 0) {
-        markings.push([updates[i-1], updates[i]]);
-      }
-    }
-    // Alternate white and grey vertical strips.
-    var m = markings.map(function(pair) {
-      return { xaxis: {from: pair[0], to: pair[1]}, color: '#eeeeee'};
-    });
-    return m;
-  };
-
-  /**
    * Hook for drawSeries.
    * If curHighlightedLine is not null, drawHighlightedLine highlights
    * the line by increasing its line width.
@@ -346,37 +296,6 @@ var skiaperf = (function() {
       series.points = {};
     }
     series.points.show = (series.label == this.curHighlightedLine);
-  };
-
-  /**
-   * Updates plotEdges to match the current edges of the plot.
-   * This calculates the new plot edges and stores them in plotEdges, using
-   * either the {@code xaxis} Flot object or the maximum and minimum of the
-   * trace data.
-   */
-  Plot.prototype.updateEdges = function() {
-    var data = plotRef.getData();
-    var xaxis = plotRef.getOptions().xaxes[0];
-    var min = null;
-    var max = null;
-    if(xaxis.min != null && xaxis.max != null) {
-      min = xaxis.min;
-      max = xaxis.max;
-    } else if(data.length > 0) {
-      min = Math.min.apply(null, data.map(function(set) {
-        return Math.min.apply(null, set.data.map(function(point) {
-          return point[0];
-        }));
-      }));
-      max = Math.max.apply(null, data.map(function(set) {
-        return Math.max.apply(null, set.data.map(function(point) {
-          return point[0];
-        }));
-      }));
-    }
-
-    this.plotEdges[0] = min;
-    this.plotEdges[1] = max;
   };
 
 
@@ -413,13 +332,13 @@ var skiaperf = (function() {
             autoHighlight: true,
             mouseActiveRadius: 16,
             clickable: true,
-            markings: plot_.getMarkings.bind(plot_)
           },
           xaxis: {
             ticks: []
+            zoomRange: false,
+            panRange: false,
           },
           yaxis: {
-            /* zoomRange: false */
             transform: function(v) { return plot_.isLogPlot? Math.log(v) : v; },
             inverseTransform: function(v) { return plot_.isLogPlot? Math.exp(v) : v; }
           },
@@ -569,19 +488,6 @@ var skiaperf = (function() {
       plot_.plotRef.setupGrid();
       plot_.plotRef.draw();
       plot_.updateEdges();
-    });
-
-
-    Object.observe(plot_.plotEdges, function() {
-      if(plot_.plotEdges[0] != null) {
-        $$$('#start').value = toRFC(plot_.plotEdges[0]);
-      }
-      if(plot_.plotEdges[1] != null) {
-        $$$('#end').value = toRFC(plot_.plotEdges[1]);
-      }
-      if(plot_.plotEdges[0] != null && plot_.plotEdges[1] != null) {
-        $$$('#zoom').value = -Math.log(plot_.plotEdges[1] - plot_.plotEdges[0]);
-      }
     });
 
     // Update annotation points
