@@ -334,7 +334,7 @@ var skiaperf = (function() {
             clickable: true,
           },
           xaxis: {
-            ticks: []
+            ticks: [],
             zoomRange: false,
             panRange: false,
           },
