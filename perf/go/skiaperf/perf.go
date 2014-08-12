@@ -108,7 +108,7 @@ func Init() {
 	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
 	clusterTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/clusters.html")))
 
-	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, "nano", 10*time.Minute)
+	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, "nano", 2*time.Minute)
 
 	var err error
 	git, err = gitinfo.NewGitInfo(*gitRepoDir, true)

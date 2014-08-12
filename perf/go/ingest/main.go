@@ -20,7 +20,7 @@ var (
 	timestampFile = flag.String("timestamp_file", "/tmp/timestamp.json", "File where timestamp data for ingester runs will be stored.")
 	tileDir       = flag.String("tile_dir", "/tmp/tileStore2/", "Path where tiles will be placed.")
 	gitRepoDir    = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	runEvery      = flag.Duration("run_every", 15*time.Minute, "How often the ingester to pull data from Google Storage.")
+	runEvery      = flag.Duration("run_every", 5*time.Minute, "How often the ingester to pull data from Google Storage.")
 	isSingleShot  = flag.Bool("single_shot", false, "Run the ingester only once.")
 )
 
