@@ -12,7 +12,7 @@ test: testgo testjs
 
 .PHONY: testgo
 testgo:
-	go test ./go/kmeans ./go/ctrace ./go/filetilestore ./go/gitinfo ./go/ingester ./go/types
+	go test ./go/kmeans ./go/ctrace ./go/filetilestore ./go/gitinfo ./go/ingester ./go/types ./go/human
 
 .PHONY: testjs
 testjs:
