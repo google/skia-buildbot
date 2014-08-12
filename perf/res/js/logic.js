@@ -472,8 +472,6 @@ var skiaperf = (function() {
 
       plot_.plotRef.setupGrid();
       plot_.plotRef.draw();
-
-      e.preventDefault();
     });
 
     // Redraw the plot when traces are modified.
@@ -521,17 +519,11 @@ var skiaperf = (function() {
     });
 
     $$$('#nuke-plot').addEventListener('click', function(e) {
-      // Clear the param selections.
-      $$('option:checked').forEach(function(elem) {
-        elem.selected = false;
-      });
       traces.splice(0, traces.length);
       $$$('#note').classList.add("hidden");
       $$$('#query-text').textContent = '';
       plot_.plotLabel.value = "";
       plot_.curHighlightedLine = "";
-
-      e.preventDefault();
     });
   }
 
@@ -581,6 +573,15 @@ var skiaperf = (function() {
     $$$('#more-inputs').addEventListener('click', function(e) {
       $$$('#more').classList.toggle('hidden');
     });
+
+    $$$('#clear-selections').addEventListener('click', function(e) {
+      // Clear the param selections.
+      $$('option:checked').forEach(function(elem) {
+        elem.selected = false;
+      });
+      $$$('#query-text').textContent = '';
+    });
+
   }
 
   Query.prototype.selectionsAsQuery = function() {
@@ -610,7 +611,7 @@ var skiaperf = (function() {
       ele.parentNode.removeChild(ele)
     });
 
-    var whitelist = ['test', 'system', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
+    var whitelist = ['test', 'os', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
     var keylist = Object.keys(queryInfo.params).sort().reverse();
 
     for (var i = 0; i < keylist.length; i++) {
@@ -639,17 +640,6 @@ var skiaperf = (function() {
     }
   }
 
-  // resetSelect resets the given select (by name, such as '#issue') to
-  // contain only one option with text '(none)' and value ''.
-  Query.prototype.resetSelect = function(select) {
-    var selectObj = $$$(select);
-    clearChildren(selectObj);
-    var defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = '(none)';
-    defaultOption.selected = true;
-    selectObj.appendChild(defaultOption);
-  }
 
   /**
    * Manages the set of keys the user can query over.
@@ -659,10 +649,10 @@ var skiaperf = (function() {
   function Dataset() {
   };
 
+
   Dataset.prototype.attach = function() {
     // TODO(jcgregorio) add in tile moving controls and monitor them from here.
   };
-
 
 
   /**
