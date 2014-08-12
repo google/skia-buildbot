@@ -58,7 +58,7 @@ func opFromHours(duration time.Duration) (TimeOp, error) {
 	// The first one that would generate more than MIN_TICKS for the given number
 	// of hours is chosen and that TimeOp is returned.
 	var Op TimeOp = nil
-	for i, c := range choices {
+	for _, c := range choices {
 		if duration > c.Duration {
 			Op = c.Op
 			break
