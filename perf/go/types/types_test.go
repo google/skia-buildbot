@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"testing"
 
 	"skia.googlesource.com/buildbot.git/perf/go/config"
@@ -47,21 +46,24 @@ func TestMerge(t *testing.T) {
 
 	// Merge the two tiles.
 	merged := Merge(t1, t2)
+	if got, want := len(merged.Traces["foo"].Values), 2*config.TILE_SIZE; got != want {
+		t.Errorf("Wrong config.TILE_SIZE: Got %v Want %v", got, want)
+	}
 
 	if got, want := merged.Scale, 1; got != want {
-		fmt.Errorf("Wrong scale: Got %v Want %v", got, want)
+		t.Errorf("Wrong scale: Got %v Want %v", got, want)
 	}
 	if got, want := merged.TileIndex, t1.TileIndex; got != want {
-		fmt.Errorf("TileIndex is wrong: Got %v Want %v", got, want)
+		t.Errorf("TileIndex is wrong: Got %v Want %v", got, want)
 	}
 	if got, want := len(merged.Traces), 2; got != want {
-		fmt.Errorf("Number of traces: Got %v Want %v", got, want)
+		t.Errorf("Number of traces: Got %v Want %v", got, want)
 	}
 	if got, want := len(merged.Traces["foo"].Values), 2*config.TILE_SIZE; got != want {
-		fmt.Errorf("Number of values: Got %v Want %v", got, want)
+		t.Errorf("Number of values: Got %v Want %v", got, want)
 	}
 	if got, want := len(merged.ParamSet), 3; got != want {
-		fmt.Errorf("ParamSet length: Got %v Want %v", got, want)
+		t.Errorf("ParamSet length: Got %v Want %v", got, want)
 	}
 
 	// Test the "foo" trace.
@@ -70,41 +72,40 @@ func TestMerge(t *testing.T) {
 		N int
 		V float64
 	}{
-		{31, 1e100},
-		{32, 0.3},
-		{33, 0.4},
-		{34, 1e100},
-		{0, 1e100},
-		{1, 0.1},
-		{2, 0.2},
-		{3, 1e100},
+		{127, 1e100},
+		{128, 0.3},
+		{129, 0.4},
+		{130, 1e100},
+		{0, 0.1},
+		{1, 0.2},
+		{2, 1e100},
 	}
 	for _, tc := range testCases {
 		if got, want := tr.Values[tc.N], tc.V; got != want {
-			fmt.Errorf("Error copying trace values: Got %v Want %v at %d", got, want, tc.N)
+			t.Errorf("Error copying trace values: Got %v Want %v at %d", got, want, tc.N)
 		}
 	}
 	if got, want := tr.Params["p1"], "v1"; got != want {
-		fmt.Errorf("Wrong params for trace: Got %v Want %v", got, want)
+		t.Errorf("Wrong params for trace: Got %v Want %v", got, want)
 	}
 
 	// Test the "bar" trace.
-	tr = merged.Traces["foo"]
+	tr = merged.Traces["bar"]
 	testCases = []struct {
 		N int
 		V float64
 	}{
-		{31, 1e100},
-		{32, 0.5},
-		{33, 0.6},
-		{34, 1e100},
+		{127, 1e100},
+		{128, 0.5},
+		{129, 0.6},
+		{130, 1e100},
 	}
 	for _, tc := range testCases {
 		if got, want := tr.Values[tc.N], tc.V; got != want {
-			fmt.Errorf("Error copying trace values: Got %v Want %v at %d", got, want, tc.N)
+			t.Errorf("Error copying trace values: Got %v Want %v at %d", got, want, tc.N)
 		}
 	}
 	if got, want := tr.Params["p3"], "v3"; got != want {
-		fmt.Errorf("Wrong params for trace: Got %v Want %v", got, want)
+		t.Errorf("Wrong params for trace: Got %v Want %v", got, want)
 	}
 }

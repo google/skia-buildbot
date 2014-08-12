@@ -45,8 +45,7 @@ const (
 
 	// The number of samples per trace in a tile, i.e. the number of git hashes that have data
 	// in a single tile.
-	// TODO fix
-	TILE_SIZE = 32
+	TILE_SIZE = 128
 
 	// JSON doesn't support NaN or +/- Inf, so we need a valid float
 	// to signal missing data that also has a compact JSON representation.
@@ -57,10 +56,6 @@ const (
 
 	// Limit the number of times the ingester tries to get a file before giving up.
 	MAX_URI_GET_TRIES = 4
-
-	// How often data is refreshed from BigQuery.
-	// TODO(jcgregorio) Move to push once it's feasible.
-	REFRESH_PERIOD = time.Minute * 30
 )
 
 type DatasetName string

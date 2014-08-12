@@ -48,11 +48,11 @@ func TestIngestCommits(t *testing.T) {
 
 	// Test TileTracker while were here.
 	tt := NewTileTracker(store, i.hashToNumber)
-	tt.Move("fe4a4029a080bc955e9588d05a6cd9eb490845d4")
+	tt.Move("7a6fe813047d1a84107ef239e81f310f27861473")
 	if got, want := tt.lastTileNum, 1; got != want {
 		t.Errorf("Move failed, wrong tile: Got %d Want %d", got, want)
 	}
-	tt.Move("e7f274ca6ef1eb53ea27dbc3a9a4b60244fa1987")
+	tt.Move("87709bc360f35de52c2f2bc2fc70962fb234db2d")
 	if got, want := tt.lastTileNum, 0; got != want {
 		t.Errorf("Move failed, wrong tile: Got %d Want %d", got, want)
 	}

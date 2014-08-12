@@ -1,6 +1,7 @@
 #!/bin/bash
+mkdir testrepo
 cd testrepo
-for i in `seq 1 33`;
+for i in `seq 1 129`;
 do
   echo "Test Commit $i" > file.txt
   git add --all
