@@ -238,7 +238,14 @@ func clusterHandler(w http.ResponseWriter, r *http.Request) {
 			reportError(w, r, err, fmt.Sprintf("_stddev parameter must be a float %s.", r.FormValue("_stddev")))
 			return
 		}
-		if err := clusterTemplate.Execute(w, calculateClusterSummaries(tile, int(k), stddev)); err != nil {
+
+		// Create a filter function for traces that match the query parameters.
+		delete(r.Form, "_k")
+		delete(r.Form, "_stddev")
+		filter := func(tr *types.Trace) bool {
+			return traceMatches(tr, r.Form)
+		}
+		if err := clusterTemplate.Execute(w, calculateClusterSummaries(tile, int(k), stddev, filter)); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
 	}
