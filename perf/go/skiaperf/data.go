@@ -66,6 +66,14 @@ type ClusterSummaries struct {
 	K                int
 }
 
+func NewClusterSummaries() *ClusterSummaries {
+	return &ClusterSummaries{
+		Clusters:         []*ClusterSummary{},
+		StdDevThreshhold: ctrace.MIN_STDDEV,
+		K:                K,
+	}
+}
+
 // chooseK chooses a random sample of k observations. Used as the starting
 // point for the k-means clustering.
 func chooseK(observations []kmeans.Clusterable, k int) []kmeans.Clusterable {
@@ -184,6 +192,17 @@ func getStepFit(trace []float64) StepFit {
 	return StepFit{deviation, stepSize}
 }
 
+type SortableClusterable struct {
+	Cluster  kmeans.Clusterable
+	Distance float64
+}
+
+type SortableClusterableSlice []*SortableClusterable
+
+func (p SortableClusterableSlice) Len() int           { return len(p) }
+func (p SortableClusterableSlice) Less(i, j int) bool { return p[i].Distance < p[j].Distance }
+func (p SortableClusterableSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 // GetClusterSummaries returns a summaries for each cluster.
 func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterSummaries {
 	ret := &ClusterSummaries{
@@ -206,8 +225,17 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterS
 		for j, o := range cluster {
 			summary.Keys[j] = o.(*ctrace.ClusterableTrace).Key
 		}
+		// First, sort the traces so they are order with the traces closest to the
+		// centroid first.
+		sc := []*SortableClusterable{}
 		for j := 0; j < numSampleTraces; j++ {
-			summary.Traces[j] = traceToFlot(cluster[j].(*ctrace.ClusterableTrace))
+			sc = append(sc, &SortableClusterable{Cluster: cluster[j], Distance: cluster[j].Distance(cluster[0])})
+		}
+		// Sort, but leave the centroid, the 0th element, unmoved.
+		sort.Sort(SortableClusterableSlice(sc[1:]))
+
+		for j := 0; j < numSampleTraces; j++ {
+			summary.Traces[j] = traceToFlot(sc[j].Cluster.(*ctrace.ClusterableTrace))
 		}
 		ret.Clusters[i] = summary
 	}
@@ -217,9 +245,15 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterS
 
 // calculateClusterSummaries runs k-means clustering over the trace shapes.
 func calculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64) *ClusterSummaries {
+	lastCommitIndex := 0
+	for i, c := range tile.Commits {
+		if c.CommitTime != 0 {
+			lastCommitIndex = i
+		}
+	}
 	observations := make([]kmeans.Clusterable, 0, len(tile.Traces))
 	for key, trace := range tile.Traces {
-		observations = append(observations, ctrace.NewFullTrace(string(key), trace.Values, trace.Params, stddevThreshhold))
+		observations = append(observations, ctrace.NewFullTrace(string(key), trace.Values[:lastCommitIndex], trace.Params, stddevThreshhold))
 	}
 
 	// Create K starting centroids.

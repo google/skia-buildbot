@@ -11,58 +11,63 @@
 </head>
 <body>
 <p>Clustering of measurement traces by shape.</p>
-    <details>
-      <summary>Traces clustered into {{.K}} clusters. Traces with stddev&lt;{{.StdDevThreshhold}} won't have their standard deviation normalized to 1.0.</summary>
-      <form action="" method="post" accept-charset="utf-8">
-        <p><label for="stddev">StdDev Threshhold:</label> <input type="text" name="stddev" value="{{.StdDevThreshhold}}" id="stddev"></p>
-        <p><label for="k">Num Clusters:</label> <input type="text" name="k" value="{{.K}}" id="k"></p>
-        <p><input type="submit" value="Recalculate"></p>
-      </form>
-    </details>
+    <form action="" method="get" accept-charset="utf-8">
+      <p><label for="_stddev">StdDev Threshhold:</label> <input type="text" name="_stddev" value="{{.StdDevThreshhold}}" id="_stddev"></p>
+      <p><label for="_k">Num Clusters:</label> <input type="text" name="_k" value="{{.K}}" id="_k"></p>
+      <p><input type="submit" value="Calculate"></p>
+    </form>
 
-    <div id="sort">
-      Sort by:
-      <input type="radio" name="sort" value="clusterSize" checked>ClusterSize</input>
-      <input type="radio" name="sort" value="stepFit">StepFit</input>
-      <input type="radio" name="sort" value="stepSize">StepSize</input>
-      <input type="radio" name="sort" value="stepDeviation">StepDeviation</input>
-    </div>
-    <div id="container">
-      <!-- Draw a plot and a word cloud for each cluster.  -->
-      {{range $i, $summary := .Clusters}}
-        <div class="result" data-clustersize="{{len $summary.Keys}}" data-stepdeviation="{{$summary.StepFit.Deviation}}" data-stepsize="{{$summary.StepFit.StepSize}}">
-        <div id="placeholder{{$i}}" class=graph></div>
-        <a id="trace-shortcut{{$i}}" href="#">View on dashboard</a>
-          Cluster has {{len $summary.Keys}} members, with StepFit deviation {{$summary.StepFit.Deviation}} in step size {{$summary.StepFit.StepSize}}.
-          <button type="submit" class=expander>+</button>
-          <!-- Draw a word cloud based on the parameters for each member of cluster.  -->
-          <div class=cloud>
-            {{range $summary.ParamSummaries}}
-            <div class=cloudParam>
-              {{range .}}
-              <div style="font-size:{{.Weight}}px">{{.Value}} </div>
+    {{if .Clusters}}
+      <div id="sort">
+        Sort by:
+        <input type="radio" name="sort" value="clusterSize" checked>ClusterSize</input>
+        <input type="radio" name="sort" value="stepFit">StepFit</input>
+        <input type="radio" name="sort" value="stepSize">StepSize</input>
+        <input type="radio" name="sort" value="stepDeviation">StepDeviation</input>
+      </div>
+      <div id="container">
+        <!-- Draw a plot and a word cloud for each cluster.  -->
+        {{range $i, $summary := .Clusters}}
+          <div class="result" data-clustersize="{{len $summary.Keys}}" data-stepdeviation="{{$summary.StepFit.Deviation}}" data-stepsize="{{$summary.StepFit.StepSize}}">
+          <div id="placeholder{{$i}}" class=graph></div>
+          <a id="trace-shortcut{{$i}}" href="#">View on dashboard</a>
+            Cluster has {{len $summary.Keys}} members, with StepFit deviation {{$summary.StepFit.Deviation}} in step size {{$summary.StepFit.StepSize}}.
+            <button type="submit" class=expander>+</button>
+            <!-- Draw a word cloud based on the parameters for each member of cluster.  -->
+            <div class=cloud>
+              {{range $summary.ParamSummaries}}
+              <div class=cloudParam>
+                {{range .}}
+                <div style="font-size:{{.Weight}}px">{{.Value}} </div>
+                {{end}}
+              </div>
               {{end}}
             </div>
-            {{end}}
           </div>
-        </div>
-      {{end}}
-    </div>
+        {{end}}
+      </div>
+    {{end}}
+
   <script type="text/javascript" charset="utf-8">
     function openShortcut(keys) {
-      var data = {"keys": keys};
+      var state = {
+        scale: 0,
+        tiles: [-1],
+        keys: keys
+      };
       var req = new XMLHttpRequest();
+      document.body.style.cursor = 'wait';
       req.addEventListener('load', function() {
+        document.body.style.cursor = 'auto';
         if (req.response && req.status==200) {
           var resp = JSON.parse(req.responseText);
-          var dataset_name = window.location.pathname.indexOf("micro") >= 0 ? "micro" : "skps";
-          window.open('/#set=' + dataset_name + '&shortcut=' + resp.id, '_blank');
+          window.open('/#' + resp.id, '_blank');
         }
       });
       req.open("POST", "/shortcuts/", true);
-      req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-      req.send("data=" + JSON.stringify(data));
-    }
+      req.setRequestHeader("Content-type","application/json");
+      req.send(JSON.stringify(state));
+    };
 
     window.addEventListener('load', function() {
     {{range $i, $summary := .Clusters}}

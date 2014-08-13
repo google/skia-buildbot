@@ -14,7 +14,7 @@
     } else {
       return Array.prototype.map.call(par.querySelectorAll(query), id);
     }
-  }
+  };
 
   // doSort sorts the clustering results with the algorithm given in element e.
   function doSort(e) {
@@ -55,11 +55,11 @@
     to_sort.forEach(function(i) {
       container.appendChild(i[3]);
     });
-  }
+  };
 
   function toggle(e) {
     e.target.nextElementSibling.classList.toggle("display");
-  }
+  };
 
   // hookExpando finds all the expander buttons and adds a handler
   // that toggles the 'display' class on its next sibling element.
@@ -68,7 +68,7 @@
     $$('.expander').forEach(function(ele) {
       ele.addEventListener('click', toggle);
     });
-  }
+  };
 
   // hookSort finds all the radio buttons and adds a handler that sorts the
   // clustering results with various algorithms.
@@ -76,12 +76,13 @@
     $$('input[name="sort"]').forEach(function(ele) {
       ele.addEventListener('click', doSort);
     });
-  }
+  };
 
   function hookClicks() {
     hookExpando();
     hookSort();
   };
+
   document.addEventListener('DOMContentLoaded', hookClicks);
 
 })();

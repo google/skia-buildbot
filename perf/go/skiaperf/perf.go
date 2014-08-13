@@ -31,7 +31,6 @@ import (
 
 import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/ctrace"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
@@ -221,22 +220,24 @@ func clusterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
+		// If there are no query parameters just return with an empty set of ClusterSummaries.
+		if r.FormValue("_k") == "" {
+			if err := clusterTemplate.Execute(w, NewClusterSummaries()); err != nil {
+				glog.Errorln("Failed to expand template:", err)
+			}
+			return
+		}
 
-		if err := clusterTemplate.Execute(w, calculateClusterSummaries(tile, K, ctrace.MIN_STDDEV)); err != nil {
-			glog.Errorln("Failed to expand template:", err)
-		}
-	} else if r.Method == "POST" { // POST for now, move to GET later for custom clusters.
-		k, err := strconv.ParseInt(r.FormValue("k"), 10, 32)
+		k, err := strconv.ParseInt(r.FormValue("_k"), 10, 32)
 		if err != nil {
-			reportError(w, r, err, fmt.Sprintf("k parameter must be an integer %s.", r.FormValue("k")))
+			reportError(w, r, err, fmt.Sprintf("_k parameter must be an integer %s.", r.FormValue("_k")))
 			return
 		}
-		stddev, err := strconv.ParseFloat(r.FormValue("stddev"), 64)
+		stddev, err := strconv.ParseFloat(r.FormValue("_stddev"), 64)
 		if err != nil {
-			reportError(w, r, err, fmt.Sprintf("stddev parameter must be a float %s.", r.FormValue("stddev")))
+			reportError(w, r, err, fmt.Sprintf("_stddev parameter must be a float %s.", r.FormValue("_stddev")))
 			return
 		}
-		w.Header().Set("Content-Type", "text/html")
 		if err := clusterTemplate.Execute(w, calculateClusterSummaries(tile, int(k), stddev)); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
