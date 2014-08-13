@@ -18,11 +18,6 @@ button {
   margin: 0.5em;
 }
 
-#query-text {
-  margin: 0.5em;
-  margin-left: 0;
-}
-
 .waiting {
     cursor: wait;
 }
@@ -47,12 +42,6 @@ button {
     width: 100%;
 }
 
-#query-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    width:100%;
-}
 
 #note {
     margin: 1em;
@@ -91,13 +80,22 @@ table, td {
   border: none;
 }
 
+#query-count {
+  margin: 0.5em;
+  margin-left: 0;
+}
 
-#inputs,
-#inputs #more {
+
+#query-inputs,
+#query-inputs #query-more {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
   width:100%;
+}
+
+#query-inputs #query-more.hidden {
+  display: none;
 }
 
 
@@ -114,11 +112,6 @@ table, td {
     /* Maybe make this bigger? */
     width: 100%;
     height: 640px;
-}
-
-
-#inputs #more.hidden {
-    display: none;
 }
 
 .hidden {

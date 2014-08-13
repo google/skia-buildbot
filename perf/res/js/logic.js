@@ -29,7 +29,7 @@ var skiaperf = (function() {
   /**
    * Stores the trace data.
    * Formatted so it can be directly fed into Flot generate the plot,
-   * Plot observes traces__, and Query can make changes to traces__.
+   * Plot observes traces__, and Navigation can make changes to traces__.
    */
   var traces__ = [
       /*
@@ -58,48 +58,53 @@ var skiaperf = (function() {
   var commitData__ = [];
 
   /**
-   * Stores the different parameters that can be used to specify a trace.
-   * The {@code params} field contains an array of arrays, each array
-   * representing a single parameter that can be set, with the first element of
-   * the array being the human readable name for it, and each followin element
-   * a different possibility of what to set it to.
-   * The {@code trybotResults} fields contains a dictionary of trace keys,
-   * whose values are the trybot results for each trace.
-   * Query observe queryInfo__, and Navigation and Query can modify queryInfo__.
+   * The data needed by Query to build a UI for filtering traces.
+   *
+   * Query observes fields in queryInfo__.
+   * Navigation can modify queryInfo__.
+   *
+   * Note that queryInfo_ is passed as a parameter to Query, which means that
+   * Query will see changes to queryInfo__ fields. which is intended.
    */
   var queryInfo__ = {
-    params: {
+    /**
+     * Contains an array of arrays, each array representing a single parameter
+     * that can be set, each element a different possibility of what to set it
+     * to.
+     */
+    paramSet: [
       /*
-      "benchName": ["desk_gmailthread.skp", "desk_mapsvg.skp" ],
-      "timer":     ["wall", "cpu"],
-      "arch":      ["arm7", "x86", "x86_64"],
-      */
+       "benchName": ["desk_gmailthread.skp", "desk_mapsvg.skp" ],
+       "timer":     ["wall", "cpu"],
+       "arch":      ["arm7", "x86", "x86_64"],
+       */
+      ],
+    // change is used because Observe-js has trouble dealing with the large
+    // array changes that happen when Navigation swaps paramSet data.
+    change: {
+      counter: 0
     },
-    trybotResults: {
+  };
+
+  /**
+   * The results for the trybot.
+   */
+  var trybotResults__ = {
       /*
        'trace:key': 13.234  // The value of the trybot result.
       */
-    }
   };
 
   /**
    * The current scale, set of tiles, and tick marks for the data we are viewing.
    *
    * Navigation can change this.
-   * Query observes this and updates traces__ and queryInfo__.params when it changes.
    */
   var dataset__ = {
     scale: 0,
     tiles: [-1],
     ticks: []
   };
-
-  // Query watches queryChange.
-  // Navigation can change queryChange.
-  //
-  // queryChange is used because Observe-js has trouble dealing with the large
-  // array changes that happen when Navigation swaps queryInfo__ data.
-  var queryChange = { counter: 0 };
 
 
   /******************************************
@@ -145,7 +150,6 @@ var skiaperf = (function() {
   function escapeNewlines(str) {
     return (str + '').replace(/\n/g, '<br />');
   }
-
 
   /**
    * Converts from a POSIX timestamp to a truncated RFC timestamp that
@@ -210,6 +214,16 @@ var skiaperf = (function() {
      */
     this.plotLabel = null;
   };
+
+
+  /**
+   * Clears out UI elements back to blank.
+   */
+  Plot.prototype.clear = function() {
+    $$$('#note').classList.add("hidden");
+    this.curHighlightedLine = "";
+    this.plotLabel.value = "";
+  }
 
 
   /**
@@ -487,72 +501,62 @@ var skiaperf = (function() {
       req.send();
     });
 
-    $$$('#nuke-plot').addEventListener('click', function(e) {
-      traces__.splice(0, traces__.length);
-      $$$('#note').classList.add("hidden");
-      $$$('#query-text').textContent = '';
-      plot_.plotLabel.value = "";
-      plot_.curHighlightedLine = "";
-    });
   }
 
 
   /**
    * Sets up the event handlers related to the query controls in the interface.
-   * The callbacks in this function use and observe {@code queryInfo__},
-   * and modifies {@code traces__}. Takes the object {@code Navigation} creates
-   * as input.
+   * The callbacks in this function use and observe queryInfo fields.
    */
-  function Query(navigation) {
-    this.navigation_ = navigation;
+  function Query(queryInfo) {
+    this.queryInfo_ = queryInfo;
   };
 
 
-  // attach hooks up all the controls that Query uses.
+  /**
+   * Clears out UI elements back to blank.
+   */
+  Query.prototype.clear = function() {
+    $$$('#query-count').textContent = '';
+  }
+
+
+  /**
+   * attach hooks up all the controls that Query uses.
+   */
   Query.prototype.attach = function() {
 
     var query_ = this;
 
-    Object.observe(queryChange, this.onParamChange);
+    Object.observe(this.queryInfo_.change, this.onParamChange.bind(this));
 
-    // Add handlers to the query controls.
-    $$$('#add-lines').addEventListener('click', function() {
-      query_.navigation_.addTraces(query_.selectionsAsQuery())
-    });
-
-    $$$('#inputs').addEventListener('change', function(e) {
+    $$$('#query-inputs').addEventListener('change', function(e) {
       sk.get('/query/0/-1/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
-        $$$('#query-text').innerHTML = json["matches"] + ' lines selected<br />';
+        $$$('#query-count').innerHTML = json["matches"] + ' lines selected<br />';
       });
     });
 
-    // TODO add observer on dataset__ and update the current traces if any are displayed.
-    sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
-      queryInfo__.params = json.paramset;
-      dataset__.scale = json.scale;
-      dataset__.tiles = json.tiles;
-      dataset__.ticks = json.ticks;
-      commitData__ = json.commits;
-      queryChange.counter += 1;
+    $$$('#query-more-toggle').addEventListener('click', function(e) {
+      $$$('#query-more').classList.toggle('hidden');
     });
 
-    $$$('#more-inputs').addEventListener('click', function(e) {
-      $$$('#more').classList.toggle('hidden');
-    });
-
-    $$$('#clear-selections').addEventListener('click', function(e) {
+    $$$('#query-clear').addEventListener('click', function(e) {
       // Clear the param selections.
       $$('option:checked').forEach(function(elem) {
         elem.selected = false;
       });
-      $$$('#query-text').textContent = '';
+      $$$('#query-count').textContent = '';
     });
 
   }
 
+  /**
+   * selectionsAsQuery bundles up the current set of selections as a URL query
+   * suitable for passing to the /query/ endpoint.
+   */
   Query.prototype.selectionsAsQuery = function() {
     var sel = [];
-    var num = Object.keys(queryInfo__.params).length;
+    var num = Object.keys(this.queryInfo_.paramSet).length;
     for(var i = 0; i < num; i++) {
       var key = $$$('#select_' + i).name
         $$('#select_' + i + ' option:checked').forEach(function(ele) {
@@ -564,21 +568,21 @@ var skiaperf = (function() {
 
 
   /**
-   * Syncs the DOM to match the current state of queryInfo__.
+   * Syncs the DOM to match the current state of queryInfo_.
    * It currently removes all the existing elements and then
-   * generates a new set that matches the queryInfo__ data.
+   * generates a new set that matches the queryInfo_ data.
    */
   Query.prototype.onParamChange = function() {
     console.log('onParamChange() triggered');
-    var queryDiv = $$$('#inputs');
-    var detailsDiv= $$$('#inputs #more');
+    var queryDiv = $$$('#query-inputs');
+    var detailsDiv= $$$('#query-more');
     // Remove all old nodes.
-    $$('#inputs .query-node').forEach(function(ele) {
+    $$('#query-inputs .query-node').forEach(function(ele) {
       ele.parentNode.removeChild(ele)
     });
 
     var whitelist = ['test', 'os', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
-    var keylist = Object.keys(queryInfo__.params).sort().reverse();
+    var keylist = Object.keys(this.queryInfo_.paramSet).sort().reverse();
 
     for (var i = 0; i < keylist.length; i++) {
       var node = $$$('#query-select').content.cloneNode(true);
@@ -590,7 +594,7 @@ var skiaperf = (function() {
       select.id = 'select_' + i;
       select.name = key;
 
-      var options = queryInfo__.params[key].sort();
+      var options = this.queryInfo_.paramSet[key].sort();
       options.forEach(function(op) {
         var option = document.createElement('option');
         option.value = op;
@@ -611,9 +615,13 @@ var skiaperf = (function() {
   /**
    * Manages the tile scale and index that the user can query over.
    */
-  function Navigation() {
+  function Navigation(query, plot) {
     // Keep tracking if we are still loading the page the first time.
     this.loading_ = true;
+
+    this.query_ = query;
+
+    this.plot_ = plot;
   };
 
 
@@ -647,6 +655,10 @@ var skiaperf = (function() {
   Navigation.prototype.attach = function() {
     var navigation_ = this;
 
+    $$$('#add-lines').addEventListener('click', function() {
+      navigation_.addTraces(navigation_.query_.selectionsAsQuery())
+    });
+
     $$$('#shortcut').addEventListener('click', function() {
       // Package up the current state and stuff it into the database.
       var state = {
@@ -661,6 +673,11 @@ var skiaperf = (function() {
       });
     });
 
+    $$$('#nuke-plot').addEventListener('click', function(e) {
+      traces__.splice(0, traces__.length);
+      navigation_.plot_.clear();
+      navigation_.query_.clear();
+    });
 
     Array.observe(traces__, function() {
       // Any changes to the traces after we're fully loaded should clear the
@@ -668,6 +685,16 @@ var skiaperf = (function() {
       if (navigation_.loading_ == false) {
         window.history.pushState(null, "", "#");
       }
+    });
+
+
+    sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
+      queryInfo__.paramSet = json.paramset;
+      dataset__.scale = json.scale;
+      dataset__.tiles = json.tiles;
+      dataset__.ticks = json.ticks;
+      commitData__ = json.commits;
+      queryInfo__.change.counter += 1;
     });
   };
 
@@ -682,14 +709,15 @@ var skiaperf = (function() {
 
 
   function onLoad() {
-    var navigation = new Navigation();
-    navigation.attach();
-
-    var query = new Query(navigation);
+    var query = new Query(queryInfo__);
     query.attach();
 
     var plot = new Plot();
     plot.attach();
+
+    var navigation = new Navigation(query, plot);
+    navigation.attach();
+
 
     microtasks();
 

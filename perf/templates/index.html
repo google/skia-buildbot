@@ -16,16 +16,19 @@
           <button id=shortcut>Create Shortcut</button> <input type="text" disabled value="" placeholder="Highlighted Trace ID" id="plot-label" size=80>
           <div id="chart"> </div>
         </div>
-
-        <div id="query-wrapper">
+        <div id="nav-wrapper">
           <button id="nuke-plot">Remove all traces</button>
           <button id="reset-axes">Reset axes</button>
-          <button id="clear-selections">Clear selections</button>
-          <button id="add-lines">Add traces</button> <span id="query-text"></span>
-          <div id="inputs">
+          <button id="add-lines">Add traces</button>
+        </div>
+
+        <div id="query-wrapper">
+          <button id="query-clear">Clear selections</button>
+          <span id="query-count"></span>
+          <div id="query-inputs">
             <br>
-            <p id="more-inputs">More...</p>
-            <div id="more" class="hidden">
+            <p id="query-more-toggle">More...</p>
+            <div id="query-more" class="hidden">
             </div>
           </div>
         </div>
