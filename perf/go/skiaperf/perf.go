@@ -19,7 +19,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"sort"
 	"strconv"
 	"time"
 )
@@ -38,6 +37,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/gs"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
+	"skia.googlesource.com/buildbot.git/perf/go/shortcut"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
@@ -124,18 +124,21 @@ func reportError(w http.ResponseWriter, r *http.Request, err error, message stri
 	http.Error(w, message, 500)
 }
 
-type TracesShortcut struct {
-	Keys    []string `json:"keys"`
-	Dataset string   `json:"dataset"`
-	Tiles   []int    `json:"tiles"`
-	Scale   int      `json:"scale"`
-}
-
-type ShortcutResponse struct {
-	Id int64 `json:"id"`
-}
-
-// showcutHandler handles the POST and GET requests of the shortcut page.
+// showcutHandler handles the POST requests of the shortcut page.
+//
+// Shortcuts are of the form:
+//
+//    {
+//       "scale": 0,
+//       "tiles": [-1],
+//       "ids": [
+//            "x86:...",
+//            "x86:...",
+//            "x86:...",
+//       ]
+//    }
+//
+//
 func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO(jcgregorio): Add unit tests.
 	match := shortcutHandlerPath.FindStringSubmatch(r.URL.Path)
@@ -143,63 +146,25 @@ func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	if r.Method == "GET" {
-		var traces string
-		err := db.DB.QueryRow(`SELECT traces FROM shortcuts WHERE id =?`, match[1]).Scan(&traces)
+	if r.Method == "POST" {
+		// check header
+		if ct := r.Header.Get("Content-Type"); ct != "application/json" {
+			reportError(w, r, fmt.Errorf("Error: received %s", ct), "Invalid content type.")
+			return
+		}
+		defer r.Body.Close()
+		id, err := shortcut.Insert(r.Body)
 		if err != nil {
-			reportError(w, r, err, "Error while looking up shortcut.")
+			reportError(w, r, err, "Error inserting shortcut.")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(traces))
-	} else if r.Method == "POST" {
-		r.ParseForm()
-		if traces := r.Form.Get("data"); len(traces) <= 0 {
-			reportError(w, r, fmt.Errorf("Unable to extract list of traces."), "Unable to process request.")
-			return
-		} else {
-			// Validate by successfully marshalling and unmarshalling
-			var marshalledShortcuts TracesShortcut
-			err := json.Unmarshal([]byte(traces), &marshalledShortcuts)
-			if err != nil {
-				reportError(w, r, err, "Error while validating input.")
-				return
-			}
-			// Sort them so any set of traces will always result in the same
-			// JSON
-			if len(marshalledShortcuts.Keys) <= 0 {
-				reportError(w, r, fmt.Errorf("Invalid input."), "Unable to process request.")
-				return
-			}
-			sort.Strings(marshalledShortcuts.Keys)
-			formattedKeys, err := json.Marshal(marshalledShortcuts)
-			if err != nil {
-				reportError(w, r, err, "Error while validating input.")
-				return
-			}
-			result, err := db.DB.Exec(`INSERT INTO shortcuts (traces) VALUES (?)`,
-				string(formattedKeys))
-			if err != nil {
-				reportError(w, r, err, fmt.Sprintf("Error while inserting traces %s", traces))
-				return
-			}
-			id, err := result.LastInsertId()
-			if err != nil {
-				reportError(w, r, err, "Error while looking at ID of new traces.")
-				return
-			}
-			w.Header().Set("Content-Type", "application/text")
-			responseBytes, err := json.Marshal(ShortcutResponse{Id: id})
-			if err != nil {
-				reportError(w, r, err, "Error while marshalling response.")
-				return
-			}
-			_, err = w.Write(responseBytes)
-			if err != nil {
-				reportError(w, r, err, "Error while writing result.")
-				return
-			}
+		enc := json.NewEncoder(w)
+		if err := enc.Encode(map[string]string{"id": id}); err != nil {
+			reportError(w, r, err, "Error while encoding response.")
 		}
+	} else {
+		http.NotFound(w, r)
 	}
 }
 
@@ -458,6 +423,12 @@ func traceMatches(trace *types.Trace, query url.Values) bool {
 //    ]
 //  }
 //
+// If the path is:
+//
+//    /query/0/-1/traces/?__shortcut=11
+//
+// Then the traces in the shortcut with that ID are returned.
+//
 // TODO Add ability to query across a range of tiles.
 func queryHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Query Handler: %q\n", r.URL.Path)
@@ -505,11 +476,28 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		// We want the matching traces.
 		ret := []*types.TraceGUI{}
 
-		for key, tr := range tile.Traces {
-			if traceMatches(tr, r.Form) {
-				tg := traceGuiFromTrace(tr, key, tile)
-				if tg != nil {
-					ret = append(ret, tg)
+		shortcutID := r.Form.Get("__shortcut")
+		if shortcutID != "" {
+			sh, err := shortcut.Get(shortcutID)
+			if err != nil {
+				http.NotFound(w, r)
+				return
+			}
+			for _, k := range sh.Keys {
+				if tr, ok := tile.Traces[k]; ok {
+					tg := traceGuiFromTrace(tr, k, tile)
+					if tg != nil {
+						ret = append(ret, tg)
+					}
+				}
+			}
+		} else {
+			for key, tr := range tile.Traces {
+				if traceMatches(tr, r.Form) {
+					tg := traceGuiFromTrace(tr, key, tile)
+					if tg != nil {
+						ret = append(ret, tg)
+					}
 				}
 			}
 		}

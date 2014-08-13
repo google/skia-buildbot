@@ -2,15 +2,15 @@
  * The communication between parts of the code will be done by using Object.observe
  * on common data structures.
  *
- * The data structures are 'traces', 'queryInfo', 'commitData', 'dataset':
+ * The data structures are 'traces__', 'queryInfo__', 'commitData__', 'dataset__':
  *
- *   traces
+ *   traces__
  *     - A list of objects that can be passed directly to Flot for display.
- *   queryInfo
+ *   queryInfo__
  *     - A list of all the keys and the parameters the user can search by.
- *   commitData
+ *   commitData__
  *     - A list of commits for the current set of tiles.
- *   dataset
+ *   dataset__
  *     - The current scale and range of tiles we are working with.
  *
  * There are three objects that interact with those data structures:
@@ -19,7 +19,7 @@
  *   - Handles plotting the data in traces via Flot.
  * Query
  *   - Allows the user to select which traces to display.
- * Dataset
+ * Navigation
  *   - Allows the user to move among tiles, change scale, etc.
  *
  */
@@ -29,9 +29,9 @@ var skiaperf = (function() {
   /**
    * Stores the trace data.
    * Formatted so it can be directly fed into Flot generate the plot,
-   * Plot observes traces, and Query can make changes to traces.
+   * Plot observes traces__, and Query can make changes to traces__.
    */
-  var traces = [
+  var traces__ = [
       /*
       {
         // All of these keys and values should be exactly what Flot consumes.
@@ -52,10 +52,10 @@ var skiaperf = (function() {
    * A list of commit objects where the offset of the commit in the list
    * matches the offset of the value in the trace.
    *
-   * Dataset modifies commitData.
+   * Navigation modifies commitData__.
    * Plot reads it.
    */
-  var commitData = [];
+  var commitData__ = [];
 
   /**
    * Stores the different parameters that can be used to specify a trace.
@@ -65,9 +65,9 @@ var skiaperf = (function() {
    * a different possibility of what to set it to.
    * The {@code trybotResults} fields contains a dictionary of trace keys,
    * whose values are the trybot results for each trace.
-   * Query observe queryInfo, and Dataset and Query can modify queryInfo.
+   * Query observe queryInfo__, and Navigation and Query can modify queryInfo__.
    */
-  var queryInfo = {
+  var queryInfo__ = {
     params: {
       /*
       "benchName": ["desk_gmailthread.skp", "desk_mapsvg.skp" ],
@@ -85,20 +85,20 @@ var skiaperf = (function() {
   /**
    * The current scale, set of tiles, and tick marks for the data we are viewing.
    *
-   * Dataset can change this.
-   * Query observes this and updates traces and queryInfo.params when it changes.
+   * Navigation can change this.
+   * Query observes this and updates traces__ and queryInfo__.params when it changes.
    */
-  var dataset = {
+  var dataset__ = {
     scale: 0,
     tiles: [-1],
     ticks: []
   };
 
   // Query watches queryChange.
-  // Dataset can change queryChange.
+  // Navigation can change queryChange.
   //
   // queryChange is used because Observe-js has trouble dealing with the large
-  // array changes that happen when Dataset swaps queryInfo data.
+  // array changes that happen when Navigation swaps queryInfo__ data.
   var queryChange = { counter: 0 };
 
 
@@ -153,10 +153,12 @@ var skiaperf = (function() {
       // Do the usual XHR stuff
       var req = new XMLHttpRequest();
       req.open('GET', url);
+      document.body.style.cursor = 'wait';
 
       req.onload = function() {
         // This is called even on 404 etc
         // so check the status
+        document.body.style.cursor = 'auto';
         if (req.status == 200) {
           // Resolve the promise with the response text
           resolve(req.response);
@@ -169,6 +171,7 @@ var skiaperf = (function() {
 
       // Handle network errors
       req.onerror = function() {
+        document.body.style.cursor = 'auto';
         reject(Error("Network Error"));
       };
 
@@ -176,6 +179,43 @@ var skiaperf = (function() {
       req.send();
     });
   }
+
+  // Returns a Promise that uses XMLHttpRequest to make a POST request to the
+  // given URL with the given JSON body.
+  function post(url, body) {
+    // Return a new promise.
+    return new Promise(function(resolve, reject) {
+      // Do the usual XHR stuff
+      var req = new XMLHttpRequest();
+      req.open('POST', url);
+      req.setRequestHeader("Content-Type", "application/json");
+      document.body.style.cursor = 'wait';
+
+      req.onload = function() {
+        // This is called even on 404 etc
+        // so check the status
+        document.body.style.cursor = 'auto';
+        if (req.status == 200) {
+          // Resolve the promise with the response text
+          resolve(req.response);
+        } else {
+          // Otherwise reject with the status text
+          // which will hopefully be a meaningful error
+          reject(Error(req.statusText));
+        }
+      };
+
+      // Handle network errors
+      req.onerror = function() {
+        document.body.style.cursor = 'auto';
+        reject(Error("Network Error"));
+      };
+
+      // Make the request
+      req.send(body);
+    });
+  }
+
 
 
   /**
@@ -196,7 +236,7 @@ var skiaperf = (function() {
 
   /**
    * Sets up the callbacks related to the plot.
-   * Plot observes traces.
+   * Plot observes traces__.
    */
   function Plot() {
     /**
@@ -361,14 +401,14 @@ var skiaperf = (function() {
 
     jQuery('#chart').bind('plothover', (function() {
       return function(evt, pos, item) {
-        if (traces.length > 0 && pos.x && pos.y) {
+        if (traces__.length > 0 && pos.x && pos.y) {
           // Find the trace with the closest perpendicular distance, and
           // highlight the trace if it's within N units of pos.
           var closestTraceIndex = 0;
           var closestDistance = Number.POSITIVE_INFINITY;
-          for (var i = 0; i < traces.length; i++) {
-            var curTraceData = traces[i].data;
-            if (curTraceData.length <= 1 || !traces[i].lines.show) {
+          for (var i = 0; i < traces__.length; i++) {
+            var curTraceData = traces__[i].data;
+            if (curTraceData.length <= 1) {
               continue;
             }
             var j = 1;
@@ -400,8 +440,8 @@ var skiaperf = (function() {
           var maxDist = 0.15 * (yaxis.max - yaxis.min);
           if (closestDistance < maxDist) {
             // Highlight that trace.
-            plot_.plotLabel.value = traces[closestTraceIndex].label;
-            plot_.curHighlightedLine = traces[closestTraceIndex].label;
+            plot_.plotLabel.value = traces__[closestTraceIndex].label;
+            plot_.curHighlightedLine = traces__[closestTraceIndex].label;
           }
           if (lastHighlightedLine != plot_.curHighlightedLine) {
             plot_.plotRef.draw();
@@ -418,11 +458,11 @@ var skiaperf = (function() {
 
       // First, find the range of CLs we are interested in.
       var thisCommitOffset = item.datapoint[0];
-      var thisCommit = commitData[thisCommitOffset].hash;
+      var thisCommit = commitData__[thisCommitOffset].hash;
       var query = '?begin=' + thisCommit;
       if (item.dataIndex > 0) {
         var previousCommitOffset = item.series.data[item.dataIndex-1][0]
-        var previousCommit = commitData[previousCommitOffset].hash;
+        var previousCommit = commitData__[previousCommitOffset].hash;
         query = '?begin=' + previousCommit + '&end=' + thisCommit;
       }
       // Fill in commit info from the server.
@@ -448,14 +488,14 @@ var skiaperf = (function() {
       var key = $$$('#note').dataset.key;
       if (key) {
         var trace = null;
-        var len = traces.length;
+        var len = traces__.length;
         for (var i=0; i<len; i++) {
-          if (traces[i].label == key) {
-            trace = traces[i];
+          if (traces__[i].label == key) {
+            trace = traces__[i];
           }
         }
         if (trace) {
-          traces.splice(0, len, trace);
+          traces__.splice(0, len, trace);
         }
       }
       e.preventDefault();
@@ -474,14 +514,14 @@ var skiaperf = (function() {
       plot_.plotRef.draw();
     });
 
-    // Redraw the plot when traces are modified.
+    // Redraw the plot when traces__ are modified.
     //
     // FIXME: Our polyfill doesn't have Array.observe, so this fails on FireFox.
-    Array.observe(traces, function(splices) {
+    Array.observe(traces__, function(splices) {
       console.log(splices);
-      plot_.plotRef.setData(traces);
-      if (dataset.ticks.length) {
-        plot_.plotRef.getOptions().xaxes[0]["ticks"] = dataset.ticks;
+      plot_.plotRef.setData(traces__);
+      if (dataset__.ticks.length) {
+        plot_.plotRef.getOptions().xaxes[0]["ticks"] = dataset__.ticks;
       }
       plot_.plotRef.setupGrid();
       plot_.plotRef.draw();
@@ -489,9 +529,9 @@ var skiaperf = (function() {
     });
 
     // Update annotation points
-    Object.observe(commitData, function() {
-      console.log(Object.keys(commitData));
-      var timestamps = Object.keys(commitData).map(function(e) {
+    Object.observe(commitData__, function() {
+      console.log(Object.keys(commitData__));
+      var timestamps = Object.keys(commitData__).map(function(e) {
         return parseInt(e);
       });
       console.log(timestamps);
@@ -499,9 +539,9 @@ var skiaperf = (function() {
       var endTime = Math.max.apply(null, timestamps);
       get('annotations/?start=' + startTime + '&end=' + endTime).then(JSON.parse).then(function(json){
         var commitToTimestamp = {};
-        Object.keys(commitData).forEach(function(timestamp) {
-          if (commitData[timestamp]['hash']) {
-            commitToTimestamp[commitData[timestamp]['hash']] = timestamp;
+        Object.keys(commitData__).forEach(function(timestamp) {
+          if (commitData__[timestamp]['hash']) {
+            commitToTimestamp[commitData__[timestamp]['hash']] = timestamp;
           }
         });
         Object.keys(json).forEach(function(hash) {
@@ -509,7 +549,7 @@ var skiaperf = (function() {
             plot_.annotations[commitToTimestamp[hash]] = json[hash];
           } else {
             console.log('WARNING: Annotation taken for commit not stored in' +
-                ' commitData');
+                ' commitData__');
           }
         });
         // Redraw to get the new lines
@@ -519,7 +559,7 @@ var skiaperf = (function() {
     });
 
     $$$('#nuke-plot').addEventListener('click', function(e) {
-      traces.splice(0, traces.length);
+      traces__.splice(0, traces__.length);
       $$$('#note').classList.add("hidden");
       $$$('#query-text').textContent = '';
       plot_.plotLabel.value = "";
@@ -530,12 +570,14 @@ var skiaperf = (function() {
 
   /**
    * Sets up the event handlers related to the query controls in the interface.
-   * The callbacks in this function use and observe {@code queryInfo},
-   * and modifies {@code traces}. Takes the object {@code Dataset} creates
+   * The callbacks in this function use and observe {@code queryInfo__},
+   * and modifies {@code traces__}. Takes the object {@code Navigation} creates
    * as input.
    */
-  function Query() {
+  function Query(navigation) {
+    this.navigation_ = navigation;
   };
+
 
   // attach hooks up all the controls that Query uses.
   Query.prototype.attach = function() {
@@ -546,12 +588,7 @@ var skiaperf = (function() {
 
     // Add handlers to the query controls.
     $$$('#add-lines').addEventListener('click', function() {
-      get('/query/0/-1/traces/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
-        json["traces"].forEach(function(t) {
-          t["lines"] = { show:true };
-          traces.push(t);
-        });
-      }).catch(notifyUser);
+      query_.navigation_.addTraces(query_.selectionsAsQuery())
     });
 
     $$$('#inputs').addEventListener('change', function(e) {
@@ -560,13 +597,13 @@ var skiaperf = (function() {
       });
     });
 
-    // TODO add observer on dataset and update the current traces if any are displayed.
+    // TODO add observer on dataset__ and update the current traces if any are displayed.
     get('/tiles/0/-1/').then(JSON.parse).then(function(json){
-      queryInfo.params = json.paramset;
-      dataset.scale= json.scale;
-      dataset.tiles = json.tiles;
-      dataset.ticks = json.ticks;
-      commitData = json.commits;
+      queryInfo__.params = json.paramset;
+      dataset__.scale = json.scale;
+      dataset__.tiles = json.tiles;
+      dataset__.ticks = json.ticks;
+      commitData__ = json.commits;
       queryChange.counter += 1;
     });
 
@@ -586,7 +623,7 @@ var skiaperf = (function() {
 
   Query.prototype.selectionsAsQuery = function() {
     var sel = [];
-    var num = Object.keys(queryInfo.params).length;
+    var num = Object.keys(queryInfo__.params).length;
     for(var i = 0; i < num; i++) {
       var key = $$$('#select_' + i).name
         $$('#select_' + i + ' option:checked').forEach(function(ele) {
@@ -598,9 +635,9 @@ var skiaperf = (function() {
 
 
   /**
-   * Syncs the DOM to match the current state of queryInfo.
+   * Syncs the DOM to match the current state of queryInfo__.
    * It currently removes all the existing elements and then
-   * generates a new set that matches the queryInfo data.
+   * generates a new set that matches the queryInfo__ data.
    */
   Query.prototype.onParamChange = function() {
     console.log('onParamChange() triggered');
@@ -612,7 +649,7 @@ var skiaperf = (function() {
     });
 
     var whitelist = ['test', 'os', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
-    var keylist = Object.keys(queryInfo.params).sort().reverse();
+    var keylist = Object.keys(queryInfo__.params).sort().reverse();
 
     for (var i = 0; i < keylist.length; i++) {
       var node = $$$('#query-select').content.cloneNode(true);
@@ -624,7 +661,7 @@ var skiaperf = (function() {
       select.id = 'select_' + i;
       select.name = key;
 
-      var options = queryInfo.params[key].sort();
+      var options = queryInfo__.params[key].sort();
       options.forEach(function(op) {
         var option = document.createElement('option');
         option.value = op;
@@ -641,17 +678,68 @@ var skiaperf = (function() {
   }
 
 
+
   /**
-   * Manages the set of keys the user can query over.
-   * Returns an object containing a reference to requestTiles and
-   * tileNums
+   * Manages the tile scale and index that the user can query over.
    */
-  function Dataset() {
+  function Navigation() {
+    // Keep tracking if we are still loading the page the first time.
+    this.loading_ = true;
   };
 
 
-  Dataset.prototype.attach = function() {
-    // TODO(jcgregorio) add in tile moving controls and monitor them from here.
+  /**
+   * Adds Traces that match the given query params.
+   *
+   * q is a URL query to be appended to /query/<scale>/<tiles>/traces/.
+   * The matching traces are returned and added to the plot.
+   */
+  Navigation.prototype.addTraces = function(q) {
+    var navigation = this;
+    get("/query/0/-1/traces/?" + q).then(JSON.parse).then(function(json){
+      json["traces"].forEach(function(t) {
+        traces__.push(t);
+      });
+    }).then(function(){
+      navigation.loading_ = false;
+    }).catch(notifyUser);
+  }
+
+
+  /**
+   * Load shortcuts if any are present in the URL.
+   */
+  Navigation.prototype.loadShortcut = function() {
+    if (window.location.hash.length > 2) {
+      this.addTraces("__shortcut=" + window.location.hash.substr(1))
+    }
+  }
+
+  Navigation.prototype.attach = function() {
+    var navigation_ = this;
+
+    $$$('#shortcut').addEventListener('click', function() {
+      // Package up the current state and stuff it into the database.
+      var state = {
+        scale: 0,
+        tiles: [-1],
+        keys: traces__.map(function(t) { return t.label; })
+        // Maybe preserve selections also?
+      };
+      post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json) {
+        // Set the shortcut in the hash.
+        window.history.pushState(null, "", "#" + json.id);
+      });
+    });
+
+
+    Array.observe(traces__, function() {
+      // Any changes to the traces after we're fully loaded should clear the
+      // shortcut from the hash.
+      if (navigation_.loading_ == false) {
+        window.history.pushState(null, "", "#");
+      }
+    });
   };
 
 
@@ -665,19 +753,18 @@ var skiaperf = (function() {
 
 
   function onLoad() {
-    var dataset = new Dataset();
-    dataset.attach();
+    var navigation = new Navigation();
+    navigation.attach();
 
-    var query = new Query();
+    var query = new Query(navigation);
     query.attach();
 
     var plot = new Plot();
     plot.attach();
 
     microtasks();
-    Object.observe(dataset, function() {
-      console.log('dataset changed!', dataset);
-    });
+
+    navigation.loadShortcut();
   }
 
   // If loaded via HTML Imports then DOMContentLoaded will be long done.

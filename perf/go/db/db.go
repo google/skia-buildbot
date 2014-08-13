@@ -89,7 +89,7 @@ func Init() {
 		glog.Infoln("Status creating sqlite table for githashnotes:", err)
 
 		sql = `CREATE TABLE shortcuts (
-            id      INT         NOT NULL PRIMARY KEY,
+            id      INTEGER     NOT NULL PRIMARY KEY AUTOINCREMENT,
             traces  MEDIUMTEXT  NOT NULL
             )`
 
