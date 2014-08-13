@@ -7,6 +7,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="/res/js/flot/jquery.flot.js"></script>
     <link rel="stylesheet" href="/res/css/clusters.css" type="text/css">
+    <script src="/res/js/perf.js" type="text/javascript" charset="utf-8"></script>
     <script src="/res/js/clusters.js" type="text/javascript" charset="utf-8"></script>
 </head>
 <body>
@@ -86,7 +87,7 @@
           data: {{index $summary.Traces 0}}
         }
       ], {});
-      document.querySelector('#trace-shortcut{{$i}}').addEventListener('click', function(e) {
+      $$$('#trace-shortcut{{$i}}').addEventListener('click', function(e) {
         openShortcut({{$summary.Keys}}.slice(1, 11));
       });
     {{end}}

@@ -4,24 +4,12 @@
 //
 
 (function() {
-  // Copied from perf/server/res/js/logic.js
-  // TODO(bensong): move to a common file
-  var id = function(e) { return e; };
-
-  function $$(query, par) {
-    if(!par) {
-      return Array.prototype.map.call(document.querySelectorAll(query), id);
-    } else {
-      return Array.prototype.map.call(par.querySelectorAll(query), id);
-    }
-  };
-
   // doSort sorts the clustering results with the algorithm given in element e.
   function doSort(e) {
     if (!e.target.value) {
       return;
     }
-    var container = document.getElementById("container");
+    var container = $$$("#container");
     var to_sort = [];
     $$('div', container).forEach(function(ele) {
       var data = ele.dataset;

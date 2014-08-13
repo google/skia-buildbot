@@ -29,10 +29,12 @@ module.exports = function(grunt) {
          dest: './third_party/out'
       }
     },
-    // Concatenate all the third_party files we use into a single file.
+    // Concatenate all the third_party and common files we use into a single file.
     concat: {
       dist: {
         src: [
+          'res/js/common.js',
+
           'third_party/out/jquery.js',
           'third_party/bower_components/flot/jquery.flot.js',
           'third_party/bower_components/flot/jquery.flot.crosshair.js',
@@ -40,7 +42,6 @@ module.exports = function(grunt) {
           'third_party/bower_components/observe-js/src/observe.js',
           'third_party/bower_components/Object.observe/Object.observe.poly.js',
           'third_party/bower_components/native-promise-only/npo.js',
-
 
           'third_party/out/WeakMap.js',
           'third_party/out/classlist.js',

@@ -146,77 +146,6 @@ var skiaperf = (function() {
     return (str + '').replace(/\n/g, '<br />');
   }
 
-  // Returns a Promise that uses XMLHttpRequest to make a request to the given URL.
-  function get(url) {
-    // Return a new promise.
-    return new Promise(function(resolve, reject) {
-      // Do the usual XHR stuff
-      var req = new XMLHttpRequest();
-      req.open('GET', url);
-      document.body.style.cursor = 'wait';
-
-      req.onload = function() {
-        // This is called even on 404 etc
-        // so check the status
-        document.body.style.cursor = 'auto';
-        if (req.status == 200) {
-          // Resolve the promise with the response text
-          resolve(req.response);
-        } else {
-          // Otherwise reject with the status text
-          // which will hopefully be a meaningful error
-          reject(Error(req.statusText));
-        }
-      };
-
-      // Handle network errors
-      req.onerror = function() {
-        document.body.style.cursor = 'auto';
-        reject(Error("Network Error"));
-      };
-
-      // Make the request
-      req.send();
-    });
-  }
-
-  // Returns a Promise that uses XMLHttpRequest to make a POST request to the
-  // given URL with the given JSON body.
-  function post(url, body) {
-    // Return a new promise.
-    return new Promise(function(resolve, reject) {
-      // Do the usual XHR stuff
-      var req = new XMLHttpRequest();
-      req.open('POST', url);
-      req.setRequestHeader("Content-Type", "application/json");
-      document.body.style.cursor = 'wait';
-
-      req.onload = function() {
-        // This is called even on 404 etc
-        // so check the status
-        document.body.style.cursor = 'auto';
-        if (req.status == 200) {
-          // Resolve the promise with the response text
-          resolve(req.response);
-        } else {
-          // Otherwise reject with the status text
-          // which will hopefully be a meaningful error
-          reject(Error(req.statusText));
-        }
-      };
-
-      // Handle network errors
-      req.onerror = function() {
-        document.body.style.cursor = 'auto';
-        reject(Error("Network Error"));
-      };
-
-      // Make the request
-      req.send(body);
-    });
-  }
-
-
 
   /**
    * Converts from a POSIX timestamp to a truncated RFC timestamp that
@@ -466,7 +395,7 @@ var skiaperf = (function() {
         query = '?begin=' + previousCommit + '&end=' + thisCommit;
       }
       // Fill in commit info from the server.
-      get('/commits/' + query).then(function(html){
+      sk.get('/commits/' + query).then(function(html){
         $$$('#note .commits').innerHTML = html;
       });
 
@@ -537,7 +466,7 @@ var skiaperf = (function() {
       console.log(timestamps);
       var startTime = Math.min.apply(null, timestamps);
       var endTime = Math.max.apply(null, timestamps);
-      get('annotations/?start=' + startTime + '&end=' + endTime).then(JSON.parse).then(function(json){
+      sk.get('annotations/?start=' + startTime + '&end=' + endTime).then(JSON.parse).then(function(json){
         var commitToTimestamp = {};
         Object.keys(commitData__).forEach(function(timestamp) {
           if (commitData__[timestamp]['hash']) {
@@ -592,13 +521,13 @@ var skiaperf = (function() {
     });
 
     $$$('#inputs').addEventListener('change', function(e) {
-      get('/query/0/-1/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
+      sk.get('/query/0/-1/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
         $$$('#query-text').innerHTML = json["matches"] + ' lines selected<br />';
       });
     });
 
     // TODO add observer on dataset__ and update the current traces if any are displayed.
-    get('/tiles/0/-1/').then(JSON.parse).then(function(json){
+    sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
       queryInfo__.params = json.paramset;
       dataset__.scale = json.scale;
       dataset__.tiles = json.tiles;
@@ -696,7 +625,7 @@ var skiaperf = (function() {
    */
   Navigation.prototype.addTraces = function(q) {
     var navigation = this;
-    get("/query/0/-1/traces/?" + q).then(JSON.parse).then(function(json){
+    sk.get("/query/0/-1/traces/?" + q).then(JSON.parse).then(function(json){
       json["traces"].forEach(function(t) {
         traces__.push(t);
       });
@@ -726,7 +655,7 @@ var skiaperf = (function() {
         keys: traces__.map(function(t) { return t.label; })
         // Maybe preserve selections also?
       };
-      post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json) {
+      sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json) {
         // Set the shortcut in the hash.
         window.history.pushState(null, "", "#" + json.id);
       });

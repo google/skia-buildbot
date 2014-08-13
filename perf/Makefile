@@ -26,8 +26,8 @@ logs:
 tool:
 	go install -v ./go/tiletool
 
-# Rebuild the third_party Javascript we use, i.e. Flot.
-res/js/perf.js: node_modules Gruntfile.js bower.json
+# Rebuild the third_party Javascript we use, i.e. Flot and our common js.
+res/js/perf.js: node_modules Gruntfile.js bower.json res/js/common.js
 	./node_modules/.bin/grunt --no-color
 
 # Build serving CSS from input CSS.
