@@ -4,19 +4,17 @@
     <title>Clusters</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width"/>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="/res/js/flot/jquery.flot.js"></script>
-    <link rel="stylesheet" href="/res/css/clusters.css" type="text/css">
+    <link href="/res/css/clusters.css" rel="stylesheet" />
     <script src="/res/js/perf.js" type="text/javascript" charset="utf-8"></script>
+    <link href="/res/imp/query.html" rel="import" />
     <script src="/res/js/clusters.js" type="text/javascript" charset="utf-8"></script>
 </head>
 <body>
-<p>Clustering of measurement traces by shape.</p>
-    <form action="" method="get" accept-charset="utf-8">
-      <p><label for="_stddev">StdDev Threshhold:</label> <input type="text" name="_stddev" value="{{.StdDevThreshhold}}" id="_stddev"></p>
-      <p><label for="_k">Num Clusters:</label> <input type="text" name="_k" value="{{.K}}" id="_k"></p>
-      <p><input type="submit" value="Calculate"></p>
-    </form>
+    <h2>Trace Clustering</h2>
+      <label for="_stddev">StdDev Threshhold:</label> <input type="text" name="_stddev" value="{{.StdDevThreshhold}}" id="_stddev"><br>
+      <label for="_k">Num Clusters:</label> <input type="text" name="_k" value="{{.K}}" id="_k"><br>
+      <div id="sk-query"></div>
+      <button id="start" type="submit">Calculate</button>
 
     {{if .Clusters}}
       <div id="sort">

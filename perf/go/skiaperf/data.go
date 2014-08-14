@@ -19,7 +19,7 @@ const (
 	NUM_SAMPLE_TRACES_PER_CLUSTER = 10
 
 	// K is the k in k-means.
-	K = 100
+	K = 20
 
 	KMEANS_ITERATIONS = 10
 )

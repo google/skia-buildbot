@@ -504,113 +504,6 @@ var skiaperf = (function() {
   }
 
 
-  /**
-   * Sets up the event handlers related to the query controls in the interface.
-   * The callbacks in this function use and observe queryInfo fields.
-   */
-  function Query(queryInfo) {
-    this.queryInfo_ = queryInfo;
-  };
-
-
-  /**
-   * Clears out UI elements back to blank.
-   */
-  Query.prototype.clear = function() {
-    $$$('#query-count').textContent = '';
-  }
-
-
-  /**
-   * attach hooks up all the controls that Query uses.
-   */
-  Query.prototype.attach = function() {
-
-    var query_ = this;
-
-    Object.observe(this.queryInfo_.change, this.onParamChange.bind(this));
-
-    $$$('#query-inputs').addEventListener('change', function(e) {
-      sk.get('/query/0/-1/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
-        $$$('#query-count').innerHTML = json["matches"] + ' lines selected<br />';
-      });
-    });
-
-    $$$('#query-more-toggle').addEventListener('click', function(e) {
-      $$$('#query-more').classList.toggle('hidden');
-    });
-
-    $$$('#query-clear').addEventListener('click', function(e) {
-      // Clear the param selections.
-      $$('option:checked').forEach(function(elem) {
-        elem.selected = false;
-      });
-      $$$('#query-count').textContent = '';
-    });
-
-  }
-
-  /**
-   * selectionsAsQuery bundles up the current set of selections as a URL query
-   * suitable for passing to the /query/ endpoint.
-   */
-  Query.prototype.selectionsAsQuery = function() {
-    var sel = [];
-    var num = Object.keys(this.queryInfo_.paramSet).length;
-    for(var i = 0; i < num; i++) {
-      var key = $$$('#select_' + i).name
-        $$('#select_' + i + ' option:checked').forEach(function(ele) {
-          sel.push(encodeURIComponent(key) + '=' + encodeURIComponent(ele.value));
-        });
-    }
-    return sel.join('&')
-  };
-
-
-  /**
-   * Syncs the DOM to match the current state of queryInfo_.
-   * It currently removes all the existing elements and then
-   * generates a new set that matches the queryInfo_ data.
-   */
-  Query.prototype.onParamChange = function() {
-    console.log('onParamChange() triggered');
-    var queryDiv = $$$('#query-inputs');
-    var detailsDiv= $$$('#query-more');
-    // Remove all old nodes.
-    $$('#query-inputs .query-node').forEach(function(ele) {
-      ele.parentNode.removeChild(ele)
-    });
-
-    var whitelist = ['test', 'os', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
-    var keylist = Object.keys(this.queryInfo_.paramSet).sort().reverse();
-
-    for (var i = 0; i < keylist.length; i++) {
-      var node = $$$('#query-select').content.cloneNode(true);
-      var key = keylist[i];
-
-      $$$('h4', node).textContent = key;
-
-      var select = $$$('select', node);
-      select.id = 'select_' + i;
-      select.name = key;
-
-      var options = this.queryInfo_.paramSet[key].sort();
-      options.forEach(function(op) {
-        var option = document.createElement('option');
-        option.value = op;
-        option.textContent = op.length > 0 ?  op : '(none)';
-        select.appendChild(option);
-      });
-
-      if (whitelist.indexOf(key) == -1) {
-        detailsDiv.insertBefore(node, detailsDiv.firstElementChild);
-      } else {
-        queryDiv.insertBefore(node, queryDiv.firstElementChild);
-      }
-    }
-  }
-
-
 
   /**
    * Manages the tile scale and index that the user can query over.
@@ -709,7 +602,7 @@ var skiaperf = (function() {
 
 
   function onLoad() {
-    var query = new Query(queryInfo__);
+    var query = new sk.Query(queryInfo__);
     query.attach();
 
     var plot = new Plot();

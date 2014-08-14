@@ -80,34 +80,6 @@ table, td {
   border: none;
 }
 
-#query-count {
-  margin: 0.5em;
-  margin-left: 0;
-}
-
-
-#query-inputs,
-#query-inputs #query-more {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
-  width:100%;
-}
-
-#query-inputs #query-more.hidden {
-  display: none;
-}
-
-
-.query-select {
-  overflow: auto;
-  margin: 0.3em;
-}
-
-.query-node {
-  margin: 0 0.5em;
-}
-
 #chart {
     /* Maybe make this bigger? */
     width: 100%;

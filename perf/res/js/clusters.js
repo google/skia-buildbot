@@ -4,6 +4,28 @@
 //
 
 (function() {
+
+
+  var queryInfo__ = {
+    /**
+     * Contains an array of arrays, each array representing a single parameter
+     * that can be set, each element a different possibility of what to set it
+     * to.
+     */
+    paramSet: [
+      /*
+       "benchName": ["desk_gmailthread.skp", "desk_mapsvg.skp" ],
+       "timer":     ["wall", "cpu"],
+       "arch":      ["arm7", "x86", "x86_64"],
+       */
+      ],
+    // change is used because Observe-js has trouble dealing with the large
+    // array changes that happen when Navigation swaps paramSet data.
+    change: {
+      counter: 0
+    },
+  };
+
   // doSort sorts the clustering results with the algorithm given in element e.
   function doSort(e) {
     if (!e.target.value) {
@@ -45,32 +67,37 @@
     });
   };
 
-  function toggle(e) {
-    e.target.nextElementSibling.classList.toggle("display");
-  };
+  function onLoad() {
+    var query = new sk.Query(queryInfo__);
+    query.attach();
 
-  // hookExpando finds all the expander buttons and adds a handler
-  // that toggles the 'display' class on its next sibling element.
-  // TODO(jcgregorio) Switch to details/summary once we have a polyfill in place.
-  function hookExpando() {
-    $$('.expander').forEach(function(ele) {
-      ele.addEventListener('click', toggle);
+    sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
+      queryInfo__.paramSet = json.paramset;
+      queryInfo__.change.counter += 1;
     });
-  };
 
-  // hookSort finds all the radio buttons and adds a handler that sorts the
-  // clustering results with various algorithms.
-  function hookSort() {
+    $$$('#start').addEventListener('click', function(){
+      // Build up query params and redirect.
+      var url = '/clusters/?_k=' + $$$('#_k').value + '&_stddev=' + $$$('#_stddev').value + '&' + query.selectionsAsQuery();
+      window.location.href = window.location.origin + url;
+      // TODO(jcgregorio) This currently doesn't preserve the query selections.
+    });
+
+    $$('.expander').forEach(function(ele) {
+      ele.addEventListener('click', function(e){
+        e.target.nextElementSibling.classList.toggle("display");
+      });
+    });
+
     $$('input[name="sort"]').forEach(function(ele) {
       ele.addEventListener('click', doSort);
     });
   };
 
-  function hookClicks() {
-    hookExpando();
-    hookSort();
-  };
-
-  document.addEventListener('DOMContentLoaded', hookClicks);
+  if (document.readyState != 'loading') {
+    onLoad();
+  } else {
+    window.addEventListener('load', onLoad);
+  }
 
 })();

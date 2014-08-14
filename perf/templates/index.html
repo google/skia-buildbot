@@ -3,9 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <link href="res/css/perf.css" rel="stylesheet" />
-    <script src="res/js/perf.js"></script>
-    <script src="res/js/logic.js"></script>
+    <link href="/res/css/perf.css" rel="stylesheet" />
+    <script src="/res/js/perf.js"></script>
+    <link href="/res/imp/query.html" rel="import" />
+    <script src="/res/js/logic.js"></script>
   </head>
   <body>
     <div id="page-wrapper">
@@ -22,17 +23,7 @@
           <button id="add-lines">Add traces</button>
         </div>
 
-        <div id="query-wrapper">
-          <button id="query-clear">Clear selections</button>
-          <span id="query-count"></span>
-          <div id="query-inputs">
-            <br>
-            <p id="query-more-toggle">More...</p>
-            <div id="query-more" class="hidden">
-            </div>
-          </div>
-        </div>
-
+        <div id="sk-query"></div>
       </div> <!-- end of plot-and-query-wrapper -->
 
 
@@ -50,13 +41,6 @@
 
     <!-- Templates -->
 
-    <template id="query-select">
-    <div class="query-node">
-      <h4></h4>
-      <select name="" class="query-select" multiple size="16">
-      </select>
-    </div>
-    </template>
 
     <template id="note-param">
     <tr><td class="key"></td><td class="value"></td></tr>

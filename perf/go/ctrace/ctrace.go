@@ -14,7 +14,7 @@ import (
 const (
 	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
 	// than this and we presume it's a standard deviation of zero.
-	MIN_STDDEV = 0.01
+	MIN_STDDEV = 0.1
 )
 
 // ClusterableTrace contains Trace data and implements kmeans.Clusterable.

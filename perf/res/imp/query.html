@@ -1,0 +1,189 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the CSS, JS and HTML
+  Templates for the sk.Query component.
+
+  To use this file import it:
+
+    <link href="/res/imp/query.html" rel="import" />
+
+  Then instantiate the sk.Query object:
+
+    var query = new sk.Query(queryInfo__);
+    query.attach();
+
+  The sk.Query constructor will find the element with an id of sk-query
+  and will insert the query controls as a child of that element.
+
+  TODO(jcgregorio) queryInfo__ needs to be moved into Query and not passed in
+    via constructor.
+
+  TODO(jcgregorio) CSS in this file isn't passed through the auto-prefixer.
+-->
+
+<style type="text/css" media="screen">
+  #query-count {
+    margin: 0.5em;
+    margin-left: 0;
+  }
+
+  #query-inputs,
+  #query-inputs #query-more {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    width:100%;
+  }
+
+  #query-inputs #query-more.hidden {
+    display: none;
+  }
+
+  .query-select {
+    overflow: auto;
+    margin: 0.3em;
+  }
+
+  .query-node {
+    margin: 0 0.5em;
+  }
+</style>
+
+<template id=query-main-template>
+  <button id="query-clear">Clear selections</button>
+  <span id="query-count"></span>
+  <div id="query-inputs">
+    <br>
+    <p id="query-more-toggle">More...</p>
+    <div id="query-more" class="hidden">
+    </div>
+  </div>
+</template>
+
+<template id="query-select">
+  <div class="query-node">
+    <h4></h4>
+    <select name="" class="query-select" multiple size="16">
+    </select>
+  </div>
+</template>
+
+
+<script type="text/javascript" charset="utf-8">
+(function(){
+  // Keep track of this file so we can grab HTML Templates from it.
+  var importDoc = document.currentScript.ownerDocument;
+
+  /**
+   * Sets up the event handlers related to the query controls in the interface.
+   * The callbacks in this function use and observe queryInfo fields.
+   */
+  sk.Query = function(queryInfo) {
+    this.queryInfo_ = queryInfo;
+
+    var node = $$$('#query-main-template', importDoc).content.cloneNode(true);
+    $$$('#sk-query').appendChild(node);
+  };
+
+
+  /**
+   * Clears out UI elements back to blank.
+   */
+  sk.Query.prototype.clear = function() {
+    $$$('#query-count').textContent = '';
+  }
+
+
+  /**
+   * attach hooks up all the controls that Query uses.
+   */
+  sk.Query.prototype.attach = function() {
+
+    var query_ = this;
+
+    Object.observe(this.queryInfo_.change, this.onParamChange.bind(this));
+
+    $$$('#query-inputs').addEventListener('change', function(e) {
+      sk.get('/query/0/-1/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
+        $$$('#query-count').innerHTML = json["matches"] + ' lines selected<br />';
+      });
+    });
+
+    $$$('#query-more-toggle').addEventListener('click', function(e) {
+      $$$('#query-more').classList.toggle('hidden');
+    });
+
+    $$$('#query-clear').addEventListener('click', function(e) {
+      // Clear the param selections.
+      $$('option:checked').forEach(function(elem) {
+        elem.selected = false;
+      });
+      $$$('#query-count').textContent = '';
+    });
+
+  }
+
+  /**
+   * selectionsAsQuery bundles up the current set of selections as a URL query
+   * suitable for passing to the /query/ endpoint.
+   */
+  sk.Query.prototype.selectionsAsQuery = function() {
+    var sel = [];
+    var num = Object.keys(this.queryInfo_.paramSet).length;
+    for(var i = 0; i < num; i++) {
+      var key = $$$('#select_' + i).name
+        $$('#select_' + i + ' option:checked').forEach(function(ele) {
+          sel.push(encodeURIComponent(key) + '=' + encodeURIComponent(ele.value));
+        });
+    }
+    return sel.join('&')
+  };
+
+
+  /**
+   * Syncs the DOM to match the current state of queryInfo_.
+   * It currently removes all the existing elements and then
+   * generates a new set that matches the queryInfo_ data.
+   */
+  sk.Query.prototype.onParamChange = function() {
+    console.log('onParamChange() triggered');
+    var queryDiv = $$$('#query-inputs');
+    var detailsDiv= $$$('#query-more');
+    // Remove all old nodes.
+    $$('#query-inputs .query-node').forEach(function(ele) {
+      ele.parentNode.removeChild(ele)
+    });
+
+    var whitelist = ['test', 'os', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
+    var keylist = Object.keys(this.queryInfo_.paramSet).sort().reverse();
+
+    for (var i = 0; i < keylist.length; i++) {
+      var node = $$$('#query-select', importDoc).content.cloneNode(true);
+      var key = keylist[i];
+
+      $$$('h4', node).textContent = key;
+
+      var select = $$$('select', node);
+      select.id = 'select_' + i;
+      select.name = key;
+
+      var options = this.queryInfo_.paramSet[key].sort();
+      options.forEach(function(op) {
+        var option = document.createElement('option');
+        option.value = op;
+        option.textContent = op.length > 0 ?  op : '(none)';
+        select.appendChild(option);
+      });
+
+      if (whitelist.indexOf(key) == -1) {
+        detailsDiv.insertBefore(node, detailsDiv.firstElementChild);
+      } else {
+        queryDiv.insertBefore(node, queryDiv.firstElementChild);
+      }
+    }
+  }
+
+})();
+
+</script>
