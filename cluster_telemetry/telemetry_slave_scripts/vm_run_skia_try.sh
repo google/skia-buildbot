@@ -203,6 +203,11 @@ python $TELEMETRY_SLAVE_SCRIPTS_DIR/write_json_summary.py \
   --add_to_sys_path=$SKIA_TRUNK_LOCATION/gm/rebaseline_server
 
 echo "== Copy everything to Google Storage =="
+# Copy the summary.json files generated from render_pictures to Google Storage.
+gsutil cp $OUTPUT_DIR_NOPATCH/summary.json \
+  $OUTPUT_FILE_GS_LOCATION/json-summaries/nopatch/slave$SLAVE_NUM.json
+gsutil cp $OUTPUT_DIR_WITHPATCH/summary.json \
+  $OUTPUT_FILE_GS_LOCATION/json-summaries/withpatch/slave$SLAVE_NUM.json
 # Get list of failed file names and upload only those to Google Storage.
 ARRAY=`cat $JSON_SUMMARY_DIR/slave${SLAVE_NUM}.json | grep 'fileName' | cut -d ':' -f 2 | cut -d "\"" -f2`
 for i in ${ARRAY[@]}; do
