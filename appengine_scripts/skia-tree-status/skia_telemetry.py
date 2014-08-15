@@ -31,7 +31,7 @@ PAGESET_TYPES = {
     'All': 'Top 1M (with desktop user-agent)',
     '10k': 'Top 10k (with desktop user-agent)',
     'Mobile10k': 'Top 10k (with mobile user-agent)',
-    'IndexSample10k': 'IndexSample 10k (with mobile user-agent)',
+    # 'IndexSample10k': 'IndexSample 10k (with mobile user-agent)',
     'GPURasterSet': 'GPU Raster Set (with mobile user-agent)',
     # 'KeyMobileSites': 'Key Mobile Sites (with mobile user-agent)',
     'KeySilkCases': 'Key Silk Cases (with mobile user-agent)',
@@ -43,7 +43,7 @@ CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
     'repaint',
     # 'pixeldiffs',
     'smoothness',
-    'loading_trace',
+    # 'loading_trace',
     'loading_profile'
 )
 
