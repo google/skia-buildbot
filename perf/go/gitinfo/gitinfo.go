@@ -8,8 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"skia.googlesource.com/buildbot.git/perf/go/util"
+
 	"github.com/golang/glog"
 )
+
+const skpPhrase = "Update SKP version to "
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
@@ -154,4 +159,41 @@ func readCommitsFromGit(dir string) ([]string, map[string]time.Time, error) {
 		hashes[i] = h.hash
 	}
 	return hashes, timestamps, nil
+}
+
+// SkpCommits returns the indices for all the commits that contain SKP updates.
+func (g *GitInfo) SkpCommits(commits []*types.Commit) ([]int, error) {
+	first := commits[0].Hash
+	last := commits[0].Hash
+	for i := len(commits) - 1; i > 0; i-- {
+		if commits[i].CommitTime != 0 {
+			last = commits[i].Hash
+			break
+		}
+	}
+
+	// Execute a git log command that looks like:
+	//
+	//   git log --format=format:%H  32956400b4d8f33394e2cdef9b66e8369ba2a0f3..e7416bfc9858bde8fc6eb5f3bfc942bc3350953a SKP_VERSION
+	//
+	// The output should be a \n separated list of hashes that match.
+	command := []string{"log", "--format=format:%H", first + ".." + last, "SKP_VERSION"}
+	glog.Infof("%#v", command)
+	cmd := exec.Command("git", command...)
+	cmd.Dir = g.dir
+	b, err := cmd.Output()
+	if err != nil {
+		glog.Error(string(b))
+		return nil, err
+	}
+	hashes := strings.Split(string(b), "\n")
+	glog.Info(hashes)
+
+	ret := []int{}
+	for i, c := range commits {
+		if c.CommitTime != 0 && util.In(c.Hash, hashes) {
+			ret = append(ret, i)
+		}
+	}
+	return ret, nil
 }

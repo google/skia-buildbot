@@ -106,7 +106,8 @@ type TileGUI struct {
 	Commits  []*Commit           `json:"commits,omitempty"`
 	Scale    int                 `json:"scale"`
 	Tiles    []int               `json:"tiles"`
-	Ticks    []interface{}       `json:"ticks"`
+	Ticks    []interface{}       `json:"ticks"` // The x-axis tick marks.
+	Skps     []int               `json:"skps"`  // The x values where SKPs were regenerated.
 }
 
 func NewTileGUI(scale int, tileIndex int) *TileGUI {

@@ -321,8 +321,13 @@ func getTile(tileScale, tileNumber int) (*types.Tile, error) {
 //    ticks: [
 //      [1.5, "Mon"],
 //      [3.5, "Tue"]
+//    ],
+//    skps: [
+//      5, 13, 24
 //    ]
 //  }
+//
+//  Where skps are the commit indices where the SKPs were updated.
 //
 func tileHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Tile Handler: %q\n", r.URL.Path)
@@ -352,6 +357,18 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	guiTile := types.NewTileGUI(tile.Scale, tile.TileIndex)
 	guiTile.Commits = tile.Commits
 	guiTile.ParamSet = tile.ParamSet
+	// SkpCommits goes out to the git repo, add caching if this turns out to be
+	// slow.
+	if skps, err := git.SkpCommits(tile.Commits); err != nil {
+		guiTile.Skps = []int{}
+		glog.Errorf("Failed to calculate skps: %s", err)
+	} else {
+		guiTile.Skps = skps
+	}
+	// DO NOT SUBMIT
+	// Turns out there hasn't been an SKP update in the last two weeks.
+	// Mock some skp changes for testing.
+	guiTile.Skps = []int{5, 25, 50}
 
 	ts := []int64{}
 	for _, c := range tile.Commits {

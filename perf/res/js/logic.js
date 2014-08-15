@@ -103,7 +103,8 @@ var skiaperf = (function() {
   var dataset__ = {
     scale: 0,
     tiles: [-1],
-    ticks: []
+    ticks: [],
+    skps: []     // The indices where SKPs were regenerated.
   };
 
 
@@ -293,6 +294,23 @@ var skiaperf = (function() {
   }
 
   /**
+   * getMarkings is called by Flot's grid.markings.
+   *
+   * Draw bands to indicate updates to the SKP files.
+   */
+  Plot.getMarkings = function(axes) {
+    // Create a new array surrounded with 0 and the last commit index.
+    // I.e.  [12, 25] -> [0, 12, 25, 127]
+    var all = [0].concat(dataset__.skps, [commitData__.length-1]);
+    var ret = [];
+    // Add in a gray band at every other pair of points.
+    for (var i = 2, len = all.length; i < len; i+=2) {
+      ret.push({ xaxis: {from: all[i], to: all[i-1]}, color: '#eeeeee'});
+    }
+    return ret
+  };
+
+  /**
    * attach hooks up all the controls to the Plot instance.
    */
   Plot.prototype.attach = function() {
@@ -315,6 +333,7 @@ var skiaperf = (function() {
             autoHighlight: true,
             mouseActiveRadius: 16,
             clickable: true,
+            markings: Plot.getMarkings
           },
           xaxis: {
             ticks: [],
@@ -580,12 +599,12 @@ var skiaperf = (function() {
       }
     });
 
-
     sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
       queryInfo__.paramSet = json.paramset;
       dataset__.scale = json.scale;
       dataset__.tiles = json.tiles;
       dataset__.ticks = json.ticks;
+      dataset__.skps = json.skps;
       commitData__ = json.commits;
       queryInfo__.change.counter += 1;
     });
