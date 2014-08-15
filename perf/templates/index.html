@@ -28,7 +28,9 @@
 
 
       <div id="note" class="hidden">
-        <a class="make-solo" href="#">Deselect other lines</a>
+        <a class="remove" href="#">Remove</a>
+        <a class="make-solo" href="#">Only</a>
+        <a class="group-only hidden" href="#">Group</a>
         <hr>
         <table border="0" cellspacing="5" cellpadding="5">
           <tbody class="params"></tbody>
@@ -42,8 +44,8 @@
     <!-- Templates -->
 
 
-    <template id="note-param">
-    <tr><td class="key"></td><td class="value"></td></tr>
+    <template id="note-param-template">
+      <tr class="note-param"><td class="key"></td><td><a href="#" class="value"></a></td></tr>
     </template>
 
     <div class="notification">

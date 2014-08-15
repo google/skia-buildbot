@@ -365,10 +365,6 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		guiTile.Skps = skps
 	}
-	// DO NOT SUBMIT
-	// Turns out there hasn't been an SKP update in the last two weeks.
-	// Mock some skp changes for testing.
-	guiTile.Skps = []int{5, 25, 50}
 
 	ts := []int64{}
 	for _, c := range tile.Commits {

@@ -48,6 +48,10 @@ button {
     width: 30%;
 }
 
+#note .group-only.hidden {
+  display: none;
+}
+
 #note .subject,
 #note .subject a {
     color: rgb(99, 99, 18);

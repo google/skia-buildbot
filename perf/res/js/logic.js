@@ -40,7 +40,12 @@ var skiaperf = (function() {
         color: "",
         lines: {
           show: false
+        },
+        _params: {
+          os: "Android",
+          ...
         }
+
       },
       ...
       */
@@ -195,10 +200,10 @@ var skiaperf = (function() {
     this.isLogPlot = false;
 
     /**
-     * Stores the name of the currently selected line, used in the drawSeries
+     * Stores the keys of the currently selected lines, used in the drawSeries
      * hook to highlight that line.
      */
-    this.curHighlightedLine = null;
+    this.curHighlightedLines = [];
 
     /**
      * Reference to the underlying Flot data.
@@ -222,7 +227,7 @@ var skiaperf = (function() {
    */
   Plot.prototype.clear = function() {
     $$$('#note').classList.add("hidden");
-    this.curHighlightedLine = "";
+    this.curHighlightedLines = [];
     this.plotLabel.value = "";
   }
 
@@ -267,19 +272,22 @@ var skiaperf = (function() {
 
   /**
    * Hook for drawSeries.
-   * If curHighlightedLine is not null, drawHighlightedLine highlights
-   * the line by increasing its line width.
+   * Highlight every line in curHighlightedLines by increasing its line width.
    */
   Plot.prototype.drawHighlightedLine = function(plot, canvascontext, series) {
     if (!series.lines) {
       series.lines = {};
     }
-    series.lines.lineWidth = series.label == this.curHighlightedLine ? 5 : 1;
-
     if (!series.points) {
       series.points = {};
     }
-    series.points.show = (series.label == this.curHighlightedLine);
+    if (-1 != this.curHighlightedLines.indexOf(series.label)) {
+      series.lines.lineWidth = 5;
+      series.points.show = true;
+    } else {
+      series.lines.lineWidth = 1;
+      series.points.show = false;
+    }
   };
 
 
@@ -287,9 +295,12 @@ var skiaperf = (function() {
    * addParamToNote adds a single key, value parameter pair to the note card.
    */
   Plot.prototype.addParamToNote = function(parent, key, value) {
-    var node = $$$('#note-param').content.cloneNode(true);
+    var node = $$$('#note-param-template').content.cloneNode(true);
     $$$('.key', node).textContent = key;
-    $$$('.value', node).textContent = value;
+    var v = $$$('.value', node);
+    v.textContent = value;
+    v.dataset.key = key;
+    v.dataset.value = value;
     parent.appendChild(node);
   }
 
@@ -363,6 +374,7 @@ var skiaperf = (function() {
 
     jQuery('#chart').bind('plothover', (function() {
       return function(evt, pos, item) {
+        $$$('#note .group-only').classList.add("hidden");
         if (traces__.length > 0 && pos.x && pos.y) {
           // Find the trace with the closest perpendicular distance, and
           // highlight the trace if it's within N units of pos.
@@ -396,16 +408,18 @@ var skiaperf = (function() {
             }
           }
 
-          var lastHighlightedLine = plot_.curHighlightedLine;
+          var lastHighlightedLines = plot_.curHighlightedLines.slice(0);
 
           var yaxis = plot_.plotRef.getAxes().yaxis;
           var maxDist = 0.15 * (yaxis.max - yaxis.min);
           if (closestDistance < maxDist) {
             // Highlight that trace.
             plot_.plotLabel.value = traces__[closestTraceIndex].label;
-            plot_.curHighlightedLine = traces__[closestTraceIndex].label;
+            plot_.curHighlightedLines = [traces__[closestTraceIndex].label];
           }
-          if (lastHighlightedLine != plot_.curHighlightedLine) {
+          lastHighlightedLines.sort();
+          plot_.curHighlightedLines.sort();
+          if (!sk.array.equal(lastHighlightedLines, plot_.curHighlightedLines)) {
             plot_.plotRef.draw();
           }
         }
@@ -416,6 +430,7 @@ var skiaperf = (function() {
       if (!item) {
         return;
       }
+      $$$('#note .group-only').classList.add("hidden");
       $$$('#note').dataset.key = item.series.label;
 
       // First, find the range of CLs we are interested in.
@@ -441,12 +456,28 @@ var skiaperf = (function() {
         var key = keylist[i];
         plot_.addParamToNote(parent, key, item.series._params[key]);
       }
-
+      // Enable selecting a group of lines by parameter values.
+      $$('#note .value').forEach(function(e){
+        e.addEventListener('click', function(e) {
+          $$$('#note .group-only').classList.remove("hidden");
+          // Highlight every line that matches this parameters key,value.
+          plot_.curHighlightedLines = [];
+          var pkey = this.dataset.key;
+          var pvalue = this.dataset.value;
+          traces__.forEach(function(tr) {
+            if (tr._params[pkey] == pvalue) {
+              plot_.curHighlightedLines.push(tr.label);
+            }
+          });
+          plot_.plotRef.draw();
+          e.preventDefault();
+        });
+      });
       $$$('#note').classList.remove("hidden");
-
     });
 
-    $$$('.make-solo').addEventListener('click', function(e) {
+    // Remove all other traces when this is clicked.
+    $$$('#note .make-solo').addEventListener('click', function(e) {
       var key = $$$('#note').dataset.key;
       if (key) {
         var trace = null;
@@ -461,6 +492,26 @@ var skiaperf = (function() {
         }
       }
       e.preventDefault();
+    });
+
+    // Remove all traces that aren't currently highlighted.
+    $$$('#note .group-only').addEventListener('click', function() {
+      for (var i = traces__.length-1; i >= 0; i--) {
+        if (-1 == plot_.curHighlightedLines.indexOf(traces__[i].label)) {
+          traces__.splice(i, 1);
+        }
+      }
+    });
+
+    // Remove this trace.
+    $$$('#note .remove').addEventListener('click', function() {
+      var key = $$$('#note').dataset.key;
+      for (var i = 0, len = traces__.length; i < len; i++) {
+        if (key == traces__[i].label) {
+          traces__.splice(i, 1);
+          break;
+        }
+      }
     });
 
     $$$('#reset-axes').addEventListener('click', function(e) {
