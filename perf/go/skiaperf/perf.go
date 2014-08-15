@@ -33,6 +33,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/gs"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
 	"skia.googlesource.com/buildbot.git/perf/go/shortcut"
+	"skia.googlesource.com/buildbot.git/perf/go/stats"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
@@ -65,11 +66,11 @@ var (
 
 // flags
 var (
-	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	doOauth      = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	gitRepoDir   = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	tileDir      = flag.String("tile_dir", "/tmp/tiles", "What directory to look for tiles in.")
-	tileStoreDir = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tilebuilder tiles in.")
+	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tilebuilder tiles in.")
+	graphiteServer = flag.String("graphite_server", "skia-monitoring-b:2003", "Where is Graphite metrics ingestion server running.")
 )
 
 var (
@@ -89,7 +90,7 @@ func Init() {
 
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
 	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
-	addr, _ := net.ResolveTCPAddr("tcp", "skia-monitoring-b:2003")
+	addr, _ := net.ResolveTCPAddr("tcp", *graphiteServer)
 	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "skiaperf", addr)
 
 	// Change the current working directory to two directories up from this source file so that we
@@ -359,7 +360,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	guiTile.ParamSet = tile.ParamSet
 	// SkpCommits goes out to the git repo, add caching if this turns out to be
 	// slow.
-	if skps, err := git.SkpCommits(tile.Commits); err != nil {
+	if skps, err := git.SkpCommits(tile); err != nil {
 		guiTile.Skps = []int{}
 		glog.Errorf("Failed to calculate skps: %s", err)
 	} else {
@@ -625,6 +626,7 @@ func main() {
 
 	Init()
 	db.Init()
+	stats.Start(nanoTileStore, git)
 	glog.Infoln("Begin loading data.")
 
 	// Resources are served directly.

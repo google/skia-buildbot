@@ -93,6 +93,21 @@ func NewTile() *Tile {
 	return t
 }
 
+// LastCommitIndex returns the index of the last valid Commit.
+func (t Tile) LastCommitIndex() int {
+	for i := len(t.Commits) - 1; i > 0; i-- {
+		if t.Commits[i].CommitTime != 0 {
+			return i
+		}
+	}
+	return 0
+}
+
+// Returns the hashes of the first and last commits in the Tile.
+func (t Tile) CommitRange() (string, string) {
+	return t.Commits[0].Hash, t.Commits[t.LastCommitIndex()].Hash
+}
+
 // TraceGUI is used in TileGUI.
 type TraceGUI struct {
 	Data   [][2]float64      `json:"data"`

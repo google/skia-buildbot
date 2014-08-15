@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -162,24 +163,14 @@ func readCommitsFromGit(dir string) ([]string, map[string]time.Time, error) {
 }
 
 // SkpCommits returns the indices for all the commits that contain SKP updates.
-func (g *GitInfo) SkpCommits(commits []*types.Commit) ([]int, error) {
-	first := commits[0].Hash
-	last := commits[0].Hash
-	for i := len(commits) - 1; i > 0; i-- {
-		if commits[i].CommitTime != 0 {
-			last = commits[i].Hash
-			break
-		}
-	}
-
-	// Execute a git log command that looks like:
+func (g *GitInfo) SkpCommits(tile *types.Tile) ([]int, error) {
+	// Executes a git log command that looks like:
 	//
 	//   git log --format=format:%H  32956400b4d8f33394e2cdef9b66e8369ba2a0f3..e7416bfc9858bde8fc6eb5f3bfc942bc3350953a SKP_VERSION
 	//
 	// The output should be a \n separated list of hashes that match.
-	command := []string{"log", "--format=format:%H", first + ".." + last, "SKP_VERSION"}
-	glog.Infof("%#v", command)
-	cmd := exec.Command("git", command...)
+	first, last := tile.CommitRange()
+	cmd := exec.Command("git", "log", "--format=format:%H", first+".."+last, "SKP_VERSION")
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
 	if err != nil {
@@ -187,13 +178,34 @@ func (g *GitInfo) SkpCommits(commits []*types.Commit) ([]int, error) {
 		return nil, err
 	}
 	hashes := strings.Split(string(b), "\n")
-	glog.Info(hashes)
 
 	ret := []int{}
-	for i, c := range commits {
+	for i, c := range tile.Commits {
 		if c.CommitTime != 0 && util.In(c.Hash, hashes) {
 			ret = append(ret, i)
 		}
 	}
 	return ret, nil
+}
+
+// LastSkpCommit returns the time of the last change to the SKP_VERSION file.
+func (g *GitInfo) LastSkpCommit() (time.Time, error) {
+	// Executes a git log command that looks like:
+	//
+	// git log --format=format:%ct -n 1 SKP_VERSION
+	//
+	// The output should be a single unix timestamp.
+	cmd := exec.Command("git", "log", "--format=format:%ct", "-n", "1", "SKP_VERSION")
+	cmd.Dir = g.dir
+	b, err := cmd.Output()
+	if err != nil {
+		glog.Error(string(b))
+		return time.Time{}, err
+	}
+	ts, err := strconv.ParseInt(string(b), 10, 64)
+	if err != nil {
+		glog.Error("Failed to parse timestamp: ", string(b), err)
+		return time.Time{}, err
+	}
+	return time.Unix(ts, 0), nil
 }
