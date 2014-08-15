@@ -120,7 +120,10 @@ class TypicalAlexaPage(page_module.PageWithDefaultRunNavigate):
     self.archive_data_file = '%s'
 
   def RunSmoothness(self, action_runner):
-    action_runner.RunAction(ScrollAction())
+    action_runner.ScrollElement()
+
+  def RunRepaint(self, action_runner):
+    action_runner.RepaintContinuously(seconds=5)
 
 
 class TypicalAlexaPageSet(page_set_module.PageSet):
