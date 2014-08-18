@@ -192,7 +192,11 @@ class SkiaFactory(BuildFactory):
         '--got_revision', WithProperties('%(got_revision:-None)s'),
         '--perf_output_basedir', perf_output_basedir or 'None',
         '--make_flags', '"%s"' % ' '.join(self._make_flags),
+        '--test_args', '"%s' % ' '.join(test_args),
+        '--gm_args', '"%s"' % ' '.join(gm_args),
+        '--bench_args', '"%s"' % ' '.join(bench_args),
         '--is_try', str(self._do_patch_step),
+        '--bench_pictures_cfg', bench_pictures_cfg,
         '--issue_number', WithProperties('%(issue:-None)s'),
         ]
     BuildFactory.__init__(self, build_factory_properties=properties)
