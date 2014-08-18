@@ -63,8 +63,10 @@ class BenchPictures(BuildStep):
     self._flavor_utils.RunFlavoredCmd('bench_pictures', arguments)
 
   def _Run(self):
-    # bench_pictures crashes on Mac 10.6. Just skip it.
-    if 'Mac10.6' in self._builder_name:
+    # Only run for bots that have bench_pictures expectations.
+    if not os.path.isfile(
+        os.path.join('expectations', 'bench', 'bench_expectations_%s.txt'
+            % self._builder_name)):
       return
 
     # Determine which configs to run
