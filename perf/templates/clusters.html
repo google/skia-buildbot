@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Clusters</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width"/>
-    <link href="/res/css/clusters.css" rel="stylesheet" />
-    <script src="/res/js/perf.js" type="text/javascript" charset="utf-8"></script>
-    <link href="/res/imp/query.html" rel="import" />
+    <title>Skip Performance Monitoring | Clusters</title>
+
+    {{template "header.html" .}}
+
     <script src="/res/js/clusters.js" type="text/javascript" charset="utf-8"></script>
 </head>
 <body>
+  {{template "titlebar.html" .}}
+  <section id=clustering>
     <h2>Trace Clustering</h2>
-      <label for="_stddev">StdDev Threshhold:</label> <input type="text" name="_stddev" value="{{.StdDevThreshhold}}" id="_stddev"><br>
-      <label for="_k">Num Clusters:</label> <input type="text" name="_k" value="{{.K}}" id="_k"><br>
-      <div id="sk-query"></div>
-      <button id="start" type="submit">Calculate</button>
+    <label for="_stddev">StdDev Threshhold:</label> <input type="text" name="_stddev" value="{{.StdDevThreshhold}}" id="_stddev"><br>
+    <label for="_k">Num Clusters:</label> <input type="text" name="_k" value="{{.K}}" id="_k"><br>
+    <div id="sk-query"></div>
+    <button id="start" type="submit">Calculate</button>
 
     {{if .Clusters}}
       <div id="sort">
@@ -28,7 +28,7 @@
         <!-- Draw a plot and a word cloud for each cluster.  -->
         {{range $i, $summary := .Clusters}}
           <div class="result" data-clustersize="{{len $summary.Keys}}" data-stepdeviation="{{$summary.StepFit.Deviation}}" data-stepsize="{{$summary.StepFit.StepSize}}">
-          <div id="placeholder{{$i}}" class=graph></div>
+          <div id="placeholder{{$i}}" class=cl-graph></div>
           <a id="trace-shortcut{{$i}}" href="#">View on dashboard</a>
             Cluster has {{len $summary.Keys}} members, with StepFit deviation {{$summary.StepFit.Deviation}} in step size {{$summary.StepFit.StepSize}}.
             <button type="submit" class=expander>+</button>
@@ -46,6 +46,7 @@
         {{end}}
       </div>
     {{end}}
+  </section>
 
   <script type="text/javascript" charset="utf-8">
     function openShortcut(keys) {

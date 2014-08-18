@@ -119,3 +119,38 @@ table, td {
     font-size: large;
 }
 
+.cl-graph {
+  width: 300px;
+  height: 150px;
+}
+
+.cloud {
+  display: none;
+  flex-flow: row wrap;
+}
+
+.cloud.display {
+  display: flex;
+}
+
+.cloudParam {
+  display: flex;
+  flex-flow: column nowrap;
+  margin:  1em;
+}
+
+#title {
+  margin: 0;
+  padding: 0.5em;
+  background-color: rgb(224, 108, 0);
+  border-bottom: solid lightgray 2px;
+}
+
+#title a {
+  color: white;
+  text-decoration: none;
+}
+
+#clustering {
+  padding: 0.5em;
+}

@@ -101,8 +101,16 @@ func Init() {
 		glog.Fatalln(err)
 	}
 
-	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
-	clusterTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/clusters.html")))
+	indexTemplate = template.Must(template.ParseFiles(
+		filepath.Join(cwd, "templates/index.html"),
+		filepath.Join(cwd, "templates/titlebar.html"),
+		filepath.Join(cwd, "templates/header.html"),
+	))
+	clusterTemplate = template.Must(template.ParseFiles(
+		filepath.Join(cwd, "templates/clusters.html"),
+		filepath.Join(cwd, "templates/titlebar.html"),
+		filepath.Join(cwd, "templates/header.html"),
+	))
 
 	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, "nano", 2*time.Minute)
 
