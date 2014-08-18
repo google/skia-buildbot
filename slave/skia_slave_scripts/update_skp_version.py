@@ -6,9 +6,7 @@
 
 
 import os
-import re
 import sys
-import time
 
 from build_step import BuildStep
 from config_private import SKIA_GIT_URL
@@ -28,18 +26,6 @@ TBR=
 PATH_TO_SKIA = os.path.join('third_party', 'skia')
 SKIA_COMMITTER_EMAIL = 'borenet@google.com'
 SKIA_COMMITTER_NAME = 'Eric Boren'
-WAIT_TIME_BETWEEN_CHECKS = 300 # Seconds.
-
-# Rather than calling the script using the shell, just import it.
-sys.path.append(os.path.join(os.getcwd(), PATH_TO_SKIA))
-from tools import gen_bench_expectations_from_codereview as bexpect
-
-
-def wait():
-  """Print a message and sleep for WAIT_TIME_BETWEEN_CHECKS seconds."""
-  print 'Sleeping for %d seconds.' % WAIT_TIME_BETWEEN_CHECKS
-  time.sleep(WAIT_TIME_BETWEEN_CHECKS)
-
 
 class UpdateSkpVersion(BuildStep):
   def __init__(self, timeout=28800, **kwargs):
@@ -59,40 +45,11 @@ class UpdateSkpVersion(BuildStep):
       skp_version = self._args.get('skp_version')
       with git_utils.GitBranch(branch_name='update_skp_version',
                                commit_msg=COMMIT_MSG % skp_version,
-                               commit_queue=not self._is_try) as branch:
+                               commit_queue=not self._is_try):
 
         # First, upload a version of the CL with just the SKP version changed.
         with open(version_file, 'w') as f:
           f.write(skp_version)
-        branch.commit_and_upload()
-
-        # Trigger trybots.
-        bots_to_trigger = []
-        expectations_dir = os.path.join('expectations', 'bench')
-        for expectations_file in os.listdir(expectations_dir):
-          if os.path.isfile(os.path.join(expectations_dir, expectations_file)):
-            m = re.match(r'bench_expectations_(?P<builder>.+)\.txt',
-                         expectations_file)
-            if m:
-              bots_to_trigger.extend(['-b', m.group('builder') + '-Trybot'])
-
-        try_cmd = [GIT, 'cl', 'try', '-m', 'tryserver.skia']
-        try_cmd.extend(bots_to_trigger)
-        shell_utils.run(try_cmd)
-
-        # Find the issue number.
-        output = shell_utils.run([GIT, 'cl', 'issue']).rstrip()
-        codereview_url = re.match(r'Issue number: \d+ \((?P<url>.+)\)',
-                                  output).group('url')
-
-        # Wait for try results.
-        print 'Waiting for trybot results...'
-        wait()
-        while not bexpect.all_trybots_finished(codereview_url):
-          wait()
-
-        # Add trybot results as new expectations.
-        bexpect.gen_bench_expectations_from_codereview(codereview_url)
 
 
 if '__main__' == __name__:

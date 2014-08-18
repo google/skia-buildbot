@@ -21,7 +21,7 @@ class AndroidFactory(skia_factory.SkiaFactory):
 
     device: string indicating which Android device type we are targeting
     """
-    skia_factory.SkiaFactory.__init__(self, bench_pictures_cfg=device,
+    skia_factory.SkiaFactory.__init__(self,
                                       deps_target_os='android',
                                       flavor='android',
                                       build_targets=['all'],

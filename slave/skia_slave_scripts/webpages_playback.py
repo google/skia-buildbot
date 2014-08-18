@@ -39,7 +39,7 @@ The --non-interactive flag controls whether the script will prompt the user
 (default value is False if not specified).
 
 The --skia_tools flag if specified will allow this script to run
-debugger, render_pictures, bench_pictures and render_pdfs on the captured
+debugger, render_pictures, and render_pdfs on the captured
 SKP(s). The tools are run after all SKPs are succesfully captured to make sure
 they can be added to the buildbots with no breakages.
 To preview the captured SKP before proceeding to the next page_set specify both
@@ -310,18 +310,12 @@ class SkPicturePlayback(object):
           os.path.join(self._skia_tools, 'render_pictures'),
           '-r', self._local_skp_dir
       ]
-      bench_pictures_cmd = [
-          os.path.join(self._skia_tools, 'bench_pictures'),
-          '-r', self._local_skp_dir,
-          '--logPerIter'
-      ]
       render_pdfs_cmd = [
           os.path.join(self._skia_tools, 'render_pdfs'),
           self._local_skp_dir
       ]
 
-      for tools_cmd in (render_pictures_cmd, bench_pictures_cmd,
-                        render_pdfs_cmd):
+      for tools_cmd in (render_pictures_cmd, render_pdfs_cmd):
         print '\n\n=======Running %s=======' % ' '.join(tools_cmd)
         proc = subprocess.Popen(tools_cmd)
         (code, output) = shell_utils.log_process_after_completion(proc,
@@ -464,7 +458,7 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--skia_tools',
       help=('Path to compiled Skia executable tools. '
-            'render_pictures/render_pdfs/bench_pictures is run on the set '
+            'render_pictures/render_pdfs is run on the set '
             'after all SKPs are captured. If the script is run without '
             '--non-interactive then the debugger is also run at the end. Debug '
             'builds are recommended because they seem to catch more failures '
