@@ -538,8 +538,18 @@ var skiaperf = (function() {
       }
       plot_.plotRef.setupGrid();
       plot_.plotRef.draw();
-      plot_.updateEdges();
     });
+
+
+    // Redraw the plot when dataset__ is modified, in particular the ticks.
+    //
+    Object.observe(dataset__, function(splices) {
+      plot_.plotRef.getOptions().xaxes[0]["ticks"] = dataset__.ticks;
+      plot_.plotRef.setupGrid();
+      plot_.plotRef.draw();
+    });
+
+
 
     // Update annotation points
     Object.observe(commitData__, function() {
