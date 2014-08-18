@@ -31,39 +31,20 @@
     if (!e.target.value) {
       return;
     }
+    var sortBy = e.target.value;
     var container = $$$("#container");
     var to_sort = [];
-    $$('div', container).forEach(function(ele) {
-      var data = ele.dataset;
-      if (!data.clustersize || !data.stepdeviation || !data.stepsize) {
-        return;
-      }
-      to_sort.push([+data.clustersize, +data.stepdeviation, +data.stepsize, ele]);
+    $$('.result', container).forEach(function(ele) {
+      to_sort.push({
+        value: ele.dataset[sortBy],
+        node: ele
+      });
     });
-    switch(e.target.value) {
-      case "stepFit":
-        to_sort.sort(function(x, y) {
-          return x[1]/x[2] - y[1]/y[2];
-        });
-        break;
-      case "stepSize":
-        to_sort.sort(function(x, y) {
-          return y[2] - x[2];
-        });
-        break;
-      case "stepDeviation":
-        to_sort.sort(function(x, y) {
-          return x[1] - y[1];
-        });
-        break;
-      case "clusterSize":
-      default:
-        to_sort.sort(function(x, y) {
-          return y[0] - x[0];
-        });
-    }
+    to_sort.sort(function(x, y) {
+      return x.value - y.value;
+    });
     to_sort.forEach(function(i) {
-      container.appendChild(i[3]);
+      container.appendChild(i.node);
     });
   };
 

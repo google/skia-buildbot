@@ -154,3 +154,20 @@ table, td {
 #clustering {
   padding: 0.5em;
 }
+
+.result {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    width:100%;
+    padding: 1em;
+}
+
+.text-results {
+    width: 70%
+}
+
+p {
+  margin: 0.2em;
+  padding: 0;
+}

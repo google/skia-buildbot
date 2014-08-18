@@ -16,12 +16,18 @@ import (
 )
 
 const (
-	NUM_SAMPLE_TRACES_PER_CLUSTER = 10
+	MAX_SAMPLE_TRACES_PER_CLUSTER = 5
 
 	// K is the k in k-means.
-	K = 20
+	K = 50
 
-	KMEANS_ITERATIONS = 10
+	// MAX_KMEANS_ITERATIONS is the maximum number of k-means iterations to run.
+	MAX_KMEANS_ITERATIONS = 100
+
+	// KMEAN_EPSILON is the smallest change in the k-means total error we will
+	// accept per iteration.  If the change in error falls below KMEAN_EPSILON
+	// the iteration will terminate.
+	KMEAN_EPSILON = 1.0
 )
 
 // ValueWeight is a weight proportional to the number of times the parameter
@@ -32,16 +38,30 @@ type ValueWeight struct {
 }
 
 // StepFit stores information on the best Step Function fit on a trace.
-// Deviation is the Least Absolute Deviation divided by the step size.
-// TurningPoint is the point index from where the Step Function changes value.
 type StepFit struct {
-	Deviation float64
-	StepSize  float64
+	// LeastSquares is the Least Squares error for a step function curve fit to the trace.
+	LeastSquares float64
+
+	// TurningPoint is the index where the Step Function changes value.
+	TurningPoint int
+
+	// StepSize is the size of the step in the step function. Negative values
+	// indicate a step up, i.e. they look like a performance regression in the
+	// trace, as opposed to positive values which look like performance
+	// improvements.
+	StepSize float64
+
+	// The "Regression" value is calculated as Step Size / Least Squares Error.
+	//
+	// The better the fit the larger the number returned, because LSE
+	// gets smaller with a better fit. The higher the Step Size the
+	// larger the number returned.
+	Regression float64
 }
 
 // ClusterSummary is a summary of a single cluster of traces.
 type ClusterSummary struct {
-	// Traces contains at most NUM_SAMPLE_TRACES_PER_CLUSTER sample traces, the first is the centroid.
+	// Traces contains at most MAX_SAMPLE_TRACES_PER_CLUSTER sample traces, the first is the centroid.
 	Traces [][][]float64
 
 	// Keys of all the members of the Cluster.
@@ -50,8 +70,8 @@ type ClusterSummary struct {
 	// ParamSummaries is a summary of all the parameters in the cluster.
 	ParamSummaries [][]ValueWeight
 
-	// StepFit is info on the best Step Function fit of the centroid.
-	StepFit StepFit
+	// StepFit is info on the fit of the centroid to a step function.
+	StepFit *StepFit
 }
 
 // ClusterSummaries is one summary for each cluster that the k-means clustering
@@ -166,11 +186,14 @@ func sse(xs []float64, base float64) float64 {
 	return total
 }
 
-// getStepFit takes one []float64 trace and calculates and returns its StepFit.
-func getStepFit(trace []float64) StepFit {
-	deviation := math.MaxFloat64
+// getStepFit takes one []float64 trace and calculates and returns a StepFit.
+//
+// See StepFit for a description of the values being calculated.
+func getStepFit(trace []float64) *StepFit {
+	lse := math.MaxFloat64
 	stepSize := -1.0
-	for i := range trace {
+	turn := 0
+	for i, _ := range trace {
 		if i == 0 {
 			continue
 		}
@@ -180,12 +203,18 @@ func getStepFit(trace []float64) StepFit {
 			continue
 		}
 		d := math.Sqrt(sse(trace[:i], y0)+sse(trace[i:], y1)) / float64(len(trace))
-		if d < deviation {
-			deviation = d
-			stepSize = math.Abs(y0 - y1)
+		if d < lse {
+			lse = d
+			stepSize = (y0 - y1)
+			turn = i
 		}
 	}
-	return StepFit{deviation, stepSize}
+	return &StepFit{
+		LeastSquares: lse,
+		StepSize:     stepSize,
+		TurningPoint: turn,
+		Regression:   stepSize / lse,
+	}
 }
 
 type SortableClusterable struct {
@@ -199,17 +228,26 @@ func (p SortableClusterableSlice) Len() int           { return len(p) }
 func (p SortableClusterableSlice) Less(i, j int) bool { return p[i].Distance < p[j].Distance }
 func (p SortableClusterableSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
+type SortableClusterSummarySlice []*ClusterSummary
+
+func (p SortableClusterSummarySlice) Len() int { return len(p) }
+func (p SortableClusterSummarySlice) Less(i, j int) bool {
+	return p[i].StepFit.Regression < p[j].StepFit.Regression
+}
+func (p SortableClusterSummarySlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
 // GetClusterSummaries returns a summaries for each cluster.
 func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterSummaries {
 	ret := &ClusterSummaries{
 		Clusters: make([]*ClusterSummary, len(centroids)),
 	}
 	allClusters, _ := kmeans.GetClusters(observations, centroids)
+
 	for i, cluster := range allClusters {
 		// cluster is just an array of the observations for a given cluster.
 		numSampleTraces := len(cluster)
-		if numSampleTraces > NUM_SAMPLE_TRACES_PER_CLUSTER {
-			numSampleTraces = NUM_SAMPLE_TRACES_PER_CLUSTER
+		if numSampleTraces > MAX_SAMPLE_TRACES_PER_CLUSTER {
+			numSampleTraces = MAX_SAMPLE_TRACES_PER_CLUSTER
 		}
 		summary := &ClusterSummary{
 			Keys:           make([]string, len(cluster)),
@@ -224,17 +262,22 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterS
 		// First, sort the traces so they are order with the traces closest to the
 		// centroid first.
 		sc := []*SortableClusterable{}
-		for j := 0; j < numSampleTraces; j++ {
+		for j := 0; j < len(cluster); j++ {
 			sc = append(sc, &SortableClusterable{Cluster: cluster[j], Distance: cluster[j].Distance(cluster[0])})
 		}
 		// Sort, but leave the centroid, the 0th element, unmoved.
 		sort.Sort(SortableClusterableSlice(sc[1:]))
 
-		for j := 0; j < numSampleTraces; j++ {
-			summary.Traces[j] = traceToFlot(sc[j].Cluster.(*ctrace.ClusterableTrace))
+		for j, clusterable := range sc {
+			if j == numSampleTraces {
+				break
+			}
+			summary.Traces[j] = traceToFlot(clusterable.Cluster.(*ctrace.ClusterableTrace))
 		}
+
 		ret.Clusters[i] = summary
 	}
+	sort.Sort(SortableClusterSummarySlice(ret.Clusters))
 
 	return ret
 }
@@ -260,9 +303,15 @@ func calculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64
 	// Create K starting centroids.
 	centroids := chooseK(observations, k)
 	// TODO(jcgregorio) Keep iterating until the total error stops changing.
-	for i := 0; i < KMEANS_ITERATIONS; i++ {
+	lastTotalError := 0.0
+	for i := 0; i < MAX_KMEANS_ITERATIONS; i++ {
 		centroids = kmeans.Do(observations, centroids, ctrace.CalculateCentroid)
-		glog.Infof("Total Error: %f\n", kmeans.TotalError(observations, centroids))
+		totalError := kmeans.TotalError(observations, centroids)
+		glog.Infof("Total Error: %f\n", totalError)
+		if math.Abs(totalError-lastTotalError) < KMEAN_EPSILON {
+			break
+		}
+		lastTotalError = totalError
 	}
 	clusterSummaries := GetClusterSummaries(observations, centroids)
 	clusterSummaries.K = k
