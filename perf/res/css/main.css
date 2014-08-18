@@ -163,6 +163,16 @@ table, td {
     padding: 1em;
 }
 
+.result .warningHigh {
+  background-color: #AA4499;
+  color: white;
+}
+
+.result .warningLow {
+  background-color: #44AA99;
+  color: white;
+}
+
 .text-results {
     width: 70%
 }

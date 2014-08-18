@@ -46,7 +46,7 @@
               <p> Cluster Size: {{len $summary.Keys}}</p>
               <p> Least Squares Error: {{printf "%0.3g" $summary.StepFit.LeastSquares}}</p>
               <p> Step Size: {{printf "%0.3g" $summary.StepFit.StepSize}}</p>
-              <p> Regression: {{printf "%0.3g" $summary.StepFit.Regression}}</p>
+              <p class="{{if lt $summary.StepFit.Regression -150.0}}warningHigh{{end}}{{if gt $summary.StepFit.Regression 150.0}}warningLow{{end}}" > Regression: {{printf "%0.3g" $summary.StepFit.Regression}}</p>
               <button type="submit" class=expander>+</button>
               <!-- Draw a word cloud based on the parameters for each member of cluster.  -->
               <div class=cloud>
