@@ -68,6 +68,8 @@ class RunNanobench(BuildStep):
       ])
       args.append('--key')
       args.extend(self._KeyParams())
+      args.append('--options')
+      args.extend(['build_number', str(self._build_number)])
 
     match  = []
     # Disable known problems.
