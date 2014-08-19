@@ -986,6 +986,23 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
+  # TODO(borenet): These buildslaves are actually on other hosts, but they
+  # connect to the new master using only upstream code and therefore our launch
+  # script doesn't know how to launch them.
+  'extra_buildslaves_catchall': {
+    'slaves': [
+      ('skiabot-nexus10-002', '0'),
+      ('skiabot-mac-10_7-compile-010', '1'),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': None,
+  },
 }
 
 
