@@ -85,6 +85,9 @@ class RunNanobench(BuildStep):
       # Fatally overload the driver.
       match.extend(['~path_fill_big_triangle', '~lines_0'])
 
+    if self._AnyMatch('Xoom'):
+      match.append('~patch_grid')  # skia:2847
+
     if match:
       args.append('--match')
       args.extend(match)
