@@ -98,7 +98,8 @@ table, td {
     flex-grow: 1;
 }
 
-#plot-label {
+#plot-label,
+#plot-value {
   border: solid lightgray 1px;
   padding: 3px;
   margin: 0.5em;

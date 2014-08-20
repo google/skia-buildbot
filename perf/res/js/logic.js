@@ -374,6 +374,11 @@ var skiaperf = (function() {
 
     jQuery('#chart').bind('plothover', (function() {
       return function(evt, pos, item) {
+        if (item) {
+          $$$('#plot-value').value = item.datapoint[1].toPrecision(5);
+        } else {
+          $$$('#plot-value').value = "";
+        }
         $$$('#note .group-only').classList.add("hidden");
         if (traces__.length > 0 && pos.x && pos.y) {
           // Find the trace with the closest perpendicular distance, and
