@@ -292,6 +292,21 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 	return nil
 }
 
+// equalMaps checks if the two maps are equal.
+func equalMaps(a, b map[string]string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	// Since they are the same size we only need to check from one side, i.e.
+	// compare a's values to b's values.
+	for k, v := range a {
+		if bv, ok := b[k]; !ok || bv != v {
+			return false
+		}
+	}
+	return true
+}
+
 // addBenchDataToTile adds BenchData to a Tile.
 //
 // See the description at the top of this file for how the mapping works.
@@ -300,28 +315,35 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int) {
 	for testName, allConfigs := range benchData.Results {
 		for configName, result := range *allConfigs {
 			key := fmt.Sprintf("%s:%s:%s", keyPrefix, testName, configName)
+
+			// Construct the Traces params from all the options.
+			params := map[string]string{
+				"test":   testName,
+				"config": configName,
+			}
+			for k, v := range benchData.Key {
+				params[k] = v
+			}
+			for k, v := range benchData.Options {
+				params[k] = v
+			}
+			for k, v := range result.Options {
+				params[k] = v
+			}
+
 			var trace *types.Trace
 			var ok bool
+			needsUpdate := false
 			if trace, ok = tile.Traces[key]; !ok {
 				trace = types.NewTrace()
 				tile.Traces[key] = trace
+				needsUpdate = true
+			} else if !equalMaps(params, tile.Traces[key].Params) {
+				needsUpdate = true
+			}
+			tile.Traces[key].Params = params
 
-				// Construct the Traces params from all the options.
-				params := map[string]string{
-					"test":   testName,
-					"config": configName,
-				}
-				for k, v := range benchData.Key {
-					params[k] = v
-				}
-				for k, v := range benchData.Options {
-					params[k] = v
-				}
-				for k, v := range result.Options {
-					params[k] = v
-				}
-				trace.Params = params
-
+			if needsUpdate {
 				// Update the Tile's ParamSet with any new keys or values we see.
 				//
 				// TODO(jcgregorio) Maybe defer this until we are about to Put the Tile

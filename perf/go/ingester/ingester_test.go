@@ -77,9 +77,10 @@ func TestAddBenchDataToTile(t *testing.T) {
 	tile.Scale = 0
 	tile.TileIndex = 0
 
+	offset := 1
+	key := "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_discardable_640_480:gpu"
 	// Do everything twice to ensure that we are idempotent.
 	for i := 0; i < 2; i++ {
-		offset := 1
 		// Add the BenchData to the Tile.
 		addBenchDataToTile(benchData, tile, offset)
 
@@ -87,7 +88,6 @@ func TestAddBenchDataToTile(t *testing.T) {
 		if got, want := len(tile.Traces), 9; got != want {
 			fmt.Errorf("Wrong number of traces: Got %d Want %d", got, want)
 		}
-		key := "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_discardable_640_480:gpu"
 		trace, ok := tile.Traces[key]
 		if !ok {
 			fmt.Errorf("Missing expected key: %s", key)
@@ -130,5 +130,14 @@ func TestAddBenchDataToTile(t *testing.T) {
 		if got, want := tile.ParamSet["source_type"][0], "bench"; got != want {
 			fmt.Errorf("Wrong ParamSet value: Got %v Want %v", got, want)
 		}
+	}
+
+	// Now update one of the params for a trace and reingest and confirm that the
+	// trace params get updated.
+
+	benchData.Options["system"] = "Linux"
+	addBenchDataToTile(benchData, tile, offset)
+	if got, want := "Linux", tile.Traces[key].Params["system"]; got != want {
+		t.Errorf("Failed to update params: Got %v Want %v", got, want)
 	}
 }
