@@ -62,14 +62,12 @@ class RunNanobench(BuildStep):
     if self._AnyMatch('Valgrind'):
       args.extend(['--loops', '1'])  # Don't care about performance on Valgrind.
     elif self._perf_data_dir:
-      args.extend([
-        '--outResultsFile', self._JSONPath(),
-        '--gitHash', self._got_revision,
-      ])
+      args.extend(['--outResultsFile', self._JSONPath()])
       args.append('--key')
       args.extend(self._KeyParams())
-      args.append('--options')
-      args.extend(['build_number', str(self._build_number)])
+      args.append('--properties')
+      args.extend(['gitHash', self._got_revision,
+                   'build_number', str(self._build_number)])
 
     match  = []
     # Disable known problems.
