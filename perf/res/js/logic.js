@@ -142,15 +142,6 @@ var skiaperf = (function() {
     return ele.querySelector(query);
   }
 
-  /**
-   * clearChildren removes all children of the passed in node.
-   */
-  function clearChildren(ele) {
-    while (ele.firstChild) {
-      ele.removeChild(ele.firstChild);
-    }
-  }
-
 
   // escapeNewlines replaces newlines with <br />'s
   function escapeNewlines(str) {
@@ -454,7 +445,7 @@ var skiaperf = (function() {
 
       // Add params to the note.
       var parent = $$$('#note .params');
-      clearChildren(parent);
+      sk.clearChildren(parent);
       plot_.addParamToNote(parent, 'id', item.series.label);
       var keylist = Object.keys(item.series._params).sort().reverse();
       for (var i = 0; i < keylist.length; i++) {

@@ -26,31 +26,13 @@
     },
   };
 
-  // doSort sorts the clustering results with the algorithm given in element e.
-  function doSort(e) {
-    if (!e.target.value) {
-      return;
-    }
-    var sortBy = e.target.value;
-    var container = $$$("#container");
-    var to_sort = [];
-    $$('.result', container).forEach(function(ele) {
-      to_sort.push({
-        value: ele.dataset[sortBy],
-        node: ele
-      });
-    });
-    to_sort.sort(function(x, y) {
-      return x.value - y.value;
-    });
-    to_sort.forEach(function(i) {
-      container.appendChild(i.node);
-    });
-  };
 
   function onLoad() {
     var query = new sk.Query(queryInfo__);
     query.attach();
+
+    var cluster = new sk.Cluster();
+    cluster.attach();
 
     sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
       queryInfo__.paramSet = json.paramset;
@@ -58,20 +40,7 @@
     });
 
     $$$('#start').addEventListener('click', function(){
-      // Build up query params and redirect.
-      var url = '/clusters/?_k=' + $$$('#_k').value + '&_stddev=' + $$$('#_stddev').value + '&' + query.selectionsAsQuery();
-      window.location.href = window.location.origin + url;
-      // TODO(jcgregorio) This currently doesn't preserve the query selections.
-    });
-
-    $$('.expander').forEach(function(ele) {
-      ele.addEventListener('click', function(e){
-        e.target.nextElementSibling.classList.toggle("display");
-      });
-    });
-
-    $$('input[name="sort"]').forEach(function(ele) {
-      ele.addEventListener('click', doSort);
+      cluster.beginClustering($$$('#_k').value, $$$('#_stddev').value, query.selectionsAsQuery());
     });
   };
 

@@ -37,6 +37,36 @@ function $$$(query, ele) {
 
   var sk = {};
 
+
+  /**
+   * clearChildren removes all children of the passed in node.
+   */
+  sk.clearChildren = function(ele) {
+    while (ele.firstChild) {
+      ele.removeChild(ele.firstChild);
+    }
+  }
+
+  /**
+   * Importer simplifies importing HTML Templates from HTML Imports.
+   *
+   * Just instantiate an instance in the HTML Import:
+   *
+   *    importer = new sk.Importer();
+   *
+   * Then import templates via their id:
+   *
+   *    var node = importer.import('#foo');
+   */
+  sk.Importer = function() {
+    this.importDoc_ = document.currentScript.ownerDocument;
+  }
+
+  sk.Importer.prototype.import = function(id) {
+    return document.importNode($$$(id, this.importDoc_).content, true);
+  }
+
+
   // Returns a Promise that uses XMLHttpRequest to make a request to the given URL.
   sk.get = function(url) {
     // Return a new promise.
@@ -54,7 +84,7 @@ function $$$(query, ele) {
         } else {
           // Otherwise reject with the status text
           // which will hopefully be a meaningful error
-          reject(Error(req.statusText));
+          reject(req.response);
         }
       };
 
@@ -90,7 +120,7 @@ function $$$(query, ele) {
         } else {
           // Otherwise reject with the status text
           // which will hopefully be a meaningful error
-          reject(Error(req.statusText));
+          reject(req.response);
         }
       };
 

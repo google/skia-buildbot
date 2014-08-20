@@ -1,0 +1,266 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the CSS, JS and HTML
+  Templates for the sk.ClusterSummary and sk.Cluster components.
+
+  To use this file import it:
+
+    <link href="/res/imp/cluster.html" rel="import" />
+
+-->
+<template id=clTemplate>
+  <div id=clSorting>
+    Sort by:
+    <input type="radio" name="sort" value="clustersize">ClusterSize</input>
+    <input type="radio" name="sort" value="stepregression" checked>Regression</input>
+    <input type="radio" name="sort" value="stepsize">Step Size</input>
+    <input type="radio" name="sort" value="steplse">Least Squares</input>
+  </div>
+  <div id="clResults"> </div>
+</template>
+<template id=clResultTemplate>
+  <div class="clResult"
+      data-clustersize=""
+      data-steplse=""
+      data-stepsize=""
+      data-stepregression=""
+      >
+    <div class=clGraph> </div>
+    <div class=clDetails>
+      <p><a class="clShortcut" href="#">View on dashboard</a></p>
+      <p>Cluster Size: <span class=clClusterSize></span></p>
+      <p>Least Squares Error: <span class=clLeastSquares></span></p>
+      <p>Step Size: <span class=clStepSize></span></p>
+      <p class=clHighlight> Regression: <span class=clRegression></span></p>
+      <button class=expander>+</button>
+      <div class=clWordCloud>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id=clParamTemplate>
+  <div class=cloudParam></div>
+</template>
+
+<template id=clParamValueTemplate>
+  <div class=clParamValue></div>
+</template>
+
+<style type="text/css" media="screen">
+  .clResult {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+      width:100%;
+      padding: 1em;
+  }
+
+  .clResult .clHigh {
+    background-color: #AA4499;
+    color: white;
+  }
+
+  .clResult .clLow {
+    background-color: #44AA99;
+    color: white;
+  }
+
+  .clDetails {
+      width: 70%
+  }
+
+  .clGraph {
+    width: 300px;
+    height: 150px;
+  }
+
+  .clWordCloud {
+    display: none;
+    flex-flow: row wrap;
+  }
+
+  .clWordCloud.display {
+    display: flex;
+  }
+
+  .cloudParam {
+    display: flex;
+    flex-flow: column nowrap;
+    margin:  1em;
+  }
+</style>
+
+<script type="text/javascript" charset="utf-8">
+(function(){
+  "use strict";
+
+  // Keep track of this file so we can grab HTML Templates from it.
+  var importer__ = new sk.Importer();
+
+  /**
+    * ClusterSummary displays a summary of a single k-means cluster.
+    *
+    * p    - The parent node to append the cluster summary to.
+    * json - One member of the Clusters array returned from the /clustering/ endpoint.
+    */
+  sk.ClusterSummary = function(p, json) {
+    var node = importer__.import('#clResultTemplate');
+    p.appendChild(node);
+    this.result_ = p.lastElementChild;
+    this.json_ = json;
+  };
+
+  /**
+    * attach, call after construction to hook up elements to their callbacks.
+    */
+  sk.ClusterSummary.prototype.attach = function(keys) {
+    var clusterSummary_ = this;
+    var json = clusterSummary_.json_;
+    var result = this.result_;
+
+    // Make the centroid last, so it is draw last.
+    var centroid = json.Traces.splice(0, 1);
+    json.Traces.push(centroid[0]);
+
+    // Plot the traces.
+    var traces = [];
+    var last = json.Traces.length - 1;
+    json.Traces.forEach(function(data, i) {
+      traces.push({
+        color: i == last ? "black" : "lightgray",
+        data: data,
+        lineWidth: 1,
+      });
+    });
+
+    jQuery.plot($$$('.clGraph', result), traces, {
+      yaxis: {
+        min: -4,
+        max: 4
+      }
+    });
+
+    // Fill in the details about the cluster.
+    var last50 = json.Keys.slice(0, 50);
+    $$$('.clShortcut', result).addEventListener('click', function() {
+      sk.ClusterSummary.openShortcut_(last50);
+    });
+
+    result.dataset.clustersize = -json.Keys.length;
+    result.dataset.steplse = json.StepFit.LeastSquares;
+    result.dataset.stepsize= json.StepFit.StepSize;
+    result.dataset.stepregression = json.StepFit.Regression;
+
+    $$$('.clClusterSize', result).innerText = json.Keys.length;
+    $$$('.clLeastSquares', result).innerText = json.StepFit.LeastSquares.toPrecision(3);
+    $$$('.clStepSize', result).innerText =  json.StepFit.StepSize.toPrecision(3);
+    $$$('.clRegression', result).innerText = json.StepFit.Regression.toPrecision(3);
+    $$$('.clHighlight', result).classList.add("cl" + json.StepFit.Status) // High, Low or Uninteresting.
+
+    // Fill in the word cloud.
+    $$$('.expander', result).addEventListener('click', function(e) {
+      e.target.nextElementSibling.classList.toggle("display");
+    });
+    // Sort the param summaries so that columns with larger weights come first.
+    json.ParamSummaries.sort(function(a, b){
+      return b[0].Weight - a[0].Weight;
+    });
+    json.ParamSummaries.forEach(function(params){
+      var node = importer__.import('#clParamTemplate');
+      params.forEach(function(param) {
+        var pnode = importer__.import('#clParamValueTemplate');
+        $$$('.clParamValue', pnode).innerText = param.Value;
+
+        // Ick ick ick.
+        $$$('.clParamValue', pnode).style.fontSize = param.Weight + "px";
+
+        $$$('.cloudParam', node).appendChild(pnode);
+      });
+      $$$('.clWordCloud', result).appendChild(node);
+    });
+  };
+
+  /**
+    * Creates a shortcut for the given keys then opens a new window to that
+    * shortcut.
+    */
+  sk.ClusterSummary.openShortcut_ = function(keys) {
+    var state = {
+      scale: 0,
+      tiles: [-1],
+      keys: keys
+    };
+    sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json){
+      window.open('/#' + json.id, '_blank');
+    });
+  };
+
+
+  /**
+    * Cluster is a container for ClusterSummary's.
+    */
+  sk.Cluster = function() {
+    var node = importer__.import('#clTemplate');
+    $$$('#skCluster').appendChild(node);
+    this.clusterSummary_ = $$$('#skCluster')
+  };
+
+  /**
+    * attach, call after construction to hook up elements to their callbacks.
+    */
+  sk.Cluster.prototype.attach = function(e) {
+    var cluster_ = this;
+
+    $$('input[name="sort"]', this.clusterSummary_).forEach(function(ele) {
+      ele.addEventListener('click', cluster_.sort_);
+    });
+  };
+
+  /**
+    * beginClustering by clearing out the old results and starting the XHR
+    * request to get new clustering results.
+    */
+  sk.Cluster.prototype.beginClustering = function(k, stddev, selections) {
+    sk.clearChildren($$$('#clResults'));
+    $$$('input[value="stepregression"]', this.clusterSummary_).checked = true;
+
+    document.body.style.cursor = 'wait';
+    sk.get('/clustering/?_k=' + k + '&_stddev=' + stddev + '&' + selections).then(JSON.parse).then(function(json) {
+      var container = $$$('#clResults');
+      json.Clusters.forEach(function(c){
+        var summary = new sk.ClusterSummary(container, c);
+        summary.attach();
+      });
+      document.body.style.cursor = 'auto';
+    }).catch(function(e){
+      alert(e);
+      document.body.style.cursor = 'auto';
+    });
+  };
+
+  // sort_ sorts the clustering results with the algorithm given in element e.
+  sk.Cluster.prototype.sort_ = function(e) {
+    if (!e.target.value) {
+      return;
+    }
+    var sortBy = e.target.value;
+    var container = $$$("#clResults");
+    var to_sort = [];
+    $$('.clResult', container).forEach(function(ele) {
+      to_sort.push({
+        value: ele.dataset[sortBy],
+        node: ele
+      });
+    });
+    to_sort.sort(function(x, y) {
+      return x.value - y.value;
+    });
+    to_sort.forEach(function(i) {
+      container.appendChild(i.node);
+    });
+  };
+
+})();
+</script>

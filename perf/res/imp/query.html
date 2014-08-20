@@ -73,7 +73,7 @@
 <script type="text/javascript" charset="utf-8">
 (function(){
   // Keep track of this file so we can grab HTML Templates from it.
-  var importDoc = document.currentScript.ownerDocument;
+  var importer__ = new sk.Importer();
 
   /**
    * Sets up the event handlers related to the query controls in the interface.
@@ -82,7 +82,7 @@
   sk.Query = function(queryInfo) {
     this.queryInfo_ = queryInfo;
 
-    var node = $$$('#query-main-template', importDoc).content.cloneNode(true);
+    var node = importer__.import('#query-main-template');
     $$$('#sk-query').appendChild(node);
   };
 
@@ -159,7 +159,7 @@
     var keylist = Object.keys(this.queryInfo_.paramSet).sort().reverse();
 
     for (var i = 0; i < keylist.length; i++) {
-      var node = $$$('#query-select', importDoc).content.cloneNode(true);
+      var node = importer__.import('#query-select');
       var key = keylist[i];
 
       $$$('h4', node).textContent = key;

@@ -49,8 +49,6 @@ var (
 
 	trybotsHandlerPath = regexp.MustCompile(`/trybots/([0-9A-Za-z-/]*)$`)
 
-	clustersHandlerPath = regexp.MustCompile(`/clusters/([a-z]*)$`)
-
 	shortcutHandlerPath = regexp.MustCompile(`/shortcuts/([0-9]*)$`)
 
 	// The three capture groups are dataset, tile scale, and tile number.
@@ -125,7 +123,7 @@ func Init() {
 func reportError(w http.ResponseWriter, r *http.Request, err error, message string) {
 	glog.Errorln(message, err)
 	w.Header().Set("Content-Type", "text/plain")
-	http.Error(w, message, 500)
+	http.Error(w, fmt.Sprintf("%s %s", message, err), 500)
 }
 
 // showcutHandler handles the POST requests of the shortcut page.
@@ -208,52 +206,85 @@ func trybotHandler(w http.ResponseWriter, r *http.Request) {
 // clusterHandler handles the GET of the clusters page.
 func clusterHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Cluster Handler: %q\n", r.URL.Path)
-	match := clustersHandlerPath.FindStringSubmatch(r.URL.Path)
-	if match == nil {
-		http.NotFound(w, r)
-		return
+	w.Header().Set("Content-Type", "text/html")
+	if err := clusterTemplate.Execute(w, nil); err != nil {
+		glog.Errorln("Failed to expand template:", err)
 	}
-	if len(match) != 2 {
-		reportError(w, r, fmt.Errorf("Clusters Handler regexp wrong number of matches: %#v", match), "Not Found")
-		return
-	}
+}
 
+// writeClusterSummaries writes out a ClusterSummaries instance as a JSON response.
+func writeClusterSummaries(summary *ClusterSummaries, w http.ResponseWriter, r *http.Request) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(summary); err != nil {
+		reportError(w, r, err, "Error while encoding ClusterSummaries response.")
+	}
+}
+
+// clusteringHandler handles doing the actual k-means clustering.
+//
+// The return format is JSON of the form:
+//
+// {
+//   "Clusters": [
+//     {
+//       "Keys": [
+//          "x86:GeForce320M:MacMini4.1:Mac10.8:GM_varied_text_clipped_no_lcd_640_480:8888",...],
+//       "ParamSummaries": [
+//           [{"Value": "Win8", "Weight": 15}, {"Value": "Android", "Weight": 14}, ...]
+//       ],
+//       "StepFit": {
+//          "LeastSquares":0.0006582442047814354,
+//          "TurningPoint":162,
+//          "StepSize":0.023272272692293046,
+//          "Regression": 35.3
+//       }
+//       Traces: [[[0, -0.00007967326606768456], [1, 0.011877665949459049], [2, 0.012158129176717419],...]]
+//     },
+//     ...
+//   ],
+//   "K": 5,
+//   "StdDevThreshhold": 0.1
+// }
+//
+// Note that Keys contains all the keys, while Traces only contains traces of
+// the 10 closest cluster members and the centroid.
+func clusteringHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Clustering Handler: %q\n", r.URL.Path)
 	tile, err := nanoTileStore.Get(0, -1)
 	if err != nil {
 		reportError(w, r, err, fmt.Sprintf("Failed to load tile."))
 		return
 	}
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "text/html")
-		// If there are no query parameters just return with an empty set of ClusterSummaries.
-		if r.FormValue("_k") == "" {
-			if err := clusterTemplate.Execute(w, NewClusterSummaries()); err != nil {
-				glog.Errorln("Failed to expand template:", err)
-			}
-			return
-		}
-
-		k, err := strconv.ParseInt(r.FormValue("_k"), 10, 32)
-		if err != nil {
-			reportError(w, r, err, fmt.Sprintf("_k parameter must be an integer %s.", r.FormValue("_k")))
-			return
-		}
-		stddev, err := strconv.ParseFloat(r.FormValue("_stddev"), 64)
-		if err != nil {
-			reportError(w, r, err, fmt.Sprintf("_stddev parameter must be a float %s.", r.FormValue("_stddev")))
-			return
-		}
-
-		// Create a filter function for traces that match the query parameters.
-		delete(r.Form, "_k")
-		delete(r.Form, "_stddev")
-		filter := func(tr *types.Trace) bool {
-			return traceMatches(tr, r.Form)
-		}
-		if err := clusterTemplate.Execute(w, calculateClusterSummaries(tile, int(k), stddev, filter)); err != nil {
-			glog.Errorln("Failed to expand template:", err)
-		}
+	w.Header().Set("Content-Type", "application/json")
+	// If there are no query parameters just return with an empty set of ClusterSummaries.
+	if r.FormValue("_k") == "" || r.FormValue("_stddev") == "" {
+		writeClusterSummaries(NewClusterSummaries(), w, r)
+		return
 	}
+
+	k, err := strconv.ParseInt(r.FormValue("_k"), 10, 32)
+	if err != nil {
+		reportError(w, r, err, fmt.Sprintf("_k parameter must be an integer %s.", r.FormValue("_k")))
+		return
+	}
+	stddev, err := strconv.ParseFloat(r.FormValue("_stddev"), 64)
+	if err != nil {
+		reportError(w, r, err, fmt.Sprintf("_stddev parameter must be a float %s.", r.FormValue("_stddev")))
+		return
+	}
+
+	// Create a filter function for traces that match the query parameters.
+	delete(r.Form, "_k")
+	delete(r.Form, "_stddev")
+	filter := func(tr *types.Trace) bool {
+		return traceMatches(tr, r.Form)
+	}
+	summary, err := calculateClusterSummaries(tile, int(k), stddev, filter)
+	if err != nil {
+		reportError(w, r, err, "Failed to calculate clusters.")
+		return
+	}
+	writeClusterSummaries(summary, w, r)
 }
 
 // annotationsHandler handles POST requests to the annotations page.
@@ -647,6 +678,7 @@ func main() {
 	http.HandleFunc("/commits/", commitsHandler)
 	http.HandleFunc("/trybots/", autogzip.HandleFunc(trybotHandler))
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
+	http.HandleFunc("/clustering/", autogzip.HandleFunc(clusteringHandler))
 	http.HandleFunc("/annotations/", autogzip.HandleFunc(annotationsHandler))
 
 	glog.Infoln("Ready to serve.")

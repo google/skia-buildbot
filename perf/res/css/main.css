@@ -85,7 +85,6 @@ table, td {
 }
 
 #chart {
-    /* Maybe make this bigger? */
     width: 100%;
     height: 640px;
 }
@@ -120,25 +119,6 @@ table, td {
     font-size: large;
 }
 
-.cl-graph {
-  width: 300px;
-  height: 150px;
-}
-
-.cloud {
-  display: none;
-  flex-flow: row wrap;
-}
-
-.cloud.display {
-  display: flex;
-}
-
-.cloudParam {
-  display: flex;
-  flex-flow: column nowrap;
-  margin:  1em;
-}
 
 #title {
   margin: 0;
@@ -152,33 +132,12 @@ table, td {
   text-decoration: none;
 }
 
-#clustering {
-  padding: 0.5em;
-}
-
-.result {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    width:100%;
-    padding: 1em;
-}
-
-.result .warningHigh {
-  background-color: #AA4499;
-  color: white;
-}
-
-.result .warningLow {
-  background-color: #44AA99;
-  color: white;
-}
-
-.text-results {
-    width: 70%
-}
-
 p {
   margin: 0.2em;
   padding: 0;
 }
+
+#clustering {
+  padding: 0.5em;
+}
+

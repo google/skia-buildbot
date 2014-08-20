@@ -5,7 +5,8 @@
 
     {{template "header.html" .}}
 
-    <script src="/res/js/clusters.js" type="text/javascript" charset="utf-8"></script>
+    <link href="/res/imp/cluster.html" rel="import" />
+    <script src="/res/js/clusters.js"></script>
 </head>
 <body>
   {{template "titlebar.html" .}}
@@ -13,101 +14,16 @@
     <h2>Trace Clustering</h2>
     <p>
       <label for="_stddev">StdDev Threshhold:</label>
-      <input type="text" name="_stddev" value="{{.StdDevThreshhold}}" id="_stddev">
+      <input type="text" name="_stddev" value="0.1" id="_stddev">
     </p>
     <p>
-      <label for="_k">Num Clusters:</label> <input type="text" name="_k" value="{{.K}}" id="_k">
+      <label for="_k">Num Clusters:</label>
+      <input type="text" name="_k" value="50" id="_k">
     </p>
     <div id="sk-query"></div>
     <button id="start" type="submit">Calculate</button>
 
-    {{if .Clusters}}
-      <div id="sort">
-        Sort by:
-        <input type="radio" name="sort" value="clustersize">ClusterSize</input>
-        <input type="radio" name="sort" value="stepregression" checked>Regression</input>
-        <input type="radio" name="sort" value="stepsize">Step Size</input>
-        <input type="radio" name="sort" value="steplse">Least Squares</input>
-      </div>
-      <div id="container">
-        <!-- Draw a plot and a word cloud for each cluster.  -->
-        {{range $i, $summary := .Clusters}}
-          <!-- The dataset attribute names need to match the radio button values above. -->
-          <div class="result"
-              data-clustersize="-{{len $summary.Keys}}"
-              data-steplse="{{printf "%0.3g" $summary.StepFit.LeastSquares}}"
-              data-stepsize="{{printf "%0.3g" $summary.StepFit.StepSize}}"
-              data-stepregression="{{printf "%0.3g" $summary.StepFit.Regression}}"
-              >
-            <div id="placeholder{{$i}}" class=cl-graph>
-            </div>
-            <div class=text-results>
-              <p> <a id="trace-shortcut{{$i}}" href="#">View on dashboard</a>
-              <p> Cluster Size: {{len $summary.Keys}}</p>
-              <p> Least Squares Error: {{printf "%0.3g" $summary.StepFit.LeastSquares}}</p>
-              <p> Step Size: {{printf "%0.3g" $summary.StepFit.StepSize}}</p>
-              <p class="{{if lt $summary.StepFit.Regression -150.0}}warningHigh{{end}}{{if gt $summary.StepFit.Regression 150.0}}warningLow{{end}}" > Regression: {{printf "%0.3g" $summary.StepFit.Regression}}</p>
-              <button type="submit" class=expander>+</button>
-              <!-- Draw a word cloud based on the parameters for each member of cluster.  -->
-              <div class=cloud>
-                {{range $summary.ParamSummaries}}
-                  <div class=cloudParam>
-                    {{range .}}
-                      <div style="font-size:{{.Weight}}px">{{.Value}} </div>
-                    {{end}}
-                  </div>
-                {{end}}
-              </div>
-            </div>
-          </div>
-        {{end}}
-      </div>
-    {{end}}
+    <div id="skCluster"></div>
   </section>
-
-  <script type="text/javascript" charset="utf-8">
-    function openShortcut(keys) {
-      var state = {
-        scale: 0,
-        tiles: [-1],
-        keys: keys
-      };
-      var req = new XMLHttpRequest();
-      document.body.style.cursor = 'wait';
-      req.addEventListener('load', function() {
-        document.body.style.cursor = 'auto';
-        if (req.response && req.status==200) {
-          var resp = JSON.parse(req.responseText);
-          window.open('/#' + resp.id, '_blank');
-        }
-      });
-      req.open("POST", "/shortcuts/", true);
-      req.setRequestHeader("Content-type","application/json");
-      req.send(JSON.stringify(state));
-    };
-
-    window.addEventListener('load', function() {
-    {{range $i, $summary := .Clusters}}
-      $.plot("#placeholder{{$i}}",
-        [
-      {{range $j, $trace := $summary.Traces}}
-        {{if $j}},{{end}}
-        {
-          color: "lightgray",
-          data: {{$trace}}
-        }
-      {{end}}
-        // Redraw the first line, the centroid, so it shows up on top.
-        ,{
-          color: "black",
-          data: {{index $summary.Traces 0}}
-        }
-      ], {});
-      $$$('#trace-shortcut{{$i}}').addEventListener('click', function(e) {
-        openShortcut({{$summary.Keys}}.slice(1, 50));
-      });
-    {{end}}
-  });
-  </script>
 </body>
 </html>

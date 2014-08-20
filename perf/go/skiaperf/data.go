@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 
@@ -28,6 +29,11 @@ const (
 	// accept per iteration.  If the change in error falls below KMEAN_EPSILON
 	// the iteration will terminate.
 	KMEAN_EPSILON = 1.0
+
+	// INTERESTING_THRESHHOLD is the threshhold value beyond which
+	// StepFit.Regression values become interesting, i.e. they may indicate real
+	// regressions or improvements.
+	INTERESTING_THRESHHOLD = 150.0
 )
 
 // ValueWeight is a weight proportional to the number of times the parameter
@@ -57,6 +63,11 @@ type StepFit struct {
 	// gets smaller with a better fit. The higher the Step Size the
 	// larger the number returned.
 	Regression float64
+
+	// Status of the cluster.
+	//
+	// Values can be "High", "Low", and "Uninteresting"
+	Status string
 }
 
 // ClusterSummary is a summary of a single cluster of traces.
@@ -209,11 +220,19 @@ func getStepFit(trace []float64) *StepFit {
 			turn = i
 		}
 	}
+	regression := stepSize / lse
+	status := "Uninteresting"
+	if regression > INTERESTING_THRESHHOLD {
+		status = "High"
+	} else if regression < -INTERESTING_THRESHHOLD {
+		status = "Low"
+	}
 	return &StepFit{
 		LeastSquares: lse,
 		StepSize:     stepSize,
 		TurningPoint: turn,
-		Regression:   stepSize / lse,
+		Regression:   regression,
+		Status:       status,
 	}
 }
 
@@ -250,14 +269,16 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterS
 			numSampleTraces = MAX_SAMPLE_TRACES_PER_CLUSTER
 		}
 		summary := &ClusterSummary{
-			Keys:           make([]string, len(cluster)),
+			Keys:           make([]string, len(cluster)-1),
 			Traces:         make([][][]float64, numSampleTraces),
 			ParamSummaries: getParamSummaries(cluster),
 			// Try fit on the centroid.
 			StepFit: getStepFit(cluster[0].(*ctrace.ClusterableTrace).Values),
 		}
 		for j, o := range cluster {
-			summary.Keys[j] = o.(*ctrace.ClusterableTrace).Key
+			if j != 0 {
+				summary.Keys[j-1] = o.(*ctrace.ClusterableTrace).Key
+			}
 		}
 		// First, sort the traces so they are order with the traces closest to the
 		// centroid first.
@@ -286,7 +307,7 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterS
 type Filter func(tr *types.Trace) bool
 
 // calculateClusterSummaries runs k-means clustering over the trace shapes.
-func calculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64, filter Filter) *ClusterSummaries {
+func calculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64, filter Filter) (*ClusterSummaries, error) {
 	lastCommitIndex := 0
 	for i, c := range tile.Commits {
 		if c.CommitTime != 0 {
@@ -298,6 +319,9 @@ func calculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64
 		if filter(trace) {
 			observations = append(observations, ctrace.NewFullTrace(string(key), trace.Values[:lastCommitIndex], trace.Params, stddevThreshhold))
 		}
+	}
+	if len(observations) == 0 {
+		return nil, fmt.Errorf("Zero traces matched.")
 	}
 
 	// Create K starting centroids.
@@ -316,5 +340,5 @@ func calculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64
 	clusterSummaries := GetClusterSummaries(observations, centroids)
 	clusterSummaries.K = k
 	clusterSummaries.StdDevThreshhold = stddevThreshhold
-	return clusterSummaries
+	return clusterSummaries, nil
 }
