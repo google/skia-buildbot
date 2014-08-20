@@ -51,6 +51,21 @@ class RunGM(BuildStep):
       # http://code.google.com/p/skia/issues/detail?id=1434
       cmd.append('--resetGpuContext')
 
+    if sys.platform == 'darwin':
+      # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
+      cmd.extend(['--config', 'defaults', '~msaa16'])
+    elif ('RazrI' in self._builder_name or
+          'Nexus10' in self._builder_name or
+          'Nexus4' in self._builder_name):
+      cmd.extend(['--config', 'defaults', 'msaa4'])
+    elif 'ANGLE' in self._builder_name:
+      cmd.extend(['--config', 'angle'])
+    elif (not 'NoGPU' in self._builder_name and
+          not 'ChromeOS' in self._builder_name and
+          not 'GalaxyNexus' in self._builder_name and
+          not 'IntelRhb' in self._builder_name):
+      cmd.extend(['--config', 'defaults', 'msaa16'])
+
     if 'Valgrind' in self._builder_name:
       # Poppler has lots of memory errors. Skip PDF rasterisation so we don't
       # have to see them
@@ -71,27 +86,7 @@ class RunGM(BuildStep):
                   '~clipped-bitmap',
                   '~xfermodes3'])
 
-    config = []
-    if sys.platform == 'darwin':
-      # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
-      config = ['--config', 'defaults', '~msaa16']
-    elif ('RazrI' in self._builder_name or
-          'Nexus10' in self._builder_name or
-          'Nexus4' in self._builder_name):
-      config = ['--config', 'defaults', 'msaa4']
-    elif 'ANGLE' in self._builder_name:
-      config = ['--config', 'angle']
-    elif (not 'NoGPU' in self._builder_name and
-          not 'ChromeOS' in self._builder_name and
-          not 'GalaxyNexus' in self._builder_name and
-          not 'IntelRhb' in self._builder_name):
-      config = ['--config', 'defaults', 'msaa16']
-
-    self._flavor_utils.RunFlavoredCmd('gm', cmd + config)
-
-    if 'Nexus4' in self._builder_name or 'Nexus10' in self._builder_name:
-      self._flavor_utils.RunFlavoredCmd(
-          'gm', cmd + ['--gpuCompressAlphaMasks'] + ['--config', 'gpu'])
+    self._flavor_utils.RunFlavoredCmd('gm', cmd)
 
 
 if '__main__' == __name__:
