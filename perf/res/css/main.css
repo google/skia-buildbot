@@ -46,6 +46,8 @@ button {
 #note {
     margin: 1em;
     width: 30%;
+    overflow-y: auto;
+    height: 80vh;
 }
 
 #note .group-only.hidden {
