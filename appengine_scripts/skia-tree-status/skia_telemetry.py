@@ -44,7 +44,7 @@ CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
     # 'pixeldiffs',
     'smoothness',
     # 'loading_trace',
-    'loading_profile'
+    # 'loading_profile'
 )
 
 # LKGR urls.
