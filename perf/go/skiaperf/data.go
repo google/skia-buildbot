@@ -83,6 +83,9 @@ type ClusterSummary struct {
 
 	// StepFit is info on the fit of the centroid to a step function.
 	StepFit *StepFit
+
+	// Hash is the Git hash at the step point.
+	Hash string
 }
 
 // ClusterSummaries is one summary for each cluster that the k-means clustering
@@ -256,7 +259,7 @@ func (p SortableClusterSummarySlice) Less(i, j int) bool {
 func (p SortableClusterSummarySlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // GetClusterSummaries returns a summaries for each cluster.
-func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterSummaries {
+func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits []*types.Commit) *ClusterSummaries {
 	ret := &ClusterSummaries{
 		Clusters: make([]*ClusterSummary, len(centroids)),
 	}
@@ -268,12 +271,13 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable) *ClusterS
 		if numSampleTraces > MAX_SAMPLE_TRACES_PER_CLUSTER {
 			numSampleTraces = MAX_SAMPLE_TRACES_PER_CLUSTER
 		}
+		stepFit := getStepFit(cluster[0].(*ctrace.ClusterableTrace).Values)
 		summary := &ClusterSummary{
 			Keys:           make([]string, len(cluster)-1),
 			Traces:         make([][][]float64, numSampleTraces),
 			ParamSummaries: getParamSummaries(cluster),
-			// Try fit on the centroid.
-			StepFit: getStepFit(cluster[0].(*ctrace.ClusterableTrace).Values),
+			StepFit:        stepFit,
+			Hash:           commits[stepFit.TurningPoint].Hash,
 		}
 		for j, o := range cluster {
 			if j != 0 {
@@ -337,7 +341,7 @@ func calculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64
 		}
 		lastTotalError = totalError
 	}
-	clusterSummaries := GetClusterSummaries(observations, centroids)
+	clusterSummaries := GetClusterSummaries(observations, centroids, tile.Commits)
 	clusterSummaries.K = k
 	clusterSummaries.StdDevThreshhold = stddevThreshhold
 	return clusterSummaries, nil
