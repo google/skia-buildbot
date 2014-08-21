@@ -144,8 +144,9 @@
 
     // Fill in the details about the cluster.
     var last50 = json.Keys.slice(0, 50);
-    $$$('.clShortcut', result).addEventListener('click', function() {
+    $$$('.clShortcut', result).addEventListener('click', function(e) {
       sk.ClusterSummary.openShortcut_(last50);
+      e.preventDefault();
     });
 
     result.dataset.clustersize = -json.Keys.length;
