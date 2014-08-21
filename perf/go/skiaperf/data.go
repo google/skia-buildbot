@@ -11,13 +11,13 @@ import (
 import "github.com/golang/glog"
 
 import (
+	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/ctrace"
 	"skia.googlesource.com/buildbot.git/perf/go/kmeans"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
 const (
-	MAX_SAMPLE_TRACES_PER_CLUSTER = 5
 
 	// K is the k in k-means.
 	K = 50
@@ -36,69 +36,17 @@ const (
 	INTERESTING_THRESHHOLD = 150.0
 )
 
-// ValueWeight is a weight proportional to the number of times the parameter
-// Value appears in a cluster. Used in ClusterSummary.
-type ValueWeight struct {
-	Value  string
-	Weight int
-}
-
-// StepFit stores information on the best Step Function fit on a trace.
-type StepFit struct {
-	// LeastSquares is the Least Squares error for a step function curve fit to the trace.
-	LeastSquares float64
-
-	// TurningPoint is the index where the Step Function changes value.
-	TurningPoint int
-
-	// StepSize is the size of the step in the step function. Negative values
-	// indicate a step up, i.e. they look like a performance regression in the
-	// trace, as opposed to positive values which look like performance
-	// improvements.
-	StepSize float64
-
-	// The "Regression" value is calculated as Step Size / Least Squares Error.
-	//
-	// The better the fit the larger the number returned, because LSE
-	// gets smaller with a better fit. The higher the Step Size the
-	// larger the number returned.
-	Regression float64
-
-	// Status of the cluster.
-	//
-	// Values can be "High", "Low", and "Uninteresting"
-	Status string
-}
-
-// ClusterSummary is a summary of a single cluster of traces.
-type ClusterSummary struct {
-	// Traces contains at most MAX_SAMPLE_TRACES_PER_CLUSTER sample traces, the first is the centroid.
-	Traces [][][]float64
-
-	// Keys of all the members of the Cluster.
-	Keys []string
-
-	// ParamSummaries is a summary of all the parameters in the cluster.
-	ParamSummaries [][]ValueWeight
-
-	// StepFit is info on the fit of the centroid to a step function.
-	StepFit *StepFit
-
-	// Hash is the Git hash at the step point.
-	Hash string
-}
-
 // ClusterSummaries is one summary for each cluster that the k-means clustering
 // found.
 type ClusterSummaries struct {
-	Clusters         []*ClusterSummary
+	Clusters         []*types.ClusterSummary
 	StdDevThreshhold float64
 	K                int
 }
 
 func NewClusterSummaries() *ClusterSummaries {
 	return &ClusterSummaries{
-		Clusters:         []*ClusterSummary{},
+		Clusters:         []*types.ClusterSummary{},
 		StdDevThreshhold: ctrace.MIN_STDDEV,
 		K:                K,
 	}
@@ -133,8 +81,8 @@ func traceToFlot(t *ctrace.ClusterableTrace) [][]float64 {
 	return ret
 }
 
-// ValueWeightSortable is a utility class for sorting the ValueWeight's by Weight.
-type ValueWeightSortable []ValueWeight
+// ValueWeightSortable is a utility class for sorting the types.ValueWeight's by Weight.
+type ValueWeightSortable []types.ValueWeight
 
 func (p ValueWeightSortable) Len() int           { return len(p) }
 func (p ValueWeightSortable) Less(i, j int) bool { return p[i].Weight > p[j].Weight } // Descending.
@@ -142,10 +90,10 @@ func (p ValueWeightSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // getParamSummaries summaries all the parameters for all observations in a cluster.
 //
-// The return value is an array of []ValueWeight's, one []ValueWeight per
-// parameter. The members of each []ValueWeight are sorted by the Weight, with
+// The return value is an array of []types.ValueWeight's, one []types.ValueWeight per
+// parameter. The members of each []types.ValueWeight are sorted by the Weight, with
 // higher Weight's first.
-func getParamSummaries(cluster []kmeans.Clusterable) [][]ValueWeight {
+func getParamSummaries(cluster []kmeans.Clusterable) [][]types.ValueWeight {
 	// For each cluster member increment each parameters count.
 	type ValueMap map[string]int
 	counts := map[string]ValueMap{}
@@ -166,11 +114,11 @@ func getParamSummaries(cluster []kmeans.Clusterable) [][]ValueWeight {
 	// Now calculate the weights for each parameter value.  The weight of each
 	// value is proportional to the number of times it appears on an observation
 	// versus all other values for the same parameter.
-	ret := make([][]ValueWeight, 0)
+	ret := make([][]types.ValueWeight, 0)
 	for _, count := range counts {
-		weights := []ValueWeight{}
+		weights := []types.ValueWeight{}
 		for value, weight := range count {
-			weights = append(weights, ValueWeight{
+			weights = append(weights, types.ValueWeight{
 				Value:  value,
 				Weight: int(14*float64(weight)/clusterSize) + 12,
 			})
@@ -200,10 +148,10 @@ func sse(xs []float64, base float64) float64 {
 	return total
 }
 
-// getStepFit takes one []float64 trace and calculates and returns a StepFit.
+// getStepFit takes one []float64 trace and calculates and returns a types.StepFit.
 //
-// See StepFit for a description of the values being calculated.
-func getStepFit(trace []float64) *StepFit {
+// See types.StepFit for a description of the values being calculated.
+func getStepFit(trace []float64) *types.StepFit {
 	lse := math.MaxFloat64
 	stepSize := -1.0
 	turn := 0
@@ -230,7 +178,7 @@ func getStepFit(trace []float64) *StepFit {
 	} else if regression < -INTERESTING_THRESHHOLD {
 		status = "Low"
 	}
-	return &StepFit{
+	return &types.StepFit{
 		LeastSquares: lse,
 		StepSize:     stepSize,
 		TurningPoint: turn,
@@ -250,7 +198,7 @@ func (p SortableClusterableSlice) Len() int           { return len(p) }
 func (p SortableClusterableSlice) Less(i, j int) bool { return p[i].Distance < p[j].Distance }
 func (p SortableClusterableSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-type SortableClusterSummarySlice []*ClusterSummary
+type SortableClusterSummarySlice []*types.ClusterSummary
 
 func (p SortableClusterSummarySlice) Len() int { return len(p) }
 func (p SortableClusterSummarySlice) Less(i, j int) bool {
@@ -261,18 +209,18 @@ func (p SortableClusterSummarySlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 // GetClusterSummaries returns a summaries for each cluster.
 func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits []*types.Commit) *ClusterSummaries {
 	ret := &ClusterSummaries{
-		Clusters: make([]*ClusterSummary, len(centroids)),
+		Clusters: make([]*types.ClusterSummary, len(centroids)),
 	}
 	allClusters, _ := kmeans.GetClusters(observations, centroids)
 
 	for i, cluster := range allClusters {
 		// cluster is just an array of the observations for a given cluster.
 		numSampleTraces := len(cluster)
-		if numSampleTraces > MAX_SAMPLE_TRACES_PER_CLUSTER {
-			numSampleTraces = MAX_SAMPLE_TRACES_PER_CLUSTER
+		if numSampleTraces > config.MAX_SAMPLE_TRACES_PER_CLUSTER {
+			numSampleTraces = config.MAX_SAMPLE_TRACES_PER_CLUSTER
 		}
 		stepFit := getStepFit(cluster[0].(*ctrace.ClusterableTrace).Values)
-		summary := &ClusterSummary{
+		summary := &types.ClusterSummary{
 			Keys:           make([]string, len(cluster)-1),
 			Traces:         make([][][]float64, numSampleTraces),
 			ParamSummaries: getParamSummaries(cluster),

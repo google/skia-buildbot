@@ -159,11 +159,17 @@ A Cloud SQL (a cloud version of MySQL) database is used to keep information on
 Skia git revisions and their corresponding annotations. The database will be
 updated when users add/edit/delete annotations via the dashboard UI.
 
-All passwords for MySQL are stored in valentine (search "skia perf").
+All passwords for MySQL are stored in valentine (search "skiaperf").
 
 To connect to the database from authorized network (including skia-perf GCE):
 
     $ mysql -h 173.194.104.24 -u root -p
+
+
+
+    mysql> use skia
+
+    mysql> show tables;
 
 Initial setup of the database, the users, and the tables:
 
@@ -174,58 +180,20 @@ Initial setup of the database, the users, and the tables:
     CREATE USER 'readwrite'@'%' IDENTIFIED BY <password in valentine>;
     GRANT SELECT, DELETE, UPDATE, INSERT ON *.* TO 'readwrite'@'%';
 
-    // Table for storing annotations.
-    CREATE TABLE notes (
-      id     INT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      type   TINYINT,
-      author TEXT,
-      notes  TEXT      NOT NULL
-    );
-
-    // Table for storing git revision information.
-    CREATE TABLE githash (
-      githash   VARCHAR(40)   NOT NULL PRIMARY KEY,
-      ts        TIMESTAMP     NOT NULL,
-      gitnumber INT           NOT NULL,
-      author    TEXT          NOT NULL,
-      message   TEXT          NOT NULL
-    );
-
-    // Table for mapping revisions and annotations. This support many-to-many
-    // mapping.
-    CREATE TABLE githashnotes (
-      githash VARCHAR(40)  NOT NULL,
-      ts      TIMESTAMP    NOT NULL,
-      id      INT          NOT NULL,
-
-      FOREIGN KEY (githash) REFERENCES githash(githash),
-      FOREIGN KEY (id) REFERENCES notes(id)
-    );
-
     CREATE TABLE shortcuts (
       id      INT             NOT NULL AUTO_INCREMENT PRIMARY KEY,
       traces  MEDIUMTEXT      NOT NULL
     );
 
-Common queries that the dashboard will use:
-
-    INSERT INTO notes (type, author, notes) VALUES (1, 'bsalomon', 'Alert!');
-
-    SELECT LAST_INSERT_ID();
-
-    INSERT INTO githashnotes (ts, id) VALUES (<githash_ts>, <last_insert_id>);
-
-The above set of commands will usually be used together to add new annotations
-and associate them with corresponding git commits. The commands below remove an
-annotation and its associations with any commit.
-
-    DELETE FROM githashnotes WHERE id = <id_to_delete>;
-
-    DELETE FROM notes WHERE id = <id_to_delete>;
-
-Since the data size is relatively small, the dashboard server can keep a copy of
-all recent commit info (e.g., for constructing a "blamelist"), annotations, and
-their many-to-many relationship for use in the context.
+    CREATE TABLE clusters (
+      id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      ts         TIMESTAMP    NOT NULL,
+      hash       TEXT         NOT NULL,
+      regression FLOAT        NOT NULL,
+      cluster    MEDIUMTEXT   NOT NULL,
+      status     TEXT         NOT NULL,
+      message    TEXT         NOT NULL
+    );
 
 Password for the database will be stored in the metadata instance. To see the
 current password stored in metadata and the fingerprint:
@@ -235,6 +203,11 @@ current password stored in metadata and the fingerprint:
 To set the mysql password that perf is to use:
 
     gcutil --project=google.com:skia-buildbots setinstancemetadata [skia-perf GCE instance] --metadata=readonly:[password-from-valentine] --metadata=readwrite:[password-from-valentine] --fingerprint=[the metadata fingerprint]
+
+You can find the current metadata fingerprint by running:
+
+    gcutil --project=google.com:skia-buildbots getinstance skia-perf-b
+
 
 Clustering
 ----------

@@ -1,7 +1,5 @@
 package types
 
-import "time"
-
 import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
@@ -150,33 +148,59 @@ type TileStore interface {
 	GetModifiable(scale, index int) (*Tile, error)
 }
 
-// DateIter allows for easily iterating backwards, one day at a time, until
-// reaching the BEGINNING_OF_TIME.
-type DateIter struct {
-	day       time.Time
-	firstLoop bool
+// ValueWeight is a weight proportional to the number of times the parameter
+// Value appears in a cluster. Used in ClusterSummary.
+type ValueWeight struct {
+	Value  string
+	Weight int
 }
 
-func NewDateIter() *DateIter {
-	return &DateIter{
-		day:       time.Now(),
-		firstLoop: true,
-	}
+// StepFit stores information on the best Step Function fit on a trace.
+//
+// Used in ClusterSummary.
+type StepFit struct {
+	// LeastSquares is the Least Squares error for a step function curve fit to the trace.
+	LeastSquares float64
+
+	// TurningPoint is the index where the Step Function changes value.
+	TurningPoint int
+
+	// StepSize is the size of the step in the step function. Negative values
+	// indicate a step up, i.e. they look like a performance regression in the
+	// trace, as opposed to positive values which look like performance
+	// improvements.
+	StepSize float64
+
+	// The "Regression" value is calculated as Step Size / Least Squares Error.
+	//
+	// The better the fit the larger the number returned, because LSE
+	// gets smaller with a better fit. The higher the Step Size the
+	// larger the number returned.
+	Regression float64
+
+	// Status of the cluster.
+	//
+	// Values can be "High", "Low", and "Uninteresting"
+	Status string
 }
 
-// Next is the iterator step function to be used in a for loop.
-func (i *DateIter) Next() bool {
-	if i.firstLoop {
-		i.firstLoop = false
-		return true
-	}
-	i.day = i.day.Add(-24 * time.Hour)
-	return i.Date() != config.BEGINNING_OF_TIME.BqTableSuffix()
-}
+// ClusterSummary is a summary of a single cluster of traces.
+type ClusterSummary struct {
+	// Traces contains at most config.MAX_SAMPLE_TRACES_PER_CLUSTER sample
+	// traces, the first is the centroid.
+	Traces [][][]float64
 
-// Date returns the day formatted as we use them on BigQuery table name suffixes.
-func (i *DateIter) Date() string {
-	return i.day.Format("20060102")
+	// Keys of all the members of the Cluster.
+	Keys []string
+
+	// ParamSummaries is a summary of all the parameters in the cluster.
+	ParamSummaries [][]ValueWeight
+
+	// StepFit is info on the fit of the centroid to a step function.
+	StepFit *StepFit
+
+	// Hash is the Git hash at the step point.
+	Hash string
 }
 
 // Merge the two Tiles, presuming tile1 comes before tile2.

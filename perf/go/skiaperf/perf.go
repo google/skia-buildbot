@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -285,45 +284,6 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeClusterSummaries(summary, w, r)
-}
-
-// annotationsHandler handles POST requests to the annotations page.
-func annotationsHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Annotations Handler: %q\n", r.URL.Path)
-	if r.Method == "POST" {
-		buf := bytes.NewBuffer(make([]byte, 0, MAX_POST_SIZE))
-		n, err := buf.ReadFrom(r.Body)
-		if err != nil {
-			reportError(w, r, err, "Failed to read annotation request body to buffer.")
-			return
-		}
-		if n == MAX_POST_SIZE {
-			reportError(w, r, err, fmt.Sprintf("Annotation request size >= max post size %d.", MAX_POST_SIZE))
-			return
-		}
-		if err := db.ApplyAnnotation(buf); err != nil {
-			reportError(w, r, fmt.Errorf("Annotation update error: %s", err), "Failed to change annotation in db.")
-		}
-	} else if r.Method == "GET" {
-		startTS, err := strconv.ParseInt(r.FormValue("start"), 10, 64)
-		if err != nil {
-			reportError(w, r, fmt.Errorf("Error parsing startTS: %s", err), "Failed to get startTS for querying annotations.")
-			return
-		}
-		endTS, err := strconv.ParseInt(r.FormValue("end"), 10, 64)
-		if err != nil {
-			reportError(w, r, fmt.Errorf("Error parsing endTS: %s", err), "Failed to get endTS for querying annotations.")
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		annotations, err := db.GetAnnotations(startTS, endTS)
-		if err != nil {
-			reportError(w, r, fmt.Errorf("Error getting annotations: %s", err), "Failed to read and return annotations from db.")
-			return
-		}
-		w.Write(annotations)
-	}
 }
 
 // getTile retrieves a tile from the disk
@@ -679,7 +639,6 @@ func main() {
 	http.HandleFunc("/trybots/", autogzip.HandleFunc(trybotHandler))
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
 	http.HandleFunc("/clustering/", autogzip.HandleFunc(clusteringHandler))
-	http.HandleFunc("/annotations/", autogzip.HandleFunc(annotationsHandler))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

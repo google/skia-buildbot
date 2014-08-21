@@ -9,11 +9,6 @@ import (
 // Note that the limit is exclusive, this date does not contain good data.
 type QuerySince time.Time
 
-// TableSuffix returns QuerySince in the BigQuery table suffix format.
-func (b QuerySince) BqTableSuffix() string {
-	return time.Time(b).Format("20060102")
-}
-
 // Date returns QuerySince in the YearMonDay format.
 func (b QuerySince) Date() string {
 	return time.Time(b).Format("20060102")
@@ -52,6 +47,10 @@ const (
 
 	// Limit the number of times the ingester tries to get a file before giving up.
 	MAX_URI_GET_TRIES = 4
+
+	// MAX_SAMPLE_TRACES_PER_CLUSTER  is the maximum number of traces stored in a
+	// ClusterSummary.
+	MAX_SAMPLE_TRACES_PER_CLUSTER = 5
 )
 
 type DatasetName string
@@ -62,34 +61,6 @@ const (
 )
 
 var (
-	ALL_DATASET_NAMES = []DatasetName{DATASET_SKP, DATASET_MICRO}
-
 	// TODO(jcgregorio) Make into a flag.
-	BEGINNING_OF_TIME          = QuerySince(time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC))
-	HUMAN_READABLE_PARAM_NAMES = map[string]string{
-		"antialias":       "Antialiasing",
-		"arch":            "CPU Architecture",
-		"bbh":             "BBH Setting",
-		"benchName":       "SKP Name",
-		"builderName":     "Builder Name",
-		"config":          "Picture Configuration",
-		"configuration":   "Build Configuration",
-		"clip":            "Clip",
-		"dither":          "Dither",
-		"gpu":             "GPU Type",
-		"gpuConfig":       "GPU Configuration",
-		"measurementType": "Measurement Type",
-		"mode":            "Mode Configuration",
-		"model":           "Buildbot Model",
-		"os":              "OS",
-		"role":            "Buildbot Role",
-		"rotate":          "Rotate",
-		"scale":           "Scale Setting",
-		"skpSize":         "SKP Size",
-		"system":          "System Type",
-		"test":            "Test Name",
-		"testName":        "Test Name",
-		"viewport":        "Viewport Size",
-	}
-	NANO_PARAM_ORDER = []string{"arch", "system", "os", "model", "gpu", "test", "config"}
+	BEGINNING_OF_TIME = QuerySince(time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC))
 )
