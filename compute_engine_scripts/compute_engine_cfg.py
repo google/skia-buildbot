@@ -36,6 +36,7 @@ PROJECT_ID = 'google.com:chromecompute'
 # We flip the default one as required by PCRs in bigcluster.
 ZONE_TAG = os.environ.get('ZONE_TAG', 'b')
 ZONE = 'us-central2-%s' % ZONE_TAG
+WINDOWS_TEST_ZONE = 'us-central1-a'
 
 # The below constants determine which instances the delete and create/setup
 # scripts apply to.

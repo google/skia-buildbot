@@ -15,7 +15,6 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   WAIT_TIME_AFTER_CREATION_SECS=600
 elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_WIN_IMAGE_NAME
-
   ORIG_STARTUP_SCRIPT="../../scripts/win_setup.ps1"
   MODIFIED_STARTUP_SCRIPT="/tmp/win_setup.ps1"
   # Set chrome-bot's password in win_setup.ps1
@@ -48,15 +47,29 @@ done
 # Create all requested instances.
 for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+  EXTERNAL_IP_ADDRESS=${IP_ADDRESS_WITHOUT_MACHINE_PART}.${MACHINE_IP}
 
   if [ "$VM_INSTANCE_OS" == "Linux" ]; then
     # The persistent disk of linux GCE bots is based on the bot's IP address.
     DISK_ARGS=--disk=skia-disk-`printf "%03d" ${MACHINE_IP}`
+  elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
+    # This is temporary, it is to try to find a fix for
+    # https://code.google.com/p/skia/issues/detail?id=2765
+    if [ "$INSTANCE_NAME" == "skia-vm-030" ]; then
+      EXTERNAL_IP_ADDRESS="108.59.83.85"
+      ZONE=$WINDOWS_TEST_ZONE
+    elif [ "$INSTANCE_NAME" == "skia-vm-031" ]; then
+      EXTERNAL_IP_ADDRESS="146.148.43.93"
+      ZONE=$WINDOWS_TEST_ZONE
+    elif [ "$INSTANCE_NAME" == "skia-vm-032" ]; then
+      EXTERNAL_IP_ADDRESS="23.251.159.101"
+      ZONE=$WINDOWS_TEST_ZONE
+    fi
   fi
 
   $GCOMPUTE_CMD addinstance ${INSTANCE_NAME} \
     --zone=$ZONE \
-    --external_ip_address=${IP_ADDRESS_WITHOUT_MACHINE_PART}.${MACHINE_IP} \
+    --external_ip_address=$EXTERNAL_IP_ADDRESS \
     --service_account=$PROJECT_USER \
     --service_account_scopes="$SCOPES" \
     --network=$SKIA_NETWORK_NAME \
