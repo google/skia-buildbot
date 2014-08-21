@@ -83,8 +83,8 @@ Tile Repo will be represented internally as an interface, the first
 implemetation will be as files on the local disk, with a directory tree that
 contains Go gob files called tiles.
 
-Each tile contains exactly 32 points of every trace for a dataset.  The one
-exception being the last tile, which may contain less that 32 points; see
+Each tile contains exactly 128 points of every trace for a dataset.  The one
+exception being the last tile, which may contain less that 128 points; see
 below for an explanation of that.  The Tile Repo directory structure is:
 
     $TILE_REPO_ROOT/<dataset>/<scale>/<tilenumber>.gob
@@ -95,7 +95,7 @@ Where:
   * scale = 0..5 The scale factor of 4^N, so points in the /0/ directory
                  represent 1:1 with test results, while tiles in the /1/
                  directory have every fourth commit with data, and /2/
-                 has every 32th commit with data.
+                 has every 128th commit with data.
   * tilenumber = The number of the tile, at the given scale, starting at BOT
                  (Beginning of Time).
 
@@ -128,7 +128,8 @@ Logs
 ----
 
 We use the https://github.com/golang/glog for logging, which puts Google style
-Error, Warning and Info logs in /tmp on the server under the 'perf' account.
+Error, Warning and Info logs in /tmp/glog on the server under the 'skiaperf'
+account.
 
 
 Debugging Tips
@@ -234,6 +235,121 @@ current password stored in metadata and the fingerprint:
 To set the mysql password that perf is to use:
 
     gcutil --project=google.com:skia-buildbots setinstancemetadata [skia-perf GCE instance] --metadata=readonly:[password-from-valentine] --metadata=readwrite:[password-from-valentine] --fingerprint=[the metadata fingerprint]
+
+Clustering
+----------
+
+The clusting is done by using k-means clustering over normalized Traces. The
+Traces are normalized by filling in missing data points so that there is a
+data point for every commit, and then scaling the data to have a mean of 0.0
+and a standard deviation of 1.0. See the docs for ctrace.NewFullTrace().
+
+The distance metric used is Euclidean distance between the traces.
+
+After clustering is complete we calculate some metrics for each cluster by
+curve fitting a step function to the centroid. We record the location of the
+step, the size of the step, and the least squares error of the curve fit. From
+that data we calculate the "Regression" value, which measures how much like a
+step function the centroid is, and is calculated by:
+
+  Regression = StepSize / LeastSquaresError.
+
+
+The better the fit the larger the Regression, because LSE gets smaller
+with a better fit. The higher the Step Size the larger the Regression.
+
+A cluster is considered "Interesting" if the Regression value is large enough.
+The current cutoff for Interestingness is:
+
+  |Regression| > 150
+
+Where negative Regression values mean possible regressions, and positive
+values mean possible performance improvement.
+
+Alerting
+--------
+
+A dashboard is needed to report clusters that look "Interesting", i.e. could
+either be performance regressions, improvements, or other anomalies. The
+current k-means clustering and calculating the Regression statistic for each
+cluster does a good job of indicating when something Interesting has happened,
+but a more structured system is needed that:
+
+  * Runs the clustering on a periodic basis.
+  * Allows flagging of interesting clusters as either ignorable or a bug.
+  * Finds clusters that are the same from run to run.
+
+The last step, finding clusters that are the same, will be done by
+fingerprinting, i.e. use the first 20 traces of each cluster will be used as a
+fingerprint for a cluster. That is, if a new cluster has some (or even one) of
+the same traces as the first 20 traces in an existing cluster, then they are
+the same cluster. Note that we use the first 20 because traces are stored
+sorted on how close they are to the centroid for the cluster.
+
+Algorithm:
+  Run clustering and pick out the "Interesting" clusters.
+  Compare all the Interestin clusters to all the existing relevant clusters,
+    where "relevant" clusters are ones whose Hash/timestamp of the step
+    exists in the current tile.
+  Start with an empty "list".
+  For each cluster:
+    For each relevant existing cluster:
+      Take the top 20 keys from the existing cluster and count how many appear
+      in the cluster.
+    If there are no matches then this is a new cluster, add it to the "list".
+    If there are matches, possibly to multiple existing clusters, find the
+    existing cluster with the most matches.
+      Take the better of the two clusters (old/new) based on the better
+      Regression score, i.e. larger |Regression|, and update that in the "list".
+  Save all the clusters in the "list" back to the db.
+
+This algorithm should keep already triaged clusters in their triaged
+state while adding new unique clusters as they appear.
+
+Example
+~~~~~~~
+
+Let's say we have three existing clusters with the following trace ids:
+
+    C[1], C[2], C[3,4]
+
+And we run clustering and get the followin four new clusters:
+
+    N[1], N[3], N[4], N[5]
+
+In the end we should end up with the following clusters:
+
+    C[1] or N[1]
+    C[2]
+    C[3,4] or N[3] or N[4]
+    N[5]
+
+Where the 'or' chooses the cluster with the higher |Regression| value.
+
+Each unique cluster that's found will be stored in the datastore. The schema
+will be:
+
+    CREATE TABLE clusters (
+      id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      ts         TIMESTAMP    NOT NULL,
+      hash       TEXT         NOT NULL,
+      regression FLOAT        NOT NULL,
+      cluster    MEDIUMTEXT   NOT NULL,
+      status     TEXT         NOT NULL,
+      message    TEXT         NOT NULL
+    );
+
+Where:
+  'cluster' is the JSON serialized ClusterSummary struct.
+  'ts' is the timestamp of the step in the step function.
+  'status' is "New" for a new cluster, "Ignore", or "Bug".
+  'hash' is the git hash at the step point.
+  'message' is either a note on why this cluster is ignored, or a bug #.
+
+Note that only the id may remain stable over time. If a new cluster is found
+that matches the fingerprint of an exisiting cluster, but has a higher
+regression value, than the new cluster values will be written into the
+'clusters' table, including the ts, hash, and regression values.
 
 
 Startup and config
