@@ -9,14 +9,15 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/rcrowley/go-metrics"
 	"io"
-	"log"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/rcrowley/go-metrics"
 )
 
 import (
@@ -24,9 +25,10 @@ import (
 )
 
 var (
-	config = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
-	prefix = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Carbon.")
-	carbon = flag.String("carbon", "localhost:2003", "Address of Carbon server and port.")
+	config     = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
+	prefix     = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Carbon.")
+	carbon     = flag.String("carbon", "localhost:2003", "Address of Carbon server and port.")
+	apikeyFlag = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
 	bodyTesters = map[string]BodyTester{
@@ -35,8 +37,10 @@ var (
 )
 
 const (
-	SAMPLE_PERIOD = time.Minute
-	TIMEOUT       = time.Duration(20 * time.Second)
+	SAMPLE_PERIOD        = time.Minute
+	TIMEOUT              = time.Duration(20 * time.Second)
+	ISSUE_TRACKER_PERIOD = 15 * time.Minute
+	APIKEY_METADATA_URL  = "http://metadata/computeMetadata/v1/instance/attributes/apikey"
 )
 
 // BodyTester tests the response body from a probe and returns true if it passes all tests.
@@ -86,7 +90,7 @@ func readConfigFiles(filenames string) (Probes, error) {
 		for k, v := range *p {
 			if f, ok := bodyTesters[v.BodyTestName]; ok {
 				v.bodyTest = f
-				log.Printf("Found a body test for %s", k)
+				glog.Infof("Found a body test for %s", k)
 			}
 			allProbes[k] = v
 		}
@@ -132,14 +136,89 @@ func testBuildbotJSON(r io.Reader) bool {
 	return allConnected
 }
 
-func main() {
-	flag.Parse()
-	log.Println("Looking for Carbon server.")
+// monitorIssueTracker reads the counts for all the types of issues in the skia
+// issue tracker (code.google.com/p/skia) and stuffs the counts into Graphite.
+func monitorIssueTracker() {
+	c := &http.Client{
+		Transport: &http.Transport{
+			Dial: dialTimeout,
+		},
+	}
+	apikey := *apikeyFlag
+	// If apikey isn't passed in then read it from the metadata server.
+	if apikey == "" {
+		// Get the API Key we need to make requests to the issue tracker.
+		req, err := http.NewRequest("GET", APIKEY_METADATA_URL, nil)
+		if err != nil {
+			glog.Fatalln(err)
+		}
+		req.Header.Add("X-Google-Metadata-Request", "True")
+		if resp, err := c.Do(req); err == nil {
+			apikeyBytes, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				glog.Fatalln("Failed to read password from metadata server:", err)
+			}
+			apikey = string(apikeyBytes)
+		}
+	}
+
+	// Create a new metrics registry for the issue tracker metrics.
 	addr, err := net.ResolveTCPAddr("tcp", *carbon)
 	if err != nil {
-		log.Fatalln("Failed to resolve the Carbon server: ", err)
+		glog.Fatalln("Failed to resolve the Carbon server: ", err)
 	}
-	log.Println("Found Carbon server.")
+	issueRegistry := metrics.NewRegistry()
+	go metrics.Graphite(issueRegistry, SAMPLE_PERIOD, "issues", addr)
+
+	// IssueStatus has all the info we need to capture and record a single issue status. I.e. capture
+	// the count of all issues with a status of "New".
+	type IssueStatus struct {
+		Name   string
+		Metric metrics.Gauge
+		URL    string
+	}
+
+	allIssueStatusLabels := []string{
+		"New", "Accepted", "Unconfirmed", "Started", "Fixed", "Verified", "Invalid", "WontFix", "Done", "Available", "Assigned",
+	}
+
+	issueStatus := []*IssueStatus{}
+	for _, issueName := range allIssueStatusLabels {
+		issueStatus = append(issueStatus, &IssueStatus{
+			Name:   issueName,
+			Metric: metrics.NewRegisteredGauge(strings.ToLower(issueName), issueRegistry),
+			URL:    "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?fields=totalResults&key=" + apikey + "&status=" + issueName,
+		})
+	}
+
+	for _ = range time.Tick(ISSUE_TRACKER_PERIOD) {
+		for _, issue := range issueStatus {
+			resp, err := c.Get(issue.URL)
+			jsonResp := map[string]int64{}
+			dec := json.NewDecoder(resp.Body)
+			if err := dec.Decode(&jsonResp); err != nil {
+				glog.Warningf("Failed to decode JSON response: %s", err)
+				resp.Body.Close()
+				continue
+			}
+			issue.Metric.Update(jsonResp["totalResults"])
+			glog.Infof("Num Issues: %s - %d", issue.Name, jsonResp["totalResults"])
+			if err == nil && resp.Body != nil {
+				resp.Body.Close()
+			}
+		}
+	}
+}
+
+func main() {
+	flag.Parse()
+	go monitorIssueTracker()
+	glog.Infoln("Looking for Carbon server.")
+	addr, err := net.ResolveTCPAddr("tcp", *carbon)
+	if err != nil {
+		glog.Fatalln("Failed to resolve the Carbon server: ", err)
+	}
+	glog.Infoln("Found Carbon server.")
 
 	// We have two sets of metrics, one for the probes and one for the probe
 	// server itself.
@@ -154,9 +233,9 @@ func main() {
 	// TODO(jcgregorio) Monitor config file and reload if it changes.
 	cfg, err := readConfigFiles(*config)
 	if err != nil {
-		log.Fatalln("Failed to read config file: ", err)
+		glog.Fatalln("Failed to read config file: ", err)
 	}
-	log.Println("Successfully read config file.")
+	glog.Infoln("Successfully read config file.")
 	// Register counters for each probe.
 	for name, probe := range cfg {
 		probe.success = metrics.NewRegisteredCounter(name+".success", probeRegistry)
@@ -174,14 +253,14 @@ func main() {
 	}
 	for _ = range time.Tick(SAMPLE_PERIOD) {
 		for name, probe := range cfg {
-			log.Println("Running probe: ", name)
+			glog.Infoln("Running probe: ", name)
 			begin = time.Now()
 			if probe.Method == "GET" {
 				resp, err = c.Get(probe.URL)
 			} else if probe.Method == "POST" {
 				resp, err = c.Post(probe.URL, probe.MimeType, strings.NewReader(probe.Body))
 			} else {
-				log.Println("Error: unknown method: ", probe.Method)
+				glog.Infoln("Error: unknown method: ", probe.Method)
 				continue
 			}
 			bodyTestResults := true

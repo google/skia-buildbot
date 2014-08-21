@@ -35,6 +35,17 @@ the following:
   sudo /usr/share/google/safe_format_and_mount -m "mkfs.ext4 -F" \
     /dev/disk/by-id/google-skia-monitoring-data-$ZONE_TAG /mnt/graphite-data
 
+To set the API Key to use for HTML web APIS, use:
+
+    gcutil --project=google.com:skia-buildbots setinstancemetadata skia-monitoring-b --metadata=apikey:[apikey] --fingerprint=[metadata fingerprint]
+
+You can find the current metadata fingerprint by running:
+
+    gcutil --project=google.com:skia-buildbots getinstance skia-monitoring-b
+
+You can find the API Key to use on this page:
+
+    https://console.developers.google.com/project/31977622648/apiui/credential
 
 Do on update
 ------------
