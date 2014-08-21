@@ -38,9 +38,13 @@ import slave_hosts_cfg
 import slaves_cfg
 
 
+CHROME_BUILD_URL = 'https://chromium.googlesource.com/chromium/tools/build.git'
+CHROME_BUILD_INTERNAL_URL = (
+    'https://chrome-internal.googlesource.com/chrome/tools/build.git')
 SKIA_URL = 'https://skia.googlesource.com/buildbot.git'
 GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
 GIT = 'git.bat' if os.name == 'nt' else 'git'
+UPSTREAM_MASTER_PREFIX = 'client.skia'
 
 
 # How often we should check each buildslave's keepalive conditions, in seconds.
@@ -66,15 +70,13 @@ def IsRunning(pid):
     return False
   if os.name == 'nt':
     cmd = ['tasklist', '/FI', '"PID eq %s"' % pid]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
-    if proc.wait() != 0:
-      raise Exception('Unable to poll process with PID %s' % pid)
-    is_running = pid in proc.communicate()[0]
+    output = subprocess.check_output(cmd, stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT)
+    is_running = pid in output
   else:
     cmd = ['cat', '/proc/%s/stat' % pid]
-    is_running = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT).wait() == 0
+    is_running = subprocess.call(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT) == 0
   return is_running
 
 
@@ -82,12 +84,12 @@ class BuildSlaveManager(multiprocessing.Process):
   """ Manager process for BuildSlaves. Periodically checks that any
   keepalive_conditions are met and kills or starts the slave accordingly. """
 
-  def __init__(self, slavename, slave_dir, copies, copy_src_dir, master_name,
-               keepalive_conditions, poll_interval):
+  def __init__(self, slavename, checkout_path, copies, copy_src_dir,
+               master_name, keepalive_conditions, poll_interval):
     """ Construct the BuildSlaveManager.
 
     slavename: string; the name of the slave to start.
-    slave_dir: string; the directory in which to launch the slave.
+    checkout_path: string; the directory in which to launch the slave.
     copies: list of dictionaries; files to copy into the slave's source
         checkout.
     copy_src_dir: string; directory in which the files to copy reside.
@@ -100,7 +102,7 @@ class BuildSlaveManager(multiprocessing.Process):
         seconds.
     """
     self._slavename = slavename
-    self._slave_dir = slave_dir
+    self._checkout_path = checkout_path
     self._copies = copies
     self._copy_src_dir = os.path.abspath(copy_src_dir)
     self._keepalive_conditions = keepalive_conditions
@@ -108,33 +110,40 @@ class BuildSlaveManager(multiprocessing.Process):
     self._master_name = master_name
     multiprocessing.Process.__init__(self)
 
+  def _GClientConfig(self):
+    """Run 'gclient config'."""
+    subprocess.check_call([GCLIENT, 'config', SKIA_URL])
+
   def _SyncSources(self):
     """ Run 'gclient sync' on the buildbot sources. """
     # Check out or update the buildbot scripts
-    if os.name == 'nt':
-      gclient = 'gclient.bat'
-    else:
-      gclient = 'gclient'
-    proc = subprocess.Popen([gclient, 'config', SKIA_URL])
-    if proc.wait() != 0:
-      raise Exception('Could not successfully configure gclient.')
-    proc = subprocess.Popen([gclient, 'sync', '-j1', '--force'])
-    if proc.wait() != 0:
-      raise Exception('Sync failed.')
+    self._GClientConfig()
+    subprocess.check_call([GCLIENT, 'sync', '-j1', '--force'])
 
     if os.name == 'nt':
       os.environ['WIN_TOOLS_FORCE'] = '1'
       subprocess.check_call([os.path.join(os.getcwd(), 'buildbot',
                                           'third_party', 'depot_tools',
-                                          gclient)])
+                                          GCLIENT)])
       del os.environ['WIN_TOOLS_FORCE']
 
     # Perform Copies
-    for copy in self._copies:
-      src = os.path.join(self._copy_src_dir, os.path.normpath(copy['source']))
-      dest = os.path.normpath(copy['destination'])
-      print 'Copying %s to %s' % (src, dest)
-      shutil.copy(src, dest)
+    if self._copies:
+      for copy in self._copies:
+        src = os.path.join(self._copy_src_dir, os.path.normpath(copy['source']))
+        dest = os.path.normpath(copy['destination'])
+        print 'Copying %s to %s' % (src, dest)
+        shutil.copy(src, dest)
+
+  @property
+  def master_host(self):
+    """Return the hostname of the master for this buildslave."""
+    return config.Master.set_active_master(self._master_name).master_host
+
+  @property
+  def slave_dir(self):
+    """Directory in which to launch the slave."""
+    return os.path.join('buildbot', 'slave')
 
   def _LaunchSlave(self):
     """ Launch the BuildSlave. """
@@ -143,28 +152,26 @@ class BuildSlaveManager(multiprocessing.Process):
 
     self._SyncSources()
 
-    # Find the hostname of the master we're connecting to.
-    master_host = config.Master.set_active_master(self._master_name).master_host
-
-    os.chdir(os.path.join('buildbot', 'slave'))
+    os.chdir(self.slave_dir)
     if os.name == 'nt':
       # We run different commands for the Windows shell
       cmd = 'setlocal&&'
       cmd += 'set TESTING_SLAVENAME=%s&&' % self._slavename
       cmd += 'set TESTING_MASTER=%s&&' % self._master_name
-      cmd += 'set TESTING_MASTER_HOST=%s&&' % master_host
+      if self.master_host:
+        cmd += 'set TESTING_MASTER_HOST=%s&&' % self.master_host
       cmd += 'run_slave.bat'
       cmd += '&& endlocal'
     else:
-      proc = subprocess.Popen(['make', 'stop'])
-      proc.wait()
+      subprocess.check_call(['make', 'stop'])
       cmd = 'TESTING_SLAVENAME=%s ' % self._slavename
       cmd += 'TESTING_MASTER=%s ' % self._master_name
-      cmd += 'TESTING_MASTER_HOST=%s ' % master_host
+      if self.master_host:
+        cmd += 'TESTING_MASTER_HOST=%s ' % self.master_host
       cmd += 'make start'
     print 'Running cmd: %s' % cmd
-    subprocess.Popen(cmd, shell=True)
-    os.chdir(self._slave_dir)
+    subprocess.check_call(cmd, shell=True)
+    os.chdir(self._checkout_path)
 
     start_time = time.time()
     while not self._IsRunning():
@@ -196,14 +203,14 @@ class BuildSlaveManager(multiprocessing.Process):
       cmd = ['make', 'stop']
     if subprocess.Popen(cmd).wait() != 0:
       raise Exception('Failed to kill slave with pid %s' % str(pid))
-    os.chdir(self._slave_dir)
+    os.chdir(self._checkout_path)
 
   def run(self):
     """ Run the BuildSlaveManager. This overrides multiprocessing.Process's
     run() method. """
-    os.chdir(self._slave_dir)
+    os.chdir(self._checkout_path)
     self._SyncSources()
-    self._slave_dir = os.path.abspath(os.curdir)
+    self._checkout_path = os.path.abspath(os.curdir)
     if self._IsRunning():
       self._KillSlave()
     while True:
@@ -229,6 +236,49 @@ class BuildSlaveManager(multiprocessing.Process):
     print 'Slave process for %s has finished.' % self._slavename
 
 
+class ChromeBuildSlaveManager(BuildSlaveManager):
+  """BuildSlaveManager for slaves using Chromium build code."""
+
+  def _GClientConfig(self):
+    """Run 'gclient config'."""
+    solutions = [
+      { 'name': 'build',
+        'url': CHROME_BUILD_URL,
+        'deps_file': '.DEPS.git',
+        'managed': True,
+        'custom_deps': {},
+        'safesync_url': '',
+      },
+      { 'name': 'build_internal',
+        'url': CHROME_BUILD_INTERNAL_URL,
+        'deps_file': '.DEPS.git',
+        'managed': True,
+        'custom_deps': {},
+        'safesync_url': '',
+      },
+    ]
+    cmd = [GCLIENT, 'config', '--spec=solutions=%s' % repr(solutions)]
+    print 'Running command: %s' % ' '.join(cmd)
+    subprocess.check_call(cmd)
+
+  @property
+  def master_host(self):
+    """Return the hostname of the master for this buildslave."""
+    return None  # Just use the default.
+
+  @property
+  def slave_dir(self):
+    """Directory from which to launch the buildslave."""
+    return os.path.join('build', 'slave')
+
+
+def ReadSlavesCfg(slaves_cfg_path):
+  """Read the given slaves.cfg path and return the slaves dict."""
+  cfg = {}
+  execfile(slaves_cfg_path, cfg)
+  return cfg['slaves']
+
+
 def RunSlave(slavename, copies):
   """ Launch a single slave, checking out the buildbot tree if necessary.
 
@@ -246,20 +296,35 @@ def RunSlave(slavename, copies):
     print 'Creating directory: %s' % slave_dir
     os.makedirs(slave_dir)
 
-  # Find the slave config dict for this slave.
+  # Find the slave config dict and BuildSlaveManager type for this slave.
   slave_cfg = {}
+  manager = None
   for cfg in slaves_cfg.SLAVES:
     if cfg['hostname'] == slavename:
       slave_cfg = cfg
+      manager = BuildSlaveManager
       break
+  if not slave_cfg:
+    # Try looking at upstream masters.
+    upstream_masters_dir = os.path.join('third_party',
+                                        'chromium_buildbot_tot',
+                                        'masters')
+    for master_dir in os.listdir(upstream_masters_dir):
+      if master_dir.startswith('master.%s' % UPSTREAM_MASTER_PREFIX):
+        slaves_cfg_path = os.path.join(
+            upstream_masters_dir, master_dir, 'slaves.cfg')
+        for cfg in ReadSlavesCfg(slaves_cfg_path):
+          if cfg['hostname'] == slavename:
+            slave_cfg = cfg
+            manager = ChromeBuildSlaveManager
+            break
   if not slave_cfg:
     raise Exception('No buildslave config found for %s!' % slavename)
 
-  manager = BuildSlaveManager(slavename, slave_dir, copies, os.pardir,
-                              slave_cfg['master'],
-                              slave_cfg.get('keepalive_conditions', []),
-                              DEFAULT_POLL_INTERVAL)
-  manager.start()
+  # Launch the buildslave.
+  manager(slavename, slave_dir, copies, os.pardir, slave_cfg['master'],
+          slave_cfg.get('keepalive_conditions', []), DEFAULT_POLL_INTERVAL
+          ).start()
 
 
 class FileLogger:
