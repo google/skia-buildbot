@@ -1,4 +1,4 @@
-package main
+package clustering
 
 import (
 	"fmt"
@@ -220,13 +220,12 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits [
 			numSampleTraces = config.MAX_SAMPLE_TRACES_PER_CLUSTER
 		}
 		stepFit := getStepFit(cluster[0].(*ctrace.ClusterableTrace).Values)
-		summary := &types.ClusterSummary{
-			Keys:           make([]string, len(cluster)-1),
-			Traces:         make([][][]float64, numSampleTraces),
-			ParamSummaries: getParamSummaries(cluster),
-			StepFit:        stepFit,
-			Hash:           commits[stepFit.TurningPoint].Hash,
-		}
+		summary := types.NewClusterSummary(len(cluster)-1, numSampleTraces)
+		summary.ParamSummaries = getParamSummaries(cluster)
+		summary.StepFit = stepFit
+		summary.Hash = commits[stepFit.TurningPoint].Hash
+		summary.Timestamp = commits[stepFit.TurningPoint].CommitTime
+
 		for j, o := range cluster {
 			if j != 0 {
 				summary.Keys[j-1] = o.(*ctrace.ClusterableTrace).Key
@@ -258,8 +257,8 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits [
 // Filter returns true if a trace should be included in clustering.
 type Filter func(tr *types.Trace) bool
 
-// calculateClusterSummaries runs k-means clustering over the trace shapes.
-func calculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64, filter Filter) (*ClusterSummaries, error) {
+// CalculateClusterSummaries runs k-means clustering over the trace shapes.
+func CalculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64, filter Filter) (*ClusterSummaries, error) {
 	lastCommitIndex := 0
 	for i, c := range tile.Commits {
 		if c.CommitTime != 0 {

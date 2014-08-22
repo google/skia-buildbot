@@ -51,6 +51,8 @@ const (
 	// MAX_SAMPLE_TRACES_PER_CLUSTER  is the maximum number of traces stored in a
 	// ClusterSummary.
 	MAX_SAMPLE_TRACES_PER_CLUSTER = 5
+
+	RECLUSTER_DURATION = 15 * time.Minute
 )
 
 type DatasetName string

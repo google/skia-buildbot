@@ -201,6 +201,32 @@ type ClusterSummary struct {
 
 	// Hash is the Git hash at the step point.
 	Hash string
+
+	// Timestamp is when this hash was committed.
+	Timestamp int64
+
+	// Status is the status, "New", "Ingore" or "Bug".
+	Status string
+
+	// A note about the Status.
+	Message string
+
+	// ID is the identifier for this summary in the datastore.
+	ID int64
+}
+
+func NewClusterSummary(numKeys, numTraces int) *ClusterSummary {
+	return &ClusterSummary{
+		Keys:           make([]string, numKeys),
+		Traces:         make([][][]float64, numTraces),
+		ParamSummaries: [][]ValueWeight{},
+		StepFit:        &StepFit{},
+		Hash:           "",
+		Timestamp:      0,
+		Status:         "",
+		Message:        "",
+		ID:             -1,
+	}
 }
 
 // Merge the two Tiles, presuming tile1 comes before tile2.

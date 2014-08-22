@@ -25,6 +25,8 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/perf/go/alerting"
+	"skia.googlesource.com/buildbot.git/perf/go/clustering"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
@@ -212,7 +214,7 @@ func clusterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // writeClusterSummaries writes out a ClusterSummaries instance as a JSON response.
-func writeClusterSummaries(summary *ClusterSummaries, w http.ResponseWriter, r *http.Request) {
+func writeClusterSummaries(summary *clustering.ClusterSummaries, w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(summary); err != nil {
 		reportError(w, r, err, "Error while encoding ClusterSummaries response.")
@@ -257,7 +259,7 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// If there are no query parameters just return with an empty set of ClusterSummaries.
 	if r.FormValue("_k") == "" || r.FormValue("_stddev") == "" {
-		writeClusterSummaries(NewClusterSummaries(), w, r)
+		writeClusterSummaries(clustering.NewClusterSummaries(), w, r)
 		return
 	}
 
@@ -278,7 +280,7 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 	filter := func(tr *types.Trace) bool {
 		return traceMatches(tr, r.Form)
 	}
-	summary, err := calculateClusterSummaries(tile, int(k), stddev, filter)
+	summary, err := clustering.CalculateClusterSummaries(tile, int(k), stddev, filter)
 	if err != nil {
 		reportError(w, r, err, "Failed to calculate clusters.")
 		return
@@ -626,6 +628,7 @@ func main() {
 	Init()
 	db.Init()
 	stats.Start(nanoTileStore, git)
+	alerting.Start(nanoTileStore)
 	glog.Infoln("Begin loading data.")
 
 	// Resources are served directly.
