@@ -136,12 +136,13 @@ function reset_skia_checkout {
 function run_render_pictures {
   output_dir=$1
   use_gpu=$2
+  image_base_gs_url=$3
   if [ "$use_gpu" == "True" ]; then
     render_pictures_args_of_run=$(echo $RENDER_PICTURES_ARGS | sed -e 's/--config [a-zA-Z0-9]*/--config gpu/g')
   else
     render_pictures_args_of_run=$RENDER_PICTURES_ARGS
   fi
-  DISPLAY=:0 ./out/Release/render_pictures -r $LOCAL_SKP_DIR $render_pictures_args_of_run -w $output_dir --writeJsonSummaryPath $output_dir/summary.json
+  DISPLAY=:0 ./out/Release/render_pictures -r $LOCAL_SKP_DIR $render_pictures_args_of_run -w $output_dir --writeJsonSummaryPath $output_dir/summary.json --imageBaseGSUrl $image_base_gs_url
   if [ $? -ne 0 ]; then
     echo "== Failure when running render_pictures. Exiting. =="
     cleanup_slave_before_exit
@@ -176,7 +177,8 @@ build_tools
 IMG_ROOT=/tmp
 OUTPUT_DIR_WITHPATCH=$IMG_ROOT/withpatch-pictures-$RUN_ID
 mkdir -p $OUTPUT_DIR_WITHPATCH
-run_render_pictures $OUTPUT_DIR_WITHPATCH $GPU_WITHPATCH_RUN
+run_render_pictures $OUTPUT_DIR_WITHPATCH $GPU_WITHPATCH_RUN \
+  $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/
 
 echo "== Removing the patch, building, and running render_pictures =="
 reset_skia_checkout
@@ -184,7 +186,8 @@ make clean
 build_tools
 OUTPUT_DIR_NOPATCH=$IMG_ROOT/nopatch-pictures-$RUN_ID
 mkdir -p $OUTPUT_DIR_NOPATCH
-run_render_pictures $OUTPUT_DIR_NOPATCH $GPU_NOPATCH_RUN
+run_render_pictures $OUTPUT_DIR_NOPATCH $GPU_NOPATCH_RUN \
+  $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/
 
 echo "== Comparing pictures and saving differences in JSON output file =="
 JSON_SUMMARY_DIR=/tmp/summary-$RUN_ID
