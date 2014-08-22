@@ -46,6 +46,8 @@ var (
 	// clusterTemplate is the /clusters/ page we serve.
 	clusterTemplate *template.Template = nil
 
+	alertsTemplate *template.Template = nil
+
 	jsonHandlerPath = regexp.MustCompile(`/json/([a-z]*)$`)
 
 	trybotsHandlerPath = regexp.MustCompile(`/trybots/([0-9A-Za-z-/]*)$`)
@@ -107,6 +109,11 @@ func Init() {
 	))
 	clusterTemplate = template.Must(template.ParseFiles(
 		filepath.Join(cwd, "templates/clusters.html"),
+		filepath.Join(cwd, "templates/titlebar.html"),
+		filepath.Join(cwd, "templates/header.html"),
+	))
+	alertsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(cwd, "templates/alerting.html"),
 		filepath.Join(cwd, "templates/titlebar.html"),
 		filepath.Join(cwd, "templates/header.html"),
 	))
@@ -201,6 +208,34 @@ func trybotHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Write(results)
+	}
+}
+
+// alertsHandler serves the HTML for the /alerts/ page.
+//
+// See alertingHandler for the JSON it uses.
+func alertsHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Alerts Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "text/html")
+	if err := alertsTemplate.Execute(w, nil); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// alertingHandler returns the currently untriaged clusters.
+//
+// The return format is the same as clusteringHandler.
+func alertingHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Alerting Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "application/json")
+	alerts, err := alerting.ListByStatus("New")
+	if err != nil {
+		reportError(w, r, err, "Error retrieving cluster summaries.")
+		return
+	}
+	enc := json.NewEncoder(w)
+	if err = enc.Encode(map[string][]*types.ClusterSummary{"Clusters": alerts}); err != nil {
+		reportError(w, r, err, "Error while encoding response.")
 	}
 }
 
@@ -642,6 +677,8 @@ func main() {
 	http.HandleFunc("/trybots/", autogzip.HandleFunc(trybotHandler))
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clusterHandler))
 	http.HandleFunc("/clustering/", autogzip.HandleFunc(clusteringHandler))
+	http.HandleFunc("/alerts/", autogzip.HandleFunc(alertsHandler))
+	http.HandleFunc("/alerting/", autogzip.HandleFunc(alertingHandler))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

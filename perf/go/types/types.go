@@ -223,7 +223,7 @@ func NewClusterSummary(numKeys, numTraces int) *ClusterSummary {
 		StepFit:        &StepFit{},
 		Hash:           "",
 		Timestamp:      0,
-		Status:         "",
+		Status:         "New",
 		Message:        "",
 		ID:             -1,
 	}
