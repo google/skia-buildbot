@@ -142,7 +142,7 @@ function run_render_pictures {
   else
     render_pictures_args_of_run=$RENDER_PICTURES_ARGS
   fi
-  DISPLAY=:0 ./out/Release/render_pictures -r $LOCAL_SKP_DIR $render_pictures_args_of_run -w $output_dir --writeJsonSummaryPath $output_dir/summary.json --imageBaseGSUrl $image_base_gs_url
+  DISPLAY=:0 ./out/Release/render_pictures -r $LOCAL_SKP_DIR $render_pictures_args_of_run -w $output_dir --writeJsonSummaryPath $output_dir/summary.json --imageBaseGSUrl $image_base_gs_url --writeChecksumBasedFilenames
   if [ $? -ne 0 ]; then
     echo "== Failure when running render_pictures. Exiting. =="
     cleanup_slave_before_exit
@@ -178,7 +178,7 @@ IMG_ROOT=/tmp
 OUTPUT_DIR_WITHPATCH=$IMG_ROOT/withpatch-pictures-$RUN_ID
 mkdir -p $OUTPUT_DIR_WITHPATCH
 run_render_pictures $OUTPUT_DIR_WITHPATCH $GPU_WITHPATCH_RUN \
-  $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/
+  $OUTPUT_FILE_GS_LOCATION/withpatch-images/
 
 echo "== Removing the patch, building, and running render_pictures =="
 reset_skia_checkout
@@ -187,7 +187,7 @@ build_tools
 OUTPUT_DIR_NOPATCH=$IMG_ROOT/nopatch-pictures-$RUN_ID
 mkdir -p $OUTPUT_DIR_NOPATCH
 run_render_pictures $OUTPUT_DIR_NOPATCH $GPU_NOPATCH_RUN \
-  $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/
+  $OUTPUT_FILE_GS_LOCATION/nopatch-images/
 
 echo "== Comparing pictures and saving differences in JSON output file =="
 JSON_SUMMARY_DIR=/tmp/summary-$RUN_ID
@@ -206,11 +206,25 @@ python $TELEMETRY_SLAVE_SCRIPTS_DIR/write_json_summary.py \
   --add_to_sys_path=$SKIA_TRUNK_LOCATION/gm/rebaseline_server
 
 echo "== Copy everything to Google Storage =="
-# Copy the summary.json files generated from render_pictures to Google Storage.
+# Copy the summary.json files generated from render_pictures to Google Storage
+# and set google.com permissions on them.
 gsutil cp $OUTPUT_DIR_NOPATCH/summary.json \
   $OUTPUT_FILE_GS_LOCATION/json-summaries/nopatch/slave$SLAVE_NUM.json
 gsutil cp $OUTPUT_DIR_WITHPATCH/summary.json \
   $OUTPUT_FILE_GS_LOCATION/json-summaries/withpatch/slave$SLAVE_NUM.json
+gsutil acl ch -g google.com:READ \
+  $OUTPUT_FILE_GS_LOCATION/json-summaries/nopatch/slave$SLAVE_NUM.json
+gsutil acl ch -g google.com:READ \
+  $OUTPUT_FILE_GS_LOCATION/json-summaries/withpatch/slave$SLAVE_NUM.json
+# Copy all checksum named images to Google Storage and set google.com
+# permissions on them.
+gsutil -m cp -R $OUTPUT_DIR_NOPATCH/* $OUTPUT_FILE_GS_LOCATION/nopatch-images/
+gsutil -m cp -R $OUTPUT_DIR_WITHPATCH/* $OUTPUT_FILE_GS_LOCATION/withpatch-images/
+gsutil -m acl ch -R -g google.com:READ $OUTPUT_FILE_GS_LOCATION/nopatch-images/*
+gsutil -m acl ch -R -g google.com:READ $OUTPUT_FILE_GS_LOCATION/withpatch-images/*
+
+# TODO(rmistry): The below (and a lot of other code) will no longer be needed
+# once RBS is able to serve CT's images.
 # Get list of failed file names and upload only those to Google Storage.
 ARRAY=`cat $JSON_SUMMARY_DIR/slave${SLAVE_NUM}.json | grep 'fileName' | cut -d ':' -f 2 | cut -d "\"" -f2`
 for i in ${ARRAY[@]}; do
