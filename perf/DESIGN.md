@@ -187,7 +187,7 @@ Initial setup of the database, the users, and the tables:
 
     CREATE TABLE clusters (
       id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      ts         TIMESTAMP    NOT NULL,
+      ts         BIGINT       NOT NULL,
       hash       TEXT         NOT NULL,
       regression FLOAT        NOT NULL,
       cluster    MEDIUMTEXT   NOT NULL,
