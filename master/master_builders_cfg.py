@@ -362,16 +362,20 @@ def setup_canaries(helper, do_upload_render_results, do_upload_bench_results):
   """
   # Targets which we think are important for the Chrome canaries. Discussion:
   # https://code.google.com/p/skia/issues/detail?id=2227
-  chrome_build_targets = [
+  common_chrome_build_targets = [
       'chrome', 'base_unittests', 'cacheinvalidation_unittests',
       'cc_unittests', 'chromedriver_unittests', 'components_unittests',
       'content_unittests', 'crypto_unittests', 'google_apis_unittests',
       'gpu_unittests', 'ipc_tests', 'jingle_unittests', 'media_unittests',
       'net_unittests', 'ppapi_unittests', 'printing_unittests',
       'remoting_unittests', 'sql_unittests', 'sync_unit_tests', 'ui_unittests',
-      'unit_tests', 'browser_tests', 'content_browsertests',
-      'interactive_ui_tests', 'sync_integration_tests'
+      'unit_tests', 'content_browsertests', 'interactive_ui_tests',
+      'sync_integration_tests'
   ]
+  # browser_tests fails on the windows canary. More details in
+  # https://code.google.com/p/skia/issues/detail?id=2863
+  linux_chrome_build_targets = common_chrome_build_targets + ['browser_tests']
+  win_chrome_build_targets = common_chrome_build_targets
   #
   #                          CANARY BUILDERS
   #
@@ -379,8 +383,8 @@ def setup_canaries(helper, do_upload_render_results, do_upload_bench_results):
   #
   canaries = [
       ('Chrome', 'Ubuntu13.10', 'Ninja', 'x86_64', 'DRT',            None,     'src',  None,       f_drt,    LINUX,  S_PERCOMMIT, {'path_to_skia': ['third_party', 'skia']}),
-      ('Chrome', 'Ubuntu13.10', 'Ninja', 'x86_64', 'ToT',            'chrome', 'src',  None,       f_canary, LINUX,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
-      ('Chrome', 'Win',         'Ninja', 'x86',    'SharedLib_ToT',  'chrome', 'src',  GYP_SHARED, f_canary, WIN32,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
+      ('Chrome', 'Ubuntu13.10', 'Ninja', 'x86_64', 'ToT',            'chrome', 'src',  None,       f_canary, LINUX,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': linux_chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
+      ('Chrome', 'Win',         'Ninja', 'x86',    'SharedLib_ToT',  'chrome', 'src',  GYP_SHARED, f_canary, WIN32,  S_PERCOMMIT, {'flavor': 'chrome', 'build_targets': win_chrome_build_targets, 'path_to_skia': ['third_party', 'skia']}),
   ]
 
   setup_builders_from_config_list(canaries, helper, do_upload_render_results,
