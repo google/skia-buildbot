@@ -72,19 +72,19 @@ class AutoRoll(BuildStep):
       shell_utils.run(['git', 'config', '--local', 'user.email',
                        DEPS_ROLL_AUTHOR])
 
-    auto_roll = os.path.join(misc.BUILDBOT_PATH, 'third_party',
-                             'chromium_buildbot_tot', 'scripts', 'tools',
-                             'blink_roller', 'auto_roll.py')
+      auto_roll = os.path.join(misc.BUILDBOT_PATH, 'third_party',
+                               'chromium_buildbot_tot', 'scripts', 'tools',
+                               'blink_roller', 'auto_roll.py')
 
-    # python auto_roll.py <project> <author> <path to chromium/src>
-    cmd = ['python', auto_roll, 'skia', DEPS_ROLL_AUTHOR, chrome_path]
+      # python auto_roll.py <project> <author> <path to chromium/src>
+      cmd = ['python', auto_roll, 'skia', DEPS_ROLL_AUTHOR, chrome_path]
 
-    exception = None
-    try:
-      output = shell_utils.run(cmd)
-    except shell_utils.CommandFailedException as e:
-      output = e.output
-      exception = e
+      exception = None
+      try:
+        output = shell_utils.run(cmd)
+      except shell_utils.CommandFailedException as e:
+        output = e.output
+        exception = e
 
     bucket_url = gs_utils.GSUtils.with_gs_prefix(
         skia_vars.GetGlobalVariable('googlestorage_bucket'))
