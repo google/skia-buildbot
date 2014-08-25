@@ -14,8 +14,29 @@ h4 {
   padding: 0;
 }
 
+body {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+}
+
+a {
+  color: #1f78b4;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
 button {
   margin: 0.5em;
+  border: none;
+  padding: 0.2em 0.4em;
+}
+
+button:hover {
+  color: white;
+  background: #1F78B4;
 }
 
 .waiting {
@@ -45,17 +66,18 @@ button {
 
 #note {
     margin: 1em;
-    width: 30%;
+    width: 33%;
     overflow-y: auto;
-    height: 80vh;
+    overflow-wrap: break-word;
+    height: 90vh;
+    font-size: 11px;
 }
 
 #note .group-only.hidden {
   display: none;
 }
 
-#note .subject,
-#note .subject a {
+#note .subject {
     color: rgb(99, 99, 18);
 }
 
@@ -101,7 +123,7 @@ table, td {
 
 #plot-label,
 #plot-value {
-  border: solid lightgray 1px;
+  border: none;
   padding: 3px;
   margin: 0.5em;
 }
@@ -125,12 +147,16 @@ table, td {
 #title {
   margin: 0;
   padding: 0.5em;
-  background-color: rgb(224, 108, 0);
+  background-color: #1F78B4;
   border-bottom: solid lightgray 2px;
 }
 
 #title a {
   color: white;
+  margin-right: 10px;
+}
+
+#title a:hover {
   text-decoration: none;
 }
 
