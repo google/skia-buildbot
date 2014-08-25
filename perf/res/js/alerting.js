@@ -5,12 +5,22 @@
 
 (function() {
 
+  var clusterSummaries = [];
+
+  var intervalID = null;
+
   function onLoad() {
     refreshAlerts();
-    setInterval(refreshAlerts, 60*1000);
+    intervalID = setInterval(refreshAlerts, 60*1000);
+    $$$('#autoRefresh').addEventListener('click', function(e) {
+      if (e.checked) {
+        intervalID = setInterval(refreshAlerts, 60*1000);
+      } else {
+        clearInterval(intervalID);
+      }
+    });
   }
 
-  var clusterSummaries = [];
 
   function refreshAlerts() {
     document.body.style.cursor = 'wait';

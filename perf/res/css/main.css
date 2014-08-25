@@ -169,3 +169,7 @@ p {
   padding: 0.5em;
 }
 
+#autoRefresh {
+  margin: 0.5em;
+  margin-right: 0;
+}
