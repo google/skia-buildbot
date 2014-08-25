@@ -53,7 +53,7 @@
       display: flex;
       flex-wrap: wrap;
       flex-direction: row;
-      width:100%;
+      width:95%;
       padding: 1em;
   }
 
@@ -109,7 +109,14 @@
     var node = importer__.import('#clResultTemplate');
     p.appendChild(node);
     this.result_ = p.lastElementChild;
+
     this.json_ = json;
+    this.plot_ = null; // Will be ref to Flot graph.
+    this.boundOpenShortcut_ = this.openShortcut_.bind(this);
+  };
+
+  sk.ClusterSummary.toggleWordCloud_ = function(e){
+    e.target.nextElementSibling.classList.toggle("display");
   };
 
   /**
@@ -135,20 +142,16 @@
       });
     });
 
-    jQuery.plot($$$('.clGraph', result), traces, {
+    this.plot_ = jQuery.plot($$$('.clGraph', result), traces, {
       yaxis: {
         min: -4,
         max: 4
       }
     });
 
-    // Fill in the details about the cluster.
-    var last50 = json.Keys.slice(0, 50);
-    $$$('.clShortcut', result).addEventListener('click', function(e) {
-      sk.ClusterSummary.openShortcut_(last50);
-      e.preventDefault();
-    });
+    $$$('.clShortcut', result).addEventListener('click', this.boundOpenShortcut_);
 
+    // Fill in the details about the cluster.
     result.dataset.clustersize = -json.Keys.length;
     result.dataset.steplse = json.StepFit.LeastSquares;
     result.dataset.stepsize= json.StepFit.StepSize;
@@ -161,9 +164,8 @@
     $$$('.clHighlight', result).classList.add("cl" + json.StepFit.Status) // High, Low or Uninteresting.
 
     // Fill in the word cloud.
-    $$$('.expander', result).addEventListener('click', function(e) {
-      e.target.nextElementSibling.classList.toggle("display");
-    });
+    $$$('.expander', result).addEventListener('click', sk.ClusterSummary.toggleWordCloud_);
+
     // Sort the param summaries so that columns with larger weights come first.
     json.ParamSummaries.sort(function(a, b){
       return b[0].Weight - a[0].Weight;
@@ -183,11 +185,22 @@
     });
   };
 
+
+  /**
+    * detach, call before destroying to remove element callbacks.
+    */
+  sk.ClusterSummary.prototype.detach = function() {
+    $$$('.expander', this.result_).removeEventListener('click', sk.ClusterSummary.toggleWordCloud_);
+    $$$('.clShortcut', this.result_).removeEventListener('click', this.boundOpenShortcut_);
+    this.plot_.shutdown();
+  }
+
   /**
     * Creates a shortcut for the given keys then opens a new window to that
     * shortcut.
     */
-  sk.ClusterSummary.openShortcut_ = function(keys) {
+  sk.ClusterSummary.prototype.openShortcut_ = function(e) {
+    var keys = this.json_.Keys.slice(0, 50);
     var state = {
       scale: 0,
       tiles: [-1],
@@ -196,6 +209,7 @@
     sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json){
       window.open('/#' + json.id, '_blank');
     });
+    e.preventDefault();
   };
 
 

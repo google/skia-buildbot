@@ -10,9 +10,14 @@
     setInterval(refreshAlerts, 60*1000);
   }
 
+  var clusterSummaries = [];
+
   function refreshAlerts() {
     document.body.style.cursor = 'wait';
     sk.get('/alerting/').then(JSON.parse).then(function(json) {
+      clusterSummaries.forEach(function(c) {
+        c.detach();
+      });
       var container = $$$('#alerts');
       sk.clearChildren(container);
       if (json.Clusters.length == 0) {
@@ -21,6 +26,7 @@
         json.Clusters.forEach(function(c){
           var summary = new sk.ClusterSummary(container, c);
           summary.attach();
+          clusterSummaries.push(summary);
         });
       }
       document.body.style.cursor = 'auto';
