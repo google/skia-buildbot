@@ -158,7 +158,8 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-002', '2'),
       ('skiabot-shuttle-ubuntu12-003', '3'),
       ('skiabot-shuttle-ubuntu12-004', '4'),
-      ('skiabot-shuttle-ubuntu12-arm64-001', '5')
+      ('skiabot-shuttle-ubuntu12-arm64-001', '5'),
+      ('skiabot-cros-link-002', '6'),
     ],
     'copies': _DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
