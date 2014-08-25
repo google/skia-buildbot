@@ -136,11 +136,11 @@ while $SLAVES_STILL_PROCESSING ; do
 done
 
 # The URL where the render_picture summary files of all slaves is available.
-NOPATCH_SUMMARY_FILES=https://storage.cloud.google.com/chromium-skia-gm/telemetry/skia-tryserver/outputs/$RUN_ID/json-summaries/nopatch
-WITHPATCH_SUMMARY_FILES=https://storage.cloud.google.com/chromium-skia-gm/telemetry/skia-tryserver/outputs/$RUN_ID/json-summaries/withpatch
+NOPATCH_SUMMARY_FILES=gs://chromium-skia-gm/telemetry/skia-tryserver/outputs/$RUN_ID/json-summaries/nopatch
+WITHPATCH_SUMMARY_FILES=gs://chromium-skia-gm/telemetry/skia-tryserver/outputs/$RUN_ID/json-summaries/withpatch
 
 # The HTML_OUTPUT_LINK is a link to the Rebaseline Server.
-HTML_OUTPUT_LINK=http://skia-tree-status.appspot.com/redirect/rebaseline-server/static/live-view.html#/live-view.html?urlSchemaVersion=1&setADir=${NOPATCH_SUMMARY_FILES}&setASection=actual-results&setBDir=${WITHPATCH_SUMMARY_FILES}&setBSection=actual-results&displayLimitPending=50&showThumbnailsPending&mergeIdenticalRowsPending&imageSizePending=100&sortColumnSubdict=differenceData&sortColumnKey=perceptualDifference&sourceSkpFile=&builderB=null&builderA=null&resultType=failed&tiledOrWhole=whole&renderModeA=null&renderModeB=null&tilenum=
+HTML_OUTPUT_LINK="http://skia-tree-status.appspot.com/redirect/rebaseline-server/static/live-view.html#/live-view.html?urlSchemaVersion=1&setADir=${NOPATCH_SUMMARY_FILES}&setASection=actual-results&setBDir=${WITHPATCH_SUMMARY_FILES}&setBSection=actual-results&displayLimitPending=50&showThumbnailsPending&mergeIdenticalRowsPending&imageSizePending=100&sortColumnSubdict=differenceData&sortColumnKey=perceptualDifference&sourceSkpFile=&builderB=null&builderA=null&resultType=failed&tiledOrWhole=whole&renderModeA=null&renderModeB=null&tilenum="
 
 # Link to the logs of the first slave.
 SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/skia-tryserver/logs/$RUN_ID/slave1/skia-try.$RUN_ID.log
@@ -168,7 +168,7 @@ Content-Type: text/html
   Time taken for the Skia Try run: $TIMER seconds.<br/>
   The HTML output with differences between the base run and the patch run is <a href='$HTML_OUTPUT_LINK'>here</a>.<br/>
   If the above output is blank then please look for failures in the log file of the first slave <a href='$SLAVE_1_LOG_LINK'>here</a>.<br/><br/>
-  The patch you specified is <a href='$SKIA_PATCH_GS_LINK'>here.</a><br/>
+  The patch you specified is <a href='$SKIA_PATCH_GS_LINK'>here</a>.<br/>
   You can schedule more runs <a href='https://skia-tree-status.appspot.com/skia-telemetry/skia_try'>here</a>.<br/><br/>
   Thanks!
   </body>

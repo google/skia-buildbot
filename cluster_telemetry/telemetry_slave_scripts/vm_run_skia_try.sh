@@ -139,7 +139,7 @@ function run_render_pictures {
   else
     render_pictures_args_of_run=$RENDER_PICTURES_ARGS
   fi
-  DISPLAY=:0 ./out/Release/render_pictures -r $LOCAL_SKP_DIR $render_pictures_args_of_run -w $output_dir --writeJsonSummaryPath $output_dir/summary.json --imageBaseGSUrl $image_base_gs_url --writeChecksumBasedFilenames
+  DISPLAY=:0 ./out/Release/render_pictures -r $LOCAL_SKP_DIR $render_pictures_args_of_run -w $output_dir --writeJsonSummaryPath $output_dir/summary.json --imageBaseGSUrl $image_base_gs_url --writeChecksumBasedFilenames --descriptions slave=slave$SLAVE_NUM
   if [ $? -ne 0 ]; then
     echo "== Failure when running render_pictures. Exiting. =="
     cleanup_slave_before_exit
