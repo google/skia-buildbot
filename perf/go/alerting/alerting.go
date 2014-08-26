@@ -111,7 +111,7 @@ func processRows(rows *sql.Rows, err error) ([]*types.ClusterSummary, error) {
 // ListFrom returns all clusters that have a step that occur after the given
 // timestamp.
 func ListFrom(ts int64) ([]*types.ClusterSummary, error) {
-	rows, err := db.DB.Query("SELECT id, cluster FROM clusters WHERE ts>=?", ts)
+	rows, err := db.DB.Query("SELECT id, cluster FROM clusters WHERE ts>=? ORDER BY status DESC", ts)
 	return processRows(rows, err)
 }
 
@@ -119,6 +119,16 @@ func ListFrom(ts int64) ([]*types.ClusterSummary, error) {
 func ListByStatus(status string) ([]*types.ClusterSummary, error) {
 	rows, err := db.DB.Query("SELECT id, cluster FROM clusters WHERE status=?", status)
 	return processRows(rows, err)
+}
+
+// Get returns the cluster that matches the given id.
+func Get(id int64) (*types.ClusterSummary, error) {
+	rows, err := db.DB.Query("SELECT id, cluster FROM clusters WHERE id=?", id)
+	matches, err := processRows(rows, err)
+	if len(matches) == 0 {
+		return nil, fmt.Errorf("Failed to find cluster summary with id: %d", id)
+	}
+	return matches[0], nil
 }
 
 // Write writes a ClusterSummary to the datastore.
@@ -182,10 +192,17 @@ func Start(tileStore types.TileStore) {
 			glog.Infof("Found %d fresh", len(fresh))
 			updated := CombineClusters(fresh, old)
 			for _, c := range updated {
+				if c.Status == "" {
+					c.Status = "New"
+				}
 				if err := Write(c); err != nil {
 					glog.Errorf("Alerting: Failed to write updated cluster: %s", err)
 				}
 			}
+			// TODO Now do a search of the issue tracker for related bugs for each cluster.
+			// Search for links in bugs to each cluster.
+			// Extract and add to the Cluster, write the cluster back if changed.
+			// "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?q=http%3A%2F%2Fskiaperf.com%2Fcluster%2F&fields=items%2Fid&key=
 		}
 	}()
 }

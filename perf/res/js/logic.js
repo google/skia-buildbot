@@ -616,7 +616,7 @@ var skiaperf = (function() {
    * Load shortcuts if any are present in the URL.
    */
   Navigation.prototype.loadShortcut = function() {
-    if (window.location.hash.length > 2) {
+    if (window.location.hash.length >= 2) {
       this.addTraces("__shortcut=" + window.location.hash.substr(1))
     }
   }

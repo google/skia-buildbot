@@ -28,14 +28,32 @@
       >
     <div class=clGraph> </div>
     <div class=clDetails>
-      <p><a class="clShortcut" href="#">View on dashboard</a></p>
-      <p>Cluster Size: <span class=clClusterSize></span></p>
-      <p>Least Squares Error: <span class=clLeastSquares></span></p>
-      <p>Step Size: <span class=clStepSize></span></p>
       <p class=clHighlight> Regression: <span class=clRegression></span></p>
-      <button class=expander>+</button>
-      <div class=clWordCloud>
+      <p><a class="clShortcut" href="#">View on dashboard</a></p>
+      <p>
+        Cluster Size: <span class=clClusterSize></span>
+        Least Squares Error: <span class=clLeastSquares></span>
+        Step Size: <span class=clStepSize></span>
+      </p>
+      <p class=clBugs>Bugs: <span class=clBug></span></p>
+
+      <div class="clStatus hidden">
+        <form action="/annotate/" method="post" accept-charset="utf-8">
+          <input type="hidden" name="id" value="" ></input>
+
+          <input type="radio" name="status" value="New" id="status">New</input>
+          <input type="radio" name="status" value="Ignore" id="status">Ignore</input>
+          <input type="radio" name="status" value="Bug" id="status">Bug</input>
+          <br/>
+          <input type="text" name="message" value=""
+               placeholder="Details"
+               id="message" size=80><br/>
+          <button>Update</button>
+        </form>
       </div>
+
+      <button class=expander>+</button>
+      <div class=clWordCloud> </div>
     </div>
   </div>
 </template>
@@ -89,6 +107,35 @@
     display: flex;
     flex-flow: column nowrap;
     margin:  1em;
+  }
+
+  .clStatus {
+    margin: 1em;
+    padding: 0.5em 1em;
+    border: solid lightgray 1px;
+  }
+
+  .clResult.Bug,
+  .clResult.Ignore {
+    opacity: 0.3;
+
+  }
+
+  .clStatus button {
+    margin-left: 0;
+  }
+
+  .clStatus.hidden {
+    display: none;
+  }
+
+  .clStatus input {
+    margin-bottom: 0.5em;
+  }
+
+  .clClusterSize,
+  .clLeastSquares {
+    margin-right: 2em;
   }
 </style>
 
@@ -161,7 +208,14 @@
     $$$('.clLeastSquares', result).innerText = json.StepFit.LeastSquares.toPrecision(3);
     $$$('.clStepSize', result).innerText =  json.StepFit.StepSize.toPrecision(3);
     $$$('.clRegression', result).innerText = json.StepFit.Regression.toPrecision(3);
-    $$$('.clHighlight', result).classList.add("cl" + json.StepFit.Status) // High, Low or Uninteresting.
+    $$$('.clHighlight', result).classList.add("cl" + json.StepFit.Status); // High, Low or Uninteresting.
+    if (json.Status != "") {
+      $$$('.clStatus', result).classList.remove("hidden"); // High, Low or Uninteresting.
+      $$$('.clStatus input[value=' + json.Status  +']', result).checked = true;
+      $$$('.clStatus input[name=message]', result).value = json.Message;
+      $$$('.clStatus input[name=id]', result).value = json.ID;
+      result.classList.add(json.Status);
+    }
 
     // Fill in the word cloud.
     $$$('.expander', result).addEventListener('click', sk.ClusterSummary.toggleWordCloud_);

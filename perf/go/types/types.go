@@ -213,7 +213,14 @@ type ClusterSummary struct {
 
 	// ID is the identifier for this summary in the datastore.
 	ID int64
+
+	// Bugs is a list of IDs of bugs in the codesite issue tracker.
+	Bugs []int64
 }
+
+// ValidStatusValues are the valid values of ClusterSummary.Status when the
+// ClusterSummary is used as an alert.
+var ValidStatusValues = []string{"New", "Ignore", "Bug"}
 
 func NewClusterSummary(numKeys, numTraces int) *ClusterSummary {
 	return &ClusterSummary{
@@ -223,7 +230,7 @@ func NewClusterSummary(numKeys, numTraces int) *ClusterSummary {
 		StepFit:        &StepFit{},
 		Hash:           "",
 		Timestamp:      0,
-		Status:         "New",
+		Status:         "",
 		Message:        "",
 		ID:             -1,
 	}
