@@ -7,22 +7,7 @@
 
   var clusterSummaries = [];
 
-  var intervalID = null;
-
   function onLoad() {
-    refreshAlerts();
-    intervalID = setInterval(refreshAlerts, 60*1000);
-    $$$('#autoRefresh').addEventListener('click', function(e) {
-      if (e.checked) {
-        intervalID = setInterval(refreshAlerts, 60*1000);
-      } else {
-        clearInterval(intervalID);
-      }
-    });
-  }
-
-
-  function refreshAlerts() {
     document.body.style.cursor = 'wait';
     sk.get('/alerting/').then(JSON.parse).then(function(json) {
       clusterSummaries.forEach(function(c) {
