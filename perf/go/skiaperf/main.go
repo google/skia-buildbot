@@ -48,6 +48,8 @@ var (
 
 	alertsTemplate *template.Template = nil
 
+	clTemplate *template.Template = nil
+
 	jsonHandlerPath = regexp.MustCompile(`/json/([a-z]*)$`)
 
 	trybotsHandlerPath = regexp.MustCompile(`/trybots/([0-9A-Za-z-/]*)$`)
@@ -59,6 +61,8 @@ var (
 
 	// The three capture groups are tile scale, tile number, and an optional 'trace.
 	queryHandlerPath = regexp.MustCompile(`/query/([0-9]*)/([-0-9]*)/(traces/)?$`)
+
+	clHandlerPath = regexp.MustCompile(`/cl/([0-9]*)$`)
 
 	git *gitinfo.GitInfo = nil
 
@@ -111,6 +115,11 @@ func Init() {
 	))
 	alertsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(cwd, "templates/alerting.html"),
+		filepath.Join(cwd, "templates/titlebar.html"),
+		filepath.Join(cwd, "templates/header.html"),
+	))
+	clTemplate = template.Must(template.ParseFiles(
+		filepath.Join(cwd, "templates/cl.html"),
 		filepath.Join(cwd, "templates/titlebar.html"),
 		filepath.Join(cwd, "templates/header.html"),
 	))
@@ -249,7 +258,26 @@ func alertingHandler(w http.ResponseWriter, r *http.Request) {
 // See alertingHandler for the JSON it uses.
 //
 func clHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO Implement in a future CL.
+	w.Header().Set("Content-Type", "text/html")
+
+	match := clHandlerPath.FindStringSubmatch(r.URL.Path)
+	if r.Method != "GET" || match == nil || len(match) != 2 {
+		http.NotFound(w, r)
+		return
+	}
+	id, err := strconv.ParseInt(match[1], 10, 0)
+	if err != nil {
+		reportError(w, r, err, "Failed parsing ID.")
+		return
+	}
+	cl, err := alerting.Get(id)
+	if err != nil {
+		reportError(w, r, err, "Failed to find cluster with that ID.")
+		return
+	}
+	if err := clTemplate.Execute(w, cl); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
 }
 
 // annotateHandler serves the /annotate/ endpoint for changing the status of an

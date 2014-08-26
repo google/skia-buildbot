@@ -239,6 +239,17 @@
     });
   };
 
+  // Turn on or off the fading of clusters with a non-"New" status.
+  //
+  // Fading is on by default. Must be called after attach().
+  sk.ClusterSummary.prototype.fade = function(b) {
+    if (b) {
+      this.result_.classList.add(this.json_.Status);
+    } else {
+      this.result_.classList.remove(this.json_.Status);
+    }
+  }
+
 
   /**
     * detach, call before destroying to remove element callbacks.
