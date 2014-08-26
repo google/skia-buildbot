@@ -17,6 +17,7 @@ for VM in $VM_REBASELINESERVER_NAMES; do
 
   COMMAND="$GCOMPUTE_CMD addinstance ${VM_NAME_BASE}-${VM}-${ZONE_TAG} \
     --zone=$ZONE \
+    --disk=${VM_NAME_BASE}-${VM}-disk-${ZONE_TAG},deviceName=master-disk \
     --external_ip_address=$IP_ADDRESS \
     --service_account=default \
     --service_account_scopes="$SCOPES" \

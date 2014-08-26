@@ -4,11 +4,11 @@
 # See vm_setup_rebaseline_servers.sh
 
 DEPOT_TOOLS=~/skia-repo/depot_tools
-PIDFILE=~/rebaseline_server/pidfile
-LOGS=~/rebaseline_server/logs
-TRUNK=~/rebaseline_server/skia
+PIDFILE=~/skia-repo/rebaseline_server/pidfile
+LOGS=~/skia-repo/rebaseline_server/logs
+TRUNK=~/skia-repo/rebaseline_server/skia
 
-cd ~/rebaseline_server
+cd ~/skia-repo/rebaseline_server
 
 export PATH=$PATH:$DEPOT_TOOLS
 
@@ -31,5 +31,5 @@ make tools BUILDTYPE=Release >>$LOGS 2>&1
 popd $TRUNK
 
 $TRUNK/gm/rebaseline_server/server.py --port 10117 --export --reload 300 \
-    --boto ~/rebaseline_server/.boto --threads 8  >>$LOGS 2>&1 &
+    --boto ~/skia-repo/rebaseline_server/.boto --threads 8  >>$LOGS 2>&1 &
 echo $! >$PIDFILE

@@ -32,18 +32,18 @@ Starting setup of ${VM_COMPLETE_NAME}.....
   echo
   echo "===== Copying over required rebaseline_server files. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
-    "mkdir /home/$PROJECT_USER/rebaseline_server" \
+    "mkdir /home/$PROJECT_USER/skia-repo/rebaseline_server" \
     || echo "Failed to set up launch-on-reboot!"
   for REQUIRED_FILE in ${REQUIRED_FILES_FOR_REBASELINESERVER[@]}; do
     $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
-      $REQUIRED_FILE /home/$PROJECT_USER/rebaseline_server/
+      $REQUIRED_FILE /home/$PROJECT_USER/skia-repo/rebaseline_server/
   done
 
   echo
   echo "===== Installing crontab ======"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $VM_COMPLETE_NAME \
-    "chmod a+x /home/$PROJECT_USER/rebaseline_server/kick-rebaseline-server.sh && " \
-    "crontab /home/$PROJECT_USER/rebaseline_server/rebaseline-server-crontab" \
+    "chmod a+x /home/$PROJECT_USER/skia-repo/rebaseline_server/kick-rebaseline-server.sh && " \
+    "crontab /home/$PROJECT_USER/skia-repo/rebaseline_server/rebaseline-server-crontab" \
     || echo "Failed to install crontab!"
   echo
 
