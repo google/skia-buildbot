@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/rcrowley/go-metrics"
 
 	"skia.googlesource.com/buildbot.git/perf/go/clustering"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
@@ -164,8 +165,19 @@ func skpOnly(tr *types.Trace) bool {
 
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
 func Start(tileStore types.TileStore) {
+
+	// The number of clusters with a status of "New".
+	newClustersGauge := metrics.NewRegisteredGauge("alerting.new", metrics.DefaultRegistry)
+
+	// The number of times we've successfully done alert clustering.
+	runsCounter := metrics.NewRegisteredCounter("alerting.runs", metrics.DefaultRegistry)
+
+	// How long it takes to do a clustering run.
+	alertingLatency := metrics.NewRegisteredTimer("alerting.latency", metrics.DefaultRegistry)
+
 	go func() {
 		for _ = range time.Tick(config.RECLUSTER_DURATION) {
+			begin := time.Now()
 			tile, err := tileStore.Get(0, -1)
 			if err != nil {
 				glog.Errorf("Alerting: Failed to get tile: %s", err)
@@ -199,6 +211,22 @@ func Start(tileStore types.TileStore) {
 					glog.Errorf("Alerting: Failed to write updated cluster: %s", err)
 				}
 			}
+
+			current, err := ListFrom(tile.Commits[0].CommitTime)
+			if err != nil {
+				glog.Errorf("Alerting: Failed to get existing clusters: %s", err)
+				continue
+			}
+			count := 0
+			for _, c := range current {
+				if c.Status == "New" {
+					count++
+				}
+			}
+			newClustersGauge.Update(int64(count))
+			runsCounter.Inc(1)
+			alertingLatency.UpdateSince(begin)
+
 			// TODO Now do a search of the issue tracker for related bugs for each cluster.
 			// Search for links in bugs to each cluster.
 			// Extract and add to the Cluster, write the cluster back if changed.
