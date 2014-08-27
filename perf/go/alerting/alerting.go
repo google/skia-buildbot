@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math"
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/golang/glog"
@@ -15,6 +18,10 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
+)
+
+const (
+	APIKEY_METADATA_URL = "http://metadata/computeMetadata/v1/instance/attributes/apikey"
 )
 
 // CombineClusters combines freshly found clusters with existing clusters.
@@ -163,8 +170,109 @@ func skpOnly(tr *types.Trace) bool {
 	return tr.Params["source_type"] == "skp"
 }
 
+// apiKeyFromFlag returns the key that it was passed if the key isn't empty,
+// otherwise it tries to fetch the key from the metadata server.
+//
+// Returns the API Key, or "" if it failed to fetch the key from the metadata
+// server.
+func apiKeyFromFlag(apiKeyFlag string) string {
+	apiKey := apiKeyFlag
+	// If apiKey isn't passed in then read it from the metadata server.
+	if apiKey == "" {
+		// Create a client that uses our dialer with a timeout.
+		c := &http.Client{
+			Transport: &http.Transport{
+				Dial: util.DialTimeout,
+			},
+		}
+		// Get the API Key we need to make requests to the issue tracker.
+		req, err := http.NewRequest("GET", APIKEY_METADATA_URL, nil)
+		if err != nil {
+			glog.Errorf("HTTP GET for API Key failed: %s", err)
+		}
+		req.Header.Add("X-Google-Metadata-Request", "True")
+		if resp, err := c.Do(req); err == nil {
+			if resp.StatusCode != 200 {
+				return ""
+			}
+			apikeyBytes, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				glog.Errorf("Failed to read password from metadata server: %s", err)
+			}
+			apiKey = string(apikeyBytes)
+		}
+	}
+	return apiKey
+}
+
+// Issue is an individual issue returned from the project hosting response.
+//
+// It is used in IssueResponse.
+type Issue struct {
+	ID int64 `json:"id"`
+}
+
+// IssueResponse is used to decode JSON responses from the project hosting API.
+type IssueResponse struct {
+	Items []*Issue `json:"items"`
+}
+
+// updateBugs will find all the bugs the reference the alerting cluster will
+// write them into the ClusterSummary and save it back to the store.
+func updateBugs(c *types.ClusterSummary, apiKey string) {
+	// All issues reported through skiaperf will contain a URL of the form:
+	//
+	//   http://skiaperf.com/cl/NNN.
+	//
+	// Where NNN is the alerting cluster ID.
+
+	// Search through the project hosting API for all issues that match that URI.
+	url := "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?q=http%3A%2F%2Fskiaperf.com%2Fcl%2F" + strconv.Itoa(int(c.ID)) + ".&fields=items%2Fid,items%2Fstate&key=" + apiKey
+
+	//  This will return a JSON response of the form:
+	//
+	//  {
+	//   "items": [
+	//    {
+	//     "id": 2874,
+	//     "state": "open"
+	//    }
+	//   ]
+	//  }
+	//
+	// We don't currently use "state".
+
+	resp, err := http.Get(url)
+	if err != nil {
+		glog.Errorf("Request to project hosting failed: %s", err)
+		return
+	}
+
+	issueResponse := &IssueResponse{
+		Items: []*Issue{},
+	}
+	dec := json.NewDecoder(resp.Body)
+	if err := dec.Decode(&issueResponse); err != nil {
+		glog.Errorf("Failed to decode project hosting response: %s", err)
+		return
+	}
+	glog.Infof("For %d Got %#v", c.ID, issueResponse)
+	bugs := []int64{}
+	for _, issue := range issueResponse.Items {
+		bugs = append(bugs, issue.ID)
+	}
+	if !util.Int64Equal(bugs, c.Bugs) {
+		c.Bugs = bugs
+		if err := Write(c); err != nil {
+			glog.Errorf("Alerting: Failed to write updated cluster with bugs: %s", err)
+		}
+	}
+}
+
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
-func Start(tileStore types.TileStore) {
+func Start(tileStore types.TileStore, apiKeyFlag string) {
+
+	apiKey := apiKeyFromFlag(apiKeyFlag)
 
 	// The number of clusters with a status of "New".
 	newClustersGauge := metrics.NewRegisteredGauge("alerting.new", metrics.DefaultRegistry)
@@ -222,6 +330,12 @@ func Start(tileStore types.TileStore) {
 				if c.Status == "New" {
 					count++
 				}
+				if apiKey != "" {
+					updateBugs(c, apiKey)
+				} else {
+					glog.Infof("Skipping ClusterSummary.Bugs update because apiKey is missing.")
+					continue
+				}
 			}
 			newClustersGauge.Update(int64(count))
 			runsCounter.Inc(1)
@@ -230,7 +344,6 @@ func Start(tileStore types.TileStore) {
 			// TODO Now do a search of the issue tracker for related bugs for each cluster.
 			// Search for links in bugs to each cluster.
 			// Extract and add to the Cluster, write the cluster back if changed.
-			// "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?q=http%3A%2F%2Fskiaperf.com%2Fcluster%2F&fields=items%2Fid&key=
 		}
 	}()
 }

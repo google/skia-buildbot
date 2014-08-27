@@ -2,7 +2,6 @@ package auth
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 	"time"
 
@@ -28,11 +27,6 @@ var (
 		TokenCache:   oauth.CacheFile("bqtoken.data"),
 	}
 )
-
-// dialTimeout is a dialer that sets a timeout.
-func dialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, TIMEOUT)
-}
 
 // runFlow runs through a 3LO OAuth 2.0 flow to get credentials for BigQuery.
 func RunFlow() (*http.Client, error) {

@@ -35,7 +35,7 @@
         Least Squares Error: <span class=clLeastSquares></span>
         Step Size: <span class=clStepSize></span>
       </p>
-      <p class=clBugs>Bugs: <span class=clBug></span></p>
+      <p class=clBugs>Bugs:</p>
 
       <div class="clStatus hidden">
         <form action="/annotate/" method="post" accept-charset="utf-8">
@@ -65,6 +65,11 @@
 <template id=clParamValueTemplate>
   <div class=clParamValue></div>
 </template>
+
+<template id=clBug>
+  <a class=clBug href=""></a>&nbsp;
+</template>
+
 
 <style type="text/css" media="screen">
   .clResult {
@@ -216,6 +221,13 @@
       $$$('.clStatus input[name=id]', result).value = json.ID;
       result.classList.add(json.Status);
     }
+
+    json.Bugs.forEach(function(b) {
+      var node = importer__.import('#clBug');
+      $$$('.clBug', node).href = "https://code.google.com/p/skia/issues/detail?id=" + b;
+      $$$('.clBug', node).innerText = b;
+      $$$('.clBugs', result).appendChild(node);
+    });
 
     // Fill in the word cloud.
     $$$('.expander', result).addEventListener('click', sk.ClusterSummary.toggleWordCloud_);

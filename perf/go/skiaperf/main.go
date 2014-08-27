@@ -76,6 +76,7 @@ var (
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tilebuilder tiles in.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring-b:2003", "Where is Graphite metrics ingestion server running.")
+	apikey         = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
 )
 
 var (
@@ -770,7 +771,7 @@ func main() {
 	Init()
 	db.Init()
 	stats.Start(nanoTileStore, git)
-	alerting.Start(nanoTileStore)
+	alerting.Start(nanoTileStore, *apikey)
 	glog.Infoln("Begin loading data.")
 
 	// Resources are served directly.
