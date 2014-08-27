@@ -195,19 +195,6 @@ Initial setup of the database, the users, and the tables:
       message    TEXT         NOT NULL
     );
 
-Password for the database will be stored in the metadata instance. To see the
-current password stored in metadata and the fingerprint:
-
-    gcutil --project=google.com:skia-buildbots getinstance [skia-perf GCE instance]
-
-To set the mysql password that perf is to use:
-
-    gcutil --project=google.com:skia-buildbots setinstancemetadata [skia-perf GCE instance] --metadata=readonly:[password-from-valentine] --metadata=readwrite:[password-from-valentine] --fingerprint=[the metadata fingerprint]
-
-You can find the current metadata fingerprint by running:
-
-    gcutil --project=google.com:skia-buildbots getinstance skia-perf-b
-
 
 Clustering
 ----------

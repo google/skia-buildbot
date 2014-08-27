@@ -48,18 +48,28 @@ Then restart squid to pick up the new config file:
 This means that monit will poll every two seconds that our application is up
 and running.
 
-To set the API Key to use for HTML web APIs, use:
+Metadata
+========
 
-    gcutil --project=google.com:skia-buildbots setinstancemetadata skia-perf-b --metadata=apikey:[apikey] --fingerprint=[metadata fingerprint]
+Secrets that we need at runtime are stored in the metadata server.
+
+All of the metadata must be set at one time, i.e. if you change one piece of
+metadata you need to write all the values, even the old unchanged metadata
+values. The current set of metadata required is:
+
+  * apikey - The API Key found on this page https://console.developers.google.com/project/31977622648/apiui/credential
+  * readwrite - The MySQL readwrite password. Stored in http://valentine, search for "skiaperf".
+
+To set the metadata use:
+
+    gcutil --project=google.com:skia-buildbots setinstancemetadata skia-perf-b \
+      --metadata=apikey:[apikey value] \
+      --metadata=readwrite:[readwrite value] \
+      --fingerprint=[metadata fingerprint]
 
 You can find the current metadata fingerprint by running:
 
     gcutil --project=google.com:skia-buildbots getinstance skia-perf-b
-
-You can find the API Key to use on this page:
-
-    https://console.developers.google.com/project/31977622648/apiui/credential
-
 
 To update the code
 ==================
