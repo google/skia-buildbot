@@ -324,6 +324,58 @@ that matches the fingerprint of an exisiting cluster, but has a higher
 regression value, than the new cluster values will be written into the
 'clusters' table, including the ts, hash, and regression values.
 
+~~~~~~~
+
+Comparing bench results across verticals
+----------------------------------------
+The UIs showing line plots of selected traces and the clusterings are good ways
+to examine and diagnose the performance of a small set of traces across the
+commit timeline. However, it is not easy to use them for answering questions
+like: "How does the performance of gpu config compare with 8888 on the SKP
+benches across various platforms?", "What's the worst-performing SKPs on x86 vs.
+x86_64, and are they worst on a specific OS?", and "How do I pinpoint the set of
+potential performance changes introduced by a trybot run with my CL?". In this
+case we care more about comparing the most recent data values by different
+configs and platforms, instead of changes along the commit timeline.
+
+To show overall comparison results across more dimensions, we use a table to
+visualize the data. We use the same query interface for retrieving the set of
+bench data of user's choice, but ask user to specify the search vertical (arch,
+config, os, etc.) and select exactly two configs from it to compare against in
+the query (say, "8888" and "gpu"). We then organize the data to calculate the
+ratio of the benches from the two choices in the criteria (vertical) where all
+other parameters are the same. For instance, we calculate the ratio of benches
+in the "config" vertical from the following two traces:
+
+    x86_64:HD7770:ShuttleA:Win8:gradient_create_opaque_640_480:gpu
+    x86_64:HD7770:ShuttleA:Win8:gradient_create_opaque_640_480:8888
+
+and put the value into the cell in a table that has row_gradient_create_opaque_640_480_
+and column _x86_64:HD7770:ShuttleA:Win8_. Basically, the table row will be the
+"test" name, and the column will be the rest of the keys. The number of columns
+will be the number of perf bots we run (20+ for now).
+
+The value will then tell us if the performance is better (<1) or worse (>1) for
+gpu against 8888. We can then heatmap-color the table cells by their value
+ranges, to provide a visual way for users to identify the problems in cell
+groups. By sorting the rows with aggregated performance, users will be able to
+pinpoint the benches with worst/best relative performance to look into.
+
+The same visulaization can be used for visualizing trybot results as well. When
+user selects results from a recent trybot run (which is continually polled from
+Google Storage as the ingester does, organized by try issue numbers and buildbot
+/ build numbers), we pair the most recent bench results from regular buildbot
+runs with the corresponding trybot bench results with identical trace keys, and
+show their ratios in the table with heatmap-colored cells. The table row will
+still be the "test" names, but the columns will concatenate all the other
+verticals, such as _x86_64:HD7770:ShuttleA:Win8:gpu_. Users can control which
+set of trybot results to show together with regular data, thus the number of
+table columns is dynamic.
+
+We can also add an option for users to specify a CL, so we use the available
+bench data closest to that CL (either before or after) for visualization.
+
+Another option is to have users provide two CLs and use the UI to show their diffs on common traces.
 
 Startup and config
 ------------------
