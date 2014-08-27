@@ -69,6 +69,7 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 				fresh.Status = bestMatch.Status
 				fresh.Message = bestMatch.Message
 				fresh.ID = bestMatch.ID
+				fresh.Bugs = bestMatch.Bugs
 				ret = append(ret, fresh)
 				// Find the bestMatch in oldSummaries and replace it with fresh.
 				for i, oldBest := range oldSummaries {

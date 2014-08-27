@@ -14,6 +14,7 @@ type Shortcut struct {
 	Scale int      `json:"scale"`
 	Tiles []int    `json:"tiles"`
 	Keys  []string `json:"keys"`
+	Hash  string   `json:"hash"`
 }
 
 // Insert adds the shortcut content into the database. The id of the shortcut

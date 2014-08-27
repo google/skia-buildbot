@@ -148,6 +148,7 @@ func reportError(w http.ResponseWriter, r *http.Request, err error, message stri
 //    {
 //       "scale": 0,
 //       "tiles": [-1],
+//       "hash": "a1092123890...",
 //       "ids": [
 //            "x86:...",
 //            "x86:...",
@@ -155,6 +156,7 @@ func reportError(w http.ResponseWriter, r *http.Request, err error, message stri
 //       ]
 //    }
 //
+// hash - The git hash of where a step was detected. Can be null.
 //
 func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO(jcgregorio): Add unit tests.
@@ -544,6 +546,12 @@ func traceMatches(trace *types.Trace, query url.Values) bool {
 	return true
 }
 
+// QueryResponse is for formatting the JSON output from queryHandler.
+type QueryResponse struct {
+	Traces []*types.TraceGUI `json:"traces"`
+	Hash   string            `json:"hash"`
+}
+
 // queryHandler handles queries for and about traces.
 //
 // Queries look like:
@@ -589,7 +597,22 @@ func traceMatches(trace *types.Trace, query url.Values) bool {
 //
 //    /query/0/-1/traces/?__shortcut=11
 //
-// Then the traces in the shortcut with that ID are returned.
+// Then the traces in the shortcut with that ID are returned, along with the
+// git hash at the step function, if the shortcut came from an alert.
+//
+//  {
+//    "traces": [
+//      {
+//        // All of these keys and values should be exactly what Flot consumes.
+//        data: [[1, 1.1], [20, 30]],
+//        label: "key1",
+//        _params: {"os: "Android", ...}
+//      },
+//      ...
+//    ],
+//    "hash": "a012334...",
+//  }
+//
 //
 // TODO Add ability to query across a range of tiles.
 func queryHandler(w http.ResponseWriter, r *http.Request) {
@@ -620,6 +643,10 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	ret := QueryResponse{
+		Traces: []*types.TraceGUI{},
+		Hash:   "",
+	}
 	if match[3] == "" {
 		// We only want the count.
 		total := 0
@@ -636,7 +663,6 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// We want the matching traces.
-		ret := []*types.TraceGUI{}
 
 		shortcutID := r.Form.Get("__shortcut")
 		if shortcutID != "" {
@@ -645,11 +671,12 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 				http.NotFound(w, r)
 				return
 			}
+			ret.Hash = sh.Hash
 			for _, k := range sh.Keys {
 				if tr, ok := tile.Traces[k]; ok {
 					tg := traceGuiFromTrace(tr, k, tile)
 					if tg != nil {
-						ret = append(ret, tg)
+						ret.Traces = append(ret.Traces, tg)
 					}
 				}
 			}
@@ -658,13 +685,13 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 				if traceMatches(tr, r.Form) {
 					tg := traceGuiFromTrace(tr, key, tile)
 					if tg != nil {
-						ret = append(ret, tg)
+						ret.Traces = append(ret.Traces, tg)
 					}
 				}
 			}
 		}
 		inc := json.NewEncoder(w)
-		if err := inc.Encode(map[string][]*types.TraceGUI{"traces": ret}); err != nil {
+		if err := inc.Encode(ret); err != nil {
 			reportError(w, r, err, "Error while encoding query response.")
 			return
 		}

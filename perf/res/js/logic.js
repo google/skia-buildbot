@@ -109,52 +109,10 @@ var skiaperf = (function() {
     scale: 0,
     tiles: [-1],
     ticks: [],
-    skps: []     // The indices where SKPs were regenerated.
+    skps: [],     // The indices where SKPs were regenerated.
+    stepIndex: -1
   };
 
-
-  /******************************************
-   * Utility functions used across this file.
-   ******************************************/
-
-  /**
-   * $$ returns a real JS array of DOM elements that match the CSS query selector.
-   *
-   * A shortcut for jQuery-like $ behavior.
-   **/
-  function $$(query, ele) {
-    if (!ele) {
-      ele = document;
-    }
-    return Array.prototype.map.call(ele.querySelectorAll(query), function(e) { return e; });
-  }
-
-
-  /**
-   * $$$ returns the DOM element that match the CSS query selector.
-   *
-   * A shortcut for document.querySelector.
-   **/
-  function $$$(query, ele) {
-    if (!ele) {
-      ele = document;
-    }
-    return ele.querySelector(query);
-  }
-
-
-  // escapeNewlines replaces newlines with <br />'s
-  function escapeNewlines(str) {
-    return (str + '').replace(/\n/g, '<br />');
-  }
-
-  /**
-   * Converts from a POSIX timestamp to a truncated RFC timestamp that
-   * datetime controls can read.
-   */
-  function toRFC(timestamp) {
-    return new Date(timestamp * 1000).toISOString().slice(0, -1);
-  }
 
   /**
    * Notifies the user.
@@ -210,6 +168,11 @@ var skiaperf = (function() {
      * The element displays the current trace we're hovering over.
      */
     this.plotLabel = null;
+
+    /**
+     * The git hash where alerting found a step.
+     */
+    this.stepIndex_ = -1;
   };
 
 
@@ -224,40 +187,24 @@ var skiaperf = (function() {
 
 
   /**
-   * Draws vertical lines that pass through the times of the loaded annotations.
-   * Declared here so it can be used in plotRef's initialization.
+   * Draws vertical lines to indicate the step function from alerting.
    */
-  Plot.prototype.drawAnnotations = function(plot, context) {
+  Plot.prototype.drawAnnotations = function(plot, ctx) {
+    if (this.stepIndex_ == -1) {
+      return
+    }
     var yaxes = plot.getAxes().yaxis;
     var offsets = plot.getPlotOffset();
-    Object.keys(this.annotations).forEach(function(timestamp) {
-      var lineStart = plot.p2c({'x': timestamp, 'y': yaxes.max});
-      var lineEnd = plot.p2c({'x': timestamp, 'y': yaxes.min});
-      context.save();
-      var maxLevel = -1;
-      this.annotations[timestamp].forEach(function(annotation) {
-        if (annotation.type > maxLevel) {
-          maxLevel = annotation.type;
-        }
-      });
-      switch (maxLevel) {
-        case 1:
-          context.strokeStyle = 'dark yellow';
-          break;
-        case 2:
-          context.strokeStyle = 'red';
-          break;
-        default:
-          context.strokeStyle = 'grey';
-      }
-      context.beginPath();
-      context.moveTo(lineStart.left + offsets.left,
-          lineStart.top + offsets.top);
-      context.lineTo(lineEnd.left + offsets.left, lineEnd.top + offsets.top);
-      context.closePath();
-      context.stroke();
-      context.restore();
-    });
+    var lineStart = plot.p2c({'x': this.stepIndex_, 'y': yaxes.max});
+    var lineEnd = plot.p2c({'x': this.stepIndex_, 'y': yaxes.min});
+    ctx.save();
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(lineStart.left + offsets.left, lineStart.top + offsets.top);
+    ctx.lineTo(lineEnd.left + offsets.left, lineEnd.top + offsets.top);
+    ctx.stroke();
+    ctx.restore();
   };
 
 
@@ -541,42 +488,10 @@ var skiaperf = (function() {
     //
     Object.observe(dataset__, function(splices) {
       plot_.plotRef.getOptions().xaxes[0]["ticks"] = dataset__.ticks;
+      plot_.stepIndex_ = dataset__.stepIndex;
       plot_.plotRef.setupGrid();
       plot_.plotRef.draw();
     });
-
-
-
-    // Update annotation points
-    Object.observe(commitData__, function() {
-      console.log(Object.keys(commitData__));
-      var timestamps = Object.keys(commitData__).map(function(e) {
-        return parseInt(e);
-      });
-      console.log(timestamps);
-      var startTime = Math.min.apply(null, timestamps);
-      var endTime = Math.max.apply(null, timestamps);
-      sk.get('annotations/?start=' + startTime + '&end=' + endTime).then(JSON.parse).then(function(json){
-        var commitToTimestamp = {};
-        Object.keys(commitData__).forEach(function(timestamp) {
-          if (commitData__[timestamp]['hash']) {
-            commitToTimestamp[commitData__[timestamp]['hash']] = timestamp;
-          }
-        });
-        Object.keys(json).forEach(function(hash) {
-          if (commitToTimestamp[hash]) {
-            plot_.annotations[commitToTimestamp[hash]] = json[hash];
-          } else {
-            console.log('WARNING: Annotation taken for commit not stored in' +
-                ' commitData__');
-          }
-        });
-        // Redraw to get the new lines
-        plot_.plotRef.draw();
-      });
-      req.send();
-    });
-
   }
 
 
@@ -606,6 +521,16 @@ var skiaperf = (function() {
       json["traces"].forEach(function(t) {
         traces__.push(t);
       });
+      if (json["hash"]) {
+        var index = -1;
+        for (var i = 0, len = commitData__.length; i < len; i++) {
+          if (commitData__[i].hash == json["hash"]) {
+            index = i;
+            break;
+          }
+        }
+        dataset__.stepIndex = index;
+      }
     }).then(function(){
       navigation.loading_ = false;
     }).catch(notifyUser);
@@ -646,6 +571,7 @@ var skiaperf = (function() {
       traces__.splice(0, traces__.length);
       navigation_.plot_.clear();
       navigation_.query_.clear();
+      dataset__.stepIndex = -1;
     });
 
     Array.observe(traces__, function() {
@@ -664,6 +590,7 @@ var skiaperf = (function() {
       dataset__.skps = json.skps;
       commitData__ = json.commits;
       queryInfo__.change.counter += 1;
+      navigation_.loadShortcut();
     });
   };
 
@@ -687,10 +614,8 @@ var skiaperf = (function() {
     var navigation = new Navigation(query, plot);
     navigation.attach();
 
-
     microtasks();
 
-    navigation.loadShortcut();
   }
 
   // If loaded via HTML Imports then DOMContentLoaded will be long done.

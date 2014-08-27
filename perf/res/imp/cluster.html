@@ -291,6 +291,7 @@
     var state = {
       scale: 0,
       tiles: [-1],
+      hash: this.json_.Hash,
       keys: keys
     };
     sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json){
