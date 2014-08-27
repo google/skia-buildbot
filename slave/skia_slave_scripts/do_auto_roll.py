@@ -84,7 +84,9 @@ class AutoRoll(BuildStep):
         output = shell_utils.run(cmd)
       except shell_utils.CommandFailedException as e:
         output = e.output
-        exception = e
+        # Suppress failure for "refusing to roll backwards."
+        if not re.search(REGEXP_ROLL_TOO_OLD, output):
+          exception = e
 
     bucket_url = gs_utils.GSUtils.with_gs_prefix(
         skia_vars.GetGlobalVariable('googlestorage_bucket'))
