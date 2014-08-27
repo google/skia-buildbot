@@ -300,12 +300,16 @@ var skiaperf = (function() {
             interactive: true
           },
           pan: {
-            interactive: true,
+            interactive: false,
             frameRate: 60
           },
           hooks: {
             draw: [plot_.drawAnnotations.bind(plot_)],
             drawSeries: [plot_.drawHighlightedLine.bind(plot_)]
+          },
+          selection: {
+            mode: "xy",
+            color: "#ddd"
           }
         }).data('plot');
 
@@ -417,6 +421,17 @@ var skiaperf = (function() {
         });
       });
       $$$('#note').classList.remove("hidden");
+    });
+
+
+    jQuery('#chart').bind('plotselected', function(event, ranges) {
+      plot_.plotRef.getOptions().xaxes[0].min = ranges.xaxis.from;
+      plot_.plotRef.getOptions().xaxes[0].max = ranges.xaxis.to;
+      plot_.plotRef.getOptions().yaxes[0].min = ranges.yaxis.from;
+      plot_.plotRef.getOptions().yaxes[0].max = ranges.yaxis.to;
+      plot_.plotRef.clearSelection();
+      plot_.plotRef.setupGrid();
+      plot_.plotRef.draw();
     });
 
     // Remove all other traces when this is clicked.
