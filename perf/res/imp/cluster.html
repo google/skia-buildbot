@@ -222,12 +222,14 @@
       result.classList.add(json.Status);
     }
 
-    json.Bugs.forEach(function(b) {
-      var node = importer__.import('#clBug');
-      $$$('.clBug', node).href = "https://code.google.com/p/skia/issues/detail?id=" + b;
-      $$$('.clBug', node).innerText = b;
-      $$$('.clBugs', result).appendChild(node);
-    });
+    if (json.Bugs) {
+      json.Bugs.forEach(function(b) {
+        var node = importer__.import('#clBug');
+        $$$('.clBug', node).href = "https://code.google.com/p/skia/issues/detail?id=" + b;
+        $$$('.clBug', node).innerText = b;
+        $$$('.clBugs', result).appendChild(node);
+      });
+    }
 
     // Fill in the word cloud.
     $$$('.expander', result).addEventListener('click', sk.ClusterSummary.toggleWordCloud_);
