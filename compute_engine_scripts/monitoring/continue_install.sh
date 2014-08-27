@@ -39,7 +39,7 @@ export PATH=$PATH:$GOROOT/bin
 
 # Get buildbot code so we can build the prober.
 if [ -d buildbot ]; then
-  (cd buildbot && git pull);
+  (cd buildbot && git pull && git checkout tags/0.9.12);
 else
   git clone https://skia.googlesource.com/buildbot
 fi
