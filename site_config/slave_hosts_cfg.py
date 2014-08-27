@@ -876,20 +876,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
-  'win7-intel-004': {
-    'slaves': [
-      ('skiabot-shuttle-win7-intel-special-000', '0'),
-    ],
-    'copies': _DEFAULT_COPIES,
-    'login_cmd': None,
-    'ip': '192.168.1.119',
-    'kvm_num': 'H',
-    'path_module': ntpath,
-    'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
   'win8-gtx660-000': {
     'slaves': [
       ('skiabot-shuttle-win8-gtx660-000', '0'),
