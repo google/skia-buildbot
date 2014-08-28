@@ -180,7 +180,7 @@ EOF
 
 # Mark this task as completed on AppEngine.
 PASSWORD=`cat /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts/appengine_password.txt`
-for i in {1..10}; do wget --post-data "key=$APPENGINE_KEY&patch_link=$SKIA_PATCH_GS_LINK&slave1_output_link=$SLAVE_1_LOG_LINK&html_output_link=$HTML_OUTPUT_LINK&password=$PASSWORD" "https://skia-tree-status.appspot.com/skia-telemetry/update_skia_try_task" -O /dev/null && break || sleep 2; done
+for i in {1..10}; do curl -XPOST https://skia-tree-status.appspot.com/skia-telemetry/update_skia_try_task --data-urlencode "key=$APPENGINE_KEY" --data-urlencode "patch_link=$SKIA_PATCH_GS_LINK" --data-urlencode "slave1_output_link=$SLAVE_1_LOG_LINK" --data-urlencode "html_output_link=$HTML_OUTPUT_LINK" --data-urlencode "password=$PASSWORD" && break || sleep 2; done
 
 # Delete all tmp files.
 rm -rf /tmp/*${RUN_ID}*
