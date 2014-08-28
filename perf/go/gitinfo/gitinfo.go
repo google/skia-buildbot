@@ -199,7 +199,7 @@ func (g *GitInfo) LastSkpCommit() (time.Time, error) {
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
 	if err != nil {
-		glog.Error(string(b))
+		glog.Error("Failed to read git log: ", err)
 		return time.Time{}, err
 	}
 	ts, err := strconv.ParseInt(string(b), 10, 64)
