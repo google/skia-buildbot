@@ -83,6 +83,10 @@ class RunNanobench(BuildStep):
       # Covered by faster CPUs in the same processor family (N7).
       args.append('--nocpu')
 
+    if self._AnyMatch('HD2000'):
+      # skia:2895
+      match.append('~gradient')
+
     if match:
       args.append('--match')
       args.extend(match)
