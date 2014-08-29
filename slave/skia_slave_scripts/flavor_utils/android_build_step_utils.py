@@ -21,8 +21,6 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
     self._serial = self._step.args['serial'] if \
                              self._step.args['serial'] != 'None' else None
     self._has_root = self._step.args['has_root'] == 'True'
-    # As an experiment, see how things fare if we pretend not to have root.
-    self._has_root = False
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
@@ -106,7 +104,8 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
     if self._has_root:
       android_utils.RunADB(self._serial, ['root'])
       android_utils.RunADB(self._serial, ['remount'])
-      android_utils.SetCPUScalingMode(self._serial, 'performance')
+      # As an experiment, don't change CPU scaling mode.
+      #android_utils.SetCPUScalingMode(self._serial, 'performance')
       try:
         android_utils.ADBKill(self._serial, 'skia')
       except Exception:
