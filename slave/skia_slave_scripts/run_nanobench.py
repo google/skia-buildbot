@@ -77,10 +77,7 @@ class RunNanobench(BuildStep):
       match.append('~patch_grid')  # skia:2847
 
     if self._AnyMatch('Nexus7'):
-      # Crashes in GPU mode.
-      match.append('~draw_stroke')
-      # Fatally overload the driver.
-      match.extend(['~path_fill_big_triangle', '~lines_0'])
+      args.append('--nogpu')  # skia:2774
 
     if match:
       args.append('--match')
