@@ -85,7 +85,7 @@ class RunNanobench(BuildStep):
 
     if self._AnyMatch('HD2000'):
       # skia:2895
-      match.append('~gradient')
+      match.extend(['~gradient', '~etc1bitmap'])
 
     if match:
       args.append('--match')
