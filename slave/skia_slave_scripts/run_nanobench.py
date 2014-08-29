@@ -74,6 +74,7 @@ class RunNanobench(BuildStep):
     if self._AnyMatch('Android'):
       # Segfaults when run as GPU bench.  Very large texture?
       match.append('~blurroundrect')
+      match.append('~patch_grid')  # skia:2847
 
     if self._AnyMatch('HD2000'):
       # GPU benches seem to hang on HD2000.  Not sure why.
@@ -84,9 +85,6 @@ class RunNanobench(BuildStep):
       match.append('~draw_stroke')
       # Fatally overload the driver.
       match.extend(['~path_fill_big_triangle', '~lines_0'])
-
-    if self._AnyMatch('Xoom'):
-      match.append('~patch_grid')  # skia:2847
 
     if match:
       args.append('--match')
