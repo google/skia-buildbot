@@ -21,6 +21,8 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
     self._serial = self._step.args['serial'] if \
                              self._step.args['serial'] != 'None' else None
     self._has_root = self._step.args['has_root'] == 'True'
+    # As an experiment, see how things fare if we pretend not to have root.
+    self._has_root = False
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
