@@ -40,10 +40,10 @@ class RunDM(BuildStep):
     if self._AnyMatch('Xoom'):
       match.append('~WritePixels')  # skia:1699
 
-    # Nexus S and Galaxy Nexus are still crashing.
-    # Maybe the GPU's the problem?
-    if self._AnyMatch('SGX540'):
-      args.append('--nogpu')
+    # Though their GPUs are interesting, these don't test anything on
+    # the CPU that other ARMv7+NEON bots don't test faster (N5).
+    if self._AnyMatch('GalaxyNexus', 'Nexus10', 'Nexus7'):
+      args.append('--nocpu')
 
     if match:
       args.append('--match')

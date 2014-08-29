@@ -79,6 +79,10 @@ class RunNanobench(BuildStep):
     if self._AnyMatch('Nexus7'):
       args.append('--nogpu')  # skia:2774
 
+    if self._AnyMatch('GalaxyNexus'):
+      # Covered by faster CPUs in the same processor family (N7).
+      args.append('--nocpu')
+
     if match:
       args.append('--match')
       args.extend(match)
