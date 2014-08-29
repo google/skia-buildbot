@@ -33,4 +33,7 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
     os.environ['LSAN_OPTIONS'] = \
             'suppressions=tools/lsan.supp print_suppressions=1'
     os.environ['TSAN_OPTIONS'] = 'suppressions=tools/tsan.supp'
+    # Temporary debugging.
+    import pprint
+    pprint.pprint(dict(os.environ))
     return shell_utils.run([self._PathToBinary(app)] + args)
