@@ -13,10 +13,8 @@ import sys
 class RenderPdfs(BuildStep):
   def _Run(self):
     args = ['--inputPaths', self._device_dirs.SKPDir()]
-    if ('Nexus4' in self._builder_name or
-        'NexusS' in self._builder_name or
-        'Xoom'   in self._builder_name):
-      # On these devices, these SKPs usually make render_pdfs run out of memory.
+    if 'Xoom' in self._builder_name:
+      # On the Xoom, these SKPs usually make render_pdfs run out of memory.
       args.extend(['--match', '~tabl_mozilla', '~tabl_nytimes'])
     self._flavor_utils.RunFlavoredCmd('render_pdfs', args)
 

@@ -54,9 +54,7 @@ class RunGM(BuildStep):
     if sys.platform == 'darwin':
       # msaa16 is flaky on Macs (driver bug?) so we skip the test for now
       cmd.extend(['--config', 'defaults', '~msaa16'])
-    elif ('RazrI' in self._builder_name or
-          'Nexus10' in self._builder_name or
-          'Nexus4' in self._builder_name):
+    elif 'Nexus10' in self._builder_name:
       cmd.extend(['--config', 'defaults', 'msaa4'])
     elif 'ANGLE' in self._builder_name:
       cmd.extend(['--config', 'angle'])
