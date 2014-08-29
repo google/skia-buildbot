@@ -80,6 +80,10 @@ class RunNanobench(BuildStep):
       # Covered by faster CPUs in the same processor family (N7).
       args.append('--nocpu')
 
+    if self._AnyMatch('Nexus7'):
+      # skia:2774
+      match.append('~patch')
+
     if self._AnyMatch('HD2000'):
       # skia:2895
       match.extend(['~gradient', '~etc1bitmap'])
