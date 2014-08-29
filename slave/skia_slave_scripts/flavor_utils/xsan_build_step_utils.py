@@ -27,8 +27,10 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
     shell_utils.run(cmd)
 
   def RunFlavoredCmd(self, app, args):
-    # New versions of ASAN run LSAN by default.  We're not yet clean for that.
-    os.environ['ASAN_OPTIONS'] = 'detect_leaks=0'
-    # Point TSAN at our suppressions file.
+    # TODO(mtklein): Enable symbolize=1 for all these after
+    #                figuring out external_symbolizer_path.
+    os.environ['ASAN_OPTIONS'] = 'detect_leaks=1'
+    os.environ['LSAN_OPTIONS'] = \
+            'suppressions=tools/lsan.supp print_suppressions=1'
     os.environ['TSAN_OPTIONS'] = 'suppressions=tools/tsan.supp'
     return shell_utils.run([self._PathToBinary(app)] + args)
