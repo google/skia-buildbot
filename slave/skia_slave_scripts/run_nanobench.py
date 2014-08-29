@@ -76,10 +76,6 @@ class RunNanobench(BuildStep):
       match.append('~blurroundrect')
       match.append('~patch_grid')  # skia:2847
 
-    if self._AnyMatch('HD2000'):
-      # GPU benches seem to hang on HD2000.  Not sure why.
-      args.append('--nogpu')
-
     if self._AnyMatch('Nexus7'):
       # Crashes in GPU mode.
       match.append('~draw_stroke')
