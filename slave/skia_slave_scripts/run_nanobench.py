@@ -76,15 +76,15 @@ class RunNanobench(BuildStep):
       match.append('~blurroundrect')
       match.append('~patch_grid')  # skia:2847
 
-    if self._AnyMatch('Nexus7'):
-      match.append('skp')  # skia:2774
-
     if self._AnyMatch('GalaxyNexus'):
       # Covered by faster CPUs in the same processor family (N7).
       args.append('--nocpu')
 
     if self._AnyMatch('HD2000'):
       match.extend(['~gradient', '~etc1bitmap'])  # skia:2895
+
+    if self._AnyMatch('Nexus7'):
+      match = ['skp']  # skia:2774
 
     if match:
       args.append('--match')
