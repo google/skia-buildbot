@@ -41,7 +41,8 @@ class RunDM(BuildStep):
       match.append('~WritePixels')  # skia:1699
 
     if self._AnyMatch('GalaxyNexus'):
-      match.extend(['~filterindiabox', '~bleed'])  # skia:2900
+      # skia:2900
+      match.extend(['~downsamplebitmap_text', '~filterindiabox', '~bleed'])
 
     # Though their GPUs are interesting, these don't test anything on
     # the CPU that other ARMv7+NEON bots don't test faster (N5).
