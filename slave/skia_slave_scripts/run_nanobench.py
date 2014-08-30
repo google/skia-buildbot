@@ -82,10 +82,10 @@ class RunNanobench(BuildStep):
     if self._AnyMatch('GalaxyNexus'):
       # Covered by faster CPUs in the same processor family (N7).
       args.append('--nocpu')
+      args.append('~fontcache')  # skia:2900
 
     if self._AnyMatch('HD2000'):
-      # skia:2895
-      match.extend(['~gradient', '~etc1bitmap'])
+      match.extend(['~gradient', '~etc1bitmap'])  # skia:2895
 
     if match:
       args.append('--match')
