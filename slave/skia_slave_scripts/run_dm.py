@@ -41,7 +41,7 @@ class RunDM(BuildStep):
       match.append('~WritePixels')  # skia:1699
 
     if self._AnyMatch('GalaxyNexus'):
-      match.append('~fontcache')  # skia:2900
+      match.extend(['~fontmgr', '~fontcache'])  # skia:2900
 
     # Though their GPUs are interesting, these don't test anything on
     # the CPU that other ARMv7+NEON bots don't test faster (N5).
