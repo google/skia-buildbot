@@ -193,6 +193,7 @@ func apiKeyFromFlag(apiKeyFlag string) string {
 		}
 		req.Header.Add("X-Google-Metadata-Request", "True")
 		if resp, err := c.Do(req); err == nil {
+			defer resp.Body.Close()
 			if resp.StatusCode != 200 {
 				return ""
 			}
@@ -248,6 +249,7 @@ func updateBugs(c *types.ClusterSummary, apiKey string) {
 		glog.Errorf("Request to project hosting failed: %s", err)
 		return
 	}
+	defer resp.Body.Close()
 
 	issueResponse := &IssueResponse{
 		Items: []*Issue{},
