@@ -69,6 +69,10 @@ class RunNanobench(BuildStep):
       args.extend(['gitHash', self._got_revision,
                    'build_number', str(self._build_number)])
 
+    if self._AnyMatch('GalaxyNexus'):
+      # Covered by faster CPUs in the same processor family (N7).
+      args.append('--nocpu')
+
     match  = []
     # Disable known problems.
     if self._AnyMatch('Android'):
@@ -76,12 +80,11 @@ class RunNanobench(BuildStep):
       match.append('~blurroundrect')
       match.append('~patch_grid')  # skia:2847
 
-    if self._AnyMatch('GalaxyNexus'):
-      # Covered by faster CPUs in the same processor family (N7).
-      args.append('--nocpu')
-
     if self._AnyMatch('HD2000'):
       match.extend(['~gradient', '~etc1bitmap'])  # skia:2895
+
+    if self._AnyMatch('Adreno'):
+      match.append('~desk_jsfiddlebigcar.skp_1.1')  # skia:2901
 
     if self._AnyMatch('Nexus7'):
       match = ['skp']  # skia:2774
