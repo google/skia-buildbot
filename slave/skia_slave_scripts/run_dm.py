@@ -29,9 +29,6 @@ class RunDM(BuildStep):
     if self._AnyMatch('Alex'):         # skia:2793
       args.extend(['--threads', '1'])
 
-    if self._AnyMatch('Arm64'):        # skia:2910
-      match.append('~giantbitmap')
-
     if self._AnyMatch('Xoom'):         # skia:1699
       match.append('~WritePixels')
 
