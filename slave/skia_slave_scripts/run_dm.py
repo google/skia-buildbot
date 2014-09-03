@@ -26,22 +26,16 @@ class RunDM(BuildStep):
 
     match  = []
 
-    if self._AnyMatch('Alex'):
-      # This machine looks to be running out of heap.
-      # Running with fewer threads may help.
+    if self._AnyMatch('Alex'):         # skia:2793
       args.extend(['--threads', '1'])
 
-    if self._AnyMatch('Android'):
+    if self._AnyMatch('Arm64'):        # skia:2910
       match.append('~giantbitmap')
 
-    if self._AnyMatch('Tegra'):
-      match.append('~downsamplebitmap_text')
+    if self._AnyMatch('Xoom'):         # skia:1699
+      match.append('~WritePixels')
 
-    if self._AnyMatch('Xoom'):
-      match.append('~WritePixels')  # skia:1699
-
-    if self._AnyMatch('GalaxyNexus'):
-      # skia:2900
+    if self._AnyMatch('GalaxyNexus'):  # skia:2900
       match.extend(['~downsamplebitmap_text', '~filterindiabox', '~bleed'])
 
     # Though their GPUs are interesting, these don't test anything on
@@ -55,8 +49,7 @@ class RunDM(BuildStep):
 
     self._flavor_utils.RunFlavoredCmd('dm', args)
 
-    # See skia:2789
-    if self._AnyMatch('Valgrind'):
+    if self._AnyMatch('Valgrind'):     # skia:2789
       abandonGpuContext = list(args)
       abandonGpuContext.append('--abandonGpuContext')
       abandonGpuContext.append('--nocpu')
