@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skia Performance Monitoring | Compare Verticals</title>
+
+    {{template "header.html" .}}
+
+    <link href="/res/imp/compare.html" rel="import" />
+    <script src="/res/js/compare.js"></script>
+</head>
+<body>
+  {{template "titlebar.html" .}}
+  <section id=compare>
+    <h2>Compare Results</h2>
+    <div id=vInput>
+      Vertical to compare:
+      <input type="radio" name="vertical" value="arch">arch</input>
+      <input type="radio" name="vertical" value="config" checked>config</input>
+      <input type="radio" name="vertical" value="os">os</input>
+      <input type="radio" name="vertical" value="scale">scale</input>
+    </div>
+    </p>
+    <div id="sk-query"></div>
+    <button id="start" type="submit">Compare</button>
+
+    <div id="compStatus"></div>
+    <div id="skCompare"></div>
+  </section>
+</body>
+</html>

@@ -50,6 +50,9 @@ var (
 
 	clTemplate *template.Template = nil
 
+	// compareTemplate is the /compare/ page we serve.
+	compareTemplate *template.Template = nil
+
 	jsonHandlerPath = regexp.MustCompile(`/json/([a-z]*)$`)
 
 	trybotsHandlerPath = regexp.MustCompile(`/trybots/([0-9A-Za-z-/]*)$`)
@@ -121,6 +124,11 @@ func Init() {
 	))
 	clTemplate = template.Must(template.ParseFiles(
 		filepath.Join(cwd, "templates/cl.html"),
+		filepath.Join(cwd, "templates/titlebar.html"),
+		filepath.Join(cwd, "templates/header.html"),
+	))
+	compareTemplate = template.Must(template.ParseFiles(
+		filepath.Join(cwd, "templates/compare.html"),
 		filepath.Join(cwd, "templates/titlebar.html"),
 		filepath.Join(cwd, "templates/header.html"),
 	))
@@ -279,6 +287,15 @@ func clHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := clTemplate.Execute(w, cl); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// compareHandler handles the GET of the compare page.
+func compareHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Compare Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "text/html")
+	if err := compareTemplate.Execute(w, nil); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -816,6 +833,7 @@ func main() {
 	http.HandleFunc("/alerts/", autogzip.HandleFunc(alertsHandler))
 	http.HandleFunc("/alerting/", autogzip.HandleFunc(alertingHandler))
 	http.HandleFunc("/annotate/", autogzip.HandleFunc(annotateHandler))
+	http.HandleFunc("/compare/", autogzip.HandleFunc(compareHandler))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))
