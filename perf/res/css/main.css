@@ -128,22 +128,6 @@ table, td {
   margin: 0.5em;
 }
 
-#notification {
-    position: fixed;
-    bottom: 0px;
-    width: 100%;
-}
-
-#notification-text {
-    background-color: lightyellow;
-    padding: 0.7em;
-    float: center;
-    display: table;
-    margin: 0 auto;
-    font-size: large;
-}
-
-
 #title {
   margin: 0;
   padding: 0.5em;

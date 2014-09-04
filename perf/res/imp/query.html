@@ -16,6 +16,12 @@
   The sk.Query constructor will find the element with an id of sk-query
   and will insert the query controls as a child of that element.
 
+  Events:
+    'change'
+        The 'sk-query' element will produce 'change' events when the query
+        parameters chosen have changed. The listener can then call
+        selectionsAsQuery() to get the current selections.
+
   TODO(jcgregorio) queryInfo__ needs to be moved into Query and not passed in
     via constructor.
 
@@ -105,6 +111,7 @@
     Object.observe(this.queryInfo_.change, this.onParamChange.bind(this));
 
     $$$('#query-inputs').addEventListener('change', function(e) {
+      $$$('#sk-query').dispatchEvent(new Event('change'));
       sk.get('/query/0/-1/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
         $$$('#query-count').innerHTML = json["matches"] + ' lines selected<br />';
       });
