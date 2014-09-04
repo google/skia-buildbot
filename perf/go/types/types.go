@@ -17,14 +17,29 @@ type Trace struct {
 // The Trace Values are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
 func NewTrace() *Trace {
-	return newTraceN(config.TILE_SIZE)
+	return NewTraceN(config.TILE_SIZE)
 }
 
-// newTraceN allocates a new Trace set up for the given number of samples.
+func (t *Trace) DeepCopy() *Trace {
+	n := len(t.Values)
+	cp := &Trace{
+		Values: make([]float64, n, n),
+		Params: make(map[string]string),
+	}
+	for i, x := range t.Values {
+		cp.Values[i] = x
+	}
+	for k, v := range t.Params {
+		cp.Params[k] = v
+	}
+	return cp
+}
+
+// NewTraceN allocates a new Trace set up for the given number of samples.
 //
 // The Trace Values are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
-func newTraceN(n int) *Trace {
+func NewTraceN(n int) *Trace {
 	t := &Trace{
 		Values: make([]float64, n, n),
 		Params: make(map[string]string),
@@ -261,7 +276,7 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	seen := map[string]bool{}
 	for key, trace := range tile1.Traces {
 		seen[key] = true
-		mergedTrace := newTraceN(n)
+		mergedTrace := NewTraceN(n)
 		mergedTrace.Params = trace.Params
 		for i, v := range trace.Values {
 			mergedTrace.Values[i] = v
@@ -278,7 +293,7 @@ func Merge(tile1, tile2 *Tile) *Tile {
 		if _, ok := seen[key]; ok {
 			continue
 		}
-		mergedTrace := newTraceN(n)
+		mergedTrace := NewTraceN(n)
 		mergedTrace.Params = trace.Params
 		for i, v := range trace.Values {
 			mergedTrace.Values[n1+i] = v

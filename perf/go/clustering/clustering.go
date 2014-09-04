@@ -47,7 +47,7 @@ type ClusterSummaries struct {
 func NewClusterSummaries() *ClusterSummaries {
 	return &ClusterSummaries{
 		Clusters:         []*types.ClusterSummary{},
-		StdDevThreshhold: ctrace.MIN_STDDEV,
+		StdDevThreshhold: config.MIN_STDDEV,
 		K:                K,
 	}
 }

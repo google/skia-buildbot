@@ -1,22 +1,7 @@
-// Lexer and parser for expressions of the form:
-//
-//   f(g(h("foo"), i(3, "bar")))
-//
-// Note that while it does understand strings and numbers, it doesn't
-// do binary operators. We can do those via functions if needed, ala
-// add(x, y), sub(x, y), etc.
-//
-// Caveats:
-// * Only handles ASCII.
-//
-// For context on how this was written please watch:
-//    https://www.youtube.com/watch?v=HxaD_trXwRE
-//
 package parser
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 
 	"skia.googlesource.com/buildbot.git/perf/go/types"
@@ -109,46 +94,6 @@ func traceMatches(trace *types.Trace, query url.Values) bool {
 	return true
 }
 
-// filterFunc is a Func that returns a filtered set of Traces from the Tile in
-// the Context.
-//
-// It expects a single argument that is a string in URL query format, ala
-// os=Ubuntu12&config=8888.
-func filterFunc(ctx *Context, node *Node) ([]*types.Trace, error) {
-	if len(node.Args) != 1 {
-		return nil, fmt.Errorf("filter() takes a single argument.")
-	}
-	if node.Args[0].Typ != NodeString {
-		return nil, fmt.Errorf("filter() takes a string argument.")
-	}
-	query, err := url.ParseQuery(node.Args[0].Val)
-	if err != nil {
-		return nil, fmt.Errorf("filter() arg not a valid URL query parameter: %s", err)
-	}
-	traces := []*types.Trace{}
-	for _, tr := range ctx.Tile.Traces {
-		if traceMatches(tr, query) {
-			traces = append(traces, tr)
-		}
-	}
-	return traces, nil
-}
-
-func normFunc(ctx *Context, node *Node) ([]*types.Trace, error) {
-	// TODO(jcgregorio) Implement.
-	return nil, nil
-}
-
-func fillFunc(ctx *Context, node *Node) ([]*types.Trace, error) {
-	// TODO(jcgregorio) Implement.
-	return nil, nil
-}
-
-func aveFunc(ctx *Context, node *Node) ([]*types.Trace, error) {
-	// TODO(jcgregorio) Implement.
-	return nil, nil
-}
-
 // parse starts the parsing.
 func parse(input string) (*Node, error) {
 	l := newLexer(input)
@@ -192,7 +137,6 @@ func parseArgs(l *lexer, p *Node) error {
 Loop:
 	for {
 		it := l.peekItem()
-		log.Printf("%#v\n", it)
 		switch it.typ {
 		case itemIdentifier:
 			next, err := parseExp(l)

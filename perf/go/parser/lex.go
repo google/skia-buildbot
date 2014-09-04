@@ -1,11 +1,3 @@
-// Lexer that will feed the parser in parser.go.
-//
-// Caveats:
-// * Only handles ASCII.
-//
-// For context on how this was written please watch:
-//    https://www.youtube.com/watch?v=HxaD_trXwRE
-//
 package parser
 
 import (

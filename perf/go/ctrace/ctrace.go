@@ -11,12 +11,6 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/kmeans"
 )
 
-const (
-	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
-	// than this and we presume it's a standard deviation of zero.
-	MIN_STDDEV = 0.1
-)
-
 // ClusterableTrace contains Trace data and implements kmeans.Clusterable.
 type ClusterableTrace struct {
 	Key    string
@@ -80,7 +74,7 @@ func NewFullTrace(key string, values []float64, params map[string]string, minStd
 	// Normalize the data to a mean of 0 and standard deviation of 1.0.
 	for i, _ := range norm {
 		norm[i] -= mean
-		if stddev > MIN_STDDEV {
+		if stddev > minStdDev {
 			norm[i] = norm[i] / stddev
 		}
 	}

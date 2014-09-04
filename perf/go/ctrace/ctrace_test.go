@@ -4,6 +4,7 @@ import (
 	"math"
 	"testing"
 
+	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/kmeans"
 )
 
@@ -23,7 +24,7 @@ func TestDistance(t *testing.T) {
 }
 
 func TestNewFullTraceKey(t *testing.T) {
-	ct := NewFullTrace("foo", []float64{1, -1}, map[string]string{"foo": "bar"}, MIN_STDDEV)
+	ct := NewFullTrace("foo", []float64{1, -1}, map[string]string{"foo": "bar"}, config.MIN_STDDEV)
 	if got, want := ct.Key, "foo"; got != want {
 		t.Errorf("Key not set: Got %s Want %s", got, want)
 	}
@@ -57,12 +58,12 @@ func TestNewFullTrace(t *testing.T) {
 		},
 		{
 			// There's a limit to how small of a stddev we will normalize.
-			Values: []float64{1e100, MIN_STDDEV, -MIN_STDDEV, 1e100},
+			Values: []float64{1e100, config.MIN_STDDEV, -config.MIN_STDDEV, 1e100},
 			Near:   false,
 		},
 	}
 	for _, tc := range testcases {
-		ct := NewFullTrace("foo", tc.Values, map[string]string{}, MIN_STDDEV)
+		ct := NewFullTrace("foo", tc.Values, map[string]string{}, config.MIN_STDDEV)
 		if got, want := ct.Values[0], 1.0; near(got, want) != tc.Near {
 			t.Errorf("Normalization failed for values %#v: near(Got %f, Want %f) != %t", tc.Values, got, want, tc.Near)
 		}

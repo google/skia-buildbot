@@ -53,6 +53,10 @@ const (
 	MAX_SAMPLE_TRACES_PER_CLUSTER = 5
 
 	RECLUSTER_DURATION = 15 * time.Minute
+
+	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
+	// than this and we presume it's a standard deviation of zero.
+	MIN_STDDEV = 0.1
 )
 
 type DatasetName string
