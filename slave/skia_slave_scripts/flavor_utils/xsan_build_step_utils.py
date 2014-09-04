@@ -27,10 +27,8 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
     shell_utils.run(cmd)
 
   def RunFlavoredCmd(self, app, args):
-    # TODO(mtklein): Enable symbolize=1 for all these after
-    #                figuring out external_symbolizer_path.
-    os.environ['ASAN_OPTIONS'] = 'detect_leaks=1'
+    os.environ['ASAN_OPTIONS'] = 'symbolize=1 detect_leaks=1'
     os.environ['LSAN_OPTIONS'] = \
-            'suppressions=tools/lsan.supp print_suppressions=1'
-    os.environ['TSAN_OPTIONS'] = 'suppressions=tools/tsan.supp'
+            'symbolize=1 suppressions=tools/lsan.supp print_suppressions=1'
+    os.environ['TSAN_OPTIONS'] = 'symbolize=1 suppressions=tools/tsan.supp'
     return shell_utils.run([self._PathToBinary(app)] + args)
