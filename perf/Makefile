@@ -10,7 +10,7 @@ test: testgo testjs
 testgo:
 	go test ./go/kmeans ./go/ctrace ./go/filetilestore \
 		./go/gitinfo ./go/ingester ./go/types ./go/human \
-		./go/alerting ./go/parser
+		./go/alerting ./go/parser ./go/vec
 
 .PHONY: testjs
 testjs:

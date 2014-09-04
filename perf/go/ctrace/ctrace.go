@@ -7,8 +7,8 @@ import (
 )
 
 import (
-	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/kmeans"
+	"skia.googlesource.com/buildbot.git/perf/go/vec"
 )
 
 // ClusterableTrace contains Trace data and implements kmeans.Clusterable.
@@ -38,46 +38,11 @@ func (t *ClusterableTrace) String() string {
 func NewFullTrace(key string, values []float64, params map[string]string, minStdDev float64) *ClusterableTrace {
 	norm := make([]float64, len(values))
 
-	// Find the first non-sentinel data point.
-	last := 0.0
-	for _, x := range values {
-		if x != config.MISSING_DATA_SENTINEL {
-			last = x
-			break
-		}
-	}
-	// Copy over the data from values, backfilling in sentinels with
-	// older points, except for the beginning of the array where
-	// we can't do that, so we fill those points in using the first
-	// non sentinel.
-	// So
-	//    [1e100, 1e100, 2, 3, 1e100, 5]
-	// becomes
-	//    [2    , 2    , 2, 3, 3    , 5]
-	//
-	sum := 0.0
-	sum2 := 0.0
 	for i, x := range values {
-		if x == config.MISSING_DATA_SENTINEL {
-			norm[i] = last
-		} else {
-			norm[i] = x
-			last = x
-		}
-		sum += norm[i]
-		sum2 += norm[i] * norm[i]
+		norm[i] = x
 	}
-
-	mean := sum / float64(len(norm))
-	stddev := math.Sqrt(sum2/float64(len(norm)) - mean*mean)
-
-	// Normalize the data to a mean of 0 and standard deviation of 1.0.
-	for i, _ := range norm {
-		norm[i] -= mean
-		if stddev > minStdDev {
-			norm[i] = norm[i] / stddev
-		}
-	}
+	vec.Fill(norm)
+	vec.Norm(norm, minStdDev)
 
 	return &ClusterableTrace{
 		Key:    key,

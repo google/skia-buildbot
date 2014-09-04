@@ -100,8 +100,8 @@ func near(a, b float64) bool {
 
 func TestNorm(t *testing.T) {
 	ctx := newTestContext()
-	ctx.Tile.Traces["t1"].Values = []float64{1.0, -1.0, 1e100}
-	ctx.Tile.Traces["t2"].Values = []float64{1e100, 2.0, -2.0}
+	ctx.Tile.Traces["t1"].Values = []float64{2.0, -2.0, 1e100}
+	delete(ctx.Tile.Traces, "t2")
 	traces, err := ctx.Eval(`norm(filter(""))`)
 	if err != nil {
 		t.Fatalf("Failed to eval norm() test: %s", err)
@@ -109,9 +109,6 @@ func TestNorm(t *testing.T) {
 
 	if got, want := traces[0].Values[0], 1.0; !near(got, want) {
 		t.Errorf("Distance mismatch: Got %v Want %v Full %#v", got, want, traces[0].Values)
-	}
-	if got, want := traces[1].Values[1], 1.0; !near(got, want) {
-		t.Errorf("Distance mismatch: Got %v Want %v Full %#v", got, want, traces[1].Values)
 	}
 }
 
@@ -137,6 +134,7 @@ func TestAve(t *testing.T) {
 func TestFill(t *testing.T) {
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].Values = []float64{1e100, 1e100, 2, 3, 1e100, 5}
+	delete(ctx.Tile.Traces, "t2")
 	traces, err := ctx.Eval(`fill(filter("config=8888"))`)
 	if err != nil {
 		t.Fatalf("Failed to eval fill() test: %s", err)
