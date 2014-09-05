@@ -52,6 +52,8 @@ var (
 
 	clTemplate *template.Template = nil
 
+	helpTemplate *template.Template = nil
+
 	// compareTemplate is the /compare/ page we serve.
 	compareTemplate *template.Template = nil
 
@@ -131,6 +133,11 @@ func Init() {
 	))
 	compareTemplate = template.Must(template.ParseFiles(
 		filepath.Join(cwd, "templates/compare.html"),
+		filepath.Join(cwd, "templates/titlebar.html"),
+		filepath.Join(cwd, "templates/header.html"),
+	))
+	helpTemplate = template.Must(template.ParseFiles(
+		filepath.Join(cwd, "templates/help.html"),
 		filepath.Join(cwd, "templates/titlebar.html"),
 		filepath.Join(cwd, "templates/header.html"),
 	))
@@ -859,6 +866,18 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// helpHandler handles the GET of the main page.
+func helpHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Help Handler: %q\n", r.URL.Path)
+	if r.Method == "GET" {
+		w.Header().Set("Content-Type", "text/html")
+		ctx := parser.NewContext(nil)
+		if err := helpTemplate.Execute(w, ctx); err != nil {
+			glog.Errorln("Failed to expand template:", err)
+		}
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir("./"))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -893,6 +912,7 @@ func main() {
 	http.HandleFunc("/annotate/", autogzip.HandleFunc(annotateHandler))
 	http.HandleFunc("/compare/", autogzip.HandleFunc(compareHandler))
 	http.HandleFunc("/calc/", autogzip.HandleFunc(calcHandler))
+	http.HandleFunc("/help/", autogzip.HandleFunc(helpHandler))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

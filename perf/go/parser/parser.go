@@ -38,8 +38,8 @@ func (n *Node) Eval(ctx *Context) ([]*types.Trace, error) {
 	if n.Typ != NodeFunc {
 		return nil, fmt.Errorf("Tried to call eval on a non-Func node: %s", n.Val)
 	}
-	if f, ok := ctx.funcs[n.Val]; ok {
-		return f(ctx, n)
+	if f, ok := ctx.Funcs[n.Val]; ok {
+		return f.Eval(ctx, n)
 	} else {
 		return nil, fmt.Errorf("Unknown function name: %s", n.Val)
 	}
@@ -49,14 +49,17 @@ func (n *Node) Eval(ctx *Context) ([]*types.Trace, error) {
 //
 // The traces returned will always have a Param of "id" that identifies
 // the trace. See DESIGN.md for the Trace ID naming conventions.
-type Func func(*Context, *Node) ([]*types.Trace, error)
+type Func interface {
+	Eval(*Context, *Node) ([]*types.Trace, error)
+	Describe() string
+}
 
 // Context stores all the info for a single parser.
 //
 // A Context is not safe to call from multiple go routines.
 type Context struct {
 	Tile    *types.Tile
-	funcs   map[string]Func
+	Funcs   map[string]Func
 	formula string // The current formula being evaluated.
 }
 
@@ -64,18 +67,13 @@ type Context struct {
 func NewContext(tile *types.Tile) *Context {
 	return &Context{
 		Tile: tile,
-		funcs: map[string]Func{
+		Funcs: map[string]Func{
 			"filter": filterFunc,
 			"norm":   normFunc,
 			"fill":   fillFunc,
 			"ave":    aveFunc,
 		},
 	}
-}
-
-// Register adds a new function to the context that can then be called in expressions.
-func (ctx *Context) Register(name string, f Func) {
-	ctx.funcs[name] = f
 }
 
 // Eval parses and evaluates the given string expression and returns the Traces, or
@@ -86,7 +84,13 @@ func (ctx *Context) Eval(exp string) ([]*types.Trace, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Eval: failed to parse the expression: %s", err)
 	}
-	return n.Eval(ctx)
+	traces, err := n.Eval(ctx)
+	if err == nil {
+		for _, tr := range traces {
+			tr.Params["formula"] = exp
+		}
+	}
+	return traces, err
 }
 
 // traceMatches returns true if a trace has Params that match the given query.

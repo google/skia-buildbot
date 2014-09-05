@@ -606,10 +606,14 @@ var skiaperf = (function() {
         })
         // Maybe preserve selections also?
       };
-      sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json) {
-        // Set the shortcut in the hash.
-        window.history.pushState(null, "", "#" + json.id);
-      });
+      if (state.keys.length > 0) {
+        sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json) {
+          // Set the shortcut in the hash.
+          window.history.pushState(null, "", "#" + json.id);
+        });
+      } else {
+        notifyUser("Nothing to shortcut.");
+      }
     });
 
     $$$('#nuke-plot').addEventListener('click', function(e) {
