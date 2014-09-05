@@ -706,7 +706,9 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 				} else if types.IsFormulaID(k) {
 					// Re-evaluate the formula and add all the results to the response.
 					formula := types.FormulaFromID(k)
-					addCalculatedTraces(ret, tile, formula)
+					if err := addCalculatedTraces(ret, tile, formula); err != nil {
+						glog.Errorf("Failed evaluating formula (%q) while processing shortcut %s: %s", formula, shortcutID, err)
+					}
 				} else if strings.HasPrefix(k, "!") {
 					glog.Errorf("A calculated trace is slipped through: (%s) in shortcut %s: %s", k, shortcutID, err)
 				}
@@ -751,25 +753,27 @@ func traceGuiFromTrace(trace *types.Trace, key string, tile *types.Tile) *types.
 
 // addCalculatedTraces adds the traces returned from evaluating the given
 // formula over the given tile to the QueryResponse.
-func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) {
+func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) error {
 	ctx := parser.NewContext(tile)
 	traces, err := ctx.Eval(formula)
-	if err == nil {
-		hasFormula := false
-		for _, tr := range traces {
-			if types.IsFormulaID(tr.Params["id"]) {
-				hasFormula = true
-			}
-			tg := traceGuiFromTrace(tr, tr.Params["id"], tile)
-			qr.Traces = append(qr.Traces, tg)
-		}
-		if !hasFormula {
-			// If we haven't added the formula trace to the response yet, add it in now.
-			f := types.NewTraceN(len(tile.Commits))
-			tg := traceGuiFromTrace(f, types.AsFormulaID(formula), tile)
-			qr.Traces = append(qr.Traces, tg)
-		}
+	if err != nil {
+		return fmt.Errorf("Failed to evaluate formula %q: %s", formula, err)
 	}
+	hasFormula := false
+	for _, tr := range traces {
+		if types.IsFormulaID(tr.Params["id"]) {
+			hasFormula = true
+		}
+		tg := traceGuiFromTrace(tr, tr.Params["id"], tile)
+		qr.Traces = append(qr.Traces, tg)
+	}
+	if !hasFormula {
+		// If we haven't added the formula trace to the response yet, add it in now.
+		f := types.NewTraceN(len(tile.Commits))
+		tg := traceGuiFromTrace(f, types.AsFormulaID(formula), tile)
+		qr.Traces = append(qr.Traces, tg)
+	}
+	return nil
 }
 
 // calcHandler handles requests for the form:
@@ -792,7 +796,10 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	formula := r.FormValue("formula")
-	addCalculatedTraces(ret, tile, formula)
+	if err := addCalculatedTraces(ret, tile, formula); err != nil {
+		reportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
+		return
+	}
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ret); err != nil {
 		reportError(w, r, err, "Error while encoding query response.")
