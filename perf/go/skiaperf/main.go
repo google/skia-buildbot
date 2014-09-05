@@ -578,6 +578,13 @@ type QueryResponse struct {
 	Hash   string            `json:"hash"`
 }
 
+// FlatQueryResponse is for formatting the JSON output from calcHandler when the user
+// requests flat=true. The output isn't formatted for input into Flot, instead the Values
+// are returned as a simple slice, which is easier to work with in IPython.
+type FlatQueryResponse struct {
+	Traces []*types.Trace
+}
+
 // queryHandler handles queries for and about traces.
 //
 // Queries look like:
@@ -776,6 +783,21 @@ func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) er
 	return nil
 }
 
+// addFlatCalculatedTraces adds the traces returned from evaluating the given
+// formula over the given tile to the FlatQueryResponse. Doesn't include an empty
+// formula trace. Useful for pulling data into IPython.
+func addFlatCalculatedTraces(qr *FlatQueryResponse, tile *types.Tile, formula string) error {
+	ctx := parser.NewContext(tile)
+	traces, err := ctx.Eval(formula)
+	if err != nil {
+		return fmt.Errorf("Failed to evaluate formula %q: %s", formula, err)
+	}
+	for _, tr := range traces {
+		qr.Traces = append(qr.Traces, tr)
+	}
+	return nil
+}
+
 // calcHandler handles requests for the form:
 //
 //    /calc/?formula=filter("config=8888")
@@ -786,22 +808,36 @@ func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) er
 func calcHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Calc Handler: %q\n", r.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
-	ret := &QueryResponse{
-		Traces: []*types.TraceGUI{},
-		Hash:   "",
-	}
 	tile, err := nanoTileStore.Get(0, -1)
 	if err != nil {
 		reportError(w, r, err, fmt.Sprintf("Failed to load tile."))
 		return
 	}
 	formula := r.FormValue("formula")
-	if err := addCalculatedTraces(ret, tile, formula); err != nil {
-		reportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
-		return
+
+	var data interface{} = nil
+	if r.FormValue("flat") == "true" {
+		resp := &FlatQueryResponse{
+			Traces: []*types.Trace{},
+		}
+		if err := addFlatCalculatedTraces(resp, tile, formula); err != nil {
+			reportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
+			return
+		}
+		data = resp
+	} else {
+		resp := &QueryResponse{
+			Traces: []*types.TraceGUI{},
+			Hash:   "",
+		}
+		if err := addCalculatedTraces(resp, tile, formula); err != nil {
+			reportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
+			return
+		}
+		data = resp
 	}
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(ret); err != nil {
+	if err := enc.Encode(data); err != nil {
 		reportError(w, r, err, "Error while encoding query response.")
 		return
 	}
