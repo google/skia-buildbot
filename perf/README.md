@@ -85,14 +85,14 @@ Developing
 
 The easiest way to develop should be to do:
 
-    go get -u skia.googlesource.com/buildbot.git/
+    go get -u skia.googlesource.com/buildbot.git/perf/go/skiaperf
 
-Which will fetch the repository into the right location. Then:
+Which will fetch the repository into the right location and
+download dependencies. 
 
-    cd $GOPATH/src/skia.googlesource.com/buildbot.git/
+Then to build everything:
 
-To build everything:
-
+    cd $GOPATH/src/skia.googlesource.com/buildbot.git/perf
     make all
 
 Make sure the $GOPATH/bin is on your path so that you can easily run the
@@ -101,4 +101,3 @@ executables after they are generated.
 To run the tests:
 
     make test
-
