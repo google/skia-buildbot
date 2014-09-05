@@ -549,8 +549,18 @@ var skiaperf = (function() {
     }).then(function(){
       navigation.loading_ = false;
     }).catch(notifyUser);
-  }
+  };
 
+  Navigation.prototype.addCalculatedTrace = function(formula) {
+    var navigation = this;
+    sk.get("/calc/?formula=" + encodeURIComponent(formula)).then(JSON.parse).then(function(json){
+      json["traces"].forEach(function(t) {
+        traces__.push(t);
+      });
+    }).then(function(){
+      navigation.loading_ = false;
+    }).catch(notifyUser);
+  };
 
   /**
    * Load shortcuts if any are present in the URL.
@@ -568,12 +578,23 @@ var skiaperf = (function() {
       navigation_.addTraces(navigation_.query_.selectionsAsQuery())
     });
 
+    $$$('#add-calculated').addEventListener('click', function() {
+      navigation_.addCalculatedTrace($$$('#formula').value);
+    });
+    // TODO: register for $$$('#sk-query').addEventListener('change'
+    // and update the formula if changes are made, but only if there is one
+    // and only one filter("...") in the formula.
+
     $$$('#shortcut').addEventListener('click', function() {
       // Package up the current state and stuff it into the database.
       var state = {
         scale: 0,
         tiles: [-1],
-        keys: traces__.map(function(t) { return t.label; })
+        keys: traces__.map(function(t) {
+          if (t.label.substring(0, 1) != "!") {
+            return t.label;
+          }
+        })
         // Maybe preserve selections also?
       };
       sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json) {

@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
@@ -51,7 +53,6 @@ func NewTraceN(n int) *Trace {
 	return t
 }
 
-// TryBotResults are results from a TryBot.
 type TryBotResults struct {
 	// Map from Trace key to value.
 	Values map[string]float64
@@ -61,6 +62,32 @@ func NewTryBotResults() *TryBotResults {
 	return &TryBotResults{
 		Values: map[string]float64{},
 	}
+}
+
+func AsCalculatedID(id string) string {
+	if strings.HasPrefix(id, "!") {
+		return id
+	}
+	return "!" + id
+}
+
+func IsCalculatedID(id string) bool {
+	return strings.HasPrefix(id, "!")
+}
+
+func AsFormulaID(id string) string {
+	if strings.HasPrefix(id, "@") {
+		return id
+	}
+	return "@" + id
+}
+
+func IsFormulaID(id string) bool {
+	return strings.HasPrefix(id, "@")
+}
+
+func FormulaFromID(id string) string {
+	return id[1:]
 }
 
 // Commit is information about each Git commit.

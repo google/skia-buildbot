@@ -27,9 +27,11 @@ func filterFunc(ctx *Context, node *Node) ([]*types.Trace, error) {
 		return nil, fmt.Errorf("filter() arg not a valid URL query parameter: %s", err)
 	}
 	traces := []*types.Trace{}
-	for _, tr := range ctx.Tile.Traces {
+	for id, tr := range ctx.Tile.Traces {
 		if traceMatches(tr, query) {
-			traces = append(traces, tr.DeepCopy())
+			cp := tr.DeepCopy()
+			cp.Params["id"] = types.AsCalculatedID(id)
+			traces = append(traces, cp)
 		}
 	}
 	return traces, nil
@@ -115,6 +117,7 @@ func aveFunc(ctx *Context, node *Node) ([]*types.Trace, error) {
 	}
 
 	ret := types.NewTraceN(len(traces[0].Values))
+	ret.Params["id"] = types.AsFormulaID(ctx.formula)
 	for i, _ := range ret.Values {
 		sum := 0.0
 		count := 0

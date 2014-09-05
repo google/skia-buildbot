@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -33,6 +34,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/gs"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
+	"skia.googlesource.com/buildbot.git/perf/go/parser"
 	"skia.googlesource.com/buildbot.git/perf/go/shortcut"
 	"skia.googlesource.com/buildbot.git/perf/go/stats"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
@@ -660,7 +662,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	ret := QueryResponse{
+	ret := &QueryResponse{
 		Traces: []*types.TraceGUI{},
 		Hash:   "",
 	}
@@ -680,7 +682,6 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// We want the matching traces.
-
 		shortcutID := r.Form.Get("__shortcut")
 		if shortcutID != "" {
 			sh, err := shortcut.Get(shortcutID)
@@ -695,6 +696,12 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 					if tg != nil {
 						ret.Traces = append(ret.Traces, tg)
 					}
+				} else if types.IsFormulaID(k) {
+					// Re-evaluate the formula and add all the results to the response.
+					formula := types.FormulaFromID(k)
+					addCalculatedTraces(ret, tile, formula)
+				} else if strings.HasPrefix(k, "!") {
+					glog.Errorf("A calculated trace is slipped through: (%s) in shortcut %s: %s", k, shortcutID, err)
 				}
 			}
 		} else {
@@ -707,8 +714,8 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		inc := json.NewEncoder(w)
-		if err := inc.Encode(ret); err != nil {
+		enc := json.NewEncoder(w)
+		if err := enc.Encode(ret); err != nil {
 			reportError(w, r, err, "Error while encoding query response.")
 			return
 		}
@@ -724,7 +731,7 @@ func traceGuiFromTrace(trace *types.Trace, key string, tile *types.Tile) *types.
 			newTraceData = append(newTraceData, [2]float64{float64(i), v})
 		}
 	}
-	if len(newTraceData) > 0 {
+	if len(newTraceData) >= 0 {
 		return &types.TraceGUI{
 			Data:   newTraceData,
 			Label:  key,
@@ -732,6 +739,57 @@ func traceGuiFromTrace(trace *types.Trace, key string, tile *types.Tile) *types.
 		}
 	} else {
 		return nil
+	}
+}
+
+// addCalculatedTraces adds the traces returned from evaluating the given
+// formula over the given tile to the QueryResponse.
+func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) {
+	ctx := parser.NewContext(tile)
+	traces, err := ctx.Eval(formula)
+	if err == nil {
+		hasFormula := false
+		for _, tr := range traces {
+			if types.IsFormulaID(tr.Params["id"]) {
+				hasFormula = true
+			}
+			tg := traceGuiFromTrace(tr, tr.Params["id"], tile)
+			qr.Traces = append(qr.Traces, tg)
+		}
+		if !hasFormula {
+			// If we haven't added the formula trace to the response yet, add it in now.
+			f := types.NewTraceN(len(tile.Commits))
+			tg := traceGuiFromTrace(f, types.AsFormulaID(formula), tile)
+			qr.Traces = append(qr.Traces, tg)
+		}
+	}
+}
+
+// calcHandler handles requests for the form:
+//
+//    /calc/?formula=filter("config=8888")
+//
+// Where the formula is any formula that parser.Eval() accepts.
+//
+// The response is the same format as queryHandler.
+func calcHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Calc Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "application/json")
+	ret := &QueryResponse{
+		Traces: []*types.TraceGUI{},
+		Hash:   "",
+	}
+	tile, err := nanoTileStore.Get(0, -1)
+	if err != nil {
+		reportError(w, r, err, fmt.Sprintf("Failed to load tile."))
+		return
+	}
+	formula := r.FormValue("formula")
+	addCalculatedTraces(ret, tile, formula)
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ret); err != nil {
+		reportError(w, r, err, "Error while encoding query response.")
+		return
 	}
 }
 
@@ -834,6 +892,7 @@ func main() {
 	http.HandleFunc("/alerting/", autogzip.HandleFunc(alertingHandler))
 	http.HandleFunc("/annotate/", autogzip.HandleFunc(annotateHandler))
 	http.HandleFunc("/compare/", autogzip.HandleFunc(compareHandler))
+	http.HandleFunc("/calc/", autogzip.HandleFunc(calcHandler))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

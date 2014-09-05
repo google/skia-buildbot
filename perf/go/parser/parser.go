@@ -46,12 +46,18 @@ func (n *Node) Eval(ctx *Context) ([]*types.Trace, error) {
 }
 
 // Func defines a type for functions that can be used in the parser.
+//
+// The traces returned will always have a Param of "id" that identifies
+// the trace. See DESIGN.md for the Trace ID naming conventions.
 type Func func(*Context, *Node) ([]*types.Trace, error)
 
 // Context stores all the info for a single parser.
+//
+// A Context is not safe to call from multiple go routines.
 type Context struct {
-	Tile  *types.Tile
-	funcs map[string]Func
+	Tile    *types.Tile
+	funcs   map[string]Func
+	formula string // The current formula being evaluated.
 }
 
 // NewContext create a new parsing context that includes the basic functions.
@@ -75,6 +81,7 @@ func (ctx *Context) Register(name string, f Func) {
 // Eval parses and evaluates the given string expression and returns the Traces, or
 // an error.
 func (ctx *Context) Eval(exp string) ([]*types.Trace, error) {
+	ctx.formula = exp
 	n, err := parse(exp)
 	if err != nil {
 		return nil, fmt.Errorf("Eval: failed to parse the expression: %s", err)
