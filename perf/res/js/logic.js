@@ -581,9 +581,18 @@ var skiaperf = (function() {
     $$$('#add-calculated').addEventListener('click', function() {
       navigation_.addCalculatedTrace($$$('#formula').value);
     });
-    // TODO: register for $$$('#sk-query').addEventListener('change'
-    // and update the formula if changes are made, but only if there is one
-    // and only one filter("...") in the formula.
+
+    // Update the formula when the query changes.
+    $$$('#sk-query').addEventListener('change', function() {
+      var formula = $$$('#formula').value;
+      var query = navigation_.query_.selectionsAsQuery();
+      if (formula == "") {
+        $$$('#formula').value = 'filter("' + query + '")';
+      } else if (2 == (formula.match(/\"/g) || []).length) {
+        // Only update the filter query if there's one string in the formula.
+        $$$('#formula').value = formula.replace(/".*"/, '"' + query + '"');
+      }
+    });
 
     $$$('#shortcut').addEventListener('click', function() {
       // Package up the current state and stuff it into the database.
