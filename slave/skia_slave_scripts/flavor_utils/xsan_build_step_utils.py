@@ -28,8 +28,10 @@ class XsanBuildStepUtils(DefaultBuildStepUtils):
 
   def RunFlavoredCmd(self, app, args):
     os.environ['ASAN_SYMBOLIZER_PATH'] = '/usr/bin/llvm-symbolizer-3.5'
-    os.environ['ASAN_OPTIONS'] = 'symbolize=1 detect_leaks=1'
-    os.environ['LSAN_OPTIONS'] = \
-            'symbolize=1 suppressions=tools/lsan.supp print_suppressions=1'
+
+    asan_lsan = 'symbolize=1 fast_unwind_on_malloc=0'
+    os.environ['ASAN_OPTIONS'] = asan_lsan + ' detect_leaks=1'
+    os.environ['LSAN_OPTIONS'] = asan_lsan + ' suppressions=tools/lsan.supp'
+
     os.environ['TSAN_OPTIONS'] = 'suppressions=tools/tsan.supp'
     return shell_utils.run([self._PathToBinary(app)] + args)
