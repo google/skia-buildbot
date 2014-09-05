@@ -69,6 +69,14 @@ func Init() {
     )`
 		_, err = DB.Exec(sql)
 		glog.Infoln("Status creating sqlite table for shortcuts:", err)
+
+		sql = `CREATE TABLE tries (
+      issue       VARCHAR(255) NOT NULL PRIMARY KEY,
+      lastUpdated TIMESTAMP    NOT NULL,
+      results     MEDIUMTEXT   NOT NULL
+    )`
+		_, err = DB.Exec(sql)
+		glog.Infoln("Status creating sqlite table for tries:", err)
 	}
 
 	// Ping the database to keep the connection fresh.

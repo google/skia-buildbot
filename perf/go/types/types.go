@@ -51,15 +51,16 @@ func NewTraceN(n int) *Trace {
 	return t
 }
 
-// Annotations for commits.
-//
-// Will map to the table of annotation notes in MySQL. See DESIGN.md
-// for the MySQL schema.
-type Annotation struct {
-	ID     int    `json:"id"     db:"id"`
-	Notes  string `json:"notes"  db:"notes"`
-	Author string `json:"author" db:"author"`
-	Type   int    `json:"type"   db:"type"`
+// TryBotResults are results from a TryBot.
+type TryBotResults struct {
+	// Map from Trace key to value.
+	Values map[string]float64
+}
+
+func NewTryBotResults() *TryBotResults {
+	return &TryBotResults{
+		Values: map[string]float64{},
+	}
 }
 
 // Commit is information about each Git commit.

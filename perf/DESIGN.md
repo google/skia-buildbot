@@ -195,6 +195,11 @@ Initial setup of the database, the users, and the tables:
       message    TEXT         NOT NULL
     );
 
+    CREATE TABLE tries (
+      issue       VARCHAR(255) NOT NULL PRIMARY KEY,
+      lastUpdated BIGINT       NOT NULL,
+      results     MEDIUMTEXT   NOT NULL
+    );
 
 Clustering
 ----------
@@ -313,6 +318,19 @@ regression value, than the new cluster values will be written into the
 
 ~~~~~~~
 
+
+Trybot
+------
+
+Results from Trybots are loaded via the ingester on a much faster schedule,
+every minute by default, and are stored in the MySQL database keyed by the
+Rietveld issue number. Note that this means only tries associated with a
+Rietveld will be usable by Skiaperf, which is a conscious decision.
+
+The actual try data will be stored as the JSON serialized Go struct that stores
+all the measured values, types.TryBotResults.
+
+
 Comparing bench results across verticals
 ----------------------------------------
 The UIs showing line plots of selected traces and the clusterings are good ways
@@ -337,8 +355,9 @@ in the "config" vertical from the following two traces:
     x86_64:HD7770:ShuttleA:Win8:gradient_create_opaque_640_480:gpu
     x86_64:HD7770:ShuttleA:Win8:gradient_create_opaque_640_480:8888
 
-and put the value into the cell in a table that has row_gradient_create_opaque_640_480_
-and column _x86_64:HD7770:ShuttleA:Win8_. Basically, the table row will be the
+and put the value into the cell in a table that has
+_row_gradient_create_opaque_640_480_ and 
+column _x86_64:HD7770:ShuttleA:Win8_. Basically, the table row will be the
 "test" name, and the column will be the rest of the keys. The number of columns
 will be the number of perf bots we run (20+ for now).
 
@@ -363,6 +382,8 @@ We can also add an option for users to specify a CL, so we use the available
 bench data closest to that CL (either before or after) for visualization.
 
 Another option is to have users provide two CLs and use the UI to show their diffs on common traces.
+
+
 
 Startup and config
 ------------------

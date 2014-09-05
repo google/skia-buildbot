@@ -85,7 +85,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -124,7 +123,6 @@ type Ingester struct {
 	storage        *storage.Service
 	hashToNumber   map[string]int
 	lastIngestTime time.Time
-	timestampFile  string
 }
 
 // NewIngester creates an Ingester given the repo and tilestore specified.
@@ -144,14 +142,11 @@ func NewIngester(gitRepoDir, tileStoreDir string, pull bool, timestampFile strin
 	}
 
 	i := &Ingester{
-		git:            git,
-		tileStore:      filetilestore.NewFileTileStore(tileStoreDir, "nano", -1),
-		storage:        storage,
-		hashToNumber:   map[string]int{},
-		lastIngestTime: time.Time(config.BEGINNING_OF_TIME),
-		timestampFile:  timestampFile,
+		git:          git,
+		tileStore:    filetilestore.NewFileTileStore(tileStoreDir, "nano", -1),
+		storage:      storage,
+		hashToNumber: map[string]int{},
 	}
-	i.readTimestamp()
 	return i, nil
 }
 
@@ -368,25 +363,25 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int) {
 // Update does a single full update, first updating the commits and creating
 // new tiles if necessary, and then pulling in new data from Google Storage to
 // populate the traces.
-func (i *Ingester) Update(pull bool) {
+func (i *Ingester) Update(pull bool, lastIngestTime int64) error {
 	begin := time.Now()
 	if err := i.UpdateCommitInfo(pull); err != nil {
 		glog.Errorf("Update: Failed to update commit info: %s", err)
-		return
+		return err
 	}
-	if err := i.UpdateTiles(); err != nil {
+	if err := i.UpdateTiles(lastIngestTime); err != nil {
 		glog.Errorf("Update: Failed to update tiles: %s", err)
+		return err
 	}
 	elapsedTimePerUpdate.UpdateSince(begin)
+	return nil
 }
 
 // UpdateTiles reads the latest JSON files from Google Storage and converts
 // them into Traces stored in Tiles.
-func (i *Ingester) UpdateTiles() error {
-	startTime := time.Now()
-
+func (i *Ingester) UpdateTiles(lastIngestTime int64) error {
 	tt := NewTileTracker(i.tileStore, i.hashToNumber)
-	benchFiles, err := i.getBenchFiles()
+	benchFiles, err := GetBenchFiles(lastIngestTime, i.storage, "nano-json-v1")
 	if err != nil {
 		return fmt.Errorf("Failed to update tiles: %s", err)
 	}
@@ -407,66 +402,7 @@ func (i *Ingester) UpdateTiles() error {
 		addBenchDataToTile(benchData, tt.Tile(), tt.Offset(hash))
 	}
 	tt.Flush()
-
-	i.lastIngestTime = startTime
-	i.writeTimestamp()
 	return nil
-}
-
-// TimestampFormat is used to control the serialization of the timestamp file format.
-//
-// See readTimestamp and writeTimestamp.
-type TimestampFormat struct {
-	Ingest int64 `json:"ingest"`
-}
-
-// readTimestamp reads the local timestamp file.
-// This file is used to keep record of the last time the ingester was run, so the
-// next run over looks for files that occurred after this run.
-// If an entry doesn't exist it returns BEGINNING_OF_TIME, and an error
-// and BEGINNING_OF_TIME if something else fails in the process.
-//
-// Timestamp files look something like:
-// {
-//      "nano":1445363563,
-// }
-func (i *Ingester) readTimestamp() {
-	if i.timestampFile == "" {
-		return
-	}
-
-	timestampFile, err := os.Open(i.timestampFile)
-	if err != nil {
-		glog.Infof("Error opening timestamp: %s", err)
-		return
-	}
-	defer timestampFile.Close()
-	timestamp := TimestampFormat{Ingest: config.BEGINNING_OF_TIME.Unix()}
-	err = json.NewDecoder(timestampFile).Decode(&timestamp)
-	if err != nil {
-		glog.Infof("Failed to parse file %s: %s", i.timestampFile, err)
-		i.lastIngestTime = time.Time(config.BEGINNING_OF_TIME)
-	}
-	i.lastIngestTime = time.Unix(timestamp.Ingest, 0)
-}
-
-// writeTimestamp reads the local timestamp file, adds an entry with the given name and value,
-// and writes the file back to disk.
-func (i *Ingester) writeTimestamp() {
-	if i.timestampFile == "" {
-		return
-	}
-
-	timestamp := TimestampFormat{Ingest: i.lastIngestTime.Unix()}
-	writeTimestampFile, err := os.Create(i.timestampFile)
-	if err != nil {
-		glog.Infof("writeTimestamp: Failed to open file %s for writing: %s", i.timestampFile, err)
-		return
-	}
-	defer writeTimestampFile.Close()
-	if err := json.NewEncoder(writeTimestampFile).Encode(&timestamp); err != nil {
-		glog.Infof("writeTimestamp: Failed to encode timestamp file: %s", err)
-	}
 }
 
 // BenchResult represents a single test result.
@@ -515,13 +451,15 @@ func (b BenchData) KeyPrefix() string {
 
 // BenchFile is the URI of a single JSON file with results in it.
 type BenchFile struct {
-	URI      string
-	filename string
+	URI      string // Absolute URI used to fetch the file.
+	Name     string // Complete path, w/o the gs:// prefix.
+	filename string // The name of the just the file.
 }
 
-func NewBenchFile(uri string) *BenchFile {
+func NewBenchFile(uri, name string) *BenchFile {
 	return &BenchFile{
 		URI:      uri,
+		Name:     name,
 		filename: filepath.Base(uri),
 	}
 }
@@ -567,13 +505,13 @@ func (p BenchFileSlice) Len() int           { return len(p) }
 func (p BenchFileSlice) Less(i, j int) bool { return p[i].filename < p[j].filename }
 func (p BenchFileSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-// getFilesFromGSDir returns a list of URIs to get of the JSON files in the
+// GetFilesFromGSDir returns a list of URIs to get of the JSON files in the
 // given bucket and directory made after the given timestamp.
-func (i *Ingester) getFilesFromGSDir(dir string, lowestTimestamp int64) ([]*BenchFile, error) {
+func GetFilesFromGSDir(dir string, earliestTimestamp int64, storage *storage.Service) ([]*BenchFile, error) {
 	results := []*BenchFile{}
 	glog.Infoln("Opening directory", dir)
 
-	req := i.storage.Objects.List(gs.GS_PROJECT_BUCKET).Prefix(dir)
+	req := storage.Objects.List(gs.GS_PROJECT_BUCKET).Prefix(dir)
 	for req != nil {
 		resp, err := req.Do()
 		if err != nil {
@@ -582,8 +520,8 @@ func (i *Ingester) getFilesFromGSDir(dir string, lowestTimestamp int64) ([]*Benc
 		for _, result := range resp.Items {
 			updateDate, _ := time.Parse(time.RFC3339, result.Updated)
 			updateTimestamp := updateDate.Unix()
-			if updateTimestamp > lowestTimestamp {
-				results = append(results, NewBenchFile(result.MediaLink))
+			if updateTimestamp > earliestTimestamp {
+				results = append(results, NewBenchFile(result.MediaLink, result.Name))
 			}
 		}
 		if len(resp.NextPageToken) > 0 {
@@ -595,15 +533,15 @@ func (i *Ingester) getFilesFromGSDir(dir string, lowestTimestamp int64) ([]*Benc
 	return results, nil
 }
 
-// getBenchFiles retrieves a list of BenchFiles from Cloud Storage, each one
+// GetBenchFiles retrieves a list of BenchFiles from Cloud Storage, each one
 // corresponding to a single JSON file.
-func (i *Ingester) getBenchFiles() ([]*BenchFile, error) {
-	dirs := gs.GetLatestGSDirs(i.lastIngestTime.Unix(), time.Now().Unix(), "nano-json-v1")
-	glog.Infoln("getBenchFiles: Looking in dirs: ", dirs)
+func GetBenchFiles(last int64, storage *storage.Service, dir string) ([]*BenchFile, error) {
+	dirs := gs.GetLatestGSDirs(last, time.Now().Unix(), dir)
+	glog.Infoln("GetBenchFiles: Looking in dirs: ", dirs)
 
 	retval := []*BenchFile{}
 	for _, dir := range dirs {
-		files, err := i.getFilesFromGSDir(dir, i.lastIngestTime.Unix())
+		files, err := GetFilesFromGSDir(dir, last, storage)
 		if err != nil {
 			return nil, err
 		}

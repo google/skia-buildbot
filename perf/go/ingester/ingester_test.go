@@ -66,7 +66,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 		t.Fatal("Failed to open test file: ", err)
 	}
 	defer f.Close()
-	benchFile := NewBenchFile("dir/nano.json")
+	benchFile := NewBenchFile("dir/nano.json", "nano.json")
 	benchData, err := benchFile.parseFromReader(f)
 	if err != nil {
 		t.Fatal("Failed to parse test file: ", err)
