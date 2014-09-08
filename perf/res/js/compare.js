@@ -34,9 +34,12 @@
     * vertical: the trace param criterion we are comparing in, e.g., "config".
     * selections: the query selection result as url fragment.
     *
+    * commit: string of commit hash. If invalid or not found, will use latest
+    * available data.
+    *
     * See query and compare modules for more details.
     */
-  function beginCompare(compare, vertical, selections) {
+  function beginCompare(compare, vertical, selections, commit) {
     // The pair of vertical values to compare against.
     var pair = [
       /*
@@ -67,6 +70,7 @@
         }
        */
       };
+
     document.body.style.cursor = 'wait';
     var re = new RegExp(vertical + '=', 'g');
     var inparam = selections.match(re);
@@ -76,9 +80,9 @@
       return;
     }
     var col_params = ['arch', 'config', 'extra_config', 'gpu', 'model', 'os'];
-    sk.get('/query/0/-1/traces/?' + selections).then(JSON.parse).then(function(json) {
+    sk.get('/single/' + commit + '?' + selections).then(JSON.parse).then(function(json) {
       json.traces.forEach(function(tr) {
-        var params = tr['_params'];
+        var params = tr['params'];
         if (pair.indexOf(params[vertical]) < 0) {
           pair.push(params[vertical]);
         }
@@ -112,8 +116,7 @@
           return;
         }
         // Records the latest value.
-        // TODO: add ability to specify the commit of data to use.
-        cells[row][colIdxStr][pairIdx] = tr['data'][tr['data'].length - 1][1];
+        cells[row][colIdxStr][pairIdx] = tr['val'];
       });
 
       if (cols.length == 0 || pair.length != 2) {
@@ -129,8 +132,37 @@
       alert(e);
       document.body.style.cursor = 'auto';
     });
-  };
+  }
 
+  /**
+   * populateAndSetCommits populates latest commit info into the select DOM.
+   *
+   * selectDom: a given <select> DOM.
+   *
+   * options are sorted by latest commits first. Option's value is the commit's
+   * hash in the tile commit data.
+   *
+   * TODO: move to a common file?
+   */
+  function populateAndSetCommits(selectDom) {
+    if (selectDom.nodeName != 'SELECT') {
+      alert('Cannot populate non-SELECT DOM!');
+      return;
+    }
+    sk.clearChildren(selectDom);
+    sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
+      json.commits.forEach(function(c, idx) {
+        if (!c.git_number) {  // Ignores empty commit.
+          return;
+        }
+        var opt = document.createElement('OPTION');  // How may I use template?
+        opt.value = c.hash;
+        opt.innerText = ['' + c.git_number, c.hash.substring(0, 7), c.author,
+            c.commit_msg.substr(0, 80)].join(':');
+        selectDom.insertBefore(opt, selectDom.firstChild);
+      });
+    });
+  }
 
   function onLoad() {
     var query = new sk.Query(queryInfo__);
@@ -144,8 +176,14 @@
       queryInfo__.change.counter += 1;
     });
 
+    populateAndSetCommits($$$('#commitSel'));
+
     $$$('#start').addEventListener('click', function(){
-      beginCompare(compare, $$$('input[name="vertical"]:checked').value, query.selectionsAsQuery());
+      beginCompare(compare, $$$('input[name="vertical"]:checked').value, query.selectionsAsQuery(), $$$('#commitSel').value);
+    });
+
+    $$$('#commitSel').addEventListener('change', function(){
+      beginCompare(compare, $$$('input[name="vertical"]:checked').value, query.selectionsAsQuery(), $$$('#commitSel').value);
     });
   };
 

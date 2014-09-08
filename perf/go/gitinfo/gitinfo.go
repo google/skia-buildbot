@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 
@@ -208,4 +209,15 @@ func (g *GitInfo) LastSkpCommit() (time.Time, error) {
 		return time.Time{}, err
 	}
 	return time.Unix(ts, 0), nil
+}
+
+// TileAddressFromHash takes a commit hash and returns the Level 0 tile number
+// that contains the hash, and its position in the tile commit array.
+func (g *GitInfo) TileAddressFromHash(hash string) (num, offset int, err error) {
+	for i, h := range g.hashes {
+		if h == hash {
+			return i/config.TILE_SIZE, i%config.TILE_SIZE, nil
+		}
+	}
+	return -1, -1, fmt.Errorf("Cannot find hash %s.\n", hash)
 }

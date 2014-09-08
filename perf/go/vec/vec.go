@@ -2,6 +2,7 @@
 package vec
 
 import (
+	"fmt"
 	"math"
 
 	"skia.googlesource.com/buildbot.git/perf/go/config"
@@ -70,4 +71,21 @@ func Fill(a []float64) {
 			last = x
 		}
 	}
+}
+
+// FillAt returns the value at the given index of a vector, using non-sentinel
+// values with nearby points if the original is config.MISSING_DATA_SENTINEL.
+//
+// Note that the input vector is unchanged.
+//
+// Returns non-nil error if the given index is out of bounds.
+func FillAt(a []float64, i int) (float64, error) {
+	l := len(a)
+	if i < 0 || i >= l {
+		return 0, fmt.Errorf("FillAt index %d out of bound %d.\n", i, l)
+	}
+	b := make([]float64, l, l)
+	copy(b, a)
+	Fill(b)
+	return b[i], nil
 }

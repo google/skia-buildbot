@@ -93,3 +93,29 @@ func TestFill(t *testing.T) {
 	}
 
 }
+
+func TestFillAtErrors(t *testing.T) {
+	testCases := []struct {
+		Slice []float64
+		Idx   int
+	}{
+		{
+			Slice: []float64{1e100, 1e100, 2, 3, 1e100, 5},
+			Idx:   6,
+		},
+		{
+			Slice: []float64{},
+			Idx:   0,
+		},
+		{
+			Slice: []float64{4},
+			Idx:   -1,
+		},
+	}
+	for _, tc := range testCases {
+		_, err := FillAt(tc.Slice, tc.Idx)
+		if err == nil {
+			t.Fatalf("Expected %q to fail FillAt.", tc)
+		}
+	}
+}

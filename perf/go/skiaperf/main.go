@@ -39,6 +39,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/stats"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
+	"skia.googlesource.com/buildbot.git/perf/go/vec"
 )
 
 var (
@@ -65,6 +66,9 @@ var (
 
 	// The three capture groups are dataset, tile scale, and tile number.
 	tileHandlerPath = regexp.MustCompile(`/tiles/([0-9]*)/([-0-9]*)/$`)
+
+	// The optional capture group is a githash.
+	singleHandlerPath = regexp.MustCompile(`/single/([0-9a-f]+)?$`)
 
 	// The three capture groups are tile scale, tile number, and an optional 'trace.
 	queryHandlerPath = regexp.MustCompile(`/query/([0-9]*)/([-0-9]*)/(traces/)?$`)
@@ -738,6 +742,95 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// SingleTrace is used in SingleResponse.
+type SingleTrace struct {
+	Val float64              `json:"val"`
+	Params map[string]string `json:"params"`
+}
+
+// SingleResponse is for formatting the JSON output from singleHandler.
+// Hash is the commit hash whose data are used in Traces.
+type SingleResponse struct {
+	Traces []*SingleTrace `json:"traces"`
+	Hash   string         `json:"hash"`
+}
+
+// singleHandler is similar to /query/0/-1/traces?<param filters>, but takes an
+// optional commit hash and returns a single value for each trace at that commit,
+// or the latest value if a hash is not given or found. The resulting JSON is in
+// SingleResponse format that looks like:
+//
+//  {
+//    "traces": [
+//      {
+//        val: 1.1,
+//        params: {"os: "Android", ...}
+//      },
+//      ...
+//    ],
+//    "hash": "abc123",
+//  }
+//
+//  The handler only checks the Level 0 latest tile (-1) now.
+//  TODO: add ability to find the tile with the given hash.
+//
+func singleHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Single Handler: %q\n", r.URL.Path)
+	handlerStart := time.Now()
+	match := singleHandlerPath.FindStringSubmatch(r.URL.Path)
+	if r.Method != "GET" || match == nil || len(match) != 2 {
+		http.NotFound(w, r)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		reportError(w, r, err, "Failed to parse query params.")
+	}
+	hash := match[1]
+
+	glog.Infof("Hash: %s\n", hash)
+	tileNum, idx, err := git.TileAddressFromHash(hash)
+	if err != nil {
+		glog.Infof("Did not find hash '%s', use latest: %q.\n", hash, err)
+		tileNum = -1
+		idx = -1
+	}
+	tile, err := getTile(0, tileNum)
+	if err != nil {
+		reportError(w, r, err, "Failed retrieving tile.")
+		return
+	}
+
+	if idx < 0 {
+		idx = len(tile.Commits) - 1  // Defaults to the last slice element.
+	}
+	glog.Infof("Tile: %d; Idx: %d\n", tileNum, idx)
+
+	ret := SingleResponse{
+		Traces: []*SingleTrace{},
+		Hash: tile.Commits[idx].Hash,
+	}
+	for _, tr := range tile.Traces {
+		if traceMatches(tr, r.Form) {
+			v, err := vec.FillAt(tr.Values, idx)
+			if err != nil {
+				reportError(w, r, err, "Error while getting value at slice index.")
+				return
+			}
+			t := &SingleTrace{
+				Val:    v,
+				Params: tr.Params,
+			}
+			ret.Traces = append(ret.Traces, t)
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ret); err != nil {
+		reportError(w, r, err, "Error while encoding single results.")
+	}
+	glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
+}
+
 // traceGuiFromTrace returns a populated TraceGUI from the given trace.
 func traceGuiFromTrace(trace *types.Trace, key string, tile *types.Tile) *types.TraceGUI {
 	newTraceData := make([][2]float64, 0)
@@ -944,6 +1037,7 @@ func main() {
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc("/shortcuts/", shortcutHandler)
 	http.HandleFunc("/tiles/", tileHandler)
+	http.HandleFunc("/single/", singleHandler)
 	http.HandleFunc("/query/", queryHandler)
 	http.HandleFunc("/commits/", commitsHandler)
 	http.HandleFunc("/trybots/", autogzip.HandleFunc(trybotHandler))
