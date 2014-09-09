@@ -131,8 +131,6 @@ class AndroidBuildStepUtils(DefaultBuildStepUtils):
         os.pardir, os.pardir, os.pardir, os.pardir, 'site_config', '.boto'))
     os.environ['ANDROID_SDK_ROOT'] = self._step.args['android_sdk_root']
     gyp_defines = self._step.args['gyp_defines']
-    if self._step.args['device'] == 'intel_rhb':
-      gyp_defines += ' skia_gpu=0'
     os.environ['GYP_DEFINES'] = gyp_defines
     print 'GYP_DEFINES="%s"' % os.environ['GYP_DEFINES']
     os.environ['BUILDTYPE'] = self._step.configuration

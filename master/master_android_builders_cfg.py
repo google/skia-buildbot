@@ -46,9 +46,9 @@ def setup_test_and_perf_builders(helper, do_upload_render_results,
       ('Test', 'Android',  'Xoom',       'Tegra2',      'Arm7',   'Debug',   None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'xoom'}),
       ('Test', 'Android',  'Xoom',       'Tegra2',      'Arm7',   'Release', None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'xoom'}),
       ('Perf', 'Android',  'Xoom',       'Tegra2',      'Arm7',   'Release', None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'xoom'}),
-      ('Test', 'Android',  'IntelRhb',   'SGX544',      'x86',    'Debug',   None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'intel_rhb'}),
-      ('Test', 'Android',  'IntelRhb',   'SGX544',      'x86',    'Release', None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'intel_rhb'}),
-      ('Perf', 'Android',  'IntelRhb',   'SGX544',      'x86',    'Release', None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'intel_rhb'}),
+      ('Test', 'Android',  'Venue8',    'PowerVR',      'x86',    'Debug',   None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'x86'}),
+      ('Test', 'Android',  'Venue8',    'PowerVR',      'x86',    'Release', None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'x86'}),
+      ('Perf', 'Android',  'Venue8',    'PowerVR',      'x86',    'Release', None,           None,      f_android, LINUX,  S_PERCOMMIT, {'device': 'x86'}),
   ]
 
   master_builders_cfg.setup_builders_from_config_list(

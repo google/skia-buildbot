@@ -142,7 +142,7 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-nexus7-003',      '8'),
       ('skiabot-shuttle-ubuntu12-nexus10-001',     '9'),
       ('skiabot-shuttle-ubuntu12-nexus10-003',     '10'),
-      ('skiabot-shuttle-ubuntu12-intel-rhb-001',   '11'),
+      ('skiabot-shuttle-ubuntu12-venue8-001',      '11'),
       ('skiabot-shuttle-ubuntu12-nexus5-001',      '12'),
       ('skiabot-shuttle-ubuntu12-nexus5-002',      '13'),
     ],
