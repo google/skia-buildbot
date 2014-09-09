@@ -2,19 +2,11 @@
 package validator
 
 import (
-	"flag"
 	"fmt"
 	"time"
 )
 
 import "skia.googlesource.com/buildbot.git/perf/go/types"
-
-// flags
-var (
-	tileDir    = flag.String("tile_dir", "/tmp/tileStore", "What directory to look for tiles in.")
-	verbose    = flag.Bool("verbose", false, "Verbose.")
-	echoHashes = flag.Bool("echo_hashes", false, "Echo Git hashes during validation.")
-)
 
 // validateTile validates a tile by confirming that all the commits are in
 // ascending order.

@@ -8,34 +8,48 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 )
 
-// Norm normalizes the slice to a mean of 0 and a standard deviation of 1.0.
-// The minStdDev is the minimum standard deviation that is normalized. Slices
-// with a standard deviation less than that are not normalized for variance.
-func Norm(a []float64, minStdDev float64) {
+func MeanAndStdDev(a []float64) (float64, float64, error) {
 	count := 0
 	sum := 0.0
-	sum2 := 0.0
 	for _, x := range a {
 		if x != config.MISSING_DATA_SENTINEL {
 			count += 1
 			sum += x
-			sum2 += x * x
 		}
 	}
 
-	if count > 0 {
-		mean := sum / float64(count)
-		stddev := math.Sqrt(sum2/float64(count) - mean*mean)
+	if count == 0 {
+		return 0, 0, fmt.Errorf("Slice of length zero.")
+	}
+	mean := sum / float64(count)
 
-		// Normalize the data to a mean of 0 and standard deviation of 1.0.
-		for i, x := range a {
-			if x != config.MISSING_DATA_SENTINEL {
-				newX := x - mean
-				if stddev > minStdDev {
-					newX = newX / stddev
-				}
-				a[i] = newX
+	vr := 0.0
+	for _, x := range a {
+		if x != config.MISSING_DATA_SENTINEL {
+			vr += (x - mean) * (x - mean)
+		}
+	}
+	stddev := math.Sqrt(vr / float64(count))
+
+	return mean, stddev, nil
+}
+
+// Norm normalizes the slice to a mean of 0 and a standard deviation of 1.0.
+// The minStdDev is the minimum standard deviation that is normalized. Slices
+// with a standard deviation less than that are not normalized for variance.
+func Norm(a []float64, minStdDev float64) {
+	mean, stddev, err := MeanAndStdDev(a)
+	if err != nil {
+		return
+	}
+	// Normalize the data to a mean of 0 and standard deviation of 1.0.
+	for i, x := range a {
+		if x != config.MISSING_DATA_SENTINEL {
+			newX := x - mean
+			if stddev > minStdDev {
+				newX = newX / stddev
 			}
+			a[i] = newX
 		}
 	}
 }

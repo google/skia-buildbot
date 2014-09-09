@@ -88,8 +88,28 @@ func Get(issue string) (*types.TryBotResults, error) {
 	return try, nil
 }
 
+// List returns the last N Rietveld issue IDs.
+func List(n int) ([]string, error) {
+	rows, err := db.DB.Query("SELECT issue FROM tries ORDER BY lastUpdated DESC LIMIT ?", n)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read try data from database: %s", err)
+	}
+	defer rows.Close()
+
+	ret := []string{}
+	for rows.Next() {
+		var issue string
+		if err := rows.Scan(&issue); err != nil {
+			return nil, fmt.Errorf("List: Failed to read issus from row: %s", err)
+		}
+		ret = append(ret, issue)
+	}
+	return ret, nil
+}
+
 // addTryData copies the data from the BenchFile into the TryBotResults.
 func addTryData(res *types.TryBotResults, b *ingester.BenchFile) {
+	glog.Infof("addTryData: %s", b.Name)
 	benchData, err := b.FetchAndParse()
 	if err != nil {
 		// Don't fall over for a single corrupt file.
@@ -171,9 +191,11 @@ func Update(lastIngestTime int64) error {
 				continue
 			}
 			lastIssue = b.IssueName
+			glog.Infof("Switched to issue: %s", lastIssue)
 		}
 		addTryData(cur, b.BenchFile)
 	}
+	Write(lastIssue, cur)
 	numSuccessUpdates.Inc(1)
 	elapsedTimePerUpdate.UpdateSince(begin)
 	glog.Infof("Finished trybot ingestion.")
