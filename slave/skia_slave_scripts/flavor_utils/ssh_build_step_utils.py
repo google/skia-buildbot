@@ -168,6 +168,7 @@ class SshBuildStepUtils(DefaultBuildStepUtils):
       perf_data_dir=prefix + 'perf',
       gm_actual_dir=prefix + 'gm_actual',
       gm_expected_dir=prefix + 'gm_expected',
+      dm_dir=prefix + 'dm',
       resource_dir=prefix + 'resources',
       skimage_in_dir=prefix + 'skimage_in',
       skimage_expected_dir=prefix + 'skimage_expected',
