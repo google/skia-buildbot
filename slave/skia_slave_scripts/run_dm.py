@@ -38,6 +38,9 @@ class RunDM(BuildStep):
     if self._AnyMatch('GalaxyNexus'):  # skia:2900
       match.extend(['~filterindiabox', '~bleed'])
 
+    if self._AnyMatch('Venue8'):       # skia:2922
+      match.append('~imagealphathreshold')
+
     # Though their GPUs are interesting, these don't test anything on
     # the CPU that other ARMv7+NEON bots don't test faster (N5).
     if self._AnyMatch('GalaxyNexus', 'Nexus10', 'Nexus7'):
