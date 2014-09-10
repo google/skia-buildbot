@@ -104,6 +104,7 @@ func List(n int) ([]string, error) {
 		}
 		ret = append(ret, issue)
 	}
+	sort.Sort(sort.Reverse(sort.StringSlice(ret)))
 	return ret, nil
 }
 
