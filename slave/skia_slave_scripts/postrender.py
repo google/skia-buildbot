@@ -16,6 +16,10 @@ class PostRender(BuildStep):
                                           self._builder_name),
                                                    self._gm_actual_dir)
 
+  def _RunAfterDM(self):
+    self._flavor_utils.CopyDirectoryContentsToHost(self._device_dirs.DMDir(),
+                                                   self._dm_dir)
+
   def _RunAfterRunDecodingTests(self):
     self._flavor_utils.CopyDirectoryContentsToHost(
         self._device_dirs.SKImageOutDir(), self._skimage_out_dir)
@@ -28,8 +32,10 @@ class PostRender(BuildStep):
         self._device_dirs.PlaybackActualSummariesDir(),
         self.playback_actual_summaries_dir)
 
+
   def _Run(self):
     self._RunAfterGenerateGMs()
+    self._RunAfterDM()
     self._RunAfterRunDecodingTests()
     self._RunAfterRenderSKPs()
 

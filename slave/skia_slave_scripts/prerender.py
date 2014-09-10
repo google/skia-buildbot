@@ -53,6 +53,8 @@ class PreRender(BuildStep):
     self._flavor_utils.CreateCleanDeviceDirectory(
         self._flavor_utils.DevicePathJoin(self._device_dirs.GMActualDir(),
                                           self._builder_name))
+    # DM too.
+    self._flavor_utils.CreateCleanDeviceDirectory(self._device_dirs.DMDir())
 
   def _RunBeforeRunDecodingTests(self):
     # Copy expectations file and images to decode in skimage to device.

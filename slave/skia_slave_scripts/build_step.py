@@ -179,6 +179,7 @@ class BuildStep(multiprocessing.Process):
                                          gm_expected_subdir)
     self._gm_actual_dir = os.path.join(self._gm_actual_basedir,
                                        self._builder_name)
+    self._dm_dir = os.path.join(os.pardir, os.pardir, 'dm')
 
     self._resource_dir = 'resources'
     self._make_flags = shlex.split(args['make_flags'].replace('"', ''))

@@ -13,7 +13,7 @@ from py.utils import shell_utils
 
 
 class DeviceDirs(object):
-  def __init__(self, perf_data_dir, gm_actual_dir, gm_expected_dir,
+  def __init__(self, perf_data_dir, gm_actual_dir, gm_expected_dir, dm_dir,
                resource_dir, skimage_in_dir, skimage_expected_dir,
                skimage_out_dir, skp_dir, skp_perf_dir,
                playback_actual_images_dir, playback_actual_summaries_dir,
@@ -21,6 +21,7 @@ class DeviceDirs(object):
     self._perf_data_dir = perf_data_dir
     self._gm_actual_dir = gm_actual_dir
     self._gm_expected_dir = gm_expected_dir
+    self._dm_dir = dm_dir
     self._resource_dir = resource_dir
     self._skimage_in_dir = skimage_in_dir
     self._skimage_expected_dir = skimage_expected_dir
@@ -39,6 +40,10 @@ class DeviceDirs(object):
   def GMExpectedDir(self):
     """Holds expectations JSON summary read by the 'gm' tool."""
     return self._gm_expected_dir
+
+  def DMDir(self):
+    """Where DM writes."""
+    return self._dm_dir
 
   def PerfDir(self):
     return self._perf_data_dir
@@ -240,6 +245,7 @@ class DefaultBuildStepUtils:
         # host==device, so why not just make them inherently equal?)
         gm_actual_dir=os.path.join(os.pardir, os.pardir, 'gm', 'actual'),
         gm_expected_dir=os.path.join(os.pardir, os.pardir, 'gm', 'expected'),
+        dm_dir=os.path.join(os.pardir, os.pardir, 'dm'),
         resource_dir=self._step.resource_dir,
         skimage_in_dir=self._step.skimage_in_dir,
         skimage_expected_dir=os.path.join(os.pardir, os.pardir, 'skimage',
