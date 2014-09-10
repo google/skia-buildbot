@@ -209,11 +209,14 @@ func Update(lastIngestTime int64) error {
 		if b.IssueName != lastIssue {
 			// Write out the current TryBotResults to the datastore and create a fresh new TryBotResults.
 			if cur != nil {
-				Write(lastIssue, cur)
+				err := Write(lastIssue, cur)
+				if err != nil {
+					return fmt.Errorf("Update failed to write trybot results: %s", err)
+				}
 			}
 			cur, err = Get(b.IssueName)
 			if err != nil {
-				glog.Errorf("Failed to load existing trybot data for issue %s: %s", b.IssueName, err)
+				return fmt.Errorf("Failed to load existing trybot data for issue %s: %s", b.IssueName, err)
 				continue
 			}
 			lastIssue = b.IssueName
@@ -221,7 +224,12 @@ func Update(lastIngestTime int64) error {
 		}
 		addTryData(cur, b.BenchFile)
 	}
-	Write(lastIssue, cur)
+	if cur != nil {
+		err := Write(lastIssue, cur)
+		if err != nil {
+			return fmt.Errorf("Update failed to write trybot results: %s", err)
+		}
+	}
 	numSuccessUpdates.Inc(1)
 	elapsedTimePerUpdate.UpdateSince(begin)
 	glog.Infof("Finished trybot ingestion.")
