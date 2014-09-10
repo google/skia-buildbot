@@ -107,6 +107,32 @@ func List(n int) ([]string, error) {
 	return ret, nil
 }
 
+// TileWithTryData will add all the trybot data for the given issue to the
+// given Tile. A new Tile that is a copy of the original Tile will be returned,
+// so we aren't modifying the underlying Tile.
+func TileWithTryData(tile *types.Tile, issue string) (*types.Tile, error) {
+	ret := tile.Copy()
+	lastCommitIndex := tile.LastCommitIndex()
+	// The way we handle Tiles there is always empty space at the end of the
+	// Tile of index -1. Use that space to inject the trybot results.
+	ret.Commits[lastCommitIndex+1].CommitTime = time.Now().Unix()
+	lastCommitIndex = tile.LastCommitIndex()
+
+	tryResults, err := Get(issue)
+	if err != nil {
+		return nil, fmt.Errorf("AppendToTile: Failed to retreive trybot results: %s", err)
+	}
+	// Copy in the trybot data.
+	for k, v := range tryResults.Values {
+		if tr, ok := ret.Traces[k]; !ok {
+			continue
+		} else {
+			tr.Values[lastCommitIndex] = v
+		}
+	}
+	return ret, nil
+}
+
 // addTryData copies the data from the BenchFile into the TryBotResults.
 func addTryData(res *types.TryBotResults, b *ingester.BenchFile) {
 	glog.Infof("addTryData: %s", b.Name)

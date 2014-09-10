@@ -61,12 +61,9 @@ func TestFileTileGet(t *testing.T) {
 		},
 		Commits: []*types.Commit{
 			&types.Commit{
-				CommitTime:    42,
-				Hash:          "ffffffffffffffffffffffffffffffffffffffff",
-				GitNumber:     -1,
-				Author:        "test@test.cz",
-				CommitMessage: "This commit doesn't actually exist",
-				TailCommits:   []*types.Commit{},
+				CommitTime: 42,
+				Hash:       "ffffffffffffffffffffffffffffffffffffffff",
+				Author:     "test@test.cz",
 			},
 		},
 		Scale:     0,
@@ -104,12 +101,9 @@ func TestFileTileGet(t *testing.T) {
 		},
 		Commits: []*types.Commit{
 			&types.Commit{
-				CommitTime:    42,
-				Hash:          "0000000000000000000000000000000000000000",
-				GitNumber:     -1,
-				Author:        "test@test.cz",
-				CommitMessage: "This commit doesn't actually exist",
-				TailCommits:   []*types.Commit{},
+				CommitTime: 42,
+				Hash:       "0000000000000000000000000000000000000000",
+				Author:     "test@test.cz",
 			},
 		},
 		Scale:     0,

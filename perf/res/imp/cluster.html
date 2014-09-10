@@ -157,15 +157,17 @@
   /**
     * ClusterSummary displays a summary of a single k-means cluster.
     *
-    * p    - The parent node to append the cluster summary to.
-    * json - One member of the Clusters array returned from the /clustering/ endpoint.
+    * p     - The parent node to append the cluster summary to.
+    * json  - One member of the Clusters array returned from the /clustering/ endpoint.
+    * issue - The Rietveld issue id if this cluster contains trybot data.
     */
-  sk.ClusterSummary = function(p, json) {
+  sk.ClusterSummary = function(p, json, issue) {
     var node = importer__.import('#clResultTemplate');
     p.appendChild(node);
     this.result_ = p.lastElementChild;
 
     this.json_ = json;
+    this.issue_ = issue;
     this.plot_ = null; // Will be ref to Flot graph.
     this.boundOpenShortcut_ = this.openShortcut_.bind(this);
   };
@@ -292,7 +294,8 @@
       scale: 0,
       tiles: [-1],
       hash: this.json_.Hash,
-      keys: keys
+      keys: keys,
+      issue: this.issue_ || "",
     };
     sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json){
       window.open('/#' + json.id, '_blank');
@@ -325,15 +328,15 @@
     * beginClustering by clearing out the old results and starting the XHR
     * request to get new clustering results.
     */
-  sk.Cluster.prototype.beginClustering = function(k, stddev, selections) {
+  sk.Cluster.prototype.beginClustering = function(k, stddev, issue, selections) {
     sk.clearChildren($$$('#clResults'));
     $$$('input[value="stepregression"]', this.clusterSummary_).checked = true;
 
     document.body.style.cursor = 'wait';
-    sk.get('/clustering/?_k=' + k + '&_stddev=' + stddev + '&' + selections).then(JSON.parse).then(function(json) {
+    sk.get('/clustering/?_k=' + k + '&_stddev=' + stddev + '&_issue=' + issue + '&' + selections).then(JSON.parse).then(function(json) {
       var container = $$$('#clResults');
       json.Clusters.forEach(function(c){
-        var summary = new sk.ClusterSummary(container, c);
+        var summary = new sk.ClusterSummary(container, c, issue);
         summary.attach();
       });
       document.body.style.cursor = 'auto';

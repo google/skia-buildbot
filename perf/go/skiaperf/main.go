@@ -32,11 +32,11 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/perf/go/gs"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
 	"skia.googlesource.com/buildbot.git/perf/go/parser"
 	"skia.googlesource.com/buildbot.git/perf/go/shortcut"
 	"skia.googlesource.com/buildbot.git/perf/go/stats"
+	"skia.googlesource.com/buildbot.git/perf/go/trybot"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/vec"
@@ -59,8 +59,6 @@ var (
 	compareTemplate *template.Template = nil
 
 	jsonHandlerPath = regexp.MustCompile(`/json/([a-z]*)$`)
-
-	trybotsHandlerPath = regexp.MustCompile(`/trybots/([0-9A-Za-z-/]*)$`)
 
 	shortcutHandlerPath = regexp.MustCompile(`/shortcuts/([0-9]*)$`)
 
@@ -92,11 +90,6 @@ var (
 
 var (
 	nanoTileStore types.TileStore
-)
-
-const (
-	// Recent number of days to look for trybot data.
-	TRYBOT_DAYS_BACK = 7
 )
 
 func Init() {
@@ -211,33 +204,15 @@ func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 // trybotHandler handles the GET for trybot data.
 func trybotHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Trybot Handler: %q\n", r.URL.Path)
-	match := trybotsHandlerPath.FindStringSubmatch(r.URL.Path)
-	if match == nil {
-		http.NotFound(w, r)
+	w.Header().Set("Content-Type", "application/json")
+	try, err := trybot.List(50)
+	if err != nil {
+		reportError(w, r, err, "Failed to retrieve trybot results.")
 		return
 	}
-	if len(match) != 2 {
-		reportError(w, r, fmt.Errorf("Trybot Handler regexp wrong number of matches: %#v", match), "Not Found")
-		return
-	}
-	if r.Method == "GET" {
-		daysBack, err := strconv.ParseInt(r.FormValue("daysback"), 10, 64)
-		if err != nil {
-			glog.Warningln("No valid daysback given; using the default.")
-			daysBack = TRYBOT_DAYS_BACK
-		}
-		endTS, err := strconv.ParseInt(r.FormValue("end"), 10, 64)
-		if err != nil {
-			glog.Warningln("No valid end ts given; using the default.")
-			endTS = time.Now().Unix()
-		}
-		w.Header().Set("Content-Type", "application/json")
-		results, err := gs.GetTryResults(match[1], endTS, int(daysBack))
-		if err != nil {
-			reportError(w, r, err, "Error getting storage results.")
-			return
-		}
-		w.Write(results)
+	enc := json.NewEncoder(w)
+	if err = enc.Encode(try); err != nil {
+		reportError(w, r, err, "Error while encoding response.")
 	}
 }
 
@@ -423,7 +398,17 @@ func writeClusterSummaries(summary *clustering.ClusterSummaries, w http.Response
 // }
 //
 // Note that Keys contains all the keys, while Traces only contains traces of
-// the 10 closest cluster members and the centroid.
+// the N closest cluster members and the centroid.
+//
+// Takes the following query parameters:
+//
+//   _k      - The K to use for k-means clustering.
+//   _stddev - The standard deviation to use when normalize traces
+//             during k-means clustering.
+//   _issue  - The Rietveld issue ID with trybot results to include.
+//
+// Additionally the rest of the query parameters as returned from
+// sk.Query.selectionsAsQuery().
 func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Clustering Handler: %q\n", r.URL.Path)
 	tile, err := nanoTileStore.Get(0, -1)
@@ -449,11 +434,37 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a filter function for traces that match the query parameters.
+	issue := r.FormValue("_issue")
+	var tryResults *types.TryBotResults = nil
+	if issue != "" {
+		var err error
+		tryResults, err = trybot.Get(issue)
+		if err != nil {
+			reportError(w, r, err, fmt.Sprintf("Failed to get trybot data for clustering."))
+			return
+		}
+	}
+
 	delete(r.Form, "_k")
 	delete(r.Form, "_stddev")
-	filter := func(tr *types.Trace) bool {
+	delete(r.Form, "_issue")
+
+	// Create a filter function for traces that match the query parameters and
+	// optionally tryResults.
+	filter := func(key string, tr *types.Trace) bool {
+		if tryResults != nil {
+			if _, ok := tryResults.Values[key]; !ok {
+				return false
+			}
+		}
 		return traceMatches(tr, r.Form)
+	}
+
+	if issue != "" {
+		if tile, err = trybot.TileWithTryData(tile, issue); err != nil {
+			reportError(w, r, err, fmt.Sprintf("Failed to get trybot data for clustering."))
+			return
+		}
 	}
 	summary, err := clustering.CalculateClusterSummaries(tile, int(k), stddev, filter)
 	if err != nil {
@@ -707,6 +718,12 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 				http.NotFound(w, r)
 				return
 			}
+			if sh.Issue != "" {
+				if tile, err = trybot.TileWithTryData(tile, sh.Issue); err != nil {
+					reportError(w, r, err, "Failed to populate shortcut data with trybot result.")
+					return
+				}
+			}
 			ret.Hash = sh.Hash
 			for _, k := range sh.Keys {
 				if tr, ok := tile.Traces[k]; ok {
@@ -744,7 +761,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 // SingleTrace is used in SingleResponse.
 type SingleTrace struct {
-	Val float64              `json:"val"`
+	Val    float64           `json:"val"`
 	Params map[string]string `json:"params"`
 }
 
@@ -801,13 +818,13 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if idx < 0 {
-		idx = len(tile.Commits) - 1  // Defaults to the last slice element.
+		idx = len(tile.Commits) - 1 // Defaults to the last slice element.
 	}
 	glog.Infof("Tile: %d; Idx: %d\n", tileNum, idx)
 
 	ret := SingleResponse{
 		Traces: []*SingleTrace{},
-		Hash: tile.Commits[idx].Hash,
+		Hash:   tile.Commits[idx].Hash,
 	}
 	for _, tr := range tile.Traces {
 		if traceMatches(tr, r.Form) {

@@ -269,18 +269,15 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 			glog.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
 			continue
 		}
-		author, subject, ts, err := i.git.Details(hash)
+		author, _, ts, err := i.git.Details(hash)
 		if err != nil {
 			glog.Errorf("Failed to get details for hash: %s: %s", hash, err)
 			continue
 		}
 		tt.Tile().Commits[tt.Offset(hash)] = &types.Commit{
-			CommitTime:    ts.Unix(),
-			Hash:          hash,
-			GitNumber:     int64(i.hashToNumber[hash]),
-			Author:        author,
-			CommitMessage: subject,
-			TailCommits:   []*types.Commit{},
+			CommitTime: ts.Unix(),
+			Hash:       hash,
+			Author:     author,
 		}
 	}
 	tt.Flush()

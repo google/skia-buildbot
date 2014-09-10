@@ -28,9 +28,7 @@ func (t *Trace) DeepCopy() *Trace {
 		Values: make([]float64, n, n),
 		Params: make(map[string]string),
 	}
-	for i, x := range t.Values {
-		cp.Values[i] = x
-	}
+	copy(cp.Values, t.Values)
 	for k, v := range t.Params {
 		cp.Params[k] = v
 	}
@@ -92,18 +90,9 @@ func FormulaFromID(id string) string {
 
 // Commit is information about each Git commit.
 type Commit struct {
-	CommitTime    int64     `json:"commit_time" bq:"timestamp" db:"ts"`
-	Hash          string    `json:"hash"        bq:"gitHash"   db:"githash"`
-	GitNumber     int64     `json:"git_number"  bq:"gitNumber" db:"gitnumber"`
-	Author        string    `json:"author"                     db:"author"`
-	CommitMessage string    `json:"commit_msg"                 db:"message"`
-	TailCommits   []*Commit `json:"tail_commits,omitempty"`
-}
-
-func NewCommit() *Commit {
-	return &Commit{
-		TailCommits: []*Commit{},
-	}
+	CommitTime int64  `json:"commit_time" bq:"timestamp" db:"ts"`
+	Hash       string `json:"hash"        bq:"gitHash"   db:"githash"`
+	Author     string `json:"author"                     db:"author"`
 }
 
 // Tile is a config.TILE_SIZE commit slice of data.
@@ -129,7 +118,7 @@ func NewTile() *Tile {
 		Commits:  make([]*Commit, config.TILE_SIZE, config.TILE_SIZE),
 	}
 	for i := range t.Commits {
-		t.Commits[i] = NewCommit()
+		t.Commits[i] = &Commit{}
 	}
 	return t
 }
@@ -147,6 +136,26 @@ func (t Tile) LastCommitIndex() int {
 // Returns the hashes of the first and last commits in the Tile.
 func (t Tile) CommitRange() (string, string) {
 	return t.Commits[0].Hash, t.Commits[t.LastCommitIndex()].Hash
+}
+
+// Makes a copy of the tile where the Traces and Commits are deep copies and
+// all the rest of the data is a shallow copy.
+func (t Tile) Copy() *Tile {
+	ret := &Tile{
+		Traces:    map[string]*Trace{},
+		ParamSet:  t.ParamSet,
+		Scale:     t.Scale,
+		TileIndex: t.TileIndex,
+		Commits:   make([]*Commit, len(t.Commits)),
+	}
+	for i, c := range t.Commits {
+		cp := *c
+		ret.Commits[i] = &cp
+	}
+	for k, v := range t.Traces {
+		ret.Traces[k] = v.DeepCopy()
+	}
+	return ret
 }
 
 // TraceGUI is used in TileGUI.
@@ -289,7 +298,7 @@ func Merge(tile1, tile2 *Tile) *Tile {
 		Commits:  make([]*Commit, n, n),
 	}
 	for i := range t.Commits {
-		t.Commits[i] = NewCommit()
+		t.Commits[i] = &Commit{}
 	}
 
 	// Merge the Commits.

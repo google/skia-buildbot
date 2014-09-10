@@ -39,8 +39,18 @@
       queryInfo__.change.counter += 1;
     });
 
+    sk.get('/trybots/').then(JSON.parse).then(function(json){
+      var select = $$$('#_issue');
+      json.forEach(function(issue) {
+        var op = document.createElement('OPTION');
+        op.value = issue;
+        op.innerText = issue;
+        select.appendChild(op);
+      });
+    });
+
     $$$('#start').addEventListener('click', function(){
-      cluster.beginClustering($$$('#_k').value, $$$('#_stddev').value, query.selectionsAsQuery());
+      cluster.beginClustering($$$('#_k').value, $$$('#_stddev').value, $$$('#_issue').value, query.selectionsAsQuery());
     });
   };
 

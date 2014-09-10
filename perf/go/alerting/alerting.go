@@ -167,7 +167,7 @@ func Write(c *types.ClusterSummary) error {
 	return nil
 }
 
-func skpOnly(tr *types.Trace) bool {
+func skpOnly(_ string, tr *types.Trace) bool {
 	return tr.Params["source_type"] == "skp"
 }
 

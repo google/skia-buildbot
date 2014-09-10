@@ -38,9 +38,7 @@ func (t *ClusterableTrace) String() string {
 func NewFullTrace(key string, values []float64, params map[string]string, minStdDev float64) *ClusterableTrace {
 	norm := make([]float64, len(values))
 
-	for i, x := range values {
-		norm[i] = x
-	}
+	copy(norm, values)
 	vec.Fill(norm)
 	vec.Norm(norm, minStdDev)
 
