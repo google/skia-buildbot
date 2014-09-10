@@ -209,13 +209,11 @@ func Update(lastIngestTime int64) error {
 		if b.IssueName != lastIssue {
 			// Write out the current TryBotResults to the datastore and create a fresh new TryBotResults.
 			if cur != nil {
-				err := Write(lastIssue, cur)
-				if err != nil {
+				if err := Write(lastIssue, cur); err != nil {
 					return fmt.Errorf("Update failed to write trybot results: %s", err)
 				}
 			}
-			cur, err = Get(b.IssueName)
-			if err != nil {
+			if cur, err = Get(b.IssueName); err != nil {
 				return fmt.Errorf("Failed to load existing trybot data for issue %s: %s", b.IssueName, err)
 				continue
 			}
@@ -225,8 +223,7 @@ func Update(lastIngestTime int64) error {
 		addTryData(cur, b.BenchFile)
 	}
 	if cur != nil {
-		err := Write(lastIssue, cur)
-		if err != nil {
+		if err := Write(lastIssue, cur); err != nil {
 			return fmt.Errorf("Update failed to write trybot results: %s", err)
 		}
 	}

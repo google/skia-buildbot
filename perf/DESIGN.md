@@ -159,6 +159,10 @@ A Cloud SQL (a cloud version of MySQL) database is used to keep information on
 Skia git revisions and their corresponding annotations. The database will be
 updated when users add/edit/delete annotations via the dashboard UI.
 
+MySQL Flags to set:
+
+   max_allowed_packet = 1073741824
+
 All passwords for MySQL are stored in valentine (search "skiaperf").
 
 To connect to the database from authorized network (including skia-perf GCE):
@@ -198,7 +202,7 @@ Initial setup of the database, the users, and the tables:
     CREATE TABLE tries (
       issue       VARCHAR(255) NOT NULL PRIMARY KEY,
       lastUpdated BIGINT       NOT NULL,
-      results     MEDIUMTEXT   NOT NULL
+      results     LONGTEXT   NOT NULL
     );
 
 Clustering
