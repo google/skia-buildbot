@@ -84,6 +84,9 @@ class RunGM(BuildStep):
                   '~clipped-bitmap',
                   '~xfermodes3'])
 
+    if 'Venue8' in self._builder_name:  # skia:2922
+      cmd.extend(['--match', '~imagealphathreshold'])
+
     self._flavor_utils.RunFlavoredCmd('gm', cmd)
 
 
