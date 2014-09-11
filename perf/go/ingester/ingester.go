@@ -194,7 +194,9 @@ func (tt *TileTracker) Move(hash string) error {
 	if tileNum != tt.lastTileNum {
 		glog.Infof("Moving from tile %d to %d", tt.lastTileNum, tileNum)
 		if tt.lastTileNum != -1 {
-			tt.tileStore.Put(0, tt.lastTileNum, tt.currentTile)
+			if err := tt.tileStore.Put(0, tt.lastTileNum, tt.currentTile); err != nil {
+				return fmt.Errorf("TileTracker.Move() failed to flush old tile: %s", err)
+			}
 		}
 		tt.lastTileNum = tileNum
 		var err error
@@ -215,8 +217,11 @@ func (tt *TileTracker) Move(hash string) error {
 // done. Note that Move() writes out the former Tile as it moves to a new Tile,
 // so this only needs to be called at the end of looping over a set of work.
 func (tt TileTracker) Flush() {
+	glog.Info("Flushing Tile.")
 	if tt.lastTileNum != -1 {
-		tt.tileStore.Put(0, tt.lastTileNum, tt.currentTile)
+		if err := tt.tileStore.Put(0, tt.lastTileNum, tt.currentTile); err != nil {
+			glog.Error("Failed to write Tile: %s", err)
+		}
 	}
 }
 
@@ -255,7 +260,9 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 		newTile := types.NewTile()
 		newTile.Scale = 0
 		newTile.TileIndex = 0
-		i.tileStore.Put(0, 0, newTile)
+		if err := i.tileStore.Put(0, 0, newTile); err != nil {
+			return fmt.Errorf("UpdateCommitInfo: Failed to write new tile: %s", err)
+		}
 	}
 	glog.Infof("UpdateCommitInfo: Last commit timestamp: %s", ts)
 
@@ -361,6 +368,7 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int) {
 // new tiles if necessary, and then pulling in new data from Google Storage to
 // populate the traces.
 func (i *Ingester) Update(pull bool, lastIngestTime int64) error {
+	glog.Info("Beginning ingest.")
 	begin := time.Now()
 	if err := i.UpdateCommitInfo(pull); err != nil {
 		glog.Errorf("Update: Failed to update commit info: %s", err)
@@ -371,6 +379,7 @@ func (i *Ingester) Update(pull bool, lastIngestTime int64) error {
 		return err
 	}
 	elapsedTimePerUpdate.UpdateSince(begin)
+	glog.Info("Finished ingest.")
 	return nil
 }
 

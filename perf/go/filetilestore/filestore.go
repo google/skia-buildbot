@@ -3,6 +3,7 @@ package filetilestore
 import (
 	"encoding/gob"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -24,6 +25,8 @@ import (
 const (
 	MAX_CACHE_TILES = 64
 	MAX_CACHE_SCALE = 0
+
+	TEMP_TILE_DIR_NAME = "_temp"
 )
 
 // CacheEntry stores a single tile with the data describing it.
@@ -60,14 +63,29 @@ type FileTileStore struct {
 // given FileTileStore.
 func (store FileTileStore) tileFilename(scale, index int) (string, error) {
 	if scale < 0 || index < 0 {
-		return "", fmt.Errorf("Scale %d and Index %d must both be > 0", scale, index)
+		return "", fmt.Errorf("Scale %d and Index %d must both be >= 0", scale, index)
 	}
 	return path.Join(store.dir, store.datasetName, fmt.Sprintf("%d/%04d.gob", scale, index)), nil
+}
+
+// fileTileTemp creates a unique temporary filename for the given tile scale and
+// index for the given FileTileStore. Used during Put() so that writes update
+// atomically.
+func (store FileTileStore) fileTileTemp(scale, index int) (*os.File, error) {
+	if scale < 0 || index < 0 {
+		return nil, fmt.Errorf("Scale %d and Index %d must both be >= 0", scale, index)
+	}
+	dir := path.Join(store.dir, TEMP_TILE_DIR_NAME)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return nil, fmt.Errorf("Error creating directory for temp tile %s: %s", dir, err)
+	}
+	return ioutil.TempFile(dir, fmt.Sprintf("%d-%04d-gob-", scale, index))
 }
 
 // Put writes a tile to the drive, and also updates the cache entry for it
 // if one exists. It uses the mutex to ensure thread safety.
 func (store *FileTileStore) Put(scale, index int, tile *types.Tile) error {
+	glog.Info("Put()")
 	// Make sure the scale and tile index are correct.
 	if tile.Scale != scale || tile.TileIndex != index {
 		return fmt.Errorf("Tile scale %d and index %d do not match real tile scale %d and index %d", scale, index, tile.Scale, tile.TileIndex)
@@ -76,28 +94,35 @@ func (store *FileTileStore) Put(scale, index int, tile *types.Tile) error {
 	if index < 0 {
 		return fmt.Errorf("Can't write Tiles with an index < 0: %d", index)
 	}
-	filename, err := store.tileFilename(scale, index)
+
+	// Begin by writing the Tile out into a temporary location.
+	f, err := store.fileTileTemp(scale, index)
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
-		return fmt.Errorf("Error creating directory for tile %s: %s", filename, err)
-	}
-	f, err := os.Create(filename)
-	if err != nil {
-		return fmt.Errorf("Failed to open tile %s for writing: %s", filename, err)
-	}
-	defer f.Close()
 	enc := gob.NewEncoder(f)
 	if err := enc.Encode(tile); err != nil {
-		return fmt.Errorf("Failed to encode tile %s: %s", filename, err)
+		return fmt.Errorf("Failed to encode tile %s: %s", f.Name(), err)
 	}
+	f.Close()
+
+	// Now rename the completed file to the real tile name. This is atomic and
+	// doesn't affect current readers of the old tile contents.
+	targetName, err := store.tileFilename(scale, index)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(targetName), 0755); err != nil {
+		return fmt.Errorf("Error creating directory for tile %s: %s", targetName, err)
+	}
+	glog.Infof("Renaming: %q %q", f.Name(), targetName)
+	os.Rename(f.Name(), targetName)
 
 	store.lock.Lock()
 	defer store.lock.Unlock()
 	for i, entry := range store.cache {
 		if entry.index == index && entry.scale == scale {
-			filedata, err := os.Stat(filename)
+			filedata, err := os.Stat(targetName)
 			if err != nil {
 				break
 			}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -39,7 +39,7 @@ func TestFileTileGet(t *testing.T) {
 	}
 	defer os.RemoveAll(randomPath)
 	// The test file needs to be created in the 0/ subdirectory of the path.
-	randomFullPath := strings.Join([]string{randomPath, "test", "0"}, string(os.PathSeparator))
+	randomFullPath := filepath.Join(randomPath, "test", "0")
 
 	if err := os.MkdirAll(randomFullPath, 0775); err != nil {
 		t.Skip("Failing to create temporary subdirectory, skipping test.")
@@ -47,7 +47,7 @@ func TestFileTileGet(t *testing.T) {
 	}
 
 	// NOTE: This needs to match what's created by tileFilename
-	fileName := strings.Join([]string{randomFullPath, "0000.gob"}, string(os.PathSeparator))
+	fileName := filepath.Join(randomFullPath, "0000.gob")
 	err = makeFakeTile(fileName, &types.Tile{
 		Traces: map[string]*types.Trace{
 			"test": &types.Trace{
@@ -187,8 +187,18 @@ func TestFileTileGet(t *testing.T) {
 	}
 	t.Log("Fifth test set completed.")
 	t.Log("Sixth test set start. Testing empty tile Put() and Get().")
-	ts.Put(0, 1, types.NewTile())
-	_, err = ts.Get(0, 1)
+	if err := ts.Put(0, 0, types.NewTile()); err != nil {
+		t.Fatalf("Failed to Put(): %s", err)
+	}
+
+	fi, err := os.Stat(filepath.Join(randomPath, TEMP_TILE_DIR_NAME))
+	if err != nil {
+		t.Fatalf("Failed to stat directory where temp files are created: %s", err)
+	}
+	if !fi.IsDir() {
+		t.Fatalf("Should be a directory.")
+	}
+	_, err = ts.Get(0, 0)
 	if err != nil {
 		t.Errorf("FileTileStore.GetModifiable failed: %s\n", err)
 	}
