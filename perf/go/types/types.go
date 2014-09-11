@@ -322,6 +322,9 @@ func Merge(tile1, tile2 *Tile) *Tile {
 			for i, v := range trace2.Values {
 				mergedTrace.Values[n1+i] = v
 			}
+			for k, v := range trace2.Params {
+				mergedTrace.Params[k] = v
+			}
 		}
 		t.Traces[key] = mergedTrace
 	}

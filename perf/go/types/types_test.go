@@ -30,6 +30,7 @@ func TestMerge(t *testing.T) {
 	tr = NewTrace()
 	tr.Params["p1"] = "v1"
 	tr.Params["p2"] = "v2"
+	tr.Params["p5"] = "5"
 	tr.Values[0] = 0.3
 	tr.Values[1] = 0.4
 
@@ -62,8 +63,11 @@ func TestMerge(t *testing.T) {
 	if got, want := len(merged.Traces["foo"].Values), 2*config.TILE_SIZE; got != want {
 		t.Errorf("Number of values: Got %v Want %v", got, want)
 	}
-	if got, want := len(merged.ParamSet), 3; got != want {
+	if got, want := len(merged.ParamSet), 4; got != want {
 		t.Errorf("ParamSet length: Got %v Want %v", got, want)
+	}
+	if _, ok := merged.ParamSet["p5"]; !ok {
+		t.Errorf("Merged tile missing 'p5' param.")
 	}
 
 	// Test the "foo" trace.
