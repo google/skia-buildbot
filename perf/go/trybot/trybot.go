@@ -117,7 +117,7 @@ func TileWithTryData(tile *types.Tile, issue string) (*types.Tile, error) {
 	// The way we handle Tiles there is always empty space at the end of the
 	// Tile of index -1. Use that space to inject the trybot results.
 	ret.Commits[lastCommitIndex+1].CommitTime = time.Now().Unix()
-	lastCommitIndex = tile.LastCommitIndex()
+	lastCommitIndex = ret.LastCommitIndex()
 
 	tryResults, err := Get(issue)
 	if err != nil {
