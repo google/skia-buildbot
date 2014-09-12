@@ -83,6 +83,9 @@ class RunNanobench(BuildStep):
     if self._AnyMatch('HD2000'):
       match.extend(['~gradient', '~etc1bitmap'])  # skia:2895
 
+    if self._AnyMatch('Xoom', 'Venue8'):  # skia:2934
+      match.append('~desk_carsvg')
+
     if self._AnyMatch('Nexus7'):
       match = ['skp']  # skia:2774
 
