@@ -636,7 +636,6 @@ _slave_host_dicts = {
 
   'skia-vm-029': {
     'slaves': [
-      ('skiabot-linux-vm-000', '0'),
       ('skiabot-linux-vm-003', '3'),
     ],
     'copies': _DEFAULT_COPIES,
