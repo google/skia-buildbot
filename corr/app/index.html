@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="rbtApp">
+
+<head>
+  <meta name="viewport" content="width=device-width">
+  <meta charset="utf-8">
+  <title>Rebaseline Tool</title>
+  <link rel="stylesheet" href="third_party/bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+  <!-- Include the different views here. 
+       Make everything fluid to scale to the maximum size of any screen.   -->
+  <div class="container-fluid">
+     <div ng-view></div>
+  </div>
+
+  <!-- do everything local right now: Move to CDN fix when it's a performance issue -->
+  <script src="third_party/bower_components/angular/angular.js"></script>
+  <script src="third_party/bower_components/angular-route/angular-route.js"></script>
+
+  <!-- Local JS --> 
+  <script src="js/app.js"></script>
+</body>
+</html>

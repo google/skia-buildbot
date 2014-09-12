@@ -1,0 +1,41 @@
+{
+  "actual-results": {
+    "failed": null,
+    "failure-ignored": null,
+    "no-comparison": null,
+    "succeeded": null
+  },
+  "expected-results": {
+    "3x3bitmaprect_565.png": {
+      "allowed-digests": [
+        [
+          "bitmap-64bitMD5",
+          16998423976396106083
+        ]
+      ],
+      "bugs": [
+        1578
+      ],
+      "reviewed-by-human": false
+    },
+    "alphagradients_gpu.png": {
+      "allowed-digests": [
+        [
+          "bitmap-64bitMD5",
+          4424928001525270278
+        ]
+      ],
+      "ignore-failure": false
+    },
+    "bigtext_gpu.png": {
+      "allowed-digests": [
+        [
+          "bitmap-64bitMD5",
+          11021706081645443796
+        ]
+      ],
+      "ignore-failure": false,
+      "reviewed-by-human": true
+    }
+  }
+}
