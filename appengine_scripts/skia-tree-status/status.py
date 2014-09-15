@@ -4,7 +4,9 @@
 
 """Status management pages."""
 
-import HTMLParser
+from contextlib import closing
+
+import base64
 import datetime
 import json
 import logging
@@ -29,7 +31,8 @@ MAX_STATUS_CHUNK = 1000
 # The default chunk of statuses that are displayed.
 DEFAULT_STATUS_CHUNK = 25
 
-CHROMIUM_DEPS_FILE = 'http://src.chromium.org/viewvc/chrome/trunk/src/DEPS'
+CHROMIUM_DEPS_FILE = (
+    'https://chromium.googlesource.com/chromium/src/+/master/DEPS?format=TEXT')
 
 
 class Status(db.Model):
@@ -194,16 +197,12 @@ class LkgrPage(BasePage):
   def get(self):
     """Displays Skia's LKGR."""
     try:
-      chromium_deps = urllib2.urlopen(CHROMIUM_DEPS_FILE)
-      html_parser = HTMLParser.HTMLParser()
-      for line in chromium_deps.readlines():
-        # Decode HTML entities.
-        line = html_parser.unescape(line)
-        if 'skia_revision' in line:
-          skia_lkgr = re.match(
-              r'.*"skia_revision": "(?P<revision>[0-9a-fA-F]{2,40})".*',
-              line).group('revision')
-          break
+      with closing(urllib2.urlopen(CHROMIUM_DEPS_FILE)) as f:
+        chromium_deps = base64.b64decode(f.read())
+      if 'skia_revision' in chromium_deps:
+        skia_lkgr = re.search(
+            r'.*\'skia_revision\': \'(?P<revision>[0-9a-fA-F]{2,40})\'.*',
+            chromium_deps).group('revision')
       else:
         raise Exception('Could not find skia_revision!')
     except Exception, e:
