@@ -5,12 +5,9 @@
 
 """ Upload actual GM results to the cloud to allow for rebaselining."""
 
-# TODO(mtklein): Delete most of this and s/GM/DM/g the rest when GM's gone.
-
 from build_step import BuildStep
 from utils import gs_utils
 from utils import old_gs_utils
-import datetime
 import os
 import posixpath
 import re
@@ -101,63 +98,12 @@ class UploadGMResults(BuildStep):
           gs_acl='public-read', only_if_modified=True,
           http_header_lines=['Cache-Control:public,max-age=3600'])
 
-  def _UploadDMResults(self):
-    # self._dm_dir holds a bunch of <hash>.png files and one dm.json.
-
-    # Upload the dm.json summary file.
-    summary_dir = tempfile.mkdtemp()
-    shutil.move(os.path.join(self._dm_dir, 'dm.json'),
-                os.path.join(summary_dir,  'dm.json'))
-
-    # /dm-json-v1/year/month/day/hour/git-hash/builder/build-number
-    now = datetime.datetime.utcnow()
-    summary_dest_dir = '/'.join('dm-json-v1',
-                                str(now.year).zfill(4),
-                                str(now.month).zfill(2),
-                                str(now.day).zfill(2),
-                                str(now.hour).zfill(2),
-                                self._got_revision,
-                                self._builder_name,
-                                self._build_number)
-    # Trybot results are further siloed by CL.
-    if self._is_try:
-      summary_dest_dir = '/'.join('trybot',
-                                  summary_dest_dir,
-                                  self._args['issue_number'])
-
-    gs = gs_utils.GSUtils()
-    acl       = gs.PLAYBACK_CANNED_ACL            # Private,
-    fine_acls = gs.PLAYBACK_FINEGRAINED_ACL_LIST  # but Google-visible.
-
-    gs.upload_dir_contents(
-            source_dir=summary_dir,
-            dest_bucket=skia_vars.GetGlobalVariable('dm_summaries_bucket'),
-            dest_dir=summary_dest_dir,
-            upload_if=gs.UploadIf.ALWAYS,
-            predefined_acl=acl,
-            fine_grained_acl_list=fine_acls)
-
-    # Now we can upload everything that's left, all the .pngs.
-    gs.upload_dir_contents(
-            source_dir=self._dm_dir,
-            dest_bucket=skia_vars.GetGlobalVariable('dm_images_bucket'),
-            dest_dir='dm-images-v1',
-            upload_if=gs.UploadIf.IF_NEW,
-            predefined_acl=acl,
-            fine_grained_acl_list=fine_acls)
-
-    # Just for hygiene, put dm.json back.
-    shutil.move(os.path.join(summary_dir,  'dm.json'),
-                os.path.join(self._dm_dir, 'dm.json'))
-    os.rmdir(summary_dir)
-
   def _Run(self):
     # TODO(epoger): Can't we get gm_output_dir from BuildStep._gm_actual_dir ?
     gm_output_dir = os.path.join(os.pardir, os.pardir, 'gm', 'actual',
                                  self._args['builder_name'])
     self._GSUploadAllImages(src_dir=gm_output_dir)
     self._GSUploadJsonFiles(src_dir=gm_output_dir)
-    self._UploadDMResults()
 
 
 if '__main__' == __name__:
