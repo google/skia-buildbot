@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	MAX_CACHE_TILES = 64
+	MAX_CACHE_TILES = 1
 	MAX_CACHE_SCALE = 0
 
 	TEMP_TILE_DIR_NAME = "_temp"
