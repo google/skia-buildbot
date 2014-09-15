@@ -301,6 +301,16 @@
     "type": "string",
     "description": "Google Cloud Storage bucket in which we store actual SKP rendering summaries."
   },
+  "dm_images_bucket": {
+    "value": "chromium-skia-gm",
+    "type": "string",
+    "description": "Google Cloud Storage bucket in which we store images from DM."
+  },
+  "dm_summaries_bucket": {
+    "value": "chromium-skia-gm",
+    "type": "string",
+    "description": "Google Cloud Storage bucket in which we store summaries from DM."
+  },
   "tree_status_baseurl": {
     "value": "https://skia-tree-status.appspot.com",
     "type": "string",
