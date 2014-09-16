@@ -1,54 +1,156 @@
 package types
 
 import (
+	"encoding/gob"
+	"fmt"
+	"net/url"
 	"strings"
 
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
-// Trace represents all the values of a single measurement over time.
-type Trace struct {
-	Values []float64         `json:"values"`
-	Trybot bool              `json:"trybot"`
-	Params map[string]string `json:"params"`
+// fillType is how filling in of missing values should be done in Trace.Grow().
+type fillType int
+
+const (
+	FILL_BEFORE fillType = iota
+	FILL_AFTER
+)
+
+// Trace represents a single series of measurements. The actual values it
+// stores per Commit is defined by implementations of Trace.
+type Trace interface {
+	// Returns the parameters that describe this trace.
+	Params() map[string]string
+
+	// Merge this trace with the given trace. The given trace is expected to come
+	// after this trace.
+	Merge(Trace) Trace
+
+	DeepCopy() Trace
+
+	// Grow the measurements, filling in with sentinel values either before or
+	// after based on fillType.
+	Grow(int, fillType)
+
+	// The number of samples in the series.
+	Len() int
+
+	// IsMissing returns true if the measurement at index i is a sentinel value,
+	// for example, config.MISSING_DATA_SENTINEL.
+	IsMissing(i int) bool
 }
 
-// NewTrace allocates a new Trace set up for the given number of samples.
-//
-// The Trace Values are pre-filled in with the missing data sentinel since not
-// all tests will be run on all commits.
-func NewTrace() *Trace {
-	return NewTraceN(config.TILE_SIZE)
+// Matches returns true if the given Trace matches the given query.
+func Matches(tr Trace, query url.Values) bool {
+	for k, values := range query {
+		if _, ok := tr.Params()[k]; !ok || !util.In(tr.Params()[k], values) {
+			return false
+		}
+	}
+	return true
 }
 
-func (t *Trace) DeepCopy() *Trace {
+// PerfTrace represents all the values of a single floating point measurement.
+// *PerfTrace implements Trace.
+type PerfTrace struct {
+	Values  []float64         `json:"values"`
+	Params_ map[string]string `json:"params"`
+}
+
+func (t *PerfTrace) Params() map[string]string {
+	return t.Params_
+}
+
+func (t *PerfTrace) Len() int {
+	return len(t.Values)
+}
+
+func (t *PerfTrace) IsMissing(i int) bool {
+	return t.Values[i] != config.MISSING_DATA_SENTINEL
+}
+
+func (t *PerfTrace) DeepCopy() Trace {
 	n := len(t.Values)
-	cp := &Trace{
-		Values: make([]float64, n, n),
-		Params: make(map[string]string),
+	cp := &PerfTrace{
+		Values:  make([]float64, n, n),
+		Params_: make(map[string]string),
 	}
 	copy(cp.Values, t.Values)
-	for k, v := range t.Params {
-		cp.Params[k] = v
+	for k, v := range t.Params_ {
+		cp.Params_[k] = v
 	}
 	return cp
 }
 
-// NewTraceN allocates a new Trace set up for the given number of samples.
+func (t *PerfTrace) Merge(next Trace) Trace {
+	nextPerf := next.(*PerfTrace)
+	n := len(t.Values) + len(nextPerf.Values)
+	n1 := len(nextPerf.Values)
+
+	merged := NewPerfTraceN(n)
+	merged.Params_ = t.Params_
+	for k, v := range nextPerf.Params_ {
+		merged.Params_[k] = v
+	}
+	for i, v := range t.Values {
+		merged.Values[i] = v
+	}
+	for i, v := range nextPerf.Values {
+		merged.Values[n1+i] = v
+	}
+	return merged
+}
+
+func (t *PerfTrace) Grow(n int, fill fillType) {
+	if n < len(t.Values) {
+		panic(fmt.Sprintf("Grow must take a value (%d) larger than the current Trace size: %d", n, len(t.Values)))
+	}
+	delta := n - len(t.Values)
+	newValues := make([]float64, n)
+
+	if fill == FILL_AFTER {
+		copy(newValues, t.Values)
+		for i := 0; i < delta; i++ {
+			newValues[i+len(t.Values)] = config.MISSING_DATA_SENTINEL
+		}
+	} else {
+		for i := 0; i < delta; i++ {
+			newValues[i] = config.MISSING_DATA_SENTINEL
+		}
+		copy(newValues[delta:], t.Values)
+	}
+	t.Values = newValues
+}
+
+// NewPerfTrace allocates a new Trace set up for the given number of samples.
 //
 // The Trace Values are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
-func NewTraceN(n int) *Trace {
-	t := &Trace{
-		Values: make([]float64, n, n),
-		Params: make(map[string]string),
-		Trybot: false,
+func NewPerfTrace() *PerfTrace {
+	return NewPerfTraceN(config.TILE_SIZE)
+}
+
+// NewPerfTraceN allocates a new Trace set up for the given number of samples.
+//
+// The Trace Values are pre-filled in with the missing data sentinel since not
+// all tests will be run on all commits.
+func NewPerfTraceN(n int) *PerfTrace {
+	t := &PerfTrace{
+		Values:  make([]float64, n, n),
+		Params_: make(map[string]string),
 	}
 	for i, _ := range t.Values {
 		t.Values[i] = config.MISSING_DATA_SENTINEL
 	}
 	return t
+}
+
+func init() {
+	// Register *PerfTrace in gob so that it can be used as a concrete type for Trace when writing and reading
+	// Tiles in gobs.
+	gob.Register(&PerfTrace{})
 }
 
 type TryBotResults struct {
@@ -100,7 +202,7 @@ type Commit struct {
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type Tile struct {
-	Traces   map[string]*Trace   `json:"traces"`
+	Traces   map[string]Trace    `json:"traces"`
 	ParamSet map[string][]string `json:"param_set"`
 	Commits  []*Commit           `json:"commits"`
 
@@ -113,8 +215,8 @@ type Tile struct {
 // NewTile returns an new Tile object.
 func NewTile() *Tile {
 	t := &Tile{
-		Traces:   make(map[string]*Trace),
-		ParamSet: make(map[string][]string),
+		Traces:   map[string]Trace{},
+		ParamSet: map[string][]string{},
 		Commits:  make([]*Commit, config.TILE_SIZE, config.TILE_SIZE),
 	}
 	for i := range t.Commits {
@@ -142,7 +244,7 @@ func (t Tile) CommitRange() (string, string) {
 // all the rest of the data is a shallow copy.
 func (t Tile) Copy() *Tile {
 	ret := &Tile{
-		Traces:    map[string]*Trace{},
+		Traces:    map[string]Trace{},
 		ParamSet:  t.ParamSet,
 		Scale:     t.Scale,
 		TileIndex: t.TileIndex,
@@ -293,7 +395,7 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	n := len(tile1.Commits) + len(tile2.Commits)
 	n1 := len(tile1.Commits)
 	t := &Tile{
-		Traces:   make(map[string]*Trace),
+		Traces:   make(map[string]Trace),
 		ParamSet: make(map[string][]string),
 		Commits:  make([]*Commit, n, n),
 	}
@@ -313,37 +415,27 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	seen := map[string]bool{}
 	for key, trace := range tile1.Traces {
 		seen[key] = true
-		mergedTrace := NewTraceN(n)
-		mergedTrace.Params = trace.Params
-		for i, v := range trace.Values {
-			mergedTrace.Values[i] = v
-		}
 		if trace2, ok := tile2.Traces[key]; ok {
-			for i, v := range trace2.Values {
-				mergedTrace.Values[n1+i] = v
-			}
-			for k, v := range trace2.Params {
-				mergedTrace.Params[k] = v
-			}
+			t.Traces[key] = trace.Merge(trace2)
+		} else {
+			cp := trace.DeepCopy()
+			cp.Grow(n, FILL_AFTER)
+			t.Traces[key] = cp
 		}
-		t.Traces[key] = mergedTrace
 	}
 	// Now add in the traces that are only in tile2.
 	for key, trace := range tile2.Traces {
 		if _, ok := seen[key]; ok {
 			continue
 		}
-		mergedTrace := NewTraceN(n)
-		mergedTrace.Params = trace.Params
-		for i, v := range trace.Values {
-			mergedTrace.Values[n1+i] = v
-		}
-		t.Traces[key] = mergedTrace
+		cp := trace.DeepCopy()
+		cp.Grow(n, FILL_BEFORE)
+		t.Traces[key] = cp
 	}
 
 	// Recreate the ParamSet.
 	for _, trace := range t.Traces {
-		for k, v := range trace.Params {
+		for k, v := range trace.Params() {
 			if _, ok := t.ParamSet[k]; !ok {
 				t.ParamSet[k] = []string{v}
 			} else if !util.In(v, t.ParamSet[k]) {

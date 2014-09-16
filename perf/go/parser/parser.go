@@ -2,10 +2,8 @@ package parser
 
 import (
 	"fmt"
-	"net/url"
 
 	"skia.googlesource.com/buildbot.git/perf/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
 type NodeType int
@@ -34,7 +32,7 @@ func newNode(val string, typ NodeType) *Node {
 }
 
 // Evaluates a node. Only valid to call on Nodes of type NodeFunc.
-func (n *Node) Eval(ctx *Context) ([]*types.Trace, error) {
+func (n *Node) Eval(ctx *Context) ([]*types.PerfTrace, error) {
 	if n.Typ != NodeFunc {
 		return nil, fmt.Errorf("Tried to call eval on a non-Func node: %s", n.Val)
 	}
@@ -50,7 +48,7 @@ func (n *Node) Eval(ctx *Context) ([]*types.Trace, error) {
 // The traces returned will always have a Param of "id" that identifies
 // the trace. See DESIGN.md for the Trace ID naming conventions.
 type Func interface {
-	Eval(*Context, *Node) ([]*types.Trace, error)
+	Eval(*Context, *Node) ([]*types.PerfTrace, error)
 	Describe() string
 }
 
@@ -78,7 +76,7 @@ func NewContext(tile *types.Tile) *Context {
 
 // Eval parses and evaluates the given string expression and returns the Traces, or
 // an error.
-func (ctx *Context) Eval(exp string) ([]*types.Trace, error) {
+func (ctx *Context) Eval(exp string) ([]*types.PerfTrace, error) {
 	ctx.formula = exp
 	n, err := parse(exp)
 	if err != nil {
@@ -87,22 +85,10 @@ func (ctx *Context) Eval(exp string) ([]*types.Trace, error) {
 	traces, err := n.Eval(ctx)
 	if err == nil {
 		for _, tr := range traces {
-			tr.Params["formula"] = exp
+			tr.Params()["formula"] = exp
 		}
 	}
 	return traces, err
-}
-
-// traceMatches returns true if a trace has Params that match the given query.
-//
-// TODO(jcgregorio) Move into a common location.
-func traceMatches(trace *types.Trace, query url.Values) bool {
-	for k, values := range query {
-		if _, ok := trace.Params[k]; !ok || !util.In(trace.Params[k], values) {
-			return false
-		}
-	}
-	return true
 }
 
 // parse starts the parsing.

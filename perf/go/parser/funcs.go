@@ -17,7 +17,7 @@ type FilterFunc struct{}
 //
 // It expects a single argument that is a string in URL query format, ala
 // os=Ubuntu12&config=8888.
-func (FilterFunc) Eval(ctx *Context, node *Node) ([]*types.Trace, error) {
+func (FilterFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("filter() takes a single argument.")
 	}
@@ -28,12 +28,12 @@ func (FilterFunc) Eval(ctx *Context, node *Node) ([]*types.Trace, error) {
 	if err != nil {
 		return nil, fmt.Errorf("filter() arg not a valid URL query parameter: %s", err)
 	}
-	traces := []*types.Trace{}
+	traces := []*types.PerfTrace{}
 	for id, tr := range ctx.Tile.Traces {
-		if traceMatches(tr, query) {
+		if types.Matches(tr.(*types.PerfTrace), query) {
 			cp := tr.DeepCopy()
-			cp.Params["id"] = types.AsCalculatedID(id)
-			traces = append(traces, cp)
+			cp.Params()["id"] = types.AsCalculatedID(id)
+			traces = append(traces, cp.(*types.PerfTrace))
 		}
 	}
 	return traces, nil
@@ -55,7 +55,7 @@ type NormFunc struct{}
 // standard deviation of 1.0. If a second optional number is passed in to
 // norm() then that is used as the minimum standard deviation that is
 // normalized, otherwise it defaults to config.MIN_STDDEV.
-func (NormFunc) Eval(ctx *Context, node *Node) ([]*types.Trace, error) {
+func (NormFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
 	if len(node.Args) > 2 || len(node.Args) == 0 {
 		return nil, fmt.Errorf("norm() takes one or two arguments.")
 	}
@@ -102,7 +102,7 @@ type FillFunc struct{}
 //
 // Note that a Trace with all MISSING_DATA_SENTINEL values will be filled with
 // 0's.
-func (FillFunc) Eval(ctx *Context, node *Node) ([]*types.Trace, error) {
+func (FillFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("fill() takes a single argument.")
 	}
@@ -136,7 +136,7 @@ type AveFunc struct{}
 // MISSING_DATA_SENTINEL values are not included in the average.  Note that if
 // all the values at an index are MISSING_DATA_SENTINEL then the average will
 // be MISSING_DATA_SENTINEL.
-func (AveFunc) Eval(ctx *Context, node *Node) ([]*types.Trace, error) {
+func (AveFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
 	if len(node.Args) != 1 {
 		return nil, fmt.Errorf("ave() takes a single argument.")
 	}
@@ -152,8 +152,8 @@ func (AveFunc) Eval(ctx *Context, node *Node) ([]*types.Trace, error) {
 		return traces, nil
 	}
 
-	ret := types.NewTraceN(len(traces[0].Values))
-	ret.Params["id"] = types.AsFormulaID(ctx.formula)
+	ret := types.NewPerfTraceN(len(traces[0].Values))
+	ret.Params()["id"] = types.AsFormulaID(ctx.formula)
 	for i, _ := range ret.Values {
 		sum := 0.0
 		count := 0
@@ -167,7 +167,7 @@ func (AveFunc) Eval(ctx *Context, node *Node) ([]*types.Trace, error) {
 			ret.Values[i] = sum / float64(count)
 		}
 	}
-	return []*types.Trace{ret}, nil
+	return []*types.PerfTrace{ret}, nil
 }
 
 func (AveFunc) Describe() string {

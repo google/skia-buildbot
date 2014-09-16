@@ -3,7 +3,6 @@ package stats
 import (
 	"time"
 
-	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 
@@ -31,7 +30,7 @@ func Start(tileStore types.TileStore, git *gitinfo.GitInfo) {
 			total := 0
 			for _, tr := range tile.Traces {
 				for i := 0; i < numCommits; i++ {
-					if tr.Values[i] != config.MISSING_DATA_SENTINEL {
+					if !tr.IsMissing(i) {
 						total += 1
 					}
 				}

@@ -92,7 +92,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 		if !ok {
 			fmt.Errorf("Missing expected key: %s", key)
 		}
-		if got, want := trace.Values[offset], 0.1157132745098039; got != want {
+		if got, want := trace.(*types.PerfTrace).Values[offset], 0.1157132745098039; got != want {
 			fmt.Errorf("Wrong value in trace: Got %v Want %v", got, want)
 		}
 
@@ -111,11 +111,11 @@ func TestAddBenchDataToTile(t *testing.T) {
 			"GL_VERSION":                  "4.4.0 NVIDIA 331.49",
 			"source_type":                 "bench",
 		}
-		if got, want := len(trace.Params), len(expected); got != want {
+		if got, want := len(trace.Params()), len(expected); got != want {
 			fmt.Errorf("Params wrong length: Got %v Want %v", got, want)
 		}
 		for k, v := range expected {
-			if got, want := trace.Params[k], v; got != want {
+			if got, want := trace.Params()[k], v; got != want {
 				fmt.Errorf("Wrong params: Got %v Want %v", got, want)
 			}
 		}
@@ -137,7 +137,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 
 	benchData.Options["system"] = "Linux"
 	addBenchDataToTile(benchData, tile, offset)
-	if got, want := "Linux", tile.Traces[key].Params["system"]; got != want {
+	if got, want := "Linux", tile.Traces[key].Params()["system"]; got != want {
 		t.Errorf("Failed to update params: Got %v Want %v", got, want)
 	}
 }

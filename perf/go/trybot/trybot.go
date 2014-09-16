@@ -128,7 +128,7 @@ func TileWithTryData(tile *types.Tile, issue string) (*types.Tile, error) {
 		if tr, ok := ret.Traces[k]; !ok {
 			continue
 		} else {
-			tr.Values[lastCommitIndex] = v
+			tr.(*types.PerfTrace).Values[lastCommitIndex] = v
 		}
 	}
 	return ret, nil

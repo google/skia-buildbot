@@ -255,15 +255,15 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits [
 }
 
 // Filter returns true if a trace should be included in clustering.
-type Filter func(key string, tr *types.Trace) bool
+type Filter func(key string, tr *types.PerfTrace) bool
 
 // CalculateClusterSummaries runs k-means clustering over the trace shapes.
 func CalculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64, filter Filter) (*ClusterSummaries, error) {
 	lastCommitIndex := tile.LastCommitIndex()
 	observations := make([]kmeans.Clusterable, 0, len(tile.Traces))
 	for key, trace := range tile.Traces {
-		if filter(key, trace) {
-			observations = append(observations, ctrace.NewFullTrace(string(key), trace.Values[:lastCommitIndex+1], trace.Params, stddevThreshhold))
+		if filter(key, trace.(*types.PerfTrace)) {
+			observations = append(observations, ctrace.NewFullTrace(string(key), trace.(*types.PerfTrace).Values[:lastCommitIndex+1], trace.Params(), stddevThreshhold))
 		}
 	}
 	if len(observations) == 0 {

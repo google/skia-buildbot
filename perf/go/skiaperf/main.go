@@ -451,13 +451,13 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create a filter function for traces that match the query parameters and
 	// optionally tryResults.
-	filter := func(key string, tr *types.Trace) bool {
+	filter := func(key string, tr *types.PerfTrace) bool {
 		if tryResults != nil {
 			if _, ok := tryResults.Values[key]; !ok {
 				return false
 			}
 		}
-		return traceMatches(tr, r.Form)
+		return types.Matches(tr, r.Form)
 	}
 
 	if issue != "" {
@@ -577,16 +577,6 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
 }
 
-// traceMatches returns true if a trace has Params that match the given query.
-func traceMatches(trace *types.Trace, query url.Values) bool {
-	for k, values := range query {
-		if _, ok := trace.Params[k]; !ok || !util.In(trace.Params[k], values) {
-			return false
-		}
-	}
-	return true
-}
-
 // QueryResponse is for formatting the JSON output from queryHandler.
 type QueryResponse struct {
 	Traces []*types.TraceGUI `json:"traces"`
@@ -597,7 +587,7 @@ type QueryResponse struct {
 // requests flat=true. The output isn't formatted for input into Flot, instead the Values
 // are returned as a simple slice, which is easier to work with in IPython.
 type FlatQueryResponse struct {
-	Traces []*types.Trace
+	Traces []*types.PerfTrace
 }
 
 // queryHandler handles queries for and about traces.
@@ -699,7 +689,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		// We only want the count.
 		total := 0
 		for _, tr := range tile.Traces {
-			if traceMatches(tr, r.Form) {
+			if types.Matches(tr, r.Form) {
 				total++
 			}
 		}
@@ -727,7 +717,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 			ret.Hash = sh.Hash
 			for _, k := range sh.Keys {
 				if tr, ok := tile.Traces[k]; ok {
-					tg := traceGuiFromTrace(tr, k, tile)
+					tg := traceGuiFromTrace(tr.(*types.PerfTrace), k, tile)
 					if tg != nil {
 						ret.Traces = append(ret.Traces, tg)
 					}
@@ -743,8 +733,8 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			for key, tr := range tile.Traces {
-				if traceMatches(tr, r.Form) {
-					tg := traceGuiFromTrace(tr, key, tile)
+				if types.Matches(tr, r.Form) {
+					tg := traceGuiFromTrace(tr.(*types.PerfTrace), key, tile)
 					if tg != nil {
 						ret.Traces = append(ret.Traces, tg)
 					}
@@ -827,15 +817,15 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 		Hash:   tile.Commits[idx].Hash,
 	}
 	for _, tr := range tile.Traces {
-		if traceMatches(tr, r.Form) {
-			v, err := vec.FillAt(tr.Values, idx)
+		if types.Matches(tr, r.Form) {
+			v, err := vec.FillAt(tr.(*types.PerfTrace).Values, idx)
 			if err != nil {
 				reportError(w, r, err, "Error while getting value at slice index.")
 				return
 			}
 			t := &SingleTrace{
 				Val:    v,
-				Params: tr.Params,
+				Params: tr.Params(),
 			}
 			ret.Traces = append(ret.Traces, t)
 		}
@@ -849,7 +839,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // traceGuiFromTrace returns a populated TraceGUI from the given trace.
-func traceGuiFromTrace(trace *types.Trace, key string, tile *types.Tile) *types.TraceGUI {
+func traceGuiFromTrace(trace *types.PerfTrace, key string, tile *types.Tile) *types.TraceGUI {
 	newTraceData := make([][2]float64, 0)
 	for i, v := range trace.Values {
 		if v != config.MISSING_DATA_SENTINEL && tile.Commits[i] != nil && tile.Commits[i].CommitTime > 0 {
@@ -861,7 +851,7 @@ func traceGuiFromTrace(trace *types.Trace, key string, tile *types.Tile) *types.
 		return &types.TraceGUI{
 			Data:   newTraceData,
 			Label:  key,
-			Params: trace.Params,
+			Params: trace.Params(),
 		}
 	} else {
 		return nil
@@ -878,15 +868,15 @@ func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) er
 	}
 	hasFormula := false
 	for _, tr := range traces {
-		if types.IsFormulaID(tr.Params["id"]) {
+		if types.IsFormulaID(tr.Params()["id"]) {
 			hasFormula = true
 		}
-		tg := traceGuiFromTrace(tr, tr.Params["id"], tile)
+		tg := traceGuiFromTrace(tr, tr.Params()["id"], tile)
 		qr.Traces = append(qr.Traces, tg)
 	}
 	if !hasFormula {
 		// If we haven't added the formula trace to the response yet, add it in now.
-		f := types.NewTraceN(len(tile.Commits))
+		f := types.NewPerfTraceN(len(tile.Commits))
 		tg := traceGuiFromTrace(f, types.AsFormulaID(formula), tile)
 		qr.Traces = append(qr.Traces, tg)
 	}
@@ -928,7 +918,7 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 	var data interface{} = nil
 	if r.FormValue("flat") == "true" {
 		resp := &FlatQueryResponse{
-			Traces: []*types.Trace{},
+			Traces: []*types.PerfTrace{},
 		}
 		if err := addFlatCalculatedTraces(resp, tile, formula); err != nil {
 			reportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))

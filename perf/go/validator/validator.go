@@ -43,8 +43,8 @@ func validateTile(tile *types.Tile, oldestTS int64, verbose, echoHashes bool) er
 	// Make sure each Trace is the right length.
 	numCommits := len(tile.Commits)
 	for key, trace := range tile.Traces {
-		if len(trace.Values) != numCommits {
-			return fmt.Errorf("Trace length incorrect: Num Commits %d != Values in trace %d for Key %s", numCommits, len(trace.Values), key)
+		if trace.Len() != numCommits {
+			return fmt.Errorf("Trace length incorrect: Num Commits %d != Values in trace %d for Key %s", numCommits, trace.Len(), key)
 		}
 	}
 

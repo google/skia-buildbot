@@ -167,8 +167,8 @@ func Write(c *types.ClusterSummary) error {
 	return nil
 }
 
-func skpOnly(_ string, tr *types.Trace) bool {
-	return tr.Params["source_type"] == "skp"
+func skpOnly(_ string, tr *types.PerfTrace) bool {
+	return tr.Params()["source_type"] == "skp"
 }
 
 // apiKeyFromFlag returns the key that it was passed if the key isn't empty,

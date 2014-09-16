@@ -330,17 +330,20 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int) {
 				params[k] = v
 			}
 
-			var trace *types.Trace
+			var trace *types.PerfTrace
 			var ok bool
 			needsUpdate := false
-			if trace, ok = tile.Traces[key]; !ok {
-				trace = types.NewTrace()
+			if tr, ok := tile.Traces[key]; !ok {
+				trace = types.NewPerfTrace()
 				tile.Traces[key] = trace
 				needsUpdate = true
-			} else if !equalMaps(params, tile.Traces[key].Params) {
-				needsUpdate = true
+			} else {
+				trace = tr.(*types.PerfTrace)
+				if !equalMaps(params, tile.Traces[key].Params()) {
+					needsUpdate = true
+				}
 			}
-			tile.Traces[key].Params = params
+			trace.Params_ = params
 
 			if needsUpdate {
 				// Update the Tile's ParamSet with any new keys or values we see.
@@ -401,8 +404,7 @@ func (i *Ingester) UpdateTiles(lastIngestTime int64) error {
 		// Move to the correct Tile for the Git hash.
 		hash := benchData.Hash
 		if err := tt.Move(hash); err != nil {
-			glog.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
-			continue
+			return fmt.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
 		}
 		// Add the parsed data to the Tile.
 		addBenchDataToTile(benchData, tt.Tile(), tt.Offset(hash))

@@ -10,15 +10,15 @@ import (
 
 func newTestContext() *Context {
 	tile := types.NewTile()
-	t1 := types.NewTraceN(3)
-	t1.Params["os"] = "Ubuntu12"
-	t1.Params["config"] = "8888"
+	t1 := types.NewPerfTraceN(3)
+	t1.Params_["os"] = "Ubuntu12"
+	t1.Params_["config"] = "8888"
 	t1.Values[1] = 1.234
 	tile.Traces["t1"] = t1
 
-	t2 := types.NewTraceN(3)
-	t2.Params["os"] = "Ubuntu12"
-	t2.Params["config"] = "gpu"
+	t2 := types.NewPerfTraceN(3)
+	t2.Params_["os"] = "Ubuntu12"
+	t2.Params_["config"] = "gpu"
 	t2.Values[1] = 1.236
 	tile.Traces["t2"] = t2
 
@@ -57,7 +57,7 @@ func TestEvalNoModifyTile(t *testing.T) {
 		t.Fatalf("Failed to run filter: %s", err)
 	}
 	// Make sure we made a deep copy of the traces in the Tile.
-	if got, want := ctx.Tile.Traces["t1"].Values[0], config.MISSING_DATA_SENTINEL; got != want {
+	if got, want := ctx.Tile.Traces["t1"].(*types.PerfTrace).Values[0], config.MISSING_DATA_SENTINEL; got != want {
 		t.Errorf("Tile incorrectly modified: Got %v Want %v", got, want)
 	}
 	if got, want := traces[0].Values[0], 1.234; got != want {
@@ -100,7 +100,7 @@ func near(a, b float64) bool {
 
 func TestNorm(t *testing.T) {
 	ctx := newTestContext()
-	ctx.Tile.Traces["t1"].Values = []float64{2.0, -2.0, 1e100}
+	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{2.0, -2.0, 1e100}
 	delete(ctx.Tile.Traces, "t2")
 	traces, err := ctx.Eval(`norm(filter(""))`)
 	if err != nil {
@@ -114,8 +114,8 @@ func TestNorm(t *testing.T) {
 
 func TestAve(t *testing.T) {
 	ctx := newTestContext()
-	ctx.Tile.Traces["t1"].Values = []float64{1.0, -1.0, 1e100, 1e100}
-	ctx.Tile.Traces["t2"].Values = []float64{1e100, 2.0, -2.0, 1e100}
+	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1.0, -1.0, 1e100, 1e100}
+	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{1e100, 2.0, -2.0, 1e100}
 	traces, err := ctx.Eval(`ave(filter(""))`)
 	if err != nil {
 		t.Fatalf("Failed to eval ave() test: %s", err)
@@ -133,7 +133,7 @@ func TestAve(t *testing.T) {
 
 func TestFill(t *testing.T) {
 	ctx := newTestContext()
-	ctx.Tile.Traces["t1"].Values = []float64{1e100, 1e100, 2, 3, 1e100, 5}
+	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1e100, 1e100, 2, 3, 1e100, 5}
 	delete(ctx.Tile.Traces, "t2")
 	traces, err := ctx.Eval(`fill(filter("config=8888"))`)
 	if err != nil {
