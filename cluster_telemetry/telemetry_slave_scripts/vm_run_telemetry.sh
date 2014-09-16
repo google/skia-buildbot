@@ -119,7 +119,7 @@ if [ "$PAGESETS_TYPE" == "KeyMobileSites" -o "$PAGESETS_TYPE" == "KeySilkCases" 
 elif [ "$PAGESETS_TYPE" == "GPURasterSet" ]; then
   TELEMETRY_TIMEOUT=1800
 else
-  TELEMETRY_TIMEOUT=300
+  TELEMETRY_TIMEOUT=600
 fi
 
 OUTPUT_DIR=/b/storage/telemetry_outputs/$RUN_ID
