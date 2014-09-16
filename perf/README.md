@@ -11,16 +11,16 @@ Please refer to compute_engine_scripts/perfserver/README under the repo for
 instructions on creating and destroying the instance. The rest of this document
 is what to do once the instance is created.
 
-  gcutil --project=google.com:skia-buildbots addinstance skia-perf-b \
-    --zone=us-central2-b --external_ip_address=108.170.220.208 \
+  gcutil --project=google.com:skia-buildbots addinstance skia-testing-b \
+    --zone=us-central2-b --external_ip_address=130.211.226.47 \
     --service_account=default \
     --service_account_scopes="bigquery,storage-full" \
-    --network=default --machine_type=n1-standard-1 --image=backports-debian-7-wheezy-v20140605 \
+    --network=default --machine_type=n1-highmem-8 --image=backports-debian-7-wheezy-v20140904 \
     --persistent_boot_disk
 
 SSH into the instance
 
-  gcutil --project=google.com:skia-buildbots ssh --ssh_user=default skia-perf-b
+  gcutil --project=google.com:skia-buildbots ssh --ssh_user=default skia-testing-b
 
 Do the first time
 =================
@@ -62,14 +62,14 @@ values. The current set of metadata required is:
 
 To set the metadata use:
 
-    gcutil --project=google.com:skia-buildbots setinstancemetadata skia-perf-b \
+    gcutil --project=google.com:skia-buildbots setinstancemetadata skia-testing-b \
       --metadata=apikey:[apikey value] \
       --metadata=readwrite:[readwrite value] \
       --fingerprint=[metadata fingerprint]
 
 You can find the current metadata fingerprint by running:
 
-    gcutil --project=google.com:skia-buildbots getinstance skia-perf-b
+    gcutil --project=google.com:skia-buildbots getinstance skia-testing-b
 
 To update the code
 ==================
