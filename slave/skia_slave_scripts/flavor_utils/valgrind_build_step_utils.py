@@ -17,8 +17,8 @@ class ValgrindBuildStepUtils(DefaultBuildStepUtils):
 
   def RunFlavoredCmd(self, app, args):
     """ Override this in new BuildStep flavors. """
-    cmd = ['valgrind', '--gen-suppressions=all', '--leak-check=full',
-           '--track-origins=yes', '--error-exitcode=1', '--num-callers=40']
+    cmd = ['valgrind', '--gen-suppressions=all', '--leak-check=no',
+           '--track-origins=yes', '--error-exitcode=1']
     if self._suppressions_file:
       cmd.append('--suppressions=%s' % self._suppressions_file)
 
