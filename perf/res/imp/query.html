@@ -162,7 +162,7 @@
       ele.parentNode.removeChild(ele)
     });
 
-    var whitelist = ['test', 'os', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
+    var whitelist = ['name', 'bench_type', 'os', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
     var keylist = Object.keys(this.queryInfo_.paramSet).sort().reverse();
 
     for (var i = 0; i < keylist.length; i++) {
