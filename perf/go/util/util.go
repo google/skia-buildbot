@@ -31,3 +31,18 @@ func Int64Equal(a, b []int64) bool {
 	}
 	return true
 }
+
+// MapsEqual checks if the two maps are equal.
+func MapsEqual(a, b map[string]string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	// Since they are the same size we only need to check from one side, i.e.
+	// compare a's values to b's values.
+	for k, v := range a {
+		if bv, ok := b[k]; !ok || bv != v {
+			return false
+		}
+	}
+	return true
+}

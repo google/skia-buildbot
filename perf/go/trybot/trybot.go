@@ -134,10 +134,15 @@ func TileWithTryData(tile *types.Tile, issue string) (*types.Tile, error) {
 	return ret, nil
 }
 
-// addTryData copies the data from the BenchFile into the TryBotResults.
-func addTryData(res *types.TryBotResults, b *ingester.BenchFile) {
+// addTryData copies the data from the ResultsFileLocation into the TryBotResults.
+func addTryData(res *types.TryBotResults, b *ingester.ResultsFileLocation) {
 	glog.Infof("addTryData: %s", b.Name)
-	benchData, err := b.FetchAndParse()
+	r, err := b.Fetch()
+	if err != nil {
+		// Don't fall over for a single failed HTTP request.
+		return
+	}
+	benchData, err := ingester.ParseBenchDataFromReader(r)
 	if err != nil {
 		// Don't fall over for a single corrupt file.
 		return
@@ -153,13 +158,13 @@ func addTryData(res *types.TryBotResults, b *ingester.BenchFile) {
 	}
 }
 
-// BenchByIssue allows sorting BenchFile's by the Rietveld issue id.
+// BenchByIssue allows sorting ResultsFileLocation's by the Rietveld issue id.
 //
 // We sort on issue id so that we aren't doing excessive writes to the
 // database.
 type BenchByIssue struct {
-	BenchFile *ingester.BenchFile
-	IssueName string
+	ResultsFileLocation *ingester.ResultsFileLocation
+	IssueName           string
 }
 
 type BenchByIssueSlice []*BenchByIssue
@@ -180,27 +185,24 @@ func Init() {
 	numSuccessUpdates = metrics.NewRegisteredCounter("ingester.trybot.nano.updates", metrics.DefaultRegistry)
 }
 
-// Udpate does a single round of ingestion of trybot data of all the data that
-// has appeared since lastIngestTime.
-func Update(lastIngestTime int64) error {
+// TrybotIngestion implements ingester.IngestResultsFiles.
+//
+// Note that the TileTracker is not used as we write the files to the database.
+func TrybotIngestion(_ *ingester.TileTracker, resultsFiles []*ingester.ResultsFileLocation) error {
 	begin := time.Now()
-	glog.Infof("Starting to query Google Storage for new files.")
-	benchFiles, err := ingester.GetBenchFiles(lastIngestTime, st, "trybot/nano-json-v1")
-	if err != nil {
-		return fmt.Errorf("Failed to get trybot files: %s", err)
-	}
-
 	benchFilesByIssue := []*BenchByIssue{}
-	for _, b := range benchFiles {
+	var err error
+	for _, b := range resultsFiles {
 		match := nameRegex.FindStringSubmatch(b.Name)
 		if match != nil {
 			issue := match[1]
 			benchFilesByIssue = append(benchFilesByIssue, &BenchByIssue{
-				BenchFile: b,
-				IssueName: issue,
+				ResultsFileLocation: b,
+				IssueName:           issue,
 			})
 		}
 	}
+
 	// Resort by issue id.
 	sort.Sort(BenchByIssueSlice(benchFilesByIssue))
 
@@ -221,13 +223,14 @@ func Update(lastIngestTime int64) error {
 			lastIssue = b.IssueName
 			glog.Infof("Switched to issue: %s", lastIssue)
 		}
-		addTryData(cur, b.BenchFile)
+		addTryData(cur, b.ResultsFileLocation)
 	}
 	if cur != nil {
 		if err := Write(lastIssue, cur); err != nil {
 			return fmt.Errorf("Update failed to write trybot results: %s", err)
 		}
 	}
+
 	numSuccessUpdates.Inc(1)
 	elapsedTimePerUpdate.UpdateSince(begin)
 	glog.Infof("Finished trybot ingestion.")
