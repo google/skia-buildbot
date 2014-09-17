@@ -10,11 +10,11 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
-// fillType is how filling in of missing values should be done in Trace.Grow().
-type fillType int
+// FillType is how filling in of missing values should be done in Trace.Grow().
+type FillType int
 
 const (
-	FILL_BEFORE fillType = iota
+	FILL_BEFORE FillType = iota
 	FILL_AFTER
 )
 
@@ -31,8 +31,8 @@ type Trace interface {
 	DeepCopy() Trace
 
 	// Grow the measurements, filling in with sentinel values either before or
-	// after based on fillType.
-	Grow(int, fillType)
+	// after based on FillType.
+	Grow(int, FillType)
 
 	// The number of samples in the series.
 	Len() int
@@ -68,7 +68,7 @@ func (t *PerfTrace) Len() int {
 }
 
 func (t *PerfTrace) IsMissing(i int) bool {
-	return t.Values[i] != config.MISSING_DATA_SENTINEL
+	return t.Values[i] == config.MISSING_DATA_SENTINEL
 }
 
 func (t *PerfTrace) DeepCopy() Trace {
@@ -87,7 +87,7 @@ func (t *PerfTrace) DeepCopy() Trace {
 func (t *PerfTrace) Merge(next Trace) Trace {
 	nextPerf := next.(*PerfTrace)
 	n := len(t.Values) + len(nextPerf.Values)
-	n1 := len(nextPerf.Values)
+	n1 := len(t.Values)
 
 	merged := NewPerfTraceN(n)
 	merged.Params_ = t.Params_
@@ -103,7 +103,7 @@ func (t *PerfTrace) Merge(next Trace) Trace {
 	return merged
 }
 
-func (t *PerfTrace) Grow(n int, fill fillType) {
+func (t *PerfTrace) Grow(n int, fill FillType) {
 	if n < len(t.Values) {
 		panic(fmt.Sprintf("Grow must take a value (%d) larger than the current Trace size: %d", n, len(t.Values)))
 	}
