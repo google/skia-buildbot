@@ -6,6 +6,7 @@
 """Run the Skia DM executable. """
 
 from build_step import BuildStep
+import builder_name_schema
 import sys
 
 class RunDM(BuildStep):
@@ -18,6 +19,23 @@ class RunDM(BuildStep):
   def _AnyMatch(self, *args):
     return any(arg in self._builder_name for arg in args)
 
+  def _KeyParams(self):
+    """Build a unique key from the builder name (as a list).
+
+    E.g.  arch x86 gpu GeForce320M mode MacMini4.1 os Mac10.6
+    """
+    # Don't bother to include role, which is always Test.
+    # TryBots are uploaded elsewhere so they can use the same key.
+    blacklist = ['role', 'is_trybot']
+
+    params = builder_name_schema.DictForBuilderName(self._builder_name)
+    flat = []
+    for k in sorted(params.keys()):
+      if k not in blacklist:
+        flat.append(k)
+        flat.append(params[k])
+    return flat
+
   def _Run(self):
     args = [
       '--verbose',
@@ -25,7 +43,11 @@ class RunDM(BuildStep):
       '--skps',         self._device_dirs.SKPDir(),
       '--writePath',    self._device_dirs.DMDir(),
       '--nameByHash',
+      '--properties',  'gitHash',      self._got_revision,
+                       'build_number', str(self._build_number),
     ]
+    args.append('--key')
+    args.extend(self._KeyParams())
 
     match  = []
 

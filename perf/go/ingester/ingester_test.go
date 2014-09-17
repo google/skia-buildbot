@@ -31,7 +31,7 @@ func TestIngestCommits(t *testing.T) {
 	defer os.RemoveAll(tileDir)
 
 	// Construct an Ingestor and have it UpdateCommitInfo.
-	i, err := NewIngester(filepath.Join(tr.Dir, "testrepo"), tileDir, false, "")
+	i, err := NewIngester(filepath.Join(tr.Dir, "testrepo"), tileDir, false, NanoBenchIngestion, "")
 	if err != nil {
 		t.Fatal("Failed to create ingester:", err)
 	}
@@ -66,8 +66,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 		t.Fatal("Failed to open test file: ", err)
 	}
 	defer f.Close()
-	benchFile := NewBenchFile("dir/nano.json", "nano.json")
-	benchData, err := benchFile.parseFromReader(f)
+	benchData, err := ParseBenchDataFromReader(f)
 	if err != nil {
 		t.Fatal("Failed to parse test file: ", err)
 	}

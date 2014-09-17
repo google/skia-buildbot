@@ -2,12 +2,12 @@ build:
 	go install -v ./go/rbserver
 
 packages:
-	go build go/diff/*.go
-	go build go/importer/*.go
-	go build go/ingester/*.go
-	go build go/util/*.go
+	go build go/diff/
+	go build go/importer/
+	go build go/ingester/
+	go build go/util/
 
 test:
-	go test ./go/web
+	go test ./go/types
 
 all: packages build

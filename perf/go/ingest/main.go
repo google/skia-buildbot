@@ -108,14 +108,21 @@ func main() {
 	ts := NewTimestamps(*timestampFile)
 	ts.Read()
 
-	i, err := ingester.NewIngester(*gitRepoDir, *tileDir, true, *timestampFile)
+	ingestNanoBench, err := ingester.NewIngester(*gitRepoDir, *tileDir, true, ingester.NanoBenchIngestion, "nano-json-v1")
 	if err != nil {
 		glog.Fatalf("Failed to create Ingester: %s", err)
 	}
 
-	oneIngest := func() {
+	ingestTrybot, err := ingester.NewIngester(*gitRepoDir, *tileDir, true, trybot.TrybotIngestion, "trybot/nano-json-v1")
+	if err != nil {
+		glog.Fatalf("Failed to create Trybot Ingester: %s", err)
+	}
+
+	// TODO(jcgregorio) Add ingester.Register("name", fn, "directory_name") then make this a slice of Ingesters.
+
+	oneNanoBench := func() {
 		now := time.Now()
-		err := i.Update(true, ts.Ingest)
+		err := ingestNanoBench.Update(true, ts.Ingest)
 		if err != nil {
 			glog.Error(err)
 		} else {
@@ -126,7 +133,7 @@ func main() {
 
 	oneTrybot := func() {
 		now := time.Now()
-		err := trybot.Update(ts.Trybot)
+		err := ingestTrybot.Update(true, ts.Trybot)
 		if err != nil {
 			glog.Error(err)
 		} else {
@@ -136,11 +143,11 @@ func main() {
 	}
 
 	if *runIngest {
-		oneIngest()
+		oneNanoBench()
 		if !*isSingleShot {
 			go func() {
 				for _ = range time.Tick(*runEvery) {
-					oneIngest()
+					oneNanoBench()
 				}
 			}()
 		}
