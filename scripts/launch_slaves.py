@@ -147,12 +147,10 @@ class BuildSlaveManager(multiprocessing.Process):
 
   def _LaunchSlave(self):
     """ Launch the BuildSlave. """
-    if self._IsRunning():
-      self._KillSlave()
+    self._KillSlave()
 
     self._SyncSources()
 
-    os.chdir(self.slave_dir)
     if os.name == 'nt':
       # We run different commands for the Windows shell
       cmd = 'setlocal&&'
@@ -163,15 +161,13 @@ class BuildSlaveManager(multiprocessing.Process):
       cmd += 'run_slave.bat'
       cmd += '&& endlocal'
     else:
-      subprocess.check_call(['make', 'stop'])
       cmd = 'TESTING_SLAVENAME=%s ' % self._slavename
       cmd += 'TESTING_MASTER=%s ' % self._master_name
       if self.master_host:
         cmd += 'TESTING_MASTER_HOST=%s ' % self.master_host
       cmd += 'make start'
     print 'Running cmd: %s' % cmd
-    subprocess.check_call(cmd, shell=True)
-    os.chdir(self._checkout_path)
+    subprocess.check_call(cmd, shell=True, cwd=self.slave_dir)
 
     start_time = time.time()
     while not self._IsRunning():
@@ -183,9 +179,8 @@ class BuildSlaveManager(multiprocessing.Process):
     """ Determine if this BuildSlave is running. If so, return its PID,
     otherwise, return None. """
     if os.path.isfile(PID_FILE):
-      pid_file = open(PID_FILE)
-      pid = str(pid_file.read()).rstrip()
-      pid_file.close()
+      with open(PID_FILE) as f:
+        pid = str(f.read()).rstrip()
       if IsRunning(pid):
         return pid
     return None
@@ -196,14 +191,11 @@ class BuildSlaveManager(multiprocessing.Process):
     if not pid:
       print 'BuildSlaveManager._KillSlave: Slave not running.'
       return
-    os.chdir(os.path.join('buildbot', 'slave'))
     if os.name == 'nt':
       cmd = ['taskkill', '/F', '/T', '/PID', str(pid)]
     else:
       cmd = ['make', 'stop']
-    if subprocess.Popen(cmd).wait() != 0:
-      raise Exception('Failed to kill slave with pid %s' % str(pid))
-    os.chdir(self._checkout_path)
+    subprocess.check_call(cmd, cwd=os.path.join('buildbot', 'slave'))
 
   def run(self):
     """ Run the BuildSlaveManager. This overrides multiprocessing.Process's
@@ -211,8 +203,7 @@ class BuildSlaveManager(multiprocessing.Process):
     os.chdir(self._checkout_path)
     self._SyncSources()
     self._checkout_path = os.path.abspath(os.curdir)
-    if self._IsRunning():
-      self._KillSlave()
+    self._KillSlave()
     while True:
       print 'Checking keepalive conditions for %s' % self._slavename
       slave_can_run = True
