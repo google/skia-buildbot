@@ -9,6 +9,8 @@ import (
 import (
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
 	"skia.googlesource.com/buildbot.git/perf/go/validator"
+
+	_ "skia.googlesource.com/buildbot.git/golden/go/types" // Registers GoldenTrace with gob so we can read Golden Tiles.
 )
 
 // flags

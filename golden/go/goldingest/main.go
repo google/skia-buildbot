@@ -1,21 +1,24 @@
-package main
-
-// ingest is the command line tool for pulling performance data from Google
-// Storage and putting in Tiles. See the code in go/ingester for details on how
+// goldingest is the command line tool for pulling performance data from Google
+// Storage and putting in Tiles. See the code in perf/go/ingester for details on how
 // ingestion is done.
+//
+package main
 
 import (
 	"encoding/json"
 	"flag"
 	"net"
+	"net/http"
 	"os"
+	"sync"
 	"time"
 
-	"sync"
+	"code.google.com/p/goauth2/compute/serviceaccount"
 
+	"skia.googlesource.com/buildbot.git/golden/go/goldingester"
+	"skia.googlesource.com/buildbot.git/perf/go/auth"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/ingester"
-	"skia.googlesource.com/buildbot.git/perf/go/trybot"
 
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
@@ -27,11 +30,9 @@ var (
 	tileDir        = flag.String("tile_dir", "/tmp/tileStore2/", "Path where tiles will be placed.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	runEvery       = flag.Duration("run_every", 5*time.Minute, "How often the ingester should pull data from Google Storage.")
-	runTrybotEvery = flag.Duration("run_trybot_every", 1*time.Minute, "How often the ingester to pull trybot data from Google Storage.")
 	isSingleShot   = flag.Bool("single_shot", false, "Run the ingester only once.")
-	runIngest      = flag.Bool("run_ingest", true, "Run the ingester for buildbot data.")
-	runTrybot      = flag.Bool("run_trybot", true, "Run the ingester for trybot data.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring-b:2003", "Where is Graphite metrics ingestion server running.")
+	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 )
 
 func Init() {
@@ -103,26 +104,34 @@ func (t *Timestamps) Write() {
 func main() {
 	flag.Parse()
 	Init()
-	ingester.Init(nil)
-	trybot.Init()
+
+	var client *http.Client
+	var err error
+	if *doOauth {
+		client, err = auth.RunFlow()
+		if err != nil {
+			glog.Fatalf("Failed to auth: %s", err)
+		}
+	} else {
+		client, err = serviceaccount.NewClient(nil)
+		if err != nil {
+			glog.Fatalf("Failed to auth using a service account: %s", err)
+		}
+	}
+
+	ingester.Init(client)
+	goldingester.Init()
 	ts := NewTimestamps(*timestampFile)
 	ts.Read()
 
-	ingestNanoBench, err := ingester.NewIngester(*gitRepoDir, *tileDir, true, ingester.NanoBenchIngestion, "nano-json-v1")
+	ingestGolden, err := ingester.NewIngester(*gitRepoDir, *tileDir, true, goldingester.GoldenIngester, "dm-json-v1")
 	if err != nil {
 		glog.Fatalf("Failed to create Ingester: %s", err)
 	}
 
-	ingestTrybot, err := ingester.NewIngester(*gitRepoDir, *tileDir, true, trybot.TrybotIngestion, "trybot/nano-json-v1")
-	if err != nil {
-		glog.Fatalf("Failed to create Trybot Ingester: %s", err)
-	}
-
-	// TODO(jcgregorio) Add ingester.Register("name", fn, "directory_name") then make this a slice of Ingesters.
-
-	oneNanoBench := func() {
+	oneGolden := func() {
 		now := time.Now()
-		err := ingestNanoBench.Update(true, ts.Ingest)
+		err := ingestGolden.Update(true, ts.Ingest)
 		if err != nil {
 			glog.Error(err)
 		} else {
@@ -131,37 +140,13 @@ func main() {
 		}
 	}
 
-	oneTrybot := func() {
-		now := time.Now()
-		err := ingestTrybot.Update(true, ts.Trybot)
-		if err != nil {
-			glog.Error(err)
-		} else {
-			ts.Trybot = now.Unix()
-			ts.Write()
-		}
-	}
-
-	if *runIngest {
-		oneNanoBench()
-		if !*isSingleShot {
-			go func() {
-				for _ = range time.Tick(*runEvery) {
-					oneNanoBench()
-				}
-			}()
-		}
-	}
-
-	if *runTrybot {
-		oneTrybot()
-		if !*isSingleShot {
-			go func() {
-				for _ = range time.Tick(*runTrybotEvery) {
-					oneTrybot()
-				}
-			}()
-		}
+	oneGolden()
+	if !*isSingleShot {
+		go func() {
+			for _ = range time.Tick(*runEvery) {
+				oneGolden()
+			}
+		}()
 	}
 
 	if !*isSingleShot {

@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"code.google.com/p/goauth2/oauth"
-	"code.google.com/p/google-api-go-client/bigquery/v2"
 	"github.com/oxtoacart/webbrowser"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
 const (
-	// TIMEOUT is the http timeout when making BigQuery requests.
+	// TIMEOUT is the http timeout when making Google Storage requests.
 	TIMEOUT = time.Duration(time.Minute)
 )
 
@@ -20,15 +19,15 @@ var (
 	oauthConfig = &oauth.Config{
 		ClientId:     "470362608618-nlbqngfl87f4b3mhqqe9ojgaoe11vrld.apps.googleusercontent.com",
 		ClientSecret: "J4YCkfMXFJISGyuBuVEiH60T",
-		Scope:        bigquery.BigqueryScope,
+		Scope:        "https://www.googleapis.com/auth/devstorage.read_only",
 		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
 		TokenURL:     "https://accounts.google.com/o/oauth2/token",
 		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
-		TokenCache:   oauth.CacheFile("bqtoken.data"),
+		TokenCache:   oauth.CacheFile("google_storage_token.data"),
 	}
 )
 
-// runFlow runs through a 3LO OAuth 2.0 flow to get credentials for BigQuery.
+// runFlow runs through a 3LO OAuth 2.0 flow to get credentials for Google Storage.
 func RunFlow() (*http.Client, error) {
 	transport := &oauth.Transport{
 		Config: oauthConfig,

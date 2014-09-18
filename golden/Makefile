@@ -1,5 +1,6 @@
 build:
 	go install -v ./go/rbserver
+	go install -v ./go/goldingest
 
 packages:
 	go build go/diff/
@@ -8,6 +9,6 @@ packages:
 	go build go/util/
 
 test:
-	go test ./go/types
+	go test ./go/types ./go/goldingester
 
 all: packages build

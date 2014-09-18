@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/gob"
 	"fmt"
 
 	"skia.googlesource.com/buildbot.git/perf/go/config"
@@ -105,4 +106,8 @@ func NewGoldenTraceN(n int) *GoldenTrace {
 		g.Values[i] = MISSING_DIGEST
 	}
 	return g
+}
+
+func init() {
+	gob.Register(&GoldenTrace{})
 }

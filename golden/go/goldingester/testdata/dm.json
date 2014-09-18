@@ -1,0 +1,33 @@
+{
+   "build_number" : "1727",
+   "gitHash" : "0e9770515cab45decb56a5926d1741b71854fb4c",
+   "key" : {
+      "arch" : "x86_64",
+      "configuration" : "Debug",
+      "gpu" : "HD7770",
+      "model" : "ShuttleA",
+      "os" : "Win8"
+   },
+   "results" : [
+      {
+         "key" : {
+            "config" : "565",
+            "name" : "varied_text_clipped_no_lcd"
+         },
+         "md5" : "445aa63b2200baaba9b37fd5f80c0447",
+         "options" : {
+            "source_type" : "GM"
+         }
+      },
+      {
+         "key" : {
+            "config" : "8888",
+            "name" : "vertices"
+         },
+         "md5" : "1a9dae50f3db7e29912b3f2ed43e37da",
+         "options" : {
+            "source_type" : "GM"
+         }
+      }
+   ]
+}

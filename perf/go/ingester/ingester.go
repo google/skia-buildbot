@@ -26,10 +26,17 @@ var (
 	client               *http.Client
 )
 
-func Init() {
+// Init initializes the module, the optional http.Client is used to make HTTP
+// requests to Google Storage. If nil is supplied then a default client is
+// used.
+func Init(cl *http.Client) {
 	elapsedTimePerUpdate = metrics.NewRegisteredTimer("ingester.nano.update", metrics.DefaultRegistry)
 	perfMetricsProcessed = metrics.NewRegisteredCounter("ingester.nano.processed", metrics.DefaultRegistry)
-	client = util.NewTimeoutClient()
+	if cl != nil {
+		client = cl
+	} else {
+		client = util.NewTimeoutClient()
+	}
 }
 
 // IngestResultsFiles is passed to NewIngester, it does the actual work of mapping the resultsFiles into the Tiles.
@@ -266,6 +273,7 @@ func NewResultsFileLocation(uri, name string) *ResultsFileLocation {
 // Callers must call Close() on the returned io.ReadCloser.
 func (b ResultsFileLocation) Fetch() (io.ReadCloser, error) {
 	for i := 0; i < config.MAX_URI_GET_TRIES; i++ {
+		glog.Infof("Fetching: %s", b.Name)
 		request, err := gs.RequestForStorageURL(b.URI)
 		if err != nil {
 			glog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
@@ -275,6 +283,9 @@ func (b ResultsFileLocation) Fetch() (io.ReadCloser, error) {
 		if err != nil {
 			glog.Warningf("Unable to retrieve URI while creating file iterator: %s", err)
 			continue
+		}
+		if resp.StatusCode != 200 {
+			glog.Errorf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
 		}
 		return resp.Body, nil
 	}
