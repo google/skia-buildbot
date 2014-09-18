@@ -94,9 +94,9 @@ while $SLAVES_STILL_PROCESSING ; do
     RET=$( is_slave_currently_executing $SLAVE_NUM TELEMETRY_${RUN_ID} )
     if $RET; then
       echo "build$SLAVE_NUM-b5 is still running TELEMETRY_${RUN_ID}"
-      # echo "Making sure no processes are hung"
-      # ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no \
-      #     -A -q -p 22 build${SLAVE_NUM}-b5 -- "cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; bash vm_kill_long_running_process.sh"` 
+      echo "Making sure no processes are hung"
+      ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no \
+          -A -q -p 22 build${SLAVE_NUM}-b5 -- "cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; bash vm_kill_long_running_process.sh"
       echo "Sleeping for a minute and then retrying"
       SLAVES_STILL_PROCESSING=true
       sleep 60
