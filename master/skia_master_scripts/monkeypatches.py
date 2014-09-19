@@ -47,6 +47,7 @@ import utils
 TRYBOTS_REQUESTER_WHITELIST = [
     'henrik.smiding@intel.com',
     'kkinnunen@nvidia.com',
+    'cdalton@nvidia.com',
     'ravimist@gmail.com'
 ]
 
