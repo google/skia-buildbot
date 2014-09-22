@@ -87,6 +87,9 @@ class RunGM(BuildStep):
     if 'Venue8' in self._builder_name:  # skia:2922
       cmd.extend(['--match', '~imagealphathreshold'])
 
+    if 'GalaxyNexus' in self._builder_name:  # skia:2955
+      cmd.extend(['--match', '~downsamplebitmap'])
+
     self._flavor_utils.RunFlavoredCmd('gm', cmd)
 
 
