@@ -208,7 +208,7 @@ Initial setup of the database, the users, and the tables:
 Clustering
 ----------
 
-The clusting is done by using k-means clustering over normalized Traces. The
+The clustering is done by using k-means clustering over normalized Traces. The
 Traces are normalized by filling in missing data points so that there is a
 data point for every commit, and then scaling the data to have a mean of 0.0
 and a standard deviation of 1.0. See the docs for ctrace.NewFullTrace().
