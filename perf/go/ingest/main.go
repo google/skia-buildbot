@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/ingester"
 	"skia.googlesource.com/buildbot.git/perf/go/trybot"
 
@@ -102,6 +103,7 @@ func (t *Timestamps) Write() {
 
 func main() {
 	flag.Parse()
+	flags.Log()
 	Init()
 	ingester.Init(nil)
 	trybot.Init()
