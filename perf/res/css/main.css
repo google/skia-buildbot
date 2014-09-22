@@ -137,6 +137,7 @@ table, td {
   padding: 0.5em;
   background-color: #1F78B4;
   border-bottom: solid lightgray 2px;
+  display: flex;
 }
 
 #title a {
@@ -146,6 +147,10 @@ table, td {
 
 #title a:hover {
   text-decoration: none;
+}
+
+#title #login {
+  margin-left: auto;
 }
 
 p {

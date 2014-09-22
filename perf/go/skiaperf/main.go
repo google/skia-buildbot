@@ -34,6 +34,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
+	"skia.googlesource.com/buildbot.git/perf/go/login"
 	"skia.googlesource.com/buildbot.git/perf/go/parser"
 	"skia.googlesource.com/buildbot.git/perf/go/shortcut"
 	"skia.googlesource.com/buildbot.git/perf/go/stats"
@@ -82,7 +83,7 @@ var (
 // flags
 var (
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tilebuilder tiles in.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring-b:2003", "Where is Graphite metrics ingestion server running.")
@@ -1038,6 +1039,7 @@ func main() {
 	db.Init()
 	stats.Start(nanoTileStore, git)
 	alerting.Start(nanoTileStore, *apikey)
+	login.Init(*local)
 	glog.Infoln("Begin loading data.")
 
 	// Resources are served directly.
@@ -1059,6 +1061,9 @@ func main() {
 	http.HandleFunc("/compare/", autogzip.HandleFunc(compareHandler))
 	http.HandleFunc("/calc/", autogzip.HandleFunc(calcHandler))
 	http.HandleFunc("/help/", autogzip.HandleFunc(helpHandler))
+	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	http.HandleFunc("/logout/", login.LogoutHandler)
+	http.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

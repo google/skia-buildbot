@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	Init()
+	Init(nil)
 }
 
 func TestIngestCommits(t *testing.T) {

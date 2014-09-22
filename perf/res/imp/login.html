@@ -1,0 +1,47 @@
+<!--
+  This in an HTML Import-able file that contains the JS and HTML Templates for
+  the login.
+
+  To use this file import it:
+
+    <link href="/res/imp/login.html" rel="import" />
+
+  There is nothing to instantiate, on load the #login element will be found and
+  populated with the users login status.
+-->
+<script type="text/javascript" charset="utf-8">
+(function(){
+
+  var importer__ = new sk.Importer();
+
+  function onLoad() {
+    sk.get('/loginstatus').then(JSON.parse).then(function(json) {
+      var node = importer__.import('#login-template');
+
+      if (json['Email'] == '') {
+        $$$('.email', node).classList.add('hidden');
+        $$$('.logout', node).classList.add('hidden');
+        $$$('.login', node).href = json['LoginURL'];
+      } else {
+        $$$('.login', node).classList.add('hidden');
+        $$$('.email', node).innerText = json['Email'];
+      }
+
+      $$$('#login').appendChild(node);
+    });
+  };
+
+  // When loaded via HTML Imports then DOMContentLoaded may be long done.
+  if (document.readyState != 'loading') {
+    onLoad();
+  } else {
+    window.addEventListener('load', onLoad);
+  }
+})();
+</script>
+
+<template id=login-template>
+  <span class=email></span>
+  <a class=logout href="/logout">Logout</a>
+  <a class=login href="">Login</a>
+</template>
