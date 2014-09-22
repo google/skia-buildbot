@@ -3,20 +3,21 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"time"
-)
 
-import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
 	_ "github.com/mattn/go-sqlite3"
+	"skia.googlesource.com/buildbot.git/perf/go/metadata"
 )
 
 var (
 	// DB is the sql database where we have commit and annotation information stored.
 	DB *sql.DB = nil
+)
+
+const (
+	METADATA_KEY = "readwrite"
 )
 
 // Init must be called once before DB is used.
@@ -25,17 +26,8 @@ var (
 func Init() {
 	// Connect to MySQL server. First, get the password from the metadata server.
 	// See https://developers.google.com/compute/docs/metadata#custom.
-	req, err := http.NewRequest("GET", "http://metadata/computeMetadata/v1/instance/attributes/readwrite", nil)
-	if err != nil {
-		glog.Fatalln(err)
-	}
-	client := http.Client{}
-	req.Header.Add("X-Google-Metadata-Request", "True")
-	if resp, err := client.Do(req); err == nil {
-		password, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			glog.Fatalln("Failed to read password from metadata server:", err)
-		}
+	password, err := metadata.Get(METADATA_KEY)
+	if err == nil {
 		// The IP address of the database is found here:
 		//    https://console.developers.google.com/project/31977622648/sql/instances/skiaperf/overview
 		// And 3306 is the default port for MySQL.

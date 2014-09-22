@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"net/http"
 	"strconv"
@@ -16,12 +15,13 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/clustering"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
+	"skia.googlesource.com/buildbot.git/perf/go/metadata"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
 const (
-	APIKEY_METADATA_URL = "http://metadata/computeMetadata/v1/instance/attributes/apikey"
+	APIKEY_METADATA_KEY = "apikey"
 )
 
 // CombineClusters combines freshly found clusters with existing clusters.
@@ -180,28 +180,10 @@ func apiKeyFromFlag(apiKeyFlag string) string {
 	apiKey := apiKeyFlag
 	// If apiKey isn't passed in then read it from the metadata server.
 	if apiKey == "" {
-		// Create a client that uses our dialer with a timeout.
-		c := &http.Client{
-			Transport: &http.Transport{
-				Dial: util.DialTimeout,
-			},
-		}
-		// Get the API Key we need to make requests to the issue tracker.
-		req, err := http.NewRequest("GET", APIKEY_METADATA_URL, nil)
-		if err != nil {
-			glog.Errorf("HTTP GET for API Key failed: %s", err)
-		}
-		req.Header.Add("X-Google-Metadata-Request", "True")
-		if resp, err := c.Do(req); err == nil {
-			defer resp.Body.Close()
-			if resp.StatusCode != 200 {
-				return ""
-			}
-			apikeyBytes, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				glog.Errorf("Failed to read password from metadata server: %s", err)
-			}
-			apiKey = string(apikeyBytes)
+		var err error
+		if apiKey, err = metadata.Get(APIKEY_METADATA_KEY); err != nil {
+			glog.Errorf("Retrieving API Key failed: %s", err)
+			return ""
 		}
 	}
 	return apiKey
