@@ -145,6 +145,25 @@ flag and then run:
 
 And you should get stdout and stderr output.
 
+Users
+-----
+
+Users must be logged in to access some content or to make some changes in the
+application, such as changing the status of perf alerts. User authentication
+is handled through OAuth 2.0, in this case specifically tied to the Google
+implementation. Once the OAuth 2.0 permission grant is complete then the users
+email is used as an identifer. The authentication is not stored on the server,
+instead it is stored as a cookie in the browser and verified when
+authentication is needed.
+
+There are two APIs, one in Go and another in Javascript that are used to
+access the current user and their logged in status:
+
+In Go the login.LoggedInAs(), see go/login/login.go.
+
+In Javascript the interface is sk.Login which is a Promise, see
+res/imp/login.html.
+
 Monitoring
 ----------
 
