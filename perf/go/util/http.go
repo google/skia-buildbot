@@ -1,9 +1,12 @@
 package util
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/golang/glog"
 )
 
 const (
@@ -23,4 +26,11 @@ func NewTimeoutClient() *http.Client {
 			Dial: DialTimeout,
 		},
 	}
+}
+
+// ReportError formats an HTTP error response and also logs the detailed error message.
+func ReportError(w http.ResponseWriter, r *http.Request, err error, message string) {
+	glog.Errorln(message, err)
+	w.Header().Set("Content-Type", "text/plain")
+	http.Error(w, fmt.Sprintf("%s %s", message, err), 500)
 }

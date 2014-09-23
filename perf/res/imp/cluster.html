@@ -37,7 +37,7 @@
       </p>
       <p class=clBugs>Bugs:</p>
 
-      <div class="clStatus hidden">
+      <div class="clStatus hidden disabled">
         <form action="/annotate/" method="post" accept-charset="utf-8">
           <input type="hidden" name="id" value="" ></input>
 
@@ -137,6 +137,10 @@
     display: none;
   }
 
+  .clStatus.disabled {
+    opacity: 0.1;
+  }
+
   .clStatus input {
     margin-bottom: 0.5em;
   }
@@ -224,6 +228,11 @@
     $$$('.clStepSize', result).innerText =  json.StepFit.StepSize.toPrecision(3);
     $$$('.clRegression', result).innerText = json.StepFit.Regression.toPrecision(3);
     $$$('.clHighlight', result).classList.add("cl" + json.StepFit.Status); // High, Low or Uninteresting.
+    sk.Login.then(function(status) {
+      if (status["Email"] != "") {
+        $$$('.clStatus', result).classList.remove("disabled");
+      }
+    });
     if (json.Status != "") {
       $$$('.clStatus', result).classList.remove("hidden"); // High, Low or Uninteresting.
       $$$('.clStatus input[value=' + json.Status  +']', result).checked = true;

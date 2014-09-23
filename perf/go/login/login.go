@@ -29,8 +29,10 @@ package login
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"code.google.com/p/goauth2/oauth"
 	"github.com/golang/glog"
@@ -125,17 +127,26 @@ type decodedIDToken struct {
 	Email string `json:"email"`
 }
 
-func setSkIDCookieValue(w http.ResponseWriter, value string) {
+// CookieFor creates an encoded Cookie for the given user id.
+func CookieFor(value string) (*http.Cookie, error) {
 	encoded, err := secureCookie.Encode(COOKIE_NAME, value)
 	if err != nil {
-		http.Error(w, "Failed to encode cookie.", 500)
-		return
+		return nil, fmt.Errorf("Failed to encode cookie")
 	}
-	cookie := &http.Cookie{
+	return &http.Cookie{
 		Name:     COOKIE_NAME,
 		Value:    encoded,
 		Path:     "/",
 		HttpOnly: true,
+		Expires:  time.Now().Add(365 * 24 * time.Hour),
+	}, nil
+}
+
+func setSkIDCookieValue(w http.ResponseWriter, value string) {
+	cookie, err := CookieFor(value)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("%s", err), 500)
+		return
 	}
 	http.SetCookie(w, cookie)
 }
@@ -152,7 +163,7 @@ func setSkIDCookieValue(w http.ResponseWriter, value string) {
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("LogoutHandler\n")
 	setSkIDCookieValue(w, "")
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, r.FormValue("redirect"), 302)
 }
 
 // OAuth2CallbackHandler must be attached at a handler that matches

@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -27,6 +26,7 @@ import (
 
 import (
 	"skia.googlesource.com/buildbot.git/perf/go/alerting"
+	"skia.googlesource.com/buildbot.git/perf/go/annotate"
 	"skia.googlesource.com/buildbot.git/perf/go/clustering"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
@@ -150,13 +150,6 @@ func Init() {
 	}
 }
 
-// reportError formats an HTTP error response and also logs the detailed error message.
-func reportError(w http.ResponseWriter, r *http.Request, err error, message string) {
-	glog.Errorln(message, err)
-	w.Header().Set("Content-Type", "text/plain")
-	http.Error(w, fmt.Sprintf("%s %s", message, err), 500)
-}
-
 // showcutHandler handles the POST requests of the shortcut page.
 //
 // Shortcuts are of the form:
@@ -184,19 +177,19 @@ func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		// check header
 		if ct := r.Header.Get("Content-Type"); ct != "application/json" {
-			reportError(w, r, fmt.Errorf("Error: received %s", ct), "Invalid content type.")
+			util.ReportError(w, r, fmt.Errorf("Error: received %s", ct), "Invalid content type.")
 			return
 		}
 		defer r.Body.Close()
 		id, err := shortcut.Insert(r.Body)
 		if err != nil {
-			reportError(w, r, err, "Error inserting shortcut.")
+			util.ReportError(w, r, err, "Error inserting shortcut.")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		enc := json.NewEncoder(w)
 		if err := enc.Encode(map[string]string{"id": id}); err != nil {
-			reportError(w, r, err, "Error while encoding response.")
+			util.ReportError(w, r, err, "Error while encoding response.")
 		}
 	} else {
 		http.NotFound(w, r)
@@ -209,12 +202,12 @@ func trybotHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	try, err := trybot.List(50)
 	if err != nil {
-		reportError(w, r, err, "Failed to retrieve trybot results.")
+		util.ReportError(w, r, err, "Failed to retrieve trybot results.")
 		return
 	}
 	enc := json.NewEncoder(w)
 	if err = enc.Encode(try); err != nil {
-		reportError(w, r, err, "Error while encoding response.")
+		util.ReportError(w, r, err, "Error while encoding response.")
 	}
 }
 
@@ -237,18 +230,18 @@ func alertingHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	tile, err := nanoTileStore.Get(0, -1)
 	if err != nil {
-		reportError(w, r, err, fmt.Sprintf("Failed to load tile."))
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to load tile."))
 		return
 	}
 
 	alerts, err := alerting.ListFrom(tile.Commits[0].CommitTime)
 	if err != nil {
-		reportError(w, r, err, "Error retrieving cluster summaries.")
+		util.ReportError(w, r, err, "Error retrieving cluster summaries.")
 		return
 	}
 	enc := json.NewEncoder(w)
 	if err = enc.Encode(map[string][]*types.ClusterSummary{"Clusters": alerts}); err != nil {
-		reportError(w, r, err, "Error while encoding response.")
+		util.ReportError(w, r, err, "Error while encoding response.")
 	}
 }
 
@@ -268,12 +261,12 @@ func clHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := strconv.ParseInt(match[1], 10, 0)
 	if err != nil {
-		reportError(w, r, err, "Failed parsing ID.")
+		util.ReportError(w, r, err, "Failed parsing ID.")
 		return
 	}
 	cl, err := alerting.Get(id)
 	if err != nil {
-		reportError(w, r, err, "Failed to find cluster with that ID.")
+		util.ReportError(w, r, err, "Failed to find cluster with that ID.")
 		return
 	}
 	if err := clTemplate.Execute(w, cl); err != nil {
@@ -290,72 +283,6 @@ func compareHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// annotateHandler serves the /annotate/ endpoint for changing the status of an
-// alert cluster.
-//
-// Expects a POST'd form with the following values:
-//
-//   id - The id of the alerting cluster.
-//   status - The new Status value.
-//   message - The new Messge value.
-//
-func annotateHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Annotate Handler: %q\n", r.URL.Path)
-
-	if r.Method != "POST" {
-		http.NotFound(w, r)
-		return
-	}
-	if err := r.ParseForm(); err != nil {
-		reportError(w, r, err, "Failed to parse query params.")
-		return
-	}
-
-	// Load the form data.
-	id, err := strconv.ParseInt(r.FormValue("id"), 10, 32)
-	if err != nil {
-		reportError(w, r, err, fmt.Sprintf("id parameter must be an integer %s.", r.FormValue("id")))
-		return
-	}
-	newStatus := r.FormValue("status")
-	message := r.FormValue("message")
-	if !util.In(newStatus, types.ValidStatusValues) {
-		reportError(w, r, fmt.Errorf("Invalid status value: %s", newStatus), "Unknown value.")
-		return
-	}
-
-	// Store the updated values in the ClusterSummary.
-	c, err := alerting.Get(id)
-	if err != nil {
-		reportError(w, r, err, "Failed to load cluster summary.")
-		return
-	}
-	c.Status = newStatus
-	c.Message = message
-	if err := alerting.Write(c); err != nil {
-		reportError(w, r, err, "Failed to save cluster summary.")
-		return
-	}
-
-	if newStatus != "Bug" {
-		http.Redirect(w, r, "/alerts/", 303)
-	} else {
-		q := url.Values{
-			"labels": []string{"FromSkiaPerf,Type-Defect,Priority-Medium"},
-			"comment": []string{fmt.Sprintf(`This bug was found via SkiaPerf.
-
-Visit this URL to see the details of the suspicious cluster:
-
-      http://skiaperf.com/cl/%d.
-
-Don't remove the above URL, it is used to match bugs to alerts.
-    `, id)},
-		}
-		codesiteURL := "https://code.google.com/p/skia/issues/entry?" + q.Encode()
-		http.Redirect(w, r, codesiteURL, http.StatusTemporaryRedirect)
-	}
-}
-
 // clustersHandler handles the GET of the clusters page.
 func clustersHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Cluster Handler: %q\n", r.URL.Path)
@@ -369,7 +296,7 @@ func clustersHandler(w http.ResponseWriter, r *http.Request) {
 func writeClusterSummaries(summary *clustering.ClusterSummaries, w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(summary); err != nil {
-		reportError(w, r, err, "Error while encoding ClusterSummaries response.")
+		util.ReportError(w, r, err, "Error while encoding ClusterSummaries response.")
 	}
 }
 
@@ -415,7 +342,7 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Clustering Handler: %q\n", r.URL.Path)
 	tile, err := nanoTileStore.Get(0, -1)
 	if err != nil {
-		reportError(w, r, err, fmt.Sprintf("Failed to load tile."))
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to load tile."))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -427,12 +354,12 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 
 	k, err := strconv.ParseInt(r.FormValue("_k"), 10, 32)
 	if err != nil {
-		reportError(w, r, err, fmt.Sprintf("_k parameter must be an integer %s.", r.FormValue("_k")))
+		util.ReportError(w, r, err, fmt.Sprintf("_k parameter must be an integer %s.", r.FormValue("_k")))
 		return
 	}
 	stddev, err := strconv.ParseFloat(r.FormValue("_stddev"), 64)
 	if err != nil {
-		reportError(w, r, err, fmt.Sprintf("_stddev parameter must be a float %s.", r.FormValue("_stddev")))
+		util.ReportError(w, r, err, fmt.Sprintf("_stddev parameter must be a float %s.", r.FormValue("_stddev")))
 		return
 	}
 
@@ -442,7 +369,7 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 		var err error
 		tryResults, err = trybot.Get(issue)
 		if err != nil {
-			reportError(w, r, err, fmt.Sprintf("Failed to get trybot data for clustering."))
+			util.ReportError(w, r, err, fmt.Sprintf("Failed to get trybot data for clustering."))
 			return
 		}
 	}
@@ -464,13 +391,13 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 
 	if issue != "" {
 		if tile, err = trybot.TileWithTryData(tile, issue); err != nil {
-			reportError(w, r, err, fmt.Sprintf("Failed to get trybot data for clustering."))
+			util.ReportError(w, r, err, fmt.Sprintf("Failed to get trybot data for clustering."))
 			return
 		}
 	}
 	summary, err := clustering.CalculateClusterSummaries(tile, int(k), stddev, filter)
 	if err != nil {
-		reportError(w, r, err, "Failed to calculate clusters.")
+		util.ReportError(w, r, err, "Failed to calculate clusters.")
 		return
 	}
 	writeClusterSummaries(summary, w, r)
@@ -529,18 +456,18 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tileScale, err := strconv.ParseInt(match[1], 10, 0)
 	if err != nil {
-		reportError(w, r, err, "Failed parsing tile scale.")
+		util.ReportError(w, r, err, "Failed parsing tile scale.")
 		return
 	}
 	tileNumber, err := strconv.ParseInt(match[2], 10, 0)
 	if err != nil {
-		reportError(w, r, err, "Failed parsing tile number.")
+		util.ReportError(w, r, err, "Failed parsing tile number.")
 		return
 	}
 	glog.Infof("tile: %d %d", tileScale, tileNumber)
 	tile, err := getTile(int(tileScale), int(tileNumber))
 	if err != nil {
-		reportError(w, r, err, "Failed retrieving tile.")
+		util.ReportError(w, r, err, "Failed retrieving tile.")
 		return
 	}
 
@@ -568,13 +495,13 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	// Marshal and send
 	marshaledResult, err := json.Marshal(guiTile)
 	if err != nil {
-		reportError(w, r, err, "Failed to marshal JSON.")
+		util.ReportError(w, r, err, "Failed to marshal JSON.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(marshaledResult)
 	if err != nil {
-		reportError(w, r, err, "Error while marshalling results.")
+		util.ReportError(w, r, err, "Error while marshalling results.")
 	}
 	glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
 }
@@ -664,22 +591,22 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		reportError(w, r, err, "Failed to parse query params.")
+		util.ReportError(w, r, err, "Failed to parse query params.")
 	}
 	tileScale, err := strconv.ParseInt(match[1], 10, 0)
 	if err != nil {
-		reportError(w, r, err, "Failed parsing tile scale.")
+		util.ReportError(w, r, err, "Failed parsing tile scale.")
 		return
 	}
 	tileNumber, err := strconv.ParseInt(match[2], 10, 0)
 	if err != nil {
-		reportError(w, r, err, "Failed parsing tile number.")
+		util.ReportError(w, r, err, "Failed parsing tile number.")
 		return
 	}
 	glog.Infof("tile: %d %d", tileScale, tileNumber)
 	tile, err := getTile(int(tileScale), int(tileNumber))
 	if err != nil {
-		reportError(w, r, err, "Failed retrieving tile.")
+		util.ReportError(w, r, err, "Failed retrieving tile.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -698,7 +625,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		glog.Info("Count: ", total)
 		inc := json.NewEncoder(w)
 		if err := inc.Encode(map[string]int{"matches": total}); err != nil {
-			reportError(w, r, err, "Error while encoding query response.")
+			util.ReportError(w, r, err, "Error while encoding query response.")
 			return
 		}
 	} else {
@@ -712,7 +639,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			if sh.Issue != "" {
 				if tile, err = trybot.TileWithTryData(tile, sh.Issue); err != nil {
-					reportError(w, r, err, "Failed to populate shortcut data with trybot result.")
+					util.ReportError(w, r, err, "Failed to populate shortcut data with trybot result.")
 					return
 				}
 			}
@@ -745,7 +672,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		enc := json.NewEncoder(w)
 		if err := enc.Encode(ret); err != nil {
-			reportError(w, r, err, "Error while encoding query response.")
+			util.ReportError(w, r, err, "Error while encoding query response.")
 			return
 		}
 	}
@@ -792,7 +719,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		reportError(w, r, err, "Failed to parse query params.")
+		util.ReportError(w, r, err, "Failed to parse query params.")
 	}
 	hash := match[1]
 
@@ -805,7 +732,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tile, err := getTile(0, tileNum)
 	if err != nil {
-		reportError(w, r, err, "Failed retrieving tile.")
+		util.ReportError(w, r, err, "Failed retrieving tile.")
 		return
 	}
 
@@ -822,7 +749,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 		if types.Matches(tr, r.Form) {
 			v, err := vec.FillAt(tr.(*types.PerfTrace).Values, idx)
 			if err != nil {
-				reportError(w, r, err, "Error while getting value at slice index.")
+				util.ReportError(w, r, err, "Error while getting value at slice index.")
 				return
 			}
 			t := &SingleTrace{
@@ -835,7 +762,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ret); err != nil {
-		reportError(w, r, err, "Error while encoding single results.")
+		util.ReportError(w, r, err, "Error while encoding single results.")
 	}
 	glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
 }
@@ -912,7 +839,7 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	tile, err := nanoTileStore.Get(0, -1)
 	if err != nil {
-		reportError(w, r, err, fmt.Sprintf("Failed to load tile."))
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to load tile."))
 		return
 	}
 	formula := r.FormValue("formula")
@@ -923,7 +850,7 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 			Traces: []*types.PerfTrace{},
 		}
 		if err := addFlatCalculatedTraces(resp, tile, formula); err != nil {
-			reportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
+			util.ReportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
 			return
 		}
 		data = resp
@@ -933,14 +860,14 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 			Hash:   "",
 		}
 		if err := addCalculatedTraces(resp, tile, formula); err != nil {
-			reportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
+			util.ReportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
 			return
 		}
 		data = resp
 	}
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(data); err != nil {
-		reportError(w, r, err, "Error while encoding query response.")
+		util.ReportError(w, r, err, "Error while encoding query response.")
 		return
 	}
 }
@@ -985,13 +912,13 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	begin := r.FormValue("begin")
 	if len(begin) != 40 {
-		reportError(w, r, fmt.Errorf("Invalid hash format: %s", begin), "Error while looking up hashes.")
+		util.ReportError(w, r, fmt.Errorf("Invalid hash format: %s", begin), "Error while looking up hashes.")
 		return
 	}
 	end := r.FormValue("end")
 	body, err := git.Log(begin, end)
 	if err != nil {
-		reportError(w, r, err, "Error while looking up hashes.")
+		util.ReportError(w, r, err, "Error while looking up hashes.")
 		return
 	}
 	escaped := ehtml.EscapeString(body)
@@ -1057,7 +984,7 @@ func main() {
 	http.HandleFunc("/cl/", autogzip.HandleFunc(clHandler))
 	http.HandleFunc("/alerts/", autogzip.HandleFunc(alertsHandler))
 	http.HandleFunc("/alerting/", autogzip.HandleFunc(alertingHandler))
-	http.HandleFunc("/annotate/", autogzip.HandleFunc(annotateHandler))
+	http.HandleFunc("/annotate/", autogzip.HandleFunc(annotate.Handler))
 	http.HandleFunc("/compare/", autogzip.HandleFunc(compareHandler))
 	http.HandleFunc("/calc/", autogzip.HandleFunc(calcHandler))
 	http.HandleFunc("/help/", autogzip.HandleFunc(helpHandler))

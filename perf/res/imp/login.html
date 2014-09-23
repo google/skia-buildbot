@@ -14,20 +14,38 @@
 
   var importer__ = new sk.Importer();
 
+  // A Promise that will be resolved with the users current login status.
+  //
+  // The resolution object looks like:
+  //
+  //   {
+  //     "Email": "fred@example.com",
+  //     "LoginURL": "https://..."
+  //   }
+  //
+  // The Email will be the empty string if the user is not logged in.
+  sk.Login = new Promise(function(resolve, reject) {
+      sk.get('/loginstatus').then(JSON.parse).then(function(json) {
+        resolve(json);
+      }).catch(function(err) {
+        reject(err);
+      });
+    });
+
   function onLoad() {
-    sk.get('/loginstatus').then(JSON.parse).then(function(json) {
-      var node = importer__.import('#login-template');
+    var node = importer__.import('#login-template');
 
-      if (json['Email'] == '') {
-        $$$('.email', node).classList.add('hidden');
-        $$$('.logout', node).classList.add('hidden');
-        $$$('.login', node).href = json['LoginURL'];
-      } else {
-        $$$('.login', node).classList.add('hidden');
-        $$$('.email', node).innerText = json['Email'];
-      }
-
-      $$$('#login').appendChild(node);
+    sk.Login.then(function(status) {
+        if (status['Email'] == '') {
+          $$$('.email', node).classList.add('hidden');
+          $$$('.logout', node).classList.add('hidden');
+          $$$('.login', node).href = status['LoginURL'];
+        } else {
+          $$$('.login', node).classList.add('hidden');
+          $$$('.email', node).innerText = status['Email'];
+          $$$('.logout', node).href = "/logout/?redirect=" + encodeURIComponent(document.location);
+        }
+        $$$('#login').appendChild(node);
     });
   };
 
@@ -42,6 +60,6 @@
 
 <template id=login-template>
   <span class=email></span>
-  <a class=logout href="/logout">Logout</a>
+  <a class=logout href="/logout/">Logout</a>
   <a class=login href="">Login</a>
 </template>
