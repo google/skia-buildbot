@@ -19,7 +19,7 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   MODIFIED_STARTUP_SCRIPT="/tmp/win_setup.ps1"
   # Set chrome-bot's password in win_setup.ps1
   cp $ORIG_STARTUP_SCRIPT $MODIFIED_STARTUP_SCRIPT
-  sed -i "s/CHROME_BOT_PASSWORD/$(echo $(cat /tmp/gce.txt) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
+  sed -i "s/CHROME_BOT_PASSWORD/$(echo $(cat /tmp/chrome-bot.txt) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
   sed -i "s/GS_ACCESS_KEY_ID/$(echo $(cat ~/.boto | sed -n 2p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
   sed -i "s/GS_SECRET_ACCESS_KEY/$(echo $(cat ~/.boto | sed -n 3p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
 
