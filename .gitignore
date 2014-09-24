@@ -43,13 +43,13 @@ tools/tests/factory_configuration/actual/
 .project
 .pydevproject
 # Server executables/config
-perf/bqtoken.data
-perf/perf.db
-perf/timestamp.json
+golden/app/third_party
 golden/google_storage_token.data
-perf/third_party
+perf/bqtoken.data
 perf/node_modules
-perf/res/js/perf.js
-perf/res/js/perf-debug.js
+perf/perf.db
 perf/res/css/perf.css
-corr/app/third_party
+perf/res/js/perf-debug.js
+perf/res/js/perf.js
+perf/third_party
+perf/timestamp.json

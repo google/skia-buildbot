@@ -1,7 +1,7 @@
 package diff
 
 import (
-	"skia.googlesource.com/buildbot.git/corr/go/util"
+	"skia.googlesource.com/buildbot.git/golden/go/util"
 )
 
 type TestRunResult struct {
