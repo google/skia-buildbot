@@ -44,6 +44,13 @@ CHROME_BUILD_INTERNAL_URL = (
 SKIA_URL = 'https://skia.googlesource.com/buildbot.git'
 GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
 GIT = 'git.bat' if os.name == 'nt' else 'git'
+NEW_MASTER_NAME = {
+  'Skia': 'Skia',
+  'AndroidSkia': 'SkiaAndroid',
+  'CompileSkia': 'SkiaCompile',
+  'FYISKIA': 'SkiaFYI',
+  'PrivateSkia': 'SkiaInternal',
+}
 UPSTREAM_MASTER_PREFIX = 'client.skia'
 
 
@@ -270,7 +277,7 @@ def ReadSlavesCfg(slaves_cfg_path):
   return cfg['slaves']
 
 
-def RunSlave(slavename, copies):
+def RunSlave(slavename, connects_to_new_master=False):
   """ Launch a single slave, checking out the buildbot tree if necessary.
 
   slavename: string indicating the hostname of the build slave to launch.
@@ -278,9 +285,12 @@ def RunSlave(slavename, copies):
       current location and destination location within the buildbot checkout of
       files to be copied.
   """
-  print 'Starting slave: %s' % slavename
+  print 'Starting slave: %s%s' % (
+      slavename, ' (new)' if connects_to_new_master else '')
   start_dir = os.path.realpath(os.curdir)
   slave_dir = os.path.join(start_dir, slavename)
+  copies = (slave_hosts_cfg.CHROMEBUILD_COPIES if connects_to_new_master
+            else slave_hosts_cfg.DEFAULT_COPIES)
 
   # Create the slave directory if needed
   if not os.path.isdir(slave_dir):
@@ -289,11 +299,11 @@ def RunSlave(slavename, copies):
 
   # Find the slave config dict and BuildSlaveManager type for this slave.
   slave_cfg = {}
-  manager = None
+  manager = (ChromeBuildSlaveManager if connects_to_new_master
+             else BuildSlaveManager)
   for cfg in slaves_cfg.SLAVES:
     if cfg['hostname'] == slavename:
       slave_cfg = cfg
-      manager = BuildSlaveManager
       break
   if not slave_cfg:
     # Try looking at upstream masters.
@@ -307,13 +317,15 @@ def RunSlave(slavename, copies):
         for cfg in ReadSlavesCfg(slaves_cfg_path):
           if cfg['hostname'] == slavename:
             slave_cfg = cfg
-            manager = ChromeBuildSlaveManager
             break
   if not slave_cfg:
     raise Exception('No buildslave config found for %s!' % slavename)
 
   # Launch the buildslave.
-  manager(slavename, slave_dir, copies, os.pardir, slave_cfg['master'],
+  master_name = slave_cfg['master']
+  if connects_to_new_master:
+    master_name = NEW_MASTER_NAME[master_name]
+  manager(slavename, slave_dir, copies, os.pardir, master_name,
           slave_cfg.get('keepalive_conditions', []), DEFAULT_POLL_INTERVAL
           ).start()
 
@@ -383,14 +395,14 @@ def main():
   # Obtain configuration information about this build slave host machine.
   slave_host = slave_hosts_cfg.get_slave_host_config(socket.gethostname())
   slaves = slave_host.slaves
-  copies = slave_host.copies
   print 'Attempting to launch build slaves:'
-  for slavename, _ in slaves:
-    print '  %s' % slavename
+  for slavename, _, connects_to_new_master in slaves:
+    print '  %s%s' % (slavename,
+                      (' (new master)' if connects_to_new_master else ''))
 
   # Launch the build slaves
-  for slavename, _ in slaves:
-    RunSlave(slavename, copies)
+  for slavename, _, connects_to_new_master in slaves:
+    RunSlave(slavename, connects_to_new_master)
 
 
 if '__main__' == __name__:
