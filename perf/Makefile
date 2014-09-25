@@ -3,9 +3,10 @@ build: res/css/perf.css res/js/perf.js
 	go install -v ./go/skiaperf
 
 .PHONY: ver
+ver:    H=$(shell echo `git log -n 1 --format=format:%H`)
 ver:
-	H=$(shell echo `git log -n 1 --format=format:%H`); \
-	sed --in-place "s/\(<span id=\"version\">\)\(.*\)\(<\/span>\)/\1<a href=\"https:\/\/skia.googlesource.com\/buildbot\/+\/$$H\" target=\"_blank\">Ver: $$H<\/a>\3/" templates/titlebar.html
+	S=$(shell echo $H | cut -c1-5); \
+	sed --in-place "s/\(<span id=\"version\">\)\(.*\)\(<\/span>\)/\1<a href=\"https:\/\/skia.googlesource.com\/buildbot\/+\/$H\" target=\"_blank\">Ver:$$S<\/a>\3/" templates/titlebar.html
 	git update-index --assume-unchanged templates/titlebar.html
 
 .PHONY: release

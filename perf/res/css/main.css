@@ -166,3 +166,7 @@ p {
   margin: 0.5em;
   margin-right: 0;
 }
+
+#version {
+  font-size: 10px;
+}
