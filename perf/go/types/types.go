@@ -148,9 +148,10 @@ func NewPerfTraceN(n int) *PerfTrace {
 }
 
 func init() {
-	// Register *PerfTrace in gob so that it can be used as a concrete type for Trace when writing and reading
-	// Tiles in gobs.
+	// Register *PerfTrace and *GoldenTrace in gob so that it can be used as a
+	// concrete type for Trace when writing and reading Tiles in gobs.
 	gob.Register(&PerfTrace{})
+	gob.Register(&GoldenTrace{})
 }
 
 type TryBotResults struct {
@@ -448,4 +449,128 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	t.TileIndex = tile1.TileIndex
 
 	return t
+}
+
+// Label for classifying digests.
+type Label int
+
+const (
+	// No digest available.
+	MISSING_DIGEST = ""
+
+	// Primary key field that uniquely identifies a key.
+	PRIMARY_KEY_FIELD = "name"
+
+	// Classifications for observed digests.
+	UNTRIAGED Label = iota
+	POSITIVE
+	NEGATIVE
+)
+
+// Stores the digests and their associated labels.
+// Note: The name of the test is assumed to be handled by the client of this
+// type. Most likely in the keys of a map.
+type TestClassification map[string]Label
+
+func (tc TestClassification) DeepCopy() TestClassification {
+	result := make(map[string]Label, len(tc))
+	for k, v := range tc {
+		result[k] = v
+	}
+	return result
+}
+
+// GoldenTrace represents all the Digests of a single test across a series
+// of Commits. GoldenTrace implements the Trace interface.
+type GoldenTrace struct {
+	Params_ map[string]string
+	Values  []string
+}
+
+func (g *GoldenTrace) Params() map[string]string {
+	return g.Params_
+}
+
+func (g *GoldenTrace) Len() int {
+	return len(g.Values)
+}
+
+func (g *GoldenTrace) IsMissing(i int) bool {
+	return g.Values[i] == MISSING_DIGEST
+}
+
+func (g *GoldenTrace) DeepCopy() Trace {
+	n := len(g.Values)
+	cp := &GoldenTrace{
+		Values:  make([]string, n, n),
+		Params_: make(map[string]string),
+	}
+	copy(cp.Values, g.Values)
+	for k, v := range g.Params_ {
+		cp.Params_[k] = v
+	}
+	return cp
+}
+
+func (g *GoldenTrace) Merge(next Trace) Trace {
+	nextGold := next.(*GoldenTrace)
+	n := len(g.Values) + len(nextGold.Values)
+	n1 := len(g.Values)
+
+	merged := NewGoldenTraceN(n)
+	merged.Params_ = g.Params_
+	for k, v := range nextGold.Params_ {
+		merged.Params_[k] = v
+	}
+	for i, v := range g.Values {
+		merged.Values[i] = v
+	}
+	for i, v := range nextGold.Values {
+		merged.Values[n1+i] = v
+	}
+	return merged
+}
+
+func (g *GoldenTrace) Grow(n int, fill FillType) {
+	if n < len(g.Values) {
+		panic(fmt.Sprintf("Grow must take a value (%d) larger than the current Trace size: %d", n, len(g.Values)))
+	}
+	delta := n - len(g.Values)
+	newValues := make([]string, n)
+
+	if fill == FILL_AFTER {
+		copy(newValues, g.Values)
+		for i := 0; i < delta; i++ {
+			newValues[i+len(g.Values)] = MISSING_DIGEST
+		}
+	} else {
+		for i := 0; i < delta; i++ {
+			newValues[i] = MISSING_DIGEST
+		}
+		copy(newValues[delta:], g.Values)
+	}
+	g.Values = newValues
+}
+
+// NewGoldenTrace allocates a new Trace set up for the given number of samples.
+//
+// The Trace Values are pre-filled in with the missing data sentinel since not
+// all tests will be run on all commits.
+func NewGoldenTrace() *GoldenTrace {
+	return NewGoldenTraceN(config.TILE_SIZE)
+}
+
+// NewGoldenTraceN allocates a new Trace set up for the given number of samples.
+//
+// The Trace Values are pre-filled in with the missing data sentinel since not
+// all tests will be run on all commits.
+func NewGoldenTraceN(n int) *GoldenTrace {
+	g := &GoldenTrace{
+		Values:  make([]string, n, n),
+		Params_: make(map[string]string),
+	}
+	for i, _ := range g.Values {
+		g.Values[i] = MISSING_DIGEST
+	}
+	return g
 }
