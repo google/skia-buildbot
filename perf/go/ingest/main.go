@@ -14,7 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/goauth2/compute/serviceaccount"
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/perf/go/auth"
@@ -152,10 +151,8 @@ func main() {
 			glog.Fatalf("Failed to auth: %s", err)
 		}
 	} else {
-		client, err = serviceaccount.NewClient(nil)
-		if err != nil {
-			glog.Fatalf("Failed to auth using a service account: %s", err)
-		}
+		client = nil
+		// Add back service account access here when it's fixed.
 	}
 
 	ingester.Init(client)
