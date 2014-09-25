@@ -4,6 +4,7 @@ package gitinfo
 import (
 	"fmt"
 	"os/exec"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,7 +17,9 @@ import (
 	"github.com/golang/glog"
 )
 
-const skpPhrase = "Update SKP version to "
+// commitLineRe matches one line of commit log and captures hash, author and
+// subject groups.
+var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
@@ -85,7 +88,7 @@ func (g *GitInfo) From(start time.Time) []string {
 	return ret
 }
 
-// From returns a --name-only short log for every commit in (begin, end].
+// Log returns a --name-only short log for every commit in (begin, end].
 //
 // If end is "" then it returns just the short log for the single commit at
 // begin.
@@ -118,6 +121,47 @@ func (g *GitInfo) Log(begin, end string) (string, error) {
 		return "", err
 	}
 	return string(b), nil
+}
+
+// ShortCommit stores the hash, author, and subject of a git commit.
+type ShortCommit struct {
+	Hash    string
+	Author  string
+	Subject string
+}
+
+// ShortCommits stores a slice of ShortCommit struct.
+type ShortCommits struct {
+	Commits []*ShortCommit
+}
+
+// ShortList returns a slice of ShortCommit for every commit in (begin, end].
+func (g *GitInfo) ShortList(begin, end string) (*ShortCommits, error) {
+	command := []string{"log", "--pretty='%H,%an,%s", begin + ".." + end}
+	cmd := exec.Command("git", command...)
+	cmd.Dir = g.dir
+	b, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	ret := &ShortCommits{
+		Commits: []*ShortCommit{},
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		match := commitLineRe.FindStringSubmatch(line)
+		if match == nil {
+			// This could happen if the subject has new line, in which case we truncate it and ignore the remainder.
+			continue
+		}
+		commit := &ShortCommit{
+			Hash:    match[1],
+			Author:  match[2],
+			Subject: match[3],
+		}
+		ret.Commits = append(ret.Commits, commit)
+	}
+
+	return ret, nil
 }
 
 // gitHash represents information on a single Git commit.
@@ -211,13 +255,19 @@ func (g *GitInfo) LastSkpCommit() (time.Time, error) {
 	return time.Unix(ts, 0), nil
 }
 
-// TileAddressFromHash takes a commit hash and returns the Level 0 tile number
-// that contains the hash, and its position in the tile commit array.
-func (g *GitInfo) TileAddressFromHash(hash string) (num, offset int, err error) {
-	for i, h := range g.hashes {
-		if h == hash {
-			return i/config.TILE_SIZE, i%config.TILE_SIZE, nil
+// TileAddressFromHash takes a commit hash and time, then returns the Level 0
+// tile number that contains the hash, and its position in the tile commit array.
+// This assumes that tiles are built for commits since after the given time.
+func (g *GitInfo) TileAddressFromHash(hash string, start time.Time) (num, offset int, err error) {
+	i := 0
+	for _, h := range g.hashes {
+		if g.timestamps[h].Before(start) {
+			continue
 		}
+		if h == hash {
+			return i / config.TILE_SIZE, i % config.TILE_SIZE, nil
+		}
+		i++
 	}
 	return -1, -1, fmt.Errorf("Cannot find hash %s.\n", hash)
 }

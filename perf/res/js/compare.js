@@ -144,23 +144,21 @@
    *
    * TODO: move to a common file?
    */
-  function populateAndSetCommits(selectDom) {
+  function populateAndSetCommits(selectDom, beginHash, endHash) {
     if (selectDom.nodeName != 'SELECT') {
       alert('Cannot populate non-SELECT DOM!');
       return;
     }
     sk.clearChildren(selectDom);
-    sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
-      json.commits.forEach(function(c, idx) {
-        if (!c.git_number) {  // Ignores empty commit.
-          return;
-        }
-        var opt = document.createElement('OPTION');  // How may I use template?
-        opt.value = c.hash;
-        opt.innerText = ['' + c.git_number, c.hash.substring(0, 7), c.author,
-            c.commit_msg.substr(0, 80)].join(':');
+    sk.get('/shortcommits/?begin=' + beginHash + '&end=' + endHash).then(JSON.parse).then(function(json){
+      for (var i = 0; i < json.Commits.length; i++) {
+        var c = json.Commits[i];
+        var opt = document.createElement('OPTION');
+        opt.value = c.Hash;
+        opt.innerText = [c.Hash.substring(0, 7), c.Author,
+            c.Subject.substr(0, 80)].join(':');
         selectDom.insertBefore(opt, selectDom.firstChild);
-      });
+      }
     });
   }
 
@@ -174,9 +172,15 @@
     sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
       queryInfo__.paramSet = json.paramset;
       queryInfo__.change.counter += 1;
+      var endCommit = "";
+      for (i = json.commits.length - 1; i >= 0; i--) {
+        if (json.commits[i].hash.length > 0) {
+          endCommit = json.commits[i].hash;
+          break;
+        }
+      }
+      populateAndSetCommits($$$('#commitSel'), json.commits[0].hash, endCommit);
     });
-
-    populateAndSetCommits($$$('#commitSel'));
 
     $$$('#start').addEventListener('click', function(){
       beginCompare(compare, $$$('input[name="vertical"]:checked').value, query.selectionsAsQuery(), $$$('#commitSel').value);

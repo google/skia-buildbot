@@ -707,9 +707,6 @@ type SingleResponse struct {
 //    "hash": "abc123",
 //  }
 //
-//  The handler only checks the Level 0 latest tile (-1) now.
-//  TODO: add ability to find the tile with the given hash.
-//
 func singleHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Single Handler: %q\n", r.URL.Path)
 	handlerStart := time.Now()
@@ -723,13 +720,13 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	hash := match[1]
 
-	glog.Infof("Hash: %s\n", hash)
-	tileNum, idx, err := git.TileAddressFromHash(hash)
+	tileNum, idx, err := git.TileAddressFromHash(hash, time.Time(config.BEGINNING_OF_TIME))
 	if err != nil {
 		glog.Infof("Did not find hash '%s', use latest: %q.\n", hash, err)
 		tileNum = -1
 		idx = -1
 	}
+	glog.Infof("Hash: %s tileNum: %d, idx: %d\n", hash, tileNum, idx)
 	tile, err := getTile(0, tileNum)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed retrieving tile.")
@@ -874,9 +871,6 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 
 // commitsHandler handles requests for commits.
 //
-// The ParamSet is the set of available parameters and their possible values
-// based on the set of traces in a tile.
-//
 // Queries look like:
 //
 //     /commits/?begin=hash1&end=hash2
@@ -902,8 +896,6 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 //    ...
 //  </pre>
 //
-//
-// TODO Add ability to query across a range of tiles.
 func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Query Handler: %q\n", r.URL.Path)
 	if r.Method != "GET" {
@@ -925,6 +917,53 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	linkified := commitLinkifyRe.ReplaceAllString(escaped, "<span class=subject>commit <a href=\"https://skia.googlesource.com/skia/+/${1}\" target=\"_blank\">${1}</a></span>")
 
 	w.Write([]byte(fmt.Sprintf("<pre>%s</pre>", linkified)))
+}
+
+// shortCommitsHandler returns basic info of a range of commits.
+//
+// Queries look like:
+//
+//     /commits/?begin=hash1&end=hash2
+//
+// Response is JSON of ShortCommits format that looks like:
+//
+// {
+//   "commits": [
+//     {
+//       hash: "123abc",
+//       author: "bensong",
+//       subject: "Adds short commits."
+//     },
+//     ...
+//   ]
+// }
+//
+func shortCommitsHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Query Handler: %q\n", r.URL.Path)
+	if r.Method != "GET" {
+		http.NotFound(w, r)
+		return
+	}
+	begin := r.FormValue("begin")
+	if len(begin) != 40 {
+		util.ReportError(w, r, fmt.Errorf("Invalid begin hash format: %s", begin), "Error while looking up hashes.")
+		return
+	}
+	end := r.FormValue("end")
+	if len(end) != 40 {
+		util.ReportError(w, r, fmt.Errorf("Invalid end hash format: %s", end), "Error while looking up hashes.")
+		return
+	}
+	commits, err := git.ShortList(begin, end)
+	if err != nil {
+		util.ReportError(w, r, err, "Error while looking up hashes.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(commits); err != nil {
+		util.ReportError(w, r, err, "Error while encoding response.")
+	}
 }
 
 // mainHandler handles the GET of the main page.
@@ -978,6 +1017,7 @@ func main() {
 	http.HandleFunc("/single/", singleHandler)
 	http.HandleFunc("/query/", queryHandler)
 	http.HandleFunc("/commits/", commitsHandler)
+	http.HandleFunc("/shortcommits/", shortCommitsHandler)
 	http.HandleFunc("/trybots/", autogzip.HandleFunc(trybotHandler))
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clustersHandler))
 	http.HandleFunc("/clustering/", autogzip.HandleFunc(clusteringHandler))

@@ -81,7 +81,7 @@ func TestFrom(t *testing.T) {
 	for _, tc := range testCases {
 		hashes := r.From(time.Unix(tc.ts, 0))
 		if got, want := len(hashes), tc.length; got != want {
-			t.Error("For ts: %d Length returned is wrong: Got %s Want %d", tc.ts, got, want)
+			t.Errorf("For ts: %d Length returned is wrong: Got %s Want %d", tc.ts, got, want)
 		}
 	}
 }
@@ -132,4 +132,96 @@ hello.go
 		t.Errorf("Log failed: \nGot  %q \nWant %q", got, want)
 	}
 
+}
+
+func TestShortList(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	l, err := r.ShortList("8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got, want := len(l.Commits), 0; got != want {
+		t.Fatalf("Wrong number of zero results: Got %v Want %v", got, want)
+	}
+
+	c, err := r.ShortList("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := []struct {
+		Hash    string
+		Author  string
+		Subject string
+	}{
+		{
+			Hash:    "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+			Author:  "Joe Gregorio",
+			Subject: "Added code. No body.",
+		},
+	}
+	if got, want := len(c.Commits), len(expected); got != want {
+		t.Fatalf("Wrong number of results: Got %v Want %v", got, want)
+	}
+	for i, o := range c.Commits {
+		if got, want := o.Hash, expected[i].Hash; got != want {
+			t.Errorf("Wrong hash: Got %v Want %v", got, want)
+		}
+		if got, want := o.Author, expected[i].Author; got != want {
+			t.Errorf("Wrong author: Got %v Want %v", got, want)
+		}
+		if got, want := o.Subject, expected[i].Subject; got != want {
+			t.Errorf("Wrong subject: Got %v Want %v", got, want)
+		}
+	}
+}
+
+func TestTileAddressFromHash(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The two commits in the repo have timestamps of:
+	// 1406721715 and 1406721642.
+	testCases := []struct {
+		hash   string
+		start  time.Time
+		num    int
+		offset int
+	}{
+		{
+			hash:   "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+			start:  time.Unix(1406721642, 0),
+			num:    0,
+			offset: 1,
+		},
+		{
+			hash:   "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+			start:  time.Unix(1406721643, 0),
+			num:    0,
+			offset: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		n, o, err := r.TileAddressFromHash(tc.hash, tc.start)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if n != tc.num || o != tc.offset {
+			t.Errorf("Address unexpected: got (%d, %d), want (%d, %d).", tc.num, tc.offset, n, o)
+		}
+	}
 }
