@@ -8,18 +8,22 @@ import (
 	"encoding/json"
 	"flag"
 	"net"
+	"net/http"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
-	"sync"
-
-	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/flags"
-	"skia.googlesource.com/buildbot.git/perf/go/ingester"
-	"skia.googlesource.com/buildbot.git/perf/go/trybot"
-
+	"code.google.com/p/goauth2/compute/serviceaccount"
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
+	"skia.googlesource.com/buildbot.git/perf/go/auth"
+	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"skia.googlesource.com/buildbot.git/perf/go/flags"
+	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
+	"skia.googlesource.com/buildbot.git/perf/go/goldingester"
+	"skia.googlesource.com/buildbot.git/perf/go/ingester"
+	"skia.googlesource.com/buildbot.git/perf/go/trybot"
 )
 
 // flags
@@ -29,10 +33,9 @@ var (
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	runEvery       = flag.Duration("run_every", 5*time.Minute, "How often the ingester should pull data from Google Storage.")
 	runTrybotEvery = flag.Duration("run_trybot_every", 1*time.Minute, "How often the ingester to pull trybot data from Google Storage.")
-	isSingleShot   = flag.Bool("single_shot", false, "Run the ingester only once.")
-	runIngest      = flag.Bool("run_ingest", true, "Run the ingester for buildbot data.")
-	runTrybot      = flag.Bool("run_trybot", true, "Run the ingester for trybot data.")
+	run            = flag.String("run", "nano,nano-trybot,golden", "A comma separated list of ingesters to run.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring-b:2003", "Where is Graphite metrics ingestion server running.")
+	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 )
 
 func Init() {
@@ -51,10 +54,10 @@ func Init() {
 // {
 //      "ingest":1445363563,
 //      "trybot":1445363564,
+//      "golden":1445363564,
 // }
 type Timestamps struct {
-	Ingest int64 `json:"ingest"`
-	Trybot int64 `json:"trybot"`
+	Ingester map[string]int64 // Maps ingester name to its timestamp.
 
 	filename string
 	mutex    sync.Mutex
@@ -64,8 +67,11 @@ type Timestamps struct {
 // filename.
 func NewTimestamps(filename string) *Timestamps {
 	return &Timestamps{
-		Ingest:   config.BEGINNING_OF_TIME.Unix(),
-		Trybot:   config.BEGINNING_OF_TIME.Unix(),
+		Ingester: map[string]int64{
+			"ingest": config.BEGINNING_OF_TIME.Unix(),
+			"trybot": config.BEGINNING_OF_TIME.Unix(),
+			"golden": config.BEGINNING_OF_TIME.Unix(),
+		},
 		filename: filename,
 	}
 }
@@ -80,7 +86,7 @@ func (t *Timestamps) Read() {
 		return
 	}
 	defer timestampFile.Close()
-	err = json.NewDecoder(timestampFile).Decode(t)
+	err = json.NewDecoder(timestampFile).Decode(&t.Ingester)
 	if err != nil {
 		glog.Errorf("Failed to parse file %s: %s", t.filename, err)
 	}
@@ -96,8 +102,40 @@ func (t *Timestamps) Write() {
 		return
 	}
 	defer writeTimestampFile.Close()
-	if err := json.NewEncoder(writeTimestampFile).Encode(t); err != nil {
+	if err := json.NewEncoder(writeTimestampFile).Encode(t.Ingester); err != nil {
 		glog.Errorf("Write Timestamps: Failed to encode timestamp file: %s", err)
+	}
+}
+
+// Process is what each ingestion is wrapped up behind.
+//
+// A Process is expected to never return, and should be called as a Go routine.
+type Process func()
+
+// NewIngestionProcess creates a Process for ingesting data.
+func NewIngestionProcess(ts *Timestamps, tsName string, git *gitinfo.GitInfo, tileDir, datasetName string, f ingester.IngestResultsFiles, gsDir string, every time.Duration) Process {
+	i, err := ingester.NewIngester(git, tileDir, datasetName, f, gsDir)
+	if err != nil {
+		glog.Fatalf("Failed to create Ingester: %s", err)
+	}
+
+	// oneStep is a single round of ingestion.
+	oneStep := func() {
+		now := time.Now()
+		err := i.Update(true, ts.Ingester[tsName])
+		if err != nil {
+			glog.Error(err)
+		} else {
+			ts.Ingester[tsName] = now.Unix()
+			ts.Write()
+		}
+	}
+
+	return func() {
+		oneStep()
+		for _ = range time.Tick(every) {
+			oneStep()
+		}
 	}
 }
 
@@ -105,68 +143,48 @@ func main() {
 	flag.Parse()
 	flags.Log()
 	Init()
-	ingester.Init(nil)
+
+	var client *http.Client
+	var err error
+	if *doOauth {
+		client, err = auth.RunFlow()
+		if err != nil {
+			glog.Fatalf("Failed to auth: %s", err)
+		}
+	} else {
+		client, err = serviceaccount.NewClient(nil)
+		if err != nil {
+			glog.Fatalf("Failed to auth using a service account: %s", err)
+		}
+	}
+
+	ingester.Init(client)
 	trybot.Init()
+	goldingester.Init()
 	ts := NewTimestamps(*timestampFile)
 	ts.Read()
+	glog.Infof("Timestamps: %#v\n", ts.Ingester)
 
-	ingestNanoBench, err := ingester.NewIngester(*gitRepoDir, *tileDir, true, ingester.NanoBenchIngestion, "nano-json-v1")
+	git, err := gitinfo.NewGitInfo(*gitRepoDir, true)
 	if err != nil {
-		glog.Fatalf("Failed to create Ingester: %s", err)
+		glog.Fatal("Failed loading Git info: %s\n", err)
 	}
 
-	ingestTrybot, err := ingester.NewIngester(*gitRepoDir, *tileDir, true, trybot.TrybotIngestion, "trybot/nano-json-v1")
-	if err != nil {
-		glog.Fatalf("Failed to create Trybot Ingester: %s", err)
+	// ingesters is a list of all the types of ingestion we can do.
+	ingesters := map[string]Process{
+		"nano":        NewIngestionProcess(ts, "ingest", git, *tileDir, config.DATASET_NANO, ingester.NanoBenchIngestion, "nano-json-v1", *runEvery),
+		"nano-trybot": NewIngestionProcess(ts, "trybot", git, *tileDir, config.DATASET_NANO, trybot.TrybotIngestion, "trybot/nano-json-v1", *runTrybotEvery),
+		"golden":      NewIngestionProcess(ts, "golden", git, *tileDir, config.DATASET_GOLDEN, goldingester.GoldenIngester, "dm-json-v1", *runEvery),
 	}
 
-	// TODO(jcgregorio) Add ingester.Register("name", fn, "directory_name") then make this a slice of Ingesters.
-
-	oneNanoBench := func() {
-		now := time.Now()
-		err := ingestNanoBench.Update(true, ts.Ingest)
-		if err != nil {
-			glog.Error(err)
+	for _, name := range strings.Split(*run, ",") {
+		glog.Infof("Process name: %s", name)
+		if process, ok := ingesters[name]; ok {
+			go process()
 		} else {
-			ts.Ingest = now.Unix()
-			ts.Write()
+			glog.Fatalf("Not a valid ingester name: %s", name)
 		}
 	}
 
-	oneTrybot := func() {
-		now := time.Now()
-		err := ingestTrybot.Update(true, ts.Trybot)
-		if err != nil {
-			glog.Error(err)
-		} else {
-			ts.Trybot = now.Unix()
-			ts.Write()
-		}
-	}
-
-	if *runIngest {
-		oneNanoBench()
-		if !*isSingleShot {
-			go func() {
-				for _ = range time.Tick(*runEvery) {
-					oneNanoBench()
-				}
-			}()
-		}
-	}
-
-	if *runTrybot {
-		oneTrybot()
-		if !*isSingleShot {
-			go func() {
-				for _ = range time.Tick(*runTrybotEvery) {
-					oneTrybot()
-				}
-			}()
-		}
-	}
-
-	if !*isSingleShot {
-		select {}
-	}
+	select {}
 }

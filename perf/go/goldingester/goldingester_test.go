@@ -5,8 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"skia.googlesource.com/buildbot.git/golden/go/types"
-	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
+	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
 func loadDMResults(t *testing.T) *DMResults {
@@ -28,7 +27,7 @@ func TestJSONToDMResults(t *testing.T) {
 	if got, want := len(dm.Results), 2; got != want {
 		t.Errorf("Results length wrong: Got %v Want %v", got, want)
 	}
-	if got, want := dm.Results[0].Digest, types.Digest("445aa63b2200baaba9b37fd5f80c0447"); got != want {
+	if got, want := dm.Results[0].Digest, "445aa63b2200baaba9b37fd5f80c0447"; got != want {
 		t.Errorf("Digest wrong: Got %v Want %v", got, want)
 	}
 	id, params := idAndParams(dm, dm.Results[0])
@@ -42,7 +41,7 @@ func TestJSONToDMResults(t *testing.T) {
 
 func TestParsing(t *testing.T) {
 	Init()
-	tile := ptypes.NewTile()
+	tile := types.NewTile()
 	offset := 1
 	dm := loadDMResults(t)
 
@@ -51,7 +50,7 @@ func TestParsing(t *testing.T) {
 		t.Errorf("Wrong number of Traces: Got %v Want %v", got, want)
 	}
 	tr := tile.Traces["x86_64:565:Debug:HD7770:ShuttleA:varied_text_clipped_no_lcd:Win8"].(*types.GoldenTrace)
-	if got, want := tr.Values[1], types.Digest("445aa63b2200baaba9b37fd5f80c0447"); got != want {
+	if got, want := tr.Values[1], "445aa63b2200baaba9b37fd5f80c0447"; got != want {
 		t.Errorf("Digest wrong: Got %v Want %v", got, want)
 	}
 	if got, want := len(tr.Params()), 8; got != want {

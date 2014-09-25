@@ -8,7 +8,11 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/golang/glog"
+
+	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
+	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/validator"
@@ -30,8 +34,13 @@ func TestIngestCommits(t *testing.T) {
 	}
 	defer os.RemoveAll(tileDir)
 
+	git, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	if err != nil {
+		glog.Fatal("Failed loading Git info: %s\n", err)
+	}
+
 	// Construct an Ingestor and have it UpdateCommitInfo.
-	i, err := NewIngester(filepath.Join(tr.Dir, "testrepo"), tileDir, false, NanoBenchIngestion, "")
+	i, err := NewIngester(git, tileDir, config.DATASET_NANO, NanoBenchIngestion, "")
 	if err != nil {
 		t.Fatal("Failed to create ingester:", err)
 	}
@@ -41,7 +50,7 @@ func TestIngestCommits(t *testing.T) {
 	}
 
 	// Validate the generated Tiles.
-	store := filetilestore.NewFileTileStore(tileDir, "nano", 0)
+	store := filetilestore.NewFileTileStore(tileDir, config.DATASET_NANO, 0)
 	if !validator.ValidateDataset(store, false, false) {
 		t.Error("Failed to validate the created Tiles:", err)
 	}

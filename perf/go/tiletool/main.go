@@ -3,14 +3,15 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
+	"skia.googlesource.com/buildbot.git/perf/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/validator"
-
-	_ "skia.googlesource.com/buildbot.git/golden/go/types" // Registers GoldenTrace with gob so we can read Golden Tiles.
 )
 
 // flags
@@ -18,11 +19,15 @@ var (
 	tileDir    = flag.String("tile_dir", "/tmp/tileStore", "What directory to look for tiles in.")
 	verbose    = flag.Bool("verbose", false, "Verbose.")
 	echoHashes = flag.Bool("echo_hashes", false, "Echo Git hashes during validation.")
+	dataset    = flag.String("dataset", config.DATASET_NANO, fmt.Sprintf("Choose from the valid datasets: %v", config.VALID_DATASETS))
 )
 
 func main() {
 	flag.Parse()
-	store := filetilestore.NewFileTileStore(*tileDir, "nano", 0)
+	if !util.In(*dataset, config.VALID_DATASETS) {
+		log.Fatalf("Not a valid dataset: %s", *dataset)
+	}
+	store := filetilestore.NewFileTileStore(*tileDir, *dataset, 0)
 	if !validator.ValidateDataset(store, *verbose, *echoHashes) {
 		log.Fatal("FAILED Validation.")
 	}

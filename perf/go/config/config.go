@@ -14,12 +14,6 @@ func (b QuerySince) Date() string {
 	return time.Time(b).Format("20060102")
 }
 
-// GitHashColumn returns QuerySince in the format of SQL table TIMESTAMP
-// column.
-func (b QuerySince) SqlTsColumn() string {
-	return time.Time(b).Format("2006-01-02 15:04:05")
-}
-
 // Unix returns the unix timestamp.
 func (b QuerySince) Unix() int64 {
 	return time.Time(b).Unix()
@@ -59,11 +53,16 @@ const (
 	MIN_STDDEV = 0.001
 )
 
-type DatasetName string
-
 const (
-	DATASET_SKP   DatasetName = "skps"
-	DATASET_MICRO DatasetName = "micro"
+	DATASET_NANO   = "nano"
+	DATASET_GOLDEN = "golden"
+)
+
+var (
+	VALID_DATASETS = []string{
+		DATASET_NANO,
+		DATASET_GOLDEN,
+	}
 )
 
 var (

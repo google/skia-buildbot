@@ -141,7 +141,7 @@ func Init() {
 		filepath.Join(cwd, "templates/header.html"),
 	))
 
-	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, "nano", 2*time.Minute)
+	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, config.DATASET_NANO, 2*time.Minute)
 
 	var err error
 	git, err = gitinfo.NewGitInfo(*gitRepoDir, true)

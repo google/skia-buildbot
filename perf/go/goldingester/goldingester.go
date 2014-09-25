@@ -7,11 +7,9 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
-	"skia.googlesource.com/buildbot.git/golden/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/ingester"
+	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
-
-	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
 var (
@@ -64,7 +62,7 @@ type DMResults struct {
 type Result struct {
 	Key     map[string]string `json:"key"`
 	Options map[string]string `json:"options"`
-	Digest  types.Digest      `json:"md5"`
+	Digest  string            `json:"md5"`
 }
 
 func NewDMResults() *DMResults {
@@ -103,7 +101,7 @@ func idAndParams(dm *DMResults, r *Result) (string, map[string]string) {
 }
 
 // addResultToTile adds the Digests from the DMResults to the tile at the given offset.
-func addResultToTile(res *DMResults, tile *ptypes.Tile, offset int) {
+func addResultToTile(res *DMResults, tile *types.Tile, offset int) {
 	for _, r := range res.Results {
 		traceID, params := idAndParams(res, r)
 

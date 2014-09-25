@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"skia.googlesource.com/buildbot.git/perf/go/config"
@@ -26,6 +27,7 @@ type GitInfo struct {
 	dir        string
 	hashes     []string
 	timestamps map[string]time.Time // Key is the hash.
+	mutex      sync.Mutex
 }
 
 // NewGitInfo creates a new GitInfo for the Git repository found in directory
@@ -42,6 +44,8 @@ func NewGitInfo(dir string, pull bool) (*GitInfo, error) {
 // Update refreshes the history that GitInfo stores for the repo. If pull is
 // true then git pull is performed before refreshing.
 func (g *GitInfo) Update(pull bool) error {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
 	glog.Info("Beginning Update.")
 	if pull {
 		cmd := exec.Command("git", "pull")

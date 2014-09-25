@@ -59,13 +59,7 @@ type Ingester struct {
 }
 
 // NewIngester creates an Ingester given the repo and tilestore specified.
-//
-// If pull is true then a Git pull will be done on the repo before doing updates.
-func NewIngester(gitRepoDir, tileStoreDir string, pull bool, f IngestResultsFiles, storageBaseDir string) (*Ingester, error) {
-	git, err := gitinfo.NewGitInfo(gitRepoDir, pull)
-	if err != nil {
-		return nil, fmt.Errorf("Failed loading Git info: %s\n", err)
-	}
+func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, f IngestResultsFiles, storageBaseDir string) (*Ingester, error) {
 	storage, err := storage.New(http.DefaultClient)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create interace to Google Storage: %s\n", err)
@@ -73,7 +67,7 @@ func NewIngester(gitRepoDir, tileStoreDir string, pull bool, f IngestResultsFile
 
 	i := &Ingester{
 		git:            git,
-		tileStore:      filetilestore.NewFileTileStore(tileStoreDir, "nano", -1),
+		tileStore:      filetilestore.NewFileTileStore(tileStoreDir, datasetName, -1),
 		storage:        storage,
 		hashToNumber:   map[string]int{},
 		ingestResults:  f,
