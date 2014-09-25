@@ -227,7 +227,8 @@ _slave_host_dicts = {
 
   'skia-housekeeping-slave-b': {
     'slaves': [
-      ('skia-housekeeping-slave-b', '0', True),
+      ('skia-housekeeping-slave-b', '0', False),
+      ('skiabot-linux-housekeeper-000', '1', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': compute_engine_login,
