@@ -48,7 +48,7 @@ NEW_MASTER_NAME = {
   'Skia': 'Skia',
   'AndroidSkia': 'SkiaAndroid',
   'CompileSkia': 'SkiaCompile',
-  'FYISKIA': 'SkiaFYI',
+  'FYISkia': 'SkiaFYI',
   'PrivateSkia': 'SkiaInternal',
 }
 UPSTREAM_MASTER_PREFIX = 'client.skia'
