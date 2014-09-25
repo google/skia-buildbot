@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia JSON ingest application."
 NAME=ingest
 DAEMON=/home/perf/golib/bin/$NAME
-DAEMON_ARGS="--git_repo_dir=/home/perf/skia --log_dir=/tmp/glog --tile_dir=/home/perf/tileStore3 --timestamp_file=/home/perf/ingestTimestamp3.json --run=nano,nano-trybot,golden"
+DAEMON_ARGS="--git_repo_dir=/home/perf/skia --log_dir=/tmp/glog --tile_dir=/home/perf/tileStore3 --timestamp_file=/home/perf/ingestTimestamp3.json --run=nano,nano-trybot,golden --oauth=false"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
