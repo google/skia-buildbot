@@ -91,7 +91,7 @@ Developing
 
 The easiest way to develop should be to do:
 
-    go get -u skia.googlesource.com/buildbot.git/perf/go/skiaperf
+    go get -u skia.googlesource.com/buildbot.git/perf/go/...
 
 Which will fetch the repository into the right location and
 download dependencies.
