@@ -37,6 +37,7 @@ export PATH=$PATH:$GOROOT/bin
 
 go get -u skia.googlesource.com/buildbot.git/perf/go/...
 
-# Stil need to run make to build the JS.
+# Still need to run make to build the JS. Also updates code version info.
 cd $GOPATH/src/skia.googlesource.com/buildbot.git/perf/
 make all
+make release
