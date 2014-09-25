@@ -26,7 +26,7 @@ SLAVE_IP_ADDRESSES="108.170.220.73 108.170.220.26 108.170.220.96 108.170.220.108
 # 108.170.220.94
 # The following IP address is used by skia-webtry (jcgregorio's instance):
 # 108.170.220.126
-# The following IP address is used by skia-perf (bensong's instance):
+# The following IP address is used by skia-testing-b (bensong's instance):
 # 108.170.220.208
 # The following IP address is used by skia-monitor (jcgregorio's instance):
 MONITORING_IP_ADDRESS=108.170.220.59

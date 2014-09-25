@@ -11,7 +11,7 @@ Code Locations
 
 The code for the server along with VM instance setup scripts is kept in:
 
-  * https://skia.googlesource.com/buildbot/+/master/perf/server
+  * https://skia.googlesource.com/buildbot/+/master/perf/
 
 
 Architecture
@@ -184,10 +184,10 @@ MySQL Flags to set:
 
 All passwords for MySQL are stored in valentine (search "skiaperf").
 
-To connect to the database from authorized network (including skia-perf GCE):
+To connect to the database from authorized network (including skia-testing-b
+GCE):
 
     $ mysql -h 173.194.104.24 -u root -p
-
 
 
     mysql> use skia
