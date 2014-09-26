@@ -135,13 +135,13 @@ account.
 Debugging Tips
 --------------
 
-Starting the application is done via /etc/init.d/perf which does the
+Starting the application is done via /etc/init.d/skiaperf which does the
 backgrounding itself via start-stop-daemon, which means that if the app
 crashes when first starting then nothing will make it to the logs. To debug
-the cause in that case edit /etc/init.d/perf and remove the --background
+the cause in that case edit /etc/init.d/skiaperf and remove the --background
 flag and then run:
 
-  $ sudo /etc/init.d/perf start
+  $ sudo /etc/init.d/skiaperf start
 
 And you should get stdout and stderr output.
 
@@ -437,7 +437,8 @@ table columns is dynamic.
 We can also add an option for users to specify a CL, so we use the available
 bench data closest to that CL (either before or after) for visualization.
 
-Another option is to have users provide two CLs and use the UI to show their diffs on common traces.
+Another option is to have users provide two CLs and use the UI to show their
+diffs on common traces.
 
 
 
@@ -445,7 +446,7 @@ Startup and config
 ------------------
 The server is started and stopped via:
 
-    sudo /etc/init.d/perf [start|stop|restart]
+    sudo /etc/init.d/skiaperf [start|stop|restart]
 
 But sysv init only handles starting and stopping a program once, so we use
 Monit to monitor the application and restart it if it crashes. The config

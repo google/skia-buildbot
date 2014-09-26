@@ -1,4 +1,4 @@
-check process perf with pidfile /var/run/skiaperf.pid
+check process skiaperf with pidfile /var/run/skiaperf.pid
    start program = "/etc/init.d/skiaperf start"
    stop program = "/etc/init.d/skiaperf stop"
 
