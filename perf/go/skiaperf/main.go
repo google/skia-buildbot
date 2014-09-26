@@ -85,7 +85,7 @@ var (
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tilebuilder tiles in.")
+	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring-b:2003", "Where is Graphite metrics ingestion server running.")
 	apikey         = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
 )
