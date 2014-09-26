@@ -27,7 +27,9 @@ type GitInfo struct {
 	dir        string
 	hashes     []string
 	timestamps map[string]time.Time // Key is the hash.
-	mutex      sync.Mutex
+
+	// Any access to hashes or timestamps must be protected.
+	mutex sync.Mutex
 }
 
 // NewGitInfo creates a new GitInfo for the Git repository found in directory
@@ -66,7 +68,9 @@ func (g *GitInfo) Update(pull bool) error {
 }
 
 // Details returns the author, subject and timestamp for the given commit.
-func (g *GitInfo) Details(hash string) (string, string, time.Time, error) {
+func (g GitInfo) Details(hash string) (string, string, time.Time, error) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
 	cmd := exec.Command("git", "log", "-n", "1", "--format=format:%an%x20(%ae)%n%s", hash)
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
@@ -82,7 +86,9 @@ func (g *GitInfo) Details(hash string) (string, string, time.Time, error) {
 }
 
 // From returns all commits from 'start' to HEAD.
-func (g *GitInfo) From(start time.Time) []string {
+func (g GitInfo) From(start time.Time) []string {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
 	ret := []string{}
 	for _, h := range g.hashes {
 		if g.timestamps[h].After(start) {
@@ -109,7 +115,7 @@ func (g *GitInfo) From(start time.Time) []string {
 //    perf/go/types/types.go
 //    perf/res/js/logic.js
 //
-func (g *GitInfo) Log(begin, end string) (string, error) {
+func (g GitInfo) Log(begin, end string) (string, error) {
 	command := []string{"log", "--name-only"}
 	hashrange := begin
 	if end != "" {
@@ -212,7 +218,7 @@ func readCommitsFromGit(dir string) ([]string, map[string]time.Time, error) {
 }
 
 // SkpCommits returns the indices for all the commits that contain SKP updates.
-func (g *GitInfo) SkpCommits(tile *types.Tile) ([]int, error) {
+func (g GitInfo) SkpCommits(tile *types.Tile) ([]int, error) {
 	// Executes a git log command that looks like:
 	//
 	//   git log --format=format:%H  32956400b4d8f33394e2cdef9b66e8369ba2a0f3..e7416bfc9858bde8fc6eb5f3bfc942bc3350953a SKP_VERSION
@@ -238,7 +244,7 @@ func (g *GitInfo) SkpCommits(tile *types.Tile) ([]int, error) {
 }
 
 // LastSkpCommit returns the time of the last change to the SKP_VERSION file.
-func (g *GitInfo) LastSkpCommit() (time.Time, error) {
+func (g GitInfo) LastSkpCommit() (time.Time, error) {
 	// Executes a git log command that looks like:
 	//
 	// git log --format=format:%ct -n 1 SKP_VERSION
@@ -263,6 +269,8 @@ func (g *GitInfo) LastSkpCommit() (time.Time, error) {
 // tile number that contains the hash, and its position in the tile commit array.
 // This assumes that tiles are built for commits since after the given time.
 func (g *GitInfo) TileAddressFromHash(hash string, start time.Time) (num, offset int, err error) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
 	i := 0
 	for _, h := range g.hashes {
 		if g.timestamps[h].Before(start) {
