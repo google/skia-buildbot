@@ -10,7 +10,7 @@ ver:
 	git update-index --assume-unchanged templates/titlebar.html
 
 .PHONY: release
-release: build ver
+release: ver build
 	echo
 
 .PHONY: test
