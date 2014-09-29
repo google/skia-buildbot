@@ -31,7 +31,7 @@ The frontend is available at http://skiaperf.com.
                +----------^--+             
                           |                
           +--------------------+----+-----+
-          |   GCE Instance|skia+perf+b    |
+          |   GCE Instance|skia-instance-b    |
           |               |               |
           |   +-----------+----------+    |
           |   |     Squid3           |    |
@@ -128,7 +128,7 @@ Logs
 ----
 
 We use the https://github.com/golang/glog for logging, which puts Google style
-Error, Warning and Info logs in /tmp/glog on the server under the 'skiaperf'
+Error, Warning and Info logs in /tmp/glog on the server under the 'perf'
 account.
 
 
