@@ -1002,7 +1002,7 @@ func main() {
 	flags.Log()
 
 	Init()
-	db.Init()
+	db.Init(db.ProdConnectionString(*local))
 	stats.Start(nanoTileStore, git)
 	alerting.Start(nanoTileStore, *apikey)
 	login.Init(*local)

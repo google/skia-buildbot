@@ -196,6 +196,9 @@ GCE):
 
 Initial setup of the database, the users, and the tables:
 
+* Create the database and set up permissions. Execute the following after
+  you connect to a MySQL database (not necessary for SQLite).
+
     CREATE DATABASE skia;
     USE skia;
     CREATE USER 'readonly'@'%' IDENTIFIED BY <password in valentine>;
@@ -203,26 +206,26 @@ Initial setup of the database, the users, and the tables:
     CREATE USER 'readwrite'@'%' IDENTIFIED BY <password in valentine>;
     GRANT SELECT, DELETE, UPDATE, INSERT ON *.* TO 'readwrite'@'%';
 
-    CREATE TABLE shortcuts (
-      id      INT             NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      traces  MEDIUMTEXT      NOT NULL
-    );
+* Create the versioned database tables.
 
-    CREATE TABLE clusters (
-      id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      ts         BIGINT       NOT NULL,
-      hash       TEXT         NOT NULL,
-      regression FLOAT        NOT NULL,
-      cluster    MEDIUMTEXT   NOT NULL,
-      status     TEXT         NOT NULL,
-      message    TEXT         NOT NULL
-    );
+  We use the 'migrateDB' tool to keep the database in a well defined (versioned)
+  state. The 'db_conn_string' flag allows to specify the target database.
+  By default it will try to connect to the production environment.
+  But for testing a local MySQL database can be provided. If it cannot
+  connect to MySQL it will fall back to SQLite.
 
-    CREATE TABLE tries (
-      issue       VARCHAR(255) NOT NULL PRIMARY KEY,
-      lastUpdated BIGINT       NOT NULL,
-      results     LONGTEXT   NOT NULL
-    );
+  Bring the production database to the latest schema version:
+
+     $ migrateDB -logtostderr=true
+
+  Bring a local database to the latest schema version:
+
+     $ migrateDB -logtostderr=true -db_conn_string="root:%s@tcp(localhost:3306)/skia?parseTime=true"
+
+  Bring a local SQLite database to the latest schema version:
+
+     $ migrateDB -logtostderr=true -db_conn_string=""
+
 
 Clustering
 ----------
@@ -412,7 +415,7 @@ in the "config" vertical from the following two traces:
     x86_64:HD7770:ShuttleA:Win8:gradient_create_opaque_640_480:8888
 
 and put the value into the cell in a table that has
-_row_gradient_create_opaque_640_480_ and 
+_row_gradient_create_opaque_640_480_ and
 column _x86_64:HD7770:ShuttleA:Win8_. Basically, the table row will be the
 "test" name, and the column will be the rest of the keys. The number of columns
 will be the number of perf bots we run (20+ for now).

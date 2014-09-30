@@ -173,8 +173,7 @@ func (p BenchByIssueSlice) Len() int           { return len(p) }
 func (p BenchByIssueSlice) Less(i, j int) bool { return p[i].IssueName < p[j].IssueName }
 func (p BenchByIssueSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-func Init() {
-	db.Init()
+func init() {
 	var err error
 	st, err = storage.New(util.NewTimeoutClient())
 	if err != nil {

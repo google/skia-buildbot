@@ -18,6 +18,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/perf/go/auth"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/goldingester"
@@ -35,6 +36,7 @@ var (
 	run            = flag.String("run", "nano,nano-trybot,golden", "A comma separated list of ingesters to run.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring-b:2003", "Where is Graphite metrics ingestion server running.")
 	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
 func Init() {
@@ -143,6 +145,9 @@ func main() {
 	flags.Log()
 	Init()
 
+	// Initialize the database. We might not need the oauth dialog if it fails.
+	db.Init(db.ProdConnectionString(*local))
+
 	var client *http.Client
 	var err error
 	if *doOauth {
@@ -156,7 +161,6 @@ func main() {
 	}
 
 	ingester.Init(client)
-	trybot.Init()
 	goldingester.Init()
 	ts := NewTimestamps(*timestampFile)
 	ts.Read()

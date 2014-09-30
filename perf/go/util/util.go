@@ -46,3 +46,23 @@ func MapsEqual(a, b map[string]string) bool {
 	}
 	return true
 }
+
+// This is sad, but apparently there is no library function to get the absolute
+// value of an int.
+func AbsInt(v int) int {
+	if v < 0 {
+		return -v
+	}
+	return v
+}
+
+// Returns -1, 1 or 0 depending on the sign of v.
+func SignInt(v int) int {
+	if v < 0 {
+		return -1
+	}
+	if v > 0 {
+		return 1
+	}
+	return 0
+}
