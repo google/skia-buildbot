@@ -507,7 +507,7 @@ _slave_host_dicts = {
 
   'skia-vm-019': {
     'slaves': [
-      ('skiabot-win-compile-003', '0', False),
+      ('skiabot-win-compile-003', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
