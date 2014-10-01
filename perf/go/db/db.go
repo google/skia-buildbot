@@ -308,6 +308,31 @@ var migrationSteps = []struct {
 			`DROP TABLE IF EXISTS tries`,
 		},
 	},
+	// version 2
+	{
+		MySQLUp: []string{
+			`CREATE TABLE IF NOT EXISTS activitylog (
+				id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				timestamp  BIGINT       NOT NULL,
+				userid     TEXT         NOT NULL,
+				action     TEXT         NOT NULL,
+				url        TEXT
+			)`,
+		},
+		MySQLDown: []string{},
+		SQLiteUp: []string{
+			`CREATE TABLE activitylog (
+				id         INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
+				timestamp  TIMESTAMP    NOT NULL,
+				userid     TEXT         NOT NULL,
+				action     TEXT         NOT NULL,
+				url        TEXT
+			)`,
+		},
+		SQLiteDown: []string{
+			`DROP TABLE IF EXISTS activitylog`,
+		},
+	},
 
 	// Use this is a template for more migration steps.
 	// version x

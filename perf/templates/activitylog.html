@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skia Performance Monitoring | Activity Log</title>
+
+    {{template "header.html" .}}
+
+</head>
+<body>
+  {{template "titlebar.html" .}}
+  <section id=activities>
+    {{range .}}
+      {{.ID}}: {{.Date}} {{.UserID}} {{.Action}} <a href="{{.URL}}">{{.URL}}</a><br>
+    {{end}}
+  </section>
+</body>
+</html>

@@ -25,6 +25,7 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/perf/go/activitylog"
 	"skia.googlesource.com/buildbot.git/perf/go/alerting"
 	"skia.googlesource.com/buildbot.git/perf/go/annotate"
 	"skia.googlesource.com/buildbot.git/perf/go/clustering"
@@ -62,6 +63,8 @@ var (
 
 	clTemplate *template.Template = nil
 
+	activityTemplate *template.Template = nil
+
 	helpTemplate *template.Template = nil
 
 	// compareTemplate is the /compare/ page we serve.
@@ -81,6 +84,8 @@ var (
 	queryHandlerPath = regexp.MustCompile(`/query/([0-9]*)/([-0-9]*)/(traces/)?$`)
 
 	clHandlerPath = regexp.MustCompile(`/cl/([0-9]*)$`)
+
+	activityHandlerPath = regexp.MustCompile(`/activitylog/([0-9]*)$`)
 
 	git *gitinfo.GitInfo = nil
 
@@ -134,6 +139,11 @@ func Init() {
 	))
 	clTemplate = template.Must(template.ParseFiles(
 		filepath.Join(cwd, "templates/cl.html"),
+		filepath.Join(cwd, "templates/titlebar.html"),
+		filepath.Join(cwd, "templates/header.html"),
+	))
+	activityTemplate = template.Must(template.ParseFiles(
+		filepath.Join(cwd, "templates/activitylog.html"),
 		filepath.Join(cwd, "templates/titlebar.html"),
 		filepath.Join(cwd, "templates/header.html"),
 	))
@@ -277,6 +287,38 @@ func clHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := clTemplate.Execute(w, cl); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// activityHandler serves the HTML for the /activitylog/ page.
+//
+// If an optional number n is appended to the path, returns the most recent n
+// activities. Otherwise returns the most recent 100 results.
+//
+func activityHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	match := activityHandlerPath.FindStringSubmatch(r.URL.Path)
+	if r.Method != "GET" || match == nil || len(match) != 2 {
+		http.NotFound(w, r)
+		return
+	}
+	n := 100
+	if len(match[1]) > 0 {
+		num, err := strconv.ParseInt(match[1], 10, 0)
+		if err != nil {
+			util.ReportError(w, r, err, "Failed parsing the given number.")
+			return
+		}
+		n = int(num)
+	}
+	a, err := activitylog.GetRecent(n)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to retrieve activity.")
+		return
+	}
+	if err := activityTemplate.Execute(w, a); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -1041,6 +1083,7 @@ func main() {
 	http.HandleFunc("/clusters/", autogzip.HandleFunc(clustersHandler))
 	http.HandleFunc("/clustering/", autogzip.HandleFunc(clusteringHandler))
 	http.HandleFunc("/cl/", autogzip.HandleFunc(clHandler))
+	http.HandleFunc("/activitylog/", autogzip.HandleFunc(activityHandler))
 	http.HandleFunc("/alerts/", autogzip.HandleFunc(alertsHandler))
 	http.HandleFunc("/alerting/", autogzip.HandleFunc(alertingHandler))
 	http.HandleFunc("/annotate/", autogzip.HandleFunc(annotate.Handler))

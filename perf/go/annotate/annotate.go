@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/golang/glog"
+	"skia.googlesource.com/buildbot.git/perf/go/activitylog"
 	"skia.googlesource.com/buildbot.git/perf/go/alerting"
 	"skia.googlesource.com/buildbot.git/perf/go/login"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
@@ -14,7 +15,7 @@ import (
 )
 
 // Handler serves the /annotate/ endpoint for changing the status of an
-// alert cluster.
+// alert cluster. It also writes a new types.Activity log record to the database.
 //
 // Expects a POST'd form with the following values:
 //
@@ -61,6 +62,17 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	c.Message = message
 	if err := alerting.Write(c); err != nil {
 		util.ReportError(w, r, err, "Failed to save cluster summary.")
+		return
+	}
+
+	// Write a new Activity record.
+	a := &types.Activity{
+		UserID: login.LoggedInAs(r),
+		Action: "Perf Alert: " + newStatus,
+		URL:    fmt.Sprintf("http://skiaperf.com/cl/%d", id),
+	}
+	if err := activitylog.Write(a); err != nil {
+		util.ReportError(w, r, err, "Failed to save activity.")
 		return
 	}
 
