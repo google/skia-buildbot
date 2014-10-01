@@ -19,7 +19,9 @@ type DiffStore interface {
 	Get(d1, d2 string) (*DiffMetrics, error)
 }
 
-func openImage(filePath string) (image.Image, error) {
+// OpenImage is a utility function that opens the specified file and returns an
+// image.Image
+func OpenImage(filePath string) (image.Image, error) {
 	reader, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -32,6 +34,7 @@ func openImage(filePath string) (image.Image, error) {
 	return im, nil
 }
 
+// TODO(rmistry): Move the below functions to a 'util' or 'math' package.
 func maxInt(a, b int) int {
 	if a < b {
 		return b
@@ -64,8 +67,8 @@ func fillMaxRGBDiffs(color1, color2 color.Color, maxRGBDiffs []int) {
 	maxRGBDiffs[2] = maxInt(maxRGBDiffs[2], bDiff)
 }
 
-// Utility function that calculates the DiffMetrics for the provided images.
-// Intended to be called from the DiffStore.Diff implementations.
+// Diff is a utility function that calculates the DiffMetrics for the provided
+// images. Intended to be called from the DiffStore implementations.
 func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 	img1Bounds := img1.Bounds()
 	img2Bounds := img2.Bounds()
