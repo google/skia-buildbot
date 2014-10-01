@@ -37,34 +37,23 @@ import (
 	"code.google.com/p/goauth2/oauth"
 	"github.com/golang/glog"
 	"github.com/gorilla/securecookie"
-	"skia.googlesource.com/buildbot.git/perf/go/metadata"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
 const (
-	METADATA_KEY = "cookiesalt"
-
-	LOCAL_COOKIE_SALT = "notverysecret"
-
 	COOKIE_NAME = "skid"
 )
 
 var (
 	// cookieSalt is some entropy for our encoders.
-	cookieSalt = LOCAL_COOKIE_SALT
+	cookieSalt = ""
 
-	secureCookie = securecookie.New([]byte(cookieSalt), nil)
+	secureCookie *securecookie.SecureCookie = nil
 
 	// oauthConfig is the OAuth 2.0 client configuration.
-	//
-	// The following information comes from:
-	//
-	//   https://console.developers.google.com/project/31977622648/apiui/credential
-	//
-	// That location is where you can change the accepted Redirect URLs.
 	oauthConfig = &oauth.Config{
-		ClientId:     "31977622648-cghipjk0o3g06gqogvrgohftesfs0t9q.apps.googleusercontent.com",
-		ClientSecret: "F1DwOv0v0tiLBgm8ep5Umxof",
+		ClientId:     "not-a-valid-client-id",
+		ClientSecret: "not-a-valid-client-secret",
 		Scope:        "email",
 		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
 		TokenURL:     "https://accounts.google.com/o/oauth2/token",
@@ -81,18 +70,16 @@ var (
 	domainWhitelist = []string{"google.com", "chromium.org", "skia.org"}
 )
 
-// Init must be called before any other methods. Pass in true for local if
-// running locally, as opposed to in prod.
-func Init(local bool) {
-	if !local {
-		// TODO(jcgregorio) Also read ClientSecret, and RedirectURL from metadata.
-		cookieSalt, err := metadata.Get(METADATA_KEY)
-		if err != nil {
-			glog.Fatalf("Can't launch, unable to obtain %s from metadata server: %s. Remember to use --local when running locally.", METADATA_KEY, err)
-		}
-		secureCookie = securecookie.New([]byte(cookieSalt), nil)
-		oauthConfig.RedirectURL = "http://skiaperf.com/oauth2callback/"
-	}
+// Init must be called before any other methods.
+//
+// The Client ID, Client Secret, and Redirect URL are listed in the Google
+// Developers Console.
+func Init(clientId, clientSecret, redirectURL, cookieSalt string) {
+	secureCookie = securecookie.New([]byte(cookieSalt), nil)
+	oauthConfig.ClientId = clientId
+	oauthConfig.ClientSecret = clientSecret
+	oauthConfig.RedirectURL = redirectURL
+	oauthConfig.RedirectURL = "http://skiaperf.com/oauth2callback/"
 }
 
 // LoginURL returns a URL that the user is to be directed to for login.

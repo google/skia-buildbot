@@ -4,12 +4,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"skia.googlesource.com/buildbot.git/perf/go/login"
 )
 
+var once sync.Once
+
+func loginInit() {
+	login.Init("id", "secret", "http://localhost", "salt")
+}
+
 func TestMissingLogin(t *testing.T) {
+	once.Do(loginInit)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "http://skiaperf.com/annotate", nil)
 	if err != nil {
@@ -25,6 +33,7 @@ func TestMissingLogin(t *testing.T) {
 }
 
 func TestGoodLogin(t *testing.T) {
+	once.Do(loginInit)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("POST", "http://skiaperf.com/annotate", nil)
 	if err != nil {

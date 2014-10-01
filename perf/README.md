@@ -64,6 +64,11 @@ values. The current set of metadata required is:
     search for "skiaperf".
   * cookiesalt - A bit of entropy to use for hashing the users email address
     in the cookie as used for login. Store in http://valentine, search for "skiaperf".
+  * clientid and clientsecret - The Client ID and Secret used in the OAuth flow
+    for login. The values come from the following page, which is also the
+    place to set valid Redirect URLs.
+
+      https://console.developers.google.com/project/31977622648/apiui/credential
 
 To set the metadata use:
 
@@ -71,11 +76,15 @@ To set the metadata use:
       --metadata=apikey:[apikey value] \
       --metadata=readwrite:[readwrite value] \
       --metadata=cookiesalt:[cookiesalt value] \
+      --metadata=clientid:[clientid value] \
+      --metadata=clientsecret:[clientsecret value] \
       --fingerprint=[metadata fingerprint]
 
 You can find the current metadata fingerprint by running:
 
     gcutil --project=google.com:skia-buildbots getinstance skia-testing-b
+
+Or you can just use the web UI in the console to set metadata values.
 
 To update the code
 ==================

@@ -35,6 +35,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
 	"skia.googlesource.com/buildbot.git/perf/go/login"
+	"skia.googlesource.com/buildbot.git/perf/go/metadata"
 	"skia.googlesource.com/buildbot.git/perf/go/parser"
 	"skia.googlesource.com/buildbot.git/perf/go/shortcut"
 	"skia.googlesource.com/buildbot.git/perf/go/stats"
@@ -42,6 +43,12 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/vec"
+)
+
+const (
+	COOKIESALT_METADATA_KEY    = "cookiesalt"
+	CLIENT_ID_METADATA_KEY     = "clientid"
+	CLIENT_SECRET_METADATA_KEY = "clientsecret"
 )
 
 var (
@@ -997,6 +1004,14 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+func mustGetMetadata(keyname string) string {
+	value, err := metadata.Get(keyname)
+	if err != nil {
+		glog.Fatalf("Can't launch, unable to obtain %s from metadata server: %s. Remember to use --local when running locally.", keyname, err)
+	}
+	return value
+}
+
 func main() {
 	flag.Parse()
 	flags.Log()
@@ -1005,7 +1020,19 @@ func main() {
 	db.Init(db.ProdConnectionString(*local))
 	stats.Start(nanoTileStore, git)
 	alerting.Start(nanoTileStore, *apikey)
-	login.Init(*local)
+
+	// By default use a set of credentials setup for localhost access.
+	var cookieSalt = "notverysecret"
+	var clientID = "31977622648-cghipjk0o3g06gqogvrgohftesfs0t9q.apps.googleusercontent.com"
+	var clientSecret = "f1dwov0v0tilbgm8ep5umxof"
+	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback", *port)
+	if !*local {
+		cookieSalt = mustGetMetadata(COOKIESALT_METADATA_KEY)
+		clientID = mustGetMetadata(CLIENT_ID_METADATA_KEY)
+		clientSecret = mustGetMetadata(CLIENT_SECRET_METADATA_KEY)
+		redirectURL = "http://skiaperf.com/oauth2callback"
+	}
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
 	glog.Infoln("Begin loading data.")
 
 	// Resources are served directly.
