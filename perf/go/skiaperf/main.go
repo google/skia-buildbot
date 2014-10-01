@@ -1004,14 +1004,6 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func mustGetMetadata(keyname string) string {
-	value, err := metadata.Get(keyname)
-	if err != nil {
-		glog.Fatalf("Can't launch, unable to obtain %s from metadata server: %s. Remember to use --local when running locally.", keyname, err)
-	}
-	return value
-}
-
 func main() {
 	flag.Parse()
 	flags.Log()
@@ -1027,9 +1019,9 @@ func main() {
 	var clientSecret = "f1dwov0v0tilbgm8ep5umxof"
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback", *port)
 	if !*local {
-		cookieSalt = mustGetMetadata(COOKIESALT_METADATA_KEY)
-		clientID = mustGetMetadata(CLIENT_ID_METADATA_KEY)
-		clientSecret = mustGetMetadata(CLIENT_SECRET_METADATA_KEY)
+		cookieSalt = metadata.MustGet(COOKIESALT_METADATA_KEY)
+		clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
+		clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)
 		redirectURL = "http://skiaperf.com/oauth2callback"
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)

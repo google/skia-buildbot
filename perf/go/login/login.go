@@ -79,7 +79,6 @@ func Init(clientId, clientSecret, redirectURL, cookieSalt string) {
 	oauthConfig.ClientId = clientId
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
-	oauthConfig.RedirectURL = "http://skiaperf.com/oauth2callback/"
 }
 
 // LoginURL returns a URL that the user is to be directed to for login.

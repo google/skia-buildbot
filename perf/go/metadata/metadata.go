@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/golang/glog"
+
 	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
@@ -27,4 +29,13 @@ func Get(name string) (string, error) {
 		return "", fmt.Errorf("Failed to read %s from metadata server: %s", name, err)
 	}
 	return string(value), nil
+}
+
+// MustGet is Get() that panics on error.
+func MustGet(keyname string) string {
+	value, err := Get(keyname)
+	if err != nil {
+		glog.Fatalf("Unable to obtain %q from metadata server: %s.", keyname, err)
+	}
+	return value
 }
