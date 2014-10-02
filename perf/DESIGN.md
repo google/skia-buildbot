@@ -31,7 +31,7 @@ The frontend is available at http://skiaperf.com.
                +----------^--+             
                           |                
           +--------------------+----+-----+
-          |   GCE Instance|skia-instance-b    |
+          |   GCE Instance|skia-testing-b |
           |               |               |
           |   +-----------+----------+    |
           |   |     Squid3           |    |
