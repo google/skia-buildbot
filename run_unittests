@@ -20,6 +20,18 @@ sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
                              'scripts'))
 
 
+GO_TESTS = [
+  'perf',
+]
+
+GO_TEST_FAILED = (
+'''======================================================================
+Go test failed: %s
+----------------------------------------------------------------------
+%s
+----------------------------------------------------------------------
+''')
+
 NO_CRAWL_DIRS = [
   '.git',
   '.svn',
@@ -43,6 +55,18 @@ def FilterDirectory(dirpath, filenames):
   return True
 
 
+def TestGo(testname):
+  # TODO(borenet): Switch to 'make test' once we're sure the karma-based tests
+  # will run in headless mode.
+  p = subprocess.Popen(['make', 'testgo'], cwd=testname,
+                       stderr=subprocess.STDOUT,
+                       stdout=subprocess.PIPE)
+  output = p.communicate()[0]
+  if p.returncode != 0:
+    return GO_TEST_FAILED % (testname, output)
+  return None
+
+
 if __name__ == '__main__':
   print 'Searching for tests.'
   tests_to_run = []
@@ -55,17 +79,23 @@ if __name__ == '__main__':
       continue
     tests_to_run.extend(test_modules)
 
-  print 'Found %d tests.' % len(tests_to_run)
+  print 'Found %d tests.' % (len(tests_to_run) + len(GO_TESTS))
   errors = []
   for test in tests_to_run:
     proc = subprocess.Popen(['python', test], stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
     if proc.wait() != 0:
       errors.append(proc.communicate()[0])
+
+  for go_test in GO_TESTS:
+    error = TestGo(go_test)
+    if error:
+      errors.append(error)
+
   if errors:
     for error in errors:
       print error
-    print 'Failed %d of %d.' % (len(errors), len(test_modules))
+    print 'Failed %d of %d.' % (len(errors), len(tests_to_run) + len(GO_TESTS))
     sys.exit(1)
   else:
     print 'All tests succeeded.'
