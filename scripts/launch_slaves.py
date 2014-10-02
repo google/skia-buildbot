@@ -238,13 +238,6 @@ class ChromeBuildSlaveManager(BuildSlaveManager):
   def _GClientConfig(self):
     """Run 'gclient config'."""
     solutions = [
-      { 'name': 'build',
-        'url': CHROME_BUILD_URL,
-        'deps_file': '.DEPS.git',
-        'managed': True,
-        'custom_deps': {},
-        'safesync_url': '',
-      },
       { 'name': 'build_internal',
         'url': CHROME_BUILD_INTERNAL_URL,
         'deps_file': 'slave.DEPS/.DEPS.git',
