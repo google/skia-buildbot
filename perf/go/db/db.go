@@ -191,16 +191,18 @@ func ensureVersionTable() error {
 		fmt.Errorf("Unable to start database transaction. %s", err.Error())
 	}
 
-	stmt := `CREATE TABLE IF NOT EXISTS sk_db_version (
-		id         INTEGER      NOT NULL PRIMARY KEY,
-		version    INTEGER      NOT NULL,
-		updated    BIGINT       NOT NULL
-	)`
-	if _, err = txn.Exec(stmt); err != nil {
-		return fmt.Errorf("Creating version table failed: %s", err.Error())
-	}
+	/*
+		stmt := `CREATE TABLE IF NOT EXISTS sk_db_version (
+			id         INTEGER      NOT NULL PRIMARY KEY,
+			version    INTEGER      NOT NULL,
+			updated    BIGINT       NOT NULL
+		)`
+		if _, err = txn.Exec(stmt); err != nil {
+			return fmt.Errorf("Creating version table failed: %s", err.Error())
+		}
+	*/
 
-	stmt = "SELECT COUNT(*) FROM sk_db_version"
+	stmt := "SELECT COUNT(*) FROM sk_db_version"
 	var count int
 	if err = txn.QueryRow(stmt).Scan(&count); err != nil {
 		return fmt.Errorf("Unable to read version table: %s", err.Error())
