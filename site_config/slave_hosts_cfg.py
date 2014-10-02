@@ -787,7 +787,7 @@ _slave_host_dicts = {
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
-    'ip': '192.168.1.141',
+    'ip': '192.168.1.125',
     'kvm_num': '8',
     'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
