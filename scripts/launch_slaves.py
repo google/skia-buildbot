@@ -129,9 +129,7 @@ class BuildSlaveManager(multiprocessing.Process):
 
     if os.name == 'nt':
       os.environ['WIN_TOOLS_FORCE'] = '1'
-      subprocess.check_call([os.path.join(os.getcwd(), 'buildbot',
-                                          'third_party', 'depot_tools',
-                                          GCLIENT)])
+      subprocess.check_call([GCLIENT])
       del os.environ['WIN_TOOLS_FORCE']
 
     # Perform Copies
@@ -277,7 +275,7 @@ def ReadSlavesCfg(slaves_cfg_path):
   return cfg['slaves']
 
 
-def RunSlave(slavename, connects_to_new_master=False):
+def RunSlave(slavename, slave_num, connects_to_new_master=False):
   """ Launch a single slave, checking out the buildbot tree if necessary.
 
   slavename: string indicating the hostname of the build slave to launch.
@@ -289,6 +287,8 @@ def RunSlave(slavename, connects_to_new_master=False):
       slavename, ' (new)' if connects_to_new_master else '')
   start_dir = os.path.realpath(os.curdir)
   slave_dir = os.path.join(start_dir, slavename)
+  if connects_to_new_master and os.name == 'nt':
+    slave_dir = os.path.join('c:\\', slave_num)
   copies = (slave_hosts_cfg.CHROMEBUILD_COPIES if connects_to_new_master
             else slave_hosts_cfg.DEFAULT_COPIES)
 
@@ -389,6 +389,10 @@ def main():
   # Gather command-line arguments.
   ParseArgs(sys.argv[1:])
 
+  # This is needed on Windows bots syncing internal code.
+  if os.name == 'nt':
+    os.environ['HOME'] = os.path.join('c:\\', 'Users', 'chrome-bot')
+
   # Sync the buildbot code.
   subprocess.check_call([GCLIENT, 'sync', '--force', '-j1'])
 
@@ -401,8 +405,8 @@ def main():
                       (' (new master)' if connects_to_new_master else ''))
 
   # Launch the build slaves
-  for slavename, _, connects_to_new_master in slaves:
-    RunSlave(slavename, connects_to_new_master)
+  for slavename, slave_num, connects_to_new_master in slaves:
+    RunSlave(slavename, slave_num, connects_to_new_master)
 
 
 if '__main__' == __name__:
