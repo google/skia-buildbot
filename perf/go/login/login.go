@@ -75,7 +75,6 @@ var (
 // The Client ID, Client Secret, and Redirect URL are listed in the Google
 // Developers Console.
 func Init(clientId, clientSecret, redirectURL, cookieSalt string) {
-	glog.Infof("clientId [%s] clientSecret [%s] redirectURL [%s] cookieSalt [%s]", clientId, clientSecret[:5], redirectURL, cookieSalt[:5])
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig.ClientId = clientId
 	oauthConfig.ClientSecret = clientSecret
