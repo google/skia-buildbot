@@ -67,11 +67,13 @@ func Init(mysqlConnStr string) {
 	}
 
 	// Make sure the migration table exists.
-	/*
-		if err := ensureVersionTable(); err != nil {
-			glog.Fatalln("Unable to guarantee valid version table:", err.Error())
-		}
-	*/
+	if err := checkVersionTable(); err != nil {
+		// We are using panic() instead of Fataln() to be able to trap this
+		// in tests and make sure it fails when no version table exists.
+		glog.Errorln("Unable to create version table.")
+		panic("Attempt to create version table returned: " + err.Error())
+	}
+	glog.Infoln("Version table OK.")
 
 	// Ping the database to keep the connection fresh.
 	go func() {
@@ -104,6 +106,8 @@ func ProdConnectionString(local bool) string {
 	return fmt.Sprintf(DB_CONN_TMPL, password)
 }
 
+// Migrates the database to the specified target version. Use DBVersion() to
+// retrieve the current version of the database.
 func Migrate(targetVersion int) error {
 	if (targetVersion < 0) || (targetVersion > MaxDBVersion()) {
 		glog.Fatalf("Target db version must be in range: [0 .. %d]", MaxDBVersion())
@@ -156,6 +160,9 @@ func Migrate(targetVersion int) error {
 	return nil
 }
 
+// Returns the current version of the database. It assumes that the
+// Migrate function has already been called and the version table has been
+// created in the database.
 func DBVersion() (int, error) {
 	stmt := `
 		SELECT version
@@ -167,8 +174,27 @@ func DBVersion() (int, error) {
 	return version, err
 }
 
+// Returns the highest version currently available.
 func MaxDBVersion() int {
 	return len(migrationSteps)
+}
+
+// Returns an error if the version table does not exist.
+func checkVersionTable() error {
+	// Check if the table exists in MySQL or SQLite.
+	stmt := "SHOW TABLES LIKE 'sk_db_version'"
+	if !isMySQL {
+		stmt = "SELECT name FROM sqlite_master WHERE type='table' AND name='sk_db_version';"
+	}
+
+	var temp string
+	err := DB.QueryRow(stmt).Scan(&temp)
+	if err != nil {
+		// See if we can create the version table.
+		return ensureVersionTable()
+	}
+
+	return nil
 }
 
 func setDBVersion(txn *sql.Tx, newDBVersion int) error {
@@ -184,7 +210,6 @@ func ensureVersionTable() error {
 			glog.Errorf("Encountered error rolling back: %s", err.Error())
 			txn.Rollback()
 		} else {
-			glog.Infoln("Version table OK.")
 			txn.Commit()
 		}
 	}()
@@ -193,18 +218,16 @@ func ensureVersionTable() error {
 		fmt.Errorf("Unable to start database transaction. %s", err.Error())
 	}
 
-	/*
-		stmt := `CREATE TABLE IF NOT EXISTS sk_db_version (
+	stmt := `CREATE TABLE IF NOT EXISTS sk_db_version (
 			id         INTEGER      NOT NULL PRIMARY KEY,
 			version    INTEGER      NOT NULL,
 			updated    BIGINT       NOT NULL
 		)`
-		if _, err = txn.Exec(stmt); err != nil {
-			return fmt.Errorf("Creating version table failed: %s", err.Error())
-		}
-	*/
+	if _, err = txn.Exec(stmt); err != nil {
+		return fmt.Errorf("Creating version table failed: %s", err.Error())
+	}
 
-	stmt := "SELECT COUNT(*) FROM sk_db_version"
+	stmt = "SELECT COUNT(*) FROM sk_db_version"
 	var count int
 	if err = txn.QueryRow(stmt).Scan(&count); err != nil {
 		return fmt.Errorf("Unable to read version table: %s", err.Error())

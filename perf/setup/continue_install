@@ -33,7 +33,7 @@ mkdir=/tmp/glog
 mkdir=$HOME/golib
 export GOROOT=$HOME/go
 export GOPATH=$HOME/golib
-export PATH=$PATH:$GOROOT/bin
+export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
 go get -u skia.googlesource.com/buildbot.git/perf/go/...
 
