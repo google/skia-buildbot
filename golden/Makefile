@@ -1,14 +1,10 @@
 build:
-	go install -v ./go/rbserver
-	go install -v ./go/goldingest
+	go install -v ./go/skiacorrectness
 
 packages:
-	go build go/diff/
-	go build go/importer/
-	go build go/ingester/
-	go build go/util/
+	go build -v ./go/...
 
 test:
-	go test ./go/types ./go/goldingester
+	go test ./go/...
 
 all: packages build

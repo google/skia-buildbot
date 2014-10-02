@@ -1,8 +1,4 @@
-package diff
-
-import (
-	"skia.googlesource.com/buildbot.git/golden/go/util"
-)
+package attic
 
 type TestRunResult struct {
 	Key       map[string]string
@@ -27,12 +23,12 @@ func DiffTestRunVsExpectations(actuals []TestRunResult, expectations []*TestExpe
 	// key (test identifier)
 	expectationsMap := make(map[string]*TestExpectation)
 	for _, e := range expectations {
-		expectationsMap[util.MapToStrKey(e.Key)] = e
+		expectationsMap[MapToStrKey(e.Key)] = e
 	}
 
 	// iterate over the actuals
 	for _, act := range actuals {
-		k := util.NewMultiKey(util.SubMap(act.Key, primaryKey))
+		k := NewMultiKey(SubMap(act.Key, primaryKey))
 		exp, ok := expectationsMap[k.Key()]
 		if ok {
 			_, ok = exp.ValidImageHashes[act.ImageHash]

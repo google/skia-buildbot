@@ -1,4 +1,4 @@
-package util
+package attic
 
 import (
 	"sort"

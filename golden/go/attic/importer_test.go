@@ -1,4 +1,4 @@
-package importer
+package attic
 
 import (
 	"io/ioutil"
