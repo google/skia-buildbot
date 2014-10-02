@@ -247,7 +247,7 @@ class ChromeBuildSlaveManager(BuildSlaveManager):
       },
       { 'name': 'build_internal',
         'url': CHROME_BUILD_INTERNAL_URL,
-        'deps_file': '.DEPS.git',
+        'deps_file': 'slave.DEPS/.DEPS.git',
         'managed': True,
         'custom_deps': {},
         'safesync_url': '',
