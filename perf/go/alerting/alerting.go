@@ -22,6 +22,8 @@ import (
 
 const (
 	APIKEY_METADATA_KEY = "apikey"
+	CLUSTER_SIZE        = 100
+	CLUSTER_STDDEV      = 0.001
 )
 
 // CombineClusters combines freshly found clusters with existing clusters.
@@ -277,7 +279,7 @@ func Start(tileStore types.TileStore, apiKeyFlag string) {
 				continue
 			}
 
-			summary, err := clustering.CalculateClusterSummaries(tile, 50, 0.1, skpOnly)
+			summary, err := clustering.CalculateClusterSummaries(tile, CLUSTER_SIZE, CLUSTER_STDDEV, skpOnly)
 			if err != nil {
 				glog.Errorf("Alerting: Failed to calculate clusters: %s", err)
 				continue
