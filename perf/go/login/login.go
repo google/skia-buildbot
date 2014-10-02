@@ -75,6 +75,7 @@ var (
 // The Client ID, Client Secret, and Redirect URL are listed in the Google
 // Developers Console.
 func Init(clientId, clientSecret, redirectURL, cookieSalt string) {
+	glog.Infof("clientId [%s] clientSecret [%s] redirectURL [%s] cookieSalt [%s]", clientId, clientSecret[:5], redirectURL, cookieSalt[:5])
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig.ClientId = clientId
 	oauthConfig.ClientSecret = clientSecret
@@ -158,6 +159,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("OAuth2CallbackHandler\n")
 	code := r.FormValue("code")
+	glog.Infof("Code: %s ", code[:5])
 	transport := &oauth.Transport{
 		Config: oauthConfig,
 		Transport: &http.Transport{

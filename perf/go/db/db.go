@@ -67,9 +67,11 @@ func Init(mysqlConnStr string) {
 	}
 
 	// Make sure the migration table exists.
-	if err := ensureVersionTable(); err != nil {
-		glog.Fatalln("Unable to guarantee valid version table:", err.Error())
-	}
+	/*
+		if err := ensureVersionTable(); err != nil {
+			glog.Fatalln("Unable to guarantee valid version table:", err.Error())
+		}
+	*/
 
 	// Ping the database to keep the connection fresh.
 	go func() {

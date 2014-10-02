@@ -1057,14 +1057,14 @@ func main() {
 
 	// By default use a set of credentials setup for localhost access.
 	var cookieSalt = "notverysecret"
-	var clientID = "31977622648-cghipjk0o3g06gqogvrgohftesfs0t9q.apps.googleusercontent.com"
-	var clientSecret = "f1dwov0v0tilbgm8ep5umxof"
-	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback", *port)
+	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
+	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
+	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
 		cookieSalt = metadata.MustGet(COOKIESALT_METADATA_KEY)
 		clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
 		clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)
-		redirectURL = "http://skiaperf.com/oauth2callback"
+		redirectURL = "http://skiaperf.com/oauth2callback/"
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
 	glog.Infoln("Begin loading data.")
