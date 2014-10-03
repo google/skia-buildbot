@@ -208,7 +208,7 @@ Initial setup of the database, the users, and the tables:
 
 * Create the versioned database tables.
 
-  We use the 'migrateDB' tool to keep the database in a well defined (versioned)
+  We use the 'migratedb' tool to keep the database in a well defined (versioned)
   state. The 'db_conn_string' flag allows to specify the target database.
   By default it will try to connect to the production environment.
   But for testing a local MySQL database can be provided. If it cannot
@@ -216,15 +216,15 @@ Initial setup of the database, the users, and the tables:
 
   Bring the production database to the latest schema version:
 
-     $ migrateDB -logtostderr=true
+     $ migratedb -logtostderr=true
 
   Bring a local database to the latest schema version:
 
-     $ migrateDB -logtostderr=true -db_conn_string="root:%s@tcp(localhost:3306)/skia?parseTime=true"
+     $ migratedb -logtostderr=true -db_conn_string="root:%s@tcp(localhost:3306)/skia?parseTime=true"
 
   Bring a local SQLite database to the latest schema version:
 
-     $ migrateDB -logtostderr=true -db_conn_string=""
+     $ migratedb -logtostderr=true -db_conn_string=""
 
 
 Clustering
