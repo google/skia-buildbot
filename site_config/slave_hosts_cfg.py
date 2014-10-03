@@ -169,7 +169,7 @@ _slave_host_dicts = {
   'skiabot-shuttle-ubuntu12-xxx': {
     'slaves': [
       ('skiabot-shuttle-ubuntu12-002', '2', False),
-      ('skiabot-shuttle-ubuntu12-003', '3', False),
+      ('skiabot-shuttle-ubuntu12-003', '3', True),
       ('skiabot-shuttle-ubuntu12-004', '4', False),
       ('skiabot-shuttle-ubuntu12-arm64-001', '5', False),
       ('skiabot-cros-link-002', '6', False),
@@ -719,8 +719,8 @@ _slave_host_dicts = {
 
   'skiabot-macmini-10_6-001': {
     'slaves': [
-      ('skiabot-macmini-10_6-000', '0', False),
-      ('skiabot-macmini-10_6-001', '1', False),
+      ('skiabot-macmini-10_6-000', '0', True),
+      ('skiabot-macmini-10_6-001', '1', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
