@@ -78,11 +78,11 @@ func (g GitInfo) Details(hash string) (string, string, time.Time, error) {
 		return "", "", time.Time{}, fmt.Errorf("Failed to execute Git: %s", err)
 	}
 	lines := strings.SplitN(string(b), "\n", 2)
-	if len(lines) == 2 {
-		return lines[0], lines[1], g.timestamps[hash], nil
-	} else {
+	if len(lines) != 2 {
 		return lines[0], "", time.Time{}, nil
 	}
+
+	return lines[0], lines[1], g.timestamps[hash], nil
 }
 
 // From returns all commits from 'start' to HEAD.
