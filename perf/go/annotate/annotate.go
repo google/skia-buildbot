@@ -7,11 +7,11 @@ import (
 	"strconv"
 
 	"github.com/golang/glog"
+	"skia.googlesource.com/buildbot.git/go/login"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/activitylog"
 	"skia.googlesource.com/buildbot.git/perf/go/alerting"
-	"skia.googlesource.com/buildbot.git/perf/go/login"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
 // Handler serves the /annotate/ endpoint for changing the status of an

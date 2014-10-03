@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/auth"
 	"skia.googlesource.com/buildbot.git/perf/go/diff"
 	"skia.googlesource.com/buildbot.git/perf/go/gs"
-	"skia.googlesource.com/buildbot.git/perf/go/util"
 	"sync"
 )
 

@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/util"
 
 	"github.com/golang/glog"
 )

@@ -7,7 +7,7 @@ import (
 
 	"code.google.com/p/goauth2/oauth"
 	"github.com/oxtoacart/webbrowser"
-	"skia.googlesource.com/buildbot.git/perf/go/util"
+	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 const (

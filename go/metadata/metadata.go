@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"skia.googlesource.com/buildbot.git/perf/go/util"
+	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 // Get retrieves the named value from the Metadata server. See

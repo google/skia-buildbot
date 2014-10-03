@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/diff"
-	"skia.googlesource.com/buildbot.git/perf/go/util"
 	"sync"
 	"testing"
 )

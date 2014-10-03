@@ -2,9 +2,6 @@
 build: res/css/perf.css res/js/perf.js
 	go install -v ./go/skiaperf
 
-migratedb:
-	go install -v ./go/migratedb
-
 .PHONY: ver
 ver:    H=$(shell echo `git log -n 1 --format=format:%H`)
 ver:
@@ -66,7 +63,7 @@ lint:
 	grunt --no-color jshint:main
 
 .PHONY: all
-all: build ingest tool logs migratedb
+all: build ingest tool logs
 
 tags:
 	etags --recurse res/ go/

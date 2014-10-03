@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"skia.googlesource.com/buildbot.git/perf/go/login"
+	"skia.googlesource.com/buildbot.git/go/login"
 )
 
 var once sync.Once

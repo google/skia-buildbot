@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/perf/go/util"
+	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 func TestDisplay(t *testing.T) {

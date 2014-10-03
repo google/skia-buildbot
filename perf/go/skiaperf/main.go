@@ -25,24 +25,24 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/go/db"
+	"skia.googlesource.com/buildbot.git/go/login"
+	"skia.googlesource.com/buildbot.git/go/metadata"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/activitylog"
 	"skia.googlesource.com/buildbot.git/perf/go/alerting"
 	"skia.googlesource.com/buildbot.git/perf/go/annotate"
 	"skia.googlesource.com/buildbot.git/perf/go/clustering"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
 	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
-	"skia.googlesource.com/buildbot.git/perf/go/login"
-	"skia.googlesource.com/buildbot.git/perf/go/metadata"
 	"skia.googlesource.com/buildbot.git/perf/go/parser"
 	"skia.googlesource.com/buildbot.git/perf/go/shortcut"
 	"skia.googlesource.com/buildbot.git/perf/go/stats"
 	"skia.googlesource.com/buildbot.git/perf/go/trybot"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/vec"
 )
 

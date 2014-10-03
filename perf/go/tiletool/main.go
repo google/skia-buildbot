@@ -8,9 +8,9 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
-	"skia.googlesource.com/buildbot.git/perf/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/validator"
 )
 

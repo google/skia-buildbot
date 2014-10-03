@@ -12,12 +12,12 @@ import (
 	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/gs"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/util"
 )
 
 var (
