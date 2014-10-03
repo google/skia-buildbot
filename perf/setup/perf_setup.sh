@@ -20,9 +20,11 @@ sudo cp sys/logserver_init /etc/init.d/logserver
 sudo chmod 744 /etc/init.d/logserver
 sudo cp sys/perf_monit /etc/monit/conf.d/perf
 sudo cp sys/perf_squid /etc/squid3/squid.conf
+
 # Confirm that monit is happy.
 sudo monit -t
 sudo monit reload
+
 sudo /etc/init.d/skiaperf restart
 sudo /etc/init.d/ingest restart
 sudo /etc/init.d/logserver restart
