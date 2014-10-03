@@ -1,7 +1,7 @@
 package expstorage
 
 import (
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"skia.googlesource.com/buildbot.git/golden/go/types"
 )
 
 // Wraps the set of expectations and provides methods to manipulate them.

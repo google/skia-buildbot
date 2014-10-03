@@ -7,7 +7,7 @@ import (
 import (
 	// Using 'require' which is like using 'assert' but causes tests to fail.
 	assert "github.com/stretchr/testify/require"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"skia.googlesource.com/buildbot.git/golden/go/types"
 )
 
 func TestExpectationStores(t *testing.T) {
