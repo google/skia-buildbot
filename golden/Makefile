@@ -1,4 +1,4 @@
-build:
+skiacorrectness:
 	go install -v ./go/skiacorrectness
 
 packages:
@@ -7,4 +7,4 @@ packages:
 test:
 	go test ./go/...
 
-all: packages build
+all: packages skiacorrectness
