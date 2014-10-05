@@ -2,6 +2,7 @@ package util
 
 import "sort"
 
+// In returns true if |s| is *in* |a| slice.
 func In(s string, a []string) bool {
 	for _, x := range a {
 		if x == s {
@@ -47,8 +48,15 @@ func MapsEqual(a, b map[string]string) bool {
 	return true
 }
 
-// This is sad, but apparently there is no library function to get the absolute
-// value of an int.
+// MaxInt returns largest integer of a and b.
+func MaxInt(a, b int) int {
+	if a < b {
+		return b
+	}
+	return a
+}
+
+// AbsInt returns the absolute value of v.
 func AbsInt(v int) int {
 	if v < 0 {
 		return -v
@@ -56,7 +64,7 @@ func AbsInt(v int) int {
 	return v
 }
 
-// Returns -1, 1 or 0 depending on the sign of v.
+// SignInt returns -1, 1 or 0 depending on the sign of v.
 func SignInt(v int) int {
 	if v < 0 {
 		return -1

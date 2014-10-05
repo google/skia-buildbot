@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+
+	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 type DiffMetrics struct {
@@ -34,21 +36,6 @@ func OpenImage(filePath string) (image.Image, error) {
 	return im, nil
 }
 
-// TODO(rmistry): Move the below functions to a 'util' or 'math' package.
-func maxInt(a, b int) int {
-	if a < b {
-		return b
-	}
-	return a
-}
-
-func absInt(a int) int {
-	if a < 0 {
-		return a * -1
-	}
-	return a
-}
-
 // Returns the percentage of pixels that differ, as a float between 0 and 100
 // (inclusive).
 func getPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
@@ -59,12 +46,12 @@ func getPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
 func fillMaxRGBDiffs(color1, color2 color.Color, maxRGBDiffs []int) {
 	r1, g1, b1, _ := color1.RGBA()
 	r2, g2, b2, _ := color2.RGBA()
-	rDiff := absInt(int(r1>>8) - int(r2>>8))
-	gDiff := absInt(int(g1>>8) - int(g2>>8))
-	bDiff := absInt(int(b1>>8) - int(b2>>8))
-	maxRGBDiffs[0] = maxInt(maxRGBDiffs[0], rDiff)
-	maxRGBDiffs[1] = maxInt(maxRGBDiffs[1], gDiff)
-	maxRGBDiffs[2] = maxInt(maxRGBDiffs[2], bDiff)
+	rDiff := util.AbsInt(int(r1>>8) - int(r2>>8))
+	gDiff := util.AbsInt(int(g1>>8) - int(g2>>8))
+	bDiff := util.AbsInt(int(b1>>8) - int(b2>>8))
+	maxRGBDiffs[0] = util.MaxInt(maxRGBDiffs[0], rDiff)
+	maxRGBDiffs[1] = util.MaxInt(maxRGBDiffs[1], gDiff)
+	maxRGBDiffs[2] = util.MaxInt(maxRGBDiffs[2], bDiff)
 }
 
 // Diff is a utility function that calculates the DiffMetrics for the provided
@@ -73,7 +60,7 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 	img1Bounds := img1.Bounds()
 	img2Bounds := img2.Bounds()
 	resultImg := image.NewGray(
-		image.Rect(0, 0, maxInt(img1Bounds.Dx(), img2Bounds.Dx()), maxInt(img1Bounds.Dy(), img2Bounds.Dy())))
+		image.Rect(0, 0, util.MaxInt(img1Bounds.Dx(), img2Bounds.Dx()), util.MaxInt(img1Bounds.Dy(), img2Bounds.Dy())))
 
 	totalPixels := resultImg.Bounds().Dx() * resultImg.Bounds().Dy()
 	// Loop through all points and compare.
