@@ -129,7 +129,7 @@ class BuildSlaveManager(multiprocessing.Process):
 
     if os.name == 'nt':
       os.environ['WIN_TOOLS_FORCE'] = '1'
-      subprocess.check_call([GCLIENT])
+      subprocess.check_call([self.local_gclient])
       del os.environ['WIN_TOOLS_FORCE']
 
     # Perform Copies
@@ -149,6 +149,12 @@ class BuildSlaveManager(multiprocessing.Process):
   def slave_dir(self):
     """Directory in which to launch the slave."""
     return os.path.join('buildbot', 'slave')
+
+  @property
+  def local_gclient(self):
+    """Path to the local version of gclient within this slave's checkout."""
+    return os.path.join(os.getcwd(), 'buildbot', 'third_party', 'depot_tools',
+                        GCLIENT)
 
   def _LaunchSlave(self):
     """ Launch the BuildSlave. """
@@ -259,6 +265,11 @@ class ChromeBuildSlaveManager(BuildSlaveManager):
   def slave_dir(self):
     """Directory from which to launch the buildslave."""
     return os.path.join('build', 'slave')
+
+  @property
+  def local_gclient(self):
+    """Path to the local version of gclient within this slave's checkout."""
+    return os.path.join(os.getcwd(), 'depot_tools', GCLIENT)
 
 
 def ReadSlavesCfg(slaves_cfg_path):
