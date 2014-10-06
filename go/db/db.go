@@ -75,6 +75,12 @@ func Init(mysqlConnStr string) {
 	}
 	glog.Infoln("Version table OK.")
 
+	// Migrate to the latest version if we are using SQLite, so we don't have
+	// to run the migratdb command for a local database.
+	if !isMySQL {
+		Migrate(MaxDBVersion())
+	}
+
 	// Ping the database to keep the connection fresh.
 	go func() {
 		c := time.Tick(1 * time.Minute)
