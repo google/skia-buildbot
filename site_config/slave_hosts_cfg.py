@@ -241,7 +241,7 @@ _slave_host_dicts = {
 
   'skia-android-canary-b': {
     'slaves': [
-      ('skia-android-canary', '0', True),
+      ('skia-android-canary', '0', False),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': compute_engine_login,
