@@ -59,9 +59,7 @@ class RunGM(BuildStep):
     elif 'ANGLE' in self._builder_name:
       cmd.extend(['--config', 'angle'])
     elif (not 'NoGPU' in self._builder_name and
-          not 'ChromeOS' in self._builder_name and
-          not 'GalaxyNexus' in self._builder_name and
-          not 'IntelRhb' in self._builder_name):
+          not 'ChromeOS' in self._builder_name):
       cmd.extend(['--config', 'defaults', 'msaa16'])
 
     if 'Valgrind' in self._builder_name:
@@ -86,9 +84,6 @@ class RunGM(BuildStep):
 
     if 'Venue8' in self._builder_name:  # skia:2922
       cmd.extend(['--match', '~imagealphathreshold'])
-
-    if 'GalaxyNexus' in self._builder_name:  # skia:2955
-      cmd.extend(['--match', '~downsamplebitmap'])
 
     self._flavor_utils.RunFlavoredCmd('gm', cmd)
 

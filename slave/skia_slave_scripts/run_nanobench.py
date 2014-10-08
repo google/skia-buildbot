@@ -35,7 +35,7 @@ class RunNanobench(BuildStep):
     # location.
     #
     # It would be great to simplify this even further, but right now we have
-    # two models for the same GPU (GalaxyNexus/NexusS for SGX540) and two
+    # two models for the same GPU (eg. GalaxyNexus/NexusS for SGX540) and two
     # gpus for the same model (ShuttleA for GTX660/HD7770).
     for name in blacklist:
       if name in params:
@@ -68,10 +68,6 @@ class RunNanobench(BuildStep):
       args.append('--properties')
       args.extend(['gitHash', self._got_revision,
                    'build_number', str(self._build_number)])
-
-    if self._AnyMatch('GalaxyNexus'):
-      # Covered by faster CPUs in the same processor family (N7).
-      args.append('--nocpu')
 
     match  = []
     # Disable known problems.

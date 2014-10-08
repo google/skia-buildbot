@@ -248,8 +248,7 @@ def CapWordsToUnderscores(string):
   """ Converts a string containing capitalized words to one in which all
   characters are lowercase and words are separated by underscores.
 
-  Examples:
-    'NexusS' becomes 'nexus_s'
+  Example:
     'Nexus10' becomes 'nexus_10'
 
   string: string; string to manipulate.
@@ -267,8 +266,7 @@ def UnderscoresToCapWords(string):
   """ Converts a string lowercase words separated by underscores to one in which
   words are capitalized and not separated by underscores.
 
-  Examples:
-    'nexus_s' becomes 'NexusS'
+  Example:
     'nexus_10' becomes 'Nexus10'
 
   string: string; string to manipulate.
