@@ -94,6 +94,12 @@ cmd /c "easy_install zope.interface"
 banner "Copy .boto file"
 $shell.NameSpace($userDir).copyhere("c:\.boto", 0x14)
 
+banner "Copy _netrc file"
+$shell.NameSpace($userDir).copyhere("c:\_netrc", 0x14)
+
+banner "Copy .bot_password file"
+$shell.NameSpace($userDir).copyhere("c:\.bot_password", 0x14)
+
 banner "Download Buildbot scripts."
 $gclientSpec = ( `
   "`"solutions = [{ " +

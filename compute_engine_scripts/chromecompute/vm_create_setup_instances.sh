@@ -22,6 +22,11 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   sed -i "s/CHROME_BOT_PASSWORD/$(echo $(cat /tmp/chrome-bot.txt) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
   sed -i "s/GS_ACCESS_KEY_ID/$(echo $(cat ~/.boto | sed -n 2p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
   sed -i "s/GS_SECRET_ACCESS_KEY/$(echo $(cat ~/.boto | sed -n 3p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
+  python ../../scripts/insert_file.py $MODIFIED_STARTUP_SCRIPT $MODIFIED_STARTUP_SCRIPT
+
+  # Fix line endings in $MODIFIED_STARTUP_SCRIPT. 'todos' is in the 'tofrodos'
+  # package on Ubuntu.
+  todos $MODIFIED_STARTUP_SCRIPT
 
   METADATA_ARGS="--metadata=gce-initial-windows-user:chrome-bot \
                  --metadata_from_file=gce-initial-windows-password:/tmp/chrome-bot.txt \

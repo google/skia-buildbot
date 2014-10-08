@@ -90,6 +90,18 @@ $boto_contents = (
     )
 Set-Content C:\.boto $boto_contents
 
+banner "Create _netrc file"
+$netrc_contents = @"
+INSERTFILE(~/.netrc)
+"@
+Set-Content C:\_netrc $netrc_contents
+
+banner "Create .bot_password"
+$bot_password = @"
+INSERTFILE(~/.bot_password)
+"@
+Set-Content C:\.bot_password $bot_password
+
 banner "Download chrome-bot's scheduled task powershell script"
 $url = ("https://skia.googlesource.com/buildbot/+/master/scripts/" +
         "chromebot-schtask.ps1?format=TEXT")
