@@ -37,6 +37,10 @@ logs:
 tool:
 	go install -v ./go/tiletool
 
+.PHONY: perf_migratedb
+perf_migratedb:
+	go install -v ./go/perf_migratedb
+
 # Rebuild the third_party Javascript we use, i.e. Flot and our common js.
 res/js/perf.js: node_modules Gruntfile.js bower.json res/js/common.js
 	./node_modules/.bin/grunt --no-color
@@ -63,7 +67,7 @@ lint:
 	grunt --no-color jshint:main
 
 .PHONY: all
-all: build ingest tool logs
+all: build ingest tool logs perf_migratedb
 
 tags:
 	etags --recurse res/ go/

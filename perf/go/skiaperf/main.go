@@ -25,7 +25,6 @@ import (
 )
 
 import (
-	"skia.googlesource.com/buildbot.git/go/db"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -34,6 +33,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/annotate"
 	"skia.googlesource.com/buildbot.git/perf/go/clustering"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
 	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
@@ -1051,7 +1051,7 @@ func main() {
 	flags.Log()
 
 	Init()
-	db.Init(db.ProdConnectionString(*local))
+	db.Init(db.ProdDatabaseConfig(*local))
 	stats.Start(nanoTileStore, git)
 	alerting.Start(nanoTileStore, *apikey)
 

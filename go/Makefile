@@ -1,8 +1,4 @@
 
-.PHONY: migratedb
-migratedb:
-	go install -v ./migratedb
-
 .PHONY: packages
 packages:
 	go install -v ./...
@@ -12,4 +8,4 @@ test:
 	go test ./...
 
 .PHONY: all
-all: migratedb packages
+all: packages

@@ -12,17 +12,18 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"skia.googlesource.com/buildbot.git/go/db"
-)
-
-// flags
-var (
-	dbConnString = flag.String("db_conn_string", "root:%s@tcp(173.194.104.24:3306)/skia?parseTime=true", "\n\tDatabase string to open connect to the MySQL database. "+
-		"\n\tNeeds to follow the format of the golang-mysql driver (https://github.com/go-sql-driver/mysql."+
-		"\n\tIf the string contains %s the user will be prompted to enter a password which will then be used for subtitution.")
+	"skia.googlesource.com/buildbot.git/go/database"
+	"skia.googlesource.com/buildbot.git/perf/go/db"
 )
 
 func main() {
+	defaultConnStr := strings.Replace(db.DB_CONN_TMPL, "%s", "root", 1)
+
+	// flags
+	dbConnString := flag.String("db_conn_string", defaultConnStr, "\n\tDatabase string to open connect to the MySQL database. "+
+		"\n\tNeeds to follow the format of the golang-mysql driver (https://github.com/go-sql-driver/mysql."+
+		"\n\tIf the string contains %s the user will be prompted to enter a password which will then be used for subtitution.")
+
 	flag.Parse()
 
 	var connectionStr = *dbConnString
@@ -39,14 +40,17 @@ func main() {
 		connectionStr = fmt.Sprintf(connectionStr, strings.TrimRight(password, "\n"))
 	}
 
-	// Initialize the database.
-	db.Init(connectionStr)
+	conf := &database.DatabaseConfig{
+		MySQLString:    connectionStr,
+		MigrationSteps: db.MigrationSteps(),
+	}
+	vdb := database.NewVersionedDB(conf)
 
 	// Get the current database version
-	maxDBVersion := db.MaxDBVersion()
+	maxDBVersion := vdb.MaxDBVersion()
 	glog.Infof("Latest database version: %d", maxDBVersion)
 
-	dbVersion, err := db.DBVersion()
+	dbVersion, err := vdb.DBVersion()
 	if err != nil {
 		glog.Fatalf("Unable to retrieve database version. Error: %s", err.Error())
 	}
@@ -54,7 +58,7 @@ func main() {
 
 	if dbVersion < maxDBVersion {
 		glog.Infof("Migrating to version: %d", maxDBVersion)
-		err = db.Migrate(maxDBVersion)
+		err = vdb.Migrate(maxDBVersion)
 		if err != nil {
 			glog.Fatalf("Unable to retrieve database version. Error: %s", err.Error())
 		}

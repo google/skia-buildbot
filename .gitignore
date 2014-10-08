@@ -53,3 +53,5 @@ perf/res/js/perf-debug.js
 perf/res/js/perf.js
 perf/third_party
 perf/timestamp.json
+# SQLite test database created in go/database package.
+testing.db

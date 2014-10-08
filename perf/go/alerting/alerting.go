@@ -12,11 +12,11 @@ import (
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
 
-	"skia.googlesource.com/buildbot.git/go/db"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/clustering"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 

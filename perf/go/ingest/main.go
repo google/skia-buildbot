@@ -17,8 +17,8 @@ import (
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/auth"
-	"skia.googlesource.com/buildbot.git/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/goldingester"
@@ -146,7 +146,7 @@ func main() {
 	Init()
 
 	// Initialize the database. We might not need the oauth dialog if it fails.
-	db.Init(db.ProdConnectionString(*local))
+	db.Init(db.ProdDatabaseConfig(*local))
 
 	var client *http.Client
 	var err error

@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"skia.googlesource.com/buildbot.git/go/db"
+	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
