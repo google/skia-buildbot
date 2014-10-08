@@ -40,13 +40,14 @@ var (
 func getTestFileDiffStore(localImgDir, localDiffMetricsDir string) *FileDiffStore {
 	client := util.NewTimeoutClient()
 	return &FileDiffStore{
-		client:              client,
-		localImgDir:         localImgDir,
-		localDiffDir:        os.TempDir(),
-		localDiffMetricsDir: localDiffMetricsDir,
-		gsBucketName:        "chromium-skia-gm",
-		storageBaseDir:      "testdata",
-		lock:                sync.Mutex{},
+		client: client,
+		digestDownloadFailureCount: map[string]int{},
+		localImgDir:                localImgDir,
+		localDiffDir:               os.TempDir(),
+		localDiffMetricsDir:        localDiffMetricsDir,
+		gsBucketName:               "chromium-skia-gm",
+		storageBaseDir:             "testdata",
+		lock:                       sync.Mutex{},
 	}
 }
 
@@ -110,9 +111,13 @@ func TestCacheImageFromGS(t *testing.T) {
 		t.Errorf("File %s was not created!", imgFilePath)
 	}
 
-	// Test error.
-	if err := fds.cacheImageFromGS(MISSING_DIGEST); err == nil {
-		t.Error("Was expecting 404 error for missing digest")
+	// Test error and assert the download failures map.
+	for i := 1; i < 6; i++ {
+		if err := fds.cacheImageFromGS(MISSING_DIGEST); err == nil {
+			t.Error("Was expecting 404 error for missing digest")
+		}
+		assert.Equal(t, 1, len(fds.digestDownloadFailureCount))
+		assert.Equal(t, i, fds.digestDownloadFailureCount["abc"])
 	}
 }
 

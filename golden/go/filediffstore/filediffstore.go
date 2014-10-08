@@ -5,6 +5,7 @@ import (
 	"code.google.com/p/google-api-go-client/storage/v1"
 	"encoding/json"
 	"fmt"
+	"github.com/golang/glog"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -25,13 +26,18 @@ const (
 	IMG_EXTENSION                = "png"
 	DIFF_EXTENSION               = "diff"
 	DIFFMETRICS_EXTENSION        = "json"
+
+	// Limit the number of times diffstore tries to get a file before giving up.
+	MAX_URI_GET_TRIES = 4
 )
 
-// TODO(rmistry): Record if fetching from google storage failed, keep a map with a
-// counter and increment it every time a file fails.
 type FileDiffStore struct {
 	// The client used to connect to Google Storage.
 	client *http.Client
+
+	// Contains the number of times a particular digest failed to download from
+	// Google Storage.
+	digestDownloadFailureCount map[string]int
 
 	// The local directory where image digests should be written to.
 	localImgDir string
@@ -89,13 +95,14 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string) diff.Di
 		client = util.NewTimeoutClient()
 	}
 	return &FileDiffStore{
-		client:              client,
-		localImgDir:         filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME),
-		localDiffDir:        filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME),
-		localDiffMetricsDir: filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME),
-		gsBucketName:        gsBucketName,
-		storageBaseDir:      DEFAULT_GS_IMG_DIR_NAME,
-		lock:                sync.Mutex{},
+		client: client,
+		digestDownloadFailureCount: map[string]int{},
+		localImgDir:                filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME),
+		localDiffDir:               filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME),
+		localDiffMetricsDir:        filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME),
+		gsBucketName:               gsBucketName,
+		storageBaseDir:             DEFAULT_GS_IMG_DIR_NAME,
+		lock:                       sync.Mutex{},
 	}
 }
 
@@ -235,32 +242,25 @@ func (fs *FileDiffStore) isDigestInCache(d string) (bool, error) {
 
 // Downloads image file from Google Storage and caches it in a local directory. It
 // is thread safe because it locks the diff store's mutext before accessing the
-// digest cache.
-// TODO(rmistry): Try multiple times to get a file from GS, moving to 4 attempts
-// per file seems to work. Eg: https://github.com/google/skia-buildbot/blob/master/perf/go/ingester/ingester.go#L268
+// digest cache. If the provided digest does not exist in Google Storage then the
+// digest's value in FileDiffStore.digestDownloadFailureCount is incremented.
 func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 	storage, err := storage.New(fs.client)
 	if err != nil {
-		return fmt.Errorf("Failed to create interace to Google Storage: %s\n", err)
+		return fmt.Errorf("Failed to create interface to Google Storage: %s\n", err)
 	}
 
 	objLocation := filepath.Join(fs.storageBaseDir, fmt.Sprintf("%s.%s", d, IMG_EXTENSION))
 	res, err := storage.Objects.Get(fs.gsBucketName, objLocation).Do()
 	if err != nil {
+		fs.digestDownloadFailureCount[d]++
 		return err
 	}
-	request, err := gs.RequestForStorageURL(res.MediaLink)
+	respBody, err := fs.getRespBody(res)
+	defer respBody.Close()
 	if err != nil {
-		return fmt.Errorf("Unable to create Storage MediaURI request: %s\n", err)
-	}
-
-	resp, err := fs.client.Do(request)
-	if err != nil {
-		return fmt.Errorf("Unable to retrieve Storage MediaURI: %s", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
+		fs.digestDownloadFailureCount[d]++
+		return err
 	}
 
 	outputFile := filepath.Join(fs.localImgDir, fmt.Sprintf("%s.png", d))
@@ -272,11 +272,37 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 		return fmt.Errorf("Unable to create file %s: %s", outputFile, err)
 	}
 	defer out.Close()
-	if _, err = io.Copy(out, resp.Body); err != nil {
+	if _, err = io.Copy(out, respBody); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// Returns the response body of the specified GS object. Tries MAX_URI_GET_TRIES
+// times if download is unsuccessful. Client must close the response body when
+// finished with it.
+func (fs *FileDiffStore) getRespBody(res *storage.Object) (io.ReadCloser, error) {
+	for i := 0; i < MAX_URI_GET_TRIES; i++ {
+		request, err := gs.RequestForStorageURL(res.MediaLink)
+		if err != nil {
+			glog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
+			continue
+		}
+
+		resp, err := fs.client.Do(request)
+		if err != nil {
+			glog.Warningf("Unable to retrieve Storage MediaURI: %s", err)
+			continue
+		}
+		if resp.StatusCode != 200 {
+			glog.Warningf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
+			resp.Body.Close()
+			continue
+		}
+		return resp.Body, nil
+	}
+	return nil, fmt.Errorf("Failed fetching file after %d attempts", MAX_URI_GET_TRIES)
 }
 
 // Calculate the DiffMetrics for the provided digests.
