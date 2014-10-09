@@ -44,5 +44,4 @@ sudo chmod 777 /b/skia-repo/buildbot/third_party/src/webpagereplay_logs/logs.txt
 cd /b/skia-repo/buildbot
 /b/depot_tools/gclient sync
 
-cd third_party/chromium_trunk/
-
+cd /b/storage/chromium/
