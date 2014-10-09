@@ -12,7 +12,7 @@ This section adds information about the build slave's host machine, which may be
 relevant in diagnosing failures.
 -->
 {% for slave_host_name, slave_host_cfg in slave_hosts_cfg.iteritems() %}
-  {% for possible_slavename, slave_id in slave_host_cfg['slaves'] %}
+  {% for possible_slavename, slave_id, _ in slave_host_cfg['slaves'] %}
     {% if slavename == possible_slavename %}
       <h2>Host Machine:</h2>
       <table class="info">
