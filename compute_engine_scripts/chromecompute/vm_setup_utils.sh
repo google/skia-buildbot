@@ -144,6 +144,16 @@ function copy_files {
   echo
 }
 
+function setup_hosts {
+  echo
+  echo "===== Set up /etc/hosts ====="
+  HOSTS="$(cat $CHROME_MASTER_HOST)"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+    "echo \"$HOSTS\" | sudo tee -a /etc/hosts" \
+     || FAILED="$FAILED SetupHosts"
+  echo
+}
+
 function reboot {
   echo
   echo "===== Rebooting the instance ======"

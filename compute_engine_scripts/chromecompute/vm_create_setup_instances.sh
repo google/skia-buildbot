@@ -119,6 +119,8 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
     copy_files
 
+    setup_hosts
+
     if [ "$VM_IS_BUILDBOT" = True ]; then
       setup_crontab
 

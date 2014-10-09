@@ -7,15 +7,18 @@ GCUTIL=`which gcutil`
 $(python ../compute_engine_cfg.py)
 
 # TODO(rmistry): Investigate moving the below constants to compute_engine_cfg.py
+CHROME_MASTER_HOST=~/chrome_master_host
 REQUIRED_FILES_FOR_LINUX_BOTS=(~/.skia_svn_username \
                                ~/.skia_svn_password \
                                ~/.boto \
                                ~/.bot_password \
-                               ~/.netrc)
+                               ~/.netrc \
+                               $CHROME_MASTER_HOST)
 REQUIRED_FILES_FOR_WIN_BOTS=(/tmp/chrome-bot.txt \
                              ~/.boto \
                              ~/.bot_password \
-                             ~/.netrc)
+                             ~/.netrc \
+                             $CHROME_MASTER_HOST)
 
 GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
 GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD --zone=$ZONE ssh --ssh_user=$PROJECT_USER"

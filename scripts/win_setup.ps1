@@ -102,6 +102,13 @@ INSERTFILE(~/.bot_password)
 "@
 Set-Content C:\.bot_password $bot_password
 
+banner "Update hosts file."
+$additional_hosts = @"
+`n
+INSERTFILE(~/chrome_master_host)
+"@
+Add-Content c:\Windows\System32\drivers\etc\hosts $additional_hosts
+
 banner "Download chrome-bot's scheduled task powershell script"
 $url = ("https://skia.googlesource.com/buildbot/+/master/scripts/" +
         "chromebot-schtask.ps1?format=TEXT")
