@@ -40,9 +40,9 @@ PAGESET_TYPES = {
 # Constants for ChromiumTryPage.
 CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
     'rasterize_and_record_micro',
-    # 'repaint',
+    'repaint',
     # 'pixeldiffs',
-    # 'smoothness',
+    'smoothness',
     # 'loading_trace',
     # 'loading_profile'
 )
