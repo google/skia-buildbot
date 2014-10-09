@@ -39,7 +39,7 @@ import slaves_cfg
 
 
 CHROME_INTERNAL = "https://chrome-internal.googlesource.com/"
-CHROME_SLAVE_DEPS_URL = CHROME_INTERNAL + "chrome/tools/build/slave.DEPS.git"
+CHROME_SLAVE_DEPS_URL = CHROME_INTERNAL + "chrome/tools/build/slave.DEPS"
 SKIA_URL = 'https://skia.googlesource.com/buildbot.git'
 GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
 GIT = 'git.bat' if os.name == 'nt' else 'git'
