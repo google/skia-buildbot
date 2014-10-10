@@ -1,6 +1,9 @@
 package util
 
-import "sort"
+import (
+	"sort"
+	"time"
+)
 
 // In returns true if |s| is *in* |a| slice.
 func In(s string, a []string) bool {
@@ -73,4 +76,9 @@ func SignInt(v int) int {
 		return 1
 	}
 	return 0
+}
+
+// Returns the current time in milliseconds since the epoch.
+func TimeStampMs() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }

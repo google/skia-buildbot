@@ -105,6 +105,11 @@ func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
 	return result
 }
 
+// Close the underlying database.
+func (vdb *VersionedDB) Close() error {
+	return vdb.DB.Close()
+}
+
 // Migrates the database to the specified target version. Use DBVersion() to
 // retrieve the current version of the database.
 func (vdb *VersionedDB) Migrate(targetVersion int) error {

@@ -47,11 +47,10 @@ golden/app/third_party
 perf/bqtoken.data
 perf/google_storage_token.data
 perf/node_modules
-perf.db
 perf/res/css/perf.css
 perf/res/js/perf-debug.js
 perf/res/js/perf.js
 perf/third_party
 perf/timestamp.json
-# SQLite test database created in go/database package.
-testing.db
+# Ignore all SQLite databases, because tests will create their own unique ones.
+*.db

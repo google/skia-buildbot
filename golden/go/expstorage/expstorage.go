@@ -6,8 +6,8 @@ import (
 
 // Wraps the set of expectations and provides methods to manipulate them.
 type Expectations struct {
-	Tests      map[string]types.TestClassification
-	Modifiable bool
+	Tests      map[string]types.TestClassification `json:"tests"`
+	Modifiable bool                                `json:"-"`
 }
 
 func NewExpectations(modifiable bool) *Expectations {
@@ -97,9 +97,8 @@ func (m *MemExpectationsStore) Get(modifiable bool) (*Expectations, error) {
 }
 
 func (m *MemExpectationsStore) Put(exps *Expectations, userId string) error {
-	if !exps.Modifiable {
-		panic("Cannot store unmodifiable expectations.")
-	}
+	exps.checkModifiable()
+
 	m.expectations = exps.DeepCopy()
 	m.expectations.Modifiable = false
 	return nil
