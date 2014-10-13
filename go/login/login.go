@@ -27,6 +27,7 @@ package login
 // N.B. The cookiesaltkey metadata value must be set on the GCE instance.
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -41,7 +42,8 @@ import (
 )
 
 const (
-	COOKIE_NAME = "skid"
+	COOKIE_NAME         = "skid"
+	SESSION_COOKIE_NAME = "sksession"
 )
 
 var (
@@ -82,8 +84,31 @@ func Init(clientId, clientSecret, redirectURL, cookieSalt string) {
 }
 
 // LoginURL returns a URL that the user is to be directed to for login.
-func LoginURL() string {
-	return oauthConfig.AuthCodeURL("")
+func LoginURL(w http.ResponseWriter, r *http.Request) string {
+	// Check for a session id, if not there then assign one, and add it to the redirect URL.
+	session, err := r.Cookie(SESSION_COOKIE_NAME)
+	state := ""
+	if err != nil || session.Value == "" {
+		b := make([]byte, 16)
+		_, err := rand.Read(b)
+		if err != nil {
+			glog.Errorf("Failed to create a session token: %s", err)
+			return ""
+		}
+		state = fmt.Sprintf("%X", b)
+		cookie := &http.Cookie{
+			Name:     SESSION_COOKIE_NAME,
+			Value:    state,
+			Path:     "/",
+			HttpOnly: true,
+			Expires:  time.Now().Add(365 * 24 * time.Hour),
+		}
+		http.SetCookie(w, cookie)
+	} else {
+		state = session.Value
+	}
+
+	return oauthConfig.AuthCodeURL(state)
 }
 
 // LoggedInAs returns the user's ID, i.e. their email address, if they are
@@ -157,6 +182,17 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 // "/oauth2callback".
 func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("OAuth2CallbackHandler\n")
+	session, err := r.Cookie(SESSION_COOKIE_NAME)
+	if err != nil || session.Value == "" {
+		http.Error(w, "Invalid session state.", 500)
+		return
+	}
+	state := r.FormValue("state")
+	if state != session.Value {
+		http.Error(w, "Session state doesn't match callback state.", 500)
+		return
+	}
+
 	code := r.FormValue("code")
 	glog.Infof("Code: %s ", code[:5])
 	transport := &oauth.Transport{
@@ -220,7 +256,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	body := map[string]string{
 		"Email":    LoggedInAs(r),
-		"LoginURL": LoginURL(),
+		"LoginURL": LoginURL(w, r),
 	}
 	if err := enc.Encode(body); err != nil {
 		glog.Errorf("Failed to encode Login status to JSON", err)
