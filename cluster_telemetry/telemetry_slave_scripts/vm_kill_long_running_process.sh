@@ -5,4 +5,4 @@ ps -eo uid,pid,lstart,comm | tail -n+2 | grep timeout |
              echo $PROC_PID
          fi
       done |
-      xargs sudo kill
+      xargs sudo kill -9
