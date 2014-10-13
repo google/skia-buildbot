@@ -38,8 +38,10 @@ import slave_hosts_cfg
 import slaves_cfg
 
 
-CHROME_INTERNAL = "https://chrome-internal.googlesource.com/"
-CHROME_SLAVE_DEPS_URL = CHROME_INTERNAL + "chrome/tools/build/slave.DEPS"
+CHROME_INTERNAL = 'https://chrome-internal.googlesource.com/'
+CHROME_SLAVE_DEPS_URL = CHROME_INTERNAL + 'chrome/tools/build/slave.DEPS'
+CHROME_SLAVE_INTERNAL_DEPS_URL = (
+    CHROME_INTERNAL + 'chrome/tools/build/internal.DEPS')
 SKIA_URL = 'https://skia.googlesource.com/buildbot.git'
 GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
 GIT = 'git.bat' if os.name == 'nt' else 'git'
@@ -242,7 +244,10 @@ class ChromeBuildSlaveManager(BuildSlaveManager):
 
   def _GClientConfig(self):
     """Run 'gclient config'."""
-    cmd = [GCLIENT, 'config', CHROME_SLAVE_DEPS_URL, '--deps-file', '.DEPS.git']
+    config_url = (
+        CHROME_SLAVE_INTERNAL_DEPS_URL if self._master_name == 'SkiaInternal'
+        else CHROME_SLAVE_DEPS_URL)
+    cmd = [GCLIENT, 'config', config_url, '--deps-file', '.DEPS.git']
     print 'Running command: %s' % ' '.join(cmd)
     subprocess.check_call(cmd)
 
