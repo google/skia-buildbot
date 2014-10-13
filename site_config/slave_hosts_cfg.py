@@ -96,7 +96,7 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu12-gtx550ti-001': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-gtx550ti-001', '0', False),
+      ('skiabot-shuttle-ubuntu12-gtx550ti-001', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -110,10 +110,10 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu12-gtx660-001': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-gtx660-000', '0', False),
-      ('skiabot-shuttle-ubuntu12-gtx660-001', '0', False),
-      ('skiabot-shuttle-ubuntu12-gtx660-002', '0', False),
-      ('skiabot-shuttle-ubuntu12-gtx660-003', '0', False),
+      ('skiabot-shuttle-ubuntu12-gtx660-000', '0', True),
+      ('skiabot-shuttle-ubuntu12-gtx660-001', '0', True),
+      ('skiabot-shuttle-ubuntu12-gtx660-002', '0', True),
+      ('skiabot-shuttle-ubuntu12-gtx660-003', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -127,7 +127,7 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu12-gtx660-002': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-gtx660-bench', '0', False),
+      ('skiabot-shuttle-ubuntu12-gtx660-bench', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -141,17 +141,17 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu12-android-003': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-xoom-001',        '0', False),
-      ('skiabot-shuttle-ubuntu12-xoom-002',        '1', False),
-      ('skiabot-shuttle-ubuntu12-xoom-003',        '2', False),
-      ('skiabot-shuttle-ubuntu12-nexus7-001',      '6', False),
-      ('skiabot-shuttle-ubuntu12-nexus7-002',      '7', False),
+      ('skiabot-shuttle-ubuntu12-xoom-001',        '0', True),
+      ('skiabot-shuttle-ubuntu12-xoom-002',        '1', True),
+      ('skiabot-shuttle-ubuntu12-xoom-003',        '2', True),
+      ('skiabot-shuttle-ubuntu12-nexus7-001',      '6', True),
+      ('skiabot-shuttle-ubuntu12-nexus7-002',      '7', True),
       ('skiabot-shuttle-ubuntu12-nexus7-003',      '8', True),
-      ('skiabot-shuttle-ubuntu12-nexus10-001',     '9', False),
-      ('skiabot-shuttle-ubuntu12-nexus10-003',     '10', False),
-      ('skiabot-shuttle-ubuntu12-venue8-001',      '11', False),
-      ('skiabot-shuttle-ubuntu12-nexus5-001',      '12', False),
-      ('skiabot-shuttle-ubuntu12-nexus5-002',      '13', False),
+      ('skiabot-shuttle-ubuntu12-nexus10-001',     '9', True),
+      ('skiabot-shuttle-ubuntu12-nexus10-003',     '10', True),
+      ('skiabot-shuttle-ubuntu12-venue8-001',      '11', True),
+      ('skiabot-shuttle-ubuntu12-nexus5-001',      '12', True),
+      ('skiabot-shuttle-ubuntu12-nexus5-002',      '13', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -165,11 +165,11 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu12-xxx': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-002', '2', False),
+      ('skiabot-shuttle-ubuntu12-002', '2', True),
       ('skiabot-shuttle-ubuntu12-003', '3', True),
-      ('skiabot-shuttle-ubuntu12-004', '4', False),
-      ('skiabot-shuttle-ubuntu12-arm64-001', '5', False),
-      ('skiabot-cros-link-002', '6', False),
+      ('skiabot-shuttle-ubuntu12-004', '4', True),
+      ('skiabot-shuttle-ubuntu12-arm64-001', '5', True),
+      ('skiabot-cros-link-002', '6', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -183,7 +183,7 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu13-xxx': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu13-003', '3', False)
+      ('skiabot-shuttle-ubuntu13-003', '3', True)
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -210,7 +210,7 @@ _slave_host_dicts = {
 
   'skia-housekeeping-slave-a': {
     'slaves': [
-      ('skia-housekeeping-slave-a', '0', False),
+      ('skia-housekeeping-slave-a', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': compute_engine_login,
@@ -224,7 +224,7 @@ _slave_host_dicts = {
 
   'skia-housekeeping-slave-b': {
     'slaves': [
-      ('skia-housekeeping-slave-b', '0', False),
+      ('skia-housekeeping-slave-b', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': compute_engine_login,
@@ -252,8 +252,8 @@ _slave_host_dicts = {
 
   'skia-vm-001': {
     'slaves': [
-      ('skiabot-linux-compile-000', '0', False),
-      ('skiabot-linux-vm-001', '1', False),
+      ('skiabot-linux-compile-000', '0', True),
+      ('skiabot-linux-vm-001', '1', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -267,7 +267,7 @@ _slave_host_dicts = {
 
   'skia-vm-002': {
     'slaves': [
-      ('skiabot-linux-compile-001', '0', False),
+      ('skiabot-linux-compile-001', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -281,7 +281,7 @@ _slave_host_dicts = {
 
   'skia-vm-003': {
     'slaves': [
-      ('skiabot-linux-compile-002', '0', False),
+      ('skiabot-linux-compile-002', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -295,7 +295,7 @@ _slave_host_dicts = {
 
   'skia-vm-004': {
     'slaves': [
-      ('skiabot-linux-compile-003', '0', False),
+      ('skiabot-linux-compile-003', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -309,7 +309,7 @@ _slave_host_dicts = {
 
   'skia-vm-005': {
     'slaves': [
-      ('skiabot-linux-compile-004', '0', False),
+      ('skiabot-linux-compile-004', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -323,7 +323,7 @@ _slave_host_dicts = {
 
   'skia-vm-006': {
     'slaves': [
-      ('skiabot-linux-compile-005', '0', False),
+      ('skiabot-linux-compile-005', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -337,7 +337,7 @@ _slave_host_dicts = {
 
   'skia-vm-007': {
     'slaves': [
-      ('skiabot-linux-compile-006', '0', False),
+      ('skiabot-linux-compile-006', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -351,7 +351,7 @@ _slave_host_dicts = {
 
   'skia-vm-008': {
     'slaves': [
-      ('skiabot-linux-compile-007', '0', False),
+      ('skiabot-linux-compile-007', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -365,7 +365,7 @@ _slave_host_dicts = {
 
   'skia-vm-009': {
     'slaves': [
-      ('skiabot-linux-compile-008', '0', False),
+      ('skiabot-linux-compile-008', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -379,7 +379,7 @@ _slave_host_dicts = {
 
   'skia-vm-010': {
     'slaves': [
-      ('skiabot-linux-compile-009', '0', False),
+      ('skiabot-linux-compile-009', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -393,7 +393,7 @@ _slave_host_dicts = {
 
   'skia-vm-011': {
     'slaves': [
-      ('skiabot-linux-compile-010', '0', False),
+      ('skiabot-linux-compile-010', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -407,7 +407,7 @@ _slave_host_dicts = {
 
   'skia-vm-012': {
     'slaves': [
-      ('skiabot-linux-compile-011', '0', False),
+      ('skiabot-linux-compile-011', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -462,7 +462,7 @@ _slave_host_dicts = {
 
   'skia-vm-016': {
     'slaves': [
-      ('skiabot-win-compile-000', '0', False),
+      ('skiabot-win-compile-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -476,7 +476,7 @@ _slave_host_dicts = {
 
   'skia-vm-017': {
     'slaves': [
-      ('skiabot-win-compile-001', '0', False),
+      ('skiabot-win-compile-001', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -490,7 +490,7 @@ _slave_host_dicts = {
 
   'skia-vm-018': {
     'slaves': [
-      ('skiabot-win-compile-002', '0', False),
+      ('skiabot-win-compile-002', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -518,7 +518,7 @@ _slave_host_dicts = {
 
   'skia-vm-020': {
     'slaves': [
-      ('skiabot-linux-tester-000', '0', False),
+      ('skiabot-linux-tester-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -532,7 +532,7 @@ _slave_host_dicts = {
 
   'skia-vm-021': {
     'slaves': [
-      ('skiabot-linux-tester-001', '0', False),
+      ('skiabot-linux-tester-001', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -546,7 +546,7 @@ _slave_host_dicts = {
 
   'skia-vm-022': {
     'slaves': [
-      ('skiabot-linux-tester-002', '0', False),
+      ('skiabot-linux-tester-002', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -560,7 +560,7 @@ _slave_host_dicts = {
 
   'skia-vm-023': {
     'slaves': [
-      ('skiabot-linux-tester-003', '0', False),
+      ('skiabot-linux-tester-003', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -574,7 +574,7 @@ _slave_host_dicts = {
 
   'skia-vm-024': {
     'slaves': [
-      ('skiabot-linux-canary-000', '0', False),
+      ('skiabot-linux-canary-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -588,7 +588,7 @@ _slave_host_dicts = {
 
   'skia-vm-025': {
     'slaves': [
-      ('skiabot-linux-canary-001', '0', False),
+      ('skiabot-linux-canary-001', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -602,7 +602,7 @@ _slave_host_dicts = {
 
   'skia-vm-026': {
     'slaves': [
-      ('skiabot-linux-canary-002', '0', False),
+      ('skiabot-linux-canary-002', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -616,7 +616,7 @@ _slave_host_dicts = {
 
   'skia-vm-027': {
     'slaves': [
-      ('skiabot-linux-xsan-000', '0', False),
+      ('skiabot-linux-xsan-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -630,7 +630,7 @@ _slave_host_dicts = {
 
   'skia-vm-028': {
     'slaves': [
-      ('skiabot-linux-xsan-001', '0', False),
+      ('skiabot-linux-xsan-001', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -644,7 +644,7 @@ _slave_host_dicts = {
 
   'skia-vm-029': {
     'slaves': [
-      ('skiabot-linux-vm-003', '3', False),
+      ('skiabot-linux-vm-003', '3', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -658,7 +658,7 @@ _slave_host_dicts = {
 
   'skia-vm-030': {
     'slaves': [
-      ('skiabot-win-canary-000', '0', False),
+      ('skiabot-win-canary-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -672,7 +672,7 @@ _slave_host_dicts = {
 
   'skia-vm-031': {
     'slaves': [
-      ('skiabot-win-canary-001', '0', False),
+      ('skiabot-win-canary-001', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -686,7 +686,7 @@ _slave_host_dicts = {
 
   'skia-vm-032': {
     'slaves': [
-      ('skiabot-win-canary-002', '0', False),
+      ('skiabot-win-canary-002', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -700,7 +700,7 @@ _slave_host_dicts = {
 
   'skia-vm-101': {
     'slaves': [
-      ('skiabot-linux-tester-004', '0', False),
+      ('skiabot-linux-tester-004', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -731,8 +731,8 @@ _slave_host_dicts = {
 
   'skiabot-macmini-10_6-002': {
     'slaves': [
-      ('skiabot-macmini-10_6-002', '2', False),
-      ('skiabot-macmini-10_6-003', '3', False),
+      ('skiabot-macmini-10_6-002', '2', True),
+      ('skiabot-macmini-10_6-003', '3', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -746,10 +746,10 @@ _slave_host_dicts = {
 
   'skiabot-macmini-10_7-001': {
     'slaves': [
-      ('skiabot-macmini-10_7-000', '0', False),
-      ('skiabot-macmini-10_7-001', '1', False),
-      ('skiabot-macmini-10_7-002', '2', False),
-      ('skiabot-macmini-10_7-003', '3', False),
+      ('skiabot-macmini-10_7-000', '0', True),
+      ('skiabot-macmini-10_7-001', '1', True),
+      ('skiabot-macmini-10_7-002', '2', True),
+      ('skiabot-macmini-10_7-003', '3', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -763,7 +763,7 @@ _slave_host_dicts = {
 
   'skiabot-macmini-10_7-002': {
     'slaves': [
-      ('skiabot-macmini-10_7-bench', '0', False),
+      ('skiabot-macmini-10_7-bench', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -777,10 +777,10 @@ _slave_host_dicts = {
 
   'skiabot-macmini-10_8-001': {
     'slaves': [
-      ('skiabot-macmini-10_8-000', '0', False),
-      ('skiabot-macmini-10_8-001', '1', False),
-      ('skiabot-macmini-10_8-002', '2', False),
-      ('skiabot-macmini-10_8-003', '3', False),
+      ('skiabot-macmini-10_8-000', '0', True),
+      ('skiabot-macmini-10_8-001', '1', True),
+      ('skiabot-macmini-10_8-002', '2', True),
+      ('skiabot-macmini-10_8-003', '3', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -794,7 +794,7 @@ _slave_host_dicts = {
 
   'skiabot-macmini-10_8-002': {
     'slaves': [
-      ('skiabot-macmini-10_8-bench', '0', False),
+      ('skiabot-macmini-10_8-bench', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -808,15 +808,15 @@ _slave_host_dicts = {
 
   'skiabot-mac-10_7-compile': {
     'slaves': [
-      ('skiabot-mac-10_7-compile-000', '0', False),
-      ('skiabot-mac-10_7-compile-001', '1', False),
-      ('skiabot-mac-10_7-compile-002', '2', False),
-      ('skiabot-mac-10_7-compile-003', '3', False),
-      ('skiabot-mac-10_7-compile-004', '4', False),
-      ('skiabot-mac-10_7-compile-005', '5', False),
-      ('skiabot-mac-10_7-compile-006', '6', False),
-      ('skiabot-mac-10_7-compile-007', '7', False),
-      ('skiabot-mac-10_7-compile-008', '8', False),
+      ('skiabot-mac-10_7-compile-000', '0', True),
+      ('skiabot-mac-10_7-compile-001', '1', True),
+      ('skiabot-mac-10_7-compile-002', '2', True),
+      ('skiabot-mac-10_7-compile-003', '3', True),
+      ('skiabot-mac-10_7-compile-004', '4', True),
+      ('skiabot-mac-10_7-compile-005', '5', True),
+      ('skiabot-mac-10_7-compile-006', '6', True),
+      ('skiabot-mac-10_7-compile-007', '7', True),
+      ('skiabot-mac-10_7-compile-008', '8', True),
       ('skiabot-mac-10_7-compile-009', '9', True),
     ],
     'copies': DEFAULT_COPIES,
@@ -831,15 +831,15 @@ _slave_host_dicts = {
 
   'skiabot-mac-10_8-compile': {
     'slaves': [
-      ('skiabot-mac-10_8-compile-000', '0', False),
-      ('skiabot-mac-10_8-compile-001', '1', False),
-      ('skiabot-mac-10_8-compile-002', '2', False),
-      ('skiabot-mac-10_8-compile-003', '3', False),
-      ('skiabot-mac-10_8-compile-004', '4', False),
-      ('skiabot-mac-10_8-compile-005', '5', False),
-      ('skiabot-mac-10_8-compile-006', '6', False),
-      ('skiabot-mac-10_8-compile-007', '7', False),
-      ('skiabot-mac-10_8-compile-008', '8', False),
+      ('skiabot-mac-10_8-compile-000', '0', True),
+      ('skiabot-mac-10_8-compile-001', '1', True),
+      ('skiabot-mac-10_8-compile-002', '2', True),
+      ('skiabot-mac-10_8-compile-003', '3', True),
+      ('skiabot-mac-10_8-compile-004', '4', True),
+      ('skiabot-mac-10_8-compile-005', '5', True),
+      ('skiabot-mac-10_8-compile-006', '6', True),
+      ('skiabot-mac-10_8-compile-007', '7', True),
+      ('skiabot-mac-10_8-compile-008', '8', True),
       ('skiabot-mac-10_8-compile-009', '9', True),
     ],
     'copies': DEFAULT_COPIES,
@@ -856,7 +856,7 @@ _slave_host_dicts = {
 
   'win7-intel-002': {
     'slaves': [
-      ('skiabot-shuttle-win7-intel-bench', '0', False),
+      ('skiabot-shuttle-win7-intel-bench', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -870,7 +870,7 @@ _slave_host_dicts = {
 
   'win7-intel-003': {
     'slaves': [
-      ('skiabot-shuttle-win7-intel-000', '0', False),
+      ('skiabot-shuttle-win7-intel-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -884,7 +884,7 @@ _slave_host_dicts = {
 
   'win8-gtx660-000': {
     'slaves': [
-      ('skiabot-shuttle-win8-gtx660-000', '0', False),
+      ('skiabot-shuttle-win8-gtx660-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -898,7 +898,7 @@ _slave_host_dicts = {
 
   'win8-gtx660-001': {
     'slaves': [
-      ('skiabot-shuttle-win8-gtx660-bench', '0', False),
+      ('skiabot-shuttle-win8-gtx660-bench', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -912,7 +912,7 @@ _slave_host_dicts = {
 
   'win8-hd7770-000': {
     'slaves': [
-      ('skiabot-shuttle-win8-hd7770-000', '0', False),
+      ('skiabot-shuttle-win8-hd7770-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -926,7 +926,7 @@ _slave_host_dicts = {
 
   'win8-hd7770-001': {
     'slaves': [
-      ('skiabot-shuttle-win8-hd7770-bench', '0', False),
+      ('skiabot-shuttle-win8-hd7770-bench', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
