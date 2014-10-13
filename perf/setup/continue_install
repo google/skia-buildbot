@@ -12,10 +12,9 @@ pwd
 if [ -d go ]; then
   echo Go already installed.
 else
-  wget https://go.googlecode.com/files/go1.2.1.linux-amd64.tar.gz
-  tar -xzf go1.2.1.linux-amd64.tar.gz
+  wget https://storage.googleapis.com/golang/go1.3.3.linux-amd64.tar.gz
+  tar -xzf go1.3.3.linux-amd64.tar.gz
 fi
-
 
 if [ -d buildbot ]; then
   (cd buildbot && git pull);
