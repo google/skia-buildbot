@@ -35,9 +35,9 @@ import (
 	"net/url"
 	"strings"
 
+	"skia.googlesource.com/buildbot.git/go/login"
+	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/perf/go/flags"
-	"skia.googlesource.com/buildbot.git/perf/go/login"
-	"skia.googlesource.com/buildbot.git/perf/go/metadata"
 
 	"github.com/golang/glog"
 )
@@ -82,7 +82,7 @@ func NewProxy(influxDbApiPort int, grafanaDir string) *Proxy {
 func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Requesting: %s", r.RequestURI)
 	if login.LoggedInAs(r) == "" {
-		http.Redirect(w, r, login.LoginURL(), http.StatusSeeOther)
+		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
 		return
 	}
 	if strings.HasPrefix(r.URL.Path, "/db/") {
