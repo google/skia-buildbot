@@ -748,8 +748,6 @@ _slave_host_dicts = {
     'slaves': [
       ('skiabot-macmini-10_7-000', '0', True),
       ('skiabot-macmini-10_7-001', '1', True),
-      ('skiabot-macmini-10_7-002', '2', True),
-      ('skiabot-macmini-10_7-003', '3', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -779,8 +777,6 @@ _slave_host_dicts = {
     'slaves': [
       ('skiabot-macmini-10_8-000', '0', True),
       ('skiabot-macmini-10_8-001', '1', True),
-      ('skiabot-macmini-10_8-002', '2', True),
-      ('skiabot-macmini-10_8-003', '3', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
