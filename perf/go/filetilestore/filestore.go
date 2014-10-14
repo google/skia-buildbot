@@ -329,7 +329,6 @@ func NewFileTileStore(dir, datasetName string, checkEvery time.Duration) types.T
 		datasetName: datasetName,
 		cache:       make([]CacheEntry, MAX_CACHE_TILES)[:0],
 		lastTile:    make(map[int]*types.Tile),
-		lock:        sync.Mutex{},
 	}
 	store.refreshLastTiles()
 	if checkEvery > 0 {
