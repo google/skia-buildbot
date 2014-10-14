@@ -22,7 +22,7 @@ import (
 
 const (
 	APIKEY_METADATA_KEY = "apikey"
-	CLUSTER_SIZE        = 100
+	CLUSTER_SIZE        = 50
 	CLUSTER_STDDEV      = 0.001
 )
 
