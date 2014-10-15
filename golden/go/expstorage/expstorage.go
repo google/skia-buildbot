@@ -1,6 +1,8 @@
 package expstorage
 
 import (
+	"sync"
+
 	"skia.googlesource.com/buildbot.git/golden/go/types"
 )
 
@@ -75,6 +77,9 @@ type ExpectationsStore interface {
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
 	expectations *Expectations
+
+	// Protects expectations.
+	mutex sync.Mutex
 }
 
 // New instance of memory backed expecation storage.
@@ -87,6 +92,9 @@ func NewMemExpectationsStore() ExpectationsStore {
 // ------------- In-memory implementation
 // See ExpectationsStore interface.
 func (m *MemExpectationsStore) Get(modifiable bool) (*Expectations, error) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
 	if !modifiable {
 		return m.expectations, nil
 	}
@@ -99,7 +107,12 @@ func (m *MemExpectationsStore) Get(modifiable bool) (*Expectations, error) {
 func (m *MemExpectationsStore) Put(exps *Expectations, userId string) error {
 	exps.checkModifiable()
 
-	m.expectations = exps.DeepCopy()
-	m.expectations.Modifiable = false
+	newExps := exps.DeepCopy()
+	newExps.Modifiable = false
+
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	m.expectations = newExps
 	return nil
 }
