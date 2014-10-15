@@ -19,7 +19,7 @@ SKIA_BOT_MACHINE_TYPE = os.environ.get(
     'SKIA_BOT_MACHINE_TYPE', 'n1-standard-16')
 # Options are Linux and Windows.
 VM_INSTANCE_OS = os.environ.get('VM_INSTANCE_OS', 'Linux')
-IP_ADDRESS_WITHOUT_MACHINE_PART = '108.170.192'
+IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.15'
 VM_BOT_NAME = 'skia-vm'
 PERSISTENT_DISK_SIZE_GB = 300
 # If this is true then the VM instances will automatically try to connect to the
@@ -34,9 +34,8 @@ PROJECT_ID = 'google.com:chromecompute'
 # instances live in a zone.
 #
 # We flip the default one as required by PCRs in bigcluster.
-ZONE_TAG = os.environ.get('ZONE_TAG', 'b')
-ZONE = 'us-central2-%s' % ZONE_TAG
-WINDOWS_TEST_ZONE = 'us-central1-a'
+ZONE_TAG = os.environ.get('ZONE_TAG', 'f')
+ZONE = 'us-central1-%s' % ZONE_TAG
 
 # The below constants determine which instances the delete and create/setup
 # scripts apply to.
