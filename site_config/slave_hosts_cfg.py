@@ -206,20 +206,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'skia-android-canary-b': {
-    'slaves': [
-      ('skia-android-canary', '0', True),
-    ],
-    'copies': DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_B_ONLINE,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skia-vm-001': {
     'slaves': [
       ('skiabot-linux-compile-000', '0', True),
@@ -405,6 +391,7 @@ _slave_host_dicts = {
 
   'skia-vm-014': {
     'slaves': [
+      ('skia-android-canary', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
