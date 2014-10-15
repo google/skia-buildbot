@@ -169,7 +169,6 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-003', '3', True),
       ('skiabot-shuttle-ubuntu12-004', '4', True),
       ('skiabot-shuttle-ubuntu12-arm64-001', '5', True),
-      ('skiabot-cros-link-002', '6', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -183,7 +182,6 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu13-xxx': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu13-003', '3', True)
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': skia_lab_login,
@@ -208,34 +206,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'skia-housekeeping-slave-a': {
-    'slaves': [
-      ('skia-housekeeping-slave-a', '0', True),
-    ],
-    'copies': DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_A_ONLINE,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-housekeeping-slave-b': {
-    'slaves': [
-      ('skia-housekeeping-slave-b', '0', True),
-    ],
-    'copies': DEFAULT_COPIES,
-    'login_cmd': compute_engine_login,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': ['skia-repo', 'buildbot'],
-    'remote_access': GCE_COMPILE_B_ONLINE,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skia-android-canary-b': {
     'slaves': [
       ('skia-android-canary', '0', True),
@@ -253,7 +223,6 @@ _slave_host_dicts = {
   'skia-vm-001': {
     'slaves': [
       ('skiabot-linux-compile-000', '0', True),
-      ('skiabot-linux-vm-001', '1', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -574,7 +543,6 @@ _slave_host_dicts = {
 
   'skia-vm-024': {
     'slaves': [
-      ('skiabot-linux-canary-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -588,7 +556,6 @@ _slave_host_dicts = {
 
   'skia-vm-025': {
     'slaves': [
-      ('skiabot-linux-canary-001', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -602,7 +569,6 @@ _slave_host_dicts = {
 
   'skia-vm-026': {
     'slaves': [
-      ('skiabot-linux-canary-002', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -644,7 +610,6 @@ _slave_host_dicts = {
 
   'skia-vm-029': {
     'slaves': [
-      ('skiabot-linux-vm-003', '3', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -658,7 +623,6 @@ _slave_host_dicts = {
 
   'skia-vm-030': {
     'slaves': [
-      ('skiabot-win-canary-000', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -672,7 +636,6 @@ _slave_host_dicts = {
 
   'skia-vm-031': {
     'slaves': [
-      ('skiabot-win-canary-001', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -686,7 +649,6 @@ _slave_host_dicts = {
 
   'skia-vm-032': {
     'slaves': [
-      ('skiabot-win-canary-002', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': None,
@@ -700,7 +662,6 @@ _slave_host_dicts = {
 
   'skia-vm-101': {
     'slaves': [
-      ('skiabot-linux-tester-004', '0', True),
     ],
     'copies': DEFAULT_COPIES,
     'login_cmd': chromecompute_login,
@@ -878,20 +839,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
-  'win8-gtx660-000': {
-    'slaves': [
-      ('skiabot-shuttle-win8-gtx660-000', '0', True),
-    ],
-    'copies': DEFAULT_COPIES,
-    'login_cmd': None,
-    'ip': '192.168.1.108',
-    'kvm_num': 'A',
-    'path_module': ntpath,
-    'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
   'win8-gtx660-001': {
     'slaves': [
       ('skiabot-shuttle-win8-gtx660-bench', '0', True),
@@ -978,13 +925,15 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  # TODO(borenet): These buildslaves are actually on other hosts, but they
-  # connect to the new master using only upstream code and therefore our launch
-  # script doesn't know how to launch them.
+  # TODO(borenet): These buildslaves are actually not running, but they still
+  # appear in a slaves.cfg file. We list them here to avoid having to remove
+  # them from slaves.cfg in case we want to add them back in the future.
   'extra_buildslaves_catchall': {
     'slaves': [
-      ('skiabot-nexus10-002', '0', True),
-      ('skiabot-mac-10_7-compile-010', '1', True),
+      ('skiabot-macmini-10_7-002', '2', True),
+      ('skiabot-macmini-10_7-003', '3', True),
+      ('skiabot-macmini-10_8-002', '2', True),
+      ('skiabot-macmini-10_8-003', '3', True),
     ],
     'copies': None,
     'login_cmd': None,

@@ -8,25 +8,48 @@
 and compatible. """
 
 
-import os
-import sys
+import base64
 import unittest
+import urllib2
 
 import slave_hosts_cfg
 
 
-buildbot_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                             os.pardir)
-chromium_buildbot_tot = os.path.join(buildbot_path, 'third_party',
-                                     'chromium_buildbot_tot')
-sys.path.append(os.path.join(buildbot_path, 'third_party', 'chromium_buildbot',
-                             'site_config'))
-
-SLAVES_CFG_FILES = [
-  os.path.join(buildbot_path, 'master', 'slaves.cfg'),
-  os.path.join(chromium_buildbot_tot, 'masters', 'master.client.skia',
-               'slaves.cfg')
+SKIA_PUBLIC_MASTERS = [
+  'master.client.skia',
+  'master.client.skia.android',
+  'master.client.skia.compile',
+  'master.client.skia.fyi',
 ]
+
+SKIA_PRIVATE_MASTERS = [
+  # Disable for now, since we don't know how to urlopen the internal code.
+  # 'master.client.skia.internal',
+]
+
+SLAVES_CFG_PUBLIC_URL = ('https://chromium.googlesource.com/chromium/tools/'
+                         'build/+/master/masters/%s/slaves.cfg')
+SLAVES_CFG_PRIVATE_URL = ('https://chrome-internal.googlesource.com/chrome/'
+                          'tools/build/+/master/masters/%s/slaves.cfg')
+
+SLAVES_CFG_URLS = ([SLAVES_CFG_PUBLIC_URL % m for m in SKIA_PUBLIC_MASTERS] +
+                   [SLAVES_CFG_PRIVATE_URL % m for m in SKIA_PRIVATE_MASTERS])
+
+
+# Since we can't access the internal slaves.cfg, we have to allow some slaves
+# to fail without failing the test.
+ALLOW_FAILURE_SLAVES = [
+  'skia-android-canary',
+  'skiabot-shuttle-ubuntu12-arm64-001',
+]
+
+
+def read_slaves_cfg(slaves_cfg_url):
+  url = slaves_cfg_url + '?format=TEXT'
+  contents = base64.b64decode(urllib2.urlopen(url).read())
+  slaves_cfg = {}
+  exec(contents, slaves_cfg)
+  return slaves_cfg['slaves']
 
 
 class SlaveHostsCfgTest(unittest.TestCase):
@@ -38,10 +61,8 @@ class SlaveHostsCfgTest(unittest.TestCase):
 
     # First, read the slaves.cfg files.
     slaves = []
-    for slaves_cfg_file in SLAVES_CFG_FILES:
-      slaves_cfg = {}
-      execfile(slaves_cfg_file, slaves_cfg)
-      slaves.extend(slaves_cfg['slaves'])
+    for slaves_cfg_url in SLAVES_CFG_URLS:
+      slaves.extend(read_slaves_cfg(slaves_cfg_url))
 
     # Verify that every slave listed by a slave host is defined exactly once in
     # slaves.cfg.
@@ -53,6 +74,8 @@ class SlaveHostsCfgTest(unittest.TestCase):
             self.assertFalse(found_slave,
                 'Slave %s is defined more than once in slaves.cfg' % slave_name)
             found_slave = True
+        if not found_slave and slave_name in ALLOW_FAILURE_SLAVES:
+          continue
         self.assertTrue(found_slave,
                         'Slave %s is not defined in slaves.cfg' % slave_name)
 
@@ -79,7 +102,4 @@ class SlaveHostsCfgTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-  # Temporarily disabling this test until we can reconcile the old and new
-  # buildbot worlds (skia:761).
-  #unittest.main()
-  pass
+  unittest.main()
