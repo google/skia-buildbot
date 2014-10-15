@@ -1,6 +1,15 @@
 {
+   "master_host":{
+      "url":"http://build.chromium.org/p/client.skia/json/slaves",
+      "method":"GET",
+      "expected":[
+         200
+      ],
+      "mimetype":"application/json",
+      "bodytest":"buildbotJSON"
+   },
    "android_master_host":{
-      "url":"http://108.170.220.21:10117/json/slaves",
+      "url":"http://build.chromium.org/p/client.skia.android/json/slaves",
       "method":"GET",
       "expected":[
          200
@@ -9,7 +18,7 @@
       "bodytest":"buildbotJSON"
    },
    "compile_master_host":{
-      "url":"http://108.170.220.76:10117/json/slaves",
+      "url":"http://build.chromium.org/p/client.skia.compile/json/slaves",
       "method":"GET",
       "expected":[
          200
@@ -18,47 +27,13 @@
       "bodytest":"buildbotJSON"
    },
    "fyi_master_host":{
-      "url":"http://108.170.220.102:10117/json/slaves",
+      "url":"http://build.chromium.org/p/client.skia.fyi/json/slaves",
       "method":"GET",
       "expected":[
          200
       ],
       "mimetype":"application/json",
       "bodytest":"buildbotJSON"
-   },
-   "private_master_host":{
-      "url":"http://108.170.220.27:10115/json/slaves",
-      "method":"GET",
-      "expected":[
-         200
-      ],
-      "mimetype":"application/json",
-      "bodytest":"buildbotJSON"
-   },
-   "public_master_host":{
-      "url":"http://108.170.220.120:10117/json/slaves",
-      "method":"GET",
-      "expected":[
-         200
-      ],
-      "mimetype":"application/json",
-      "bodytest":"buildbotJSON"
-   },
-   "experimental_master_1_host":{
-      "url":"http://108.170.220.127:10117/console_json",
-      "method":"GET",
-      "expected":[
-         200
-      ],
-      "mimetype":"application/json"
-   },
-   "experimental_master_2_host":{
-      "url":"http://108.170.199.152:10117/console_json",
-      "method":"GET",
-      "expected":[
-         200
-      ],
-      "mimetype":"application/json"
    }
 }
 
