@@ -13,10 +13,13 @@ import (
 	"sort"
 	"strings"
 
+	"skia.googlesource.com/buildbot.git/perf/go/flags"
+
 	"github.com/golang/glog"
 )
 
-var port = flag.String("port", ":8001", "HTTP service address (e.g., ':8001')")
+var port = flag.String("port", ":10115", "HTTP service address (e.g., ':8001')")
+var dir = flag.String("dir", "/tmp/glog", "Directory to serve log files from.")
 
 // FileServer returns a handler that serves HTTP requests
 // with the contents of the file system rooted at root.
@@ -96,6 +99,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name 
 	}
 
 	if d.IsDir() {
+		glog.Infof("Dir List: %s", name)
 		dirList(w, f)
 		return
 	}
@@ -106,6 +110,12 @@ func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name 
 func main() {
 	flag.Parse()
 
-	http.Handle("/", http.StripPrefix("/", FileServer(http.Dir("/tmp/glog"))))
+	if err := os.MkdirAll(*dir, 0777); err != nil {
+		glog.Fatalf("Failed to create dir for log files: %s", err)
+	}
+
+	flags.Log()
+
+	http.Handle("/", http.StripPrefix("/", FileServer(http.Dir(*dir))))
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
