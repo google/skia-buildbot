@@ -18,7 +18,7 @@ BUILDBOT_MASTER_IPS =         ['108.170.220.120', '108.170.220.117']
 FYI_BUILDBOT_MASTER_IPS =     ['108.170.220.102', '108.170.220.123']
 ANDROID_BUILDBOT_MASTER_IPS = ['108.170.220.21', '108.170.220.122']
 COMPILE_BUILDBOT_MASTER_IPS = ['108.170.220.76', '108.170.220.75']
-REBASELINE_SERVER_IPS =       ['108.170.220.121']
+REBASELINE_SERVER_IPS =       ['108.170.219.43']
 
 # Map of service type to (list_of_possible_ip_addrs, port, subpart, protocol).
 # The list_of_possible_ip_addrs, port, and protocol must be specified;
