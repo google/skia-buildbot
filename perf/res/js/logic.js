@@ -121,6 +121,20 @@ var skiaperf = (function() {
     alert(err);
   }
 
+  /**
+   * commitData__ may have a trailing set of commits with a commit_time of 0,
+   * which means there's no commit, it is just extra space from the Tile.
+   */
+  function lastCommitIndex() {
+    for (var i = commitData__.length - 1; i >= 0; i--) {
+      if (commitData__[i].commit_time != 0) {
+        return i;
+      }
+    }
+    // We shouldn't get here.
+    return commitData__.length;
+  }
+
 
   /**
    * Sets up the callbacks related to the plot.
@@ -474,12 +488,16 @@ var skiaperf = (function() {
 
     $$$('#reset-axes').addEventListener('click', function(e) {
       var options = plot_.plotRef.getOptions();
-      var cleanAxes = function(axis) {
+      var cleanYAxes = function(axis) {
         axis.max = null;
         axis.min = null;
       };
-      options.xaxes.forEach(cleanAxes);
-      options.yaxes.forEach(cleanAxes);
+      var cleanXAxes = function(axis) {
+        axis.max = lastCommitIndex();
+        axis.min = 0;
+      };
+      options.xaxes.forEach(cleanXAxes);
+      options.yaxes.forEach(cleanYAxes);
 
       plot_.plotRef.setupGrid();
       plot_.plotRef.draw();
@@ -494,6 +512,13 @@ var skiaperf = (function() {
       if (dataset__.ticks.length) {
         plot_.plotRef.getOptions().xaxes[0]["ticks"] = dataset__.ticks;
       }
+
+      var cleanXAxes = function(axis) {
+        axis.max = lastCommitIndex();
+        axis.min = 0;
+      };
+      plot_.plotRef.getOptions().xaxes.forEach(cleanXAxes);
+
       plot_.plotRef.setupGrid();
       plot_.plotRef.draw();
     });
