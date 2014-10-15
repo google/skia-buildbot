@@ -38,6 +38,7 @@
       <p class=clBugs>Bugs:</p>
 
       <div class="clStatus hidden disabled">
+        <p class="disabledMessage">You must be logged in to change the status.</p>
         <form action="/annotate/" method="post" accept-charset="utf-8">
           <input type="hidden" name="id" value="" ></input>
 
@@ -137,8 +138,18 @@
     display: none;
   }
 
-  .clStatus.disabled {
-    opacity: 0.1;
+  .clStatus .disabledMessage {
+    display: none;
+  }
+
+  .clStatus.disabled form {
+    opacity: 0.5;
+  }
+
+  .clStatus.disabled .disabledMessage {
+    display: block;
+    font-weight: bold;
+    color: #cc6677;
   }
 
   .clStatus input {
