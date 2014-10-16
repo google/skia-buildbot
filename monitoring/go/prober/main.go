@@ -1,8 +1,7 @@
 // Prober is an HTTP prober that periodically sends out HTTP requests to specified
 // endpoints and reports if the returned results match the expectations. The results
-// of the probe, including latency, are recored in Carbon, which is presumed to run
-// on the same machine as the prober. See probers.json as an example of the config
-// file format.
+// of the probe, including latency, are recored in InfluxDB using the Carbon protocol.
+// See probers.json as an example of the config file format.
 package main
 
 import (

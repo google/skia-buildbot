@@ -25,17 +25,10 @@ export GOROOT=$HOME/go
 export GOPATH=$HOME/golib
 export PATH=$PATH:$GOROOT/bin
 
-# Build logserver.
-go get skia.googlesource.com/buildbot.git/perf/go/logserver
-
-# Build grains.
-go get skia.googlesource.com/buildbot.git/monitoring/go/grains
-
-# Build prober.
-# TODO(jcgregorio) Fix to build the same as above.
-cd ~/buildbot/compute_engine_scripts/monitoring/prober
-go get -d
-go build
+# Build applications
+go get -u skia.googlesource.com/buildbot.git/perf/go/logserver \
+  skia.googlesource.com/buildbot.git/monitoring/go/grains \
+  skia.googlesource.com/buildbot.git/monitoring/go/prober
 
 # Install InfluxDB.
 wget http://s3.amazonaws.com/influxdb/influxdb_latest_amd64.deb

@@ -7,7 +7,7 @@
 # Default-Stop:      0 1 6
 # Short-Description: Start prober.
 # Description:       A Go program that probes (via HTTP) specified endpoints
-#                    and dumps the results into Carbon/Graphite.
+#                    and dumps the results into InfluxDB using the Carbon protocol.
 ### END INIT INFO
 
 # Author: Joe Gregorio <jcgregorio@google.org>
@@ -21,8 +21,8 @@
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia uptime and latency Prober."
-NAME=probe
-DAEMON=/home/default/buildbot/compute_engine_scripts/monitoring/prober/$NAME
+NAME=prober
+DAEMON=/home/default/golib/bin/prober
 DAEMON_ARGS="--carbon=localhost:2003 --log_dir=/tmp/glog --config=/home/default/buildbot/compute_engine_scripts/monitoring/prober/probers.json,/home/default/buildbot/compute_engine_scripts/monitoring/prober/buildbots.json"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
