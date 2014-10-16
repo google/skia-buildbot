@@ -5,4 +5,5 @@
 
 source ../buildbots/vm_config.sh
 
-gcutil --project=$PROJECT_ID deleteinstance skia-monitoring-$ZONE_TAG --zone=$ZONE
+gcutil --project=$PROJECT_ID deleteinstance --zone=$ZONE skia-monitoring
+gcutil --project=$PROJECT_ID deletedisk --zone=$ZONE  skia-monitoring-data

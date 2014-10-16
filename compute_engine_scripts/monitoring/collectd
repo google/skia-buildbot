@@ -1,0 +1,40 @@
+FQDNLookup false
+Interval 10
+
+LoadPlugin "logfile"
+<Plugin "logfile">
+  LogLevel "info"
+  File "/var/log/collectd.log"
+  Timestamp true
+</Plugin>
+
+LoadPlugin syslog
+
+<Plugin syslog>
+        LogLevel info
+</Plugin>
+
+LoadPlugin battery
+LoadPlugin cpu
+LoadPlugin df
+LoadPlugin disk
+LoadPlugin entropy
+LoadPlugin interface
+LoadPlugin irq
+LoadPlugin load
+LoadPlugin memory
+LoadPlugin processes
+LoadPlugin swap
+LoadPlugin users
+LoadPlugin write_graphite
+
+<Plugin write_graphite>
+        <Carbon>
+                Host "skia-monitoring"
+                Port "2003"
+                Prefix "collectd."
+                StoreRates false
+                AlwaysAppendDS false
+                EscapeCharacter "_"
+        </Carbon>
+</Plugin>

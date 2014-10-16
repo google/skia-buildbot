@@ -1,16 +1,15 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          prober
+# Provides:          grains
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start prober.
-# Description:       A Go program that probes (via HTTP) specified endpoints
-#                    and dumps the results into Carbon/Graphite.
+# Short-Description: Start grains.
+# Description:       The Grafana/InfluxDB proxy server.
 ### END INIT INFO
 
-# Author: Joe Gregorio <jcgregorio@google.org>
+# Author: Joe Gregorio <jcgregorio@google.com>
 #
 # Copied from /etc/init.d/skeleton and modified only the following
 # environment variables and updated the start-stop-daemon calls
@@ -20,10 +19,10 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="The Skia uptime and latency Prober."
-NAME=probe
-DAEMON=/home/default/buildbot/compute_engine_scripts/monitoring/prober/$NAME
-DAEMON_ARGS="--carbon=localhost:2003 --log_dir=/tmp/glog --config=/home/default/buildbot/compute_engine_scripts/monitoring/prober/probers.json,/home/default/buildbot/compute_engine_scripts/monitoring/prober/buildbots.json"
+DESC="The Grafana/InfluxDB proxy server."
+NAME=grains
+DAEMON=/home/default/golib/bin/$NAME
+DAEMON_ARGS="--grafana_dir=/home/default/grafana --useMetadata=true --influxdb_api_port=10117 --log_dir=/tmp/glog --redirect_url=http://skiamonitor.com/oauth2callback/"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -52,7 +51,7 @@ do_start()
 	#   2 if daemon could not be started
 	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid default --test > /dev/null \
 		|| return 1
-	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid default -- \
+	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid default --exec $DAEMON -- \
 		$DAEMON_ARGS \
 		|| return 2
 	# Add code here, if necessary, that waits for the process to be ready
@@ -117,8 +116,8 @@ case "$1" in
 	esac
 	;;
   status)
-       status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
-       ;;
+	status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
+	;;
   #reload|force-reload)
 	#
 	# If do_reload() is not implemented then leave this commented out
@@ -145,7 +144,7 @@ case "$1" in
 		esac
 		;;
 	  *)
-	  	# Failed to stop
+		# Failed to stop
 		log_end_msg 1
 		;;
 	esac
@@ -156,5 +155,3 @@ case "$1" in
 	exit 3
 	;;
 esac
-
-:

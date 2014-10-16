@@ -1,7 +1,12 @@
-check process apache2 with pidfile /var/run/apache2.pid
-   start program = "/etc/init.d/apache2 start"
-   stop program = "/etc/init.d/apache2 stop"
-
 check process prober with pidfile /var/run/prober.pid
    start program = "/etc/init.d/prober start"
    stop program = "/etc/init.d/prober stop"
+
+check process logserver with pidfile /var/run/logserver.pid
+   start program = "/etc/init.d/logserver start"
+   stop program = "/etc/init.d/logserver stop"
+
+check process influxdb with pidfile /opt/influxdb/shared/influxdb.pid
+   start program = "/etc/init.d/influxdb start"
+   stop program = "/etc/init.d/influxdb stop"
+

@@ -28,9 +28,9 @@ SLAVE_IP_ADDRESSES="108.170.220.73 108.170.220.26 108.170.220.96 108.170.220.108
 # 108.170.220.126
 # The following IP address is used by skia-testing-b (bensong's instance):
 # 108.170.220.208
-# The following IP address is used by skia-monitor (jcgregorio's instance):
-MONITORING_IP_ADDRESS=108.170.220.59
-MONITORING_IMAGE=backports-debian-7-wheezy-v20140331
+# The following IP address is used by skia-monitoring (jcgregorio's instance):
+MONITORING_IP_ADDRESS=108.170.219.115
+MONITORING_IMAGE=backports-debian-7-wheezy-v20140415
 MONITORING_MACHINE_TYPE=n1-standard-1
 
 # rebaseline_server names, type and their IP addresses to use for each zone.

@@ -29,6 +29,7 @@ var (
 	prefix     = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Carbon.")
 	carbon     = flag.String("carbon", "localhost:2003", "Address of Carbon server and port.")
 	apikeyFlag = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
+	runEvery   = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
 	bodyTesters = map[string]BodyTester{
@@ -67,8 +68,7 @@ type Probe struct {
 	BodyTestName string `json:"bodytest"`
 
 	bodyTest BodyTester
-	success  metrics.Counter
-	failure  metrics.Counter
+	failure  metrics.Gauge
 	latency  metrics.Timer
 }
 
@@ -130,8 +130,10 @@ func testBuildbotJSON(r io.Reader) bool {
 	}
 	allConnected := true
 	for k, v := range slaves {
-		glog.Errorf("Disconnected buildslave: %s", k)
 		allConnected = allConnected && v.Connected
+		if !v.Connected {
+			glog.Errorf("Disconnected buildslave: %s", k)
+		}
 	}
 	return allConnected
 }
@@ -238,8 +240,7 @@ func main() {
 	glog.Infoln("Successfully read config file.")
 	// Register counters for each probe.
 	for name, probe := range cfg {
-		probe.success = metrics.NewRegisteredCounter(name+".success", probeRegistry)
-		probe.failure = metrics.NewRegisteredCounter(name+".failure", probeRegistry)
+		probe.failure = metrics.NewRegisteredGauge(name+".failure", probeRegistry)
 		probe.latency = metrics.NewRegisteredTimer(name+".latency", probeRegistry)
 	}
 	var resp *http.Response
@@ -251,9 +252,9 @@ func main() {
 			Dial: dialTimeout,
 		},
 	}
-	for _ = range time.Tick(SAMPLE_PERIOD) {
+	for _ = range time.Tick(*runEvery) {
 		for name, probe := range cfg {
-			glog.Infoln("Running probe: ", name)
+			glog.Infof("Probe: %s Starting fail value: %d", name, probe.failure.Value())
 			begin = time.Now()
 			if probe.Method == "GET" {
 				resp, err = c.Get(probe.URL)
@@ -265,7 +266,7 @@ func main() {
 			}
 			if err != nil {
 				glog.Errorf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
-				probe.failure.Inc(1)
+				probe.failure.Update(1)
 				continue
 			}
 			bodyTestResults := true
@@ -280,15 +281,16 @@ func main() {
 
 			if !In(resp.StatusCode, probe.Expected) {
 				glog.Errorf("Got wrong status code: Got %d Want %v", resp.StatusCode, probe.Expected)
-				probe.failure.Inc(1)
+				probe.failure.Update(1)
 				continue
 			}
 			if !bodyTestResults {
-				probe.failure.Inc(1)
+				glog.Errorf("Body test failed. %#v", probe)
+				probe.failure.Update(1)
 				continue
 			}
 
-			probe.success.Inc(1)
+			probe.failure.Update(0)
 			probe.latency.Update(d)
 		}
 	}
