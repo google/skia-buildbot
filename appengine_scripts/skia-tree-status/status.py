@@ -18,7 +18,6 @@ from google.appengine.ext import db
 
 from base_page import BasePage
 from sheriff import SheriffSchedules
-import codesite_utils
 import utils
 
 
@@ -43,10 +42,6 @@ class Status(db.Model):
   date = db.DateTimeProperty(auto_now_add=True)
   # The message. It can contain html code.
   message = db.StringProperty(required=True)
-  # The first revision submitted after the status first changed.
-  first_rev = db.IntegerProperty(required=False)
-  # The last revision submitted before the status changed.
-  last_rev = db.IntegerProperty(required=False)
 
   @property
   def general_state(self):
@@ -59,11 +54,6 @@ class Status(db.Model):
       return CAUTION_STATE
     else:
       return OPEN_STATE
-
-  @property
-  def codesite_changes_url(self):
-    return codesite_utils.GetCodesiteUrlWithChangesRange(self.first_rev,
-                                                         self.last_rev)
 
   @staticmethod
   def validate_state_message(message):
@@ -106,14 +96,13 @@ def get_status():
 
 def put_status(status):
   """Sets the current Status, e.g. append a new one."""
-  # Add the last_rev to the previous status.
   prev_status = memcache.get('last_status')
   if prev_status is None:
     prev_status = Status.all().order('-date').get()
-  prev_status.last_rev = codesite_utils.GetCurrLatestRevNum()
   prev_status.put()
   # Now add the new status.
   status.put()
+
   # Flush the cache.
   memcache.flush_all()
   memcache.set('last_status', status)
@@ -265,8 +254,7 @@ class BinaryStatusPage(BasePage):
     message = self.request.get('message')
     username = self.request.get('username')
     if message and username:
-      put_status(Status(message=message, username=username,
-                        first_rev=codesite_utils.GetNextRevNum()))
+      put_status(Status(message=message, username=username))
     self.response.out.write('OK')
 
 
@@ -328,13 +316,11 @@ class MainPage(BasePage):
       last_message = new_message
       return self._handle(error_message, last_message)
     else:
-      put_status(Status(message=new_message, username=self.user.email(),
-                        first_rev=codesite_utils.GetNextRevNum()))
+      put_status(Status(message=new_message, username=self.user.email()))
       self.redirect("/")
 
 
 def bootstrap():
   # Guarantee that at least one instance exists.
   if db.GqlQuery('SELECT __key__ FROM Status').get() is None:
-    Status(username='none', message='welcome to status',
-           first_rev=codesite_utils.GetNextRevNum()).put()
+    Status(username='none', message='welcome to status').put()
