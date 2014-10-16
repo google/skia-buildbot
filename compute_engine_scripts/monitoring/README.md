@@ -1,8 +1,12 @@
 Monitoring (Grafana/InfluxDB, Prober/Alert Server)
 =====================
 
-The monitoring server runs InfluxDB to accept and manage timeseries data
-and uses Grafana to construct dashboards for that data.
+The monitoring server runs InfluxDB to accept and manage timeseries data and
+uses Grafana to construct dashboards for that data. InfluxDB has a module to
+make it compatible with Graphite/Carbon, which we used to use to store
+timeseries data before InfluxDB. Our servers still upload metrics using this
+Graphite/Carbon API, so you'll see mentions of Graphite or Carbon here and
+there.
 
 In addition this server also hosts the prober, which monitors the uptime
 of our servers and pumps the results of those probes into InfluxDB.
