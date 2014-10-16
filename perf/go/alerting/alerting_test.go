@@ -18,45 +18,43 @@ func newCluster(keys []string, regression float64) *types.ClusterSummary {
 func TestCombineClusters(t *testing.T) {
 	// Let's say we have three existing clusters with the following trace ids:
 	//
-	//    C[1], C[2], C[3,4], C[7]
+	//    C[1], C[2], C[3], C[8,9] C[10,11]
 	//
 	// And we run clustering and get the following four new clusters:
 	//
-	//    N[1], N[3], N[4], N[5], N[7]
+	//    N[1], N[2], N[3,4], N[5], N[8], N[10, 11]
 	//
 	// In the end we should end up with the following clusters:
 	//
-	//  N[1] from C[1] or N[1]
-	//  C[2] from C[2]
-	//  N[4] from C[3,4] or N[3] or N[4]
-	//  N[5] from N[5]
-	//  C[7] from C[7] or N[7]
+	//  C[1]      from C[1] or N[1]
+	//  N[2]      from C[2] or N[2]
+	//  N[3, 4]   from C[3] or N[3, 4]
+	//  N[5]      from N[5]
+	//  C[8]      from N[8]
+	//  N[10, 11] from C[10, 11] or N[10, 11]
 	//
 	// and CombineClusters should return the clusters that need to be written:
 	//
-	//  N[1]
-	//  N[3]
-	//  N[4]
+	//  N[2]
+	//  N[3, 4]
 	//  N[5]
+	//  N[10, 11]
 	//
 	// Given the Regression values for each cluster given below:
-	//
-	// Note that N[4] and C[3,4] is tricky since N[3] should initially replace
-	// C[3,4] and then N[4] should not match N[3] and so becomes a new cluster
-	// itself. I.e. the C[3,4] cluster gets replaced with two better clusters.
-
 	C := []*types.ClusterSummary{
-		newCluster([]string{"1"}, 200),
+		newCluster([]string{"1"}, 250),
 		newCluster([]string{"2"}, 300),
-		newCluster([]string{"3", "4"}, 400),
-		newCluster([]string{"7"}, 400),
+		newCluster([]string{"3"}, 400),
+		newCluster([]string{"8", "9"}, 400),
+		newCluster([]string{"10", "11"}, 400),
 	}
 	N := []*types.ClusterSummary{
-		newCluster([]string{"1"}, 250),
-		newCluster([]string{"3"}, 450),
-		newCluster([]string{"4"}, 500),
+		newCluster([]string{"1"}, 200),
+		newCluster([]string{"2"}, 350),
+		newCluster([]string{"3", "4"}, 300),
 		newCluster([]string{"5"}, 150),
-		newCluster([]string{"7"}, 300),
+		newCluster([]string{"8"}, 450),
+		newCluster([]string{"10", "11"}, 450),
 	}
 	R := CombineClusters(N, C)
 
@@ -65,20 +63,20 @@ func TestCombineClusters(t *testing.T) {
 		Regression float64
 	}{
 		{
-			Key:        "1",
-			Regression: 250,
+			Key:        "2",
+			Regression: 350,
 		},
 		{
 			Key:        "3",
-			Regression: 450,
-		},
-		{
-			Key:        "4",
-			Regression: 500,
+			Regression: 300,
 		},
 		{
 			Key:        "5",
 			Regression: 150,
+		},
+		{
+			Key:        "10",
+			Regression: 450,
 		},
 	}
 	if got, want := len(R), len(expected); got != want {

@@ -30,7 +30,7 @@ const (
 //
 //  Algorithm:
 //    Run clustering and pick out the "Interesting" clusters.
-//    Compare all the Interestin clusters to all the existing relevant clusters,
+//    Compare all the Interesting clusters to all the existing relevant clusters,
 //      where "relevant" clusters are ones whose Hash/timestamp of the step
 //      exists in the current tile.
 //    Start with an empty "list".
@@ -41,9 +41,9 @@ const (
 //      If there are no matches then this is a new cluster, add it to the "list".
 //      If there are matches, possibly to multiple existing clusters, find the
 //      existing cluster with the most matches.
-//        Take the better of the two clusters (old/new) based on the better
-//        Regression score, i.e. larger |Regression|, and update that in the "list".
-//    Save all the clusters in the "list" back to the db.
+//        Take the cluster (old/new) with the most members, or the best fit if
+//        they have the same number of matches.
+//    Return all the updated clusters.
 func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*types.ClusterSummary {
 	ret := []*types.ClusterSummary{}
 
@@ -67,7 +67,7 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 			}
 		}
 		if bestMatch != nil {
-			if math.Abs(fresh.StepFit.Regression) > math.Abs(bestMatch.StepFit.Regression) {
+			if (len(fresh.Keys) > len(bestMatch.Keys)) || (len(fresh.Keys) == len(bestMatch.Keys) && math.Abs(fresh.StepFit.Regression) > math.Abs(bestMatch.StepFit.Regression)) {
 				fresh.Status = bestMatch.Status
 				fresh.Message = bestMatch.Message
 				fresh.ID = bestMatch.ID
