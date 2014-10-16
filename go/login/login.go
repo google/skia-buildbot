@@ -219,14 +219,17 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Now base64 decode the middle segment, which decodes to JSON.
 	padding := 4 - (len(segments[1]) % 4)
-	b, err := base64.URLEncoding.DecodeString(segments[1] + strings.Repeat("=", padding))
+	middle := segments[1] + strings.Repeat("=", padding)
+	b, err := base64.URLEncoding.DecodeString(middle)
 	if err != nil {
+		glog.Errorf("Failed to base64 decode middle part of token: %s From: %#v", middle, segments)
 		http.Error(w, "Failed to base64 decode id_token.", 500)
 		return
 	}
 	// Finally decode the JSON.
 	decoded := &decodedIDToken{}
 	if err := json.Unmarshal(b, decoded); err != nil {
+		glog.Errorf("Failed to JSON decode token: %s", string(b))
 		http.Error(w, "Failed to JSON decode id_token.", 500)
 		return
 	}
