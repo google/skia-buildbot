@@ -219,6 +219,9 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Now base64 decode the middle segment, which decodes to JSON.
 	padding := 4 - (len(segments[1]) % 4)
+	if padding == 4 {
+		padding = 0
+	}
 	middle := segments[1] + strings.Repeat("=", padding)
 	b, err := base64.URLEncoding.DecodeString(middle)
 	if err != nil {
