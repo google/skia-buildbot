@@ -38,7 +38,7 @@ var (
 
 const (
 	SAMPLE_PERIOD        = time.Minute
-	TIMEOUT              = time.Duration(20 * time.Second)
+	TIMEOUT              = time.Duration(5 * time.Second)
 	ISSUE_TRACKER_PERIOD = 15 * time.Minute
 	APIKEY_METADATA_URL  = "http://metadata/computeMetadata/v1/instance/attributes/apikey"
 )
@@ -130,7 +130,7 @@ func testBuildbotJSON(r io.Reader) bool {
 	}
 	allConnected := true
 	for k, v := range slaves {
-		glog.Infof("Disconnected buildslave: %s", k)
+		glog.Errorf("Disconnected buildslave: %s", k)
 		allConnected = allConnected && v.Connected
 	}
 	return allConnected
@@ -260,23 +260,35 @@ func main() {
 			} else if probe.Method == "POST" {
 				resp, err = c.Post(probe.URL, probe.MimeType, strings.NewReader(probe.Body))
 			} else {
-				glog.Infoln("Error: unknown method: ", probe.Method)
+				glog.Errorf("Error: unknown method: ", probe.Method)
+				continue
+			}
+			if err != nil {
+				glog.Errorf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
+				probe.failure.Inc(1)
 				continue
 			}
 			bodyTestResults := true
-			if err == nil && probe.bodyTest != nil && resp.Body != nil {
+			if probe.bodyTest != nil && resp.Body != nil {
 				bodyTestResults = probe.bodyTest(resp.Body)
 			}
-			if err == nil && resp.Body != nil {
+			if resp.Body != nil {
 				resp.Body.Close()
 			}
 			d := time.Since(begin)
 			// TODO(jcgregorio) Save the last N responses and present them in a web UI.
-			if err == nil && In(resp.StatusCode, probe.Expected) && bodyTestResults {
-				probe.success.Inc(1)
-			} else {
+
+			if !In(resp.StatusCode, probe.Expected) {
+				glog.Errorf("Got wrong status code: Got %d Want %v", resp.StatusCode, probe.Expected)
 				probe.failure.Inc(1)
+				continue
 			}
+			if !bodyTestResults {
+				probe.failure.Inc(1)
+				continue
+			}
+
+			probe.success.Inc(1)
 			probe.latency.Update(d)
 		}
 	}

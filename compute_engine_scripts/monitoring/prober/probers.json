@@ -30,7 +30,7 @@
    "skiamonitor": {
      "url": "http://skiamonitor.com",
      "method": "GET",
-     "expected": [200],
+     "expected": [303],
      "body": "",
      "mimetype": ""
    }
