@@ -18,7 +18,7 @@ import (
 	"github.com/golang/glog"
 )
 
-var port = flag.String("port", ":10115", "HTTP service address (e.g., ':8001')")
+var port = flag.String("port", ":10115", "HTTP service address (e.g., ':10115')")
 var dir = flag.String("dir", "/tmp/glog", "Directory to serve log files from.")
 
 // FileServer returns a handler that serves HTTP requests
