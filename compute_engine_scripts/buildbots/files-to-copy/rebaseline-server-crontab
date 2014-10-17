@@ -1,3 +1,0 @@
-# m h  dom mon dow   command
-0 0 * * * ~/skia-repo/rebaseline_server/kick-rebaseline-server.sh
-@reboot   ~/skia-repo/rebaseline_server/kick-rebaseline-server.sh

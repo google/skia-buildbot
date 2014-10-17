@@ -4,9 +4,9 @@
 #
 set -x
 
-source ../buildbots/vm_config.sh
+source vm_config.sh
 
-gcutil --project=$PROJECT_ID addinstance skia-monitoring \
+gcutil --project=$PROJECT_ID addinstance $VM_NAME_BASE-monitoring \
                  --zone=$ZONE \
                  --external_ip_address=$MONITORING_IP_ADDRESS \
                  --service_account=$PROJECT_USER \
@@ -21,6 +21,8 @@ gcutil --project=$PROJECT_ID adddisk \
   --disk_type=pd-standard \
   --size_gb=500 \
   --zone=$ZONE \
-  skia-monitoring-data
+  $VM_NAME_BASE-monitoring-data
 
-gcutil --project=$PROJECT_ID attachdisk --disk=skia-monitoring-data --zone=$ZONE skia-monitoring
+gcutil --project=$PROJECT_ID attachdisk \
+  --disk=$VM_NAME_BASE-monitoring-data \
+  --zone=$ZONE $VM_NAME_BASE-monitoring
