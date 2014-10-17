@@ -10,35 +10,10 @@
 common
 # TAGS
 *TAGS
-# Files created when running as a master.
-master/Build-*
-master/Canary-*
-master/Housekeeper*
-master/http*
-master/Perf-*
-master/state.sqlite*
-master/Test-*
-master/twistd*
-master/git_poller_skia.git/
-master/slaves.cfgc
-# Authentication files used by the buildbots.
-.*_password
-.*_username
-site_config/*_password
-site_config/*_username
-.boto
 # Files used by bugdroid.
 .bugdroid_password
 services/bugdroid/bugdroid_log.txt
 # Data files used by webpages_playback.py
-slave/skia_slave_scripts/page_sets/data/*
-# Third party files pulled by buildbot.
-third_party/chromium_buildbot/*
-third_party/chromium_buildbot_tot/*
-third_party/chromium_trunk/*
-third_party/depot_tools/*
-third_party/src/*
-tools/tests/factory_configuration/actual/
 # Eclipse project files
 .project
 .pydevproject
@@ -54,3 +29,5 @@ perf/third_party
 perf/timestamp.json
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
+# Logfiles from launched buildslaves.
+launch_slaves.log*

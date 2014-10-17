@@ -14,12 +14,6 @@ import unittest
 BUILDBOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
-# Add the buildbot directory to the path, in case the tests are being run from
-# elsewhere.
-sys.path.append(os.path.join(BUILDBOT_PATH, 'third_party', 'chromium_buildbot',
-                             'scripts'))
-
-
 GO_TESTS = [
   'perf',
 ]

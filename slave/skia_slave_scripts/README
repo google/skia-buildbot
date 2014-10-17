@@ -1,2 +1,0 @@
-Python scripts corresponding to entire build steps go in this directory.
-Utility files needed by those scripts go within the "utils" subdir.

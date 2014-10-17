@@ -1,3 +1,0 @@
-This directory contains a Windows port of GNU patch, which our Windows trybots need for applying patches.
-
-Obtained from: http://gnuwin32.sourceforge.net/packages/patch.htm
