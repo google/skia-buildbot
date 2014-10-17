@@ -4,6 +4,8 @@
 
 """Pages that redirect to the currently running Skia Buildbot master."""
 
+# TODO(rmistry): Delete this page when the new rebaseline server is ready.
+
 import httplib
 import logging
 import urllib2
@@ -12,30 +14,18 @@ import base_page
 
 
 # Static IP addresses of our various services.
-# For faster response time these IPs should be reordered when GCE instances are
-# migrated during PCRs (preferred server should be listed first).
-BUILDBOT_MASTER_IPS =         ['108.170.220.120', '108.170.220.117']
-FYI_BUILDBOT_MASTER_IPS =     ['108.170.220.102', '108.170.220.123']
-ANDROID_BUILDBOT_MASTER_IPS = ['108.170.220.21', '108.170.220.122']
-COMPILE_BUILDBOT_MASTER_IPS = ['108.170.220.76', '108.170.220.75']
-REBASELINE_SERVER_IPS =       ['108.170.219.43']
+REBASELINE_SERVER_IPS = ['108.170.219.43']
 
 # Map of service type to (list_of_possible_ip_addrs, port, subpart, protocol).
 # The list_of_possible_ip_addrs, port, and protocol must be specified;
 # subpart can be an empty string if not needed.
 SERVICE_TYPE_TO_INFO = {
-    'buildbots':          (        BUILDBOT_MASTER_IPS, 10117, '', 'http'),
-    'fyi-buildbots':      (    FYI_BUILDBOT_MASTER_IPS, 10117, '', 'http'),
-    'android-buildbots':  (ANDROID_BUILDBOT_MASTER_IPS, 10117, '', 'http'),
-    'compile-buildbots':  (COMPILE_BUILDBOT_MASTER_IPS, 10117, '', 'http'),
-    'rebaseline-server':  (      REBASELINE_SERVER_IPS, 10117, '', 'http'),
-    'repo-serving':       (        BUILDBOT_MASTER_IPS,  8000, '', 'http'),
+    'rebaseline-server':  (REBASELINE_SERVER_IPS, 10117, '', 'http'),
 }
 # Timeout to use in urlopen when determining which IP is up.
 URLOPEN_TIMEOUT = 15
 
 
-# TODO(rmistry): Add unittests for this function.
 def _get_destination_url(service_type, slug, query_string=None):
   """Returns a complete destination URL from the service type and slug.
 
@@ -96,22 +86,3 @@ class GenericRedirectionPage(base_page.BasePage):
         service_type=None, slug=slug, query_string=self.request.query_string)
     self.redirect(destination_url, True)
 
-
-# TODO(epoger): Delete in favor of GenericRedirectionPage?
-# See https://codereview.chromium.org/145583011/#msg2
-class MasterBuildbotPage(base_page.BasePage):
-  """Redirects to the buildbot page of the currently running buildbot master."""
-  def get(self, slug, *args):
-    destination_url = _get_destination_url(service_type='buildbots',
-                                           slug=slug)
-    self.redirect(destination_url, True)
-
-
-# TODO(epoger): Delete in favor of GenericRedirectionPage?
-# See https://codereview.chromium.org/145583011/#msg2
-class MasterRepoServingPage(base_page.BasePage):
-  """Redirects to the repo page of the currently running buildbot master."""
-  def get(self, slug, *args):
-    destination_url = _get_destination_url(service_type='repo-serving',
-                                           slug=slug)
-    self.redirect(destination_url, True)
