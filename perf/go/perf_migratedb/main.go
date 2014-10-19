@@ -25,6 +25,7 @@ func main() {
 		"\n\tIf the string contains %s the user will be prompted to enter a password which will then be used for subtitution.")
 
 	flag.Parse()
+	defer glog.Flush()
 
 	var connectionStr = *dbConnString
 

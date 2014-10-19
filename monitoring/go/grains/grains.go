@@ -35,11 +35,10 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/golang/glog"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/perf/go/flags"
-
-	"github.com/golang/glog"
 )
 
 const (
@@ -101,6 +100,7 @@ func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 	flags.Log()
+	defer glog.Flush()
 	if *useMetadata {
 		*clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
 		*clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)

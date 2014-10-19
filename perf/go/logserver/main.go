@@ -109,6 +109,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name 
 
 func main() {
 	flag.Parse()
+	defer glog.Flush()
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {
 		glog.Fatalf("Failed to create dir for log files: %s", err)

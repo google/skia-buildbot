@@ -1049,6 +1049,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 func main() {
 	flag.Parse()
 	flags.Log()
+	defer glog.Flush()
 
 	Init()
 	db.Init(db.ProdDatabaseConfig(*local))

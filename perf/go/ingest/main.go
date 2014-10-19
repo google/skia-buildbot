@@ -143,6 +143,8 @@ func NewIngestionProcess(ts *Timestamps, tsName string, git *gitinfo.GitInfo, ti
 func main() {
 	flag.Parse()
 	flags.Log()
+	defer glog.Flush()
+
 	Init()
 
 	// Initialize the database. We might not need the oauth dialog if it fails.

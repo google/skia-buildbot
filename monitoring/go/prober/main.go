@@ -16,11 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
-)
-
-import (
 	"github.com/golang/glog"
+	"github.com/rcrowley/go-metrics"
 )
 
 var (
@@ -213,6 +210,7 @@ func monitorIssueTracker() {
 
 func main() {
 	flag.Parse()
+	defer glog.Flush()
 	go monitorIssueTracker()
 	glog.Infoln("Looking for Carbon server.")
 	addr, err := net.ResolveTCPAddr("tcp", *carbon)
