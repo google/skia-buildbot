@@ -5,7 +5,7 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start perf.
+# Short-Description: Start logserver.
 # Description:       Serves the log file directory via HTTP.
 ### END INIT INFO
 
@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia log server application."
 NAME=logserver
 DAEMON=/home/perf/golib/bin/$NAME
-DAEMON_ARGS=""
+DAEMON_ARGS="--log_dir=/tmp/glog"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
