@@ -6,9 +6,13 @@ type Label int
 const (
 	// Primary key field that uniquely identifies a key.
 	PRIMARY_KEY_FIELD = "name"
+)
 
+// Note: Some code in analysis depends on the order of this enum and
+// also on UNTRIAGED being 0.
+const (
 	// Classifications for observed digests.
-	UNTRIAGED Label = iota
+	UNTRIAGED Label = iota // == 0
 	POSITIVE
 	NEGATIVE
 )

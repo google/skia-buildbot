@@ -14,13 +14,13 @@ import (
 	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
-// Stores a Trace with labels and digests in memory. CommitIds, Digests and
+// LabeledTrace stores a Trace with labels and digests. CommitIds, Digests and
 // Labels are of the same length, identical indices refer to the same digest.
 type LabeledTrace struct {
-	Params    map[string]string `json:"params"`
-	CommitIds []int             `json:"commitIds"`
-	Digests   []string          `json:"digests"`
-	Labels    []types.Label     `json:"labels`
+	Params    map[string]string
+	CommitIds []int
+	Digests   []string
+	Labels    []types.Label
 }
 
 func NewLabeledTrace(params map[string]string, capacity int) *LabeledTrace {
@@ -32,21 +32,24 @@ func NewLabeledTrace(params map[string]string, capacity int) *LabeledTrace {
 	}
 }
 
-// Add the given tripples of commitIds, digests and labels to this LabeledTrace.
+// addLabledDigests adds the given tripples of commitIds, digests and labels to this LabeledTrace.
 func (lt *LabeledTrace) addLabeledDigests(commitIds []int, digests []string, labels []types.Label) {
 	lt.CommitIds = append(lt.CommitIds, commitIds...)
 	lt.Digests = append(lt.Digests, digests...)
 	lt.Labels = append(lt.Labels, labels...)
 }
 
-// Aggregates the Traces in tile and provides the commits that the
-// CommitIds in LabeledTrace refer to.
+// LabeledTile aggregates the traces of a tile and provides a slice of commits
+// that the commitIds in LabeledTrace refer to.
+// LabeledTile and LabeledTrace store the cannonical information
+// extracted from the unterlying tile store. The (redundant) output data is
+// derived from these.
 type LabeledTile struct {
-	Commits []*ptypes.Commit `json:"commits"`
+	Commits []*ptypes.Commit
 
 	// Traces are indexed by the primary key (test name). This is somewhat
 	// redundant, but this also output format.
-	Traces map[string][]*LabeledTrace `json:"traces"`
+	Traces map[string][]*LabeledTrace
 }
 
 func NewLabeledTile() *LabeledTile {
@@ -56,9 +59,9 @@ func NewLabeledTile() *LabeledTile {
 	}
 }
 
-// Utility function that returns the testName and a labeled trace for the given
-// Trace (read from a TileStore). If the LabeledTrace does not exist it will be
-// added.
+// getLabeledTrace is a utility function that returns the testName and a labeled
+// trace for the given trace (read from a TileStore). If the LabeledTrace does
+// not exist it will be added.
 func (t *LabeledTile) getLabeledTrace(trace ptypes.Trace) (string, *LabeledTrace) {
 	params := trace.Params()
 	pKey := params[types.PRIMARY_KEY_FIELD]
@@ -81,16 +84,59 @@ func (t *LabeledTile) getLabeledTrace(trace ptypes.Trace) (string, *LabeledTrace
 	return pKey, newLT
 }
 
-// Analyzer continuously manages the tasks, like pollint for new traces
-// on disk, etc.
+// LabelCounts is an output type to hold counts for classification labels.
+type LabelCounts struct {
+	Unt int `json:"unt"` // Untriaged
+	Pos int `json:"pos"` // Positive
+	Neg int `json:"neg"` // Negative
+}
+
+// GUITileCounts is an output type for the aggregated label counts.
+type GUITileCounts struct {
+	Commits []*ptypes.Commit         `json:"commits"`
+	Counts  map[string][]LabelCounts `json:"counts"`
+}
+
+// GUITestCounts is an output type for a single test that contains the
+// aggregated counts over all traces and also the individual traces
+// and their labels.
+type GUITestCounts struct {
+	Commits    []*ptypes.Commit   `json:"commits"`
+	Aggregated []LabelCounts      `json:"aggregated"`
+	Traces     []*GUILabeledTrace `json:"traces"`
+}
+
+// GUILabeledTrace is an output type for the labels of a trace.
+type GUILabeledTrace struct {
+	Params map[string]string `json:"params"`
+
+	// List of commitId and Label pairs.
+	Labels []IdLabel `json:"labels"`
+}
+
+// IdLabel stores the commitId and the label for one entry in a trace.
+type IdLabel struct {
+	Id    int `json:"id"`
+	Label int `json:"label"`
+}
+
+// Analyzer continuously manages tasks like polling for new traces
+// on disk and generating diffs between images. It is the primary interface
+// to be called by the HTTP frontend.
 type Analyzer struct {
 	expStore  expstorage.ExpectationsStore
 	diffStore diff.DiffStore
 	tileStore ptypes.TileStore
 
+	// Canonical data structure to hold our information about commits, digests
+	// and labels.
 	currentTile *LabeledTile
 
-	// Lock to protect the expectations and the current labeled tile.
+	// Output data structures that are derived from currentTile.
+	currentTileCounts *GUITileCounts
+	currentTestCounts map[string]*GUITestCounts
+
+	// Lock to protect the expectations and current* variables.
 	mutex sync.Mutex
 }
 
@@ -107,23 +153,29 @@ func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileSto
 	return result
 }
 
-// Returns an entire Tile which is a collection of 'traces' over a series of
-// of commits. Each trace contains the digests and their labels based on
-// out knowledge base about digests (expectations).
-func (a *Analyzer) GetLabeledTile() *LabeledTile {
+// GetTileCounts returns an entire Tile which is a collection of 'traces' over
+// a series of commits. Each trace contains the digests and their labels
+// based on our knowledge about digests (expectations).
+func (a *Analyzer) GetTileCounts() (*GUITileCounts, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
-	return a.currentTile
+	return a.currentTileCounts, nil
 }
 
-func (a *Analyzer) GetLabeledTraces(testName string) []*LabeledTrace {
+// GetTestCounts returns the classification counts for a specific tests.
+func (a *Analyzer) GetTestCounts(testName string) (*GUITestCounts, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
-	return a.currentTile.Traces[testName]
+	// TODO (stephana): This should return any error that occurs during reading
+	// of the tiles. We would rather get an error on the front-end than
+	// look at outdated data.
+	return a.currentTestCounts[testName], nil
 }
 
+// SetDigestLabels sets the labels for the given digest and records the user
+// that made the classification.
 func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClassification, userId string) (map[string][]*LabeledTrace, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
@@ -139,10 +191,11 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 
 	// Let's update our knowledge of the labels.
 	updatedTraces := a.relabelTraces(labeledTestDigests)
+
 	return updatedTraces, nil
 }
 
-// Main loop.
+// loop is the main event loop.
 func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 	// The number of times we've successfully loaded and processed a tile.
 	runsCounter := metrics.NewRegisteredCounter("analysis.runs", metrics.DefaultRegistry)
@@ -150,7 +203,7 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 	// The number of times an error has ocurred when trying to load a tile.
 	errorTileLoadingCounter := metrics.NewRegisteredCounter("analysis.errors", metrics.DefaultRegistry)
 
-	for {
+	for _ = range time.Tick(timeBetweenPolls) {
 		glog.Info("Reading tiles ... ")
 
 		// Load the tile and process it.
@@ -160,18 +213,21 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 			errorTileLoadingCounter.Inc(1)
 		} else {
 			newLabeledTile := a.processTile(tile)
+			newTileCounts, newTestCounts := a.getOutputCounts(newLabeledTile)
+
 			a.mutex.Lock()
 			a.currentTile = newLabeledTile
+			a.currentTileCounts = newTileCounts
+			a.currentTestCounts = newTestCounts
 			a.mutex.Unlock()
 		}
+		glog.Info("Done processing tiles.")
 		runsCounter.Inc(1)
-
-		// Sleep for a while until the next poll.
-		time.Sleep(timeBetweenPolls)
 	}
 }
 
-// Process a tile segment and add it to the currentTile.
+// processTile processes the last two tiles and updates the cannonical and
+// output data structures.
 func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 	result := NewLabeledTile()
 
@@ -208,8 +264,8 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 	return result
 }
 
-// Run over the traces in of the tiles that have changed and label them
-// according to our current expecatations.
+// relabelTraces iterates over the traces in of the tiles that have changed and
+// labels them according to our current expecatations.
 func (a *Analyzer) relabelTraces(labeledTestDigests map[string]types.TestClassification) map[string][]*LabeledTrace {
 	result := map[string][]*LabeledTrace{}
 
@@ -247,4 +303,54 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 	}
 
 	return nil
+}
+
+// getOutputCounts derives the output counts from the given labeled tile.
+func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, map[string]*GUITestCounts) {
+	// Stores the aggregated counts of a tile for each test.
+	tileCountsMap := make(map[string][]LabelCounts, len(labeledTile.Traces))
+
+	// Stores the aggregated counts for each test and individual trace information.
+	testCountsMap := make(map[string]*GUITestCounts, len(labeledTile.Traces))
+
+	for testName, testTraces := range labeledTile.Traces {
+		acc := make([]LabelCounts, len(labeledTile.Commits))
+		tempTraces := make([]*GUILabeledTrace, 0, len(testTraces))
+
+		for _, oneTrace := range testTraces {
+			tempTrace := &GUILabeledTrace{
+				Params: oneTrace.Params,
+				Labels: make([]IdLabel, len(oneTrace.CommitIds)),
+			}
+
+			for i, ci := range oneTrace.CommitIds {
+				switch oneTrace.Labels[i] {
+				case types.UNTRIAGED:
+					acc[ci].Unt++
+				case types.POSITIVE:
+					acc[ci].Pos++
+				case types.NEGATIVE:
+					acc[ci].Neg++
+				}
+				tempTrace.Labels[i].Id = ci
+				tempTrace.Labels[i].Label = int(oneTrace.Labels[i])
+			}
+
+			tempTraces = append(tempTraces, tempTrace)
+		}
+
+		tileCountsMap[testName] = acc
+		testCountsMap[testName] = &GUITestCounts{
+			Commits:    labeledTile.Commits,
+			Aggregated: acc,
+			Traces:     tempTraces,
+		}
+	}
+
+	tileCounts := &GUITileCounts{
+		Commits: labeledTile.Commits,
+		Counts:  tileCountsMap,
+	}
+
+	return tileCounts, testCountsMap
 }

@@ -1,6 +1,7 @@
 package expstorage
 
 import (
+	"database/sql"
 	"encoding/json"
 
 	"skia.googlesource.com/buildbot.git/go/database"
@@ -26,8 +27,13 @@ func (e *SQLExpectationsStore) Get(modifiable bool) (exp *Expectations, err erro
 	         ORDER BY ts DESC
 	         LIMIT 1`
 
+	// Read the expectations. If there are no rows, that means we have no
+	// expectations yet.
 	var expJSON string
-	if err := e.vdb.DB.QueryRow(stmt).Scan(&expJSON); err != nil {
+	switch err := e.vdb.DB.QueryRow(stmt).Scan(&expJSON); {
+	case err == sql.ErrNoRows:
+		return NewExpectations(modifiable), nil
+	case err != nil:
 		return nil, err
 	}
 

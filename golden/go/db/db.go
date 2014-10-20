@@ -13,17 +13,16 @@ const (
 	METADATA_KEY = "readwrite"
 )
 
-// The migration steps for this DB.
+// MigrationSteps returns the migration (up and down) for the database.
 func MigrationSteps() []database.MigrationStep {
 	return migrationSteps
 }
 
-// Returns the DB connection string for running in production where a
-// metadata server is available. If 'local' is true it will always return
-// "" (empty string). When used with Init() this will cause it to use a
-// local SQLite database. If it's not local and the meta data server is
-// unreachable it will terminate.
-func GetDatabase(mySQLConnStr string, sqlitePath string, local bool) *database.DatabaseConfig {
+// GetConfig returns a DatabaseConfig instance for running in production if a
+// metadata server is available. If 'local' is true it will always
+// set the MySQL connection string to "" and thus use a local SQLite database
+// when used with database.NewVersionedDB.
+func GetConfig(mySQLConnStr string, sqlitePath string, local bool) *database.DatabaseConfig {
 	useMySQLConnStr := mySQLConnStr
 
 	// We are in the production environment, so we look up the password.
@@ -44,7 +43,7 @@ func GetDatabase(mySQLConnStr string, sqlitePath string, local bool) *database.D
 	}
 }
 
-// Define the migration steps.
+// migrationSteps define the steps it takes to migrate the db between versions.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
 var migrationSteps = []database.MigrationStep{
