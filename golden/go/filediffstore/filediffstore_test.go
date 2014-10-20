@@ -38,16 +38,16 @@ var (
 )
 
 func getTestFileDiffStore(localImgDir, localDiffMetricsDir string) *FileDiffStore {
+	Init()
 	client := util.NewTimeoutClient()
 	return &FileDiffStore{
-		client: client,
-		digestDownloadFailureCount: map[string]int{},
-		localImgDir:                localImgDir,
-		localDiffDir:               os.TempDir(),
-		localDiffMetricsDir:        localDiffMetricsDir,
-		gsBucketName:               "chromium-skia-gm",
-		storageBaseDir:             "testdata",
-		lock:                       sync.Mutex{},
+		client:              client,
+		localImgDir:         localImgDir,
+		localDiffDir:        os.TempDir(),
+		localDiffMetricsDir: localDiffMetricsDir,
+		gsBucketName:        "chromium-skia-gm",
+		storageBaseDir:      "testdata",
+		lock:                sync.Mutex{},
 	}
 }
 
@@ -110,14 +110,15 @@ func TestCacheImageFromGS(t *testing.T) {
 	if _, err := os.Stat(imgFilePath); err != nil {
 		t.Errorf("File %s was not created!", imgFilePath)
 	}
+	assert.Equal(t, 1, downloadSuccessCount.Count())
 
 	// Test error and assert the download failures map.
 	for i := 1; i < 6; i++ {
 		if err := fds.cacheImageFromGS(MISSING_DIGEST); err == nil {
 			t.Error("Was expecting 404 error for missing digest")
 		}
-		assert.Equal(t, 1, len(fds.digestDownloadFailureCount))
-		assert.Equal(t, i, fds.digestDownloadFailureCount["abc"])
+		assert.Equal(t, 1, downloadSuccessCount.Count())
+		assert.Equal(t, i, downloadFailureCount.Count())
 	}
 }
 
@@ -151,6 +152,8 @@ func TestGet_e2e(t *testing.T) {
 		t.Error("Unexpected error: ", err)
 	}
 	assert.Equal(t, expectedDiffMetrics1_2, diffMetrics1)
+	assert.Equal(t, 0, downloadSuccessCount.Count())
+	assert.Equal(t, 0, downloadFailureCount.Count())
 
 	// 2 files that exist locally but diffmetrics does not exist.
 	diffBasename := fmt.Sprintf("%s-%s", TEST_DIGEST1, TEST_DIGEST2)
@@ -167,6 +170,8 @@ func TestGet_e2e(t *testing.T) {
 	assertFileExists(diffFilePath, t)
 	assertFileExists(diffMetricsFilePath, t)
 	assert.Equal(t, expectedDiffMetrics1_2, diffMetrics2)
+	assert.Equal(t, 0, downloadSuccessCount.Count())
+	assert.Equal(t, 0, downloadFailureCount.Count())
 
 	// 1 file that exists locally and 1 file that exists in Google Storage.
 	newImageFilePath := filepath.Join(TESTDATA_DIR, "images", fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
@@ -187,10 +192,14 @@ func TestGet_e2e(t *testing.T) {
 	assertFileExists(diffFilePath, t)
 	assertFileExists(diffMetricsFilePath, t)
 	assert.Equal(t, expectedDiffMetrics1_3, diffMetrics3)
+	assert.Equal(t, 1, downloadSuccessCount.Count())
+	assert.Equal(t, 0, downloadFailureCount.Count())
 
 	// 1 file that does not exist.
 	fds4 := getTestFileDiffStore(filepath.Join(TESTDATA_DIR, "images"), os.TempDir())
 	if _, err := fds4.Get(TEST_DIGEST1, MISSING_DIGEST); err == nil {
 		t.Error("Was expecting 404 error for missing digest")
 	}
+	assert.Equal(t, 0, downloadSuccessCount.Count())
+	assert.Equal(t, 1, downloadFailureCount.Count())
 }

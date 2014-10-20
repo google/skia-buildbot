@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang/glog"
+	"github.com/rcrowley/go-metrics"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -31,13 +32,24 @@ const (
 	MAX_URI_GET_TRIES = 4
 )
 
+var (
+	// Contains the number of times digests were successfully downloaded from
+	// Google Storage.
+	downloadSuccessCount metrics.Counter
+	// Contains the number of times digests failed to download from
+	// Google Storage.
+	downloadFailureCount metrics.Counter
+)
+
+// Init initializes the module.
+func Init() {
+	downloadSuccessCount = metrics.NewRegisteredCounter("golden.gsdownload.success", metrics.DefaultRegistry)
+	downloadFailureCount = metrics.NewRegisteredCounter("golden.gsdownload.failiure", metrics.DefaultRegistry)
+}
+
 type FileDiffStore struct {
 	// The client used to connect to Google Storage.
 	client *http.Client
-
-	// Contains the number of times a particular digest failed to download from
-	// Google Storage.
-	digestDownloadFailureCount map[string]int
 
 	// The local directory where image digests should be written to.
 	localImgDir string
@@ -95,14 +107,13 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string) diff.Di
 		client = util.NewTimeoutClient()
 	}
 	return &FileDiffStore{
-		client: client,
-		digestDownloadFailureCount: map[string]int{},
-		localImgDir:                filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME),
-		localDiffDir:               filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME),
-		localDiffMetricsDir:        filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME),
-		gsBucketName:               gsBucketName,
-		storageBaseDir:             DEFAULT_GS_IMG_DIR_NAME,
-		lock:                       sync.Mutex{},
+		client:              client,
+		localImgDir:         filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME),
+		localDiffDir:        filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME),
+		localDiffMetricsDir: filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME),
+		gsBucketName:        gsBucketName,
+		storageBaseDir:      DEFAULT_GS_IMG_DIR_NAME,
+		lock:                sync.Mutex{},
 	}
 }
 
@@ -242,8 +253,8 @@ func (fs *FileDiffStore) isDigestInCache(d string) (bool, error) {
 
 // Downloads image file from Google Storage and caches it in a local directory. It
 // is thread safe because it locks the diff store's mutext before accessing the
-// digest cache. If the provided digest does not exist in Google Storage then the
-// digest's value in FileDiffStore.digestDownloadFailureCount is incremented.
+// digest cache. If the provided digest does not exist in Google Storage then
+// downloadFailureCount is incremented.
 func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 	storage, err := storage.New(fs.client)
 	if err != nil {
@@ -253,13 +264,13 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 	objLocation := filepath.Join(fs.storageBaseDir, fmt.Sprintf("%s.%s", d, IMG_EXTENSION))
 	res, err := storage.Objects.Get(fs.gsBucketName, objLocation).Do()
 	if err != nil {
-		fs.digestDownloadFailureCount[d]++
+		downloadFailureCount.Inc(1)
 		return err
 	}
 	respBody, err := fs.getRespBody(res)
 	defer respBody.Close()
 	if err != nil {
-		fs.digestDownloadFailureCount[d]++
+		downloadFailureCount.Inc(1)
 		return err
 	}
 
@@ -276,6 +287,7 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 		return err
 	}
 
+	downloadSuccessCount.Inc(1)
 	return nil
 }
 
