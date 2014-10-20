@@ -131,6 +131,27 @@ func TestAve(t *testing.T) {
 	}
 }
 
+func TestRatio(t *testing.T) {
+	ctx := newTestContext()
+	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{10, 4, 100, 50, 9999, 0}
+	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{5, 2, 4, 5, 0, 1000}
+
+	traces, err := ctx.Eval(`ratio(
+                ave(fill(filter("config=gpu"))),
+                ave(fill(filter("config=8888"))))`)
+	if err != nil {
+		t.Fatalf("Failed to eval ratio() test: %s", err)
+	}
+	if got, want := len(traces), 1; got != want {
+		t.Errorf("ratio() returned wrong length: Got %v Want %v", got, want)
+	}
+	for i, want := range []float64{0.5, 0.5, 0.04, 0.1, 0, 1e+100} {
+		if got := traces[0].Values[i]; got != want {
+			t.Errorf("Ratio mismatch: Got %v Want %v", got, want)
+		}
+	}
+}
+
 func TestFill(t *testing.T) {
 	ctx := newTestContext()
 	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1e100, 1e100, 2, 3, 1e100, 5}

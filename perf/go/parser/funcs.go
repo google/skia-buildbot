@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"math"
 	"net/url"
 	"strconv"
 
@@ -175,3 +176,37 @@ func (AveFunc) Describe() string {
 }
 
 var aveFunc = AveFunc{}
+
+type RatioFunc struct{}
+
+func (RatioFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
+	if len(node.Args) != 2 {
+		return nil, fmt.Errorf("ratio() takes two arguments")
+	}
+
+	tracesA, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ratio() argument failed to evaluate: %s", err)
+	}
+
+	tracesB, err := node.Args[1].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ratio() argument failed to evaluate: %s", err)
+	}
+
+	ret := types.NewPerfTraceN(len(tracesA[0].Values))
+	for i, _ := range ret.Values {
+		ret.Values[i] = tracesA[0].Values[i] / tracesB[0].Values[i]
+		if math.IsInf(ret.Values[i], 0) {
+			ret.Values[i] = config.MISSING_DATA_SENTINEL
+		}
+	}
+	return []*types.PerfTrace{ret}, nil
+}
+
+func (RatioFunc) Describe() string {
+	return `ratio(a, b) returns the point by point ratio of two traces.
+                That is, it returns a trace with a[i]/b[i] for every point in a and b.`
+}
+
+var ratioFunc = RatioFunc{}
