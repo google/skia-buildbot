@@ -32,7 +32,6 @@ LOG_FILE_LOCATION=$5
 # Update buildbot.
 gclient sync
 
-cd ../../slave/skia_slave_scripts/utils/
 CHROMIUM_BUILD_DIR_BASE=/b/storage/chromium-builds/base
 mkdir -p $CHROMIUM_BUILD_DIR_BASE
 SYNC_SKIA_IN_CHROME_CMD="PYTHONPATH=/b/skia-repo/buildbot/third_party/chromium_buildbot/site_config/:/b/skia-repo/buildbot/site_config/:/b/skia-repo/buildbot/third_party/chromium_buildbot/scripts/:/b/skia-repo/buildbot/common/ python sync_skia_in_chrome.py --destination=$CHROMIUM_BUILD_DIR_BASE --chrome_revision=$CHROMIUM_COMMIT_HASH --skia_revision=$SKIA_COMMIT_HASH"

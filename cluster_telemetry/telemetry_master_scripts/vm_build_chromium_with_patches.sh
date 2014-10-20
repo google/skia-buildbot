@@ -50,7 +50,6 @@ function copy_build_log_to_gs() {
   rm $LOG_FILE_LOCATION
 }
 
-cd ../../slave/skia_slave_scripts/utils/
 if [ "$TARGET_PLATFORM" == "Android" ]; then
   echo "== Using android-base =="
   CHROMIUM_BUILD_DIR_BASE=/b/storage/chromium-builds/android-base
