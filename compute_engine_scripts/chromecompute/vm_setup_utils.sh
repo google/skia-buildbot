@@ -25,6 +25,7 @@ function setup_symlinks {
   echo
   echo "Setup Symlinks"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+    "ln -s -f ~/storage/skia-repo/src/third_party/llvm-build/Release+Asserts/bin/ ~/slavebin && " \
     "sudo ln -s -f /usr/bin/ccache /usr/local/bin/cc && " \
     "sudo ln -s -f /usr/bin/ccache /usr/local/bin/c++ && " \
     "sudo ln -s -f /usr/bin/ccache /usr/local/bin/gcc && " \
