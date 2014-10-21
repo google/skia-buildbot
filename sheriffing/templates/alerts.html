@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Skia Sheriff Dashboard</title>
+  </head>
+  <body>
+    <div id="page-wrapper">
+      <h1>Skia Sheriff Dashboard</h1>
+      <div id="alerts-wrapper">
+        <h2>Alerts</h2>
+        <ul>
+          {{ range .Alerts }}
+            {{ if .Snoozed }}
+            {{ else }}
+              <li>{{ .Name }}</li>
+            {{ end }}
+          {{ end }}
+        </ul>
+        <h3>Snoozed</h3>
+        <ul>
+          {{ range .Alerts }}
+            {{ if .Snoozed }}
+              <li>{{ .Name }}</li>
+            {{ end }}
+          {{ end }}
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

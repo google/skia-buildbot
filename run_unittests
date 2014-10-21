@@ -16,6 +16,7 @@ BUILDBOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 GO_TESTS = [
   'perf',
+  'sheriffing',
 ]
 
 GO_TEST_FAILED = (
