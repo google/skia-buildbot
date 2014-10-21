@@ -1,22 +1,23 @@
 package filediffstore
 
 import (
-	"code.google.com/p/goauth2/compute/serviceaccount"
-	"code.google.com/p/google-api-go-client/storage/v1"
 	"encoding/json"
 	"fmt"
-	"github.com/golang/glog"
-	"github.com/rcrowley/go-metrics"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
+
+	"code.google.com/p/goauth2/compute/serviceaccount"
+	"code.google.com/p/google-api-go-client/storage/v1"
+	"github.com/golang/glog"
+	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/gs"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
-	"sync"
 )
 
 const (

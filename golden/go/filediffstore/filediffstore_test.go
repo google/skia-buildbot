@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"sync"
 	"testing"
+
+	"skia.googlesource.com/buildbot.git/go/util"
+	"skia.googlesource.com/buildbot.git/golden/go/diff"
 )
 
 import (
