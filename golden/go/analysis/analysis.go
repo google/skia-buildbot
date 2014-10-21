@@ -86,15 +86,24 @@ func (t *LabeledTile) getLabeledTrace(trace ptypes.Trace) (string, *LabeledTrace
 
 // LabelCounts is an output type to hold counts for classification labels.
 type LabelCounts struct {
-	Unt int `json:"unt"` // Untriaged
-	Pos int `json:"pos"` // Positive
-	Neg int `json:"neg"` // Negative
+	Unt []int `json:"unt"` // Untriaged
+	Pos []int `json:"pos"` // Positive
+	Neg []int `json:"neg"` // Negative
+}
+
+func newLabelCounts(length int) *LabelCounts {
+	return &LabelCounts{
+		Unt: make([]int, length),
+		Pos: make([]int, length),
+		Neg: make([]int, length),
+	}
 }
 
 // GUITileCounts is an output type for the aggregated label counts.
 type GUITileCounts struct {
-	Commits []*ptypes.Commit         `json:"commits"`
-	Counts  map[string][]LabelCounts `json:"counts"`
+	Commits    []*ptypes.Commit        `json:"commits"`
+	Aggregated *LabelCounts            `json:"aggregated"`
+	Counts     map[string]*LabelCounts `json:"counts"`
 }
 
 // GUITestCounts is an output type for a single test that contains the
@@ -102,7 +111,7 @@ type GUITileCounts struct {
 // and their labels.
 type GUITestCounts struct {
 	Commits    []*ptypes.Commit   `json:"commits"`
-	Aggregated []LabelCounts      `json:"aggregated"`
+	Aggregated *LabelCounts       `json:"aggregated"`
 	Traces     []*GUILabeledTrace `json:"traces"`
 }
 
@@ -203,7 +212,7 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 	// The number of times an error has ocurred when trying to load a tile.
 	errorTileLoadingCounter := metrics.NewRegisteredCounter("analysis.errors", metrics.DefaultRegistry)
 
-	for _ = range time.Tick(timeBetweenPolls) {
+	processOneTile := func() {
 		glog.Info("Reading tiles ... ")
 
 		// Load the tile and process it.
@@ -223,6 +232,12 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 		}
 		glog.Info("Done processing tiles.")
 		runsCounter.Inc(1)
+	}
+
+	// process a tile immediately and then at fixed points in time.
+	processOneTile()
+	for _ = range time.Tick(timeBetweenPolls) {
+		processOneTile()
 	}
 }
 
@@ -308,13 +323,16 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 // getOutputCounts derives the output counts from the given labeled tile.
 func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, map[string]*GUITestCounts) {
 	// Stores the aggregated counts of a tile for each test.
-	tileCountsMap := make(map[string][]LabelCounts, len(labeledTile.Traces))
+	tileCountsMap := make(map[string]*LabelCounts, len(labeledTile.Traces))
 
 	// Stores the aggregated counts for each test and individual trace information.
 	testCountsMap := make(map[string]*GUITestCounts, len(labeledTile.Traces))
 
+	// Overall aggregated counts over all tests.
+	overallAggregates := newLabelCounts(len(labeledTile.Commits))
+
 	for testName, testTraces := range labeledTile.Traces {
-		acc := make([]LabelCounts, len(labeledTile.Commits))
+		acc := newLabelCounts(len(labeledTile.Commits))
 		tempTraces := make([]*GUILabeledTrace, 0, len(testTraces))
 
 		for _, oneTrace := range testTraces {
@@ -326,11 +344,11 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, ma
 			for i, ci := range oneTrace.CommitIds {
 				switch oneTrace.Labels[i] {
 				case types.UNTRIAGED:
-					acc[ci].Unt++
+					acc.Unt[ci]++
 				case types.POSITIVE:
-					acc[ci].Pos++
+					acc.Pos[ci]++
 				case types.NEGATIVE:
-					acc[ci].Neg++
+					acc.Neg[ci]++
 				}
 				tempTrace.Labels[i].Id = ci
 				tempTrace.Labels[i].Label = int(oneTrace.Labels[i])
@@ -345,11 +363,19 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, ma
 			Aggregated: acc,
 			Traces:     tempTraces,
 		}
+
+		// Add the aggregates fro this test to the overall aggregates.
+		for idx, u := range acc.Unt {
+			overallAggregates.Unt[idx] += u
+			overallAggregates.Pos[idx] += acc.Pos[idx]
+			overallAggregates.Neg[idx] += acc.Neg[idx]
+		}
 	}
 
 	tileCounts := &GUITileCounts{
-		Commits: labeledTile.Commits,
-		Counts:  tileCountsMap,
+		Commits:    labeledTile.Commits,
+		Aggregated: overallAggregates,
+		Counts:     tileCountsMap,
 	}
 
 	return tileCounts, testCountsMap
