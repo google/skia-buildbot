@@ -146,6 +146,8 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-venue8-001',      '11', False),
       ('skiabot-shuttle-ubuntu12-nexus5-001',      '12', False),
       ('skiabot-shuttle-ubuntu12-nexus5-002',      '13', False),
+      ('skiabot-shuttle-ubuntu12-galaxys4-001',    '14', False),
+      ('skiabot-shuttle-ubuntu12-galaxys4-002',    '15', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': skia_lab_login,
