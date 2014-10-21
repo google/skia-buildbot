@@ -2,6 +2,7 @@
 #
 # Update the code running on skiamonitor.com.
 #
+set -x
 
 source vm_config.sh
 

@@ -5,11 +5,14 @@ Skia's GCE Perf Server machine.
 Directory Contents
 ==================
 
-- vm_create_server.sh
+- vm_create_instance.sh
 Creates a perf server instance in the specified $ZONE_TAG.
 
-- vm_setup_server.sh
+- vm_setup_instance.sh
 Sets up the perf server with required packages and directories.
 
-- vm_delete_server.sh
+- vm_delete_instance.sh
 Deletes the perf server instance in the specified $ZONE_TAG.
+
+- vm_push_update.sh
+Updates the code of the perf server running on skiaperf.com
