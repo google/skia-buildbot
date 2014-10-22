@@ -225,3 +225,17 @@ func TestTileAddressFromHash(t *testing.T) {
 		}
 	}
 }
+
+func TestNumCommits(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got, want := r.NumCommits(), 2; got != want {
+		t.Errorf("NumCommit wrong number: Got %v Want %v", got, want)
+	}
+}

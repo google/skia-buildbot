@@ -283,3 +283,10 @@ func (g *GitInfo) TileAddressFromHash(hash string, start time.Time) (num, offset
 	}
 	return -1, -1, fmt.Errorf("Cannot find hash %s.\n", hash)
 }
+
+// NumCommits returns the number of commits in the repo.
+func (g *GitInfo) NumCommits() int {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	return len(g.hashes)
+}

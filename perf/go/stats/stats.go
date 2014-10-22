@@ -17,6 +17,7 @@ import (
 func Start(tileStore types.TileStore, git *gitinfo.GitInfo) {
 	coverage := metrics.NewRegisteredGaugeFloat64("stats.tests.bench_runs_per_changelist", metrics.DefaultRegistry)
 	skpLatency := metrics.NewRegisteredTimer("stats.skp.update_latency", metrics.DefaultRegistry)
+	commits := metrics.NewRegisteredGauge("stats.commits.total", metrics.DefaultRegistry)
 
 	go func() {
 		for _ = range time.Tick(2 * time.Minute) {
@@ -45,6 +46,7 @@ func Start(tileStore types.TileStore, git *gitinfo.GitInfo) {
 				continue
 			}
 			skpLatency.Update(time.Now().Sub(last))
+			commits.Update(int64(git.NumCommits()))
 		}
 	}()
 }
