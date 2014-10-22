@@ -1,3 +1,7 @@
+check process grains with pidfile /var/run/grains.pid
+   start program = "/etc/init.d/grains start"
+   stop program = "/etc/init.d/grains stop"
+
 check process prober with pidfile /var/run/prober.pid
    start program = "/etc/init.d/prober start"
    stop program = "/etc/init.d/prober stop"
@@ -10,3 +14,6 @@ check process influxdb with pidfile /opt/influxdb/shared/influxdb.pid
    start program = "/etc/init.d/influxdb start"
    stop program = "/etc/init.d/influxdb stop"
 
+check process squid3 with pidfile /var/run/squid3.pid
+   start program = "/etc/init.d/squid3 start"
+   stop program = "/etc/init.d/squid3 stop"
