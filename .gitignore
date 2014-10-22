@@ -28,6 +28,14 @@ perf/res/js/perf.js
 perf/res/imp/polymer
 perf/third_party
 perf/timestamp.json
+sheriffing/node_modules
+sheriffing/npm-debug.log
+sheriffing/res/imp/core*
+sheriffing/res/imp/paper*
+sheriffing/res/imp/polymer
+sheriffing/res/js/sheriffing-debug.js
+sheriffing/res/js/sheriffing.js
+sheriffing/third_party
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
 # Logfiles from launched buildslaves.

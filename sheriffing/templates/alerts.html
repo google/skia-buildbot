@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="import" href="/res/imp/alert-sk.html"/>
     <title>Skia Sheriff Dashboard</title>
   </head>
   <body>
@@ -8,22 +9,18 @@
       <h1>Skia Sheriff Dashboard</h1>
       <div id="alerts-wrapper">
         <h2>Alerts</h2>
-        <ul>
-          {{ range .Alerts }}
-            {{ if .Snoozed }}
-            {{ else }}
-              <li>{{ .Name }}</li>
-            {{ end }}
+        {{ range .Alerts }}
+          {{ if .Snoozed }}
+          {{ else }}
+            <alert-sk alertname="{{ .Name }}"></alert-sk>
           {{ end }}
-        </ul>
+        {{ end }}
         <h3>Snoozed</h3>
-        <ul>
-          {{ range .Alerts }}
-            {{ if .Snoozed }}
-              <li>{{ .Name }}</li>
-            {{ end }}
+        {{ range .Alerts }}
+          {{ if .Snoozed }}
+            <alert-sk alertname="{{ .Name }}"></alert-sk>
           {{ end }}
-        </ul>
+        {{ end }}
       </div>
     </div>
   </body>

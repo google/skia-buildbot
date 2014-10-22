@@ -17,6 +17,7 @@ import (
 )
 
 import (
+	"github.com/fiorix/go-web/autogzip"
 	"github.com/golang/glog"
 	"github.com/influxdb/influxdb/client"
 )
@@ -107,6 +108,14 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
+func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir("./"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", string(300))
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
 func runServer() {
 	_, filename, _, _ := runtime.Caller(0)
 	cwd := filepath.Join(filepath.Dir(filename), "../..")
@@ -116,6 +125,7 @@ func runServer() {
 	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
 	alertsTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/alerts.html")))
 
+	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/alerts", alertHandler)
 	http.HandleFunc("/json/alerts", alertJsonHandler)
