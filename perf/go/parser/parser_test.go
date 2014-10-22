@@ -80,10 +80,12 @@ func TestEvalErrors(t *testing.T) {
 		`norm("foo")`,
 		`norm(filter(""), "foo")`,
 		`ave(2)`,
+		`avg(2)`,
 		`norm(2)`,
 		`fill(2)`,
 		`norm()`,
 		`ave()`,
+		`avg()`,
 		`fill()`,
 	}
 	for _, tc := range testCases {
@@ -122,6 +124,25 @@ func TestAve(t *testing.T) {
 	}
 	if got, want := len(traces), 1; got != want {
 		t.Errorf("ave() returned wrong length: Got %v Want %v", got, want)
+	}
+
+	for i, want := range []float64{1.0, 0.5, -2.0, 1e100} {
+		if got := traces[0].Values[i]; !near(got, want) {
+			t.Errorf("Distance mismatch: Got %v Want %v", got, want)
+		}
+	}
+}
+
+func TestAvg(t *testing.T) {
+	ctx := newTestContext()
+	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1.0, -1.0, 1e100, 1e100}
+	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{1e100, 2.0, -2.0, 1e100}
+	traces, err := ctx.Eval(`avg(filter(""))`)
+	if err != nil {
+		t.Fatalf("Failed to eval avg() test: %s", err)
+	}
+	if got, want := len(traces), 1; got != want {
+		t.Errorf("avg() returned wrong length: Got %v Want %v", got, want)
 	}
 
 	for i, want := range []float64{1.0, 0.5, -2.0, 1e100} {

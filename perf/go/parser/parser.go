@@ -70,6 +70,7 @@ func NewContext(tile *types.Tile) *Context {
 			"norm":   normFunc,
 			"fill":   fillFunc,
 			"ave":    aveFunc,
+			"avg":    aveFunc,
 			"ratio":  ratioFunc,
 		},
 	}
