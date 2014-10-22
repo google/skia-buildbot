@@ -25,6 +25,7 @@ perf/node_modules
 perf/res/css/perf.css
 perf/res/js/perf-debug.js
 perf/res/js/perf.js
+perf/res/imp/polymer
 perf/third_party
 perf/timestamp.json
 # Ignore all SQLite databases, because tests will create their own unique ones.

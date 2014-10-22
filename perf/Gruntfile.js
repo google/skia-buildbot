@@ -24,33 +24,21 @@ module.exports = function(grunt) {
          }
       }
     },
-    bower: {
-      dev: {
-         dest: './third_party/out'
-      }
-    },
     // Concatenate all the third_party and common files we use into a single file.
     concat: {
       dist: {
         src: [
           'res/js/common.js',
 
-          'third_party/out/jquery.js',
+          'third_party/bower_components/platform/platform.js',
+
+          'third_party/bower_components/jquery/dist/jquery.min.js',
           'third_party/bower_components/flot/jquery.flot.js',
           'third_party/bower_components/flot/jquery.flot.crosshair.js',
           'third_party/bower_components/flot/jquery.flot.navigate.js',
           'third_party/bower_components/flot/jquery.flot.selection.js',
-          'third_party/bower_components/observe-js/src/observe.js',
-          'third_party/bower_components/Object.observe/Object.observe.poly.js',
+
           'third_party/bower_components/native-promise-only/npo.js',
-
-          'third_party/out/WeakMap.js',
-          'third_party/out/classlist.js',
-          'third_party/out/pointerevents.dev.js',
-          'third_party/out/MutationObserver.js',
-          'third_party/out/CustomElements.js',
-          'third_party/out/HTMLImports.js',
-
         ],
         dest: 'res/js/<%= pkg.name %>-debug.js'
       }
@@ -70,6 +58,16 @@ module.exports = function(grunt) {
       simple: {
         src: 'res/js/<%= pkg.name %>-debug.js',
         dest: 'res/js/<%= pkg.name %>.js'
+      },
+      polymer: {
+        src: [
+          'third_party/bower_components/polymer/layout.html',
+          'third_party/bower_components/polymer/polymer.html',
+          'third_party/bower_components/polymer/polymer.js'
+        ],
+        dest: 'res/imp/polymer/',
+        expand: true,
+        flatten: true
       }
     },
     // Auto prefix any CSS so it works on a wider set of browsers.
@@ -109,7 +107,6 @@ module.exports = function(grunt) {
   });
 
   // Load the plugins for the above commands.
-  grunt.loadNpmTasks('grunt-bower');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
@@ -121,10 +118,10 @@ module.exports = function(grunt) {
 
   // By default run all the commands in the right sequence to build our custom
   // minified third_party JS.
-  grunt.registerTask('default', ['shell:bower_install', 'shell:install_npo', 'shell:build_npo', 'bower', 'concat', 'uglify']);
+  grunt.registerTask('default', ['shell:bower_install', 'shell:install_npo', 'shell:build_npo', 'concat', 'uglify', 'copy:polymer']);
 
   // A target to build an unminified version, for debugging.
-  grunt.registerTask('debug-js', ['shell:bower_install', 'bower', 'concat', 'copy:simple']);
+  grunt.registerTask('debug-js', ['shell:bower_install', 'concat', 'copy:simple', 'copy:polymer']);
 
   // A target to build just the CSS.
   grunt.registerTask('css', ['autoprefixer']);

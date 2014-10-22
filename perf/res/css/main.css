@@ -19,12 +19,14 @@ body {
   font-size: 15px;
 }
 
-a {
+a,
+::shadow a {
   color: #1f78b4;
   font-weight: bold;
 }
 
-a:hover {
+a:hover,
+::shadow a:hover {
   text-decoration: none;
 }
 
@@ -140,16 +142,18 @@ table, td {
   display: flex;
 }
 
-#title a {
+#title a,
+#title ::shadow a {
   color: white;
   margin-right: 10px;
 }
 
-#title a:hover {
+#title a:hover,
+#title ::shadow a:hover {
   text-decoration: none;
 }
 
-#title #login {
+#title login-sk {
   margin-left: auto;
 }
 

@@ -25,41 +25,38 @@
   //
   // The Email will be the empty string if the user is not logged in.
   sk.Login = new Promise(function(resolve, reject) {
-      sk.get('/loginstatus').then(JSON.parse).then(function(json) {
-        resolve(json);
-      }).catch(function(err) {
-        reject(err);
-      });
+      sk.get('/loginstatus').then(JSON.parse).then(resolve).catch(reject);
     });
 
-  function onLoad() {
-    var node = importer__.import('#login-template');
-
-    sk.Login.then(function(status) {
-        if (status['Email'] == '') {
-          $$$('.email', node).classList.add('hidden');
-          $$$('.logout', node).classList.add('hidden');
-          $$$('.login', node).href = status['LoginURL'];
-        } else {
-          $$$('.login', node).classList.add('hidden');
-          $$$('.email', node).innerText = status['Email'];
-          $$$('.logout', node).href = "/logout/?redirect=" + encodeURIComponent(document.location);
-        }
-        $$$('#login').appendChild(node);
-    });
-  };
-
-  // When loaded via HTML Imports then DOMContentLoaded may be long done.
-  if (document.readyState != 'loading') {
-    onLoad();
-  } else {
-    window.addEventListener('load', onLoad);
-  }
 })();
 </script>
 
-<template id=login-template>
-  <span class=email></span>
-  <a class=logout href="/logout/">Logout</a>
-  <a class=login href="">Login</a>
-</template>
+<!--
+  The <login-sk> custom element.
+
+  Uses sk.Login promise to display the current login status and provides
+  login/logout links.
+-->
+<polymer-element name="login-sk">
+  <template>
+    <span id=email></span>
+    <a id=logInOut href=""></a>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        var ele = this;
+        sk.Login.then(function(status) {
+          ele.$.email.innerText = status['Email'];
+          if (status['Email'] == '') {
+            ele.$.logInOut.href = status['LoginURL'];
+            ele.$.logInOut.innerText = 'Login';
+          } else {
+            ele.$.logInOut.href = "/logout/?redirect=" + encodeURIComponent(document.location);
+            ele.$.logInOut.innerText = 'Logout';
+          }
+        });
+      }
+    });
+  </script>
+</polymer-element>

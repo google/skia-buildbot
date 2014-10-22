@@ -59,7 +59,11 @@ function $$$(query, ele) {
    *    var node = importer.import('#foo');
    */
   sk.Importer = function() {
-    this.importDoc_ = document.currentScript.ownerDocument;
+    if ('currentScript' in document) {
+      this.importDoc_ = document.currentScript.ownerDocument;
+    } else {
+      this.importDoc_ = document._currentScript.ownerDocument;
+    }
   }
 
   sk.Importer.prototype.import = function(id) {
