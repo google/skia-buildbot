@@ -5,6 +5,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -38,7 +39,8 @@ var (
 
 // flags
 var (
-	port              = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	host              = flag.String("host", "localhost", "HTTP service host")
+	port              = flag.String("port", "8000", "HTTP service port (e.g., '8000')")
 	useMetadata       = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	influxDbHost      = flag.String("influxdb_host", "localhost:8086", "The InfluxDB hostname.")
 	influxDbName      = flag.String("influxdb_name", "root", "The InfluxDB username.")
@@ -71,6 +73,40 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	type displayAlert struct {
+		Name         string `json:"name"`
+		Query        string `json:"query"`
+		Condition    string `json:"condition"`
+		Active       bool   `json:"active"`
+		Snoozed      bool   `json:"snoozed"`
+		Triggered    int64  `json:"triggered"`
+		SnoozedUntil int64  `json:"snoozed_until"`
+	}
+	alerts := struct {
+		Alerts []displayAlert `json:"alerts"`
+	}{
+		Alerts: []displayAlert{},
+	}
+	for _, a := range alertManager.Alerts() {
+		alerts.Alerts = append(alerts.Alerts, displayAlert{
+			Name:         a.Name,
+			Query:        a.Query,
+			Condition:    a.Condition,
+			Active:       a.Active(),
+			Snoozed:      a.Snoozed(),
+			Triggered:    a.Triggered().Unix(),
+			SnoozedUntil: a.SnoozedUntil().Unix(),
+		})
+	}
+	bytes, err := json.Marshal(&alerts)
+	if err != nil {
+		glog.Error(err)
+	}
+	w.Write(bytes)
+}
+
 func runServer() {
 	_, filename, _, _ := runtime.Caller(0)
 	cwd := filepath.Join(filepath.Dir(filename), "../..")
@@ -82,8 +118,10 @@ func runServer() {
 
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/alerts", alertHandler)
-	glog.Info("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	http.HandleFunc("/json/alerts", alertJsonHandler)
+	serverUrl := *host + ":" + *port
+	glog.Infof("Ready to serve on http://%s", serverUrl)
+	glog.Fatal(http.ListenAndServe(serverUrl, nil))
 }
 
 func main() {

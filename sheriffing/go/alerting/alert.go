@@ -80,6 +80,16 @@ func (a *Alert) Snoozed() bool {
 	return a.Active() && a.snoozedUntil != time.Time{}
 }
 
+// Triggered gives the time when the alert was triggered.
+func (a Alert) Triggered() time.Time {
+	return a.lastTriggered
+}
+
+// SnoozedUntil gives the time until which the alert is snoozed.
+func (a Alert) SnoozedUntil() time.Time {
+	return a.snoozedUntil
+}
+
 func (a *Alert) tick() {
 	if a.Snoozed() {
 		if a.snoozedUntil.Before(time.Now()) {
