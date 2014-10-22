@@ -8,7 +8,7 @@ source ./vm_config.sh
 
 # Basically SSH in, clone this repo and jump to a shell script in the repo.
 
-gcutil --project=$PROJECT_ID ssh --ssh_user=$PROJECT_USER skia-testing-b \
+gcutil --project=$PROJECT_ID ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
   "sudo apt-get -y update;" \
   "sudo apt-get -y upgrade;" \
   "sudo apt-get -y install git;" \

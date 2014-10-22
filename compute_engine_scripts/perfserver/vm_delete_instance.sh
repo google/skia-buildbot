@@ -5,4 +5,4 @@
 
 source ./vm_config.sh
 
-gcutil --project=$PROJECT_ID deleteinstance skia-testing-b
+gcutil --project=$PROJECT_ID deleteinstance $INSTANCE_NAME

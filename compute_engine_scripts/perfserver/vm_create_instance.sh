@@ -6,7 +6,7 @@ set -x
 
 source ./vm_config.sh
 
-gcutil --project=$PROJECT_ID addinstance skia-testing-b \
+gcutil --project=$PROJECT_ID addinstance $INSTANCE_NAME \
        --zone=$ZONE \
        --external_ip_address=$TESTING_IP_ADDRESS \
        --service_account=$PROJECT_USER \
