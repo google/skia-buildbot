@@ -17,9 +17,9 @@ import (
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/auth"
-	_ "skia.googlesource.com/buildbot.git/go/init"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
+	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/goldingester"
 	"skia.googlesource.com/buildbot.git/perf/go/ingester"
@@ -141,6 +141,10 @@ func NewIngestionProcess(ts *Timestamps, tsName string, git *gitinfo.GitInfo, ti
 }
 
 func main() {
+	flag.Parse()
+	flags.Log()
+	defer glog.Flush()
+
 	Init()
 
 	// Initialize the database. We might not need the oauth dialog if it fails.

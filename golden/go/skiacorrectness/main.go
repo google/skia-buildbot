@@ -9,12 +9,12 @@ import (
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"skia.googlesource.com/buildbot.git/go/database"
-	_ "skia.googlesource.com/buildbot.git/go/init"
 	"skia.googlesource.com/buildbot.git/golden/go/analysis"
 	"skia.googlesource.com/buildbot.git/golden/go/db"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 	"skia.googlesource.com/buildbot.git/golden/go/filediffstore"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
+	"skia.googlesource.com/buildbot.git/perf/go/flags"
 )
 
 // Command line flags.
@@ -91,6 +91,10 @@ func sendJson(w http.ResponseWriter, resp *ResponseEnvelope) {
 }
 
 func main() {
+	flag.Parse()
+	flags.Log()
+	defer glog.Flush()
+
 	// Get the expecations storage, the filediff storage and the tilestore.
 	diffStore := filediffstore.NewFileDiffStore(nil, *imageDiffDir, *gsBucketName)
 	vdb := database.NewVersionedDB(db.GetConfig(*mysqlConnStr, *sqlitePath, *local))
