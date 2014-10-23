@@ -1,9 +1,28 @@
 <link rel="import" href="/res/imp/polymer/polymer.html" />
-<link rel="import" href="/res/imp/paper-item/paper-item.html" />
+<link rel="import" href="/res/imp/core-icon-button/core-icon-button.html" />
 
-<polymer-element name="alert-sk" attributes="alertname">
+<polymer-element name="alert-sk" attributes="alert">
   <template>
-    <paper-item icon="remove-circle" label="{{alertname}}"></paper-item>
+    <style>
+    #wrapper {
+      padding: 20px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: #F5F5F5;
+    }
+    </style>
+    <div id="wrapper" layout horizontal center>
+      <div flex>{{alert.name}}</div>
+      <!-- TODO(borenet): Only show these buttons if the user is logged-in
+           and has permission to modify the alert. -->
+      <template if="{{!alert.snoozed}}">
+        <core-icon-button icon="alarm"></core-icon-button>
+      </template>
+      <template if="{{alert.snoozed}}">
+        <core-icon-button icon="alarm-off"></core-icon-button>
+      </template>
+      <core-icon-button icon="highlight-remove"></core-icon-button>
+    </div>
   </template>
   <script>
     Polymer({});

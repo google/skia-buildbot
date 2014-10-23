@@ -1,0 +1,28 @@
+<link rel="import" href="/res/imp/polymer/polymer.html" />
+<link rel="import" href="/res/imp/alert-sk.html" />
+<link rel="import" href="/res/imp/core-ajax/core-ajax.html" />
+<link rel="import" href="/res/imp/core-header-panel/core-header-panel.html" />
+
+<polymer-element name="alerts-sk" attributes="alerts">
+  <template>
+    <core-ajax
+        auto
+        id="ajax"
+        url="/json/alerts"
+        handleAs="json"
+        on-core-response="{{gotAlerts}}"></core-ajax>
+    <template repeat="{{a in alerts}}">
+      <alert-sk alert="{{a}}"></alert-sk>
+    </template>
+  </template>
+  <script>
+    Polymer({
+      created: function() {
+        this.alerts = [];
+      },
+      gotAlerts: function() {
+        this.alerts = this.$.ajax.response.alerts;
+      }
+    });
+  </script>
+</polymer-element>

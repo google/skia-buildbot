@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="import" href="/res/imp/polymer/polymer.html" />
+    <link rel="import" href="../../components/core-toolbar/core-toolbar.html" />
+    <link rel="import" href="/res/imp/core-header-panel/core-header-panel.html" />
+    <link rel="import" href="/res/imp/alerts-sk.html"/>
+
+    <title>Skia Alerts</title>
+
+    <style>
+    core-header-panel {
+      background: white;
+      font-family: sans-serif;
+    }
+    core-toolbar {
+      background-color: #993300;
+      color: #FFFFFF;
+      font-size: 1.7em;
+      text-align: center;
+      padding: 20px;
+    }
+    </style>
+  </head>
+  <body fullbleed vertical layout unresolved>
+    <core-header-panel flex>
+      <core-toolbar>Skia Alerts</core-toolbar>
+      <alerts-sk></alerts-sk>
+    </core-header-panel>
+  </body>
+</html>

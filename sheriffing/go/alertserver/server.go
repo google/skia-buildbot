@@ -33,9 +33,8 @@ const (
 )
 
 var (
-	alertManager   *alerting.AlertManager = nil
-	alertsTemplate *template.Template     = nil
-	indexTemplate  *template.Template     = nil
+	alertManager  *alerting.AlertManager = nil
+	indexTemplate *template.Template     = nil
 )
 
 // flags
@@ -58,18 +57,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if err := indexTemplate.Execute(w, indexPage); err != nil {
-		glog.Error(err)
-	}
-}
-
-func alertHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	alertsPage := struct {
-		Alerts []*alerting.Alert
-	}{
-		Alerts: alertManager.Alerts(),
-	}
-	if err := alertsTemplate.Execute(w, alertsPage); err != nil {
 		glog.Error(err)
 	}
 }
@@ -123,11 +110,12 @@ func runServer() {
 		glog.Fatal(err)
 	}
 	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
-	alertsTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/alerts.html")))
 
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/alerts", alertHandler)
+	http.HandleFunc("/alerts", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "res/html/alerts.html")
+	})
 	http.HandleFunc("/json/alerts", alertJsonHandler)
 	serverUrl := *host + ":" + *port
 	glog.Infof("Ready to serve on http://%s", serverUrl)
