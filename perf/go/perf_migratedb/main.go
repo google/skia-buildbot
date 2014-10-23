@@ -14,6 +14,7 @@ import (
 	"github.com/golang/glog"
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
+	"skia.googlesource.com/buildbot.git/perf/go/flags"
 )
 
 func main() {
@@ -25,6 +26,7 @@ func main() {
 		"\n\tIf the string contains %s the user will be prompted to enter a password which will then be used for subtitution.")
 
 	flag.Parse()
+	flags.Log()
 	defer glog.Flush()
 
 	var connectionStr = *dbConnString
