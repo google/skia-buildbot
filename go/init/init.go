@@ -1,5 +1,6 @@
-// flags utilities.
-package flags
+// Common tool initialization.
+// import only from package main as _.
+package init
 
 import (
 	"flag"
@@ -7,8 +8,9 @@ import (
 	"github.com/golang/glog"
 )
 
-// Log echoes all the flags and their values into the logs.
-func Log() {
+func init() {
+	flag.Parse()
+	defer glog.Flush()
 	flag.VisitAll(func(f *flag.Flag) {
 		glog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})

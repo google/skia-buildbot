@@ -13,8 +13,8 @@ import (
 
 	"github.com/golang/glog"
 	"skia.googlesource.com/buildbot.git/go/database"
+	_ "skia.googlesource.com/buildbot.git/go/init"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
-	"skia.googlesource.com/buildbot.git/perf/go/flags"
 )
 
 func main() {
@@ -24,10 +24,6 @@ func main() {
 	dbConnString := flag.String("db_conn_string", defaultConnStr, "\n\tDatabase string to open connect to the MySQL database. "+
 		"\n\tNeeds to follow the format of the golang-mysql driver (https://github.com/go-sql-driver/mysql."+
 		"\n\tIf the string contains %s the user will be prompted to enter a password which will then be used for subtitution.")
-
-	flag.Parse()
-	flags.Log()
-	defer glog.Flush()
 
 	var connectionStr = *dbConnString
 

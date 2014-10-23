@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"log"
 
+	_ "skia.googlesource.com/buildbot.git/go/init"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
-	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/validator"
 )
 
@@ -22,8 +22,6 @@ var (
 )
 
 func main() {
-	flag.Parse()
-	flags.Log()
 	if !util.In(*dataset, config.VALID_DATASETS) {
 		log.Fatalf("Not a valid dataset: %s", *dataset)
 	}
