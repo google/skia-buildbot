@@ -19,26 +19,31 @@ h2 {
     </style>
 </head>
 <body>
-  {{template "titlebar.html" .}}
+    <scaffold-sk responsiveWidth="700px">
 
-  <section>
-  {{range $k, $v := .Funcs}}
-    <h2>{{$k}}</h2>
-    <p>{{$v.Describe}}</p>
-  {{end}}
-  </section>
+      {{template "titlebar.html" .}}
 
-  <section>
-    <h2>Examples</h2>
-    <code>ave(fill(filter("config=8888")))</code>
-    <p>Plot a single curve that's the average of all the traces that have a config of '8888'.
-    The traces have missing data points filled in from nearby runs.</p>
+      <div id="container">
+        <section>
+        {{range $k, $v := .Funcs}}
+          <h2>{{$k}}</h2>
+          <p>{{$v.Describe}}</p>
+        {{end}}
+        </section>
 
-    <code>ave(filter(""))</code>
-    <p>Plot a single curve that's the average of all the traces.</p>
+        <section>
+          <h2>Examples</h2>
+          <code>ave(fill(filter("config=8888")))</code>
+          <p>Plot a single curve that's the average of all the traces that have a config of '8888'.
+          The traces have missing data points filled in from nearby runs.</p>
 
-    <code>norm(filter("test=desk_linkedin.skp_1_1000_1000"))</code>
-    <p>Plot the normalized version of all the traces for 'desk_linkedin.skp_1_1000_1000'.</p>
-  </section>
+          <code>ave(filter(""))</code>
+          <p>Plot a single curve that's the average of all the traces.</p>
+
+          <code>norm(filter("test=desk_linkedin.skp_1_1000_1000"))</code>
+          <p>Plot the normalized version of all the traces for 'desk_linkedin.skp_1_1000_1000'.</p>
+        </section>
+      </div>
+    </scaffold-sk>
 </body>
 </html>

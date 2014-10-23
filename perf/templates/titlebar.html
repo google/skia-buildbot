@@ -1,11 +1,15 @@
-    <section id=title>
-      <a href="/">Home</a>
-      <a href="/clusters/">Clusters</a>
-      <a href="/alerts/">Alerts</a>
-      <a href="/compare/">Compare</a>
-      <a href="/activitylog/">Activities</a>
-      <a href="https://github.com/google/skia-buildbot/tree/master/perf">Code</a>
-
-      <login-sk></login-sk>
-      <span id="version"></span>
-    </section>
+      <core-header-panel navigation flex mode=seamed >
+        <core-toolbar>Skia Perf</core-toolbar>
+        <core-menu theme="core-light-theme">
+          <core-item icon="home" label="Home"><a href="/"></a></core-item>
+          <core-item icon="sort" label="Clustering"><a href="/clusters/" target="_self"></a></core-item>
+          <core-item icon="trending-up" label="Alerts"><a href="/alerts/"></a></core-item>
+          <core-item icon="view-module" label="Compare"><a href="/compare/"></a></core-item>
+          <core-item icon="event" label="Activities"><a href="/activitylog/"></a></core-item>
+          <core-item icon="drive-file" label="Code"><a href="https://github.com/google/skia-buildbot/tree/master/perf"></a></core-item>
+        </core-menu>
+      </core-header-panel>
+      <div id=title tool flex horizontal layout>
+        <login-sk></login-sk>
+        <span id="version"></span>
+      </div>

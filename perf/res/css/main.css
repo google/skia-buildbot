@@ -19,6 +19,11 @@ body {
   font-size: 15px;
 }
 
+#container {
+  padding: 1em;
+  background: white;
+}
+
 a,
 ::shadow a {
   color: #1f78b4;
@@ -134,12 +139,10 @@ table, td {
   margin: 0.5em;
 }
 
+core-toolbar,
 #title {
-  margin: 0;
-  padding: 0.5em;
-  background-color: #1F78B4;
-  border-bottom: solid lightgray 2px;
-  display: flex;
+  background-color: #526E9C;
+  color: #fff;
 }
 
 #title a,
@@ -173,4 +176,8 @@ p {
 
 #version {
   font-size: 10px;
+}
+
+core-item:hover {
+  background: lightgray;
 }

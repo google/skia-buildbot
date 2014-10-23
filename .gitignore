@@ -26,6 +26,8 @@ perf/res/css/perf.css
 perf/res/js/perf-debug.js
 perf/res/js/perf.js
 perf/res/imp/polymer
+perf/res/imp/core-*
+perf/res/imp/paper-*
 perf/third_party
 perf/timestamp.json
 sheriffing/node_modules

@@ -9,27 +9,31 @@
     <script src="/res/js/clusters.js"></script>
 </head>
 <body>
-  {{template "titlebar.html" .}}
-  <section id=clustering>
-    <h2>Trace Clustering</h2>
-    <p>
-      <label for="_stddev">StdDev Threshhold:</label>
-      <input type="text" name="_stddev" value="0.001" id="_stddev">
-    </p>
-    <p>
-      <label for="_k">Num Clusters:</label>
-      <input type="text" name="_k" value="50" id="_k">
-    </p>
-    <p>
-      <label for="_issue">Issue:</label>
-      <select name="_issue" id="_issue" size="1">
-         <option selected> </option>
-      </select>
-    </p>
-    <div id="sk-query"></div>
-    <button id="start" type="submit">Calculate</button>
+  <scaffold-sk responsiveWidth="700px">
+    {{template "titlebar.html" .}}
+    <div id="container">
+      <section id=clustering>
+        <h2>Trace Clustering</h2>
+        <p>
+          <label for="_stddev">StdDev Threshhold:</label>
+          <input type="text" name="_stddev" value="0.001" id="_stddev">
+        </p>
+        <p>
+          <label for="_k">Num Clusters:</label>
+          <input type="text" name="_k" value="50" id="_k">
+        </p>
+        <p>
+          <label for="_issue">Issue:</label>
+          <select name="_issue" id="_issue" size="1">
+             <option selected> </option>
+          </select>
+        </p>
+        <div id="sk-query"></div>
+        <button id="start" type="submit">Calculate</button>
 
-    <div id="skCluster"></div>
-  </section>
+        <div id="skCluster"></div>
+      </section>
+    </div>
+  </scaffold-sk>
 </body>
 </html>

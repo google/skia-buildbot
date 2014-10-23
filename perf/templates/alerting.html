@@ -9,8 +9,13 @@
     <script src="/res/js/alerting.js"></script>
 </head>
 <body>
-  {{template "titlebar.html" .}}
-  <section id=alerts>
-  </section>
+  <scaffold-sk responsiveWidth="700px">
+    {{template "titlebar.html" .}}
+
+    <div id="container">
+      <section id=alerts> </section>
+    </div>
+
+  </scaffold-sk>
 </body>
 </html>

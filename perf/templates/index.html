@@ -8,41 +8,47 @@
     <script src="/res/js/logic.js"></script>
   </head>
   <body>
-    {{template "titlebar.html" .}}
-    <div id="page-wrapper">
-      <div id="plot-and-query-wrapper">
 
-        <div id="plot-wrapper">
-          <button id=shortcut>Create Shortcut</button>
-          <input type="text" disabled value="" placeholder="Highlighted Trace ID" id="plot-label" size=80>
-          <input type="text" disabled value="" placeholder="Value" id="plot-value" size=10>
-          <div id="chart"> </div>
-        </div>
-        <div id="nav-wrapper">
-          <button id="nuke-plot">Remove all traces</button>
-          <button id="reset-axes">Reset axes</button>
-          <button id="add-lines">Add traces</button><br>
-          <input type="text" id="formula" value="" placeholder='filter("config=8888")' size=80 />
-          <button id="add-calculated">Add calculated trace</button> <a href="/help" target=_blank>help</a>
-        </div>
+    <scaffold-sk responsiveWidth="700px">
 
-        <div id="sk-query"></div>
-      </div> <!-- end of plot-and-query-wrapper -->
+      {{template "titlebar.html" .}}
+
+      <div id="container" layout horizontal>
+        <div id="page-wrapper">
+          <div id="plot-and-query-wrapper">
+
+            <div id="plot-wrapper">
+              <button id=shortcut>Create Shortcut</button>
+              <input type="text" disabled value="" placeholder="Highlighted Trace ID" id="plot-label" size=80>
+              <input type="text" disabled value="" placeholder="Value" id="plot-value" size=10>
+              <div id="chart"> </div>
+            </div>
+            <div id="nav-wrapper">
+              <button id="nuke-plot">Remove all traces</button>
+              <button id="reset-axes">Reset axes</button>
+              <button id="add-lines">Add traces</button><br>
+              <input type="text" id="formula" value="" placeholder='filter("config=8888")' size=80 />
+              <button id="add-calculated">Add calculated trace</button> <a href="/help" target=_blank>help</a>
+            </div>
+
+            <div id="sk-query"></div>
+          </div> <!-- end of plot-and-query-wrapper -->
 
 
-      <div id="note" class="hidden">
-        <a class="remove" href="#">Remove</a>
-        <a class="make-solo" href="#">Only</a>
-        <a class="group-only hidden" href="#">Group</a>
-        <hr>
-        <table border="0" cellspacing="5" cellpadding="5">
-          <tbody class="params"></tbody>
-        </table>
-        <hr>
-        <div class="commits"></div>
-      </div>
+          <div id="note" class="hidden">
+            <a class="remove" href="#">Remove</a>
+            <a class="make-solo" href="#">Only</a>
+            <a class="group-only hidden" href="#">Group</a>
+            <hr>
+            <table border="0" cellspacing="5" cellpadding="5">
+              <tbody class="params"></tbody>
+            </table>
+            <hr>
+            <div class="commits"></div>
+          </div>
 
-    </div> <!-- end of page-wrapper -->
+        </div> <!-- end of page-wrapper -->
+    </scaffold-sk>
 
     <!-- Templates -->
 

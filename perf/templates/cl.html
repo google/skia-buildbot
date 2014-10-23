@@ -8,17 +8,21 @@
     <link href="/res/imp/cluster.html" rel="import" />
 </head>
 <body>
-  {{template "titlebar.html" .}}
-  <section id=alerts>
-  </section>
-  <script type="text/javascript" charset="utf-8">
-    var cl = {{.}};
+    <scaffold-sk responsiveWidth="700px">
 
-    var summary = new sk.ClusterSummary($$$('#alerts'), cl);
-    summary.attach();
+      {{template "titlebar.html" .}}
+      <div id="container">
+        <section id=alerts> </section>
+      </div>
+      <script type="text/javascript" charset="utf-8">
+        var cl = {{.}};
 
-    // Don't fade out summaries on this page.
-    summary.fade(false);
-  </script>
+        var summary = new sk.ClusterSummary($$$('#alerts'), cl);
+        summary.attach();
+
+        // Don't fade out summaries on this page.
+        summary.fade(false);
+      </script>
+    </scaffold-sk>
 </body>
 </html>

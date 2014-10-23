@@ -59,11 +59,25 @@ module.exports = function(grunt) {
         src: 'res/js/<%= pkg.name %>-debug.js',
         dest: 'res/js/<%= pkg.name %>.js'
       },
+      core: {
+        cwd: 'third_party/bower_components',
+        src: [
+          'core-*/**',
+        ],
+        dest: 'res/imp/',
+        expand: true,
+      },
+      paper: {
+        cwd: 'third_party/bower_components',
+        src: [
+          'paper-*/**'
+        ],
+        dest: 'res/imp/',
+        expand: true,
+      },
       polymer: {
         src: [
-          'third_party/bower_components/polymer/layout.html',
-          'third_party/bower_components/polymer/polymer.html',
-          'third_party/bower_components/polymer/polymer.js'
+          'third_party/bower_components/polymer/**',
         ],
         dest: 'res/imp/polymer/',
         expand: true,
@@ -118,10 +132,10 @@ module.exports = function(grunt) {
 
   // By default run all the commands in the right sequence to build our custom
   // minified third_party JS.
-  grunt.registerTask('default', ['shell:bower_install', 'shell:install_npo', 'shell:build_npo', 'concat', 'uglify', 'copy:polymer']);
+  grunt.registerTask('default', ['shell:bower_install', 'shell:install_npo', 'shell:build_npo', 'concat', 'uglify', 'copy:polymer', 'copy:core', 'copy:paper']);
 
   // A target to build an unminified version, for debugging.
-  grunt.registerTask('debug-js', ['shell:bower_install', 'concat', 'copy:simple', 'copy:polymer']);
+  grunt.registerTask('debug-js', ['shell:bower_install', 'concat', 'copy:simple', 'copy:polymer', 'copy:core', 'copy:paper']);
 
   // A target to build just the CSS.
   grunt.registerTask('css', ['autoprefixer']);

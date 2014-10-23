@@ -7,11 +7,13 @@
 
 </head>
 <body>
-  {{template "titlebar.html" .}}
-  <section id=activities>
-    {{range .}}
-      {{.ID}}: {{.Date}} {{.UserID}} {{.Action}} <a href="{{.URL}}">{{.URL}}</a><br>
-    {{end}}
-  </section>
+  <scaffold-sk responsiveWidth="700px">
+    {{template "titlebar.html" .}}
+    <div id=container>
+      {{range .}}
+        {{.ID}}: {{.Date}} {{.UserID}} {{.Action}} <a href="{{.URL}}">{{.URL}}</a><br>
+      {{end}}
+    </div>
+  </scaffold-sk>
 </body>
 </html>
