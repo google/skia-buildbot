@@ -109,12 +109,11 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string) diff.Di
 	}
 	return &FileDiffStore{
 		client:              client,
-		localImgDir:         filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME),
-		localDiffDir:        filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME),
-		localDiffMetricsDir: filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME),
+		localImgDir:         ensureDir(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)),
+		localDiffDir:        ensureDir(filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME)),
+		localDiffMetricsDir: ensureDir(filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME)),
 		gsBucketName:        gsBucketName,
 		storageBaseDir:      DEFAULT_GS_IMG_DIR_NAME,
-		lock:                sync.Mutex{},
 	}
 }
 
@@ -123,11 +122,10 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string) diff.Di
 // If found:
 //     2. Return the DiffMetrics.
 // Else:
-//     3. Check to see if the digests exist in the local cache.
-// If do not exist locally:
-//     4. Download from Google Storage.
-// 5. Calculate DiffMetrics.
-// 6. Write DiffMetrics to the local cache and return.
+//     3. Make sure the digests exists in the local cache. Download it from
+//        Google Storage if necessary.
+// 4. Calculate DiffMetrics.
+// 5. Write DiffMetrics to the local cache and return.
 func (fs *FileDiffStore) Get(d1, d2 string) (*diff.DiffMetrics, error) {
 
 	// 1. Check if the DiffMetrics exists in the local cache.
@@ -140,26 +138,20 @@ func (fs *FileDiffStore) Get(d1, d2 string) (*diff.DiffMetrics, error) {
 		return diffMetrics, nil
 	}
 
-	// 3. Check to see if the digests exist in the local cache.
+	// 3. Make sure the digests exists in the local cache. Download it from
+	//    Google Storage if necessary.
 	for _, d := range [2]string{d1, d2} {
-		exists, err := fs.isDigestInCache(d)
-		if err != nil {
+		if err = fs.ensureDigestInCache(d); err != nil {
 			return nil, err
-		}
-		if !exists {
-			// 4. Digest does not exist locally, get it from Google Storage.
-			if err := fs.cacheImageFromGS(d); err != nil {
-				return nil, err
-			}
 		}
 	}
 
-	// 5. Calculate DiffMetrics.
+	// 4. Calculate DiffMetrics.
 	diffMetrics, err = fs.diff(d1, d2)
 	if err != nil {
 		return nil, err
 	}
-	// 6. Write DiffMetrics to the local cache and return.
+	// 5. Write DiffMetrics to the local cache and return.
 	diffMetricsFilePath := filepath.Join(
 		fs.localDiffMetricsDir,
 		fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFFMETRICS_EXTENSION))
@@ -167,6 +159,20 @@ func (fs *FileDiffStore) Get(d1, d2 string) (*diff.DiffMetrics, error) {
 		return nil, err
 	}
 	return diffMetrics, nil
+}
+
+// AbsPath returns the path of the image that corresponds to the given
+// image digest.
+func (fs *FileDiffStore) AbsPath(digest string) (string, error) {
+	// Make sure we have a local copy of the digest and download it if
+	// necessary. Note: Downloading should be the exception.
+	if err := fs.ensureDigestInCache(digest); err != nil {
+		return "", err
+	}
+
+	// Note: using ensureDirectory in the constructor guarantees that
+	// this is prefixed with the absolute path.
+	return fs.getDigestImagePath(digest), nil
 }
 
 func openDiffMetrics(filepath string) (*diff.DiffMetrics, error) {
@@ -232,11 +238,27 @@ func (fs *FileDiffStore) getDiffMetricsFromCache(d1, d2 string) (*diff.DiffMetri
 	return diffMetrics, nil
 }
 
+// ensureDigestInCache checks if the image corresponding to digest is cached
+// localy. If not it will download it from GS.
+func (fs *FileDiffStore) ensureDigestInCache(d string) error {
+	exists, err := fs.isDigestInCache(d)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		// Digest does not exist locally, get it from Google Storage.
+		if err := fs.cacheImageFromGS(d); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // This method looks for the specified digest from the local image dir. It is
 // thread safe because it locks the diff store's mutext before accessing the digest
 // cache.
 func (fs *FileDiffStore) isDigestInCache(d string) (bool, error) {
-	digestFilePath := filepath.Join(fs.localImgDir, fmt.Sprintf("%s.%s", d, IMG_EXTENSION))
+	digestFilePath := fs.getDigestImagePath(d)
 	// Lock the mutex before reading from the local digest directory.
 	fs.lock.Lock()
 	defer fs.lock.Unlock()
@@ -320,15 +342,35 @@ func (fs *FileDiffStore) getRespBody(res *storage.Object) (io.ReadCloser, error)
 
 // Calculate the DiffMetrics for the provided digests.
 func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
-	img1, err := diff.OpenImage(filepath.Join(fs.localImgDir, fmt.Sprintf("%s.%s", d1, IMG_EXTENSION)))
+	img1, err := diff.OpenImage(fs.getDigestImagePath(d1))
 	if err != nil {
 		return nil, err
 	}
-	img2, err := diff.OpenImage(filepath.Join(fs.localImgDir, fmt.Sprintf("%s.%s", d2, IMG_EXTENSION)))
+	img2, err := diff.OpenImage(fs.getDigestImagePath(d2))
 	if err != nil {
 		return nil, err
 	}
 	diffFilename := fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFF_EXTENSION)
 	diffFilePath := filepath.Join(fs.localDiffDir, diffFilename)
 	return diff.Diff(img1, img2, diffFilePath)
+}
+
+// getDigestPath returns the filepath where the image corresponding to the
+// give digests should be stored.
+func (fs *FileDiffStore) getDigestImagePath(digest string) string {
+	return filepath.Join(fs.localImgDir, fmt.Sprintf("%s.%s", digest, IMG_EXTENSION))
+}
+
+// ensureDir checks whether the given path to a directory exits and creates it
+// if necessary. Returns the absolute path that corresponds to the input path.
+func ensureDir(dirPath string) string {
+	absPath, err := filepath.Abs(dirPath)
+	if err != nil {
+		glog.Fatalf("Unable to get absolute path of %s. Got error: %s", dirPath, err.Error())
+	}
+
+	if err := os.MkdirAll(absPath, 0700); err != nil {
+		glog.Fatalf("Unable to create or verify directory %s. Got error: %s", absPath, err.Error())
+	}
+	return absPath
 }

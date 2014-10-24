@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"flag"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
+	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/golden/go/analysis"
@@ -23,10 +25,15 @@ var (
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	staticDir    = flag.String("static_dir", "./app", "Directory with static content to serve")
 	tileStoreDir = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
-	imageDiffDir = flag.String("image_diff_dir", "/tmp/imagediffdir", "What directory to store diff images in.")
+	imageDir     = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	gsBucketName = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
 	mysqlConnStr = flag.String("mysql_conn", "", "MySQL connection string for backend database. If 'local' is false the password in this string will be substituted via the metadata server.")
 	sqlitePath   = flag.String("sqlite_path", "./golden.db", "Filepath of the embedded SQLite database. Requires 'local' to be set to true and 'mysql_conn' to be empty to take effect.")
+	doOauth      = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+)
+
+const (
+	IMAGE_URL_PREFIX = "/img/"
 )
 
 // ResponseEnvelope wraps all responses. Some fields might be empty depending
@@ -90,16 +97,83 @@ func sendJson(w http.ResponseWriter, resp *ResponseEnvelope) {
 	w.Write(jsonBytes)
 }
 
+// URLAwareFileServer wraps around a standard file server and allows to generate
+// URLs for a given path that is contained in the root.
+type URLAwareFileServer struct {
+	// baseDir is the root directory for all content served. All paths have to
+	// be contained somewhere in the directory tree below this.
+	baseDir string
+
+	// baseUrl is the URL prefix that maps to baseDir.
+	baseUrl string
+
+	// Handler is a standard FileServer handler.
+	Handler http.Handler
+}
+
+func NewURLAwareFileServer(baseDir, baseUrl string) *URLAwareFileServer {
+	absPath, err := filepath.Abs(baseDir)
+	if err != nil {
+		glog.Fatalf("Unable to get abs path of %s. Got error: %s", baseDir, err.Error())
+	}
+
+	return &URLAwareFileServer{
+		baseDir: absPath,
+		baseUrl: baseUrl,
+		Handler: http.StripPrefix(baseUrl, http.FileServer(http.Dir(absPath))),
+	}
+}
+
+// converToUrl returns the path component of a URL given the path
+// contained within baseDir.
+func (ug *URLAwareFileServer) GetURL(path string) string {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		glog.Errorf("Unable to get absolute path of %s. Got error: %s", path, err.Error())
+		return ""
+	}
+
+	relPath, err := filepath.Rel(ug.baseDir, absPath)
+	if err != nil {
+		glog.Errorf("Unable to find subpath got error %s", err.Error())
+		return ""
+	}
+
+	return ug.baseUrl + relPath
+}
+
+// getOAuthClient returns an oauth client (either from cached credentials or
+// via an authentication flow) or nil depending on whether doOauth is false.
+func getOAuthClient(doOauth bool) *http.Client {
+	if doOauth {
+		client, err := auth.RunFlow()
+		if err != nil {
+			glog.Fatalf("Failed to auth: %s", err)
+		}
+		return client
+	}
+	return nil
+}
+
 func main() {
+	// Global init to initialize
 	common.Init()
+
+	// Initialize submodules.
+	filediffstore.Init()
+
+	// get the Oauthclient if necessary.
+	client := getOAuthClient(*doOauth)
+
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore := filediffstore.NewFileDiffStore(nil, *imageDiffDir, *gsBucketName)
+	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName)
 	vdb := database.NewVersionedDB(db.GetConfig(*mysqlConnStr, *sqlitePath, *local))
 	expStore := expstorage.NewSQLExpectationStore(vdb)
 	tileStore := filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
 
 	// Initialize the Analyzer
-	analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, 5*time.Minute)
+	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
+	analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, imgFS.GetURL, 5*time.Minute)
 
 	router := mux.NewRouter()
 
@@ -109,6 +183,9 @@ func main() {
 	// the front-end proxy.
 	router.HandleFunc("/rest/tilecounts", tileCountsHandler)
 	router.HandleFunc("/rest/tilecounts/{testname}", testCountsHandler)
+
+	// Set up the resource to serve the image files.
+	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)
 
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))

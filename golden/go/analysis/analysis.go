@@ -14,6 +14,8 @@ import (
 	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
+type PathToURLConverter func(string) string
+
 // LabeledTrace stores a Trace with labels and digests. CommitIds, Digests and
 // Labels are of the same length, identical indices refer to the same digest.
 type LabeledTrace struct {
@@ -145,15 +147,19 @@ type Analyzer struct {
 	currentTileCounts *GUITileCounts
 	currentTestCounts map[string]*GUITestCounts
 
+	// converter supplied by the client of the type to convert a path to a URL
+	pathToURLConverter PathToURLConverter
+
 	// Lock to protect the expectations and current* variables.
 	mutex sync.Mutex
 }
 
-func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileStore, diffStore diff.DiffStore, timeBetweenPolls time.Duration) *Analyzer {
+func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileStore, diffStore diff.DiffStore, puConverter PathToURLConverter, timeBetweenPolls time.Duration) *Analyzer {
 	result := &Analyzer{
-		expStore:  expStore,
-		diffStore: diffStore,
-		tileStore: tileStore,
+		expStore:           expStore,
+		diffStore:          diffStore,
+		tileStore:          tileStore,
+		pathToURLConverter: puConverter,
 
 		currentTile: NewLabeledTile(),
 	}
@@ -222,13 +228,7 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 			errorTileLoadingCounter.Inc(1)
 		} else {
 			newLabeledTile := a.processTile(tile)
-			newTileCounts, newTestCounts := a.getOutputCounts(newLabeledTile)
-
-			a.mutex.Lock()
-			a.currentTile = newLabeledTile
-			a.currentTileCounts = newTileCounts
-			a.currentTestCounts = newTestCounts
-			a.mutex.Unlock()
+			a.setDerivedOutputs(newLabeledTile, true)
 		}
 		glog.Info("Done processing tiles.")
 		runsCounter.Inc(1)
@@ -277,6 +277,25 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 	}
 
 	return result
+}
+
+// setDerivedOutputs derives the output data from the given tile and
+// updates the outputs and tile in the analyzer. If needsLocking is true
+// it will acquire the lock otherwise it assumes the calling function owns it.
+func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool) {
+	// calculate all the output data.
+	newTileCounts, newTestCounts := a.getOutputCounts(labeledTile)
+
+	// acquire the lock if necessary
+	if needsLocking {
+		a.mutex.Lock()
+		defer a.mutex.Unlock()
+	}
+
+	// update the analyzer's data structures
+	a.currentTile = labeledTile
+	a.currentTileCounts = newTileCounts
+	a.currentTestCounts = newTestCounts
 }
 
 // relabelTraces iterates over the traces in of the tiles that have changed and
