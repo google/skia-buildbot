@@ -269,6 +269,11 @@ def main():
   # Sync the buildbot code.
   subprocess.check_call([GCLIENT, 'sync', '--force', '-j1'])
 
+  # Set up launch-on-reboot.
+  launch_on_reboot = os.path.join(buildbot_path, 'scripts',
+                                  'launch_on_reboot.py')
+  subprocess.check_call(['python', launch_on_reboot])
+
   # Obtain configuration information about this build slave host machine.
   slave_host = slave_hosts_cfg.get_slave_host_config(socket.gethostname())
   slaves = slave_host.slaves
