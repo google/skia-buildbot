@@ -5,6 +5,16 @@ GCUTIL=`which gcutil`
 
 # Set all constants in compute_engine_cfg.py as env variables.
 $(python ../compute_engine_cfg.py)
+if [ $? != "0" ]; then
+  echo "Failed to read compute_engine_cfg.py!"
+  exit 1
+fi
+
+# If this is true, then the VM instances will be set up with auth scopes
+# appropriate for the android merge bot.
+if [ "$VM_IS_ANDROID_MERGE" = 1 ]; then
+  SCOPES="https://www.googleapis.com/auth/gerritcodereview $SCOPES"
+fi
 
 # TODO(rmistry): Investigate moving the below constants to compute_engine_cfg.py
 CHROME_MASTER_HOST=~/chrome_master_host
