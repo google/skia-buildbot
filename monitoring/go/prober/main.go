@@ -18,7 +18,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
-	"skia.googlesource.com/buildbot.git/perf/go/flags"
+	"skia.googlesource.com/buildbot.git/go/common"
 )
 
 var (
@@ -210,9 +210,7 @@ func monitorIssueTracker() {
 }
 
 func main() {
-	flag.Parse()
-	flags.Log()
-	defer glog.Flush()
+	common.Init()
 	go monitorIssueTracker()
 	glog.Infoln("Looking for Carbon server.")
 	addr, err := net.ResolveTCPAddr("tcp", *carbon)

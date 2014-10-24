@@ -5,11 +5,11 @@ import (
 	"flag"
 	"fmt"
 
-        "github.com/golang/glog"
+	"github.com/golang/glog"
+	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
-	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/validator"
 )
 
@@ -22,8 +22,7 @@ var (
 )
 
 func main() {
-	flag.Parse()
-	flags.Log()
+	common.Init()
 	if !util.In(*dataset, config.VALID_DATASETS) {
 		glog.Fatalf("Not a valid dataset: %s", *dataset)
 	}

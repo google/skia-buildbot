@@ -25,6 +25,7 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -35,7 +36,6 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
-	"skia.googlesource.com/buildbot.git/perf/go/flags"
 	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
 	"skia.googlesource.com/buildbot.git/perf/go/parser"
@@ -1047,10 +1047,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
-	flag.Parse()
-	flags.Log()
-	defer glog.Flush()
-
+	common.Init()
 	Init()
 	db.Init(db.ProdDatabaseConfig(*local))
 	stats.Start(nanoTileStore, git)
