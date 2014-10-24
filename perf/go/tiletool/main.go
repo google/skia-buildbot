@@ -4,8 +4,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 
+        "github.com/golang/glog"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
@@ -25,10 +25,10 @@ func main() {
 	flag.Parse()
 	flags.Log()
 	if !util.In(*dataset, config.VALID_DATASETS) {
-		log.Fatalf("Not a valid dataset: %s", *dataset)
+		glog.Fatalf("Not a valid dataset: %s", *dataset)
 	}
 	store := filetilestore.NewFileTileStore(*tileDir, *dataset, 0)
 	if !validator.ValidateDataset(store, *verbose, *echoHashes) {
-		log.Fatal("FAILED Validation.")
+		glog.Fatal("FAILED Validation.")
 	}
 }

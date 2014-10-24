@@ -4,10 +4,11 @@ import (
 	"archive/zip"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/golang/glog"
 )
 
 // unzip unzips the file given in src into the 'dest' directory.
@@ -58,11 +59,11 @@ type TempRepo struct {
 func NewTempRepo() *TempRepo {
 	tmpdir, err := ioutil.TempDir("", "skiaperf")
 	if err != nil {
-		log.Fatalln("Failed to create testing Git repo:", err)
+		glog.Fatalln("Failed to create testing Git repo:", err)
 	}
 	_, filename, _, _ := runtime.Caller(1)
 	if err := unzip(filepath.Join(filepath.Dir(filename), "testdata", "testrepo.zip"), tmpdir); err != nil {
-		log.Fatalln("Failed to unzip testing Git repo:", err)
+		glog.Fatalln("Failed to unzip testing Git repo:", err)
 	}
 	return &TempRepo{Dir: tmpdir}
 }
@@ -70,6 +71,6 @@ func NewTempRepo() *TempRepo {
 // Cleanup cleans up the temporary repo.
 func (t *TempRepo) Cleanup() {
 	if err := os.RemoveAll(t.Dir); err != nil {
-		log.Fatalln("Failed to clean up after test:", err)
+		glog.Fatalln("Failed to clean up after test:", err)
 	}
 }
