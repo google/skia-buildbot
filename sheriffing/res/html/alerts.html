@@ -5,6 +5,7 @@
     <link rel="import" href="../../components/core-toolbar/core-toolbar.html" />
     <link rel="import" href="/res/imp/core-header-panel/core-header-panel.html" />
     <link rel="import" href="/res/imp/alerts-sk.html"/>
+    <link rel="import" href="/res/imp/login-sk.html"/>
 
     <title>Skia Alerts</title>
 
@@ -16,15 +17,25 @@
     core-toolbar {
       background-color: #993300;
       color: #FFFFFF;
-      font-size: 1.7em;
       text-align: center;
       padding: 20px;
+    }
+    h1 {
+      font-size: 1.7em;
+    }
+    login-sk {
+      position: absolute;
+      top: 10px;
+      right: 10px;
     }
     </style>
   </head>
   <body fullbleed vertical layout unresolved>
     <core-header-panel flex>
-      <core-toolbar>Skia Alerts</core-toolbar>
+      <core-toolbar>
+        <login-sk></login-sk>
+        <h1 flex>Skia Alerts</h1>
+      </core-toolbar>
       <alerts-sk></alerts-sk>
     </core-header-panel>
   </body>

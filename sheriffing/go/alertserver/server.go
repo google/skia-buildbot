@@ -23,12 +23,16 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/sheriffing/go/alerting"
 )
 
 const (
+	COOKIESALT_METADATA_KEY        = "cookiesalt"
+	CLIENT_ID_METADATA_KEY         = "clientid"
+	CLIENT_SECRET_METADATA_KEY     = "clientsecret"
 	INFLUXDB_NAME_METADATA_KEY     = "influxdb_name"
 	INFLUXDB_PASSWORD_METADATA_KEY = "influxdb_password"
 )
@@ -48,6 +52,14 @@ var (
 	influxDbDatabase  = flag.String("influxdb_database", "", "The InfluxDB database.")
 	alertPollInterval = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
 )
+
+func userHasEditRights(r *http.Request) bool {
+	email := login.LoggedInAs(r)
+	if strings.HasSuffix(email, "@google.com") {
+		return true
+	}
+	return false
+}
 
 func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -87,6 +99,10 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 func alertHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
+		if !userHasEditRights(r) {
+			util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in to an account with edit rights to do that.")
+			return
+		}
 		// URLs take the form /alerts/<alertId>/<action>
 		// TODO(borenet): Ensure user is logged-in and authorized to do this!
 		split := strings.Split(r.URL.String(), "/")
@@ -138,7 +154,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func runServer() {
+func runServer(serverURL string) {
 	_, filename, _, _ := runtime.Caller(0)
 	cwd := filepath.Join(filepath.Dir(filename), "../..")
 	if err := os.Chdir(cwd); err != nil {
@@ -148,9 +164,11 @@ func runServer() {
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", alertHandler)
 	http.HandleFunc("/json/alerts", alertJsonHandler)
-	serverUrl := *host + ":" + *port
-	glog.Infof("Ready to serve on http://%s", serverUrl)
-	glog.Fatal(http.ListenAndServe(serverUrl, nil))
+	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	http.HandleFunc("/logout/", login.LogoutHandler)
+	http.HandleFunc("/loginstatus/", login.StatusHandler)
+	glog.Infof("Ready to serve on http://%s", serverURL)
+	glog.Fatal(http.ListenAndServe(serverURL, nil))
 }
 
 func main() {
@@ -172,5 +190,19 @@ func main() {
 	if err != nil {
 		glog.Fatal(fmt.Sprintf("Failed to create AlertManager: %v", err))
 	}
-	runServer()
+	serverURL := *host + ":" + *port
+
+	// By default use a set of credentials setup for localhost access.
+	var cookieSalt = "notverysecret"
+	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
+	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
+	var redirectURL = "http://" + serverURL + "/oauth2callback/"
+	if *useMetadata {
+		cookieSalt = metadata.MustGet(COOKIESALT_METADATA_KEY)
+		clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
+		clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)
+	}
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
+
+	runServer(serverURL)
 }

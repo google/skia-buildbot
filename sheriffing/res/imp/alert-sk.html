@@ -7,6 +7,7 @@
 <link rel="import" href="/res/imp/paper-input/paper-input.html" />
 <link rel="import" href="/res/imp/paper-toast/paper-toast.html" />
 
+<script type="text/javascript" src="/res/js/common.js"></script>
 
 <polymer-element name="alert-sk" attributes="alert">
   <template>
@@ -21,55 +22,72 @@
     <template if="{{alert.active}}">
       <div id="wrapper" layout horizontal center>
         <div flex>{{alert.name}}</div>
-        <!-- TODO(borenet): Only show these buttons if the user is logged-in
-             and has permission to modify the alert. -->
-        <template if="{{!alert.snoozed}}">
+        <template if="{{editRights}}">
+          <template if="{{!alert.snoozed}}">
+            <core-ajax
+                id="snooze"
+                url="/alerts/{{alert.id}}/snooze"
+                method="POST"
+                contentType="application/json"
+                on-core-response="{{response}}"
+                on-core-error="{{error}}">
+            </core-ajax>
+            <paper-dialog id="snoozeDialog" heading="How long?" transition="paper-dialog-transition-center">
+              <div>
+                <paper-input id="snoozeDays"  type="number" value="0" label="Days" floatingLabel></paper-input>
+                <paper-input id="snoozeHours" type="number" value="0" label="Hours" floatingLabel></paper-input>
+                <paper-input id="snoozeMins"  type="number" value="0" label="Minutes" floatingLabel></paper-input>
+                <paper-input id="snoozeSecs"  type="number" value="0" label="Seconds" floatingLabel></paper-input>
+                <paper-button on-click="{{snoozeAlert}}" affirmative>Ok</paper-button>
+              </div>
+            </paper-dialog>
+            <core-icon-button icon="alarm" on-click="{{snoozeDialog}}"></core-icon-button>
+          </template>
+          <template if="{{alert.snoozed}}">
+            <core-ajax
+                id="unsnooze"
+                url="/alerts/{{alert.id}}/unsnooze"
+                method="POST"
+                contentType="application/json"
+                on-core-response="{{response}}"
+                on-core-error="{{error}}">
+            </core-ajax>
+            <div>Snoozed until {{alert.snoozedUntil | parseDate}}</div>
+            <core-icon-button icon="alarm-off" on-click="{{unsnoozeAlert}}"></core-icon-button>
+          </template>
           <core-ajax
-              id="snooze"
-              url="/alerts/{{alert.id}}/snooze"
+              id="dismiss"
+              url="/alerts/{{alert.id}}/dismiss"
               method="POST"
               contentType="application/json"
               on-core-response="{{response}}"
               on-core-error="{{error}}">
           </core-ajax>
-          <paper-dialog id="snoozeDialog" heading="How long?" transition="paper-dialog-transition-center">
-            <div>
-              <paper-input id="snoozeDays"  type="number" value="0" label="Days" floatingLabel></paper-input>
-              <paper-input id="snoozeHours" type="number" value="0" label="Hours" floatingLabel></paper-input>
-              <paper-input id="snoozeMins"  type="number" value="0" label="Minutes" floatingLabel></paper-input>
-              <paper-input id="snoozeSecs"  type="number" value="0" label="Seconds" floatingLabel></paper-input>
-              <paper-button on-click="{{snoozeAlert}}" affirmative>Ok</paper-button>
-            </div>
-          </paper-dialog>
-          <core-icon-button icon="alarm" on-click="{{snoozeDialog}}"></core-icon-button>
+          <core-icon-button icon="highlight-remove" on-click="{{dismissAlert}}"></core-icon-button>
         </template>
-        <template if="{{alert.snoozed}}">
-          <core-ajax
-              id="unsnooze"
-              url="/alerts/{{alert.id}}/unsnooze"
-              method="POST"
-              contentType="application/json"
-              on-core-response="{{response}}"
-              on-core-error="{{error}}">
-          </core-ajax>
-          <div>Snoozed until {{alert.snoozedUntil | parseDate}}</div>
-          <core-icon-button icon="alarm-off" on-click="{{unsnoozeAlert}}"></core-icon-button>
-        </template>
-        <core-ajax
-            id="dismiss"
-            url="/alerts/{{alert.id}}/dismiss"
-            method="POST"
-            contentType="application/json"
-            on-core-response="{{response}}"
-            on-core-error="{{error}}">
-        </core-ajax>
-        <core-icon-button icon="highlight-remove" on-click="{{dismissAlert}}"></core-icon-button>
       </div>
+      <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
     </template>
-    <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
   </template>
   <script>
     Polymer({
+      publish: {
+        editRights: {
+          value: false,
+          reflect: true,
+        },
+      },
+      ready: function() {
+        var ele = this;
+        sk.Login.then(function(status) {
+          var email = status['Email'];
+          var validEmail = "@google.com"
+          if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
+            console.log("User has edit rights: " + email);
+            ele.editRights = true;
+          }
+        });
+      },
       dismissAlert: function() {
         this.$.wrapper.querySelector("#dismiss").go();
       },
