@@ -401,6 +401,7 @@ _slave_host_dicts = {
 
   'skia-vm-015': {
     'slaves': [
+      ('skiabot-linux-housekeeper-001', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
