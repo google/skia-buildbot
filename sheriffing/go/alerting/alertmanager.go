@@ -23,14 +23,25 @@ func (am *AlertManager) Alerts() []*Alert {
 	return out
 }
 
+// Contains indicates whether this AlertManager has an Alert with the given ID.
+func (am *AlertManager) Contains(id string) bool {
+	_, contains := am.alerts[id]
+	return contains
+}
+
 // Snooze the given alert until the given time.
-func (am *AlertManager) Snooze(name string, until time.Time) {
-	am.alerts[name].snooze(until)
+func (am *AlertManager) Snooze(id string, until time.Time) {
+	am.alerts[id].snooze(until)
+}
+
+// Unsnooze the given alert.
+func (am *AlertManager) Unsnooze(id string) {
+	am.alerts[id].unsnooze()
 }
 
 // Dismiss the given alert.
-func (am *AlertManager) Dismiss(name string) {
-	am.alerts[name].dismiss()
+func (am *AlertManager) Dismiss(id string) {
+	am.alerts[id].dismiss()
 }
 
 func (am *AlertManager) loop() {
@@ -55,7 +66,10 @@ func NewAlertManager(dbClient *client.Client, alertsCfg string, tickInterval tim
 	}
 	alertMap := map[string]*Alert{}
 	for _, a := range alerts {
-		alertMap[a.Name] = a
+		if _, contains := alertMap[a.Id]; contains {
+			return nil, fmt.Errorf("Alert ID collision.")
+		}
+		alertMap[a.Id] = a
 	}
 	am := AlertManager{
 		alerts:       alertMap,

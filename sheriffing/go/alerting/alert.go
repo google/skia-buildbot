@@ -9,6 +9,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/golang/glog"
 	"github.com/influxdb/influxdb/client"
+	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 type queryable interface {
@@ -50,6 +51,7 @@ func executeQuery(c queryable, q string) (float64, error) {
 //   2. Not snoozed: The alert needs attention.
 // B. Inactive.
 type Alert struct {
+	Id            string
 	Name          string
 	Query         string
 	Condition     string
@@ -121,6 +123,10 @@ func (a *Alert) snooze(until time.Time) {
 	a.snoozedUntil = until
 }
 
+func (a *Alert) unsnooze() {
+	a.snoozedUntil = time.Time{}
+}
+
 func (a *Alert) evaluate(d float64) (bool, error) {
 	pkg := types.NewPackage("evaluateme", "evaluateme")
 	v := exact.MakeFloat64(d)
@@ -164,7 +170,12 @@ func newAlert(r parsedRule, actions map[string]func(string), client *client.Clie
 		}
 		actionsList = append(actionsList, f)
 	}
+	id, err := util.GenerateID()
+	if err != nil {
+		return nil, err
+	}
 	alert := Alert{
+		Id:            id,
 		Name:          name,
 		Query:         query,
 		Condition:     condition,
@@ -174,7 +185,7 @@ func newAlert(r parsedRule, actions map[string]func(string), client *client.Clie
 		snoozedUntil:  time.Time{},
 	}
 	// Verify that the condition can be evaluated.
-	_, err := alert.evaluate(0.0)
+	_, err = alert.evaluate(0.0)
 	if err != nil {
 		return nil, err
 	}

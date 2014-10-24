@@ -1,6 +1,8 @@
 package util
 
 import (
+	"crypto/rand"
+	"fmt"
 	"sort"
 	"time"
 )
@@ -81,4 +83,14 @@ func SignInt(v int) int {
 // Returns the current time in milliseconds since the epoch.
 func TimeStampMs() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
+// Generate a 16-byte random ID.
+func GenerateID() (string, error) {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%X", b), nil
 }

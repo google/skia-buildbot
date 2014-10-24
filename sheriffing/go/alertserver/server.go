@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -24,6 +24,7 @@ import (
 
 import (
 	"skia.googlesource.com/buildbot.git/go/metadata"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/sheriffing/go/alerting"
 )
 
@@ -33,8 +34,7 @@ const (
 )
 
 var (
-	alertManager  *alerting.AlertManager = nil
-	indexTemplate *template.Template     = nil
+	alertManager *alerting.AlertManager = nil
 )
 
 // flags
@@ -49,28 +49,17 @@ var (
 	alertPollInterval = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
 )
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	indexPage := struct {
-		Alerts []*alerting.Alert
-	}{
-		Alerts: alertManager.Alerts(),
-	}
-	w.Header().Set("Content-Type", "text/html")
-	if err := indexTemplate.Execute(w, indexPage); err != nil {
-		glog.Error(err)
-	}
-}
-
 func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	type displayAlert struct {
+		Id           string `json:"id"`
 		Name         string `json:"name"`
 		Query        string `json:"query"`
 		Condition    string `json:"condition"`
 		Active       bool   `json:"active"`
 		Snoozed      bool   `json:"snoozed"`
-		Triggered    int64  `json:"triggered"`
-		SnoozedUntil int64  `json:"snoozed_until"`
+		Triggered    int32  `json:"triggered"`
+		SnoozedUntil int32  `json:"snoozedUntil"`
 	}
 	alerts := struct {
 		Alerts []displayAlert `json:"alerts"`
@@ -79,13 +68,14 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, a := range alertManager.Alerts() {
 		alerts.Alerts = append(alerts.Alerts, displayAlert{
+			Id:           a.Id,
 			Name:         a.Name,
 			Query:        a.Query,
 			Condition:    a.Condition,
 			Active:       a.Active(),
 			Snoozed:      a.Snoozed(),
-			Triggered:    a.Triggered().Unix(),
-			SnoozedUntil: a.SnoozedUntil().Unix(),
+			Triggered:    int32(a.Triggered().Unix()),
+			SnoozedUntil: int32(a.SnoozedUntil().Unix()),
 		})
 	}
 	bytes, err := json.Marshal(&alerts)
@@ -93,6 +83,51 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 		glog.Error(err)
 	}
 	w.Write(bytes)
+}
+
+func alertHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		// URLs take the form /alerts/<alertId>/<action>
+		// TODO(borenet): Ensure user is logged-in and authorized to do this!
+		split := strings.Split(r.URL.String(), "/")
+		if len(split) != 4 {
+			util.ReportError(w, r, fmt.Errorf("Invalid URL %s", r.URL), "Requested URL is not valid.")
+			return
+		}
+		alertId := split[2]
+		if !alertManager.Contains(alertId) {
+			util.ReportError(w, r, fmt.Errorf("Invalid Alert ID %d", alertId), "The requested resource does not exist.")
+			return
+		}
+		action := split[3]
+		if action == "dismiss" {
+			glog.Infof("%s %s", action, alertId)
+			alertManager.Dismiss(alertId)
+			return
+		} else if action == "snooze" {
+			d := json.NewDecoder(r.Body)
+			body := struct {
+				Until int
+			}{}
+			err := d.Decode(&body)
+			if err != nil || body.Until == 0 {
+				util.ReportError(w, r, err, fmt.Sprintf("Unable to decode request body: %s", r.Body))
+				return
+			}
+			until := time.Unix(int64(body.Until), 0)
+			glog.Infof("%s %s until %v", action, alertId, until.String())
+			alertManager.Snooze(alertId, until)
+			return
+		} else if action == "unsnooze" {
+			glog.Infof("%s %s", action, alertId)
+			alertManager.Unsnooze(alertId)
+			return
+		} else {
+			util.ReportError(w, r, fmt.Errorf("Invalid action %s", action), "The requested action is invalid.")
+			return
+		}
+	}
+	http.ServeFile(w, r, "res/html/alerts.html")
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
@@ -109,13 +144,9 @@ func runServer() {
 	if err := os.Chdir(cwd); err != nil {
 		glog.Fatal(err)
 	}
-	indexTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/index.html")))
 
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
-	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/alerts", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "res/html/alerts.html")
-	})
+	http.HandleFunc("/", alertHandler)
 	http.HandleFunc("/json/alerts", alertJsonHandler)
 	serverUrl := *host + ":" + *port
 	glog.Infof("Ready to serve on http://%s", serverUrl)
