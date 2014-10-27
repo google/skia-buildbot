@@ -60,16 +60,6 @@ func tileCountsHandler(w http.ResponseWriter, r *http.Request) {
 
 // testCountsHandler handles GET requests for the aggregrated classification
 // counts for a specific tests.
-func testCountsHandler(w http.ResponseWriter, r *http.Request) {
-	testName := mux.Vars(r)["testname"]
-	result, err := analyzer.GetTestCounts(testName)
-	if err != nil {
-		sendErrorResponse(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	sendResponse(w, result, http.StatusOK)
-}
 
 // sendErrorResponse wraps an error in a response envelope and sends it to
 // the client.
@@ -181,8 +171,7 @@ func main() {
 	// clashes witht the static files being served.
 	// TODO (stephana): Wrap the handlers in autogzip unless we defer that to
 	// the front-end proxy.
-	router.HandleFunc("/rest/tilecounts", tileCountsHandler)
-	router.HandleFunc("/rest/tilecounts/{testname}", testCountsHandler)
+	router.HandleFunc("/rest/counts", tileCountsHandler)
 
 	// Set up the resource to serve the image files.
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)

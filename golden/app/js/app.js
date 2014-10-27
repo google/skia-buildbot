@@ -14,21 +14,25 @@ var skia = skia || {};
 
   // Configure the different within app views.
   app.config(['$routeProvider', function($routeProvider) {
-    $routeProvider.when('/', {templateUrl: 'partials/index-view.html', controller: 'IndexCtrl'});
-    $routeProvider.when('/triage', {templateUrl: 'partials/triage-view.html',  controller: 'TriageCtrl'});
-    $routeProvider.otherwise({redirectTo: '/'});
+    $routeProvider.when(ns.c.URL_COUNTS + '/:id?', {templateUrl: 'partials/counts-view.html', controller: 'CountsCtrl'});
+    $routeProvider.when(ns.c.URL_TRIAGE + '/:id?', {templateUrl: 'partials/triage-view.html',  controller: 'TriageCtrl'});
+    $routeProvider.otherwise({redirectTo: ns.c.URL_COUNTS });
   }]);
 
   /*
-   * IndexCtrl controlls the UI on the main view where an overview of
+   * CountsCtrl controlls the UI on the main view where an overview of
    * test results is presented.
    */
-  app.controller('IndexCtrl', ['$scope', 'dataService', function($scope, dataService) {
+  app.controller('CountsCtrl', ['$scope', '$routeParams', 'dataService', function($scope, $routeParams, dataService) {
+    // Get the path and use it for the backend request
+    var testName = ($routeParams.id && ($routeParams.id !== '')) ?
+                    $routeParams.id : null;
+
     // Load counts for all tests of a tile.
-    function loadAllTests() {
-      dataService.loadCounts().then(
+    function loadCounts() {
+      dataService.loadData(ns.c.URL_COUNTS).then(
         function (serverData) {
-          var temp = ns.processAllCounts(serverData);
+          var temp = ns.processCounts(serverData, testName);
 
           // plug into the sk-plot directive
           $scope.plotData = temp.plotData;
@@ -47,7 +51,8 @@ var skia = skia || {};
     $scope.allTests = [];
     $scope.plotData = [];
     $scope.plotTicks = null;
-    loadAllTests();
+    $scope.oneTest = !!testName;
+    loadCounts();
   }]);
 
   /*
@@ -100,12 +105,8 @@ var skia = skia || {};
      * @return {Promise} Will resolve to either the data (success) or to
      *                   the HTTP response (error).
      **/
-    function loadCounts(testName) {
-      var url = '/rest/tilecounts';
-      if (testName) {
-        url += '/' + testName;
-      }
-
+    function loadData(path) {
+      var url = ns.c.PREFIX_URL + path;
       return httpGetData(url).then(
           function(successResp) {
             return successResp.data;
@@ -135,7 +136,7 @@ var skia = skia || {};
 
     // Interface of the service:
     return {
-      loadCounts: loadCounts
+      loadData: loadData
     };
 
   }]);

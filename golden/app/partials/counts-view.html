@@ -20,14 +20,16 @@
 
 		      <tbody>
 		        <tr>
-		          <td>All Tests</td>
+		          <td><a href="#!/counts">All Tests</a></td>
 		          <td>{{allAggregates.pos}}</td>
 		          <td>{{allAggregates.neg}}</td>
 		          <td>{{allAggregates.unt}}</td>
 		          <td>&nbsp;</td>
 		        </tr>
 		        <tr ng-repeat="oneTest in allTests">
-		          <td><a href="" ng-click="showTest(oneTest.name)">{{oneTest.name}}</a></td>
+		          <td><a href="#/counts/{{oneTest.name}}">
+		          	{{oneTest.name}}
+		          </a></td>
 		          <td>{{oneTest.aggregates.pos}}</td>
 		          <td>{{oneTest.aggregates.neg}}</td>
 		          <td>{{oneTest.aggregates.unt}}</td>
