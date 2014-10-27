@@ -1,5 +1,5 @@
 .PHONY: build
-build: res/css/perf.css res/js/perf.js
+build: res/css/perf.css res/js/perf.js res/vul/elements.html
 	go install -v ./go/skiaperf
 
 .PHONY: ver
@@ -48,6 +48,9 @@ res/js/perf.js: node_modules Gruntfile.js bower.json res/js/common.js
 # Build serving CSS from input CSS.
 res/css/perf.css: node_modules res/css/main.css Gruntfile.js bower.json
 	./node_modules/.bin/grunt --no-color css
+
+res/vul/elements.html: res/imp/*.html elements.html
+	./node_modules/.bin/grunt --no-color vulcanize
 
 node_modules: package.json
 	npm install

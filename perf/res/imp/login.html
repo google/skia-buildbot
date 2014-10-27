@@ -25,7 +25,7 @@
   //
   // The Email will be the empty string if the user is not logged in.
   sk.Login = new Promise(function(resolve, reject) {
-      sk.get('/loginstatus').then(JSON.parse).then(resolve).catch(reject);
+      sk.get('/loginstatus/').then(JSON.parse).then(resolve).catch(reject);
     });
 
 })();

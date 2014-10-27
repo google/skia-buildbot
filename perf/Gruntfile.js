@@ -53,8 +53,8 @@ module.exports = function(grunt) {
         dest: 'res/js/<%= pkg.name %>.js'
       }
     },
-    // Simpy copies over the unminimized JS, useful for debugging.
     copy: {
+      // Simply copies over the unminimized JS, useful for debugging.
       simple: {
         src: 'res/js/<%= pkg.name %>-debug.js',
         dest: 'res/js/<%= pkg.name %>.js'
@@ -83,6 +83,17 @@ module.exports = function(grunt) {
         expand: true,
         flatten: true
       }
+    },
+    vulcanize: {
+      default: {
+        options: {
+          csp: true,
+          strip: true
+        },
+        files: {
+          'res/vul/elements.html': 'elements.html'
+        },
+      },
     },
     // Auto prefix any CSS so it works on a wider set of browsers.
     autoprefixer: {
@@ -129,13 +140,14 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-autoprefixer');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-vulcanize');
 
   // By default run all the commands in the right sequence to build our custom
   // minified third_party JS.
-  grunt.registerTask('default', ['shell:bower_install', 'shell:install_npo', 'shell:build_npo', 'concat', 'uglify', 'copy:polymer', 'copy:core', 'copy:paper']);
+  grunt.registerTask('default', ['shell:bower_install', 'shell:install_npo', 'shell:build_npo', 'concat', 'uglify', 'copy:polymer', 'copy:core', 'copy:paper', 'vulcanize']);
 
   // A target to build an unminified version, for debugging.
-  grunt.registerTask('debug-js', ['shell:bower_install', 'concat', 'copy:simple', 'copy:polymer', 'copy:core', 'copy:paper']);
+  grunt.registerTask('debug-js', ['shell:bower_install', 'concat', 'copy:simple', 'copy:polymer', 'copy:core', 'copy:paper', 'vulcanize']);
 
   // A target to build just the CSS.
   grunt.registerTask('css', ['autoprefixer']);
