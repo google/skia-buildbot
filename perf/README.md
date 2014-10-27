@@ -4,6 +4,7 @@ SkiaPerf Server
 Reads Skia performance data from databases and serves interactive dashboards
 for easy exploration and annotations.
 
+
 Server Setup
 ============
 
@@ -11,16 +12,6 @@ Please refer to compute_engine_scripts/perfserver/README under the repo for
 instructions on creating and destroying the instance. The rest of this document
 is what to do once the instance is created.
 
-  gcutil --project=google.com:skia-buildbots addinstance skia-testing-b \
-    --zone=us-central2-b --external_ip_address=130.211.226.47 \
-    --service_account=default \
-    --service_account_scopes="bigquery,storage-full" \
-    --network=default --machine_type=n1-highmem-8 --image=backports-debian-7-wheezy-v20140904 \
-    --persistent_boot_disk
-
-SSH into the instance
-
-  gcutil --project=google.com:skia-buildbots ssh --ssh_user=default skia-testing-b
 
 Do the first time
 =================
@@ -47,6 +38,7 @@ Then restart squid to pick up the new config file:
 
 This means that monit will poll every two seconds that our application is up
 and running.
+
 
 Metadata
 ========
@@ -85,6 +77,7 @@ You can find the current metadata fingerprint by running:
     gcutil --project=google.com:skia-buildbots getinstance skia-testing-b
 
 Or you can just use the web UI in the console to set metadata values.
+
 
 To update the code
 ==================

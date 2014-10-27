@@ -6,13 +6,13 @@ Directory Contents
 ==================
 
 - vm_create_instance.sh
-Creates a perf server instance in the specified $ZONE_TAG.
+Creates a perf server instance in the specified $ZONE.
 
 - vm_setup_instance.sh
 Sets up the perf server with required packages and directories.
 
 - vm_delete_instance.sh
-Deletes the perf server instance in the specified $ZONE_TAG.
+Deletes the perf server instance in the specified $ZONE.
 
 - vm_push_update.sh
 Updates the code of the perf server running on skiaperf.com
