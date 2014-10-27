@@ -50,7 +50,7 @@ res/css/perf.css: node_modules res/css/main.css Gruntfile.js bower.json
 	./node_modules/.bin/grunt --no-color css
 
 res/vul/elements.html: res/imp/*.html elements.html
-	./node_modules/.bin/grunt --no-color vulcanize
+	./node_modules/.bin/grunt --no-color mkdir vulcanize
 
 node_modules: package.json
 	npm install
