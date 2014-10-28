@@ -30,7 +30,7 @@ func getAlert() *Alert {
 			}
 			return []*client.Series{&s}, nil
 		}},
-		actions:       []func(string){},
+		actions:       []func(*Alert){},
 		lastTriggered: time.Time{},
 		snoozedUntil:  time.Time{},
 	}
@@ -261,9 +261,6 @@ actions = ["Print"]
 			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x > y\": 1:1: undeclared name: y"),
 		},
 	}
-	actions := map[string]func(string){
-		"Print": func(string) {},
-	}
 	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
 	for _, c := range cases {
 		expectedErrStr := "nil"
@@ -277,7 +274,7 @@ actions = ["Print"]
 		if err != nil {
 			t.Errorf("Failed to parse:\n%v", c.Input)
 		}
-		_, err = newAlert(cfg.Rule[0], actions, nil)
+		_, err = newAlert(cfg.Rule[0], nil, nil)
 		actualErrStr := "nil"
 		if err != nil {
 			actualErrStr = err.Error()

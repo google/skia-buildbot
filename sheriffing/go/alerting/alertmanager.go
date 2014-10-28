@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/influxdb/influxdb/client"
+	"skia.googlesource.com/buildbot.git/go/email"
 )
 
 // AlertManager is the primary point of interaction with Alert objects.
@@ -53,14 +53,9 @@ func (am *AlertManager) loop() {
 }
 
 // NewAlertManager creates and returns an AlertManager instance.
-func NewAlertManager(dbClient *client.Client, alertsCfg string, tickInterval time.Duration) (*AlertManager, error) {
-	// TODO(borenet): Dynamically create these actions.
-	actions := map[string]func(string){
-		"Print": func(s string) { glog.Infof("ALERT: %v", s) },
-	}
-
+func NewAlertManager(dbClient *client.Client, alertsCfg string, tickInterval time.Duration, emailAuth *email.GMail) (*AlertManager, error) {
 	// Create the rules.
-	alerts, err := makeAlerts(alertsCfg, actions, dbClient)
+	alerts, err := makeAlerts(alertsCfg, dbClient, emailAuth)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create alerts: %v", err)
 	}

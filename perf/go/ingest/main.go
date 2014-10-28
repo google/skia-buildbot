@@ -150,7 +150,7 @@ func main() {
 	var client *http.Client
 	var err error
 	if *doOauth {
-		client, err = auth.RunFlow()
+		client, err = auth.RunFlow(auth.DefaultOAuthConfig)
 		if err != nil {
 			glog.Fatalf("Failed to auth: %s", err)
 		}

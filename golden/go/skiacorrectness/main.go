@@ -136,7 +136,7 @@ func (ug *URLAwareFileServer) GetURL(path string) string {
 // via an authentication flow) or nil depending on whether doOauth is false.
 func getOAuthClient(doOauth bool) *http.Client {
 	if doOauth {
-		client, err := auth.RunFlow()
+		client, err := auth.RunFlow(auth.DefaultOAuthClient)
 		if err != nil {
 			glog.Fatalf("Failed to auth: %s", err)
 		}

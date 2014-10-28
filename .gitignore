@@ -31,6 +31,7 @@ perf/res/imp/paper-*
 perf/res/vul
 perf/third_party
 perf/timestamp.json
+sheriffing/google_email_token.data
 sheriffing/node_modules
 sheriffing/npm-debug.log
 sheriffing/res/imp/core*

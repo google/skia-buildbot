@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	oauthConfig = &oauth.Config{
+	DefaultOAuthConfig = &oauth.Config{
 		ClientId:     "470362608618-nlbqngfl87f4b3mhqqe9ojgaoe11vrld.apps.googleusercontent.com",
 		ClientSecret: "J4YCkfMXFJISGyuBuVEiH60T",
 		Scope:        "https://www.googleapis.com/auth/devstorage.read_only",
@@ -28,15 +28,18 @@ var (
 )
 
 // runFlow runs through a 3LO OAuth 2.0 flow to get credentials for Google Storage.
-func RunFlow() (*http.Client, error) {
+func RunFlow(config *oauth.Config) (*http.Client, error) {
+	if config == nil {
+		config = DefaultOAuthConfig
+	}
 	transport := &oauth.Transport{
-		Config: oauthConfig,
+		Config: config,
 		Transport: &http.Transport{
 			Dial: util.DialTimeout,
 		},
 	}
-	if _, err := oauthConfig.TokenCache.Token(); err != nil {
-		url := oauthConfig.AuthCodeURL("")
+	if _, err := config.TokenCache.Token(); err != nil {
+		url := config.AuthCodeURL("")
 		fmt.Printf(`Your browser has been opened to visit:
 
   %s

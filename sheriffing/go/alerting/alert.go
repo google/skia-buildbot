@@ -9,6 +9,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/golang/glog"
 	"github.com/influxdb/influxdb/client"
+	"skia.googlesource.com/buildbot.git/go/email"
 	"skia.googlesource.com/buildbot.git/go/util"
 )
 
@@ -56,7 +57,7 @@ type Alert struct {
 	Query         string
 	Condition     string
 	client        queryable
-	actions       []func(string)
+	actions       []func(*Alert)
 	lastTriggered time.Time
 	snoozedUntil  time.Time
 }
@@ -67,7 +68,7 @@ func (a *Alert) fire() {
 	a.lastTriggered = time.Now()
 	a.snoozedUntil = time.Time{}
 	for _, f := range a.actions {
-		go f(a.Name)
+		go f(a)
 	}
 }
 
@@ -143,7 +144,7 @@ func (a *Alert) evaluate(d float64) (bool, error) {
 
 type parsedRule map[string]interface{}
 
-func newAlert(r parsedRule, actions map[string]func(string), client *client.Client) (*Alert, error) {
+func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail) (*Alert, error) {
 	errString := "Alert rule missing field %q"
 	name, ok := r["name"].(string)
 	if !ok {
@@ -161,14 +162,9 @@ func newAlert(r parsedRule, actions map[string]func(string), client *client.Clie
 	if !ok {
 		return nil, fmt.Errorf(errString, "actions")
 	}
-	actionStrings := actionsInterface.([]interface{})
-	actionsList := []func(string){}
-	for _, a := range actionStrings {
-		f, ok := actions[a.(string)]
-		if !ok {
-			return nil, fmt.Errorf("Unknown action: %q", a.(string))
-		}
-		actionsList = append(actionsList, f)
+	actionsList, err := parseActions(actionsInterface, emailAuth)
+	if err != nil {
+		return nil, err
 	}
 	id, err := util.GenerateID()
 	if err != nil {
@@ -203,14 +199,14 @@ func parseAlertRules(cfgFile string) ([]parsedRule, error) {
 	return cfg.Rule, nil
 }
 
-func makeAlerts(cfgFile string, actions map[string]func(string), dbClient *client.Client) ([]*Alert, error) {
+func makeAlerts(cfgFile string, dbClient *client.Client, emailAuth *email.GMail) ([]*Alert, error) {
 	parsedRules, err := parseAlertRules(cfgFile)
 	if err != nil {
 		return nil, err
 	}
 	alerts := []*Alert{}
 	for _, r := range parsedRules {
-		a, err := newAlert(r, actions, dbClient)
+		a, err := newAlert(r, dbClient, emailAuth)
 		if err != nil {
 			return nil, err
 		}

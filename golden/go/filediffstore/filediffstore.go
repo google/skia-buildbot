@@ -84,7 +84,7 @@ func GetAuthClient(doOauth bool) (*http.Client, error) {
 	var client *http.Client
 	var err error
 	if doOauth {
-		client, err = auth.RunFlow()
+		client, err = auth.RunFlow(auth.DefaultOAuthConfig)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to auth: %s", err)
 		}

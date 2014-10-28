@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -23,6 +24,7 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/go/email"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -30,11 +32,15 @@ import (
 )
 
 const (
-	COOKIESALT_METADATA_KEY        = "cookiesalt"
-	CLIENT_ID_METADATA_KEY         = "clientid"
-	CLIENT_SECRET_METADATA_KEY     = "clientsecret"
-	INFLUXDB_NAME_METADATA_KEY     = "influxdb_name"
-	INFLUXDB_PASSWORD_METADATA_KEY = "influxdb_password"
+	COOKIESALT_METADATA_KEY          = "cookiesalt"
+	CLIENT_ID_METADATA_KEY           = "clientid"
+	CLIENT_SECRET_METADATA_KEY       = "clientsecret"
+	INFLUXDB_NAME_METADATA_KEY       = "influxdb_name"
+	INFLUXDB_PASSWORD_METADATA_KEY   = "influxdb_password"
+	GMAIL_CLIENT_ID_METADATA_KEY     = "gmail_clientid"
+	GMAIL_CLIENT_SECRET_METADATA_KEY = "gmail_clientsecret"
+	GMAIL_CACHED_TOKEN_METADATA_KEY  = "gmail_cached_token"
+	GMAIL_TOKEN_CACHE_FILE           = "google_email_token.data"
 )
 
 var (
@@ -43,14 +49,16 @@ var (
 
 // flags
 var (
-	host              = flag.String("host", "localhost", "HTTP service host")
-	port              = flag.String("port", "8000", "HTTP service port (e.g., '8000')")
-	useMetadata       = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	influxDbHost      = flag.String("influxdb_host", "localhost:8086", "The InfluxDB hostname.")
-	influxDbName      = flag.String("influxdb_name", "root", "The InfluxDB username.")
-	influxDbPassword  = flag.String("influxdb_password", "root", "The InfluxDB password.")
-	influxDbDatabase  = flag.String("influxdb_database", "", "The InfluxDB database.")
-	alertPollInterval = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
+	host                  = flag.String("host", "localhost", "HTTP service host")
+	port                  = flag.String("port", "8000", "HTTP service port (e.g., '8000')")
+	useMetadata           = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	influxDbHost          = flag.String("influxdb_host", "localhost:8086", "The InfluxDB hostname.")
+	influxDbName          = flag.String("influxdb_name", "root", "The InfluxDB username.")
+	influxDbPassword      = flag.String("influxdb_password", "root", "The InfluxDB password.")
+	influxDbDatabase      = flag.String("influxdb_database", "", "The InfluxDB database.")
+	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
+	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
+	alertPollInterval     = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
 )
 
 func userHasEditRights(r *http.Request) bool {
@@ -186,10 +194,6 @@ func main() {
 	if err != nil {
 		glog.Fatal(fmt.Sprintf("Failed to initialize InfluxDB client: %s", err))
 	}
-	alertManager, err = alerting.NewAlertManager(dbClient, "alerts.cfg", parsedPollInterval)
-	if err != nil {
-		glog.Fatal(fmt.Sprintf("Failed to create AlertManager: %v", err))
-	}
 	serverURL := *host + ":" + *port
 
 	// By default use a set of credentials setup for localhost access.
@@ -197,12 +201,34 @@ func main() {
 	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
 	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
 	var redirectURL = "http://" + serverURL + "/oauth2callback/"
+	var emailClientId = *emailClientIdFlag
+	var emailClientSecret = *emailClientSecretFlag
 	if *useMetadata {
 		cookieSalt = metadata.MustGet(COOKIESALT_METADATA_KEY)
 		clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
 		clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)
+		emailClientId = metadata.MustGet(GMAIL_CLIENT_ID_METADATA_KEY)
+		emailClientSecret = metadata.MustGet(GMAIL_CLIENT_SECRET_METADATA_KEY)
+		cachedGMailToken := metadata.MustGet(GMAIL_CACHED_TOKEN_METADATA_KEY)
+		err = ioutil.WriteFile(GMAIL_TOKEN_CACHE_FILE, []byte(cachedGMailToken), os.ModePerm)
+		if err != nil {
+			glog.Fatalf("Failed to cache token: %s", err)
+		}
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
+
+	var emailAuth *email.GMail
+	if !*useMetadata && (emailClientId == "" || emailClientSecret == "") {
+		glog.Fatal("If -use_metadata=false, you must provide -email_clientid and -email_clientsecret")
+	}
+	emailAuth, err = email.NewGMail(emailClientId, emailClientSecret, GMAIL_TOKEN_CACHE_FILE)
+	if err != nil {
+		glog.Fatal(fmt.Sprintf("Failed to create email auth: %v", err))
+	}
+	alertManager, err = alerting.NewAlertManager(dbClient, "alerts.cfg", parsedPollInterval, emailAuth)
+	if err != nil {
+		glog.Fatal(fmt.Sprintf("Failed to create AlertManager: %v", err))
+	}
 
 	runServer(serverURL)
 }
