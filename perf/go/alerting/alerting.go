@@ -122,7 +122,7 @@ func processRows(rows *sql.Rows, err error) ([]*types.ClusterSummary, error) {
 // ListFrom returns all clusters that have a step that occur after the given
 // timestamp.
 func ListFrom(ts int64) ([]*types.ClusterSummary, error) {
-	rows, err := db.DB.Query("SELECT id, cluster FROM clusters WHERE ts>=? ORDER BY status DESC", ts)
+	rows, err := db.DB.Query("SELECT id, cluster FROM clusters WHERE ts>=? ORDER BY status DESC, ts DESC", ts)
 	return processRows(rows, err)
 }
 
