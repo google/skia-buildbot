@@ -52,25 +52,14 @@
           <button>Update</button>
         </form>
       </div>
-
       <button class=expander>Word Cloud</button>
-      <div class=clWordCloud> </div>
     </div>
   </div>
-</template>
-
-<template id=clParamTemplate>
-  <div class=cloudParam></div>
-</template>
-
-<template id=clParamValueTemplate>
-  <div class=clParamValue></div>
 </template>
 
 <template id=clBug>
   <a class=clBug href=""></a>&nbsp;
 </template>
-
 
 <style type="text/css" media="screen">
   .clResult {
@@ -98,23 +87,6 @@
   .clGraph {
     width: 300px;
     height: 150px;
-  }
-
-  .clWordCloud {
-    display: none;
-    flex-flow: row wrap;
-  }
-
-  .clWordCloud.display {
-    display: flex;
-  }
-
-  .cloudParam {
-    display: flex;
-    flex-flow: column nowrap;
-    margin:  1em;
-    border: solid #eee 1px;
-    padding: 0.5em;
   }
 
   .clStatus {
@@ -164,6 +136,14 @@
   .clClusterSize,
   .clLeastSquares {
     margin-right: 2em;
+  }
+
+  word-cloud-sk {
+    display: none;
+  }
+
+  word-cloud-sk.display {
+    display: block;
   }
 </style>
 
@@ -273,19 +253,9 @@
     json.ParamSummaries.sort(function(a, b){
       return b[0].Weight - a[0].Weight;
     });
-    json.ParamSummaries.forEach(function(params){
-      var node = importer__.import('#clParamTemplate');
-      params.forEach(function(param) {
-        var pnode = importer__.import('#clParamValueTemplate');
-        $$$('.clParamValue', pnode).innerText = param.Value;
-
-        // Ick ick ick.
-        $$$('.clParamValue', pnode).style.fontSize = param.Weight + "px";
-
-        $$$('.cloudParam', node).appendChild(pnode);
-      });
-      $$$('.clWordCloud', result).appendChild(node);
-    });
+    var wc = document.createElement('word-cloud-sk');
+    wc.items = json.ParamSummaries;
+    $$$('.clDetails', result).appendChild(wc);
   };
 
   // Turn on or off the fading of clusters with a non-"New" status.
@@ -395,3 +365,42 @@
 
 })();
 </script>
+
+// The <word-cloud-sk> custom element declaration.
+<polymer-element name="word-cloud-sk" attributes="items">
+  <template>
+    <style type="text/css" media="screen">
+      .cloudParam {
+        display: flex;
+        flex-flow: column nowrap;
+        margin:  1em;
+        border: solid #eee 1px;
+        padding: 0.5em;
+      }
+      .clWordCloud {
+        display: flex;
+        flex-flow: row wrap;
+      }
+
+      .clWordCloud.display {
+        display: flex;
+      }
+    </style>
+    <div class=clWordCloud>
+      <template repeat="{{item in items}}">
+        <div class=cloudParam>
+          <template repeat="{{entry in item}}">
+            <div style="font-size: {{entry.Weight}}px;">{{entry.Value}}</div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        this.items = this.items || [];
+      }
+    });
+  </script>
+</polymer-element>
