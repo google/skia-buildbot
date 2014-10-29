@@ -117,62 +117,76 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string) diff.Di
 	}
 }
 
-// Get uses the following algorithm:
-// 1. Look for the DiffMetrics of the requested digests in the local cache.
-// If found:
-//     2. Return the DiffMetrics.
-// Else:
-//     3. Make sure the digests exists in the local cache. Download it from
-//        Google Storage if necessary.
-// 4. Calculate DiffMetrics.
-// 5. Write DiffMetrics to the local cache and return.
-func (fs *FileDiffStore) Get(d1, d2 string) (*diff.DiffMetrics, error) {
+// Get documentation is found in the diff.DiffStore interface.
+// This implementation of Get uses the following algorithm:
+// 1. Loop through all provided dRest digests.
+//     2. Look for the DiffMetrics of the requested digests in the local cache.
+//     If found:
+//         3. Add the DiffMetrics to the result.
+//     Else:
+//         4. Make sure the digests exists in the local cache. Download it from
+//            Google Storage if necessary.
+//         5. Calculate DiffMetrics.
+//         6. Write DiffMetrics to the local cache and add to the result.
+// 7. Return all accumulated DiffMetrics (in same order as the provided digests).
+func (fs *FileDiffStore) Get(dMain string, dRest []string) ([]*diff.DiffMetrics, error) {
 
-	// 1. Check if the DiffMetrics exists in the local cache.
-	diffMetrics, err := fs.getDiffMetricsFromCache(d1, d2)
-	if err != nil {
-		return nil, err
-	}
-	if diffMetrics != nil {
-		// 2. The DiffMetrics exists locally, return it.
-		return diffMetrics, nil
-	}
-
-	// 3. Make sure the digests exists in the local cache. Download it from
-	//    Google Storage if necessary.
-	for _, d := range [2]string{d1, d2} {
-		if err = fs.ensureDigestInCache(d); err != nil {
-			return nil, err
+	diffMetricsSlice := make([]*diff.DiffMetrics, len(dRest))
+	// 1. Loop through all provided dRest digests.
+	for i := 0; i < len(dRest); i++ {
+		dOther := dRest[i]
+		// 2. Check if the DiffMetrics exists in the local cache.
+		diffMetrics, err := fs.getDiffMetricsFromCache(dMain, dOther)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to getDiffMetricsFromCache for digest %s and digest %s at index %i: %s", dMain, dOther, i, err)
 		}
-	}
+		if diffMetrics != nil {
+			// 3. The DiffMetrics exists locally, add it to the ret slice.
+			diffMetricsSlice[i] = diffMetrics
+			continue
+		}
 
-	// 4. Calculate DiffMetrics.
-	diffMetrics, err = fs.diff(d1, d2)
-	if err != nil {
-		return nil, err
+		// 4. Make sure the digests exists in the local cache. Download it from
+		//    Google Storage if necessary.
+		for _, d := range [2]string{dMain, dOther} {
+			if err = fs.ensureDigestInCache(d); err != nil {
+				return nil, fmt.Errorf("Failed to ensureDigestInCache for digest %s: %s", d, err)
+			}
+		}
+
+		// 5. Calculate DiffMetrics.
+		diffMetrics, err = fs.diff(dMain, dOther)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to calculate DiffMetrics for digest %s and digest %s at index %i: %s", dMain, dOther, i, err)
+		}
+		// 6. Write DiffMetrics to the local cache and add to the ret slice.
+		diffMetricsFilePath := filepath.Join(
+			fs.localDiffMetricsDir,
+			fmt.Sprintf("%s.%s", getDiffBasename(dMain, dOther), DIFFMETRICS_EXTENSION))
+		if err := writeDiffMetrics(diffMetricsFilePath, diffMetrics); err != nil {
+			return nil, fmt.Errorf("Failed to writeDiffMetrics for digest %s and digest %s at index %i: %s", dMain, dOther, i, err)
+		}
+		diffMetricsSlice[i] = diffMetrics
 	}
-	// 5. Write DiffMetrics to the local cache and return.
-	diffMetricsFilePath := filepath.Join(
-		fs.localDiffMetricsDir,
-		fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFFMETRICS_EXTENSION))
-	if err := writeDiffMetrics(diffMetricsFilePath, diffMetrics); err != nil {
-		return nil, err
-	}
-	return diffMetrics, nil
+	// 7. Return all accumulated DiffMetrics.
+	return diffMetricsSlice, nil
 }
 
-// AbsPath returns the path of the image that corresponds to the given
-// image digest.
-func (fs *FileDiffStore) AbsPath(digest string) (string, error) {
-	// Make sure we have a local copy of the digest and download it if
-	// necessary. Note: Downloading should be the exception.
-	if err := fs.ensureDigestInCache(digest); err != nil {
-		return "", err
-	}
+// AbsPath documentation is found in the diff.DiffStore interface.
+func (fs *FileDiffStore) AbsPath(digests []string) ([]string, error) {
 
-	// Note: using ensureDirectory in the constructor guarantees that
-	// this is prefixed with the absolute path.
-	return fs.getDigestImagePath(digest), nil
+	paths := make([]string, len(digests))
+	for i := 0; i < len(digests); i++ {
+		// Make sure we have a local copy of the digest and download it if
+		// necessary. Note: Downloading should be the exception.
+		if err := fs.ensureDigestInCache(digests[i]); err != nil {
+			return nil, fmt.Errorf("Failed to ensureDigestInCache for digest %s at index %i: %s", digests[i], i, err)
+		}
+		// Note: using ensureDirectory in the constructor guarantees that
+		// this is prefixed with the absolute path.
+		paths[i] = fs.getDigestImagePath(digests[i])
+	}
+	return paths, nil
 }
 
 func openDiffMetrics(filepath string) (*diff.DiffMetrics, error) {

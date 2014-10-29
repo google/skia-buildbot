@@ -52,6 +52,16 @@ func getTestFileDiffStore(localImgDir, localDiffMetricsDir string) *FileDiffStor
 	}
 }
 
+func TestNewFileDiffStore(t *testing.T) {
+	client, err := GetAuthClient(false)
+	if err != nil {
+		t.Error("Unexpected error: ", err)
+	}
+	// This test merely ensures that the NewFileDiffStore constructor codepath
+	// is exercised.
+	NewFileDiffStore(client, TESTDATA_DIR, "chromium-skia-gm")
+}
+
 func TestFindDigestFromDir(t *testing.T) {
 	digestsToExpectedResults := map[string]bool{
 		TEST_DIGEST1:   true,
@@ -145,14 +155,27 @@ func assertFileExists(filePath string, t *testing.T) {
 	}
 }
 
-func TestGet_e2e(t *testing.T) {
-	// 2 files that exist locally, diffmetrics exists locally as well.
-	fds1 := getTestFileDiffStore(filepath.Join(TESTDATA_DIR, "images"), filepath.Join(TESTDATA_DIR, "diffmetrics"))
-	diffMetrics1, err := fds1.Get(TEST_DIGEST1, TEST_DIGEST2)
+func TestAbsPath(t *testing.T) {
+	imagesDir := filepath.Join(TESTDATA_DIR, "images")
+	fds := getTestFileDiffStore(imagesDir, filepath.Join(TESTDATA_DIR, "diffmetrics"))
+	paths, err := fds.AbsPath([]string{TEST_DIGEST1, TEST_DIGEST2})
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
-	assert.Equal(t, expectedDiffMetrics1_2, diffMetrics1)
+	assert.Equal(t, 2, len(paths))
+	assert.Equal(t, filepath.Join(imagesDir, fmt.Sprintf("%s.%s", TEST_DIGEST1, IMG_EXTENSION)), paths[0])
+	assert.Equal(t, filepath.Join(imagesDir, fmt.Sprintf("%s.%s", TEST_DIGEST2, IMG_EXTENSION)), paths[1])
+}
+
+func TestGet_e2e(t *testing.T) {
+	// 2 files that exist locally, diffmetrics exists locally as well.
+	fds1 := getTestFileDiffStore(filepath.Join(TESTDATA_DIR, "images"), filepath.Join(TESTDATA_DIR, "diffmetrics"))
+	diffMetricsSlice1, err := fds1.Get(TEST_DIGEST1, []string{TEST_DIGEST2})
+	if err != nil {
+		t.Error("Unexpected error: ", err)
+	}
+	assert.Equal(t, 1, len(diffMetricsSlice1))
+	assert.Equal(t, expectedDiffMetrics1_2, diffMetricsSlice1[0])
 	assert.Equal(t, 0, downloadSuccessCount.Count())
 	assert.Equal(t, 0, downloadFailureCount.Count())
 
@@ -163,14 +186,15 @@ func TestGet_e2e(t *testing.T) {
 	defer os.Remove(diffFilePath)
 	defer os.Remove(diffMetricsFilePath)
 	fds2 := getTestFileDiffStore(filepath.Join(TESTDATA_DIR, "images"), os.TempDir())
-	diffMetrics2, err := fds2.Get(TEST_DIGEST1, TEST_DIGEST2)
+	diffMetricsSlice2, err := fds2.Get(TEST_DIGEST1, []string{TEST_DIGEST2})
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
 	// Verify that the diff and the diffmetrics files were created.
 	assertFileExists(diffFilePath, t)
 	assertFileExists(diffMetricsFilePath, t)
-	assert.Equal(t, expectedDiffMetrics1_2, diffMetrics2)
+	assert.Equal(t, 1, len(diffMetricsSlice2))
+	assert.Equal(t, expectedDiffMetrics1_2, diffMetricsSlice2[0])
 	assert.Equal(t, 0, downloadSuccessCount.Count())
 	assert.Equal(t, 0, downloadFailureCount.Count())
 
@@ -183,7 +207,7 @@ func TestGet_e2e(t *testing.T) {
 	defer os.Remove(diffFilePath)
 	defer os.Remove(diffMetricsFilePath)
 	fds3 := getTestFileDiffStore(filepath.Join(TESTDATA_DIR, "images"), os.TempDir())
-	diffMetrics3, err := fds3.Get(TEST_DIGEST1, TEST_DIGEST3)
+	diffMetricsSlice3, err := fds3.Get(TEST_DIGEST1, []string{TEST_DIGEST3})
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
@@ -192,15 +216,39 @@ func TestGet_e2e(t *testing.T) {
 	assertFileExists(newImageFilePath, t)
 	assertFileExists(diffFilePath, t)
 	assertFileExists(diffMetricsFilePath, t)
-	assert.Equal(t, expectedDiffMetrics1_3, diffMetrics3)
+	assert.Equal(t, 1, len(diffMetricsSlice3))
+	assert.Equal(t, expectedDiffMetrics1_3, diffMetricsSlice3[0])
 	assert.Equal(t, 1, downloadSuccessCount.Count())
 	assert.Equal(t, 0, downloadFailureCount.Count())
 
 	// 1 file that does not exist.
 	fds4 := getTestFileDiffStore(filepath.Join(TESTDATA_DIR, "images"), os.TempDir())
-	if _, err := fds4.Get(TEST_DIGEST1, MISSING_DIGEST); err == nil {
+	if _, err := fds4.Get(TEST_DIGEST1, []string{TEST_DIGEST2, TEST_DIGEST3, MISSING_DIGEST}); err == nil {
 		t.Error("Was expecting 404 error for missing digest")
 	}
 	assert.Equal(t, 0, downloadSuccessCount.Count())
 	assert.Equal(t, 1, downloadFailureCount.Count())
+
+	// Call Get with multiple digests.
+	newImageFilePath = filepath.Join(TESTDATA_DIR, "images", fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
+	diffBasename = fmt.Sprintf("%s-%s", TEST_DIGEST3, TEST_DIGEST1)
+	diffFilePath = filepath.Join(os.TempDir(), fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
+	diffMetricsFilePath = filepath.Join(os.TempDir(), fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
+	defer os.Remove(newImageFilePath)
+	defer os.Remove(diffFilePath)
+	defer os.Remove(diffMetricsFilePath)
+	fds5 := getTestFileDiffStore(filepath.Join(TESTDATA_DIR, "images"), os.TempDir())
+	diffMetricsSlice5, err := fds5.Get(TEST_DIGEST1, []string{TEST_DIGEST2, TEST_DIGEST3})
+	if err != nil {
+		t.Error("Unexpected error: ", err)
+	}
+	// Verify that the image was downloaded successfully from Google Storage and
+	// that the diff and diffmetrics files were created.
+	assertFileExists(newImageFilePath, t)
+	assertFileExists(diffFilePath, t)
+	assertFileExists(diffMetricsFilePath, t)
+	assert.Equal(t, 2, len(diffMetricsSlice5))
+	assert.Equal(t, expectedDiffMetrics1_2, diffMetricsSlice5[0])
+	assert.Equal(t, expectedDiffMetrics1_3, diffMetricsSlice5[1])
+	assert.Equal(t, 0, downloadFailureCount.Count())
 }
