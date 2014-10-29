@@ -39,6 +39,20 @@
 -->
 <polymer-element name="login-sk">
   <template>
+    <style type="text/css" media="screen">
+      @media (max-width: 500px) {
+        #email {
+          display: none;
+        }
+      }
+      #logInOut {
+        margin-left: 10px;
+      }
+      #email,
+      #logInOut {
+        font-size: 15px;
+      }
+    </style>
     <span id=email></span>
     <a id=logInOut href=""></a>
   </template>
