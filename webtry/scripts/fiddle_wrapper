@@ -10,9 +10,9 @@
 # the output PNG file goes into the inout directory, which is shared between the chroot
 # jail and the webserver environment.
 
-[ -z "$SKIA_ROOT" ] && SKIA_ROOT="/skia_build/skia"
+[ -z "$WEBTRY_ROOT" ] && WEBTRY_ROOT="/skia_build/"
 
-cd $SKIA_ROOT/experimental/webtry/scripts
+cd $WEBTRY_ROOT/scripts
 
 ./fiddle_gyp $1
 ./fiddle_ninja $1

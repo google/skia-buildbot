@@ -391,7 +391,7 @@ func expandCode(code string, source int, width, height int) (string, error) {
 	h.Write([]byte(fontFriendlyCode))
 	binary.Write(h, binary.LittleEndian, int64(source))
 	hash := fmt.Sprintf("%x", h.Sum(nil))
-	// At this point we are running in skia/experimental/webtry, making cache a
+	// At this point we are running in buildbot/buildbot/webtry, making cache a
 	// peer directory to skia.
 	// TODO(jcgregorio) Make all relative directories into flags.
 	err := expandToFile(fmt.Sprintf("../../../cache/src/%s.cpp", hash), fontFriendlyCode, codeTemplate)
