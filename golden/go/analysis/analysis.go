@@ -144,8 +144,9 @@ type Analyzer struct {
 	currentTile *LabeledTile
 
 	// Output data structures that are derived from currentTile.
-	currentTileCounts *GUITileCounts
-	currentTestCounts map[string]*GUITestCounts
+	currentTileCounts  *GUITileCounts
+	currentTestCounts  map[string]*GUITestCounts
+	currentTestDetails GUITestDetails
 
 	// converter supplied by the client of the type to convert a path to a URL
 	pathToURLConverter PathToURLConverter
@@ -176,6 +177,18 @@ func (a *Analyzer) GetTileCounts() (*GUITileCounts, error) {
 	defer a.mutex.Unlock()
 
 	return a.currentTileCounts, nil
+}
+
+// GetTestDetails returns the untriaged, positive and negative digests for a
+// specific test with the necessary information (diff metrics, image urls) to
+// assign a label to the untriaged digests.
+// TODO (stephana): In the future use a set of key value pairs to search over
+// all parameters identifying traces. The output will be the same.
+func (a *Analyzer) GetTestDetails(testName string) (GUITestDetails, error) {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+
+	return map[string]*GUITestDetail{testName: a.currentTestDetails[testName]}, nil
 }
 
 // GetTestCounts returns the classification counts for a specific tests.
@@ -285,6 +298,7 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool) {
 	// calculate all the output data.
 	newTileCounts, newTestCounts := a.getOutputCounts(labeledTile)
+	newTestDetails := a.getTestDetails(labeledTile)
 
 	// acquire the lock if necessary
 	if needsLocking {
@@ -296,6 +310,7 @@ func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool
 	a.currentTile = labeledTile
 	a.currentTileCounts = newTileCounts
 	a.currentTestCounts = newTestCounts
+	a.currentTestDetails = newTestDetails
 }
 
 // relabelTraces iterates over the traces in of the tiles that have changed and
@@ -341,6 +356,7 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 
 // getOutputCounts derives the output counts from the given labeled tile.
 func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, map[string]*GUITestCounts) {
+	glog.Info("Starting to process output counts.")
 	// Stores the aggregated counts of a tile for each test.
 	tileCountsMap := make(map[string]*LabelCounts, len(labeledTile.Traces))
 
@@ -396,6 +412,8 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, ma
 		Aggregated: overallAggregates,
 		Counts:     tileCountsMap,
 	}
+
+	glog.Info("Done processing output counts.")
 
 	return tileCounts, testCountsMap
 }

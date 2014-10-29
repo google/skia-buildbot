@@ -58,6 +58,16 @@ func tileCountsHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, result, http.StatusOK)
 }
 
+func testDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	testName := mux.Vars(r)["testname"]
+	result, err := analyzer.GetTestDetails(testName)
+	if err != nil {
+		sendErrorResponse(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	sendResponse(w, result, http.StatusOK)
+}
+
 // testCountsHandler handles GET requests for the aggregrated classification
 // counts for a specific tests.
 
@@ -136,7 +146,7 @@ func (ug *URLAwareFileServer) GetURL(path string) string {
 // via an authentication flow) or nil depending on whether doOauth is false.
 func getOAuthClient(doOauth bool) *http.Client {
 	if doOauth {
-		client, err := auth.RunFlow(auth.DefaultOAuthClient)
+		client, err := auth.RunFlow(auth.DefaultOAuthConfig)
 		if err != nil {
 			glog.Fatalf("Failed to auth: %s", err)
 		}
@@ -172,6 +182,7 @@ func main() {
 	// TODO (stephana): Wrap the handlers in autogzip unless we defer that to
 	// the front-end proxy.
 	router.HandleFunc("/rest/counts", tileCountsHandler)
+	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler)
 
 	// Set up the resource to serve the image files.
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)

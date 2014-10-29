@@ -130,7 +130,6 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string) diff.Di
 //         6. Write DiffMetrics to the local cache and add to the result.
 // 7. Return all accumulated DiffMetrics (in same order as the provided digests).
 func (fs *FileDiffStore) Get(dMain string, dRest []string) ([]*diff.DiffMetrics, error) {
-
 	diffMetricsSlice := make([]*diff.DiffMetrics, len(dRest))
 	// 1. Loop through all provided dRest digests.
 	for i := 0; i < len(dRest); i++ {
@@ -324,6 +323,7 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 		return err
 	}
 
+	glog.Infof("Downloaded %s to %s", objLocation, outputFile)
 	downloadSuccessCount.Inc(1)
 	return nil
 }

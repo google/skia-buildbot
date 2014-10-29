@@ -53,13 +53,9 @@ func getTestFileDiffStore(localImgDir, localDiffMetricsDir string) *FileDiffStor
 }
 
 func TestNewFileDiffStore(t *testing.T) {
-	client, err := GetAuthClient(false)
-	if err != nil {
-		t.Error("Unexpected error: ", err)
-	}
 	// This test merely ensures that the NewFileDiffStore constructor codepath
 	// is exercised.
-	NewFileDiffStore(client, TESTDATA_DIR, "chromium-skia-gm")
+	NewFileDiffStore(nil, TESTDATA_DIR, "chromium-skia-gm")
 }
 
 func TestFindDigestFromDir(t *testing.T) {
