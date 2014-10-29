@@ -44,7 +44,7 @@ cd
 # Checkout the buildbot code and dependencies
 mkdir buildbot
 cd buildbot
-gclient config --unmanaged https://skia.googlesource.com/buildbot.git
+gclient config https://skia.googlesource.com/buildbot.git
 gclient sync
 cd buildbot
 git checkout master
