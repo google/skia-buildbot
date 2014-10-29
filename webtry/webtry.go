@@ -892,7 +892,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			cmd += " --pdf"
 		}
 		if *useChroot {
-			cmd = "schroot -c webtry --directory=/ -- /skia_build/skia/experimental/webtry/" + cmd
+			cmd = "schroot -c webtry --directory=/ -- /skia_build/" + cmd
 		}
 		if request.Source > 0 {
 			cmd += fmt.Sprintf(" --source image-%d.png", request.Source)

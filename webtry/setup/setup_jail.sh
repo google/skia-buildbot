@@ -6,3 +6,4 @@ mkdir /skia_build
 chmod 777 /skia_build
 
 mkdir /skia_build/bin
+mkdir /skia_build/fiddle_main

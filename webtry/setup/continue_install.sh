@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# The continue_install script updates the webtry user's copy of skia and depot_tools.
+# The continue_install script updates the webtry user's copy of depot_tools
+# and the buildbot repository.
 # It then builds the webtry server outside the jail.
 #
 # The setup scripts should run this script as the 'webtry' user.
@@ -31,14 +32,24 @@ else
 fi
 export PATH=$PATH:~/depot_tools
 
-# Checkout the skia code and dependencies (again)
+# Checkout the skia code (needed so that webtry can build its template)
 mkdir skia
 cd skia
 gclient config --name . https://skia.googlesource.com/skia.git
 gclient sync
 git checkout master
 
-cd experimental/webtry
+cd
+
+# Checkout the buildbot code and dependencies
+mkdir buildbot
+cd buildbot
+gclient config --unmanaged https://skia.googlesource.com/buildbot.git
+gclient sync
+cd buildbot
+git checkout master
+
+cd webtry
 
 go get -u skia.googlesource.com/buildbot.git/perf/go/logserver
 go get -d

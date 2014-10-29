@@ -36,8 +36,8 @@ if __name__ == '__main__':
   # gyp is really picky about the current working directory having src/ under it
   os.chdir(webtry_cache_dir)
 
-  os.environ['CC'] = '../../skia/experimental/webtry/safec'
-  os.environ['CXX'] = '../../skia/experimental/webtry/safec++'
-  os.environ['LD'] = '../../skia/experimental/webtry/safec++'
+  os.environ['CC'] = '../../scripts/safec'
+  os.environ['CXX'] = '../../scripts/safec++'
+  os.environ['LD'] = '../../scripts/safec++'
 
   sys.exit(gyp.main(args))

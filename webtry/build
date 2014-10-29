@@ -3,12 +3,16 @@
 # This script builds the webtry server; before compilation we need to create the code template
 # so that it contains all publicly available header files in skia/include.
 #
-# By default, the script expects to be run out of the skia/experimental/webtry directory; 
-# if we move directories around this can be overridden by setting the SKIA_ROOT and WEBTRY_ROOT
-# environment variables to point to the skia source tree and the webtry source tree, 
+# By default, the script expects to be run out of the buildbot/webtry directory;
+# if we move directories around this can be overridden by setting the BUILDBOT_ROOT and WEBTRY_ROOT
+# environment variables to point to the buildbot source tree and the webtry source tree,
 # respectively.
+#
+# It also expects the skia source to be a sibling of the buildbot source.  Again, this can
+# be overridden by using the SKIA_ROOT environment variable.
 
-[ -z "$SKIA_ROOT" ] && SKIA_ROOT="../.."
+[ -z "$BUILDBOT_ROOT" ] && BUILDBOT_ROOT=".."
+[ -z "$SKIA_ROOT" ] && SKIA_ROOT="${BUILDBOT_ROOT}/../../skia"
 [ -z "$WEBTRY_ROOT" ] && WEBTRY_ROOT=`pwd`
 
 [ -z "$GOROOT" ] && export GOROOT=/home/webtry/go

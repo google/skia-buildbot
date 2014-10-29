@@ -55,6 +55,11 @@ sudo chmod 755 ${CHROOT_JAIL}/bin/continue_install_jail.sh
 sudo chroot ${CHROOT_JAIL} /bin/continue_install_jail.sh
 sudo chown -R webtry:webtry ${CHROOT_JAIL}/skia_build/skia
 
+sudo cp ../main.cpp ${CHROOT_JAIL}/skia_build/fiddle_main/
+sudo cp ../scripts/* ${CHROOT_JAIL}/skia_build/scripts/
+sudo cp ../safec ${CHROOT_JAIL}/skia_build/scripts/
+sudo cp ../safec++ ${CHROOT_JAIL}/skia_build/scripts/
+
 # The continue_install script will fetch the latest versions of
 # skia and depot_tools.  We split up the installation process into
 # two pieces like this so that the continue_install script can

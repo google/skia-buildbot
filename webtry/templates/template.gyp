@@ -30,7 +30,7 @@
       ],
       'sources': [
         '../../cache/src/{{.Hash}}.cpp',
-        '../experimental/webtry/main.cpp'
+        '../../fiddle_main/main.cpp'
       ],
     }
   ]
