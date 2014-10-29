@@ -12,12 +12,13 @@ Running Locally
 One time setup:
 
     $ export SKIA_ROOT=path_to_your_skia_source
+    $ export WEBTRY_ROOT=path_to_your_webtry_source
     $ export WEBTRY_INOUT=path_to_a_writeable_directory
     $ mkdir -p $WEBTRY_INOUT
 
 Then, to run:
 
-    $ cd experimental/webtry
+    $ cd $WEBTRY_ROOT
     $ go get -d
     $ ./build
     $ ./webtry
@@ -53,8 +54,8 @@ The following things only need to be done once.
 
 1. SSH into the server as default.
 2. sudo apt-get install git
-3. git clone https://skia.googlesource.com/skia
-4. cd ~/skia/experimental/webtry/setup
+3. git clone https://skia.googlesource.com/buildbot
+4. cd ~/buildbot/webtry/setup
 5. ./webtry_setup.sh
 
 6. Add the following to the /etc/schroot/minimal/fstab:
@@ -83,7 +84,7 @@ To update the code
 ==================
 
 1. SSH into the server as default.
-2. cd ~/skia/experimental/webtry/setup
+2. cd ~/buildbot/webtry/setup
 3. git pull
 4. ./webtry_setup.sh
 
