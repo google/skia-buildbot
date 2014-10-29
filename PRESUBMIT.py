@@ -6,12 +6,9 @@
 """Presubmit checks for the buildbot code."""
 
 
-import os
 import subprocess
-import sys
 
 
-SKIA_TREE_STATUS_URL = 'http://skia-tree-status.appspot.com'
 SKIP_RUNS_KEYWORD = '(SkipBuildbotRuns)'
 
 
@@ -132,46 +129,6 @@ def CheckChange(input_api, output_api):
   return results
 
 
-def _CheckTreeStatus(input_api, output_api, json_url):
-  """Check whether to allow commit.
-
-  Args:
-    input_api: input related apis.
-    output_api: output related apis.
-    json_url: url to download json style status.
-  """
-  results = []
-  tree_status_results = input_api.canned_checks.CheckTreeIsOpen(
-      input_api, output_api, json_url=json_url)
-  display_skip_keyword_prompt = False
-  tree_status = None
-  if not tree_status_results:
-    # Check for caution state only if tree is not closed.
-    connection = input_api.urllib2.urlopen(json_url)
-    status = input_api.json.loads(connection.read())
-    connection.close()
-    tree_status = status['message']
-    if 'caution' in tree_status.lower():
-      # Display a prompt only if we are in an interactive shell. Without this
-      # check the commit queue behaves incorrectly because it considers
-      # prompts to be failures.
-      display_skip_keyword_prompt = True
-  else:
-    tree_status = tree_status_results[0]._message  # pylint: disable=W0212
-    display_skip_keyword_prompt = True
-
-  if (display_skip_keyword_prompt
-      and os.isatty(sys.stdout.fileno())
-      and not SKIP_RUNS_KEYWORD in input_api.change.DescriptionText()):
-    long_text = (
-        '%s\nAre you sure the change should be submitted. If it should be '
-        'submitted but not run on the buildbots you can use the %s keyword.' % (
-            tree_status, SKIP_RUNS_KEYWORD))
-    results.append(output_api.PresubmitPromptWarning(
-        message=tree_status, long_text=long_text))
-  return results
-
-
 def CheckChangeOnUpload(input_api, output_api):
   results = CheckChange(input_api, output_api)
   # Give warnings for non-ASCII characters on upload but not commit, since they
@@ -182,7 +139,4 @@ def CheckChangeOnUpload(input_api, output_api):
 
 def CheckChangeOnCommit(input_api, output_api):
   results = CheckChange(input_api, output_api)
-  results.extend(
-      _CheckTreeStatus(input_api, output_api, json_url=(
-          SKIA_TREE_STATUS_URL + '/banner-status?format=json')))
   return results
