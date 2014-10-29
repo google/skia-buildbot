@@ -1,0 +1,23 @@
+server {
+    listen 443;
+    server_name skiaperf.com;
+    access_log /tmp/wwwlogs/skiaperf.access.log;
+    error_log /tmp/wwwlogs/skiaperf.error.log;
+
+    ssl on;
+    ssl_certificate         /etc/nginx/ssl/skiaperf_com.pem;
+    ssl_certificate_key     /etc/nginx/ssl/skiaperf_com.key;
+
+    location / {
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Host $host;
+        proxy_pass http://127.0.0.1:8000;
+    }
+}
+
+server {
+    listen      80;
+    server_name skiaperf.com;
+    return 301 https://skiaperf.com$request_uri;
+}

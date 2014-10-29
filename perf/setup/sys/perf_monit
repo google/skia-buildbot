@@ -10,6 +10,6 @@ check process logserver with pidfile /var/run/logserver.pid
    start program = "/etc/init.d/logserver start"
    stop program = "/etc/init.d/logserver stop"
 
-check process squid3 with pidfile /var/run/squid3.pid
-   start program = "/etc/init.d/squid3 start"
-   stop program = "/etc/init.d/squid3 stop"
+check process skiacorrectness with pidfile /var/run/skiacorrectness.pid
+   start program = "/etc/init.d/skiacorrectness start"
+   stop program = "/etc/init.d/skiacorrectness stop"

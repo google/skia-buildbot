@@ -45,9 +45,7 @@ Metadata
 
 Secrets that we need at runtime are stored in the metadata server.
 
-All of the metadata must be set at one time, i.e. if you change one piece of
-metadata you need to write all the values, even the old unchanged metadata
-values. The current set of metadata required is:
+The current set of metadata required is:
 
   * apikey - The API Key found on this page
     https://console.developers.google.com/project/31977622648/apiui/credential
@@ -62,21 +60,30 @@ values. The current set of metadata required is:
 
       https://console.developers.google.com/project/31977622648/apiui/credential
 
-To set the metadata use:
+  * skiaperf-com-key, skiaperf-com-pem - The TLS/SSL secrets for skiaperf.com.
+    These are stored in the project meta data. See below about managing SSL
+    certificates.
 
-    gcutil --project=google.com:skia-buildbots setinstancemetadata skia-testing-b \
-      --metadata=apikey:[apikey value] \
-      --metadata=readwrite:[readwrite value] \
-      --metadata=cookiesalt:[cookiesalt value] \
-      --metadata=clientid:[clientid value] \
-      --metadata=clientsecret:[clientsecret value] \
-      --fingerprint=[metadata fingerprint]
+  * skiagold-com-key, skiagold-com-pem - The TLS/SSL secrets for skiagold.com.
+    These are stored in the project meta data. See below about managing SSL
+    certificates.
 
-You can find the current metadata fingerprint by running:
+To set a specific metadata value for an instance use:
 
-    gcutil --project=google.com:skia-buildbots getinstance skia-testing-b
+    gcloud compute instances add-metadata skia-testing-b \
+        --metadata apikey=<apikey value>
 
-Or you can just use the web UI in the console to set metadata values.
+This will set the 'apikey' value for the 'skia-testing-b' instance.
+
+To set a specific metadata value on the project level use:
+
+    gcloud compute project-info add-metadata \
+        --metadata-from-file skiaperf-com-key="./skiaperf.com.key"
+
+This will set the 'pem' file for skiaperf.com.
+
+See https://cloud.google.com/sdk/gcloud/reference/compute/ for more information
+about the 'gcloud' command.
 
 
 To update the code
@@ -86,6 +93,31 @@ To update the code
 2. cd ~/buildbot/perf/setup
 3. git pull
 4. ./perf_setup.sh
+
+Note: This will also update the SSL secrets (.pem and .key files).
+
+
+Managing SSL Certificates
+=========================
+
+We store the SSL certificates encrypted in a shared folder (shared-skia-infra)
+in Google drive. They are in a zip file (skia-infra-ssl-certs.zip.gpg) that is
+encrypted with a symmetric key. The key is stored in http://valentine (search
+for skiaperf).
+
+To decrypt the file run the following command:
+
+    gpg skia-infra-ssl-certs.zip.gpg
+
+To encrypt a new version of the file file run the following command:
+
+    gpg -c --cipher-algo AES256 skia-infra-ssl-certs.zip
+
+To generate a new encryption key you can use:
+
+    openssl rand -base64 48
+
+which will generate a 48-byte long key and encode it in base64.
 
 
 Developing
