@@ -111,7 +111,6 @@ BOUNDARY=${BOUNDARY:0:32}
 sendmail $REQUESTER_EMAIL,$ADMINS <<EOF
 subject:Results of your Lua script run
 to:$REQUESTER_EMAIL,$ADMINS
-from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
 
 This is a MIME-encapsulated message

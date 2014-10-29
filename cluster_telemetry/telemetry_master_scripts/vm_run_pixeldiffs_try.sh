@@ -188,7 +188,6 @@ BOUNDARY=${BOUNDARY:0:32}
 sendmail $REQUESTER_EMAIL,$ADMIN_EMAIL <<EOF
 subject:Your PixelDiff Cluster Telemetry trybot run has completed! ($RUN_ID)
 to:$REQUESTER_EMAIL,$ADMIN_EMAIL
-from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
 
 This is a MIME-encapsulated message

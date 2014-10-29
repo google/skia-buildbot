@@ -51,7 +51,6 @@ if [[ $CRASHED_INSTANCES ]]; then
   sendmail $ADMIN_EMAIL <<EOF
 subject:Some Cluster Telemetry instances crashed!
 to:$ADMIN_EMAIL
-from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
 
 This is a MIME-encapsulated message

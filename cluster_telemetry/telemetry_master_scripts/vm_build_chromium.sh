@@ -101,7 +101,6 @@ BOUNDARY=${BOUNDARY:0:32}
 sendmail $REQUESTER_EMAIL <<EOF
 subject:Your Chrome Build has completed${SUBJECT_FAILURE_SUFFIX}!
 to:$REQUESTER_EMAIL
-from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
 
 This is a MIME-encapsulated message

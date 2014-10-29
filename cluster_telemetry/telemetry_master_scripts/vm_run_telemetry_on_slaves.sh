@@ -150,7 +150,6 @@ if [ ! -n "$TRYSERVER" ]; then
   sendmail $REQUESTER_EMAIL <<EOF
 subject:Your Telemetry benchmark task has completed!
 to:$REQUESTER_EMAIL
-from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
 
 This is a MIME-encapsulated message

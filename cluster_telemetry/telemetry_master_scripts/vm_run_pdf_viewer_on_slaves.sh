@@ -95,7 +95,6 @@ BOUNDARY=${BOUNDARY:0:32}
 sendmail $REQUESTER_EMAIL <<EOF
 subject:Your PDF Viewer task has completed!
 to:$REQUESTER_EMAIL
-from:skia.buildbot@gmail.com
 Content-Type: multipart/mixed; boundary=\"$BOUNDARY\";
 
 This is a MIME-encapsulated message
