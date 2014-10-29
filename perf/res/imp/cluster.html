@@ -9,6 +9,7 @@
     <link href="/res/imp/cluster.html" rel="import" />
 
 -->
+
 <template id=clTemplate>
   <div id=clSorting>
     Sort by:
@@ -52,7 +53,7 @@
           <button>Update</button>
         </form>
       </div>
-      <button class=expander>Word Cloud</button>
+      <toggle-display-sk>Word Cloud</toggle-display-sk>
     </div>
   </div>
 </template>
@@ -246,9 +247,6 @@
       });
     }
 
-    // Fill in the word cloud.
-    $$$('.expander', result).addEventListener('click', sk.ClusterSummary.toggleWordCloud_);
-
     // Sort the param summaries so that columns with larger weights come first.
     json.ParamSummaries.sort(function(a, b){
       return b[0].Weight - a[0].Weight;
@@ -274,7 +272,6 @@
     * detach, call before destroying to remove element callbacks.
     */
   sk.ClusterSummary.prototype.detach = function() {
-    $$$('.expander', this.result_).removeEventListener('click', sk.ClusterSummary.toggleWordCloud_);
     $$$('.clShortcut', this.result_).removeEventListener('click', this.boundOpenShortcut_);
     this.plot_.shutdown();
   }
@@ -365,6 +362,34 @@
 
 })();
 </script>
+
+// The <toggle-display-sk> custom element declaration.
+//
+// Presents as a button that toggles the 'display' style for its
+// nextElementSibling.
+<polymer-element name="toggle-display-sk">
+  <template>
+    <paper-button raised>
+      <content></content>
+    </paper-button>
+  </template>
+  <script>
+    (function() {
+      function toggle(e) {
+        e.target.nextElementSibling.classList.toggle("display");
+      };
+
+      Polymer({
+        ready: function() {
+           this.addEventListener('click', toggle);
+        },
+        detached: function() {
+           this.removeEventListener('click', toggle);
+        },
+      });
+    })();
+  </script>
+</polymer-element>
 
 // The <word-cloud-sk> custom element declaration.
 <polymer-element name="word-cloud-sk" attributes="items">
