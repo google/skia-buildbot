@@ -118,6 +118,9 @@ function cleanup_slave_before_exit {
   copy_log_to_gs
   delete_worker_file $WORKER_FILE
   rm -rf /tmp/*${RUN_ID}*
+  rm -rf /tmp/diffs
+  rm -rf /tmp/images
+  rm -rf /tmp/whitediffs
 }
 
 function build_tools {
@@ -186,6 +189,22 @@ mkdir -p $OUTPUT_DIR_NOPATCH
 run_render_pictures $OUTPUT_DIR_NOPATCH $GPU_NOPATCH_RUN \
   $OUTPUT_FILE_GS_LOCATION/nopatch-images/
 
+echo "== Comparing pictures and saving differences in JSON output file =="
+JSON_SUMMARY_DIR=/tmp/summary-$RUN_ID
+mkdir -p $JSON_SUMMARY_DIR
+python $TELEMETRY_SLAVE_SCRIPTS_DIR/write_json_summary.py \
+  --img_root=$IMG_ROOT \
+  --nopatch_json=$OUTPUT_DIR_NOPATCH/summary.json \
+  --nopatch_images_base_url=file://$OUTPUT_DIR_NOPATCH \
+  --withpatch_json=$OUTPUT_DIR_WITHPATCH/summary.json \
+  --withpatch_images_base_url=file://$OUTPUT_DIR_WITHPATCH \
+  --output_file_path=$JSON_SUMMARY_DIR/slave$SLAVE_NUM.json \
+  --gs_output_dir=$OUTPUT_FILE_GS_LOCATION \
+  --gs_skp_dir=$GS_SKP_DIR \
+  --slave_num=$SLAVE_NUM \
+  --add_to_sys_path=$SKIA_TRUNK_LOCATION/gm \
+  --add_to_sys_path=$SKIA_TRUNK_LOCATION/gm/rebaseline_server
+
 echo "== Copy everything to Google Storage =="
 # Copy the summary.json files generated from render_pictures to Google Storage
 # and set google.com permissions on them.
@@ -197,12 +216,33 @@ gsutil acl ch -g google.com:READ \
   $OUTPUT_FILE_GS_LOCATION/json-summaries/nopatch/slave$SLAVE_NUM.json
 gsutil acl ch -g google.com:READ \
   $OUTPUT_FILE_GS_LOCATION/json-summaries/withpatch/slave$SLAVE_NUM.json
-
 # Copy all checksum named images to Google Storage and set google.com
 # permissions on them.
 gsutil -m cp -R $OUTPUT_DIR_NOPATCH/* $OUTPUT_FILE_GS_LOCATION/nopatch-images/
 gsutil -m cp -R $OUTPUT_DIR_WITHPATCH/* $OUTPUT_FILE_GS_LOCATION/withpatch-images/
 gsutil -m acl ch -R -g google.com:READ $OUTPUT_FILE_GS_LOCATION/nopatch-images/*
 gsutil -m acl ch -R -g google.com:READ $OUTPUT_FILE_GS_LOCATION/withpatch-images/*
+
+# TODO(rmistry): The below (and a lot of other code) will no longer be needed
+# once RBS is able to serve CT's images.
+# Get list of failed file names and upload only those to Google Storage.
+ARRAY=`cat $JSON_SUMMARY_DIR/slave${SLAVE_NUM}.json | grep 'fileName' | cut -d ':' -f 2 | cut -d "\"" -f2`
+for i in ${ARRAY[@]}; do
+  gsutil -m cp $OUTPUT_DIR_NOPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/
+  gsutil -m cp $OUTPUT_DIR_WITHPATCH/$i $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/
+done
+# Copy the diffs and whitediffs to Google Storage.
+gsutil -m cp $IMG_ROOT/diffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/
+gsutil -m cp $IMG_ROOT/whitediffs/* $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/
+
+# Set google.com permissions on all uploaded images.
+gsutil -m acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/nopatch-images/*
+gsutil -m acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/withpatch-images/*
+gsutil -m acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/diffs/*
+gsutil -m acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/whitediffs/*
+
+# Copy the summary file to Google Storage and set google.com permissions.
+gsutil cp $JSON_SUMMARY_DIR/slave${SLAVE_NUM}.json $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/
+gsutil acl ch -g google.com:READ $OUTPUT_FILE_GS_LOCATION/slave$SLAVE_NUM/slave${SLAVE_NUM}.json
 
 cleanup_slave_before_exit

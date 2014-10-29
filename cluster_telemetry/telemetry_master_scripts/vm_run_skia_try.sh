@@ -135,15 +135,26 @@ while $SLAVES_STILL_PROCESSING ; do
   done
 done
 
-# The URL where the render_picture summary files of all slaves is available.
-NOPATCH_SUMMARY_FILES=https://storage.cloud.google.com/chromium-skia-gm/telemetry/skia-tryserver/outputs/$RUN_ID/json-summaries/nopatch
-WITHPATCH_SUMMARY_FILES=https://storage.cloud.google.com/chromium-skia-gm/telemetry/skia-tryserver/outputs/$RUN_ID/json-summaries/withpatch
-
-# The HTML_OUTPUT_LINK is a link to the Rebaseline Server.
-HTML_OUTPUT_LINK=http://skia-tree-status.appspot.com/redirect/rebaseline-server/static/live-view.html#/live-view.html?urlSchemaVersion=1&setADir=${NOPATCH_SUMMARY_FILES}&setASection=actual-results&setBDir=${WITHPATCH_SUMMARY_FILES}&setBSection=actual-results&displayLimitPending=50&showThumbnailsPending&mergeIdenticalRowsPending&imageSizePending=100&sortColumnSubdict=differenceData&sortColumnKey=perceptualDifference&sourceSkpFile=&builderB=null&builderA=null&resultType=failed&tiledOrWhole=whole&renderModeA=null&renderModeB=null&tilenum=
-
-# Link to the logs of the first slave.
-SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/skia-tryserver/logs/$RUN_ID/slave1/skia-try.$RUN_ID.log
+# Download JSON summary files from all the slaves.
+SUMMARIES_DIR=/b/storage/skia-tryserver/summaries/$RUN_ID
+HTML_OUTPUT_DIR=/b/storage/skia-tryserver/html-outputs/$RUN_ID
+mkdir -p $SUMMARIES_DIR $HTML_OUTPUT_DIR
+gsutil -m cp $SLAVE_OUTPUT_GS_LOCATION/slave*/slave*.json $SUMMARIES_DIR/
+# Output HTML from the slave summaries.
+cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_master_scripts
+RELATIVE_HTML_OUTPUT=chromium-skia-gm/telemetry/skia-tryserver/html-outputs/$RUN_ID/
+ABSOLUTE_GS_LINK=https://storage.cloud.google.com/$RELATIVE_HTML_OUTPUT
+python json_summary_combiner.py \
+  --json_summaries_dir=$SUMMARIES_DIR \
+  --output_html_dir=$HTML_OUTPUT_DIR \
+  --absolute_url=$ABSOLUTE_GS_LINK \
+  --render_pictures_args="$RENDER_PICTURES_ARGS" \
+  --nopatch_gpu=$GPU_NOPATCH_RUN \
+  --withpatch_gpu=$GPU_WITHPATCH_RUN
+# Copy HTML output to Google Storage.
+gsutil -m cp -R $HTML_OUTPUT_DIR/* gs://$RELATIVE_HTML_OUTPUT
+# Set google.com domain ACL on the HTML files.
+gsutil -m acl ch -g google.com:READ gs://${RELATIVE_HTML_OUTPUT}*
 
 # End the timer.
 TIMER="$(($(date +%s)-TIMER))"
@@ -151,6 +162,8 @@ TIMER="$(($(date +%s)-TIMER))"
 # Email results to the requester and admin.
 BOUNDARY=`date +%s|md5sum`
 BOUNDARY=${BOUNDARY:0:32}
+SLAVE_1_LOG_LINK=https://storage.cloud.google.com/chromium-skia-gm/telemetry/skia-tryserver/logs/$RUN_ID/slave1/skia-try.$RUN_ID.log
+HTML_OUTPUT_LINK=${ABSOLUTE_GS_LINK}index.html
 sendmail $REQUESTER_EMAIL,$ADMIN_EMAIL <<EOF
 subject:Results of your Skia Try run on Cluster Telemetry ($RUN_ID)
 to:$REQUESTER_EMAIL,$ADMIN_EMAIL
@@ -184,3 +197,4 @@ for i in {1..10}; do curl -XPOST https://skia-tree-status.appspot.com/skia-telem
 
 # Delete all tmp files.
 rm -rf /tmp/*${RUN_ID}*
+rm -rf $SUMMARIES_DIR $HTML_OUTPUT_DIR
