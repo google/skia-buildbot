@@ -47,16 +47,28 @@ const (
 func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*types.ClusterSummary {
 	ret := []*types.ClusterSummary{}
 
+	stillFresh := []*types.ClusterSummary{}
+	// If two cluster summaries have the same hash and same Regression direction
+	// then they are the same, merge them together.
 	for _, fresh := range freshSummaries {
+		for _, old := range oldSummaries {
+			if fresh.Hash == old.Hash && math.Signbit(fresh.StepFit.Regression) == math.Signbit(old.StepFit.Regression) {
+				old.Merge(fresh)
+				ret = append(ret, old)
+				break
+			}
+		}
+		stillFresh = append(stillFresh, fresh)
+	}
+
+	// Even if a summary has a different hash it might still be the same event if
+	// there is an overlap in the traces each summary contains.
+	for _, fresh := range stillFresh {
 		var bestMatch *types.ClusterSummary = nil
 		bestMatchHits := 0
 		for _, old := range oldSummaries {
-			numKeys := 20
-			if len(old.Keys) < numKeys {
-				numKeys = len(old.Keys)
-			}
 			hits := 0
-			for _, key := range old.Keys[:numKeys] {
+			for _, key := range old.Keys {
 				if util.In(key, fresh.Keys) {
 					hits += 1
 				}
@@ -67,7 +79,11 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 			}
 		}
 		if bestMatch != nil {
-			if (len(fresh.Keys) > len(bestMatch.Keys)) || (len(fresh.Keys) == len(bestMatch.Keys) && math.Abs(fresh.StepFit.Regression) > math.Abs(bestMatch.StepFit.Regression)) {
+			keysLengthEqual := len(fresh.Keys) == len(bestMatch.Keys)
+			regressionInSameDirection := math.Signbit(fresh.StepFit.Regression) == math.Signbit(bestMatch.StepFit.Regression)
+			freshHasBetterFit := math.Abs(fresh.StepFit.Regression) > math.Abs(bestMatch.StepFit.Regression)
+			freshHasMoreKeys := len(fresh.Keys) > len(bestMatch.Keys)
+			if freshHasMoreKeys || (keysLengthEqual && regressionInSameDirection && freshHasBetterFit) {
 				fresh.Status = bestMatch.Status
 				fresh.Message = bestMatch.Message
 				fresh.ID = bestMatch.ID

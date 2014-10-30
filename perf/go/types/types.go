@@ -392,6 +392,15 @@ func NewClusterSummary(numKeys, numTraces int) *ClusterSummary {
 	}
 }
 
+// Merge adds in new info from the passed in ClusterSummary.
+func (c *ClusterSummary) Merge(from *ClusterSummary) {
+	for _, k := range from.Keys {
+		if !util.In(k, c.Keys) {
+			c.Keys = append(c.Keys, k)
+		}
+	}
+}
+
 // Merge the two Tiles, presuming tile1 comes before tile2.
 func Merge(tile1, tile2 *Tile) *Tile {
 	n := len(tile1.Commits) + len(tile2.Commits)
