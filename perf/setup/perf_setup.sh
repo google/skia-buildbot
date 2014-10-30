@@ -40,8 +40,8 @@ sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiagold-c
 sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiagold-com-pem > /etc/nginx/ssl/skiagold_com.pem
 sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-key > /etc/nginx/ssl/skiaperf_com.key
 sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-pem > /etc/nginx/ssl/skiaperf_com.pem
-chmod 700 /etc/nginx/ssl
-chmod 600 /etc/nginx/ssl/*
+sudo chmod 700 /etc/nginx/ssl
+sudo chmod 600 /etc/nginx/ssl/*
 
 # Confirm that monit is happy.
 sudo monit -t
@@ -51,4 +51,4 @@ sudo /etc/init.d/skiaperf restart
 sudo /etc/init.d/ingest restart
 sudo /etc/init.d/logserver restart
 sudo /etc/init.d/skiacorrectness restart
-sudo /etc/init.d/nginx status
+sudo /etc/init.d/nginx restart
