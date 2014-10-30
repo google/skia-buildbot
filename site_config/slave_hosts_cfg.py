@@ -136,7 +136,6 @@ _slave_host_dicts = {
   'skiabot-shuttle-ubuntu12-android-003': {
     'slaves': [
       ('skiabot-shuttle-ubuntu12-xoom-001',        '0', False),
-      ('skiabot-shuttle-ubuntu12-xoom-002',        '1', False),
       ('skiabot-shuttle-ubuntu12-xoom-003',        '2', False),
       ('skiabot-shuttle-ubuntu12-nexus7-001',      '6', False),
       ('skiabot-shuttle-ubuntu12-nexus7-002',      '7', False),
