@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/golang/glog"
+	"github.com/rcrowley/go-metrics"
 
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
@@ -40,7 +41,7 @@ func TestIngestCommits(t *testing.T) {
 	}
 
 	// Construct an Ingestor and have it UpdateCommitInfo.
-	i, err := NewIngester(git, tileDir, config.DATASET_NANO, NanoBenchIngestion, "")
+	i, err := NewIngester(git, tileDir, config.DATASET_NANO, NanoBenchIngestion, "", "")
 	if err != nil {
 		t.Fatal("Failed to create ingester:", err)
 	}
@@ -79,6 +80,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed to parse test file: ", err)
 	}
+	metricsProcessed := metrics.NewRegisteredCounter("testing.ingestion.processed", metrics.DefaultRegistry)
 
 	// Create an empty Tile.
 	tile := types.NewTile()
@@ -90,7 +92,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 	// Do everything twice to ensure that we are idempotent.
 	for i := 0; i < 2; i++ {
 		// Add the BenchData to the Tile.
-		addBenchDataToTile(benchData, tile, offset)
+		addBenchDataToTile(benchData, tile, offset, metricsProcessed)
 
 		// Test that the Tile has the right data.
 		if got, want := len(tile.Traces), 9; got != want {
@@ -140,12 +142,18 @@ func TestAddBenchDataToTile(t *testing.T) {
 		}
 	}
 
+	if got, want := int64(18), metricsProcessed.Count(); got != want {
+		t.Errorf("Wrong number of points ingested: Got %v Want %v", got, want)
+	}
 	// Now update one of the params for a trace and reingest and confirm that the
 	// trace params get updated.
 
 	benchData.Options["system"] = "Linux"
-	addBenchDataToTile(benchData, tile, offset)
+	addBenchDataToTile(benchData, tile, offset, metricsProcessed)
 	if got, want := "Linux", tile.Traces[key].Params()["system"]; got != want {
 		t.Errorf("Failed to update params: Got %v Want %v", got, want)
+	}
+	if got, want := int64(27), metricsProcessed.Count(); got != want {
+		t.Errorf("Wrong number of points ingested: Got %v Want %v", got, want)
 	}
 }

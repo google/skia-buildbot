@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/rcrowley/go-metrics"
+
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
@@ -40,12 +42,12 @@ func TestJSONToDMResults(t *testing.T) {
 }
 
 func TestParsing(t *testing.T) {
-	Init()
 	tile := types.NewTile()
 	offset := 1
 	dm := loadDMResults(t)
 
-	addResultToTile(dm, tile, offset)
+	metricsProcessed := metrics.NewRegisteredCounter("testing.ingestion.processed", metrics.DefaultRegistry)
+	addResultToTile(dm, tile, offset, metricsProcessed)
 	if got, want := len(tile.Traces), 2; got != want {
 		t.Errorf("Wrong number of Traces: Got %v Want %v", got, want)
 	}
@@ -55,5 +57,8 @@ func TestParsing(t *testing.T) {
 	}
 	if got, want := len(tr.Params()), 8; got != want {
 		t.Errorf("Params wrong: Got %v Want %v", got, want)
+	}
+	if got, want := int64(2), metricsProcessed.Count(); got != want {
+		t.Errorf("Wrong number of points ingested: Got %v Want %v", got, want)
 	}
 }

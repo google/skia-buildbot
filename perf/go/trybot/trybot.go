@@ -51,10 +51,6 @@ var (
 	nameRegex = regexp.MustCompile(`trybot/nano-json-v1/\d{4}/\d{2}/\d{2}/\d{2}/[^/]+/\d+/(\d+)/(.*)`)
 
 	st *storage.Service = nil
-
-	elapsedTimePerUpdate metrics.Timer
-	metricsProcessed     metrics.Counter
-	numSuccessUpdates    metrics.Counter
 )
 
 // Write the TryBotResults to the datastore.
@@ -135,7 +131,7 @@ func TileWithTryData(tile *types.Tile, issue string) (*types.Tile, error) {
 }
 
 // addTryData copies the data from the ResultsFileLocation into the TryBotResults.
-func addTryData(res *types.TryBotResults, b *ingester.ResultsFileLocation) {
+func addTryData(res *types.TryBotResults, b *ingester.ResultsFileLocation, counter metrics.Counter) {
 	glog.Infof("addTryData: %s", b.Name)
 	r, err := b.Fetch()
 	if err != nil {
@@ -153,7 +149,7 @@ func addTryData(res *types.TryBotResults, b *ingester.ResultsFileLocation) {
 		for configName, result := range *allConfigs {
 			key := fmt.Sprintf("%s:%s:%s", keyPrefix, testName, configName)
 			res.Values[key] = result.Min
-			metricsProcessed.Inc(1)
+			counter.Inc(1)
 		}
 	}
 }
@@ -179,16 +175,12 @@ func init() {
 	if err != nil {
 		panic("Can't construct HTTP client")
 	}
-	elapsedTimePerUpdate = metrics.NewRegisteredTimer("ingester.trybot.nano.update", metrics.DefaultRegistry)
-	metricsProcessed = metrics.NewRegisteredCounter("ingester.trybot.nano.processed", metrics.DefaultRegistry)
-	numSuccessUpdates = metrics.NewRegisteredCounter("ingester.trybot.nano.updates", metrics.DefaultRegistry)
 }
 
 // TrybotIngestion implements ingester.IngestResultsFiles.
 //
 // Note that the TileTracker is not used as we write the files to the database.
-func TrybotIngestion(_ *ingester.TileTracker, resultsFiles []*ingester.ResultsFileLocation) error {
-	begin := time.Now()
+func TrybotIngestion(_ *ingester.TileTracker, resultsFiles []*ingester.ResultsFileLocation, counter metrics.Counter) error {
 	benchFilesByIssue := []*BenchByIssue{}
 	var err error
 	for _, b := range resultsFiles {
@@ -222,7 +214,7 @@ func TrybotIngestion(_ *ingester.TileTracker, resultsFiles []*ingester.ResultsFi
 			lastIssue = b.IssueName
 			glog.Infof("Switched to issue: %s", lastIssue)
 		}
-		addTryData(cur, b.ResultsFileLocation)
+		addTryData(cur, b.ResultsFileLocation, counter)
 	}
 	if cur != nil {
 		if err := Write(lastIssue, cur); err != nil {
@@ -230,8 +222,6 @@ func TrybotIngestion(_ *ingester.TileTracker, resultsFiles []*ingester.ResultsFi
 		}
 	}
 
-	numSuccessUpdates.Inc(1)
-	elapsedTimePerUpdate.UpdateSince(begin)
 	glog.Infof("Finished trybot ingestion.")
 
 	return nil

@@ -92,6 +92,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 
 	"github.com/golang/glog"
+	"github.com/rcrowley/go-metrics"
 )
 
 // BenchResult represents a single test result.
@@ -153,7 +154,7 @@ func ParseBenchDataFromReader(r io.ReadCloser) (*BenchData, error) {
 // addBenchDataToTile adds BenchData to a Tile.
 //
 // See the description at the top of this file for how the mapping works.
-func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int) {
+func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int, counter metrics.Counter) {
 	keyPrefix := benchData.KeyPrefix()
 	for testName, allConfigs := range benchData.Results {
 		for configName, result := range *allConfigs {
@@ -206,12 +207,12 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int) {
 				glog.Infof("Duplicate entry found for %s, hash %s", key, benchData.Hash)
 			}
 			trace.Values[offset] = result.Min
-			perfMetricsProcessed.Inc(1)
+			counter.Inc(1)
 		}
 	}
 }
 
-func NanoBenchIngestion(tt *TileTracker, resultsFiles []*ResultsFileLocation) error {
+func NanoBenchIngestion(tt *TileTracker, resultsFiles []*ResultsFileLocation, counter metrics.Counter) error {
 	for _, b := range resultsFiles {
 		// Load and parse the JSON.
 		r, err := b.Fetch()
@@ -230,7 +231,7 @@ func NanoBenchIngestion(tt *TileTracker, resultsFiles []*ResultsFileLocation) er
 			return fmt.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
 		}
 		// Add the parsed data to the Tile.
-		addBenchDataToTile(benchData, tt.Tile(), tt.Offset(hash))
+		addBenchDataToTile(benchData, tt.Tile(), tt.Offset(hash), counter)
 	}
 	return nil
 }

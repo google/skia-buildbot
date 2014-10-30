@@ -114,8 +114,8 @@ func (t *Timestamps) Write() {
 type Process func()
 
 // NewIngestionProcess creates a Process for ingesting data.
-func NewIngestionProcess(ts *Timestamps, tsName string, git *gitinfo.GitInfo, tileDir, datasetName string, f ingester.IngestResultsFiles, gsDir string, every time.Duration) Process {
-	i, err := ingester.NewIngester(git, tileDir, datasetName, f, gsDir)
+func NewIngestionProcess(ts *Timestamps, tsName string, git *gitinfo.GitInfo, tileDir, datasetName string, f ingester.IngestResultsFiles, gsDir string, every time.Duration, metricName string) Process {
+	i, err := ingester.NewIngester(git, tileDir, datasetName, f, gsDir, metricName)
 	if err != nil {
 		glog.Fatalf("Failed to create Ingester: %s", err)
 	}
@@ -160,7 +160,6 @@ func main() {
 	}
 
 	ingester.Init(client)
-	goldingester.Init()
 	ts := NewTimestamps(*timestampFile)
 	ts.Read()
 	glog.Infof("Timestamps: %#v\n", ts.Ingester)
@@ -172,9 +171,9 @@ func main() {
 
 	// ingesters is a list of all the types of ingestion we can do.
 	ingesters := map[string]Process{
-		"nano":        NewIngestionProcess(ts, "ingest", git, *tileDir, config.DATASET_NANO, ingester.NanoBenchIngestion, "nano-json-v1", *runEvery),
-		"nano-trybot": NewIngestionProcess(ts, "trybot", git, *tileDir, config.DATASET_NANO, trybot.TrybotIngestion, "trybot/nano-json-v1", *runTrybotEvery),
-		"golden":      NewIngestionProcess(ts, "golden", git, *tileDir, config.DATASET_GOLDEN, goldingester.GoldenIngester, "dm-json-v1", *runEvery),
+		"nano":        NewIngestionProcess(ts, "ingest", git, *tileDir, config.DATASET_NANO, ingester.NanoBenchIngestion, "nano-json-v1", *runEvery, "nano-ingest"),
+		"nano-trybot": NewIngestionProcess(ts, "trybot", git, *tileDir, config.DATASET_NANO, trybot.TrybotIngestion, "trybot/nano-json-v1", *runTrybotEvery, "nano-trybot"),
+		"golden":      NewIngestionProcess(ts, "golden", git, *tileDir, config.DATASET_GOLDEN, goldingester.GoldenIngester, "dm-json-v1", *runEvery, "golden-ingest"),
 	}
 
 	for _, name := range strings.Split(*run, ",") {

@@ -12,14 +12,6 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
-var (
-	goldenMetricsProcessed metrics.Counter
-)
-
-func Init() {
-	goldenMetricsProcessed = metrics.NewRegisteredCounter("ingester.golden.processed", metrics.DefaultRegistry)
-}
-
 // The JSON output from DM looks like this:
 //
 //  {
@@ -101,7 +93,7 @@ func idAndParams(dm *DMResults, r *Result) (string, map[string]string) {
 }
 
 // addResultToTile adds the Digests from the DMResults to the tile at the given offset.
-func addResultToTile(res *DMResults, tile *types.Tile, offset int) {
+func addResultToTile(res *DMResults, tile *types.Tile, offset int, counter metrics.Counter) {
 	for _, r := range res.Results {
 		traceID, params := idAndParams(res, r)
 
@@ -134,12 +126,12 @@ func addResultToTile(res *DMResults, tile *types.Tile, offset int) {
 			glog.Infof("Duplicate entry found for %s, hash %s", traceID, res.GitHash)
 		}
 		trace.Values[offset] = r.Digest
-		goldenMetricsProcessed.Inc(1)
+		counter.Inc(1)
 	}
 }
 
 // GoldenIngester implements perf/go/ingester.IngestResultsFiles for ingesting DM files into GoldenTraces.
-func GoldenIngester(tt *ingester.TileTracker, resultsList []*ingester.ResultsFileLocation) error {
+func GoldenIngester(tt *ingester.TileTracker, resultsList []*ingester.ResultsFileLocation, counter metrics.Counter) error {
 	glog.Infof("Ingesting: %v", resultsList)
 	for _, resultLocation := range resultsList {
 		r, err := resultLocation.Fetch()
@@ -158,7 +150,7 @@ func GoldenIngester(tt *ingester.TileTracker, resultsList []*ingester.ResultsFil
 				glog.Errorf("Failed to move to correct Tile: %s: %s", res.GitHash, err)
 				continue
 			}
-			addResultToTile(res, tt.Tile(), tt.Offset(res.GitHash))
+			addResultToTile(res, tt.Tile(), tt.Offset(res.GitHash), counter)
 		} else {
 			glog.Warning("Got file with missing hash: %s", resultLocation.Name)
 		}

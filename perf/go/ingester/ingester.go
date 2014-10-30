@@ -21,17 +21,13 @@ import (
 )
 
 var (
-	elapsedTimePerUpdate metrics.Timer
-	perfMetricsProcessed metrics.Counter
-	client               *http.Client
+	client *http.Client
 )
 
 // Init initializes the module, the optional http.Client is used to make HTTP
 // requests to Google Storage. If nil is supplied then a default client is
 // used.
 func Init(cl *http.Client) {
-	elapsedTimePerUpdate = metrics.NewRegisteredTimer("ingester.nano.update", metrics.DefaultRegistry)
-	perfMetricsProcessed = metrics.NewRegisteredCounter("ingester.nano.processed", metrics.DefaultRegistry)
 	if cl != nil {
 		client = cl
 	} else {
@@ -40,7 +36,7 @@ func Init(cl *http.Client) {
 }
 
 // IngestResultsFiles is passed to NewIngester, it does the actual work of mapping the resultsFiles into the Tiles.
-type IngestResultsFiles func(tt *TileTracker, resultsFiles []*ResultsFileLocation) error
+type IngestResultsFiles func(tt *TileTracker, resultsFiles []*ResultsFileLocation, counter metrics.Counter) error
 
 // Ingester does the work of loading JSON files from Google Storage and putting
 // the data into the TileStore.
@@ -56,23 +52,49 @@ type Ingester struct {
 	lastIngestTime time.Time
 	ingestResults  IngestResultsFiles
 	storageBaseDir string
+
+	// Metrics about the ingestion process.
+
+	elapsedTimePerUpdate           metrics.Timer
+	metricsProcessed               metrics.Counter
+	lastSuccessfulUpdate           time.Time
+	timeSinceLastSucceessfulUpdate metrics.Timer
+}
+
+func newTimer(name, suffix string) metrics.Timer {
+	return metrics.NewRegisteredTimer("ingester."+name+"."+suffix, metrics.DefaultRegistry)
+}
+
+func newCounter(name, suffix string) metrics.Counter {
+	return metrics.NewRegisteredCounter("ingester."+name+"."+suffix, metrics.DefaultRegistry)
 }
 
 // NewIngester creates an Ingester given the repo and tilestore specified.
-func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, f IngestResultsFiles, storageBaseDir string) (*Ingester, error) {
+func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, f IngestResultsFiles, storageBaseDir, metricName string) (*Ingester, error) {
 	storage, err := storage.New(http.DefaultClient)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create interace to Google Storage: %s\n", err)
 	}
 
 	i := &Ingester{
-		git:            git,
-		tileStore:      filetilestore.NewFileTileStore(tileStoreDir, datasetName, -1),
-		storage:        storage,
-		hashToNumber:   map[string]int{},
-		ingestResults:  f,
-		storageBaseDir: storageBaseDir,
+		git:                            git,
+		tileStore:                      filetilestore.NewFileTileStore(tileStoreDir, datasetName, -1),
+		storage:                        storage,
+		hashToNumber:                   map[string]int{},
+		ingestResults:                  f,
+		storageBaseDir:                 storageBaseDir,
+		elapsedTimePerUpdate:           newTimer(metricName, "update"),
+		metricsProcessed:               newCounter(metricName, "processed"),
+		lastSuccessfulUpdate:           time.Now(),
+		timeSinceLastSucceessfulUpdate: newTimer(metricName, "time-since-last-successful-update"),
 	}
+
+	i.timeSinceLastSucceessfulUpdate.UpdateSince(i.lastSuccessfulUpdate)
+	go func() {
+		for _ = range time.Tick(time.Minute) {
+			i.timeSinceLastSucceessfulUpdate.UpdateSince(i.lastSuccessfulUpdate)
+		}
+	}()
 	return i, nil
 }
 
@@ -231,7 +253,8 @@ func (i *Ingester) Update(pull bool, lastIngestTime int64) error {
 		glog.Errorf("Update: Failed to update tiles: %s", err)
 		return err
 	}
-	elapsedTimePerUpdate.UpdateSince(begin)
+	i.lastSuccessfulUpdate = time.Now()
+	i.elapsedTimePerUpdate.UpdateSince(begin)
 	glog.Info("Finished ingest.")
 	return nil
 }
@@ -244,7 +267,7 @@ func (i *Ingester) UpdateTiles(lastIngestTime int64) error {
 	if err != nil {
 		return fmt.Errorf("Failed to update tiles: %s", err)
 	}
-	i.ingestResults(tt, resultsFiles)
+	i.ingestResults(tt, resultsFiles, i.metricsProcessed)
 	tt.Flush()
 	return nil
 }
