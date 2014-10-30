@@ -262,6 +262,24 @@ func alertingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// alertResetHandler deletes all the non-Bug alerts.
+//
+func alertResetHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("AlertResetHandler: %q\n", r.URL.Path)
+	if login.LoggedInAs(r) == "" {
+		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change an alert status.")
+		return
+	}
+	if r.Method != "POST" {
+		http.NotFound(w, r)
+		return
+	}
+	if err := alerting.Reset(); err != nil {
+		glog.Errorln("Failed to delete all non-Bug alerts:", err)
+	}
+	http.Redirect(w, r, "/alerts/", 303)
+}
+
 // clHandler serves the HTML for the /cl/<id> page.
 //
 // These are shortcuts to individual clusters.
@@ -1084,6 +1102,7 @@ func main() {
 	http.HandleFunc("/activitylog/", autogzip.HandleFunc(activityHandler))
 	http.HandleFunc("/alerts/", autogzip.HandleFunc(alertsHandler))
 	http.HandleFunc("/alerting/", autogzip.HandleFunc(alertingHandler))
+	http.HandleFunc("/alert_reset/", autogzip.HandleFunc(alertResetHandler))
 	http.HandleFunc("/annotate/", autogzip.HandleFunc(annotate.Handler))
 	http.HandleFunc("/compare/", autogzip.HandleFunc(compareHandler))
 	http.HandleFunc("/calc/", autogzip.HandleFunc(calcHandler))

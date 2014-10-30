@@ -169,6 +169,15 @@ func Write(c *types.ClusterSummary) error {
 	return nil
 }
 
+// Reset removes all non-Bug alerts from the database.
+func Reset() error {
+	_, err := db.DB.Exec("DELETE FROM clusters WHERE status!='Bug'")
+	if err != nil {
+		return fmt.Errorf("Failed to write to database: %s", err)
+	}
+	return nil
+}
+
 func skpOnly(_ string, tr *types.PerfTrace) bool {
 	return tr.Params()["source_type"] == "skp"
 }
