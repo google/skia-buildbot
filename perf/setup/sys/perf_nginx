@@ -8,6 +8,11 @@ server {
     ssl_certificate         /etc/nginx/ssl/skiaperf_com.pem;
     ssl_certificate_key     /etc/nginx/ssl/skiaperf_com.key;
 
+    proxy_connect_timeout       5m;
+    proxy_send_timeout          5m;
+    proxy_read_timeout          5m;
+    send_timeout                5m;
+
     location / {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
