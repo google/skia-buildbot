@@ -51,7 +51,7 @@ var (
 // flags
 var (
 	host                  = flag.String("host", "localhost", "HTTP service host")
-	port                  = flag.String("port", "8001", "HTTP service port (e.g., '8001')")
+	port                  = flag.String("port", ":8001", "HTTP service port (e.g., ':8001')")
 	useMetadata           = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	influxDbHost          = flag.String("influxdb_host", "localhost:8086", "The InfluxDB hostname.")
 	influxDbName          = flag.String("influxdb_name", "root", "The InfluxDB username.")
@@ -178,7 +178,7 @@ func runServer(serverURL string) {
 	http.HandleFunc("/logout/", login.LogoutHandler)
 	http.HandleFunc("/loginstatus/", login.StatusHandler)
 	glog.Infof("Ready to serve on http://%s", serverURL)
-	glog.Fatal(http.ListenAndServe(serverURL, nil))
+	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func main() {
@@ -196,7 +196,7 @@ func main() {
 	if err != nil {
 		glog.Fatal(fmt.Sprintf("Failed to initialize InfluxDB client: %s", err))
 	}
-	serverURL := *host + ":" + *port
+	serverURL := *host + *port
 
 	usr, err := user.Current()
 	if err != nil {
