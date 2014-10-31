@@ -4,7 +4,7 @@ set -x
 cd
 
 # Install all the system level dependencies.
-sudo apt-get install --assume-yes monit squid3 collectd
+sudo apt-get install --assume-yes monit squid3 collectd make
 
 # Vars to use with 'install'.
 PARAMS="-D --verbose --backup=none --group=default --owner=default --preserve-timestamps -T"
