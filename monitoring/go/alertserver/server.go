@@ -28,7 +28,7 @@ import (
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/sheriffing/go/alerting"
+	"skia.googlesource.com/buildbot.git/monitoring/go/alerting"
 )
 
 const (

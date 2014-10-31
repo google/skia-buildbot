@@ -17,3 +17,8 @@ check process influxdb with pidfile /opt/influxdb/shared/influxdb.pid
 check process squid3 with pidfile /var/run/squid3.pid
    start program = "/etc/init.d/squid3 start"
    stop program = "/etc/init.d/squid3 stop"
+
+check process alertserver with pidfile /var/run/alertserver.pid
+   start program = "/etc/init.d/alertserver start"
+   stop program = "/etc/init.d/alertserver stop"
+

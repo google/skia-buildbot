@@ -31,15 +31,15 @@ perf/res/imp/paper-*
 perf/res/vul
 perf/third_party
 perf/timestamp.json
-sheriffing/google_email_token.data
-sheriffing/node_modules
-sheriffing/npm-debug.log
-sheriffing/res/imp/core*
-sheriffing/res/imp/paper*
-sheriffing/res/imp/polymer
-sheriffing/res/js/sheriffing-debug.js
-sheriffing/res/js/sheriffing.js
-sheriffing/third_party
+monitoring/google_email_token.data
+monitoring/node_modules
+monitoring/npm-debug.log
+monitoring/res/imp/core*
+monitoring/res/imp/paper*
+monitoring/res/imp/polymer
+monitoring/res/js/sheriffing-debug.js
+monitoring/res/js/sheriffing.js
+monitoring/third_party
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
 # Logfiles from launched buildslaves.
