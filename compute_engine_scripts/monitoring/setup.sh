@@ -56,10 +56,9 @@ rm ${GRAFANA}.tar.gz
 mv $GRAFANA grafana
 
 # Build AlertServer.
-cd ~/buildbot/monitoring/
+cd $HOME/golib/src/skia.googlesource.com/buildbot.git/monitoring
 make node_modules
 make js
-make alertserver
 
 # Now that the default installs are in place, overwrite the installs with our
 # custom config files.

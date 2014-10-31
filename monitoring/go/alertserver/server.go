@@ -59,6 +59,7 @@ var (
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	alertPollInterval     = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
+	alertsFile            = flag.String("alerts_file", "alerts.cfg", "Config file containing alert rules.")
 )
 
 func userHasEditRights(r *http.Request) bool {
@@ -225,7 +226,7 @@ func main() {
 	if err != nil {
 		glog.Fatal(fmt.Sprintf("Failed to create email auth: %v", err))
 	}
-	alertManager, err = alerting.NewAlertManager(dbClient, "alerts.cfg", parsedPollInterval, emailAuth)
+	alertManager, err = alerting.NewAlertManager(dbClient, *alertsFile, parsedPollInterval, emailAuth)
 	if err != nil {
 		glog.Fatal(fmt.Sprintf("Failed to create AlertManager: %v", err))
 	}
