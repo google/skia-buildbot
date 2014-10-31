@@ -34,8 +34,8 @@ import (
 
 const (
 	COOKIESALT_METADATA_KEY          = "cookiesalt"
-	CLIENT_ID_METADATA_KEY           = "clientid"
-	CLIENT_SECRET_METADATA_KEY       = "clientsecret"
+	CLIENT_ID_METADATA_KEY           = "client_id"
+	CLIENT_SECRET_METADATA_KEY       = "client_secret"
 	INFLUXDB_NAME_METADATA_KEY       = "influxdb_name"
 	INFLUXDB_PASSWORD_METADATA_KEY   = "influxdb_password"
 	GMAIL_CLIENT_ID_METADATA_KEY     = "gmail_clientid"
