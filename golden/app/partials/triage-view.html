@@ -1,50 +1,95 @@
 <div class="container-fluid ng-cloak" ng-cloak>
+    <div class="row stateHeader">
+        <div class="col-md-6">
+            <span class="stateHeadLine">Positives</span>
+        </div>
+
+        <div class="col-md-6 stateSubHeader">
+            <span class="stateHeadLine">Untriaged</span>
+            <div class="pull-right">
+                    <button ng-disabled="!triageStateDirty"
+                            ng-click="resetTriageState()"
+                            class="btn btn-default">Reset</button>
+                    &nbsp; &nbsp; &nbsp; &nbsp;
+                    <button ng-disabled="!triageStateDirty"
+                            ng-click="saveTriageState()"
+                            class="btn btn-primary pull-right">Save</button>
+            </div>
+        </div>
+    </div>
     <div class="row">
-    	<div class="col-md-2">
-    		<div>
-    			<img src="http://placehold.it/1000x1001" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-    		</div>
-    		<div>
-    			<img src="http://placehold.it/1000x1002" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-    		</div>
-    		<div>
-    			<img src="http://placehold.it/1000x1003" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-    		</div>
-    		<div>
-    			<img src="http://placehold.it/1000x1004" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-    		</div>
+    	<div class="col-md-2" class="imagesColumn">
+            <div ng-hide="currentPositive">
+                No positive images available.
+            </div>
+            <div ng-show="currentPositive">
+                <div ng-repeat="onePositive in positives">
+                    <img src="" ng-src="{{onePositive.imgUrl}}" class="columnImg">
+                </div>
+            </div>
     	</div>
 
     	<div class="col-md-8">
     		<div>
 	    		<div class="col-xs-6">
-	    			<img src="http://placehold.it/1000x1001" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-	    		</div>
-	    		<div class="col-xs-6">
-	    			<img src="http://placehold.it/1000x1005" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-	    		</div>
+                    <div ng-if="!currentPositive">
+                        No positives images available.
+                    </div>
+                    <div ng-if="currentPositive">
+                        <img src="" ng-src="{{currentPositive.imgUrl}}"
+                             style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
+	    		    </div>
+                </div>
+
+                <div class="col-xs-6">
+                    <div ng-if="!currentUntriaged">
+                        No untriaged images available.
+                    </div>
+                    <div ng-if="currentUntriaged">
+                        <div class="row posNegButtonContainer">
+                            <button ng-disabled="triageState[untIndex] === c.POSITIVE"
+                                    ng-click="setTriageState(untIndex, c.POSITIVE)"
+                                    class="btn btn-success pull-left">Positive</button>
+                            <button ng-disabled="triageState[untIndex] === c.NEGATIVE"
+                                    ng-click="setTriageState(untIndex, c.NEGATIVE)"
+                                    class="btn btn-danger pull-right">Negative</button>
+                        </div>
+                        <div>
+                        <img ng-src="{{currentUntriaged.imgUrl}}"
+                             style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
+                         </div>
+                    </div>
+                </div>
+
 	    	</div>
-	    	<div>
+	    	<div ng-if="currentPositive && currentUntriaged">
 	    		<div class="col-xs-12">
-	    			<img src="http://placehold.it/1000x1005" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
+	    			<img ng-src="{{currentPositive.diffImageUrl}}"
+                         class="diffImg">
 	    		</div>
 	    	</div>
     	</div>
 
-
-    	<div class="col-md-2">
-    		<div>
-    			<img src="http://placehold.it/1000x1005" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-    		</div>
-    		<div>
-    			<img src="http://placehold.it/1000x1006" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-    		</div>
-    		<div>
-    			<img src="http://placehold.it/1000x1007" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-    		</div>
-    		<div>
-    			<img src="http://placehold.it/1000x1010" style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
-    		</div>
-    	</div>
+        <div class="col-md-2 imagesColumn">
+            <div ng-hide="currentUntriaged">
+                No untriaged images available.
+            </div>
+            <div ng-show="currentUntriaged">
+                <div ng-repeat="oneUntriaged in untriaged" style="font-size: 16pt; display: block;">
+                    <span ng-if="triageState[$index] === c.POSITIVE"
+                          class="glyphicon glyphicon-ok positiveLabel"></span>
+                    <span ng-if="triageState[$index] === c.NEGATIVE"
+                          class="glyphicon glyphicon-ban-circle negativeLabel"></span>
+                    <span ng-if="triageState[$index] === c.UNTRIAGED"
+                          class="glyphicon glyphicon-eye-open untriagedLabel"></span>
+                    <div style="display:inline;">
+                    <img ng-click="selectUntriaged($index)"
+                         ng-src="{{oneUntriaged.imgUrl}}"
+                         class="columnImg"
+                         ng-class="{selectedImg: $index === untIndex}">
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

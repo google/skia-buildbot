@@ -15,7 +15,7 @@ var skia = skia || {};
   // Configure the different within app views.
   app.config(['$routeProvider', function($routeProvider) {
     $routeProvider.when(ns.c.URL_COUNTS + '/:id?', {templateUrl: 'partials/counts-view.html', controller: 'CountsCtrl'});
-    $routeProvider.when(ns.c.URL_TRIAGE + '/:id?', {templateUrl: 'partials/triage-view.html',  controller: 'TriageCtrl'});
+    $routeProvider.when(ns.c.URL_TRIAGE + '/:id', {templateUrl: 'partials/triage-view.html',  controller: 'TriageCtrl'});
     $routeProvider.otherwise({redirectTo: ns.c.URL_COUNTS });
   }]);
 
@@ -56,10 +56,105 @@ var skia = skia || {};
   }]);
 
   /*
-   *  TODO (stephana): Placeholder for the controller of the triage view.
+   * TriageCtrl is the controller for the triage view. It manages the UI
+   * and backend requests. Processing is delegated to the functions in the
+   * 'skia' namespace (implemented in logic.js).
    */
-  app.controller('TriageCtrl', ['$scope', function($scope) {
+  app.controller('TriageCtrl', ['$scope', '$routeParams', '$location', 'dataService',
+    function($scope, $routeParams, $location, dataService) {
+      // Get the path and use it for the backend request
+      var testName = $routeParams.id;
+      var path = $location.path()
 
+      // processServerData is called by loadTriageState and also saveTriageState
+      // to process the triage data returned by the server.
+      function processServerData(promise) {
+        promise.then(
+          function (serverData) {
+            $scope.untriaged = ns.getUntriagedSorted(serverData, testName);
+            $scope.triageState = ns.getNumArray($scope.untriaged.length, ns.c.UNTRIAGED);
+            updatedTriageState();
+            $scope.selectUntriaged(0);
+
+            // If there are no untriaged we need to just set the positive
+            // values since they are no longer a function of the untriaged.
+            if ($scope.untriaged.length === 0) {
+              $scope.positives = ns.getSortedPositives(serverData, testName);
+              $scope.selectPositive(0);
+            };
+          },
+          function (errResp) {
+            console.log("Error:", errResp);
+          });
+      }
+
+      // loadTriageData sends a GET request to the backend to get the
+      // untriaged digests.
+      function loadTriageData() {
+        processServerData(dataService.loadData(path));
+      };
+
+      // updatedTriageState checks whether the currently assigned labels
+      // have changed. This is used to enable/disable the save and reset
+      // buttons among other things.
+      function updatedTriageState() {
+        $scope.triageStateDirty = false;
+        for(var i=0, len=$scope.triageState.length; i<len; i++) {
+          if ($scope.triageState[i] !== ns.c.UNTRIAGED) {
+            $scope.triageStateDirty = true;
+            break;
+          }
+        }
+      }
+
+      // selectUntriaged is a UI function to pick an untriaged digest.
+      $scope.selectUntriaged = function (idx) {
+        if ($scope.untIndex !== idx) {
+          $scope.currentUntriaged = $scope.untriaged[idx];
+          $scope.positives = ns.getSortedPositives($scope.currentUntriaged);
+          $scope.selectPositive(0);
+          $scope.untIndex = idx;
+        }
+      };
+
+      // selectPositive is a UI functio to pick a positive digest.
+      $scope.selectPositive = function (idx) {
+        $scope.currentPositive = $scope.positives[idx];
+        $scope.posIndex = idx;
+      };
+
+      // setTriageState sets the label of the given untriaged digest.
+      $scope.setTriageState = function (idx, value) {
+        $scope.triageState[idx] = value;
+        updatedTriageState();
+      };
+
+      // resetTriageState clears all labels of the untriaged digests.
+      $scope.resetTriageState = function () {
+        $scope.triageState = ns.getNumArray($scope.untriaged.length, ns.c.UNTRIAGED);
+        updatedTriageState();
+      };
+
+      // saveTriageState saves the labeled untriaged digest to the backend
+      // and retrieves the new triage state for this test.
+      $scope.saveTriageState = function () {
+        // TODO (stephana): Add when backend code is in place.
+      };
+
+      // Initialize the variables in $scope.
+      $scope.positives = [];
+      $scope.currentPositive = null;
+      $scope.currentUntriaged = null;
+      $scope.posIndex = -1;
+      $scope.untIndex = -1;
+      $scope.triageState = [];
+      updatedTriageState();
+
+      // Expose the constants in the template.
+      $scope.c = ns.c;
+
+      // Load the data.
+      loadTriageData();
   }]);
 
   /**

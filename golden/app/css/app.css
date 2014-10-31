@@ -3,3 +3,55 @@
 .navbar {
 	margin-bottom: 0;
 }
+
+.imagesColumn {
+	height: 960px;
+	overflow: auto;
+}
+
+.columnImg {
+	max-width:100%;
+	max-height: 100%;
+	padding: 0.5em;
+	border-bottom: 1px solid #DDDDDD;
+	width:100%;
+}
+
+.diffImg {
+	max-width:100%;
+	max-height: 100%;
+	padding-bottom: 1em;
+}
+
+.selectedImg {
+	border: 3px solid #DDDDDD;
+}
+
+.positiveLabel {
+	color: #33A02C;
+}
+
+.negativeLabel {
+	color: #E31A1C;
+}
+
+.untriagedLabel {
+	color: #B3B3B3;
+}
+
+.stateHeadLine {
+	font-size: 18pt;
+}
+
+.stateHeader {
+	padding-top: 1em;
+	padding-bottom: 1em;
+}
+
+.stateSubHeader {
+	padding-left: 0;
+}
+
+.posNegButtonContainer {
+	padding-bottom: 1em;
+}
