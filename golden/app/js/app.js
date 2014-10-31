@@ -192,7 +192,9 @@ var skia = skia || {};
   /**
   * dataService provides functions to load data from the backend.
   */
-  app.factory('dataService', [ '$http', function ($http) {
+  app.factory('dataService', [ '$http', '$rootScope', '$timeout', function ($http, $rootScope, $timeout) {
+    // Inject the logoutURL into the rootScope.
+    $rootScope.logoutURL = ns.c.PREFIX_URL + ns.URL_LOGOUT;
 
     /**
      * @param {string} testName if not null this will cause to fetch counts
@@ -207,6 +209,38 @@ var skia = skia || {};
             return successResp.data;
           });
     }
+
+    /**
+    * setGlobalLoginStatus injects the login status into the $rootScope
+    * so it is accessible throughout the application.
+    */
+    function setGlobalLoginStatus(userId, loginURL) {
+      $rootScope.isLoggedIn = (userId && userId !== '');
+      $rootScope.userId = userId;
+      $rootScope.loginURL = loginURL;
+    }
+
+    /**
+    * pollLoginStatus sends a single polling request to the backend
+    * to determine whether the user is logged in or not.
+    * This corresponds to the backend implementation in 'go/login/login.go'.
+    */
+    function pollLoginStatus() {
+      var url = ns.c.PREFIX_URL + ns.c.URL_LOGIN_STATUS;
+      httpGetData(url).then(
+        function (posResp) {
+          debugger;
+          setGlobalLoginStatus(posResp.Email, posResp.LoginURL);
+        },
+        function (errResp) {
+          debugger;
+          console.log("Error:", errResp);
+          setGlobalLoginStatus(null, null);
+        });
+    }
+
+    // Fetch the login status immediately.
+    pollLoginStatus();
 
     /**
      * Make a HTTP get request with the given query parameters.
@@ -231,7 +265,7 @@ var skia = skia || {};
 
     // Interface of the service:
     return {
-      loadData: loadData
+      loadData: loadData,
     };
 
   }]);

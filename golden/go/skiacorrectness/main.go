@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -12,10 +13,13 @@ import (
 	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/database"
+	"skia.googlesource.com/buildbot.git/go/login"
+	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/golden/go/analysis"
 	"skia.googlesource.com/buildbot.git/golden/go/db"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 	"skia.googlesource.com/buildbot.git/golden/go/filediffstore"
+	"skia.googlesource.com/buildbot.git/golden/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
 )
 
@@ -34,6 +38,13 @@ var (
 
 const (
 	IMAGE_URL_PREFIX = "/img/"
+)
+
+// TODO (stephana): Factor out to "go/login/login.go"
+const (
+	COOKIESALT_METADATA_KEY    = "cookiesalt"
+	CLIENT_ID_METADATA_KEY     = "clientid"
+	CLIENT_SECRET_METADATA_KEY = "clientsecret"
 )
 
 // ResponseEnvelope wraps all responses. Some fields might be empty depending
@@ -58,6 +69,8 @@ func tileCountsHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, result, http.StatusOK)
 }
 
+// testDetailsHandler returns sufficient information about the given
+// testName to triage digests.
 func testDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	testName := mux.Vars(r)["testname"]
 	result, err := analyzer.GetTestDetails(testName)
@@ -68,8 +81,36 @@ func testDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, result, http.StatusOK)
 }
 
-// testCountsHandler handles GET requests for the aggregrated classification
-// counts for a specific tests.
+// triageDigestsHandler handles triaging digests. It requires the user
+// to be logged in and upon success returns the the test details in the
+// same format as testDetailsHandler. That way it can be used by the
+// frontend to incrementally triage digests for a specific test
+// (or set of tests.)
+// TODO (stephana): This is not finished and WIP.
+func triageDigestsHandler(w http.ResponseWriter, r *http.Request) {
+	// Make sure the user is authenticated.
+	userId := login.LoggedInAs(r)
+	if userId == "" {
+		sendErrorResponse(w, "You must be logged in triage digests.", http.StatusForbidden)
+		return
+	}
+
+	// Parse input data in the body.
+	var tc map[string]types.TestClassification
+	if err := parseJson(r, &tc); err != nil {
+		sendErrorResponse(w, "Unable to parse JSON. Error: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Update the labeling of the given tests and digests.
+	result, err := analyzer.SetDigestLabels(tc, userId)
+	if err != nil {
+		sendErrorResponse(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	sendResponse(w, result, http.StatusOK)
+}
 
 // sendErrorResponse wraps an error in a response envelope and sends it to
 // the client.
@@ -95,6 +136,14 @@ func sendJson(w http.ResponseWriter, resp *ResponseEnvelope) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonBytes)
+}
+
+// parseJson extracts the body from the request and parses it into the
+// provided interface.
+func parseJson(r *http.Request, v interface{}) error {
+	// TODO (stephana): validate the JSON against a schema. Might not be necessary !
+	decoder := json.NewDecoder(r.Body)
+	return decoder.Decode(v)
 }
 
 // URLAwareFileServer wraps around a standard file server and allows to generate
@@ -162,6 +211,21 @@ func main() {
 	// Initialize submodules.
 	filediffstore.Init()
 
+	// Set up login
+	// TODO (stephana): Factor out to go/login/login.go and removed hard coded
+	// values.
+	var cookieSalt = "notverysecret"
+	var clientID = "31977622648-ubjke2f3staq6ouas64r31h8f8tcbiqp.apps.googleusercontent.com"
+	var clientSecret = "rK-kRY71CXmcg0v9I9KIgWci"
+	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	if !*local {
+		cookieSalt = metadata.MustGet(COOKIESALT_METADATA_KEY)
+		clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
+		clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)
+		redirectURL = "https://skiagold.com/oauth2callback/"
+	}
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
+
 	// get the Oauthclient if necessary.
 	client := getOAuthClient(*doOauth)
 
@@ -183,6 +247,12 @@ func main() {
 	// the front-end proxy.
 	router.HandleFunc("/rest/counts", tileCountsHandler)
 	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler)
+
+	// Set up the login related resources.
+	// TODO (stephana): Clean up the URLs so they have the same prefix.
+	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	http.HandleFunc("/rest/logout", login.LogoutHandler)
+	http.HandleFunc("/rest/loginstatus", login.StatusHandler)
 
 	// Set up the resource to serve the image files.
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)

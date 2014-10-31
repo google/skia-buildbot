@@ -14,6 +14,9 @@ var skia = skia || {};
     URL_COUNTS: '/counts',
     URL_TRIAGE: '/triage',
 
+    URL_LOGIN_STATUS: '/loginstatus',
+    URL_LOGOUT: '/logout',
+
     // The triage labels need to match the values in golden/go/types/types.go
     UNTRIAGED: 0,
     POSITIVE: 1,

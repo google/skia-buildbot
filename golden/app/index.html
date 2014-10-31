@@ -22,10 +22,12 @@
           <li class="active"><a href="#/">Home</a></li>
           <li><a href="#/triage">Triage</a></li>
         </ul>
-        <!-- TODO (stephana): Placeholder for loging -->
         <ul class="nav navbar-nav navbar-right">
-          <li class="active"><a href="./">Login</a></li>
-          <li><a href="../navbar-static-top/">John Doe</a></li>
+          <li ng-if="isLoggedIn" class="navbar-text">{{userId}}<li>
+          <li ng-if="isLoggedIn" class="active"><a href="{{logoutURL}}">Logout</a></li>
+          <li ng-if="!isLoggedIn" class="active"><a href="{{loginURL}}">Login</a></li>
+
+
         </ul>
       </div><!--/.nav-collapse -->
     </div><!--/.container-fluid -->
