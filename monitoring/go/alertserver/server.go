@@ -197,6 +197,10 @@ func main() {
 	}
 	serverURL := *host + ":" + *port
 
+	tokenFile, err := filepath.Abs(GMAIL_TOKEN_CACHE_FILE)
+	if err != nil {
+		glog.Fatal(err)
+	}
 	// By default use a set of credentials setup for localhost access.
 	var cookieSalt = "notverysecret"
 	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
@@ -211,7 +215,7 @@ func main() {
 		emailClientId = metadata.MustGet(GMAIL_CLIENT_ID_METADATA_KEY)
 		emailClientSecret = metadata.MustGet(GMAIL_CLIENT_SECRET_METADATA_KEY)
 		cachedGMailToken := metadata.MustGet(GMAIL_CACHED_TOKEN_METADATA_KEY)
-		err = ioutil.WriteFile(GMAIL_TOKEN_CACHE_FILE, []byte(cachedGMailToken), os.ModePerm)
+		err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
 		if err != nil {
 			glog.Fatalf("Failed to cache token: %s", err)
 		}
@@ -222,7 +226,7 @@ func main() {
 	if !*useMetadata && (emailClientId == "" || emailClientSecret == "") {
 		glog.Fatal("If -use_metadata=false, you must provide -email_clientid and -email_clientsecret")
 	}
-	emailAuth, err = email.NewGMail(emailClientId, emailClientSecret, GMAIL_TOKEN_CACHE_FILE)
+	emailAuth, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
 	if err != nil {
 		glog.Fatal(fmt.Sprintf("Failed to create email auth: %v", err))
 	}
