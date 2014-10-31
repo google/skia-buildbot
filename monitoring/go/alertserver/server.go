@@ -50,7 +50,7 @@ var (
 // flags
 var (
 	host                  = flag.String("host", "localhost", "HTTP service host")
-	port                  = flag.String("port", "8000", "HTTP service port (e.g., '8000')")
+	port                  = flag.String("port", "8001", "HTTP service port (e.g., '8001')")
 	useMetadata           = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	influxDbHost          = flag.String("influxdb_host", "localhost:8086", "The InfluxDB hostname.")
 	influxDbName          = flag.String("influxdb_name", "root", "The InfluxDB username.")
