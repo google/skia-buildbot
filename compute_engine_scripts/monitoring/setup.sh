@@ -25,6 +25,17 @@ export GOROOT=$HOME/go
 export GOPATH=$HOME/golib
 export PATH=$PATH:$GOROOT/bin
 
+# Install Node
+NODE_VERSION="node-v0.10.33-linux-x64"
+if [ -d ${NODE_VERSION} ]; then
+  echo Node already installed.
+else
+  wget http://nodejs.org/dist/v0.10.33/${NODE_VERSION}.tar.gz
+  tar xzf ${NODE_VERSION}.tar.gz
+fi
+
+export PATH=$PATH:$(pwd)/${NODE_VERSION}/bin
+
 # Build applications
 go get -u skia.googlesource.com/buildbot.git/perf/go/logserver \
   skia.googlesource.com/buildbot.git/monitoring/go/grains \
