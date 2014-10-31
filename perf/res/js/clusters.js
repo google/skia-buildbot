@@ -27,12 +27,57 @@
   };
 
 
+  /**
+    * beginClustering by clearing out the old results and starting the XHR
+    * request to get new clustering results.
+    */
+  function beginClustering(k, stddev, issue, selections) {
+    sk.clearChildren($$$('#clResults'));
+    // Results are always returned sorted vis StepRegression.
+    $$$('input[value="stepregression"]').checked = true;
+
+    document.body.style.cursor = 'wait';
+    var url = '/clustering/?_k=' + k + '&_stddev=' + stddev + '&_issue=' + issue + '&' + selections;
+    sk.get(url).then(JSON.parse).then(function(json) {
+      var container = $$$('#clResults');
+      json.Clusters.forEach(function(c){
+        var sum = document.createElement('cluster-summary-sk');
+        container.appendChild(sum);
+        sum.summary = c;
+      });
+      document.body.style.cursor = 'auto';
+    }).catch(function(e){
+      alert(e);
+      document.body.style.cursor = 'auto';
+    });
+  };
+
+  // sort the clustering results with the algorithm given in element e.
+  function sort(e) {
+    if (!e.target.value) {
+      return;
+    }
+    var sortBy = e.target.value;
+    var container = $$$("#clResults");
+    var to_sort = [];
+    $$('cluster-summary-sk', container).forEach(function(ele) {
+      to_sort.push({
+        value: ele.dataset[sortBy],
+        node: ele
+      });
+    });
+    to_sort.sort(function(x, y) {
+      return x.value - y.value;
+    });
+    to_sort.forEach(function(i) {
+      container.appendChild(i.node);
+    });
+  };
+
+
   function onLoad() {
     var query = new sk.Query(queryInfo__);
     query.attach();
-
-    var cluster = new sk.Cluster();
-    cluster.attach();
 
     sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
       queryInfo__.paramSet = json.paramset;
@@ -50,10 +95,16 @@
     });
 
     $$$('#start').addEventListener('click', function(){
-      cluster.beginClustering($$$('#_k').value, $$$('#_stddev').value, $$$('#_issue').value, query.selectionsAsQuery());
+      beginClustering(
+          $$$('#_k').value, $$$('#_stddev').value, $$$('#_issue').value, query.selectionsAsQuery());
+    });
+
+    $$('input[name="sort"]').forEach(function(ele) {
+      ele.addEventListener('click', sort);
     });
   };
 
+  // TODO(jcgregorio) Make this into a Promise.
   if (document.readyState != 'loading') {
     onLoad();
   } else {

@@ -12,16 +12,10 @@
 
       {{template "titlebar.html" .}}
       <div id="container">
-        <section id=alerts> </section>
+        <cluster-summary-sk fade></cluster-summary-sk>
       </div>
       <script type="text/javascript" charset="utf-8">
-        var cl = {{.}};
-
-        var summary = new sk.ClusterSummary($$$('#alerts'), cl);
-        summary.attach();
-
-        // Don't fade out summaries on this page.
-        summary.fade(false);
+         $$$('cluster-summary-sk').summary = {{.}};
       </script>
     </scaffold-sk>
 </body>

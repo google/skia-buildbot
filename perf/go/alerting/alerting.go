@@ -238,7 +238,7 @@ func updateBugs(c *types.ClusterSummary, apiKey string) {
 	// Where NNN is the alerting cluster ID.
 
 	// Search through the project hosting API for all issues that match that URI.
-	url := "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?q=http%3A%2F%2Fskiaperf.com%2Fcl%2F" + strconv.Itoa(int(c.ID)) + ".&fields=items%2Fid,items%2Fstate&key=" + apiKey
+	url := "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?q=%3A%2F%2Fskiaperf.com%2Fcl%2F" + strconv.Itoa(int(c.ID)) + ".&fields=items%2Fid,items%2Fstate&key=" + apiKey
 
 	//  This will return a JSON response of the form:
 	//

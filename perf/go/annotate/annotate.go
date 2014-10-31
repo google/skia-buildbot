@@ -1,10 +1,10 @@
 package annotate
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/golang/glog"
 	"skia.googlesource.com/buildbot.git/go/login"
@@ -17,12 +17,21 @@ import (
 // Handler serves the /annotate/ endpoint for changing the status of an
 // alert cluster. It also writes a new types.Activity log record to the database.
 //
-// Expects a POST'd form with the following values:
+// Expects a POST of JSON of the following form:
 //
-//   id - The id of the alerting cluster.
-//   status - The new Status value.
-//   message - The new Messge value.
+//   {
+//     Id: 20                - The id of the alerting cluster.
+//     Status: "Ignore"      - The new Status value.
+//     Message: "SKP Update" - The new Messge value.
+//   }
 //
+// Returns JSON of the form:
+//
+//  {
+//    "Bug": "http://"
+//  }
+//
+// Where bug, if set, is the URL the user should be directed to to log a bug report.
 func Handler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Annotate Handler: %q\n", r.URL.Path)
 
@@ -34,63 +43,71 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse query params.")
+	if r.Body == nil {
+		util.ReportError(w, r, fmt.Errorf("Missing POST Body."), "POST with no request body.")
 		return
 	}
 
-	// Load the form data.
-	id, err := strconv.ParseInt(r.FormValue("id"), 10, 32)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("id parameter must be an integer %s.", r.FormValue("id")))
+	req := struct {
+		Id      int64
+		Status  string
+		Message string
+	}{}
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&req); err != nil {
+		util.ReportError(w, r, err, "Unable to decode posted JSON.")
 		return
 	}
-	newStatus := r.FormValue("status")
-	message := r.FormValue("message")
-	if !util.In(newStatus, types.ValidStatusValues) {
-		util.ReportError(w, r, fmt.Errorf("Invalid status value: %s", newStatus), "Unknown value.")
+
+	if !util.In(req.Status, types.ValidStatusValues) {
+		util.ReportError(w, r, fmt.Errorf("Invalid status value: %s", req.Status), "Unknown value.")
 		return
 	}
 
 	// Store the updated values in the ClusterSummary.
-	c, err := alerting.Get(id)
+	c, err := alerting.Get(req.Id)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load cluster summary.")
 		return
 	}
-	c.Status = newStatus
-	c.Message = message
+	c.Status = req.Status
+	c.Message = req.Message
 	if err := alerting.Write(c); err != nil {
 		util.ReportError(w, r, err, "Failed to save cluster summary.")
 		return
 	}
 
 	// Write a new Activity record.
+	// TODO(jcgregorio) Move into alerting.Write().
 	a := &types.Activity{
 		UserID: login.LoggedInAs(r),
-		Action: "Perf Alert: " + newStatus,
-		URL:    fmt.Sprintf("http://skiaperf.com/cl/%d", id),
+		Action: "Perf Alert: " + req.Status,
+		URL:    fmt.Sprintf("https://skiaperf.com/cl/%d", req.Id),
 	}
 	if err := activitylog.Write(a); err != nil {
 		util.ReportError(w, r, err, "Failed to save activity.")
 		return
 	}
 
-	if newStatus != "Bug" {
-		http.Redirect(w, r, "/alerts/", 303)
-	} else {
+	retval := map[string]string{}
+
+	if req.Status == "Bug" {
 		q := url.Values{
 			"labels": []string{"FromSkiaPerf,Type-Defect,Priority-Medium"},
 			"comment": []string{fmt.Sprintf(`This bug was found via SkiaPerf.
 
 Visit this URL to see the details of the suspicious cluster:
 
-      http://skiaperf.com/cl/%d.
+      https://skiaperf.com/cl/%d.
 
 Don't remove the above URL, it is used to match bugs to alerts.
-    `, id)},
+    `, req.Id)},
 		}
-		codesiteURL := "https://code.google.com/p/skia/issues/entry?" + q.Encode()
-		http.Redirect(w, r, codesiteURL, http.StatusTemporaryRedirect)
+		retval["Bug"] = "https://code.google.com/p/skia/issues/entry?" + q.Encode()
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(retval); err != nil {
+		util.ReportError(w, r, err, "Error while encoding annotation response.")
 	}
 }

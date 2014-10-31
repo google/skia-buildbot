@@ -10,366 +10,21 @@
 
 -->
 
-<template id=clTemplate>
-  <div id=clSorting>
-    Sort by:
-    <input type="radio" name="sort" value="clustersize">ClusterSize</input>
-    <input type="radio" name="sort" value="stepregression" checked>Regression</input>
-    <input type="radio" name="sort" value="stepsize">Step Size</input>
-    <input type="radio" name="sort" value="steplse">Least Squares</input>
-  </div>
-  <div id="clResults"> </div>
-</template>
-<template id=clResultTemplate>
-  <div class="clResult"
-      data-clustersize=""
-      data-steplse=""
-      data-stepsize=""
-      data-stepregression=""
-      >
-    <div class=clGraph> </div>
-    <div class=clDetails>
-      <p class=clHighlight> Regression: <span class=clRegression></span></p>
-      <p><a class="clShortcut" href="#">View on dashboard</a> <a class=clPermalink href="">Permlink</a></p>
-      <p>
-        Cluster Size: <span class=clClusterSize></span>
-        Least Squares Error: <span class=clLeastSquares></span>
-        Step Size: <span class=clStepSize></span>
-      </p>
-      <p class=clBugs>Bugs:</p>
-
-      <div class="clStatus hidden disabled">
-        <p class="disabledMessage">You must be logged in to change the status.</p>
-        <form action="/annotate/" method="post" accept-charset="utf-8">
-          <input type="hidden" name="id" value="" ></input>
-
-          <input type="radio" name="status" value="New" id="status">New</input>
-          <input type="radio" name="status" value="Ignore" id="status">Ignore</input>
-          <input type="radio" name="status" value="Bug" id="status">Bug</input>
-          <br/>
-          <input type="text" name="message" value=""
-               placeholder="Details"
-               id="message" size=80><br/>
-          <button>Update</button>
-        </form>
-      </div>
-      <toggle-display-sk>Word Cloud</toggle-display-sk>
-    </div>
-  </div>
-</template>
-
-<template id=clBug>
-  <a class=clBug href=""></a>&nbsp;
-</template>
-
-<style type="text/css" media="screen">
-  .clResult {
-      display: flex;
-      flex-wrap: wrap;
-      flex-direction: row;
-      width:95%;
-      padding: 1em;
-  }
-
-  .clResult .clHigh {
-    background-color: #44AA99;
-    color: white;
-  }
-
-  .clResult .clLow {
-    background-color: #AA4499;
-    color: white;
-  }
-
-  .clDetails {
-      width: 70%
-  }
-
-  .clGraph {
-    width: 300px;
-    height: 150px;
-  }
-
-  .clStatus {
-    margin: 1em;
-    padding: 0.5em 1em;
-    border: solid lightgray 1px;
-  }
-
-  .clResult.Bug,
-  .clResult.Ignore {
-    opacity: 0.3;
-
-  }
-
-  .clStatus button {
-    margin-left: 0;
-  }
-
-  .clStatus.hidden,
-  .clPermalink.hidden {
-    display: none;
-  }
-
-  .clStatus .disabledMessage {
-    display: none;
-  }
-
-  .clStatus.disabled form {
-    opacity: 0.5;
-  }
-
-  .clStatus.disabled .disabledMessage {
-    display: block;
-    font-weight: bold;
-    color: #cc6677;
-  }
-
-  .clStatus input {
-    margin-bottom: 0.5em;
-  }
-
-  .clStatus #message {
-    display: block;
-    width: 100%;
-  }
-
-  .clClusterSize,
-  .clLeastSquares {
-    margin-right: 2em;
-  }
-
-  word-cloud-sk {
-    display: none;
-  }
-
-  word-cloud-sk.display {
-    display: block;
-  }
-</style>
-
-<script type="text/javascript" charset="utf-8">
-(function(){
-  "use strict";
-
-  // Keep track of this file so we can grab HTML Templates from it.
-  var importer__ = new sk.Importer();
-
-  /**
-    * ClusterSummary displays a summary of a single k-means cluster.
-    *
-    * p     - The parent node to append the cluster summary to.
-    * json  - One member of the Clusters array returned from the /clustering/ endpoint.
-    * issue - The Rietveld issue id if this cluster contains trybot data.
-    */
-  sk.ClusterSummary = function(p, json, issue) {
-    var node = importer__.import('#clResultTemplate');
-    p.appendChild(node);
-    this.result_ = p.lastElementChild;
-
-    this.json_ = json;
-    this.issue_ = issue;
-    this.plot_ = null; // Will be ref to Flot graph.
-    this.boundOpenShortcut_ = this.openShortcut_.bind(this);
-  };
-
-  sk.ClusterSummary.toggleWordCloud_ = function(e){
-    e.target.nextElementSibling.classList.toggle("display");
-  };
-
-  /**
-    * attach, call after construction to hook up elements to their callbacks.
-    */
-  sk.ClusterSummary.prototype.attach = function(keys) {
-    var clusterSummary_ = this;
-    var json = clusterSummary_.json_;
-    var result = this.result_;
-
-    // Make the centroid last, so it is draw last.
-    var centroid = json.Traces.splice(0, 1);
-    json.Traces.push(centroid[0]);
-
-    // Plot the traces.
-    var traces = [];
-    var last = json.Traces.length - 1;
-    json.Traces.forEach(function(data, i) {
-      traces.push({
-        color: i == last ? "black" : "lightgray",
-        data: data,
-        lineWidth: 1,
-      });
-    });
-
-    this.plot_ = jQuery.plot($$$('.clGraph', result), traces, {
-      yaxis: {
-        min: -4,
-        max: 4
-      }
-    });
-
-    $$$('.clShortcut', result).addEventListener('click', this.boundOpenShortcut_);
-
-    // Fill in the details about the cluster.
-    result.dataset.clustersize = -json.Keys.length;
-    result.dataset.steplse = json.StepFit.LeastSquares;
-    result.dataset.stepsize= json.StepFit.StepSize;
-    result.dataset.stepregression = json.StepFit.Regression;
-
-    if (json.ID > 0) {
-      $$$('.clPermalink', result).href = "/cl/" + json.ID;
-    } else {
-      $$$('.clPermalink', result).classList.add('hidden');
-    }
-    $$$('.clClusterSize', result).innerText = json.Keys.length;
-    $$$('.clLeastSquares', result).innerText = json.StepFit.LeastSquares.toPrecision(3);
-    $$$('.clStepSize', result).innerText =  json.StepFit.StepSize.toPrecision(3);
-    $$$('.clRegression', result).innerText = json.StepFit.Regression.toPrecision(3);
-    $$$('.clHighlight', result).classList.add("cl" + json.StepFit.Status); // High, Low or Uninteresting.
-    sk.Login.then(function(status) {
-      if (status["Email"] != "") {
-        $$$('.clStatus', result).classList.remove("disabled");
-      }
-    });
-    if (json.Status != "") {
-      $$$('.clStatus', result).classList.remove("hidden"); // High, Low or Uninteresting.
-      $$$('.clStatus input[value=' + json.Status  +']', result).checked = true;
-      $$$('.clStatus input[name=message]', result).value = json.Message;
-      $$$('.clStatus input[name=id]', result).value = json.ID;
-      result.classList.add(json.Status);
-    }
-
-    if (json.Bugs) {
-      json.Bugs.forEach(function(b) {
-        var node = importer__.import('#clBug');
-        $$$('.clBug', node).href = "https://code.google.com/p/skia/issues/detail?id=" + b;
-        $$$('.clBug', node).innerText = b;
-        $$$('.clBugs', result).appendChild(node);
-      });
-    }
-
-    // Sort the param summaries so that columns with larger weights come first.
-    json.ParamSummaries.sort(function(a, b){
-      return b[0].Weight - a[0].Weight;
-    });
-    var wc = document.createElement('word-cloud-sk');
-    wc.items = json.ParamSummaries;
-    $$$('.clDetails', result).appendChild(wc);
-  };
-
-  // Turn on or off the fading of clusters with a non-"New" status.
-  //
-  // Fading is on by default. Must be called after attach().
-  sk.ClusterSummary.prototype.fade = function(b) {
-    if (b) {
-      this.result_.classList.add(this.json_.Status);
-    } else {
-      this.result_.classList.remove(this.json_.Status);
-    }
-  }
-
-
-  /**
-    * detach, call before destroying to remove element callbacks.
-    */
-  sk.ClusterSummary.prototype.detach = function() {
-    $$$('.clShortcut', this.result_).removeEventListener('click', this.boundOpenShortcut_);
-    this.plot_.shutdown();
-  }
-
-  /**
-    * Creates a shortcut for the given keys then opens a new window to that
-    * shortcut.
-    */
-  sk.ClusterSummary.prototype.openShortcut_ = function(e) {
-    var keys = this.json_.Keys.slice(0, 50);
-    var state = {
-      scale: 0,
-      tiles: [-1],
-      hash: this.json_.Hash,
-      keys: keys,
-      issue: this.issue_ || "",
-    };
-    sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json){
-      window.open('/#' + json.id, '_blank');
-    });
-    e.preventDefault();
-  };
-
-
-  /**
-    * Cluster is a container for ClusterSummary's.
-    */
-  sk.Cluster = function() {
-    var node = importer__.import('#clTemplate');
-    $$$('#skCluster').appendChild(node);
-    this.clusterSummary_ = $$$('#skCluster')
-  };
-
-  /**
-    * attach, call after construction to hook up elements to their callbacks.
-    */
-  sk.Cluster.prototype.attach = function(e) {
-    var cluster_ = this;
-
-    $$('input[name="sort"]', this.clusterSummary_).forEach(function(ele) {
-      ele.addEventListener('click', cluster_.sort_);
-    });
-  };
-
-  /**
-    * beginClustering by clearing out the old results and starting the XHR
-    * request to get new clustering results.
-    */
-  sk.Cluster.prototype.beginClustering = function(k, stddev, issue, selections) {
-    sk.clearChildren($$$('#clResults'));
-    $$$('input[value="stepregression"]', this.clusterSummary_).checked = true;
-
-    document.body.style.cursor = 'wait';
-    sk.get('/clustering/?_k=' + k + '&_stddev=' + stddev + '&_issue=' + issue + '&' + selections).then(JSON.parse).then(function(json) {
-      var container = $$$('#clResults');
-      json.Clusters.forEach(function(c){
-        var summary = new sk.ClusterSummary(container, c, issue);
-        summary.attach();
-      });
-      document.body.style.cursor = 'auto';
-    }).catch(function(e){
-      alert(e);
-      document.body.style.cursor = 'auto';
-    });
-  };
-
-  // sort_ sorts the clustering results with the algorithm given in element e.
-  sk.Cluster.prototype.sort_ = function(e) {
-    if (!e.target.value) {
-      return;
-    }
-    var sortBy = e.target.value;
-    var container = $$$("#clResults");
-    var to_sort = [];
-    $$('.clResult', container).forEach(function(ele) {
-      to_sort.push({
-        value: ele.dataset[sortBy],
-        node: ele
-      });
-    });
-    to_sort.sort(function(x, y) {
-      return x.value - y.value;
-    });
-    to_sort.forEach(function(i) {
-      container.appendChild(i.node);
-    });
-  };
-
-})();
-</script>
-
 // The <toggle-display-sk> custom element declaration.
 //
 // Presents as a button that toggles the 'display' style for its
 // nextElementSibling.
 <polymer-element name="toggle-display-sk">
   <template>
-    <paper-button raised>
+    <style type="text/css" media="screen">
+      paper-button {
+        color: #1f78b4;
+      }
+      paper-button:hover {
+        background: #eee;
+      }
+    </style>
+    <paper-button>
       <content></content>
     </paper-button>
   </template>
@@ -427,5 +82,247 @@
         this.items = this.items || [];
       }
     });
+  </script>
+</polymer-element>
+
+// The <cluster-summary-sk> custom element declaration.
+//
+// Attributes:
+//   summary - Attribute contains a JSON serialized type.ClusterSummary.
+//   fade    - Should the update dialog be faded if the status isn't New.
+//   issue   - Optional Rietveld issue number.
+<polymer-element name="cluster-summary-sk" attributes="summary fade issue">
+  <template >
+    <style type="text/css" media="screen">
+      .clHighlight.clHigh {
+        background-color: #44AA99;
+        color: white;
+        border-radius: 6px;
+        padding: 3px 6px;
+      }
+
+      .clHighlight.clLow {
+        background-color: #AA4499;
+        color: white;
+        border-radius: 6px;
+        padding: 3px 6px;
+      }
+
+      #graph {
+        width: 300px;
+        height: 150px;
+      }
+
+      p {
+        margin: 0.2em;
+        padding: 0;
+      }
+
+      .clStatus {
+        margin: 1em;
+        padding: 1em;
+        position: relative;
+      }
+
+      .fade.Bug,
+      .fade.Ignore {
+        opacity: 0.3;
+
+      }
+
+      #clStatus.hidden,
+      #clPermalink.hidden {
+        display: none;
+      }
+
+      .clStatus .disabledMessage {
+        display: none;
+      }
+
+      .clStatus.disabled #form {
+        opacity: 0.5;
+      }
+
+      .clStatus.disabled .disabledMessage {
+        display: block;
+        font-weight: bold;
+        color: #cc6677;
+      }
+
+      .clStatus #message {
+        width: 100%;
+      }
+
+      .clClusterSize,
+      .clLeastSquares,
+      .clStepSize
+      {
+        margin-right: 2em;
+      }
+
+      word-cloud-sk {
+        display: none;
+      }
+
+      word-cloud-sk.display {
+        display: block;
+      }
+
+      paper-button {
+        color: #1f78b4;
+      }
+
+      paper-radio-button::shadow #onRadio {
+        background-color: #1F78B4;
+      }
+
+      paper-radio-group /deep/ b.status  {
+        padding-left: 0;
+      }
+
+    </style>
+    <div class="clResult {{ {fade: fade} | tokenList }} {{ summary.Status }}" horizontal layout>
+      <div id=graph> </div>
+      <div class=clDetails flex>
+        <p class="clHighlight cl{{summary.StepFit.Status}}">
+          Regression: <span class=clRegression>{{summary.StepFit.Regression | trunc}}</span>
+        </p>
+        <p><a class="clShortcut" id=shortcut href="#">View on dashboard</a>
+        <a id="clPermalink" class="{{ {hidden: summary.ID == -1} | tokenList}}" href="/cl/{{summary.ID}}">Permlink</a>
+        </p>
+        <p>
+          Cluster Size: <span class=clClusterSize>{{summary.Keys.length}}</span>
+          Least Squares Error: <span class=clLeastSquares>{{summary.StepFit.LeastSquares | trunc}}</span>
+          Step Size: <span class=clStepSize>{{summary.StepFit.StepSize | trunc}}</span>
+          <span class=clBugs>Bugs:</span>
+        </p>
+        <template repeat="{{b in summary.Bugs}}">
+           <a class=clBug href="https://code.google.com/p/skia/issues/detail?id={{b}}">{{b}}</a>&nbsp;
+        </template>
+
+        <div id=clStatus class="clStatus {{ {hidden: summary.ID == -1} | tokenList }} disabled" vertical layout>
+          <paper-shadow z="1"> </paper-shadow>
+          <p class="disabledMessage">You must be logged in to change the status.</p>
+          <paper-radio-group id=status selected="{{cachedStatus}}" horizontal layout>
+            <b class=status>Status:</b>
+            <paper-radio-button name="New" label="New"></paper-radio-button>
+            <paper-radio-button name="Ignore" label="Ignore"></paper-radio-button>
+            <paper-radio-button name="Bug" label="Bug"></paper-radio-button>
+          </paper-radio-group>
+          <paper-input value="{{summary.Message}}" label="Note" id="message"></paper-input>
+          <paper-button flex self-end id=update>Update</paper-button>
+        </div>
+        <toggle-display-sk>Word Cloud</toggle-display-sk>
+        <word-cloud-sk items="{{summary.ParamSummaries}}"></word-cloud-sk>
+      </div>
+    </div>
+  </template>
+  <script>
+    (function() {
+
+      /**
+        * Handles the click on the Update button.
+        */
+      function updateClick() {
+        var status = this.$.status.selected
+        var state = {
+          Id: this.summary.ID,
+          Status: status,
+          Message: this.$.message.value
+        };
+        var that = this;
+        sk.post("/annotate/", JSON.stringify(state)).then(JSON.parse).then(function(json){
+          that.summary.Status = status;
+          if (json.Bug) {
+            // Open the bug reporting page in a new window.
+            window.open(json.Bug, '_blank');
+          }
+        });
+      }
+
+      /**
+        * Create a shortcut for the cluster and open that shortcut URL in a
+        * new window.
+        */
+      function openShortcut(e) {
+        var keys = this.summary.Keys.slice(0, 50);
+        var state = {
+          scale: 0,
+          tiles: [-1],
+          hash: this.summary.Hash,
+          keys: keys,
+          issue: this.issue || '',
+        };
+        sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json){
+          window.open('/#' + json.id, '_blank');
+        });
+        e.preventDefault();
+      }
+
+      Polymer({
+        fade: false,
+
+        observe: {
+          summary: 'deferredWork',
+        },
+
+        ready: function() {
+          this.summary = this.summary || {};
+          this.issue = this.issue || '';
+          this.$.update.addEventListener('click', updateClick.bind(this));
+          this.$.shortcut.addEventListener('click', openShortcut.bind(this));
+          this.cachedStatus = this.summary.Status || 'New';
+
+          this.deferredWork();
+          var that = this;
+          sk.Login.then(function(status) {
+            if (status["Email"] != "") {
+              that.$.clStatus.classList.remove("disabled");
+            }
+          });
+        },
+
+        deferredWork: function() {
+          // Check for an empty summary object.
+          if (this.summary.ParamSummaries == undefined) {
+            return;
+          }
+
+          this.cachedStatus = this.summary.Status || 'New';
+
+          // Set the data- attributes used for sorting cluster summaries.
+          this.dataset.clustersize    = -this.summary.Keys.length;
+          this.dataset.steplse        = this.summary.StepFit.LeastSquares;
+          this.dataset.stepsize       = this.summary.StepFit.StepSize;
+          this.dataset.stepregression = this.summary.StepFit.Regression;
+
+          this.summary.ParamSummaries.sort(function(a, b){
+            return b[0].Weight - a[0].Weight;
+          });
+          // Plot the centroid.
+          jQuery.plot(
+              this.$.graph,
+              [ {
+                color: "black",
+                data: this.summary.Traces[0],
+                lineWidth: 1
+              } ],
+              {
+                yaxis: {
+                  min: -4,
+                  max: 4
+                }
+              });
+        },
+
+        /**
+          * trunc is used as a filter during template expansion.
+          */
+        trunc: function(value) {
+          return (+value).toPrecision(3);
+        },
+
+      });
+    })();
   </script>
 </polymer-element>

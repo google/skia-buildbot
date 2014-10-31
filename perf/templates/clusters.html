@@ -7,6 +7,11 @@
 
     <link href="/res/imp/cluster.html" rel="import" />
     <script src="/res/js/clusters.js"></script>
+    <style type="text/css" media="screen">
+      .clSorting {
+        padding: 1em 0;
+      }
+    </style>
 </head>
 <body>
   <scaffold-sk responsiveWidth="700px">
@@ -31,7 +36,15 @@
         <div id="sk-query"></div>
         <button id="start" type="submit">Calculate</button>
 
-        <div id="skCluster"></div>
+        <div id=clSorting>
+          Sort by:
+          <input type="radio" name="sort" value="clustersize">ClusterSize</input>
+          <input type="radio" name="sort" value="stepregression" checked>Regression</input>
+          <input type="radio" name="sort" value="stepsize">Step Size</input>
+          <input type="radio" name="sort" value="steplse">Least Squares</input>
+        </div>
+        <div id="clResults">
+        </div>
       </section>
     </div>
   </scaffold-sk>

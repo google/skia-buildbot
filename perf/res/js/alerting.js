@@ -5,23 +5,19 @@
 
 (function() {
 
-  var clusterSummaries = [];
-
   function onLoad() {
     document.body.style.cursor = 'wait';
     sk.get('/alerting/').then(JSON.parse).then(function(json) {
-      clusterSummaries.forEach(function(c) {
-        c.detach();
-      });
       var container = $$$('#alerts');
       sk.clearChildren(container);
       if (json.Clusters.length == 0) {
         container.innerHTML = "No active clusters exist.";
       } else {
         json.Clusters.forEach(function(c){
-          var summary = new sk.ClusterSummary(container, c);
-          summary.attach();
-          clusterSummaries.push(summary);
+          var sum = document.createElement('cluster-summary-sk');
+          container.appendChild(sum);
+          sum.summary = c;
+          sum.fade = true;
         });
       }
       document.body.style.cursor = 'auto';
