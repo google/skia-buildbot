@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Periodically queries InfluxDB and generates alerts."
 NAME=alertserver
 DAEMON=/home/default/golib/bin/$NAME
-DAEMON_ARGS="-use_metadata=true -influxdb_host='localhost:10117' -influxdb_database='graphite' -alerts_file='/home/default/golib/src/skia.googlesource.com/buildbot.git/monitoring/alerts.cfg' -host='' --log_dir='/tmp/glog'"
+DAEMON_ARGS="-use_metadata=true -influxdb_host=localhost:10117 -influxdb_database=graphite -alerts_file=/home/default/golib/src/skia.googlesource.com/buildbot.git/monitoring/alerts.cfg -host= --log_dir=/tmp/glog"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 

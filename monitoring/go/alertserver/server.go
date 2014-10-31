@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -197,7 +198,11 @@ func main() {
 	}
 	serverURL := *host + ":" + *port
 
-	tokenFile, err := filepath.Abs(GMAIL_TOKEN_CACHE_FILE)
+	usr, err := user.Current()
+	if err != nil {
+		glog.Fatal(err)
+	}
+	tokenFile, err := filepath.Abs(usr.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
 	if err != nil {
 		glog.Fatal(err)
 	}
