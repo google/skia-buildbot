@@ -15,7 +15,9 @@
         <cluster-summary-sk fade></cluster-summary-sk>
       </div>
       <script type="text/javascript" charset="utf-8">
+        window.addEventListener('load', function() {
          $$$('cluster-summary-sk').summary = {{.}};
+        });
       </script>
     </scaffold-sk>
 </body>

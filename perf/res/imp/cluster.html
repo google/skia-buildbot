@@ -1,8 +1,12 @@
 <!--
   The common.js file must be included before this file.
 
-  This in an HTML Import-able file that contains the CSS, JS and HTML
-  Templates for the sk.ClusterSummary and sk.Cluster components.
+  This in an HTML Import-able file that contains the definitions
+  for the following elements:
+
+    <cluster-summary-sk>
+    <toggle-display-sk>
+    <word-cloud-sk>
 
   To use this file import it:
 
@@ -261,19 +265,17 @@
 
       Polymer({
         fade: false,
+        issue: '',
 
-        observe: {
-          summary: 'deferredWork',
+        created: function() {
+          this.summary = {};
         },
 
         ready: function() {
-          this.summary = this.summary || {};
-          this.issue = this.issue || '';
           this.$.update.addEventListener('click', updateClick.bind(this));
           this.$.shortcut.addEventListener('click', openShortcut.bind(this));
           this.cachedStatus = this.summary.Status || 'New';
 
-          this.deferredWork();
           var that = this;
           sk.Login.then(function(status) {
             if (status["Email"] != "") {
@@ -282,7 +284,7 @@
           });
         },
 
-        deferredWork: function() {
+        summaryChanged: function() {
           // Check for an empty summary object.
           if (this.summary.ParamSummaries == undefined) {
             return;
