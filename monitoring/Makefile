@@ -1,6 +1,6 @@
 all: default
 
-alertserver:
+alertserver: js
 	go install -v ./go/alertserver
 
 grains:
@@ -14,7 +14,7 @@ testgo:
 node_modules: package.json
 	npm install
 
-js:
+js: node_modules
 	./node_modules/.bin/grunt --no-color
 
 res/js/perf.js: node_modules Gruntfile.js bower.json res/js/common.js

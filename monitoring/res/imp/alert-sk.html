@@ -21,7 +21,7 @@
     </style>
     <template if="{{alert.active}}">
       <div id="wrapper" layout horizontal center>
-        <div flex>{{alert.name}}</div>
+        <div flex>{{alert.message}}</div>
         <template if="{{editRights}}">
           <template if="{{!alert.snoozed}}">
             <core-ajax

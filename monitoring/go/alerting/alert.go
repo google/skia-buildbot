@@ -56,6 +56,7 @@ type Alert struct {
 	Name          string
 	Query         string
 	Condition     string
+	Message       string
 	client        queryable
 	actions       []func(*Alert)
 	lastTriggered time.Time
@@ -158,6 +159,10 @@ func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail) (*Ale
 	if !ok {
 		return nil, fmt.Errorf(errString, "condition")
 	}
+	message, ok := r["message"].(string)
+	if !ok {
+		return nil, fmt.Errorf(errString, "message")
+	}
 	actionsInterface, ok := r["actions"]
 	if !ok {
 		return nil, fmt.Errorf(errString, "actions")
@@ -175,6 +180,7 @@ func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail) (*Ale
 		Name:          name,
 		Query:         query,
 		Condition:     condition,
+		Message:       message,
 		client:        client,
 		actions:       actionsList,
 		lastTriggered: time.Time{},

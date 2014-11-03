@@ -17,7 +17,9 @@ To: {{.To}}
 Subject: {{.Subject}}
 Content-Type: text/html
 
+<html>
 {{.Body}}
+</html>
 `
 	emailTemplateParsed *template.Template = nil
 )
@@ -63,12 +65,12 @@ func (a *GMail) Send(to []string, subject string, body string) error {
 		From    string
 		To      string
 		Subject string
-		Body    string
+		Body    template.HTML
 	}{
 		From:    user,
 		To:      strings.Join(to, ","),
 		Subject: subject,
-		Body:    body,
+		Body:    template.HTML(body),
 	})
 	msg := gmail.Message{}
 	msg.SizeEstimate = int64(msgBytes.Len())

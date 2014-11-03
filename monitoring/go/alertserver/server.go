@@ -78,6 +78,7 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 		Name         string `json:"name"`
 		Query        string `json:"query"`
 		Condition    string `json:"condition"`
+		Message      string `json:"message"`
 		Active       bool   `json:"active"`
 		Snoozed      bool   `json:"snoozed"`
 		Triggered    int32  `json:"triggered"`
@@ -94,6 +95,7 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 			Name:         a.Name,
 			Query:        a.Query,
 			Condition:    a.Condition,
+			Message:      a.Message,
 			Active:       a.Active(),
 			Snoozed:      a.Snoozed(),
 			Triggered:    int32(a.Triggered().Unix()),

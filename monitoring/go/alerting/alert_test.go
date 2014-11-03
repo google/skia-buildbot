@@ -197,7 +197,8 @@ func TestAlertParsing(t *testing.T) {
 		parseCase{
 			Name: "Good",
 			Input: `[[rule]]
-name = "randombits generates more 1's than 0's in last 5 seconds"
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print"]
@@ -207,6 +208,7 @@ actions = ["Print"]
 		parseCase{
 			Name: "NoName",
 			Input: `[[rule]]
+message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print"]
@@ -216,7 +218,8 @@ actions = ["Print"]
 		parseCase{
 			Name: "NoQuery",
 			Input: `[[rule]]
-name = "randombits generates more 1's than 0's in last 5 seconds"
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
 condition = "x > 0.5"
 actions = ["Print"]
 `,
@@ -225,7 +228,8 @@ actions = ["Print"]
 		parseCase{
 			Name: "NoCondition",
 			Input: `[[rule]]
-name = "randombits generates more 1's than 0's in last 5 seconds"
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 actions = ["Print"]
 `,
@@ -234,7 +238,8 @@ actions = ["Print"]
 		parseCase{
 			Name: "NoActions",
 			Input: `[[rule]]
-name = "randombits generates more 1's than 0's in last 5 seconds"
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 `,
@@ -243,7 +248,8 @@ condition = "x > 0.5"
 		parseCase{
 			Name: "UnknownAction",
 			Input: `[[rule]]
-name = "randombits generates more 1's than 0's in last 5 seconds"
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print", "UnknownAction"]
@@ -253,12 +259,23 @@ actions = ["Print", "UnknownAction"]
 		parseCase{
 			Name: "BadCondition",
 			Input: `[[rule]]
-name = "randombits generates more 1's than 0's in last 5 seconds"
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > y"
 actions = ["Print"]
 `,
 			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x > y\": 1:1: undeclared name: y"),
+		},
+		parseCase{
+			Name: "NoMessage",
+			Input: `[[rule]]
+name = "randombits"
+query = "select mean(value) from random_bits where time > now() - 5s"
+condition = "x > 0.5"
+actions = ["Print"]
+`,
+			ExpectedErr: fmt.Errorf("Alert rule missing field \"message\""),
 		},
 	}
 	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
