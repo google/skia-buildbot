@@ -6,6 +6,7 @@
 #include "SkCanvas.h"
 #include "SkCommandLineFlags.h"
 #include "SkData.h"
+#include "SkDocument.h"
 #include "SkForceLinking.h"
 #include "SkGraphics.h"
 #include "SkImageDecoder.h"
@@ -128,7 +129,16 @@ static void drawGPU(SkWStream* stream, GrContext* gr, SkImageInfo info) {
 }
 
 static void drawPDF(SkWStream* stream, SkImageInfo info) {
-    printf( "Not implemented yet...\n");
+    SkAutoTUnref<SkDocument> document(SkDocument::CreatePDF(stream));
+    SkCanvas *canvas = document->beginPage(info.width(), info.height());
+
+    SkAutoTDelete<SkStreamAsset> pdfData;
+
+    draw(canvas);
+
+    canvas->flush();
+    document->endPage();
+    document->close();
 }
 
 int main(int argc, char** argv) {

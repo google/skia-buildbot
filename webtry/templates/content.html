@@ -73,6 +73,17 @@
     </div>
   </div>
 
+  <div id="pdf-output" class="panel panel-primary image-wrapper" {{if .PDFURL}}style="display: inline-block;"{{end}}>
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        PDF Output
+      </h3>
+    </div>
+    <div class="panel-body">
+      <a class="btn btn-default btn-lg" id='pdf-link' href='{{if .PDFURL}}{{.PDFURL}}{{end}}' target="_blank">Get the PDF</a>
+    </div>
+  </div>
+
   <p id='zoomHex'></p>
 
   <div id="output-wrapper">

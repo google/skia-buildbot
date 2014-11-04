@@ -12,6 +12,7 @@
       'type': 'executable',
       'dependencies': [
         'skia_lib.gyp:skia_lib',
+        'pdf.gyp:pdf',
         'flags.gyp:flags',
         'tools.gyp:sk_tool_utils'
 

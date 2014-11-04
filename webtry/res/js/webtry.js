@@ -32,6 +32,8 @@
       var rasterImg       = document.getElementById('raster-img');
       var gpuOutput       = document.getElementById('gpu-output');
       var gpuImg          = document.getElementById('gpu-img');
+      var PDFOutput       = document.getElementById('pdf-output');
+      var PDFLink         = document.getElementById('pdf-link');
       var imageWidth      = document.getElementById('image-width');
       var imageHeight     = document.getElementById('image-height');
       var tryHistory      = document.getElementById('tryHistory');
@@ -238,6 +240,7 @@
         editor.setValue(body.code);
         rasterImg.src = '/i/'+body.hash+'_raster.png';
         gpuImg.src = '/i/'+body.hash+'_gpu.png';
+        PDFLink.href = '/i/'+body.hash+'.pdf';
         imageWidth.value = body.width;
         imageHeight.value = body.height;
         gpu.checked = body.gpu;
@@ -324,19 +327,26 @@
             outputWrapper.style.display = 'block';
           }
         }
-        if (body.hasOwnProperty('rasterImg') && body.rasterImg != "") {
+        if (body.rasterImg != "") {
           rasterImg.src = 'data:image/png;base64,' + body.rasterImg;
           rasterOutput.style.display = "inline-block";
         } else {
           rasterOutput.style.display = "none";
           rasterImg.src = '';
         }
-        if (body.hasOwnProperty('gpuImg') && body.gpuImg != "") {
+        if (body.gpuImg != "") {
           gpuImg.src = 'data:image/png;base64,' + body.gpuImg;
           gpuOutput.style.display = "inline-block";
         } else {
           gpuImg.src = '';
           gpuOutput.style.display = "none";
+        }
+        if (body.PDFURL != "") {
+          PDFLink.href= body.PDFURL;
+          PDFOutput.style.display = "inline-block";
+        } else {
+          PDFLink.href = '#';
+          PDFOutput.style.display = "none";
         }
         // Add the image to the history if we are on a workspace page.
         if (tryHistory) {

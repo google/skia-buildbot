@@ -81,6 +81,9 @@ var (
 	// imageLink is the regex that matches URLs paths that are direct links to PNGs.
 	imageLink = regexp.MustCompile("^/i/([a-z0-9-_]+.png)$")
 
+	// pdfLink is the regex that matches URLs paths that are direct links to PDFs.
+	pdfLink = regexp.MustCompile("^/i/([a-z0-9-_]+.pdf)$")
+
 	// tryInfoLink is the regex that matches URLs paths that are direct links to data about a single try.
 	tryInfoLink = regexp.MustCompile("^/json/([a-f0-9]+)$")
 
@@ -341,6 +344,7 @@ type userCode struct {
 	Hash     string
 	Width    int
 	Height   int
+	PDFURL   string
 	Source   int
 	Titlebar Titlebar
 }
@@ -409,6 +413,7 @@ type response struct {
 	CompileErrors []compileError `json:"compileErrors"`
 	RasterImg     string         `json:"rasterImg"`
 	GPUImg        string         `json:"gpuImg"`
+	PDFURL        string         `json:"PDFURL"`
 	Hash          string         `json:"hash"`
 }
 
@@ -570,13 +575,18 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	contentType := "image/png"
 	match := imageLink.FindStringSubmatch(r.URL.Path)
 	if len(match) != 2 {
-		http.NotFound(w, r)
-		return
+		match = pdfLink.FindStringSubmatch(r.URL.Path)
+		if len(match) != 2 {
+			http.NotFound(w, r)
+			return
+		}
+		contentType = "application/pdf"
 	}
 	filename := match[1]
-	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Type", contentType)
 	http.ServeFile(w, r, fmt.Sprintf("../../../inout/%s", filename))
 }
 
@@ -825,6 +835,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		width := 256
 		height := 256
 		match := directLink.FindStringSubmatch(r.URL.Path)
+		PDFURL := ""
 		var hash string
 		if len(match) == 2 && r.URL.Path != "/" {
 			hash = match[1]
@@ -837,10 +848,16 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 				http.NotFound(w, r)
 				return
 			}
+
+			// Check to see if there's already a PDF run of this hash
+			pdfPath := "../../../inout/" + hash + ".pdf"
+			if _, err := os.Stat(pdfPath); err == nil {
+				PDFURL = "/i/" + hash + ".pdf"
+			}
 		}
 		// Expand the template.
 		w.Header().Set("Content-Type", "text/html")
-		if err := indexTemplate.Execute(w, userCode{Code: code, Hash: hash, Source: source, Width: width, Height: height, Titlebar: Titlebar{GitHash: gitHash, GitInfo: gitInfo}}); err != nil {
+		if err := indexTemplate.Execute(w, userCode{Code: code, PDFURL: PDFURL, Hash: hash, Source: source, Width: width, Height: height, Titlebar: Titlebar{GitHash: gitHash, GitInfo: gitInfo}}); err != nil {
 			glog.Errorf("Failed to expand template: %q\n", err)
 		}
 	} else if r.Method == "POST" {
@@ -937,8 +954,12 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			Hash: hash,
 		}
 
-		if request.Raster {
-			png, err := ioutil.ReadFile("../../../inout/" + hash + "_raster.png")
+		rasterPath := "../../../inout/" + hash + "_raster.png"
+		gpuPath := "../../../inout/" + hash + "_gpu.png"
+		PDFPath := "../../../inout/" + hash + ".pdf"
+
+		if _, err := os.Stat(rasterPath); err == nil {
+			png, err := ioutil.ReadFile(rasterPath)
 			if err != nil {
 				reportTryError(w, r, err, "Failed to open the raster-generated PNG.", hash)
 				return
@@ -947,14 +968,23 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			m.RasterImg = base64.StdEncoding.EncodeToString([]byte(png))
 		}
 
-		if request.GPU {
-			png, err := ioutil.ReadFile("../../../inout/" + hash + "_gpu.png")
+		if _, err := os.Stat(gpuPath); err == nil {
+			png, err := ioutil.ReadFile(gpuPath)
 			if err != nil {
 				reportTryError(w, r, err, "Failed to open the GPU-generated PNG.", hash)
 				return
 			}
 
 			m.GPUImg = base64.StdEncoding.EncodeToString([]byte(png))
+		}
+
+		if _, err := os.Stat(PDFPath); err == nil {
+			if _, err := os.Stat(PDFPath); os.IsNotExist(err) {
+				reportTryError(w, r, err, "Failed to open the PDF output", hash)
+				return
+			}
+
+			m.PDFURL = "/i/" + hash + ".pdf"
 		}
 
 		resp, err := json.Marshal(m)
