@@ -100,11 +100,13 @@ func (a *Alert) tick() {
 			a.dismiss()
 		}
 	} else if !a.Active() {
+		glog.Infof("Executing query [%s]", a.Query)
 		d, err := executeQuery(a.client, a.Query)
 		if err != nil {
 			glog.Error(err)
 			return
 		}
+		glog.Infof("Query [%s] returned %v", a.Query, d)
 		doAlert, err := a.evaluate(d)
 		if err != nil {
 			glog.Error(err)
