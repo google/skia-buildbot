@@ -116,7 +116,6 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// URLs take the form /alerts/<alertId>/<action>
-		// TODO(borenet): Ensure user is logged-in and authorized to do this!
 		split := strings.Split(r.URL.String(), "/")
 		if len(split) != 4 {
 			util.ReportError(w, r, fmt.Errorf("Invalid URL %s", r.URL), "Requested URL is not valid.")

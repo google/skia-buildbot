@@ -2,6 +2,7 @@
 <link rel="import" href="/res/imp/alert-sk.html" />
 <link rel="import" href="/res/imp/core-ajax/core-ajax.html" />
 <link rel="import" href="/res/imp/core-header-panel/core-header-panel.html" />
+<link rel="import" href="/res/imp/core-icon-button/core-icon-button.html" />
 
 <polymer-element name="alerts-sk" attributes="alerts">
   <template>
@@ -12,17 +13,45 @@
         handleAs="json"
         on-core-response="{{gotAlerts}}"></core-ajax>
     <template repeat="{{a in alerts}}">
-      <alert-sk alert="{{a}}"></alert-sk>
+      <template if="{{a.active}}">
+        <alert-sk alert="{{a}}"></alert-sk>
+      </template>
+    </template>
+    <div horizontal layout center>
+      <div flex></div>
+      <div>Inactive alerts: </div>
+      <div>
+        <template if="{{showinactive}}">
+          <core-icon-button icon="visibility-off" on-click="{{toggleInactive}}"></core-icon-button>
+        </template>
+        <template if="{{!showinactive}}">
+          <core-icon-button icon="visibility" on-click="{{toggleInactive}}"></core-icon-button>
+        </template>
+      </div>
+    </div>
+    <template repeat="{{a in alerts}}">
+      <template if="{{!a.active && showinactive}}">
+        <alert-sk alert="{{a}}"></alert-sk>
+      </template>
     </template>
   </template>
   <script>
     Polymer({
+      publish: {
+        showinactive: {
+          value: false,
+          reflect: true,
+        },
+      },
       created: function() {
         this.alerts = [];
       },
       gotAlerts: function() {
         this.alerts = this.$.ajax.response.alerts;
-      }
+      },
+      toggleInactive: function() {
+        this.showinactive = !this.showinactive;
+      },
     });
   </script>
 </polymer-element>
