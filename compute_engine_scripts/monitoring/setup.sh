@@ -74,8 +74,10 @@ sudo install $ROOT_PARAMS $EXE_FILE grains_init /etc/init.d/grains
 sudo install $ROOT_PARAMS $CONFIG_FILE squid.conf /etc/squid3/squid.conf
 sudo install $ROOT_PARAMS $CONFIG_FILE collectd /etc/collectd/collectd.conf
 
-sudo /etc/init.d/monit -t
-sudo /etc/init.d/monit restart
+# Confirm that monit is happy.
+sudo monit -t
+sudo monit reload
+
 sudo /etc/init.d/influxdb restart
 sudo /etc/init.d/logserver restart
 sudo /etc/init.d/grains restart
