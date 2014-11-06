@@ -32,16 +32,21 @@ func executeQuery(c queryable, q string) (float64, error) {
 	if len(points) > 1 {
 		return 0.0, fmt.Errorf("Query returned more than one point: %q", q)
 	}
-	if len(results[0].Columns) < 2 {
-		return 0.0, fmt.Errorf("Query returned fewer than two columns: %q", q)
+	valueColumn := 0
+	for _, label := range results[0].Columns {
+		if label == "time" || label == "sequence_number" {
+			valueColumn++
+		} else {
+			break
+		}
 	}
-	if len(results[0].Columns) > 2 {
-		return 0.0, fmt.Errorf("Query returned more than two columns: %q", q)
+	if len(results[0].Columns) != valueColumn+1 {
+		return 0.0, fmt.Errorf("Query returned an incorrect set of columns: %q %v", q, results[0].Columns)
 	}
 	if len(results[0].Columns) != len(points[0]) {
 		return 0.0, fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec.")
 	}
-	return points[0][1].(float64), nil
+	return points[0][valueColumn].(float64), nil
 }
 
 // Alert represents a set of actions which are performed when a given database

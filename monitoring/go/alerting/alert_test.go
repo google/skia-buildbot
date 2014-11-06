@@ -25,8 +25,8 @@ func getAlert() *Alert {
 		client: &mockClient{func(string) ([]*client.Series, error) {
 			s := client.Series{
 				Name:    "Results",
-				Columns: []string{"func", "value"},
-				Points:  [][]interface{}{[]interface{}{"mean", 1.0}},
+				Columns: []string{"time", "value"},
+				Points:  [][]interface{}{[]interface{}{1234567, 1.0}},
 			}
 			return []*client.Series{&s}, nil
 		}},
@@ -118,33 +118,33 @@ func TestExecuteQuery(t *testing.T) {
 			QueryFunc: func(q string) ([]*client.Series, error) {
 				s := client.Series{
 					Name:    "NotEnoughCols",
-					Columns: []string{"value"},
+					Columns: []string{"time"},
 					Points:  [][]interface{}{[]interface{}{}},
 				}
 				return []*client.Series{&s}, nil
 			},
 			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned fewer than two columns: \"<dummy query>\""),
+			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns: \"<dummy query>\" [time]"),
 		},
 		queryCase{
 			Name: "TooManyCols",
 			QueryFunc: func(q string) ([]*client.Series, error) {
 				s := client.Series{
 					Name:    "NotEnoughCols",
-					Columns: []string{"func", "value", "extraCol"},
+					Columns: []string{"time", "value", "extraCol"},
 					Points:  [][]interface{}{[]interface{}{}},
 				}
 				return []*client.Series{&s}, nil
 			},
 			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned more than two columns: \"<dummy query>\""),
+			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns: \"<dummy query>\" [time value extraCol]"),
 		},
 		queryCase{
 			Name: "ColsPointsMismatch",
 			QueryFunc: func(q string) ([]*client.Series, error) {
 				s := client.Series{
 					Name:    "BadData",
-					Columns: []string{"func", "value"},
+					Columns: []string{"time", "value"},
 					Points:  [][]interface{}{[]interface{}{}},
 				}
 				return []*client.Series{&s}, nil
@@ -157,8 +157,21 @@ func TestExecuteQuery(t *testing.T) {
 			QueryFunc: func(q string) ([]*client.Series, error) {
 				s := client.Series{
 					Name:    "GoodData",
-					Columns: []string{"func", "value"},
+					Columns: []string{"time", "value"},
 					Points:  [][]interface{}{[]interface{}{"mean", 1.5}},
+				}
+				return []*client.Series{&s}, nil
+			},
+			ExpectedVal: 1.5,
+			ExpectedErr: nil,
+		},
+		queryCase{
+			Name: "GoodWithSequenceNumber",
+			QueryFunc: func(q string) ([]*client.Series, error) {
+				s := client.Series{
+					Name:    "GoodData",
+					Columns: []string{"time", "sequence_number", "value"},
+					Points:  [][]interface{}{[]interface{}{1234567, 10, 1.5}},
 				}
 				return []*client.Series{&s}, nil
 			},
