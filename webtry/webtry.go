@@ -90,8 +90,11 @@ var (
 	// workspaceLink is the regex that matches URLs paths for workspaces.
 	workspaceLink = regexp.MustCompile("^/w/([a-z0-9-]+)$")
 
-	// errorRE is ther regex that matches compiler errors and extracts the line / column information.
+	// errorRE is the regex that matches compiler errors and extracts the line / column information.
 	errorRE = regexp.MustCompile("^.*.cpp:(\\d+):(\\d+):\\s*(.*)")
+
+	// paintDeclRE is the regex that matches paint declarations so we can set up fonts for it
+	paintDeclRE = regexp.MustCompile("^\\s+SkPaint\\s+(\\S+)\\s*;")
 
 	// workspaceNameAdj is a list of adjectives for building workspace names.
 	workspaceNameAdj = []string{
@@ -385,9 +388,12 @@ func expandCode(code string, source int, width, height int) (string, error) {
 	}
 	for _, line := range inputCodeLines {
 		outputCodeLines = append(outputCodeLines, line)
-		if strings.HasPrefix(strings.TrimSpace(line), "SkPaint p") {
+		match := paintDeclRE.FindStringSubmatch(line)
+		if len(match) > 0 {
+			paintName := match[1]
 			outputCodeLines = append(outputCodeLines, "FLAGS_portableFonts = true;")
-			outputCodeLines = append(outputCodeLines, "sk_tool_utils::set_portable_typeface(&p, \"Helvetica\", SkTypeface::kNormal);")
+			outputCodeLines = append(outputCodeLines,
+				fmt.Sprintf("sk_tool_utils::set_portable_typeface(&%s, \"Helvetica\", SkTypeface::kNormal);", paintName))
 		}
 	}
 
