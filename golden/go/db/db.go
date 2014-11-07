@@ -11,6 +11,15 @@ import (
 const (
 	// Key of the password for the readwrite user.
 	METADATA_KEY = "readwrite"
+
+	// Detfault database parameters.
+	DEFAULT_DB_HOST = "173.194.104.24:3306"
+	DEFAULT_DB_PORT = "3306"
+	DEFAULT_DB_NAME = "skiacorrectness"
+
+	// Template to generate the MySQL database connection string.
+	// And 3306 is the default port for MySQL.
+	DB_CONN_TMPL = "%s:%s@tcp(%s:%s)/%s?parseTime=true"
 )
 
 // MigrationSteps returns the migration (up and down) for the database.
@@ -41,6 +50,27 @@ func GetConfig(mySQLConnStr string, sqlitePath string, local bool) *database.Dat
 		SQLiteFilePath: sqlitePath,
 		MigrationSteps: migrationSteps,
 	}
+}
+
+// GetConnectionString returns a MySQL connection string with the given
+// parameters replace in the template. Only userName has to be provided.
+// If host, port or dbName are empty the default (production) values will
+// be used.
+func GetConnectionString(userName, host, port, dbName string) string {
+	useHost, usePort, useDBName := host, port, dbName
+	if useHost == "" {
+		useHost = DEFAULT_DB_HOST
+	}
+
+	if usePort == "" {
+		usePort = DEFAULT_DB_PORT
+	}
+
+	if useDBName == "" {
+		useDBName = DEFAULT_DB_NAME
+	}
+
+	return fmt.Sprintf(DB_CONN_TMPL, userName, "%s", useHost, usePort, useDBName)
 }
 
 // migrationSteps define the steps it takes to migrate the db between versions.

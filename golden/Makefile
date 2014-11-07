@@ -2,6 +2,11 @@
 skiacorrectness:
 	go install -v ./go/skiacorrectness
 
+.PHONY: correctness_migratedb
+correctness_migratedb:
+	go install -v ./go/correctness_migratedb
+
+
 .PHONY: packages
 packages:
 	go build -v ./go/...
@@ -11,4 +16,4 @@ test:
 	go test ./go/...
 
 .PHONY: all
-all: skiacorrectness
+all: skiacorrectness correctness_migratedb
