@@ -28,6 +28,7 @@ const (
 	IMG_EXTENSION                = "png"
 	DIFF_EXTENSION               = "diff"
 	DIFFMETRICS_EXTENSION        = "json"
+	RECOMMENDED_WORKER_POOL_SIZE = 1000
 
 	// Limit the number of times diffstore tries to get a file before giving up.
 	MAX_URI_GET_TRIES = 4
@@ -73,8 +74,13 @@ type FileDiffStore struct {
 	// The complete GS URL where images are stored.
 	storageBaseDir string
 
-	// Mutex for ensuring safe access to the caches.
-	lock sync.Mutex
+	// The channels workers pick up tasks from.
+	absPathCh chan *WorkerReq
+	getCh     chan *WorkerReq
+
+	// Mutexes for ensuring safe access to the different local caches.
+	diffDirLock   sync.Mutex
+	digestDirLock sync.Mutex
 }
 
 // GetAuthClient is a helper function that runs through the OAuth flow if doOauth
@@ -102,12 +108,14 @@ func GetAuthClient(doOauth bool) (*http.Client, error) {
 // Storage. If nil is supplied then a default client is used. The baseDir is the
 // local base directory where the DEFAULT_IMG_DIR_NAME, DEFAULT_DIFF_DIR_NAME and
 // the DEFAULT_DIFFMETRICS_DIR_NAME directories exist. gsBucketName is the bucket
-// images will be downloaded from.
-func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string) diff.DiffStore {
+// images will be downloaded from. workerPoolSize is the max number of
+// simultaneous goroutines that will be created when running Get or AbsPath.
+// Use RECOMMENDED_WORKER_POOL_SIZE if unsure what this value should be.
+func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, workerPoolSize int) diff.DiffStore {
 	if client == nil {
 		client = util.NewTimeoutClient()
 	}
-	return &FileDiffStore{
+	fs := &FileDiffStore{
 		client:              client,
 		localImgDir:         ensureDir(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)),
 		localDiffDir:        ensureDir(filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME)),
@@ -115,77 +123,197 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string) diff.Di
 		gsBucketName:        gsBucketName,
 		storageBaseDir:      DEFAULT_GS_IMG_DIR_NAME,
 	}
+	fs.activateWorkers(workerPoolSize)
+	return fs
+}
+
+type WorkerReq struct {
+	id     interface{}
+	respCh chan<- *WorkerResp
+}
+
+type WorkerResp struct {
+	id  interface{}
+	val interface{}
+}
+
+type GetId struct {
+	dMain  string
+	dOther string
+}
+
+func (fs *FileDiffStore) activateWorkers(workerPoolSize int) {
+	fs.absPathCh = make(chan *WorkerReq, workerPoolSize)
+	fs.getCh = make(chan *WorkerReq, workerPoolSize)
+
+	for i := 0; i < workerPoolSize; i++ {
+		go func() {
+			for {
+				select {
+				case req := <-fs.absPathCh:
+					req.respCh <- &WorkerResp{id: req.id, val: fs.absPathOne(req.id.(string))}
+				case req := <-fs.getCh:
+					gid := req.id.(GetId)
+					req.respCh <- &WorkerResp{id: req.id, val: fs.getOne(gid.dMain, gid.dOther)}
+				}
+			}
+		}()
+	}
+}
+
+// getOne uses the following algorithm:
+// 1. Look for the DiffMetrics of the digests in the local cache.
+// If found:
+//     2. Return the DiffMetrics.
+// Else:
+//     3. Make sure the digests exist in the local cache. Download it from
+//        Google Storage if necessary.
+//     4. Calculate DiffMetrics.
+//     5. Write DiffMetrics to the cache and return.
+func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
+	// 1. Check if the DiffMetrics exists in the local cache.
+	diffMetrics, err := fs.getDiffMetricsFromCache(dMain, dOther)
+	if err != nil {
+		glog.Errorf("Failed to getDiffMetricsFromCache for digest %s and digest %s: %s", dMain, dOther, err)
+		return nil
+	}
+	if diffMetrics != nil {
+		// 2. The DiffMetrics exists locally return it.
+		return diffMetrics
+	}
+
+	// 3. Make sure the digests exist in the local cache. Download it from
+	//    Google Storage if necessary.
+	if err = fs.ensureDigestInCache(dOther); err != nil {
+		glog.Errorf("Failed to ensureDigestInCache for digest %s: %s", dOther, err)
+		return nil
+	}
+
+	// 4. Calculate DiffMetrics.
+	diffMetrics, err = fs.diff(dMain, dOther)
+	if err != nil {
+		glog.Errorf("Failed to calculate DiffMetrics for digest %s and digest %s: %s", dMain, dOther, err)
+		return nil
+	}
+	glog.Infof("Calculated DiffMetrics for %s and %s\n", dMain, dOther)
+	// 5. Write DiffMetrics to the local cache and return it.
+	diffMetricsFilePath := filepath.Join(
+		fs.localDiffMetricsDir,
+		fmt.Sprintf("%s.%s", getDiffBasename(dMain, dOther), DIFFMETRICS_EXTENSION))
+	if err := fs.writeDiffMetrics(diffMetricsFilePath, diffMetrics); err != nil {
+		glog.Errorf("Failed to writeDiffMetrics for digest %s and digest %s: %s", dMain, dOther, err)
+		return nil
+	}
+	return diffMetrics
+}
+
+// absPathOne uses the following algorithm:
+// 1. Make sure the digests exist in the local cache. Download it from
+//    Google Storage if necessary.
+// 2. Find and return the absolute path to the digest.
+func (fs *FileDiffStore) absPathOne(digest string) interface{} {
+	// 1. Make sure we have a local copy of the digest and
+	//    download it if necessary. Note: Downloading should
+	//    be the exception.
+	if err := fs.ensureDigestInCache(digest); err != nil {
+		glog.Errorf("Failed to ensureDigestInCache for digest %s: %s", digest, err)
+		return nil
+	}
+	// 2. Find and return the absolute path to the digest.
+	return fs.getDigestImagePath(digest)
 }
 
 // Get documentation is found in the diff.DiffStore interface.
 // This implementation of Get uses the following algorithm:
-// 1. Loop through all provided dRest digests.
-//     2. Look for the DiffMetrics of the requested digests in the local cache.
-//     If found:
-//         3. Add the DiffMetrics to the result.
-//     Else:
-//         4. Make sure the digests exists in the local cache. Download it from
-//            Google Storage if necessary.
-//         5. Calculate DiffMetrics.
-//         6. Write DiffMetrics to the local cache and add to the result.
-// 7. Return all accumulated DiffMetrics (in same order as the provided digests).
-func (fs *FileDiffStore) Get(dMain string, dRest []string) ([]*diff.DiffMetrics, error) {
-	diffMetricsSlice := make([]*diff.DiffMetrics, len(dRest))
-	// 1. Loop through all provided dRest digests.
-	for i := 0; i < len(dRest); i++ {
-		dOther := dRest[i]
-		// 2. Check if the DiffMetrics exists in the local cache.
-		diffMetrics, err := fs.getDiffMetricsFromCache(dMain, dOther)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to getDiffMetricsFromCache for digest %s and digest %s at index %i: %s", dMain, dOther, i, err)
-		}
-		if diffMetrics != nil {
-			// 3. The DiffMetrics exists locally, add it to the ret slice.
-			diffMetricsSlice[i] = diffMetrics
-			continue
-		}
+// 1. Look for the main digest in local cache else download from Google
+//    Storage.
+// 2. Create map of digests to their DiffMetrics. This map will be
+//    populated and returned.
+// 3. Create the channel where responses from workers will be received in.
+// 4. Send requests to the request channel.
+// The workers will then call getOne with the requests.
+// 5. Return map of digests to DiffMetrics once all requests have been
+//     processed by the workers.
+func (fs *FileDiffStore) Get(dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
+	// 1. Look for main digest in local cache else download from GS.
+	if err := fs.ensureDigestInCache(dMain); err != nil {
+		// We cannot compute any DiffMetrics without the main digest.
+		// Therefore, fail immediately if the main digest cannot be
+		// retrieved.
+		return nil, fmt.Errorf("Failed to ensureDigestInCache for main digest %s: %s", dMain, err)
+	}
 
-		// 4. Make sure the digests exists in the local cache. Download it from
-		//    Google Storage if necessary.
-		for _, d := range [2]string{dMain, dOther} {
-			if err = fs.ensureDigestInCache(d); err != nil {
-				return nil, fmt.Errorf("Failed to ensureDigestInCache for digest %s: %s", d, err)
+	// 2. Create map of digests to their DiffMetrics. This map will be
+	//    populated and returned.
+	digestsToDiffMetrics := make(map[string]*diff.DiffMetrics, len(dRest))
+	// 3. Create the channel where responses from workers will be received in.
+	respCh := make(chan *WorkerResp, len(dRest))
+	// 4. Send requests to the request channel.
+	for dIndex := range dRest {
+		dOther := dRest[dIndex]
+		fs.getCh <- &WorkerReq{id: GetId{dMain: dMain, dOther: dOther}, respCh: respCh}
+	}
+	digestErrors := 0
+	for {
+		select {
+		case resp := <-respCh:
+			gid := resp.id.(GetId)
+			if val, ok := resp.val.(*diff.DiffMetrics); ok {
+				digestsToDiffMetrics[gid.dOther] = val
+			} else {
+				// This block will be reached when the DiffMetrics could
+				// not be calculated due to failures.
+				digestErrors++
+			}
+			if (len(digestsToDiffMetrics) + digestErrors) == len(dRest) {
+				// 5. Return map of digests to paths once all requests have
+				//    been processed by the workers.
+				return digestsToDiffMetrics, nil
 			}
 		}
-
-		// 5. Calculate DiffMetrics.
-		diffMetrics, err = fs.diff(dMain, dOther)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to calculate DiffMetrics for digest %s and digest %s at index %i: %s", dMain, dOther, i, err)
-		}
-		// 6. Write DiffMetrics to the local cache and add to the ret slice.
-		diffMetricsFilePath := filepath.Join(
-			fs.localDiffMetricsDir,
-			fmt.Sprintf("%s.%s", getDiffBasename(dMain, dOther), DIFFMETRICS_EXTENSION))
-		if err := writeDiffMetrics(diffMetricsFilePath, diffMetrics); err != nil {
-			return nil, fmt.Errorf("Failed to writeDiffMetrics for digest %s and digest %s at index %i: %s", dMain, dOther, i, err)
-		}
-		diffMetricsSlice[i] = diffMetrics
 	}
-	// 7. Return all accumulated DiffMetrics.
-	return diffMetricsSlice, nil
 }
 
 // AbsPath documentation is found in the diff.DiffStore interface.
-func (fs *FileDiffStore) AbsPath(digests []string) ([]string, error) {
-
-	paths := make([]string, len(digests))
-	for i := 0; i < len(digests); i++ {
-		// Make sure we have a local copy of the digest and download it if
-		// necessary. Note: Downloading should be the exception.
-		if err := fs.ensureDigestInCache(digests[i]); err != nil {
-			return nil, fmt.Errorf("Failed to ensureDigestInCache for digest %s at index %i: %s", digests[i], i, err)
-		}
-		// Note: using ensureDirectory in the constructor guarantees that
-		// this is prefixed with the absolute path.
-		paths[i] = fs.getDigestImagePath(digests[i])
+// This implementation of AbsPath uses the following algorithm:
+// 1. Create map of digests to paths map. This map will be populated and
+//    returned.
+// 2. Create the channel where responses from workers will be received in.
+// 3. Send requests to the request channel.
+// The workers will then call absPathOne with the requests.
+// 4. Return map of digests to paths once all requests have been processed
+//    by the workers.
+func (fs *FileDiffStore) AbsPath(digests []string) map[string]string {
+	// 1. Create map of digests to their paths. This map will be populated
+	//    and returned.
+	digestsToPaths := make(map[string]string, len(digests))
+	// 2. Create the channel where responses from workers will be received
+	//    in.
+	respCh := make(chan *WorkerResp, len(digests))
+	// 3. Send requests to the request channel.
+	for dIndex := range digests {
+		digest := digests[dIndex]
+		fs.absPathCh <- &WorkerReq{id: digest, respCh: respCh}
 	}
-	return paths, nil
+	digestErrors := 0
+	for {
+		select {
+		case resp := <-respCh:
+			digest, _ := resp.id.(string)
+			if val, ok := resp.val.(string); ok {
+				digestsToPaths[digest] = val
+			} else {
+				// This block will be reached when the path could not be
+				// calculated due to failures.
+				digestErrors++
+			}
+			if (len(digestsToPaths) + digestErrors) == len(digests) {
+				// 4. Return map of digests to paths once all requests have
+				//    been processed.
+				return digestsToPaths
+			}
+		}
+	}
 }
 
 func openDiffMetrics(filepath string) (*diff.DiffMetrics, error) {
@@ -200,7 +328,10 @@ func openDiffMetrics(filepath string) (*diff.DiffMetrics, error) {
 	return diffMetrics, nil
 }
 
-func writeDiffMetrics(filepath string, diffMetrics *diff.DiffMetrics) error {
+func (fs *FileDiffStore) writeDiffMetrics(filepath string, diffMetrics *diff.DiffMetrics) error {
+	// Lock the mutex before writing to the local diff directory.
+	fs.diffDirLock.Lock()
+	defer fs.diffDirLock.Unlock()
 	f, err := os.Create(filepath)
 	if err != nil {
 		return fmt.Errorf("Unable to create file %s: %s", filepath, err)
@@ -232,8 +363,8 @@ func (fs *FileDiffStore) getDiffMetricsFromCache(d1, d2 string) (*diff.DiffMetri
 	filename := fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFFMETRICS_EXTENSION)
 	diffMetricsFilePath := filepath.Join(fs.localDiffMetricsDir, filename)
 	// Lock the mutex before reading from the local diff directory.
-	fs.lock.Lock()
-	defer fs.lock.Unlock()
+	fs.diffDirLock.Lock()
+	defer fs.diffDirLock.Unlock()
 	if _, err := os.Stat(diffMetricsFilePath); err != nil {
 		if os.IsNotExist(err) {
 			// File does not exist.
@@ -273,8 +404,8 @@ func (fs *FileDiffStore) ensureDigestInCache(d string) error {
 func (fs *FileDiffStore) isDigestInCache(d string) (bool, error) {
 	digestFilePath := fs.getDigestImagePath(d)
 	// Lock the mutex before reading from the local digest directory.
-	fs.lock.Lock()
-	defer fs.lock.Unlock()
+	fs.digestDirLock.Lock()
+	defer fs.digestDirLock.Unlock()
 	if _, err := os.Stat(digestFilePath); err != nil {
 		if os.IsNotExist(err) {
 			// File does not exist.
@@ -311,9 +442,9 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 	}
 
 	outputFile := filepath.Join(fs.localImgDir, fmt.Sprintf("%s.png", d))
-	// Lock the mutex before writing to the local image directory.
-	fs.lock.Lock()
-	defer fs.lock.Unlock()
+	// Lock the mutex before writing to the local digest directory.
+	fs.digestDirLock.Lock()
+	defer fs.digestDirLock.Unlock()
 	out, err := os.Create(outputFile)
 	if err != nil {
 		return fmt.Errorf("Unable to create file %s: %s", outputFile, err)

@@ -20,10 +20,10 @@ type DiffMetrics struct {
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
-	Get(dMain string, dRest []string) ([]*DiffMetrics, error)
+	Get(dMain string, dRest []string) (map[string]*DiffMetrics, error)
 	// AbsPath returns the paths of the images that correspond to the given
 	// image digests.
-	AbsPath(digest []string) ([]string, error)
+	AbsPath(digest []string) map[string]string
 }
 
 // OpenImage is a utility function that opens the specified file and returns an
