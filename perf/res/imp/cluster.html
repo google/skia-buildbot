@@ -10,46 +10,9 @@
 
   To use this file import it:
 
-    <link href="/res/imp/cluster.html" rel="import" />
+    <link href="res/imp/cluster.html" rel="import" />
 
 -->
-
-// The <toggle-display-sk> custom element declaration.
-//
-// Presents as a button that toggles the 'display' style for its
-// nextElementSibling.
-<polymer-element name="toggle-display-sk">
-  <template>
-    <style type="text/css" media="screen">
-      paper-button {
-        color: #1f78b4;
-      }
-      paper-button:hover {
-        background: #eee;
-      }
-    </style>
-    <paper-button>
-      <content></content>
-    </paper-button>
-  </template>
-  <script>
-    (function() {
-      function toggle(e) {
-        e.target.nextElementSibling.classList.toggle("display");
-      };
-
-      Polymer({
-        ready: function() {
-           this.addEventListener('click', toggle);
-        },
-        detached: function() {
-           this.removeEventListener('click', toggle);
-        },
-      });
-    })();
-  </script>
-</polymer-element>
-
 // The <word-cloud-sk> custom element declaration.
 <polymer-element name="word-cloud-sk" attributes="items">
   <template>

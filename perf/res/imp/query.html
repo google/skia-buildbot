@@ -1,196 +1,214 @@
 <!--
   The common.js file must be included before this file.
 
-  This in an HTML Import-able file that contains the CSS, JS and HTML
-  Templates for the sk.Query component.
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <query-sk>
 
   To use this file import it:
 
     <link href="/res/imp/query.html" rel="import" />
 
-  Then instantiate the sk.Query object:
+  Usage:
 
-    var query = new sk.Query(queryInfo__);
-    query.attach();
+    <query-sk scale=0 tile=-1></query-sk>
 
-  The sk.Query constructor will find the element with an id of sk-query
-  and will insert the query controls as a child of that element.
+  Attributes:
+    scale: The tile scale to use.
+    tile:  The tile index to use.
+
+  Properties:
+    currentQuery: The current URL query formatted selections.
+
+  Methods:
+    clearSelections(): Clear all selections.
 
   Events:
     'change'
         The 'sk-query' element will produce 'change' events when the query
-        parameters chosen have changed. The listener can then call
-        selectionsAsQuery() to get the current selections.
-
-  TODO(jcgregorio) queryInfo__ needs to be moved into Query and not passed in
-    via constructor.
-
-  TODO(jcgregorio) CSS in this file isn't passed through the auto-prefixer.
+        parameters chosen have changed. The event contains the current
+        selections formatted as a URL query, found in e.detail.
 -->
 
-<style type="text/css" media="screen">
-  #query-count {
-    margin: 0.5em;
-    margin-left: 0;
-  }
-
-  #query-inputs,
-  #query-inputs #query-more {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    width:100%;
-  }
-
-  #query-inputs #query-more.hidden {
-    display: none;
-  }
-
-  .query-select {
-    overflow: auto;
-    margin: 0.3em;
-  }
-
-  .query-node {
-    margin: 0 0.5em;
-  }
-</style>
-
-<template id=query-main-template>
-  <button id="query-clear">Clear selections</button>
-  <span id="query-count"></span>
-  <div id="query-inputs">
-    <br>
-    <p id="query-more-toggle">More...</p>
-    <div id="query-more" class="hidden">
-    </div>
-  </div>
-</template>
-
-<template id="query-select">
-  <div class="query-node">
-    <h4></h4>
-    <select name="" class="query-select" multiple size="16">
-    </select>
-  </div>
-</template>
-
-
-<script type="text/javascript" charset="utf-8">
-(function(){
-  // Keep track of this file so we can grab HTML Templates from it.
-  var importer__ = new sk.Importer();
-
-  /**
-   * Sets up the event handlers related to the query controls in the interface.
-   * The callbacks in this function use and observe queryInfo fields.
-   */
-  sk.Query = function(queryInfo) {
-    this.queryInfo_ = queryInfo;
-
-    var node = importer__.import('#query-main-template');
-    $$$('#sk-query').appendChild(node);
-  };
-
-
-  /**
-   * Clears out UI elements back to blank.
-   */
-  sk.Query.prototype.clear = function() {
-    $$$('#query-count').textContent = '';
-  }
-
-
-  /**
-   * attach hooks up all the controls that Query uses.
-   */
-  sk.Query.prototype.attach = function() {
-
-    var query_ = this;
-
-    Object.observe(this.queryInfo_.change, this.onParamChange.bind(this));
-
-    $$$('#query-inputs').addEventListener('change', function(e) {
-      $$$('#sk-query').dispatchEvent(new Event('change'));
-      sk.get('/query/0/-1/?' + query_.selectionsAsQuery()).then(JSON.parse).then(function(json) {
-        $$$('#query-count').innerHTML = json["matches"] + ' lines selected<br />';
-      });
-    });
-
-    $$$('#query-more-toggle').addEventListener('click', function(e) {
-      $$$('#query-more').classList.toggle('hidden');
-    });
-
-    $$$('#query-clear').addEventListener('click', function(e) {
-      // Clear the param selections.
-      $$('option:checked').forEach(function(elem) {
-        elem.selected = false;
-      });
-      $$$('#query-count').textContent = '';
-    });
-
-  }
-
-  /**
-   * selectionsAsQuery bundles up the current set of selections as a URL query
-   * suitable for passing to the /query/ endpoint.
-   */
-  sk.Query.prototype.selectionsAsQuery = function() {
-    var sel = [];
-    var num = Object.keys(this.queryInfo_.paramSet).length;
-    for(var i = 0; i < num; i++) {
-      var key = $$$('#select_' + i).name
-        $$('#select_' + i + ' option:checked').forEach(function(ele) {
-          sel.push(encodeURIComponent(key) + '=' + encodeURIComponent(ele.value));
-        });
-    }
-    return sel.join('&')
-  };
-
-
-  /**
-   * Syncs the DOM to match the current state of queryInfo_.
-   * It currently removes all the existing elements and then
-   * generates a new set that matches the queryInfo_ data.
-   */
-  sk.Query.prototype.onParamChange = function() {
-    console.log('onParamChange() triggered');
-    var queryDiv = $$$('#query-inputs');
-    var detailsDiv= $$$('#query-more');
-    // Remove all old nodes.
-    $$('#query-inputs .query-node').forEach(function(ele) {
-      ele.parentNode.removeChild(ele)
-    });
-
-    var whitelist = ['name', 'bench_type', 'os', 'source_type', 'scale', 'extra_config', 'config', 'arch'];
-    var keylist = Object.keys(this.queryInfo_.paramSet).sort().reverse();
-
-    for (var i = 0; i < keylist.length; i++) {
-      var node = importer__.import('#query-select');
-      var key = keylist[i];
-
-      $$$('h4', node).textContent = key;
-
-      var select = $$$('select', node);
-      select.id = 'select_' + i;
-      select.name = key;
-
-      var options = this.queryInfo_.paramSet[key].sort();
-      options.forEach(function(op) {
-        var option = document.createElement('option');
-        option.value = op;
-        option.textContent = op.length > 0 ?  op : '(none)';
-        select.appendChild(option);
-      });
-
-      if (whitelist.indexOf(key) == -1) {
-        detailsDiv.insertBefore(node, detailsDiv.firstElementChild);
-      } else {
-        queryDiv.insertBefore(node, queryDiv.firstElementChild);
+// The <query-sk> custom element declaration.
+<polymer-element name="query-sk" attributes="scale tile">
+  <template>
+    <style type="text/css" media="screen">
+      #more.display {
+        display: none;
       }
-    }
-  }
+      select {
+        overflow: auto;
+        margin: 0.3em;
+      }
 
-})();
+      .node {
+        margin: 0 0.5em;
+      }
+      .more {
+        width: 100%
+      }
+      .option {
+        padding: 0.2em;
+      }
+      .option.core-selected {
+        background: #ddd;
+      }
 
-</script>
+      .choices {
+        height: 15em;
+        overflow-y: auto;
+        border: solid lightgray 1px;
+      }
+
+    </style>
+    <paper-button raised id="clear">Clear selections</paper-button>
+    <span id="count"></span>
+    <div id="inputs" horizontal layout wrap>
+      <template repeat="{{sel in primary}}">
+        <div class="node">
+          <h4>{{sel.name}}</h4>
+          <div class="choices">
+            <core-selector valueattr="label" data-name="{{sel.name}}" multi>
+              <template repeat="{{o in sel.values}}">
+                <div class="option" label="{{o}}">{{o}}</div>
+              </template>
+            </core-selector>
+          </div>
+        </div>
+      </template>
+    </div>
+    <toggle-display-sk>More...</toggle-display-sk>
+    <div id="more" horizontal layout wrap class="display">
+      <template repeat="{{sel in secondary}}">
+        <div class="node">
+          <h4>{{sel.name}}</h4>
+          <div class="choices">
+            <core-selector valueattr="label" data-name="{{sel.name}}" multi>
+              <template repeat="{{o in sel.values}}">
+                <div class="option" label="{{o}}">{{o}}</div>
+              </template>
+            </core-selector>
+          </div>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script>
+    (function(){
+      var whitelist = [
+        'name', 'bench_type', 'os', 'source_type', 'scale', 'extra_config',
+        'config', 'arch'];
+
+      Polymer({
+        created: function() {
+          this.paramset = {};
+
+          // Both primary and secondary are arrays of objects that look like:
+          //
+          //  {
+          //    name: "config",
+          //    values: ["565", "8888", "gpu"]
+          //  }
+          //
+          // Where primary contains selections that are in the whitelist, and
+          // secondary contains all the other selections.
+          this.primary = [];
+          this.secondary = [];
+        },
+
+        ready: function() {
+          this.currentQuery = '';
+          this.tile = this.tile || -1;
+          this.scale = this.scale || 0;
+
+          // TODO requery when scale or tile attrs change.
+          var that = this;
+          sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
+            that.paramset = json.paramset;
+          });
+
+          this.$.inputs.addEventListener('core-select', this.fireChange.bind(this));
+          this.$.more.addEventListener('core-select', this.fireChange.bind(this));
+
+          this.$.clear.addEventListener('click', this.clearSelections.bind(this));
+        },
+
+        clearSelections: function() {
+          $$('core-selector', this.$.inputs).forEach(function(elem) {
+            elem.selected = [];
+          });
+          $$('core-selector', this.$.more).forEach(function(elem) {
+            elem.selected = [];
+          });
+          this.$.count.textContent = '';
+        },
+
+        fireChange: function() {
+          var q = this.selectionsAsQuery();
+          // Only fire if we see a real change in the state.
+          // See https://github.com/Polymer/core-selector/issues/6
+          if (q != this.currentQuery) {
+            this.currentQuery = q;
+            this.dispatchEvent(new CustomEvent('change', {detail: q}));
+
+            var countEle = this.$.count;
+            sk.get('/query/0/-1/?' + q).then(JSON.parse).then(function(json) {
+              countEle.innerHTML = json["matches"] + ' lines selected<br />';
+            });
+          }
+        },
+
+
+        // selectionsAsQuery bundles up the current set of selections as a URL query
+        // suitable for passing to the /query/ endpoint.
+        //
+        selectionsAsQuery: function() {
+          var sel = [];
+          $$('core-selector', this.$.inputs).forEach(function(select) {
+              var key = select.dataset.name;
+              if (select.selected) {
+                select.selected.forEach(function(value) {
+                  console.log(key, value);
+                  sel.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+                });
+              }
+          });
+          $$('core-selector', this.$.more).forEach(function(select) {
+              var key = select.dataset.name;
+              if (select.selected) {
+                select.selected.forEach(function(value) {
+                  console.log(key, value);
+                  sel.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+                });
+              }
+          });
+          return sel.join('&')
+        },
+
+        // When paramset changes rebuild the primary and secondary values.
+        //
+        // The paramset is an object that maps selection names
+        // to a list of selection values, not necessarily in alphabetical
+        // order.
+        paramsetChanged: function() {
+          var keylist = Object.keys(this.paramset).sort();
+
+          for (var i = 0; i < keylist.length; i++) {
+            var key = keylist[i];
+            var sel = {
+              name: key,
+              values: this.paramset[key].sort()
+            }
+            if (whitelist.indexOf(key) != -1) {
+              this.primary.push(sel);
+            } else {
+              this.secondary.push(sel);
+            }
+          }
+        }
+      });
+    })();
+  </script>
+</polymer-element>

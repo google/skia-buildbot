@@ -2,12 +2,10 @@
  * The communication between parts of the code will be done by using Object.observe
  * on common data structures.
  *
- * The data structures are 'traces__', 'queryInfo__', 'commitData__', 'dataset__':
+ * The data structures are 'traces__', 'commitData__', 'dataset__':
  *
  *   traces__
  *     - A list of objects that can be passed directly to Flot for display.
- *   queryInfo__
- *     - A list of all the keys and the parameters the user can search by.
  *   commitData__
  *     - A list of commits for the current set of tiles.
  *   dataset__
@@ -61,35 +59,6 @@ var skiaperf = (function() {
    * Plot reads it.
    */
   var commitData__ = [];
-
-  /**
-   * The data needed by Query to build a UI for filtering traces.
-   *
-   * Query observes fields in queryInfo__.
-   * Navigation can modify queryInfo__.
-   *
-   * Note that queryInfo_ is passed as a parameter to Query, which means that
-   * Query will see changes to queryInfo__ fields. which is intended.
-   */
-  var queryInfo__ = {
-    /**
-     * Contains an array of arrays, each array representing a single parameter
-     * that can be set, each element a different possibility of what to set it
-     * to.
-     */
-    paramSet: [
-      /*
-       "benchName": ["desk_gmailthread.skp", "desk_mapsvg.skp" ],
-       "timer":     ["wall", "cpu"],
-       "arch":      ["arm7", "x86", "x86_64"],
-       */
-      ],
-    // change is used because Observe-js has trouble dealing with the large
-    // array changes that happen when Navigation swaps paramSet data.
-    change: {
-      counter: 0
-    },
-  };
 
   /**
    * The results for the trybot.
@@ -194,7 +163,7 @@ var skiaperf = (function() {
    * Clears out UI elements back to blank.
    */
   Plot.prototype.clear = function() {
-    $$$('#note').classList.add("hidden");
+    $$$('#note').classList.add("blank");
     this.curHighlightedLines = [];
     this.plotLabel.value = "";
   }
@@ -434,7 +403,7 @@ var skiaperf = (function() {
           e.preventDefault();
         });
       });
-      $$$('#note').classList.remove("hidden");
+      $$$('#note').classList.remove("blank");
     });
 
 
@@ -539,11 +508,9 @@ var skiaperf = (function() {
   /**
    * Manages the tile scale and index that the user can query over.
    */
-  function Navigation(query, plot) {
+  function Navigation(plot) {
     // Keep tracking if we are still loading the page the first time.
     this.loading_ = true;
-
-    this.query_ = query;
 
     this.plot_ = plot;
   };
@@ -600,7 +567,7 @@ var skiaperf = (function() {
     var navigation_ = this;
 
     $$$('#add-lines').addEventListener('click', function() {
-      navigation_.addTraces(navigation_.query_.selectionsAsQuery())
+      navigation_.addTraces($$$('query-sk').currentQuery);
     });
 
     $$$('#add-calculated').addEventListener('click', function() {
@@ -608,9 +575,9 @@ var skiaperf = (function() {
     });
 
     // Update the formula when the query changes.
-    $$$('#sk-query').addEventListener('change', function() {
+    $$$('query-sk').addEventListener('change', function(e) {
       var formula = $$$('#formula').value;
-      var query = navigation_.query_.selectionsAsQuery();
+      var query = e.detail;
       if (formula == "") {
         $$$('#formula').value = 'filter("' + query + '")';
       } else if (2 == (formula.match(/\"/g) || []).length) {
@@ -644,7 +611,6 @@ var skiaperf = (function() {
     $$$('#nuke-plot').addEventListener('click', function(e) {
       traces__.splice(0, traces__.length);
       navigation_.plot_.clear();
-      navigation_.query_.clear();
       dataset__.stepIndex = -1;
     });
 
@@ -657,13 +623,11 @@ var skiaperf = (function() {
     });
 
     sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
-      queryInfo__.paramSet = json.paramset;
       dataset__.scale = json.scale;
       dataset__.tiles = json.tiles;
       dataset__.ticks = json.ticks;
       dataset__.skps = json.skps;
       commitData__ = json.commits;
-      queryInfo__.change.counter += 1;
       navigation_.loadShortcut();
     });
   };
@@ -679,13 +643,10 @@ var skiaperf = (function() {
 
 
   function onLoad() {
-    var query = new sk.Query(queryInfo__);
-    query.attach();
-
     var plot = new Plot();
     plot.attach();
 
-    var navigation = new Navigation(query, plot);
+    var navigation = new Navigation(plot);
     navigation.attach();
 
     microtasks();

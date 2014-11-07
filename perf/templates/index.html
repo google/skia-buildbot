@@ -6,6 +6,25 @@
     {{template "header.html" .}}
 
     <script src="/res/js/logic.js"></script>
+    <style type="text/css" media="screen">
+      paper-button {
+        color: #1f78b4;
+        margin: 0.5em;
+      }
+      paper-button:hover {
+        background: #eee;
+      }
+      #pageWrapper {
+        background: white;
+      }
+      .col {
+        padding: 0.5em;
+      }
+      #plot-value {
+        width: 6em;
+      }
+
+    </style>
   </head>
   <body>
 
@@ -13,29 +32,28 @@
 
       {{template "titlebar.html" .}}
 
-      <div id="container" layout horizontal>
-        <div id="page-wrapper">
-          <div id="plot-and-query-wrapper">
+        <div id="pageWrapper" horizontal layout>
+          <div id="plotAndQueryWrapper" flex three vertical layout class="col">
 
-            <div id="plot-wrapper">
-              <button id=shortcut>Create Shortcut</button>
-              <input type="text" disabled value="" placeholder="Highlighted Trace ID" id="plot-label" size=80>
-              <input type="text" disabled value="" placeholder="Value" id="plot-value" size=10>
-              <div id="chart"> </div>
+            <div horizontal layout center>
+              <paper-button id=shortcut title="Create shortcut."> <core-icon icon="link"></core-icon></paper-button>
+              <paper-input flex type="text" disabled value="" label="Highlighted Trace ID" id="plot-label"></paper-input>
+              <paper-input type="text" disabled value="" label="Value" id="plot-value"> </paper-input>
             </div>
-            <div id="nav-wrapper">
-              <button id="nuke-plot">Remove all traces</button>
-              <button id="reset-axes">Reset axes</button>
-              <button id="add-lines">Add traces</button><br>
-              <input type="text" id="formula" value="" placeholder='filter("config=8888")' size=80 />
-              <button id="add-calculated">Add calculated trace</button> <a href="/help" target=_blank>help</a>
+            <div id="chart"> </div>
+            <div horizontal layout>
+              <paper-button raised id="nuke-plot">Remove all traces</paper-button>
+              <paper-button raised id="reset-axes">Reset axes</paper-button>
+              <paper-button raised id="add-lines">Add traces</paper-button>
             </div>
+            <div horizontal layout center>
+              <paper-input flex type="text" id="formula" multiline value="" label='Formula' size=80></paper-input>
+              <paper-button id="add-calculated">Add calculated trace</paper-button> <a href="/help" target=_blank><core-icon icon="help"></core-icon></a>
+            </div>
+            <query-sk></query-sk>
+          </div>
 
-            <div id="sk-query"></div>
-          </div> <!-- end of plot-and-query-wrapper -->
-
-
-          <div id="note" class="hidden">
+          <div id="note" flex two class="blank col">
             <a class="remove" href="#">Remove</a>
             <a class="make-solo" href="#">Only</a>
             <a class="group-only hidden" href="#">Group</a>
@@ -47,7 +65,7 @@
             <div class="commits"></div>
           </div>
 
-        </div> <!-- end of page-wrapper -->
+        </div>
     </scaffold-sk>
 
     <!-- Templates -->

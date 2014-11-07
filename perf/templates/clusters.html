@@ -6,10 +6,16 @@
     {{template "header.html" .}}
 
     <link href="/res/imp/cluster.html" rel="import" />
-    <script src="/res/js/clusters.js"></script>
     <style type="text/css" media="screen">
-      .clSorting {
+      #clSorting {
         padding: 1em 0;
+      }
+      #start {
+        margin: 0.3em;
+        padding: 0.7em 0.6em;
+      }
+      .issue {
+        margin: 1em 0;
       }
     </style>
 </head>
@@ -20,21 +26,20 @@
       <section id=clustering>
         <h2>Trace Clustering</h2>
         <p>
-          <label for="_stddev">StdDev Threshhold:</label>
-          <input type="text" name="_stddev" value="0.001" id="_stddev">
+          <paper-input value="0.001" id="_stddev" label="Standard Deviation Threshhold" floatingLabel></paper-input>
         </p>
         <p>
-          <label for="_k">Num Clusters:</label>
-          <input type="text" name="_k" value="50" id="_k">
+          <paper-input value="50" id="_k" label="Number Of Clusters" floatingLabel></paper-input>
         </p>
-        <p>
+        <p class=issue>
           <label for="_issue">Issue:</label>
           <select name="_issue" id="_issue" size="1">
              <option selected> </option>
           </select>
         </p>
-        <div id="sk-query"></div>
-        <button id="start" type="submit">Calculate</button>
+        <query-sk></query-sk>
+        <br/>
+        <paper-button raised id="start">Calculate</paper-button>
 
         <div id=clSorting>
           Sort by:
@@ -48,5 +53,86 @@
       </section>
     </div>
   </scaffold-sk>
+  <script type="text/javascript" charset="utf-8">
+    (function() {
+
+      /**
+        * beginClustering by clearing out the old results and starting the XHR
+        * request to get new clustering results.
+        */
+      function beginClustering(k, stddev, issue, selections) {
+        sk.clearChildren($$$('#clResults'));
+        // Results are always returned sorted vis StepRegression.
+        $$$('input[value="stepregression"]').checked = true;
+
+        document.body.style.cursor = 'wait';
+        var url = '/clustering/?_k=' + k + '&_stddev=' + stddev + '&_issue=' + issue + '&' + selections;
+        sk.get(url).then(JSON.parse).then(function(json) {
+          var container = $$$('#clResults');
+          json.Clusters.forEach(function(c){
+            var sum = document.createElement('cluster-summary-sk');
+            container.appendChild(sum);
+            sum.summary = c;
+          });
+          document.body.style.cursor = 'auto';
+        }).catch(function(e){
+          alert(e);
+          document.body.style.cursor = 'auto';
+        });
+      };
+
+      // sort the clustering results with the algorithm given in element e.
+      function sort(e) {
+        if (!e.target.value) {
+          return;
+        }
+        var sortBy = e.target.value;
+        var container = $$$("#clResults");
+        var to_sort = [];
+        $$('cluster-summary-sk', container).forEach(function(ele) {
+          to_sort.push({
+            value: ele.dataset[sortBy],
+            node: ele
+          });
+        });
+        to_sort.sort(function(x, y) {
+          return x.value - y.value;
+        });
+        to_sort.forEach(function(i) {
+          container.appendChild(i.node);
+        });
+      };
+
+
+      function onLoad() {
+        sk.get('/trybots/').then(JSON.parse).then(function(json){
+          var select = $$$('#_issue');
+          json.forEach(function(issue) {
+            var op = document.createElement('OPTION');
+            op.value = issue;
+            op.innerText = issue;
+            select.appendChild(op);
+          });
+        });
+
+        $$$('#start').addEventListener('click', function(){
+          beginClustering(
+              $$$('#_k').value, $$$('#_stddev').value, $$$('#_issue').value, $$$('query-sk').currentQuery);
+        });
+
+        $$('input[name="sort"]').forEach(function(ele) {
+          ele.addEventListener('click', sort);
+        });
+      };
+
+      // TODO(jcgregorio) Make this into a Promise.
+      if (document.readyState != 'loading') {
+        onLoad();
+      } else {
+        window.addEventListener('load', onLoad);
+      }
+
+    })();
+  </script>
 </body>
 </html>

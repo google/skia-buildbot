@@ -9,9 +9,13 @@ h4 {
   margin: 0.5em 0;
 }
 
-* {
-  margin: 0;
-  padding: 0;
+
+html /deep/ paper-button {
+  color: #1f78b4;
+}
+
+html /deep/  paper-button:hover {
+  background: #eee;
 }
 
 body {
@@ -54,38 +58,14 @@ button:hover {
     cursor: wait;
 }
 
-#page-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    width:100%;
-}
-
-#plot-and-query-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    width:65%;
-}
-
-
-#plot-wrapper {
-    display: block;
-    width: 100%;
-}
-
-
 #note {
-    margin: 1em;
-    width: 33%;
-    overflow-y: auto;
-    overflow-wrap: break-word;
-    height: 90vh;
-    font-size: 11px;
+  overflow-y: auto;
+  height: 90vh;
+  font-size: 11px;
+  overflow-wrap: break-word;
 }
 
 #note .group-only.hidden {
-  display: none;
 }
 
 #note .subject {
@@ -121,39 +101,25 @@ table, td {
 
 #chart {
     width: 100%;
-    height: 640px;
+    height: 400px;
 }
 
 .hidden {
     display: none;
 }
 
-.centered {
-    flex-grow: 1;
+.blank * {
+  display: none;
 }
 
-#plot-label,
-#plot-value {
-  border: none;
-  padding: 3px;
-  margin: 0.5em;
+.centered {
+    flex-grow: 1;
 }
 
 core-toolbar,
 #title {
   background-color: #526E9C;
   color: #fff;
-}
-
-#title a,
-#title ::shadow a {
-  color: white;
-  margin-right: 10px;
-}
-
-#title a:hover,
-#title ::shadow a:hover {
-  text-decoration: none;
 }
 
 #title login-sk {
