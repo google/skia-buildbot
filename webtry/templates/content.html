@@ -51,25 +51,25 @@
     <input type="text" value="" id="embed" readonly style="display:none;">
   </div>
 
-  <div id="raster-output" class="image-wrapper panel panel-primary">
+  <div id="raster-output" class="image-wrapper panel panel-primary" {{if .RasterURL}}style="display: inline-block;"{{end}}>
     <div class="panel-heading">
       <h3 class="panel-title">
         Raster Output
       </h3>
     </div>
     <div class="panel-body">
-      <img touch-action='none' class='zoom' id='raster-img' onload="onLoadImage(this)" src='{{if .Hash}}/i/{{.Hash}}_raster.png{{end}}'/>
+      <img touch-action='none' class='zoom' id='raster-img' src='{{.RasterURL}}'/>
     </div>
   </div>
 
-  <div id="gpu-output" class="image-wrapper panel panel-primary">
+  <div id="gpu-output" class="image-wrapper panel panel-primary" {{if .GPUURL}}style="display: inline-block;"{{end}}>
     <div class="panel-heading">
       <h3 class="panel-title">
         Ganesh Output
       </h3>
     </div>
     <div class="panel-body">
-      <img touch-action='none' class='zoom' id='gpu-img' onload="onLoadImage(this)" src='{{if .Hash}}/i/{{.Hash}}_gpu.png{{end}}'/>
+      <img touch-action='none' class='zoom' id='gpu-img' src='{{.GPUURL}}'/>
     </div>
   </div>
 

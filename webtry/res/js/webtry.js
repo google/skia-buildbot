@@ -415,26 +415,3 @@
     }
 
 })();
-
-// TODO (humper) -- move the following functions out of the global
-// namespace as part of a web-components based fiddle frontend rewrite.
-
-function collectionHas(a, b) { //helper function (see below)
-    for(var i = 0, len = a.length; i < len; i ++) {
-        if(a[i] == b) return true;
-    }
-    return false;
-}
-function findParentBySelector(elm, selector) {
-    var all = document.querySelectorAll(selector);
-    var cur = elm.parentNode;
-    while(cur && !collectionHas(all, cur)) { //keep going up until you find a match
-        cur = cur.parentNode; //go up
-    }
-    return cur; //will return null if not found
-}
-
-function onLoadImage(img) {
-  var wrapper = findParentBySelector(img, ".image-wrapper");
-  wrapper.style.display = "inline-block";
-}

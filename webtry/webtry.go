@@ -340,13 +340,15 @@ type Titlebar struct {
 
 // userCode is used in template expansion.
 type userCode struct {
-	Code     string
-	Hash     string
-	Width    int
-	Height   int
-	PDFURL   string
-	Source   int
-	Titlebar Titlebar
+	Code      string
+	Hash      string
+	Width     int
+	Height    int
+	PDFURL    string
+	RasterURL string
+	GPUURL    string
+	Source    int
+	Titlebar  Titlebar
 }
 
 // writeTemplate creates a given output file and writes the template
@@ -836,6 +838,8 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		height := 256
 		match := directLink.FindStringSubmatch(r.URL.Path)
 		PDFURL := ""
+		rasterURL := ""
+		GPUURL := ""
 		var hash string
 		if len(match) == 2 && r.URL.Path != "/" {
 			hash = match[1]
@@ -854,10 +858,20 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			if _, err := os.Stat(pdfPath); err == nil {
 				PDFURL = "/i/" + hash + ".pdf"
 			}
+			// Check to see if there's already a raster run of this hash
+			rasterPath := "../../../inout/" + hash + "_raster.png"
+			if _, err := os.Stat(rasterPath); err == nil {
+				rasterURL = "/i/" + hash + "_raster.png"
+			}
+			// Check to see if there's already a GPU run of this hash
+			gpuPath := "../../../inout/" + hash + "_gpu.png"
+			if _, err := os.Stat(gpuPath); err == nil {
+				GPUURL = "/i/" + hash + "_gpu.png"
+			}
 		}
 		// Expand the template.
 		w.Header().Set("Content-Type", "text/html")
-		if err := indexTemplate.Execute(w, userCode{Code: code, PDFURL: PDFURL, Hash: hash, Source: source, Width: width, Height: height, Titlebar: Titlebar{GitHash: gitHash, GitInfo: gitInfo}}); err != nil {
+		if err := indexTemplate.Execute(w, userCode{Code: code, PDFURL: PDFURL, RasterURL: rasterURL, GPUURL: GPUURL, Hash: hash, Source: source, Width: width, Height: height, Titlebar: Titlebar{GitHash: gitHash, GitInfo: gitInfo}}); err != nil {
 			glog.Errorf("Failed to expand template: %q\n", err)
 		}
 	} else if r.Method == "POST" {
