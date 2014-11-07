@@ -31,6 +31,7 @@ perf/res/imp/paper-*
 perf/res/vul
 perf/third_party
 perf/timestamp.json
+monitoring/autoroll_git
 monitoring/google_email_token.data
 monitoring/node_modules
 monitoring/npm-debug.log

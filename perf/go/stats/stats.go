@@ -3,7 +3,7 @@ package stats
 import (
 	"time"
 
-	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
+	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 
 	"github.com/golang/glog"

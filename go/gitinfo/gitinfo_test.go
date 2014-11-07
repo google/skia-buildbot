@@ -104,7 +104,7 @@ Author: Joe Gregorio <jcgregorio@google.com>
 Date:   Wed Jul 30 08:00:42 2014 -0400
 
     First "checkin"
-    
+
     With quotes.
 
 README.txt

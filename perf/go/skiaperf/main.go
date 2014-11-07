@@ -26,6 +26,7 @@ import (
 
 import (
 	"skia.googlesource.com/buildbot.git/go/common"
+	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -36,7 +37,6 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
-	"skia.googlesource.com/buildbot.git/perf/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
 	"skia.googlesource.com/buildbot.git/perf/go/parser"
 	"skia.googlesource.com/buildbot.git/perf/go/shortcut"

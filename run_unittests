@@ -30,6 +30,7 @@ Go test failed: %s
 NO_CRAWL_DIRS = [
   '.git',
   '.svn',
+  'autoroll_git',
   'common',
   'git_poller_skia.git',
   'third_party',

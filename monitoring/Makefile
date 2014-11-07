@@ -3,10 +3,13 @@ all: default
 alertserver: js
 	go install -v ./go/alertserver
 
+datahopper:
+	go install -v ./go/datahopper
+
 grains:
 	go install -v ./go/grains
 
-default: alertserver grains
+default: alertserver datahopper grains
 
 testgo:
 	go test ./go/...

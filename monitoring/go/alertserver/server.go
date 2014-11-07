@@ -25,6 +25,7 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/email"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
@@ -183,8 +184,8 @@ func runServer(serverURL string) {
 }
 
 func main() {
-	flag.Parse()
-	defer glog.Flush()
+	common.Init()
+
 	parsedPollInterval, err := time.ParseDuration(*alertPollInterval)
 	if err != nil {
 		glog.Fatal(fmt.Sprintf("Failed to parse -alertPollInterval: %s", *alertPollInterval))

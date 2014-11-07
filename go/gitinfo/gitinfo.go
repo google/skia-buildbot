@@ -3,7 +3,9 @@ package gitinfo
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path"
 	"regexp"
 	"sort"
 	"strconv"
@@ -41,6 +43,30 @@ func NewGitInfo(dir string, pull bool) (*GitInfo, error) {
 		hashes: []string{},
 	}
 	return g, g.Update(pull)
+}
+
+// Clone creates a new GitInfo by running "git clone" in the given directory.
+func Clone(repoUrl, dir string) (*GitInfo, error) {
+	cmd := exec.Command("git", "clone", repoUrl, dir)
+	_, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	return NewGitInfo(dir, false)
+}
+
+// CloneOrUpdate creates a new GitInfo by running "git clone" or "git pull"
+// depending on whether the repo already exists.
+func CloneOrUpdate(repoUrl, dir string) (*GitInfo, error) {
+	gitDir := path.Join(dir, ".git")
+	_, err := os.Stat(gitDir)
+	if err == nil {
+		return NewGitInfo(dir, true)
+	}
+	if os.IsNotExist(err) {
+		return Clone(repoUrl, dir)
+	}
+	return nil, err
 }
 
 // Update refreshes the history that GitInfo stores for the repo. If pull is
@@ -125,6 +151,28 @@ func (g GitInfo) Log(begin, end string) (string, error) {
 		command = append(command, "-n", "1", hashrange)
 	}
 	cmd := exec.Command("git", command...)
+	cmd.Dir = g.dir
+	b, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+// FullHash gives the full commit hash for the given ref.
+func (g GitInfo) FullHash(ref string) (string, error) {
+	cmd := exec.Command("git", "rev-parse", ref)
+	cmd.Dir = g.dir
+	b, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+// GetFile returns the contents of the given file at the given commit.
+func (g GitInfo) GetFile(fileName, commit string) (string, error) {
+	cmd := exec.Command("git", "show", commit+":"+fileName)
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
 	if err != nil {
