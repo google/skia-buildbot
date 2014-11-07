@@ -31,20 +31,9 @@ Only tested under linux and MacOS, doubtful it will work on other platforms.
 Server Setup
 ============
 
-Create a GCE instance:
-
-    gcutil --project=google.com:skia-buildbots addinstance skia-webtry-b \
-      --zone=us-central2-b --external_ip_address=108.170.220.126 \
-      --service_account=default \
-      --service_account_scopes="https://www.googleapis.com/auth/devstorage.full_control" \
-      --network=default --machine_type=n1-standard-1 --image=backports-debian-7-wheezy-v20140331 \
-      --persistent_boot_disk
-
-Make sure port 80 is accessible externally for the above instance.
-
-SSH into the instance:
-
-    gcutil --project=google.com:skia-buildbots ssh --ssh_user=default skia-webtry-b
+Please refer to compute_engine_scripts/webtry/README under the repo for
+instructions on creating and destroying the instance. The rest of this document
+is what to do once the instance is created.
 
 
 Do the first time
