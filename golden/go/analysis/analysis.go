@@ -153,6 +153,10 @@ type Analyzer struct {
 
 	// Lock to protect the expectations and current* variables.
 	mutex sync.Mutex
+
+	// Counts the number of times the main event loop has executed.
+	// This is for testing only.
+	loopCounter int
 }
 
 func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileStore, diffStore diff.DiffStore, puConverter PathToURLConverter, timeBetweenPolls time.Duration) *Analyzer {
@@ -204,7 +208,7 @@ func (a *Analyzer) GetTestCounts(testName string) (*GUITestCounts, error) {
 
 // SetDigestLabels sets the labels for the given digest and records the user
 // that made the classification.
-func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClassification, userId string) (map[string][]*LabeledTrace, error) {
+func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClassification, userId string) (GUITestDetails, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
@@ -218,9 +222,15 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 	}
 
 	// Let's update our knowledge of the labels.
-	updatedTraces := a.relabelTraces(labeledTestDigests)
+	a.partialUpdate(labeledTestDigests)
+	a.setDerivedOutputs(a.currentTile, false)
 
-	return updatedTraces, nil
+	result := map[string]*GUITestDetail{}
+	for testName := range labeledTestDigests {
+		result[testName] = a.currentTestDetails[testName]
+	}
+
+	return result, nil
 }
 
 // loop is the main event loop.
@@ -245,6 +255,7 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 		}
 		glog.Info("Done processing tiles.")
 		runsCounter.Inc(1)
+		a.loopCounter++
 	}
 
 	// process a tile immediately and then at fixed points in time.
@@ -313,11 +324,9 @@ func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool
 	a.currentTestDetails = newTestDetails
 }
 
-// relabelTraces iterates over the traces in of the tiles that have changed and
+// partialUpdate iterates over the traces in of the tiles that have changed and
 // labels them according to our current expecatations.
-func (a *Analyzer) relabelTraces(labeledTestDigests map[string]types.TestClassification) map[string][]*LabeledTrace {
-	result := map[string][]*LabeledTrace{}
-
+func (a *Analyzer) partialUpdate(labeledTestDigests map[string]types.TestClassification) {
 	for testName := range labeledTestDigests {
 		if traces, ok := a.currentTile.Traces[testName]; ok {
 			for _, trace := range traces {
@@ -325,12 +334,8 @@ func (a *Analyzer) relabelTraces(labeledTestDigests map[string]types.TestClassif
 				// labeledTestDigests directly, but it keeps the code simpler.
 				a.labelDigests(testName, trace.Digests, trace.Labels)
 			}
-			result[testName] = make([]*LabeledTrace, len(traces))
-			copy(result[testName], traces)
 		}
 	}
-
-	return result
 }
 
 // labelDigest assignes a label to the given digests based on the expectations.
@@ -366,6 +371,20 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, ma
 	// Overall aggregated counts over all tests.
 	overallAggregates := newLabelCounts(len(labeledTile.Commits))
 
+	updateCounts(labeledTile, tileCountsMap, testCountsMap, overallAggregates)
+
+	tileCounts := &GUITileCounts{
+		Commits:    labeledTile.Commits,
+		Aggregated: overallAggregates,
+		Counts:     tileCountsMap,
+	}
+
+	glog.Info("Done processing output counts.")
+
+	return tileCounts, testCountsMap
+}
+
+func updateCounts(labeledTile *LabeledTile, tileCountsMap map[string]*LabelCounts, testCountsMap map[string]*GUITestCounts, overallAggregates *LabelCounts) {
 	for testName, testTraces := range labeledTile.Traces {
 		acc := newLabelCounts(len(labeledTile.Commits))
 		tempTraces := make([]*GUILabeledTrace, 0, len(testTraces))
@@ -406,14 +425,4 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, ma
 			overallAggregates.Neg[idx] += acc.Neg[idx]
 		}
 	}
-
-	tileCounts := &GUITileCounts{
-		Commits:    labeledTile.Commits,
-		Aggregated: overallAggregates,
-		Counts:     tileCountsMap,
-	}
-
-	glog.Info("Done processing output counts.")
-
-	return tileCounts, testCountsMap
 }

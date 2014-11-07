@@ -111,7 +111,7 @@ var skia = skia || {};
       $scope.selectUntriaged = function (idx) {
         if ($scope.untIndex !== idx) {
           $scope.currentUntriaged = $scope.untriaged[idx];
-          $scope.positives = ns.getSortedPositives($scope.currentUntriaged);
+          $scope.positives = ns.getSortedPositivesFromUntriaged($scope.currentUntriaged);
           $scope.selectPositive(0);
           $scope.untIndex = idx;
         }
@@ -138,7 +138,14 @@ var skia = skia || {};
       // saveTriageState saves the labeled untriaged digest to the backend
       // and retrieves the new triage state for this test.
       $scope.saveTriageState = function () {
-        // TODO (stephana): Add when backend code is in place.
+        var req = new ns.TriageDigestReq();
+        for (var i=0, len=$scope.triageState.length; i < len; i++) {
+          if ($scope.triageState[i] !== ns.c.UNTRIAGED) {
+            req.add(testName, $scope.untriaged[i].digest, $scope.triageState[i]);
+          }
+        }
+
+        processServerData(dataService.sendData(ns.c.URL_TRIAGE, req));
       };
 
       // Initialize the variables in $scope.
@@ -204,10 +211,28 @@ var skia = skia || {};
      **/
     function loadData(path) {
       var url = ns.c.PREFIX_URL + path;
-      return httpGetData(url).then(
+      return httpReq(url).then(
           function(successResp) {
             return successResp.data;
           });
+    }
+
+    /**
+    * sendData sends the given data to the URL path on the backend via a
+    * POST request.
+    *
+    * @param {string} path relative path. The standard prefix will be added.
+    * @param {object} data object to be send as JSON string.
+    * @return {Promise} will either resolve to data (success) or an HTTP
+    *         response object (error).
+    */
+    function sendData(path, data) {
+      var url = ns.c.PREFIX_URL + path;
+      return httpReq(url, 'POST', data).then(
+        function(successResp) {
+          debugger;
+          return successResp.data;
+        });
     }
 
     /**
@@ -227,13 +252,11 @@ var skia = skia || {};
     */
     function pollLoginStatus() {
       var url = ns.c.PREFIX_URL + ns.c.URL_LOGIN_STATUS;
-      httpGetData(url).then(
+      httpReq(url).then(
         function (posResp) {
-          debugger;
           setGlobalLoginStatus(posResp.Email, posResp.LoginURL);
         },
         function (errResp) {
-          debugger;
           console.log("Error:", errResp);
           setGlobalLoginStatus(null, null);
         });
@@ -243,18 +266,22 @@ var skia = skia || {};
     pollLoginStatus();
 
     /**
-     * Make a HTTP get request with the given query parameters.
+     * Make a HTTP request with the given data, method and query parameters.
      *
      * @param {string} url
+     * @param {string} method
+     * @param {object} data
      * @param {object} queryParams
      *
      * @return {Promise} promise.
      **/
-    function httpGetData(url, queryParams) {
+    function httpReq(url, method, data, queryParams) {
+      method = (method) ? method : 'GET';
       var reqConfig = {
-        method: 'GET',
+        method: method,
         url: url,
-        params: queryParams
+        params: queryParams,
+        data: data
       };
 
       return $http(reqConfig).then(
@@ -263,9 +290,11 @@ var skia = skia || {};
         });
     }
 
+
     // Interface of the service:
     return {
       loadData: loadData,
+      sendData: sendData
     };
 
   }]);

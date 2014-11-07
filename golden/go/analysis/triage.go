@@ -124,12 +124,8 @@ func (a *Analyzer) incDigestInfo(digestMap map[string]*DigestInfo, digest string
 }
 
 func (a *Analyzer) getUrl(digest string) string {
-	absPath, err := a.diffStore.AbsPath([]string{digest})
-	if err != nil {
-		glog.Errorf("Unable to resolve url for %s. Got error: %s", digest, err.Error())
-		return ""
-	}
-	return a.pathToURLConverter(absPath[0])
+	absPath := a.diffStore.AbsPath([]string{digest})
+	return a.pathToURLConverter(absPath[digest])
 }
 
 func (a *Analyzer) newGUIDiffMetrics(digest string, posDigests []string) GUIDiffMetrics {
@@ -141,13 +137,13 @@ func (a *Analyzer) newGUIDiffMetrics(digest string, posDigests []string) GUIDiff
 		return nil
 	}
 
-	for i, dm := range dms {
+	for posDigest, dm := range dms {
 		result = append(result, &GUIDiffMetric{
 			NumDiffPixels:    dm.NumDiffPixels,
 			PixelDiffPercent: dm.PixelDiffPercent,
 			MaxRGBDiffs:      dm.MaxRGBDiffs,
 			DiffImgUrl:       a.pathToURLConverter(dm.PixelDiffFilePath),
-			PosDigest:        posDigests[i],
+			PosDigest:        posDigest,
 		})
 	}
 	return result

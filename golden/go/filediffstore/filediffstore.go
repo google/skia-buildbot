@@ -26,7 +26,7 @@ const (
 	DEFAULT_DIFFMETRICS_DIR_NAME = "diffmetrics"
 	DEFAULT_GS_IMG_DIR_NAME      = "dm-images-v1"
 	IMG_EXTENSION                = "png"
-	DIFF_EXTENSION               = "diff"
+	DIFF_EXTENSION               = "png"
 	DIFFMETRICS_EXTENSION        = "json"
 	RECOMMENDED_WORKER_POOL_SIZE = 1000
 

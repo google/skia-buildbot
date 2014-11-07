@@ -89,6 +89,18 @@ var skia = skia || {};
   };
 
   /**
+  * DiffDigestInfo is a helper class to store information about a
+  * digest (usually positive) and how it differs from the a given
+  * untriaged digest.
+  */
+  ns.DiffDigestInfo = function (digest, imgUrl, count, diff) {
+    this.digest = digest;
+    this.imgUrl = imgUrl;
+    this.counts = count;
+    this.diff = diff;
+  };
+
+  /**
   * addIndexAsX adds takes an array of numbers and returns an array of
   * datapoints (x,y) where x is the index of the input element y.
   */
@@ -188,6 +200,7 @@ var skia = skia || {};
       return [];
     }
 
+    var posd, d;
     var result = [];
     for (var digest in unt) {
       if (unt.hasOwnProperty(digest)) {
@@ -196,6 +209,9 @@ var skia = skia || {};
           // TODO (stephana): Fill in expanding the diff information.
           // This will be done once triaging works. So we can test it
           // with real data.
+          d = unt[digest].diffs[i];
+          posd = serverData[testName].positive[d.posDigest];
+          posDiffs.push(new ns.DiffDigestInfo(d.posDigest, posd.imgUrl, posd.count, d));
         }
 
         // Inject the digest and the augmented positive diffs.
@@ -216,8 +232,8 @@ var skia = skia || {};
   * getUntriagedSorted(...).
   */
   ns.getSortedPositivesFromUntriaged = function (untriagedRec) {
-    if (untriaged && untriaged.positiveDiffs && untriaged.positiveDiffs.length > 0) {
-      return untriaged.positiveDiffs;
+    if (untriagedRec && untriagedRec.positiveDiffs && untriagedRec.positiveDiffs.length > 0) {
+      return untriagedRec.positiveDiffs;
     }
 
     return [];
@@ -235,7 +251,7 @@ var skia = skia || {};
     }
 
     var result = [];
-    for (digest in pos) {
+    for (var digest in pos) {
       if (pos.hasOwnProperty(digest)) {
         // Inject the digest into the object.
         pos[digest].digest = digest;
@@ -264,6 +280,24 @@ var skia = skia || {};
     }
 
     return result;
+  };
+
+  /**
+  * TriageDigestReq is a container type for sending labeled digests to the
+  * backend. It matches the input parameters of the triageDigestsHandler in
+  * 'go/skiacorrectness/main.go'.
+  */
+
+  ns.TriageDigestReq = function () {
+  };
+
+  /**
+  * addDigestLabel is a convenience method to add digests and their label to the
+  * the instance.
+  */
+  ns.TriageDigestReq.prototype.add = function (testName, digest, label) {
+    this[testName] = this[testName] || {};
+    this[testName][digest] = label;
   };
 
   /////////////////////////////////////////////////////////////////

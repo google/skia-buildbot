@@ -24,7 +24,13 @@
             </div>
             <div ng-show="currentPositive">
                 <div ng-repeat="onePositive in positives">
-                    <img src="" ng-src="{{onePositive.imgUrl}}" class="columnImg">
+                    <div>
+                     <img src="" ng-src="{{onePositive.imgUrl}}" class="columnImg">
+                    </div>
+                    <div ng-if="currentUntriaged">
+                        Diff: {{onePositive.diff.numDiffPixels}} px -
+                              {{onePositive.diff.pixelDiffPercent}} %
+                    </div>
                 </div>
             </div>
     	</div>
@@ -36,6 +42,11 @@
                         No positives images available.
                     </div>
                     <div ng-if="currentPositive">
+                        <div class="row posNegButtonContainer">
+
+                        <a href="{{currentPositive.imgUrl}}">{{currentPositive.imgUrl}}</a><br>
+                        <a href="{{currentPositive.diff.diffImgUrl}}">{{currentPositive.diff.diffImgUrl}}</a>
+                        </div>
                         <img src="" ng-src="{{currentPositive.imgUrl}}"
                              style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
 	    		    </div>
@@ -58,13 +69,16 @@
                         <img ng-src="{{currentUntriaged.imgUrl}}"
                              style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
                          </div>
+                         <div>
+                            <a href="{{currentUntriaged.imgUrl}}" target="_blank">{{currentUntriaged.imgUrl}}</a>
+                         </div>
                     </div>
                 </div>
 
 	    	</div>
 	    	<div ng-if="currentPositive && currentUntriaged">
 	    		<div class="col-xs-12">
-	    			<img ng-src="{{currentPositive.diffImageUrl}}"
+	    			<img ng-src="{{currentPositive.diff.diffImgUrl}}"
                          class="diffImg">
 	    		</div>
 	    	</div>

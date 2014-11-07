@@ -54,4 +54,5 @@
 
 .posNegButtonContainer {
 	padding-bottom: 1em;
+	min-height: 5em;
 }

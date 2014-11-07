@@ -230,7 +230,7 @@ func main() {
 	client := getOAuthClient(*doOauth)
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName)
+	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
 	vdb := database.NewVersionedDB(db.GetConfig(*mysqlConnStr, *sqlitePath, *local))
 	expStore := expstorage.NewSQLExpectationStore(vdb)
 	tileStore := filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
@@ -246,7 +246,8 @@ func main() {
 	// TODO (stephana): Wrap the handlers in autogzip unless we defer that to
 	// the front-end proxy.
 	router.HandleFunc("/rest/counts", tileCountsHandler)
-	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler)
+	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
+	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
 
 	// Set up the login related resources.
 	// TODO (stephana): Clean up the URLs so they have the same prefix.
