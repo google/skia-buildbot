@@ -1,0 +1,27 @@
+// The <highlightbar-sk> custom element declaration.
+//
+// Attributes:
+//   key - The id of the trace being displayed.
+//   value - The value of a single point on the trace.
+<polymer-element name="highlightbar-sk" attributes="key value">
+  <template>
+    <style type="text/css" media="screen">
+      #value {
+        width: 6em;
+        margin-left: 0.6em;
+      }
+    </style>
+    <div horizontal layout>
+      <paper-input flex disabled value="{{key}}" label="Highlighted Trace ID" id="name"></paper-input>
+      <paper-input disabled value="{{value}}" label="Value" id="value"> </paper-input>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        this.key = this.key || '';
+        this.value = this.value || '';
+      },
+    });
+  </script>
+</polymer-element>

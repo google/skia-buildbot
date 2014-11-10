@@ -148,11 +148,6 @@ var skiaperf = (function() {
     this.note = null;
 
     /**
-     * The element displays the current trace we're hovering over.
-     */
-    this.plotLabel = null;
-
-    /**
      * The git hash where alerting found a step.
      */
     this.stepIndex_ = -1;
@@ -165,7 +160,7 @@ var skiaperf = (function() {
   Plot.prototype.clear = function() {
     $$$('#note').classList.add("blank");
     this.curHighlightedLines = [];
-    this.plotLabel.value = "";
+    $$$('highlightbar-sk').key = "";
   }
 
 
@@ -249,8 +244,6 @@ var skiaperf = (function() {
     var plot_ = this;
 
     this.note = $$$('#note');
-    this.plotLabel = $$$('#plot-label');
-
 
     /**
      * Reference to the underlying Flot plot object.
@@ -300,9 +293,9 @@ var skiaperf = (function() {
     jQuery('#chart').bind('plothover', (function() {
       return function(evt, pos, item) {
         if (item) {
-          $$$('#plot-value').value = item.datapoint[1].toPrecision(5);
+          $$$('highlightbar-sk').value = item.datapoint[1].toPrecision(5);
         } else {
-          $$$('#plot-value').value = "";
+          $$$('highlightbar-sk').value = "";
         }
         $$$('#note .group-only').classList.add("hidden");
         if (traces__.length > 0 && pos.x && pos.y) {
@@ -344,7 +337,7 @@ var skiaperf = (function() {
           var maxDist = 0.15 * (yaxis.max - yaxis.min);
           if (closestDistance < maxDist) {
             // Highlight that trace.
-            plot_.plotLabel.value = traces__[closestTraceIndex].label;
+            $$$('highlightbar-sk').key = traces__[closestTraceIndex].label;
             plot_.curHighlightedLines = [traces__[closestTraceIndex].label];
           }
           lastHighlightedLines.sort();
