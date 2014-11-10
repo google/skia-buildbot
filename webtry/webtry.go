@@ -34,6 +34,7 @@ import (
 	"github.com/golang/glog"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rcrowley/go-metrics"
+	"skia.googlesource.com/buildbot.git/go/metadata"
 )
 
 const (
@@ -48,6 +49,8 @@ const (
 }`
 	// Don't increase above 2^16 w/o altering the db tables to accept something bigger than TEXT.
 	MAX_TRY_SIZE = 64000
+
+	PASSWORD_METADATA_KEY = "password"
 )
 
 var (
@@ -128,10 +131,11 @@ var (
 	requestsCounter = metrics.NewRegisteredCounter("requests", metrics.DefaultRegistry)
 )
 
-// flags
+// Command line flags.
 var (
-	useChroot = flag.Bool("use_chroot", false, "Run the compiled code in the schroot jail.")
-	port      = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	useChroot   = flag.Bool("use_chroot", false, "Run the compiled code in the schroot jail.")
+	port        = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	useMetadata = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 )
 
 // lineNumbers adds #line numbering to the user's code.
@@ -201,30 +205,17 @@ func Init() {
 	gitHash = logInfo[0]
 	gitInfo = logInfo[1] + " " + logInfo[2] + " " + logInfo[0][0:6]
 
-	// Connect to MySQL server. First, get the password from the metadata server.
-	// See https://developers.google.com/compute/docs/metadata#custom.
-	req, err := http.NewRequest("GET", "http://metadata/computeMetadata/v1/instance/attributes/password", nil)
-	if err != nil {
-		panic(err)
-	}
-	client := http.Client{}
-	req.Header.Add("X-Google-Metadata-Request", "True")
-	if resp, err := client.Do(req); err == nil {
-		password, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			glog.Errorf("Failed to read password from metadata server: %q\n", err)
-			panic(err)
-		}
+	if *useMetadata {
+		password := metadata.MustGet(PASSWORD_METADATA_KEY)
+
 		// The IP address of the database is found here:
 		//    https://console.developers.google.com/project/31977622648/sql/instances/webtry/overview
 		// And 3306 is the default port for MySQL.
 		db, err = sql.Open("mysql", fmt.Sprintf("webtry:%s@tcp(173.194.83.52:3306)/webtry?parseTime=true", password))
 		if err != nil {
-			glog.Errorf("ERROR: Failed to open connection to SQL server: %q\n", err)
-			panic(err)
+			glog.Fatalf("ERROR: Failed to open connection to SQL server: %q\n", err)
 		}
 	} else {
-		glog.Infof("Failed to find metadata, unable to connect to MySQL server (Expected when running locally): %q\n", err)
 		// Fallback to sqlite for local use.
 		db, err = sql.Open("sqlite3", "./webtry.db")
 		if err != nil {
