@@ -13,7 +13,7 @@ function get_current_work_on_slave() {
   slave=$1
   current_work=`ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
-    -A -q -p 22 build${slave}-b5 -- "ls /b/storage/current_work"`
+    -A -q -p 22 build${slave}-m5 -- "ls /b/storage/current_work"`
   echo $current_work
 }
 

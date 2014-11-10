@@ -111,7 +111,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_skia_try.sh -n $SLAVE_NUM -p $SKIA_PATCH_GS_LOCATION -t $PAGESETS_TYPE -b $CHROMIUM_BUILD_DIR -a \"$RENDER_PICTURES_ARGS\" -m $GPU_NOPATCH_RUN -w $GPU_WITHPATCH_RUN -r $RUN_ID -g $SLAVE_LOG_GS_LOCATION -o $SLAVE_OUTPUT_GS_LOCATION -l $SLAVE_LOG_FILE"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
-    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > $SLAVE_LOG_FILE 2>&1"
+    -A -p 22 build${SLAVE_NUM}-m5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > $SLAVE_LOG_FILE 2>&1"
 done
 
 # Sleep for a minute to give the slaves some time to start processing.

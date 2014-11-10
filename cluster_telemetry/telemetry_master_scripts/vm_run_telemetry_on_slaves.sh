@@ -80,7 +80,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_telemetry.sh $SLAVE_NUM $TELEMETRY_BENCHMARK \"$EXTRA_ARGS\" $PAGESETS_TYPE $REPEAT_TELEMETRY_RUNS $TARGET_PLATFORM $CHROMIUM_BUILD_DIR $RUN_ID \"$EXTRA_BROWSER_ARGS\" $WHITELIST_GS_LOCATION"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
-    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt 2>&1"
+    -A -p 22 build${SLAVE_NUM}-m5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/${TELEMETRY_BENCHMARK}-${RUN_ID}_output.txt 2>&1"
 done
 
 # Sleep for a minute to give the slaves some time to start processing.
@@ -93,10 +93,10 @@ while $SLAVES_STILL_PROCESSING ; do
   for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     RET=$( is_slave_currently_executing $SLAVE_NUM TELEMETRY_${RUN_ID} )
     if $RET; then
-      echo "build$SLAVE_NUM-b5 is still running TELEMETRY_${RUN_ID}"
+      echo "build$SLAVE_NUM-m5 is still running TELEMETRY_${RUN_ID}"
       echo "Making sure no processes are hung"
       ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no \
-          -A -q -p 22 build${SLAVE_NUM}-b5 -- "cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; bash vm_kill_long_running_process.sh"
+          -A -q -p 22 build${SLAVE_NUM}-m5 -- "cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; bash vm_kill_long_running_process.sh"
       echo "Sleeping for a minute and then retrying"
       SLAVES_STILL_PROCESSING=true
       sleep 60

@@ -51,7 +51,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_capture_archives.sh $SLAVE_NUM $PAGESETS_TYPE $CHROMIUM_BUILD_DIR"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
-    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/capture_archives_output.txt 2>&1"
+    -A -p 22 build${SLAVE_NUM}-m5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/capture_archives_output.txt 2>&1"
 done
 
 # Sleep for 2 minutes to give the slaves some time to start processing.

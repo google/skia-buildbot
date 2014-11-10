@@ -29,6 +29,6 @@ echo "About to run $CMD on all slaves..."
 for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
-    -A -q -p 22 build${SLAVE_NUM}-b5 -- "$CMD"
+    -A -q -p 22 build${SLAVE_NUM}-m5 -- "$CMD"
 done
 

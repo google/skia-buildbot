@@ -9,7 +9,7 @@ if [ -n "$1" ]; then
   CT_MACHINE=$1
 else
   echo
-  echo "Usage: bash `basename $0` build1-b5"
+  echo "Usage: bash `basename $0` build1-m5"
   echo
   echo "The first argument is the hostname or IP address of the Cluster" \
        "Telemetry machine we want to setup."
@@ -73,20 +73,9 @@ echo \"\"\"
 \"\"\" >> .gclient;
 /b/depot_tools/gclient sync;
 
-# Copy required patches from Google Storage.
-gsutil cp gs://chromium-skia-gm/telemetry/patches/desktop_browser_backend.py /b/skia-repo/buildbot/third_party/chromium_trunk/src/tools/telemetry/telemetry/core/backends/chrome/desktop_browser_backend.py;
-
 # Create symlink from /b to /home/default for the old page_set paths.
 sudo ln -s /b /home/default;
 
-# Setup a headless xserver.
-sudo apt-get -y install lightdm-gtk-greeter mesa-utils;
-sudo gsutil cp gs://chromium-skia-gm/telemetry/patches/edid.bin /etc/X11/;
-sudo gsutil cp gs://chromium-skia-gm/telemetry/patches/xorg.conf /etc/X11/;
-sudo service lightdm start;
-echo 'sudo cp /var/run/lightdm/root/:0 ~/.Xauthority' >> ~/.bashrc;
-echo 'sudo chown chrome-bot:chrome-bot ~/.Xauthority' >> ~/.bashrc;
-sudo reboot;
 """
 ssh -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no \
   -A -q -p 22 $CT_MACHINE -- "$CMD"

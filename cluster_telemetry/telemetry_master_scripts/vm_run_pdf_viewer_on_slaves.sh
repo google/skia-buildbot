@@ -42,7 +42,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   CMD="bash vm_run_pdf_viewer.sh $SLAVE_NUM $RUN_ID $PAGESETS_TYPE"
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
-    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/pdfviewer-${RUN_ID}_output.txt 2>&1"
+    -A -p 22 build${SLAVE_NUM}-m5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/pdfviewer-${RUN_ID}_output.txt 2>&1"
 done
 
 # Sleep for a minute to give the slaves some time to start processing.

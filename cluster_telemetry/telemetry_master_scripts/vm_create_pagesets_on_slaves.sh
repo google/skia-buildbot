@@ -47,7 +47,7 @@ for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
   START=$(expr $END + 1)
   ssh -f -X -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
     -o StrictHostKeyChecking=no \
-    -A -p 22 build${SLAVE_NUM}-b5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/create_pagesets_output.txt 2>&1"
+    -A -p 22 build${SLAVE_NUM}-m5 -- "source .bashrc; cd /b/skia-repo/buildbot/cluster_telemetry/telemetry_slave_scripts; /b/depot_tools/gclient sync; $CMD > /tmp/create_pagesets_output.txt 2>&1"
 done
 
 # Check to see if the slaves are done creating page_sets.

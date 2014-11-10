@@ -196,11 +196,11 @@ if [ $ret_value -eq 0 ]; then
   for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
     ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no \
-      -A -q -p 22 build${SLAVE_NUM}-b5 -- "uptime" &> /dev/null
+      -A -q -p 22 build${SLAVE_NUM}-m5 -- "uptime" &> /dev/null
     if [ $? -ne 0 ]
     then
-      echo "build$SLAVE_NUM-b5 is not responding!"
-      CRASHED_INSTANCES="$CRASHED_INSTANCES build$SLAVE_NUM-b5"
+      echo "build$SLAVE_NUM-m5 is not responding!"
+      CRASHED_INSTANCES="$CRASHED_INSTANCES build$SLAVE_NUM-m5"
     fi
   done
   if [[ $CRASHED_INSTANCES ]]; then
@@ -211,16 +211,16 @@ if [ $ret_value -eq 0 ]; then
     for SLAVE_NUM in $(seq 1 $NUM_SLAVES); do
       OFFLINE_DEVICES=`ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
         -o StrictHostKeyChecking=no \
-        -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb devices | grep offline"`
+        -A -q -p 22 build${SLAVE_NUM}-m5 -- "adb devices | grep offline"`
       DISCONNECTED_DEVICES=`ssh -o ConnectTimeout=5 -o UserKnownHostsFile=/dev/null -o CheckHostIP=no \
       -o StrictHostKeyChecking=no \
-      -A -q -p 22 build${SLAVE_NUM}-b5 -- "adb devices | grep device | grep -v devices"`
+      -A -q -p 22 build${SLAVE_NUM}-m5 -- "adb devices | grep device | grep -v devices"`
       if [ "$OFFLINE_DEVICES" != "" ]; then
-        echo "build$SLAVE_NUM-b5 device is offline!"
-        MISSING_DEVICES="$MISSING_DEVICES build$SLAVE_NUM-b5"
+        echo "build$SLAVE_NUM-m5 device is offline!"
+        MISSING_DEVICES="$MISSING_DEVICES build$SLAVE_NUM-m5"
       elif [ "$DISCONNECTED_DEVICES" == "" ]; then
-        echo "build$SLAVE_NUM-b5 device is missing!"
-        MISSING_DEVICES="$MISSING_DEVICES build$SLAVE_NUM-b5"
+        echo "build$SLAVE_NUM-m5 device is missing!"
+        MISSING_DEVICES="$MISSING_DEVICES build$SLAVE_NUM-m5"
       fi
     done
     if [[ $MISSING_DEVICES ]]; then
