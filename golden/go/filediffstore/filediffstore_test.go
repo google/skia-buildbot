@@ -163,6 +163,9 @@ func TestAbsPath(t *testing.T) {
 	assert.Equal(t, 2, len(digestToPaths))
 	assert.Equal(t, filepath.Join(imagesDir, fmt.Sprintf("%s.%s", TEST_DIGEST1, IMG_EXTENSION)), digestToPaths[TEST_DIGEST1])
 	assert.Equal(t, filepath.Join(imagesDir, fmt.Sprintf("%s.%s", TEST_DIGEST2, IMG_EXTENSION)), digestToPaths[TEST_DIGEST2])
+
+	digestToPaths = fds.AbsPath([]string{})
+	assert.Equal(t, 0, len(digestToPaths))
 }
 
 func timeTrack(start time.Time, name string) {
@@ -215,6 +218,12 @@ func MassiveTestAbsPath_45Digests(t *testing.T) {
 }
 
 func TestGet_e2e(t *testing.T) {
+	// Empty digests to compare too.
+	fdsEmpty := getTestFileDiffStore(filepath.Join(TESTDATA_DIR, "images"), filepath.Join(TESTDATA_DIR, "diffmetrics"), TESTDATA_DIR)
+	diffMetricsMapEmpty, err := fdsEmpty.Get(TEST_DIGEST1, []string{})
+	assert.Nil(t, err)
+	assert.Equal(t, 0, len(diffMetricsMapEmpty))
+
 	// 2 files that exist locally, diffmetrics exists locally as well.
 	fds1 := getTestFileDiffStore(filepath.Join(TESTDATA_DIR, "images"), filepath.Join(TESTDATA_DIR, "diffmetrics"), TESTDATA_DIR)
 	diffMetricsMap1, err := fds1.Get(TEST_DIGEST1, []string{TEST_DIGEST2})
