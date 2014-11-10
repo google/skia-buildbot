@@ -58,43 +58,6 @@ button:hover {
     cursor: wait;
 }
 
-#note {
-  overflow-y: auto;
-  height: 90vh;
-  font-size: 11px;
-  overflow-wrap: break-word;
-}
-
-#note .group-only.hidden {
-}
-
-#note .subject {
-    color: rgb(99, 99, 18);
-}
-
-#note .key-value {
-  margin: 0;
-  padding: 0;
-}
-
-#note .key{
-  font-weight: bold;
-}
-
-#note td {
-  padding: 3px;
-}
-
-#note table {
-  padding: 3px;
-  border-spacing: 0;
-  border-collapse: collapse;
-}
-
-#note td.key {
-  text-align: right;
-}
-
 table, td {
   border: none;
 }

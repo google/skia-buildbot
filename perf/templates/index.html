@@ -5,6 +5,7 @@
 
     {{template "header.html" .}}
 
+
     <script src="/res/js/logic.js"></script>
     <style type="text/css" media="screen">
       paper-button {
@@ -23,13 +24,12 @@
     </style>
   </head>
   <body>
-
     <scaffold-sk responsiveWidth="700px">
 
       {{template "titlebar.html" .}}
 
         <div id="pageWrapper" horizontal layout>
-          <div id="plotAndQueryWrapper" flex three vertical layout class="col">
+          <div id="plotAndQueryWrapper" flex two vertical layout class="col">
 
             <div horizontal layout center>
               <paper-button id=shortcut title="Create shortcut."> <core-icon icon="link"></core-icon></paper-button>
@@ -48,26 +48,9 @@
             <query-sk></query-sk>
           </div>
 
-          <div id="note" flex two class="blank col">
-            <a class="remove" href="#">Remove</a>
-            <a class="make-solo" href="#">Only</a>
-            <a class="group-only hidden" href="#">Group</a>
-            <hr>
-            <table border="0" cellspacing="5" cellpadding="5">
-              <tbody class="params"></tbody>
-            </table>
-            <hr>
-            <div class="commits"></div>
-          </div>
+          <trace-details-sk flex two class=col> </trace-details-sk>
 
         </div>
     </scaffold-sk>
-
-    <!-- Templates -->
-
-    <template id="note-param-template">
-      <tr class="note-param"><td class="key"></td><td><a href="#" class="value"></a></td></tr>
-    </template>
-
   </body>
 </html>

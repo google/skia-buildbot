@@ -143,11 +143,6 @@ var skiaperf = (function() {
     this.plotRef = null;
 
     /**
-     * The element is used to display commit and annotation info.
-     */
-    this.note = null;
-
-    /**
      * The git hash where alerting found a step.
      */
     this.stepIndex_ = -1;
@@ -158,7 +153,7 @@ var skiaperf = (function() {
    * Clears out UI elements back to blank.
    */
   Plot.prototype.clear = function() {
-    $$$('#note').classList.add("blank");
+    $$$('trace-details-sk').blank();
     this.curHighlightedLines = [];
     $$$('highlightbar-sk').key = "";
   }
@@ -208,17 +203,20 @@ var skiaperf = (function() {
 
 
   /**
-   * addParamToNote adds a single key, value parameter pair to the note card.
+   * Highlight all the traces with params that match the given (key, value)
+   * pair.
    */
-  Plot.prototype.addParamToNote = function(parent, key, value) {
-    var node = $$$('#note-param-template').content.cloneNode(true);
-    $$$('.key', node).textContent = key;
-    var v = $$$('.value', node);
-    v.textContent = value;
-    v.dataset.key = key;
-    v.dataset.value = value;
-    parent.appendChild(node);
+  Plot.prototype.highlightGroup = function(key, value) {
+    var that = this;
+    this.curHighlightedLines = [];
+    traces__.forEach(function(tr) {
+      if (tr._params[key] == value) {
+        that.curHighlightedLines.push(tr.label);
+      }
+    });
+    this.plotRef.draw();
   }
+
 
   /**
    * getMarkings is called by Flot's grid.markings.
@@ -242,8 +240,6 @@ var skiaperf = (function() {
    */
   Plot.prototype.attach = function() {
     var plot_ = this;
-
-    this.note = $$$('#note');
 
     /**
      * Reference to the underlying Flot plot object.
@@ -297,7 +293,6 @@ var skiaperf = (function() {
         } else {
           $$$('highlightbar-sk').value = "";
         }
-        $$$('#note .group-only').classList.add("hidden");
         if (traces__.length > 0 && pos.x && pos.y) {
           // Find the trace with the closest perpendicular distance, and
           // highlight the trace if it's within N units of pos.
@@ -353,50 +348,21 @@ var skiaperf = (function() {
       if (!item) {
         return;
       }
-      $$$('#note .group-only').classList.add("hidden");
-      $$$('#note').dataset.key = item.series.label;
-
       // First, find the range of CLs we are interested in.
       var thisCommitOffset = item.datapoint[0];
       var thisCommit = commitData__[thisCommitOffset].hash;
+      var begin = thisCommit;
+      var end = undefined;
       var query = '?begin=' + thisCommit;
       if (item.dataIndex > 0) {
         var previousCommitOffset = item.series.data[item.dataIndex-1][0]
         var previousCommit = commitData__[previousCommitOffset].hash;
         query = '?begin=' + previousCommit + '&end=' + thisCommit;
+        begin = previousCommit;
+        end = thisCommit;
       }
-      // Fill in commit info from the server.
-      sk.get('/commits/' + query).then(function(html){
-        $$$('#note .commits').innerHTML = html;
-      });
-
-      // Add params to the note.
-      var parent = $$$('#note .params');
-      sk.clearChildren(parent);
-      plot_.addParamToNote(parent, 'id', item.series.label);
-      var keylist = Object.keys(item.series._params).sort().reverse();
-      for (var i = 0; i < keylist.length; i++) {
-        var key = keylist[i];
-        plot_.addParamToNote(parent, key, item.series._params[key]);
-      }
-      // Enable selecting a group of lines by parameter values.
-      $$('#note .value').forEach(function(e){
-        e.addEventListener('click', function(e) {
-          $$$('#note .group-only').classList.remove("hidden");
-          // Highlight every line that matches this parameters key,value.
-          plot_.curHighlightedLines = [];
-          var pkey = this.dataset.key;
-          var pvalue = this.dataset.value;
-          traces__.forEach(function(tr) {
-            if (tr._params[pkey] == pvalue) {
-              plot_.curHighlightedLines.push(tr.label);
-            }
-          });
-          plot_.plotRef.draw();
-          e.preventDefault();
-        });
-      });
-      $$$('#note').classList.remove("blank");
+      $$$('trace-details-sk').displayRange(begin, end);
+      $$$('trace-details-sk').setParams(item.series.label, item.series._params);
     });
 
 
@@ -411,8 +377,8 @@ var skiaperf = (function() {
     });
 
     // Remove all other traces when this is clicked.
-    $$$('#note .make-solo').addEventListener('click', function(e) {
-      var key = $$$('#note').dataset.key;
+    $$$('trace-details-sk').addEventListener('only', function(e) {
+      var key = e.detail.id;
       if (key) {
         var trace = null;
         var len = traces__.length;
@@ -425,11 +391,10 @@ var skiaperf = (function() {
           traces__.splice(0, len, trace);
         }
       }
-      e.preventDefault();
     });
 
     // Remove all traces that aren't currently highlighted.
-    $$$('#note .group-only').addEventListener('click', function() {
+    $$$('trace-details-sk').addEventListener('group', function() {
       for (var i = traces__.length-1; i >= 0; i--) {
         if (-1 == plot_.curHighlightedLines.indexOf(traces__[i].label)) {
           traces__.splice(i, 1);
@@ -438,8 +403,8 @@ var skiaperf = (function() {
     });
 
     // Remove this trace.
-    $$$('#note .remove').addEventListener('click', function() {
-      var key = $$$('#note').dataset.key;
+    $$$('trace-details-sk').addEventListener('remove', function(e) {
+      var key = e.detail.id;
       for (var i = 0, len = traces__.length; i < len; i++) {
         if (key == traces__[i].label) {
           traces__.splice(i, 1);
@@ -613,6 +578,10 @@ var skiaperf = (function() {
       if (navigation_.loading_ == false) {
         window.history.pushState(null, "", "#");
       }
+    });
+
+    $$$('trace-details-sk').addEventListener('highlightGroup', function(e) {
+      navigation_.plot_.highlightGroup(e.detail.key, e.detail.value);
     });
 
     sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
