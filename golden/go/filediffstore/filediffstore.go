@@ -247,8 +247,9 @@ func (fs *FileDiffStore) Get(dMain string, dRest []string) (map[string]*diff.Dif
 	//    populated and returned.
 	digestsToDiffMetrics := make(map[string]*diff.DiffMetrics, len(dRest))
 
-	// If the input is empty then we are done. We are doing this here, because if the call to
-	// ensureDigestInCache fails we likely have a programming error and we want to catch that.
+	// If the input is empty then we are done. We are doing this here, because
+	// if the call to ensureDigestInCache fails we likely have a programming
+	// error and we want to catch it.
 	if len(dRest) == 0 {
 		return digestsToDiffMetrics, nil
 	}

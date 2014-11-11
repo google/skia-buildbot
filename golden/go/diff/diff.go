@@ -16,7 +16,8 @@ type DiffMetrics struct {
 	PixelDiffFilePath string
 	// Contains the maximum difference between the images for each R/G/B channel.
 	MaxRGBDiffs []int
-	DimDiffer   bool
+	// True if the dimensions of the compared images are different.
+	DimDiffer bool
 }
 
 type DiffStore interface {

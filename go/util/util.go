@@ -61,7 +61,7 @@ func MaxInt(a, b int) int {
 	return a
 }
 
-// MinInt returns smallest integer of a and b.
+// MinInt returns the smaller integer of a and b.
 func MinInt(a, b int) int {
 	if a < b {
 		return a
