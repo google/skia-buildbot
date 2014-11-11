@@ -55,18 +55,18 @@ type Ingester struct {
 
 	// Metrics about the ingestion process.
 
-	elapsedTimePerUpdate           metrics.Timer
+	elapsedTimePerUpdate           metrics.Gauge
 	metricsProcessed               metrics.Counter
 	lastSuccessfulUpdate           time.Time
-	timeSinceLastSucceessfulUpdate metrics.Timer
+	timeSinceLastSucceessfulUpdate metrics.Gauge
 }
 
-func newTimer(name, suffix string) metrics.Timer {
-	return metrics.NewRegisteredTimer("ingester."+name+"."+suffix, metrics.DefaultRegistry)
+func newGauge(name, suffix string) metrics.Gauge {
+	return metrics.NewRegisteredGauge("ingester."+name+".gauge."+suffix, metrics.DefaultRegistry)
 }
 
 func newCounter(name, suffix string) metrics.Counter {
-	return metrics.NewRegisteredCounter("ingester."+name+"."+suffix, metrics.DefaultRegistry)
+	return metrics.NewRegisteredCounter("ingester."+name+".gauge."+suffix, metrics.DefaultRegistry)
 }
 
 // NewIngester creates an Ingester given the repo and tilestore specified.
@@ -83,16 +83,16 @@ func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, 
 		hashToNumber:                   map[string]int{},
 		ingestResults:                  f,
 		storageBaseDir:                 storageBaseDir,
-		elapsedTimePerUpdate:           newTimer(metricName, "update"),
+		elapsedTimePerUpdate:           newGauge(metricName, "update"),
 		metricsProcessed:               newCounter(metricName, "processed"),
 		lastSuccessfulUpdate:           time.Now(),
-		timeSinceLastSucceessfulUpdate: newTimer(metricName, "time-since-last-successful-update"),
+		timeSinceLastSucceessfulUpdate: newGauge(metricName, "time-since-last-successful-update"),
 	}
 
-	i.timeSinceLastSucceessfulUpdate.UpdateSince(i.lastSuccessfulUpdate)
+	i.timeSinceLastSucceessfulUpdate.Update(int64(time.Now().Sub(i.lastSuccessfulUpdate).Seconds()))
 	go func() {
 		for _ = range time.Tick(time.Minute) {
-			i.timeSinceLastSucceessfulUpdate.UpdateSince(i.lastSuccessfulUpdate)
+			i.timeSinceLastSucceessfulUpdate.Update(int64(time.Now().Sub(i.lastSuccessfulUpdate).Seconds()))
 		}
 	}()
 	return i, nil
@@ -254,7 +254,7 @@ func (i *Ingester) Update(pull bool, lastIngestTime int64) error {
 		return err
 	}
 	i.lastSuccessfulUpdate = time.Now()
-	i.elapsedTimePerUpdate.UpdateSince(begin)
+	i.elapsedTimePerUpdate.Update(int64(time.Now().Sub(begin).Seconds()))
 	glog.Info("Finished ingest.")
 	return nil
 }
