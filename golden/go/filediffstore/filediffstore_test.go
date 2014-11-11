@@ -13,7 +13,7 @@ import (
 )
 
 import (
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 )
 
 const (
@@ -31,13 +31,17 @@ var (
 		NumDiffPixels:     2233,
 		PixelDiffPercent:  0.8932,
 		PixelDiffFilePath: filepath.Join(os.TempDir(), fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION)),
-		MaxRGBDiffs:       []int{0, 0, 1}}
+		MaxRGBDiffs:       []int{0, 0, 1},
+		DimDiffer:         false,
+	}
 	// DiffMetrics between TEST_DIGEST1 and TEST_DIGEST3.
 	expectedDiffMetrics1_3 = &diff.DiffMetrics{
 		NumDiffPixels:     250000,
 		PixelDiffPercent:  100,
 		PixelDiffFilePath: filepath.Join(os.TempDir(), fmt.Sprintf("%s-%s.%s", TEST_DIGEST3, TEST_DIGEST1, DIFF_EXTENSION)),
-		MaxRGBDiffs:       []int{248, 91, 132}}
+		MaxRGBDiffs:       []int{248, 90, 113},
+		DimDiffer:         true,
+	}
 )
 
 func getTestFileDiffStore(localImgDir, localDiffMetricsDir, storageBaseDir string) *FileDiffStore {

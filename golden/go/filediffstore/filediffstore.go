@@ -247,12 +247,11 @@ func (fs *FileDiffStore) Get(dMain string, dRest []string) (map[string]*diff.Dif
 	//    populated and returned.
 	digestsToDiffMetrics := make(map[string]*diff.DiffMetrics, len(dRest))
 
-	// If the input is empty then we are done. We are doing this here, because if the call to 
+	// If the input is empty then we are done. We are doing this here, because if the call to
 	// ensureDigestInCache fails we likely have a programming error and we want to catch that.
-        if len(dRest) == 0 {
+	if len(dRest) == 0 {
 		return digestsToDiffMetrics, nil
 	}
-
 
 	// 3. Create the channel where responses from workers will be received in.
 	respCh := make(chan *WorkerResp, len(dRest))
@@ -296,10 +295,10 @@ func (fs *FileDiffStore) AbsPath(digests []string) map[string]string {
 	//    and returned.
 	digestsToPaths := make(map[string]string, len(digests))
 
-        // If the input is empty then we are done. 
-        if len(digests) == 0 {
-                return digestsToPaths
-        }
+	// If the input is empty then we are done.
+	if len(digests) == 0 {
+		return digestsToPaths
+	}
 
 	// 2. Create the channel where responses from workers will be received
 	//    in.

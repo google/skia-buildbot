@@ -61,6 +61,14 @@ func MaxInt(a, b int) int {
 	return a
 }
 
+// MinInt returns smallest integer of a and b.
+func MinInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // AbsInt returns the absolute value of v.
 func AbsInt(v int) int {
 	if v < 0 {

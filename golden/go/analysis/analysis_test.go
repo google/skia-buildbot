@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -80,11 +81,19 @@ func setupAnalyzer(t *testing.T) *Analyzer {
 	gsBucketName := gs.GS_PROJECT_BUCKET
 	tileStoreDir := "../../../../../../../checkouts/tiles"
 
+	// Skip this test if the directories don't exist.
+	if _, err := os.Stat(imageDir); os.IsNotExist(err) {
+		t.Skipf("Skiping test because %s does not exist.", imageDir)
+	}
+	if _, err := os.Stat(tileStoreDir); os.IsNotExist(err) {
+		t.Skipf("Skiping test because %s does not exist.", tileStoreDir)
+	}
+
 	oauthClient, err := auth.RunFlow(auth.DefaultOAuthConfig)
 	assert.Nil(t, err)
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore := filediffstore.NewFileDiffStore(oauthClient, imageDir, gsBucketName)
+	diffStore := filediffstore.NewFileDiffStore(oauthClient, imageDir, gsBucketName, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
 	expStore := expstorage.NewMemExpectationsStore()
 	tileStore := filetilestore.NewFileTileStore(tileStoreDir, "golden", -1)
 
