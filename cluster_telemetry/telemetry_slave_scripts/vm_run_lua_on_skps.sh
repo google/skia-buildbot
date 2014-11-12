@@ -36,6 +36,7 @@ source vm_utils.sh
 WORKER_FILE=LUA.$RUN_ID
 LUA_FILE=$RUN_ID.lua
 LUA_OUTPUT_FILE=$RUN_ID.lua-output
+LUA_LOG_FILE=$RUN_ID.lua.log
 create_worker_file $WORKER_FILE
 
 # Sync trunk.
@@ -58,10 +59,11 @@ gsutil cp $LUA_SCRIPT_GS_LOCATION /tmp/$LUA_FILE
 
 # Run lua_pictures.
 cd out/Release
-./lua_pictures --skpPath /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/ --luaFile /tmp/$LUA_FILE > /tmp/$LUA_OUTPUT_FILE
+./lua_pictures --skpPath /b/storage/skps/$PAGESETS_TYPE/$CHROMIUM_BUILD_DIR/ --luaFile /tmp/$LUA_FILE > /tmp/$LUA_OUTPUT_FILE &> /tmp/$LUA_LOG_FILE
 
-# Copy the output of the lua script to Google Storage.
+# Copy the outputs of the lua script to Google Storage.
 gsutil cp /tmp/$LUA_OUTPUT_FILE gs://chromium-skia-gm/telemetry/lua-outputs/slave$SLAVE_NUM/$LUA_OUTPUT_FILE
+gsutil cp /tmp/$LUA_LOG_FILE gs://chromium-skia-gm/telemetry/lua-logs/slave$SLAVE_NUM/$LUA_LOG_FILE
 
 # Clean up logs and the worker file.
 rm -rf /tmp/*${RUN_ID}*
