@@ -50,16 +50,27 @@ func getPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
 	return (float32(numDiffPixels) * 100) / float32(totalPixels)
 }
 
-// Finds and stores the max RGB differences between the specified Colors.
-func fillMaxRGBDiffs(color1, color2 color.Color, maxRGBDiffs []int) {
+// colorsDiffer compares two color values and returns true if they are
+// different. If they are different it updates maxRGBDiffs to contain the
+// maximum difference over multiple calls.
+func colorsDiffer(color1, color2 color.Color, maxRGBDiffs []int) bool {
 	r1, g1, b1, _ := color1.RGBA()
 	r2, g2, b2, _ := color2.RGBA()
+
+	// Ignore the alpha channel for comparison.
+	// TODO (stephana): Figure out how to handle alpha channel comparisons.
+	if (r1 == r2) && (g1 == g2) && (b1 == b2) {
+		return false
+	}
+
 	rDiff := util.AbsInt(int(r1>>8) - int(r2>>8))
 	gDiff := util.AbsInt(int(g1>>8) - int(g2>>8))
 	bDiff := util.AbsInt(int(b1>>8) - int(b2>>8))
 	maxRGBDiffs[0] = util.MaxInt(maxRGBDiffs[0], rDiff)
 	maxRGBDiffs[1] = util.MaxInt(maxRGBDiffs[1], gDiff)
 	maxRGBDiffs[2] = util.MaxInt(maxRGBDiffs[2], bDiff)
+
+	return true
 }
 
 // Diff is a utility function that calculates the DiffMetrics for the provided
@@ -74,8 +85,8 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 
 	// Get the bounds of the resulting image. If they dimensions match they
 	// will be identical to the result bounds. Fill the image with black pixels.
-	resultWidth := util.MaxInt(img1Bounds.Dy(), img2Bounds.Dy())
-	resultHeight := util.MaxInt(img1Bounds.Dx(), img2Bounds.Dx())
+	resultWidth := util.MaxInt(img1Bounds.Dx(), img2Bounds.Dx())
+	resultHeight := util.MaxInt(img1Bounds.Dy(), img2Bounds.Dy())
 	resultImg := image.NewGray(image.Rect(0, 0, resultWidth, resultHeight))
 	draw.Draw(resultImg, image.Rect(0, 0, resultWidth, resultHeight), image.White, image.ZP, draw.Src)
 
@@ -90,9 +101,7 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 			color1 := img1.At(x, y)
 			color2 := img2.At(x, y)
 
-			if color1 != color2 {
-				fillMaxRGBDiffs(color1, color2, maxRGBDiffs)
-			} else {
+			if !colorsDiffer(color1, color2, maxRGBDiffs) {
 				numDiffPixels--
 				resultImg.Set(x, y, color.Black)
 			}

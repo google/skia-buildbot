@@ -28,21 +28,21 @@ num_diff_pixel = xMax * yMax
 max_rgba_diff = [0, 0, 0, 0]
 
 for x in xrange(xMin):
-	for y in xrange(yMin):
-		p1 = px_img1[x,y]
-		p2 = px_img2[x,y]
-		if p1 != p2:
-			for channel in range(4):
-				pdiff = abs(p1[channel]-p2[channel])
-				max_rgba_diff[channel] = max(max_rgba_diff[channel], pdiff)
-		else:
-			num_diff_pixel -= 1
+    for y in xrange(yMin):
+        p1 = px_img1[x, y][:3]
+        p2 = px_img2[x, y][:3]
+        if p1 != p2:
+            for channel in range(len(p1)):
+                pdiff = abs(p1[channel]-p2[channel])
+                max_rgba_diff[channel] = max(max_rgba_diff[channel], pdiff)
+        else:
+            num_diff_pixel -= 1
 
 image_sizes_differ = (img1.size[0] != img2.size[0]) or (img1.size[1] != img2.size[1])
 total_px = xMax * yMax
 pixel_diff_percent = (num_diff_pixel / float(total_px)) * 100
 if pixel_diff_percent > 100.0:
-	print "Error: Percent difference > 100%"
+    print "Error: Percent difference > 100%"
 
 print "Image Sizes Differ:", image_sizes_differ
 print "TotalNumPixels:    ", total_px
