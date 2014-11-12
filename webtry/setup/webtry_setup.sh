@@ -74,12 +74,14 @@ sudo su - webtry -c /home/webtry/continue_install.sh
 
 banner "Setting up system initialization scripts"
 
-sudo cp sys/webtry_init /etc/init.d/webtry
-sudo cp sys/logserver_init /etc/init.d/logserver
-sudo cp sys/webtry_monit /etc/monit/conf.d/webtry
-sudo cp sys/webtry_squid /etc/squid3/squid.conf
-sudo chmod 744 /etc/init.d/webtry
-sudo chmod 744 /etc/init.d/logserver
+ROOT_PARAMS="-D --verbose --backup=none --group=root --owner=root --preserve-timestamps -T"
+EXE_FILE="--mode=755"
+CONFIG_FILE="--mode=666"
+
+sudo install $ROOT_PARAMS $EXE_FILE sys/webtry_init /etc/init.d/webtry
+sudo install $ROOT_PARAMS $EXE_FILE sys/logserver_init /etc/init.d/logserver
+sudo install $ROOT_PARAMS $CONFIG_FILE sys/webtry_monit /etc/monit/conf.d/webtry
+sudo install $ROOT_PARAMS $CONFIG_FILE sys/webtry_squid /etc/squid3/squid.conf
 
 # Confirm that monit is happy.
 sudo monit -t
