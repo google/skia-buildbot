@@ -62,11 +62,6 @@ table, td {
   border: none;
 }
 
-#chart {
-    width: 100%;
-    height: 400px;
-}
-
 .hidden {
     display: none;
 }

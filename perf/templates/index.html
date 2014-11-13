@@ -5,7 +5,6 @@
 
     {{template "header.html" .}}
 
-
     <script src="/res/js/logic.js"></script>
     <style type="text/css" media="screen">
       paper-button {
@@ -35,7 +34,7 @@
               <paper-button id=shortcut title="Create shortcut."> <core-icon icon="link"></core-icon></paper-button>
               <highlightbar-sk flex></highlightbar-sk>
             </div>
-            <div id="chart"> </div>
+            <plot-sk></plot-sk>
             <div horizontal layout>
               <paper-button raised id="nuke-plot">Remove all traces</paper-button>
               <paper-button raised id="reset-axes">Reset axes</paper-button>
@@ -43,7 +42,7 @@
             </div>
             <div horizontal layout center>
               <paper-input flex type="text" id="formula" multiline value="" label='Formula' size=80></paper-input>
-              <paper-button id="add-calculated">Add calculated trace</paper-button> <a href="/help" target=_blank><core-icon icon="help"></core-icon></a>
+              <paper-button id="add-calculated">Add</paper-button> <a href="/help" target=_blank><core-icon icon="help"></core-icon></a>
             </div>
             <query-sk></query-sk>
           </div>
