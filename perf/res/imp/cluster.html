@@ -122,7 +122,8 @@
 
       .clClusterSize,
       .clLeastSquares,
-      .clStepSize
+      .clStepSize,
+      .clBugs
       {
         margin-right: 2em;
       }
@@ -162,6 +163,7 @@
           Least Squares Error: <span class=clLeastSquares>{{summary.StepFit.LeastSquares | trunc}}</span>
           Step Size: <span class=clStepSize>{{summary.StepFit.StepSize | trunc}}</span>
           <span class=clBugs>Bugs:</span>
+          Commit: <a href="https://skia.googlesource.com/skia/+/{{summary.Hash}}">{{summary.Hash | truncHash}}</a>
         </p>
         <template repeat="{{b in summary.Bugs}}">
            <a class=clBug href="https://code.google.com/p/skia/issues/detail?id={{b}}">{{b}}</a>&nbsp;
@@ -261,6 +263,7 @@
           this.dataset.steplse        = this.summary.StepFit.LeastSquares;
           this.dataset.stepsize       = this.summary.StepFit.StepSize;
           this.dataset.stepregression = this.summary.StepFit.Regression;
+          this.dataset.timestamp      = this.summary.Timestamp;
 
           this.summary.ParamSummaries.sort(function(a, b){
             return b[0].Weight - a[0].Weight;
@@ -286,6 +289,12 @@
           */
         trunc: function(value) {
           return (+value).toPrecision(3);
+        },
+
+        truncHash: function(value) {
+          if (value) {
+            return value.substring(0, 7);
+          }
         },
 
       });
