@@ -6,13 +6,16 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"sort"
 	"strings"
+	"time"
 
+	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/common"
 
 	"github.com/golang/glog"
@@ -20,6 +23,7 @@ import (
 
 var port = flag.String("port", ":10115", "HTTP service address (e.g., ':10115')")
 var dir = flag.String("dir", "/tmp/glog", "Directory to serve log files from.")
+var graphiteServer = flag.String("graphite_server", "skiamonitoring:2003", "Where is Graphite metrics ingestion server running.")
 
 // FileServer returns a handler that serves HTTP requests
 // with the contents of the file system rooted at root.
@@ -54,25 +58,71 @@ func (p FileInfoSlice) Len() int           { return len(p) }
 func (p FileInfoSlice) Less(i, j int) bool { return p[i].Name() < p[j].Name() }
 func (p FileInfoSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
+// dirList write the directory list to the HTTP response.
+//
+// glog convention is that log files are created in the following format:
+// "ingest.skia-testing-b.perf.log.ERROR.20141015-133007.3273"
+// where the first word is the name of the app.
+// glog also creates symlinks that look like "ingest.ERROR". These
+// symlinks point to the latest log type.
+// This method displays sorted symlinks first and then displays sorted sections for
+// all apps. Files and directories not in the glog format are bucketed into an
+// "unknown" app.
 func dirList(w http.ResponseWriter, f http.File) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, "<pre>\n")
+	// Datastructures to populate and output.
+	topLevelSymlinks := make([]os.FileInfo, 0)
+	appToLogs := make(map[string][]os.FileInfo)
 	for {
-		dirs, err := f.Readdir(10000)
-		sort.Sort(FileInfoSlice(dirs))
-		if err != nil || len(dirs) == 0 {
+		fileInfos, err := f.Readdir(10000)
+		if err != nil || len(fileInfos) == 0 {
 			break
 		}
-		for _, d := range dirs {
-			name := d.Name()
-			if d.IsDir() {
-				name += "/"
+		// Prepopulate the datastructures.
+		for _, fileInfo := range fileInfos {
+			name := fileInfo.Name()
+			nameTokens := strings.Split(name, ".")
+			if len(nameTokens) == 2 {
+				topLevelSymlinks = append(topLevelSymlinks, fileInfo)
+			} else if len(nameTokens) > 1 {
+				appToLogs[nameTokens[0]] = append(appToLogs[nameTokens[0]], fileInfo)
+			} else {
+				// File all directories or files created by something other than
+				// glog under "unknown" app.
+				appToLogs["unknown"] = append(appToLogs["unknown"], fileInfo)
 			}
-			url := url.URL{Path: name}
-			fmt.Fprintf(w, "%s <a href=\"%s\">%s</a>\n", d.ModTime(), url.String(), template.HTMLEscapeString(name))
+		}
+		// First output the top level symlinks.
+		sort.Sort(FileInfoSlice(topLevelSymlinks))
+		for _, fileInfo := range topLevelSymlinks {
+			writeFileInfo(w, fileInfo)
+		}
+		// Then output the logs of all the different apps.
+		var keys []string
+		for k := range appToLogs {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, app := range keys {
+			appFileInfos := appToLogs[app]
+			sort.Sort(FileInfoSlice(appFileInfos))
+			fmt.Fprintf(w, "\n===== %s =====\n\n", template.HTMLEscapeString(app))
+			for _, fileInfo := range appFileInfos {
+				writeFileInfo(w, fileInfo)
+			}
 		}
 	}
 	fmt.Fprintf(w, "</pre>\n")
+}
+
+func writeFileInfo(w http.ResponseWriter, fileInfo os.FileInfo) {
+	name := fileInfo.Name()
+	if fileInfo.IsDir() {
+		name += "/"
+	}
+	url := url.URL{Path: name}
+	fmt.Fprintf(w, "%s <a href=\"%s\">%s</a>\n", fileInfo.ModTime(), url.String(), template.HTMLEscapeString(name))
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name string) {
@@ -109,6 +159,16 @@ func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name 
 
 func main() {
 	common.Init()
+
+	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
+	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
+	addr, _ := net.ResolveTCPAddr("tcp", *graphiteServer)
+	hostname, err := os.Hostname()
+	if err != nil {
+		glog.Fatalf("Failed to get Hostname: %s", err)
+	}
+	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "skialogserver."+hostname, addr)
+
 	if err := os.MkdirAll(*dir, 0777); err != nil {
 		glog.Fatalf("Failed to create dir for log files: %s", err)
 	}
