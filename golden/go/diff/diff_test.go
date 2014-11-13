@@ -23,7 +23,7 @@ func TestDiff(t *testing.T) {
 			NumDiffPixels:     16,
 			PixelDiffPercent:  0.0064,
 			PixelDiffFilePath: diffFilePath1,
-			MaxRGBDiffs:       []int{54, 100, 125},
+			MaxRGBADiffs:      []int{54, 100, 125, 0},
 			DimDiffer:         false})
 	diffFilePath2 := filepath.Join(os.TempDir(), "diff2.png")
 	defer os.Remove(diffFilePath2)
@@ -32,7 +32,7 @@ func TestDiff(t *testing.T) {
 			NumDiffPixels:     2233,
 			PixelDiffPercent:  0.8932,
 			PixelDiffFilePath: diffFilePath2,
-			MaxRGBDiffs:       []int{0, 0, 1},
+			MaxRGBADiffs:      []int{0, 0, 1, 0},
 			DimDiffer:         false})
 	// Assert the same image.
 	diffFilePath3 := filepath.Join(os.TempDir(), "diff3.png")
@@ -42,7 +42,7 @@ func TestDiff(t *testing.T) {
 			NumDiffPixels:     0,
 			PixelDiffPercent:  0,
 			PixelDiffFilePath: diffFilePath3,
-			MaxRGBDiffs:       []int{0, 0, 0},
+			MaxRGBADiffs:      []int{0, 0, 0, 0},
 			DimDiffer:         false})
 	// Assert different images with different dimensions.
 	diffFilePath4 := filepath.Join(os.TempDir(), "diff4.png")
@@ -52,7 +52,7 @@ func TestDiff(t *testing.T) {
 			NumDiffPixels:     571674,
 			PixelDiffPercent:  89.324066,
 			PixelDiffFilePath: diffFilePath4,
-			MaxRGBDiffs:       []int{255, 255, 255},
+			MaxRGBADiffs:      []int{255, 255, 255, 0},
 			DimDiffer:         true})
 	// Assert with images that match in dimensions but where all pixels differ.
 	diffFilePath5 := filepath.Join(os.TempDir(), "diff5.png")
@@ -62,7 +62,7 @@ func TestDiff(t *testing.T) {
 			NumDiffPixels:     250000,
 			PixelDiffPercent:  100.0,
 			PixelDiffFilePath: diffFilePath5,
-			MaxRGBDiffs:       []int{255, 255, 255},
+			MaxRGBADiffs:      []int{255, 255, 255, 0},
 			DimDiffer:         false})
 
 	// Assert different images where neither fits into the other.
@@ -73,7 +73,7 @@ func TestDiff(t *testing.T) {
 			NumDiffPixels:     172466,
 			PixelDiffPercent:  74.8550347222,
 			PixelDiffFilePath: diffFilePath6,
-			MaxRGBDiffs:       []int{255, 255, 255},
+			MaxRGBADiffs:      []int{255, 255, 255, 0},
 			DimDiffer:         true})
 	// Make sure the metric is symmetric.
 	diffFilePath7 := filepath.Join(os.TempDir(), "diff7.png")
@@ -83,7 +83,7 @@ func TestDiff(t *testing.T) {
 			NumDiffPixels:     172466,
 			PixelDiffPercent:  74.8550347222,
 			PixelDiffFilePath: diffFilePath7,
-			MaxRGBDiffs:       []int{255, 255, 255},
+			MaxRGBADiffs:      []int{255, 255, 255, 0},
 			DimDiffer:         true})
 
 	// Compare two images where one has an alpha channel and the other doesn't.
@@ -91,10 +91,21 @@ func TestDiff(t *testing.T) {
 	defer os.Remove(diffFilePath8)
 	assertDiffs(t, "b716a12d5b98d04b15db1d9dd82c82ea", "df1591dde35907399734ea19feb76663",
 		&DiffMetrics{
-			NumDiffPixels:     8750,
-			PixelDiffPercent:  2.84830729167,
+			NumDiffPixels:     307200,
+			PixelDiffPercent:  100,
 			PixelDiffFilePath: diffFilePath8,
-			MaxRGBDiffs:       []int{255, 2, 255},
+			MaxRGBADiffs:      []int{255, 2, 255, 0},
+			DimDiffer:         false})
+
+	// Compare two images where the alpha differs.
+	diffFilePath9 := filepath.Join(os.TempDir(), "diff9.png")
+	defer os.Remove(diffFilePath9)
+	assertDiffs(t, "df1591dde35907399734ea19feb76663", "df1591dde35907399734ea19feb76663-6-alpha-diff",
+		&DiffMetrics{
+			NumDiffPixels:     6,
+			PixelDiffPercent:  0.001953125,
+			PixelDiffFilePath: diffFilePath9,
+			MaxRGBADiffs:      []int{0, 0, 0, 235},
 			DimDiffer:         false})
 
 }

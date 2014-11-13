@@ -51,7 +51,7 @@ func (m GUIDiffMetrics) Swap(i, j int) { m[i], m[j] = m[j], m[i] }
 type GUIDiffMetric struct {
 	NumDiffPixels    int     `json:"numDiffPixels"`
 	PixelDiffPercent float32 `json:"pixelDiffPercent"`
-	MaxRGBDiffs      []int   `json:"maxRGBDiffs"`
+	MaxRGBADiffs     []int   `json:"maxRGBADiffs"`
 	DiffImgUrl       string  `json:"diffImgUrl"`
 	PosDigest        string  `json:"posDigest"`
 }
@@ -147,7 +147,7 @@ func (a *Analyzer) newGUIDiffMetrics(digest string, posDigests []string) GUIDiff
 		result = append(result, &GUIDiffMetric{
 			NumDiffPixels:    dm.NumDiffPixels,
 			PixelDiffPercent: dm.PixelDiffPercent,
-			MaxRGBDiffs:      dm.MaxRGBDiffs,
+			MaxRGBADiffs:     dm.MaxRGBADiffs,
 			DiffImgUrl:       a.pathToURLConverter(dm.PixelDiffFilePath),
 			PosDigest:        posDigest,
 		})

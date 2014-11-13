@@ -31,7 +31,7 @@ var (
 		NumDiffPixels:     2233,
 		PixelDiffPercent:  0.8932,
 		PixelDiffFilePath: filepath.Join(os.TempDir(), fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION)),
-		MaxRGBDiffs:       []int{0, 0, 1},
+		MaxRGBADiffs:      []int{0, 0, 1, 0},
 		DimDiffer:         false,
 	}
 	// DiffMetrics between TEST_DIGEST1 and TEST_DIGEST3.
@@ -39,7 +39,7 @@ var (
 		NumDiffPixels:     250000,
 		PixelDiffPercent:  100,
 		PixelDiffFilePath: filepath.Join(os.TempDir(), fmt.Sprintf("%s-%s.%s", TEST_DIGEST3, TEST_DIGEST1, DIFF_EXTENSION)),
-		MaxRGBDiffs:       []int{248, 90, 113},
+		MaxRGBADiffs:      []int{248, 90, 113, 0},
 		DimDiffer:         true,
 	}
 )

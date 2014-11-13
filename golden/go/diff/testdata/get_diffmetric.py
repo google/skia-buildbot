@@ -10,11 +10,13 @@
 import sys
 from PIL import Image
 
+## Main program.
 img1_path = sys.argv[1]
 img2_path = sys.argv[2]
 
 img1 = Image.open(img1_path)
 img2 = Image.open(img2_path)
+has_alpha = (img1.mode == img2.mode)
 
 xMin = min(img1.size[0], img2.size[0])
 yMin = min(img1.size[1], img2.size[1])
@@ -27,11 +29,13 @@ px_img2 = img2.load()
 num_diff_pixel = xMax * yMax
 max_rgba_diff = [0, 0, 0, 0]
 
+
 for x in xrange(xMin):
     for y in xrange(yMin):
-        p1 = px_img1[x, y][:3]
-        p2 = px_img2[x, y][:3]
-        if p1 != p2:
+        p1 = (px_img1[x, y] + (0xFF,))[:4]
+        p2 = (px_img2[x, y] + (0xFF,))[:4]
+
+        if (p1 != p2) or not has_alpha:
             for channel in range(len(p1)):
                 pdiff = abs(p1[channel]-p2[channel])
                 max_rgba_diff[channel] = max(max_rgba_diff[channel], pdiff)
