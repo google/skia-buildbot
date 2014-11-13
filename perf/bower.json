@@ -16,10 +16,10 @@
   "dependencies": {
     "flot": "~0.8.3",
     "native-promise-only": "~0.7.5-e",
-    "polymer": "Polymer/polymer#~0.4.2",
-    "core-elements": "Polymer/core-elements#~0.4.2",
-    "paper-elements": "Polymer/paper-elements#~0.4.2",
-    "platform": "Polymer/platform#~0.4.2",
+    "polymer": "Polymer/polymer#~0.5.1",
+    "core-elements": "Polymer/core-elements#~0.5.1",
+    "paper-elements": "Polymer/paper-elements#~0.5.1",
+    "webcomponentsjs": "Polymer/webcomponentsjs#^0.5.1",
     "jquery": "~2.1.1"
   },
   "resolutions": {

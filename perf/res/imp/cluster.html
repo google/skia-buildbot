@@ -167,18 +167,19 @@
            <a class=clBug href="https://code.google.com/p/skia/issues/detail?id={{b}}">{{b}}</a>&nbsp;
         </template>
 
-        <div id=clStatus class="clStatus {{ {hidden: summary.ID == -1} | tokenList }} disabled" vertical layout>
-          <paper-shadow z="1"> </paper-shadow>
-          <p class="disabledMessage">You must be logged in to change the status.</p>
-          <paper-radio-group id=status selected="{{cachedStatus}}" horizontal layout>
-            <b class=status>Status:</b>
-            <paper-radio-button name="New" label="New"></paper-radio-button>
-            <paper-radio-button name="Ignore" label="Ignore"></paper-radio-button>
-            <paper-radio-button name="Bug" label="Bug"></paper-radio-button>
-          </paper-radio-group>
-          <paper-input value="{{summary.Message}}" label="Note" id="message"></paper-input>
-          <paper-button flex self-end id=update>Update</paper-button>
-        </div>
+        <paper-shadow z="1">
+          <div id=clStatus class="clStatus {{ {hidden: summary.ID == -1} | tokenList }} disabled" vertical layout>
+            <p class="disabledMessage">You must be logged in to change the status.</p>
+            <paper-radio-group id=status selected="{{cachedStatus}}" horizontal layout>
+              <b class=status>Status:</b>
+              <paper-radio-button name="New" label="New"></paper-radio-button>
+              <paper-radio-button name="Ignore" label="Ignore"></paper-radio-button>
+              <paper-radio-button name="Bug" label="Bug"></paper-radio-button>
+            </paper-radio-group>
+            <paper-input value="{{summary.Message}}" label="Note" id="message"></paper-input>
+            <paper-button flex self-end id=update>Update</paper-button>
+          </div>
+        </paper-shadow>
         <toggle-display-sk>Word Cloud</toggle-display-sk>
         <word-cloud-sk items="{{summary.ParamSummaries}}"></word-cloud-sk>
       </div>

@@ -81,6 +81,7 @@
     </div>
   </template>
   <script>
+    'use strict';
     Polymer({
       create: function() {
         // The parameters for the currently selected trace.
@@ -137,12 +138,12 @@
         e.preventDefault();
       },
 
-      // paramsChanged is called when params changes. When that happens,
+      // buildOrderedParams should be called when params changes. When that happens,
       // we rebuild orderedParams.
-      paramsChanged: function(oldParams, newParams) {
+      buildOrderedParams: function() {
         this.group = {};
-        newParams['id'] = this.id;
-        var keys = Object.keys(newParams);
+        this.params['id'] = this.id;
+        var keys = Object.keys(this.params);
         // Break the keys into lower and upper case and sort independently.
         var lower = keys.filter(function(s) {
           return s.toLowerCase()[0] === s[0];
@@ -154,8 +155,9 @@
         upper.sort();
         keys = [].concat(lower, upper);
         var ordered = [];
+        var that = this;
         keys.forEach(function(k) {
-          ordered.push({'key': k, 'value': newParams[k]});
+          ordered.push({'key': k, 'value': that.params[k]});
         });
         this.orderedParams = ordered;
       },
@@ -175,6 +177,7 @@
         this.$.outer.classList.remove('blank');
         this.id = id;
         this.params = params;
+        this.buildOrderedParams();
       },
 
       // displayRange takes the range of commit hashes to display.
@@ -190,7 +193,7 @@
         sk.get('/commits/' + query).then(function(html){
           that.$.commits.innerHTML = html;
         });
-      },
+      }
     });
   </script>
 </polymer-element>

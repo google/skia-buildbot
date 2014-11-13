@@ -30,7 +30,7 @@ module.exports = function(grunt) {
         src: [
           'res/js/common.js',
 
-          'third_party/bower_components/platform/platform.js',
+          'third_party/bower_components/webcomponentsjs/webcomponents.js',
 
           'third_party/bower_components/jquery/dist/jquery.min.js',
           'third_party/bower_components/flot/jquery.flot.js',
