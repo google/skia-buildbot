@@ -50,7 +50,7 @@ func Clone(repoUrl, dir string) (*GitInfo, error) {
 	cmd := exec.Command("git", "clone", repoUrl, dir)
 	_, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to clone %s into %s: %v", repoUrl, dir, err)
 	}
 	return NewGitInfo(dir, false)
 }
@@ -179,6 +179,17 @@ func (g GitInfo) GetFile(fileName, commit string) (string, error) {
 		return "", err
 	}
 	return string(b), nil
+}
+
+// InitalCommit returns the hash of the initial commit.
+func (g GitInfo) InitialCommit() (string, error) {
+	cmd := exec.Command("git", "rev-list", "--max-parents=0", "HEAD")
+	cmd.Dir = g.dir
+	b, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("Failed to determine initial commit: %v", err)
+	}
+	return strings.Trim(string(b), "\n"), nil
 }
 
 // ShortCommit stores the hash, author, and subject of a git commit.

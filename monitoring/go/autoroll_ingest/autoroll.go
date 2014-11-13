@@ -1,7 +1,7 @@
 /*
 	Generates AutoRoll data and pushes it into InfluxDB.
 */
-package main
+package autoroll_ingest
 
 import (
 	"path"
