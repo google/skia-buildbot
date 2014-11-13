@@ -908,26 +908,6 @@ _slave_host_dicts = {
     'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
-
-  # TODO(borenet): These buildslaves are actually not running, but they still
-  # appear in a slaves.cfg file. We list them here to avoid having to remove
-  # them from slaves.cfg in case we want to add them back in the future.
-  'extra_buildslaves_catchall': {
-    'slaves': [
-      ('skiabot-macmini-10_7-002', '2', False),
-      ('skiabot-macmini-10_7-003', '3', False),
-      ('skiabot-macmini-10_8-002', '2', False),
-      ('skiabot-macmini-10_8-003', '3', False),
-    ],
-    'copies': None,
-    'login_cmd': None,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
-    'path_to_buildbot': None,
-    'remote_access': False,
-    'launch_script': None,
-  },
 }
 
 
