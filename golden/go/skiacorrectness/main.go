@@ -72,8 +72,9 @@ func tileCountsHandler(w http.ResponseWriter, r *http.Request) {
 // testDetailsHandler returns sufficient information about the given
 // testName to triage digests.
 func testDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
 	testName := mux.Vars(r)["testname"]
-	result, err := analyzer.GetTestDetails(testName)
+	result, err := analyzer.GetTestDetails(testName, query)
 	if err != nil {
 		sendErrorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -246,6 +247,7 @@ func main() {
 	// TODO (stephana): Wrap the handlers in autogzip unless we defer that to
 	// the front-end proxy.
 	router.HandleFunc("/rest/counts", tileCountsHandler)
+	router.HandleFunc("/rest/triage", testDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
 

@@ -102,3 +102,26 @@ func GenerateID() (string, error) {
 	}
 	return fmt.Sprintf("%X", b), nil
 }
+
+// IntersectIntSets calculates the intersection of a list
+// of integer sets.
+func IntersectIntSets(sets []map[int]bool, minIdx int) []int {
+	resultSet := make(map[int]bool, len(sets[minIdx]))
+	for val := range sets[minIdx] {
+		resultSet[val] = true
+	}
+
+	for _, oneSet := range sets {
+		for k := range resultSet {
+			resultSet[k] = oneSet[k]
+		}
+	}
+
+	result := make([]int, 0, len(resultSet))
+	for k, v := range resultSet {
+		if v {
+			result = append(result, k)
+		}
+	}
+	return result
+}

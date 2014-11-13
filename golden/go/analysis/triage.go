@@ -9,7 +9,10 @@ import (
 )
 
 // GUITestDetails is an output type with triage information grouped by tests.
-type GUITestDetails map[string]*GUITestDetail
+type GUITestDetails struct {
+	AllParams map[string][]string       `json:"allParams"`
+	Tests     map[string]*GUITestDetail `json:"tests"`
+}
 
 // GUITestDetail contains the untriaged, positive and negative digests of
 // a test with all the information necessary to triage the digests.
@@ -55,7 +58,7 @@ type GUIDiffMetric struct {
 
 // getTestDetails processes a tile and calculates the diff metrics for all
 // untriaged digests.
-func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) GUITestDetails {
+func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 	glog.Infoln("Starting to extract test details.")
 	result := map[string]*GUITestDetail{}
 	totalTestCount := len(labeledTile.Traces)
@@ -113,7 +116,10 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) GUITestDetails {
 
 	glog.Infoln("Done extracting test details.")
 
-	return result
+	return &GUITestDetails{
+		AllParams: labeledTile.allParams,
+		Tests:     result,
+	}
 }
 
 func (a *Analyzer) incDigestInfo(digestMap map[string]*DigestInfo, digest string) {

@@ -23,14 +23,16 @@ type LabeledTrace struct {
 	CommitIds []int
 	Digests   []string
 	Labels    []types.Label
+	Id        int
 }
 
-func NewLabeledTrace(params map[string]string, capacity int) *LabeledTrace {
+func NewLabeledTrace(params map[string]string, capacity int, traceId int) *LabeledTrace {
 	return &LabeledTrace{
 		Params:    params,
 		CommitIds: make([]int, 0, capacity),
 		Digests:   make([]string, 0, capacity),
 		Labels:    make([]types.Label, 0, capacity),
+		Id:        traceId,
 	}
 }
 
@@ -52,12 +54,19 @@ type LabeledTile struct {
 	// Traces are indexed by the primary key (test name). This is somewhat
 	// redundant, but this also output format.
 	Traces map[string][]*LabeledTrace
+
+	// Set of all parameters and their values.
+	allParams map[string][]string
+
+	// Keeps track of unique ids for traces within this tile.
+	traceIdCounter int
 }
 
 func NewLabeledTile() *LabeledTile {
 	return &LabeledTile{
-		Commits: []*ptypes.Commit{},
-		Traces:  map[string][]*LabeledTrace{},
+		Commits:        []*ptypes.Commit{},
+		Traces:         map[string][]*LabeledTrace{},
+		traceIdCounter: 0,
 	}
 }
 
@@ -81,7 +90,8 @@ func (t *LabeledTile) getLabeledTrace(trace ptypes.Trace) (string, *LabeledTrace
 
 	// If we cannot find the trace in our set of tests we are adding a new
 	// labeled trace.
-	newLT := NewLabeledTrace(params, trace.Len())
+	newLT := NewLabeledTrace(params, trace.Len(), t.traceIdCounter)
+	t.traceIdCounter++
 	t.Traces[pKey] = append(t.Traces[pKey], newLT)
 	return pKey, newLT
 }
@@ -146,7 +156,13 @@ type Analyzer struct {
 	// Output data structures that are derived from currentTile.
 	currentTileCounts  *GUITileCounts
 	currentTestCounts  map[string]*GUITestCounts
-	currentTestDetails GUITestDetails
+	currentTestDetails *GUITestDetails
+
+	// Index to query the current tile.
+	index ParamIndex
+
+	// Maps from trace ids to the actual instances of LabeledTrace.
+	traceMap map[int]*LabeledTrace
 
 	// converter supplied by the client of the type to convert a path to a URL
 	pathToURLConverter PathToURLConverter
@@ -186,13 +202,38 @@ func (a *Analyzer) GetTileCounts() (*GUITileCounts, error) {
 // GetTestDetails returns the untriaged, positive and negative digests for a
 // specific test with the necessary information (diff metrics, image urls) to
 // assign a label to the untriaged digests.
-// TODO (stephana): In the future use a set of key value pairs to search over
-// all parameters identifying traces. The output will be the same.
-func (a *Analyzer) GetTestDetails(testName string) (GUITestDetails, error) {
+// If query is not empty then we will return traces that match the query.
+// If the query is empty and testName is not empty we will return the
+// traces of the corresponding test.If both query and testName are empty
+// we will return all traces.
+// TODO (stephana): If the result is too big we should add pagination.
+func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*GUITestDetails, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
-	return map[string]*GUITestDetail{testName: a.currentTestDetails[testName]}, nil
+	if (testName == "") && (len(query) == 0) {
+		return a.currentTestDetails, nil
+	}
+
+	if len(query) > 0 {
+		traces := a.queryTraces(query)
+		tempTile := NewLabeledTile()
+		tempTile.Commits = a.currentTile.Commits
+		tempTile.Traces = map[string][]*LabeledTrace{}
+		for _, t := range traces {
+			testName := t.Params[types.PRIMARY_KEY_FIELD]
+			if _, ok := tempTile.Traces[testName]; !ok {
+				tempTile.Traces[testName] = []*LabeledTrace{}
+			}
+			tempTile.Traces[testName] = append(tempTile.Traces[testName], t)
+		}
+		return a.getTestDetails(tempTile), nil
+	} else {
+		return &GUITestDetails{
+			AllParams: a.currentTestDetails.AllParams,
+			Tests:     map[string]*GUITestDetail{testName: a.currentTestDetails.Tests[testName]},
+		}, nil
+	}
 }
 
 // GetTestCounts returns the classification counts for a specific tests.
@@ -208,7 +249,7 @@ func (a *Analyzer) GetTestCounts(testName string) (*GUITestCounts, error) {
 
 // SetDigestLabels sets the labels for the given digest and records the user
 // that made the classification.
-func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClassification, userId string) (GUITestDetails, error) {
+func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClassification, userId string) (*GUITestDetails, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
@@ -227,10 +268,13 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 
 	result := map[string]*GUITestDetail{}
 	for testName := range labeledTestDigests {
-		result[testName] = a.currentTestDetails[testName]
+		result[testName] = a.currentTestDetails.Tests[testName]
 	}
 
-	return result, nil
+	return &GUITestDetails{
+		AllParams: a.currentTestDetails.AllParams,
+		Tests:     result,
+	}, nil
 }
 
 // loop is the main event loop.
@@ -307,6 +351,11 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 // updates the outputs and tile in the analyzer. If needsLocking is true
 // it will acquire the lock otherwise it assumes the calling function owns it.
 func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool) {
+	// Generate the lookup index for the tile and get all parameters.
+	var allParams map[string][]string
+	a.index, a.traceMap, allParams = getQueryIndex(labeledTile)
+	labeledTile.allParams = allParams
+
 	// calculate all the output data.
 	newTileCounts, newTestCounts := a.getOutputCounts(labeledTile)
 	newTestDetails := a.getTestDetails(labeledTile)

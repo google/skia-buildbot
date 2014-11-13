@@ -195,7 +195,7 @@ var skia = skia || {};
   *  the diff metrics.
   */
   ns.getUntriagedSorted = function(serverData, testName) {
-    var unt = robust_get(serverData, [testName, 'untriaged']);
+    var unt = robust_get(serverData, ['tests', testName, 'untriaged']);
     if (!unt) {
       return [];
     }
@@ -210,7 +210,7 @@ var skia = skia || {};
           // This will be done once triaging works. So we can test it
           // with real data.
           d = unt[digest].diffs[i];
-          posd = serverData[testName].positive[d.posDigest];
+          posd = serverData.tests[testName].positive[d.posDigest];
           posDiffs.push(new ns.DiffDigestInfo(d.posDigest, posd.imgUrl, posd.count, d));
         }
 
@@ -245,7 +245,7 @@ var skia = skia || {};
   * untriaged digests.
   */
   ns.getSortedPositives = function (serverData, testName) {
-    var pos = robust_get(serverData, [testName, 'positive']);
+    var pos = robust_get(serverData, ['tests', testName, 'positive']);
     if (!pos) {
       return [];
     }
