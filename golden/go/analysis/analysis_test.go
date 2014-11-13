@@ -33,7 +33,7 @@ func TestAnalyzer(t *testing.T) {
 	assert.Nil(t, err)
 
 	for testName, _ := range tileCounts.Counts {
-		testDetails, err := analyzer.GetTestDetails(testName)
+		testDetails, err := analyzer.GetTestDetails(testName, map[string][]string{})
 		assert.Nil(t, err)
 
 		triagedTests := map[string]types.TestClassification{}
@@ -41,7 +41,7 @@ func TestAnalyzer(t *testing.T) {
 		posDigests := map[string]bool{}
 		negDigests := map[string]bool{}
 		i := 0
-		for digest := range testDetails[testName].Untriaged {
+		for digest := range testDetails.Tests[testName].Untriaged {
 			if i%2 == 0 {
 				posDigests[digest] = true
 				triagedTests[testName][digest] = types.POSITIVE
@@ -52,13 +52,13 @@ func TestAnalyzer(t *testing.T) {
 			i++
 		}
 
-		assert.Equal(t, len(posDigests)+len(negDigests), len(testDetails[testName].Untriaged))
+		assert.Equal(t, len(posDigests)+len(negDigests), len(testDetails.Tests[testName].Untriaged))
 
 		// Set the digests and check if the result is correct.
 		result, err := analyzer.SetDigestLabels(triagedTests, "fakeUserId")
 		assert.Nil(t, err)
 
-		found := result[testName]
+		found := result.Tests[testName]
 		assert.NotNil(t, found)
 		assert.Equal(t, len(posDigests), len(found.Positive))
 		assert.Equal(t, len(negDigests), len(found.Negative))
