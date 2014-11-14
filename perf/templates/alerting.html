@@ -5,6 +5,13 @@
 
     {{template "header.html" .}}
 
+      <link href="/res/imp/sort.html" rel="import" />
+
+      <style type="text/css" media="screen">
+        sort-sk {
+          display: block;
+        }
+      </style>
     <link href="/res/imp/cluster.html" rel="import" />
     <script src="/res/js/alerting.js"></script>
 </head>
@@ -13,6 +20,14 @@
     {{template "titlebar.html" .}}
 
     <div id="container">
+      <sort-sk target=alerts>
+         <paper-button data-key="clustersize">Cluster Size </paper-button>
+         <paper-button data-key="stepregression">Regression </paper-button>
+         <paper-button data-key="stepsize">Step Size </paper-button>
+         <paper-button data-key="steplse">Least Squares</paper-button>
+         <paper-button data-key="timestamp">Step Time</paper-button>
+       </sort-sk>
+
       <section id=alerts> </section>
       <form action="/alert_reset/" method="POST" accept-charset="utf-8">
         <button type="submit">Delete all non-Bug alerts. (Dangerous!)</button>
@@ -20,5 +35,38 @@
     </div>
 
   </scaffold-sk>
+
+  <script type="text/javascript" charset="utf-8">
+    (function() {
+
+      function onLoad() {
+        document.body.style.cursor = 'wait';
+        sk.get('/alerting/').then(JSON.parse).then(function(json) {
+          var container = $$$('#alerts');
+          sk.clearChildren(container);
+          if (json.Clusters.length == 0) {
+            container.innerHTML = "No active clusters exist.";
+          } else {
+            json.Clusters.forEach(function(c){
+              var sum = document.createElement('cluster-summary-sk');
+              container.appendChild(sum);
+              sum.summary = c;
+              sum.fade = true;
+            });
+          }
+          document.body.style.cursor = 'auto';
+        }).catch(function(e){
+          document.body.style.cursor = 'auto';
+        });
+      };
+
+      if (document.readyState != 'loading') {
+        onLoad();
+      } else {
+        window.addEventListener('load', onLoad);
+      }
+
+    })();
+  </script>
 </body>
 </html>
