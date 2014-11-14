@@ -157,11 +157,11 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
         # Removing throttling to see if we get consistent results.
         # Enable CPU and GPU throttling.
         # adb shell "stop mpdecision; echo 1 > /sys/devices/system/cpu/cpu1/online; echo 1 > /sys/devices/system/cpu/cpu2/online; echo 1 > /sys/devices/system/cpu/cpu3/online; echo 1190400 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq; echo 1190400 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq; echo 1190400 > /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq; echo 1190400 > /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq; echo 200000000 > /sys/class/kgsl/kgsl-3d0/max_gpuclk"
-        echo "== Running eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chrome-shell $TELEMETRY_BENCHMARK $page_set_filename $EXTRA_ARGS $OUTPUT_DIR_ARG =="
-        eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chrome-shell $TELEMETRY_BENCHMARK $page_set_filename $EXTRA_ARGS $OUTPUT_DIR_ARG
+        echo "== Running eval DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chrome-shell $TELEMETRY_BENCHMARK $page_set_filename $EXTRA_ARGS $OUTPUT_DIR_ARG =="
+        eval DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser=android-chrome-shell $TELEMETRY_BENCHMARK $page_set_filename $EXTRA_ARGS $OUTPUT_DIR_ARG
       else
-        echo "== Running eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set_filename $EXTRA_ARGS $OUTPUT_DIR_ARG =="
-        eval sudo DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set_filename $EXTRA_ARGS $OUTPUT_DIR_ARG
+        echo "== Running eval DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set_filename $EXTRA_ARGS $OUTPUT_DIR_ARG =="
+        eval DISPLAY=:0 timeout $TELEMETRY_TIMEOUT src/tools/perf/run_measurement --extra-browser-args=\"$EXTRA_BROWSER_ARGS\" --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $TELEMETRY_BENCHMARK $page_set_filename $EXTRA_ARGS $OUTPUT_DIR_ARG
       fi
       sudo chown chrome-bot:chrome-bot $OUTPUT_DIR/${RUN_ID}.${page_set_basename}.${current_run}
     done

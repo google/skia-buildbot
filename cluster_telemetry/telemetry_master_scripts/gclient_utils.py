@@ -6,8 +6,6 @@
 """This module contains utilities for managing gclient checkouts."""
 
 
-from common import find_depot_tools
-
 from py.utils.git_utils import GIT
 from py.utils import shell_utils
 from py.utils import misc
@@ -24,14 +22,7 @@ SKIA_TRUNK = 'skia'
 
 def _GetGclientPy():
   """ Return the path to the gclient.py file. """
-  path_to_gclient = find_depot_tools.add_depot_tools_to_path()
-  if path_to_gclient:
-    return os.path.join(path_to_gclient, 'gclient.py')
-  print 'Falling back on using "gclient" or "gclient.bat"'
-  if os.name == 'nt':
-    return 'gclient.bat'
-  else:
-    return 'gclient'
+  return os.path.join('/', 'b', 'depot_tools', 'gclient.py')
 
 
 GCLIENT_PY = _GetGclientPy()
