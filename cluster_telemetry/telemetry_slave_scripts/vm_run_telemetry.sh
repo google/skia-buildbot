@@ -168,7 +168,11 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
 
     # Delete the page set from the page sets directory now that we are done with
     # it.
-    rm src/tools/perf/page_sets/$page_set_basename
+    if [ "$PAGESETS_TYPE" == "KeyMobileSites" -o "$PAGESETS_TYPE" == "KeySilkCases" ]; then
+      # Do not delete mobile or silk page sets.
+    else
+      rm src/tools/perf/page_sets/$page_set_basename
+    fi
     if [ $? -eq 124 ]; then
       echo "========== $page_set timed out! =========="
     else
