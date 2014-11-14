@@ -19,6 +19,7 @@ services/bugdroid/bugdroid_log.txt
 .pydevproject
 # Server executables/config
 golden/app/third_party
+golden/node_modules
 perf/bqtoken.data
 perf/google_storage_token.data
 perf/node_modules

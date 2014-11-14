@@ -25,13 +25,16 @@ import (
 
 // Command line flags.
 var (
+	// Get the default connection string suitable for production.
+	defaultDbConnStr = db.GetConnectionString("readwrite", "", "", "")
+
 	port         = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	staticDir    = flag.String("static_dir", "./app", "Directory with static content to serve")
 	tileStoreDir = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
 	imageDir     = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	gsBucketName = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
-	mysqlConnStr = flag.String("mysql_conn", "", "MySQL connection string for backend database. If 'local' is false the password in this string will be substituted via the metadata server.")
+	dbConnStr    = flag.String("db_conn_string", defaultDbConnStr, "MySQL connection string for backend database. If 'local' is false the password in this string will be substituted via the metadata server.")
 	sqlitePath   = flag.String("sqlite_path", "./golden.db", "Filepath of the embedded SQLite database. Requires 'local' to be set to true and 'mysql_conn' to be empty to take effect.")
 	doOauth      = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 )
@@ -232,7 +235,7 @@ func main() {
 
 	// Get the expecations storage, the filediff storage and the tilestore.
 	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
-	vdb := database.NewVersionedDB(db.GetConfig(*mysqlConnStr, *sqlitePath, *local))
+	vdb := database.NewVersionedDB(db.GetConfig(*dbConnStr, *sqlitePath, *local))
 	expStore := expstorage.NewSQLExpectationStore(vdb)
 	tileStore := filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
 
