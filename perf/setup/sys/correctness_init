@@ -27,7 +27,7 @@ NAME=skiacorrectness
 APP_DIR="/home/perf/golib/src/skia.googlesource.com/buildbot.git/golden/app"
 IMAGE_STORE="/home/perf/imageStore"
 DAEMON=/home/perf/golib/bin/$NAME
-DAEMON_ARGS="-port=:8001 -log_dir=/tmp/glog -tile_store_dir=/home/perf/tileStore3 -static_dir=$APP_DIR -image_dir=$IMAGE_STORE"
+DAEMON_ARGS="-port=:8001 -log_dir=/tmp/glog -tile_store_dir=/home/perf/tileStore3 -static_dir=$APP_DIR -image_dir=$IMAGE_STORE -oauth=false"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
