@@ -13,7 +13,7 @@ const (
 	METADATA_KEY = "readwrite"
 
 	// Detfault database parameters.
-	DEFAULT_DB_HOST = "173.194.104.24:3306"
+	DEFAULT_DB_HOST = "173.194.104.24"
 	DEFAULT_DB_PORT = "3306"
 	DEFAULT_DB_NAME = "skiacorrectness"
 

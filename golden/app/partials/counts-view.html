@@ -7,7 +7,6 @@
 	    </div>
 
 	    <div class="col-md-3">
-	    	<div class="row">
 			<table class="table table-hover">
 		      <thead>
 		        <tr>
@@ -28,8 +27,9 @@
 		          <td>&nbsp;</td>
 		        </tr>
 		        <tr ng-repeat="oneTest in allTests">
-		          <td><a href="#/counts/{{oneTest.name}}">
-		          	{{oneTest.name}}
+		          <td><a href="#/counts/{{oneTest.name}}"
+		          	   title="{{oneTest.name}}">
+		          	{{oneTest.name | limitTo:40 }}
 		          </a></td>
 		          <td>{{oneTest.aggregates.pos}}</td>
 		          <td>{{oneTest.aggregates.neg}}</td>
@@ -38,7 +38,6 @@
 		        </tr>
 		      </tbody>
 		    </table>
-		</div>
 	    </div>
 
 

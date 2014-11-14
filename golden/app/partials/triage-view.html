@@ -18,18 +18,25 @@
         </div>
     </div>
     <div class="row">
-    	<div class="col-md-2" class="imagesColumn">
+    	<div class="col-md-2 imagesColumn">
             <div ng-hide="currentPositive">
                 No positive images available.
             </div>
             <div ng-show="currentPositive">
-                <div ng-repeat="onePositive in positives">
+                <div ng-repeat="onePositive in positives" style="padding-bottom: 1em;padding-top: 1em;">
                     <div>
-                     <img src="" ng-src="{{onePositive.imgUrl}}" class="columnImg">
+                        <a href="{{onePositive.imgUrl}}" target="_blank">View <span class="glyphicon glyphicon-new-window"></span></a>
+                    </div>
+                    <div>
+                     <img ng-click="selectPositive($index)"
+                          ng-src="{{onePositive.imgUrl}}"
+                          class="columnImg"
+                          ng-class="{selectedImg: $index === posIndex}">
                     </div>
                     <div ng-if="currentUntriaged">
-                        Diff: {{onePositive.diff.numDiffPixels}} px -
-                              {{onePositive.diff.pixelDiffPercent}} %
+                        {{onePositive.diff.numDiffPixels}} px &#183;
+                        {{onePositive.diff.pixelDiffPercent}} % &#183;
+                        {{onePositive.diff.maxRGBADiffs | json }}
                     </div>
                 </div>
             </div>
@@ -43,9 +50,7 @@
                     </div>
                     <div ng-if="currentPositive">
                         <div class="row posNegButtonContainer">
-
-                        <a href="{{currentPositive.imgUrl}}">{{currentPositive.imgUrl}}</a><br>
-                        <a href="{{currentPositive.diff.diffImgUrl}}">{{currentPositive.diff.diffImgUrl}}</a>
+                            &nbsp;
                         </div>
                         <img src="" ng-src="{{currentPositive.imgUrl}}"
                              style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
@@ -69,17 +74,15 @@
                         <img ng-src="{{currentUntriaged.imgUrl}}"
                              style="max-width:100%; max-height: 100%; padding-bottom: 1em;">
                          </div>
-                         <div>
-                            <a href="{{currentUntriaged.imgUrl}}" target="_blank">{{currentUntriaged.imgUrl}}</a>
-                         </div>
                     </div>
                 </div>
 
 	    	</div>
-	    	<div ng-if="currentPositive && currentUntriaged">
+	    	<div ng-show="currentPositive && currentUntriaged">
+                <div>Diff</div>
 	    		<div class="col-xs-12">
 	    			<img ng-src="{{currentPositive.diff.diffImgUrl}}"
-                         class="diffImg">
+                         class="diffImg" style="padding:0; border: 1px solid #515151;">
 	    		</div>
 	    	</div>
     	</div>

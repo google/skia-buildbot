@@ -5,7 +5,7 @@
 }
 
 .imagesColumn {
-	height: 960px;
+	height: 640px;
 	overflow: auto;
 }
 
@@ -13,7 +13,6 @@
 	max-width:100%;
 	max-height: 100%;
 	padding: 0.5em;
-	border-bottom: 1px solid #DDDDDD;
 	width:100%;
 }
 

@@ -109,18 +109,27 @@ var skia = skia || {};
 
       // selectUntriaged is a UI function to pick an untriaged digest.
       $scope.selectUntriaged = function (idx) {
-        if ($scope.untIndex !== idx) {
+        if ($scope.untriaged.length === 0) {
+          $scope.untIndex = -1;
+          $scope.currentUntriaged = null;
+        }
+        else if ($scope.untIndex != idx) {
           $scope.currentUntriaged = $scope.untriaged[idx];
           $scope.positives = ns.getSortedPositivesFromUntriaged($scope.currentUntriaged);
-          $scope.selectPositive(0);
           $scope.untIndex = idx;
+          $scope.selectPositive(0);
         }
       };
 
-      // selectPositive is a UI functio to pick a positive digest.
+      // selectPositive is a UI function to pick a positive digest.
       $scope.selectPositive = function (idx) {
-        $scope.currentPositive = $scope.positives[idx];
-        $scope.posIndex = idx;
+        if ($scope.positives.length === 0) {
+          $scope.currentPositive = null;
+          $scope.posIndex = -1;
+        } else {
+          $scope.currentPositive = $scope.positives[idx];
+          $scope.posIndex = idx;
+        }
       };
 
       // setTriageState sets the label of the given untriaged digest.
@@ -149,13 +158,14 @@ var skia = skia || {};
       };
 
       // Initialize the variables in $scope.
+      $scope.untriaged = [];
       $scope.positives = [];
-      $scope.currentPositive = null;
-      $scope.currentUntriaged = null;
-      $scope.posIndex = -1;
-      $scope.untIndex = -1;
       $scope.triageState = [];
+
+      // Update the derived data.
       updatedTriageState();
+      $scope.selectUntriaged(0);
+      $scope.selectPositive(0);
 
       // Expose the constants in the template.
       $scope.c = ns.c;
@@ -230,7 +240,6 @@ var skia = skia || {};
       var url = ns.c.PREFIX_URL + path;
       return httpReq(url, 'POST', data).then(
         function(successResp) {
-          debugger;
           return successResp.data;
         });
     }

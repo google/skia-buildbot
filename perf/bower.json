@@ -21,8 +21,5 @@
     "paper-elements": "Polymer/paper-elements#~0.5.1",
     "webcomponentsjs": "Polymer/webcomponentsjs#^0.5.1",
     "jquery": "~2.1.1"
-  },
-  "resolutions": {
-    "WeakMap": "~0.2.1"
   }
 }
