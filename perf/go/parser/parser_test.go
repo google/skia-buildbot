@@ -185,7 +185,7 @@ func TestFill(t *testing.T) {
 		t.Errorf("fill() returned wrong length: Got %v Want %v", got, want)
 	}
 
-	for i, want := range []float64{2, 2, 2, 3, 3, 5} {
+	for i, want := range []float64{2, 2, 2, 3, 5, 5} {
 		if got := traces[0].Values[i]; !near(got, want) {
 			t.Errorf("Distance mismatch: Got %v Want %v", got, want)
 		}

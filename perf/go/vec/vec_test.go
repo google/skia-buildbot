@@ -66,7 +66,7 @@ func TestFill(t *testing.T) {
 	}{
 		{
 			In:  []float64{1e100, 1e100, 2, 3, 1e100, 5},
-			Out: []float64{2, 2, 2, 3, 3, 5},
+			Out: []float64{2, 2, 2, 3, 5, 5},
 		},
 		{
 			In:  []float64{1e100, 3, 1e100},

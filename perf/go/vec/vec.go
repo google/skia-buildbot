@@ -63,26 +63,25 @@ func Norm(a []float64, minStdDev float64) {
 // So
 //    [1e100, 1e100, 2, 3, 1e100, 5]
 // becomes
-//    [2    , 2    , 2, 3, 3    , 5]
+//    [2    , 2    , 2, 3, 5    , 5]
 //
 //
 // Note that a vector filled with all sentinels will be filled with 0s.
 func Fill(a []float64) {
 	// Find the first non-sentinel data point.
 	last := 0.0
-	for _, x := range a {
-		if x != config.MISSING_DATA_SENTINEL {
-			last = x
+	for i := len(a) - 1; i >= 0; i-- {
+		if a[i] != config.MISSING_DATA_SENTINEL {
+			last = a[i]
 			break
 		}
 	}
 	// Now fill.
-	for i, x := range a {
-		if x == config.MISSING_DATA_SENTINEL {
+	for i := len(a) - 1; i >= 0; i-- {
+		if a[i] == config.MISSING_DATA_SENTINEL {
 			a[i] = last
 		} else {
-			a[i] = x
-			last = x
+			last = a[i]
 		}
 	}
 }
