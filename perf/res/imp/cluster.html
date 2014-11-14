@@ -259,7 +259,7 @@
           this.cachedStatus = this.summary.Status || 'New';
 
           // Set the data- attributes used for sorting cluster summaries.
-          this.dataset.clustersize    = -this.summary.Keys.length;
+          this.dataset.clustersize    = this.summary.Keys.length;
           this.dataset.steplse        = this.summary.StepFit.LeastSquares;
           this.dataset.stepsize       = this.summary.StepFit.StepSize;
           this.dataset.stepregression = this.summary.StepFit.Regression;

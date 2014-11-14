@@ -6,6 +6,7 @@
     {{template "header.html" .}}
 
     <link href="/res/imp/cluster.html" rel="import" />
+    <link href="/res/imp/sort.html" rel="import" />
 
     <style type="text/css" media="screen">
       #clSorting {
@@ -13,10 +14,12 @@
       }
       #start {
         margin: 0.3em;
-        padding: 0.7em 0.6em;
       }
       .issue {
         margin: 1em 0;
+      }
+      sort-sk {
+        display: block;
       }
     </style>
 </head>
@@ -42,14 +45,13 @@
         <br/>
         <paper-button raised id="start">Calculate</paper-button>
 
-        <div id=clSorting>
-          Sort by:
-          <input type="radio" name="sort" value="clustersize">ClusterSize</input>
-          <input type="radio" name="sort" value="stepregression" checked>Regression</input>
-          <input type="radio" name="sort" value="stepsize">Step Size</input>
-          <input type="radio" name="sort" value="steplse">Least Squares</input>
-          <input type="radio" name="sort" value="timestamp">Step Time</input>
-        </div>
+        <sort-sk target=clResults>
+          <paper-button data-key="clustersize">Cluster Size </paper-button>
+          <paper-button data-key="stepregression" data-default=up>Regression </paper-button>
+          <paper-button data-key="stepsize">Step Size </paper-button>
+          <paper-button data-key="steplse">Least Squares</paper-button>
+          <paper-button data-key="timestamp">Step Time</paper-button>
+        </sort-sk>
         <div id="clResults">
         </div>
       </section>
@@ -64,8 +66,6 @@
         */
       function beginClustering(k, stddev, issue, selections) {
         sk.clearChildren($$$('#clResults'));
-        // Results are always returned sorted vis StepRegression.
-        $$$('input[value="stepregression"]').checked = true;
 
         document.body.style.cursor = 'wait';
         var url = '/clustering/?_k=' + k + '&_stddev=' + stddev + '&_issue=' + issue + '&' + selections;
@@ -82,29 +82,6 @@
           document.body.style.cursor = 'auto';
         });
       };
-
-      // sort the clustering results with the algorithm given in element e.
-      function sort(e) {
-        if (!e.target.value) {
-          return;
-        }
-        var sortBy = e.target.value;
-        var container = $$$("#clResults");
-        var to_sort = [];
-        $$('cluster-summary-sk', container).forEach(function(ele) {
-          to_sort.push({
-            value: ele.dataset[sortBy],
-            node: ele
-          });
-        });
-        to_sort.sort(function(x, y) {
-          return x.value - y.value;
-        });
-        to_sort.forEach(function(i) {
-          container.appendChild(i.node);
-        });
-      };
-
 
       function onLoad() {
         sk.get('/trybots/').then(JSON.parse).then(function(json){
