@@ -1,0 +1,64 @@
+This directory contains scripts to automate the creation, setup and deletion of
+Skia's GCE buildbot instances.
+
+
+Directory Contents
+==================
+
+- vm_config.sh
+Instantiates constants from ../compute_engine_cfg.py that are used by the below
+scripts.
+
+- vm_create_persistent_disks.sh
+Creates persistent disks for the specified range of instances.
+
+- vm_create_setup_instances.sh
+Creates and sets up the specified range of instances.
+
+- vm_delete_instances.sh
+Deletes the specified range of instances.
+
+- vm_delete_persistent_disks.sh
+Deletes the persistent disks attached to the specified range of instances.
+
+- vm_run_command_on_instances.sh
+Runs the specified command on the specified range of instances. Does not work
+on windows instances.
+
+- vm_setup_utils.sh
+Utility functions used by the above bash scripts.
+
+- vm_setup_image.sh
+Lists the operations that were used to create the image used by the Skia GCE
+instances.
+
+
+How to create new instances
+===========================
+
+Look at
+https://skia.googlesource.com/buildbot/+/master/site_config/slave_hosts_cfg.py
+to see what the roles of the instances are going to be.
+The following are a few examples:
+- VM_INSTANCE_OS=Windows SKIA_BOT_MACHINE_TYPE=n1-standard-16 \
+  VM_BOT_COUNT_START=16 VM_BOT_COUNT_END=19 bash vm_create_setup_instances.sh
+
+- VM_IS_ANDROID_MERGE=1 VM_INSTANCE_OS=Linux \
+  SKIA_BOT_MACHINE_TYPE=n1-standard-16 VM_BOT_COUNT_START=14 \
+  VM_BOT_COUNT_END=14 bash vm_create_persistent_disks.sh
+- VM_IS_ANDROID_MERGE=1 VM_INSTANCE_OS=Linux \
+  SKIA_BOT_MACHINE_TYPE=n1-standard-16 VM_BOT_COUNT_START=14 \
+  VM_BOT_COUNT_END=14 bash vm_create_setup_instances.sh
+
+
+How to delete old instances
+===========================
+
+The following are a few examples:
+- VM_INSTANCE_OS=Windows SKIA_BOT_MACHINE_TYPE=n1-standard-16 \                 
+  VM_BOT_COUNT_START=16 VM_BOT_COUNT_END=19 bash vm_delete_instances.sh   
+                                                                                
+- VM_INSTANCE_OS=Linux SKIA_BOT_MACHINE_TYPE=n1-standard-16 \
+  VM_BOT_COUNT_START=14 VM_BOT_COUNT_END=14 bash vm_delete_persistent_disks.sh                        
+- VM_INSTANCE_OS=Linux SKIA_BOT_MACHINE_TYPE=n1-standard-16 \
+  VM_BOT_COUNT_START=14 VM_BOT_COUNT_END=14 bash vm_delete_instances.sh

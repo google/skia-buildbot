@@ -10,16 +10,16 @@ import types
 
 
 PROJECT_USER = 'default'
-SKIA_NETWORK_NAME = 'skia'
+SKIA_NETWORK_NAME = 'default'
 SKIA_REPO_DIR = '/home/%s/storage/skia-repo' % PROJECT_USER
 SCOPES = 'https://www.googleapis.com/auth/devstorage.full_control'
-SKIA_BOT_LINUX_IMAGE_NAME = 'skiatelemetry-6-0-ubuntu1310'
+SKIA_BOT_LINUX_IMAGE_NAME = 'skia-buildbot-v2'
 SKIA_BOT_WIN_IMAGE_NAME = 'windows-server-2008-r2-dc'
 SKIA_BOT_MACHINE_TYPE = os.environ.get(
     'SKIA_BOT_MACHINE_TYPE', 'n1-standard-16')
 # Options are Linux and Windows.
 VM_INSTANCE_OS = os.environ.get('VM_INSTANCE_OS', 'Linux')
-IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.15'
+IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.112'
 VM_BOT_NAME = 'skia-vm'
 PERSISTENT_DISK_SIZE_GB = 300
 # If this is true then the VM instances will automatically try to connect to the
@@ -27,8 +27,8 @@ PERSISTENT_DISK_SIZE_GB = 300
 VM_IS_BUILDBOT = os.environ.get('VM_IS_BUILDBOT', True)
 
 # The Project ID is found in the Compute tab of the dev console.
-# https://cloud.google.com/console#c=p&pid=182615506979
-PROJECT_ID = 'google.com:chromecompute'
+# https://console.developers.google.com/project/31977622648
+PROJECT_ID = 'google.com:skia-buildbots'
 
 # The (Shared Fate) Zone is conceptually equivalent to a data center cell. VM
 # instances live in a zone.
@@ -45,10 +45,6 @@ ZONE = 'us-central1-%s' % ZONE_TAG
 #   The above command will create and setup only skia-vm-001.
 VM_BOT_COUNT_START = os.environ.get('VM_BOT_COUNT_START', 1)
 VM_BOT_COUNT_END = os.environ.get('VM_BOT_COUNT_END', 100)
-
-# Recreate SKPs bot constants.
-VM_RECREATESKPS_BOT_NAME = 'skia-recreate-skps-bot'
-VM_RECREATESKPS_BOT_IP_ADDRESS = '%s.101' % IP_ADDRESS_WITHOUT_MACHINE_PART
 
 
 if __name__ == '__main__':
