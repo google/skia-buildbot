@@ -152,7 +152,7 @@ func (a *Alert) evaluate(d float64) (bool, error) {
 
 type parsedRule map[string]interface{}
 
-func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail) (*Alert, error) {
+func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail, testing bool) (*Alert, error) {
 	errString := "Alert rule missing field %q"
 	name, ok := r["name"].(string)
 	if !ok {
@@ -174,7 +174,7 @@ func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail) (*Ale
 	if !ok {
 		return nil, fmt.Errorf(errString, "actions")
 	}
-	actionsList, err := parseActions(actionsInterface, emailAuth)
+	actionsList, err := parseActions(actionsInterface, emailAuth, testing)
 	if err != nil {
 		return nil, err
 	}
@@ -212,14 +212,14 @@ func parseAlertRules(cfgFile string) ([]parsedRule, error) {
 	return cfg.Rule, nil
 }
 
-func makeAlerts(cfgFile string, dbClient *client.Client, emailAuth *email.GMail) ([]*Alert, error) {
+func makeAlerts(cfgFile string, dbClient *client.Client, emailAuth *email.GMail, testing bool) ([]*Alert, error) {
 	parsedRules, err := parseAlertRules(cfgFile)
 	if err != nil {
 		return nil, err
 	}
 	alerts := []*Alert{}
 	for _, r := range parsedRules {
-		a, err := newAlert(r, dbClient, emailAuth)
+		a, err := newAlert(r, dbClient, emailAuth, testing)
 		if err != nil {
 			return nil, err
 		}

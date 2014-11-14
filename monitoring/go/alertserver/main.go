@@ -62,6 +62,7 @@ var (
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	alertPollInterval     = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
 	alertsFile            = flag.String("alerts_file", "alerts.cfg", "Config file containing alert rules.")
+	testing               = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 )
 
 func userHasEditRights(r *http.Request) bool {
@@ -190,6 +191,9 @@ func main() {
 	if err != nil {
 		glog.Fatal(fmt.Sprintf("Failed to parse -alertPollInterval: %s", *alertPollInterval))
 	}
+	if *testing {
+		*useMetadata = false
+	}
 	if *useMetadata {
 		*influxDbName = metadata.MustGet(INFLUXDB_NAME_METADATA_KEY)
 		*influxDbPassword = metadata.MustGet(INFLUXDB_PASSWORD_METADATA_KEY)
@@ -230,14 +234,16 @@ func main() {
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
 
 	var emailAuth *email.GMail
-	if !*useMetadata && (emailClientId == "" || emailClientSecret == "") {
-		glog.Fatal("If -use_metadata=false, you must provide -email_clientid and -email_clientsecret")
+	if !*testing {
+		if !*useMetadata && (emailClientId == "" || emailClientSecret == "") {
+			glog.Fatal("If -use_metadata=false, you must provide -email_clientid and -email_clientsecret")
+		}
+		emailAuth, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
+		if err != nil {
+			glog.Fatal(fmt.Sprintf("Failed to create email auth: %v", err))
+		}
 	}
-	emailAuth, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
-	if err != nil {
-		glog.Fatal(fmt.Sprintf("Failed to create email auth: %v", err))
-	}
-	alertManager, err = alerting.NewAlertManager(dbClient, *alertsFile, parsedPollInterval, emailAuth)
+	alertManager, err = alerting.NewAlertManager(dbClient, *alertsFile, parsedPollInterval, emailAuth, *testing)
 	if err != nil {
 		glog.Fatal(fmt.Sprintf("Failed to create AlertManager: %v", err))
 	}

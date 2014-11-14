@@ -304,7 +304,7 @@ actions = ["Print"]
 		if err != nil {
 			t.Errorf("Failed to parse:\n%v", c.Input)
 		}
-		_, err = newAlert(cfg.Rule[0], nil, nil)
+		_, err = newAlert(cfg.Rule[0], nil, nil, false)
 		actualErrStr := "nil"
 		if err != nil {
 			actualErrStr = err.Error()

@@ -53,9 +53,9 @@ func (am *AlertManager) loop() {
 }
 
 // NewAlertManager creates and returns an AlertManager instance.
-func NewAlertManager(dbClient *client.Client, alertsCfg string, tickInterval time.Duration, emailAuth *email.GMail) (*AlertManager, error) {
+func NewAlertManager(dbClient *client.Client, alertsCfg string, tickInterval time.Duration, emailAuth *email.GMail, testing bool) (*AlertManager, error) {
 	// Create the rules.
-	alerts, err := makeAlerts(alertsCfg, dbClient, emailAuth)
+	alerts, err := makeAlerts(alertsCfg, dbClient, emailAuth, testing)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create alerts: %v", err)
 	}

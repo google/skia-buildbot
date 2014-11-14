@@ -39,12 +39,14 @@ func parseEmailAlert(str string, emailAuth *email.GMail) (func(*Alert), error) {
 	}, nil
 }
 
-func parseActions(actionsInterface interface{}, emailAuth *email.GMail) ([]func(*Alert), error) {
+func parseActions(actionsInterface interface{}, emailAuth *email.GMail, testing bool) ([]func(*Alert), error) {
 	actionsList := []func(*Alert){printAlert}
 	actionStrings := actionsInterface.([]interface{})
 	for _, a := range actionStrings {
 		str := a.(string)
-		if strings.HasPrefix(str, "Email(") && strings.HasSuffix(str, ")") {
+		if testing {
+			// Do nothing; print is added by default.
+		} else if strings.HasPrefix(str, "Email(") && strings.HasSuffix(str, ")") {
 			f, err := parseEmailAlert(str[6:len(str)-1], emailAuth)
 			if err != nil {
 				return nil, err
