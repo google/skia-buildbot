@@ -52,6 +52,7 @@ type Ingester struct {
 	lastIngestTime time.Time
 	ingestResults  IngestResultsFiles
 	storageBaseDir string
+	datasetName    string
 
 	// Metrics about the ingestion process.
 
@@ -83,6 +84,7 @@ func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, 
 		hashToNumber:                   map[string]int{},
 		ingestResults:                  f,
 		storageBaseDir:                 storageBaseDir,
+		datasetName:                    datasetName,
 		elapsedTimePerUpdate:           newGauge(metricName, "update"),
 		metricsProcessed:               newCounter(metricName, "processed"),
 		lastSuccessfulUpdate:           time.Now(),
@@ -186,8 +188,9 @@ func (tt TileTracker) Offset(hash string) int {
 // UpdateCommitInfo finds all the new commits since the last time we ran and
 // adds them to the tiles, creating new tiles if necessary.
 func (i *Ingester) UpdateCommitInfo(pull bool) error {
+	glog.Infof("Ingest %s: Starting UpdateCommitInfo", i.datasetName)
 	if err := i.git.Update(pull); err != nil {
-		return fmt.Errorf("Failed git pull during UpdateCommitInfo: %s", err)
+		return fmt.Errorf("Ingest %s: Failed git pull for during UpdateCommitInfo: %s", i.datasetName, err)
 	}
 
 	// Compute Git CL number for each Git hash.
@@ -209,10 +212,10 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 		newTile.Scale = 0
 		newTile.TileIndex = 0
 		if err := i.tileStore.Put(0, 0, newTile); err != nil {
-			return fmt.Errorf("UpdateCommitInfo: Failed to write new tile: %s", err)
+			return fmt.Errorf("Ingest %s: UpdateCommitInfo: Failed to write new tile: %s", i.datasetName, err)
 		}
 	}
-	glog.Infof("UpdateCommitInfo: Last commit timestamp: %s", ts)
+	glog.Infof("Ingest %s: UpdateCommitInfo: Last commit timestamp: %s", i.datasetName, ts)
 
 	// Find all the Git hashes that are new to us.
 	newHashes := i.git.From(ts)
@@ -236,6 +239,8 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 		}
 	}
 	tt.Flush()
+
+	glog.Infof("Ingest %s: Finished UpdateCommitInfo", i.datasetName)
 	return nil
 }
 
@@ -262,13 +267,20 @@ func (i *Ingester) Update(pull bool, lastIngestTime int64) error {
 // UpdateTiles reads the latest JSON files from Google Storage and converts
 // them into Traces stored in Tiles.
 func (i *Ingester) UpdateTiles(lastIngestTime int64) error {
+	glog.Infof("Ingest %s: Starting UpdateTiles", i.datasetName)
+
 	tt := NewTileTracker(i.tileStore, i.hashToNumber)
 	resultsFiles, err := GetResultsFileLocations(lastIngestTime, i.storage, i.storageBaseDir)
 	if err != nil {
 		return fmt.Errorf("Failed to update tiles: %s", err)
 	}
+
+	glog.Infof("Ingest %s: Found %d resultsFiles", i.datasetName, len(resultsFiles))
+
 	i.ingestResults(tt, resultsFiles, i.metricsProcessed)
 	tt.Flush()
+
+	glog.Infof("Ingest %s: Finished UpdateTiles", i.datasetName)
 	return nil
 }
 

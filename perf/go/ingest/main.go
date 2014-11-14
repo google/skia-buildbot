@@ -120,8 +120,11 @@ func NewIngestionProcess(ts *Timestamps, tsName string, git *gitinfo.GitInfo, ti
 		glog.Fatalf("Failed to create Ingester: %s", err)
 	}
 
+	glog.Infof("Starting %s ingester. Run every %s. Fetch from %s ", tsName, every.String(), gsDir)
+
 	// oneStep is a single round of ingestion.
 	oneStep := func() {
+		glog.Infof("Running ingester: %s", tsName)
 		now := time.Now()
 		err := i.Update(true, ts.Ingester[tsName])
 		if err != nil {
@@ -130,6 +133,7 @@ func NewIngestionProcess(ts *Timestamps, tsName string, git *gitinfo.GitInfo, ti
 			ts.Ingester[tsName] = now.Unix()
 			ts.Write()
 		}
+		glog.Infof("Finished running ingester: %s", tsName)
 	}
 
 	return func() {
