@@ -170,6 +170,7 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
     # it.
     if [ "$PAGESETS_TYPE" == "KeyMobileSites" -o "$PAGESETS_TYPE" == "KeySilkCases" ]; then
       # Do not delete mobile or silk page sets.
+      echo
     else
       rm src/tools/perf/page_sets/$page_set_basename
     fi
