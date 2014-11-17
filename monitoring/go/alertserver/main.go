@@ -189,7 +189,7 @@ func main() {
 
 	parsedPollInterval, err := time.ParseDuration(*alertPollInterval)
 	if err != nil {
-		glog.Fatal(fmt.Sprintf("Failed to parse -alertPollInterval: %s", *alertPollInterval))
+		glog.Fatalf("Failed to parse -alertPollInterval: %s", *alertPollInterval)
 	}
 	if *testing {
 		*useMetadata = false
@@ -200,7 +200,7 @@ func main() {
 	}
 	dbClient, err := client.New(&client.ClientConfig{*influxDbHost, *influxDbName, *influxDbPassword, *influxDbDatabase, nil, false, false})
 	if err != nil {
-		glog.Fatal(fmt.Sprintf("Failed to initialize InfluxDB client: %s", err))
+		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}
 	serverURL := *host + *port
 
@@ -240,12 +240,12 @@ func main() {
 		}
 		emailAuth, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
 		if err != nil {
-			glog.Fatal(fmt.Sprintf("Failed to create email auth: %v", err))
+			glog.Fatalf("Failed to create email auth: %v", err)
 		}
 	}
 	alertManager, err = alerting.NewAlertManager(dbClient, *alertsFile, parsedPollInterval, emailAuth, *testing)
 	if err != nil {
-		glog.Fatal(fmt.Sprintf("Failed to create AlertManager: %v", err))
+		glog.Fatalf("Failed to create AlertManager: %v", err)
 	}
 
 	runServer(serverURL)

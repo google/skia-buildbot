@@ -6,7 +6,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"net"
 	"time"
 )
@@ -48,7 +47,7 @@ func main() {
 	}
 	dbClient, err := influxdb.New(&influxdb.ClientConfig{*influxDbHost, *influxDbName, *influxDbPassword, *influxDbDatabase, nil, false, false})
 	if err != nil {
-		glog.Fatal(fmt.Sprintf("Failed to initialize InfluxDB client: %s", err))
+		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}
 
 	glog.Infoln("Looking for Carbon server.")
