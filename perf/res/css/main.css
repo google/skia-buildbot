@@ -74,14 +74,19 @@ table, td {
     flex-grow: 1;
 }
 
+::shadow core-toolbar,
 core-toolbar,
 #title {
-  background-color: #526E9C;
+  background-color: #1f78b4;
   color: #fff;
 }
 
 #title login-sk {
   margin-left: auto;
+}
+
+#title ::shadow a {
+  color: white;
 }
 
 p {
