@@ -18,6 +18,11 @@
       border-radius: 10px;
       background-color: #F5F5F5;
     }
+    div.message {
+      overflow-wrap: word-break;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     div.message[disabled] {
       color: #AAAAAA;
     }
@@ -87,6 +92,11 @@
             ele.editRights = true;
           }
         });
+        // Linkify the messages.
+        var messages = this.shadowRoot.querySelectorAll("div.message");
+        for (var i = 0; i < messages.length; i++) {
+          messages[i].innerHTML = messages[i].innerHTML.replace(/https?:\/\/[^ \t\n<]*/g, '<a href="$&">$&</a>');
+        }
       },
       dismissAlert: function() {
         this.$.wrapper.querySelector("#dismiss").go();

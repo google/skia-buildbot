@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-touch-fullscreen" content = "yes" />
+    <meta name="format-detection" content="telephone=no" />
+
     <link rel="import" href="/res/imp/polymer/polymer.html" />
-    <link rel="import" href="../../components/core-toolbar/core-toolbar.html" />
+    <link rel="import" href="/res/imp/core-toolbar/core-toolbar.html" />
     <link rel="import" href="/res/imp/core-header-panel/core-header-panel.html" />
     <link rel="import" href="/res/imp/alerts-sk.html"/>
     <link rel="import" href="/res/imp/login-sk.html"/>
@@ -18,23 +24,24 @@
       background-color: #993300;
       color: #FFFFFF;
       text-align: center;
-      padding: 20px;
     }
     h1 {
       font-size: 1.7em;
     }
     login-sk {
-      position: absolute;
-      top: 10px;
-      right: 10px;
+      font-size: 0.6em;
+      display: none;
+    }
+    core-toolbar.medium-tall > login-sk {
+      display: block;
     }
     </style>
   </head>
   <body fullbleed vertical layout unresolved>
-    <core-header-panel flex>
+    <core-header-panel mode="waterfall-tall" tallClass="medium-tall" flex>
       <core-toolbar>
-        <login-sk></login-sk>
-        <h1 flex>Skia Alerts</h1>
+        <div flex></div><login-sk></login-sk>
+        <h1 class="bottom" flex>Skia Alerts</h1>
       </core-toolbar>
       <alerts-sk showinactive="false"></alerts-sk>
     </core-header-panel>
