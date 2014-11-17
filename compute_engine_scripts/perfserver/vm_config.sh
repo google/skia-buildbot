@@ -5,21 +5,15 @@
 #
 # Copyright 2014 Google Inc. All Rights Reserved.
 
-# The Project ID is found in the Compute tab of the dev console.
-# https://code.google.com/apis/console/?pli=1#project:31977622648:overview
-PROJECT_ID="google.com:skia-buildbots"
-
-# The user id which owns the server on the vm instance.
-PROJECT_USER="default"
-
-# The zone where this instance is on.
-ZONE=us-central1-f
+# Sets all constants in compute_engine_cfg.py as env variables.
+$(python ../compute_engine_cfg.py)
+if [ $? != "0" ]; then
+  echo "Failed to read compute_engine_cfg.py!"
+  exit 1
+fi
 
 # The name of instance where skiaperf.com is running on.
 INSTANCE_NAME=skia-testing-b
-
-# The scope to use for image creation.
-SCOPES="https://www.googleapis.com/auth/devstorage.full_control"
 
 TESTING_IP_ADDRESS=108.170.219.168
 TESTING_MACHINE_TYPE=n1-highmen-8

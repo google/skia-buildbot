@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Update the code running on skiaperf.com
+# Updates the code running on skiaperf.com
 #
 set -x
 

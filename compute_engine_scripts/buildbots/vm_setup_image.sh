@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Setup the instance image on chromecompute.
+# Setups the instance image on Skia GCE instance.
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)
@@ -123,6 +123,6 @@ echo "sudo gcimagebundle -d /dev/sda -o /tmp/ --log_file=/tmp/image.log"
 echo "Copy the image to Google Storage."
 echo "* gsutil config"
 echo "* gsutil cp /tmp/<your-image>.image.tar.gz gs://skia-images-1/"
-echo "gcutil --project=google.com:chromecompute addimage skiatelemetry-2-0-v20131101 gs://skia-images-1/<your-image>.image.tar.gz --preferred_kernel=projects/google/global/kernels/gce-v20130325"
+echo "gcutil --project=google.com:skia-buildbots addimage skiatelemetry-2-0-v20131101 gs://skia-images-1/<your-image>.image.tar.gz --preferred_kernel=projects/google/global/kernels/gce-v20130325"
 echo
 

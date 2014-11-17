@@ -1,5 +1,5 @@
-# This file contains constants for the shell scripts which interact
-# with the Skia chromecompute GCE instances.
+# This file contains constants for the shell scripts which interact with the
+# Skia's GCE instances.
 
 GCUTIL=`which gcutil`
 

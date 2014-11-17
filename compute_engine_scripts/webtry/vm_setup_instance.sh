@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Setup all the software running on skfiddle.com
+# Setups all the software running on skfiddle.com
 #
 set -x
 

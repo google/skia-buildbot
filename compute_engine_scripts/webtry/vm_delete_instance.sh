@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Delete the compute instance for skfiddle.com
+# Deletes the compute instance for skfiddle.com
 #
 set -x
 

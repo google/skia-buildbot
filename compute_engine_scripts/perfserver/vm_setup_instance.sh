@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Setup all the software running on skiaperf.com
+# Setups all the software running on skiaperf.com
 #
 set -x
 

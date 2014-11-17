@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Create the compute instance for skfiddle.com
+# Creates the compute instance for skfiddle.com
 #
 set -x
 

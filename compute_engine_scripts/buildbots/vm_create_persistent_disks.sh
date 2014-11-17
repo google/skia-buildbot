@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Creates persistent disks for the specified chromecompute instances.
+# Creates persistent disks for the specified Skia GCE instances.
 #
 # Copyright 2014 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)

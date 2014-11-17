@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Create the compute instance for skiaperf.com 
+# Creates the compute instance for skiaperf.com
 #
 set -x
 

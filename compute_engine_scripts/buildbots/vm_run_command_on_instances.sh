@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Runs a specified command on all specified chromecompute instances.
+# Runs a specified command on all specified Skia GCE instances.
 #
 # Copyright 2014 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)

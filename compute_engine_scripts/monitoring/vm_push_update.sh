@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Update the code running on skiamonitor.com.
+# Updates the code running on skiamonitor.com.
 #
 set -x
 

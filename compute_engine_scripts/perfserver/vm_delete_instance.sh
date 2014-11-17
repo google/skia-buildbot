@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Delete the compute instance for skiaperf.com
+# Deletes the compute instance for skiaperf.com
 #
 set -x
 

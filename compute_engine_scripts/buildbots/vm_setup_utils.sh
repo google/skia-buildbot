@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Utility functions for the GCE chromecompute setup scripts.
+# Utility functions for the Skia GCE setup scripts.
 #
 # Copyright 2014 Google Inc. All Rights Reserved.
 # Author: rmistry@google.com (Ravi Mistry)

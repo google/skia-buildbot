@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Update the code running on skfiddle.com
+# Updates the code running on skfiddle.com
 #
 set -x
 
