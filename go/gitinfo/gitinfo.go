@@ -96,9 +96,11 @@ func (g *GitInfo) Update(pull bool) error {
 }
 
 // Details returns the author, subject and timestamp for the given commit.
-func (g GitInfo) Details(hash string) (string, string, time.Time, error) {
+func (g *GitInfo) Details(hash string) (string, string, time.Time, error) {
+	glog.Infof("gitinfo.Details(%s)", hash)
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
+	glog.Infof("gitinfo.Details(%s) acquired lock", hash)
 	cmd := exec.Command("git", "log", "-n", "1", "--format=format:%an%x20(%ae)%n%s", hash)
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
@@ -114,7 +116,7 @@ func (g GitInfo) Details(hash string) (string, string, time.Time, error) {
 }
 
 // From returns all commits from 'start' to HEAD.
-func (g GitInfo) From(start time.Time) []string {
+func (g *GitInfo) From(start time.Time) []string {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	ret := []string{}

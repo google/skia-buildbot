@@ -225,6 +225,7 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 	// Add Commit info to the Tiles for each new hash.
 	tt := NewTileTracker(i.tileStore, i.hashToNumber)
 	for _, hash := range newHashes {
+		glog.Infof("For hash %s: %s", i.datasetName, hash)
 		if err := tt.Move(hash); err != nil {
 			glog.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
 			continue
