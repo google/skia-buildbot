@@ -15,6 +15,7 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   WAIT_TIME_AFTER_CREATION_SECS=600
 elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_WIN_IMAGE_NAME
+  ZONE=$WINDOWS_ZONE
   ORIG_STARTUP_SCRIPT="../../scripts/win_setup.ps1"
   MODIFIED_STARTUP_SCRIPT="/tmp/win_setup.ps1"
   # Set chrome-bot's password in win_setup.ps1
