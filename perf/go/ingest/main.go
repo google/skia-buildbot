@@ -36,6 +36,7 @@ var (
 	run            = flag.String("run", "nano,nano-trybot,golden", "A comma separated list of ingesters to run.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
@@ -154,7 +155,8 @@ func main() {
 	var client *http.Client
 	var err error
 	if *doOauth {
-		client, err = auth.RunFlow(auth.DefaultOAuthConfig)
+		config := auth.DefaultOAuthConfig(*oauthCacheFile)
+		client, err = auth.RunFlow(config)
 		if err != nil {
 			glog.Fatalf("Failed to auth: %s", err)
 		}

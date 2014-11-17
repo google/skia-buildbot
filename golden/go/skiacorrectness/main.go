@@ -28,15 +28,16 @@ var (
 	// Get the default connection string suitable for production.
 	defaultDbConnStr = db.GetConnectionString("readwrite", "", "", "")
 
-	port         = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	staticDir    = flag.String("static_dir", "./app", "Directory with static content to serve")
-	tileStoreDir = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
-	imageDir     = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
-	gsBucketName = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
-	dbConnStr    = flag.String("db_conn_string", defaultDbConnStr, "MySQL connection string for backend database. If 'local' is false the password in this string will be substituted via the metadata server.")
-	sqlitePath   = flag.String("sqlite_path", "./golden.db", "Filepath of the embedded SQLite database. Requires 'local' to be set to true and 'mysql_conn' to be empty to take effect.")
-	doOauth      = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	port           = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	staticDir      = flag.String("static_dir", "./app", "Directory with static content to serve")
+	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
+	imageDir       = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+	gsBucketName   = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
+	dbConnStr      = flag.String("db_conn_string", defaultDbConnStr, "MySQL connection string for backend database. If 'local' is false the password in this string will be substituted via the metadata server.")
+	sqlitePath     = flag.String("sqlite_path", "./golden.db", "Filepath of the embedded SQLite database. Requires 'local' to be set to true and 'mysql_conn' to be empty to take effect.")
+	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 )
 
 const (
@@ -197,9 +198,10 @@ func (ug *URLAwareFileServer) GetURL(path string) string {
 
 // getOAuthClient returns an oauth client (either from cached credentials or
 // via an authentication flow) or nil depending on whether doOauth is false.
-func getOAuthClient(doOauth bool) *http.Client {
+func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
 	if doOauth {
-		client, err := auth.RunFlow(auth.DefaultOAuthConfig)
+		config := auth.DefaultOAuthConfig(cacheFilePath)
+		client, err := auth.RunFlow(config)
 		if err != nil {
 			glog.Fatalf("Failed to auth: %s", err)
 		}
@@ -231,7 +233,7 @@ func main() {
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
 
 	// get the Oauthclient if necessary.
-	client := getOAuthClient(*doOauth)
+	client := getOAuthClient(*doOauth, *oauthCacheFile)
 
 	// Get the expecations storage, the filediff storage and the tilestore.
 	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)

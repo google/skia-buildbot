@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/golang/glog"
 	"skia.googlesource.com/buildbot.git/go/database"
@@ -43,6 +44,12 @@ func GetConfig(mySQLConnStr string, sqlitePath string, local bool) *database.Dat
 			glog.Fatalf("Failed to find metadata. Use 'local' flag when running locally.")
 		}
 		useMySQLConnStr = fmt.Sprintf(mySQLConnStr, password)
+	}
+
+	// If there is still a placeholder in the connection string, we
+	// set it to empty, so that the the local SQLite database kicks in.
+	if strings.Contains(useMySQLConnStr, "%s") {
+		useMySQLConnStr = ""
 	}
 
 	return &database.DatabaseConfig{

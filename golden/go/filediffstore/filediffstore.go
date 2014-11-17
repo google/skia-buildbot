@@ -10,11 +10,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"code.google.com/p/goauth2/compute/serviceaccount"
 	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
-	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/gs"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
@@ -81,26 +79,6 @@ type FileDiffStore struct {
 	// Mutexes for ensuring safe access to the different local caches.
 	diffDirLock   sync.Mutex
 	digestDirLock sync.Mutex
-}
-
-// GetAuthClient is a helper function that runs through the OAuth flow if doOauth
-// is true, else it tries to auth using a service account. Intended to be used by
-// some clients and passed into NewFileDiffStore.
-func GetAuthClient(doOauth bool) (*http.Client, error) {
-	var client *http.Client
-	var err error
-	if doOauth {
-		client, err = auth.RunFlow(auth.DefaultOAuthConfig)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to auth: %s", err)
-		}
-	} else {
-		client, err = serviceaccount.NewClient(nil)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to auth using a service account: %s", err)
-		}
-	}
-	return client, nil
 }
 
 // NewFileDiffStore intializes and returns a file based implementation of

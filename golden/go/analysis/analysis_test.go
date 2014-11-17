@@ -89,7 +89,7 @@ func setupAnalyzer(t *testing.T) *Analyzer {
 		t.Skipf("Skiping test because %s does not exist.", tileStoreDir)
 	}
 
-	oauthClient, err := auth.RunFlow(auth.DefaultOAuthConfig)
+	oauthClient, err := auth.RunFlow(auth.DefaultOAuthConfig("./google_storage_token.data"))
 	assert.Nil(t, err)
 
 	// Get the expecations storage, the filediff storage and the tilestore.
