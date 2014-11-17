@@ -83,10 +83,12 @@ func (g *GitInfo) Update(pull bool) error {
 			return fmt.Errorf("Failed to sync to HEAD: %s - %s", err, string(b))
 		}
 	}
+	glog.Info("Finished pull.")
 
 	hashes, timestamps, err := readCommitsFromGit(g.dir)
+	glog.Info("Finished reading commits: %s", g.dir)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to read commits from: %s : %s", g.dir, err)
 	}
 	g.hashes = hashes
 	g.timestamps = timestamps

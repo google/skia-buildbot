@@ -220,6 +220,8 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 	// Find all the Git hashes that are new to us.
 	newHashes := i.git.From(ts)
 
+	glog.Infof("Ingest %s: len(newHashes): from %d", i.datasetName, len(newHashes))
+
 	// Add Commit info to the Tiles for each new hash.
 	tt := NewTileTracker(i.tileStore, i.hashToNumber)
 	for _, hash := range newHashes {
@@ -238,6 +240,7 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 			Author:     author,
 		}
 	}
+	glog.Infof("Ingest %s: Starting to flush tile.", i.datasetName)
 	tt.Flush()
 
 	glog.Infof("Ingest %s: Finished UpdateCommitInfo", i.datasetName)

@@ -72,5 +72,7 @@ lint:
 .PHONY: all
 all: build ingest tool logs perf_migratedb
 
+.PHONY: tags
 tags:
-	etags --recurse res/ go/
+	rm TAGS
+	find . -name "*.go" -print -or -name "*.js" -or -name "*.html" | xargs etags --append
