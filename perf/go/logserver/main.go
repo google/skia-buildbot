@@ -192,35 +192,39 @@ func getAppAndLogLevel(fileInfo os.FileInfo) (string, string) {
 }
 
 type logserverState struct {
-	SeenFiles     map[string]string
-	AppToLogSpace map[string]int64
+	SeenFiles          map[string]string
+	AppToLogSpace      map[string]int64
+	AppLogLevelToCount map[string]int64
 }
 
-func getPreviousState() (map[string]string, map[string]int64, error) {
+func getPreviousState() (map[string]string, map[string]int64, map[string]int64, error) {
 	if _, err := os.Stat(*stateFile); os.IsNotExist(err) {
 		// State file does not exist, return an empty map.
-		return make(map[string]string), make(map[string]int64), nil
+		return make(map[string]string), make(map[string]int64), make(map[string]int64), nil
 	}
 	f, err := os.Open(*stateFile)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to open state file %s for reading: %s", *stateFile, err)
+		return nil, nil, nil, fmt.Errorf("Failed to open state file %s for reading: %s", *stateFile, err)
 	}
 	defer f.Close()
 	state := &logserverState{}
 	dec := gob.NewDecoder(f)
 	if err := dec.Decode(state); err != nil {
-		return nil, nil, fmt.Errorf("Failed to decode state file: %s", err)
+		return nil, nil, nil, fmt.Errorf("Failed to decode state file: %s", err)
 	}
-	return state.SeenFiles, state.AppToLogSpace, nil
+	return state.SeenFiles, state.AppToLogSpace, state.AppLogLevelToCount, nil
 }
 
-func writeCurrentState(seenFiles map[string]string, appToLogSpace map[string]int64) error {
+func writeCurrentState(seenFiles map[string]string, appToLogSpace, appLogLevelToCount map[string]int64) error {
 	f, err := os.Create(*stateFile)
 	if err != nil {
 		return fmt.Errorf("Unable to create state file %s: %s", *stateFile, err)
 	}
 	defer f.Close()
-	state := &logserverState{SeenFiles: seenFiles, AppToLogSpace: appToLogSpace}
+	state := &logserverState{
+		SeenFiles:          seenFiles,
+		AppToLogSpace:      appToLogSpace,
+		AppLogLevelToCount: appLogLevelToCount}
 	enc := gob.NewEncoder(f)
 	if err := enc.Encode(state); err != nil {
 		return fmt.Errorf("Failed to encode state: %s", err)
@@ -234,11 +238,11 @@ func writeCurrentState(seenFiles map[string]string, appToLogSpace map[string]int
 //   oldest files are deleted.
 // * New encountered logs are reported to InfluxDB.
 func dirWatcher(duration time.Duration, dir string) {
-	seenFiles, appToLogSpace, err := getPreviousState()
+	seenFiles, appToLogSpace, appLogLevelToCount, err := getPreviousState()
 	if err != nil {
 		glog.Fatalf("Could get access previous state: %s", err)
 	}
-	appLogLevelToMetric := make(map[string]metrics.Counter)
+	appLogLevelToMetric := make(map[string]metrics.Gauge)
 	newFiles := false
 	markFn := func(path string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
@@ -257,10 +261,12 @@ func dirWatcher(duration time.Duration, dir string) {
 				if _, ok := appLogLevelToMetric[appLogLevel]; !ok {
 					// First time encountered this app and log level combination.
 					// Create a counter metric.
-					appLogLevelToMetric[appLogLevel] = metrics.NewRegisteredCounter("logserver."+appLogLevel, metrics.DefaultRegistry)
+					appLogLevelToMetric[appLogLevel] = metrics.NewRegisteredGauge("logserver."+appLogLevel, metrics.DefaultRegistry)
 				}
-				// Increment the counter metric.
-				appLogLevelToMetric[appLogLevel].Inc(1)
+
+				// Update the logs count metric.
+				appLogLevelToCount[appLogLevel]++
+				appLogLevelToMetric[appLogLevel].Update(appLogLevelToCount[appLogLevel])
 
 				// Add the file size to the current space count for this app.
 				appToLogSpace[app] += fileInfo.Size()
@@ -275,7 +281,7 @@ func dirWatcher(duration time.Duration, dir string) {
 		filepath.Walk(dir, markFn)
 		deletedFiles := cleanupAppLogs(dir, appToLogSpace, seenFiles)
 		if newFiles || deletedFiles {
-			if err := writeCurrentState(seenFiles, appToLogSpace); err != nil {
+			if err := writeCurrentState(seenFiles, appToLogSpace, appLogLevelToCount); err != nil {
 				glog.Fatalf("Could not write state: %s", err)
 			}
 		}
