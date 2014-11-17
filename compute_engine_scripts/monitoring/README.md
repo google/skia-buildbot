@@ -1,5 +1,5 @@
-Monitoring (Grafana/InfluxDB, Prober/Alert Server)
-=====================
+Monitoring (Grains, Prober and Alert Server)
+============================================
 
 The monitoring server runs InfluxDB to accept and manage timeseries data and
 uses Grafana to construct dashboards for that data. InfluxDB has a module to
@@ -11,8 +11,8 @@ there.
 In addition this server also hosts the prober, which monitors the uptime
 of our servers and pumps the results of those probes into InfluxDB.
 
-Finally the Alert Server (TBD) will periodically query data in InfluxDB
-and trigger alerts (emails, pages, sirens, etc) based on the data.
+Alert Server periodically queries InfluxDB and generates alerts based on rules
+defined in monitoring/alerts.cfg.
 
 Logs for all applications are served from skiamonitor.com:10115 which is
 restricted to internal IPs only.
@@ -107,4 +107,4 @@ To SSH into the instance:
     gcutil --project=google.com:skia-buildbots ssh --ssh_user=default skia-monitoring
 
 If you need to modify the constants for the vm_XXX.sh scripts they are
-specified in compute_engine_scripts/buildbots/vm_config.sh.
+specified in vm_config.sh.
