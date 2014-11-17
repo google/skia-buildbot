@@ -11,6 +11,7 @@ import (
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
+	"skia.googlesource.com/buildbot.git/perf/go/human"
 	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
@@ -114,6 +115,7 @@ func newLabelCounts(length int) *LabelCounts {
 // GUITileCounts is an output type for the aggregated label counts.
 type GUITileCounts struct {
 	Commits    []*ptypes.Commit        `json:"commits"`
+	Ticks      []interface{}           `json:"ticks"`
 	Aggregated *LabelCounts            `json:"aggregated"`
 	Counts     map[string]*LabelCounts `json:"counts"`
 }
@@ -422,8 +424,19 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, ma
 
 	updateCounts(labeledTile, tileCountsMap, testCountsMap, overallAggregates)
 
+	// TODO (stephana): Factor out human.FlotTickMarks and move it from
+	// perf to the shared go library.
+	// Generate the tickmarks for the commits.
+	ts := make([]int64, 0, len(labeledTile.Commits))
+	for _, c := range labeledTile.Commits {
+		if c.CommitTime != 0 {
+			ts = append(ts, c.CommitTime)
+		}
+	}
+
 	tileCounts := &GUITileCounts{
 		Commits:    labeledTile.Commits,
+		Ticks:      human.FlotTickMarks(ts),
 		Aggregated: overallAggregates,
 		Counts:     tileCountsMap,
 	}

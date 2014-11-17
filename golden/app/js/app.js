@@ -36,7 +36,7 @@ var skia = skia || {};
 
           // plug into the sk-plot directive
           $scope.plotData = temp.plotData;
-          $scope.plotTicks = temp.plotTicks;
+          $scope.plotTicks = temp.getTicks.bind(temp);
 
           // used to render information about tests
           $scope.allAggregates = temp.allAggregates;

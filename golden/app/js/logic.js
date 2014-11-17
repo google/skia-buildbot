@@ -39,8 +39,11 @@ var skia = skia || {};
     this.flotObj = element.plot([], {
       legend: {
         show: true
+      },
+      xaxis: {
+        show: true
       }
-      }).data('plot');
+    }).data('plot');
   };
 
 
@@ -49,16 +52,20 @@ var skia = skia || {};
    * If ticks is not null it will also set the ticks and reset the x-axis.
    *
      * @param {array} data Array of series understood by Flot. See
-     *                     https://github.com/flot/flot/blob/master/API.md#data-format
+     *           https://github.com/flot/flot/blob/master/API.md#data-format
      *
-     * @param {array} ticks Array of flot ticks to be placed on x-axis.
+     * @param {array} ticks Array or function that defines the ticks for the
+     *                      x-axis.
   */
   ns.Plot.prototype.setData = function(data, ticks) {
     this.flotObj.setData(data);
 
-    // Set the ticks if necessary
+    // Set the ticks on the x axis if necessary.
     if (ticks) {
-      this.flotObj.getOptions().xaxis.ticks = ticks;
+      var opt = this.flotObj.getOptions();
+      opt.xaxes.forEach(function(axis) {
+        axis.ticks = ticks;
+      });
     }
 
     // redraw the graph
@@ -72,11 +79,17 @@ var skia = skia || {};
    *  */
   ns.PlotData = function (data, ticks, allAggregates, testDetails) {
     this.plotData = data;
-    this.plotTicks = ticks;
+    this.ticks = ticks;
     this.testDetails = testDetails;
     this.allAggregates = allAggregates;
   };
 
+  /**
+   * getTicks returns the ticks for the PlotData object at hand.
+   */
+  ns.PlotData.prototype.getTicks = function (axis) {
+    return this.ticks;
+  };
 
   /**
   * TestDetails is a class that contails the aggregated information about
@@ -165,9 +178,6 @@ var skia = skia || {};
       }
     }
 
-    // add the ticks.
-    var ticks = [-0.5, serverData.commits.length+1];
-
     // assemble the plot data.
     var targetData = testName ? serverData.counts[testName] : serverData.aggregated;
     var data = [];
@@ -184,7 +194,10 @@ var skia = skia || {};
       }
     }
 
-    return new ns.PlotData(data, ticks, aggregateCounts(serverData.aggregated), testCounts);
+    return new ns.PlotData(data,
+                           serverData.ticks,
+                           aggregateCounts(serverData.aggregated),
+                           testCounts);
   };
 
   /**
