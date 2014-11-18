@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/gob"
 	"flag"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/common"
+	"skia.googlesource.com/buildbot.git/go/util"
 
 	"github.com/golang/glog"
 )
@@ -29,12 +31,14 @@ var (
 	graphiteServer = flag.String("graphite_server", "skiamonitor.com:2003", "Where is Graphite metrics ingestion server running.")
 	stateFile      = flag.String("state_file", "/tmp/logserver.state", "File where logserver stores all encountered log files. This ensures that metrics are not duplicated for already processed log files.")
 
+	// TODO(rmistry): Update the below to 1GB once skia-testing-b has a large
+	// persistent disk.
 	appLogThreshold = flag.Int64(
-		"app_log_threshold", 1<<30,
-		"If any app's logs use up more than app_log_threshold value then the files with the oldest modified time are deleted till size is less than app_log_threshold - app_log_threshold_buffer.")
+		"app_log_threshold", 256*1<<20,
+		"If any app's logs for a log level use up more than app_log_threshold value then the files with the oldest modified time are deleted till size is less than app_log_threshold - app_log_threshold_buffer.")
 	appLogThresholdBuffer = flag.Int64(
-		"app_log_threshold_buffer", 10<<20,
-		"If any app's logs use up more than app_log_threshold then the files with the oldest modified time are deleted till size is less than app_log_threshold - app_log_threshold_buffer.")
+		"app_log_threshold_buffer", 10*1<<20,
+		"If any app's logs for a log level use up more than app_log_threshold then the files with the oldest modified time are deleted till size is less than app_log_threshold - app_log_threshold_buffer.")
 	dirWatchDuration = flag.Duration("dir_watch_duration", 10*time.Second, "How long dir watcher sleeps for before checking the dir.")
 )
 
@@ -119,16 +123,24 @@ func dirList(w http.ResponseWriter, f http.File) {
 	for _, fileInfo := range topLevelSymlinks {
 		writeFileInfo(w, fileInfo)
 	}
-	// Then output the logs of all the different apps.
+	// Second output app links to their anchors.
 	var keys []string
 	for k := range appToLogs {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+	if len(keys) != 0 {
+		fmt.Fprint(w, "\nJump to sections:\n")
+	}
+	for _, app := range keys {
+		fmt.Fprintf(w, "<a href=\"#%s\">%s</a>\n", app, template.HTMLEscapeString(app))
+	}
+	fmt.Fprint(w, "\n")
+	// Then output the logs of all the different apps.
 	for _, app := range keys {
 		appFileInfos := appToLogs[app]
 		sort.Sort(FileInfoNameSlice(appFileInfos))
-		fmt.Fprintf(w, "\n===== %s =====\n\n", template.HTMLEscapeString(app))
+		fmt.Fprintf(w, "\n===== <a name=\"%s\">%s</a> =====\n\n", app, template.HTMLEscapeString(app))
 		for _, fileInfo := range appFileInfos {
 			writeFileInfo(w, fileInfo)
 		}
@@ -141,8 +153,14 @@ func writeFileInfo(w http.ResponseWriter, fileInfo os.FileInfo) {
 	if fileInfo.IsDir() {
 		name += "/"
 	}
+
 	url := url.URL{Path: name}
-	fmt.Fprintf(w, "%s <a href=\"%s\">%s</a>\n", fileInfo.ModTime(), url.String(), template.HTMLEscapeString(name))
+	downloadLink := ""
+	if !fileInfo.IsDir() {
+		fileSize := util.GetFormattedByteSize(float64(fileInfo.Size()))
+		downloadLink = fmt.Sprintf("(%s <a href=\"%s\" download=\"%s\">download</a>)", fileSize, url.String(), template.HTMLEscapeString(name))
+	}
+	fmt.Fprintf(w, "%s <a href=\"%s\">%s</a>    %s\n", fileInfo.ModTime(), url.String(), template.HTMLEscapeString(name), downloadLink)
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name string) {
@@ -193,7 +211,7 @@ func getAppAndLogLevel(fileInfo os.FileInfo) (string, string) {
 
 type logserverState struct {
 	SeenFiles          map[string]string
-	AppToLogSpace      map[string]int64
+	AppLogLevelToSpace map[string]int64
 	AppLogLevelToCount map[string]int64
 }
 
@@ -212,10 +230,10 @@ func getPreviousState() (map[string]string, map[string]int64, map[string]int64, 
 	if err := dec.Decode(state); err != nil {
 		return nil, nil, nil, fmt.Errorf("Failed to decode state file: %s", err)
 	}
-	return state.SeenFiles, state.AppToLogSpace, state.AppLogLevelToCount, nil
+	return state.SeenFiles, state.AppLogLevelToSpace, state.AppLogLevelToCount, nil
 }
 
-func writeCurrentState(seenFiles map[string]string, appToLogSpace, appLogLevelToCount map[string]int64) error {
+func writeCurrentState(seenFiles map[string]string, appLogLevelToSpace, appLogLevelToCount map[string]int64) error {
 	f, err := os.Create(*stateFile)
 	if err != nil {
 		return fmt.Errorf("Unable to create state file %s: %s", *stateFile, err)
@@ -223,7 +241,7 @@ func writeCurrentState(seenFiles map[string]string, appToLogSpace, appLogLevelTo
 	defer f.Close()
 	state := &logserverState{
 		SeenFiles:          seenFiles,
-		AppToLogSpace:      appToLogSpace,
+		AppLogLevelToSpace: appLogLevelToSpace,
 		AppLogLevelToCount: appLogLevelToCount}
 	enc := gob.NewEncoder(f)
 	if err := enc.Encode(state); err != nil {
@@ -232,13 +250,23 @@ func writeCurrentState(seenFiles map[string]string, appToLogSpace, appLogLevelTo
 	return nil
 }
 
+func getLineCount(path string) int64 {
+	file, _ := os.Open(path)
+	fileScanner := bufio.NewScanner(file)
+	var lineCount int64
+	for fileScanner.Scan() {
+		lineCount++
+	}
+	return lineCount
+}
+
 // dirWatcher watches for changes in the specified dir. The frequency of polling
 // is determined by the duration parameter. dirWatcher ensures:
 // * Each app's logs do not exceed the log limit threshold. If they do then the
 //   oldest files are deleted.
 // * New encountered logs are reported to InfluxDB.
 func dirWatcher(duration time.Duration, dir string) {
-	seenFiles, appToLogSpace, appLogLevelToCount, err := getPreviousState()
+	seenFiles, appLogLevelToSpace, appLogLevelToCount, err := getPreviousState()
 	if err != nil {
 		glog.Fatalf("Could get access previous state: %s", err)
 	}
@@ -265,11 +293,12 @@ func dirWatcher(duration time.Duration, dir string) {
 				}
 
 				// Update the logs count metric.
-				appLogLevelToCount[appLogLevel]++
+				appLogLevelToCount[appLogLevel] += getLineCount(path)
 				appLogLevelToMetric[appLogLevel].Update(appLogLevelToCount[appLogLevel])
 
-				// Add the file size to the current space count for this app.
-				appToLogSpace[app] += fileInfo.Size()
+				// Add the file size to the current space count for this app and
+				// log level combination.
+				appLogLevelToSpace[appLogLevel] += fileInfo.Size()
 
 				newFiles = true
 			}
@@ -279,21 +308,24 @@ func dirWatcher(duration time.Duration, dir string) {
 
 	for _ = range time.Tick(duration) {
 		filepath.Walk(dir, markFn)
-		deletedFiles := cleanupAppLogs(dir, appToLogSpace, seenFiles)
+		deletedFiles := cleanupAppLogs(dir, appLogLevelToSpace, seenFiles)
 		if newFiles || deletedFiles {
-			if err := writeCurrentState(seenFiles, appToLogSpace, appLogLevelToCount); err != nil {
+			if err := writeCurrentState(seenFiles, appLogLevelToSpace, appLogLevelToCount); err != nil {
 				glog.Fatalf("Could not write state: %s", err)
 			}
 		}
+		glog.Infof("appLogLevelToCount: %s", appLogLevelToCount)
+		glog.Infof("appLogLevelToSpace: %s", appLogLevelToSpace)
 		newFiles = false
 	}
 }
 
-func cleanupAppLogs(dir string, appToLogSpace map[string]int64, seenFiles map[string]string) bool {
+func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, seenFiles map[string]string) bool {
 	deletedFiles := false
-	for app := range appToLogSpace {
-		if appToLogSpace[app] > *appLogThreshold {
-			glog.Infof("App %s is above the threshold. Usage: %d. Threshold: %d", app, appToLogSpace[app], *appLogThreshold)
+	for appLogLevel := range appLogLevelToSpace {
+		if appLogLevelToSpace[appLogLevel] > *appLogThreshold {
+			glog.Infof("App %s is above the threshold. Usage: %d. Threshold: %d", appLogLevel, appLogLevelToSpace[appLogLevel], *appLogThreshold)
+			app := strings.Split(appLogLevel, ".")[0]
 			logGlob := filepath.Join(dir, app+"*")
 			matches, err := filepath.Glob(logGlob)
 			if err != nil {
@@ -311,9 +343,9 @@ func cleanupAppLogs(dir string, appToLogSpace map[string]int64, seenFiles map[st
 			// (threshold - buffer) space left.
 			sort.Sort(FileInfoModifiedSlice(fileInfos))
 			index := 0
-			for appToLogSpace[app] > *appLogThreshold-*appLogThresholdBuffer {
+			for appLogLevelToSpace[appLogLevel] > *appLogThreshold-*appLogThresholdBuffer {
 				fileName := fileInfos[index].Name()
-				appToLogSpace[app] -= fileInfos[index].Size()
+				appLogLevelToSpace[appLogLevel] -= fileInfos[index].Size()
 				if err = os.Remove(filepath.Join(dir, fileName)); err != nil {
 					glog.Fatalf("Could not delete %s: %s", fileName, err)
 				}
@@ -324,8 +356,8 @@ func cleanupAppLogs(dir string, appToLogSpace map[string]int64, seenFiles map[st
 				index++
 			}
 			// Just incase we delete a massive log file.
-			if appToLogSpace[app] < 0 {
-				appToLogSpace[app] = 0
+			if appLogLevelToSpace[appLogLevel] < 0 {
+				appLogLevelToSpace[appLogLevel] = 0
 			}
 		}
 	}

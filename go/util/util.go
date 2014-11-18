@@ -7,6 +7,33 @@ import (
 	"time"
 )
 
+const (
+	_          = iota // ignore first value by assigning to blank identifier
+	KB float64 = 1 << (10 * iota)
+	MB
+	GB
+	TB
+	PB
+)
+
+// GetFormattedByteSize returns a formatted pretty string representation of the
+// provided byte size. Eg: Input of 1024 would return "1.00KB".
+func GetFormattedByteSize(b float64) string {
+	switch {
+	case b >= PB:
+		return fmt.Sprintf("%.2fPB", b/PB)
+	case b >= TB:
+		return fmt.Sprintf("%.2fTB", b/TB)
+	case b >= GB:
+		return fmt.Sprintf("%.2fGB", b/GB)
+	case b >= MB:
+		return fmt.Sprintf("%.2fMB", b/MB)
+	case b >= KB:
+		return fmt.Sprintf("%.2fKB", b/KB)
+	}
+	return fmt.Sprintf("%.2fB", b)
+}
+
 // In returns true if |s| is *in* |a| slice.
 func In(s string, a []string) bool {
 	for _, x := range a {
