@@ -210,3 +210,47 @@ func (RatioFunc) Describe() string {
 }
 
 var ratioFunc = RatioFunc{}
+
+// CountFunc implements Func and counts the number of non-sentinel values in
+// all argument traces.
+//
+// MISSING_DATA_SENTINEL values are not included in the count.  Note that if
+// all the values at an index are MISSING_DATA_SENTINEL then the count will
+// be 0.
+type CountFunc struct{}
+
+func (CountFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("count() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("count() takes a function argument.")
+	}
+	traces, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("count() argument failed to evaluate: %s", err)
+	}
+
+	if len(traces) == 0 {
+		return traces, nil
+	}
+
+	ret := types.NewPerfTraceN(len(traces[0].Values))
+	ret.Params()["id"] = types.AsFormulaID(ctx.formula)
+	for i, _ := range ret.Values {
+		count := 0
+		for _, tr := range traces {
+			if v := tr.Values[i]; v != config.MISSING_DATA_SENTINEL {
+				count += 1
+			}
+		}
+		ret.Values[i] = float64(count)
+	}
+	return []*types.PerfTrace{ret}, nil
+}
+
+func (CountFunc) Describe() string {
+	return `count() counts the non-missing values of all argument traces.`
+}
+
+var countFunc = CountFunc{}
