@@ -13,6 +13,10 @@ import (
 	"skia.googlesource.com/buildbot.git/go/util"
 )
 
+const (
+	NAG_MSG_TMPL = "This alert has been active for %s since the last update. Please verify that it is still valid and either fix the issue or dismiss/snooze the alert."
+)
+
 type queryable interface {
 	Query(string, ...client.TimePrecision) ([]*client.Series, error)
 }
@@ -62,11 +66,13 @@ type Alert struct {
 	Query         string
 	Condition     string
 	Message       string
+	nag           time.Duration
 	client        queryable
 	autoDismiss   bool
 	actions       []Action
 	lastTriggered time.Time
 	snoozedUntil  time.Time
+	lastMsgTime   time.Time
 }
 
 // Fire causes the Alert to become Active() and not Snoozed(), and causes each
@@ -74,6 +80,7 @@ type Alert struct {
 func (a *Alert) fire() {
 	a.lastTriggered = time.Now()
 	a.snoozedUntil = time.Time{}
+	a.lastMsgTime = time.Now()
 	for _, action := range a.actions {
 		go action.Fire()
 	}
@@ -81,6 +88,7 @@ func (a *Alert) fire() {
 
 // Followup sends a followup message about the alert.
 func (a *Alert) followup(msg string) {
+	a.lastMsgTime = time.Now()
 	for _, action := range a.actions {
 		go action.Followup(msg)
 	}
@@ -130,6 +138,13 @@ func (a *Alert) tick() {
 		} else if !a.Active() && doAlert {
 			a.fire()
 		}
+	}
+	a.maybeNag()
+}
+
+func (a *Alert) maybeNag() {
+	if a.Active() && !a.Snoozed() && a.nag != time.Duration(0) && time.Now().Sub(a.lastMsgTime) > a.nag {
+		a.followup(fmt.Sprintf(NAG_MSG_TMPL, a.nag.String()))
 	}
 }
 
@@ -191,6 +206,15 @@ func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail, testi
 	if !ok {
 		return nil, fmt.Errorf(errString, "actions")
 	}
+	nagDuration := time.Duration(0)
+	nag, ok := r["nag"].(string)
+	if ok {
+		var err error
+		nagDuration, err = time.ParseDuration(nag)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid nag duration %q: %v", nag, err)
+		}
+	}
 	id, err := util.GenerateID()
 	if err != nil {
 		return nil, err
@@ -201,6 +225,7 @@ func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail, testi
 		Query:         query,
 		Condition:     condition,
 		Message:       message,
+		nag:           nagDuration,
 		client:        client,
 		autoDismiss:   autoDismiss,
 		actions:       nil,

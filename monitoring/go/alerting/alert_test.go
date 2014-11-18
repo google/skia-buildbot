@@ -336,6 +336,19 @@ actions = ["Print"]
 `,
 			ExpectedErr: fmt.Errorf("Alert rule missing field \"auto-dismiss\""),
 		},
+		parseCase{
+			Name: "Nag",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+query = "select mean(value) from random_bits where time > now() - 5s"
+condition = "x > 0.5"
+actions = ["Print"]
+auto-dismiss = false
+nag = "1h10m"
+`,
+			ExpectedErr: nil,
+		},
 	}
 	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
 	for _, c := range cases {
