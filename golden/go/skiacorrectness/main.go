@@ -238,7 +238,7 @@ func main() {
 	// Get the expecations storage, the filediff storage and the tilestore.
 	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
 	vdb := database.NewVersionedDB(db.GetConfig(*dbConnStr, *sqlitePath, *local))
-	expStore := expstorage.NewSQLExpectationStore(vdb)
+	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb))
 	tileStore := filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
 
 	// Initialize the Analyzer

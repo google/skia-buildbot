@@ -292,6 +292,8 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 
 		// Load the tile and process it.
 		tile, err := a.tileStore.Get(0, -1)
+		glog.Info("Done reading tiles.")
+
 		if err != nil {
 			glog.Errorf("Error reading tile store: %s\n", err.Error())
 			errorTileLoadingCounter.Inc(1)
@@ -314,6 +316,7 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 // processTile processes the last two tiles and updates the cannonical and
 // output data structures.
 func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
+	glog.Info("Processing tile into LabeledTile ...")
 	result := NewLabeledTile()
 
 	tileLen := tile.LastCommitIndex() + 1
@@ -325,7 +328,6 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 		tempCommitIds := make([]int, 0, tileLen)
 		tempLabels := make([]types.Label, 0, tileLen)
 		tempDigests := make([]string, 0, tileLen)
-
 		gTrace := v.(*ptypes.GoldenTrace)
 
 		// Iterate over the digests in this trace.
@@ -346,6 +348,7 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 		targetLabeledTrace.addLabeledDigests(tempCommitIds, tempDigests, tempLabels)
 	}
 
+	glog.Info("Done processing tile into LabeledTile.")
 	return result
 }
 

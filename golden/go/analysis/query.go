@@ -3,6 +3,8 @@ package analysis
 import (
 	"sort"
 
+	"github.com/golang/glog"
+
 	"skia.googlesource.com/buildbot.git/go/util"
 )
 
@@ -20,6 +22,7 @@ type ParamIndex map[string]map[string][]int
 // traces via parameter values. It returns the parameter index, a mapping
 // of ids to traces and a map of all parameters and their values.
 func getQueryIndex(labeledTile *LabeledTile) (ParamIndex, map[int]*LabeledTrace, map[string][]string) {
+	glog.Info("Building parameter index.")
 	index := map[string]map[string][]int{}
 	traceMap := map[int]*LabeledTrace{}
 
@@ -47,6 +50,7 @@ func getQueryIndex(labeledTile *LabeledTile) (ParamIndex, map[int]*LabeledTrace,
 		sort.Strings(allParams[param])
 	}
 
+	glog.Info("Done building parameter index.")
 	return index, traceMap, allParams
 }
 
