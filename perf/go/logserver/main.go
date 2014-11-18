@@ -325,8 +325,10 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, seenFiles m
 	for appLogLevel := range appLogLevelToSpace {
 		if appLogLevelToSpace[appLogLevel] > *appLogThreshold {
 			glog.Infof("App %s is above the threshold. Usage: %d. Threshold: %d", appLogLevel, appLogLevelToSpace[appLogLevel], *appLogThreshold)
-			app := strings.Split(appLogLevel, ".")[0]
-			logGlob := filepath.Join(dir, app+"*")
+			tokens := strings.Split(appLogLevel, ".")
+			app := tokens[0]
+			logLevel := tokens[1]
+			logGlob := filepath.Join(dir, app+".*"+logLevel+".*")
 			matches, err := filepath.Glob(logGlob)
 			if err != nil {
 				glog.Fatalf("Could not glob for %s: %s", logGlob, err)
