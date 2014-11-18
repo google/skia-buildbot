@@ -65,8 +65,7 @@ var (
 	testing               = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 )
 
-func userHasEditRights(r *http.Request) bool {
-	email := login.LoggedInAs(r)
+func userHasEditRights(email string) bool {
 	if strings.HasSuffix(email, "@google.com") {
 		return true
 	}
@@ -113,7 +112,8 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 func alertHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		if !userHasEditRights(r) {
+		email := login.LoggedInAs(r)
+		if !userHasEditRights(email) {
 			util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in to an account with edit rights to do that.")
 			return
 		}
@@ -131,7 +131,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 		action := split[3]
 		if action == "dismiss" {
 			glog.Infof("%s %s", action, alertId)
-			alertManager.Dismiss(alertId)
+			alertManager.Dismiss(alertId, email)
 			return
 		} else if action == "snooze" {
 			d := json.NewDecoder(r.Body)
@@ -145,11 +145,11 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			until := time.Unix(int64(body.Until), 0)
 			glog.Infof("%s %s until %v", action, alertId, until.String())
-			alertManager.Snooze(alertId, until)
+			alertManager.Snooze(alertId, until, email)
 			return
 		} else if action == "unsnooze" {
 			glog.Infof("%s %s", action, alertId)
-			alertManager.Unsnooze(alertId)
+			alertManager.Unsnooze(alertId, email)
 			return
 		} else {
 			util.ReportError(w, r, fmt.Errorf("Invalid action %s", action), "The requested action is invalid.")

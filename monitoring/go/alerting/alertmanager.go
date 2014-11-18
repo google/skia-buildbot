@@ -30,18 +30,18 @@ func (am *AlertManager) Contains(id string) bool {
 }
 
 // Snooze the given alert until the given time.
-func (am *AlertManager) Snooze(id string, until time.Time) {
-	am.alerts[id].snooze(until)
+func (am *AlertManager) Snooze(id string, until time.Time, user string) {
+	am.alerts[id].snooze(until, fmt.Sprintf("Snoozed by %s", user))
 }
 
 // Unsnooze the given alert.
-func (am *AlertManager) Unsnooze(id string) {
-	am.alerts[id].unsnooze()
+func (am *AlertManager) Unsnooze(id, user string) {
+	am.alerts[id].unsnooze(fmt.Sprintf("Unsnoozed by %s", user))
 }
 
 // Dismiss the given alert.
-func (am *AlertManager) Dismiss(id string) {
-	am.alerts[id].dismiss()
+func (am *AlertManager) Dismiss(id, user string) {
+	am.alerts[id].dismiss(fmt.Sprintf("Dismissed by %s", user))
 }
 
 func (am *AlertManager) loop() {

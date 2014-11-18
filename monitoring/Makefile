@@ -12,7 +12,7 @@ grains:
 default: alertserver datahopper grains
 
 testgo:
-	go test ./go/...
+	go test ./go/... -v
 
 node_modules: package.json
 	npm install

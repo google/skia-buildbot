@@ -18,9 +18,10 @@ func (c mockClient) Query(query string, precision ...client.TimePrecision) ([]*c
 }
 
 func getAlert() *Alert {
-	return &Alert{
+	a := &Alert{
 		Name:      "TestAlert",
 		Query:     "DummyQuery",
+		Message:   "Dummy query meets dummy condition!",
 		Condition: "x > 0",
 		client: &mockClient{func(string) ([]*client.Series, error) {
 			s := client.Series{
@@ -30,10 +31,13 @@ func getAlert() *Alert {
 			}
 			return []*client.Series{&s}, nil
 		}},
-		actions:       []func(*Alert){},
+		autoDismiss:   false,
+		actions:       nil,
 		lastTriggered: time.Time{},
 		snoozedUntil:  time.Time{},
 	}
+	a.actions = []Action{NewPrintAction(a)}
+	return a
 }
 
 func TestAlert(t *testing.T) {
@@ -50,7 +54,7 @@ func TestAlert(t *testing.T) {
 	if !a.Active() {
 		t.Errorf("Alert did not fire as expected.")
 	}
-	a.snooze(time.Now().Add(30 * time.Millisecond))
+	a.snooze(time.Now().Add(30*time.Millisecond), "Snoozed by default.user@gmail.com")
 	time.Sleep(10 * time.Millisecond)
 	if !a.Snoozed() {
 		t.Errorf("Alert did not snooze as expected.")
@@ -59,7 +63,30 @@ func TestAlert(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	a.tick()
 	if a.Active() || a.Snoozed() {
-		t.Errorf("Alert did not dismiss itself.")
+		t.Errorf("Alert did not dismiss itself after snooze period ended.")
+	}
+}
+
+func TestAutoDismiss(t *testing.T) {
+	a := getAlert()
+	a.autoDismiss = true
+	if a.Active() {
+		t.Errorf("Alert is active before firing.")
+	}
+	if a.Snoozed() {
+		t.Errorf("Alert is snoozed before firing.")
+	}
+	a.tick()
+	time.Sleep(10 * time.Millisecond)
+	if !a.Active() {
+		t.Errorf("Alert did not fire as expected.")
+	}
+	// Hack the condition so that it's no longer true with the fake query results.
+	a.Condition = "x > 10"
+	a.tick()
+	time.Sleep(10 * time.Millisecond)
+	if a.Active() {
+		t.Errorf("Alert did not auto-dismiss.")
 	}
 }
 
@@ -215,6 +242,7 @@ message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print"]
+auto-dismiss = false
 `,
 			ExpectedErr: nil,
 		},
@@ -225,6 +253,7 @@ message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print"]
+auto-dismiss = false
 `,
 			ExpectedErr: fmt.Errorf("Alert rule missing field \"name\""),
 		},
@@ -235,6 +264,7 @@ name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 condition = "x > 0.5"
 actions = ["Print"]
+auto-dismiss = false
 `,
 			ExpectedErr: fmt.Errorf("Alert rule missing field \"query\""),
 		},
@@ -245,6 +275,7 @@ name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 actions = ["Print"]
+auto-dismiss = false
 `,
 			ExpectedErr: fmt.Errorf("Alert rule missing field \"condition\""),
 		},
@@ -255,6 +286,7 @@ name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
+auto-dismiss = false
 `,
 			ExpectedErr: fmt.Errorf("Alert rule missing field \"actions\""),
 		},
@@ -266,6 +298,7 @@ message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print", "UnknownAction"]
+auto-dismiss = false
 `,
 			ExpectedErr: fmt.Errorf("Unknown action: \"UnknownAction\""),
 		},
@@ -277,6 +310,7 @@ message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > y"
 actions = ["Print"]
+auto-dismiss = false
 `,
 			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x > y\": 1:1: undeclared name: y"),
 		},
@@ -287,8 +321,20 @@ name = "randombits"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print"]
+auto-dismiss = false
 `,
 			ExpectedErr: fmt.Errorf("Alert rule missing field \"message\""),
+		},
+		parseCase{
+			Name: "NoAutoDismiss",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+query = "select mean(value) from random_bits where time > now() - 5s"
+condition = "x > 0.5"
+actions = ["Print"]
+`,
+			ExpectedErr: fmt.Errorf("Alert rule missing field \"auto-dismiss\""),
 		},
 	}
 	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"

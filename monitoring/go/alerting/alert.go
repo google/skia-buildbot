@@ -63,7 +63,8 @@ type Alert struct {
 	Condition     string
 	Message       string
 	client        queryable
-	actions       []func(*Alert)
+	autoDismiss   bool
+	actions       []Action
 	lastTriggered time.Time
 	snoozedUntil  time.Time
 }
@@ -73,8 +74,15 @@ type Alert struct {
 func (a *Alert) fire() {
 	a.lastTriggered = time.Now()
 	a.snoozedUntil = time.Time{}
-	for _, f := range a.actions {
-		go f(a)
+	for _, action := range a.actions {
+		go action.Fire()
+	}
+}
+
+// Followup sends a followup message about the alert.
+func (a *Alert) followup(msg string) {
+	for _, action := range a.actions {
+		go action.Followup(msg)
 	}
 }
 
@@ -102,9 +110,9 @@ func (a Alert) SnoozedUntil() time.Time {
 func (a *Alert) tick() {
 	if a.Snoozed() {
 		if a.snoozedUntil.Before(time.Now()) {
-			a.dismiss()
+			a.dismiss("Dismissing; snooze period expired.")
 		}
-	} else if !a.Active() {
+	} else if a.autoDismiss || !a.Active() {
 		glog.Infof("Executing query [%s]", a.Query)
 		d, err := executeQuery(a.client, a.Query)
 		if err != nil {
@@ -117,23 +125,28 @@ func (a *Alert) tick() {
 			glog.Error(err)
 			return
 		}
-		if doAlert {
+		if a.Active() && a.autoDismiss && !doAlert {
+			a.dismiss("Auto-dismissing; condition is no longer true.")
+		} else if !a.Active() && doAlert {
 			a.fire()
 		}
 	}
 }
 
-func (a *Alert) dismiss() {
+func (a *Alert) dismiss(msg string) {
 	a.lastTriggered = time.Time{}
 	a.snoozedUntil = time.Time{}
+	a.followup(msg)
 }
 
-func (a *Alert) snooze(until time.Time) {
+func (a *Alert) snooze(until time.Time, msg string) {
 	a.snoozedUntil = until
+	a.followup(msg)
 }
 
-func (a *Alert) unsnooze() {
+func (a *Alert) unsnooze(msg string) {
 	a.snoozedUntil = time.Time{}
+	a.followup(msg)
 }
 
 func (a *Alert) evaluate(d float64) (bool, error) {
@@ -170,13 +183,13 @@ func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail, testi
 	if !ok {
 		return nil, fmt.Errorf(errString, "message")
 	}
+	autoDismiss, ok := r["auto-dismiss"].(bool)
+	if !ok {
+		return nil, fmt.Errorf(errString, "auto-dismiss")
+	}
 	actionsInterface, ok := r["actions"]
 	if !ok {
 		return nil, fmt.Errorf(errString, "actions")
-	}
-	actionsList, err := parseActions(actionsInterface, emailAuth, testing)
-	if err != nil {
-		return nil, err
 	}
 	id, err := util.GenerateID()
 	if err != nil {
@@ -189,9 +202,13 @@ func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail, testi
 		Condition:     condition,
 		Message:       message,
 		client:        client,
-		actions:       actionsList,
+		autoDismiss:   autoDismiss,
+		actions:       nil,
 		lastTriggered: time.Time{},
 		snoozedUntil:  time.Time{},
+	}
+	if err := alert.parseActions(actionsInterface, emailAuth, testing); err != nil {
+		return nil, err
 	}
 	// Verify that the condition can be evaluated.
 	_, err = alert.evaluate(0.0)
