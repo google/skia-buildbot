@@ -28,14 +28,12 @@ body {
   background: white;
 }
 
-a,
-::shadow a {
+html /deep/ a {
   color: #1f78b4;
   font-weight: bold;
 }
 
-a:hover,
-::shadow a:hover {
+html /deep/ a:hover {
   text-decoration: none;
 }
 
@@ -74,8 +72,7 @@ table, td {
     flex-grow: 1;
 }
 
-::shadow core-toolbar,
-core-toolbar,
+html /deep/ core-toolbar,
 #title {
   background-color: #1f78b4;
   color: #fff;
@@ -85,7 +82,7 @@ core-toolbar,
   margin-left: auto;
 }
 
-#title ::shadow a {
+#title /deep/ a {
   color: white;
 }
 
@@ -105,6 +102,7 @@ p {
 
 #version {
   font-size: 10px;
+  margin-left: 1em;
 }
 
 core-item:hover {
