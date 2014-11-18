@@ -172,6 +172,7 @@ var skiaperf = (function() {
     // Load the commit data and set up the plot.
     sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
       that.commitData_ = json.commits;
+      $$$('query-sk').setParamSet(json.paramset);
       if (window.location.hash.length >= 2) {
         that.addTraces("__shortcut=" + window.location.hash.substr(1))
       }

@@ -12,16 +12,13 @@
 
   Usage:
 
-    <query-sk scale=0 tile=-1></query-sk>
-
-  Attributes:
-    scale: The tile scale to use.
-    tile:  The tile index to use.
+    <query-sk></query-sk>
 
   Properties:
     currentQuery: The current URL query formatted selections.
 
   Methods:
+    setParamSet(set): Set the params to be displayed.
     clearSelections(): Clear all selections.
 
   Events:
@@ -30,7 +27,7 @@
         parameters chosen have changed. The event contains the current
         selections formatted as a URL query, found in e.detail.
 -->
-<polymer-element name="query-sk" attributes="scale tile">
+<polymer-element name="query-sk">
   <template>
     <style type="text/css" media="screen">
       #more.display {
@@ -101,8 +98,6 @@
 
       Polymer({
         created: function() {
-          this.paramset = {};
-
           // Both primary and secondary are arrays of objects that look like:
           //
           //  {
@@ -118,14 +113,6 @@
 
         ready: function() {
           this.currentQuery = '';
-          this.tile = this.tile || -1;
-          this.scale = this.scale || 0;
-
-          // TODO requery when scale or tile attrs change.
-          var that = this;
-          sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
-            that.paramset = json.paramset;
-          });
 
           this.$.inputs.addEventListener('core-select', this.fireChange.bind(this));
           this.$.more.addEventListener('core-select', this.fireChange.bind(this));
@@ -185,19 +172,21 @@
           return sel.join('&')
         },
 
-        // When paramset changes rebuild the primary and secondary values.
+        // When paramset is changed we rebuild primary and secondary.
         //
         // The paramset is an object that maps selection names
         // to a list of selection values, not necessarily in alphabetical
         // order.
-        paramsetChanged: function() {
-          var keylist = Object.keys(this.paramset).sort();
+        setParamSet: function(paramset) {
+          var keylist = Object.keys(paramset).sort();
 
+          this.primary = [];
+          this.secondary = [];
           for (var i = 0; i < keylist.length; i++) {
             var key = keylist[i];
             var sel = {
               name: key,
-              values: this.paramset[key].sort()
+              values: paramset[key].sort()
             }
             if (whitelist.indexOf(key) != -1) {
               this.primary.push(sel);

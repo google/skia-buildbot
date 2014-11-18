@@ -102,6 +102,11 @@
         $$('input[name="sort"]').forEach(function(ele) {
           ele.addEventListener('click', sort);
         });
+
+        sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
+          $$$('query-sk').setParamSet(json.paramset);
+        });
+
       };
 
       // TODO(jcgregorio) Make this into a Promise.
