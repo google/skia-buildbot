@@ -183,16 +183,9 @@ var skiaperf = (function() {
 
   };
 
-  function onLoad() {
+  sk.domReady().then(function() {
     var navigation = new Navigation();
     navigation.attach();
-  }
-
-  // If loaded via HTML Imports then DOMContentLoaded will be long done.
-  if (document.readyState != 'loading') {
-    onLoad();
-  } else {
-    window.addEventListener('load', onLoad);
-  }
+  });
 
 }());

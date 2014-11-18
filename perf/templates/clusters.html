@@ -109,12 +109,7 @@
 
       };
 
-      // TODO(jcgregorio) Make this into a Promise.
-      if (document.readyState != 'loading') {
-        onLoad();
-      } else {
-        window.addEventListener('load', onLoad);
-      }
+      sk.domReady().then(onLoad);
 
     })();
   </script>

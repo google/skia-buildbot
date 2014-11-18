@@ -6,7 +6,6 @@
     {{template "header.html" .}}
 
     <link href="/res/imp/compare.html" rel="import" />
-    <link href="/res/imp/query.html" rel="import" />
 </head>
 <body>
   <scaffold-sk responsiveWidth="700px">
@@ -176,6 +175,7 @@
 
         sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
           var endCommit = "";
+          $$$('query-sk').setParamSet(json.paramset);
           for (i = json.commits.length - 1; i >= 0; i--) {
             if (json.commits[i].hash.length > 0) {
               endCommit = json.commits[i].hash;
@@ -194,11 +194,7 @@
         });
       };
 
-      if (document.readyState != 'loading') {
-        onLoad();
-      } else {
-        window.addEventListener('load', onLoad);
-      }
+      sk.domReady().then(onLoad);
 
     })();
   </script>
