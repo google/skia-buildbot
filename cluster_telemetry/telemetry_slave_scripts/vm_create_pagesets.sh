@@ -40,45 +40,33 @@ rm -rf page_sets/*.py
 # Clean and create directories where page_sets will be stored.
 rm -rf /b/storage/page_sets/$PAGESETS_TYPE/*
 
-# If PAGESETS_TYPE is 100k or 10k or IndexSample10k then adjust NUM_WEBPAGES.
-if [ "$PAGESETS_TYPE" == "100k" ]; then
-  NUM_WEBPAGES=100000
-elif [ "$PAGESETS_TYPE" == "10k" ] || [ "$PAGESETS_TYPE" == "Mobile10k" ] ||  [ "$PAGESETS_TYPE" == "IndexSample10k" ]; then
+# If PAGESETS_TYPE is 10k or Mobile10k then adjust NUM_WEBPAGES.
+if [ "$PAGESETS_TYPE" == "10k" ] || [ "$PAGESETS_TYPE" == "Mobile10k" ]; then
   NUM_WEBPAGES=10000
-fi
-
-# The blacklist file should only be used for the Filtered page set type.
-if [ "$PAGESETS_TYPE" == "Filtered" ]; then
-  BLACKLIST_ARG='-b blacklist'
 fi
 
 NUM_WEBPAGES_PER_SLAVE=$(($NUM_WEBPAGES/$NUM_SLAVES))
 NUM_PAGESETS_PER_SLAVE=$(($NUM_WEBPAGES_PER_SLAVE/$MAX_WEBPAGES_PER_PAGESET))
 START=$WEBPAGES_START
 
-if [ "$PAGESETS_TYPE" == "IndexSample10k" ]; then
-  CSV_PATH="page_sets/index-sample-10k.csv"
-  # Download the sample 10k from Google Storage.
-  gsutil cp gs://chromium-skia-gm/telemetry/csv/index-sample-10k.csv $CSV_PATH
-  # Use a mobile useragent.
-  USERAGENT_ARG="-u mobile"
-elif [ "$PAGESETS_TYPE" == "Mobile10k" ]; then
+if [ "$PAGESETS_TYPE" == "Mobile10k" ]; then
   CSV_PATH="page_sets/android-top-1m.csv"
-  # Download the sample 10k from Google Storage.
+  # Download the mobile 10k from Google Storage.
   gsutil cp gs://chromium-skia-gm/telemetry/csv/android-top-1m.csv $CSV_PATH
   # Use a mobile useragent.
-  USERAGENT_ARG="-u mobile"
+  USERAGENT="mobile"
 else
   CSV_PATH="page_sets/top-1m.csv"
-  # Download the top-1m.csv with qualified websites from Google Storage.
+  # Download the desktop 10k/1M from Google Storage.
   gsutil cp gs://chromium-skia-gm/telemetry/csv/top-1m.csv $CSV_PATH
+  USERAGENT="desktop"
 fi
 
 # Run create_page_set.py
 for PAGESET_NUM in $(seq 1 $NUM_PAGESETS_PER_SLAVE); do
   END=$(expr $START + $MAX_WEBPAGES_PER_PAGESET - 1)
   python create_page_set.py -s $START -e $END \
-    -c $CSV_PATH $BLACKLIST_ARG -p $PAGESETS_TYPE $USERAGENT_ARG
+    -c $CSV_PATH -p $PAGESETS_TYPE -u $USERAGENT
   START=$(expr $END + 1)
 done
 # Copy page_sets to the local directory.
