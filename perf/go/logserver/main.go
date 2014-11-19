@@ -208,40 +208,48 @@ func getAppAndLogLevel(fileInfo os.FileInfo) (string, string) {
 	return "", ""
 }
 
-type logserverState struct {
-	SeenFiles          map[string]string
-	AppLogLevelToSpace map[string]int64
-	AppLogLevelToCount map[string]int64
+type fileState struct {
+	LineCount int64
+	Size      int64
 }
 
-func getPreviousState() (map[string]string, map[string]int64, map[string]int64, error) {
+type logserverState struct {
+	FilesToState       map[string]fileState
+	AppLogLevelToSpace map[string]int64
+	AppLogLevelToCount map[string]int64
+	LastCompletedRun   time.Time
+}
+
+func getPreviousState() (map[string]fileState, map[string]int64, map[string]int64, time.Time, error) {
 	if _, err := os.Stat(*stateFile); os.IsNotExist(err) {
-		// State file does not exist, return an empty map.
-		return make(map[string]string), make(map[string]int64), make(map[string]int64), nil
+		// State file does not exist, return empty values.
+		return map[string]fileState{}, map[string]int64{}, map[string]int64{}, time.Time{}, nil
 	}
 	f, err := os.Open(*stateFile)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("Failed to open state file %s for reading: %s", *stateFile, err)
+		return nil, nil, nil, time.Time{}, fmt.Errorf("Failed to open state file %s for reading: %s", *stateFile, err)
 	}
 	defer f.Close()
 	state := &logserverState{}
 	dec := gob.NewDecoder(f)
 	if err := dec.Decode(state); err != nil {
-		return nil, nil, nil, fmt.Errorf("Failed to decode state file: %s", err)
+		return nil, nil, nil, time.Time{}, fmt.Errorf("Failed to decode state file: %s", err)
 	}
-	return state.SeenFiles, state.AppLogLevelToSpace, state.AppLogLevelToCount, nil
+	return state.FilesToState, state.AppLogLevelToSpace, state.AppLogLevelToCount, state.LastCompletedRun, nil
 }
 
-func writeCurrentState(seenFiles map[string]string, appLogLevelToSpace, appLogLevelToCount map[string]int64) error {
+func writeCurrentState(filestoState map[string]fileState, appLogLevelToSpace, appLogLevelToCount map[string]int64, lastCompletedRun time.Time) error {
 	f, err := os.Create(*stateFile)
 	if err != nil {
 		return fmt.Errorf("Unable to create state file %s: %s", *stateFile, err)
 	}
 	defer f.Close()
 	state := &logserverState{
-		SeenFiles:          seenFiles,
+		FilesToState:       filestoState,
 		AppLogLevelToSpace: appLogLevelToSpace,
-		AppLogLevelToCount: appLogLevelToCount}
+		AppLogLevelToCount: appLogLevelToCount,
+		LastCompletedRun:   lastCompletedRun,
+	}
 	enc := gob.NewEncoder(f)
 	if err := enc.Encode(state); err != nil {
 		return fmt.Errorf("Failed to encode state: %s", err)
@@ -265,23 +273,24 @@ func getLineCount(path string) int64 {
 //   oldest files are deleted.
 // * New encountered logs are reported to InfluxDB.
 func dirWatcher(duration time.Duration, dir string) {
-	seenFiles, appLogLevelToSpace, appLogLevelToCount, err := getPreviousState()
+	filesToState, appLogLevelToSpace, appLogLevelToCount, lastCompletedRun, err := getPreviousState()
 	if err != nil {
 		glog.Fatalf("Could get access previous state: %s", err)
 	}
 	appLogLevelToMetric := make(map[string]metrics.Gauge)
-	newFiles := false
+	updatedFiles := false
 	markFn := func(path string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if fileInfo.IsDir() {
-			// We are only interested in watching log files in the top-level dir.
+		if fileInfo.IsDir() || fileInfo.Mode()&os.ModeSymlink != 0 {
+			// We are only interested in watching non-symlink log files in the
+			// top-level dir.
 			return nil
 		}
-		if _, exists := seenFiles[path]; !exists {
+
+		if _, exists := filesToState[path]; !exists || fileInfo.ModTime().After(lastCompletedRun) {
 			glog.Infof("Processing %s", path)
-			seenFiles[path] = "1"
 			app, logLevel := getAppAndLogLevel(fileInfo)
 			if app != "" && logLevel != "" {
 				appLogLevel := fmt.Sprintf("%s.%s", app, logLevel)
@@ -291,35 +300,61 @@ func dirWatcher(duration time.Duration, dir string) {
 					appLogLevelToMetric[appLogLevel] = metrics.NewRegisteredGauge("logserver."+appLogLevel, metrics.DefaultRegistry)
 				}
 
+				// Calculate how many new lines and new disk space usage there is.
+				totalLines := getLineCount(path)
+				totalSize := fileInfo.Size()
+				newLines := totalLines
+				newSpace := totalSize
+				if exists {
+					fileState := filesToState[path]
+					newLines = totalLines - fileState.LineCount
+					newSpace = totalSize - fileState.Size
+				}
+
+				glog.Infof("Processed %d new lines", newLines)
+				glog.Infof("Processed %d new bytes", newSpace)
+
 				// Update the logs count metric.
-				appLogLevelToCount[appLogLevel] += getLineCount(path)
+				appLogLevelToCount[appLogLevel] += newLines
 				appLogLevelToMetric[appLogLevel].Update(appLogLevelToCount[appLogLevel])
 
 				// Add the file size to the current space count for this app and
 				// log level combination.
-				appLogLevelToSpace[appLogLevel] += fileInfo.Size()
+				appLogLevelToSpace[appLogLevel] += newSpace
 
-				newFiles = true
+				updatedFiles = true
 			}
+			filesToState[path] = fileState{LineCount: getLineCount(path), Size: fileInfo.Size()}
 		}
 		return nil
 	}
 
 	for _ = range time.Tick(duration) {
 		filepath.Walk(dir, markFn)
-		deletedFiles := cleanupAppLogs(dir, appLogLevelToSpace, seenFiles)
-		if newFiles || deletedFiles {
-			if err := writeCurrentState(seenFiles, appLogLevelToSpace, appLogLevelToCount); err != nil {
+		deletedFiles := cleanupAppLogs(dir, appLogLevelToSpace, filesToState)
+		if updatedFiles || deletedFiles {
+			if err := writeCurrentState(filesToState, appLogLevelToSpace, appLogLevelToCount, time.Now()); err != nil {
 				glog.Fatalf("Could not write state: %s", err)
 			}
+			glog.Info(getPrettyMap(appLogLevelToCount, "AppLogLevels to their line counts"))
+			glog.Info(getPrettyMap(appLogLevelToSpace, "AppLogLevels to their disk space"))
 		}
-		glog.Infof("appLogLevelToCount: %s", appLogLevelToCount)
-		glog.Infof("appLogLevelToSpace: %s", appLogLevelToSpace)
-		newFiles = false
+		updatedFiles = false
+		lastCompletedRun = time.Now()
 	}
 }
 
-func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, seenFiles map[string]string) bool {
+func getPrettyMap(m map[string]int64, name string) string {
+	log := name + ": {"
+	for k := range m {
+		log += fmt.Sprintf("%s: %d, ", k, m[k])
+	}
+	log = strings.TrimRight(log, ", ")
+	log += "}"
+	return log
+}
+
+func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToState map[string]fileState) bool {
 	deletedFiles := false
 	for appLogLevel := range appLogLevelToSpace {
 		if appLogLevelToSpace[appLogLevel] > *appLogThreshold {
@@ -350,8 +385,8 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, seenFiles m
 				if err = os.Remove(filepath.Join(dir, fileName)); err != nil {
 					glog.Fatalf("Could not delete %s: %s", fileName, err)
 				}
-				// Remove the entry from the seenFiles map.
-				delete(seenFiles, filepath.Join(dir, fileName))
+				// Remove the entry from the filesToState map.
+				delete(filesToState, filepath.Join(dir, fileName))
 				deletedFiles = true
 				glog.Infof("Deleted %s", fileName)
 				index++
@@ -370,7 +405,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to get Hostname: %s", err)
 	}
-	common.InitWithMetrics("logserver." + hostname, *graphiteServer)
+	common.InitWithMetrics("logserver."+hostname, *graphiteServer)
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {
 		glog.Fatalf("Failed to create dir for log files: %s", err)
