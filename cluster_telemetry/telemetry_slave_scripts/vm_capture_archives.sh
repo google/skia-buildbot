@@ -68,7 +68,7 @@ for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
     else
       # Copy the page set into the page_sets directory for record_wpr to find.
       cp $page_set src/tools/perf/page_sets/$pageset_basename
-      sudo DISPLAY=:0 timeout $RECORD_TIMEOUT src/tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $PAGESET_NAME
+      DISPLAY=:0 timeout $RECORD_TIMEOUT src/tools/perf/record_wpr --extra-browser-args=--disable-setuid-sandbox --browser-executable=/b/storage/chromium-builds/${CHROMIUM_BUILD_DIR}/chrome --browser=exact $PAGESET_NAME
       # Delete the page set from the page_sets directory now that we are done
       # with it.
       rm  src/tools/perf/page_sets/$pageset_basename
