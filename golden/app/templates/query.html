@@ -1,0 +1,13 @@
+<div class="row">
+	<div class="col-lg-2" ng-repeat="oneParam in params">
+		<h4>{{oneParam[0]}}</h4>
+		<div>
+			<select multiple
+					ng-model="query[oneParam[0]]"
+			        ng-options="opt for opt in oneParam[1]"
+			        class="form-control"
+			        style="height: 15em;">
+			</select>
+		</div>
+	</div>
+</div>

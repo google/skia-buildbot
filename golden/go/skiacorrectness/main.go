@@ -65,7 +65,8 @@ var analyzer *analysis.Analyzer = nil
 // tileCountsHandler handles GET requests for the classification counts over
 // all tests and digests of a tile.
 func tileCountsHandler(w http.ResponseWriter, r *http.Request) {
-	result, err := analyzer.GetTileCounts()
+	query := r.URL.Query()
+	result, err := analyzer.GetTileCounts(query)
 	if err != nil {
 		sendErrorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -252,7 +253,7 @@ func main() {
 	// clashes witht the static files being served.
 	// TODO (stephana): Wrap the handlers in autogzip unless we defer that to
 	// the front-end proxy.
-	router.HandleFunc("/rest/counts", tileCountsHandler)
+	router.HandleFunc("/rest/counts", tileCountsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage", testDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")

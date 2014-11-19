@@ -14,8 +14,16 @@ var skia = skia || {};
 
   // Configure the different within app views.
   app.config(['$routeProvider', function($routeProvider) {
-    $routeProvider.when(ns.c.URL_COUNTS + '/:id?', {templateUrl: 'partials/counts-view.html', controller: 'CountsCtrl'});
-    $routeProvider.when(ns.c.URL_TRIAGE + '/:id', {templateUrl: 'partials/triage-view.html',  controller: 'TriageCtrl'});
+    $routeProvider.when(ns.c.URL_COUNTS + '/:id?', {
+          templateUrl: 'partials/counts-view.html',
+          controller: 'CountsCtrl',
+          reloadOnSearch: false
+        });
+    $routeProvider.when(ns.c.URL_TRIAGE + '/:id', {
+          templateUrl: 'partials/triage-view.html',
+          controller: 'TriageCtrl',
+          reloadOnSearch: false
+        });
     $routeProvider.otherwise({redirectTo: ns.c.URL_COUNTS });
   }]);
 
@@ -23,37 +31,44 @@ var skia = skia || {};
    * CountsCtrl controlls the UI on the main view where an overview of
    * test results is presented.
    */
-  app.controller('CountsCtrl', ['$scope', '$routeParams', 'dataService', function($scope, $routeParams, dataService) {
-    // Get the path and use it for the backend request
-    var testName = ($routeParams.id && ($routeParams.id !== '')) ?
-                    $routeParams.id : null;
+  app.controller('CountsCtrl', ['$scope', '$routeParams', '$location', 'dataService',
+    function($scope, $routeParams, $location, dataService) {
+      // Get the path and use it for the backend request
+      var testName = ($routeParams.id && ($routeParams.id !== '')) ?
+                      $routeParams.id : null;
 
-    // Load counts for all tests of a tile.
-    function loadCounts() {
-      dataService.loadData(ns.c.URL_COUNTS).then(
-        function (serverData) {
-          var temp = ns.processCounts(serverData, testName);
+      // Load counts for all tests of a tile.
+      $scope.loadCounts = function () {
+        dataService.loadData(ns.c.URL_COUNTS, $scope.query).then(
+          function (serverData) {
+            var temp = ns.processCounts(serverData, testName);
 
-          // plug into the sk-plot directive
-          $scope.plotData = temp.plotData;
-          $scope.plotTicks = temp.getTicks.bind(temp);
+            // plug into the sk-plot directive
+            $scope.plotData = temp.plotData;
+            $scope.plotTicks = temp.getTicks.bind(temp);
 
-          // used to render information about tests
-          $scope.allAggregates = temp.allAggregates;
-          $scope.allTests = temp.testDetails;
-        },
-        function (errResp) {
-          console.log("Error:", errResp);
-        });
-    }
+            // used to render information about tests
+            $scope.allAggregates = temp.allAggregates;
+            $scope.allTests = temp.testDetails;
+            $scope.allParams = ns.getSortedParams(serverData);
+            $scope.query = serverData.query || {};
 
-    // initialize the members and load the data.
-    $scope.allTests = [];
-    $scope.plotData = [];
-    $scope.plotTicks = null;
-    $scope.oneTest = !!testName;
-    loadCounts();
-  }]);
+            $location.search($scope.query);
+          },
+          function (errResp) {
+            console.log("Error:", errResp);
+          });
+      };
+
+      // initialize the members and load the data.
+      $scope.allTests = [];
+      $scope.plotData = [];
+      $scope.plotTicks = null;
+      $scope.oneTest = !!testName;
+      $scope.allParams = [];
+      $scope.query = $location.search();
+      $scope.loadCounts();
+    }]);
 
   /*
    * TriageCtrl is the controller for the triage view. It manages the UI
@@ -207,6 +222,23 @@ var skia = skia || {};
 
 
   /**
+  * skQuery implements a custom directive to select parameter values used
+  * to query the backend.
+  **/
+  app.directive('skQuery', [function() {
+    return {
+        restrict: 'E',
+        replace: false,
+        scope: {
+            params: '=allParams',
+            query: '=query'
+        },
+        templateUrl: 'templates/query.html'
+    };
+
+  }]);
+
+  /**
   * dataService provides functions to load data from the backend.
   */
   app.factory('dataService', [ '$http', '$rootScope', '$timeout', function ($http, $rootScope, $timeout) {
@@ -216,12 +248,13 @@ var skia = skia || {};
     /**
      * @param {string} testName if not null this will cause to fetch counts
      *                          for a specific test.
+     * @param {object} query Query string to send to the backend.
      * @return {Promise} Will resolve to either the data (success) or to
      *                   the HTTP response (error).
      **/
-    function loadData(path) {
+    function loadData(path, query) {
       var url = ns.c.PREFIX_URL + path;
-      return httpReq(url).then(
+      return httpReq(url, 'GET', null, query).then(
           function(successResp) {
             return successResp.data;
           });

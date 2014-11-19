@@ -4,6 +4,16 @@
     	<div class="col-md-8">
 	        <div sk-flot data="plotData" ticks="plotTicks" style="width:100%; height:500px;">
 	        </div>
+
+	        <div class="row" style="border: 1px solid #B1B1B1; padding: 1em;">
+	        	<div class="pull-right">
+		        	<button ng-click="query={}" class="btn btn-default">Clear</button>
+		        	&nbsp; &nbsp;&nbsp;
+		        	<button ng-click="loadCounts()" class="btn btn-primary">Update</button>
+		        </div>
+	        </div>
+
+	        <sk-query all-params="allParams" query="query"></sk-query>
 	    </div>
 
 	    <div class="col-md-3">

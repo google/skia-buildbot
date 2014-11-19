@@ -55,22 +55,34 @@ func getQueryIndex(labeledTile *LabeledTile) (ParamIndex, map[int]*LabeledTrace,
 }
 
 // queryTraces find all traces that match the given query which contains a
-// set of parameters and specific values.
-func (a *Analyzer) queryTraces(query map[string][]string) []*LabeledTrace {
+// set of parameters and specific values. It also returns the subset of 'query'
+// that contained correct parameters and values and was used in the lookup.
+func (a *Analyzer) queryTraces(query map[string][]string) ([]*LabeledTrace, map[string][]string) {
 	resultSets := make([]map[int]bool, len(query))
+	validQuery := make(map[string][]string, len(query))
 
 	idx, minIdx, minLen := 0, 0, 0
 
 	for key, values := range query {
 		if paramMap, ok := a.index[key]; ok {
+			tempVals := make([]string, 0, len(values))
 			resultSets[idx] = map[int]bool{}
 			for _, v := range values {
 				if indexList, ok := paramMap[v]; ok {
 					for _, labelId := range indexList {
 						resultSets[idx][labelId] = true
 					}
+					tempVals = append(tempVals, v)
 				}
 			}
+
+			// Only consider if at least on value in the query was valid.
+			if len(tempVals) > 0 {
+				validQuery[key] = tempVals
+			}
+
+			// Record the minimum length if it's smaller or we are in the first
+			// run of the loop.
 			if (len(resultSets[idx]) < minLen) || (minLen == 0) {
 				minLen = len(resultSets)
 			}
@@ -85,5 +97,5 @@ func (a *Analyzer) queryTraces(query map[string][]string) []*LabeledTrace {
 			result = append(result, lt)
 		}
 	}
-	return result
+	return result, validQuery
 }

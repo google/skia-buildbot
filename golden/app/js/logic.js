@@ -278,6 +278,28 @@ var skia = skia || {};
   };
 
   /**
+  * getSortedParams returns all parameters and the union of their values as a
+  * (nested) sorted Array in the format:
+  *       [[param1, [val1, val2, ...],
+           [param2, [val3, val4, ...], ... ]]]
+  */
+  ns.getSortedParams = function (serverData) {
+    var result = [];
+    for(var k in serverData.allParams) {
+      if (serverData.allParams.hasOwnProperty(k)) {
+        serverData.allParams[k].sort();
+        result.push([k, serverData.allParams[k]]);
+      }
+    }
+
+    result.sort(function(a,b){
+      return (a[0] < b[0]) ? -1 : (a[0] > b[0]) ? 1 : 0;
+    });
+
+    return result;
+  };
+
+  /**
   * getNumArray returns an array of numbers of the given length and each
   * element is initialized with initVal. If initVal is omitted, 0 (zero)
   * is used instead.

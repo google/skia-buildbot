@@ -118,6 +118,8 @@ type GUITileCounts struct {
 	Ticks      []interface{}           `json:"ticks"`
 	Aggregated *LabelCounts            `json:"aggregated"`
 	Counts     map[string]*LabelCounts `json:"counts"`
+	AllParams  map[string][]string     `json:"allParams"`
+	Query      map[string][]string     `json:"query"`
 }
 
 // GUITestCounts is an output type for a single test that contains the
@@ -194,9 +196,18 @@ func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileSto
 // GetTileCounts returns an entire Tile which is a collection of 'traces' over
 // a series of commits. Each trace contains the digests and their labels
 // based on our knowledge about digests (expectations).
-func (a *Analyzer) GetTileCounts() (*GUITileCounts, error) {
+func (a *Analyzer) GetTileCounts(query map[string][]string) (*GUITileCounts, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
+
+	if len(query) > 0 {
+		tempTile, effectiveQuery := a.getSubTile(query)
+		if len(effectiveQuery) > 0 {
+			ret, _ := a.getOutputCounts(tempTile)
+			ret.Query = effectiveQuery
+			return ret, nil
+		}
+	}
 
 	return a.currentTileCounts, nil
 }
@@ -218,24 +229,16 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 	}
 
 	if len(query) > 0 {
-		traces := a.queryTraces(query)
-		tempTile := NewLabeledTile()
-		tempTile.Commits = a.currentTile.Commits
-		tempTile.Traces = map[string][]*LabeledTrace{}
-		for _, t := range traces {
-			testName := t.Params[types.PRIMARY_KEY_FIELD]
-			if _, ok := tempTile.Traces[testName]; !ok {
-				tempTile.Traces[testName] = []*LabeledTrace{}
-			}
-			tempTile.Traces[testName] = append(tempTile.Traces[testName], t)
+		tempTile, effectiveQuery := a.getSubTile(query)
+		if len(effectiveQuery) > 0 {
+			return a.getTestDetails(tempTile), nil
 		}
-		return a.getTestDetails(tempTile), nil
-	} else {
-		return &GUITestDetails{
-			AllParams: a.currentTestDetails.AllParams,
-			Tests:     map[string]*GUITestDetail{testName: a.currentTestDetails.Tests[testName]},
-		}, nil
 	}
+
+	return &GUITestDetails{
+		AllParams: a.currentTestDetails.AllParams,
+		Tests:     map[string]*GUITestDetail{testName: a.currentTestDetails.Tests[testName]},
+	}, nil
 }
 
 // GetTestCounts returns the classification counts for a specific tests.
@@ -413,6 +416,33 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 	return nil
 }
 
+// getSubTile queries the index and returns a LabeledTile that contains the
+// set of found traces. It also returns the subset of 'query' that contained
+// valid parameters and values.
+// If the returned query is empty the first return value is set to Nil,
+// because now valid filter parameters were found in the query.
+func (a *Analyzer) getSubTile(query map[string][]string) (*LabeledTile, map[string][]string) {
+	traces, effectiveQuery := a.queryTraces(query)
+	if len(effectiveQuery) == 0 {
+		return nil, effectiveQuery
+	}
+
+	result := NewLabeledTile()
+	result.Commits = a.currentTile.Commits
+	result.allParams = a.currentTile.allParams
+
+	result.Traces = map[string][]*LabeledTrace{}
+	for _, t := range traces {
+		testName := t.Params[types.PRIMARY_KEY_FIELD]
+		if _, ok := result.Traces[testName]; !ok {
+			result.Traces[testName] = []*LabeledTrace{}
+		}
+		result.Traces[testName] = append(result.Traces[testName], t)
+	}
+
+	return result, effectiveQuery
+}
+
 // getOutputCounts derives the output counts from the given labeled tile.
 func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, map[string]*GUITestCounts) {
 	glog.Info("Starting to process output counts.")
@@ -442,6 +472,7 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, ma
 		Ticks:      human.FlotTickMarks(ts),
 		Aggregated: overallAggregates,
 		Counts:     tileCountsMap,
+		AllParams:  labeledTile.allParams,
 	}
 
 	glog.Info("Done processing output counts.")
