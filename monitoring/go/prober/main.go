@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -19,13 +18,15 @@ import (
 	"github.com/golang/glog"
 	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/common"
+	"skia.googlesource.com/buildbot.git/go/metadata"
 )
 
 var (
 	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	config         = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
 	prefix         = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Carbon.")
-	apikeyFlag     = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
+	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	apikey         = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
 	runEvery       = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
@@ -39,7 +40,7 @@ var (
 const (
 	TIMEOUT              = time.Duration(5 * time.Second)
 	ISSUE_TRACKER_PERIOD = 15 * time.Minute
-	APIKEY_METADATA_URL  = "http://metadata/computeMetadata/v1/instance/attributes/apikey"
+	APIKEY_METADATA_KEY  = "apikey"
 )
 
 // BodyTester tests the response body from a probe and returns true if it passes all tests.
@@ -169,22 +170,9 @@ func monitorIssueTracker() {
 			Dial: dialTimeout,
 		},
 	}
-	apikey := *apikeyFlag
-	// If apikey isn't passed in then read it from the metadata server.
-	if apikey == "" {
-		// Get the API Key we need to make requests to the issue tracker.
-		req, err := http.NewRequest("GET", APIKEY_METADATA_URL, nil)
-		if err != nil {
-			glog.Fatalln(err)
-		}
-		req.Header.Add("X-Google-Metadata-Request", "True")
-		if resp, err := c.Do(req); err == nil {
-			apikeyBytes, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				glog.Fatalln("Failed to read password from metadata server:", err)
-			}
-			apikey = string(apikeyBytes)
-		}
+
+	if *useMetadata {
+		*apikey = metadata.MustGet(APIKEY_METADATA_KEY)
 	}
 
 	// Create a new metrics registry for the issue tracker metrics.
@@ -212,7 +200,7 @@ func monitorIssueTracker() {
 		issueStatus = append(issueStatus, &IssueStatus{
 			Name:   issueName,
 			Metric: metrics.NewRegisteredGauge(strings.ToLower(issueName), issueRegistry),
-			URL:    "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?fields=totalResults&key=" + apikey + "&status=" + issueName,
+			URL:    "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?fields=totalResults&key=" + *apikey + "&status=" + issueName,
 		})
 	}
 
