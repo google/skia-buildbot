@@ -38,4 +38,4 @@ git checkout master
 
 SKIA_GYP_OUTPUT_DIR=${SKIA_BUILD}/skia/out GYP_GENERATORS=ninja ./gyp_skia -Dskia_mesa=1
 
-ninja -C ${SKIA_BUILD}/skia/out/Release skia_lib pdf libjpeg libSkKTX libetc1 flags sk_tool_utils resources
+ninja -C ${SKIA_BUILD}/skia/out/Release skia_lib skgputest pdf libjpeg libSkKTX libetc1 flags sk_tool_utils resources
