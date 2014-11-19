@@ -4,16 +4,11 @@
 
 package main
 
-import (
-	"flag"
-	"net"
-	"time"
-)
+import "flag"
 
 import (
 	"github.com/golang/glog"
 	influxdb "github.com/influxdb/influxdb/client"
-	metrics "github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/monitoring/go/autoroll_ingest"
@@ -23,12 +18,11 @@ import (
 const (
 	INFLUXDB_NAME_METADATA_KEY     = "influxdb_name"
 	INFLUXDB_PASSWORD_METADATA_KEY = "influxdb_password"
-	SAMPLE_PERIOD                  = time.Minute
 )
 
 // flags
 var (
-	carbon           = flag.String("carbon", "localhost:2003", "Address of Carbon server and port.")
+	graphiteServer   = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	useMetadata      = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	influxDbHost     = flag.String("influxdb_host", "localhost:8086", "The InfluxDB hostname.")
 	influxDbName     = flag.String("influxdb_name", "root", "The InfluxDB username.")
@@ -38,7 +32,7 @@ var (
 )
 
 func main() {
-	common.Init()
+	common.InitWithMetrics("datahopper", *graphiteServer)
 
 	// Prepare the InfluxDB credentials. Load from metadata if appropriate.
 	if *useMetadata {
@@ -49,19 +43,6 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}
-
-	glog.Infoln("Looking for Carbon server.")
-	addr, err := net.ResolveTCPAddr("tcp", *carbon)
-	if err != nil {
-		glog.Fatalln("Failed to resolve the Carbon server: ", err)
-	}
-	glog.Infoln("Found Carbon server.")
-
-	// Runtime metrics.
-	datahopperRegistry := metrics.NewRegistry()
-	metrics.RegisterRuntimeMemStats(datahopperRegistry)
-	go metrics.CaptureRuntimeMemStats(datahopperRegistry, SAMPLE_PERIOD)
-	go metrics.Graphite(datahopperRegistry, SAMPLE_PERIOD, "datahopper", addr)
 
 	// Data generation goroutines.
 	go autoroll_ingest.LoadAutoRollData(dbClient, *workdir)

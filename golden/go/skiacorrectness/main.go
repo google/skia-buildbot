@@ -28,6 +28,7 @@ var (
 	// Get the default connection string suitable for production.
 	defaultDbConnStr = db.GetConnectionString("readwrite", "", "", "")
 
+	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	port           = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	staticDir      = flag.String("static_dir", "./app", "Directory with static content to serve")
@@ -212,7 +213,7 @@ func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
 
 func main() {
 	// Global init to initialize
-	common.Init()
+	common.InitWithMetrics("skiacorrectness", *graphiteServer)
 
 	// Initialize submodules.
 	filediffstore.Init()

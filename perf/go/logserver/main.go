@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -367,16 +366,11 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, seenFiles m
 }
 
 func main() {
-	common.Init()
-
-	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
-	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
-	addr, _ := net.ResolveTCPAddr("tcp", *graphiteServer)
 	hostname, err := os.Hostname()
 	if err != nil {
 		glog.Fatalf("Failed to get Hostname: %s", err)
 	}
-	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "logserver."+hostname, addr)
+	common.InitWithMetrics("logserver." + hostname, *graphiteServer)
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {
 		glog.Fatalf("Failed to create dir for log files: %s", err)

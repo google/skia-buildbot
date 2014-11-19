@@ -7,7 +7,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -15,7 +14,6 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
@@ -39,13 +37,6 @@ var (
 	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
-
-func Init() {
-	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
-	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
-	addr, _ := net.ResolveTCPAddr("tcp", *graphiteServer)
-	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "ingest", addr)
-}
 
 // Timestamps is used to read and write the timestamp file, which records the time
 // each ingestion last completed successfully.
@@ -146,8 +137,7 @@ func NewIngestionProcess(ts *Timestamps, tsName string, git *gitinfo.GitInfo, ti
 }
 
 func main() {
-	common.Init()
-	Init()
+	common.InitWithMetrics("ingest", *graphiteServer)
 
 	// Initialize the database. We might not need the oauth dialog if it fails.
 	db.Init(db.ProdDatabaseConfig(*local))

@@ -22,11 +22,11 @@ import (
 )
 
 var (
-	config     = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
-	prefix     = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Carbon.")
-	carbon     = flag.String("carbon", "localhost:2003", "Address of Carbon server and port.")
-	apikeyFlag = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
-	runEvery   = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
+	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
+	config         = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
+	prefix         = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Carbon.")
+	apikeyFlag     = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
+	runEvery       = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
 	bodyTesters = map[string]BodyTester{
@@ -35,7 +35,6 @@ var (
 )
 
 const (
-	SAMPLE_PERIOD        = time.Minute
 	TIMEOUT              = time.Duration(5 * time.Second)
 	ISSUE_TRACKER_PERIOD = 15 * time.Minute
 	APIKEY_METADATA_URL  = "http://metadata/computeMetadata/v1/instance/attributes/apikey"
@@ -162,12 +161,12 @@ func monitorIssueTracker() {
 	}
 
 	// Create a new metrics registry for the issue tracker metrics.
-	addr, err := net.ResolveTCPAddr("tcp", *carbon)
+	addr, err := net.ResolveTCPAddr("tcp", *graphiteServer)
 	if err != nil {
 		glog.Fatalln("Failed to resolve the Carbon server: ", err)
 	}
 	issueRegistry := metrics.NewRegistry()
-	go metrics.Graphite(issueRegistry, SAMPLE_PERIOD, "issues", addr)
+	go metrics.Graphite(issueRegistry, common.SAMPLE_PERIOD, "issues", addr)
 
 	// IssueStatus has all the info we need to capture and record a single issue status. I.e. capture
 	// the count of all issues with a status of "New".
@@ -210,24 +209,19 @@ func monitorIssueTracker() {
 }
 
 func main() {
-	common.Init()
+	common.InitWithMetrics("probeserver", *graphiteServer)
 	go monitorIssueTracker()
 	glog.Infoln("Looking for Carbon server.")
-	addr, err := net.ResolveTCPAddr("tcp", *carbon)
+	addr, err := net.ResolveTCPAddr("tcp", *graphiteServer)
 	if err != nil {
 		glog.Fatalln("Failed to resolve the Carbon server: ", err)
 	}
 	glog.Infoln("Found Carbon server.")
 
 	// We have two sets of metrics, one for the probes and one for the probe
-	// server itself.
-	serverRegistry := metrics.NewRegistry()
-	metrics.RegisterRuntimeMemStats(serverRegistry)
-	go metrics.CaptureRuntimeMemStats(serverRegistry, SAMPLE_PERIOD)
-	go metrics.Graphite(serverRegistry, SAMPLE_PERIOD, "probeserver", addr)
-
+	// server itself. The server's metrics are handled by common.Init()
 	probeRegistry := metrics.NewRegistry()
-	go metrics.Graphite(probeRegistry, SAMPLE_PERIOD, *prefix, addr)
+	go metrics.Graphite(probeRegistry, common.SAMPLE_PERIOD, *prefix, addr)
 
 	// TODO(jcgregorio) Monitor config file and reload if it changes.
 	cfg, err := readConfigFiles(*config)

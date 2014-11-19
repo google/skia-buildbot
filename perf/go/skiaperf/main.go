@@ -7,7 +7,6 @@ import (
 	ehtml "html"
 	"html/template"
 	"math/rand"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -21,7 +20,6 @@ import (
 import (
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/golang/glog"
-	"github.com/rcrowley/go-metrics"
 )
 
 import (
@@ -108,11 +106,6 @@ var (
 
 func Init() {
 	rand.Seed(time.Now().UnixNano())
-
-	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
-	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
-	addr, _ := net.ResolveTCPAddr("tcp", *graphiteServer)
-	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "skiaperf", addr)
 
 	// Change the current working directory to two directories up from this source file so that we
 	// can read templates and serve static (res/) files.
@@ -1065,7 +1058,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
-	common.Init()
+	common.InitWithMetrics("skiaperf", *graphiteServer)
 	Init()
 	db.Init(db.ProdDatabaseConfig(*local))
 	stats.Start(nanoTileStore, git)
