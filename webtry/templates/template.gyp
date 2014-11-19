@@ -16,7 +16,6 @@
         'pdf.gyp:pdf',
         'flags.gyp:flags',
         'tools.gyp:sk_tool_utils'
-
       ],
       'include_dirs': [
         '../include/config',

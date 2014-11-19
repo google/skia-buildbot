@@ -379,13 +379,6 @@ func expandCode(code string, source int, width, height int) (string, error) {
 	}
 	for _, line := range inputCodeLines {
 		outputCodeLines = append(outputCodeLines, line)
-		match := paintDeclRE.FindStringSubmatch(line)
-		if len(match) > 0 {
-			paintName := match[1]
-			outputCodeLines = append(outputCodeLines, "FLAGS_portableFonts = true;")
-			outputCodeLines = append(outputCodeLines,
-				fmt.Sprintf("sk_tool_utils::set_portable_typeface(&%s, \"Helvetica\", SkTypeface::kNormal);", paintName))
-		}
 	}
 
 	fontFriendlyCode := strings.Join(outputCodeLines, "\n")

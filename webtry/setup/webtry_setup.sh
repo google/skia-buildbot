@@ -44,6 +44,9 @@ if [ ! -d ${CHROOT_JAIL} ]; then
 	sudo chmod 755 ${CHROOT_JAIL}/bin/setup_jail.sh
 	sudo chroot ${CHROOT_JAIL} /bin/setup_jail.sh
 	sudo sh -c "echo 'none /dev/shm tmpfs rw,nosuid,nodev,noexec 0 0' >> ${CHROOT_JAIL}/etc/fstab"
+	sudo sh -c "echo 'deb     http://http.debian.net/debian wheezy         contrib' >> ${CHROOT_JAIL}/etc/apt/sources.list"
+	sudo sh -c "echo 'deb-src http://http.debian.net/debian wheezy         contrib' >> ${CHROOT_JAIL}/etc/apt/sources.list"
+
 fi
 
 # The continue_install_jail script will update and build up the skia library

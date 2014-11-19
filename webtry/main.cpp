@@ -7,6 +7,7 @@
 #include "SkCommandLineFlags.h"
 #include "SkData.h"
 #include "SkDocument.h"
+#include "SkFontMgr.h"
 #include "SkForceLinking.h"
 #include "SkGraphics.h"
 #include "SkImageDecoder.h"
@@ -56,7 +57,7 @@ static bool install_syscall_filter() {
     };
 
     // Lock down the app so that it can't get new privs, such as setuid.
-    // Calling this is a requirement for an unpriviledged process to use mode
+    // Calling this is a requirement for an unprivileged process to use mode
     // 2 seccomp filters, ala SECCOMP_MODE_FILTER, otherwise we'd have to be
     // root.
     if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
@@ -195,6 +196,12 @@ int main(int argc, char** argv) {
         grFactory = new GrContextFactory(grContextOpts);
         gr = grFactory->get(GrContextFactory::kMESA_GLContextType);
     }
+
+    // RefDefault will cause the custom font manager to scan the system for fonts
+    // and cache an SkStream for each one; that way we don't have to open font files
+    // after we've set up the chroot jail.
+
+    SkAutoTUnref<SkFontMgr> unusedFM(SkFontMgr::RefDefault());
 
     setLimits();
 

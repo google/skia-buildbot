@@ -12,4 +12,4 @@
 
 pwd
 cp $WEBTRY_CACHE_DIR/$1.gyp $SKIA_ROOT/gyp
-(cd $SKIA_ROOT ; ./gyp_skia gyp/$1.gyp gyp/most.gyp -Dskia_mesa=1)
+(cd $SKIA_ROOT ; ./gyp_skia gyp/$1.gyp gyp/most.gyp -Dskia_mesa=1 -Dskia_no_fontconfig=1)
