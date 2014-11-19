@@ -16,15 +16,12 @@ import (
 
 import (
 	"github.com/golang/glog"
-)
-
-import (
+	"github.com/golang/groupcache/lru"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
 const (
-	MAX_CACHE_TILES = 1
-	MAX_CACHE_SCALE = 0
+	MAX_CACHE_TILES = 10
 
 	TEMP_TILE_DIR_NAME = "_temp"
 )
@@ -33,9 +30,13 @@ const (
 type CacheEntry struct {
 	tile         *types.Tile
 	lastModified time.Time
-	index        int
-	scale        int
-	countUsed    int
+}
+
+// CacheKey is used as a key to the lru cache and must be a 'comparable'.
+// http://golang.org/ref/spec#Comparison_operators
+type CacheKey struct {
+	startIndex int
+	scale      int
 }
 
 // FileTileStore implements TileStore by storing Tiles as gobs in the file system.
@@ -49,11 +50,8 @@ type FileTileStore struct {
 	// Which dataset are we writing, e.g. "skps" or "micro".
 	datasetName string
 
-	// Cache for recently used tiles, eviction based on LFU.
-	cache []CacheEntry
-	// Special case for -1, since this one will both be changed often and
-	// be accessed often.
-	lastTile map[int]*types.Tile
+	// Cache for recently used tiles.
+	cache *lru.Cache
 
 	// Mutex for ensuring safe access to the cache and lastTile.
 	lock sync.Mutex
@@ -116,20 +114,26 @@ func (store *FileTileStore) Put(scale, index int, tile *types.Tile) error {
 		return fmt.Errorf("Error creating directory for tile %s: %s", targetName, err)
 	}
 	glog.Infof("Renaming: %q %q", f.Name(), targetName)
-	os.Rename(f.Name(), targetName)
+	if err := os.Rename(f.Name(), targetName); err != nil {
+		return fmt.Errorf("Failed to rename tile: %s", err)
+	}
+	filedata, err := os.Stat(targetName)
+	if err != nil {
+		return fmt.Errorf("Failed to stat new tile: %s", err)
 
+	}
 	store.lock.Lock()
 	defer store.lock.Unlock()
-	for i, entry := range store.cache {
-		if entry.index == index && entry.scale == scale {
-			filedata, err := os.Stat(targetName)
-			if err != nil {
-				break
-			}
-			store.cache[i].tile = tile
-			store.cache[i].lastModified = filedata.ModTime()
-		}
+
+	entry := &CacheEntry{
+		tile:         tile,
+		lastModified: filedata.ModTime(),
 	}
+	key := CacheKey{
+		startIndex: index,
+		scale:      scale,
+	}
+	store.cache.Add(key, entry)
 
 	return nil
 }
@@ -197,17 +201,34 @@ func openTile(filename string) (*types.Tile, error) {
 func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
 	store.lock.Lock()
 	defer store.lock.Unlock()
-	// -1 means find the last tile for the given scale.
-	if index == -1 {
-		if _, ok := store.lastTile[scale]; ok {
-			return store.lastTile[scale], nil
-		} else {
-			return nil, fmt.Errorf("Last tile not available at scale %d", scale)
-		}
+
+	key := CacheKey{
+		startIndex: index,
+		scale:      scale,
 	}
+
+	// Retrieve the tile, if any, from the cache.
+	var tile *types.Tile
+	var cacheLastModified time.Time
+	if val, ok := store.cache.Get(key); ok {
+		cacheEntry := val.(*CacheEntry)
+		tile = cacheEntry.tile
+		cacheLastModified = cacheEntry.lastModified
+	}
+	if index == -1 {
+		if tile == nil {
+			var err error
+			tile, err = store.getLastTile(scale)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to Get the last tile: %s", err)
+			}
+		}
+		return tile, nil
+	}
+
+	// Compare to the tile on disk.
 	filename, err := store.tileFilename(scale, index)
-	fileData, err := os.Stat(filename)
-	// File probably isn't there, so return nil
+	filedata, err := os.Stat(filename)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return nil, fmt.Errorf("Tile %d,%d retrieval caused error : %s.", scale, index, err)
@@ -215,40 +236,23 @@ func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
 			return nil, nil
 		}
 	}
-	fileLastModified := fileData.ModTime()
-	for i, entry := range store.cache {
-		if entry.scale != scale || entry.index != index {
-			continue
+	fileLastModified := filedata.ModTime()
+
+	// If the file on disk is newer, or there wasn't anything in the cache, read
+	// the tile from disk.
+	if tile == nil || fileLastModified.After(cacheLastModified) {
+		tile, err = openTile(filename)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve tile %s: %s", filename, err)
 		}
-		if !entry.lastModified.Equal(fileLastModified) {
-			// Replace the tile in the cache entry with the new one
-			glog.Infof("FileTileStore: cache miss: %d, %d", scale, index)
-			newEntry, err := openTile(filename)
-			if err != nil {
-				return nil, fmt.Errorf("Failed to retrieve tile %s: %s", filename, err)
-			}
-			store.cache[i].tile = newEntry
-			store.cache[i].lastModified = fileLastModified
+		entry := &CacheEntry{
+			tile:         tile,
+			lastModified: fileLastModified,
 		}
-		glog.Infof("FileTileStore: cache hit: %d, %d", scale, index)
-		// Increment the frequency counter and return the tile
-		store.cache[i].countUsed += 1
-		return store.cache[i].tile, nil
+		store.cache.Add(key, entry)
 	}
-	// Not in cache
-	glog.Infof("FileTileStore: cache miss: %d, %d", scale, index)
-	t, err := openTile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve tile %s: %s", filename, err)
-	}
-	store.addToCache(CacheEntry{
-		tile:         t,
-		lastModified: fileLastModified,
-		countUsed:    1,
-		scale:        scale,
-		index:        index,
-	})
-	return t, nil
+
+	return tile, nil
 }
 
 // GetModifiable returns a tile from disk.
@@ -284,39 +288,26 @@ func (store *FileTileStore) GetModifiable(scale, index int) (*types.Tile, error)
 	return t, nil
 }
 
-// addToCache adds a cache entry to the cache, evicting the least frequently
-// used entry if the cache is full. NOTE: It's not thread safe, and relies on
-// Get() and Put() locking the lock Mutex before using it.
-func (store *FileTileStore) addToCache(c CacheEntry) {
-	// Put the file in the cache.
-	if len(store.cache) < cap(store.cache) {
-		store.cache = append(store.cache, c)
-	} else {
-		// Evict an entry from the cache.
-		idxLeastUsed := 0
-		leastUsed := store.cache[idxLeastUsed].countUsed
-		for idx, entry := range store.cache {
-			if entry.countUsed < leastUsed {
-				idxLeastUsed, leastUsed = idx, entry.countUsed
-			}
-		}
-		store.cache[idxLeastUsed] = c
-	}
-}
-
-// refreshLastTiles checks all the versions of the last tile to see if any of them
-// where updated on disk, and updates the version on cache if needed.
+// refreshLastTiles reloads the last (-1) tile.
 func (store *FileTileStore) refreshLastTiles() {
+	// Read tile -1.
+	tile, err := store.getLastTile(0)
+	if err != nil {
+		glog.Warningf("Unable to retrieve last tile for scale %d: %s", 0, err)
+		return
+	}
 	store.lock.Lock()
 	defer store.lock.Unlock()
-	for scale := 0; scale <= MAX_CACHE_SCALE; scale++ {
-		newLastTile, err := store.getLastTile(scale)
-		if err != nil {
-			glog.Warningf("Unable to retrieve last tile for scale %d: %s", scale, err)
-			continue
-		}
-		store.lastTile[scale] = newLastTile
+
+	entry := &CacheEntry{
+		tile:         tile,
+		lastModified: time.Now(),
 	}
+	key := CacheKey{
+		startIndex: -1,
+		scale:      0,
+	}
+	store.cache.Add(key, entry)
 }
 
 // NewFileTileStore creates a new TileStore that is backed by the file system,
@@ -327,8 +318,7 @@ func NewFileTileStore(dir, datasetName string, checkEvery time.Duration) types.T
 	store := &FileTileStore{
 		dir:         dir,
 		datasetName: datasetName,
-		cache:       make([]CacheEntry, MAX_CACHE_TILES)[:0],
-		lastTile:    make(map[int]*types.Tile),
+		cache:       lru.New(MAX_CACHE_TILES),
 	}
 	store.refreshLastTiles()
 	if checkEvery > 0 {

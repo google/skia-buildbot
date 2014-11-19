@@ -129,7 +129,7 @@ func TestFileTileGet(t *testing.T) {
 			dumpTile(getValue2, t)
 		}
 		if got, want := len(getValue2.Traces), 0; got != want {
-			t.Errorf("FileTileStore.Get failed: traces not matching\n")
+			t.Errorf("FileTileStore.Get failed: traces not matching: Got %d Want %d\n", got, want)
 			dumpTile(getValue2, t)
 		}
 	}
