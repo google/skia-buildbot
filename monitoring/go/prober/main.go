@@ -30,7 +30,9 @@ var (
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
 	bodyTesters = map[string]BodyTester{
-		"buildbotJSON": testBuildbotJSON,
+		"buildbotJSON":     testBuildbotJSON,
+		"skfiddleJSONGood": skfiddleJSONGood,
+		"skfiddleJSONBad":  skfiddleJSONBad,
 	}
 )
 
@@ -132,6 +134,31 @@ func testBuildbotJSON(r io.Reader) bool {
 		}
 	}
 	return allConnected
+}
+
+// skfiddleJSONGood tests that the compile completed w/o error.
+func skfiddleJSONGood(r io.Reader) bool {
+	type skfiddleResp struct {
+		CompileErrors []interface{} `json:"compileErrors"`
+		Message       string        `json:"message"`
+	}
+
+	dec := json.NewDecoder(r)
+
+	s := skfiddleResp{
+		CompileErrors: []interface{}{},
+	}
+	if err := dec.Decode(&s); err != nil {
+		glog.Errorf("Failed to decode skfiddle JSON: %#v %s", s, err)
+		return false
+	}
+	glog.Infof("%#v", s)
+	return len(s.CompileErrors) == 0
+}
+
+// skfiddleJSONBad tests that the compile completed w/error.
+func skfiddleJSONBad(r io.Reader) bool {
+	return !skfiddleJSONGood(r)
 }
 
 // monitorIssueTracker reads the counts for all the types of issues in the skia
