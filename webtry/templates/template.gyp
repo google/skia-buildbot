@@ -12,6 +12,7 @@
       'type': 'executable',
       'dependencies': [
         'skia_lib.gyp:skia_lib',
+        'gputest.gyp:skgputest',
         'pdf.gyp:pdf',
         'flags.gyp:flags',
         'tools.gyp:sk_tool_utils'
@@ -23,6 +24,7 @@
         '../include/gpu',
         '../tools/flags',
         '../src/core',
+        '../src/gpu'
       ],
       'conditions': [
         ['skia_os == "mac"', {
