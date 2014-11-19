@@ -35,10 +35,10 @@ sudo rm -f /etc/nginx/sites-enabled/gold
 sudo ln -s /etc/nginx/sites-available/gold /etc/nginx/sites-enabled/gold
 
 # Download the SSL secrets from the metadata store.
-sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiagold-com-key > /etc/nginx/ssl/skiagold_com.key
-sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiagold-com-pem > /etc/nginx/ssl/skiagold_com.pem
-sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-key > /etc/nginx/ssl/skiaperf_com.key
-sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-pem > /etc/nginx/ssl/skiaperf_com.pem
+sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiagold-com-key -o /etc/nginx/ssl/skiagold_com.key
+sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiagold-com-pem -o /etc/nginx/ssl/skiagold_com.pem
+sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-key -o /etc/nginx/ssl/skiaperf_com.key
+sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-pem -o /etc/nginx/ssl/skiaperf_com.pem
 sudo chmod 700 /etc/nginx/ssl
 sudo chmod 600 /etc/nginx/ssl/*
 
