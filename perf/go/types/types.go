@@ -294,9 +294,9 @@ type TileStore interface {
 
 	// Get returns the Tile for a given scale and index. Pass in -1 for index to
 	// get the last tile for a given scale. Each tile contains its tile index and
-	// scale. Get returns (nil, nil) if you pass in -1 and there is no data in
-	// the store yet. The implementation of TileStore can assume that
-	// the caller will not modify the tile it returns.
+	// scale. Get returns (nil, nil) if there is no data in the store yet for that
+	// scale and index. The implementation of TileStore can assume that the
+	// caller will not modify the tile it returns.
 	Get(scale, index int) (*Tile, error)
 
 	// GetModifiable behaves identically to Get, except it always returns a

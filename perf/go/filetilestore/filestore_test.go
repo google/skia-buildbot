@@ -15,14 +15,14 @@ import (
 func makeFakeTile(filename string, t *types.Tile) error {
 	f, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("File creation failed before test start, skipping test.\n")
+		return fmt.Errorf("File creation failed before test start: %s", err)
 	}
 	defer f.Close()
 
 	enc := gob.NewEncoder(f)
 	err = enc.Encode(t)
 	if err != nil {
-		return fmt.Errorf("Tile globbed failed before test start, skipping test.\n")
+		return fmt.Errorf("Tile globbed failed before test start: %s", err)
 	}
 	f.Sync()
 	return nil
@@ -34,7 +34,7 @@ func makeFakeTile(filename string, t *types.Tile) error {
 func TestFileTileGet(t *testing.T) {
 	randomPath, err := ioutil.TempDir("", "filestore_test")
 	if err != nil {
-		t.Skip("Failing to create temporary directory, skipping test.")
+		t.Fatalf("Failing to create temporary directory: %s", err)
 		return
 	}
 	defer os.RemoveAll(randomPath)
@@ -42,7 +42,7 @@ func TestFileTileGet(t *testing.T) {
 	randomFullPath := filepath.Join(randomPath, "test", "0")
 
 	if err := os.MkdirAll(randomFullPath, 0775); err != nil {
-		t.Skip("Failing to create temporary subdirectory, skipping test.")
+		t.Fatalf("Failing to create temporary subdirectory: %s", err)
 		return
 	}
 
@@ -69,7 +69,7 @@ func TestFileTileGet(t *testing.T) {
 		TileIndex: 0,
 	})
 	if err != nil {
-		t.Skip("Failed to create fake tile, skipping test: %s\n", err)
+		t.Fatalf("Failed to create fake tile: %s", err)
 		return
 	}
 	ts := NewFileTileStore(randomPath, "test", 10*time.Millisecond)
@@ -110,7 +110,7 @@ func TestFileTileGet(t *testing.T) {
 	})
 
 	if err != nil {
-		t.Skip("Failed to create fake tile, skipping test: %s\n", err)
+		t.Fatalf("Failed to create fake tile: %s", err)
 		return
 	}
 	// Test to see if changing the disk copy of it changes the copy
