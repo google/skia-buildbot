@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# fiddle_ninja simply builds a Release version of the 
-# provided fiddle into the local skia tree's out/Release
-# directory.
+# fiddle_ninja simply builds the provided fiddle into the
+# local skia tree's out/Release_Developer directory.
 #
 # This script must be run after fiddle_gyp
 
@@ -10,5 +9,5 @@
 
 PATH=$PATH:/skia_build/depot_tools
 
-ninja -C $SKIA_ROOT/out/Release $1
+ninja -C $SKIA_ROOT/out/Release_Developer $1
 

@@ -3,7 +3,8 @@
     {
       'configurations': {
         'Debug': { },
-        'Release': { }
+        'Release': { },
+        'Release_Developer': { }
       },
       'cflags!': [
         '-Werror'
