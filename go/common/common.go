@@ -13,6 +13,7 @@ import (
 
 const SAMPLE_PERIOD = time.Minute
 
+// Runs commonly-used initialization metrics.
 func Init() {
 	flag.Parse()
 	defer glog.Flush()
@@ -21,19 +22,22 @@ func Init() {
 	})
 }
 
+// Runs normal Init functions as well as tracking runtime metrics.
+// Sets up Graphite push for go-metrics' DefaultRegistry. Users of
+// both InitWithMetrics and metrics.DefaultRegistry will not need to
+// run metrics.Graphite(metrics.DefaultRegistry, ...) separately.
 func InitWithMetrics(appName, graphiteServer string) {
 	Init()
 
 	addr, _ := net.ResolveTCPAddr("tcp", graphiteServer)
 
 	// Runtime metrics.
-	registry := metrics.NewRegistry()
-	metrics.RegisterRuntimeMemStats(registry)
-	go metrics.CaptureRuntimeMemStats(registry, SAMPLE_PERIOD)
-	go metrics.Graphite(registry, SAMPLE_PERIOD, appName, addr)
+	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
+	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, SAMPLE_PERIOD)
+	go metrics.Graphite(metrics.DefaultRegistry, SAMPLE_PERIOD, appName, addr)
 
 	// Uptime.
-	uptimeGuage := metrics.GetOrRegisterGaugeFloat64("uptime", registry)
+	uptimeGuage := metrics.GetOrRegisterGaugeFloat64("uptime", metrics.DefaultRegistry)
 	go func() {
 		startTime := time.Now()
 		uptimeGuage.Update(0)
