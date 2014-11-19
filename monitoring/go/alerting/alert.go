@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"code.google.com/p/go.tools/go/exact"
-	"code.google.com/p/go.tools/go/types"
 	"github.com/BurntSushi/toml"
 	"github.com/golang/glog"
 	"github.com/influxdb/influxdb/client"
+	"golang.org/x/tools/go/exact"
+	"golang.org/x/tools/go/types"
 	"skia.googlesource.com/buildbot.git/go/email"
 	"skia.googlesource.com/buildbot.git/go/util"
 )
