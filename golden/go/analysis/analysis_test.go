@@ -29,7 +29,7 @@ func TestAnalyzer(t *testing.T) {
 
 	waitForLoopCounter(analyzer, 1, time.Second*5)
 
-	tileCounts, err := analyzer.GetTileCounts()
+	tileCounts, err := analyzer.GetTileCounts(map[string][]string{})
 	assert.Nil(t, err)
 
 	for testName, _ := range tileCounts.Counts {
