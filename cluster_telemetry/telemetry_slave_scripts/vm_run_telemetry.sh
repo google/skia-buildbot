@@ -129,6 +129,8 @@ mkdir -p $OUTPUT_DIR
 # Start the timer.
 TIMER="$(date +%s)"
 
+sudo chown -R chrome-bot:chrome-bot src/webpagereplay_logs
+
 for page_set in /b/storage/page_sets/$PAGESETS_TYPE/*.py; do
   if [[ -f $page_set ]]; then
     if [[ ! -z "$WHITELIST_GS_LOCATION" ]]; then
