@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -405,7 +406,10 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to get Hostname: %s", err)
 	}
-	common.InitWithMetrics("logserver."+hostname, *graphiteServer)
+	appName := "logserver." + hostname
+	common.InitWithMetrics(appName, *graphiteServer)
+	addr, _ := net.ResolveTCPAddr("tcp", *graphiteServer)
+	go metrics.Graphite(metrics.DefaultRegistry, common.SAMPLE_PERIOD, appName, addr)
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {
 		glog.Fatalf("Failed to create dir for log files: %s", err)
