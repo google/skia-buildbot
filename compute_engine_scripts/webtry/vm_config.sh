@@ -12,8 +12,11 @@ if [ $? != "0" ]; then
   exit 1
 fi
 
+# The base names of the VM instances. Actual names are VM_NAME_BASE-name-zone
+VM_NAME_BASE=${VM_NAME_BASE:="skia"}
+
 # The name of instance where skfiddle.com is running on.
-INSTANCE_NAME=skia-webtry-b
+INSTANCE_NAME=${VM_NAME_BASE}-webtry-b
 
 WEBTRY_IP_ADDRESS=108.170.219.69
 WEBTRY_MACHINE_TYPE=n1-highmem-8
