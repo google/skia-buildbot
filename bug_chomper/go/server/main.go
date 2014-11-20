@@ -16,7 +16,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"issue_tracker"
 	"log"
 	"net/http"
 	"net/url"
@@ -26,9 +25,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
-)
 
-import "github.com/gorilla/securecookie"
+	"github.com/gorilla/securecookie"
+	"skia.googlesource.com/buildbot.git/bug_chomper/go/issue_tracker"
+)
 
 const (
 	certFile          = "certs/cert.pem"
