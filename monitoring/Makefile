@@ -1,6 +1,8 @@
+include ../go/skiaversion/skiaversion.mk
+
 all: default
 
-alertserver: js
+alertserver: js skiaversion
 	go install -v ./go/alertserver
 
 datahopper:

@@ -17,6 +17,8 @@ services/bugdroid/bugdroid_log.txt
 # Eclipse project files
 .project
 .pydevproject
+# Generated Go files.
+go/skiaversion/gen_version.go
 # Server executables/config
 golden/app/third_party
 golden/node_modules

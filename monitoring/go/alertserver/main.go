@@ -29,6 +29,7 @@ import (
 	"skia.googlesource.com/buildbot.git/go/email"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
+	"skia.googlesource.com/buildbot.git/go/skiaversion"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/monitoring/go/alerting"
 )
@@ -178,6 +179,7 @@ func runServer(serverURL string) {
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", alertHandler)
 	http.HandleFunc("/json/alerts", alertJsonHandler)
+	http.HandleFunc("/json/version", skiaversion.JsonHandler)
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	http.HandleFunc("/logout/", login.LogoutHandler)
 	http.HandleFunc("/loginstatus/", login.StatusHandler)
@@ -187,6 +189,8 @@ func runServer(serverURL string) {
 
 func main() {
 	common.InitWithMetrics("alertserver", *graphiteServer)
+	v := skiaversion.GetVersion()
+	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	parsedPollInterval, err := time.ParseDuration(*alertPollInterval)
 	if err != nil {

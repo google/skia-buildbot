@@ -1,0 +1,32 @@
+<link rel="import" href="/res/imp/polymer/polymer.html" />
+<link rel="import" href="/res/imp/core-ajax/core-ajax.html" />
+<link rel="import" href="/res/imp/core-header-panel/core-header-panel.html" />
+<link rel="import" href="/res/imp/core-icon-button/core-icon-button.html" />
+
+<script type="text/javascript" src="/res/js/common.js"></script>
+
+<polymer-element name="version-sk" attributes="commit shortCommit date">
+  <template>
+    <style>
+    :host {
+      font-size: 0.7em;
+    }
+    </style>
+    Ver: <a href="https://skia.googlesource.com/buildbot/+/{{commit}}" title="{{date}}">{{shortCommit}}</a>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        this.commit = "???";
+        this.shortCommit = "???";
+        this.date = "???";
+        var that = this;
+        sk.get("/json/version").then(JSON.parse).then(function(json) {
+          that.commit = json.commit;
+          that.shortCommit = json.commit.substring(0, 12);
+          that.date = json.date;
+        });
+      },
+    });
+  </script>
+</polymer-element>

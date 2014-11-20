@@ -32,7 +32,7 @@ function $$$(query, ele) {
 }
 
 
-(function() {
+this.sk = this.sk || function() {
   "use strict";
 
   var sk = {};
@@ -174,7 +174,5 @@ function $$$(query, ele) {
     return true;
   }
 
-
-  this.sk = sk;
-
-}.call(this));
+  return sk;
+}();
