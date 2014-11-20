@@ -43,7 +43,7 @@
     	</div>
 
     	<div class="col-md-8">
-    		<div>
+    		<div class="row">
 	    		<div class="col-xs-6">
                     <div ng-if="!currentPositive">
                         No positives images available.
@@ -78,13 +78,17 @@
                 </div>
 
 	    	</div>
-	    	<div ng-show="currentPositive && currentUntriaged">
+	    	<div class="row" ng-show="currentPositive && currentUntriaged">
                 <div>Diff</div>
 	    		<div class="col-xs-12">
 	    			<img ng-src="{{currentPositive.diff.diffImgUrl}}"
                          class="diffImg" style="padding:0; border: 1px solid #515151;">
 	    		</div>
 	    	</div>
+
+            <sk-query all-params="allParams" query="query"></sk-query>
+            <br>
+            <br>
     	</div>
 
         <div class="col-md-2 imagesColumn">

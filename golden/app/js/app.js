@@ -83,12 +83,15 @@ var skia = skia || {};
 
       // processServerData is called by loadTriageState and also saveTriageState
       // to process the triage data returned by the server.
-      function processServerData(promise) {
+      function processServerData(promise, updateQuery) {
         promise.then(
           function (serverData) {
             $scope.untriaged = ns.getUntriagedSorted(serverData, testName);
             $scope.triageState = ns.getNumArray($scope.untriaged.length, ns.c.UNTRIAGED);
             updatedTriageState();
+
+            $scope.untIndex = -1;
+            $scope.posIndex = -1;
             $scope.selectUntriaged(0);
 
             // If there are no untriaged we need to just set the positive
@@ -97,6 +100,11 @@ var skia = skia || {};
               $scope.positives = ns.getSortedPositives(serverData, testName);
               $scope.selectPositive(0);
             };
+
+            $scope.allParams = ns.getSortedParams(serverData);
+            if (updateQuery) {
+              $scope.query = serverData.query || {};
+            }
           },
           function (errResp) {
             console.log("Error:", errResp);
@@ -105,8 +113,8 @@ var skia = skia || {};
 
       // loadTriageData sends a GET request to the backend to get the
       // untriaged digests.
-      function loadTriageData() {
-        processServerData(dataService.loadData(path));
+      $scope.loadTriageData = function () {
+        processServerData(dataService.loadData(path, $scope.query), true);
       };
 
       // updatedTriageState checks whether the currently assigned labels
@@ -128,7 +136,7 @@ var skia = skia || {};
           $scope.untIndex = -1;
           $scope.currentUntriaged = null;
         }
-        else if ($scope.untIndex != idx) {
+        else {
           $scope.currentUntriaged = $scope.untriaged[idx];
           $scope.positives = ns.getSortedPositivesFromUntriaged($scope.currentUntriaged);
           $scope.untIndex = idx;
@@ -169,7 +177,7 @@ var skia = skia || {};
           }
         }
 
-        processServerData(dataService.sendData(ns.c.URL_TRIAGE, req));
+        processServerData(dataService.sendData(ns.c.URL_TRIAGE, req), false);
       };
 
       // Initialize the variables in $scope.
@@ -185,8 +193,12 @@ var skia = skia || {};
       // Expose the constants in the template.
       $scope.c = ns.c;
 
+      // Manage the URL query.
+      $scope.allParams = [];
+      $scope.query = $location.search();
+
       // Load the data.
-      loadTriageData();
+      $scope.loadTriageData();
   }]);
 
   /**
