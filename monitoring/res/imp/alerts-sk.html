@@ -3,15 +3,26 @@
 <link rel="import" href="/res/imp/core-ajax/core-ajax.html" />
 <link rel="import" href="/res/imp/core-header-panel/core-header-panel.html" />
 <link rel="import" href="/res/imp/core-icon-button/core-icon-button.html" />
+<link rel="import" href="/res/imp/core-input/core-input.html" />
+
+<script type="text/javascript" src="/res/js/common.js"></script>
 
 <polymer-element name="alerts-sk" attributes="alerts">
   <template>
-    <core-ajax
-        auto
-        id="ajax"
-        url="/json/alerts"
-        handleAs="json"
-        on-core-response="{{gotAlerts}}"></core-ajax>
+    <style>
+    #loadstatus {
+      font-size: 0.8em;
+      padding: 15px;
+    }
+    </style>
+    <div horizontal layout center id="loadstatus">
+      <div>
+        Reload (s):
+        <core-input type="number" value="{{reload}}" preventInvalidInput style="width: 50px;"></core-input>
+      </div>
+      <div flex></div>
+      <div>Last loaded at {{lastLoaded}}</div>
+    </div>
     <template repeat="{{a in alerts}}">
       <template if="{{a.active}}">
         <alert-sk alert="{{a}}"></alert-sk>
@@ -42,12 +53,44 @@
           value: false,
           reflect: true,
         },
+        reload: {
+          value: 60,
+          reflect: true,
+        },
+        timeout: {
+          value: null,
+          reflect: false,
+        },
+        lastLoaded: {
+          value: "(not yet loaded)",
+          reflect: false,
+        },
       },
       created: function() {
         this.alerts = [];
+        this.reloadAlerts();
       },
-      gotAlerts: function() {
-        this.alerts = this.$.ajax.response.alerts;
+      reloadChanged: function() {
+        this.resetTimeout();
+      },
+      resetTimeout: function() {
+        if (this.timeout) {
+          window.clearTimeout(this.timeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this.timeout = window.setTimeout(function() { that.reloadAlerts(); }, this.reload * 1000);
+        }
+      },
+      reloadAlerts: function() {
+        console.log("Loading alerts.");
+        var that = this;
+        sk.get("/json/alerts").then(JSON.parse).then(function(json) {
+          that.alerts = json.alerts;
+          that.lastLoaded = new Date().toLocaleTimeString();
+          that.resetTimeout();
+          console.log("Done loading alerts.");
+        });
       },
       toggleInactive: function() {
         this.showinactive = !this.showinactive;
