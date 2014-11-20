@@ -7,6 +7,6 @@ set -x
 source ./vm_config.sh
 
 gcutil --project=$PROJECT_ID ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-  "cd ~/buildbot/webtry/setup;" \
+  "cd /home/webtry/buildbot/buildbot/webtry/setup;" \
   "git pull;" \
   "./webtry_setup.sh"
