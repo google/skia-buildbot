@@ -42,7 +42,7 @@ func InitWithMetrics(appName, graphiteServer string) {
 		startTime := time.Now()
 		uptimeGuage.Update(0)
 		for _ = range time.Tick(SAMPLE_PERIOD) {
-			uptimeGuage.Update(time.Now().Sub(startTime).Seconds())
+			uptimeGuage.Update(time.Since(startTime).Seconds())
 		}
 	}()
 }
