@@ -163,6 +163,36 @@ func TestPerfTrace(t *testing.T) {
 	if got, want := g.Values[0], 1.3; got != want {
 		t.Errorf("Grow didn't FILL_AFTER correctly: Got %v Want %v", got, want)
 	}
+
+	// Test Trim
+	g = NewPerfTraceN(N)
+	g.Values[1] = 1.3
+	if err := g.Trim(1, 3); err != nil {
+		t.Fatalf("Trim Failed: %s", err)
+	}
+	if got, want := g.Values[0], 1.3; got != want {
+		t.Errorf("Trim didn't copy correctly: Got %v Want %v", got, want)
+	}
+	if got, want := g.Len(), 2; got != want {
+		t.Errorf("Trim wrong length: Got %v Want %v", got, want)
+	}
+
+	if err := g.Trim(-1, 1); err == nil {
+		t.Error("Trim failed to error.")
+	}
+	if err := g.Trim(1, 3); err == nil {
+		t.Error("Trim failed to error.")
+	}
+	if err := g.Trim(2, 1); err == nil {
+		t.Error("Trim failed to error.")
+	}
+
+	if err := g.Trim(1, 1); err != nil {
+		t.Fatalf("Trim Failed: %s", err)
+	}
+	if got, want := g.Len(), 0; got != want {
+		t.Errorf("Trim wrong length: Got %v Want %v", got, want)
+	}
 }
 
 func TestGoldenTrace(t *testing.T) {
@@ -213,5 +243,35 @@ func TestGoldenTrace(t *testing.T) {
 	g.Grow(2*N, FILL_AFTER)
 	if got, want := g.Values[0], "foo"; got != want {
 		t.Errorf("Grow didn't FILL_AFTER correctly: Got %v Want %v", got, want)
+	}
+
+	// Test Trim
+	g = NewGoldenTraceN(N)
+	g.Values[1] = "foo"
+	if err := g.Trim(1, 3); err != nil {
+		t.Fatalf("Trim Failed: %s", err)
+	}
+	if got, want := g.Values[0], "foo"; got != want {
+		t.Errorf("Trim didn't copy correctly: Got %v Want %v", got, want)
+	}
+	if got, want := g.Len(), 2; got != want {
+		t.Errorf("Trim wrong length: Got %v Want %v", got, want)
+	}
+
+	if err := g.Trim(-1, 1); err == nil {
+		t.Error("Trim failed to error.")
+	}
+	if err := g.Trim(1, 3); err == nil {
+		t.Error("Trim failed to error.")
+	}
+	if err := g.Trim(2, 1); err == nil {
+		t.Error("Trim failed to error.")
+	}
+
+	if err := g.Trim(1, 1); err != nil {
+		t.Fatalf("Trim Failed: %s", err)
+	}
+	if got, want := g.Len(), 0; got != want {
+		t.Errorf("Trim wrong length: Got %v Want %v", got, want)
 	}
 }

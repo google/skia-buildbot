@@ -41,6 +41,12 @@ type Trace interface {
 	// IsMissing returns true if the measurement at index i is a sentinel value,
 	// for example, config.MISSING_DATA_SENTINEL.
 	IsMissing(i int) bool
+
+	// Trim trims the measurements to just the range from [begin, end).
+	//
+	// Just like a Go [:] slice this is inclusive of begin and exclusive of end.
+	// The length on the Trace will then become end-begin.
+	Trim(begin, end int) error
 }
 
 // Matches returns true if the given Trace matches the given query.
@@ -123,6 +129,20 @@ func (t *PerfTrace) Grow(n int, fill FillType) {
 		copy(newValues[delta:], t.Values)
 	}
 	t.Values = newValues
+}
+
+func (g *PerfTrace) Trim(begin, end int) error {
+	if end < begin || end > g.Len() || begin < 0 {
+		return fmt.Errorf("Invalid Trim range [%d, %d) of [0, %d]", begin, end, g.Len())
+	}
+	n := end - begin
+	newValues := make([]float64, n)
+
+	for i := 0; i < n; i++ {
+		newValues[i] = g.Values[i+begin]
+	}
+	g.Values = newValues
+	return nil
 }
 
 // NewPerfTrace allocates a new Trace set up for the given number of samples.
@@ -536,6 +556,20 @@ func (g *GoldenTrace) Grow(n int, fill FillType) {
 		copy(newValues[delta:], g.Values)
 	}
 	g.Values = newValues
+}
+
+func (g *GoldenTrace) Trim(begin, end int) error {
+	if end < begin || end > g.Len() || begin < 0 {
+		return fmt.Errorf("Invalid Trim range [%d, %d) of [0, %d]", begin, end, g.Len())
+	}
+	n := end - begin
+	newValues := make([]string, n)
+
+	for i := 0; i < n; i++ {
+		newValues[i] = g.Values[i+begin]
+	}
+	g.Values = newValues
+	return nil
 }
 
 // NewGoldenTrace allocates a new Trace set up for the given number of samples.
