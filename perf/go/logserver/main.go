@@ -30,10 +30,8 @@ var (
 	graphiteServer = flag.String("graphite_server", "skiamonitor.com:2003", "Where is Graphite metrics ingestion server running.")
 	stateFile      = flag.String("state_file", "/tmp/logserver.state", "File where logserver stores all encountered log files. This ensures that metrics are not duplicated for already processed log files.")
 
-	// TODO(rmistry): Update the below to 1GB once skia-testing-b has a large
-	// persistent disk.
 	appLogThreshold = flag.Int64(
-		"app_log_threshold", 256*1<<20,
+		"app_log_threshold", 1<<30,
 		"If any app's logs for a log level use up more than app_log_threshold value then the files with the oldest modified time are deleted till size is less than app_log_threshold - app_log_threshold_buffer.")
 	appLogThresholdBuffer = flag.Int64(
 		"app_log_threshold_buffer", 10*1<<20,

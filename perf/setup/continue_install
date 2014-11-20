@@ -28,7 +28,7 @@ else
   git clone https://skia.googlesource.com/skia
 fi
 
-mkdir=/tmp/glog
+mkdir=/mnt/pd0/glog
 mkdir=$HOME/golib
 export GOROOT=$HOME/go
 export GOPATH=$HOME/golib
