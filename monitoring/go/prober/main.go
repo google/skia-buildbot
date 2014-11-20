@@ -24,7 +24,7 @@ import (
 var (
 	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	config         = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
-	prefix         = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Carbon.")
+	prefix         = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Graphite.")
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	apikey         = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
 	runEvery       = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
@@ -178,7 +178,7 @@ func monitorIssueTracker() {
 	// Create a new metrics registry for the issue tracker metrics.
 	addr, err := net.ResolveTCPAddr("tcp", *graphiteServer)
 	if err != nil {
-		glog.Fatalln("Failed to resolve the Carbon server: ", err)
+		glog.Fatalln("Failed to resolve the Graphite server: ", err)
 	}
 	issueRegistry := metrics.NewRegistry()
 	go metrics.Graphite(issueRegistry, common.SAMPLE_PERIOD, "issues", addr)
@@ -226,12 +226,12 @@ func monitorIssueTracker() {
 func main() {
 	common.InitWithMetrics("probeserver", *graphiteServer)
 	go monitorIssueTracker()
-	glog.Infoln("Looking for Carbon server.")
+	glog.Infoln("Looking for Graphite server.")
 	addr, err := net.ResolveTCPAddr("tcp", *graphiteServer)
 	if err != nil {
-		glog.Fatalln("Failed to resolve the Carbon server: ", err)
+		glog.Fatalln("Failed to resolve the Graphite server: ", err)
 	}
-	glog.Infoln("Found Carbon server.")
+	glog.Infoln("Found Graphite server.")
 
 	// We have two sets of metrics, one for the probes and one for the probe
 	// server itself. The server's metrics are handled by common.Init()
