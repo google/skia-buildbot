@@ -12,8 +12,14 @@ if [ $? != "0" ]; then
   exit 1
 fi
 
+# The base names of the VM instances. Actual names are VM_NAME_BASE-name-zone
+VM_NAME_BASE=${VM_NAME_BASE:="skia"}
+
 # The name of instance where skiaperf.com is running on.
-INSTANCE_NAME=skia-testing-b
+INSTANCE_NAME=${VM_NAME_BASE}-testing-b
+
+# The name of the persistent disk attached to the above instance.
+DISK_NAME=${VM_NAME_BASE}-testing-data
 
 TESTING_IP_ADDRESS=108.170.219.168
 TESTING_MACHINE_TYPE=n1-highmen-8
