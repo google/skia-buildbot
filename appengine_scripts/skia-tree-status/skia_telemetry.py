@@ -32,9 +32,9 @@ PAGESET_TYPES = {
     '10k': 'Top 10k (with desktop user-agent)',
     'Mobile10k': 'Top 10k (with mobile user-agent)',
     # 'IndexSample10k': 'IndexSample 10k (with mobile user-agent)',
-    'GPURasterSet': 'GPU Raster Set (with mobile user-agent)',
+    # 'GPURasterSet': 'GPU Raster Set (with mobile user-agent)',
     # 'KeyMobileSites': 'Key Mobile Sites (with mobile user-agent)',
-    'KeySilkCases': 'Key Silk Cases (with mobile user-agent)',
+    # 'KeySilkCases': 'Key Silk Cases (with mobile user-agent)',
 }
 
 # Constants for ChromiumTryPage.
