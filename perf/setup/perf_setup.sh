@@ -4,7 +4,7 @@
 # For full instructions see the README file.
 
 # Command to download metadata.
-CURL_PROJ='curl -H "Metadata-Flavor: Google"'
+CURL_CMD='curl -H "Metadata-Flavor: Google"'
 
 sudo apt-get install monit nginx gcc mercurial make nodejs nodejs-legacy
 echo "Adding the perf user account"
@@ -35,10 +35,12 @@ sudo rm -f /etc/nginx/sites-enabled/gold
 sudo ln -s /etc/nginx/sites-available/gold /etc/nginx/sites-enabled/gold
 
 # Download the SSL secrets from the metadata store.
-sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiagold-com-key -o /etc/nginx/ssl/skiagold_com.key
-sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiagold-com-pem -o /etc/nginx/ssl/skiagold_com.pem
-sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-key -o /etc/nginx/ssl/skiaperf_com.key
-sudo $CURL_META http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-pem -o /etc/nginx/ssl/skiaperf_com.pem
+sudo sh <<CURL_SCRIPT
+    $CURL_CMD http://metadata/computeMetadata/v1/project/attributes/skiagold-com-key -o /etc/nginx/ssl/skiagold_com.key
+    $CURL_CMD http://metadata/computeMetadata/v1/project/attributes/skiagold-com-pem -o /etc/nginx/ssl/skiagold_com.pem
+    $CURL_CMD http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-key -o /etc/nginx/ssl/skiaperf_com.key
+    $CURL_CMD http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-pem -o /etc/nginx/ssl/skiaperf_com.pem
+CURL_SCRIPT
 sudo chmod 700 /etc/nginx/ssl
 sudo chmod 600 /etc/nginx/ssl/*
 
