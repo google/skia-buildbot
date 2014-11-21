@@ -13,7 +13,7 @@ grains:
 
 default: alertserver datahopper grains
 
-testgo:
+testgo: skiaversion
 	go test ./go/... -v
 
 node_modules: package.json
