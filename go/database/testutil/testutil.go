@@ -90,6 +90,10 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 //      MYSQL_TESTING_ROOTPW (password of the db root user)
 func GetTestMySQLConnStr(t *testing.T, user string, dbName string) string {
 	rwUserPw, rootPw := os.Getenv("MYSQL_TESTING_RWPW"), os.Getenv("MYSQL_TESTING_ROOTPW")
+	if testing.Short() {
+		t.Skip("Skipping test against MySQL in short mode.")
+	}
+
 	// Skip this test unless there are environment variables with the rwuser and
 	// root password for the local MySQL instance.
 	if (rwUserPw == "") || (rootPw == "") {

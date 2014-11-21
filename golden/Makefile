@@ -10,6 +10,11 @@ correctness_migratedb:
 packages:
 	go build -v ./go/...
 
+# This is the quick version triggered by the presubmit script.
+.PHONY: testgo
+testgo:
+	go test ./go/... -v -test.short
+
 .PHONY: test
 test:
 	go test ./go/...

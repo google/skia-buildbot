@@ -18,6 +18,7 @@ GO_TESTS = [
   '.',
   'perf',
   'monitoring',
+  'golden',
 ]
 
 GO_TEST_FAILED = (

@@ -81,6 +81,11 @@ func setupAnalyzer(t *testing.T) *Analyzer {
 	gsBucketName := gs.GS_PROJECT_BUCKET
 	tileStoreDir := "../../../../../../../checkouts/tiles"
 
+	// Skip if we are running short tests.
+	if testing.Short() {
+		t.Skip("Skipping test because we are running in short mode.")
+	}
+
 	// Skip this test if the directories don't exist.
 	if _, err := os.Stat(imageDir); os.IsNotExist(err) {
 		t.Skipf("Skiping test because %s does not exist.", imageDir)

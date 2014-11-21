@@ -3,9 +3,9 @@
 packages:
 	go install -v ./...
 
-.PHONY: test
-test:
-	go test ./...
+.PHONY: testgo
+testgo:
+	go test ./... -v
 
 .PHONY: all
 all: packages
