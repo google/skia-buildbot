@@ -28,6 +28,7 @@ import (
 
 	"github.com/gorilla/securecookie"
 	"skia.googlesource.com/buildbot.git/bug_chomper/go/issue_tracker"
+	"skia.googlesource.com/buildbot.git/go/common"
 )
 
 const (
@@ -45,8 +46,9 @@ const (
 
 // Flags:
 var (
-	port   = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	public = flag.Bool("public", false, "Make this server publicly accessible.")
+	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	public         = flag.Bool("public", false, "Make this server publicly accessible.")
+	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 )
 
 var (
@@ -371,7 +373,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 
 // Run the BugChomper server.
 func main() {
-	flag.Parse()
+	common.InitWithMetrics("bug_chomper", *graphiteServer)
 
 	http.HandleFunc("/", handleRoot)
 	http.HandleFunc(oauthCallbackPath, handleOAuth2Callback)
