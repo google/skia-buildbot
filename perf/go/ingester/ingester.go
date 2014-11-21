@@ -91,10 +91,10 @@ func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, 
 		timeSinceLastSucceessfulUpdate: newGauge(metricName, "time-since-last-successful-update"),
 	}
 
-	i.timeSinceLastSucceessfulUpdate.Update(int64(time.Now().Sub(i.lastSuccessfulUpdate).Seconds()))
+	i.timeSinceLastSucceessfulUpdate.Update(int64(time.Since(i.lastSuccessfulUpdate).Seconds()))
 	go func() {
 		for _ = range time.Tick(time.Minute) {
-			i.timeSinceLastSucceessfulUpdate.Update(int64(time.Now().Sub(i.lastSuccessfulUpdate).Seconds()))
+			i.timeSinceLastSucceessfulUpdate.Update(int64(time.Since(i.lastSuccessfulUpdate).Seconds()))
 		}
 	}()
 	return i, nil
@@ -263,7 +263,7 @@ func (i *Ingester) Update(pull bool, lastIngestTime int64) error {
 		return err
 	}
 	i.lastSuccessfulUpdate = time.Now()
-	i.elapsedTimePerUpdate.Update(int64(time.Now().Sub(begin).Seconds()))
+	i.elapsedTimePerUpdate.Update(int64(time.Since(begin).Seconds()))
 	glog.Info("Finished ingest.")
 	return nil
 }

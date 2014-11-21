@@ -45,7 +45,7 @@ func Start(tileStore types.TileStore, git *gitinfo.GitInfo) {
 				glog.Warning("Failed to read last SKP commit: %s", err)
 				continue
 			}
-			skpLatency.Update(time.Now().Sub(last))
+			skpLatency.Update(time.Since(last))
 			commits.Update(int64(git.NumCommits()))
 		}
 	}()

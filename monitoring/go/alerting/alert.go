@@ -143,7 +143,7 @@ func (a *Alert) tick() {
 }
 
 func (a *Alert) maybeNag() {
-	if a.Active() && !a.Snoozed() && a.nag != time.Duration(0) && time.Now().Sub(a.lastMsgTime) > a.nag {
+	if a.Active() && !a.Snoozed() && a.nag != time.Duration(0) && time.Since(a.lastMsgTime) > a.nag {
 		a.followup(fmt.Sprintf(NAG_MSG_TMPL, a.nag.String()))
 	}
 }
