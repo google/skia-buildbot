@@ -215,6 +215,9 @@ var skia = skia || {};
 
     var posd, d;
     var result = [];
+    var positive = serverData.tests[testName].positive;
+    var hasPos = false;
+
     for (var digest in unt) {
       if (unt.hasOwnProperty(digest)) {
         var posDiffs = [];
@@ -222,8 +225,9 @@ var skia = skia || {};
           // TODO (stephana): Fill in expanding the diff information.
           // This will be done once triaging works. So we can test it
           // with real data.
+          hasPos = true;
           d = unt[digest].diffs[i];
-          posd = serverData.tests[testName].positive[d.posDigest];
+          posd = positive[d.posDigest];
           posDiffs.push(new ns.DiffDigestInfo(d.posDigest, posd.imgUrl, posd.count, d));
         }
 
@@ -234,8 +238,18 @@ var skia = skia || {};
       }
     }
 
-    // TODO (stephana): Sort the result by descreasing difference.
-    // This will be done once triaging works, so we can test with real data.
+    // Sort the result increasing by pixel difference or
+    // decreasing by counts if there are no positives.
+    var sortFn;
+    if (hasPos) {
+      sortFn = function (a,b) {
+        return a.positiveDiffs[0].diff.numDiffPixels - b.positiveDiffs[0].diff.numDiffPixels;
+      };
+    } else {
+      sortFn = function (a,b) { return b.count - a.count; };
+    }
+    result.sort(sortFn);
+
     return result;
   };
 

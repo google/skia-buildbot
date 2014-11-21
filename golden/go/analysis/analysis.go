@@ -201,9 +201,9 @@ func (a *Analyzer) GetTileCounts(query map[string][]string) (*GUITileCounts, err
 	defer a.mutex.Unlock()
 
 	if len(query) > 0 {
-		tempTile, effectiveQuery := a.getSubTile(query)
+		tile, effectiveQuery := a.getSubTile(query)
 		if len(effectiveQuery) > 0 {
-			ret, _ := a.getOutputCounts(tempTile)
+			ret, _ := a.getOutputCounts(tile)
 			ret.Query = effectiveQuery
 			return ret, nil
 		}
@@ -229,9 +229,11 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 	}
 
 	if len(query) > 0 {
-		tempTile, effectiveQuery := a.getSubTile(query)
+		tile, effectiveQuery := a.getSubTile(query)
 		if len(effectiveQuery) > 0 {
-			return a.getTestDetails(tempTile), nil
+			ret := a.getTestDetails(tile)
+			ret.Query = effectiveQuery
+			return ret, nil
 		}
 	}
 

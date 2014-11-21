@@ -104,6 +104,7 @@ var skia = skia || {};
             $scope.allParams = ns.getSortedParams(serverData);
             if (updateQuery) {
               $scope.query = serverData.query || {};
+              $location.search($scope.query);
             }
           },
           function (errResp) {

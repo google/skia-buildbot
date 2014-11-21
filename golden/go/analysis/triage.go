@@ -12,6 +12,7 @@ import (
 type GUITestDetails struct {
 	AllParams map[string][]string       `json:"allParams"`
 	Tests     map[string]*GUITestDetail `json:"tests"`
+	Query     map[string][]string       `json:"query"`
 }
 
 // GUITestDetail contains the untriaged, positive and negative digests of
@@ -32,9 +33,11 @@ type DigestInfo struct {
 // Aside from the digests image url and params it also contains metrics
 // comparing it to the positive digests.
 type GUIUntriagedDigest struct {
-	ImgUrl    string              `json:"imgUrl"`
-	ParamsSet []map[string]string `json:"paramsSet"`
-	Diffs     GUIDiffMetrics      `json:"diffs"`
+	// This is also an instance of DigestInfo
+	DigestInfo
+
+	ParamCounts map[string]map[string]int `json:"paramCounts"`
+	Diffs       GUIDiffMetrics            `json:"diffs"`
 }
 
 // GUIDiffMetrics is a sortable slice of diff metrics.
@@ -77,10 +80,12 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 					// are added once we have all positives for this test.
 					if _, ok := untriagedDigests[digest]; !ok {
 						untriagedDigests[digest] = &GUIUntriagedDigest{
-							ParamsSet: make([]map[string]string, 0, len(testTraces)),
+							DigestInfo:  DigestInfo{ImgUrl: a.getUrl(digest)},
+							ParamCounts: map[string]map[string]int{},
 						}
 					}
-					untriagedDigests[digest].ParamsSet = append(untriagedDigests[digest].ParamsSet, oneTrace.Params)
+					incParamCounts(untriagedDigests[digest].ParamCounts, oneTrace.Params)
+					untriagedDigests[digest].Count++
 				case types.POSITIVE:
 					a.incDigestInfo(positiveDigests, digest)
 				case types.NEGATIVE:
@@ -127,6 +132,15 @@ func (a *Analyzer) incDigestInfo(digestMap map[string]*DigestInfo, digest string
 		digestMap[digest] = &DigestInfo{ImgUrl: a.getUrl(digest)}
 	}
 	digestMap[digest].Count++
+}
+
+func incParamCounts(paramCounts map[string]map[string]int, params map[string]string) {
+	for k, v := range params {
+		if _, ok := paramCounts[k]; !ok {
+			paramCounts[k] = map[string]int{}
+		}
+		paramCounts[k][v]++
+	}
 }
 
 func (a *Analyzer) getUrl(digest string) string {
