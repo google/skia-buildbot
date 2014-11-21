@@ -1,0 +1,3 @@
+testgo:
+	go test ./go/...
+
