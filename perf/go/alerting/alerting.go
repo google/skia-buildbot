@@ -68,7 +68,7 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 		bestMatchHits := 0
 		for _, old := range oldSummaries {
 			hits := 0
-			for _, key := range old.Keys {
+			for _, key := range util.AtMost(old.Keys, 20) {
 				if util.In(key, fresh.Keys) {
 					hits += 1
 				}

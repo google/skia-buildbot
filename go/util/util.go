@@ -44,6 +44,14 @@ func In(s string, a []string) bool {
 	return false
 }
 
+// AtMost returns a subslice of at most the first n members of a.
+func AtMost(a []string, n int) []string {
+	if n > len(a) {
+		n = len(a)
+	}
+	return a[:n]
+}
+
 type int64Slice []int64
 
 func (p int64Slice) Len() int           { return len(p) }
