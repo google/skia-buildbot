@@ -6,7 +6,7 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Start ingest.
-# Description:       Moves Google Storage data into BigQuery.
+# Description:       Moves Google Storage data into Tiles.
 ### END INIT INFO
 
 # Author: Joe Gregorio <jcgregorio@google.com> (copied by Kelvin Ly)

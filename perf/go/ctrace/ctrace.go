@@ -19,7 +19,7 @@ type ClusterableTrace struct {
 }
 
 func (t *ClusterableTrace) Distance(other kmeans.Clusterable) float64 {
-	// Data is always loaded from BigQuery so that every Trace has the same length,
+	// Data is always loaded from tiles so that every Trace has the same length,
 	// and NewFullTrace keeps that guarantee.
 	o := other.(*ClusterableTrace)
 	sum := 0.0
