@@ -52,7 +52,7 @@ const (
 var (
 	graphiteServer   = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	port             = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	useMetadata      = flag.Bool("useMetadata", true, "Load sensitive values from metadata not from flags.")
+	useMetadata      = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	influxDbApiPort  = flag.Int("influxdb_api_port", 8086, "The local port of the InfluxDB API.")
 	grafanaDir       = flag.String("grafana_dir", "", "The directory of the grafana files.")
 	influxDbName     = flag.String("influxdb_name", "admin", "The InfluxDB username.")
