@@ -232,7 +232,7 @@
     "description": "Port used by private build slaves."
   },
   "project_url": {
-    "value": "http://skia.googlecode.com",
+    "value": "https://code.google.com/p/skia",
     "type": "string",
     "description": "URL of the Skia codesite."
   },
@@ -286,11 +286,6 @@
     "type": "string",
     "description": "URL of the Skia Git repository."
   },
-  "skia_svn_url": {
-    "value": "http://skia.googlecode.com/svn",
-    "type": "string",
-    "description": "URL of the Skia SVN repository."
-  },
   "skp_images_bucket": {
     "value": "chromium-skia-skp-images",
     "type": "string",
@@ -320,10 +315,5 @@
     "value": "https://skia-tree-status.appspot.com/binary-status",
     "type": "string",
     "description": "URL that displays the status of the Skia tree."
-  },
-  "try_svn_url": {
-    "value": "http://skia-try.googlecode.com/svn",
-    "type": "string",
-    "description": "URL of the SVN repository used for try requests."
   }
 }
