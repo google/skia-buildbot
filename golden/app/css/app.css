@@ -1,57 +1,89 @@
 /* app css stylesheet */
 
 .navbar {
-	margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 .imagesColumn {
-	height: 640px;
-	overflow: auto;
+    height: 640px;
+    overflow: auto;
 }
 
 .columnImg {
-	max-width:100%;
-	max-height: 100%;
-	padding: 0.5em;
-	width:100%;
+    max-width:100%;
+    max-height: 100%;
+    padding: 0.5em;
+    width:100%;
+    border: 1px solid black;
 }
 
 .diffImg {
-	max-width:100%;
-	max-height: 100%;
-	padding-bottom: 1em;
+    max-width:100%;
+    max-height: 100%;
+    padding-bottom: 1em;
 }
 
 .selectedImg {
-	border: 3px solid #DDDDDD;
+    border: 3px solid #DDDDDD;
 }
 
 .positiveLabel {
-	color: #33A02C;
+    color: #33A02C;
 }
 
 .negativeLabel {
-	color: #E31A1C;
+    color: #E31A1C;
 }
 
 .untriagedLabel {
-	color: #B3B3B3;
+    color: #B3B3B3;
 }
 
-.stateHeadLine {
-	font-size: 18pt;
+.triageHeadLine {
+    font-size: 18pt;
 }
 
-.stateHeader {
-	padding-top: 1em;
-	padding-bottom: 1em;
+.triageHeader {
+    padding-top: 1em;
+    padding-bottom: 1em;
 }
 
-.stateSubHeader {
-	padding-left: 0;
+.triageSubHeader {
+    padding-left: 0;
 }
 
 .posNegButtonContainer {
-	padding-bottom: 1em;
-	min-height: 5em;
+    padding-bottom: 1em;
+    min-height: 5em;
+}
+
+.queryHeader {
+    border: 1px solid #B1B1B1;
+    padding: 1em;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.querySelect {
+    height: 15em !important;
+}
+
+.countsQueryContainer {
+    margin-top: 2em;
+}
+
+.busyLoading {
+    opacity: 0.3;
+}
+
+.srcImageContainer {
+    padding-bottom: 1em;
+}
+
+.identicalContainer {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 5em;
+    text-align: center;
+    font-size: large;
 }

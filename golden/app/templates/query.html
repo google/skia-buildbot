@@ -1,13 +1,27 @@
-<div class="row">
-	<div class="col-lg-2" ng-repeat="oneParam in params">
-		<h4>{{oneParam[0]}}</h4>
-		<div>
-			<select multiple
-					ng-model="query[oneParam[0]]"
-			        ng-options="opt for opt in oneParam[1]"
-			        class="form-control"
-			        style="height: 15em;">
-			</select>
+<div>
+    <div class="row queryHeader">
+        <div class="pull-right">
+            <button ng-click="query={}"
+					ng-disabled="isEmpty(query)"
+					class="btn btn-default">Clear</button>
+            &nbsp; &nbsp;&nbsp;
+            <button ng-click="triggerUpdate()"
+                    ng-disabled="isClean()"
+                    class="btn btn-primary">Update</button>
+        </div>
+    	<div class="pull-left">{{query | json}} </div>
+    </div>
+
+	<div class="row">
+		<div class="col-lg-2" ng-repeat="oneParam in params">
+			<h4>{{oneParam[0]}}</h4>
+			<div>
+				<select multiple
+						ng-model="query[oneParam[0]]"
+				        ng-options="opt for opt in oneParam[1]"
+				        class="form-control querySelect">
+				</select>
+			</div>
 		</div>
 	</div>
 </div>

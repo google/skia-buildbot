@@ -31,16 +31,22 @@ var skia = skia || {};
    * CountsCtrl controlls the UI on the main view where an overview of
    * test results is presented.
    */
-  app.controller('CountsCtrl', ['$scope', '$routeParams', '$location', 'dataService',
-    function($scope, $routeParams, $location, dataService) {
+  app.controller('CountsCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'dataService',
+    function($scope, $routeParams, $location, $timeout, dataService) {
       // Get the path and use it for the backend request
       var testName = ($routeParams.id && ($routeParams.id !== '')) ?
                       $routeParams.id : null;
 
       // Load counts for all tests of a tile.
       $scope.loadCounts = function () {
+        $scope.state = 'loading';
         dataService.loadData(ns.c.URL_COUNTS, $scope.query).then(
           function (serverData) {
+            if (!serverData) {
+              retry();
+              return serverData;
+            };
+
             var temp = ns.processCounts(serverData, testName);
 
             // plug into the sk-plot directive
@@ -50,23 +56,36 @@ var skia = skia || {};
             // used to render information about tests
             $scope.allAggregates = temp.allAggregates;
             $scope.allTests = temp.testDetails;
-            $scope.allParams = ns.getSortedParams(serverData);
-            $scope.query = serverData.query || {};
+            $scope.allParams = ns.getSortedParams(serverData, false);
+            updateQueryStr(serverData.query || {});
 
-            $location.search($scope.query);
+            $scope.state = 'ready';
           },
           function (errResp) {
+            retry();
             console.log("Error:", errResp);
           });
       };
 
+      function retry() {
+        $scope.state = 'retry';
+        $timeout($scope.loadCounts, $scope.reloadInterval * 1000);
+      }
+
+      function updateQueryStr(newQuery) {
+        $scope.query = newQuery;
+        $location.search(newQuery);
+        $scope.qStr = ns.extractQueryString($location.url());
+      }
+
       // initialize the members and load the data.
+      $scope.reloadInterval = 3;
       $scope.allTests = [];
       $scope.plotData = [];
       $scope.plotTicks = null;
       $scope.oneTest = !!testName;
       $scope.allParams = [];
-      $scope.query = $location.search();
+      updateQueryStr($location.search());
       $scope.loadCounts();
     }]);
 
@@ -75,8 +94,8 @@ var skia = skia || {};
    * and backend requests. Processing is delegated to the functions in the
    * 'skia' namespace (implemented in logic.js).
    */
-  app.controller('TriageCtrl', ['$scope', '$routeParams', '$location', 'dataService',
-    function($scope, $routeParams, $location, dataService) {
+  app.controller('TriageCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'dataService',
+    function($scope, $routeParams, $location, $timeout, dataService) {
       // Get the path and use it for the backend request
       var testName = $routeParams.id;
       var path = $location.path()
@@ -86,6 +105,11 @@ var skia = skia || {};
       function processServerData(promise, updateQuery) {
         promise.then(
           function (serverData) {
+            if (!serverData) {
+              retry();
+              return serverData;
+            };
+
             $scope.untriaged = ns.getUntriagedSorted(serverData, testName);
             $scope.triageState = ns.getNumArray($scope.untriaged.length, ns.c.UNTRIAGED);
             updatedTriageState();
@@ -101,13 +125,15 @@ var skia = skia || {};
               $scope.selectPositive(0);
             };
 
-            $scope.allParams = ns.getSortedParams(serverData);
+            $scope.allParams = ns.getSortedParams(serverData, true);
             if (updateQuery) {
               $scope.query = serverData.query || {};
               $location.search($scope.query);
             }
+            $scope.state='ready';
           },
           function (errResp) {
+            retry();
             console.log("Error:", errResp);
           });
       }
@@ -115,8 +141,14 @@ var skia = skia || {};
       // loadTriageData sends a GET request to the backend to get the
       // untriaged digests.
       $scope.loadTriageData = function () {
+        $scope.state = 'loading';
         processServerData(dataService.loadData(path, $scope.query), true);
       };
+
+      function retry() {
+        $scope.state = 'retry';
+        $timeout($scope.loadTriageData, $scope.reloadInterval * 1000);
+      }
 
       // updatedTriageState checks whether the currently assigned labels
       // have changed. This is used to enable/disable the save and reset
@@ -182,9 +214,11 @@ var skia = skia || {};
       };
 
       // Initialize the variables in $scope.
+      $scope.testName = testName;
       $scope.untriaged = [];
       $scope.positives = [];
       $scope.triageState = [];
+      $scope.reloadInterval = 3;
 
       // Update the derived data.
       updatedTriageState();
@@ -230,7 +264,6 @@ var skia = skia || {};
         // templateUrl: 'dirtemplates/skflot.html',
         link: linkFn
     };
-
   }]);
 
 
@@ -238,15 +271,37 @@ var skia = skia || {};
   * skQuery implements a custom directive to select parameter values used
   * to query the backend.
   **/
-  app.directive('skQuery', [function() {
+  app.directive('skQuery', ['$timeout', function($timeout) {
+    var linkFn = function ($scope, element, attrs) {
+      $scope.isEmpty = ns.isEmpty;
+
+      $scope.$watch('outerQuery', function(newVal) {
+        $scope.query = angular.copy($scope.outerQuery);
+      });
+
+      $scope.isClean = function() {
+        return angular.equals($scope.query, $scope.outerQuery);
+      };
+
+      $scope.triggerUpdate = function() {
+        $scope.outerQuery = $scope.query;
+        // The timeout call is necessary to let outerQuery propagate.
+        $timeout(function(){
+          $scope.clickUpdate();
+        });
+      };
+    };
+
     return {
         restrict: 'E',
         replace: false,
         scope: {
             params: '=allParams',
-            query: '=query'
+            outerQuery: '=query',
+            clickUpdate: "&clickUpdate"
         },
-        templateUrl: 'templates/query.html'
+        templateUrl: 'templates/query.html',
+        link: linkFn
     };
 
   }]);
@@ -254,9 +309,13 @@ var skia = skia || {};
   /**
   * dataService provides functions to load data from the backend.
   */
-  app.factory('dataService', [ '$http', '$rootScope', '$timeout', function ($http, $rootScope, $timeout) {
+  app.factory('dataService', [ '$http', '$rootScope', '$timeout', '$location',
+  function ($http, $rootScope, $timeout, $location) {
     // Inject the logoutURL into the rootScope.
-    $rootScope.logoutURL = ns.c.PREFIX_URL + ns.URL_LOGOUT;
+    // $rootScope.logoutURL = ns.c.PREFIX_URL + ns.c.URL_LOGOUT;
+    $rootScope.getLogoutURL = function() {
+      return encodeURI(ns.c.PREFIX_URL + ns.c.URL_LOGOUT + '?redirect=' + '/#' + $location.url());
+    }
 
     /**
      * @param {string} testName if not null this will cause to fetch counts

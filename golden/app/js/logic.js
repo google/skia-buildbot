@@ -20,7 +20,16 @@ var skia = skia || {};
     // The triage labels need to match the values in golden/go/types/types.go
     UNTRIAGED: 0,
     POSITIVE: 1,
-    NEGATIVE: 2
+    NEGATIVE: 2,
+
+    // Key in parameters that identifies a test.
+    PRIMARY_KEY_FIELD: 'name',
+
+    // Param fields to filter.
+    PARAMS_FILTER: {
+      'name': true,
+      'source_type': true,
+    }
   };
 
     /**
@@ -112,6 +121,14 @@ var skia = skia || {};
     this.counts = count;
     this.diff = diff;
   };
+
+  /**
+  * isIdentical returns true if the current digest is identical
+  *             to the untriaged digest.
+  */
+  ns.DiffDigestInfo.prototype.isIdentical = function () {
+    return this.diff.numDiffPixels === 0;
+  }
 
   /**
   * addIndexAsX adds takes an array of numbers and returns an array of
@@ -297,10 +314,10 @@ var skia = skia || {};
   *       [[param1, [val1, val2, ...],
            [param2, [val3, val4, ...], ... ]]]
   */
-  ns.getSortedParams = function (serverData) {
+  ns.getSortedParams = function (serverData, filter) {
     var result = [];
     for(var k in serverData.allParams) {
-      if (serverData.allParams.hasOwnProperty(k)) {
+      if (serverData.allParams.hasOwnProperty(k) && (!filter || !ns.c.PARAMS_FILTER[k])) {
         serverData.allParams[k].sort();
         result.push([k, serverData.allParams[k]]);
       }
@@ -347,6 +364,29 @@ var skia = skia || {};
   ns.TriageDigestReq.prototype.add = function (testName, digest, label) {
     this[testName] = this[testName] || {};
     this[testName][digest] = label;
+  };
+
+  /////////////////////////////////////////////////////////////////
+  // Generic utility functions.
+  /////////////////////////////////////////////////////////////////
+  /*
+  * isEmpty returns true if the provided object is empty and false
+  *         otherwise.
+  */
+  ns.isEmpty = function (obj) {
+    for (var k in obj) {
+      if (obj.hasOwnProperty(k)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  /*
+  */
+  ns.extractQueryString = function (url) {
+    var idx = url.indexOf('?');
+    return (idx === -1) ? '' : url.substring(idx);
   };
 
   /////////////////////////////////////////////////////////////////
