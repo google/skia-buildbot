@@ -200,6 +200,7 @@
             return -1 !== that.curHighlightedLines.indexOf(s.label);
         });
         this.plotRef.setData(series);
+        this.plotRef.setupGrid();
         this.plotRef.draw();
       },
 
@@ -210,6 +211,7 @@
             return s.label !== id;
         });
         this.plotRef.setData(series);
+        this.plotRef.setupGrid();
         this.plotRef.draw();
       },
 
@@ -220,6 +222,7 @@
             return s.label === id;
         });
         this.plotRef.setData(series);
+        this.plotRef.setupGrid();
         this.plotRef.draw();
       },
 
