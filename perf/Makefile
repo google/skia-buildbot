@@ -42,7 +42,7 @@ perf_migratedb:
 	go install -v ./go/perf_migratedb
 
 # Rebuild the third_party Javascript we use, i.e. Flot and our common js.
-res/js/perf.js: node_modules Gruntfile.js bower.json res/js/common.js
+res/js/perf.js: node_modules Gruntfile.js bower.json ../res/js/common.js
 	./node_modules/.bin/grunt --no-color
 
 # Build serving CSS from input CSS.
@@ -61,9 +61,9 @@ js:
 	./node_modules/.bin/grunt --no-color
 
 # Rebuild the third_party Javascript we use, but w/o minimizing it.
-.PHONY: debug-js
-debug-js:
-	./node_modules/.bin/grunt --no-color debug-js
+.PHONY: debug
+debug:
+	./node_modules/.bin/grunt --no-color debug
 
 .PHONY: lint
 lint:

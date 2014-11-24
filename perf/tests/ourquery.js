@@ -23,15 +23,15 @@ describe('Test our implementation of $$',
     function testFindByClass() {
       // Assertions are handled by the Chai Assertion Library.
       // Documentation: http://chaijs.com/api/assert/
-      assert.equal(skiaperf.$$('.foo').length, 1, 'Can search by class name.')
+      assert.equal($$('.foo').length, 1, 'Can search by class name.')
     }
 
     function testFindByName() {
-      assert.equal(skiaperf.$$('p').length, 2, 'Can search by element name.')
+      assert.equal($$('p').length, 2, 'Can search by element name.')
     }
 
     function testFindByID() {
-      assert.equal(skiaperf.$$('#bar').length, 1, 'Can search by element id.')
+      assert.equal($$('#bar').length, 1, 'Can search by element id.')
     }
 
     // Bundle all tests under an 'it' call, which is part of Mocha.

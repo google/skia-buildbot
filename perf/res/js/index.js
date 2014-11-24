@@ -3,7 +3,7 @@
  * elements on that main page of skiaperf.
  *
  */
-var skiaperf = (function() {
+(function() {
   "use strict";
 
   /**
