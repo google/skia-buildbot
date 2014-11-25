@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia WebTry log server application."
 NAME=logserver
 DAEMON=/home/webtry/golib/bin/$NAME
-DAEMON_ARGS="--log_dir=/tmp/glog"
+DAEMON_ARGS="--dir=/tmp/glog --log_dir=/tmp/glog"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
