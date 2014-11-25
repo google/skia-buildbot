@@ -110,22 +110,37 @@ var skia = skia || {};
               return serverData;
             };
 
-            $scope.untriaged = ns.getUntriagedSorted(serverData, testName);
+            var data = ns.extractTriageData(serverData, testName);
+            $scope.untStats = data.untStats;
+            $scope.posStats = data.posStats;
+            $scope.negStats = data.negStats;
+
+            $scope.untriaged = data.untriaged;
             $scope.triageState = ns.getNumArray($scope.untriaged.length, ns.c.UNTRIAGED);
             updatedTriageState();
 
+
             $scope.untIndex = -1;
             $scope.posIndex = -1;
+            $scope.negIndex = -1;
+
             $scope.selectUntriaged(0);
 
             // If there are no untriaged we need to just set the positive
             // values since they are no longer a function of the untriaged.
             if ($scope.untriaged.length === 0) {
-              $scope.positives = ns.getSortedPositives(serverData, testName);
+              $scope.positives = data.positive;
               $scope.selectPositive(0);
             };
 
-            $scope.allParams = ns.getSortedParams(serverData, true);
+            $scope.negatives = data.negative;
+            $scope.selectNegative(0);
+
+            $scope.allParams = data.allParams;
+
+            // Show the source images if there are no positives.
+            $scope.showSrcImages = $scope.currentUntriaged && !$scope.currentPositive;
+
             if (updateQuery) {
               $scope.query = serverData.query || {};
               $location.search($scope.query);
@@ -188,6 +203,25 @@ var skia = skia || {};
         }
       };
 
+      $scope.selectNegative = function (idx) {
+        if ($scope.positives.length === 0) {
+          $scope.currentNegative = null;
+          $scope.negIndex =  -1;
+        } else {
+          $scope.currentNegative = $scope.positives[idx];
+          $scope.negIndex = idx;
+        }
+      };
+
+      $scope.filterByParam = function(param, value) {
+        $scope.query[param] = [value];
+        $scope.loadTriageData();
+      };
+
+      $scope.switchLeftColumn = function () {
+        $scope.showPositives = !$scope.showPositives;
+      };
+
       // setTriageState sets the label of the given untriaged digest.
       $scope.setTriageState = function (idx, value) {
         $scope.triageState[idx] = value;
@@ -210,6 +244,7 @@ var skia = skia || {};
           }
         }
 
+        $scope.state = 'saving';
         processServerData(dataService.sendData(ns.c.URL_TRIAGE, req), false);
       };
 
@@ -220,10 +255,25 @@ var skia = skia || {};
       $scope.triageState = [];
       $scope.reloadInterval = 3;
 
+      $scope.posStats = {
+        total: 1000,
+        unique: 10
+      };
+
+      $scope.negStats = {
+        total: 500,
+        unique: 3
+      };
+
+      $scope.posStats = null;
+      $scope.negStats = null;
+      $scope.untStats = null;
+
       // Update the derived data.
       updatedTriageState();
       $scope.selectUntriaged(0);
       $scope.selectPositive(0);
+      $scope.showPositives = true;
 
       // Expose the constants in the template.
       $scope.c = ns.c;
@@ -241,7 +291,7 @@ var skia = skia || {};
   * as an attribute so we can set the size on the div.
   *
   **/
-  app.directive('skFlot', [function() {
+  app.directive('skFlot', ['$window', function($window) {
     var linkFn = function ($scope, element, attrs) {
       var plotObj = new ns.Plot(element);
 
@@ -252,6 +302,10 @@ var skia = skia || {};
       // watch the data and the ticks and redraw them as needed.
       $scope.$watch('data', refreshData);
       $scope.$watch('ticks', refreshData);
+
+      angular.element($window).bind('resize', function () {
+        plotObj.redraw();
+      });
     };
 
     return {

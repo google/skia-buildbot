@@ -77,10 +77,18 @@ var skia = skia || {};
       });
     }
 
+    this.redraw();
+  };
+
+  /**
+  * redraw forces a resize and redraw of the canvas.
+  */
+  ns.Plot.prototype.redraw = function () {
     // redraw the graph
+    this.flotObj.resize();
     this.flotObj.setupGrid();
     this.flotObj.draw();
-  };
+  }
 
   /**
    * PlotData is a class that used as the return value of processAllCounts and
@@ -118,7 +126,7 @@ var skia = skia || {};
   ns.DiffDigestInfo = function (digest, imgUrl, count, diff) {
     this.digest = digest;
     this.imgUrl = imgUrl;
-    this.counts = count;
+    this.count = count;
     this.diff = diff;
   };
 
@@ -218,13 +226,50 @@ var skia = skia || {};
   };
 
   /**
+  * extractTriageData is the central function to pre-process data coming
+  *                   from the server.
+  */
+  ns.extractTriageData = function (serverData, testName) {
+    var untStats = new Stats();
+    var posStats = new Stats();
+    var negStats = new Stats();
+    var positive = ns.getSortedDigests(serverData, testName, 'positive', posStats);
+    var negative = ns.getSortedDigests(serverData, testName, 'negative', negStats);
+    var untriaged = ns.getUntriagedSorted(serverData, testName, untStats);
+
+    return {
+      untriaged: untriaged,
+      positive:  positive,
+      negative:  negative,
+      untStats:  untStats,
+      posStats:  posStats,
+      negStats:  negStats,
+      allParams: ns.getSortedParams(serverData, true)
+    };
+  };
+
+
+  /**
+  * Stats is a helper class to hold counts about a set of digests.
+  */
+  function Stats(total, unique) {
+    this.total = total || 0;
+    this.unique = unique || 0;
+  }
+
+  Stats.prototype.set = function (total, unique) {
+    this.total = total;
+    this.unique = unique;
+  };
+
+  /**
   *  getUntriagedSorted returns the untriaged digests sorted by largest
   *  deviation from a positively labeled digest. It processes the data
   *  directly returned by the backend.
   *  It also resolves the references to the positive digests contained in
   *  the diff metrics.
   */
-  ns.getUntriagedSorted = function(serverData, testName) {
+  ns.getUntriagedSorted = function(serverData, testName, stats) {
     var unt = robust_get(serverData, ['tests', testName, 'untriaged']);
     if (!unt) {
       return [];
@@ -234,9 +279,11 @@ var skia = skia || {};
     var result = [];
     var positive = serverData.tests[testName].positive;
     var hasPos = false;
+    var total = 0;
 
     for (var digest in unt) {
       if (unt.hasOwnProperty(digest)) {
+        total += unt[digest].count;
         var posDiffs = [];
         for(var i=0, len=unt[digest].diffs.length; i < len; i++) {
           // TODO (stephana): Fill in expanding the diff information.
@@ -251,9 +298,12 @@ var skia = skia || {};
         // Inject the digest and the augmented positive diffs.
         unt[digest].digest = digest;
         unt[digest].positiveDiffs = posDiffs;
+        unt[digest].paramCounts = ns.filterObject(unt[digest].paramCounts, ns.c.PARAMS_FILTER);
         result.push(unt[digest]);
       }
     }
+
+    stats.set(total, result.length);
 
     // Sort the result increasing by pixel difference or
     // decreasing by counts if there are no positives.
@@ -288,22 +338,29 @@ var skia = skia || {};
   * data returnded by the backend. This is to be used when there are no
   * untriaged digests.
   */
-  ns.getSortedPositives = function (serverData, testName) {
-    var pos = robust_get(serverData, ['tests', testName, 'positive']);
-    if (!pos) {
+  ns.getSortedDigests= function (serverData, testName, digestClass, stats) {
+    var targetDigests = robust_get(serverData, ['tests', testName, digestClass]);
+    if (!targetDigests) {
       return [];
     }
 
     var result = [];
-    for (var digest in pos) {
-      if (pos.hasOwnProperty(digest)) {
+    var total = 0;
+    for (var digest in targetDigests) {
+      if (targetDigests.hasOwnProperty(digest)) {
+        total += targetDigests[digest].count;
         // Inject the digest into the object.
-        pos[digest].digest = digest;
-        result.push(pos[digest]);
+        targetDigests[digest].digest = digest;
+        result.push(targetDigests[digest]);
       }
     }
 
-    // TODO: sort the result.
+    stats.set(total, result.length);
+
+    // Sort the result in decreasing order of their occurences.
+    result.sort(function (a,b) {
+      a.count - b.count;
+    });
 
     return result;
   };
@@ -318,6 +375,9 @@ var skia = skia || {};
     var result = [];
     for(var k in serverData.allParams) {
       if (serverData.allParams.hasOwnProperty(k) && (!filter || !ns.c.PARAMS_FILTER[k])) {
+        if (!serverData.allParams[k].sort) {
+          debugger;
+        }
         serverData.allParams[k].sort();
         result.push([k, serverData.allParams[k]]);
       }
@@ -347,6 +407,21 @@ var skia = skia || {};
 
     return result;
   };
+
+  /**
+  * filterObject returns a copy of 'obj' without the members that
+  *              are also members in 'exclude'.
+  */
+  ns.filterObject = function(obj, exclude) {
+    var result = {};
+    for(var k in obj) {
+      if (obj.hasOwnProperty(k) && !exclude[k]) {
+        result[k] = obj[k];
+      }
+    }
+
+    return result;
+  }
 
   /**
   * TriageDigestReq is a container type for sending labeled digests to the

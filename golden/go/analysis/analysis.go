@@ -122,29 +122,6 @@ type GUITileCounts struct {
 	Query      map[string][]string     `json:"query"`
 }
 
-// GUITestCounts is an output type for a single test that contains the
-// aggregated counts over all traces and also the individual traces
-// and their labels.
-type GUITestCounts struct {
-	Commits    []*ptypes.Commit   `json:"commits"`
-	Aggregated *LabelCounts       `json:"aggregated"`
-	Traces     []*GUILabeledTrace `json:"traces"`
-}
-
-// GUILabeledTrace is an output type for the labels of a trace.
-type GUILabeledTrace struct {
-	Params map[string]string `json:"params"`
-
-	// List of commitId and Label pairs.
-	Labels []IdLabel `json:"labels"`
-}
-
-// IdLabel stores the commitId and the label for one entry in a trace.
-type IdLabel struct {
-	Id    int `json:"id"`
-	Label int `json:"label"`
-}
-
 // Analyzer continuously manages tasks like polling for new traces
 // on disk and generating diffs between images. It is the primary interface
 // to be called by the HTTP frontend.
@@ -159,7 +136,6 @@ type Analyzer struct {
 
 	// Output data structures that are derived from currentTile.
 	currentTileCounts  *GUITileCounts
-	currentTestCounts  map[string]*GUITestCounts
 	currentTestDetails *GUITestDetails
 
 	// Index to query the current tile.
@@ -203,7 +179,7 @@ func (a *Analyzer) GetTileCounts(query map[string][]string) (*GUITileCounts, err
 	if len(query) > 0 {
 		tile, effectiveQuery := a.getSubTile(query)
 		if len(effectiveQuery) > 0 {
-			ret, _ := a.getOutputCounts(tile)
+			ret := a.getOutputCounts(tile)
 			ret.Query = effectiveQuery
 			return ret, nil
 		}
@@ -241,17 +217,6 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 		AllParams: a.currentTestDetails.AllParams,
 		Tests:     map[string]*GUITestDetail{testName: a.currentTestDetails.Tests[testName]},
 	}, nil
-}
-
-// GetTestCounts returns the classification counts for a specific tests.
-func (a *Analyzer) GetTestCounts(testName string) (*GUITestCounts, error) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-
-	// TODO (stephana): This should return any error that occurs during reading
-	// of the tiles. We would rather get an error on the front-end than
-	// look at outdated data.
-	return a.currentTestCounts[testName], nil
 }
 
 // SetDigestLabels sets the labels for the given digest and records the user
@@ -367,7 +332,7 @@ func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool
 	labeledTile.allParams = allParams
 
 	// calculate all the output data.
-	newTileCounts, newTestCounts := a.getOutputCounts(labeledTile)
+	newTileCounts := a.getOutputCounts(labeledTile)
 	newTestDetails := a.getTestDetails(labeledTile)
 
 	// acquire the lock if necessary
@@ -379,7 +344,6 @@ func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool
 	// update the analyzer's data structures
 	a.currentTile = labeledTile
 	a.currentTileCounts = newTileCounts
-	a.currentTestCounts = newTestCounts
 	a.currentTestDetails = newTestDetails
 }
 
@@ -446,18 +410,15 @@ func (a *Analyzer) getSubTile(query map[string][]string) (*LabeledTile, map[stri
 }
 
 // getOutputCounts derives the output counts from the given labeled tile.
-func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, map[string]*GUITestCounts) {
+func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) *GUITileCounts {
 	glog.Info("Starting to process output counts.")
 	// Stores the aggregated counts of a tile for each test.
 	tileCountsMap := make(map[string]*LabelCounts, len(labeledTile.Traces))
 
-	// Stores the aggregated counts for each test and individual trace information.
-	testCountsMap := make(map[string]*GUITestCounts, len(labeledTile.Traces))
-
 	// Overall aggregated counts over all tests.
 	overallAggregates := newLabelCounts(len(labeledTile.Commits))
 
-	updateCounts(labeledTile, tileCountsMap, testCountsMap, overallAggregates)
+	updateCounts(labeledTile, tileCountsMap, overallAggregates)
 
 	// TODO (stephana): Factor out human.FlotTickMarks and move it from
 	// perf to the shared go library.
@@ -479,20 +440,14 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) (*GUITileCounts, ma
 
 	glog.Info("Done processing output counts.")
 
-	return tileCounts, testCountsMap
+	return tileCounts
 }
 
-func updateCounts(labeledTile *LabeledTile, tileCountsMap map[string]*LabelCounts, testCountsMap map[string]*GUITestCounts, overallAggregates *LabelCounts) {
+func updateCounts(labeledTile *LabeledTile, tileCountsMap map[string]*LabelCounts, overallAggregates *LabelCounts) {
 	for testName, testTraces := range labeledTile.Traces {
 		acc := newLabelCounts(len(labeledTile.Commits))
-		tempTraces := make([]*GUILabeledTrace, 0, len(testTraces))
 
 		for _, oneTrace := range testTraces {
-			tempTrace := &GUILabeledTrace{
-				Params: oneTrace.Params,
-				Labels: make([]IdLabel, len(oneTrace.CommitIds)),
-			}
-
 			for i, ci := range oneTrace.CommitIds {
 				switch oneTrace.Labels[i] {
 				case types.UNTRIAGED:
@@ -502,19 +457,10 @@ func updateCounts(labeledTile *LabeledTile, tileCountsMap map[string]*LabelCount
 				case types.NEGATIVE:
 					acc.Neg[ci]++
 				}
-				tempTrace.Labels[i].Id = ci
-				tempTrace.Labels[i].Label = int(oneTrace.Labels[i])
 			}
-
-			tempTraces = append(tempTraces, tempTrace)
 		}
 
 		tileCountsMap[testName] = acc
-		testCountsMap[testName] = &GUITestCounts{
-			Commits:    labeledTile.Commits,
-			Aggregated: acc,
-			Traces:     tempTraces,
-		}
 
 		// Add the aggregates fro this test to the overall aggregates.
 		for idx, u := range acc.Unt {
