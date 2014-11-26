@@ -3,12 +3,14 @@
 # Script to setup a GCE instance to run the perf server.
 # For full instructions see the README file.
 
-# Command to download metadata.
-CURL_CMD='curl -H "Metadata-Flavor: Google"'
-
 sudo apt-get install monit nginx gcc mercurial make nodejs nodejs-legacy
 echo "Adding the perf user account"
 sudo adduser perf
+
+# Create the data directory and make 'perf' the owner.
+DATA_DIR="/mnt/pd0/data"
+sudo mkdir -p $DATA_DIR
+sudo chown perf:perf $DATA_DIR
 
 PARAMS="-D --verbose --backup=none --group=default --owner=perf --preserve-timestamps"
 ROOT_PARAMS="-D --verbose --backup=none --group=root --owner=root --preserve-timestamps -T"
@@ -35,11 +37,15 @@ sudo rm -f /etc/nginx/sites-enabled/gold
 sudo ln -s /etc/nginx/sites-available/gold /etc/nginx/sites-enabled/gold
 
 # Download the SSL secrets from the metadata store.
+CURL_CMD='curl -H "Metadata-Flavor: Google"'
+META_PROJ_URL='http://metadata/computeMetadata/v1/project/attributes'
+
+sudo mkdir -p /etc/nginx/ssl/
 sudo sh <<CURL_SCRIPT
-    $CURL_CMD http://metadata/computeMetadata/v1/project/attributes/skiagold-com-key -o /etc/nginx/ssl/skiagold_com.key
-    $CURL_CMD http://metadata/computeMetadata/v1/project/attributes/skiagold-com-pem -o /etc/nginx/ssl/skiagold_com.pem
-    $CURL_CMD http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-key -o /etc/nginx/ssl/skiaperf_com.key
-    $CURL_CMD http://metadata/computeMetadata/v1/project/attributes/skiaperf-com-pem -o /etc/nginx/ssl/skiaperf_com.pem
+    $CURL_CMD $META_PROJ_URL/skiagold-com-key -o /etc/nginx/ssl/skiagold_com.key
+    $CURL_CMD $META_PROJ_URL/skiagold-com-pem -o /etc/nginx/ssl/skiagold_com.pem
+    $CURL_CMD $META_PROJ_URL/skiaperf-com-key -o /etc/nginx/ssl/skiaperf_com.key
+    $CURL_CMD $META_PROJ_URL/skiaperf-com-pem -o /etc/nginx/ssl/skiaperf_com.pem
 CURL_SCRIPT
 sudo chmod 700 /etc/nginx/ssl
 sudo chmod 600 /etc/nginx/ssl/*

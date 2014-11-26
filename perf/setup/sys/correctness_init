@@ -24,10 +24,11 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia correctness application."
 NAME=skiacorrectness
+DATA_DIR="/mnt/pd0/data"
 APP_DIR="/home/perf/golib/src/skia.googlesource.com/buildbot.git/golden/app"
-IMAGE_STORE="/home/perf/imageStore"
+IMAGE_STORE="$DATA_DIR/imageStore"
 DAEMON=/home/perf/golib/bin/$NAME
-DAEMON_ARGS="--port=:8001 --log_dir=/mnt/pd0/glog --tile_store_dir=/home/perf/tileStore3 --static_dir=$APP_DIR --image_dir=$IMAGE_STORE "
+DAEMON_ARGS="--port=:8001 --log_dir=/mnt/pd0/glog --tile_store_dir=$DATA_DIR/tileStore3 --static_dir=$APP_DIR --image_dir=$IMAGE_STORE "
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
