@@ -16,7 +16,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,6 +25,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/securecookie"
 	"skia.googlesource.com/buildbot.git/bug_chomper/go/issue_tracker"
 	"skia.googlesource.com/buildbot.git/go/common"
@@ -67,7 +67,7 @@ func init() {
 	_, filename, _, _ := runtime.Caller(0)
 	cwd := filepath.Join(filepath.Dir(filename), "../..")
 	if err := os.Chdir(cwd); err != nil {
-		log.Fatal(err)
+		glog.Fatal(err)
 	}
 
 	templates = template.Must(template.ParseFiles(
@@ -113,7 +113,7 @@ func saveSession(session *SessionState, w http.ResponseWriter, r *http.Request) 
 
 // makeSession creates a new session for the Request.
 func makeSession(w http.ResponseWriter, r *http.Request) (*SessionState, error) {
-	log.Println("Creating new session.")
+	glog.Info("Creating new session.")
 	// Create the session state.
 	issueTracker, err := issue_tracker.MakeIssueTracker(
 		oauthConfigFile, getOAuth2CallbackURL(r))
@@ -139,18 +139,18 @@ func makeSession(w http.ResponseWriter, r *http.Request) (*SessionState, error) 
 func getSession(w http.ResponseWriter, r *http.Request) (*SessionState, error) {
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {
-		log.Println("No cookie found! Starting new session.")
+		glog.Info("No cookie found! Starting new session.")
 		return makeSession(w, r)
 	}
 	var session SessionState
 	if err := secureCookie.Decode(cookieName, cookie.Value, &session); err != nil {
-		log.Printf("Invalid or corrupted session. Starting another: %s", err.Error())
+		glog.Infof("Invalid or corrupted session. Starting another: %s", err)
 		return makeSession(w, r)
 	}
 
 	currentTime := time.Now()
 	if currentTime.Sub(session.SessionStart) > maxSessionLen {
-		log.Printf("Session starting at %s is expired. Starting another.",
+		glog.Infof("Session starting at %s is expired. Starting another.",
 			session.SessionStart.Format(time.RFC822))
 		return makeSession(w, r)
 	}
@@ -172,7 +172,7 @@ func reportError(w http.ResponseWriter, msg string, code int) {
 	w.WriteHeader(code)
 	err := templates.ExecuteTemplate(w, "error.html", errData)
 	if err != nil {
-		log.Println("Failed to display error.html!!")
+		glog.Error("Failed to display error.html!!")
 	}
 }
 
@@ -189,7 +189,7 @@ func makeBugChomperPage(w http.ResponseWriter, r *http.Request) {
 		reportError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Println("Loading bugs for " + user)
+	glog.Info("Loading bugs for " + user)
 	bugList, err := issueTracker.GetBugs(project, user)
 	if err != nil {
 		reportError(w, err.Error(), http.StatusInternalServerError)
@@ -251,7 +251,7 @@ func authIfNeeded(w http.ResponseWriter, r *http.Request) bool {
 	issueTracker := session.IssueTracker
 	if !issueTracker.IsAuthenticated() {
 		loginURL := issueTracker.MakeAuthRequestURL()
-		log.Println("Redirecting for login:", loginURL)
+		glog.Info("Redirecting for login:", loginURL)
 		http.Redirect(w, r, loginURL, http.StatusTemporaryRedirect)
 		return true
 	}
@@ -290,7 +290,7 @@ func submitData(w http.ResponseWriter, r *http.Request) {
 	}
 	errorList := make([]error, 0)
 	for issueId, newIssue := range editsMap {
-		log.Println("Editing issue " + issueId)
+		glog.Info("Editing issue " + issueId)
 		if err := issueTracker.SubmitIssueChanges(newIssue, issueComment); err != nil {
 			errorList = append(errorList, err)
 		}
@@ -346,7 +346,7 @@ func handleOAuth2Callback(w http.ResponseWriter, r *http.Request) {
 			http.StatusForbidden)
 		return
 	}
-	log.Println("Upgrading auth token:", code[0])
+	glog.Info("Upgrading auth token:", code[0])
 	if err := issueTracker.UpgradeCode(code[0]); err != nil {
 		errMsg := "failed to upgrade token: " + err.Error()
 		reportError(w, errMsg, http.StatusForbidden)
@@ -363,7 +363,7 @@ func handleOAuth2Callback(w http.ResponseWriter, r *http.Request) {
 
 // handleRoot is the handler function for all HTTP requests at the root level.
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	log.Println("Fetching " + r.URL.Path)
+	glog.Info("Fetching " + r.URL.Path)
 	if r.URL.Path == "/" || r.URL.Path == "/index.html" {
 		handleBugChomper(w, r)
 		return
@@ -378,10 +378,10 @@ func main() {
 	http.HandleFunc("/", handleRoot)
 	http.HandleFunc(oauthCallbackPath, handleOAuth2Callback)
 	http.Handle("/res/", http.FileServer(http.Dir("./")))
-	log.Println("Server is running at " + scheme + "://" + localHost + *port)
+	glog.Info("Server is running at " + scheme + "://" + localHost + *port)
 	var err error
 	if *public {
-		log.Println("WARNING: This server is not secure and should not be made " +
+		glog.Warning("WARNING: This server is not secure and should not be made " +
 			"publicly accessible.")
 		scheme = "https"
 		err = http.ListenAndServeTLS(*port, certFile, keyFile, nil)
@@ -390,6 +390,6 @@ func main() {
 		err = http.ListenAndServe(localHost+*port, nil)
 	}
 	if err != nil {
-		log.Println(err.Error())
+		glog.Error(err)
 	}
 }
