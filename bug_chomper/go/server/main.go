@@ -32,16 +32,16 @@ import (
 )
 
 const (
-	certFile          = "certs/cert.pem"
-	keyFile           = "certs/key.pem"
-	issueComment      = "Edited by BugChomper"
-	oauthCallbackPath = "/oauth2callback"
-	oauthConfigFile   = "oauth_client_secret.json"
-	localHost         = "127.0.0.1"
-	maxSessionLen     = time.Duration(3600 * time.Second)
-	priorityPrefix    = "Priority-"
-	project           = "skia"
-	cookieName        = "BugChomperCookie"
+	CERT_FILE           = "certs/cert.pem"
+	KEY_FILE            = "certs/key.pem"
+	ISSUE_COMMENT       = "Edited by BugChomper"
+	OAUTH_CALLBACK_PATH = "/oauth2callback"
+	OAUTH_CONFIG_FILE   = "oauth_client_secret.json"
+	LOCAL_HOST          = "127.0.0.1"
+	MAX_SESSION_LEN     = time.Duration(3600 * time.Second)
+	PRIORITY_PREFIX     = "Priority-"
+	PROJECT_NAME        = "skia"
+	COOKIE_NAME         = "BugChomperCookie"
 )
 
 // Flags:
@@ -92,16 +92,16 @@ func getAbsoluteURL(r *http.Request) string {
 // getOAuth2CallbackURL returns a callback URL to be used by the OAuth2 login
 // page.
 func getOAuth2CallbackURL(r *http.Request) string {
-	return scheme + "://" + r.Host + oauthCallbackPath
+	return scheme + "://" + r.Host + OAUTH_CALLBACK_PATH
 }
 
 func saveSession(session *SessionState, w http.ResponseWriter, r *http.Request) error {
-	encodedSession, err := secureCookie.Encode(cookieName, session)
+	encodedSession, err := secureCookie.Encode(COOKIE_NAME, session)
 	if err != nil {
 		return fmt.Errorf("unable to encode session state: %s", err)
 	}
 	cookie := &http.Cookie{
-		Name:     cookieName,
+		Name:     COOKIE_NAME,
 		Value:    encodedSession,
 		Domain:   strings.Split(r.Host, ":")[0],
 		Path:     "/",
@@ -116,7 +116,7 @@ func makeSession(w http.ResponseWriter, r *http.Request) (*SessionState, error) 
 	glog.Info("Creating new session.")
 	// Create the session state.
 	issueTracker, err := issue_tracker.MakeIssueTracker(
-		oauthConfigFile, getOAuth2CallbackURL(r))
+		OAUTH_CONFIG_FILE, getOAuth2CallbackURL(r))
 	if err != nil {
 		return nil, fmt.Errorf("unable to create IssueTracker for session: %s", err)
 	}
@@ -137,19 +137,19 @@ func makeSession(w http.ResponseWriter, r *http.Request) (*SessionState, error) 
 // getSession retrieves the active SessionState or creates and returns a new
 // SessionState.
 func getSession(w http.ResponseWriter, r *http.Request) (*SessionState, error) {
-	cookie, err := r.Cookie(cookieName)
+	cookie, err := r.Cookie(COOKIE_NAME)
 	if err != nil {
 		glog.Info("No cookie found! Starting new session.")
 		return makeSession(w, r)
 	}
 	var session SessionState
-	if err := secureCookie.Decode(cookieName, cookie.Value, &session); err != nil {
+	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &session); err != nil {
 		glog.Infof("Invalid or corrupted session. Starting another: %s", err)
 		return makeSession(w, r)
 	}
 
 	currentTime := time.Now()
-	if currentTime.Sub(session.SessionStart) > maxSessionLen {
+	if currentTime.Sub(session.SessionStart) > MAX_SESSION_LEN {
 		glog.Infof("Session starting at %s is expired. Starting another.",
 			session.SessionStart.Format(time.RFC822))
 		return makeSession(w, r)
@@ -190,7 +190,7 @@ func makeBugChomperPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Info("Loading bugs for " + user)
-	bugList, err := issueTracker.GetBugs(project, user)
+	bugList, err := issueTracker.GetBugs(PROJECT_NAME, user)
 	if err != nil {
 		reportError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -201,8 +201,8 @@ func makeBugChomperPage(w http.ResponseWriter, r *http.Request) {
 		bugsById[strconv.Itoa(bug.Id)] = bug
 		var bugPriority string
 		for _, label := range bug.Labels {
-			if strings.HasPrefix(label, priorityPrefix) {
-				bugPriority = label[len(priorityPrefix):]
+			if strings.HasPrefix(label, PRIORITY_PREFIX) {
+				bugPriority = label[len(PRIORITY_PREFIX):]
 			}
 		}
 		if _, ok := bugsByPriority[bugPriority]; !ok {
@@ -230,7 +230,7 @@ func makeBugChomperPage(w http.ResponseWriter, r *http.Request) {
 		BugsJson:       template.JS(string(bugsJson)),
 		BugsByPriority: &bugsByPriority,
 		Priorities:     issue_tracker.BugPriorities,
-		PriorityPrefix: priorityPrefix,
+		PriorityPrefix: PRIORITY_PREFIX,
 	}
 
 	if err := templates.ExecuteTemplate(w, "bug_chomper.html", data); err != nil {
@@ -291,7 +291,7 @@ func submitData(w http.ResponseWriter, r *http.Request) {
 	errorList := make([]error, 0)
 	for issueId, newIssue := range editsMap {
 		glog.Info("Editing issue " + issueId)
-		if err := issueTracker.SubmitIssueChanges(newIssue, issueComment); err != nil {
+		if err := issueTracker.SubmitIssueChanges(newIssue, ISSUE_COMMENT); err != nil {
 			errorList = append(errorList, err)
 		}
 	}
@@ -376,18 +376,18 @@ func main() {
 	common.InitWithMetrics("bug_chomper", *graphiteServer)
 
 	http.HandleFunc("/", handleRoot)
-	http.HandleFunc(oauthCallbackPath, handleOAuth2Callback)
+	http.HandleFunc(OAUTH_CALLBACK_PATH, handleOAuth2Callback)
 	http.Handle("/res/", http.FileServer(http.Dir("./")))
-	glog.Info("Server is running at " + scheme + "://" + localHost + *port)
+	glog.Info("Server is running at " + scheme + "://" + LOCAL_HOST + *port)
 	var err error
 	if *public {
 		glog.Warning("WARNING: This server is not secure and should not be made " +
 			"publicly accessible.")
 		scheme = "https"
-		err = http.ListenAndServeTLS(*port, certFile, keyFile, nil)
+		err = http.ListenAndServeTLS(*port, CERT_FILE, KEY_FILE, nil)
 	} else {
 		scheme = "http"
-		err = http.ListenAndServe(localHost+*port, nil)
+		err = http.ListenAndServe(LOCAL_HOST+*port, nil)
 	}
 	if err != nil {
 		glog.Error(err)

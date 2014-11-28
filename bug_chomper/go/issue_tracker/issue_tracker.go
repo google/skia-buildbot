@@ -35,16 +35,18 @@ var apiScope = []string{
 	"https://www.googleapis.com/auth/userinfo.email",
 }
 
-const issueApiURL = "https://www.googleapis.com/projecthosting/v2/projects/"
-const issueURL = "https://code.google.com/p/skia/issues/detail?id="
-const personApiURL = "https://www.googleapis.com/userinfo/v2/me"
+const (
+	ISSUE_API_URL  = "https://www.googleapis.com/projecthosting/v2/projects/"
+	ISSUE_URL      = "https://code.google.com/p/skia/issues/detail?id="
+	PERSON_API_URL = "https://www.googleapis.com/userinfo/v2/me"
+)
 
 // Enum for determining whether a label has been added, removed, or is
 // unchanged.
 const (
-	labelAdded = iota
-	labelRemoved
-	labelUnchanged
+	LABEL_ADDED = iota
+	LABEL_REMOVED
+	LABEL_UNCHANGED
 )
 
 // loadOAuthConfig reads the OAuth given config file path and returns an
@@ -87,7 +89,7 @@ type Issue struct {
 
 // URL returns the URL of a given issue.
 func (i Issue) URL() string {
-	return issueURL + strconv.Itoa(i.Id)
+	return ISSUE_URL + strconv.Itoa(i.Id)
 }
 
 // IssueList represents a list of issues from the IssueTracker.
@@ -153,7 +155,7 @@ func (it IssueTracker) GetLoggedInUser() (string, error) {
 	if !it.IsAuthenticated() {
 		return "", fmt.Errorf(errFmt, "User is not authenticated!")
 	}
-	resp, err := it.OAuthTransport.Client().Get(personApiURL)
+	resp, err := it.OAuthTransport.Client().Get(PERSON_API_URL)
 	if err != nil {
 		return "", fmt.Errorf(errFmt, err)
 	}
@@ -178,7 +180,7 @@ func (it IssueTracker) GetBug(project string, id int) (*Issue, error) {
 	if !it.IsAuthenticated() {
 		return nil, fmt.Errorf(errFmt, "user is not authenticated!")
 	}
-	requestURL := issueApiURL + project + "/issues/" + strconv.Itoa(id)
+	requestURL := ISSUE_API_URL + project + "/issues/" + strconv.Itoa(id)
 	resp, err := it.OAuthTransport.Client().Get(requestURL)
 	if err != nil {
 		return nil, fmt.Errorf(errFmt, err)
@@ -208,7 +210,7 @@ func (it IssueTracker) GetBugs(project string, owner string) (*IssueList, error)
 		"can":        "open",
 		"maxResults": "9999",
 	}
-	requestURL := issueApiURL + project + "/issues?"
+	requestURL := ISSUE_API_URL + project + "/issues?"
 	first := true
 	for k, v := range params {
 		if first {
@@ -262,20 +264,20 @@ func (it IssueTracker) SubmitIssueChanges(issue *Issue, comment string) error {
 	// TODO(borenet): Add other issue attributes, eg. Owner.
 	labels := make(map[string]int)
 	for _, label := range issue.Labels {
-		labels[label] = labelAdded
+		labels[label] = LABEL_ADDED
 	}
 	for _, label := range oldIssue.Labels {
 		if _, ok := labels[label]; ok {
-			labels[label] = labelUnchanged
+			labels[label] = LABEL_UNCHANGED
 		} else {
-			labels[label] = labelRemoved
+			labels[label] = LABEL_REMOVED
 		}
 	}
 	labelChanges := make([]string, 0)
 	for labelName, present := range labels {
-		if present == labelRemoved {
+		if present == LABEL_REMOVED {
 			labelChanges = append(labelChanges, "-"+labelName)
-		} else if present == labelAdded {
+		} else if present == LABEL_ADDED {
 			labelChanges = append(labelChanges, labelName)
 		}
 	}
@@ -287,7 +289,7 @@ func (it IssueTracker) SubmitIssueChanges(issue *Issue, comment string) error {
 	if err != nil {
 		return fmt.Errorf(errFmt, err)
 	}
-	requestURL := issueApiURL + issue.Project + "/issues/" +
+	requestURL := ISSUE_API_URL + issue.Project + "/issues/" +
 		strconv.Itoa(issue.Id) + "/comments"
 	resp, err := it.OAuthTransport.Client().Post(
 		requestURL, "application/json", bytes.NewReader(postBytes))
