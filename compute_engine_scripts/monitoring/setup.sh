@@ -4,7 +4,7 @@ set -x
 cd
 
 # Install all the system level dependencies.
-sudo apt-get install --assume-yes monit squid3 collectd make
+sudo apt-get install --assume-yes monit nginx collectd make
 
 # Vars to use with 'install'.
 PARAMS="-D --verbose --backup=none --group=default --owner=default --preserve-timestamps -T"
@@ -59,6 +59,24 @@ mv $GRAFANA grafana
 cd $HOME/golib/src/skia.googlesource.com/buildbot.git/monitoring
 make alertserver
 
+# Add the nginx configuration files.
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo cp monitor_nginx /etc/nginx/sites-available/monitor
+sudo rm -f /etc/nginx/sites-enabled/monitor
+sudo ln -s /etc/nginx/sites-available/monitor /etc/nginx/sites-enabled/monitor
+
+# Download the SSL secrets from the metadata store.
+CURL_CMD='curl -H "Metadata-Flavor: Google"'
+META_PROJ_URL='http://metadata/computeMetadata/v1/project/attributes'
+
+sudo mkdir -p /etc/nginx/ssl/
+sudo sh <<CURL_SCRIPT
+    $CURL_CMD $META_PROJ_URL/skiamonitor-com-key -o /etc/nginx/ssl/skiamonitor_com.key
+    $CURL_CMD $META_PROJ_URL/skiamonitor-com-pem -o /etc/nginx/ssl/skiamonitor_com.pem
+CURL_SCRIPT
+sudo chmod 700 /etc/nginx/ssl
+sudo chmod 600 /etc/nginx/ssl/*
+
 # Now that the default installs are in place, overwrite the installs with our
 # custom config files.
 cd ~/buildbot/compute_engine_scripts/monitoring/
@@ -70,7 +88,6 @@ sudo install $ROOT_PARAMS $CONFIG_FILE monitoring_monit /etc/monit/conf.d/monito
 sudo install $ROOT_PARAMS $EXE_FILE alertserver_init /etc/init.d/alertserver
 sudo install $ROOT_PARAMS $EXE_FILE prober_init /etc/init.d/prober
 sudo install $ROOT_PARAMS $EXE_FILE grains_init /etc/init.d/grains
-sudo install $ROOT_PARAMS $CONFIG_FILE squid.conf /etc/squid3/squid.conf
 sudo install $ROOT_PARAMS $CONFIG_FILE collectd /etc/collectd/collectd.conf
 
 # Confirm that monit is happy.
@@ -82,5 +99,5 @@ sudo /etc/init.d/logserver restart
 sudo /etc/init.d/grains restart
 sudo /etc/init.d/prober restart
 sudo /etc/init.d/collectd restart
-sudo /etc/init.d/squid3 restart
+sudo /etc/init.d/nginx restart
 sudo /etc/init.d/alertserver restart
