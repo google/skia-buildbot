@@ -10,6 +10,7 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
           third_party/bower_components/flot/jquery.flot.navigate.js  \
           third_party/bower_components/flot/jquery.flot.selection.js
 
+BOWER_DIR=third_party/bower_components
 
 .PHONY: build
 build: res/css/perf.css core_js elements_html

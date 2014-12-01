@@ -14,10 +14,14 @@
 #
 #    include ../webtools/webtools.mk
 #
-#  Define CORE_SOURCE_FILES, a list of source files that make up core.js.
-#  These files should be either present in the project or brought into
-#  third_party/bower_compoents via bower. This makefile runs bower on the
-#  local directory to bring in dependencies.
+#  And define the following:
+#
+#  BOWER_DIR: The bower directory.
+#
+#  CORE_SOURCE_FILES: a list of source files that make up core.js.
+#     These files should be either present in the project or brought into
+#     $(BOWER_DIR) via bower. This makefile runs bower on the local directory
+#     to bring in dependencies.
 
 ##### core_js ####
 
@@ -35,13 +39,14 @@ res/js/core.js: res/js/core-debug.js ./node_modules/.bin/uglifyjs
 	echo "core.js"
 	./node_modules/.bin/uglifyjs res/js/core-debug.js -o res/js/core.js
 
-res/js/core-debug.js: Makefile third_party/bower_components/lastupdate
+res/js/core-debug.js: Makefile $(BOWER_DIR)/lastupdate
 	echo "core-debug.js"
 	awk 'FNR==1{print ""}{print}' $(CORE_SOURCE_FILES) > res/js/core-debug.js
 
-third_party/bower_components/lastupdate: bower.json ./node_modules/.bin/bower
+$(BOWER_DIR)/lastupdate: bower.json ./node_modules/.bin/bower
 	./node_modules/.bin/bower update
-	touch third_party/bower_components/lastupdate
+	ln --force --symbolic ../../$(BOWER_DIR) res/imp/bower_components
+	touch $(BOWER_DIR)/lastupdate
 
 #### elements_html ####
 
@@ -51,7 +56,9 @@ elements_html: res/vul/elements.html
 
 # The debug_elements_html target just copies elements.html into res/vul/elements.html.
 debug_elements_html:
+	-mkdir res/vul
 	cp elements.html res/vul/elements.html
+	ln --force --symbolic ../../$(BOWER_DIR) res/imp/bower_components
 
 res/vul/elements.html: res/imp/*.html elements.html ./node_modules/.bin/vulcanize
 	./node_modules/.bin/vulcanize --csp=false --inline=true --strip=false --abspath=./ elements.html -o res/vul/elements.html

@@ -29,9 +29,7 @@ perf/node_modules
 perf/res/css/perf.css
 perf/res/js/core-debug.js
 perf/res/js/core.js
-perf/res/imp/polymer
-perf/res/imp/core-*
-perf/res/imp/paper-*
+perf/res/imp/bower_components
 perf/res/vul
 perf/third_party
 perf/timestamp.json
