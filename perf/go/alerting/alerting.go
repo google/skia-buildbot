@@ -26,6 +26,17 @@ const (
 	CLUSTER_STDDEV      = 0.001
 )
 
+var (
+	// The number of clusters with a status of "New".
+	newClustersGauge = metrics.NewRegisteredGauge("alerting.new", metrics.DefaultRegistry)
+
+	// The number of times we've successfully done alert clustering.
+	runsCounter = metrics.NewRegisteredCounter("alerting.runs", metrics.DefaultRegistry)
+
+	// How long it takes to do a clustering run.
+	alertingLatency = metrics.NewRegisteredTimer("alerting.latency", metrics.DefaultRegistry)
+)
+
 // CombineClusters combines freshly found clusters with existing clusters.
 //
 //  Algorithm:
@@ -281,81 +292,88 @@ func updateBugs(c *types.ClusterSummary, apiKey string) {
 	}
 }
 
+// trimTime trims the Tile down to at most the last config.MAX_CLUSTER_COMMITS
+// commits, less if there aren't that many commits in the Tile.
+func trimTile(tile *types.Tile) (*types.Tile, error) {
+	end := tile.LastCommitIndex() + 1
+	begin := end - config.MAX_CLUSTER_COMMITS
+	if begin < 0 {
+		begin = 0
+	}
+	return tile.Trim(begin, end)
+}
+
+// singleStep does a single round of alerting.
+func singleStep(tileStore types.TileStore, apiKey string) {
+	latencyBegin := time.Now()
+	tile, err := tileStore.Get(0, -1)
+	if err != nil {
+		glog.Errorf("Alerting: Failed to get tile: %s", err)
+		return
+	}
+
+	tile, err = trimTile(tile)
+	if err != nil {
+		glog.Errorf("Alerting: Failed to Trim tile down to size: %s", err)
+		return
+	}
+
+	summary, err := clustering.CalculateClusterSummaries(tile, CLUSTER_SIZE, CLUSTER_STDDEV, skpOnly)
+	if err != nil {
+		glog.Errorf("Alerting: Failed to calculate clusters: %s", err)
+		return
+	}
+	fresh := []*types.ClusterSummary{}
+	for _, c := range summary.Clusters {
+		if math.Abs(c.StepFit.Regression) > clustering.INTERESTING_THRESHHOLD {
+			fresh = append(fresh, c)
+		}
+	}
+	old, err := ListFrom(tile.Commits[0].CommitTime)
+	if err != nil {
+		glog.Errorf("Alerting: Failed to get existing clusters: %s", err)
+		return
+	}
+	glog.Infof("Found %d old", len(old))
+	glog.Infof("Found %d fresh", len(fresh))
+	updated := CombineClusters(fresh, old)
+	for _, c := range updated {
+		if c.Status == "" {
+			c.Status = "New"
+		}
+		if err := Write(c); err != nil {
+			glog.Errorf("Alerting: Failed to write updated cluster: %s", err)
+		}
+	}
+
+	current, err := ListFrom(tile.Commits[0].CommitTime)
+	if err != nil {
+		glog.Errorf("Alerting: Failed to get existing clusters: %s", err)
+		return
+	}
+	count := 0
+	for _, c := range current {
+		if c.Status == "New" {
+			count++
+		}
+		if apiKey != "" {
+			updateBugs(c, apiKey)
+		} else {
+			glog.Infof("Skipping ClusterSummary.Bugs update because apiKey is missing.")
+			return
+		}
+	}
+	newClustersGauge.Update(int64(count))
+	runsCounter.Inc(1)
+	alertingLatency.UpdateSince(latencyBegin)
+}
+
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
 func Start(tileStore types.TileStore, apiKeyFlag string) {
-
 	apiKey := apiKeyFromFlag(apiKeyFlag)
-
-	// The number of clusters with a status of "New".
-	newClustersGauge := metrics.NewRegisteredGauge("alerting.new", metrics.DefaultRegistry)
-
-	// The number of times we've successfully done alert clustering.
-	runsCounter := metrics.NewRegisteredCounter("alerting.runs", metrics.DefaultRegistry)
-
-	// How long it takes to do a clustering run.
-	alertingLatency := metrics.NewRegisteredTimer("alerting.latency", metrics.DefaultRegistry)
-
 	go func() {
 		for _ = range time.Tick(config.RECLUSTER_DURATION) {
-			begin := time.Now()
-			tile, err := tileStore.Get(0, -1)
-			if err != nil {
-				glog.Errorf("Alerting: Failed to get tile: %s", err)
-				continue
-			}
-
-			summary, err := clustering.CalculateClusterSummaries(tile, CLUSTER_SIZE, CLUSTER_STDDEV, skpOnly)
-			if err != nil {
-				glog.Errorf("Alerting: Failed to calculate clusters: %s", err)
-				continue
-			}
-			fresh := []*types.ClusterSummary{}
-			for _, c := range summary.Clusters {
-				if math.Abs(c.StepFit.Regression) > clustering.INTERESTING_THRESHHOLD {
-					fresh = append(fresh, c)
-				}
-			}
-			old, err := ListFrom(tile.Commits[0].CommitTime)
-			if err != nil {
-				glog.Errorf("Alerting: Failed to get existing clusters: %s", err)
-				continue
-			}
-			glog.Infof("Found %d old", len(old))
-			glog.Infof("Found %d fresh", len(fresh))
-			updated := CombineClusters(fresh, old)
-			for _, c := range updated {
-				if c.Status == "" {
-					c.Status = "New"
-				}
-				if err := Write(c); err != nil {
-					glog.Errorf("Alerting: Failed to write updated cluster: %s", err)
-				}
-			}
-
-			current, err := ListFrom(tile.Commits[0].CommitTime)
-			if err != nil {
-				glog.Errorf("Alerting: Failed to get existing clusters: %s", err)
-				continue
-			}
-			count := 0
-			for _, c := range current {
-				if c.Status == "New" {
-					count++
-				}
-				if apiKey != "" {
-					updateBugs(c, apiKey)
-				} else {
-					glog.Infof("Skipping ClusterSummary.Bugs update because apiKey is missing.")
-					continue
-				}
-			}
-			newClustersGauge.Update(int64(count))
-			runsCounter.Inc(1)
-			alertingLatency.UpdateSince(begin)
-
-			// TODO Now do a search of the issue tracker for related bugs for each cluster.
-			// Search for links in bugs to each cluster.
-			// Extract and add to the Cluster, write the cluster back if changed.
+			singleStep(tileStore, apiKey)
 		}
 	}()
 }

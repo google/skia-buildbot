@@ -275,3 +275,53 @@ func TestGoldenTrace(t *testing.T) {
 		t.Errorf("Trim wrong length: Got %v Want %v", got, want)
 	}
 }
+
+func TestTileTrim(t *testing.T) {
+	t1 := NewTile()
+	t1.Scale = 1
+	t1.TileIndex = 1
+	t1.Commits[len(t1.Commits)-2].Hash = "hash0"
+	t1.Commits[len(t1.Commits)-1].Hash = "hash1"
+
+	tr := NewPerfTrace()
+	tr.Values[0] = 0.5
+	tr.Values[1] = 0.6
+	tr.Values[2] = 0.7
+
+	t1.Traces["bar"] = tr
+
+	t2, err := t1.Trim(len(t1.Commits)-2, len(t1.Commits))
+	if err != nil {
+		t.Errorf("Failed to trim: %s", err)
+	}
+	if got, want := len(t2.Commits), 2; got != want {
+		t.Errorf("Trimmed tile length wrong: Got %v Want %v", got, want)
+	}
+	if got, want := len(t2.Traces["bar"].(*PerfTrace).Values), 2; got != want {
+		t.Errorf("Failed to trim traces: Got %v Want %v", got, want)
+	}
+	if got, want := t2.Commits[0].Hash, "hash0"; got != want {
+		t.Errorf("Failed to copy commit over: Got %v Want %v", got, want)
+	}
+	if got, want := t2.Commits[1].Hash, "hash1"; got != want {
+		t.Errorf("Failed to copy commit over: Got %v Want %v", got, want)
+	}
+
+	// Test error conditions.
+	t2, err = t1.Trim(1, 0)
+	if err == nil {
+		t.Errorf("Failed to raise error on Trim(1, 0).")
+	}
+	t2, err = t1.Trim(-1, 1)
+	if err == nil {
+		t.Errorf("Failed to raise error on Trim(-1, 1).")
+	}
+	t2, err = t1.Trim(-1, 1)
+	if err == nil {
+		t.Errorf("Failed to raise error on Trim(-1, 1).")
+	}
+	t2, err = t1.Trim(0, config.TILE_SIZE+1)
+	if err == nil {
+		t.Errorf("Failed to raise error on Trim(0, config.TILE_SIZE+1).")
+	}
+}

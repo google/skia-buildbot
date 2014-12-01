@@ -2,7 +2,9 @@ package alerting
 
 import (
 	"testing"
+	"time"
 
+	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
@@ -122,5 +124,46 @@ func TestCombineClusters(t *testing.T) {
 	}
 	if got, want := len(R[0].Keys), 3; got != want {
 		t.Errorf("Incorrect merge: Got %v Want %v", got, want)
+	}
+}
+
+func TestTrimTileFunc(t *testing.T) {
+	t1 := types.NewTile()
+	t1.Scale = 1
+	t1.TileIndex = 1
+	now := time.Now().Unix()
+	// Pretend this is a full tile by setting non-zero CommitTime's for all commits.
+	for i, _ := range t1.Commits {
+		t1.Commits[i].CommitTime = now
+	}
+	tr := types.NewPerfTrace()
+	tr.Values[len(t1.Commits)-1] = 0.7
+	t1.Traces["bar"] = tr
+
+	var err error
+	t1, err = trimTile(t1)
+	if err != nil {
+		t.Errorf("Failed to trim Tile: %s", err)
+	}
+
+	if got, want := len(t1.Commits), config.MAX_CLUSTER_COMMITS; got != want {
+		t.Errorf("Failed to trim Tile correctly: Got %v Want %v", got, want)
+	}
+	if got, want := t1.Traces["bar"].Len(), config.MAX_CLUSTER_COMMITS; got != want {
+		t.Errorf("Failed to trim Tile Values correctly: Got %v Want %v", got, want)
+	}
+
+	// Now test trimming a Tile with less than config.MAX_CLUSTER_COMMITS commits.
+	const N = 20
+	t1, err = t1.Trim(0, N)
+	if err != nil {
+		t.Errorf("Failed to trim Tile a second time: %s", err)
+	}
+	t1, err = trimTile(t1)
+	if got, want := len(t1.Commits), N; got != want {
+		t.Errorf("Failed to trim Tile correctly: Got %v Want %v", got, want)
+	}
+	if got, want := t1.Traces["bar"].Len(), N; got != want {
+		t.Errorf("Failed to trim Tile Values correctly: Got %v Want %v", got, want)
 	}
 }

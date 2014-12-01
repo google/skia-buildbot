@@ -48,6 +48,9 @@ const (
 
 	RECLUSTER_DURATION = 15 * time.Minute
 
+	// CLUSTER_COMMITS is the number of commits to use when clustering.
+	MAX_CLUSTER_COMMITS = 50
+
 	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
 	// than this and we presume it's a standard deviation of zero.
 	MIN_STDDEV = 0.001

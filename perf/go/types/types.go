@@ -282,6 +282,37 @@ func (t Tile) Copy() *Tile {
 	return ret
 }
 
+// Trim trims the measurements to just the range from [begin, end).
+//
+// Just like a Go [:] slice this is inclusive of begin and exclusive of end.
+// The length on the Traces will then become end-begin.
+func (t Tile) Trim(begin, end int) (*Tile, error) {
+	length := end - begin
+	if end < begin || end > len(t.Commits) || begin < 0 {
+		return nil, fmt.Errorf("Invalid Trim range [%d, %d) of [0, %d]", begin, end, length)
+	}
+	ret := &Tile{
+		Traces:    map[string]Trace{},
+		ParamSet:  t.ParamSet,
+		Scale:     t.Scale,
+		TileIndex: t.TileIndex,
+		Commits:   make([]*Commit, length),
+	}
+
+	for i := 0; i < length; i++ {
+		cp := *t.Commits[i+begin]
+		ret.Commits[i] = &cp
+	}
+	for k, v := range t.Traces {
+		t := v.DeepCopy()
+		if err := t.Trim(begin, end); err != nil {
+			return nil, fmt.Errorf("Failed to Trim trace: %s", err)
+		}
+		ret.Traces[k] = t
+	}
+	return ret, nil
+}
+
 // TraceGUI is used in TileGUI.
 type TraceGUI struct {
 	Data   [][2]float64      `json:"data"`
