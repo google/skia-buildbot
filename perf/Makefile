@@ -68,7 +68,7 @@ all: build ingest tool logs perf_migratedb
 
 .PHONY: tags
 tags:
-	rm TAGS
-	find . -name "*.go" -print -or -name "*.js" -or -name "*.html" | xargs etags --append
+	-rm tags
+	find . -name "*.go" -print -or -name "*.js" -or -name "*.html" | xargs ctags --append
 
 include ../webtools/webtools.mk

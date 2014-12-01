@@ -139,6 +139,17 @@ this.sk = this.sk || function() {
     });
   }
 
+  // A Promise the resolves when DOMContentLoaded has fired.
+  sk.DomReady = new Promise(function(resolve, reject) {
+      if (document.readyState != 'loading') {
+        // If readyState is already past loading then
+        // DOMContentLoaded has already fired, so just resolve.
+        resolve();
+      } else {
+        document.addEventListener('DOMContentLoaded', resolve);
+      }
+    });
+
   // A Promise that resolves when Polymer has fired polymer-ready.
   sk.WebComponentsReady = new Promise(function(resolve, reject) {
     window.addEventListener('polymer-ready', resolve);

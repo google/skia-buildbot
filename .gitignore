@@ -10,6 +10,7 @@
 common
 # TAGS
 *TAGS
+*tags
 # Files used by bugdroid.
 .bugdroid_password
 services/bugdroid/bugdroid_log.txt

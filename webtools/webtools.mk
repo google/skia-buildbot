@@ -39,7 +39,7 @@ res/js/core.js: res/js/core-debug.js ./node_modules/.bin/uglifyjs
 	echo "core.js"
 	./node_modules/.bin/uglifyjs res/js/core-debug.js -o res/js/core.js
 
-res/js/core-debug.js: Makefile $(BOWER_DIR)/lastupdate
+res/js/core-debug.js: Makefile $(BOWER_DIR)/lastupdate $(CORE_SOURCE_FILES)
 	echo "core-debug.js"
 	awk 'FNR==1{print ""}{print}' $(CORE_SOURCE_FILES) > res/js/core-debug.js
 
