@@ -183,7 +183,7 @@
 
   };
 
-  sk.domReady().then(function() {
+  sk.WebComponentsReady.then(function() {
     var navigation = new Navigation();
     navigation.attach();
   });
