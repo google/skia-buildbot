@@ -60,6 +60,7 @@ cd $HOME/golib/src/skia.googlesource.com/buildbot.git/monitoring
 make alertserver
 
 # Add the nginx configuration files.
+cd ~/buildbot/compute_engine_scripts/monitoring/
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo cp monitor_nginx /etc/nginx/sites-available/monitor
 sudo rm -f /etc/nginx/sites-enabled/monitor
@@ -81,6 +82,9 @@ sudo sh <<CURL_SCRIPT
 CURL_SCRIPT
 sudo chmod 700 /etc/nginx/ssl
 sudo chmod 600 /etc/nginx/ssl/*
+
+# Create the directory for www logs if necessary.
+mkdir -p /mnt/pd0/wwwlogs
 
 # Now that the default installs are in place, overwrite the installs with our
 # custom config files.

@@ -1,8 +1,8 @@
 server {
     listen 443;
     server_name skiamonitor.com;
-    access_log /tmp/wwwlogs/skiamonitor.access.log;
-    error_log /tmp/wwwlogs/skiamonitor.error.log;
+    access_log /mnt/pd0/wwwlogs/skiamonitor.access.log;
+    error_log /mnt/pd0/wwwlogs/skiamonitor.error.log;
 
     ssl on;
     ssl_certificate         /etc/nginx/ssl/skiamonitor_com.pem;
