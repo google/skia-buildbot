@@ -65,6 +65,20 @@ def TestGo(testname):
   return None
 
 
+def GoImports():
+  try:
+    diff_files = subprocess.check_output(['goimports', '-l', '.'],
+                                         stderr=subprocess.PIPE).splitlines()
+  except subprocess.CalledProcessError:
+    return ('goimports failed to run! Is it installed? You may need to run: \n'
+            'go get http://code.google.com/p/go.tools/cmd/goimports')
+
+  if len(diff_files) > 0:
+    return ('goimports found diffs in the following files: %s' %
+            ', '.join(diff_files))
+  return None
+
+
 if __name__ == '__main__':
   print 'Searching for tests.'
   tests_to_run = []
@@ -77,7 +91,10 @@ if __name__ == '__main__':
       continue
     tests_to_run.extend(test_modules)
 
-  print 'Found %d tests.' % (len(tests_to_run) + len(GO_TESTS))
+  builtin_tests = [GoImports]
+
+  num_tests = len(tests_to_run) + len(GO_TESTS) + len(builtin_tests)
+  print 'Found %d tests.' % num_tests
   errors = []
   for test in tests_to_run:
     proc = subprocess.Popen(['python', test], stdout=subprocess.PIPE,
@@ -90,10 +107,15 @@ if __name__ == '__main__':
     if error:
       errors.append(error)
 
+  for builtin_test in builtin_tests:
+    error = builtin_test()
+    if error:
+      errors.append(error)
+
   if errors:
     for error in errors:
       print error
-    print 'Failed %d of %d.' % (len(errors), len(tests_to_run) + len(GO_TESTS))
+    print 'Failed %d of %d.' % (len(errors), num_tests)
     sys.exit(1)
   else:
     print 'All tests succeeded.'

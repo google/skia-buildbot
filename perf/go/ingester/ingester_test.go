@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/golang/glog"
-	"github.com/rcrowley/go-metrics"
+	metrics "github.com/rcrowley/go-metrics"
 
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/util"

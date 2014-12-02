@@ -10,7 +10,7 @@ import (
 )
 
 import (
-	"code.google.com/p/google-api-go-client/storage/v1"
+	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/golang/glog"
 )
 

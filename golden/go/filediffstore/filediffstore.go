@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"code.google.com/p/google-api-go-client/storage/v1"
+	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/golang/glog"
-	"github.com/rcrowley/go-metrics"
+	metrics "github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/gs"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"

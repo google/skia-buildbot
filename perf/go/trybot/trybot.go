@@ -34,9 +34,9 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/rcrowley/go-metrics"
+	metrics "github.com/rcrowley/go-metrics"
 
-	"code.google.com/p/google-api-go-client/storage/v1"
+	storage "code.google.com/p/google-api-go-client/storage/v1"
 
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/db"

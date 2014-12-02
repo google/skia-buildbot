@@ -113,10 +113,10 @@ func SearchOpen(open bool) *SearchTerm {
 }
 
 func SearchLimit(limit int) *SearchTerm {
-        return &SearchTerm{
-                Key: "limit",
-                Value: fmt.Sprintf("%d", limit),
-        }
+	return &SearchTerm{
+		Key:   "limit",
+		Value: fmt.Sprintf("%d", limit),
+	}
 }
 
 // Search returns a slice of Issues which fit the given criteria.

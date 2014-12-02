@@ -1,7 +1,6 @@
 package skiaversion
 
-const(
+const (
 	COMMIT = "%(commit_hash)s"
-	DATE = "%(date)s"
+	DATE   = "%(date)s"
 )
-
