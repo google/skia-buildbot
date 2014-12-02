@@ -98,7 +98,7 @@ func setupAnalyzer(t *testing.T) *Analyzer {
 	assert.Nil(t, err)
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore := filediffstore.NewFileDiffStore(oauthClient, imageDir, gsBucketName, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
+	diffStore := filediffstore.NewFileDiffStore(oauthClient, imageDir, gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
 	expStore := expstorage.NewMemExpectationsStore()
 	tileStore := filetilestore.NewFileTileStore(tileStoreDir, "golden", -1)
 

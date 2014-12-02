@@ -86,20 +86,27 @@ type FileDiffStore struct {
 // Storage. If nil is supplied then a default client is used. The baseDir is the
 // local base directory where the DEFAULT_IMG_DIR_NAME, DEFAULT_DIFF_DIR_NAME and
 // the DEFAULT_DIFFMETRICS_DIR_NAME directories exist. gsBucketName is the bucket
-// images will be downloaded from. workerPoolSize is the max number of
-// simultaneous goroutines that will be created when running Get or AbsPath.
+// images will be downloaded from. storageBaseDir is the directory in the
+// bucket (if empty DEFAULT_GS_IMG_DIR_NAME is used).
+// workerPoolSize is the max number of simultaneous goroutines that will be
+// created when running Get or AbsPath.
 // Use RECOMMENDED_WORKER_POOL_SIZE if unsure what this value should be.
-func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, workerPoolSize int) diff.DiffStore {
+func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storageBaseDir string, workerPoolSize int) diff.DiffStore {
 	if client == nil {
 		client = util.NewTimeoutClient()
 	}
+
+	if storageBaseDir == "" {
+		storageBaseDir = DEFAULT_GS_IMG_DIR_NAME
+	}
+
 	fs := &FileDiffStore{
 		client:              client,
 		localImgDir:         ensureDir(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)),
 		localDiffDir:        ensureDir(filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME)),
 		localDiffMetricsDir: ensureDir(filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME)),
 		gsBucketName:        gsBucketName,
-		storageBaseDir:      DEFAULT_GS_IMG_DIR_NAME,
+		storageBaseDir:      storageBaseDir,
 	}
 	fs.activateWorkers(workerPoolSize)
 	return fs
@@ -175,11 +182,8 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 	}
 	glog.Infof("Calculated DiffMetrics for %s and %s\n", dMain, dOther)
 	// 5. Write DiffMetrics to the local cache and return it.
-	diffMetricsFilePath := filepath.Join(
-		fs.localDiffMetricsDir,
-		fmt.Sprintf("%s.%s", getDiffBasename(dMain, dOther), DIFFMETRICS_EXTENSION))
-	if err := fs.writeDiffMetrics(diffMetricsFilePath, diffMetrics); err != nil {
-		glog.Errorf("Failed to writeDiffMetrics for digest %s and digest %s: %s", dMain, dOther, err)
+	if err := fs.writeDiffMetricsToCache(dMain, dOther, *diffMetrics); err != nil {
+		glog.Errorf("Failed to write diff metrics to cache for digest %s and digest %s: %s", dMain, dOther, err)
 		return nil
 	}
 	return diffMetrics
@@ -320,17 +324,22 @@ func openDiffMetrics(filepath string) (*diff.DiffMetrics, error) {
 	return diffMetrics, nil
 }
 
-func (fs *FileDiffStore) writeDiffMetrics(filepath string, diffMetrics *diff.DiffMetrics) error {
+func (fs *FileDiffStore) writeDiffMetricsToCache(d1 string, d2 string, diffMetrics diff.DiffMetrics) error {
 	// Lock the mutex before writing to the local diff directory.
 	fs.diffDirLock.Lock()
 	defer fs.diffDirLock.Unlock()
-	f, err := os.Create(filepath)
+
+	// Make paths relative. This has to be reversed in getDiffMetricsFromCache.
+	fName := fs.getDiffMetricPath(d1, d2)
+	diffMetrics.PixelDiffFilePath, _ = filepath.Rel(fs.localDiffDir, diffMetrics.PixelDiffFilePath)
+
+	f, err := os.Create(fName)
 	if err != nil {
-		return fmt.Errorf("Unable to create file %s: %s", filepath, err)
+		return fmt.Errorf("Unable to create file %s: %s", fName, err)
 	}
 	defer f.Close()
 
-	d, err := json.Marshal(diffMetrics)
+	d, err := json.MarshalIndent(diffMetrics, "", "    ")
 	if err != nil {
 		return fmt.Errorf("Failed to encode to JSON: %s", err)
 	}
@@ -352,8 +361,8 @@ func getDiffBasename(d1, d2 string) string {
 // local diffmetrics dir. It is thread safe because it locks the diff store's
 // mutex before accessing the digest cache.
 func (fs *FileDiffStore) getDiffMetricsFromCache(d1, d2 string) (*diff.DiffMetrics, error) {
-	filename := fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFFMETRICS_EXTENSION)
-	diffMetricsFilePath := filepath.Join(fs.localDiffMetricsDir, filename)
+	diffMetricsFilePath := fs.getDiffMetricPath(d1, d2)
+
 	// Lock the mutex before reading from the local diff directory.
 	fs.diffDirLock.Lock()
 	defer fs.diffDirLock.Unlock()
@@ -371,6 +380,8 @@ func (fs *FileDiffStore) getDiffMetricsFromCache(d1, d2 string) (*diff.DiffMetri
 	if err != nil {
 		return nil, err
 	}
+
+	diffMetrics.PixelDiffFilePath = filepath.Join(fs.localDiffDir, diffMetrics.PixelDiffFilePath)
 	return diffMetrics, nil
 }
 
@@ -496,6 +507,17 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 // give digests should be stored.
 func (fs *FileDiffStore) getDigestImagePath(digest string) string {
 	return filepath.Join(fs.localImgDir, fmt.Sprintf("%s.%s", digest, IMG_EXTENSION))
+}
+
+// getDiffMetricPath returns the filename where the diffmetric should be
+// cached.
+func (fs *FileDiffStore) getDiffMetricPath(d1, d2 string) string {
+	if d1 > d2 {
+		d1, d2 = d2, d1
+	}
+
+	fName := fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFFMETRICS_EXTENSION)
+	return filepath.Join(fs.localDiffMetricsDir, fName)
 }
 
 // ensureDir checks whether the given path to a directory exits and creates it

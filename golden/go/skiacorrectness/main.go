@@ -195,7 +195,9 @@ func (ug *URLAwareFileServer) GetURL(path string) string {
 		return ""
 	}
 
-	return ug.baseUrl + relPath
+	ret := ug.baseUrl + relPath
+	glog.Infof("Input: %s           =>       %s", path, ret)
+	return ret
 }
 
 // getOAuthClient returns an oauth client (either from cached credentials or
@@ -238,7 +240,7 @@ func main() {
 	client := getOAuthClient(*doOauth, *oauthCacheFile)
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
+	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
 	vdb := database.NewVersionedDB(db.GetConfig(*dbConnStr, *sqlitePath, *local))
 	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb))
 	tileStore := filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
