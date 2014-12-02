@@ -218,10 +218,14 @@ func main() {
 		glog.Fatal(err)
 	}
 	// By default use a set of credentials setup for localhost access.
+	protocol := "https"
+	if *testing {
+		protocol = "http"
+	}
 	var cookieSalt = "notverysecret"
 	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
 	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
-	var redirectURL = "http://" + serverURL + "/oauth2callback/"
+	var redirectURL = protocol + "://" + serverURL + "/oauth2callback/"
 	var emailClientId = *emailClientIdFlag
 	var emailClientSecret = *emailClientSecretFlag
 	if *useMetadata {
