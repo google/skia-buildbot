@@ -35,6 +35,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/metadata"
+	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 const (
@@ -430,13 +431,6 @@ func doCmd(commandLine string) (string, error) {
 	return string(message), nil
 }
 
-// reportError formats an HTTP error response and also logs the detailed error message.
-func reportError(w http.ResponseWriter, r *http.Request, err error, message string) {
-	glog.Errorf("%s\n%s", message, err)
-	w.Header().Set("Content-Type", "text/plain")
-	http.Error(w, message, 500)
-}
-
 // reportTryError formats an HTTP error response in JSON and also logs the detailed error message.
 func reportTryError(w http.ResponseWriter, r *http.Request, err error, message, hash string) {
 	m := response{
@@ -510,7 +504,7 @@ func sourcesHandler(w http.ResponseWriter, r *http.Request) {
 
 		resp, err := json.Marshal(sources)
 		if err != nil {
-			reportError(w, r, err, "Failed to serialize a response.")
+			util.ReportError(w, r, err, "Failed to serialize a response.")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -669,7 +663,7 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 			name = match[1]
 			rows, err := db.Query("SELECT create_ts, hash, source_image_id FROM workspacetry WHERE name=? ORDER BY create_ts", name)
 			if err != nil {
-				reportError(w, r, err, "Failed to select.")
+				util.ReportError(w, r, err, "Failed to select.")
 				return
 			}
 			defer rows.Close()
@@ -798,7 +792,7 @@ func tryInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, err := json.Marshal(m)
 	if err != nil {
-		reportError(w, r, err, "Failed to serialize a response.")
+		util.ReportError(w, r, err, "Failed to serialize a response.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
