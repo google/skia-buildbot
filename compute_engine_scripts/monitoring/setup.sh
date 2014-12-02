@@ -81,7 +81,7 @@ sudo sh <<CURL_SCRIPT
     $CURL_CMD $META_PROJ_URL/skiaalerts-com-pem -o /etc/nginx/ssl/skiaalerts_com.pem
 CURL_SCRIPT
 sudo chmod 700 /etc/nginx/ssl
-sudo chmod 600 /etc/nginx/ssl/*
+sudo sh -c "chmod 600 /etc/nginx/ssl/*"
 
 # Create the directory for www logs if necessary.
 mkdir -p /mnt/pd0/wwwlogs
