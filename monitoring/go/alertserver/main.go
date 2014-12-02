@@ -183,7 +183,7 @@ func runServer(serverURL string) {
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	http.HandleFunc("/logout/", login.LogoutHandler)
 	http.HandleFunc("/loginstatus/", login.StatusHandler)
-	glog.Infof("Ready to serve on http://%s", serverURL)
+	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
@@ -207,7 +207,10 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}
-	serverURL := *host + *port
+	serverURL := "https://" + *host
+	if *testing {
+		serverURL = "http://" + *host + *port
+	}
 
 	usr, err := user.Current()
 	if err != nil {
@@ -218,14 +221,10 @@ func main() {
 		glog.Fatal(err)
 	}
 	// By default use a set of credentials setup for localhost access.
-	protocol := "https"
-	if *testing {
-		protocol = "http"
-	}
 	var cookieSalt = "notverysecret"
 	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
 	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
-	var redirectURL = protocol + "://" + serverURL + "/oauth2callback/"
+	var redirectURL = serverURL + "/oauth2callback/"
 	var emailClientId = *emailClientIdFlag
 	var emailClientSecret = *emailClientSecretFlag
 	if *useMetadata {
