@@ -174,6 +174,9 @@ func Get(id int64) (*types.ClusterSummary, error) {
 // If the ID is set to -1 then write it as a new entry, otherwise update the
 // existing entry.
 func Write(c *types.ClusterSummary) error {
+	// First trim down c.Traces to just the first entry, which is the centroid.
+	c.Traces = c.Traces[:1]
+
 	b, err := json.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("Failed to encode to JSON: %s", err)
