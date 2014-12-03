@@ -1,0 +1,448 @@
+<link rel="import" href="/res/imp/polymer/polymer.html" />
+<link rel="import" href="/res/imp/core-ajax/core-ajax.html" />
+<link rel="import" href="/res/imp/core-icon-button/core-icon-button.html" />
+<link rel="import" href="/res/imp/core-input/core-input.html" />
+
+<script type="text/javascript" src="/res/js/common.js"></script>
+
+<polymer-element name="commits-sk">
+  <template>
+    <style>
+    #loadstatus {
+      font-size: 0.8em;
+      padding: 15px;
+    }
+    table.commitList {
+      border: 0px;
+      border-spacing: 0px;
+      width: 100%;
+    }
+    tr.commit {
+      font-size: 10px;
+      font-family: monospace;
+      height: 20px;
+      margin: 0px;
+      padding: 0px;
+    }
+    tr.commit:nth-child(even) {
+      background-color: #EFEFEF;
+    }
+    tr.commit:nth-child(odd) {
+      background-color: #FFFFFF;
+    }
+    tr.commit > td {
+      padding: 0px 5px;
+      margin: 0px;
+      white-space: nowrap;
+    }
+    a {
+      color: inherit;
+    }
+    </style>
+    <div vertical layout flex>
+      <div horizontal layout center id="loadstatus">
+        <div>
+          Reload (s):
+          <core-input type="number" value="{{reload}}" preventInvalidInput style="width: 50px;"></core-input>
+        </div>
+        <div flex></div>
+        <div>Last loaded at {{lastLoaded}}</div>
+      </div>
+      <div horizontal layout>
+        <div id="canvasContainer"></div>
+          <canvas id="commitCanvas"></canvas>
+        <div flex>
+          <table class="commitList">
+            <template repeat="{{commit in commits}}">
+              <tr class="commit" style="color: {{getCommitColor(displayCommits[commit.hash])}}">
+                <td><a href="https://skia.googlesource.com/skiabot-test/+/{{commit.hash}}" target="_blank">{{commit.hash|shortCommit}}</a></td>
+                <td>{{commit.author|shortAuthor}}</td>
+                <td>{{commit.subject|shortSubject}}</td>
+              </tr>
+            </template>
+          </table>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+  (function() {
+    var commitY = 20;          // Vertical pixels used by each commit.
+    var paddingX = 10;         // Left-side padding pixels.
+    var paddingY = 20;         // Top padding pixels.
+    var radius = 3;            // Radius of commit dots.
+    var columnWidth = commitY; // Pixel width of per-branch colums.
+    // Colors used for the branches. Obtained from
+    // http://blog.mollietaylor.com/2012/10/color-blindness-and-palette-choice.html
+    var palette = [
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E",
+      "#E6AB02",
+      "#A6761D",
+      "#666666",
+    ];
+    var commitBg = "#FFFFFF";    // Background color of alternating commits.
+    var commitBgAlt = "#EFEFEF"; // Background color of alternating commits.
+    var font = "10px monospace"; // Font used for labels.
+
+    // Draws a filled-in dot at the given center with the given radius and color.
+    function drawDot(ctx, center, radius, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, radius, 0, 2*Math.PI, false);
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // Object with an x and y-value.
+    function Point(x, y) {
+      this.x = x;
+      this.y = y;
+    }
+
+    // Truncate the given string to the given length. If the string was
+    // shortened, change the last three characters to ellipsis.
+    function truncate(str, len) {
+      if (str.length > len) {
+        var ellipsis = "..."
+        return str.substring(0, len - ellipsis.length) + ellipsis;
+      }
+      return str
+    }
+
+    // Object representing a commit used for creating layout and drawing.
+    function Commit(commitInfo, row) {
+      this.hash = commitInfo.hash;
+      this.author = commitInfo.author;
+      this.subject = commitInfo.subject;
+      this.row = row;
+      this.column = -1;
+      this.label = [];
+      this.parents = commitInfo.parent;
+
+      // The color for this commit.
+      this.color = function() {
+        return palette[this.column % palette.length];
+      };
+
+      // Where to draw this commit.
+      this.getBounds = function() {
+        return new Point(paddingX, paddingY - commitY/4 + commitY * this.row);
+      };
+
+      // The center of this commit's dot.
+      this.dotCenter = function() {
+        var start = this.getBounds();
+        var centerX = start.x + columnWidth * this.column + radius;
+        var centerY = start.y - radius - 2;
+        return new Point(centerX, centerY);
+      };
+
+      // Coordinates for drawing this commit's label.
+      this.labelCoords = function() {
+        var bounds = this.getBounds();
+        var center = this.dotCenter();
+        return new Point(center.x + 3 * radius, bounds.y - 1);
+      };
+
+      // Return the text for this commit's label, truncated to 20 characters.
+      this.labelText = function() {
+        return truncate(this.label.join(","), 20);
+      };
+
+      // Return the estimated width of this commit's label text.
+      this.labelWidth = function(ctx) {
+        return ctx.measureText(this.labelText()).width;
+      };
+
+      // Draw an an alternating background color for this commit.
+      this.drawBackground = function(ctx) {
+        var startY = commitY * this.row;
+        var bgColor = this.row % 2 ? commitBg : commitBgAlt;
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, startY, ctx.canvas.clientWidth, startY + commitY);
+      };
+
+      // Draw a line connecting this commit to one of its parents.
+      this.drawConnection = function(ctx, parent) {
+        var center = this.dotCenter();
+        var to = parent.dotCenter();
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        if (center.x == to.x) {
+          // Draw a straight line.
+          ctx.lineTo(to.x, to.y);
+        } else {
+          // Draw a connector composed of four segments:
+          // an arc, a horizontal line, another arc, and a vertical line.
+          var arcRadius = commitY / 2;
+          var d = center.x - to.x > 0 ? 1 : -1;
+          var a1 = new Point(center.x - d * arcRadius, to.y - commitY);
+          var a2 = new Point(to.x + d * arcRadius, to.y);
+          ctx.beginPath();
+          ctx.moveTo(center.x, center.y);
+          var halfPI = 0.5 * Math.PI;
+          var oneAndHalfPI = 1.5 * Math.PI;
+          ctx.arc(a1.x, a1.y, arcRadius, halfPI - d * halfPI, halfPI, d < 0);
+          ctx.arc(a2.x, a2.y, arcRadius, oneAndHalfPI, oneAndHalfPI - d * halfPI, d > 0);
+        }
+        ctx.strokeStyle = this.color();
+        ctx.stroke();
+      };
+
+      // Draw this commit's label.
+      this.drawLabel = function(ctx) {
+        if (this.label.length <= 0) {
+          return;
+        }
+        labelCoords = this.labelCoords();
+        var w = this.labelWidth(ctx);
+        var h = parseInt(font);
+        var paddingY = 3;
+        var paddingX = 3;
+        ctx.fillStyle = this.color();
+        ctx.fillRect(labelCoords.x - paddingX, labelCoords.y - h, w + 2 * paddingX, h + paddingY);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(this.labelText(), labelCoords.x, labelCoords.y);
+      };
+
+      this.draw = function(ctx, displayCommits) {
+        var color = this.color();
+        var center = this.dotCenter();
+
+        // Connect the dots.
+        for (var p = 0; p < this.parents.length; p++) {
+          var parent = displayCommits[this.parents[p]];
+          this.drawConnection(ctx, parent);
+        }
+
+        // Draw a dot.
+        drawDot(ctx, center, radius, color);
+
+        // Draw a label, if applicable.
+        this.drawLabel(ctx);
+      };
+    }
+
+    // Follow commits by first parent, assigning the given column until we get
+    // to a commit that we aren't going to draw.
+    function traceCommits(displayCommits, commits, remaining, hash, column) {
+      var usedColumn = false;
+      while(remaining[hash]) {
+        var c = displayCommits[hash];
+        c.column = column;
+        delete remaining[hash];
+        hash = c.parents[0];
+        usedColumn = true;
+        // Special case for non-displayed parents.
+        if (!displayCommits[hash]) {
+          var parent = new Commit({
+            hash: hash,
+          }, commits.length);
+          parent.column = c.column;
+          displayCommits[hash] = parent;
+        }
+      }
+      return usedColumn;
+    }
+
+    // Create Commit objects to be displayed. Assigns rows and columns for each
+    // commit to assist in producing a nice layout.
+    function prepareCommitsForDisplay(commits, branchHeads) {
+      // Create a Commit object for each commit.
+      var displayCommits = {}; // Commit objects by hash.
+      var remaining = {};      // Not-yet-processed commits by hash.
+      for (var i = 0; i < commits.length; i++) {
+        var c = new Commit(commits[i], i)
+        displayCommits[c.hash] = c;
+        remaining[c.hash] = c;
+      }
+
+      // Pre-process the branches. We want master first, and no HEAD.
+      var masterIdx = -1;
+      var branches = [];
+      for (var b = 0; b < branchHeads.length; b++) {
+        if (branchHeads[b].name == "master") {
+          masterIdx = b;
+          branches.push(branchHeads[b]);
+        }
+      }
+      for (var b = 0; b < branchHeads.length; b++) {
+        var branch = branchHeads[b];
+        if (b != masterIdx && branch.name != "HEAD") {
+          branches.push(branch);
+        }
+      }
+
+      // Trace each branch, placing commits on that branch in an associated column.
+      var column = 0;
+      for (var b = 0; b < branches.length; b++) {
+        // Add a label to commits at branch heads.
+        var hash = branches[b].head
+        displayCommits[branches[b].head].label.push(branches[b].name);
+        if (traceCommits(displayCommits, commits, remaining, hash, column)) {
+          column++;
+        }
+      }
+
+      // Add the remaining commits to their own columns.
+      for (var hash in remaining) {
+        if (traceCommits(displayCommits, commits, remaining, hash, column)) {
+          column++;
+        }
+      }
+
+      return [displayCommits, column];
+    }
+
+    Polymer({
+      publish: {
+        commits: {
+          value: null,
+          reflect: true,
+        },
+        branchHeads: {
+          value: null,
+          reflect: true,
+        },
+        dispayCommits: {
+          value: null,
+          reflect: true,
+        },
+        reload: {
+          value: 60,
+          reflect: true,
+        },
+        timeout: {
+          value: null,
+          reflect: false,
+        },
+        lastLoaded: {
+          value: "(not yet loaded)",
+          reflect: false,
+        },
+      },
+
+      created: function() {
+        this.commits = [];
+        this.branchHeads = [];
+        this.reloadCommits();
+        var that = this;
+        window.addEventListener("resize", function() {
+          that.draw();
+        }, true);
+      },
+
+      // shortCommit returns the first 12 characters of a commit hash.
+      shortCommit: function(commit) {
+        return commit.substring(0, 12);
+      },
+
+      // shortAuthor shortens the commit author field by returning the
+      // parenthesized email address if it exists. If it does not exist, the
+      // entire author field is used.
+      shortAuthor: function(author) {
+        var re = /.*\((.+)\)/;
+        var match = re.exec(author);
+        if (match) {
+          return match[1];
+        }
+        return author;
+      },
+
+      // shortSubject truncates a commit subject line to 72 characters if needed.
+      // If the text was shortened, the last three characters are replaced by
+      // ellipsis.
+      shortSubject: function(subject) {
+        return truncate(subject, 72);
+      },
+
+      // getCommitColor returns the color of the commit, as determined in
+      // the prepareCommitsForDisplay function.
+      getCommitColor: function(commit) {
+        return commit.color();
+      },
+
+      reloadChanged: function() {
+        this.resetTimeout();
+      },
+
+      resetTimeout: function() {
+        if (this.timeout) {
+          window.clearTimeout(this.timeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this.timeout = window.setTimeout(function() { that.reloadCommits(); }, this.reload * 1000);
+        }
+      },
+
+      reloadCommits: function() {
+        console.log("Loading commits.");
+        var that = this;
+        sk.get("/json/commits").then(JSON.parse).then(function(json) {
+          that.commits = json.commits;
+          that.commits.reverse();
+          that.branchHeads = json.branch_heads;
+          that.lastLoaded = new Date().toLocaleTimeString();
+          that.resetTimeout();
+          console.log("Done loading commits.");
+          that.draw();
+        });
+      },
+
+      draw: function() {
+        console.log("Drawing.");
+        // Initialize all commits.
+        var prep = prepareCommitsForDisplay(this.commits, this.branchHeads);
+        this.displayCommits = prep[0];
+        var numColumns = prep[1];
+
+        // Calculate the required canvas width based on the commit columns and
+        // labels.
+        // TODO(borenet): Further minimize this width by reordering the columns
+        // based on which has the longest label.
+        var dummyCtx = document.createElement("canvas").getContext("2d");
+        dummyCtx.font = font;
+        var longestWidth = 0;
+        for (var i = 0; i < this.commits.length; i++) {
+          var c = this.displayCommits[this.commits[i].hash];
+          var w = c.labelWidth(dummyCtx);
+          w += commitY * (c.column + 1);
+          if (w > longestWidth) {
+            longestWidth = w;
+          }
+        }
+
+        // Redraw the canvas.
+        var scale = window.devicePixelRatio || 1.0;
+        var parent = this.shadowRoot.getElementById("canvasContainer");
+        var canvas = this.shadowRoot.getElementById("commitCanvas");
+        var w = longestWidth + paddingX;
+        var h = commitY * this.commits.length;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+        canvas.width = w * scale;
+        canvas.height = h * scale;
+        var ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        ctx.font = font;
+
+        // Shade an alternating background.
+        for (var i = 0; i < this.commits.length; i++) {
+          this.displayCommits[this.commits[i].hash].drawBackground(ctx);
+        }
+
+        // Draw the commits.
+        for (var i = 0; i < this.commits.length; i++) {
+          this.displayCommits[this.commits[i].hash].draw(ctx, this.displayCommits);
+        }
+      },
+    });
+  })();
+  </script>
+</polymer-element>

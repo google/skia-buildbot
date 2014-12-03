@@ -56,12 +56,12 @@ func writeAutoRollDataPoint(dbClient *influxdb.Client, status *autoroll.AutoRoll
 // pushes it into InfluxDB.
 func LoadAutoRollData(dbClient *influxdb.Client, workdir string) {
 	rollCheckoutsDir := path.Join(workdir, "autoroll_git")
-	skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(rollCheckoutsDir, "skia"))
+	skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(rollCheckoutsDir, "skia"), false)
 	if err != nil {
 		glog.Errorf("Failed to check out skia: %s", err)
 		return
 	}
-	chromiumRepo, err := gitinfo.CloneOrUpdate(CHROMIUM_REPO, path.Join(rollCheckoutsDir, "chromium"))
+	chromiumRepo, err := gitinfo.CloneOrUpdate(CHROMIUM_REPO, path.Join(rollCheckoutsDir, "chromium"), false)
 	if err != nil {
 		glog.Errorf("Failed to check out chromium: %s", err)
 		return
@@ -77,7 +77,7 @@ func LoadAutoRollData(dbClient *influxdb.Client, workdir string) {
 				glog.Error(err)
 			}
 		}
-		skiaRepo.Update(true)
-		chromiumRepo.Update(true)
+		skiaRepo.Update(true, false)
+		chromiumRepo.Update(true, false)
 	}
 }

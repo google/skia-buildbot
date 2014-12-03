@@ -27,6 +27,7 @@ import (
 import (
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/email"
+	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/skiaversion"
@@ -48,6 +49,7 @@ const (
 
 var (
 	alertManager *alerting.AlertManager = nil
+	gitInfo      *gitinfo.GitInfo       = nil
 )
 
 // flags
@@ -65,6 +67,7 @@ var (
 	alertPollInterval     = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
 	alertsFile            = flag.String("alerts_file", "alerts.cfg", "Config file containing alert rules.")
 	testing               = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
+	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
 )
 
 func userHasEditRights(email string) bool {
@@ -169,6 +172,41 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	gitInfo.Update(true, true)
+	commitHashes := gitInfo.From(time.Now().AddDate(0, 0, -45))
+	branchHeads, err := gitInfo.GetBranches()
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to read branch information from the repo: %s", err))
+		return
+	}
+	commits := make([]*gitinfo.LongCommit, len(commitHashes))
+	for i, h := range commitHashes {
+		c, err := gitInfo.Details(h)
+		if err != nil {
+			util.ReportError(w, r, err, fmt.Sprintf("Failed to obtain commit details for %s: %s", h, err))
+			return
+		}
+		commits[i] = c
+	}
+	data := struct {
+		Commits     []*gitinfo.LongCommit `json:"commits"`
+		BranchHeads []*gitinfo.GitBranch  `json:"branch_heads"`
+	}{
+		Commits:     commits,
+		BranchHeads: branchHeads,
+	}
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode commit data as JSON: %s", err))
+		return
+	}
+}
+
+func commitsHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "res/html/commits.html")
+}
+
 func runServer(serverURL string) {
 	_, filename, _, _ := runtime.Caller(0)
 	cwd := filepath.Join(filepath.Dir(filename), "../..")
@@ -178,7 +216,9 @@ func runServer(serverURL string) {
 
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", alertHandler)
+	http.HandleFunc("/commits", commitsHandler)
 	http.HandleFunc("/json/alerts", alertJsonHandler)
+	http.HandleFunc("/json/commits", commitsJsonHandler)
 	http.HandleFunc("/json/version", skiaversion.JsonHandler)
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	http.HandleFunc("/logout/", login.LogoutHandler)
@@ -256,5 +296,9 @@ func main() {
 		glog.Fatalf("Failed to create AlertManager: %v", err)
 	}
 
+	gitInfo, err = gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", *workdir, true)
+	if err != nil {
+		glog.Fatalf("Failed to check out Skia: %v", err)
+	}
 	runServer(serverURL)
 }

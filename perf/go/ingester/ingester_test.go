@@ -35,7 +35,7 @@ func TestIngestCommits(t *testing.T) {
 	}
 	defer os.RemoveAll(tileDir)
 
-	git, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	git, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		glog.Fatal("Failed loading Git info: %s\n", err)
 	}
@@ -58,11 +58,17 @@ func TestIngestCommits(t *testing.T) {
 
 	// Test TileTracker while were here.
 	tt := NewTileTracker(store, i.hashToNumber)
-	tt.Move("7a6fe813047d1a84107ef239e81f310f27861473")
+	err = tt.Move("7a6fe813047d1a84107ef239e81f310f27861473")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if got, want := tt.lastTileNum, 1; got != want {
 		t.Errorf("Move failed, wrong tile: Got %d Want %d", got, want)
 	}
-	tt.Move("87709bc360f35de52c2f2bc2fc70962fb234db2d")
+	err = tt.Move("87709bc360f35de52c2f2bc2fc70962fb234db2d")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if got, want := tt.lastTileNum, 0; got != want {
 		t.Errorf("Move failed, wrong tile: Got %d Want %d", got, want)
 	}

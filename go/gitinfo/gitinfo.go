@@ -24,6 +24,21 @@ import (
 // subject groups.
 var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
 
+// ShortCommit stores the hash, author, and subject of a git commit.
+type ShortCommit struct {
+	Hash    string `json:"hash"`
+	Author  string `json:"author"`
+	Subject string `json:"subject"`
+}
+
+// LongCommit gives more detailed information about a commit.
+type LongCommit struct {
+	*ShortCommit
+	Parents   []string  `json:"parent"`
+	Body      string    `json:"body"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
 	dir        string
@@ -37,41 +52,41 @@ type GitInfo struct {
 // NewGitInfo creates a new GitInfo for the Git repository found in directory
 // dir. If pull is true then a git pull is done on the repo before querying it
 // for history.
-func NewGitInfo(dir string, pull bool) (*GitInfo, error) {
+func NewGitInfo(dir string, pull, allBranches bool) (*GitInfo, error) {
 	g := &GitInfo{
 		dir:    dir,
 		hashes: []string{},
 	}
-	return g, g.Update(pull)
+	return g, g.Update(pull, allBranches)
 }
 
 // Clone creates a new GitInfo by running "git clone" in the given directory.
-func Clone(repoUrl, dir string) (*GitInfo, error) {
+func Clone(repoUrl, dir string, allBranches bool) (*GitInfo, error) {
 	cmd := exec.Command("git", "clone", repoUrl, dir)
 	_, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to clone %s into %s: %v", repoUrl, dir, err)
 	}
-	return NewGitInfo(dir, false)
+	return NewGitInfo(dir, false, allBranches)
 }
 
 // CloneOrUpdate creates a new GitInfo by running "git clone" or "git pull"
 // depending on whether the repo already exists.
-func CloneOrUpdate(repoUrl, dir string) (*GitInfo, error) {
+func CloneOrUpdate(repoUrl, dir string, allBranches bool) (*GitInfo, error) {
 	gitDir := path.Join(dir, ".git")
 	_, err := os.Stat(gitDir)
 	if err == nil {
-		return NewGitInfo(dir, true)
+		return NewGitInfo(dir, true, allBranches)
 	}
 	if os.IsNotExist(err) {
-		return Clone(repoUrl, dir)
+		return Clone(repoUrl, dir, allBranches)
 	}
 	return nil, err
 }
 
 // Update refreshes the history that GitInfo stores for the repo. If pull is
 // true then git pull is performed before refreshing.
-func (g *GitInfo) Update(pull bool) error {
+func (g *GitInfo) Update(pull, allBranches bool) error {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	glog.Info("Beginning Update.")
@@ -84,8 +99,14 @@ func (g *GitInfo) Update(pull bool) error {
 		}
 	}
 	glog.Info("Finished pull.")
-
-	hashes, timestamps, err := readCommitsFromGit(g.dir)
+	var hashes []string
+	var timestamps map[string]time.Time
+	var err error
+	if allBranches {
+		hashes, timestamps, err = readCommitsFromGitAllBranches(g.dir)
+	} else {
+		hashes, timestamps, err = readCommitsFromGit(g.dir, "HEAD")
+	}
 	glog.Info("Finished reading commits: %s", g.dir)
 	if err != nil {
 		return fmt.Errorf("Failed to read commits from: %s : %s", g.dir, err)
@@ -95,24 +116,33 @@ func (g *GitInfo) Update(pull bool) error {
 	return nil
 }
 
-// Details returns the author, subject and timestamp for the given commit.
-func (g *GitInfo) Details(hash string) (string, string, time.Time, error) {
+// Details returns more information than ShortCommit about a given commit.
+func (g *GitInfo) Details(hash string) (*LongCommit, error) {
 	glog.Infof("gitinfo.Details(%s)", hash)
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	glog.Infof("gitinfo.Details(%s) acquired lock", hash)
-	cmd := exec.Command("git", "log", "-n", "1", "--format=format:%an%x20(%ae)%n%s", hash)
+	cmd := exec.Command("git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b", hash)
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
 	if err != nil {
-		return "", "", time.Time{}, fmt.Errorf("Failed to execute Git: %s", err)
+		return nil, fmt.Errorf("Failed to execute Git: %s", err)
 	}
-	lines := strings.SplitN(string(b), "\n", 2)
-	if len(lines) != 2 {
-		return lines[0], "", time.Time{}, nil
+	lines := strings.SplitN(string(b), "\n", 5)
+	if len(lines) != 5 {
+		return nil, fmt.Errorf("Failed to parse output of 'git log'.")
 	}
-
-	return lines[0], lines[1], g.timestamps[hash], nil
+	c := LongCommit{
+		ShortCommit: &ShortCommit{
+			Hash:    lines[0],
+			Author:  lines[2],
+			Subject: lines[3],
+		},
+		Parents:   strings.Split(lines[1], " "),
+		Body:      lines[4],
+		Timestamp: g.timestamps[hash],
+	}
+	return &c, nil
 }
 
 // From returns all commits from 'start' to HEAD.
@@ -196,11 +226,9 @@ func (g GitInfo) InitialCommit() (string, error) {
 	return strings.Trim(string(b), "\n"), nil
 }
 
-// ShortCommit stores the hash, author, and subject of a git commit.
-type ShortCommit struct {
-	Hash    string
-	Author  string
-	Subject string
+// GetBranches returns a slice of strings naming the branches in the repo.
+func (g GitInfo) GetBranches() ([]*GitBranch, error) {
+	return GetBranches(g.dir)
 }
 
 // ShortCommits stores a slice of ShortCommit struct.
@@ -249,9 +277,47 @@ func (p gitHashSlice) Len() int           { return len(p) }
 func (p gitHashSlice) Less(i, j int) bool { return p[i].timeStamp.Before(p[j].timeStamp) }
 func (p gitHashSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
+// GitBranch represents a Git branch.
+type GitBranch struct {
+	Name string `json:"name"`
+	Head string `json:"head"`
+}
+
+// GetBranches returns the list of branch heads in a Git repository.
+// In order to separate local working branches from published branches, only
+// remote branches in 'origin' are returned.
+func GetBranches(dir string) ([]*GitBranch, error) {
+	cmd := exec.Command("git", "show-ref")
+	cmd.Dir = dir
+	b, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get branch list: %v", err)
+	}
+	branchPrefix := "refs/remotes/origin/"
+	branches := []*GitBranch{}
+	lines := strings.Split(string(b), "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		glog.Info(line)
+		parts := strings.SplitN(line, " ", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("Could not parse output of 'git show-ref'.")
+		}
+		if strings.HasPrefix(parts[1], branchPrefix) {
+			branches = append(branches, &GitBranch{
+				Name: parts[1][len(branchPrefix):],
+				Head: parts[0],
+			})
+		}
+	}
+	return branches, nil
+}
+
 // readCommitsFromGit reads the commit history from a Git repository.
-func readCommitsFromGit(dir string) ([]string, map[string]time.Time, error) {
-	cmd := exec.Command("git", "log", "--format=format:%H%x20%ci")
+func readCommitsFromGit(dir, branch string) ([]string, map[string]time.Time, error) {
+	cmd := exec.Command("git", "log", "--format=format:%H%x20%ci", branch)
 	cmd.Dir = dir
 	b, err := cmd.Output()
 	if err != nil {
@@ -274,6 +340,35 @@ func readCommitsFromGit(dir string) ([]string, map[string]time.Time, error) {
 	}
 	sort.Sort(gitHashSlice(gitHashes))
 	hashes := make([]string, len(gitHashes), len(gitHashes))
+	for i, h := range gitHashes {
+		hashes[i] = h.hash
+	}
+	return hashes, timestamps, nil
+}
+
+func readCommitsFromGitAllBranches(dir string) ([]string, map[string]time.Time, error) {
+	branches, err := GetBranches(dir)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Could not read commits; unable to get branch list: %v", err)
+	}
+	timestamps := map[string]time.Time{}
+	for _, b := range branches {
+		_, ts, err := readCommitsFromGit(dir, "origin/"+b.Name)
+		if err != nil {
+			return nil, nil, err
+		}
+		for k, v := range ts {
+			timestamps[k] = v
+		}
+	}
+	gitHashes := make([]*gitHash, len(timestamps), len(timestamps))
+	i := 0
+	for h, t := range timestamps {
+		gitHashes[i] = &gitHash{hash: h, timeStamp: t}
+		i++
+	}
+	sort.Sort(gitHashSlice(gitHashes))
+	hashes := make([]string, len(timestamps), len(timestamps))
 	for i, h := range gitHashes {
 		hashes[i] = h.hash
 	}

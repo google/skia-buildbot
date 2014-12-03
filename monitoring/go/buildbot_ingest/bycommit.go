@@ -233,14 +233,14 @@ func getBuildsToProcessByCommit(dbClient *influxdb.Client) map[string]map[string
 // pushes it into InfluxDB. It is intended to be run as a goroutine.
 func LoadBuildbotByCommitData(dbClient *influxdb.Client, workdir string) {
 	skiaDir := path.Join(workdir, "skia")
-	skiaRepo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", skiaDir)
+	skiaRepo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", skiaDir, true)
 	if err != nil {
 		glog.Errorf("Failed to check out Skia: %s", err)
 		return
 	}
 	for _ = range time.Tick(10 * time.Second) {
 		buildsToProcess := getBuildsToProcessByCommit(dbClient)
-		skiaRepo.Update(true)
+		skiaRepo.Update(true, true)
 		var wg sync.WaitGroup
 		for m, buildsByBuilder := range buildsToProcess {
 			for b, builds := range buildsByBuilder {

@@ -154,7 +154,7 @@ func Init() {
 	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, config.DATASET_NANO, 2*time.Minute)
 
 	var err error
-	git, err = gitinfo.NewGitInfo(*gitRepoDir, true)
+	git, err = gitinfo.NewGitInfo(*gitRepoDir, true, false)
 	if err != nil {
 		glog.Fatal(err)
 	}

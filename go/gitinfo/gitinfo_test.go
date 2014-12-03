@@ -12,7 +12,7 @@ func TestDisplay(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,14 +33,14 @@ func TestDisplay(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		author, subject, _, err := r.Details(tc.hash)
+		details, err := r.Details(tc.hash)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got, want := author, tc.author; got != want {
+		if got, want := details.Author, tc.author; got != want {
 			t.Errorf("Details author mismatch: Got %q, Want %q", got, want)
 		}
-		if got, want := subject, tc.subject; got != want {
+		if got, want := details.Subject, tc.subject; got != want {
 			t.Errorf("Details subject mismatch: Got %q, Want %q", got, want)
 		}
 	}
@@ -50,7 +50,7 @@ func TestFrom(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestLog(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +138,7 @@ func TestShortList(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestTileAddressFromHash(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -230,7 +230,7 @@ func TestNumCommits(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 
-	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false)
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
 		t.Fatal(err)
 	}

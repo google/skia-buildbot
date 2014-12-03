@@ -189,7 +189,7 @@ func (tt TileTracker) Offset(hash string) int {
 // adds them to the tiles, creating new tiles if necessary.
 func (i *Ingester) UpdateCommitInfo(pull bool) error {
 	glog.Infof("Ingest %s: Starting UpdateCommitInfo", i.datasetName)
-	if err := i.git.Update(pull); err != nil {
+	if err := i.git.Update(pull, false); err != nil {
 		return fmt.Errorf("Ingest %s: Failed git pull for during UpdateCommitInfo: %s", i.datasetName, err)
 	}
 
@@ -230,15 +230,15 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 			glog.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
 			continue
 		}
-		author, _, ts, err := i.git.Details(hash)
+		details, err := i.git.Details(hash)
 		if err != nil {
 			glog.Errorf("Failed to get details for hash: %s: %s", hash, err)
 			continue
 		}
 		tt.Tile().Commits[tt.Offset(hash)] = &types.Commit{
-			CommitTime: ts.Unix(),
+			CommitTime: details.Timestamp.Unix(),
 			Hash:       hash,
-			Author:     author,
+			Author:     details.Author,
 		}
 	}
 	glog.Infof("Ingest %s: Starting to flush tile.", i.datasetName)

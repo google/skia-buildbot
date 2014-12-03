@@ -160,7 +160,7 @@ func main() {
 	ts.Read()
 	glog.Infof("Timestamps: %#v\n", ts.Ingester)
 
-	git, err := gitinfo.NewGitInfo(*gitRepoDir, true)
+	git, err := gitinfo.NewGitInfo(*gitRepoDir, true, false)
 	if err != nil {
 		glog.Fatal("Failed loading Git info: %s\n", err)
 	}

@@ -86,6 +86,9 @@ sudo sh -c "chmod 600 /etc/nginx/ssl/*"
 # Create the directory for www logs if necessary.
 mkdir -p /mnt/pd0/wwwlogs
 
+# Create the alertserver scratch directory if necessary.
+mkdir -p /mnt/pd0/alertserver_scratch
+
 # Now that the default installs are in place, overwrite the installs with our
 # custom config files.
 cd ~/buildbot/compute_engine_scripts/monitoring/

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-touch-fullscreen" content = "yes" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="import" href="/res/imp/polymer/polymer.html" />
+    <link rel="import" href="/res/imp/core-toolbar/core-toolbar.html" />
+    <link rel="import" href="/res/imp/core-header-panel/core-header-panel.html" />
+    <link rel="import" href="/res/imp/commits-sk.html"/>
+    <link rel="import" href="/res/imp/login-sk.html"/>
+    <link rel="import" href="/res/imp/version-sk.html"/>
+
+    <title>Skia Commits</title>
+
+    <style>
+    core-header-panel {
+      background: white;
+      font-family: sans-serif;
+    }
+    core-toolbar {
+      background-color: #55AAFF;
+      color: #FFFFFF;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.7em;
+    }
+    login-sk {
+      font-size: 0.6em;
+      display: none;
+    }
+    core-toolbar.medium-tall > login-sk {
+      display: block;
+    }
+    </style>
+  </head>
+  <body fullbleed vertical layout unresolved>
+    <core-header-panel mode="waterfall-tall" tallClass="medium-tall" flex>
+      <core-toolbar>
+        <div flex></div><login-sk></login-sk>
+        <h1 class="bottom" flex>Skia Commits</h1>
+      </core-toolbar>
+      <commits-sk></commits-sk>
+    </core-header-panel>
+    <div horizontal layout>
+      <div flex></div>
+      <version-sk></version-sk>
+    </div>
+  </body>
+</html>
