@@ -34,7 +34,7 @@ The frontend is available at http://skiaperf.com.
           |   GCE Instance|skia-testing-b |
           |               |               |
           |   +-----------+----------+    |
-          |   |     Squid3           |    |
+          |   |         Nginx        |    |
           |   |                      |    |
           |   +--------^-------------+    |
           |            |                  |
@@ -227,13 +227,13 @@ Initial setup of the database, the users, and the tables:
      $ migratedb -logtostderr=true -db_conn_string=""
 
 
-Squid
+Nginx
 -----
 
-Squid is configured to run on port 80 and run as an accelerator for the actual
-Go program which is running on port 8000. The config for the squid proxy is
-held in setup/sys/perf_squid, which is copied into place during installation and
-squid is kept running via monit.
+Nginx acts as a proxy to the backend app, which is configured to run on port
+8000, and serves the app on port 443 (HTTPS). Port 80 just redirects to 443.
+The config for the nginx server is held in setup/sys/perf_nginx, which is copied
+into place during installation. Nginx is monitored and kept running by monit.
 
 
 Clustering
