@@ -13,20 +13,29 @@ import (
 const (
 	// TIMEOUT is the http timeout when making Google Storage requests.
 	TIMEOUT = time.Duration(time.Minute)
+	// Supported Cloud storage API OAuth scopes.
+	SCOPE_READ_ONLY    = "https://www.googleapis.com/auth/devstorage.read_only"
+	SCOPE_READ_WRITE   = "https://www.googleapis.com/auth/devstorage.read_write"
+	SCOPE_FULL_CONTROL = "https://www.googleapis.com/auth/devstorage.full_control"
 )
 
 // DefaultOAuthConfig returns the default configuration for oauth.
 // If the given path for the cachefile is empty a default value is
 // used.
 func DefaultOAuthConfig(cacheFilePath string) *oauth.Config {
+	return OAuthConfig(cacheFilePath, SCOPE_READ_ONLY)
+}
+
+// OAuthConfig returns a configuration for oauth with the specified scope.
+// If the given path for the cachefile is empty a default value is used.
+func OAuthConfig(cacheFilePath, scope string) *oauth.Config {
 	if cacheFilePath == "" {
 		cacheFilePath = "google_storage_token.data"
 	}
-
 	return &oauth.Config{
 		ClientId:     "470362608618-nlbqngfl87f4b3mhqqe9ojgaoe11vrld.apps.googleusercontent.com",
 		ClientSecret: "J4YCkfMXFJISGyuBuVEiH60T",
-		Scope:        "https://www.googleapis.com/auth/devstorage.read_only",
+		Scope:        scope,
 		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
 		TokenURL:     "https://accounts.google.com/o/oauth2/token",
 		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
