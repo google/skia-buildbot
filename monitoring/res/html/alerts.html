@@ -22,24 +22,23 @@
       font-family: sans-serif;
     }
     core-toolbar {
-      background-color: #993300;
+      background-color: #88CCEE;
       color: #FFFFFF;
       text-align: center;
+    }
+    core-toolbar.alerting {
+      background-color: #CC6677;
     }
     h1 {
       font-size: 1.7em;
     }
     login-sk {
       font-size: 0.6em;
-      display: none;
-    }
-    core-toolbar.medium-tall > login-sk {
-      display: block;
     }
     </style>
   </head>
   <body fullbleed vertical layout unresolved>
-    <core-header-panel mode="waterfall-tall" tallClass="medium-tall" flex>
+    <core-header-panel flex>
       <core-toolbar>
         <div flex></div><login-sk></login-sk>
         <h1 class="bottom" flex>Skia Alerts</h1>
