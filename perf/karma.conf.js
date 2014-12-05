@@ -14,7 +14,7 @@ if (os === 'Darwin') {
 } else if (os === 'Windows_NT') {
   browsers = ['Chrome', 'Firefox', 'IE'];
 } else {
-  browsers = ['Firefox', 'Chrome'];
+  browsers = ['Chrome'];
 }
 
 module.exports = function(config) {
@@ -31,7 +31,11 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       '../res/js/common.js',
-      'tests/*.js'
+      'karma-loader.js',
+      'tests/*.js',
+
+      { pattern: 'res/**/*', included: false },
+
     ],
 
 
