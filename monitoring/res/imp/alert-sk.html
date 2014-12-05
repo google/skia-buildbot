@@ -29,6 +29,9 @@
     </style>
     <div id="wrapper" layout horizontal center>
       <div class="message" disabled?="{{!alert.active}}" flex>{{alert.message}}</div>
+      <template if="{{alert.snoozed}}">
+        <div class="message" disabled?="{{!alert.active}}">Snoozed until {{alert.snoozedUntil | parseDate}}</div>
+      </template>
       <template if="{{editRights}}">
         <template if="{{!alert.snoozed}}">
           <core-ajax
@@ -59,7 +62,6 @@
               on-core-response="{{response}}"
               on-core-error="{{error}}">
           </core-ajax>
-          <div>Snoozed until {{alert.snoozedUntil | parseDate}}</div>
           <core-icon-button icon="alarm-off" on-click="{{unsnoozeAlert}}" disabled?="{{!alert.active}}"></core-icon-button>
         </template>
         <core-ajax
