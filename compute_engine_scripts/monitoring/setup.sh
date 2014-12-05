@@ -97,6 +97,7 @@ sudo install $PARAMS $CONFIG_FILE influxdb-config.toml /opt/influxdb/shared/conf
 sudo install $PARAMS $CONFIG_FILE bashrc /home/default/.bashrc
 sudo install $PARAMS $CONFIG_FILE grafana-config.js /home/default/grafana/config.js
 sudo install $ROOT_PARAMS $CONFIG_FILE monitoring_monit /etc/monit/conf.d/monitoring
+sudo install $ROOT_PARAMS $CONFIG_FILE monitrc /etc/monit/monitrc
 sudo install $ROOT_PARAMS $EXE_FILE alertserver_init /etc/init.d/alertserver
 sudo install $ROOT_PARAMS $EXE_FILE prober_init /etc/init.d/prober
 sudo install $ROOT_PARAMS $EXE_FILE grains_init /etc/init.d/grains
