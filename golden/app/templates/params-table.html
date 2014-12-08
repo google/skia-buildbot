@@ -1,0 +1,27 @@
+<div class="row">
+  <div class="col-xs-12">
+    <table class="table table-condensed table-hover">
+      <thead>
+        <tr>
+          <th class="col-xs-2">Param</th>
+          <th class="col-xs-5" ng-if="dataTwo">Left Value</th>
+          <th class="col-xs-5" ng-if="dataTwo">Right Values</th>
+          <th class="col-xs-5" ng-if="!dataTwo">Values</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr ng-repeat="oneParam in params">
+          <td>{{oneParam.p}}</td>
+          <td class="col-xs-4" style="word-break: normal;" ng-repeat="column in oneParam.c">
+            <span ng-repeat="val in column">
+                <a href="" ng-click="filterFn(oneParam.p, val)">{{val}}</a>
+                <!-- <a href="" ng-click="filterFn(oneParam.p, val, true)">(add)</a>-->
+                &nbsp;&nbsp;
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

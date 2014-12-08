@@ -48,7 +48,7 @@ sudo sh <<CURL_SCRIPT
     $CURL_CMD $META_PROJ_URL/skiaperf-com-pem -o /etc/nginx/ssl/skiaperf_com.pem
 CURL_SCRIPT
 sudo chmod 700 /etc/nginx/ssl
-sudo chmod 600 /etc/nginx/ssl/*
+sudo sh -c "chmod 600 /etc/nginx/ssl/*"
 
 # Confirm that monit is happy.
 sudo monit -t
