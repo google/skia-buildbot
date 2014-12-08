@@ -3,11 +3,16 @@ package util
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/golang/glog"
 )
 
 // GetCTWorkers returns an array of all CT workers.
@@ -69,4 +74,49 @@ func DeleteTaskFile(taskName string) error {
 		return fmt.Errorf("Could not delete %s: %s", taskFilePath, err)
 	}
 	return nil
+}
+
+func TimeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	glog.Infof("===== %s took %s =====", name, elapsed)
+}
+
+// ExecuteCmd executes the specified binary with the specified args and env.
+func ExecuteCmd(binary string, args, env []string, failIfError bool, timeout time.Duration) {
+	// Add the current PATH to the env.
+	env = append(env, "PATH="+os.Getenv("PATH"))
+
+	// Create the cmd obj.
+	cmd := exec.Command(binary, args...)
+	cmd.Env = env
+
+	// Attach Stdout buffer to command.
+	cmdOutput := &bytes.Buffer{}
+	cmd.Stdout = cmdOutput
+
+	// Execute cmd.
+	glog.Infof("Executing %s %s", strings.Join(cmd.Env, " "), strings.Join(cmd.Args, " "))
+	cmd.Start()
+	done := make(chan error)
+	errLogFunc := glog.Warningf
+	if failIfError {
+		errLogFunc = glog.Fatalf
+	}
+	go func() {
+		done <- cmd.Wait()
+	}()
+	select {
+	case <-time.After(timeout):
+		if err := cmd.Process.Kill(); err != nil {
+			errLogFunc("Failed to kill timed out process: ", err)
+		}
+		<-done // allow goroutine to exit
+		errLogFunc("Command killed since it took longer than %f secs", timeout.Seconds())
+	case err := <-done:
+		if err != nil {
+			errLogFunc("process done with error = %v", err)
+		} else {
+			glog.Info(string(cmdOutput.Bytes()))
+		}
+	}
 }

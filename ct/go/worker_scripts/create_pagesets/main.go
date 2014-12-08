@@ -6,9 +6,9 @@ import (
 	"flag"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/golang/glog"
 
@@ -25,6 +25,7 @@ var (
 
 func main() {
 	common.Init()
+	defer util.TimeTrack(time.Now(), "Creating Pagesets")
 	// Create the task file so that the master knows this worker is still busy.
 	util.CreateTaskFile(util.ACTIVITY_CREATING_PAGESETS)
 	defer util.DeleteTaskFile(util.ACTIVITY_CREATING_PAGESETS)
@@ -73,18 +74,18 @@ func main() {
 		"py", "create_page_set.py")
 
 	// Execute the create_page_set.py python script.
+	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CreatePagesetsTimeoutSecs
 	for currNum := startNum; currNum <= endNum; currNum++ {
-		cmdArgs := []string{
+		args := []string{
 			createPageSetScript,
 			"-s", strconv.Itoa(currNum),
 			"-e", strconv.Itoa(currNum),
 			"-c", csvFile,
 			"-p", *pagesetType,
 			"-u", userAgent,
-			"-o", pathToPagesets}
-		if _, err := exec.Command("python", cmdArgs...).Output(); err != nil {
-			glog.Fatal(err)
+			"-o", pathToPagesets,
 		}
+		util.ExecuteCmd("python", args, []string{}, true, time.Duration(timeoutSecs)*time.Second)
 	}
 	// Write timestamp to the pagesets dir.
 	util.CreateTimestampFile(pathToPagesets)

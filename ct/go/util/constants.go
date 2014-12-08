@@ -10,10 +10,11 @@ const (
 	GS_BUCKET_NAME           = "cluster-telemetry"
 
 	// File names and dir names.
-	TIMESTAMP_FILE_NAME   = "TIMESTAMP"
-	PAGESETS_DIR_NAME     = "page_sets"
-	WEB_ARCHIVES_DIR_NAME = "webpage_archives"
-	SKPS_DIR_NAME         = "skp"
+	TIMESTAMP_FILE_NAME      = "TIMESTAMP"
+	CHROMIUM_BUILDS_DIR_NAME = "chromium_builds"
+	PAGESETS_DIR_NAME        = "page_sets"
+	WEB_ARCHIVES_DIR_NAME    = "webpage_archives"
+	SKPS_DIR_NAME            = "skp"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
@@ -28,13 +29,20 @@ const (
 	PAGESET_TYPE_ALL        = "All"
 	PAGESET_TYPE_10k        = "10k"
 	PAGESET_TYPE_MOBILE_10k = "Mobile10k"
-	PAGESET_TYPE_DUMMY_10k  = "Dummy10k" // Used for testing.
+	PAGESET_TYPE_DUMMY_100  = "Dummy100" // Used for testing.
+
+	// Names of binaries executed by CT.
+	BINARY_CHROME        = "chrome"
+	BINARY_RECORD_WPR    = "record_wpr"
+	BINARY_RUN_BENCHMARK = "run_benchmark"
 )
 
 type PagesetTypeInfo struct {
-	NumPages  int
-	CSVSource string
-	UserAgent string
+	NumPages                   int
+	CSVSource                  string
+	UserAgent                  string
+	CaptureArchivesTimeoutSecs int
+	CreatePagesetsTimeoutSecs  int
 }
 
 var (
@@ -47,30 +55,44 @@ var (
 	}
 
 	// Names of local directories and files.
-	StorageDir     = filepath.Join("/", "b", "storage")
-	TaskFileDir    = filepath.Join(StorageDir, "current_task")
-	GSTokenPath    = filepath.Join(StorageDir, "google_storage_token.data")
-	PagesetsDir    = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
-	WebArchivesDir = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
-	SkpsDir        = filepath.Join(StorageDir, SKPS_DIR_NAME)
+	StorageDir           = filepath.Join("/", "b", "storage")
+	ChromiumBuildsDir    = filepath.Join(StorageDir, CHROMIUM_BUILDS_DIR_NAME)
+	TelemetryBinariesDir = filepath.Join(StorageDir, "chromium", "src", "tools", "perf")
+	TaskFileDir          = filepath.Join(StorageDir, "current_task")
+	GSTokenPath          = filepath.Join(StorageDir, "google_storage_token.data")
+	PagesetsDir          = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
+	WebArchivesDir       = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
+	SkpsDir              = filepath.Join(StorageDir, SKPS_DIR_NAME)
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{
 		PAGESET_TYPE_ALL: &PagesetTypeInfo{
-			NumPages:  1000000,
-			CSVSource: "csv/top-1m.csv",
-			UserAgent: "desktop"},
+			NumPages:                   1000000,
+			CSVSource:                  "csv/top-1m.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  60,
+			CaptureArchivesTimeoutSecs: 300,
+		},
 		PAGESET_TYPE_10k: &PagesetTypeInfo{
-			NumPages:  10000,
-			CSVSource: "csv/top-1m.csv",
-			UserAgent: "desktop"},
+			NumPages:                   10000,
+			CSVSource:                  "csv/top-1m.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  60,
+			CaptureArchivesTimeoutSecs: 300,
+		},
 		PAGESET_TYPE_MOBILE_10k: &PagesetTypeInfo{
-			NumPages:  10000,
-			CSVSource: "csv/android-top-1m.csv",
-			UserAgent: "mobile"},
-		PAGESET_TYPE_DUMMY_10k: &PagesetTypeInfo{
-			NumPages:  10000,
-			CSVSource: "csv/android-top-1m.csv",
-			UserAgent: "mobile"},
+			NumPages:                   10000,
+			CSVSource:                  "csv/android-top-1m.csv",
+			UserAgent:                  "mobile",
+			CreatePagesetsTimeoutSecs:  60,
+			CaptureArchivesTimeoutSecs: 300,
+		},
+		PAGESET_TYPE_DUMMY_100: &PagesetTypeInfo{
+			NumPages:                   1000,
+			CSVSource:                  "csv/android-top-1m.csv",
+			UserAgent:                  "mobile",
+			CreatePagesetsTimeoutSecs:  60,
+			CaptureArchivesTimeoutSecs: 300,
+		},
 	}
 )

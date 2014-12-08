@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"code.google.com/p/google-api-go-client/storage/v1"
+	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/stretchr/testify/assert"
 	"skia.googlesource.com/buildbot.git/go/util"
 )

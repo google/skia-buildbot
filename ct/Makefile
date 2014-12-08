@@ -9,6 +9,10 @@ run_command:
 create_pagesets:
 	go install -v ./go/worker_scripts/create_pagesets/
 
+.PHONY: capture_archives
+capture_archives:
+	go install -v ./go/worker_scripts/capture_archives/
+
 # This is the quick version triggered by the presubmit script.
 .PHONY: testgo
 testgo:
@@ -22,7 +26,7 @@ test:
 master_scripts: run_command
 
 .PHONY: worker_scripts
-worker_scripts: create_pagesets
+worker_scripts: create_pagesets capture_archives
 
 .PHONY: all
 all: run_command create_pagesets

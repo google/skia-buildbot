@@ -14,7 +14,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"code.google.com/p/google-api-go-client/storage/v1"
+	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/gs"
 )
@@ -113,17 +113,10 @@ func (gs *GsUtil) AreTimeStampsEqual(localDir, gsDir string) (bool, error) {
 	return localTimestamp == gsTimestamp, nil
 }
 
-// DownloadWorkerArtifacts downloads artifacts from Google Storage to a local dir.
-func (gs *GsUtil) DownloadWorkerArtifacts(dirName, pagesetType string, workerNum int) error {
-	localDir := filepath.Join(StorageDir, dirName, pagesetType)
-	gsDir := filepath.Join(dirName, pagesetType, fmt.Sprintf("slave%d", workerNum))
-
-	if equal, _ := gs.AreTimeStampsEqual(localDir, gsDir); equal {
-		// No need to download artifacts they already exist locally.
-		glog.Infof("Not downloading %s because TIMESTAMPS match", gsDir)
-		return nil
-	}
-	glog.Infof("Timestamps between %s and %s are different. Downloading from Google Storage", localDir, gsDir)
+// downloadRemoteDir downloads the specified Google Storage dir to the specified
+// local dir. The local dir will be emptied and recreated. Handles multiple levels
+// of directories.
+func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	// Empty the local dir.
 	os.RemoveAll(localDir)
 	// Create the local dir.
@@ -138,9 +131,20 @@ func (gs *GsUtil) DownloadWorkerArtifacts(dirName, pagesetType string, workerNum
 		}
 		for _, result := range resp.Items {
 			fileName := filepath.Base(result.Name)
+			// If downloading from subdir then add it to the fileName.
+			fileGsDir := filepath.Dir(result.Name)
+			subDirs := strings.TrimPrefix(fileGsDir, gsDir)
+			if subDirs != "" {
+				dirTokens := strings.Split(subDirs, "/")
+				for i := range dirTokens {
+					fileName = filepath.Join(dirTokens[len(dirTokens)-i-1], fileName)
+				}
+				// Create the local directory.
+				os.MkdirAll(filepath.Join(localDir, filepath.Dir(fileName)), 0700)
+			}
 
 			wg.Add(1)
-			go func() {
+			go func(result *storage.Object) {
 				defer wg.Done()
 				respBody, err := getRespBody(result, gs.client)
 				if err != nil {
@@ -160,7 +164,7 @@ func (gs *GsUtil) DownloadWorkerArtifacts(dirName, pagesetType string, workerNum
 					return
 				}
 				glog.Infof("Downloaded gs://%s/%s to %s", GS_BUCKET_NAME, result.Name, outputFile)
-			}()
+			}(result)
 		}
 		if len(resp.NextPageToken) > 0 {
 			req.PageToken(resp.NextPageToken)
@@ -170,6 +174,39 @@ func (gs *GsUtil) DownloadWorkerArtifacts(dirName, pagesetType string, workerNum
 	}
 	wg.Wait()
 	return nil
+}
+
+// DownloadChromiumBuild downloads the specified Chromium build from Google
+// Storage to a local dir.
+func (gs *GsUtil) DownloadChromiumBuild(chromiumBuild string) error {
+	localDir := filepath.Join(ChromiumBuildsDir, chromiumBuild)
+	gsDir := filepath.Join(CHROMIUM_BUILDS_DIR_NAME, chromiumBuild)
+	if equal, _ := gs.AreTimeStampsEqual(localDir, gsDir); equal {
+		glog.Infof("Not downloading %s because TIMESTAMPS match", gsDir)
+		return nil
+	}
+	glog.Infof("Timestamps between %s and %s are different. Downloading from Google Storage", localDir, gsDir)
+	if err := gs.downloadRemoteDir(localDir, gsDir); err != nil {
+		return fmt.Errorf("Error downloading %s into %s: %s", gsDir, localDir, err)
+	}
+	// Downloaded chrome binary needs to be set as an executable.
+	os.Chmod(filepath.Join(localDir, "chrome"), 0777)
+
+	return nil
+}
+
+// DownloadWorkerArtifacts downloads artifacts from Google Storage to a local dir.
+func (gs *GsUtil) DownloadWorkerArtifacts(dirName, pagesetType string, workerNum int) error {
+	localDir := filepath.Join(StorageDir, dirName, pagesetType)
+	gsDir := filepath.Join(dirName, pagesetType, fmt.Sprintf("slave%d", workerNum))
+
+	if equal, _ := gs.AreTimeStampsEqual(localDir, gsDir); equal {
+		// No need to download artifacts they already exist locally.
+		glog.Infof("Not downloading %s because TIMESTAMPS match", gsDir)
+		return nil
+	}
+	glog.Infof("Timestamps between %s and %s are different. Downloading from Google Storage", localDir, gsDir)
+	return gs.downloadRemoteDir(localDir, gsDir)
 }
 
 func (gs *GsUtil) deleteRemoteDir(gsDir string) error {

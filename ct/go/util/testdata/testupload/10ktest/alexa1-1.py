@@ -13,7 +13,7 @@ class TypicalAlexaPage(page_module.Page):
   def __init__(self, url, page_set):
     super(TypicalAlexaPage, self).__init__(url=url, page_set=page_set)
     self.user_agent_type = 'desktop'
-    self.archive_data_file = '/b/storage/webpages_archive/10k/alexa1-1.json'
+    self.archive_data_file = '/b/storage/webpage_archives/10k/alexa1-1.json'
 
   def RunSmoothness(self, action_runner):
     action_runner.ScrollElement()
@@ -27,7 +27,7 @@ class TypicalAlexaPageSet(page_set_module.PageSet):
   def __init__(self):
     super(TypicalAlexaPageSet, self).__init__(
       user_agent_type='desktop',
-      archive_data_file='/b/storage/webpages_archive/10k/alexa1-1.json')
+      archive_data_file='/b/storage/webpage_archives/10k/alexa1-1.json')
 
     urls_list = ['http://www.google.com']
 
