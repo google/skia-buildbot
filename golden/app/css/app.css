@@ -24,7 +24,7 @@
 }
 
 .selectedImg {
-    border: 3px solid #DDDDDD;
+    border: 3px solid #1F78B4;
 }
 
 .positiveLabel {
@@ -64,6 +64,14 @@
     margin-right: 0;
 }
 
+.queryTitle {
+    font-size: 16pt;
+}
+
+.queryTitle a {
+    color: inherit;
+}
+
 .querySelect {
     height: 15em !important;
 }
@@ -95,3 +103,26 @@
     font-size: 16pt;
     color: #D95F02;
 }
+
+
+.imageBorder {
+    padding:0;
+    margin: 0;
+    border: 1px solid black;
+}
+
+.imgNoBorder {
+    padding: 0;
+    margin: 0;
+}
+
+.diffImg {
+    max-width:100%;
+    max-height: 100%;
+    width: 100%;
+}
+
+.stateChanged {
+    background-color: #FB9a99;
+}
+

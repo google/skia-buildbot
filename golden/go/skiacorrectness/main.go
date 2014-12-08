@@ -196,7 +196,6 @@ func (ug *URLAwareFileServer) GetURL(path string) string {
 	}
 
 	ret := ug.baseUrl + relPath
-	glog.Infof("Input: %s           =>       %s", path, ret)
 	return ret
 }
 
@@ -256,7 +255,6 @@ func main() {
 	// TODO (stephana): Wrap the handlers in autogzip unless we defer that to
 	// the front-end proxy.
 	router.HandleFunc("/rest/counts", tileCountsHandler).Methods("GET")
-	router.HandleFunc("/rest/triage", testDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
 

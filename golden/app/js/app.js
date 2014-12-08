@@ -98,7 +98,10 @@ var skia = skia || {};
     function($scope, $routeParams, $location, $timeout, dataService) {
       // Get the path and use it for the backend request
       var testName = $routeParams.id;
-      var path = $location.path()
+      var path = $location.path();
+      var initialTriageState;
+      var positives, negatives;
+      var posIndex, negIndex;
 
       // processServerData is called by loadTriageState and also saveTriageState
       // to process the triage data returned by the server.
@@ -116,30 +119,32 @@ var skia = skia || {};
             $scope.negStats = data.negStats;
 
             $scope.untriaged = data.untriaged;
-            $scope.triageState = ns.getNumArray($scope.untriaged.length, ns.c.UNTRIAGED);
+            initialTriageState = data.triageState;
+            $scope.triageState = angular.copy(initialTriageState);
             updatedTriageState();
 
-
             $scope.untIndex = -1;
-            $scope.posIndex = -1;
-            $scope.negIndex = -1;
-
+            $scope.leftIndex = -1;
+            posIndex = (data.positive.length > 0) ? 0 : -1;
+            negIndex = (data.negative.length > 0) ? 0 : -1;
+            $scope.showPositives = true;
             $scope.selectUntriaged(0);
 
             // If there are no untriaged we need to just set the positive
             // values since they are no longer a function of the untriaged.
             if ($scope.untriaged.length === 0) {
-              $scope.positives = data.positive;
-              $scope.selectPositive(0);
+              positives = data.positive;
             };
 
-            $scope.negatives = data.negative;
-            $scope.selectNegative(0);
+            negatives = data.negative;
 
+            // Force the left column to positives since they are initialized.
+            $scope.switchLeftColumn(true);
             $scope.allParams = data.allParams;
 
             // Show the source images if there are no positives.
-            $scope.showSrcImages = $scope.currentUntriaged && !$scope.currentPositive;
+            $scope.showSrcImages = $scope.currentUntriaged &&
+                                   !$scope.currentLeft;
 
             if (updateQuery) {
               $scope.query = serverData.query || {};
@@ -169,13 +174,11 @@ var skia = skia || {};
       // have changed. This is used to enable/disable the save and reset
       // buttons among other things.
       function updatedTriageState() {
-        $scope.triageStateDirty = false;
-        for(var i=0, len=$scope.triageState.length; i<len; i++) {
-          if ($scope.triageState[i] !== ns.c.UNTRIAGED) {
-            $scope.triageStateDirty = true;
-            break;
-          }
-        }
+        $scope.triageStateDirty =
+                      !angular.equals($scope.triageState, initialTriageState);
+        var d = ns.getDelta($scope.triageState, initialTriageState);
+        $scope.triageStateDelta = d.delta;
+        $scope.pending = d.count;
       }
 
       // selectUntriaged is a UI function to pick an untriaged digest.
@@ -186,51 +189,74 @@ var skia = skia || {};
         }
         else {
           $scope.currentUntriaged = $scope.untriaged[idx];
-          $scope.positives = ns.getSortedPositivesFromUntriaged($scope.currentUntriaged);
+          positives =
+                  ns.getSortedPositivesFromUntriaged($scope.currentUntriaged);
           $scope.untIndex = idx;
-          $scope.selectPositive(0);
+          setPosIndex(0);
         }
       };
 
-      // selectPositive is a UI function to pick a positive digest.
-      $scope.selectPositive = function (idx) {
-        if ($scope.positives.length === 0) {
-          $scope.currentPositive = null;
-          $scope.posIndex = -1;
+      // selectLeft is a UI function to pick a positive digest.
+      $scope.selectLeft = function (idx) {
+        if ($scope.leftDigests.length === 0) {
+          $scope.currentLeft = null;
+          $scope.leftIndex = -1;
         } else {
-          $scope.currentPositive = $scope.positives[idx];
-          $scope.posIndex = idx;
+          $scope.currentLeft = $scope.leftDigests[idx];
+          $scope.leftIndex = idx;
         }
       };
 
-      $scope.selectNegative = function (idx) {
-        if ($scope.positives.length === 0) {
-          $scope.currentNegative = null;
-          $scope.negIndex =  -1;
+      // setPosIndex changes the currently selected positive image whether
+      // it is displayed or not.
+      function setPosIndex(idx) {
+        posIndex = idx;
+        if ($scope.showPositives) {
+          $scope.leftDigests = positives;
+          $scope.selectLeft(posIndex);
+        }
+      };
+
+      // filterByParams adds the given parameter to the current query and
+      // triggers a refresh with the newly set filter.
+      $scope.filterByParam = function(param, value, add) {
+        if (add) {
+          $scope.query[param] = $scope.query[param] || [];
+          if ($scope.query[param].indexOf(value) === -1) {
+            $scope.query[param].push(value);
+          }
         } else {
-          $scope.currentNegative = $scope.positives[idx];
-          $scope.negIndex = idx;
+          $scope.query = {};
+          $scope.query[param] = value;
         }
-      };
-
-      $scope.filterByParam = function(param, value) {
-        $scope.query[param] = [value];
         $scope.loadTriageData();
       };
 
-      $scope.switchLeftColumn = function () {
-        $scope.showPositives = !$scope.showPositives;
+      // switchLeftColumn changes which set of digests (positive/negative) is
+      // displayed in the left hand column.
+      $scope.switchLeftColumn = function (forcePositive) {
+        if (!$scope.showPositives || forcePositive) {
+          $scope.leftDigests = positives;
+          negIndex = (forcePositive) ? 0 : $scope.leftIndex;
+          $scope.showPositives = true;
+          $scope.selectLeft(posIndex);
+        } else {
+          $scope.leftDigests = negatives;
+          posIndex = $scope.leftIndex;
+          $scope.showPositives = false;
+          $scope.selectLeft(negIndex);
+        }
       };
 
       // setTriageState sets the label of the given untriaged digest.
-      $scope.setTriageState = function (idx, value) {
-        $scope.triageState[idx] = value;
+      $scope.setTriageState = function (digest, value) {
+        $scope.triageState[digest] = value;
         updatedTriageState();
       };
 
       // resetTriageState clears all labels of the untriaged digests.
       $scope.resetTriageState = function () {
-        $scope.triageState = ns.getNumArray($scope.untriaged.length, ns.c.UNTRIAGED);
+        $scope.triageState = angular.copy(initialTriageState);
         updatedTriageState();
       };
 
@@ -238,9 +264,9 @@ var skia = skia || {};
       // and retrieves the new triage state for this test.
       $scope.saveTriageState = function () {
         var req = new ns.TriageDigestReq();
-        for (var i=0, len=$scope.triageState.length; i < len; i++) {
-          if ($scope.triageState[i] !== ns.c.UNTRIAGED) {
-            req.add(testName, $scope.untriaged[i].digest, $scope.triageState[i]);
+        for(var k in $scope.triageStateDelta) {
+          if ($scope.triageStateDelta.hasOwnProperty(k)) {
+            req.add(testName, k, $scope.triageState[k]);
           }
         }
 
@@ -248,22 +274,59 @@ var skia = skia || {};
         processServerData(dataService.sendData(ns.c.URL_TRIAGE, req), false);
       };
 
+      // stateChanged helps the UI figure out if a digest has changed. This is
+      // used to change the background of a state indicator.
+      $scope.stateChanged = function (digest) {
+        return $scope.triageState[digest] !== initialTriageState[digest];
+      };
+
+      // getOverlayStyle returns style values that are used to turn the
+      // image overlay on and off.
+      $scope.getOverlayStyle = function () {
+        if ($scope.showOverlay && $scope.currentUntriaged) {
+          return {
+            backGround: {
+              'background-image':
+                        "url('" + $scope.currentUntriaged.imgUrl + "')",
+              padding:0,
+              'background-repeat': 'no-repeat',
+              'background-size': 'cover'
+            },
+            foreGround: {
+              padding: 0,
+              'background-blend-mode': 'multiply',
+              opacity: 0.9,
+              border: 0
+            }
+          };
+        }
+
+        return {};
+      };
+
+      // toggleStateIndicator changes the state of a digest to the 'next' state.
+      // This allows to iterate through all states by repeatedly clicking on
+      // the indicator.
+      $scope.toggleStateIndicator = function (digest) {
+        var nextState = ns.nextState($scope.triageState[digest]);
+        $scope.setTriageState(digest, nextState);
+      };
+
       // Initialize the variables in $scope.
       $scope.testName = testName;
       $scope.untriaged = [];
-      $scope.positives = [];
-      $scope.triageState = [];
+      $scope.leftDigests = [];
+      positives = [];
+      negatives = [];
+      posIndex = -1;
+      negIndex = -1;
+      $scope.triageState = {};
+      $scope.triageStateDelta = {};
       $scope.reloadInterval = 3;
 
-      $scope.posStats = {
-        total: 1000,
-        unique: 10
-      };
+      $scope.posStats = {};
 
-      $scope.negStats = {
-        total: 500,
-        unique: 3
-      };
+      $scope.negStats = {};
 
       $scope.posStats = null;
       $scope.negStats = null;
@@ -272,8 +335,9 @@ var skia = skia || {};
       // Update the derived data.
       updatedTriageState();
       $scope.selectUntriaged(0);
-      $scope.selectPositive(0);
+      $scope.selectLeft(0);
       $scope.showPositives = true;
+      $scope.showOverlay = true;
 
       // Expose the constants in the template.
       $scope.c = ns.c;
@@ -287,9 +351,8 @@ var skia = skia || {};
   }]);
 
   /**
-  * skFlot implements a custom directive around Flot. We are using this directive
-  * as an attribute so we can set the size on the div.
-  *
+  * skFlot implements a custom directive around Flot. We are using this
+  * directive as an attribute so we can set the size on the div.
   **/
   app.directive('skFlot', ['$window', function($window) {
     var linkFn = function ($scope, element, attrs) {
@@ -361,6 +424,35 @@ var skia = skia || {};
   }]);
 
   /**
+  * skParams implements a directive to show the tables in a parameter. If the
+  * params-two attributes is supplied it will show both parameter sets in
+  * one table.
+  **/
+  app.directive('skParams', [function() {
+    var linkFn = function ($scope, element, attrs) {
+      function calcColumns() {
+        $scope.params = ns.getCombinedParamsTable($scope.data, $scope.dataTwo);
+      }
+
+      $scope.$watch("data", calcColumns);
+      $scope.$watch("dataTwo", calcColumns);
+    };
+
+    return {
+        restrict: 'E',
+        replace: true,
+        scope: {
+            data: '=params',
+            dataTwo: '=paramsTwo',
+            filterFn: '=filter'
+        },
+        templateUrl: 'templates/params-table.html',
+        link: linkFn
+    };
+
+  }]);
+
+  /**
   * dataService provides functions to load data from the backend.
   */
   app.factory('dataService', [ '$http', '$rootScope', '$timeout', '$location',
@@ -368,7 +460,8 @@ var skia = skia || {};
     // Inject the logoutURL into the rootScope.
     // $rootScope.logoutURL = ns.c.PREFIX_URL + ns.c.URL_LOGOUT;
     $rootScope.getLogoutURL = function() {
-      return encodeURI(ns.c.PREFIX_URL + ns.c.URL_LOGOUT + '?redirect=' + '/#' + $location.url());
+      return encodeURI(ns.c.PREFIX_URL +
+        ns.c.URL_LOGOUT + '?redirect=' + '/#' + $location.url());
     }
 
     /**

@@ -32,6 +32,9 @@ var skia = skia || {};
     }
   };
 
+  // List of states - used to cycle through via nextState.
+  ns.c.ALL_STATES = [ns.c.UNTRIAGED, ns.c.POSITIVE, ns.c.NEGATIVE];
+
     /**
      * Plot is a class that wraps the flot object and exposes draw functions.
      *
@@ -123,10 +126,11 @@ var skia = skia || {};
   * digest (usually positive) and how it differs from the a given
   * untriaged digest.
   */
-  ns.DiffDigestInfo = function (digest, imgUrl, count, diff) {
+  ns.DiffDigestInfo = function (digest, imgUrl, count, paramCounts, diff) {
     this.digest = digest;
     this.imgUrl = imgUrl;
     this.count = count;
+    this.paramCounts = paramCounts;
     this.diff = diff;
   };
 
@@ -237,6 +241,18 @@ var skia = skia || {};
     var negative = ns.getSortedDigests(serverData, testName, 'negative', negStats);
     var untriaged = ns.getUntriagedSorted(serverData, testName, untStats);
 
+    // Set the triage state for each digest.
+    var add = function(arr, state) {
+      for (var i=0, len=arr.length; i<len; i++) {
+        triageState[arr[i].digest] = state;
+      }
+    };
+
+    var triageState = {};
+    add(positive, ns.c.POSITIVE);
+    add(negative, ns.c.NEGATIVE);
+    add(untriaged, ns.c.UNTRIAGED);
+
     return {
       untriaged: untriaged,
       positive:  positive,
@@ -244,10 +260,10 @@ var skia = skia || {};
       untStats:  untStats,
       posStats:  posStats,
       negStats:  negStats,
-      allParams: ns.getSortedParams(serverData, true)
+      allParams: ns.getSortedParams(serverData, true),
+      triageState: triageState
     };
   };
-
 
   /**
   * Stats is a helper class to hold counts about a set of digests.
@@ -292,7 +308,8 @@ var skia = skia || {};
           hasPos = true;
           d = unt[digest].diffs[i];
           posd = positive[d.posDigest];
-          posDiffs.push(new ns.DiffDigestInfo(d.posDigest, posd.imgUrl, posd.count, d));
+          posDiffs.push(new ns.DiffDigestInfo(d.posDigest, posd.imgUrl,
+                                           posd.count, posd.paramCounts, d));
         }
 
         // Inject the digest and the augmented positive diffs.
@@ -351,6 +368,8 @@ var skia = skia || {};
         total += targetDigests[digest].count;
         // Inject the digest into the object.
         targetDigests[digest].digest = digest;
+        targetDigests[digest].paramCounts = ns.filterObject(
+                        targetDigests[digest].paramCounts, ns.c.PARAMS_FILTER);
         result.push(targetDigests[digest]);
       }
     }
@@ -375,9 +394,6 @@ var skia = skia || {};
     var result = [];
     for(var k in serverData.allParams) {
       if (serverData.allParams.hasOwnProperty(k) && (!filter || !ns.c.PARAMS_FILTER[k])) {
-        if (!serverData.allParams[k].sort) {
-          debugger;
-        }
         serverData.allParams[k].sort();
         result.push([k, serverData.allParams[k]]);
       }
@@ -388,6 +404,66 @@ var skia = skia || {};
     });
 
     return result;
+  };
+
+  // sortedKeys returns the keys of the object in sorted order.
+  function sortedKeys(obj) {
+    var result = [];
+    for(var k in obj) {
+      if (obj.hasOwnProperty(k)) {
+        result.push(k);
+      }
+    }
+    result.sort();
+    return result;
+  }
+
+  /**
+  * getCombinedParamsTable takes a variable number of paramCounts and
+  * combines them into a multi dimensional array to be displayed as a
+  * table. The output format is:
+  *    [
+  *     { p: 'paramName1', c: [['val1','val2'],['val3', 'val4']] },
+  *     { p: 'paramName2', c: [['valx','valy'],['val3', 'val4']] },
+  *     { p: 'paramName3', c: [['val1','val2'],['val3', 'val4']] },
+  *     { p: 'paramName4', c: [['val1','val2'],['val3', 'val4']] }
+  *    ]
+  * The array is sorted by values of 'p'.
+  */
+  ns.getCombinedParamsTable = function ( _ ) {
+    var combined = {};
+    for(var i=0, len=arguments.length; (i<len) && arguments[i]; i++) {
+      var params = arguments[i];
+      for(var k in params) {
+        if (params.hasOwnProperty(k)) {
+          if (!combined[k]) {
+            combined[k] = [];
+          }
+          combined[k][i] = sortedKeys(params[k]);
+        }
+      }
+    }
+
+    var result = [];
+    for(var k in combined) {
+      if (combined.hasOwnProperty(k)) {
+        result.push({p: k, c: combined[k]});
+      }
+    }
+
+    result.sort(function(a,b) {
+      return (a.p < b.p) ? -1 : (a.p > b.p) ? 1 : 0;
+    });
+
+    return result;
+  };
+
+  /**
+  * nextState returns the next state in the order defined by ALL_STATES.
+  */
+  ns.nextState = function(state) {
+    var idx = (ns.c.ALL_STATES.indexOf(state) + 1) % ns.c.ALL_STATES.length;
+    return ns.c.ALL_STATES[idx];
   };
 
   /**
@@ -406,6 +482,29 @@ var skia = skia || {};
     }
 
     return result;
+  };
+
+  /**
+  * getDelta returns an object that contains all the key/value pairs
+  * from changed that where the values are differnt in changed and original.
+  */
+  ns.getDelta = function (changed, original) {
+    var delta = {};
+    var count = 0;
+
+    for (var k in changed) {
+      if (changed.hasOwnProperty(k) &&
+          original.hasOwnProperty(k) &&
+          (changed[k] !== original[k])) {
+        delta[k] = changed[k];
+        count++;
+      }
+    }
+
+    return {
+      delta: delta,
+      count: count
+    };
   };
 
   /**

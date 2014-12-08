@@ -25,8 +25,9 @@ type GUITestDetail struct {
 
 // DigestInfo contains the image URL and the occurence count of a digest.
 type DigestInfo struct {
-	ImgUrl string `json:"imgUrl"`
-	Count  int    `json:"count"`
+	ImgUrl      string                    `json:"imgUrl"`
+	Count       int                       `json:"count"`
+	ParamCounts map[string]map[string]int `json:"paramCounts"`
 }
 
 // GUIUntriagedDigest is an output type for a single digest to be triaged.
@@ -35,9 +36,7 @@ type DigestInfo struct {
 type GUIUntriagedDigest struct {
 	// This is also an instance of DigestInfo
 	DigestInfo
-
-	ParamCounts map[string]map[string]int `json:"paramCounts"`
-	Diffs       GUIDiffMetrics            `json:"diffs"`
+	Diffs GUIDiffMetrics `json:"diffs"`
 }
 
 // GUIDiffMetrics is a sortable slice of diff metrics.
@@ -76,20 +75,19 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 			for i, digest := range oneTrace.Digests {
 				switch oneTrace.Labels[i] {
 				case types.UNTRIAGED:
-					// Capture the params for this digest. The diff metrics
-					// are added once we have all positives for this test.
 					if _, ok := untriagedDigests[digest]; !ok {
 						untriagedDigests[digest] = &GUIUntriagedDigest{
-							DigestInfo:  DigestInfo{ImgUrl: a.getUrl(digest)},
-							ParamCounts: map[string]map[string]int{},
+							DigestInfo: DigestInfo{
+								ImgUrl:      a.getUrl(digest),
+								ParamCounts: map[string]map[string]int{},
+							},
 						}
 					}
-					incParamCounts(untriagedDigests[digest].ParamCounts, oneTrace.Params)
-					untriagedDigests[digest].Count++
+					a.incDigestInfo(&untriagedDigests[digest].DigestInfo, digest, oneTrace.Params)
 				case types.POSITIVE:
-					a.incDigestInfo(positiveDigests, digest)
+					positiveDigests[digest] = a.incDigestInfo(positiveDigests[digest], digest, oneTrace.Params)
 				case types.NEGATIVE:
-					a.incDigestInfo(negativeDigests, digest)
+					negativeDigests[digest] = a.incDigestInfo(negativeDigests[digest], digest, oneTrace.Params)
 				}
 			}
 		}
@@ -127,11 +125,16 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 	}
 }
 
-func (a *Analyzer) incDigestInfo(digestMap map[string]*DigestInfo, digest string) {
-	if _, ok := digestMap[digest]; !ok {
-		digestMap[digest] = &DigestInfo{ImgUrl: a.getUrl(digest)}
+func (a *Analyzer) incDigestInfo(digestInfo *DigestInfo, digest string, params map[string]string) *DigestInfo {
+	if digestInfo == nil {
+		digestInfo = &DigestInfo{
+			ImgUrl:      a.getUrl(digest),
+			ParamCounts: map[string]map[string]int{},
+		}
 	}
-	digestMap[digest].Count++
+	digestInfo.Count++
+	incParamCounts(digestInfo.ParamCounts, params)
+	return digestInfo
 }
 
 func incParamCounts(paramCounts map[string]map[string]int, params map[string]string) {

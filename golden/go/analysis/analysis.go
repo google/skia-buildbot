@@ -200,22 +200,26 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
-	if (testName == "") && (len(query) == 0) {
-		return a.currentTestDetails, nil
-	}
-
+	var effectiveQuery map[string][]string
+	untriaged := a.currentTestDetails.Tests[testName].Untriaged
 	if len(query) > 0 {
-		tile, effectiveQuery := a.getSubTile(query)
+		var foundUntriaged map[string]*GUIUntriagedDigest
+		foundUntriaged, effectiveQuery = a.getUntriagedDigests(query, testName)
 		if len(effectiveQuery) > 0 {
-			ret := a.getTestDetails(tile)
-			ret.Query = effectiveQuery
-			return ret, nil
+			untriaged = foundUntriaged
 		}
 	}
 
 	return &GUITestDetails{
 		AllParams: a.currentTestDetails.AllParams,
-		Tests:     map[string]*GUITestDetail{testName: a.currentTestDetails.Tests[testName]},
+		Query:     effectiveQuery,
+		Tests: map[string]*GUITestDetail{
+			testName: &GUITestDetail{
+				Untriaged: untriaged,
+				Positive:  a.currentTestDetails.Tests[testName].Positive,
+				Negative:  a.currentTestDetails.Tests[testName].Negative,
+			},
+		},
 	}, nil
 }
 
@@ -380,6 +384,34 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 	}
 
 	return nil
+}
+
+// getUntriagedDigests returns the untriaged digests of a specific test that
+// match the given query. In addition to the digests it returns the query
+// that was used to retrieve them.
+func (a *Analyzer) getUntriagedDigests(query map[string][]string, testName string) (map[string]*GUIUntriagedDigest, map[string][]string) {
+	query[types.PRIMARY_KEY_FIELD] = []string{testName}
+	traces, effectiveQuery := a.queryTraces(query)
+	delete(effectiveQuery, types.PRIMARY_KEY_FIELD)
+
+	if len(effectiveQuery) == 0 {
+		return nil, effectiveQuery
+	}
+
+	current := a.currentTestDetails.Tests[testName].Untriaged
+	glog.Infof("CURRENT: %v", current)
+	ret := make(map[string]*GUIUntriagedDigest, len(current))
+	for _, trace := range traces {
+		for idx, label := range trace.Labels {
+			if label == types.UNTRIAGED {
+				if _, ok := ret[trace.Digests[idx]]; !ok {
+					glog.Infof("FOUND: %s", trace.Digests[idx])
+					ret[trace.Digests[idx]] = current[trace.Digests[idx]]
+				}
+			}
+		}
+	}
+	return ret, effectiveQuery
 }
 
 // getSubTile queries the index and returns a LabeledTile that contains the
