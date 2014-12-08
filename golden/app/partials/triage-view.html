@@ -152,24 +152,25 @@
                 </div>
 
                 <!-- diff image -->
-                <div class="row" ng-show="showPositives && currentLeft && currentUntriaged">
+                <div class="row">
                     <div class="col-xs-6">
-                        <div class="row identicalContainer" ng-show="currentLeft.isIdentical()">
-                            Images are identical !
-                        </div>
+                        <div ng-if="showPositives && currentLeft && currentUntriaged">
+                            <div class="row identicalContainer" ng-show="currentLeft.isIdentical()">
+                                Images are identical !
+                            </div>
 
-                        <div class="imageBorder">
-                            <div class="imgNoBorder" ng-style="getOverlayStyle().backGround">
-                                <img ng-hide="currentLeft.isIdentical()"
-                                     ng-src="{{currentLeft.diff.diffImgUrl}}"
-                                     class="diffImg imgNoBorder"
-                                     ng-style="getOverlayStyle().foreGround">
+                            <div class="imageBorder" ng-hide="currentLeft.isIdentical()">
+                                <div class="imgNoBorder" ng-style="getOverlayStyle().backGround">
+                                    <img ng-src="{{currentLeft.diff.diffImgUrl}}"
+                                         class="diffImg imgNoBorder"
+                                         ng-style="getOverlayStyle().foreGround">
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-xs-6" ng-show="showPositives && currentLeft">
-                        <div class="row">
+                    <div class="col-xs-6">
+                        <div class="row" ng-if="showPositives && currentLeft && currentUntriaged">
                                Diff:
                                {{currentLeft.diff.numDiffPixels}}px &#183;
                                {{currentLeft.diff.pixelDiffPercent | number: 2}}% &#183;
@@ -185,14 +186,14 @@
                                     </sk-params>
                             </div>
 
-                            <div class="col-xs-6">
+                            <div class="col-xs-12">
                                 <div ng-if="currentLeft && !currentUntriaged">
                                     <sk-params params="currentLeft.paramCounts" filter="filterByParam">
                                     </sk-params>
                                 </div>
                             </div>
 
-                            <div class="col-xs-6">
+                            <div class="col-xs-12">
                                 <div ng-if="currentUntriaged && !currentLeft">
                                     <sk-params params="currentUntriaged.paramCounts"
                                                filter="filterByParam">
