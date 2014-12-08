@@ -132,7 +132,6 @@ func addResultToTile(res *DMResults, tile *types.Tile, offset int, counter metri
 
 // GoldenIngester implements perf/go/ingester.IngestResultsFiles for ingesting DM files into GoldenTraces.
 func GoldenIngester(tt *ingester.TileTracker, resultsList []*ingester.ResultsFileLocation, counter metrics.Counter) error {
-	glog.Infof("Ingesting: %v", resultsList)
 	for _, resultLocation := range resultsList {
 		r, err := resultLocation.Fetch()
 		if err != nil {

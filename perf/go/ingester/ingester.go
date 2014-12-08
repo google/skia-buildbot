@@ -320,6 +320,7 @@ func (b ResultsFileLocation) Fetch() (io.ReadCloser, error) {
 		if resp.StatusCode != 200 {
 			glog.Errorf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
 		}
+		glog.Infof("GS FETCH %s", b.URI)
 		return resp.Body, nil
 	}
 	return nil, fmt.Errorf("Failed fetching JSON after %d attempts", config.MAX_URI_GET_TRIES)

@@ -98,6 +98,7 @@ func (t *Timestamps) Write() {
 	if err := json.NewEncoder(writeTimestampFile).Encode(t.Ingester); err != nil {
 		glog.Errorf("Write Timestamps: Failed to encode timestamp file: %s", err)
 	}
+	glog.Infof("TIMESTAMP WRITTEN %v", t.Ingester)
 }
 
 // Process is what each ingestion is wrapped up behind.
