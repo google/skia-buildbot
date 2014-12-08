@@ -1,319 +1,37 @@
 {
-  "android_external_port": {
-    "value": "10117",
-    "type": "integer",
-    "description": "Externally-visible port on the Android Skia build master."
-  },
-  "android_internal_port": {
-    "value": "10115",
-    "type": "integer",
-    "description": "Internally-visible port on the Android Skia build master."
-  },
-  "android_master_host": {
-    "value": "108.170.220.21",
+  "skia_git_url": {
+    "value": "https://skia.googlesource.com/skia.git",
     "type": "string",
-    "description": "Hostname (or IP address) that can be used to reach the Android Skia build master."
-  },
-  "android_master_internal_fqdn": {
-    "value": "skia-android-master-b.c.skia-buildbots.google.com.internal",
-    "type": "string",
-    "description": "What the Android Skia build master thinks its own FQDN is."
-  },
-  "android_slave_port": {
-    "value": "10116",
-    "type": "integer",
-    "description": "Port used by Android build slaves."
-  },
-  "buildbot_git_url": {
-    "value": "https://skia.googlesource.com/buildbot.git",
-    "type": "string",
-    "description": "URL of the git repository for Skia's buildbot code."
-  },
-  "code_review_site": {
-    "value": "https://chromiumcodereview.appspot.com/",
-    "type": "string",
-    "description": "URL of the project's code review site."
-  },
-  "code_review_status_listener": {
-    "value": "https://chromiumcodereview.appspot.com/status_listener",
-    "type": "string",
-    "description": "URL of the code review site's status listener."
-  },
-  "commit_bot_username": {
-    "value": "commit-bot@chromium.org",
-    "type": "string",
-    "description": "Email address of the commit queue committer (commit-bot)"
-  },
-  "console_default_rev_limit": {
-    "value": "50",
-    "type": "integer",
-    "description": "Default number of changes to load from history when building the console page."
-  },
-  "console_max_rev_limit": {
-    "value": "500",
-    "type": "integer",
-    "description": "Maximum number of changes to load from history when building the console page."
-  },
-  "compile_external_port": {
-    "value": "10117",
-    "type": "integer",
-    "description": "Externally-visible port on the Compile Skia build master."
-  },
-  "compile_internal_port": {
-    "value": "10115",
-    "type": "integer",
-    "description": "Internally-visible port on the Compile Skia build master."
-  },
-  "compile_master_host": {
-    "value": "108.170.220.76",
-    "type": "string",
-    "description": "Hostname (or IP address) that can be used to reach the Compile Skia build master."
-  },
-  "compile_master_internal_fqdn": {
-    "value": "skia-compile-master-b.c.skia-buildbots.google.com.internal",
-    "type": "string",
-    "description": "What the Compile Skia build master thinks its own FQDN is."
-  },
-  "compile_slave_port": {
-    "value": "10116",
-    "type": "integer",
-    "description": "Port used by Compile build slaves."
-  },
-  "cq_required_steps": {
-    "value": [
-      "BuildBench",
-      "BuildGm",
-      "BuildEverything",
-      "BuildSkiaLib",
-      "BuildTests",
-      "BuildTools"
-    ],
-    "type": "list",
-    "description": "Steps which are not allowed to fail on the commit queue."
-  },
-  "current_sheriff_url": {
-    "value": "https://skia-tree-status.appspot.com/current-sheriff",
-    "type": "string",
-    "description": "URL that displays the current sheriff and his/her schedule."
+    "description": "URL of the Skia Git repository."
   },
   "next_sheriff_url": {
     "value": "https://skia-tree-status.appspot.com/next-sheriff",
     "type": "string",
     "description": "URL that displays the next sheriff and his/her schedule."
   },
-  "default_webstatus_refresh": {
-    "value": "60",
-    "type": "integer",
-    "description": "How often (in seconds) to reload the buildbot status page if not specified."
-  },
-  "fyi_external_port": {
-    "value": "10117",
-    "type": "integer",
-    "description": "Externally-visible port on the FYI Skia build master."
-  },
-  "fyi_internal_port": {
-    "value": "10115",
-    "type": "integer",
-    "description": "Internally-visible port on the FYI Skia build master."
-  },
-  "fyi_master_host": {
-    "value": "108.170.220.102",
-    "type": "string",
-    "description": "Hostname (or IP address) that can be used to reach the FYI Skia build master."
-  },
-  "fyi_master_internal_fqdn": {
-    "value": "skia-fyi-master-b.c.skia-buildbots.google.com.internal",
-    "type": "string",
-    "description": "What the FYI Skia build master thinks its own FQDN is."
-  },
-  "fyi_slave_port": {
-    "value": "10116",
-    "type": "integer",
-    "description": "Port used by FYI build slaves."
-  },
-  "gatekeeper_steps": {
-    "value": [
-        "Retry_BuildAll",
-        "Retry_BuildEverything",
-        "Retry_BuildBench",
-        "Retry_BuildGm",
-        "Retry_BuildMost",
-        "Retry_BuildSkiaLib",
-        "Retry_BuildTests",
-        "Retry_BuildTools",
-        "Retry_NoWarningsAsErrors_BuildAll"
-    ],
-    "type": "list",
-    "description": "Steps which trigger the gatekeeper on failure."
-  },
-  "gce_compile_bots_zone": {
-    "value": "b",
-    "type": "string",
-    "description": "The zone of the Compile buildbots on GCE."
-  },
   "gce_project": {
     "value": "google.com:skia-buildbots",
     "type": "string",
     "description": "The project name for the Skia GCE instances."
-  },
-  "gce_smtp_port": {
-    "value": "587",
-    "type": "integer",
-    "description": "SMTP port that is open on Skia GCE instances."
-  },
-  "gce_smtp_server": {
-    "value": "smtp.gmail.com",
-    "type": "string",
-    "description": "SMTP server that is accessible on Skia GCE instances."
-  },
-  "gce_smtp_use_tls": {
-    "value": "True",
-    "type": "boolean",
-    "description": "Whether SMTP should use TLS."
-  },
-  "gce_smtp_user": {
-    "value": "skia.buildbots@gmail.com",
-    "type": "string",
-    "description": "SMTP user which can send emails on Skia GCE instances."
   },
   "gce_username": {
     "value": "default",
     "type": "string",
     "description": "The user name of the buildbots on Skia GCE instances."
   },
-  "gm_summaries_bucket": {
-    "value": "chromium-skia-gm-summaries",
+  "gce_compile_bots_zone": {
+    "value": "b",
     "type": "string",
-    "description": "Google Cloud Storage bucket we use for GM actual-result.json files."
-  },
-  "googlestorage_bucket": {
-    "value": "chromium-skia-gm",
-    "type": "string",
-    "description": "Google Cloud Storage bucket we use for most things."
-  },
-  "latest_gm_failures_preamble": {
-    "value": "View latest GM failures for this builder at: ",
-    "type": "string",
-    "description": "Wording that leads up to URL pointing at latest GM results for this builder."
-  },
-  "master_branch_name": {
-    "value": "master",
-    "type": "string",
-    "description": "The git branch on which the bots operate."
-  },
-  "num_gce_compile_bots": {
-    "value": "5",
-    "type": "integer",
-    "description": "The number of Compile buildbots on GCE."
-  },
-  "private_external_port": {
-    "value": "8241",
-    "type": "integer",
-    "description": "Externally-visible port on the private Skia build master; not intended to be accessible!"
-  },
-  "private_internal_port": {
-    "value": "10115",
-    "type": "integer",
-    "description": "Internally-visible port on the private Skia build master."
-  },
-  "private_master_host": {
-    "value": "108.170.220.27",
-    "type": "string",
-    "description": "Hostname (or IP address) that can be used to reach the private Skia build master."
-  },
-  "private_master_internal_fqdn": {
-    "value": "skia-private-master-b.c.skia-buildbots.google.com.internal",
-    "type": "string",
-    "description": "What the private Skia build master thinks its own FQDN is."
-  },
-  "private_slave_port": {
-    "value": "10116",
-    "type": "integer",
-    "description": "Port used by private build slaves."
-  },
-  "project_url": {
-    "value": "https://code.google.com/p/skia",
-    "type": "string",
-    "description": "URL of the Skia codesite."
-  },
-  "public_external_port": {
-    "value": "10117",
-    "type": "integer",
-    "description": "Externally-visible port on the Skia build master."
-  },
-  "public_internal_port": {
-    "value": "10115",
-    "type": "integer",
-    "description": "Internally-visible port on the Skia build master."
-  },
-  "public_master_host": {
-    "value": "108.170.220.120",
-    "type": "string",
-    "description": "Hostname (or IP address) that can be used to reach the public Skia build master."
-  },
-  "public_master_internal_fqdn": {
-    "value": "skia-master-b.c.skia-buildbots.google.com.internal",
-    "type": "string",
-    "description": "What the public Skia build master thinks its own FQDN is."
-  },
-  "public_slave_port": {
-    "value": "10116",
-    "type": "integer",
-    "description": "Port used by public build slaves."
-  },
-  "revlink_tmpl": {
-    "value": "https://skia.googlesource.com/skia/+/%s",
-    "type": "string",
-    "description": "Template for links to specific revisions in Skia."
-  },
-  "skialab_username": {
-    "value": "chrome-bot",
-    "type": "string",
-    "description": "User name of buildbots in SkiaLab."
+    "description": "The zone of the Compile buildbots on GCE."
   },
   "skialab_router_ip": {
     "value": "172.23.215.237",
     "type": "string",
     "description": "IP address of the SkiaLab NAT router"
   },
-  "skia_dashboard_add_point_url": {
-    "value": "https://skiadash.appspot.com/skia_add_points",
+  "skialab_username": {
+    "value": "chrome-bot",
     "type": "string",
-    "description": "URL for adding bench data to the Skia dashboard on Appspot."
+    "description": "User name of buildbots in SkiaLab."
   },
-  "skia_git_url": {
-    "value": "https://skia.googlesource.com/skia.git",
-    "type": "string",
-    "description": "URL of the Skia Git repository."
-  },
-  "skp_images_bucket": {
-    "value": "chromium-skia-skp-images",
-    "type": "string",
-    "description": "Google Cloud Storage bucket in which we store actual SKP rendering images."
-  },
-  "skp_summaries_bucket": {
-    "value": "chromium-skia-skp-summaries",
-    "type": "string",
-    "description": "Google Cloud Storage bucket in which we store actual SKP rendering summaries."
-  },
-  "dm_images_bucket": {
-    "value": "chromium-skia-gm",
-    "type": "string",
-    "description": "Google Cloud Storage bucket in which we store images from DM."
-  },
-  "dm_summaries_bucket": {
-    "value": "chromium-skia-gm",
-    "type": "string",
-    "description": "Google Cloud Storage bucket in which we store summaries from DM."
-  },
-  "tree_status_baseurl": {
-    "value": "https://skia-tree-status.appspot.com",
-    "type": "string",
-    "description": "Base URL of the Skia tree status AppEngine instance."
-  },
-  "tree_status_url": {
-    "value": "https://skia-tree-status.appspot.com/binary-status",
-    "type": "string",
-    "description": "URL that displays the status of the Skia tree."
-  }
 }
