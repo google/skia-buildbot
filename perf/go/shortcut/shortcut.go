@@ -27,11 +27,11 @@ func Insert(r io.Reader) (string, error) {
 	}
 	result, err := db.DB.Exec(`INSERT INTO shortcuts (traces) VALUES (?)`, string(b))
 	if err != nil {
-		return "", fmt.Errorf("Error while inserting shortcut: err", err)
+		return "", fmt.Errorf("Error while inserting shortcut: %v", err)
 	}
 	id, err := result.LastInsertId()
 	if err != nil {
-		return "", fmt.Errorf("Error retrieving ID of new shortcut:", err)
+		return "", fmt.Errorf("Error retrieving ID of new shortcut: %v", err)
 	}
 	return fmt.Sprintf("%d", id), nil
 }

@@ -135,7 +135,7 @@ func processRows(rows *sql.Rows, err error) ([]*types.ClusterSummary, error) {
 		}
 		c := &types.ClusterSummary{}
 		if err := json.Unmarshal([]byte(body), c); err != nil {
-			glog.Errorf("Found invalid JSON in clusters table: %s %s", id, err)
+			glog.Errorf("Found invalid JSON in clusters table: %d %s", id, err)
 			return nil, fmt.Errorf("Failed to read row from database: %s", err)
 		}
 		c.ID = id

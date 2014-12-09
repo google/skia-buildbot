@@ -81,7 +81,7 @@ func TestFrom(t *testing.T) {
 	for _, tc := range testCases {
 		hashes := r.From(time.Unix(tc.ts, 0))
 		if got, want := len(hashes), tc.length; got != want {
-			t.Errorf("For ts: %d Length returned is wrong: Got %s Want %d", tc.ts, got, want)
+			t.Errorf("For ts: %d Length returned is wrong: Got %d Want %d", tc.ts, got, want)
 		}
 	}
 }

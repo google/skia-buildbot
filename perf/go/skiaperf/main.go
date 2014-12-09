@@ -469,7 +469,7 @@ func getTile(tileScale, tileNumber int) (*types.Tile, error) {
 	tile, err := nanoTileStore.Get(int(tileScale), int(tileNumber))
 	glog.Infoln("Time for tile load: ", time.Since(start).Nanoseconds())
 	if err != nil || tile == nil {
-		return nil, fmt.Errorf("Unable to get tile from tilestore: ", err)
+		return nil, fmt.Errorf("Unable to get tile from tilestore: %s", err)
 	}
 	return tile, nil
 }

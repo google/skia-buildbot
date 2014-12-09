@@ -37,7 +37,7 @@ func TestIngestCommits(t *testing.T) {
 
 	git, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {
-		glog.Fatal("Failed loading Git info: %s\n", err)
+		glog.Fatalf("Failed loading Git info: %s\n", err)
 	}
 
 	// Construct an Ingestor and have it UpdateCommitInfo.

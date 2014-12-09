@@ -39,7 +39,15 @@ func main() {
 		*influxDbName = metadata.MustGet(INFLUXDB_NAME_METADATA_KEY)
 		*influxDbPassword = metadata.MustGet(INFLUXDB_PASSWORD_METADATA_KEY)
 	}
-	dbClient, err := influxdb.New(&influxdb.ClientConfig{*influxDbHost, *influxDbName, *influxDbPassword, *influxDbDatabase, nil, false, false})
+	dbClient, err := influxdb.New(&influxdb.ClientConfig{
+		Host:       *influxDbHost,
+		Username:   *influxDbName,
+		Password:   *influxDbPassword,
+		Database:   *influxDbDatabase,
+		HttpClient: nil,
+		IsSecure:   false,
+		IsUDP:      false,
+	})
 	if err != nil {
 		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}

@@ -163,7 +163,7 @@ func main() {
 
 	git, err := gitinfo.NewGitInfo(*gitRepoDir, true, false)
 	if err != nil {
-		glog.Fatal("Failed loading Git info: %s\n", err)
+		glog.Fatalf("Failed loading Git info: %s\n", err)
 	}
 
 	// ingesters is a list of all the types of ingestion we can do.

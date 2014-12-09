@@ -23,7 +23,7 @@ func init() {
 	var err error
 	parsedDate, err = time.Parse(DATE_FORMAT, DATE)
 	if err != nil {
-		glog.Fatal("Failed to parse build date. Did you forget to run \"make skiaversion\"? %v", err)
+		glog.Fatalf("Failed to parse build date. Did you forget to run \"make skiaversion\"? %v", err)
 	}
 }
 

@@ -262,6 +262,6 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		"LoginURL": LoginURL(w, r),
 	}
 	if err := enc.Encode(body); err != nil {
-		glog.Errorf("Failed to encode Login status to JSON", err)
+		glog.Errorf("Failed to encode Login status to JSON: %s", err)
 	}
 }

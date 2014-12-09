@@ -14,16 +14,18 @@ import unittest
 BUILDBOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
-GO_TESTS = [
+GO_DIRS = [
   '.',
-  'perf',
-  'monitoring',
+  'ct',
   'golden',
+  'monitoring',
+  'perf',
 ]
 
 GO_TEST_FAILED = (
 '''======================================================================
 Go test failed: %s
+CWD: %s
 ----------------------------------------------------------------------
 %s
 ----------------------------------------------------------------------
@@ -53,30 +55,43 @@ def FilterDirectory(dirpath, filenames):
   return True
 
 
-def TestGo(testname):
-  # TODO(borenet): Switch to 'make test' once we're sure the karma-based tests
-  # will run in headless mode.
-  p = subprocess.Popen(['make', 'testgo'], cwd=testname,
+def RunGoTest(cmd, cwd):
+  p = subprocess.Popen(cmd, cwd=cwd,
                        stderr=subprocess.STDOUT,
                        stdout=subprocess.PIPE)
   output = p.communicate()[0]
   if p.returncode != 0:
-    return GO_TEST_FAILED % (testname, output)
-  return None
+    return [GO_TEST_FAILED % (' '.join(cmd), cwd, output)]
+  return []
+
+
+def GoTests(cwd):
+  # TODO(borenet): Switch to 'make test' once we're sure the karma-based tests
+  # will run in headless mode.
+  return RunGoTest(['make', 'testgo'], cwd)
+
+
+def GoVet():
+  return RunGoTest(['go', 'vet', './...'], '.')
 
 
 def GoImports():
+  cmd = ['goimports', '-l', '.']
   try:
-    diff_files = subprocess.check_output(['goimports', '-l', '.'],
+    diff_files = subprocess.check_output(cmd, cwd='.',
                                          stderr=subprocess.PIPE).splitlines()
   except subprocess.CalledProcessError:
-    return ('goimports failed to run! Is it installed? You may need to run: \n'
-            'go get http://code.google.com/p/go.tools/cmd/goimports')
+    return [GO_TEST_FAILED % (
+        ' '.join(cmd), '.',
+        ('goimports failed to run! Is it installed? You may need to run:\n'
+         'go get http://code.google.com/p/go.tools/cmd/goimports'))]
 
   if len(diff_files) > 0:
-    return ('goimports found diffs in the following files: %s' %
-            ', '.join(diff_files))
-  return None
+    return [GO_TEST_FAILED % (
+        ' '.join(cmd), '.',
+        ('goimports found diffs in the following files: %s' %
+         ', '.join(diff_files)))]
+  return []
 
 
 if __name__ == '__main__':
@@ -91,9 +106,11 @@ if __name__ == '__main__':
       continue
     tests_to_run.extend(test_modules)
 
-  builtin_tests = [GoImports]
+  go_tests = [GoVet, GoImports]
+  go_tests_cwd = [GoTests]
 
-  num_tests = len(tests_to_run) + len(GO_TESTS) + len(builtin_tests)
+  num_tests = (len(tests_to_run) + len(go_tests) +
+               len(GO_DIRS) * len(go_tests_cwd))
   print 'Found %d tests.' % num_tests
   errors = []
   for test in tests_to_run:
@@ -102,20 +119,15 @@ if __name__ == '__main__':
     if proc.wait() != 0:
       errors.append(proc.communicate()[0])
 
-  for go_test in GO_TESTS:
-    error = TestGo(go_test)
-    if error:
-      errors.append(error)
-
-  for builtin_test in builtin_tests:
-    error = builtin_test()
-    if error:
-      errors.append(error)
+  for go_dir in GO_DIRS:
+    for test in go_tests_cwd:
+      errors.extend(test(go_dir))
+  for go_test in go_tests:
+    errors.extend(go_test())
 
   if errors:
     for error in errors:
       print error
-    print 'Failed %d of %d.' % (len(errors), num_tests)
     sys.exit(1)
   else:
     print 'All tests succeeded.'

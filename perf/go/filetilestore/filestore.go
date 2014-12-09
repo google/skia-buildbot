@@ -59,7 +59,7 @@ type FileTileStore struct {
 
 // tileFilename creates the filename for the given tile scale and index for the
 // given FileTileStore.
-func (store FileTileStore) tileFilename(scale, index int) (string, error) {
+func (store *FileTileStore) tileFilename(scale, index int) (string, error) {
 	if scale < 0 || index < 0 {
 		return "", fmt.Errorf("Scale %d and Index %d must both be >= 0", scale, index)
 	}
@@ -69,7 +69,7 @@ func (store FileTileStore) tileFilename(scale, index int) (string, error) {
 // fileTileTemp creates a unique temporary filename for the given tile scale and
 // index for the given FileTileStore. Used during Put() so that writes update
 // atomically.
-func (store FileTileStore) fileTileTemp(scale, index int) (*os.File, error) {
+func (store *FileTileStore) fileTileTemp(scale, index int) (*os.File, error) {
 	if scale < 0 || index < 0 {
 		return nil, fmt.Errorf("Scale %d and Index %d must both be >= 0", scale, index)
 	}

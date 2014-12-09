@@ -115,7 +115,7 @@ func TestFillAtErrors(t *testing.T) {
 	for _, tc := range testCases {
 		_, err := FillAt(tc.Slice, tc.Idx)
 		if err == nil {
-			t.Fatalf("Expected %q to fail FillAt.", tc)
+			t.Fatalf("Expected \"%v\" to fail FillAt.", tc)
 		}
 	}
 }

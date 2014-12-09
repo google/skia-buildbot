@@ -209,7 +209,6 @@ func TrybotIngestion(_ *ingester.TileTracker, resultsFiles []*ingester.ResultsFi
 			}
 			if cur, err = Get(b.IssueName); err != nil {
 				return fmt.Errorf("Failed to load existing trybot data for issue %s: %s", b.IssueName, err)
-				continue
 			}
 			lastIssue = b.IssueName
 			glog.Infof("Switched to issue: %s", lastIssue)

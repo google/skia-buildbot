@@ -130,7 +130,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		alertId := split[2]
 		if !alertManager.Contains(alertId) {
-			util.ReportError(w, r, fmt.Errorf("Invalid Alert ID %d", alertId), "The requested resource does not exist.")
+			util.ReportError(w, r, fmt.Errorf("Invalid Alert ID %s", alertId), "The requested resource does not exist.")
 			return
 		}
 		action := split[3]
@@ -243,7 +243,15 @@ func main() {
 		*influxDbName = metadata.MustGet(INFLUXDB_NAME_METADATA_KEY)
 		*influxDbPassword = metadata.MustGet(INFLUXDB_PASSWORD_METADATA_KEY)
 	}
-	dbClient, err := client.New(&client.ClientConfig{*influxDbHost, *influxDbName, *influxDbPassword, *influxDbDatabase, nil, false, false})
+	dbClient, err := client.New(&client.ClientConfig{
+		Host:       *influxDbHost,
+		Username:   *influxDbName,
+		Password:   *influxDbPassword,
+		Database:   *influxDbDatabase,
+		HttpClient: nil,
+		IsSecure:   false,
+		IsUDP:      false,
+	})
 	if err != nil {
 		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}

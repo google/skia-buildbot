@@ -170,7 +170,7 @@ func (tt TileTracker) Flush() {
 	glog.Info("Flushing Tile.")
 	if tt.lastTileNum != -1 {
 		if err := tt.tileStore.Put(0, tt.lastTileNum, tt.currentTile); err != nil {
-			glog.Error("Failed to write Tile: %s", err)
+			glog.Errorf("Failed to write Tile: %s", err)
 		}
 	}
 }

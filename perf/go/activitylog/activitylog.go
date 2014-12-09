@@ -17,7 +17,7 @@ import (
 func Write(r *types.Activity) error {
 	glog.Infof("Write activity: %s\n", r)
 	if r.UserID == "" || r.Action == "" {
-		return fmt.Errorf("Activity UserID and Action cannot be empty: %s\n", r)
+		return fmt.Errorf("Activity UserID and Action cannot be empty: %v\n", r)
 	}
 	_, err := db.DB.Exec(
 		"INSERT INTO activitylog (timestamp, userid, action, url) VALUES (?, ?, ?, ?)",

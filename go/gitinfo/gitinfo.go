@@ -175,7 +175,7 @@ func (g *GitInfo) From(start time.Time) []string {
 //    perf/go/types/types.go
 //    perf/res/js/logic.js
 //
-func (g GitInfo) Log(begin, end string) (string, error) {
+func (g *GitInfo) Log(begin, end string) (string, error) {
 	command := []string{"log", "--name-only"}
 	hashrange := begin
 	if end != "" {
@@ -194,7 +194,7 @@ func (g GitInfo) Log(begin, end string) (string, error) {
 }
 
 // FullHash gives the full commit hash for the given ref.
-func (g GitInfo) FullHash(ref string) (string, error) {
+func (g *GitInfo) FullHash(ref string) (string, error) {
 	cmd := exec.Command("git", "rev-parse", ref)
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
@@ -205,7 +205,7 @@ func (g GitInfo) FullHash(ref string) (string, error) {
 }
 
 // GetFile returns the contents of the given file at the given commit.
-func (g GitInfo) GetFile(fileName, commit string) (string, error) {
+func (g *GitInfo) GetFile(fileName, commit string) (string, error) {
 	cmd := exec.Command("git", "show", commit+":"+fileName)
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
@@ -216,7 +216,7 @@ func (g GitInfo) GetFile(fileName, commit string) (string, error) {
 }
 
 // InitalCommit returns the hash of the initial commit.
-func (g GitInfo) InitialCommit() (string, error) {
+func (g *GitInfo) InitialCommit() (string, error) {
 	cmd := exec.Command("git", "rev-list", "--max-parents=0", "HEAD")
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
@@ -227,7 +227,7 @@ func (g GitInfo) InitialCommit() (string, error) {
 }
 
 // GetBranches returns a slice of strings naming the branches in the repo.
-func (g GitInfo) GetBranches() ([]*GitBranch, error) {
+func (g *GitInfo) GetBranches() ([]*GitBranch, error) {
 	return GetBranches(g.dir)
 }
 
@@ -376,7 +376,7 @@ func readCommitsFromGitAllBranches(dir string) ([]string, map[string]time.Time, 
 }
 
 // SkpCommits returns the indices for all the commits that contain SKP updates.
-func (g GitInfo) SkpCommits(tile *types.Tile) ([]int, error) {
+func (g *GitInfo) SkpCommits(tile *types.Tile) ([]int, error) {
 	// Executes a git log command that looks like:
 	//
 	//   git log --format=format:%H  32956400b4d8f33394e2cdef9b66e8369ba2a0f3..e7416bfc9858bde8fc6eb5f3bfc942bc3350953a SKP_VERSION
@@ -402,7 +402,7 @@ func (g GitInfo) SkpCommits(tile *types.Tile) ([]int, error) {
 }
 
 // LastSkpCommit returns the time of the last change to the SKP_VERSION file.
-func (g GitInfo) LastSkpCommit() (time.Time, error) {
+func (g *GitInfo) LastSkpCommit() (time.Time, error) {
 	// Executes a git log command that looks like:
 	//
 	// git log --format=format:%ct -n 1 SKP_VERSION

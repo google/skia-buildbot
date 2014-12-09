@@ -6,7 +6,7 @@ const (
 	// TODO(rmistry): Switch this to use chrome-bot when ready to run in prod
 	CT_USER                  = "rmistry"
 	NUM_WORKERS          int = 100
-	WORKER_NAME_TEMPLATE     = "build%s-m5"
+	WORKER_NAME_TEMPLATE     = "build%d-m5"
 	GS_BUCKET_NAME           = "cluster-telemetry"
 
 	// File names and dir names.

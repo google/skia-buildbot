@@ -141,7 +141,7 @@ func getLastProcessedBuildOnBranch(dbClient *influxdb.Client, builder, master, b
 	}
 	series := results[0]
 	if series.Name != SERIES_BUILDBOT_BYCOMMIT {
-		return -1, fmt.Errorf("Query returned the wrong series: %q; expected: %s got: %S", q, SERIES_BUILDBOT_BYCOMMIT, series.Name)
+		return -1, fmt.Errorf("Query returned the wrong series: %q; expected: %s got: %s", q, SERIES_BUILDBOT_BYCOMMIT, series.Name)
 	}
 	if len(series.Columns) != 2 {
 		return -1, fmt.Errorf("Query returned incorrect number of columns: %q, %v", q, series.Columns)

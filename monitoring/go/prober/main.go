@@ -267,7 +267,7 @@ func main() {
 			} else if probe.Method == "POST" {
 				resp, err = c.Post(probe.URL, probe.MimeType, strings.NewReader(probe.Body))
 			} else {
-				glog.Errorf("Error: unknown method: ", probe.Method)
+				glog.Errorf("Error: unknown method: %s", probe.Method)
 				continue
 			}
 			if err != nil {

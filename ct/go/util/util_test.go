@@ -55,7 +55,7 @@ func TestCreateTimestampFile(t *testing.T) {
 	defer os.RemoveAll(realDir)
 	timestampFilePath := filepath.Join(realDir, TIMESTAMP_FILE_NAME)
 	if err := CreateTimestampFile(realDir); err != nil {
-		t.Error("Unexpected error: %s", err)
+		t.Errorf("Unexpected error: %s", err)
 	}
 	// Assert timestamp file exists.
 	if _, err := os.Stat(timestampFilePath); err != nil {
@@ -67,7 +67,7 @@ func TestCreateTimestampFile(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	if _, err := strconv.ParseInt(string(fileContent), 10, 64); err != nil {
-		t.Error("Unexpected value in %s: %s", timestampFilePath, err)
+		t.Errorf("Unexpected value in %s: %s", timestampFilePath, err)
 	}
 
 	// Assert error returned when specified dir does not exist.
