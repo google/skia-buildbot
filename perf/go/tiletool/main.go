@@ -122,7 +122,7 @@ func md5Commits(store types.TileStore, targetHash string, nCommits int) {
 func parseInt(nStr string) int {
 	ret, err := strconv.ParseInt(nStr, 10, 0)
 	if err != nil {
-		glog.Fatalf("ERROR:", err.Error())
+		glog.Fatalf("ERROR: %s", err.Error())
 	}
 	return int(ret)
 }
