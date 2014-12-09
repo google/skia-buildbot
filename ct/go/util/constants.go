@@ -14,7 +14,9 @@ const (
 	CHROMIUM_BUILDS_DIR_NAME = "chromium_builds"
 	PAGESETS_DIR_NAME        = "page_sets"
 	WEB_ARCHIVES_DIR_NAME    = "webpage_archives"
-	SKPS_DIR_NAME            = "skp"
+	SKPS_DIR_NAME            = "skps"
+	STORAGE_DIR_NAME         = "storage"
+	REPO_DIR_NAME            = "skia-repo"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
@@ -35,6 +37,9 @@ const (
 	BINARY_CHROME        = "chrome"
 	BINARY_RECORD_WPR    = "record_wpr"
 	BINARY_RUN_BENCHMARK = "run_benchmark"
+	BINARY_GCLIENT       = "gclient"
+	BINARY_MAKE          = "make"
+	BINARY_LUA_PICTURES  = "lua_pictures"
 )
 
 type PagesetTypeInfo struct {
@@ -55,7 +60,8 @@ var (
 	}
 
 	// Names of local directories and files.
-	StorageDir           = filepath.Join("/", "b", "storage")
+	StorageDir           = filepath.Join("/", "b", STORAGE_DIR_NAME)
+	RepoDir              = filepath.Join("/", "b", REPO_DIR_NAME)
 	ChromiumBuildsDir    = filepath.Join(StorageDir, CHROMIUM_BUILDS_DIR_NAME)
 	TelemetryBinariesDir = filepath.Join(StorageDir, "chromium", "src", "tools", "perf")
 	TaskFileDir          = filepath.Join(StorageDir, "current_task")
@@ -63,6 +69,11 @@ var (
 	PagesetsDir          = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
 	WebArchivesDir       = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
 	SkpsDir              = filepath.Join(StorageDir, SKPS_DIR_NAME)
+	SkiaTreeDir          = filepath.Join(RepoDir, "trunk")
+	CtTreeDir            = filepath.Join(RepoDir, "buildbot")
+
+	// Names of remote directories and files.
+	LuaRunsDir = filepath.Join("tasks", "lua_runs")
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{

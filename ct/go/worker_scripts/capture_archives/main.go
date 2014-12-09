@@ -89,7 +89,7 @@ func main() {
 			fmt.Sprintf("PYTHONPATH=%s:$PYTHONPATH", pathToPagesets),
 			"DISPLAY=:0",
 		}
-		util.ExecuteCmd(recordWprBinary, args, env, false, time.Duration(timeoutSecs)*time.Second)
+		util.ExecuteCmd(recordWprBinary, args, env, false, time.Duration(timeoutSecs)*time.Second, nil, nil)
 	}
 
 	// Write timestamp to the webpage archives dir.

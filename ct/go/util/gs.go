@@ -239,6 +239,23 @@ func (gs *GsUtil) deleteRemoteDir(gsDir string) error {
 	return nil
 }
 
+// UploadFile uploads the specified file to the remote dir in Google Storage.
+func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
+	localFile := filepath.Join(localDir, fileName)
+	gsFile := filepath.Join(gsDir, fileName)
+	object := &storage.Object{Name: gsFile}
+	f, err := os.Open(localFile)
+	if err != nil {
+		return fmt.Errorf("Error opening %s: %s", localFile, err)
+	}
+	defer f.Close()
+	if _, err := gs.service.Objects.Insert(GS_BUCKET_NAME, object).Media(f).Do(); err != nil {
+		return fmt.Errorf("Objects.Insert failed: %s", err)
+	}
+	glog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GS_BUCKET_NAME, gsFile))
+	return nil
+}
+
 // UploadWorkerArtifacts uploads artifacts from a local dir to Google Storage.
 func (gs *GsUtil) UploadWorkerArtifacts(dirName, pagesetType string, workerNum int) error {
 	localDir := filepath.Join(StorageDir, dirName, pagesetType)
@@ -264,21 +281,9 @@ func (gs *GsUtil) UploadWorkerArtifacts(dirName, pagesetType string, workerNum i
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			localFile := filepath.Join(localDir, fileName)
-			gsFile := filepath.Join(gsDir, fileName)
-			object := &storage.Object{Name: gsFile}
-			f, err := os.Open(localFile)
-			if err != nil {
-				glog.Errorf("Error opening %s: %s", localFile, err)
-				return
+			if err := gs.UploadFile(fileName, localDir, gsDir); err != nil {
+				glog.Error(err)
 			}
-			defer f.Close()
-			res, err := gs.service.Objects.Insert(GS_BUCKET_NAME, object).Media(f).Do()
-			if err != nil {
-				glog.Errorf("Objects.Insert failed: %s", err)
-				return
-			}
-			glog.Infof("Created object %s at location %s", res.Name, res.SelfLink)
 		}()
 	}
 	wg.Wait()

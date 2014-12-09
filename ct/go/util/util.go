@@ -3,7 +3,6 @@ package util
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -81,8 +80,31 @@ func TimeTrack(start time.Time, name string) {
 	glog.Infof("===== %s took %s =====", name, elapsed)
 }
 
+// WriteLog implements the io.Writer interface and writes to glog and an output
+// file (if specified).
+type WriteLog struct {
+	logFunc    func(format string, args ...interface{})
+	outputFile *os.File
+}
+
+func (wl WriteLog) Write(p []byte) (n int, err error) {
+	wl.logFunc("%s", string(p))
+	// Write to file if specified.
+	if wl.outputFile != nil {
+		if n, err := wl.outputFile.WriteString(string(p)); err != nil {
+			glog.Errorf("Could not write to %s: %s", wl.outputFile.Name(), err)
+			return n, err
+		}
+	}
+	return len(p), nil
+}
+
 // ExecuteCmd executes the specified binary with the specified args and env.
-func ExecuteCmd(binary string, args, env []string, failIfError bool, timeout time.Duration) {
+// Stdout and Stderr are written to stdoutFile and stderrFile respectively if
+// specified. If not specified then stdout and stderr will be outputted only to
+// glog. Note: It is the responsibility of the caller to close stdoutFile and
+// stderrFile.
+func ExecuteCmd(binary string, args, env []string, failIfError bool, timeout time.Duration, stdoutFile, stderrFile *os.File) {
 	// Add the current PATH to the env.
 	env = append(env, "PATH="+os.Getenv("PATH"))
 
@@ -90,9 +112,9 @@ func ExecuteCmd(binary string, args, env []string, failIfError bool, timeout tim
 	cmd := exec.Command(binary, args...)
 	cmd.Env = env
 
-	// Attach Stdout buffer to command.
-	cmdOutput := &bytes.Buffer{}
-	cmd.Stdout = cmdOutput
+	// Attach WriteLog to command.
+	cmd.Stdout = WriteLog{glog.Infof, stdoutFile}
+	cmd.Stderr = WriteLog{glog.Errorf, stderrFile}
 
 	// Execute cmd.
 	glog.Infof("Executing %s %s", strings.Join(cmd.Env, " "), strings.Join(cmd.Args, " "))
@@ -115,8 +137,27 @@ func ExecuteCmd(binary string, args, env []string, failIfError bool, timeout tim
 	case err := <-done:
 		if err != nil {
 			errLogFunc("process done with error = %v", err)
-		} else {
-			glog.Info(string(cmdOutput.Bytes()))
 		}
 	}
+}
+
+// SyncDir runs "gclient sync" on the specified directory.
+func SyncDir(dir string) error {
+	if err := os.Chdir(dir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
+	}
+	args := []string{"sync"}
+	ExecuteCmd(BINARY_GCLIENT, args, []string{}, true, 5*time.Minute, nil, nil)
+	return nil
+}
+
+func BuildSkiaTools() error {
+	if err := os.Chdir(SkiaTreeDir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
+	}
+	// Run "make clean".
+	ExecuteCmd(BINARY_MAKE, []string{"clean"}, []string{}, true, 5*time.Minute, nil, nil)
+	// Build tools.
+	ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"}, []string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, true, 5*time.Minute, nil, nil)
+	return nil
 }

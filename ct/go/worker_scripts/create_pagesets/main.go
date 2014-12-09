@@ -85,7 +85,7 @@ func main() {
 			"-u", userAgent,
 			"-o", pathToPagesets,
 		}
-		util.ExecuteCmd("python", args, []string{}, true, time.Duration(timeoutSecs)*time.Second)
+		util.ExecuteCmd("python", args, []string{}, true, time.Duration(timeoutSecs)*time.Second, nil, nil)
 	}
 	// Write timestamp to the pagesets dir.
 	util.CreateTimestampFile(pathToPagesets)
