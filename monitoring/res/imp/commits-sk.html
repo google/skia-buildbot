@@ -38,6 +38,10 @@
     a {
       color: inherit;
     }
+    #moreButton {
+      width: 40px;
+      height: 40px;
+    }
     </style>
     <div vertical layout flex>
       <div horizontal layout center id="loadstatus">
@@ -55,7 +59,7 @@
           <table class="commitList">
             <template repeat="{{commit in commits}}">
               <tr class="commit" style="color: {{getCommitColor(displayCommits[commit.hash])}}">
-                <td><a href="https://skia.googlesource.com/skiabot-test/+/{{commit.hash}}" target="_blank">{{commit.hash|shortCommit}}</a></td>
+                <td><a href="https://skia.googlesource.com/skia/+/{{commit.hash}}" target="_blank">{{commit.hash|shortCommit}}</a></td>
                 <td>{{commit.author|shortAuthor}}</td>
                 <td>{{commit.subject|shortSubject}}</td>
               </tr>
@@ -63,15 +67,18 @@
           </table>
         </div>
       </div>
+      <!-- TODO(borenet): Automatically loadMore when the user scrolls to the bottom? -->
+      <core-icon-button id="moreButton" icon="add" on-click="{{loadMore}}"></core-icon-button>
     </div>
   </template>
   <script>
   (function() {
-    var commitY = 20;          // Vertical pixels used by each commit.
-    var paddingX = 10;         // Left-side padding pixels.
-    var paddingY = 20;         // Top padding pixels.
-    var radius = 3;            // Radius of commit dots.
-    var columnWidth = commitY; // Pixel width of per-branch colums.
+    var defaultCommitsToLoad = 35; // Default number of commits to load.
+    var commitY = 20;              // Vertical pixels used by each commit.
+    var paddingX = 10;             // Left-side padding pixels.
+    var paddingY = 20;             // Top padding pixels.
+    var radius = 3;                // Radius of commit dots.
+    var columnWidth = commitY;     // Pixel width of per-branch colums.
     // Colors used for the branches. Obtained from
     // http://blog.mollietaylor.com/2012/10/color-blindness-and-palette-choice.html
     var palette = [
@@ -282,7 +289,12 @@
       for (var b = 0; b < branches.length; b++) {
         // Add a label to commits at branch heads.
         var hash = branches[b].head
-        displayCommits[branches[b].head].label.push(branches[b].name);
+        // The branch might have scrolled out of the time window. If so, just
+        // skip it.
+        if (!displayCommits[hash]) {
+          continue
+        }
+        displayCommits[hash].label.push(branches[b].name);
         if (traceCommits(displayCommits, commits, remaining, hash, column)) {
           column++;
         }
@@ -308,7 +320,7 @@
           value: null,
           reflect: true,
         },
-        dispayCommits: {
+        displayCommits: {
           value: null,
           reflect: true,
         },
@@ -329,10 +341,12 @@
       created: function() {
         this.commits = [];
         this.branchHeads = [];
+        this.startIdx = null;
+        this.endIdx = null;
         this.reloadCommits();
         var that = this;
         window.addEventListener("resize", function() {
-          that.draw();
+          that.draw(that.commits, that.branchHeads);
         }, true);
       },
 
@@ -376,28 +390,98 @@
         }
         if (this.reload > 0) {
           var that = this;
-          this.timeout = window.setTimeout(function() { that.reloadCommits(); }, this.reload * 1000);
+          this.timeout = window.setTimeout(function() {
+            that.reloadCommits(that.endIdx);
+          }, this.reload * 1000);
         }
       },
 
-      reloadCommits: function() {
+      loadMore: function() {
+        this.reloadCommits(this.startIdx - defaultCommitsToLoad, this.startIdx);
+      },
+
+      // Reload the commits. If the startIdx and endIdx parameters are given,
+      // loads the commits in that range. If not, load the most recent N
+      // commits, where N is the default number returned by the server.
+      reloadCommits: function(startIdx, endIdx) {
         console.log("Loading commits.");
+        if (this.$) {
+          this.$.moreButton.disabled = true;
+        }
+        var url = "/json/commits";
+	if (startIdx) {
+          url += "?start=" + startIdx;
+          if (endIdx) {
+            url += "&end=" + endIdx;
+          }
+        }
+        console.log("GET " + url);
         var that = this;
-        sk.get("/json/commits").then(JSON.parse).then(function(json) {
-          that.commits = json.commits;
-          that.commits.reverse();
-          that.branchHeads = json.branch_heads;
-          that.lastLoaded = new Date().toLocaleTimeString();
-          that.resetTimeout();
-          console.log("Done loading commits.");
-          that.draw();
+        sk.get(url).then(JSON.parse).then(function(json) {
+          try {
+            json.commits.reverse();
+            that.lastLoaded = new Date().toLocaleTimeString();
+
+            // Merge the new commits into the existing set.
+            // Ensure that the new commits line up exactly with the existing ones.
+            if (json.endIdx - json.startIdx != json.commits.length) {
+              console.error("Server returned invalid number of commits.");
+              return;
+            }
+            var commits = null;
+            // Case 1: Loading initial set of commits.
+            if (!that.startIdx || !that.endIdx) {
+              commits = json.commits;
+              that.startIdx = json.startIdx;
+              that.endIdx = json.endIdx;
+            }
+            // Case 2: Loading earlier commits.
+            else if (json.startIdx < that.startIdx) {
+              if (json.endIdx != that.startIdx) {
+                console.error("Server returned invalid set of commits.");
+                return;
+              }
+              commits = that.commits.concat(json.commits);
+              that.startIdx = json.startIdx;
+            }
+            // Case 3: Loading newer commits.
+            else if (json.endIdx >= that.endIdx) {
+              if (json.startIdx != that.endIdx) {
+                console.error("Server returned invalid set of commits.");
+                return;
+              }
+              if (json.commits.length == 0) {
+                console.log("No new commits. Skipping draw.");
+                return;
+              }
+              commits = json.commits.concat(that.commits);
+              that.endIdx = json.endIdx;
+            }
+            // ???
+            else {
+              console.error("Server returned invalid data.");
+              return;
+            }
+            // Actually draw the commits.
+            that.draw(commits, json.branch_heads);
+            that.commits = commits;
+            that.branchHeads = json.branch_heads;
+          } catch(e) {
+            console.error(e.stack);
+            return;
+          } finally {
+            that.resetTimeout();
+            if (that.$) {
+              that.$.moreButton.disabled = false;
+            }
+          }
         });
       },
 
-      draw: function() {
+      draw: function(commits, branchHeads) {
         console.log("Drawing.");
         // Initialize all commits.
-        var prep = prepareCommitsForDisplay(this.commits, this.branchHeads);
+        var prep = prepareCommitsForDisplay(commits, branchHeads);
         this.displayCommits = prep[0];
         var numColumns = prep[1];
 
@@ -408,8 +492,8 @@
         var dummyCtx = document.createElement("canvas").getContext("2d");
         dummyCtx.font = font;
         var longestWidth = 0;
-        for (var i = 0; i < this.commits.length; i++) {
-          var c = this.displayCommits[this.commits[i].hash];
+        for (var i = 0; i < commits.length; i++) {
+          var c = this.displayCommits[commits[i].hash];
           var w = c.labelWidth(dummyCtx);
           w += commitY * (c.column + 1);
           if (w > longestWidth) {
@@ -422,7 +506,7 @@
         var parent = this.shadowRoot.getElementById("canvasContainer");
         var canvas = this.shadowRoot.getElementById("commitCanvas");
         var w = longestWidth + paddingX;
-        var h = commitY * this.commits.length;
+        var h = commitY * commits.length;
         canvas.style.width = w + "px";
         canvas.style.height = h + "px";
         canvas.width = w * scale;
@@ -433,13 +517,13 @@
         ctx.font = font;
 
         // Shade an alternating background.
-        for (var i = 0; i < this.commits.length; i++) {
-          this.displayCommits[this.commits[i].hash].drawBackground(ctx);
+        for (var i = 0; i < commits.length; i++) {
+          this.displayCommits[commits[i].hash].drawBackground(ctx);
         }
 
         // Draw the commits.
-        for (var i = 0; i < this.commits.length; i++) {
-          this.displayCommits[this.commits[i].hash].draw(ctx, this.displayCommits);
+        for (var i = 0; i < commits.length; i++) {
+          this.displayCommits[commits[i].hash].draw(ctx, this.displayCommits);
         }
       },
     });

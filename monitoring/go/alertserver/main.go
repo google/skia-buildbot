@@ -14,6 +14,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -33,12 +34,14 @@ import (
 	"skia.googlesource.com/buildbot.git/go/skiaversion"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/monitoring/go/alerting"
+	"skia.googlesource.com/buildbot.git/monitoring/go/commit_cache"
 )
 
 const (
 	COOKIESALT_METADATA_KEY          = "cookiesalt"
 	CLIENT_ID_METADATA_KEY           = "client_id"
 	CLIENT_SECRET_METADATA_KEY       = "client_secret"
+	DEFAULT_COMMITS_TO_LOAD          = 35
 	INFLUXDB_NAME_METADATA_KEY       = "influxdb_name"
 	INFLUXDB_PASSWORD_METADATA_KEY   = "influxdb_password"
 	GMAIL_CLIENT_ID_METADATA_KEY     = "gmail_clientid"
@@ -48,8 +51,9 @@ const (
 )
 
 var (
-	alertManager *alerting.AlertManager = nil
-	gitInfo      *gitinfo.GitInfo       = nil
+	alertManager *alerting.AlertManager    = nil
+	gitInfo      *gitinfo.GitInfo          = nil
+	commitCache  *commit_cache.CommitCache = nil
 )
 
 // flags
@@ -75,6 +79,19 @@ func userHasEditRights(email string) bool {
 		return true
 	}
 	return false
+}
+
+func getIntParam(name string, r *http.Request) (*int, error) {
+	raw, ok := r.URL.Query()[name]
+	if !ok {
+		return nil, nil
+	}
+	v64, err := strconv.ParseInt(raw[0], 10, 32)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid value for parameter %q: %s -- %v", name, raw, err)
+	}
+	v32 := int(v64)
+	return &v32, nil
 }
 
 func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
@@ -174,31 +191,40 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	gitInfo.Update(true, true)
-	commitHashes := gitInfo.From(time.Now().AddDate(0, 0, -45))
-	branchHeads, err := gitInfo.GetBranches()
+	// Case 1: Requesting specific commit range by index.
+	startIdx, err := getIntParam("start", r)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to read branch information from the repo: %s", err))
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
 		return
 	}
-	commits := make([]*gitinfo.LongCommit, len(commitHashes))
-	for i, h := range commitHashes {
-		c, err := gitInfo.Details(h)
+	if startIdx != nil {
+		endIdx := commitCache.NumCommits()
+		end, err := getIntParam("end", r)
 		if err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Failed to obtain commit details for %s: %s", h, err))
+			util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
 			return
 		}
-		commits[i] = c
+		if end != nil {
+			endIdx = *end
+		}
+		if err := commitCache.RangeAsJson(w, *startIdx, endIdx); err != nil {
+			util.ReportError(w, r, err, fmt.Sprintf("Failed to load commit range from cache: %v", err))
+			return
+		}
+		return
 	}
-	data := struct {
-		Commits     []*gitinfo.LongCommit `json:"commits"`
-		BranchHeads []*gitinfo.GitBranch  `json:"branch_heads"`
-	}{
-		Commits:     commits,
-		BranchHeads: branchHeads,
+	// Case 2: Requesting N (or the default number) commits.
+	commitsToLoad := DEFAULT_COMMITS_TO_LOAD
+	n, err := getIntParam("n", r)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
+		return
 	}
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode commit data as JSON: %s", err))
+	if n != nil {
+		commitsToLoad = *n
+	}
+	if err := commitCache.LastNAsJson(w, commitsToLoad); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
 		return
 	}
 }
@@ -308,5 +334,16 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to check out Skia: %v", err)
 	}
+	commitCache, err = commit_cache.New(gitInfo)
+	if err != nil {
+		glog.Fatalf("Failed to create commit cache: %v", err)
+	}
+	go func() {
+		for _ = range time.Tick(time.Minute) {
+			if err := commitCache.Update(); err != nil {
+				glog.Errorf("Failed to update commit cache: %v", err)
+			}
+		}
+	}()
 	runServer(serverURL)
 }
