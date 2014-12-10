@@ -45,7 +45,7 @@ res/js/core-debug.js: Makefile $(BOWER_DIR)/lastupdate $(CORE_SOURCE_FILES)
 
 $(BOWER_DIR)/lastupdate: bower.json ./node_modules/.bin/bower
 	./node_modules/.bin/bower update
-	ln --force --symbolic ../../$(BOWER_DIR) res/imp/bower_components
+	ln -sf ../../$(BOWER_DIR) res/imp/bower_components
 	touch $(BOWER_DIR)/lastupdate
 
 #### elements_html ####
@@ -58,7 +58,7 @@ elements_html: res/vul/elements.html
 debug_elements_html:
 	-mkdir res/vul
 	cp elements.html res/vul/elements.html
-	ln --force --symbolic ../../$(BOWER_DIR) res/imp/bower_components
+	ln -sf ../../$(BOWER_DIR) res/imp/bower_components
 
 res/vul/elements.html: res/imp/*.html elements.html ./node_modules/.bin/vulcanize
 	./node_modules/.bin/vulcanize --csp=false --inline=true --strip=false --abspath=./ elements.html -o res/vul/elements.html
