@@ -5,7 +5,7 @@ packages:
 
 .PHONY: testgo
 testgo:
-	go test ./... -v
+	go test ./... -v -test.short
 
 .PHONY: all
 all: packages

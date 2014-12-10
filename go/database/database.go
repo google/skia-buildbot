@@ -133,7 +133,7 @@ func (vdb *VersionedDB) Migrate(targetVersion int) error {
 	}
 	defer func() {
 		if err != nil {
-			glog.Errorf("Rolling back comit. Error: %s", err)
+			glog.Errorf("Rolling back commit. Error: %s", err)
 			txn.Rollback()
 		} else {
 			glog.Infoln("Committing changes.")

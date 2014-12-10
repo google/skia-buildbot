@@ -4,15 +4,16 @@
 
 package main
 
-import "flag"
-
 import (
+	"flag"
+	"time"
+
 	"github.com/golang/glog"
 	influxdb "github.com/influxdb/influxdb/client"
+	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/monitoring/go/autoroll_ingest"
-	"skia.googlesource.com/buildbot.git/monitoring/go/buildbot_ingest"
 )
 
 const (
@@ -29,6 +30,7 @@ var (
 	influxDbPassword = flag.String("influxdb_password", "root", "The InfluxDB password.")
 	influxDbDatabase = flag.String("influxdb_database", "", "The InfluxDB database.")
 	workdir          = flag.String("workdir", ".", "Working directory used by data processors.")
+	testing          = flag.Bool("testing", false, "Whether we're running in non-production, testing mode.")
 )
 
 func main() {
@@ -54,8 +56,19 @@ func main() {
 
 	// Data generation goroutines.
 	go autoroll_ingest.LoadAutoRollData(dbClient, *workdir)
-	go buildbot_ingest.LoadBuildbotDetailsData(dbClient)
-	go buildbot_ingest.LoadBuildbotByCommitData(dbClient, *workdir)
+	go func() {
+		// Initialize the buildbot database.
+		if err := buildbot.InitDB(buildbot.ProdDatabaseConfig(*testing)); err != nil {
+			glog.Fatal(err)
+		}
+
+		// Ingest data in a loop.
+		for _ = range time.Tick(30 * time.Second) {
+			if err := buildbot.IngestNewBuilds(); err != nil {
+				glog.Errorf("Failed to ingest new builds: %v", err)
+			}
+		}
+	}()
 
 	// Wait while the above goroutines generate data.
 	select {}
