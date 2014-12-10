@@ -44,6 +44,12 @@ monitoring/res/imp/polymer
 monitoring/res/js/sheriffing-debug.js
 monitoring/res/js/sheriffing.js
 monitoring/third_party
+push/google_storage_token.data
+push/third_party
+push/node_modules
+push/res/vul
+push/res/js/core.js
+push/res/js/core-debug.js
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
 # Logfiles from launched buildslaves.

@@ -17,6 +17,7 @@ const (
 	SCOPE_READ_ONLY    = "https://www.googleapis.com/auth/devstorage.read_only"
 	SCOPE_READ_WRITE   = "https://www.googleapis.com/auth/devstorage.read_write"
 	SCOPE_FULL_CONTROL = "https://www.googleapis.com/auth/devstorage.full_control"
+	SCOPE_GCE          = "https://www.googleapis.com/auth/compute"
 )
 
 // DefaultOAuthConfig returns the default configuration for oauth.

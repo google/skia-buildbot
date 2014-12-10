@@ -18,3 +18,44 @@ func TestAtMost(t *testing.T) {
 		t.Errorf("Wrong length: Got %v Want %v", got, want)
 	}
 }
+
+func TestSSliceEqual(t *testing.T) {
+	testcases := []struct {
+		a    []string
+		b    []string
+		want bool
+	}{
+		{
+			a:    []string{},
+			b:    []string{},
+			want: true,
+		},
+		{
+			a:    nil,
+			b:    []string{},
+			want: false,
+		},
+		{
+			a:    nil,
+			b:    nil,
+			want: true,
+		},
+		{
+			a:    []string{"foo"},
+			b:    []string{},
+			want: false,
+		},
+		{
+			a:    []string{"foo", "bar"},
+			b:    []string{"bar", "foo"},
+			want: true,
+		},
+	}
+
+	for _, tc := range testcases {
+		if got, want := SSliceEqual(tc.a, tc.b), tc.want; got != want {
+			t.Errorf("SSliceEqual(%#v, %#v): Got %v Want %v", tc.a, tc.b, got, want)
+		}
+	}
+
+}

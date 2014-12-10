@@ -52,6 +52,26 @@ func AtMost(a []string, n int) []string {
 	return a[:n]
 }
 
+func SSliceEqual(a, b []string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	if len(a) != len(b) {
+		return false
+	}
+	sort.Strings(a)
+	sort.Strings(b)
+	for i, aa := range a {
+		if aa != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
 type int64Slice []int64
 
 func (p int64Slice) Len() int           { return len(p) }
