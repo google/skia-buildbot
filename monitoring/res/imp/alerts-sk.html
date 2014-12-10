@@ -89,12 +89,12 @@
           that.alerts = json.alerts;
           that.lastLoaded = new Date().toLocaleTimeString();
           that.resetTimeout();
-          var any_active = false;
+          var any_alerting = false;
           for (var i = 0; i < that.alerts.length; i++) {
-            any_active = any_active || that.alerts[i].active;
+            any_alerting = any_alerting || (that.alerts[i].active && !that.alerts[i].snoozed);
           }
           var tb = $$$('core-toolbar');
-          if (any_active != tb.classList.contains('alerting')) {
+          if (any_alerting != tb.classList.contains('alerting')) {
             tb.classList.toggle('alerting');
           }
           console.log("Done loading alerts.");
