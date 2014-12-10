@@ -170,7 +170,7 @@ type URLAwareFileServer struct {
 func NewURLAwareFileServer(baseDir, baseUrl string) *URLAwareFileServer {
 	absPath, err := filepath.Abs(baseDir)
 	if err != nil {
-		glog.Fatalf("Unable to get abs path of %s. Got error: %s", baseDir, err.Error())
+		glog.Fatalf("Unable to get abs path of %s. Got error: %s", baseDir, err)
 	}
 
 	return &URLAwareFileServer{
@@ -185,13 +185,13 @@ func NewURLAwareFileServer(baseDir, baseUrl string) *URLAwareFileServer {
 func (ug *URLAwareFileServer) GetURL(path string) string {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		glog.Errorf("Unable to get absolute path of %s. Got error: %s", path, err.Error())
+		glog.Errorf("Unable to get absolute path of %s. Got error: %s", path, err)
 		return ""
 	}
 
 	relPath, err := filepath.Rel(ug.baseDir, absPath)
 	if err != nil {
-		glog.Errorf("Unable to find subpath got error %s", err.Error())
+		glog.Errorf("Unable to find subpath got error %s", err)
 		return ""
 	}
 

@@ -81,7 +81,7 @@ func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
 		// We are using panic() instead of Fataln() to be able to trap this
 		// in tests and make sure it fails when no version table exists.
 		glog.Errorln("Unable to create version table.")
-		panic("Attempt to create version table returned: " + err.Error())
+		panic("Attempt to create version table returned: " + err)
 	}
 	glog.Infoln("Version table OK.")
 
@@ -211,7 +211,7 @@ func (vdb *VersionedDB) ensureVersionTable() error {
 	txn, err := vdb.DB.Begin()
 	defer func() {
 		if err != nil {
-			glog.Errorf("Encountered error rolling back: %s", err.Error())
+			glog.Errorf("Encountered error rolling back: %s", err)
 			txn.Rollback()
 		} else {
 			txn.Commit()
@@ -219,7 +219,7 @@ func (vdb *VersionedDB) ensureVersionTable() error {
 	}()
 
 	if err != nil {
-		fmt.Errorf("Unable to start database transaction. %s", err.Error())
+		fmt.Errorf("Unable to start database transaction. %s", err)
 	}
 
 	stmt := `CREATE TABLE IF NOT EXISTS sk_db_version (
@@ -228,13 +228,13 @@ func (vdb *VersionedDB) ensureVersionTable() error {
 			updated    BIGINT       NOT NULL
 		)`
 	if _, err = txn.Exec(stmt); err != nil {
-		return fmt.Errorf("Creating version table failed: %s", err.Error())
+		return fmt.Errorf("Creating version table failed: %s", err)
 	}
 
 	stmt = "SELECT COUNT(*) FROM sk_db_version"
 	var count int
 	if err = txn.QueryRow(stmt).Scan(&count); err != nil {
-		return fmt.Errorf("Unable to read version table: %s", err.Error())
+		return fmt.Errorf("Unable to read version table: %s", err)
 	}
 
 	// In both cases we want the transaction to roll back.

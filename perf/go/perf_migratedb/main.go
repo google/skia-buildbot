@@ -35,7 +35,7 @@ func main() {
 		fmt.Print("Enter password for MySQL: ")
 		password, err := reader.ReadString('\n')
 		if err != nil {
-			glog.Fatalf("Unable to read password. Error: %s", err.Error())
+			glog.Fatalf("Unable to read password. Error: %s", err)
 		}
 		connectionStr = fmt.Sprintf(connectionStr, strings.TrimRight(password, "\n"))
 	}
@@ -52,7 +52,7 @@ func main() {
 
 	dbVersion, err := vdb.DBVersion()
 	if err != nil {
-		glog.Fatalf("Unable to retrieve database version. Error: %s", err.Error())
+		glog.Fatalf("Unable to retrieve database version. Error: %s", err)
 	}
 	glog.Infof("Current database version: %d", dbVersion)
 
@@ -60,7 +60,7 @@ func main() {
 		glog.Infof("Migrating to version: %d", maxDBVersion)
 		err = vdb.Migrate(maxDBVersion)
 		if err != nil {
-			glog.Fatalf("Unable to retrieve database version. Error: %s", err.Error())
+			glog.Fatalf("Unable to retrieve database version. Error: %s", err)
 		}
 	}
 

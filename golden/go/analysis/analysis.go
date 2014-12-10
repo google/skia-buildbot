@@ -269,7 +269,7 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 		glog.Info("Done reading tiles.")
 
 		if err != nil {
-			glog.Errorf("Error reading tile store: %s\n", err.Error())
+			glog.Errorf("Error reading tile store: %s\n", err)
 			errorTileLoadingCounter.Inc(1)
 		} else {
 			newLabeledTile := a.processTile(tile)
@@ -316,7 +316,7 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 		// Label the digests and add them to the labeled traces.
 		testName, targetLabeledTrace := result.getLabeledTrace(v)
 		if err := a.labelDigests(testName, tempDigests, tempLabels); err != nil {
-			glog.Errorf("Error labeling digests: %s\n", err.Error())
+			glog.Errorf("Error labeling digests: %s\n", err)
 			continue
 		}
 		targetLabeledTrace.addLabeledDigests(tempCommitIds, tempDigests, tempLabels)

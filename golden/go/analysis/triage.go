@@ -156,7 +156,7 @@ func (a *Analyzer) newGUIDiffMetrics(digest string, posDigests []string) GUIDiff
 
 	dms, err := a.diffStore.Get(digest, posDigests)
 	if err != nil {
-		glog.Errorf("Unable to get diff for %s. Got error: %s", digest, err.Error())
+		glog.Errorf("Unable to get diff for %s. Got error: %s", digest, err)
 		return nil
 	}
 

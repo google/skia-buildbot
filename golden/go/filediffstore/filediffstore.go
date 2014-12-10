@@ -525,11 +525,11 @@ func (fs *FileDiffStore) getDiffMetricPath(d1, d2 string) string {
 func ensureDir(dirPath string) string {
 	absPath, err := filepath.Abs(dirPath)
 	if err != nil {
-		glog.Fatalf("Unable to get absolute path of %s. Got error: %s", dirPath, err.Error())
+		glog.Fatalf("Unable to get absolute path of %s. Got error: %s", dirPath, err)
 	}
 
 	if err := os.MkdirAll(absPath, 0700); err != nil {
-		glog.Fatalf("Unable to create or verify directory %s. Got error: %s", absPath, err.Error())
+		glog.Fatalf("Unable to create or verify directory %s. Got error: %s", absPath, err)
 	}
 	return absPath
 }
