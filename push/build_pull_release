@@ -1,0 +1,17 @@
+#!/bin/bash
+# Builds and uploads a debian package for pull.
+APPNAME=pull
+DESCRIPTION="Application to pull updates for applications."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/pull ${ROOT}/usr/local/bin/pull
+${INSTALL}     --mode=666 -T ./sys/pull_monit   ${ROOT}/etc/monit/conf.d/pull
+${INSTALL}     --mode=755 -T ./sys/pull_init    ${ROOT}/etc/init.d/pull
+${INSTALL_DIR} --mode=777                       ${ROOT}/var/skiapull
+}
+
+source ../bash/release.sh
