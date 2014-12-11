@@ -33,7 +33,8 @@ func main() {
 	defer util.DeleteTaskFile(util.ACTIVITY_CAPTURING_ARCHIVES)
 
 	if *chromiumBuild == "" {
-		glog.Fatal("Must specify --chromium_build")
+		glog.Error("Must specify --chromium_build")
+		return
 	}
 
 	// Delete and remake the local webpage archives directory.
@@ -44,17 +45,20 @@ func main() {
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 
 	// Download the specified chromium build if it does not exist locally.
 	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 
 	// Download pagesets if they do not exist locally.
 	if err := gs.DownloadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
@@ -64,7 +68,8 @@ func main() {
 	// Loop through all pagesets.
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
-		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
+		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
+		return
 	}
 	for _, fileInfo := range fileInfos {
 		pagesetBaseName := filepath.Base(fileInfo.Name())
@@ -89,7 +94,7 @@ func main() {
 			fmt.Sprintf("PYTHONPATH=%s:$PYTHONPATH", pathToPagesets),
 			"DISPLAY=:0",
 		}
-		util.ExecuteCmd(recordWprBinary, args, env, false, time.Duration(timeoutSecs)*time.Second, nil, nil)
+		util.ExecuteCmd(recordWprBinary, args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 	}
 
 	// Write timestamp to the webpage archives dir.
@@ -97,6 +102,7 @@ func main() {
 
 	// Upload webpage archives dir to Google Storage.
 	if err := gs.UploadWorkerArtifacts(util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *workerNum); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 }

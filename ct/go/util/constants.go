@@ -17,6 +17,9 @@ const (
 	SKPS_DIR_NAME            = "skps"
 	STORAGE_DIR_NAME         = "storage"
 	REPO_DIR_NAME            = "skia-repo"
+	TASKS_DIR_NAME           = "tasks"
+	LUA_TASKS_DIR_NAME       = "lua_runs"
+	BENCHMARK_TASKS_DIR_NAME = "benchmark_runs"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
@@ -36,10 +39,21 @@ const (
 	// Names of binaries executed by CT.
 	BINARY_CHROME        = "chrome"
 	BINARY_RECORD_WPR    = "record_wpr"
-	BINARY_RUN_BENCHMARK = "run_benchmark"
+	BINARY_RUN_BENCHMARK = "ct_run_benchmark"
 	BINARY_GCLIENT       = "gclient"
 	BINARY_MAKE          = "make"
 	BINARY_LUA_PICTURES  = "lua_pictures"
+	BINARY_ADB           = "adb"
+
+	// Platforms supported by CT.
+	PLATFORM_ANDROID = "Android"
+	PLATFORM_LINUX   = "Linux"
+
+	// Benchmarks supported by CT.
+	BENCHMARK_SKPICTURE_PRINTER = "skpicture_printer"
+	BENCHMARK_RR                = "rasterize_and_record_micro"
+	BENCHMARK_REPAINT           = "repaint"
+	BENCHMARK_SMOOTHNESS        = "smoothness"
 )
 
 type PagesetTypeInfo struct {
@@ -48,6 +62,7 @@ type PagesetTypeInfo struct {
 	UserAgent                  string
 	CaptureArchivesTimeoutSecs int
 	CreatePagesetsTimeoutSecs  int
+	RunBenchmarksTimeoutSecs   int
 }
 
 var (
@@ -64,6 +79,7 @@ var (
 	RepoDir              = filepath.Join("/", "b", REPO_DIR_NAME)
 	ChromiumBuildsDir    = filepath.Join(StorageDir, CHROMIUM_BUILDS_DIR_NAME)
 	TelemetryBinariesDir = filepath.Join(StorageDir, "chromium", "src", "tools", "perf")
+	TelemetrySrcDir      = filepath.Join(StorageDir, "chromium", "src", "tools", "telemetry")
 	TaskFileDir          = filepath.Join(StorageDir, "current_task")
 	GSTokenPath          = filepath.Join(StorageDir, "google_storage_token.data")
 	PagesetsDir          = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
@@ -71,9 +87,11 @@ var (
 	SkpsDir              = filepath.Join(StorageDir, SKPS_DIR_NAME)
 	SkiaTreeDir          = filepath.Join(RepoDir, "trunk")
 	CtTreeDir            = filepath.Join(RepoDir, "buildbot")
+	ApkPath              = filepath.Join("apks", "ChromeShell.apk")
 
 	// Names of remote directories and files.
-	LuaRunsDir = filepath.Join("tasks", "lua_runs")
+	LuaRunsDir       = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
+	BenchmarkRunsDir = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{
@@ -83,6 +101,7 @@ var (
 			UserAgent:                  "desktop",
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
+			RunBenchmarksTimeoutSecs:   300,
 		},
 		PAGESET_TYPE_10k: &PagesetTypeInfo{
 			NumPages:                   10000,
@@ -90,6 +109,7 @@ var (
 			UserAgent:                  "desktop",
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
+			RunBenchmarksTimeoutSecs:   300,
 		},
 		PAGESET_TYPE_MOBILE_10k: &PagesetTypeInfo{
 			NumPages:                   10000,
@@ -97,6 +117,7 @@ var (
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
+			RunBenchmarksTimeoutSecs:   300,
 		},
 		PAGESET_TYPE_DUMMY_100: &PagesetTypeInfo{
 			NumPages:                   1000,
@@ -104,6 +125,7 @@ var (
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
+			RunBenchmarksTimeoutSecs:   300,
 		},
 	}
 )

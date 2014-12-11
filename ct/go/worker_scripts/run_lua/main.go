@@ -3,6 +3,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -25,6 +26,15 @@ func main() {
 	common.Init()
 	defer util.TimeTrack(time.Now(), "Running Lua Scripts")
 
+	if *chromiumBuild == "" {
+		glog.Error("Must specify --chromium_build")
+		return
+	}
+	if *runID == "" {
+		glog.Error("Must specify --run_id")
+		return
+	}
+
 	// Create the task file so that the master knows this worker is still busy.
 	util.CreateTaskFile(util.ACTIVITY_RUNNING_LUA_SCRIPTS)
 	defer util.DeleteTaskFile(util.ACTIVITY_RUNNING_LUA_SCRIPTS)
@@ -38,12 +48,14 @@ func main() {
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 
 	// Download SKPs if they do not exist locally.
 	if err := gs.DownloadWorkerArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild), *workerNum); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 	localSkpsDir := filepath.Join(util.SkpsDir, *pagesetType, *chromiumBuild)
 
@@ -54,17 +66,20 @@ func main() {
 	luaScriptRemotePath := filepath.Join(remoteDir, "scripts", luaScriptName)
 	respBody, err := gs.GetRemoteFileContents(luaScriptRemotePath)
 	if err != nil {
-		glog.Fatalf("Could not fetch %s: %s", luaScriptRemotePath, err)
+		glog.Errorf("Could not fetch %s: %s", luaScriptRemotePath, err)
+		return
 	}
 	defer respBody.Close()
 	out, err := os.Create(luaScriptLocalPath)
 	if err != nil {
-		glog.Fatalf("Unable to create file %s: %s", luaScriptLocalPath, err)
+		glog.Errorf("Unable to create file %s: %s", luaScriptLocalPath, err)
+		return
 	}
 	defer out.Close()
 	defer os.Remove(luaScriptLocalPath)
 	if _, err = io.Copy(out, respBody); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 
 	// Run lua_pictures and save stdout and stderr in files.
@@ -74,7 +89,8 @@ func main() {
 	defer stdoutFile.Close()
 	defer os.Remove(stdoutFilePath)
 	if err != nil {
-		glog.Fatalf("Could not create %s: %s", stdoutFilePath, err)
+		glog.Errorf("Could not create %s: %s", stdoutFilePath, err)
+		return
 	}
 	stderrFileName := *runID + ".err"
 	stderrFilePath := filepath.Join(os.TempDir(), stderrFileName)
@@ -82,15 +98,19 @@ func main() {
 	defer stderrFile.Close()
 	defer os.Remove(stderrFilePath)
 	if err != nil {
-		glog.Fatalf("Could not create %s: %s", stderrFilePath, err)
+		glog.Errorf("Could not create %s: %s", stderrFilePath, err)
+		return
 	}
 	args := []string{
 		"--skpPath", localSkpsDir,
 		"--luaFile", luaScriptLocalPath,
 	}
-	util.ExecuteCmd(filepath.Join(util.SkiaTreeDir, "out", "Release", util.BINARY_LUA_PICTURES), args, []string{}, true, 15*time.Minute, stdoutFile, stderrFile)
+	if err := util.ExecuteCmd(filepath.Join(util.SkiaTreeDir, "out", "Release", util.BINARY_LUA_PICTURES), args, []string{}, 15*time.Minute, stdoutFile, stderrFile); err != nil {
+		glog.Error(err)
+		return
+	}
 
 	// Copy stdout and stderr files to Google Storage.
-	gs.UploadFile(stdoutFileName, os.TempDir(), filepath.Join(remoteDir, "outputs"))
-	gs.UploadFile(stderrFileName, os.TempDir(), filepath.Join(remoteDir, "errors"))
+	gs.UploadFile(stdoutFileName, os.TempDir(), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "outputs"))
+	gs.UploadFile(stderrFileName, os.TempDir(), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "errors"))
 }

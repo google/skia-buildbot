@@ -83,16 +83,16 @@ func TimeTrack(start time.Time, name string) {
 // WriteLog implements the io.Writer interface and writes to glog and an output
 // file (if specified).
 type WriteLog struct {
-	logFunc    func(format string, args ...interface{})
-	outputFile *os.File
+	LogFunc    func(format string, args ...interface{})
+	OutputFile *os.File
 }
 
 func (wl WriteLog) Write(p []byte) (n int, err error) {
-	wl.logFunc("%s", string(p))
+	wl.LogFunc("%s", string(p))
 	// Write to file if specified.
-	if wl.outputFile != nil {
-		if n, err := wl.outputFile.WriteString(string(p)); err != nil {
-			glog.Errorf("Could not write to %s: %s", wl.outputFile.Name(), err)
+	if wl.OutputFile != nil {
+		if n, err := wl.OutputFile.WriteString(string(p)); err != nil {
+			glog.Errorf("Could not write to %s: %s", wl.OutputFile.Name(), err)
 			return n, err
 		}
 	}
@@ -104,7 +104,7 @@ func (wl WriteLog) Write(p []byte) (n int, err error) {
 // specified. If not specified then stdout and stderr will be outputted only to
 // glog. Note: It is the responsibility of the caller to close stdoutFile and
 // stderrFile.
-func ExecuteCmd(binary string, args, env []string, failIfError bool, timeout time.Duration, stdoutFile, stderrFile *os.File) {
+func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdoutFile, stderrFile *os.File) error {
 	// Add the current PATH to the env.
 	env = append(env, "PATH="+os.Getenv("PATH"))
 
@@ -113,32 +113,30 @@ func ExecuteCmd(binary string, args, env []string, failIfError bool, timeout tim
 	cmd.Env = env
 
 	// Attach WriteLog to command.
-	cmd.Stdout = WriteLog{glog.Infof, stdoutFile}
-	cmd.Stderr = WriteLog{glog.Errorf, stderrFile}
+	cmd.Stdout = WriteLog{LogFunc: glog.Infof, OutputFile: stdoutFile}
+	cmd.Stderr = WriteLog{LogFunc: glog.Errorf, OutputFile: stderrFile}
 
 	// Execute cmd.
 	glog.Infof("Executing %s %s", strings.Join(cmd.Env, " "), strings.Join(cmd.Args, " "))
 	cmd.Start()
 	done := make(chan error)
-	errLogFunc := glog.Warningf
-	if failIfError {
-		errLogFunc = glog.Fatalf
-	}
 	go func() {
 		done <- cmd.Wait()
 	}()
 	select {
 	case <-time.After(timeout):
 		if err := cmd.Process.Kill(); err != nil {
-			errLogFunc("Failed to kill timed out process: ", err)
+			return fmt.Errorf("Failed to kill timed out process: %s", err)
 		}
 		<-done // allow goroutine to exit
-		errLogFunc("Command killed since it took longer than %f secs", timeout.Seconds())
+		glog.Errorf("Command killed since it took longer than %f secs", timeout.Seconds())
+		return fmt.Errorf("Command killed since it took longer than %f secs", timeout.Seconds())
 	case err := <-done:
 		if err != nil {
-			errLogFunc("process done with error = %v", err)
+			return fmt.Errorf("Process done with error: %s", err)
 		}
 	}
+	return nil
 }
 
 // SyncDir runs "gclient sync" on the specified directory.
@@ -147,8 +145,7 @@ func SyncDir(dir string) error {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
 	args := []string{"sync"}
-	ExecuteCmd(BINARY_GCLIENT, args, []string{}, true, 5*time.Minute, nil, nil)
-	return nil
+	return ExecuteCmd(BINARY_GCLIENT, args, []string{}, 5*time.Minute, nil, nil)
 }
 
 func BuildSkiaTools() error {
@@ -156,8 +153,7 @@ func BuildSkiaTools() error {
 		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
 	// Run "make clean".
-	ExecuteCmd(BINARY_MAKE, []string{"clean"}, []string{}, true, 5*time.Minute, nil, nil)
+	ExecuteCmd(BINARY_MAKE, []string{"clean"}, []string{}, 5*time.Minute, nil, nil)
 	// Build tools.
-	ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"}, []string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, true, 5*time.Minute, nil, nil)
-	return nil
+	return ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"}, []string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, 5*time.Minute, nil, nil)
 }

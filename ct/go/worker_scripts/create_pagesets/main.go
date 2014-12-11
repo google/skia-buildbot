@@ -44,22 +44,26 @@ func main() {
 	// Download the CSV file from Google Storage to a tmp location.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 	respBody, err := gs.GetRemoteFileContents(csvSource)
 	if err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 	defer respBody.Close()
 	csvFile := filepath.Join(os.TempDir(), filepath.Base(csvSource))
 	out, err := os.Create(csvFile)
 	if err != nil {
-		glog.Fatalf("Unable to create file %s: %s", csvFile, err)
+		glog.Errorf("Unable to create file %s: %s", csvFile, err)
+		return
 	}
 	defer out.Close()
 	defer os.Remove(csvFile)
 	if _, err = io.Copy(out, respBody); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 
 	// Figure out which pagesets this worker should generate.
@@ -85,13 +89,17 @@ func main() {
 			"-u", userAgent,
 			"-o", pathToPagesets,
 		}
-		util.ExecuteCmd("python", args, []string{}, true, time.Duration(timeoutSecs)*time.Second, nil, nil)
+		if err := util.ExecuteCmd("python", args, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
+			glog.Error(err)
+			return
+		}
 	}
 	// Write timestamp to the pagesets dir.
 	util.CreateTimestampFile(pathToPagesets)
 
 	// Upload pagesets dir to Google Storage.
 	if err := gs.UploadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {
-		glog.Fatal(err)
+		glog.Error(err)
+		return
 	}
 }
