@@ -1,0 +1,268 @@
+<!-- The <push-server-sk> custom element declaration.
+
+Displays the server configurations, along with the ability to modify application selections.
+
+  Attributes:
+    servers: Map of server names to the apps and their versions. Such as:
+
+      [
+        {
+          Name: 'skia-monitoring',
+          Installed: [
+            'pull/pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-08T02:09:58Z:79f6b17ea316c5d877f4f1e3fa9c7a4ea950916c.deb',
+            'logserver/',
+          ]
+        },
+        {
+          Name: 'skia-testing-b',
+          Installed: []
+        }
+      ]
+
+      Note that an entry in Installed can either be a full package path, or
+      just a shortened '{appname}/' version which indicates which app is
+      expected but also signals that no specific release package has been
+      chosen or deployed yet.
+
+    packages: Map of app names to the list of available versions, sorted from newest to oldest. Such as:
+
+      {
+        'pull': [
+          {
+            Name: 'pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-08T02:09:58Z:79f6b17ea316c5d877f4f1e3fa9c7a4ea950916c.deb',
+            Hash: '79f6b17ea316c5d877f4f1e3fa9c7a4ea950916c',
+            UserID: 'jcgregorio@jcgregorio.cnc.corp.google.com',
+            Built: '2014-12-08T02:09:58Z',
+            Dirty: true,
+            Note: 'some reason for a push'
+          },
+          {
+            Name: 'pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-08T01:39:47Z:323894732847ace1289a9a90192123213.deb',
+            Hash: '323894732847ace1289a9a90192123213',
+            UserID: 'jcgregorio@jcgregorio.cnc.corp.google.com',
+            Built: '2014-12-08T01:39:47Z',
+            Dirty: false,
+            Note: 'no reason'
+          }
+        ],
+        'logserver': [
+        ]
+      }
+
+  Events:
+    'change'
+        A 'change' event is generated when the user selects a package to push.
+        The change event has the following attributes:
+
+          event.detail.server - The name of the server.
+          event.detail.name   - The full name of the package to push.
+
+  Methods:
+    setConfig(servers, packages)
+
+  Clicking on an app brings up a selection dialog with all available options,
+  the current one already selected. A selection will update and push.
+-->
+<style type="text/css" media="screen">
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+  }
+
+  html /deep/ paper-radio-button {
+    display: block;
+    margin-right: 2em;
+  }
+  html /deep/ paper-button:hover {
+    background: #eee;
+  }
+  html /deep/ paper-button {
+    color: #1f78b4;
+  }
+</style>
+<polymer-element name="push-server-sk">
+  <template>
+    <style type="text/css" media="screen">
+      .application {
+        margin-left: 3em;
+      }
+      h2 {
+        color: #33A02C;
+        margin-left: 1em;
+      }
+      core-icon {
+        margin-left: 1em;
+      }
+    </style>
+    <template repeat="{{server in servers}}">
+      <h2>{{server.Name}}</h2>
+      <template repeat="{{id in server.Installed}}">
+      <paper-button class=application data-server="{{server.Name}}" data-name="{{id}}" data-app="{{id | prefixOf}}">{{id | prefixOf}}
+          <template if="{{!packageLookup[id].Latest}}">
+            <core-icon icon="warning" title="Out of date."></core-icon>
+          </template>
+          <template if="{{packageLookup[id].Dirty}}">
+            <core-icon icon="error" title="Uncommited changes when the package was built."></core-icon>
+          </template>
+        </paper-button>
+      </template>
+    </template>
+    <push-selection-sk id=extChooser></push-selection-sk>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        servers: {
+          value: {},
+          reflect: false
+        },
+        packages: {
+          value: {},
+          reflect: false
+        },
+        packageLookup: {
+          value: {},
+          reflect: false
+        },
+        server: {
+          value: '',
+          reflect: false
+        }
+      },
+
+      ready: function() {
+        var that = this;
+        this.addEventListener('click', function(e) {
+          this.server = '';
+          var id = '';
+          var app = '';
+          // Bump up the parent path until we find our containing .application element.
+          for (var i=0; i<e.path.length; i++) {
+            if (e.path[i]["classList"] && e.path[i].classList.contains('application')) {
+              this.server = e.path[i].dataset.server;
+              id = e.path[i].dataset.name;
+              app = e.path[i].dataset.app;
+              break;
+            }
+          }
+          if (app != "") {
+            this.$.extChooser.choices = this.packages[app];
+            this.$.extChooser.choice = id;
+            this.$.extChooser.toggle();
+          }
+        });
+
+        // When the push-selection-sk dialog notifies us of a selection
+        // we fill in some more details and pass that along as another
+        // CustomEvent.
+        this.$.extChooser.addEventListener('change', function(e) {
+          var detail = {
+            name:   e.detail.name,
+            server: that.server
+          };
+          that.dispatchEvent(new CustomEvent('change', {detail: detail}));
+        });
+      },
+
+      setConfig: function(servers, packages) {
+        this.servers = servers;
+        this.packages = packages;
+        for (appName in this.packages) {
+          var that = this;
+          var latest = true;
+          this.packages[appName].forEach(function(details) {
+            that.packageLookup[details.Name] = details;
+            that.packageLookup[details.Name].Latest = latest;
+            latest = false;
+          });
+        }
+      },
+
+      // prefixOf is a helper used in templates that returns all the text
+      // that appears before the first '/'.
+      prefixOf: function(s) {
+        return s.split('/')[0];
+      }
+
+    });
+  </script>
+</polymer-element>
+
+
+<!-- The <push-selection-sk> custom element declaration.
+
+  Presents a dialog of package choices and generates an event when the user has
+  made a selection. It is a custom element used by <push-server-sk>.
+
+  Attributes:
+    'choices'
+        The list of packages that are available.
+    'choice'
+        The selected package.
+  Events:
+    'change'
+        A 'change' event is generated when the user selects a package to push.
+        The change event has the following attributes:
+
+          event.detail.name   - The full name of the package selected.
+  Methods:
+    toggle()
+        Toggles the visibility of the selection dialog.
+-->
+<style type="text/css" media="screen">
+  html /deep/ .pushSelection {
+    font-family: monospace;
+    padding: 0.5em;
+    cursor: pointer;
+  }
+  html /deep/ .pushSelection:hover {
+    background: #eee;
+  }
+</style>
+<polymer-element name="push-selection-sk">
+  <template>
+    <paper-action-dialog id=chooser heading="Choose a release package to push">
+      <core-selector id=newChoice>
+        <template repeat="{{p in choices}}">
+          <div class=pushSelection name="{{p.Name}}">
+            {{p.Hash | shortHash}} {{p.Note}}
+          </div>
+        </template>
+      </core-selector>
+      <paper-button dismissive>Cancel</paper-button>
+    </paper-action-dialog>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        choices: {
+          value: [],
+          reflect: false
+        },
+        choice: {
+          value: '',
+          reflect: false
+        }
+      },
+
+      ready: function() {
+        var that = this;
+        this.$.newChoice.addEventListener('core-activate', function(e) {
+          that.toggle();
+          var detail = {name: that.$.newChoice.selected};
+          that.dispatchEvent(new CustomEvent('change', {detail: detail}));
+        });
+      },
+
+      toggle: function() {
+        this.$.chooser.toggle();
+      },
+
+      // shortHash is a utility function used in templates to truncate git hashes.
+      shortHash: function(s) {
+        return s.slice(0, 8);
+      }
+
+    });
+  </script>
+</polymer-element>

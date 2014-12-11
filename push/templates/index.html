@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Skia Push Server</title>
+
+    {{template "header.html" .}}
+
+    <style type="text/css" media="screen">
+      #pageWrapper {
+        background: white;
+      }
+      .col {
+        padding: 0.5em;
+      }
+
+      html /deep/ core-toolbar,
+      #title {
+        background-color: #1f78b4;
+        color: #fff;
+      }
+
+      #title login-sk {
+        margin-left: auto;
+      }
+
+      #title /deep/ a {
+        color: white;
+      }
+
+      html /deep/ #mainContainer {
+        background: white;
+      }
+      paper-toast {
+        margin: 2em;
+      }
+    </style>
+  </head>
+  <body>
+    <scaffold-sk responsiveWidth="700px">
+      {{template "titlebar.html" .}}
+
+      <push-server-sk></push-server-sk>
+      <paper-toast></paper-toast>
+    </scaffold-sk>
+
+    <script type="text/javascript" charset="utf-8">
+      sk.WebComponentsReady.then(function(){
+        sk.get("/json/").then(JSON.parse).then(function(json) {
+          $$$('push-server-sk').setConfig(json.servers, json.packages);
+        });
+        $$$('push-server-sk').addEventListener('change', function(e) {
+          var body = {
+            Name: e.detail.name,
+            Server: e.detail.server
+          };
+          sk.post("/json/", JSON.stringify(body)).then(JSON.parse).then(function(json) {
+            $$$('push-server-sk').setConfig(json.servers, json.packages);
+          }).catch(function(e){
+            $$$('paper-toast').text = e;
+            $$$('paper-toast').show();
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

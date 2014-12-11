@@ -18,7 +18,7 @@
 #
 # For more details see ../push/DESIGN.md.
 
-set -x
+set -x -e
 
 ROOT=`mktemp -d`
 OUT=`mktemp -d`
