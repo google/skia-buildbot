@@ -81,7 +81,7 @@ func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
 		// We are using panic() instead of Fataln() to be able to trap this
 		// in tests and make sure it fails when no version table exists.
 		glog.Errorln("Unable to create version table.")
-		panic("Attempt to create version table returned: " + err)
+		panic("Attempt to create version table returned: " + err.Error())
 	}
 	glog.Infoln("Version table OK.")
 
