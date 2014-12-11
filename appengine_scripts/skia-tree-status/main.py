@@ -32,6 +32,8 @@ URLS = [
   ('/', status.MainPage),
   ('/allstatus/?', status.AllStatusPage),
   ('/banner-status/?', status.BannerStatusPage),
+  ('/current/?', status.BannerStatusPage),
+  ('/status/?', status.BinaryStatusPage),
   ('/binary-status/?', status.BinaryStatusPage),
   ('/builder-status/?', builder_status.BuilderStatusPage),
   ('/builder-status/get_builder_statuses?',
