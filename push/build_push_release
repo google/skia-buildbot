@@ -1,0 +1,21 @@
+#!/bin/bash
+# Builds and uploads a debian package for push.
+APPNAME=push
+DESCRIPTION="Application to push updates for applications."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=755 -T ${GOPATH}/bin/push        ${ROOT}/usr/local/bin/push
+${INSTALL} --mode=644 -T ./sys/push_monit          ${ROOT}/etc/monit/conf.d/push
+${INSTALL} --mode=755 -T ./sys/push_init           ${ROOT}/etc/init.d/push
+${INSTALL} --mode=644 -T ./skiapush.conf           ${ROOT}/etc/skiapush/skiapush.conf
+${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/skiapush/res/vul/elements.html
+${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/skiapush/res/js/core.js
+${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/skiapush/templates/header.html
+${INSTALL} --mode=644 -T ./templates/index.html    ${ROOT}/usr/local/share/skiapush/templates/index.html
+${INSTALL} --mode=644 -T ./templates/titlebar.html ${ROOT}/usr/local/share/skiapush/templates/titlebar.html
+}
+
+source ../bash/release.sh

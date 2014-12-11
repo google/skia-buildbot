@@ -1,0 +1,18 @@
+check process push with pidfile /var/run/push.pid
+   start program = "/etc/init.d/push start"
+   stop program = "/etc/init.d/push stop"
+   depends on push_conf
+   depends on push_init
+   depends on push_exe
+
+check file push_conf
+  with path /etc/skiapush/skiapush.conf
+  if changed timestamp then restart
+
+check file push_init
+  with path /etc/init.d/push
+  if changed timestamp then restart
+
+check file push_exe
+  with path /usr/local/bin/push
+  if changed timestamp then restart
