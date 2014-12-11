@@ -46,13 +46,16 @@ func dumpCommits(tile *types.Tile, n int) {
 	}
 	startIdx := tileLen - n
 
-	fmt.Printf("Total Commits: %d\n", tileLen)
+	// Keep track of empty traces.
+	notEmpty := map[string]bool{}
+
 	for i := startIdx; i < tileLen; i++ {
 		count := 0
-		for _, v := range tile.Traces {
+		for traceKey, v := range tile.Traces {
 			gTrace := v.(*types.GoldenTrace)
 			if gTrace.Values[i] != types.MISSING_DIGEST {
 				count++
+				notEmpty[traceKey] = true
 			}
 		}
 		commit := commits[i]
@@ -61,6 +64,9 @@ func dumpCommits(tile *types.Tile, n int) {
 		outHash := commit.Hash[:20]
 		fmt.Printf("%v: %5d/%5d : %s : %s \n", time.Unix(commit.CommitTime, 0), count, len(tile.Traces), outHash, commit.Author)
 	}
+
+	fmt.Printf("Total Commits   : %d\n", tileLen)
+	fmt.Printf("Non-empty traces: %d\n", len(notEmpty))
 }
 
 func getBytes(key interface{}) ([]byte, error) {
@@ -82,6 +88,7 @@ func md5Commits(store types.TileStore, targetHash string, nCommits int) {
 	tileLen := tile.LastCommitIndex() + 1
 	commits := tile.Commits[:tileLen]
 
+	// Find the target index.
 	endIdx := -1
 	for i, v := range commits {
 		if strings.HasPrefix(v.Hash, targetHash) {
@@ -98,11 +105,18 @@ func md5Commits(store types.TileStore, targetHash string, nCommits int) {
 
 	traceKeys := make([]string, 0, len(tile.Traces))
 	for k := range tile.Traces {
-		traceKeys = append(traceKeys, k)
+		gTrace := tile.Traces[k].(*types.GoldenTrace)
+		for _, val := range gTrace.Values[startIdx:endIdx] {
+			// Only consider traces that are not empty
+			if val != types.MISSING_DIGEST {
+				traceKeys = append(traceKeys, k)
+				break
+			}
+		}
 	}
 	sort.Strings(traceKeys)
 
-	result := make([][]string, len(tile.Traces))
+	result := make([][]string, len(traceKeys))
 	for i, k := range traceKeys {
 		gTrace := tile.Traces[k].(*types.GoldenTrace)
 		result[i] = gTrace.Values[startIdx:endIdx]
@@ -115,8 +129,10 @@ func md5Commits(store types.TileStore, targetHash string, nCommits int) {
 
 	md5Hash := fmt.Sprintf("%x", md5.Sum(byteStr))
 
-	fmt.Printf("Commit Range: %s - %s\n", commits[startIdx].Hash, commits[endIdx-1].Hash)
-	fmt.Printf("Hash        : %s\n", md5Hash)
+	fmt.Printf("Commit Range    : %s - %s\n", commits[startIdx].Hash, commits[endIdx-1].Hash)
+	fmt.Printf("Hash            : %s\n", md5Hash)
+	fmt.Printf("Total     traces: %d\n", len(tile.Traces))
+	fmt.Printf("Non-empty traces: %d\n", len(traceKeys))
 }
 
 func parseInt(nStr string) int {

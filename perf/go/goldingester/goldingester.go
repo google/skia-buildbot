@@ -2,11 +2,14 @@ package goldingester
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"skia.googlesource.com/buildbot.git/go/fileutil"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/ingester"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
@@ -42,6 +45,16 @@ import (
 //           "options" : {
 //              "source_type" : "GM"
 //           }
+
+var (
+	fileCacheDir = ""
+)
+
+func Init(fcd string) {
+	if fcd != "" {
+		fileCacheDir = fileutil.Must(fileutil.EnsureDirExists(fcd))
+	}
+}
 
 // DMResults is the top level structure for decoding DM JSON output.
 type DMResults struct {
@@ -137,9 +150,14 @@ func GoldenIngester(tt *ingester.TileTracker, resultsList []*ingester.ResultsFil
 		if err != nil {
 			glog.Errorf("Failed to fetch: %s: %s", resultLocation.Name, err)
 		}
-		dec := json.NewDecoder(r)
+
+		content, err := ioutil.ReadAll(r)
+		if err != nil {
+			glog.Errorf("Failed to read: %s: %s", resultLocation.Name, err)
+		}
+
 		res := NewDMResults()
-		if err := dec.Decode(res); err != nil {
+		if err := json.Unmarshal(content, res); err != nil {
 			glog.Errorf("Failed to decode DM result: %s: %s", resultLocation.Name, err)
 			continue
 		}
@@ -153,6 +171,18 @@ func GoldenIngester(tt *ingester.TileTracker, resultsList []*ingester.ResultsFil
 		} else {
 			glog.Warning("Got file with missing hash: %s", resultLocation.Name)
 		}
+
+		// Write the file to disk
+		err = writeFile(filepath.Join(fileCacheDir, resultLocation.Name), content)
+		if err != nil {
+			glog.Errorf("Unable to write file %s: %s", resultLocation.Name, err)
+		}
 	}
 	return nil
+}
+
+func writeFile(fname string, content []byte) error {
+	dirPath, _ := filepath.Split(fname)
+	fileutil.EnsureDirExists(dirPath)
+	return ioutil.WriteFile(fname, content, 0644)
 }

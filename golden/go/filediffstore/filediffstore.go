@@ -13,6 +13,7 @@ import (
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"skia.googlesource.com/buildbot.git/go/fileutil"
 	"skia.googlesource.com/buildbot.git/go/gs"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
@@ -102,9 +103,9 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storage
 
 	fs := &FileDiffStore{
 		client:              client,
-		localImgDir:         ensureDir(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME)),
-		localDiffDir:        ensureDir(filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME)),
-		localDiffMetricsDir: ensureDir(filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME)),
+		localImgDir:         fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME))),
+		localDiffDir:        fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME))),
+		localDiffMetricsDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME))),
 		gsBucketName:        gsBucketName,
 		storageBaseDir:      storageBaseDir,
 	}
@@ -518,18 +519,4 @@ func (fs *FileDiffStore) getDiffMetricPath(d1, d2 string) string {
 
 	fName := fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFFMETRICS_EXTENSION)
 	return filepath.Join(fs.localDiffMetricsDir, fName)
-}
-
-// ensureDir checks whether the given path to a directory exits and creates it
-// if necessary. Returns the absolute path that corresponds to the input path.
-func ensureDir(dirPath string) string {
-	absPath, err := filepath.Abs(dirPath)
-	if err != nil {
-		glog.Fatalf("Unable to get absolute path of %s. Got error: %s", dirPath, err)
-	}
-
-	if err := os.MkdirAll(absPath, 0700); err != nil {
-		glog.Fatalf("Unable to create or verify directory %s. Got error: %s", absPath, err)
-	}
-	return absPath
 }

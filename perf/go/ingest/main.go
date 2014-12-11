@@ -36,6 +36,7 @@ var (
 	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	fileCacheDir   = flag.String("file_cache_dir", "", "Directory to cache JSON files.")
 )
 
 // Timestamps is used to read and write the timestamp file, which records the time
@@ -139,6 +140,8 @@ func NewIngestionProcess(ts *Timestamps, tsName string, git *gitinfo.GitInfo, ti
 
 func main() {
 	common.InitWithMetrics("ingest", *graphiteServer)
+
+	goldingester.Init(*fileCacheDir)
 
 	// Initialize the database. We might not need the oauth dialog if it fails.
 	db.Init(db.ProdDatabaseConfig(*local))
