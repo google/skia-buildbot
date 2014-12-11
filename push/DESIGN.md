@@ -1,10 +1,9 @@
 Push
 ====
 
-A set of applications and conventions for making it easy to push
-new versions of applications to servers we manage. Key design targets
-are easy deploys and easy rollbacks with minimal disruption of our
-current infrastructure.
+A set of applications and conventions for making it easy to push new versions
+of applications to servers we manage. Key design targets are easy deploys and
+easy rollbacks with minimal disruption of our current infrastructure.
 
 There are several components to the system, as seen below:
 
@@ -64,14 +63,14 @@ the following top level structure:
     gs://skia-push/debs/
     gs://skia-push/server/
 
-Under /debs/ the Debian images produced from the above step are stored. They are stored
-in this manner:
+Under /debs/ the Debian images produced from the above step are stored. They
+are stored in this manner:
 
     gs://skia-push/debs/{application name}/{uniquely named Debian package}.deb
 
-Under `/server/` there will be a single JSON file for each server that describes the packages
-that should be installed on that server. The package list is of the actual Debian
-image names held in `/debs/`.
+Under `/server/` there will be a single JSON file for each server that
+describes the packages that should be installed on that server. The package
+list is of the actual Debian image names held in `/debs/`.
 
     gs://skia-push/server/{server name}.json
 
@@ -87,9 +86,19 @@ For example, `gs://skia-push/server/skia-push.json` looks like this:
 Pull Client
 -----------
 
-On every GCE instance that is managed by the Push Server there is a long running 'pull' process
-that polls the `gs://skia-push/server/{servername}.json` file and looks for it to change. When it
-does change then any new Debian packages are downloaded from `gs://skia-push/debs` and installed.
+On every GCE instance that is managed by the Push Server there is a long
+running 'pull' process that polls the
+`gs://skia-push/server/{servername}.json` file and looks for it to change.
+When it does change then any new Debian packages are downloaded from
+`gs://skia-push/debs` and installed.
+
+
+GCE Instances
+-------------
+
+GCE instances that are created with a boot disk built from the
+'skia-pushable-base' snapshot are fully ready to be push clients.
+
 
 Push Server
 -----------
@@ -101,6 +110,9 @@ which servers.
 
     skiapush.conf
 
-The server reads all the information from `gs://skia-push` to build its UI, and on user selection of application
-versions to deploy it will read and write back a modified file to `gs://skia-push/servers/{servername}.json`.
+The server reads all the information from `gs://skia-push` to build its UI,
+and on user selection of application versions to deploy it will read and write
+back a modified file to `gs://skia-push/servers/{servername}.json`. That will
+trigger the selected server to update that package during the next polling
+cycle (currently every 15 seconds).
 
