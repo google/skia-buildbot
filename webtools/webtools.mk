@@ -28,7 +28,7 @@
 # The core_js target builds res/js/core.js from the concatenated source file
 # listed in CORE_SOURCE_FILES. The result is minified.
 .PHONY: core_js
-core_js: node_modules/lastupdate res/js/core.js
+core_js: node_modules/lastupdate res/js/core.js res/common
 
 # The debug_core_js target does the same thing as core_js, but the file isn't
 # minified.
@@ -47,6 +47,9 @@ $(BOWER_DIR)/lastupdate: bower.json ./node_modules/.bin/bower
 	./node_modules/.bin/bower update
 	ln -sf ../../$(BOWER_DIR) res/imp/bower_components
 	touch $(BOWER_DIR)/lastupdate
+
+res/common:
+	ln -sf ../../res res/common
 
 #### elements_html ####
 

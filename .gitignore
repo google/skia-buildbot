@@ -32,6 +32,7 @@ perf/res/js/core-debug.js
 perf/res/js/core.js
 perf/res/imp/bower_components
 perf/res/vul
+perf/res/common
 perf/third_party
 perf/timestamp.json
 monitoring/autoroll_git
@@ -50,6 +51,8 @@ push/node_modules
 push/res/vul
 push/res/js/core.js
 push/res/js/core-debug.js
+push/res/imp/bower_components
+push/res/common
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
 # Logfiles from launched buildslaves.
