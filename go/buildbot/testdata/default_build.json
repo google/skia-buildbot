@@ -1,1 +1,1651 @@
-{"blame":["kkinnunen@nvidia.com"],"builderName":"Test-Ubuntu12-ShuttleA-GTX660-x86-Release","currentStep":null,"eta":null,"logs":[["preamble","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/steps/logs/preamble"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/steps/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/update_scripts/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/setup_build/logs/stdio"],["run_recipe","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/setup_build/logs/run_recipe"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gclient%20setup/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gclient%20sync/logs/stdio"],["json.output","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gclient%20sync/logs/json.output"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/get%20CHROME_PATH/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/get%20CHROME_PATH/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/build%20most/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fgm%2Factual/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fgm%2Factual/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fgm%2Factual/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fgm%2Factual/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Factual%2FBUILDER/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Factual%2FBUILDER/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Factual%2FBUILDER/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Factual%2FBUILDER/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gm/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/Compare%20GMs/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/Upload%20GM%20Results/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fdm/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fdm/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fdm/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fdm/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/dm/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/Upload%20DM%20Results/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/read%20...%2Fskia%2FSKP_VERSION/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/read%20...%2Fskps%2FSKP_VERSION/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/render_pdfs/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fskimage_in/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fskimage_in/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fskimage_in/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fskimage_in/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gsutil%20download%20skimage%20files/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fskimage_out/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fskimage_out/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fskimage_out/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fskimage_out/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fskimage_out%2Fimages/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fskimage_out%2Fimages/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fskimage_out%2Fimages/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fskimage_out%2Fimages/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fskimage_out%2FBUILDER/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fskimage_out%2FBUILDER/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fskimage_out%2FBUILDER/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fskimage_out%2FBUILDER/logs/python.inline"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/skimage/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gsutil%20upload%20skimage%20actual%20images/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gsutil%20upload%20skimage%20actual%20summary/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/assert%20skimage%20expectations/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/assert%20skimage%20expectations/logs/python.inline"]],"number":721,"properties":[["blamelist",["kkinnunen@nvidia.com"],"Build"],["branch","master","Build"],["buildbotURL","http://build.chromium.org/p/client.skia/","master.cfg"],["buildername","Test-Ubuntu12-ShuttleA-GTX660-x86-Release","Builder"],["buildnumber",721,"Build"],["git_revision","960fb50a1a7ac76fd51e22983812f26bfffa6d1e","Change"],["got_revision","960fb50a1a7ac76fd51e22983812f26bfffa6d1e","Annotation(gclient sync)"],["mastername","client.skia","master.cfg"],["project","skia","Build"],["repository","https://skia.googlesource.com/skia.git","Build"],["revision","960fb50a1a7ac76fd51e22983812f26bfffa6d1e","Build"],["scheduler","skia_percommit","Scheduler"],["slavename","skiabot-shuttle-ubuntu12-gtx660-000","BuildSlave"],["workdir","/home/chrome-bot/buildbot/skiabot-shuttle-ubuntu12-gtx660-000/build/slave/Test-Ubuntu12-ShuttleA-GTX660-x86-Release","slave"]],"reason":"scheduler","results":0,"slave":"skiabot-shuttle-ubuntu12-gtx660-000","sourceStamp":{"branch":"master","changes":[{"at":"Wed 03 Dec 2014 06:18:12","branch":"master","category":null,"comments":"Make debugger not fail with webpages_playback script and multiple skp files\n\nThe debugger accepts either a single skp or a directory as a parameter.\nThe webpages_playback script used to pass multiple files using a '*'\nglob.\n\nReview URL: https://codereview.chromium.org/775073002\n","files":[{"name":"tools/skp/webpages_playback.py","url":null}],"number":4697,"project":"skia","properties":[["git_revision","960fb50a1a7ac76fd51e22983812f26bfffa6d1e","Change"]],"repository":"https://skia.googlesource.com/skia.git","rev":"960fb50a1a7ac76fd51e22983812f26bfffa6d1e","revision":"960fb50a1a7ac76fd51e22983812f26bfffa6d1e","revlink":"https://skia.googlesource.com/skia/+/960fb50a1a7ac76fd51e22983812f26bfffa6d1e","when":1417616292,"who":"kkinnunen@nvidia.com"}],"hasPatch":false,"project":"skia","repository":"https://skia.googlesource.com/skia.git","revision":"960fb50a1a7ac76fd51e22983812f26bfffa6d1e"},"steps":[{"eta":null,"expectations":[["output",724127,742819.9923442729]],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["preamble","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/steps/logs/preamble"],["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/steps/logs/stdio"]],"name":"steps","results":[0,[]],"statistics":{},"step_number":0,"text":["running steps via annotated script"],"times":[1417616368.947515,1417616750.430714],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/update_scripts/logs/stdio"]],"name":"update_scripts","results":[0,[]],"statistics":{},"step_number":1,"text":["update_scripts"],"times":[1417616373.98885,1417616396.494495],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/setup_build/logs/stdio"],["run_recipe","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/setup_build/logs/run_recipe"]],"name":"setup_build","results":[0,[]],"statistics":{},"step_number":2,"text":["setup_build","<br/>running recipe: \"skia/skia\""],"times":[1417616396.495388,1417616396.505305],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gclient%20setup/logs/stdio"]],"name":"gclient setup","results":[0,[]],"statistics":{},"step_number":3,"text":["gclient setup"],"times":[1417616396.505747,1417616396.506943],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gclient%20sync/logs/stdio"],["json.output","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gclient%20sync/logs/json.output"]],"name":"gclient sync","results":[0,[]],"statistics":{},"step_number":4,"text":["gclient sync"],"times":[1417616396.507369,1417616407.780736],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/get%20CHROME_PATH/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/get%20CHROME_PATH/logs/python.inline"]],"name":"get CHROME_PATH","results":[0,[]],"statistics":{},"step_number":5,"text":["get CHROME_PATH"],"times":[1417616407.781876,1417616407.796738],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/build%20most/logs/stdio"]],"name":"build most","results":[0,[]],"statistics":{},"step_number":6,"text":["build most"],"times":[1417616407.797195,1417616412.776571],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fgm%2Factual/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fgm%2Factual/logs/python.inline"]],"name":"rmtree .../gm/actual","results":[0,[]],"statistics":{},"step_number":7,"text":["rmtree .../gm/actual"],"times":[1417616412.777165,1417616412.779229],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fgm%2Factual/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fgm%2Factual/logs/python.inline"]],"name":"makedirs .../gm/actual","results":[0,[]],"statistics":{},"step_number":8,"text":["makedirs .../gm/actual"],"times":[1417616412.779742,1417616412.781719],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Factual%2FBUILDER/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Factual%2FBUILDER/logs/python.inline"]],"name":"rmtree .../actual/BUILDER","results":[0,[]],"statistics":{},"step_number":9,"text":["rmtree .../actual/BUILDER"],"times":[1417616412.782169,1417616412.783997],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Factual%2FBUILDER/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Factual%2FBUILDER/logs/python.inline"]],"name":"makedirs .../actual/BUILDER","results":[0,[]],"statistics":{},"step_number":10,"text":["makedirs .../actual/BUILDER"],"times":[1417616412.784449,1417616412.786413],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gm/logs/stdio"]],"name":"gm","results":[0,[]],"statistics":{},"step_number":11,"text":["gm"],"times":[1417616412.786861,1417616593.974788],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/Compare%20GMs/logs/stdio"]],"name":"Compare GMs","results":[0,[]],"statistics":{},"step_number":12,"text":["Compare GMs"],"times":[1417616593.983595,1417616593.991493],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/Upload%20GM%20Results/logs/stdio"]],"name":"Upload GM Results","results":[0,[]],"statistics":{},"step_number":13,"text":["Upload GM Results"],"times":[1417616593.992383,1417616604.24931],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fdm/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fdm/logs/python.inline"]],"name":"rmtree .../build/dm","results":[0,[]],"statistics":{},"step_number":14,"text":["rmtree .../build/dm"],"times":[1417616604.250256,1417616604.26039],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fdm/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fdm/logs/python.inline"]],"name":"makedirs .../build/dm","results":[0,[]],"statistics":{},"step_number":15,"text":["makedirs .../build/dm"],"times":[1417616604.261196,1417616604.264383],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/dm/logs/stdio"]],"name":"dm","results":[0,[]],"statistics":{},"step_number":16,"text":["dm"],"times":[1417616604.26502,1417616704.71425],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/Upload%20DM%20Results/logs/stdio"]],"name":"Upload DM Results","results":[0,[]],"statistics":{},"step_number":17,"text":["Upload DM Results"],"times":[1417616704.715048,1417616714.574938],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/read%20...%2Fskia%2FSKP_VERSION/logs/stdio"]],"name":"read .../skia/SKP_VERSION","results":[0,[]],"statistics":{},"step_number":18,"text":["read .../skia/SKP_VERSION"],"times":[1417616714.575434,1417616714.576386],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/read%20...%2Fskps%2FSKP_VERSION/logs/stdio"]],"name":"read .../skps/SKP_VERSION","results":[0,[]],"statistics":{},"step_number":19,"text":["read .../skps/SKP_VERSION"],"times":[1417616714.576705,1417616714.577569],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/render_pdfs/logs/stdio"]],"name":"render_pdfs","results":[0,[]],"statistics":{},"step_number":20,"text":["render_pdfs"],"times":[1417616714.577892,1417616735.672356],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fskimage_in/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fskimage_in/logs/python.inline"]],"name":"rmtree .../build/skimage_in","results":[0,[]],"statistics":{},"step_number":21,"text":["rmtree .../build/skimage_in"],"times":[1417616735.673007,1417616735.679849],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fskimage_in/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fskimage_in/logs/python.inline"]],"name":"makedirs .../build/skimage_in","results":[0,[]],"statistics":{},"step_number":22,"text":["makedirs .../build/skimage_in"],"times":[1417616735.680366,1417616735.682539],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gsutil%20download%20skimage%20files/logs/stdio"]],"name":"gsutil download skimage files","results":[0,[]],"statistics":{},"step_number":23,"text":["gsutil download skimage files"],"times":[1417616735.683,1417616745.987091],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fskimage_out/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fbuild%2Fskimage_out/logs/python.inline"]],"name":"rmtree .../build/skimage_out","results":[0,[]],"statistics":{},"step_number":24,"text":["rmtree .../build/skimage_out"],"times":[1417616745.988133,1417616745.993824],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fskimage_out/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fbuild%2Fskimage_out/logs/python.inline"]],"name":"makedirs .../build/skimage_out","results":[0,[]],"statistics":{},"step_number":25,"text":["makedirs .../build/skimage_out"],"times":[1417616745.994526,1417616745.997781],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fskimage_out%2Fimages/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fskimage_out%2Fimages/logs/python.inline"]],"name":"rmtree .../skimage_out/images","results":[0,[]],"statistics":{},"step_number":26,"text":["rmtree .../skimage_out/images"],"times":[1417616745.998453,1417616746.001476],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fskimage_out%2Fimages/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fskimage_out%2Fimages/logs/python.inline"]],"name":"makedirs .../skimage_out/images","results":[0,[]],"statistics":{},"step_number":27,"text":["makedirs .../skimage_out/images"],"times":[1417616746.002144,1417616746.00533],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fskimage_out%2FBUILDER/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/rmtree%20...%2Fskimage_out%2FBUILDER/logs/python.inline"]],"name":"rmtree .../skimage_out/BUILDER","results":[0,[]],"statistics":{},"step_number":28,"text":["rmtree .../skimage_out/BUILDER"],"times":[1417616746.005939,1417616750.383368],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fskimage_out%2FBUILDER/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/makedirs%20...%2Fskimage_out%2FBUILDER/logs/python.inline"]],"name":"makedirs .../skimage_out/BUILDER","results":[0,[]],"statistics":{},"step_number":29,"text":["makedirs .../skimage_out/BUILDER"],"times":[1417616750.383756,1417616750.385086],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/skimage/logs/stdio"]],"name":"skimage","results":[0,[]],"statistics":{},"step_number":30,"text":["skimage"],"times":[1417616750.385397,1417616750.411815],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gsutil%20upload%20skimage%20actual%20images/logs/stdio"]],"name":"gsutil upload skimage actual images","results":[0,[]],"statistics":{},"step_number":31,"text":["gsutil upload skimage actual images"],"times":[1417616750.412403,1417616750.419179],"urls":{"gsutil.upload":"https://storage.cloud.google.com/chromium-skia-gm/skimage/output"}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/gsutil%20upload%20skimage%20actual%20summary/logs/stdio"]],"name":"gsutil upload skimage actual summary","results":[0,[]],"statistics":{},"step_number":32,"text":["gsutil upload skimage actual summary"],"times":[1417616750.4197,1417616750.423292],"urls":{"gsutil.upload":"https://storage.cloud.google.com/chromium-skia-gm/skimage/actuals/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/actual-results.json"}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/assert%20skimage%20expectations/logs/stdio"],["python.inline","http://build.chromium.org/p/client.skia/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721/steps/assert%20skimage%20expectations/logs/python.inline"]],"name":"assert skimage expectations","results":[0,[]],"statistics":{},"step_number":33,"text":["assert skimage expectations"],"times":[1417616750.423799,1417616750.427125],"urls":{}}],"text":["build","successful"],"times":[1417616368.946467,1417616750.431569]}
+{
+  "blame": [
+    "kkinnunen@nvidia.com"
+  ],
+  "builderName": "Test-Ubuntu12-ShuttleA-GTX660-x86-Release",
+  "currentStep": null,
+  "eta": null,
+  "logs": [
+    [
+      "preamble",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/steps\/logs\/preamble"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/steps\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/update_scripts\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/setup_build\/logs\/stdio"
+    ],
+    [
+      "run_recipe",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/setup_build\/logs\/run_recipe"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20setup\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20sync\/logs\/stdio"
+    ],
+    [
+      "json.output",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20sync\/logs\/json.output"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/get%20CHROME_PATH\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/get%20CHROME_PATH\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/build%20most\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gm\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Compare%20GMs\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Upload%20GM%20Results\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/dm\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Upload%20DM%20Results\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/read%20...%2Fskia%2FSKP_VERSION\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/read%20...%2Fskps%2FSKP_VERSION\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/render_pdfs\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20download%20skimage%20files\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/skimage\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20upload%20skimage%20actual%20images\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20upload%20skimage%20actual%20summary\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/assert%20skimage%20expectations\/logs\/stdio"
+    ],
+    [
+      "python.inline",
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/assert%20skimage%20expectations\/logs\/python.inline"
+    ]
+  ],
+  "number": 721,
+  "properties": [
+    [
+      "blamelist",
+      [
+        "kkinnunen@nvidia.com"
+      ],
+      "Build"
+    ],
+    [
+      "branch",
+      "master",
+      "Build"
+    ],
+    [
+      "buildbotURL",
+      "http:\/\/build.chromium.org\/p\/client.skia\/",
+      "master.cfg"
+    ],
+    [
+      "buildername",
+      "Test-Ubuntu12-ShuttleA-GTX660-x86-Release",
+      "Builder"
+    ],
+    [
+      "buildnumber",
+      721,
+      "Build"
+    ],
+    [
+      "git_revision",
+      "051955c355eb742550ddde4eccc3e90b6dc5b887",
+      "Change"
+    ],
+    [
+      "got_revision",
+      "051955c355eb742550ddde4eccc3e90b6dc5b887",
+      "Annotation(gclient sync)"
+    ],
+    [
+      "mastername",
+      "client.skia",
+      "master.cfg"
+    ],
+    [
+      "project",
+      "skia",
+      "Build"
+    ],
+    [
+      "repository",
+      "https:\/\/skia.googlesource.com\/skia.git",
+      "Build"
+    ],
+    [
+      "revision",
+      "051955c355eb742550ddde4eccc3e90b6dc5b887",
+      "Build"
+    ],
+    [
+      "scheduler",
+      "skia_percommit",
+      "Scheduler"
+    ],
+    [
+      "slavename",
+      "skiabot-shuttle-ubuntu12-gtx660-000",
+      "BuildSlave"
+    ],
+    [
+      "workdir",
+      "\/home\/chrome-bot\/buildbot\/skiabot-shuttle-ubuntu12-gtx660-000\/build\/slave\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release",
+      "slave"
+    ]
+  ],
+  "reason": "scheduler",
+  "results": 0,
+  "slave": "skiabot-shuttle-ubuntu12-gtx660-000",
+  "sourceStamp": {
+    "branch": "master",
+    "changes": [
+      {
+        "at": "Wed 03 Dec 2014 06:18:12",
+        "branch": "master",
+        "category": null,
+        "comments": "Make debugger not fail with webpages_playback script and multiple skp files\n\nThe debugger accepts either a single skp or a directory as a parameter.\nThe webpages_playback script used to pass multiple files using a '*'\nglob.\n\nReview URL: https:\/\/codereview.chromium.org\/775073002\n",
+        "files": [
+          {
+            "name": "tools\/skp\/webpages_playback.py",
+            "url": null
+          }
+        ],
+        "number": 4697,
+        "project": "skia",
+        "properties": [
+          [
+            "git_revision",
+            "051955c355eb742550ddde4eccc3e90b6dc5b887",
+            "Change"
+          ]
+        ],
+        "repository": "https:\/\/skia.googlesource.com\/skia.git",
+        "rev": "051955c355eb742550ddde4eccc3e90b6dc5b887",
+        "revision": "051955c355eb742550ddde4eccc3e90b6dc5b887",
+        "revlink": "https:\/\/skia.googlesource.com\/skia\/+\/051955c355eb742550ddde4eccc3e90b6dc5b887",
+        "when": 1417616292,
+        "who": "kkinnunen@nvidia.com"
+      }
+    ],
+    "hasPatch": false,
+    "project": "skia",
+    "repository": "https:\/\/skia.googlesource.com\/skia.git",
+    "revision": "051955c355eb742550ddde4eccc3e90b6dc5b887"
+  },
+  "steps": [
+    {
+      "eta": null,
+      "expectations": [
+        [
+          "output",
+          724127,
+          742819.99234427
+        ]
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "preamble",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/steps\/logs\/preamble"
+        ],
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/steps\/logs\/stdio"
+        ]
+      ],
+      "name": "steps",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 0,
+      "text": [
+        "running steps via annotated script"
+      ],
+      "times": [
+        1417616368.9475,
+        1417616750.4307
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/update_scripts\/logs\/stdio"
+        ]
+      ],
+      "name": "update_scripts",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 1,
+      "text": [
+        "update_scripts"
+      ],
+      "times": [
+        1417616373.9889,
+        1417616396.4945
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/setup_build\/logs\/stdio"
+        ],
+        [
+          "run_recipe",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/setup_build\/logs\/run_recipe"
+        ]
+      ],
+      "name": "setup_build",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 2,
+      "text": [
+        "setup_build",
+        "<br\/>running recipe: \"skia\/skia\""
+      ],
+      "times": [
+        1417616396.4954,
+        1417616396.5053
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20setup\/logs\/stdio"
+        ]
+      ],
+      "name": "gclient setup",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 3,
+      "text": [
+        "gclient setup"
+      ],
+      "times": [
+        1417616396.5057,
+        1417616396.5069
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20sync\/logs\/stdio"
+        ],
+        [
+          "json.output",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20sync\/logs\/json.output"
+        ]
+      ],
+      "name": "gclient sync",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 4,
+      "text": [
+        "gclient sync"
+      ],
+      "times": [
+        1417616396.5074,
+        1417616407.7807
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/get%20CHROME_PATH\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/get%20CHROME_PATH\/logs\/python.inline"
+        ]
+      ],
+      "name": "get CHROME_PATH",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 5,
+      "text": [
+        "get CHROME_PATH"
+      ],
+      "times": [
+        1417616407.7819,
+        1417616407.7967
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/build%20most\/logs\/stdio"
+        ]
+      ],
+      "name": "build most",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 6,
+      "text": [
+        "build most"
+      ],
+      "times": [
+        1417616407.7972,
+        1417616412.7766
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/python.inline"
+        ]
+      ],
+      "name": "rmtree ...\/gm\/actual",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 7,
+      "text": [
+        "rmtree ...\/gm\/actual"
+      ],
+      "times": [
+        1417616412.7772,
+        1417616412.7792
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/python.inline"
+        ]
+      ],
+      "name": "makedirs ...\/gm\/actual",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 8,
+      "text": [
+        "makedirs ...\/gm\/actual"
+      ],
+      "times": [
+        1417616412.7797,
+        1417616412.7817
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/python.inline"
+        ]
+      ],
+      "name": "rmtree ...\/actual\/BUILDER",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 9,
+      "text": [
+        "rmtree ...\/actual\/BUILDER"
+      ],
+      "times": [
+        1417616412.7822,
+        1417616412.784
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/python.inline"
+        ]
+      ],
+      "name": "makedirs ...\/actual\/BUILDER",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 10,
+      "text": [
+        "makedirs ...\/actual\/BUILDER"
+      ],
+      "times": [
+        1417616412.7844,
+        1417616412.7864
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gm\/logs\/stdio"
+        ]
+      ],
+      "name": "gm",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 11,
+      "text": [
+        "gm"
+      ],
+      "times": [
+        1417616412.7869,
+        1417616593.9748
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Compare%20GMs\/logs\/stdio"
+        ]
+      ],
+      "name": "Compare GMs",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 12,
+      "text": [
+        "Compare GMs"
+      ],
+      "times": [
+        1417616593.9836,
+        1417616593.9915
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Upload%20GM%20Results\/logs\/stdio"
+        ]
+      ],
+      "name": "Upload GM Results",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 13,
+      "text": [
+        "Upload GM Results"
+      ],
+      "times": [
+        1417616593.9924,
+        1417616604.2493
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/python.inline"
+        ]
+      ],
+      "name": "rmtree ...\/build\/dm",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 14,
+      "text": [
+        "rmtree ...\/build\/dm"
+      ],
+      "times": [
+        1417616604.2503,
+        1417616604.2604
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/python.inline"
+        ]
+      ],
+      "name": "makedirs ...\/build\/dm",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 15,
+      "text": [
+        "makedirs ...\/build\/dm"
+      ],
+      "times": [
+        1417616604.2612,
+        1417616604.2644
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/dm\/logs\/stdio"
+        ]
+      ],
+      "name": "dm",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 16,
+      "text": [
+        "dm"
+      ],
+      "times": [
+        1417616604.265,
+        1417616704.7143
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Upload%20DM%20Results\/logs\/stdio"
+        ]
+      ],
+      "name": "Upload DM Results",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 17,
+      "text": [
+        "Upload DM Results"
+      ],
+      "times": [
+        1417616704.715,
+        1417616714.5749
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/read%20...%2Fskia%2FSKP_VERSION\/logs\/stdio"
+        ]
+      ],
+      "name": "read ...\/skia\/SKP_VERSION",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 18,
+      "text": [
+        "read ...\/skia\/SKP_VERSION"
+      ],
+      "times": [
+        1417616714.5754,
+        1417616714.5764
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/read%20...%2Fskps%2FSKP_VERSION\/logs\/stdio"
+        ]
+      ],
+      "name": "read ...\/skps\/SKP_VERSION",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 19,
+      "text": [
+        "read ...\/skps\/SKP_VERSION"
+      ],
+      "times": [
+        1417616714.5767,
+        1417616714.5776
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/render_pdfs\/logs\/stdio"
+        ]
+      ],
+      "name": "render_pdfs",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 20,
+      "text": [
+        "render_pdfs"
+      ],
+      "times": [
+        1417616714.5779,
+        1417616735.6724
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
+        ]
+      ],
+      "name": "rmtree ...\/build\/skimage_in",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 21,
+      "text": [
+        "rmtree ...\/build\/skimage_in"
+      ],
+      "times": [
+        1417616735.673,
+        1417616735.6798
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
+        ]
+      ],
+      "name": "makedirs ...\/build\/skimage_in",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 22,
+      "text": [
+        "makedirs ...\/build\/skimage_in"
+      ],
+      "times": [
+        1417616735.6804,
+        1417616735.6825
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20download%20skimage%20files\/logs\/stdio"
+        ]
+      ],
+      "name": "gsutil download skimage files",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 23,
+      "text": [
+        "gsutil download skimage files"
+      ],
+      "times": [
+        1417616735.683,
+        1417616745.9871
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
+        ]
+      ],
+      "name": "rmtree ...\/build\/skimage_out",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 24,
+      "text": [
+        "rmtree ...\/build\/skimage_out"
+      ],
+      "times": [
+        1417616745.9881,
+        1417616745.9938
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
+        ]
+      ],
+      "name": "makedirs ...\/build\/skimage_out",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 25,
+      "text": [
+        "makedirs ...\/build\/skimage_out"
+      ],
+      "times": [
+        1417616745.9945,
+        1417616745.9978
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
+        ]
+      ],
+      "name": "rmtree ...\/skimage_out\/images",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 26,
+      "text": [
+        "rmtree ...\/skimage_out\/images"
+      ],
+      "times": [
+        1417616745.9985,
+        1417616746.0015
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
+        ]
+      ],
+      "name": "makedirs ...\/skimage_out\/images",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 27,
+      "text": [
+        "makedirs ...\/skimage_out\/images"
+      ],
+      "times": [
+        1417616746.0021,
+        1417616746.0053
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
+        ]
+      ],
+      "name": "rmtree ...\/skimage_out\/BUILDER",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 28,
+      "text": [
+        "rmtree ...\/skimage_out\/BUILDER"
+      ],
+      "times": [
+        1417616746.0059,
+        1417616750.3834
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
+        ]
+      ],
+      "name": "makedirs ...\/skimage_out\/BUILDER",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 29,
+      "text": [
+        "makedirs ...\/skimage_out\/BUILDER"
+      ],
+      "times": [
+        1417616750.3838,
+        1417616750.3851
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/skimage\/logs\/stdio"
+        ]
+      ],
+      "name": "skimage",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 30,
+      "text": [
+        "skimage"
+      ],
+      "times": [
+        1417616750.3854,
+        1417616750.4118
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20upload%20skimage%20actual%20images\/logs\/stdio"
+        ]
+      ],
+      "name": "gsutil upload skimage actual images",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 31,
+      "text": [
+        "gsutil upload skimage actual images"
+      ],
+      "times": [
+        1417616750.4124,
+        1417616750.4192
+      ],
+      "urls": {
+        "gsutil.upload": "https:\/\/storage.cloud.google.com\/chromium-skia-gm\/skimage\/output"
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20upload%20skimage%20actual%20summary\/logs\/stdio"
+        ]
+      ],
+      "name": "gsutil upload skimage actual summary",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 32,
+      "text": [
+        "gsutil upload skimage actual summary"
+      ],
+      "times": [
+        1417616750.4197,
+        1417616750.4233
+      ],
+      "urls": {
+        "gsutil.upload": "https:\/\/storage.cloud.google.com\/chromium-skia-gm\/skimage\/actuals\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/actual-results.json"
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/assert%20skimage%20expectations\/logs\/stdio"
+        ],
+        [
+          "python.inline",
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/assert%20skimage%20expectations\/logs\/python.inline"
+        ]
+      ],
+      "name": "assert skimage expectations",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 33,
+      "text": [
+        "assert skimage expectations"
+      ],
+      "times": [
+        1417616750.4238,
+        1417616750.4271
+      ],
+      "urls": {
+        
+      }
+    }
+  ],
+  "text": [
+    "build",
+    "successful"
+  ],
+  "times": [
+    1417616368.9465,
+    1417616750.4316
+  ]
+}

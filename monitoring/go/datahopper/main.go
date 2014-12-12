@@ -6,12 +6,14 @@ package main
 
 import (
 	"flag"
+	"path"
 	"time"
 
 	"github.com/golang/glog"
 	influxdb "github.com/influxdb/influxdb/client"
 	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
+	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/monitoring/go/autoroll_ingest"
 )
@@ -19,6 +21,7 @@ import (
 const (
 	INFLUXDB_NAME_METADATA_KEY     = "influxdb_name"
 	INFLUXDB_PASSWORD_METADATA_KEY = "influxdb_password"
+	SKIA_REPO                      = "https://skia.googlesource.com/skia"
 )
 
 // flags
@@ -61,10 +64,15 @@ func main() {
 		if err := buildbot.InitDB(buildbot.ProdDatabaseConfig(*testing)); err != nil {
 			glog.Fatal(err)
 		}
-
+		// Create the Git repo.
+		skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "buildbot_git", "skia"), true)
+		if err != nil {
+			glog.Fatal(err)
+		}
 		// Ingest data in a loop.
 		for _ = range time.Tick(30 * time.Second) {
-			if err := buildbot.IngestNewBuilds(); err != nil {
+			skiaRepo.Update(true, true)
+			if err := buildbot.IngestNewBuilds(skiaRepo); err != nil {
 				glog.Errorf("Failed to ingest new builds: %v", err)
 			}
 		}

@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"testing"
 
 	"github.com/golang/glog"
 
 	"skia.googlesource.com/buildbot.git/go/database"
+	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/testutils"
+	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 var (
@@ -96,20 +99,30 @@ func testGet(url string) (*http.Response, error) {
 
 // testGetBuild is a helper function which pretends to load JSON data from a
 // build master and decodes it into a Build object.
-func testGetBuildFromMaster() (*Build, error) {
+func testGetBuildFromMaster(repo *gitinfo.GitInfo) (*Build, error) {
 	httpGet = testGet
-	return GetBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX660-x86-Release", 721)
+	return getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX660-x86-Release", 721, repo)
 }
 
 // TestGetBuildFromMaster verifies that we can load JSON data from the build master and
 // decode it into a Build object.
 func TestGetBuildFromMaster(t *testing.T) {
+	clearDB(t, ProdDatabaseConfig(true))
+
+	// Load the test repo.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	// Default, complete build.
-	if _, err := testGetBuildFromMaster(); err != nil {
+	if _, err := testGetBuildFromMaster(repo); err != nil {
 		t.Fatal(err)
 	}
 	// Incomplete build.
-	_, err := GetBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152)
+	_, err = getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +131,19 @@ func TestGetBuildFromMaster(t *testing.T) {
 // TestBuildJsonSerialization verifies that we can serialize a build to JSON
 // and back without losing or corrupting the data.
 func TestBuildJsonSerialization(t *testing.T) {
-	b1, err := testGetBuildFromMaster()
+	if err := clearDB(t, ProdDatabaseConfig(true)); err != nil {
+		t.Fatal(err)
+	}
+
+	// Load the test repo.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b1, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,6 +157,104 @@ func TestBuildJsonSerialization(t *testing.T) {
 	}
 	if !reflect.DeepEqual(b1, b2) {
 		t.Fatalf("Serialization diff:\nIn:  %v\nOut: %v", b1, b2)
+	}
+}
+
+// TestFindCommitsForBuild verifies that findCommitsForBuild correctly obtains
+// the list of commits which were newly built in a given build.
+func TestFindCommitsForBuild(t *testing.T) {
+	if err := clearDB(t, ProdDatabaseConfig(true)); err != nil {
+		t.Fatal(err)
+	}
+
+	// Load the test repo.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The test repo is laid out like this:
+	//
+	// *   06eb2a58139d3ff764f10232d5c8f9362d55e20f I (HEAD, master, Build #4)
+	// *   ecb424466a4f3b040586a062c15ed58356f6590e F (Build #3)
+	// |\
+	// | * d30286d2254716d396073c177a754f9e152bbb52 H
+	// | * 8d2d1247ef5d2b8a8d3394543df6c12a85881296 G (Build #2)
+	// * | 67635e7015d74b06c00154f7061987f426349d9f E
+	// * | 6d4811eddfa637fac0852c3a0801b773be1f260d D (Build #1)
+	// * | d74dfd42a48325ab2f3d4a97278fc283036e0ea4 C
+	// |/
+	// *   4b822ebb7cedd90acbac6a45b897438746973a87 B (Build #0)
+	// *   051955c355eb742550ddde4eccc3e90b6dc5b887 A
+	//
+	hashes := map[rune]string{
+		'A': "051955c355eb742550ddde4eccc3e90b6dc5b887",
+		'B': "4b822ebb7cedd90acbac6a45b897438746973a87",
+		'C': "d74dfd42a48325ab2f3d4a97278fc283036e0ea4",
+		'D': "6d4811eddfa637fac0852c3a0801b773be1f260d",
+		'E': "67635e7015d74b06c00154f7061987f426349d9f",
+		'F': "ecb424466a4f3b040586a062c15ed58356f6590e",
+		'G': "8d2d1247ef5d2b8a8d3394543df6c12a85881296",
+		'H': "d30286d2254716d396073c177a754f9e152bbb52",
+		'I': "06eb2a58139d3ff764f10232d5c8f9362d55e20f",
+	}
+
+	// Test cases. Each test case builds on the previous cases.
+	testCases := []struct {
+		GotRevision string
+		Expected    []string
+	}{
+		// 0. The first build.
+		{
+			GotRevision: hashes['B'],
+			Expected:    []string{hashes['B'], hashes['A']},
+		},
+		// 1. On a linear set of commits, with at least one previous build.
+		{
+			GotRevision: hashes['D'],
+			Expected:    []string{hashes['D'], hashes['C']},
+		},
+		// 2. The first build on a new branch.
+		{
+			GotRevision: hashes['G'],
+			Expected:    []string{hashes['G']},
+		},
+		// 3. After a merge.
+		{
+			GotRevision: hashes['F'],
+			Expected:    []string{hashes['F'], hashes['E'], hashes['H']},
+		},
+		// 4. One last "normal" build.
+		{
+			GotRevision: hashes['I'],
+			Expected:    []string{hashes['I']},
+		},
+		// 5. No GotRevision.
+		{
+			GotRevision: "",
+			Expected:    []string{},
+		},
+	}
+	for buildNum, tc := range testCases {
+		b, err := testGetBuildFromMaster(repo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		b.GotRevision = tc.GotRevision
+		b.Number = buildNum
+		c, err := findCommitsForBuild(b, repo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(c, tc.Expected) {
+			t.Fatalf("Commits for build do not match expectation.\nGot:  %v\nWant: %v", c, tc.Expected)
+		}
+		b.Commits = c
+		if err := b.ReplaceIntoDB(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -162,6 +285,13 @@ func dbSerializeAndCompare(b1 *Build) error {
 // pull it back out without losing or corrupting the data.
 func testBuildDbSerialization(t *testing.T, conf *database.DatabaseConfig) {
 	clearDB(t, conf)
+	// Load the test repo.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Test case: an empty build. Tests null and empty values.
 	emptyTime := 0.0
@@ -172,15 +302,9 @@ func testBuildDbSerialization(t *testing.T, conf *database.DatabaseConfig) {
 	}
 
 	// Test case: a completely filled-out build.
-	buildFromFullJson, err := testGetBuildFromMaster()
+	buildFromFullJson, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
-	}
-	// TODO(borenet): Remove this once we actually associate commits with builds.
-	buildFromFullJson.Commits = []string{
-		"1e7841f2a7a06065e926d6544e833f400fec9d6e",
-		"3209f6591512980197d410ac1e6139a5e4731a38",
-		"b578bd76143927ac14981c2ee235b06366b10e7f",
 	}
 
 	testCases := []*Build{emptyBuild, buildFromFullJson}
@@ -196,10 +320,17 @@ func testBuildDbSerialization(t *testing.T, conf *database.DatabaseConfig) {
 // finishes.
 func testUnfinishedBuild(t *testing.T, conf *database.DatabaseConfig) {
 	clearDB(t, conf)
+	// Load the test repo.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Obtain and insert an unfinished build.
 	httpGet = testGet
-	b, err := GetBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152)
+	b, err := getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,7 +403,15 @@ func testUnfinishedBuild(t *testing.T, conf *database.DatabaseConfig) {
 // the expected result.
 func testLastProcessedBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	clearDB(t, conf)
-	build, err := testGetBuildFromMaster()
+	// Load the test repo.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	build, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -304,7 +443,7 @@ func testLastProcessedBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	}
 
 	// Ensure that we get the correct result for multiple builders.
-	build2, err := testGetBuildFromMaster()
+	build2, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -340,7 +479,7 @@ func testLastProcessedBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	}
 
 	// Add "older" build, ensure that only the newer ones are returned.
-	build3, err := testGetBuildFromMaster()
+	build3, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -387,8 +526,16 @@ func testGetUningestedBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	// First, insert some builds into the database as a starting point.
 	clearDB(t, conf)
 
+	// Load the test repo.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	// This builder is no longer found on the master.
-	b1, err := testGetBuildFromMaster()
+	b1, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -401,7 +548,7 @@ func testGetUningestedBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	}
 
 	// This builder needs to load a few builds.
-	b2, err := testGetBuildFromMaster()
+	b2, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -414,7 +561,7 @@ func testGetUningestedBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	}
 
 	// This builder is already up-to-date.
-	b3, err := testGetBuildFromMaster()
+	b3, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -427,7 +574,7 @@ func testGetUningestedBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	}
 
 	// This builder is already up-to-date.
-	b4, err := testGetBuildFromMaster()
+	b4, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -470,8 +617,16 @@ func testIngestNewBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	// First, insert some builds into the database as a starting point.
 	clearDB(t, conf)
 
+	// Load the test repo.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	// This builder needs to load a few builds.
-	b1, err := testGetBuildFromMaster()
+	b1, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -485,7 +640,7 @@ func testIngestNewBuilds(t *testing.T, conf *database.DatabaseConfig) {
 
 	// This builder has no new builds, but the last one wasn't finished
 	// at its time of ingestion.
-	b2, err := testGetBuildFromMaster()
+	b2, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -499,7 +654,7 @@ func testIngestNewBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	}
 
 	// Subsequent builders are already up-to-date.
-	b3, err := testGetBuildFromMaster()
+	b3, err := testGetBuildFromMaster(repo)
 	b3.MasterName = "client.skia.fyi"
 	b3.BuilderName = "Housekeeper-Nightly-RecreateSKPs"
 	b3.Number = 58
@@ -508,7 +663,7 @@ func testIngestNewBuilds(t *testing.T, conf *database.DatabaseConfig) {
 		t.Fatal(err)
 	}
 
-	b4, err := testGetBuildFromMaster()
+	b4, err := testGetBuildFromMaster(repo)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -522,7 +677,7 @@ func testIngestNewBuilds(t *testing.T, conf *database.DatabaseConfig) {
 
 	// IngestNewBuilds should process the above Venue8 Perf bot's builds
 	// 464-466 as well as Housekeeper-PerCommit's unfinished build #1035.
-	if err := IngestNewBuilds(); err != nil {
+	if err := IngestNewBuilds(repo); err != nil {
 		t.Fatal(err)
 	}
 

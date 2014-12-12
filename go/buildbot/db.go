@@ -1,6 +1,7 @@
 package buildbot
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 
@@ -39,6 +40,38 @@ func (b BuildStep) ReplaceIntoDB() error {
 		return fmt.Errorf("Failed to commit the transaction: %v", err)
 	}
 	return nil
+}
+
+// GetCommitsForBuild retrieves the list of commits first built in the given
+// build from the database.
+func GetCommitsForBuild(master, builder string, buildNumber int) ([]string, error) {
+	stmt, err := DB.Preparex(fmt.Sprintf("SELECT revision FROM %s WHERE master = ? AND builder = ? AND number = ?", TABLE_BUILD_REVISIONS))
+	if err != nil {
+		return nil, fmt.Errorf("Unable to retrieve build revisions from database - failed to prepare query: %v", err)
+	}
+	commits := []string{}
+	if err := stmt.Select(&commits, master, builder, buildNumber); err != nil {
+		return nil, fmt.Errorf("Unable to retrieve build revisions from database: %v", err)
+	}
+	return commits, nil
+}
+
+// GetBuildForCommit retrieves the build number of the build which first
+// included the given commit.
+func GetBuildForCommit(master, builder, commit string) (int, error) {
+	stmt, err := DB.Preparex(fmt.Sprintf("SELECT number FROM %s WHERE master = ? AND builder = ? AND revision = ?", TABLE_BUILD_REVISIONS))
+	if err != nil {
+		return -1, fmt.Errorf("Unable to retrieve build number from database - failed to repare query: %v", err)
+	}
+	n := -1
+	if err := stmt.Get(&n, master, builder, commit); err != nil {
+		if err == sql.ErrNoRows {
+			// No build includes this commit.
+			return -1, nil
+		}
+		return -1, fmt.Errorf("Unable to retrieve build number from database: %v", err)
+	}
+	return n, nil
 }
 
 // GetBuildFromDB retrieves the given build from the database as specified by
@@ -82,15 +115,10 @@ func GetBuildFromDB(master, builder string, buildNumber int) (*Build, error) {
 	build.Steps = steps
 
 	// Get the commits associated with this build.
-	cmtStmt, err := DB.Preparex(fmt.Sprintf("SELECT revision FROM %s where master = ? and builder = ? and number = ?", TABLE_BUILD_REVISIONS))
+	build.Commits, err = GetCommitsForBuild(master, builder, buildNumber)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve build revisions from database - failed to prepare query: %v", err)
+		return nil, fmt.Errorf("Could not retrieve commits for build: %v", err)
 	}
-	commits := []string{}
-	if err := cmtStmt.Select(&commits, master, builder, buildNumber); err != nil {
-		return nil, fmt.Errorf("Unable to retrieve build revisions from database: %v", err)
-	}
-	build.Commits = commits
 
 	return &build, nil
 }

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
+	"skia.googlesource.com/buildbot.git/go/gitinfo"
 )
 
 var (
@@ -28,9 +30,52 @@ func get(url string, rv interface{}) error {
 	return nil
 }
 
+// findCommitsRecursive is a recursive function called by findCommitsForBuild.
+// It traces the history to find builds which were first included in the given
+// build.
+func findCommitsRecursive(b *Build, hash string, repo *gitinfo.GitInfo) ([]string, error) {
+	// Shortcut for empty hashes. This can happen when a commit has no
+	// parents (initial commit) or when a Build has no GotRevision.
+	if hash == "" {
+		return []string{}, nil
+	}
+
+	// Determine whether any build already includes this commit.
+	n, err := GetBuildForCommit(b.MasterName, b.BuilderName, hash)
+	if err != nil {
+		return nil, fmt.Errorf("Could not find build for commit %s: %v", hash, err)
+	}
+	// If so, stop.
+	if n >= 0 {
+		return []string{}, nil
+	}
+
+	// Recurse on the commit's parents.
+	c, err := repo.Details(hash)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to obtain details for %s: %v", hash, err)
+	}
+	commits := []string{hash}
+	for _, p := range c.Parents {
+		moreCommits, err := findCommitsRecursive(b, p, repo)
+		if err != nil {
+			return nil, err
+		}
+		commits = append(commits, moreCommits...)
+	}
+	return commits, nil
+}
+
+// findCommitsForBuild determines which commits were first included in the
+// given build. Assumes that all previous builds for the given builder/master
+// are already in the database.
+func findCommitsForBuild(b *Build, repo *gitinfo.GitInfo) ([]string, error) {
+	return findCommitsRecursive(b, b.GotRevision, repo)
+}
+
 // getBuildFromMaster retrieves the given build from the build master's JSON
 // interface as specified by the master, builder, and build number.
-func getBuildFromMaster(master, builder string, buildNumber int) (*Build, error) {
+func getBuildFromMaster(master, builder string, buildNumber int, repo *gitinfo.GitInfo) (*Build, error) {
 	var build Build
 	url := fmt.Sprintf("%s%s/json/builders/%s/builds/%d", BUILDBOT_URL, master, builder, buildNumber)
 	err := get(url, &build)
@@ -69,20 +114,24 @@ func getBuildFromMaster(master, builder string, buildNumber int) (*Build, error)
 		s.Finished = s.Times[1]
 	}
 
-	// TODO(borenet): Actually find the commits for this build.
-	build.Commits = []string{}
+	// Find the commits for this build.
+	commits, err := findCommitsForBuild(&build, repo)
+	if err != nil {
+		return nil, fmt.Errorf("Could not find commits for build: %v", err)
+	}
+	build.Commits = commits
 
 	return &build, nil
 }
 
-// GetBuildFromMaster retrieves the given build from the build master's JSON
+// retryGetBuildFromMaster retrieves the given build from the build master's JSON
 // interface as specified by the master, builder, and build number. Makes
 // multiple attempts in case the master fails to respond.
-func GetBuildFromMaster(master, builder string, buildNumber int) (*Build, error) {
+func retryGetBuildFromMaster(master, builder string, buildNumber int, repo *gitinfo.GitInfo) (*Build, error) {
 	var b *Build
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
-		b, err = getBuildFromMaster(master, builder, buildNumber)
+		b, err = getBuildFromMaster(master, builder, buildNumber, repo)
 		if err == nil {
 			break
 		}
@@ -93,8 +142,8 @@ func GetBuildFromMaster(master, builder string, buildNumber int) (*Build, error)
 
 // IngestBuild retrieves the given build from the build master's JSON interface
 // and pushes it into the database.
-func IngestBuild(master, builder string, buildNumber int) error {
-	b, err := GetBuildFromMaster(master, builder, buildNumber)
+func IngestBuild(master, builder string, buildNumber int, repo *gitinfo.GitInfo) error {
+	b, err := retryGetBuildFromMaster(master, builder, buildNumber, repo)
 	if err != nil {
 		return fmt.Errorf("Failed to load build from master: %v", err)
 	}
@@ -203,7 +252,7 @@ func getUningestedBuilds() (map[string]map[string][]int, error) {
 }
 
 // IngestNewBuilds finds the set of uningested builds and ingests them.
-func IngestNewBuilds() error {
+func IngestNewBuilds(repo *gitinfo.GitInfo) error {
 	// TODO(borenet): Investigate the use of channels here. We should be
 	// able to start ingesting builds as the data becomes available rather
 	// than waiting until the end.
@@ -230,7 +279,7 @@ func IngestNewBuilds() error {
 	for m, v := range buildsToProcess {
 		for b, w := range v {
 			for _, n := range w {
-				if err := IngestBuild(m, b, n); err != nil {
+				if err := IngestBuild(m, b, n, repo); err != nil {
 					return fmt.Errorf("Failed to ingest build: %v", err)
 				}
 			}

@@ -1,1 +1,635 @@
-{"blame":["halcanary@google.com","joshualitt@chromium.org"],"builderName":"Perf-Android-Venue8-PowerVR-x86-Release","currentStep":null,"eta":null,"logs":[["preamble","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/steps/logs/preamble"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/steps/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/update_scripts/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/setup_build/logs/stdio"],["run_recipe","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/setup_build/logs/run_recipe"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/gclient%20setup/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/gclient%20sync/logs/stdio"],["json.output","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/gclient%20sync/logs/json.output"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/has%20ccache%3F/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/build%20most/logs/stdio"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/List%20adb%20devices/logs/stdio"],["json.output","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/List%20adb%20devices/logs/json.output"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/Uncaught%20Exception/logs/stdio"],["exception","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/Uncaught%20Exception/logs/exception"]],"number":464,"properties":[["blamelist",["halcanary@google.com","joshualitt@chromium.org"],"Build"],["branch","master","Build"],["buildbotURL","http://build.chromium.org/p/client.skia.android/","master.cfg"],["buildername","Perf-Android-Venue8-PowerVR-x86-Release","Builder"],["buildnumber",464,"Build"],["git_revision","32fee2907e2109ef420c3fec5f44e655ebc55c2a","Change"],["got_revision","32fee2907e2109ef420c3fec5f44e655ebc55c2a","Annotation(gclient sync)"],["mastername","client.skia.android","master.cfg"],["project","skia","Build"],["repository","https://skia.googlesource.com/skia.git","Build"],["revision","32fee2907e2109ef420c3fec5f44e655ebc55c2a","Build"],["scheduler","skia_percommit","Scheduler"],["slavename","skiabot-shuttle-ubuntu12-venue8-002","BuildSlave"],["workdir","/home/chrome-bot/buildbot/skiabot-shuttle-ubuntu12-venue8-002/build/slave/Perf-Android-Venue8-PowerVR-x86-Release","slave"]],"reason":"scheduler","results":4,"slave":"skiabot-shuttle-ubuntu12-venue8-002","sourceStamp":{"branch":"master","changes":[{"at":"Thu 04 Dec 2014 10:41:40","branch":"master","category":null,"comments":"create and thread batch tracker object\n\nI remove the factory on the next CL\n\nBUG=skia:\n\nCommitted: https://skia.googlesource.com/skia/+/c3a6eb23483e5d28073b509a5f637f41660de294\n\nReview URL: https://codereview.chromium.org/772513002\n","files":[{"name":"include/gpu/GrBackendProcessorFactory.h","url":null},{"name":"include/gpu/GrTBackendProcessorFactory.h","url":null},{"name":"src/gpu/GrAAConvexPathRenderer.cpp","url":null},{"name":"src/gpu/GrDefaultGeoProcFactory.cpp","url":null},{"name":"src/gpu/GrGeometryProcessor.h","url":null},{"name":"src/gpu/GrOptDrawState.cpp","url":null},{"name":"src/gpu/GrOptDrawState.h","url":null},{"name":"src/gpu/GrOvalRenderer.cpp","url":null},{"name":"src/gpu/effects/GrBezierEffect.cpp","url":null},{"name":"src/gpu/effects/GrCustomCoordsTextureEffect.cpp","url":null},{"name":"src/gpu/effects/GrDashingEffect.cpp","url":null},{"name":"src/gpu/effects/GrDistanceFieldTextureEffect.cpp","url":null},{"name":"src/gpu/gl/GrGLGeometryProcessor.h","url":null},{"name":"src/gpu/gl/GrGLProcessor.h","url":null},{"name":"src/gpu/gl/GrGLProgram.cpp","url":null},{"name":"src/gpu/gl/GrGLProgramDesc.cpp","url":null},{"name":"src/gpu/gl/builders/GrGLProgramBuilder.cpp","url":null}],"number":1267,"project":"skia","properties":[["git_revision","87f48d997ec29e5eeaa7567355775e93465dd60d","Change"]],"repository":"https://skia.googlesource.com/skia.git","rev":"87f48d997ec29e5eeaa7567355775e93465dd60d","revision":"87f48d997ec29e5eeaa7567355775e93465dd60d","revlink":"https://skia.googlesource.com/skia/+/87f48d997ec29e5eeaa7567355775e93465dd60d","when":1417718500,"who":"joshualitt@chromium.org"},{"at":"Thu 04 Dec 2014 10:41:45","branch":"master","category":null,"comments":"rebaseline pdf-native\n\nTBR=\nNOTRY=true\n\nReview URL: https://codereview.chromium.org/779073002\n","files":[{"name":"expectations/gm/Test-Mac10.8-MacMini4.1-GeForce320M-x86_64-Release/expected-results.json","url":null}],"number":1268,"project":"skia","properties":[["git_revision","32fee2907e2109ef420c3fec5f44e655ebc55c2a","Change"]],"repository":"https://skia.googlesource.com/skia.git","rev":"32fee2907e2109ef420c3fec5f44e655ebc55c2a","revision":"32fee2907e2109ef420c3fec5f44e655ebc55c2a","revlink":"https://skia.googlesource.com/skia/+/32fee2907e2109ef420c3fec5f44e655ebc55c2a","when":1417718505,"who":"halcanary@google.com"}],"hasPatch":false,"project":"skia","repository":"https://skia.googlesource.com/skia.git","revision":"32fee2907e2109ef420c3fec5f44e655ebc55c2a"},"steps":[{"eta":null,"expectations":[["output",135306,null]],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["preamble","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/steps/logs/preamble"],["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/steps/logs/stdio"]],"name":"steps","results":[4,["steps"]],"statistics":{},"step_number":0,"text":["running steps via annotated script"],"times":[1417718826.772408,1417718963.250566],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/update_scripts/logs/stdio"]],"name":"update_scripts","results":[0,[]],"statistics":{},"step_number":1,"text":["update_scripts"],"times":[1417718831.810685,1417718865.325878],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/setup_build/logs/stdio"],["run_recipe","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/setup_build/logs/run_recipe"]],"name":"setup_build","results":[0,[]],"statistics":{},"step_number":2,"text":["setup_build","<br/>running recipe: \"skia/skia\""],"times":[1417718865.326814,1417718865.340572],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/gclient%20setup/logs/stdio"]],"name":"gclient setup","results":[0,[]],"statistics":{},"step_number":3,"text":["gclient setup"],"times":[1417718865.341153,1417718865.342622],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/gclient%20sync/logs/stdio"],["json.output","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/gclient%20sync/logs/json.output"]],"name":"gclient sync","results":[0,[]],"statistics":{},"step_number":4,"text":["gclient sync"],"times":[1417718865.343156,1417718882.198467],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/has%20ccache%3F/logs/stdio"]],"name":"has ccache?","results":[0,[]],"statistics":{},"step_number":5,"text":["has ccache?"],"times":[1417718882.199722,1417718882.202378],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/build%20most/logs/stdio"]],"name":"build most","results":[0,[]],"statistics":{},"step_number":6,"text":["build most"],"times":[1417718882.205014,1417718963.227572],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/List%20adb%20devices/logs/stdio"],["json.output","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/List%20adb%20devices/logs/json.output"]],"name":"List adb devices","results":[0,[]],"statistics":{},"step_number":7,"text":["List adb devices"],"times":[1417718963.228583,1417718963.243465],"urls":{}},{"eta":null,"expectations":[],"hidden":false,"isFinished":true,"isStarted":true,"logs":[["stdio","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/Uncaught%20Exception/logs/stdio"],["exception","http://build.chromium.org/p/client.skia.android/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464/steps/Uncaught%20Exception/logs/exception"]],"name":"Uncaught Exception","results":[4,["exception","Uncaught Exception"]],"statistics":{},"step_number":8,"text":["Uncaught Exception"],"times":[1417718963.244251,1417718963.247415],"urls":{}}],"text":["exception","steps","exception","Uncaught Exception"],"times":[1417718826.770772,1417718963.251825]}
+{
+  "blame": [
+    "halcanary@google.com",
+    "joshualitt@chromium.org"
+  ],
+  "builderName": "Perf-Android-Venue8-PowerVR-x86-Release",
+  "currentStep": null,
+  "eta": null,
+  "logs": [
+    [
+      "preamble",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/steps\/logs\/preamble"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/steps\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/update_scripts\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/setup_build\/logs\/stdio"
+    ],
+    [
+      "run_recipe",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/setup_build\/logs\/run_recipe"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/gclient%20setup\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/gclient%20sync\/logs\/stdio"
+    ],
+    [
+      "json.output",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/gclient%20sync\/logs\/json.output"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/has%20ccache%3F\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/build%20most\/logs\/stdio"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/List%20adb%20devices\/logs\/stdio"
+    ],
+    [
+      "json.output",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/List%20adb%20devices\/logs\/json.output"
+    ],
+    [
+      "stdio",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/Uncaught%20Exception\/logs\/stdio"
+    ],
+    [
+      "exception",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/Uncaught%20Exception\/logs\/exception"
+    ]
+  ],
+  "number": 464,
+  "properties": [
+    [
+      "blamelist",
+      [
+        "halcanary@google.com",
+        "joshualitt@chromium.org"
+      ],
+      "Build"
+    ],
+    [
+      "branch",
+      "master",
+      "Build"
+    ],
+    [
+      "buildbotURL",
+      "http:\/\/build.chromium.org\/p\/client.skia.android\/",
+      "master.cfg"
+    ],
+    [
+      "buildername",
+      "Perf-Android-Venue8-PowerVR-x86-Release",
+      "Builder"
+    ],
+    [
+      "buildnumber",
+      464,
+      "Build"
+    ],
+    [
+      "git_revision",
+      "051955c355eb742550ddde4eccc3e90b6dc5b887",
+      "Change"
+    ],
+    [
+      "got_revision",
+      "051955c355eb742550ddde4eccc3e90b6dc5b887",
+      "Annotation(gclient sync)"
+    ],
+    [
+      "mastername",
+      "client.skia.android",
+      "master.cfg"
+    ],
+    [
+      "project",
+      "skia",
+      "Build"
+    ],
+    [
+      "repository",
+      "https:\/\/skia.googlesource.com\/skia.git",
+      "Build"
+    ],
+    [
+      "revision",
+      "051955c355eb742550ddde4eccc3e90b6dc5b887",
+      "Build"
+    ],
+    [
+      "scheduler",
+      "skia_percommit",
+      "Scheduler"
+    ],
+    [
+      "slavename",
+      "skiabot-shuttle-ubuntu12-venue8-002",
+      "BuildSlave"
+    ],
+    [
+      "workdir",
+      "\/home\/chrome-bot\/buildbot\/skiabot-shuttle-ubuntu12-venue8-002\/build\/slave\/Perf-Android-Venue8-PowerVR-x86-Release",
+      "slave"
+    ]
+  ],
+  "reason": "scheduler",
+  "results": 4,
+  "slave": "skiabot-shuttle-ubuntu12-venue8-002",
+  "sourceStamp": {
+    "branch": "master",
+    "changes": [
+      {
+        "at": "Thu 04 Dec 2014 10:41:40",
+        "branch": "master",
+        "category": null,
+        "comments": "create and thread batch tracker object\n\nI remove the factory on the next CL\n\nBUG=skia:\n\nCommitted: https:\/\/skia.googlesource.com\/skia\/+\/c3a6eb23483e5d28073b509a5f637f41660de294\n\nReview URL: https:\/\/codereview.chromium.org\/772513002\n",
+        "files": [
+          {
+            "name": "include\/gpu\/GrBackendProcessorFactory.h",
+            "url": null
+          },
+          {
+            "name": "include\/gpu\/GrTBackendProcessorFactory.h",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/GrAAConvexPathRenderer.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/GrDefaultGeoProcFactory.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/GrGeometryProcessor.h",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/GrOptDrawState.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/GrOptDrawState.h",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/GrOvalRenderer.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/effects\/GrBezierEffect.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/effects\/GrCustomCoordsTextureEffect.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/effects\/GrDashingEffect.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/effects\/GrDistanceFieldTextureEffect.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/gl\/GrGLGeometryProcessor.h",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/gl\/GrGLProcessor.h",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/gl\/GrGLProgram.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/gl\/GrGLProgramDesc.cpp",
+            "url": null
+          },
+          {
+            "name": "src\/gpu\/gl\/builders\/GrGLProgramBuilder.cpp",
+            "url": null
+          }
+        ],
+        "number": 1267,
+        "project": "skia",
+        "properties": [
+          [
+            "git_revision",
+            "87f48d997ec29e5eeaa7567355775e93465dd60d",
+            "Change"
+          ]
+        ],
+        "repository": "https:\/\/skia.googlesource.com\/skia.git",
+        "rev": "87f48d997ec29e5eeaa7567355775e93465dd60d",
+        "revision": "87f48d997ec29e5eeaa7567355775e93465dd60d",
+        "revlink": "https:\/\/skia.googlesource.com\/skia\/+\/87f48d997ec29e5eeaa7567355775e93465dd60d",
+        "when": 1417718500,
+        "who": "joshualitt@chromium.org"
+      },
+      {
+        "at": "Thu 04 Dec 2014 10:41:45",
+        "branch": "master",
+        "category": null,
+        "comments": "rebaseline pdf-native\n\nTBR=\nNOTRY=true\n\nReview URL: https:\/\/codereview.chromium.org\/779073002\n",
+        "files": [
+          {
+            "name": "expectations\/gm\/Test-Mac10.8-MacMini4.1-GeForce320M-x86_64-Release\/expected-results.json",
+            "url": null
+          }
+        ],
+        "number": 1268,
+        "project": "skia",
+        "properties": [
+          [
+            "git_revision",
+            "051955c355eb742550ddde4eccc3e90b6dc5b887",
+            "Change"
+          ]
+        ],
+        "repository": "https:\/\/skia.googlesource.com\/skia.git",
+        "rev": "051955c355eb742550ddde4eccc3e90b6dc5b887",
+        "revision": "051955c355eb742550ddde4eccc3e90b6dc5b887",
+        "revlink": "https:\/\/skia.googlesource.com\/skia\/+\/051955c355eb742550ddde4eccc3e90b6dc5b887",
+        "when": 1417718505,
+        "who": "halcanary@google.com"
+      }
+    ],
+    "hasPatch": false,
+    "project": "skia",
+    "repository": "https:\/\/skia.googlesource.com\/skia.git",
+    "revision": "051955c355eb742550ddde4eccc3e90b6dc5b887"
+  },
+  "steps": [
+    {
+      "eta": null,
+      "expectations": [
+        [
+          "output",
+          135306,
+          null
+        ]
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "preamble",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/steps\/logs\/preamble"
+        ],
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/steps\/logs\/stdio"
+        ]
+      ],
+      "name": "steps",
+      "results": [
+        4,
+        [
+          "steps"
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 0,
+      "text": [
+        "running steps via annotated script"
+      ],
+      "times": [
+        1417718826.7724,
+        1417718963.2506
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/update_scripts\/logs\/stdio"
+        ]
+      ],
+      "name": "update_scripts",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 1,
+      "text": [
+        "update_scripts"
+      ],
+      "times": [
+        1417718831.8107,
+        1417718865.3259
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/setup_build\/logs\/stdio"
+        ],
+        [
+          "run_recipe",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/setup_build\/logs\/run_recipe"
+        ]
+      ],
+      "name": "setup_build",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 2,
+      "text": [
+        "setup_build",
+        "<br\/>running recipe: \"skia\/skia\""
+      ],
+      "times": [
+        1417718865.3268,
+        1417718865.3406
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/gclient%20setup\/logs\/stdio"
+        ]
+      ],
+      "name": "gclient setup",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 3,
+      "text": [
+        "gclient setup"
+      ],
+      "times": [
+        1417718865.3412,
+        1417718865.3426
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/gclient%20sync\/logs\/stdio"
+        ],
+        [
+          "json.output",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/gclient%20sync\/logs\/json.output"
+        ]
+      ],
+      "name": "gclient sync",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 4,
+      "text": [
+        "gclient sync"
+      ],
+      "times": [
+        1417718865.3432,
+        1417718882.1985
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/has%20ccache%3F\/logs\/stdio"
+        ]
+      ],
+      "name": "has ccache?",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 5,
+      "text": [
+        "has ccache?"
+      ],
+      "times": [
+        1417718882.1997,
+        1417718882.2024
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/build%20most\/logs\/stdio"
+        ]
+      ],
+      "name": "build most",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 6,
+      "text": [
+        "build most"
+      ],
+      "times": [
+        1417718882.205,
+        1417718963.2276
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/List%20adb%20devices\/logs\/stdio"
+        ],
+        [
+          "json.output",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/List%20adb%20devices\/logs\/json.output"
+        ]
+      ],
+      "name": "List adb devices",
+      "results": [
+        0,
+        [
+          
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 7,
+      "text": [
+        "List adb devices"
+      ],
+      "times": [
+        1417718963.2286,
+        1417718963.2435
+      ],
+      "urls": {
+        
+      }
+    },
+    {
+      "eta": null,
+      "expectations": [
+        
+      ],
+      "hidden": false,
+      "isFinished": true,
+      "isStarted": true,
+      "logs": [
+        [
+          "stdio",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/Uncaught%20Exception\/logs\/stdio"
+        ],
+        [
+          "exception",
+          "http:\/\/build.chromium.org\/p\/client.skia.android\/builders\/Perf-Android-Venue8-PowerVR-x86-Release\/builds\/464\/steps\/Uncaught%20Exception\/logs\/exception"
+        ]
+      ],
+      "name": "Uncaught Exception",
+      "results": [
+        4,
+        [
+          "exception",
+          "Uncaught Exception"
+        ]
+      ],
+      "statistics": {
+        
+      },
+      "step_number": 8,
+      "text": [
+        "Uncaught Exception"
+      ],
+      "times": [
+        1417718963.2443,
+        1417718963.2474
+      ],
+      "urls": {
+        
+      }
+    }
+  ],
+  "text": [
+    "exception",
+    "steps",
+    "exception",
+    "Uncaught Exception"
+  ],
+  "times": [
+    1417718826.7708,
+    1417718963.2518
+  ]
+}
