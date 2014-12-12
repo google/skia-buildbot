@@ -34,7 +34,11 @@
       <core-selector id=newChoice>
         <template repeat="{{p in choices}}">
           <div class=pushSelection name="{{p.Name}}">
-            {{p.Hash | shortHash}} {{p.Note}}
+            <core-icon icon="{{choice == p.Name ? 'check' : ''}}" title="Currently installed"></core-icon>
+            <a href="https://skia.googlesource.com/buildbot/+/{{p.Hash}}">{{p.Hash | shortHash}}</a>
+            <pre style="color: #D95F02;display:inline;"> {{p.Built | humanDiffDate }} </pre>
+            {{p.Note}}
+            <core-icon icon="{{p.Dirty ? 'warning' : ''}}" title="Uncommited changes when the package was built."></core-icon>
           </div>
         </template>
       </core-selector>
@@ -42,37 +46,61 @@
     </paper-action-dialog>
   </template>
   <script>
-    Polymer({
-      publish: {
-        choices: {
-          value: [],
-          reflect: false
+    (function() {
+      var deltas = [
+        { units: "w", delta: 7*24*60*60 },
+        { units: "d", delta:   24*60*60 },
+        { units: "h", delta:      60*60 },
+        { units: "m", delta:         60 },
+        { units: "s", delta:          1 },
+      ];
+
+      Polymer({
+        publish: {
+          choices: {
+            value: [],
+            reflect: false
+          },
+          choice: {
+            value: '',
+            reflect: false
+          }
         },
-        choice: {
-          value: '',
-          reflect: false
+
+        ready: function() {
+          var that = this;
+          this.$.newChoice.addEventListener('core-activate', function(e) {
+            that.toggle();
+            var detail = {name: that.$.newChoice.selected};
+            that.dispatchEvent(new CustomEvent('change', {detail: detail}));
+          });
+        },
+
+        toggle: function() {
+          this.$.chooser.toggle();
+        },
+
+        // shortHash is a utility function used in templates to truncate git hashes.
+        shortHash: function(s) {
+          return s.slice(0, 8);
+        },
+
+        humanDiffDate: function(s) {
+          var diff = (Date.now() - Date.parse(s))/1000;
+          for (var i=0; i<deltas.length; i++) {
+            if (deltas[i].delta < diff) {
+              var s = Math.round(diff/deltas[i].delta)+deltas[i].units;
+              while (s.length < 4) {
+                s = ' ' + s;
+              }
+              return s;
+            }
+          }
+          return diff + "s";
         }
-      },
 
-      ready: function() {
-        var that = this;
-        this.$.newChoice.addEventListener('core-activate', function(e) {
-          that.toggle();
-          var detail = {name: that.$.newChoice.selected};
-          that.dispatchEvent(new CustomEvent('change', {detail: detail}));
-        });
-      },
-
-      toggle: function() {
-        this.$.chooser.toggle();
-      },
-
-      // shortHash is a utility function used in templates to truncate git hashes.
-      shortHash: function(s) {
-        return s.slice(0, 8);
-      }
-
-    });
+      });
+    })();
   </script>
 </polymer-element>
 
@@ -174,6 +202,7 @@ Displays the server configurations, along with the ability to modify application
               <paper-button class=application data-server="{{server.Name}}" data-name="{{id}}" data-app="{{id | prefixOf}}"><core-icon icon="create" title="Edit which package is installed."></core-icon></paper-button>
             </td>
             <td><span class=appName>{{id | prefixOf}}</span></td>
+            <td><span class=appName><a href="https://skia.googlesource.com/buildbot/+/{{id | fullHash}}">{{id | shortHash}}</a></span></td>
             <td><core-icon icon="{{packageLookup[id].Latest ? '' : 'alarm'}}" title="Out of date."></core-icon></td>
             <td><core-icon icon="{{packageLookup[id].Dirty ? 'warning' : ''}}" title="Uncommited changes when the package was built."></core-icon></td>
           </tr>
@@ -256,6 +285,17 @@ Displays the server configurations, along with the ability to modify application
       // that appears before the first '/'.
       prefixOf: function(s) {
         return s.split('/')[0];
+      },
+
+      // fullHash is a utility function used in templates to extract the full git hash
+      // from a package name.
+      fullHash: function(s) {
+        return s.slice(s.length-44, s.length-4)
+      },
+
+      // shortHash is a utility function used in templates to truncate git hashes.
+      shortHash: function(s) {
+        return this.fullHash(s).slice(0, 6);
       }
 
     });

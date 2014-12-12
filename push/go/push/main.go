@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 
 	"code.google.com/p/google-api-go-client/storage/v1"
@@ -230,10 +231,15 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	// The response to either a GET or a POST is an up to date ServersUI.
 	servers := ServersUI{}
-	for name, installed := range allInstalled {
+	names := make([]string, 0, len(allInstalled))
+	for name, _ := range allInstalled {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
 		servers = append(servers, &ServerUI{
 			Name:      name,
-			Installed: installed,
+			Installed: allInstalled[name],
 		})
 	}
 
