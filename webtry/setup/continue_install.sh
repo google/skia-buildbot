@@ -32,24 +32,15 @@ else
 fi
 export PATH=$PATH:~/depot_tools
 
-# Checkout the skia code (needed so that webtry can build its template)
-mkdir skia
-cd skia
-gclient config --name . https://skia.googlesource.com/skia.git
-gclient sync
-git checkout master
+# Checkout the skia code (needed so that webtry can build its template).
+fetch skia
 
 cd
 
-# Checkout the buildbot code and dependencies
-mkdir buildbot
-cd buildbot
-gclient config https://skia.googlesource.com/buildbot.git
-gclient sync
-cd buildbot
-git checkout master
+# Checkout the buildbot code and its dependencies.
+git clone https://skia.googlesource.com/buildbot.git
 
-cd webtry
+cd buildbot/webtry
 
 go get -u skia.googlesource.com/buildbot.git/perf/go/logserver
 go get -d
