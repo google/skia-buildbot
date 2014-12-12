@@ -49,6 +49,7 @@ push/google_storage_token.data
 push/third_party
 push/node_modules
 push/res/vul
+push/res/imp/bower_components
 push/res/js/core.js
 push/res/js/core-debug.js
 push/res/imp/bower_components

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Builds and uploads a debian package for logserver.
+APPNAME=logserver
+DESCRIPTION="Serves glog generated log files over HTTP."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/logserver ${ROOT}/usr/local/bin/logserver
+${INSTALL}     --mode=666 -T logserver_monit         ${ROOT}/etc/monit/conf.d/logserver
+${INSTALL}     --mode=755 -T logserver_init          ${ROOT}/etc/init.d/logserver
+${INSTALL_DIR} --mode=777                            ${ROOT}/var/log/logserver
+}
+
+source ../bash/release.sh

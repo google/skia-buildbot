@@ -1,0 +1,13 @@
+check process logserver with pidfile /var/run/logserver.pid
+   start program = "/etc/init.d/logserver start"
+   stop program = "/etc/init.d/logserver stop"
+   depends on logserver_init
+   depends on logserver_exe
+
+check file logserver_init
+  with path /etc/init.d/logserver
+  if changed timestamp then restart
+
+check file logserver_exe
+  with path /usr/local/bin/logserver
+  if changed timestamp then restart
