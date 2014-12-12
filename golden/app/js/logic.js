@@ -13,6 +13,7 @@ var skia = skia || {};
     // URLs exposed by the backend to retrieve JSON data.
     URL_COUNTS: '/counts',
     URL_TRIAGE: '/triage',
+    URL_STATUS: '/status',
 
     URL_LOGIN_STATUS: '/loginstatus',
     URL_LOGOUT: '/logout',
@@ -227,6 +228,28 @@ var skia = skia || {};
                            serverData.ticks,
                            aggregateCounts(serverData.aggregated),
                            testCounts);
+  };
+
+
+
+  /**
+    getAutoCommitRanges returns a list of decreasing commit ranges
+    that can be used to render a simple selection on the screen.
+    TODO: Make this adaptive on the backend so that the minimum is not
+    5 but whatever number of commits cover all traces aka constitute
+    out current knowledge of HEAD.
+  */
+  var COMMIT_INTERVALS = [100, 50, 20, 15, 10, 5];
+  ns.getAutoCommitRanges = function(serverData) {
+    var commits = serverData.commits;
+    var result = [{ start: commits[0].hash, name: commits.length }];
+    for(var i=0, len=COMMIT_INTERVALS.length; i < len; i++) {
+      if (commits.length > COMMIT_INTERVALS[i]) {
+        result.push({ start: commits[COMMIT_INTERVALS[i]-1], name: COMMIT_INTERVALS[i] });
+      }
+    }
+
+    return result;
   };
 
   /**

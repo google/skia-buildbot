@@ -19,12 +19,19 @@ var skia = skia || {};
           controller: 'CountsCtrl',
           reloadOnSearch: false
         });
-    $routeProvider.when(ns.c.URL_TRIAGE + '/:id', {
+
+    $routeProvider.when(ns.c.URL_TRIAGE, {
           templateUrl: 'partials/triage-view.html',
           controller: 'TriageCtrl',
           reloadOnSearch: false
         });
-    $routeProvider.otherwise({redirectTo: ns.c.URL_COUNTS });
+
+    $routeProvider.when(ns.c.URL_TRIAGE + '/:id', {
+          templateUrl: 'partials/triage-details-view.html',
+          controller: 'TriageDetailsCtrl',
+          reloadOnSearch: false
+        });
+    $routeProvider.otherwise({redirectTo: ns.c.URL_TRIAGE });
   }]);
 
   /*
@@ -89,12 +96,86 @@ var skia = skia || {};
       $scope.loadCounts();
     }]);
 
+
   /*
-   * TriageCtrl is the controller for the triage view. It manages the UI
+   * TriageCtrl is the controller for the macro triage view. It manages the UI
    * and backend requests. Processing is delegated to the functions in the
    * 'skia' namespace (implemented in logic.js).
    */
   app.controller('TriageCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'dataService',
+    function($scope, $routeParams, $location, $timeout, dataService) {
+      // Get the path and use it for the backend request
+      var testName = ($routeParams.id && ($routeParams.id !== '')) ?
+                      $routeParams.id : null;
+
+      // Load counts for all tests of a tile.
+      $scope.loadCounts = function () {
+        $scope.state = 'loading';
+        dataService.loadData(ns.c.URL_TRIAGE, $scope.query).then(
+          function (serverData) {
+            if (!serverData) {
+              retry();
+              return serverData;
+            };
+
+            var temp = ns.processCounts(serverData, testName);
+
+            // plug into the sk-plot directive
+            $scope.plotData = temp.plotData;
+            $scope.plotTicks = temp.getTicks.bind(temp);
+
+            // used to render information about tests
+            $scope.allAggregates = temp.allAggregates;
+            $scope.allTests = temp.testDetails;
+            $scope.allParams = ns.getSortedParams(serverData, false);
+            updateQueryStr(serverData.query || {});
+
+            // KEEP THIS !!!
+            $scope.crLinks = ns.getAutoCommitRanges(serverData)
+
+            $scope.state = 'ready';
+          },
+          function (errResp) {
+            retry();
+            console.log("Error:", errResp);
+          });
+      };
+
+      function retry() {
+        $scope.state = 'retry';
+        $timeout($scope.loadCounts, $scope.reloadInterval * 1000);
+      }
+
+      function updateQueryStr(newQuery) {
+        $scope.query = newQuery;
+        $location.search(newQuery);
+        $scope.qStr = ns.extractQueryString($location.url());
+      }
+
+      // initialize the members and load the data.
+      $scope.reloadInterval = 3;
+      $scope.allTests = [];
+      $scope.plotData = [];
+      $scope.plotTicks = null;
+      $scope.oneTest = !!testName;
+      $scope.allParams = [];
+      updateQueryStr($location.search());
+      $scope.loadCounts();
+      $scope.statusOk = true;
+
+      $scope.crLinks = [];
+      $scope.imageSize = 100;
+      $scope.imageUrl = 'http://placehold.it/100x150';
+
+    }]);
+
+
+  /*
+   * TriageDetailsCtrl is the controller for the micro triage view. It manages the UI
+   * and backend requests. Processing is delegated to the functions in the
+   * 'skia' namespace (implemented in logic.js).
+   */
+  app.controller('TriageDetailsCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'dataService',
     function($scope, $routeParams, $location, $timeout, dataService) {
       // Get the path and use it for the backend request
       var testName = $routeParams.id;
@@ -455,14 +536,33 @@ var skia = skia || {};
   /**
   * dataService provides functions to load data from the backend.
   */
-  app.factory('dataService', [ '$http', '$rootScope', '$timeout', '$location',
-  function ($http, $rootScope, $timeout, $location) {
+  app.factory('dataService', [ '$http', '$rootScope', '$interval', '$location',
+  function ($http, $rootScope, $interval, $location) {
     // Inject the logoutURL into the rootScope.
     // $rootScope.logoutURL = ns.c.PREFIX_URL + ns.c.URL_LOGOUT;
     $rootScope.getLogoutURL = function() {
       return encodeURI(ns.c.PREFIX_URL +
         ns.c.URL_LOGOUT + '?redirect=' + '/#' + $location.url());
     }
+
+    $rootScope.statusOk = true;
+    $rootScope.toggleStatus = function () {
+      $rootScope.statusOk = !$rootScope.statusOk;
+    };
+
+    function checkStatus() {
+      loadData(ns.c.URL_STATUS).then(
+        function (resultResp) {
+          $rootScope.statusOk = resultResp.ok;
+        },
+        function (errorResp) {
+          console.log("Got error response for status:", errorResp);
+        });
+    }
+
+    // Load the status every 10 seconds.
+    checkStatus();
+    $interval(checkStatus, 3000);
 
     /**
      * @param {string} testName if not null this will cause to fetch counts

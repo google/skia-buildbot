@@ -1,256 +1,103 @@
 <div class="container-fluid ng-cloak" ng-cloak>
-    <h2>{{testName}}</h2>
+    <h3>Triage</h3>
 
     <div class="row stateHeader" ng-show="state === 'loading'">
-        Loading...Please wait.
-    </div>
-
-    <div class="row stateHeader" ng-show="state === 'saving'">
-        Saving...Please wait.
+    	Loading...Please wait.
     </div>
 
     <div class="row stateHeader" ng-show="state == 'retry'">
-        Server Busy Calculating Filediffs. We will reload in {{reloadInterval}}s.
+    	Server Busy Calculating Filediffs. We will reload in {{reloadInterval}}s.
     </div>
 
-    <!-- Header with the pending changes and reset/save button -->
-    <div class="row" ng-class="{ 'busyLoading': state !== 'ready' }" style="border: 1px solid #E1E1E1; padding: 0.5em; margin-left: 0; margin-right:0; margin-bottom: 1em;">
-        <div class="pull-left">
-            <span style="font-weight:bold;">Pending Changes: {{pending}}</span>
-        </div>
-
-        <div class="pull-right">
-            <div ng-if="!isLoggedIn">
-                <a href="{{loginURL}}">Login to Triage</a>
-            </div>
-            <div ng-if="isLoggedIn">
-                    <button ng-disabled="!triageStateDirty"
-                            ng-click="resetTriageState()"
-                            class="btn btn-default">Reset</button>
-                    &nbsp; &nbsp; &nbsp; &nbsp;
-                    <button ng-disabled="!triageStateDirty"
-                            ng-click="saveTriageState()"
-                            class="btn btn-primary pull-right">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- main content -->
     <div class="row" ng-class="{ 'busyLoading': state !== 'ready' }">
+        <div class="row countsQueryContainer">
+        	<div class="col-xs-12">
+		        <sk-query all-params="allParams" query="query" click-update="loadCounts()"></sk-query>
+		    </div>
+	    </div>
+	    <br><br>
+
         <div class="row">
-            <!-- Left column -->
-            <div class="col-md-2 imagesColumn">
-                <div>
-                    <span class="triageHeadLine">
-                        <span ng-show="showPositives">Positives ({{posStats.unique}})</span>
-                        <span ng-hide="showPositives">Negatives({{negStats.unique}})</span>
-                    </span><br>
-                    <a href="" ng-click="switchLeftColumn()">
-                        <span ng-hide="showPositives">Positives ({{posStats.unique}})</span>
-                        <span ng-show="showPositives">Negatives({{negStats.unique}})</span>
-                    </a>
-                </div>
+        	<div class="col-xs-6">
+        		<div>
+        			<div class="col-xs-2" style="padding:6px;">
+        				<span style="font-weight: bold; text-align: right;">Commit Range:</span>
+        			</div>
+        			<div class="col-xs-3">
+        				<input type="text"  placeholder="Start Commit" style="width: 100%; padding: 6px;">
+				    </div>
+ 				    <div class="col-xs-3">
+					    <input type="text"  placeholder="End Commit" style="width: 100%; padding: 6px;">
+					</div>
+					<div class="col-xs-1">
+						<button type="Update" class="btn btn-primary">Update</button>
+					</div>
+	  			</div>
+        	</div>
 
-                <div ng-hide="leftDigests">
-                    No images available.
-                </div>
-                <div ng-show="leftDigests">
-                    <div ng-repeat="oneDigest in leftDigests" style="padding-bottom: 1em;padding-top: 1em;">
-                        <div class="pull-left">
-                            <a href="{{oneDigest.imgUrl}}" target="_blank">View <span class="glyphicon glyphicon-new-window"></span></a>
-                        </div>
+        	<div class="col-xs-6 pull-right" style="padding: 6px;">
+        		<div style="display:inline; font-weight: bold;">
+        			Show # of commits:
+        		</div>
+        		<div class="autoRange" ng-repeat="cr in crLinks">
+	        		<a href=""  ng-click="selectCommitRange(cr)">{{cr.name}}</a>
+	        	</div>
+		    </div>
+	    </div>
+	    <br><br>
 
-                        <a href=""
-                           class="pull-right"
-                           ng-click="toggleStateIndicator(oneDigest.digest)"
-                           style="font-size: 16pt;"
-                           ng-class="{'stateChanged' : stateChanged(oneDigest.digest)}">
-                            <span ng-if="triageState[oneDigest.digest] === c.POSITIVE"
-                                  class="glyphicon glyphicon-ok positiveLabel"></span>
-                            <span ng-if="triageState[oneDigest.digest] === c.NEGATIVE"
-                                  class="glyphicon glyphicon-ban-circle negativeLabel"></span>
-                            <span ng-if="triageState[oneDigest.digest] === c.UNTRIAGED"
-                                  class="glyphicon glyphicon-question-sign"></span>
-                        </a>
+	    <div class="row">
+	    	<div class="col-xs-12">
+	    	</div>
+	    </div>
 
-                        <div>
-                         <img ng-click="selectLeft($index)"
-                              ng-src="{{oneDigest.imgUrl}}"
-                              class="columnImg"
-                              ng-class="{selectedImg: $index === leftIndex}">
-                        </div>
-                        <div ng-if="showPositives && currentUntriaged">
-                            {{oneDigest.diff.numDiffPixels}}px &#183;
-                            {{oneDigest.diff.pixelDiffPercent | number: 2}}% &#183;
-                            {{oneDigest.diff.maxRGBADiffs | json }}
-                         </div>
+    	<div class="row">
+		    <div class="col-md-12">
+				<table class="table table-hover table-condensed" style="font-size:font-size: small;">
+			      <thead>
+			        <tr>
+			          <th>Test</th>
+			          <th>+</th>
+			          <th>-</th>
+			          <th>Untriaged</th>
+			          <th>Pos Image</th>
+			          <th>Unt Image</th>
+			          <th>Diff Image</th>
+			          <th>&nbsp;</th>
+			        </tr>
+			      </thead>
 
-                        <div>
-                         {{oneDigest.count}} &#183; {{ (oneDigest.count / posStats.total) * 100.0 | number: 2 }} %
-                        </div>
-                    </div>
-                </div>
-            </div>
+			      <tbody>
+			        <tr>
+			          <td><a href="#/counts">All Tests</a></td>
+			          <td>{{allAggregates.pos}}</td>
+			          <td>{{allAggregates.neg}}</td>
+			          <td>{{allAggregates.unt}}</td>
+			          <td>&nbsp;</td>
+			          <td>&nbsp;</td>
+			          <td>&nbsp;</td>
+			          <td>&nbsp;</td>
+			        </tr>
+			        <tr ng-repeat="oneTest in allTests">
+			          <td style="max-width:15em; word-break: break-all;"><a href="#/counts/{{oneTest.name}}"
+			          	   title="{{oneTest.name}}">
+			          	{{oneTest.name | limitTo:65 }}
+			          </a></td>
+			          <td>{{oneTest.aggregates.pos}}</td>
+			          <td>{{oneTest.aggregates.neg}}</td>
+			          <td>{{oneTest.aggregates.unt}}</td>
+			          <td><img ng-style="{ width: settings.imageSize+'px' }"
+                               ng-src="{{ imageUrl }}" /></td>
+			          <td><img ng-style="{ width: settings.imageSize+'px' }"
+                               ng-src="{{ imageUrl }}" /></td>
+			          <td><img ng-style="{ width: settings.imageSize+'px' }"
+                               ng-src="{{ imageUrl }}" /></td>
+			          <td><a href="#/triage/{{oneTest.name}}{{qStr}}">Triage</a></td>
+			        </tr>
+			      </tbody>
+			    </table>
+		    </div>
+		</div>
 
-            <!-- Center column -->
-            <div class="col-md-8">
-
-                <!-- Controls what show in center column -->
-                <div class="row" style="border: 1px solid #E1E1E1; padding: 0.5em; margin-left: 0; margin-right:0; margin-bottom: 1em;">
-                    <div class="pull-left">
-                        <input type="checkbox"
-                               ng-model="showSrcImages"> Show Source Images
-
-                        <span ng-show="showPositives && currentLeft && currentUntriaged">
-                           <input type="checkbox" ng-model="showOverlay"> Diff Overlay
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Buttons to classify a digest -->
-                <div ng-show="showPositives && currentUntriaged" class="row">
-                    <div class="col-md-6">
-                        &nbsp;
-                    </div>
-                    <div class="col-md-6">
-
-                        <div class="row posNegButtonContainer" >
-                            <button ng-disabled="triageState[currentUntriaged.digest] === c.POSITIVE"
-                                    ng-click="setTriageState(currentUntriaged.digest, c.POSITIVE)"
-                                    class="btn btn-success pull-left">Positive</button>
-                            <button ng-disabled="triageState[currentUntriaged.digest] === c.NEGATIVE"
-                                    ng-click="setTriageState(currentUntriaged.digest, c.NEGATIVE)"
-                                    class="btn btn-danger pull-right">Negative</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- source images -->
-                <div class="row srcImageContainer" ng-if="showSrcImages">
-                    <!-- positive source image -->
-                    <div class="col-xs-6">
-                        <div ng-if="!currentLeft">
-                            No image available.
-                        </div>
-                        <div ng-if="currentLeft">
-                            <img src=""
-                                 ng-src="{{currentLeft.imgUrl}}"
-                                 class="columnImg">
-                        </div>
-                    </div>
-
-                    <!-- untriaged source image -->
-                    <div class="col-xs-6">
-                        <div ng-if="!currentUntriaged">
-                            No untriaged images available.
-                        </div>
-                        <div ng-if="currentUntriaged">
-                            <img ng-src="{{currentUntriaged.imgUrl}}"
-                                 class="columnImg">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- diff image -->
-                <div class="row">
-                    <div class="col-xs-6">
-                        <div ng-if="showPositives && currentLeft && currentUntriaged">
-                            <div class="row identicalContainer" ng-show="currentLeft.isIdentical()">
-                                Images are identical !
-                            </div>
-
-                            <div class="imageBorder" ng-hide="currentLeft.isIdentical()">
-                                <div class="imgNoBorder" ng-style="getOverlayStyle().backGround">
-                                    <img ng-src="{{currentLeft.diff.diffImgUrl}}"
-                                         class="diffImg imgNoBorder"
-                                         ng-style="getOverlayStyle().foreGround">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xs-6">
-                        <div class="row" ng-if="showPositives && currentLeft && currentUntriaged">
-                               Diff:
-                               {{currentLeft.diff.numDiffPixels}}px &#183;
-                               {{currentLeft.diff.pixelDiffPercent | number: 2}}% &#183;
-                               {{currentLeft.diff.maxRGBADiffs | json }}
-                        </div>
-                        <br>
-                        <br>
-                        <div class="row">
-                            <div class="col-xs-12" ng-if="currentLeft && currentUntriaged">
-                                    <sk-params params="currentLeft.paramCounts"
-                                               params-two="currentUntriaged.paramCounts"
-                                               filter="filterByParam">
-                                    </sk-params>
-                            </div>
-
-                            <div class="col-xs-12">
-                                <div ng-if="currentLeft && !currentUntriaged">
-                                    <sk-params params="currentLeft.paramCounts" filter="filterByParam">
-                                    </sk-params>
-                                </div>
-                            </div>
-
-                            <div class="col-xs-12">
-                                <div ng-if="currentUntriaged && !currentLeft">
-                                    <sk-params params="currentUntriaged.paramCounts"
-                                               filter="filterByParam">
-                                    </sk-params>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <br>
-                <br>
-
-                <br>
-
-                <div>
-                    <sk-query all-params="allParams" query="query" click-update="loadTriageData()">
-                    </sk-query>
-                </div>
-                <br>
-            </div>
-
-            <!-- Right column -->
-            <div class="col-md-2 imagesColumn">
-
-                <div>
-                    <span class="triageHeadLine">Untriaged ({{untStats.unique}})</span>
-                </div>
-
-                <div ng-hide="currentUntriaged">
-                    No untriaged images available.
-                </div>
-                <div ng-show="currentUntriaged">
-                    <div ng-repeat="oneUntriaged in untriaged">
-                        <a href=""
-                        ng-click="toggleStateIndicator(oneUntriaged.digest)"
-                        style="font-size: 16pt;"
-                        ng-class="{'stateChanged' : stateChanged(oneUntriaged.digest)}">
-                            <span ng-if="triageState[oneUntriaged.digest] === c.POSITIVE"
-                                  class="glyphicon glyphicon-ok positiveLabel"></span>
-                            <span ng-if="triageState[oneUntriaged.digest] === c.NEGATIVE"
-                                  class="glyphicon glyphicon-ban-circle negativeLabel"></span>
-                            <span ng-if="triageState[oneUntriaged.digest] === c.UNTRIAGED"
-                                  class="glyphicon glyphicon-question-sign"></span>
-                        </a>
-                        <a href="{{oneUntriaged.imgUrl}}" target="_blank" class="pull-right">View <span class="glyphicon glyphicon-new-window"></span></a>
-                        <div style="display:inline;">
-                            <img ng-click="selectUntriaged($index)"
-                                 ng-src="{{oneUntriaged.imgUrl}}"
-                                 class="columnImg"
-                                 ng-class="{selectedImg: $index === untIndex}">
-                        </div>
-                        <div>
-                            {{oneUntriaged.count}} &#183; {{ (oneUntriaged.count / untStats.total) * 100.0 | number: 2 }} %
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
