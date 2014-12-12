@@ -6,11 +6,10 @@ import (
 	"net/http"
 
 	"github.com/golang/glog"
-
 	"skia.googlesource.com/buildbot.git/go/util"
 )
 
-// Get retrieves the named value from the Metadata server. See
+// get retrieves the named value from the Metadata server. See
 // https://developers.google.com/compute/docs/metadata
 //
 // level should be either "instance" or "project" for the kind of
@@ -40,7 +39,7 @@ func Get(name string) (string, error) {
 	return get(name, "instance")
 }
 
-// Get retrieves the named value from the project Metadata server. See
+// ProjectGet retrieves the named value from the project Metadata server. See
 // https://developers.google.com/compute/docs/metadata
 func ProjectGet(name string) (string, error) {
 	return get(name, "project")
