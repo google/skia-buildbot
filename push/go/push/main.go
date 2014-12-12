@@ -11,7 +11,10 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
+	"time"
 
+	"code.google.com/p/google-api-go-client/compute/v1"
 	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/BurntSushi/toml"
 	"github.com/fiorix/go-web/autogzip"
@@ -51,6 +54,9 @@ var (
 	// config is the configuration of what servers and apps we are managing.
 	config PushConfig
 
+	// ip keeps an updated map from server name to public IP address.
+	ip *IPAddresses
+
 	// serverNames is a list of server names (GCE DNS names) we are managing.
 	// Extracted from 'config'.
 	serverNames []string
@@ -60,6 +66,9 @@ var (
 
 	// store is an Google Storage API client authorized to read and write gs://skia-push.
 	store *storage.Service
+
+	// comp is an Google Compute API client authorized to read compute information.
+	comp *compute.Service
 )
 
 // flags
@@ -71,6 +80,8 @@ var (
 	oauthCacheFile = flag.String("oauth_cache_file", "google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	zone           = flag.String("zone", "us-central1-f", "The Google Compute Engine zone.")
+	project        = flag.String("google.com:skia-buildbots", "us-central1-f", "The Google Compute Engine project.")
 )
 
 func Init() {
@@ -102,6 +113,69 @@ func Init() {
 	if store, err = storage.New(client); err != nil {
 		glog.Fatalf("Failed to create storage service client: %s", err)
 	}
+	if comp, err = compute.New(client); err != nil {
+		glog.Fatalf("Failed to create compute service client: %s", err)
+	}
+	ip, err = NewIPAddresses(comp)
+	if err != nil {
+		glog.Fatalf("Failed to load IP addresses at startup: %s", err)
+	}
+}
+
+// IPAddresses keeps track of the external IP addresses of each server.
+type IPAddresses struct {
+	ip    map[string]string
+	comp  *compute.Service
+	mutex sync.Mutex
+}
+
+func (i *IPAddresses) loadIPAddresses() error {
+	ip := map[string]string{}
+	list, err := comp.Instances.List(*project, *zone).Do()
+	if err != nil {
+		return fmt.Errorf("Failed to list instances: %s", err)
+	}
+	for _, item := range list.Items {
+		for _, nif := range item.NetworkInterfaces {
+			for _, acc := range nif.AccessConfigs {
+				if strings.HasPrefix(strings.ToLower(acc.Name), "external") {
+					ip[item.Name] = acc.NatIP
+				}
+			}
+		}
+	}
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+
+	i.ip = ip
+	return nil
+}
+
+// Get returns the current set of external IP addresses for servers.
+func (i *IPAddresses) Get() map[string]string {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+
+	return i.ip
+}
+
+func NewIPAddresses(comp *compute.Service) (*IPAddresses, error) {
+	i := &IPAddresses{
+		ip:   map[string]string{},
+		comp: comp,
+	}
+	if err := i.loadIPAddresses(); err != nil {
+		return nil, err
+	}
+	go func() {
+		for _ = range time.Tick(time.Second * 10) {
+			if err := i.loadIPAddresses(); err != nil {
+				glog.Infof("Error refreshing IP address list: %s", err)
+			}
+		}
+	}()
+
+	return i, nil
 }
 
 // ServerUI is used in ServersUI.
@@ -247,6 +321,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	err = enc.Encode(map[string]interface{}{
 		"servers":  servers,
 		"packages": allAvailable,
+		"ip":       ip.Get(),
 	})
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to encode response.")

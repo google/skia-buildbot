@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia Push application."
 NAME=push
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS="--oauth=false --log_dir=/var/log/logserver --resources_dir=/usr/local/share/skiapush/ --config_filename=/etc/skiapush/skiapush.conf"
+DAEMON_ARGS="--oauth=false --log_dir=/var/log/logserver --resources_dir=/usr/local/share/skiapush/ --config_filename=/etc/skiapush/skiapush.conf --zone=us-central1-f --project=google.com:skia-buildbots"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 

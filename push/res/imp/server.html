@@ -178,6 +178,8 @@ Displays the server configurations, along with the ability to modify application
       h2 {
         color: #33A02C;
         margin-left: 1em;
+        display: inline;
+        padding-right: 1em;
       }
       .appName {
         padding-right: 2em;
@@ -194,7 +196,7 @@ Displays the server configurations, along with the ability to modify application
     </style>
     <template repeat="{{server in servers}}">
       <section>
-        <h2>{{server.Name}}</h2>
+        <h2>{{server.Name}}</h2> [<a target=_blank href="http://{{ip[server.Name]}}:10114">monit</a>] [<a target=_blank href="http://{{ip[server.Name]}}:10115">logs</a>]
         <table>
           <template repeat="{{id in server.Installed}}">
           <tr>
@@ -220,6 +222,10 @@ Displays the server configurations, along with the ability to modify application
           reflect: false
         },
         packages: {
+          value: {},
+          reflect: false
+        },
+        ip: {
           value: {},
           reflect: false
         },
@@ -267,9 +273,10 @@ Displays the server configurations, along with the ability to modify application
         });
       },
 
-      setConfig: function(servers, packages) {
+      setConfig: function(servers, packages, ip) {
         this.servers = servers;
         this.packages = packages;
+        this.ip = ip;
         for (appName in this.packages) {
           var that = this;
           var latest = true;
@@ -296,7 +303,7 @@ Displays the server configurations, along with the ability to modify application
       // shortHash is a utility function used in templates to truncate git hashes.
       shortHash: function(s) {
         return this.fullHash(s).slice(0, 6);
-      }
+      },
 
     });
   </script>

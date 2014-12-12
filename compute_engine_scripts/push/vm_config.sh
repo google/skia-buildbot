@@ -21,4 +21,5 @@ INSTANCE_NAME=${VM_NAME_BASE}-push
 PUSH_IP_ADDRESS=104.154.112.100
 PUSH_MACHINE_TYPE=n1-standard-1
 PUSH_SOURCE_SNAPSHOT=skia-pushable-base
+PUSH_SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/compute.readonly'
 

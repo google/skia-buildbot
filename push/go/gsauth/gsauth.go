@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"code.google.com/p/goauth2/compute/serviceaccount"
+	"code.google.com/p/google-api-go-client/compute/v1"
+	"code.google.com/p/google-api-go-client/storage/v1"
 
 	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -18,7 +20,7 @@ func NewClient(doOAuth bool, oauthCacheFile string) (*http.Client, error) {
 	var client *http.Client
 	var err error
 	if doOAuth {
-		config := auth.OAuthConfig(oauthCacheFile, auth.SCOPE_FULL_CONTROL)
+		config := auth.OAuthConfig(oauthCacheFile, storage.DevstorageFull_controlScope+" "+compute.ComputeReadonlyScope)
 		client, err = auth.RunFlow(config)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to auth: %s", err)
