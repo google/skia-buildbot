@@ -1,5 +1,5 @@
 testgo:
-	go test ./go/...
+	go test -test.short -i ./go/...
 
 .PHONY: sharedgo
 sharedgo:
