@@ -1,3 +1,81 @@
+<!-- The <push-selection-sk> custom element declaration.
+
+  Presents a dialog of package choices and generates an event when the user has
+  made a selection. It is a custom element used by <push-server-sk>.
+
+  Attributes:
+    'choices'
+        The list of packages that are available.
+    'choice'
+        The selected package.
+  Events:
+    'change'
+        A 'change' event is generated when the user selects a package to push.
+        The change event has the following attributes:
+
+          event.detail.name   - The full name of the package selected.
+  Methods:
+    toggle()
+        Toggles the visibility of the selection dialog.
+-->
+<style type="text/css" media="screen">
+  html /deep/ .pushSelection {
+    font-family: monospace;
+    padding: 0.5em;
+    cursor: pointer;
+  }
+  html /deep/ .pushSelection:hover {
+    background: #eee;
+  }
+</style>
+<polymer-element name="push-selection-sk">
+  <template>
+    <paper-action-dialog id=chooser heading="Choose a release package to push">
+      <core-selector id=newChoice>
+        <template repeat="{{p in choices}}">
+          <div class=pushSelection name="{{p.Name}}">
+            {{p.Hash | shortHash}} {{p.Note}}
+          </div>
+        </template>
+      </core-selector>
+      <paper-button dismissive>Cancel</paper-button>
+    </paper-action-dialog>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        choices: {
+          value: [],
+          reflect: false
+        },
+        choice: {
+          value: '',
+          reflect: false
+        }
+      },
+
+      ready: function() {
+        var that = this;
+        this.$.newChoice.addEventListener('core-activate', function(e) {
+          that.toggle();
+          var detail = {name: that.$.newChoice.selected};
+          that.dispatchEvent(new CustomEvent('change', {detail: detail}));
+        });
+      },
+
+      toggle: function() {
+        this.$.chooser.toggle();
+      },
+
+      // shortHash is a utility function used in templates to truncate git hashes.
+      shortHash: function(s) {
+        return s.slice(0, 8);
+      }
+
+    });
+  </script>
+</polymer-element>
+
 <!-- The <push-server-sk> custom element declaration.
 
 Displays the server configurations, along with the ability to modify application selections.
@@ -63,49 +141,45 @@ Displays the server configurations, along with the ability to modify application
   Clicking on an app brings up a selection dialog with all available options,
   the current one already selected. A selection will update and push.
 -->
-<style type="text/css" media="screen">
-  body {
-    font-family: Arial, sans-serif;
-    font-size: 15px;
-  }
-
-  html /deep/ paper-radio-button {
-    display: block;
-    margin-right: 2em;
-  }
-  html /deep/ paper-button:hover {
-    background: #eee;
-  }
-  html /deep/ paper-button {
-    color: #1f78b4;
-  }
-</style>
 <polymer-element name="push-server-sk">
   <template>
     <style type="text/css" media="screen">
-      .application {
+      table {
         margin-left: 3em;
       }
       h2 {
         color: #33A02C;
         margin-left: 1em;
       }
-      core-icon {
-        margin-left: 1em;
+      .appName {
+        padding-right: 2em;
+      }
+      td core-icon {
+        padding-right: 1em;
+      }
+      paper-button {
+        color: #1f78b4;
+      }
+      paper-button:hover {
+        background: #eee;
       }
     </style>
     <template repeat="{{server in servers}}">
-      <h2>{{server.Name}}</h2>
-      <template repeat="{{id in server.Installed}}">
-      <paper-button class=application data-server="{{server.Name}}" data-name="{{id}}" data-app="{{id | prefixOf}}">{{id | prefixOf}}
-          <template if="{{!packageLookup[id].Latest}}">
-            <core-icon icon="warning" title="Out of date."></core-icon>
+      <section>
+        <h2>{{server.Name}}</h2>
+        <table>
+          <template repeat="{{id in server.Installed}}">
+          <tr>
+            <td>
+              <paper-button class=application data-server="{{server.Name}}" data-name="{{id}}" data-app="{{id | prefixOf}}"><core-icon icon="create" title="Edit which package is installed."></core-icon></paper-button>
+            </td>
+            <td><span class=appName>{{id | prefixOf}}</span></td>
+            <td><core-icon icon="{{packageLookup[id].Latest ? '' : 'alarm'}}" title="Out of date."></core-icon></td>
+            <td><core-icon icon="{{packageLookup[id].Dirty ? 'warning' : ''}}" title="Uncommited changes when the package was built."></core-icon></td>
+          </tr>
           </template>
-          <template if="{{packageLookup[id].Dirty}}">
-            <core-icon icon="error" title="Uncommited changes when the package was built."></core-icon>
-          </template>
-        </paper-button>
-      </template>
+        </table>
+      </section>
     </template>
     <push-selection-sk id=extChooser></push-selection-sk>
   </template>
@@ -189,80 +263,3 @@ Displays the server configurations, along with the ability to modify application
 </polymer-element>
 
 
-<!-- The <push-selection-sk> custom element declaration.
-
-  Presents a dialog of package choices and generates an event when the user has
-  made a selection. It is a custom element used by <push-server-sk>.
-
-  Attributes:
-    'choices'
-        The list of packages that are available.
-    'choice'
-        The selected package.
-  Events:
-    'change'
-        A 'change' event is generated when the user selects a package to push.
-        The change event has the following attributes:
-
-          event.detail.name   - The full name of the package selected.
-  Methods:
-    toggle()
-        Toggles the visibility of the selection dialog.
--->
-<style type="text/css" media="screen">
-  html /deep/ .pushSelection {
-    font-family: monospace;
-    padding: 0.5em;
-    cursor: pointer;
-  }
-  html /deep/ .pushSelection:hover {
-    background: #eee;
-  }
-</style>
-<polymer-element name="push-selection-sk">
-  <template>
-    <paper-action-dialog id=chooser heading="Choose a release package to push">
-      <core-selector id=newChoice>
-        <template repeat="{{p in choices}}">
-          <div class=pushSelection name="{{p.Name}}">
-            {{p.Hash | shortHash}} {{p.Note}}
-          </div>
-        </template>
-      </core-selector>
-      <paper-button dismissive>Cancel</paper-button>
-    </paper-action-dialog>
-  </template>
-  <script>
-    Polymer({
-      publish: {
-        choices: {
-          value: [],
-          reflect: false
-        },
-        choice: {
-          value: '',
-          reflect: false
-        }
-      },
-
-      ready: function() {
-        var that = this;
-        this.$.newChoice.addEventListener('core-activate', function(e) {
-          that.toggle();
-          var detail = {name: that.$.newChoice.selected};
-          that.dispatchEvent(new CustomEvent('change', {detail: detail}));
-        });
-      },
-
-      toggle: function() {
-        this.$.chooser.toggle();
-      },
-
-      // shortHash is a utility function used in templates to truncate git hashes.
-      shortHash: function(s) {
-        return s.slice(0, 8);
-      }
-
-    });
-  </script>
-</polymer-element>
