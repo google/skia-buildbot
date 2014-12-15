@@ -659,36 +659,6 @@ _slave_host_dicts = {
 
 ################################# Mac Machines #################################
 
-  'skiabot-macmini-10_6-001': {
-    'slaves': [
-      ('skiabot-macmini-10_6-000', '0', False),
-      ('skiabot-macmini-10_6-001', '1', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
-    'ip': '192.168.1.144',
-    'kvm_num': '2',
-    'path_module': posixpath,
-    'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skiabot-macmini-10_6-002': {
-    'slaves': [
-      ('skiabot-macmini-10_6-002', '2', False),
-      ('skiabot-macmini-10_6-003', '3', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
-    'ip': '192.168.1.121',
-    'kvm_num': '1',
-    'path_module': posixpath,
-    'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skiabot-macmini-10_7-001': {
     'slaves': [
       ('skiabot-macmini-10_7-000', '0', False),
@@ -898,6 +868,104 @@ _slave_host_dicts = {
   'build5-a3': {
     'slaves': [
       ('build5-a3', '0', False),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'build32-a3': {
+    'slaves': [
+      ('build32-a3', '0', False),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'build33-a3': {
+    'slaves': [
+      ('build33-a3', '0', False),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'mini1-m3': {
+    'slaves': [
+      ('mini1-m3', '0', False),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': None,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'vm690-m3': {
+    'slaves': [
+      ('vm690-m3', '0', False),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'vm691-m3': {
+    'slaves': [
+      ('vm691-m3', '0', False),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'vm692-m3': {
+    'slaves': [
+      ('vm692-m3', '0', False),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'vm693-m3': {
+    'slaves': [
+      ('vm693-m3', '0', False),
     ],
     'copies': None,
     'login_cmd': None,
