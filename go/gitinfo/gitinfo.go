@@ -41,9 +41,10 @@ type LongCommit struct {
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
-	dir        string
-	hashes     []string
-	timestamps map[string]time.Time // Key is the hash.
+	dir          string
+	hashes       []string
+	timestamps   map[string]time.Time // Key is the hash.
+	detailsCache map[string]*LongCommit
 
 	// Any access to hashes or timestamps must be protected.
 	mutex sync.Mutex
@@ -54,8 +55,9 @@ type GitInfo struct {
 // for history.
 func NewGitInfo(dir string, pull, allBranches bool) (*GitInfo, error) {
 	g := &GitInfo{
-		dir:    dir,
-		hashes: []string{},
+		dir:          dir,
+		hashes:       []string{},
+		detailsCache: map[string]*LongCommit{},
 	}
 	return g, g.Update(pull, allBranches)
 }
@@ -118,10 +120,11 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 
 // Details returns more information than ShortCommit about a given commit.
 func (g *GitInfo) Details(hash string) (*LongCommit, error) {
-	glog.Infof("gitinfo.Details(%s)", hash)
+	if c, ok := g.detailsCache[hash]; ok {
+		return c, nil
+	}
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
-	glog.Infof("gitinfo.Details(%s) acquired lock", hash)
 	cmd := exec.Command("git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b", hash)
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
@@ -142,6 +145,7 @@ func (g *GitInfo) Details(hash string) (*LongCommit, error) {
 		Body:      lines[4],
 		Timestamp: g.timestamps[hash],
 	}
+	g.detailsCache[hash] = &c
 	return &c, nil
 }
 
