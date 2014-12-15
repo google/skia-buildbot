@@ -131,6 +131,7 @@ func InstalledForServer(client *http.Client, store *storage.Service, serverName 
 	if err := dec.Decode(&value); err != nil {
 		return nil, fmt.Errorf("Failed to decode packages file: %s", err)
 	}
+	sort.Strings(value)
 	return value, nil
 }
 
