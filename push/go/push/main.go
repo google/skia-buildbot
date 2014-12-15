@@ -81,7 +81,7 @@ var (
 	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	zone           = flag.String("zone", "us-central1-f", "The Google Compute Engine zone.")
-	project        = flag.String("google.com:skia-buildbots", "us-central1-f", "The Google Compute Engine project.")
+	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
 )
 
 func Init() {
