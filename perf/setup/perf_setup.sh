@@ -17,6 +17,11 @@ ROOT_PARAMS="-D --verbose --backup=none --group=root --owner=root --preserve-tim
 EXE_FILE="--mode=755"
 CONFIG_FILE="--mode=666"
 
+# Install pull.
+# Temporary step to bootstrap monitoring using Skia Push.
+gsutil cp gs://skia-push/debs/pull/pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-15T14:12:52Z:6152bc3bcdaa54989c957809e77bed282c35676b.deb pull.deb
+sudo dpkg -i pull.deb
+
 sudo install $PARAMS $EXE_FILE continue_install /home/perf/
 sudo install $PARAMS $CONFIG_FILE -T sys/_bash_aliases /home/perf/.bash_aliases
 sudo su perf -c /home/perf/continue_install
@@ -24,7 +29,6 @@ sudo su perf -c /home/perf/continue_install
 sudo install $ROOT_PARAMS $EXE_FILE sys/perf_init /etc/init.d/skiaperf
 sudo install $ROOT_PARAMS $EXE_FILE sys/correctness_init /etc/init.d/skiacorrectness
 sudo install $ROOT_PARAMS $EXE_FILE sys/ingest_init /etc/init.d/ingest
-sudo install $ROOT_PARAMS $EXE_FILE sys/logserver_init /etc/init.d/logserver
 sudo install $ROOT_PARAMS $CONFIG_FILE sys/perf_monit /etc/monit/conf.d/perf
 
 # Add the nginx configuration files.
@@ -57,5 +61,4 @@ sudo monit reload
 sudo /etc/init.d/skiaperf restart
 sudo /etc/init.d/skiacorrectness restart
 sudo /etc/init.d/ingest restart
-sudo /etc/init.d/logserver restart
 sudo /etc/init.d/nginx restart
