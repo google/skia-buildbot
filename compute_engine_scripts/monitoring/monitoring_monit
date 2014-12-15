@@ -1,7 +1,3 @@
-check process grains with pidfile /var/run/grains.pid
-   start program = "/etc/init.d/grains start"
-   stop program = "/etc/init.d/grains stop"
-
 check process prober with pidfile /var/run/prober.pid
    start program = "/etc/init.d/prober start"
    stop program = "/etc/init.d/prober stop"

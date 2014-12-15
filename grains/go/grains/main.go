@@ -53,7 +53,8 @@ var (
 	graphiteServer   = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	port             = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	useMetadata      = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	influxDbApiPort  = flag.Int("influxdb_api_port", 8086, "The local port of the InfluxDB API.")
+	influxDbApiHost  = flag.String("influxdb_api_host", "localhost", "The host name of the InfluxDB API.")
+	influxDbApiPort  = flag.Int("influxdb_api_port", 8086, "The port of the InfluxDB API.")
 	grafanaDir       = flag.String("grafana_dir", "", "The directory of the grafana files.")
 	influxDbName     = flag.String("influxdb_name", "admin", "The InfluxDB username.")
 	influxDbPassword = flag.String("influxdb_password", "admin", "The InfluxDB password.")
@@ -68,8 +69,8 @@ type Proxy struct {
 	Grafana  http.Handler
 }
 
-func NewProxy(influxDbApiPort int, grafanaDir string) *Proxy {
-	u, err := url.Parse(fmt.Sprintf("http://localhost:%d", influxDbApiPort))
+func NewProxy(hostname string, port int, grafanaDir string) *Proxy {
+	u, err := url.Parse(fmt.Sprintf("http://%s:%d", hostname, port))
 	if err != nil {
 		glog.Fatalf("Failed to parse redirect URL: %s", err)
 	}
@@ -101,14 +102,14 @@ func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func main() {
 	common.InitWithMetrics("grains", *graphiteServer)
 	if *useMetadata {
-		*clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
-		*clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)
-		*cookieSalt = metadata.MustGet(COOKIESALT_METADATA_KEY)
-		*influxDbName = metadata.MustGet(INFLUXDB_NAME_METADATA_KEY)
-		*influxDbPassword = metadata.MustGet(INFLUXDB_PASSWORD_METADATA_KEY)
+		*clientID = metadata.Must(metadata.ProjectGet(CLIENT_ID_METADATA_KEY))
+		*clientSecret = metadata.Must(metadata.ProjectGet(CLIENT_SECRET_METADATA_KEY))
+		*cookieSalt = metadata.Must(metadata.ProjectGet(COOKIESALT_METADATA_KEY))
+		*influxDbName = metadata.Must(metadata.ProjectGet(INFLUXDB_NAME_METADATA_KEY))
+		*influxDbPassword = metadata.Must(metadata.ProjectGet(INFLUXDB_PASSWORD_METADATA_KEY))
 	}
 	login.Init(*clientID, *clientSecret, *redirectURL, *cookieSalt)
-	http.Handle("/", NewProxy(*influxDbApiPort, *grafanaDir))
+	http.Handle("/", NewProxy(*influxDbApiHost, *influxDbApiPort, *grafanaDir))
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

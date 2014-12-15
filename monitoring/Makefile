@@ -8,10 +8,7 @@ alertserver: js skiaversion
 datahopper:
 	go install -v ./go/datahopper
 
-grains:
-	go install -v ./go/grains
-
-default: alertserver datahopper grains
+default: alertserver datahopper
 
 testgo: skiaversion
 	go test ./go/... -v

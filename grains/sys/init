@@ -21,8 +21,8 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Grafana/InfluxDB proxy server."
 NAME=grains
-DAEMON=/home/default/golib/bin/$NAME
-DAEMON_ARGS="--grafana_dir=/home/default/grafana --use_metadata=true --influxdb_api_port=10117 --log_dir=/tmp/glog --redirect_url=https://skiamonitor.com/oauth2callback/"
+DAEMON=/usr/local/bin/$NAME
+DAEMON_ARGS=--grafana_dir=/usr/local/share/skiagrains/grafana --use_metadata=true --influxdb_api_host=localhost --influxdb_api_port=10117 --log_dir=/var/log/logserver --redirect_url=https://skiamonitor.com/oauth2callback/
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
