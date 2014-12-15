@@ -244,10 +244,10 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	// installed yet.
 	serversSeen := map[string]bool{}
 	for name, installed := range allInstalled {
-		installedNames := appNames(installed)
+		installedNames := appNames(installed.Names)
 		for _, expected := range config.Servers[name].AppNames {
 			if !util.In(expected, installedNames) {
-				installed = append(installed, expected+"/")
+				installed.Names = append(installed.Names, expected+"/")
 			}
 		}
 		allInstalled[name] = installed
@@ -264,7 +264,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 		for _, appName := range expected.AppNames {
 			installed = append(installed, appName+"/")
 		}
-		allInstalled[name] = installed
+		allInstalled[name].Names = installed
 	}
 
 	if r.Method == "POST" {
@@ -287,7 +287,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 			// push.Name. Leave all other package names unchanged.
 			appName := strings.Split(push.Name, "/")[0]
 			newInstalled := []string{}
-			for _, oldName := range installedPackages {
+			for _, oldName := range installedPackages.Names {
 				goodName := oldName
 				if strings.Split(oldName, "/")[0] == appName {
 					goodName = push.Name
@@ -295,11 +295,11 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 				newInstalled = append(newInstalled, goodName)
 			}
 			glog.Infof("Updating %s with %#v giving %#v", push.Server, push.Name, newInstalled)
-			if err := packages.PutInstalled(store, client, push.Server, newInstalled); err != nil {
+			if err := packages.PutInstalled(store, client, push.Server, newInstalled, installedPackages.Generation); err != nil {
 				util.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
-			allInstalled[push.Server] = newInstalled
+			allInstalled[push.Server].Names = newInstalled
 		}
 	}
 
@@ -313,7 +313,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	for _, name := range names {
 		servers = append(servers, &ServerUI{
 			Name:      name,
-			Installed: allInstalled[name],
+			Installed: allInstalled[name].Names,
 		})
 	}
 

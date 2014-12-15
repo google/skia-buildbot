@@ -30,6 +30,17 @@ type Package struct {
 	Note   string
 }
 
+// Installed is a list of all the packages installed on a server.
+//
+type Installed struct {
+	// Names is a list of package names, of the form "{appname}/{appname}:{author}:{date}:{githash}.deb"
+	Names []string
+
+	// Generation is the Google Storage generation number of the config file at the time we read it.
+	// Use this to avoid the lost-update problem: https://cloud.google.com/storage/docs/generations-preconditions#_ReadModWrite
+	Generation int64
+}
+
 func safeGetTime(m map[string]string, key string) time.Time {
 	value := safeGet(m, key, "")
 	if value == "" {
@@ -106,12 +117,13 @@ func AllAvailable(store *storage.Service) (map[string][]*Package, error) {
 
 // InstalledForServer returns a list of package names of installed packages for
 // the given server.
-func InstalledForServer(client *http.Client, store *storage.Service, serverName string) ([]string, error) {
+func InstalledForServer(client *http.Client, store *storage.Service, serverName string) (*Installed, error) {
 	filename := "server/" + serverName + ".json"
 	obj, err := store.Objects.Get("skia-push", filename).Do()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to retrieve Google Storage metadata about packages file %q: %s", filename, err)
 	}
+
 	glog.Infof("Fetching: %s", obj.MediaLink)
 	req, err := gs.RequestForStorageURL(obj.MediaLink)
 	if err != nil {
@@ -132,12 +144,15 @@ func InstalledForServer(client *http.Client, store *storage.Service, serverName 
 		return nil, fmt.Errorf("Failed to decode packages file: %s", err)
 	}
 	sort.Strings(value)
-	return value, nil
+	return &Installed{
+		Names:      value,
+		Generation: obj.Generation,
+	}, nil
 }
 
 // AllInstalled returns a map of all known server names to their list of installed package names.
-func AllInstalled(client *http.Client, store *storage.Service, names []string) (map[string][]string, error) {
-	ret := map[string][]string{}
+func AllInstalled(client *http.Client, store *storage.Service, names []string) (map[string]*Installed, error) {
+	ret := map[string]*Installed{}
 	for _, name := range names {
 		p, err := InstalledForServer(client, store, name)
 		if err != nil {
@@ -150,13 +165,13 @@ func AllInstalled(client *http.Client, store *storage.Service, names []string) (
 }
 
 // PutInstalled writes a new list of installed packages for the given server.
-func PutInstalled(store *storage.Service, client *http.Client, serverName string, packages []string) error {
+func PutInstalled(store *storage.Service, client *http.Client, serverName string, packages []string, generation int64) error {
 	b, err := json.Marshal(packages)
 	if err != nil {
 		return fmt.Errorf("Failed to encode installed packages: %s", err)
 	}
 	buf := bytes.NewBuffer(b)
-	_, err = store.Objects.Insert("skia-push", &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf).Do()
+	_, err = store.Objects.Insert("skia-push", &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf).IfGenerationMatch(generation).Do()
 	if err != nil {
 		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", serverName, err)
 	}

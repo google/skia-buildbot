@@ -93,7 +93,7 @@ func main() {
 		}
 
 		// Install any new or updated packages.
-		newPackages := differences(serverList, localList)
+		newPackages := differences(serverList.Names, localList)
 		save := false
 		for _, name := range newPackages {
 			// If just an appname appears w/o a packge name then that means
@@ -113,7 +113,7 @@ func main() {
 		if !save {
 			continue
 		}
-		if err := packages.ToLocalFile(serverList, *installedPackagesFile); err != nil {
+		if err := packages.ToLocalFile(serverList.Names, *installedPackagesFile); err != nil {
 			glog.Errorf("Failed to write local package list: %s", err)
 		}
 
