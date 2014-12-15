@@ -4,7 +4,7 @@ APPNAME=grains
 DESCRIPTION="The Grafana/InfluxDB proxy server."
 
 # Local defines
-GRAFANA=grafana-1.8.1
+GRAFANA=grafana-1.9.0
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
@@ -17,6 +17,8 @@ ${INSTALL}     --mode=755 -T ./sys/init           ${ROOT}/etc/init.d/grains
 ${INSTALL_DIR} --mode=777                         ${ROOT}/usr/local/share/skiagrains/grafana
 
 curl http://grafanarel.s3.amazonaws.com/${GRAFANA}.tar.gz | sudo tar -C ${ROOT}/usr/local/share/skiagrains/grafana --strip-components=1 -xzf  -
+
+${INSTALL}     --mode=666 -T ./grafana-config.js  ${ROOT}/usr/local/share/skiagrains/grafana/config.js
 }
 
 source ../bash/release.sh
