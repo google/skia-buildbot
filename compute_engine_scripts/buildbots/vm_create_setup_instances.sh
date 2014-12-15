@@ -132,4 +132,8 @@ cat <<INP
 
 Instances are ready to use.
 
+Note:
+If you created windows instances then please log in and open the Windows update
+service and select "Download updates but let me choose whether to install them".
+
 INP
