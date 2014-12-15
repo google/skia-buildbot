@@ -38,8 +38,7 @@ fi
 export PATH=$PATH:$(pwd)/${NODE_VERSION}/bin
 
 # Build applications
-go get -u   skia.googlesource.com/buildbot.git/monitoring/go/prober \
-  skia.googlesource.com/buildbot.git/monitoring/go/alertserver
+go get -u skia.googlesource.com/buildbot.git/monitoring/go/alertserver
 
 # Install InfluxDB.
 wget http://s3.amazonaws.com/influxdb/influxdb_latest_amd64.deb
@@ -102,7 +101,6 @@ sudo install $PARAMS $CONFIG_FILE grafana-config.js /home/default/grafana/config
 sudo install $ROOT_PARAMS $CONFIG_FILE monitoring_monit /etc/monit/conf.d/monitoring
 sudo install $ROOT_PARAMS $MONIT_CONFIG_FILE monitrc /etc/monit/monitrc
 sudo install $ROOT_PARAMS $EXE_FILE alertserver_init /etc/init.d/alertserver
-sudo install $ROOT_PARAMS $EXE_FILE prober_init /etc/init.d/prober
 sudo install $ROOT_PARAMS $CONFIG_FILE collectd /etc/collectd/collectd.conf
 
 # Confirm that monit is happy.
@@ -110,7 +108,6 @@ sudo monit -t
 sudo monit reload
 
 sudo /etc/init.d/influxdb restart
-sudo /etc/init.d/prober restart
 sudo /etc/init.d/collectd restart
 sudo /etc/init.d/nginx restart
 sudo /etc/init.d/alertserver restart

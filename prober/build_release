@@ -1,0 +1,17 @@
+#!/bin/bash
+# Builds and uploads a debian package for prober.
+APPNAME=prober
+DESCRIPTION="Application to probe application uptime and status."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=755 -T ${GOPATH}/bin/prober ${ROOT}/usr/local/bin/prober
+${INSTALL} --mode=644 -T ./sys/monit          ${ROOT}/etc/monit/conf.d/prober
+${INSTALL} --mode=755 -T ./sys/init           ${ROOT}/etc/init.d/prober
+${INSTALL} --mode=644 -T ./buildbots.json     ${ROOT}/etc/skiaprober/buildbots.json
+${INSTALL} --mode=644 -T ./probers.json       ${ROOT}/etc/skiaprober/probers.json
+}
+
+source ../bash/release.sh

@@ -1,0 +1,13 @@
+check process prober with pidfile /var/run/prober.pid
+   start program = "/etc/init.d/prober start"
+   stop program = "/etc/init.d/prober stop"
+   depends on prober_init
+   depends on prober_exe
+
+check file prober_init
+  with path /etc/init.d/prober
+  if changed timestamp then restart
+
+check file prober_exe
+  with path /usr/local/bin/prober
+  if changed timestamp then restart
