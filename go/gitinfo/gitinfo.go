@@ -120,11 +120,11 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 
 // Details returns more information than ShortCommit about a given commit.
 func (g *GitInfo) Details(hash string) (*LongCommit, error) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
 	if c, ok := g.detailsCache[hash]; ok {
 		return c, nil
 	}
-	g.mutex.Lock()
-	defer g.mutex.Unlock()
 	cmd := exec.Command("git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b", hash)
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
@@ -147,6 +147,23 @@ func (g *GitInfo) Details(hash string) (*LongCommit, error) {
 	}
 	g.detailsCache[hash] = &c
 	return &c, nil
+}
+
+// RevList returns the results of "git rev-list".
+func (g *GitInfo) RevList(args ...string) ([]string, error) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	cmd := exec.Command("git", append([]string{"rev-list"}, args...)...)
+	cmd.Dir = g.dir
+	b, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("git rev-list failed: %v", err)
+	}
+	res := strings.Trim(string(b), "\n")
+	if res == "" {
+		return []string{}, nil
+	}
+	return strings.Split(res, "\n"), nil
 }
 
 // From returns all commits from 'start' to HEAD.

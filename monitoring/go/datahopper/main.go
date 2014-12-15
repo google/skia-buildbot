@@ -13,6 +13,7 @@ import (
 	influxdb "github.com/influxdb/influxdb/client"
 	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
+	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/monitoring/go/autoroll_ingest"
@@ -61,7 +62,13 @@ func main() {
 	go autoroll_ingest.LoadAutoRollData(dbClient, *workdir)
 	go func() {
 		// Initialize the buildbot database.
-		if err := buildbot.InitDB(buildbot.ProdDatabaseConfig(*testing)); err != nil {
+		var conf *database.DatabaseConfig
+		if *testing {
+			conf = buildbot.LocalMySQLTestDatabaseConfig("test_user", "")
+		} else {
+			conf = buildbot.ProdDatabaseConfig(false)
+		}
+		if err := buildbot.InitDB(conf); err != nil {
 			glog.Fatal(err)
 		}
 		// Create the Git repo.
@@ -72,6 +79,7 @@ func main() {
 		// Ingest data in a loop.
 		for _ = range time.Tick(30 * time.Second) {
 			skiaRepo.Update(true, true)
+			glog.Info("Ingesting builds.")
 			if err := buildbot.IngestNewBuilds(skiaRepo); err != nil {
 				glog.Errorf("Failed to ingest new builds: %v", err)
 			}

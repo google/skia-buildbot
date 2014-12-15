@@ -4,51 +4,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-
-	"github.com/jmoiron/sqlx"
 )
 
-// replaceIntoDB is a helper function for pushing a BuildStep into the database
-// which is used by both BuildStep.ReplaceIntoDB and Build.ReplaceIntoDB, so
-// that the latter can be done in a single transaction.
-func (b BuildStep) replaceIntoDB(tx *sqlx.Tx) error {
-	stmt, err := tx.Preparex(fmt.Sprintf("REPLACE INTO %s (builder,master,buildNumber,name,results,number,started,finished) VALUES (?,?,?,?,?,?,?,?);", TABLE_BUILD_STEPS))
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("Unable to push buildstep into database - Could not prepare statement: %v", err)
-	}
-	_, err = stmt.Exec(b.BuilderName, b.MasterName, b.BuildNumber, b.Name, b.Results, b.Number, b.Started, b.Finished)
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("Failed to push build into database: %v", err)
-	}
-	return nil
-}
-
-// ReplaceIntoDB inserts or updates the BuildStep in the database.
-func (b BuildStep) ReplaceIntoDB() error {
-	tx, err := DB.Beginx()
-	if err != nil {
-		return fmt.Errorf("Unable to push build into database - Could not begin transaction: %v", err)
-	}
-	if err = b.replaceIntoDB(tx); err != nil {
-		// replaceIntoDB does the rollback if needed.
-		return err
-	}
-	if err = tx.Commit(); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("Failed to commit the transaction: %v", err)
-	}
-	return nil
-}
-
-// GetCommitsForBuild retrieves the list of commits first built in the given
 // build from the database.
 func GetCommitsForBuild(master, builder string, buildNumber int) ([]string, error) {
 	stmt, err := DB.Preparex(fmt.Sprintf("SELECT revision FROM %s WHERE master = ? AND builder = ? AND number = ?", TABLE_BUILD_REVISIONS))
 	if err != nil {
 		return nil, fmt.Errorf("Unable to retrieve build revisions from database - failed to prepare query: %v", err)
 	}
+	defer stmt.Close()
 	commits := []string{}
 	if err := stmt.Select(&commits, master, builder, buildNumber); err != nil {
 		return nil, fmt.Errorf("Unable to retrieve build revisions from database: %v", err)
@@ -63,6 +27,7 @@ func GetBuildForCommit(master, builder, commit string) (int, error) {
 	if err != nil {
 		return -1, fmt.Errorf("Unable to retrieve build number from database - failed to repare query: %v", err)
 	}
+	defer stmt.Close()
 	n := -1
 	if err := stmt.Get(&n, master, builder, commit); err != nil {
 		if err == sql.ErrNoRows {
@@ -82,6 +47,7 @@ func GetBuildFromDB(master, builder string, buildNumber int) (*Build, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to retrieve build from database - failed to prepare query: %v", err)
 	}
+	defer stmt.Close()
 	build := Build{}
 	if err = stmt.Get(&build, master, builder, buildNumber); err != nil {
 		return nil, fmt.Errorf("Unable to retrieve build from database: %v", err)
@@ -104,6 +70,7 @@ func GetBuildFromDB(master, builder string, buildNumber int) (*Build, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to retrieve build steps from database - failed to prepare query: %v", err)
 	}
+	defer stepStmt.Close()
 	steps := []*BuildStep{}
 	if err := stepStmt.Select(&steps, master, builder, buildNumber); err != nil {
 		return nil, fmt.Errorf("Unable to retrieve build steps from database: %v", err)
@@ -124,20 +91,33 @@ func GetBuildFromDB(master, builder string, buildNumber int) (*Build, error) {
 }
 
 // ReplaceIntoDB inserts or updates the Build in the database.
-func (b Build) ReplaceIntoDB() error {
+func (b Build) ReplaceIntoDB() (rv error) {
 	// Insert the build itself.
 	tx, err := DB.Beginx()
 	if err != nil {
 		return fmt.Errorf("Unable to push build into database - Could not begin transaction: %v", err)
 	}
+	defer func() {
+		if rv != nil {
+			if err := tx.Rollback(); err != nil {
+				err = fmt.Errorf("Failed to rollback the transaction! %v... Previous error: %v", err, rv)
+			}
+		} else {
+			rv = tx.Commit()
+			if rv != nil {
+				tx.Rollback()
+			} else {
+			}
+		}
+	}()
+
 	stmt, err := tx.Preparex(fmt.Sprintf("REPLACE INTO %s (master,builder,number,results,gotRevision,buildslave,started,finished,properties,branch) VALUES (?,?,?,?,?,?,?,?,?,?);", TABLE_BUILDS))
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("Unable to push build into database - Could not prepare statement: %v", err)
 	}
+	defer stmt.Close()
 	_, err = stmt.Exec(b.MasterName, b.BuilderName, b.Number, b.Results, b.GotRevision, b.BuildSlave, b.Started, b.Finished, b.PropertiesStr, b.Branch)
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("Failed to push build into database: %v", err)
 	}
 
@@ -147,19 +127,25 @@ func (b Build) ReplaceIntoDB() error {
 	// around from before.
 	delStepsStmt, err := tx.Preparex(fmt.Sprintf("DELETE FROM %s WHERE master = ? AND builder = ? AND buildNumber = ?;", TABLE_BUILD_STEPS))
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("Unable to delete build steps from database - Could not prepare statement: %v", err)
 	}
+	defer delStepsStmt.Close()
 	_, err = delStepsStmt.Exec(b.MasterName, b.BuilderName, b.Number)
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("Failed to delete build steps from database: %v", err)
 	}
 	// Actually insert the steps.
+	insertStepStmt, err := tx.Preparex(fmt.Sprintf("REPLACE INTO %s (builder,master,buildNumber,name,results,number,started,finished) VALUES (?,?,?,?,?,?,?,?);", TABLE_BUILD_STEPS))
+	if err != nil {
+		return fmt.Errorf("Unable to push buildsteps into database - Could not prepare statement: %v", err)
+	}
+	defer insertStepStmt.Close()
 	for _, s := range b.Steps {
-		if err = s.replaceIntoDB(tx); err != nil {
-			return err
+		_, err = insertStepStmt.Exec(s.BuilderName, s.MasterName, s.BuildNumber, s.Name, s.Results, s.Number, s.Started, s.Finished)
+		if err != nil {
+			return fmt.Errorf("Failed to push build into database: %v", err)
 		}
+
 	}
 
 	// Commits.
@@ -168,34 +154,27 @@ func (b Build) ReplaceIntoDB() error {
 	// hanging around from before.
 	delCmtsStmt, err := tx.Preparex(fmt.Sprintf("DELETE FROM %s WHERE master = ? AND builder = ? AND number = ?;", TABLE_BUILD_REVISIONS))
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("Unable to delete revisions from database - Could not prepare statement: %v", err)
 	}
+	defer delCmtsStmt.Close()
 	_, err = delCmtsStmt.Exec(b.MasterName, b.BuilderName, b.Number)
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("Failed to delete revisions from database: %v", err)
 	}
 	// Actually insert the commits.
+	cmtStmt, err := tx.Preparex(fmt.Sprintf("REPLACE INTO %s (master,builder,number,revision) VALUES (?,?,?,?);", TABLE_BUILD_REVISIONS))
+	if err != nil {
+		return fmt.Errorf("Unable to push commits into database - Could not prepare statement: %v", err)
+	}
+	defer cmtStmt.Close()
 	for _, c := range b.Commits {
-		cmtStmt, err := tx.Preparex(fmt.Sprintf("REPLACE INTO %s (master,builder,number,revision) VALUES (?,?,?,?);", TABLE_BUILD_REVISIONS))
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("Unable to push commit into database - Could not prepare statement: %v", err)
-		}
 		_, err = cmtStmt.Exec(b.MasterName, b.BuilderName, b.Number, c)
 		if err != nil {
-			tx.Rollback()
 			return fmt.Errorf("Failed to push commit into database: %v", err)
 		}
 	}
 
-	// Commit the transaction.
-	if err = tx.Commit(); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("Failed to commit the transaction: %v", err)
-	}
-
+	// The transaction is committed during the deferred function.
 	return nil
 }
 
@@ -206,6 +185,7 @@ func getLastProcessedBuilds() ([]*Build, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to retrieve last-processed builds - Could not prepare statement: %v", err)
 	}
+	defer stmt.Close()
 	builds := []*Build{}
 	if err := stmt.Select(&builds); err != nil {
 		return nil, fmt.Errorf("Unable to retrieve last-processed builds: %v", err)
@@ -224,6 +204,7 @@ func getUnfinishedBuilds() ([]*Build, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to retrieve unfinished builds - Could not prepare statement: %v", err)
 	}
+	defer stmt.Close()
 	b := []*Build{}
 	if err = stmt.Select(&b); err != nil {
 		return nil, fmt.Errorf("Unable to retrieve unfinished builds: %v", err)

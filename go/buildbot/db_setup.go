@@ -96,7 +96,7 @@ func ProdDatabaseConfig(local bool) *database.DatabaseConfig {
 }
 
 // Returns a DB connection string for running a local testing MySQL instance.
-func localMySQLTestDatabaseConfig(user, password string) *database.DatabaseConfig {
+func LocalMySQLTestDatabaseConfig(user, password string) *database.DatabaseConfig {
 	mysqlStr := fmt.Sprintf("%s:%s@/sk_testing", user, password)
 	return &database.DatabaseConfig{
 		MySQLString:    mysqlStr,

@@ -2,6 +2,7 @@ package gitinfo
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -237,5 +238,54 @@ func TestNumCommits(t *testing.T) {
 
 	if got, want := r.NumCommits(), 2; got != want {
 		t.Errorf("NumCommit wrong number: Got %v Want %v", got, want)
+	}
+}
+
+func TestRevList(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	revs := []string{
+		"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+		"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
+	}
+	testCases := []struct {
+		Input    []string
+		Expected []string
+	}{
+		{
+			Input:    []string{"master"},
+			Expected: revs,
+		},
+		{
+			Input:    []string{"HEAD"},
+			Expected: revs,
+		},
+		{
+			Input:    []string{"7a669cf..8652a6d"},
+			Expected: revs[1:],
+		},
+		{
+			Input:    []string{"8652a6d", "^7a669cf"},
+			Expected: revs[1:],
+		},
+		{
+			Input:    []string{"8652a6d..7a669cf"},
+			Expected: []string{},
+		},
+	}
+	for _, tc := range testCases {
+		actual, err := r.RevList(tc.Input...)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !util.SSliceEqual(actual, tc.Expected) {
+			t.Fatalf("Failed test for: git rev-list %s\nGot:  %v\nWant: %v", strings.Join(tc.Input, " "), actual, tc.Expected)
+		}
 	}
 }

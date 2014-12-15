@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
+
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 )
 
@@ -70,6 +72,12 @@ func findCommitsRecursive(b *Build, hash string, repo *gitinfo.GitInfo) ([]strin
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
 func findCommitsForBuild(b *Build, repo *gitinfo.GitInfo) ([]string, error) {
+	// Shortcut for the first build for a given builder: this build must be
+	// the first inclusion for all revisions prior to b.GotRevision.
+	if b.Number == 0 && b.GotRevision != "" {
+		return repo.RevList(b.GotRevision)
+	}
+	// Start tracing commits back in time until we hit a previous build.
 	return findCommitsRecursive(b, b.GotRevision, repo)
 }
 
@@ -276,14 +284,25 @@ func IngestNewBuilds(repo *gitinfo.GitInfo) error {
 	// TODO(borenet): Figure out how much of this is safe to parallelize.
 	// We can definitely do different masters in parallel, and maybe we can
 	// ingest different builders in parallel as well.
+	var wg sync.WaitGroup
+	errors := map[string]error{}
 	for m, v := range buildsToProcess {
-		for b, w := range v {
-			for _, n := range w {
-				if err := IngestBuild(m, b, n, repo); err != nil {
-					return fmt.Errorf("Failed to ingest build: %v", err)
+		wg.Add(1)
+		go func(master string, buildsToProcessForMaster map[string][]int) {
+			defer wg.Done()
+			for b, w := range buildsToProcessForMaster {
+				for _, n := range w {
+					glog.Infof("Ingesting build: %s, %s, %d", master, b, n)
+					if err := IngestBuild(master, b, n, repo); err != nil {
+						errors[master] = fmt.Errorf("Failed to ingest build: %v", err)
+					}
 				}
 			}
-		}
+		}(m, v)
+	}
+	wg.Wait()
+	if len(errors) > 0 {
+		return fmt.Errorf("Errors: %v", errors)
 	}
 	return nil
 }
