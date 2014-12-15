@@ -49,6 +49,11 @@ if [ ! -d ${CHROOT_JAIL} ]; then
 
 fi
 
+gsutil cp gs://skia-push/debs/pull/pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-15T14:12:52Z:6152bc3bcdaa54989c957809e77bed282c35676b.deb pull.deb
+sudo dpkg -i pull.deb
+rm pull.deb
+
+
 # The continue_install_jail script will update and build up the skia library
 # inside the jail.
 
@@ -82,7 +87,6 @@ EXE_FILE="--mode=755"
 CONFIG_FILE="--mode=666"
 
 sudo install $ROOT_PARAMS $EXE_FILE sys/webtry_init /etc/init.d/webtry
-sudo install $ROOT_PARAMS $EXE_FILE sys/logserver_init /etc/init.d/logserver
 sudo install $ROOT_PARAMS $CONFIG_FILE sys/webtry_monit /etc/monit/conf.d/webtry
 sudo install $ROOT_PARAMS $CONFIG_FILE sys/webtry_squid /etc/squid3/squid.conf
 
@@ -93,6 +97,5 @@ sudo monit reload
 banner "Restarting webtry server"
 
 sudo /etc/init.d/webtry restart
-sudo /etc/init.d/logserver restart
 
 banner "All done!"

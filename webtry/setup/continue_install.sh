@@ -42,6 +42,5 @@ git clone https://skia.googlesource.com/buildbot.git
 
 cd buildbot/webtry
 
-go get -u skia.googlesource.com/buildbot.git/perf/go/logserver
 go get -d
 ./build
