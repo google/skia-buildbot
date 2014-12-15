@@ -23,14 +23,35 @@
      "bodytest":"skfiddleJSONGood"
    },
    "skiaperf": {
-     "url": "http://skiaperf.com",
+     "url": "https://skiaperf.com",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiamonitor": {
-     "url": "http://skiamonitor.com",
+     "url": "https://skiamonitor.com",
+     "method": "GET",
+     "expected": [401],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiamonitor_config_js": {
+     "url": "https://skiamonitor.com/config.js",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiaalerts": {
+     "url": "https://skiaalerts.com",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiapush": {
+     "url": "http://skiapush.com:8000",
      "method": "GET",
      "expected": [200],
      "body": "",
