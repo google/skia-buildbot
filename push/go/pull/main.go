@@ -96,6 +96,11 @@ func main() {
 		newPackages := differences(serverList, localList)
 		save := false
 		for _, name := range newPackages {
+			// If just an appname appears w/o a packge name then that means
+			// that package hasn't been selected, so just skip it for now.
+			if len(strings.Split(name, "/")) == 1 {
+				continue
+			}
 			if err := packages.Install(client, store, name); err != nil {
 				glog.Errorf("Failed to install package %s: %s", name, err)
 				save = false
