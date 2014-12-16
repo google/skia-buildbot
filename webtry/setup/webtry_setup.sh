@@ -27,9 +27,11 @@ sudo adduser webtry
 sudo mkdir /home/webtry/cache
 sudo mkdir /home/webtry/cache/src
 sudo mkdir /home/webtry/inout
+sudo mkdir -p /tmp/wwwlogs
 sudo chmod 777 /home/webtry/inout
 sudo chmod 777 /home/webtry/cache
 sudo chmod 777 /home/webtry/cache/src
+sudo chmod 777 /tmp/weblogs
 
 sudo cp sys/webtry_schroot /etc/schroot/chroot.d/webtry
 
