@@ -27,6 +27,14 @@
   html /deep/ .pushSelection:hover {
     background: #eee;
   }
+  html /deep/ .built {
+    color: #D95F02;
+    display:inline;
+  }
+  html /deep/ .userid {
+    color: #7570B3;
+    display:inline;
+  }
 </style>
 <polymer-element name="push-selection-sk">
   <template>
@@ -35,8 +43,9 @@
         <template repeat="{{p in choices}}">
           <div class=pushSelection name="{{p.Name}}">
             <core-icon icon="{{choice == p.Name ? 'check' : ''}}" title="Currently installed"></core-icon>
-            <a href="https://skia.googlesource.com/buildbot/+/{{p.Hash}}">{{p.Hash | shortHash}}</a>
-            <pre style="color: #D95F02;display:inline;"> {{p.Built | humanDiffDate }} </pre>
+            <a href="https://github.com/google/skia-buildbot/compare/{{p.Hash}}...HEAD">{{p.Hash | short}}</a>
+            <pre class=built> {{p.Built | humanDiffDate }} </pre>
+            <pre class=userid title="{{p.UserID}}"> {{p.UserID | short}} </pre>
             {{p.Note}}
             <core-icon icon="{{p.Dirty ? 'warning' : ''}}" title="Uncommited changes when the package was built."></core-icon>
           </div>
@@ -80,8 +89,8 @@
           this.$.chooser.toggle();
         },
 
-        // shortHash is a utility function used in templates to truncate git hashes.
-        shortHash: function(s) {
+        // short is a utility function used in templates to truncate strings.
+        short: function(s) {
           return s.slice(0, 8);
         },
 
@@ -204,7 +213,7 @@ Displays the server configurations, along with the ability to modify application
               <paper-button class=application data-server="{{server.Name}}" data-name="{{id}}" data-app="{{id | prefixOf}}"><core-icon icon="create" title="Edit which package is installed."></core-icon></paper-button>
             </td>
             <td><span class=appName>{{id | prefixOf}}</span></td>
-            <td><span class=appName><a href="https://skia.googlesource.com/buildbot/+/{{id | fullHash}}">{{id | shortHash}}</a></span></td>
+            <td><span class=appName><a href="https://github.com/google/skia-buildbot/compare/{{id | fullHash}}...HEAD">{{id | short}}</a></span></td>
             <td><core-icon icon="{{packageLookup[id].Latest ? '' : 'alarm'}}" title="Out of date."></core-icon></td>
             <td><core-icon icon="{{packageLookup[id].Dirty ? 'warning' : ''}}" title="Uncommited changes when the package was built."></core-icon></td>
           </tr>
@@ -300,10 +309,11 @@ Displays the server configurations, along with the ability to modify application
         return s.slice(s.length-44, s.length-4)
       },
 
-      // shortHash is a utility function used in templates to truncate git hashes.
-      shortHash: function(s) {
+      // short is a utility function used in templates to truncate strings.
+      short: function(s) {
         return this.fullHash(s).slice(0, 6);
       },
+
 
     });
   </script>
