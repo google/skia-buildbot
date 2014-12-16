@@ -15,7 +15,7 @@ function banner {
 
 banner "Installing debian packages needed for the server"
 
-sudo apt-get install schroot debootstrap monit squid3
+sudo apt-get install schroot debootstrap monit nginx
 
 # although aufs is being replaced by overlayfs, it's not clear
 # to me if overlayfs is completely supported by schroot yet.
@@ -88,7 +88,24 @@ CONFIG_FILE="--mode=666"
 
 sudo install $ROOT_PARAMS $EXE_FILE sys/webtry_init /etc/init.d/webtry
 sudo install $ROOT_PARAMS $CONFIG_FILE sys/webtry_monit /etc/monit/conf.d/webtry
-sudo install $ROOT_PARAMS $CONFIG_FILE sys/webtry_squid /etc/squid3/squid.conf
+
+# Add the nginx configuration files.
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo cp sys/webtry_nginx /etc/nginx/sites-available/webtry
+sudo rm -f /etc/nginx/sites-enabled/webtry
+sudo ln -s /etc/nginx/sites-available/webtry /etc/nginx/sites-enabled/webtry
+
+# Download the SSL secrets from the metadata store.
+CURL_CMD='curl -H "Metadata-Flavor: Google"'
+META_PROJ_URL='http://metadata/computeMetadata/v1/project/attributes'
+
+sudo mkdir -p /etc/nginx/ssl/
+sudo sh <<CURL_SCRIPT
+    $CURL_CMD $META_PROJ_URL/skfiddle-com-key -o /etc/nginx/ssl/skfiddle_com.key
+    $CURL_CMD $META_PROJ_URL/skfiddle-com-pem -o /etc/nginx/ssl/skfiddle_com.pem
+CURL_SCRIPT
+sudo chmod 700 /etc/nginx/ssl
+sudo sh -c "chmod 600 /etc/nginx/ssl/*"
 
 # Confirm that monit is happy.
 sudo monit -t
@@ -97,5 +114,6 @@ sudo monit reload
 banner "Restarting webtry server"
 
 sudo /etc/init.d/webtry restart
+sudo /etc/init.d/nginx restart
 
 banner "All done!"
