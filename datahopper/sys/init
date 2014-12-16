@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Loads data into databases."
 NAME=datahopper
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS="-use_metadata=true -influxdb_host=localhost:10117 -influxdb_database=graphite --log_dir=/tmp/glog --carbon=localhost:2003 --workdir=/mnt/pd0/datahopper_scratch"
+DAEMON_ARGS="-use_metadata=true -influxdb_host=localhost:10117 -influxdb_database=graphite --log_dir=/tmp/glog --graphite_server=localhost:2003 --workdir=/mnt/pd0/datahopper_scratch"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
