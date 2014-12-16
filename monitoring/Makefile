@@ -5,10 +5,7 @@ all: default
 alertserver: js skiaversion
 	go install -v ./go/alertserver
 
-datahopper:
-	go install -v ./go/datahopper
-
-default: alertserver datahopper
+default: alertserver
 
 testgo: skiaversion
 	go test ./go/... -v

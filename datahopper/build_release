@@ -1,0 +1,17 @@
+#!/bin/bash
+# Builds and uploads a debian package for datahopper.
+APPNAME=datahopper
+DESCRIPTION="Program which ingests data into InfluxDB and MySQL."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/datahopper ${ROOT}/usr/local/bin/datahopper
+${INSTALL}     --mode=666 -T ./sys/monit              ${ROOT}/etc/monit/conf.d/datahopper
+${INSTALL}     --mode=755 -T ./sys/init               ${ROOT}/etc/init.d/datahopper
+${INSTALL_DIR} --mode=777                             ${ROOT}/mnt/pd0/datahopper_scratch
+}
+
+source ../bash/release.sh

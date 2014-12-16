@@ -11,12 +11,12 @@ import (
 
 	"github.com/golang/glog"
 	influxdb "github.com/influxdb/influxdb/client"
+	"skia.googlesource.com/buildbot.git/datahopper/go/autoroll_ingest"
 	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/metadata"
-	"skia.googlesource.com/buildbot.git/monitoring/go/autoroll_ingest"
 )
 
 const (

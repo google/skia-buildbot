@@ -1,0 +1,13 @@
+check process datahopper with pidfile /var/run/datahopper.pid
+   start program = "/etc/init.d/datahopper start"
+   stop program = "/etc/init.d/datahopper stop"
+   depends on datahopper_init
+   depends on datahopper_exe
+
+check file datahopper_init
+  with path /etc/init.d/datahopper
+  if changed timestamp then restart
+
+check file datahopper_exe
+  with path /usr/local/bin/datahopper
+  if changed timestamp then restart
