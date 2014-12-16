@@ -1,13 +1,13 @@
 {
    "skfiddle": {
-     "url": "http://skfiddle.com",
+     "url": "https://skfiddle.com",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skfiddle_compile_bad": {
-     "url": "http://skfiddle.com",
+     "url": "https://skfiddle.com",
      "method": "POST",
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas)\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":256,\"height\":256}",
@@ -15,7 +15,7 @@
      "bodytest":"skfiddleJSONBad"
    },
    "skfiddle_compile_good": {
-     "url": "http://skfiddle.com",
+     "url": "https://skfiddle.com",
      "method": "POST",
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas) { SkPaint p; p.setColor(SK_ColorRED); canvas->drawText(\\\"Helloworld\\\", 10, 50, 50, p);}\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":256,\"height\":256}",
