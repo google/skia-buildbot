@@ -16,12 +16,24 @@
 # The first command line argument to the calling script
 # will be used as the 'note' for the release package.
 #
+# If BYPASS_GENERATION is set then we know that the caller
+# has created or copied in the debian file themselves, and
+# we are to use it as-is. This is useful in cases where we
+# are installing software that the author has already provided
+# a debian package for, for example influxdb.
+#
 # For more details see ../push/DESIGN.md.
 
 set -x -e
 
 ROOT=`mktemp -d`
 OUT=`mktemp -d`
+
+if [ "$#" -ne 1 ]
+then
+    echo "Usage: You must supply a message when building a release package."
+    exit 1
+fi
 
 # Create all directories here, so their perms can be set correctly.
 mkdir --parents ${ROOT}/DEBIAN
@@ -42,8 +54,15 @@ EOF
 
 copy_release_files
 
-# Build the debian package.
-sudo dpkg-deb --build ${ROOT} ${OUT}/${APPNAME}.deb
+if [ ! -v BYPASS_GENERATION ]
+then
+  # Build the debian package.
+  sudo dpkg-deb --build ${ROOT} ${OUT}/${APPNAME}.deb
+else
+  # Just use the debian package that copy_release_files
+  # placed in ${ROOT}/{APPNAME}.deb.
+  OUT=${ROOT}
+fi
 
 # Upload the package to right location in Google Storage.
 DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`

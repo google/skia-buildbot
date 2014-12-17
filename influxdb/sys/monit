@@ -1,0 +1,18 @@
+check process influxdb with pidfile /opt/influxdb/shared/influxdb.pid
+   start program = "/etc/init.d/influxdb start"
+   stop program = "/etc/init.d/influxdb stop"
+   depends on influxdb_conf
+   depends on influxdb_init
+   depends on influxdb_exe
+
+check file influxdb_conf
+  with path /opt/influxdb/shared/config.toml
+  if changed timestamp then restart
+
+check file influxdb_init
+  with path /etc/init.d/influxdb
+  if changed timestamp then restart
+
+check file influxdb_exe
+  with path /usr/local/bin/influxdb
+  if changed timestamp then restart

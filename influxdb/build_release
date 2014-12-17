@@ -1,0 +1,16 @@
+#!/bin/bash
+# Builds and uploads a debian package for InfluxDB.
+APPNAME=influxdb
+DESCRIPTION="A local cache of the influxdb debian package."
+
+# Don't run the step where we generate an .deb file, we are actually
+# copying in the .deb file to be managed.
+BYPASS_GENERATION=true
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+wget http://s3.amazonaws.com/influxdb/influxdb_latest_amd64.deb -O ${ROOT}/${APPNAME}.deb
+}
+
+source ../bash/release.sh
