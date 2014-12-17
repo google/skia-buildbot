@@ -36,11 +36,10 @@ debug_core_js: res/js/core-debug.js
 	cp res/js/core-debug.js res/js/core.js
 
 res/js/core.js: res/js/core-debug.js ./node_modules/.bin/uglifyjs
-	echo "core.js"
 	./node_modules/.bin/uglifyjs res/js/core-debug.js -o res/js/core.js
 
 res/js/core-debug.js: Makefile $(BOWER_DIR)/lastupdate $(CORE_SOURCE_FILES)
-	echo "core-debug.js"
+	-mkdir res/js
 	awk 'FNR==1{print ""}{print}' $(CORE_SOURCE_FILES) > res/js/core-debug.js
 
 $(BOWER_DIR)/lastupdate: bower.json ./node_modules/.bin/bower
@@ -64,7 +63,8 @@ debug_elements_html:
 	ln -sf ../../$(BOWER_DIR) res/imp/bower_components
 
 res/vul/elements.html: res/imp/*.html elements.html ./node_modules/.bin/vulcanize
-	./node_modules/.bin/vulcanize --csp=false --inline=true --strip=false --abspath=./ elements.html -o res/vul/elements.html
+	-mkdir res/vul
+	./node_modules/.bin/vulcanize --csp=false --inline=true --strip=true --abspath=./ elements.html -o res/vul/elements.html
 
 #### clean_webtools ####
 

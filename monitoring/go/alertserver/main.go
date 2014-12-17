@@ -16,6 +16,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -54,6 +55,9 @@ var (
 	alertManager *alerting.AlertManager    = nil
 	gitInfo      *gitinfo.GitInfo          = nil
 	commitCache  *commit_cache.CommitCache = nil
+
+	alertsTemplate  *template.Template = nil
+	commitsTemplate *template.Template = nil
 )
 
 // flags
@@ -73,6 +77,21 @@ var (
 	testing               = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
 )
+
+func init() {
+	// Change the current working directory to two directories up from this source file so that we
+	// can read templates and serve static (res/) files.
+	_, filename, _, _ := runtime.Caller(0)
+	cwd := filepath.Join(filepath.Dir(filename), "../..")
+	alertsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(cwd, "templates/alerts.html"),
+		filepath.Join(cwd, "templates/header.html"),
+	))
+	commitsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(cwd, "templates/commits.html"),
+		filepath.Join(cwd, "templates/header.html"),
+	))
+}
 
 func userHasEditRights(email string) bool {
 	if strings.HasSuffix(email, "@google.com") {
@@ -178,7 +197,11 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	http.ServeFile(w, r, "res/html/alerts.html")
+
+	w.Header().Set("Content-Type", "text/html")
+	if err := alertsTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
@@ -230,7 +253,10 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func commitsHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "res/html/commits.html")
+	w.Header().Set("Content-Type", "text/html")
+	if err := commitsTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
 }
 
 func runServer(serverURL string) {
@@ -329,15 +355,18 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to create AlertManager: %v", err)
 	}
+	glog.Info("Created AlertManager")
 
 	gitInfo, err = gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", *workdir, true)
 	if err != nil {
 		glog.Fatalf("Failed to check out Skia: %v", err)
 	}
+	glog.Info("CloneOrUpdate complete")
 	commitCache, err = commit_cache.New(gitInfo)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
+	glog.Info("commit_cache complete")
 	go func() {
 		for _ = range time.Tick(time.Minute) {
 			if err := commitCache.Update(); err != nil {
