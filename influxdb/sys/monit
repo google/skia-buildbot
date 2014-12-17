@@ -14,5 +14,5 @@ check file influxdb_init
   if changed timestamp then restart
 
 check file influxdb_exe
-  with path /usr/local/bin/influxdb
+  with path /usr/bin/influxdb
   if changed timestamp then restart
