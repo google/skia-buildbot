@@ -50,6 +50,13 @@
      "body": "",
      "mimetype": ""
    },
+   "skiacommits": {
+     "url": "https://skiaalerts.com/commits",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
    "skiapush": {
      "url": "http://skiapush.com:8000",
      "method": "GET",
