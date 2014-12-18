@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -357,22 +358,15 @@ func main() {
 	}
 	glog.Info("Created AlertManager")
 
-	gitInfo, err = gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", *workdir, true)
+	gitInfo, err = gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", path.Join(*workdir, "skia"), true)
 	if err != nil {
 		glog.Fatalf("Failed to check out Skia: %v", err)
 	}
 	glog.Info("CloneOrUpdate complete")
-	commitCache, err = commit_cache.New(gitInfo)
+	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache.gob"))
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
 	glog.Info("commit_cache complete")
-	go func() {
-		for _ = range time.Tick(time.Minute) {
-			if err := commitCache.Update(); err != nil {
-				glog.Errorf("Failed to update commit cache: %v", err)
-			}
-		}
-	}()
 	runServer(serverURL)
 }
