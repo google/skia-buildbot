@@ -131,16 +131,11 @@ func TileWithTryData(tile *types.Tile, issue string) (*types.Tile, error) {
 }
 
 // addTryData copies the data from the ResultsFileLocation into the TryBotResults.
-func addTryData(res *types.TryBotResults, b *ingester.ResultsFileLocation, counter metrics.Counter) {
-	glog.Infof("addTryData: %s", b.Name)
-	r, err := b.Fetch()
-	if err != nil {
-		// Don't fall over for a single failed HTTP request.
-		return
-	}
-	benchData, err := ingester.ParseBenchDataFromReader(r)
+func addTryData(res *types.TryBotResults, opener ingester.Opener, counter metrics.Counter) {
+	benchData, err := ingester.ParseBenchDataFromReader(opener)
 	if err != nil {
 		// Don't fall over for a single corrupt file.
+		glog.Errorf("Unable to parse trybot data: %s", err)
 		return
 	}
 
@@ -159,8 +154,8 @@ func addTryData(res *types.TryBotResults, b *ingester.ResultsFileLocation, count
 // We sort on issue id so that we aren't doing excessive writes to the
 // database.
 type BenchByIssue struct {
-	ResultsFileLocation *ingester.ResultsFileLocation
-	IssueName           string
+	opener    ingester.Opener
+	IssueName string
 }
 
 type BenchByIssueSlice []*BenchByIssue
@@ -177,29 +172,44 @@ func init() {
 	}
 }
 
-// TrybotIngestion implements ingester.IngestResultsFiles.
-//
-// Note that the TileTracker is not used as we write the files to the database.
-func TrybotIngestion(_ *ingester.TileTracker, resultsFiles []*ingester.ResultsFileLocation, counter metrics.Counter) error {
-	benchFilesByIssue := []*BenchByIssue{}
-	var err error
-	for _, b := range resultsFiles {
-		match := nameRegex.FindStringSubmatch(b.Name)
-		if match != nil {
-			issue := match[1]
-			benchFilesByIssue = append(benchFilesByIssue, &BenchByIssue{
-				ResultsFileLocation: b,
-				IssueName:           issue,
-			})
-		}
+// TrybotResultIngester implements the ingester.ResultIngester interface.
+type TrybotResultIngester struct {
+	benchFilesByIssue []*BenchByIssue
+}
+
+func NewTrybotResultIngester() ingester.ResultIngester {
+	return &TrybotResultIngester{
+		benchFilesByIssue: []*BenchByIssue{},
 	}
+}
+
+// See the ingester.ResultIngester interface.
+func (i *TrybotResultIngester) Ingest(_ *ingester.TileTracker, opener ingester.Opener, fname string, counter metrics.Counter) error {
+	match := nameRegex.FindStringSubmatch(fname)
+	if match != nil {
+		issue := match[1]
+		i.benchFilesByIssue = append(i.benchFilesByIssue, &BenchByIssue{
+			opener:    opener,
+			IssueName: issue,
+		})
+	}
+	return nil
+}
+
+// See the ingester.ResultIngester interface.
+func (i *TrybotResultIngester) BatchFinished(counter metrics.Counter) error {
+	// Reset this instance regardless of the outcome of this call.
+	defer func() {
+		i.benchFilesByIssue = []*BenchByIssue{}
+	}()
 
 	// Resort by issue id.
-	sort.Sort(BenchByIssueSlice(benchFilesByIssue))
+	sort.Sort(BenchByIssueSlice(i.benchFilesByIssue))
 
 	lastIssue := ""
 	var cur *types.TryBotResults = nil
-	for _, b := range benchFilesByIssue {
+	var err error
+	for _, b := range i.benchFilesByIssue {
 		if b.IssueName != lastIssue {
 			// Write out the current TryBotResults to the datastore and create a fresh new TryBotResults.
 			if cur != nil {
@@ -213,7 +223,7 @@ func TrybotIngestion(_ *ingester.TileTracker, resultsFiles []*ingester.ResultsFi
 			lastIssue = b.IssueName
 			glog.Infof("Switched to issue: %s", lastIssue)
 		}
-		addTryData(cur, b.ResultsFileLocation, counter)
+		addTryData(cur, b.opener, counter)
 	}
 	if cur != nil {
 		if err := Write(lastIssue, cur); err != nil {
@@ -222,6 +232,5 @@ func TrybotIngestion(_ *ingester.TileTracker, resultsFiles []*ingester.ResultsFi
 	}
 
 	glog.Infof("Finished trybot ingestion.")
-
 	return nil
 }

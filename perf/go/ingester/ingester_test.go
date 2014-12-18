@@ -2,14 +2,23 @@ package ingester
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
+
+	storage "code.google.com/p/google-api-go-client/storage/v1"
 
 	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	assert "github.com/stretchr/testify/require"
+
+	"sort"
+	"strings"
 
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -41,7 +50,7 @@ func TestIngestCommits(t *testing.T) {
 	}
 
 	// Construct an Ingestor and have it UpdateCommitInfo.
-	i, err := NewIngester(git, tileDir, config.DATASET_NANO, NanoBenchIngestion, "", "")
+	i, err := NewIngester(git, tileDir, config.DATASET_NANO, NewNanoBenchIngester(), 1, time.Second, "", "")
 	if err != nil {
 		t.Fatal("Failed to create ingester:", err)
 	}
@@ -77,12 +86,15 @@ func TestIngestCommits(t *testing.T) {
 func TestAddBenchDataToTile(t *testing.T) {
 	// Load the sample data file as BenchData.
 	_, filename, _, _ := runtime.Caller(0)
-	f, err := os.Open(filepath.Join(filepath.Dir(filename), "testdata", "nano.json"))
-	if err != nil {
-		t.Fatal("Failed to open test file: ", err)
+	opener := func() (io.ReadCloser, error) {
+		f, err := os.Open(filepath.Join(filepath.Dir(filename), "testdata", "nano.json"))
+		if err != nil {
+			t.Fatal("Failed to open test file: ", err)
+		}
+		return f, nil
 	}
-	defer f.Close()
-	benchData, err := ParseBenchDataFromReader(f)
+
+	benchData, err := ParseBenchDataFromReader(opener)
 	if err != nil {
 		t.Fatal("Failed to parse test file: ", err)
 	}
@@ -162,4 +174,31 @@ func TestAddBenchDataToTile(t *testing.T) {
 	if got, want := int64(27), metricsProcessed.Count(); got != want {
 		t.Errorf("Wrong number of points ingested: Got %v Want %v", got, want)
 	}
+}
+
+func TestGetResultFileLocations(t *testing.T) {
+	storage, err := storage.New(http.DefaultClient)
+	assert.Nil(t, err)
+
+	startTS := time.Date(2014, time.December, 10, 0, 0, 0, 0, time.UTC).Unix()
+	endTS := time.Date(2014, time.December, 10, 23, 59, 59, 0, time.UTC).Unix()
+
+	// TODO(stephana): Switch this to a dedicated test bucket, so we are not
+	// in danger of removing it.
+	resultFiles, err := GetResultsFileLocations(startTS, endTS, storage, "dm-json-v1")
+	assert.Nil(t, err)
+
+	// Read the expected list of files and compare them.
+	content, err := ioutil.ReadFile("./testdata/filelist_dec_10.txt")
+	assert.Nil(t, err)
+	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
+	sort.Strings(lines)
+
+	resultNames := make([]string, len(resultFiles))
+	for idx, rf := range resultFiles {
+		resultNames[idx] = rf.Name
+	}
+	sort.Strings(resultNames)
+	assert.Equal(t, len(lines), len(resultNames))
+	assert.Equal(t, lines, resultNames)
 }
