@@ -50,12 +50,28 @@
      "body": "",
      "mimetype": ""
    },
+   "skiaalerts_json": {
+     "url": "https://skiaalerts.com/json/alerts",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "bodytest": "validJSON"
+   },
    "skiacommits": {
      "url": "https://skiaalerts.com/commits",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
+   },
+   "skiacommits_json": {
+     "url": "https://skiaalerts.com/json/commits",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "bodytest": "validJSON"
    },
    "skiapush": {
      "url": "http://skiapush.com:8000",
