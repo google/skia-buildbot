@@ -89,6 +89,8 @@
             tb.classList.toggle('alerting');
           }
           console.log("Done loading alerts.");
+	}).catch(function() {
+          that.resetTimeout();
         });
       },
       toggleInactive: function() {

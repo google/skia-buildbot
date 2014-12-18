@@ -411,62 +411,58 @@
         console.log("GET " + url);
         var that = this;
         sk.get(url).then(JSON.parse).then(function(json) {
-          try {
-            json.commits.reverse();
-            that.lastLoaded = new Date().toLocaleTimeString();
+          json.commits.reverse();
+          that.lastLoaded = new Date().toLocaleTimeString();
 
-            // Merge the new commits into the existing set.
-            // Ensure that the new commits line up exactly with the existing ones.
-            if (json.endIdx - json.startIdx != json.commits.length) {
-              console.error("Server returned invalid number of commits.");
+          // Merge the new commits into the existing set.
+          // Ensure that the new commits line up exactly with the existing ones.
+          if (json.endIdx - json.startIdx != json.commits.length) {
+            throw "Server returned invalid number of commits.";
+          }
+          var commits = null;
+          // Case 1: Loading initial set of commits.
+          if (!that.startIdx || !that.endIdx) {
+            commits = json.commits;
+            that.startIdx = json.startIdx;
+            that.endIdx = json.endIdx;
+          }
+          // Case 2: Loading earlier commits.
+          else if (json.startIdx < that.startIdx) {
+            if (json.endIdx != that.startIdx) {
+              throw "Server returned invalid set of commits.";
+            }
+            commits = that.commits.concat(json.commits);
+            that.startIdx = json.startIdx;
+          }
+          // Case 3: Loading newer commits.
+          else if (json.endIdx >= that.endIdx) {
+            if (json.startIdx != that.endIdx) {
+              throw "Server returned invalid set of commits.";
+            }
+            if (json.commits.length == 0) {
+              console.log("No new commits. Skipping draw.");
               return;
             }
-            var commits = null;
-            // Case 1: Loading initial set of commits.
-            if (!that.startIdx || !that.endIdx) {
-              commits = json.commits;
-              that.startIdx = json.startIdx;
-              that.endIdx = json.endIdx;
-            }
-            // Case 2: Loading earlier commits.
-            else if (json.startIdx < that.startIdx) {
-              if (json.endIdx != that.startIdx) {
-                console.error("Server returned invalid set of commits.");
-                return;
-              }
-              commits = that.commits.concat(json.commits);
-              that.startIdx = json.startIdx;
-            }
-            // Case 3: Loading newer commits.
-            else if (json.endIdx >= that.endIdx) {
-              if (json.startIdx != that.endIdx) {
-                console.error("Server returned invalid set of commits.");
-                return;
-              }
-              if (json.commits.length == 0) {
-                console.log("No new commits. Skipping draw.");
-                return;
-              }
-              commits = json.commits.concat(that.commits);
-              that.endIdx = json.endIdx;
-            }
-            // ???
-            else {
-              console.error("Server returned invalid data.");
-              return;
-            }
-            // Actually draw the commits.
-            that.draw(commits, json.branch_heads);
-            that.commits = commits;
-            that.branchHeads = json.branch_heads;
-          } catch(e) {
-            console.error(e.stack);
-            return;
-          } finally {
-            that.resetTimeout();
-            if (that.$) {
-              that.$.moreButton.disabled = false;
-            }
+            commits = json.commits.concat(that.commits);
+            that.endIdx = json.endIdx;
+          }
+          // ???
+          else {
+            throw "Server returned invalid data.";
+          }
+          // Actually draw the commits.
+          that.draw(commits, json.branch_heads);
+          that.commits = commits;
+          that.branchHeads = json.branch_heads;
+        }).then(function() {
+          that.resetTimeout();
+          if (that.$) {
+            that.$.moreButton.disabled = false;
+          }
+        }, function() {
+          that.resetTimeout();
+          if (that.$) {
+            that.$.moreButton.disabled = false;
           }
         });
       },
