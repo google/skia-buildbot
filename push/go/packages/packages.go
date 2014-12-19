@@ -118,36 +118,41 @@ func AllAvailable(store *storage.Service) (map[string][]*Package, error) {
 // InstalledForServer returns a list of package names of installed packages for
 // the given server.
 func InstalledForServer(client *http.Client, store *storage.Service, serverName string) (*Installed, error) {
+	ret := &Installed{
+		Names:      []string{},
+		Generation: -1,
+	}
+
 	filename := "server/" + serverName + ".json"
 	obj, err := store.Objects.Get("skia-push", filename).Do()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve Google Storage metadata about packages file %q: %s", filename, err)
+		return ret, fmt.Errorf("Failed to retrieve Google Storage metadata about packages file %q: %s", filename, err)
 	}
 
 	glog.Infof("Fetching: %s", obj.MediaLink)
 	req, err := gs.RequestForStorageURL(obj.MediaLink)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to construct request object for media: %s", err)
+		return ret, fmt.Errorf("Failed to construct request object for media: %s", err)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve packages file: %s", err)
+		return ret, fmt.Errorf("Failed to retrieve packages file: %s", err)
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Wrong status code: %#v", *resp)
+		return ret, fmt.Errorf("Wrong status code: %#v", *resp)
 	}
 	defer resp.Body.Close()
 	dec := json.NewDecoder(resp.Body)
 
 	value := []string{}
 	if err := dec.Decode(&value); err != nil {
-		return nil, fmt.Errorf("Failed to decode packages file: %s", err)
+		return ret, fmt.Errorf("Failed to decode packages file: %s", err)
 	}
 	sort.Strings(value)
-	return &Installed{
-		Names:      value,
-		Generation: obj.Generation,
-	}, nil
+	ret.Names = value
+	ret.Generation = obj.Generation
+
+	return ret, nil
 }
 
 // AllInstalled returns a map of all known server names to their list of installed package names.
@@ -157,7 +162,6 @@ func AllInstalled(client *http.Client, store *storage.Service, names []string) (
 		p, err := InstalledForServer(client, store, name)
 		if err != nil {
 			glog.Errorf("Failed to retrieve remote package list: %s", err)
-			continue
 		}
 		ret[name] = p
 	}
@@ -171,7 +175,11 @@ func PutInstalled(store *storage.Service, client *http.Client, serverName string
 		return fmt.Errorf("Failed to encode installed packages: %s", err)
 	}
 	buf := bytes.NewBuffer(b)
-	_, err = store.Objects.Insert("skia-push", &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf).IfGenerationMatch(generation).Do()
+	req := store.Objects.Insert("skia-push", &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf)
+	if generation != -1 {
+		req = req.IfGenerationMatch(generation)
+	}
+	_, err = req.Do()
 	if err != nil {
 		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", serverName, err)
 	}
