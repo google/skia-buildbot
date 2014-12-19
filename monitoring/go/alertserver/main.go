@@ -79,7 +79,7 @@ var (
 	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
 )
 
-func init() {
+func reloadTemplates() {
 	// Change the current working directory to two directories up from this source file so that we
 	// can read templates and serve static (res/) files.
 	_, filename, _, _ := runtime.Caller(0)
@@ -92,6 +92,10 @@ func init() {
 		filepath.Join(cwd, "templates/commits.html"),
 		filepath.Join(cwd, "templates/header.html"),
 	))
+}
+
+func init() {
+	reloadTemplates()
 }
 
 func userHasEditRights(email string) bool {
@@ -200,6 +204,11 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
 	if err := alertsTemplate.Execute(w, struct{}{}); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
@@ -255,6 +264,12 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
 	if err := commitsTemplate.Execute(w, struct{}{}); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
