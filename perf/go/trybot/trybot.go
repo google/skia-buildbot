@@ -144,14 +144,13 @@ func addTryData(res *types.TryBotResults, b *ingester.ResultsFileLocation, count
 		return
 	}
 
-	keyPrefix := benchData.KeyPrefix()
-	for testName, allConfigs := range benchData.Results {
-		for configName, result := range *allConfigs {
-			key := fmt.Sprintf("%s:%s:%s", keyPrefix, testName, configName)
-			res.Values[key] = result.Min
-			counter.Inc(1)
-		}
+	// cb is the anonymous closure we'll pass over all the trace values found in benchData.
+	cb := func(key string, value float64, params map[string]string) {
+		res.Values[key] = value
+		counter.Inc(1)
 	}
+
+	benchData.ForEach(cb)
 }
 
 // BenchByIssue allows sorting ResultsFileLocation's by the Rietveld issue id.

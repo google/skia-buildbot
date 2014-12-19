@@ -1,7 +1,6 @@
 package ingester
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -94,23 +93,42 @@ func TestAddBenchDataToTile(t *testing.T) {
 	tile.TileIndex = 0
 
 	offset := 1
-	key := "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_discardable_640_480:gpu"
+	testcases := []struct {
+		key   string
+		value float64
+	}{
+		{
+			key:   "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_discardable_640_480:gpu",
+			value: 0.1157132745098039,
+		},
+		{
+			key:   "x86:GTX660:ShuttleA:Ubuntu12:memory_usage_0_0:meta:max_rss_mb",
+			value: 858,
+		},
+		{
+			key:   "x86:GTX660:ShuttleA:Ubuntu12:src_pipe_global_weak_symbol:memory:bytes",
+			value: 158,
+		},
+	}
 	// Do everything twice to ensure that we are idempotent.
 	for i := 0; i < 2; i++ {
 		// Add the BenchData to the Tile.
 		addBenchDataToTile(benchData, tile, offset, metricsProcessed)
 
 		// Test that the Tile has the right data.
-		if got, want := len(tile.Traces), 9; got != want {
-			fmt.Errorf("Wrong number of traces: Got %d Want %d", got, want)
+		if got, want := len(tile.Traces), 11; got != want {
+			t.Errorf("Wrong number of traces: Got %d Want %d", got, want)
 		}
-		trace, ok := tile.Traces[key]
-		if !ok {
-			fmt.Errorf("Missing expected key: %s", key)
+		for _, tc := range testcases {
+			trace, ok := tile.Traces[tc.key]
+			if !ok {
+				t.Errorf("Missing expected key: %s", tc.key)
+			}
+			if got, want := trace.(*types.PerfTrace).Values[offset], tc.value; got != want {
+				t.Errorf("Wrong value in trace: Got %v Want %v", got, want)
+			}
 		}
-		if got, want := trace.(*types.PerfTrace).Values[offset], 0.1157132745098039; got != want {
-			fmt.Errorf("Wrong value in trace: Got %v Want %v", got, want)
-		}
+		trace := tile.Traces[testcases[0].key]
 
 		// Validate the traces Params.
 		expected := map[string]string{
@@ -126,29 +144,42 @@ func TestAddBenchDataToTile(t *testing.T) {
 			"GL_VENDOR":                   "NVIDIA Corporation",
 			"GL_VERSION":                  "4.4.0 NVIDIA 331.49",
 			"source_type":                 "bench",
+			"sub_result":                  "min_ms",
 		}
 		if got, want := len(trace.Params()), len(expected); got != want {
-			fmt.Errorf("Params wrong length: Got %v Want %v", got, want)
+			t.Errorf("Params wrong length: Got %v Want %v", got, want)
 		}
 		for k, v := range expected {
 			if got, want := trace.Params()[k], v; got != want {
-				fmt.Errorf("Wrong params: Got %v Want %v", got, want)
+				t.Errorf("Wrong params: Got %v Want %v", got, want)
 			}
 		}
 
 		// Validate the Tiles ParamSet.
-		if got, want := len(tile.ParamSet), len(expected); got != want {
-			fmt.Errorf("Wrong ParamSet length: Got %v Want %v", got, want)
+		if got, want := len(tile.ParamSet), len(expected)+2; got != want {
+			t.Errorf("Wrong ParamSet length: Got %v Want %v", got, want)
 		}
+		for k, _ := range expected {
+			if _, ok := tile.ParamSet[k]; !ok {
+				t.Errorf("Missing from ParamSet: %s", k)
+			}
+		}
+		// The new symbol table size options values should also show up in the ParamSet.
+		for _, k := range []string{"path", "symbol"} {
+			if _, ok := tile.ParamSet[k]; !ok {
+				t.Errorf("Missing from ParamSet: %s", k)
+			}
+		}
+
 		if got, want := len(tile.ParamSet["source_type"]), 1; got != want {
-			fmt.Errorf("Wrong ParamSet for source_type: Got %v Want %v", got, want)
+			t.Errorf("Wrong ParamSet for source_type: Got %v Want %v", got, want)
 		}
 		if got, want := tile.ParamSet["source_type"][0], "bench"; got != want {
-			fmt.Errorf("Wrong ParamSet value: Got %v Want %v", got, want)
+			t.Errorf("Wrong ParamSet value: Got %v Want %v", got, want)
 		}
 	}
 
-	if got, want := int64(18), metricsProcessed.Count(); got != want {
+	if got, want := metricsProcessed.Count(), int64(22); got != want {
 		t.Errorf("Wrong number of points ingested: Got %v Want %v", got, want)
 	}
 	// Now update one of the params for a trace and reingest and confirm that the
@@ -156,10 +187,10 @@ func TestAddBenchDataToTile(t *testing.T) {
 
 	benchData.Options["system"] = "Linux"
 	addBenchDataToTile(benchData, tile, offset, metricsProcessed)
-	if got, want := "Linux", tile.Traces[key].Params()["system"]; got != want {
+	if got, want := "Linux", tile.Traces[testcases[0].key].Params()["system"]; got != want {
 		t.Errorf("Failed to update params: Got %v Want %v", got, want)
 	}
-	if got, want := int64(27), metricsProcessed.Count(); got != want {
+	if got, want := metricsProcessed.Count(), int64(33); got != want {
 		t.Errorf("Wrong number of points ingested: Got %v Want %v", got, want)
 	}
 }

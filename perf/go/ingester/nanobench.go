@@ -16,9 +16,6 @@ For example, in the case of nanobench data the file format looks like this:
     "results":{
         "DeferredSurfaceCopy_discardable_640_480":{
             "gpu":{
-                "max_ms":7.9920480,
-                "mean_ms":7.9920480,
-                "median_ms":7.9920480,
                 "min_ms":7.9920480,
                 "options":{
                     "GL_RENDERER":"Quadro K600/PCIe/SSE2",
@@ -28,9 +25,6 @@ For example, in the case of nanobench data the file format looks like this:
                 }
             },
             "nvprmsaa4":{
-                "max_ms":16.7961230,
-                "mean_ms":16.7961230,
-                "median_ms":16.7961230,
                 "min_ms":16.7961230,
                 "options":{
                     "GL_RENDERER":"Quadro K600/PCIe/SSE2",
@@ -40,6 +34,11 @@ For example, in the case of nanobench data the file format looks like this:
                 }
             }
         },
+        "memory_usage_0_0" : {
+           "meta" : {
+              "max_rss_mb" : 858
+        }
+      },
         ...
 
    Ingester converts that structure into Traces in Tiles.
@@ -68,15 +67,15 @@ For example, in the case of nanobench data the file format looks like this:
        "GL_VERSION":"4.4.0 NVIDIA 331.38"
      }
 
-   If in the future we wanted to have Traces for both min_ms and median_ms
-   then the keys would become:
+   If Traces have data beyond min_ms then the keys become:
 
-     "x86:GTX660:Ubuntu12:ShuttleA:DeferredSurfaceCopy_discardable_640_480:gpu:min_ms"
+     "x86:GTX660:Ubuntu12:ShuttleA:DeferredSurfaceCopy_discardable_640_480:gpu"
      "x86:GTX660:Ubuntu12:ShuttleA:DeferredSurfaceCopy_discardable_640_480:gpu:median_ms"
 
-   N.B. That would also require adding a synthetic option
-   "value_type": ("min"|"median") to the Params for each Trace, so you could
-   select out those different type of Traces in the UI.
+   There is a synthetic parameter added to the Params for each Trace, so you
+   can select out those different type of Traces in the UI.
+
+     "sub_result": ("min_ms"|"median_ms")
 */
 package ingester
 
@@ -98,10 +97,11 @@ import (
 // BenchResult represents a single test result.
 //
 // Used in BenchData.
-type BenchResult struct {
-	Min     float64           `json:"min_ms"`
-	Options map[string]string `json:"options"`
-}
+//
+// Expected to be a map of strings to float64s, with the
+// exception of the "options" entry which should be a
+// map[string]string.
+type BenchResult map[string]interface{}
 
 // BenchResults is the dictionary of individual BenchResult structs.
 //
@@ -139,6 +139,58 @@ func (b BenchData) KeyPrefix() string {
 	return strings.Join(retval, ":")
 }
 
+// Iter defines a callback function used in BenchData.ForEach().
+type Iter func(key string, value float64, params map[string]string)
+
+// ForEach takes a callback of type Iter that is called once for every data point
+// found in the BenchData.
+func (b BenchData) ForEach(f Iter) {
+	keyPrefix := b.KeyPrefix()
+	for testName, allConfigs := range b.Results {
+		for configName, result := range *allConfigs {
+			key := fmt.Sprintf("%s:%s:%s", keyPrefix, testName, configName)
+
+			// Construct the Traces params from all the options.
+			params := map[string]string{
+				"test":   testName,
+				"config": configName,
+			}
+			for k, v := range b.Key {
+				params[k] = v
+			}
+			for k, v := range b.Options {
+				params[k] = v
+			}
+			if options, ok := (*result)["options"]; ok {
+				for k, vi := range options.(map[string]interface{}) {
+					params[k] = vi.(string)
+				}
+			}
+
+			// We used to just pick out only "min_ms" as the only result of a bunch
+			// of key, value pairs in the result, such as max_ms, mean_ms, etc. Now
+			// nanobench uploads only the metrics we are interested in, so we need to
+			// use all the values there, except 'options'.
+			for k, vi := range *result {
+				if k == "options" {
+					continue
+				}
+				if _, ok := vi.(float64); !ok {
+					glog.Errorf("Found a non-float64 in %s: %v", key, vi)
+					continue
+				}
+				params["sub_result"] = k
+				perResultKey := key
+				if k != "min_ms" {
+					perResultKey = fmt.Sprintf("%s:%s", perResultKey, k)
+				}
+
+				f(perResultKey, vi.(float64), params)
+			}
+		}
+	}
+}
+
 // ParseBenchDataFromReader parses the stream out of the io.ReadCloser into BenchData.
 func ParseBenchDataFromReader(r io.ReadCloser) (*BenchData, error) {
 	dec := json.NewDecoder(r)
@@ -155,61 +207,45 @@ func ParseBenchDataFromReader(r io.ReadCloser) (*BenchData, error) {
 //
 // See the description at the top of this file for how the mapping works.
 func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int, counter metrics.Counter) {
-	keyPrefix := benchData.KeyPrefix()
-	for testName, allConfigs := range benchData.Results {
-		for configName, result := range *allConfigs {
-			key := fmt.Sprintf("%s:%s:%s", keyPrefix, testName, configName)
 
-			// Construct the Traces params from all the options.
-			params := map[string]string{
-				"test":   testName,
-				"config": configName,
-			}
-			for k, v := range benchData.Key {
-				params[k] = v
-			}
-			for k, v := range benchData.Options {
-				params[k] = v
-			}
-			for k, v := range result.Options {
-				params[k] = v
-			}
-
-			var trace *types.PerfTrace
-			var ok bool
-			needsUpdate := false
-			if tr, ok := tile.Traces[key]; !ok {
-				trace = types.NewPerfTrace()
-				tile.Traces[key] = trace
+	// cb is the anonymous closure we'll pass over all the trace values found in benchData.
+	cb := func(key string, value float64, params map[string]string) {
+		needsUpdate := false
+		var trace *types.PerfTrace
+		if tr, ok := tile.Traces[key]; !ok {
+			trace = types.NewPerfTrace()
+			tile.Traces[key] = trace
+			needsUpdate = true
+		} else {
+			trace = tr.(*types.PerfTrace)
+			if !util.MapsEqual(params, tile.Traces[key].Params()) {
 				needsUpdate = true
-			} else {
-				trace = tr.(*types.PerfTrace)
-				if !util.MapsEqual(params, tile.Traces[key].Params()) {
-					needsUpdate = true
-				}
 			}
-			trace.Params_ = params
+		}
+		trace.Params_ = params
 
-			if needsUpdate {
-				// Update the Tile's ParamSet with any new keys or values we see.
-				//
-				// TODO(jcgregorio) Maybe defer this until we are about to Put the Tile
-				// back to disk and rebuild ParamSet from scratch over all the Traces.
-				for k, v := range params {
-					if _, ok = tile.ParamSet[k]; !ok {
-						tile.ParamSet[k] = []string{v}
-					} else if !util.In(v, tile.ParamSet[k]) {
-						tile.ParamSet[k] = append(tile.ParamSet[k], v)
-					}
+		if trace.Values[offset] != config.MISSING_DATA_SENTINEL {
+			glog.Infof("Duplicate entry found for %s, hash %s", key, benchData.Hash)
+		}
+		trace.Values[offset] = value
+		counter.Inc(1)
+
+		if needsUpdate {
+			// Update the Tile's ParamSet with any new keys or values we see.
+			//
+			// TODO(jcgregorio) Maybe defer this until we are about to Put the Tile
+			// back to disk and rebuild ParamSet from scratch over all the Traces.
+			for k, v := range params {
+				if _, ok := tile.ParamSet[k]; !ok {
+					tile.ParamSet[k] = []string{v}
+				} else if !util.In(v, tile.ParamSet[k]) {
+					tile.ParamSet[k] = append(tile.ParamSet[k], v)
 				}
 			}
-			if trace.Values[offset] != config.MISSING_DATA_SENTINEL {
-				glog.Infof("Duplicate entry found for %s, hash %s", key, benchData.Hash)
-			}
-			trace.Values[offset] = result.Min
-			counter.Inc(1)
 		}
 	}
+
+	benchData.ForEach(cb)
 }
 
 func NanoBenchIngestion(tt *TileTracker, resultsFiles []*ResultsFileLocation, counter metrics.Counter) error {
