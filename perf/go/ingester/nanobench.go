@@ -263,8 +263,13 @@ func NanoBenchIngestion(tt *TileTracker, resultsFiles []*ResultsFileLocation, co
 		}
 		// Move to the correct Tile for the Git hash.
 		hash := benchData.Hash
+		if hash == "" {
+			glog.Errorf("Found invalid hash: %s", hash)
+			continue
+		}
 		if err := tt.Move(hash); err != nil {
-			return fmt.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
+			glog.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
+			continue
 		}
 		// Add the parsed data to the Tile.
 		addBenchDataToTile(benchData, tt.Tile(), tt.Offset(hash), counter)
