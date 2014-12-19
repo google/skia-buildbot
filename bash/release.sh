@@ -68,7 +68,9 @@ fi
 DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
 HASH=`git rev-parse HEAD`
 USERID=${USER}@${HOSTNAME}
-if git diff-index --quiet HEAD --; then
+# Detect if we have unchecked in local changes, or if we are different from HEAD at origin/master.
+git fetch
+if  [ git diff --quiet --no-ext-diff origin/master ] ; then
   DIRTY=false
 else
   DIRTY=true
