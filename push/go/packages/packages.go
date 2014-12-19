@@ -179,8 +179,7 @@ func PutInstalled(store *storage.Service, client *http.Client, serverName string
 	if generation != -1 {
 		req = req.IfGenerationMatch(generation)
 	}
-	_, err = req.Do()
-	if err != nil {
+	if _, err = req.Do(); err != nil {
 		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", serverName, err)
 	}
 	return nil
