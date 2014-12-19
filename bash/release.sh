@@ -71,9 +71,9 @@ USERID=${USER}@${HOSTNAME}
 # Detect if we have unchecked in local changes, or if we are different from HEAD at origin/master.
 git fetch
 if  [ git diff --quiet --no-ext-diff origin/master ] ; then
-  DIRTY=false
-else
   DIRTY=true
+else
+  DIRTY=false
 fi
 gsutil \
   -h x-goog-meta-appname:${APPNAME} \
