@@ -27,15 +27,3 @@ func Must(s string, err error) string {
 	}
 	return s
 }
-
-// FileExists returns true if the given path exists and false otherwise.
-// If there is an error it will return false and log the error message.
-func FileExists(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	} else if err != nil {
-		glog.Error(err)
-		return false
-	}
-	return true
-}

@@ -57,9 +57,8 @@ const (
 )
 
 const (
-	DATASET_NANO        = "nano"
-	DATASET_NANO_TRYBOT = "nano-trybot"
-	DATASET_GOLDEN      = "golden"
+	DATASET_NANO   = "nano"
+	DATASET_GOLDEN = "golden"
 )
 
 var (

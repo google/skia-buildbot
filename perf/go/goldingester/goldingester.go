@@ -2,12 +2,14 @@ package goldingester
 
 import (
 	"encoding/json"
-	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"skia.googlesource.com/buildbot.git/go/fileutil"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/ingester"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
@@ -43,6 +45,16 @@ import (
 //           "options" : {
 //              "source_type" : "GM"
 //           }
+
+var (
+	fileCacheDir = ""
+)
+
+func Init(fcd string) {
+	if fcd != "" {
+		fileCacheDir = fileutil.Must(fileutil.EnsureDirExists(fcd))
+	}
+}
 
 // DMResults is the top level structure for decoding DM JSON output.
 type DMResults struct {
@@ -131,41 +143,46 @@ func addResultToTile(res *DMResults, tile *types.Tile, offset int, counter metri
 	}
 }
 
-// GoldIngester implements the ingester.ResultIngester interface.
-type GoldIngester struct{}
-
-func NewGoldIngester() ingester.ResultIngester {
-	return GoldIngester{}
-}
-
-// See the ingester.ResultIngester interface.
-func (i GoldIngester) Ingest(tt *ingester.TileTracker, opener ingester.Opener, fname string, counter metrics.Counter) error {
-	r, err := opener()
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-
-	dec := json.NewDecoder(r)
-	res := NewDMResults()
-	if err := dec.Decode(res); err != nil {
-		return fmt.Errorf("Failed to decode DM result: %s", err)
-	}
-
-	if res.GitHash != "" {
-		glog.Infof("Got Git hash: %s", res.GitHash)
-		if err := tt.Move(res.GitHash); err != nil {
-			return fmt.Errorf("Failed to move to correct Tile: %s: %s", res.GitHash, err)
+// GoldenIngester implements perf/go/ingester.IngestResultsFiles for ingesting DM files into GoldenTraces.
+func GoldenIngester(tt *ingester.TileTracker, resultsList []*ingester.ResultsFileLocation, counter metrics.Counter) error {
+	for _, resultLocation := range resultsList {
+		r, err := resultLocation.Fetch()
+		if err != nil {
+			glog.Errorf("Failed to fetch: %s: %s", resultLocation.Name, err)
 		}
-		addResultToTile(res, tt.Tile(), tt.Offset(res.GitHash), counter)
-	} else {
-		return fmt.Errorf("Missing hash.")
-	}
 
+		content, err := ioutil.ReadAll(r)
+		if err != nil {
+			glog.Errorf("Failed to read: %s: %s", resultLocation.Name, err)
+		}
+
+		res := NewDMResults()
+		if err := json.Unmarshal(content, res); err != nil {
+			glog.Errorf("Failed to decode DM result: %s: %s", resultLocation.Name, err)
+			continue
+		}
+		if res.GitHash != "" {
+			glog.Infof("Got Git hash: %s", res.GitHash)
+			if err := tt.Move(res.GitHash); err != nil {
+				glog.Errorf("Failed to move to correct Tile: %s: %s", res.GitHash, err)
+				continue
+			}
+			addResultToTile(res, tt.Tile(), tt.Offset(res.GitHash), counter)
+		} else {
+			glog.Warning("Got file with missing hash: %s", resultLocation.Name)
+		}
+
+		// Write the file to disk
+		err = writeFile(filepath.Join(fileCacheDir, resultLocation.Name), content)
+		if err != nil {
+			glog.Errorf("Unable to write file %s: %s", resultLocation.Name, err)
+		}
+	}
 	return nil
 }
 
-// See the ingester.ResultIngester interface.
-func (i GoldIngester) BatchFinished(counter metrics.Counter) error {
-	return nil
+func writeFile(fname string, content []byte) error {
+	dirPath, _ := filepath.Split(fname)
+	fileutil.EnsureDirExists(dirPath)
+	return ioutil.WriteFile(fname, content, 0644)
 }

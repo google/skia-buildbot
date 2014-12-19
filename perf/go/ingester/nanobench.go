@@ -83,6 +83,7 @@ package ingester
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"sort"
 	"strings"
 
@@ -139,17 +140,13 @@ func (b BenchData) KeyPrefix() string {
 }
 
 // ParseBenchDataFromReader parses the stream out of the io.ReadCloser into BenchData.
-func ParseBenchDataFromReader(opener Opener) (*BenchData, error) {
-	r, err := opener()
-	if err != nil {
-		return nil, err
-	}
-	defer r.Close()
-
+func ParseBenchDataFromReader(r io.ReadCloser) (*BenchData, error) {
 	dec := json.NewDecoder(r)
 	benchData := &BenchData{}
+	defer r.Close()
 	if err := dec.Decode(benchData); err != nil {
-		return nil, fmt.Errorf("Failed to decode JSON: %s", err)
+		glog.Warningf("Failed to decode JSON: %s", err)
+		return nil, err
 	}
 	return benchData, nil
 }
@@ -215,31 +212,26 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int, coun
 	}
 }
 
-// NanoBenchIngester implements the ingester.ResultIngester interface.
-type NanoBenchIngester struct{}
-
-func NewNanoBenchIngester() ResultIngester {
-	return NanoBenchIngester{}
-}
-
-// See the ingester.ResultIngester interface.
-func (i NanoBenchIngester) Ingest(tt *TileTracker, opener Opener, fname string, counter metrics.Counter) error {
-	benchData, err := ParseBenchDataFromReader(opener)
-	if err != nil {
-		return err
+func NanoBenchIngestion(tt *TileTracker, resultsFiles []*ResultsFileLocation, counter metrics.Counter) error {
+	for _, b := range resultsFiles {
+		// Load and parse the JSON.
+		r, err := b.Fetch()
+		if err != nil {
+			// Don't fall over for a single failed HTTP request.
+			continue
+		}
+		benchData, err := ParseBenchDataFromReader(r)
+		if err != nil {
+			// Don't fall over for a single corrupt file.
+			continue
+		}
+		// Move to the correct Tile for the Git hash.
+		hash := benchData.Hash
+		if err := tt.Move(hash); err != nil {
+			return fmt.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
+		}
+		// Add the parsed data to the Tile.
+		addBenchDataToTile(benchData, tt.Tile(), tt.Offset(hash), counter)
 	}
-
-	// Move to the correct Tile for the Git hash.
-	hash := benchData.Hash
-	if err := tt.Move(hash); err != nil {
-		return fmt.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
-	}
-	// Add the parsed data to the Tile.
-	addBenchDataToTile(benchData, tt.Tile(), tt.Offset(hash), counter)
-	return nil
-}
-
-// See the ingester.ResultIngester interface.
-func (i NanoBenchIngester) BatchFinished(counter metrics.Counter) error {
 	return nil
 }
