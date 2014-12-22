@@ -1,0 +1,23 @@
+#!/bin/bash
+# Builds and uploads a debian package with configuration files for nginx.
+APPNAME=nginx-monitoring
+DESCRIPTION="The SSL certs for nginx serving skiamonitor.com and skiaalerts.com"
+
+# This package depends upon nginx being installed.
+DEPENDS=nginx
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+SOFTLINK="sudo ln -s"
+
+${INSTALL} --mode=644 -T ./sys/certpoller_monit     ${ROOT}/etc/monit/conf.d/certpoller
+${INSTALL} --mode=755 -T ./sys/certpoller_init      ${ROOT}/etc/init.d/certpoller
+${INSTALL} --mode=755 -T ${GOPATH}/bin/certpoller   ${ROOT}/usr/local/bin/certpoller
+
+${INSTALL_DIR} --mode=700                           ${ROOT}/etc/nginx/ssl
+}
+
+source ../bash/release.sh

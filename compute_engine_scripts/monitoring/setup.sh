@@ -68,20 +68,6 @@ sudo cp alerts_nginx /etc/nginx/sites-available/alerts
 sudo rm -f /etc/nginx/sites-enabled/alerts
 sudo ln -s /etc/nginx/sites-available/alerts /etc/nginx/sites-enabled/alerts
 
-# Download the SSL secrets from the metadata store.
-CURL_CMD='curl -H "Metadata-Flavor: Google"'
-META_PROJ_URL='http://metadata/computeMetadata/v1/project/attributes'
-
-sudo mkdir -p /etc/nginx/ssl/
-sudo sh <<CURL_SCRIPT
-    $CURL_CMD $META_PROJ_URL/skiamonitor-com-key -o /etc/nginx/ssl/skiamonitor_com.key
-    $CURL_CMD $META_PROJ_URL/skiamonitor-com-pem -o /etc/nginx/ssl/skiamonitor_com.pem
-    $CURL_CMD $META_PROJ_URL/skiaalerts-com-key -o /etc/nginx/ssl/skiaalerts_com.key
-    $CURL_CMD $META_PROJ_URL/skiaalerts-com-pem -o /etc/nginx/ssl/skiaalerts_com.pem
-CURL_SCRIPT
-sudo chmod 700 /etc/nginx/ssl
-sudo sh -c "chmod 600 /etc/nginx/ssl/*"
-
 # Create the directory for www logs if necessary.
 mkdir -p /mnt/pd0/wwwlogs
 

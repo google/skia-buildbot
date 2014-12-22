@@ -1,7 +1,24 @@
 check process nginx with pidfile /var/run/nginx.pid
     start program = "/etc/init.d/nginx start"
     stop program = "/etc/init.d/nginx stop"
+    depends on nginx_ssl_monitor_key
+    depends on nginx_ssl_monitor_pem
+    depends on nginx_ssl_alerts_key
+    depends on nginx_ssl_alerts_pem
 
 check process alertserver with pidfile /var/run/alertserver.pid
    start program = "/etc/init.d/alertserver start"
    stop program = "/etc/init.d/alertserver stop"
+
+check file nginx_ssl_monitor_key
+  with path /etc/nginx/ssl/skiamonitor_com.key
+  if changed timestamp then restart
+check file nginx_ssl_monitor_pem
+  with path /etc/nginx/ssl/skiamonitor_com.pem
+  if changed timestamp then restart
+check file nginx_ssl_alerts_key
+  with path /etc/nginx/ssl/skiaalerts_com.key
+  if changed timestamp then restart
+check file nginx_ssl_alerts_pem
+  with path /etc/nginx/ssl/skiaalerts_com.pem
+  if changed timestamp then restart
