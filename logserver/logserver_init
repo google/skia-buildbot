@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia logserver application."
 NAME=logserver
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS="--port=:10115 --dir=/var/log/logserver --log_dir=/var/log/logserver"
+DAEMON_ARGS="--port=:10115 --dir=/var/log/logserver --log_dir=/var/log/logserver --app_log_threshold=4294967296 --app_log_threshold_buffer=2147483648"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
