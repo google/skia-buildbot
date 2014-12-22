@@ -139,7 +139,7 @@ class Alexa%(start)s_%(end)sPageSet(page_set_module.PageSet):
     urls_list = %(urls_list)s
 
     for url in urls_list:
-      self.AddPage(TypicalAlexaPage(url, self))
+      self.AddUserStory(TypicalAlexaPage(url, self))
 """ % {
       "user_agent": options.useragent_type,
       "archive_data_file": archive_data_file,

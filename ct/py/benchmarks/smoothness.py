@@ -20,7 +20,6 @@ class SmoothnessCTPages(benchmark.Benchmark):
 
   @classmethod
   def AddBenchmarkCommandLineArgs(cls, parser):
-    print 'HERE HERE HERE123123123'
     parser.add_option('--page-set-name',  action='store', type='string')
     parser.add_option('--page-set-base-dir', action='store', type='string')
 
