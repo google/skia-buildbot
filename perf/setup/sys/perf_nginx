@@ -1,8 +1,8 @@
 server {
     listen 443;
     server_name skiaperf.com;
-    access_log /tmp/wwwlogs/skiaperf.access.log;
-    error_log /tmp/wwwlogs/skiaperf.error.log;
+    access_log /mnt/pd0/wwwlogs/skiaperf.access.log;
+    error_log /mnt/pd0/wwwlogs/skiaperf.error.log;
 
     ssl on;
     ssl_certificate         /etc/nginx/ssl/skiaperf_com.pem;

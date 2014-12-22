@@ -1,8 +1,8 @@
 server {
     listen 443;
     server_name skiagold.com;
-    access_log /tmp/wwwlogs/skiagold.access.log;
-    error_log /tmp/wwwlogs/skiagold.error.log;
+    access_log /mnt/pd0/wwwlogs/skiagold.access.log;
+    error_log /mnt/pd0/wwwlogs/skiagold.error.log;
 
     ssl on;
     ssl_certificate         /etc/nginx/ssl/skiagold_com.pem;

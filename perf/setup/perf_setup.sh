@@ -31,6 +31,10 @@ sudo install $ROOT_PARAMS $EXE_FILE sys/correctness_init /etc/init.d/skiacorrect
 sudo install $ROOT_PARAMS $EXE_FILE sys/ingest_init /etc/init.d/ingest
 sudo install $ROOT_PARAMS $CONFIG_FILE sys/perf_monit /etc/monit/conf.d/perf
 
+# Make sure the log direcotry for nginx exists.
+sudo mkdir -p /mnt/pd0/wwwlogs
+sudo chown www-data:www-data /mnt/pd0/wwwlogs
+
 # Add the nginx configuration files.
 sudo cp sys/perf_nginx /etc/nginx/sites-available/perf
 sudo rm -f /etc/nginx/sites-enabled/perf
@@ -39,6 +43,10 @@ sudo ln -s /etc/nginx/sites-available/perf /etc/nginx/sites-enabled/perf
 sudo cp sys/gold_nginx /etc/nginx/sites-available/gold
 sudo rm -f /etc/nginx/sites-enabled/gold
 sudo ln -s /etc/nginx/sites-available/gold /etc/nginx/sites-enabled/gold
+
+sudo cp sys/skbug_nginx /etc/nginx/sites-available/skbug
+sudo rm -f /etc/nginx/sites-enabled/skbug
+sudo ln -s /etc/nginx/sites-available/skbug /etc/nginx/sites-enabled/skbug
 
 # Download the SSL secrets from the metadata store.
 CURL_CMD='curl -H "Metadata-Flavor: Google"'

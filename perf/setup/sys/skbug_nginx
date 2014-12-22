@@ -1,0 +1,9 @@
+server {
+    listen 80;
+    server_name skbug.com;
+    access_log /mnt/pd0/wwwlogs/skbug.access.log;
+    error_log /mnt/pd0/wwwlogs/skbug.error.log;
+
+    rewrite ^/([0-9]*)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
+    rewrite ^ https://code.google.com/p/skia/issues/list redirect;
+}
