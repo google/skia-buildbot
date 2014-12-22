@@ -50,30 +50,6 @@
                 } 
             }
         }, 
-        "DeferredSurfaceCopy_nonDiscardable_640_480": {
-            "565": {
-                "min_ms": 2.865907, 
-                "options": {
-                    "source_type": "bench"
-                } 
-            }, 
-            "8888": {
-                "min_ms": 2.855735, 
-                "options": {
-                    "source_type": "bench"
-                } 
-            }, 
-            "gpu": {
-                "min_ms": 0.3698998571428572, 
-                "options": {
-                    "GL_RENDERER": "GeForce GTX 660/PCIe/SSE2", 
-                    "GL_SHADING_LANGUAGE_VERSION": "4.40 NVIDIA via Cg compiler", 
-                    "GL_VENDOR": "NVIDIA Corporation", 
-                    "GL_VERSION": "4.4.0 NVIDIA 331.49", 
-                    "source_type": "bench"
-                } 
-            }
-        }, 
         "Deque_PushAllPopAll_640_480": {
             "nonrendering": {
                 "min_ms": 0.01964637755102041, 
@@ -95,6 +71,32 @@
               "symbol":"global_weak_symbol"
             }
           }
-        }
+        },
+        "DeferredSurfaceCopy_nonDiscardable_640_480": {
+            "565": {
+                "min_ms": 2.865907, 
+                "options": {
+                    "source_type": "bench"
+                } 
+            }, 
+            "8888": {
+              "bytes" : 298888,
+              "min_ms": 2.855735, 
+              "ops" : 3333,
+              "options": {
+                "source_type": "bench"
+              } 
+            }, 
+            "gpu": {
+                "min_ms": 0.3698998571428572, 
+                "options": {
+                    "GL_RENDERER": "GeForce GTX 660/PCIe/SSE2", 
+                    "GL_SHADING_LANGUAGE_VERSION": "4.40 NVIDIA via Cg compiler", 
+                    "GL_VENDOR": "NVIDIA Corporation", 
+                    "GL_VERSION": "4.4.0 NVIDIA 331.49", 
+                    "source_type": "bench"
+                } 
+            }
+        } 
     }
 }

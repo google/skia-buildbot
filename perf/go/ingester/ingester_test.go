@@ -94,20 +94,39 @@ func TestAddBenchDataToTile(t *testing.T) {
 
 	offset := 1
 	testcases := []struct {
-		key   string
-		value float64
+		key       string
+		value     float64
+		subResult string
 	}{
 		{
-			key:   "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_discardable_640_480:gpu",
-			value: 0.1157132745098039,
+			key:       "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_discardable_640_480:gpu",
+			value:     0.1157132745098039,
+			subResult: "min_ms",
 		},
 		{
-			key:   "x86:GTX660:ShuttleA:Ubuntu12:memory_usage_0_0:meta:max_rss_mb",
-			value: 858,
+			key:       "x86:GTX660:ShuttleA:Ubuntu12:memory_usage_0_0:meta:max_rss_mb",
+			value:     858,
+			subResult: "max_rss_mb",
 		},
 		{
-			key:   "x86:GTX660:ShuttleA:Ubuntu12:src_pipe_global_weak_symbol:memory:bytes",
-			value: 158,
+			key:       "x86:GTX660:ShuttleA:Ubuntu12:src_pipe_global_weak_symbol:memory:bytes",
+			value:     158,
+			subResult: "bytes",
+		},
+		{
+			key:       "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_nonDiscardable_640_480:8888",
+			value:     2.855735,
+			subResult: "min_ms",
+		},
+		{
+			key:       "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_nonDiscardable_640_480:8888:bytes",
+			value:     298888,
+			subResult: "bytes",
+		},
+		{
+			key:       "x86:GTX660:ShuttleA:Ubuntu12:DeferredSurfaceCopy_nonDiscardable_640_480:8888:ops",
+			value:     3333,
+			subResult: "ops",
 		},
 	}
 	// Do everything twice to ensure that we are idempotent.
@@ -116,7 +135,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 		addBenchDataToTile(benchData, tile, offset, metricsProcessed)
 
 		// Test that the Tile has the right data.
-		if got, want := len(tile.Traces), 11; got != want {
+		if got, want := len(tile.Traces), 13; got != want {
 			t.Errorf("Wrong number of traces: Got %d Want %d", got, want)
 		}
 		for _, tc := range testcases {
@@ -179,7 +198,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 		}
 	}
 
-	if got, want := metricsProcessed.Count(), int64(22); got != want {
+	if got, want := metricsProcessed.Count(), int64(26); got != want {
 		t.Errorf("Wrong number of points ingested: Got %v Want %v", got, want)
 	}
 	// Now update one of the params for a trace and reingest and confirm that the
@@ -190,7 +209,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 	if got, want := "Linux", tile.Traces[testcases[0].key].Params()["system"]; got != want {
 		t.Errorf("Failed to update params: Got %v Want %v", got, want)
 	}
-	if got, want := metricsProcessed.Count(), int64(33); got != want {
+	if got, want := metricsProcessed.Count(), int64(39); got != want {
 		t.Errorf("Wrong number of points ingested: Got %v Want %v", got, want)
 	}
 }

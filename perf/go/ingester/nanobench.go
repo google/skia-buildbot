@@ -184,8 +184,12 @@ func (b BenchData) ForEach(f Iter) {
 				if k != "min_ms" {
 					perResultKey = fmt.Sprintf("%s:%s", perResultKey, k)
 				}
+				paramsCopy := make(map[string]string, len(params))
+				for k, v := range params {
+					paramsCopy[k] = v
+				}
 
-				f(perResultKey, vi.(float64), params)
+				f(perResultKey, vi.(float64), paramsCopy)
 			}
 		}
 	}
