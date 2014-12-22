@@ -1,119 +1,198 @@
 package analysis
 
 import (
-	"os"
+	"fmt"
 	"testing"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/go/auth"
-	"skia.googlesource.com/buildbot.git/go/gs"
+	"sort"
+	"strings"
+
+	assert "github.com/stretchr/testify/require"
+
+	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 	"skia.googlesource.com/buildbot.git/golden/go/filediffstore"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
-)
-
-import (
-	// Using 'require' which is like using 'assert' but causes tests to fail.
-	assert "github.com/stretchr/testify/require"
+	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
 func init() {
 	filediffstore.Init()
 }
 
-// TODO (stephana): WIP to make the analyzer more testable.
-func TestAnalyzer(t *testing.T) {
-	analyzer := setupAnalyzer(t)
-	assert.NotNil(t, analyzer)
-
-	waitForLoopCounter(analyzer, 1, time.Second*5)
-
-	tileCounts, err := analyzer.GetTileCounts(map[string][]string{})
-	assert.Nil(t, err)
-
-	for testName, _ := range tileCounts.Counts {
-		testDetails, err := analyzer.GetTestDetails(testName, map[string][]string{})
-		assert.Nil(t, err)
-
-		triagedTests := map[string]types.TestClassification{}
-		triagedTests[testName] = map[string]types.Label{}
-		posDigests := map[string]bool{}
-		negDigests := map[string]bool{}
-		i := 0
-		for digest := range testDetails.Tests[testName].Untriaged {
-			if i%2 == 0 {
-				posDigests[digest] = true
-				triagedTests[testName][digest] = types.POSITIVE
-			} else {
-				negDigests[digest] = true
-				triagedTests[testName][digest] = types.NEGATIVE
-			}
-			i++
-		}
-
-		assert.Equal(t, len(posDigests)+len(negDigests), len(testDetails.Tests[testName].Untriaged))
-
-		// Set the digests and check if the result is correct.
-		result, err := analyzer.SetDigestLabels(triagedTests, "fakeUserId")
-		assert.Nil(t, err)
-
-		found := result.Tests[testName]
-		assert.NotNil(t, found)
-		assert.Equal(t, len(posDigests), len(found.Positive))
-		assert.Equal(t, len(negDigests), len(found.Negative))
-		assert.Equal(t, 0, len(found.Untriaged))
-
-		for digest := range posDigests {
-			assert.NotNil(t, found.Positive[digest])
-		}
-
-		for digest := range negDigests {
-			assert.NotNil(t, found.Negative[digest])
-		}
-	}
-}
-
-func setupAnalyzer(t *testing.T) *Analyzer {
-	// TODO (stephana): Needs to be cleaned up so it doesn't depend on hard
-	// coded paths.
-	imageDir := "../../testruns/imagediffs"
-	gsBucketName := gs.GS_PROJECT_BUCKET
-	tileStoreDir := "../../../../../../../checkouts/tiles"
-
-	// Skip if we are running short tests.
-	if testing.Short() {
-		t.Skip("Skipping test because we are running in short mode.")
+func TestGetListTestDetails(t *testing.T) {
+	digests := [][]string{
+		[]string{"d_11", "d_12", ptypes.MISSING_DIGEST, "d_14"},
+		[]string{"d_21", ptypes.MISSING_DIGEST, "d_23", "d_24"},
+		[]string{"d_31", "d_32", "d_33", "d_34"},
+		[]string{ptypes.MISSING_DIGEST, "d_42", "d_43", "d_44"},
+		[]string{"d_51", "d_52", ptypes.MISSING_DIGEST, "d_54"},
 	}
 
-	// Skip this test if the directories don't exist.
-	if _, err := os.Stat(imageDir); os.IsNotExist(err) {
-		t.Skipf("Skiping test because %s does not exist.", imageDir)
-	}
-	if _, err := os.Stat(tileStoreDir); os.IsNotExist(err) {
-		t.Skipf("Skiping test because %s does not exist.", tileStoreDir)
+	params := []map[string]string{
+		map[string]string{types.PRIMARY_KEY_FIELD: "t1", "p1": "v11", "p2": "v21", "p3": "v31"},
+		map[string]string{types.PRIMARY_KEY_FIELD: "t2", "p1": "v12", "p2": "v21", "p3": "v32"},
+		map[string]string{types.PRIMARY_KEY_FIELD: "t3", "p1": "v11", "p2": "v22", "p3": "v33"},
+		map[string]string{types.PRIMARY_KEY_FIELD: "t4", "p1": "v12", "p2": "v22", "p3": "v34"},
+		map[string]string{types.PRIMARY_KEY_FIELD: "t5", "p1": "v13", "p2": "v22", "p3": "v34"},
 	}
 
-	oauthClient, err := auth.RunFlow(auth.DefaultOAuthConfig("./google_storage_token.data"))
-	assert.Nil(t, err)
+	start := time.Now().Unix()
+	commits := []*ptypes.Commit{
+		&ptypes.Commit{CommitTime: start + 10, Hash: "h1", Author: "John Doe 1"},
+		&ptypes.Commit{CommitTime: start + 20, Hash: "h2", Author: "John Doe 2"},
+		&ptypes.Commit{CommitTime: start + 30, Hash: "h3", Author: "John Doe 3"},
+		&ptypes.Commit{CommitTime: start + 40, Hash: "h4", Author: "John Doe 4"},
+	}
 
-	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore := filediffstore.NewFileDiffStore(oauthClient, imageDir, gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
+	assert.Equal(t, len(digests), len(params))
+	assert.Equal(t, len(digests[0]), len(commits))
+
+	diffStore := NewMockDiffStore()
 	expStore := expstorage.NewMemExpectationsStore()
-	tileStore := filetilestore.NewFileTileStore(tileStoreDir, "golden", -1)
+	tileStore := NewMockTileStore(t, digests, params, commits)
+	timeBetweenPolls := 10 * time.Hour
+	a := NewAnalyzer(expStore, tileStore, diffStore, mockUrlGenerator, timeBetweenPolls)
 
-	// Initialize the Analyzer
-	return NewAnalyzer(expStore, tileStore, diffStore, mockUrlGenerator, 5*time.Minute)
+	allTests, err := a.ListTestDetails(nil)
+	assert.Nil(t, err)
+
+	// Poll until ready
+	for allTests == nil {
+		time.Sleep(10 * time.Millisecond)
+		allTests, err = a.ListTestDetails(nil)
+		assert.Nil(t, err)
+	}
+	assert.NotNil(t, allTests)
+	assert.Equal(t, len(params), len(allTests.Tests))
+
+	// Make sure the lookup function works correctly.
+	for _, oneTest := range a.currentTestDetails.Tests {
+		found := a.currentTestDetails.lookup(oneTest.Name)
+		assert.NotNil(t, found)
+		assert.Equal(t, oneTest, found)
+	}
+
+	test1, err := a.GetTestDetails("t1", nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, test1)
+	assert.Equal(t, commits, test1.Commits)
+	assert.Equal(t, 1, len(test1.Tests))
+	assert.Equal(t, 0, len(test1.Query))
+	assert.Equal(t, "t1", test1.Tests[0].Name)
+	assert.Equal(t, 0, len(test1.Tests[0].Positive))
+	assert.Equal(t, 0, len(test1.Tests[0].Negative))
+	assert.Equal(t, 3, len(test1.Tests[0].Untriaged))
+
+	// Query tiles
+	list1, err := a.ListTestDetails(map[string][]string{"p1": []string{"v11"}})
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(list1.Tests))
+	assert.Equal(t, 4, len(list1.Commits))
+	assert.Equal(t, 3, len(findTest(t, list1, "t1").Untriaged))
+	assert.Equal(t, 4, len(findTest(t, list1, "t3").Untriaged))
+
+	// // Slice the tests
+	list1, err = a.ListTestDetails(map[string][]string{"cs": []string{"h2"}})
+	assert.Nil(t, err)
+	assert.Equal(t, 5, len(list1.Tests))
+
+	assert.Equal(t, 2, len(findTest(t, list1, "t1").Untriaged))
+	assert.Equal(t, 2, len(findTest(t, list1, "t2").Untriaged))
+
+	assert.Equal(t, 3, len(findTest(t, list1, "t3").Untriaged))
+	assert.Equal(t, 3, len(findTest(t, list1, "t4").Untriaged))
+	assert.Equal(t, 2, len(findTest(t, list1, "t5").Untriaged))
 }
 
+func findTest(t *testing.T, tDetails *GUITestDetails, testName string) *GUITestDetail {
+	for _, td := range tDetails.Tests {
+		if td.Name == testName {
+			return td
+		}
+	}
+	assert.FailNow(t, "Unable to find test: "+testName)
+	return nil
+}
+
+// Mock the url generator function.
 func mockUrlGenerator(path string) string {
 	return path
 }
 
-func waitForLoopCounter(a *Analyzer, minCount int, pollInterval time.Duration) {
-	for _ = range time.Tick(pollInterval) {
-		if a.loopCounter >= minCount {
-			break
+// Mock the diffstore.
+type MockDiffStore struct{}
+
+func (m MockDiffStore) Get(dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
+	result := map[string]*diff.DiffMetrics{}
+	for _, d := range dRest {
+		result[d] = &diff.DiffMetrics{
+			NumDiffPixels:     10,
+			PixelDiffPercent:  1.0,
+			PixelDiffFilePath: fmt.Sprintf("diffpath/%s-%s", dMain, d),
+			MaxRGBADiffs:      []int{5, 3, 4, 0},
+			DimDiffer:         false,
 		}
 	}
+	return result, nil
+}
+
+func (m MockDiffStore) AbsPath(digest []string) map[string]string {
+	result := map[string]string{}
+	for _, d := range digest {
+		result[d] = "abspath/" + d
+	}
+	return result
+}
+
+func NewMockDiffStore() diff.DiffStore {
+	return MockDiffStore{}
+}
+
+// Mock the tilestore for GoldenTraces
+func NewMockTileStore(t *testing.T, digests [][]string, params []map[string]string, commits []*ptypes.Commit) ptypes.TileStore {
+	// Build the tile from the digests, params and commits.
+	traces := map[string]ptypes.Trace{}
+
+	for idx, traceDigests := range digests {
+		traceParts := []string{}
+		for _, v := range params[idx] {
+			traceParts = append(traceParts, v)
+		}
+		sort.Strings(traceParts)
+
+		traces[strings.Join(traceParts, ":")] = &ptypes.GoldenTrace{
+			Params_: params[idx],
+			Values:  traceDigests,
+		}
+	}
+
+	tile := ptypes.NewTile()
+	tile.Traces = traces
+	tile.Commits = commits
+
+	return &MockTileStore{
+		t:    t,
+		tile: tile,
+	}
+}
+
+type MockTileStore struct {
+	t    *testing.T
+	tile *ptypes.Tile
+}
+
+func (m *MockTileStore) Get(scale, index int) (*ptypes.Tile, error) {
+	return m.tile, nil
+}
+
+func (m *MockTileStore) Put(scale, index int, tile *ptypes.Tile) error {
+	assert.FailNow(m.t, "Should not be called.")
+	return nil
+}
+
+func (m *MockTileStore) GetModifiable(scale, index int) (*ptypes.Tile, error) {
+	assert.FailNow(m.t, "Should not be called.")
+	return nil, nil
 }

@@ -31,7 +31,7 @@ var skia = skia || {};
           controller: 'TriageDetailsCtrl',
           reloadOnSearch: false
         });
-    $routeProvider.otherwise({redirectTo: ns.c.URL_TRIAGE });
+    $routeProvider.otherwise({redirectTo: ns.c.URL_COUNTS });
   }]);
 
   /*
@@ -108,30 +108,24 @@ var skia = skia || {};
       var testName = ($routeParams.id && ($routeParams.id !== '')) ?
                       $routeParams.id : null;
 
-      // Load counts for all tests of a tile.
-      $scope.loadCounts = function () {
+      // Load triage data across tests.
+      $scope.loadAllTriageData = function () {
         $scope.state = 'loading';
-        dataService.loadData(ns.c.URL_TRIAGE, $scope.query).then(
+        dataService.loadData(ns.c.URL_TRIAGE, getCombinedQuery()).then(
           function (serverData) {
             if (!serverData) {
               retry();
               return serverData;
             };
 
-            var temp = ns.processCounts(serverData, testName);
+            var temp = ns.extractTriageListData(serverData);
 
-            // plug into the sk-plot directive
-            $scope.plotData = temp.plotData;
-            $scope.plotTicks = temp.getTicks.bind(temp);
+            $scope.allTests = temp.tests;
+            $scope.allParams = temp.allParams;
+            $scope.crLinks =temp.commitRanges;
 
-            // used to render information about tests
-            $scope.allAggregates = temp.allAggregates;
-            $scope.allTests = temp.testDetails;
-            $scope.allParams = ns.getSortedParams(serverData, false);
-            updateQueryStr(serverData.query || {});
-
-            // KEEP THIS !!!
-            $scope.crLinks = ns.getAutoCommitRanges(serverData)
+            // TODO(stephana): Fix query string.
+            setQuery(serverData.query || {});
 
             $scope.state = 'ready';
           },
@@ -146,27 +140,50 @@ var skia = skia || {};
         $timeout($scope.loadCounts, $scope.reloadInterval * 1000);
       }
 
-      function updateQueryStr(newQuery) {
-        $scope.query = newQuery;
+      $scope.selectCommitRange = function(commitRange) {
+        if (commitRange) {
+          $scope.commitRangeQuery[ns.c.QUERY_COMMIT_START] = commitRange.start.hash;
+          $scope.commitRangeQuery[ns.c.QUERY_COMMIT_END] = '';
+        }
+        $scope.loadAllTriageData();
+      };
+
+      $scope.resetCommitRangeQuery = function () {
+        $scope.commitRangeQuery = angular.copy($scope.originalCommitRange);
+      };
+
+      function setQuery(newQuery) {
+        var q = ns.splitQuery(newQuery, $scope.allParams);
+        $scope.filteredQuery = q.paramQuery;
+        $scope.commitRangeQuery = q.commitRangeQuery;
+        $scope.originalCommitRange = angular.copy(q.commitRangeQuery);
+
         $location.search(newQuery);
         $scope.qStr = ns.extractQueryString($location.url());
       }
 
+      function getCombinedQuery() {
+        var result = ns.unionObject($scope.filteredQuery, $scope.commitRangeQuery);
+        return result;
+      }
+
+      $scope.$watch('commitRangeQuery', function() {
+        $scope.crClean = angular.equals($scope.commitRangeQuery, $scope.originalCommitRange);
+      }, true);
+
       // initialize the members and load the data.
       $scope.reloadInterval = 3;
       $scope.allTests = [];
-      $scope.plotData = [];
-      $scope.plotTicks = null;
-      $scope.oneTest = !!testName;
       $scope.allParams = [];
-      updateQueryStr($location.search());
-      $scope.loadCounts();
-      $scope.statusOk = true;
-
       $scope.crLinks = [];
       $scope.imageSize = 100;
-      $scope.imageUrl = 'http://placehold.it/100x150';
+      $scope.loadAllTriageData();
 
+      // Inject the constants into the scope.
+      $scope.c = ns.c;
+
+      // TODO(stephana): Fix query string.
+      setQuery($location.search());
     }]);
 
 
@@ -476,6 +493,14 @@ var skia = skia || {};
       $scope.$watch('outerQuery', function(newVal) {
         $scope.query = angular.copy($scope.outerQuery);
       });
+
+      $scope.$watch('query', function() {
+        for(var k in $scope.query) {
+          if ($scope.query.hasOwnProperty(k) && ($scope.query[k].length === 0)) {
+            delete $scope.query[k];
+          }
+        }
+      }, true);
 
       $scope.isClean = function() {
         return angular.equals($scope.query, $scope.outerQuery);

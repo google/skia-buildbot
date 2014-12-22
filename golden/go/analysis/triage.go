@@ -6,18 +6,29 @@ import (
 	"github.com/golang/glog"
 
 	"skia.googlesource.com/buildbot.git/golden/go/types"
+	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
 // GUITestDetails is an output type with triage information grouped by tests.
 type GUITestDetails struct {
-	AllParams map[string][]string       `json:"allParams"`
-	Tests     map[string]*GUITestDetail `json:"tests"`
-	Query     map[string][]string       `json:"query"`
+	Commits   []*ptypes.Commit    `json:"commits"`
+	AllParams map[string][]string `json:"allParams"`
+	Tests     []*GUITestDetail    `json:"tests"`
+	Query     map[string][]string `json:"query"`
+	testsMap  map[string]int
+}
+
+func (g *GUITestDetails) lookup(testName string) *GUITestDetail {
+	if idx, ok := g.testsMap[testName]; ok {
+		return g.Tests[idx]
+	}
+	return nil
 }
 
 // GUITestDetail contains the untriaged, positive and negative digests of
 // a test with all the information necessary to triage the digests.
 type GUITestDetail struct {
+	Name      string                         `json:"name"`
 	Untriaged map[string]*GUIUntriagedDigest `json:"untriaged"`
 	Positive  map[string]*DigestInfo         `json:"positive"`
 	Negative  map[string]*DigestInfo         `json:"negative"`
@@ -62,7 +73,8 @@ type GUIDiffMetric struct {
 // untriaged digests.
 func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 	glog.Infoln("Starting to extract test details.")
-	result := map[string]*GUITestDetail{}
+	result := []*GUITestDetail{}
+	testsMap := map[string]int{}
 	totalTestCount := len(labeledTile.Traces)
 
 	curTestCount := 0
@@ -107,11 +119,13 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 			untriagedDigests[digest].Diffs = dms
 		}
 
-		result[testName] = &GUITestDetail{
+		result = append(result, &GUITestDetail{
+			Name:      testName,
 			Untriaged: untriagedDigests,
 			Positive:  positiveDigests,
 			Negative:  negativeDigests,
-		}
+		})
+		testsMap[testName] = len(result) - 1
 
 		curTestCount++
 		glog.Infof("Processed %d/%d tests. (%f%%)", curTestCount, totalTestCount, float64(curTestCount)/float64(totalTestCount)*100.0)
@@ -120,8 +134,10 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 	glog.Infoln("Done extracting test details.")
 
 	return &GUITestDetails{
+		Commits:   labeledTile.Commits,
 		AllParams: labeledTile.allParams,
 		Tests:     result,
+		testsMap:  testsMap,
 	}
 }
 

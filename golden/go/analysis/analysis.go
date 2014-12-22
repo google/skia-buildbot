@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"sort"
 	"sync"
 	"time"
 
@@ -134,12 +135,12 @@ type Analyzer struct {
 	// and labels.
 	currentTile *LabeledTile
 
+	// Index to query the current tile.
+	currentIndex *LabeledTileIndex
+
 	// Output data structures that are derived from currentTile.
 	currentTileCounts  *GUITileCounts
 	currentTestDetails *GUITestDetails
-
-	// Index to query the current tile.
-	index ParamIndex
 
 	// Maps from trace ids to the actual instances of LabeledTrace.
 	traceMap map[int]*LabeledTrace
@@ -188,6 +189,42 @@ func (a *Analyzer) GetTileCounts(query map[string][]string) (*GUITileCounts, err
 	return a.currentTileCounts, nil
 }
 
+// ListTestDetails returns a list of triage details based on the supplied
+// query. It's complementary to GetTestDetails which returns a single test
+// detail.
+// TODO(stephana): This should provide pagination since the list is potentially
+// very long. If we don't add pagination, this should be merged with
+// GetTestDetail.
+func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, error) {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+
+	if len(query) == 0 {
+		return a.currentTestDetails, nil
+	}
+
+	effectiveQuery := make(map[string][]string, len(query))
+	foundUntriaged := a.getUntriagedTestDetails(query, effectiveQuery)
+	tests := make([]*GUITestDetail, 0, len(foundUntriaged))
+
+	for testName, untriaged := range foundUntriaged {
+		testDetail := a.currentTestDetails.lookup(testName)
+		tests = append(tests, &GUITestDetail{
+			Name:      testName,
+			Untriaged: untriaged,
+			Positive:  testDetail.Positive,
+			Negative:  testDetail.Negative,
+		})
+	}
+
+	return &GUITestDetails{
+		Commits:   a.currentTestDetails.Commits,
+		AllParams: a.currentTestDetails.AllParams,
+		Query:     effectiveQuery,
+		Tests:     tests,
+	}, nil
+}
+
 // GetTestDetails returns the untriaged, positive and negative digests for a
 // specific test with the necessary information (diff metrics, image urls) to
 // assign a label to the untriaged digests.
@@ -201,23 +238,36 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 	defer a.mutex.Unlock()
 
 	var effectiveQuery map[string][]string
-	untriaged := a.currentTestDetails.Tests[testName].Untriaged
+	testDetail := a.currentTestDetails.lookup(testName)
+	untriaged := testDetail.Untriaged
 	if len(query) > 0 {
-		var foundUntriaged map[string]*GUIUntriagedDigest
-		foundUntriaged, effectiveQuery = a.getUntriagedDigests(query, testName)
+		effectiveQuery = map[string][]string{}
+
+		// Filter by only this test.
+		query[types.PRIMARY_KEY_FIELD] = []string{testName}
+		foundUntriaged := a.getUntriagedTestDetails(query, effectiveQuery)
+		delete(effectiveQuery, types.PRIMARY_KEY_FIELD)
+
+		// Only consider the result if some query parameters were valid.
 		if len(effectiveQuery) > 0 {
-			untriaged = foundUntriaged
+			if temp, ok := foundUntriaged[testName]; ok {
+				untriaged = temp
+			} else {
+				untriaged = map[string]*GUIUntriagedDigest{}
+			}
 		}
 	}
 
 	return &GUITestDetails{
+		Commits:   a.currentTestDetails.Commits,
 		AllParams: a.currentTestDetails.AllParams,
 		Query:     effectiveQuery,
-		Tests: map[string]*GUITestDetail{
-			testName: &GUITestDetail{
+		Tests: []*GUITestDetail{
+			&GUITestDetail{
+				Name:      testName,
 				Untriaged: untriaged,
-				Positive:  a.currentTestDetails.Tests[testName].Positive,
-				Negative:  a.currentTestDetails.Tests[testName].Negative,
+				Positive:  testDetail.Positive,
+				Negative:  testDetail.Negative,
 			},
 		},
 	}, nil
@@ -242,12 +292,13 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 	a.partialUpdate(labeledTestDigests)
 	a.setDerivedOutputs(a.currentTile, false)
 
-	result := map[string]*GUITestDetail{}
+	result := make([]*GUITestDetail, 0, len(labeledTestDigests))
 	for testName := range labeledTestDigests {
-		result[testName] = a.currentTestDetails.Tests[testName]
+		result = append(result, a.currentTestDetails.lookup(testName))
 	}
 
 	return &GUITestDetails{
+		Commits:   a.currentTestDetails.Commits,
 		AllParams: a.currentTestDetails.AllParams,
 		Tests:     result,
 	}, nil
@@ -331,9 +382,8 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 // it will acquire the lock otherwise it assumes the calling function owns it.
 func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool) {
 	// Generate the lookup index for the tile and get all parameters.
-	var allParams map[string][]string
-	a.index, a.traceMap, allParams = getQueryIndex(labeledTile)
-	labeledTile.allParams = allParams
+	a.currentIndex = NewLabeledTileIndex(labeledTile)
+	labeledTile.allParams = a.currentIndex.AllParams
 
 	// calculate all the output data.
 	newTileCounts := a.getOutputCounts(labeledTile)
@@ -389,29 +439,35 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 // getUntriagedDigests returns the untriaged digests of a specific test that
 // match the given query. In addition to the digests it returns the query
 // that was used to retrieve them.
-func (a *Analyzer) getUntriagedDigests(query map[string][]string, testName string) (map[string]*GUIUntriagedDigest, map[string][]string) {
-	query[types.PRIMARY_KEY_FIELD] = []string{testName}
-	traces, effectiveQuery := a.queryTraces(query)
-	delete(effectiveQuery, types.PRIMARY_KEY_FIELD)
+func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]string) map[string]map[string]*GUIUntriagedDigest {
+	traces, startCommitId, endCommitId := a.currentIndex.query(query, effectiveQuery)
+	endCommitId++
 
 	if len(effectiveQuery) == 0 {
-		return nil, effectiveQuery
+		return nil
 	}
 
-	current := a.currentTestDetails.Tests[testName].Untriaged
-	glog.Infof("CURRENT: %v", current)
-	ret := make(map[string]*GUIUntriagedDigest, len(current))
+	ret := make(map[string]map[string]*GUIUntriagedDigest, len(a.currentTestDetails.Tests))
 	for _, trace := range traces {
-		for idx, label := range trace.Labels {
-			if label == types.UNTRIAGED {
-				if _, ok := ret[trace.Digests[idx]]; !ok {
-					glog.Infof("FOUND: %s", trace.Digests[idx])
-					ret[trace.Digests[idx]] = current[trace.Digests[idx]]
+		testName := trace.Params[types.PRIMARY_KEY_FIELD]
+		current := a.currentTestDetails.lookup(testName).Untriaged
+
+		startIdx := sort.SearchInts(trace.CommitIds, startCommitId)
+		endIdx := sort.SearchInts(trace.CommitIds, endCommitId)
+		if (endIdx < len(trace.CommitIds)) && (trace.CommitIds[endIdx] == endCommitId) {
+			endIdx++
+		}
+
+		for idx := startIdx; idx < endIdx; idx++ {
+			if trace.Labels[idx] == types.UNTRIAGED {
+				if _, ok := ret[testName]; !ok {
+					ret[testName] = make(map[string]*GUIUntriagedDigest, len(current))
 				}
+				ret[testName][trace.Digests[idx]] = current[trace.Digests[idx]]
 			}
 		}
 	}
-	return ret, effectiveQuery
+	return ret
 }
 
 // getSubTile queries the index and returns a LabeledTile that contains the
@@ -420,7 +476,11 @@ func (a *Analyzer) getUntriagedDigests(query map[string][]string, testName strin
 // If the returned query is empty the first return value is set to Nil,
 // because now valid filter parameters were found in the query.
 func (a *Analyzer) getSubTile(query map[string][]string) (*LabeledTile, map[string][]string) {
-	traces, effectiveQuery := a.queryTraces(query)
+	// TODO(stephana): Use the commitStart and commitEnd return values
+	// if we really need this method. GetTileCounts and getSubTile might be
+	// removed.
+	effectiveQuery := make(map[string][]string, len(query))
+	traces, _, _ := a.currentIndex.query(query, effectiveQuery)
 	if len(effectiveQuery) == 0 {
 		return nil, effectiveQuery
 	}

@@ -29,8 +29,12 @@ var skia = skia || {};
     // Param fields to filter.
     PARAMS_FILTER: {
       'name': true,
-      'source_type': true,
-    }
+      'source_type': true
+    },
+
+    // Query parameters (that are not automatically available via parameters).
+    QUERY_COMMIT_START: 'cs',
+    QUERY_COMMIT_END: 'ce'
   };
 
   // List of states - used to cycle through via nextState.
@@ -242,7 +246,7 @@ var skia = skia || {};
   var COMMIT_INTERVALS = [100, 50, 20, 15, 10, 5];
   ns.getAutoCommitRanges = function(serverData) {
     var commits = serverData.commits;
-    var result = [{ start: commits[0].hash, name: commits.length }];
+    var result = [{ start: commits[0], name: commits.length }];
     for(var i=0, len=COMMIT_INTERVALS.length; i < len; i++) {
       if (commits.length > COMMIT_INTERVALS[i]) {
         result.push({ start: commits[COMMIT_INTERVALS[i]-1], name: COMMIT_INTERVALS[i] });
@@ -256,13 +260,13 @@ var skia = skia || {};
   * extractTriageData is the central function to pre-process data coming
   *                   from the server.
   */
-  ns.extractTriageData = function (serverData, testName) {
+  ns.extractTriageData = function (serverData) {
     var untStats = new Stats();
     var posStats = new Stats();
     var negStats = new Stats();
-    var positive = ns.getSortedDigests(serverData, testName, 'positive', posStats);
-    var negative = ns.getSortedDigests(serverData, testName, 'negative', negStats);
-    var untriaged = ns.getUntriagedSorted(serverData, testName, untStats);
+    var positive = ns.getSortedDigests(serverData, 'positive', posStats);
+    var negative = ns.getSortedDigests(serverData, 'negative', negStats);
+    var untriaged = ns.getUntriagedSorted(serverData, untStats);
 
     // Set the triage state for each digest.
     var add = function(arr, state) {
@@ -288,6 +292,46 @@ var skia = skia || {};
     };
   };
 
+
+  /**
+  * extractTriageListData returns test data across tests from data returned
+  * by the server. Currently shows number of unques digests for each test.
+  */
+  ns.extractTriageListData = function (serverData) {
+    var result = [];
+    var tests = serverData.tests;
+    for (var i=0, len=tests.length; i < len; i++) {
+      var t = tests[i];
+      var  posK = ns.keys(t.positive);
+      var  negK = ns.keys(t.negative);
+      var  untK = ns.keys(t.untriaged);
+      var showPos = (posK.length > 0) && t.positive[posK[0]];
+      var showUnt = (untK.length > 0) && t.untriaged[untK[0]];
+      var showDif = (posK.length > 0) && (untK.length > 0);
+
+      // Return the stats element.
+      result.push({
+        name: t.name,
+        pos: posK.length,
+        neg: negK.length,
+        unt: untK.length,
+        showPos: showPos,
+        showUnt: showUnt,
+        showDif: showDif
+      });
+    }
+
+    result.sort(function(a,b) {
+      return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+    });
+
+    return {
+      tests: result,
+      allParams: ns.getSortedParams(serverData, false),
+      commitRanges: ns.getAutoCommitRanges(serverData)
+    };
+  };
+
   /**
   * Stats is a helper class to hold counts about a set of digests.
   */
@@ -308,15 +352,15 @@ var skia = skia || {};
   *  It also resolves the references to the positive digests contained in
   *  the diff metrics.
   */
-  ns.getUntriagedSorted = function(serverData, testName, stats) {
-    var unt = robust_get(serverData, ['tests', testName, 'untriaged']);
+  ns.getUntriagedSorted = function(serverData, stats) {
+    var unt = robust_get(serverData, ['tests', 0, 'untriaged']);
     if (!unt) {
       return [];
     }
 
     var posd, d;
     var result = [];
-    var positive = serverData.tests[testName].positive;
+    var positive = serverData.tests[0].positive;
     var hasPos = false;
     var total = 0;
 
@@ -378,9 +422,9 @@ var skia = skia || {};
   * data returnded by the backend. This is to be used when there are no
   * untriaged digests.
   */
-  ns.getSortedDigests= function (serverData, testName, digestClass, stats) {
-    var targetDigests = robust_get(serverData, ['tests', testName, digestClass]);
-    if (!targetDigests) {
+  ns.getSortedDigests= function (serverData, digestClass, stats) {
+    var targetDigests = robust_get(serverData, ['tests', 0, digestClass]);
+    if (!targetDigests)  {
       return [];
     }
 
@@ -429,17 +473,58 @@ var skia = skia || {};
     return result;
   };
 
+  /**
+  * filterQueryByParams returns a suboject of query only containing
+  * the members that are in sortedParams. sortedParams is assumed to be
+  * the same format as returned by the getSortedParams function.
+  */
+
+  ns.filterQueryByParams = function (query, sortedParams) {
+    if  (!sortedParams || !query) {
+      return {};
+    }
+
+    var result = {};
+    for (var i=0, len=sortedParams.length; i<len; i++) {
+      if (query.hasOwnProperty(sortedParams[i][0])) {
+        result[sortedParams[i][0]] = query[sortedParams[i][0]];
+      }
+    }
+    return result;
+  }
+
+  ns.splitQuery = function (query, allParams) {
+    var paramQuery = ns.filterQueryByParams(query, allParams);
+    var crq = {};
+    crq[ns.c.QUERY_COMMIT_START] = robust_get(query, [ns.c.QUERY_COMMIT_START, 0]) || "";
+    crq[ns.c.QUERY_COMMIT_END] = robust_get(query, [ns.c.QUERY_COMMIT_END, 0]) || "";
+
+    return {
+      paramQuery: paramQuery,
+      commitRangeQuery: crq
+    };
+  }
+
   // sortedKeys returns the keys of the object in sorted order.
-  function sortedKeys(obj) {
+  ns.sortedKeys = function(obj) {
+    var result = ns.keys(obj);
+    result.sort();
+    return result;
+  };
+
+  // keys returns the keys of an object.
+  ns.keys = function(obj) {
+    if (obj.keys) {
+      return keys();
+    }
     var result = [];
     for(var k in obj) {
       if (obj.hasOwnProperty(k)) {
         result.push(k);
       }
     }
-    result.sort();
     return result;
-  }
+  };
 
   /**
   * getCombinedParamsTable takes a variable number of paramCounts and
@@ -462,7 +547,7 @@ var skia = skia || {};
           if (!combined[k]) {
             combined[k] = [];
           }
-          combined[k][i] = sortedKeys(params[k]);
+          combined[k][i] = ns.sortedKeys(params[k]);
         }
       }
     }
@@ -543,6 +628,36 @@ var skia = skia || {};
     }
 
     return result;
+  };
+
+  /**
+  * subObject returns a new object with only the members that are
+  * also in include which is expected to be an array of strings.
+  */
+  ns.subObject = function(obj, include) {
+    var result = {};
+    for (var i=0, len=include.length; i<len; i++) {
+      if (obj.hasOwnProperty(include[i])) {
+        result[include[i]] = obj[include[i]];
+      }
+    }
+    return result;
+  };
+
+  /**
+  * unionObject returns a new object with the union of all the members
+  * of the arbibrary number of objects that are supplied.
+  */
+  ns.unionObject = function( _ ) {
+    var result = {};
+    for(var i=0, len=arguments.length; i<len; i++) {
+      for(var k in arguments[i]) {
+        if (arguments[i].hasOwnProperty(k)) {
+          result[k] = arguments[i][k];
+        }
+      }
+    }
+    return result;
   }
 
   /**
@@ -601,7 +716,7 @@ var skia = skia || {};
     }
 
     for(var i=0, len=idx.length; i<len; i++) {
-      if ((typeof obj === 'undefined') || (!idx[i])) {
+      if ((typeof obj === 'undefined') || (typeof idx[i] === 'undefined')) {
         return;  // returns 'undefined'
       }
 

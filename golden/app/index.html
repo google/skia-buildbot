@@ -19,16 +19,16 @@
       </div>
       <div class="navbar-collapse collapse">
         <ul class="nav navbar-nav">
-          <li><a href="#/">Triage</a></li>
-          <!-- <li><a href="#/triage">Triage</a></li> -->
+          <li><a href="#/counts">Counts</a></li>
+          <li><a href="#/triage">Triage</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li ng-if="statusOk" class="statusOk">
+          <li ng-if="statusOk && false" class="statusOk">
              <a href="" ng-click="toggleStatus()">
               <span class="glyphicon glyphicon-thumbs-up"></span>
               OK</a>
           </li>
-          <li ng-if="!statusOk" class="statusFail">
+          <li ng-if="!statusOk && false" class="statusFail">
              <a href="" ng-click="toggleStatus()">
               <span class="glyphicon glyphicon-thumbs-down"></span>
               Triage Needed</a>
