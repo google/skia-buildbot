@@ -97,8 +97,12 @@ GCE Instances
 -------------
 
 GCE instances that are created with a boot disk built from the
-'skia-pushable-base' snapshot are fully ready to be push clients.
+'skia-pushable-base' snapshot are fully ready to be push clients.  New packages
+that are part of Debian can't be installed by the push process, for example,
+nginx. Installing such packages on an instance is done by using a [startup
+script](https://cloud.google.com/compute/docs/startupscript).
 
+Similarly mounting other drives should be done via startup script.
 
 Push Server
 -----------

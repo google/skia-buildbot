@@ -1,26 +1,33 @@
-# This bash file is intended to be used for building .deb release
-# files to be used by pull and push. To use this file just
-# create your own bash file in which you define the APPNAME and DESCRIPTION
-# vars and the copy_release_files() function which copies all the files
-# needed in the distribution in ${ROOT}. Then source this file
-# after those definitions. The resulting .deb will be uploaded to Google
-# Storage with the correct metadata.
+# This bash file is intended to be used for building .deb release files to be
+# used by pull and push. To use this file just create your own bash file in
+# which you define the APPNAME and DESCRIPTION vars and the
+# copy_release_files() function which copies all the files needed in the
+# distribution in ${ROOT}. Then source this file after those definitions. The
+# resulting .deb will be uploaded to Google Storage with the correct metadata.
 #
 # Follow Debian conventions for file locations. For example:
 #
-# HTML Template files in /usr/local/share/${APPNAME}/.
-# Binaries in /usr/local/bin/${APPNAME}.
-# Small read/write files in /var/local/${APPNAME}/.
-# Config files in /etc/${APPNAME}/.
+# HTML Template files in    /usr/local/share/${APPNAME}/
+# Binaries in               /usr/local/bin/${APPNAME}
+# Small read/write files in /var/local/${APPNAME}/
+# Config files in           /etc/${APPNAME}/
 #
 # The first command line argument to the calling script
 # will be used as the 'note' for the release package.
 #
-# If BYPASS_GENERATION is set then we know that the caller
-# has created or copied in the debian file themselves, and
-# we are to use it as-is. This is useful in cases where we
-# are installing software that the author has already provided
-# a debian package for, for example influxdb.
+# BYPASS_GENERATION
+# -----------------
+# If BYPASS_GENERATION is set then we know that the caller has created or
+# copied in the debian file themselves, and we are to use it as-is. This is
+# useful in cases where we are installing software that the author has already
+# provided a debian package for, for example influxdb.
+#
+# DEPENDS
+# -------
+# If DEPENDS is specified it should be a list of dependencies that this package
+# depends upon. Note that they will not be installed if missing. If you want
+# packages installed beyond the base snapshot they that should be done in the
+# startup script. See https://cloud.google.com/compute/docs/startupscript
 #
 # For more details see ../push/DESIGN.md.
 
@@ -43,9 +50,11 @@ sudo chmod 755 -R ${ROOT}
 
 # Create the control files that describes this deb.
 echo 2.0 > ${ROOT}/DEBIAN/debian-binary
+
 cat <<-EOF > ${ROOT}/DEBIAN/control
 	Package: skia-${APPNAME}
 	Version: 1.0
+	Depends: ${DEPENDS}
 	Architecture: amd64
 	Maintainer: ${USERNAME}@${HOST}
 	Priority: optional
