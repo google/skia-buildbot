@@ -46,6 +46,22 @@ func TestGetListTestDetails(t *testing.T) {
 		&ptypes.Commit{CommitTime: start + 40, Hash: "h4", Author: "John Doe 4"},
 	}
 
+	LABELING_1 := map[string]types.TestClassification{
+		"t1": map[string]types.Label{"d_12": types.NEGATIVE},
+		"t2": map[string]types.Label{"d_23": types.POSITIVE, "d_24": types.POSITIVE},
+		"t3": map[string]types.Label{"d_32": types.NEGATIVE, "d_33": types.POSITIVE},
+		"t4": map[string]types.Label{"d_42": types.POSITIVE, "d_43": types.POSITIVE},
+		"t5": map[string]types.Label{"d_51": types.POSITIVE, "d_54": types.POSITIVE},
+	}
+	STATUS_OK_1, UNTRIAGED_COUNT_1, NEGATIVE_COUNT_1 := false, 3, 0
+
+	LABELING_2 := map[string]types.TestClassification{
+		"t1": map[string]types.Label{"d_14": types.POSITIVE},
+		"t3": map[string]types.Label{"d_34": types.POSITIVE},
+		"t4": map[string]types.Label{"d_44": types.POSITIVE},
+	}
+	STATUS_OK_2, UNTRIAGED_COUNT_2, NEGATIVE_COUNT_2 := true, 0, 0
+
 	assert.Equal(t, len(digests), len(params))
 	assert.Equal(t, len(digests[0]), len(commits))
 
@@ -104,6 +120,28 @@ func TestGetListTestDetails(t *testing.T) {
 	assert.Equal(t, 3, len(findTest(t, list1, "t3").Untriaged))
 	assert.Equal(t, 3, len(findTest(t, list1, "t4").Untriaged))
 	assert.Equal(t, 2, len(findTest(t, list1, "t5").Untriaged))
+
+	// Triage some digests.
+	list1, err = a.SetDigestLabels(LABELING_1, "John Doe")
+	assert.Nil(t, err)
+	assert.Equal(t, len(LABELING_1), len(list1.Tests))
+
+	status := a.GetStatus()
+	assert.NotNil(t, status)
+	assert.Equal(t, STATUS_OK_1, status.OK)
+	assert.Equal(t, UNTRIAGED_COUNT_1, status.UntriagedCount)
+	assert.Equal(t, NEGATIVE_COUNT_1, status.NegativeCount)
+
+	list1, err = a.SetDigestLabels(LABELING_2, "Jim Doe")
+	assert.Nil(t, err)
+	assert.Equal(t, len(LABELING_2), len(list1.Tests))
+	list1, err = a.ListTestDetails(nil)
+
+	status = a.GetStatus()
+	assert.NotNil(t, status)
+	assert.Equal(t, STATUS_OK_2, status.OK)
+	assert.Equal(t, UNTRIAGED_COUNT_2, status.UntriagedCount)
+	assert.Equal(t, NEGATIVE_COUNT_2, status.NegativeCount)
 }
 
 func findTest(t *testing.T, tDetails *GUITestDetails, testName string) *GUITestDetail {

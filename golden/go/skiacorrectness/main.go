@@ -129,6 +129,12 @@ func triageDigestsHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, result, http.StatusOK)
 }
 
+// statusHandler returns the current status with respect to HEAD.
+func statusHandler(w http.ResponseWriter, r *http.Request) {
+	result := analyzer.GetStatus()
+	sendResponse(w, result, http.StatusOK)
+}
+
 // sendErrorResponse wraps an error in a response envelope and sends it to
 // the client.
 func sendErrorResponse(w http.ResponseWriter, errorMsg string, status int) {
@@ -268,6 +274,7 @@ func main() {
 	router.HandleFunc("/rest/triage", listTestDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
+	router.HandleFunc("/rest/status", statusHandler).Methods("GET")
 
 	// Set up the login related resources.
 	// TODO (stephana): Clean up the URLs so they have the same prefix.

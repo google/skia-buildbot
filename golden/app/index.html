@@ -23,13 +23,16 @@
           <li><a href="#/triage">Triage</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li ng-if="statusOk && false" class="statusOk">
-             <a href="" ng-click="toggleStatus()">
+          <li ng-if="globalStatus.ok" class="statusOk">
+             <a href="">
               <span class="glyphicon glyphicon-thumbs-up"></span>
               OK</a>
           </li>
-          <li ng-if="!statusOk && false" class="statusFail">
-             <a href="" ng-click="toggleStatus()">
+          <li ng-if="globalStatus && !globalStatus.ok" class="statusFail">
+             <span>UT: {{ globalStatus.untriagedCount }}</span> &nbsp;
+             <span>NEG: {{ globalStatus.negativeCount }}</span> &nbsp;
+
+             <a href="#/triage">
               <span class="glyphicon glyphicon-thumbs-down"></span>
               Triage Needed</a>
           </li>

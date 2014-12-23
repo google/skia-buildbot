@@ -141,6 +141,7 @@ type Analyzer struct {
 	// Output data structures that are derived from currentTile.
 	currentTileCounts  *GUITileCounts
 	currentTestDetails *GUITestDetails
+	currentStatus      *GUIStatus
 
 	// Maps from trace ids to the actual instances of LabeledTrace.
 	traceMap map[int]*LabeledTrace
@@ -304,6 +305,10 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 	}, nil
 }
 
+func (a *Analyzer) GetStatus() *GUIStatus {
+	return a.currentStatus
+}
+
 // loop is the main event loop.
 func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 	// The number of times we've successfully loaded and processed a tile.
@@ -388,6 +393,7 @@ func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool
 	// calculate all the output data.
 	newTileCounts := a.getOutputCounts(labeledTile)
 	newTestDetails := a.getTestDetails(labeledTile)
+	newStatus := calcStatus(labeledTile)
 
 	// acquire the lock if necessary
 	if needsLocking {
@@ -399,6 +405,7 @@ func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool
 	a.currentTile = labeledTile
 	a.currentTileCounts = newTileCounts
 	a.currentTestDetails = newTestDetails
+	a.currentStatus = newStatus
 }
 
 // partialUpdate iterates over the traces in of the tiles that have changed and

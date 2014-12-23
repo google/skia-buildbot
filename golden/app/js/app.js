@@ -570,15 +570,12 @@ var skia = skia || {};
         ns.c.URL_LOGOUT + '?redirect=' + '/#' + $location.url());
     }
 
-    $rootScope.statusOk = true;
-    $rootScope.toggleStatus = function () {
-      $rootScope.statusOk = !$rootScope.statusOk;
-    };
+    $rootScope.globalStatus = null;
 
     function checkStatus() {
       loadData(ns.c.URL_STATUS).then(
         function (resultResp) {
-          $rootScope.statusOk = resultResp.ok;
+          $rootScope.globalStatus = resultResp;
         },
         function (errorResp) {
           console.log("Got error response for status:", errorResp);
