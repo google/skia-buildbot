@@ -4,6 +4,10 @@
 run_command:
 	go install -v ./go/master_scripts/run_command/
 
+.PHONY: build_chromium
+build_chromium:
+	go install -v ./go/master_scripts/build_chromium/
+
 # Worker scripts.
 .PHONY: create_pagesets
 create_pagesets:
@@ -35,13 +39,13 @@ test:
 	go test ./go/...
 
 .PHONY: master_scripts
-master_scripts: run_command
+master_scripts: run_command build_chromium
 
 .PHONY: worker_scripts
-worker_scripts: create_pagesets capture_archives run_lua run_benchmark
+worker_scripts: create_pagesets capture_archives run_lua run_benchmark run_skia_correctness
 
 .PHONY: all
-all: run_command create_pagesets
+all: master_scripts worker_scripts test
 
 .PHONY: e2e_tests
 e2e_tests:

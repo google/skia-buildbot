@@ -27,6 +27,7 @@ var (
 func main() {
 	common.Init()
 	defer util.TimeTrack(time.Now(), "Capturing Archives")
+	defer glog.Flush()
 
 	// Create the task file so that the master knows this worker is still busy.
 	util.CreateTaskFile(util.ACTIVITY_CAPTURING_ARCHIVES)

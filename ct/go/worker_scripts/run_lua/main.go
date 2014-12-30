@@ -25,6 +25,7 @@ var (
 func main() {
 	common.Init()
 	defer util.TimeTrack(time.Now(), "Running Lua Scripts")
+	defer glog.Flush()
 
 	if *chromiumBuild == "" {
 		glog.Error("Must specify --chromium_build")

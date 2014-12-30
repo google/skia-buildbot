@@ -273,20 +273,37 @@ func (gs *GsUtil) UploadWorkerArtifacts(dirName, pagesetType string, workerNum i
 func (gs *GsUtil) UploadDir(localDir, gsDir string) error {
 	// Empty the remote dir.
 	gs.deleteRemoteDir(gsDir)
-	// List the local directory.
-	fileInfos, err := ioutil.ReadDir(localDir)
-	if err != nil {
+
+	// Construct a dictionary of file paths to their file infos.
+	pathsToFileInfos := map[string]os.FileInfo{}
+	visit := func(path string, f os.FileInfo, err error) error {
+		if f.IsDir() {
+			return nil
+		}
+		pathsToFileInfos[path] = f
+		return nil
+	}
+	if err := filepath.Walk(localDir, visit); err != nil {
 		return fmt.Errorf("Unable to read the local dir %s: %s", localDir, err)
 	}
+
 	// Upload local files into the remote directory.
 	var wg sync.WaitGroup
-	for _, fileInfo := range fileInfos {
+	for path, fileInfo := range pathsToFileInfos {
 		fileName := fileInfo.Name()
+		containingDir := strings.TrimSuffix(path, fileName)
+		subDirs := strings.TrimPrefix(containingDir, localDir)
+		if subDirs != "" {
+			dirTokens := strings.Split(subDirs, "/")
+			for i := range dirTokens {
+				fileName = filepath.Join(dirTokens[len(dirTokens)-i-1], fileName)
+			}
+		}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			if err := gs.UploadFile(fileName, localDir, gsDir); err != nil {
-				glog.Error(err)
+				glog.Errorf("Uploading %s to %s failed with: %s", fileName, localDir, err)
 			}
 		}()
 	}

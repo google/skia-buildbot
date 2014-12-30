@@ -26,6 +26,7 @@ var (
 func main() {
 	common.Init()
 	defer util.TimeTrack(time.Now(), "Creating Pagesets")
+	defer glog.Flush()
 	// Create the task file so that the master knows this worker is still busy.
 	util.CreateTaskFile(util.ACTIVITY_CREATING_PAGESETS)
 	defer util.DeleteTaskFile(util.ACTIVITY_CREATING_PAGESETS)

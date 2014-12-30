@@ -35,6 +35,7 @@ var (
 func main() {
 	common.Init()
 	defer util.TimeTrack(time.Now(), "Running Benchmark")
+	defer glog.Flush()
 
 	// Validate required arguments.
 	if *chromiumBuild == "" {
