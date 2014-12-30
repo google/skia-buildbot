@@ -148,6 +148,7 @@ func SyncDir(dir string) error {
 	return ExecuteCmd(BINARY_GCLIENT, args, []string{}, 5*time.Minute, nil, nil)
 }
 
+// BuildSkiaTools builds "tools" in the Skia trunk directory.
 func BuildSkiaTools() error {
 	if err := os.Chdir(SkiaTreeDir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
@@ -156,4 +157,30 @@ func BuildSkiaTools() error {
 	ExecuteCmd(BINARY_MAKE, []string{"clean"}, []string{}, 5*time.Minute, nil, nil)
 	// Build tools.
 	return ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"}, []string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, 5*time.Minute, nil, nil)
+}
+
+// ResetCheckout resets the specified Git checkout.
+func ResetCheckout(dir string) error {
+	if err := os.Chdir(dir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
+	}
+	// Run "git reset --hard HEAD"
+	resetArgs := []string{"reset", "--hard", "HEAD"}
+	ExecuteCmd(BINARY_GIT, resetArgs, []string{}, 5*time.Minute, nil, nil)
+	// Run "git clean -f -d"
+	cleanArgs := []string{"clean", "-f", "-d"}
+	ExecuteCmd(BINARY_GIT, cleanArgs, []string{}, 5*time.Minute, nil, nil)
+
+	return nil
+}
+
+// ApplyPatch applies a patch to a Git checkout.
+func ApplyPatch(patch, dir string) error {
+	if err := os.Chdir(dir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
+	}
+	// Run "git apply --index -p1 --verbose --ignore-whitespace
+	//      --ignore-space-change ${PATCH_FILE}"
+	args := []string{"apply", "--index", "-p1", "--verbose", "--ignore-whitespace", "--ignore-space-change", patch}
+	return ExecuteCmd(BINARY_GIT, args, []string{}, 5*time.Minute, nil, nil)
 }

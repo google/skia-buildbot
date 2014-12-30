@@ -235,7 +235,7 @@ func main() {
 			return
 		}
 		// Copy the output file to Google Storage.
-		gs.UploadFile(outputFileName, localOutputDir, filepath.Join(remoteDir, fmt.Sprintf("worker%d", *workerNum), "outputs"))
+		gs.UploadFile(outputFileName, localOutputDir, filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "outputs"))
 	}
 
 	// Move, validate and upload all SKP files if skpicture_printer was used.

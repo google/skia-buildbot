@@ -10,25 +10,27 @@ const (
 	GS_BUCKET_NAME           = "cluster-telemetry"
 
 	// File names and dir names.
-	TIMESTAMP_FILE_NAME      = "TIMESTAMP"
-	CHROMIUM_BUILDS_DIR_NAME = "chromium_builds"
-	PAGESETS_DIR_NAME        = "page_sets"
-	WEB_ARCHIVES_DIR_NAME    = "webpage_archives"
-	SKPS_DIR_NAME            = "skps"
-	STORAGE_DIR_NAME         = "storage"
-	REPO_DIR_NAME            = "skia-repo"
-	TASKS_DIR_NAME           = "tasks"
-	LUA_TASKS_DIR_NAME       = "lua_runs"
-	BENCHMARK_TASKS_DIR_NAME = "benchmark_runs"
+	TIMESTAMP_FILE_NAME             = "TIMESTAMP"
+	CHROMIUM_BUILDS_DIR_NAME        = "chromium_builds"
+	PAGESETS_DIR_NAME               = "page_sets"
+	WEB_ARCHIVES_DIR_NAME           = "webpage_archives"
+	SKPS_DIR_NAME                   = "skps"
+	STORAGE_DIR_NAME                = "storage"
+	REPO_DIR_NAME                   = "skia-repo"
+	TASKS_DIR_NAME                  = "tasks"
+	LUA_TASKS_DIR_NAME              = "lua_runs"
+	BENCHMARK_TASKS_DIR_NAME        = "benchmark_runs"
+	SKIA_CORRECTNESS_TASKS_DIR_NAME = "skia_correctness_runs"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
 
 	// Activity constants.
-	ACTIVITY_CREATING_PAGESETS   = "CREATING_PAGESETS"
-	ACTIVITY_CAPTURING_ARCHIVES  = "CAPTURING_ARCHIVES"
-	ACTIVITY_RUNNING_BENCHMARKS  = "RUNNING_BENCHMARKS"
-	ACTIVITY_RUNNING_LUA_SCRIPTS = "RUNNING_LUA_SCRIPTS"
+	ACTIVITY_CREATING_PAGESETS        = "CREATING_PAGESETS"
+	ACTIVITY_CAPTURING_ARCHIVES       = "CAPTURING_ARCHIVES"
+	ACTIVITY_RUNNING_BENCHMARKS       = "RUNNING_BENCHMARKS"
+	ACTIVITY_RUNNING_LUA_SCRIPTS      = "RUNNING_LUA_SCRIPTS"
+	ACTIVITY_RUNNING_SKIA_CORRECTNESS = "RUNNING_SKIA_CORRECTNESS"
 
 	// Pageset types supported by CT.
 	PAGESET_TYPE_ALL        = "All"
@@ -37,13 +39,15 @@ const (
 	PAGESET_TYPE_DUMMY_100  = "Dummy100" // Used for testing.
 
 	// Names of binaries executed by CT.
-	BINARY_CHROME        = "chrome"
-	BINARY_RECORD_WPR    = "record_wpr"
-	BINARY_RUN_BENCHMARK = "ct_run_benchmark"
-	BINARY_GCLIENT       = "gclient"
-	BINARY_MAKE          = "make"
-	BINARY_LUA_PICTURES  = "lua_pictures"
-	BINARY_ADB           = "adb"
+	BINARY_CHROME          = "chrome"
+	BINARY_RECORD_WPR      = "record_wpr"
+	BINARY_RUN_BENCHMARK   = "ct_run_benchmark"
+	BINARY_GCLIENT         = "gclient"
+	BINARY_MAKE            = "make"
+	BINARY_LUA_PICTURES    = "lua_pictures"
+	BINARY_ADB             = "adb"
+	BINARY_GIT             = "git"
+	BINARY_RENDER_PICTURES = "render_pictures"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
@@ -90,8 +94,9 @@ var (
 	ApkPath              = filepath.Join("apks", "ChromeShell.apk")
 
 	// Names of remote directories and files.
-	LuaRunsDir       = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
-	BenchmarkRunsDir = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
+	LuaRunsDir             = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
+	BenchmarkRunsDir       = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
+	SkiaCorrectnessRunsDir = filepath.Join(TASKS_DIR_NAME, SKIA_CORRECTNESS_TASKS_DIR_NAME)
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{

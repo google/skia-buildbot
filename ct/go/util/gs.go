@@ -266,7 +266,11 @@ func (gs *GsUtil) UploadWorkerArtifacts(dirName, pagesetType string, workerNum i
 		return nil
 	}
 	glog.Infof("Timestamps between %s and %s are different. Uploading to Google Storage", localDir, gsDir)
+	return gs.UploadDir(localDir, gsDir)
+}
 
+// UploadDir uploads the specified local dir into the specified Google Storage dir.
+func (gs *GsUtil) UploadDir(localDir, gsDir string) error {
 	// Empty the remote dir.
 	gs.deleteRemoteDir(gsDir)
 	// List the local directory.

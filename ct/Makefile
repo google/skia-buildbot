@@ -21,6 +21,10 @@ run_lua:
 run_benchmark:
 	go install -v ./go/worker_scripts/run_benchmark/
 
+.PHONY: run_skia_correctness
+run_skia_correctness:
+	go install -v ./go/worker_scripts/run_skia_correctness/
+
 # This is the quick version triggered by the presubmit script.
 .PHONY: testgo
 testgo:
@@ -79,6 +83,20 @@ e2e_tests:
 	@echo "Running repaint"
 	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=repaint --browser_extra_args="--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting" --repeat_benchmark=2 --target_platform=Linux
 	@echo "Completed repaint. Sleeping for 15 seconds and continuing."
+	sleep 15
+	@echo
+	@echo
+	
+	@echo "Running skia_correctness"
+	go run go/worker_scripts/run_skia_correctness/main.go --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce --run_id=rmistry123 --render_pictures_args="--config 8888 --viewport 4000 4000 --mode simple" --gpu_nopatch_run=false --gpu_withpatch_run=true --logtostderr
+	@echo "Completed skia_correctness. Sleeping for 15 seconds and continuing."
+	sleep 15
+	@echo
+	@echo
+	
+	@echo "Running lua scripts"
+	go run go/worker_scripts/run_lua/main.go --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce --run_id=rmistry123 --logtostderr
+	@echo "Completed lua scripts. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo
