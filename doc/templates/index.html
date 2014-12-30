@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Docs</title>
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#526E9C">
+    <link rel="shortcut icon" href="/res/img/favicon.ico" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/res/js/core.js"></script>
+    <link href="/res/vul/elements.html" rel="import" />
+
+    <style type="text/css" media="screen">
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+      }
+
+      html /deep/ a {
+        color: #1f78b4;
+      }
+
+      html /deep/ #body {
+        padding: 1em;
+        padding-left: 2em;
+        overflow-y: auto;
+        max-width: 70em;
+      }
+
+      html /deep/ #content {
+        padding-bottom: 2em;
+      }
+
+      html /deep/ pre {
+        margin-left: 1em;
+        padding: 1em;
+        background: #eee;
+      }
+
+      html /deep/ code {
+        color: darkgreen;
+      }
+
+      html /deep/ h1,
+      html /deep/ h2 {
+        font-weight: normal;
+      }
+
+      html /deep/ #drawer {
+        background: #fafafa;
+      }
+
+      img {
+        margin: 1em;
+      }
+
+      #drawer /deep/ ul {
+        padding-left: 0.7em;
+      }
+
+      #drawer /deep/ li {
+        list-style-type: none;
+        margin-top: 8px;
+        font-size: 13px;
+      }
+
+      #drawer /deep/ li a.selected {
+        color: black;
+        font-weight: bold;
+        text-decoration: none;
+      }
+    </style>
+
+</head>
+<body>
+  <core-drawer-panel>
+    <div id=drawer drawer vertical layout>
+        <img src="/res/img/logo.png" width=204 height=91>
+        {{.Nav}}
+    </div>
+
+    <div id=body main>
+      <core-icon-button icon="menu" core-drawer-toggle></core-icon-button>
+      <div id=content>
+       {{.Body}}
+      </div>
+    </div>
+  </core-drawer-panel>
+
+  <script type="text/javascript" charset="utf-8">
+    sk.WebComponentsReady.then(function() {
+
+      // highlightNav highlights where we are in the navigation.
+      var highlightNav = function() {
+        $$('#drawer /deep/ li a').forEach(function(e) {
+          if (e.dataset.path == window.location.pathname) {
+            e.classList.add('selected');
+            $$$('title').innerText = e.innerText;
+          } else {
+            e.classList.remove('selected');
+          }
+        });
+      }
+
+      // Shortcut the links and handle them via XHR, that way we only
+      // pay the loading time for Polymer once, yet still retain full URLs.
+      $$('#drawer /deep/ li a').forEach(function(e) {
+        e.addEventListener('click', function(e) {
+          // Preserve query parameters as we navigate.
+          var q = window.location.search;
+          var url = e.target.dataset.path;
+          if (q != "") {
+            url += q;
+          }
+          sk.get('/_'+url).then(function(content) {
+            window.history.pushState(null, null, url);
+            highlightNav();
+            $$$('html /deep/ #content').innerHTML = content;
+          });
+          e.preventDefault();
+        });
+      });
+
+      highlightNav();
+    });
+  </script>
+
+</body>
+</html>

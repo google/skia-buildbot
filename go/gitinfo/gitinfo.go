@@ -109,7 +109,7 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 	} else {
 		hashes, timestamps, err = readCommitsFromGit(g.dir, "HEAD")
 	}
-	glog.Info("Finished reading commits: %s", g.dir)
+	glog.Infof("Finished reading commits: %s", g.dir)
 	if err != nil {
 		return fmt.Errorf("Failed to read commits from: %s : %s", g.dir, err)
 	}
