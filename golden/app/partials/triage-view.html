@@ -61,11 +61,6 @@
 	    </div>
 	    <br><br>
 
-	    <div class="row">
-	    	<div class="col-xs-12">
-	    	</div>
-	    </div>
-
     	<div class="row">
 		    <div class="col-md-12">
 				<table class="table table-hover table-condensed" style="font-size:font-size: small;">
@@ -98,29 +93,59 @@
 			          	   title="{{oneTest.name}}">
 			          	{{oneTest.name | limitTo:65 }}
 			          </a></td>
-			          <td>{{oneTest.pos}}</td>
-			          <td>{{oneTest.neg}}</td>
-			          <td>{{oneTest.unt}}</td>
+			          <td>{{oneTest.posStats.unique}}</td>
+			          <td>{{oneTest.negStats.unique}}</td>
+			          <td>{{oneTest.untStats.unique}}</td>
+			          <!-- Positive Image -->
 			          <td ng-style="{ width: settings.imageSize+'px' }">
-			          	  <img ng-show="oneTest.showPos"
-			          	  	   ng-style="{ width: imageSize+'px' }"
-                               ng-src="{{ oneTest.showPos.imgUrl }}" >
-                          <span ng-hide="oneTest.showPos">&nbsp;</span>
+			          	<div ng-if="(oneTest.untStats.unique > 0) && (oneTest.untriaged[0].diffs.length > 0)">
+                            <sk-img-container
+                                img-url="oneTest.untriaged[0].diff[0].imgUrl"
+                                digest="oneTest.untriaged[0].diff[0].digest"
+                                test-name="oneTest.name"
+                                setter="setTriageState"
+                                triage-state="triageState"
+                                initial-triage-state="initialTriageState">
+                                	<img ng-style="{ width: imageSize+'px' }"
+                                         ng-src="{{ oneTest.untriaged[0].diff[0].imgUrl }}" >
+                            </sk-img-container>
+	                    </div>
                       </td>
-			          <td ng-style="{ width: settings.imageSize+'px' }">
-			          	  <img ng-show="oneTest.showUnt"
-			          	       ng-style="{ width: imageSize+'px' }"
-                               ng-src="{{ oneTest.showUnt.imgUrl }}" >
 
-                          <span ng-hide="oneTest.showUnt">&nbsp;</span>
+                      <!-- Untriaged -->
+			          <td ng-style="{ width: imageSize+'px' }">
+                            <sk-img-container
+                                img-url="oneTest.untriaged[0].imgUrl"
+                                digest="oneTest.untriaged[0].digest"
+                                test-name="oneTest.name"
+                                setter="setTriageState"
+                                triage-state="triageState"
+                                initial-triage-state="initialTriageState">
+                                	<img ng-style="{ width: imageSize+'px' }"
+                                         ng-src="{{ oneTest.untriaged[0].imgUrl }}" >
+                            </sk-img-container>
                       </td>
-			          <td ng-style="{ width: settings.imageSize+'px' }">
-			          	   <img ng-show="oneTest.showDif"
-			          	       ng-style="{ width: imageSize+'px' }"
-                               ng-src="{{ oneTest.showUnt.diffs[0].diffImgUrl }}" >
-                          <span ng-hide="oneTest.showDif">&nbsp;</span>
+
+                      <!-- Diff image -->
+			          <td ng-style="{ width: imageSize+'px' }">
+	    		          	<div ng-if="(oneTest.untriaged[0].diffs.length > 0)">
+	                            <sk-img-container
+	                                img-url="oneTest.untriaged[0].imgUrl"
+	                                digest="oneTest.untriaged[0].digest"
+	                                test-name="oneTest.name"
+	                                setter="setTriageState"
+	                                triage-state="triageState"
+	                                initial-triage-state="initialTriageState">
+	                                	<img ng-style="{ width: imageSize+'px' }"
+	                                         ng-src="{{ oneTest.untriaged[0].imgUrl }}" >
+	                            </sk-img-container>
+                            </div>
                       </td>
-			          <td><a href="#/triage/{{oneTest.name}}{{qStr}}">Triage</a></td>
+
+                      <!-- Diff Metric TODO(stephana) -->
+
+                      <!-- Triage link -->
+			          <td><a class="pull-right" href="#/triage/{{oneTest.name}}{{qStr}}">Triage</a></td>
 			        </tr>
 			      </tbody>
 			    </table>

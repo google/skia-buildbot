@@ -16,7 +16,7 @@
     <!-- Header with the pending changes and reset/save button -->
     <div class="row" ng-class="{ 'busyLoading': state !== 'ready' }" style="border: 1px solid #E1E1E1; padding: 0.5em; margin-left: 0; margin-right:0; margin-bottom: 1em;">
         <div class="pull-left">
-            <span style="font-weight:bold;">Pending Changes: {{pending}}</span>
+            <span style="font-weight:bold;">Pending Changes: {{triageStateDelta[testName].count}}</span>
         </div>
 
         <div class="pull-right">
@@ -39,11 +39,14 @@
     <div class="row" ng-class="{ 'busyLoading': state !== 'ready' }">
         <div class="row">
             <!-- Left column -->
-            <div class="col-md-2 imagesColumn">
+            <div class="col-md-2">
                 <div>
                     <span class="triageHeadLine">
                         <span ng-show="showPositives">Positives ({{posStats.unique}})</span>
                         <span ng-hide="showPositives">Negatives({{negStats.unique}})</span>
+                        <span ng-show="leftDigests">
+                            <sk-bulk-triage triage-state="triageState" test-name="testName" setter="setTriageState" digests="leftDigests"></sk-bulk-triage>
+                        </span>
                     </span><br>
                     <a href="" ng-click="switchLeftColumn()">
                         <span ng-hide="showPositives">Positives ({{posStats.unique}})</span>
@@ -51,42 +54,35 @@
                     </a>
                 </div>
 
-                <div ng-hide="leftDigests">
-                    No images available.
-                </div>
-                <div ng-show="leftDigests">
-                    <div ng-repeat="oneDigest in leftDigests" style="padding-bottom: 1em;padding-top: 1em;">
-                        <div class="pull-left">
-                            <a href="{{oneDigest.imgUrl}}" target="_blank">View <span class="glyphicon glyphicon-new-window"></span></a>
-                        </div>
+                <div class=" imagesColumn">
 
-                        <a href=""
-                           class="pull-right"
-                           ng-click="toggleStateIndicator(oneDigest.digest)"
-                           style="font-size: 16pt;"
-                           ng-class="{'stateChanged' : stateChanged(oneDigest.digest)}">
-                            <span ng-if="triageState[oneDigest.digest] === c.POSITIVE"
-                                  class="glyphicon glyphicon-ok positiveLabel"></span>
-                            <span ng-if="triageState[oneDigest.digest] === c.NEGATIVE"
-                                  class="glyphicon glyphicon-ban-circle negativeLabel"></span>
-                            <span ng-if="triageState[oneDigest.digest] === c.UNTRIAGED"
-                                  class="glyphicon glyphicon-question-sign"></span>
-                        </a>
+                    <div ng-hide="leftDigests">
+                        No images available.
+                    </div>
+                    <div ng-show="leftDigests">
+                        <div ng-repeat="oneDigest in leftDigests" style="padding-bottom: 1em;padding-top: 1em;">
 
-                        <div>
-                         <img ng-click="selectLeft($index)"
-                              ng-src="{{oneDigest.imgUrl}}"
-                              class="columnImg"
-                              ng-class="{selectedImg: $index === leftIndex}">
-                        </div>
-                        <div ng-if="showPositives && currentUntriaged">
-                            {{oneDigest.diff.numDiffPixels}}px &#183;
-                            {{oneDigest.diff.pixelDiffPercent | number: 2}}% &#183;
-                            {{oneDigest.diff.maxRGBADiffs | json }}
-                         </div>
+                            <sk-img-container
+                                img-url="oneDigest.imgUrl"
+                                digest="oneDigest.digest"
+                                test-name="testName"
+                                setter="setTriageState"
+                                triage-state="triageState"
+                                initial-triage-state="initialTriageState">
+                                     <img ng-click="selectLeft($index)"
+                                          ng-src="{{oneDigest.imgUrl}}"
+                                          class="columnImg"
+                                          ng-class="{selectedImg: $index === leftIndex}">
+                                    <div ng-if="showPositives && currentUntriaged">
+                                        {{oneDigest.diff.numDiffPixels}}px &#183;
+                                        {{oneDigest.diff.pixelDiffPercent | number: 2}}% &#183;
+                                        {{oneDigest.diff.maxRGBADiffs | json }}
+                                     </div>
 
-                        <div>
-                         {{oneDigest.count}} &#183; {{ (oneDigest.count / posStats.total) * 100.0 | number: 2 }} %
+                                    <div>
+                                     {{oneDigest.count}} &#183; {{ (oneDigest.count / posStats.total) * 100.0 | number: 2 }} %
+                                    </div>
+                            </sk-img-container>
                         </div>
                     </div>
                 </div>
@@ -115,11 +111,11 @@
                     <div class="col-md-6">
 
                         <div class="row posNegButtonContainer" >
-                            <button ng-disabled="triageState[currentUntriaged.digest] === c.POSITIVE"
-                                    ng-click="setTriageState(currentUntriaged.digest, c.POSITIVE)"
+                            <button ng-disabled="triageState[testName][currentUntriaged.digest] === c.POSITIVE"
+                                    ng-click="setTriageState(testName, currentUntriaged.digest, c.POSITIVE)"
                                     class="btn btn-success pull-left">Positive</button>
-                            <button ng-disabled="triageState[currentUntriaged.digest] === c.NEGATIVE"
-                                    ng-click="setTriageState(currentUntriaged.digest, c.NEGATIVE)"
+                            <button ng-disabled="triageState[testName][currentUntriaged.digest] === c.NEGATIVE"
+                                    ng-click="setTriageState(testName, currentUntriaged.digest, c.NEGATIVE)"
                                     class="btn btn-danger pull-right">Negative</button>
                         </div>
                     </div>
@@ -216,37 +212,41 @@
             </div>
 
             <!-- Right column -->
-            <div class="col-md-2 imagesColumn">
+            <div class="col-md-2">
 
                 <div>
-                    <span class="triageHeadLine">Untriaged ({{untStats.unique}})</span>
+                    <span class="triageHeadLine">
+                        <span>Untriaged ({{untStats.unique}})</span>
+                        <span ng-show="untriaged">
+                            <sk-bulk-triage triage-state="triageState" test-name="testName" setter="setTriageState" digests="untriaged"></sk-bulk-triage>
+                        </span>
+                    </span>
                 </div>
 
-                <div ng-hide="currentUntriaged">
-                    No untriaged images available.
-                </div>
-                <div ng-show="currentUntriaged">
-                    <div ng-repeat="oneUntriaged in untriaged">
-                        <a href=""
-                        ng-click="toggleStateIndicator(oneUntriaged.digest)"
-                        style="font-size: 16pt;"
-                        ng-class="{'stateChanged' : stateChanged(oneUntriaged.digest)}">
-                            <span ng-if="triageState[oneUntriaged.digest] === c.POSITIVE"
-                                  class="glyphicon glyphicon-ok positiveLabel"></span>
-                            <span ng-if="triageState[oneUntriaged.digest] === c.NEGATIVE"
-                                  class="glyphicon glyphicon-ban-circle negativeLabel"></span>
-                            <span ng-if="triageState[oneUntriaged.digest] === c.UNTRIAGED"
-                                  class="glyphicon glyphicon-question-sign"></span>
-                        </a>
-                        <a href="{{oneUntriaged.imgUrl}}" target="_blank" class="pull-right">View <span class="glyphicon glyphicon-new-window"></span></a>
-                        <div style="display:inline;">
-                            <img ng-click="selectUntriaged($index)"
-                                 ng-src="{{oneUntriaged.imgUrl}}"
-                                 class="columnImg"
-                                 ng-class="{selectedImg: $index === untIndex}">
-                        </div>
-                        <div>
-                            {{oneUntriaged.count}} &#183; {{ (oneUntriaged.count / untStats.total) * 100.0 | number: 2 }} %
+                <div class="imagesColumn">
+                    <div ng-hide="currentUntriaged">
+                        No untriaged images available.
+                    </div>
+                    <div ng-show="currentUntriaged">
+                        <div ng-repeat="oneUntriaged in untriaged">
+                            <div>
+                                <sk-img-container
+                                    img-url="oneUntriaged.imgUrl"
+                                    digest="oneUntriaged.digest"
+                                    test-name="testName"
+                                    setter="setTriageState"
+                                    triage-state="triageState"
+                                    initial-triage-state="initialTriageState">
+                                        <img ng-click="selectUntriaged($index)"
+                                             ng-src="{{oneUntriaged.imgUrl}}"
+                                             class="columnImg"
+                                             ng-class="{selectedImg: $index === untIndex}">
+
+                                        <div>
+                                            {{oneUntriaged.count}} &#183; {{ (oneUntriaged.count / untStats.total) * 100.0 | number: 2 }} %
+                                        </div>
+                                </sk-img-container>
+                            </div>
                         </div>
                     </div>
                 </div>

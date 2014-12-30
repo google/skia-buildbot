@@ -107,24 +107,30 @@ var skia = skia || {};
       // Get the path and use it for the backend request
       var testName = ($routeParams.id && ($routeParams.id !== '')) ?
                       $routeParams.id : null;
+      var triageStateManager = new TriageStateManager($scope, dataService);
 
-      // Load triage data across tests.
-      $scope.loadAllTriageData = function () {
-        $scope.state = 'loading';
-        dataService.loadData(ns.c.URL_TRIAGE, getCombinedQuery()).then(
+      var sortFn = function(a,b) {
+        return (a.name === b.name) ? 0 : (a.name < b.name) ? -1 : 1;
+      };
+
+      function processServerData(promise) {
+        promise.then(
           function (serverData) {
             if (!serverData) {
               retry();
               return serverData;
             };
 
-            var temp = ns.extractTriageListData(serverData);
+            // Get all the triage data and sort the tests.
+            var temp = ns.extractTriageData(serverData, true);
+            temp.tests.sort(sortFn);
 
+            triageStateManager.setNewState(temp.triageState);
+
+            // $scope.allTests = temp.tests.slice(0, 5);
             $scope.allTests = temp.tests;
             $scope.allParams = temp.allParams;
             $scope.crLinks =temp.commitRanges;
-
-            // TODO(stephana): Fix query string.
             setQuery(serverData.query || {});
 
             $scope.state = 'ready';
@@ -133,6 +139,24 @@ var skia = skia || {};
             retry();
             console.log("Error:", errResp);
           });
+      }
+
+      // Load triage data across tests.
+      $scope.loadAllTriageData = function () {
+        $scope.state = 'loading';
+        processServerData(dataService.loadData(ns.c.URL_TRIAGE, getCombinedQuery()), true);
+      };
+
+      $scope.saveTriageState = function() {
+        $scope.state = 'saving';
+        triageStateManager.saveTriageState(function (promise) {
+          promise.then(
+            loadAllTriageData,
+            function (errResp) {
+              retry();
+              console.log("Error:", errResp);
+            });
+        });
       };
 
       function retry() {
@@ -171,6 +195,18 @@ var skia = skia || {};
         $scope.crClean = angular.equals($scope.commitRangeQuery, $scope.originalCommitRange);
       }, true);
 
+      $scope.getImageLists = function(oneTest) {
+        if (oneTest.untStats.unique > 0) {
+          pos = oneTest.untriaged.diffs;
+        }
+
+        return {
+          positive: pos,
+          negative: neg,
+          untriaged: unt
+        };
+      }
+
       // initialize the members and load the data.
       $scope.reloadInterval = 3;
       $scope.allTests = [];
@@ -187,6 +223,77 @@ var skia = skia || {};
     }]);
 
 
+  /**
+  * Class TriageStateManager wraps around a scope and handles changes in
+  * the triage state.
+  */
+  function TriageStateManager($scope, dataService) {
+    // Keep a reference to the scope and initialize it.
+    this.$scope = $scope;
+    this.dataService = dataService;
+    this.$scope.initialTriageState = {};
+    this.$scope.triageState = {};
+    this.$scope.triageStateDelta = {};
+    this.updatedTriageState(null);
+
+    // Inject the functions into the scope. Make sure to bind the object.
+    this.$scope.setTriageState = this.setTriageState.bind(this);
+    this.$scope.resetTriageState = this.resetTriageState.bind(this);
+  }
+
+  TriageStateManager.prototype.setNewState = function(triageState) {
+    this.$scope.initialTriageState = triageState;
+    this.$scope.triageState = angular.copy(triageState);
+    this.updatedTriageState();
+  };
+
+  /** updatedTriageState checks whether the currently assigned labels
+  * have changed. This is used to enable/disable the save and reset
+  * buttons among other things.
+  */
+  TriageStateManager.prototype.updatedTriageState = function(testName) {
+    this.$scope.triageStateDirty =
+                  !angular.equals(this.$scope.triageState, this.$scope.initialTriageState);
+    ns.updateDelta(this.$scope.triageState, this.$scope.initialTriageState,
+                   this.$scope.triageStateDelta, testName);
+  };
+
+  // setTriageState sets the label of the given untriaged digest.
+  // If digest is an array it will set the labels for all digests in the array.
+  TriageStateManager.prototype.setTriageState= function (testName, digest, value) {
+    if (digest.constructor === Array) {
+      for(var i=0, len=digest.length; i < len; i++) {
+        this.$scope.triageState[testName][digest[i].digest] = value;
+      }
+    } else {
+      this.$scope.triageState[testName][digest] = value;
+    }
+    this.updatedTriageState(testName);
+  };
+
+  // resetTriageState clears all labels of the untriaged digests.
+  TriageStateManager.prototype.resetTriageState = function () {
+    this.$scope.triageState = angular.copy(this.$scope.initialTriageState);
+    this.updatedTriageState();
+  };
+
+  // saveTriageState saves the labeled untriaged digest to the backend
+  // and retrieves the new triage state for this test.
+  TriageStateManager.prototype.saveTriageState = function (responseFn) {
+    var req = new ns.TriageDigestReq();
+    for(var testName in this.$scope.triageStateDelta) {
+      if (this.$scope.triageStateDelta.hasOwnProperty(testName)) {
+        var delta = this.$scope.triageStateDelta[testName].delta;
+        for(var digest in delta) {
+          if (delta.hasOwnProperty(digest)) {
+            req.add(testName, digest, this.$scope.triageState[testName][digest]);
+          }
+        }
+      }
+    }
+    responseFn(this.dataService.sendData(ns.c.URL_TRIAGE, req));
+  };
+
   /*
    * TriageDetailsCtrl is the controller for the micro triage view. It manages the UI
    * and backend requests. Processing is delegated to the functions in the
@@ -197,9 +304,9 @@ var skia = skia || {};
       // Get the path and use it for the backend request
       var testName = $routeParams.id;
       var path = $location.path();
-      var initialTriageState;
       var positives, negatives;
       var posIndex, negIndex;
+      var triageStateManager = new TriageStateManager($scope, dataService);
 
       // processServerData is called by loadTriageState and also saveTriageState
       // to process the triage data returned by the server.
@@ -211,34 +318,33 @@ var skia = skia || {};
               return serverData;
             };
 
-            var data = ns.extractTriageData(serverData, testName);
-            $scope.untStats = data.untStats;
-            $scope.posStats = data.posStats;
-            $scope.negStats = data.negStats;
+            var triageData = ns.extractTriageData(serverData, true);
+            var testData = triageData.tests[0];
+            $scope.untStats = testData.untStats;
+            $scope.posStats = testData.posStats;
+            $scope.negStats = testData.negStats;
 
-            $scope.untriaged = data.untriaged;
-            initialTriageState = data.triageState;
-            $scope.triageState = angular.copy(initialTriageState);
-            updatedTriageState();
+            $scope.untriaged = testData.untriaged;
+            triageStateManager.setNewState(triageData.triageState);
 
             $scope.untIndex = -1;
             $scope.leftIndex = -1;
-            posIndex = (data.positive.length > 0) ? 0 : -1;
-            negIndex = (data.negative.length > 0) ? 0 : -1;
+            posIndex = (testData.positive.length > 0) ? 0 : -1;
+            negIndex = (testData.negative.length > 0) ? 0 : -1;
             $scope.showPositives = true;
             $scope.selectUntriaged(0);
 
             // If there are no untriaged we need to just set the positive
             // values since they are no longer a function of the untriaged.
             if ($scope.untriaged.length === 0) {
-              positives = data.positive;
+              positives = testData.positive;
             };
 
-            negatives = data.negative;
+            negatives = testData.negative;
 
             // Force the left column to positives since they are initialized.
             $scope.switchLeftColumn(true);
-            $scope.allParams = data.allParams;
+            $scope.allParams = triageData.allParams;
 
             // Show the source images if there are no positives.
             $scope.showSrcImages = $scope.currentUntriaged &&
@@ -256,6 +362,14 @@ var skia = skia || {};
           });
       }
 
+      $scope.saveTriageState = function() {
+        $scope.state = 'saving';
+        triageStateManager.saveTriageState(function (promise) {
+          processServerData(promise, false);
+        });
+      };
+
+
       // loadTriageData sends a GET request to the backend to get the
       // untriaged digests.
       $scope.loadTriageData = function () {
@@ -266,17 +380,6 @@ var skia = skia || {};
       function retry() {
         $scope.state = 'retry';
         $timeout($scope.loadTriageData, $scope.reloadInterval * 1000);
-      }
-
-      // updatedTriageState checks whether the currently assigned labels
-      // have changed. This is used to enable/disable the save and reset
-      // buttons among other things.
-      function updatedTriageState() {
-        $scope.triageStateDirty =
-                      !angular.equals($scope.triageState, initialTriageState);
-        var d = ns.getDelta($scope.triageState, initialTriageState);
-        $scope.triageStateDelta = d.delta;
-        $scope.pending = d.count;
       }
 
       // selectUntriaged is a UI function to pick an untriaged digest.
@@ -346,38 +449,6 @@ var skia = skia || {};
         }
       };
 
-      // setTriageState sets the label of the given untriaged digest.
-      $scope.setTriageState = function (digest, value) {
-        $scope.triageState[digest] = value;
-        updatedTriageState();
-      };
-
-      // resetTriageState clears all labels of the untriaged digests.
-      $scope.resetTriageState = function () {
-        $scope.triageState = angular.copy(initialTriageState);
-        updatedTriageState();
-      };
-
-      // saveTriageState saves the labeled untriaged digest to the backend
-      // and retrieves the new triage state for this test.
-      $scope.saveTriageState = function () {
-        var req = new ns.TriageDigestReq();
-        for(var k in $scope.triageStateDelta) {
-          if ($scope.triageStateDelta.hasOwnProperty(k)) {
-            req.add(testName, k, $scope.triageState[k]);
-          }
-        }
-
-        $scope.state = 'saving';
-        processServerData(dataService.sendData(ns.c.URL_TRIAGE, req), false);
-      };
-
-      // stateChanged helps the UI figure out if a digest has changed. This is
-      // used to change the background of a state indicator.
-      $scope.stateChanged = function (digest) {
-        return $scope.triageState[digest] !== initialTriageState[digest];
-      };
-
       // getOverlayStyle returns style values that are used to turn the
       // image overlay on and off.
       $scope.getOverlayStyle = function () {
@@ -402,14 +473,6 @@ var skia = skia || {};
         return {};
       };
 
-      // toggleStateIndicator changes the state of a digest to the 'next' state.
-      // This allows to iterate through all states by repeatedly clicking on
-      // the indicator.
-      $scope.toggleStateIndicator = function (digest) {
-        var nextState = ns.nextState($scope.triageState[digest]);
-        $scope.setTriageState(digest, nextState);
-      };
-
       // Initialize the variables in $scope.
       $scope.testName = testName;
       $scope.untriaged = [];
@@ -418,8 +481,6 @@ var skia = skia || {};
       negatives = [];
       posIndex = -1;
       negIndex = -1;
-      $scope.triageState = {};
-      $scope.triageStateDelta = {};
       $scope.reloadInterval = 3;
 
       $scope.posStats = {};
@@ -431,7 +492,6 @@ var skia = skia || {};
       $scope.untStats = null;
 
       // Update the derived data.
-      updatedTriageState();
       $scope.selectUntriaged(0);
       $scope.selectLeft(0);
       $scope.showPositives = true;
@@ -557,6 +617,101 @@ var skia = skia || {};
     };
 
   }]);
+
+  /**
+  * skImgContainer implements a directive to wrap an image with a
+  * classification label.
+  **/
+  app.directive('skImgContainer', ['$timeout', function($timeout) {
+    var linkFn = function ($scope, element, attrs) {
+        $timeout(function() {
+          $scope.digest = $scope.digest();
+          $scope.setTriageState = $scope.setTriageState();
+          $scope.imgUrl = $scope.imgUrl();
+          $scope.testName = $scope.testName();
+
+          // toggleStateIndicator changes the state of a digest to the 'next' state.
+          // This allows to iterate through all states by repeatedly clicking on
+          // the indicator.
+          $scope.toggleStateIndicator = function (digest) {
+            var nextState = ns.nextState($scope.triageState[$scope.testName][digest]);
+            $scope.setTriageState($scope.testName, digest, nextState);
+          };
+
+          // stateChanged helps the UI figure out if a digest has changed. This is
+          // used to change the background of a state indicator.
+          $scope.stateChanged = function (digest) {
+            return $scope.triageState[$scope.testName][$scope.digest] !==
+                   $scope.initialTriageState[$scope.testName][$scope.digest];
+          };
+        });
+        $scope.stateChanged = function() { return false; }
+
+        $scope.c = ns.c;
+    };
+
+    return {
+        restrict: 'E',
+        replace: false,
+        scope: {
+          "digest": "&digest",
+          "setTriageState": "&setter",
+          "triageState": "=triageState",
+          "initialTriageState": "=initialTriageState",
+          "imgUrl": "&imgUrl",
+          "testName": "&testName"
+        },
+        transclude: true,
+        templateUrl: 'templates/triage-img-container.html',
+        link: linkFn
+    };
+  }]);
+
+  /**
+  * skBulkChange implements a directive to bulk change classifications.
+  **/
+  app.directive('skBulkTriage', ['$timeout', function($timeout) {
+    var linkFn = function ($scope, element, attrs) {
+      $scope.c = ns.c;
+      $timeout(function () {
+        $scope.selectAll = $scope.selectAll();
+        $scope.testName = $scope.testName();
+        function checkChange() {
+          if ($scope.digests.length > 0) {
+            $scope.selected = $scope.triageState[$scope.testName][$scope.digests[0].digest];
+            for(var i=1, len=$scope.digests.length; i<len; i++) {
+               if ($scope.triageState[$scope.testName][$scope.digests[i].digest]
+                   !== $scope.selected) {
+                 $scope.selected = null;
+                 break;
+               }
+            }
+          } else {
+            $scope.selected = null;
+          }
+        }
+
+        $scope.$watch('triageState', checkChange, true);
+        $scope.$watch('digests', checkChange, true);
+      });
+    };
+
+    return {
+        restrict: 'E',
+        replace: true,
+        scope: {
+          "digests": "=digests",
+          "selectAll": "&setter",
+          "triageState": "=triageState",
+          "testName": "&testName"
+        },
+        transclude: false,
+        templateUrl: 'templates/bulk-triage.html',
+        link: linkFn
+    };
+  }]);
+
+
 
   /**
   * dataService provides functions to load data from the backend.

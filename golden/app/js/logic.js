@@ -260,38 +260,48 @@ var skia = skia || {};
   * extractTriageData is the central function to pre-process data coming
   *                   from the server.
   */
-  ns.extractTriageData = function (serverData) {
-    var untStats = new Stats();
-    var posStats = new Stats();
-    var negStats = new Stats();
-    var positive = ns.getSortedDigests(serverData, 'positive', posStats);
-    var negative = ns.getSortedDigests(serverData, 'negative', negStats);
-    var untriaged = ns.getUntriagedSorted(serverData, untStats);
-
-    // Set the triage state for each digest.
-    var add = function(arr, state) {
-      for (var i=0, len=arr.length; i<len; i++) {
-        triageState[arr[i].digest] = state;
-      }
-    };
-
+  ns.extractTriageData = function (serverData, filterParams) {
+    var result = [];
     var triageState = {};
-    add(positive, ns.c.POSITIVE);
-    add(negative, ns.c.NEGATIVE);
-    add(untriaged, ns.c.UNTRIAGED);
+    for (var i = 0, len = serverData.tests.length; i < len; i++) {
+      var untStats = new Stats();
+      var posStats = new Stats();
+      var negStats = new Stats();
+      var positive = ns.getSortedDigests(serverData, 'positive', posStats, i);
+      var negative = ns.getSortedDigests(serverData, 'negative', negStats, i);
+      var untriaged = ns.getUntriagedSorted(serverData, i, untStats);
+      var testName = serverData.tests[i].name;
+
+      // Set the triage state for each digest.
+      var add = function(arr, state) {
+        for (var i=0, len=arr.length; i<len; i++) {
+          triageState[testName][arr[i].digest] = state;
+        }
+      };
+
+      triageState[testName] = {};
+      add(positive, ns.c.POSITIVE);
+      add(negative, ns.c.NEGATIVE);
+      add(untriaged, ns.c.UNTRIAGED);
+
+      result.push({
+        name: testName,
+        untriaged: untriaged,
+        positive:  positive,
+        negative:  negative,
+        untStats:  untStats,
+        posStats:  posStats,
+        negStats:  negStats
+      });
+    }
 
     return {
-      untriaged: untriaged,
-      positive:  positive,
-      negative:  negative,
-      untStats:  untStats,
-      posStats:  posStats,
-      negStats:  negStats,
-      allParams: ns.getSortedParams(serverData, true),
-      triageState: triageState
+      tests: result,
+      allParams: ns.getSortedParams(serverData, filterParams),
+      triageState: triageState,
+      commitRanges: ns.getAutoCommitRanges(serverData)
     };
   };
-
 
   /**
   * extractTriageListData returns test data across tests from data returned
@@ -309,15 +319,19 @@ var skia = skia || {};
       var showUnt = (untK.length > 0) && t.untriaged[untK[0]];
       var showDif = (posK.length > 0) && (untK.length > 0);
 
-      // Return the stats element.
+      var untStats = new Stats();
+      var untriaged = ns.getUntriagedSorted(serverData, i, untStats);
+
+      // Return the stats element and the list of untriaged Digests.
       result.push({
         name: t.name,
-        pos: posK.length,
-        neg: negK.length,
-        unt: untK.length,
+        posLen: posK.length,
+        negLen: negK.length,
+        untLen: untK.length,
         showPos: showPos,
         showUnt: showUnt,
-        showDif: showDif
+        showDif: showDif,
+        untriaged: untriaged
       });
     }
 
@@ -352,15 +366,15 @@ var skia = skia || {};
   *  It also resolves the references to the positive digests contained in
   *  the diff metrics.
   */
-  ns.getUntriagedSorted = function(serverData, stats) {
-    var unt = robust_get(serverData, ['tests', 0, 'untriaged']);
+  ns.getUntriagedSorted = function(serverData, testIdx, stats) {
+    var unt = robust_get(serverData, ['tests', testIdx, 'untriaged']);
     if (!unt) {
       return [];
     }
 
     var posd, d;
     var result = [];
-    var positive = serverData.tests[0].positive;
+    var positive = serverData.tests[testIdx].positive;
     var hasPos = false;
     var total = 0;
 
@@ -418,12 +432,12 @@ var skia = skia || {};
   };
 
   /**
-  * getSortedPositives returns a list of positive digests from the
-  * data returnded by the backend. This is to be used when there are no
+  * getSortedDigests returns a list of digests with the given digestClass
+  * from the data returnded by the backend. This is to be used when there are no
   * untriaged digests.
   */
-  ns.getSortedDigests= function (serverData, digestClass, stats) {
-    var targetDigests = robust_get(serverData, ['tests', 0, digestClass]);
+  ns.getSortedDigests= function (serverData, digestClass, stats, idx) {
+    var targetDigests = robust_get(serverData, ['tests', idx, digestClass]);
     if (!targetDigests)  {
       return [];
     }
@@ -593,26 +607,35 @@ var skia = skia || {};
   };
 
   /**
-  * getDelta returns an object that contains all the key/value pairs
-  * from changed that where the values are differnt in changed and original.
+  * updateDelta updates the given delta between changed and original for the
+  * given testname. If testName evaluates to false the deltas for all tests
+  * are calculated.
   */
-  ns.getDelta = function (changed, original) {
-    var delta = {};
-    var count = 0;
+  ns.updateDelta = function (changed, original, delta, testName) {
+    var useTestNames = (testName) ? [testName] : ns.keys(changed);
+    var testDelta, testCount, tn;
 
-    for (var k in changed) {
-      if (changed.hasOwnProperty(k) &&
-          original.hasOwnProperty(k) &&
-          (changed[k] !== original[k])) {
-        delta[k] = changed[k];
-        count++;
+    for (var i = 0, len = useTestNames.length; i < len; i++) {
+      tn = useTestNames[i];
+      if (changed.hasOwnProperty(tn)) {
+        testDelta = {};
+        testCount = 0;
+
+        for (var k in changed[tn]) {
+          if (changed[tn].hasOwnProperty(k) &&
+              original[tn].hasOwnProperty(k) &&
+              (changed[tn][k] !== original[tn][k])) {
+            testDelta[k] = changed[tn][k];
+            testCount++;
+          }
+        }
+
+        delta[tn] = {
+          delta: testDelta,
+          count: testCount
+        };
       }
     }
-
-    return {
-      delta: delta,
-      count: count
-    };
   };
 
   /**

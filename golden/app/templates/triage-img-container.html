@@ -1,0 +1,19 @@
+<div>
+    <a href=""
+    ng-click="toggleStateIndicator(digest)"
+    style="font-size: 16pt;"
+    ng-class="{'stateChanged' : stateChanged(digest)}">
+        <span ng-if="triageState[testName][digest] === c.POSITIVE"
+              class="glyphicon glyphicon-ok positiveLabel"></span>
+        <span ng-if="triageState[testName][digest] === c.NEGATIVE"
+              class="glyphicon glyphicon-ban-circle negativeLabel"></span>
+        <span ng-if="triageState[testName][digest] === c.UNTRIAGED"
+              class="glyphicon glyphicon-question-sign"></span>
+    </a>
+    <a ng-if="imgUrl" href="{{imgUrl}}" target="_blank" class="pull-right">View
+      <span class="glyphicon glyphicon-new-window">
+      </span>
+    </a>
+    <div ng-transclude>
+    </div>
+</div>
