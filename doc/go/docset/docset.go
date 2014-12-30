@@ -171,52 +171,65 @@ func (d *DocSet) RawFilename(url string) (string, bool, error) {
 	return endFilename, (startFilename == endFilename), err
 }
 
+// hasPrefix returns true if p is a prefix of a.
+func hasPrefix(a, p []string) bool {
+	if len(p) > len(a) {
+		return false
+	}
+	for i, s := range p {
+		if s != a[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// diff determines how many levels of ul's we need to push and pop.
+func diff(current, next []string) (int, int) {
+	// Start by popping off values from the end of 'next' until we get a prefix
+	// of 'current', which may be the empty list. Use that to calculate how many
+	// </ul>'s we need to emit.
+	end := 1
+	for i := 0; i <= len(next); i++ {
+		if hasPrefix(current, next[:len(next)-i]) {
+			end = len(current) - (len(next) - i)
+			break
+		}
+	}
+	// If we are just adding a file in a new directory then don't end the list.
+	if len(current) > 0 && len(next) > 0 && end == 1 && current[len(current)-1] == "" {
+		end = 0
+	}
+	// We are always going to begin a new list.
+	begin := 1
+	// Unless we are adding in a file in the same directory, in which case do nothing.
+	if len(current) > 0 && len(next) > 0 && end == 1 && current[len(current)-1] != "" && next[len(next)-1] != "" {
+		end = 0
+		begin = 0
+	}
+
+	return end, begin
+}
+
 // buildNavString converts a slice of navEntry's into an HTML formatted
 // navigation structure.
 func buildNavString(nav []*navEntry) string {
-	res := ""
-	parent := ""    // The parent directory.
-	hasSub := false // Is true if a directory contains a non-index.md Markdown file.
+	res := "\n"
+	current := []string{} // The parent directory.
 	for _, n := range nav {
-		// If we are still descending this tree.
-		if strings.HasPrefix(n.URL, parent) {
-			// If this is a new sub-directory.
-			if strings.HasSuffix(n.URL, "/") {
-				// If we have previously emitted a non-index.md Markdown file in the current directory.
-				if hasSub {
-					res += "</ul>\n"
-				}
-				res += "<ul>\n"
-				parent = n.URL
-				hasSub = false
-			} else {
-				// If this is the first non-index.md file in the current directory.
-				if !hasSub {
-					hasSub = true
-					res += "<ul>\n"
-				}
-			}
-		} else {
-			num := strings.Count(parent, "/")
-			for i := 0; i < num-1; i++ {
-				res += "</ul>\n"
-			}
-			// If we have previously emitted a non-index.md Markdown file in the current directory.
-			if hasSub {
-				res += "</ul>\n"
-			}
-			hasSub = false
+		next := strings.Split(n.URL[1:], "/")
+		end, begin := diff(current, next)
+		for i := 0; i < end; i++ {
+			res += "</ul>\n"
+		}
+		for i := 0; i < begin; i++ {
 			res += "<ul>\n"
-			parent = n.URL
 		}
 		res += fmt.Sprintf("<li><a data-path=\"%s\" href=\"%s\">%s</a></li>\n", n.URL, n.URL, n.Name)
+		current = next
 	}
 	// Close out all remaining open ul's.
-	num := strings.Count(parent, "/")
-	for i := 0; i < num; i++ {
-		res += "</ul>\n"
-	}
-	if hasSub {
+	for _, _ = range current {
 		res += "</ul>\n"
 	}
 	return res
