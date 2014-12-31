@@ -26,7 +26,7 @@ func main() {
 	defer glog.Flush()
 
 	if err := util.CreateChromiumBuild(*runID, *targetPlatform, *chromiumHash, *skiaHash, *applyPatches); err != nil {
-		glog.Error("Error while creating the Chromium build: %s", err)
+		glog.Errorf("Error while creating the Chromium build: %s", err)
 		return
 	}
 }

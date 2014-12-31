@@ -158,7 +158,7 @@ func getSkiaHash() (string, error) {
 		return "", fmt.Errorf("Could not get Skia's LKGR: %s", err)
 	}
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Got statuscode %s while accessing Chromium's DEPS file", resp.StatusCode)
+		return "", fmt.Errorf("Got statuscode %d while accessing Chromium's DEPS file", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
