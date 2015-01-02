@@ -60,8 +60,8 @@ push/res/imp/bower_components
 push/res/common
 
 doc/res/common
-doc/res/vul
 doc/res/imp/bower_components
+doc/res/css/docs.css
 doc/res/js/core.js
 doc/res/js/core-debug.js
 doc/node_modules

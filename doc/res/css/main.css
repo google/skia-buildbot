@@ -1,0 +1,101 @@
+/*
+  Only edit main.css.
+  Do not edit docs.css, it is generaed from main.css.
+*/
+
+body {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: #1f78b4;
+}
+
+#page {
+  display: flex;
+}
+
+#body {
+  padding: 1em;
+  padding-left: 2em;
+  overflow-y: auto;
+  max-width: 70em;
+}
+
+#content {
+  padding-bottom: 2em;
+}
+
+pre {
+  margin-left: 1em;
+  padding: 1em;
+  background: #eee;
+}
+
+code {
+  color: darkgreen;
+}
+
+h1, h2, h3, h4 {
+  font-weight: normal;
+}
+
+#drawer {
+  min-width: 250px;
+  background: #fafafa;
+  padding: 10px;
+}
+
+img {
+  margin: 1em;
+}
+
+#drawer ul {
+  padding-left: 0.7em;
+  padding-top: 0.5em;
+}
+
+#drawer li {
+  list-style-type: none;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+#drawer li a.selected {
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+#menu {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  #menu {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: white;
+    display: block;
+  }
+
+  #drawer {
+    left: -100%;
+    position: absolute;
+    transition: left 0.5s;
+  }
+
+  #menu:hover {
+    background: lightgray;
+  }
+
+  #drawer.opened {
+    left: 0%;
+  }
+}

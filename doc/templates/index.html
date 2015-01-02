@@ -4,134 +4,79 @@
     <title>Docs</title>
     <meta charset="utf-8">
     <meta name="theme-color" content="#526E9C">
-    <link rel="shortcut icon" href="/res/img/favicon.ico" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/res/js/core.js"></script>
-    <link href="/res/vul/elements.html" rel="import" />
+    <link href="/res/css/docs.css" rel="stylesheet" />
   </head>
   <body>
-    <polymer-element name="docs-sk">
-      <template>
-        <style type="text/css" media="screen">
-          :host {
-            font-family: Arial, sans-serif;
-            font-size: 15px;
-          }
+    <div id=page>
+      <div id=drawer drawer vertical layout>
+        <img src="/res/img/logo.png" width=204 height=91>
+        {{.Nav}}
+      </div>
 
-          a {
-            color: #1f78b4;
-          }
+      <div id=body main>
+        <button id=menu title="Menu">
+           <svg viewBox="0 0 24 24" height="24px" width="24px">
+            <g>
+             <path d="M3 18h18v-2h-18v2zm0-5h18v-2h-18v2zm0-7v2h18v-2h-18z"></path>
+            </g>
+          </svg>
+        </button>
+        <div id=content>
+          {{.Body}}
+        </div>
+      </div>
+    </div>
 
-          #body {
-            padding: 1em;
-            padding-left: 2em;
-            overflow-y: auto;
-            max-width: 70em;
-          }
+    <script>
+      sk.DomReady.then(function() {
 
-          #content {
-            padding-bottom: 2em;
-          }
+         // Open the side drawer with the navigation menu.
+         $$$('button').addEventListener('click', function(e) {
+          $$$('#drawer').classList.add('opened');
+          e.stopPropagation();
+         });
 
-          pre {
-            margin-left: 1em;
-            padding: 1em;
-            background: #eee;
-          }
+         // Close the side drawer.
+         $$$('body').addEventListener('click', function() {
+          $$$('#drawer').classList.remove('opened');
+         });
 
-          code {
-            color: darkgreen;
-          }
-
-          h1,
-          h2 {
-            font-weight: normal;
-          }
-
-          #drawer {
-            background: #fafafa;
-          }
-
-          img {
-            margin: 1em;
-          }
-
-          #drawer ul {
-            padding-left: 0.7em;
-          }
-
-          #drawer li {
-            list-style-type: none;
-            margin-top: 8px;
-            font-size: 13px;
-          }
-
-          #drawer li a.selected {
-            color: black;
-            font-weight: bold;
-            text-decoration: none;
-          }
-        </style>
-        <core-drawer-panel>
-          <div id=drawer drawer vertical layout>
-              <img src="/res/img/logo.png" width=204 height=91>
-              {{.Nav}}
-          </div>
-
-          <div id=body main>
-            <core-icon-button icon="menu" core-drawer-toggle></core-icon-button>
-            <div id=content>
-             {{.Body}}
-            </div>
-          </div>
-        </core-drawer-panel>
-      </template>
-      <script>
-        sk.WebComponentsReady.then(function() {
-
-          // highlightNav highlights where we are in the navigation.
-          var highlightNav = function() {
-            $$('#drawer /deep/ li a').forEach(function(e) {
-              if (e.dataset.path == window.location.pathname) {
-                e.classList.add('selected');
-                $$$('title').innerText = e.innerText;
-              } else {
-                e.classList.remove('selected');
-              }
-            });
-          }
-
-          // Shortcut the links and handle them via XHR, that way we only
-          // pay the loading time for Polymer once, yet still retain full URLs.
-          $$('#drawer /deep/ li a').forEach(function(e) {
-            e.addEventListener('click', function(e) {
-              // Preserve query parameters as we navigate.
-              var q = window.location.search;
-              var url = e.target.dataset.path;
-              if (q != "") {
-                url += q;
-              }
-              sk.get('/_'+url).then(function(content) {
-                window.history.pushState(null, null, url);
-                highlightNav();
-                $$$('html /deep/ #content').innerHTML = content;
-              });
-              e.preventDefault();
-            });
+        // highlightNav highlights where we are in the navigation.
+        var highlightNav = function() {
+          $$('#drawer li a').forEach(function(e) {
+            if (e.dataset.path == window.location.pathname) {
+              e.classList.add('selected');
+              $$$('title').innerText = e.innerText;
+            } else {
+              e.classList.remove('selected');
+            }
           });
+        }
 
-          highlightNav();
+        // Shortcut the links and handle them via XHR, that way we only
+        // pay the loading time once, yet still retain full URLs.
+        $$('#drawer li a').forEach(function(e) {
+          e.addEventListener('click', function(e) {
+            // Preserve query parameters as we navigate.
+            var q = window.location.search;
+            var url = e.target.dataset.path;
+            if (q != "") {
+              url += q;
+            }
+            sk.get('/_'+url).then(function(content) {
+              window.history.pushState(null, null, url);
+              highlightNav();
+              $$$('html #content').innerHTML = content;
+            });
+            e.preventDefault();
+          });
         });
 
-        Polymer({
-          ready: function() {
-          }
-        });
-      </script>
-    </polymer-element>
-
-    <docs-sk></docs-sk>
-
+        highlightNav();
+      });
+    </script>
   </body>
 </html>

@@ -2,12 +2,14 @@
 # minified. These files should be either present in the project, brought
 # into third_party/bower_compoents via bower, or in node_modules.
 CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-	third_party/bower_components/webcomponentsjs/webcomponents.min.js \
 	../res/js/common.js
 
 BOWER_DIR=third_party/bower_components
 
-default: core_js elements_html
+default: core_js res/css/docs.css
 	go install -v ./go/docserver
+
+res/css/docs.css: node_modules/lastupdate res/css/main.css
+	./node_modules/.bin/autoprefixer res/css/main.css -o res/css/docs.css
 
 include ../webtools/webtools.mk
