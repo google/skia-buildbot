@@ -1,0 +1,13 @@
+check process docserver with pidfile /var/run/docserver.pid
+   start program = "/etc/init.d/docserver start"
+   stop program = "/etc/init.d/docserver stop"
+   depends on docserver_init
+   depends on docserver_exe
+
+check file docserver_init
+  with path /etc/init.d/docserver
+  if changed timestamp then restart
+
+check file docserver_exe
+  with path /usr/local/bin/docserver
+  if changed timestamp then restart

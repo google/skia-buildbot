@@ -54,14 +54,14 @@ img {
 }
 
 #drawer ul {
-  padding-left: 0.7em;
-  padding-top: 0.5em;
+  padding-left: 0.8em;
 }
 
 #drawer li {
   list-style-type: none;
   margin-top: 8px;
   font-size: 13px;
+  padding-top: 0.5em;
 }
 
 #drawer li a.selected {

@@ -12,4 +12,7 @@ default: core_js res/css/docs.css
 res/css/docs.css: node_modules/lastupdate res/css/main.css
 	./node_modules/.bin/autoprefixer res/css/main.css -o res/css/docs.css
 
+release: default
+	./build_release
+
 include ../webtools/webtools.mk
