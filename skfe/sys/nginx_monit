@@ -1,0 +1,15 @@
+# A monit file for nginx running on an skfe.
+#
+check process nginx with pidfile /var/run/nginx.pid
+    start program = "/etc/init.d/nginx start"
+    stop program = "/etc/init.d/nginx stop"
+    depends on nginx_init
+    depends on nginx_sites_available
+
+check file nginx_init
+  with path /etc/init.d/nginx
+  if changed timestamp then restart
+
+check file nginx_sites_available
+  with path /etc/nginx/sites-available/skia_org
+  if changed timestamp then restart
