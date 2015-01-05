@@ -21,7 +21,7 @@ const (
 func TestGetCTWorkers(t *testing.T) {
 	workers := GetCTWorkers()
 	for i := 0; i < NUM_WORKERS; i++ {
-		assert.Equal(t, fmt.Sprintf(WORKER_NAME_TEMPLATE, i), workers[i])
+		assert.Equal(t, fmt.Sprintf(WORKER_NAME_TEMPLATE, i+1), workers[i])
 	}
 }
 

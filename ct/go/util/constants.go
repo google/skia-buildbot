@@ -48,6 +48,7 @@ const (
 	BINARY_ADB             = "adb"
 	BINARY_GIT             = "git"
 	BINARY_RENDER_PICTURES = "render_pictures"
+	BINARY_MAIL            = "mail"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
@@ -58,6 +59,9 @@ const (
 	BENCHMARK_RR                = "rasterize_and_record_micro"
 	BENCHMARK_REPAINT           = "repaint"
 	BENCHMARK_SMOOTHNESS        = "smoothness"
+
+	// Webapp constants.
+	WEBAPP_ROOT = "https://skia-tree-status.appspot.com/skia-telemetry/"
 )
 
 type PagesetTypeInfo struct {
@@ -86,17 +90,24 @@ var (
 	TelemetrySrcDir      = filepath.Join(StorageDir, "chromium", "src", "tools", "telemetry")
 	TaskFileDir          = filepath.Join(StorageDir, "current_task")
 	GSTokenPath          = filepath.Join(StorageDir, "google_storage_token.data")
+	EmailTokenPath       = filepath.Join(StorageDir, "email.data")
+	WebappPasswordPath   = filepath.Join(StorageDir, "webapp.data")
 	PagesetsDir          = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
 	WebArchivesDir       = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
 	SkpsDir              = filepath.Join(StorageDir, SKPS_DIR_NAME)
-	SkiaTreeDir          = filepath.Join(RepoDir, "trunk")
-	CtTreeDir            = filepath.Join(RepoDir, "buildbot")
+	GLogDir              = filepath.Join(StorageDir, "glog")
 	ApkPath              = filepath.Join("apks", "ChromeShell.apk")
+	SkiaTreeDir          = filepath.Join(RepoDir, "trunk")
+	CtTreeDir            = filepath.Join(RepoDir, "go", "src", "skia.googlesource.com", "buildbot.git", "ct")
 
 	// Names of remote directories and files.
 	LuaRunsDir             = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
 	BenchmarkRunsDir       = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
 	SkiaCorrectnessRunsDir = filepath.Join(TASKS_DIR_NAME, SKIA_CORRECTNESS_TASKS_DIR_NAME)
+
+	// Webapp subparts.
+	AdminTasksWebapp       = WEBAPP_ROOT + "admin_tasks"
+	UpdateAdminTasksWebapp = WEBAPP_ROOT + "update_admin_task"
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{

@@ -3,13 +3,19 @@ package util
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"skia.googlesource.com/buildbot.git/go/util"
 
 	"github.com/golang/glog"
 )
@@ -18,7 +24,7 @@ import (
 func GetCTWorkers() []string {
 	workers := make([]string, NUM_WORKERS)
 	for i := 0; i < NUM_WORKERS; i++ {
-		workers[i] = fmt.Sprintf(WORKER_NAME_TEMPLATE, i)
+		workers[i] = fmt.Sprintf(WORKER_NAME_TEMPLATE, i+1)
 	}
 	return workers
 }
@@ -183,4 +189,29 @@ func ApplyPatch(patch, dir string) error {
 	//      --ignore-space-change ${PATCH_FILE}"
 	args := []string{"apply", "--index", "-p1", "--verbose", "--ignore-whitespace", "--ignore-space-change", patch}
 	return ExecuteCmd(BINARY_GIT, args, []string{}, 5*time.Minute, nil, nil)
+}
+
+func UpdateWebappTask(gaeTaskID int, webappURL string) error {
+	pwdBytes, err := ioutil.ReadFile(WebappPasswordPath)
+	if err != nil {
+		return fmt.Errorf("Could not read the webapp password file: %s", err)
+	}
+	pwd := strings.TrimSpace(string(pwdBytes))
+	postData := url.Values{}
+	postData.Set("key", strconv.Itoa(gaeTaskID))
+	postData.Add("password", pwd)
+	req, err := http.NewRequest("POST", webappURL, bytes.NewBufferString(postData.Encode()))
+	if err != nil {
+		return fmt.Errorf("Could not create HTTP request: %s", err)
+	}
+	client := util.NewTimeoutClient()
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("Could not update webapp task: %s", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Could not update webapp task, response status code was %d: %s", resp.StatusCode, err)
+	}
+	return nil
 }

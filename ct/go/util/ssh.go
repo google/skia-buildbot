@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net"
 	"os/user"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,7 +16,8 @@ import (
 )
 
 const (
-	KEY_FILE = "id_rsa"
+	KEY_FILE           = "id_rsa"
+	WORKER_NUM_KEYWORD = "{{worker_num}}"
 )
 
 type workerResp struct {
@@ -50,7 +53,7 @@ func executeCmd(cmd, hostname string, config *ssh.ClientConfig, timeout time.Dur
 	var stdoutBuf bytes.Buffer
 	session.Stdout = &stdoutBuf
 	if err := session.Run(cmd); err != nil {
-		return "", fmt.Errorf("Timeout out while running \"%s\" on %s: %s", cmd, hostname, err)
+		return "", fmt.Errorf("Errored or Timeout out while running \"%s\" on %s: %s", cmd, hostname, err)
 	}
 	return stdoutBuf.String(), nil
 }
@@ -71,7 +74,8 @@ func getKeyFile() (key ssh.Signer, err error) {
 
 // SSH connects to the specified workers and runs the specified command. If the
 // command does not complete in the given duration then all remaining workers are
-// considered timed out.
+// considered timed out. SSH also automatically substitutes the sequential number
+// of the worker for the WORKER_NUM_KEYWORD since it is a common use case.
 func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string, error) {
 	glog.Infof("Running \"%s\" on %s with timeout of %s", cmd, workers, timeout)
 
@@ -94,16 +98,17 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 	workersWithOutputs := map[string]string{}
 
 	// Kick off a goroutine on all workers.
-	for _, hostname := range workers {
+	for i, hostname := range workers {
 		wg.Add(1)
-		go func(hostname string) {
+		go func(index int, hostname string) {
 			defer wg.Done()
-			output, err := executeCmd(cmd, hostname, config, timeout)
+			updatedCmd := strings.Replace(cmd, WORKER_NUM_KEYWORD, strconv.Itoa(index+1), -1)
+			output, err := executeCmd(updatedCmd, hostname, config, timeout)
 			if err != nil {
 				glog.Errorf("Could not execute ssh cmd: %s", err)
 			}
 			workersWithOutputs[hostname] = output
-		}(hostname)
+		}(i, hostname)
 	}
 
 	wg.Wait()
