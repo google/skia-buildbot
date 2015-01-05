@@ -4,6 +4,7 @@ package main
 import (
 	"bytes"
 	"crypto/md5"
+	"encoding/binary"
 	"encoding/gob"
 	"flag"
 	"fmt"
@@ -37,7 +38,12 @@ var (
 	dataset    = flag.String("dataset", config.DATASET_NANO, fmt.Sprintf("Choose from the valid datasets: %v", config.VALID_DATASETS))
 )
 
-func dumpCommits(tile *types.Tile, n int) {
+func dumpCommits(store types.TileStore, n int) {
+	tile, err := store.Get(0, -1)
+	if err != nil {
+		glog.Fatal("Could not read tile: " + err.Error())
+	}
+
 	tileLen := tile.LastCommitIndex() + 1
 	commits := tile.Commits[:tileLen]
 
@@ -52,8 +58,7 @@ func dumpCommits(tile *types.Tile, n int) {
 	for i := startIdx; i < tileLen; i++ {
 		count := 0
 		for traceKey, v := range tile.Traces {
-			gTrace := v.(*types.GoldenTrace)
-			if gTrace.Values[i] != types.MISSING_DIGEST {
+			if !v.IsMissing(i) {
 				count++
 				notEmpty[traceKey] = true
 			}
@@ -104,11 +109,9 @@ func md5Commits(store types.TileStore, targetHash string, nCommits int) {
 	startIdx := endIdx - nCommits
 
 	traceKeys := make([]string, 0, len(tile.Traces))
-	for k := range tile.Traces {
-		gTrace := tile.Traces[k].(*types.GoldenTrace)
-		for _, val := range gTrace.Values[startIdx:endIdx] {
-			// Only consider traces that are not empty
-			if val != types.MISSING_DIGEST {
+	for k, v := range tile.Traces {
+		for i := startIdx; i < endIdx; i++ {
+			if !v.IsMissing(i) {
 				traceKeys = append(traceKeys, k)
 				break
 			}
@@ -118,8 +121,12 @@ func md5Commits(store types.TileStore, targetHash string, nCommits int) {
 
 	result := make([][]string, len(traceKeys))
 	for i, k := range traceKeys {
-		gTrace := tile.Traces[k].(*types.GoldenTrace)
-		result[i] = gTrace.Values[startIdx:endIdx]
+		switch trace := tile.Traces[k].(type) {
+		case *types.GoldenTrace:
+			result[i] = trace.Values[startIdx:endIdx]
+		case *types.PerfTrace:
+			result[i] = asStringSlice(trace.Values[startIdx:endIdx])
+		}
 	}
 
 	byteStr, err := getBytes(result)
@@ -133,6 +140,18 @@ func md5Commits(store types.TileStore, targetHash string, nCommits int) {
 	fmt.Printf("Hash            : %s\n", md5Hash)
 	fmt.Printf("Total     traces: %d\n", len(tile.Traces))
 	fmt.Printf("Non-empty traces: %d\n", len(traceKeys))
+}
+
+func asStringSlice(fVals []float64) []string {
+	result := make([]string, len(fVals))
+	for idx, val := range fVals {
+		var buf bytes.Buffer
+		if err := binary.Write(&buf, binary.LittleEndian, val); err != nil {
+			glog.Fatalf("Unable to convert float to bytes: %f", val)
+		}
+		result[idx] = string(buf.Bytes())
+	}
+	return result
 }
 
 func parseInt(nStr string) int {
@@ -159,11 +178,7 @@ func main() {
 		}
 	case DUMP_COMMITS:
 		nCommits := parseInt(args[1])
-		tile, err := store.Get(0, -1)
-		if err != nil {
-			glog.Fatal("Could not read tile: " + err.Error())
-		}
-		dumpCommits(tile, nCommits)
+		dumpCommits(store, nCommits)
 	case MD5:
 		hash := args[1]
 		nCommits := parseInt(args[2])

@@ -1,9 +1,12 @@
 package ingester
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 
 	"time"
 )
@@ -12,6 +15,10 @@ import (
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
+
+	"skia.googlesource.com/buildbot.git/go/fileutil"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/gs"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -22,6 +29,11 @@ import (
 
 var (
 	client *http.Client
+)
+
+var (
+	// Sync all writes to the leveldb file.
+	SYNC_WRITE = &opt.WriteOptions{Sync: true}
 )
 
 // Init initializes the module, the optional http.Client is used to make HTTP
@@ -35,27 +47,47 @@ func Init(cl *http.Client) {
 	}
 }
 
-// IngestResultsFiles is passed to NewIngester, it does the actual work of mapping the resultsFiles into the Tiles.
-type IngestResultsFiles func(tt *TileTracker, resultsFiles []*ResultsFileLocation, counter metrics.Counter) error
+type Opener func() (io.ReadCloser, error)
+
+// ResultIngester needs to be implemented to ingest files. It allows to
+// ingest files individually or in a batch mode.
+type ResultIngester interface {
+	// The provided opener allows to open an input stream, parse it and add it
+	// to the tile. The ingestion can also be done when BatchFinished is
+	// called. In that case the openers should be cached and opened then.
+	Ingest(tt *TileTracker, opener Opener, fname string, counter metrics.Counter) error
+
+	// BatchFinished is called when the current batch is finished. This is
+	// to cover the case when ingestion is better done for the whole batch or
+	// a processing is necessary for the batch. This should reset the internal
+	// state of the Ingester.
+	BatchFinished(counter metrics.Counter) error
+}
 
 // Ingester does the work of loading JSON files from Google Storage and putting
-// the data into the TileStore.
-//
-// TODO(jcgregorio) This needs a refactor since we also use it to drive the ingestion
-// of trybot data. It needs to be broken into two pieces, one which feeds ResultsFileLocations,
-// and a second optional piece tha builds a TileTracker if necessary.
+// the data into the TileStore. The time range it ingests is controlled by
+// minDuration and nCommits. It aims to cover all commits within minDuration
+// from the last commit and cover at least nCommits.
+
+// TODO(stephana): Currently this relies on a client to call the Update()
+// method in intervals. Instead we should make the ingester self contained
+// in that it runs a goroutine internally to drive ingestion.
 type Ingester struct {
 	git            *gitinfo.GitInfo
 	tileStore      types.TileStore
 	storage        *storage.Service
 	hashToNumber   map[string]int
 	lastIngestTime time.Time
-	ingestResults  IngestResultsFiles
+	resultIngester ResultIngester
 	storageBaseDir string
 	datasetName    string
+	nCommits       int
+	minDuration    time.Duration
+
+	// Keeps track of processed files so we avoid duplicate downloads.
+	processedFiles *leveldb.DB
 
 	// Metrics about the ingestion process.
-
 	elapsedTimePerUpdate           metrics.Gauge
 	metricsProcessed               metrics.Counter
 	lastSuccessfulUpdate           time.Time
@@ -71,10 +103,19 @@ func newCounter(name, suffix string) metrics.Counter {
 }
 
 // NewIngester creates an Ingester given the repo and tilestore specified.
-func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, f IngestResultsFiles, storageBaseDir, metricName string) (*Ingester, error) {
+func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, ri ResultIngester, nCommits int, minDuration time.Duration, storageBaseDir, statusDir, metricName string) (*Ingester, error) {
 	storage, err := storage.New(http.DefaultClient)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create interace to Google Storage: %s\n", err)
+	}
+
+	var processedFiles *leveldb.DB = nil
+	if statusDir != "" {
+		statusDir = fileutil.Must(fileutil.EnsureDirExists(filepath.Join(statusDir, datasetName)))
+		processedFiles, err = leveldb.OpenFile(filepath.Join(statusDir, "processed_files.ldb"), nil)
+	}
+	if err != nil {
+		glog.Fatalf("Unable to open status db: %s", err)
 	}
 
 	i := &Ingester{
@@ -82,13 +123,16 @@ func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, 
 		tileStore:                      filetilestore.NewFileTileStore(tileStoreDir, datasetName, -1),
 		storage:                        storage,
 		hashToNumber:                   map[string]int{},
-		ingestResults:                  f,
+		resultIngester:                 ri,
 		storageBaseDir:                 storageBaseDir,
 		datasetName:                    datasetName,
 		elapsedTimePerUpdate:           newGauge(metricName, "update"),
 		metricsProcessed:               newCounter(metricName, "processed"),
 		lastSuccessfulUpdate:           time.Now(),
 		timeSinceLastSucceessfulUpdate: newGauge(metricName, "time-since-last-successful-update"),
+		nCommits:                       nCommits,
+		minDuration:                    minDuration,
+		processedFiles:                 processedFiles,
 	}
 
 	i.timeSinceLastSucceessfulUpdate.Update(int64(time.Since(i.lastSuccessfulUpdate).Seconds()))
@@ -225,7 +269,6 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 	// Add Commit info to the Tiles for each new hash.
 	tt := NewTileTracker(i.tileStore, i.hashToNumber)
 	for _, hash := range newHashes {
-		glog.Infof("For hash %s: %s", i.datasetName, hash)
 		if err := tt.Move(hash); err != nil {
 			glog.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
 			continue
@@ -251,14 +294,14 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 // Update does a single full update, first updating the commits and creating
 // new tiles if necessary, and then pulling in new data from Google Storage to
 // populate the traces.
-func (i *Ingester) Update(pull bool, lastIngestTime int64) error {
+func (i *Ingester) Update() error {
 	glog.Info("Beginning ingest.")
 	begin := time.Now()
-	if err := i.UpdateCommitInfo(pull); err != nil {
+	if err := i.UpdateCommitInfo(true); err != nil {
 		glog.Errorf("Update: Failed to update commit info: %s", err)
 		return err
 	}
-	if err := i.UpdateTiles(lastIngestTime); err != nil {
+	if err := i.UpdateTiles(); err != nil {
 		glog.Errorf("Update: Failed to update tiles: %s", err)
 		return err
 	}
@@ -270,34 +313,151 @@ func (i *Ingester) Update(pull bool, lastIngestTime int64) error {
 
 // UpdateTiles reads the latest JSON files from Google Storage and converts
 // them into Traces stored in Tiles.
-func (i *Ingester) UpdateTiles(lastIngestTime int64) error {
+
+// TODO(stephana): Currently this is very coarse in that it determines
+// the target time range in every run and therfore considers a large
+// number of input files. That is somewhat mitigated by only ingesting
+// files we have not seen before, but a future version should clever about
+// picking a better timerange.
+func (i *Ingester) UpdateTiles() error {
+	startTS, endTS, err := i.getCommitRangeOfInterest()
+	if err != nil {
+		return err
+	}
+	glog.Infof("StartTime (%s): %s", i.datasetName, time.Unix(startTS, 0))
+	glog.Infof("EndTime   (%s): %s", i.datasetName, time.Unix(endTS, 0))
+
 	glog.Infof("Ingest %s: Starting UpdateTiles", i.datasetName)
 
 	tt := NewTileTracker(i.tileStore, i.hashToNumber)
-	resultsFiles, err := GetResultsFileLocations(lastIngestTime, i.storage, i.storageBaseDir)
+	resultsFiles, err := GetResultsFileLocations(startTS, endTS, i.storage, i.storageBaseDir)
 	if err != nil {
 		return fmt.Errorf("Failed to update tiles: %s", err)
 	}
 
 	glog.Infof("Ingest %s: Found %d resultsFiles", i.datasetName, len(resultsFiles))
 
-	i.ingestResults(tt, resultsFiles, i.metricsProcessed)
+	processedMD5s := make([]string, 0, len(resultsFiles))
+	for _, resultLocation := range resultsFiles {
+		if !i.inProcessedFiles(resultLocation.MD5Hash) {
+			opener := func() (io.ReadCloser, error) {
+				r, err := resultLocation.Fetch()
+				if err != nil {
+					return nil, fmt.Errorf("Failed to fetch: %s: %s", resultLocation.Name, err)
+				}
+				return r, nil
+			}
+
+			if err := i.resultIngester.Ingest(tt, opener, resultLocation.Name, i.metricsProcessed); err != nil {
+				glog.Errorf("Failed to ingest %s: %s", resultLocation.Name, err)
+				continue
+			}
+			// Gather all successfully processed MD5s
+			processedMD5s = append(processedMD5s, resultLocation.MD5Hash)
+		} else {
+			glog.Infof("Skipped duplicate: %s (%s)", resultLocation.Name, resultLocation.MD5Hash)
+		}
+	}
+
+	// Notify the ingester that the batch has finished and cause it to reset its
+	// state and do any pending ingestion.
+	if err := i.resultIngester.BatchFinished(i.metricsProcessed); err != nil {
+		glog.Errorf("Batchfinished failed (%s): %s", i.datasetName, err)
+	} else {
+		i.addToProcessedFiles(processedMD5s)
+	}
+
 	tt.Flush()
 
 	glog.Infof("Ingest %s: Finished UpdateTiles", i.datasetName)
 	return nil
 }
 
-// ResultsFileLocation is the URI of a single JSON file with results in it.
-type ResultsFileLocation struct {
-	URI  string // Absolute URI used to fetch the file.
-	Name string // Complete path, w/o the gs:// prefix.
+// inProcessedFiles returns true if the provided MD5 hash is recorded list of
+// processed files.
+func (i *Ingester) inProcessedFiles(md5Hash string) bool {
+	if i.processedFiles == nil {
+		return false
+	}
+
+	ret, err := i.processedFiles.Has([]byte(md5Hash), nil)
+	if err != nil {
+		glog.Errorf("Unable to read processedFiles DB: %s", err)
+		return false
+	}
+	return ret
 }
 
-func NewResultsFileLocation(uri, name string) *ResultsFileLocation {
+// addToProcessedFiles markes the provided MD5 hashes as processe and stores
+// them in the persistent database.
+func (i *Ingester) addToProcessedFiles(md5Hashes []string) {
+	if i.processedFiles == nil {
+		return
+	}
+
+	// Only consider the files ingested if Batchfinished succeeded.
+	batch := &leveldb.Batch{}
+	for _, h := range md5Hashes {
+		batch.Put([]byte(h), []byte{})
+	}
+	err := i.processedFiles.Write(batch, SYNC_WRITE)
+	if err != nil {
+		glog.Errorf("Error writing processed files db %s", err)
+	}
+}
+
+// getCommitRangeOfInterest returns the time range (start, end) that
+// we are interested in. This method assumes that UpdateCommitInfo
+// has been called and therefore reading the tile should not fail.
+func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
+	// Get the index of the last tile.
+	tile, err := i.tileStore.Get(0, -1)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	commitCounter := 1
+	lastCommitIdx := tile.LastCommitIndex()
+	startCommitTS := tile.Commits[lastCommitIdx].CommitTime
+	now := time.Now()
+
+Loop:
+	for tileIndex := tile.TileIndex; tileIndex > 0; {
+		for cidx := lastCommitIdx; cidx >= 0; cidx-- {
+			timeDiff := now.Sub(time.Unix(tile.Commits[cidx].CommitTime, 0))
+			if (commitCounter >= i.nCommits) && (timeDiff >= i.minDuration) {
+				startCommitTS = tile.Commits[cidx].CommitTime
+				break Loop
+			}
+			commitCounter++
+		}
+
+		// Get the next tile.
+		tileIndex--
+		if tileIndex > 0 {
+			tile, err = i.tileStore.Get(0, tileIndex)
+			if err != nil {
+				return 0, 0, err
+			}
+			lastCommitIdx = tile.LastCommitIndex()
+		}
+	}
+
+	return startCommitTS, now.Unix(), nil
+}
+
+// ResultsFileLocation is the URI of a single JSON file with results in it.
+type ResultsFileLocation struct {
+	URI     string // Absolute URI used to fetch the file.
+	Name    string // Complete path, w/o the gs:// prefix.
+	MD5Hash string // MD5 hash of the content.
+}
+
+func NewResultsFileLocation(uri, name string, md5Hash string) *ResultsFileLocation {
 	return &ResultsFileLocation{
-		URI:  uri,
-		Name: name,
+		URI:     uri,
+		Name:    name,
+		MD5Hash: md5Hash,
 	}
 }
 
@@ -332,7 +492,7 @@ func getFilesFromGSDir(dir string, earliestTimestamp int64, storage *storage.Ser
 	results := []*ResultsFileLocation{}
 	glog.Infoln("Opening directory", dir)
 
-	req := storage.Objects.List(gs.GS_PROJECT_BUCKET).Prefix(dir)
+	req := storage.Objects.List(gs.GS_PROJECT_BUCKET).Prefix(dir).Fields("nextPageToken", "items/updated", "items/md5Hash", "items/mediaLink", "items/name")
 	for req != nil {
 		resp, err := req.Do()
 		if err != nil {
@@ -342,7 +502,11 @@ func getFilesFromGSDir(dir string, earliestTimestamp int64, storage *storage.Ser
 			updateDate, _ := time.Parse(time.RFC3339, result.Updated)
 			updateTimestamp := updateDate.Unix()
 			if updateTimestamp > earliestTimestamp {
-				results = append(results, NewResultsFileLocation(result.MediaLink, result.Name))
+				md5Bytes, err := base64.StdEncoding.DecodeString(result.Md5Hash)
+				if err != nil {
+					glog.Errorf("Unable to decode base64-encoded MD5: %s", err)
+				}
+				results = append(results, NewResultsFileLocation(result.MediaLink, result.Name, hex.EncodeToString(md5Bytes)))
 			}
 		}
 		if len(resp.NextPageToken) > 0 {
@@ -356,13 +520,13 @@ func getFilesFromGSDir(dir string, earliestTimestamp int64, storage *storage.Ser
 
 // GetResultsFileLocations retrieves a list of ResultsFileLocations from Cloud Storage, each one
 // corresponding to a single JSON file.
-func GetResultsFileLocations(last int64, storage *storage.Service, dir string) ([]*ResultsFileLocation, error) {
-	dirs := gs.GetLatestGSDirs(last, time.Now().Unix(), dir)
+func GetResultsFileLocations(startTS int64, endTS int64, storage *storage.Service, dir string) ([]*ResultsFileLocation, error) {
+	dirs := gs.GetLatestGSDirs(startTS, endTS, dir)
 	glog.Infoln("GetResultsFileLocations: Looking in dirs: ", dirs)
 
 	retval := []*ResultsFileLocation{}
 	for _, dir := range dirs {
-		files, err := getFilesFromGSDir(dir, last, storage)
+		files, err := getFilesFromGSDir(dir, startTS, storage)
 		if err != nil {
 			return nil, err
 		}
