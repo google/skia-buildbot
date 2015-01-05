@@ -58,7 +58,6 @@ push/res/js/core.js
 push/res/js/core-debug.js
 push/res/imp/bower_components
 push/res/common
-
 doc/res/common
 doc/res/imp/bower_components
 doc/res/css/docs.css
@@ -66,7 +65,12 @@ doc/res/js/core.js
 doc/res/js/core-debug.js
 doc/node_modules
 doc/third_party
-
+alertserver/res/vul
+alertserver/res/js/core-debug.js
+alertserver/res/js/core.js
+alertserver/res/imp/bower_components
+alertserver/node_modules
+alertserver/third_party
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
 # Logfiles from launched buildslaves.

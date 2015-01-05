@@ -18,7 +18,7 @@ GO_DIRS = [
   '.',
   'ct',
   'golden',
-  'monitoring',
+  'alertserver',
   'perf',
 ]
 

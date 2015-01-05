@@ -28,6 +28,8 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/alertserver/go/alerting"
+	"skia.googlesource.com/buildbot.git/alertserver/go/commit_cache"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/email"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
@@ -35,8 +37,6 @@ import (
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/skiaversion"
 	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/monitoring/go/alerting"
-	"skia.googlesource.com/buildbot.git/monitoring/go/commit_cache"
 )
 
 const (
@@ -77,20 +77,24 @@ var (
 	alertsFile            = flag.String("alerts_file", "alerts.cfg", "Config file containing alert rules.")
 	testing               = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
+	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
 func reloadTemplates() {
 	// Change the current working directory to two directories up from this source file so that we
 	// can read templates and serve static (res/) files.
-	_, filename, _, _ := runtime.Caller(0)
-	cwd := filepath.Join(filepath.Dir(filename), "../..")
+
+	if *resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+	}
 	alertsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/alerts.html"),
-		filepath.Join(cwd, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/alerts.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	commitsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/commits.html"),
-		filepath.Join(cwd, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/commits.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
 
@@ -215,7 +219,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir("./"))
+	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", string(300))
 		fileServer.ServeHTTP(w, r)

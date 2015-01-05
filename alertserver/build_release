@@ -1,0 +1,23 @@
+#!/bin/bash
+# Builds and uploads a debian package for alertserver.
+APPNAME=alertserver
+DESCRIPTION="Application to alertserver updates for applications."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=755 -T ${GOPATH}/bin/alertserver ${ROOT}/usr/local/bin/alertserver
+${INSTALL} --mode=644 -T ./sys/monit               ${ROOT}/etc/monit/conf.d/alertserver
+${INSTALL} --mode=755 -T ./sys/init                ${ROOT}/etc/init.d/alertserver
+${INSTALL} --mode=644 -T ./alerts.conf             ${ROOT}/etc/skiaalertserver/alerts.conf
+${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/skiaalertserver/res/vul/elements.html
+${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/skiaalertserver/res/js/core.js
+${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/skiaalertserver/templates/header.html
+${INSTALL} --mode=644 -T ./templates/alerts.html   ${ROOT}/usr/local/share/skiaalertserver/templates/alerts.html
+${INSTALL} --mode=644 -T ./templates/commits.html  ${ROOT}/usr/local/share/skiaalertserver/templates/commits.html
+${INSTALL_DIR} --mode=777                          ${ROOT}/mnt/pd0/alertserver_scratch
+}
+
+source ../bash/release.sh
