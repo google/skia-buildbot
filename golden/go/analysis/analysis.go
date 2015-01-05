@@ -150,7 +150,7 @@ type Analyzer struct {
 	pathToURLConverter PathToURLConverter
 
 	// Lock to protect the expectations and current* variables.
-	mutex sync.Mutex
+	mutex sync.RWMutex
 
 	// Counts the number of times the main event loop has executed.
 	// This is for testing only.
@@ -175,8 +175,8 @@ func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileSto
 // a series of commits. Each trace contains the digests and their labels
 // based on our knowledge about digests (expectations).
 func (a *Analyzer) GetTileCounts(query map[string][]string) (*GUITileCounts, error) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
 
 	if len(query) > 0 {
 		tile, effectiveQuery := a.getSubTile(query)
@@ -197,8 +197,8 @@ func (a *Analyzer) GetTileCounts(query map[string][]string) (*GUITileCounts, err
 // very long. If we don't add pagination, this should be merged with
 // GetTestDetail.
 func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, error) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
 
 	if len(query) == 0 {
 		return a.currentTestDetails, nil
@@ -235,8 +235,8 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 // we will return all traces.
 // TODO (stephana): If the result is too big we should add pagination.
 func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*GUITestDetails, error) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
 
 	var effectiveQuery map[string][]string
 	testDetail := a.currentTestDetails.lookup(testName)
@@ -290,8 +290,7 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 	}
 
 	// Let's update our knowledge of the labels.
-	a.partialUpdate(labeledTestDigests)
-	a.setDerivedOutputs(a.currentTile, false)
+	a.updateDerivedOutputs(labeledTestDigests, expectations)
 
 	result := make([]*GUITestDetail, 0, len(labeledTestDigests))
 	for testName := range labeledTestDigests {
@@ -328,8 +327,19 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 			glog.Errorf("Error reading tile store: %s\n", err)
 			errorTileLoadingCounter.Inc(1)
 		} else {
+			// Protect the tile and expectations with the write lock.
+			a.mutex.Lock()
+			defer a.mutex.Unlock()
+
+			// Retrieve the current expectations.
+			expectations, err := a.expStore.Get(false)
+			if err != nil {
+				glog.Errorf("Error retrieving expectations: %s", err)
+				return
+			}
+
 			newLabeledTile := a.processTile(tile)
-			a.setDerivedOutputs(newLabeledTile, true)
+			a.setDerivedOutputs(newLabeledTile, expectations)
 		}
 		glog.Info("Done processing tiles.")
 		runsCounter.Inc(1)
@@ -370,11 +380,7 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 		}
 
 		// Label the digests and add them to the labeled traces.
-		testName, targetLabeledTrace := result.getLabeledTrace(v)
-		if err := a.labelDigests(testName, tempDigests, tempLabels); err != nil {
-			glog.Errorf("Error labeling digests: %s\n", err)
-			continue
-		}
+		_, targetLabeledTrace := result.getLabeledTrace(v)
 		targetLabeledTrace.addLabeledDigests(tempCommitIds, tempDigests, tempLabels)
 	}
 
@@ -383,55 +389,57 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 }
 
 // setDerivedOutputs derives the output data from the given tile and
-// updates the outputs and tile in the analyzer. If needsLocking is true
-// it will acquire the lock otherwise it assumes the calling function owns it.
-func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, needsLocking bool) {
+// updates the outputs and tile in the analyzer.
+func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, expectations *expstorage.Expectations) {
+	// Assign all the labels.
+	for testName, traces := range labeledTile.Traces {
+		for _, trace := range traces {
+			a.labelDigests(testName, trace.Digests, trace.Labels, expectations)
+		}
+	}
+
 	// Generate the lookup index for the tile and get all parameters.
 	a.currentIndex = NewLabeledTileIndex(labeledTile)
 	labeledTile.allParams = a.currentIndex.AllParams
 
 	// calculate all the output data.
-	newTileCounts := a.getOutputCounts(labeledTile)
-	newTestDetails := a.getTestDetails(labeledTile)
-	newStatus := calcStatus(labeledTile)
-
-	// acquire the lock if necessary
-	if needsLocking {
-		a.mutex.Lock()
-		defer a.mutex.Unlock()
-	}
-
-	// update the analyzer's data structures
 	a.currentTile = labeledTile
-	a.currentTileCounts = newTileCounts
-	a.currentTestDetails = newTestDetails
-	a.currentStatus = newStatus
+	a.currentTileCounts = a.getOutputCounts(labeledTile)
+	a.currentTestDetails = a.getTestDetails(labeledTile)
+	a.currentStatus = calcStatus(labeledTile)
 }
 
-// partialUpdate iterates over the traces in of the tiles that have changed and
+// updateLabels iterates over the traces in of the tiles that have changed and
 // labels them according to our current expecatations.
-func (a *Analyzer) partialUpdate(labeledTestDigests map[string]types.TestClassification) {
+
+// updateDerivedOutputs
+func (a *Analyzer) updateDerivedOutputs(labeledTestDigests map[string]types.TestClassification, expectations *expstorage.Expectations) {
+	// Update the labels of the traces that have changed.
 	for testName := range labeledTestDigests {
 		if traces, ok := a.currentTile.Traces[testName]; ok {
 			for _, trace := range traces {
 				// Note: This is potentially slower than using labels in
 				// labeledTestDigests directly, but it keeps the code simpler.
-				a.labelDigests(testName, trace.Digests, trace.Labels)
+				a.labelDigests(testName, trace.Digests, trace.Labels, expectations)
 			}
 		}
 	}
+
+	// Update all the output data structures.
+	// TODO(stephana): Evaluate whether the counts are really useful or if they can be removed.
+	// If we need them uncomment the following line and implement the corresponding function.
+	//a.updateOutputCounts(labeledTestDigests)
+
+	// Update the tests that have changed and the status.
+	a.updateTestDetails(labeledTestDigests)
+	a.currentStatus = calcStatus(a.currentTile)
 }
 
 // labelDigest assignes a label to the given digests based on the expectations.
 // Its assumes that targetLabels are pre-initialized, usualy with UNTRIAGED,
 // because it will not change the label if the given test and digest cannot be
 // found.
-func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels []types.Label) error {
-	expectations, err := a.expStore.Get(false)
-	if err != nil {
-		return err
-	}
-
+func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels []types.Label, expectations *expstorage.Expectations) {
 	for idx, digest := range digests {
 		if test, ok := expectations.Tests[testName]; ok {
 			if foundLabel, ok := test[digest]; ok {
@@ -439,8 +447,6 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 			}
 		}
 	}
-
-	return nil
 }
 
 // getUntriagedDigests returns the untriaged digests of a specific test that

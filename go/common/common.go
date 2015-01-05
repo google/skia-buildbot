@@ -5,6 +5,7 @@ package common
 import (
 	"flag"
 	"net"
+	"runtime"
 	"time"
 
 	"github.com/golang/glog"
@@ -20,6 +21,9 @@ func Init() {
 	flag.VisitAll(func(f *flag.Flag) {
 		glog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
+
+	// Use all cores.
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 // Runs normal Init functions as well as tracking runtime metrics.

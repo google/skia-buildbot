@@ -69,66 +69,38 @@ type GUIDiffMetric struct {
 	PosDigest        string  `json:"posDigest"`
 }
 
+// GUITestDetailSortable is a wrapper to sort a slice of GUITestDetail.
+type GUITestDetailSortable []*GUITestDetail
+
+func (g GUITestDetailSortable) Len() int           { return len(g) }
+func (g GUITestDetailSortable) Swap(i, j int)      { g[i], g[j] = g[j], g[i] }
+func (g GUITestDetailSortable) Less(i, j int) bool { return g[i].Name < g[j].Name }
+
 // getTestDetails processes a tile and calculates the diff metrics for all
 // untriaged digests.
 func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 	glog.Infoln("Starting to extract test details.")
-	result := []*GUITestDetail{}
-	testsMap := map[string]int{}
-	totalTestCount := len(labeledTile.Traces)
+	nTests := len(labeledTile.Traces)
+	resultCh := make(chan *GUITestDetail, nTests)
 
-	curTestCount := 0
 	for testName, testTraces := range labeledTile.Traces {
-		untriagedDigests := map[string]*GUIUntriagedDigest{}
-		positiveDigests := map[string]*DigestInfo{}
-		negativeDigests := map[string]*DigestInfo{}
+		go a.processOneTestDetail(testName, testTraces, resultCh)
+	}
 
-		for _, oneTrace := range testTraces {
-			for i, digest := range oneTrace.Digests {
-				switch oneTrace.Labels[i] {
-				case types.UNTRIAGED:
-					if _, ok := untriagedDigests[digest]; !ok {
-						untriagedDigests[digest] = &GUIUntriagedDigest{
-							DigestInfo: DigestInfo{
-								ImgUrl:      a.getUrl(digest),
-								ParamCounts: map[string]map[string]int{},
-							},
-						}
-					}
-					a.incDigestInfo(&untriagedDigests[digest].DigestInfo, digest, oneTrace.Params)
-				case types.POSITIVE:
-					positiveDigests[digest] = a.incDigestInfo(positiveDigests[digest], digest, oneTrace.Params)
-				case types.NEGATIVE:
-					negativeDigests[digest] = a.incDigestInfo(negativeDigests[digest], digest, oneTrace.Params)
-				}
-			}
-		}
+	// Wait for the results to finish.
+	result := make([]*GUITestDetail, 0, nTests)
+	for i := 0; i < nTests; i++ {
+		result = append(result, <-resultCh)
+		// glog.Infof("Processed %d/%d tests. (%f%%)", len(result), nTests, float64(len(result))/float64(nTests)*100.0)
+	}
 
-		// get the positive digests as an array
-		posDigestArr := make([]string, 0, len(positiveDigests))
-		for posDigest, _ := range positiveDigests {
-			posDigestArr = append(posDigestArr, posDigest)
-		}
+	// Sort the resulting tests by name.
+	sort.Sort(GUITestDetailSortable(result))
 
-		// expand the info about the untriaged digests.
-		for digest, _ := range untriagedDigests {
-			dms := a.newGUIDiffMetrics(digest, posDigestArr)
-			sort.Sort(dms)
-
-			untriagedDigests[digest].ImgUrl = a.getUrl(digest)
-			untriagedDigests[digest].Diffs = dms
-		}
-
-		result = append(result, &GUITestDetail{
-			Name:      testName,
-			Untriaged: untriagedDigests,
-			Positive:  positiveDigests,
-			Negative:  negativeDigests,
-		})
-		testsMap[testName] = len(result) - 1
-
-		curTestCount++
-		glog.Infof("Processed %d/%d tests. (%f%%)", curTestCount, totalTestCount, float64(curTestCount)/float64(totalTestCount)*100.0)
+	// Build the test lookup map.
+	testsMap := make(map[string]int, nTests)
+	for idx, t := range result {
+		testsMap[t.Name] = idx
 	}
 
 	glog.Infoln("Done extracting test details.")
@@ -138,6 +110,82 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 		AllParams: labeledTile.allParams,
 		Tests:     result,
 		testsMap:  testsMap,
+	}
+}
+
+func (a *Analyzer) updateTestDetails(labeledTestDigests map[string]types.TestClassification) {
+	glog.Infoln("Starting to update test details.")
+	nTests := len(labeledTestDigests)
+	resultCh := make(chan *GUITestDetail, nTests)
+
+	for testName := range labeledTestDigests {
+		go a.processOneTestDetail(testName, a.currentTile.Traces[testName], resultCh)
+	}
+
+	// Wait for the results to finish.
+	curr := a.currentTestDetails.Tests
+	for i := 0; i < nTests; i++ {
+		result := <-resultCh
+
+		// find the result in the current tile and replace it.
+		idx := sort.Search(len(curr), func(j int) bool { return curr[j].Name >= result.Name })
+		// We found the entry.
+		if (idx < len(curr)) && (curr[idx].Name == result.Name) {
+			curr[idx] = result
+		} else {
+			glog.Errorf("Unable to find test '%s'", result.Name)
+		}
+	}
+
+	glog.Infoln("Done updating test details.")
+}
+
+func (a *Analyzer) processOneTestDetail(testName string, testTraces []*LabeledTrace, resultCh chan<- *GUITestDetail) {
+	untriagedDigests := map[string]*GUIUntriagedDigest{}
+	positiveDigests := map[string]*DigestInfo{}
+	negativeDigests := map[string]*DigestInfo{}
+
+	for _, oneTrace := range testTraces {
+		for i, digest := range oneTrace.Digests {
+			switch oneTrace.Labels[i] {
+			case types.UNTRIAGED:
+				if _, ok := untriagedDigests[digest]; !ok {
+					untriagedDigests[digest] = &GUIUntriagedDigest{
+						DigestInfo: DigestInfo{
+							ImgUrl:      a.getUrl(digest),
+							ParamCounts: map[string]map[string]int{},
+						},
+					}
+				}
+				a.incDigestInfo(&untriagedDigests[digest].DigestInfo, digest, oneTrace.Params)
+			case types.POSITIVE:
+				positiveDigests[digest] = a.incDigestInfo(positiveDigests[digest], digest, oneTrace.Params)
+			case types.NEGATIVE:
+				negativeDigests[digest] = a.incDigestInfo(negativeDigests[digest], digest, oneTrace.Params)
+			}
+		}
+	}
+
+	// get the positive digests as an array
+	posDigestArr := make([]string, 0, len(positiveDigests))
+	for posDigest, _ := range positiveDigests {
+		posDigestArr = append(posDigestArr, posDigest)
+	}
+
+	// expand the info about the untriaged digests.
+	for digest, _ := range untriagedDigests {
+		dms := a.newGUIDiffMetrics(digest, posDigestArr)
+		sort.Sort(dms)
+
+		untriagedDigests[digest].ImgUrl = a.getUrl(digest)
+		untriagedDigests[digest].Diffs = dms
+	}
+
+	resultCh <- &GUITestDetail{
+		Name:      testName,
+		Untriaged: untriagedDigests,
+		Positive:  positiveDigests,
+		Negative:  negativeDigests,
 	}
 }
 
