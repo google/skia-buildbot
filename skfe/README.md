@@ -26,11 +26,11 @@ A single unified web frontend for all the Skia properties.
 ~~~~
 
 A single static IP is handled by GCE Network load balancing
-which distributes reqeusts to two NGINX servers:
+which distributes requests to two NGINX servers:
    * skia-skfe-1
    * skia-skfe-2
 
-They, in turn, handle SSL and then distrubute the calls to the backends:
+They, in turn, handle SSL and then distribute the calls to the backends:
 skiaperf, skiagold, skiadocs, skiapush, skiaalerts, etc.
 For the load balancing setup, see the [cloud console page](https://console.developers.google.com/project/31977622648/compute/loadBalancing/forwardingRules/forwardingRulesDetail/regions/us-central1/forwardingRules/skfe-rule).
 The forwarding rule is name `skfe-rule`, and the target pool is `skfe-pool`.
