@@ -40,7 +40,7 @@ var (
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	workDir        = flag.String("work_dir", "/tmp", "The directory to check out the doc repo into.")
-	docRepo        = flag.String("doc_repo", "https://github.com/jcgregorio/docs.git", "The directory to check out the doc repo into.")
+	docRepo        = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The directory to check out the doc repo into.")
 	refresh        = flag.Duration("refresh", 5*time.Minute, "The duration between doc git repo refreshes.")
 )
 
@@ -97,7 +97,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			util.ReportError(w, r, err, "The CL given is not valid.")
 			return
 		}
-		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), *docRepo, issue)
+		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), filepath.Join(*workDir, "primary"), issue)
 		if err != nil {
 			util.ReportError(w, r, err, "Failed to load the given CL")
 			return
