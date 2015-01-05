@@ -12,6 +12,10 @@ build_chromium:
 create_pagesets_on_workers:
 	go install -v ./go/master_scripts/create_pagesets_on_workers/
 
+.PHONY: capture_archives_on_workers
+capture_archives_on_workers:
+	go install -v ./go/master_scripts/capture_archives_on_workers/
+
 # Worker scripts.
 .PHONY: create_pagesets
 create_pagesets:
@@ -43,7 +47,7 @@ test:
 	go test ./go/...
 
 .PHONY: master_scripts
-master_scripts: run_command build_chromium create_pagesets_on_workers
+master_scripts: run_command build_chromium create_pagesets_on_workers capture_archives_on_workers
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua run_benchmark run_skia_correctness
