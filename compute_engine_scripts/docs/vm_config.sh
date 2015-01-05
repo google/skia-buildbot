@@ -17,6 +17,7 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # The name of instance where skia docs is running on.
 INSTANCE_NAME=${VM_NAME_BASE}-docs
+MACHINE_TYPE=n1-standard-1
 
 DOCS_IP_ADDRESS=104.154.112.101
 

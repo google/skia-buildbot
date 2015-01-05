@@ -14,7 +14,7 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
 
 gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --zone $ZONE \
-  --machine-type n1-standard-1 \
+  --machine-type $MACHINE_TYPE \
   --network "default" \
   --maintenance-policy "MIGRATE" \
   --scopes $SCOPES \
