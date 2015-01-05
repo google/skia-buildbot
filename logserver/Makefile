@@ -1,5 +1,5 @@
 default:
-	go install -v ../perf/go/logserver
+	go install -v ./go/logserver
 
 release: default
 	./build_logserver_release

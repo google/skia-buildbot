@@ -45,7 +45,7 @@ ingest:
 
 .PHONY: logs
 logs:
-	go install -v ./go/logserver
+	go install -v ../logserver/go/logserver
 
 .PHONY: tool
 tool:

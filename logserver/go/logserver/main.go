@@ -17,11 +17,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/util"
-
-	"github.com/golang/glog"
 )
 
 var (
