@@ -25,6 +25,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiorix/go-web/autogzip"
 	"github.com/golang/glog"
 	"github.com/gorilla/securecookie"
 	"skia.googlesource.com/buildbot.git/bug_chomper/go/issue_tracker"
@@ -361,8 +362,8 @@ func handleOAuth2Callback(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// handleRoot is the handler function for all HTTP requests at the root level.
-func handleRoot(w http.ResponseWriter, r *http.Request) {
+// mainHandler is the handler function for all HTTP requests at the root level.
+func mainHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Info("Fetching " + r.URL.Path)
 	if r.URL.Path == "/" || r.URL.Path == "/index.html" {
 		handleBugChomper(w, r)
@@ -375,7 +376,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 func main() {
 	common.InitWithMetrics("bug_chomper", *graphiteServer)
 
-	http.HandleFunc("/", handleRoot)
+	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc(OAUTH_CALLBACK_PATH, handleOAuth2Callback)
 	http.Handle("/res/", http.FileServer(http.Dir("./")))
 	glog.Info("Server is running at " + scheme + "://" + LOCAL_HOST + *port)
