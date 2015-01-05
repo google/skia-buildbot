@@ -1,38 +1,141 @@
 package database
 
 import (
+	"bufio"
 	"database/sql"
+	"flag"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
-	_ "github.com/mattn/go-sqlite3"
+	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/util"
 )
+
+const (
+	// Template for DB connection strings.
+	DB_CONN_TMPL = "%s:%s@tcp(%s:%d)/%s?parseTime=true"
+
+	// Name of the root user.
+	USER_ROOT = "root"
+
+	// Name of the readwrite user.
+	USER_RW = "readwrite"
+
+	// Key of the password for the readwrite user.
+	RW_METADATA_KEY = "readwrite"
+
+	// Key of the password for the root user.
+	ROOT_METADATA_KEY = "root"
+)
+
+var (
+	// Flags
+	dbHost *string
+	dbPort *int
+	dbUser *string
+	dbName *string
+)
+
+// SetupFlags adds command-line flags for the database.
+func SetupFlags(defaultHost string, defaultPort int, defaultUser, defaultDatabase string) {
+	dbHost = flag.String("db_host", defaultHost, "Hostname of the MySQL database server.")
+	dbPort = flag.Int("db_port", defaultPort, "Port number of the MySQL database.")
+	dbUser = flag.String("db_user", defaultUser, "MySQL user name.")
+	dbName = flag.String("db_name", defaultDatabase, "Name of the MySQL database.")
+}
+
+// checkFlags returns an error if the command-line flags have not been set.
+func checkFlags() error {
+	if dbHost == nil || dbPort == nil || dbUser == nil || dbName == nil {
+		return fmt.Errorf(
+			"One or more of the required command-line flags was not set. " +
+				"Did you call forget to call database.SetupFlags?")
+	}
+	return nil
+}
+
+// ConfigFromFlags obtains a DatabaseConfig based on parsed command-line flags.
+// If local is true, the DB host is overridden.
+func ConfigFromFlags(password string, local bool, m []MigrationStep) (*DatabaseConfig, error) {
+	if err := checkFlags(); err != nil {
+		return nil, err
+	}
+	// Override the DB host in local mode.
+	useHost := *dbHost
+	if local {
+		useHost = "localhost"
+	}
+
+	usePassword := password
+	// Prompt for password if necessary.
+	if usePassword == "" && !local {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("Enter password for MySQL user %s at %s:%d: ", *dbUser, useHost, *dbPort)
+		var err error
+		usePassword, err = reader.ReadString('\n')
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get password: %v", err)
+		}
+		usePassword = strings.Trim(usePassword, "\n")
+	}
+	return NewDatabaseConfig(*dbUser, usePassword, useHost, *dbPort, *dbName, m), nil
+}
+
+// ConfigFromFlagsAndMetadata obtains a DatabaseConfig based on a combination
+// of parsed command-line flags and metadata when not running in local mode.
+func ConfigFromFlagsAndMetadata(local bool, m []MigrationStep) (*DatabaseConfig, error) {
+	if err := checkFlags(); err != nil {
+		return nil, err
+	}
+	// If not in local mode, get the password from metadata.
+	password := ""
+	if !local {
+		key := ""
+		if *dbUser == USER_RW {
+			key = RW_METADATA_KEY
+		} else if *dbUser == USER_ROOT {
+			key = ROOT_METADATA_KEY
+		}
+		if key == "" {
+			return nil, fmt.Errorf("Unknown user %s; could not obtain password from metadata.", *dbUser)
+		}
+		var err error
+		password, err = metadata.Get(key)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to find metadata. Use 'local' flag when running locally.")
+		}
+	}
+	return ConfigFromFlags(password, local, m)
+}
 
 // Config information to create a database connection.
 type DatabaseConfig struct {
 	MySQLString    string
-	SQLiteFilePath string
 	MigrationSteps []MigrationStep
+}
+
+// NewDatabaseConfig constructs a DatabaseConfig from the given options.
+func NewDatabaseConfig(user, password, host string, port int, database string, m []MigrationStep) *DatabaseConfig {
+	return &DatabaseConfig{
+		MySQLString:    fmt.Sprintf(DB_CONN_TMPL, user, password, host, port, database),
+		MigrationSteps: m,
+	}
 }
 
 // Single step to migrated from one database version to the next and back.
 type MigrationStep struct {
-	MySQLUp    []string
-	MySQLDown  []string
-	SQLiteUp   []string
-	SQLiteDown []string
+	MySQLUp   []string
+	MySQLDown []string
 }
 
 // Database handle to send queries to the underlying database.
 type VersionedDB struct {
-	// Database intance that is either backed by SQLite or MySQl.
+	// Database intance that is backed by MySQL.
 	DB *sql.DB
-
-	// Keeps track if we are connected to MySQL or SQLite
-	IsMySQL bool
 
 	// List of migration steps for this database.
 	migrationSteps []MigrationStep
@@ -46,33 +149,20 @@ func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
 	// This is for testing only. In production we get the relevant information
 	// from the metadata server.
 	var err error
-	var isMySQL = true
 	var DB *sql.DB = nil
 
-	if conf.MySQLString != "" {
-		glog.Infoln("Opening SQL database.")
-		if DB, err = sql.Open("mysql", conf.MySQLString); err == nil {
-			glog.Infoln("Sending Ping.")
-			err = DB.Ping()
-		}
+	glog.Infoln("Opening SQL database.")
+	if DB, err = sql.Open("mysql", conf.MySQLString); err == nil {
+		glog.Infoln("Sending Ping.")
+		err = DB.Ping()
+	}
 
-		if err != nil {
-			glog.Fatalln("Failed to open connection to SQL server:", err)
-		}
-	} else {
-		// Open a local SQLite database instead.
-		glog.Infof("Opening local sqlite database at: %s", conf.SQLiteFilePath)
-		// Fallback to sqlite for local use.
-		DB, err = sql.Open("sqlite3", conf.SQLiteFilePath)
-		if err != nil {
-			glog.Fatalln("Failed to open:", err)
-		}
-		isMySQL = false
+	if err != nil {
+		glog.Fatalln("Failed to open connection to SQL server:", err)
 	}
 
 	result := &VersionedDB{
 		DB:             DB,
-		IsMySQL:        isMySQL,
 		migrationSteps: conf.MigrationSteps,
 	}
 
@@ -84,12 +174,6 @@ func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
 		panic("Attempt to create version table returned: " + err.Error())
 	}
 	glog.Infoln("Version table OK.")
-
-	// Migrate to the latest version if we are using SQLite, so we don't have
-	// to run the *_migratdb command for a local database.
-	if !result.IsMySQL {
-		result.Migrate(result.MaxDBVersion())
-	}
 
 	// Ping the database occasionally to keep the connection fresh.
 	go func() {
@@ -185,11 +269,8 @@ func (vdb *VersionedDB) MaxDBVersion() int {
 
 // Returns an error if the version table does not exist.
 func (vdb *VersionedDB) checkVersionTable() error {
-	// Check if the table exists in MySQL or SQLite.
+	// Check if the table exists in MySQL.
 	stmt := "SHOW TABLES LIKE 'sk_db_version'"
-	if !vdb.IsMySQL {
-		stmt = "SELECT name FROM sqlite_master WHERE type='table' AND name='sk_db_version';"
-	}
 
 	var temp string
 	err := vdb.DB.QueryRow(stmt).Scan(&temp)
@@ -263,15 +344,10 @@ func (vdb *VersionedDB) getMigrations(currentVersion int, targetVersion int) [][
 		var temp []string
 		switch {
 		// using mysqlp
-		case (inc > 0) && vdb.IsMySQL:
-			temp = vdb.migrationSteps[idx].MySQLUp
-		case (inc < 0) && vdb.IsMySQL:
-			temp = vdb.migrationSteps[idx].MySQLDown
-		// using sqlite
 		case (inc > 0):
-			temp = vdb.migrationSteps[idx].SQLiteUp
+			temp = vdb.migrationSteps[idx].MySQLUp
 		case (inc < 0):
-			temp = vdb.migrationSteps[idx].SQLiteDown
+			temp = vdb.migrationSteps[idx].MySQLDown
 		}
 		result = append(result, temp)
 		idx += inc

@@ -13,6 +13,7 @@ import (
 	"github.com/golang/glog"
 	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/common"
+	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/db"
@@ -73,13 +74,19 @@ func NewIngestionProcess(git *gitinfo.GitInfo, tileDir, datasetName string, ri i
 }
 
 func main() {
+	// Setup DB flags.
+	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
+
 	common.InitWithMetrics("ingest", *graphiteServer)
 
 	// Initialize the database. We might not need the oauth dialog if it fails.
-	db.Init(db.ProdDatabaseConfig(*local))
+	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+	if err != nil {
+		glog.Fatal(err)
+	}
+	db.Init(conf)
 
 	var client *http.Client
-	var err error
 	if *doOauth {
 		config := auth.DefaultOAuthConfig(*oauthCacheFile)
 		client, err = auth.RunFlow(config)

@@ -8,9 +8,9 @@ import (
 	"flag"
 
 	"github.com/golang/glog"
+	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/database"
-	"skia.googlesource.com/buildbot.git/perf/go/db"
 )
 
 var (
@@ -19,12 +19,12 @@ var (
 
 func main() {
 	// Set up flags.
-	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME)
+	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_ROOT, buildbot.PROD_DB_NAME)
 
 	// Global init to initialize glog and parse arguments.
 	common.Init()
 
-	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+	conf, err := database.ConfigFromFlagsAndMetadata(*local, buildbot.MigrationSteps())
 	if err != nil {
 		glog.Fatal(err)
 	}

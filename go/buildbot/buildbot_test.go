@@ -11,8 +11,9 @@ import (
 	"testing"
 
 	"github.com/golang/glog"
+	"github.com/jmoiron/sqlx"
 
-	"skia.googlesource.com/buildbot.git/go/database"
+	"skia.googlesource.com/buildbot.git/go/database/testutil"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/testutils"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -54,25 +55,22 @@ var (
 )
 
 // clearDB initializes the database, upgrading it if needed, and removes all
-// data to ensure that the test begins with a clean slate.
-func clearDB(t *testing.T, conf *database.DatabaseConfig) error {
+// data to ensure that the test begins with a clean slate. Returns a MySQLTestDatabase
+// which must be closed after the test finishes.
+func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 	failMsg := "Database initialization failed. Do you have the test database set up properly?  Details: %v"
-	if err := InitDB(conf); err != nil {
+
+	// Set up the database.
+	testDb := testutil.SetupMySQLTestDatabase(t, migrationSteps)
+
+	conf := testutil.LocalTestDatabaseConfig(migrationSteps)
+	var err error
+	DB, err = sqlx.Open("mysql", conf.MySQLString)
+	if err != nil {
 		t.Fatalf(failMsg, err)
 	}
-	tables := []string{
-		TABLE_BUILD_REVISIONS,
-		TABLE_BUILD_STEPS,
-		TABLE_BUILDS,
-	}
-	// Delete the data.
-	for _, table := range tables {
-		_, err := DB.Exec(fmt.Sprintf("DELETE FROM %s;", table))
-		if err != nil {
-			t.Fatalf(failMsg, err)
-		}
-	}
-	return nil
+
+	return testDb
 }
 
 // respBodyCloser is a wrapper which lets us pretend to implement io.ReadCloser
@@ -107,7 +105,8 @@ func testGetBuildFromMaster(repo *gitinfo.GitInfo) (*Build, error) {
 // TestGetBuildFromMaster verifies that we can load JSON data from the build master and
 // decode it into a Build object.
 func TestGetBuildFromMaster(t *testing.T) {
-	clearDB(t, ProdDatabaseConfig(true))
+	d := clearDB(t)
+	defer d.Close()
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -131,9 +130,8 @@ func TestGetBuildFromMaster(t *testing.T) {
 // TestBuildJsonSerialization verifies that we can serialize a build to JSON
 // and back without losing or corrupting the data.
 func TestBuildJsonSerialization(t *testing.T) {
-	if err := clearDB(t, ProdDatabaseConfig(true)); err != nil {
-		t.Fatal(err)
-	}
+	d := clearDB(t)
+	defer d.Close()
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -163,9 +161,8 @@ func TestBuildJsonSerialization(t *testing.T) {
 // TestFindCommitsForBuild verifies that findCommitsForBuild correctly obtains
 // the list of commits which were newly built in a given build.
 func TestFindCommitsForBuild(t *testing.T) {
-	if err := clearDB(t, ProdDatabaseConfig(true)); err != nil {
-		t.Fatal(err)
-	}
+	d := clearDB(t)
+	defer d.Close()
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -283,8 +280,10 @@ func dbSerializeAndCompare(b1 *Build) error {
 
 // testBuildDbSerialization verifies that we can write a build to the DB and
 // pull it back out without losing or corrupting the data.
-func testBuildDbSerialization(t *testing.T, conf *database.DatabaseConfig) {
-	clearDB(t, conf)
+func testBuildDbSerialization(t *testing.T) {
+	d := clearDB(t)
+	defer d.Close()
+
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
@@ -318,8 +317,10 @@ func testBuildDbSerialization(t *testing.T, conf *database.DatabaseConfig) {
 // testUnfinishedBuild verifies that we can write a build which is not yet
 // finished, load the build back from the database, and update it when it
 // finishes.
-func testUnfinishedBuild(t *testing.T, conf *database.DatabaseConfig) {
-	clearDB(t, conf)
+func testUnfinishedBuild(t *testing.T) {
+	d := clearDB(t)
+	defer d.Close()
+
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
@@ -401,8 +402,10 @@ func testUnfinishedBuild(t *testing.T, conf *database.DatabaseConfig) {
 
 // testLastProcessedBuilds verifies that getLastProcessedBuilds gives us
 // the expected result.
-func testLastProcessedBuilds(t *testing.T, conf *database.DatabaseConfig) {
-	clearDB(t, conf)
+func testLastProcessedBuilds(t *testing.T) {
+	d := clearDB(t)
+	defer d.Close()
+
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
@@ -522,9 +525,9 @@ func TestGetLatestBuilds(t *testing.T) {
 }
 
 // testGetUningestedBuilds verifies that getUningestedBuilds works as expected.
-func testGetUningestedBuilds(t *testing.T, conf *database.DatabaseConfig) {
-	// First, insert some builds into the database as a starting point.
-	clearDB(t, conf)
+func testGetUningestedBuilds(t *testing.T) {
+	d := clearDB(t)
+	defer d.Close()
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -613,9 +616,9 @@ func testGetUningestedBuilds(t *testing.T, conf *database.DatabaseConfig) {
 // testIngestNewBuilds verifies that we can successfully query the masters and
 // the database for new and unfinished builds, respectively, and ingest them
 // into the database.
-func testIngestNewBuilds(t *testing.T, conf *database.DatabaseConfig) {
-	// First, insert some builds into the database as a starting point.
-	clearDB(t, conf)
+func testIngestNewBuilds(t *testing.T) {
+	d := clearDB(t)
+	defer d.Close()
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -718,64 +721,37 @@ func testIngestNewBuilds(t *testing.T, conf *database.DatabaseConfig) {
 	}
 }
 
-func TestSQLiteBuildDbSerialization(t *testing.T) {
-	testBuildDbSerialization(t, ProdDatabaseConfig(true))
-}
-
-func TestSQLiteUnfinishedBuild(t *testing.T) {
-	testUnfinishedBuild(t, ProdDatabaseConfig(true))
-}
-
-func TestSQLiteLastProcessedBuilds(t *testing.T) {
-	testLastProcessedBuilds(t, ProdDatabaseConfig(true))
-}
-
-func TestSQLiteGetUningestedBuilds(t *testing.T) {
-	testGetUningestedBuilds(t, ProdDatabaseConfig(true))
-}
-
-func TestSQLiteIngestNewBuilds(t *testing.T) {
-	testIngestNewBuilds(t, ProdDatabaseConfig(true))
-}
-
-// The below MySQL tests require:
-// shell> mysql -u root
-// mysql> CREATE DATABASE sk_testing;
-// mysql> CREATE USER 'test_user'@'localhost';
-// mysql> GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP ON sk_testing.* TO 'test_user'@'localhost';
-//
-// They are skipped when using the -short flag.
 func TestMySQLBuildDbSerialization(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping MySQL tests with -short.")
 	}
-	testBuildDbSerialization(t, localMySQLTestDatabaseConfig("test_user", ""))
+	testBuildDbSerialization(t)
 }
 
 func TestMySQLUnfinishedBuild(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping MySQL tests with -short.")
 	}
-	testUnfinishedBuild(t, localMySQLTestDatabaseConfig("test_user", ""))
+	testUnfinishedBuild(t)
 }
 
 func TestMySQLLastProcessedBuilds(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping MySQL tests with -short.")
 	}
-	testLastProcessedBuilds(t, localMySQLTestDatabaseConfig("test_user", ""))
+	testLastProcessedBuilds(t)
 }
 
 func TestMySQLGetUningestedBuilds(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping MySQL tests with -short.")
 	}
-	testGetUningestedBuilds(t, localMySQLTestDatabaseConfig("test_user", ""))
+	testGetUningestedBuilds(t)
 }
 
 func TestMySQLIngestNewBuilds(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping MySQL tests with -short.")
 	}
-	testIngestNewBuilds(t, localMySQLTestDatabaseConfig("test_user", ""))
+	testIngestNewBuilds(t)
 }

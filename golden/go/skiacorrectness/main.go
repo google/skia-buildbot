@@ -25,9 +25,6 @@ import (
 
 // Command line flags.
 var (
-	// Get the default connection string suitable for production.
-	defaultDbConnStr = db.GetConnectionString("readwrite", "", "", "")
-
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	port           = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
@@ -35,8 +32,6 @@ var (
 	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
 	imageDir       = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	gsBucketName   = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
-	dbConnStr      = flag.String("db_conn_string", defaultDbConnStr, "MySQL connection string for backend database. If 'local' is false the password in this string will be substituted via the metadata server.")
-	sqlitePath     = flag.String("sqlite_path", "./golden.db", "Filepath of the embedded SQLite database. Requires 'local' to be set to true and 'mysql_conn' to be empty to take effect.")
 	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 )
@@ -230,6 +225,9 @@ func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
 }
 
 func main() {
+	// Setup DB flags.
+	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
+
 	// Global init to initialize
 	common.InitWithMetrics("skiacorrectness", *graphiteServer)
 
@@ -256,7 +254,11 @@ func main() {
 
 	// Get the expecations storage, the filediff storage and the tilestore.
 	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
-	vdb := database.NewVersionedDB(db.GetConfig(*dbConnStr, *sqlitePath, *local))
+	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+	if err != nil {
+		glog.Fatal(err)
+	}
+	vdb := database.NewVersionedDB(conf)
 	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb))
 	tileStore := filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
 

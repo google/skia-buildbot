@@ -5,11 +5,7 @@ package main
 // it is not entered via the command line.
 
 import (
-	"bufio"
 	"flag"
-	"fmt"
-	"os"
-	"strings"
 
 	"github.com/golang/glog"
 	"skia.googlesource.com/buildbot.git/go/common"
@@ -17,34 +13,20 @@ import (
 	"skia.googlesource.com/buildbot.git/golden/go/db"
 )
 
-func main() {
-	defaultConnStr := db.GetConnectionString("root", "", "", "")
+var (
+	local = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+)
 
-	// flags
-	dbConnString := flag.String("db_conn_string", defaultConnStr, "\n\tDatabase string to open connect to the MySQL database. "+
-		"\n\tNeeds to follow the format of the golang-mysql driver (https://github.com/go-sql-driver/mysql."+
-		"\n\tIf the string contains %s the user will be prompted to enter a password which will then be used for subtitution.")
+func main() {
+	// Set up flags.
+	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME)
 
 	// Global init to initialize glog and parse arguments.
 	common.Init()
 
-	var connectionStr = *dbConnString
-
-	// if it contains formatting information read the password from stdin.
-	if strings.Contains(connectionStr, "%s") {
-		glog.Infof("Using connection string: %s", connectionStr)
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Enter password for MySQL: ")
-		password, err := reader.ReadString('\n')
-		if err != nil {
-			glog.Fatalf("Unable to read password. Error: %s", err)
-		}
-		connectionStr = fmt.Sprintf(connectionStr, strings.TrimRight(password, "\n"))
-	}
-
-	conf := &database.DatabaseConfig{
-		MySQLString:    connectionStr,
-		MigrationSteps: db.MigrationSteps(),
+	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+	if err != nil {
+		glog.Fatal(err)
 	}
 	vdb := database.NewVersionedDB(conf)
 

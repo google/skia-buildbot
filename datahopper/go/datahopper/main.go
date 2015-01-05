@@ -28,20 +28,23 @@ const (
 // flags
 var (
 	graphiteServer   = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
-	useMetadata      = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	influxDbHost     = flag.String("influxdb_host", "localhost:8086", "The InfluxDB hostname.")
 	influxDbName     = flag.String("influxdb_name", "root", "The InfluxDB username.")
 	influxDbPassword = flag.String("influxdb_password", "root", "The InfluxDB password.")
 	influxDbDatabase = flag.String("influxdb_database", "", "The InfluxDB database.")
 	workdir          = flag.String("workdir", ".", "Working directory used by data processors.")
-	testing          = flag.Bool("testing", false, "Whether we're running in non-production, testing mode.")
+	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
 func main() {
+	// Setup DB flags.
+	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_RW, buildbot.PROD_DB_NAME)
+
+	// Global init to initialize glog and parse arguments.
 	common.InitWithMetrics("datahopper", *graphiteServer)
 
 	// Prepare the InfluxDB credentials. Load from metadata if appropriate.
-	if *useMetadata {
+	if !*local {
 		*influxDbName = metadata.MustGet(INFLUXDB_NAME_METADATA_KEY)
 		*influxDbPassword = metadata.MustGet(INFLUXDB_PASSWORD_METADATA_KEY)
 	}
@@ -62,12 +65,7 @@ func main() {
 	go autoroll_ingest.LoadAutoRollData(dbClient, *workdir)
 	go func() {
 		// Initialize the buildbot database.
-		var conf *database.DatabaseConfig
-		if *testing {
-			conf = buildbot.LocalMySQLTestDatabaseConfig("test_user", "")
-		} else {
-			conf = buildbot.ProdDatabaseConfig(false)
-		}
+		conf, err := database.ConfigFromFlagsAndMetadata(*local, buildbot.MigrationSteps())
 		if err := buildbot.InitDB(conf); err != nil {
 			glog.Fatal(err)
 		}

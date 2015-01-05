@@ -3,3 +3,6 @@ default:
 
 release:
 	./build_release
+
+migratedb:
+	go install -v ./go/buildbot_migratedb

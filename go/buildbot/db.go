@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 // build from the database.
@@ -91,7 +92,19 @@ func GetBuildFromDB(master, builder string, buildNumber int) (*Build, error) {
 }
 
 // ReplaceIntoDB inserts or updates the Build in the database.
-func (b Build) ReplaceIntoDB() (rv error) {
+func (b Build) ReplaceIntoDB() error {
+	var err error
+	for attempt := 0; attempt < 5; attempt++ {
+		if err = b.replaceIntoDB(); err == nil {
+			return nil
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	return err
+}
+
+// replaceIntoDB inserts or updates the Build in the database.
+func (b Build) replaceIntoDB() (rv error) {
 	// Insert the build itself.
 	tx, err := DB.Beginx()
 	if err != nil {
@@ -141,9 +154,9 @@ func (b Build) ReplaceIntoDB() (rv error) {
 	}
 	defer insertStepStmt.Close()
 	for _, s := range b.Steps {
-		_, err = insertStepStmt.Exec(s.BuilderName, s.MasterName, s.BuildNumber, s.Name, s.Results, s.Number, s.Started, s.Finished)
+		_, err = insertStepStmt.Exec(b.BuilderName, b.MasterName, b.Number, s.Name, s.Results, s.Number, s.Started, s.Finished)
 		if err != nil {
-			return fmt.Errorf("Failed to push build into database: %v", err)
+			return fmt.Errorf("Failed to push build step into database: %v", err)
 		}
 
 	}

@@ -1,0 +1,4 @@
+#!/bin/bash
+# Set up the test database and user.
+set -x -e
+mysql -u root -p < setup_test_db.sql

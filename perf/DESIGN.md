@@ -197,7 +197,7 @@ GCE):
 Initial setup of the database, the users, and the tables:
 
 * Create the database and set up permissions. Execute the following after
-  you connect to a MySQL database (not necessary for SQLite).
+  you connect to a MySQL database.
 
     CREATE DATABASE skia;
     USE skia;
@@ -209,10 +209,9 @@ Initial setup of the database, the users, and the tables:
 * Create the versioned database tables.
 
   We use the 'migratedb' tool to keep the database in a well defined (versioned)
-  state. The 'db_conn_string' flag allows to specify the target database.
-  By default it will try to connect to the production environment.
-  But for testing a local MySQL database can be provided. If it cannot
-  connect to MySQL it will fall back to SQLite.
+  state. The db_host, db_port, db_user, and db_name flags allow you to specify
+  the target database. By default it will try to connect to the production
+  environment. But for testing a local MySQL database can be provided.
 
   Bring the production database to the latest schema version:
 
@@ -220,11 +219,7 @@ Initial setup of the database, the users, and the tables:
 
   Bring a local database to the latest schema version:
 
-     $ migratedb -logtostderr=true -db_conn_string="root:%s@tcp(localhost:3306)/skia?parseTime=true"
-
-  Bring a local SQLite database to the latest schema version:
-
-     $ migratedb -logtostderr=true -db_conn_string=""
+     $ perf_migratedb -logtostderr=true -db_host=localhost --local
 
 
 Nginx

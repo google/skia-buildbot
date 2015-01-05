@@ -1,8 +1,6 @@
 package testutil
 
 import (
-	"fmt"
-	"os"
 	"strings"
 	"testing"
 )
@@ -20,25 +18,33 @@ const (
 	// parameters are: username, password, database.
 	MYSQL_DB_OPEN = "%s:%s@tcp(localhost:3306)/%s?parseTime=true"
 
-	// File path to the local SQLite testing databse.
-	SQLITE_DB_PATH = "./testing.db"
-
 	// Name of the MySQL lock
 	SQL_LOCK = "mysql_testlock"
+
+	// Name of the shared test database.
+	TEST_DB_HOST = "localhost"
+	TEST_DB_PORT = 3306
+	TEST_DB_NAME = "sk_testing"
+
+	// Names of test users. These users should have no password and be
+	// limited to accessing the sk_testing database.
+	USER_ROOT = "test_root"
+	USER_RW   = "test_rw"
+
+	// Empty password for testing.
+	TEST_PASSWORD = ""
 )
 
-// Creates an SQLite test database and runs migration tests against it using the
-// given migration steps.
-func SQLiteVersioningTests(t *testing.T, migrationSteps []database.MigrationStep) {
-	// Initialize without argument to test against SQLite3
-	conf := &database.DatabaseConfig{
-		SQLiteFilePath: SQLITE_DB_PATH,
-		MigrationSteps: migrationSteps,
-	}
+// LocalTestDatabaseConfig returns a DatabaseConfig appropriate for local
+// testing.
+func LocalTestDatabaseConfig(m []database.MigrationStep) *database.DatabaseConfig {
+	return database.NewDatabaseConfig(USER_RW, "", TEST_DB_HOST, TEST_DB_PORT, TEST_DB_NAME, m)
+}
 
-	vdb := database.NewVersionedDB(conf)
-	assert.False(t, vdb.IsMySQL)
-	testDBVersioning(t, vdb)
+// LocalTestRootDatabaseConfig returns a DatabaseConfig appropriate for local
+// testing, with root access.
+func LocalTestRootDatabaseConfig(m []database.MigrationStep) *database.DatabaseConfig {
+	return database.NewDatabaseConfig(USER_ROOT, "", TEST_DB_HOST, TEST_DB_PORT, TEST_DB_NAME, m)
 }
 
 // Creates an MySQL test database and runs migration tests against it using the
@@ -47,10 +53,7 @@ func SQLiteVersioningTests(t *testing.T, migrationSteps []database.MigrationStep
 // not allowed to create/drop/alter tables.
 func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database.MigrationStep) {
 	// OpenDB as root user and remove all tables.
-	rootConf := &database.DatabaseConfig{
-		MySQLString:    GetTestMySQLConnStr(t, "root", dbName),
-		MigrationSteps: migrationSteps,
-	}
+	rootConf := LocalTestRootDatabaseConfig(migrationSteps)
 	lockVdb := GetMySQlLock(t, rootConf)
 	defer func() {
 		ReleaseMySQLLock(t, lockVdb)
@@ -58,15 +61,11 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 	}()
 
 	rootVdb := database.NewVersionedDB(rootConf)
-	assert.True(t, rootVdb.IsMySQL)
 	ClearMySQLTables(t, rootVdb)
 	assert.Nil(t, rootVdb.Close())
 
 	// Configuration for the readwrite user without DDL privileges.
-	readWriteConf := &database.DatabaseConfig{
-		MySQLString:    GetTestMySQLConnStr(t, "readwrite", dbName),
-		MigrationSteps: migrationSteps,
-	}
+	readWriteConf := LocalTestDatabaseConfig(migrationSteps)
 
 	// Open DB as readwrite user and make sure it fails because of a missing
 	// version table.
@@ -82,28 +81,6 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 	assert.NotPanics(t, func() {
 		database.NewVersionedDB(readWriteConf)
 	})
-}
-
-// Returns a connection string to the local MySQL server and the given database.
-// The test will be skipped if these environement variables are not set:
-//      MYSQL_TESTING_RWPW   (password of readwrite user)
-//      MYSQL_TESTING_ROOTPW (password of the db root user)
-func GetTestMySQLConnStr(t *testing.T, user string, dbName string) string {
-	rwUserPw, rootPw := os.Getenv("MYSQL_TESTING_RWPW"), os.Getenv("MYSQL_TESTING_ROOTPW")
-	if testing.Short() {
-		t.Skip("Skipping test against MySQL in short mode.")
-	}
-
-	// Skip this test unless there are environment variables with the rwuser and
-	// root password for the local MySQL instance.
-	if (rwUserPw == "") || (rootPw == "") {
-		t.Skip("Skipping test against MySQL. Set 'MYSQL_TESTING_ROOTPW' and 'MYSQL_TESTING_RWPW' to enable tests.")
-	}
-	pw := rwUserPw
-	if user == "root" {
-		pw = rootPw
-	}
-	return fmt.Sprintf(MYSQL_DB_OPEN, user, pw, dbName)
 }
 
 // Get a lock from MySQL to serialize DB tests.
@@ -139,6 +116,47 @@ func ClearMySQLTables(t *testing.T, vdb *database.VersionedDB) {
 		_, err = vdb.DB.Exec(stmt)
 		assert.Nil(t, err)
 	}
+}
+
+// MySQLTestDatabase is a convenience struct for using a test database which
+// starts in a clean state.
+type MySQLTestDatabase struct {
+	rootVdb *database.VersionedDB
+	t       *testing.T
+}
+
+// SetupMySQLTestDatabase returns a MySQLTestDatabase in a clean state. It must
+// be closed after use.
+//
+// Example usage:
+//
+// db := SetupMySQLTestDatabase(t, migrationSteps)
+// defer db.Close()
+// ... Tests here ...
+func SetupMySQLTestDatabase(t *testing.T, migrationSteps []database.MigrationStep) *MySQLTestDatabase {
+	conf := LocalTestRootDatabaseConfig(migrationSteps)
+	lockVdb := GetMySQlLock(t, conf)
+	rootVdb := database.NewVersionedDB(conf)
+	ClearMySQLTables(t, rootVdb)
+	if err := rootVdb.Close(); err != nil {
+		t.Fatal(err)
+	}
+	rootVdb = database.NewVersionedDB(conf)
+	if err := rootVdb.Migrate(rootVdb.MaxDBVersion()); err != nil {
+		t.Fatal(err)
+	}
+	if err := rootVdb.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return &MySQLTestDatabase{lockVdb, t}
+}
+
+func (d *MySQLTestDatabase) Close() {
+	if err := d.rootVdb.Migrate(0); err != nil {
+		d.t.Fatal(err)
+	}
+	ReleaseMySQLLock(d.t, d.rootVdb)
+	d.rootVdb.Close()
 }
 
 // Test wether the migration steps execute correctly.

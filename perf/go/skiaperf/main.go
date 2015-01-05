@@ -24,6 +24,7 @@ import (
 
 import (
 	"skia.googlesource.com/buildbot.git/go/common"
+	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
@@ -1058,9 +1059,16 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
+	// Setup DB flags.
+	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
+
 	common.InitWithMetrics("skiaperf", *graphiteServer)
 	Init()
-	db.Init(db.ProdDatabaseConfig(*local))
+	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+	if err != nil {
+		glog.Fatal(err)
+	}
+	db.Init(conf)
 	stats.Start(nanoTileStore, git)
 	alerting.Start(nanoTileStore, *apikey)
 
