@@ -11,7 +11,7 @@ INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/alertserver ${ROOT}/usr/local/bin/alertserver
 ${INSTALL} --mode=644 -T ./sys/monit               ${ROOT}/etc/monit/conf.d/alertserver
 ${INSTALL} --mode=755 -T ./sys/init                ${ROOT}/etc/init.d/alertserver
-${INSTALL} --mode=644 -T ./alerts.conf             ${ROOT}/etc/skiaalertserver/alerts.conf
+${INSTALL} --mode=644 -T ./alerts.cfg              ${ROOT}/etc/skiaalertserver/alerts.cfg
 ${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/skiaalertserver/res/vul/elements.html
 ${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/skiaalertserver/res/js/core.js
 ${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/skiaalertserver/templates/header.html

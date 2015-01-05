@@ -98,7 +98,7 @@ func reloadTemplates() {
 	))
 }
 
-func init() {
+func Init() {
 	reloadTemplates()
 }
 
@@ -280,12 +280,6 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runServer(serverURL string) {
-	_, filename, _, _ := runtime.Caller(0)
-	cwd := filepath.Join(filepath.Dir(filename), "../..")
-	if err := os.Chdir(cwd); err != nil {
-		glog.Fatal(err)
-	}
-
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", alertHandler)
 	http.HandleFunc("/commits", commitsHandler)
@@ -304,6 +298,7 @@ func main() {
 	v := skiaversion.GetVersion()
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
+	Init()
 	parsedPollInterval, err := time.ParseDuration(*alertPollInterval)
 	if err != nil {
 		glog.Fatalf("Failed to parse -alertPollInterval: %s", *alertPollInterval)
