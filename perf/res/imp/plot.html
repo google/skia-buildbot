@@ -98,7 +98,7 @@
                 frameRate: 60
               },
               hooks: {
-                draw: [that.drawAnnotations_.bind(that)],
+                drawOverlay: [that.drawAnnotations_.bind(that)],
                 drawSeries: [that.drawHighlightedLine_.bind(that)]
               },
               selection: {
