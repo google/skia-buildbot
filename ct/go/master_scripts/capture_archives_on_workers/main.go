@@ -49,7 +49,7 @@ func sendEmail() {
 }
 
 func updateWebappTask() {
-	if err := util.UpdateWebappTask(*gaeTaskID, util.UpdateAdminTasksWebapp); err != nil {
+	if err := util.UpdateWebappTask(*gaeTaskID, util.UpdateAdminTasksWebapp, map[string]string{}); err != nil {
 		glog.Errorf("Error while updating webapp task: %s", err)
 		return
 	}

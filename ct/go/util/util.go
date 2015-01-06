@@ -191,7 +191,7 @@ func ApplyPatch(patch, dir string) error {
 	return ExecuteCmd(BINARY_GIT, args, []string{}, 5*time.Minute, nil, nil)
 }
 
-func UpdateWebappTask(gaeTaskID int, webappURL string) error {
+func UpdateWebappTask(gaeTaskID int, webappURL string, extraData map[string]string) error {
 	pwdBytes, err := ioutil.ReadFile(WebappPasswordPath)
 	if err != nil {
 		return fmt.Errorf("Could not read the webapp password file: %s", err)
@@ -200,6 +200,9 @@ func UpdateWebappTask(gaeTaskID int, webappURL string) error {
 	postData := url.Values{}
 	postData.Set("key", strconv.Itoa(gaeTaskID))
 	postData.Add("password", pwd)
+	for k, v := range extraData {
+		postData.Add(k, v)
+	}
 	req, err := http.NewRequest("POST", webappURL, bytes.NewBufferString(postData.Encode()))
 	if err != nil {
 		return fmt.Errorf("Could not create HTTP request: %s", err)

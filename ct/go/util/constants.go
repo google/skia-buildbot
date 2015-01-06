@@ -8,6 +8,7 @@ const (
 	NUM_WORKERS          int = 100
 	WORKER_NAME_TEMPLATE     = "build%d-m5"
 	GS_BUCKET_NAME           = "cluster-telemetry"
+	GS_HTTP_LINK             = "https://storage.cloud.google.com/"
 
 	// File names and dir names.
 	TIMESTAMP_FILE_NAME             = "TIMESTAMP"
@@ -49,6 +50,7 @@ const (
 	BINARY_GIT             = "git"
 	BINARY_RENDER_PICTURES = "render_pictures"
 	BINARY_MAIL            = "mail"
+	BINARY_LUA             = "lua"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
@@ -77,9 +79,9 @@ var (
 	// Slaves  = GetCTWorkers()
 	// TODO(rmistry): Switch this to use GetCTWorkers() when ready to run in prod
 	Slaves = []string{
-		"epoger-linux.cnc.corp.google.com",
 		"piraeus.cnc.corp.google.com",
 		"172.23.212.25",
+		"epoger-linux.cnc.corp.google.com",
 	}
 
 	// Names of local directories and files.
@@ -108,6 +110,8 @@ var (
 	// Webapp subparts.
 	AdminTasksWebapp       = WEBAPP_ROOT + "admin_tasks"
 	UpdateAdminTasksWebapp = WEBAPP_ROOT + "update_admin_task"
+	LuaTasksWebapp         = WEBAPP_ROOT + "lua_script"
+	UpdateLuaTasksWebapp   = WEBAPP_ROOT + "update_lua_task"
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{
