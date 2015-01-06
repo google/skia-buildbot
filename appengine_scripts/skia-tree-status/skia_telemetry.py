@@ -1096,7 +1096,8 @@ class UpdateTelemetryTasksPage(BasePage):
     completed_time = datetime.datetime.now()
 
     telemetry_task = TelemetryTasks.get_telemetry_task(key)[0]
-    telemetry_task.output_link = output_link
+    if output_link:
+      telemetry_task.output_link = output_link
     telemetry_task.completed_time = completed_time
     telemetry_task.put()
 
