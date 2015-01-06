@@ -26,9 +26,10 @@ var skia = skia || {};
     // Key in parameters that identifies a test.
     PRIMARY_KEY_FIELD: 'name',
 
+    CORPUS_FIELD: 'source_type',
+
     // Param fields to filter.
     PARAMS_FILTER: {
-      'name': true,
       'source_type': true
     },
 
@@ -475,8 +476,8 @@ var skia = skia || {};
     var result = [];
     for(var k in serverData.allParams) {
       if (serverData.allParams.hasOwnProperty(k) && (!filter || !ns.c.PARAMS_FILTER[k])) {
-        serverData.allParams[k].sort();
-        result.push([k, serverData.allParams[k]]);
+          serverData.allParams[k].sort();
+          result.push([k, serverData.allParams[k]]);
       }
     }
 
@@ -609,11 +610,13 @@ var skia = skia || {};
   /**
   * updateDelta updates the given delta between changed and original for the
   * given testname. If testName evaluates to false the deltas for all tests
-  * are calculated.
+  * are calculated. It returns the number of changes this delta would result
+  * in.
   */
   ns.updateDelta = function (changed, original, delta, testName) {
     var useTestNames = (testName) ? [testName] : ns.keys(changed);
     var testDelta, testCount, tn;
+    var pendingCount = 0;
 
     for (var i = 0, len = useTestNames.length; i < len; i++) {
       tn = useTestNames[i];
@@ -634,8 +637,11 @@ var skia = skia || {};
           delta: testDelta,
           count: testCount
         };
+        pendingCount += testCount;
       }
     }
+
+    return pendingCount;
   };
 
   /**

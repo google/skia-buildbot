@@ -15,7 +15,13 @@
   <div class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
       <div class="navbar-header">
-        <a class="navbar-brand" href="#">Skia Correctness</a>
+        <div class="navbar-brand" ng-show="corpusList">
+        Corpus
+          <select ng-options="corp for corp in corpusList"
+                  ng-model="currentCorpus"
+                  ng-change="corpusChanged()">
+          </select>
+        </div>
       </div>
       <div class="navbar-collapse collapse">
         <ul class="nav navbar-nav">

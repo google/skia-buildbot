@@ -6,6 +6,9 @@ type Label int
 const (
 	// Primary key field that uniquely identifies a key.
 	PRIMARY_KEY_FIELD = "name"
+
+	// Field that contains the corpus identifier.
+	CORPUS_FIELD = "source_type"
 )
 
 // Note: Some code in analysis depends on the order of this enum and

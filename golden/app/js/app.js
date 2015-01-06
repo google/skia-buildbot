@@ -104,9 +104,6 @@ var skia = skia || {};
    */
   app.controller('TriageCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'dataService',
     function($scope, $routeParams, $location, $timeout, dataService) {
-      // Get the path and use it for the backend request
-      var testName = ($routeParams.id && ($routeParams.id !== '')) ?
-                      $routeParams.id : null;
       var triageStateManager = new TriageStateManager($scope, dataService);
 
       var sortFn = function(a,b) {
@@ -134,10 +131,12 @@ var skia = skia || {};
             setQuery(serverData.query || {});
 
             $scope.state = 'ready';
+            $scope.checkStatus();
           },
           function (errResp) {
             retry();
             console.log("Error:", errResp);
+            $scope.checkStatus();
           });
       }
 
@@ -150,12 +149,7 @@ var skia = skia || {};
       $scope.saveTriageState = function() {
         $scope.state = 'saving';
         triageStateManager.saveTriageState(function (promise) {
-          promise.then(
-            loadAllTriageData,
-            function (errResp) {
-              retry();
-              console.log("Error:", errResp);
-            });
+          processServerData(promise, false);
         });
       };
 
@@ -220,8 +214,12 @@ var skia = skia || {};
 
       // TODO(stephana): Fix query string.
       setQuery($location.search());
-    }]);
 
+      // Register for corpus changes.
+      $scope.$on('corpus-change', function() {
+        $scope.loadAllTriageData();
+      });
+    }]);
 
   /**
   * Class TriageStateManager wraps around a scope and handles changes in
@@ -254,19 +252,30 @@ var skia = skia || {};
   TriageStateManager.prototype.updatedTriageState = function(testName) {
     this.$scope.triageStateDirty =
                   !angular.equals(this.$scope.triageState, this.$scope.initialTriageState);
-    ns.updateDelta(this.$scope.triageState, this.$scope.initialTriageState,
-                   this.$scope.triageStateDelta, testName);
+    this.$scope.pendingCount = ns.updateDelta(this.$scope.triageState,
+      this.$scope.initialTriageState, this.$scope.triageStateDelta, testName);
   };
 
   // setTriageState sets the label of the given untriaged digest.
-  // If digest is an array it will set the labels for all digests in the array.
-  TriageStateManager.prototype.setTriageState= function (testName, digest, value) {
-    if (digest.constructor === Array) {
-      for(var i=0, len=digest.length; i < len; i++) {
-        this.$scope.triageState[testName][digest[i].digest] = value;
+  // If changeData is an array it will set the labels for all digests in the array.
+  TriageStateManager.prototype.setTriageState= function (testName, changeData, value) {
+    if (changeData.constructor === Array) {
+      for(var i=0, len=changeData.length; i < len; i++) {
+        this.$scope.triageState[testName][changeData[i].digest] = value;
       }
+    } else if (typeof(changeData) === 'object') {
+      for(var testName in changeData) {
+        if (changeData.hasOwnProperty(testName)) {
+          for (var digest in changeData[testName]) {
+            if (changeData[testName].hasOwnProperty(digest)) {
+              this.$scope.triageState[testName][digest] = value;
+            }
+          }
+        }
+      }
+      testName = null;
     } else {
-      this.$scope.triageState[testName][digest] = value;
+      this.$scope.triageState[testName][changeData] = value;
     }
     this.updatedTriageState(testName);
   };
@@ -541,6 +550,33 @@ var skia = skia || {};
     };
   }]);
 
+  /**
+  * skPendingTriage implements a custom directive to provide controls to
+  * trigger a triage update.
+  **/
+  app.directive('skPendingTriage', [ '$timeout', function($timeout) {
+    var linkFn = function ($scope, element, attrs) {
+      $timeout(function() {
+        $scope.resetTriageState = $scope.resetTriageState();
+        $scope.saveTriageState = $scope.saveTriageState();
+      })
+    };
+
+    return {
+        restrict: 'E',
+        replace: false,
+        scope: {
+          pendingCount: '=changeCount',
+          triageStateDirty: '=dirty',
+          resetTriageState: '&resetClick',
+          saveTriageState: '&saveClick',
+          isLoggedIn: '=loggedIn'
+        },
+        templateUrl: 'templates/pending-triage.html',
+        link: linkFn
+    };
+  }]);
+
 
   /**
   * skQuery implements a custom directive to select parameter values used
@@ -672,27 +708,60 @@ var skia = skia || {};
   **/
   app.directive('skBulkTriage', ['$timeout', function($timeout) {
     var linkFn = function ($scope, element, attrs) {
-      $scope.c = ns.c;
-      $timeout(function () {
-        $scope.selectAll = $scope.selectAll();
-        $scope.testName = $scope.testName();
-        function checkChange() {
-          if ($scope.digests.length > 0) {
-            $scope.selected = $scope.triageState[$scope.testName][$scope.digests[0].digest];
-            for(var i=1, len=$scope.digests.length; i<len; i++) {
-               if ($scope.triageState[$scope.testName][$scope.digests[i].digest]
-                   !== $scope.selected) {
-                 $scope.selected = null;
-                 break;
-               }
+      function checkChangeForTest() {
+        if ($scope.digests.length > 0) {
+          $scope.selected = $scope.triageState[$scope.testName][$scope.digests[0].digest];
+          for(var i=1, len=$scope.digests.length; i<len; i++) {
+             if ($scope.triageState[$scope.testName][$scope.digests[i].digest]
+                 !== $scope.selected) {
+               $scope.selected = null;
+               break;
+             }
+          }
+        } else {
+          $scope.selected = null;
+        }
+      }
+
+      function checkForAllTests() {
+        var empty = false;
+        var init = true;
+        $scope.selected = null;
+
+        loop:
+        for(var k in $scope.triageState) {
+          if ($scope.triageState.hasOwnProperty(k)) {
+            for(var digest in $scope.triageState[k]) {
+              if ($scope.triageState[k].hasOwnProperty(digest)) {
+                if (init) {
+                  init = false;
+                  $scope.selected = $scope.triageState[k][digest];
+                }
+
+                if ($scope.triageState[k][digest] !== $scope.selected) {
+                  $scope.selected = null;
+                  break loop;
+                }
+              }
             }
-          } else {
-            $scope.selected = null;
           }
         }
+      }
 
-        $scope.$watch('triageState', checkChange, true);
-        $scope.$watch('digests', checkChange, true);
+      $scope.c = ns.c;
+      $timeout(function () {
+        $scope.setTriageState = $scope.setTriageState();
+        $scope.testName = $scope.testName();
+        if ($scope.testName) {
+          $scope.selectAll = $scope.setTriageState;
+          $scope.$watch('triageState', checkChangeForTest, true);
+          $scope.$watch('digests', checkChangeForTest, true);
+        } else {
+          $scope.selectAll = function(testName, digests, targetState) {
+              $scope.setTriageState(testName, $scope.triageState, targetState);
+          };
+          $scope.$watch('triageState', checkForAllTests, true);
+        }
       });
     };
 
@@ -701,7 +770,7 @@ var skia = skia || {};
         replace: true,
         scope: {
           "digests": "=digests",
-          "selectAll": "&setter",
+          "setTriageState": "&setter",
           "triageState": "=triageState",
           "testName": "&testName"
         },
@@ -716,8 +785,8 @@ var skia = skia || {};
   /**
   * dataService provides functions to load data from the backend.
   */
-  app.factory('dataService', [ '$http', '$rootScope', '$interval', '$location',
-  function ($http, $rootScope, $interval, $location) {
+  app.factory('dataService', [ '$http', '$rootScope', '$interval', '$location', '$window',
+  function ($http, $rootScope, $interval, $location, $window) {
     // Inject the logoutURL into the rootScope.
     // $rootScope.logoutURL = ns.c.PREFIX_URL + ns.c.URL_LOGOUT;
     $rootScope.getLogoutURL = function() {
@@ -726,20 +795,37 @@ var skia = skia || {};
     }
 
     $rootScope.globalStatus = null;
-
-    function checkStatus() {
+    $rootScope.checkStatus = function () {
       loadData(ns.c.URL_STATUS).then(
         function (resultResp) {
           $rootScope.globalStatus = resultResp;
+          $rootScope.corpusList = resultResp.corpusValues || [];
+          if (($rootScope.corpusList.indexOf($rootScope.currentCorpus) === -1)
+               && ($rootScope.corpusList.length > 0)) {
+              $rootScope.currentCorpus = $rootScope.corpusList[0];
+              $rootScope.corpusChanged();
+          }
         },
         function (errorResp) {
           console.log("Got error response for status:", errorResp);
         });
     }
 
-    // Load the status every 10 seconds.
-    checkStatus();
-    $interval(checkStatus, 3000);
+    // Load the status every 3 seconds.
+    $rootScope.checkStatus();
+    $interval($rootScope.checkStatus, 3000);
+
+    // Retrieve the corpus from localStorage if possible.
+    var localStorage = $window.localStorage;
+    $rootScope.currentCorpus = localStorage && localStorage.getItem('corpus');
+    $rootScope.corpusList = [];
+
+    $rootScope.corpusChanged = function () {
+      if (localStorage) {
+        localStorage.setItem('corpus', $rootScope.currentCorpus);
+      }
+      $rootScope.$broadcast('corpus-change');
+    };
 
     /**
      * @param {string} testName if not null this will cause to fetch counts
@@ -750,9 +836,19 @@ var skia = skia || {};
      **/
     function loadData(path, query) {
       var url = ns.c.PREFIX_URL + path;
+      // Inject the corpus selector if there is a query.
+      if (query && $rootScope.currentCorpus) {
+        query[ns.c.CORPUS_FIELD] = [$rootScope.currentCorpus];
+      };
+
       return httpReq(url, 'GET', null, query).then(
           function(successResp) {
-            return successResp.data;
+            var ret = successResp.data;
+            // Remove the corpus selector if there is a query.
+            if (ret && ret.query && ret.query[ns.c.CORPUS_FIELD]) {
+              delete ret.query[ns.c.CORPUS_FIELD];
+            }
+            return ret;
           });
     }
 

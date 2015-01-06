@@ -19,8 +19,13 @@ type GUIStatus struct {
 
 	// Number of negative digests in HEAD.
 	NegativeCount int `json:"negativeCount"`
+
+	// Possible values for the corpus field.
+	CorpusValues []string `json:"corpusValues"`
 }
 
+// TODO(stephana): Break down the status by corpora to make the
+// front-end less confusing.
 func calcStatus(labeledTile *LabeledTile) *GUIStatus {
 	// Iterate over the current traces
 	minCommitId := len(labeledTile.Commits)
@@ -48,5 +53,6 @@ func calcStatus(labeledTile *LabeledTile) *GUIStatus {
 		MinCommitHash:  labeledTile.Commits[minCommitId].Hash,
 		UntriagedCount: len(untriagedSet),
 		NegativeCount:  len(negativeSet),
+		CorpusValues:   labeledTile.allParams[types.CORPUS_FIELD],
 	}
 }

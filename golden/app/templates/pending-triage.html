@@ -1,0 +1,20 @@
+<div>
+    <div class="pull-left">
+        <span style="font-weight:bold;">Pending Changes: {{pendingCount}}</span>
+    </div>
+
+    <div class="pull-right">
+        <div ng-if="!isLoggedIn">
+            <a href="{{loginURL}}">Login to Triage</a>
+        </div>
+        <div ng-if="isLoggedIn">
+                <button ng-disabled="!triageStateDirty"
+                        ng-click="resetTriageState()"
+                        class="btn btn-default">Reset</button>
+                &nbsp; &nbsp; &nbsp; &nbsp;
+                <button ng-disabled="!triageStateDirty"
+                        ng-click="saveTriageState()"
+                        class="btn btn-primary pull-right">Save</button>
+        </div>
+    </div>
+</div>

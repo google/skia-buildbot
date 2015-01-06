@@ -14,25 +14,15 @@
     </div>
 
     <!-- Header with the pending changes and reset/save button -->
-    <div class="row" ng-class="{ 'busyLoading': state !== 'ready' }" style="border: 1px solid #E1E1E1; padding: 0.5em; margin-left: 0; margin-right:0; margin-bottom: 1em;">
-        <div class="pull-left">
-            <span style="font-weight:bold;">Pending Changes: {{triageStateDelta[testName].count}}</span>
-        </div>
-
-        <div class="pull-right">
-            <div ng-if="!isLoggedIn">
-                <a href="{{loginURL}}">Login to Triage</a>
-            </div>
-            <div ng-if="isLoggedIn">
-                    <button ng-disabled="!triageStateDirty"
-                            ng-click="resetTriageState()"
-                            class="btn btn-default">Reset</button>
-                    &nbsp; &nbsp; &nbsp; &nbsp;
-                    <button ng-disabled="!triageStateDirty"
-                            ng-click="saveTriageState()"
-                            class="btn btn-primary pull-right">Save</button>
-            </div>
-        </div>
+    <div class="row"
+         ng-class="{ 'busyLoading': state !== 'ready' }"
+         style="border: 1px solid #E1E1E1; padding: 0.5em; margin-left: 0; margin-right:0; margin-bottom: 1em;">
+            <sk-pending-triage change-count="pendingCount"
+                               reset-click="resetTriageState"
+                               save-click="saveTriageState"
+                               dirty="triageStateDirty"
+                               logged-in="isLoggedIn">
+            </sk-pending-triage>
     </div>
 
     <!-- main content -->

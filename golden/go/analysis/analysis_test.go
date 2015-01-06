@@ -104,7 +104,7 @@ func TestGetListTestDetails(t *testing.T) {
 	// Query tiles
 	list1, err := a.ListTestDetails(map[string][]string{"p1": []string{"v11"}})
 	assert.Nil(t, err)
-	assert.Equal(t, 2, len(list1.Tests))
+	assert.Equal(t, 5, len(list1.Tests))
 	assert.Equal(t, 4, len(list1.Commits))
 	assert.Equal(t, 3, len(findTest(t, list1, "t1").Untriaged))
 	assert.Equal(t, 4, len(findTest(t, list1, "t3").Untriaged))

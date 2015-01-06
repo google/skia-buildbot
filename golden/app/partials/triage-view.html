@@ -10,6 +10,18 @@
     </div>
 
     <div class="row" ng-class="{ 'busyLoading': state !== 'ready' }">
+	    <div class="row"
+	         style="border: 1px solid #E1E1E1; padding: 0.5em; margin-left: 0; margin-right:0; margin-bottom: 1em;">
+	            <sk-pending-triage change-count="pendingCount"
+	                               reset-click="resetTriageState"
+	                               save-click="saveTriageState"
+	                               dirty="triageStateDirty"
+	                               logged-in="isLoggedIn">
+	            </sk-pending-triage>
+	    </div>
+
+
+
         <div class="row countsQueryContainer">
         	<div class="col-xs-12">
 		        <sk-query all-params="allParams"
@@ -60,6 +72,12 @@
 		    </div>
 	    </div>
 	    <br><br>
+	    <div class="row">
+	    	All:
+	    	<sk-bulk-triage
+	    	    triage-state="triageState"
+                setter="setTriageState"></sk-bulk-triage>
+	    </div>
 
     	<div class="row">
 		    <div class="col-md-12">

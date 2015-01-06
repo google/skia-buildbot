@@ -205,7 +205,7 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 	}
 
 	effectiveQuery := make(map[string][]string, len(query))
-	foundUntriaged := a.getUntriagedTestDetails(query, effectiveQuery)
+	foundUntriaged := a.getUntriagedTestDetails(query, effectiveQuery, true)
 	tests := make([]*GUITestDetail, 0, len(foundUntriaged))
 
 	for testName, untriaged := range foundUntriaged {
@@ -217,6 +217,9 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 			Negative:  testDetail.Negative,
 		})
 	}
+
+	// Sort the test details.
+	sort.Sort(GUITestDetailSortable(tests))
 
 	return &GUITestDetails{
 		Commits:   a.currentTestDetails.Commits,
@@ -246,7 +249,7 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 
 		// Filter by only this test.
 		query[types.PRIMARY_KEY_FIELD] = []string{testName}
-		foundUntriaged := a.getUntriagedTestDetails(query, effectiveQuery)
+		foundUntriaged := a.getUntriagedTestDetails(query, effectiveQuery, false)
 		delete(effectiveQuery, types.PRIMARY_KEY_FIELD)
 
 		// Only consider the result if some query parameters were valid.
@@ -452,7 +455,7 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 // getUntriagedDigests returns the untriaged digests of a specific test that
 // match the given query. In addition to the digests it returns the query
 // that was used to retrieve them.
-func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]string) map[string]map[string]*GUIUntriagedDigest {
+func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]string, includeAllTests bool) map[string]map[string]*GUIUntriagedDigest {
 	traces, startCommitId, endCommitId := a.currentIndex.query(query, effectiveQuery)
 	endCommitId++
 
@@ -461,6 +464,11 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 	}
 
 	ret := make(map[string]map[string]*GUIUntriagedDigest, len(a.currentTestDetails.Tests))
+	if includeAllTests {
+		for _, t := range a.currentTestDetails.Tests {
+			ret[t.Name] = nil
+		}
+	}
 	for _, trace := range traces {
 		testName := trace.Params[types.PRIMARY_KEY_FIELD]
 		current := a.currentTestDetails.lookup(testName).Untriaged
@@ -473,7 +481,7 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 
 		for idx := startIdx; idx < endIdx; idx++ {
 			if trace.Labels[idx] == types.UNTRIAGED {
-				if _, ok := ret[testName]; !ok {
+				if found, ok := ret[testName]; !ok || found == nil {
 					ret[testName] = make(map[string]*GUIUntriagedDigest, len(current))
 				}
 				ret[testName][trace.Digests[idx]] = current[trace.Digests[idx]]
