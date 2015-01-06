@@ -5,7 +5,11 @@ package main
 // it is not entered via the command line.
 
 import (
+	"bufio"
 	"flag"
+	"fmt"
+	"os"
+	"strings"
 
 	"github.com/golang/glog"
 	"skia.googlesource.com/buildbot.git/go/common"
@@ -14,7 +18,8 @@ import (
 )
 
 var (
-	local = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promptPassword = flag.Bool("password", false, "Prompt for root password.")
 )
 
 func main() {
@@ -24,7 +29,19 @@ func main() {
 	// Global init to initialize glog and parse arguments.
 	common.Init()
 
-	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+	var conf *database.DatabaseConfig
+	var err error
+	var password string
+
+	if *promptPassword {
+		fmt.Printf("Enter root password: ")
+		reader := bufio.NewReader(os.Stdin)
+		password, err = reader.ReadString('\n')
+		password = strings.Trim(password, "\n")
+		conf, err = database.ConfigFromFlags(password, *local, db.MigrationSteps())
+	} else {
+		conf, err = database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+	}
 	if err != nil {
 		glog.Fatal(err)
 	}
