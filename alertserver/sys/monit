@@ -1,12 +1,12 @@
 check process alertserver with pidfile /var/run/alertserver.pid
-   start program = "/etc/init.d/alertserver start"
+   start program = "/etc/init.d/alertserver start"  with timeout 90 seconds
    stop program = "/etc/init.d/alertserver stop"
    depends on alertserver_conf
    depends on alertserver_init
    depends on alertserver_exe
 
 check file alertserver_conf
-  with path /etc/skiaalertserver/alerts.conf
+  with path /etc/skiaalertserver/alerts.cfg
   if changed timestamp then restart
 
 check file alertserver_init
