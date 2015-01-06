@@ -88,7 +88,7 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	session, err := r.Cookie(SESSION_COOKIE_NAME)
 	state := ""
 	if err != nil || session.Value == "" {
-		state, err := util.GenerateID()
+		state, err = util.GenerateID()
 		if err != nil {
 			glog.Errorf("Failed to create a session token: %s", err)
 			return ""
