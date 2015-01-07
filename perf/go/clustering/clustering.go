@@ -155,7 +155,8 @@ func getStepFit(trace []float64) *types.StepFit {
 	lse := math.MaxFloat64
 	stepSize := -1.0
 	turn := 0
-	for i, _ := range trace {
+
+	for i := config.MIN_CLUSTER_STEP_COMMITS; i < len(trace)-config.MIN_CLUSTER_STEP_COMMITS; i++ {
 		if i == 0 {
 			continue
 		}

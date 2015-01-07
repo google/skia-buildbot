@@ -51,6 +51,10 @@ const (
 	// CLUSTER_COMMITS is the number of commits to use when clustering.
 	MAX_CLUSTER_COMMITS = 50
 
+	// MIN_CLUSTER_STEP_COMMITS is minimum number of commits that we need on either leg
+	// of a step function.
+	MIN_CLUSTER_STEP_COMMITS = 5
+
 	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
 	// than this and we presume it's a standard deviation of zero.
 	MIN_STDDEV = 0.001
