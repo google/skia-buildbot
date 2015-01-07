@@ -95,14 +95,14 @@ func (a Alert) SnoozedUntil() time.Time {
 
 // Rule is an object used for triggering Alerts.
 type Rule struct {
-	Id          string
-	Name        string
-	Query       string
-	Condition   string
-	Message     string
-	nag         time.Duration
+	Id          string        `json:"id"`
+	Name        string        `json:"name"`
+	Query       string        `json:"query"`
+	Condition   string        `json:"condition"`
+	Message     string        `json:"message"`
+	Nag         time.Duration `json:"nag"`
 	client      queryable
-	autoDismiss bool
+	AutoDismiss bool `json:"autoDismiss"`
 	actions     []Action
 	activeAlert *Alert
 }
@@ -132,7 +132,7 @@ func (r *Rule) tick() {
 			})
 			r.activeAlert = nil
 		}
-	} else if r.autoDismiss || r.activeAlert == nil {
+	} else if r.AutoDismiss || r.activeAlert == nil {
 		glog.Infof("Executing query [%s]", r.Query)
 		d, err := executeQuery(r.client, r.Query)
 		if err != nil {
@@ -145,7 +145,7 @@ func (r *Rule) tick() {
 			glog.Error(err)
 			return
 		}
-		if r.activeAlert != nil && r.autoDismiss && !doAlert {
+		if r.activeAlert != nil && r.AutoDismiss && !doAlert {
 			r.activeAlert.addComment(&Comment{
 				Time:    time.Now().UTC(),
 				User:    "AlertServer",
@@ -161,16 +161,16 @@ func (r *Rule) tick() {
 
 func (r *Rule) maybeNag() {
 	a := r.activeAlert
-	if a != nil && !a.Snoozed() && r.nag != time.Duration(0) {
+	if a != nil && !a.Snoozed() && r.Nag != time.Duration(0) {
 		lastMsgTime := a.Triggered()
 		if len(a.Comments) > 0 {
 			lastMsgTime = a.Comments[len(a.Comments)-1].Time
 		}
-		if time.Since(lastMsgTime) > r.nag {
+		if time.Since(lastMsgTime) > r.Nag {
 			a.addComment(&Comment{
 				Time:    time.Now().UTC(),
 				User:    "AlertServer",
-				Message: fmt.Sprintf(NAG_MSG_TMPL, r.nag.String()),
+				Message: fmt.Sprintf(NAG_MSG_TMPL, r.Nag.String()),
 			})
 		}
 	}
@@ -210,7 +210,7 @@ func newRule(r parsedRule, client *client.Client, emailAuth *email.GMail, testin
 	if !ok {
 		return nil, fmt.Errorf(errString, "message")
 	}
-	autoDismiss, ok := r["auto-dismiss"].(bool)
+	AutoDismiss, ok := r["auto-dismiss"].(bool)
 	if !ok {
 		return nil, fmt.Errorf(errString, "auto-dismiss")
 	}
@@ -237,9 +237,9 @@ func newRule(r parsedRule, client *client.Client, emailAuth *email.GMail, testin
 		Query:       query,
 		Condition:   condition,
 		Message:     message,
-		nag:         nagDuration,
+		Nag:         nagDuration,
 		client:      client,
-		autoDismiss: autoDismiss,
+		AutoDismiss: AutoDismiss,
 		actions:     nil,
 		activeAlert: nil,
 	}

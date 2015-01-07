@@ -31,7 +31,7 @@ func getRule() *Rule {
 			}
 			return []*client.Series{&s}, nil
 		}},
-		autoDismiss: false,
+		AutoDismiss: false,
 		actions:     nil,
 	}
 	r.actions = []Action{NewPrintAction(r)}
@@ -75,7 +75,7 @@ func TestRule(t *testing.T) {
 
 func TestAutoDismiss(t *testing.T) {
 	r := getRule()
-	r.autoDismiss = true
+	r.AutoDismiss = true
 	if r.activeAlert != nil {
 		t.Errorf("Alert is active before firing.")
 	}

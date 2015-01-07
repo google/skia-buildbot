@@ -3,7 +3,7 @@
   <head>
     {{template "header.html" .}}
 
-    <title>Skia Alerts</title>
+    <title>Skia Alert Rules</title>
 
     <style>
     core-header-panel {
@@ -16,9 +16,6 @@
       text-align: center;
       font-size: 15px;
     }
-    core-toolbar.alerting {
-      background-color: #CC6677;
-    }
     h1 {
       font-size: 1.7em;
     }
@@ -27,10 +24,10 @@
   <body fullbleed vertical layout unresolved>
     <core-header-panel flex>
       <core-toolbar>
-        <div><a href="/rules">Alert Rules</a></div><div flex></div><login-sk></login-sk>
-        <h1 class="bottom" flex>Skia Alerts</h1>
+        <div><a href="/">Active Alerts</a></div><div flex></div><login-sk></login-sk>
+        <h1 class="bottom" flex>Skia Alert Rules</h1>
       </core-toolbar>
-      <alerts-sk reload=60></alerts-sk>
+      <rules-sk reload=60></rules-sk>
     </core-header-panel>
     <div horizontal layout>
       <div flex></div>

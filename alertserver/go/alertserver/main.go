@@ -60,6 +60,7 @@ var (
 
 	alertsTemplate  *template.Template = nil
 	commitsTemplate *template.Template = nil
+	rulesTemplate   *template.Template = nil
 )
 
 // flags
@@ -105,6 +106,10 @@ func reloadTemplates() {
 	))
 	commitsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/commits.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	rulesTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/rules.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
@@ -179,11 +184,9 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 			Comments:     comments,
 		})
 	}
-	bytes, err := json.Marshal(&alerts)
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(&alerts); err != nil {
 		glog.Error(err)
 	}
-	w.Write(bytes)
 }
 
 func alertHandler(w http.ResponseWriter, r *http.Request) {
@@ -320,12 +323,39 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func rulesJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	rules := struct {
+		Rules []*alerting.Rule `json:"rules"`
+	}{
+		Rules: alertManager.Rules(),
+	}
+	if err := json.NewEncoder(w).Encode(&rules); err != nil {
+		glog.Error(err)
+	}
+}
+
+func rulesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	if err := rulesTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
 func runServer(serverURL string) {
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", alertHandler)
 	http.HandleFunc("/commits", commitsHandler)
+	http.HandleFunc("/rules", rulesHandler)
 	http.HandleFunc("/json/alerts", alertJsonHandler)
 	http.HandleFunc("/json/commits", commitsJsonHandler)
+	http.HandleFunc("/json/rules", rulesJsonHandler)
 	http.HandleFunc("/json/version", skiaversion.JsonHandler)
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	http.HandleFunc("/logout/", login.LogoutHandler)

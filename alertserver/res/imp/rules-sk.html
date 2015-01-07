@@ -1,0 +1,92 @@
+<polymer-element name="rules-sk" attributes="rules">
+  <template>
+    <style>
+    #loadstatus {
+      font-size: 0.8em;
+      padding: 15px;
+    }
+    div.rule {
+      padding: 20px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: #F5F5F5;
+    }
+    div.table {
+      display: table;
+    }
+    div.row {
+      display: table-row;
+    }
+    div.cell {
+      display: table-cell;
+      padding: 5px;
+    }
+    </style>
+    <div vertical layout>
+      <div horizontal layout center id="loadstatus">
+        <div>
+          Reload (s):
+          <core-input type="number" value="{{reload}}" preventInvalidInput style="width: 50px;"></core-input>
+        </div>
+        <div flex></div>
+        <div>Last loaded at {{lastLoaded}}</div>
+      </div>
+      <template repeat="{{r in rules}}">
+        <div class="rule table" flex>
+          <div class="row"><div class="cell">Name</div><div class="cell">{{r.name}}</div></div>
+          <div class="row"><div class="cell">Query</div><div class="cell">{{r.query}}</div></div>
+          <div class="row"><div class="cell">Condition</div><div class="cell">{{r.condition}}</div></div>
+          <div class="row"><div class="cell">Message</div><div class="cell">{{r.message}}</div></div>
+          <div class="row"><div class="cell">Nag</div><div class="cell">{{r.nag}}</div></div>
+          <div class="row"><div class="cell">Auto-Dismiss</div><div class="cell">{{r.autoDismiss}}</div></div>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        reload: {
+          value: 60,
+          reflect: true,
+        },
+        timeout: {
+          value: null,
+          reflect: false,
+        },
+        lastLoaded: {
+          value: "(not yet loaded)",
+          reflect: false,
+        },
+      },
+      created: function() {
+        this.rules = [];
+        this.reloadRules();
+      },
+      reloadChanged: function() {
+        this.resetTimeout();
+      },
+      resetTimeout: function() {
+        if (this.timeout) {
+          window.clearTimeout(this.timeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this.timeout = window.setTimeout(function() { that.reloadRules(); }, this.reload * 1000);
+        }
+      },
+      reloadRules: function() {
+        console.log("Loading rules.");
+        var that = this;
+        sk.get("/json/rules").then(JSON.parse).then(function(json) {
+          that.rules = json.rules;
+          that.lastLoaded = new Date().toLocaleTimeString();
+          that.resetTimeout();
+          console.log("Done loading rules.");
+	}).catch(function() {
+          that.resetTimeout();
+        });
+      },
+    });
+  </script>
+</polymer-element>

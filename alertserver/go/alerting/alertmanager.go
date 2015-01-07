@@ -25,6 +25,15 @@ func (am *AlertManager) Alerts() []*Alert {
 	return out
 }
 
+// Rules returns a slice of Rule objects for this AlertManager.
+func (am *AlertManager) Rules() []*Rule {
+	out := []*Rule{}
+	for _, r := range am.rules {
+		out = append(out, r)
+	}
+	return out
+}
+
 // Contains indicates whether this AlertManager has an Alert with the given ID.
 func (am *AlertManager) Contains(id string) bool {
 	_, contains := am.rules[id]
