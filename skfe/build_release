@@ -13,7 +13,7 @@ INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 SOFTLINK="sudo ln -s"
 # Configs for the sites we are hosting.
-${INSTALL} --mode=644 -T ./sys/skia_org            ${ROOT}/etc/nginx/sites-available/skia_org
+${INSTALL} --mode=644 -T ./sys/skia_org_nginx      ${ROOT}/etc/nginx/sites-available/skia_org
 sudo mkdir                                         ${ROOT}/etc/nginx/sites-enabled
 ${SOFTLINK} ../sites-available/skia_org            ${ROOT}/etc/nginx/sites-enabled/skia_org
 
