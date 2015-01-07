@@ -192,6 +192,7 @@ func ApplyPatch(patch, dir string) error {
 }
 
 func UpdateWebappTask(gaeTaskID int, webappURL string, extraData map[string]string) error {
+	glog.Infof("Updating %s on %s with %s", gaeTaskID, webappURL, extraData)
 	pwdBytes, err := ioutil.ReadFile(WebappPasswordPath)
 	if err != nil {
 		return fmt.Errorf("Could not read the webapp password file: %s", err)

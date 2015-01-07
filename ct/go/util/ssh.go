@@ -115,3 +115,10 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 
 	return workersWithOutputs, nil
 }
+
+// RebootWorkers reboots all CT workers and waits for 4 mins before returning.
+func RebootWorkers() {
+	SSH("sudo reboot", Slaves, 5*time.Minute)
+	// Sleep for 4 mins for all slaves to come back.
+	time.Sleep(4 * time.Minute)
+}

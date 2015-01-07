@@ -22,6 +22,7 @@ const (
 	LUA_TASKS_DIR_NAME              = "lua_runs"
 	BENCHMARK_TASKS_DIR_NAME        = "benchmark_runs"
 	SKIA_CORRECTNESS_TASKS_DIR_NAME = "skia_correctness_runs"
+	CHROMIUM_PERF_TASKS_DIR_NAME    = "chromium_perf_runs"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
@@ -64,6 +65,10 @@ const (
 
 	// Webapp constants.
 	WEBAPP_ROOT = "https://skia-tree-status.appspot.com/skia-telemetry/"
+
+	// Logserver links. These are only accessible from Google corp.
+	MASTER_LOGSERVER_LINK  = "http://build.chromium.org:10115/"
+	WORKER1_LOGSERVER_LINK = "http://build.chromium.org:10116/"
 )
 
 type PagesetTypeInfo struct {
@@ -106,14 +111,17 @@ var (
 	LuaRunsDir             = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
 	BenchmarkRunsDir       = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
 	SkiaCorrectnessRunsDir = filepath.Join(TASKS_DIR_NAME, SKIA_CORRECTNESS_TASKS_DIR_NAME)
+	ChromiumPerfRunsDir    = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
 
 	// Webapp subparts.
-	AdminTasksWebapp           = WEBAPP_ROOT + "admin_tasks"
-	UpdateAdminTasksWebapp     = WEBAPP_ROOT + "update_admin_task"
-	LuaTasksWebapp             = WEBAPP_ROOT + "lua_script"
-	UpdateLuaTasksWebapp       = WEBAPP_ROOT + "update_lua_task"
-	BenchmarkTasksWebapp       = WEBAPP_ROOT
-	UpdateBenchmarkTasksWebapp = WEBAPP_ROOT + "update_telemetry_task"
+	AdminTasksWebapp              = WEBAPP_ROOT + "admin_tasks"
+	UpdateAdminTasksWebapp        = WEBAPP_ROOT + "update_admin_task"
+	LuaTasksWebapp                = WEBAPP_ROOT + "lua_script"
+	UpdateLuaTasksWebapp          = WEBAPP_ROOT + "update_lua_task"
+	BenchmarkTasksWebapp          = WEBAPP_ROOT
+	UpdateBenchmarkTasksWebapp    = WEBAPP_ROOT + "update_telemetry_task"
+	ChromiumPerfTasksWebapp       = WEBAPP_ROOT + "chromium_try"
+	UpdateChromiumPerfTasksWebapp = WEBAPP_ROOT + "update_chromium_try_tasks"
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{
