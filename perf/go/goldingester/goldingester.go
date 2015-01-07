@@ -123,9 +123,6 @@ func addResultToTile(res *DMResults, tile *types.Tile, offset int, counter metri
 				}
 			}
 		}
-		if trace.Values[offset] != types.MISSING_DIGEST {
-			glog.Infof("Duplicate entry found for %s, hash %s", traceID, res.GitHash)
-		}
 		trace.Values[offset] = r.Digest
 		counter.Inc(1)
 	}

@@ -87,7 +87,6 @@ import (
 	"strings"
 
 	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 
 	"github.com/golang/glog"
@@ -228,10 +227,6 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int, coun
 			}
 		}
 		trace.Params_ = params
-
-		if trace.Values[offset] != config.MISSING_DATA_SENTINEL {
-			glog.Infof("Duplicate entry found for %s, hash %s", key, benchData.Hash)
-		}
 		trace.Values[offset] = value
 		counter.Inc(1)
 
