@@ -9,6 +9,27 @@ import (
 	"skia.googlesource.com/buildbot.git/go/util"
 )
 
+// GCE project level metadata keys.
+const (
+	// APIKEY is used for access to APIs that don't need OAuth 2.0.
+	APIKEY = "apikey"
+
+	// COOKIESALT, CLIENT_ID, and CLIENT_SECRET are used for login.
+	COOKIESALT    = "cookiesalt"
+	CLIENT_ID     = "client_id"
+	CLIENT_SECRET = "client_secret"
+
+	// GMAIL_CACHED_TOKEN, GMAIL_CLIENT_ID, and GMAIL_CLIENT_SECRET are used for sending mail
+	// from alerts@skia.org.
+	GMAIL_CACHED_TOKEN  = "gmail_cached_token"
+	GMAIL_CLIENT_ID     = "gmail_clientid"
+	GMAIL_CLIENT_SECRET = "gmail_clientsecret"
+
+	// INFLUXDB_NAME and INFLUXDB_PASSWORD are used for accessing InfluxDB.
+	INFLUXDB_NAME     = "influxdb_name"
+	INFLUXDB_PASSWORD = "influxdb_password"
+)
+
 // get retrieves the named value from the Metadata server. See
 // https://developers.google.com/compute/docs/metadata
 //

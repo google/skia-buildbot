@@ -20,9 +20,7 @@ import (
 )
 
 const (
-	INFLUXDB_NAME_METADATA_KEY     = "influxdb_name"
-	INFLUXDB_PASSWORD_METADATA_KEY = "influxdb_password"
-	SKIA_REPO                      = "https://skia.googlesource.com/skia"
+	SKIA_REPO = "https://skia.googlesource.com/skia"
 )
 
 // flags
@@ -45,8 +43,8 @@ func main() {
 
 	// Prepare the InfluxDB credentials. Load from metadata if appropriate.
 	if !*local {
-		*influxDbName = metadata.MustGet(INFLUXDB_NAME_METADATA_KEY)
-		*influxDbPassword = metadata.MustGet(INFLUXDB_PASSWORD_METADATA_KEY)
+		*influxDbName = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_NAME))
+		*influxDbPassword = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_PASSWORD))
 	}
 	dbClient, err := influxdb.New(&influxdb.ClientConfig{
 		Host:       *influxDbHost,

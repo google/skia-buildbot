@@ -21,9 +21,8 @@ import (
 )
 
 const (
-	APIKEY_METADATA_KEY = "apikey"
-	CLUSTER_SIZE        = 50
-	CLUSTER_STDDEV      = 0.001
+	CLUSTER_SIZE   = 50
+	CLUSTER_STDDEV = 0.001
 )
 
 var (
@@ -226,7 +225,7 @@ func apiKeyFromFlag(apiKeyFlag string) string {
 	// If apiKey isn't passed in then read it from the metadata server.
 	if apiKey == "" {
 		var err error
-		if apiKey, err = metadata.Get(APIKEY_METADATA_KEY); err != nil {
+		if apiKey, err = metadata.ProjectGet(metadata.APIKEY); err != nil {
 			glog.Errorf("Retrieving API Key failed: %s", err)
 			return ""
 		}

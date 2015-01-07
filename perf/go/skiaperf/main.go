@@ -45,12 +45,6 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/vec"
 )
 
-const (
-	COOKIESALT_METADATA_KEY    = "cookiesalt"
-	CLIENT_ID_METADATA_KEY     = "clientid"
-	CLIENT_SECRET_METADATA_KEY = "clientsecret"
-)
-
 var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
@@ -1078,9 +1072,9 @@ func main() {
 	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
-		cookieSalt = metadata.MustGet(COOKIESALT_METADATA_KEY)
-		clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
-		clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)
+		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
+		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
+		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		redirectURL = "http://skiaperf.com/oauth2callback/"
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)

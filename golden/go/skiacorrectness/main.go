@@ -40,13 +40,6 @@ const (
 	IMAGE_URL_PREFIX = "/img/"
 )
 
-// TODO (stephana): Factor out to "go/login/login.go"
-const (
-	COOKIESALT_METADATA_KEY    = "cookiesalt"
-	CLIENT_ID_METADATA_KEY     = "clientid"
-	CLIENT_SECRET_METADATA_KEY = "clientsecret"
-)
-
 // ResponseEnvelope wraps all responses. Some fields might be empty depending
 // on context or whether there was an error or not.
 type ResponseEnvelope struct {
@@ -242,9 +235,9 @@ func main() {
 	var clientSecret = "rK-kRY71CXmcg0v9I9KIgWci"
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
-		cookieSalt = metadata.MustGet(COOKIESALT_METADATA_KEY)
-		clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
-		clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)
+		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
+		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
+		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		redirectURL = "https://skiagold.com/oauth2callback/"
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)

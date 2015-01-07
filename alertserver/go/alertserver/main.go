@@ -41,16 +41,8 @@ import (
 )
 
 const (
-	COOKIESALT_METADATA_KEY          = "cookiesalt"
-	CLIENT_ID_METADATA_KEY           = "client_id"
-	CLIENT_SECRET_METADATA_KEY       = "client_secret"
-	DEFAULT_COMMITS_TO_LOAD          = 35
-	INFLUXDB_NAME_METADATA_KEY       = "influxdb_name"
-	INFLUXDB_PASSWORD_METADATA_KEY   = "influxdb_password"
-	GMAIL_CLIENT_ID_METADATA_KEY     = "gmail_clientid"
-	GMAIL_CLIENT_SECRET_METADATA_KEY = "gmail_clientsecret"
-	GMAIL_CACHED_TOKEN_METADATA_KEY  = "gmail_cached_token"
-	GMAIL_TOKEN_CACHE_FILE           = "google_email_token.data"
+	DEFAULT_COMMITS_TO_LOAD = 35
+	GMAIL_TOKEN_CACHE_FILE  = "google_email_token.data"
 )
 
 var (
@@ -378,8 +370,8 @@ func main() {
 		*useMetadata = false
 	}
 	if *useMetadata {
-		*influxDbName = metadata.MustGet(INFLUXDB_NAME_METADATA_KEY)
-		*influxDbPassword = metadata.MustGet(INFLUXDB_PASSWORD_METADATA_KEY)
+		*influxDbName = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_NAME))
+		*influxDbPassword = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_PASSWORD))
 	}
 	dbClient, err := client.New(&client.ClientConfig{
 		Host:       *influxDbHost,
@@ -414,12 +406,12 @@ func main() {
 	var emailClientId = *emailClientIdFlag
 	var emailClientSecret = *emailClientSecretFlag
 	if *useMetadata {
-		cookieSalt = metadata.MustGet(COOKIESALT_METADATA_KEY)
-		clientID = metadata.MustGet(CLIENT_ID_METADATA_KEY)
-		clientSecret = metadata.MustGet(CLIENT_SECRET_METADATA_KEY)
-		emailClientId = metadata.MustGet(GMAIL_CLIENT_ID_METADATA_KEY)
-		emailClientSecret = metadata.MustGet(GMAIL_CLIENT_SECRET_METADATA_KEY)
-		cachedGMailToken := metadata.MustGet(GMAIL_CACHED_TOKEN_METADATA_KEY)
+		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
+		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
+		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
+		emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
+		emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
+		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
 		err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
 		if err != nil {
 			glog.Fatalf("Failed to cache token: %s", err)

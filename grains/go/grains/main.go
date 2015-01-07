@@ -41,14 +41,6 @@ import (
 	"skia.googlesource.com/buildbot.git/go/metadata"
 )
 
-const (
-	COOKIESALT_METADATA_KEY        = "cookiesalt"
-	INFLUXDB_NAME_METADATA_KEY     = "influxdb_name"
-	INFLUXDB_PASSWORD_METADATA_KEY = "influxdb_password"
-	CLIENT_ID_METADATA_KEY         = "client_id"
-	CLIENT_SECRET_METADATA_KEY     = "client_secret"
-)
-
 var (
 	graphiteServer   = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	port             = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
@@ -102,11 +94,11 @@ func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func main() {
 	common.InitWithMetrics("grains", graphiteServer)
 	if *useMetadata {
-		*clientID = metadata.Must(metadata.ProjectGet(CLIENT_ID_METADATA_KEY))
-		*clientSecret = metadata.Must(metadata.ProjectGet(CLIENT_SECRET_METADATA_KEY))
-		*cookieSalt = metadata.Must(metadata.ProjectGet(COOKIESALT_METADATA_KEY))
-		*influxDbName = metadata.Must(metadata.ProjectGet(INFLUXDB_NAME_METADATA_KEY))
-		*influxDbPassword = metadata.Must(metadata.ProjectGet(INFLUXDB_PASSWORD_METADATA_KEY))
+		*clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
+		*clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
+		*cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
+		*influxDbName = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_NAME))
+		*influxDbPassword = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_PASSWORD))
 	}
 	login.Init(*clientID, *clientSecret, *redirectURL, *cookieSalt)
 	http.Handle("/", NewProxy(*influxDbApiHost, *influxDbApiPort, *grafanaDir))

@@ -41,7 +41,6 @@ var (
 const (
 	TIMEOUT              = time.Duration(5 * time.Second)
 	ISSUE_TRACKER_PERIOD = 15 * time.Minute
-	APIKEY_METADATA_KEY  = "apikey"
 )
 
 // BodyTester tests the response body from a probe and returns true if it passes all tests.
@@ -178,7 +177,7 @@ func monitorIssueTracker() {
 	}
 
 	if *useMetadata {
-		*apikey = metadata.MustGet(APIKEY_METADATA_KEY)
+		*apikey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
 	}
 
 	// Create a new metrics registry for the issue tracker metrics.

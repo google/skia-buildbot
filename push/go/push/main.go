@@ -27,12 +27,6 @@ import (
 	"skia.googlesource.com/buildbot.git/push/go/packages"
 )
 
-const (
-	COOKIESALT_METADATA_KEY    = "cookiesalt"
-	CLIENT_ID_METADATA_KEY     = "clientid"
-	CLIENT_SECRET_METADATA_KEY = "clientsecret"
-)
-
 // Server is used in PushConfig.
 type Server struct {
 	AppNames []string
@@ -358,9 +352,9 @@ func main() {
 	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
-		cookieSalt = metadata.Must(metadata.ProjectGet(COOKIESALT_METADATA_KEY))
-		clientID = metadata.Must(metadata.ProjectGet(CLIENT_ID_METADATA_KEY))
-		clientSecret = metadata.Must(metadata.ProjectGet(CLIENT_SECRET_METADATA_KEY))
+		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
+		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
+		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		redirectURL = "http://skiapush.com:8000/oauth2callback/"
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
