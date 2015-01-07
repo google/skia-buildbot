@@ -225,7 +225,7 @@ func main() {
 		}
 		// Call csv_merger.py to merge all results into a single results CSV.
 		pathToCsvMerger := filepath.Join(pathToPyFiles, "csv_merger.py")
-		outputFileName := "output." + *runID
+		outputFileName := *runID + ".output"
 		args := []string{
 			pathToCsvMerger,
 			"--csv_dir=" + localOutputDir,
@@ -236,7 +236,11 @@ func main() {
 			return
 		}
 		// Copy the output file to Google Storage.
-		gs.UploadFile(outputFileName, localOutputDir, filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "outputs"))
+		remoteOutputDir := filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "outputs")
+		if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
+			glog.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
+			return
+		}
 	}
 
 	// Move, validate and upload all SKP files if skpicture_printer was used.
@@ -299,6 +303,14 @@ func main() {
 		if err := gs.UploadWorkerArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild), *workerNum); err != nil {
 			glog.Error(err)
 			return
+		}
+
+		// Delete all tmp files from the slaves because telemetry tends to
+		// generate a lot of temporary artifacts there and they take up root disk
+		// space.
+		files, _ := ioutil.ReadDir(os.TempDir())
+		for _, f := range files {
+			os.RemoveAll(filepath.Join(os.TempDir(), f.Name()))
 		}
 	}
 }

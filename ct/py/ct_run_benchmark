@@ -16,8 +16,9 @@ from telemetry import benchmark_runner
 from telemetry.core import environment
 
 
-CT_BASE_DIR = os.path.join('benchmarks')
-sys.path.append(os.path.join(CT_BASE_DIR))
+CT_BASE_DIR = os.path.join(
+    os.path.abspath(os.path.dirname(os.path.realpath(__file__))), 'benchmarks')
+sys.path.insert(0, os.path.join(CT_BASE_DIR))
 
 
 if __name__ == '__main__':

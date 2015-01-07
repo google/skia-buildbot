@@ -34,25 +34,6 @@ class _Repaint(benchmark.Benchmark):
     return repaint_measurement.Repaint(options.mode, options.width,
                                        options.height)
 
-@benchmark.Enabled('android')
-class RepaintKeyMobileSites(_Repaint):
-  """Measures repaint performance on the key mobile sites.
-
-  http://www.chromium.org/developers/design-documents/rendering-benchmarks"""
-  page_set = page_sets.KeyMobileSitesPageSet
-
-
-@benchmark.Enabled('android')
-class RepaintGpuRasterizationKeyMobileSites(_Repaint):
-  """Measures repaint performance on the key mobile sites with forced GPU
-  rasterization.
-
-  http://www.chromium.org/developers/design-documents/rendering-benchmarks"""
-  tag = 'gpu_rasterization'
-  page_set = page_sets.KeyMobileSitesPageSet
-  def CustomizeBrowserOptions(self, options):
-    silk_flags.CustomizeBrowserOptionsForGpuRasterization(options)
-
 
 @benchmark.Disabled
 class RepaintCTPages(_Repaint):

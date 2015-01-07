@@ -80,8 +80,8 @@ var (
 	// TODO(rmistry): Switch this to use GetCTWorkers() when ready to run in prod
 	Slaves = []string{
 		"piraeus.cnc.corp.google.com",
-		"172.23.212.25",
 		"epoger-linux.cnc.corp.google.com",
+		"172.23.212.25",
 	}
 
 	// Names of local directories and files.
@@ -108,10 +108,12 @@ var (
 	SkiaCorrectnessRunsDir = filepath.Join(TASKS_DIR_NAME, SKIA_CORRECTNESS_TASKS_DIR_NAME)
 
 	// Webapp subparts.
-	AdminTasksWebapp       = WEBAPP_ROOT + "admin_tasks"
-	UpdateAdminTasksWebapp = WEBAPP_ROOT + "update_admin_task"
-	LuaTasksWebapp         = WEBAPP_ROOT + "lua_script"
-	UpdateLuaTasksWebapp   = WEBAPP_ROOT + "update_lua_task"
+	AdminTasksWebapp           = WEBAPP_ROOT + "admin_tasks"
+	UpdateAdminTasksWebapp     = WEBAPP_ROOT + "update_admin_task"
+	LuaTasksWebapp             = WEBAPP_ROOT + "lua_script"
+	UpdateLuaTasksWebapp       = WEBAPP_ROOT + "update_lua_task"
+	BenchmarkTasksWebapp       = WEBAPP_ROOT
+	UpdateBenchmarkTasksWebapp = WEBAPP_ROOT + "update_telemetry_task"
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{

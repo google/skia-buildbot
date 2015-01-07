@@ -80,7 +80,7 @@ func main() {
 		fmt.Sprintf("DISPLAY=:0 capture_archives --worker_num=%s --log_dir=%s --pageset_type=%s --chromium_build=%s;", util.WORKER_NUM_KEYWORD, util.GLogDir, *pagesetType, *chromiumBuild),
 	}
 
-	// Setting a 5 day timeout since it may take a while to 1M capture archives.
+	// Setting a 5 day timeout since it may take a while to capture 1M archives.
 	if _, err := util.SSH(strings.Join(cmd, " "), util.Slaves, 5*24*time.Hour); err != nil {
 		glog.Errorf("Error while running cmd %s: %s", cmd, err)
 		return
