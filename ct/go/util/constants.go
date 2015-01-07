@@ -114,14 +114,16 @@ var (
 	ChromiumPerfRunsDir    = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
 
 	// Webapp subparts.
-	AdminTasksWebapp              = WEBAPP_ROOT + "admin_tasks"
-	UpdateAdminTasksWebapp        = WEBAPP_ROOT + "update_admin_task"
-	LuaTasksWebapp                = WEBAPP_ROOT + "lua_script"
-	UpdateLuaTasksWebapp          = WEBAPP_ROOT + "update_lua_task"
-	BenchmarkTasksWebapp          = WEBAPP_ROOT
-	UpdateBenchmarkTasksWebapp    = WEBAPP_ROOT + "update_telemetry_task"
-	ChromiumPerfTasksWebapp       = WEBAPP_ROOT + "chromium_try"
-	UpdateChromiumPerfTasksWebapp = WEBAPP_ROOT + "update_chromium_try_tasks"
+	AdminTasksWebapp                 = WEBAPP_ROOT + "admin_tasks"
+	UpdateAdminTasksWebapp           = WEBAPP_ROOT + "update_admin_task"
+	LuaTasksWebapp                   = WEBAPP_ROOT + "lua_script"
+	UpdateLuaTasksWebapp             = WEBAPP_ROOT + "update_lua_task"
+	BenchmarkTasksWebapp             = WEBAPP_ROOT
+	UpdateBenchmarkTasksWebapp       = WEBAPP_ROOT + "update_telemetry_task"
+	ChromiumPerfTasksWebapp          = WEBAPP_ROOT + "chromium_try"
+	UpdateChromiumPerfTasksWebapp    = WEBAPP_ROOT + "update_chromium_try_tasks"
+	SkiaCorrectnessTasksWebapp       = WEBAPP_ROOT + "skia_try"
+	UpdateSkiaCorrectnessTasksWebapp = WEBAPP_ROOT + "update_skia_try_task"
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{
