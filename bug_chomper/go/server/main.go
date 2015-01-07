@@ -62,7 +62,7 @@ var (
 	secureCookie = securecookie.New(hashKey, blockKey)
 )
 
-func init() {
+func loadTemplates() {
 	// Change the current working directory to two directories up from this
 	// source file so that we can read templates.
 	_, filename, _, _ := runtime.Caller(0)
@@ -375,6 +375,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 // Run the BugChomper server.
 func main() {
 	common.InitWithMetrics("bug_chomper", graphiteServer)
+	loadTemplates()
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc(OAUTH_CALLBACK_PATH, handleOAuth2Callback)
