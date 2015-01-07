@@ -53,56 +53,34 @@ func executeQuery(c queryable, q string) (float64, error) {
 	return points[0][valueColumn].(float64), nil
 }
 
-// Alert represents a set of actions which are performed when a given database
-// query satisfies a given condition. There are a few valid states for Alerts:
-//
-// A. Active: The Alert has been triggered.
-//   1. Snoozed: The alert will dismiss itself after a specified time.
-//   2. Not snoozed: The alert needs attention.
-// B. Inactive.
+// Comment is an object representing a comment on an alert.
+type Comment struct {
+	Time    time.Time
+	User    string
+	Message string
+}
+
+// Alert is an object which represents an active alert.
 type Alert struct {
-	Id            string
-	Name          string
-	Query         string
-	Condition     string
-	Message       string
-	nag           time.Duration
-	client        queryable
-	autoDismiss   bool
-	actions       []Action
+	Id            int64
 	lastTriggered time.Time
 	snoozedUntil  time.Time
-	lastMsgTime   time.Time
+	dismissedAt   time.Time
+	Comments      []*Comment
+	Rule          *Rule
 }
 
-// Fire causes the Alert to become Active() and not Snoozed(), and causes each
-// action to be performed. Active Alerts do not perform new queries.
-func (a *Alert) fire() {
-	a.lastTriggered = time.Now()
-	a.snoozedUntil = time.Time{}
-	a.lastMsgTime = time.Now()
-	for _, action := range a.actions {
-		go action.Fire()
+// addComment adds a comment about the alert.
+func (a *Alert) addComment(c *Comment) {
+	a.Comments = append(a.Comments, c)
+	for _, action := range a.Rule.actions {
+		go action.Followup(c.Message)
 	}
 }
 
-// Followup sends a followup message about the alert.
-func (a *Alert) followup(msg string) {
-	a.lastMsgTime = time.Now()
-	for _, action := range a.actions {
-		go action.Followup(msg)
-	}
-}
-
-// Active indicates whether the Alert has fired.
-func (a *Alert) Active() bool {
-	return a.lastTriggered != time.Time{}
-}
-
-// Snoozed indicates whether the Alert fired sometime in the past and was
-// subsequently Snoozed.
+// Snoozed indicates whether the Alert has been Snoozed.
 func (a *Alert) Snoozed() bool {
-	return a.Active() && a.snoozedUntil != time.Time{}
+	return a.snoozedUntil != time.Time{}
 }
 
 // Triggered gives the time when the alert was triggered.
@@ -115,72 +93,106 @@ func (a Alert) SnoozedUntil() time.Time {
 	return a.snoozedUntil
 }
 
-func (a *Alert) tick() {
-	if a.Snoozed() {
-		if a.snoozedUntil.Before(time.Now()) {
-			a.dismiss("Dismissing; snooze period expired.")
+// Rule is an object used for triggering Alerts.
+type Rule struct {
+	Id          string
+	Name        string
+	Query       string
+	Condition   string
+	Message     string
+	nag         time.Duration
+	client      queryable
+	autoDismiss bool
+	actions     []Action
+	activeAlert *Alert
+}
+
+// Fire causes the Alert to become Active() and not Snoozed(), and causes each
+// action to be performed. Active Alerts do not perform new queries.
+func (r *Rule) fire() {
+	a := Alert{
+		Id:            0,
+		lastTriggered: time.Now().UTC(),
+		Comments:      []*Comment{},
+		Rule:          r,
+	}
+	r.activeAlert = &a
+	for _, action := range r.actions {
+		go action.Fire()
+	}
+}
+
+func (r *Rule) tick() {
+	if r.activeAlert != nil && r.activeAlert.Snoozed() {
+		if r.activeAlert.snoozedUntil.Before(time.Now().UTC()) {
+			r.activeAlert.addComment(&Comment{
+				Time:    time.Now().UTC(),
+				User:    "AlertServer",
+				Message: "Dismissing; snooze period expired.",
+			})
+			r.activeAlert = nil
 		}
-	} else if a.autoDismiss || !a.Active() {
-		glog.Infof("Executing query [%s]", a.Query)
-		d, err := executeQuery(a.client, a.Query)
+	} else if r.autoDismiss || r.activeAlert == nil {
+		glog.Infof("Executing query [%s]", r.Query)
+		d, err := executeQuery(r.client, r.Query)
 		if err != nil {
 			glog.Error(err)
 			return
 		}
-		glog.Infof("Query [%s] returned %v", a.Query, d)
-		doAlert, err := a.evaluate(d)
+		glog.Infof("Query [%s] returned %v", r.Query, d)
+		doAlert, err := r.evaluate(d)
 		if err != nil {
 			glog.Error(err)
 			return
 		}
-		if a.Active() && a.autoDismiss && !doAlert {
-			a.dismiss("Auto-dismissing; condition is no longer true.")
-		} else if !a.Active() && doAlert {
-			a.fire()
+		if r.activeAlert != nil && r.autoDismiss && !doAlert {
+			r.activeAlert.addComment(&Comment{
+				Time:    time.Now().UTC(),
+				User:    "AlertServer",
+				Message: "Auto-dismissing; condition is no longer true.",
+			})
+			r.activeAlert = nil
+		} else if r.activeAlert == nil && doAlert {
+			r.fire()
 		}
 	}
-	a.maybeNag()
+	r.maybeNag()
 }
 
-func (a *Alert) maybeNag() {
-	if a.Active() && !a.Snoozed() && a.nag != time.Duration(0) && time.Since(a.lastMsgTime) > a.nag {
-		a.followup(fmt.Sprintf(NAG_MSG_TMPL, a.nag.String()))
+func (r *Rule) maybeNag() {
+	a := r.activeAlert
+	if a != nil && !a.Snoozed() && r.nag != time.Duration(0) {
+		lastMsgTime := a.Triggered()
+		if len(a.Comments) > 0 {
+			lastMsgTime = a.Comments[len(a.Comments)-1].Time
+		}
+		if time.Since(lastMsgTime) > r.nag {
+			a.addComment(&Comment{
+				Time:    time.Now().UTC(),
+				User:    "AlertServer",
+				Message: fmt.Sprintf(NAG_MSG_TMPL, r.nag.String()),
+			})
+		}
 	}
 }
 
-func (a *Alert) dismiss(msg string) {
-	a.lastTriggered = time.Time{}
-	a.snoozedUntil = time.Time{}
-	a.followup(msg)
-}
-
-func (a *Alert) snooze(until time.Time, msg string) {
-	a.snoozedUntil = until
-	a.followup(msg)
-}
-
-func (a *Alert) unsnooze(msg string) {
-	a.snoozedUntil = time.Time{}
-	a.followup(msg)
-}
-
-func (a *Alert) evaluate(d float64) (bool, error) {
+func (r *Rule) evaluate(d float64) (bool, error) {
 	pkg := types.NewPackage("evaluateme", "evaluateme")
 	v := exact.MakeFloat64(d)
 	pkg.Scope().Insert(types.NewConst(0, pkg, "x", types.Typ[types.Float64], v))
-	typ, val, err := types.Eval(a.Condition, pkg, pkg.Scope())
+	typ, val, err := types.Eval(r.Condition, pkg, pkg.Scope())
 	if err != nil {
-		return false, fmt.Errorf("Failed to evaluate condition %q: %s", a.Condition, err)
+		return false, fmt.Errorf("Failed to evaluate condition %q: %s", r.Condition, err)
 	}
 	if typ.String() != "untyped bool" {
-		return false, fmt.Errorf("Rule \"%v\" does not return boolean type.", a.Condition)
+		return false, fmt.Errorf("Rule \"%v\" does not return boolean type.", r.Condition)
 	}
 	return exact.BoolVal(val), nil
 }
 
 type parsedRule map[string]interface{}
 
-func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail, testing bool) (*Alert, error) {
+func newRule(r parsedRule, client *client.Client, emailAuth *email.GMail, testing bool) (*Rule, error) {
 	errString := "Alert rule missing field %q"
 	name, ok := r["name"].(string)
 	if !ok {
@@ -219,28 +231,27 @@ func newAlert(r parsedRule, client *client.Client, emailAuth *email.GMail, testi
 	if err != nil {
 		return nil, err
 	}
-	alert := Alert{
-		Id:            id,
-		Name:          name,
-		Query:         query,
-		Condition:     condition,
-		Message:       message,
-		nag:           nagDuration,
-		client:        client,
-		autoDismiss:   autoDismiss,
-		actions:       nil,
-		lastTriggered: time.Time{},
-		snoozedUntil:  time.Time{},
+	rule := Rule{
+		Id:          id,
+		Name:        name,
+		Query:       query,
+		Condition:   condition,
+		Message:     message,
+		nag:         nagDuration,
+		client:      client,
+		autoDismiss: autoDismiss,
+		actions:     nil,
+		activeAlert: nil,
 	}
-	if err := alert.parseActions(actionsInterface, emailAuth, testing); err != nil {
+	if err := rule.parseActions(actionsInterface, emailAuth, testing); err != nil {
 		return nil, err
 	}
 	// Verify that the condition can be evaluated.
-	_, err = alert.evaluate(0.0)
+	_, err = rule.evaluate(0.0)
 	if err != nil {
 		return nil, err
 	}
-	return &alert, nil
+	return &rule, nil
 }
 
 func parseAlertRules(cfgFile string) ([]parsedRule, error) {
@@ -254,18 +265,18 @@ func parseAlertRules(cfgFile string) ([]parsedRule, error) {
 	return cfg.Rule, nil
 }
 
-func makeAlerts(cfgFile string, dbClient *client.Client, emailAuth *email.GMail, testing bool) ([]*Alert, error) {
+func makeRules(cfgFile string, dbClient *client.Client, emailAuth *email.GMail, testing bool) ([]*Rule, error) {
 	parsedRules, err := parseAlertRules(cfgFile)
 	if err != nil {
 		return nil, err
 	}
-	alerts := []*Alert{}
+	rules := []*Rule{}
 	for _, r := range parsedRules {
-		a, err := newAlert(r, dbClient, emailAuth, testing)
+		r, err := newRule(r, dbClient, emailAuth, testing)
 		if err != nil {
 			return nil, err
 		}
-		alerts = append(alerts, a)
+		rules = append(rules, r)
 	}
-	return alerts, nil
+	return rules, nil
 }

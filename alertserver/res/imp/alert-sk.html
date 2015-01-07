@@ -15,11 +15,22 @@
     div.message[disabled] {
       color: #AAAAAA;
     }
+    div.comments {
+      display: table;
+    }
+    div.comment {
+      display: table-row;
+    }
+    div.commentcell {
+      display: table-cell;
+      padding: 10px;
+    }
     </style>
-    <div id="wrapper" layout horizontal center>
-      <div class="message" disabled?="{{!alert.active}}" flex>{{alert.message}}</div>
+    <div id="wrapper" vertical horizontal center>
+      <div horizontal layout>
+      <div class="message" flex>{{alert.message}}</div>
       <template if="{{alert.snoozed}}">
-        <div class="message" disabled?="{{!alert.active}}">Snoozed until {{alert.snoozedUntil | parseDate}}</div>
+        <div class="message">Snoozed until {{alert.snoozedUntil | parseDate}}</div>
       </template>
       <template if="{{editRights}}">
         <template if="{{!alert.snoozed}}">
@@ -40,7 +51,7 @@
               <paper-button on-click="{{snoozeAlert}}" affirmative>Ok</paper-button>
             </div>
           </paper-dialog>
-          <core-icon-button icon="alarm" on-click="{{snoozeDialog}}" disabled?="{{!alert.active}}"></core-icon-button>
+          <core-icon-button icon="alarm" on-click="{{snoozeDialog}}"></core-icon-button>
         </template>
         <template if="{{alert.snoozed}}">
           <core-ajax
@@ -51,7 +62,7 @@
               on-core-response="{{response}}"
               on-core-error="{{error}}">
           </core-ajax>
-          <core-icon-button icon="alarm-off" on-click="{{unsnoozeAlert}}" disabled?="{{!alert.active}}"></core-icon-button>
+          <core-icon-button icon="alarm-off" on-click="{{unsnoozeAlert}}"></core-icon-button>
         </template>
         <core-ajax
             id="dismiss"
@@ -61,7 +72,32 @@
             on-core-response="{{response}}"
             on-core-error="{{error}}">
         </core-ajax>
-        <core-icon-button icon="highlight-remove" on-click="{{dismissAlert}}" disabled?="{{!alert.active}}"></core-icon-button>
+        <core-icon-button icon="highlight-remove" on-click="{{dismissAlert}}"></core-icon-button>
+      </template>
+      </div>
+      <div class="comments">
+        <template repeat="{{comment in alert.comments}}">
+          <div class="comment">
+            <div class="commentcell">{{comment.time|parseDate}}</div>
+            <div class="commentcell">{{comment.user}}</div>
+            <div class="commentcell">{{comment.message}}</div>
+          </div>
+        </template>
+      </div>
+      <template if="{{editRights}}">
+        <core-ajax
+            id="addcomment"
+            url="/alerts/{{alert.id}}/addcomment"
+            method="POST"
+            contentType="application/json"
+            on-core-response="{{response}}"
+            on-core-error="{{error}}"
+            body="{{commentText}}">
+        </core-ajax>
+        <div horizontal layout>
+          <paper-input label="comment" value="{{commentText}}" flex></paper-input>
+          <paper-button on-click="{{addComment}}">comment</paper-button>
+        </div>
       </template>
     </div>
     <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
@@ -112,10 +148,13 @@
         // Reload the page.
         window.location.href = window.location.href;
       },
-      error: function(e) {
+      showErrorDialog: function(msg) {
         var errorDiag = this.$.actionFailed;
-        errorDiag.text = "Action failed: " + e.detail.response;
+        errorDiag.text = msg;
         errorDiag.show();
+      },
+      error: function(e) {
+        this.showErrorDialog("Action failed: " + e.detail.response);
       },
       parseDate: function(v) {
         var d = new Date(v * 1000)
@@ -123,6 +162,13 @@
       },
       unParseDate: function(d) {
         return Math.round(d.getTime() / 1000);
+      },
+      addComment: function() {
+        if (this.commentText == "") {
+          this.showErrorDialog("Empty comments are not allowed.");
+          return;
+        }
+        this.$.wrapper.querySelector("#addcomment").go();
       },
     });
   </script>

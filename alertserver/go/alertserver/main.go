@@ -19,6 +19,7 @@ import (
 	"strings"
 	"text/template"
 	"time"
+	"unicode"
 )
 
 import (
@@ -80,6 +81,16 @@ var (
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
+// StringIsInteresting returns true iff the string contains non-whitespace characters.
+func StringIsInteresting(s string) bool {
+	for _, c := range s {
+		if !unicode.IsSpace(c) {
+			return true
+		}
+	}
+	return false
+}
+
 func reloadTemplates() {
 	// Change the current working directory to two directories up from this source file so that we
 	// can read templates and serve static (res/) files.
@@ -124,16 +135,21 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 
 func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	type displayComment struct {
+		Time    int32  `json:"time"`
+		User    string `json:"user"`
+		Message string `json:"message"`
+	}
 	type displayAlert struct {
-		Id           string `json:"id"`
-		Name         string `json:"name"`
-		Query        string `json:"query"`
-		Condition    string `json:"condition"`
-		Message      string `json:"message"`
-		Active       bool   `json:"active"`
-		Snoozed      bool   `json:"snoozed"`
-		Triggered    int32  `json:"triggered"`
-		SnoozedUntil int32  `json:"snoozedUntil"`
+		Id           string            `json:"id"`
+		Name         string            `json:"name"`
+		Query        string            `json:"query"`
+		Condition    string            `json:"condition"`
+		Message      string            `json:"message"`
+		Snoozed      bool              `json:"snoozed"`
+		Triggered    int32             `json:"triggered"`
+		SnoozedUntil int32             `json:"snoozedUntil"`
+		Comments     []*displayComment `json:"comments"`
 	}
 	alerts := struct {
 		Alerts []displayAlert `json:"alerts"`
@@ -141,16 +157,26 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 		Alerts: []displayAlert{},
 	}
 	for _, a := range alertManager.Alerts() {
+		comments := []*displayComment{}
+		if a.Comments != nil {
+			for _, c := range a.Comments {
+				comments = append(comments, &displayComment{
+					Time:    int32(c.Time.Unix()),
+					User:    c.User,
+					Message: c.Message,
+				})
+			}
+		}
 		alerts.Alerts = append(alerts.Alerts, displayAlert{
-			Id:           a.Id,
-			Name:         a.Name,
-			Query:        a.Query,
-			Condition:    a.Condition,
-			Message:      a.Message,
-			Active:       a.Active(),
+			Id:           a.Rule.Id,
+			Name:         a.Rule.Name,
+			Query:        a.Rule.Query,
+			Condition:    a.Rule.Condition,
+			Message:      a.Rule.Message,
 			Snoozed:      a.Snoozed(),
 			Triggered:    int32(a.Triggered().Unix()),
 			SnoozedUntil: int32(a.SnoozedUntil().Unix()),
+			Comments:     comments,
 		})
 	}
 	bytes, err := json.Marshal(&alerts)
@@ -193,6 +219,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 				util.ReportError(w, r, err, fmt.Sprintf("Unable to decode request body: %s", r.Body))
 				return
 			}
+			defer r.Body.Close()
 			until := time.Unix(int64(body.Until), 0)
 			glog.Infof("%s %s until %v", action, alertId, until.String())
 			alertManager.Snooze(alertId, until, email)
@@ -201,6 +228,20 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 			glog.Infof("%s %s", action, alertId)
 			alertManager.Unsnooze(alertId, email)
 			return
+		} else if action == "addcomment" {
+			bytes, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				util.ReportError(w, r, err, fmt.Sprintf("Unable to read request body: %s", r.Body))
+				return
+			}
+			defer r.Body.Close()
+			comment := string(bytes)
+			if !StringIsInteresting(comment) {
+				util.ReportError(w, r, fmt.Errorf("Invalid comment text."), comment)
+				return
+			}
+			glog.Infof("%s %s", action, alertId, comment)
+			alertManager.AddComment(alertId, email, comment)
 		} else {
 			util.ReportError(w, r, fmt.Errorf("Invalid action %s", action), "The requested action is invalid.")
 			return

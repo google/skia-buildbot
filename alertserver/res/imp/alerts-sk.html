@@ -15,35 +15,12 @@
       <div>Last loaded at {{lastLoaded}}</div>
     </div>
     <template repeat="{{a in alerts}}">
-      <template if="{{a.active}}">
-        <alert-sk alert="{{a}}"></alert-sk>
-      </template>
-    </template>
-    <div horizontal layout center>
-      <div flex></div>
-      <div>Inactive alerts: </div>
-      <div>
-        <template if="{{showinactive}}">
-          <core-icon-button icon="visibility-off" on-click="{{toggleInactive}}"></core-icon-button>
-        </template>
-        <template if="{{!showinactive}}">
-          <core-icon-button icon="visibility" on-click="{{toggleInactive}}"></core-icon-button>
-        </template>
-      </div>
-    </div>
-    <template repeat="{{a in alerts}}">
-      <template if="{{!a.active && showinactive}}">
-        <alert-sk alert="{{a}}"></alert-sk>
-      </template>
+      <alert-sk alert="{{a}}"></alert-sk>
     </template>
   </template>
   <script>
     Polymer({
       publish: {
-        showinactive: {
-          value: false,
-          reflect: true,
-        },
         reload: {
           value: 60,
           reflect: true,
@@ -82,7 +59,7 @@
           that.resetTimeout();
           var any_alerting = false;
           for (var i = 0; i < that.alerts.length; i++) {
-            any_alerting = any_alerting || (that.alerts[i].active && !that.alerts[i].snoozed);
+            any_alerting = any_alerting || !that.alerts[i].snoozed;
           }
           var tb = $$$('core-toolbar');
           if (any_alerting != tb.classList.contains('alerting')) {
@@ -92,9 +69,6 @@
 	}).catch(function() {
           that.resetTimeout();
         });
-      },
-      toggleInactive: function() {
-        this.showinactive = !this.showinactive;
       },
     });
   </script>

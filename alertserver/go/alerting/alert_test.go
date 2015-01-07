@@ -17,9 +17,9 @@ func (c mockClient) Query(query string, precision ...client.TimePrecision) ([]*c
 	return c.mockQuery(query)
 }
 
-func getAlert() *Alert {
-	a := &Alert{
-		Name:      "TestAlert",
+func getRule() *Rule {
+	r := &Rule{
+		Name:      "TestRule",
 		Query:     "DummyQuery",
 		Message:   "Dummy query meets dummy condition!",
 		Condition: "x > 0",
@@ -31,61 +31,64 @@ func getAlert() *Alert {
 			}
 			return []*client.Series{&s}, nil
 		}},
-		autoDismiss:   false,
-		actions:       nil,
+		autoDismiss: false,
+		actions:     nil,
+	}
+	r.actions = []Action{NewPrintAction(r)}
+	return r
+}
+
+func getAlert() *Alert {
+	a := &Alert{
+		Id:            0,
 		lastTriggered: time.Time{},
 		snoozedUntil:  time.Time{},
+		Comments:      []*Comment{},
+		Rule:          getRule(),
 	}
-	a.actions = []Action{NewPrintAction(a)}
 	return a
 }
 
-func TestAlert(t *testing.T) {
+func TestRule(t *testing.T) {
 	// TODO(borenet): This test is really racy. Is there a good fix?
-	a := getAlert()
-	if a.Active() {
+	r := getRule()
+	if r.activeAlert != nil {
 		t.Errorf("Alert is active before firing.")
 	}
-	if a.Snoozed() {
-		t.Errorf("Alert is snoozed before firing.")
-	}
-	a.tick()
+	r.tick()
 	time.Sleep(10 * time.Millisecond)
-	if !a.Active() {
+	if r.activeAlert == nil {
 		t.Errorf("Alert did not fire as expected.")
 	}
-	a.snooze(time.Now().Add(30*time.Millisecond), "Snoozed by default.user@gmail.com")
+	r.activeAlert.snoozedUntil = time.Now().Add(30 * time.Millisecond)
 	time.Sleep(10 * time.Millisecond)
-	if !a.Snoozed() {
+	if !r.activeAlert.Snoozed() {
 		t.Errorf("Alert did not snooze as expected.")
 	}
-	// Wait for alert to wake itself up.
+	// Wait for alert to dismiss itself.
 	time.Sleep(50 * time.Millisecond)
-	a.tick()
-	if a.Active() || a.Snoozed() {
+	r.tick()
+	if r.activeAlert != nil {
 		t.Errorf("Alert did not dismiss itself after snooze period ended.")
 	}
 }
 
 func TestAutoDismiss(t *testing.T) {
-	a := getAlert()
-	a.autoDismiss = true
-	if a.Active() {
+	r := getRule()
+	r.autoDismiss = true
+	if r.activeAlert != nil {
 		t.Errorf("Alert is active before firing.")
 	}
-	if a.Snoozed() {
-		t.Errorf("Alert is snoozed before firing.")
-	}
-	a.tick()
+	r.tick()
 	time.Sleep(10 * time.Millisecond)
-	if !a.Active() {
+	if r.activeAlert == nil {
 		t.Errorf("Alert did not fire as expected.")
 	}
 	// Hack the condition so that it's no longer true with the fake query results.
-	a.Condition = "x > 10"
-	a.tick()
+	r.Condition = "x > 10"
+	r.tick()
 	time.Sleep(10 * time.Millisecond)
-	if a.Active() {
+	if r.activeAlert != nil {
 		t.Errorf("Alert did not auto-dismiss.")
 	}
 }
@@ -363,7 +366,7 @@ nag = "1h10m"
 		if err != nil {
 			t.Errorf("Failed to parse:\n%v", c.Input)
 		}
-		_, err = newAlert(cfg.Rule[0], nil, nil, false)
+		_, err = newRule(cfg.Rule[0], nil, nil, false)
 		actualErrStr := "nil"
 		if err != nil {
 			actualErrStr = err.Error()

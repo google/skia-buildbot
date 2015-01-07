@@ -22,7 +22,7 @@ type Action interface {
 }
 
 type EmailAction struct {
-	alert     *Alert
+	rule      *Rule
 	to        []string
 	subject   string
 	emailAuth *email.GMail
@@ -30,8 +30,8 @@ type EmailAction struct {
 
 func (a *EmailAction) Fire() {
 	// Cache the email subject so we can send followup emails on the same thread.
-	a.subject = fmt.Sprintf(EMAIL_SUBJECT_TMPL, a.alert.Name, a.alert.Triggered().String())
-	body := a.alert.Message + EMAIL_FOOTER
+	a.subject = fmt.Sprintf(EMAIL_SUBJECT_TMPL, a.rule.Name, a.rule.activeAlert.Triggered().String())
+	body := a.rule.Message + EMAIL_FOOTER
 	if err := a.emailAuth.Send(a.to, a.subject, body); err != nil {
 		glog.Errorf("Failed to send email: %s", err)
 	}
@@ -43,9 +43,9 @@ func (a *EmailAction) Followup(msg string) {
 	}
 }
 
-func NewEmailAction(a *Alert, to []string, emailAuth *email.GMail) Action {
+func NewEmailAction(r *Rule, to []string, emailAuth *email.GMail) Action {
 	return &EmailAction{
-		alert:     a,
+		rule:      r,
 		to:        to,
 		subject:   "",
 		emailAuth: emailAuth,
@@ -53,19 +53,19 @@ func NewEmailAction(a *Alert, to []string, emailAuth *email.GMail) Action {
 }
 
 type PrintAction struct {
-	alert *Alert
+	rule *Rule
 }
 
 func (a *PrintAction) Fire() {
-	glog.Infof("ALERT FIRED (%s): %s", a.alert.Name, a.alert.Message)
+	glog.Infof("ALERT FIRED (%s): %s", a.rule.Name, a.rule.Message)
 }
 
 func (a *PrintAction) Followup(msg string) {
-	glog.Infof("ALERT FOLLOWUP (%s): %s", a.alert.Name, msg)
+	glog.Infof("ALERT FOLLOWUP (%s): %s", a.rule.Name, msg)
 }
 
-func NewPrintAction(a *Alert) Action {
-	return &PrintAction{a}
+func NewPrintAction(r *Rule) Action {
+	return &PrintAction{r}
 }
 
 func parseEmailList(str string) []string {
@@ -77,9 +77,9 @@ func parseEmailList(str string) []string {
 	return emails
 }
 
-func (a *Alert) parseActions(actionsInterface interface{}, emailAuth *email.GMail, testing bool) error {
+func (r *Rule) parseActions(actionsInterface interface{}, emailAuth *email.GMail, testing bool) error {
 	actionsList := []Action{
-		NewPrintAction(a),
+		NewPrintAction(r),
 	}
 	actionStrings := actionsInterface.([]interface{})
 	for _, actionString := range actionStrings {
@@ -88,13 +88,13 @@ func (a *Alert) parseActions(actionsInterface interface{}, emailAuth *email.GMai
 			// Do nothing; print is added by default.
 		} else if strings.HasPrefix(str, "Email(") && strings.HasSuffix(str, ")") {
 			to := parseEmailList(str[6 : len(str)-1])
-			actionsList = append(actionsList, NewEmailAction(a, to, emailAuth))
+			actionsList = append(actionsList, NewEmailAction(r, to, emailAuth))
 		} else if str == "Print" {
 			// Do nothing; print is added by default.
 		} else {
 			return fmt.Errorf("Unknown action: %q", str)
 		}
 	}
-	a.actions = actionsList
+	r.actions = actionsList
 	return nil
 }
