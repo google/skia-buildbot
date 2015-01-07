@@ -61,6 +61,7 @@ func (f *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		upath = "/" + upath
 		r.URL.Path = upath
 	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	serveFile(w, r, f.root, path.Clean(upath))
 }
 
