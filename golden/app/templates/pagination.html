@@ -1,0 +1,15 @@
+<div>
+  <div ng-show="p.len > 0">
+    <span>Page {{ p.current+1 }} of {{ p.len }}</span>
+    <ul class="pagination pagination-sm" style="margin: 0;">
+    	<li ng-class="{ 'disabled' : p.first}"><a href="" ng-click="p.gotoPrevious()" >&lt;</a></li>
+      <li ng-class="{ 'disabled' : p.first}"><a href="" ng-click="p.gotoFirst()" >«</a></li>
+      <li ng-repeat="r in p.range"  ng-class="{ 'active' : (p.rangeStart + $index) == p.current }">
+      	<a href="" ng-click="p.gotoPage(p.rangeStart + $index)">{{ p.rangeStart + $index + 1 }}
+      	</a>
+      </li>
+      <li ng-class="{ 'disabled' : p.last}"><a href="" ng-click="p.gotoLast()" >»</a></li>
+    	<li ng-class="{ 'disabled' : p.last}"><a href="" ng-click="p.gotoNext()" ng-class="{ 'disabled' : p.last}">&gt;</a></li>
+    </ul>
+  </div>
+</div>
