@@ -35,6 +35,9 @@ var (
 
 	// How long it takes to do a clustering run.
 	alertingLatency = metrics.NewRegisteredTimer("alerting.latency", metrics.DefaultRegistry)
+
+	// tileStore is the TileStore we are alerting on.
+	tileStore types.TileStore
 )
 
 // CombineClusters combines freshly found clusters with existing clusters.
@@ -196,6 +199,7 @@ func Write(c *types.ClusterSummary) error {
 			return fmt.Errorf("Failed to update database: %s", err)
 		}
 	}
+	calcNewClusters()
 	return nil
 }
 
@@ -371,12 +375,36 @@ func singleStep(tileStore types.TileStore, apiKey string) {
 	alertingLatency.UpdateSince(latencyBegin)
 }
 
+// calcNewClusters counts how many clusters are "New" and updates
+// the newClusterGauge metric accordingly.
+func calcNewClusters() {
+	tile, err := tileStore.Get(0, -1)
+	if err != nil {
+		glog.Errorf("Alerting: Failed to get tile: %s", err)
+		return
+	}
+	current, err := ListFrom(tile.Commits[0].CommitTime)
+	if err != nil {
+		glog.Errorf("Alerting: Failed to get existing clusters: %s", err)
+		return
+	}
+	count := 0
+	for _, c := range current {
+		if c.Status == "New" {
+			count++
+		}
+	}
+	glog.Infof("Updated new cluster count: %d", count)
+	newClustersGauge.Update(int64(count))
+}
+
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
-func Start(tileStore types.TileStore, apiKeyFlag string) {
+func Start(ts types.TileStore, apiKeyFlag string) {
 	apiKey := apiKeyFromFlag(apiKeyFlag)
+	tileStore = ts
 	go func() {
 		for _ = range time.Tick(config.RECLUSTER_DURATION) {
-			singleStep(tileStore, apiKey)
+			singleStep(ts, apiKey)
 		}
 	}()
 }
