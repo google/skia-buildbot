@@ -40,6 +40,7 @@ package docset
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"net/mail"
 	"os"
 	"os/exec"
@@ -52,11 +53,16 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/golang/groupcache/lru"
 
 	"skia.googlesource.com/buildbot.git/doc/go/config"
 	"skia.googlesource.com/buildbot.git/doc/go/reitveld"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/util"
+)
+
+const (
+	MARKDOWN_CACHE_SIZE = 100
 )
 
 var (
@@ -69,6 +75,8 @@ type DocSet struct {
 	repoDir string
 	// navigation is the HTML formatted navigation structure for the given repo.
 	navigation string
+
+	cache *lru.Cache
 
 	mutex sync.Mutex
 }
@@ -171,6 +179,21 @@ func (d *DocSet) RawFilename(url string) (string, bool, error) {
 	return endFilename, (startFilename == endFilename), err
 }
 
+// Body returns the contents of the given filename.
+func (d *DocSet) Body(filename string) ([]byte, error) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	var err error = nil
+	body, ok := d.cache.Get(filename)
+	if !ok {
+		body, err = ioutil.ReadFile(filename)
+		if err == nil {
+			d.cache.Add(filename, body)
+		}
+	}
+	return body.([]byte), err
+}
+
 // hasPrefix returns true if p is a prefix of a.
 func hasPrefix(a, p []string) bool {
 	if len(p) > len(a) {
@@ -260,6 +283,7 @@ func (d *DocSet) BuildNavigation() {
 	s := buildNavString(nav)
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
+	d.cache = lru.New(MARKDOWN_CACHE_SIZE)
 	d.navigation = s
 }
 

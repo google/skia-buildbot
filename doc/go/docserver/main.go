@@ -8,7 +8,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -126,7 +125,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", mimetype)
 
 	// Write the response.
-	b, err := ioutil.ReadFile(filename)
+	b, err := d.Body(filename)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load file")
 		return
