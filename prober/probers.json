@@ -79,5 +79,26 @@
      "expected": [200],
      "body": "",
      "mimetype": ""
+   },
+   "skfe-1": {
+     "url": "http://skia-skfe-1",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skfe-2": {
+     "url": "http://skia-skfe-2",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiadev": {
+     "url": "http://skiadev.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
    }
 }
