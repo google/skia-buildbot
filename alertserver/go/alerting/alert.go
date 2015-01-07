@@ -74,7 +74,7 @@ type Alert struct {
 func (a *Alert) addComment(c *Comment) {
 	a.Comments = append(a.Comments, c)
 	for _, action := range a.Rule.actions {
-		go action.Followup(c.Message)
+		go action.Followup(fmt.Sprintf("%s: %s", c.User, c.Message))
 	}
 }
 
