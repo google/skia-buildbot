@@ -1062,7 +1062,7 @@ func main() {
 	// Setup DB flags.
 	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
 
-	common.InitWithMetrics("skiaperf", *graphiteServer)
+	common.InitWithMetrics("skiaperf", graphiteServer)
 	Init()
 	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
 	if err != nil {

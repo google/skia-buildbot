@@ -41,7 +41,7 @@ func main() {
 	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_RW, buildbot.PROD_DB_NAME)
 
 	// Global init to initialize glog and parse arguments.
-	common.InitWithMetrics("datahopper", *graphiteServer)
+	common.InitWithMetrics("datahopper", graphiteServer)
 
 	// Prepare the InfluxDB credentials. Load from metadata if appropriate.
 	if !*local {

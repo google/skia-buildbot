@@ -335,7 +335,7 @@ func runServer(serverURL string) {
 }
 
 func main() {
-	common.InitWithMetrics("alertserver", *graphiteServer)
+	common.InitWithMetrics("alertserver", graphiteServer)
 	v := skiaversion.GetVersion()
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
 

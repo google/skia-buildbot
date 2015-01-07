@@ -30,10 +30,10 @@ func Init() {
 // Sets up Graphite push for go-metrics' DefaultRegistry. Users of
 // both InitWithMetrics and metrics.DefaultRegistry will not need to
 // run metrics.Graphite(metrics.DefaultRegistry, ...) separately.
-func InitWithMetrics(appName, graphiteServer string) {
+func InitWithMetrics(appName string, graphiteServer *string) {
 	Init()
 
-	addr, _ := net.ResolveTCPAddr("tcp", graphiteServer)
+	addr, _ := net.ResolveTCPAddr("tcp", *graphiteServer)
 
 	// Runtime metrics.
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)

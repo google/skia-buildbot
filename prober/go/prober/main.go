@@ -230,7 +230,7 @@ func monitorIssueTracker() {
 }
 
 func main() {
-	common.InitWithMetrics("probeserver", *graphiteServer)
+	common.InitWithMetrics("probeserver", graphiteServer)
 	go monitorIssueTracker()
 	glog.Infoln("Looking for Graphite server.")
 	addr, err := net.ResolveTCPAddr("tcp", *graphiteServer)

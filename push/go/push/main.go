@@ -349,7 +349,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
-	common.InitWithMetrics("push", *graphiteServer)
+	common.InitWithMetrics("push", graphiteServer)
 	Init()
 
 	// By default use a set of credentials setup for localhost access.

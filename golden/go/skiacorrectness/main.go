@@ -229,7 +229,7 @@ func main() {
 	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
 
 	// Global init to initialize
-	common.InitWithMetrics("skiacorrectness", *graphiteServer)
+	common.InitWithMetrics("skiacorrectness", graphiteServer)
 
 	// Initialize submodules.
 	filediffstore.Init()

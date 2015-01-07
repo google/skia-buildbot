@@ -100,7 +100,7 @@ func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	common.InitWithMetrics("grains", *graphiteServer)
+	common.InitWithMetrics("grains", graphiteServer)
 	if *useMetadata {
 		*clientID = metadata.Must(metadata.ProjectGet(CLIENT_ID_METADATA_KEY))
 		*clientSecret = metadata.Must(metadata.ProjectGet(CLIENT_SECRET_METADATA_KEY))

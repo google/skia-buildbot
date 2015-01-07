@@ -77,7 +77,7 @@ func main() {
 	// Setup DB flags.
 	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
 
-	common.InitWithMetrics("ingest", *graphiteServer)
+	common.InitWithMetrics("ingest", graphiteServer)
 
 	// Initialize the database. We might not need the oauth dialog if it fails.
 	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())

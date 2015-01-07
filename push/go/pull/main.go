@@ -60,7 +60,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	common.InitWithMetrics("pull."+*hostname, *graphiteServer)
+	common.InitWithMetrics("pull."+*hostname, graphiteServer)
 	glog.Infof("Running with hostname: %s", *hostname)
 
 	client, err := gsauth.NewClient(*doOauth, *oauthCacheFile)

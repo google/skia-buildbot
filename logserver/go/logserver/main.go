@@ -403,7 +403,7 @@ func main() {
 		glog.Fatalf("Failed to get Hostname: %s", err)
 	}
 	appName := "logserver." + hostname
-	common.InitWithMetrics(appName, *graphiteServer)
+	common.InitWithMetrics(appName, graphiteServer)
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {
 		glog.Fatalf("Failed to create dir for log files: %s", err)

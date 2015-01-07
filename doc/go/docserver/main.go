@@ -157,7 +157,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
-	common.InitWithMetrics("docserver", *graphiteServer)
+	common.InitWithMetrics("docserver", graphiteServer)
 	Init()
 
 	// Resources are served directly.

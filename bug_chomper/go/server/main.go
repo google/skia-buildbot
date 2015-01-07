@@ -374,7 +374,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 // Run the BugChomper server.
 func main() {
-	common.InitWithMetrics("bug_chomper", *graphiteServer)
+	common.InitWithMetrics("bug_chomper", graphiteServer)
 
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
 	http.HandleFunc(OAUTH_CALLBACK_PATH, handleOAuth2Callback)
