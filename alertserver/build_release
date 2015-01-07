@@ -17,6 +17,7 @@ ${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/skiaa
 ${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/skiaalertserver/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/alerts.html   ${ROOT}/usr/local/share/skiaalertserver/templates/alerts.html
 ${INSTALL} --mode=644 -T ./templates/commits.html  ${ROOT}/usr/local/share/skiaalertserver/templates/commits.html
+${INSTALL} --mode=644 -T ./templates/rules.html    ${ROOT}/usr/local/share/skiaalertserver/templates/rules.html
 ${INSTALL_DIR} --mode=777                          ${ROOT}/mnt/pd0/alertserver_scratch
 }
 
