@@ -264,6 +264,10 @@ var skia = skia || {};
   ns.extractTriageData = function (serverData, filterParams) {
     var result = [];
     var triageState = {};
+    var totalUnt = new Stats(),
+        totalPos = new Stats(),
+        totalNeg = new Stats();
+
     for (var i = 0, len = serverData.tests.length; i < len; i++) {
       var untStats = new Stats();
       var posStats = new Stats();
@@ -281,26 +285,35 @@ var skia = skia || {};
       };
 
       triageState[testName] = {};
-      add(positive, ns.c.POSITIVE);
-      add(negative, ns.c.NEGATIVE);
+      add(positive[0], ns.c.POSITIVE);
+      add(negative[0], ns.c.NEGATIVE);
       add(untriaged, ns.c.UNTRIAGED);
 
       result.push({
         name: testName,
         untriaged: untriaged,
-        positive:  positive,
-        negative:  negative,
+        positive:  positive[0],
+        positiveMap: positive[1],
+        negative:  negative[0],
+        negativeMap: negative[1],
         untStats:  untStats,
         posStats:  posStats,
         negStats:  negStats
       });
+
+      totalPos.add(posStats);
+      totalNeg.add(negStats);
+      totalUnt.add(untStats);
     }
 
     return {
       tests: result,
       allParams: ns.getSortedParams(serverData, filterParams),
       triageState: triageState,
-      commitRanges: ns.getAutoCommitRanges(serverData)
+      commitRanges: ns.getAutoCommitRanges(serverData),
+      untStats: totalUnt,
+      posStats: totalPos,
+      negStats: totalNeg
     };
   };
 
@@ -358,6 +371,11 @@ var skia = skia || {};
   Stats.prototype.set = function (total, unique) {
     this.total = total;
     this.unique = unique;
+  };
+
+  Stats.prototype.add = function (statsObj) {
+    this.total += statsObj.total;
+    this.unique += statsObj.unique;
   };
 
   /**
@@ -440,7 +458,7 @@ var skia = skia || {};
   ns.getSortedDigests= function (serverData, digestClass, stats, idx) {
     var targetDigests = robust_get(serverData, ['tests', idx, digestClass]);
     if (!targetDigests)  {
-      return [];
+      return [[], {}];
     }
 
     var result = [];
@@ -463,7 +481,7 @@ var skia = skia || {};
       a.count - b.count;
     });
 
-    return result;
+    return [result, targetDigests];
   };
 
   /**
@@ -538,6 +556,23 @@ var skia = skia || {};
         result.push(k);
       }
     }
+    return result;
+  };
+
+  // Returns an object as an array sorted by keys. This assumes that the keys
+  // are strings.
+  ns.getSortedObject = function(obj) {
+    var result = [];
+    for(var k in obj) {
+      if (obj.hasOwnProperty(k)) {
+        result.push([k, obj[k]]);
+      }
+    }
+
+    result.sort(function(a,b) {
+      return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
+    });
+
     return result;
   };
 
@@ -616,7 +651,6 @@ var skia = skia || {};
   ns.updateDelta = function (changed, original, delta, testName) {
     var useTestNames = (testName) ? [testName] : ns.keys(changed);
     var testDelta, testCount, tn;
-    var pendingCount = 0;
 
     for (var i = 0, len = useTestNames.length; i < len; i++) {
       tn = useTestNames[i];
@@ -637,7 +671,13 @@ var skia = skia || {};
           delta: testDelta,
           count: testCount
         };
-        pendingCount += testCount;
+      }
+    }
+
+    var pendingCount = 0;
+    for(var k in delta) {
+      if (delta.hasOwnProperty(k)) {
+        pendingCount += delta[k].count;
       }
     }
 

@@ -84,8 +84,6 @@ func (i *LabeledTileIndex) queryParams(query, effectiveQuery map[string][]string
 	minIdx, minLen := 0, 0
 	for key, values := range query {
 		if paramMap, ok := i.paramIndex[key]; ok {
-			glog.Infof("Found Param:   %s", key)
-
 			tempVals := make([]string, 0, len(values))
 			tempSet = map[int]bool{}
 			for _, v := range values {

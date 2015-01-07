@@ -1,8 +1,9 @@
 <div>
-    <a href=""
-    ng-click="toggleStateIndicator(digest)"
-    style="font-size: 16pt;"
-    ng-class="{'stateChanged' : stateChanged(digest)}">
+    <a ng-if="digest"
+       href=""
+       ng-click="toggleStateIndicator(digest)"
+       style="font-size: 16pt;"
+       ng-class="{'stateChanged' : stateChanged(digest)}">
         <span ng-if="triageState[testName][digest] === c.POSITIVE"
               class="glyphicon glyphicon-ok positiveLabel"></span>
         <span ng-if="triageState[testName][digest] === c.NEGATIVE"

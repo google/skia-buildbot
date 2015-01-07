@@ -31,7 +31,7 @@ var skia = skia || {};
           controller: 'TriageDetailsCtrl',
           reloadOnSearch: false
         });
-    $routeProvider.otherwise({redirectTo: ns.c.URL_COUNTS });
+    $routeProvider.otherwise({redirectTo: ns.c.URL_TRIAGE });
   }]);
 
   /*
@@ -104,7 +104,8 @@ var skia = skia || {};
    */
   app.controller('TriageCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'dataService',
     function($scope, $routeParams, $location, $timeout, dataService) {
-      var triageStateManager = new TriageStateManager($scope, dataService);
+      var triageStateManager;
+      var completeTestSet, untriagedTestsOnly;
 
       var sortFn = function(a,b) {
         return (a.name === b.name) ? 0 : (a.name < b.name) ? -1 : 1;
@@ -124,11 +125,21 @@ var skia = skia || {};
 
             triageStateManager.setNewState(temp.triageState);
 
-            // $scope.allTests = temp.tests.slice(0, 5);
-            $scope.allTests = temp.tests;
+            completeTestSet = temp.tests;
+            untriagedTestsOnly = temp.tests.filter(
+              function(t) { return t.untStats.unique > 0; });
+            $scope.updateContent();
+
             $scope.allParams = temp.allParams;
             $scope.crLinks =temp.commitRanges;
             setQuery(serverData.query || {});
+
+            $scope.displayQuery = serverData.query || {};
+            $scope.selectionInfo = {
+              untStats: temp.untStats,
+              posStats: temp.posStats,
+              negStats: temp.negStats
+            }
 
             $scope.state = 'ready';
             $scope.checkStatus();
@@ -149,7 +160,13 @@ var skia = skia || {};
       $scope.saveTriageState = function() {
         $scope.state = 'saving';
         triageStateManager.saveTriageState(function (promise) {
-          processServerData(promise, false);
+          promise.then(
+            function (resp) {
+              $scope.loadAllTriageData();
+            },
+            function (errResp) {
+              console.log(errResp);
+            });
         });
       };
 
@@ -189,6 +206,12 @@ var skia = skia || {};
         $scope.crClean = angular.equals($scope.commitRangeQuery, $scope.originalCommitRange);
       }, true);
 
+      // Pick the subset of content we are interested in.
+      $scope.updateContent = function () {
+        var t = ($scope.showUntriagedOnly) ? untriagedTestsOnly : completeTestSet;
+        $scope.paginator.setContent(t);
+      };
+
       $scope.getImageLists = function(oneTest) {
         if (oneTest.untStats.unique > 0) {
           pos = oneTest.untriaged.diffs;
@@ -201,23 +224,60 @@ var skia = skia || {};
         };
       }
 
+      // unroll converts the tests with nested untriaged digests into a flat
+      // list.
+      function unroll(tests) {
+        var result = [];
+        var rs, pos, diff;
+        for(var i=0, len=tests.length; i<len; i++) {
+          rs = (tests[i].untStats.unique > 0) ? tests[i].untStats.unique : 1;
+          for(var j=0; j < rs; j++) {
+            pos = (tests[i].untriaged[j] && tests[i].untriaged[j].diffs[0]) ? tests[i].positiveMap[tests[i].untriaged[j].diffs[0].posDigest] : false;
+            diff = (tests[i].untriaged[j]) ? tests[i].untriaged[j].diffs[0] : false;
+            result.push({
+              name: tests[i].name,
+              showName: j === 0,
+              posUnique: tests[i].posStats.unique,
+              negUnique: tests[i].negStats.unique,
+              untUnique: tests[i].untStats.unique,
+              pos: pos,
+              untriaged: tests[i].untriaged[j],
+              diff: diff
+            });
+          }
+        }
+
+        return result;
+      };
+
       // initialize the members and load the data.
-      $scope.reloadInterval = 3;
-      $scope.allTests = [];
-      $scope.allParams = [];
-      $scope.crLinks = [];
-      $scope.imageSize = 100;
-      $scope.loadAllTriageData();
+      function init() {
+        // Initialize the triage state manager.
+        triageStateManager = new TriageStateManager($scope, dataService);
 
-      // Inject the constants into the scope.
-      $scope.c = ns.c;
+        $scope.reloadInterval = 3;
+        $scope.allTests = [];
+        $scope.allParams = [];
+        $scope.crLinks = [];
+        $scope.imageSize = 100;
+        $scope.loadAllTriageData();
 
-      // TODO(stephana): Fix query string.
-      setQuery($location.search());
+        $scope.showUntriagedOnly = true;
+        $scope.pageSize = 50;
+        $scope.paginator = new Paginator($scope.pageSize, 5, paginateTests, function(page) {
+          $scope.allTests = unroll(page);
+        });
+
+        // Inject the constants into the scope.
+        $scope.c = ns.c;
+
+        setQuery($location.search());
+      };
+      init();
 
       // Register for corpus changes.
       $scope.$on('corpus-change', function() {
-        $scope.loadAllTriageData();
+        init();
       });
     }]);
 
@@ -303,6 +363,98 @@ var skia = skia || {};
     responseFn(this.dataService.sendData(ns.c.URL_TRIAGE, req));
   };
 
+  // paginateTests splits the array of tests into pages with the given
+  // pageSize. Each untriaged digest in a test is considered an entry that
+  // counts towards the pagesize. Each page will contain at least one complete
+  // test. The number of images might be larger or smaller than page size as
+  // a result.
+  function paginateTests(tests, pageSize) {
+    var pages = [];
+    var current =[];
+    var currentCounter = 0, incVal;
+
+    for(var i=0, len=tests.length; i < len;) {
+      incVal = tests[i].untStats.unique > 0 ? tests[i].untStats.unique : 1;
+      current.push(tests[i]);
+      currentCounter += incVal;
+      i++;
+
+      while(i < len) {
+        incVal = tests[i].untStats.unique > 0 ? tests[i].untStats.unique : 1;
+        if ((currentCounter + incVal) > pageSize) {
+          break;
+        }
+        current.push(tests[i]);
+        currentCounter += incVal;
+        i++;
+      }
+      pages.push(current);
+      current = [];
+      currentCounter = 0;
+    }
+
+    return pages;
+  };
+
+  // Paginator is a helper class that manages pagination state.
+  function Paginator(pageSize, rangeLen, paginationFn, callback) {
+    this.pageSize = pageSize;
+    this.rangeLen = rangeLen;
+    this.callback = callback;
+    this.paginationFn = paginationFn;
+    this.len = 0;
+    this.rangeOffset = Math.floor(this.rangeLen/2);
+  }
+
+  Paginator.prototype.setContent = function(content) {
+    this.pages = this.paginationFn(content, this.pageSize);
+    this.len =this.pages.length;
+    this.lastIndex = this.pages.length-1;
+    this.current = -1;
+    this.gotoPage(0);
+  };
+
+  Paginator.prototype.gotoPage = function(targetPage) {
+    if ((this.len == 0) || ((targetPage >= 0) && (targetPage <= this.lastIndex))) {
+      this.current = targetPage;
+      this.first = this.current === 0;
+      this.last = this.current === this.lastIndex;
+      this.recalcRange();
+      this.currentPage = this.pages[this.current] || [];
+      this.callback(this.currentPage);
+    };
+  };
+
+  Paginator.prototype.recalcRange = function() {
+    var start = Math.max(Math.min(this.current - this.rangeOffset, this.len-this.rangeLen), 0);
+    var end = Math.min(start + this.rangeLen - 1, this.lastIndex);
+    this.range = [];
+    for(var i=start; i <= end; i++) {
+      this.range.push(i);
+    }
+    this.rangeStart = this.range[0];
+  };
+
+  Paginator.prototype.gotoPrevious = function() {
+    if (this.current > 0) {
+      this.gotoPage(this.current-1);
+    }
+  };
+
+  Paginator.prototype.gotoNext = function() {
+    if (this.current < this.lastIndex) {
+      this.gotoPage(this.current+1);
+    }
+  };
+
+  Paginator.prototype.gotoFirst = function() {
+    this.gotoPage(0);
+  };
+
+  Paginator.prototype.gotoLast = function() {
+    this.gotoPage(this.lastIndex);
+  };
+
   /*
    * TriageDetailsCtrl is the controller for the micro triage view. It manages the UI
    * and backend requests. Processing is delegated to the functions in the
@@ -315,7 +467,7 @@ var skia = skia || {};
       var path = $location.path();
       var positives, negatives;
       var posIndex, negIndex;
-      var triageStateManager = new TriageStateManager($scope, dataService);
+      var triageStateManager;
 
       // processServerData is called by loadTriageState and also saveTriageState
       // to process the triage data returned by the server.
@@ -482,39 +634,45 @@ var skia = skia || {};
         return {};
       };
 
-      // Initialize the variables in $scope.
-      $scope.testName = testName;
-      $scope.untriaged = [];
-      $scope.leftDigests = [];
-      positives = [];
-      negatives = [];
-      posIndex = -1;
-      negIndex = -1;
-      $scope.reloadInterval = 3;
+      function init() {
+        // Initialize the triage state manager.
+        triageStateManager = new TriageStateManager($scope, dataService);
 
-      $scope.posStats = {};
+        // Initialize the variables in $scope.
+        $scope.testName = testName;
+        $scope.untriaged = [];
+        $scope.leftDigests = [];
+        positives = [];
+        negatives = [];
+        posIndex = -1;
+        negIndex = -1;
+        $scope.reloadInterval = 3;
 
-      $scope.negStats = {};
+        $scope.posStats = {};
 
-      $scope.posStats = null;
-      $scope.negStats = null;
-      $scope.untStats = null;
+        $scope.negStats = {};
 
-      // Update the derived data.
-      $scope.selectUntriaged(0);
-      $scope.selectLeft(0);
-      $scope.showPositives = true;
-      $scope.showOverlay = true;
+        $scope.posStats = null;
+        $scope.negStats = null;
+        $scope.untStats = null;
 
-      // Expose the constants in the template.
-      $scope.c = ns.c;
+        // Update the derived data.
+        $scope.selectUntriaged(0);
+        $scope.selectLeft(0);
+        $scope.showPositives = true;
+        $scope.showOverlay = true;
 
-      // Manage the URL query.
-      $scope.allParams = [];
-      $scope.query = $location.search();
+        // Expose the constants in the template.
+        $scope.c = ns.c;
 
-      // Load the data.
-      $scope.loadTriageData();
+        // Manage the URL query.
+        $scope.allParams = [];
+        $scope.query = $location.search();
+
+        // Load the data.
+        $scope.loadTriageData();
+      };
+      init();
   }]);
 
   /**
@@ -607,6 +765,7 @@ var skia = skia || {};
         // The timeout call is necessary to let outerQuery propagate.
         $timeout(function(){
           $scope.clickUpdate();
+          $scope.showFilter = false;
         });
       };
     };
@@ -658,14 +817,10 @@ var skia = skia || {};
   * skImgContainer implements a directive to wrap an image with a
   * classification label.
   **/
-  app.directive('skImgContainer', ['$timeout', function($timeout) {
+  app.directive('skImgContainer', [function() {
     var linkFn = function ($scope, element, attrs) {
-        $timeout(function() {
-          $scope.digest = $scope.digest();
-          $scope.setTriageState = $scope.setTriageState();
-          $scope.imgUrl = $scope.imgUrl();
-          $scope.testName = $scope.testName();
-
+        // Only wire these up if there was a digest given.
+        if ($scope.digest) {
           // toggleStateIndicator changes the state of a digest to the 'next' state.
           // This allows to iterate through all states by repeatedly clicking on
           // the indicator.
@@ -680,9 +835,7 @@ var skia = skia || {};
             return $scope.triageState[$scope.testName][$scope.digest] !==
                    $scope.initialTriageState[$scope.testName][$scope.digest];
           };
-        });
-        $scope.stateChanged = function() { return false; }
-
+        }
         $scope.c = ns.c;
     };
 
@@ -690,12 +843,12 @@ var skia = skia || {};
         restrict: 'E',
         replace: false,
         scope: {
-          "digest": "&digest",
-          "setTriageState": "&setter",
+          "digest": "=digest",
+          "setTriageState": "=setter",
           "triageState": "=triageState",
           "initialTriageState": "=initialTriageState",
-          "imgUrl": "&imgUrl",
-          "testName": "&testName"
+          "imgUrl": "=imgUrl",
+          "testName": "=testName"
         },
         transclude: true,
         templateUrl: 'templates/triage-img-container.html',
@@ -708,7 +861,7 @@ var skia = skia || {};
   **/
   app.directive('skBulkTriage', ['$timeout', function($timeout) {
     var linkFn = function ($scope, element, attrs) {
-      function checkChangeForTest() {
+      function checkChangeForOneTest() {
         if ($scope.digests.length > 0) {
           $scope.selected = $scope.triageState[$scope.testName][$scope.digests[0].digest];
           for(var i=1, len=$scope.digests.length; i<len; i++) {
@@ -723,8 +876,7 @@ var skia = skia || {};
         }
       }
 
-      function checkForAllTests() {
-        var empty = false;
+      function checkChangeForAllTests() {
         var init = true;
         $scope.selected = null;
 
@@ -754,13 +906,13 @@ var skia = skia || {};
         $scope.testName = $scope.testName();
         if ($scope.testName) {
           $scope.selectAll = $scope.setTriageState;
-          $scope.$watch('triageState', checkChangeForTest, true);
-          $scope.$watch('digests', checkChangeForTest, true);
+          $scope.$watch('triageState', checkChangeForOneTest, true);
+          $scope.$watch('digests', checkChangeForOneTest, true);
         } else {
           $scope.selectAll = function(testName, digests, targetState) {
               $scope.setTriageState(testName, $scope.triageState, targetState);
           };
-          $scope.$watch('triageState', checkForAllTests, true);
+          $scope.$watch('triageState', checkChangeForAllTests, true);
         }
       });
     };
@@ -772,7 +924,8 @@ var skia = skia || {};
           "digests": "=digests",
           "setTriageState": "&setter",
           "triageState": "=triageState",
-          "testName": "&testName"
+          "testName": "&testName",
+          "tests": "=tests"
         },
         transclude: false,
         templateUrl: 'templates/bulk-triage.html',
@@ -780,8 +933,45 @@ var skia = skia || {};
     };
   }]);
 
+  /**
+  * skPagination implements a directive to show current pagination state.
+  **/
+  app.directive('skPagination', [function() {
+    return {
+        restrict: 'E',
+        replace: true,
+        scope: {
+          "p": "=paginator",
+        },
+        transclude: false,
+        templateUrl: 'templates/pagination.html'
+    };
+  }]);
 
+  /**
+  * skSortedTable shows an object in a sorted table.
+  **/
+  app.directive('skSortedTable', [function() {
+    var linkFn = function ($scope, element, attrs) {
+      $scope.$watch('obj', function() {
+        $scope.objTable = ns.getSortedObject($scope.obj);
+      });
+    };
 
+    return {
+        restrict: 'E',
+        replace: true,
+        scope: {
+          "obj": "=obj",
+          "hOne": "@hOne",
+          "hTwo": "@hTwo",
+          "empty": "@msg"
+        },
+        transclude: false,
+        templateUrl: 'templates/sorted-table.html',
+        link: linkFn
+    };
+  }]);
   /**
   * dataService provides functions to load data from the backend.
   */

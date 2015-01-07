@@ -464,11 +464,6 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 	}
 
 	ret := make(map[string]map[string]*GUIUntriagedDigest, len(a.currentTestDetails.Tests))
-	if includeAllTests {
-		for _, t := range a.currentTestDetails.Tests {
-			ret[t.Name] = nil
-		}
-	}
 	for _, trace := range traces {
 		testName := trace.Params[types.PRIMARY_KEY_FIELD]
 		current := a.currentTestDetails.lookup(testName).Untriaged
@@ -485,6 +480,12 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 					ret[testName] = make(map[string]*GUIUntriagedDigest, len(current))
 				}
 				ret[testName][trace.Digests[idx]] = current[trace.Digests[idx]]
+			}
+		}
+
+		if includeAllTests {
+			if _, ok := ret[testName]; !ok {
+				ret[testName] = nil
 			}
 		}
 	}
