@@ -19,4 +19,4 @@ if [[ ! -f oauth_client_secret.json ]]; then
   gsutil cp gs://chromium-skia-gm/bugchomper/oauth_client_secret.json .
 fi
 
-GOPATH="$GOPATH:$DIR" go run $DIR/go/server/main.go $@
+GOPATH="$GOPATH:$DIR" go run $DIR/go/bug_chomper/main.go $@
