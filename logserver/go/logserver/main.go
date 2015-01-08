@@ -30,10 +30,10 @@ var (
 	stateFile      = flag.String("state_file", "/tmp/logserver.state", "File where logserver stores all encountered log files. This ensures that metrics are not duplicated for already processed log files.")
 
 	appLogThreshold = flag.Int64(
-		"app_log_threshold", 1<<30,
+		"app_log_threshold", 100*1024*1024,
 		"If any app's logs for a log level use up more than app_log_threshold value then the files with the oldest modified time are deleted till size is less than app_log_threshold - app_log_threshold_buffer.")
 	appLogThresholdBuffer = flag.Int64(
-		"app_log_threshold_buffer", 10*1<<20,
+		"app_log_threshold_buffer", 50*1024*1024,
 		"If any app's logs for a log level use up more than app_log_threshold then the files with the oldest modified time are deleted till size is less than app_log_threshold - app_log_threshold_buffer.")
 	dirWatchDuration = flag.Duration("dir_watch_duration", 10*time.Second, "How long dir watcher sleeps for before checking the dir.")
 )
