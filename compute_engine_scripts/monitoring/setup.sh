@@ -68,7 +68,6 @@ mkdir -p /mnt/pd0/wwwlogs
 # custom config files.
 cd ~/buildbot/compute_engine_scripts/monitoring/
 sudo install $PARAMS $CONFIG_FILE bashrc /home/default/.bashrc
-sudo install $PARAMS $CONFIG_FILE grafana-config.js /home/default/grafana/config.js
 sudo install $ROOT_PARAMS $CONFIG_FILE monitoring_monit /etc/monit/conf.d/monitoring
 sudo install $ROOT_PARAMS $MONIT_CONFIG_FILE monitrc /etc/monit/monitrc
 sudo install $ROOT_PARAMS $CONFIG_FILE collectd /etc/collectd/collectd.conf
