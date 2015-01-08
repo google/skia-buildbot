@@ -6,16 +6,16 @@ alerts based on rules defined in alerts.cfg.
 
 
 ### AlertServer ###
-It needs the following metadata values:
+It needs the following project level metadata set:
 
-    cookiesalt
-    client_id
-    client_secret
-    influxdb_name
-    influxdb_password
-    gmail_clientid
-    gmail_clientsecret
-    gmail_cached_token
+    metadata.COOKIESALT
+    metadata.CLIENT_ID
+    metadata.CLIENT_SECRET
+    metadata.INFLUXDB_NAME
+    metadata.INFLUXDB_PASSWORD
+    metadata.GMAIL_CLIENT_ID
+    metadata.GMAIL_CLIENT_SECRET
+    metadata.GMAIL_CACHED_TOKEN
 
 The client_id and client_secret come from here:
 

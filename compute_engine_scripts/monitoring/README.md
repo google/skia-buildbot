@@ -8,12 +8,6 @@ timeseries data before InfluxDB. Our servers still upload metrics using this
 Graphite/Carbon API, so you'll see mentions of Graphite or Carbon here and
 there.
 
-In addition this server also hosts the prober, which monitors the uptime
-of our servers and pumps the results of those probes into InfluxDB.
-
-Alert Server periodically queries InfluxDB and generates alerts based on rules
-defined in monitoring/alerts.cfg.
-
 Logs for all applications are served from skiamonitor.com:10115 which is
 restricted to internal IPs only.
 
@@ -35,35 +29,6 @@ valentine.
 
 Once that is done then set the Metadata for the instance using
 cloud.google.com/console, see below:
-
-### Prober ###
-The prober requres one piece of metadata, the API Key for making requests
-to the project hosting API. They API Key value can be found here:
-
-https://console.developers.google.com/project/31977622648/apiui/credential
-
-Set that as the value for the metadata key:
-
-    apikey
-
-### Grains ###
-
-Grains is the Grafana/InfluxDB proxy and needs the following metadata values
-set:
-
-    cookiesalt
-    client_id
-    client_secret
-    influxdb_name
-    influxdb_password
-
-The client_id and client_secret come from here:
-
-    https://console.developers.google.com/project/31977622648/apiui/credential
-
-Look for the Client ID that has a Redirect URI for skiamonitor.com.
-
-For 'cookiesalt' and the influx db values search for 'skiamonitor' in valentine.
 
 Do on update
 ------------
