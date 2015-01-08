@@ -13,9 +13,29 @@ golden:
 perf:
 	cd perf && $(MAKE) all
 
-.PHONY: monitoring
-monitoring:
-	cd monitoring && $(MAKE) all
+.PHONY: alertserver
+alertserver:
+	cd alertserver && $(MAKE) all
+
+.PHONY: datahopper
+datahopper:
+	cd  datahopper && $(MAKE) default
+
+.PHONY: logserver
+logserver:
+	cd  logserver && $(MAKE) default
+
+.PHONY: ct
+ct:
+	cd ct && $(MAKE) all
+
+.PHONY: grains
+grains:
+	cd grains && $(MAKE) default
+
+.PHONY: push
+push:
+	cd push && $(MAKE) default
 
 .PHONY: all
-all: golden monitoring perf sharedgo
+all: golden perf sharedgo alertserver datahopper logserver ct

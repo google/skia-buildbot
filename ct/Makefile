@@ -69,7 +69,7 @@ master_scripts: run_command build_chromium create_pagesets_on_workers capture_ar
 worker_scripts: create_pagesets capture_archives run_lua run_benchmark run_skia_correctness
 
 .PHONY: all
-all: master_scripts worker_scripts test
+all: master_scripts worker_scripts testgo
 
 .PHONY: e2e_tests
 e2e_tests:
@@ -79,49 +79,49 @@ e2e_tests:
 	sleep 15
 	@echo
 	@echo
-	
+
 	@echo "Running capture_archives"
 	go run go/worker_scripts/capture_archives/main.go -logtostderr --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce -logtostderr
 	@echo "Completed capture_archives. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo
-	 
+
 	@echo "Running skpicture_printer"
 	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=skpicture_printer --browser_extra_args="--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting" --repeat_benchmark=2 --target_platform=Linux
 	@echo "Completed skpicture_printer. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo
-	
+
 	@echo "Running smoothness"
 	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=smoothness --browser_extra_args="--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting" --repeat_benchmark=2 --target_platform=Linux
 	@echo "Completed smoothness. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo
-	
+
 	@echo "Running rasterize_and_record_micro"
 	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=rasterize_and_record_micro --browser_extra_args="--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting" --repeat_benchmark=2 --target_platform=Linux
 	@echo "Completed rasterize_and_record_micro. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo
-	
+
 	@echo "Running repaint"
 	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=repaint --browser_extra_args="--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting" --repeat_benchmark=2 --target_platform=Linux
 	@echo "Completed repaint. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo
-	
+
 	@echo "Running skia_correctness"
 	go run go/worker_scripts/run_skia_correctness/main.go --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce --run_id=rmistry123 --render_pictures_args="--config 8888 --viewport 4000 4000 --mode simple" --gpu_nopatch_run=false --gpu_withpatch_run=true --logtostderr
 	@echo "Completed skia_correctness. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo
-	
+
 	@echo "Running lua scripts"
 	go run go/worker_scripts/run_lua/main.go --worker_num=1 --pageset_type=Dummy100 --chromium_build=38517cc-d7e49ce --run_id=rmistry123 --logtostderr
 	@echo "Completed lua scripts. Sleeping for 15 seconds and continuing."
