@@ -8,6 +8,12 @@ server {
     ssl_certificate         /etc/nginx/ssl/skiaperf_com.pem;
     ssl_certificate_key     /etc/nginx/ssl/skiaperf_com.key;
 
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers 'AES128+EECDH:AES128+EDH';
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+
+
     proxy_connect_timeout       5m;
     proxy_send_timeout          5m;
     proxy_read_timeout          5m;
