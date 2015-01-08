@@ -1,7 +1,3 @@
-# To check out the Skia buildbot code using this DEPS file, run:
-#  gclient config https://skia.googlesource.com/buildbot.git
-#  gclient sync
-
 use_relative_paths = True
 
 vars = {
@@ -17,4 +13,3 @@ deps = {
 recursedeps = [
   "common",
 ]
-
