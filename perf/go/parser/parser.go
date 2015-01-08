@@ -73,6 +73,7 @@ func NewContext(tile *types.Tile) *Context {
 			"avg":    aveFunc,
 			"count":  countFunc,
 			"ratio":  ratioFunc,
+			"sum":    sumFunc,
 		},
 	}
 }

@@ -254,3 +254,51 @@ func (CountFunc) Describe() string {
 }
 
 var countFunc = CountFunc{}
+
+type SumFunc struct{}
+
+// SumFunc implements Func and sums the values of all argument
+// traces into a single trace.
+//
+// MISSING_DATA_SENTINEL values are not included in the sum. Note that if all
+// the values at an index are MISSING_DATA_SENTINEL then the sum will be
+// MISSING_DATA_SENTINEL.
+func (SumFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("Sum() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("Sum() takes a function argument.")
+	}
+	traces, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Sum() argument failed to evaluate: %s", err)
+	}
+
+	if len(traces) == 0 {
+		return traces, nil
+	}
+
+	ret := types.NewPerfTraceN(len(traces[0].Values))
+	ret.Params()["id"] = types.AsFormulaID(ctx.formula)
+	for i, _ := range ret.Values {
+		sum := 0.0
+		count := 0
+		for _, tr := range traces {
+			if v := tr.Values[i]; v != config.MISSING_DATA_SENTINEL {
+				sum += v
+				count += 1
+			}
+		}
+		if count > 0 {
+			ret.Values[i] = sum
+		}
+	}
+	return []*types.PerfTrace{ret}, nil
+}
+
+func (SumFunc) Describe() string {
+	return `Sum() Sums the values of all argument traces into a single trace.`
+}
+
+var sumFunc = SumFunc{}

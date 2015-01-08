@@ -210,3 +210,22 @@ func TestFill(t *testing.T) {
 		}
 	}
 }
+
+func TestSum(t *testing.T) {
+	ctx := newTestContext()
+	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1.0, -1.0, 1e100, 1e100}
+	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{1e100, 2.0, -2.0, 1e100}
+	traces, err := ctx.Eval(`sum(filter(""))`)
+	if err != nil {
+		t.Fatalf("Failed to eval sum() test: %s", err)
+	}
+	if got, want := len(traces), 1; got != want {
+		t.Errorf("sum() returned wrong length: Got %v Want %v", got, want)
+	}
+
+	for i, want := range []float64{1.0, 1.0, -2.0, 1e100} {
+		if got := traces[0].Values[i]; !near(got, want) {
+			t.Errorf("Distance mismatch: Got %v Want %v", got, want)
+		}
+	}
+}
