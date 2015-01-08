@@ -1,6 +1,6 @@
 server {
     listen      80;
-    server_name skiadev.org www.skiadev.org "";
+    server_name skia.org www.skia.org skiadev.org www.skiadev.org "";
 
     proxy_connect_timeout       5m;
     proxy_send_timeout          5m;
@@ -14,7 +14,7 @@ server {
 
 server {
     listen      80;
-    server_name perf.skiadev.org;
+    server_name perf.skia.org perf.skiadev.org;
 
     proxy_connect_timeout       5m;
     proxy_send_timeout          5m;
@@ -28,7 +28,7 @@ server {
 
 server {
     listen      80;
-    server_name gold.skiadev.org;
+    server_name gold.skia.org gold.skiadev.org;
 
     proxy_connect_timeout       5m;
     proxy_send_timeout          5m;
@@ -42,7 +42,7 @@ server {
 
 server {
     listen      80;
-    server_name alerts.skiadev.org;
+    server_name alerts.skia.org alerts.skiadev.org;
 
     proxy_connect_timeout       5m;
     proxy_send_timeout          5m;
@@ -56,7 +56,7 @@ server {
 
 server {
     listen      80;
-    server_name monitor.skiadev.org;
+    server_name mon.skia.org mon.skiadev.org;
 
     proxy_connect_timeout       5m;
     proxy_send_timeout          5m;
@@ -70,7 +70,7 @@ server {
 
 server {
     listen      80;
-    server_name push.skiadev.org;
+    server_name push.skia.org push.skiadev.org;
 
     proxy_connect_timeout       5m;
     proxy_send_timeout          5m;
