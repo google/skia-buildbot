@@ -11,7 +11,7 @@ import (
 
 import (
 	storage "code.google.com/p/google-api-go-client/storage/v1"
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 var (

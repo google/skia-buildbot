@@ -17,7 +17,7 @@ import (
 
 	"skia.googlesource.com/buildbot.git/go/util"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 // GetCTWorkers returns an array of all CT workers.

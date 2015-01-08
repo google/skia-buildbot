@@ -19,8 +19,8 @@ import (
 	"strings"
 
 	"github.com/fiorix/go-web/autogzip"
-	"github.com/golang/glog"
 	"github.com/russross/blackfriday"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/doc/go/docset"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/util"

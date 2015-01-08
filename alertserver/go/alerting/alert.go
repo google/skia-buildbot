@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/golang/glog"
 	"github.com/influxdb/influxdb/client"
+	"github.com/skia-dev/glog"
 	"golang.org/x/tools/go/exact"
 	"golang.org/x/tools/go/types"
 	"skia.googlesource.com/buildbot.git/go/email"

@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
-	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/fileutil"
 	"skia.googlesource.com/buildbot.git/go/gs"
 	"skia.googlesource.com/buildbot.git/go/util"

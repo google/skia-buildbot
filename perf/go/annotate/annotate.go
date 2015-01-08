@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/activitylog"

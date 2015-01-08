@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/util"

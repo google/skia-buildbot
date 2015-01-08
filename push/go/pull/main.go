@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 
 	"strings"
 

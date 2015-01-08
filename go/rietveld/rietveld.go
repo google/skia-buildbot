@@ -12,7 +12,7 @@ import (
 )
 
 import (
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 var (

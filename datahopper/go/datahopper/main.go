@@ -9,8 +9,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/golang/glog"
 	influxdb "github.com/influxdb/influxdb/client"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/datahopper/go/autoroll_ingest"
 	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"

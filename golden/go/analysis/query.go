@@ -3,7 +3,7 @@ package analysis
 import (
 	"sort"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/go/util"
 	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"

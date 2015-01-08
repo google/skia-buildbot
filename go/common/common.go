@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/skia-dev/glog"
 )
 
 const SAMPLE_PERIOD = time.Minute

@@ -35,8 +35,8 @@ import (
 	"time"
 
 	"code.google.com/p/goauth2/oauth"
-	"github.com/golang/glog"
 	"github.com/gorilla/securecookie"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/util"
 )
 

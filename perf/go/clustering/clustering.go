@@ -8,7 +8,7 @@ import (
 	"sort"
 )
 
-import "github.com/golang/glog"
+import "github.com/skia-dev/glog"
 
 import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"

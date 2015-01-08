@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/ct/go/util"
 	"skia.googlesource.com/buildbot.git/go/common"
 )

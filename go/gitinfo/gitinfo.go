@@ -17,7 +17,7 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 // commitLineRe matches one line of commit log and captures hash, author and

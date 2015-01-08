@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 // EnsureDirExists checks whether the given path to a directory exits and creates it

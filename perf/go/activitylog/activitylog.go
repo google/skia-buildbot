@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/perf/go/db"
 	"skia.googlesource.com/buildbot.git/perf/go/types"

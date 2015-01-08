@@ -15,7 +15,7 @@ import (
 
 	"skia.googlesource.com/buildbot.git/go/gs"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 
 	"code.google.com/p/google-api-go-client/storage/v1"
 )

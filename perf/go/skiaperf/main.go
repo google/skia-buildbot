@@ -19,7 +19,7 @@ import (
 
 import (
 	"github.com/fiorix/go-web/autogzip"
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 import (

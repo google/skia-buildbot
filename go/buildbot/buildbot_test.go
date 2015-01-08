@@ -10,8 +10,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/golang/glog"
 	"github.com/jmoiron/sqlx"
+	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/go/database/testutil"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"

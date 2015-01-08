@@ -11,8 +11,8 @@ import (
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 
-	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 
 	"sort"

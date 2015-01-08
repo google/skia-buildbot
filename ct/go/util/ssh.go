@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"code.google.com/p/go.crypto/ssh"
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 const (

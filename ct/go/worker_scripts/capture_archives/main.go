@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 
 	"strings"
 	"time"

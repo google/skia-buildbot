@@ -35,7 +35,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"

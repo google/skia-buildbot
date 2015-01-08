@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 // unzip unzips the file given in src into the 'dest' directory.

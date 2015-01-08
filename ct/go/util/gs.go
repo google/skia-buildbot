@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"skia.googlesource.com/buildbot.git/go/auth"

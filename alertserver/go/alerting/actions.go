@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/email"
 )
 

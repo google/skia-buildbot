@@ -7,8 +7,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/golang/glog"
 	influxdb "github.com/influxdb/influxdb/client"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/autoroll"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 )

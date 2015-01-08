@@ -24,8 +24,8 @@ import (
 
 import (
 	"github.com/fiorix/go-web/autogzip"
-	"github.com/golang/glog"
 	"github.com/influxdb/influxdb/client"
+	"github.com/skia-dev/glog"
 )
 
 import (

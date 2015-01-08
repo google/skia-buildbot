@@ -89,8 +89,8 @@ import (
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 
-	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/skia-dev/glog"
 )
 
 // BenchResult represents a single test result.

@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/util"
 )

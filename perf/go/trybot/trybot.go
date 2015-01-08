@@ -33,8 +33,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/golang/glog"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/skia-dev/glog"
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 

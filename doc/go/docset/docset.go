@@ -52,8 +52,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/golang/groupcache/lru"
+	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/doc/go/config"
 	"skia.googlesource.com/buildbot.git/doc/go/reitveld"

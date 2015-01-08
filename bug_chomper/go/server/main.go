@@ -26,8 +26,8 @@ import (
 	"time"
 
 	"github.com/fiorix/go-web/autogzip"
-	"github.com/golang/glog"
 	"github.com/gorilla/securecookie"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/bug_chomper/go/issue_tracker"
 	"skia.googlesource.com/buildbot.git/go/common"
 )

@@ -15,8 +15,8 @@ import (
 )
 
 import (
-	"github.com/golang/glog"
 	"github.com/golang/groupcache/lru"
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 

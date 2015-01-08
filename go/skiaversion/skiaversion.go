@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 )
 
 // Date format as reported by 'date --rfc-3339="second"'
