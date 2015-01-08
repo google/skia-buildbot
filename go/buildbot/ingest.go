@@ -307,3 +307,18 @@ func IngestNewBuilds(repo *gitinfo.GitInfo) error {
 	}
 	return nil
 }
+
+// NumTotalBuilds finds the total number of builds which have ever run.
+func NumTotalBuilds() (int, error) {
+	latest, err := getLatestBuilds()
+	if err != nil {
+		return 0, fmt.Errorf("Failed to get latest builds: %v", err)
+	}
+	total := 0
+	for _, m := range latest {
+		for _, b := range m {
+			total += b + 1 // Include build #0.
+		}
+	}
+	return total, nil
+}

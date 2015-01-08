@@ -10,6 +10,7 @@ import (
 	"time"
 
 	influxdb "github.com/influxdb/influxdb/client"
+	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/datahopper/go/autoroll_ingest"
 	"skia.googlesource.com/buildbot.git/go/buildbot"
@@ -79,6 +80,25 @@ func main() {
 			if err := buildbot.IngestNewBuilds(skiaRepo); err != nil {
 				glog.Errorf("Failed to ingest new builds: %v", err)
 			}
+		}
+	}()
+	// Measure buildbot data ingestion progress.
+	totalGuage := metrics.GetOrRegisterGauge("buildbot.builds.total", metrics.DefaultRegistry)
+	ingestGuage := metrics.GetOrRegisterGauge("buildbot.builds.ingested", metrics.DefaultRegistry)
+	go func() {
+		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+			totalBuilds, err := buildbot.NumTotalBuilds()
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			ingestedBuilds, err := buildbot.NumIngestedBuilds()
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			totalGuage.Update(int64(totalBuilds))
+			ingestGuage.Update(int64(ingestedBuilds))
 		}
 	}()
 

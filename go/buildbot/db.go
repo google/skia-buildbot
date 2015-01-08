@@ -224,3 +224,13 @@ func getUnfinishedBuilds() ([]*Build, error) {
 	}
 	return b, nil
 }
+
+// NumIngestedBuilds returns the total number of builds which have been
+// ingested into the database.
+func NumIngestedBuilds() (int, error) {
+	i := 0
+	if err := DB.Get(&i, fmt.Sprintf("SELECT COUNT(*) FROM %s;", TABLE_BUILDS)); err != nil {
+		return 0, fmt.Errorf("Unable to find the number of ingested builds: %s", err)
+	}
+	return i, nil
+}
