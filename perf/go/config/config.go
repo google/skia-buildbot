@@ -49,7 +49,7 @@ const (
 	RECLUSTER_DURATION = 15 * time.Minute
 
 	// CLUSTER_COMMITS is the number of commits to use when clustering.
-	MAX_CLUSTER_COMMITS = 50
+	MAX_CLUSTER_COMMITS = TILE_SIZE
 
 	// MIN_CLUSTER_STEP_COMMITS is minimum number of commits that we need on either leg
 	// of a step function.
