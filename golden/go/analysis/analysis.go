@@ -464,6 +464,14 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 	}
 
 	ret := make(map[string]map[string]*GUIUntriagedDigest, len(a.currentTestDetails.Tests))
+
+	// This includes an empty list for tests that we have not found.
+	if includeAllTests {
+		for _, t := range a.currentTestDetails.Tests {
+			ret[t.Name] = nil
+		}
+	}
+
 	for _, trace := range traces {
 		testName := trace.Params[types.PRIMARY_KEY_FIELD]
 		current := a.currentTestDetails.lookup(testName).Untriaged
