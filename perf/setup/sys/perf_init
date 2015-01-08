@@ -23,7 +23,7 @@ DESC="The Skia perf application."
 NAME=skiaperf
 DATA_DIR="/mnt/pd0/data"
 DAEMON=/home/perf/golib/bin/$NAME
-DAEMON_ARGS="--git_repo_dir=$DATA_DIR/skia --log_dir=/mnt/pd0/glog --tile_store_dir=$DATA_DIR/tileStore3 "
+DAEMON_ARGS="--git_repo_dir=$DATA_DIR/skia --log_dir=/var/log/logserver --tile_store_dir=$DATA_DIR/tileStore3 "
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
