@@ -53,7 +53,9 @@ func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool
 	}
 
 	gsBucketName := "chromium-skia-gm"
-	ret := NewFileDiffStore(nil, baseDir, gsBucketName, storageBaseDir, RECOMMENDED_WORKER_POOL_SIZE).(*FileDiffStore)
+	temp, err := NewFileDiffStore(nil, baseDir, gsBucketName, storageBaseDir, RECOMMENDED_WORKER_POOL_SIZE)
+	assert.Nil(t, err)
+	ret := temp.(*FileDiffStore)
 
 	// Set the expected values for diff metrics.
 	expectedDiffMetrics1_2 = &diff.DiffMetrics{
@@ -104,9 +106,9 @@ func TestGetDiffMetricFromDir(t *testing.T) {
 
 	for digests, expectedValue := range digestsToExpectedResults {
 		if expectedValue != nil {
-			fds.writeDiffMetricsToCache(digests[0], digests[1], *expectedValue)
+			fds.writeDiffMetricsToFileCache(getDiffBasename(digests[0], digests[1]), *expectedValue)
 		}
-		ret, err := fds.getDiffMetricsFromCache(digests[0], digests[1])
+		ret, err := fds.getDiffMetricsFromFileCache(getDiffBasename(digests[0], digests[1]))
 		assert.Nil(t, err)
 		assert.Equal(t, expectedValue, ret)
 	}

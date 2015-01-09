@@ -1,8 +1,12 @@
 package filediffstore
 
 import (
+	"bytes"
+	"crypto/md5"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +15,7 @@ import (
 	"sync"
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
+	"github.com/hashicorp/golang-lru"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/fileutil"
@@ -24,10 +29,13 @@ const (
 	DEFAULT_DIFF_DIR_NAME        = "diffs"
 	DEFAULT_DIFFMETRICS_DIR_NAME = "diffmetrics"
 	DEFAULT_GS_IMG_DIR_NAME      = "dm-images-v1"
+	DEFAULT_TEMPFILE_DIR_NAME    = "__temp"
 	IMG_EXTENSION                = "png"
 	DIFF_EXTENSION               = "png"
 	DIFFMETRICS_EXTENSION        = "json"
 	RECOMMENDED_WORKER_POOL_SIZE = 1000
+	IMAGE_LRU_CACHE_SIZE         = 500
+	METRIC_LRU_CACHE_SIZE        = 100000
 
 	// Limit the number of times diffstore tries to get a file before giving up.
 	MAX_URI_GET_TRIES = 4
@@ -61,11 +69,14 @@ type FileDiffStore struct {
 	// The local directory where DiffMetrics should be serialized in.
 	localDiffMetricsDir string
 
-	// Cache for all digests in the localBaseDir.
-	digestCache map[string]int
+	// The local directory where temporary files are written.
+	localTempFileDir string
 
 	// Cache for recently used diffmetrics, eviction based on LFU.
-	diffCache []*diff.DiffMetrics
+	diffCache *lru.Cache
+
+	// LRU cache for images.
+	imageCache *lru.Cache
 
 	// The GS bucket where images are stored.
 	gsBucketName string
@@ -92,7 +103,7 @@ type FileDiffStore struct {
 // workerPoolSize is the max number of simultaneous goroutines that will be
 // created when running Get or AbsPath.
 // Use RECOMMENDED_WORKER_POOL_SIZE if unsure what this value should be.
-func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storageBaseDir string, workerPoolSize int) diff.DiffStore {
+func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storageBaseDir string, workerPoolSize int) (diff.DiffStore, error) {
 	if client == nil {
 		client = util.NewTimeoutClient()
 	}
@@ -101,16 +112,29 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storage
 		storageBaseDir = DEFAULT_GS_IMG_DIR_NAME
 	}
 
+	imageCache, err := lru.New(IMAGE_LRU_CACHE_SIZE)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to alloace image LRU cache: %s", err)
+	}
+
+	diffCache, err := lru.New(METRIC_LRU_CACHE_SIZE)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to allocate diffmetric LRU cache: %s", err)
+	}
+
 	fs := &FileDiffStore{
 		client:              client,
 		localImgDir:         fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME))),
 		localDiffDir:        fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME))),
 		localDiffMetricsDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME))),
+		localTempFileDir:    fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_TEMPFILE_DIR_NAME))),
 		gsBucketName:        gsBucketName,
 		storageBaseDir:      storageBaseDir,
+		imageCache:          imageCache,
+		diffCache:           diffCache,
 	}
 	fs.activateWorkers(workerPoolSize)
-	return fs
+	return fs, nil
 }
 
 type WorkerReq struct {
@@ -158,9 +182,14 @@ func (fs *FileDiffStore) activateWorkers(workerPoolSize int) {
 //     5. Write DiffMetrics to the cache and return.
 func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 	// 1. Check if the DiffMetrics exists in the local cache.
-	diffMetrics, err := fs.getDiffMetricsFromCache(dMain, dOther)
+	baseName := getDiffBasename(dMain, dOther)
+	if obj, ok := fs.diffCache.Get(baseName); ok {
+		return obj
+	}
+
+	diffMetrics, err := fs.getDiffMetricsFromFileCache(baseName)
 	if err != nil {
-		glog.Errorf("Failed to getDiffMetricsFromCache for digest %s and digest %s: %s", dMain, dOther, err)
+		glog.Errorf("Failed to getDiffMetricsFromFileCache for digest %s and digest %s: %s", dMain, dOther, err)
 		return nil
 	}
 	if diffMetrics != nil {
@@ -183,10 +212,15 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 	}
 	glog.Infof("Calculated DiffMetrics for %s and %s\n", dMain, dOther)
 	// 5. Write DiffMetrics to the local cache and return it.
-	if err := fs.writeDiffMetricsToCache(dMain, dOther, *diffMetrics); err != nil {
-		glog.Errorf("Failed to write diff metrics to cache for digest %s and digest %s: %s", dMain, dOther, err)
-		return nil
-	}
+	fs.diffCache.Add(baseName, diffMetrics)
+
+	// Write to disk in the background.
+	go func() {
+		if err := fs.writeDiffMetricsToFileCache(baseName, *diffMetrics); err != nil {
+			glog.Errorf("Failed to write diff metrics to cache for digest %s and digest %s: %s", dMain, dOther, err)
+		}
+	}()
+
 	return diffMetrics
 }
 
@@ -325,13 +359,13 @@ func openDiffMetrics(filepath string) (*diff.DiffMetrics, error) {
 	return diffMetrics, nil
 }
 
-func (fs *FileDiffStore) writeDiffMetricsToCache(d1 string, d2 string, diffMetrics diff.DiffMetrics) error {
+func (fs *FileDiffStore) writeDiffMetricsToFileCache(baseName string, diffMetrics diff.DiffMetrics) error {
 	// Lock the mutex before writing to the local diff directory.
 	fs.diffDirLock.Lock()
 	defer fs.diffDirLock.Unlock()
 
-	// Make paths relative. This has to be reversed in getDiffMetricsFromCache.
-	fName := fs.getDiffMetricPath(d1, d2)
+	// Make paths relative. This has to be reversed in getDiffMetricsFromFileCache.
+	fName := fs.getDiffMetricPath(baseName)
 	diffMetrics.PixelDiffFilePath, _ = filepath.Rel(fs.localDiffDir, diffMetrics.PixelDiffFilePath)
 
 	f, err := os.Create(fName)
@@ -361,8 +395,8 @@ func getDiffBasename(d1, d2 string) string {
 // This method looks for and returns DiffMetrics of the specified digests from the
 // local diffmetrics dir. It is thread safe because it locks the diff store's
 // mutex before accessing the digest cache.
-func (fs *FileDiffStore) getDiffMetricsFromCache(d1, d2 string) (*diff.DiffMetrics, error) {
-	diffMetricsFilePath := fs.getDiffMetricPath(d1, d2)
+func (fs *FileDiffStore) getDiffMetricsFromFileCache(baseName string) (*diff.DiffMetrics, error) {
+	diffMetricsFilePath := fs.getDiffMetricPath(baseName)
 
 	// Lock the mutex before reading from the local diff directory.
 	fs.diffDirLock.Lock()
@@ -438,70 +472,125 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 		downloadFailureCount.Inc(1)
 		return err
 	}
-	respBody, err := fs.getRespBody(res)
-	defer respBody.Close()
+
+	for i := 0; i < MAX_URI_GET_TRIES; i++ {
+		if i > 0 {
+			glog.Warningf("%d. retry for digest %s", i, d)
+		}
+
+		err = func() error {
+			respBody, err := fs.getRespBody(res)
+			defer respBody.Close()
+			if err != nil {
+				return err
+			}
+
+			// TODO(stephana): Creating and renaming temporary files this way
+			// should be made into a generic utility function.
+			// See also FileTileStore for a similar implementation.
+			// Create a temporary file.
+			tempOut, err := ioutil.TempFile(fs.localTempFileDir, fmt.Sprintf("tempfile-%s", d))
+			if err != nil {
+				return fmt.Errorf("Unable to create temp file: %s", err)
+			}
+
+			md5Hash := md5.New()
+			multiOut := io.MultiWriter(md5Hash, tempOut)
+
+			if _, err = io.Copy(multiOut, respBody); err != nil {
+				return err
+			}
+			err = tempOut.Close()
+			if err != nil {
+				return fmt.Errorf("Error closing temp file: %s", err)
+			}
+
+			// Check the MD5.
+			objMD5, err := base64.StdEncoding.DecodeString(res.Md5Hash)
+			if err != nil {
+				return fmt.Errorf("Unable to decode MD5 hash from %s", d)
+			}
+
+			if !bytes.Equal(md5Hash.Sum(nil), objMD5) {
+				return fmt.Errorf("MD5 hash for digest %s incorrect.", d)
+			}
+
+			// Rename the file after we acquired a lock
+			outputFile := filepath.Join(fs.localImgDir, fmt.Sprintf("%s.png", d))
+			fs.digestDirLock.Lock()
+			defer fs.digestDirLock.Unlock()
+			if err := os.Rename(tempOut.Name(), outputFile); err != nil {
+				return fmt.Errorf("Unable to move file: %s", err)
+			}
+
+			glog.Infof("Downloaded %s to %s", objLocation, outputFile)
+			downloadSuccessCount.Inc(1)
+			return nil
+		}()
+
+		if err == nil {
+			break
+		}
+		glog.Errorf("Error fetching file for digest %s: %s", d, err)
+	}
+
 	if err != nil {
+		glog.Errorf("Failed fetching file after %d attempts", MAX_URI_GET_TRIES)
 		downloadFailureCount.Inc(1)
-		return err
 	}
-
-	outputFile := filepath.Join(fs.localImgDir, fmt.Sprintf("%s.png", d))
-	// Lock the mutex before writing to the local digest directory.
-	fs.digestDirLock.Lock()
-	defer fs.digestDirLock.Unlock()
-	out, err := os.Create(outputFile)
-	if err != nil {
-		return fmt.Errorf("Unable to create file %s: %s", outputFile, err)
-	}
-	defer out.Close()
-	if _, err = io.Copy(out, respBody); err != nil {
-		return err
-	}
-
-	glog.Infof("Downloaded %s to %s", objLocation, outputFile)
-	downloadSuccessCount.Inc(1)
-	return nil
+	return err
 }
 
 // Returns the response body of the specified GS object. Tries MAX_URI_GET_TRIES
 // times if download is unsuccessful. Client must close the response body when
 // finished with it.
 func (fs *FileDiffStore) getRespBody(res *storage.Object) (io.ReadCloser, error) {
-	for i := 0; i < MAX_URI_GET_TRIES; i++ {
-		request, err := gs.RequestForStorageURL(res.MediaLink)
-		if err != nil {
-			glog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
-			continue
-		}
-
-		resp, err := fs.client.Do(request)
-		if err != nil {
-			glog.Warningf("Unable to retrieve Storage MediaURI: %s", err)
-			continue
-		}
-		if resp.StatusCode != 200 {
-			glog.Warningf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
-			resp.Body.Close()
-			continue
-		}
-		return resp.Body, nil
+	request, err := gs.RequestForStorageURL(res.MediaLink)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to create Storage MediaURI request: %s\n", err)
 	}
-	return nil, fmt.Errorf("Failed fetching file after %d attempts", MAX_URI_GET_TRIES)
+
+	resp, err := fs.client.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to retrieve Storage MediaURI: %s", err)
+	}
+	if resp.StatusCode != 200 {
+		defer resp.Body.Close()
+		return nil, fmt.Errorf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
+	}
+	return resp.Body, nil
 }
 
 // Calculate the DiffMetrics for the provided digests.
 func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
-	img1, err := diff.OpenImage(fs.getDigestImagePath(d1))
+	img1, err := fs.getDigestImage(d1)
 	if err != nil {
 		return nil, err
 	}
-	img2, err := diff.OpenImage(fs.getDigestImagePath(d2))
+
+	img2, err := fs.getDigestImage(d2)
 	if err != nil {
 		return nil, err
 	}
 	diffFilename := fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFF_EXTENSION)
 	diffFilePath := filepath.Join(fs.localDiffDir, diffFilename)
 	return diff.Diff(img1, img2, diffFilePath)
+}
+
+// getDigestImage returns the image corresponding to the digest either from
+// RAM or disk.
+func (fs *FileDiffStore) getDigestImage(d string) (image.Image, error) {
+	var err error
+	var img image.Image
+	if obj, ok := fs.imageCache.Get(d); ok {
+		return obj.(image.Image), nil
+	}
+	img, err = diff.OpenImage(fs.getDigestImagePath(d))
+	if err == nil {
+		fs.imageCache.Add(d, img)
+		return img, nil
+	}
+	return nil, fmt.Errorf("Unable to read image for %s: %s", d, err)
 }
 
 // getDigestPath returns the filepath where the image corresponding to the
@@ -512,11 +601,7 @@ func (fs *FileDiffStore) getDigestImagePath(digest string) string {
 
 // getDiffMetricPath returns the filename where the diffmetric should be
 // cached.
-func (fs *FileDiffStore) getDiffMetricPath(d1, d2 string) string {
-	if d1 > d2 {
-		d1, d2 = d2, d1
-	}
-
-	fName := fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFFMETRICS_EXTENSION)
+func (fs *FileDiffStore) getDiffMetricPath(baseName string) string {
+	fName := fmt.Sprintf("%s.%s", baseName, DIFFMETRICS_EXTENSION)
 	return filepath.Join(fs.localDiffMetricsDir, fName)
 }

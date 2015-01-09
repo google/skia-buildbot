@@ -52,6 +52,7 @@ import (
 	"sync"
 	"time"
 
+	// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
 

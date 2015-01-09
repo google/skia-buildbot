@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
+	"runtime/pprof"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -34,6 +37,7 @@ var (
 	gsBucketName   = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
 	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
+	memProfile     = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 )
 
 const (
@@ -224,6 +228,24 @@ func main() {
 	// Global init to initialize
 	common.InitWithMetrics("skiacorrectness", graphiteServer)
 
+	// Enable the memory profiler if memProfile was set.
+	// TODO(stephana): This should be moved to a HTTP endpoint that
+	// only responds to internal IP addresses/ports.
+	if *memProfile > 0 {
+		time.AfterFunc(*memProfile, func() {
+			glog.Infof("Writing Memory Profile")
+			f, err := ioutil.TempFile("./", "memory-profile")
+			if err != nil {
+				glog.Fatalf("Unable to create memory profile file: %s", err)
+			}
+			pprof.WriteHeapProfile(f)
+			f.Close()
+			glog.Infof("Memory profile written to %s", f.Name())
+
+			os.Exit(0)
+		})
+	}
+
 	// Initialize submodules.
 	filediffstore.Init()
 
@@ -246,7 +268,10 @@ func main() {
 	client := getOAuthClient(*doOauth, *oauthCacheFile)
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
+	diffStore, err := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
+	if err != nil {
+		glog.Fatalf("Allocating DiffStore failed: %s", err)
+	}
 	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
 	if err != nil {
 		glog.Fatal(err)
@@ -257,7 +282,7 @@ func main() {
 
 	// Initialize the Analyzer
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
-	analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, imgFS.GetURL, 5*time.Minute)
+	analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, imgFS.GetURL, 10*time.Minute)
 
 	router := mux.NewRouter()
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 	"github.com/golang/groupcache/lru"
 
 	"skia.googlesource.com/buildbot.git/perf/go/types"
