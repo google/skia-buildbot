@@ -3,7 +3,6 @@ package util
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -29,10 +28,6 @@ import (
 // applyPatches if true looks for Chromium/Blink/Skia patches in the temp dir and
 // runs once with the patch applied and once without the patch applied.
 func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, applyPatches bool) (string, string, error) {
-	if runID == "" {
-		return "", "", errors.New("Must specify a non-empty run_id")
-	}
-
 	// Determine which build dir and fetch target to use.
 	var chromiumBuildDir, fetchTarget string
 	if targetPlatform == "Android" {
@@ -90,6 +85,10 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 		return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 	}
 	googleStorageDirName := fmt.Sprintf("%s-%s-%s", getTruncatedHash(chromiumHash), getTruncatedHash(skiaHash), runID)
+	if runID == "" {
+		// Do not include the runID in the dir name if it is not specified.
+		googleStorageDirName = fmt.Sprintf("%s-%s", getTruncatedHash(chromiumHash), getTruncatedHash(skiaHash))
+	}
 	if applyPatches {
 		if err := applyRepoPatches(filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
 			return "", "", fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
