@@ -62,19 +62,21 @@ def process_admin_task(task):
   if task_name == appengine_constants.PAGESETS_ADMIN_TASK_NAME:
     cmd = [
         'create_pagesets_on_slaves',
-        '--emails=' + username,
-        '--gae_task_id=' + task_key,
-        '--pageset_type=' + pagesets_type,
+        '--emails=' + str(username),
+        '--gae_task_id=' + str(task_key),
+        '--pageset_type=' + str(pagesets_type),
+        '--log_dir=/b/storage/glog',
     ]
   elif task_name == appengine_constants.WEBPAGE_ARCHIVES_ADMIN_TASK_NAME:
     chromium_build_dir = get_chromium_build_dir(task['chromium_rev'],
                                                 task['skia_rev'])
     cmd = [
         'capture_archives_on_slaves',
-        '--emails=' + username,
-        '--gae_task_id=' + task_key,
-        '--pageset_type=' + pagesets_type,
-        '--chromium_build=' + chromium_build_dir,
+        '--emails=' + str(username),
+        '--gae_task_id=' + str(task_key),
+        '--pageset_type=' + str(pagesets_type),
+        '--chromium_build=' + str(chromium_build_dir),
+        '--log_dir=/b/storage/glog',
     ]
   print 'Updating local checkout'
   update_local_checkout()
@@ -99,13 +101,14 @@ def process_chromium_build_task(task):
   update_local_checkout()
   cmd = [
       'build_chromium',
-      '--emails=' + username,
-      '--gae_task_id=' + task_key,
-      '--run_id=' + run_id,
+      '--emails=' + str(username),
+      '--gae_task_id=' + str(task_key),
+      '--run_id=' + str(run_id),
       '--target_platform=Linux',
       '--apply_patches=false',
-      '--chromium_hash=' + chromium_rev,
-      '--skia_hash=' + skia_rev,
+      '--chromium_hash=' + str(chromium_rev),
+      '--skia_hash=' + str(skia_rev),
+      '--log_dir=/b/storage/glog',
   ]
   print 'Running chromium build cmd: ' + ' '.join(cmd)
   subprocess.Popen(cmd)
@@ -149,14 +152,15 @@ def process_skia_try_task(task):
   update_local_checkout()
   skia_try_cmd = [
       'run_skia_correctness_on_workers',
-      '--emails=' + username,
-      '--gae_task_id=' + task_key,
-      '--pageset_type=' + pagesets_type,
-      '--chromium_build=' + chromium_build_dir,
-      '--render_pictures_args=' + render_pictures_args,
-      '--gpu_nopatch_run=' + gpu_nopatch_run,
-      '--gpu_withpatch_run=' + gpu_withpatch_run,
-      '--run_id=' + run_id,
+      '--emails=' + str(username),
+      '--gae_task_id=' + str(task_key),
+      '--pageset_type=' + str(pagesets_type),
+      '--chromium_build=' + str(chromium_build_dir),
+      '--render_pictures_args=' + str(render_pictures_args),
+      '--gpu_nopatch_run=' + str(gpu_nopatch_run),
+      '--gpu_withpatch_run=' + str(gpu_withpatch_run),
+      '--run_id=' + str(run_id),
+      '--log_dir=/b/storage/glog',
   ]
   print 'Running skia try cmd: ' + ' '.join(skia_try_cmd)
   subprocess.Popen(skia_try_cmd)
@@ -192,18 +196,19 @@ def process_chromium_try_task(task):
   update_local_checkout()
   cmd = [
       'run_chromium_perf_on_workers',
-      '--emails=' + username,
-      '--gae_task_id=' + task_key,
-      '--pageset_type=' + pageset_type,
-      '--benchmark_name=' + benchmark_name,
-      '--benchmark_extra_args=' + benchmark_arguments,
-      '--browser_extra_args_nopatch=' + browser_args_1,
-      '--browser_extra_args_withpatch=' + browser_args_2,
-      '--repeat_benchmark=' + num_repeated_runs,
-      '--target_platform=' + target_platform,
-      '--run_id' + run_id,
-      '--variance_threshold=' + variance_threshold,
-      '--discard_outliers=' + discard_outliers,
+      '--emails=' + str(username),
+      '--gae_task_id=' + str(task_key),
+      '--pageset_type=' + str(pageset_type),
+      '--benchmark_name=' + str(benchmark_name),
+      '--benchmark_extra_args=' + str(benchmark_arguments),
+      '--browser_extra_args_nopatch=' + str(browser_args_1),
+      '--browser_extra_args_withpatch=' + str(browser_args_2),
+      '--repeat_benchmark=' + str(num_repeated_runs),
+      '--target_platform=' + str(target_platform),
+      '--run_id' + str(run_id),
+      '--variance_threshold=' + str(variance_threshold),
+      '--discard_outliers=' + str(discard_outliers),
+      '--log_dir=/b/storage/glog',
   ]
   print 'Running chromium try cmd: ' + ' '.join(cmd)
   subprocess.Popen(cmd)
@@ -236,11 +241,12 @@ def process_lua_task(task):
   update_local_checkout()
   cmd = [
       'run_lua_on_workers',
-      '--emails=' + task['username'],
-      '--gae_task_id=' + task_key,
-      '--pageset_type=' + pagesets_type,
-      '--chromium_build=' + chromium_build_dir,
-      '--run_id=' + run_id,
+      '--emails=' + str(task['username']),
+      '--gae_task_id=' + str(task_key),
+      '--pageset_type=' + str(pagesets_type),
+      '--chromium_build=' + str(chromium_build_dir),
+      '--run_id=' + str(run_id),
+      '--log_dir=/b/storage/glog',
   ]
   print 'Running lua script cmd: ' + ' '.join(cmd)
   subprocess.Popen(cmd)
@@ -267,18 +273,19 @@ def process_telemetry_task(task):
   update_local_checkout()
   cmd = [
       'run_benchmark_on_workers',
-      '--emails=' + username,
-      '--gae_task_id=' + task_key,
-      '--pageset_type=' + pagesets_type,
-      '--chromium_build=' + chromium_build_dir,
-      '--benchmark_name=' + benchmark_name,
-      '--benchmark_extra_args=' + benchmark_arguments,
+      '--emails=' + str(username),
+      '--gae_task_id=' + str(task_key),
+      '--pageset_type=' + str(pagesets_type),
+      '--chromium_build=' + str(chromium_build_dir),
+      '--benchmark_name=' + str(benchmark_name),
+      '--benchmark_extra_args=' + str(benchmark_arguments),
       '--browser_extra_args=--disable-setuid-sandbox ' +
       '--enable-threaded-compositing --enable-impl-side-painting',
       '--repeat_benchmark=1',
       '--target_platform=Linux',
-      '--run_id=' + run_id,
+      '--run_id=' + str(run_id),
       '--tryserver_run=false',
+      '--log_dir=/b/storage/glog',
   ]
   print 'Running telemetry cmd: ' + ' '.join(cmd)
   subprocess.Popen(cmd)
