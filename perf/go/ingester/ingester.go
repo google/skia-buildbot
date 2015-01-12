@@ -315,7 +315,7 @@ func (i *Ingester) Update() error {
 // them into Traces stored in Tiles.
 
 // TODO(stephana): Currently this is very coarse in that it determines
-// the target time range in every run and therfore considers a large
+// the target time range in every run and therefore considers a large
 // number of input files. That is somewhat mitigated by only ingesting
 // files we have not seen before, but a future version should clever about
 // picking a better timerange.
@@ -388,7 +388,7 @@ func (i *Ingester) inProcessedFiles(md5Hash string) bool {
 	return ret
 }
 
-// addToProcessedFiles markes the provided MD5 hashes as processe and stores
+// addToProcessedFiles marks the provided MD5 hashes as processed and stores
 // them in the persistent database.
 func (i *Ingester) addToProcessedFiles(md5Hashes []string) {
 	if i.processedFiles == nil {
