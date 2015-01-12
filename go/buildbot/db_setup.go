@@ -77,14 +77,33 @@ var v1_down = []string{
 	`DROP TABLE IF EXISTS builds`,
 }
 
+var v2_up = []string{
+	`CREATE INDEX idx_buildRevisions_builderMasterNumber_hash ON buildRevisions(builder,master,number) USING HASH;`,
+	`CREATE INDEX idx_buildRevisions_revision_hash ON buildRevisions(revision) USING HASH;`,
+	`CREATE INDEX idx_buildSteps_builderMasterNumber_hash ON buildSteps(builder,master,buildNumber) USING HASH;`,
+	`CREATE INDEX idx_builds_builderMasterNumber_hash ON builds(builder,master,number) USING HASH;`,
+}
+
+var v2_down = []string{
+	`DROP INDEX idx_buildRevisions_builderMasterNumber_hash ON buildRevisions;`,
+	`DROP INDEX idx_buildRevisions_revision_hash on buildRevisions;`,
+	`DROP INDEX idx_buildSteps_builderMasterNumber_hash on buildSteps;`,
+	`DROP INDEX idx_builds_builderMasterNumber_hash on builds;`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
 var migrationSteps = []database.MigrationStep{
-	// version 1
+	// version 1. Create tables.
 	{
 		MySQLUp:   v1_up,
 		MySQLDown: v1_down,
+	},
+	// version 2. Create indices.
+	{
+		MySQLUp:   v2_up,
+		MySQLDown: v2_down,
 	},
 }
 
