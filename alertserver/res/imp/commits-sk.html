@@ -66,7 +66,7 @@
   </template>
   <script>
   (function() {
-    var defaultCommitsToLoad = 35; // Default number of commits to load.
+    var defaultCommitsToLoad = 50; // Default number of commits to load.
     var commitY = 20;              // Vertical pixels used by each commit.
     var paddingX = 10;             // Left-side padding pixels.
     var paddingY = 20;             // Top padding pixels.
@@ -407,6 +407,8 @@
           if (endIdx) {
             url += "&end=" + endIdx;
           }
+	} else {
+          url += "?n=" + defaultCommitsToLoad;
         }
         console.log("GET " + url);
         var that = this;

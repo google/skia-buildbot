@@ -41,7 +41,7 @@ import (
 )
 
 const (
-	DEFAULT_COMMITS_TO_LOAD = 35
+	DEFAULT_COMMITS_TO_LOAD = 50
 	GMAIL_TOKEN_CACHE_FILE  = "google_email_token.data"
 )
 
