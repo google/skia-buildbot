@@ -212,7 +212,7 @@ func Reset() error {
 }
 
 func skpOnly(_ string, tr *types.PerfTrace) bool {
-	return tr.Params()["source_type"] == "skp"
+	return tr.Params()["source_type"] == "skp" && tr.Params()["sub_result"] == "min_ms"
 }
 
 // apiKeyFromFlag returns the key that it was passed if the key isn't empty,
