@@ -75,7 +75,7 @@ func main() {
 	cmd := []string{
 		fmt.Sprintf("cd %s;", util.CtTreeDir),
 		"git pull;",
-		"make worker_scripts;",
+		"make all;",
 		// The main command that runs capture_archives on all workers.
 		fmt.Sprintf("DISPLAY=:0 capture_archives --worker_num=%s --log_dir=%s --pageset_type=%s --chromium_build=%s;", util.WORKER_NUM_KEYWORD, util.GLogDir, *pagesetType, *chromiumBuild),
 	}

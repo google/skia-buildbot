@@ -54,6 +54,12 @@ func main() {
 	browserArgs := *browserExtraArgs
 	repeats := *repeatBenchmark
 
+	// Sync the local chromium checkout.
+	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
+		glog.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+		return
+	}
+
 	// Create the task file so that the master knows this worker is still busy.
 	util.CreateTaskFile(util.ACTIVITY_RUNNING_BENCHMARKS)
 	defer util.DeleteTaskFile(util.ACTIVITY_RUNNING_BENCHMARKS)

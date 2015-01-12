@@ -38,6 +38,12 @@ func main() {
 		return
 	}
 
+	// Sync the local chromium checkout.
+	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
+		glog.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
+		return
+	}
+
 	// Delete and remake the local webpage archives directory.
 	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
 	os.RemoveAll(pathToArchives)

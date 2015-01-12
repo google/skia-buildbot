@@ -70,7 +70,7 @@ func main() {
 	cmd := []string{
 		fmt.Sprintf("cd %s;", util.CtTreeDir),
 		"git pull;",
-		"make worker_scripts;",
+		"make all;",
 		// The main command that runs create_pagesets on all workers.
 		fmt.Sprintf("create_pagesets --worker_num=%s --log_dir=%s --pageset_type=%s;", util.WORKER_NUM_KEYWORD, util.GLogDir, *pagesetType),
 	}

@@ -93,8 +93,9 @@ var (
 	StorageDir           = filepath.Join("/", "b", STORAGE_DIR_NAME)
 	RepoDir              = filepath.Join("/", "b", REPO_DIR_NAME)
 	ChromiumBuildsDir    = filepath.Join(StorageDir, CHROMIUM_BUILDS_DIR_NAME)
-	TelemetryBinariesDir = filepath.Join(StorageDir, "chromium", "src", "tools", "perf")
-	TelemetrySrcDir      = filepath.Join(StorageDir, "chromium", "src", "tools", "telemetry")
+	ChromiumSrcDir       = filepath.Join(StorageDir, "chromium", "src")
+	TelemetryBinariesDir = filepath.Join(ChromiumSrcDir, "tools", "perf")
+	TelemetrySrcDir      = filepath.Join(ChromiumSrcDir, "tools", "telemetry")
 	TaskFileDir          = filepath.Join(StorageDir, "current_task")
 	GSTokenPath          = filepath.Join(StorageDir, "google_storage_token.data")
 	EmailTokenPath       = filepath.Join(StorageDir, "email.data")
@@ -124,6 +125,8 @@ var (
 	UpdateChromiumPerfTasksWebapp    = WEBAPP_ROOT + "update_chromium_try_tasks"
 	SkiaCorrectnessTasksWebapp       = WEBAPP_ROOT + "skia_try"
 	UpdateSkiaCorrectnessTasksWebapp = WEBAPP_ROOT + "update_skia_try_task"
+	ChromiumBuildTasksWebapp         = WEBAPP_ROOT + "chromium_builds"
+	UpdateChromiumBuildTasksWebapp   = WEBAPP_ROOT + "update_chromium_build_tasks"
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{

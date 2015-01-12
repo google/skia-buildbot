@@ -145,7 +145,7 @@ func main() {
 	cmd := []string{
 		fmt.Sprintf("cd %s;", util.CtTreeDir),
 		"git pull;",
-		"make worker_scripts;",
+		"make all;",
 		// The main command that runs run_skia_correctness on all workers.
 		runSkiaCorrCmdBytes.String(),
 	}
