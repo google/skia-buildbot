@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Skia Correctness Server</title>
+
+    {{template "header.html" .}}
+
+    <style type="text/css" media="screen">
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+      }
+
+      #pageWrapper {
+        background: white;
+      }
+      .col {
+        padding: 0.5em;
+      }
+
+      html /deep/ core-toolbar,
+      #title {
+        background-color: #FF7F00;
+        color: #fff;
+      }
+
+      #title login-sk {
+        margin-left: auto;
+      }
+
+      #title /deep/ a {
+        color: white;
+      }
+
+      html /deep/ a {
+        color: #FF7F00;
+        font-weight: bold;
+      }
+
+      html /deep/ #mainContainer {
+        background: white;
+      }
+    </style>
+
+  </head>
+  <body>
+    <scaffold-sk responsiveWidth="700px">
+      {{template "titlebar.html" .}}
+
+      <h1>Just a placeholder until real content arrives.</h1>
+
+    </scaffold-sk>
+  </body>
+</html>

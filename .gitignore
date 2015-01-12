@@ -24,6 +24,11 @@ go/skiaversion/gen_version.go
 # Server executables/config
 golden/app/third_party
 golden/node_modules
+golden/res/vul
+golden/res/js/core-debug.js
+golden/res/js/core.js
+golden/res/imp/bower_components
+golden/google_oauth_token.data
 perf/bqtoken.data
 perf/google_storage_token.data
 perf/node_modules

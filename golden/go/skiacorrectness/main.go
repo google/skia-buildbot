@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"time"
 
+	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/auth"
@@ -38,6 +41,12 @@ var (
 	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	memProfile     = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+)
+
+var (
+	// indexTemplate is the main index.html page we serve.
+	indexTemplate *template.Template = nil
 )
 
 const (
@@ -53,6 +62,56 @@ type ResponseEnvelope struct {
 }
 
 var analyzer *analysis.Analyzer = nil
+
+// *****************************************************************************
+// *****************************************************************************
+// New polymer based UI code begin.
+// *****************************************************************************
+// *****************************************************************************
+
+// polyMainHandler is the main page for the Polymer based frontend.
+func polyMainHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Poly Main Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if err := indexTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+func loadTemplates() {
+	indexTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+}
+
+// makeResourceHandler creates a static file handler that sets a caching policy.
+func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(*resourcesDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", string(300))
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
+// Init figures out where the resources are and then loads the templates.
+func Init() {
+	if *resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+	}
+	loadTemplates()
+}
+
+// *****************************************************************************
+// *****************************************************************************
+// New polymer based UI code end.
+// *****************************************************************************
+// *****************************************************************************
 
 // tileCountsHandler handles GET requests for the classification counts over
 // all tests and digests of a tile.
@@ -246,6 +305,9 @@ func main() {
 		})
 	}
 
+	// Init this module.
+	Init()
+
 	// Initialize submodules.
 	filediffstore.Init()
 
@@ -304,6 +366,14 @@ func main() {
 
 	// Set up the resource to serve the image files.
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)
+
+	// New Polymer based UI endpoints.
+	router.PathPrefix("/res/").Handler(autogzip.HandleFunc(makeResourceHandler()))
+	// All the handlers will be prefixed with poly to differentiate it from the
+	// angular code until the angular code is removed.
+	http.HandleFunc("/loginstatus/", login.StatusHandler)
+	http.HandleFunc("/logout/", login.LogoutHandler)
+	router.HandleFunc("/2/", polyMainHandler).Methods("GET")
 
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))
