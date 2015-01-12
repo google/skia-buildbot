@@ -24,7 +24,11 @@ func main() {
 	// Global init to initialize glog and parse arguments.
 	common.Init()
 
-	conf, err := database.ConfigFromFlagsAndMetadata(*local, buildbot.MigrationSteps())
+	pw, err := database.PromptForPassword()
+	if err != nil {
+		glog.Fatal(err)
+	}
+	conf, err := database.ConfigFromFlags(pw, *local, buildbot.MigrationSteps())
 	if err != nil {
 		glog.Fatal(err)
 	}

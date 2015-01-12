@@ -58,6 +58,18 @@ func checkFlags() error {
 	return nil
 }
 
+// PromptForPassword prompts for a password.
+func PromptForPassword() (string, error) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("Enter password for MySQL user %s: ", *dbUser)
+	pw, err := reader.ReadString('\n')
+	if err != nil {
+		return "", fmt.Errorf("Failed to get password: %v", err)
+	}
+	pw = strings.Trim(pw, "\n")
+	return pw, nil
+}
+
 // ConfigFromFlags obtains a DatabaseConfig based on parsed command-line flags.
 // If local is true, the DB host is overridden.
 func ConfigFromFlags(password string, local bool, m []MigrationStep) (*DatabaseConfig, error) {
@@ -73,14 +85,11 @@ func ConfigFromFlags(password string, local bool, m []MigrationStep) (*DatabaseC
 	usePassword := password
 	// Prompt for password if necessary.
 	if usePassword == "" && !local {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Printf("Enter password for MySQL user %s at %s:%d: ", *dbUser, useHost, *dbPort)
 		var err error
-		usePassword, err = reader.ReadString('\n')
+		usePassword, err = PromptForPassword()
 		if err != nil {
-			return nil, fmt.Errorf("Failed to get password: %v", err)
+			return nil, err
 		}
-		usePassword = strings.Trim(usePassword, "\n")
 	}
 	return NewDatabaseConfig(*dbUser, usePassword, useHost, *dbPort, *dbName, m), nil
 }
