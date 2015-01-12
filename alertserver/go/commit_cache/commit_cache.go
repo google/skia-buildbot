@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -19,40 +20,181 @@ import (
 	Utilities for caching commit data.
 */
 
+const (
+	// Number of commits to store in a given cache block. Changing this
+	// will require completely rebuilding the cache.
+	BLOCK_SIZE = 25
+
+	// Pattern for cache file names.
+	CACHE_FILE_PATTERN = "commit_cache.%d.gob"
+)
+
+// cacheFileName returns the name of a cache file, based on the cache directory
+// and the block number.
+func cacheFileName(cacheDir string, blockNum int) string {
+	return filepath.Join(cacheDir, fmt.Sprintf(CACHE_FILE_PATTERN, blockNum))
+}
+
+// blockIdx returns the index of the block and the index of the commit
+// within that block for the given commit index.
+func blockIdx(commitIdx int) (int, int) {
+	return commitIdx / BLOCK_SIZE, commitIdx % BLOCK_SIZE
+}
+
 // CommitData is a struct which contains information about a single commit.
+// Changing its structure will require completely rebuilding the cache.
 type CommitData struct {
 	*gitinfo.LongCommit
 	Builds map[string]*buildbot.Build `json:"builds"`
+}
+
+// cacheBlock is an independently-managed slice of the commit cache. Changing
+// its structure will require completely rebuilding the cache.
+type cacheBlock struct {
+	BlockNum  int
+	mutex     sync.RWMutex
+	Commits   []*CommitData
+	CacheFile string
+}
+
+// fromFile reads the cache file and returns a commitCache object.
+func fromFile(cacheFile string) (*cacheBlock, error) {
+	glog.Infof("Reading commit cache from file %s", cacheFile)
+	b := cacheBlock{}
+	if _, err := os.Stat(cacheFile); os.IsNotExist(err) {
+		return nil, fmt.Errorf("Commit cache file %s does not exist.", cacheFile)
+	}
+	f, err := os.Open(cacheFile)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open cache file %s: %v", cacheFile, err)
+	}
+	defer f.Close()
+	if err := gob.NewDecoder(f).Decode(&b); err != nil {
+		return nil, fmt.Errorf("Failed to read cache file %s: %v", cacheFile, err)
+	}
+	b.CacheFile = cacheFile
+	glog.Infof("Done reading cache block %d (%d commits) from %s", b.BlockNum, len(b.Commits), cacheFile)
+	return &b, nil
+}
+
+// toFile serializes the cache block to a file.
+func (b *cacheBlock) toFile() error {
+	glog.Infof("Writing commit cache block %d (%d commits) to file %s", b.BlockNum, len(b.Commits), b.CacheFile)
+	f, err := os.Create(b.CacheFile)
+	if err != nil {
+		return fmt.Errorf("Failed to open/create cache file %s: %v", b.CacheFile, err)
+	}
+	defer f.Close()
+	if err := gob.NewEncoder(f).Encode(b); err != nil {
+		return fmt.Errorf("Failed to write cache file %s: %v", b.CacheFile, err)
+	}
+	glog.Infof("Done writing commit cache to %s", b.CacheFile)
+	return nil
+}
+
+// NumCommits gives the number of commits in this block.
+func (b *cacheBlock) NumCommits() int {
+	b.mutex.RLock()
+	defer b.mutex.RUnlock()
+	return len(b.Commits)
+}
+
+// Get returns the CommitData at the given index within this block.
+func (b *cacheBlock) Get(idx int) (*CommitData, error) {
+	b.mutex.RLock()
+	defer b.mutex.RUnlock()
+	if idx < 0 || idx >= len(b.Commits) {
+		return nil, fmt.Errorf("Index out of range: %d not in [%d, %d)", idx, 0, len(b.Commits))
+	}
+	return b.Commits[idx], nil
+}
+
+// Slice returns a slice of CommitDatas from this block.
+func (b *cacheBlock) Slice(startIdx, endIdx int) ([]*CommitData, error) {
+	b.mutex.RLock()
+	defer b.mutex.RUnlock()
+	if startIdx < 0 || startIdx > endIdx || endIdx > len(b.Commits) {
+		return nil, fmt.Errorf("Index out of range: (%d < 0 || %d > %d || %d > %d)", startIdx, startIdx, endIdx, endIdx, len(b.Commits))
+	}
+	return b.Commits[startIdx:endIdx], nil
+}
+
+// NewCommits copies a portion of the new commits into this block and returns
+// the number of commits which were copied.
+func (b *cacheBlock) NewCommits(newCommits []*CommitData) (int, error) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	// Figure out how many commits we can copy.
+	oldLen := len(b.Commits)
+	n := BLOCK_SIZE - oldLen
+	if n > len(newCommits) {
+		n = len(newCommits)
+	}
+	// Extend the slice to contain the new commits.
+	b.Commits = b.Commits[:oldLen+n]
+	// Copy over the new commits.
+	actuallyCopied := copy(b.Commits[oldLen:], newCommits[:n])
+	if n != actuallyCopied {
+		return actuallyCopied, fmt.Errorf("Wanted to copy %d but copied %d", n, actuallyCopied)
+	}
+	return n, b.toFile()
 }
 
 // CommitCache is a struct used for caching commit data. Stores ALL commits in
 // the repository.
 type CommitCache struct {
 	BranchHeads []*gitinfo.GitBranch
-	Commits     []*CommitData
+	blocks      []*cacheBlock
 	repo        *gitinfo.GitInfo
 	mutex       sync.RWMutex
-	cacheFile   string
+	cacheDir    string
 }
 
 // New creates and returns a new CommitCache which watches the given repo.
-// The initial Update will load ALL commits from the repository, so expect
+// The initial update will load ALL commits from the repository, so expect
 // this to be slow.
-func New(repo *gitinfo.GitInfo, cacheFile string) (*CommitCache, error) {
-	c, err := fromFile(cacheFile)
-	if err != nil {
-		glog.Errorf("Could not deserialize cache from file, reloading commit data from scratch. Error: %v", err)
+func New(repo *gitinfo.GitInfo, cacheDir string) (*CommitCache, error) {
+	c := &CommitCache{
+		repo:     repo,
+		cacheDir: cacheDir,
+		blocks:   []*cacheBlock{},
 	}
-	c.repo = repo
-	c.cacheFile = cacheFile
-	if err := c.Update(); err != nil {
+	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
+		if err = os.MkdirAll(cacheDir, os.ModePerm); err != nil {
+			return nil, fmt.Errorf("Failed to create cache dir: %v", err)
+		}
+	}
+	cacheFiles := []string{}
+	for {
+		fileName := cacheFileName(cacheDir, len(cacheFiles))
+		if _, err := os.Stat(fileName); os.IsNotExist(err) {
+			break
+		}
+		cacheFiles = append(cacheFiles, fileName)
+	}
+
+	for _, f := range cacheFiles {
+		b, err := fromFile(f)
+		if err != nil {
+			return nil, fmt.Errorf("Could not load cache block: %v", err)
+		}
+		c.blocks = append(c.blocks, b)
+	}
+
+	if len(cacheFiles) == 0 {
+		if err := c.appendBlock(); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := c.update(); err != nil {
 		return nil, err
 	}
 
 	// Update in a loop.
 	go func() {
 		for _ = range time.Tick(time.Minute) {
-			if err := c.Update(); err != nil {
+			if err := c.update(); err != nil {
 				glog.Errorf("Failed to update commit cache: %v", err)
 			}
 		}
@@ -60,52 +202,100 @@ func New(repo *gitinfo.GitInfo, cacheFile string) (*CommitCache, error) {
 	return c, nil
 }
 
-// fromFile reads the cache file and returns a commitCache object.
-func fromFile(cacheFile string) (*CommitCache, error) {
-	glog.Infof("Reading commit cache from file %s", cacheFile)
-	c := CommitCache{}
-	if _, err := os.Stat(cacheFile); os.IsNotExist(err) {
-		glog.Infof("Commit cache file %s does not exist. Loading commits from scratch.", cacheFile)
-		return &c, nil
+// numCommits returns the number of commits in the cache. Assumes the caller
+// holds a lock.
+func (c *CommitCache) numCommits() int {
+	if c.blocks == nil {
+		return 0
 	}
-	f, err := os.Open(cacheFile)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to open cache file %s: %v", cacheFile, err)
+	b := len(c.blocks)
+	if b == 0 {
+		return 0
 	}
-	defer f.Close()
-	if err := gob.NewDecoder(f).Decode(&c); err != nil {
-		return nil, fmt.Errorf("Failed to read cache file %s: %v", cacheFile, err)
-	}
-	glog.Infof("Done reading commit cache from %s", cacheFile)
-	return &c, nil
+	// Assume all blocks are full, except the last.
+	return (b-1)*BLOCK_SIZE + c.blocks[b-1].NumCommits()
 }
 
-// toFile serializes the cache to a file. Assumes the caller holds a lock.
-func (c *CommitCache) toFile() error {
-	glog.Infof("Writing commit cache to file %s", c.cacheFile)
-	f, err := os.Create(c.cacheFile)
-	if err != nil {
-		return fmt.Errorf("Failed to open/create cache file %s: %v", c.cacheFile, err)
+// NumCommits returns the number of commits in the cache.
+func (c *CommitCache) NumCommits() int {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	return c.numCommits()
+}
+
+// Get returns the CommitData at the given index.
+func (c *CommitCache) Get(idx int) (*CommitData, error) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	b, i := blockIdx(idx)
+	if b >= len(c.blocks) {
+		return nil, fmt.Errorf("Index out of range: %d not in [%d, %d)", b, 0, len(c.blocks))
 	}
-	defer f.Close()
-	if err := gob.NewEncoder(f).Encode(c); err != nil {
-		return fmt.Errorf("Failed to write cache file %s: %v", c.cacheFile, err)
+	return c.blocks[b].Get(i)
+}
+
+// Slice returns a slice of CommitDatas from the cache.
+func (c *CommitCache) Slice(startIdx, endIdx int) ([]*CommitData, error) {
+	c.mutex.RLock()
+	c.mutex.RUnlock()
+	n := c.numCommits()
+	if startIdx < 0 || startIdx > endIdx || endIdx > n {
+		return nil, fmt.Errorf("Index out of range: (%d < 0 || %d > %d || %d > %d)", startIdx, startIdx, endIdx, endIdx, n)
 	}
-	glog.Infof("Done writing commit cache to %s", c.cacheFile)
+	startBlock, startSubIdx := blockIdx(startIdx)
+	endBlock, endSubIdx := blockIdx(endIdx)
+	rv := make([]*CommitData, 0, endIdx-startIdx+1)
+	for b := startBlock; b <= endBlock; b++ {
+		var i, j int
+		if b == startBlock {
+			i = startSubIdx
+		} else {
+			i = 0
+		}
+		if b == endBlock {
+			j = endSubIdx
+		} else {
+			j = c.blocks[b].NumCommits()
+		}
+		s, err := c.blocks[b].Slice(i, j)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to slice block: %v", err)
+		}
+		rv = append(rv, s...)
+	}
+	return rv, nil
+}
+
+// appendBlock adds a new block to the cache. Assumes the caller holds a lock.
+func (c *CommitCache) appendBlock() error {
+	if c.blocks == nil {
+		c.blocks = []*cacheBlock{}
+	}
+	if len(c.blocks) > 0 && c.blocks[len(c.blocks)-1].NumCommits() != BLOCK_SIZE {
+		return fmt.Errorf("Failed to add a new cache block; current last block is not full.")
+	}
+	c.blocks = append(c.blocks, &cacheBlock{
+		BlockNum:  len(c.blocks),
+		CacheFile: cacheFileName(c.cacheDir, len(c.blocks)),
+		Commits:   make([]*CommitData, 0, BLOCK_SIZE),
+	})
 	return nil
 }
 
-// Update syncs the source code repository and loads any new commits.
-func (c *CommitCache) Update() error {
+// update syncs the source code repository and loads any new commits.
+func (c *CommitCache) update() error {
 	glog.Info("Reloading commits.")
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
 	if err := c.repo.Update(true, true); err != nil {
 		return fmt.Errorf("Failed to update the repo: %v", err)
 	}
 	from := time.Time{}
-	if len(c.Commits) > 0 {
-		from = c.Commits[len(c.Commits)-1].Timestamp
+	n := c.NumCommits()
+	if n > 0 {
+		last, err := c.Get(n - 1)
+		if err != nil {
+			return fmt.Errorf("Failed to get last commit: %v", err)
+		}
+		from = last.Timestamp
 	}
 	newCommitHashes := c.repo.From(from)
 	glog.Infof("Processing %d new commits.", len(newCommitHashes))
@@ -124,32 +314,41 @@ func (c *CommitCache) Update() error {
 		return fmt.Errorf("Failed to read branch information from the repo: %v", err)
 	}
 	// Update the cached values all at once at at the end.
+	glog.Infof("Updating the cache.")
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	c.BranchHeads = branchHeads
-	c.Commits = append(c.Commits, newCommits...)
-	// Update the cache file.
-	if err := c.toFile(); err != nil {
-		return err
+	for i := 0; i < len(newCommits); {
+		n, err := c.blocks[len(c.blocks)-1].NewCommits(newCommits[i:])
+		if err != nil {
+			return fmt.Errorf("Failed to insert new commits into block: %v", err)
+		}
+		i += n
+		if i == len(newCommits) {
+			break
+		}
+		if err := c.appendBlock(); err != nil {
+			return fmt.Errorf("Failed to update the cache: %v", err)
+		}
 	}
+	glog.Infof("Finished updating the cache.")
 	return nil
 }
 
-// NumCommits returns the number of commits contained in the cache.
-func (c *CommitCache) NumCommits() int {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-	return len(c.Commits)
-}
-
-// asJson writes the given commit range along with the branch heads in JSON
+// RangeAsJson writes the given commit range along with the branch heads in JSON
 // format to the given Writer. Assumes that the caller holds a read lock.
-func (c *CommitCache) asJson(w io.Writer, startIdx, endIdx int) error {
+func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
+	commits, err := c.Slice(startIdx, endIdx)
+	if err != nil {
+		return err
+	}
 	data := struct {
 		Commits     []*CommitData        `json:"commits"`
 		BranchHeads []*gitinfo.GitBranch `json:"branch_heads"`
 		StartIdx    int                  `json:"startIdx"`
 		EndIdx      int                  `json:"endIdx"`
 	}{
-		Commits:     c.Commits[startIdx:endIdx],
+		Commits:     commits,
 		BranchHeads: c.BranchHeads,
 		StartIdx:    startIdx,
 		EndIdx:      endIdx,
@@ -160,29 +359,10 @@ func (c *CommitCache) asJson(w io.Writer, startIdx, endIdx int) error {
 // LastNAsJson writes the last N commits along with the branch heads in JSON
 // format to the given Writer.
 func (c *CommitCache) LastNAsJson(w io.Writer, n int) error {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-	end := len(c.Commits)
+	end := c.numCommits()
 	start := end - n
 	if start < 0 {
 		start = 0
 	}
-	return c.asJson(w, start, end)
-}
-
-// RangeAsJson writes the given range of commits along with the branch heads
-// in JSON format to the given Writer.
-func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-	if startIdx < 0 || startIdx > len(c.Commits) {
-		return fmt.Errorf("startIdx is out of range [0, %d]: %d", len(c.Commits), startIdx)
-	}
-	if endIdx < 0 || endIdx > len(c.Commits) {
-		return fmt.Errorf("endIdx is out of range [0, %d]: %d", len(c.Commits), endIdx)
-	}
-	if endIdx < startIdx {
-		return fmt.Errorf("endIdx < startIdx: %d, %d", endIdx, startIdx)
-	}
-	return c.asJson(w, startIdx, endIdx)
+	return c.RangeAsJson(w, start, end)
 }

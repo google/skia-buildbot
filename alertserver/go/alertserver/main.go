@@ -440,7 +440,7 @@ func main() {
 		glog.Fatalf("Failed to check out Skia: %v", err)
 	}
 	glog.Info("CloneOrUpdate complete")
-	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache.gob"))
+	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache"))
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
