@@ -31,8 +31,8 @@ var (
 	repeatBenchmark           = flag.Int("repeat_benchmark", 1, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
 	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
 	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
-	varianceThreshold         = flag.Int("variance_threshold", 0, "The variance threshold to use when comparing the resultant CSV files.")
-	discardOutliers           = flag.Int("discard_outliers", 0, "The percentage of outliers to discard when comparing the result CSV files.")
+	varianceThreshold         = flag.Float64("variance_threshold", 0.0, "The variance threshold to use when comparing the resultant CSV files.")
+	discardOutliers           = flag.Float64("discard_outliers", 0.0, "The percentage of outliers to discard when comparing the result CSV files.")
 
 	taskCompletedSuccessfully = false
 
@@ -188,8 +188,8 @@ func main() {
 		"--csv_file1=" + noPatchCSVPath,
 		"--csv_file2=" + withPatchCSVPath,
 		"--output_html=" + htmlOutputDir,
-		"--variance_threshold=" + strconv.Itoa(*varianceThreshold),
-		"--discard_outliers=" + strconv.Itoa(*discardOutliers),
+		"--variance_threshold=" + strconv.FormatFloat(*varianceThreshold, 'f', 2, 64),
+		"--discard_outliers=" + strconv.FormatFloat(*discardOutliers, 'f', 2, 64),
 		"--absolute_url=" + htmlOutputLinkBase,
 		"--requester_email=" + *emails,
 		"--skia_patch_link=" + skiaPatchLink,
