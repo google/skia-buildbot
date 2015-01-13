@@ -205,7 +205,7 @@ def process_chromium_try_task(task):
       '--browser_extra_args_withpatch=' + str(browser_args_2),
       '--repeat_benchmark=' + str(num_repeated_runs),
       '--target_platform=' + str(target_platform),
-      '--run_id' + str(run_id),
+      '--run_id=' + str(run_id),
       '--variance_threshold=' + str(variance_threshold),
       '--discard_outliers=' + str(discard_outliers),
       '--log_dir=/b/storage/glog',
