@@ -1,6 +1,6 @@
 package skiaversion
 
 const (
-	COMMIT = "f68fbfcb9e32805a89a95870ab1457dbf29a735e"
-	DATE   = "2015-01-12 18:49:33-05:00"
+	COMMIT = "a7966f35da7018f560c6779e164e5bd3a927268f"
+	DATE   = "2015-01-13 07:31:45-05:00"
 )

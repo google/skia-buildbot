@@ -38,7 +38,7 @@ const (
 	PAGESET_TYPE_ALL        = "All"
 	PAGESET_TYPE_10k        = "10k"
 	PAGESET_TYPE_MOBILE_10k = "Mobile10k"
-	PAGESET_TYPE_DUMMY_100  = "Dummy100" // Used for testing.
+	PAGESET_TYPE_DUMMY_1k   = "Dummy1k" // Used for testing.
 
 	// Names of binaries executed by CT.
 	BINARY_CHROME          = "chrome"
@@ -154,7 +154,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
 		},
-		PAGESET_TYPE_DUMMY_100: &PagesetTypeInfo{
+		PAGESET_TYPE_DUMMY_1k: &PagesetTypeInfo{
 			NumPages:                   1000,
 			CSVSource:                  "csv/android-top-1m.csv",
 			UserAgent:                  "mobile",
