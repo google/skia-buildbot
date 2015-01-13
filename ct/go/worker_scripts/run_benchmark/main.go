@@ -312,13 +312,13 @@ func main() {
 			glog.Error(err)
 			return
 		}
+	}
 
-		// Delete all tmp files from the slaves because telemetry tends to
-		// generate a lot of temporary artifacts there and they take up root disk
-		// space.
-		files, _ := ioutil.ReadDir(os.TempDir())
-		for _, f := range files {
-			os.RemoveAll(filepath.Join(os.TempDir(), f.Name()))
-		}
+	// Delete all tmp files from the slaves because telemetry tends to
+	// generate a lot of temporary artifacts there and they take up root disk
+	// space.
+	files, _ := ioutil.ReadDir(os.TempDir())
+	for _, f := range files {
+		os.RemoveAll(filepath.Join(os.TempDir(), f.Name()))
 	}
 }
