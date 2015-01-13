@@ -31,7 +31,7 @@ PAGESET_TYPES = {
     'All': 'Top 1M (with desktop user-agent)',
     '10k': 'Top 10k (with desktop user-agent)',
     'Mobile10k': 'Top 10k (with mobile user-agent)',
-    'Dummy1k': '1k pagesets (used for testing)',
+    'Dummy1k': 'Dummy 1k (used for testing)',
     # 'IndexSample10k': 'IndexSample 10k (with mobile user-agent)',
     # 'GPURasterSet': 'GPU Raster Set (with mobile user-agent)',
     # 'KeyMobileSites': 'Key Mobile Sites (with mobile user-agent)',
