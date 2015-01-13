@@ -3,8 +3,7 @@ package util
 import "path/filepath"
 
 const (
-	// TODO(rmistry): Switch this to use chrome-bot when ready to run in prod
-	CT_USER                  = "rmistry"
+	CT_USER                  = "chrome-bot"
 	NUM_WORKERS          int = 100
 	WORKER_NAME_TEMPLATE     = "build%d-m5"
 	GS_BUCKET_NAME           = "cluster-telemetry"
@@ -81,13 +80,7 @@ type PagesetTypeInfo struct {
 }
 
 var (
-	// Slaves  = GetCTWorkers()
-	// TODO(rmistry): Switch this to use GetCTWorkers() when ready to run in prod
-	Slaves = []string{
-		"piraeus.cnc.corp.google.com",
-		"epoger-linux.cnc.corp.google.com",
-		"172.23.212.25",
-	}
+	Slaves = GetCTWorkers()
 
 	// Names of local directories and files.
 	StorageDir           = filepath.Join("/", "b", STORAGE_DIR_NAME)
