@@ -2,19 +2,31 @@ package analysis
 
 import (
 	"fmt"
+	"os"
+	"sort"
+	"strings"
 	"testing"
 	"time"
 
-	"sort"
-	"strings"
-
 	assert "github.com/stretchr/testify/require"
 
+	"skia.googlesource.com/buildbot.git/go/testutils"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 	"skia.googlesource.com/buildbot.git/golden/go/filediffstore"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
 	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
+)
+
+var (
+	// Directory with testdata.
+	TEST_DATA_DIR = "./testdata"
+
+	// Local file location of the test data.
+	TEST_DATA_PATH = TEST_DATA_DIR + "/goldentile.json.zip"
+
+	// Folder in the testdata bucket. See go/testutils for details.
+	TEST_DATA_STORAGE_PATH = "gold-testdata/goldentile.json.gz"
 )
 
 func init() {
@@ -109,6 +121,11 @@ func TestGetListTestDetails(t *testing.T) {
 	assert.Equal(t, 3, len(findTest(t, list1, "t1").Untriaged))
 	assert.Equal(t, 4, len(findTest(t, list1, "t3").Untriaged))
 
+	// Verify the other tests do not contain untriaged values.
+	assert.Equal(t, 0, len(findTest(t, list1, "t2").Untriaged))
+	assert.Equal(t, 0, len(findTest(t, list1, "t4").Untriaged))
+	assert.Equal(t, 0, len(findTest(t, list1, "t5").Untriaged))
+
 	// // Slice the tests
 	list1, err = a.ListTestDetails(map[string][]string{"cs": []string{"h2"}})
 	assert.Nil(t, err)
@@ -142,6 +159,63 @@ func TestGetListTestDetails(t *testing.T) {
 	assert.Equal(t, STATUS_OK_2, status.OK)
 	assert.Equal(t, UNTRIAGED_COUNT_2, status.UntriagedCount)
 	assert.Equal(t, NEGATIVE_COUNT_2, status.NegativeCount)
+}
+
+func TestAgainstLiveData(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
+	// Download the testdata and remove the testdata directory at the end.
+	err := testutils.DownloadTestDataFile(TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	assert.Nil(t, err, "Unable to download testdata.")
+	defer func() {
+		os.RemoveAll(TEST_DATA_DIR)
+	}()
+
+	diffStore := NewMockDiffStore()
+	expStore := expstorage.NewMemExpectationsStore()
+	tileStore := NewMockTileStoreFromJson(t, TEST_DATA_PATH)
+	timeBetweenPolls := 10 * time.Hour
+	a := NewAnalyzer(expStore, tileStore, diffStore, mockUrlGenerator, timeBetweenPolls)
+
+	// Poll until the Analyzer has process the tile.
+	allTests, err := a.ListTestDetails(nil)
+	assert.Nil(t, err)
+	for allTests == nil {
+		time.Sleep(10 * time.Millisecond)
+		allTests, err = a.ListTestDetails(nil)
+		assert.Nil(t, err)
+	}
+	assert.NotNil(t, allTests)
+
+	// // Query For 565
+	allTests, err = a.ListTestDetails(map[string][]string{
+		"config": []string{"565"},
+	})
+	assert.Nil(t, err)
+	assert.True(t, len(allTests.Tests) > 0)
+	for _, oneTestDetail := range allTests.Tests {
+		for _, unt := range oneTestDetail.Untriaged {
+			count, ok := unt.ParamCounts["config"]["565"]
+			assert.True(t, ok)
+			assert.True(t, count > 0)
+			assert.Equal(t, 1, len(unt.ParamCounts["config"]))
+		}
+	}
+
+	// Query within an individual tests.
+	oneTest, err := a.GetTestDetails("blurcircles", map[string][]string{
+		"config": []string{"565"},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(oneTest.Tests))
+	assert.Equal(t, "blurcircles", oneTest.Tests[0].Name)
+	for _, unt := range oneTest.Tests[0].Untriaged {
+		for key := range unt.ParamCounts["config"] {
+			assert.Equal(t, "565", key)
+		}
+	}
 }
 
 func findTest(t *testing.T, tDetails *GUITestDetails, testName string) *GUITestDetail {
@@ -209,6 +283,21 @@ func NewMockTileStore(t *testing.T, digests [][]string, params []map[string]stri
 	tile := ptypes.NewTile()
 	tile.Traces = traces
 	tile.Commits = commits
+
+	return &MockTileStore{
+		t:    t,
+		tile: tile,
+	}
+}
+
+// NewMockTileStoreFromJson reads a tile that has been serialized to JSON
+// and wraps an instance of MockTileStore around it.
+func NewMockTileStoreFromJson(t *testing.T, fname string) ptypes.TileStore {
+	f, err := os.Open(fname)
+	assert.Nil(t, err)
+
+	tile, err := ptypes.TileFromJson(f, &ptypes.GoldenTrace{})
+	assert.Nil(t, err)
 
 	return &MockTileStore{
 		t:    t,

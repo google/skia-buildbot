@@ -2,13 +2,25 @@
 package testutils
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
+	"strings"
+
+	"skia.googlesource.com/buildbot.git/go/gs"
+	"skia.googlesource.com/buildbot.git/go/util"
+)
+
+const (
+	// GS bucket where we store test data. Add a folder to this bucket
+	// with the tests for a particular component.
+	GS_TEST_DATA_ROOT_URI = "http://storage.googleapis.com/skia-infra-testdata/"
 )
 
 // TestDataDir returns the path to the caller's testdata directory, which
@@ -80,4 +92,51 @@ func MustReadJsonFile(filename string, dest interface{}) {
 	if err := ReadJsonFile(filename, dest); err != nil {
 		panic(err)
 	}
+}
+
+// DownloadTestDataFile downloads a file with test data from Google Storage.
+// The uriPath identifies what to download from the test bucket in GS.
+// The content must be publicly accessible.
+// The file will be downloaded and stored at provided target
+// path (regardless of what the original name is).
+// If the the uri ends with '.gz' it will be transparently unzipped.
+func DownloadTestDataFile(uriPath, targetPath string) error {
+	uri := GS_TEST_DATA_ROOT_URI + uriPath
+
+	dir, _ := filepath.Split(targetPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	client := util.NewTimeoutClient()
+	request, err := gs.RequestForStorageURL(uri)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Downloading %s failed. Got response status: %d", uri, resp.StatusCode)
+	}
+	defer resp.Body.Close()
+
+	// Open the output
+	var r io.ReadCloser = resp.Body
+	if strings.HasSuffix(uri, ".gz") {
+		r, err = gzip.NewReader(r)
+		if err != nil {
+			return err
+		}
+	}
+
+	f, err := os.Create(targetPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = io.Copy(f, r)
+	return err
 }

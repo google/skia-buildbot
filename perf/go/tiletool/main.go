@@ -6,8 +6,11 @@ import (
 	"crypto/md5"
 	"encoding/binary"
 	"encoding/gob"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"sort"
@@ -28,6 +31,7 @@ const (
 	VALIDATE     = "validate"
 	DUMP_COMMITS = "dump"
 	MD5          = "md5"
+	JSON         = "json"
 )
 
 // Command line flags.
@@ -82,6 +86,65 @@ func getBytes(key interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func dumpTileToJSON(store types.TileStore, nCommits int, nTraces int, fname string) {
+	tile, err := store.Get(0, -1)
+	if err != nil {
+		glog.Fatal("Could not read tile: " + err.Error())
+	}
+
+	newTile := tile
+	if (nCommits > 0) || (nTraces > 0) {
+		lastIdx := tile.LastCommitIndex()
+		if nCommits <= 0 {
+			nCommits = lastIdx + 1
+		}
+
+		if nTraces <= 0 {
+			nTraces = len(tile.Traces)
+		}
+
+		commitLen := util.MinInt(nCommits, lastIdx+1)
+		startCommit := lastIdx + 1 - commitLen
+		newTraces := map[string]types.Trace{}
+		for key, trace := range tile.Traces {
+			for i := startCommit; i <= lastIdx; i++ {
+				if !trace.IsMissing(i) {
+					newTraces[key] = trace
+					break
+				}
+			}
+			if len(newTraces) >= nTraces {
+				break
+			}
+		}
+
+		newCommits := tile.Commits[startCommit:]
+		newParamSet := map[string][]string{}
+		types.GetParamSet(newTraces, newParamSet)
+
+		newTile = &types.Tile{
+			Traces:    newTraces,
+			ParamSet:  newParamSet,
+			Commits:   newCommits,
+			Scale:     tile.Scale,
+			TileIndex: tile.TileIndex,
+		}
+	}
+
+	result, err := json.Marshal(newTile)
+	if err != nil {
+		glog.Fatalf("Could not marshal to JSON: %s", err)
+	}
+
+	err = ioutil.WriteFile(fname, result, 0644)
+	if err != nil {
+		glog.Fatalf("Could not write output file %s", err)
+	}
+
+	fmt.Printf("Commits included: %d\n", len(newTile.Commits))
+	fmt.Printf("Traces included:  %d\n", len(newTile.Traces))
 }
 
 func md5Commits(store types.TileStore, targetHash string, nCommits int) {
@@ -162,7 +225,32 @@ func parseInt(nStr string) int {
 	return int(ret)
 }
 
+func printUsage() {
+	fmt.Printf("Usage: %s [flags] command [parameters]\n\n", os.Args[0])
+	fmt.Println("Valid commands are:")
+
+	fmt.Printf("   %s \n", VALIDATE)
+	fmt.Printf("      Validates the tile.\n")
+	fmt.Printf("   %s n \n", DUMP_COMMITS)
+	fmt.Printf("      Dumps the last n commits in the tile.\n")
+	fmt.Printf("   %s githash n\n", MD5)
+	fmt.Printf("      Returns the MD5 hash of n commits up to the commit identified by githash.\n")
+	fmt.Printf("   %s commits traces outputfile\n", JSON)
+	fmt.Printf("      Dumps a tile to JSON that consists has the given number of commits and traces.\n")
+	fmt.Println("\n\nFlags:")
+	flag.PrintDefaults()
+}
+
+func checkArgs(args []string, command string, requiredArgs int) {
+	if len(args) != (requiredArgs + 1) {
+		fmt.Printf("ERROR: The %s command requires exactly %d arguments.\n\n", command, requiredArgs)
+		printUsage()
+		os.Exit(1)
+	}
+}
+
 func main() {
+	flag.Usage = printUsage
 	common.Init()
 	if !util.In(*dataset, config.VALID_DATASETS) {
 		glog.Fatalf("Not a valid dataset: %s", *dataset)
@@ -177,12 +265,20 @@ func main() {
 			glog.Fatal("FAILED Validation.")
 		}
 	case DUMP_COMMITS:
+		checkArgs(args, DUMP_COMMITS, 1)
 		nCommits := parseInt(args[1])
 		dumpCommits(store, nCommits)
 	case MD5:
+		checkArgs(args, MD5, 2)
 		hash := args[1]
 		nCommits := parseInt(args[2])
 		md5Commits(store, hash, nCommits)
+	case JSON:
+		checkArgs(args, JSON, 3)
+		nCommits := parseInt(args[1])
+		nTraces := parseInt(args[2])
+		fname := args[3]
+		dumpTileToJSON(store, nCommits, nTraces, fname)
 	default:
 		glog.Fatalf("Unknow command: %s", args[0])
 	}

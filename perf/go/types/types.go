@@ -2,7 +2,9 @@ package types
 
 import (
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/url"
 	"strings"
 	"time"
@@ -313,6 +315,60 @@ func (t Tile) Trim(begin, end int) (*Tile, error) {
 	return ret, nil
 }
 
+// Same as Tile but instead of Traces we preserve the raw JSON. This is a
+// utitlity struct that is used to parse a tile where we don't know the
+// Trace type upfront.
+type TileWithRawTraces struct {
+	Traces    map[string]json.RawMessage `json:"traces"`
+	ParamSet  map[string][]string        `json:"param_set"`
+	Commits   []*Commit                  `json:"commits"`
+	Scale     int                        `json:"scale"`
+	TileIndex int                        `json:"tileIndex"`
+}
+
+// TileFromJson parses a tile that has been serialized to JSON.
+// traceExample has to be an instance of the Trace implementation
+// that needs to be deserialized.
+// Note: Instead of the type switch below we could use reflection
+// to be truely generic, but it makes the code harder to read and
+// currently we only have two types.
+func TileFromJson(r io.Reader, traceExample Trace) (*Tile, error) {
+	// Figure out the type of trace.
+	var factory func() Trace
+	switch traceExample.(type) {
+	case *GoldenTrace:
+		factory = func() Trace { return NewGoldenTrace() }
+	case *PerfTrace:
+		factory = func() Trace { return NewPerfTrace() }
+	}
+
+	// Decode everything, but the traces.
+	dec := json.NewDecoder(r)
+	var rawTile TileWithRawTraces
+	err := dec.Decode(&rawTile)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the traces.
+	traces := map[string]Trace{}
+	for k, rawJson := range rawTile.Traces {
+		newTrace := factory()
+		if err = json.Unmarshal(rawJson, newTrace); err != nil {
+			return nil, err
+		}
+		traces[k] = newTrace.(Trace)
+	}
+
+	return &Tile{
+		Traces:    traces,
+		ParamSet:  rawTile.ParamSet,
+		Commits:   rawTile.Commits,
+		Scale:     rawTile.Scale,
+		TileIndex: rawTile.Scale,
+	}, nil
+}
+
 // TraceGUI is used in TileGUI.
 type TraceGUI struct {
 	Data   [][2]float64      `json:"data"`
@@ -452,6 +508,19 @@ func (c *ClusterSummary) Merge(from *ClusterSummary) {
 	}
 }
 
+// Finds the paramSet for the given slice of traces.
+func GetParamSet(traces map[string]Trace, paramSet map[string][]string) {
+	for _, trace := range traces {
+		for k, v := range trace.Params() {
+			if _, ok := paramSet[k]; !ok {
+				paramSet[k] = []string{v}
+			} else if !util.In(v, paramSet[k]) {
+				paramSet[k] = append(paramSet[k], v)
+			}
+		}
+	}
+}
+
 // Merge the two Tiles, presuming tile1 comes before tile2.
 func Merge(tile1, tile2 *Tile) *Tile {
 	n := len(tile1.Commits) + len(tile2.Commits)
@@ -496,15 +565,7 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	}
 
 	// Recreate the ParamSet.
-	for _, trace := range t.Traces {
-		for k, v := range trace.Params() {
-			if _, ok := t.ParamSet[k]; !ok {
-				t.ParamSet[k] = []string{v}
-			} else if !util.In(v, t.ParamSet[k]) {
-				t.ParamSet[k] = append(t.ParamSet[k], v)
-			}
-		}
-	}
+	GetParamSet(t.Traces, t.ParamSet)
 
 	t.Scale = tile1.Scale
 	t.TileIndex = tile1.TileIndex

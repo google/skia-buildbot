@@ -118,7 +118,7 @@ func (i *LabeledTileIndex) queryParams(query, effectiveQuery map[string][]string
 
 	resultIds := util.IntersectIntSets(resultSets, minIdx)
 	result := make([]*LabeledTrace, 0, len(resultIds))
-	for _, id := range resultIds {
+	for id := range resultIds {
 		if lt, ok := i.traceMap[id]; ok {
 			result = append(result, lt)
 		}

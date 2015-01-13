@@ -452,7 +452,7 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 	}
 }
 
-// getUntriagedDigests returns the untriaged digests of a specific test that
+// getUntriagedTestDetails returns the untriaged digests of a specific test that
 // match the given query. In addition to the digests it returns the query
 // that was used to retrieve them.
 func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]string, includeAllTests bool) map[string]map[string]*GUIUntriagedDigest {

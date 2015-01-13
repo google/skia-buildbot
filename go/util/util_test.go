@@ -1,6 +1,10 @@
 package util
 
-import "testing"
+import (
+	"testing"
+
+	assert "github.com/stretchr/testify/require"
+)
 
 func TestAtMost(t *testing.T) {
 	a := AtMost([]string{"a", "b"}, 3)
@@ -57,5 +61,14 @@ func TestSSliceEqual(t *testing.T) {
 			t.Errorf("SSliceEqual(%#v, %#v): Got %v Want %v", tc.a, tc.b, got, want)
 		}
 	}
+}
 
+func TestIntersectIntSets(t *testing.T) {
+	sets := []map[int]bool{
+		map[int]bool{1: true, 2: true, 3: true, 4: true},
+		map[int]bool{2: true, 4: true, 5: true, 7: true},
+	}
+	minIdx := 1
+	intersect := IntersectIntSets(sets, minIdx)
+	assert.Equal(t, map[int]bool{2: true, 4: true}, intersect)
 }
