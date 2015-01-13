@@ -24,12 +24,6 @@ const (
 
 	// Name of the readwrite user.
 	USER_RW = "readwrite"
-
-	// Key of the password for the readwrite user.
-	RW_METADATA_KEY = "readwrite"
-
-	// Key of the password for the root user.
-	ROOT_METADATA_KEY = "root"
 )
 
 var (
@@ -105,15 +99,15 @@ func ConfigFromFlagsAndMetadata(local bool, m []MigrationStep) (*DatabaseConfig,
 	if !local {
 		key := ""
 		if *dbUser == USER_RW {
-			key = RW_METADATA_KEY
+			key = metadata.DATABASE_RW_PASSWORD
 		} else if *dbUser == USER_ROOT {
-			key = ROOT_METADATA_KEY
+			key = metadata.DATABASE_ROOT_PASSWORD
 		}
 		if key == "" {
 			return nil, fmt.Errorf("Unknown user %s; could not obtain password from metadata.", *dbUser)
 		}
 		var err error
-		password, err = metadata.Get(key)
+		password, err = metadata.ProjectGet(key)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to find metadata. Use 'local' flag when running locally.")
 		}

@@ -28,6 +28,11 @@ const (
 	// INFLUXDB_NAME and INFLUXDB_PASSWORD are used for accessing InfluxDB.
 	INFLUXDB_NAME     = "influxdb_name"
 	INFLUXDB_PASSWORD = "influxdb_password"
+
+	// DATABASE_RW_PASSWORD and DATABASE_ROOT_PASSWORD are the MySQL Database passwords for the
+	// readwrite and root user respectively.
+	DATABASE_RW_PASSWORD   = "database_readwrite"
+	DATABASE_ROOT_PASSWORD = "database_root"
 )
 
 // get retrieves the named value from the Metadata server. See
