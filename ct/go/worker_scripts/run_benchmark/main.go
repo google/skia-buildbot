@@ -268,20 +268,22 @@ func main() {
 			if err != nil {
 				glog.Errorf("Unable to read %s: %s", filepath.Join(pathToSkps, skpName), err)
 			}
-			largestLayerInfo := layerInfos[0]
-			for _, layerInfo := range layerInfos {
-				fmt.Println(layerInfo.Size())
-				if layerInfo.Size() > largestLayerInfo.Size() {
-					largestLayerInfo = layerInfo
+			if len(layerInfos) > 0 {
+				largestLayerInfo := layerInfos[0]
+				for _, layerInfo := range layerInfos {
+					fmt.Println(layerInfo.Size())
+					if layerInfo.Size() > largestLayerInfo.Size() {
+						largestLayerInfo = layerInfo
+					}
 				}
-			}
-			// Only save SKPs greater than 6000 bytes. Less than that are probably
-			// malformed.
-			if largestLayerInfo.Size() > 6000 {
-				layerPath := filepath.Join(pathToSkps, skpName, largestLayerInfo.Name())
-				os.Rename(layerPath, filepath.Join(pathToSkps, skpName+".skp"))
-			} else {
-				glog.Warningf("Skipping %s because size was less than 5000 bytes", skpName)
+				// Only save SKPs greater than 6000 bytes. Less than that are probably
+				// malformed.
+				if largestLayerInfo.Size() > 6000 {
+					layerPath := filepath.Join(pathToSkps, skpName, largestLayerInfo.Name())
+					os.Rename(layerPath, filepath.Join(pathToSkps, skpName+".skp"))
+				} else {
+					glog.Warningf("Skipping %s because size was less than 5000 bytes", skpName)
+				}
 			}
 			// We extracted what we needed from the directory, now delete it.
 			os.RemoveAll(filepath.Join(pathToSkps, skpName))
