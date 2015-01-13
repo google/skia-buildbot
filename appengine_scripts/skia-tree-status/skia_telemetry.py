@@ -827,9 +827,9 @@ class SkiaTryPage(BasePage):
     skia_try_tasks = SkiaTryTasks.get_all_skia_try_tasks_of_user(
         self.user.email())
     pagesets_to_builds = get_skp_pagesets_to_builds()
-    # Only support all 10k pagesets for now.
+    # Do not support 1M pagesets.
     for pageset in pagesets_to_builds.keys():
-      if '10k' not in pageset and 'GPU' not in pageset and 'Key' not in pageset:
+      if 'All' in pageset:
         del pagesets_to_builds[pageset]
     template_values['pagesets_to_builds'] = pagesets_to_builds
     template_values['skia_try_tasks'] = skia_try_tasks
