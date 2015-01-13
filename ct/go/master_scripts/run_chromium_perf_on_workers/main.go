@@ -4,15 +4,12 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
-	"strings"
-	"text/template"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -218,43 +215,20 @@ func main() {
 }
 
 func runBenchmarkOnWorkers(chromiumBuild, id string) error {
-	runBenchmarkWithPatchCmdTemplate := "DISPLAY=:0 run_benchmark_on_workers --log_dir={{.LogDir}} " +
-		"--pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} " +
-		"--benchmark_name={{.BenchmarkName}} --benchmark_extra_args=\"{{.BenchmarkExtraArgs}}\" " +
-		"--browser_extra_args=\"{{.BrowserExtraArgs}}\" --repeat_benchmark={{.RepeatBenchmark}} " +
-		"--target_platform={{.TargetPlatform}} --tryserver_run=true;"
-	runBenchmarkWithPatchTemplateParsed := template.Must(template.New("run_benchmark_withpatch_cmd").Parse(runBenchmarkWithPatchCmdTemplate))
-	benchmarkWithPatchCmdBytes := new(bytes.Buffer)
-	runBenchmarkWithPatchTemplateParsed.Execute(benchmarkWithPatchCmdBytes, struct {
-		LogDir             string
-		PagesetType        string
-		ChromiumBuild      string
-		RunID              string
-		BenchmarkName      string
-		BenchmarkExtraArgs string
-		BrowserExtraArgs   string
-		RepeatBenchmark    int
-		TargetPlatform     string
-	}{
-		LogDir:             util.GLogDir,
-		PagesetType:        *pagesetType,
-		ChromiumBuild:      chromiumBuild,
-		RunID:              id,
-		BenchmarkName:      *benchmarkName,
-		BenchmarkExtraArgs: *benchmarkExtraArgs,
-		BrowserExtraArgs:   *browserExtraArgsWithPatch,
-		RepeatBenchmark:    *repeatBenchmark,
-		TargetPlatform:     *targetPlatform,
-	})
-	cmd := []string{
-		fmt.Sprintf("cd %s;", util.CtTreeDir),
-		"git pull;",
-		"make all;",
-		// The main command that runs run_benchmark_on_workers.
-		benchmarkWithPatchCmdBytes.String(),
+	args := []string{
+		"--log_dir=" + util.GLogDir,
+		"--pageset_type=" + *pagesetType,
+		"--chromium_build=" + chromiumBuild,
+		"--run_id=" + id,
+		"--benchmark_name=" + *benchmarkName,
+		"--benchmark_extra_args=" + *benchmarkExtraArgs,
+		"--browser_extra_args=" + *browserExtraArgsWithPatch,
+		"--repeat_benchmark=" + strconv.Itoa(*repeatBenchmark),
+		"--target_platform=" + *targetPlatform,
+		"--tryserver_run=true",
 	}
-	if _, err := util.SSH(strings.Join(cmd, " "), util.Slaves, 6*time.Hour); err != nil {
-		return fmt.Errorf("Error while running cmd %s: %s", cmd, err)
+	if err := util.ExecuteCmd("run_benchmark_on_workers", args, []string{}, 6*time.Hour, nil, nil); err != nil {
+		return fmt.Errorf("Error while running run_benchmark_on_workers: %s", err)
 	}
 	return nil
 }
