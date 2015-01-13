@@ -61,7 +61,7 @@ def process_admin_task(task):
   cmd = []
   if task_name == appengine_constants.PAGESETS_ADMIN_TASK_NAME:
     cmd = [
-        'create_pagesets_on_slaves',
+        'create_pagesets_on_workers',
         '--emails=' + str(username),
         '--gae_task_id=' + str(task_key),
         '--pageset_type=' + str(pagesets_type),
@@ -71,7 +71,7 @@ def process_admin_task(task):
     chromium_build_dir = get_chromium_build_dir(task['chromium_rev'],
                                                 task['skia_rev'])
     cmd = [
-        'capture_archives_on_slaves',
+        'capture_archives_on_workers',
         '--emails=' + str(username),
         '--gae_task_id=' + str(task_key),
         '--pageset_type=' + str(pagesets_type),
