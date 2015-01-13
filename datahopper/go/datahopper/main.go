@@ -6,6 +6,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"path"
 	"time"
 
@@ -62,6 +63,8 @@ func main() {
 
 	// Data generation goroutines.
 	go autoroll_ingest.LoadAutoRollData(dbClient, *workdir)
+
+	// Buildbot data ingestion.
 	go func() {
 		// Initialize the buildbot database.
 		conf, err := database.ConfigFromFlagsAndMetadata(*local, buildbot.MigrationSteps())
@@ -82,6 +85,7 @@ func main() {
 			}
 		}
 	}()
+
 	// Measure buildbot data ingestion progress.
 	totalGuage := metrics.GetOrRegisterGauge("buildbot.builds.total", metrics.DefaultRegistry)
 	ingestGuage := metrics.GetOrRegisterGauge("buildbot.builds.ingested", metrics.DefaultRegistry)
@@ -99,6 +103,28 @@ func main() {
 			}
 			totalGuage.Update(int64(totalBuilds))
 			ingestGuage.Update(int64(ingestedBuilds))
+		}
+	}()
+
+	// Buildslave uptime.
+	go func() {
+		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+			glog.Info("Loading buildslave data.")
+			slaves, err := buildbot.GetBuildSlaves()
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			for _, m := range slaves {
+				for _, s := range m {
+					v := int64(0)
+					if s.Connected {
+						v = int64(1)
+					}
+					metric := fmt.Sprintf("buildbot.buildslaves.%s.connected", s.Name)
+					metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
+				}
+			}
 		}
 	}()
 

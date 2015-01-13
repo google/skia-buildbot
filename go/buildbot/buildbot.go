@@ -41,6 +41,16 @@ type Build struct {
 	Finished      float64 `db:"finished"`
 }
 
+// BuildSlave contains information about a buildslave.
+type BuildSlave struct {
+	Admin     string
+	Builders  map[string][]int
+	Connected bool
+	Host      string
+	Name      string
+	Version   string
+}
+
 // GetProperty returns the key/value pair for a build property, if it exists,
 // and nil otherwise.
 func (b Build) GetProperty(property string) interface{} {

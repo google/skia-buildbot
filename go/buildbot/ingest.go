@@ -3,20 +3,20 @@ package buildbot
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
+	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 var (
 	// TODO(borenet): Avoid hard-coding this list. Instead, obtain it from
 	// checked-in code or the set of masters which are actually running.
 	MASTER_NAMES = []string{"client.skia", "client.skia.android", "client.skia.compile", "client.skia.fyi"}
-	httpGet      = http.Get
+	httpGet      = util.NewTimeoutClient().Get
 )
 
 // get loads data from a buildbot JSON endpoint.
@@ -193,6 +193,31 @@ func getLatestBuilds() (map[string]map[string]int, error) {
 	wg.Wait()
 	if len(errs) != 0 {
 		return nil, fmt.Errorf("Encountered errors while loading builder data from masters: %v", errs)
+	}
+	return res, nil
+}
+
+// GetBuildSlaves returns a map whose keys are master names and values are
+// sub-maps whose keys are slave names and values are BuildSlave objects.
+func GetBuildSlaves() (map[string]map[string]*BuildSlave, error) {
+	res := map[string]map[string]*BuildSlave{}
+	errs := map[string]error{}
+	var wg sync.WaitGroup
+	for _, master := range MASTER_NAMES {
+		wg.Add(1)
+		go func(m string) {
+			defer wg.Done()
+			slaves := map[string]*BuildSlave{}
+			if err := get(BUILDBOT_URL+m+"/json/slaves", &slaves); err != nil {
+				errs[m] = fmt.Errorf("Failed to retrieve buildslaves for %s: %v", m, err)
+				return
+			}
+			res[m] = slaves
+		}(master)
+	}
+	wg.Wait()
+	if len(errs) != 0 {
+		return nil, fmt.Errorf("Encountered errors while loading buildslave data from masters: %v", errs)
 	}
 	return res, nil
 }
