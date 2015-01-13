@@ -145,13 +145,15 @@ func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout
 	return nil
 }
 
-// SyncDir runs "gclient sync" on the specified directory.
+// SyncDir runs "git pull" and "gclient sync" on the specified directory.
 func SyncDir(dir string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
-	args := []string{"sync"}
-	return ExecuteCmd(BINARY_GCLIENT, args, []string{}, 5*time.Minute, nil, nil)
+	if err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, 5*time.Minute, nil, nil); err != nil {
+		return fmt.Errorf("Error running git pull on %s: %s", dir, err)
+	}
+	return ExecuteCmd(BINARY_GCLIENT, []string{"sync"}, []string{}, 5*time.Minute, nil, nil)
 }
 
 // BuildSkiaTools builds "tools" in the Skia trunk directory.

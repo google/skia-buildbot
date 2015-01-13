@@ -96,10 +96,13 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 	var wg sync.WaitGroup
 	// Will be populated and returned by this function.
 	workersWithOutputs := map[string]string{}
+	// Keeps track of which workers are still pending.
+	remainingWorkers := map[string]int{}
 
 	// Kick off a goroutine on all workers.
 	for i, hostname := range workers {
 		wg.Add(1)
+		remainingWorkers[hostname] = 1
 		go func(index int, hostname string) {
 			defer wg.Done()
 			updatedCmd := strings.Replace(cmd, WORKER_NUM_KEYWORD, strconv.Itoa(index+1), -1)
@@ -108,6 +111,9 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 				glog.Errorf("Could not execute ssh cmd: %s", err)
 			}
 			workersWithOutputs[hostname] = output
+			delete(remainingWorkers, hostname)
+			glog.Infof("Worker %s has completed execution", hostname)
+			glog.Infof("Remaining workers: %s", remainingWorkers)
 		}(i, hostname)
 	}
 
