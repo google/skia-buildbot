@@ -109,7 +109,7 @@ func main() {
 
 	// Copy the patch to Google Storage.
 	patchName := *runID + ".patch"
-	patchRemoteDir := filepath.Join(remoteOutputDir, "patches", patchName)
+	patchRemoteDir := filepath.Join(remoteOutputDir, "patches")
 	if err := gs.UploadFile(patchName, os.TempDir(), patchRemoteDir); err != nil {
 		glog.Errorf("Could not upload %s to %s: %s", patchName, patchRemoteDir, err)
 		return

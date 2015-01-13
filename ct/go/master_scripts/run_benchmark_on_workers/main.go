@@ -34,7 +34,7 @@ var (
 	tryserverRun       = flag.Bool("tryserver_run", false, "Whether this script is run as part of the Chromium tryserver. If true then emails are not sent out, the webapp is not updated and the output directory is not deleted.")
 
 	taskCompletedSuccessfully = false
-	outputRemoteLink          = ""
+	outputRemoteLink          = util.MASTER_LOGSERVER_LINK
 )
 
 func sendEmail() {
