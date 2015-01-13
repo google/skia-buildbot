@@ -88,6 +88,17 @@ type DocSet struct {
 // If a valid issue and patchset are supplied then the repo will be patched with that CL.
 // If refresh is true then the git repo will be periodically refreshed (git pull).
 func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocSet, error) {
+	if issue > 0 {
+		issueInfo, err := rc.Issue(issue)
+		if err != nil {
+			err := fmt.Errorf("Failed to retrieve issue status %d: %s", issue, err)
+			glog.Error(err)
+			return nil, err
+		}
+		if issueInfo.Closed {
+			return nil, fmt.Errorf("Issue %d is closed.", issue)
+		}
+	}
 	git, err := gitinfo.CloneOrUpdate(repo, repoDir, false)
 	if err != nil {
 		glog.Fatalf("Failed to CloneOrUpdate repo %q: %s", repo, err)
