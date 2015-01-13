@@ -902,10 +902,9 @@ class ChromiumTryPage(BasePage):
 
     chromium_try_tasks = ChromiumTryTasks.get_all_chromium_try_tasks_of_user(
         self.user.email())
-    # Only support all 10k pagesets for now.
+    # Support all pagesets except 1M.
     template_values['pagesets'] = dict((k, v) for k, v in PAGESET_TYPES.items()
-                                              if '10k' in k or 'GPU' in k
-                                                            or 'Key' in k)
+                                              if 'All' not in k)
     template_values['supported_benchmarks'] = CHROMIUM_TRY_SUPPORTED_BENCHMARKS
     template_values['chromium_try_tasks'] = chromium_try_tasks
     template_values['oldest_pending_task_key'] = get_oldest_pending_task_key()
