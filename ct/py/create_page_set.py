@@ -122,10 +122,7 @@ class TypicalAlexaPage(page_module.Page):
     self.user_agent_type = '%(user_agent)s'
     self.archive_data_file = '%(archive_data_file)s'
 
-  def RunSmoothness(self, action_runner):
-    action_runner.ScrollElement()
-
-  def RunRepaint(self, action_runner):
+  def RunPageInteractions(self, action_runner):
     action_runner.RepaintContinuously(seconds=5)
 
 
