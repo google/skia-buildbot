@@ -39,11 +39,7 @@
       </td>
       </tr>
       <tr>
-        <td>Whitelist File</td>
-        <td><input type="file" name="whitelist_file"/> (Must contain one webpage per line)</td>
-      </tr>
-      <tr>
-        <td>Optional Description</td>
+        <td>Description</td>
         <td><input type="text" name="description" size="35"></td>
       </tr>
       <tr>
@@ -68,7 +64,6 @@
       <td><b>Chromium Build</b></td>
       <td><b>Requested Time</b></td>
       <td><b>Completed Time</b></td>
-      <td><b>Whitelist File</b></td>
       <td><b>Output Link</b></td>
       <td><b>Delete</b></td>
     </tr>
@@ -95,16 +90,6 @@
           {% else %}
             Waiting in Queue
           {% endifequal %}
-        {% endif %}
-      </td>
-      <td align="center">
-        {% if task.whitelist_file %}
-          <form action="/skia-telemetry/skia_telemetry_info_page" name="display_whitelist_file" method="post">
-            <input type='hidden' name='whitelist_key' value='{{ task.key.id_or_name }}'>
-            <input type='submit' value='Whitelist File'>
-          </form>
-        {% else %}
-          None
         {% endif %}
       </td>
       <td align="center">

@@ -36,16 +36,16 @@
       <table cellpadding="5" border="1">
         <tr>
           <td align="center">                                                   
-            <a href='/skia-telemetry/chromium_try'>Chromium Tryserver</a>       
+            <a href='/skia-telemetry/chromium_try'>Chromium Perf Tryserver</a>       
           </td>
           <td align="center">                                                   
-            <a href='/skia-telemetry/skia_try'>Skia Tryserver</a>       
+            <a href='/skia-telemetry/skia_try'>Skia Correctness Tryserver</a>       
           </td>
           <td align="center">                                                   
             <a href='/skia-telemetry/chromium_builds'>Manage Chromium Builds</a>
           </td>                                                                 
           <td align="center">                                                   
-            <a href='/skia-telemetry'>Run Benchmarks</a>                        
+            <a href='/skia-telemetry'>Capture SKPs</a>                        
           </td>                                                                 
           <td align="center">                                                   
             <a href='/skia-telemetry/lua_script'>Run Lua Scripts</a>            
@@ -70,25 +70,12 @@
 
       <br/>
       <h2>General Information</h2>
-      <table cellpadding="5">
-        <tr>
-          <td>Number of GCE slaves</td>
-          <td>{{ gce_slaves }}</td>
-          <td></td>
-          <td>Number of webpages per pageset</td>
-          <td>{{ num_webpages_per_pageset }}</td>
-        </tr>
-        <tr>
-          <td>Source of pagesets</td>
-          <td><a href='{{ pagesets_source }}'>Top 1M</a></td>
-          <td></td>
-          <td>Number of archived webpages</td>
-          <td>{{ num_webpages }}</td>
-        </tr>
-      </table>
-        <br/>
-        (Above information last updated on {{ last_updated }})
-        <hr/>
+      <br/>
+        Cluster telemetry is a framework that allows users to run performance, correctness or scrapping tasks with<br/>
+        patches on the top 10k/1M webpages. It turns the top subset of the internet into a repeatable benchmark.<br/><br/>
+        The framework is written in Go <a href="https://skia.googlesource.com/buildbot/+/master/ct/go/">here</a> and runs on 101 bare-metal machines.<br/>
+        Documentation links: <a href="https://sites.google.com/site/skiadocs/developer-documentation/testing/cluster-telemetry">overall framework</a>, <a href="https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#">chromium perf</a>, <a href="http://goto/skiatryclustertelemetry">skia correctness</a>.<br/><br/>
+      <hr/>
 
     </center>
     {% block content %}{% endblock %}

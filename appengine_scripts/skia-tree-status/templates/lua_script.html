@@ -27,7 +27,7 @@
       <option value="{{ pageset_type }}" {% ifequal pageset_type "Deeplinks" %}disabled{% endifequal %}>{{ pageset_type }}</option>
     {% endfor %}
   </select><br/><br/>
-  Enter an optional description:<br/>
+  Enter a description:<br/>
   <input type="text" name="description" size="35" {% if not is_google_chromium_user %}disabled{% endif %}><br/><br/>
   <input type="submit" value="Queue Lua Task" {% if not is_google_chromium_user %}disabled{% endif %}>
 </form>

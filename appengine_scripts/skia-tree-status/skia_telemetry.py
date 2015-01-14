@@ -22,11 +22,6 @@ TELEMETRY_ADMINS = (
     'rmistry@google.com',
 )
 
-PDF_ADMINS = (
-    'edisonn@google.com',
-    'rmistry@google.com',
-)
-
 PAGESET_TYPES = {
     'All': 'Top 1M (with desktop user-agent)',
     '10k': 'Top 10k (with desktop user-agent)',
@@ -51,6 +46,8 @@ CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
 # LKGR urls.
 CHROMIUM_LKGR_URL = 'http://chromium-status.appspot.com/git-lkgr'
 SKIA_LKGR_URL = 'http://skia-tree-status.appspot.com/lkgr'
+
+TEMPLATES_TITLE = 'Cluster Telemetry 2.0'
 
 
 class BaseTelemetryModel(db.Model):
@@ -416,7 +413,6 @@ class TelemetryTasks(BaseTelemetryModel):
   requested_time = db.DateTimeProperty(required=True)
   completed_time = db.DateTimeProperty()
   output_link = db.LinkProperty()
-  whitelist_file = db.BlobProperty()
   description = db.StringProperty()
 
   def get_json_repr(self):
@@ -430,7 +426,6 @@ class TelemetryTasks(BaseTelemetryModel):
             'benchmark_name': self.benchmark_name,
             'benchmark_arguments': self.benchmark_arguments,
             'pagesets_type': self.pagesets_type,
-            'whitelist_file': self.whitelist_file,
             'requested_time': str(self.requested_time)
         }
     }
@@ -493,7 +488,6 @@ def add_telemetry_info_to_template(template_values, user_email,
   template_values['num_skp_files'] = telemetry_info.num_skp_files
   template_values['last_updated'] = telemetry_info.last_updated
   template_values['admin'] = user_email in TELEMETRY_ADMINS
-  template_values['pdf_admin'] = user_email in PDF_ADMINS
   template_values['is_google_chromium_user'] = is_google_chromium_user
   template_values['pagesets_source'] = telemetry_info.pagesets_source
   template_values['framework_msg'] = telemetry_info.framework_msg
@@ -554,7 +548,7 @@ class AdminTasksPage(BasePage):
 
   def _handle(self):
     """Sets the information to be displayed on the main page."""
-    template_values = self.InitializeTemplate('Run Admin Tasks')
+    template_values = self.InitializeTemplate(TEMPLATES_TITLE)
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
@@ -608,8 +602,7 @@ class LuaScriptPage(BasePage):
 
   def _handle(self):
     """Sets the information to be displayed on the main page."""
-    template_values = self.InitializeTemplate(
-        'Run Lua scripts on the SKP repository')
+    template_values = self.InitializeTemplate(TEMPLATES_TITLE)
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
@@ -659,7 +652,7 @@ class ChromiumBuildsPage(BasePage):
 
   def _handle(self):
     """Sets template values to display."""
-    template_values = self.InitializeTemplate('Chromium Builds')
+    template_values = self.InitializeTemplate(TEMPLATES_TITLE)
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
@@ -676,7 +669,7 @@ class PendingTasksPage(BasePage):
 
   @utils.require_user
   def get(self):
-    template_values = self.InitializeTemplate('Pending Tasks')
+    template_values = self.InitializeTemplate(TEMPLATES_TITLE)
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
@@ -697,19 +690,13 @@ class TelemetryInfoPage(BasePage):
     self._handle()
 
   def _handle(self):
-    template_values = self.InitializeTemplate('Telemetry Info Message')
+    template_values = self.InitializeTemplate(TEMPLATES_TITLE)
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
 
     info_msg = self.request.get('info_msg')
     template_values['info_msg'] = info_msg
-
-    whitelist_key = self.request.get('whitelist_key')
-    if whitelist_key:
-      telemetry_task = TelemetryTasks.get_telemetry_task(whitelist_key)[0]
-      template_values['whitelist_entries'] = (
-          telemetry_task.whitelist_file.split())
 
     self.DisplayTemplate('skia_telemetry_info_page.html', template_values)
 
@@ -723,7 +710,7 @@ class AllTasks(BasePage):
 
   def _handle(self):
     """Sets the information to be displayed on the main page."""
-    template_values = self.InitializeTemplate('All Tasks')
+    template_values = self.InitializeTemplate(TEMPLATES_TITLE)
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
@@ -818,8 +805,7 @@ class SkiaTryPage(BasePage):
   def _handle(self):
     """Sets the information to be displayed on the main page."""
 
-    template_values = self.InitializeTemplate(
-        'Cluster Telemetry Skia Tryserver')
+    template_values = self.InitializeTemplate(TEMPLATES_TITLE)
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
@@ -894,8 +880,7 @@ class ChromiumTryPage(BasePage):
   def _handle(self):
     """Sets the information to be displayed on the main page."""
 
-    template_values = self.InitializeTemplate(
-        'Cluster Telemetry Chromium Tryserver')
+    template_values = self.InitializeTemplate(TEMPLATES_TITLE)
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
@@ -935,11 +920,6 @@ class LandingPage(BasePage):
     pagesets_type = self.request.get('pagesets_type')
     chromium_rev, skia_rev = self.request.get('chromium_build').split('-')
     requested_time = datetime.datetime.now()
-    whitelist_file = self.request.get('whitelist_file')
-    if whitelist_file:
-      whitelist_file = db.Blob(whitelist_file)
-    else:
-      whitelist_file = None
     description = self.request.get('description')
     if not description:
       description = 'None'
@@ -952,7 +932,6 @@ class LandingPage(BasePage):
         chromium_rev=chromium_rev,
         skia_rev=skia_rev,
         requested_time=requested_time,
-        whitelist_file=whitelist_file,
         description=description).put()
     self.redirect('/skia-telemetry')
 
@@ -960,7 +939,7 @@ class LandingPage(BasePage):
   def _handle(self):
     """Sets the information to be displayed on the main page."""
 
-    template_values = self.InitializeTemplate('Skia Cluster Telemetry')
+    template_values = self.InitializeTemplate(TEMPLATES_TITLE)
 
     add_telemetry_info_to_template(template_values, self.user.email(),
                                    self.is_admin)
