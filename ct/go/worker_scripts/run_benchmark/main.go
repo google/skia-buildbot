@@ -91,7 +91,7 @@ func main() {
 	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		// Install the APK on the Android device.
-		chromiumApk := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.ApkPath)
+		chromiumApk := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.ApkName)
 		if err := util.ExecuteCmd(util.BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{}, 5*time.Minute, nil, nil); err != nil {
 			glog.Errorf("Could not install the chromium APK: %s", err)
 			return

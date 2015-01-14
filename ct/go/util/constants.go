@@ -97,7 +97,7 @@ var (
 	WebArchivesDir       = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
 	SkpsDir              = filepath.Join(StorageDir, SKPS_DIR_NAME)
 	GLogDir              = filepath.Join(StorageDir, "glog")
-	ApkPath              = filepath.Join("apks", "ChromeShell.apk")
+	ApkName              = "ChromeShell.apk"
 	SkiaTreeDir          = filepath.Join(RepoDir, "trunk")
 	CtTreeDir            = filepath.Join(RepoDir, "go", "src", "skia.googlesource.com", "buildbot.git", "ct")
 
