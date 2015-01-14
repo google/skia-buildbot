@@ -61,16 +61,19 @@ func main() {
 		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}
 
+	// Initialize the buildbot database.
+	conf, err := database.ConfigFromFlagsAndMetadata(*local, buildbot.MigrationSteps())
+	if err := buildbot.InitDB(conf); err != nil {
+		glog.Fatal(err)
+	}
+
 	// Data generation goroutines.
+
+	// AutoRoll data.
 	go autoroll_ingest.LoadAutoRollData(dbClient, *workdir)
 
 	// Buildbot data ingestion.
 	go func() {
-		// Initialize the buildbot database.
-		conf, err := database.ConfigFromFlagsAndMetadata(*local, buildbot.MigrationSteps())
-		if err := buildbot.InitDB(conf); err != nil {
-			glog.Fatal(err)
-		}
 		// Create the Git repo.
 		skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "buildbot_git", "skia"), true)
 		if err != nil {
@@ -124,6 +127,33 @@ func main() {
 					metric := fmt.Sprintf("buildbot.buildslaves.%s.connected", s.Name)
 					metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
 				}
+			}
+		}
+	}()
+
+	// Average duration of buildsteps over a time period.
+	go func() {
+		period := 24 * time.Hour
+		type stepData struct {
+			Name     string  `db:"name"`
+			Duration float64 `db:"duration"`
+		}
+		stmt, err := buildbot.DB.Preparex("SELECT name, AVG(finished-started) AS duration FROM buildSteps WHERE started > ? AND finished > started GROUP BY name ORDER BY duration;")
+		if err != nil {
+			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
+		}
+		defer stmt.Close()
+		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+			glog.Info("Loading buildstep duration data.")
+			t := time.Now().UTC().Add(-period).Unix()
+			steps := []stepData{}
+			if err := stmt.Select(&steps, t); err != nil {
+				glog.Error(err)
+			}
+			for _, s := range steps {
+				v := int64(s.Duration * float64(time.Millisecond))
+				metric := fmt.Sprintf("buildbot.buildsteps.%s.duration", s.Name)
+				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
 			}
 		}
 	}()
