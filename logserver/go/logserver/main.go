@@ -65,19 +65,61 @@ func (f *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	serveFile(w, r, f.root, path.Clean(upath))
 }
 
-// FileInfoNameSlice is for sorting files by their names.
-type FileInfoNameSlice []os.FileInfo
+// FileInfoModifiedSlice is for sorting files by their modified time in ascending
+// order. Used when cleaning up logs.
+type FileInfoModifiedSlice struct {
+	fileInfos []os.FileInfo
+	// If reverseSort is true then the smaller entry comes after the larger entry.
+	reverseSort bool
+}
 
-func (p FileInfoNameSlice) Len() int           { return len(p) }
-func (p FileInfoNameSlice) Less(i, j int) bool { return p[i].Name() < p[j].Name() }
-func (p FileInfoNameSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+// FileInfoModifiedSlice is for sorting files by their modified time. If a file
+// is a symlink then its destination's mod time is used for the sort.
+func (p FileInfoModifiedSlice) Len() int { return len(p.fileInfos) }
+func (p FileInfoModifiedSlice) Less(i, j int) bool {
+	iFileInfo := p.fileInfos[i]
+	iModTime := iFileInfo.ModTime()
+	if iFileInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
+		destFileInfo, err := getSymlinkFileInfo(iFileInfo)
+		if err != nil {
+			glog.Errorf("Could not follow %s: %s", iFileInfo.Name(), err)
+		} else {
+			iModTime = destFileInfo.ModTime()
+		}
+	}
 
-// FileInfoModifiedSlice is for sorting files by their modified time.
-type FileInfoModifiedSlice []os.FileInfo
+	jFileInfo := p.fileInfos[j]
+	jModTime := jFileInfo.ModTime()
+	if jFileInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
+		destFileInfo, err := getSymlinkFileInfo(jFileInfo)
+		if err != nil {
+			glog.Errorf("Could not follow %s: %s", jFileInfo.Name(), err)
+		} else {
+			jModTime = destFileInfo.ModTime()
+		}
+	}
 
-func (p FileInfoModifiedSlice) Len() int           { return len(p) }
-func (p FileInfoModifiedSlice) Less(i, j int) bool { return p[i].ModTime().Before(p[j].ModTime()) }
-func (p FileInfoModifiedSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+	if p.reverseSort {
+		return iModTime.After(jModTime)
+	} else {
+		return iModTime.Before(jModTime)
+	}
+}
+func (p FileInfoModifiedSlice) Swap(i, j int) {
+	p.fileInfos[i], p.fileInfos[j] = p.fileInfos[j], p.fileInfos[i]
+}
+
+func getSymlinkFileInfo(fi os.FileInfo) (os.FileInfo, error) {
+	dest, err := filepath.EvalSymlinks(filepath.Join(*dir, fi.Name()))
+	if err != nil {
+		return nil, fmt.Errorf("Broken symlink encountered %s: %s", fi.Name(), err)
+	}
+	destFileInfo, err := os.Lstat(dest)
+	if err != nil {
+		return nil, fmt.Errorf("Could not Lstat %s: %s", dest, err)
+	}
+	return destFileInfo, nil
+}
 
 // dirList writes the directory list to the HTTP response.
 //
@@ -115,8 +157,9 @@ func dirList(w http.ResponseWriter, f http.File) {
 			}
 		}
 	}
+
 	// First output the top level symlinks.
-	sort.Sort(FileInfoNameSlice(topLevelSymlinks))
+	sort.Sort(FileInfoModifiedSlice{fileInfos: topLevelSymlinks, reverseSort: true})
 	for _, fileInfo := range topLevelSymlinks {
 		writeFileInfo(w, fileInfo)
 	}
@@ -136,7 +179,7 @@ func dirList(w http.ResponseWriter, f http.File) {
 	// Then output the logs of all the different apps.
 	for _, app := range keys {
 		appFileInfos := appToLogs[app]
-		sort.Sort(FileInfoNameSlice(appFileInfos))
+		sort.Sort(FileInfoModifiedSlice{fileInfos: appFileInfos, reverseSort: true})
 		fmt.Fprintf(w, "\n===== <a name=\"%s\">%s</a> =====\n\n", app, template.HTMLEscapeString(app))
 		for _, fileInfo := range appFileInfos {
 			writeFileInfo(w, fileInfo)
@@ -157,7 +200,17 @@ func writeFileInfo(w http.ResponseWriter, fileInfo os.FileInfo) {
 		fileSize := util.GetFormattedByteSize(float64(fileInfo.Size()))
 		downloadLink = fmt.Sprintf("(%s <a href=\"%s\" download=\"%s\">download</a>)", fileSize, url.String(), template.HTMLEscapeString(name))
 	}
-	fmt.Fprintf(w, "%s <a href=\"%s\">%s</a>    %s\n", fileInfo.ModTime(), url.String(), template.HTMLEscapeString(name), downloadLink)
+	modTime := fileInfo.ModTime()
+	// Use the destination file's mode time if it is a symlink.
+	if fileInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
+		destFileInfo, err := getSymlinkFileInfo(fileInfo)
+		if err != nil {
+			glog.Errorf("Could not follow %s: %s", name, err)
+		} else {
+			modTime = destFileInfo.ModTime()
+		}
+	}
+	fmt.Fprintf(w, "%s <a href=\"%s\">%s</a>    %s\n", modTime, url.String(), template.HTMLEscapeString(name), downloadLink)
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name string) {
@@ -373,11 +426,16 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToStat
 				}
 				fileInfos[i] = fileInfo
 			}
+
 			// Sort by Modified time and keep deleting till we are at
 			// (threshold - buffer) space left.
-			sort.Sort(FileInfoModifiedSlice(fileInfos))
+			sort.Sort(FileInfoModifiedSlice{fileInfos: fileInfos, reverseSort: false})
 			index := 0
 			for appLogLevelToSpace[appLogLevel] > *appLogThreshold-*appLogThresholdBuffer {
+				if index+1 == len(fileInfos) {
+					glog.Warningf("App %s is above the threshold and has only one file remaining: %s. Not deleting it.", appLogLevel, fileInfos[index].Name())
+					break
+				}
 				fileName := fileInfos[index].Name()
 				appLogLevelToSpace[appLogLevel] -= fileInfos[index].Size()
 				if err = os.Remove(filepath.Join(dir, fileName)); err != nil {
