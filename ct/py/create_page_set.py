@@ -64,10 +64,6 @@ if '__main__' == __name__:
       help='The type of user agent to use in the pagesets. Eg: desktop, '
            'mobile, tablet',
       default='desktop')
-  option_parser.add_option(
-      '-o', '--pagesets_output_dir',
-      help='The directory generated pagesets will be outputted in.',
-      default='page_sets')
   options, unused_args = option_parser.parse_args()
 
   # Validate arguments.
@@ -101,7 +97,7 @@ if '__main__' == __name__:
     websites.append(qualified_website)
 
   archive_data_file = os.path.join(
-      '/', 'b', 'storage', 'webpage_archives',
+      '/', 'b', 'storage', 'webpages_archive',
       options.pagesets_type,
       'alexa%s-%s.json' % (options.start_number, options.end_number))
 
@@ -119,37 +115,29 @@ class TypicalAlexaPage(page_module.Page):
 
   def __init__(self, url, page_set):
     super(TypicalAlexaPage, self).__init__(url=url, page_set=page_set)
-    self.user_agent_type = '%(user_agent)s'
-    self.archive_data_file = '%(archive_data_file)s'
+    self.user_agent_type = '%s'
+    self.archive_data_file = '%s'
 
-  def RunSmoothness(self, action_runner):
-    action_runner.ScrollElement()
-
-  def RunRepaint(self, action_runner):
+  def RunPageInteractions(self, action_runner):
     action_runner.RepaintContinuously(seconds=5)
 
 
-class Alexa%(start)s_%(end)sPageSet(page_set_module.PageSet):
+class TypicalAlexaPageSet(page_set_module.PageSet):
 
   def __init__(self):
-    super(Alexa%(start)s_%(end)sPageSet, self).__init__(
-      user_agent_type='%(user_agent)s',
-      archive_data_file='%(archive_data_file)s')
+    super(TypicalAlexaPageSet, self).__init__(
+      user_agent_type='%s',
+      archive_data_file='%s')
 
-    urls_list = %(urls_list)s
+    urls_list = %s
 
     for url in urls_list:
-      self.AddUserStory(TypicalAlexaPage(url, self))
-""" % {
-      "user_agent": options.useragent_type,
-      "archive_data_file": archive_data_file,
-      "start": options.start_number,
-      "end": options.end_number,
-      "urls_list": str(websites),
-  }
+      self.AddPage(TypicalAlexaPage(url, self))
+""" % (options.useragent_type, archive_data_file, options.useragent_type,
+       archive_data_file, str(websites))
 
   # Output the pageset to a file.
-  with open(os.path.join(options.pagesets_output_dir, 'alexa%s_%s.py' % (
+  with open(os.path.join('page_sets', 'alexa%s-%s.py' % (
                 options.start_number, options.end_number)),
             'w') as outfile:
     outfile.write(page_set_content)
