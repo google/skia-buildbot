@@ -58,5 +58,7 @@ func main() {
 			glog.Errorf("Error while sending email: %s", err)
 			return
 		}
+	} else {
+		glog.Info("All CT machines are healthy")
 	}
 }
