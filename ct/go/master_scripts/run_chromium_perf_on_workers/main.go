@@ -41,21 +41,17 @@ var (
 	withPatchOutputLink = ""
 )
 
-func sendEmail() {
+func sendEmail(recipients []string) {
 	// Send completion email.
-	emailsArr := util.ParseEmails(*emails)
-	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
-		return
-	}
 	emailSubject := fmt.Sprintf("Cluster telemetry chromium perf task has completed (%s)", *runID)
+	failureHtml := ""
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"
+		failureHtml = util.FailureEmailHtml
 	}
-	// TODO(rmistry): Add a link to the master logs here and maybe a table with
-	// links to logs of the 100 slaves.
 	bodyTemplate := `
 	The chromium perf %s benchmark task on %s pageset has completed.<br/>
+	%s
 	The HTML output with differences between the base run and the patch run is <a href='%s'>here</a>.<br/>
 	The patch(es) you specified are here:
 	<a href='%s'>chromium</a>/<a href='%s'>blink</a>/<a href='%s'>skia</a>
@@ -64,8 +60,8 @@ func sendEmail() {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, htmlOutputLink, chromiumPatchLink, blinkPatchLink, skiaPatchLink, util.ChromiumPerfTasksWebapp)
-	if err := util.SendEmail(emailsArr, emailSubject, emailBody); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, failureHtml, htmlOutputLink, chromiumPatchLink, blinkPatchLink, skiaPatchLink, util.ChromiumPerfTasksWebapp)
+	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
 	}
@@ -90,12 +86,22 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
+
+	// Send start email.
+	emailsArr := util.ParseEmails(*emails)
+	emailsArr = append(emailsArr, util.CtAdmins...)
+	if len(emailsArr) == 0 {
+		glog.Error("At least one email address must be specified")
+		return
+	}
+	util.SendTaskStartEmail(emailsArr, "Chromium perf")
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
-	defer sendEmail()
+	defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
 	defer os.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir))
-	defer os.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir))
+	defer os.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir)) // Cleanup tmp files after the run.
+	defer util.CleanTmpDir()
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running chromium perf task on workers")
 	defer glog.Flush()

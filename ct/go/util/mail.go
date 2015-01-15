@@ -8,6 +8,14 @@ import (
 	"skia.googlesource.com/buildbot.git/go/email"
 )
 
+var (
+	FailureEmailHtml = fmt.Sprintf(
+		"<br/>There were <b>failures</b> in the run. "+
+			"Please check the master log <a href='%s'>here</a> and the worker log <a href='%s'>here</a>."+
+			"<br/>Contact the admins %s for assistance.<br/><br/>",
+		MASTER_LOGSERVER_LINK, WORKER1_LOGSERVER_LINK, CtAdmins)
+)
+
 // ParseEmails returns an array containing emails from the provided comma
 // separated emails string.
 func ParseEmails(emails string) []string {
@@ -31,5 +39,21 @@ func SendEmail(recipients []string, subject, body string) error {
 		return fmt.Errorf("Could not send email: %s", err)
 	}
 
+	return nil
+}
+
+func SendTaskStartEmail(recipients []string, taskName string) error {
+	emailSubject := taskName + " cluster telemetry task has started"
+
+	bodyTemplate := `
+	The %s queued task has started.<br/>
+	You can watch the logs of the master <a href="%s">here</a> and the logs of a worker <a href="%s">here</a>.</b>
+	Note: Must be on Google corp to access the above logs.<br/><br/>
+	Thanks!
+	`
+	emailBody := fmt.Sprintf(bodyTemplate, taskName, MASTER_LOGSERVER_LINK, WORKER1_LOGSERVER_LINK)
+	if err := SendEmail(recipients, emailSubject, emailBody); err != nil {
+		return fmt.Errorf("Error while sending task start email: %s", err)
+	}
 	return nil
 }

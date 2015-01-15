@@ -22,26 +22,22 @@ var (
 	taskCompletedSuccessfully = new(bool)
 )
 
-func sendEmail() {
+func sendEmail(recipients []string) {
 	// Send completion email.
-	emailsArr := util.ParseEmails(*emails)
-	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
-		return
-	}
 	emailSubject := "Create pagesets Cluster telemetry task has completed"
+	failureHtml := ""
 	if !*taskCompletedSuccessfully {
 		emailSubject += " with failures"
+		failureHtml = util.FailureEmailHtml
 	}
-	// TODO(rmistry): Add a link to the master logs here and maybe a table with
-	// links to logs of the 100 slaves.
 	bodyTemplate := `
 	The Cluster telemetry queued task to create %s pagesets has completed.<br/>
+	%s
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.AdminTasksWebapp)
-	if err := util.SendEmail(emailsArr, emailSubject, emailBody); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, util.AdminTasksWebapp)
+	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
 	}
@@ -56,9 +52,21 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
-	// Ensure webapp is updated and email is sent even if task fails.
+
+	// Send start email.
+	emailsArr := util.ParseEmails(*emails)
+	emailsArr = append(emailsArr, util.CtAdmins...)
+	if len(emailsArr) == 0 {
+		glog.Error("At least one email address must be specified")
+		return
+	}
+	util.SendTaskStartEmail(emailsArr, "Creating pagesets")
+	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
-	defer sendEmail()
+	defer sendEmail(emailsArr)
+	// Cleanup tmp files after the run.
+	defer util.CleanTmpDir()
+	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Creating Pagesets on Workers")
 	defer glog.Flush()
 

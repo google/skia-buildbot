@@ -12,13 +12,9 @@ import (
 	"skia.googlesource.com/buildbot.git/go/util"
 )
 
-func TestDownloadWorkerArtifacts(t *testing.T) {
-	// Skip if we are running short tests because this test needs a valid
-	// google_storage_token.data file with read write access.
-	if testing.Short() {
-		t.Skip("Skipping test because we are running in short mode.")
-	}
-
+// Will need a local valid google_storage_token.data file with read write access
+// to run the below test.
+func Auth_TestDownloadWorkerArtifacts(t *testing.T) {
 	testPagesetsDirName := filepath.Join("unit-tests", "util", "page_sets")
 	client, _ := GetOAuthClient()
 	gs, err := NewGsUtil(client)
@@ -45,13 +41,9 @@ func TestDownloadWorkerArtifacts(t *testing.T) {
 	assert.Equal(t, "alexa2-2.py", files[2].Name())
 }
 
-func TestUploadWorkerArtifacts(t *testing.T) {
-	// Skip if we are running short tests because this test needs a valid
-	// google_storage_token.data file with read write access.
-	if testing.Short() {
-		t.Skip("Skipping test because we are running in short mode.")
-	}
-
+// Will need a local valid google_storage_token.data file with read write access
+// to run the below test.
+func Auth_TestUploadWorkerArtifacts(t *testing.T) {
 	client, _ := GetOAuthClient()
 	gs, err := NewGsUtil(client)
 	if err != nil {

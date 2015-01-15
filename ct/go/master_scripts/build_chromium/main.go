@@ -29,26 +29,21 @@ var (
 	chromiumBuildTimestamp    = ""
 )
 
-func sendEmail() {
-	// Send completion email.
-	emailsArr := util.ParseEmails(*emails)
-	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
-		return
-	}
+func sendEmail(recipients []string) {
 	emailSubject := "Chromium build task has completed"
+	failureHtml := ""
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"
+		failureHtml = util.FailureEmailHtml
 	}
-	// TODO(rmistry): Add a link to the master logs here and maybe a table with
-	// links to logs of the 100 slaves.
 	bodyTemplate := `
 	The Cluster telemetry queued task to create a new chromium build has completed.<br/>
+	%s
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, util.ChromiumBuildTasksWebapp)
-	if err := util.SendEmail(emailsArr, emailSubject, emailBody); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, failureHtml, util.ChromiumBuildTasksWebapp)
+	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
 	}
@@ -67,9 +62,21 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
-	// Ensure webapp is updated and email is sent even if task fails.
+
+	// Send start email.
+	emailsArr := util.ParseEmails(*emails)
+	emailsArr = append(emailsArr, util.CtAdmins...)
+	if len(emailsArr) == 0 {
+		glog.Error("At least one email address must be specified")
+		return
+	}
+	util.SendTaskStartEmail(emailsArr, "Build chromium")
+	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
-	defer sendEmail()
+	defer sendEmail(emailsArr)
+	// Cleanup tmp files after the run.
+	defer util.CleanTmpDir()
+	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running build chromium")
 	defer glog.Flush()
 

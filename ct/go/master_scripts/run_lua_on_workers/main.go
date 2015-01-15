@@ -28,37 +28,30 @@ var (
 	runID         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully     = false
-	luaScriptRemoteLink           = ""
-	luaAggregatorRemoteLink       = ""
-	luaOutputRemoteLink           = ""
-	luaAggregatorOutputRemoteLink = ""
+	luaScriptRemoteLink           = util.MASTER_LOGSERVER_LINK
+	luaAggregatorRemoteLink       = util.MASTER_LOGSERVER_LINK
+	luaOutputRemoteLink           = util.MASTER_LOGSERVER_LINK
+	luaAggregatorOutputRemoteLink = util.MASTER_LOGSERVER_LINK
 )
 
-func sendEmail() {
+func sendEmail(recipients []string) {
 	// Send completion email.
-	emailsArr := util.ParseEmails(*emails)
-	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
-		return
-	}
 	emailSubject := fmt.Sprintf("Run lua script Cluster telemetry task has completed (%s)", *runID)
+	failureHtml := ""
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"
+		failureHtml = util.FailureEmailHtml
 	}
-	// TODO(rmistry): Add a link to the master logs here and maybe a table with
-	// links to logs of the 100 slaves.
 	bodyTemplate := `
 	The Cluster telemetry queued task to run lua script on %s pageset has completed.<br/>
-	The output of your script is available <a href='%s'>here</a>.<br/>`
-	if luaAggregatorOutputRemoteLink != "" {
-		bodyTemplate += fmt.Sprintf("The aggregated output of your script (if specified) is available <a href='%s'>here</a>.<br/>", luaAggregatorOutputRemoteLink)
-	}
-	bodyTemplate += `
+	%s
+	The output of your script is available <a href='%s'>here</a>.<br/>
+	The aggregated output of your script (if specified) is available <a href='%s'>here</a>.<br/>
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, luaOutputRemoteLink, util.LuaTasksWebapp)
-	if err := util.SendEmail(emailsArr, emailSubject, emailBody); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, luaOutputRemoteLink, luaAggregatorOutputRemoteLink, util.LuaTasksWebapp)
+	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
 	}
@@ -83,9 +76,21 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
+
+	// Send start email.
+	emailsArr := util.ParseEmails(*emails)
+	emailsArr = append(emailsArr, util.CtAdmins...)
+	if len(emailsArr) == 0 {
+		glog.Error("At least one email address must be specified")
+		return
+	}
+	util.SendTaskStartEmail(emailsArr, "Lua script")
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
-	defer sendEmail()
+	defer sendEmail(emailsArr)
+	// Cleanup tmp files after the run.
+	defer util.CleanTmpDir()
+	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running Lua script on workers")
 	defer glog.Flush()
 

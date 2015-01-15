@@ -37,26 +37,23 @@ var (
 	outputRemoteLink          = util.MASTER_LOGSERVER_LINK
 )
 
-func sendEmail() {
+func sendEmail(recipients []string) {
 	// Send completion email.
-	emailsArr := util.ParseEmails(*emails)
-	if len(emailsArr) == 0 {
-		glog.Error("At least one email address must be specified")
-		return
-	}
 	emailSubject := fmt.Sprintf("Cluster telemetry benchmark task has completed (%s)", *runID)
+	failureHtml := ""
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"
+		failureHtml = util.FailureEmailHtml
 	}
-	// TODO(rmistry): Add a link to the master logs here and maybe a table with
-	// links to logs of the 100 slaves.
-	bodyTemplate := "The Cluster telemetry %s benchmark task on %s pageset has completed.<br/>"
-	if outputRemoteLink != "" {
-		bodyTemplate += fmt.Sprintf("The output of your script is available <a href='%s'>here</a>.<br/><br/>", outputRemoteLink)
-	}
-	bodyTemplate += "You can schedule more runs <a href='%s'>here</a>.<br/><br/>Thanks!"
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.BenchmarkTasksWebapp)
-	if err := util.SendEmail(emailsArr, emailSubject, emailBody); err != nil {
+	bodyTemplate := `
+	The Cluster telemetry %s benchmark task on %s pageset has completed.<br/>
+	%s
+	The output of your script is available <a href='%s'>here</a>.<br/><br/>
+	You can schedule more runs <a href="%s">here</a>.<br/><br/>
+	Thanks!
+	`
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, failureHtml, outputRemoteLink, util.BenchmarkTasksWebapp)
+	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
 	}
@@ -74,11 +71,24 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
-	if !*tryserverRun {
-		// Ensure webapp is updated and email is sent even if task fails.
-		defer updateWebappTask()
-		defer sendEmail()
+
+	// Send start email.
+	emailsArr := util.ParseEmails(*emails)
+	emailsArr = append(emailsArr, util.CtAdmins...)
+	if len(emailsArr) == 0 {
+		glog.Error("At least one email address must be specified")
+		return
 	}
+	util.SendTaskStartEmail(emailsArr, "Run benchmark")
+	if !*tryserverRun {
+		// Ensure webapp is updated and completion email is sent even if task
+		// fails.
+		defer updateWebappTask()
+		defer sendEmail(emailsArr)
+	}
+	// Cleanup tmp files after the run.
+	defer util.CleanTmpDir()
+	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running benchmark task on workers")
 	defer glog.Flush()
 
