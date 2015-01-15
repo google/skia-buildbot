@@ -11,6 +11,14 @@ type GUIStatus struct {
 	// Indicates whether current HEAD is ok.
 	OK bool `json:"ok"`
 
+	// Status per corpus.
+	CorpStatus map[string]*GUICorpusStatus `json:"corpStatus"`
+}
+
+type GUICorpusStatus struct {
+	// Indicats whether this status is ok.
+	OK bool `json:"ok"`
+
 	// Earliest commit hash considered HEAD (is not always the last commit).
 	MinCommitHash string `json:"minCommitHash"`
 
@@ -19,40 +27,57 @@ type GUIStatus struct {
 
 	// Number of negative digests in HEAD.
 	NegativeCount int `json:"negativeCount"`
-
-	// Possible values for the corpus field.
-	CorpusValues []string `json:"corpusValues"`
 }
 
-// TODO(stephana): Break down the status by corpora to make the
-// front-end less confusing.
-func calcStatus(labeledTile *LabeledTile) *GUIStatus {
+// calcStatus determines the status based on the current tile. It breaks
+// down the status by individual corpora.
+func (a *Analyzer) calcStatus(labeledTile *LabeledTile) *GUIStatus {
+	corpStatus := make(map[string]*GUICorpusStatus, len(a.currentIndex.corpora))
+	minCommitId := map[string]int{}
+	okByCorpus := map[string]bool{}
+	untriaged := map[string]map[string]bool{}
+	negative := map[string]map[string]bool{}
+
+	for _, corpus := range a.currentIndex.corpora {
+		minCommitId[corpus] = len(labeledTile.Commits)
+		okByCorpus[corpus] = true
+		untriaged[corpus] = map[string]bool{}
+		negative[corpus] = map[string]bool{}
+	}
+
 	// Iterate over the current traces
-	minCommitId := len(labeledTile.Commits)
-	ok := true
-	untriagedSet := map[string]bool{}
-	negativeSet := map[string]bool{}
 	var idx int
+	var corpus string
 	for _, testTraces := range labeledTile.Traces {
 		for _, trace := range testTraces {
+			corpus = trace.Params[types.CORPUS_FIELD]
 			idx = len(trace.Labels) - 1
-			ok = ok && (trace.Labels[idx] == types.POSITIVE)
-			if trace.CommitIds[idx] < minCommitId {
-				minCommitId = trace.CommitIds[idx]
+
+			okByCorpus[corpus] = okByCorpus[corpus] && (trace.Labels[idx] == types.POSITIVE)
+			if trace.CommitIds[idx] < minCommitId[corpus] {
+				minCommitId[corpus] = trace.CommitIds[idx]
 			}
 			if trace.Labels[idx] == types.UNTRIAGED {
-				untriagedSet[trace.Digests[idx]] = true
+				untriaged[corpus][trace.Digests[idx]] = true
 			} else if trace.Labels[idx] == types.NEGATIVE {
-				negativeSet[trace.Digests[idx]] = true
+				negative[corpus][trace.Digests[idx]] = true
 			}
 		}
 	}
 
+	overallOk := true
+	for _, corpus := range a.currentIndex.corpora {
+		overallOk = overallOk && okByCorpus[corpus]
+		corpStatus[corpus] = &GUICorpusStatus{
+			OK:             okByCorpus[corpus],
+			MinCommitHash:  labeledTile.Commits[minCommitId[corpus]].Hash,
+			UntriagedCount: len(untriaged[corpus]),
+			NegativeCount:  len(negative[corpus]),
+		}
+	}
+
 	return &GUIStatus{
-		OK:             ok,
-		MinCommitHash:  labeledTile.Commits[minCommitId].Hash,
-		UntriagedCount: len(untriagedSet),
-		NegativeCount:  len(negativeSet),
-		CorpusValues:   labeledTile.allParams[types.CORPUS_FIELD],
+		OK:         overallOk,
+		CorpStatus: corpStatus,
 	}
 }

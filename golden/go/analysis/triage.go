@@ -107,7 +107,7 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 
 	return &GUITestDetails{
 		Commits:   labeledTile.Commits,
-		AllParams: labeledTile.allParams,
+		AllParams: a.currentIndex.getAllParams(nil),
 		Tests:     result,
 		testsMap:  testsMap,
 	}

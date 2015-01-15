@@ -1,6 +1,7 @@
 package util
 
 import (
+	"sort"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -71,4 +72,14 @@ func TestIntersectIntSets(t *testing.T) {
 	minIdx := 1
 	intersect := IntersectIntSets(sets, minIdx)
 	assert.Equal(t, map[int]bool{2: true, 4: true}, intersect)
+}
+
+func TestUnionStrings(t *testing.T) {
+	ret := UnionStrings([]string{"abc", "abc"}, []string{"efg", "abc"})
+	sort.Strings(ret)
+	assert.Equal(t, []string{"abc", "efg"}, ret)
+
+	assert.Equal(t, []string{}, UnionStrings())
+	assert.Equal(t, []string{"abc"}, UnionStrings([]string{"abc"}))
+	assert.Equal(t, []string{"abc"}, UnionStrings([]string{"abc", "abc", "abc"}))
 }

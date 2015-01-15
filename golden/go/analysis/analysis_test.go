@@ -11,6 +11,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 
 	"skia.googlesource.com/buildbot.git/go/testutils"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 	"skia.googlesource.com/buildbot.git/golden/go/filediffstore"
@@ -34,6 +35,8 @@ func init() {
 }
 
 func TestGetListTestDetails(t *testing.T) {
+	const CORPUS = "corpus1"
+
 	digests := [][]string{
 		[]string{"d_11", "d_12", ptypes.MISSING_DIGEST, "d_14"},
 		[]string{"d_21", ptypes.MISSING_DIGEST, "d_23", "d_24"},
@@ -43,11 +46,11 @@ func TestGetListTestDetails(t *testing.T) {
 	}
 
 	params := []map[string]string{
-		map[string]string{types.PRIMARY_KEY_FIELD: "t1", "p1": "v11", "p2": "v21", "p3": "v31"},
-		map[string]string{types.PRIMARY_KEY_FIELD: "t2", "p1": "v12", "p2": "v21", "p3": "v32"},
-		map[string]string{types.PRIMARY_KEY_FIELD: "t3", "p1": "v11", "p2": "v22", "p3": "v33"},
-		map[string]string{types.PRIMARY_KEY_FIELD: "t4", "p1": "v12", "p2": "v22", "p3": "v34"},
-		map[string]string{types.PRIMARY_KEY_FIELD: "t5", "p1": "v13", "p2": "v22", "p3": "v34"},
+		map[string]string{types.PRIMARY_KEY_FIELD: "t1", types.CORPUS_FIELD: CORPUS, "p1": "v11", "p2": "v21", "p3": "v31"},
+		map[string]string{types.PRIMARY_KEY_FIELD: "t2", types.CORPUS_FIELD: CORPUS, "p1": "v12", "p2": "v21", "p3": "v32"},
+		map[string]string{types.PRIMARY_KEY_FIELD: "t3", types.CORPUS_FIELD: CORPUS, "p1": "v11", "p2": "v22", "p3": "v33"},
+		map[string]string{types.PRIMARY_KEY_FIELD: "t4", types.CORPUS_FIELD: CORPUS, "p1": "v12", "p2": "v22", "p3": "v34"},
+		map[string]string{types.PRIMARY_KEY_FIELD: "t5", types.CORPUS_FIELD: CORPUS, "p1": "v13", "p2": "v22", "p3": "v34"},
 	}
 
 	start := time.Now().Unix()
@@ -146,8 +149,9 @@ func TestGetListTestDetails(t *testing.T) {
 	status := a.GetStatus()
 	assert.NotNil(t, status)
 	assert.Equal(t, STATUS_OK_1, status.OK)
-	assert.Equal(t, UNTRIAGED_COUNT_1, status.UntriagedCount)
-	assert.Equal(t, NEGATIVE_COUNT_1, status.NegativeCount)
+	assert.Equal(t, STATUS_OK_1, status.CorpStatus[CORPUS].OK)
+	assert.Equal(t, UNTRIAGED_COUNT_1, status.CorpStatus[CORPUS].UntriagedCount)
+	assert.Equal(t, NEGATIVE_COUNT_1, status.CorpStatus[CORPUS].NegativeCount)
 
 	list1, err = a.SetDigestLabels(LABELING_2, "Jim Doe")
 	assert.Nil(t, err)
@@ -157,8 +161,9 @@ func TestGetListTestDetails(t *testing.T) {
 	status = a.GetStatus()
 	assert.NotNil(t, status)
 	assert.Equal(t, STATUS_OK_2, status.OK)
-	assert.Equal(t, UNTRIAGED_COUNT_2, status.UntriagedCount)
-	assert.Equal(t, NEGATIVE_COUNT_2, status.NegativeCount)
+	assert.Equal(t, STATUS_OK_2, status.CorpStatus[CORPUS].OK)
+	assert.Equal(t, UNTRIAGED_COUNT_2, status.CorpStatus[CORPUS].UntriagedCount)
+	assert.Equal(t, NEGATIVE_COUNT_2, status.CorpStatus[CORPUS].NegativeCount)
 }
 
 func TestAgainstLiveData(t *testing.T) {
@@ -180,7 +185,8 @@ func TestAgainstLiveData(t *testing.T) {
 	a := NewAnalyzer(expStore, tileStore, diffStore, mockUrlGenerator, timeBetweenPolls)
 
 	// Poll until the Analyzer has process the tile.
-	allTests, err := a.ListTestDetails(nil)
+	var allTests *GUITestDetails
+	allTests, err = a.ListTestDetails(nil)
 	assert.Nil(t, err)
 	for allTests == nil {
 		time.Sleep(10 * time.Millisecond)
@@ -189,7 +195,7 @@ func TestAgainstLiveData(t *testing.T) {
 	}
 	assert.NotNil(t, allTests)
 
-	// // Query For 565
+	// // // Query For 565
 	allTests, err = a.ListTestDetails(map[string][]string{
 		"config": []string{"565"},
 	})
@@ -215,6 +221,43 @@ func TestAgainstLiveData(t *testing.T) {
 		for key := range unt.ParamCounts["config"] {
 			assert.Equal(t, "565", key)
 		}
+	}
+
+	// Get the status.
+	status := a.GetStatus()
+
+	// Query over all corpora.
+	allTests, err = a.ListTestDetails(nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, allTests.AllParams)
+
+	// Query each corpus individually and make sure the results make sense.
+	testCount := 0
+	testParams := map[string][]string{}
+	for corpus, _ := range status.CorpStatus {
+		q := map[string][]string{"source_type": []string{corpus}}
+		corpusTests, err := a.ListTestDetails(q)
+		assert.Nil(t, err)
+		assert.Equal(t, q, corpusTests.Query)
+		assert.NotEqual(t, allTests.AllParams, corpusTests.AllParams)
+
+		testCount += len(corpusTests.Tests)
+		addParams(testParams, corpusTests.AllParams)
+	}
+	assert.Equal(t, len(allTests.Tests), testCount)
+	assert.Equal(t, len(allTests.AllParams), len(testParams))
+	for param, values := range allTests.AllParams {
+		assert.NotNil(t, testParams[param])
+		sort.Strings(values)
+		sort.Strings(testParams[param])
+		assert.Equal(t, values, testParams[param])
+	}
+	assert.Equal(t, allTests.AllParams, testParams)
+}
+
+func addParams(current map[string][]string, additional map[string][]string) {
+	for param := range additional {
+		current[param] = util.UnionStrings(current[param], additional[param])
 	}
 }
 

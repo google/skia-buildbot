@@ -176,3 +176,25 @@ func IntersectIntSets(sets []map[int]bool, minIdx int) map[int]bool {
 
 	return resultSet
 }
+
+// KeysOfStringSet returns the keys of a set of strings represented by the keys
+// of a map.
+func KeysOfStringSet(set map[string]bool) []string {
+	ret := make([]string, 0, len(set))
+	for v := range set {
+		ret = append(ret, v)
+	}
+
+	return ret
+}
+
+// UnionStrings returns a union of all unique strings in the input slices.
+func UnionStrings(lists ...[]string) []string {
+	result := map[string]bool{}
+	for _, set := range lists {
+		for _, val := range set {
+			result[val] = true
+		}
+	}
+	return KeysOfStringSet(result)
+}

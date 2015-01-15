@@ -57,9 +57,6 @@ type LabeledTile struct {
 	// redundant, but this also output format.
 	Traces map[string][]*LabeledTrace
 
-	// Set of all parameters and their values.
-	allParams map[string][]string
-
 	// Keeps track of unique ids for traces within this tile.
 	traceIdCounter int
 }
@@ -223,7 +220,7 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 
 	return &GUITestDetails{
 		Commits:   a.currentTestDetails.Commits,
-		AllParams: a.currentTestDetails.AllParams,
+		AllParams: a.currentIndex.getAllParams(query),
 		Query:     effectiveQuery,
 		Tests:     tests,
 	}, nil
@@ -264,7 +261,7 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 
 	return &GUITestDetails{
 		Commits:   a.currentTestDetails.Commits,
-		AllParams: a.currentTestDetails.AllParams,
+		AllParams: a.currentIndex.getAllParams(query),
 		Query:     effectiveQuery,
 		Tests: []*GUITestDetail{
 			&GUITestDetail{
@@ -302,7 +299,7 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 
 	return &GUITestDetails{
 		Commits:   a.currentTestDetails.Commits,
-		AllParams: a.currentTestDetails.AllParams,
+		AllParams: a.currentIndex.getAllParams(nil),
 		Tests:     result,
 	}, nil
 }
@@ -403,13 +400,12 @@ func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, expectations *exp
 
 	// Generate the lookup index for the tile and get all parameters.
 	a.currentIndex = NewLabeledTileIndex(labeledTile)
-	labeledTile.allParams = a.currentIndex.AllParams
 
 	// calculate all the output data.
 	a.currentTile = labeledTile
 	a.currentTileCounts = a.getOutputCounts(labeledTile)
 	a.currentTestDetails = a.getTestDetails(labeledTile)
-	a.currentStatus = calcStatus(labeledTile)
+	a.currentStatus = a.calcStatus(labeledTile)
 }
 
 // updateLabels iterates over the traces in of the tiles that have changed and
@@ -435,7 +431,7 @@ func (a *Analyzer) updateDerivedOutputs(labeledTestDigests map[string]types.Test
 
 	// Update the tests that have changed and the status.
 	a.updateTestDetails(labeledTestDigests)
-	a.currentStatus = calcStatus(a.currentTile)
+	a.currentStatus = a.calcStatus(a.currentTile)
 }
 
 // labelDigest assignes a label to the given digests based on the expectations.
@@ -467,8 +463,8 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 
 	// This includes an empty list for tests that we have not found.
 	if includeAllTests {
-		for _, t := range a.currentTestDetails.Tests {
-			ret[t.Name] = nil
+		for _, testName := range a.currentIndex.getTestNames(query) {
+			ret[testName] = nil
 		}
 	}
 
@@ -488,12 +484,6 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 					ret[testName] = make(map[string]*GUIUntriagedDigest, len(current))
 				}
 				ret[testName][trace.Digests[idx]] = current[trace.Digests[idx]]
-			}
-		}
-
-		if includeAllTests {
-			if _, ok := ret[testName]; !ok {
-				ret[testName] = nil
 			}
 		}
 	}
@@ -517,7 +507,6 @@ func (a *Analyzer) getSubTile(query map[string][]string) (*LabeledTile, map[stri
 
 	result := NewLabeledTile()
 	result.Commits = a.currentTile.Commits
-	result.allParams = a.currentTile.allParams
 
 	result.Traces = map[string][]*LabeledTrace{}
 	for _, t := range traces {
@@ -557,7 +546,7 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) *GUITileCounts {
 		Ticks:      human.FlotTickMarks(ts),
 		Aggregated: overallAggregates,
 		Counts:     tileCountsMap,
-		AllParams:  labeledTile.allParams,
+		AllParams:  a.currentIndex.getAllParams(nil),
 	}
 
 	glog.Info("Done processing output counts.")
