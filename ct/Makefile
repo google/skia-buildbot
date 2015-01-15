@@ -4,6 +4,10 @@
 run_command:
 	go install -v ./go/master_scripts/run_command/
 
+.PHONY: check_workers_health
+check_workers_health:
+	go install -v ./go/master_scripts/check_workers_health/
+
 .PHONY: build_chromium
 build_chromium:
 	go install -v ./go/master_scripts/build_chromium/
@@ -63,7 +67,7 @@ test:
 	go test ./go/...
 
 .PHONY: master_scripts
-master_scripts: run_command build_chromium create_pagesets_on_workers capture_archives_on_workers run_lua_on_workers run_benchmark_on_workers run_chromium_perf_on_workers run_skia_correctness_on_workers
+master_scripts: run_command check_workers_health build_chromium create_pagesets_on_workers capture_archives_on_workers run_lua_on_workers run_benchmark_on_workers run_chromium_perf_on_workers run_skia_correctness_on_workers
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua run_benchmark run_skia_correctness

@@ -3,11 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Module that polls the skia-telemetry AppEngine WebApp.
+"""Module that polls the Cluster telemetry AppEngine WebApp.
 
-Admin and Lua tasks are polled by this module. All new tasks are then triggered.
+All CT tasks are polled by this module. All new tasks are then triggered.
 This module also periodically updates the Telemetry Information after
-UPDATE_INFO_AFTER_SECS have elapsed.
+CHECK_WORKERS_HEALTH_AFTER_SECS have elapsed.
 """
 
 
@@ -25,7 +25,7 @@ import appengine_constants
 
 SLEEP_BETWEEN_POLLS_SECS = 30
 
-UPDATE_INFO_AFTER_SECS = 7200
+CHECK_WORKERS_HEALTH_AFTER_SECS = 30*60
 
 # The following dictionaries ensure that tasks which are being currently
 # processed are not triggered again.
@@ -308,18 +308,20 @@ TASK_TYPE_TO_PROCESSING_METHOD = {
 class Poller(object):
 
   def Poll(self):
-    info_updated_on = 0
+    workers_health_check_run_on = 0
     while True:
       try:
-        if (time.time() - info_updated_on) >= UPDATE_INFO_AFTER_SECS:
-          log_file = os.path.join(tempfile.gettempdir(), 'update-info.output')
-          for cmd in ('bash vm_recover_slaves_from_crashes.sh',):
-            script_name = cmd.split()[1]
-            log_file = os.path.join(tempfile.gettempdir(), script_name)
-            print '%s output will be available in %s' % (script_name, log_file)
-            subprocess.Popen(cmd.split(), stdout=open(log_file, 'w'),
-                             stderr=open(log_file, 'w'))
-          info_updated_on = time.time()
+        if ((time.time() - workers_health_check_run_on) >=
+            CHECK_WORKERS_HEALTH_AFTER_SECS):
+          print 'Updating local checkout'
+          update_local_checkout()
+          cmd = [
+              'check_workers_health',
+              '--log_dir=/b/storage/glog',
+          ]
+          print 'Running workers health check cmd: ' + ' '.join(cmd)
+          subprocess.Popen(cmd)
+          workers_health_check_run_on = time.time()
 
         # pylint: disable=C0301
         oldest_pending_task_page = urllib.urlopen(
