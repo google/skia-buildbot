@@ -14,6 +14,7 @@ import (
 
 func main() {
 	common.Init()
+	defer glog.Flush()
 
 	// Collect unhealthy machines
 	offlineMachines := []string{}
