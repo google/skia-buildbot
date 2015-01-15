@@ -38,4 +38,9 @@ push:
 	cd push && $(MAKE) default
 
 .PHONY: all
-all: golden perf sharedgo alertserver datahopper logserver ct
+all: golden perf sharedgo alertserver datahopper logserver ct tags
+
+.PHONY: tags
+tags:
+	-rm tags
+	find . -name "*.go" -print -or -name "*.js" -or -name "*.html" | xargs ctags --append
