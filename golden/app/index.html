@@ -15,9 +15,9 @@
   <div class="navbar navbar-default" role="navigation">
     <div class="container-fluid">
       <div class="navbar-header">
-        <div class="navbar-brand" ng-show="corpusList">
+        <div class="navbar-brand" ng-show="corpStatus">
         Corpus
-          <select ng-options="corp for corp in corpusList"
+          <select ng-options="getStatusString(corp) for corp in corpusList"
                   ng-model="currentCorpus"
                   ng-change="corpusChanged()">
           </select>
@@ -30,17 +30,31 @@
         </ul>
         <ul class="nav navbar-nav navbar-right">
           <li ng-if="globalStatus.ok" class="statusOk">
-             <a href="">
+            All:
               <span class="glyphicon glyphicon-thumbs-up"></span>
-              OK</a>
           </li>
           <li ng-if="globalStatus && !globalStatus.ok" class="statusFail">
-             <span>UT: {{ globalStatus.untriagedCount }}</span> &nbsp;
-             <span>NEG: {{ globalStatus.negativeCount }}</span> &nbsp;
+             All: <a href="#/triage">
+              <span class="glyphicon glyphicon-thumbs-down"></span>
+              </a>
+          </li>
+
+          <li style="width: 15em">
+            &nbsp;
+          </li>
+
+          <li ng-if="corpStatus[currentCorpus] && corpStatus[currentCorpus].ok" class="statusOk">
+            {{currentCorpus}}: <span class="glyphicon glyphicon-thumbs-up"></span>
+          </li>
+
+
+          <li ng-if="corpStatus[currentCorpus] && !corpStatus[currentCorpus].ok" class="statusFail">
+            {{currentCorpus}}:
+             <span>UT: {{ corpStatus[currentCorpus].untriagedCount }}</span> &nbsp;
+             <span>NEG: {{ corpStatus[currentCorpus].negativeCount }}</span> &nbsp;
 
              <a href="#/triage">
-              <span class="glyphicon glyphicon-thumbs-down"></span>
-              Triage Needed</a>
+              <span class="glyphicon glyphicon-thumbs-down"></span></a>
           </li>
 
           <li ng-if="isLoggedIn" class="navbar-text">{{userId}}<li>

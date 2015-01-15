@@ -989,9 +989,10 @@ var skia = skia || {};
       loadData(ns.c.URL_STATUS).then(
         function (resultResp) {
           $rootScope.globalStatus = resultResp;
-          $rootScope.corpusList = resultResp.corpusValues || [];
-          if (($rootScope.corpusList.indexOf($rootScope.currentCorpus) === -1)
-               && ($rootScope.corpusList.length > 0)) {
+          $rootScope.corpStatus = resultResp.corpStatus || {};
+          $rootScope.corpusList = ns.sortedKeys($rootScope.corpStatus);
+          if (!$rootScope.corpStatus[$rootScope.currentCorpus] &&
+              ($rootScope.corpusList.length > 0)) {
               $rootScope.currentCorpus = $rootScope.corpusList[0];
               $rootScope.corpusChanged();
           }
@@ -999,7 +1000,15 @@ var skia = skia || {};
         function (errorResp) {
           console.log("Got error response for status:", errorResp);
         });
-    }
+    };
+
+    $rootScope.getStatusString = function(corpus) {
+      var status = $rootScope.corpStatus[corpus].ok ?
+          'ok' : $rootScope.corpStatus[corpus].untriagedCount +'/'+
+                 $rootScope.corpStatus[corpus].negativeCount;
+      return corpus + '   -   ' +status;
+
+    };
 
     // Load the status every 3 seconds.
     $rootScope.checkStatus();
