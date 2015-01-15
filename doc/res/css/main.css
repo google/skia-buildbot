@@ -74,6 +74,10 @@ img {
   display: none;
 }
 
+div#___gcse_0 {
+  width: 260px;
+}
+
 @media (max-width: 900px) {
   #menu {
     width: 30px;
