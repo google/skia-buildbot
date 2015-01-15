@@ -47,8 +47,8 @@ func SendTaskStartEmail(recipients []string, taskName string) error {
 
 	bodyTemplate := `
 	The %s queued task has started.<br/>
-	You can watch the logs of the master <a href="%s">here</a> and the logs of a worker <a href="%s">here</a>.</b>
-	Note: Must be on Google corp to access the above logs.<br/><br/>
+	You can watch the logs of the master <a href="%s">here</a> and the logs of a worker <a href="%s">here</a>.<br/>
+	<b>Note:</b> Must be on Google corp to access the above logs.<br/><br/>
 	Thanks!
 	`
 	emailBody := fmt.Sprintf(bodyTemplate, taskName, MASTER_LOGSERVER_LINK, WORKER1_LOGSERVER_LINK)
