@@ -79,8 +79,8 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	util.SendTaskStartEmail(emailsArr, "Run benchmark")
 	if !*tryserverRun {
+		util.SendTaskStartEmail(emailsArr, "Run benchmark")
 		// Ensure webapp is updated and completion email is sent even if task
 		// fails.
 		defer updateWebappTask()

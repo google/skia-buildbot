@@ -233,7 +233,9 @@ func runBenchmarkOnWorkers(chromiumBuild, id string) error {
 		"--target_platform=" + *targetPlatform,
 		"--tryserver_run=true",
 	}
-	if err := util.ExecuteCmd("run_benchmark_on_workers", args, []string{}, 6*time.Hour, nil, nil); err != nil {
+	// Setting a 12 hour timeout since it may take a while to run builds on
+	// android with many repeats.
+	if err := util.ExecuteCmd("run_benchmark_on_workers", args, []string{}, 12*time.Hour, nil, nil); err != nil {
 		return fmt.Errorf("Error while running run_benchmark_on_workers: %s", err)
 	}
 	return nil
