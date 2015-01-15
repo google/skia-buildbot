@@ -194,6 +194,8 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 	}
 	if diffMetrics != nil {
 		// 2. The DiffMetrics exists locally return it.
+		fs.diffCache.Add(baseName, diffMetrics)
+
 		return diffMetrics
 	}
 
