@@ -405,12 +405,14 @@ var skia = skia || {};
           // TODO (stephana): Fill in expanding the diff information.
           // This will be done once triaging works. So we can test it
           // with real data.
-          hasPos = true;
           d = unt[digest].diffs[i];
-          posd = positive[d.posDigest];
-          posDiffs.push(new ns.DiffDigestInfo(d.posDigest, posd.imgUrl,
+          if (d) {
+            posd = positive[d.posDigest];
+            posDiffs.push(new ns.DiffDigestInfo(d.posDigest, posd.imgUrl,
                                            posd.count, posd.paramCounts, d));
+          }
         }
+        hasPos = hasPos || (posDiffs.length > 0);
 
         // Inject the digest and the augmented positive diffs.
         unt[digest].digest = digest;
@@ -420,6 +422,12 @@ var skia = skia || {};
       }
     }
 
+
+    if (hasPos) {
+      result = result.filter(function(a) {
+        return a.positiveDiffs.length > 0;
+      });
+    }
     stats.set(total, result.length);
 
     // Sort the result increasing by pixel difference or
