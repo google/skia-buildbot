@@ -63,6 +63,9 @@ func main() {
 
 	// Initialize the buildbot database.
 	conf, err := database.ConfigFromFlagsAndMetadata(*local, buildbot.MigrationSteps())
+	if err != nil {
+		glog.Fatal(err)
+	}
 	if err := buildbot.InitDB(conf); err != nil {
 		glog.Fatal(err)
 	}
@@ -149,10 +152,68 @@ func main() {
 			steps := []stepData{}
 			if err := stmt.Select(&steps, t); err != nil {
 				glog.Error(err)
+				continue
 			}
 			for _, s := range steps {
 				v := int64(s.Duration * float64(time.Millisecond))
 				metric := fmt.Sprintf("buildbot.buildsteps.%s.duration", s.Name)
+				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
+			}
+		}
+	}()
+
+	// Average duration of builds over a time period.
+	go func() {
+		period := 24 * time.Hour
+		type buildData struct {
+			Builder  string  `db:"builder"`
+			Duration float64 `db:"duration"`
+		}
+		stmt, err := buildbot.DB.Preparex(fmt.Sprintf("SELECT builder, AVG(finished-started) AS duration FROM %s WHERE started > ? AND finished > started GROUP BY builder ORDER BY duration;", buildbot.TABLE_BUILDS))
+		if err != nil {
+			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
+		}
+		defer stmt.Close()
+		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+			glog.Info("Loading build duration data.")
+			t := time.Now().UTC().Add(-period).Unix()
+			builds := []buildData{}
+			if err := stmt.Select(&builds, t); err != nil {
+				glog.Error(err)
+				continue
+			}
+			for _, s := range builds {
+				v := int64(s.Duration * float64(time.Millisecond))
+				metric := fmt.Sprintf("buildbot.builds.%s.duration", s.Builder)
+				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
+			}
+		}
+	}()
+
+	// Average build step time broken down by builder.
+	go func() {
+		period := 24 * time.Hour
+		type stepData struct {
+			Builder  string  `db:"builder"`
+			StepName string  `db:"stepName"`
+			Duration float64 `db:"duration"`
+		}
+		stmt, err := buildbot.DB.Preparex(fmt.Sprintf("SELECT b.builder as builder, s.name as stepName, AVG(s.finished-s.started) AS duration FROM %s s INNER JOIN %s b ON (s.buildId = b.id) WHERE s.started > ? AND s.finished > s.started GROUP BY b.builder, s.name ORDER BY b.builder, duration;", buildbot.TABLE_BUILD_STEPS, buildbot.TABLE_BUILDS))
+		if err != nil {
+			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
+		}
+		defer stmt.Close()
+		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+			glog.Info("Loading per-builder buildstep duration data.")
+			t := time.Now().UTC().Add(-period).Unix()
+			steps := []stepData{}
+			if err := stmt.Select(&steps, t); err != nil {
+				glog.Error(err)
+				continue
+			}
+			for _, s := range steps {
+				v := int64(s.Duration * float64(time.Millisecond))
+				metric := fmt.Sprintf("buildbot.buildstepsbybuilder.%s.%s.duration", s.Builder, s.StepName)
 				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
 			}
 		}
