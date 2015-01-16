@@ -180,14 +180,14 @@ func (r *Rule) evaluate(d float64) (bool, error) {
 	pkg := types.NewPackage("evaluateme", "evaluateme")
 	v := exact.MakeFloat64(d)
 	pkg.Scope().Insert(types.NewConst(0, pkg, "x", types.Typ[types.Float64], v))
-	typ, val, err := types.Eval(r.Condition, pkg, pkg.Scope())
+	tv, err := types.Eval(r.Condition, pkg, pkg.Scope())
 	if err != nil {
 		return false, fmt.Errorf("Failed to evaluate condition %q: %s", r.Condition, err)
 	}
-	if typ.String() != "untyped bool" {
+	if tv.Type.String() != "untyped bool" {
 		return false, fmt.Errorf("Rule \"%v\" does not return boolean type.", r.Condition)
 	}
-	return exact.BoolVal(val), nil
+	return exact.BoolVal(tv.Value), nil
 }
 
 type parsedRule map[string]interface{}
