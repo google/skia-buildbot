@@ -33,12 +33,12 @@ var (
 
 	taskCompletedSuccessfully = false
 
-	htmlOutputLink      = ""
-	skiaPatchLink       = ""
-	blinkPatchLink      = ""
-	chromiumPatchLink   = ""
-	noPatchOutputLink   = ""
-	withPatchOutputLink = ""
+	htmlOutputLink      = util.MASTER_LOGSERVER_LINK
+	skiaPatchLink       = util.MASTER_LOGSERVER_LINK
+	blinkPatchLink      = util.MASTER_LOGSERVER_LINK
+	chromiumPatchLink   = util.MASTER_LOGSERVER_LINK
+	noPatchOutputLink   = util.MASTER_LOGSERVER_LINK
+	withPatchOutputLink = util.MASTER_LOGSERVER_LINK
 )
 
 func sendEmail(recipients []string) {
@@ -119,13 +119,6 @@ func main() {
 		return
 	}
 
-	// Create the two required chromium builds (with patch and without the patch).
-	chromiumHash, skiaHash, err := util.CreateChromiumBuild(*runID, *targetPlatform, "", "", true)
-	if err != nil {
-		glog.Errorf("Could not create chromium build: %s", err)
-		return
-	}
-
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
@@ -147,6 +140,13 @@ func main() {
 	skiaPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, remoteOutputDir, skiaPatchName)
 	blinkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, remoteOutputDir, blinkPatchName)
 	chromiumPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, remoteOutputDir, chromiumPatchName)
+
+	// Create the two required chromium builds (with patch and without the patch).
+	chromiumHash, skiaHash, err := util.CreateChromiumBuild(*runID, *targetPlatform, "", "", true)
+	if err != nil {
+		glog.Errorf("Could not create chromium build: %s", err)
+		return
+	}
 
 	// Reboot all workers to start from a clean slate.
 	util.RebootWorkers()
