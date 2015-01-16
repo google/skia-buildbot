@@ -127,7 +127,7 @@ func main() {
 		}
 	}()
 
-	// Average duration of buildsteps over a time period.
+	// Average duration/success rate of buildsteps over a time period.
 	go func() {
 		period := 24 * time.Hour
 		type stepData struct {
@@ -155,7 +155,7 @@ func main() {
 		}
 	}()
 
-	// Average duration of builds over a time period.
+	// Average duration/success rate of builds over a time period.
 	go func() {
 		period := 24 * time.Hour
 		type buildData struct {
@@ -183,7 +183,7 @@ func main() {
 		}
 	}()
 
-	// Average build step time broken down by builder.
+	// Average build step duration/success rate broken down by builder.
 	go func() {
 		period := 24 * time.Hour
 		type stepData struct {
