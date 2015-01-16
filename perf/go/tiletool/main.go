@@ -255,9 +255,14 @@ func main() {
 	if !util.In(*dataset, config.VALID_DATASETS) {
 		glog.Fatalf("Not a valid dataset: %s", *dataset)
 	}
-	store := filetilestore.NewFileTileStore(*tileDir, *dataset, 0)
 
 	args := flag.Args()
+	if len(args) == 0 {
+		printUsage()
+		os.Exit(1)
+	}
+
+	store := filetilestore.NewFileTileStore(*tileDir, *dataset, 0)
 
 	switch args[0] {
 	case VALIDATE:
