@@ -138,7 +138,7 @@ func main() {
 			Name     string  `db:"name"`
 			Duration float64 `db:"duration"`
 		}
-		stmt, err := buildbot.DB.Preparex("SELECT name, AVG(finished-started) AS duration FROM buildSteps WHERE started > ? AND finished > started GROUP BY name ORDER BY duration;")
+		stmt, err := buildbot.DB.Preparex(fmt.Sprintf("SELECT name, AVG(finished-started) AS duration FROM %s WHERE started > ? AND finished > started GROUP BY name ORDER BY duration;", buildbot.TABLE_BUILD_STEPS))
 		if err != nil {
 			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
 		}

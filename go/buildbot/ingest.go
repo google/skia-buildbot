@@ -44,7 +44,7 @@ func findCommitsRecursive(b *Build, hash string, repo *gitinfo.GitInfo) ([]strin
 	}
 
 	// Determine whether any build already includes this commit.
-	n, err := GetBuildForCommit(b.MasterName, b.BuilderName, hash)
+	n, err := GetBuildForCommit(b.Builder, b.Master, hash)
 	if err != nil {
 		return nil, fmt.Errorf("Could not find build for commit %s: %v", hash, err)
 	}
@@ -93,7 +93,8 @@ func getBuildFromMaster(master, builder string, buildNumber int, repo *gitinfo.G
 	}
 	build.Branch = build.branch()
 	build.GotRevision = build.gotRevision()
-	build.MasterName = master
+	build.Master = master
+	build.Builder = builder
 	slaveProp := build.GetProperty("slavename").([]interface{})
 	if slaveProp != nil && len(slaveProp) == 3 {
 		build.BuildSlave = slaveProp[1].(string)
@@ -106,11 +107,8 @@ func getBuildFromMaster(master, builder string, buildNumber int, repo *gitinfo.G
 	}
 	build.PropertiesStr = string(propBytes)
 
-	// Set the master, builder, and buildNumber props on each step.
+	// Fixup each step.
 	for _, s := range build.Steps {
-		s.MasterName = build.MasterName
-		s.BuilderName = build.BuilderName
-		s.BuildNumber = build.Number
 		if len(s.ResultsRaw) > 0 {
 			if s.ResultsRaw[0] == nil {
 				s.ResultsRaw[0] = 0.0
@@ -242,10 +240,10 @@ func getUningestedBuilds() (map[string]map[string][]int, error) {
 	}
 	ranges := map[string]map[string]*numRange{}
 	for _, b := range lastProcessed {
-		if _, ok := ranges[b.MasterName]; !ok {
-			ranges[b.MasterName] = map[string]*numRange{}
+		if _, ok := ranges[b.Master]; !ok {
+			ranges[b.Master] = map[string]*numRange{}
 		}
-		ranges[b.MasterName][b.BuilderName] = &numRange{
+		ranges[b.Master][b.Builder] = &numRange{
 			Start: b.Number,
 			End:   b.Number,
 		}
@@ -299,13 +297,13 @@ func IngestNewBuilds(repo *gitinfo.GitInfo) error {
 		return fmt.Errorf("Failed to obtain the set of unfinished builds: %v", err)
 	}
 	for _, b := range unfinished {
-		if _, ok := buildsToProcess[b.MasterName]; !ok {
-			buildsToProcess[b.MasterName] = map[string][]int{}
+		if _, ok := buildsToProcess[b.Master]; !ok {
+			buildsToProcess[b.Master] = map[string][]int{}
 		}
-		if _, ok := buildsToProcess[b.BuilderName]; !ok {
-			buildsToProcess[b.MasterName][b.BuilderName] = []int{}
+		if _, ok := buildsToProcess[b.Builder]; !ok {
+			buildsToProcess[b.Master][b.Builder] = []int{}
 		}
-		buildsToProcess[b.MasterName][b.BuilderName] = append(buildsToProcess[b.MasterName][b.BuilderName], b.Number)
+		buildsToProcess[b.Master][b.Builder] = append(buildsToProcess[b.Master][b.Builder], b.Number)
 	}
 	// TODO(borenet): Figure out how much of this is safe to parallelize.
 	// We can definitely do different masters in parallel, and maybe we can

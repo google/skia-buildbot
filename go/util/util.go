@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -197,4 +198,13 @@ func UnionStrings(lists ...[]string) []string {
 		}
 	}
 	return KeysOfStringSet(result)
+}
+
+// RepeatJoin repeats a given string N times with the given separator between
+// each instance.
+func RepeatJoin(str, sep string, n int) string {
+	if n <= 0 {
+		return ""
+	}
+	return str + strings.Repeat(sep+str, n-1)
 }

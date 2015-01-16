@@ -17,9 +17,9 @@ const (
 	PROD_DB_PORT = 3306
 	PROD_DB_NAME = "buildbot"
 
-	TABLE_BUILDS          = "builds"
-	TABLE_BUILD_REVISIONS = "buildRevisions"
-	TABLE_BUILD_STEPS     = "buildSteps"
+	TABLE_BUILDS          = "builds2"
+	TABLE_BUILD_REVISIONS = "buildRevisions2"
+	TABLE_BUILD_STEPS     = "buildSteps2"
 )
 
 var (
@@ -85,10 +85,53 @@ var v2_up = []string{
 }
 
 var v2_down = []string{
-	`DROP INDEX idx_buildRevisions_builderMasterNumber_hash ON buildRevisions;`,
 	`DROP INDEX idx_buildRevisions_revision_hash on buildRevisions;`,
-	`DROP INDEX idx_buildSteps_builderMasterNumber_hash on buildSteps;`,
-	`DROP INDEX idx_builds_builderMasterNumber_hash on builds;`,
+}
+
+var v3_up = []string{
+	`CREATE TABLE IF NOT EXISTS builds2 (
+		id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                builder     VARCHAR(100) NOT NULL,
+                master      VARCHAR(100) NOT NULL,
+                number      INT          NOT NULL,
+                gotRevision VARCHAR(40),
+                branch      VARCHAR(100) NOT NULL,
+                results     INT,
+                buildslave  VARCHAR(100) NOT NULL,
+                started     DOUBLE,
+                finished    DOUBLE,
+                properties  TEXT,
+		CONSTRAINT UNIQUE INDEX idx_builderMasterNumber (builder,master,number)
+        )`,
+	`CREATE TABLE IF NOT EXISTS buildRevisions2 (
+		id       INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		buildId  INT UNSIGNED NOT NULL,
+                revision VARCHAR(40)  NOT NULL,
+                CONSTRAINT UNIQUE INDEX idx_revisionBuild (buildId, revision),
+		INDEX idx_buildId (buildId),
+		INDEX idx_revision (revision),
+                FOREIGN KEY (buildId) REFERENCES builds2(id) ON DELETE CASCADE ON UPDATE CASCADE
+        )`,
+	`CREATE TABLE IF NOT EXISTS buildSteps2 (
+		id           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		buildId      INT UNSIGNED NOT NULL,
+                name         VARCHAR(100) NOT NULL,
+                results      INT,
+                number       INT          NOT NULL,
+                started      DOUBLE,
+                finished     DOUBLE,
+		INDEX idx_buildId (buildId),
+                FOREIGN KEY (buildId) REFERENCES builds2(id) ON DELETE CASCADE ON UPDATE CASCADE
+        )`,
+	`INSERT INTO builds2 (builder,master,number,gotRevision,branch,results,buildslave,started,finished,properties) SELECT builder,master,number,gotRevision,branch,results,buildslave,started,finished,properties FROM builds;`,
+	`INSERT INTO buildRevisions2 (buildId,revision) SELECT t2.id, t1.revision FROM buildRevisions t1 INNER JOIN builds2 t2 ON (t1.builder = t2.builder AND t1.master = t2.master AND t1.number = t2.number);`,
+	`INSERT INTO buildSteps2 (buildId,name,results,number,started,finished) SELECT t2.id, t1.name, t1.results, t1.number, t1.started, t1.finished FROM buildSteps t1 INNER JOIN builds2 t2 ON (t1.builder = t2.builder AND t1.master = t2.master AND t1.buildNumber = t2.number);`,
+}
+
+var v3_down = []string{
+	`DROP TABLE IF EXISTS buildSteps2`,
+	`DROP TABLE IF EXISTS buildRevisions2`,
+	`DROP TABLE IF EXISTS builds2`,
 }
 
 // Define the migration steps.
@@ -104,6 +147,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v2_up,
 		MySQLDown: v2_down,
+	},
+	// version 3. Reformat tables.
+	{
+		MySQLUp:   v3_up,
+		MySQLDown: v3_down,
 	},
 }
 

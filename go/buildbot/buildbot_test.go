@@ -262,9 +262,16 @@ func dbSerializeAndCompare(b1 *Build) error {
 	if err := b1.ReplaceIntoDB(); err != nil {
 		return err
 	}
-	b2, err := GetBuildFromDB(b1.MasterName, b1.BuilderName, b1.Number)
+	b2, err := GetBuildFromDB(b1.Builder, b1.Master, b1.Number)
 	if err != nil {
 		return err
+	}
+
+	// Force the IDs to zero, since the DB assigns ID, and we
+	// don't care to try to predict them.
+	b2.Id = 0
+	for _, s := range b2.Steps {
+		s.Id = 0
 	}
 
 	if !reflect.DeepEqual(b1, b2) {
@@ -349,7 +356,7 @@ func testUnfinishedBuild(t *testing.T) {
 	}
 	found := false
 	for _, u := range unfinished {
-		if u.MasterName == b.MasterName && u.BuilderName == b.BuilderName && u.Number == b.Number {
+		if u.Master == b.Master && u.Builder == b.Builder && u.Number == b.Number {
 			found = true
 			break
 		}
@@ -364,16 +371,14 @@ func testUnfinishedBuild(t *testing.T) {
 	b.Times[1] = b.Finished
 	stepStarted := b.Started + 500
 	s := &BuildStep{
-		BuilderName: b.BuilderName,
-		MasterName:  b.MasterName,
-		BuildNumber: b.Number,
-		Name:        "LastStep",
-		Times:       []float64{stepStarted, b.Finished},
-		Number:      len(b.Steps),
-		Results:     0,
-		ResultsRaw:  []interface{}{0.0, []interface{}{}},
-		Started:     b.Started + 500.0,
-		Finished:    b.Finished,
+		BuildID:    b.Id,
+		Name:       "LastStep",
+		Times:      []float64{stepStarted, b.Finished},
+		Number:     len(b.Steps),
+		Results:    0,
+		ResultsRaw: []interface{}{0.0, []interface{}{}},
+		Started:    b.Started + 500.0,
+		Finished:   b.Finished,
 	}
 	b.Steps = append(b.Steps, s)
 	if !b.IsFinished() {
@@ -390,7 +395,7 @@ func testUnfinishedBuild(t *testing.T) {
 	}
 	found = false
 	for _, u := range unfinished {
-		if u.MasterName == b.MasterName && u.BuilderName == b.BuilderName && u.Number == b.Number {
+		if u.Master == b.Master && u.Builder == b.Builder && u.Number == b.Number {
 			found = true
 			break
 		}
@@ -441,7 +446,7 @@ func testLastProcessedBuilds(t *testing.T) {
 	if builds == nil || len(builds) != 1 {
 		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned incorrect number of results: %v", builds))
 	}
-	if builds[0].MasterName != build.MasterName || builds[0].BuilderName != build.BuilderName || builds[0].Number != build.Number {
+	if builds[0].Master != build.Master || builds[0].Builder != build.Builder || builds[0].Number != build.Number {
 		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned the wrong build: %v", builds[0]))
 	}
 
@@ -450,7 +455,7 @@ func testLastProcessedBuilds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	build2.BuilderName = "Other-Builder"
+	build2.Builder = "Other-Builder"
 	build2.Number = build.Number + 10
 	if err := build2.ReplaceIntoDB(); err != nil {
 		t.Fatal(err)
@@ -459,14 +464,14 @@ func testLastProcessedBuilds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	compareBuildLists := func(expected, actual []*Build) bool {
+	compareBuildLists := func(expected []*Build, actual []*BuildID) bool {
 		if len(expected) != len(actual) {
 			return false
 		}
 		for _, e := range expected {
 			found := false
 			for _, a := range actual {
-				if e.BuilderName == a.BuilderName && e.MasterName == a.MasterName && e.Number == a.Number {
+				if e.Builder == a.Builder && e.Master == a.Master && e.Number == a.Number {
 					found = true
 					break
 				}
@@ -542,8 +547,8 @@ func testGetUningestedBuilds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b1.MasterName = "client.skia.compile"
-	b1.BuilderName = "My-Builder"
+	b1.Master = "client.skia.compile"
+	b1.Builder = "My-Builder"
 	b1.Number = 115
 	b1.Steps = []*BuildStep{}
 	if err := b1.ReplaceIntoDB(); err != nil {
@@ -555,8 +560,8 @@ func testGetUningestedBuilds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b2.MasterName = "client.skia.android"
-	b2.BuilderName = "Perf-Android-Venue8-PowerVR-x86-Release"
+	b2.Master = "client.skia.android"
+	b2.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b2.Number = 463
 	b2.Steps = []*BuildStep{}
 	if err := b2.ReplaceIntoDB(); err != nil {
@@ -568,8 +573,8 @@ func testGetUningestedBuilds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b3.MasterName = "client.skia.fyi"
-	b3.BuilderName = "Housekeeper-PerCommit"
+	b3.Master = "client.skia.fyi"
+	b3.Builder = "Housekeeper-PerCommit"
 	b3.Number = 1035
 	b3.Steps = []*BuildStep{}
 	if err := b3.ReplaceIntoDB(); err != nil {
@@ -581,8 +586,8 @@ func testGetUningestedBuilds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b4.MasterName = "client.skia.android"
-	b4.BuilderName = "Test-Android-Venue8-PowerVR-x86-Debug"
+	b4.Master = "client.skia.android"
+	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532
 	b4.Steps = []*BuildStep{}
 	if err := b4.ReplaceIntoDB(); err != nil {
@@ -633,8 +638,8 @@ func testIngestNewBuilds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b1.MasterName = "client.skia.android"
-	b1.BuilderName = "Perf-Android-Venue8-PowerVR-x86-Release"
+	b1.Master = "client.skia.android"
+	b1.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b1.Number = 463
 	b1.Steps = []*BuildStep{}
 	if err := b1.ReplaceIntoDB(); err != nil {
@@ -647,8 +652,8 @@ func testIngestNewBuilds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b2.MasterName = "client.skia.fyi"
-	b2.BuilderName = "Housekeeper-PerCommit"
+	b2.Master = "client.skia.fyi"
+	b2.Builder = "Housekeeper-PerCommit"
 	b2.Number = 1035
 	b2.Finished = 0.0
 	b2.Steps = []*BuildStep{}
@@ -658,8 +663,8 @@ func testIngestNewBuilds(t *testing.T) {
 
 	// Subsequent builders are already up-to-date.
 	b3, err := testGetBuildFromMaster(repo)
-	b3.MasterName = "client.skia.fyi"
-	b3.BuilderName = "Housekeeper-Nightly-RecreateSKPs"
+	b3.Master = "client.skia.fyi"
+	b3.Builder = "Housekeeper-Nightly-RecreateSKPs"
 	b3.Number = 58
 	b3.Steps = []*BuildStep{}
 	if err := b3.ReplaceIntoDB(); err != nil {
@@ -670,8 +675,8 @@ func testIngestNewBuilds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b4.MasterName = "client.skia.android"
-	b4.BuilderName = "Test-Android-Venue8-PowerVR-x86-Debug"
+	b4.Master = "client.skia.android"
+	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532
 	b4.Steps = []*BuildStep{}
 	if err := b4.ReplaceIntoDB(); err != nil {
@@ -687,33 +692,33 @@ func testIngestNewBuilds(t *testing.T) {
 	// Verify that the expected builds are now in the database.
 	expected := []Build{
 		Build{
-			MasterName:  b1.MasterName,
-			BuilderName: b1.BuilderName,
-			Number:      464,
+			Master:  b1.Master,
+			Builder: b1.Builder,
+			Number:  464,
 		},
 		Build{
-			MasterName:  b1.MasterName,
-			BuilderName: b1.BuilderName,
-			Number:      465,
+			Master:  b1.Master,
+			Builder: b1.Builder,
+			Number:  465,
 		},
 		Build{
-			MasterName:  b1.MasterName,
-			BuilderName: b1.BuilderName,
-			Number:      466,
+			Master:  b1.Master,
+			Builder: b1.Builder,
+			Number:  466,
 		},
 		Build{
-			MasterName:  b2.MasterName,
-			BuilderName: b2.BuilderName,
-			Number:      1035,
+			Master:  b2.Master,
+			Builder: b2.Builder,
+			Number:  1035,
 		},
 	}
 	for _, e := range expected {
-		a, err := GetBuildFromDB(e.MasterName, e.BuilderName, e.Number)
+		a, err := GetBuildFromDB(e.Builder, e.Master, e.Number)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !(a.MasterName == e.MasterName && a.BuilderName == e.BuilderName && a.Number == e.Number) {
-			t.Fatalf("Incorrect build was inserted! %v", a)
+		if !(a.Master == e.Master && a.Builder == e.Builder && a.Number == e.Number) {
+			t.Fatalf("Incorrect build was inserted!\n  %s == %s\n  %s == %s\n  %d == %d", a.Master, e.Master, a.Builder, e.Builder, a.Number, e.Number)
 		}
 		if !a.IsFinished() {
 			t.Fatalf("Failed to update build properly; it should be finished: %v", a)
