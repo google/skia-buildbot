@@ -226,6 +226,41 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 	}, nil
 }
 
+// PolyGUISimple is basic info about a test. Returned from PolyListTestSimple.
+type PolyGUISimple struct {
+	Name      string `json:"name"`
+	Diameter  int    `json:"diameter"`
+	Untriaged int    `json:"untriaged"`
+	Num       int    `json:"num"`
+}
+
+// PolyGUISimpleSlice is used to sort PolyGUISimples.
+type PolyGUISimpleSlice []*PolyGUISimple
+
+func (p PolyGUISimpleSlice) Len() int           { return len(p) }
+func (p PolyGUISimpleSlice) Less(i, j int) bool { return p[i].Name < p[j].Name }
+func (p PolyGUISimpleSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// PolyListSimple returns a highlevel list of information about each test.
+func (a *Analyzer) PolyListTestSimple() ([]*PolyGUISimple, error) {
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
+
+	ret := make([]*PolyGUISimple, 0, len(a.currentTestDetails.Tests))
+
+	for _, t := range a.currentTestDetails.Tests {
+		ret = append(ret, &PolyGUISimple{
+			Name:      t.Name,
+			Diameter:  t.Diameter,
+			Untriaged: len(t.Untriaged),
+			Num:       len(t.Positive) + len(t.Untriaged),
+		})
+	}
+
+	sort.Sort(PolyGUISimpleSlice(ret))
+	return ret, nil
+}
+
 // GetTestDetails returns the untriaged, positive and negative digests for a
 // specific test with the necessary information (diff metrics, image urls) to
 // assign a label to the untriaged digests.

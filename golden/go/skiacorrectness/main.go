@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/google/skia-buildbot/go/util"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/auth"
@@ -87,6 +88,34 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
+}
+
+// polyListTestsHandler returns a JSON list with high level information about
+// each test.
+//
+// The return format looks like:
+//
+//  [
+//    {
+//      "name": "01-original",
+//      "diameter": 123242,
+//      "untriaged": 2,
+//      "num": 2
+//    },
+//    ...
+//  ]
+//
+func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
+	res, err := analyzer.PolyListTestSimple()
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load test information")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(res); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
+	}
 }
 
 // makeResourceHandler creates a static file handler that sets a caching policy.
@@ -374,6 +403,7 @@ func main() {
 	http.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/2/", polyMainHandler).Methods("GET")
+	router.HandleFunc("/2/_/list", polyListTestsHandler).Methods("GET")
 
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))

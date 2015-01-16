@@ -1,0 +1,111 @@
+<!-- The <sort-sk> custom element declaration.
+
+Allows sorting the members of the indicated element by
+the values of the data attributes.
+
+Add children to <sort-sk> that generate click events and that
+have child content, such as button or paper-button elements.
+Add a data-key attribute to each child element that indicates
+which data-* attribute the children should be sorted on.
+
+Note that all sorting is done numerically, not alphabetically.
+
+Additionally a single child element can have a data-default attribute
+with a value of "up" or "down" to indicate the default sorting
+that already exists in the data.
+
+An example usage, that will present two buttons to sort
+the contents of div#stuffToBeSorted.
+
+        <sort-sk target=stuffToBeSorted>
+          <paper-button data-key="clustersize"
+              data-default=down>Cluster Size </paper-button>
+          <paper-button data-key="stepsize">Step Size </paper-button>
+        </sort-sk>
+        <div id=stuffToBeSorted>
+          <div data-clustersize=10 data-stepsize=0.5></div>
+          <div data-clustersize=50 data-stepsize=1.2></div>
+          ...
+        </div>
+
+
+  Attributes:
+    target - The id of the container element whose children are to be sorted.
+
+-->
+<polymer-element name="sort-sk" attributes="target">
+  <template>
+    <content></content>
+  </template>
+  <script>
+    (function(){
+      // The states to move each button through on a click.
+      var toggle = {
+        "":                "arrow-drop-down",
+        "arrow-drop-down": "arrow-drop-up",
+        "arrow-drop-up":   "arrow-drop-down",
+      }
+
+      Polymer({
+        ready: function() {
+          var that = this;
+          // Start by appending a core-icon to each clickable child and
+          // registering for the click event.
+          $$('[data-key]', this).forEach(function(ele) {
+            var ico = document.createElement('core-icon');
+            ele.appendChild(ico);
+            ele.addEventListener('click', that.clickHandler.bind(that));
+          });
+
+          // Handle a default value if one has been set.
+          var def = $$$('[data-default]', this);
+          if (def) {
+            var defIcon = $$$('core-icon', def);
+            defIcon.style.visibility = 'initial';
+            defIcon.icon = 'arrow-drop-' + def.dataset.default;
+          }
+        },
+
+        clickHandler: function(e) {
+          var ico = $$$('core-icon', e.target);
+
+          // Set the children elements icons to reflect the new sorting order.
+          ico.icon = toggle[ico.icon];
+          ico.style.visibility = "initial";
+          $$('[data-key]', this).forEach(function(ele) {
+            if (ele.dataset.key !== e.target.dataset.key) {
+              $$$('core-icon', ele).style.visibility= "hidden";
+            }
+          });
+
+          // Remember the direction we are sorting in.
+          var up = (ico.icon.indexOf("-up") > -1);
+
+          // Sort the children of the element at #target.
+          var sortBy = e.target.dataset.key;
+          var container = $$$('#'+this.target);
+          var elements = [];
+          var children = container.children;
+          for (var i=0; i<children.length; i++) {
+            var ele = children[i];
+            elements.push({
+              value: +ele.dataset[sortBy],
+              node: ele
+            });
+          }
+          elements.sort(function(x, y) {
+            if (up) {
+              return x.value - y.value;
+            } else {
+              return y.value - x.value;
+            }
+          });
+          elements.forEach(function(i) {
+            container.appendChild(i.node);
+          });
+        }
+      });
+    })();
+  </script>
+</polymer-element>
+

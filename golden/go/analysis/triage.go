@@ -32,6 +32,7 @@ type GUITestDetail struct {
 	Untriaged map[string]*GUIUntriagedDigest `json:"untriaged"`
 	Positive  map[string]*DigestInfo         `json:"positive"`
 	Negative  map[string]*DigestInfo         `json:"negative"`
+	Diameter  int                            `json:"diameter"` // Max distance between any two images.
 }
 
 // DigestInfo contains the image URL and the occurence count of a digest.
@@ -186,6 +187,7 @@ func (a *Analyzer) processOneTestDetail(testName string, testTraces []*LabeledTr
 		Untriaged: untriagedDigests,
 		Positive:  positiveDigests,
 		Negative:  negativeDigests,
+		Diameter:  a.diameter(testTraces),
 	}
 }
 
@@ -213,6 +215,54 @@ func incParamCounts(paramCounts map[string]map[string]int, params map[string]str
 func (a *Analyzer) getUrl(digest string) string {
 	absPath := a.diffStore.AbsPath([]string{digest})
 	return a.pathToURLConverter(absPath[digest])
+}
+
+// diameter returns an approximate diameter of the images in a test.
+//
+// The value returned is only an approximation. It works by taking all the
+// positive and untriaged digests and sorts them, so comparisons are stable. It
+// then does pair-wise comparisons between digest N and N+1.  The idea is that
+// all the positives should be close together, so a bad image will be "far"
+// from all the good images, so it doesn't matter which good image you compare
+// it to.
+func (a *Analyzer) diameter(testTraces []*LabeledTrace) int {
+	glog.Info("diameter")
+	max := 0
+	digestMap := map[string]bool{}
+
+	for _, oneTrace := range testTraces {
+		for i, digest := range oneTrace.Digests {
+			switch oneTrace.Labels[i] {
+			case types.UNTRIAGED:
+				digestMap[digest] = true
+			case types.POSITIVE:
+				digestMap[digest] = true
+			}
+		}
+	}
+	digests := []string{}
+	for k, _ := range digestMap {
+		digests = append(digests, k)
+	}
+	sort.Strings(digests)
+
+	for {
+		if len(digests) <= 2 {
+			break
+		}
+		dms, err := a.diffStore.Get(digests[0], digests[1:2])
+		digests = digests[1:]
+		if err != nil {
+			glog.Errorf("Unable to get diff: %s", err)
+			continue
+		}
+		for _, dm := range dms {
+			if dm.NumDiffPixels > max {
+				max = dm.NumDiffPixels
+			}
+		}
+	}
+	return max
 }
 
 func (a *Analyzer) newGUIDiffMetrics(digest string, posDigests []string) GUIDiffMetrics {

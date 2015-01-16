@@ -1,0 +1,49 @@
+<!-- The <test-summary-sk> custom element declaration.
+
+  Displays a summary for the given test.
+
+  Attributes:
+    summary - A object that gives a summary of a test. Should look like:
+
+         {
+           "name": "01-original",
+           "diameter": 123242,
+           "untriaged": 2,
+           "num": 2
+         }
+
+  Events:
+  Methods:
+-->
+<polymer-element name="test-summary-sk">
+  <template>
+    <style type="text/css" media="screen">
+      span {
+        width: 20em;
+        display: inline-block;
+        overflow-wrap: break-word;
+        margin-left: 1em;
+      }
+    </style>
+    <span><b>{{summary.name}}</b></span>
+    <span><b>Diameter</b>: {{summary.diameter}}</span>
+    <span><b>Un-Triaged</b>: {{summary.untriaged}}</span>
+    <span><b>Total Digests</b>: {{summary.num}}</span>
+  </template>
+  <script>
+    Polymer({
+      created: function() {
+        this.summary = {};
+      },
+
+      ready: function() {
+      },
+
+      summaryChanged: function() {
+        this.dataset.diameter = this.summary.diameter;
+        this.dataset.untriaged = this.summary.untriaged;
+        this.dataset.num  = this.summary.num;
+      }
+    });
+  </script>
+</polymer-element>

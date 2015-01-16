@@ -409,12 +409,14 @@ func (fs *FileDiffStore) getDiffMetricsFromFileCache(baseName string) (*diff.Dif
 			return nil, nil
 		} else {
 			// There was some other error.
+			glog.Warningf("Some other error: %s: %s", baseName, err)
 			return nil, err
 		}
 	}
 
 	diffMetrics, err := openDiffMetrics(diffMetricsFilePath)
 	if err != nil {
+		glog.Warning("Some error opening: %s: %s", baseName, err)
 		return nil, err
 	}
 

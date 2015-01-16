@@ -5,6 +5,7 @@
 
     {{template "header.html" .}}
 
+    <!-- TODO(jcgregorio) Move this into res/css/main.css.
     <style type="text/css" media="screen">
       body {
         font-family: Arial, sans-serif;
@@ -38,17 +39,52 @@
       }
 
       html /deep/ #mainContainer {
+        padding: 1em;
         background: white;
       }
-    </style>
 
+      html /deep/ paper-button {
+        color: #1f78b4;
+      }
+
+      html /deep/  paper-button:hover {
+        background: #eee;
+      }
+
+      test-summary-sk {
+        display: block;
+        margin-top: 0.5em;
+      }
+    </style>
   </head>
   <body>
     <scaffold-sk responsiveWidth="700px">
       {{template "titlebar.html" .}}
 
-      <h1>Just a placeholder until real content arrives.</h1>
+      <sort-sk target=summaries>
+        <paper-button data-key="diameter">Diameter</paper-button>
+        <paper-button data-key="untriaged">Un-Triaged</paper-button>
+        <paper-button data-key="num">Total Digests</paper-button>
+      </sort-sk>
+      <div id="summaries"></div>
+      <paper-toast></paper-toast>
 
     </scaffold-sk>
+
+    <script type="text/javascript" charset="utf-8">
+      sk.WebComponentsReady.then(function(){
+        sk.get('/2/_/list').then(JSON.parse).then(function(json) {
+          var container = $$$('#summaries');
+          json.forEach(function(c) {
+            var s = document.createElement('test-summary-sk');
+            container.appendChild(s);
+            s.summary = c;
+          });
+        }).catch(function(e){
+          $$$('paper-toast').text = e;
+          $$$('paper-toast').show();
+        });
+      });
+    </script>
   </body>
 </html>
