@@ -19,6 +19,11 @@ import (
 	"skia.googlesource.com/buildbot.git/go/gs"
 )
 
+const (
+	GOROUTINE_POOL_SIZE = 50
+	MAX_CHANNEL_SIZE    = 100000
+)
+
 type GsUtil struct {
 	// The client used to connect to Google Storage.
 	client  *http.Client
@@ -113,6 +118,11 @@ func (gs *GsUtil) AreTimeStampsEqual(localDir, gsDir string) (bool, error) {
 	return localTimestamp == gsTimestamp, nil
 }
 
+type filePathToStorageObject struct {
+	storageObject *storage.Object
+	filePath      string
+}
+
 // downloadRemoteDir downloads the specified Google Storage dir to the specified
 // local dir. The local dir will be emptied and recreated. Handles multiple levels
 // of directories.
@@ -121,8 +131,8 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	os.RemoveAll(localDir)
 	// Create the local dir.
 	os.MkdirAll(localDir, 0700)
-	// Download from Google Storage.
-	var wg sync.WaitGroup
+	// The channel where the storage objects to be deleted will be sent to.
+	chStorageObjects := make(chan filePathToStorageObject, MAX_CHANNEL_SIZE)
 	req := gs.service.Objects.List(GS_BUCKET_NAME).Prefix(gsDir + "/")
 	for req != nil {
 		resp, err := req.Do()
@@ -142,17 +152,32 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 				// Create the local directory.
 				os.MkdirAll(filepath.Join(localDir, filepath.Dir(fileName)), 0700)
 			}
+			chStorageObjects <- filePathToStorageObject{storageObject: result, filePath: fileName}
+		}
+		if len(resp.NextPageToken) > 0 {
+			req.PageToken(resp.NextPageToken)
+		} else {
+			req = nil
+		}
+	}
+	close(chStorageObjects)
 
-			wg.Add(1)
-			go func(result *storage.Object) {
-				defer wg.Done()
+	// Kick off goroutines to download the storage objects.
+	var wg sync.WaitGroup
+	for i := 0; i < GOROUTINE_POOL_SIZE; i++ {
+		wg.Add(1)
+		go func(goroutineNum int) {
+			defer wg.Done()
+			for obj := range chStorageObjects {
+				result := obj.storageObject
+				filePath := obj.filePath
 				respBody, err := getRespBody(result, gs.client)
 				if err != nil {
 					glog.Errorf("Could not fetch %s: %s", result.MediaLink, err)
 					return
 				}
 				defer respBody.Close()
-				outputFile := filepath.Join(localDir, fileName)
+				outputFile := filepath.Join(localDir, filePath)
 				out, err := os.Create(outputFile)
 				if err != nil {
 					glog.Errorf("Unable to create file %s: %s", outputFile, err)
@@ -163,14 +188,9 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 					glog.Error(err)
 					return
 				}
-				glog.Infof("Downloaded gs://%s/%s to %s", GS_BUCKET_NAME, result.Name, outputFile)
-			}(result)
-		}
-		if len(resp.NextPageToken) > 0 {
-			req.PageToken(resp.NextPageToken)
-		} else {
-			req = nil
-		}
+				glog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GS_BUCKET_NAME, result.Name, outputFile, goroutineNum)
+			}
+		}(i + 1)
 	}
 	wg.Wait()
 	return nil
@@ -210,7 +230,8 @@ func (gs *GsUtil) DownloadWorkerArtifacts(dirName, pagesetType string, workerNum
 }
 
 func (gs *GsUtil) deleteRemoteDir(gsDir string) error {
-	var wg sync.WaitGroup
+	// The channel where the GS filepaths to be deleted will be sent to.
+	chFilePaths := make(chan string, MAX_CHANNEL_SIZE)
 	req := gs.service.Objects.List(GS_BUCKET_NAME).Prefix(gsDir + "/")
 	for req != nil {
 		resp, err := req.Do()
@@ -218,22 +239,30 @@ func (gs *GsUtil) deleteRemoteDir(gsDir string) error {
 			return fmt.Errorf("Error occured while listing %s: %s", gsDir, err)
 		}
 		for _, result := range resp.Items {
-			wg.Add(1)
-			filePath := result.Name
-			go func() {
-				defer wg.Done()
-				if err := gs.service.Objects.Delete(GS_BUCKET_NAME, filePath).Do(); err != nil {
-					glog.Errorf("Could not delete %s: %s", filePath, err)
-					return
-				}
-				glog.Infof("Deleted gs://%s/%s", GS_BUCKET_NAME, filePath)
-			}()
+			chFilePaths <- result.Name
 		}
 		if len(resp.NextPageToken) > 0 {
 			req.PageToken(resp.NextPageToken)
 		} else {
 			req = nil
 		}
+	}
+	close(chFilePaths)
+
+	// Kick off goroutines to delete the file paths.
+	var wg sync.WaitGroup
+	for i := 0; i < GOROUTINE_POOL_SIZE; i++ {
+		wg.Add(1)
+		go func(goroutineNum int) {
+			defer wg.Done()
+			for filePath := range chFilePaths {
+				if err := gs.service.Objects.Delete(GS_BUCKET_NAME, filePath).Do(); err != nil {
+					glog.Errorf("Goroutine#%d could not delete %s: %s", goroutineNum, filePath, err)
+					return
+				}
+				glog.Infof("Deleted gs://%s/%s with goroutine#%d", GS_BUCKET_NAME, filePath, goroutineNum)
+			}
+		}(i + 1)
 	}
 	wg.Wait()
 	return nil
@@ -287,8 +316,9 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string) error {
 		return fmt.Errorf("Unable to read the local dir %s: %s", localDir, err)
 	}
 
-	// Upload local files into the remote directory.
-	var wg sync.WaitGroup
+	// The channel where the filepaths to be uploaded will be sent to.
+	chFilePaths := make(chan string, MAX_CHANNEL_SIZE)
+	// File filepaths and send it to the above channel.
 	for path, fileInfo := range pathsToFileInfos {
 		fileName := fileInfo.Name()
 		containingDir := strings.TrimSuffix(path, fileName)
@@ -299,13 +329,23 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string) error {
 				fileName = filepath.Join(dirTokens[len(dirTokens)-i-1], fileName)
 			}
 		}
+		chFilePaths <- fileName
+	}
+	close(chFilePaths)
+
+	// Kick off goroutines to upload the file paths.
+	var wg sync.WaitGroup
+	for i := 0; i < GOROUTINE_POOL_SIZE; i++ {
 		wg.Add(1)
-		go func() {
+		go func(goroutineNum int) {
 			defer wg.Done()
-			if err := gs.UploadFile(fileName, localDir, gsDir); err != nil {
-				glog.Errorf("Uploading %s to %s failed with: %s", fileName, localDir, err)
+			for filePath := range chFilePaths {
+				glog.Infof("Uploading %s to %s with goroutine#%d", filePath, gsDir, goroutineNum)
+				if err := gs.UploadFile(filePath, localDir, gsDir); err != nil {
+					glog.Errorf("Goroutine#%d could not upload %s to %s: %s", goroutineNum, filePath, localDir, err)
+				}
 			}
-		}()
+		}(i + 1)
 	}
 	wg.Wait()
 	return nil
