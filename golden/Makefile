@@ -29,7 +29,11 @@ packages:
 # This is the quick version triggered by the presubmit script.
 .PHONY: testgo
 testgo:
-	go test ./go/... -v -test.short
+	go test ./go/... -short
+
+.PHONY: bench
+bench:
+	go test ./go/... -bench=. -run=NONE
 
 .PHONY: test
 test:

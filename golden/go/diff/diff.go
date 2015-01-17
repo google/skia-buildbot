@@ -128,12 +128,14 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 			resultImg.Set(x, y, dc)
 		}
 	}
-	f, err := os.Create(diffFilePath)
-	if err != nil {
-		return nil, err
-	}
-	if err := png.Encode(f, resultImg); err != nil {
-		return nil, err
+	if diffFilePath != "" {
+		f, err := os.Create(diffFilePath)
+		if err != nil {
+			return nil, err
+		}
+		if err := png.Encode(f, resultImg); err != nil {
+			return nil, err
+		}
 	}
 
 	return &DiffMetrics{

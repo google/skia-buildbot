@@ -1,12 +1,13 @@
 package diff
 
 import (
+	"image"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
-)
 
-import (
+	"github.com/skia-dev/glog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -125,4 +126,32 @@ func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) 
 		t.Error("Unexpected error: ", err)
 	}
 	assert.Equal(t, expectedDiffMetrics, diffMetrics)
+}
+
+var (
+	img1 image.Image
+	img2 image.Image
+	once sync.Once
+)
+
+func loadBenchmarkImages() {
+	var err error
+	img1, err = OpenImage(filepath.Join(TESTDATA_DIR, "4029959456464745507.png"))
+	if err != nil {
+		glog.Fatal("Failed to open test file: ", err)
+	}
+	img2, err = OpenImage(filepath.Join(TESTDATA_DIR, "16465366847175223174.png"))
+	if err != nil {
+		glog.Fatal("Failed to open test file: ", err)
+	}
+}
+
+func BenchmarkDiff(b *testing.B) {
+	// Only load the images once so we aren't measuring that as part of the
+	// benchmark.
+	once.Do(loadBenchmarkImages)
+
+	for i := 0; i < b.N; i++ {
+		Diff(img1, img2, "")
+	}
 }
