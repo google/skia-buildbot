@@ -33,7 +33,7 @@ const (
 	IMG_EXTENSION                = "png"
 	DIFF_EXTENSION               = "png"
 	DIFFMETRICS_EXTENSION        = "json"
-	RECOMMENDED_WORKER_POOL_SIZE = 1000
+	RECOMMENDED_WORKER_POOL_SIZE = 100
 	IMAGE_LRU_CACHE_SIZE         = 500
 	METRIC_LRU_CACHE_SIZE        = 100000
 
@@ -212,7 +212,6 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 		glog.Errorf("Failed to calculate DiffMetrics for digest %s and digest %s: %s", dMain, dOther, err)
 		return nil
 	}
-	glog.Infof("Calculated DiffMetrics for %s and %s\n", dMain, dOther)
 	// 5. Write DiffMetrics to the local cache and return it.
 	fs.diffCache.Add(baseName, diffMetrics)
 
@@ -527,7 +526,6 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 				return fmt.Errorf("Unable to move file: %s", err)
 			}
 
-			glog.Infof("Downloaded %s to %s", objLocation, outputFile)
 			downloadSuccessCount.Inc(1)
 			return nil
 		}()

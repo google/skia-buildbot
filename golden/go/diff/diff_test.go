@@ -4,11 +4,11 @@ import (
 	"image"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sync"
 	"testing"
 
 	"github.com/skia-dev/glog"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -92,8 +92,8 @@ func TestDiff(t *testing.T) {
 	defer os.Remove(diffFilePath8)
 	assertDiffs(t, "b716a12d5b98d04b15db1d9dd82c82ea", "df1591dde35907399734ea19feb76663",
 		&DiffMetrics{
-			NumDiffPixels:     307200,
-			PixelDiffPercent:  100,
+			NumDiffPixels:     8750,
+			PixelDiffPercent:  2.8483074,
 			PixelDiffFilePath: diffFilePath8,
 			MaxRGBADiffs:      []int{255, 2, 255, 0},
 			DimDiffer:         false})
@@ -108,7 +108,6 @@ func TestDiff(t *testing.T) {
 			PixelDiffFilePath: diffFilePath9,
 			MaxRGBADiffs:      []int{0, 0, 0, 235},
 			DimDiffer:         false})
-
 }
 
 func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) {
@@ -125,7 +124,9 @@ func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) 
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
-	assert.Equal(t, expectedDiffMetrics, diffMetrics)
+	if got, want := diffMetrics, expectedDiffMetrics; !reflect.DeepEqual(got, want) {
+		t.Errorf("Image Diff: Got %v Want %v", got, want)
+	}
 }
 
 var (

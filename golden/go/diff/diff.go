@@ -3,8 +3,11 @@ package diff
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"image/png"
 	"os"
+
+	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/go/util"
 )
@@ -89,8 +92,40 @@ func diffColors(color1, color2 color.Color, maxRGBADiffs []int) color.Color {
 		return PixelDiffColor
 	}
 
-	// If only the alpha channel differs we marke it with the alpha diff color.
+	// If only the alpha channel differs we mark it with the alpha diff color.
 	return PixelAlphaDiffColor
+}
+
+// recode creates a new NRGBA image from the given image.
+func recode(img image.Image) *image.NRGBA {
+	ret := image.NewNRGBA(img.Bounds())
+	draw.Draw(ret, img.Bounds(), img, image.Pt(0, 0), draw.Src)
+	return ret
+}
+
+// getNRGBA converts the image to an *image.NRGBA in an efficent manner.
+func getNRGBA(img image.Image) *image.NRGBA {
+	switch t := img.(type) {
+	case *image.NRGBA:
+		return t
+	case *image.RGBA:
+		for i := 0; i < len(t.Pix); i += 4 {
+			if t.Pix[i+3] != 0xff {
+				glog.Warning("Unexpected premultiplied image!")
+				return recode(img)
+			}
+		}
+		// If every alpha is 0xff then t.Pix is already in NRGBA format, simply
+		// share Pix between the RGBA and NRGBA structs.
+		return &image.NRGBA{
+			Pix:    t.Pix,
+			Stride: t.Stride,
+			Rect:   t.Rect,
+		}
+	default:
+		// TODO(mtklein): does it make sense we're getting other types, or a DM bug?
+		return recode(img)
+	}
 }
 
 // Diff is a utility function that calculates the DiffMetrics for the provided
@@ -108,6 +143,9 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 	resultWidth := util.MaxInt(img1Bounds.Dx(), img2Bounds.Dx())
 	resultHeight := util.MaxInt(img1Bounds.Dy(), img2Bounds.Dy())
 	resultImg := image.NewRGBA(image.Rect(0, 0, resultWidth, resultHeight))
+	for i, _ := range resultImg.Pix {
+		resultImg.Pix[i] = 0xff
+	}
 	totalPixels := resultWidth * resultHeight
 
 	// Loop through all points and compare. We start assuming all pixels are
@@ -116,16 +154,48 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 	numDiffPixels := resultWidth * resultHeight
 	maxRGBADiffs := make([]int, 4)
 
-	for x := 0; x < cmpWidth; x++ {
-		for y := 0; y < cmpHeight; y++ {
-			color1 := img1.At(x, y)
-			color2 := img2.At(x, y)
-
-			dc := diffColors(color1, color2, maxRGBADiffs)
-			if dc == PixelMatchColor {
+	n1 := getNRGBA(img1)
+	n2 := getNRGBA(img2)
+	// Compare the bounds, if they are the same then use the fast path.
+	if img1Bounds.Eq(img2Bounds) {
+		// Fastpath
+		// Pix is a []uint8 rotating through R, G, B, A, R, G, B, A, ...
+		for i := 0; i < len(n1.Pix); i += 4 {
+			dr := util.AbsInt(int(n1.Pix[i+0]) - int(n2.Pix[i+0]))
+			dg := util.AbsInt(int(n1.Pix[i+1]) - int(n2.Pix[i+1]))
+			db := util.AbsInt(int(n1.Pix[i+2]) - int(n2.Pix[i+2]))
+			da := util.AbsInt(int(n1.Pix[i+3]) - int(n2.Pix[i+3]))
+			maxRGBADiffs[0] = util.MaxInt(dr, maxRGBADiffs[0])
+			maxRGBADiffs[1] = util.MaxInt(dg, maxRGBADiffs[1])
+			maxRGBADiffs[2] = util.MaxInt(db, maxRGBADiffs[2])
+			maxRGBADiffs[3] = util.MaxInt(da, maxRGBADiffs[3])
+			rgbDelta := dr + dg + db
+			if rgbDelta > 0 {
+				resultImg.Pix[i+0] = 0xE3
+				resultImg.Pix[i+1] = 0x1A
+				resultImg.Pix[i+2] = 0x1C
+				resultImg.Pix[i+3] = 0xFF
+			} else if da > 0 {
+				resultImg.Pix[i+0] = 0xB3
+				resultImg.Pix[i+1] = 0xB3
+				resultImg.Pix[i+2] = 0xB3
+				resultImg.Pix[i+3] = 0xFF
+			} else {
 				numDiffPixels--
 			}
-			resultImg.Set(x, y, dc)
+		}
+	} else {
+		for x := 0; x < cmpWidth; x++ {
+			for y := 0; y < cmpHeight; y++ {
+				color1 := img1.At(x, y)
+				color2 := img2.At(x, y)
+
+				dc := diffColors(color1, color2, maxRGBADiffs)
+				if dc == PixelMatchColor {
+					numDiffPixels--
+				}
+				resultImg.Set(x, y, dc)
+			}
 		}
 	}
 	if diffFilePath != "" {

@@ -226,7 +226,6 @@ func (a *Analyzer) getUrl(digest string) string {
 // from all the good images, so it doesn't matter which good image you compare
 // it to.
 func (a *Analyzer) diameter(testTraces []*LabeledTrace) int {
-	glog.Info("diameter")
 	max := 0
 	digestMap := map[string]bool{}
 
