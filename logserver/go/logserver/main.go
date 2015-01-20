@@ -278,13 +278,25 @@ func getPreviousState() (map[string]fileState, map[string]int64, map[string]int6
 	}
 	f, err := os.Open(*stateFile)
 	if err != nil {
-		return nil, nil, nil, time.Time{}, fmt.Errorf("Failed to open state file %s for reading: %s", *stateFile, err)
+		glog.Errorf("Failed to open old state file %s for reading: %s", *stateFile, err)
+		// Delete it and return empty values.
+		if err := os.Remove(*stateFile); err != nil {
+			return nil, nil, nil, time.Time{}, fmt.Errorf("Could not delete old state file %s: %s", *stateFile, err)
+		}
+		glog.Errorf("Deleted old state file %s", *stateFile)
+		return map[string]fileState{}, map[string]int64{}, map[string]int64{}, time.Time{}, nil
 	}
 	defer f.Close()
 	state := &logserverState{}
 	dec := gob.NewDecoder(f)
 	if err := dec.Decode(state); err != nil {
-		return nil, nil, nil, time.Time{}, fmt.Errorf("Failed to decode state file: %s", err)
+		glog.Errorf("Failed to decode old state file %s: %s", *stateFile, err)
+		// Delete it and return empty values.
+		if err := os.Remove(*stateFile); err != nil {
+			return nil, nil, nil, time.Time{}, fmt.Errorf("Could not delete old state file %s: %s", *stateFile, err)
+		}
+		glog.Errorf("Deleted old state file %s", *stateFile)
+		return map[string]fileState{}, map[string]int64{}, map[string]int64{}, time.Time{}, nil
 	}
 	return state.FilesToState, state.AppLogLevelToSpace, state.AppLogLevelToCount, state.LastCompletedRun, nil
 }
