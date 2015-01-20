@@ -32,7 +32,11 @@ a {
 pre {
   margin-left: 1em;
   padding: 1em;
-  background: #eee;
+  background: #fafafa;
+}
+
+pre code {
+  color: #000;
 }
 
 code {
