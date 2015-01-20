@@ -16,6 +16,9 @@
 
   Properties:
     currentQuery: The current URL query formatted selections.
+    whiteList: A list of keys for params that should always be shown.
+    hideCount: If false, then query back to the server for the count
+      of matching traces.
 
   Methods:
     setParamSet(set): Set the params to be displayed.
@@ -27,7 +30,7 @@
         parameters chosen have changed. The event contains the current
         selections formatted as a URL query, found in e.detail.
 -->
-<polymer-element name="query-sk">
+<polymer-element name="query-sk" attributes="whiteList currentQuery hideCount">
   <template>
     <style type="text/css" media="screen">
       #more.display {
@@ -92,10 +95,6 @@
   </template>
   <script>
     (function(){
-      var whitelist = [
-        'name', 'bench_type', 'os', 'source_type', 'scale', 'extra_config',
-        'config', 'arch', 'sub_result'];
-
       Polymer({
         created: function() {
           // Both primary and secondary are arrays of objects that look like:
@@ -105,14 +104,18 @@
           //    values: ["565", "8888", "gpu"]
           //  }
           //
-          // Where primary contains selections that are in the whitelist, and
+          // Where primary contains selections that are in the whiteList, and
           // secondary contains all the other selections.
+          this.whiteList = ['name', 'bench_type', 'os', 'source_type', 'scale', 'extra_config', 'config', 'arch', 'sub_result'];
+
           this.primary = [];
           this.secondary = [];
         },
 
         ready: function() {
           this.currentQuery = '';
+
+          this.hideCount = this.hideCount || false;
 
           this.$.inputs.addEventListener('core-select', this.fireChange.bind(this));
           this.$.more.addEventListener('core-select', this.fireChange.bind(this));
@@ -139,9 +142,11 @@
             this.dispatchEvent(new CustomEvent('change', {detail: q}));
 
             var countEle = this.$.count;
-            sk.get('/query/0/-1/?' + q).then(JSON.parse).then(function(json) {
-              countEle.innerHTML = json["matches"] + ' lines selected<br />';
-            });
+            if (!this.hideCount) {
+              sk.get('/query/0/-1/?' + q).then(JSON.parse).then(function(json) {
+                countEle.innerHTML = json["matches"] + ' lines selected<br />';
+              });
+            }
           }
         },
 
@@ -188,7 +193,7 @@
               name: key,
               values: paramset[key].sort()
             }
-            if (whitelist.indexOf(key) != -1) {
+            if (this.whiteList.indexOf(key) != -1) {
               this.primary.push(sel);
             } else {
               this.secondary.push(sel);

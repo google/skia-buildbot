@@ -118,6 +118,19 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
+	res, err := analyzer.ParamSet()
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load ParamSet")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(res); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
+	}
+}
+
 // makeResourceHandler creates a static file handler that sets a caching policy.
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
@@ -404,6 +417,7 @@ func main() {
 	http.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/2/", polyMainHandler).Methods("GET")
 	router.HandleFunc("/2/_/list", polyListTestsHandler).Methods("GET")
+	router.HandleFunc("/2/_/paramset", polyParamsHandler).Methods("GET")
 
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))

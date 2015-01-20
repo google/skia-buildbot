@@ -261,6 +261,14 @@ func (a *Analyzer) PolyListTestSimple() ([]*PolyGUISimple, error) {
 	return ret, nil
 }
 
+func (a *Analyzer) ParamSet() (map[string][]string, error) {
+	tile, err := a.tileStore.Get(0, -1)
+	if err != nil {
+		return nil, err
+	}
+	return tile.ParamSet, nil
+}
+
 // GetTestDetails returns the untriaged, positive and negative digests for a
 // specific test with the necessary information (diff metrics, image urls) to
 // assign a label to the untriaged digests.

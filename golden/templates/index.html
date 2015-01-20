@@ -61,6 +61,7 @@
     <scaffold-sk responsiveWidth="700px">
       {{template "titlebar.html" .}}
 
+      <query-sk whiteList='["source_type"]' hideCount></query-sk>
       <sort-sk target=summaries>
         <paper-button data-key="diameter">Diameter</paper-button>
         <paper-button data-key="untriaged">Un-Triaged</paper-button>
@@ -80,10 +81,20 @@
             container.appendChild(s);
             s.summary = c;
           });
-        }).catch(function(e){
+        }).catch(function(e) {
           $$$('paper-toast').text = e;
           $$$('paper-toast').show();
         });
+
+        sk.get('/2/_/paramset').then(JSON.parse).then(function(json) {
+          $$$('query-sk').setParamSet(json)
+        }).catch(function(e) {
+          $$$('paper-toast').text = e;
+          $$$('paper-toast').show();
+        });
+
+        // TODO(jcgregorio) Register for change events from query-sk and
+        // update the contents of #summaries based on the query.
       });
     </script>
   </body>
