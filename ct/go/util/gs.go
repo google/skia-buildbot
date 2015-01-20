@@ -190,6 +190,9 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 					return
 				}
 				glog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GS_BUCKET_NAME, result.Name, outputFile, goroutineNum)
+				// Sleep for a second after downloading file to avoid bombarding Cloud
+				// storage.
+				time.Sleep(time.Second)
 			}
 		}(i + 1)
 	}
@@ -262,6 +265,9 @@ func (gs *GsUtil) deleteRemoteDir(gsDir string) error {
 					return
 				}
 				glog.Infof("Deleted gs://%s/%s with goroutine#%d", GS_BUCKET_NAME, filePath, goroutineNum)
+				// Sleep for a second after deleting file to avoid bombarding Cloud
+				// storage.
+				time.Sleep(time.Second)
 			}
 		}(i + 1)
 	}
