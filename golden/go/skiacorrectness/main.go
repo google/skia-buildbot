@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/fiorix/go-web/autogzip"
-	"github.com/google/skia-buildbot/go/util"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/auth"
@@ -22,6 +21,7 @@ import (
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/analysis"
 	"skia.googlesource.com/buildbot.git/golden/go/db"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
