@@ -78,6 +78,93 @@ func GetBuildForCommit(builder, master, commit string) (int, error) {
 	return n, nil
 }
 
+// GetBuildIDsForCommit retrieves IDs for all builds which first included the
+// given commit.
+func GetBuildIDsForCommit(commit string) ([]*BuildID, error) {
+	buildIDs := []*BuildID{}
+	if err := DB.Select(&buildIDs, fmt.Sprintf("SELECT buildId FROM %s WHERE revision = ?;", TABLE_BUILD_REVISIONS), commit); err != nil {
+		if err == sql.ErrNoRows {
+			// No builds include this commit.
+			return []*BuildID{}, nil
+		}
+		return nil, fmt.Errorf("Unable to retrieve builds for commit: %v", err)
+	}
+	return buildIDs, nil
+}
+
+// GetBuildIDsForCommits retrieves IDs for all builds which first included each
+// of the given commits.
+func GetBuildIDsForCommits(commits []string) (map[string][]int, error) {
+	res := []struct {
+		Revision string `db:"revision"`
+		BuildId  int    `db:"buildId"`
+	}{}
+	commitsInterface := make([]interface{}, 0, len(commits))
+	for _, c := range commits {
+		commitsInterface = append(commitsInterface, c)
+	}
+	tmpl := util.RepeatJoin("?", ",", len(commitsInterface))
+	if err := DB.Select(&res, fmt.Sprintf("SELECT revision, buildId FROM %s WHERE revision IN (%s);", TABLE_BUILD_REVISIONS, tmpl), commitsInterface...); err != nil {
+		if err == sql.ErrNoRows {
+			// No builds include these commits.
+			return map[string][]int{}, nil
+		}
+		return nil, fmt.Errorf("Unable to retrieve builds for commits: %v", err)
+	}
+	rv := map[string][]int{}
+	for _, r := range res {
+		if v, ok := rv[r.Revision]; !ok || v == nil {
+			rv[r.Revision] = []int{}
+		}
+		rv[r.Revision] = append(rv[r.Revision], r.BuildId)
+	}
+	return rv, nil
+}
+
+// GetBuildsForCommits retrieves all builds which first included each of the
+// given commits.
+func GetBuildsForCommits(commits []string, ignore map[int]bool) (map[string][]*Build, error) {
+	// Get the set of build IDs by commit hash.
+	idsByCommit, err := GetBuildIDsForCommits(commits)
+	if err != nil {
+		return nil, err
+	}
+	// Shortcut: If we got nothing back, just return.
+	if len(idsByCommit) == 0 {
+		return map[string][]*Build{}, nil
+	}
+	// Make a de-duplicated list of build IDs to retrieve.
+	idMap := map[int]bool{}
+	for _, idList := range idsByCommit {
+		for _, id := range idList {
+			if !ignore[id] {
+				idMap[id] = true
+			}
+		}
+	}
+	ids := make([]int, 0, len(idMap))
+	for id, _ := range idMap {
+		ids = append(ids, id)
+	}
+	// Retrieve the builds.
+	builds, err := GetBuildsFromDB(ids)
+	if err != nil {
+		return nil, err
+	}
+	// Organize the builds by commit.
+	buildsByCommit := map[string][]*Build{}
+	for commit, buildIds := range idsByCommit {
+		buildsByCommit[commit] = make([]*Build, 0, len(buildIds))
+		for _, id := range buildIds {
+			if builds[id] == nil {
+				continue
+			}
+			buildsByCommit[commit] = append(buildsByCommit[commit], builds[id])
+		}
+	}
+	return buildsByCommit, nil
+}
+
 // GetBuildFromDB retrieves the given build from the database as specified by
 // the given master, builder, and build number.
 func GetBuildFromDB(builder, master string, buildNumber int) (*Build, error) {
@@ -147,6 +234,118 @@ func GetBuildFromDB(builder, master string, buildNumber int) (*Build, error) {
 	build.Steps = steps
 	build.Commits = commits
 	return build, nil
+}
+
+// GetBuildsFromDB retrieves the given builds from the database.
+func GetBuildsFromDB(ids []int) (map[int]*Build, error) {
+	if len(ids) == 0 {
+		return map[int]*Build{}, nil
+	}
+	interfaceIds := make([]interface{}, 0, len(ids))
+	for _, id := range ids {
+		interfaceIds = append(interfaceIds, id)
+	}
+	inputTmpl := util.RepeatJoin("?", ",", len(interfaceIds))
+
+	var wg sync.WaitGroup
+
+	// Get builds
+	var buildsById map[int]*Build
+	var buildsErr error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		b := []*buildFromDB{}
+		if err := DB.Select(&b, fmt.Sprintf("SELECT * FROM %s WHERE id IN (%s);", TABLE_BUILDS, inputTmpl), interfaceIds...); err != nil {
+			buildsErr = fmt.Errorf("Could not retrieve builds: %v", err)
+			return
+		}
+		buildsById = map[int]*Build{}
+		for _, buildFromDB := range b {
+			build := buildFromDB.toBuild()
+			// Build properties.
+			var properties [][]interface{}
+			if build.PropertiesStr != "" {
+				if err := json.Unmarshal([]byte(build.PropertiesStr), &properties); err != nil {
+					buildsErr = fmt.Errorf("Unable to parse build properties: %v", err)
+				}
+			}
+			build.Properties = properties
+
+			// Start and end times.
+			build.Times = []float64{build.Started, build.Finished}
+			buildsById[build.Id] = build
+		}
+	}()
+
+	// Build steps.
+	stepsFromDB := []*buildStepFromDB{}
+	var stepsErr error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := DB.Select(&stepsFromDB, fmt.Sprintf("SELECT * FROM %s WHERE buildId IN (%s);", TABLE_BUILD_STEPS, inputTmpl), interfaceIds...); err != nil {
+			stepsErr = fmt.Errorf("Could not retrieve build steps from database: %v", err)
+			return
+		}
+	}()
+
+	// Commits for each build.
+	commitsFromDB := []struct {
+		Id       int    `db:"id"`
+		BuildId  int    `db:"buildId"`
+		Revision string `db:"revision"`
+	}{}
+	var commitsErr error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := DB.Select(&commitsFromDB, fmt.Sprintf("SELECT * FROM %s WHERE buildId IN (%s);", TABLE_BUILD_REVISIONS, inputTmpl), interfaceIds...); err != nil {
+			commitsErr = fmt.Errorf("Could not retrieve revisions from database: %v", err)
+			return
+		}
+	}()
+
+	wg.Wait()
+
+	// Return error if applicable.
+	if buildsErr != nil {
+		return nil, buildsErr
+	}
+	if stepsErr != nil {
+		return nil, stepsErr
+	}
+	if commitsErr != nil {
+		return nil, commitsErr
+	}
+
+	// Associate steps with builds.
+	for _, stepFromDB := range stepsFromDB {
+		s := stepFromDB.toBuildStep()
+		s.Times = []float64{s.Started, s.Finished}
+		s.ResultsRaw = []interface{}{float64(s.Results), []interface{}{}}
+		build, ok := buildsById[s.BuildID]
+		if !ok {
+			return nil, fmt.Errorf("Failed to retrieve builds; got a build step with no associated build.")
+		}
+		if build.Steps == nil {
+			build.Steps = []*BuildStep{}
+		}
+		build.Steps = append(build.Steps, s)
+	}
+
+	// Associate commits with builds.
+	for _, c := range commitsFromDB {
+		build, ok := buildsById[c.BuildId]
+		if !ok {
+			return nil, fmt.Errorf("Failed to retrieve builds; got a commit with no associated build.")
+		}
+		if build.Commits == nil {
+			build.Commits = []string{}
+		}
+		build.Commits = append(build.Commits, c.Revision)
+	}
+	return buildsById, nil
 }
 
 // ReplaceIntoDB inserts or updates the Build in the database.

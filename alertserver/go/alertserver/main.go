@@ -31,7 +31,9 @@ import (
 import (
 	"skia.googlesource.com/buildbot.git/alertserver/go/alerting"
 	"skia.googlesource.com/buildbot.git/alertserver/go/commit_cache"
+	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
+	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/email"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/login"
@@ -357,6 +359,9 @@ func runServer(serverURL string) {
 }
 
 func main() {
+	// Setup DB flags.
+	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_RW, buildbot.PROD_DB_NAME)
+
 	common.InitWithMetrics("alertserver", graphiteServer)
 	v := skiaversion.GetVersion()
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
@@ -440,7 +445,16 @@ func main() {
 		glog.Fatalf("Failed to check out Skia: %v", err)
 	}
 	glog.Info("CloneOrUpdate complete")
-	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache"))
+
+	// Initialize the buildbot database.
+	conf, err := database.ConfigFromFlags("", false, buildbot.MigrationSteps())
+	glog.Infof("Database config: %s", conf.MySQLString)
+	if err := buildbot.InitDB(conf); err != nil {
+		glog.Fatal(err)
+	}
+
+	// Create the commit cache.
+	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache"), DEFAULT_COMMITS_TO_LOAD)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}

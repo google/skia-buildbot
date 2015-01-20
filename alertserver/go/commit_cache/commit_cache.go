@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sync"
 	"time"
 
@@ -29,6 +30,19 @@ const (
 	CACHE_FILE_PATTERN = "commit_cache.%d.gob"
 )
 
+var (
+	// Patterns indicating which bots to skip.
+	BOT_BLACKLIST = []string{
+		".*-Trybot",
+		".*Housekeeper.*",
+	}
+)
+
+func init() {
+	gob.Register([]interface{}{})
+	gob.Register(map[string]interface{}{})
+}
+
 // cacheFileName returns the name of a cache file, based on the cache directory
 // and the block number.
 func cacheFileName(cacheDir string, blockNum int) string {
@@ -41,6 +55,20 @@ func blockIdx(commitIdx int) (int, int) {
 	return commitIdx / BLOCK_SIZE, commitIdx % BLOCK_SIZE
 }
 
+// skipBot determines whether the given bot should be skipped.
+func skipBot(b string) bool {
+	for _, p := range BOT_BLACKLIST {
+		m, err := regexp.MatchString(p, b)
+		if err != nil {
+			glog.Fatal(err)
+		}
+		if m {
+			return true
+		}
+	}
+	return false
+}
+
 // CommitData is a struct which contains information about a single commit.
 // Changing its structure will require completely rebuilding the cache.
 type CommitData struct {
@@ -51,14 +79,16 @@ type CommitData struct {
 // cacheBlock is an independently-managed slice of the commit cache. Changing
 // its structure will require completely rebuilding the cache.
 type cacheBlock struct {
-	BlockNum  int
-	mutex     sync.RWMutex
-	Commits   []*CommitData
-	CacheFile string
+	BlockNum     int
+	CacheFile    string
+	Commits      []*CommitData
+	mutex        sync.RWMutex
+	parent       *CommitCache
+	storedBuilds map[int]bool
 }
 
 // fromFile reads the cache file and returns a commitCache object.
-func fromFile(cacheFile string) (*cacheBlock, error) {
+func fromFile(cacheFile string, parent *CommitCache, expectFull bool) (*cacheBlock, error) {
 	glog.Infof("Reading commit cache from file %s", cacheFile)
 	b := cacheBlock{}
 	if _, err := os.Stat(cacheFile); os.IsNotExist(err) {
@@ -73,6 +103,31 @@ func fromFile(cacheFile string) (*cacheBlock, error) {
 		return nil, fmt.Errorf("Failed to read cache file %s: %v", cacheFile, err)
 	}
 	b.CacheFile = cacheFile
+	// Validate the block size.
+	if len(b.Commits) > BLOCK_SIZE {
+		return nil, fmt.Errorf("Serialized cache block contains more than %d commits! Did the block size change?", BLOCK_SIZE)
+	}
+	if len(b.Commits) < BLOCK_SIZE {
+		// This happens if the BLOCK_SIZE has increased OR if this is
+		// the last block, which is allowed not to be full.
+		if expectFull {
+			return nil, fmt.Errorf("Serialized cache block contains fewer than %d commits! Did the block size change?", BLOCK_SIZE)
+		}
+		// Ensure that the commit slice has the required capacity.
+		commits := make([]*CommitData, len(b.Commits), BLOCK_SIZE)
+		n := copy(commits, b.Commits)
+		if n != len(b.Commits) {
+			return nil, fmt.Errorf("Failed to re-slice commit data; Copied %d of %d items.", n, len(b.Commits))
+		}
+		b.Commits = commits
+	}
+	b.parent = parent
+	b.storedBuilds = map[int]bool{}
+	for _, c := range b.Commits {
+		for _, build := range c.Builds {
+			b.storedBuilds[build.Id] = true
+		}
+	}
 	glog.Infof("Done reading cache block %d (%d commits) from %s", b.BlockNum, len(b.Commits), cacheFile)
 	return &b, nil
 }
@@ -119,6 +174,42 @@ func (b *cacheBlock) Slice(startIdx, endIdx int) ([]*CommitData, error) {
 	return b.Commits[startIdx:endIdx], nil
 }
 
+// UpdateBuilds reloads all build data for commits in this block.
+func (b *cacheBlock) UpdateBuilds() error {
+	b.mutex.RLock()
+	glog.Infof("UpdateBuilds(%d)", b.BlockNum)
+	hashes := make([]string, 0, len(b.Commits))
+	for _, c := range b.Commits {
+		hashes = append(hashes, c.Hash)
+	}
+	b.mutex.RUnlock()
+	builds, err := buildbot.GetBuildsForCommits(hashes, b.storedBuilds)
+	if err != nil {
+		return err
+	}
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	for _, c := range b.Commits {
+		beforeBuilds := len(c.Builds)
+		for _, build := range builds[c.Hash] {
+			// Store the IDs of the loaded builds *before* filtering
+			// to ensure that we don't have to load them again.
+			if build.IsFinished() {
+				b.storedBuilds[build.Id] = true
+			}
+			// Filter out unwanted builders.
+			if !skipBot(build.Builder) {
+				if c.Builds == nil {
+					c.Builds = map[string]*buildbot.Build{}
+				}
+				c.Builds[build.Builder] = build
+			}
+		}
+		glog.Infof("Found %d new builds (total %d) for %s", len(c.Builds)-beforeBuilds, len(c.Builds), c.Hash)
+	}
+	return b.toFile()
+}
+
 // NewCommits copies a portion of the new commits into this block and returns
 // the number of commits which were copied.
 func (b *cacheBlock) NewCommits(newCommits []*CommitData) (int, error) {
@@ -143,21 +234,23 @@ func (b *cacheBlock) NewCommits(newCommits []*CommitData) (int, error) {
 // CommitCache is a struct used for caching commit data. Stores ALL commits in
 // the repository.
 type CommitCache struct {
-	BranchHeads []*gitinfo.GitBranch
 	blocks      []*cacheBlock
-	repo        *gitinfo.GitInfo
-	mutex       sync.RWMutex
+	BranchHeads []*gitinfo.GitBranch
 	cacheDir    string
+	mutex       sync.RWMutex
+	repo        *gitinfo.GitInfo
+	requestSize int
 }
 
 // New creates and returns a new CommitCache which watches the given repo.
 // The initial update will load ALL commits from the repository, so expect
 // this to be slow.
-func New(repo *gitinfo.GitInfo, cacheDir string) (*CommitCache, error) {
+func New(repo *gitinfo.GitInfo, cacheDir string, requestSize int) (*CommitCache, error) {
 	c := &CommitCache{
-		repo:     repo,
-		cacheDir: cacheDir,
-		blocks:   []*cacheBlock{},
+		cacheDir:    cacheDir,
+		blocks:      []*cacheBlock{},
+		repo:        repo,
+		requestSize: requestSize,
 	}
 	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
 		if err = os.MkdirAll(cacheDir, os.ModePerm); err != nil {
@@ -173,8 +266,9 @@ func New(repo *gitinfo.GitInfo, cacheDir string) (*CommitCache, error) {
 		cacheFiles = append(cacheFiles, fileName)
 	}
 
-	for _, f := range cacheFiles {
-		b, err := fromFile(f)
+	// Load the blocks from file.
+	for i, f := range cacheFiles {
+		b, err := fromFile(f, c, i != len(cacheFiles)-1)
 		if err != nil {
 			return nil, fmt.Errorf("Could not load cache block: %v", err)
 		}
@@ -187,6 +281,7 @@ func New(repo *gitinfo.GitInfo, cacheDir string) (*CommitCache, error) {
 		}
 	}
 
+	// Update the cache.
 	if err := c.update(); err != nil {
 		return nil, err
 	}
@@ -275,9 +370,11 @@ func (c *CommitCache) appendBlock() error {
 		return fmt.Errorf("Failed to add a new cache block; current last block is not full.")
 	}
 	c.blocks = append(c.blocks, &cacheBlock{
-		BlockNum:  len(c.blocks),
-		CacheFile: cacheFileName(c.cacheDir, len(c.blocks)),
-		Commits:   make([]*CommitData, 0, BLOCK_SIZE),
+		BlockNum:     len(c.blocks),
+		CacheFile:    cacheFileName(c.cacheDir, len(c.blocks)),
+		Commits:      make([]*CommitData, 0, BLOCK_SIZE),
+		parent:       c,
+		storedBuilds: map[int]bool{},
 	})
 	return nil
 }
@@ -306,7 +403,7 @@ func (c *CommitCache) update() error {
 			if err != nil {
 				return fmt.Errorf("Failed to obtain commit details for %s: %v", h, err)
 			}
-			newCommits[i] = &CommitData{d, nil}
+			newCommits[i] = &CommitData{d, map[string]*buildbot.Build{}}
 		}
 	}
 	branchHeads, err := c.repo.GetBranches()
@@ -329,6 +426,24 @@ func (c *CommitCache) update() error {
 		}
 		if err := c.appendBlock(); err != nil {
 			return fmt.Errorf("Failed to update the cache: %v", err)
+		}
+	}
+	// Only update the blocks needed to cover the average requestSize.
+	blocksToUpdate := c.requestSize/BLOCK_SIZE + 1
+	var wg sync.WaitGroup
+	errs := make([]error, blocksToUpdate)
+	for i := 0; i < blocksToUpdate; i++ {
+		wg.Add(1)
+		go func(j int) {
+			defer wg.Done()
+			blockIdx := len(c.blocks) - blocksToUpdate + j
+			errs[j] = c.blocks[blockIdx].UpdateBuilds()
+		}(i)
+	}
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
+			return err
 		}
 	}
 	glog.Infof("Finished updating the cache.")
