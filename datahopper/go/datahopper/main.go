@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"path"
+	"regexp"
 	"time"
 
 	influxdb "github.com/influxdb/influxdb/client"
@@ -34,7 +35,16 @@ var (
 	influxDbDatabase = flag.String("influxdb_database", "", "The InfluxDB database.")
 	workdir          = flag.String("workdir", ".", "Working directory used by data processors.")
 	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+
+	// Regexp matching non-alphanumeric characters.
+	re = regexp.MustCompile("[^A-Za-z0-9]+")
 )
+
+// fixName transforms names of builders/buildsteps into strings useable by
+// InfluxDB.
+func fixName(s string) string {
+	return re.ReplaceAllString(s, "_")
+}
 
 func main() {
 	// Setup DB flags.
@@ -127,7 +137,7 @@ func main() {
 					if s.Connected {
 						v = int64(1)
 					}
-					metric := fmt.Sprintf("buildbot.buildslaves.%s.connected", s.Name)
+					metric := fmt.Sprintf("buildbot.buildslaves.%s.connected", fixName(s.Name))
 					metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
 				}
 			}
@@ -156,7 +166,7 @@ func main() {
 			}
 			for _, s := range steps {
 				v := int64(s.Duration * float64(time.Millisecond))
-				metric := fmt.Sprintf("buildbot.buildsteps.%s.duration", s.Name)
+				metric := fmt.Sprintf("buildbot.buildsteps.%s.duration", fixName(s.Name))
 				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
 			}
 		}
@@ -184,7 +194,7 @@ func main() {
 			}
 			for _, s := range builds {
 				v := int64(s.Duration * float64(time.Millisecond))
-				metric := fmt.Sprintf("buildbot.builds.%s.duration", s.Builder)
+				metric := fmt.Sprintf("buildbot.builds.%s.duration", fixName(s.Builder))
 				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
 			}
 		}
