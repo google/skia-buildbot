@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/skia-dev/glog"
 
@@ -20,7 +21,7 @@ import (
 )
 
 const (
-	GOROUTINE_POOL_SIZE = 50
+	GOROUTINE_POOL_SIZE = 40
 	MAX_CHANNEL_SIZE    = 100000
 )
 
@@ -356,6 +357,9 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string) error {
 				if err := gs.UploadFile(filePath, localDir, gsDir); err != nil {
 					glog.Errorf("Goroutine#%d could not upload %s to %s: %s", goroutineNum, filePath, localDir, err)
 				}
+				// Sleep for a second after uploading file to avoid bombarding Cloud
+				// storage.
+				time.Sleep(time.Second)
 			}
 		}(i + 1)
 	}
