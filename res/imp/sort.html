@@ -8,7 +8,8 @@ have child content, such as button or paper-button elements.
 Add a data-key attribute to each child element that indicates
 which data-* attribute the children should be sorted on.
 
-Note that all sorting is done numerically, not alphabetically.
+Note that all sorting is done numerically, unless a data-alpha attribute is
+present, in which case the sorting is done alphabetically.
 
 Additionally a single child element can have a data-default attribute
 with a value of "up" or "down" to indicate the default sorting
@@ -81,6 +82,9 @@ the contents of div#stuffToBeSorted.
           // Remember the direction we are sorting in.
           var up = (ico.icon.indexOf("-up") > -1);
 
+          // Are we sorting alphabetically or numerically.
+          var alpha = e.target.dataset.alpha != undefined;
+
           // Sort the children of the element at #target.
           var sortBy = e.target.dataset.key;
           var container = $$$('#'+this.target);
@@ -88,18 +92,33 @@ the contents of div#stuffToBeSorted.
           var children = container.children;
           for (var i=0; i<children.length; i++) {
             var ele = children[i];
+            var value = ele.dataset[sortBy];
+            if (!alpha) {
+              value = +value;
+            }
             elements.push({
-              value: +ele.dataset[sortBy],
+              value: value,
               node: ele
             });
           }
-          elements.sort(function(x, y) {
-            if (up) {
-              return x.value - y.value;
-            } else {
-              return y.value - x.value;
-            }
-          });
+          if (alpha) {
+            elements.sort(function(x, y) {
+              if (!up) {
+                var tmp = x;
+                x = y;
+                y = tmp;
+              }
+              return (x.value == y.value ? 0 : (x.value > y.value ? 1 : -1));
+            });
+          } else {
+            elements.sort(function(x, y) {
+              if (up) {
+                return x.value - y.value;
+              } else {
+                return y.value - x.value;
+              }
+            });
+          }
           elements.forEach(function(i) {
             container.appendChild(i.node);
           });

@@ -230,6 +230,8 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 type PolyGUISimple struct {
 	Name      string `json:"name"`
 	Diameter  int    `json:"diameter"`
+	Pos       int    `json:"pos"`
+	Neg       int    `json:"neg"`
 	Untriaged int    `json:"untriaged"`
 	Num       int    `json:"num"`
 }
@@ -252,6 +254,8 @@ func (a *Analyzer) PolyListTestSimple() ([]*PolyGUISimple, error) {
 		ret = append(ret, &PolyGUISimple{
 			Name:      t.Name,
 			Diameter:  t.Diameter,
+			Pos:       len(t.Positive),
+			Neg:       len(t.Negative),
 			Untriaged: len(t.Untriaged),
 			Num:       len(t.Positive) + len(t.Untriaged),
 		})
