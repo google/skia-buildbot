@@ -49,7 +49,7 @@ func NewGsUtil(client *http.Client) (*GsUtil, error) {
 }
 
 func GetOAuthClient() (*http.Client, error) {
-	config := auth.OAuthConfig(GSTokenPath, auth.SCOPE_READ_WRITE)
+	config := auth.OAuthConfig(GSTokenPath, auth.SCOPE_FULL_CONTROL)
 	return auth.RunFlow(config)
 }
 
@@ -268,7 +268,8 @@ func (gs *GsUtil) deleteRemoteDir(gsDir string) error {
 	return nil
 }
 
-// UploadFile uploads the specified file to the remote dir in Google Storage.
+// UploadFile uploads the specified file to the remote dir in Google Storage. It
+// also sets the appropriate ACLs on the uploaded file.
 func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 	localFile := filepath.Join(localDir, fileName)
 	gsFile := filepath.Join(gsDir, fileName)
@@ -282,6 +283,17 @@ func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}
 	glog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GS_BUCKET_NAME, gsFile))
+
+	// All objects uploaded to CT's bucket via this util must be readable by
+	// the google.com domain. This will be fine tuned later if required.
+	objectAcl := &storage.ObjectAccessControl{
+		Bucket: GS_BUCKET_NAME, Entity: "domain-google.com", Object: gsFile, Role: "READER",
+	}
+	if _, err := gs.service.ObjectAccessControls.Insert(GS_BUCKET_NAME, gsFile, objectAcl).Do(); err != nil {
+		return fmt.Errorf("Could not update ACL of %s: %s", object.Name, err)
+	}
+	glog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", GS_BUCKET_NAME, gsFile))
+
 	return nil
 }
 
