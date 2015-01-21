@@ -23,20 +23,100 @@
     tr.commit:nth-child(odd) {
       background-color: #FFFFFF;
     }
-    tr.commit > td {
+    td {
       padding: 0px 5px;
       margin: 0px;
       white-space: nowrap;
     }
+    td.build {
+      padding: 0px;
+    }
     a {
       color: inherit;
+    }
+    a.build {
+      border-style: solid;
+      border-color: gray;
+      min-width: 5px;
+      width: 10px;
+      display: block;
+    }
+    a.build_single {
+      border-width: 1px;
+      border-radius: 3px;
+      margin: 3px 1px;
+      height: 12px;
+    }
+    a.build_middle {
+      border-width: 0px 1px;
+      border-radius: 0px;
+      margin: 0px 1px;
+      height: 20px;
+    }
+    a.build_top {
+      border-width: 1px 1px 0px 1px;
+      border-top-left-radius: 3px;
+      border-top-right-radius: 3px;
+      margin: 3px 1px 0px 1px;
+      height: 16px;
+    }
+    a.build_bottom {
+      border-width: 0px 1px 1px 1px;
+      border-bottom-left-radius: 3px;
+      border-bottom-right-radius: 3px;
+      margin: 0px 1px 3px 1px;
+      height: 16px;
+    }
+    a.result_running { /* Still running */
+      background-color: #E6AB02;
+    }
+    a.result_0 { /* Success */
+      background-color: #66A61E;
+    }
+    a.result_1 { /* Warnings */
+      background-color: #66A61E;
+    }
+    a.result_2 { /* Failed */
+      background-color: #D95F02;
+    }
+    a.result_3 { /* Skipped */
+      background-color: #E7298A;
+    }
+    a.result_4 { /* Exception */
+      background-color: #7570B3;
+    }
+    div.tooltip_left {
+      transform: translate(-80%, 0);
+      -webkit-transform: translate(-80%, 0);
+    }
+    div.tooltip_right {
+      transform: translate(-20%, 0);
+      -webkit-transform: translate(-20%, 0);
+    }
+    div.tooltip {
+      background-color: #FFFFFF;
+      position: absolute;
+      display: none;
+      color: black;
+      border: 1px solid black;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    div.tooltip:hover {
+      display: block;
+    }
+    a.build:hover + div.tooltip {
+      display: block;
+    }
+    a.commit:hover + div.tooltip {
+      display: block;
     }
     #moreButton {
       width: 40px;
       height: 40px;
     }
     </style>
-    <div vertical layout flex>
+    <div fit style="overflow: scroll;">
       <div horizontal layout center id="loadstatus">
         <div>
           Reload (s):
@@ -45,16 +125,27 @@
         <div flex></div>
         <div>Last loaded at {{lastLoaded}}</div>
       </div>
-      <div horizontal layout>
-        <div id="canvasContainer"></div>
-          <canvas id="commitCanvas"></canvas>
+      <div horizontal layout flex>
+        <canvas id="commitCanvas"></canvas>
         <div flex>
           <table class="commitList">
             <template repeat="{{commit in commits}}">
               <tr class="commit" style="color: {{getCommitColor(displayCommits[commit.hash])}}">
-                <td><a href="https://skia.googlesource.com/skia/+/{{commit.hash}}" target="_blank">{{commit.hash|shortCommit}}</a></td>
+                <td>
+                  <a href="https://skia.googlesource.com/skia/+/{{commit.hash}}" class="commit" target="_blank">{{commit.hash|shortCommit}}</a>
+                  <div class="tooltip tooltip_right">{{commit.subject|shortSubject}}</div>
+                </td>
                 <td>{{commit.author|shortAuthor}}</td>
-                <td>{{commit.subject|shortSubject}}</td>
+                <template repeat="{{builder in builders}}">
+                  <td class="build">
+                    <template if="{{commit.builds[builder]}}">
+                      <a href="http://build.chromium.org/p/{{commit.builds[builder].Master}}/builders/{{builder}}/builds/{{commit.builds[builder].Number}}" class="build {{commit.builds[builder].displayClass}} result_{{commit.builds[builder].Finished < commit.builds[builder].Started ? 'running' : commit.builds[builder].Results}}" target="_blank"></a>
+                      <div class="tooltip tooltip_left">
+                        {{builder}} #{{commit.builds[builder].Number}}
+                      </div>
+                    </template>
+                  </td>
+                </template>
               </tr>
             </template>
           </table>
@@ -75,14 +166,14 @@
     // Colors used for the branches. Obtained from
     // http://blog.mollietaylor.com/2012/10/color-blindness-and-palette-choice.html
     var palette = [
-      "#1B9E77",
-      "#D95F02",
-      "#7570B3",
-      "#E7298A",
-      "#66A61E",
-      "#E6AB02",
-      "#A6761D",
-      "#666666",
+      "#1B9E77", // Blue/green
+      "#D95F02", // Red/orange
+      "#7570B3", // Purple
+      "#E7298A", // Pink
+      "#66A61E", // Light green
+      "#E6AB02", // Light orange
+      "#A6761D", // Brown
+      "#666666", // Gray
     ];
     var commitBg = "#FFFFFF";    // Background color of alternating commits.
     var commitBgAlt = "#EFEFEF"; // Background color of alternating commits.
@@ -329,6 +420,14 @@
           value: "(not yet loaded)",
           reflect: false,
         },
+        builds: {
+          value: {},
+          reflect: false,
+        },
+        builders: {
+          value: [],
+          reflect: false,
+        },
       },
 
       created: function() {
@@ -384,7 +483,7 @@
         if (this.reload > 0) {
           var that = this;
           this.timeout = window.setTimeout(function() {
-            that.reloadCommits(that.endIdx);
+            that.reloadCommits(that.startIdx);
           }, this.reload * 1000);
         }
       },
@@ -452,6 +551,57 @@
           else {
             throw "Server returned invalid data.";
           }
+          // Prepare build data.
+          console.log("Preparing build data.");
+          var builds = {};
+          var builders = [];
+          for (var i = 0; i < commits.length; i++) {
+            var commit = commits[i];
+            for (var builder in commit.builds) {
+              var build = commit.builds[builder];
+              if (!builds[builder]) {
+                builds[builder] = {};
+                builders.push(builder);
+              }
+              builds[builder][build.Number] = build;
+              // Figure out the display class to use.
+              var clazz = "build_single";
+              if (i > 0) {
+                var prevBuild = commits[i-1].builds[builder];
+                if (prevBuild && prevBuild.Number == build.Number) {
+                  clazz = "build_bottom";
+                  if (prevBuild.displayClass == "build_single") {
+                    prevBuild.displayClass = "build_top";
+                  } else if (prevBuild.displayClass == "build_bottom") {
+                    prevBuild.displayClass = "build_middle";
+                  }
+                }
+              }
+              build.displayClass = clazz;
+            }
+          }
+          console.log("Prepared build data.");
+          // Filter out green bots.
+          var failedBuilders = [];
+          for (var i = 0; i < builders.length; i++) {
+            var builder = builders[i];
+            var failed = false;
+            for (var buildnum in builds[builder]) {
+              var build = builds[builder][buildnum];
+              if (build.Results != 0) {
+                failed = true;
+                break;
+              }
+            }
+            if (failed) {
+              failedBuilders.push(builder);
+            }
+          }
+
+          that.builds = builds;
+          failedBuilders.sort();
+          that.builders = failedBuilders;
+
           // Actually draw the commits.
           that.draw(commits, json.branch_heads);
           that.commits = commits;
@@ -494,7 +644,6 @@
 
         // Redraw the canvas.
         var scale = window.devicePixelRatio || 1.0;
-        var parent = this.shadowRoot.getElementById("canvasContainer");
         var canvas = this.shadowRoot.getElementById("commitCanvas");
         var w = longestWidth + paddingX;
         var h = commitY * commits.length;
