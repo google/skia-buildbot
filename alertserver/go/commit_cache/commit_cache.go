@@ -125,7 +125,9 @@ func fromFile(cacheFile string, parent *CommitCache, expectFull bool) (*cacheBlo
 	b.storedBuilds = map[int]bool{}
 	for _, c := range b.Commits {
 		for _, build := range c.Builds {
-			b.storedBuilds[build.Id] = true
+			if build.IsFinished() {
+				b.storedBuilds[build.Id] = true
+			}
 		}
 	}
 	glog.Infof("Done reading cache block %d (%d commits) from %s", b.BlockNum, len(b.Commits), cacheFile)
