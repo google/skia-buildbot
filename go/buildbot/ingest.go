@@ -305,6 +305,10 @@ func IngestNewBuilds(repo *gitinfo.GitInfo) error {
 		}
 		buildsToProcess[b.Master][b.Builder] = append(buildsToProcess[b.Master][b.Builder], b.Number)
 	}
+	// Update the repo after obtaining the set of builds to ingest, to
+	// ensure that the repo is at least as new as the builds.
+	repo.Update(true, true)
+
 	// TODO(borenet): Figure out how much of this is safe to parallelize.
 	// We can definitely do different masters in parallel, and maybe we can
 	// ingest different builders in parallel as well.
