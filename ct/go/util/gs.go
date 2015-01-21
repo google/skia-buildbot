@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	GOROUTINE_POOL_SIZE = 40
+	GOROUTINE_POOL_SIZE = 30
 	MAX_CHANNEL_SIZE    = 100000
 )
 
