@@ -172,21 +172,44 @@
                                     </sk-params>
                             </div>
 
-                            <div class="col-xs-12">
-                                <div ng-if="currentLeft && !currentUntriaged">
+                            <div class="col-xs-12" ng-if="currentLeft && !currentUntriaged">
                                     <sk-params params="currentLeft.paramCounts" filter="filterByParam">
                                     </sk-params>
-                                </div>
                             </div>
 
-                            <div class="col-xs-12">
-                                <div ng-if="currentUntriaged && !currentLeft">
+                            <div class="col-xs-12" ng-if="currentUntriaged && !currentLeft">
                                     <sk-params params="currentUntriaged.paramCounts"
                                                filter="filterByParam">
                                     </sk-params>
-                                </div>
                             </div>
                         </div>
+
+                        <div class="row" ng-show="currentUntriaged && commitsList">
+                            <h4>Untriaged appeared in these commits</h4>
+                            <div class="row" ng-repeat="c in commitsList.commits">
+                                <div class="col-xs-2">
+                                    <a href="https://skia.googlesource.com/skia/+/{{c.hash}}" target="_blank">
+                                       {{ c.hash | limitTo:7 }}
+                                   </a>
+                                </div>
+                                <div class="col-xs-4">
+                                    {{ (c.commit_time*1000) | date:'EEE MM/dd/yy hh:mm a'}}
+                                </div>
+                                <div class="col-xs-6">
+                                    {{ c.author }}
+                                </div>
+                            </div>
+                            <div class="row" ng-show="commitsList.hasMore">
+                                <div class="col-xs-12">
+                                    &nbsp; &nbsp; <a href="" ng-click="expandCommitsList()">More ...</a>
+                                </div>
+                            </div>
+
+<!--                             {{ commitsList | json }}
+ -->
+                        </div>
+                        <br>
+
                     </div>
                 </div>
                 <br>

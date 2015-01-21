@@ -189,6 +189,16 @@ func KeysOfStringSet(set map[string]bool) []string {
 	return ret
 }
 
+// KeysOfIntSet returns the keys of a set of strings represented by the keys
+// of a map.
+func KeysOfIntSet(set map[int]bool) []int {
+	ret := make([]int, 0, len(set))
+	for v := range set {
+		ret = append(ret, v)
+	}
+	return ret
+}
+
 // UnionStrings returns a union of all unique strings in the input slices.
 func UnionStrings(lists ...[]string) []string {
 	result := map[string]bool{}

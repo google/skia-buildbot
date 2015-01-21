@@ -10,12 +10,14 @@ import (
 )
 
 // GUITestDetails is an output type with triage information grouped by tests.
+// TODO(stephana): Factor commits handling out of triage and into into a separate REST endpoint.
 type GUITestDetails struct {
-	Commits   []*ptypes.Commit    `json:"commits"`
-	AllParams map[string][]string `json:"allParams"`
-	Tests     []*GUITestDetail    `json:"tests"`
-	Query     map[string][]string `json:"query"`
-	testsMap  map[string]int
+	Commits         []*ptypes.Commit            `json:"commits"`
+	CommitsByDigest map[string]map[string][]int `json:"commitsByDigest"`
+	AllParams       map[string][]string         `json:"allParams"`
+	Tests           []*GUITestDetail            `json:"tests"`
+	Query           map[string][]string         `json:"query"`
+	testsMap        map[string]int
 }
 
 func (g *GUITestDetails) lookup(testName string) *GUITestDetail {
@@ -37,6 +39,7 @@ type GUITestDetail struct {
 
 // DigestInfo contains the image URL and the occurence count of a digest.
 type DigestInfo struct {
+	CommitIds   []int                     `json:"commitIds"`
 	ImgUrl      string                    `json:"imgUrl"`
 	Count       int                       `json:"count"`
 	ParamCounts map[string]map[string]int `json:"paramCounts"`
@@ -107,10 +110,11 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 	glog.Infoln("Done extracting test details.")
 
 	return &GUITestDetails{
-		Commits:   labeledTile.Commits,
-		AllParams: a.currentIndex.getAllParams(nil),
-		Tests:     result,
-		testsMap:  testsMap,
+		Commits:         labeledTile.Commits,
+		CommitsByDigest: labeledTile.CommitsByDigest,
+		AllParams:       a.currentIndex.getAllParams(nil),
+		Tests:           result,
+		testsMap:        testsMap,
 	}
 }
 

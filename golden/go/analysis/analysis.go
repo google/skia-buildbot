@@ -57,15 +57,20 @@ type LabeledTile struct {
 	// redundant, but this also output format.
 	Traces map[string][]*LabeledTrace
 
+	// CommitsByDigest maps a corpus and a digest to a list of commit ids.
+	// i.e. CommitsByDigest[corpus][digest] -> slice with indices of Commits.
+	CommitsByDigest map[string]map[string][]int
+
 	// Keeps track of unique ids for traces within this tile.
 	traceIdCounter int
 }
 
 func NewLabeledTile() *LabeledTile {
 	return &LabeledTile{
-		Commits:        []*ptypes.Commit{},
-		Traces:         map[string][]*LabeledTrace{},
-		traceIdCounter: 0,
+		Commits:         []*ptypes.Commit{},
+		CommitsByDigest: map[string]map[string][]int{},
+		Traces:          map[string][]*LabeledTrace{},
+		traceIdCounter:  0,
 	}
 }
 
@@ -307,9 +312,10 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 	}
 
 	return &GUITestDetails{
-		Commits:   a.currentTestDetails.Commits,
-		AllParams: a.currentIndex.getAllParams(query),
-		Query:     effectiveQuery,
+		Commits:         a.currentTestDetails.Commits,
+		CommitsByDigest: map[string]map[string][]int{testName: a.currentTestDetails.CommitsByDigest[testName]},
+		AllParams:       a.currentIndex.getAllParams(query),
+		Query:           effectiveQuery,
 		Tests: []*GUITestDetail{
 			&GUITestDetail{
 				Name:      testName,
@@ -408,6 +414,7 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 
 	tileLen := tile.LastCommitIndex() + 1
 	result.Commits = tile.Commits[:tileLen]
+	commitsByDigestMap := map[string]map[string]map[int]bool{}
 
 	// Note: We are assumming that the number and order of traces will change
 	// over time.
@@ -416,6 +423,7 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 		tempLabels := make([]types.Label, 0, tileLen)
 		tempDigests := make([]string, 0, tileLen)
 		gTrace := v.(*ptypes.GoldenTrace)
+		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 
 		// Iterate over the digests in this trace.
 		for i, v := range gTrace.Values[:tileLen] {
@@ -423,12 +431,29 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 				tempCommitIds = append(tempCommitIds, i)
 				tempDigests = append(tempDigests, v)
 				tempLabels = append(tempLabels, types.UNTRIAGED)
+
+				// Keep track of the commits by digest.
+				if _, ok := commitsByDigestMap[testName]; !ok {
+					commitsByDigestMap[testName] = map[string]map[int]bool{v: map[int]bool{i: true}}
+				} else if _, ok := commitsByDigestMap[testName][v]; !ok {
+					commitsByDigestMap[testName][v] = map[int]bool{i: true}
+				} else {
+					commitsByDigestMap[testName][v][i] = true
+				}
 			}
 		}
 
 		// Label the digests and add them to the labeled traces.
 		_, targetLabeledTrace := result.getLabeledTrace(v)
 		targetLabeledTrace.addLabeledDigests(tempCommitIds, tempDigests, tempLabels)
+	}
+
+	for testName, cbd := range commitsByDigestMap {
+		result.CommitsByDigest[testName] = make(map[string][]int, len(cbd))
+		for d, commitIds := range cbd {
+			result.CommitsByDigest[testName][d] = util.KeysOfIntSet(commitIds)
+			sort.Ints(result.CommitsByDigest[testName][d])
+		}
 	}
 
 	glog.Info("Done processing tile into LabeledTile.")

@@ -468,6 +468,7 @@ var skia = skia || {};
       var positives, negatives;
       var posIndex, negIndex;
       var triageStateManager;
+      var commitsMap, allCommits;
 
       // processServerData is called by loadTriageState and also saveTriageState
       // to process the triage data returned by the server.
@@ -484,6 +485,10 @@ var skia = skia || {};
             $scope.untStats = testData.untStats;
             $scope.posStats = testData.posStats;
             $scope.negStats = testData.negStats;
+
+            // TODO(stephana): Factor commits handling into a separate REST endpoint.
+            commitsMap = serverData.commitsByDigest && serverData.commitsByDigest[testName] || {};
+            allCommits = serverData.commits;
 
             $scope.untriaged = testData.untriaged;
             triageStateManager.setNewState(triageData.triageState);
@@ -543,6 +548,28 @@ var skia = skia || {};
         $timeout($scope.loadTriageData, $scope.reloadInterval * 1000);
       }
 
+      function getCommitsList(digest, all) {
+        if (allCommits && commitsMap && commitsMap[digest]) {
+          var useCommits = (all) ? commitsMap[digest] : commitsMap[digest].slice(0, 5);
+          var result = useCommits.map(function(idx) {
+            return allCommits[idx];
+          });
+
+          return {
+            commits: result,
+            hasMore: result.length !== commitsMap[digest].length
+          };
+        } else {
+            return null;
+        }
+      }
+
+      $scope.expandCommitsList = function () {
+        if ($scope.commitsList && $scope.commitsList.hasMore) {
+          $scope.commitsList = getCommitsList($scope.currentUntriaged.digest, true);
+        }
+      };
+
       // selectUntriaged is a UI function to pick an untriaged digest.
       $scope.selectUntriaged = function (idx) {
         if ($scope.untriaged.length === 0) {
@@ -554,6 +581,7 @@ var skia = skia || {};
           positives =
                   ns.getSortedPositivesFromUntriaged($scope.currentUntriaged);
           $scope.untIndex = idx;
+          $scope.commitsList = getCommitsList($scope.currentUntriaged.digest, false);
           setPosIndex(0);
         }
       };
@@ -989,7 +1017,7 @@ var skia = skia || {};
       loadData(ns.c.URL_STATUS).then(
         function (resultResp) {
           $rootScope.globalStatus = resultResp;
-          $rootScope.corpStatus = resultResp.corpStatus || {};
+          $rootScope.corpStatus = (resultResp && resultResp.corpStatus) || {};
           $rootScope.corpusList = ns.sortedKeys($rootScope.corpStatus);
           if (!$rootScope.corpStatus[$rootScope.currentCorpus] &&
               ($rootScope.corpusList.length > 0)) {

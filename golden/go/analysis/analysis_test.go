@@ -223,6 +223,29 @@ func TestAgainstLiveData(t *testing.T) {
 		}
 	}
 
+	// Make sure the commits are consistent.
+	assert.Equal(t, 1, len(oneTest.CommitsByDigest))
+	for testName, commitsBD := range oneTest.CommitsByDigest {
+		for _, commitIds := range commitsBD {
+			assert.True(t, len(commitIds) > 0)
+			assert.True(t, commitIds[0] < len(oneTest.Commits))
+			assert.True(t, commitIds[0] >= 0)
+			for i := 1; i < len(commitIds); i++ {
+				assert.True(t, commitIds[i-1] < commitIds[i], fmt.Sprintf("%d is not smaller than %d", commitIds[i-1], commitIds[i]))
+				assert.True(t, commitIds[i] < len(oneTest.Commits))
+				assert.True(t, commitIds[i] >= 0)
+			}
+		}
+
+		// Go through the current tile and check whether the digests match up.
+		for _, trace := range a.currentTile.Traces[testName] {
+			for idx, digest := range trace.Digests {
+				assert.NotNil(t, commitsBD[digest], fmt.Sprintf("Did not find digest: %s in \n %v", digest, commitsBD))
+				assert.NotEqual(t, len(commitsBD[digest]), sort.SearchInts(commitsBD[digest], trace.CommitIds[idx]))
+			}
+		}
+	}
+
 	// Get the status.
 	status := a.GetStatus()
 
