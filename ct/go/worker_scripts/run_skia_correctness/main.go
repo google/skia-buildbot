@@ -173,8 +173,6 @@ func main() {
 		"--gs_output_dir=gs://" + filepath.Join(util.GS_BUCKET_NAME, remoteDir),
 		"--gs_skp_dir=gs://" + filepath.Join(util.GS_BUCKET_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild, fmt.Sprintf("slave%d", *workerNum)),
 		"--slave_num=" + strconv.Itoa(*workerNum),
-		"--add_to_sys_path=" + filepath.Join(util.SkiaTreeDir, "gm"),
-		"--add_to_sys_path=" + filepath.Join(util.SkiaTreeDir, "gm", "rebaseline_server"),
 	}
 	if err := util.ExecuteCmd("python", summaryArgs, []string{}, 15*time.Minute, nil, nil); err != nil {
 		glog.Error(err)

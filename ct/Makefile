@@ -120,7 +120,7 @@ e2e_tests:
 	@echo
 
 	@echo "Running skia_correctness"
-	go run go/worker_scripts/run_skia_correctness/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce --run_id=rmistry123 --render_pictures_args="--config 8888 --viewport 4000 4000 --mode simple" --gpu_nopatch_run=false --gpu_withpatch_run=true --logtostderr
+	go run go/worker_scripts/run_skia_correctness/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=c5e7bbe-4fc48af --run_id=rmistry123 --render_pictures_args="--config 8888 --viewport 4000 4000 --mode simple" --gpu_nopatch_run=false --gpu_withpatch_run=true --logtostderr
 	@echo "Completed skia_correctness. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo

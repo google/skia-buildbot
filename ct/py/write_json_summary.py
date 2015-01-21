@@ -60,9 +60,10 @@ def WriteJsonSummary(img_root, nopatch_json, nopatch_images_base_url,
     additions_to_sys_path: ([str]) A list of path components to add to sys.path;
         typically used to provide rebaseline_server Python modules.
   """
-  for dirpath in additions_to_sys_path:
-    if dirpath not in sys.path:
-      sys.path.append(dirpath)
+  if additions_to_sys_path:
+    for dirpath in additions_to_sys_path:
+      if dirpath not in sys.path:
+        sys.path.insert(0, dirpath)
 
   # Modules from skia's gm/ and gm/rebaseline_server/ dirs.
   try:
