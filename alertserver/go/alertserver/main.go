@@ -447,7 +447,7 @@ func main() {
 	glog.Info("CloneOrUpdate complete")
 
 	// Initialize the buildbot database.
-	conf, err := database.ConfigFromFlags("", false, buildbot.MigrationSteps())
+	conf, err := database.ConfigFromFlagsAndMetadata(*testing, buildbot.MigrationSteps())
 	glog.Infof("Database config: %s", conf.MySQLString)
 	if err := buildbot.InitDB(conf); err != nil {
 		glog.Fatal(err)
