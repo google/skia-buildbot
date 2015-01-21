@@ -61,6 +61,9 @@
       html /deep/ .header.short {
         width: 5em;
       }
+      query-sk {
+        display: block;
+      }
 
     </style>
   </head>
@@ -83,29 +86,38 @@
     </scaffold-sk>
 
     <script type="text/javascript" charset="utf-8">
-      sk.WebComponentsReady.then(function(){
-        sk.get('/2/_/list').then(JSON.parse).then(function(json) {
-          var container = $$$('#summaries');
-          json.forEach(function(c) {
-            var s = document.createElement('test-summary-sk');
-            container.appendChild(s);
-            s.summary = c;
-          });
-        }).catch(function(e) {
-          $$$('paper-toast').text = e;
-          $$$('paper-toast').show();
-        });
+     (function() {
+       function loadSummaries(query) {
+         query = query || '';
+         sk.get('/2/_/list' + '?' + query).then(JSON.parse).then(function(json) {
+           var container = $$$('#summaries');
+           sk.clearChildren(container);
+           json.forEach(function(c) {
+             var s = document.createElement('test-summary-sk');
+             container.appendChild(s);
+             s.summary = c;
+           });
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
+           $$$('paper-toast').show();
+         });
+       }
 
-        sk.get('/2/_/paramset').then(JSON.parse).then(function(json) {
-          $$$('query-sk').setParamSet(json)
-        }).catch(function(e) {
-          $$$('paper-toast').text = e;
-          $$$('paper-toast').show();
-        });
+       sk.WebComponentsReady.then(function(){
+         loadSummaries();
+         sk.get('/2/_/paramset').then(JSON.parse).then(function(json) {
+           $$$('query-sk').setParamSet(json)
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
+           $$$('paper-toast').show();
+         });
 
-        // TODO(jcgregorio) Register for change events from query-sk and
-        // update the contents of #summaries based on the query.
-      });
+         $$$('query-sk').addEventListener('change', function(e) {
+           loadSummaries(e.detail);
+         });
+       });
+
+     })();
     </script>
   </body>
 </html>

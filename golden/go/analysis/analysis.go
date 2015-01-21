@@ -1,6 +1,8 @@
 package analysis
 
 import (
+	"fmt"
+	"net/url"
 	"sort"
 	"sync"
 	"time"
@@ -249,13 +251,37 @@ func (p PolyGUISimpleSlice) Less(i, j int) bool { return p[i].Name < p[j].Name }
 func (p PolyGUISimpleSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // PolyListSimple returns a highlevel list of information about each test.
-func (a *Analyzer) PolyListTestSimple() ([]*PolyGUISimple, error) {
+func (a *Analyzer) PolyListTestSimple(query url.Values) ([]*PolyGUISimple, error) {
 	a.mutex.RLock()
 	defer a.mutex.RUnlock()
 
-	ret := make([]*PolyGUISimple, 0, len(a.currentTestDetails.Tests))
+	ret := []*PolyGUISimple{}
+
+	tile, err := a.tileStore.Get(0, -1)
+	if err != nil {
+		return nil, fmt.Errorf("Analyzer couldn't retrieve tile: %s", err)
+	}
+
+	hasQuery := len(query) > 0
+
+	names := map[string]bool{}
+	if hasQuery {
+		for _, tr := range tile.Traces {
+			if ptypes.Matches(tr, query) {
+				if name, ok := tr.Params()[types.PRIMARY_KEY_FIELD]; ok {
+					names[name] = true
+				}
+			}
+		}
+	}
 
 	for _, t := range a.currentTestDetails.Tests {
+		if hasQuery {
+			if _, ok := names[t.Name]; !ok {
+				continue
+			}
+		}
+
 		ret = append(ret, &PolyGUISimple{
 			Name:      t.Name,
 			Diameter:  t.Diameter,

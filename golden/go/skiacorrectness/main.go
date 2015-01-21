@@ -106,7 +106,11 @@ func loadTemplates() {
 //  ]
 //
 func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
-	res, err := analyzer.PolyListTestSimple()
+	if err := r.ParseForm(); err != nil {
+		util.ReportError(w, r, err, "Failed to parse form data.")
+		return
+	}
+	res, err := analyzer.PolyListTestSimple(r.Form)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load test information")
 		return
