@@ -50,16 +50,16 @@
       sk.DomReady.then(function() {
         prettyPrint();
 
-         // Open the side drawer with the navigation menu.
-         $$$('button').addEventListener('click', function(e) {
-          $$$('#drawer').classList.add('opened');
-          e.stopPropagation();
-         });
+        // Open the side drawer with the navigation menu.
+        $$$('button').addEventListener('click', function(e) {
+         $$$('#drawer').classList.add('opened');
+         e.stopPropagation();
+        });
 
-         // Close the side drawer.
-         $$$('body').addEventListener('click', function() {
-          $$$('#drawer').classList.remove('opened');
-         });
+        // Close the side drawer.
+        $$$('body').addEventListener('click', function() {
+         $$$('#drawer').classList.remove('opened');
+        });
 
         // highlightNav highlights where we are in the navigation.
         var highlightNav = function() {
@@ -87,6 +87,7 @@
               window.history.pushState(null, null, url);
               highlightNav();
               $$$('html #content').innerHTML = content;
+              prettyPrint();
             });
             e.preventDefault();
           });
