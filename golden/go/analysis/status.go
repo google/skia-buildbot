@@ -1,7 +1,28 @@
 package analysis
 
 import (
+	"fmt"
+
+	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
+)
+
+const (
+	// Metric names and templates for metric names added in this file.
+	METRIC_TOTAL       = "golden.digests.total"
+	METRIC_ALL_TMPL    = "golden.%s.all"
+	METRIC_CORPUS_TMPL = "golden.%s.by_corpus.%s"
+)
+
+var (
+	// Gauges to track overall digests with different labels.
+	allUntriagedGauge = metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_ALL_TMPL, types.UNTRIAGED), nil)
+	allPositiveGauge  = metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_ALL_TMPL, types.POSITIVE), nil)
+	allNegativeGauge  = metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_ALL_TMPL, types.NEGATIVE), nil)
+	totalGauge        = metrics.NewRegisteredGauge(METRIC_TOTAL, nil)
+
+	// Gauges to track counts of digests by corpus / label
+	corpusGauges = map[string]map[types.Label]metrics.Gauge{}
 )
 
 // GUIStatus reflects the current rebaseline status. In particular whether
@@ -35,14 +56,25 @@ func (a *Analyzer) calcStatus(labeledTile *LabeledTile) *GUIStatus {
 	corpStatus := make(map[string]*GUICorpusStatus, len(a.currentIndex.corpora))
 	minCommitId := map[string]int{}
 	okByCorpus := map[string]bool{}
-	untriaged := map[string]map[string]bool{}
-	negative := map[string]map[string]bool{}
+
+	// Gathers unique labels by corpus and label.
+	byCorpus := map[string]map[types.Label]map[string]bool{}
 
 	for _, corpus := range a.currentIndex.corpora {
 		minCommitId[corpus] = len(labeledTile.Commits)
 		okByCorpus[corpus] = true
-		untriaged[corpus] = map[string]bool{}
-		negative[corpus] = map[string]bool{}
+		byCorpus[corpus] = map[types.Label]map[string]bool{
+			types.POSITIVE:  map[string]bool{},
+			types.NEGATIVE:  map[string]bool{},
+			types.UNTRIAGED: map[string]bool{},
+		}
+		if _, ok := corpusGauges[corpus]; !ok {
+			corpusGauges[corpus] = map[types.Label]metrics.Gauge{
+				types.UNTRIAGED: metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_CORPUS_TMPL, types.UNTRIAGED, corpus), nil),
+				types.POSITIVE:  metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_CORPUS_TMPL, types.POSITIVE, corpus), nil),
+				types.NEGATIVE:  metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_CORPUS_TMPL, types.NEGATIVE, corpus), nil),
+			}
+		}
 	}
 
 	// Iterate over the current traces
@@ -57,24 +89,37 @@ func (a *Analyzer) calcStatus(labeledTile *LabeledTile) *GUIStatus {
 			if trace.CommitIds[idx] < minCommitId[corpus] {
 				minCommitId[corpus] = trace.CommitIds[idx]
 			}
-			if trace.Labels[idx] == types.UNTRIAGED {
-				untriaged[corpus][trace.Digests[idx]] = true
-			} else if trace.Labels[idx] == types.NEGATIVE {
-				negative[corpus][trace.Digests[idx]] = true
-			}
+			byCorpus[corpus][trace.Labels[idx]][trace.Digests[idx]] = true
 		}
 	}
 
 	overallOk := true
+	allUntriagedCount := 0
+	allPositiveCount := 0
+	allNegativeCount := 0
 	for _, corpus := range a.currentIndex.corpora {
 		overallOk = overallOk && okByCorpus[corpus]
+		untriagedCount := len(byCorpus[corpus][types.UNTRIAGED])
+		positiveCount := len(byCorpus[corpus][types.POSITIVE])
+		negativeCount := len(byCorpus[corpus][types.NEGATIVE])
 		corpStatus[corpus] = &GUICorpusStatus{
 			OK:             okByCorpus[corpus],
 			MinCommitHash:  labeledTile.Commits[minCommitId[corpus]].Hash,
-			UntriagedCount: len(untriaged[corpus]),
-			NegativeCount:  len(negative[corpus]),
+			UntriagedCount: untriagedCount,
+			NegativeCount:  negativeCount,
 		}
+		allUntriagedCount += untriagedCount
+		allNegativeCount += negativeCount
+		allPositiveCount += positiveCount
+
+		corpusGauges[corpus][types.POSITIVE].Update(int64(positiveCount))
+		corpusGauges[corpus][types.NEGATIVE].Update(int64(negativeCount))
+		corpusGauges[corpus][types.UNTRIAGED].Update(int64(untriagedCount))
 	}
+	allUntriagedGauge.Update(int64(allUntriagedCount))
+	allPositiveGauge.Update(int64(allPositiveCount))
+	allNegativeGauge.Update(int64(allNegativeCount))
+	totalGauge.Update(int64(allUntriagedCount + allPositiveCount + allNegativeCount))
 
 	return &GUIStatus{
 		OK:         overallOk,

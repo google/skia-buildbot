@@ -1,8 +1,5 @@
 package types
 
-// Label for classifying digests.
-type Label int
-
 const (
 	// Primary key field that uniquely identifies a key.
 	PRIMARY_KEY_FIELD = "name"
@@ -11,14 +8,26 @@ const (
 	CORPUS_FIELD = "source_type"
 )
 
-// Note: Some code in analysis depends on the order of this enum and
-// also on UNTRIAGED being 0.
+// Label for classifying digests.
+type Label int
+
 const (
 	// Classifications for observed digests.
 	UNTRIAGED Label = iota // == 0
 	POSITIVE
 	NEGATIVE
 )
+
+// String representation for Labels. The order must match order above.
+var labelStringRepresentation = []string{
+	"untriaged",
+	"positive",
+	"negative",
+}
+
+func (l Label) String() string {
+	return labelStringRepresentation[l]
+}
 
 // Stores the digests and their associated labels.
 // Note: The name of the test is assumed to be handled by the client of this
