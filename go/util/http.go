@@ -117,8 +117,6 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		}
 		resp, err = t.Transport.RoundTrip(req)
 		if err != nil {
-			// Stop backing off if there are non server errors.
-			backOffClient.MaxElapsedTime = backoff.Stop
 			return fmt.Errorf("Error while making the round trip: %s", err)
 		}
 		if resp != nil && resp.StatusCode >= 500 && resp.StatusCode <= 599 {
