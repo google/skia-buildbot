@@ -18,6 +18,7 @@ import (
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/gs"
+	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 const (
@@ -51,7 +52,7 @@ func NewGsUtil(client *http.Client) (*GsUtil, error) {
 
 func GetOAuthClient() (*http.Client, error) {
 	config := auth.OAuthConfig(GSTokenPath, auth.SCOPE_FULL_CONTROL)
-	return auth.RunFlow(config)
+	return auth.RunFlowWithTransport(config, util.NewBackOffTransport())
 }
 
 // Returns the response body of the specified GS object. Tries MAX_URI_GET_TRIES

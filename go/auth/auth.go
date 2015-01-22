@@ -44,16 +44,15 @@ func OAuthConfig(cacheFilePath, scope string) *oauth.Config {
 	}
 }
 
-// runFlow runs through a 3LO OAuth 2.0 flow to get credentials for Google Storage.
-func RunFlow(config *oauth.Config) (*http.Client, error) {
+// RunFlowWithTransport runs through a 3LO OAuth 2.0 flow to get credentials for
+// Google Storage using the specified HTTP transport.
+func RunFlowWithTransport(config *oauth.Config, transport http.RoundTripper) (*http.Client, error) {
 	if config == nil {
 		config = DefaultOAuthConfig("")
 	}
-	transport := &oauth.Transport{
-		Config: config,
-		Transport: &http.Transport{
-			Dial: util.DialTimeout,
-		},
+	oauthTransport := &oauth.Transport{
+		Config:    config,
+		Transport: transport,
 	}
 	if _, err := config.TokenCache.Token(); err != nil {
 		url := config.AuthCodeURL("")
@@ -65,10 +64,23 @@ Enter the verification code:`, url)
 		webbrowser.Open(url)
 		var code string
 		fmt.Scan(&code)
-		if _, err := transport.Exchange(code); err != nil {
+		if _, err := oauthTransport.Exchange(code); err != nil {
 			return nil, err
 		}
 	}
 
-	return transport.Client(), nil
+	return oauthTransport.Client(), nil
+}
+
+// runFlow runs through a 3LO OAuth 2.0 flow to get credentials for Google Storage.
+// Uses an HTTP transport with a dial timeout. Use RunFlowWithTransport to specify
+// your own HTTP transport.
+func RunFlow(config *oauth.Config) (*http.Client, error) {
+	transport := &oauth.Transport{
+		Config: config,
+		Transport: &http.Transport{
+			Dial: util.DialTimeout,
+		},
+	}
+	return RunFlowWithTransport(config, transport)
 }
