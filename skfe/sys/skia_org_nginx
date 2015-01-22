@@ -1,11 +1,27 @@
+
+ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+ssl_ciphers 'AES128+EECDH:AES128+EDH';
+ssl_prefer_server_ciphers on;
+ssl_session_cache shared:SSL:10m;
+
+ssl_certificate         /etc/nginx/ssl/skia_org.pem;
+ssl_certificate_key     /etc/nginx/ssl/skia_org.key;
+
+proxy_connect_timeout       5m;
+proxy_send_timeout          5m;
+proxy_read_timeout          5m;
+send_timeout                5m;
+
+#####   skia.org   ################################
 server {
-    listen      80;
+    listen      443;
     server_name skia.org www.skia.org skiadev.org www.skiadev.org "";
 
-    proxy_connect_timeout       5m;
-    proxy_send_timeout          5m;
-    proxy_read_timeout          5m;
-    send_timeout                5m;
+    ssl on;
+
+    if ( $host != 'skia.org' ) {
+        rewrite ^/(.*)$ https://skia.org/$1 permanent;
+    }
 
     location / {
         proxy_pass http://skia-docs:8000;
@@ -14,71 +30,101 @@ server {
 
 server {
     listen      80;
+    server_name skia.org www.skia.org skiadev.org www.skiadev.org "";
+    return 301 https://skia.org$request_uri;
+}
+
+#####   perf.skia.org   ###########################
+server {
+    listen      443;
     server_name perf.skia.org perf.skiadev.org;
 
-    proxy_connect_timeout       5m;
-    proxy_send_timeout          5m;
-    proxy_read_timeout          5m;
-    send_timeout                5m;
+    if ( $host != 'perf.skia.org' ) {
+        rewrite ^/(.*)$ https://perf.skia.org/$1 permanent;
+    }
 
     location / {
         proxy_pass http://skia-testing-b:8000;
     }
 }
-
 server {
     listen      80;
+    server_name perf.skia.org perf.skiadev.org;
+    return 301 https://perf.skia.org$request_uri;
+}
+
+#####   gold.skia.org   ###########################
+server {
+    listen      443;
     server_name gold.skia.org gold.skiadev.org;
 
-    proxy_connect_timeout       5m;
-    proxy_send_timeout          5m;
-    proxy_read_timeout          5m;
-    send_timeout                5m;
+    if ( $host != 'gold.skia.org' ) {
+        rewrite ^/(.*)$ https://gold.skia.org/$1 permanent;
+    }
 
     location / {
         proxy_pass http://skia-testing-b:8001;
     }
 }
-
 server {
     listen      80;
+    server_name gold.skia.org gold.skiadev.org;
+    return 301 https://gold.skia.org$request_uri;
+}
+
+#####   alerts.skia.org   ###########################
+server {
+    listen      443;
     server_name alerts.skia.org alerts.skiadev.org;
 
-    proxy_connect_timeout       5m;
-    proxy_send_timeout          5m;
-    proxy_read_timeout          5m;
-    send_timeout                5m;
+    if ( $host != 'alerts.skia.org' ) {
+        rewrite ^/(.*)$ https://alerts.skia.org/$1 permanent;
+    }
 
     location / {
         proxy_pass http://skia-monitoring:8001;
     }
 }
-
 server {
     listen      80;
+    server_name alerts.skia.org alerts.skiadev.org;
+    return 301 https://alerts.skia.org$request_uri;
+}
+
+#####   mon.skia.org   ###########################
+server {
+    listen      443;
     server_name mon.skia.org mon.skiadev.org;
 
-    proxy_connect_timeout       5m;
-    proxy_send_timeout          5m;
-    proxy_read_timeout          5m;
-    send_timeout                5m;
+    if ( $host != 'mon.skia.org' ) {
+        rewrite ^/(.*)$ https://mon.skia.org/$1 permanent;
+    }
 
     location / {
         proxy_pass http://skia-monitoring:8000;
     }
 }
-
 server {
     listen      80;
+    server_name mon.skia.org mon.skiadev.org;
+    return 301 https://mon.skia.org$request_uri;
+}
+
+#####   push.skia.org   ###########################
+server {
+    listen      443;
     server_name push.skia.org push.skiadev.org;
 
-    proxy_connect_timeout       5m;
-    proxy_send_timeout          5m;
-    proxy_read_timeout          5m;
-    send_timeout                5m;
+    if ( $host != 'push.skia.org' ) {
+        rewrite ^/(.*)$ https://push.skia.org/$1 permanent;
+    }
 
     location / {
         proxy_pass http://skia-push:8000;
     }
 }
-
+server {
+    listen      80;
+    server_name push.skia.org push.skiadev.org;
+    return 301 https://push.skia.org$request_uri;
+}
