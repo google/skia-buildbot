@@ -355,7 +355,7 @@ func main() {
 		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
 		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
-		redirectURL = "http://skiapush.com:8000/oauth2callback/"
+		redirectURL = "https://push.skia.org/oauth2callback/"
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
 
