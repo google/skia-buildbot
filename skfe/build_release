@@ -17,8 +17,13 @@ ${INSTALL} --mode=644 -T ./sys/skia_org_nginx      ${ROOT}/etc/nginx/sites-avail
 sudo mkdir                                         ${ROOT}/etc/nginx/sites-enabled
 ${SOFTLINK} ../sites-available/skia_org            ${ROOT}/etc/nginx/sites-enabled/skia_org
 
+${INSTALL} --mode=644 -T ./sys/certpoller_monit    ${ROOT}/etc/monit/conf.d/certpoller
+${INSTALL} --mode=755 -T ./sys/certpoller_init     ${ROOT}/etc/init.d/certpoller
+${INSTALL} --mode=755 -T ${GOPATH}/bin/certpoller  ${ROOT}/usr/local/bin/certpoller
+
 # Monitoring.
 ${INSTALL}     --mode=644 -T ./sys/nginx_monit     ${ROOT}/etc/monit/conf.d/nginx
+${INSTALL_DIR} --mode=700                          ${ROOT}/etc/nginx/ssl
 }
 
 source ../bash/release.sh

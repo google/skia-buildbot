@@ -1,0 +1,13 @@
+check process certpoller with pidfile /var/run/certpoller.pid
+   start program = "/etc/init.d/certpoller start"
+   stop program = "/etc/init.d/certpoller stop"
+   depends on certpoller_init
+   depends on certpoller_exe
+
+check file certpoller_init
+  with path /etc/init.d/certpoller
+  if changed timestamp then restart
+
+check file certpoller_exe
+  with path /usr/local/bin/certpoller
+  if changed timestamp then restart
