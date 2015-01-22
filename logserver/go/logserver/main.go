@@ -26,7 +26,7 @@ import (
 var (
 	port           = flag.String("port", ":10115", "HTTP service address (e.g., ':10115')")
 	dir            = flag.String("dir", "/tmp/glog", "Directory to serve log files from.")
-	graphiteServer = flag.String("graphite_server", "skiamonitor.com:2003", "Where is Graphite metrics ingestion server running.")
+	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	stateFile      = flag.String("state_file", "/tmp/logserver.state", "File where logserver stores all encountered log files. This ensures that metrics are not duplicated for already processed log files.")
 
 	appLogThreshold = flag.Int64(

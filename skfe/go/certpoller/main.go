@@ -28,7 +28,7 @@ import (
 )
 
 var (
-	graphiteServer = flag.String("graphite_server", "skiamonitor.com:2003", "Where is Graphite metrics ingestion server running.")
+	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 )
 
 // cert contains information about one SSL certificate file.
