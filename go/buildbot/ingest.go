@@ -3,6 +3,7 @@ package buildbot
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -48,8 +49,10 @@ func findCommitsRecursive(b *Build, hash string, repo *gitinfo.GitInfo) ([]strin
 	if err != nil {
 		return nil, fmt.Errorf("Could not find build for commit %s: %v", hash, err)
 	}
-	// If so, stop.
-	if n >= 0 {
+	// If so, stop. If the build we found is the current build, keep going,
+	// since we may have already ingested data for this build but still
+	// need to find accurate revision data.
+	if n >= 0 && n != b.Number {
 		return []string{}, nil
 	}
 
@@ -153,6 +156,10 @@ func IngestBuild(master, builder string, buildNumber int, repo *gitinfo.GitInfo)
 	b, err := retryGetBuildFromMaster(master, builder, buildNumber, repo)
 	if err != nil {
 		return fmt.Errorf("Failed to load build from master: %v", err)
+	}
+	// Log the case where we found no revisions for the build.
+	if !(strings.HasSuffix(b.Builder, "-Trybot") || strings.Contains(b.Builder, "Housekeeper")) && len(b.Commits) == 0 {
+		glog.Infof("Got build with 0 revs: %s #%d GotRev=%s", b.Builder, b.Number, b.GotRevision)
 	}
 	return b.ReplaceIntoDB()
 }
@@ -322,7 +329,10 @@ func IngestNewBuilds(repo *gitinfo.GitInfo) error {
 				for _, n := range w {
 					glog.Infof("Ingesting build: %s, %s, %d", master, b, n)
 					if err := IngestBuild(master, b, n, repo); err != nil {
-						errors[master] = fmt.Errorf("Failed to ingest build: %v", err)
+						e := fmt.Errorf("Failed to ingest build: %v", err)
+						glog.Error(e)
+						errors[master] = e
+						return
 					}
 				}
 			}
