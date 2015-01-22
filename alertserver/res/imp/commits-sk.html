@@ -10,6 +10,9 @@
       border-spacing: 0px;
       width: 100%;
     }
+    th {
+      text-align: left;
+    }
     tr.commit {
       font-size: 10px;
       font-family: monospace;
@@ -126,38 +129,58 @@
         <div>Last loaded at {{lastLoaded}}</div>
       </div>
       <div horizontal layout flex>
-        <canvas id="commitCanvas"></canvas>
+        <div>
+          <!-- Use another as a spacer for the canvas. I couldn't find a sane
+               way to put the canvas in the same table as the commit data. -->
+          <table class="commitList">
+            <thead><th>Graph</th></thead>
+            <tbody>
+              <tr class="commit">
+                <td class="build">
+                  <canvas id="commitCanvas"></canvas>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div flex>
           <table class="commitList">
-            <template repeat="{{commit in commits}}">
-              <tr class="commit" style="color: {{getCommitColor(displayCommits[commit.hash])}}">
-                <td>
-                  <a href="https://skia.googlesource.com/skia/+/{{commit.hash}}" class="commit" target="_blank">{{commit.hash|shortCommit}}</a>
-                  <div class="tooltip tooltip_right">{{commit.subject|shortSubject}}</div>
-                </td>
-                <td>{{commit.author|shortAuthor}}</td>
-                <template repeat="{{builder in builders}}">
-                  <td class="build">
-                    <template if="{{commit.builds[builder]}}">
-                      <a href="http://build.chromium.org/p/{{commit.builds[builder].master}}/builders/{{builder}}/builds/{{commit.builds[builder].number}}" class="build {{commit.builds[builder].displayClass}} result_{{commit.builds[builder].finished ? commit.builds[builder].results : 'running'}}" target="_blank"></a>
-                      <div class="tooltip tooltip_left">
-                        <p>{{builder}} #{{commit.builds[builder].number}}</p>
-                        <template if="{{commit.builds[builder].failedSteps && commit.builds[builder].failedSteps.length > 0}}">
-                          <p>
-                            Failed steps:<br/>
-                            <ul>
-                              <template repeat="{{step in commit.builds[builder].failedSteps}}">
-                                <li>{{step}}</li>
-                              </template>
-                            </ul>
-                          </p>
-                        </template>
-                      </div>
-                    </template>
+            <thead>
+              <th>Commit</th>
+              <th>Author</th>
+              <th colspan="{{builders.length}}">Buildbot Results</th>
+            </thead>
+            <tbody>
+              <template repeat="{{commit, i in commits}}">
+                <tr class="commit" style="color: {{getCommitColor(displayCommits[commit.hash])}}">
+                  <td>
+                    <a href="https://skia.googlesource.com/skia/+/{{commit.hash}}" class="commit" target="_blank">{{commit.hash|shortCommit}}</a>
+                    <div class="tooltip tooltip_right">{{commit.subject|shortSubject}}</div>
                   </td>
-                </template>
-              </tr>
-            </template>
+                  <td>{{commit.author|shortAuthor}}</td>
+                  <template repeat="{{builder in builders}}">
+                    <td class="build">
+                      <template if="{{commit.builds[builder]}}">
+                        <a href="http://build.chromium.org/p/{{commit.builds[builder].master}}/builders/{{builder}}/builds/{{commit.builds[builder].number}}" class="build {{commit.builds[builder].displayClass}} result_{{commit.builds[builder].finished ? commit.builds[builder].results : 'running'}}" target="_blank"></a>
+                        <div class="tooltip tooltip_left">
+                          <p>{{builder}} #{{commit.builds[builder].number}}</p>
+                          <template if="{{commit.builds[builder].failedSteps && commit.builds[builder].failedSteps.length > 0}}">
+                            <p>
+                              Failed steps:<br/>
+                              <ul>
+                                <template repeat="{{step in commit.builds[builder].failedSteps}}">
+                                  <li>{{step}}</li>
+                                </template>
+                              </ul>
+                            </p>
+                          </template>
+                        </div>
+                      </template>
+                    </td>
+                  </template>
+                </tr>
+              </template>
+            </tbody>
           </table>
         </div>
       </div>
