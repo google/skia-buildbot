@@ -329,9 +329,9 @@ func IngestNewBuilds(repo *gitinfo.GitInfo) error {
 				for _, n := range w {
 					glog.Infof("Ingesting build: %s, %s, %d", master, b, n)
 					if err := IngestBuild(master, b, n, repo); err != nil {
-						e := fmt.Errorf("Failed to ingest build: %v", err)
-						glog.Error(e)
-						errors[master] = e
+						err := fmt.Errorf("Failed to ingest build: %v", err)
+						glog.Error(err)
+						errors[master] = err
 						return
 					}
 				}
