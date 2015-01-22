@@ -73,7 +73,7 @@ func skipBot(b string) bool {
 // Changing its structure will require completely rebuilding the cache.
 type CommitData struct {
 	*gitinfo.LongCommit
-	Builds map[string]*buildbot.Build `json:"builds"`
+	Builds map[string]*buildbot.BuildSummary `json:"builds"`
 }
 
 // cacheBlock is an independently-managed slice of the commit cache. Changing
@@ -125,7 +125,7 @@ func fromFile(cacheFile string, parent *CommitCache, expectFull bool) (*cacheBlo
 	b.storedBuilds = map[int]bool{}
 	for _, c := range b.Commits {
 		for _, build := range c.Builds {
-			if build.IsFinished() {
+			if build.Finished {
 				b.storedBuilds[build.Id] = true
 			}
 		}
@@ -202,9 +202,9 @@ func (b *cacheBlock) UpdateBuilds() error {
 			// Filter out unwanted builders.
 			if !skipBot(build.Builder) {
 				if c.Builds == nil {
-					c.Builds = map[string]*buildbot.Build{}
+					c.Builds = map[string]*buildbot.BuildSummary{}
 				}
-				c.Builds[build.Builder] = build
+				c.Builds[build.Builder] = build.GetSummary()
 			}
 		}
 		glog.Infof("Found %d new builds (total %d) for %s", len(c.Builds)-beforeBuilds, len(c.Builds), c.Hash)
@@ -405,7 +405,7 @@ func (c *CommitCache) update() error {
 			if err != nil {
 				return fmt.Errorf("Failed to obtain commit details for %s: %v", h, err)
 			}
-			newCommits[i] = &CommitData{d, map[string]*buildbot.Build{}}
+			newCommits[i] = &CommitData{d, map[string]*buildbot.BuildSummary{}}
 		}
 	}
 	branchHeads, err := c.repo.GetBranches()

@@ -98,3 +98,34 @@ func (b *Build) branch() string {
 func (b *Build) IsFinished() bool {
 	return b.Finished != 0.0
 }
+
+// GetSummary returns a BuildSummary for the given Build.
+func (b *Build) GetSummary() *BuildSummary {
+	steps := make([]string, 0, len(b.Steps))
+	for _, s := range b.Steps {
+		if s.Results != 0 && s.Name != "steps" {
+			steps = append(steps, s.Name)
+		}
+	}
+	return &BuildSummary{
+		Builder:     b.Builder,
+		FailedSteps: steps,
+		Finished:    b.IsFinished(),
+		Id:          b.Id,
+		Master:      b.Master,
+		Number:      b.Number,
+		Results:     b.Results,
+	}
+}
+
+// BuildSummary is a struct which contains the minimal amount of information
+// that we care to see on the dashboard.
+type BuildSummary struct {
+	Builder     string   `json:"builder"`
+	FailedSteps []string `json:"failedSteps"`
+	Finished    bool     `json:"finished"`
+	Id          int      `json:"id"`
+	Master      string   `json:"master"`
+	Number      int      `json:"number"`
+	Results     int      `json:"results"`
+}
