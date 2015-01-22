@@ -28,6 +28,10 @@ const (
 
 	// Pattern for cache file names.
 	CACHE_FILE_PATTERN = "commit_cache.%d.gob"
+
+	// If the time since the block was last updated is greater than this,
+	// force a reload.
+	MAX_BLOCK_AGE = 2 * time.Minute
 )
 
 var (
@@ -82,6 +86,7 @@ type cacheBlock struct {
 	BlockNum     int
 	CacheFile    string
 	Commits      []*CommitData
+	LastLoaded   time.Time
 	mutex        sync.RWMutex
 	parent       *CommitCache
 	storedBuilds map[int]bool
@@ -163,6 +168,15 @@ func (b *cacheBlock) Get(idx int) (*CommitData, error) {
 	if idx < 0 || idx >= len(b.Commits) {
 		return nil, fmt.Errorf("Index out of range: %d not in [%d, %d)", idx, 0, len(b.Commits))
 	}
+	// Force a reload if needed.
+	if time.Now().UTC().Sub(b.LastLoaded) > MAX_BLOCK_AGE {
+		glog.Infof("Block %d is too old (last loaded at %s). Forcing reload.", b.BlockNum, b.LastLoaded)
+		b.mutex.RUnlock()
+		if err := b.UpdateBuilds(); err != nil {
+			return nil, err
+		}
+		b.mutex.RLock()
+	}
 	return b.Commits[idx], nil
 }
 
@@ -172,6 +186,15 @@ func (b *cacheBlock) Slice(startIdx, endIdx int) ([]*CommitData, error) {
 	defer b.mutex.RUnlock()
 	if startIdx < 0 || startIdx > endIdx || endIdx > len(b.Commits) {
 		return nil, fmt.Errorf("Index out of range: (%d < 0 || %d > %d || %d > %d)", startIdx, startIdx, endIdx, endIdx, len(b.Commits))
+	}
+	// Force a reload if needed.
+	if time.Now().UTC().Sub(b.LastLoaded) > MAX_BLOCK_AGE {
+		glog.Infof("Block %d is too old (last loaded at %s). Forcing reload.", b.BlockNum, b.LastLoaded)
+		b.mutex.RUnlock()
+		if err := b.UpdateBuilds(); err != nil {
+			return nil, err
+		}
+		b.mutex.RLock()
 	}
 	return b.Commits[startIdx:endIdx], nil
 }
@@ -209,6 +232,7 @@ func (b *cacheBlock) UpdateBuilds() error {
 		}
 		glog.Infof("Found %d new builds (total %d) for %s", len(c.Builds)-beforeBuilds, len(c.Builds), c.Hash)
 	}
+	b.LastLoaded = time.Now().UTC()
 	return b.toFile()
 }
 
@@ -341,25 +365,44 @@ func (c *CommitCache) Slice(startIdx, endIdx int) ([]*CommitData, error) {
 	}
 	startBlock, startSubIdx := blockIdx(startIdx)
 	endBlock, endSubIdx := blockIdx(endIdx)
-	rv := make([]*CommitData, 0, endIdx-startIdx+1)
+	rv := make([]*CommitData, endIdx-startIdx)
+	var wg sync.WaitGroup
+	errs := make([]error, endBlock-startBlock+1)
 	for b := startBlock; b <= endBlock; b++ {
-		var i, j int
-		if b == startBlock {
-			i = startSubIdx
-		} else {
-			i = 0
-		}
-		if b == endBlock {
-			j = endSubIdx
-		} else {
-			j = c.blocks[b].NumCommits()
-		}
-		s, err := c.blocks[b].Slice(i, j)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to slice block: %v", err)
-		}
-		rv = append(rv, s...)
+		wg.Add(1)
+		go func(b int) {
+			defer wg.Done()
+			var i, j int
+			if b == startBlock {
+				i = startSubIdx
+			} else {
+				i = 0
+			}
+			if b == endBlock {
+				j = endSubIdx
+			} else {
+				j = c.blocks[b].NumCommits()
+			}
+			s, err := c.blocks[b].Slice(i, j)
+			if err != nil {
+				errs[b-startBlock] = fmt.Errorf("Failed to slice block: %v", err)
+				return
+			}
+			x := (b-startBlock)*BLOCK_SIZE + i - startSubIdx
+			y := (b-startBlock)*BLOCK_SIZE + j - startSubIdx
+			if n := copy(rv[x:y], s); n != len(s) {
+				errs[b-startBlock] = fmt.Errorf("Failed to copy slice %v to %v (copied %d elements)", s, rv)
+				return
+			}
+		}(b)
 	}
+	wg.Wait()
+	for _, e := range errs {
+		if e != nil {
+			return nil, e
+		}
+	}
+
 	return rv, nil
 }
 
