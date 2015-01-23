@@ -6,6 +6,8 @@ import (
 	"image/draw"
 	"image/png"
 	"os"
+	"reflect"
+	"unsafe"
 
 	"github.com/skia-dev/glog"
 
@@ -128,6 +130,27 @@ func getNRGBA(img image.Image) *image.NRGBA {
 	}
 }
 
+func setAllFF(slice []uint8) {
+	/*
+		for i, _ := range slice {
+			slice[i] = 0xFF
+		}
+	*/
+	len64 := len(slice) / 8
+	var slice64 []uint64
+	h := (*reflect.SliceHeader)(unsafe.Pointer(&slice64))
+	h.Data = uintptr(unsafe.Pointer(&slice[0]))
+	h.Len = len64
+	h.Cap = len64
+
+	for i := 0; i < len64; i++ {
+		slice64[i] = 0xFFFFFFFFFFFFFFFF
+	}
+	for i := len64 * 8; i < len(slice); i++ {
+		slice[i] = 0xFF
+	}
+}
+
 // Diff is a utility function that calculates the DiffMetrics for the provided
 // images. Intended to be called from the DiffStore implementations.
 func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
@@ -143,9 +166,7 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 	resultWidth := util.MaxInt(img1Bounds.Dx(), img2Bounds.Dx())
 	resultHeight := util.MaxInt(img1Bounds.Dy(), img2Bounds.Dy())
 	resultImg := image.NewRGBA(image.Rect(0, 0, resultWidth, resultHeight))
-	for i, _ := range resultImg.Pix {
-		resultImg.Pix[i] = 0xff
-	}
+	setAllFF(resultImg.Pix)
 	totalPixels := resultWidth * resultHeight
 
 	// Loop through all points and compare. We start assuming all pixels are
@@ -154,34 +175,51 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 	numDiffPixels := resultWidth * resultHeight
 	maxRGBADiffs := make([]int, 4)
 
-	n1 := getNRGBA(img1)
-	n2 := getNRGBA(img2)
-	// Compare the bounds, if they are the same then use the fast path.
-	if img1Bounds.Eq(img2Bounds) {
-		// Fastpath
-		// Pix is a []uint8 rotating through R, G, B, A, R, G, B, A, ...
-		for i := 0; i < len(n1.Pix); i += 4 {
-			dr := util.AbsInt(int(n1.Pix[i+0]) - int(n2.Pix[i+0]))
-			dg := util.AbsInt(int(n1.Pix[i+1]) - int(n2.Pix[i+1]))
-			db := util.AbsInt(int(n1.Pix[i+2]) - int(n2.Pix[i+2]))
-			da := util.AbsInt(int(n1.Pix[i+3]) - int(n2.Pix[i+3]))
-			maxRGBADiffs[0] = util.MaxInt(dr, maxRGBADiffs[0])
-			maxRGBADiffs[1] = util.MaxInt(dg, maxRGBADiffs[1])
-			maxRGBADiffs[2] = util.MaxInt(db, maxRGBADiffs[2])
-			maxRGBADiffs[3] = util.MaxInt(da, maxRGBADiffs[3])
-			rgbDelta := dr + dg + db
-			if rgbDelta > 0 {
-				resultImg.Pix[i+0] = 0xE3
-				resultImg.Pix[i+1] = 0x1A
-				resultImg.Pix[i+2] = 0x1C
-				resultImg.Pix[i+3] = 0xFF
-			} else if da > 0 {
-				resultImg.Pix[i+0] = 0xB3
-				resultImg.Pix[i+1] = 0xB3
-				resultImg.Pix[i+2] = 0xB3
-				resultImg.Pix[i+3] = 0xFF
-			} else {
-				numDiffPixels--
+	// Pix is a []uint8 rotating through R, G, B, A, R, G, B, A, ...
+	p1 := getNRGBA(img1).Pix
+	p2 := getNRGBA(img2).Pix
+	// Compare the bounds, if they are the same then use this fast path.
+	// We pun to uint64 to compare 2 pixels at a time, so we also require
+	// an even number of pixels here.  If that's a big deal, we can easily
+	// fix that up, handling the straggler pixel separately at the end.
+	if img1Bounds.Eq(img2Bounds) && len(p1)%8 == 0 {
+		numDiffPixels = 0
+		// Note the += 8.  We're checking two pixels at a time here.
+		for i := 0; i < len(p1); i += 8 {
+			// Most pixels we compare will be the same, so from here to
+			// the 'continue' is the hot path in all this code.
+			rgba_2x := (*uint64)(unsafe.Pointer(&p1[i]))
+			RGBA_2x := (*uint64)(unsafe.Pointer(&p2[i]))
+			if *rgba_2x == *RGBA_2x {
+				continue
+			}
+
+			// When off == 0, we check the first pixel of the pair; when 4, the second.
+			for off := 0; off <= 4; off += 4 {
+				r, g, b, a := p1[off+i+0], p1[off+i+1], p1[off+i+2], p1[off+i+3]
+				R, G, B, A := p2[off+i+0], p2[off+i+1], p2[off+i+2], p2[off+i+3]
+				if r != R || g != G || b != B || a != A {
+					numDiffPixels++
+					dr := util.AbsInt(int(r) - int(R))
+					dg := util.AbsInt(int(g) - int(G))
+					db := util.AbsInt(int(b) - int(B))
+					da := util.AbsInt(int(a) - int(A))
+					maxRGBADiffs[0] = util.MaxInt(dr, maxRGBADiffs[0])
+					maxRGBADiffs[1] = util.MaxInt(dg, maxRGBADiffs[1])
+					maxRGBADiffs[2] = util.MaxInt(db, maxRGBADiffs[2])
+					maxRGBADiffs[3] = util.MaxInt(da, maxRGBADiffs[3])
+					if dr+dg+db > 0 {
+						resultImg.Pix[off+i+0] = 0xE3
+						resultImg.Pix[off+i+1] = 0x1A
+						resultImg.Pix[off+i+2] = 0x1C
+						resultImg.Pix[off+i+3] = 0xFF
+					} else {
+						resultImg.Pix[off+i+0] = 0xB3
+						resultImg.Pix[off+i+1] = 0xB3
+						resultImg.Pix[off+i+2] = 0xB3
+						resultImg.Pix[off+i+3] = 0xFF
+					}
+				}
 			}
 		}
 	} else {
