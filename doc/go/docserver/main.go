@@ -7,7 +7,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -113,7 +112,8 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 	filename, raw, err := d.RawFilename(r.URL.Path)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to find a matching file for %q %q", r.URL.Path, filename))
+		glog.Infof("Request for unknown path: %s", r.URL.Path)
+		http.NotFound(w, r)
 		return
 	}
 

@@ -87,6 +87,7 @@
               window.history.pushState(null, null, url);
               highlightNav();
               $$$('html #content').innerHTML = content;
+              $$$('html #page').scrollIntoView();
               prettyPrint();
             });
             e.preventDefault();
