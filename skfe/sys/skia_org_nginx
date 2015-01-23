@@ -15,7 +15,7 @@ send_timeout                5m;
 #####   skia.org   ################################
 server {
     listen      443;
-    server_name skia.org www.skia.org skiadev.org www.skiadev.org "";
+    server_name skia.org www.skia.org "";
 
     ssl on;
 
@@ -30,14 +30,14 @@ server {
 
 server {
     listen      80;
-    server_name skia.org www.skia.org skiadev.org www.skiadev.org "";
+    server_name skia.org www.skia.org "";
     return 301 https://skia.org$request_uri;
 }
 
 #####   perf.skia.org   ###########################
 server {
     listen      443;
-    server_name perf.skia.org perf.skiadev.org;
+    server_name perf.skia.org;
 
     ssl on;
 
@@ -51,14 +51,14 @@ server {
 }
 server {
     listen      80;
-    server_name perf.skia.org perf.skiadev.org;
+    server_name perf.skia.org;
     return 301 https://perf.skia.org$request_uri;
 }
 
 #####   gold.skia.org   ###########################
 server {
     listen      443;
-    server_name gold.skia.org gold.skiadev.org;
+    server_name gold.skia.org;
 
     ssl on;
 
@@ -72,14 +72,14 @@ server {
 }
 server {
     listen      80;
-    server_name gold.skia.org gold.skiadev.org;
+    server_name gold.skia.org;
     return 301 https://gold.skia.org$request_uri;
 }
 
 #####   alerts.skia.org   ###########################
 server {
     listen      443;
-    server_name alerts.skia.org alerts.skiadev.org;
+    server_name alerts.skia.org;
 
     ssl on;
 
@@ -93,14 +93,14 @@ server {
 }
 server {
     listen      80;
-    server_name alerts.skia.org alerts.skiadev.org;
+    server_name alerts.skia.org;
     return 301 https://alerts.skia.org$request_uri;
 }
 
 #####   mon.skia.org   ###########################
 server {
     listen      443;
-    server_name mon.skia.org mon.skiadev.org;
+    server_name mon.skia.org;
 
     ssl on;
 
@@ -115,14 +115,14 @@ server {
 
 server {
     listen      80;
-    server_name mon.skia.org mon.skiadev.org;
+    server_name mon.skia.org;
     return 301 https://mon.skia.org$request_uri;
 }
 
 #####   push.skia.org   ###########################
 server {
     listen      443;
-    server_name push.skia.org push.skiadev.org;
+    server_name push.skia.org;
 
     ssl on;
 
@@ -136,8 +136,19 @@ server {
 }
 server {
     listen      80;
-    server_name push.skia.org push.skiadev.org;
+    server_name push.skia.org;
     return 301 https://push.skia.org$request_uri;
+}
+
+####   health.skia.org   ################
+# Just return empty 200 responses for network load balancing health checks.
+# See https://cloud.google.com/compute/docs/load-balancing/health-checks
+server {
+    listen      80;
+    server_name health.skia.org;
+    location / {
+      return 200;
+    }
 }
 
 #####   skbug.com (REDIRECT)   ###########################
@@ -147,3 +158,4 @@ server {
     rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
     rewrite ^ https://code.google.com/p/skia/issues/list redirect;
 }
+
