@@ -194,7 +194,9 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 	}
 	if diffMetrics != nil {
 		// 2. The DiffMetrics exists locally return it.
-		fs.diffCache.Add(baseName, diffMetrics)
+
+		// TODO(stephana): Remove this once we have sorted out caching.
+		// fs.diffCache.Add(baseName, diffMetrics)
 
 		return diffMetrics
 	}
@@ -213,7 +215,9 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 		return nil
 	}
 	// 5. Write DiffMetrics to the local cache and return it.
-	fs.diffCache.Add(baseName, diffMetrics)
+
+	// TODO(stephana): Remove this once we have sorted out caching.
+	// fs.diffCache.Add(baseName, diffMetrics)
 
 	// Write to disk in the background.
 	go func() {
