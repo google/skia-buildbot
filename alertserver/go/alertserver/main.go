@@ -448,10 +448,10 @@ func main() {
 
 	// Initialize the buildbot database.
 	conf, err := database.ConfigFromFlagsAndMetadata(*testing, buildbot.MigrationSteps())
-	glog.Infof("Database config: %s", conf.MySQLString)
 	if err := buildbot.InitDB(conf); err != nil {
 		glog.Fatal(err)
 	}
+	glog.Infof("Database config: %s", conf.MySQLString)
 
 	// Create the commit cache.
 	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache"), DEFAULT_COMMITS_TO_LOAD)

@@ -163,19 +163,17 @@ func (b *cacheBlock) NumCommits() int {
 
 // Get returns the CommitData at the given index within this block.
 func (b *cacheBlock) Get(idx int) (*CommitData, error) {
+	// Force a reload if needed.
+	if time.Now().UTC().Sub(b.LastLoaded) > MAX_BLOCK_AGE {
+		glog.Infof("Block %d is too old (last loaded at %s). Forcing reload.", b.BlockNum, b.LastLoaded)
+		if err := b.UpdateBuilds(); err != nil {
+			return nil, err
+		}
+	}
 	b.mutex.RLock()
 	defer b.mutex.RUnlock()
 	if idx < 0 || idx >= len(b.Commits) {
 		return nil, fmt.Errorf("Index out of range: %d not in [%d, %d)", idx, 0, len(b.Commits))
-	}
-	// Force a reload if needed.
-	if time.Now().UTC().Sub(b.LastLoaded) > MAX_BLOCK_AGE {
-		glog.Infof("Block %d is too old (last loaded at %s). Forcing reload.", b.BlockNum, b.LastLoaded)
-		b.mutex.RUnlock()
-		if err := b.UpdateBuilds(); err != nil {
-			return nil, err
-		}
-		b.mutex.RLock()
 	}
 	return b.Commits[idx], nil
 }

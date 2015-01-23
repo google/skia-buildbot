@@ -1,6 +1,10 @@
 <polymer-element name="commits-sk">
   <template>
     <style>
+    #commitCanvas {
+      width: 0px;
+      height: 0px;
+    }
     #loadstatus {
       font-size: 0.8em;
       padding: 15px;
@@ -12,6 +16,8 @@
     }
     th {
       text-align: left;
+      height: 35px;
+      padding: 5px;
     }
     tr.commit {
       font-size: 10px;
@@ -117,6 +123,7 @@
     #moreButton {
       width: 40px;
       height: 40px;
+      display: none;
     }
     </style>
     <div fit style="overflow: scroll;">
@@ -148,7 +155,7 @@
             <thead>
               <th>Commit</th>
               <th>Author</th>
-              <th colspan="{{builders.length}}">Buildbot Results</th>
+              <th colspan="{{builders.length}}">Buildbot Results <paper-toggle-button id="showAllBuilders" on-change="{{filterBuilders}}"></paper-toggle-button> show all</th>
             </thead>
             <tbody>
               <template repeat="{{commit, i in commits}}">
@@ -185,12 +192,15 @@
         </div>
       </div>
       <!-- TODO(borenet): Automatically loadMore when the user scrolls to the bottom? -->
-      <core-icon-button id="moreButton" icon="add" on-click="{{loadMore}}"></core-icon-button>
+      <div horizontal center-justified layout>
+        <core-icon-button id="moreButton" icon="expand-more" on-click="{{loadMore}}"></core-icon-button>
+        <paper-spinner id="loading" active></paper-spinner>
+      </div>
     </div>
   </template>
   <script>
   (function() {
-    var defaultCommitsToLoad = 50; // Default number of commits to load.
+    var defaultCommitsToLoad = 35; // Default number of commits to load.
     var commitY = 20;              // Vertical pixels used by each commit.
     var paddingX = 10;             // Left-side padding pixels.
     var paddingY = 20;             // Top padding pixels.
@@ -457,6 +467,10 @@
           value: {},
           reflect: false,
         },
+        allBuilders: {
+          value: [],
+          reflect: false,
+        },
         builders: {
           value: [],
           reflect: false,
@@ -525,13 +539,41 @@
         this.reloadCommits(this.startIdx - defaultCommitsToLoad, this.startIdx);
       },
 
+      // Filter out green bots unless "showAllBuilders" is checked.
+      filterBuilders: function() {
+        var filteredBuilders = [];
+        var showAll = this.$.showAllBuilders;
+        if (showAll.checked) {
+          filteredBuilders = this.allBuilders;
+        } else {
+          for (var i = 0; i < this.allBuilders.length; i++) {
+            var builder = this.allBuilders[i];
+            var failed = false;
+            for (var buildnum in this.builds[builder]) {
+              var build = this.builds[builder][buildnum];
+              if (build.results != 0) {
+                failed = true;
+                break;
+              }
+            }
+            if (failed) {
+              filteredBuilders.push(builder);
+            }
+          }
+        }
+        filteredBuilders.sort();
+        this.builders = filteredBuilders;
+      },
+
       // Reload the commits. If the startIdx and endIdx parameters are given,
       // loads the commits in that range. If not, load the most recent N
       // commits, where N is the default number returned by the server.
       reloadCommits: function(startIdx, endIdx) {
         console.log("Loading commits.");
         if (this.$) {
-          this.$.moreButton.disabled = true;
+          this.$.moreButton.style.display = "none";
+          this.$.loading.style.display = "block";
+          this.$.loading.active = true;
         }
         var url = "/json/commits";
 	if (startIdx) {
@@ -613,27 +655,10 @@
               build.displayClass = clazz;
             }
           }
-          console.log("Prepared build data.");
-          // Filter out green bots.
-          var failedBuilders = [];
-          for (var i = 0; i < builders.length; i++) {
-            var builder = builders[i];
-            var failed = false;
-            for (var buildnum in builds[builder]) {
-              var build = builds[builder][buildnum];
-              if (build.results != 0) {
-                failed = true;
-                break;
-              }
-            }
-            if (failed) {
-              failedBuilders.push(builder);
-            }
-          }
-
           that.builds = builds;
-          failedBuilders.sort();
-          that.builders = failedBuilders;
+          that.allBuilders = builders;
+          that.filterBuilders();
+          console.log("Prepared build data.");
 
           // Actually draw the commits.
           that.draw(commits, json.branch_heads);
@@ -642,12 +667,16 @@
         }).then(function() {
           that.resetTimeout();
           if (that.$) {
-            that.$.moreButton.disabled = false;
+            that.$.moreButton.style.display = "block";
+            that.$.loading.active = false;
+            that.$.loading.display = "none";
           }
         }, function() {
           that.resetTimeout();
           if (that.$) {
-            that.$.moreButton.disabled = false;
+            that.$.moreButton.style.display = "block";
+            that.$.loading.active = false;
+            that.$.loading.display = "none";
           }
         });
       },
@@ -680,8 +709,8 @@
         var canvas = this.shadowRoot.getElementById("commitCanvas");
         var w = longestWidth + paddingX;
         var h = commitY * commits.length;
-        canvas.style.width = w + "px";
-        canvas.style.height = h + "px";
+        canvas.style.width = Math.floor(w) + "px";
+        canvas.style.height = Math.floor(h) + "px";
         canvas.width = w * scale;
         canvas.height = h * scale;
         var ctx = canvas.getContext("2d");
