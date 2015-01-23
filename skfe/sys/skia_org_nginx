@@ -14,8 +14,8 @@ send_timeout                5m;
 
 #####   skia.org   ################################
 server {
-    listen      443;
-    server_name skia.org www.skia.org "";
+    listen      443 default_server;
+    server_name skia.org www.skia.org;
 
     ssl on;
 
@@ -29,7 +29,7 @@ server {
 }
 
 server {
-    listen      80;
+    listen      80 default_server;
     server_name skia.org www.skia.org "";
     return 301 https://skia.org$request_uri;
 }
