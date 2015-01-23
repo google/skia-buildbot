@@ -391,7 +391,7 @@ func (c *CommitCache) Slice(startIdx, endIdx int) ([]*CommitData, error) {
 			x := (b-startBlock)*BLOCK_SIZE + i - startSubIdx
 			y := (b-startBlock)*BLOCK_SIZE + j - startSubIdx
 			if n := copy(rv[x:y], s); n != len(s) {
-				errs[b-startBlock] = fmt.Errorf("Failed to copy slice %v to %v (copied %d elements)", s, rv)
+				errs[b-startBlock] = fmt.Errorf("Failed to copy slice %v to %v (copied %d elements)", s, rv, n)
 				return
 			}
 		}(b)
