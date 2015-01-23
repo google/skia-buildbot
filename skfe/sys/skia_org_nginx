@@ -117,8 +117,6 @@ server {
     listen      2003;
     server_name mon.skia.org;
 
-    ssl on;
-
     location / {
         proxy_pass http://skia-monitoring:2003;
     }
