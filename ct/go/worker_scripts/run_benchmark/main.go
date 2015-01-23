@@ -177,7 +177,7 @@ func main() {
 			os.Chdir(pathToPyFiles)
 			args := []string{
 				util.BINARY_RUN_BENCHMARK,
-				*benchmarkName,
+				fmt.Sprintf("%s.%s", *benchmarkName, util.BenchmarksToPagesetName[*benchmarkName]),
 				"--page-set-name=" + pagesetName,
 				"--page-set-base-dir=" + pathToPagesets,
 				"--also-run-disabled-tests",

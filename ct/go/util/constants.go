@@ -125,6 +125,14 @@ var (
 	ChromiumBuildTasksWebapp         = WEBAPP_ROOT + "chromium_builds"
 	UpdateChromiumBuildTasksWebapp   = WEBAPP_ROOT + "update_chromium_build_tasks"
 
+	// Information about the different CT benchmarks.
+	BenchmarksToPagesetName = map[string]string{
+		BENCHMARK_SKPICTURE_PRINTER: "SkpicturePrinter",
+		BENCHMARK_RR:                "RasterizeAndRecordMicroCTPages",
+		BENCHMARK_REPAINT:           "RepaintCTPages",
+		BENCHMARK_SMOOTHNESS:        "SmoothnessCTPages",
+	}
+
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{
 		PAGESET_TYPE_ALL: &PagesetTypeInfo{
