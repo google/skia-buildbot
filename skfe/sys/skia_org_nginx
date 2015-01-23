@@ -114,15 +114,6 @@ server {
 }
 
 server {
-    listen      2003;
-    server_name mon.skia.org;
-
-    location / {
-        proxy_pass http://skia-monitoring:2003;
-    }
-}
-
-server {
     listen      80;
     server_name mon.skia.org mon.skiadev.org;
     return 301 https://mon.skia.org$request_uri;
