@@ -122,7 +122,7 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		if resp != nil {
 			if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
 				return fmt.Errorf("Got server error statuscode %d while making the HTTP %s request to %s", resp.StatusCode, req.Method, req.URL)
-			} else if resp.StatusCode != 200 {
+			} else if resp.StatusCode < 200 || resp.StatusCode > 299 {
 				// Stop backing off if there are non server errors.
 				backOffClient.MaxElapsedTime = backoff.Stop
 				return fmt.Errorf("Got non server error statuscode %d while making the HTTP %s request to %s", resp.StatusCode, req.Method, req.URL)
