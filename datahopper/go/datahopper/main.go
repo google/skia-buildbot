@@ -223,7 +223,7 @@ func main() {
 			}
 			for _, s := range steps {
 				v := int64(s.Duration * float64(time.Millisecond))
-				metric := fmt.Sprintf("buildbot.buildstepsbybuilder.%s.%s.duration", s.Builder, s.StepName)
+				metric := fmt.Sprintf("buildbot.buildstepsbybuilder.%s.%s.duration", fixName(s.Builder), fixName(s.StepName))
 				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
 			}
 		}
