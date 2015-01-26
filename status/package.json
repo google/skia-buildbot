@@ -1,8 +1,8 @@
 {
-  "name": "alertserver",
+  "name": "status",
   "version": "0.1.0",
   "private": true,
-  "description": "Alert Server",
+  "description": "Skia Status Dashboard",
   "main": "index.js",
   "scripts": {
     "test": "make test"

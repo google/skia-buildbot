@@ -1,0 +1,25 @@
+<polymer-element name="version-sk" attributes="commit shortCommit date">
+  <template>
+    <style>
+    :host {
+      font-size: 0.7em;
+    }
+    </style>
+    Ver: <a href="https://skia.googlesource.com/buildbot/+/{{commit}}" title="{{date}}">{{shortCommit}}</a>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        this.commit = "???";
+        this.shortCommit = "???";
+        this.date = "???";
+        var that = this;
+        sk.get("/json/version").then(JSON.parse).then(function(json) {
+          that.commit = json.commit;
+          that.shortCommit = json.commit.substring(0, 12);
+          that.date = json.date;
+        });
+      },
+    });
+  </script>
+</polymer-element>

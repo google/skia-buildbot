@@ -76,6 +76,12 @@ alertserver/res/js/core.js
 alertserver/res/imp/bower_components
 alertserver/node_modules
 alertserver/third_party
+status/res/vul
+status/res/js/core-debug.js
+status/res/js/core.js
+status/res/imp/bower_components
+status/node_modules
+status/third_party
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
 # Logfiles from launched buildslaves.

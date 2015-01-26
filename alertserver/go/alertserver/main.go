@@ -1,5 +1,5 @@
 /*
-	Provides roll-up statuses and alerting for Skia build/test/perf.
+	Provides alerting for Skia.
 */
 
 package main
@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"os/user"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -30,12 +29,8 @@ import (
 
 import (
 	"skia.googlesource.com/buildbot.git/alertserver/go/alerting"
-	"skia.googlesource.com/buildbot.git/alertserver/go/commit_cache"
-	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
-	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/email"
-	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/skiaversion"
@@ -43,18 +38,14 @@ import (
 )
 
 const (
-	DEFAULT_COMMITS_TO_LOAD = 50
-	GMAIL_TOKEN_CACHE_FILE  = "google_email_token.data"
+	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
 )
 
 var (
-	alertManager *alerting.AlertManager    = nil
-	gitInfo      *gitinfo.GitInfo          = nil
-	commitCache  *commit_cache.CommitCache = nil
+	alertManager *alerting.AlertManager = nil
 
-	alertsTemplate  *template.Template = nil
-	commitsTemplate *template.Template = nil
-	rulesTemplate   *template.Template = nil
+	alertsTemplate *template.Template = nil
+	rulesTemplate  *template.Template = nil
 )
 
 // flags
@@ -96,10 +87,6 @@ func reloadTemplates() {
 	}
 	alertsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/alerts.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	commitsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/commits.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	rulesTemplate = template.Must(template.ParseFiles(
@@ -264,59 +251,6 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	// Case 1: Requesting specific commit range by index.
-	startIdx, err := getIntParam("start", r)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
-		return
-	}
-	if startIdx != nil {
-		endIdx := commitCache.NumCommits()
-		end, err := getIntParam("end", r)
-		if err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
-			return
-		}
-		if end != nil {
-			endIdx = *end
-		}
-		if err := commitCache.RangeAsJson(w, *startIdx, endIdx); err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Failed to load commit range from cache: %v", err))
-			return
-		}
-		return
-	}
-	// Case 2: Requesting N (or the default number) commits.
-	commitsToLoad := DEFAULT_COMMITS_TO_LOAD
-	n, err := getIntParam("n", r)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
-		return
-	}
-	if n != nil {
-		commitsToLoad = *n
-	}
-	if err := commitCache.LastNAsJson(w, commitsToLoad); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
-		return
-	}
-}
-
-func commitsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in testing mode.
-	if *testing {
-		reloadTemplates()
-	}
-
-	if err := commitsTemplate.Execute(w, struct{}{}); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
 func rulesJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	rules := struct {
@@ -345,10 +279,8 @@ func rulesHandler(w http.ResponseWriter, r *http.Request) {
 func runServer(serverURL string) {
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", alertHandler)
-	http.HandleFunc("/commits", commitsHandler)
 	http.HandleFunc("/rules", rulesHandler)
 	http.HandleFunc("/json/alerts", alertJsonHandler)
-	http.HandleFunc("/json/commits", commitsJsonHandler)
 	http.HandleFunc("/json/rules", rulesJsonHandler)
 	http.HandleFunc("/json/version", skiaversion.JsonHandler)
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
@@ -359,9 +291,6 @@ func runServer(serverURL string) {
 }
 
 func main() {
-	// Setup DB flags.
-	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_RW, buildbot.PROD_DB_NAME)
-
 	common.InitWithMetrics("alertserver", graphiteServer)
 	v := skiaversion.GetVersion()
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
@@ -440,24 +369,5 @@ func main() {
 	}
 	glog.Info("Created AlertManager")
 
-	gitInfo, err = gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", path.Join(*workdir, "skia"), true)
-	if err != nil {
-		glog.Fatalf("Failed to check out Skia: %v", err)
-	}
-	glog.Info("CloneOrUpdate complete")
-
-	// Initialize the buildbot database.
-	conf, err := database.ConfigFromFlagsAndMetadata(*testing, buildbot.MigrationSteps())
-	if err := buildbot.InitDB(conf); err != nil {
-		glog.Fatal(err)
-	}
-	glog.Infof("Database config: %s", conf.MySQLString)
-
-	// Create the commit cache.
-	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache"), DEFAULT_COMMITS_TO_LOAD)
-	if err != nil {
-		glog.Fatalf("Failed to create commit cache: %v", err)
-	}
-	glog.Info("commit_cache complete")
 	runServer(serverURL)
 }

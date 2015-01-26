@@ -20,6 +20,7 @@ GO_DIRS = [
   'golden',
   'alertserver',
   'perf',
+  'status',
 ]
 
 GO_TEST_FAILED = (
