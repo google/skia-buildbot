@@ -65,7 +65,7 @@ Enter the verification code:`, url)
 		var code string
 		fmt.Scan(&code)
 		if _, err := oauthTransport.Exchange(code); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed exchange: %s", err)
 		}
 	}
 
@@ -76,11 +76,5 @@ Enter the verification code:`, url)
 // Uses an HTTP transport with a dial timeout. Use RunFlowWithTransport to specify
 // your own HTTP transport.
 func RunFlow(config *oauth.Config) (*http.Client, error) {
-	transport := &oauth.Transport{
-		Config: config,
-		Transport: &http.Transport{
-			Dial: util.DialTimeout,
-		},
-	}
-	return RunFlowWithTransport(config, transport)
+	return RunFlowWithTransport(config, &http.Transport{Dial: util.DialTimeout})
 }
