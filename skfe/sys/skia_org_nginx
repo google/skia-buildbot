@@ -140,6 +140,27 @@ server {
     return 301 https://push.skia.org$request_uri;
 }
 
+#####   fiddle.skia.org   ###########################
+server {
+    listen      443;
+    server_name fiddle.skia.org;
+
+    ssl on;
+
+    if ( $host != 'fiddle.skia.org' ) {
+        rewrite ^/(.*)$ https://fiddle.skia.org/$1 permanent;
+    }
+
+    location / {
+        proxy_pass http://skia-webtry-b:8000;
+    }
+}
+server {
+    listen      80;
+    server_name fiddle.skia.org;
+    return 301 https://fiddle.skia.org$request_uri;
+}
+
 ####   health.skia.org   ################
 # Just return empty 200 responses for network load balancing health checks.
 # See https://cloud.google.com/compute/docs/load-balancing/health-checks
