@@ -58,15 +58,15 @@
      "mimetype": "application/json",
      "bodytest": "validJSON"
    },
-   "skiacommits": {
-     "url": "https://skiaalerts.com/commits",
+   "skiastatus": {
+     "url": "https://status.skia.org",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiacommits_json": {
-     "url": "https://skiaalerts.com/json/commits",
+     "url": "https://status.skia.org/json/commits",
      "method": "GET",
      "expected": [200],
      "body": "",

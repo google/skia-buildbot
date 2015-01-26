@@ -37,8 +37,12 @@ grains:
 push:
 	cd push && $(MAKE) default
 
+.PHONY: status
+status:
+	cd status && $(MAKE) all
+
 .PHONY: all
-all: golden perf sharedgo alertserver datahopper logserver ct tags
+all: golden perf sharedgo alertserver datahopper logserver ct tags status
 
 .PHONY: tags
 tags:

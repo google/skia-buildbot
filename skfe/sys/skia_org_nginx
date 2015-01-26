@@ -172,6 +172,27 @@ server {
     }
 }
 
+#####   status.skia.org   ###########################
+server {
+    listen      443;
+    server_name status.skia.org;
+
+    ssl on;
+
+    if ( $host != 'status.skia.org' ) {
+        rewrite ^/(.*)$ https://status.skia.org/$1 permanent;
+    }
+
+    location / {
+        proxy_pass http://skia-monitoring:8002;
+    }
+}
+server {
+    listen      80;
+    server_name status.skia.org;
+    return 301 https://status.skia.org$request_uri;
+}
+
 #####   skbug.com (REDIRECT)   ###########################
 server {
     listen 80;
@@ -179,4 +200,3 @@ server {
     rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
     rewrite ^ https://code.google.com/p/skia/issues/list redirect;
 }
-
