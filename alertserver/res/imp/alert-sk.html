@@ -44,10 +44,10 @@
           </core-ajax>
           <paper-dialog id="snoozeDialog" heading="How long?" transition="paper-dialog-transition-center">
             <div>
-              <paper-input id="snoozeDays"  type="number" value="0" label="Days" floatingLabel></paper-input>
-              <paper-input id="snoozeHours" type="number" value="0" label="Hours" floatingLabel></paper-input>
-              <paper-input id="snoozeMins"  type="number" value="0" label="Minutes" floatingLabel></paper-input>
-              <paper-input id="snoozeSecs"  type="number" value="0" label="Seconds" floatingLabel></paper-input>
+              <paper-input type="number" label="Days" value="{{snoozeDays}}" floatingLabel></paper-input>
+              <paper-input type="number" label="Hours" value="{{snoozeHours}}" floatingLabel></paper-input>
+              <paper-input type="number" label="Minutes" value="{{snoozeMins}}" floatingLabel></paper-input>
+              <paper-input type="number" label="Seconds" value="{{snoozeSecs}}" floatingLabel></paper-input>
               <paper-button on-click="{{snoozeAlert}}" affirmative>Ok</paper-button>
             </div>
           </paper-dialog>
@@ -109,6 +109,22 @@
           value: false,
           reflect: true,
         },
+        snoozeDays: {
+          value: 0,
+          reflect: false,
+        },
+        snoozeHours: {
+          value: 0,
+          reflect: false,
+        },
+        snoozeMins: {
+          value: 0,
+          reflect: false,
+        },
+        snoozeSecs: {
+          value: 0,
+          reflect: false,
+        },
       },
       ready: function() {
         var ele = this;
@@ -130,10 +146,14 @@
       },
       snoozeAlert: function() {
         var until = new Date();
-        until.setDate(until.getDate() + parseInt(this.$.wrapper.querySelector("#snoozeDays").value));
-        until.setHours(until.getHours() + parseInt(this.$.wrapper.querySelector("#snoozeHours").value));
-        until.setMinutes(until.getMinutes() + parseInt(this.$.wrapper.querySelector("#snoozeMins").value));
-        until.setSeconds(until.getSeconds() + parseInt(this.$.wrapper.querySelector("#snoozeSecs").value));
+        until.setDate(until.getDate() + parseInt(this.snoozeDays));
+        until.setHours(until.getHours() + parseInt(this.snoozeHours));
+        until.setMinutes(until.getMinutes() + parseInt(this.snoozeMins));
+        until.setSeconds(until.getSeconds() + parseInt(this.snoozeSecs));
+        this.snoozeDays = 0;
+        this.snoozeHours = 0;
+        this.snoozeMins = 0;
+        this.snoozeSecs = 0;
         var req = this.$.wrapper.querySelector("#snooze");
         req.body = '{"until": ' + this.unParseDate(until) + '}'
         req.go();
