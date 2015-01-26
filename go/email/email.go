@@ -43,6 +43,7 @@ func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 		TokenURL:     "https://accounts.google.com/o/oauth2/token",
 		TokenCache:   oauth.CacheFile(tokenCacheFile),
 		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
+		AccessType:   "offline",
 	}
 	client, err := auth.RunFlow(&config)
 	if err != nil {
