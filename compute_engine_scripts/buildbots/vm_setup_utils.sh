@@ -17,6 +17,7 @@ function install_packages {
     "sudo apt-get -y install libpng12-dev libgtk2.0-dev ant clang-3.4 openjdk-7-jdk realpath libqt4-dev-bin libqt4-core libqt4-gui libqt4-dev:i386 icewm libdrm-dev doxygen && " \
     "sudo apt-get -y remove python-zope.interface && " \
     "sudo easy_install zope.interface" \
+    "sudo pip install --upgrade google-api-python-client" \
     || FAILED="$FAILED InstallPackages"
   echo
 }
