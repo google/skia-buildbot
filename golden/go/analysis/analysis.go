@@ -442,6 +442,9 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 	result.Commits = tile.Commits[:tileLen]
 	commitsByDigestMap := map[string]map[string]map[int]bool{}
 
+	ignorableDigests := a.diffStore.IgnorableDigests()
+	glog.Infof("Ignorable digests: %v", ignorableDigests)
+
 	// Note: We are assumming that the number and order of traces will change
 	// over time.
 	for _, v := range tile.Traces {
@@ -453,7 +456,7 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 
 		// Iterate over the digests in this trace.
 		for i, v := range gTrace.Values[:tileLen] {
-			if gTrace.Values[i] != ptypes.MISSING_DIGEST {
+			if (v != ptypes.MISSING_DIGEST) && !ignorableDigests[v] {
 				tempCommitIds = append(tempCommitIds, i)
 				tempDigests = append(tempDigests, v)
 				tempLabels = append(tempLabels, types.UNTRIAGED)
@@ -469,9 +472,12 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 			}
 		}
 
-		// Label the digests and add them to the labeled traces.
-		_, targetLabeledTrace := result.getLabeledTrace(v)
-		targetLabeledTrace.addLabeledDigests(tempCommitIds, tempDigests, tempLabels)
+		// Only consider traces that are not empty.
+		if len(tempLabels) > 0 {
+			// Label the digests and add them to the labeled traces.
+			_, targetLabeledTrace := result.getLabeledTrace(v)
+			targetLabeledTrace.addLabeledDigests(tempCommitIds, tempDigests, tempLabels)
+		}
 	}
 
 	for testName, cbd := range commitsByDigestMap {

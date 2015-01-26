@@ -39,6 +39,11 @@ type DiffStore interface {
 	// AbsPath returns the paths of the images that correspond to the given
 	// image digests.
 	AbsPath(digest []string) map[string]string
+
+	// IgnoreableDigests returns the set of digests that cannot be downloaded or
+	// processed (e.g. because the PNG is corrupted) and should therefore be
+	// be ignored. The return value is considered to be read only.
+	IgnorableDigests() map[string]bool
 }
 
 // OpenImage is a utility function that opens the specified file and returns an

@@ -324,6 +324,10 @@ func (m MockDiffStore) AbsPath(digest []string) map[string]string {
 	return result
 }
 
+func (m MockDiffStore) IgnorableDigests() map[string]bool {
+	return nil
+}
+
 func NewMockDiffStore() diff.DiffStore {
 	return MockDiffStore{}
 }
