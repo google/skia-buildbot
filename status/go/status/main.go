@@ -48,7 +48,7 @@ var (
 var (
 	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8001", "HTTP service port (e.g., ':8001')")
+	port           = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
