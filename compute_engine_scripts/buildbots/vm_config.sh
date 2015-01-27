@@ -13,7 +13,7 @@ fi
 # If this is true, then the VM instances will be set up with auth scopes
 # appropriate for the android merge bot.
 if [ "$VM_IS_ANDROID_MERGE" = 1 ]; then
-  SCOPES="https://www.googleapis.com/auth/gerritcodereview,$SCOPES"
+  SCOPES="https://www.googleapis.com/auth/androidbuild.internal,https://www.googleapis.com/auth/gerritcodereview,$SCOPES"
 fi
 
 # TODO(rmistry): Investigate moving the below constants to compute_engine_cfg.py
