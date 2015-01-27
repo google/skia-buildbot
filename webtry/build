@@ -12,7 +12,7 @@
 # be overridden by using the SKIA_ROOT environment variable.
 
 [ -z "$BUILDBOT_ROOT" ] && BUILDBOT_ROOT=".."
-[ -z "$SKIA_ROOT" ] && SKIA_ROOT="${BUILDBOT_ROOT}/../../skia"
+[ -z "$SKIA_ROOT" ] && SKIA_ROOT="${BUILDBOT_ROOT}/../skia"
 [ -z "$WEBTRY_ROOT" ] && WEBTRY_ROOT=`pwd`
 
 [ -z "$GOROOT" ] && export GOROOT=/home/webtry/go
