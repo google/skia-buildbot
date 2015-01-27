@@ -51,14 +51,20 @@
           value: null,
           reflect: false,
         },
+        sheriffTimeout: {
+          value: null,
+          reflect: false,
+        },
       },
 
       ready: function() {
         this.reloadStatus();
+        this.reloadSheriffStatus();
       },
 
       reloadChanged: function() {
         this.resetTimeout();
+        this.resetSheriffTimeout();
       },
 
       resetTimeout: function() {
@@ -68,6 +74,16 @@
         if (this.reload > 0) {
           var that = this;
           this.timeout = window.setTimeout(function() { that.reloadStatus(); }, this.reload * 1000);
+        }
+      },
+
+      resetSheriffTimeout: function() {
+        if (this.sheriffTimeout) {
+          window.clearTimeout(this.sheriffTimeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this.timeout = window.setTimeout(function() { that.reloadSheriffStatus(); }, this.reload * 1000);
         }
       },
 
@@ -91,10 +107,20 @@
       reloadStatus: function() {
         var that = this;
         sk.get("https://skia-tree-status.appspot.com/banner-status?format=json").then(JSON.parse).then(function(json) {
-          that.updateStatus(json.username, json.message, json.general_state == "open");
+          that.updateStatus(that.sheriff, json.message, json.general_state == "open");
           that.resetTimeout();
         }).catch(function() {
           that.resetTimeout();
+        });
+      },
+
+      reloadSheriffStatus: function() {
+        var that = this;
+        sk.get("https://skia-tree-status.appspot.com/current-sheriff?format=json").then(JSON.parse).then(function(json) {
+          that.updateStatus(json.username, that.message, that.binaryStatus);
+          that.resetSheriffTimeout();
+        }).catch(function() {
+          that.resetSheriffTimeout();
         });
       },
     });
