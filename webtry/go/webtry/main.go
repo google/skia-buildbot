@@ -316,7 +316,7 @@ func writeOutAllSourceImages() {
 			glog.Errorf("failed to fetch from database: %q", err)
 			continue
 		}
-		filename := fmt.Sprintf("../../../inout/image-%d.png", id)
+		filename := fmt.Sprintf("../../inout/image-%d.png", id)
 		if _, err := os.Stat(filename); os.IsExist(err) {
 			glog.Infof("Skipping write since file exists: %q", filename)
 			continue
@@ -391,13 +391,13 @@ func expandCode(code string, source int, width, height int) (string, error) {
 	// At this point we are running in buildbot/webtry, making cache a
 	// peer directory to skia.
 	// TODO(jcgregorio) Make all relative directories into flags.
-	err := expandToFile(fmt.Sprintf("../../../cache/src/%s.cpp", hash), fontFriendlyCode, codeTemplate)
+	err := expandToFile(fmt.Sprintf("../../cache/src/%s.cpp", hash), fontFriendlyCode, codeTemplate)
 	return hash, err
 }
 
 // expandGyp produces the GYP file needed to build the code
 func expandGyp(hash string) error {
-	return writeTemplate(fmt.Sprintf("../../../cache/%s.gyp", hash), gypTemplate, struct{ Hash string }{hash})
+	return writeTemplate(fmt.Sprintf("../../cache/%s.gyp", hash), gypTemplate, struct{ Hash string }{hash})
 }
 
 // response is serialized to JSON as a response to POSTs.
@@ -573,7 +573,7 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	filename := match[1]
 	w.Header().Set("Content-Type", contentType)
-	http.ServeFile(w, r, fmt.Sprintf("../../../inout/%s", filename))
+	http.ServeFile(w, r, fmt.Sprintf("../../inout/%s", filename))
 }
 
 type Try struct {
@@ -800,7 +800,7 @@ func tryInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func cleanCompileOutput(s, hash string) string {
-	old := "../../../cache/src/" + hash + ".cpp:"
+	old := "../../cache/src/" + hash + ".cpp:"
 	glog.Infof("replacing %q\n", old)
 	return strings.Replace(s, old, "usercode.cpp:", -1)
 }
@@ -838,17 +838,17 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Check to see if there's already a PDF run of this hash
-			pdfPath := "../../../inout/" + hash + ".pdf"
+			pdfPath := "../../inout/" + hash + ".pdf"
 			if _, err := os.Stat(pdfPath); err == nil {
 				PDFURL = "/i/" + hash + ".pdf"
 			}
 			// Check to see if there's already a raster run of this hash
-			rasterPath := "../../../inout/" + hash + "_raster.png"
+			rasterPath := "../../inout/" + hash + "_raster.png"
 			if _, err := os.Stat(rasterPath); err == nil {
 				rasterURL = "/i/" + hash + "_raster.png"
 			}
 			// Check to see if there's already a GPU run of this hash
-			gpuPath := "../../../inout/" + hash + "_gpu.png"
+			gpuPath := "../../inout/" + hash + "_gpu.png"
 			if _, err := os.Stat(gpuPath); err == nil {
 				GPUURL = "/i/" + hash + "_gpu.png"
 			}
@@ -952,9 +952,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			Hash: hash,
 		}
 
-		rasterPath := "../../../inout/" + hash + "_raster.png"
-		gpuPath := "../../../inout/" + hash + "_gpu.png"
-		PDFPath := "../../../inout/" + hash + ".pdf"
+		rasterPath := "../../inout/" + hash + "_raster.png"
+		gpuPath := "../../inout/" + hash + "_gpu.png"
+		PDFPath := "../../inout/" + hash + ".pdf"
 
 		if _, err := os.Stat(rasterPath); err == nil {
 			png, err := ioutil.ReadFile(rasterPath)
