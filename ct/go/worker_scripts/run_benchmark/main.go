@@ -151,29 +151,29 @@ func main() {
 		filepath.Dir((filepath.Dir(filepath.Dir(filepath.Dir(currentFile))))),
 		"py")
 
-	// Loop through all pagesets.
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunBenchmarksTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
 		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 		return
 	}
-	for _, fileInfo := range fileInfos {
-		pagesetBaseName := filepath.Base(fileInfo.Name())
-		if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
-			// Ignore timestamp files and .pyc files.
-			continue
-		}
+	// Repeat runs the specified number of times.
+	for repeatNum := 1; repeatNum <= repeats; repeatNum++ {
+		// Loop through all pagesets.
+		for _, fileInfo := range fileInfos {
+			pagesetBaseName := filepath.Base(fileInfo.Name())
+			if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
+				// Ignore timestamp files and .pyc files.
+				continue
+			}
 
-		// Convert the filename into a format consumable by the run_benchmarks
-		// binary.
-		pagesetName := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
-		pagesetPath := filepath.Join(pathToPagesets, fileInfo.Name())
+			// Convert the filename into a format consumable by the run_benchmarks
+			// binary.
+			pagesetName := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
+			pagesetPath := filepath.Join(pathToPagesets, fileInfo.Name())
 
-		glog.Infof("===== Processing %s =====", pagesetPath)
+			glog.Infof("===== Processing %s =====", pagesetPath)
 
-		// Repeat runs the specified number of times.
-		for repeatNum := 1; repeatNum <= repeats; repeatNum++ {
 			os.Chdir(pathToPyFiles)
 			args := []string{
 				util.BINARY_RUN_BENCHMARK,
