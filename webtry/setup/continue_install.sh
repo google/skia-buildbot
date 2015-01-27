@@ -35,6 +35,11 @@ export PATH=$PATH:~/depot_tools
 # Checkout the skia code (needed so that webtry can build its template).
 fetch skia
 
+# If we *already had* a skia checkout, the above fetch will fail, since
+# fetch only gets new things.  We still need to do an update.
+cd skia
+git pull
+
 cd
 
 # Checkout the buildbot code and its dependencies.
