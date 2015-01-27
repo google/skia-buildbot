@@ -53,7 +53,7 @@ func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool
 	}
 
 	gsBucketName := "chromium-skia-gm"
-	temp, err := NewFileDiffStore(nil, baseDir, gsBucketName, storageBaseDir, RECOMMENDED_WORKER_POOL_SIZE)
+	temp, err := NewFileDiffStore(nil, baseDir, gsBucketName, storageBaseDir, MemCacheFactory, RECOMMENDED_WORKER_POOL_SIZE)
 	assert.Nil(t, err)
 	ret := temp.(*FileDiffStore)
 

@@ -2,11 +2,13 @@
 package testutils
 
 import (
+	"archive/tar"
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -101,31 +103,20 @@ func MustReadJsonFile(filename string, dest interface{}) {
 // path (regardless of what the original name is).
 // If the the uri ends with '.gz' it will be transparently unzipped.
 func DownloadTestDataFile(uriPath, targetPath string) error {
-	uri := GS_TEST_DATA_ROOT_URI + uriPath
-
 	dir, _ := filepath.Split(targetPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
 
-	client := util.NewTimeoutClient()
-	request, err := gs.RequestForStorageURL(uri)
+	resp, err := openUri(uriPath)
 	if err != nil {
 		return err
-	}
-
-	resp, err := client.Do(request)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Downloading %s failed. Got response status: %d", uri, resp.StatusCode)
 	}
 	defer resp.Body.Close()
 
 	// Open the output
 	var r io.ReadCloser = resp.Body
-	if strings.HasSuffix(uri, ".gz") {
+	if strings.HasSuffix(uriPath, ".gz") {
 		r, err = gzip.NewReader(r)
 		if err != nil {
 			return err
@@ -139,4 +130,74 @@ func DownloadTestDataFile(uriPath, targetPath string) error {
 	defer f.Close()
 	_, err = io.Copy(f, r)
 	return err
+}
+
+// DownloadTestDataArchive downloads testfiles that are stored in
+// a gz compressed tar archive and decompresses them into the provided
+// target directory.
+func DownloadTestDataArchive(uriPath, targetDir string) error {
+	if !strings.HasSuffix(uriPath, ".tar.gz") {
+		return fmt.Errorf("Expected .tar.gz file. But got:%s", uriPath)
+	}
+
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		return err
+	}
+
+	resp, err := openUri(uriPath)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Open the output
+	r, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		return err
+	}
+	tarReader := tar.NewReader(r)
+
+	for {
+		hdr, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		targetPath := filepath.Join(targetDir, hdr.Name)
+		f, err := os.Create(targetPath)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(f, tarReader)
+		if err != nil {
+			return err
+		}
+		f.Close()
+	}
+
+	return nil
+}
+
+func openUri(uriPath string) (*http.Response, error) {
+	uri := GS_TEST_DATA_ROOT_URI + uriPath
+
+	client := util.NewTimeoutClient()
+	request, err := gs.RequestForStorageURL(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Downloading %s failed. Got response status: %d", uri, resp.StatusCode)
+	}
+
+	return resp, nil
 }

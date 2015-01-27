@@ -21,6 +21,7 @@ import (
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
+	"skia.googlesource.com/buildbot.git/go/redisutil"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/analysis"
 	"skia.googlesource.com/buildbot.git/golden/go/db"
@@ -43,6 +44,8 @@ var (
 	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	memProfile     = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+	redisHost      = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
+	redisDB        = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
 )
 
 var (
@@ -375,8 +378,16 @@ func main() {
 	// get the Oauthclient if necessary.
 	client := getOAuthClient(*doOauth, *oauthCacheFile)
 
+	// Set up the cache implementation to use.
+	cacheFactory := filediffstore.MemCacheFactory
+	if *redisHost != "" {
+		cacheFactory = func(uniqueId string, codec util.LRUCodec) util.LRUCache {
+			return redisutil.NewRedisLRUCache(*redisHost, *redisDB, uniqueId, codec)
+		}
+	}
+
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore, err := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
+	diffStore, err := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, cacheFactory, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
 	if err != nil {
 		glog.Fatalf("Allocating DiffStore failed: %s", err)
 	}

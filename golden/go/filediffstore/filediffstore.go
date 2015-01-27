@@ -50,6 +50,30 @@ var (
 	downloadFailureCount metrics.Counter
 )
 
+// Interface that the cacheFactory argument must implement.
+type CacheFactory func(uniqueId string, codec util.LRUCodec) util.LRUCache
+
+// MemCacheFactory is a cache factory implementation for an in-memory cache.
+var MemCacheFactory CacheFactory = func(uniqueId string, code util.LRUCodec) util.LRUCache {
+	return util.NewMemLRUCache(0)
+}
+
+// DiffMetricsCodec implements the util.LRUCodec to convert between instances
+// of diff.DiffMetrics and byte arrays.
+// TODO(stephana): Move this to the util package that generates a codec based
+// on a instance value.
+type DiffMetricsCodec int
+
+func (d DiffMetricsCodec) Encode(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
+}
+
+func (d DiffMetricsCodec) Decode(data []byte) (interface{}, error) {
+	var v diff.DiffMetrics
+	err := json.Unmarshal(data, &v)
+	return &v, err
+}
+
 // Init initializes the module.
 func Init() {
 	downloadSuccessCount = metrics.NewRegisteredCounter("golden.gsdownload.success", metrics.DefaultRegistry)
@@ -73,7 +97,7 @@ type FileDiffStore struct {
 	localTempFileDir string
 
 	// Cache for recently used diffmetrics, eviction based on LFU.
-	diffCache *lru.Cache
+	diffCache util.LRUCache
 
 	// LRU cache for images.
 	imageCache *lru.Cache
@@ -112,7 +136,7 @@ type FileDiffStore struct {
 // workerPoolSize is the max number of simultaneous goroutines that will be
 // created when running Get or AbsPath.
 // Use RECOMMENDED_WORKER_POOL_SIZE if unsure what this value should be.
-func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storageBaseDir string, workerPoolSize int) (diff.DiffStore, error) {
+func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storageBaseDir string, cacheFactory CacheFactory, workerPoolSize int) (diff.DiffStore, error) {
 	if client == nil {
 		client = util.NewTimeoutClient()
 	}
@@ -126,11 +150,7 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storage
 		return nil, fmt.Errorf("Unable to alloace image LRU cache: %s", err)
 	}
 
-	diffCache, err := lru.New(METRIC_LRU_CACHE_SIZE)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to allocate diffmetric LRU cache: %s", err)
-	}
-
+	diffCache := cacheFactory("di", DiffMetricsCodec(0))
 	ignorableChan := make(chan string, 10)
 
 	fs := &FileDiffStore{
@@ -226,7 +246,7 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 		// 2. The DiffMetrics exists locally return it.
 
 		// TODO(stephana): Remove this once we have sorted out caching.
-		// fs.diffCache.Add(baseName, diffMetrics)
+		fs.diffCache.Add(baseName, diffMetrics)
 
 		return diffMetrics
 	}
@@ -247,7 +267,7 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 	// 5. Write DiffMetrics to the local cache and return it.
 
 	// TODO(stephana): Remove this once we have sorted out caching.
-	// fs.diffCache.Add(baseName, diffMetrics)
+	fs.diffCache.Add(baseName, diffMetrics)
 
 	// Write to disk in the background.
 	go func() {

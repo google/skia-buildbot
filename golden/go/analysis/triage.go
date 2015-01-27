@@ -95,7 +95,7 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 	result := make([]*GUITestDetail, 0, nTests)
 	for i := 0; i < nTests; i++ {
 		result = append(result, <-resultCh)
-		// glog.Infof("Processed %d/%d tests. (%f%%)", len(result), nTests, float64(len(result))/float64(nTests)*100.0)
+		glog.Infof("Processed %d/%d tests. (%f%%)", len(result), nTests, float64(len(result))/float64(nTests)*100.0)
 	}
 
 	// Sort the resulting tests by name.
@@ -192,6 +192,33 @@ func (a *Analyzer) processOneTestDetail(testName string, testTraces []*LabeledTr
 		Positive:  positiveDigests,
 		Negative:  negativeDigests,
 		Diameter:  a.diameter(testTraces),
+	}
+}
+
+// compareAllDigests compares every pair of digests in the provided array.
+// TODO(stephana): This is currently not enabled but will be enabled as soon as
+// we can distributed diffing over multiple machines.
+func (a *Analyzer) compareAllDigests(allDigests map[string]bool) {
+	digestList := make([]string, 0, len(allDigests))
+	for d := range allDigests {
+		digestList = append(digestList, d)
+	}
+
+	ch := make(chan bool, len(digestList))
+	count := 0
+	for i := 0; i < len(digestList)-1; i++ {
+		go func(i int) {
+			_, err := a.diffStore.Get(digestList[i], digestList[i+1:])
+			if err != nil {
+				glog.Errorf("Error retrieving diff metric: %s", err)
+			}
+			ch <- true
+		}(i)
+		count++
+	}
+
+	for i := 0; i < count; i++ {
+		<-ch
 	}
 }
 
