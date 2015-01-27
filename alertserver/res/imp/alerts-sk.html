@@ -34,13 +34,16 @@
           reflect: false,
         },
       },
+
       created: function() {
         this.alerts = [];
         this.reloadAlerts();
       },
+
       reloadChanged: function() {
         this.resetTimeout();
       },
+
       resetTimeout: function() {
         if (this.timeout) {
           window.clearTimeout(this.timeout);
@@ -50,6 +53,7 @@
           this.timeout = window.setTimeout(function() { that.reloadAlerts(); }, this.reload * 1000);
         }
       },
+
       reloadAlerts: function() {
         console.log("Loading alerts.");
         var that = this;
@@ -57,14 +61,7 @@
           that.alerts = json.alerts;
           that.lastLoaded = new Date().toLocaleTimeString();
           that.resetTimeout();
-          var any_alerting = false;
-          for (var i = 0; i < that.alerts.length; i++) {
-            any_alerting = any_alerting || !that.alerts[i].snoozed;
-          }
-          var tb = $$$('core-toolbar');
-          if (any_alerting != tb.classList.contains('alerting')) {
-            tb.classList.toggle('alerting');
-          }
+          that.dispatchEvent(new CustomEvent("change", { detail: { alerts: that.alerts } }))
           console.log("Done loading alerts.");
 	}).catch(function() {
           that.resetTimeout();

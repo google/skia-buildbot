@@ -36,5 +36,21 @@
       <div flex></div>
       <version-sk></version-sk>
     </div>
+    <script type="text/javascript" charset="utf-8">
+    (function() {
+      sk.WebComponentsReady.then(function() {
+        $$$("alerts-sk").addEventListener("change", function(e) {
+          var anyAlerting = false;
+          for (var i = 0; i < e.detail.alerts.length; i++) {
+            anyAlerting = anyAlerting || !e.detail.alerts[i].snoozed;
+          }
+          var tb  = $$$("core-toolbar");
+          if (anyAlerting != tb.classList.contains("alerting")) {
+            tb.classList.toggle("alerting");
+          }
+        })
+      })
+    })();
+    </script>
   </body>
 </html>

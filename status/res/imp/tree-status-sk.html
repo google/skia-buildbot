@@ -1,0 +1,102 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <tree-status-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/tree-status-sk.html" rel="import" />
+
+  Usage:
+
+    <tree-status-sk></tree-status-sk>
+
+  Properties:
+    binaryStatus: Whether or not the tree is open.
+-->
+<polymer-element name="tree-status-sk">
+  <template>
+    <style>
+    a {
+      color: #FFFFFF;
+    }
+    </style>
+    <a href="https://skia-tree-status.appspot.com" target="_blank">
+      <div>{{message}} | sheriff: {{sheriff}}</div>
+    </a>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        message: {
+          value: "",
+          reflect: false,
+        },
+        binaryStatus: {
+          value: true,
+          reflect: true,
+        },
+        sheriff: {
+          value: "",
+          reflect: false,
+        },
+        reload: {
+          value: 60,
+          reflect: true,
+        },
+        timeout: {
+          value: null,
+          reflect: false,
+        },
+      },
+
+      ready: function() {
+        this.reloadStatus();
+      },
+
+      reloadChanged: function() {
+        this.resetTimeout();
+      },
+
+      resetTimeout: function() {
+        if (this.timeout) {
+          window.clearTimeout(this.timeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this.timeout = window.setTimeout(function() { that.reloadStatus(); }, this.reload * 1000);
+        }
+      },
+
+      updateStatus: function(newSheriff, newMessage, newBinaryStatus) {
+        if ((this.sheriff != newSheriff) ||
+            (this.message != newMessage) ||
+            (this.binaryStatus != newBinaryStatus)) {
+          this.sheriff = newSheriff;
+          this.message = newMessage;
+          this.binaryStatus = newBinaryStatus;
+          this.dispatchEvent(new CustomEvent("change", {
+            detail: {
+              sheriff: this.sheriff,
+              message: this.message,
+              open: this.binaryStatus,
+            }
+          }))
+        }
+      },
+
+      reloadStatus: function() {
+        var that = this;
+        sk.get("https://skia-tree-status.appspot.com/banner-status?format=json").then(JSON.parse).then(function(json) {
+          that.updateStatus(json.username, json.message, json.general_state == "open");
+          that.resetTimeout();
+        }).catch(function() {
+          that.resetTimeout();
+        });
+      },
+    });
+  </script>
+</polymer-element>
