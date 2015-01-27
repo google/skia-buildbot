@@ -124,7 +124,7 @@ static void drawRaster(SkWStream* stream, SkImageInfo info) {
 
 static void drawGPU(SkWStream* stream, GrContext* gr, SkImageInfo info) {
     SkAutoTUnref<SkSurface> surface;
-    surface.reset(SkSurface::NewRenderTarget(gr,info));
+    surface.reset(SkSurface::NewRenderTarget(gr,SkSurface::kNo_Budgeted,info));
 
     drawAndDump(surface, stream);
 }

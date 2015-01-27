@@ -72,6 +72,26 @@
         run.disabled = false;
       }
 
+      function getImageWidth() {
+        if (imageWidth) {
+          return parseInt(imageWidth.value);
+        }
+        return 256;
+      }
+
+      function getImageHeight() {
+        if (imageHeight) {
+          return parseInt(imageHeight.value);
+        }
+        return 256;
+      }
+
+      function isChecked(element, defaultValue) {
+        if (element) {
+          return element.checked;
+        }
+        return defaultValue;
+      }
 
       function sourceSelectByID(id) {
         sourceId = id;
@@ -152,9 +172,6 @@
         }
       }
 
-      enableSource.addEventListener('click', sourceClick, true);
-      selectedSource.addEventListener('click', sourceClick, true);
-
       function configChange(e) {
         if (!(gpu.checked || raster.checked || pdf.checked)) {
           run.disabled = true;
@@ -165,10 +182,26 @@
         }
       }
 
-      gpu.addEventListener('change', configChange);
-      raster.addEventListener('change', configChange);
-      pdf.addEventListener('change', configChange);
+      function setupListeners() {
+        if (enableSource) {
+          enableSource.addEventListener('click', sourceClick, true);
+        }
+        if (selectedSource) {
+          selectedSource.addEventListener('click', sourceClick, true);
+        }
 
+        if (gpu) {
+          gpu.addEventListener('change', configChange);
+        }
+        if (raster) {
+          raster.addEventListener('change', configChange);
+        }
+        if (pdf) {
+          pdf.addEventListener('change', configChange);
+        }
+      }
+
+      setupListeners();
 
       var editor = CodeMirror.fromTextArea(code, {
         theme: "default",
@@ -377,13 +410,13 @@
         req.setRequestHeader('content-type', 'application/json');
         req.send(JSON.stringify({
           'code': editor.getValue(),
-          'width': parseInt(imageWidth.value),
-          'height': parseInt(imageHeight.value),
+          'width': getImageWidth(),
+          'height': getImageHeight(),
           'name': workspaceName,
           'source': sourceId,
-          'gpu': gpu.checked,
-          'raster': raster.checked,
-          'pdf': pdf.checked
+          'gpu': isChecked(gpu,false),
+          'raster': isChecked(raster,true),
+          'pdf': isChecked(pdf,false)
         }));
       }
       run.addEventListener('click', onSubmitCode);
