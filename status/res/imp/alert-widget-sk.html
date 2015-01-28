@@ -23,12 +23,12 @@
     #alertlist {
       padding: 10px;
     }
-    core-icon-button[icon="social:notifications"] {
+    core-icon-button.alerting {
       color: #FFFFFF;
       background-color: #E6AB02;
       border-radius: 19px;
     }
-    core-icon-button[icon="social:notifications-none"] {
+    core-icon-button {
       color: #FFFFFF;
     }
     paper-dropdown {
@@ -40,12 +40,7 @@
     }
     </style>
     <a href="#" onClick="return false;">
-      <template if="{{alerts.length == 0}}">
-        <core-icon-button icon="social:notifications-none" on-tap="{{toggle}}"></core-icon-button>
-      </template>
-      <template if="{{alerts.length > 0}}">
-        <core-icon-button id="notifications" icon="social:notifications" on-tap="{{toggle}}"></core-icon-button>
-      </template>
+      <core-icon-button id="notifications" icon="social:notifications{{alerts.length > 0 ? '' : '-none'}}" class="{{alerts.length > 0 ? 'alerting' : ''}}" on-tap="{{toggle}}"></core-icon-button>
     </a>
     <paper-dropdown halign="right">
       <paper-shadow z="2">
@@ -73,27 +68,33 @@
 
       created: function() {
         this.alerts = [];
+        this.player = null;
         this.timeout = null;
       },
 
       ready: function() {
         this.reloadAlerts();
-        this.animate();
       },
 
       animate: function() {
         var button = this.shadowRoot.querySelector("#notifications");
         if (!button) {
+          console.log("Could not find button!");
           return;
         }
-        var player = button.animate([
-          {transform: "scale(0.8)"},
-          {transform: "scale(1.0)"},
-          {transform: "scale(0.8)"},
-        ],
-        {
-          duration: 300, iterations: Infinity
-        });
+        if (this.player) {
+          this.player.cancel();
+        }
+        if (this.alerts.length > 0) {
+          this.player = button.animate([
+            {transform: "scale(0.8)"},
+            {transform: "scale(1.0)"},
+            {transform: "scale(0.8)"},
+          ],
+          {
+            duration: 300, iterations: Infinity
+          });
+        }
       },
 
       toggle: function() {
@@ -118,7 +119,8 @@
       },
 
       updateAlerts: function(alerts) {
-        this.alerts = alerts
+        this.alerts = alerts;
+        this.animate();
         this.dispatchEvent(new CustomEvent("change", {
           detail: {
             alerts: this.alerts,
