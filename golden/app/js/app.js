@@ -106,6 +106,7 @@ var skia = skia || {};
     function($scope, $routeParams, $location, $timeout, dataService) {
       var triageStateManager;
       var completeTestSet, untriagedTestsOnly;
+      var flagsQuery = {};
 
       var sortFn = function(a,b) {
         return (a.name === b.name) ? 0 : (a.name < b.name) ? -1 : 1;
@@ -192,13 +193,14 @@ var skia = skia || {};
         $scope.filteredQuery = q.paramQuery;
         $scope.commitRangeQuery = q.commitRangeQuery;
         $scope.originalCommitRange = angular.copy(q.commitRangeQuery);
+        flagsQuery = q.flagsQuery;
 
         $location.search(newQuery);
         $scope.qStr = ns.extractQueryString($location.url());
       }
 
       function getCombinedQuery() {
-        var result = ns.unionObject($scope.filteredQuery, $scope.commitRangeQuery);
+        var result = ns.unionObject($scope.filteredQuery, $scope.commitRangeQuery, flagsQuery);
         return result;
       }
 
@@ -260,7 +262,6 @@ var skia = skia || {};
         $scope.allParams = [];
         $scope.crLinks = [];
         $scope.imageSize = 100;
-        $scope.loadAllTriageData();
 
         $scope.showUntriagedOnly = true;
         $scope.pageSize = 50;
@@ -272,6 +273,7 @@ var skia = skia || {};
         $scope.c = ns.c;
 
         setQuery($location.search());
+        $scope.loadAllTriageData();
       };
       init();
 

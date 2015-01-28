@@ -399,7 +399,7 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 		glog.Info("Reading tiles ... ")
 
 		// Load the tile and process it.
-		tile, err := a.tileStore.Get(0, -1)
+		tile, err := a.tileStore.GetModifiable(0, -1)
 		glog.Info("Done reading tiles.")
 
 		if err != nil {
@@ -556,6 +556,12 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 // match the given query. In addition to the digests it returns the query
 // that was used to retrieve them.
 func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]string, includeAllTests bool) map[string]map[string]*GUIUntriagedDigest {
+	_, showHead := query[QUERY_HEAD]
+	if showHead {
+		delete(query, QUERY_COMMIT_START)
+		delete(query, QUERY_COMMIT_END)
+		effectiveQuery[QUERY_HEAD] = query[QUERY_HEAD]
+	}
 	traces, startCommitId, endCommitId := a.currentIndex.query(query, effectiveQuery)
 	endCommitId++
 
@@ -572,25 +578,40 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 		}
 	}
 
-	for _, trace := range traces {
-		testName := trace.Params[types.PRIMARY_KEY_FIELD]
-		current := a.currentTestDetails.lookup(testName).Untriaged
+	if !showHead {
+		for _, trace := range traces {
+			testName := trace.Params[types.PRIMARY_KEY_FIELD]
+			current := a.currentTestDetails.lookup(testName).Untriaged
 
-		startIdx := sort.SearchInts(trace.CommitIds, startCommitId)
-		endIdx := sort.SearchInts(trace.CommitIds, endCommitId)
-		if (endIdx < len(trace.CommitIds)) && (trace.CommitIds[endIdx] == endCommitId) {
-			endIdx++
-		}
+			startIdx := sort.SearchInts(trace.CommitIds, startCommitId)
+			endIdx := sort.SearchInts(trace.CommitIds, endCommitId)
+			if (endIdx < len(trace.CommitIds)) && (trace.CommitIds[endIdx] == endCommitId) {
+				endIdx++
+			}
 
-		for idx := startIdx; idx < endIdx; idx++ {
-			if trace.Labels[idx] == types.UNTRIAGED {
-				if found, ok := ret[testName]; !ok || found == nil {
-					ret[testName] = make(map[string]*GUIUntriagedDigest, len(current))
+			for idx := startIdx; idx < endIdx; idx++ {
+				if trace.Labels[idx] == types.UNTRIAGED {
+					if found, ok := ret[testName]; !ok || found == nil {
+						ret[testName] = make(map[string]*GUIUntriagedDigest, len(current))
+					}
+					ret[testName][trace.Digests[idx]] = current[trace.Digests[idx]]
 				}
-				ret[testName][trace.Digests[idx]] = current[trace.Digests[idx]]
+			}
+		}
+	} else {
+		for _, trace := range traces {
+			lastIdx := len(trace.Labels) - 1
+			if (lastIdx >= 0) && (trace.Labels[lastIdx] == types.UNTRIAGED) {
+				testName := trace.Params[types.PRIMARY_KEY_FIELD]
+				current := a.currentTestDetails.lookup(testName).Untriaged
+				if found, ok := ret[testName]; !ok || found == nil {
+					ret[testName] = map[string]*GUIUntriagedDigest{}
+				}
+				ret[testName][trace.Digests[lastIdx]] = current[trace.Digests[lastIdx]]
 			}
 		}
 	}
+
 	return ret
 }
 

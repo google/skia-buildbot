@@ -13,6 +13,7 @@ import (
 const (
 	QUERY_COMMIT_START = "cs"
 	QUERY_COMMIT_END   = "ce"
+	QUERY_HEAD         = "head"
 )
 
 // ParamIndex maps parameter key/value pairs to unique trace ids.

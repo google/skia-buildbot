@@ -35,11 +35,17 @@ var skia = skia || {};
 
     // Query parameters (that are not automatically available via parameters).
     QUERY_COMMIT_START: 'cs',
-    QUERY_COMMIT_END: 'ce'
+    QUERY_COMMIT_END: 'ce',
+
+    // Miscellaneous query flags.
+    QUERY_HEAD: 'head',
   };
 
   // List of states - used to cycle through via nextState.
   ns.c.ALL_STATES = [ns.c.UNTRIAGED, ns.c.POSITIVE, ns.c.NEGATIVE];
+
+  // Set of query flags that are not related to parameters or commits.
+  ns.c.QUERY_FLAGS = [ns.c.QUERY_HEAD];
 
     /**
      * Plot is a class that wraps the flot object and exposes draw functions.
@@ -536,13 +542,16 @@ var skia = skia || {};
 
   ns.splitQuery = function (query, allParams) {
     var paramQuery = ns.filterQueryByParams(query, allParams);
+    var flagsQuery = ns.subObject(query, ns.c.QUERY_FLAGS);
+
     var crq = {};
     crq[ns.c.QUERY_COMMIT_START] = robust_get(query, [ns.c.QUERY_COMMIT_START, 0]) || "";
     crq[ns.c.QUERY_COMMIT_END] = robust_get(query, [ns.c.QUERY_COMMIT_END, 0]) || "";
 
     return {
       paramQuery: paramQuery,
-      commitRangeQuery: crq
+      commitRangeQuery: crq,
+      flagsQuery: flagsQuery,
     };
   }
 

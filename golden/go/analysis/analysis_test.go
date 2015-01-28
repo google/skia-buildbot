@@ -276,6 +276,20 @@ func TestAgainstLiveData(t *testing.T) {
 		assert.Equal(t, values, testParams[param])
 	}
 	assert.Equal(t, allTests.AllParams, testParams)
+
+	// Query for head and assert that status and the query agree.
+	for corpus, corpStatus := range status.CorpStatus {
+		headTests, err := a.ListTestDetails(map[string][]string{QUERY_HEAD: []string{"1"}, "source_type": []string{corpus}})
+		assert.Nil(t, err)
+
+		foundUntriaged := map[string]bool{}
+		for _, oneTest := range headTests.Tests {
+			for d := range oneTest.Untriaged {
+				foundUntriaged[d] = true
+			}
+		}
+		assert.Equal(t, corpStatus.UntriagedCount, len(foundUntriaged))
+	}
 }
 
 func addParams(current map[string][]string, additional map[string][]string) {
@@ -390,6 +404,5 @@ func (m *MockTileStore) Put(scale, index int, tile *ptypes.Tile) error {
 }
 
 func (m *MockTileStore) GetModifiable(scale, index int) (*ptypes.Tile, error) {
-	assert.FailNow(m.t, "Should not be called.")
-	return nil, nil
+	return m.Get(scale, index)
 }

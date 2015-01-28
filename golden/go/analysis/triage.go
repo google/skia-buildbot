@@ -83,6 +83,7 @@ func (g GUITestDetailSortable) Less(i, j int) bool { return g[i].Name < g[j].Nam
 // getTestDetails processes a tile and calculates the diff metrics for all
 // untriaged digests.
 func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
+	glog.Infof("Latest commit: %v", labeledTile.Commits[len(labeledTile.Commits)-1])
 	glog.Infoln("Starting to extract test details.")
 	nTests := len(labeledTile.Traces)
 	resultCh := make(chan *GUITestDetail, nTests)
@@ -119,6 +120,7 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 }
 
 func (a *Analyzer) updateTestDetails(labeledTestDigests map[string]types.TestClassification) {
+	glog.Infof("Latest commit: %v", a.currentTestDetails.Commits[len(a.currentTestDetails.Commits)-1])
 	glog.Infoln("Starting to update test details.")
 	nTests := len(labeledTestDigests)
 	resultCh := make(chan *GUITestDetail, nTests)
