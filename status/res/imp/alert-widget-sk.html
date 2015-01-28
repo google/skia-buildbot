@@ -1,0 +1,140 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <alert-widget-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/alert-widget-sk.html" rel="import" />
+
+  Usage:
+
+    <alert-widget-sk></alert-widget-sk>
+
+  Properties:
+    reload: How often (in seconds) to reload alert data.
+-->
+<polymer-element name="alert-widget-sk">
+  <template>
+    <style>
+    #alertlist {
+      padding: 10px;
+    }
+    core-icon-button[icon="social:notifications"] {
+      color: #FFFFFF;
+      background-color: #E6AB02;
+      border-radius: 19px;
+    }
+    core-icon-button[icon="social:notifications-none"] {
+      color: #FFFFFF;
+    }
+    paper-dropdown {
+      top: 50px;
+    }
+    a {
+      color: #000000;
+      text-decoration: none;
+    }
+    </style>
+    <a href="#" onClick="return false;">
+      <template if="{{alerts.length == 0}}">
+        <core-icon-button icon="social:notifications-none" on-tap="{{toggle}}"></core-icon-button>
+      </template>
+      <template if="{{alerts.length > 0}}">
+        <core-icon-button id="notifications" icon="social:notifications" on-tap="{{toggle}}"></core-icon-button>
+      </template>
+    </a>
+    <paper-dropdown halign="right">
+      <paper-shadow z="2">
+        <a href="https://alerts.skia.org/" target="_blank">
+          <div id="alertlist">
+            <template repeat="{{alert in alerts}}">
+              <alert-sk alert="{{alert}}" editRights="{{false}}"></alert-sk>
+            </template>
+            <template if="{{alerts.length == 0}}">
+              No alerts are active.
+            </template>
+          </div>
+        </a>
+      </paper-shadow>
+    </paper-dropdown>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        reload: {
+          value: 60,
+          reflect: true,
+        },
+      },
+
+      created: function() {
+        this.alerts = [];
+        this.timeout = null;
+      },
+
+      ready: function() {
+        this.reloadAlerts();
+        this.animate();
+      },
+
+      animate: function() {
+        var button = this.shadowRoot.querySelector("#notifications");
+        if (!button) {
+          return;
+        }
+        var player = button.animate([
+          {transform: "scale(0.8)"},
+          {transform: "scale(1.0)"},
+          {transform: "scale(0.8)"},
+        ],
+        {
+          duration: 300, iterations: Infinity
+        });
+      },
+
+      toggle: function() {
+        var dropdown = this.shadowRoot.querySelector("paper-dropdown");
+        if (dropdown) {
+          dropdown.toggle();
+        }
+      },
+
+      reloadChanged: function() {
+        this.resetTimeout();
+      },
+
+      resetTimeout: function() {
+        if (this.timeout) {
+          window.clearTimeout(this.timeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this.timeout = window.setTimeout(function() { that.reloadAlerts(); }, this.reload * 1000);
+        }
+      },
+
+      updateAlerts: function(alerts) {
+        this.alerts = alerts
+        this.dispatchEvent(new CustomEvent("change", {
+          detail: {
+            alerts: this.alerts,
+          }
+        }))
+      },
+
+      reloadAlerts: function() {
+        var that = this;
+        sk.get("https://alerts.skia.org/json/alerts").then(JSON.parse).then(function(json) {
+          that.updateAlerts(json.alerts);
+          that.resetTimeout();
+        }).catch(function() {
+          that.resetTimeout();
+        });
+      },
+    });
+  </script>
+</polymer-element>
