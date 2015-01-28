@@ -1,4 +1,6 @@
-default:
+default: datahopper
+
+datahopper:
 	go install -v ./go/datahopper
 
 release:

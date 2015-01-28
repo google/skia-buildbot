@@ -222,7 +222,7 @@ func (g *GitInfo) FullHash(ref string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(b), nil
+	return strings.Trim(string(b), "\n"), nil
 }
 
 // GetFile returns the contents of the given file at the given commit.
