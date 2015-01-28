@@ -24,12 +24,31 @@
       padding: 10px;
     }
     core-icon-button.alerting {
-      color: #FFFFFF;
       background-color: #E6AB02;
-      border-radius: 19px;
+      border-radius: 23px;
     }
     core-icon-button {
       color: #FFFFFF;
+      position: relative;
+      width: 46px;
+      height: 46px;
+      padding: 0px 2px;
+    }
+    core-icon-button /deep/ core-icon[role=img] {
+      width: 44px;
+      height: 44px;
+      margin: 0px;
+    }
+    #numAlerts {
+      color: #D95F02;
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 46px;
+      height: 46px;
+      text-align: center;
+      margin: 0px;
+      padding-top: 14px;
     }
     paper-dropdown {
       top: 50px;
@@ -40,7 +59,13 @@
     }
     </style>
     <a href="#" onClick="return false;">
-      <core-icon-button id="notifications" icon="social:notifications{{alerts.length > 0 ? '' : '-none'}}" class="{{alerts.length > 0 ? 'alerting' : ''}}" on-tap="{{toggle}}"></core-icon-button>
+      <core-icon-button
+          id="notifications"
+          icon="social:notifications{{alerts.length > 0 ? '' : '-none'}}"
+          class="{{alerts.length > 0 ? 'alerting' : ''}}"
+          on-tap="{{toggle}}">
+        <div id="numAlerts">{{alerts.length}}</div>
+      </core-icon-button>
     </a>
     <paper-dropdown halign="right">
       <paper-shadow z="2">
@@ -68,6 +93,7 @@
 
       created: function() {
         this.alerts = [];
+        this.activeAlerts = 0;
         this.player = null;
         this.timeout = null;
       },
@@ -85,14 +111,14 @@
         if (this.player) {
           this.player.cancel();
         }
-        if (this.alerts.length > 0) {
+        if (this.activeAlerts > 0) {
           this.player = button.animate([
             {transform: "scale(0.8)"},
             {transform: "scale(1.0)"},
             {transform: "scale(0.8)"},
           ],
           {
-            duration: 300, iterations: Infinity
+            duration: 600, iterations: Infinity
           });
         }
       },
@@ -120,6 +146,13 @@
 
       updateAlerts: function(alerts) {
         this.alerts = alerts;
+        var activeAlerts = 0;
+        for (var i = 0; i < alerts.length; i++) {
+          if (!alerts[i].snoozed) {
+            activeAlerts++;
+          }
+        }
+        this.activeAlerts = activeAlerts;
         this.animate();
         this.dispatchEvent(new CustomEvent("change", {
           detail: {
