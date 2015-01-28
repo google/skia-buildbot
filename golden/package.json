@@ -2,7 +2,7 @@
   "name": "golden",
   "version": "0.1.0",
   "private": true,
-  "description": "skiagold.com",
+  "description": "Skia Correctness testing",
   "main": "index.js",
   "scripts": {
     "test": "make test"
