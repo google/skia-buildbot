@@ -12,9 +12,8 @@ import (
 	"regexp"
 	"runtime"
 	"runtime/pprof"
-	"time"
-
 	"strconv"
+	"time"
 
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
@@ -180,7 +179,7 @@ func deleteIgnoreRule(id string) {
 // addIgnoreRule adds the IgnoreRule to the database.
 //
 // TODO replace with database action.
-func addIgnoreRule(ig *IngoreRule) {
+func addIgnoreRule(ig *IgnoreRule) {
 	ignores = append(ignores, ig)
 }
 
@@ -194,6 +193,11 @@ func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
+		return
+	}
 	id := mux.Vars(r)["id"]
 	deleteIgnoreRule(id)
 	w.Header().Set("Content-Type", "application/json")
@@ -252,7 +256,7 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		Expires: time.Now().Add(d),
 		Query:   req.Filter,
 	}
-	addIgnoreRule(id)
+	addIgnoreRule(ig)
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ignores); err != nil {
