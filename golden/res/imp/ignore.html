@@ -30,6 +30,13 @@ Displays a summary of an ignore rule.
         word-wrap: break-word;
         vertical-align: middle;
       }
+      #note {
+        width: 20em;
+        overflow: auto;
+        color: #66A61E;
+        word-wrap: break-word;
+        vertical-align: middle;
+      }
       #expires {
         width: 6em;
         color: #7570B3;
@@ -46,6 +53,7 @@ Displays a summary of an ignore rule.
     <div id=name>{{value.name}}</div>
     <div id=expires>{{value.expires | humanDiffDate}}</div>
     <pre id=query>{{value.query | splitAmp }}</pre>
+    <pre id=note>{{value.note}}</pre>
     <div id=count>{{value.count}}</div>
     <paper-button id=delete title="Delete"><core-icon icon=delete><core-icon></paper-button>
   </template>

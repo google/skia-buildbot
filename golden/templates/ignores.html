@@ -12,6 +12,7 @@
       #nameHeader,
       #expiresHeader,
       #queryHeader,
+      #noteHeader,
       #countHeader {
         display: inline-block;
         font-weight: bold;
@@ -34,6 +35,10 @@
         width: 20em;
       }
 
+      #noteHeader {
+        width: 20em;
+      }
+
       ignore-summary-sk {
         margin-bottom: 2em;
       }
@@ -51,6 +56,11 @@
         display: block;
       }
 
+      paper-input {
+        display: block;
+        margin-bottom: 1em;
+      }
+
     </style>
   </head>
   <body>
@@ -60,6 +70,7 @@
       <div id=nameHeader>Name</div>
       <div id=expiresHeader>Expires</div>
       <div id=queryHeader>Filter</div>
+      <div id=noteHeader>Note</div>
       <div id=countHeader>Ignored</div>
       <div id=summaries vertical layout>
         User name  - expires in - query - and the delete button will appear here.
@@ -70,6 +81,7 @@
       </toggle-display-sk>
       <div id=dialog>
         <paper-input id=duration label="Duration (1s, 5m, 2h, 3d, 5w)" value=2d floatingLabel></paper-input>
+        <paper-input id=note label="Note" floatingLabel></paper-input>
         <query-sk whiteList='["source_type", "config"]' hideCount noClear></query-sk>
         <paper-button id=add disabled>Add</paper-button>
         <paper-button id=cancel>Cancel</paper-button>
@@ -146,7 +158,8 @@
          $$$('#add').addEventListener('click', function() {
            var body = {
              duration: $$$('#duration').value,
-             filter: $$$('query-sk').currentQuery
+             filter: $$$('query-sk').currentQuery,
+             note: $$$('#note').value,
            };
 
            sk.post('/2/_/ignores/add/', JSON.stringify(body)).then(JSON.parse).then(function(json) {

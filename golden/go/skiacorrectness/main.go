@@ -141,6 +141,7 @@ type IgnoreRule struct {
 	Name    string    `json:"name"`
 	Expires time.Time `json:"expires"`
 	Query   string    `json:"query"`
+	Note    string    `json:"note"`
 	Count   int       `json:"count"`
 }
 
@@ -153,6 +154,7 @@ var ignores = []*IgnoreRule{
 		Name:    "jcgregorio@google.com",
 		Expires: time.Now().Add(time.Hour),
 		Query:   "config=gpu",
+		Note:    "Because",
 		Count:   354,
 	},
 	&IgnoreRule{
@@ -160,6 +162,7 @@ var ignores = []*IgnoreRule{
 		Name:    "jcgregorio@google.com",
 		Expires: time.Now().Add(2 * time.Hour * 24),
 		Query:   "arch=x86&bench_type=playback&config=8888&extra_config=GDI&os=Android",
+		Note:    "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod",
 		Count:   12,
 	},
 }
@@ -210,6 +213,7 @@ func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 type IngoresAddRequest struct {
 	Duration string `json:"duration"`
 	Filter   string `json:"filter"`
+	Note     string `json:"note"`
 }
 
 var durationRe = regexp.MustCompile("([0-9]+)([smhdw])")
@@ -255,6 +259,7 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		Name:    user,
 		Expires: time.Now().Add(d),
 		Query:   req.Filter,
+		Note:    req.Note,
 	}
 	addIgnoreRule(ig)
 	w.Header().Set("Content-Type", "application/json")
