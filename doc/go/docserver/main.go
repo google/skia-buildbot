@@ -40,6 +40,7 @@ var (
 	workDir        = flag.String("work_dir", "/tmp", "The directory to check out the doc repo into.")
 	docRepo        = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The directory to check out the doc repo into.")
 	refresh        = flag.Duration("refresh", 5*time.Minute, "The duration between doc git repo refreshes.")
+	preview        = flag.Bool("preview", false, "Preview markdown changes to a local repo. Doesn't do pulls.")
 )
 
 func loadTemplates() {
@@ -56,12 +57,18 @@ func Init() {
 	loadTemplates()
 
 	var err error
-	primary, err = docset.NewDocSet(*workDir, *docRepo)
+	if *preview {
+		primary, err = docset.NewPreviewDocSet()
+	} else {
+		primary, err = docset.NewDocSet(*workDir, *docRepo)
+	}
 	if err != nil {
 		glog.Fatalf("Failed to load the docset: %s", err)
 	}
 
-	go docset.StartCleaner(*workDir)
+	if !*preview {
+		go docset.StartCleaner(*workDir)
+	}
 }
 
 type Content struct {

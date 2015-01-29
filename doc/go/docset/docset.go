@@ -44,6 +44,7 @@ import (
 	"net/mail"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -52,10 +53,8 @@ import (
 	"sync"
 	"time"
 
-	// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
-
 	"skia.googlesource.com/buildbot.git/doc/go/config"
 	"skia.googlesource.com/buildbot.git/doc/go/reitveld"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
@@ -133,6 +132,31 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 	return d, nil
 }
 
+// NewPreviewDocSet creates a new DocSet, one that is not refreshed.
+func NewPreviewDocSet() (*DocSet, error) {
+	// Start from cwd and move up until you find a .git file, then use that dir as repoDir.
+	dir, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("Can't find cwd: %s", err)
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(dir, ".git")); os.IsNotExist(err) {
+			dir = path.Dir(dir)
+		} else {
+			break
+		}
+		if dir == "/" || dir == "." {
+			return nil, fmt.Errorf("docserver --preview must be run from within the Git repo.")
+		}
+	}
+	d := &DocSet{
+		repoDir: dir,
+	}
+	d.BuildNavigation()
+	d.cache = nil
+	return d, nil
+}
+
 // NewDocSet creates a new DocSet, one that is periodically refreshed.
 func NewDocSet(workDir, repo string) (*DocSet, error) {
 	d, err := newDocSet(filepath.Join(workDir, "primary"), repo, -1, -1, true)
@@ -196,11 +220,17 @@ func (d *DocSet) Body(filename string) ([]byte, error) {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	var err error = nil
-	body, ok := d.cache.Get(filename)
+	var body interface{} = nil
+	ok := false
+	if d.cache != nil {
+		body, ok = d.cache.Get(filename)
+	}
 	if !ok {
 		body, err = ioutil.ReadFile(filename)
 		if err == nil {
-			d.cache.Add(filename, body)
+			if d.cache != nil {
+				d.cache.Add(filename, body)
+			}
 		}
 	}
 	return body.([]byte), err
