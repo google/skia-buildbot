@@ -5,17 +5,12 @@ BOWER_DIR=app/third_party/bower_components
 # into third_party/bower_compoents via bower, or in node_modules.
 CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
           $(BOWER_DIR)/webcomponentsjs/webcomponents.min.js \
-          ../res/js/common.js \
-          $(BOWER_DIR)/jquery/dist/jquery.min.js \
-          $(BOWER_DIR)/flot/jquery.flot.js \
-          $(BOWER_DIR)/flot/jquery.flot.crosshair.js \
-          $(BOWER_DIR)/flot/jquery.flot.navigate.js  \
-          $(BOWER_DIR)/flot/jquery.flot.selection.js
+          ../res/js/common.js
 
 BOWER_DIR=app/third_party/bower_components
 
 .PHONY: skiacorrectness
-skiacorrectness: core_js elements_html
+skiacorrectness: res/css/core.css core_js elements_html
 	go install -v ./go/skiacorrectness
 
 .PHONY: correctness_migratedb
@@ -39,9 +34,13 @@ bench:
 test:
 	go test ./go/...
 
-# Build the web resources.
-web: node_modules Gruntfile.js bower.json
-	./node_modules/.bin/grunt --no-color
+# Build debug versions of core.js and elements.html.
+.PHONY: debug
+debug: clean_webtools debug_core_js debug_elements_html
+
+# Build serving CSS from input CSS.
+res/css/core.css: node_modules/lastupdate res/css/main.css
+	./node_modules/.bin/autoprefixer res/css/main.css -o res/css/core.css
 
 node_modules: package.json
 	npm install

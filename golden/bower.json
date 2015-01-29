@@ -19,10 +19,10 @@
     "angular-bootstrap": "0.11.x",
     "bootstrap": "3.1.x",
     "jquery": "~2.1.1",
-    "polymer": "Polymer/polymer#~0.5.1",
-    "core-elements": "Polymer/core-elements#~0.5.1",
-    "paper-elements": "Polymer/paper-elements#~0.5.1",
-    "webcomponentsjs": "Polymer/webcomponentsjs#^0.5.1",
+    "polymer": "Polymer/polymer#~0.5.4",
+    "core-elements": "Polymer/core-elements#~0.5.4",
+    "paper-elements": "Polymer/paper-elements#~0.5.4",
+    "webcomponentsjs": "Polymer/webcomponentsjs#^0.5.4",
     "flot": "~0.8.3"
   }
 }

@@ -9,9 +9,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"runtime/pprof"
 	"time"
+
+	"strconv"
 
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
@@ -51,6 +54,9 @@ var (
 var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
+
+	// ignoresTemplate is the page for setting up ignore filters.
+	ignoresTemplate *template.Template = nil
 )
 
 const (
@@ -91,6 +97,11 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
+	ignoresTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/ignores.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
 }
 
 // polyListTestsHandler returns a JSON list with high level information about
@@ -122,6 +133,142 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(res); err != nil {
 		util.ReportError(w, r, err, "Failed to encode result")
+	}
+}
+
+// IgnoreRule is the GUI struct for dealing with Ignore rules.
+type IgnoreRule struct {
+	ID      string    `json:"id"`
+	Name    string    `json:"name"`
+	Expires time.Time `json:"expires"`
+	Query   string    `json:"query"`
+	Count   int       `json:"count"`
+}
+
+// ignores is an in memory database of ignore rules.
+//
+// TODO replace with a database.
+var ignores = []*IgnoreRule{
+	&IgnoreRule{
+		ID:      "1",
+		Name:    "jcgregorio@google.com",
+		Expires: time.Now().Add(time.Hour),
+		Query:   "config=gpu",
+		Count:   354,
+	},
+	&IgnoreRule{
+		ID:      "2",
+		Name:    "jcgregorio@google.com",
+		Expires: time.Now().Add(2 * time.Hour * 24),
+		Query:   "arch=x86&bench_type=playback&config=8888&extra_config=GDI&os=Android",
+		Count:   12,
+	},
+}
+
+// deleteIgnoreRule deletes an Ignore rule.
+//
+// TODO replace with database action.
+func deleteIgnoreRule(id string) {
+	for i, r := range ignores {
+		if r.ID == id {
+			ignores = append(ignores[:i], ignores[i+1:]...)
+			break
+		}
+	}
+}
+
+// addIgnoreRule adds the IgnoreRule to the database.
+//
+// TODO replace with database action.
+func addIgnoreRule(ig *IngoreRule) {
+	ignores = append(ignores, ig)
+}
+
+// polyIgnoresJSONHandler returns the current ignore rules in JSON format.
+func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ignores); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
+	}
+}
+
+func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	deleteIgnoreRule(id)
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ignores); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
+	}
+}
+
+type IngoresAddRequest struct {
+	Duration string `json:"duration"`
+	Filter   string `json:"filter"`
+}
+
+var durationRe = regexp.MustCompile("([0-9]+)([smhdw])")
+
+// polyIgnoresAddHandler is for adding a new ignore rule.
+func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
+		return
+	}
+	req := &IngoresAddRequest{}
+	if err := parseJson(r, req); err != nil {
+		util.ReportError(w, r, err, "Failed to decode result")
+		return
+	}
+	parsed := durationRe.FindStringSubmatch(req.Duration)
+	if len(parsed) != 3 {
+		util.ReportError(w, r, fmt.Errorf("Rejected duration: %s", req.Duration), "Failed to parse duration")
+		return
+	}
+	// TODO break out the following into its own func, add tests.
+	n, err := strconv.ParseInt(parsed[1], 10, 32)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to parse duration")
+		return
+	}
+	d := time.Second
+	switch parsed[2][0] {
+	case 's':
+		d = time.Duration(n) * time.Second
+	case 'm':
+		d = time.Duration(n) * time.Minute
+	case 'h':
+		d = time.Duration(n) * time.Hour
+	case 'd':
+		d = time.Duration(n) * 24 * time.Hour
+	case 'w':
+		d = time.Duration(n) * 7 * 24 * time.Hour
+	}
+	ig := &IgnoreRule{
+		ID:      "foo",
+		Name:    user,
+		Expires: time.Now().Add(d),
+		Query:   req.Filter,
+	}
+	addIgnoreRule(id)
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ignores); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
+	}
+}
+
+// polyIgnoresHandler is for setting up ignores rules.
+func polyIgnoresHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Poly Ignores Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if err := ignoresTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
 	}
 }
 
@@ -265,6 +412,7 @@ func sendJson(w http.ResponseWriter, resp *ResponseEnvelope) {
 // provided interface.
 func parseJson(r *http.Request, v interface{}) error {
 	// TODO (stephana): validate the JSON against a schema. Might not be necessary !
+	defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
 	return decoder.Decode(v)
 }
@@ -431,8 +579,12 @@ func main() {
 	http.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/2/", polyMainHandler).Methods("GET")
+	router.HandleFunc("/2/ignores", polyIgnoresHandler).Methods("GET")
 	router.HandleFunc("/2/_/list", polyListTestsHandler).Methods("GET")
 	router.HandleFunc("/2/_/paramset", polyParamsHandler).Methods("GET")
+	router.HandleFunc("/2/_/ignores", polyIgnoresJSONHandler).Methods("GET")
+	router.HandleFunc("/2/_/ignores/del/{id}", polyIgnoresDeleteHandler).Methods("POST")
+	router.HandleFunc("/2/_/ignores/add/", polyIgnoresAddHandler).Methods("POST")
 
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))

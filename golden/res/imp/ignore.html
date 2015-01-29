@@ -1,0 +1,100 @@
+<!-- The <ignore-summary-sk> custom element declaration.
+
+Displays a summary of an ignore rule.
+
+  Attributes:
+  Events:
+    'delete'
+       The element will produce a 'deleted' event when the delete button is
+       pressed. The id of the deleted ignore rule will be included in
+       e.detail.
+  Methods:
+-->
+<polymer-element name="ignore-summary-sk">
+  <template>
+    <style type="text/css" media="screen">
+      div,
+      pre {
+        display: inline-block;
+        margin: 0 0.5em 0 0;
+        font-family: monospace;
+      }
+      #name {
+        width: 15em;
+        color: #D95F02;
+      }
+      #query {
+        width: 20em;
+        overflow: auto;
+        color: #1B9E77;
+        word-wrap: break-word;
+        vertical-align: middle;
+      }
+      #expires {
+        width: 6em;
+        color: #7570B3;
+      }
+      #count {
+        width: 6em;
+        color: #A6761D;
+      }
+      paper-button {
+        min-width: 2em;
+      }
+    </style>
+
+    <div id=name>{{value.name}}</div>
+    <div id=expires>{{value.expires | humanDiffDate}}</div>
+    <pre id=query>{{value.query | splitAmp }}</pre>
+    <div id=count>{{value.count}}</div>
+    <paper-button id=delete title="Delete"><core-icon icon=delete><core-icon></paper-button>
+  </template>
+  <script>
+    (function() {
+      var deltas = [
+        { units: "w", delta: 7*24*60*60 },
+        { units: "d", delta:   24*60*60 },
+        { units: "h", delta:      60*60 },
+        { units: "m", delta:         60 },
+        { units: "s", delta:          1 },
+      ];
+
+      Polymer({
+        publish: {
+          value: {
+            value: {},
+            reflect: true
+          }
+        },
+
+        ready: function() {
+          var that = this;
+          this.$.delete.addEventListener('click', function() {
+            that.dispatchEvent(new CustomEvent('delete', {detail: that.value.id}));
+          });
+        },
+
+        splitAmp: function(s) {
+          var re = new RegExp('&', 'g');
+          if (s) {
+            return s.replace(re, '\n');
+          }
+        },
+
+        humanDiffDate: function(s) {
+          var diff = (Date.parse(s) - Date.now())/1000;
+          for (var i=0; i<deltas.length; i++) {
+            if (deltas[i].delta < diff) {
+              var s = Math.round(diff/deltas[i].delta)+deltas[i].units;
+              while (s.length < 4) {
+                s = ' ' + s;
+              }
+              return s;
+            }
+          }
+          return diff + "s";
+        }
+      });
+    })();
+  </script>
+</polymer-element>

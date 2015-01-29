@@ -19,6 +19,7 @@
     whiteList: A list of keys for params that should always be shown.
     hideCount: If false, then query back to the server for the count
       of matching traces.
+    noClear: Don't display the clear selections button.
 
   Methods:
     setParamSet(set): Set the params to be displayed.
@@ -30,7 +31,7 @@
         parameters chosen have changed. The event contains the current
         selections formatted as a URL query, found in e.detail.
 -->
-<polymer-element name="query-sk" attributes="whiteList currentQuery hideCount">
+<polymer-element name="query-sk" attributes="whiteList currentQuery hideCount noClear">
   <template>
     <style type="text/css" media="screen">
       #more.display {
@@ -96,6 +97,17 @@
   <script>
     (function(){
       Polymer({
+        publish: {
+          hideCount: {
+            value: false,
+            reflect: true
+          },
+          noClear: {
+            value: false,
+            reflect: true
+          }
+        },
+
         created: function() {
           // Both primary and secondary are arrays of objects that look like:
           //
@@ -115,12 +127,14 @@
         ready: function() {
           this.currentQuery = '';
 
-          this.hideCount = this.hideCount || false;
-
           this.$.inputs.addEventListener('core-select', this.fireChange.bind(this));
           this.$.more.addEventListener('core-select', this.fireChange.bind(this));
 
           this.$.clear.addEventListener('click', this.clearSelections.bind(this));
+
+          if (this.noClear) {
+            this.$.clear.style.display = 'none';
+          }
         },
 
         clearSelections: function() {

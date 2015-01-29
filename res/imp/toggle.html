@@ -26,7 +26,11 @@
   <script>
     (function() {
       function toggle(e) {
-        e.target.nextElementSibling.classList.toggle("display");
+        var target = e.target;
+        while (target.localName != 'toggle-display-sk') {
+          target = target.parentElement;
+        }
+        target.nextElementSibling.classList.toggle("display");
       };
 
       Polymer({

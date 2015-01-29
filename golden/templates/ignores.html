@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Skia Correctness Server</title>
+
+    {{template "header.html" .}}
+
+    <style type="text/css" media="screen">
+      paper-button {
+        min-width: 2em;
+      }
+      #nameHeader,
+      #expiresHeader,
+      #queryHeader,
+      #countHeader {
+        display: inline-block;
+        font-weight: bold;
+        margin-right: 0.5em;
+      }
+
+      #nameHeader {
+        width: 15em;
+      }
+
+      #expiresHeader {
+        width: 6em;
+      }
+
+      #countHeader {
+        width: 6em;
+      }
+
+      #queryHeader {
+        width: 20em;
+      }
+
+      ignore-summary-sk {
+        margin-bottom: 2em;
+      }
+
+      #dialog {
+        display: none;
+        margin-left: 5em;
+      }
+
+      #dialog.display {
+        display: block;
+      }
+
+      query-sk {
+        display: block;
+      }
+
+    </style>
+  </head>
+  <body>
+    <scaffold-sk responsiveWidth="700px">
+      {{template "titlebar.html" .}}
+
+      <div id=nameHeader>Name</div>
+      <div id=expiresHeader>Expires</div>
+      <div id=queryHeader>Filter</div>
+      <div id=countHeader>Ignored</div>
+      <div id=summaries vertical layout>
+        User name  - expires in - query - and the delete button will appear here.
+      </div>
+
+      <toggle-display-sk title="Create a new ignore rule.">
+        <core-icon icon=add-box><core-icon>
+      </toggle-display-sk>
+      <div id=dialog>
+        <paper-input id=duration label="Duration (1s, 5m, 2h, 3d, 5w)" value=2d floatingLabel></paper-input>
+        <query-sk whiteList='["source_type", "config"]' hideCount noClear></query-sk>
+        <paper-button id=add disabled>Add</paper-button>
+        <paper-button id=cancel>Cancel</paper-button>
+      </div>
+
+      <paper-toast></paper-toast>
+    </scaffold-sk>
+
+    <script type="text/javascript" charset="utf-8">
+     sk.WebComponentsReady.then(function() {
+
+       function displayRules(json) {
+         var container = $$$('#summaries');
+         sk.clearChildren(container);
+         json.forEach(function(c) {
+           var s = document.createElement('ignore-summary-sk');
+           container.appendChild(s);
+           s.value = c;
+           s.addEventListener('delete', function(e) {
+             deleteRule(e.detail);
+           });
+         });
+       }
+
+       function deleteRule(id) {
+         $$('#summaries ignore-summary-sk').forEach(function(ele) {
+           if (ele.value.id == id) {
+             sk.post('/2/_/ignores/del/'+id).then(JSON.parse).then(function(json) {
+               displayRules(json);
+             }) .catch(function(e) {
+               $$$('paper-toast').text = e;
+               $$$('paper-toast').show();
+             });
+           }
+         });
+       }
+
+       function loadSummaries(query) {
+         query = query || '';
+         sk.get('/2/_/ignores').then(JSON.parse).then(function(json) {
+           displayRules(json);
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
+           $$$('paper-toast').show();
+         });
+       }
+
+       function readyToAdd() {
+         if ($$$('#duration').value != "" && $$$('query-sk').currentQuery != "") {
+           $$$('#add').removeAttribute('disabled');
+         } else {
+           $$$('#add').setAttribute('disabled', '');
+         }
+       }
+
+       sk.WebComponentsReady.then(function(){
+         loadSummaries();
+
+         sk.get('/2/_/paramset').then(JSON.parse).then(function(json) {
+           $$$('html /deep/ query-sk').setParamSet(json)
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
+           $$$('paper-toast').show();
+         });
+
+         $$$('#cancel').addEventListener('click', function() {
+           $$$('#dialog').classList.toggle('display');
+         });
+
+         $$$('query-sk').addEventListener('change', readyToAdd);
+         $$$('#duration').addEventListener('change', readyToAdd);
+
+
+         $$$('#add').addEventListener('click', function() {
+           var body = {
+             duration: $$$('#duration').value,
+             filter: $$$('query-sk').currentQuery
+           };
+
+           sk.post('/2/_/ignores/add/', JSON.stringify(body)).then(JSON.parse).then(function(json) {
+             displayRules(json);
+             $$$('#dialog').classList.toggle('display');
+           }).catch(function(e) {
+             $$$('paper-toast').text = e;
+             $$$('paper-toast').show();
+             $$$('#dialog').classList.toggle('display');
+           });
+         });
+       });
+
+     });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+/**
+ * Copyright (c) 2015 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file */
+
+/* Never edit core.css, only edit main.css and then run 'make'.  */
+
+body {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+}
+
+#pageWrapper {
+  background: white;
+}
+.col {
+  padding: 0.5em;
+}
+
+html /deep/ core-toolbar,
+#title {
+  background-color: #D95F02;
+  color: #fff;
+}
+
+#title login-sk {
+  margin-left: auto;
+}
+
+#title /deep/ a {
+  color: white;
+}
+
+html /deep/ a {
+  color: #FF7F00;
+  font-weight: bold;
+}
+
+html /deep/ #mainContainer {
+  padding: 1em;
+  background: white;
+}
+
+html /deep/ paper-button {
+  color: #1F78B4;
+}
+
+html /deep/  paper-button:hover {
+  background: #eee;
+}
