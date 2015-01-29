@@ -193,6 +193,13 @@ server {
     return 301 https://status.skia.org$request_uri;
 }
 
+#####   ct.skia.org (REDIRECT)   ###########################
+server {
+    listen 80;
+    server_name ct.skia.org;
+    rewrite ^ http://skia-tree-status.appspot.com/skia-telemetry/chromium_try redirect;
+}
+
 #####   skbug.com (REDIRECT)   ###########################
 server {
     listen 80;
