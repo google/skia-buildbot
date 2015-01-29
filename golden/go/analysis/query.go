@@ -16,6 +16,10 @@ const (
 	QUERY_HEAD         = "head"
 )
 
+var (
+	QUERY_HEAD_FALSE = []string{"0"}
+)
+
 // ParamIndex maps parameter key/value pairs to unique trace ids.
 type ParamIndex map[string]map[string][]int
 
@@ -40,12 +44,29 @@ func NewLabeledTileIndex(labeledTile *LabeledTile) *LabeledTileIndex {
 }
 
 // query find all traces that match the given query which contains a
-// set of parameters and specific values. It also returns the subset of 'query'
-// that contained correct parameters and values and was used in the lookup.
-func (i *LabeledTileIndex) query(query, effectiveQuery map[string][]string) ([]*LabeledTrace, int, int) {
+// set of parameters and specific values.
+// It returns the array of traces that match the query, the indices of the
+// first and last commit to consider and whether the head flag was set to
+// true. In the latter case any commit range query will be ignored.
+// All query values used in producing the result will be added to
+// effectiveQuery.
+func (i *LabeledTileIndex) query(query, effectiveQuery map[string][]string) ([]*LabeledTrace, int, int, bool) {
+	// Figure out whether we are just interested in HEAD or everything.
+	headVal, headValueSet := query[QUERY_HEAD]
+	if !headValueSet {
+		headVal = QUERY_HEAD_FALSE
+	}
+
+	showHead := (len(headVal) == 0) || (headVal[0] != QUERY_HEAD_FALSE[0])
+	if showHead {
+		delete(query, QUERY_COMMIT_START)
+		delete(query, QUERY_COMMIT_END)
+	}
+	effectiveQuery[QUERY_HEAD] = headVal
+
 	startCommit, endCommit := i.getCommitRange(query, effectiveQuery)
 	traces := i.queryTraces(query, effectiveQuery)
-	return traces, startCommit, endCommit
+	return traces, startCommit, endCommit, showHead
 }
 
 // getCommitRange Returns the index of the first and last commit as identified

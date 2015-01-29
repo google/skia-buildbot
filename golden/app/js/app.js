@@ -106,7 +106,7 @@ var skia = skia || {};
     function($scope, $routeParams, $location, $timeout, dataService) {
       var triageStateManager;
       var completeTestSet, untriagedTestsOnly;
-      var flagsQuery = {};
+      // var flagsQuery = {};
 
       var sortFn = function(a,b) {
         return (a.name === b.name) ? 0 : (a.name < b.name) ? -1 : 1;
@@ -193,14 +193,17 @@ var skia = skia || {};
         $scope.filteredQuery = q.paramQuery;
         $scope.commitRangeQuery = q.commitRangeQuery;
         $scope.originalCommitRange = angular.copy(q.commitRangeQuery);
-        flagsQuery = q.flagsQuery;
+        $scope.flagsQuery = q.flagsQuery;
+
+        $scope.headSelected = ns.flatQueryValueOr($scope.flagsQuery, ns.c.QUERY_HEAD, '0');
 
         $location.search(newQuery);
         $scope.qStr = ns.extractQueryString($location.url());
       }
 
       function getCombinedQuery() {
-        var result = ns.unionObject($scope.filteredQuery, $scope.commitRangeQuery, flagsQuery);
+        var result = ns.unionObject($scope.filteredQuery,
+                                    $scope.commitRangeQuery, $scope.flagsQuery);
         return result;
       }
 
@@ -250,6 +253,15 @@ var skia = skia || {};
         }
 
         return result;
+      };
+
+      $scope.headChanged = function() {
+        if ($scope.headSelected === '0') {
+          delete $scope.flagsQuery[ns.c.QUERY_HEAD];
+        } else {
+          $scope.flagsQuery[ns.c.QUERY_HEAD] = [$scope.headSelected];
+        }
+        $scope.loadAllTriageData();
       };
 
       // initialize the members and load the data.

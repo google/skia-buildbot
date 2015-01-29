@@ -83,6 +83,14 @@
         	</div>
 
         	<div class="col-xs-6 pull-right" style="padding: 6px;">
+
+        		<div style="display:inline; font-weight: bold; padding-right:5em;">
+	              <input type="checkbox"
+		                 ng-model="headSelected"
+		                 ng-true-value="1" ng-false-value="0"
+		                 ng-change="headChanged()"> HEAD only
+		        </div>
+
         		<div style="display:inline; font-weight: bold;">
         			Show # of commits:
         		</div>

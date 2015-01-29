@@ -556,13 +556,7 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 // match the given query. In addition to the digests it returns the query
 // that was used to retrieve them.
 func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]string, includeAllTests bool) map[string]map[string]*GUIUntriagedDigest {
-	_, showHead := query[QUERY_HEAD]
-	if showHead {
-		delete(query, QUERY_COMMIT_START)
-		delete(query, QUERY_COMMIT_END)
-		effectiveQuery[QUERY_HEAD] = query[QUERY_HEAD]
-	}
-	traces, startCommitId, endCommitId := a.currentIndex.query(query, effectiveQuery)
+	traces, startCommitId, endCommitId, showHead := a.currentIndex.query(query, effectiveQuery)
 	endCommitId++
 
 	if len(effectiveQuery) == 0 {
@@ -625,7 +619,7 @@ func (a *Analyzer) getSubTile(query map[string][]string) (*LabeledTile, map[stri
 	// if we really need this method. GetTileCounts and getSubTile might be
 	// removed.
 	effectiveQuery := make(map[string][]string, len(query))
-	traces, _, _ := a.currentIndex.query(query, effectiveQuery)
+	traces, _, _, _ := a.currentIndex.query(query, effectiveQuery)
 	if len(effectiveQuery) == 0 {
 		return nil, effectiveQuery
 	}

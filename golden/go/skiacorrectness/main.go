@@ -559,13 +559,11 @@ func main() {
 
 	// Wire up the resources. We use the 'rest' prefix to avoid any name
 	// clashes witht the static files being served.
-	// TODO (stephana): Wrap the handlers in autogzip unless we defer that to
-	// the front-end proxy.
-	router.HandleFunc("/rest/counts", tileCountsHandler).Methods("GET")
-	router.HandleFunc("/rest/triage", listTestDetailsHandler).Methods("GET")
-	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
-	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
-	router.HandleFunc("/rest/status", statusHandler).Methods("GET")
+	router.HandleFunc("/rest/counts", autogzip.HandleFunc(tileCountsHandler)).Methods("GET")
+	router.HandleFunc("/rest/triage", autogzip.HandleFunc(listTestDetailsHandler)).Methods("GET")
+	router.HandleFunc("/rest/triage/{testname}", autogzip.HandleFunc(testDetailsHandler)).Methods("GET")
+	router.HandleFunc("/rest/triage", autogzip.HandleFunc(triageDigestsHandler)).Methods("POST")
+	router.HandleFunc("/rest/status", autogzip.HandleFunc(statusHandler)).Methods("GET")
 
 	// Set up the login related resources.
 	// TODO (stephana): Clean up the URLs so they have the same prefix.

@@ -555,6 +555,27 @@ var skia = skia || {};
     };
   }
 
+  // flatQueryValueOr returns the value in query identified by
+  // key. If that value is an array it will return the first element
+  // in the array. If the value is a string it will return the string.
+  // If key doesn't exist or the array is empty the defaultValue will be
+  // returned.
+  ns.flatQueryValueOr = function(query, key, defaultVal) {
+    var val = query[key];
+
+    if (!val) {
+      return defaultVal;
+    }
+
+    if (Array.isArray(val)) {
+      if (val.length > 0) {
+        return val[0];
+      }
+      return defaultVal;
+    }
+    return val;
+  };
+
   // sortedKeys returns the keys of the object in sorted order.
   ns.sortedKeys = function(obj) {
     var result = ns.keys(obj);
