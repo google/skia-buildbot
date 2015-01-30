@@ -111,42 +111,42 @@
    "skiadocslogs": {
      "url": "http://skia-docs:10114",
      "method": "GET",
-     "expected": [200],
+     "expected": [401],
      "body": "",
      "mimetype": ""
    },
    "skiamonitoringlogs": {
      "url": "http://skia-monitoring:10114",
      "method": "GET",
-     "expected": [200],
+     "expected": [401],
      "body": "",
      "mimetype": ""
    },
    "skiaperflogs": {
      "url": "http://skia-perf:10114",
      "method": "GET",
-     "expected": [200],
+     "expected": [401],
      "body": "",
      "mimetype": ""
    },
    "skiapushlogs": {
      "url": "http://skia-push:10114",
      "method": "GET",
-     "expected": [200],
+     "expected": [401],
      "body": "",
      "mimetype": ""
    },
    "skiatestingblogs": {
      "url": "http://skia-testing-b:10114",
      "method": "GET",
-     "expected": [200],
+     "expected": [401],
      "body": "",
      "mimetype": ""
    },
    "skiawebtrylogs": {
      "url": "http://skia-webtry-b:10114",
      "method": "GET",
-     "expected": [200],
+     "expected": [401],
      "body": "",
      "mimetype": ""
    }
