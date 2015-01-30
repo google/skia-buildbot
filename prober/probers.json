@@ -1,13 +1,13 @@
 {
    "skfiddle": {
-     "url": "https://skfiddle.com",
+     "url": "https://fiddle.skia.org",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skfiddle_compile_bad": {
-     "url": "https://skfiddle.com",
+     "url": "https://fiddle.skia.org",
      "method": "POST",
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas)\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":256,\"height\":256}",
@@ -15,7 +15,7 @@
      "bodytest":"skfiddleJSONBad"
    },
    "skfiddle_compile_good": {
-     "url": "https://skfiddle.com",
+     "url": "https://fiddle.skia.org",
      "method": "POST",
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas) { SkPaint p; p.setColor(SK_ColorRED); canvas->drawText(\\\"Helloworld\\\", 10, 50, 50, p);}\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":256,\"height\":256}",
@@ -23,35 +23,42 @@
      "bodytest":"skfiddleJSONGood"
    },
    "skiaperf": {
-     "url": "https://skiaperf.com",
+     "url": "https://perf.skia.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiagold": {
+     "url": "https://gold.skia.org",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiamonitor": {
-     "url": "https://skiamonitor.com",
+     "url": "https://mon.skia.org",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiamonitor_config_js": {
-     "url": "https://skiamonitor.com/config.js",
+     "url": "https://mon.skia.org/config.js",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiaalerts": {
-     "url": "https://skiaalerts.com",
+     "url": "https://alerts.skia.org",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiaalerts_json": {
-     "url": "https://skiaalerts.com/json/alerts",
+     "url": "https://alerts.skia.org/json/alerts",
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -74,7 +81,7 @@
      "bodytest": "validJSON"
    },
    "skiapush": {
-     "url": "http://skiapush.com:8000",
+     "url": "https://push.skia.org",
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -95,7 +102,49 @@
      "mimetype": ""
    },
    "skiadev": {
-     "url": "http://skiadev.org",
+     "url": "https://skia.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiadocslogs": {
+     "url": "http://skia-docs:10114",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiamonitoringlogs": {
+     "url": "http://skia-monitoring:10114",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiaperflogs": {
+     "url": "http://skia-perf:10114",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiapushlogs": {
+     "url": "http://skia-push:10114",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiatestingblogs": {
+     "url": "http://skia-testing-b:10114",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiawebtrylogs": {
+     "url": "http://skia-webtry-b:10114",
      "method": "GET",
      "expected": [200],
      "body": "",
