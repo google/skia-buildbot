@@ -83,8 +83,9 @@ func TestGetListTestDetails(t *testing.T) {
 	diffStore := NewMockDiffStore()
 	expStore := expstorage.NewMemExpectationsStore()
 	tileStore := NewMockTileStore(t, digests, params, commits)
+	ignoreStore := types.NewMemIgnoreStore()
 	timeBetweenPolls := 10 * time.Hour
-	a := NewAnalyzer(expStore, tileStore, diffStore, mockUrlGenerator, timeBetweenPolls)
+	a := NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, mockUrlGenerator, timeBetweenPolls)
 
 	allTests, err := a.ListTestDetails(nil)
 	assert.Nil(t, err)
@@ -99,8 +100,8 @@ func TestGetListTestDetails(t *testing.T) {
 	assert.Equal(t, len(params), len(allTests.Tests))
 
 	// Make sure the lookup function works correctly.
-	for _, oneTest := range a.currentTestDetails.Tests {
-		found := a.currentTestDetails.lookup(oneTest.Name)
+	for _, oneTest := range a.current.TestDetails.Tests {
+		found := a.current.TestDetails.lookup(oneTest.Name)
 		assert.NotNil(t, found)
 		assert.Equal(t, oneTest, found)
 	}
@@ -181,8 +182,9 @@ func TestAgainstLiveData(t *testing.T) {
 	diffStore := NewMockDiffStore()
 	expStore := expstorage.NewMemExpectationsStore()
 	tileStore := NewMockTileStoreFromJson(t, TEST_DATA_PATH)
+	ignoreStore := types.NewMemIgnoreStore()
 	timeBetweenPolls := 10 * time.Hour
-	a := NewAnalyzer(expStore, tileStore, diffStore, mockUrlGenerator, timeBetweenPolls)
+	a := NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, mockUrlGenerator, timeBetweenPolls)
 
 	// Poll until the Analyzer has process the tile.
 	var allTests *GUITestDetails
@@ -238,7 +240,7 @@ func TestAgainstLiveData(t *testing.T) {
 		}
 
 		// Go through the current tile and check whether the digests match up.
-		for _, trace := range a.currentTile.Traces[testName] {
+		for _, trace := range a.current.Tile.Traces[testName] {
 			for idx, digest := range trace.Digests {
 				assert.NotNil(t, commitsBD[digest], fmt.Sprintf("Did not find digest: %s in \n %v", digest, commitsBD))
 				assert.NotEqual(t, len(commitsBD[digest]), sort.SearchInts(commitsBD[digest], trace.CommitIds[idx]))
@@ -260,6 +262,7 @@ func TestAgainstLiveData(t *testing.T) {
 	for corpus, _ := range status.CorpStatus {
 		q := map[string][]string{"source_type": []string{corpus}}
 		corpusTests, err := a.ListTestDetails(q)
+		q["head"] = []string{"0"}
 		assert.Nil(t, err)
 		assert.Equal(t, q, corpusTests.Query)
 		assert.NotEqual(t, allTests.AllParams, corpusTests.AllParams)
@@ -338,7 +341,7 @@ func (m MockDiffStore) AbsPath(digest []string) map[string]string {
 	return result
 }
 
-func (m MockDiffStore) IgnorableDigests() map[string]bool {
+func (m MockDiffStore) UnavailableDigests() map[string]bool {
 	return nil
 }
 

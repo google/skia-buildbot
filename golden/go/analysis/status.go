@@ -52,16 +52,16 @@ type GUICorpusStatus struct {
 
 // calcStatus determines the status based on the current tile. It breaks
 // down the status by individual corpora.
-func (a *Analyzer) calcStatus(labeledTile *LabeledTile) *GUIStatus {
-	corpStatus := make(map[string]*GUICorpusStatus, len(a.currentIndex.corpora))
+func calcStatus(state *AnalyzeState) *GUIStatus {
+	corpStatus := make(map[string]*GUICorpusStatus, len(state.Index.corpora))
 	minCommitId := map[string]int{}
 	okByCorpus := map[string]bool{}
 
 	// Gathers unique labels by corpus and label.
 	byCorpus := map[string]map[types.Label]map[string]bool{}
 
-	for _, corpus := range a.currentIndex.corpora {
-		minCommitId[corpus] = len(labeledTile.Commits)
+	for _, corpus := range state.Index.corpora {
+		minCommitId[corpus] = len(state.Tile.Commits)
 		okByCorpus[corpus] = true
 		byCorpus[corpus] = map[types.Label]map[string]bool{
 			types.POSITIVE:  map[string]bool{},
@@ -80,7 +80,7 @@ func (a *Analyzer) calcStatus(labeledTile *LabeledTile) *GUIStatus {
 	// Iterate over the current traces
 	var idx int
 	var corpus string
-	for _, testTraces := range labeledTile.Traces {
+	for _, testTraces := range state.Tile.Traces {
 		for _, trace := range testTraces {
 			corpus = trace.Params[types.CORPUS_FIELD]
 			idx = len(trace.Labels) - 1
@@ -97,14 +97,14 @@ func (a *Analyzer) calcStatus(labeledTile *LabeledTile) *GUIStatus {
 	allUntriagedCount := 0
 	allPositiveCount := 0
 	allNegativeCount := 0
-	for _, corpus := range a.currentIndex.corpora {
+	for _, corpus := range state.Index.corpora {
 		overallOk = overallOk && okByCorpus[corpus]
 		untriagedCount := len(byCorpus[corpus][types.UNTRIAGED])
 		positiveCount := len(byCorpus[corpus][types.POSITIVE])
 		negativeCount := len(byCorpus[corpus][types.NEGATIVE])
 		corpStatus[corpus] = &GUICorpusStatus{
 			OK:             okByCorpus[corpus],
-			MinCommitHash:  labeledTile.Commits[minCommitId[corpus]].Hash,
+			MinCommitHash:  state.Tile.Commits[minCommitId[corpus]].Hash,
 			UntriagedCount: untriagedCount,
 			NegativeCount:  negativeCount,
 		}

@@ -70,7 +70,10 @@ type ResponseEnvelope struct {
 	Status int          `json:"status"`
 }
 
-var analyzer *analysis.Analyzer = nil
+var (
+	analyzer    *analysis.Analyzer = nil
+	ignoreStore types.IgnoreStore
+)
 
 // *****************************************************************************
 // *****************************************************************************
@@ -135,60 +138,15 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// IgnoreRule is the GUI struct for dealing with Ignore rules.
-type IgnoreRule struct {
-	ID      string    `json:"id"`
-	Name    string    `json:"name"`
-	Expires time.Time `json:"expires"`
-	Query   string    `json:"query"`
-	Note    string    `json:"note"`
-	Count   int       `json:"count"`
-}
-
-// ignores is an in memory database of ignore rules.
-//
-// TODO replace with a database.
-var ignores = []*IgnoreRule{
-	&IgnoreRule{
-		ID:      "1",
-		Name:    "jcgregorio@google.com",
-		Expires: time.Now().Add(time.Hour),
-		Query:   "config=gpu",
-		Note:    "Because",
-		Count:   354,
-	},
-	&IgnoreRule{
-		ID:      "2",
-		Name:    "jcgregorio@google.com",
-		Expires: time.Now().Add(2 * time.Hour * 24),
-		Query:   "arch=x86&bench_type=playback&config=8888&extra_config=GDI&os=Android",
-		Note:    "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod",
-		Count:   12,
-	},
-}
-
-// deleteIgnoreRule deletes an Ignore rule.
-//
-// TODO replace with database action.
-func deleteIgnoreRule(id string) {
-	for i, r := range ignores {
-		if r.ID == id {
-			ignores = append(ignores[:i], ignores[i+1:]...)
-			break
-		}
-	}
-}
-
-// addIgnoreRule adds the IgnoreRule to the database.
-//
-// TODO replace with database action.
-func addIgnoreRule(ig *IgnoreRule) {
-	ignores = append(ignores, ig)
-}
-
 // polyIgnoresJSONHandler returns the current ignore rules in JSON format.
 func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	ignores, err := analyzer.ListIgnoreRules()
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to retrieve ignored traces.")
+	}
+
+	// TODO(stephana): Wrap in response envelope if it makes sense !
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ignores); err != nil {
 		util.ReportError(w, r, err, "Failed to encode result")
@@ -201,16 +159,21 @@ func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
 		return
 	}
-	id := mux.Vars(r)["id"]
-	deleteIgnoreRule(id)
-	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(ignores); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
+	if err != nil {
+		util.ReportError(w, r, err, "ID must be valid integer.")
+		return
+	}
+
+	if err := analyzer.DeleteIgnoreRule(int(id), user); err != nil {
+		util.ReportError(w, r, err, "Unable to delete ignore rule.")
+	} else {
+		// If delete worked just list the current ignores and return them.
+		polyIgnoresJSONHandler(w, r)
 	}
 }
 
-type IngoresAddRequest struct {
+type IgnoresAddRequest struct {
 	Duration string `json:"duration"`
 	Filter   string `json:"filter"`
 	Note     string `json:"note"`
@@ -225,9 +188,9 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
 		return
 	}
-	req := &IngoresAddRequest{}
+	req := &IgnoresAddRequest{}
 	if err := parseJson(r, req); err != nil {
-		util.ReportError(w, r, err, "Failed to decode result")
+		util.ReportError(w, r, err, "Failed to parse submitted data.")
 		return
 	}
 	parsed := durationRe.FindStringSubmatch(req.Duration)
@@ -254,19 +217,18 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	case 'w':
 		d = time.Duration(n) * 7 * 24 * time.Hour
 	}
-	ig := &IgnoreRule{
-		ID:      "foo",
-		Name:    user,
-		Expires: time.Now().Add(d),
-		Query:   req.Filter,
-		Note:    req.Note,
+	ignoreRule := types.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to create ignore rule.")
+		return
 	}
-	addIgnoreRule(ig)
-	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(ignores); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+
+	if err := analyzer.AddIgnoreRule(ignoreRule); err != nil {
+		util.ReportError(w, r, err, "Failed to create ignore rule.")
+		return
 	}
+
+	polyIgnoresJSONHandler(w, r)
 }
 
 // polyIgnoresHandler is for setting up ignores rules.
@@ -554,11 +516,12 @@ func main() {
 	}
 	vdb := database.NewVersionedDB(conf)
 	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb))
+	ignoreStore = types.NewSQLIgnoreStore(vdb)
 	tileStore := filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
 
 	// Initialize the Analyzer
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
-	analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, imgFS.GetURL, 10*time.Minute)
+	analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, imgFS.GetURL, 10*time.Minute)
 
 	router := mux.NewRouter()
 

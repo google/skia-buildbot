@@ -112,14 +112,14 @@ type FileDiffStore struct {
 	absPathCh chan *WorkerReq
 	getCh     chan *WorkerReq
 
-	// ignoreableDigests contains the digests that should be ignored.
-	ignorableDigests map[string]bool
+	// unavailableDigests contains the digests that should be ignored.
+	unavailableDigests map[string]bool
 
-	// idChan is a channel to add to ignorableDigests.
-	ignorableChan chan string
+	// idChan is a channel to add to unavailableDigests.
+	unavailableChan chan string
 
-	// Mutex for the ignorable Channel
-	ignorableMutex sync.Mutex
+	// unavailableMutex protects unavailableDigests
+	unavailableMutex sync.Mutex
 
 	// Mutexes for ensuring safe access to the different local caches.
 	diffDirLock   sync.Mutex
@@ -151,7 +151,7 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storage
 	}
 
 	diffCache := cacheFactory("di", DiffMetricsCodec(0))
-	ignorableChan := make(chan string, 10)
+	unavailableChan := make(chan string, 10)
 
 	fs := &FileDiffStore{
 		client:              client,
@@ -163,22 +163,22 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storage
 		storageBaseDir:      storageBaseDir,
 		imageCache:          imageCache,
 		diffCache:           diffCache,
-		ignorableDigests:    map[string]bool{},
-		ignorableChan:       ignorableChan,
+		unavailableDigests:  map[string]bool{},
+		unavailableChan:     unavailableChan,
 	}
 
 	// TODO(stephana): Clean this up and store digests to ignore in the
 	// database and expose them on the front-end.
 	// This is the hash of the empty, we should ignore this right away.
-	ignorableChan <- "d41d8cd98f00b204e9800998ecf8427e"
+	unavailableChan <- "d41d8cd98f00b204e9800998ecf8427e"
 	go func() {
 		var ignoreDigest string
 		for {
-			ignoreDigest = <-ignorableChan
+			ignoreDigest = <-unavailableChan
 			func() {
-				fs.ignorableMutex.Lock()
-				defer fs.ignorableMutex.Unlock()
-				fs.ignorableDigests[ignoreDigest] = true
+				fs.unavailableMutex.Lock()
+				defer fs.unavailableMutex.Unlock()
+				fs.unavailableDigests[ignoreDigest] = true
 			}()
 		}
 	}()
@@ -402,12 +402,12 @@ func (fs *FileDiffStore) AbsPath(digests []string) map[string]string {
 	}
 }
 
-// IgnorableDigests is part of the diff.DiffStore interface. See details there.
-func (fs *FileDiffStore) IgnorableDigests() map[string]bool {
-	fs.ignorableMutex.Lock()
-	defer fs.ignorableMutex.Unlock()
-	result := make(map[string]bool, len(fs.ignorableDigests))
-	for k, v := range fs.ignorableDigests {
+// UnavailableDigests is part of the diff.DiffStore interface. See details there.
+func (fs *FileDiffStore) UnavailableDigests() map[string]bool {
+	fs.unavailableMutex.Lock()
+	defer fs.unavailableMutex.Unlock()
+	result := make(map[string]bool, len(fs.unavailableDigests))
+	for k, v := range fs.unavailableDigests {
 		result[k] = v
 	}
 	return result
@@ -659,7 +659,7 @@ func (fs *FileDiffStore) getDigestImage(d string) (image.Image, error) {
 	}
 
 	// Mark the image as ignorable since we were not able to decode it.
-	fs.ignorableChan <- d
+	fs.unavailableChan <- d
 
 	return nil, fmt.Errorf("Unable to read image for %s: %s", d, err)
 }

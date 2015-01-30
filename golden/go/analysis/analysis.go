@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	metrics "github.com/rcrowley/go-metrics"
+	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -18,25 +18,40 @@ import (
 	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
+var (
+	// The number of times we've successfully loaded and processed a tile.
+	runsCounter metrics.Counter
+
+	// The number of times an error has ocurred when trying to load a tile.
+	errorTileLoadingCounter metrics.Counter
+)
+
+func init() {
+	runsCounter = metrics.NewRegisteredCounter("analysis.runs", metrics.DefaultRegistry)
+	errorTileLoadingCounter = metrics.NewRegisteredCounter("analysis.errors", metrics.DefaultRegistry)
+}
+
 type PathToURLConverter func(string) string
 
 // LabeledTrace stores a Trace with labels and digests. CommitIds, Digests and
 // Labels are of the same length, identical indices refer to the same digest.
 type LabeledTrace struct {
-	Params    map[string]string
-	CommitIds []int
-	Digests   []string
-	Labels    []types.Label
-	Id        int
+	Params      map[string]string
+	CommitIds   []int
+	Digests     []string
+	Labels      []types.Label
+	Id          int
+	IgnoreRules []*types.IgnoreRule
 }
 
 func NewLabeledTrace(params map[string]string, capacity int, traceId int) *LabeledTrace {
 	return &LabeledTrace{
-		Params:    params,
-		CommitIds: make([]int, 0, capacity),
-		Digests:   make([]string, 0, capacity),
-		Labels:    make([]types.Label, 0, capacity),
-		Id:        traceId,
+		Params:      params,
+		CommitIds:   make([]int, 0, capacity),
+		Digests:     make([]string, 0, capacity),
+		Labels:      make([]types.Label, 0, capacity),
+		Id:          traceId,
+		IgnoreRules: []*types.IgnoreRule{},
 	}
 }
 
@@ -45,6 +60,11 @@ func (lt *LabeledTrace) addLabeledDigests(commitIds []int, digests []string, lab
 	lt.CommitIds = append(lt.CommitIds, commitIds...)
 	lt.Digests = append(lt.Digests, digests...)
 	lt.Labels = append(lt.Labels, labels...)
+}
+
+// addIgnoreRules attaches the ignore rules that match his trace.
+func (lt *LabeledTrace) addIgnoreRules(newRules []*types.IgnoreRule) {
+	lt.IgnoreRules = append(lt.IgnoreRules, newRules...)
 }
 
 // LabeledTile aggregates the traces of a tile and provides a slice of commits
@@ -127,28 +147,37 @@ type GUITileCounts struct {
 	Query      map[string][]string     `json:"query"`
 }
 
+// AnalyzeState captures the state of a partition of the incoming data.
+// When a tile is read from disk it is partitioned into two tiles: current
+// and ignored. current contains everything we want to be able to review
+// continuously and ignored contains all ignored traces.
+// This struct is the container for one of these partitions and the derived
+// information.
+type AnalyzeState struct {
+	// Canonical data structure to hold our information about commits, digests
+	// and labels.
+	Tile *LabeledTile
+
+	// Index to query the Tile.
+	Index *LabeledTileIndex
+
+	// Output data structures that are derived from Tile.
+	TileCounts  *GUITileCounts
+	TestDetails *GUITestDetails
+	Status      *GUIStatus
+}
+
 // Analyzer continuously manages tasks like polling for new traces
 // on disk and generating diffs between images. It is the primary interface
 // to be called by the HTTP frontend.
 type Analyzer struct {
-	expStore  expstorage.ExpectationsStore
-	diffStore diff.DiffStore
-	tileStore ptypes.TileStore
+	expStore    expstorage.ExpectationsStore
+	diffStore   diff.DiffStore
+	tileStore   ptypes.TileStore
+	ignoreStore types.IgnoreStore
 
-	// Canonical data structure to hold our information about commits, digests
-	// and labels.
-	currentTile *LabeledTile
-
-	// Index to query the current tile.
-	currentIndex *LabeledTileIndex
-
-	// Output data structures that are derived from currentTile.
-	currentTileCounts  *GUITileCounts
-	currentTestDetails *GUITestDetails
-	currentStatus      *GUIStatus
-
-	// Maps from trace ids to the actual instances of LabeledTrace.
-	traceMap map[int]*LabeledTrace
+	current *AnalyzeState
+	ignored *AnalyzeState
 
 	// converter supplied by the client of the type to convert a path to a URL
 	pathToURLConverter PathToURLConverter
@@ -161,14 +190,16 @@ type Analyzer struct {
 	loopCounter int
 }
 
-func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileStore, diffStore diff.DiffStore, puConverter PathToURLConverter, timeBetweenPolls time.Duration) *Analyzer {
+func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileStore, diffStore diff.DiffStore, ignoreStore types.IgnoreStore, puConverter PathToURLConverter, timeBetweenPolls time.Duration) *Analyzer {
 	result := &Analyzer{
 		expStore:           expStore,
 		diffStore:          diffStore,
 		tileStore:          tileStore,
+		ignoreStore:        ignoreStore,
 		pathToURLConverter: puConverter,
 
-		currentTile: NewLabeledTile(),
+		current: &AnalyzeState{},
+		ignored: &AnalyzeState{},
 	}
 
 	go result.loop(timeBetweenPolls)
@@ -185,13 +216,13 @@ func (a *Analyzer) GetTileCounts(query map[string][]string) (*GUITileCounts, err
 	if len(query) > 0 {
 		tile, effectiveQuery := a.getSubTile(query)
 		if len(effectiveQuery) > 0 {
-			ret := a.getOutputCounts(tile)
+			ret := a.getOutputCounts(tile, a.current.Index)
 			ret.Query = effectiveQuery
 			return ret, nil
 		}
 	}
 
-	return a.currentTileCounts, nil
+	return a.current.TileCounts, nil
 }
 
 // ListTestDetails returns a list of triage details based on the supplied
@@ -205,7 +236,7 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 	defer a.mutex.RUnlock()
 
 	if len(query) == 0 {
-		return a.currentTestDetails, nil
+		return a.current.TestDetails, nil
 	}
 
 	effectiveQuery := make(map[string][]string, len(query))
@@ -213,7 +244,7 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 	tests := make([]*GUITestDetail, 0, len(foundUntriaged))
 
 	for testName, untriaged := range foundUntriaged {
-		testDetail := a.currentTestDetails.lookup(testName)
+		testDetail := a.current.TestDetails.lookup(testName)
 		tests = append(tests, &GUITestDetail{
 			Name:      testName,
 			Untriaged: untriaged,
@@ -226,8 +257,8 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 	sort.Sort(GUITestDetailSortable(tests))
 
 	return &GUITestDetails{
-		Commits:   a.currentTestDetails.Commits,
-		AllParams: a.currentIndex.getAllParams(query),
+		Commits:   a.current.TestDetails.Commits,
+		AllParams: a.current.Index.getAllParams(query),
 		Query:     effectiveQuery,
 		Tests:     tests,
 	}, nil
@@ -275,7 +306,7 @@ func (a *Analyzer) PolyListTestSimple(query url.Values) ([]*PolyGUISimple, error
 		}
 	}
 
-	for _, t := range a.currentTestDetails.Tests {
+	for _, t := range a.current.TestDetails.Tests {
 		if hasQuery {
 			if _, ok := names[t.Name]; !ok {
 				continue
@@ -317,7 +348,7 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 	defer a.mutex.RUnlock()
 
 	var effectiveQuery map[string][]string
-	testDetail := a.currentTestDetails.lookup(testName)
+	testDetail := a.current.TestDetails.lookup(testName)
 	untriaged := testDetail.Untriaged
 	if len(query) > 0 {
 		effectiveQuery = map[string][]string{}
@@ -338,9 +369,9 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 	}
 
 	return &GUITestDetails{
-		Commits:         a.currentTestDetails.Commits,
-		CommitsByDigest: map[string]map[string][]int{testName: a.currentTestDetails.CommitsByDigest[testName]},
-		AllParams:       a.currentIndex.getAllParams(query),
+		Commits:         a.current.TestDetails.Commits,
+		CommitsByDigest: map[string]map[string][]int{testName: a.current.TestDetails.CommitsByDigest[testName]},
+		AllParams:       a.current.Index.getAllParams(query),
 		Query:           effectiveQuery,
 		Tests: []*GUITestDetail{
 			&GUITestDetail{
@@ -369,85 +400,151 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 	}
 
 	// Let's update our knowledge of the labels.
-	a.updateDerivedOutputs(labeledTestDigests, expectations)
+	a.updateDerivedOutputs(labeledTestDigests, expectations, a.current)
+	a.updateDerivedOutputs(labeledTestDigests, expectations, a.ignored)
 
 	result := make([]*GUITestDetail, 0, len(labeledTestDigests))
 	for testName := range labeledTestDigests {
-		result = append(result, a.currentTestDetails.lookup(testName))
+		result = append(result, a.current.TestDetails.lookup(testName))
 	}
 
 	return &GUITestDetails{
-		Commits:   a.currentTestDetails.Commits,
-		AllParams: a.currentIndex.getAllParams(nil),
+		Commits:   a.current.TestDetails.Commits,
+		AllParams: a.current.Index.getAllParams(nil),
 		Tests:     result,
 	}, nil
 }
 
 func (a *Analyzer) GetStatus() *GUIStatus {
-	return a.currentStatus
+	return a.current.Status
+}
+
+// ListIgnoreRules returns all current ignore rules.
+func (a *Analyzer) ListIgnoreRules() ([]*types.IgnoreRule, error) {
+	rules, err := a.ignoreStore.List()
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO(stephana): Inject Count and other statistics about the
+	// ignored traces. This will be based on LabeledTrace.IgnoreRules.
+
+	return rules, nil
+}
+
+// AddIgnoreRule adds a new ignore rule and recalculates the new state of the
+// system.
+func (a *Analyzer) AddIgnoreRule(ignoreRule *types.IgnoreRule) error {
+	if err := a.ignoreStore.Create(ignoreRule); err != nil {
+		return err
+	}
+
+	a.processTile()
+
+	return nil
+}
+
+// DeleteIgnoreRule deletes the ignore rule and recalculates the state of the
+// system.
+func (a *Analyzer) DeleteIgnoreRule(ruleId int, user string) error {
+	count, err := a.ignoreStore.Delete(ruleId, user)
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		a.processTile()
+	}
+
+	return nil
 }
 
 // loop is the main event loop.
 func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
-	// The number of times we've successfully loaded and processed a tile.
-	runsCounter := metrics.NewRegisteredCounter("analysis.runs", metrics.DefaultRegistry)
-
-	// The number of times an error has ocurred when trying to load a tile.
-	errorTileLoadingCounter := metrics.NewRegisteredCounter("analysis.errors", metrics.DefaultRegistry)
-
-	processOneTile := func() {
-		glog.Info("Reading tiles ... ")
-
-		// Load the tile and process it.
-		tile, err := a.tileStore.GetModifiable(0, -1)
-		glog.Info("Done reading tiles.")
-
-		if err != nil {
-			glog.Errorf("Error reading tile store: %s\n", err)
-			errorTileLoadingCounter.Inc(1)
-		} else {
-			// Protect the tile and expectations with the write lock.
-			a.mutex.Lock()
-			defer a.mutex.Unlock()
-
-			// Retrieve the current expectations.
-			expectations, err := a.expStore.Get(false)
-			if err != nil {
-				glog.Errorf("Error retrieving expectations: %s", err)
-				return
-			}
-
-			newLabeledTile := a.processTile(tile)
-			a.setDerivedOutputs(newLabeledTile, expectations)
-		}
-		glog.Info("Done processing tiles.")
-		runsCounter.Inc(1)
-		a.loopCounter++
-	}
-
 	// process a tile immediately and then at fixed points in time.
-	processOneTile()
+	a.processTile()
 	for _ = range time.Tick(timeBetweenPolls) {
-		processOneTile()
+		a.processTile()
 	}
 }
 
-// processTile processes the last two tiles and updates the cannonical and
-// output data structures.
-func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
+// processTile loads a tile (built by the ingest process) and partitions it
+// into two labeled tiles one with the traces of interest and the traces we
+// are ignoring.
+func (a *Analyzer) processTile() {
+	glog.Info("Reading tiles ... ")
+
+	// Load the tile and process it.
+	tile, err := a.tileStore.GetModifiable(0, -1)
+	glog.Info("Done reading tiles.")
+
+	if err != nil {
+		glog.Errorf("Error reading tile store: %s\n", err)
+		errorTileLoadingCounter.Inc(1)
+	} else {
+		// Protect the tile and expectations with the write lock.
+		a.mutex.Lock()
+		defer a.mutex.Unlock()
+
+		// Retrieve the current expectations.
+		expectations, err := a.expStore.Get(false)
+		if err != nil {
+			glog.Errorf("Error retrieving expectations: %s", err)
+			return
+		}
+
+		newLabeledTile, ignoredLabeledTile := a.partitionRawTile(tile)
+		a.setDerivedOutputs(newLabeledTile, expectations, a.current)
+		a.setDerivedOutputs(ignoredLabeledTile, expectations, a.ignored)
+	}
+	glog.Info("Done processing tiles.")
+	runsCounter.Inc(1)
+	a.loopCounter++
+}
+
+// partitionRawTile partitions the input tile into two tiles (current and ignored)
+// and derives the output data structures for both.
+func (a *Analyzer) partitionRawTile(tile *ptypes.Tile) (*LabeledTile, *LabeledTile) {
 	glog.Info("Processing tile into LabeledTile ...")
-	result := NewLabeledTile()
 
+	// Shared between both tiles.
 	tileLen := tile.LastCommitIndex() + 1
-	result.Commits = tile.Commits[:tileLen]
-	commitsByDigestMap := map[string]map[string]map[int]bool{}
 
-	ignorableDigests := a.diffStore.IgnorableDigests()
-	glog.Infof("Ignorable digests: %v", ignorableDigests)
+	// Set the up the result tile and a tile for ignored traces.
+	resultTile := NewLabeledTile()
+	resultTile.Commits = tile.Commits[:tileLen]
+	resultCommitsByDigestMap := map[string]map[string]map[int]bool{}
+
+	ignoredTile := NewLabeledTile()
+	ignoredTile.Commits = tile.Commits[:tileLen]
+	ignoredCommitsByDigestMap := map[string]map[string]map[int]bool{}
+
+	// Get the digests that are unavailable, e.g. they cannot be fetched
+	// from GS or they are not valid images.
+	unavailableDigests := a.diffStore.UnavailableDigests()
+	glog.Infof("Unavailable digests: %v", unavailableDigests)
+
+	// Get the rule matcher to find traces to ignore.
+	ruleMatcher, err := a.ignoreStore.BuildRuleMatcher()
+	if err != nil {
+		glog.Errorf("Unable to build rule matcher: %s", err)
+	}
 
 	// Note: We are assumming that the number and order of traces will change
 	// over time.
+	var targetTile *LabeledTile
+	var commitsByDigestMap map[string]map[string]map[int]bool
 	for _, v := range tile.Traces {
+		// Determine if this tile is to be in the result or the ignored tile.
+		matchedRules, isIgnored := ruleMatcher(v.Params())
+		if isIgnored {
+			targetTile = ignoredTile
+			commitsByDigestMap = ignoredCommitsByDigestMap
+		} else {
+			targetTile = resultTile
+			commitsByDigestMap = resultCommitsByDigestMap
+		}
+
 		tempCommitIds := make([]int, 0, tileLen)
 		tempLabels := make([]types.Label, 0, tileLen)
 		tempDigests := make([]string, 0, tileLen)
@@ -456,7 +553,7 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 
 		// Iterate over the digests in this trace.
 		for i, v := range gTrace.Values[:tileLen] {
-			if (v != ptypes.MISSING_DIGEST) && !ignorableDigests[v] {
+			if (v != ptypes.MISSING_DIGEST) && !unavailableDigests[v] {
 				tempCommitIds = append(tempCommitIds, i)
 				tempDigests = append(tempDigests, v)
 				tempLabels = append(tempLabels, types.UNTRIAGED)
@@ -475,55 +572,63 @@ func (a *Analyzer) processTile(tile *ptypes.Tile) *LabeledTile {
 		// Only consider traces that are not empty.
 		if len(tempLabels) > 0 {
 			// Label the digests and add them to the labeled traces.
-			_, targetLabeledTrace := result.getLabeledTrace(v)
+			_, targetLabeledTrace := targetTile.getLabeledTrace(v)
 			targetLabeledTrace.addLabeledDigests(tempCommitIds, tempDigests, tempLabels)
+			if isIgnored {
+				targetLabeledTrace.addIgnoreRules(matchedRules)
+			}
 		}
 	}
 
-	for testName, cbd := range commitsByDigestMap {
-		result.CommitsByDigest[testName] = make(map[string][]int, len(cbd))
-		for d, commitIds := range cbd {
-			result.CommitsByDigest[testName][d] = util.KeysOfIntSet(commitIds)
-			sort.Ints(result.CommitsByDigest[testName][d])
-		}
-	}
+	getCommitsByDigest(resultTile, resultCommitsByDigestMap)
+	getCommitsByDigest(ignoredTile, ignoredCommitsByDigestMap)
 
 	glog.Info("Done processing tile into LabeledTile.")
-	return result
+	return resultTile, ignoredTile
+}
+
+func getCommitsByDigest(labeledTile *LabeledTile, commitsByDigestMap map[string]map[string]map[int]bool) {
+	for testName, cbd := range commitsByDigestMap {
+		labeledTile.CommitsByDigest[testName] = make(map[string][]int, len(cbd))
+		for d, commitIds := range cbd {
+			labeledTile.CommitsByDigest[testName][d] = util.KeysOfIntSet(commitIds)
+			sort.Ints(labeledTile.CommitsByDigest[testName][d])
+		}
+	}
 }
 
 // setDerivedOutputs derives the output data from the given tile and
 // updates the outputs and tile in the analyzer.
-func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, expectations *expstorage.Expectations) {
+func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, expectations *expstorage.Expectations, state *AnalyzeState) {
 	// Assign all the labels.
 	for testName, traces := range labeledTile.Traces {
 		for _, trace := range traces {
-			a.labelDigests(testName, trace.Digests, trace.Labels, expectations)
+			labelDigests(testName, trace.Digests, trace.Labels, expectations)
 		}
 	}
 
 	// Generate the lookup index for the tile and get all parameters.
-	a.currentIndex = NewLabeledTileIndex(labeledTile)
+	state.Index = NewLabeledTileIndex(labeledTile)
 
 	// calculate all the output data.
-	a.currentTile = labeledTile
-	a.currentTileCounts = a.getOutputCounts(labeledTile)
-	a.currentTestDetails = a.getTestDetails(labeledTile)
-	a.currentStatus = a.calcStatus(labeledTile)
+	state.Tile = labeledTile
+	state.TileCounts = a.getOutputCounts(state.Tile, state.Index)
+	state.TestDetails = a.getTestDetails(state)
+	state.Status = calcStatus(state)
 }
 
 // updateLabels iterates over the traces in of the tiles that have changed and
 // labels them according to our current expecatations.
 
 // updateDerivedOutputs
-func (a *Analyzer) updateDerivedOutputs(labeledTestDigests map[string]types.TestClassification, expectations *expstorage.Expectations) {
+func (a *Analyzer) updateDerivedOutputs(labeledTestDigests map[string]types.TestClassification, expectations *expstorage.Expectations, state *AnalyzeState) {
 	// Update the labels of the traces that have changed.
 	for testName := range labeledTestDigests {
-		if traces, ok := a.currentTile.Traces[testName]; ok {
+		if traces, ok := state.Tile.Traces[testName]; ok {
 			for _, trace := range traces {
 				// Note: This is potentially slower than using labels in
 				// labeledTestDigests directly, but it keeps the code simpler.
-				a.labelDigests(testName, trace.Digests, trace.Labels, expectations)
+				labelDigests(testName, trace.Digests, trace.Labels, expectations)
 			}
 		}
 	}
@@ -534,15 +639,15 @@ func (a *Analyzer) updateDerivedOutputs(labeledTestDigests map[string]types.Test
 	//a.updateOutputCounts(labeledTestDigests)
 
 	// Update the tests that have changed and the status.
-	a.updateTestDetails(labeledTestDigests)
-	a.currentStatus = a.calcStatus(a.currentTile)
+	a.updateTestDetails(labeledTestDigests, state)
+	state.Status = calcStatus(state)
 }
 
 // labelDigest assignes a label to the given digests based on the expectations.
 // Its assumes that targetLabels are pre-initialized, usualy with UNTRIAGED,
 // because it will not change the label if the given test and digest cannot be
 // found.
-func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels []types.Label, expectations *expstorage.Expectations) {
+func labelDigests(testName string, digests []string, targetLabels []types.Label, expectations *expstorage.Expectations) {
 	for idx, digest := range digests {
 		if test, ok := expectations.Tests[testName]; ok {
 			if foundLabel, ok := test[digest]; ok {
@@ -556,18 +661,18 @@ func (a *Analyzer) labelDigests(testName string, digests []string, targetLabels 
 // match the given query. In addition to the digests it returns the query
 // that was used to retrieve them.
 func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]string, includeAllTests bool) map[string]map[string]*GUIUntriagedDigest {
-	traces, startCommitId, endCommitId, showHead := a.currentIndex.query(query, effectiveQuery)
+	traces, startCommitId, endCommitId, showHead := a.current.Index.query(query, effectiveQuery)
 	endCommitId++
 
 	if len(effectiveQuery) == 0 {
 		return nil
 	}
 
-	ret := make(map[string]map[string]*GUIUntriagedDigest, len(a.currentTestDetails.Tests))
+	ret := make(map[string]map[string]*GUIUntriagedDigest, len(a.current.TestDetails.Tests))
 
 	// This includes an empty list for tests that we have not found.
 	if includeAllTests {
-		for _, testName := range a.currentIndex.getTestNames(query) {
+		for _, testName := range a.current.Index.getTestNames(query) {
 			ret[testName] = nil
 		}
 	}
@@ -575,7 +680,7 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 	if !showHead {
 		for _, trace := range traces {
 			testName := trace.Params[types.PRIMARY_KEY_FIELD]
-			current := a.currentTestDetails.lookup(testName).Untriaged
+			current := a.current.TestDetails.lookup(testName).Untriaged
 
 			startIdx := sort.SearchInts(trace.CommitIds, startCommitId)
 			endIdx := sort.SearchInts(trace.CommitIds, endCommitId)
@@ -597,7 +702,7 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 			lastIdx := len(trace.Labels) - 1
 			if (lastIdx >= 0) && (trace.Labels[lastIdx] == types.UNTRIAGED) {
 				testName := trace.Params[types.PRIMARY_KEY_FIELD]
-				current := a.currentTestDetails.lookup(testName).Untriaged
+				current := a.current.TestDetails.lookup(testName).Untriaged
 				if found, ok := ret[testName]; !ok || found == nil {
 					ret[testName] = map[string]*GUIUntriagedDigest{}
 				}
@@ -619,13 +724,13 @@ func (a *Analyzer) getSubTile(query map[string][]string) (*LabeledTile, map[stri
 	// if we really need this method. GetTileCounts and getSubTile might be
 	// removed.
 	effectiveQuery := make(map[string][]string, len(query))
-	traces, _, _, _ := a.currentIndex.query(query, effectiveQuery)
+	traces, _, _, _ := a.current.Index.query(query, effectiveQuery)
 	if len(effectiveQuery) == 0 {
 		return nil, effectiveQuery
 	}
 
 	result := NewLabeledTile()
-	result.Commits = a.currentTile.Commits
+	result.Commits = a.current.Tile.Commits
 
 	result.Traces = map[string][]*LabeledTrace{}
 	for _, t := range traces {
@@ -640,7 +745,7 @@ func (a *Analyzer) getSubTile(query map[string][]string) (*LabeledTile, map[stri
 }
 
 // getOutputCounts derives the output counts from the given labeled tile.
-func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) *GUITileCounts {
+func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile, index *LabeledTileIndex) *GUITileCounts {
 	glog.Info("Starting to process output counts.")
 	// Stores the aggregated counts of a tile for each test.
 	tileCountsMap := make(map[string]*LabelCounts, len(labeledTile.Traces))
@@ -665,7 +770,7 @@ func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile) *GUITileCounts {
 		Ticks:      human.FlotTickMarks(ts),
 		Aggregated: overallAggregates,
 		Counts:     tileCountsMap,
-		AllParams:  a.currentIndex.getAllParams(nil),
+		AllParams:  index.getAllParams(nil),
 	}
 
 	glog.Info("Done processing output counts.")

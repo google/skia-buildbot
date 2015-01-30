@@ -82,13 +82,13 @@ func (g GUITestDetailSortable) Less(i, j int) bool { return g[i].Name < g[j].Nam
 
 // getTestDetails processes a tile and calculates the diff metrics for all
 // untriaged digests.
-func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
-	glog.Infof("Latest commit: %v", labeledTile.Commits[len(labeledTile.Commits)-1])
+func (a *Analyzer) getTestDetails(state *AnalyzeState) *GUITestDetails {
+	glog.Infof("Latest commit: %v", state.Tile.Commits[len(state.Tile.Commits)-1])
 	glog.Infoln("Starting to extract test details.")
-	nTests := len(labeledTile.Traces)
+	nTests := len(state.Tile.Traces)
 	resultCh := make(chan *GUITestDetail, nTests)
 
-	for testName, testTraces := range labeledTile.Traces {
+	for testName, testTraces := range state.Tile.Traces {
 		go a.processOneTestDetail(testName, testTraces, resultCh)
 	}
 
@@ -111,26 +111,26 @@ func (a *Analyzer) getTestDetails(labeledTile *LabeledTile) *GUITestDetails {
 	glog.Infoln("Done extracting test details.")
 
 	return &GUITestDetails{
-		Commits:         labeledTile.Commits,
-		CommitsByDigest: labeledTile.CommitsByDigest,
-		AllParams:       a.currentIndex.getAllParams(nil),
+		Commits:         state.Tile.Commits,
+		CommitsByDigest: state.Tile.CommitsByDigest,
+		AllParams:       state.Index.getAllParams(nil),
 		Tests:           result,
 		testsMap:        testsMap,
 	}
 }
 
-func (a *Analyzer) updateTestDetails(labeledTestDigests map[string]types.TestClassification) {
-	glog.Infof("Latest commit: %v", a.currentTestDetails.Commits[len(a.currentTestDetails.Commits)-1])
+func (a *Analyzer) updateTestDetails(labeledTestDigests map[string]types.TestClassification, state *AnalyzeState) {
+	glog.Infof("Latest commit: %v", state.TestDetails.Commits[len(state.TestDetails.Commits)-1])
 	glog.Infoln("Starting to update test details.")
 	nTests := len(labeledTestDigests)
 	resultCh := make(chan *GUITestDetail, nTests)
 
 	for testName := range labeledTestDigests {
-		go a.processOneTestDetail(testName, a.currentTile.Traces[testName], resultCh)
+		go a.processOneTestDetail(testName, state.Tile.Traces[testName], resultCh)
 	}
 
 	// Wait for the results to finish.
-	curr := a.currentTestDetails.Tests
+	curr := state.TestDetails.Tests
 	for i := 0; i < nTests; i++ {
 		result := <-resultCh
 
@@ -139,8 +139,6 @@ func (a *Analyzer) updateTestDetails(labeledTestDigests map[string]types.TestCla
 		// We found the entry.
 		if (idx < len(curr)) && (curr[idx].Name == result.Name) {
 			curr[idx] = result
-		} else {
-			glog.Errorf("Unable to find test '%s'", result.Name)
 		}
 	}
 
