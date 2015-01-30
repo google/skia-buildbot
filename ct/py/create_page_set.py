@@ -124,7 +124,7 @@ class TypicalAlexaPage(page_module.Page):
 
   def RunNavigateSteps(self, action_runner):
     action_runner.NavigateToPage(self)
-    action_runner.Wait(2)
+    action_runner.Wait(5)
 
   def RunPageInteractions(self, action_runner):
     action_runner.RepaintContinuously(seconds=5)
