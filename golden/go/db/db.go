@@ -33,6 +33,23 @@ var migrationSteps = []database.MigrationStep{
 		},
 	},
 
+	// version 2
+	{
+		MySQLUp: []string{
+			`CREATE TABLE ignorerule (
+				id            INT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				userid        TEXT       NOT NULL,
+				expires       BIGINT     NOT NULL,
+				query         TEXT       NOT NULL,
+				note          TEXT       NOT NULL,
+				INDEX expires_idx(expires)
+			)`,
+		},
+		MySQLDown: []string{
+			`DROP TABLE ignorerule`,
+		},
+	},
+
 	// Use this is a template for more migration steps.
 	// version x
 	// {

@@ -3,8 +3,6 @@ package types
 import (
 	"net/url"
 	"time"
-
-	"skia.googlesource.com/buildbot.git/go/database"
 )
 
 // RuleMatcher returns a list of rules in the IgnoreStore that match the given
@@ -84,44 +82,7 @@ func (m *MemIgnoreStore) Delete(id int, userId string) (int, error) {
 
 // BuildRuleMatcher, see IgnoreStore interface.
 func (m *MemIgnoreStore) BuildRuleMatcher() (RuleMatcher, error) {
-	rulesList, err := m.List()
-	if err != nil {
-		return noopRuleMatcher, err
-	}
-
-	ignoreRules := make([]map[string]map[string]bool, len(rulesList))
-	for idx, rawRule := range rulesList {
-		ignoreRules[idx], err = compileRule(rawRule.Query)
-		if err != nil {
-			return noopRuleMatcher, err
-		}
-	}
-
-	return func(params map[string]string) ([]*IgnoreRule, bool) {
-		result := []*IgnoreRule{}
-
-	Loop:
-		for ruleIdx, rule := range ignoreRules {
-			// All elements in the rules are AND connected. If the list is
-			// longer than available parameters the result will be false.
-			if len(rule) > len(params) {
-				continue Loop
-			}
-
-			// Check if the parameters match the rule.
-			for ruleKey, ruleValues := range rule {
-				if _, ok := params[ruleKey]; !ok {
-					continue Loop
-				}
-				if !ruleValues[params[ruleKey]] {
-					continue Loop
-				}
-			}
-			result = append(result, rulesList[ruleIdx])
-		}
-
-		return result, len(result) > 0
-	}, nil
+	return buildRuleMatcher(m)
 }
 
 func compileRule(query string) (map[string]map[string]bool, error) {
@@ -142,8 +103,4 @@ func compileRule(query string) (map[string]map[string]bool, error) {
 
 func noopRuleMatcher(p map[string]string) ([]*IgnoreRule, bool) {
 	return nil, false
-}
-
-func NewSQLIgnoreStore(vdb *database.VersionedDB) IgnoreStore {
-	return NewMemIgnoreStore()
 }
