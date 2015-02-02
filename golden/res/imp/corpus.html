@@ -1,0 +1,44 @@
+<!-- The <corpus-chooser-sk> custom element declaration.
+
+An element for choosing which corpus to use.
+
+  Attributes:
+    choices - An array of strings representing the corpus choices.
+  Events:
+    change - The element emits a change event when the selection has changed.
+        The id of the corpus is sent in the events e.detail. The id may
+        also have the value "*" which means all corpora.
+  Methods:
+-->
+<polymer-element name="corpus-chooser-sk" attributes="choices">
+  <template>
+    <paper-dropdown-menu id=dropdown label="Corpus">
+      <paper-dropdown class="dropdown">
+        <core-menu class="menu">
+          <paper-item data-id="*">*</paper-item>
+          <template repeat="{{c in choices}}">
+            <paper-item data-id="{{c}}">{{c}}</paper-item>
+          </template>
+        </core-menu>
+      </paper-dropdown>
+    </paper-dropdown-menu>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        choices: {
+          value: [],
+          reflect: true,
+        }
+      },
+
+      ready: function() {
+        var that = this;
+        this.$.dropdown.addEventListener('core-select', function(e) {
+          e.stopPropagation();
+          that.dispatchEvent(new CustomEvent('change', {detail: e.detail.item.dataset.id}));
+        });
+      }
+    });
+  </script>
+</polymer-element>

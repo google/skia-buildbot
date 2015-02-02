@@ -16,7 +16,7 @@
       html /deep/ .header.short {
         width: 5em;
       }
-      query-sk {
+      corpus-chooser-sk {
         display: block;
       }
     </style>
@@ -25,7 +25,7 @@
     <scaffold-sk responsiveWidth="700px">
       {{template "titlebar.html" .}}
 
-      <query-sk whiteList='["source_type"]' hideCount></query-sk>
+      <corpus-chooser-sk></corpus-chooser-sk>
       <sort-sk target=summaries>
         <paper-button class=header data-key="name" data-alpha=true>Name</paper-button>
         <paper-button class="header short" data-key="diameter">Diam</paper-button>
@@ -41,36 +41,42 @@
 
     <script type="text/javascript" charset="utf-8">
      (function() {
-       function loadSummaries(query) {
-         query = query || '';
-         sk.get('/2/_/list' + '?' + query).then(JSON.parse).then(function(json) {
-           var container = $$$('#summaries');
-           sk.clearChildren(container);
-           json.forEach(function(c) {
+       var summaries  = [];
+
+       function filterSummaries(corpus) {
+         corpus = corpus || '*';
+         var container = $$$('#summaries');
+         sk.clearChildren(container);
+         summaries.forEach(function(c) {
+           if (corpus == '*' || c.corpus == corpus) {
              var s = document.createElement('test-summary-sk');
              container.appendChild(s);
              s.summary = c;
-           });
-         }).catch(function(e) {
-           $$$('paper-toast').text = e;
-           $$$('paper-toast').show();
+           }
          });
        }
 
        sk.WebComponentsReady.then(function(){
-         loadSummaries();
-         sk.get('/2/_/paramset').then(JSON.parse).then(function(json) {
-           $$$('query-sk').setParamSet(json)
+         sk.get('/2/_/list').then(JSON.parse).then(function(json) {
+           summaries = json;
+           filterSummaries();
          }).catch(function(e) {
            $$$('paper-toast').text = e;
            $$$('paper-toast').show();
          });
 
-         $$$('query-sk').addEventListener('change', function(e) {
-           loadSummaries(e.detail);
+         $$$('corpus-chooser-sk').addEventListener('change', function(e) {
+           console.log(e.detail);
+           filterSummaries(e.detail);
+         });
+
+         sk.get('/2/_/paramset').then(JSON.parse).then(function(json) {
+           $$$('corpus-chooser-sk').choices = json["source_type"];
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
+           $$$('paper-toast').show();
          });
        });
-
      })();
     </script>
   </body>
