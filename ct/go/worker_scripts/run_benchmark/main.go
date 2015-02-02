@@ -241,7 +241,7 @@ func main() {
 				pageRank := strings.Split(fileInfo.Name(), "_")[1]
 				for i := range headers {
 					if headers[i] == "page_name" {
-						values[i] = fmt.Sprintf("%s(#%s)", values[i], pageRank)
+						values[i] = fmt.Sprintf("%s (#%s)", values[i], pageRank)
 					}
 				}
 				if err := writeRowsToCSV(newFile, headers, values); err != nil {
@@ -347,6 +347,9 @@ func getRowsFromCSV(csvPath string) ([]string, []string, error) {
 	rawCSVdata, err := reader.ReadAll()
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not read %s: %s", csvPath, err)
+	}
+	if len(rawCSVdata) == 0 {
+		return nil, nil, fmt.Errorf("No data in %s", csvPath)
 	}
 	return rawCSVdata[0], rawCSVdata[1], nil
 }
