@@ -28,8 +28,11 @@ html, body {
   height: 100%;
   padding: 1em;
 
-  margin-left: $sidebar-width;
   background: $content-background;
+}
+
+body:not(.iframe) #content {
+    margin-left: $sidebar-width;
 }
 
 #sidebar {

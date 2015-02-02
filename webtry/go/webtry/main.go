@@ -31,7 +31,7 @@ import (
 import (
 	"github.com/fiorix/go-web/autogzip"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golang/glog"
+	"github.com/skia-dev/glog"
 	_ "github.com/mattn/go-sqlite3"
 	metrics "github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/go/metadata"
