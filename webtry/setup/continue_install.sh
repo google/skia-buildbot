@@ -47,5 +47,10 @@ git clone https://skia.googlesource.com/buildbot.git
 
 cd buildbot/webtry
 
+# if we already had a webtry, the above git clone won't update it, so
+# do a pull also.
+
+git pull
+
 go get -d
 ./build
