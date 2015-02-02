@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
 	"text/template"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/util"
+	"skia.googlesource.com/buildbot.git/golden/go/summary"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
 )
 
@@ -57,6 +59,12 @@ func loadTemplates() {
 	))
 }
 
+type SummarySlice []*summary.Summary
+
+func (p SummarySlice) Len() int           { return len(p) }
+func (p SummarySlice) Less(i, j int) bool { return p[i].Name < p[j].Name }
+func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 // polyListTestsHandler returns a JSON list with high level information about
 // each test.
 //
@@ -77,14 +85,15 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse form data.")
 		return
 	}
-	res, err := analyzer.PolyListTestSimple(r.Form)
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to load test information")
-		return
+	sumMap := summaries.Get()
+	sumSlice := make([]*summary.Summary, 0, len(sumMap))
+	for _, s := range sumMap {
+		sumSlice = append(sumSlice, s)
 	}
+	sort.Sort(SummarySlice(sumSlice))
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(res); err != nil {
+	if err := enc.Encode(sumSlice); err != nil {
 		util.ReportError(w, r, err, "Failed to encode result")
 	}
 }
@@ -195,14 +204,14 @@ func polyIgnoresHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
-	res, err := analyzer.ParamSet()
+	tile, err := tileStore.Get(0, -1)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load ParamSet")
+		util.ReportError(w, r, err, "Failed to load tile")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(res); err != nil {
+	if err := enc.Encode(tile.ParamSet); err != nil {
 		util.ReportError(w, r, err, "Failed to encode result")
 	}
 }

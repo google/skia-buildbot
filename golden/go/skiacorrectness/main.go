@@ -27,6 +27,7 @@ import (
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 	"skia.googlesource.com/buildbot.git/golden/go/filediffstore"
+	"skia.googlesource.com/buildbot.git/golden/go/summary"
 	"skia.googlesource.com/buildbot.git/golden/go/tally"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
@@ -51,14 +52,6 @@ var (
 	startAnalyzer  = flag.Bool("start_analyzer", true, "Create an instance of the analyzer and start it running.")
 )
 
-var (
-	// Module level variables that need to be accessible to main2.go.
-	diffStore          diff.DiffStore
-	pathToURLConverter analysis.PathToURLConverter
-	expStore           expstorage.ExpectationsStore
-	tileStore          ptypes.TileStore
-)
-
 const (
 	IMAGE_URL_PREFIX = "/img/"
 )
@@ -72,10 +65,16 @@ type ResponseEnvelope struct {
 }
 
 var (
-	analyzer    *analysis.Analyzer = nil
-	ignoreStore types.IgnoreStore
+	analyzer *analysis.Analyzer = nil
 
-	tallies *tally.Tallies
+	// Module level variables that need to be accessible to main2.go.
+	diffStore          diff.DiffStore
+	expStore           expstorage.ExpectationsStore
+	ignoreStore        types.IgnoreStore
+	pathToURLConverter analysis.PathToURLConverter
+	tallies            *tally.Tallies
+	tileStore          ptypes.TileStore
+	summaries          *summary.Summaries
 )
 
 // tileCountsHandler handles GET requests for the classification counts over
@@ -323,6 +322,10 @@ func main() {
 		glog.Fatalf("Failed to build tallies: %s", err)
 	}
 
+	summaries, err = summary.New(tileStore, expStore, tallies, diffStore)
+	if err != nil {
+		glog.Fatalf("Failed to build summary: %s", err)
+	}
 	// Initialize the Analyzer
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
 	pathToURLConverter = imgFS.GetURL
@@ -356,11 +359,11 @@ func main() {
 	// angular code until the angular code is removed.
 	http.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.HandleFunc("/logout/", login.LogoutHandler)
-	router.HandleFunc("/2/", polyMainHandler).Methods("GET")
-	router.HandleFunc("/2/ignores", polyIgnoresHandler).Methods("GET")
-	router.HandleFunc("/2/_/list", polyListTestsHandler).Methods("GET")
-	router.HandleFunc("/2/_/paramset", polyParamsHandler).Methods("GET")
-	router.HandleFunc("/2/_/ignores", polyIgnoresJSONHandler).Methods("GET")
+	router.HandleFunc("/2/", autogzip.HandleFunc(polyMainHandler)).Methods("GET")
+	router.HandleFunc("/2/ignores", autogzip.HandleFunc(polyIgnoresHandler)).Methods("GET")
+	router.HandleFunc("/2/_/list", autogzip.HandleFunc(polyListTestsHandler)).Methods("GET")
+	router.HandleFunc("/2/_/paramset", autogzip.HandleFunc(polyParamsHandler)).Methods("GET")
+	router.HandleFunc("/2/_/ignores", autogzip.HandleFunc(polyIgnoresJSONHandler)).Methods("GET")
 	router.HandleFunc("/2/_/ignores/del/{id}", polyIgnoresDeleteHandler).Methods("POST")
 	router.HandleFunc("/2/_/ignores/add/", polyIgnoresAddHandler).Methods("POST")
 

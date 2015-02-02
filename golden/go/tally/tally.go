@@ -12,6 +12,8 @@ import (
 	"skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
+type OnChangeCallback func()
+
 // Tally maps a digest to a count.
 type Tally map[string]int
 
@@ -27,6 +29,7 @@ type Tallies struct {
 	tileStore  types.TileStore
 	traceTally TraceTally
 	testTally  TestTally
+	callbacks  []OnChangeCallback
 }
 
 // New creates a new Tallies for the given TileStore.
@@ -40,6 +43,7 @@ func New(tileStore types.TileStore) (*Tallies, error) {
 		traceTally: trace,
 		testTally:  test,
 		tileStore:  tileStore,
+		callbacks:  []OnChangeCallback{},
 	}
 	go func() {
 		for _ = range time.Tick(2 * time.Minute) {
@@ -48,9 +52,16 @@ func New(tileStore types.TileStore) (*Tallies, error) {
 			t.traceTally = trace
 			t.testTally = test
 			t.mutex.Unlock()
+			for _, cb := range t.callbacks {
+				cb()
+			}
 		}
 	}()
 	return t, nil
+}
+
+func (t *Tallies) OnChange(f OnChangeCallback) {
+	t.callbacks = append(t.callbacks, f)
 }
 
 func (t *Tallies) ByTest() TestTally {
