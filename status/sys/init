@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Web server for Skia Status Dashboard"
 NAME=status
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS="-use_metadata=true -host=status.skia.org --log_dir=/var/log/logserver -workdir=/mnt/pd0/status_scratch --resources_dir=/usr/local/share/status/"
+DAEMON_ARGS="-use_metadata=true -host=status.skia.org --log_dir=/var/log/logserver -workdir=/mnt/pd0/status_scratch --resources_dir=/usr/local/share/status/ --influxdb_host=skia-monitoring:10117"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
