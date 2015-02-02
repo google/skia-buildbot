@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -227,7 +228,26 @@ func main() {
 				}
 				outputFile := filepath.Join(localOutputDir, fileInfo.Name(), strconv.Itoa(repeatNum), "results.csv")
 				newFile := filepath.Join(localOutputDir, fmt.Sprintf("%s-%s.csv", fileInfo.Name(), strconv.Itoa(repeatNum)))
-				os.Rename(outputFile, newFile)
+				if err := os.Rename(outputFile, newFile); err != nil {
+					glog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
+					continue
+				}
+				// Add the rank of the page to the CSV file.
+				headers, values, err := getRowsFromCSV(newFile)
+				if err != nil {
+					glog.Errorf("Could not read %s: %s", newFile, err)
+					continue
+				}
+				pageRank := strings.Split(fileInfo.Name(), "_")[1]
+				for i := range headers {
+					if headers[i] == "page_name" {
+						values[i] = fmt.Sprintf("%s (#%s)", values[i], pageRank)
+					}
+				}
+				if err := writeRowsToCSV(newFile, headers, values); err != nil {
+					glog.Errorf("Could not write to %s: %s", newFile, err)
+					continue
+				}
 			}
 		}
 		// Call csv_merger.py to merge all results into a single results CSV.
@@ -314,4 +334,35 @@ func main() {
 			return
 		}
 	}
+}
+
+func getRowsFromCSV(csvPath string) ([]string, []string, error) {
+	csvFile, err := os.Open(csvPath)
+	defer csvFile.Close()
+	if err != nil {
+		return nil, nil, fmt.Errorf("Could not open %s: %s", csvPath, err)
+	}
+	reader := csv.NewReader(csvFile)
+	reader.FieldsPerRecord = -1
+	rawCSVdata, err := reader.ReadAll()
+	if err != nil {
+		return nil, nil, fmt.Errorf("Could not read %s: %s", csvPath, err)
+	}
+	return rawCSVdata[0], rawCSVdata[1], nil
+}
+
+func writeRowsToCSV(csvPath string, headers, values []string) error {
+	csvFile, err := os.OpenFile(csvPath, os.O_WRONLY, 666)
+	defer csvFile.Close()
+	if err != nil {
+		return fmt.Errorf("Could not open %s: %s", csvPath, err)
+	}
+	writer := csv.NewWriter(csvFile)
+	defer writer.Flush()
+	for _, row := range [][]string{headers, values} {
+		if err := writer.Write(row); err != nil {
+			return fmt.Errorf("Could not write to %s: %s", csvPath, err)
+		}
+	}
+	return nil
 }
