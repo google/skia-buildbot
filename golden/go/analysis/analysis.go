@@ -10,6 +10,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 
+	"skia.googlesource.com/buildbot.git/go/timer"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
@@ -472,6 +473,7 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 // into two labeled tiles one with the traces of interest and the traces we
 // are ignoring.
 func (a *Analyzer) processTile() {
+	defer timer.New("processTile").Stop()
 	glog.Info("Reading tiles ... ")
 
 	// Load the tile and process it.

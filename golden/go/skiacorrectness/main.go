@@ -24,6 +24,7 @@ import (
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/redisutil"
+	"skia.googlesource.com/buildbot.git/go/timer"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/analysis"
 	"skia.googlesource.com/buildbot.git/golden/go/db"
@@ -449,6 +450,7 @@ func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
 }
 
 func main() {
+	t := timer.New("main init")
 	// Setup DB flags.
 	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
 
@@ -522,6 +524,7 @@ func main() {
 	// Initialize the Analyzer
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
 	analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, imgFS.GetURL, 10*time.Minute)
+	t.Stop()
 
 	router := mux.NewRouter()
 
