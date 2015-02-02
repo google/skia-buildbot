@@ -1,0 +1,120 @@
+<!-- The <grid-sk> custom element declaration.
+
+Displays thumbnails in a 2-dimensional grid, also responds to mouseover events
+on each image. The top row and the left most column are the thumbnails of the
+sources, and the rest of the grid is filled in with the thumbnails of the
+diffs of the images. The layout looks like:
+
+   W T T T
+   L D D D
+   L D D D
+
+Where:
+  W = A white thumbnail to hold the space.
+  T = A source thumbnail along the top.
+  L = A source thumbnail along the left.
+  D = A diff thumbnail between the top and left source images.
+
+  Attributes:
+    value - A dictionary of the form:
+
+        {
+          top: [img1, img2, ...]
+          left: [imgA, imgB, ...]
+          grid: [
+            [diff1A, diff2A, ...],
+            [diff1B, diff2B, ...],
+          ]
+        }
+
+      Where imgX looks like:
+
+         {
+           thumb: "https:/....", // URL of thumbnail.
+           digest: "abc12..."    // The image digest.
+         }
+
+      And diffXY looks like:
+
+        {
+          thumb:            "https://...",  // URL of thumbnail.
+          topDigest:        "abc123...",    // Digest of top image.
+          leftDigest:       "999def...",    // Digest of left image.
+          numDiffPixels:    27,             // Number of differing pixels.
+          pixelDiffPercent: 1.1,            // Percent of differing pixels.
+          maxRGBADiffs:     [254, 0, 0, 0], // Max diffs per RGBA channels.
+        }
+
+  Events:
+    'diff-focus'
+       e.detail contains the diffXY info associated with that thumbnail.
+
+  Methods:
+-->
+<polymer-element name="grid-sk">
+  <template>
+    <style type="text/css" media="screen">
+      .noBorder {
+        border: solid 1px white;
+      }
+    </style>
+    <div id=container vertical layout>
+      <div horizontal layout>
+        <img src="/res/img/white.png" class=noBorder />
+        <template repeat="{{t in value.top}}">
+          <img src="{{t.thumb}}" data-digest="{{t.digest}}"/>
+        </template>
+      </div>
+      <div horizontal layout>
+        <div vertical layout>
+          <template repeat="{{l in value.left}}">
+            <img src="{{l.thumb}}" data-digest="{{l.digest}}"/>
+          </template>
+        </div>
+        <div vertical layout>
+          <template repeat="{{row in value.grid}}">
+            <div horizontal layout>
+              <template repeat="{{g in row}}">
+                <img src="{{g.thumb}}" data-top="{{g.topDigest}}" data-left="{{g.leftDigest}}"/>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        this.value = {};
+
+        var that = this;
+        this.$.container.addEventListener('mouseover', function(e) {
+          // Move up the DOM until yo find the 'img' element.
+          var target = e.target;
+          while (target != null && target.localName != 'img') {
+            target = target.parentElement;
+          }
+          if (target != null && target.dataset['top']) {
+            // Look through the value.grid for the matching infomation.
+            for (var i = 0, len = that.value.grid.length; i < len; i++) {
+              var row = that.value.grid[i];
+              for (var j = 0, rlen = row.length; j < rlen; j++) {
+                var d = row[j];
+                if (d.topDigest == target.dataset['top'] && d.leftDigest == target.dataset['left']) {
+                  that.dispatchEvent(new CustomEvent('diff-focus', {detail: d}));
+                  break;
+                }
+              }
+            }
+          }
+        });
+      },
+
+      setValue: function(value) {
+        this.value = value;
+      }
+
+    });
+  </script>
+</polymer-element>
