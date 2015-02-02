@@ -6,7 +6,7 @@ import (
 )
 
 func TestAbsPath(t *testing.T) {
-	if got, want := ThumbAbsPath("fred/foo.png"), "fred/foo-thumbnail.png"; got != want {
+	if got, want := AbsPath("fred/foo.png"), "fred/foo-thumbnail.png"; got != want {
 		t.Errorf("Incorrect thumbnail name: Got %v Want %v", got, want)
 	}
 }

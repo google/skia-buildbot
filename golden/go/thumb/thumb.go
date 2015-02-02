@@ -10,10 +10,10 @@ import (
 
 const DIM = 64
 
-// ThumbAbsPath turns an absolute path of an image into an absolute
+// AbsPath turns an absolute path of an image into an absolute
 // path for that images thumbnail. It does not check if the thumbnail
 // exists.
-func ThumbAbsPath(filepath string) string {
+func AbsPath(filepath string) string {
 	ext := path.Ext(filepath)
 	prefix := filepath[:len(filepath)-len(ext)]
 	return prefix + "-thumbnail" + ext
