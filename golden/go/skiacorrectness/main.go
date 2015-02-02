@@ -27,6 +27,7 @@ import (
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 	"skia.googlesource.com/buildbot.git/golden/go/filediffstore"
+	"skia.googlesource.com/buildbot.git/golden/go/tally"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
 	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
@@ -73,6 +74,8 @@ type ResponseEnvelope struct {
 var (
 	analyzer    *analysis.Analyzer = nil
 	ignoreStore types.IgnoreStore
+
+	tallies *tally.Tallies
 )
 
 // tileCountsHandler handles GET requests for the classification counts over
@@ -315,6 +318,10 @@ func main() {
 	expStore = expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb))
 	ignoreStore = types.NewSQLIgnoreStore(vdb)
 	tileStore = filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
+	tallies, err = tally.New(tileStore)
+	if err != nil {
+		glog.Fatalf("Failed to build tallies: %s", err)
+	}
 
 	// Initialize the Analyzer
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
