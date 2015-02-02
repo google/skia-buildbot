@@ -80,11 +80,11 @@ func LastRollRevision(skiaRepo, chromiumRepo *gitinfo.GitInfo) (string, error) {
 
 // AutoRollStatus is a summary of the current status of the DEPS roller.
 type AutoRollStatus struct {
-	LastRollRevision    string
-	CurrentRollRevision string
-	CurrentRoll         *rietveld.Issue
-	Head                string
-	Status              string
+	LastRollRevision    string `json:"lastRollRevision"    influxdb:"last_roll_revision"`
+	CurrentRollRevision string `json:"currentRollRevision" influxdb:"current_roll_revision"`
+	CurrentRoll         int    `json:"currentRoll"         influxdb:"current_roll"`
+	Head                string `json:"head"                influxdb:"head"`
+	Status              string `json:"status"              influxdb:"status"`
 }
 
 // CurrentStatus returns an up-to-date AutoRollStatus object.
@@ -95,7 +95,9 @@ func CurrentStatus(skiaRepo, chromiumRepo *gitinfo.GitInfo) (*AutoRollStatus, er
 	}
 	currentRollRev := "None"
 	status := STATUS_IDLE
+	issue := 0
 	if currentRoll != nil {
+		issue = currentRoll.Issue
 		currentRollRev, err = rollRevision(currentRoll, skiaRepo)
 		if err != nil {
 			return nil, err
@@ -113,10 +115,13 @@ func CurrentStatus(skiaRepo, chromiumRepo *gitinfo.GitInfo) (*AutoRollStatus, er
 		return nil, fmt.Errorf("Unable to determine current AutoRoll status: %v", err)
 	}
 	lastRev, err := LastRollRevision(skiaRepo, chromiumRepo)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to determine last roll revision: %v", err)
+	}
 	return &AutoRollStatus{
 		LastRollRevision:    lastRev,
 		CurrentRollRevision: currentRollRev,
-		CurrentRoll:         currentRoll,
+		CurrentRoll:         issue,
 		Head:                head,
 		Status:              status,
 	}, nil

@@ -11,15 +11,14 @@ import (
 	"regexp"
 	"time"
 
-	influxdb "github.com/influxdb/influxdb/client"
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/datahopper/go/autoroll_ingest"
+	"skia.googlesource.com/buildbot.git/go/autoroll"
 	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/go/metadata"
+	"skia.googlesource.com/buildbot.git/go/influxdb"
 )
 
 const (
@@ -28,13 +27,9 @@ const (
 
 // flags
 var (
-	graphiteServer   = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
-	influxDbHost     = flag.String("influxdb_host", "localhost:8086", "The InfluxDB hostname.")
-	influxDbName     = flag.String("influxdb_name", "root", "The InfluxDB username.")
-	influxDbPassword = flag.String("influxdb_password", "root", "The InfluxDB password.")
-	influxDbDatabase = flag.String("influxdb_database", "", "The InfluxDB database.")
-	workdir          = flag.String("workdir", ".", "Working directory used by data processors.")
-	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	workdir        = flag.String("workdir", ".", "Working directory used by data processors.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 
 	// Regexp matching non-alphanumeric characters.
 	re = regexp.MustCompile("[^A-Za-z0-9]+")
@@ -47,26 +42,15 @@ func fixName(s string) string {
 }
 
 func main() {
-	// Setup DB flags.
+	// Setup flags.
 	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_RW, buildbot.PROD_DB_NAME)
+	influxdb.SetupFlags()
 
 	// Global init to initialize glog and parse arguments.
 	common.InitWithMetrics("datahopper", graphiteServer)
 
 	// Prepare the InfluxDB credentials. Load from metadata if appropriate.
-	if !*local {
-		*influxDbName = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_NAME))
-		*influxDbPassword = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_PASSWORD))
-	}
-	dbClient, err := influxdb.New(&influxdb.ClientConfig{
-		Host:       *influxDbHost,
-		Username:   *influxDbName,
-		Password:   *influxDbPassword,
-		Database:   *influxDbDatabase,
-		HttpClient: nil,
-		IsSecure:   false,
-		IsUDP:      false,
-	})
+	dbClient, err := influxdb.NewClientFromFlagsAndMetadata(*local)
 	if err != nil {
 		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}
@@ -83,8 +67,7 @@ func main() {
 	// Data generation goroutines.
 
 	// AutoRoll data.
-	go autoroll_ingest.LoadAutoRollData(dbClient, *workdir)
-
+	go autoroll.IngestAutoRollData(dbClient, *workdir)
 	// Buildbot data ingestion.
 	go func() {
 		// Create the Git repo.

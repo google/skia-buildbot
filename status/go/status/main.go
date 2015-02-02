@@ -5,6 +5,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -23,10 +24,12 @@ import (
 )
 
 import (
+	"skia.googlesource.com/buildbot.git/go/autoroll"
 	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
+	"skia.googlesource.com/buildbot.git/go/influxdb"
 	"skia.googlesource.com/buildbot.git/go/login"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 	"skia.googlesource.com/buildbot.git/go/skiaversion"
@@ -42,6 +45,7 @@ var (
 	gitInfo         *gitinfo.GitInfo          = nil
 	commitCache     *commit_cache.CommitCache = nil
 	commitsTemplate *template.Template        = nil
+	dbClient        *influxdb.Client          = nil
 )
 
 // flags
@@ -111,6 +115,19 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+func autorollJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	arb, err := autoroll.GetLastStatusFromInfluxDB(dbClient)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to load AutoRoll data: %v", err))
+		return
+	}
+	if err := json.NewEncoder(w).Encode(arb); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode AutoRoll data: %v", err))
+		return
+	}
+}
+
 func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Case 1: Requesting specific commit range by index.
@@ -167,6 +184,7 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 func runServer(serverURL string) {
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
 	http.HandleFunc("/", commitsHandler)
+	http.HandleFunc("/json/autoroll", autorollJsonHandler)
 	http.HandleFunc("/json/commits", commitsJsonHandler)
 	http.HandleFunc("/json/version", skiaversion.JsonHandler)
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
@@ -177,8 +195,9 @@ func runServer(serverURL string) {
 }
 
 func main() {
-	// Setup DB flags.
+	// Setup flags.
 	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_RW, buildbot.PROD_DB_NAME)
+	influxdb.SetupFlags()
 
 	common.InitWithMetrics("status", graphiteServer)
 	v := skiaversion.GetVersion()
@@ -193,6 +212,13 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
+	// Setup InfluxDB client.
+	var err error
+	dbClient, err = influxdb.NewClientFromFlagsAndMetadata(*testing)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	// By default use a set of credentials setup for localhost access.
 	var cookieSalt = "notverysecret"
 	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
@@ -205,7 +231,6 @@ func main() {
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
 
-	var err error
 	gitInfo, err = gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", path.Join(*workdir, "skia"), true)
 	if err != nil {
 		glog.Fatalf("Failed to check out Skia: %v", err)
