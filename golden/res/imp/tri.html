@@ -1,0 +1,122 @@
+<!-- The <tri-sk> custom element declaration.
+
+A custom element that allows toggling between the three
+states of a gold digest, positive, negative, and untriaged.
+For example:
+
+            <tri-sk filter vert value=positive></tri-sk>
+
+Will display the three buttons vertically, with filter icons also
+present in the buttons, and the positive button will be depressed.
+
+  Attributes:
+    value  - A string with a value of "positive", "negative", or "untriaged".
+    vert   - If present then the buttons should be laid out vertically,
+             otherwise they are horizontal.
+    filter - If present then filter icons are also shown in the button.
+
+  Events:
+    change - A change event is generated when the value changes. The value
+       is also contained in event at e.detail.
+
+  Methods:
+-->
+<polymer-element name="tri-sk" attributes="value vert filter">
+  <template>
+    <style type="text/css" media="screen">
+      #positive {
+        color: #1B9E77;
+      }
+
+      #negative {
+        color: #E7298A;
+      }
+
+      #untriaged {
+        color: #A6761D;
+      }
+
+      paper-button {
+        min-width: 2em;
+        margin: 5px;
+        background: #eee;
+      }
+
+      #positive[raised],
+      #negative[raised],
+      #untriaged[raised] {
+        color: #bbb;
+        background: #fff;
+      }
+
+      #positive:hover,
+      #negative:hover,
+      #untriaged:hover,
+      #positive[raised]:hover,
+      #negative[raised]:hover,
+      #untriaged[raised]:hover {
+        background: #ddd;
+      }
+    </style>
+    <div vertical?="{{vert}}" layout>
+      <paper-button id=positive>
+        <core-icon icon=check-circle></core-icon>
+        <template if="{{filter}}">
+          <core-icon icon=filter-list></core-icon>
+        </template>
+      </paper-button>
+      <paper-button id=negative raised>
+        <core-icon icon=cancel> </core-icon>
+        <template if="{{filter}}">
+          <core-icon icon=filter-list></core-icon>
+        </template>
+      </paper-button>
+      <paper-button id=untriaged raised>
+        <core-icon icon=help></core-icon>
+        <template if="{{filter}}">
+          <core-icon icon=filter-list></core-icon>
+        </template>
+      </paper-button>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        value: {
+          value: 'untriaged',
+          reflect: true
+        },
+        vert: false,
+        filter: false,
+      },
+      ready: function() {
+        this.buttons = [this.$.positive, this.$.negative, this.$.untriaged];
+
+        var that = this;
+        this.buttons.forEach(function(ele) {
+          ele.addEventListener('click', function(e) {
+            var target = e.target;
+            while (target.localName !== 'paper-button') {
+              target = target.parentElement;
+            }
+            that.value = target.id;
+          });
+        });
+
+        this.valueChanged();
+      },
+
+      valueChanged: function() {
+        var value = this.value;
+        this.buttons.forEach(function(b) {
+          if (b.id != value) {
+            b.setAttribute('raised', '');
+          } else {
+            b.removeAttribute('raised');
+          }
+        });
+      },
+
+    });
+  </script>
+</polymer-element>
