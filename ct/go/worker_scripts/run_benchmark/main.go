@@ -241,7 +241,7 @@ func main() {
 				pageRank := strings.Split(fileInfo.Name(), "_")[1]
 				for i := range headers {
 					if headers[i] == "page_name" {
-						values[i] = fmt.Sprintf("%s (#%s)", values[i], pageRank)
+						values[i] = fmt.Sprintf("%s(#%s)", values[i], pageRank)
 					}
 				}
 				if err := writeRowsToCSV(newFile, headers, values); err != nil {
