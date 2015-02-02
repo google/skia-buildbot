@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/google/skia-buildbot/go/metadata"
 	"github.com/influxdb/influxdb/client"
 	"github.com/skia-dev/glog"
+	"skia.googlesource.com/buildbot.git/go/metadata"
 )
 
 const (
