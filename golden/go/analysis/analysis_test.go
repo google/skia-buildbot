@@ -118,7 +118,7 @@ func TestGetListTestDetails(t *testing.T) {
 	assert.Equal(t, 3, len(test1.Tests[0].Untriaged))
 
 	// Query tiles
-	list1, err := a.ListTestDetails(map[string][]string{"p1": []string{"v11"}})
+	list1, err := a.ListTestDetails(map[string][]string{"p1": []string{"v11"}, "head": []string{"0"}})
 	assert.Nil(t, err)
 	assert.Equal(t, 5, len(list1.Tests))
 	assert.Equal(t, 4, len(list1.Commits))
@@ -131,7 +131,7 @@ func TestGetListTestDetails(t *testing.T) {
 	assert.Equal(t, 0, len(findTest(t, list1, "t5").Untriaged))
 
 	// // Slice the tests
-	list1, err = a.ListTestDetails(map[string][]string{"cs": []string{"h2"}})
+	list1, err = a.ListTestDetails(map[string][]string{"cs": []string{"h2"}, "head": []string{"0"}})
 	assert.Nil(t, err)
 	assert.Equal(t, 5, len(list1.Tests))
 
@@ -262,7 +262,7 @@ func TestAgainstLiveData(t *testing.T) {
 	for corpus, _ := range status.CorpStatus {
 		q := map[string][]string{"source_type": []string{corpus}}
 		corpusTests, err := a.ListTestDetails(q)
-		q["head"] = []string{"0"}
+		q["head"] = []string{"1"}
 		assert.Nil(t, err)
 		assert.Equal(t, q, corpusTests.Query)
 		assert.NotEqual(t, allTests.AllParams, corpusTests.AllParams)
