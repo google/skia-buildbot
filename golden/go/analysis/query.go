@@ -18,6 +18,7 @@ const (
 
 var (
 	QUERY_HEAD_FALSE = []string{"0"}
+	QUERY_HEAD_TRUE  = []string{"1"}
 )
 
 // ParamIndex maps parameter key/value pairs to unique trace ids.
@@ -54,7 +55,7 @@ func (i *LabeledTileIndex) query(query, effectiveQuery map[string][]string) ([]*
 	// Figure out whether we are just interested in HEAD or everything.
 	headVal, headValueSet := query[QUERY_HEAD]
 	if !headValueSet {
-		headVal = QUERY_HEAD_FALSE
+		headVal = QUERY_HEAD_TRUE
 	}
 
 	showHead := (len(headVal) == 0) || (headVal[0] != QUERY_HEAD_FALSE[0])
