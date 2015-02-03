@@ -1,8 +1,6 @@
 package analysis
 
 import (
-	"fmt"
-	"net/url"
 	"sort"
 	"sync"
 	"time"
@@ -263,69 +261,6 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 		Query:     effectiveQuery,
 		Tests:     tests,
 	}, nil
-}
-
-// PolyGUISimple is basic info about a test. Returned from PolyListTestSimple.
-type PolyGUISimple struct {
-	Name      string `json:"name"`
-	Diameter  int    `json:"diameter"`
-	Pos       int    `json:"pos"`
-	Neg       int    `json:"neg"`
-	Untriaged int    `json:"untriaged"`
-	Num       int    `json:"num"`
-}
-
-// PolyGUISimpleSlice is used to sort PolyGUISimples.
-type PolyGUISimpleSlice []*PolyGUISimple
-
-func (p PolyGUISimpleSlice) Len() int           { return len(p) }
-func (p PolyGUISimpleSlice) Less(i, j int) bool { return p[i].Name < p[j].Name }
-func (p PolyGUISimpleSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-// PolyListSimple returns a highlevel list of information about each test.
-func (a *Analyzer) PolyListTestSimple(query url.Values) ([]*PolyGUISimple, error) {
-	a.mutex.RLock()
-	defer a.mutex.RUnlock()
-
-	ret := []*PolyGUISimple{}
-
-	tile, err := a.tileStore.Get(0, -1)
-	if err != nil {
-		return nil, fmt.Errorf("Analyzer couldn't retrieve tile: %s", err)
-	}
-
-	hasQuery := len(query) > 0
-
-	names := map[string]bool{}
-	if hasQuery {
-		for _, tr := range tile.Traces {
-			if ptypes.Matches(tr, query) {
-				if name, ok := tr.Params()[types.PRIMARY_KEY_FIELD]; ok {
-					names[name] = true
-				}
-			}
-		}
-	}
-
-	for _, t := range a.current.TestDetails.Tests {
-		if hasQuery {
-			if _, ok := names[t.Name]; !ok {
-				continue
-			}
-		}
-
-		ret = append(ret, &PolyGUISimple{
-			Name:      t.Name,
-			Diameter:  t.Diameter,
-			Pos:       len(t.Positive),
-			Neg:       len(t.Negative),
-			Untriaged: len(t.Untriaged),
-			Num:       len(t.Positive) + len(t.Untriaged),
-		})
-	}
-
-	sort.Sort(PolyGUISimpleSlice(ret))
-	return ret, nil
 }
 
 func (a *Analyzer) ParamSet() (map[string][]string, error) {
