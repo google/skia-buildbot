@@ -341,6 +341,14 @@ func (m MockDiffStore) AbsPath(digest []string) map[string]string {
 	return result
 }
 
+func (m MockDiffStore) ThumbAbsPath(digest []string) map[string]string {
+	result := map[string]string{}
+	for _, d := range digest {
+		result[d] = "thumb/abspath/" + d
+	}
+	return result
+}
+
 func (m MockDiffStore) UnavailableDigests() map[string]bool {
 	return nil
 }

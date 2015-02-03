@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"image/png"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -22,6 +23,7 @@ import (
 	"skia.googlesource.com/buildbot.git/go/gs"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
+	"skia.googlesource.com/buildbot.git/golden/go/thumb"
 )
 
 const (
@@ -115,7 +117,7 @@ type FileDiffStore struct {
 	// unavailableDigests contains the digests that should be ignored.
 	unavailableDigests map[string]bool
 
-	// idChan is a channel to add to unavailableDigests.
+	// unavailableChan is a channel to add to unavailableDigests.
 	unavailableChan chan string
 
 	// unavailableMutex protects unavailableDigests
@@ -233,7 +235,7 @@ func (fs *FileDiffStore) activateWorkers(workerPoolSize int) {
 func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 	// 1. Check if the DiffMetrics exists in the local cache.
 	baseName := getDiffBasename(dMain, dOther)
-	if obj, ok := fs.diffCache.Get(baseName); ok {
+	if obj, ok := fs.diffCache.Get(baseName); ok && obj.(*diff.DiffMetrics).ThumbnailPixelDiffFilePath != "" {
 		return obj
 	}
 
@@ -242,7 +244,7 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 		glog.Errorf("Failed to getDiffMetricsFromFileCache for digest %s and digest %s: %s", dMain, dOther, err)
 		return nil
 	}
-	if diffMetrics != nil {
+	if diffMetrics != nil && diffMetrics.ThumbnailPixelDiffFilePath != "" {
 		// 2. The DiffMetrics exists locally return it.
 
 		// TODO(stephana): Remove this once we have sorted out caching.
@@ -352,6 +354,34 @@ func (fs *FileDiffStore) Get(dMain string, dRest []string) (map[string]*diff.Dif
 			}
 		}
 	}
+}
+
+// ThumbAbsPath documentation is found in diff.DiffStore interface.
+//
+// Calls AbsPath and then confirms each thumbnail exists, creating it if
+// necessary.
+func (fs *FileDiffStore) ThumbAbsPath(digests []string) map[string]string {
+	fullsize := fs.AbsPath(digests)
+	ret := map[string]string{}
+	for digest, filename := range fullsize {
+		thumbFilename := thumb.AbsPath(filename)
+		if _, err := os.Stat(thumbFilename); os.IsNotExist(err) {
+			// TODO Should be changed to a safe write that writes to a tmp file then renames it.
+			img, err := diff.OpenImage(filename)
+			f, err := os.Create(thumbFilename)
+			if err != nil {
+				glog.Errorf("Failed to create thumbnail for %s %s: %s", digest, thumbFilename, err)
+				continue
+			}
+			defer f.Close()
+			if err := png.Encode(f, thumb.Thumbnail(img)); err != nil {
+				glog.Errorf("Failed to encode thumbnail for %s %s: %s", digest, thumbFilename, err)
+				continue
+			}
+		}
+		ret[digest] = thumbFilename
+	}
+	return ret
 }
 
 // AbsPath documentation is found in the diff.DiffStore interface.
@@ -528,6 +558,9 @@ func (fs *FileDiffStore) isDigestInCache(d string) (bool, error) {
 // is thread safe because it locks the diff store's mutext before accessing the
 // digest cache. If the provided digest does not exist in Google Storage then
 // downloadFailureCount is incremented.
+//
+// TODO Thumbnailing should also be done here in addition to filediffstore.go
+//   so that thumbnails are always available.
 func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 	storage, err := storage.New(fs.client)
 	if err != nil {
@@ -641,7 +674,7 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 	}
 	diffFilename := fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFF_EXTENSION)
 	diffFilePath := filepath.Join(fs.localDiffDir, diffFilename)
-	return diff.Diff(img1, img2, diffFilePath)
+	return diff.DiffAndWrite(img1, img2, diffFilePath)
 }
 
 // getDigestImage returns the image corresponding to the digest either from
@@ -652,13 +685,14 @@ func (fs *FileDiffStore) getDigestImage(d string) (image.Image, error) {
 	if obj, ok := fs.imageCache.Get(d); ok {
 		return obj.(image.Image), nil
 	}
+	// TODO Should be changed to a safe write that writes to a tmp file then renames it.
 	img, err = diff.OpenImage(fs.getDigestImagePath(d))
 	if err == nil {
 		fs.imageCache.Add(d, img)
 		return img, nil
 	}
 
-	// Mark the image as ignorable since we were not able to decode it.
+	// Mark the image as unavailable since we were not able to decode it.
 	fs.unavailableChan <- d
 
 	return nil, fmt.Errorf("Unable to read image for %s: %s", d, err)

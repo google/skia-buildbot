@@ -12,6 +12,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/go/util"
+	"skia.googlesource.com/buildbot.git/golden/go/thumb"
 )
 
 var (
@@ -23,9 +24,10 @@ var (
 )
 
 type DiffMetrics struct {
-	NumDiffPixels     int
-	PixelDiffPercent  float32
-	PixelDiffFilePath string
+	NumDiffPixels              int
+	PixelDiffPercent           float32
+	PixelDiffFilePath          string
+	ThumbnailPixelDiffFilePath string
 	// Contains the maximum difference between the images for each R/G/B channel.
 	MaxRGBADiffs []int
 	// True if the dimensions of the compared images are different.
@@ -36,9 +38,14 @@ type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
 	Get(dMain string, dRest []string) (map[string]*DiffMetrics, error)
+
 	// AbsPath returns the paths of the images that correspond to the given
 	// image digests.
 	AbsPath(digest []string) map[string]string
+
+	// ThumbAbsPath returns the paths of the thumbnails of the images that
+	// correspond to the given image digests.
+	ThumbAbsPath(digest []string) map[string]string
 
 	// UnavailableDigests returns the set of digests that cannot be downloaded or
 	// processed (e.g. because the PNG is corrupted) and should therefore be
@@ -156,9 +163,40 @@ func setAllFF(slice []uint8) {
 	}
 }
 
-// Diff is a utility function that calculates the DiffMetrics for the provided
-// images. Intended to be called from the DiffStore implementations.
-func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
+// DiffAndWrite is a utility function that calculates the DiffMetrics for the
+// provided images. Intended to be called from the DiffStore implementations.
+func DiffAndWrite(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
+	metrics, diff, err := Diff(img1, img2)
+	if err != nil {
+		return nil, err
+	}
+	if diffFilePath != "" {
+		f, err := os.Create(diffFilePath)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		if err := png.Encode(f, diff); err != nil {
+			return nil, err
+		}
+		metrics.PixelDiffFilePath = diffFilePath
+		metrics.ThumbnailPixelDiffFilePath = thumb.AbsPath(diffFilePath)
+		g, err := os.Create(metrics.ThumbnailPixelDiffFilePath)
+		if err != nil {
+			return nil, err
+		}
+		defer g.Close()
+		if err := png.Encode(g, thumb.Thumbnail(diff)); err != nil {
+			return nil, err
+		}
+	}
+	return metrics, nil
+}
+
+// Diff is a utility function that calculates the DiffMetrics and the image of the
+// difference for the provided images.
+func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA, error) {
+
 	img1Bounds := img1.Bounds()
 	img2Bounds := img2.Bounds()
 
@@ -170,7 +208,7 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 	// will be identical to the result bounds. Fill the image with black pixels.
 	resultWidth := util.MaxInt(img1Bounds.Dx(), img2Bounds.Dx())
 	resultHeight := util.MaxInt(img1Bounds.Dy(), img2Bounds.Dy())
-	resultImg := image.NewRGBA(image.Rect(0, 0, resultWidth, resultHeight))
+	resultImg := image.NewNRGBA(image.Rect(0, 0, resultWidth, resultHeight))
 	setAllFF(resultImg.Pix)
 	totalPixels := resultWidth * resultHeight
 
@@ -214,15 +252,15 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 					maxRGBADiffs[2] = util.MaxInt(db, maxRGBADiffs[2])
 					maxRGBADiffs[3] = util.MaxInt(da, maxRGBADiffs[3])
 					if dr+dg+db > 0 {
-						resultImg.Pix[off+i+0] = 0xE3
-						resultImg.Pix[off+i+1] = 0x1A
-						resultImg.Pix[off+i+2] = 0x1C
-						resultImg.Pix[off+i+3] = 0xFF
+						resultImg.Pix[off+i+0] = PixelDiffColor.R
+						resultImg.Pix[off+i+1] = PixelDiffColor.G
+						resultImg.Pix[off+i+2] = PixelDiffColor.B
+						resultImg.Pix[off+i+3] = PixelDiffColor.A
 					} else {
-						resultImg.Pix[off+i+0] = 0xB3
-						resultImg.Pix[off+i+1] = 0xB3
-						resultImg.Pix[off+i+2] = 0xB3
-						resultImg.Pix[off+i+3] = 0xFF
+						resultImg.Pix[off+i+0] = PixelAlphaDiffColor.R
+						resultImg.Pix[off+i+1] = PixelAlphaDiffColor.G
+						resultImg.Pix[off+i+2] = PixelAlphaDiffColor.B
+						resultImg.Pix[off+i+3] = PixelAlphaDiffColor.A
 					}
 				}
 			}
@@ -241,20 +279,10 @@ func Diff(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
 			}
 		}
 	}
-	if diffFilePath != "" {
-		f, err := os.Create(diffFilePath)
-		if err != nil {
-			return nil, err
-		}
-		if err := png.Encode(f, resultImg); err != nil {
-			return nil, err
-		}
-	}
 
 	return &DiffMetrics{
-		NumDiffPixels:     numDiffPixels,
-		PixelDiffPercent:  getPixelDiffPercent(numDiffPixels, totalPixels),
-		PixelDiffFilePath: diffFilePath,
-		MaxRGBADiffs:      maxRGBADiffs,
-		DimDiffer:         (cmpWidth != resultWidth) || (cmpHeight != resultHeight)}, nil
+		NumDiffPixels:    numDiffPixels,
+		PixelDiffPercent: getPixelDiffPercent(numDiffPixels, totalPixels),
+		MaxRGBADiffs:     maxRGBADiffs,
+		DimDiffer:        (cmpWidth != resultWidth) || (cmpHeight != resultHeight)}, resultImg, nil
 }
