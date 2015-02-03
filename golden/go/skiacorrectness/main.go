@@ -361,11 +361,13 @@ func main() {
 	http.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/2/", autogzip.HandleFunc(polyMainHandler)).Methods("GET")
 	router.HandleFunc("/2/ignores", autogzip.HandleFunc(polyIgnoresHandler)).Methods("GET")
+	router.HandleFunc("/2/cmp/{test}", autogzip.HandleFunc(polyCompareHandler)).Methods("GET")
 	router.HandleFunc("/2/_/list", autogzip.HandleFunc(polyListTestsHandler)).Methods("GET")
 	router.HandleFunc("/2/_/paramset", autogzip.HandleFunc(polyParamsHandler)).Methods("GET")
 	router.HandleFunc("/2/_/ignores", autogzip.HandleFunc(polyIgnoresJSONHandler)).Methods("GET")
 	router.HandleFunc("/2/_/ignores/del/{id}", polyIgnoresDeleteHandler).Methods("POST")
 	router.HandleFunc("/2/_/ignores/add/", polyIgnoresAddHandler).Methods("POST")
+	router.HandleFunc("/2/_/test", polyTestHandler).Methods("POST")
 
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))

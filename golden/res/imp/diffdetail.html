@@ -1,0 +1,60 @@
+<!-- The <diff-detail-sk> custom element declaration.
+
+Presents detailed information about the differences
+between two images.
+
+  Attributes:
+    value - An object of the form:
+
+      {
+        pixelDiffPercent: 35.9,
+        numDiffPixels: 11020,
+        maxRGBADiffs: [60, 62, 10, 0],
+      }
+
+  Events:
+  Methods:
+-->
+<polymer-element name="diff-detail-sk" attributes="value">
+  <template>
+    <style type="text/css" media="screen">
+      th {
+        text-align: right;
+      }
+    </style>
+    <div vertical layout>
+      <div id=diffMetrics>
+        <table border="0" cellspacing="5" cellpadding="5">
+          <tr><th>Pixel Diff (%)</th><td>{{value.pixelDiffPercent}}</td></tr>
+          <tr><th>Num Diff Pixels</th><td>{{value.numDiffPixels}}</td></tr>
+          <tr><th>Max RBBA Diffs</th><td>{{value.maxRGBADiffs}}</td></tr>
+        </table>
+      </div>
+      <div id=details two flex horizontal layout>
+        <div flex id=leftDetail>
+          <!-- not active, just a placeholder for now.
+            <tri-sk value=positive></tri-sk>
+          -->
+        </div>
+        <div flex id=topDetail>
+          <!-- not active, just a placeholder for now.
+            <tri-sk value=untriaged></tri-sk>
+          -->
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        value: {
+          value: {},
+          reflect: true,
+        }
+      },
+
+      ready: function() {
+      }
+    });
+  </script>
+</polymer-element>

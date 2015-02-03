@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Skia Correctness Server</title>
+
+    {{template "header.html" .}}
+
+    <!-- TODO(jcgregorio) Move this into res/css/main.css. -->
+    <style type="text/css" media="screen">
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+      }
+
+      #pageWrapper {
+        background: white;
+      }
+      .col {
+        padding: 0.5em;
+      }
+
+      html /deep/ core-toolbar,
+      #title {
+        background-color: #D95F02;
+        color: #fff;
+      }
+
+      #title login-sk {
+        margin-left: auto;
+      }
+
+      #title /deep/ a {
+        color: white;
+      }
+
+      html /deep/ a {
+        color: #FF7F00;
+        font-weight: bold;
+      }
+
+      html /deep/ #mainContainer {
+        padding: 1em;
+        background: white;
+      }
+
+      html /deep/ paper-button {
+        color: #1F78B4;
+      }
+
+      html /deep/  paper-button:hover {
+        background: #eee;
+      }
+
+      query-sk {
+        display: block;
+      }
+
+      html /deep/ img {
+        margin: 5px;
+        border: lightgray solid 1px;
+      }
+
+      html /deep/ #leftControl {
+        margin-top: 64px;
+      }
+
+      paper-button.square {
+        min-width: 2em;
+        margin: 5px;
+      }
+
+      #leftControl {
+        margin-right: 1em;
+      }
+
+      #topControl {
+        margin-bottom: 1em;
+        display: block;
+      }
+
+    </style>
+  </head>
+  <body>
+    <scaffold-sk responsiveWidth="700px">
+      {{template "titlebar.html" .}}
+
+      <div id=page horizontal layout>
+        <div id=leftControl vertical layout>
+          <tri-sk vert filter value=positive></tri-sk>
+          <paper-button title="Filter" class=square><core-icon icon=search></core-icon> </paper-button>
+          <paper-button title="Sort by the number of times a digest appears." class=square><core-icon icon=sort></core-icon>N </paper-button>
+        </div>
+
+        <div flex three verical layout>
+          <div flex horizontal layout>
+            <tri-sk id=topControl filter value=untriaged></tri-sk>
+            <paper-button title="Filter" class=square><core-icon icon=search></core-icon> </paper-button>
+            <paper-button title="Sort by number of pixels that are different from the first image on the right hand side."  class=square><core-icon icon=sort></core-icon>&Delta; </paper-button>
+          </div>
+          <grid-sk></grid-sk>
+        </div>
+
+        <diff-detail-sk flex one></diff-detail-sk>
+
+      </div>
+      <paper-toast></paper-toast>
+
+    </scaffold-sk>
+
+    <script type="text/javascript" charset="utf-8">
+     (function() {
+       // Strip off the /testname from the URL.
+       var re = new RegExp("/2/cmp/(.*)", "");
+       var s = window.location.pathname;
+       var match = s.match(re);
+       if (match.length == 2) {
+         sk.post('/2/_/test', JSON.stringify({"test": match[1]})).then(JSON.parse).then(function(json) {
+           $$$('grid-sk').setValue(json);
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
+           $$$('paper-toast').show();
+         });
+       } else {
+         $$$('paper-toast').text = "Not a valid test name.";
+         $$$('paper-toast').show();
+       }
+
+       $$$('grid-sk').addEventListener('diff-focus', function(e) {
+         $$$('diff-detail-sk').value = e.detail;
+       });
+     })();
+    </script>
+  </body>
+</html>

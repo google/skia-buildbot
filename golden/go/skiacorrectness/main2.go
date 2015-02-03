@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -15,6 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/login"
+	"skia.googlesource.com/buildbot.git/go/timer"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/summary"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
@@ -26,13 +28,10 @@ var (
 
 	// ignoresTemplate is the page for setting up ignore filters.
 	ignoresTemplate *template.Template = nil
-)
 
-// *****************************************************************************
-// *****************************************************************************
-// New polymer based UI code begin.
-// *****************************************************************************
-// *****************************************************************************
+	// compareTemplate is the page for setting up ignore filters.
+	compareTemplate *template.Template = nil
+)
 
 // polyMainHandler is the main page for the Polymer based frontend.
 func polyMainHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,6 +53,11 @@ func loadTemplates() {
 	))
 	ignoresTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/ignores.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	compareTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/compare.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -203,6 +207,195 @@ func polyIgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// polyCompareHandler is for serving the main compare page.
+func polyCompareHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Poly Compare Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if err := compareTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// PolyTestRequest is the POST'd request body handled by polyTestHandler.
+type PolyTestRequest struct {
+	Test string `json:"test"`
+}
+
+// PolyTestImgInfo info about a single source digest. Used in PolyTestGUI.
+type PolyTestImgInfo struct {
+	Thumb  string `json:"thumb"`
+	Digest string `json:"digest"`
+}
+
+// PolyTestImgInfo info about a single diff between two source digests. Used in
+// PolyTestGUI.
+type PolyTestDiffInfo struct {
+	Thumb            string  `json:"thumb"`
+	TopDigest        string  `json:"topDigest"`
+	LeftDigest       string  `json:"leftDigest"`
+	NumDiffPixels    int     `json:"numDiffPixels"`
+	PixelDiffPercent float32 `json:"pixelDiffPercent"`
+	MaxRGBADiffs     []int   `json:"maxRGBADiffs"`
+	DiffImgUrl       string  `json:"diffImgUrl"`
+	PosDigest        string  `json:"posDigest"`
+}
+
+// PolyTestGUI serialized as JSON is the response body from polyTestHandler.
+type PolyTestGUI struct {
+	Top  []*PolyTestImgInfo    `json:"top"`
+	Left []*PolyTestImgInfo    `json:"left"`
+	Grid [][]*PolyTestDiffInfo `json:"grid"`
+}
+
+// polyTestHandler returns a JSON description for the given test.
+//
+// Takes an JSON encoded POST body of the following form:
+//
+//   {
+//      test: The name of the test.
+//   }
+//
+// TODO
+//   * add querying
+//   * return all the data
+//   * add sorting based on query params
+//   * query dialog
+//
+// The return format looks like:
+//
+// {
+//   "top": [img1, img2, ...]
+//   "left": [imgA, imgB, ...]
+//   "grid": [
+//     [diff1A, diff2A, ...],
+//     [diff1B, diff2B, ...],
+//   ]
+// }
+//
+// Where imgN is serialized PolyTestImgInfo, and
+//       diffN is a serialized PolyTestDiffInfo struct.
+// Note that this format is what res/imp/grid expects to
+// receive.
+//
+func polyTestHandler(w http.ResponseWriter, r *http.Request) {
+	req := &PolyTestRequest{}
+	if err := parseJson(r, req); err != nil {
+		util.ReportError(w, r, err, "Failed to parse JSON request.")
+		return
+	}
+
+	// Get all the digests. This should get generalized in a later CL to accept
+	// queries, sorting, and to allow choosing which types of digests go on the
+	// top and the left of the grid.
+	t := timer.New("tallies.ByQuery")
+	digests, _ := tallies.ByQuery(url.Values{"name": []string{req.Test}})
+	glog.Infof("Num Digests: %d", len(digests))
+	t.Stop()
+
+	// Now filter digests by their expectations status here.
+	t = timer.New("apply expectations")
+	exp, err := expStore.Get(false)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load expectations.")
+		return
+	}
+	e := exp.Tests[req.Test]
+	untriaged := []string{}
+	positives := []string{}
+	negatives := []string{}
+	for digest, _ := range digests {
+		switch e[digest] {
+		case types.UNTRIAGED:
+			untriaged = append(untriaged, digest)
+		case types.POSITIVE:
+			positives = append(positives, digest)
+		case types.NEGATIVE:
+			negatives = append(negatives, digest)
+		}
+	}
+	t.Stop()
+
+	// For now sorting is done by string compare of the digest, just so we
+	// have a stable display.
+	sort.Strings(untriaged)
+	sort.Strings(positives)
+
+	if len(untriaged) == 0 {
+		untriaged = positives
+	}
+	if len(positives) == 0 {
+		positives = untriaged
+	}
+
+	// Limit to 5x5 grids for now.
+	if len(untriaged) > 5 {
+		untriaged = untriaged[:5]
+	}
+	if len(positives) > 5 {
+		positives = positives[:5]
+	}
+	glog.Infof("%#v", untriaged)
+	glog.Infof("%#v", positives)
+
+	// Fill in our GUI response struct.
+	top := []*PolyTestImgInfo{}
+	thumbs := diffStore.ThumbAbsPath(untriaged)
+	for _, u := range untriaged {
+		top = append(top, &PolyTestImgInfo{
+			Thumb:  pathToURLConverter(thumbs[u]),
+			Digest: u,
+		})
+	}
+
+	left := []*PolyTestImgInfo{}
+	thumbs = diffStore.ThumbAbsPath(positives)
+	for _, p := range positives {
+		left = append(left, &PolyTestImgInfo{
+			Thumb:  pathToURLConverter(thumbs[p]),
+			Digest: p,
+		})
+	}
+
+	grid := [][]*PolyTestDiffInfo{}
+	for _, pos := range positives {
+		row := []*PolyTestDiffInfo{}
+		diffs, err := diffStore.Get(pos, untriaged)
+		if err != nil {
+			glog.Errorf("Failed to do diffs: %s", err)
+			continue
+		}
+		glog.Infof("%#v", diffs)
+		for _, u := range untriaged {
+			d := diffs[u]
+			row = append(row, &PolyTestDiffInfo{
+				Thumb:            pathToURLConverter(d.ThumbnailPixelDiffFilePath),
+				TopDigest:        u,
+				LeftDigest:       pos,
+				NumDiffPixels:    d.NumDiffPixels,
+				PixelDiffPercent: d.PixelDiffPercent,
+				MaxRGBADiffs:     d.MaxRGBADiffs,
+				DiffImgUrl:       pathToURLConverter(d.PixelDiffFilePath),
+			})
+
+		}
+		grid = append(grid, row)
+	}
+
+	p := PolyTestGUI{
+		Top:  top,
+		Left: left,
+		Grid: grid,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(p); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
+	}
+}
+
 func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
 	tile, err := tileStore.Get(0, -1)
 	if err != nil {
@@ -233,9 +426,3 @@ func Init() {
 	}
 	loadTemplates()
 }
-
-// *****************************************************************************
-// *****************************************************************************
-// New polymer based UI code end.
-// *****************************************************************************
-// *****************************************************************************

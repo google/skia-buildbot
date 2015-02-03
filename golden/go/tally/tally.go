@@ -90,7 +90,6 @@ func (t *Tallies) ByQuery(query url.Values) (Tally, error) {
 func tallyBy(tile *types.Tile, traceTally TraceTally, query url.Values) Tally {
 	ret := Tally{}
 	for k, tr := range tile.Traces {
-		fmt.Printf("%#v", tr)
 		if types.Matches(tr, query) {
 			for digest, n := range *traceTally[k] {
 				if _, ok := ret[digest]; ok {
