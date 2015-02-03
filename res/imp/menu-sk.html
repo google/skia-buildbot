@@ -1,0 +1,92 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <menu-sk>
+
+  To use this file import it:
+
+    <link href="/res/common/imp/menu-sk.html" rel="import" />
+
+  Usage:
+
+    <menu-sk></menu-sk>
+-->
+<polymer-element name="menu-sk">
+  <template>
+    <style>
+    a {
+      color: #000000;
+      text-decoration: none;
+    }
+    paper-item {
+      text-align: left;
+    }
+    </style>
+    <paper-menu-button>
+      <paper-icon-button icon="menu" noink></paper-icon-button>
+      <paper-dropdown id="dropdown" class="dropdown">
+        <core-menu class="menu">
+          <paper-item>
+            <a href="https://docs.skia.org">
+              <core-icon icon="description"></core-icon>
+              Documentation
+            </a>
+          </paper-item>
+          <paper-item>
+            <a href="https://status.skia.org">
+              <core-icon icon="search"></core-icon>
+              Status
+            </a>
+          </paper-item>
+          <paper-item>
+            <a href="https://perf.skia.org">
+              <core-icon icon="trending-up"></core-icon>
+              Perf
+            </a>
+          </paper-item>
+          <paper-item>
+            <a href="https://gold.skia.org">
+              <core-icon icon="thumbs-up-down"></core-icon>
+              Gold
+            </a>
+          </paper-item>
+          <paper-item>
+            <a href="https://fiddle.skia.org">
+              <core-icon icon="assignment"></core-icon>
+              Fiddle
+            </a>
+          </paper-item>
+          <paper-item>
+            <a href="https://ct.skia.org">
+              <core-icon icon="cloud"></core-icon>
+              Cluster Telemetry
+            </a>
+          </paper-item>
+          <paper-item>
+            <a href="https://code.google.com/p/skia/issues/list">
+              <core-icon icon="bug-report"></core-icon>
+              Issue Tracker
+            </a>
+          </paper-item>
+          <paper-item>
+            <a href="https://skia.googlesource.com/skia">
+              <core-icon icon="folder"></core-icon>
+              Code
+            </a>
+          </paper-item>
+        </core-menu>
+      </paper-dropdown>
+    </paper-menu-button>
+  </template>
+  <script>
+    Polymer({
+      publish: {},
+      toggle: function() {
+        this.$.dropdown.toggle()
+      },
+    });
+  </script>
+</polymer-element>
