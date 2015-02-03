@@ -661,35 +661,6 @@ _slave_host_dicts = {
 
 ################################# Mac Machines #################################
 
-  'skiabot-macmini-10_7-001': {
-    'slaves': [
-      ('skiabot-macmini-10_7-000', '0', False),
-      ('skiabot-macmini-10_7-001', '1', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
-    'ip': '192.168.1.137',
-    'kvm_num': '3',
-    'path_module': posixpath,
-    'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skiabot-macmini-10_7-002': {
-    'slaves': [
-      ('skiabot-macmini-10_7-bench', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
-    'ip': '192.168.1.124',
-    'kvm_num': '4',
-    'path_module': posixpath,
-    'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skiabot-macmini-10_8-001': {
     'slaves': [
       ('skiabot-macmini-10_8-000', '0', False),
@@ -904,20 +875,6 @@ _slave_host_dicts = {
     'ip': NO_IP_ADDR,
     'kvm_num': NO_KVM_NUM,
     'path_module': posixpath,
-    'path_to_buildbot': None,
-    'remote_access': False,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'mini1-m3': {
-    'slaves': [
-      ('mini1-m3', '0', False),
-    ],
-    'copies': None,
-    'login_cmd': None,
-    'ip': NO_IP_ADDR,
-    'kvm_num': NO_KVM_NUM,
-    'path_module': None,
     'path_to_buildbot': None,
     'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
