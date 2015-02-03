@@ -1,3 +1,28 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <commits-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/commits-sk.html" rel="import" />
+
+  Usage:
+
+    <commits-sk></commits-sk>
+
+  Properties:
+    reload: How often (in seconds) to reload alert data.
+
+  Methods:
+    setAutoRollStatus(status): Update the commits-sk with the status of
+        the AutoRoll Bot, which will be incorporated into the repo
+        graph. The currentRollRevision and lastRollRevision parameters
+        are expected to be valid commit hashes.
+-->
 <polymer-element name="commits-sk">
   <template>
     <style>
@@ -439,54 +464,37 @@
 
     Polymer({
       publish: {
-        commits: {
-          value: null,
-          reflect: true,
-        },
-        branchHeads: {
-          value: null,
-          reflect: true,
-        },
-        displayCommits: {
-          value: null,
-          reflect: true,
-        },
         reload: {
           value: 60,
           reflect: true,
         },
-        timeout: {
-          value: null,
-          reflect: false,
-        },
-        lastLoaded: {
-          value: "(not yet loaded)",
-          reflect: false,
-        },
-        builds: {
-          value: {},
-          reflect: false,
-        },
-        allBuilders: {
-          value: [],
-          reflect: false,
-        },
-        builders: {
-          value: [],
-          reflect: false,
-        },
       },
 
       created: function() {
-        this.commits = [];
+        this.allBuilders = [];
+        this.autorollCurrent = null;
+        this.autorollLast = null;
         this.branchHeads = [];
+        this.builders = [];
+        this.builds = {};
+        this.commits = [];
+        this.displayCommits = {};
+        this.lastLoaded = "(not yet loaded)";
         this.startIdx = null;
         this.endIdx = null;
+        this.timeout = null;
         this.reloadCommits();
         var that = this;
         window.addEventListener("resize", function() {
-          that.draw(that.commits, that.branchHeads);
+          that.draw();
         }, true);
+      },
+
+      // setAutoRollStatus adds the AutoRoll Bot status to the commits graph.
+      setAutoRollStatus: function(currentRollRevision, lastRollRevision) {
+        this.autorollCurrent = currentRollRevision;
+        this.autorollLast = lastRollRevision;
+        this.draw();
       },
 
       // shortCommit returns the first 12 characters of a commit hash.
@@ -658,12 +666,22 @@
           that.builds = builds;
           that.allBuilders = builders;
           that.filterBuilders();
+          if (that.autorollLast && that.autorollCurrent) {
+            json.branch_heads.push({
+                name: "last DEPS roll",
+                head: that.autorollLast,
+            });
+            json.branch_heads.push({
+              name: "current DEPS roll",
+              head: that.autorollCurrent,
+            });
+          }
           console.log("Prepared build data.");
 
           // Actually draw the commits.
-          that.draw(commits, json.branch_heads);
           that.commits = commits;
           that.branchHeads = json.branch_heads;
+          that.draw();
         }).then(function() {
           that.resetTimeout();
           if (that.$) {
@@ -681,7 +699,9 @@
         });
       },
 
-      draw: function(commits, branchHeads) {
+      draw: function() {
+        var commits = this.commits;
+        var branchHeads = this.branchHeads;
         console.log("Drawing.");
         // Initialize all commits.
         var prep = prepareCommitsForDisplay(commits, branchHeads);

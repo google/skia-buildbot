@@ -67,6 +67,9 @@
             tb.classList.toggle("closed");
           }
         })
+        $$$("autoroll-widget-sk").addEventListener("change", function(e) {
+          $$$("commits-sk").setAutoRollStatus(e.detail.status.currentRollRevision, e.detail.status.lastRollRevision);
+        })
       })
     })();
     </script>
