@@ -50,15 +50,17 @@
       // Id of the source image to use, 0 if no source image is used.
       var sourceId = 0;
 
-      sourceId = parseInt(enableSource.getAttribute('data-id'));
-      if (sourceId) {
-        sourceSelectByID(sourceId);
+      if (enableSource) {
+        sourceId = parseInt(enableSource.getAttribute('data-id'));
+        if (sourceId) {
+          sourceSelectByID(sourceId);
+        }
       }
 
       function setIFrameURL() {
         var url = document.URL;
         url = url.replace('/c/', '/iframe/');
-        embed.value = '<iframe src="' + url + '" width="740" height="550" style="border: solid #00a 5px; border-radius: 5px;"/>'
+        embed.value = '<iframe src="' + url + '" width="900" height="550" style="border: solid #00a 1px; border-radius: 5px;"/>'
       }
 
       function beginWait() {

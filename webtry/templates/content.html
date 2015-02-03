@@ -1,5 +1,7 @@
 <section id="content">
 
+  {{if .ShowInputBitmap}}
+
   <template id="sourcesTemplate">
     <button id="" class=source><img width=64 height=64 src=""></button>
   </template>
@@ -40,6 +42,8 @@
       </div>
     </div>
   </div>
+
+  {{end}}
 
   <textarea spellcheck=false name='code' id='code' rows='15' cols='100'>{{.Code}}</textarea>
 
