@@ -335,16 +335,16 @@ type Titlebar struct {
 
 // userCode is used in template expansion.
 type userCode struct {
-	Code            string
-	Hash            string
-	ShowInputBitmap bool
-	Width           int
-	Height          int
-	PDFURL          string
-	RasterURL       string
-	GPUURL          string
-	Source          int
-	Titlebar        Titlebar
+	Code      string
+	Hash      string
+	Embedded  bool
+	Width     int
+	Height    int
+	PDFURL    string
+	RasterURL string
+	GPUURL    string
+	Source    int
+	Titlebar  Titlebar
 }
 
 // writeTemplate creates a given output file and writes the template
@@ -753,7 +753,7 @@ func iframeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Expand the template.
 	w.Header().Set("Content-Type", "text/html")
-	if err := iframeTemplate.Execute(w, userCode{Code: code, Width: width, Height: height, Hash: hash, Source: source, ShowInputBitmap: false}); err != nil {
+	if err := iframeTemplate.Execute(w, userCode{Code: code, Width: width, Height: height, Hash: hash, Source: source, Embedded: true}); err != nil {
 		glog.Errorf("Failed to expand template: %q\n", err)
 	}
 }
@@ -856,7 +856,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// Expand the template.
 		w.Header().Set("Content-Type", "text/html")
-		if err := indexTemplate.Execute(w, userCode{Code: code, PDFURL: PDFURL, RasterURL: rasterURL, GPUURL: GPUURL, Hash: hash, Source: source, ShowInputBitmap: true, Width: width, Height: height, Titlebar: Titlebar{GitHash: gitHash, GitInfo: gitInfo}}); err != nil {
+		if err := indexTemplate.Execute(w, userCode{Code: code, PDFURL: PDFURL, RasterURL: rasterURL, GPUURL: GPUURL, Hash: hash, Source: source, Embedded: false, Width: width, Height: height, Titlebar: Titlebar{GitHash: gitHash, GitInfo: gitInfo}}); err != nil {
 			glog.Errorf("Failed to expand template: %q\n", err)
 		}
 	} else if r.Method == "POST" {

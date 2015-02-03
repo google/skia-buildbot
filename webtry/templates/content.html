@@ -1,6 +1,6 @@
 <section id="content">
 
-  {{if .ShowInputBitmap}}
+  {{if not .Embedded}}
 
   <template id="sourcesTemplate">
     <button id="" class=source><img width=64 height=64 src=""></button>
@@ -49,10 +49,13 @@
 
   <div class="action-buttons">
     <button class="btn btn-primary btn-lg" id='run'>Run</button>
-    <a class="btn btn-default btn-lg" href='{{if .Hash}}/c/{{.Hash}}{{end}}' {{if not .Hash}}style="display: none;"{{end}} target=_blank id="permalink">Share</a>
 
-    <button class="btn btn-default btn-lg" id='embedButton' {{if not .Hash}}style="display:none;"{{end}}/>Embed</button>
-    <input type="text" value="" id="embed" readonly style="display:none;">
+    {{if not .Embedded}}
+      <a class="btn btn-default btn-lg" href='{{if .Hash}}/c/{{.Hash}}{{end}}' {{if not .Hash}}style="display: none;"{{end}} target=_blank id="permalink">Share</a>
+
+      <button class="btn btn-default btn-lg" id='embedButton' {{if not .Hash}}style="display:none;"{{end}}/>Embed</button>
+      <input type="text" value="" id="embed" readonly style="display:none;">
+    {{end}}
   </div>
 
   <div id="raster-output" class="image-wrapper panel panel-primary" {{if .RasterURL}}style="display: inline-block;"{{end}}>

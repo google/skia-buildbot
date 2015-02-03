@@ -432,7 +432,9 @@
         embedButton.addEventListener('click', onEmbedClick);
       }
 
-      setIFrameURL();
+      if (embed) {
+        setIFrameURL();
+      }
 
       // Add the images to the history if we are on a workspace page.
       if (tryHistory && history_) {
