@@ -362,27 +362,37 @@
             outputWrapper.style.display = 'block';
           }
         }
-        if (body.rasterImg != "") {
-          rasterImg.src = 'data:image/png;base64,' + body.rasterImg;
-          rasterOutput.style.display = "inline-block";
-        } else {
-          rasterOutput.style.display = "none";
-          rasterImg.src = '';
+
+        if (rasterOutput) {
+          if (body.rasterImg != "") {
+            rasterImg.src = 'data:image/png;base64,' + body.rasterImg;
+            rasterOutput.style.display = "inline-block";
+          } else {
+            rasterOutput.style.display = "none";
+            rasterImg.src = '';
+          }
         }
-        if (body.gpuImg != "") {
-          gpuImg.src = 'data:image/png;base64,' + body.gpuImg;
-          gpuOutput.style.display = "inline-block";
-        } else {
-          gpuImg.src = '';
-          gpuOutput.style.display = "none";
+
+        if (gpuOutput) {
+          if (body.gpuImg != "") {
+            gpuImg.src = 'data:image/png;base64,' + body.gpuImg;
+            gpuOutput.style.display = "inline-block";
+          } else {
+            gpuImg.src = '';
+            gpuOutput.style.display = "none";
+          }
         }
-        if (body.PDFURL != "") {
-          PDFLink.href= body.PDFURL;
-          PDFOutput.style.display = "inline-block";
-        } else {
-          PDFLink.href = '#';
-          PDFOutput.style.display = "none";
+
+        if (PDFOutput) {
+          if (body.PDFURL != "") {
+            PDFLink.href= body.PDFURL;
+            PDFOutput.style.display = "inline-block";
+          } else {
+            PDFLink.href = '#';
+            PDFOutput.style.display = "none";
+          }
         }
+
         // Add the image to the history if we are on a workspace page.
         if (tryHistory) {
           addToHistory(body.hash, 'data:image/png;base64,' + body.rasterImg);
