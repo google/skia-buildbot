@@ -195,9 +195,15 @@ server {
 
 #####   ct.skia.org (REDIRECT)   ###########################
 server {
+    listen 443;
+    server_name ct.skia.org;
+    rewrite ^ https://skia-tree-status.appspot.com/skia-telemetry/chromium_try redirect;
+}
+
+server {
     listen 80;
     server_name ct.skia.org;
-    rewrite ^ http://skia-tree-status.appspot.com/skia-telemetry/chromium_try redirect;
+    rewrite ^ https://skia-tree-status.appspot.com/skia-telemetry/chromium_try redirect;
 }
 
 #####   skbug.com (REDIRECT)   ###########################
