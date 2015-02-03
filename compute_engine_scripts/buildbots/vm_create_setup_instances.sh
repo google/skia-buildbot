@@ -13,6 +13,7 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_LINUX_IMAGE_NAME
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_LINUX_BOTS[@]}
   WAIT_TIME_AFTER_CREATION_SECS=600
+  DISK_ARGS="--boot_disk_size_gb=20"
 elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_WIN_IMAGE_NAME
   ZONE=$WINDOWS_ZONE
@@ -57,7 +58,7 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
   if [ "$VM_INSTANCE_OS" == "Linux" ]; then
     # The persistent disk of linux GCE bots is based on the bot's IP address.
-    DISK_ARGS=--disk=skia-disk-`printf "%03d" ${MACHINE_IP}`
+    PERSISTENT_DISK_ARG=--disk=skia-disk-`printf "%03d" ${MACHINE_IP}`
   fi
 
   $GCOMPUTE_CMD addinstance ${INSTANCE_NAME} \
@@ -70,7 +71,7 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     --machine_type=$SKIA_BOT_MACHINE_TYPE \
     --auto_delete_boot_disk \
     --wait_until_running \
-    $DISK_ARGS $METADATA_ARGS
+    $DISK_ARGS $METADATA_ARGS $PERSISTENT_DISK_ARG
 
   if [ $? -ne 0 ]; then
     echo
@@ -99,19 +100,9 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
     checkout_skia_repos
 
-    setup_android_sdk
-
-    setup_nacl
-
-    fix_gsutil_path
-
     copy_files
 
-    setup_hosts
-
     if [ "$VM_IS_BUILDBOT" = True ]; then
-      setup_crontab
-
       reboot
     fi
 

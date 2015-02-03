@@ -7,46 +7,22 @@
 
 
 function install_packages {
+  # Add new packages that are not yet part of the image below.
   echo
   echo "Install Required packages"
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "sudo dpkg --add-architecture i386 && sudo apt-get update && " \
-    "sudo apt-get -y install haveged python-django openjdk-7-jre-headless zlib1g-dev:i386 libgif-dev:i386 libpng12-dev:i386 fontconfig:i386 libgl1-mesa-dev:i386 libglu1-mesa-dev:i386 ccache g++-multilib libpoppler-cpp-dev libpoppler-cpp0:i386 && " \
-    "sudo cp /usr/lib/i386-linux-gnu/libpng.so /usr/lib32/ && " \
-    "sudo cp /usr/lib/i386-linux-gnu/libpng12.so.0 /usr/lib32/ && " \
-    "sudo apt-get -y install libpng12-dev libgtk2.0-dev ant clang-3.4 openjdk-7-jdk realpath libqt4-dev-bin libqt4-core libqt4-gui libqt4-dev:i386 icewm libdrm-dev doxygen && " \
-    "sudo apt-get -y remove python-zope.interface && " \
-    "sudo easy_install zope.interface && " \
-    "sudo pip install --upgrade google-api-python-client" \
-    || FAILED="$FAILED InstallPackages"
+  # $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+  #   "sudo apt-get -y install " \
+  #   || FAILED="$FAILED InstallPackages"
   echo
 }
 
 function setup_symlinks {
+  # Add new symlinks that are not yet part of the image below.
   echo
   echo "Setup Symlinks"
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "ln -s -f ~/storage/skia-repo/src/third_party/llvm-build/Release+Asserts/bin/ ~/slavebin && " \
-    "sudo ln -s -f /usr/bin/ccache /usr/local/bin/cc && " \
-    "sudo ln -s -f /usr/bin/ccache /usr/local/bin/c++ && " \
-    "sudo ln -s -f /usr/bin/ccache /usr/local/bin/gcc && " \
-    "sudo ln -s -f /usr/bin/ccache /usr/local/bin/g++ && " \
-    "sudo ln -s -f /usr/lib/i386-linux-gnu/libfontconfig.so.1 /usr/lib32/libfontconfig.so && " \
-    "sudo ln -s -f /usr/lib/i386-linux-gnu/libfreetype.so.6 /usr/lib32/libfreetype.so && " \
-    "sudo ln -s -f /usr/lib/x86_64-linux-gnu/libgif.so.4.1.6 /usr/lib/x86_64-linux-gnu/libgif.so && " \
-    "sudo ln -s -f /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1 /usr/lib/x86_64-linux-gnu/libGL.so && " \
-    "sudo ln -s -f /usr/lib/x86_64-linux-gnu/libGLU.so.1 /usr/lib/x86_64-linux-gnu/libGLU.so && " \
-    "sudo ln -s /usr/lib/x86_64-linux-gnu/libQtCore.so.4 /usr/lib/x86_64-linux-gnu/libQtCore.so && " \
-    "sudo ln -s /usr/lib/x86_64-linux-gnu/libQtGui.so.4 /usr/lib/x86_64-linux-gnu/libQtGui.so && " \
-    "sudo ln -s /usr/lib/x86_64-linux-gnu/libQtOpenGL.so.4 /usr/lib/x86_64-linux-gnu/libQtOpenGL.so && " \
-    "sudo ln -s /home/default/storage/skia-repo /home/chrome-bot && " \
-    "sudo ln -s /usr/lib/i386-linux-gnu/libpoppler-cpp.so.0 /usr/lib/i386-linux-gnu/libpoppler-cpp.so && " \
-    "sudo ln -s /home/chrome-bot/skia-repo/android-sdk-linux /home/chrome-bot/android-sdk-linux && " \
-    "sudo ln -s /home/chrome-bot/skia-repo/nacl_sdk /home/chrome-bot/nacl_sdk && " \
-    "sudo rm /usr/bin/moc && sudo ln -s /usr/bin/moc-qt4 /usr/bin/moc && " \
-    "sudo rm -rf /usr/bin/qmake && sudo ln -s /usr/bin/qmake-qt4 /usr/bin/qmake && " \
-    "sudo ln -s /home/default/google-cloud-sdk/bin/gsutil /usr/local/bin/gsutil" \
-    || FAILED="$FAILED InstallPackages"
+  # $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+  #   "sudo ln -s -f /usr/bin/ccache /usr/local/bin/cc" \
+  #   || FAILED="$FAILED InstallPackages"
   echo
 }
 
@@ -54,6 +30,7 @@ function setup_android_sdk {
   echo
   echo "===== Android SDK. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+    "mkdir $SKIA_REPO_DIR;" \
     "cd $SKIA_REPO_DIR && " \
     "sudo apt-get -y install libncurses5:i386 && " \
     "wget http://dl.google.com/android/adt/adt-bundle-linux-x86_64-20130729.zip && " \
@@ -73,6 +50,7 @@ function setup_nacl {
   echo
   echo "===== Native Client SDK and NaClPorts. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+    "mkdir $SKIA_REPO_DIR;" \
     "cd $SKIA_REPO_DIR && " \
     "wget http://storage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/nacl_sdk.zip && " \
     "if [[ -d nacl_sdk ]]; then rm -rf nacl_sdk; fi && " \
@@ -88,50 +66,11 @@ function checkout_skia_repos {
   echo
   echo "Checkout Skia Buildbot code"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "mkdir $SKIA_REPO_DIR && " \
+    "mkdir $SKIA_REPO_DIR;" \
     "cd $SKIA_REPO_DIR && " \
     "~/depot_tools/gclient config https://skia.googlesource.com/buildbot.git && " \
     "~/depot_tools/gclient sync;" \
     || FAILED="$FAILED CheckoutSkiaBuildbot"
-  echo
-
-  echo
-  echo "Checkout Skia Trunk code"
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "cd $SKIA_REPO_DIR && " \
-    "sed -i '$ d' .gclient && sed -i '$ d' .gclient && " \
-    "echo \"\"\"
-    { 'name'        : 'skia',
-      'url'         : 'https://skia.googlesource.com/skia.git',
-    'deps_file'   : 'DEPS',
-      'managed'     : True,
-      'custom_deps' : {
-      },
-      'safesync_url': '',
-    },
-  ]
-  \"\"\" >> .gclient && ~/depot_tools/gclient sync;" \
-    || FAILED="$FAILED CheckoutSkiaTrunk"
-  echo
-}
-
-function setup_crontab {
-  echo
-  echo "===== Setting up launch-on-reboot ======"
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "python $SKIA_REPO_DIR/buildbot/scripts/launch_on_reboot.py" \
-    || FAILED="$FAILED LaunchOnReboot"
-  echo
-}
-
-function fix_gsutil_path {
-  echo
-  echo "===== Fixing gsutil path ======"
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "sudo rm /usr/local/bin/gsutil && " \
-    "sudo ln -s /home/default/google-cloud-sdk/platform/gsutil/gsutil /usr/local/bin/gsutil && " \
-    "echo 'export PATH=/home/$PROJECT_USER/google-cloud-sdk/platform/gsutil:\$PATH' >> /home/$PROJECT_USER/.bashrc" \
-     || FAILED="$FAILED FixGsutilPath"
   echo
 }
 
@@ -146,16 +85,6 @@ function copy_files {
       $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
         $REQUIRED_FILE /home/$PROJECT_USER/storage/skia-repo/
     done
-  echo
-}
-
-function setup_hosts {
-  echo
-  echo "===== Set up /etc/hosts ====="
-  HOSTS="$(cat $CHROME_MASTER_HOST)"
-  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "echo \"$HOSTS\" | sudo tee -a /etc/hosts" \
-     || FAILED="$FAILED SetupHosts"
   echo
 }
 
