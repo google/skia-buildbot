@@ -381,6 +381,10 @@ func (c *CommitCache) Slice(startIdx, endIdx int) ([]*CommitData, error) {
 			} else {
 				j = c.blocks[b].NumCommits()
 			}
+			// Shortcut for empty blocks.
+			if i == j {
+				return
+			}
 			s, err := c.blocks[b].Slice(i, j)
 			if err != nil {
 				errs[b-startBlock] = fmt.Errorf("Failed to slice block: %v", err)
