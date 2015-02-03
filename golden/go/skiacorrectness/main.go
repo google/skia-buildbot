@@ -36,20 +36,21 @@ import (
 
 // Command line flags.
 var (
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	port           = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	staticDir      = flag.String("static_dir", "./app", "Directory with static content to serve")
-	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
-	imageDir       = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
-	gsBucketName   = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
-	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
-	memProfile     = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-	redisHost      = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
-	redisDB        = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
-	startAnalyzer  = flag.Bool("start_analyzer", true, "Create an instance of the analyzer and start it running.")
+	graphiteServer    = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	port              = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	staticDir         = flag.String("static_dir", "./app", "Directory with static content to serve")
+	tileStoreDir      = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
+	imageDir          = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+	gsBucketName      = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
+	doOauth           = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	oauthCacheFile    = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
+	memProfile        = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+	redisHost         = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
+	redisDB           = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
+	startAnalyzer     = flag.Bool("start_analyzer", true, "Create an instance of the analyzer and start it running.")
+	startExperimental = flag.Bool("start_experimental", true, "Start experimental features.")
 )
 
 const (
@@ -317,20 +318,25 @@ func main() {
 	expStore = expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb))
 	ignoreStore = types.NewSQLIgnoreStore(vdb)
 	tileStore = filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
-	tallies, err = tally.New(tileStore)
-	if err != nil {
-		glog.Fatalf("Failed to build tallies: %s", err)
+
+	// Enable the experimental features.
+	if *startExperimental {
+		tallies, err = tally.New(tileStore)
+		if err != nil {
+			glog.Fatalf("Failed to build tallies: %s", err)
+		}
+
+		summaries, err = summary.New(tileStore, expStore, tallies, diffStore)
+		if err != nil {
+			glog.Fatalf("Failed to build summary: %s", err)
+		}
 	}
 
-	summaries, err = summary.New(tileStore, expStore, tallies, diffStore)
-	if err != nil {
-		glog.Fatalf("Failed to build summary: %s", err)
-	}
 	// Initialize the Analyzer
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
 	pathToURLConverter = imgFS.GetURL
 	if *startAnalyzer {
-		analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, imgFS.GetURL, 10*time.Minute)
+		analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, imgFS.GetURL, cacheFactory, 10*time.Minute)
 	}
 	t.Stop()
 

@@ -1,6 +1,8 @@
 package analysis
 
 import (
+	"bytes"
+	"encoding/gob"
 	"sort"
 	"sync"
 	"time"
@@ -12,9 +14,15 @@ import (
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
+	"skia.googlesource.com/buildbot.git/golden/go/filediffstore"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
 	"skia.googlesource.com/buildbot.git/perf/go/human"
 	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
+)
+
+const (
+	NEW_TILE_CACHE_KEY     = "newtile"
+	IGNORED_TILE_CACHE_KEY = "ignoredtile"
 )
 
 var (
@@ -83,7 +91,7 @@ type LabeledTile struct {
 	CommitsByDigest map[string]map[string][]int
 
 	// Keeps track of unique ids for traces within this tile.
-	traceIdCounter int
+	TraceIdCounter int
 }
 
 func NewLabeledTile() *LabeledTile {
@@ -91,7 +99,7 @@ func NewLabeledTile() *LabeledTile {
 		Commits:         []*ptypes.Commit{},
 		CommitsByDigest: map[string]map[string][]int{},
 		Traces:          map[string][]*LabeledTrace{},
-		traceIdCounter:  0,
+		TraceIdCounter:  0,
 	}
 }
 
@@ -115,8 +123,8 @@ func (t *LabeledTile) getLabeledTrace(trace ptypes.Trace) (string, *LabeledTrace
 
 	// If we cannot find the trace in our set of tests we are adding a new
 	// labeled trace.
-	newLT := NewLabeledTrace(params, trace.Len(), t.traceIdCounter)
-	t.traceIdCounter++
+	newLT := NewLabeledTrace(params, trace.Len(), t.TraceIdCounter)
+	t.TraceIdCounter++
 	t.Traces[pKey] = append(t.Traces[pKey], newLT)
 	return pKey, newLT
 }
@@ -175,8 +183,17 @@ type Analyzer struct {
 	tileStore   ptypes.TileStore
 	ignoreStore types.IgnoreStore
 
+	// current contains the state of the digests we are primariliy interested in.
 	current *AnalyzeState
+
+	// ignored contains the state of ignored digests.
 	ignored *AnalyzeState
+
+	// lastRawTile points to the last tile loaded from the tileStore.
+	lastRawTile *ptypes.Tile
+
+	// labeledTileCache caches the labeled tiles extracted tiles.
+	labeledTileCache util.LRUCache
 
 	// converter supplied by the client of the type to convert a path to a URL
 	pathToURLConverter PathToURLConverter
@@ -189,7 +206,38 @@ type Analyzer struct {
 	loopCounter int
 }
 
-func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileStore, diffStore diff.DiffStore, ignoreStore types.IgnoreStore, puConverter PathToURLConverter, timeBetweenPolls time.Duration) *Analyzer {
+// GobLabeledTileCodec serializes labeled tiles for caching.
+type GobLabeledTileCodec int
+
+func NewGobLabeledTileCodec() GobLabeledTileCodec {
+	gob.Register(LabeledTile{})
+	return GobLabeledTileCodec(0)
+}
+
+// Encode, see util.LRUCodec for details.
+func (d GobLabeledTileCodec) Encode(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// Decode, see util.LRUCodec for details.
+func (d GobLabeledTileCodec) Decode(data []byte) (interface{}, error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+	var v LabeledTile
+	if err := dec.Decode(&v); err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
+
+func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileStore, diffStore diff.DiffStore, ignoreStore types.IgnoreStore, puConverter PathToURLConverter, cacheFactory filediffstore.CacheFactory, timeBetweenPolls time.Duration) *Analyzer {
+	labeledTileCache := cacheFactory("ti", NewGobLabeledTileCodec())
+
 	result := &Analyzer{
 		expStore:           expStore,
 		diffStore:          diffStore,
@@ -197,8 +245,10 @@ func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileSto
 		ignoreStore:        ignoreStore,
 		pathToURLConverter: puConverter,
 
-		current: &AnalyzeState{},
-		ignored: &AnalyzeState{},
+		current:          &AnalyzeState{},
+		ignored:          &AnalyzeState{},
+		lastRawTile:      nil,
+		labeledTileCache: labeledTileCache,
 	}
 
 	go result.loop(timeBetweenPolls)
@@ -375,7 +425,7 @@ func (a *Analyzer) AddIgnoreRule(ignoreRule *types.IgnoreRule) error {
 		return err
 	}
 
-	a.processTile()
+	a.processTile(false, true)
 
 	return nil
 }
@@ -389,7 +439,7 @@ func (a *Analyzer) DeleteIgnoreRule(ruleId int, user string) error {
 	}
 
 	if count > 0 {
-		a.processTile()
+		a.processTile(false, true)
 	}
 
 	return nil
@@ -397,46 +447,119 @@ func (a *Analyzer) DeleteIgnoreRule(ruleId int, user string) error {
 
 // loop is the main event loop.
 func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
-	// process a tile immediately and then at fixed points in time.
-	a.processTile()
-	for _ = range time.Tick(timeBetweenPolls) {
-		a.processTile()
+	// Process the tile with caching. If the result is false that means
+	// no tile was loaded from disk and we need to do another run with
+	// the latest tile.
+	if !a.processTile(true, false) {
+		a.processTile(false, false)
 	}
+	for _ = range time.Tick(timeBetweenPolls) {
+		a.processTile(false, false)
+	}
+}
+
+// getCachedTiles returns the last instances of current and ignored.
+func (a *Analyzer) getCachedTiles() (*LabeledTile, *LabeledTile) {
+	if newLabeledTile, ok := a.labeledTileCache.Get(NEW_TILE_CACHE_KEY); ok {
+		if ignoredLabeledTile, ok := a.labeledTileCache.Get(IGNORED_TILE_CACHE_KEY); ok {
+			return newLabeledTile.(*LabeledTile), ignoredLabeledTile.(*LabeledTile)
+		}
+	}
+	return nil, nil
+}
+
+// cacheTiles stores the latest instances of current and ignored.
+func (a *Analyzer) cacheTiles(newLabeledTile *LabeledTile, ignoredLabeledTile *LabeledTile) {
+	a.labeledTileCache.Add(NEW_TILE_CACHE_KEY, newLabeledTile)
+	a.labeledTileCache.Add(IGNORED_TILE_CACHE_KEY, ignoredLabeledTile)
 }
 
 // processTile loads a tile (built by the ingest process) and partitions it
 // into two labeled tiles one with the traces of interest and the traces we
 // are ignoring.
-func (a *Analyzer) processTile() {
+// The flags indicate whether to use the cached labeled tiles (during startup)
+// and whether to reload the tile from disk or use lastRawTile instead.
+// The return value indicates whether a raw tile was loaded from disk.
+func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
+	loadedTile := false
 	defer timer.New("processTile").Stop()
 	glog.Info("Reading tiles ... ")
 
-	// Load the tile and process it.
-	tile, err := a.tileStore.GetModifiable(0, -1)
-	glog.Info("Done reading tiles.")
+	var newLabeledTile, ignoredLabeledTile *LabeledTile = nil, nil
+	var err error
 
-	if err != nil {
-		glog.Errorf("Error reading tile store: %s\n", err)
-		errorTileLoadingCounter.Inc(1)
-	} else {
-		// Protect the tile and expectations with the write lock.
-		a.mutex.Lock()
-		defer a.mutex.Unlock()
+	// Load the labeled tiles from cache. This will require no new diffs
+	// since they have already been calculated for the cached tile.
+	if useCached {
+		newLabeledTile, ignoredLabeledTile = a.getCachedTiles()
+		glog.Infoln("Loaded tiles from cache.")
+	}
 
-		// Retrieve the current expectations.
-		expectations, err := a.expStore.Get(false)
-		if err != nil {
-			glog.Errorf("Error retrieving expectations: %s", err)
-			return
+	// If we don't have labeled tiles at this point we need to get a raw tile
+	// and build a labeled tile.
+	if newLabeledTile == nil {
+		// Either use a tile already in memory or load a new one.
+		var tile *ptypes.Tile
+		if reloadRawTile || (a.lastRawTile == nil) {
+			tile, err = a.tileStore.GetModifiable(0, -1)
+			if err != nil {
+				glog.Errorf("Error reading tile store: %s\n", err)
+				errorTileLoadingCounter.Inc(1)
+				return false
+			}
+			a.lastRawTile = tile
+			loadedTile = true
+			glog.Infoln("Loaded new tile from disk.")
+		} else {
+			tile = a.lastRawTile
+			glog.Infoln("Reusing last raw tile.")
 		}
 
-		newLabeledTile, ignoredLabeledTile := a.partitionRawTile(tile)
-		a.setDerivedOutputs(newLabeledTile, expectations, a.current)
-		a.setDerivedOutputs(ignoredLabeledTile, expectations, a.ignored)
+		newLabeledTile, ignoredLabeledTile = a.partitionRawTile(tile)
+
+		a.prepDiffsForLabeledTile(newLabeledTile)
+		a.prepDiffsForLabeledTile(ignoredLabeledTile)
+
+		a.cacheTiles(newLabeledTile, ignoredLabeledTile)
 	}
+
+	glog.Infoln("Tests in newLabeledTiles    : %d", len(newLabeledTile.Traces))
+	glog.Infoln("Tests in ignoredLabeledTiles: %d", len(ignoredLabeledTile.Traces))
+
+	// Protect the tile and expectations with the write lock.
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+
+	// Retrieve the current expectations.
+	expectations, err := a.expStore.Get(false)
+	if err != nil {
+		glog.Errorf("Error retrieving expectations: %s", err)
+		return false
+	}
+	a.setDerivedOutputs(newLabeledTile, expectations, a.current)
+	a.setDerivedOutputs(ignoredLabeledTile, expectations, a.ignored)
+
 	glog.Info("Done processing tiles.")
 	runsCounter.Inc(1)
 	a.loopCounter++
+
+	return loadedTile
+}
+
+// prepDiffsForLabeledTile forces the DiffStore to precalculate the diffs
+// between all digests (within a test).
+func (a *Analyzer) prepDiffsForLabeledTile(labeledTile *LabeledTile) {
+	counter := 0
+	for _, traces := range labeledTile.Traces {
+		digestsList := make([][]string, 0, len(traces))
+		for _, t := range traces {
+			digestsList = append(digestsList, t.Digests)
+		}
+		allDigests := util.UnionStrings(digestsList...)
+		a.diffStore.CalculateDiffs(allDigests)
+		counter++
+		glog.Infof("Processed %d/%d tests. (%f%%)", counter, len(labeledTile.Traces), float64(counter)/float64(len(labeledTile.Traces))*100.0)
+	}
 }
 
 // partitionRawTile partitions the input tile into two tiles (current and ignored)

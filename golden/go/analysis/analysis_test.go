@@ -85,7 +85,7 @@ func TestGetListTestDetails(t *testing.T) {
 	tileStore := NewMockTileStore(t, digests, params, commits)
 	ignoreStore := types.NewMemIgnoreStore()
 	timeBetweenPolls := 10 * time.Hour
-	a := NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, mockUrlGenerator, timeBetweenPolls)
+	a := NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, mockUrlGenerator, filediffstore.MemCacheFactory, timeBetweenPolls)
 
 	allTests, err := a.ListTestDetails(nil)
 	assert.Nil(t, err)
@@ -184,7 +184,7 @@ func TestAgainstLiveData(t *testing.T) {
 	tileStore := NewMockTileStoreFromJson(t, TEST_DATA_PATH)
 	ignoreStore := types.NewMemIgnoreStore()
 	timeBetweenPolls := 10 * time.Hour
-	a := NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, mockUrlGenerator, timeBetweenPolls)
+	a := NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, mockUrlGenerator, filediffstore.MemCacheFactory, timeBetweenPolls)
 
 	// Poll until the Analyzer has process the tile.
 	var allTests *GUITestDetails
@@ -352,6 +352,8 @@ func (m MockDiffStore) ThumbAbsPath(digest []string) map[string]string {
 func (m MockDiffStore) UnavailableDigests() map[string]bool {
 	return nil
 }
+
+func (m MockDiffStore) CalculateDiffs([]string) {}
 
 func NewMockDiffStore() diff.DiffStore {
 	return MockDiffStore{}

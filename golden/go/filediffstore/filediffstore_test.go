@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
-	"skia.googlesource.com/buildbot.git/golden/go/thumb"
 )
 
 import (
@@ -30,6 +29,9 @@ var (
 	// DiffMetrics between TEST_DIGEST1 and TEST_DIGEST2.
 	expectedDiffMetrics1_2 *diff.DiffMetrics
 	expectedDiffMetrics1_3 *diff.DiffMetrics
+
+	// Expected diff metrics with relative paths.
+	relExpectedDiffMetrics1_2 *diff.DiffMetrics
 )
 
 func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool) *FileDiffStore {
@@ -58,24 +60,32 @@ func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool
 	assert.Nil(t, err)
 	ret := temp.(*FileDiffStore)
 
-	diffpath1_2 := filepath.Join(ret.localDiffDir, fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION))
+	relDiffPath1_2 := fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION)
+	relDiffThumbPath1_2 := fmt.Sprintf("%s-%s-thumbnail.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION)
+	diffpath1_2 := filepath.Join(ret.localDiffDir, relDiffPath1_2)
+	diffThumbPath1_2 := filepath.Join(ret.localDiffDir, relDiffThumbPath1_2)
 	// Set the expected values for diff metrics.
 	expectedDiffMetrics1_2 = &diff.DiffMetrics{
 		NumDiffPixels:              2233,
 		PixelDiffPercent:           0.8932,
 		PixelDiffFilePath:          diffpath1_2,
-		ThumbnailPixelDiffFilePath: thumb.AbsPath(diffpath1_2),
+		ThumbnailPixelDiffFilePath: diffThumbPath1_2,
 		MaxRGBADiffs:               []int{0, 0, 1, 0},
 		DimDiffer:                  false,
 	}
+	relExpectedDiffMetrics1_2 = &diff.DiffMetrics{}
+	*relExpectedDiffMetrics1_2 = *expectedDiffMetrics1_2
+	relExpectedDiffMetrics1_2.PixelDiffFilePath = relDiffPath1_2
+	relExpectedDiffMetrics1_2.ThumbnailPixelDiffFilePath = relDiffThumbPath1_2
 
 	// DiffMetrics between TEST_DIGEST1 and TEST_DIGEST3.
 	diffpath1_3 := filepath.Join(ret.localDiffDir, fmt.Sprintf("%s-%s.%s", TEST_DIGEST3, TEST_DIGEST1, DIFF_EXTENSION))
+	diffThumbPath1_3 := filepath.Join(ret.localDiffDir, fmt.Sprintf("%s-%s-thumbnail.%s", TEST_DIGEST3, TEST_DIGEST1, DIFF_EXTENSION))
 	expectedDiffMetrics1_3 = &diff.DiffMetrics{
 		NumDiffPixels:              250000,
 		PixelDiffPercent:           100,
 		PixelDiffFilePath:          diffpath1_3,
-		ThumbnailPixelDiffFilePath: thumb.AbsPath(diffpath1_3),
+		ThumbnailPixelDiffFilePath: diffThumbPath1_3,
 		MaxRGBADiffs:               []int{248, 90, 113, 0},
 		DimDiffer:                  true,
 	}
@@ -111,7 +121,7 @@ func TestGetDiffMetricFromDir(t *testing.T) {
 
 	for digests, expectedValue := range digestsToExpectedResults {
 		if expectedValue != nil {
-			fds.writeDiffMetricsToFileCache(getDiffBasename(digests[0], digests[1]), *expectedValue)
+			fds.writeDiffMetricsToFileCache(getDiffBasename(digests[0], digests[1]), expectedValue)
 		}
 		ret, err := fds.getDiffMetricsFromFileCache(getDiffBasename(digests[0], digests[1]))
 		assert.Nil(t, err)
@@ -155,7 +165,7 @@ func TestDiff(t *testing.T) {
 		t.Errorf("Diff file %s was not created!", diffFilePath)
 	}
 	// Assert that the DiffMetrics are as expected.
-	assert.Equal(t, expectedDiffMetrics1_2, diffMetrics)
+	assert.Equal(t, relExpectedDiffMetrics1_2, diffMetrics)
 }
 
 func assertFileExists(filePath string, t *testing.T) {

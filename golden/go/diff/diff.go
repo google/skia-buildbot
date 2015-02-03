@@ -12,7 +12,6 @@ import (
 	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/golden/go/thumb"
 )
 
 var (
@@ -51,6 +50,10 @@ type DiffStore interface {
 	// processed (e.g. because the PNG is corrupted) and should therefore be
 	// be ignored. The return value is considered to be read only.
 	UnavailableDigests() map[string]bool
+
+	// CalculateDiffs calculates all diffs between the digests provided in the
+	// argument and stores them in cache for later retrieval.
+	CalculateDiffs([]string)
 }
 
 // OpenImage is a utility function that opens the specified file and returns an
@@ -163,39 +166,9 @@ func setAllFF(slice []uint8) {
 	}
 }
 
-// DiffAndWrite is a utility function that calculates the DiffMetrics for the
-// provided images. Intended to be called from the DiffStore implementations.
-func DiffAndWrite(img1, img2 image.Image, diffFilePath string) (*DiffMetrics, error) {
-	metrics, diff, err := Diff(img1, img2)
-	if err != nil {
-		return nil, err
-	}
-	if diffFilePath != "" {
-		f, err := os.Create(diffFilePath)
-		if err != nil {
-			return nil, err
-		}
-		defer f.Close()
-		if err := png.Encode(f, diff); err != nil {
-			return nil, err
-		}
-		metrics.PixelDiffFilePath = diffFilePath
-		metrics.ThumbnailPixelDiffFilePath = thumb.AbsPath(diffFilePath)
-		g, err := os.Create(metrics.ThumbnailPixelDiffFilePath)
-		if err != nil {
-			return nil, err
-		}
-		defer g.Close()
-		if err := png.Encode(g, thumb.Thumbnail(diff)); err != nil {
-			return nil, err
-		}
-	}
-	return metrics, nil
-}
-
 // Diff is a utility function that calculates the DiffMetrics and the image of the
 // difference for the provided images.
-func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA, error) {
+func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 
 	img1Bounds := img1.Bounds()
 	img2Bounds := img2.Bounds()
@@ -284,5 +257,5 @@ func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA, error) {
 		NumDiffPixels:    numDiffPixels,
 		PixelDiffPercent: getPixelDiffPercent(numDiffPixels, totalPixels),
 		MaxRGBADiffs:     maxRGBADiffs,
-		DimDiffer:        (cmpWidth != resultWidth) || (cmpHeight != resultHeight)}, resultImg, nil
+		DimDiffer:        (cmpWidth != resultWidth) || (cmpHeight != resultHeight)}, resultImg
 }

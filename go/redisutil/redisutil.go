@@ -43,7 +43,7 @@ func NewRedisLRUCache(serverAddr string, db int, id string, codec util.LRUCodec)
 		indexSetKey: id + ":idx",
 		codec:       codec,
 		pool: &redis.Pool{
-			MaxIdle:     10000,
+			MaxIdle:     1000,
 			MaxActive:   0,
 			IdleTimeout: time.Minute * 20,
 			Dial: func() (redis.Conn, error) {

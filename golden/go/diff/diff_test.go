@@ -8,8 +8,6 @@ import (
 	"sync"
 	"testing"
 
-	"skia.googlesource.com/buildbot.git/golden/go/thumb"
-
 	"github.com/skia-dev/glog"
 )
 
@@ -25,8 +23,8 @@ func TestDiff(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:              16,
 			PixelDiffPercent:           0.0064,
-			PixelDiffFilePath:          diffFilePath1,
-			ThumbnailPixelDiffFilePath: thumb.AbsPath(diffFilePath1),
+			PixelDiffFilePath:          "",
+			ThumbnailPixelDiffFilePath: "",
 			MaxRGBADiffs:               []int{54, 100, 125, 0},
 			DimDiffer:                  false})
 	diffFilePath2 := filepath.Join(os.TempDir(), "diff2.png")
@@ -35,8 +33,8 @@ func TestDiff(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:              2233,
 			PixelDiffPercent:           0.8932,
-			PixelDiffFilePath:          diffFilePath2,
-			ThumbnailPixelDiffFilePath: thumb.AbsPath(diffFilePath2),
+			PixelDiffFilePath:          "",
+			ThumbnailPixelDiffFilePath: "",
 			MaxRGBADiffs:               []int{0, 0, 1, 0},
 			DimDiffer:                  false})
 	// Assert the same image.
@@ -46,8 +44,8 @@ func TestDiff(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:              0,
 			PixelDiffPercent:           0,
-			PixelDiffFilePath:          diffFilePath3,
-			ThumbnailPixelDiffFilePath: thumb.AbsPath(diffFilePath3),
+			PixelDiffFilePath:          "",
+			ThumbnailPixelDiffFilePath: "",
 			MaxRGBADiffs:               []int{0, 0, 0, 0},
 			DimDiffer:                  false})
 	// Assert different images with different dimensions.
@@ -57,8 +55,8 @@ func TestDiff(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:              571674,
 			PixelDiffPercent:           89.324066,
-			PixelDiffFilePath:          diffFilePath4,
-			ThumbnailPixelDiffFilePath: thumb.AbsPath(diffFilePath4),
+			PixelDiffFilePath:          "",
+			ThumbnailPixelDiffFilePath: "",
 			MaxRGBADiffs:               []int{255, 255, 255, 0},
 			DimDiffer:                  true})
 	// Assert with images that match in dimensions but where all pixels differ.
@@ -68,8 +66,8 @@ func TestDiff(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:              250000,
 			PixelDiffPercent:           100.0,
-			PixelDiffFilePath:          diffFilePath5,
-			ThumbnailPixelDiffFilePath: thumb.AbsPath(diffFilePath5),
+			PixelDiffFilePath:          "",
+			ThumbnailPixelDiffFilePath: "",
 			MaxRGBADiffs:               []int{255, 255, 255, 0},
 			DimDiffer:                  false})
 
@@ -80,8 +78,8 @@ func TestDiff(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:              172466,
 			PixelDiffPercent:           74.8550347222,
-			PixelDiffFilePath:          diffFilePath6,
-			ThumbnailPixelDiffFilePath: thumb.AbsPath(diffFilePath6),
+			PixelDiffFilePath:          "",
+			ThumbnailPixelDiffFilePath: "",
 			MaxRGBADiffs:               []int{255, 255, 255, 0},
 			DimDiffer:                  true})
 	// Make sure the metric is symmetric.
@@ -91,8 +89,8 @@ func TestDiff(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:              172466,
 			PixelDiffPercent:           74.8550347222,
-			PixelDiffFilePath:          diffFilePath7,
-			ThumbnailPixelDiffFilePath: thumb.AbsPath(diffFilePath7),
+			PixelDiffFilePath:          "",
+			ThumbnailPixelDiffFilePath: "",
 			MaxRGBADiffs:               []int{255, 255, 255, 0},
 			DimDiffer:                  true})
 
@@ -103,8 +101,8 @@ func TestDiff(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:              8750,
 			PixelDiffPercent:           2.8483074,
-			PixelDiffFilePath:          diffFilePath8,
-			ThumbnailPixelDiffFilePath: thumb.AbsPath(diffFilePath8),
+			PixelDiffFilePath:          "",
+			ThumbnailPixelDiffFilePath: "",
 			MaxRGBADiffs:               []int{255, 2, 255, 0},
 			DimDiffer:                  false})
 
@@ -115,8 +113,8 @@ func TestDiff(t *testing.T) {
 		&DiffMetrics{
 			NumDiffPixels:              6,
 			PixelDiffPercent:           0.001953125,
-			PixelDiffFilePath:          diffFilePath9,
-			ThumbnailPixelDiffFilePath: thumb.AbsPath(diffFilePath9),
+			PixelDiffFilePath:          "",
+			ThumbnailPixelDiffFilePath: "",
 			MaxRGBADiffs:               []int{0, 0, 0, 235},
 			DimDiffer:                  false})
 }
@@ -131,7 +129,7 @@ func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) 
 		t.Fatal("Failed to open test file: ", err)
 	}
 
-	diffMetrics, err := DiffAndWrite(img1, img2, expectedDiffMetrics.PixelDiffFilePath)
+	diffMetrics, _ := Diff(img1, img2)
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
@@ -164,6 +162,6 @@ func BenchmarkDiff(b *testing.B) {
 	once.Do(loadBenchmarkImages)
 
 	for i := 0; i < b.N; i++ {
-		DiffAndWrite(img1, img2, "")
+		Diff(img1, img2)
 	}
 }

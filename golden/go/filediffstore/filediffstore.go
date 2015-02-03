@@ -35,7 +35,7 @@ const (
 	IMG_EXTENSION                = "png"
 	DIFF_EXTENSION               = "png"
 	DIFFMETRICS_EXTENSION        = "json"
-	RECOMMENDED_WORKER_POOL_SIZE = 100
+	RECOMMENDED_WORKER_POOL_SIZE = 2000
 	IMAGE_LRU_CACHE_SIZE         = 500
 	METRIC_LRU_CACHE_SIZE        = 100000
 
@@ -233,51 +233,55 @@ func (fs *FileDiffStore) activateWorkers(workerPoolSize int) {
 //     4. Calculate DiffMetrics.
 //     5. Write DiffMetrics to the cache and return.
 func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
-	// 1. Check if the DiffMetrics exists in the local cache.
+	var diffMetrics *diff.DiffMetrics = nil
+	var err error
+
+	// 1. Check if the DiffMetrics exists in the memory cache.
 	baseName := getDiffBasename(dMain, dOther)
 	if obj, ok := fs.diffCache.Get(baseName); ok && obj.(*diff.DiffMetrics).ThumbnailPixelDiffFilePath != "" {
-		return obj
-	}
-
-	diffMetrics, err := fs.getDiffMetricsFromFileCache(baseName)
-	if err != nil {
-		glog.Errorf("Failed to getDiffMetricsFromFileCache for digest %s and digest %s: %s", dMain, dOther, err)
-		return nil
-	}
-	if diffMetrics != nil && diffMetrics.ThumbnailPixelDiffFilePath != "" {
-		// 2. The DiffMetrics exists locally return it.
-
-		// TODO(stephana): Remove this once we have sorted out caching.
-		fs.diffCache.Add(baseName, diffMetrics)
-
-		return diffMetrics
-	}
-
-	// 3. Make sure the digests exist in the local cache. Download it from
-	//    Google Storage if necessary.
-	if err = fs.ensureDigestInCache(dOther); err != nil {
-		glog.Errorf("Failed to ensureDigestInCache for digest %s: %s", dOther, err)
-		return nil
-	}
-
-	// 4. Calculate DiffMetrics.
-	diffMetrics, err = fs.diff(dMain, dOther)
-	if err != nil {
-		glog.Errorf("Failed to calculate DiffMetrics for digest %s and digest %s: %s", dMain, dOther, err)
-		return nil
-	}
-	// 5. Write DiffMetrics to the local cache and return it.
-
-	// TODO(stephana): Remove this once we have sorted out caching.
-	fs.diffCache.Add(baseName, diffMetrics)
-
-	// Write to disk in the background.
-	go func() {
-		if err := fs.writeDiffMetricsToFileCache(baseName, *diffMetrics); err != nil {
-			glog.Errorf("Failed to write diff metrics to cache for digest %s and digest %s: %s", dMain, dOther, err)
+		diffMetrics = obj.(*diff.DiffMetrics)
+	} else {
+		// Check if it's in the file cache.
+		diffMetrics, err = fs.getDiffMetricsFromFileCache(baseName)
+		if err != nil {
+			glog.Errorf("Failed to getDiffMetricsFromFileCache for digest %s and digest %s: %s", dMain, dOther, err)
+			return nil
 		}
-	}()
 
+		if diffMetrics != nil && diffMetrics.ThumbnailPixelDiffFilePath != "" {
+			// 2. The DiffMetrics exists locally return it.
+			fs.diffCache.Add(baseName, diffMetrics)
+		} else {
+			// 3. Make sure the digests exist in the local cache. Download it from
+			//    Google Storage if necessary.
+			if err = fs.ensureDigestInCache(dOther); err != nil {
+				glog.Errorf("Failed to ensureDigestInCache for digest %s: %s", dOther, err)
+				return nil
+			}
+
+			// 4. Calculate DiffMetrics.
+			diffMetrics, err = fs.diff(dMain, dOther)
+			if err != nil {
+				glog.Errorf("Failed to calculate DiffMetrics for digest %s and digest %s: %s", dMain, dOther, err)
+				return nil
+			}
+
+			// 5. Write DiffMetrics to the local caches.
+			fs.diffCache.Add(baseName, diffMetrics)
+
+			// Write to disk in the background.
+			writeCopy := *diffMetrics
+			go func() {
+				if err := fs.writeDiffMetricsToFileCache(baseName, &writeCopy); err != nil {
+					glog.Errorf("Failed to write diff metrics to cache for digest %s and digest %s: %s", dMain, dOther, err)
+				}
+			}()
+		}
+	}
+
+	// Expand the path of the diff images.
+	diffMetrics.PixelDiffFilePath = filepath.Join(fs.localDiffDir, diffMetrics.PixelDiffFilePath)
+	diffMetrics.ThumbnailPixelDiffFilePath = filepath.Join(fs.localDiffDir, diffMetrics.ThumbnailPixelDiffFilePath)
 	return diffMetrics
 }
 
@@ -364,6 +368,8 @@ func (fs *FileDiffStore) ThumbAbsPath(digests []string) map[string]string {
 	fullsize := fs.AbsPath(digests)
 	ret := map[string]string{}
 	for digest, filename := range fullsize {
+		// TODO(stephana): Remove thumb.AbsPath and generate the thumbnail in
+		// this package.
 		thumbFilename := thumb.AbsPath(filename)
 		if _, err := os.Stat(thumbFilename); os.IsNotExist(err) {
 			// TODO Should be changed to a safe write that writes to a tmp file then renames it.
@@ -443,6 +449,24 @@ func (fs *FileDiffStore) UnavailableDigests() map[string]bool {
 	return result
 }
 
+// CalculateDiffs is part of the diff.DiffStore interface. See details there.
+func (fs *FileDiffStore) CalculateDiffs(digests []string) {
+	var wg sync.WaitGroup
+
+	for i := 0; i < len(digests)-1; i++ {
+		wg.Add(1)
+		go func(i int) {
+			_, err := fs.Get(digests[i], digests[i+1:])
+			if err != nil {
+				glog.Errorf("Error retrieving diff metric: %s", err)
+			}
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
+}
+
 func openDiffMetrics(filepath string) (*diff.DiffMetrics, error) {
 	f, err := ioutil.ReadFile(filepath)
 	if err != nil {
@@ -455,14 +479,13 @@ func openDiffMetrics(filepath string) (*diff.DiffMetrics, error) {
 	return diffMetrics, nil
 }
 
-func (fs *FileDiffStore) writeDiffMetricsToFileCache(baseName string, diffMetrics diff.DiffMetrics) error {
+func (fs *FileDiffStore) writeDiffMetricsToFileCache(baseName string, diffMetrics *diff.DiffMetrics) error {
 	// Lock the mutex before writing to the local diff directory.
 	fs.diffDirLock.Lock()
 	defer fs.diffDirLock.Unlock()
 
 	// Make paths relative. This has to be reversed in getDiffMetricsFromFileCache.
 	fName := fs.getDiffMetricPath(baseName)
-	diffMetrics.PixelDiffFilePath, _ = filepath.Rel(fs.localDiffDir, diffMetrics.PixelDiffFilePath)
 
 	f, err := os.Create(fName)
 	if err != nil {
@@ -513,8 +536,6 @@ func (fs *FileDiffStore) getDiffMetricsFromFileCache(baseName string) (*diff.Dif
 		glog.Warning("Some error opening: %s: %s", baseName, err)
 		return nil, err
 	}
-
-	diffMetrics.PixelDiffFilePath = filepath.Join(fs.localDiffDir, diffMetrics.PixelDiffFilePath)
 	return diffMetrics, nil
 }
 
@@ -581,10 +602,10 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 
 		err = func() error {
 			respBody, err := fs.getRespBody(res)
-			defer respBody.Close()
 			if err != nil {
 				return err
 			}
+			defer respBody.Close()
 
 			// TODO(stephana): Creating and renaming temporary files this way
 			// should be made into a generic utility function.
@@ -672,9 +693,34 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 	if err != nil {
 		return nil, err
 	}
-	diffFilename := fmt.Sprintf("%s.%s", getDiffBasename(d1, d2), DIFF_EXTENSION)
-	diffFilePath := filepath.Join(fs.localDiffDir, diffFilename)
-	return diff.DiffAndWrite(img1, img2, diffFilePath)
+	dm, resultImg := diff.Diff(img1, img2)
+
+	// Create the thumbnail.
+	baseName := getDiffBasename(d1, d2)
+	thumbFilename := fs.getDiffThumbName(baseName)
+	thumbF, err := os.Create(filepath.Join(fs.localDiffDir, thumbFilename))
+	if err != nil {
+		return nil, err
+	}
+	defer thumbF.Close()
+	if err := png.Encode(thumbF, thumb.Thumbnail(resultImg)); err != nil {
+		return nil, err
+	}
+
+	// Write the diff image to disk.
+	diffFilename := fmt.Sprintf("%s.%s", baseName, IMG_EXTENSION)
+	f, err := os.Create(filepath.Join(fs.localDiffDir, diffFilename))
+	if err != nil {
+		return nil, err
+	}
+	if err := png.Encode(f, resultImg); err != nil {
+		return nil, err
+	}
+
+	// Set the filenames of the images in the diff metric.
+	dm.PixelDiffFilePath = diffFilename
+	dm.ThumbnailPixelDiffFilePath = thumbFilename
+	return dm, nil
 }
 
 // getDigestImage returns the image corresponding to the digest either from
@@ -709,4 +755,9 @@ func (fs *FileDiffStore) getDigestImagePath(digest string) string {
 func (fs *FileDiffStore) getDiffMetricPath(baseName string) string {
 	fName := fmt.Sprintf("%s.%s", baseName, DIFFMETRICS_EXTENSION)
 	return filepath.Join(fs.localDiffMetricsDir, fName)
+}
+
+// getDiffThumbBasename
+func (fs *FileDiffStore) getDiffThumbName(baseName string) string {
+	return fmt.Sprintf("%s-thumbnail.%s", baseName, IMG_EXTENSION)
 }

@@ -195,33 +195,6 @@ func (a *Analyzer) processOneTestDetail(testName string, testTraces []*LabeledTr
 	}
 }
 
-// compareAllDigests compares every pair of digests in the provided array.
-// TODO(stephana): This is currently not enabled but will be enabled as soon as
-// we can distributed diffing over multiple machines.
-func (a *Analyzer) compareAllDigests(allDigests map[string]bool) {
-	digestList := make([]string, 0, len(allDigests))
-	for d := range allDigests {
-		digestList = append(digestList, d)
-	}
-
-	ch := make(chan bool, len(digestList))
-	count := 0
-	for i := 0; i < len(digestList)-1; i++ {
-		go func(i int) {
-			_, err := a.diffStore.Get(digestList[i], digestList[i+1:])
-			if err != nil {
-				glog.Errorf("Error retrieving diff metric: %s", err)
-			}
-			ch <- true
-		}(i)
-		count++
-	}
-
-	for i := 0; i < count; i++ {
-		<-ch
-	}
-}
-
 func (a *Analyzer) incDigestInfo(digestInfo *DigestInfo, digest string, params map[string]string) *DigestInfo {
 	if digestInfo == nil {
 		digestInfo = &DigestInfo{
