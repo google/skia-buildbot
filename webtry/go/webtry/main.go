@@ -841,18 +841,19 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
+			rasterPath := filepath.Join(*inoutPath, fmt.Sprintf("%s_raster.png", hash))
+			gpuPath := filepath.Join(*inoutPath, fmt.Sprintf("%s_gpu.png", hash))
+			PDFPath := filepath.Join(*inoutPath, fmt.Sprintf("%s.pdf", hash))
+
 			// Check to see if there's already a PDF run of this hash
-			pdfPath := *inoutPath + hash + ".pdf"
-			if _, err := os.Stat(pdfPath); err == nil {
+			if _, err := os.Stat(PDFPath); err == nil {
 				PDFURL = "/i/" + hash + ".pdf"
 			}
 			// Check to see if there's already a raster run of this hash
-			rasterPath := *inoutPath + hash + "_raster.png"
 			if _, err := os.Stat(rasterPath); err == nil {
 				rasterURL = "/i/" + hash + "_raster.png"
 			}
 			// Check to see if there's already a GPU run of this hash
-			gpuPath := *inoutPath + hash + "_gpu.png"
 			if _, err := os.Stat(gpuPath); err == nil {
 				GPUURL = "/i/" + hash + "_gpu.png"
 			}
