@@ -30,5 +30,5 @@ echo "SkBitmap source;" >> ${WEBTRY_ROOT}/templates/template.cpp
 echo "{{.Code}}" >> ${WEBTRY_ROOT}/templates/template.cpp
 cd ${WEBTRY_ROOT}
 echo "Building webtry..."
-go build ./go/webtry
+go install -v ./go/webtry
 echo "Done!"

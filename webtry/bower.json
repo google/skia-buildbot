@@ -1,0 +1,25 @@
+{
+  "name": "webtry",
+  "version": "0.0.0",
+  "authors": [
+    "Greg Humphreys <humper@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "third_party/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.3",
+    "polymer": "Polymer/polymer#~0.5.4",
+    "core-elements": "Polymer/core-elements#~0.5.4",
+    "paper-elements": "Polymer/paper-elements#~0.5.4",
+    "webcomponentsjs": "Polymer/webcomponentsjs#~0.5.4",
+    "bootstrap": "~3.3.2",
+    "codemirror": "~4.12.0"
+  }
+}

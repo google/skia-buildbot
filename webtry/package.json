@@ -1,0 +1,17 @@
+{
+  "name": "webtry",
+  "version": "1.0.0",
+  "description": "WebTry Server =============",
+  "main": "index.js",
+  "devDependencies": {
+    "autoprefixer": "^5.1.0",
+    "bower": "^1.3.12",
+    "uglify-js": "^2.4.16",
+    "vulcanize": "^0.7.7"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

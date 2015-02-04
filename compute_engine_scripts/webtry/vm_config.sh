@@ -17,6 +17,7 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # The name of instance where skfiddle.com is running on.
 INSTANCE_NAME=${VM_NAME_BASE}-webtry-b
+TEST_INSTANCE_NAME=${VM_NAME_BASE}-webtry-test
 
 WEBTRY_IP_ADDRESS=108.170.219.69
 WEBTRY_MACHINE_TYPE=n1-highmem-8

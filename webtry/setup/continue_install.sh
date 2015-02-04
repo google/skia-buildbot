@@ -40,17 +40,8 @@ fetch skia
 cd skia
 git pull
 
-cd
+go get -u https://skia.googlesource.com/buildbot.git
 
-# Checkout the buildbot code and its dependencies.
-git clone https://skia.googlesource.com/buildbot.git
+cd ${GOPATH}/src/skia.googlesource.com/buildbot.git/webtry
 
-cd buildbot/webtry
-
-# if we already had a webtry, the above git clone won't update it, so
-# do a pull also.
-
-git pull
-
-go get -d
-./build
+make
