@@ -38,9 +38,10 @@ fetch skia
 # If we *already had* a skia checkout, the above fetch will fail, since
 # fetch only gets new things.  We still need to do an update.
 cd skia
+git checkout master
 git pull
 
-go get -u https://skia.googlesource.com/buildbot.git
+go get -u skia.googlesource.com/buildbot.git
 
 cd ${GOPATH}/src/skia.googlesource.com/buildbot.git/webtry
 
