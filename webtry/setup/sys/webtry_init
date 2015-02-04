@@ -23,7 +23,7 @@ DESC="The Skia webtry application."
 NAME=webtry
 RESOURCEPATH="/home/webtry/golib/src/skia.googlesource.com/buildbot.git/webtry"
 DAEMON=/home/webtry/golib/bin/$NAME
-DAEMON_ARGS="--use_chroot --log_dir=/var/log/logserver --resource_path=$RESOURCEPATH --cache_path=$HOME/cache --inout_path=$HOME/inout"
+DAEMON_ARGS="--use_chroot --log_dir=/var/log/logserver --resource_path=$RESOURCEPATH --cache_path=/home/webtry/cache --inout_path=/home/webtry/inout"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
