@@ -71,7 +71,7 @@
          });
 
          sk.get('/2/_/paramset').then(JSON.parse).then(function(json) {
-           $$$('corpus-chooser-sk').choices = json["source_type"];
+           $$$('corpus-chooser-sk').choices = json["source_type"].sort();
          }).catch(function(e) {
            $$$('paper-toast').text = e;
            $$$('paper-toast').show();
