@@ -83,3 +83,58 @@ func TestUnionStrings(t *testing.T) {
 	assert.Equal(t, []string{"abc"}, UnionStrings([]string{"abc"}))
 	assert.Equal(t, []string{"abc"}, UnionStrings([]string{"abc", "abc", "abc"}))
 }
+
+func TestAddParamsToParamSet(t *testing.T) {
+	testCases := []struct {
+		a       map[string][]string
+		b       map[string]string
+		wantFoo []string
+	}{
+		{
+			a: map[string][]string{
+				"foo": []string{"a", "b"},
+			},
+			b: map[string]string{
+				"foo": "c",
+			},
+			wantFoo: []string{"a", "b", "c"},
+		},
+		{
+			a: map[string][]string{
+				"foo": []string{},
+			},
+			b: map[string]string{
+				"foo": "c",
+			},
+			wantFoo: []string{"c"},
+		},
+		{
+			a: map[string][]string{
+				"foo": []string{"c"},
+			},
+			b: map[string]string{
+				"foo": "c",
+			},
+			wantFoo: []string{"c"},
+		},
+		{
+			a: map[string][]string{},
+			b: map[string]string{
+				"foo": "c",
+			},
+			wantFoo: []string{"c"},
+		},
+		{
+			a: map[string][]string{
+				"foo": []string{"c"},
+			},
+			b:       map[string]string{},
+			wantFoo: []string{"c"},
+		},
+	}
+	for _, tc := range testCases {
+		if got, want := AddParamsToParamSet(tc.a, tc.b)["foo"], tc.wantFoo; !SSliceEqual(got, want) {
+			t.Errorf("Merge failed: Got %v Want %v", got, want)
+		}
+	}
+}

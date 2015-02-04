@@ -218,3 +218,18 @@ func RepeatJoin(str, sep string, n int) string {
 	}
 	return str + strings.Repeat(sep+str, n-1)
 }
+
+func AddParamsToParamSet(a map[string][]string, b map[string]string) map[string][]string {
+	for k, v := range b {
+		// You might be tempted to replace this with
+		// sort.SearchStrings(), but that's actually slower for short
+		// slices. The breakpoint seems to around 50, and since most
+		// of our ParamSet lists are short that ends up being slower.
+		if _, ok := a[k]; !ok {
+			a[k] = []string{v}
+		} else if !In(v, a[k]) {
+			a[k] = append(a[k], v)
+		}
+	}
+	return a
+}

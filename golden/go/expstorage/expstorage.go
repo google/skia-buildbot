@@ -12,6 +12,15 @@ type Expectations struct {
 	Modifiable bool                                `json:"-"`
 }
 
+// Classification returns the classification for a single digest, returning
+// types.UNTRIAGED if that test or digest is unknown to Expectations.
+func (e *Expectations) Classification(test, digest string) types.Label {
+	if label, ok := e.Tests[test][digest]; ok {
+		return label
+	}
+	return types.UNTRIAGED
+}
+
 func NewExpectations(modifiable bool) *Expectations {
 	return &Expectations{
 		Modifiable: modifiable,

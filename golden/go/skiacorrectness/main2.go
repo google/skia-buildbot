@@ -396,6 +396,91 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// PolyDetailsGUI is used in the JSON returned from polyDetailsHandler. It
+// represents the known information about a single digest for a given test.
+type PolyDetailsGUI struct {
+	ParamSet map[string][]string `json:"paramset"`
+	Status   string              `json:"status"`
+}
+
+// polyDetailsHandler handles requests about individual digests in a test.
+//
+// It expects a request with the following query parameters:
+//
+//   test - The name of the test.
+//   d    - A digest in the test. This parameter can repeat any number of times.
+//
+// The response looks like:
+//
+//   {
+//     "digest1": {
+//         "paramset": {
+//            "name": ["test1"],
+//            "config": ["8888", "565"],
+//            ...,
+//         },
+//         "status": "positive",
+//     },
+//     ...
+//  }
+func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	tile, err := tileStore.Get(0, -1)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load tile")
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		util.ReportError(w, r, err, "Failed to parse form values")
+		return
+	}
+	digests, ok := r.Form["d"]
+	if !ok {
+		util.ReportError(w, r, fmt.Errorf("Missing the d query parameter."), "No digests specified.")
+		return
+	}
+	test := r.Form.Get("test")
+	if test == "" {
+		util.ReportError(w, r, fmt.Errorf("Missing the test query parameter."), "No test name specified.")
+		return
+	}
+	exp, err := expStore.Get(false)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load expectations.")
+		return
+	}
+
+	// Fill out the Status for each digest.
+	ret := map[string]*PolyDetailsGUI{}
+	for _, d := range digests {
+		ret[d] = &PolyDetailsGUI{
+			ParamSet: map[string][]string{},
+			Status:   exp.Classification(test, d).String(),
+		}
+	}
+
+	// Now build out the ParamSet for each digest.
+	tally := tallies.ByTrace()
+	for id, tr := range tile.Traces {
+		traceTally, ok := tally[id]
+		if !ok {
+			continue
+		}
+		for _, d := range digests {
+			if tr.Params()[types.PRIMARY_KEY_FIELD] == test {
+				if _, ok := (*traceTally)[d]; ok {
+					ret[d].ParamSet = util.AddParamsToParamSet(ret[d].ParamSet, tr.Params())
+				}
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ret); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
+	}
+}
+
 func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
 	tile, err := tileStore.Get(0, -1)
 	if err != nil {

@@ -374,6 +374,7 @@ func main() {
 	router.HandleFunc("/2/_/ignores/del/{id}", polyIgnoresDeleteHandler).Methods("POST")
 	router.HandleFunc("/2/_/ignores/add/", polyIgnoresAddHandler).Methods("POST")
 	router.HandleFunc("/2/_/test", polyTestHandler).Methods("POST")
+	router.HandleFunc("/2/_/details", polyDetailsHandler).Methods("GET")
 
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))
