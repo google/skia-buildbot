@@ -37,39 +37,43 @@ func get(url string, rv interface{}) error {
 // findCommitsRecursive is a recursive function called by findCommitsForBuild.
 // It traces the history to find builds which were first included in the given
 // build.
-func findCommitsRecursive(b *Build, hash string, repo *gitinfo.GitInfo) ([]string, error) {
+func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo) error {
 	// Shortcut for empty hashes. This can happen when a commit has no
 	// parents (initial commit) or when a Build has no GotRevision.
 	if hash == "" {
-		return []string{}, nil
+		return nil
 	}
 
 	// Determine whether any build already includes this commit.
 	n, err := GetBuildForCommit(b.Builder, b.Master, hash)
 	if err != nil {
-		return nil, fmt.Errorf("Could not find build for commit %s: %v", hash, err)
+		return fmt.Errorf("Could not find build for commit %s: %v", hash, err)
 	}
 	// If so, stop. If the build we found is the current build, keep going,
 	// since we may have already ingested data for this build but still
 	// need to find accurate revision data.
 	if n >= 0 && n != b.Number {
-		return []string{}, nil
+		return nil
 	}
+
+	// Add the commit.
+	commits[hash] = true
 
 	// Recurse on the commit's parents.
 	c, err := repo.Details(hash)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to obtain details for %s: %v", hash, err)
+		return fmt.Errorf("Failed to obtain details for %s: %v", hash, err)
 	}
-	commits := []string{hash}
 	for _, p := range c.Parents {
-		moreCommits, err := findCommitsRecursive(b, p, repo)
-		if err != nil {
-			return nil, err
+		// If we've already seen this parent commit, don't revisit it.
+		if _, ok := commits[p]; ok {
+			continue
 		}
-		commits = append(commits, moreCommits...)
+		if err := findCommitsRecursive(commits, b, p, repo); err != nil {
+			return err
+		}
 	}
-	return commits, nil
+	return nil
 }
 
 // findCommitsForBuild determines which commits were first included in the
@@ -82,7 +86,15 @@ func findCommitsForBuild(b *Build, repo *gitinfo.GitInfo) ([]string, error) {
 		return repo.RevList(b.GotRevision)
 	}
 	// Start tracing commits back in time until we hit a previous build.
-	return findCommitsRecursive(b, b.GotRevision, repo)
+	commitMap := map[string]bool{}
+	if err := findCommitsRecursive(commitMap, b, b.GotRevision, repo); err != nil {
+		return nil, err
+	}
+	commits := make([]string, 0, len(commitMap))
+	for c, _ := range commitMap {
+		commits = append(commits, c)
+	}
+	return commits, nil
 }
 
 // getBuildFromMaster retrieves the given build from the build master's JSON
