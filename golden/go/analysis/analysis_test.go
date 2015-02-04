@@ -197,6 +197,14 @@ func TestAgainstLiveData(t *testing.T) {
 	}
 	assert.NotNil(t, allTests)
 
+	// Testdrive the json codec.
+	codec := LabeledTileCodec(0)
+	encTile, err := codec.Encode(a.current.Tile)
+	assert.Nil(t, err)
+	foundTile, err := codec.Decode(encTile)
+	assert.Nil(t, err)
+	assert.Equal(t, a.current.Tile, foundTile)
+
 	// // // Query For 565
 	allTests, err = a.ListTestDetails(map[string][]string{
 		"config": []string{"565"},

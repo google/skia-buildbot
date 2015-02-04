@@ -51,6 +51,7 @@ var (
 	redisDB           = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
 	startAnalyzer     = flag.Bool("start_analyzer", true, "Create an instance of the analyzer and start it running.")
 	startExperimental = flag.Bool("start_experimental", true, "Start experimental features.")
+	cpuProfile        = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 )
 
 const (
@@ -268,6 +269,22 @@ func main() {
 			f.Close()
 			glog.Infof("Memory profile written to %s", f.Name())
 
+			os.Exit(0)
+		})
+	}
+
+	if *cpuProfile > 0 {
+		glog.Infof("Writing CPU Profile")
+		f, err := ioutil.TempFile("./", "cpu-profile")
+		if err != nil {
+			glog.Fatalf("Unable to create cpu profile file: %s", err)
+		}
+
+		pprof.StartCPUProfile(f)
+		time.AfterFunc(*cpuProfile, func() {
+			pprof.StopCPUProfile()
+			f.Close()
+			glog.Infof("CPU profile written to %s", f.Name())
 			os.Exit(0)
 		})
 	}

@@ -1,8 +1,7 @@
 package analysis
 
 import (
-	"bytes"
-	"encoding/gob"
+	"encoding/json"
 	"sort"
 	"sync"
 	"time"
@@ -23,6 +22,9 @@ import (
 const (
 	NEW_TILE_CACHE_KEY     = "newtile"
 	IGNORED_TILE_CACHE_KEY = "ignoredtile"
+
+	// Number of commits that we are interested in.
+	N_COMMITS = 50
 )
 
 var (
@@ -206,37 +208,20 @@ type Analyzer struct {
 	loopCounter int
 }
 
-// GobLabeledTileCodec serializes labeled tiles for caching.
-type GobLabeledTileCodec int
+type LabeledTileCodec int
 
-func NewGobLabeledTileCodec() GobLabeledTileCodec {
-	gob.Register(LabeledTile{})
-	return GobLabeledTileCodec(0)
+func (d LabeledTileCodec) Encode(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
 }
 
-// Encode, see util.LRUCodec for details.
-func (d GobLabeledTileCodec) Encode(v interface{}) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	if err := enc.Encode(v); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-// Decode, see util.LRUCodec for details.
-func (d GobLabeledTileCodec) Decode(data []byte) (interface{}, error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
+func (d LabeledTileCodec) Decode(data []byte) (interface{}, error) {
 	var v LabeledTile
-	if err := dec.Decode(&v); err != nil {
-		return nil, err
-	}
-	return &v, nil
+	err := json.Unmarshal(data, &v)
+	return &v, err
 }
 
 func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileStore, diffStore diff.DiffStore, ignoreStore types.IgnoreStore, puConverter PathToURLConverter, cacheFactory filediffstore.CacheFactory, timeBetweenPolls time.Duration) *Analyzer {
-	labeledTileCache := cacheFactory("ti", NewGobLabeledTileCodec())
+	labeledTileCache := cacheFactory("ti", LabeledTileCodec(0))
 
 	result := &Analyzer{
 		expStore:           expStore,
@@ -483,7 +468,7 @@ func (a *Analyzer) cacheTiles(newLabeledTile *LabeledTile, ignoredLabeledTile *L
 func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 	loadedTile := false
 	defer timer.New("processTile").Stop()
-	glog.Info("Reading tiles ... ")
+	glog.Infof("Starting processtile: %t - %t", useCached, reloadRawTile)
 
 	var newLabeledTile, ignoredLabeledTile *LabeledTile = nil, nil
 	var err error
@@ -492,7 +477,6 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 	// since they have already been calculated for the cached tile.
 	if useCached {
 		newLabeledTile, ignoredLabeledTile = a.getCachedTiles()
-		glog.Infoln("Loaded tiles from cache.")
 	}
 
 	// If we don't have labeled tiles at this point we need to get a raw tile
@@ -507,6 +491,14 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 				errorTileLoadingCounter.Inc(1)
 				return false
 			}
+			tileLen := tile.LastCommitIndex() + 1
+			tile, err = tile.Trim(util.MaxInt(0, tileLen-N_COMMITS), tileLen)
+			if err != nil {
+				glog.Errorf("Error trimming tile: %s\n", err)
+				return false
+			}
+			glog.Infof("TileLen: %d", tile.LastCommitIndex()+1)
+
 			a.lastRawTile = tile
 			loadedTile = true
 			glog.Infoln("Loaded new tile from disk.")
@@ -519,12 +511,11 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 
 		a.prepDiffsForLabeledTile(newLabeledTile)
 		a.prepDiffsForLabeledTile(ignoredLabeledTile)
-
 		a.cacheTiles(newLabeledTile, ignoredLabeledTile)
 	}
 
-	glog.Infoln("Tests in newLabeledTiles    : %d", len(newLabeledTile.Traces))
-	glog.Infoln("Tests in ignoredLabeledTiles: %d", len(ignoredLabeledTile.Traces))
+	glog.Infof("Tests in newLabeledTiles    : %d", len(newLabeledTile.Traces))
+	glog.Infof("Tests in ignoredLabeledTiles: %d", len(ignoredLabeledTile.Traces))
 
 	// Protect the tile and expectations with the write lock.
 	a.mutex.Lock()
@@ -546,20 +537,47 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 	return loadedTile
 }
 
-// prepDiffsForLabeledTile forces the DiffStore to precalculate the diffs
+// completeDiffs forces the DiffStore to precalculate the diffs
 // between all digests (within a test).
-func (a *Analyzer) prepDiffsForLabeledTile(labeledTile *LabeledTile) {
-	counter := 0
+// TODO(stephana): This is currently not used, but will be enabled once
+// the filediffstore can efficiently handle complete diffs.
+func (a *Analyzer) completeDiffs(labeledTile *LabeledTile) {
+	var wg sync.WaitGroup
 	for _, traces := range labeledTile.Traces {
-		digestsList := make([][]string, 0, len(traces))
-		for _, t := range traces {
-			digestsList = append(digestsList, t.Digests)
-		}
-		allDigests := util.UnionStrings(digestsList...)
-		a.diffStore.CalculateDiffs(allDigests)
-		counter++
-		glog.Infof("Processed %d/%d tests. (%f%%)", counter, len(labeledTile.Traces), float64(counter)/float64(len(labeledTile.Traces))*100.0)
+		wg.Add(1)
+		go func(traces []*LabeledTrace) {
+			digestsList := make([][]string, 0, len(traces))
+			for _, t := range traces {
+				digestsList = append(digestsList, t.Digests)
+			}
+			allDigests := util.UnionStrings(digestsList...)
+			a.diffStore.CalculateDiffs(allDigests)
+			wg.Done()
+		}(traces)
 	}
+
+	wg.Wait()
+}
+
+// prepDiffsForLabeledTile forces the DiffStore to precalculate the diffs
+// between new digests. We do this outside the locking so that when we are
+// inside the lock almost all diffs will be cached already.
+func (a *Analyzer) prepDiffsForLabeledTile(labeledTile *LabeledTile) {
+	glog.Infof("Starting prep diffs")
+	// Get the current expectations.
+	a.mutex.RLock()
+	expectations, err := a.expStore.Get(false)
+	a.mutex.RUnlock()
+	if err != nil {
+		glog.Errorf("Unable to read expectations: %s", err)
+		return
+	}
+
+	// Make a dummy call to setDerivedOutputs to force a diff on new
+	// digest pairs.
+	tempState := AnalyzeState{}
+	a.setDerivedOutputs(labeledTile, expectations, &tempState)
+	glog.Infof("Done prep diffs")
 }
 
 // partitionRawTile partitions the input tile into two tiles (current and ignored)

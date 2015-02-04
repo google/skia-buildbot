@@ -102,7 +102,7 @@ type FileDiffStore struct {
 	diffCache util.LRUCache
 
 	// LRU cache for images.
-	imageCache *lru.Cache
+	imageCache util.LRUCache
 
 	// The GS bucket where images are stored.
 	gsBucketName string
@@ -695,8 +695,12 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 	}
 	dm, resultImg := diff.Diff(img1, img2)
 
-	// Create the thumbnail.
 	baseName := getDiffBasename(d1, d2)
+
+	// TODO(stephana): The current thumbnailing is too expensive. We should make
+	// it faster and ideally move to a HTTP handlers as middleware.
+
+	// Create the thumbnail.
 	thumbFilename := fs.getDiffThumbName(baseName)
 	thumbF, err := os.Create(filepath.Join(fs.localDiffDir, thumbFilename))
 	if err != nil {
@@ -713,7 +717,11 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := png.Encode(f, resultImg); err != nil {
+
+	// TODO(stephana) Increase compression level once the thumbnailing code
+	// is moved and/or faster. This is a compromise between best/no compression.
+	encoder := png.Encoder{CompressionLevel: png.BestSpeed}
+	if err := encoder.Encode(f, resultImg); err != nil {
 		return nil, err
 	}
 
