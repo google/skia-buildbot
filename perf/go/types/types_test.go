@@ -1,6 +1,7 @@
 package types
 
 import (
+	"net/url"
 	"testing"
 
 	"skia.googlesource.com/buildbot.git/perf/go/config"
@@ -323,5 +324,70 @@ func TestTileTrim(t *testing.T) {
 	t2, err = t1.Trim(0, config.TILE_SIZE+1)
 	if err == nil {
 		t.Errorf("Failed to raise error on Trim(0, config.TILE_SIZE+1).")
+	}
+}
+
+func TestMatchesWithIgnore(t *testing.T) {
+	tr := NewPerfTrace()
+	tr.Params_["p1"] = "v1"
+	tr.Params_["p2"] = "v2"
+
+	testCases := []struct {
+		q      url.Values
+		ignore []url.Values
+		want   bool
+	}{
+		// Empty case.
+		{
+			q:      url.Values{},
+			ignore: []url.Values{},
+			want:   true,
+		},
+		// Only ignore.
+		{
+			q: url.Values{},
+			ignore: []url.Values{
+				url.Values{},
+				url.Values{"p2": []string{"v2"}},
+			},
+			want: false,
+		},
+		// Not match query.
+		{
+			q:      url.Values{"p1": []string{"bad"}},
+			ignore: []url.Values{},
+			want:   false,
+		},
+		// Match query, fail to match ignore.
+		{
+			q: url.Values{"p1": []string{"v1"}},
+			ignore: []url.Values{
+				url.Values{"p1": []string{"bad"}},
+			},
+			want: true,
+		},
+		// Match query, and match ignore.
+		{
+			q: url.Values{"p1": []string{"v1"}},
+			ignore: []url.Values{
+				url.Values{"p1": []string{"v1"}},
+			},
+			want: false,
+		},
+		// Match query, and match one of many ignores.
+		{
+			q: url.Values{"p1": []string{"v1"}},
+			ignore: []url.Values{
+				url.Values{},
+				url.Values{"p1": []string{"v1"}},
+			},
+			want: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		if got, want := MatchesWithIgnores(tr, tc.q, tc.ignore...), tc.want; got != want {
+			t.Errorf("MatchesWithIgnores(%v, %v, %v): Got %v Want %v", tr, tc.q, tc.ignore, got, want)
+		}
 	}
 }

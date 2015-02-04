@@ -61,6 +61,20 @@ func Matches(tr Trace, query url.Values) bool {
 	return true
 }
 
+// MatchesWithIgnores returns true if the given Trace matches the given query
+// and none of the ignore queries.
+func MatchesWithIgnores(tr Trace, query url.Values, ignores ...url.Values) bool {
+	if !Matches(tr, query) {
+		return false
+	}
+	for _, i := range ignores {
+		if Matches(tr, i) {
+			return false
+		}
+	}
+	return true
+}
+
 // PerfTrace represents all the values of a single floating point measurement.
 // *PerfTrace implements Trace.
 type PerfTrace struct {
