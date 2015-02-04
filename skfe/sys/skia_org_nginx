@@ -196,6 +196,9 @@ server {
 #####   ct.skia.org (REDIRECT)   ###########################
 server {
     listen 443;
+
+    ssl on;
+
     server_name ct.skia.org;
     rewrite ^ https://skia-tree-status.appspot.com/skia-telemetry/chromium_try redirect;
 }
