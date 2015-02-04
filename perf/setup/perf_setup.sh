@@ -3,7 +3,7 @@
 # Script to setup a GCE instance to run the perf server.
 # For full instructions see the README file.
 
-sudo apt-get install --assume-yes monit nginx gcc mercurial make nodejs nodejs-legacy
+sudo apt-get install --assume-yes monit nginx gcc mercurial make nodejs nodejs-legacy gcc
 echo "Adding the perf user account"
 sudo adduser perf
 

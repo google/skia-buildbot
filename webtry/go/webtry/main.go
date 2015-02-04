@@ -134,9 +134,12 @@ var (
 
 // Command line flags.
 var (
-	useChroot   = flag.Bool("use_chroot", false, "Run the compiled code in the schroot jail.")
-	port        = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	useMetadata = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	useChroot    = flag.Bool("use_chroot", false, "Run the compiled code in the schroot jail.")
+	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	resourcePath = flag.String("resource_path", "", "Full path to find resources (e.g., templates)")
+	cachePath    = flag.String("cache_path", "../../cache", "Full path for source/gyp cache directory")
+	inoutPath    = flag.String("inout_path", "../../inout", "Full path for image input/output directory")
+	useMetadata  = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 )
 
 // lineNumbers adds #line numbering to the user's code.
@@ -153,45 +156,44 @@ func LineNumbers(c string) string {
 func Init() {
 	rand.Seed(time.Now().UnixNano())
 
-	// Change the current working directory to the directory of the executable.
-	cwd, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	path, err := filepath.Abs(*resourcePath)
 	if err != nil {
 		glog.Fatal(err)
 	}
-	if err := os.Chdir(cwd); err != nil {
+	if err := os.Chdir(path); err != nil {
 		glog.Fatal(err)
 	}
 
-	codeTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/template.cpp")))
-	gypTemplate = template.Must(template.ParseFiles(filepath.Join(cwd, "templates/template.gyp")))
+	codeTemplate = template.Must(template.ParseFiles(filepath.Join(path, "templates/template.cpp")))
+	gypTemplate = template.Must(template.ParseFiles(filepath.Join(path, "templates/template.gyp")))
 	indexTemplate = htemplate.Must(htemplate.ParseFiles(
-		filepath.Join(cwd, "templates/index.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/sidebar.html"),
-		filepath.Join(cwd, "templates/content.html"),
-		filepath.Join(cwd, "templates/headercommon.html"),
-		filepath.Join(cwd, "templates/footercommon.html"),
+		filepath.Join(path, "templates/index.html"),
+		filepath.Join(path, "templates/titlebar.html"),
+		filepath.Join(path, "templates/sidebar.html"),
+		filepath.Join(path, "templates/content.html"),
+		filepath.Join(path, "templates/headercommon.html"),
+		filepath.Join(path, "templates/footercommon.html"),
 	))
 	iframeTemplate = htemplate.Must(htemplate.ParseFiles(
-		filepath.Join(cwd, "templates/iframe.html"),
-		filepath.Join(cwd, "templates/content.html"),
-		filepath.Join(cwd, "templates/headercommon.html"),
-		filepath.Join(cwd, "templates/footercommon.html"),
+		filepath.Join(path, "templates/iframe.html"),
+		filepath.Join(path, "templates/content.html"),
+		filepath.Join(path, "templates/headercommon.html"),
+		filepath.Join(path, "templates/footercommon.html"),
 	))
 	recentTemplate = htemplate.Must(htemplate.ParseFiles(
-		filepath.Join(cwd, "templates/recent.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/sidebar.html"),
-		filepath.Join(cwd, "templates/headercommon.html"),
-		filepath.Join(cwd, "templates/footercommon.html"),
+		filepath.Join(path, "templates/recent.html"),
+		filepath.Join(path, "templates/titlebar.html"),
+		filepath.Join(path, "templates/sidebar.html"),
+		filepath.Join(path, "templates/headercommon.html"),
+		filepath.Join(path, "templates/footercommon.html"),
 	))
 	workspaceTemplate = htemplate.Must(htemplate.ParseFiles(
-		filepath.Join(cwd, "templates/workspace.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/sidebar.html"),
-		filepath.Join(cwd, "templates/content.html"),
-		filepath.Join(cwd, "templates/headercommon.html"),
-		filepath.Join(cwd, "templates/footercommon.html"),
+		filepath.Join(path, "templates/workspace.html"),
+		filepath.Join(path, "templates/titlebar.html"),
+		filepath.Join(path, "templates/sidebar.html"),
+		filepath.Join(path, "templates/content.html"),
+		filepath.Join(path, "templates/headercommon.html"),
+		filepath.Join(path, "templates/footercommon.html"),
 	))
 
 	// The git command returns output of the format:
@@ -316,7 +318,7 @@ func writeOutAllSourceImages() {
 			glog.Errorf("failed to fetch from database: %q", err)
 			continue
 		}
-		filename := fmt.Sprintf("../../inout/image-%d.png", id)
+		filename := fmt.Sprintf(filepath.Join(*inoutPath, "image-%d.png"), id)
 		if _, err := os.Stat(filename); os.IsExist(err) {
 			glog.Infof("Skipping write since file exists: %q", filename)
 			continue
@@ -392,13 +394,13 @@ func expandCode(code string, source int, width, height int) (string, error) {
 	// At this point we are running in buildbot/webtry, making cache a
 	// peer directory to skia.
 	// TODO(jcgregorio) Make all relative directories into flags.
-	err := expandToFile(fmt.Sprintf("../../cache/src/%s.cpp", hash), fontFriendlyCode, codeTemplate)
+	err := expandToFile(fmt.Sprintf(filepath.Join(*cachePath, "src/%s.cpp"), hash), fontFriendlyCode, codeTemplate)
 	return hash, err
 }
 
 // expandGyp produces the GYP file needed to build the code
 func expandGyp(hash string) error {
-	return writeTemplate(fmt.Sprintf("../../cache/%s.gyp", hash), gypTemplate, struct{ Hash string }{hash})
+	return writeTemplate(fmt.Sprintf(filepath.Join(*cachePath, "%s.gyp"), hash), gypTemplate, struct{ Hash string }{hash})
 }
 
 // response is serialized to JSON as a response to POSTs.
@@ -574,7 +576,8 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	filename := match[1]
 	w.Header().Set("Content-Type", contentType)
-	http.ServeFile(w, r, fmt.Sprintf("../../inout/%s", filename))
+	glog.Infof(fmt.Sprintf(filepath.Join(*inoutPath, "%s"), filename))
+	http.ServeFile(w, r, fmt.Sprintf(filepath.Join(*inoutPath, "%s"), filename))
 }
 
 type Try struct {
@@ -801,7 +804,7 @@ func tryInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func cleanCompileOutput(s, hash string) string {
-	old := "../../cache/src/" + hash + ".cpp:"
+	old := filepath.Join(*cachePath, "src/") + hash + ".cpp:"
 	glog.Infof("replacing %q\n", old)
 	return strings.Replace(s, old, "usercode.cpp:", -1)
 }
@@ -839,17 +842,17 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Check to see if there's already a PDF run of this hash
-			pdfPath := "../../inout/" + hash + ".pdf"
+			pdfPath := *inoutPath + hash + ".pdf"
 			if _, err := os.Stat(pdfPath); err == nil {
 				PDFURL = "/i/" + hash + ".pdf"
 			}
 			// Check to see if there's already a raster run of this hash
-			rasterPath := "../../inout/" + hash + "_raster.png"
+			rasterPath := *inoutPath + hash + "_raster.png"
 			if _, err := os.Stat(rasterPath); err == nil {
 				rasterURL = "/i/" + hash + "_raster.png"
 			}
 			// Check to see if there's already a GPU run of this hash
-			gpuPath := "../../inout/" + hash + "_gpu.png"
+			gpuPath := *inoutPath + hash + "_gpu.png"
 			if _, err := os.Stat(gpuPath); err == nil {
 				GPUURL = "/i/" + hash + "_gpu.png"
 			}
@@ -953,9 +956,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			Hash: hash,
 		}
 
-		rasterPath := "../../inout/" + hash + "_raster.png"
-		gpuPath := "../../inout/" + hash + "_gpu.png"
-		PDFPath := "../../inout/" + hash + ".pdf"
+		rasterPath := filepath.Join(*inoutPath, fmt.Sprintf("%s_raster.png", hash))
+		gpuPath := filepath.Join(*inoutPath, fmt.Sprintf("%s_gpu.png", hash))
+		PDFPath := filepath.Join(*inoutPath, fmt.Sprintf("%s.pdf", hash))
 
 		if _, err := os.Stat(rasterPath); err == nil {
 			png, err := ioutil.ReadFile(rasterPath)

@@ -18,7 +18,7 @@ banner "Installing debian packages needed for the server"
 sudo apt-get install schroot debootstrap monit nginx nodejs nodejs-legacy
 
 # wheezy nodejs install doesn't come with npm
-curl https://www.npmjs.com/install.sh | sudo sh
+[ -f /usr/bin/npm ] || curl https://www.npmjs.com/install.sh | sudo sh
 
 # although aufs is being replaced by overlayfs, it's not clear
 # to me if overlayfs is completely supported by schroot yet.
