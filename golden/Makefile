@@ -9,6 +9,17 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 
 BOWER_DIR=app/third_party/bower_components
 
+GOLD_CSS_SOURCE_FILES = app/third_party/bower_components/bootstrap/dist/css/bootstrap.min.css \
+                        app/css/app.css
+
+GOLD_JS_SOURCE_FILES = app/third_party/bower_components/jquery/dist/jquery.min.js \
+                       app/third_party/bower_components/flot/jquery.flot.js \
+                       app/third_party/bower_components/angular/angular.js \
+                       app/third_party/bower_components/angular-route/angular-route.js \
+                       app/js/logic.js \
+                       app/js/app.js
+GOLD_SRC_FONTS = app/third_party/bower_components/bootstrap/fonts
+
 .PHONY: skiacorrectness
 skiacorrectness: res/css/core.css core_js elements_html
 	go install -v ./go/skiacorrectness
@@ -44,6 +55,13 @@ res/css/core.css: node_modules/lastupdate res/css/main.css
 
 node_modules: package.json
 	npm install
+
+.PHONY: web
+web:
+	awk 'FNR==1{print ""}{print}' $(GOLD_CSS_SOURCE_FILES) > app/css/generated.css
+	awk 'FNR==1{print ""}{print}' $(GOLD_JS_SOURCE_FILES) > app/js/generated.js
+	-mkdir -p app/fonts
+	cp $(GOLD_SRC_FONTS)/* app/fonts/
 
 .PHONY: all
 all: skiacorrectness correctness_migratedb

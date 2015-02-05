@@ -1,0 +1,35 @@
+#!/bin/bash
+# Builds and uploads a debian package for docserver.
+APPNAME=skiacorrectness
+DESCRIPTION="Manages baseline images."
+
+DEPENDS=git
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=755 -T ${GOPATH}/bin/correctness_migratedb   ${ROOT}/usr/local/bin/correctness_migratedb
+${INSTALL} --mode=755 -T ${GOPATH}/bin/skiacorrectness         ${ROOT}/usr/local/bin/skiacorrectness
+${INSTALL} --mode=755 -T ${GOPATH}/bin/ingest                  ${ROOT}/usr/local/bin/ingest
+
+${INSTALL} --mode=644 -T ./sys/skiacorrectness_monit           ${ROOT}/etc/monit/conf.d/skiacorrectness
+${INSTALL} --mode=644 -T ./sys/skiacorrectness_init            ${ROOT}/etc/init.d/skiacorrectness
+${INSTALL} --mode=644 -T ./sys/ingest_init                     ${ROOT}/etc/init.d/ingest
+
+${INSTALL}     --mode=644 -T ./app/index.html                  ${ROOT}/usr/local/share/skiacorrectness/index.html
+${INSTALL}     --mode=644 ./app/css/generated.css              ${ROOT}/usr/local/share/skiacorrectness/css/generated.css
+${INSTALL}     --mode=644 ./app/js/generated.js                ${ROOT}/usr/local/share/skiacorrectness/js/generated.js
+
+${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/partials
+${INSTALL}     --mode=644 ./app/partials/*                     ${ROOT}/usr/local/share/skiacorrectness/partials
+
+${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/templates
+${INSTALL}     --mode=644 ./app/templates/*                    ${ROOT}/usr/local/share/skiacorrectness/templates
+
+${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/fonts
+${INSTALL}     --mode=644 ./app/fonts/*                        ${ROOT}/usr/local/share/skiacorrectness/fonts
+}
+
+source ../bash/release.sh

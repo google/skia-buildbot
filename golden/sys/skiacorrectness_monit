@@ -1,0 +1,7 @@
+check process ingest with pidfile /var/run/ingest.pid
+   start program = "/etc/init.d/ingest start"
+   stop program = "/etc/init.d/ingest stop"
+
+check process skiacorrectness with pidfile /var/run/skiacorrectness.pid
+   start program = "/etc/init.d/skiacorrectness start"
+   stop program = "/etc/init.d/skiacorrectness stop"

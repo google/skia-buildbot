@@ -22,6 +22,11 @@
 # useful in cases where we are installing software that the author has already
 # provided a debian package for, for example influxdb.
 #
+# BYPASS_UPLOAD
+# -------------
+# If BYPASS_UPLOAD is set then the generated package will not be uploaded to
+# to Google Storage. This is meant for debugging.
+#
 # DEPENDS
 # -------
 # If DEPENDS is specified it should be a list of dependencies that this package
@@ -73,23 +78,28 @@ else
   OUT=${ROOT}
 fi
 
-# Upload the package to right location in Google Storage.
-DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
-HASH=`git rev-parse HEAD`
-USERID=${USER}@${HOSTNAME}
-# Detect if we have unchecked in local changes, or if we are different from HEAD at origin/master.
-git fetch
-if  [ git diff-index --quiet HEAD -- ] || [ $(git rev-parse HEAD) != $(git rev-parse @{u}) ] ; then
-  DIRTY=true
+if [ ! -v BYPASS_UPLOAD ]
+then
+  # Upload the package to right location in Google Storage.
+  DATETIME=`date --utc "+%Y-%m-%dT%H:%M:%SZ"`
+  HASH=`git rev-parse HEAD`
+  USERID=${USER}@${HOSTNAME}
+  # Detect if we have unchecked in local changes, or if we are different from HEAD at origin/master.
+  git fetch
+  if  [ git diff-index --quiet HEAD -- ] || [ $(git rev-parse HEAD) != $(git rev-parse @{u}) ] ; then
+    DIRTY=true
+  else
+    DIRTY=false
+  fi
+  gsutil \
+    -h x-goog-meta-appname:${APPNAME} \
+    -h x-goog-meta-userid:${USERID} \
+    -h x-goog-meta-hash:${HASH} \
+    -h x-goog-meta-datetime:${DATETIME} \
+    -h x-goog-meta-dirty:${DIRTY} \
+    -h "x-goog-meta-note:$1" \
+    cp ${OUT}/${APPNAME}.deb \
+    gs://skia-push/debs/${APPNAME}/${APPNAME}:${USERID}:${DATETIME}:${HASH}.deb
 else
-  DIRTY=false
+  echo "Upload bypassed."
 fi
-gsutil \
-  -h x-goog-meta-appname:${APPNAME} \
-  -h x-goog-meta-userid:${USERID} \
-  -h x-goog-meta-hash:${HASH} \
-  -h x-goog-meta-datetime:${DATETIME} \
-  -h x-goog-meta-dirty:${DIRTY} \
-  -h "x-goog-meta-note:$1" \
-  cp ${OUT}/${APPNAME}.deb \
-  gs://skia-push/debs/${APPNAME}/${APPNAME}:${USERID}:${DATETIME}:${HASH}.deb
