@@ -233,3 +233,13 @@ func AddParamsToParamSet(a map[string][]string, b map[string]string) map[string]
 	}
 	return a
 }
+
+// KeysOfParamSet returns the keys of a param set.
+func KeysOfParamSet(set map[string][]string) []string {
+	ret := make([]string, 0, len(set))
+	for v := range set {
+		ret = append(ret, v)
+	}
+
+	return ret
+}

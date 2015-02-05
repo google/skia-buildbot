@@ -89,26 +89,33 @@ Where:
         this.value = {};
 
         var that = this;
-        this.$.container.addEventListener('mouseover', function(e) {
-          // Move up the DOM until yo find the 'img' element.
-          var target = e.target;
-          while (target != null && target.localName != 'img') {
-            target = target.parentElement;
-          }
-          if (target != null && target.dataset['top']) {
-            // Look through the value.grid for the matching infomation.
-            for (var i = 0, len = that.value.grid.length; i < len; i++) {
-              var row = that.value.grid[i];
-              for (var j = 0, rlen = row.length; j < rlen; j++) {
-                var d = row[j];
-                if (d.topDigest == target.dataset['top'] && d.leftDigest == target.dataset['left']) {
-                  that.dispatchEvent(new CustomEvent('diff-focus', {detail: d}));
-                  break;
+        this.$.container.addEventListener('mouseover', this.mouseAction.bind(this));
+        this.$.container.addEventListener('click', this.mouseAction.bind(this));
+      },
+
+      mouseAction: function(e) {
+        // Move up the DOM until yo find the 'img' element.
+        var target = e.target;
+        while (target != null && target.localName != 'img') {
+          target = target.parentElement;
+        }
+        if (target != null && target.dataset['top']) {
+          // Look through the value.grid for the matching infomation.
+          for (var i = 0, len = this.value.grid.length; i < len; i++) {
+            var row = this.value.grid[i];
+            for (var j = 0, rlen = row.length; j < rlen; j++) {
+              var d = row[j];
+              if (d.topDigest == target.dataset['top'] && d.leftDigest == target.dataset['left']) {
+                if (e.type == "mouseover") {
+                  this.dispatchEvent(new CustomEvent('diff-focus', {detail: d}));
+                } else {
+                  this.dispatchEvent(new CustomEvent('diff-click', {detail: d}));
                 }
+                break;
               }
             }
           }
-        });
+        }
       },
 
       setValue: function(value) {

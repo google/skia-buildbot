@@ -4,7 +4,7 @@ Presents detailed information about the differences
 between two images.
 
   Attributes:
-    value - An object of the form:
+    highlight - A serialized PolyTestDiffInfo. An object of the form:
 
       {
         pixelDiffPercent: 35.9,
@@ -12,49 +12,103 @@ between two images.
         maxRGBADiffs: [60, 62, 10, 0],
       }
 
+    value - An object of the form:
+
+      {
+        test: "testname",
+        top:  "1a2b3c...", // Digest of top image.
+        left: "1a2b3c...", // Digest of left image.
+      }
+
   Events:
   Methods:
 -->
-<polymer-element name="diff-detail-sk" attributes="value">
+<polymer-element name="diff-detail-sk" attributes="highlight value">
   <template>
     <style type="text/css" media="screen">
       th {
         text-align: right;
       }
+      th, td {
+        text-align: left;
+        padding: 5px;
+        vertical-align: top;
+      }
+      tri-sk {
+        min-width: 15em;
+        display: block;
+      }
     </style>
     <div vertical layout>
       <div id=diffMetrics>
         <table border="0" cellspacing="5" cellpadding="5">
-          <tr><th>Pixel Diff (%)</th><td>{{value.pixelDiffPercent}}</td></tr>
-          <tr><th>Num Diff Pixels</th><td>{{value.numDiffPixels}}</td></tr>
-          <tr><th>Max RBBA Diffs</th><td>{{value.maxRGBADiffs}}</td></tr>
+          <tr><th>Pixel Diff (%)</th><td>{{highlight.pixelDiffPercent}}</td></tr>
+          <tr><th>Num Diff Pixels</th><td>{{highlight.numDiffPixels}}</td></tr>
+          <tr><th>Max RBBA Diffs</th><td>{{highlight.maxRGBADiffs}}</td></tr>
         </table>
       </div>
       <div id=details two flex horizontal layout>
-        <div flex id=leftDetail>
-          <!-- not active, just a placeholder for now.
-            <tri-sk value=positive></tri-sk>
-          -->
+        <div flex >
+                  </div>
+        <div flex>
         </div>
-        <div flex id=topDetail>
-          <!-- not active, just a placeholder for now.
-            <tri-sk value=untriaged></tri-sk>
-          -->
-        </div>
+      </div>
+      <div id=params>
+        <table>
+          <tr>
+            <td></td>
+            <td><tri-sk id=leftDetail value="untriaged" title="{{value.left}}"></tri-sk> </td>
+            <td><tri-sk id=topDetail value="untriaged" title="{{value.top}}"></tri-sk></td>
+          </tr>
+
+          <template repeat="{{p in details.params}}">
+            <tr>
+              <th>{{p.name}}</th>
+              <td class=pval>
+                <template repeat="{{n in p.top}}">
+                  {{n}}
+                </template>
+              </td>
+              <td class=pval>
+                <template repeat="{{n in p.left}}">
+                  {{n}}
+                </template>
+              </td>
+            </tr>
+          </template>
+        </table>
+
       </div>
     </div>
   </template>
   <script>
     Polymer({
       publish: {
+        highlight: {
+          value: {},  // A serialized PolyTestDiffInfo.
+          reflect: true,
+        },
         value: {
           value: {},
           reflect: true,
-        }
+        },
       },
 
       ready: function() {
-      }
+        this.details = {}; // A serialized PolyDetailsGUI.
+      },
+
+      valueChanged: function() {
+        if (this.value) {
+          var that = this;
+          var q = '?test=' + this.value.test + '&top=' + this.value.top + '&left=' + this.value.left;
+          sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
+            that.details = json;
+            that.$.topDetail.value = json.topStatus;
+            that.$.leftDetail.value = json.leftStatus;
+          });
+        }
+      },
     });
   </script>
 </polymer-element>

@@ -240,7 +240,6 @@ type PolyTestDiffInfo struct {
 	PixelDiffPercent float32 `json:"pixelDiffPercent"`
 	MaxRGBADiffs     []int   `json:"maxRGBADiffs"`
 	DiffImgUrl       string  `json:"diffImgUrl"`
-	PosDigest        string  `json:"posDigest"`
 }
 
 // PolyTestGUI serialized as JSON is the response body from polyTestHandler.
@@ -367,7 +366,6 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 			glog.Errorf("Failed to do diffs: %s", err)
 			continue
 		}
-		glog.Infof("%#v", diffs)
 		for _, u := range untriaged {
 			d := diffs[u]
 			row = append(row, &PolyTestDiffInfo{
@@ -396,11 +394,29 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func safeGet(paramset map[string][]string, key string) []string {
+	if ret, ok := paramset[key]; ok {
+		sort.Strings(ret)
+		return ret
+	} else {
+		return []string{}
+	}
+}
+
+// PerParamCompare is used in PolyDetailsGUI
+type PerParamCompare struct {
+	Name string   `json:"name"` // Name of the parameter.
+	Top  []string `json:"top"`  // All the parameter values that appear for the top digest.
+	Left []string `json:"left"` // All the parameter values that appear for the left digest.
+
+}
+
 // PolyDetailsGUI is used in the JSON returned from polyDetailsHandler. It
 // represents the known information about a single digest for a given test.
 type PolyDetailsGUI struct {
-	ParamSet map[string][]string `json:"paramset"`
-	Status   string              `json:"status"`
+	TopStatus  string             `json:"topStatus"`
+	LeftStatus string             `json:"leftStatus"`
+	Params     []*PerParamCompare `json:"params"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -408,21 +424,22 @@ type PolyDetailsGUI struct {
 // It expects a request with the following query parameters:
 //
 //   test - The name of the test.
-//   d    - A digest in the test. This parameter can repeat any number of times.
+//   top  - A digest in the test.
+//   left - A digest in the test.
 //
 // The response looks like:
-//
 //   {
-//     "digest1": {
-//         "paramset": {
-//            "name": ["test1"],
-//            "config": ["8888", "565"],
-//            ...,
-//         },
-//         "status": "positive",
-//     },
-//     ...
-//  }
+//     topStatus: "untriaged",
+//     leftStatus: "positive",
+//     params: [
+//       {
+//         "name": "config",
+//         "top" : ["8888", "565"],
+//         "left": ["gpu"],
+//       },
+//       ...
+//     ]
+//   }
 func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	tile, err := tileStore.Get(0, -1)
 	if err != nil {
@@ -433,9 +450,10 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse form values")
 		return
 	}
-	digests, ok := r.Form["d"]
-	if !ok {
-		util.ReportError(w, r, fmt.Errorf("Missing the d query parameter."), "No digests specified.")
+	top := r.Form.Get("top")
+	left := r.Form.Get("left")
+	if top == "" || left == "" {
+		util.ReportError(w, r, fmt.Errorf("Missing the top or left query parameter: %s %s", top, left), "No digests specified.")
 		return
 	}
 	test := r.Form.Get("test")
@@ -449,14 +467,14 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fill out the Status for each digest.
-	ret := map[string]*PolyDetailsGUI{}
-	for _, d := range digests {
-		ret[d] = &PolyDetailsGUI{
-			ParamSet: map[string][]string{},
-			Status:   exp.Classification(test, d).String(),
-		}
+	ret := PolyDetailsGUI{
+		TopStatus:  exp.Classification(test, top).String(),
+		LeftStatus: exp.Classification(test, left).String(),
+		Params:     []*PerParamCompare{},
 	}
+
+	topParamSet := map[string][]string{}
+	leftParamSet := map[string][]string{}
 
 	// Now build out the ParamSet for each digest.
 	tally := tallies.ByTrace()
@@ -465,13 +483,25 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			continue
 		}
-		for _, d := range digests {
-			if tr.Params()[types.PRIMARY_KEY_FIELD] == test {
-				if _, ok := (*traceTally)[d]; ok {
-					ret[d].ParamSet = util.AddParamsToParamSet(ret[d].ParamSet, tr.Params())
-				}
+		if tr.Params()[types.PRIMARY_KEY_FIELD] == test {
+			if _, ok := (*traceTally)[top]; ok {
+				topParamSet = util.AddParamsToParamSet(topParamSet, tr.Params())
 			}
 		}
+		if tr.Params()[types.PRIMARY_KEY_FIELD] == test {
+			if _, ok := (*traceTally)[left]; ok {
+				leftParamSet = util.AddParamsToParamSet(leftParamSet, tr.Params())
+			}
+		}
+	}
+
+	keys := util.UnionStrings(util.KeysOfParamSet(topParamSet), util.KeysOfParamSet(leftParamSet))
+	for _, k := range keys {
+		ret.Params = append(ret.Params, &PerParamCompare{
+			Name: k,
+			Top:  safeGet(topParamSet, k),
+			Left: safeGet(leftParamSet, k),
+		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")

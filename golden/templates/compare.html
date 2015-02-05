@@ -100,7 +100,7 @@
           <grid-sk></grid-sk>
         </div>
 
-        <diff-detail-sk flex one></diff-detail-sk>
+        <diff-detail-sk flex two></diff-detail-sk>
 
       </div>
       <paper-toast></paper-toast>
@@ -113,8 +113,12 @@
        var re = new RegExp("/2/cmp/(.*)", "");
        var s = window.location.pathname;
        var match = s.match(re);
+       var testName = "";
        if (match.length == 2) {
-         sk.post('/2/_/test', JSON.stringify({"test": match[1]})).then(JSON.parse).then(function(json) {
+          testName = match[1];
+       }
+       if (match.length == 2) {
+         sk.post('/2/_/test', JSON.stringify({"test": testName})).then(JSON.parse).then(function(json) {
            $$$('grid-sk').setValue(json);
          }).catch(function(e) {
            $$$('paper-toast').text = e;
@@ -126,7 +130,15 @@
        }
 
        $$$('grid-sk').addEventListener('diff-focus', function(e) {
-         $$$('diff-detail-sk').value = e.detail;
+         $$$('diff-detail-sk').highlight = e.detail;
+       });
+       $$$('grid-sk').addEventListener('diff-click', function(e) {
+         var value = {
+           top:  e.detail.topDigest,
+           left: e.detail.leftDigest,
+           test: testName
+         };
+         $$$('diff-detail-sk').value = value;
        });
      })();
     </script>
