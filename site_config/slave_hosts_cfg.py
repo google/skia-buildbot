@@ -105,9 +105,6 @@ _slave_host_dicts = {
   'skiabot-shuttle-ubuntu12-gtx660-001': {
     'slaves': [
       ('skiabot-shuttle-ubuntu12-gtx660-000', '0', False),
-      ('skiabot-shuttle-ubuntu12-gtx660-001', '0', False),
-      ('skiabot-shuttle-ubuntu12-gtx660-002', '0', False),
-      ('skiabot-shuttle-ubuntu12-gtx660-003', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': skia_lab_login,
