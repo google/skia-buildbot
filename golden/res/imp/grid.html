@@ -86,7 +86,16 @@ Where:
           <template repeat="{{row in value.grid}}">
             <div horizontal layout>
               <template repeat="{{g in row}}">
-                <img src="{{g.thumb}}" data-top="{{g.topDigest}}" data-left="{{g.leftDigest}}"/>
+                <core-tooltip>
+                  <img src="{{g.thumb}}" data-top="{{g.topDigest}}" data-left="{{g.leftDigest}}"/>
+                  <div tip large>
+                    <table border="0" cellspacing="5" cellpadding="5">
+                      <tr><th>Pixel Diff (%)</th><td>{{g.pixelDiffPercent}}</td></tr>
+                      <tr><th>Num Diff Pixels</th><td>{{g.numDiffPixels}}</td></tr>
+                      <tr><th>Max RBBA Diffs</th><td>[{{g.maxRGBADiffs}}]</td></tr>
+                    </table>
+                  </div>
+                </core-tooltip>
               </template>
             </div>
           </template>

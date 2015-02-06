@@ -36,32 +36,41 @@ between two images.
       th {
         text-align: right;
       }
+
       th, td {
         text-align: left;
         padding: 5px;
         vertical-align: top;
       }
+
       tri-sk {
         min-width: 15em;
         display: block;
       }
+
+      #diffInfo {
+        display: none;
+      }
+
+      #diffInfo.display {
+        display: block;
+      }
     </style>
-    <div vertical layout>
-      <div id=diffMetrics>
+    <div id=diffInfo vertical layout>
+      <div>
         <table border="0" cellspacing="5" cellpadding="5">
           <tr><th>Pixel Diff (%)</th><td>{{highlight.pixelDiffPercent}}</td></tr>
           <tr><th>Num Diff Pixels</th><td>{{highlight.numDiffPixels}}</td></tr>
           <tr><th>Max RBBA Diffs</th><td>{{highlight.maxRGBADiffs}}</td></tr>
         </table>
       </div>
-      <div id=details two flex horizontal layout>
-        <div flex >
-                  </div>
-        <div flex>
-        </div>
-      </div>
       <div id=params>
         <table>
+          <tr>
+            <th></th>
+            <th>Left</th>
+            <th>Top</th>
+          </tr>
           <tr>
             <td></td>
             <td><tri-sk id=leftDetail value="untriaged" title="{{value.left}}"></tri-sk> </td>
@@ -84,7 +93,6 @@ between two images.
             </tr>
           </template>
         </table>
-
       </div>
     </div>
   </template>
@@ -133,6 +141,7 @@ between two images.
             that.details = json;
             that.$.topDetail.value = json.topStatus;
             that.$.leftDetail.value = json.leftStatus;
+            that.$.diffInfo.classList.add('display');
           });
         }
       },

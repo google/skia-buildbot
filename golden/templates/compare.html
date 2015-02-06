@@ -139,10 +139,8 @@
 
        loadGrid();
 
-       $$$('grid-sk').addEventListener('diff-focus', function(e) {
-         $$$('diff-detail-sk').highlight = e.detail;
-       });
        $$$('grid-sk').addEventListener('diff-click', function(e) {
+         $$$('diff-detail-sk').highlight = e.detail;
          var value = {
            top:  e.detail.topDigest,
            left: e.detail.leftDigest,
