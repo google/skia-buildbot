@@ -34,9 +34,9 @@ func (l Label) String() string {
 // type. Most likely in the keys of a map.
 type TestClassification map[string]Label
 
-func (tc TestClassification) DeepCopy() TestClassification {
-	result := make(map[string]Label, len(tc))
-	for k, v := range tc {
+func (tc *TestClassification) DeepCopy() TestClassification {
+	result := make(map[string]Label, len(*tc))
+	for k, v := range *tc {
 		result[k] = v
 	}
 	return result

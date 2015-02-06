@@ -8,6 +8,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/timer"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/diff"
 	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 	"skia.googlesource.com/buildbot.git/golden/go/tally"
@@ -39,7 +40,7 @@ type Summaries struct {
 }
 
 func New(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tally.Tallies, diffStore diff.DiffStore) (*Summaries, error) {
-	summaries, err := calcSummaries(ts, expStore, tallies, diffStore)
+	summaries, err := calcSummaries(ts, expStore, tallies, diffStore, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to calculate summaries in New: %s", err)
 	}
@@ -50,8 +51,10 @@ func New(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tal
 		tallies:   tallies,
 		diffStore: diffStore,
 	}
+	// TODO(jcgregorio) Move to a channel for tallies and then combine
+	// this and the expStore handling into a single switch statement.
 	tallies.OnChange(func() {
-		summaries, err := calcSummaries(ts, expStore, tallies, diffStore)
+		summaries, err := calcSummaries(ts, expStore, tallies, diffStore, nil)
 		if err != nil {
 			glog.Errorf("Failed to refresh summaries: %s", err)
 			return
@@ -60,6 +63,24 @@ func New(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tal
 		s.summaries = summaries
 		s.mutex.Unlock()
 	})
+
+	ch := expStore.Changes()
+	go func() {
+		for {
+			testNames := <-ch
+			glog.Info("Updating summaries after expectations change.")
+			partialSummaries, err := calcSummaries(ts, expStore, tallies, diffStore, testNames)
+			if err != nil {
+				glog.Errorf("Failed to refresh summaries: %s", err)
+				continue
+			}
+			s.mutex.Lock()
+			for k, v := range partialSummaries {
+				s.summaries[k] = v
+			}
+			s.mutex.Unlock()
+		}
+	}()
 	return s, nil
 }
 
@@ -70,7 +91,7 @@ func (s *Summaries) Get() map[string]*Summary {
 	return s.summaries
 }
 
-func calcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tally.Tallies, diffStore diff.DiffStore) (map[string]*Summary, error) {
+func calcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tally.Tallies, diffStore diff.DiffStore, testNames []string) (map[string]*Summary, error) {
 	defer timer.New("calcSummaries").Stop()
 
 	tile, err := ts.Get(0, -1)
@@ -78,6 +99,7 @@ func calcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, ta
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
 
+	// The corpus each test belongs to.
 	corpus := map[string]string{}
 	for _, tr := range tile.Traces {
 		if test, ok := tr.Params()[gtypes.PRIMARY_KEY_FIELD]; ok {
@@ -95,6 +117,9 @@ func calcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, ta
 
 	testTally := tallies.ByTest()
 	for _, name := range tile.ParamSet[gtypes.PRIMARY_KEY_FIELD] {
+		if testNames != nil && !util.In(name, testNames) {
+			continue
+		}
 		digests := make([]string, 0, len(*(testTally[name])))
 
 		pos := 0

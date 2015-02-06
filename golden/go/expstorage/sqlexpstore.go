@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/util"
 )
@@ -61,6 +62,12 @@ func (e *SQLExpectationsStore) Put(exp *Expectations, userId string) error {
 	return err
 }
 
+// See ExpectationsStore interface.
+func (e *SQLExpectationsStore) Changes() <-chan []string {
+	glog.Fatal("SQLExpectationsStore doesn't really support Changes.")
+	return nil
+}
+
 // Wraps around an ExpectationsStore and caches the expectations using
 // MemExpecationsStore.
 type CachingExpectationStore struct {
@@ -101,4 +108,9 @@ func (c *CachingExpectationStore) Put(exp *Expectations, userId string) error {
 	}
 
 	return c.cache.Put(exp, userId)
+}
+
+// See ExpectationsStore interface.
+func (c *CachingExpectationStore) Changes() <-chan []string {
+	return c.cache.Changes()
 }

@@ -1,8 +1,6 @@
 package expstorage
 
-import (
-	"testing"
-)
+import "testing"
 
 import (
 	// Using 'require' which is like using 'assert' but causes tests to fail.
@@ -10,9 +8,61 @@ import (
 
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/database/testutil"
+	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/golden/go/db"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
 )
+
+func TestChanges(t *testing.T) {
+	// Create the starting point of expectations.
+	m := NewMemExpectationsStore()
+	e, err := m.Get(true)
+	if err != nil {
+		t.Fatalf("Failed to get expectations: %s", err)
+	}
+	tc := map[string]types.TestClassification{
+		"test1": map[string]types.Label{
+			"aaa": types.POSITIVE,
+		},
+		"test3": map[string]types.Label{
+			"ddd": types.UNTRIAGED,
+		},
+	}
+	e.AddDigests(tc)
+	m.Put(e, "")
+
+	// Test the degenrate case of a Put with no actual changes.
+	e, err = m.Get(true)
+	if err != nil {
+		t.Fatalf("Failed to get expectations: %s", err)
+	}
+	ch := m.Changes()
+	ch2 := m.Changes()
+	m.Put(e, "")
+	tests := <-ch
+	_ = <-ch2 // Verify channels are stuffed in go routines.
+	if got, want := tests, []string{}; !util.SSliceEqual(got, want) {
+		t.Errorf("Changes: Got %v Want %v", got, want)
+	}
+
+	// Now change some expectations.
+	tc = map[string]types.TestClassification{
+		"test1": map[string]types.Label{
+			"aaa": types.POSITIVE,
+			"bbb": types.NEGATIVE,
+		},
+		"test2": map[string]types.Label{
+			"ccc": types.UNTRIAGED,
+		},
+	}
+	e.AddDigests(tc)
+	m.Put(e, "")
+	tests = <-ch
+	_ = <-ch2
+	if got, want := tests, []string{"test1", "test2"}; !util.SSliceEqual(got, want) {
+		t.Errorf("Changes: Got %v Want %v", got, want)
+	}
+}
 
 func TestMySQLExpectationsStore(t *testing.T) {
 	// Set up the test database.

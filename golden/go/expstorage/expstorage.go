@@ -1,7 +1,12 @@
 package expstorage
 
 import (
+	"fmt"
+	"reflect"
 	"sync"
+	"time"
+
+	"github.com/skia-dev/glog"
 
 	"skia.googlesource.com/buildbot.git/golden/go/types"
 )
@@ -78,14 +83,64 @@ type ExpectationsStore interface {
 	// expectations map are the test names.
 	Get(modifiable bool) (exp *Expectations, err error)
 
-	// Write the given classified digests to the database and record the
+	// Put writes the given classified digests to the database and records the
 	// user that made the change.
 	Put(exp *Expectations, userId string) error
+
+	// Changes returns a receive-only channel that will provide a list of test
+	// names every time expectations are updated.
+	Changes() <-chan []string
+}
+
+// changesSlice is a slice of channels.
+type changesSlice [](chan []string)
+
+// send will send all the string slices down each channel.
+//
+// Each send is done in its own go routine so this call will
+// not block.
+func (c changesSlice) send(s []string) {
+	for _, ch := range c {
+		go func(ch chan []string) {
+			ticker := time.Tick(time.Second * 10)
+			select {
+			case ch <- s:
+				break
+			case <-ticker:
+				glog.Errorf("Failed to send a change event.")
+			}
+		}(ch)
+	}
+}
+
+// diff returns a list of names of tests that have different expectations
+// between a and b.
+func diff(a, b *Expectations) []string {
+	ret := []string{}
+	// Check for tests in a that are different in b.
+	for name, ea := range a.Tests {
+		if eb, ok := b.Tests[name]; ok {
+			fmt.Printf("%#v %#v", ea, eb)
+			if !reflect.DeepEqual(ea, eb) {
+				ret = append(ret, name)
+			}
+		} else {
+			ret = append(ret, name)
+		}
+	}
+	// Check for tests that exist in b that aren't in a.
+	for name, _ := range b.Tests {
+		if _, ok := a.Tests[name]; !ok {
+			ret = append(ret, name)
+		}
+	}
+	return ret
 }
 
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
 	expectations *Expectations
+	changes      changesSlice
 
 	// Protects expectations.
 	mutex sync.Mutex
@@ -95,6 +150,7 @@ type MemExpectationsStore struct {
 func NewMemExpectationsStore() ExpectationsStore {
 	return &MemExpectationsStore{
 		expectations: NewExpectations(false),
+		changes:      changesSlice{},
 	}
 }
 
@@ -116,12 +172,23 @@ func (m *MemExpectationsStore) Get(modifiable bool) (*Expectations, error) {
 func (m *MemExpectationsStore) Put(exps *Expectations, userId string) error {
 	exps.checkModifiable()
 
+	testNames := diff(m.expectations, exps)
+
 	newExps := exps.DeepCopy()
 	newExps.Modifiable = false
 
 	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
 	m.expectations = newExps
+	m.mutex.Unlock()
+
+	m.changes.send(testNames)
 	return nil
+}
+
+func (m *MemExpectationsStore) Changes() <-chan []string {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	ch := make(chan []string)
+	m.changes = append(m.changes, ch)
+	return ch
 }
