@@ -146,6 +146,13 @@ func triageDigestsHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, result, http.StatusOK)
 }
 
+// blameHandler returns the blame list for the given test.
+func blameHandler(w http.ResponseWriter, r *http.Request) {
+	testName := mux.Vars(r)["testname"]
+	result := analyzer.GetBlameList(testName)
+	sendResponse(w, result, http.StatusOK)
+}
+
 // statusHandler returns the current status with respect to HEAD.
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	result := analyzer.GetStatus()
@@ -366,6 +373,7 @@ func main() {
 	router.HandleFunc("/rest/triage/{testname}", autogzip.HandleFunc(testDetailsHandler)).Methods("GET")
 	router.HandleFunc("/rest/triage", autogzip.HandleFunc(triageDigestsHandler)).Methods("POST")
 	router.HandleFunc("/rest/status", autogzip.HandleFunc(statusHandler)).Methods("GET")
+	router.HandleFunc("/rest/blame/{testname}", autogzip.HandleFunc(blameHandler)).Methods("GET")
 
 	// Set up the login related resources.
 	// TODO (stephana): Clean up the URLs so they have the same prefix.

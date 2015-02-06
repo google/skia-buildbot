@@ -174,6 +174,7 @@ type AnalyzeState struct {
 	TileCounts  *GUITileCounts
 	TestDetails *GUITestDetails
 	Status      *GUIStatus
+	BlameLists  *GUIBlameLists
 }
 
 // Analyzer continuously manages tasks like polling for new traces
@@ -430,6 +431,20 @@ func (a *Analyzer) DeleteIgnoreRule(ruleId int, user string) error {
 	return nil
 }
 
+// GetBlameList returns the blame lists for the test identified by testName or
+// nil if there is no such test.
+func (a *Analyzer) GetBlameList(testName string) *GUIBlameLists {
+	ret, ok := a.current.BlameLists.Blames[testName]
+	if !ok {
+		return nil
+	}
+
+	return &GUIBlameLists{
+		Commits: a.current.BlameLists.Commits,
+		Blames:  map[string][]*BlameDistribution{testName: ret},
+	}
+}
+
 // loop is the main event loop.
 func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 	// Process the tile with caching. If the result is false that means
@@ -527,8 +542,8 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 		glog.Errorf("Error retrieving expectations: %s", err)
 		return false
 	}
-	a.setDerivedOutputs(newLabeledTile, expectations, a.current)
-	a.setDerivedOutputs(ignoredLabeledTile, expectations, a.ignored)
+	a.setDerivedOutputs(newLabeledTile, expectations, a.current, false)
+	a.setDerivedOutputs(ignoredLabeledTile, expectations, a.ignored, false)
 
 	glog.Info("Done processing tiles.")
 	runsCounter.Inc(1)
@@ -576,7 +591,7 @@ func (a *Analyzer) prepDiffsForLabeledTile(labeledTile *LabeledTile) {
 	// Make a dummy call to setDerivedOutputs to force a diff on new
 	// digest pairs.
 	tempState := AnalyzeState{}
-	a.setDerivedOutputs(labeledTile, expectations, &tempState)
+	a.setDerivedOutputs(labeledTile, expectations, &tempState, true)
 	glog.Infof("Done prep diffs")
 }
 
@@ -677,7 +692,7 @@ func getCommitsByDigest(labeledTile *LabeledTile, commitsByDigestMap map[string]
 
 // setDerivedOutputs derives the output data from the given tile and
 // updates the outputs and tile in the analyzer.
-func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, expectations *expstorage.Expectations, state *AnalyzeState) {
+func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, expectations *expstorage.Expectations, state *AnalyzeState, prep bool) {
 	// Assign all the labels.
 	for testName, traces := range labeledTile.Traces {
 		for _, trace := range traces {
@@ -687,12 +702,15 @@ func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, expectations *exp
 
 	// Generate the lookup index for the tile and get all parameters.
 	state.Index = NewLabeledTileIndex(labeledTile)
-
-	// calculate all the output data.
 	state.Tile = labeledTile
-	state.TileCounts = a.getOutputCounts(state.Tile, state.Index)
 	state.TestDetails = a.getTestDetails(state)
-	state.Status = calcStatus(state)
+
+	// Don't calculate these during prep runs.
+	if !prep {
+		state.TileCounts = a.getOutputCounts(state.Tile, state.Index)
+		state.Status = calcStatus(state)
+		state.BlameLists = getBlameLists(state.Tile)
+	}
 }
 
 // updateLabels iterates over the traces in of the tiles that have changed and
