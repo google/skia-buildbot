@@ -394,6 +394,62 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// PolyTriageRequest is the form of the JSON posted to polyTriageHandler.
+type PolyTriageRequest struct {
+	Test   string `json:"test"`
+	Digest string `json:"digest"`
+	Status string `json:"status"`
+}
+
+// polyTriageHandler handles a request to change the triage status of a single
+// digest of one test.
+//
+// It accepts a POST'd JSON serialization of PolyTriageRequest and updates
+// the expectations.
+func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
+	req := &PolyTriageRequest{}
+	if err := parseJson(r, req); err != nil {
+		util.ReportError(w, r, err, "Failed to parse JSON request.")
+		return
+	}
+	user := login.LoggedInAs(r)
+	if user == "" {
+		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
+		return
+	}
+	e, err := expStore.Get(true)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to read the current expectations.")
+		return
+	}
+
+	tc := map[string]types.TestClassification{
+		req.Test: map[string]types.Label{
+			req.Digest: types.LabelFromString(req.Status),
+		},
+	}
+	// If the analyzer is running then use that to update the expectations.
+	if *startAnalyzer {
+		_, err := analyzer.SetDigestLabels(tc, user)
+		if err != nil {
+			util.ReportError(w, r, err, "Failed to set the expectations.")
+			return
+		}
+	} else {
+		// Otherwise update the expectations directly.
+		e.AddDigests(tc)
+		if err := expStore.Put(e, user); err != nil {
+			util.ReportError(w, r, err, "Failed to store the updated expectations.")
+			return
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(map[string]string{}); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
+	}
+}
+
 func safeGet(paramset map[string][]string, key string) []string {
 	if ret, ok := paramset[key]; ok {
 		sort.Strings(ret)
@@ -496,6 +552,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	keys := util.UnionStrings(util.KeysOfParamSet(topParamSet), util.KeysOfParamSet(leftParamSet))
+	sort.Strings(keys)
 	for _, k := range keys {
 		ret.Params = append(ret.Params, &PerParamCompare{
 			Name: k,

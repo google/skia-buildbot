@@ -100,6 +100,7 @@ present in the buttons, and the positive button will be depressed.
               target = target.parentElement;
             }
             that.value = target.id;
+            that.dispatchEvent(new CustomEvent('change', {detail: that.value}));
           });
         });
 

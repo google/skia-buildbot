@@ -50,12 +50,23 @@ Where:
        e.detail contains the diffXY info associated with that thumbnail.
 
   Methods:
+    markChanged(digest) - Change the display of the thumbnail of source image
+      'digest' to reflect that its triage status has changed.
 -->
 <polymer-element name="grid-sk">
   <template>
     <style type="text/css" media="screen">
-      .noBorder {
-        border: solid 1px white;
+      img {
+        margin: 5px;
+        border: solid 2px lightgray;
+      }
+
+      img.noBorder {
+        border: solid 2px white;
+      }
+
+      img.changed {
+        border: solid 2px #D95F02;
       }
     </style>
     <div id=container vertical layout>
@@ -116,6 +127,17 @@ Where:
             }
           }
         }
+      },
+
+      markChanged : function (digest) {
+        $$('img', this.shadowRoot).forEach(function(ele) {
+          if (ele.dataset.digest == digest
+              || ele.dataset.top == digest
+              || ele.dataset.left == digest
+             ) {
+            ele.classList.add('changed');
+          }
+        });
       },
 
       setValue: function(value) {

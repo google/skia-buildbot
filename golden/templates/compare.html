@@ -12,6 +12,14 @@
         font-size: 15px;
       }
 
+      #refresh.display {
+        display: block;
+      }
+
+      #refresh {
+        display: none;
+      }
+
       #pageWrapper {
         background: white;
       }
@@ -55,11 +63,6 @@
         display: block;
       }
 
-      html /deep/ img {
-        margin: 5px;
-        border: lightgray solid 1px;
-      }
-
       html /deep/ #leftControl {
         margin-top: 64px;
       }
@@ -98,6 +101,7 @@
             <paper-button title="Sort by number of pixels that are different from the first image on the right hand side."  class=square><core-icon icon=sort></core-icon>&Delta; </paper-button>
           </div>
           <grid-sk></grid-sk>
+          <paper-button id=refresh>Refresh</paper-button>
         </div>
 
         <diff-detail-sk flex two></diff-detail-sk>
@@ -117,17 +121,23 @@
        if (match.length == 2) {
           testName = match[1];
        }
-       if (match.length == 2) {
-         sk.post('/2/_/test', JSON.stringify({"test": testName})).then(JSON.parse).then(function(json) {
-           $$$('grid-sk').setValue(json);
-         }).catch(function(e) {
-           $$$('paper-toast').text = e;
+
+       function loadGrid() {
+         if (testName != '') {
+           sk.post('/2/_/test', JSON.stringify({"test": testName})).then(JSON.parse).then(function(json) {
+             $$$('grid-sk').setValue(json);
+           }).catch(function(e) {
+             $$$('paper-toast').text = e;
+             $$$('paper-toast').show();
+           });
+         } else {
+           $$$('paper-toast').text = "Not a valid test name.";
            $$$('paper-toast').show();
-         });
-       } else {
-         $$$('paper-toast').text = "Not a valid test name.";
-         $$$('paper-toast').show();
+         }
+         $$$('#refresh').classList.remove('display');
        }
+
+       loadGrid();
 
        $$$('grid-sk').addEventListener('diff-focus', function(e) {
          $$$('diff-detail-sk').highlight = e.detail;
@@ -139,6 +149,20 @@
            test: testName
          };
          $$$('diff-detail-sk').value = value;
+       });
+
+       $$$('diff-detail-sk').addEventListener('triage', function(e) {
+         sk.post('/2/_/triage', JSON.stringify(e.detail)).then(function(){
+           $$$('grid-sk').markChanged(e.detail.digest);
+           $$$('#refresh').classList.add('display');
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
+           $$$('paper-toast').show();
+         });
+       });
+
+       $$$('#refresh').addEventListener('click', function(e) {
+         loadGrid();
        });
      })();
     </script>

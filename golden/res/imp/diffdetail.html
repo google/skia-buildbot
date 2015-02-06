@@ -21,6 +21,13 @@ between two images.
       }
 
   Events:
+    triage -  The change event e.detail has the form:
+      {
+            test: "testname1",
+            digest: "aabb112233",
+            status: "positive",
+      }
+
   Methods:
 -->
 <polymer-element name="diff-detail-sk" attributes="highlight value">
@@ -96,6 +103,26 @@ between two images.
 
       ready: function() {
         this.details = {}; // A serialized PolyDetailsGUI.
+
+        var that = this;
+        this.$.topDetail.addEventListener('change', function(e) {
+          e.stopPropagation();
+          var detail = {
+            test: that.value.test,
+            digest: that.value.top,
+            status: e.detail,
+          };
+          that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
+        });
+        this.$.leftDetail.addEventListener('change', function(e) {
+          e.stopPropagation();
+          var detail = {
+            test: that.value.test,
+            digest: that.value.left,
+            status: e.detail,
+          };
+          that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
+        });
       },
 
       valueChanged: function() {
