@@ -2,6 +2,7 @@ package types
 
 import (
 	"net/url"
+	"sync"
 	"time"
 )
 
@@ -45,39 +46,64 @@ func NewIgnoreRule(name string, expires time.Time, queryStr string, note string)
 }
 
 // MemIgnoreStore is an in-memory implementation of IgnoreStore.
-type MemIgnoreStore []*IgnoreRule
+type MemIgnoreStore struct {
+	rules  []*IgnoreRule
+	mutex  sync.Mutex
+	nextId int
+}
 
 func NewMemIgnoreStore() IgnoreStore {
-	return new(MemIgnoreStore)
+	return &MemIgnoreStore{
+		rules: []*IgnoreRule{},
+	}
 }
 
 // Create, see IgnoreStore interface.
 func (m *MemIgnoreStore) Create(rule *IgnoreRule) error {
-	rule.ID = len(*m)
-	*m = append(*m, rule)
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	rule.ID = m.nextId
+	m.nextId++
+	m.rules = append(m.rules, rule)
 	return nil
 }
 
 // List, see IgnoreStore interface.
 func (m *MemIgnoreStore) List() ([]*IgnoreRule, error) {
-	result := make([]*IgnoreRule, 0, len(*m))
-	for _, r := range *m {
-		if r != nil {
-			result = append(result, r)
-		}
-	}
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	m.expire()
+	result := make([]*IgnoreRule, len(m.rules))
+	copy(result, m.rules)
 	return result, nil
 }
 
 // Delete, see IgnoreStore interface.
 func (m *MemIgnoreStore) Delete(id int, userId string) (int, error) {
-	for idx := range *m {
-		if ((*m)[idx] != nil) && ((*m)[idx].ID == id) {
-			(*m)[idx] = nil
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	for idx, rule := range m.rules {
+		if rule.ID == id {
+			m.rules = append(m.rules[:idx], m.rules[idx+1:]...)
 			return 1, nil
 		}
 	}
+
 	return 0, nil
+}
+
+func (m *MemIgnoreStore) expire() {
+	newrules := make([]*IgnoreRule, 0, len(m.rules))
+	now := time.Now()
+	for _, rule := range m.rules {
+		if rule.Expires.After(now) {
+			newrules = append(newrules, rule)
+		}
+	}
+	m.rules = newrules
 }
 
 // BuildRuleMatcher, see IgnoreStore interface.

@@ -3,7 +3,12 @@ package types
 import (
 	"time"
 
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/database"
+)
+
+var (
+	CLEANUP_INTERVAL = time.Hour
 )
 
 type SQLIgnoreStore struct {
@@ -11,9 +16,22 @@ type SQLIgnoreStore struct {
 }
 
 func NewSQLIgnoreStore(vdb *database.VersionedDB) IgnoreStore {
-	return &SQLIgnoreStore{
+	ret := &SQLIgnoreStore{
 		vdb: vdb,
 	}
+
+	// Routinely clean the expired records in the database.
+	go func() {
+		for _ = range time.Tick(CLEANUP_INTERVAL) {
+			stmt := `DELETE from ignorerule WHERE expires < ?`
+			_, err := ret.vdb.DB.Exec(stmt, time.Now().Unix())
+			if err != nil {
+				glog.Errorf("Expunging ignore rules failed: %s", err)
+			}
+		}
+	}()
+
+	return ret
 }
 
 // Create, see IgnoreStore interface.
@@ -37,8 +55,9 @@ func (m *SQLIgnoreStore) Create(rule *IgnoreRule) error {
 func (m *SQLIgnoreStore) List() ([]*IgnoreRule, error) {
 	stmt := `SELECT id, userid, expires, query, note
 	         FROM ignorerule
+	         WHERE expires > ?
 	         ORDER BY id ASC`
-	rows, err := m.vdb.DB.Query(stmt)
+	rows, err := m.vdb.DB.Query(stmt, time.Now().Unix())
 	if err != nil {
 		return nil, err
 	}
