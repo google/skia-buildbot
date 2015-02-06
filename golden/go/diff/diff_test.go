@@ -1,21 +1,24 @@
 package diff
 
 import (
+	"bytes"
 	"image"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 
 	"github.com/skia-dev/glog"
+	"skia.googlesource.com/buildbot.git/golden/go/image/text"
 )
 
 const (
 	TESTDATA_DIR = "testdata"
 )
 
-func TestDiff(t *testing.T) {
+func TestDiffMetrics(t *testing.T) {
 	// Assert different images with the same dimensions.
 	diffFilePath1 := filepath.Join(os.TempDir(), "diff1.png")
 	defer os.Remove(diffFilePath1)
@@ -119,6 +122,106 @@ func TestDiff(t *testing.T) {
 			DimDiffer:                  false})
 }
 
+const SRC1 = `! SKTEXTSIMPLE
+1 5
+0x00000000
+0x01000000
+0x00010000
+0x00000100
+0x00000001`
+
+// SRC2 is different in each pixel from SRC1 by one in each channel.
+const SRC2 = `! SKTEXTSIMPLE
+1 5
+0x01000000
+0x02000000
+0x00020000
+0x00000200
+0x00000002`
+
+// EXPECTED_1_2 Should have all the pixels as the pixel diff color, except the
+// last pixel which is only different in the alpha.
+const EXPECTED_1_2 = `! SKTEXTSIMPLE
+1 5
+0xe31a1cff
+0xe31a1cff
+0xe31a1cff
+0xe31a1cff
+0xb3b3b3ff`
+
+// EXPECTED_NO_DIFF should be all white since there are no differences.
+const EXPECTED_NO_DIFF = `! SKTEXTSIMPLE
+1 5
+0xffffffff
+0xffffffff
+0xffffffff
+0xffffffff
+0xffffffff`
+
+// imageFromString decodes the SKTEXT image from the string.
+func imageFromString(t *testing.T, s string) *image.NRGBA {
+	buf := bytes.NewBufferString(s)
+	img, err := text.Decode(buf)
+	if err != nil {
+		t.Fatalf("Failed to decode a valid image: %s", err)
+	}
+	return img.(*image.NRGBA)
+}
+
+// lineDiff lists the differences in the lines of a and b.
+func lineDiff(t *testing.T, a, b string) {
+	aslice := strings.Split(a, "\n")
+	bslice := strings.Split(b, "\n")
+	if len(aslice) != len(bslice) {
+		t.Fatal("Can't diff text, mismatched number of lines.\n")
+		return
+	}
+	for i, s := range aslice {
+		if s != bslice[i] {
+			t.Errorf("Line %d: %q != %q\n", i+1, s, bslice[i])
+		}
+	}
+}
+
+// assertImagesEqual asserts that the two images are identical.
+func assertImagesEqual(t *testing.T, got, want *image.NRGBA) {
+	// Do the compare by converting them to sktext format and doing a string
+	// compare.
+	gotbuf := &bytes.Buffer{}
+	if err := text.Encode(gotbuf, got); err != nil {
+		t.Fatalf("Failed to encode: %s", err)
+	}
+	wantbuf := &bytes.Buffer{}
+	if err := text.Encode(wantbuf, want); err != nil {
+		t.Fatalf("Failed to encode: %s", err)
+	}
+	if gotbuf.String() != wantbuf.String() {
+		t.Errorf("Pixel mismatch:\nGot:\n\n%v\n\nWant:\n\n%v\n", gotbuf, wantbuf)
+		// Also print out the lines that are different, to make debugging easier.
+		lineDiff(t, gotbuf.String(), wantbuf.String())
+	}
+}
+
+// assertDiffMatch asserts that you get expected when you diff
+// src1 and src2.
+//
+// Note that all images are in sktext format as strings.
+func assertDiffMatch(t *testing.T, expected, src1, src2 string) {
+	_, got := Diff(imageFromString(t, src1), imageFromString(t, src2))
+	want := imageFromString(t, expected)
+	assertImagesEqual(t, got, want)
+}
+
+// TestDiffImages tests that the diff images produced are correct.
+func TestDiffImages(t *testing.T) {
+	assertDiffMatch(t, EXPECTED_NO_DIFF, SRC1, SRC1)
+	assertDiffMatch(t, EXPECTED_NO_DIFF, SRC2, SRC2)
+	assertDiffMatch(t, EXPECTED_1_2, SRC1, SRC2)
+	assertDiffMatch(t, EXPECTED_1_2, SRC2, SRC1)
+}
+
+// assertDiffs asserts that the DiffMetrics reported by Diffing the two images
+// matches the expected DiffMetrics.
 func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) {
 	img1, err := OpenImage(filepath.Join(TESTDATA_DIR, d1+".png"))
 	if err != nil {
