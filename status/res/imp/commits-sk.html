@@ -41,7 +41,7 @@
     }
     th {
       text-align: left;
-      height: 35px;
+      height: 53px;
       padding: 5px;
     }
     tr.commit {
@@ -183,7 +183,15 @@
             <thead>
               <th>Commit</th>
               <th>Author</th>
-              <th colspan="{{builders.length}}">Buildbot Results <paper-toggle-button id="showAllBuilders" on-change="{{filterBuilders}}"></paper-toggle-button> show all</th>
+              <th colspan="{{builders.length}}">
+                Buildbot Results
+                <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
+                 <paper-radio-button name="hide" label="Hide"></paper-radio-button>
+                 <paper-radio-button name="interesting" label="Interesting"></paper-radio-button>
+                 <paper-radio-button name="failures" label="Failures"></paper-radio-button>
+                 <paper-radio-button name="all" label="All"></paper-radio-button>
+                </paper-radio-group>
+              </th>
             </thead>
             <tbody>
               <template repeat="{{commit, i in commits}}">
@@ -478,6 +486,7 @@
         this.autorollCurrent = null;
         this.autorollLast = null;
         this.branchHeads = [];
+        this.builderFilter = "interesting";
         this.builders = [];
         this.builds = {};
         this.commits = [];
@@ -491,6 +500,10 @@
         window.addEventListener("resize", function() {
           that.draw();
         }, true);
+      },
+
+      builderFilterChanged: function() {
+        this.filterBuilders();
       },
 
       // setAutoRollStatus adds the AutoRoll Bot status to the commits graph.
@@ -553,24 +566,35 @@
       // Filter out green bots unless "showAllBuilders" is checked.
       filterBuilders: function() {
         var filteredBuilders = [];
-        var showAll = this.$.showAllBuilders;
-        if (showAll.checked) {
+        var selected = this.builderFilter;
+        if (selected == "hide") {
+          filteredBuilders = [];
+        } else if (selected == "all") {
           filteredBuilders = this.allBuilders;
-        } else {
+        } else if (selected == "interesting" || selected == "failures") {
           for (var i = 0; i < this.allBuilders.length; i++) {
             var builder = this.allBuilders[i];
             var failed = false;
+            var succeeded = false;
             for (var buildnum in this.builds[builder]) {
               var build = this.builds[builder][buildnum];
-              if (build.results != 0) {
+              if (build.results == 0) {
+                succeeded = true;
+              } else {
                 failed = true;
+              }
+              if (succeeded && failed && selected == "interesting") {
+                filteredBuilders.push(builder);
+                break;
+              }
+              if (failed && selected == "failures") {
+                filteredBuilders.push(builder);
                 break;
               }
             }
-            if (failed) {
-              filteredBuilders.push(builder);
-            }
           }
+        } else {
+          console.error("Invalid builder filter selection: " + selected);
         }
         filteredBuilders.sort();
         this.builders = filteredBuilders;
