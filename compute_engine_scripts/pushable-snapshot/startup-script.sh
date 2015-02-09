@@ -74,6 +74,7 @@ LoadPlugin write_graphite
                 StoreRates false
                 AlwaysAppendDS false
                 EscapeCharacter "_"
+                Protocol "tcp"
         </Carbon>
 </Plugin>
 EOF
