@@ -46,6 +46,7 @@ type Build struct {
 	Times         []float64
 	Started       float64 `db:"started"`
 	Finished      float64 `db:"finished"`
+	Comments      []*BuildComment
 }
 
 // Builder contains information about a single builder.
@@ -62,6 +63,15 @@ type BuildSlave struct {
 	Host      string
 	Name      string
 	Version   string
+}
+
+// BuildComment contains a comment about a build.
+type BuildComment struct {
+	Id        int     `db:"id"        json:"id"`
+	BuildId   int     `db:"buildId"   json:"buildId"`
+	User      string  `db:"user"      json:"user"`
+	Timestamp float64 `db:"timestamp" json:"time"`
+	Comment   string  `db:"comment"   json:"message"`
 }
 
 // GetProperty returns the key/value pair for a build property, if it exists,
@@ -121,17 +131,19 @@ func (b *Build) GetSummary() *BuildSummary {
 		Master:      b.Master,
 		Number:      b.Number,
 		Results:     b.Results,
+		Comments:    b.Comments,
 	}
 }
 
 // BuildSummary is a struct which contains the minimal amount of information
 // that we care to see on the dashboard.
 type BuildSummary struct {
-	Builder     string   `json:"builder"`
-	FailedSteps []string `json:"failedSteps"`
-	Finished    bool     `json:"finished"`
-	Id          int      `json:"id"`
-	Master      string   `json:"master"`
-	Number      int      `json:"number"`
-	Results     int      `json:"results"`
+	Builder     string          `json:"builder"`
+	FailedSteps []string        `json:"failedSteps"`
+	Finished    bool            `json:"finished"`
+	Id          int             `json:"id"`
+	Master      string          `json:"master"`
+	Number      int             `json:"number"`
+	Results     int             `json:"results"`
+	Comments    []*BuildComment `json:"comments"`
 }

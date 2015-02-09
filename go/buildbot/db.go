@@ -221,6 +221,18 @@ func GetBuildFromDB(builder, master string, buildNumber int) (*Build, error) {
 		}
 	}()
 
+	// Get the comments on this build.
+	comments := []*BuildComment{}
+	var commentsErr error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := DB.Select(&comments, fmt.Sprintf("SELECT * FROM %s WHERE buildId = ?;", TABLE_BUILD_COMMENTS), build.Id); err != nil {
+			commitsErr = fmt.Errorf("Unable to retrieve build comments from database: %v", err)
+			return
+		}
+	}()
+
 	wg.Wait()
 
 	// Return error if any, or the result.
@@ -230,9 +242,13 @@ func GetBuildFromDB(builder, master string, buildNumber int) (*Build, error) {
 	if commitsErr != nil {
 		return nil, commitsErr
 	}
+	if commentsErr != nil {
+		return nil, commentsErr
+	}
 
 	build.Steps = steps
 	build.Commits = commits
+	build.Comments = comments
 	return build, nil
 }
 
@@ -306,6 +322,18 @@ func GetBuildsFromDB(ids []int) (map[int]*Build, error) {
 		}
 	}()
 
+	// Comments on each build.
+	commentsFromDB := []*BuildComment{}
+	var commentsErr error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := DB.Select(&commentsFromDB, fmt.Sprintf("SELECT * FROM %s WHERE buildId IN (%s);", TABLE_BUILD_COMMENTS, inputTmpl), interfaceIds...); err != nil {
+			commentsErr = fmt.Errorf("Could not retrieve comments from database: %v", err)
+			return
+		}
+	}()
+
 	wg.Wait()
 
 	// Return error if applicable.
@@ -317,6 +345,9 @@ func GetBuildsFromDB(ids []int) (map[int]*Build, error) {
 	}
 	if commitsErr != nil {
 		return nil, commitsErr
+	}
+	if commentsErr != nil {
+		return nil, commentsErr
 	}
 
 	// Associate steps with builds.
@@ -344,6 +375,18 @@ func GetBuildsFromDB(ids []int) (map[int]*Build, error) {
 			build.Commits = []string{}
 		}
 		build.Commits = append(build.Commits, c.Revision)
+	}
+
+	// Associate comments with builds.
+	for _, c := range commentsFromDB {
+		build, ok := buildsById[c.BuildId]
+		if !ok {
+			return nil, fmt.Errorf("Failed to retrieve builds; got a comment with no associated build.")
+		}
+		if build.Comments == nil {
+			build.Comments = []*BuildComment{}
+		}
+		build.Comments = append(build.Comments, c)
 	}
 	return buildsById, nil
 }
@@ -423,7 +466,7 @@ func (b *Build) replaceIntoDB() (rv error) {
 	// Actually insert the commits.
 	if len(b.Commits) > 0 {
 		commitFields := 2
-		commitTmpl := util.RepeatJoin("?", ",", 2)
+		commitTmpl := util.RepeatJoin("?", ",", commitFields)
 		commitsTmpl := util.RepeatJoin(fmt.Sprintf("(%s)", commitTmpl), ",", len(b.Commits))
 		flattenedCommits := make([]interface{}, 0, commitFields*len(b.Commits))
 		for _, c := range b.Commits {
@@ -431,6 +474,27 @@ func (b *Build) replaceIntoDB() (rv error) {
 		}
 		if _, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (buildId,revision) VALUES %s;", TABLE_BUILD_REVISIONS, commitsTmpl), flattenedCommits...); err != nil {
 			return fmt.Errorf("Unable to push commits into database: %v", err)
+		}
+	}
+
+	// Comments.
+
+	// First, delete existing comments so that we don't have leftovers
+	// hanging around from before.
+	if _, err := tx.Exec(fmt.Sprintf("DELETE FROM %s WHERE buildId = ?;", TABLE_BUILD_COMMENTS), b.Id); err != nil {
+		return fmt.Errorf("Unable to delete comments from database: %v", err)
+	}
+	// Actually insert the comments.
+	if b.Comments != nil && len(b.Comments) > 0 {
+		commentFields := 4
+		commentTmpl := util.RepeatJoin("?", ",", commentFields)
+		commentsTmpl := util.RepeatJoin(fmt.Sprintf("(%s)", commentTmpl), ",", len(b.Comments))
+		flattenedComments := make([]interface{}, 0, commentFields*len(b.Comments))
+		for _, c := range b.Comments {
+			flattenedComments = append(flattenedComments, b.Id, c)
+		}
+		if _, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (buildId,user,timestamp,comment) VALUES %s", TABLE_BUILD_COMMENTS, commentsTmpl), flattenedComments...); err != nil {
+			return fmt.Errorf("Unable to push comments into database: %v", err)
 		}
 	}
 
@@ -467,4 +531,25 @@ func NumIngestedBuilds() (int, error) {
 		return 0, fmt.Errorf("Unable to find the number of ingested builds: %s", err)
 	}
 	return i, nil
+}
+
+// AddBuildComment inserts the given comment into the database.
+func AddBuildComment(c *BuildComment) (int, error) {
+	res, err := DB.Exec(fmt.Sprintf("INSERT INTO %s (buildId,user,timestamp,comment) VALUES (?,?,?,?);", TABLE_BUILD_COMMENTS), c.BuildId, c.User, c.Timestamp, c.Comment)
+	if err != nil {
+		return -1, fmt.Errorf("Unable to insert build comment: %v", err)
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return -1, fmt.Errorf("Failed to get last insert id: %v", err)
+	}
+	return int(id), nil
+}
+
+// DeleteBuildComment removes the given comment from the database.
+func DeleteBuildComment(id int64) error {
+	if _, err := DB.Exec(fmt.Sprintf("DELETE FROM %s WHERE id = ?;", TABLE_BUILD_COMMENTS), id); err != nil {
+		return fmt.Errorf("Unable to delete build comment: %v", err)
+	}
+	return nil
 }

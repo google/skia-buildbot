@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -15,11 +16,13 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 	"unicode"
 )
 
 import (
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 )
 
@@ -87,11 +90,8 @@ func Init() {
 	reloadTemplates()
 }
 
-func userHasEditRights(email string) bool {
-	if strings.HasSuffix(email, "@google.com") {
-		return true
-	}
-	return false
+func userHasEditRights(r *http.Request) bool {
+	return strings.HasSuffix(login.LoggedInAs(r), "@google.com")
 }
 
 func getIntParam(name string, r *http.Request) (*int, error) {
@@ -168,6 +168,59 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
+	if !userHasEditRights(r) {
+		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	buildId, err := strconv.ParseInt(mux.Vars(r)["buildId"], 10, 32)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid build id: %v", err))
+		return
+	}
+	defer r.Body.Close()
+	comment, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
+	}
+	c := buildbot.BuildComment{
+		BuildId:   int(buildId),
+		User:      login.LoggedInAs(r),
+		Timestamp: float64(time.Now().UTC().Unix()),
+		Comment:   string(comment),
+	}
+	id, err := buildbot.AddBuildComment(&c)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
+	}
+	rv := struct {
+		Id int `json:"id"`
+	}{
+		Id: id,
+	}
+	json.NewEncoder(w).Encode(rv)
+}
+
+func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
+	if !userHasEditRights(r) {
+		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
+		return
+	}
+	if err := buildbot.DeleteBuildComment(int64(id)); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
+		return
+	}
+}
+
 func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
@@ -193,14 +246,19 @@ func makeHandler(f func(http.ResponseWriter, *http.Request)) func(http.ResponseW
 }
 
 func runServer(serverURL string) {
-	http.HandleFunc("/res/", makeHandler(autogzip.HandleFunc(makeResourceHandler())))
-	http.HandleFunc("/", makeHandler(commitsHandler))
-	http.HandleFunc("/json/autoroll", makeHandler(autorollJsonHandler))
-	http.HandleFunc("/json/commits", makeHandler(commitsJsonHandler))
-	http.HandleFunc("/json/version", makeHandler(skiaversion.JsonHandler))
-	http.HandleFunc("/oauth2callback/", makeHandler(login.OAuth2CallbackHandler))
-	http.HandleFunc("/logout/", makeHandler(login.LogoutHandler))
-	http.HandleFunc("/loginstatus/", makeHandler(login.StatusHandler))
+	r := mux.NewRouter()
+	r.PathPrefix("/res/").HandlerFunc(makeHandler(autogzip.HandleFunc(makeResourceHandler())))
+	r.HandleFunc("/", makeHandler(commitsHandler))
+	r.HandleFunc("/json/autoroll", makeHandler(autorollJsonHandler))
+	builds := r.PathPrefix("/json/builds/{buildId:[0-9]+}").Subrouter()
+	builds.HandleFunc("/comments", makeHandler(addBuildCommentHandler)).Methods("POST")
+	builds.HandleFunc("/comments/{commentId:[0-9]+}", makeHandler(deleteBuildCommentHandler)).Methods("DELETE")
+	r.HandleFunc("/json/commits", makeHandler(commitsJsonHandler))
+	r.HandleFunc("/json/version", makeHandler(skiaversion.JsonHandler))
+	r.HandleFunc("/oauth2callback/", makeHandler(login.OAuth2CallbackHandler))
+	r.HandleFunc("/logout/", makeHandler(login.LogoutHandler))
+	r.HandleFunc("/loginstatus/", makeHandler(login.StatusHandler))
+	http.Handle("/", r)
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

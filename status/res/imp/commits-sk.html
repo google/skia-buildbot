@@ -163,6 +163,11 @@
       margin: 0px 0px 1px 1px;
       height: 18px;
     }
+    div.comment_indicator {
+      background-color: red;
+      position: absolute;
+      z-index: 5;
+    }
     #moreButton {
       width: 40px;
       height: 40px;
@@ -825,6 +830,9 @@
                   builderDetails.subcategory = split[1];
                 }
                 builders[builder] = builderDetails;
+              }
+              if (build.comments) {
+                console.log(build);
               }
               builds[builder][build.number] = build;
               // Figure out the display class to use.
