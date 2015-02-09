@@ -1,0 +1,114 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <comments-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/comments-sk.html" rel="import" />
+
+  Usage:
+
+    <comments-sk
+        comments="{{myComments}}"
+        addCommentUrl="/json/comments">
+    </comments-sk>
+
+  Properties:
+    comments: Array of comment objects, with attributes 'time', 'user', and
+        'message'.
+    addCommentUrl: URL which accepts POST requests for adding comments.
+
+  Events:
+    change: When a comment is added, the 'change' event is triggered. New
+        comments do not appear in the list because it is not possible to
+        guarantee consistency between the UI and the database until the comment
+        has been inserted. Therefore, the 'change' event may be used to reload
+        the comments from the database.
+-->
+<polymer-element name="comments-sk">
+  <template>
+    <style>
+    .comments {
+      display: table;
+    }
+    .comment {
+      display: table-row;
+    }
+    .commentCell {
+      display: table-cell;
+      padding: 10px;
+    }
+    </style>
+    <div class="comments">
+      <template repeat="{{comment in comments}}">
+        <div class="comment">
+          <div class="commentCell">{{comment.time|parseDate}}</div>
+          <div class="commentCell">{{comment.user}}</div>
+          <div class="commentCell">{{comment.message}}</div>
+        </div>
+      </template>
+    </div>
+    <template if="{{editRights}}">
+      <div horizontal layout>
+        <paper-input id="commentBox" label="comment" flex></paper-input>
+        <paper-button on-click="{{addComment}}">comment</paper-button>
+      </div>
+    </template>
+    <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        comments: {
+          value: [],
+          reflect: true,
+        },
+        addCommentUrl: {
+          value: "/comments/add",
+          reflect: true,
+        },
+      },
+
+      ready: function() {
+        var ele = this;
+        sk.Login.then(function(status) {
+          var email = status['Email'];
+          var validEmail = "@google.com"
+          if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
+            ele.editRights = true;
+          }
+        });
+      },
+
+      showErrorDialog: function(msg) {
+        var errorDiag = this.$.actionFailed;
+        errorDiag.text = msg;
+        errorDiag.show();
+      },
+
+      parseDate: function(v) {
+        var d = new Date(v * 1000)
+        return d.toLocaleDateString() + ", " + d.toLocaleTimeString();
+      },
+
+      addComment: function() {
+        var commentText = this.shadowRoot.querySelector("#commentBox").value;
+        if (commentText == "") {
+          this.showErrorDialog("Empty comments are not allowed.");
+          return;
+        }
+        var that = this;
+        sk.post(this.addCommentUrl, commentText).then(function(resp) {
+          that.dispatchEvent(new CustomEvent("change", null));
+        }, function(err) {
+          that.showErrorDialog(err);
+        });
+        this.shadowRoot.querySelector("#commentBox").value = "";
+      },
+    });
+  </script>
+</polymer-element>

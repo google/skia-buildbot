@@ -16,16 +16,6 @@
     div.message[disabled] {
       color: #AAAAAA;
     }
-    div.comments {
-      display: table;
-    }
-    div.comment {
-      display: table-row;
-    }
-    div.commentcell {
-      display: table-cell;
-      padding: 10px;
-    }
     </style>
     <div id="wrapper" vertical horizontal center>
       <div horizontal layout>
@@ -40,7 +30,7 @@
               url="/alerts/{{alert.id}}/snooze"
               method="POST"
               contentType="application/json"
-              on-core-response="{{response}}"
+              on-core-response="{{reload}}"
               on-core-error="{{error}}">
           </core-ajax>
           <paper-dialog id="snoozeDialog" heading="How long?" transition="paper-dialog-transition-center">
@@ -60,7 +50,7 @@
               url="/alerts/{{alert.id}}/unsnooze"
               method="POST"
               contentType="application/json"
-              on-core-response="{{response}}"
+              on-core-response="{{reload}}"
               on-core-error="{{error}}">
           </core-ajax>
           <core-icon-button icon="alarm-off" on-click="{{unsnoozeAlert}}"></core-icon-button>
@@ -70,36 +60,13 @@
             url="/alerts/{{alert.id}}/dismiss"
             method="POST"
             contentType="application/json"
-            on-core-response="{{response}}"
+            on-core-response="{{reload}}"
             on-core-error="{{error}}">
         </core-ajax>
         <core-icon-button icon="highlight-remove" on-click="{{dismissAlert}}"></core-icon-button>
       </template>
       </div>
-      <div class="comments">
-        <template repeat="{{comment in alert.comments}}">
-          <div class="comment">
-            <div class="commentcell">{{comment.time|parseDate}}</div>
-            <div class="commentcell">{{comment.user}}</div>
-            <div class="commentcell">{{comment.message}}</div>
-          </div>
-        </template>
-      </div>
-      <template if="{{editRights}}">
-        <core-ajax
-            id="addcomment"
-            url="/alerts/{{alert.id}}/addcomment"
-            method="POST"
-            contentType="application/json"
-            on-core-response="{{response}}"
-            on-core-error="{{error}}"
-            body="{{commentText}}">
-        </core-ajax>
-        <div horizontal layout>
-          <paper-input label="comment" value="{{commentText}}" flex></paper-input>
-          <paper-button on-click="{{addComment}}">comment</paper-button>
-        </div>
-      </template>
+      <comments-sk comments="{{alert.comments}}" addCommentUrl="/alerts/{{alert.id}}/addcomment" on-change="{{reload}}"></comments-sk>
     </div>
     <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
   </template>
@@ -165,7 +132,7 @@
       unsnoozeAlert: function() {
         this.$.wrapper.querySelector("#unsnooze").go();
       },
-      response: function() {
+      reload: function() {
         // Reload the page.
         window.location.href = window.location.href;
       },
@@ -183,13 +150,6 @@
       },
       unParseDate: function(d) {
         return Math.round(d.getTime() / 1000);
-      },
-      addComment: function() {
-        if (this.commentText == "") {
-          this.showErrorDialog("Empty comments are not allowed.");
-          return;
-        }
-        this.$.wrapper.querySelector("#addcomment").go();
       },
     });
   </script>
