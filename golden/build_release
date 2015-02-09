@@ -10,9 +10,14 @@ copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR_DEFAULT="sudo install -d --verbose --backup=none --group=default --owner=default"
+
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/correctness_migratedb   ${ROOT}/usr/local/bin/correctness_migratedb
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/skiacorrectness         ${ROOT}/usr/local/bin/skiacorrectness
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/ingest                  ${ROOT}/usr/local/bin/ingest
+
+# Add the data directory as the default user.
+${INSTALL_DIR_DEFAULT} --mode=755                              ${ROOT}/var/lib/skiacorrectness
 
 ${INSTALL} --mode=644 -T ./sys/skiacorrectness_monit           ${ROOT}/etc/monit/conf.d/skiacorrectness
 ${INSTALL} --mode=644 -T ./sys/skiacorrectness_init            ${ROOT}/etc/init.d/skiacorrectness
