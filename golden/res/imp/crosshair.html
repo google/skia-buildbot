@@ -1,0 +1,120 @@
+<!-- The <crosshair-sk> custom element declaration.
+
+Takes an img as a child element and displays a crosshair over it.
+
+  Attributes:
+    x, y - The x,y coords of the crosshair, as measure in the natural
+      dimensions of the image. I.e. not in the coords of the img
+      if it has a different size as determined by CSS styling.
+  Events:
+    crosshair - Produced if the crosshair is moved by clicking in the image.
+      The coordinates of the click are in e.detail.x and e.detail.y. They
+      are in offsets from the image origin in the images natural dimensions.
+      That is, even if the image is sizes using CSS the x and y values
+      will be reported as values in the images original size.
+  Methods:
+-->
+<polymer-element name="crosshair-sk" attributes="x y">
+  <script>
+    Polymer({
+      publish: {
+        x: {
+          value: 0,
+          reflect: true,
+        },
+        y: {
+          value: 0,
+          reflect: true,
+        },
+      },
+
+      xChanged: function(oldValue, newValue) {
+        if (oldValue != newValue) {
+          this.thumbX =  this.img.width*(this.x/this.img.naturalWidth);
+          this.drawCrosshair();
+        }
+      },
+
+      yChanged: function(oldValue, newValue) {
+        if (oldValue != newValue) {
+          this.thumbY =  this.img.height*(this.y/this.img.naturalHeight);
+          this.drawCrosshair();
+        }
+      },
+
+      ready: function() {
+        // The CSS size of the image.
+        this.imgWidth = 0;
+        this.imgHeight = 0;
+
+        // The current location of the crosshair, in CSS sized image values.
+        this.thumbX = 0;
+        this.thumbY = 0;
+
+        // The child image element we are putting a crosshair on.
+        this.img = $$$('img', this);
+
+        // The canvas and its context we use to draw the crosshair.
+        this.canvas = null;
+        this.ctx = null;
+
+        // The image might not be loaded yet if the img.src is set via JS, so
+        // we need to wait for the loading to complete before continuing
+        // the initialization.
+        sk.imageLoaded(this.img).then(function(){
+          this.imgWidth = this.img.width;
+          this.imgHeight = this.img.height;
+
+          if (this.canvas) {
+            this.removeChild(this.canvas);
+            this.canvas = null;
+          }
+          this.canvas = document.createElement('canvas');
+          this.canvas.width = this.imgWidth;
+          this.canvas.height = this.imgHeight;
+
+          // Position the canvas over the image.
+          this.canvas.style.marginLeft = "-"+(this.imgWidth+6)+"px";
+          this.canvas.style.marginBottom= "-1px";
+
+          this.appendChild(this.canvas);
+
+          this.ctx = this.canvas.getContext('2d');
+          this.ctx.imageSmoothingEnabled = false;
+
+          var that = this;
+          // On click draw the crosshair and dispatch the custom event.
+          this.canvas.addEventListener('click', function(e) {
+            p = sk.elePos(e.currentTarget);
+            that.thumbX = e.clientX - p.x;
+            that.thumbY = e.clientY - p.y;
+            that.drawCrosshair();
+
+            that.x = Math.floor((that.thumbX/that.img.width)*that.img.naturalWidth);
+            that.y = Math.floor((that.thumbY/that.img.height)*that.img.naturalHeight);
+            var detail = {
+              x: that.x,
+              y: that.y,
+            };
+            var evt = new CustomEvent('crosshair', {detail: detail, bubbles: true});
+            that.dispatchEvent(evt);
+          });
+        }.bind(this));
+      },
+
+      drawCrosshair: function() {
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = '#F00';
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, this.thumbY+0.5);
+        this.ctx.lineTo(this.ctx.canvas.width, this.thumbY+0.5);
+        this.ctx.stroke();
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.thumbX+0.5, 0);
+        this.ctx.lineTo(this.thumbX+0.5, this.ctx.canvas.height);
+        this.ctx.stroke();
+      },
+    });
+  </script>
+</polymer-element>
