@@ -73,13 +73,17 @@ Where:
       <div horizontal layout>
         <img src="/res/img/white.png" class=noBorder />
         <template repeat="{{t in value.top}}">
-          <img src="{{t.thumb}}" data-digest="{{t.digest}}"/>
+          <core-tooltip>
+            <img src="{{t.thumb}}" data-digest="{{t.digest}}"/>
+          </core-tooltip>
         </template>
       </div>
       <div horizontal layout>
         <div vertical layout>
           <template repeat="{{l in value.left}}">
-            <img src="{{l.thumb}}" data-digest="{{l.digest}}"/>
+            <core-tooltip>
+              <img src="{{l.thumb}}" data-digest="{{l.digest}}"/>
+            </core-tooltip>
           </template>
         </div>
         <div vertical layout>
