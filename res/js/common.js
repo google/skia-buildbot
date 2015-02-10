@@ -70,6 +70,39 @@ this.sk = this.sk || function() {
     return document.importNode($$$(id, this.importDoc_).content, true);
   }
 
+  // elePos returns the position of the top left corner of given element in
+  // client coordinates.
+  //
+  // Returns an object of the form:
+  // {
+  //   x: NNN,
+  //   y: MMM,
+  // }
+  sk.elePos = function(ele) {
+    var x = 0;
+    var y = 0;
+    while (ele) {
+      x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
+      y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
+      ele = ele.offsetParent;
+    }
+    return {x: x, y: y};
+  }
+
+  // imageLoaded returns a promise that resolves when the image is fully loaded.
+  //
+  // The value of img.complete is checked along with the image height and
+  // width. Note that this can't be used with a size 0 image.
+  sk.imageLoaded = function(img) {
+    return new Promise(function(resolve, reject) {
+      var id = window.setInterval(function() {
+        if (img.src != '' && img.complete && img.width != 0 && img.height != 0) {
+          clearInterval(id);
+          resolve(img);
+        }
+      });
+    });
+  };
 
   // Returns a Promise that uses XMLHttpRequest to make a request to the given URL.
   sk.get = function(url) {
