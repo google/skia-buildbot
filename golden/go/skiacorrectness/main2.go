@@ -239,7 +239,9 @@ type PolyTestDiffInfo struct {
 	NumDiffPixels    int     `json:"numDiffPixels"`
 	PixelDiffPercent float32 `json:"pixelDiffPercent"`
 	MaxRGBADiffs     []int   `json:"maxRGBADiffs"`
-	DiffImgUrl       string  `json:"diffImgUrl"`
+	DiffImg          string  `json:"diffImgUrl"`
+	TopImg           string  `json:"topImgUrl"`
+	LeftImg          string  `json:"leftImgUrl"`
 }
 
 // PolyTestGUI serialized as JSON is the response body from polyTestHandler.
@@ -336,12 +338,13 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	if len(positives) > 5 {
 		positives = positives[:5]
 	}
-	glog.Infof("%#v", untriaged)
-	glog.Infof("%#v", positives)
+
+	allDigests := util.UnionStrings(untriaged, positives)
+	thumbs := diffStore.ThumbAbsPath(allDigests)
+	full := diffStore.AbsPath(allDigests)
 
 	// Fill in our GUI response struct.
 	top := []*PolyTestImgInfo{}
-	thumbs := diffStore.ThumbAbsPath(untriaged)
 	for _, u := range untriaged {
 		top = append(top, &PolyTestImgInfo{
 			Thumb:  pathToURLConverter(thumbs[u]),
@@ -350,7 +353,6 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	left := []*PolyTestImgInfo{}
-	thumbs = diffStore.ThumbAbsPath(positives)
 	for _, p := range positives {
 		left = append(left, &PolyTestImgInfo{
 			Thumb:  pathToURLConverter(thumbs[p]),
@@ -375,7 +377,9 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 				NumDiffPixels:    d.NumDiffPixels,
 				PixelDiffPercent: d.PixelDiffPercent,
 				MaxRGBADiffs:     d.MaxRGBADiffs,
-				DiffImgUrl:       pathToURLConverter(d.PixelDiffFilePath),
+				DiffImg:          pathToURLConverter(d.PixelDiffFilePath),
+				TopImg:           pathToURLConverter(full[u]),
+				LeftImg:          pathToURLConverter(full[pos]),
 			})
 
 		}
