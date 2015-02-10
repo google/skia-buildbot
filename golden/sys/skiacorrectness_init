@@ -11,8 +11,6 @@
 
 # Author: Joe Gregorio <jcgregorio@google.com>
 # Adapted for skiacorrectness by Stephan Altmueller <stephana@google.com>
-# Note (stephana): This uses the same directories as skiaperf for tile
-# storage and logging.
 #
 # Copied from /etc/init.d/skeleton and modified only the following
 # environment variables and updated the start-stop-daemon calls
@@ -24,11 +22,13 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia correctness application."
 NAME=skiacorrectness
-DATA_DIR="/var/lib/skiacorrectness"
-APP_DIR="/usr/local/share/skiacorrectness/"
+DATA_DIR="/mnt/pd0/data"
+SHARED_DIR="/usr/local/share/skiacorrectness"
+APP_DIR="$SHARED_DIR/app"
+RESOURCE_DIR="$SHARED_DIR"
 IMAGE_STORE="$DATA_DIR/imageStore"
-DAEMON=/home/perf/golib/bin/$NAME
-DAEMON_ARGS="--port=:8001 --log_dir=/var/log/logserver --tile_store_dir=$DATA_DIR/tileStore3 --static_dir=$APP_DIR --image_dir=$IMAGE_STORE --redis_host=localhost:6379 "
+DAEMON=/usr/local/bin/$NAME
+DAEMON_ARGS="--port=:8001 --log_dir=/var/log/logserver --tile_store_dir=$DATA_DIR/tileStore3 --static_dir=$APP_DIR --image_dir=$IMAGE_STORE --redis_host=localhost:6379 --oauth_cache_file=$DATA_DIR/correctness-google_storage_token.data --resources_dir=$RESOURCE_DIR  "
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -105,6 +105,17 @@ do_reload() {
 	return 0
 }
 
+#
+# Function to starts the daemon in the foreground and enables logging to
+# standard error. For debugging only.
+#
+do_debug() {
+	# This will run intil the user interrupts it on the command line.
+	CMD="$DAEMON $DAEMON_ARGS --logtostderr"
+	echo $CMD
+	sudo -u default $CMD
+}
+
 case "$1" in
   start)
 	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
@@ -156,9 +167,13 @@ case "$1" in
 		;;
 	esac
 	;;
+  # debug
+  debug)
+	do_debug
+	;;
   *)
 	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload|debug}" >&2
 	exit 3
 	;;
 esac

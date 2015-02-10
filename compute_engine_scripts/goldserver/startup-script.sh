@@ -1,8 +1,16 @@
 #! /bin/bash
 apt-get update
 apt-get upgrade -y
-apt-get install -y git
+apt-get install -y git mysql-client
 sudo apt-get -t wheezy-backports install -y redis-server
 sudo mkdir -p /mnt/pd0
 sudo /usr/share/google/safe_format_and_mount -m "mkfs.ext4 -F" /dev/disk/by-id/google-skia-gold-data /mnt/pd0
 sudo chmod 777 /mnt/pd0
+
+if [ ! -d "/mnt/pd0/data" ]; then
+  mkdir /mnt/pd0/data
+  chown default:default /mnt/pd0/data
+  chmod 755 /mnt/pd0/data
+  git clone https://skia.googlesource.com/skia/ /mnt/pd0/data/skia
+  chown -R default:default /mnt/pd0/data/skia
+fi

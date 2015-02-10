@@ -23,7 +23,7 @@ DESC="The Skia JSON ingest application."
 NAME=ingest
 DAEMON=/usr/local/bin/$NAME
 DATA_DIR="/mnt/pd0/data"
-DAEMON_ARGS="--git_repo_dir=$DATA_DIR/skia --log_dir=/var/log/logserver --status_dir=$DATA_DIR/ingest_status --tile_dir=$DATA_DIR/tileStore3  --run=golden"
+DAEMON_ARGS="--git_repo_dir=$DATA_DIR/skia --log_dir=/var/log/logserver --status_dir=$DATA_DIR/ingest_status --tile_dir=$DATA_DIR/tileStore3  --run=golden -oauth_cache_file=$DATA_DIR/ingest-google_storage_token.data"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -50,9 +50,9 @@ do_start()
 	#   0 if daemon has been started
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
-	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid perf --chdir /home/perf --test > /dev/null \
+	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid default --chdir $DATA_DIR --test > /dev/null \
 		|| return 1
-	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid perf --chdir /home/perf --exec $DAEMON -- \
+	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid default --chdir $DATA_DIR --exec $DAEMON -- \
 		$DAEMON_ARGS \
 		|| return 2
 	# Add code here, if necessary, that waits for the process to be ready
@@ -97,6 +97,17 @@ do_reload() {
 	#
 	start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
 	return 0
+}
+
+#
+# Function to starts the daemon in the foreground and enables logging to
+# standard error. For debugging only.
+#
+do_debug() {
+	# This will run intil the user interrupts it on the command line.
+	CMD="$DAEMON $DAEMON_ARGS --logtostderr"
+	echo $CMD
+	sudo -u default $CMD
 }
 
 case "$1" in
@@ -150,9 +161,13 @@ case "$1" in
 		;;
 	esac
 	;;
+  # debug
+  debug)
+	do_debug
+	;;
   *)
 	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload|debug}" >&2
 	exit 3
 	;;
 esac
