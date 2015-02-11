@@ -1,0 +1,416 @@
+<!-- The <zoom-sk> custom element declaration.
+
+This element is a pop-up view that allows zooming into images.
+The dialog displays the three images, left, top and diff, and
+then allows zooming and panning over various combinations
+of the images. There is a single pixel in the center of the zoomed
+view which is highlighted, and its information is displayed
+on the zoom dialog.
+
+There are three images that it deals with, called left, top, and diff.
+The left and top are coming from the grid view, and the diff is the
+diff between the two images.
+
+  Attributes:
+  Events:
+  Methods:
+    setDetails(details) - Sets the information the zoom dialog needs, which
+      is an object of the following form, where each member is a
+      URL of the full size image.
+
+      {
+        topImgUrl: "...",
+        leftImgUrl: "...",
+        diffImgUrl: "...",
+      }
+-->
+<polymer-element name="zoom-sk">
+  <template>
+    <style type="text/css" media="screen">
+      #dialog {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 90%;
+        display: none;
+        background: white;
+        margin: 2%;
+        border: solid 1px gray;
+        z-index: 100;
+        padding: 1%;
+        box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
+      }
+
+      #dialog.display {
+        display: block;
+      }
+
+      #smallImages crosshair-sk {
+        margin-right: 1em;
+      }
+
+      canvas {
+        border: solid lightgray 1px;
+      }
+
+      #fullImages {
+        display: none;
+      }
+
+      #smallImages {
+        margin-bottom: 0.3em;
+      }
+
+      .choice {
+        margin-bottom: 1em;
+      }
+
+      .options {
+        margin-right: 2em;
+      }
+
+      img {
+        width: 128px;
+      }
+
+      #nav {
+        font-size: 90%;
+        margin: 2em;
+        background: #ddd;
+      }
+    </style>
+    <div veritcal layout id=dialog>
+      <div horizontal layout id=smallImages>
+        <crosshair-sk id=topCrosshair>
+          <img id=top src="{{details.topImgUrl}}">
+        </crosshair-sk>
+        <crosshair-sk id=leftCrosshair>
+          <img id=left src="{{details.leftImgUrl}}">
+        </crosshair-sk>
+        <crosshair-sk id=diffCrosshair>
+          <img id=diff src="{{details.diffImgUrl}}">
+        </crosshair-sk>
+        <div class=options vertical layout>
+          <div class=choice>
+            <paper-checkbox id=topToggle toggles checked?="{{topChecked}}"></paper-checkbox> Left
+          </div>
+          <div class=choice>
+            <paper-checkbox id=leftToggle toggles checked?="{{leftChecked}}"></paper-checkbox> Top
+          </div>
+          <div class=choice>
+            <paper-checkbox id=diffToggle toggles checked?="{{diffChecked}}"></paper-checkbox> Diff
+          </div>
+        </div>
+      </div>
+      <div horizontal layout>
+        <canvas id=canvas width=640 height=480></canvas>
+        <div vertical layout end-justified>
+          <table border="0" cellspacing="5" cellpadding="5" id=nav>
+            <tr><th colspan=2>Naviation</th></tr>
+            <tr><th>H</th><td>Left</td></tr>
+            <tr><th>J</th><td>Down</td></tr>
+            <tr><th>K</th><td>Up</td></tr>
+            <tr><th>L</th><td>Right</td></tr>
+            <tr><th>A</th><td>Zoom In</td></tr>
+            <tr><th>Z</th><td>Zoom Out</td></tr>
+          </table>
+          <table border="0" cellspacing="5" cellpadding="5">
+            <tr><th>Coord</th><td><pre>({{x}}, {{y}})</pre><td></tr>
+            <tr><th>Top</th><td><pre>{{centerPixel.top}}</pre><td></tr>
+            <tr><th>Left</th><td><pre>{{centerPixel.left}}</pre><td></tr>
+            <tr><th>Diff</th><td><pre>{{centerPixel.diff}}</pre><td></tr>
+          </table>
+          <div horizontal layout end-justified>
+            <paper-button id=close>Close</paper-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    (function() {
+      // Convert the int to a 2 digit hex.
+      function hexify(i) {
+        var s = i.toString(16).toUpperCase();
+        // Pad out to two hex digits if necessary.
+        if (s.length < 2) {
+          s = '0' + s;
+        }
+        return s;
+      }
+
+      // Prefix the number with black spaces so
+      // that the total width is 4.
+      function spacify(i) {
+        var s = i+'';
+        for (var i=s.length; i<4; i++) {
+          s = ' '+s;
+        }
+        return s;
+      }
+
+      Polymer({
+        ready: function() {
+          var that=this;
+
+          this.details = {};
+
+          // The current coordinates of the highlighted pixel of the zoom on the image.
+          this.x = 0;
+          this.y = 0;
+
+          // How many pixels are displayed in the zoom canvas.
+          this.PIXELS = 64;
+
+          // How big is each zoom pixel on a side?
+          this.pixelSize = 0;
+
+          // The canvas context we are drawing the zoomed pixels on.
+          this.ctx = this.$.canvas.getContext('2d');
+          this.ctx.imageSmoothingEnabled = false;
+
+          // Contains the info about the highlighted pixel for each image.
+          this.centerPixel = {
+            top:  "",
+            left: "",
+            diff: ""
+          };
+
+          // The status of the checkboxes that control which image is being
+          // displayed in the zoomed view.
+          this.topChecked = true;
+          this.leftChecked = true;
+          this.diffChecked = false;
+
+          // Updated the checkbox status when any one of them is changed.
+          this.$.smallImages.addEventListener('core-change', function() {
+            that.topChecked = that.$.topToggle.checked;
+            that.leftChecked = that.$.leftToggle.checked;
+            that.diffChecked = that.$.diffToggle.checked;
+          });
+
+          // For each of the three images (top, left, diff) we need to copy
+          // them into a canvas so that we can read pixel values out. These
+          // are the canvas's.
+          this.topCopy = null;
+          this.leftCopy = null;
+          this.diffCopy = null;
+
+          // The current image being displayed in the zoom view. Will be
+          // one of topCopy, leftCopy, or diffCopy.
+          this.canvasCopy = null;
+
+          this.$.close.addEventListener('click', function() {
+            that.$.dialog.classList.remove('display');
+          });
+
+          // Update our x and y when the crosshair moves. Also update
+          // all the other crosshair elements.
+          this.$.smallImages.addEventListener('crosshair', function(e) {
+            that.x = e.detail.x;
+            that.y = e.detail.y;
+            $$('crosshair-sk', this).forEach(function(ele) {
+              ele.x = e.detail.x;
+              ele.y = e.detail.y;
+            });
+            that.drawZoom();
+          });
+
+          // Toggle the display among all the selected images.
+          var t = 0;
+          setInterval(function(){
+            var c = [];
+            if (that.topChecked) {
+              c.push(that.topCopy);
+            }
+            if (that.leftChecked) {
+              c.push(that.leftCopy);
+            }
+            if (that.diffChecked) {
+              c.push(that.diffCopy);
+            }
+            if (c.length > 0) {
+              t = (t+1)%c.length;
+              that.canvasCopy = c[t];
+              if (that.canvasCopy != null) {
+                that.drawZoom()
+              }
+            }
+          }, 500);
+
+          // Allow keyboard navigation for moving around the zoomed image.
+          document.body.addEventListener('keydown', function(e){
+            if (e.keyCode == 27) {
+              that.$.dialog.classList.remove('display');
+            }
+            var c = String.fromCharCode(e.keyCode);
+            switch (c) {
+              case "J":
+                that.y = that.y+1;
+                break;
+              case "K":
+                that.y = that.y-1;
+                break;
+              case "H":
+                that.x = that.x-1;
+                break;
+              case "L":
+                that.x = that.x+1;
+                break;
+              case "A":
+                that.PIXELS = Math.max(that.PIXELS/2, 8);
+                that.recalcPixelDims();
+                break;
+              case "Z":
+                that.PIXELS = Math.min(that.PIXELS*2, 128);
+                that.recalcPixelDims();
+                break;
+            }
+            if ("HJKLAZ".indexOf(c) != -1 ) {
+              that.drawZoom();
+              $$('crosshair-sk', that.$.smallImages).forEach(function(ele) {
+                ele.x = that.x;
+                ele.y = that.y;
+              });
+            }
+          });
+        },
+
+        drawZoom: function() {
+          this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+          var dx = this.pixelSize;
+          var dy = this.pixelSize;
+          this.ctx.lineWidth = 1;
+          this.ctx.strokeStyle = '#000';
+          // Draw out each pixel as a rect on the target canvas, as this works around
+          // FireFox doing a blur as it copies from one canvas to another.
+          var colors = this.canvasCopy.getContext('2d').getImageData(this.x-this.PIXELS/2, this.y-this.PIXELS/2, this.PIXELS, this.PIXELS).data;
+          for (var x=0; x<this.PIXELS; x++) {
+            for (var y=0; y<this.PIXELS; y++) {
+              // We use imgData.width, because getImageData seems to return what it likes.
+              var offset = (y*this.PIXELS+x)*4; // Offset into the colors array.
+              this.ctx.fillStyle = 'rgba(' + colors[offset] + ', ' + colors[offset+1] + ', ' + colors[offset+2] + ', ' + colors[offset+3]/255.0 + ')';
+              this.ctx.fillRect(x*dx, y*dy, dx-1, dy-1);
+              // Box and label one selected pixel with its rgba values.
+              if (x==this.PIXELS/2 && y == this.PIXELS/2) {
+                this.ctx.strokeRect(x*dx-0.5, y*dy-0.5, dx-1, dy-1);
+              }
+            }
+          }
+          // Fill out all the details about the current pixel in the box.
+          this.centerPixel = {
+            top: this.textFromImgName('topCopy'),
+            left: this.textFromImgName('leftCopy'),
+            diff: this.textOfDiff(),
+          }
+        },
+
+        // Returns the text describing the different between the highlighted
+        // pixels in top and left.
+        textOfDiff: function() {
+          if (this.topCopy != null && this.leftCopy != null) {
+            var top = this.topCopy.getContext('2d').getImageData(this.x, this.y, 1, 1).data;
+            var left = this.leftCopy.getContext('2d').getImageData(this.x, this.y, 1, 1).data;
+            var diff = new Uint8ClampedArray(4);
+            for (var i=0; i<4; i++) {
+              diff[i] = Math.abs(top[i] - left[i]);
+            }
+            return this.textFromColor(diff);
+          } else {
+            return "";
+          }
+        },
+
+        // Returns a description of the highlighted pixel of the given image,
+        // either 'topCopy' or 'leftCopy'.
+        textFromImgName: function(name) {
+          var canvas = this[name];
+          if (canvas) {
+            var colors = canvas.getContext('2d').getImageData(this.x, this.y, 1, 1).data;
+            return this.textFromColor(colors);
+          } else {
+            return ""
+          }
+        },
+
+        // Returns a description of a single pixels color information, passed in as a
+        // Uint8ClampedArray.
+        textFromColor: function(colors) {
+          return 'RGBA('
+              + spacify(colors[0]) + ', '
+              + spacify(colors[1]) + ', '
+              + spacify(colors[2]) + ', '
+              + spacify(colors[3]) + ')  #'
+            + hexify(colors[0])
+            + hexify(colors[1])
+            + hexify(colors[2])
+            + hexify(colors[3]);
+        },
+
+
+        // setDetails(details) - Sets the information the zoom dialog needs, which
+        //  is an object of the following form, where each member is a
+        //  URL of the full size image.
+        //
+        //  {
+        //    topImgUrl: "...",
+        //    leftImgUrl: "...",
+        //    diffImgUrl: "...",
+        //  }
+        setDetails: function(details) {
+          console.log(details);
+          var that=this;
+
+          // Load each image and when finished loading create a copy of the
+          // image in a canvas so we can read out pixel values.
+          if (this.details.topImgUrl != details.topImgUrl) {
+            this.$.top.src = "";
+            sk.imageLoaded(this.$.top).then(function(img) {
+              that.topCopy = document.createElement('canvas');
+              that.topCopy.width = img.naturalWidth;
+              that.topCopy.height = img.naturalHeight;
+              that.topCopy.getContext('2d').drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+            });
+          }
+          if (this.details.leftImgUrl != details.leftImgUrl) {
+            this.$.left.src = "";
+            sk.imageLoaded(this.$.left).then(function(img) {
+              that.leftCopy = document.createElement('canvas');
+              that.leftCopy.width = img.naturalWidth;
+              that.leftCopy.height = img.naturalHeight;
+              that.leftCopy.getContext('2d').drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+            });
+          }
+          if (this.details.diffImgUrl != details.diffImgUrl) {
+            this.$.diff.src = "";
+            sk.imageLoaded(this.$.diff).then(function(img) {
+              that.diffCopy = document.createElement('canvas');
+              that.diffCopy.width = img.naturalWidth;
+              that.diffCopy.height = img.naturalHeight;
+              that.diffCopy.getContext('2d').drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+            });
+          }
+          this.details = details;
+        },
+
+        // Toggles the visibility of the dialog.
+        toggle: function() {
+          this.$.dialog.classList.add('display');
+          this.recalcPixelDims();
+        },
+
+        // Sizes the canvas to display the desired number of zoom pixels
+        // in the available space.
+        recalcPixelDims: function() {
+          var width = this.$.dialog.clientWidth*0.95;
+          var height = (this.$.dialog.clientHeight-150)*0.9;
+          var size = Math.min(width, height);
+          this.pixelSize = Math.floor(size/this.PIXELS);
+          this.$.canvas.width = this.PIXELS*this.pixelSize;
+          this.$.canvas.height = this.PIXELS*this.pixelSize;
+        },
+
+      });
+    })();
+  </script>
+</polymer-element>
