@@ -63,7 +63,11 @@ web:
 	-mkdir -p app/fonts
 	cp $(GOLD_SRC_FONTS)/* app/fonts/
 
+.PHONY: release
+release: web skiacorrectness correctness_migratedb
+	./build_release "$(MESSAGE)"
+
 .PHONY: all
-all: skiacorrectness correctness_migratedb
+all: skiacorrectness correctness_migratedb web
 
 include ../webtools/webtools.mk
