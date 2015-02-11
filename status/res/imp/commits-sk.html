@@ -43,6 +43,7 @@
       text-align: left;
       height: 53px;
       padding: 5px;
+      white-space: nowrap;
     }
     tr.commit {
       font-size: 10px;
@@ -186,10 +187,10 @@
               <th colspan="{{builders.length}}">
                 Buildbot Results
                 <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
-                 <paper-radio-button name="hide" label="Hide"></paper-radio-button>
-                 <paper-radio-button name="interesting" label="Interesting"></paper-radio-button>
-                 <paper-radio-button name="failures" label="Failures"></paper-radio-button>
-                 <paper-radio-button name="all" label="All"></paper-radio-button>
+                  <paper-radio-button name="hide" label="Hide"></paper-radio-button>
+                  <paper-radio-button name="interesting" label="Interesting"></paper-radio-button>
+                  <paper-radio-button name="failures" label="Failures"></paper-radio-button>
+                  <paper-radio-button name="all" label="All"></paper-radio-button>
                 </paper-radio-group>
               </th>
             </thead>
@@ -203,15 +204,19 @@
                   <td>{{commit.author|shortAuthor}}</td>
                   <template repeat="{{builder in builders}}">
                     <td class="build">
-                      <template if="{{commit.builds[builder]}}">
-                        <a href="http://build.chromium.org/p/{{commit.builds[builder].master}}/builders/{{builder}}/builds/{{commit.builds[builder].number}}" class="build {{commit.builds[builder].displayClass}} result_{{commit.builds[builder].finished ? commit.builds[builder].results : 'running'}}" target="_blank"></a>
+                      <template if="{{buildDetails[commit.hash][builder]}}">
+                        <a
+                            href="http://build.chromium.org/p/{{buildDetails[commit.hash][builder].master}}/builders/{{builder}}/builds/{{buildDetails[commit.hash][builder].number}}"
+                            class="build {{commit.displayClass[builder]}} result_{{buildDetails[commit.hash][builder].finished ? buildDetails[commit.hash][builder].results : 'running'}}"
+                            target="_blank">
+                        </a>
                         <div class="tooltip tooltip_left">
-                          <p>{{builder}} #{{commit.builds[builder].number}}</p>
-                          <template if="{{commit.builds[builder].failedSteps && commit.builds[builder].failedSteps.length > 0}}">
+                          <p>{{builder}} #{{buildDetails[commit.hash][builder].number}}</p>
+                          <template if="{{buildDetails[commit.hash][builder].failedSteps && buildDetails[commit.hash][builder].failedSteps.length > 0}}">
                             <p>
                               Failed steps:<br/>
                               <ul>
-                                <template repeat="{{step in commit.builds[builder].failedSteps}}">
+                                <template repeat="{{step in buildDetails[commit.hash][builder].failedSteps}}">
                                   <li>{{step}}</li>
                                 </template>
                               </ul>
@@ -489,6 +494,7 @@
         this.builderFilter = "interesting";
         this.builders = [];
         this.builds = {};
+        this.buildDetails = {};
         this.commits = [];
         this.displayCommits = {};
         this.lastLoaded = "(not yet loaded)";
@@ -576,8 +582,11 @@
             var builder = this.allBuilders[i];
             var failed = false;
             var succeeded = false;
-            for (var buildnum in this.builds[builder]) {
-              var build = this.builds[builder][buildnum];
+            for (var buildNum in this.builds[builder]) {
+              var build = this.builds[builder][buildNum];
+              if (!build.finished) {
+                continue;
+              }
               if (build.results == 0) {
                 succeeded = true;
               } else {
@@ -665,10 +674,16 @@
           console.log("Preparing build data.");
           var builds = {};
           var builders = [];
+          var buildDetails = that.buildDetails;
+          for (var k in json.builds) {
+            buildDetails[k] = json.builds[k];
+          }
+
           for (var i = 0; i < commits.length; i++) {
             var commit = commits[i];
-            for (var builder in commit.builds) {
-              var build = commit.builds[builder];
+            commit.displayClass = {};
+            for (var builder in buildDetails[commit.hash]) {
+              var build = buildDetails[commit.hash][builder];
               if (!builds[builder]) {
                 builds[builder] = {};
                 builders.push(builder);
@@ -677,20 +692,22 @@
               // Figure out the display class to use.
               var clazz = "build_single";
               if (i > 0) {
-                var prevBuild = commits[i-1].builds[builder];
+                var prevCommit = commits[i-1];
+                var prevBuild = buildDetails[prevCommit.hash][builder];
                 if (prevBuild && prevBuild.number == build.number) {
                   clazz = "build_bottom";
-                  if (prevBuild.displayClass == "build_single") {
-                    prevBuild.displayClass = "build_top";
-                  } else if (prevBuild.displayClass == "build_bottom") {
-                    prevBuild.displayClass = "build_middle";
+                  if (prevCommit.displayClass[builder] == "build_single") {
+                    prevCommit.displayClass[builder] = "build_top";
+                  } else if (prevCommit.displayClass[builder] == "build_bottom") {
+                    prevCommit.displayClass[builder] = "build_middle";
                   }
                 }
               }
-              build.displayClass = clazz;
+              commit.displayClass[builder] = clazz;
             }
           }
           that.builds = builds;
+          that.buildDetails = buildDetails;
           that.allBuilders = builders;
           that.filterBuilders();
           if (that.autorollLast && that.autorollCurrent) {

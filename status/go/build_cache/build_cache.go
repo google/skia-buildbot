@@ -1,0 +1,103 @@
+package build_cache
+
+import (
+	"fmt"
+	"regexp"
+	"sync"
+
+	"github.com/skia-dev/glog"
+
+	"skia.googlesource.com/buildbot.git/go/buildbot"
+)
+
+/*
+	Utilities for caching buildbot data.
+*/
+
+var (
+	// Patterns indicating which bots to skip.
+	BOT_BLACKLIST = []*regexp.Regexp{
+		regexp.MustCompile(".*-Trybot"),
+		regexp.MustCompile(".*Housekeeper.*"),
+	}
+)
+
+// skipBot determines whether the given bot should be skipped.
+func skipBot(b string) bool {
+	for _, r := range BOT_BLACKLIST {
+		if r.MatchString(b) {
+			return true
+		}
+	}
+	return false
+}
+
+// BuildCache is a struct used for caching build data.
+type BuildCache struct {
+	byId     map[int]*buildbot.Build
+	byCommit map[string]map[string]*buildbot.BuildSummary
+	mutex    sync.RWMutex
+}
+
+// getBuilds loads the build data for the given commits.
+func getBuilds(commits []string) (map[int]*buildbot.Build, map[string]map[string]*buildbot.BuildSummary, error) {
+	builds, err := buildbot.GetBuildsForCommits(commits, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	byId := map[int]*buildbot.Build{}
+	byCommit := map[string]map[string]*buildbot.BuildSummary{}
+	for hash, buildList := range builds {
+		byBuilder := map[string]*buildbot.BuildSummary{}
+		for _, b := range buildList {
+			byId[b.Id] = b
+			if !skipBot(b.Builder) {
+				byBuilder[b.Builder] = b.GetSummary()
+			}
+		}
+		byCommit[hash] = byBuilder
+	}
+	return byId, byCommit, nil
+}
+
+// Update reloads build data for the given commits, throwing away any others.
+func (c *BuildCache) Update(commits []string) error {
+	glog.Infof("Updating build cache.")
+	byId, byCommit, err := getBuilds(commits)
+	if err != nil {
+		return fmt.Errorf("Failed to update build cache: %v", err)
+	}
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.byId = byId
+	c.byCommit = byCommit
+	glog.Infof("Finished updating build cache.")
+	return nil
+}
+
+// GetBuildsForCommits returns the build data for the given commits.
+func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[string]*buildbot.BuildSummary, error) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	rv := map[string]map[string]*buildbot.BuildSummary{}
+	missing := []string{}
+	for _, hash := range commits {
+		builds, ok := c.byCommit[hash]
+		if ok {
+			rv[hash] = builds
+		} else {
+			missing = append(missing, hash)
+		}
+	}
+	if len(missing) > 0 {
+		glog.Warningf("Missing build data for some commits; loading now (%v)", missing)
+		_, byCommit, err := getBuilds(missing)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to load missing builds: %v", err)
+		}
+		for hash, byBuilder := range byCommit {
+			rv[hash] = byBuilder
+		}
+	}
+	return rv, nil
+}

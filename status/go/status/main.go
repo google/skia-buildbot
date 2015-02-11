@@ -181,15 +181,26 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func makeHandler(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		url := r.URL.Path
+		if r.URL.RawQuery != "" {
+			url += "?" + r.URL.RawQuery
+		}
+		glog.Infof("%s: %s from %s", r.Method, url, r.RemoteAddr)
+		f(w, r)
+	}
+}
+
 func runServer(serverURL string) {
-	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
-	http.HandleFunc("/", commitsHandler)
-	http.HandleFunc("/json/autoroll", autorollJsonHandler)
-	http.HandleFunc("/json/commits", commitsJsonHandler)
-	http.HandleFunc("/json/version", skiaversion.JsonHandler)
-	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	http.HandleFunc("/logout/", login.LogoutHandler)
-	http.HandleFunc("/loginstatus/", login.StatusHandler)
+	http.HandleFunc("/res/", makeHandler(autogzip.HandleFunc(makeResourceHandler())))
+	http.HandleFunc("/", makeHandler(commitsHandler))
+	http.HandleFunc("/json/autoroll", makeHandler(autorollJsonHandler))
+	http.HandleFunc("/json/commits", makeHandler(commitsJsonHandler))
+	http.HandleFunc("/json/version", makeHandler(skiaversion.JsonHandler))
+	http.HandleFunc("/oauth2callback/", makeHandler(login.OAuth2CallbackHandler))
+	http.HandleFunc("/logout/", makeHandler(login.LogoutHandler))
+	http.HandleFunc("/loginstatus/", makeHandler(login.StatusHandler))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
@@ -239,13 +250,16 @@ func main() {
 
 	// Initialize the buildbot database.
 	conf, err := database.ConfigFromFlagsAndMetadata(*testing, buildbot.MigrationSteps())
+	if err != nil {
+		glog.Fatal(err)
+	}
 	if err := buildbot.InitDB(conf); err != nil {
 		glog.Fatal(err)
 	}
 	glog.Infof("Database config: %s", conf.MySQLString)
 
 	// Create the commit cache.
-	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache"), DEFAULT_COMMITS_TO_LOAD)
+	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
