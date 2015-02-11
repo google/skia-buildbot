@@ -55,15 +55,21 @@ between two images.
       #diffInfo.display {
         display: block;
       }
+      table {
+        margin: auto;
+      }
+      .diffThumb,
+      #zoom {
+        display: inline-block;
+      }
     </style>
     <div id=diffInfo vertical layout>
-      <div>
-        <table border="0" cellspacing="5" cellpadding="5">
-          <tr><th>Pixel Diff (%)</th><td>{{highlight.pixelDiffPercent}}</td></tr>
-          <tr><th>Num Diff Pixels</th><td>{{highlight.numDiffPixels}}</td></tr>
-          <tr><th>Max RBBA Diffs</th><td>{{highlight.maxRGBADiffs}}</td></tr>
-        </table>
-      </div>
+      <table border="0" cellspacing="5" cellpadding="5">
+        <tr><th>Pixel Diff (%)</th><td>{{highlight.pixelDiffPercent}}</td></tr>
+        <tr><th>Num Diff Pixels</th><td>{{highlight.numDiffPixels}}</td></tr>
+        <tr><th>Max RBBA Diffs</th><td>{{highlight.maxRGBADiffs}}</td></tr>
+        <tr><th>Diff</th><td><img id=diffThumb src="{{highlight.thumb}}"></td><td><paper-button id=zoom>Zoom</paper-button></td></tr>
+      </table>
       <div id=params>
         <table>
           <tr>
@@ -72,9 +78,14 @@ between two images.
             <th>Top</th>
           </tr>
           <tr>
-            <td></td>
+            <th>Status</th>
             <td><tri-sk id=leftDetail value="untriaged" title="{{value.left}}"></tri-sk> </td>
             <td><tri-sk id=topDetail value="untriaged" title="{{value.top}}"></tri-sk></td>
+          </tr>
+          <tr>
+            <th>Image</th>
+            <td><img src="/img/images/{{value.left}}-thumbnail.png"></td>
+            <td><img src="/img/images/{{value.top}}-thumbnail.png"></td>
           </tr>
 
           <template repeat="{{p in details.params}}">
@@ -95,6 +106,7 @@ between two images.
         </table>
       </div>
     </div>
+    <zoom-sk id=zoomer></zoom-sk>
   </template>
   <script>
     Polymer({
@@ -130,6 +142,10 @@ between two images.
             status: e.detail,
           };
           that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
+        });
+        this.$.zoom.addEventListener('click', function() {
+          that.$.zoomer.setDetails(that.highlight);
+          that.$.zoomer.toggle();
         });
       },
 
