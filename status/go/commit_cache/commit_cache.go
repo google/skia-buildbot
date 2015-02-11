@@ -29,7 +29,7 @@ func init() {
 // the repository.
 type CommitCache struct {
 	BranchHeads []*gitinfo.GitBranch
-	buildCache  build_cache.BuildCache
+	buildCache  *build_cache.BuildCache
 	cacheFile   string
 	Commits     []*gitinfo.LongCommit
 	mutex       sync.RWMutex
@@ -76,6 +76,7 @@ func New(repo *gitinfo.GitInfo, cacheFile string, requestSize int) (*CommitCache
 		glog.Warningf("Failed to read commit cache from file; starting from scratch. Error: %v", err)
 		c = &CommitCache{}
 	}
+	c.buildCache = &build_cache.BuildCache{}
 	c.cacheFile = cacheFile
 	c.repo = repo
 	c.requestSize = requestSize
@@ -217,4 +218,9 @@ func (c *CommitCache) LastNAsJson(w io.Writer, n int) error {
 		start = 0
 	}
 	return c.RangeAsJson(w, start, end)
+}
+
+// BuildCache returns the BuildCache associated with this CommitCache.
+func (c *CommitCache) BuildCache() *build_cache.BuildCache {
+	return c.buildCache
 }

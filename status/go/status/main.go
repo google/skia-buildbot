@@ -191,17 +191,16 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: float64(time.Now().UTC().Unix()),
 		Comment:   string(comment),
 	}
-	id, err := buildbot.AddBuildComment(&c)
+	build, err := commitCache.BuildCache().Get(int(buildId))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
-	rv := struct {
-		Id int `json:"id"`
-	}{
-		Id: id,
+	build.Comments = append(build.Comments, &c)
+	if err := build.ReplaceIntoDB(); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
 	}
-	json.NewEncoder(w).Encode(rv)
 }
 
 func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
@@ -215,7 +214,28 @@ func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := buildbot.DeleteBuildComment(int64(id)); err != nil {
+	buildId, err := strconv.ParseInt(mux.Vars(r)["buildId"], 10, 32)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid build id: %v", err))
+		return
+	}
+	build, err := commitCache.BuildCache().Get(int(buildId))
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
+		return
+	}
+	idx := -1
+	for i, c := range build.Comments {
+		if c.Id == int(id) {
+			idx = i
+		}
+	}
+	if idx < 0 {
+		util.ReportError(w, r, err, fmt.Sprintf("No such comment."))
+		return
+	}
+	build.Comments = append(build.Comments[:idx], build.Comments[idx+1:]...)
+	if err := build.ReplaceIntoDB(); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}

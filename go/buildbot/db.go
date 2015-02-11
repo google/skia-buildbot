@@ -491,7 +491,7 @@ func (b *Build) replaceIntoDB() (rv error) {
 		commentsTmpl := util.RepeatJoin(fmt.Sprintf("(%s)", commentTmpl), ",", len(b.Comments))
 		flattenedComments := make([]interface{}, 0, commentFields*len(b.Comments))
 		for _, c := range b.Comments {
-			flattenedComments = append(flattenedComments, b.Id, c)
+			flattenedComments = append(flattenedComments, b.Id, c.User, c.Timestamp, c.Comment)
 		}
 		if _, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (buildId,user,timestamp,comment) VALUES %s", TABLE_BUILD_COMMENTS, commentsTmpl), flattenedComments...); err != nil {
 			return fmt.Errorf("Unable to push comments into database: %v", err)
@@ -531,25 +531,4 @@ func NumIngestedBuilds() (int, error) {
 		return 0, fmt.Errorf("Unable to find the number of ingested builds: %s", err)
 	}
 	return i, nil
-}
-
-// AddBuildComment inserts the given comment into the database.
-func AddBuildComment(c *BuildComment) (int, error) {
-	res, err := DB.Exec(fmt.Sprintf("INSERT INTO %s (buildId,user,timestamp,comment) VALUES (?,?,?,?);", TABLE_BUILD_COMMENTS), c.BuildId, c.User, c.Timestamp, c.Comment)
-	if err != nil {
-		return -1, fmt.Errorf("Unable to insert build comment: %v", err)
-	}
-	id, err := res.LastInsertId()
-	if err != nil {
-		return -1, fmt.Errorf("Failed to get last insert id: %v", err)
-	}
-	return int(id), nil
-}
-
-// DeleteBuildComment removes the given comment from the database.
-func DeleteBuildComment(id int64) error {
-	if _, err := DB.Exec(fmt.Sprintf("DELETE FROM %s WHERE id = ?;", TABLE_BUILD_COMMENTS), id); err != nil {
-		return fmt.Errorf("Unable to delete build comment: %v", err)
-	}
-	return nil
 }

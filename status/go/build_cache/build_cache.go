@@ -115,3 +115,22 @@ func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[strin
 	}
 	return byCommit, builders, nil
 }
+
+// Get returns the build with the given ID.
+func (c *BuildCache) Get(id int) (*buildbot.Build, error) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	b, ok := c.byId[id]
+	if ok {
+		return b, nil
+	}
+	glog.Warningf("Missing build with id %d; loading now.", id)
+	builds, err := buildbot.GetBuildsFromDB([]int{id})
+	if err != nil {
+		return nil, err
+	}
+	if b, ok := builds[id]; ok {
+		return b, nil
+	}
+	return nil, fmt.Errorf("No such build: %d", id)
+}
