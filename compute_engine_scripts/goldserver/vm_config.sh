@@ -5,6 +5,8 @@
 #
 # Copyright 2014 Google Inc. All Rights Reserved.
 
+set -e
+
 # Sets all constants in compute_engine_cfg.py as env variables.
 $(python ../compute_engine_cfg.py)
 if [ $? != "0" ]; then
@@ -12,12 +14,34 @@ if [ $? != "0" ]; then
   exit 1
 fi
 
+case "$1" in
+  prod)
+	GOLD_MACHINE_TYPE=n1-highmem-16
+	GOLD_IP_ADDRESS=104.154.112.104
+	GOLD_DATA_DISK_SIZE="2TB"
+	;;
+
+  stage)
+	GOLD_MACHINE_TYPE=n1-highmem-4
+	GOLD_IP_ADDRESS=104.154.112.105
+	GOLD_DATA_DISK_SIZE="500GB"
+	;;
+  *)
+	# There must be a target instance id provided.
+	echo "Usage: $0 {prod | stage}"
+	echo "   An instance id must be provided as the first argument."
+	exit 1
+	;;
+
+esac
+
 # The base names of the VM instances. Actual names are VM_NAME_BASE-name-zone
 VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # The name of instance where gold is running on.
-INSTANCE_NAME=${VM_NAME_BASE}-gold
-
-GOLD_MACHINE_TYPE=n1-highmem-16
+INSTANCE_NAME=${VM_NAME_BASE}-gold-$1
 GOLD_SOURCE_SNAPSHOT=skia-pushable-base
-GOLD_IP_ADDRESS=104.154.112.103
+GOLD_DATA_DISK_NAME="$INSTANCE_NAME-data"
+
+# Remove the startup script and generate a new one with the right disk name.
+sed "s/GOLD_DATA_DISK_NAME/${GOLD_DATA_DISK_NAME}/g" startup-script.sh.template > startup-script.sh

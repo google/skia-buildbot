@@ -13,8 +13,8 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
   --type "pd-standard"
 
 # Create a large data disk.
-gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
-  --size "2TB" \
+gcloud compute --project $PROJECT_ID disks create $GOLD_DATA_DISK_NAME \
+  --size $GOLD_DATA_DISK_SIZE \
   --zone $ZONE \
   --type "pd-standard"
 
@@ -26,6 +26,6 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --scopes $SCOPES \
   --tags "http-server" "https-server" \
   --disk name=${INSTANCE_NAME}      device-name=${INSTANCE_NAME}      "mode=rw" "boot=yes" "auto-delete=yes" \
-  --disk name=${INSTANCE_NAME}-data device-name=${INSTANCE_NAME}-data "mode=rw" "boot=no" \
+  --disk name=${GOLD_DATA_DISK_NAME} device-name=${GOLD_DATA_DISK_NAME} "mode=rw" "boot=no" \
   --metadata-from-file "startup-script=startup-script.sh" \
   --address $GOLD_IP_ADDRESS

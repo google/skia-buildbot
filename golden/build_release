@@ -15,10 +15,7 @@ ${INSTALL} --mode=755 -T ${GOPATH}/bin/correctness_migratedb   ${ROOT}/usr/local
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/skiacorrectness         ${ROOT}/usr/local/bin/skiacorrectness
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/ingest                  ${ROOT}/usr/local/bin/ingest
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/tiletool                ${ROOT}/usr/local/bin/tiletool
-
-${INSTALL} --mode=644 -T ./sys/skiacorrectness_monit           ${ROOT}/etc/monit/conf.d/skiacorrectness
-${INSTALL} --mode=755 -T ./sys/skiacorrectness_init            ${ROOT}/etc/init.d/skiacorrectness
-${INSTALL} --mode=755 -T ./sys/ingest_init                     ${ROOT}/etc/init.d/ingest
+${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb          ${ROOT}/usr/local/bin/perf_migratedb
 
 ${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/templates
 ${INSTALL}     --mode=644 ./templates/*                        ${ROOT}/usr/local/share/skiacorrectness/templates
