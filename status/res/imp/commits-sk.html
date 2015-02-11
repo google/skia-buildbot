@@ -102,27 +102,6 @@
       margin: 0px 1px 3px 1px;
       height: 16px;
     }
-    a.result_running { /* Still running */
-      background-color: #E6AB02;
-    }
-    a.result_0 { /* Success */
-      background-color: #66A61E;
-    }
-    a.result_1 { /* Warnings */
-      background-color: #66A61E;
-    }
-    a.result_2 { /* Failed */
-      background-color: #D95F02;
-    }
-    a.result_3 { /* Skipped */
-      background-color: #E7298A;
-    }
-    a.result_4 { /* Exception */
-      background-color: #7570B3;
-    }
-    a.result_5 { /* Exception */
-      background-color: #7570B3;
-    }
     div.tooltip_left {
       transform: translate(-80%, 0);
       -webkit-transform: translate(-80%, 0);
@@ -206,23 +185,14 @@
                     <td class="build">
                       <template if="{{buildDetails[commit.hash][builder]}}">
                         <a
-                            href="http://build.chromium.org/p/{{buildDetails[commit.hash][builder].master}}/builders/{{builder}}/builds/{{buildDetails[commit.hash][builder].number}}"
-                            class="build {{commit.displayClass[builder]}} result_{{buildDetails[commit.hash][builder].finished ? buildDetails[commit.hash][builder].results : 'running'}}"
+                            id="openbuild|{{commit.hash}}|{{builder}}"
+                            href="#"
+                            class="build {{commit.displayClass[builder]}}"
+                            onClick="return false;"
+                            on-click="{{toggleBuildPopup}}"
+                            style="background-color: {{buildDetails[commit.hash][builder].color}};"
                             target="_blank">
                         </a>
-                        <div class="tooltip tooltip_left">
-                          <p>{{builder}} #{{buildDetails[commit.hash][builder].number}}</p>
-                          <template if="{{buildDetails[commit.hash][builder].failedSteps && buildDetails[commit.hash][builder].failedSteps.length > 0}}">
-                            <p>
-                              Failed steps:<br/>
-                              <ul>
-                                <template repeat="{{step in buildDetails[commit.hash][builder].failedSteps}}">
-                                  <li>{{step}}</li>
-                                </template>
-                              </ul>
-                            </p>
-                          </template>
-                        </div>
                       </template>
                     </td>
                   </template>
@@ -237,6 +207,7 @@
         <core-icon-button id="moreButton" icon="expand-more" on-click="{{loadMore}}"></core-icon-button>
         <paper-spinner id="loading" active></paper-spinner>
       </div>
+      <build-popup-sk id="buildPopup"></build-popup-sk>
     </div>
   </template>
   <script>
@@ -609,6 +580,21 @@
         this.builders = filteredBuilders;
       },
 
+      // Toggle the build popup.
+      toggleBuildPopup: function(e, d, s) {
+        var split = s.id.split("|");
+        if (split.length != 3) {
+          throw "Invalid id: " + s;
+        }
+        var commit = split[1];
+        var builder = split[2];
+        var build = this.buildDetails[commit][builder];
+        if (build) {
+          this.$.buildPopup.build = build;
+          this.$.buildPopup.toggle();
+        }
+      },
+
       // Reload the commits. If the startIdx and endIdx parameters are given,
       // loads the commits in that range. If not, load the most recent N
       // commits, where N is the default number returned by the server.
@@ -684,6 +670,15 @@
             commit.displayClass = {};
             for (var builder in buildDetails[commit.hash]) {
               var build = buildDetails[commit.hash][builder];
+              if (!build.finished) {
+                build.color = "#E6AB02";
+              } else if (build.results == 0 || build.results == 1 || build.results == 3) {
+                build.color = "#66A61E";
+              } else if (build.results == 2) {
+                build.color = "#D95F02";
+              } else if (build.results == 4 || build.results == 5) {
+                build.color = "#7570B3";
+              }
               if (!builds[builder]) {
                 builds[builder] = {};
                 builders.push(builder);
@@ -693,13 +688,16 @@
               var clazz = "build_single";
               if (i > 0) {
                 var prevCommit = commits[i-1];
-                var prevBuild = buildDetails[prevCommit.hash][builder];
-                if (prevBuild && prevBuild.number == build.number) {
-                  clazz = "build_bottom";
-                  if (prevCommit.displayClass[builder] == "build_single") {
-                    prevCommit.displayClass[builder] = "build_top";
-                  } else if (prevCommit.displayClass[builder] == "build_bottom") {
-                    prevCommit.displayClass[builder] = "build_middle";
+                var prevDetails = buildDetails[prevCommit.hash];
+                if (prevDetails) {
+                  var prevBuild = prevDetails[builder];
+                  if (prevBuild && prevBuild.number == build.number) {
+                    clazz = "build_bottom";
+                    if (prevCommit.displayClass[builder] == "build_single") {
+                      prevCommit.displayClass[builder] = "build_top";
+                    } else if (prevCommit.displayClass[builder] == "build_bottom") {
+                      prevCommit.displayClass[builder] = "build_middle";
+                    }
                   }
                 }
               }
