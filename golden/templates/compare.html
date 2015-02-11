@@ -63,7 +63,7 @@
         display: block;
       }
 
-      html /deep/ #leftControl {
+      html /deep/ #leftFilter {
         margin-top: 64px;
       }
 
@@ -72,11 +72,11 @@
         margin: 5px;
       }
 
-      #leftControl {
+      #leftFilter {
         margin-right: 1em;
       }
 
-      #topControl {
+      #topFilter {
         margin-bottom: 1em;
         display: block;
       }
@@ -88,15 +88,15 @@
       {{template "titlebar.html" .}}
 
       <div id=page horizontal layout>
-        <div id=leftControl vertical layout>
-          <tri-sk vert filter value=positive></tri-sk>
+        <div vertical layout>
+          <tri-sk id=leftFilter vert filter value=positive></tri-sk>
           <paper-button title="Filter" class=square><core-icon icon=search></core-icon> </paper-button>
           <paper-button title="Sort by the number of times a digest appears." class=square><core-icon icon=sort></core-icon>N </paper-button>
         </div>
 
         <div flex verical layout>
           <div flex horizontal layout>
-            <tri-sk id=topControl filter value=untriaged></tri-sk>
+            <tri-sk id=topFilter filter value=untriaged></tri-sk>
             <paper-button title="Filter" class=square><core-icon icon=search></core-icon> </paper-button>
             <paper-button title="Sort by number of pixels that are different from the first image on the right hand side."  class=square><core-icon icon=sort></core-icon>&Delta; </paper-button>
           </div>
@@ -113,6 +113,9 @@
 
     <script type="text/javascript" charset="utf-8">
      (function() {
+       var topFilter = "untriaged";
+       var leftFilter = "positive";
+
        // Strip off the /testname from the URL.
        var re = new RegExp("/2/cmp/(.*)", "");
        var s = window.location.pathname;
@@ -124,8 +127,18 @@
 
        function loadGrid() {
          if (testName != '') {
-           sk.post('/2/_/test', JSON.stringify({"test": testName})).then(JSON.parse).then(function(json) {
+           var body = {
+             "test": testName,
+             "topFilter": topFilter,
+             "leftFilter": leftFilter,
+           };
+           sk.post('/2/_/test', JSON.stringify(body)).then(JSON.parse).then(function(json) {
              $$$('grid-sk').setValue(json);
+             $$$('diff-detail-sk').hide();
+             if (json.message != "") {
+               $$$('paper-toast').text = json.message;
+               $$$('paper-toast').show();
+             }
            }).catch(function(e) {
              $$$('paper-toast').text = e;
              $$$('paper-toast').show();
@@ -160,6 +173,16 @@
        });
 
        $$$('#refresh').addEventListener('click', function(e) {
+         loadGrid();
+       });
+
+       $$$('#topFilter').addEventListener('change', function(e) {
+         topFilter = e.detail;
+         loadGrid();
+       });
+
+       $$$('#leftFilter').addEventListener('change', function(e) {
+         leftFilter = e.detail;
          loadGrid();
        });
      })();

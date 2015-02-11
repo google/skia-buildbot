@@ -221,7 +221,9 @@ func polyCompareHandler(w http.ResponseWriter, r *http.Request) {
 
 // PolyTestRequest is the POST'd request body handled by polyTestHandler.
 type PolyTestRequest struct {
-	Test string `json:"test"`
+	Test       string `json:"test"`
+	TopFilter  string `json:"topFilter"`
+	LeftFilter string `json:"LeftFilter"`
 }
 
 // PolyTestImgInfo info about a single source digest. Used in PolyTestGUI.
@@ -246,9 +248,10 @@ type PolyTestDiffInfo struct {
 
 // PolyTestGUI serialized as JSON is the response body from polyTestHandler.
 type PolyTestGUI struct {
-	Top  []*PolyTestImgInfo    `json:"top"`
-	Left []*PolyTestImgInfo    `json:"left"`
-	Grid [][]*PolyTestDiffInfo `json:"grid"`
+	Top     []*PolyTestImgInfo    `json:"top"`
+	Left    []*PolyTestImgInfo    `json:"left"`
+	Grid    [][]*PolyTestDiffInfo `json:"grid"`
+	Message string                `json:"message"`
 }
 
 // polyTestHandler returns a JSON description for the given test.
@@ -257,6 +260,8 @@ type PolyTestGUI struct {
 //
 //   {
 //      test: The name of the test.
+//      topFilter=["positive", "negative", "untriaged"]
+//      leftFilter=["positive", "negative", "untriaged"]
 //   }
 //
 // TODO
@@ -273,7 +278,8 @@ type PolyTestGUI struct {
 //   "grid": [
 //     [diff1A, diff2A, ...],
 //     [diff1B, diff2B, ...],
-//   ]
+//   ],
+//   info: "Could be error or warning.",
 // }
 //
 // Where imgN is serialized PolyTestImgInfo, and
@@ -286,6 +292,13 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	if err := parseJson(r, req); err != nil {
 		util.ReportError(w, r, err, "Failed to parse JSON request.")
 		return
+	}
+
+	if req.TopFilter == "" {
+		req.TopFilter = "untriaged"
+	}
+	if req.LeftFilter == "" {
+		req.LeftFilter = "positive"
 	}
 
 	// Get all the digests. This should get generalized in a later CL to accept
@@ -318,68 +331,69 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	t.Stop()
+	digestsByStatus := map[string][]string{
+		"untriaged": untriaged,
+		"positive":  positives,
+		"negative":  negatives,
+	}
+
+	topDigests := digestsByStatus[req.TopFilter]
+	leftDigests := digestsByStatus[req.LeftFilter]
 
 	// For now sorting is done by string compare of the digest, just so we
 	// have a stable display.
-	sort.Strings(untriaged)
-	sort.Strings(positives)
-
-	if len(untriaged) == 0 {
-		untriaged = positives
-	}
-	if len(positives) == 0 {
-		positives = untriaged
-	}
+	sort.Strings(topDigests)
+	sort.Strings(leftDigests)
 
 	// Limit to 5x5 grids for now.
-	if len(untriaged) > 5 {
-		untriaged = untriaged[:5]
+	if len(topDigests) > 5 {
+		topDigests = topDigests[:5]
 	}
-	if len(positives) > 5 {
-		positives = positives[:5]
+	if len(leftDigests) > 5 {
+		leftDigests = leftDigests[:5]
 	}
 
-	allDigests := util.UnionStrings(untriaged, positives)
+	allDigests := util.UnionStrings(topDigests, leftDigests)
 	thumbs := diffStore.ThumbAbsPath(allDigests)
 	full := diffStore.AbsPath(allDigests)
 
 	// Fill in our GUI response struct.
 	top := []*PolyTestImgInfo{}
-	for _, u := range untriaged {
+	for _, t := range topDigests {
 		top = append(top, &PolyTestImgInfo{
-			Thumb:  pathToURLConverter(thumbs[u]),
-			Digest: u,
+			Thumb:  pathToURLConverter(thumbs[t]),
+			Digest: t,
 		})
 	}
 
 	left := []*PolyTestImgInfo{}
-	for _, p := range positives {
+	for _, l := range leftDigests {
 		left = append(left, &PolyTestImgInfo{
-			Thumb:  pathToURLConverter(thumbs[p]),
-			Digest: p,
+			Thumb:  pathToURLConverter(thumbs[l]),
+			Digest: l,
 		})
 	}
 
 	grid := [][]*PolyTestDiffInfo{}
-	for _, pos := range positives {
+	for _, l := range leftDigests {
 		row := []*PolyTestDiffInfo{}
-		diffs, err := diffStore.Get(pos, untriaged)
+		diffs, err := diffStore.Get(l, topDigests)
 		if err != nil {
 			glog.Errorf("Failed to do diffs: %s", err)
 			continue
 		}
-		for _, u := range untriaged {
-			d := diffs[u]
+		for _, t := range topDigests {
+			d := diffs[t]
 			row = append(row, &PolyTestDiffInfo{
 				Thumb:            pathToURLConverter(d.ThumbnailPixelDiffFilePath),
-				TopDigest:        u,
-				LeftDigest:       pos,
+				TopDigest:        t,
+				LeftDigest:       l,
 				NumDiffPixels:    d.NumDiffPixels,
 				PixelDiffPercent: d.PixelDiffPercent,
 				MaxRGBADiffs:     d.MaxRGBADiffs,
 				DiffImg:          pathToURLConverter(d.PixelDiffFilePath),
-				TopImg:           pathToURLConverter(full[u]),
-				LeftImg:          pathToURLConverter(full[pos]),
+				TopImg:           pathToURLConverter(full[t]),
+				LeftImg:          pathToURLConverter(full[l]),
 			})
 
 		}
@@ -390,6 +404,9 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		Top:  top,
 		Left: left,
 		Grid: grid,
+	}
+	if len(p.Top) == 0 || len(p.Left) == 0 {
+		p.Message = "Failed to find images that match those filters."
 	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
