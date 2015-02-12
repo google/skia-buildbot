@@ -13,13 +13,11 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-
-	"github.com/skia-dev/glog"
-
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/ct/go/util"
 	"skia.googlesource.com/buildbot.git/go/common"
 )
@@ -204,7 +202,7 @@ func main() {
 				maxResourceMissingCount = count
 			}
 		}
-		if percentageChange > 10 || maxResourceMissingCount > 10 {
+		if percentageChange > 10 || maxResourceMissingCount > 20 {
 			glog.Infof("The archive for %s is inconsistent!", fileInfo.Name())
 			inconsistentArchives = append(inconsistentArchives, fileInfo.Name())
 		}
@@ -219,6 +217,9 @@ func main() {
 }
 
 func getPercentageChange(values []float64) float64 {
+	if len(values) == 0 {
+		return 0
+	}
 	smallest := values[0]
 	largest := values[0]
 	for _, value := range values {
