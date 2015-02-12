@@ -224,6 +224,8 @@ type PolyTestRequest struct {
 	Test       string `json:"test"`
 	TopFilter  string `json:"topFilter"`
 	LeftFilter string `json:"LeftFilter"`
+	TopQuery   string `json:"topQuery"`
+	LeftQuery  string `json:"leftQuery"`
 }
 
 // PolyTestImgInfo info about a single source digest. Used in PolyTestGUI.
@@ -260,6 +262,47 @@ type PolyTestGUI struct {
 	Left    []*PolyTestImgInfo    `json:"left"`
 	Grid    [][]*PolyTestDiffInfo `json:"grid"`
 	Message string                `json:"message"`
+}
+
+// imgInfo returns a populated slice of PolyTestImgInfo based on the filter and
+// queryString passed in.
+func imgInfo(filter, queryString, testName string, e types.TestClassification, max int) ([]*PolyTestImgInfo, error) {
+	query, err := url.ParseQuery(queryString)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse Query in imgInfo: %s", err)
+	}
+	query["name"] = []string{testName}
+
+	t := timer.New("tallies.ByQuery")
+	digests, err := tallies.ByQuery(query)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
+	}
+	glog.Infof("Num Digests: %d", len(digests))
+	t.Stop()
+
+	label := types.LabelFromString(filter)
+	// Now filter digests by their expectations status here.
+	t = timer.New("apply expectations")
+	ret := []*PolyTestImgInfo{}
+	for digest, n := range digests {
+		if e[digest] != label {
+			continue
+		}
+		p := &PolyTestImgInfo{
+			Digest: digest,
+			N:      n,
+		}
+		ret = append(ret, p)
+	}
+	t.Stop()
+
+	sort.Sort(PolyTestImgInfoSlice(ret))
+
+	if len(ret) > max {
+		ret = ret[:max]
+	}
+	return ret, nil
 }
 
 // polyTestHandler returns a JSON description for the given test.
@@ -301,70 +344,17 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse JSON request.")
 		return
 	}
-
-	if req.TopFilter == "" {
-		req.TopFilter = "untriaged"
-	}
-	if req.LeftFilter == "" {
-		req.LeftFilter = "positive"
-	}
-
-	// Get all the digests. This should get generalized in a later CL to accept
-	// queries, sorting, and to allow choosing which types of digests go on the
-	// top and the left of the grid.
-	t := timer.New("tallies.ByQuery")
-	digests, _ := tallies.ByQuery(url.Values{"name": []string{req.Test}})
-	glog.Infof("Num Digests: %d", len(digests))
-	t.Stop()
-
-	// Now filter digests by their expectations status here.
-	t = timer.New("apply expectations")
 	exp, err := expStore.Get(false)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load expectations.")
 		return
 	}
 	e := exp.Tests[req.Test]
-	untriaged := []*PolyTestImgInfo{}
-	positives := []*PolyTestImgInfo{}
-	negatives := []*PolyTestImgInfo{}
-	for digest, n := range digests {
-		p := &PolyTestImgInfo{
-			Digest: digest,
-			N:      n,
-		}
-		switch e[digest] {
-		case types.UNTRIAGED:
-			untriaged = append(untriaged, p)
-		case types.POSITIVE:
-			positives = append(positives, p)
-		case types.NEGATIVE:
-			negatives = append(negatives, p)
-		}
-	}
-	t.Stop()
-	digestsByStatus := map[string][]*PolyTestImgInfo{
-		"untriaged": untriaged,
-		"positive":  positives,
-		"negative":  negatives,
-	}
 
-	topDigests := digestsByStatus[req.TopFilter]
-	leftDigests := digestsByStatus[req.LeftFilter]
+	topDigests, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, 5)
+	leftDigests, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, 5)
 
-	// For now sorting is done by string compare of the digest, just so we
-	// have a stable display.
-	sort.Sort(PolyTestImgInfoSlice(topDigests))
-	sort.Sort(PolyTestImgInfoSlice(leftDigests))
-
-	// Limit to 5x5 grids for now.
-	if len(topDigests) > 5 {
-		topDigests = topDigests[:5]
-	}
-	if len(leftDigests) > 5 {
-		leftDigests = leftDigests[:5]
-	}
-
+	// Extract out string slices of digests to pass to *AbsPath and diffStore.Get().
 	allDigests := map[string]bool{}
 	topDigestMap := map[string]bool{}
 	for _, d := range topDigests {

@@ -1,0 +1,97 @@
+<!-- The <query-dialog-sk> custom element declaration.
+
+Pops up a dialog with the query element with an OK and Cancel buttons.
+May also contain a 'include ignored' checkbox. Can take and return
+a query string.
+
+  Attributes:
+    query - The current selections as a query string.
+    src   - URL to load the paramset from. The endpoint must respond
+            to a GET with a JSON encoded map[string][]string.
+  Events:
+    closed - The element generated a 'closed' event when the dialog is
+             dismissed via the OK button. The query selections will be returned
+             encoded as a query string in the events e.detail.query. The
+             included ignored status is returned in e.detail.useIgnored as
+             a bool.
+  Methods:
+    open() - Makes the dialog visible.
+-->
+<polymer-element name="query-dialog-sk" attributes="query src">
+  <template>
+    <style type="text/css" media="screen">
+      #dialog {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: none;
+        background: white;
+        margin: 2%;
+        border: solid 1px lightgray;
+        z-index: 100;
+        padding: 1%;
+        box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
+      }
+      p,
+      query-sk {
+        margin-bottom: 1em;
+      }
+      query-sk {
+        display: block;
+      }
+    </style>
+    <div id=dialog>
+      <p><paper-checkbox id=ignore checked></paper-checkbox> Include ignored digests (unimplemented).</p>
+      <query-sk id=q whiteList="[]" hideCount></query-sk>
+      <div horizontal layout end-justified>
+        <paper-button id=cancel>Cancel</paper-button>
+        <paper-button id=ok>Ok</paper-button>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      published: {
+        'query': {
+          value: '',
+          reflect: true,
+        },
+        'src': {
+          value: '',
+          reflect: true,
+        },
+      },
+
+      ready: function() {
+        var that = this;
+        this.$.cancel.addEventListener('click', function() {
+          that.close();
+        });
+        this.$.ok.addEventListener('click', function() {
+          var detail = {
+            query: that.$.q.currentQuery,
+            useIgnored: that.$.ignore.checked,
+          }
+          that.dispatchEvent(new CustomEvent('closed', {detail: detail}));
+          that.close();
+        });
+      },
+
+      srcChanged: function() {
+        var that = this;
+        sk.get(this.src).then(JSON.parse).then(function(json){
+          that.$.q.setParamSet(json);
+        });
+      },
+
+      open: function() {
+        this.$.dialog.style.display = 'block';
+      },
+
+      close: function() {
+        this.$.dialog.style.display = 'none';
+      },
+
+    });
+  </script>
+</polymer-element>
