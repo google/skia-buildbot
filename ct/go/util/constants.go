@@ -22,6 +22,7 @@ const (
 	BENCHMARK_TASKS_DIR_NAME        = "benchmark_runs"
 	SKIA_CORRECTNESS_TASKS_DIR_NAME = "skia_correctness_runs"
 	CHROMIUM_PERF_TASKS_DIR_NAME    = "chromium_perf_runs"
+	FIX_ARCHIVE_TASKS_DIR_NAME      = "fix_archive_runs"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
@@ -32,6 +33,7 @@ const (
 	ACTIVITY_RUNNING_BENCHMARKS       = "RUNNING_BENCHMARKS"
 	ACTIVITY_RUNNING_LUA_SCRIPTS      = "RUNNING_LUA_SCRIPTS"
 	ACTIVITY_RUNNING_SKIA_CORRECTNESS = "RUNNING_SKIA_CORRECTNESS"
+	ACTIVITY_FIXING_ARCHIVES          = "FIXING_ARCHIVES"
 
 	// Pageset types supported by CT.
 	PAGESET_TYPE_ALL        = "All"
@@ -110,6 +112,7 @@ var (
 	BenchmarkRunsDir       = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
 	SkiaCorrectnessRunsDir = filepath.Join(TASKS_DIR_NAME, SKIA_CORRECTNESS_TASKS_DIR_NAME)
 	ChromiumPerfRunsDir    = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
+	FixArchivesRunsDir     = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
 
 	// Webapp subparts.
 	AdminTasksWebapp                 = WEBAPP_ROOT + "admin_tasks"
