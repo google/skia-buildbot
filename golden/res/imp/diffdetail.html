@@ -63,6 +63,11 @@ between two images.
       #zoom {
         display: inline-block;
       }
+
+      #digestRow th,
+      #digestRow td {
+        padding-top: 2em;
+      }
     </style>
     <div id=diffInfo vertical layout>
       <table border="0" cellspacing="5" cellpadding="5">
@@ -104,6 +109,11 @@ between two images.
               </td>
             </tr>
           </template>
+          <tr id=digestRow>
+            <th>Digest</th>
+            <td>{{value.left}}</td>
+            <td>{{value.top}}</td>
+          </tr>
         </table>
       </div>
     </div>
