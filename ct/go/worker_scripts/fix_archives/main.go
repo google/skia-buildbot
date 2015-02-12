@@ -204,7 +204,7 @@ func main() {
 		}
 		if percentageChange > 5 || maxResourceMissingCount > 50 {
 			glog.Infof("The archive for %s is inconsistent!", fileInfo.Name())
-			inconsistentArchives = append(inconsistentArchives, fileInfo.Name())
+			inconsistentArchives = append(inconsistentArchives, fmt.Sprintf("%s percentageChange: %f maxResourceMissingCount: %v", fileInfo.Name(), percentageChange, maxResourceMissingCount))
 		}
 	}
 
