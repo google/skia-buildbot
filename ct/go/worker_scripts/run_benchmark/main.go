@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -29,7 +28,7 @@ var (
 	benchmarkName      = flag.String("benchmark_name", "", "The telemetry benchmark to run on this worker.")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgs   = flag.String("browser_extra_args", "", "The extra arguments that are passed to the browser while running the benchmark.")
-	repeatBenchmark    = flag.Int("repeat_benchmark", 1, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
+	repeatBenchmark    = flag.Int("repeat_benchmark", 3, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
 	targetPlatform     = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
 )
 
@@ -158,96 +157,93 @@ func main() {
 		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 		return
 	}
-	// Repeat runs the specified number of times.
-	for repeatNum := 1; repeatNum <= repeats; repeatNum++ {
-		// Loop through all pagesets.
-		for _, fileInfo := range fileInfos {
-			pagesetBaseName := filepath.Base(fileInfo.Name())
-			if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
-				// Ignore timestamp files and .pyc files.
-				continue
-			}
-
-			// Convert the filename into a format consumable by the run_benchmarks
-			// binary.
-			pagesetName := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
-			pagesetPath := filepath.Join(pathToPagesets, fileInfo.Name())
-
-			glog.Infof("===== Processing %s =====", pagesetPath)
-
-			os.Chdir(pathToPyFiles)
-			args := []string{
-				util.BINARY_RUN_BENCHMARK,
-				fmt.Sprintf("%s.%s", *benchmarkName, util.BenchmarksToPagesetName[*benchmarkName]),
-				"--page-set-name=" + pagesetName,
-				"--page-set-base-dir=" + pathToPagesets,
-				"--also-run-disabled-tests",
-			}
-			// Need to capture output for all benchmarks except skpicture_printer.
-			if *benchmarkName != util.BENCHMARK_SKPICTURE_PRINTER {
-				outputDirArgValue := filepath.Join(localOutputDir, pagesetName, strconv.Itoa(repeatNum))
-				args = append(args, "--output-dir="+outputDirArgValue)
-			}
-			// Figure out which browser should be used.
-			if *targetPlatform == util.PLATFORM_ANDROID {
-				args = append(args, "--browser=android-chrome-shell")
-			} else {
-				args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
-			}
-			// Split benchmark args if not empty and append to args.
-			if benchmarkArgs != "" {
-				for _, benchmarkArg := range strings.Split(benchmarkArgs, " ") {
-					args = append(args, benchmarkArg)
-				}
-			}
-			// Add browserArgs if not empty to args.
-			if browserArgs != "" {
-				args = append(args, "--extra-browser-args="+browserArgs)
-			}
-			// Set the PYTHONPATH to the pagesets and the telemetry dirs.
-			env := []string{
-				fmt.Sprintf("PYTHONPATH=%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir),
-				"DISPLAY=:0",
-			}
-			util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+	// Loop through all pagesets.
+	for _, fileInfo := range fileInfos {
+		pagesetBaseName := filepath.Base(fileInfo.Name())
+		if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
+			// Ignore timestamp files and .pyc files.
+			continue
 		}
+
+		// Convert the filename into a format consumable by the run_benchmarks
+		// binary.
+		pagesetName := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
+		pagesetPath := filepath.Join(pathToPagesets, fileInfo.Name())
+
+		glog.Infof("===== Processing %s =====", pagesetPath)
+
+		os.Chdir(pathToPyFiles)
+		args := []string{
+			util.BINARY_RUN_BENCHMARK,
+			fmt.Sprintf("%s.%s", *benchmarkName, util.BenchmarksToPagesetName[*benchmarkName]),
+			"--page-set-name=" + pagesetName,
+			"--page-set-base-dir=" + pathToPagesets,
+			"--also-run-disabled-tests",
+		}
+		// Need to capture output for all benchmarks except skpicture_printer.
+		if *benchmarkName != util.BENCHMARK_SKPICTURE_PRINTER {
+			outputDirArgValue := filepath.Join(localOutputDir, pagesetName)
+			args = append(args, "--output-dir="+outputDirArgValue)
+		}
+		// Figure out which browser should be used.
+		if *targetPlatform == util.PLATFORM_ANDROID {
+			args = append(args, "--browser=android-chrome-shell")
+		} else {
+			args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
+		}
+		// Split benchmark args if not empty and append to args.
+		if benchmarkArgs != "" {
+			for _, benchmarkArg := range strings.Split(benchmarkArgs, " ") {
+				args = append(args, benchmarkArg)
+			}
+		}
+		// Add the number of times to repeat.
+		args = append(args, fmt.Sprintf("--page-repeat=%d", repeats))
+		// Add browserArgs if not empty to args.
+		if browserArgs != "" {
+			args = append(args, "--extra-browser-args="+browserArgs)
+		}
+		// Set the PYTHONPATH to the pagesets and the telemetry dirs.
+		env := []string{
+			fmt.Sprintf("PYTHONPATH=%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir),
+			"DISPLAY=:0",
+		}
+		util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 	}
 
 	// If "--output-format=csv" was specified then merge all CSV files and upload.
 	if strings.Contains(benchmarkArgs, "--output-format=csv") {
 		// Move all results into a single directory.
-		for repeatNum := 1; repeatNum <= repeats; repeatNum++ {
-			fileInfos, err := ioutil.ReadDir(localOutputDir)
-			if err != nil {
-				glog.Errorf("Unable to read %s: %s", localOutputDir, err)
-				return
+		fileInfos, err := ioutil.ReadDir(localOutputDir)
+		if err != nil {
+			glog.Errorf("Unable to read %s: %s", localOutputDir, err)
+			return
+		}
+		for _, fileInfo := range fileInfos {
+			if !fileInfo.IsDir() {
+				continue
 			}
-			for _, fileInfo := range fileInfos {
-				if !fileInfo.IsDir() {
-					continue
+			outputFile := filepath.Join(localOutputDir, fileInfo.Name(), "results.csv")
+			newFile := filepath.Join(localOutputDir, fmt.Sprintf("%s-%s.csv", fileInfo.Name()))
+			if err := os.Rename(outputFile, newFile); err != nil {
+				glog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
+				continue
+			}
+			// Add the rank of the page to the CSV file.
+			headers, values, err := getRowsFromCSV(newFile)
+			if err != nil {
+				glog.Errorf("Could not read %s: %s", newFile, err)
+				continue
+			}
+			pageRank := strings.Split(fileInfo.Name(), "_")[1]
+			for i := range headers {
+				if headers[i] == "page_name" {
+					values[i] = fmt.Sprintf("%s (#%s)", values[i], pageRank)
 				}
-				outputFile := filepath.Join(localOutputDir, fileInfo.Name(), strconv.Itoa(repeatNum), "results.csv")
-				newFile := filepath.Join(localOutputDir, fmt.Sprintf("%s-%s.csv", fileInfo.Name(), strconv.Itoa(repeatNum)))
-				if err := os.Rename(outputFile, newFile); err != nil {
-					glog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
-					continue
-				}
-				// Add the rank of the page to the CSV file.
-				headers, values, err := getRowsFromCSV(newFile)
-				if err != nil {
-					glog.Errorf("Could not read %s: %s", newFile, err)
-					continue
-				}
-				pageRank := strings.Split(fileInfo.Name(), "_")[1]
-				for i := range headers {
-					if headers[i] == "page_name" {
-						values[i] = fmt.Sprintf("%s (#%s)", values[i], pageRank)
-					}
-				}
-				if err := writeRowsToCSV(newFile, headers, values); err != nil {
-					glog.Errorf("Could not write to %s: %s", newFile, err)
-					continue
-				}
+			}
+			if err := writeRowsToCSV(newFile, headers, values); err != nil {
+				glog.Errorf("Could not write to %s: %s", newFile, err)
+				continue
 			}
 		}
 		// Call csv_merger.py to merge all results into a single results CSV.
