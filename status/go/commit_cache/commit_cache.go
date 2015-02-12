@@ -165,7 +165,7 @@ func (c *CommitCache) update() error {
 	for _, commit := range c.Commits[len(c.Commits)-c.requestSize:] {
 		buildCacheHashes = append(buildCacheHashes, commit.Hash)
 	}
-	if err := c.buildCache.Update(buildCacheHashes); err != nil {
+	if err := c.buildCache.UpdateForCommits(buildCacheHashes); err != nil {
 		return err
 	}
 	if err := c.toFile(); err != nil {

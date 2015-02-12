@@ -37,6 +37,7 @@ type BuildCache struct {
 	byId     map[int]*buildbot.Build
 	byCommit map[string]map[string]*buildbot.BuildSummary
 	builders map[string]*buildbot.Builder
+	commits  []string
 	mutex    sync.RWMutex
 }
 
@@ -66,10 +67,10 @@ func loadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]
 	return byId, byCommit, builders, nil
 }
 
-// Update reloads build data for the given commits, throwing away any others.
-func (c *BuildCache) Update(commits []string) error {
+// Update reloads build data for the same set of commits as before.
+func (c *BuildCache) Update() error {
 	glog.Infof("Updating build cache.")
-	byId, byCommit, builders, err := loadData(commits)
+	byId, byCommit, builders, err := loadData(c.commits)
 	if err != nil {
 		return fmt.Errorf("Failed to update build cache: %v", err)
 	}
@@ -80,6 +81,16 @@ func (c *BuildCache) Update(commits []string) error {
 	c.builders = builders
 	glog.Infof("Finished updating build cache.")
 	return nil
+}
+
+// UpdateForCommits reloads build data for the given commits, throwing away any
+// others.
+func (c *BuildCache) UpdateForCommits(commits []string) error {
+	if commits == nil {
+		commits = []string{}
+	}
+	c.commits = commits
+	return c.Update()
 }
 
 // GetBuildsForCommits returns the build data for the given commits.

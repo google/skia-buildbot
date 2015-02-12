@@ -191,13 +191,18 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: float64(time.Now().UTC().Unix()),
 		Comment:   string(comment),
 	}
-	build, err := commitCache.BuildCache().Get(int(buildId))
+	cache := commitCache.BuildCache()
+	build, err := cache.Get(int(buildId))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
 	build.Comments = append(build.Comments, &c)
 	if err := build.ReplaceIntoDB(); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
+	}
+	if err := cache.Update(); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
