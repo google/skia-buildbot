@@ -30,6 +30,13 @@ golden/res/js/core.js
 golden/res/css/core.css
 golden/res/imp/bower_components
 golden/google_oauth_token.data
+fuzzer/node_modules
+fuzzer/res/css/fuzzer.css
+fuzzer/res/imp/bower_components
+fuzzer/res/js/core-debug.js
+fuzzer/res/js/core.js
+fuzzer/res/vul
+fuzzer/third_party
 perf/bqtoken.data
 perf/google_storage_token.data
 perf/node_modules

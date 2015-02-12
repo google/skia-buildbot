@@ -1,0 +1,6 @@
+[FrontEnd]
+
+Port         = ":8000"  # "HTTP service address (e.g., ':8000')")
+ResourcePath = ""       #  "Full path to find resources (e.g., templates)")
+
+GraphiteServer = "skia-monitoring-b:2003" # address of the graphite server
