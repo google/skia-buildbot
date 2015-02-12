@@ -76,6 +76,27 @@ server {
     return 301 https://gold.skia.org$request_uri;
 }
 
+#####   gold-staging.skia.org   #####################
+server {
+    listen      443;
+    server_name gold-staging.skia.org;
+
+    ssl on;
+
+    if ( $host != 'gold-staging.skia.org' ) {
+        rewrite ^/(.*)$ https://gold-staging.skia.org/$1 permanent;
+    }
+
+    location / {
+        proxy_pass http://skia-gold-stage:8001;
+    }
+}
+server {
+    listen      80;
+    server_name gold-staging.skia.org;
+    return 301 https://gold-staging.skia.org$request_uri;
+}
+
 #####   alerts.skia.org   ###########################
 server {
     listen      443;

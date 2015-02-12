@@ -20,6 +20,15 @@ ${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb          ${ROOT}/usr/local
 ${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/templates
 ${INSTALL}     --mode=644 ./templates/*                        ${ROOT}/usr/local/share/skiacorrectness/templates
 
+${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/res/css
+${INSTALL}     --mode=644 ./res/css/core.css                   ${ROOT}/usr/local/share/skiacorrectness/res/css/core.css
+
+${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/res/js
+${INSTALL}     --mode=644 ./res/js/core.js                     ${ROOT}/usr/local/share/skiacorrectness/res/js/core.js
+
+${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/res/vul
+${INSTALL}     --mode=644 ./res/vul/elements.html              ${ROOT}/usr/local/share/skiacorrectness/res/vul/elements.html
+
 ${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/app
 ${INSTALL}     --mode=644 -T ./app/index.html                  ${ROOT}/usr/local/share/skiacorrectness/app/index.html
 ${INSTALL}     --mode=644 ./app/css/generated.css              ${ROOT}/usr/local/share/skiacorrectness/app/css/generated.css
