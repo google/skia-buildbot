@@ -37,6 +37,12 @@
       #more.display {
         display: none;
       }
+      toggle-display-sk {
+        display: none;
+      }
+      toggle-display-sk.display {
+        display: block;
+      }
       select {
         overflow: auto;
         margin: 0.3em;
@@ -207,11 +213,16 @@
               name: key,
               values: paramset[key].sort()
             }
-            if (this.whiteList.indexOf(key) != -1) {
+            if (this.whiteList.length == 0 || this.whiteList.indexOf(key) != -1) {
               this.primary.push(sel);
             } else {
               this.secondary.push(sel);
             }
+          }
+          if (this.secondary.length == 0) {
+            $$$('toggle-display-sk', this.shadowRoot).classList.remove('display');
+          } else {
+            $$$('toggle-display-sk', this.shadowRoot).classList.add('display');
           }
         }
       });
