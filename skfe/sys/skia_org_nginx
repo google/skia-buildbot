@@ -67,7 +67,7 @@ server {
     }
 
     location / {
-        proxy_pass http://skia-testing-b:8001;
+        proxy_pass http://skia-gold-prod:8001;
     }
 }
 server {

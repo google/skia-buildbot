@@ -14,6 +14,21 @@ case "$2" in
 	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_stage"
 	INGEST_DATABASE_NAME="skiacorr_ingest_stage"
 	;;
+
+  # experimental android instance: uses the staging database server for now.
+  android)
+  DATABASE_HOST="173.194.254.28"
+  SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_android"
+  INGEST_DATABASE_NAME="skiacorr_ingest_android"
+  ;;
+
+  # experimental blink instance: uses the staging database server for now.
+  blink)
+  DATABASE_HOST="173.194.254.28"
+  SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_blink"
+  INGEST_DATABASE_NAME="skiacorr_ingest_blink"
+  ;;
+
   *)
     echo "Usage: $0 MESSAGE INSTANCE_ID"
     echo "     MESSAGE     is the message to be included in the release package."

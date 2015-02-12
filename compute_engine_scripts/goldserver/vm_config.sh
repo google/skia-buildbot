@@ -22,13 +22,27 @@ case "$1" in
 	;;
 
   stage)
-	GOLD_MACHINE_TYPE=n1-highmem-4
+	# TODO(stephana): Reduce the instance size once gold is more performant.
+	GOLD_MACHINE_TYPE=n1-highmem-16
 	GOLD_IP_ADDRESS=104.154.112.105
 	GOLD_DATA_DISK_SIZE="500GB"
 	;;
+
+  android)
+	GOLD_MACHINE_TYPE=n1-highmem-16
+	GOLD_IP_ADDRESS=104.154.112.106
+	GOLD_DATA_DISK_SIZE="500GB"
+	;;
+
+  blink)
+	GOLD_MACHINE_TYPE=n1-highmem-16
+	GOLD_IP_ADDRESS=104.154.112.107
+	GOLD_DATA_DISK_SIZE="500GB"
+	;;
+
   *)
 	# There must be a target instance id provided.
-	echo "Usage: $0 {prod | stage}"
+	echo "Usage: $0 {prod | stage | android | blink}"
 	echo "   An instance id must be provided as the first argument."
 	exit 1
 	;;
