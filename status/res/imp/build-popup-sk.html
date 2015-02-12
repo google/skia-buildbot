@@ -22,25 +22,34 @@
 -->
 <polymer-element name="build-popup-sk">
   <template>
-    <paper-dialog id="dialog">
+    <style>
+    a {
+      color: #000;
+    }
+    h2 {
+      white-space: nowrap;
+    }
+    </style>
+    <paper-dialog id="dialog" layered="false">
       <h2>
-        <paper-button
-            onclick="window.open('http://build.chromium.org/p/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}', '_blank');"
-            style="text-transform: none; white-space: nowrap; background-color: {{build.color}};"
-            >
-          {{build.builder}} #{{build.number}}
-        </paper-button>
+        <a href="http://build.chromium.org/p/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}" target="_blank">{{build.builder}} #{{build.number}}</a>
       </h2>
-      <template if="{{build.failedSteps && build.failedSteps.length > 0}}">
-        <p>
-          Failed steps:<br/>
-          <ul>
-            <template repeat="{{step in build.failedSteps}}">
-              <li>{{step}}</li>
-            </template>
-          </ul>
-        </p>
-      </template>
+      <table>
+        <tr>
+          <td>Status:</td>
+          <td style="color: {{build.color}}">{{build.finished ? (build.results == 0 ? "success" : build.results == 1 ? "success" : build.results == 3 ? "success" : build.results == 2 ? "failed" : build.results == 4 ? "exception" : "exception") : "running"}}</td>
+        </tr>
+        <template if="{{build.failedSteps && build.failedSteps.length > 0}}">
+          <tr>
+            <td>Failed steps:</td>
+            <td>
+              <template repeat="{{step in build.failedSteps}}">
+                {{step}}<br/>
+              </template>
+            </td>
+          </tr>
+        </template>
+      </table>
     </paper-dialog>
   </template>
   <script>

@@ -102,32 +102,6 @@
       margin: 0px 1px 3px 1px;
       height: 16px;
     }
-    div.tooltip_left {
-      transform: translate(-80%, 0);
-      -webkit-transform: translate(-80%, 0);
-    }
-    div.tooltip_right {
-      transform: translate(-20%, 0);
-      -webkit-transform: translate(-20%, 0);
-    }
-    div.tooltip {
-      background-color: #FFFFFF;
-      position: absolute;
-      display: none;
-      color: black;
-      border: 1px solid black;
-      border-radius: 10px;
-      padding: 10px;
-    }
-    div.tooltip:hover {
-      display: block;
-    }
-    a.build:hover + div.tooltip {
-      display: block;
-    }
-    a.commit:hover + div.tooltip {
-      display: block;
-    }
     #moreButton {
       width: 40px;
       height: 40px;
@@ -177,21 +151,19 @@
               <template repeat="{{commit, i in commits}}">
                 <tr class="commit" style="color: {{getCommitColor(displayCommits[commit.hash])}}">
                   <td>
-                    <a href="https://skia.googlesource.com/skia/+/{{commit.hash}}" class="commit" target="_blank">{{commit.hash|shortCommit}}</a>
-                    <div class="tooltip tooltip_right">{{commit.subject|shortSubject}}</div>
+                    <a id="opencommit|{{i}}" href="#" class="commit" onClick="return false;" on-click="{{toggleCommitPopup}}">{{commit.hash|shortCommit}}</a>
                   </td>
                   <td>{{commit.author|shortAuthor}}</td>
                   <template repeat="{{builder in builders}}">
                     <td class="build">
                       <template if="{{buildDetails[commit.hash][builder]}}">
-                        <a
-                            id="openbuild|{{commit.hash}}|{{builder}}"
-                            href="#"
-                            class="build {{commit.displayClass[builder]}}"
-                            onClick="return false;"
-                            on-click="{{toggleBuildPopup}}"
-                            style="background-color: {{buildDetails[commit.hash][builder].color}};"
-                            target="_blank">
+                        <a id="openbuild|{{commit.hash}}|{{builder}}"
+                           href="#"
+                           class="build {{commit.displayClass[builder]}}"
+                           onClick="return false;"
+                           on-click="{{toggleBuildPopup}}"
+                           style="background-color: {{buildDetails[commit.hash][builder].color}};"
+                          >
                         </a>
                       </template>
                     </td>
@@ -208,6 +180,7 @@
         <paper-spinner id="loading" active></paper-spinner>
       </div>
       <build-popup-sk id="buildPopup"></build-popup-sk>
+      <commit-popup-sk id="commitPopup"></commit-popup-sk>
     </div>
   </template>
   <script>
@@ -584,7 +557,7 @@
       toggleBuildPopup: function(e, d, s) {
         var split = s.id.split("|");
         if (split.length != 3) {
-          throw "Invalid id: " + s;
+          throw "Invalid id: " + s.id;
         }
         var commit = split[1];
         var builder = split[2];
@@ -592,6 +565,20 @@
         if (build) {
           this.$.buildPopup.build = build;
           this.$.buildPopup.toggle();
+        }
+      },
+
+      // Toggle the commit popup.
+      toggleCommitPopup: function(e, d, s) {
+        console.log("Opening commit popup");
+        var split = s.id.split("|");
+        if (split.length != 2) {
+          throw "Invalid id: " + s.id;
+        }
+        var commit = this.commits[split[1]];
+        if (commit) {
+          this.$.commitPopup.commit = commit;
+          this.$.commitPopup.toggle();
         }
       },
 

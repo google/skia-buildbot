@@ -1,0 +1,63 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <commit-popup-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/commit-popup-sk.html" rel="import" />
+
+  Usage:
+
+    <commit-popup-sk></commit-popup-sk>
+
+  Properties:
+    commit: The details for a commit.
+
+  Methods:
+    toggle: Open or close the popup.
+-->
+<polymer-element name="commit-popup-sk">
+  <template>
+    <style>
+    a {
+      color: #000;
+    }
+    </style>
+    <paper-dialog id="dialog" layered="false">
+      <p>
+        <a href="https://skia.googlesource.com/skia/+/{{commit.hash}}"
+           target="_blank">{{commit.hash}}</a>
+        <br/>
+        {{commit.author}}
+        <br/>
+        {{commit.timestamp}}
+      </p>
+      <hr/>
+      <p id="commitSubject"></p>
+      <p id="commitBody"></p>
+    </dialog>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        commit: {
+          value: null,
+          reflect: true,
+        },
+      },
+
+      toggle: function() {
+        this.$.dialog.toggle();
+      },
+
+      commitChanged: function() {
+        this.$.commitSubject.innerHTML = sk.formatHTML(this.commit.subject, true);
+        this.$.commitBody.innerHTML = sk.formatHTML(this.commit.body, true);
+      },
+    });
+  </script>
+</polymer-element>

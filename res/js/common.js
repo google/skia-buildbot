@@ -209,5 +209,18 @@ this.sk = this.sk || function() {
     return true;
   }
 
+  /**
+   * Formats the given string, replacing newlines with <br/> and auto-linkifying URLs.
+   *
+   * If linksInNewWindow is true, links are created with target="_blank".
+   */
+  sk.formatHTML = function(s, linksInNewWindow) {
+    var sub = '<a href="$&">$&</a>';
+    if (linksInNewWindow) {
+      sub = '<a href="$&" target="_blank">$&</a>';
+    }
+    return s.replace(/https?:\/\/[^ \t\n<]*/g, sub).replace(/(?:\n|\r|\r\n)/g, '<br/>');
+  }
+
   return sk;
 }();
