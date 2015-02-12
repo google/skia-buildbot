@@ -33,7 +33,22 @@ func Init() {
 func InitWithMetrics(appName string, graphiteServer *string) {
 	Init()
 
-	addr, _ := net.ResolveTCPAddr("tcp", *graphiteServer)
+	_ = startMetrics(appName, *graphiteServer)
+}
+
+// Get the graphite server from a callback function; useful when the graphite
+// server isn't known ahead of time (e.g., when reading from a config file)
+func InitWithMetricsCB(appName string, getGraphiteServer func() string) {
+	Init()
+
+	_ = startMetrics(appName, getGraphiteServer())
+}
+
+func startMetrics(appName, graphiteServer string) error {
+	addr, err := net.ResolveTCPAddr("tcp", graphiteServer)
+	if err != nil {
+		return err
+	}
 
 	// Runtime metrics.
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
@@ -49,4 +64,5 @@ func InitWithMetrics(appName string, graphiteServer *string) {
 			uptimeGuage.Update(time.Since(startTime).Seconds())
 		}
 	}()
+	return nil
 }
