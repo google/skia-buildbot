@@ -205,14 +205,20 @@ func main() {
 		if percentageChange > 10 || maxResourceMissingCount > 50 {
 			glog.Infof("The archive for %s is inconsistent!", fileInfo.Name())
 			inconsistentArchives = append(inconsistentArchives, fmt.Sprintf("%s percentageChange: %f maxResourceMissingCount: %v", fileInfo.Name(), percentageChange, maxResourceMissingCount))
+			// Delete the pageset.
+			os.RemoveAll(pagesetPath)
 		}
 	}
 
 	if len(inconsistentArchives) > 0 {
 		glog.Infof("%d archives are inconsistent!", len(inconsistentArchives))
 		glog.Infof("The list of inconsistentArchives is: %v", inconsistentArchives)
-		// TODO(rmistry): If this script appears to be reliable then the page sets
-		// should be deleted here.
+		// Inconsistent pagesets were deleted located. Upload local pagesets dir
+		// to Google Storage.
+		if err := gs.UploadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {
+			glog.Error(err)
+			return
+		}
 	}
 }
 
