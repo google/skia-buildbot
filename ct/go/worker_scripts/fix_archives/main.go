@@ -213,6 +213,9 @@ func main() {
 	if len(inconsistentArchives) > 0 {
 		glog.Infof("%d archives are inconsistent!", len(inconsistentArchives))
 		glog.Infof("The list of inconsistentArchives is: %v", inconsistentArchives)
+		// Write new timestamp to the pagesets dir.
+		os.RemoveAll(filepath.Join(pathToPagesets, util.TIMESTAMP_FILE_NAME))
+		util.CreateTimestampFile(pathToPagesets)
 		// Inconsistent pagesets were deleted located. Upload local pagesets dir
 		// to Google Storage.
 		if err := gs.UploadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {
