@@ -540,13 +540,28 @@ var skia = skia || {};
     return result;
   }
 
+  function robustArrayOrStr(obj, key, idx) {
+    if (!obj) {
+      return obj;
+    }
+
+    if (!obj[key]) {
+      return obj[key];
+    }
+
+    if (Array.isArray(obj[key])) {
+      return obj[key][idx];
+    }
+    return obj[key];
+  }
+
   ns.splitQuery = function (query, allParams) {
     var paramQuery = ns.filterQueryByParams(query, allParams);
     var flagsQuery = ns.subObject(query, ns.c.QUERY_FLAGS);
 
     var crq = {};
-    crq[ns.c.QUERY_COMMIT_START] = robust_get(query, [ns.c.QUERY_COMMIT_START, 0]) || "";
-    crq[ns.c.QUERY_COMMIT_END] = robust_get(query, [ns.c.QUERY_COMMIT_END, 0]) || "";
+    crq[ns.c.QUERY_COMMIT_START] = robustArrayOrStr(query, ns.c.QUERY_COMMIT_START, 0) || "";
+    crq[ns.c.QUERY_COMMIT_END] = robustArrayOrStr(query, ns.c.QUERY_COMMIT_END, 0) || "";
 
     return {
       paramQuery: paramQuery,

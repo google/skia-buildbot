@@ -296,6 +296,7 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 		AllParams: a.current.Index.getAllParams(query),
 		Query:     effectiveQuery,
 		Tests:     tests,
+		Blames:    a.current.BlameLists.Blames,
 	}, nil
 }
 
@@ -345,6 +346,7 @@ func (a *Analyzer) GetTestDetails(testName string, query map[string][]string) (*
 		CommitsByDigest: map[string]map[string][]int{testName: a.current.TestDetails.CommitsByDigest[testName]},
 		AllParams:       a.current.Index.getAllParams(query),
 		Query:           effectiveQuery,
+		Blames:          map[string][]*BlameDistribution{testName: a.current.BlameLists.Blames[testName]},
 		Tests: []*GUITestDetail{
 			&GUITestDetail{
 				Name:      testName,

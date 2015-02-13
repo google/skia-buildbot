@@ -22,12 +22,12 @@ type GUIBlameLists struct {
 // a commit was responsible for the contained digest.
 type BlameDistribution struct {
 	// Digest under consideration.
-	Digest string
+	Digest string `json:"digest"`
 
 	// Freq contains likelihood counts that a commit was responsible
 	// for the observed digest. It starts with the first possible commitId
 	// that could have caused the digest and spans to the end the commit range.
-	Freq []int
+	Freq []int `json:"freq"`
 }
 
 type jobResult struct {

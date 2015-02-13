@@ -26,13 +26,20 @@
 
         <!-- Controls what show in center column -->
         <div class="row" style="border: 1px solid #E1E1E1; padding: 0.5em; margin-left: 0; margin-right:0; margin-bottom: 1em;">
-	            <div class="col-xs-2">
+               <div class="col-xs-2">
 	                <input type="checkbox"
 	                       ng-model="showUntriagedOnly"
-	                       ng-change="updateContent($scope.showUntriagedOnly)"> Show only Untriaged
-	            </div>
-	       <!--     <div class="col-xs-2">
-	            	Change All:
+	                       ng-change="updateContent()"> Show only Untriaged
+               </div>
+
+               <div class="col-xs-2">
+	                <input type="checkbox"
+	                       ng-model="collapseTests"
+	                       ng-change="updateContent()"> Collapse Untriaged
+               </div>
+
+<!-- 	           <div class="col-xs-2" ng-if="!collapseTests">
+	            	Change All On Current Page:
 			    	<sk-bulk-triage
 			    	    triage-state="triageState"
 		                setter="setTriageState"></sk-bulk-triage>
@@ -111,6 +118,8 @@
 			          <th>+ ({{selectionInfo.posStats.unique}})</th>
 			          <th>- ({{selectionInfo.negStats.unique}})</th>
 			          <th>? ({{selectionInfo.untStats.unique}})</th>
+			          <th>Blame</th>
+			          <th>Diff</th>
 			          <th>Pos Image</th>
 			          <th>Unt Image</th>
 			          <th>Diff Image</th>
@@ -135,10 +144,31 @@
 			          	  	 title="{{oneTest.name}}">
 			          		<span ng-show="oneTest.showName">{{oneTest.name | limitTo:65 }}<span>
 			          	  </a>
+			          	  &nbsp; &nbsp; <a href="#/triage/{{oneTest.name}}{{qStr}}" target="_blank" title="{{oneTest.name}}"><span class="glyphicon glyphicon-new-window">
+      </span></a>
 			      	  </td>
 			          <td><span ng-show="oneTest.showName">{{oneTest.posUnique}}</td>
 			          <td><span ng-show="oneTest.showName">{{oneTest.negUnique}}</td>
 			          <td><span ng-show="oneTest.showName">{{oneTest.untUnique}}</td>
+
+                      <!-- Blame -->
+                      <td>
+                      	<div ng-if="oneTest.untriaged">
+                      		<div ng-repeat="author in getBlames(oneTest)" class="row">
+                      			{{ author }}
+                      		</div>
+                      	</div>
+                      </td>
+
+                      <!-- Diff metric -->
+                      <td>
+                      	 <div ng-if="!collapsed && oneTest.untriaged && oneTest.pos">
+							{{oneTest.diff.numDiffPixels}}px &#183;
+                            {{oneTest.diff.pixelDiffPercent | number: 2}}% &#183;
+                            {{oneTest.diff.maxRGBADiffs | json }}
+                      	 </div>
+                      </td>
+
 			          <!-- Positive Image -->
 			          <td ng-style="{ width: imageSize+'px' }">
 			          	<div ng-if="oneTest.pos">
@@ -157,7 +187,7 @@
 
                       <!-- Untriaged -->
 			          <td ng-style="{ width: imageSize+'px' }">
-			          	<div ng-if="oneTest.untriaged" ng-style="{ width: imageSize+'px' }">
+			          	<div ng-if="!collapsed && oneTest.untriaged" ng-style="{ width: imageSize+'px' }">
                             <sk-img-container
                                 img-url="oneTest.untriaged.imgUrl"
                                 digest="oneTest.untriaged.digest"

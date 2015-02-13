@@ -185,8 +185,11 @@
                         </div>
 
                         <div class="row" ng-show="currentUntriaged && commitsList">
-                            <h4>Untriaged appeared in these commits</h4>
+                            <h4>Blamelist (score, commit, author):</h4>
                             <div class="row" ng-repeat="c in commitsList.commits">
+                                <div class="col-xs-2">
+                                    {{ c.count }}
+                                </div>
                                 <div class="col-xs-2">
                                     <a href="https://skia.googlesource.com/skia/+/{{c.hash}}" target="_blank">
                                        {{ c.hash | limitTo:7 }}
@@ -195,13 +198,13 @@
                                 <div class="col-xs-4">
                                     {{ (c.commit_time*1000) | date:'EEE MM/dd/yy hh:mm a'}}
                                 </div>
-                                <div class="col-xs-6">
+                                <div class="col-xs-4">
                                     {{ c.author }}
                                 </div>
                             </div>
                             <div class="row" ng-show="commitsList.hasMore">
                                 <div class="col-xs-12">
-                                    &nbsp; &nbsp; <a href="" ng-click="expandCommitsList()">More ...</a>
+                                    &nbsp; &nbsp; <a href="" ng-click="expandCommitsList()">Following Commits ...</a>
                                 </div>
                             </div>
 

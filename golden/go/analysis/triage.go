@@ -12,11 +12,12 @@ import (
 // GUITestDetails is an output type with triage information grouped by tests.
 // TODO(stephana): Factor commits handling out of triage and into into a separate REST endpoint.
 type GUITestDetails struct {
-	Commits         []*ptypes.Commit            `json:"commits"`
-	CommitsByDigest map[string]map[string][]int `json:"commitsByDigest"`
-	AllParams       map[string][]string         `json:"allParams"`
-	Tests           []*GUITestDetail            `json:"tests"`
-	Query           map[string][]string         `json:"query"`
+	Commits         []*ptypes.Commit                `json:"commits"`
+	CommitsByDigest map[string]map[string][]int     `json:"commitsByDigest"`
+	AllParams       map[string][]string             `json:"allParams"`
+	Tests           []*GUITestDetail                `json:"tests"`
+	Query           map[string][]string             `json:"query"`
+	Blames          map[string][]*BlameDistribution `json:"blames"`
 	testsMap        map[string]int
 }
 

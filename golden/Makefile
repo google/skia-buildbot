@@ -15,9 +15,7 @@ GOLD_CSS_SOURCE_FILES = app/third_party/bower_components/bootstrap/dist/css/boot
 GOLD_JS_SOURCE_FILES = app/third_party/bower_components/jquery/dist/jquery.min.js \
                        app/third_party/bower_components/flot/jquery.flot.js \
                        app/third_party/bower_components/angular/angular.js \
-                       app/third_party/bower_components/angular-route/angular-route.js \
-                       app/js/logic.js \
-                       app/js/app.js
+                       app/third_party/bower_components/angular-route/angular-route.js
 GOLD_SRC_FONTS = app/third_party/bower_components/bootstrap/fonts
 
 .PHONY: skiacorrectness

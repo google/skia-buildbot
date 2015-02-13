@@ -107,6 +107,8 @@ var skia = skia || {};
       var triageStateManager;
       var completeTestSet, untriagedTestsOnly;
       // var flagsQuery = {};
+      var blameLists = {};
+      var allCommits = [];
 
       var sortFn = function(a,b) {
         return (a.name === b.name) ? 0 : (a.name < b.name) ? -1 : 1;
@@ -125,6 +127,22 @@ var skia = skia || {};
             temp.tests.sort(sortFn);
 
             triageStateManager.setNewState(temp.triageState);
+
+            // Build the blamelist for quick lookup.
+            blameLists = {};
+            if (serverData.blames) {
+              for(var k in serverData.blames) {
+                if (serverData.blames.hasOwnProperty(k)) {
+                  var blameObj = {};
+                  for(var i=0, len=serverData.blames[k].length; i<len; i++) {
+                    blameObj[serverData.blames[k][i].digest] = serverData.blames[k][i];
+                  }
+                  blameLists[k] = blameObj;
+                }
+              }
+            }
+
+            allCommits = serverData.commits;
 
             completeTestSet = temp.tests;
             untriagedTestsOnly = temp.tests.filter(
@@ -151,6 +169,27 @@ var skia = skia || {};
             $scope.checkStatus();
           });
       }
+
+      $scope.getBlames = function (oneTest) {
+        var ret = [];
+        var uniques = {};
+        var digests = (oneTest.collapsed) ?
+              oneTest.untriaged.map(function(x) { return x.digest; }) :
+              [oneTest.untriaged.digest];
+
+        for(var dIdx=0, dLen=digests.length; dIdx < dLen; dIdx++) {
+          var arr = blameLists[oneTest.name][digests[dIdx]].freq;
+          var commitsRange = allCommits.slice(-arr.length)
+          var maxVal = Math.max.apply(null, arr)
+          for(var i=0, len=arr.length; i<len; i++) {
+            if ((arr[i] == maxVal) && (!uniques[commitsRange[i].author])) {
+              ret.push(commitsRange[i].author);
+              uniques[commitsRange[i].author]=true;
+            }
+          }
+        }
+        return ret;
+      };
 
       // Load triage data across tests.
       $scope.loadAllTriageData = function () {
@@ -214,7 +253,7 @@ var skia = skia || {};
       // Pick the subset of content we are interested in.
       $scope.updateContent = function () {
         var t = ($scope.showUntriagedOnly) ? untriagedTestsOnly : completeTestSet;
-        $scope.paginator.setContent(t);
+        $scope.paginator.setContent(t, $scope.collapseTests);
       };
 
       $scope.getImageLists = function(oneTest) {
@@ -231,24 +270,42 @@ var skia = skia || {};
 
       // unroll converts the tests with nested untriaged digests into a flat
       // list.
-      function unroll(tests) {
+      function unroll(tests, collapse) {
         var result = [];
         var rs, pos, diff;
-        for(var i=0, len=tests.length; i<len; i++) {
-          rs = (tests[i].untStats.unique > 0) ? tests[i].untStats.unique : 1;
-          for(var j=0; j < rs; j++) {
-            pos = (tests[i].untriaged[j] && tests[i].untriaged[j].diffs[0]) ? tests[i].positiveMap[tests[i].untriaged[j].diffs[0].posDigest] : false;
-            diff = (tests[i].untriaged[j]) ? tests[i].untriaged[j].diffs[0] : false;
-            result.push({
-              name: tests[i].name,
-              showName: j === 0,
-              posUnique: tests[i].posStats.unique,
-              negUnique: tests[i].negStats.unique,
-              untUnique: tests[i].untStats.unique,
-              pos: pos,
-              untriaged: tests[i].untriaged[j],
-              diff: diff
-            });
+
+        if (collapse) {
+          for(var i=0, len=tests.length; i<len; i++) {
+              result.push({
+                name: tests[i].name,
+                showName: true,
+                collapsed: true,
+                posUnique: tests[i].posStats.unique,
+                negUnique: tests[i].negStats.unique,
+                untUnique: tests[i].untStats.unique,
+                pos: null,
+                untriaged: tests[i].untriaged,
+                diff: null,
+              });
+          }
+        } else {
+          for(var i=0, len=tests.length; i<len; i++) {
+            rs = (tests[i].untStats.unique > 0) ? tests[i].untStats.unique : 1;
+            for(var j=0; j < rs; j++) {
+              pos = (tests[i].untriaged[j] && tests[i].untriaged[j].diffs[0]) ? tests[i].positiveMap[tests[i].untriaged[j].diffs[0].posDigest] : false;
+              diff = (tests[i].untriaged[j]) ? tests[i].untriaged[j].diffs[0] : false;
+              result.push({
+                name: tests[i].name,
+                showName: j === 0,
+                collapsed: false,
+                posUnique: tests[i].posStats.unique,
+                negUnique: tests[i].negStats.unique,
+                untUnique: tests[i].untStats.unique,
+                pos: pos,
+                untriaged: tests[i].untriaged[j],
+                diff: diff
+              });
+            }
           }
         }
 
@@ -256,11 +313,7 @@ var skia = skia || {};
       };
 
       $scope.headChanged = function() {
-        if ($scope.headSelected === '0') {
-          delete $scope.flagsQuery[ns.c.QUERY_HEAD];
-        } else {
-          $scope.flagsQuery[ns.c.QUERY_HEAD] = [$scope.headSelected];
-        }
+        $scope.flagsQuery[ns.c.QUERY_HEAD] = [$scope.headSelected];
         $scope.loadAllTriageData();
       };
 
@@ -276,9 +329,10 @@ var skia = skia || {};
         $scope.imageSize = 100;
 
         $scope.showUntriagedOnly = true;
+        $scope.collapseTests = true;
         $scope.pageSize = 50;
         $scope.paginator = new Paginator($scope.pageSize, 5, paginateTests, function(page) {
-          $scope.allTests = unroll(page);
+          $scope.allTests = unroll(page, $scope.collapseTests);
         });
 
         // Inject the constants into the scope.
@@ -382,29 +436,35 @@ var skia = skia || {};
   // counts towards the pagesize. Each page will contain at least one complete
   // test. The number of images might be larger or smaller than page size as
   // a result.
-  function paginateTests(tests, pageSize) {
+  function paginateTests(pageSize, tests, collapse) {
     var pages = [];
     var current =[];
     var currentCounter = 0, incVal;
 
-    for(var i=0, len=tests.length; i < len;) {
-      incVal = tests[i].untStats.unique > 0 ? tests[i].untStats.unique : 1;
-      current.push(tests[i]);
-      currentCounter += incVal;
-      i++;
-
-      while(i < len) {
+    if (collapse) {
+      for(var i=0, len=tests.length; i < len; i += pageSize) {
+        pages.push(tests.slice(i, i+pageSize));
+      }
+    } else {
+      for(var i=0, len=tests.length; i < len;) {
         incVal = tests[i].untStats.unique > 0 ? tests[i].untStats.unique : 1;
-        if ((currentCounter + incVal) > pageSize) {
-          break;
-        }
         current.push(tests[i]);
         currentCounter += incVal;
         i++;
+
+        while(i < len) {
+          incVal = tests[i].untStats.unique > 0 ? tests[i].untStats.unique : 1;
+          if ((currentCounter + incVal) > pageSize) {
+            break;
+          }
+          current.push(tests[i]);
+          currentCounter += incVal;
+          i++;
+        }
+        pages.push(current);
+        current = [];
+        currentCounter = 0;
       }
-      pages.push(current);
-      current = [];
-      currentCounter = 0;
     }
 
     return pages;
@@ -420,8 +480,12 @@ var skia = skia || {};
     this.rangeOffset = Math.floor(this.rangeLen/2);
   }
 
-  Paginator.prototype.setContent = function(content) {
-    this.pages = this.paginationFn(content, this.pageSize);
+  Paginator.prototype.setContent = function( _args_ ) {
+    var args = [this.pageSize];
+    for(var i =0; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+    this.pages = this.paginationFn.apply(null, args);
     this.len =this.pages.length;
     this.lastIndex = this.pages.length-1;
     this.current = -1;
@@ -483,6 +547,7 @@ var skia = skia || {};
       var posIndex, negIndex;
       var triageStateManager;
       var commitsMap, allCommits;
+      var blameLists;
 
       // processServerData is called by loadTriageState and also saveTriageState
       // to process the triage data returned by the server.
@@ -503,6 +568,11 @@ var skia = skia || {};
             // TODO(stephana): Factor commits handling into a separate REST endpoint.
             commitsMap = serverData.commitsByDigest && serverData.commitsByDigest[testName] || {};
             allCommits = serverData.commits;
+
+            blameLists = {};
+            for(var i=0, len=serverData.blames[testName].length; i<len; i++) {
+              blameLists[serverData.blames[testName][i].digest] = serverData.blames[testName][i].freq;
+            }
 
             $scope.untriaged = testData.untriaged;
             triageStateManager.setNewState(triageData.triageState);
@@ -545,9 +615,17 @@ var skia = skia || {};
       $scope.saveTriageState = function() {
         $scope.state = 'saving';
         triageStateManager.saveTriageState(function (promise) {
-          processServerData(promise, false);
+          promise.then(
+            function(posResponse) {
+              $scope.loadTriageData();
+            },
+            function (errResp) {
+              console.log("Error. Save failed:", errResp);
+            });
         });
       };
+
+
 
 
       // loadTriageData sends a GET request to the backend to get the
@@ -563,19 +641,29 @@ var skia = skia || {};
       }
 
       function getCommitsList(digest, all) {
-        if (allCommits && commitsMap && commitsMap[digest]) {
-          var useCommits = (all) ? commitsMap[digest] : commitsMap[digest].slice(0, 5);
-          var result = useCommits.map(function(idx) {
-            return allCommits[idx];
-          });
-
-          return {
-            commits: result,
-            hasMore: result.length !== commitsMap[digest].length
-          };
-        } else {
-            return null;
+        if (!blameLists || !blameLists[digest]) {
+          return null;
         }
+
+        var commits = [];
+        var blameCommits = allCommits.slice(allCommits.length-blameLists[digest].length);
+        for(var i=0, len=blameLists[digest].length; i < len; i++) {
+          if (!all && blameLists[digest][i]===0) {
+            break;
+          }
+
+          commits.push({
+            hash: blameCommits[i].hash,
+            count: blameLists[digest][i],
+            commit_time: blameCommits[i].commit_time,
+            author: blameCommits[i].author
+          });
+        }
+
+        return {
+          commits: commits,
+          hasMore: commits.length !== blameLists[digest].length
+        };
       }
 
       $scope.expandCommitsList = function () {
