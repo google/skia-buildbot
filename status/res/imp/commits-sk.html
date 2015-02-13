@@ -267,9 +267,9 @@
         return new Point(center.x + 3 * radius, bounds.y - 1);
       };
 
-      // Return the text for this commit's label, truncated to 20 characters.
+      // Return the text for this commit's label, truncated to 24 characters.
       this.labelText = function() {
-        return truncate(this.label.join(","), 20);
+        return truncate(this.label.join(","), 24);
       };
 
       // Return the estimated width of this commit's label text.
