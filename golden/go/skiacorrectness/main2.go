@@ -258,25 +258,27 @@ type PolyTestDiffInfo struct {
 
 // PolyTestGUI serialized as JSON is the response body from polyTestHandler.
 type PolyTestGUI struct {
-	Top     []*PolyTestImgInfo    `json:"top"`
-	Left    []*PolyTestImgInfo    `json:"left"`
-	Grid    [][]*PolyTestDiffInfo `json:"grid"`
-	Message string                `json:"message"`
+	Top       []*PolyTestImgInfo    `json:"top"`
+	Left      []*PolyTestImgInfo    `json:"left"`
+	Grid      [][]*PolyTestDiffInfo `json:"grid"`
+	Message   string                `json:"message"`
+	TopTotal  int                   `json:"topTotal"`
+	LeftTotal int                   `json:"leftTotal"`
 }
 
 // imgInfo returns a populated slice of PolyTestImgInfo based on the filter and
 // queryString passed in.
-func imgInfo(filter, queryString, testName string, e types.TestClassification, max int) ([]*PolyTestImgInfo, error) {
+func imgInfo(filter, queryString, testName string, e types.TestClassification, max int) ([]*PolyTestImgInfo, int, error) {
 	query, err := url.ParseQuery(queryString)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse Query in imgInfo: %s", err)
+		return nil, 0, fmt.Errorf("Failed to parse Query in imgInfo: %s", err)
 	}
 	query["name"] = []string{testName}
 
 	t := timer.New("tallies.ByQuery")
 	digests, err := tallies.ByQuery(query)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
+		return nil, 0, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
 	}
 	glog.Infof("Num Digests: %d", len(digests))
 	t.Stop()
@@ -299,10 +301,11 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 
 	sort.Sort(PolyTestImgInfoSlice(ret))
 
+	total := len(ret)
 	if len(ret) > max {
 		ret = ret[:max]
 	}
-	return ret, nil
+	return ret, total, nil
 }
 
 // polyTestHandler returns a JSON description for the given test.
@@ -351,8 +354,8 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	e := exp.Tests[req.Test]
 
-	topDigests, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, 5)
-	leftDigests, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, 5)
+	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, 5)
+	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, 5)
 
 	// Extract out string slices of digests to pass to *AbsPath and diffStore.Get().
 	allDigests := map[string]bool{}
@@ -406,9 +409,11 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p := PolyTestGUI{
-		Top:  topDigests,
-		Left: leftDigests,
-		Grid: grid,
+		Top:       topDigests,
+		Left:      leftDigests,
+		Grid:      grid,
+		TopTotal:  topTotal,
+		LeftTotal: leftTotal,
 	}
 	if len(p.Top) == 0 || len(p.Left) == 0 {
 		p.Message = "Failed to find images that match those filters."

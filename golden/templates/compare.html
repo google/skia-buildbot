@@ -91,12 +91,14 @@
         <div vertical layout>
           <tri-sk id=leftFilter vert filter value=positive></tri-sk>
           <paper-button title="Filter" id=queryLeftButton><core-icon icon=search></core-icon></paper-button>
+          <div id=leftSummary></div>
         </div>
 
         <div flex verical layout>
           <div flex horizontal layout>
             <tri-sk id=topFilter filter value=untriaged></tri-sk>
             <paper-button title="Filter" id=queryTopButton><core-icon icon=search></core-icon></paper-button>
+            <div id=topSummary></div>
           </div>
           <grid-sk></grid-sk>
           <paper-button id=refresh>Refresh</paper-button>
@@ -160,6 +162,8 @@
            };
            sk.post('/2/_/test', JSON.stringify(body)).then(JSON.parse).then(function(json) {
              $$$('grid-sk').setValue(json);
+             $$$('#leftSummary').innerHTML = json.left.length + "/" + json.leftTotal;
+             $$$('#topSummary').innerHTML = json.top.length + "/" + json.topTotal;
              $$$('diff-detail-sk').hide();
              if (json.message != "") {
                $$$('paper-toast').text = json.message;
