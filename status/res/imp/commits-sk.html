@@ -149,7 +149,7 @@
             </thead>
             <tbody>
               <template repeat="{{commit, i in commits}}">
-                <tr class="commit" style="color: {{getCommitColor(displayCommits[commit.hash])}}">
+                <tr class="commit">
                   <td>
                     <a id="opencommit|{{i}}" href="#" class="commit" onClick="return false;" on-click="{{toggleCommitPopup}}">{{commit.hash|shortCommit}}</a>
                   </td>
@@ -485,12 +485,6 @@
       // ellipsis.
       shortSubject: function(subject) {
         return truncate(subject, 72);
-      },
-
-      // getCommitColor returns the color of the commit, as determined in
-      // the prepareCommitsForDisplay function.
-      getCommitColor: function(commit) {
-        return commit.color();
       },
 
       reloadChanged: function() {
