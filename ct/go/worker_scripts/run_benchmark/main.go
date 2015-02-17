@@ -224,7 +224,7 @@ func main() {
 				continue
 			}
 			outputFile := filepath.Join(localOutputDir, fileInfo.Name(), "results.csv")
-			newFile := filepath.Join(localOutputDir, fmt.Sprintf("%s-%s.csv", fileInfo.Name()))
+			newFile := filepath.Join(localOutputDir, fmt.Sprintf("%s.csv", fileInfo.Name()))
 			if err := os.Rename(outputFile, newFile); err != nil {
 				glog.Errorf("Could not rename %s to %s: %s", outputFile, newFile, err)
 				continue
