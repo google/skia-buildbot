@@ -103,7 +103,7 @@ diff between the two images.
         </div>
       </div>
       <div horizontal layout>
-        <canvas id=canvas width=640 height=480></canvas>
+        <canvas id=canvas width=640 height=480 touch-action=none></canvas>
         <div vertical layout end-justified>
           <table border="0" cellspacing="5" cellpadding="5" id=nav>
             <tr><th colspan=2>Naviation</th></tr>
@@ -182,6 +182,18 @@ diff between the two images.
           this.leftChecked = true;
           this.diffChecked = false;
 
+          // The ID of the interval timer used during tracking. Set to -1 if not tracking.
+          this.trackID = -1;
+          // The first coords from the track event.
+          this.trackStartX = 0;
+          this.trackStartY = 0;
+          // The last coords from the track event.
+          this.trackX = 0;
+          this.trackY = 0;
+          // The value of x and y when tracking started.
+          this.startX = 0;
+          this.startY = 0;
+
           // Updated the checkbox status when any one of them is changed.
           this.$.smallImages.addEventListener('core-change', function() {
             that.topChecked = that.$.topToggle.checked;
@@ -209,11 +221,44 @@ diff between the two images.
           this.$.smallImages.addEventListener('crosshair', function(e) {
             that.x = e.detail.x;
             that.y = e.detail.y;
-            $$('crosshair-sk', this).forEach(function(ele) {
+            $$('crosshair-sk', that).forEach(function(ele) {
               ele.x = e.detail.x;
               ele.y = e.detail.y;
             });
             that.drawZoom();
+          });
+
+          this.$.canvas.addEventListener('trackend', function(e) {
+            clearInterval(that.trackID);
+            that.trackID = -1;
+          });
+
+          this.$.canvas.addEventListener('trackstart', function(e) {
+            if (that.trackID != -1) {
+              clearInterval(that.trackID);
+              that.trackID = -1;
+            }
+            that.trackStartX = e.clientX;
+            that.trackStartY = e.clientY;
+            that.startX = that.x;
+            that.startY = that.y;
+            that.trackX = e.clientX;
+            that.trackY = e.clientY;
+            // Set up for 30Hz updates.
+            that.trackID = setInterval(function() {
+              // Calculate the delta the mouse/touch has moved.
+              var dx = that.trackStartX - that.trackX;
+              var dy = that.trackStartY - that.trackY;
+              // Move x,y by that delta scaled by pixelSize.
+              that.x = that.startX + Math.floor(dx/that.pixelSize);
+              that.y = that.startY + Math.floor(dy/that.pixelSize);
+              that.drawZoom();
+            }, 33);
+          });
+
+          this.$.canvas.addEventListener('track', function(e) {
+            that.trackX = e.clientX;
+            that.trackY = e.clientY;
           });
 
           // Toggle the display among all the selected images.
