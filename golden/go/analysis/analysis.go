@@ -413,7 +413,7 @@ func (a *Analyzer) AddIgnoreRule(ignoreRule *types.IgnoreRule) error {
 		return err
 	}
 
-	a.processTile(false, true)
+	a.processTile(false, false)
 
 	return nil
 }
@@ -427,7 +427,7 @@ func (a *Analyzer) DeleteIgnoreRule(ruleId int, user string) error {
 	}
 
 	if count > 0 {
-		a.processTile(false, true)
+		a.processTile(false, false)
 	}
 
 	return nil
@@ -452,11 +452,11 @@ func (a *Analyzer) loop(timeBetweenPolls time.Duration) {
 	// Process the tile with caching. If the result is false that means
 	// no tile was loaded from disk and we need to do another run with
 	// the latest tile.
-	if !a.processTile(true, false) {
-		a.processTile(false, false)
+	if !a.processTile(true, true) {
+		a.processTile(false, true)
 	}
 	for _ = range time.Tick(timeBetweenPolls) {
-		a.processTile(false, false)
+		a.processTile(false, true)
 	}
 }
 
@@ -502,7 +502,7 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 		// Either use a tile already in memory or load a new one.
 		var tile *ptypes.Tile
 		if reloadRawTile || (a.lastRawTile == nil) {
-			tile, err = a.tileStore.GetModifiable(0, -1)
+			tile, err = a.tileStore.Get(0, -1)
 			if err != nil {
 				glog.Errorf("Error reading tile store: %s\n", err)
 				errorTileLoadingCounter.Inc(1)

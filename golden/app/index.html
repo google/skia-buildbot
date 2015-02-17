@@ -27,6 +27,10 @@
           <!-- <li><a href="#/counts">Counts</a></li> -->
           <li><a href="#/triage">Triage</a></li>
           <li><a href="/2/ignores">Ignores</a></li>
+          <li ng-if="globalStatus.lastCommit">
+              Last Commit: <a href="https://skia.googlesource.com/skia/+/{{globalStatus.lastCommit.hash}}" target="_blank">
+                                       {{ globalStatus.lastCommit.hash | limitTo:7 }} - {{ globalStatus.lastCommit.author}} </a>
+          </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
           <li ng-if="globalStatus.ok" class="statusOk">

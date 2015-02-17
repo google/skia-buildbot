@@ -5,6 +5,7 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 	"skia.googlesource.com/buildbot.git/golden/go/types"
+	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
 )
 
 const (
@@ -31,6 +32,9 @@ var (
 type GUIStatus struct {
 	// Indicates whether current HEAD is ok.
 	OK bool `json:"ok"`
+
+	// Last commit currently know.
+	LastCommit *ptypes.Commit `json:"lastCommit"`
 
 	// Status per corpus.
 	CorpStatus map[string]*GUICorpusStatus `json:"corpStatus"`
@@ -123,6 +127,7 @@ func calcStatus(state *AnalyzeState) *GUIStatus {
 
 	return &GUIStatus{
 		OK:         overallOk,
+		LastCommit: state.Tile.Commits[len(state.Tile.Commits)-1],
 		CorpStatus: corpStatus,
 	}
 }

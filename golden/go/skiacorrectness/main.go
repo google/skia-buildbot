@@ -341,7 +341,7 @@ func main() {
 	vdb := database.NewVersionedDB(conf)
 	expStore = expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb))
 	ignoreStore = types.NewSQLIgnoreStore(vdb)
-	tileStore = filetilestore.NewFileTileStore(*tileStoreDir, "golden", -1)
+	tileStore = filetilestore.NewFileTileStore(*tileStoreDir, "golden", 2*time.Minute)
 
 	// Enable the experimental features.
 	if *startExperimental {
@@ -360,7 +360,7 @@ func main() {
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
 	pathToURLConverter = imgFS.GetURL
 	if *startAnalyzer {
-		analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, imgFS.GetURL, cacheFactory, 10*time.Minute)
+		analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, imgFS.GetURL, cacheFactory, 5*time.Minute)
 	}
 	t.Stop()
 
