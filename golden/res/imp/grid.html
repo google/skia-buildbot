@@ -46,7 +46,13 @@ Where:
         }
 
   Events:
-    'diff-focus'
+    'diff-focus' - Triggered when the mouse moves over an image.
+       e.detail contains the diffXY info associated with that thumbnail.
+
+    'diff-click' - Triggered when an image is clicked on.
+       e.detail contains the diffXY info associated with that thumbnail.
+
+    'diff-dblclick' - Triggered when an image is double-clicked.
        e.detail contains the diffXY info associated with that thumbnail.
 
   Methods:
@@ -125,6 +131,7 @@ Where:
         var that = this;
         this.$.container.addEventListener('mouseover', this.mouseAction.bind(this));
         this.$.container.addEventListener('click', this.mouseAction.bind(this));
+        this.$.container.addEventListener('dblclick', this.mouseAction.bind(this));
       },
 
       mouseAction: function(e) {
@@ -142,8 +149,10 @@ Where:
               if (d.topDigest == target.dataset['top'] && d.leftDigest == target.dataset['left']) {
                 if (e.type == "mouseover") {
                   this.dispatchEvent(new CustomEvent('diff-focus', {detail: d}));
-                } else {
+                } else if (e.type == "click") {
                   this.dispatchEvent(new CustomEvent('diff-click', {detail: d}));
+                } else {
+                  this.dispatchEvent(new CustomEvent('diff-dblclick', {detail: d}));
                 }
                 break;
               }

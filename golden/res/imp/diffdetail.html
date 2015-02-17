@@ -4,21 +4,17 @@ Presents detailed information about the differences
 between two images.
 
   Attributes:
-    highlight - A serialized PolyTestDiffInfo. An object of the form:
+    value - A serialized PolyTestDiffInfo. An object of the form:
 
       {
+        test: "testname",
+        topDigest: "ae321...",
+        leftDigest: "bb9087...",
         pixelDiffPercent: 35.9,
         numDiffPixels: 11020,
         maxRGBADiffs: [60, 62, 10, 0],
       }
 
-    value - An object of the form:
-
-      {
-        test: "testname",
-        top:  "1a2b3c...", // Digest of top image.
-        left: "1a2b3c...", // Digest of left image.
-      }
 
   Events:
     triage - The change event e.detail has the form:
@@ -30,8 +26,10 @@ between two images.
 
   Methods:
     hide - Hide the whole panel.
+
+    doZoom - Force the zoom dialog to open.
 -->
-<polymer-element name="diff-detail-sk" attributes="highlight value">
+<polymer-element name="diff-detail-sk" attributes="value">
   <template>
     <style type="text/css" media="screen">
       th {
@@ -71,10 +69,10 @@ between two images.
     </style>
     <div id=diffInfo vertical layout>
       <table border="0" cellspacing="5" cellpadding="5">
-        <tr><th>Pixel Diff (%)</th><td>{{highlight.pixelDiffPercent}}</td></tr>
-        <tr><th>Num Diff Pixels</th><td>{{highlight.numDiffPixels}}</td></tr>
-        <tr><th>Max RBBA Diffs</th><td>{{highlight.maxRGBADiffs}}</td></tr>
-        <tr><th>Diff</th><td><img id=diffThumb src="{{highlight.thumb}}"></td><td><paper-button id=zoom>Zoom</paper-button></td></tr>
+        <tr><th>Pixel Diff (%)</th><td>{{value.pixelDiffPercent}}</td></tr>
+        <tr><th>Num Diff Pixels</th><td>{{value.numDiffPixels}}</td></tr>
+        <tr><th>Max RBBA Diffs</th><td>{{value.maxRGBADiffs}}</td></tr>
+        <tr><th>Diff</th><td><img id=diffThumb src="{{value.thumb}}"></td><td><paper-button id=zoom>Zoom</paper-button></td></tr>
       </table>
       <div id=params>
         <table>
@@ -85,13 +83,13 @@ between two images.
           </tr>
           <tr>
             <th>Status</th>
-            <td><tri-sk id=leftDetail value="untriaged" title="{{value.left}}"></tri-sk> </td>
-            <td><tri-sk id=topDetail value="untriaged" title="{{value.top}}"></tri-sk></td>
+            <td><tri-sk id=leftDetail value="untriaged" title="{{value.leftDigest}}"></tri-sk> </td>
+            <td><tri-sk id=topDetail value="untriaged" title="{{value.topDigest}}"></tri-sk></td>
           </tr>
           <tr>
             <th>Image</th>
-            <td><img src="/img/images/{{value.left}}-thumbnail.png"></td>
-            <td><img src="/img/images/{{value.top}}-thumbnail.png"></td>
+            <td><img src="/img/images/{{value.leftDigest}}-thumbnail.png"></td>
+            <td><img src="/img/images/{{value.topDigest}}-thumbnail.png"></td>
           </tr>
 
           <template repeat="{{p in details.params}}">
@@ -111,8 +109,8 @@ between two images.
           </template>
           <tr id=digestRow>
             <th>Digest</th>
-            <td>{{value.left}}</td>
-            <td>{{value.top}}</td>
+            <td>{{value.leftDigest}}</td>
+            <td>{{value.topDigest}}</td>
           </tr>
         </table>
       </div>
@@ -122,12 +120,8 @@ between two images.
   <script>
     Polymer({
       publish: {
-        highlight: {
-          value: {},  // A serialized PolyTestDiffInfo.
-          reflect: true,
-        },
         value: {
-          value: {},
+          value: {},  // A serialized PolyTestDiffInfo.
           reflect: true,
         },
       },
@@ -140,7 +134,7 @@ between two images.
           e.stopPropagation();
           var detail = {
             test: that.value.test,
-            digest: that.value.top,
+            digest: that.value.topDigest,
             status: e.detail,
           };
           that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
@@ -149,13 +143,13 @@ between two images.
           e.stopPropagation();
           var detail = {
             test: that.value.test,
-            digest: that.value.left,
+            digest: that.value.leftDigest,
             status: e.detail,
           };
           that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
         });
         this.$.zoom.addEventListener('click', function() {
-          that.$.zoomer.setDetails(that.highlight);
+          that.$.zoomer.setDetails(that.value);
           that.$.zoomer.toggle();
         });
       },
@@ -163,7 +157,7 @@ between two images.
       valueChanged: function() {
         if (this.value) {
           var that = this;
-          var q = '?test=' + this.value.test + '&top=' + this.value.top + '&left=' + this.value.left;
+          var q = '?test=' + this.value.test + '&top=' + this.value.topDigest + '&left=' + this.value.leftDigest;
           sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
             that.details = json;
             that.$.topDetail.value = json.topStatus;
@@ -175,6 +169,12 @@ between two images.
 
       hide: function() {
         this.$.diffInfo.classList.remove('display');
+      },
+
+
+      doZoom: function() {
+        this.$.zoomer.setDetails(this.value);
+        this.$.zoomer.toggle();
       },
     });
   </script>

@@ -265,6 +265,7 @@ func (p PolyTestImgInfoSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // PolyTestImgInfo info about a single diff between two source digests. Used in
 // PolyTestGUI.
 type PolyTestDiffInfo struct {
+	Test             string  `json:"test"`
 	Thumb            string  `json:"thumb"`
 	TopDigest        string  `json:"topDigest"`
 	LeftDigest       string  `json:"leftDigest"`
@@ -432,6 +433,7 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		for _, t := range topDigests {
 			d := diffs[t.Digest]
 			row = append(row, &PolyTestDiffInfo{
+				Test:             req.Test,
 				Thumb:            pathToURLConverter(d.ThumbnailPixelDiffFilePath),
 				TopDigest:        t.Digest,
 				LeftDigest:       l.Digest,

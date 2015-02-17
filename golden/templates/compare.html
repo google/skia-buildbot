@@ -190,13 +190,12 @@
        loadGrid();
 
        $$$('grid-sk').addEventListener('diff-click', function(e) {
-         $$$('diff-detail-sk').highlight = e.detail;
-         var value = {
-           top:  e.detail.topDigest,
-           left: e.detail.leftDigest,
-           test: testName
-         };
-         $$$('diff-detail-sk').value = value;
+         $$$('diff-detail-sk').value = e.detail;
+       });
+
+       $$$('grid-sk').addEventListener('diff-dblclick', function(e) {
+         $$$('diff-detail-sk').value = e.detail;
+         $$$('diff-detail-sk').doZoom();
        });
 
        $$$('diff-detail-sk').addEventListener('triage', function(e) {
