@@ -1,0 +1,59 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <builder-popup-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/builder-popup-sk.html" rel="import" />
+
+  Usage:
+
+    <builder-popup-sk></builder-popup-sk>
+
+  Properties:
+    build: The details for a build.
+
+  Methods:
+    toggle: Open or close the popup.
+-->
+<polymer-element name="builder-popup-sk">
+  <template>
+    <style>
+    a {
+      color: #000;
+    }
+    h3 {
+      white-space: nowrap;
+    }
+    </style>
+    <paper-dialog id="dialog" layered="false">
+      <h3>
+        <a href="http://build.chromium.org/p/{{builder.master}}/builders/{{builder.name}}" target="_blank">{{builder.name}}</a>
+      </h3>
+      <table>
+        <tr>
+          <td>Master:</td>
+          <td><a href="http://build.chromium.org/p/{{builder.master}}" target="_blank">{{builder.master}}</a></td>
+        </tr>
+      </table>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        builder: {
+          value: null,
+          reflect: true,
+        },
+      },
+
+      toggle: function() {
+        this.$.dialog.toggle();
+      },
+    });
+  </script>
+</polymer-element>

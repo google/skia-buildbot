@@ -26,6 +26,9 @@
     a {
       color: #000;
     }
+    h3 {
+      white-space: nowrap;
+    }
     </style>
     <paper-dialog id="dialog" layered="false">
       <p>
@@ -37,7 +40,7 @@
         {{commit.timestamp}}
       </p>
       <hr/>
-      <p id="commitSubject"></p>
+      <h3 id="commitSubject"></h3>
       <p id="commitBody"></p>
     </dialog>
   </template>
