@@ -110,6 +110,12 @@
       margin: 0px;
       white-space: nowrap;
     }
+    td.author {
+      width: {{authorWidth}}px;
+      min-width: {{authorWidth}}px;
+      max-width: {{authorWidth}}px;
+      text-overflow: ellipses;
+    }
     td.build {
       text-align: center;
       padding: 0px;
@@ -119,6 +125,12 @@
     }
     a {
       color: inherit;
+    }
+    a.author {
+      text-decoration: none;
+    }
+    a.author:hover {
+      text-decoration: underline;
     }
     a.build {
       border-style: solid;
@@ -192,7 +204,6 @@
           <table class="commitList">
             <thead>
               <tr>
-                <th class="header">Commit</th>
                 <th class="header">Author</th>
                 <th class="header" colspan="{{numBuilders}}">
                   Buildbot Results:
@@ -207,13 +218,11 @@
               <template if="{{numBuilders > 0}}">
                 <tr>
                   <th class="category"></th>
-                  <th class="category"></th>
                   <template repeat="{{c in builderCategoryList}}">
                     <th class="category" colspan="{{builderCategories[c].colspan}}" style="width: {{builderCategories[c].colspan * builderWidth}}px; max-width: {{builderCategories[c].colspan * builderWidth}}px; min-width: {{builderCategories[c].colspan * builderWidth}}px;">{{c}}</th>
                   </template>
                 </tr>
                 <tr>
-                  <th class="subcategory"></th>
                   <th class="subcategory"></th>
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
@@ -222,7 +231,6 @@
                   </template>
                 </tr>
                 <tr class="builder">
-                  <td></td>
                   <td></td>
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
@@ -239,10 +247,9 @@
             <tbody>
               <template repeat="{{commit, i in commits}}">
                 <tr class="commit alt">
-                  <td style="padding: 0px 5px; max-width: 83px;">
-                    <a id="opencommit|{{i}}" href="#" class="commit" onClick="return false;" on-click="{{toggleCommitPopup}}">{{commit.hash|shortCommit}}</a>
+                  <td class="author">
+                    <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{toggleCommitPopup}}">{{commit.author|shortAuthor}}</a>
                   </td>
-                  <td style="padding: 0px 5px; max-width: 161px;">{{commit.author|shortAuthor}}</td>
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
                       <template repeat="{{builder in builderCategories[c].subcategories[s].builders}}">
@@ -285,8 +292,6 @@
     var paddingY = 20;             // Top padding pixels.
     var radius = 3;                // Radius of commit dots.
     var columnWidth = commitY;     // Pixel width of per-branch colums.
-    var commitWidth = 73;
-    var authorWidth = 161;
     // Colors used for the branches. Obtained from
     // http://blog.mollietaylor.com/2012/10/color-blindness-and-palette-choice.html
     var palette = [
@@ -528,6 +533,7 @@
 
       created: function() {
         this.allBuilders = {};
+        this.authorWidth = 100;
         this.autorollCurrent = null;
         this.autorollLast = null;
         this.branchHeads = [];
@@ -574,10 +580,11 @@
       shortAuthor: function(author) {
         var re = /.*\((.+)\)/;
         var match = re.exec(author);
+        var res = author;
         if (match) {
-          return match[1];
+          res = match[1];
         }
-        return author;
+        return res.split("@")[0];
       },
 
       // shortSubject truncates a commit subject line to 72 characters if needed.
@@ -928,7 +935,7 @@
 
         // Get the build table width.
         var windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        this.buildTableWidth = windowWidth - w - commitWidth - authorWidth;
+        this.buildTableWidth = windowWidth - w - this.authorWidth;
         console.log("Done drawing.");
       },
 
