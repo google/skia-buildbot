@@ -24,7 +24,9 @@ Where:
           grid: [
             [diff1A, diff2A, ...],
             [diff1B, diff2B, ...],
-          ]
+          ],
+          topTotal: 45,
+          leftTotal: 5,
         }
 
       Where imgX looks like:
@@ -54,6 +56,10 @@ Where:
 
     'diff-dblclick' - Triggered when an image is double-clicked.
        e.detail contains the diffXY info associated with that thumbnail.
+
+    'more-top'
+    'more-left'
+       Triggered when the user indicates they want to see more thumbnails.
 
   Methods:
     markChanged(digest) - Change the display of the thumbnail of source image
@@ -119,6 +125,12 @@ Where:
               </template>
             </div>
           </template>
+          <div vertical layout>
+            <paper-button id=moreLeft><core-icon icon="expand-more"></core-icon></paper-button>
+          </div>
+        </div>
+        <div vertical layout center-justified>
+          <paper-button id=moreTop><core-icon icon="chevron-right"></core-icon></paper-button>
         </div>
       </div>
     </div>
@@ -132,6 +144,12 @@ Where:
         this.$.container.addEventListener('mouseover', this.mouseAction.bind(this));
         this.$.container.addEventListener('click', this.mouseAction.bind(this));
         this.$.container.addEventListener('dblclick', this.mouseAction.bind(this));
+        this.$.moreTop.addEventListener('click', function() {
+            that.dispatchEvent(new CustomEvent('more-top'));
+        });
+        this.$.moreLeft.addEventListener('click', function() {
+            that.dispatchEvent(new CustomEvent('more-left'));
+        });
       },
 
       mouseAction: function(e) {
@@ -174,6 +192,16 @@ Where:
 
       setValue: function(value) {
         this.value = value;
+        if (value.top.length < value.topTotal) {
+          this.$.moreTop.style.display = 'block';
+        } else {
+          this.$.moreTop.style.display = 'none';
+        }
+        if (value.left.length < value.leftTotal) {
+          this.$.moreLeft.style.display = 'block';
+        } else {
+          this.$.moreLeft.style.display = 'none';
+        }
       }
 
     });

@@ -125,6 +125,14 @@
        var topIncludeIgnores = true;
        var leftIncludeIgnores = true;
 
+       var topN = 5;
+       var leftN = 5;
+
+       var topTotal = 5;
+       var leftTotal = 5;
+
+       var moreDelta = 5;
+
        // Strip off the /testname from the URL.
        var re = new RegExp("/2/cmp/(.*)", "");
        var s = window.location.pathname;
@@ -156,6 +164,22 @@
          loadGrid();
        });
 
+       $$$('grid-sk').addEventListener('more-top', function() {
+         topN += moreDelta;
+         if (topN > topTotal) {
+           topN = topTotal;
+         }
+         loadGrid();
+       });
+
+       $$$('grid-sk').addEventListener('more-left', function() {
+         leftN += moreDelta;
+         if (leftN > leftTotal) {
+           leftN = leftTotal;
+         }
+         loadGrid();
+       });
+
        function loadGrid() {
          if (testName != '') {
            var body = {
@@ -166,8 +190,18 @@
              "leftQuery": leftQuery,
              "topIncludeIgnores": topIncludeIgnores,
              "leftIncludeIgnores": leftIncludeIgnores,
+             "topN": topN,
+             "leftN": leftN,
            };
            sk.post('/2/_/test', JSON.stringify(body)).then(JSON.parse).then(function(json) {
+             topTotal = json.topTotal;
+             leftTotal = json.leftTotal;
+             if (topN > topTotal) {
+               topN = Math.max(topTotal, 5);
+             }
+             if (leftN > leftTotal) {
+               leftN = Math.max(leftTotal, 5);
+             }
              $$$('grid-sk').setValue(json);
              $$$('#leftSummary').innerHTML = json.left.length + "/" + json.leftTotal;
              $$$('#topSummary').innerHTML = json.top.length + "/" + json.topTotal;

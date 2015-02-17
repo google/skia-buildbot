@@ -246,6 +246,8 @@ type PolyTestRequest struct {
 	LeftQuery          string `json:"leftQuery"`
 	TopIncludeIgnores  bool   `json:"topIncludeIgnores"`
 	LeftIncludeIgnores bool   `json:"leftIncludeIgnores"`
+	TopN               int    `json:"topN"`
+	LeftN              int    `json:"leftN"`
 }
 
 // PolyTestImgInfo info about a single source digest. Used in PolyTestGUI.
@@ -344,13 +346,10 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 //      leftQuery: "",
 //      topIncludeIgnores: bool,
 //      leftIncludeIgnores: bool,
+//      topN: topN,
+//      leftN: leftN,
 //   }
 //
-// TODO
-//   * add querying
-//   * return all the data
-//   * add sorting based on query params
-//   * query dialog
 //
 // The return format looks like:
 //
@@ -394,8 +393,8 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		ignores = append(ignores, q)
 	}
 
-	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, 5, req.TopIncludeIgnores, ignores)
-	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, 5, req.LeftIncludeIgnores, ignores)
+	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, req.TopN, req.TopIncludeIgnores, ignores)
+	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, req.LeftN, req.LeftIncludeIgnores, ignores)
 
 	// Extract out string slices of digests to pass to *AbsPath and diffStore.Get().
 	allDigests := map[string]bool{}
