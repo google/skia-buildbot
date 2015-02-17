@@ -185,7 +185,7 @@ func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
 	for _, c := range commits {
 		hashes = append(hashes, c.Hash)
 	}
-	builds, err := c.buildCache.GetBuildsForCommits(hashes)
+	builds, builders, err := c.buildCache.GetBuildsForCommits(hashes)
 	if err != nil {
 		return err
 	}
@@ -194,12 +194,14 @@ func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
 		Commits     []*gitinfo.LongCommit                        `json:"commits"`
 		BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
 		Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
+		Builders    map[string]*buildbot.Builder                 `json:"builders"`
 		StartIdx    int                                          `json:"startIdx"`
 		EndIdx      int                                          `json:"endIdx"`
 	}{
 		Commits:     commits,
 		BranchHeads: c.BranchHeads,
 		Builds:      builds,
+		Builders:    builders,
 		StartIdx:    startIdx,
 		EndIdx:      endIdx,
 	}

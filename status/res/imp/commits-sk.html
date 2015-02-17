@@ -41,9 +41,56 @@
     }
     th {
       text-align: left;
+      white-space: nowrap;
+    }
+    th.header {
       height: 53px;
       padding: 5px;
-      white-space: nowrap;
+    }
+    th.category {
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      border-style: solid;
+      border-left-width: 1px;
+      border-top-width: 1px;
+      border-right-width: 0px;
+      border-bottom-width: 0px;
+      font-size: 12px;
+      height: 17px;
+      text-align: center;
+      overflow: hidden;
+    }
+    th.category:last-child {
+      border-right-width: 1px;
+    }
+    th.category:empty {
+      border-width: 1px 0px;
+      border-color: #FFFFFF;
+    }
+    th.subcategory {
+      background-color: #EFEFEF;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      border-style: solid;
+      border-left-width: 1px;
+      border-top-width: 1px;
+      border-right-width: 0px;
+      border-bottom-width: 0px;
+      font-size: 10px;
+      height: 14px;
+      text-align: center;
+      overflow: hidden;
+    }
+    th.subcategory:last-child {
+      border-right-width: 1px;
+    }
+    th.subcategory:empty {
+      background-color: #FFFFFF;
+      border-width: 1px 0px;
+      border-color: #FFFFFF;
+    }
+    tr.builder {
+      height: 14px;
     }
     tr.commit {
       font-size: 10px;
@@ -52,19 +99,23 @@
       margin: 0px;
       padding: 0px;
     }
-    tr.commit:nth-child(even) {
+    .alt:nth-child(even) {
       background-color: #EFEFEF;
     }
-    tr.commit:nth-child(odd) {
+    .alt:nth-child(odd) {
       background-color: #FFFFFF;
     }
     td {
-      padding: 0px 5px;
+      padding: 0px;
       margin: 0px;
       white-space: nowrap;
     }
     td.build {
+      text-align: center;
       padding: 0px;
+      width: {{builderWidth}}px;
+      max-width: {{builderWidth}}px;
+      min-width: {{builderWidth}}px;
     }
     a {
       color: inherit;
@@ -72,35 +123,33 @@
     a.build {
       border-style: solid;
       border-color: gray;
-      min-width: 5px;
-      width: 10px;
       display: block;
     }
     a.build_single {
       border-width: 1px;
       border-radius: 3px;
-      margin: 3px 1px;
-      height: 12px;
+      margin: 1px 0px 1px 1px;
+      height: 16px;
     }
     a.build_middle {
       border-width: 0px 1px;
       border-radius: 0px;
-      margin: 0px 1px;
+      margin: 0px 0px 0px 1px;
       height: 20px;
     }
     a.build_top {
       border-width: 1px 1px 0px 1px;
       border-top-left-radius: 3px;
       border-top-right-radius: 3px;
-      margin: 3px 1px 0px 1px;
-      height: 16px;
+      margin: 1px 0px 0px 1px;
+      height: 18px;
     }
     a.build_bottom {
       border-width: 0px 1px 1px 1px;
       border-bottom-left-radius: 3px;
       border-bottom-right-radius: 3px;
-      margin: 0px 1px 3px 1px;
-      height: 16px;
+      margin: 0px 0px 1px 1px;
+      height: 18px;
     }
     #moreButton {
       width: 40px;
@@ -122,10 +171,17 @@
           <!-- Use another as a spacer for the canvas. I couldn't find a sane
                way to put the canvas in the same table as the commit data. -->
           <table class="commitList">
-            <thead><th>Graph</th></thead>
+            <thead>
+              <tr><th class="header"></th></tr>
+              <template if="{{numBuilders > 0}}">
+                <tr><th class="category"></th></tr>
+                <tr><th class="subcategory"></th></tr>
+                <tr><tr class="builder"><td class="build"></td></tr>
+              </template>
+            </thead>
             <tbody>
               <tr class="commit">
-                <td class="build">
+                <td>
                   <canvas id="commitCanvas"></canvas>
                 </td>
               </tr>
@@ -135,38 +191,75 @@
         <div flex>
           <table class="commitList">
             <thead>
-              <th>Commit</th>
-              <th>Author</th>
-              <th colspan="{{builders.length}}">
-                Buildbot Results
-                <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
-                  <paper-radio-button name="hide" label="Hide"></paper-radio-button>
-                  <paper-radio-button name="interesting" label="Interesting"></paper-radio-button>
-                  <paper-radio-button name="failures" label="Failures"></paper-radio-button>
-                  <paper-radio-button name="all" label="All"></paper-radio-button>
-                </paper-radio-group>
-              </th>
+              <tr>
+                <th class="header">Commit</th>
+                <th class="header">Author</th>
+                <th class="header" colspan="{{numBuilders}}">
+                  Buildbot Results:
+                  <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
+                    <paper-radio-button name="hide" label="Hide"></paper-radio-button>
+                    <paper-radio-button name="interesting" label="Interesting"></paper-radio-button>
+                    <paper-radio-button name="failures" label="Failures"></paper-radio-button>
+                    <paper-radio-button name="all" label="All"></paper-radio-button>
+                  </paper-radio-group>
+                </th>
+              </tr>
+              <template if="{{numBuilders > 0}}">
+                <tr>
+                  <th class="category"></th>
+                  <th class="category"></th>
+                  <template repeat="{{c in builderCategoryList}}">
+                    <th class="category" colspan="{{builderCategories[c].colspan}}" style="width: {{builderCategories[c].colspan * builderWidth}}px; max-width: {{builderCategories[c].colspan * builderWidth}}px; min-width: {{builderCategories[c].colspan * builderWidth}}px;">{{c}}</th>
+                  </template>
+                </tr>
+                <tr>
+                  <th class="subcategory"></th>
+                  <th class="subcategory"></th>
+                  <template repeat="{{c in builderCategoryList}}">
+                    <template repeat="{{s in builderCategories[c].subcategoryList}}">
+                      <th class="subcategory" colspan="{{builderCategories[c].subcategories[s].builders.length}}" style="width:{{builderCategories[c].subcategories[s].builders.length * builderWidth}}px; min-width:{{builderCategories[c].subcategories[s].builders.length * builderWidth}}px; max-width:{{builderCategories[c].subcategories[s].builders.length * builderWidth}}px;">{{s}}</th>
+                    </template>
+                  </template>
+                </tr>
+                <tr class="builder">
+                  <td></td>
+                  <td></td>
+                  <template repeat="{{c in builderCategoryList}}">
+                    <template repeat="{{s in builderCategories[c].subcategoryList}}">
+                      <template repeat="{{b in builderCategories[c].subcategories[s].builders}}">
+                        <td class="build">
+                          <a id="openBuilder|{{b}}" class="build build_single" href="#" onClick="return false;" on-click="{{toggleBuilderPopup}}" style="background-color: {{allBuilders[b].color}}; height: 6px;"></a>
+                        </td>
+                      </template>
+                    </template>
+                  </template>
+                </tr>
+              </template>
             </thead>
             <tbody>
               <template repeat="{{commit, i in commits}}">
-                <tr class="commit">
-                  <td>
+                <tr class="commit alt">
+                  <td style="padding: 0px 5px; max-width: 83px;">
                     <a id="opencommit|{{i}}" href="#" class="commit" onClick="return false;" on-click="{{toggleCommitPopup}}">{{commit.hash|shortCommit}}</a>
                   </td>
-                  <td>{{commit.author|shortAuthor}}</td>
-                  <template repeat="{{builder in builders}}">
-                    <td class="build">
-                      <template if="{{buildDetails[commit.hash][builder]}}">
-                        <a id="openbuild|{{commit.hash}}|{{builder}}"
-                           href="#"
-                           class="build {{commit.displayClass[builder]}}"
-                           onClick="return false;"
-                           on-click="{{toggleBuildPopup}}"
-                           style="background-color: {{buildDetails[commit.hash][builder].color}};"
-                          >
-                        </a>
+                  <td style="padding: 0px 5px; max-width: 161px;">{{commit.author|shortAuthor}}</td>
+                  <template repeat="{{c in builderCategoryList}}">
+                    <template repeat="{{s in builderCategories[c].subcategoryList}}">
+                      <template repeat="{{builder in builderCategories[c].subcategories[s].builders}}">
+                        <td class="build">
+                          <template if="{{buildDetails[commit.hash][builder]}}">
+                            <a id="openbuild|{{commit.hash}}|{{builder}}"
+                               href="#"
+                               class="build {{commit.displayClass[builder]}}"
+                               onClick="return false;"
+                               on-click="{{toggleBuildPopup}}"
+                               style="background-color: {{buildDetails[commit.hash][builder].color}};"
+                              >
+                            </a>
+                          </template>
+                        </td>
                       </template>
-                    </td>
+                    </template>
                   </template>
                 </tr>
               </template>
@@ -180,6 +273,7 @@
         <paper-spinner id="loading" active></paper-spinner>
       </div>
       <build-popup-sk id="buildPopup"></build-popup-sk>
+      <builder-popup-sk id="builderPopup"></builder-popup-sk>
       <commit-popup-sk id="commitPopup"></commit-popup-sk>
     </div>
   </template>
@@ -191,6 +285,8 @@
     var paddingY = 20;             // Top padding pixels.
     var radius = 3;                // Radius of commit dots.
     var columnWidth = commitY;     // Pixel width of per-branch colums.
+    var commitWidth = 73;
+    var authorWidth = 161;
     // Colors used for the branches. Obtained from
     // http://blog.mollietaylor.com/2012/10/color-blindness-and-palette-choice.html
     var palette = [
@@ -431,17 +527,21 @@
       },
 
       created: function() {
-        this.allBuilders = [];
+        this.allBuilders = {};
         this.autorollCurrent = null;
         this.autorollLast = null;
         this.branchHeads = [];
+        this.builderCategories = {};
+        this.builderCategoryList = [];
         this.builderFilter = "interesting";
-        this.builders = [];
+        this.builderWidth = "5px";
         this.builds = {};
         this.buildDetails = {};
+        this.buildTableWidth = 0;
         this.commits = [];
         this.displayCommits = {};
         this.lastLoaded = "(not yet loaded)";
+        this.numBuilders = 0;
         this.startIdx = null;
         this.endIdx = null;
         this.timeout = null;
@@ -514,10 +614,11 @@
         if (selected == "hide") {
           filteredBuilders = [];
         } else if (selected == "all") {
-          filteredBuilders = this.allBuilders;
+          for (var builder in this.allBuilders) {
+            filteredBuilders.push(builder);
+          }
         } else if (selected == "interesting" || selected == "failures") {
-          for (var i = 0; i < this.allBuilders.length; i++) {
-            var builder = this.allBuilders[i];
+          for (var builder in this.allBuilders) {
             var failed = false;
             var succeeded = false;
             for (var buildNum in this.builds[builder]) {
@@ -544,7 +645,39 @@
           console.error("Invalid builder filter selection: " + selected);
         }
         filteredBuilders.sort();
-        this.builders = filteredBuilders;
+        this.numBuilders = filteredBuilders.length;
+
+        var categories = {};
+        var categoryList = [];
+        for (var i = 0; i < filteredBuilders.length; i++) {
+          var builderName = filteredBuilders[i];
+          var category = this.allBuilders[builderName].category;
+          if (!category) {
+            category = "Other";
+          }
+          if (!categories[category]) {
+            categories[category] = {
+              colspan: 0,
+              subcategoryList: [],
+              subcategories: {},
+            };
+            categoryList.push(category);
+          }
+          var subcategory = this.allBuilders[builderName].subcategory;
+          if (!subcategory) {
+            subcategory = "Other";
+          }
+          if (!categories[category].subcategories[subcategory]) {
+            categories[category].subcategories[subcategory] = {
+              builders: [],
+            };
+            categories[category].subcategoryList.push(subcategory);
+          }
+          categories[category].subcategories[subcategory].builders.push(builderName);
+          categories[category].colspan++;
+        }
+        this.builderCategories = categories;
+        this.builderCategoryList = categoryList;
       },
 
       // Toggle the build popup.
@@ -562,9 +695,21 @@
         }
       },
 
+      // Toggle the builder popup.
+      toggleBuilderPopup: function(e, d, s) {
+        var split = s.id.split("|");
+        if (split.length != 2) {
+          throw "Invalid id: " + s.id;
+        }
+        var builder = split[1];
+        if (builder) {
+          this.$.builderPopup.builder = this.allBuilders[builder];
+          this.$.builderPopup.toggle();
+        }
+      },
+
       // Toggle the commit popup.
       toggleCommitPopup: function(e, d, s) {
-        console.log("Opening commit popup");
         var split = s.id.split("|");
         if (split.length != 2) {
           throw "Invalid id: " + s.id;
@@ -640,7 +785,7 @@
           // Prepare build data.
           console.log("Preparing build data.");
           var builds = {};
-          var builders = [];
+          var builders = {};
           var buildDetails = that.buildDetails;
           for (var k in json.builds) {
             buildDetails[k] = json.builds[k];
@@ -661,8 +806,18 @@
                 build.color = "#7570B3";
               }
               if (!builds[builder]) {
+                // This is the first time we've seen this builder.
                 builds[builder] = {};
-                builders.push(builder);
+                var builderDetails = json.builders[builder];
+                // We're traveling backward in time, so the first build we
+                // find for a given builder is its most recent.
+                builderDetails.color = build.color;
+                var split = builder.split("-");
+                if (split.length > 2) {
+                  builderDetails.category = split[0];
+                  builderDetails.subcategory = split[1];
+                }
+                builders[builder] = builderDetails;
               }
               builds[builder][build.number] = build;
               // Figure out the display class to use.
@@ -771,7 +926,22 @@
           this.displayCommits[commits[i].hash].draw(ctx, this.displayCommits);
         }
 
+        // Get the build table width.
+        var windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        this.buildTableWidth = windowWidth - w - commitWidth - authorWidth;
         console.log("Done drawing.");
+      },
+
+      setBuilderWidth: function() {
+        this.builderWidth = Math.floor(this.buildTableWidth / this.numBuilders) - 1;
+      },
+
+      buildTableWidthChanged: function() {
+        this.setBuilderWidth();
+      },
+
+      numBuildersChanged: function() {
+        this.setBuilderWidth();
       },
     });
   })();

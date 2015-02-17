@@ -48,6 +48,12 @@ type Build struct {
 	Finished      float64 `db:"finished"`
 }
 
+// Builder contains information about a single builder.
+type Builder struct {
+	Name   string `json:"name"`
+	Master string `json:"master"`
+}
+
 // BuildSlave contains information about a buildslave.
 type BuildSlave struct {
 	Admin     string
