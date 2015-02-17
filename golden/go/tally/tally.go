@@ -77,20 +77,20 @@ func (t *Tallies) ByTrace() TraceTally {
 }
 
 // ByQuery returns a Tally of all the digests that match the given query.
-func (t *Tallies) ByQuery(query url.Values) (Tally, error) {
+func (t *Tallies) ByQuery(query url.Values, ignores ...url.Values) (Tally, error) {
 	tile, err := t.tileStore.Get(0, -1)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
-	return tallyBy(tile, t.traceTally, query), nil
+	return tallyBy(tile, t.traceTally, query, ignores...), nil
 
 }
 
 // tallyBy does the actual work of ByQuery.
-func tallyBy(tile *types.Tile, traceTally TraceTally, query url.Values) Tally {
+func tallyBy(tile *types.Tile, traceTally TraceTally, query url.Values, ignores ...url.Values) Tally {
 	ret := Tally{}
 	for k, tr := range tile.Traces {
-		if types.Matches(tr, query) {
+		if types.MatchesWithIgnores(tr, query, ignores...) {
 			for digest, n := range *traceTally[k] {
 				if _, ok := ret[digest]; ok {
 					ret[digest] += n

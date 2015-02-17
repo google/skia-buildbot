@@ -105,7 +105,14 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 // polyIgnoresJSONHandler returns the current ignore rules in JSON format.
 func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	ignores, err := analyzer.ListIgnoreRules()
+
+	ignores := []*types.IgnoreRule{}
+	var err error
+	if *startAnalyzer {
+		ignores, err = analyzer.ListIgnoreRules()
+	} else {
+		ignores, err = ignoreStore.List()
+	}
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to retrieve ignored traces.")
 	}
@@ -129,7 +136,13 @@ func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := analyzer.DeleteIgnoreRule(int(id), user); err != nil {
+	if *startAnalyzer {
+		err = analyzer.DeleteIgnoreRule(int(id), user)
+	} else {
+		_, err = ignoreStore.Delete(int(id), user)
+	}
+
+	if err != nil {
 		util.ReportError(w, r, err, "Unable to delete ignore rule.")
 	} else {
 		// If delete worked just list the current ignores and return them.
@@ -187,7 +200,12 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := analyzer.AddIgnoreRule(ignoreRule); err != nil {
+	if *startAnalyzer {
+		err = analyzer.AddIgnoreRule(ignoreRule)
+	} else {
+		err = ignoreStore.Create(ignoreRule)
+	}
+	if err != nil {
 		util.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
 	}
@@ -221,11 +239,13 @@ func polyCompareHandler(w http.ResponseWriter, r *http.Request) {
 
 // PolyTestRequest is the POST'd request body handled by polyTestHandler.
 type PolyTestRequest struct {
-	Test       string `json:"test"`
-	TopFilter  string `json:"topFilter"`
-	LeftFilter string `json:"LeftFilter"`
-	TopQuery   string `json:"topQuery"`
-	LeftQuery  string `json:"leftQuery"`
+	Test               string `json:"test"`
+	TopFilter          string `json:"topFilter"`
+	LeftFilter         string `json:"LeftFilter"`
+	TopQuery           string `json:"topQuery"`
+	LeftQuery          string `json:"leftQuery"`
+	TopIncludeIgnores  bool   `json:"topIncludeIgnores"`
+	LeftIncludeIgnores bool   `json:"leftIncludeIgnores"`
 }
 
 // PolyTestImgInfo info about a single source digest. Used in PolyTestGUI.
@@ -268,7 +288,7 @@ type PolyTestGUI struct {
 
 // imgInfo returns a populated slice of PolyTestImgInfo based on the filter and
 // queryString passed in.
-func imgInfo(filter, queryString, testName string, e types.TestClassification, max int) ([]*PolyTestImgInfo, int, error) {
+func imgInfo(filter, queryString, testName string, e types.TestClassification, max int, includeIgnores bool, ignores []url.Values) ([]*PolyTestImgInfo, int, error) {
 	query, err := url.ParseQuery(queryString)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Failed to parse Query in imgInfo: %s", err)
@@ -276,7 +296,10 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 	query["name"] = []string{testName}
 
 	t := timer.New("tallies.ByQuery")
-	digests, err := tallies.ByQuery(query)
+	if !includeIgnores {
+		ignores = []url.Values{}
+	}
+	digests, err := tallies.ByQuery(query, ignores...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
 	}
@@ -316,6 +339,10 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 //      test: The name of the test.
 //      topFilter=["positive", "negative", "untriaged"]
 //      leftFilter=["positive", "negative", "untriaged"]
+//      topQuery: "",
+//      leftQuery: "",
+//      topIncludeIgnores: bool,
+//      leftIncludeIgnores: bool,
 //   }
 //
 // TODO
@@ -354,8 +381,20 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	e := exp.Tests[req.Test]
 
-	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, 5)
-	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, 5)
+	ignores := []url.Values{}
+
+	allIgnores, err := ignoreStore.List()
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load ignore rules.")
+		return
+	}
+	for _, i := range allIgnores {
+		q, _ := url.ParseQuery(i.Query)
+		ignores = append(ignores, q)
+	}
+
+	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, 5, req.TopIncludeIgnores, ignores)
+	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, 5, req.LeftIncludeIgnores, ignores)
 
 	// Extract out string slices of digests to pass to *AbsPath and diffStore.Get().
 	allDigests := map[string]bool{}

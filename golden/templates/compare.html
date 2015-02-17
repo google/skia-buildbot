@@ -122,6 +122,9 @@
        var topQuery = "";
        var leftQuery = "";
 
+       var topIncludeIgnores = true;
+       var leftIncludeIgnores = true;
+
        // Strip off the /testname from the URL.
        var re = new RegExp("/2/cmp/(.*)", "");
        var s = window.location.pathname;
@@ -141,12 +144,14 @@
 
        $$$('#queryTopDialog').addEventListener('closed', function(e) {
          topQuery = e.detail.query;
+         topIncludeIgnores = e.detail.useIgnored;
          $$$('#queryTopButton').title = topQuery;
          loadGrid();
        });
 
        $$$('#queryLeftDialog').addEventListener('closed', function(e) {
          leftQuery = e.detail.query;
+         leftIncludeIgnores = e.detail.useIgnored;
          $$$('#queryLeftButton').title = leftQuery;
          loadGrid();
        });
@@ -159,6 +164,8 @@
              "leftFilter": leftFilter,
              "topQuery": topQuery,
              "leftQuery": leftQuery,
+             "topIncludeIgnores": topIncludeIgnores,
+             "leftIncludeIgnores": leftIncludeIgnores,
            };
            sk.post('/2/_/test', JSON.stringify(body)).then(JSON.parse).then(function(json) {
              $$$('grid-sk').setValue(json);
