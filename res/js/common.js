@@ -222,5 +222,112 @@ this.sk = this.sk || function() {
     return s.replace(/https?:\/\/[^ \t\n<]*/g, sub).replace(/(?:\n|\r|\r\n)/g, '<br/>');
   }
 
+  // Namespace for utilities for working with URL query strings.
+  sk.query = {};
+
+  // ToParamSet parses a query string into an object with
+  // arrays of values for the values. I.e.
+  //
+  //   "a=2&b=3&a=4"
+  //
+  // decodes to
+  //
+  //   {
+  //     a:["2", "4"],
+  //     b:["3"],
+  //   }
+  //
+  // This function handles URI decoding of both keys and values.
+  sk.query.toParamSet = function(s) {
+    var ret = {};
+    var vars = s.split("&");
+    for (var i=0; i<vars.length; i++) {
+      var pair = vars[i].split("=", 2);
+      if (pair.length == 2) {
+        var key = decodeURIComponent(pair[0]);
+        var value = decodeURIComponent(pair[1]);
+        if (ret.hasOwnProperty(key)) {
+          ret[key].push(value);
+        } else {
+          ret[key] = [value];
+        }
+      }
+    }
+    return ret;
+  }
+
+
+  // fromObject takes an object and encodes it into a query string.
+  //
+  // The reverse of this function is toObject.
+  sk.query.fromObject = function(o) {
+    var ret = [];
+    Object.keys(o).forEach(function(key) {
+      ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(o[key]));
+    });
+    return ret.join('&');
+  }
+
+
+  // toObject decodes a query string into an object
+  // using the 'target' as a source for hinting on the types
+  // of the values.
+  //
+  //   "a=2&b=true"
+  //
+  // decodes to:
+  //
+  //   {
+  //     a: 2,
+  //     b: true,
+  //   }
+  //
+  // When given a target of:
+  //
+  //   {
+  //     a: 1.0,
+  //     b: false,
+  //   }
+  //
+  // Note that a target of {} would decode
+  // the same query string into:
+  //
+  //   {
+  //     a: "2",
+  //     b: "true",
+  //   }
+  //
+  // Only Number, String, and Boolean hints are supported.
+  sk.query.toObject = function(s, target) {
+    var ret = {};
+    var vars = s.split("&");
+    for (var i=0; i<vars.length; i++) {
+      var pair = vars[i].split("=", 2);
+      if (pair.length == 2) {
+        var key = decodeURIComponent(pair[0]);
+        var value = decodeURIComponent(pair[1]);
+        if (target.hasOwnProperty(key)) {
+          switch (typeof(target[key])) {
+            case 'boolean':
+              ret[key] = value=="true";
+              break;
+            case 'number':
+              ret[key] = Number(value);
+              break;
+            case 'string':
+              ret[key] = value;
+              break;
+            default:
+              ret[key] = value;
+          }
+        } else {
+          ret[key] = value;
+        }
+      }
+    }
+    return ret;
+  }
+
+
   return sk;
 }();

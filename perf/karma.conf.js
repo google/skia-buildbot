@@ -31,11 +31,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       '../res/js/common.js',
-      'karma-loader.js',
       'tests/*.js',
-
-      { pattern: 'res/**/*', included: false },
-
     ],
 
 
@@ -78,7 +74,10 @@ module.exports = function(config) {
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
     //
-    // This can be over-ridden by command-line flag when running Karma.
+    // This can be over-ridden by command-line flag when running Karma. I.e.:
+    //
+    //    ./node_modules/karma/bin/karma --no-single-run start
+    //
     singleRun: true
   });
 };
