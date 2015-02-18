@@ -91,7 +91,7 @@ func main() {
 	fixArchivesCmdTemplate := "DISPLAY=:0 fix_archives --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} " +
 		"--pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} " +
 		"--repeat_benchmark={{.RepeatBenchmark}} --benchmark_name={{.BenchmarkName}} " +
-		"--benchmark_header_to_check={{.BenchmarkHeaderToCheck}} --delete_pageset={{.DeletePageset}} " +
+		"--benchmark_header_to_check=\"{{.BenchmarkHeaderToCheck}}\" --delete_pageset={{.DeletePageset}} " +
 		"--perc_change_threshold={{.PercentageChangeThreshold}} --res_missing_count_threshold={{.ResourceMissingCountThreshold}};"
 	fixArchivesTemplateParsed := template.Must(template.New("fix_archives_cmd").Parse(fixArchivesCmdTemplate))
 	fixArchivesCmdBytes := new(bytes.Buffer)
