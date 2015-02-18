@@ -221,16 +221,14 @@ diff between the two images.
           this.$.smallImages.addEventListener('crosshair', function(e) {
             that.x = e.detail.x;
             that.y = e.detail.y;
-            $$('crosshair-sk', that).forEach(function(ele) {
-              ele.x = e.detail.x;
-              ele.y = e.detail.y;
-            });
+            that.syncXY();
             that.drawZoom();
           });
 
           this.$.canvas.addEventListener('trackend', function(e) {
             clearInterval(that.trackID);
             that.trackID = -1;
+            that.syncXY();
           });
 
           this.$.canvas.addEventListener('trackstart', function(e) {
@@ -453,6 +451,15 @@ diff between the two images.
           this.pixelSize = Math.floor(size/this.PIXELS);
           this.$.canvas.width = this.PIXELS*this.pixelSize;
           this.$.canvas.height = this.PIXELS*this.pixelSize;
+        },
+
+        // syncXY propagates the x,y value to each crosshair.
+        syncXY: function() {
+          var that=this;
+          $$('crosshair-sk', this.shadowRoot).forEach(function(ele) {
+            ele.x = that.x;
+            ele.y = that.y;
+          });
         },
 
       });
