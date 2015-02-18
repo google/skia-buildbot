@@ -68,22 +68,28 @@ Where:
 <polymer-element name="grid-sk">
   <template>
     <style type="text/css" media="screen">
+      #empty,
       img {
         margin: 5px;
-        border: solid 2px lightgray;
       }
 
-      img.noBorder {
-        border: solid 2px white;
+      img {
+        border: solid 2px lightgray;
       }
 
       img.changed {
         border: solid 2px #D95F02;
       }
+
+      #empty {
+        width: 64px;
+        height: 64px;
+        border: solid 2px white;
+      }
     </style>
     <div id=container vertical layout>
       <div horizontal layout>
-        <img src="/res/img/white.png" class=noBorder />
+        <div id=empty></div>
         <template repeat="{{t in value.top}}">
           <core-tooltip>
             <img src="{{t.thumb}}" data-digest="{{t.digest}}"/>
