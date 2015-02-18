@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <br/>
+  <center>
+    <h2>Current AutoRollBot Status</h2>
+    <br/>
+    <table border="1" cellpadding="5">
+      <tr bgcolor="#CCCCFF">
+        <td><b>Status</b></td>
+        <td><b>DEPS Roll CL</b></td>
+        <td><b>Last Updated at</b></td>
+      </tr>
+      <tr>
+        <td>{{ arb_status.last_reported_status }}</td>
+        {% if arb_status.deps_roll_link %}
+          <td><a href="{{ arb_status.deps_roll_link }}">{{ arb_status.deps_roll_link }}</a></td>
+        {% else %}
+          <td>None</td>
+        {% endif %}
+        <td>{{ arb_status.date|date:"D M d, H:i T " }}</td>
+      </tr>
+    </table>
+    <br/><br/>
+    <hr/>
+
+  <h2>Change AutoRollBot State</h2>
+  <br/>
+  {% if is_admin %}
+    <form action="/set_arb_action" name="update_arb" method="post">
+      <table>
+        <tr>
+          <td>Reason:</td>
+          <td><input type="text" size="50" name="reason" value=""></td>
+        </tr>
+        <tr>
+          <td>Stopped:</td>
+          <td><input type="checkbox" name="is_stopped" value="Stopped"
+                     {% if user_actions.0.is_stopped %}checked{% endif %}></td>
+        </tr>
+      </table>
+      <input type="submit" value="Submit" name="submit">
+      <input type="button" name="refresh" value="Refresh" onclick="location.href='/set_arb_action';">
+    </form>
+  {% else %}
+    Please login with your google or chromium account to change the Autoroll bot status
+    <br/>
+  {% endif %}
+  <br/>
+  <hr/>
+
+  <h2>Last {{ history_limit }} AutoRollBot Actions</h2>
+  <br/>
+  <table border="1" cellpadding="5">
+  <tr bgcolor="#CCCCFF">
+    <td><b>Stopped</b></td>
+    <td><b>Who</b></td>
+    <td><b>Reason</b></td>
+    <td><b>When</b></td>
+  </tr>
+  {% for user_action in user_actions %}
+    <tr>
+      <td>{{ user_action.is_stopped }}</td>
+      <td>{{ user_action.username }}</td>
+      <td>{{ user_action.reason }}</td>
+      <td>{{ user_action.date|date:"D M d, H:i T " }}</td>
+    </tr>
+  {% endfor %}
+  </table>
+
+  </center>
+{% endblock %}

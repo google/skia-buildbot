@@ -24,6 +24,9 @@ APPID?= `cat app.yaml | sed -n 's/^application: *//p'`
 
 SDK_PATH ?= $(shell python -c '$(DETECT_SDK)')
 
+DEV_APPSERVER?= $(if $(SDK_PATH), $(SDK_PATH)/,)dev_appserver.py
+DEV_APPSERVER_FLAGS?=
+
 APPCFG?= $(if $(SDK_PATH), $(SDK_PATH)/,)appcfg.py
 APPCFG_FLAGS?=
 
@@ -51,3 +54,7 @@ update:
 upload: update
 
 deploy: update
+
+serve:
+	@echo "---[Starting SDK AppEngine Server]---"
+	$(DEV_APPSERVER) $(DEV_APPSERVER_FLAGS) .

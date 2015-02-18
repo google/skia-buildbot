@@ -11,6 +11,7 @@
 
 from google.appengine.ext import webapp
 
+import arb_status
 import base_page
 import builder_status
 import commit_queue
@@ -31,6 +32,10 @@ class Warmup(webapp.RequestHandler):
 URLS = [
   ('/', status.MainPage),
   ('/allstatus/?', status.AllStatusPage),
+  ('/arb_is_stopped/?', arb_status.ARBIsStoppedPage),
+  ('/set_arb_action/?', arb_status.SetARBActionPage),
+  ('/get_arb_status/?', arb_status.GetARBStatusPage),
+  ('/set_arb_status/?', arb_status.SetARBStatusPage),
   ('/banner-status/?', status.BannerStatusPage),
   ('/current/?', status.BannerStatusPage),
   ('/status/?', status.BinaryStatusPage),
@@ -77,6 +82,7 @@ APPLICATION = webapp.WSGIApplication(URLS, debug=True)
 
 
 # Do some one-time initializations.
+arb_status.bootstrap()
 base_page.bootstrap()
 builder_status.bootstrap()
 commit_queue.bootstrap()
