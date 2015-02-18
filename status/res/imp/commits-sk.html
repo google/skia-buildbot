@@ -804,9 +804,9 @@
             for (var builder in buildDetails[commit.hash]) {
               var build = buildDetails[commit.hash][builder];
               if (!build.finished) {
-                build.color = "#E6AB02";
+                build.color = "rgba(230, 171, 2, 0.3)";
               } else if (build.results == 0 || build.results == 1 || build.results == 3) {
-                build.color = "#66A61E";
+                build.color = "rgba(102, 166, 30, 0.3)";
               } else if (build.results == 2) {
                 build.color = "#D95F02";
               } else if (build.results == 4 || build.results == 5) {
