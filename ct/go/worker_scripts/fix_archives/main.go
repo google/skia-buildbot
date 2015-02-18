@@ -23,15 +23,18 @@ import (
 )
 
 var (
-	runID                  = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
-	workerNum              = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
-	pagesetType            = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets whose archives need to be validated. Eg: 10k, Mobile10k, All.")
-	chromiumBuild          = flag.String("chromium_build", "", "The chromium build to use for this validation run.")
-	repeatBenchmark        = flag.Int("repeat_benchmark", 5, "The number of times the benchmark should be repeated.")
-	benchmarkName          = flag.String("benchmark_name", util.BENCHMARK_REPAINT, "The telemetry benchmark to run on this worker.")
-	benchmarkHeaderToCheck = flag.String("benchmark_header_to_check", "mean_frame_time (ms)", "The benchmark header this task will validate.")
-	benchmarkArgs          = flag.String("benchmark_args", "--output-format=csv", "The arguments that are passed to the specified benchmark.")
-	browserArgs            = flag.String("browser_args", "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting", "The arguments that are passed to the browser while running the benchmark.")
+	runID                         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	workerNum                     = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
+	pagesetType                   = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets whose archives need to be validated. Eg: 10k, Mobile10k, All.")
+	chromiumBuild                 = flag.String("chromium_build", "", "The chromium build to use for this validation run.")
+	repeatBenchmark               = flag.Int("repeat_benchmark", 5, "The number of times the benchmark should be repeated.")
+	benchmarkName                 = flag.String("benchmark_name", util.BENCHMARK_REPAINT, "The telemetry benchmark to run on this worker.")
+	benchmarkHeaderToCheck        = flag.String("benchmark_header_to_check", "mean_frame_time (ms)", "The benchmark header this task will validate.")
+	benchmarkArgs                 = flag.String("benchmark_args", "--output-format=csv", "The arguments that are passed to the specified benchmark.")
+	browserArgs                   = flag.String("browser_args", "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting", "The arguments that are passed to the browser while running the benchmark.")
+	deletePageset                 = flag.Bool("delete_pageset", true, "If an archive is found to be inconsistent then delete it's corresponding pageset.")
+	percentageChangeThreshold     = flag.Float64("perc_change_threshold", 5, "An archive is considered inconsistent if the percentage changes are beyond this threshold.")
+	resourceMissingCountThreshold = flag.Int("res_missing_count_threshold", 50, "An archive is considered inconsistent if the number of missing resources is beyond this threshold.")
 )
 
 func main() {
@@ -202,25 +205,29 @@ func main() {
 				maxResourceMissingCount = count
 			}
 		}
-		if percentageChange > 5 || maxResourceMissingCount > 50 {
+		if percentageChange > *percentageChangeThreshold || maxResourceMissingCount > *resourceMissingCountThreshold {
 			glog.Infof("The archive for %s is inconsistent!", fileInfo.Name())
 			inconsistentArchives = append(inconsistentArchives, fmt.Sprintf("%s percentageChange: %f maxResourceMissingCount: %v", fileInfo.Name(), percentageChange, maxResourceMissingCount))
-			// Delete the pageset.
-			os.RemoveAll(pagesetPath)
+			if *deletePageset {
+				// Delete the pageset.
+				os.RemoveAll(pagesetPath)
+			}
 		}
 	}
 
 	if len(inconsistentArchives) > 0 {
 		glog.Infof("%d archives are inconsistent!", len(inconsistentArchives))
 		glog.Infof("The list of inconsistentArchives is: %v", inconsistentArchives)
-		// Write new timestamp to the pagesets dir.
-		os.RemoveAll(filepath.Join(pathToPagesets, util.TIMESTAMP_FILE_NAME))
-		util.CreateTimestampFile(pathToPagesets)
-		// Inconsistent pagesets were deleted located. Upload local pagesets dir
-		// to Google Storage.
-		if err := gs.UploadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {
-			glog.Error(err)
-			return
+		if *deletePageset {
+			// Write new timestamp to the pagesets dir.
+			os.RemoveAll(filepath.Join(pathToPagesets, util.TIMESTAMP_FILE_NAME))
+			util.CreateTimestampFile(pathToPagesets)
+			// Inconsistent pagesets were deleted located. Upload local pagesets dir
+			// to Google Storage.
+			if err := gs.UploadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {
+				glog.Error(err)
+				return
+			}
 		}
 	}
 }

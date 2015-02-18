@@ -17,11 +17,16 @@ import (
 )
 
 var (
-	emails          = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	pagesetType     = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
-	chromiumBuild   = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
-	repeatBenchmark = flag.Int("repeat_benchmark", 1, "The number of times the benchmark should be repeated.")
-	runID           = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	emails                        = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
+	pagesetType                   = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
+	chromiumBuild                 = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
+	repeatBenchmark               = flag.Int("repeat_benchmark", 1, "The number of times the benchmark should be repeated.")
+	runID                         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	benchmarkName                 = flag.String("benchmark_name", util.BENCHMARK_REPAINT, "The telemetry benchmark to run on all workers.")
+	benchmarkHeaderToCheck        = flag.String("benchmark_header_to_check", "mean_frame_time (ms)", "The benchmark header this task will validate.")
+	deletePageset                 = flag.Bool("delete_pageset", true, "If an archive is found to be inconsistent then delete it's corresponding pageset.")
+	percentageChangeThreshold     = flag.Float64("perc_change_threshold", 5, "An archive is considered inconsistent if the percentage changes are beyond this threshold.")
+	resourceMissingCountThreshold = flag.Int("res_missing_count_threshold", 50, "An archive is considered inconsistent if the number of missing resources is beyond this threshold.")
 
 	taskCompletedSuccessfully = false
 	outputRemoteLink          = util.MASTER_LOGSERVER_LINK
@@ -85,23 +90,35 @@ func main() {
 	// Run the fix_archives script on all workers.
 	fixArchivesCmdTemplate := "DISPLAY=:0 fix_archives --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} " +
 		"--pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} " +
-		"--repeat_benchmark={{.RepeatBenchmark}};"
+		"--repeat_benchmark={{.RepeatBenchmark}} --benchmark_name={{.BenchmarkName}} " +
+		"--benchmark_header_to_check={{.BenchmarkHeaderToCheck}} --delete_pageset={{.DeletePageset}} " +
+		"--perc_change_threshold={{.PercentageChangeThreshold}} --res_missing_count_threshold={{.ResourceMissingCountThreshold}};"
 	fixArchivesTemplateParsed := template.Must(template.New("fix_archives_cmd").Parse(fixArchivesCmdTemplate))
 	fixArchivesCmdBytes := new(bytes.Buffer)
 	fixArchivesTemplateParsed.Execute(fixArchivesCmdBytes, struct {
-		WorkerNum       string
-		LogDir          string
-		PagesetType     string
-		ChromiumBuild   string
-		RunID           string
-		RepeatBenchmark int
+		WorkerNum                     string
+		LogDir                        string
+		PagesetType                   string
+		ChromiumBuild                 string
+		RunID                         string
+		RepeatBenchmark               int
+		BenchmarkName                 string
+		BenchmarkHeaderToCheck        string
+		DeletePageset                 bool
+		PercentageChangeThreshold     float64
+		ResourceMissingCountThreshold int
 	}{
-		WorkerNum:       util.WORKER_NUM_KEYWORD,
-		LogDir:          util.GLogDir,
-		PagesetType:     *pagesetType,
-		ChromiumBuild:   *chromiumBuild,
-		RunID:           *runID,
-		RepeatBenchmark: *repeatBenchmark,
+		WorkerNum:                     util.WORKER_NUM_KEYWORD,
+		LogDir:                        util.GLogDir,
+		PagesetType:                   *pagesetType,
+		ChromiumBuild:                 *chromiumBuild,
+		RunID:                         *runID,
+		RepeatBenchmark:               *repeatBenchmark,
+		BenchmarkName:                 *benchmarkName,
+		BenchmarkHeaderToCheck:        *benchmarkHeaderToCheck,
+		DeletePageset:                 *deletePageset,
+		PercentageChangeThreshold:     *percentageChangeThreshold,
+		ResourceMissingCountThreshold: *resourceMissingCountThreshold,
 	})
 	cmd := []string{
 		fmt.Sprintf("cd %s;", util.CtTreeDir),
