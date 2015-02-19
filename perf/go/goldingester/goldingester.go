@@ -101,7 +101,7 @@ func idAndParams(dm *DMResults, r *Result) (string, map[string]string) {
 func addResultToTile(res *DMResults, tile *types.Tile, offset int, counter metrics.Counter) {
 	for _, r := range res.Results {
 		if ext, ok := res.options["ext"]; ok && ext != "png" {
-			continue  // Temporarily skip non-PNG results until we know how to ingest them.
+			continue // Temporarily skip non-PNG results until we know how to ingest them.
 		}
 
 		traceID, params := idAndParams(res, r)
