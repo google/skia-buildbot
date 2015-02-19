@@ -100,7 +100,7 @@ func idAndParams(dm *DMResults, r *Result) (string, map[string]string) {
 // addResultToTile adds the Digests from the DMResults to the tile at the given offset.
 func addResultToTile(res *DMResults, tile *types.Tile, offset int, counter metrics.Counter) {
 	for _, r := range res.Results {
-		if ext, ok := res.options["ext"]; ok && ext != "png" {
+		if ext, ok := r.Options["ext"]; ok && ext != "png" {
 			continue // Temporarily skip non-PNG results until we know how to ingest them.
 		}
 
