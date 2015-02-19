@@ -20,28 +20,32 @@ import (
 //     "gitHash" : "abcd",
 //     "key" : {
 //        "arch" : "x86",
+//        "configuration" : "Debug",
 //        "gpu" : "nvidia",
-//        "model" : "z620"
+//        "model" : "z620",
+//        "os" : "Ubuntu13.10"
 //     },
 //     "results" : [
 //        {
 //           "key" : {
 //              "config" : "565",
-//              "name" : "ninepatch-stretch"
+//              "name" : "ninepatch-stretch",
+//              "source_type" : "gm"
 //           },
 //           "md5" : "f78cfafcbabaf815f3dfcf61fb59acc7",
 //           "options" : {
-//              "source_type" : "GM"
+//              "ext" : "png"
 //           }
 //        },
 //        {
 //           "key" : {
 //              "config" : "8888",
-//              "name" : "ninepatch-stretch"
+//              "name" : "ninepatch-stretch",
+//              "source_type" : "gm"
 //           },
 //           "md5" : "3e8a42f35a1e76f00caa191e6310d789",
 //           "options" : {
-//              "source_type" : "GM"
+//              "ext" : "png"
 //           }
 
 // DMResults is the top level structure for decoding DM JSON output.
@@ -96,6 +100,10 @@ func idAndParams(dm *DMResults, r *Result) (string, map[string]string) {
 // addResultToTile adds the Digests from the DMResults to the tile at the given offset.
 func addResultToTile(res *DMResults, tile *types.Tile, offset int, counter metrics.Counter) {
 	for _, r := range res.Results {
+		if ext, ok := res.options["ext"]; ok && ext != "png" {
+			continue  // Temporarily skip non-PNG results until we know how to ingest them.
+		}
+
 		traceID, params := idAndParams(res, r)
 
 		var trace *types.GoldenTrace
