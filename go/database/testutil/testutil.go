@@ -81,6 +81,10 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 	assert.NotPanics(t, func() {
 		database.NewVersionedDB(readWriteConf)
 	})
+
+	// Downgrade database, removing most if not all tables.
+	downgradeDB(t, rootVdb)
+	ClearMySQLTables(t, rootVdb)
 }
 
 // Get a lock from MySQL to serialize DB tests.
@@ -166,12 +170,7 @@ func testDBVersioning(t *testing.T, vdb *database.VersionedDB) {
 	assert.Nil(t, err)
 	maxVersion := vdb.MaxDBVersion()
 
-	// downgrade to 0
-	err = vdb.Migrate(0)
-	assert.Nil(t, err)
-	dbVersion, err = vdb.DBVersion()
-	assert.Nil(t, err)
-	assert.Equal(t, 0, dbVersion)
+	downgradeDB(t, vdb)
 
 	// upgrade the the latest version
 	err = vdb.Migrate(maxVersion)
@@ -179,4 +178,13 @@ func testDBVersioning(t *testing.T, vdb *database.VersionedDB) {
 	dbVersion, err = vdb.DBVersion()
 	assert.Nil(t, err)
 	assert.Equal(t, maxVersion, dbVersion)
+}
+
+func downgradeDB(t *testing.T, vdb *database.VersionedDB) {
+	// downgrade to 0
+	err := vdb.Migrate(0)
+	assert.Nil(t, err)
+	dbVersion, err := vdb.DBVersion()
+	assert.Nil(t, err)
+	assert.Equal(t, 0, dbVersion)
 }

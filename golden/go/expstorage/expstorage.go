@@ -1,8 +1,6 @@
 package expstorage
 
 import (
-	"fmt"
-	"reflect"
 	"sync"
 	"time"
 
@@ -13,8 +11,7 @@ import (
 
 // Wraps the set of expectations and provides methods to manipulate them.
 type Expectations struct {
-	Tests      map[string]types.TestClassification `json:"tests"`
-	Modifiable bool                                `json:"-"`
+	Tests map[string]types.TestClassification `json:"tests"`
 }
 
 // Classification returns the classification for a single digest, returning
@@ -26,10 +23,9 @@ func (e *Expectations) Classification(test, digest string) types.Label {
 	return types.UNTRIAGED
 }
 
-func NewExpectations(modifiable bool) *Expectations {
+func NewExpectations() *Expectations {
 	return &Expectations{
-		Modifiable: modifiable,
-		Tests:      map[string]types.TestClassification{},
+		Tests: map[string]types.TestClassification{},
 	}
 }
 
@@ -45,47 +41,30 @@ func (e *Expectations) AddDigests(testDigests map[string]types.TestClassificatio
 	}
 }
 
-func (e *Expectations) RemoveDigests(digests []string) {
-	e.checkModifiable()
-
-	for testName, labeledDigests := range e.Tests {
-		for _, d := range digests {
-			delete(labeledDigests, d)
-		}
-		if 0 == len(labeledDigests) {
-			delete(e.Tests, testName)
-		}
-	}
-}
-
 func (e *Expectations) DeepCopy() *Expectations {
 	m := make(map[string]types.TestClassification, len(e.Tests))
 	for k, v := range e.Tests {
 		m[k] = v.DeepCopy()
 	}
 	return &Expectations{
-		Tests:      m,
-		Modifiable: e.Modifiable,
-	}
-}
-
-func (e *Expectations) checkModifiable() {
-	if !e.Modifiable {
-		panic("Cannot modify expectations. Marked as unmodifiable.")
+		Tests: m,
 	}
 }
 
 // ------------  Interface to store expectations
 
+// TODO(stephana): Add RemoveChange to allow the removal of
+// tests/digests from the expectations.
+
 // Defines the storage interface for expectations.
 type ExpectationsStore interface {
 	// Get the current classifications for image digests. The keys of the
 	// expectations map are the test names.
-	Get(modifiable bool) (exp *Expectations, err error)
+	Get() (exp *Expectations, err error)
 
-	// Put writes the given classified digests to the database and records the
+	// AddChange writes the given classified digests to the database and records the
 	// user that made the change.
-	Put(exp *Expectations, userId string) error
+	AddChange(changes map[string]types.TestClassification, userId string) error
 
 	// Changes returns a receive-only channel that will provide a list of test
 	// names every time expectations are updated.
@@ -113,30 +92,6 @@ func (c changesSlice) send(s []string) {
 	}
 }
 
-// diff returns a list of names of tests that have different expectations
-// between a and b.
-func diff(a, b *Expectations) []string {
-	ret := []string{}
-	// Check for tests in a that are different in b.
-	for name, ea := range a.Tests {
-		if eb, ok := b.Tests[name]; ok {
-			fmt.Printf("%#v %#v", ea, eb)
-			if !reflect.DeepEqual(ea, eb) {
-				ret = append(ret, name)
-			}
-		} else {
-			ret = append(ret, name)
-		}
-	}
-	// Check for tests that exist in b that aren't in a.
-	for name, _ := range b.Tests {
-		if _, ok := a.Tests[name]; !ok {
-			ret = append(ret, name)
-		}
-	}
-	return ret
-}
-
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
 	expectations *Expectations
@@ -149,37 +104,35 @@ type MemExpectationsStore struct {
 // New instance of memory backed expecation storage.
 func NewMemExpectationsStore() ExpectationsStore {
 	return &MemExpectationsStore{
-		expectations: NewExpectations(false),
+		expectations: NewExpectations(),
 		changes:      changesSlice{},
 	}
 }
 
 // ------------- In-memory implementation
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) Get(modifiable bool) (*Expectations, error) {
+func (m *MemExpectationsStore) Get() (*Expectations, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	if !modifiable {
-		return m.expectations, nil
-	}
-
-	result := m.expectations.DeepCopy()
-	result.Modifiable = true
-	return result, nil
+	return m.expectations, nil
 }
 
-func (m *MemExpectationsStore) Put(exps *Expectations, userId string) error {
-	exps.checkModifiable()
-
-	testNames := diff(m.expectations, exps)
-
-	newExps := exps.DeepCopy()
-	newExps.Modifiable = false
-
+func (m *MemExpectationsStore) AddChange(changedTests map[string]types.TestClassification, userId string) error {
 	m.mutex.Lock()
-	m.expectations = newExps
-	m.mutex.Unlock()
+	defer m.mutex.Unlock()
+
+	testNames := make([]string, 0, len(changedTests))
+
+	for testName, digests := range changedTests {
+		if _, ok := m.expectations.Tests[testName]; !ok {
+			m.expectations.Tests[testName] = map[string]types.Label{}
+		}
+		for d, label := range digests {
+			m.expectations.Tests[testName][d] = label
+		}
+		testNames = append(testNames, testName)
+	}
 
 	m.changes.send(testNames)
 	return nil

@@ -374,7 +374,7 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse JSON request.")
 		return
 	}
-	exp, err := expStore.Get(false)
+	exp, err := expStore.Get()
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load expectations.")
 		return
@@ -488,11 +488,6 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
 		return
 	}
-	e, err := expStore.Get(true)
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to read the current expectations.")
-		return
-	}
 
 	tc := map[string]types.TestClassification{
 		req.Test: map[string]types.Label{
@@ -508,8 +503,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Otherwise update the expectations directly.
-		e.AddDigests(tc)
-		if err := expStore.Put(e, user); err != nil {
+		if err := expStore.AddChange(tc, user); err != nil {
 			util.ReportError(w, r, err, "Failed to store the updated expectations.")
 			return
 		}
@@ -588,7 +582,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, fmt.Errorf("Missing the test query parameter."), "No test name specified.")
 		return
 	}
-	exp, err := expStore.Get(false)
+	exp, err := expStore.Get()
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load expectations.")
 		return

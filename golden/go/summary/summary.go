@@ -110,7 +110,7 @@ func calcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, ta
 	}
 	ret := map[string]*Summary{}
 
-	e, err := expStore.Get(false)
+	e, err := expStore.Get()
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}

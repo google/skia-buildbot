@@ -364,12 +364,12 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
-	expectations, err := a.expStore.Get(true)
-	if err != nil {
+	if err := a.expStore.AddChange(labeledTestDigests, userId); err != nil {
 		return nil, err
 	}
-	expectations.AddDigests(labeledTestDigests)
-	if err = a.expStore.Put(expectations, userId); err != nil {
+
+	expectations, err := a.expStore.Get()
+	if err != nil {
 		return nil, err
 	}
 
@@ -539,7 +539,7 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 	defer a.mutex.Unlock()
 
 	// Retrieve the current expectations.
-	expectations, err := a.expStore.Get(false)
+	expectations, err := a.expStore.Get()
 	if err != nil {
 		glog.Errorf("Error retrieving expectations: %s", err)
 		return false
@@ -583,7 +583,7 @@ func (a *Analyzer) prepDiffsForLabeledTile(labeledTile *LabeledTile) {
 	glog.Infof("Starting prep diffs")
 	// Get the current expectations.
 	a.mutex.RLock()
-	expectations, err := a.expStore.Get(false)
+	expectations, err := a.expStore.Get()
 	a.mutex.RUnlock()
 	if err != nil {
 		glog.Errorf("Unable to read expectations: %s", err)
