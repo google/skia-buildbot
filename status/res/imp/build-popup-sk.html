@@ -16,6 +16,7 @@
 
   Properties:
     build: The details for a build.
+    buildbotUrlPrefix: Prefix of the buildbot URL.
 
   Methods:
     toggle: Open or close the popup.
@@ -32,7 +33,7 @@
     </style>
     <paper-dialog id="dialog" layered="false">
       <h3>
-        <a href="http://build.chromium.org/p/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}" target="_blank">{{build.builder}} #{{build.number}}</a>
+        <a href="{{buildbotUrlPrefix}}/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}" target="_blank">{{build.builder}} #{{build.number}}</a>
       </h3>
       <table>
         <tr>
@@ -50,6 +51,8 @@
           </tr>
         </template>
       </table>
+      <hr/>
+      <comments-sk comments="{{build.comments}}" addCommentUrl="/json/builds/{{build.id}}/comments" on-submit="{{commentAdded}}"></comments-sk>
     </paper-dialog>
   </template>
   <script>
@@ -59,10 +62,18 @@
           value: null,
           reflect: true,
         },
+        buildbotUrlPrefix: {
+          value: "https://build.chromium.org/p",
+          reflect: true,
+        },
       },
 
       toggle: function() {
         this.$.dialog.toggle();
+      },
+
+      commentAdded: function() {
+        window.location.href = window.location.href;
       },
     });
   </script>

@@ -15,11 +15,13 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 	"unicode"
 )
 
 import (
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 )
 
@@ -87,11 +89,8 @@ func Init() {
 	reloadTemplates()
 }
 
-func userHasEditRights(email string) bool {
-	if strings.HasSuffix(email, "@google.com") {
-		return true
-	}
-	return false
+func userHasEditRights(r *http.Request) bool {
+	return strings.HasSuffix(login.LoggedInAs(r), "@google.com")
 }
 
 func getIntParam(name string, r *http.Request) (*int, error) {
@@ -168,6 +167,113 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
+	if !userHasEditRights(r) {
+		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	buildId, err := strconv.ParseInt(mux.Vars(r)["buildId"], 10, 32)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid build id: %v", err))
+		return
+	}
+	comment := struct {
+		Comment string `json:"comment"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
+	}
+	defer r.Body.Close()
+	c := buildbot.BuildComment{
+		BuildId:   int(buildId),
+		User:      login.LoggedInAs(r),
+		Timestamp: float64(time.Now().UTC().Unix()),
+		Message:   comment.Comment,
+	}
+	cache := commitCache.BuildCache()
+	build, err := cache.Get(int(buildId))
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
+	}
+	build.Comments = append(build.Comments, &c)
+	if err := build.ReplaceIntoDB(); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
+	}
+	if err := cache.Update(); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
+	}
+}
+
+func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
+	if !userHasEditRights(r) {
+		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	builder := mux.Vars(r)["builder"]
+
+	status := struct {
+		Comment       string `json:"comment"`
+		Flaky         bool   `json:"flaky"`
+		IgnoreFailure bool   `json:"ignoreFailure"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&status); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
+	}
+	defer r.Body.Close()
+
+	s := buildbot.BuilderStatus{
+		Builder:       builder,
+		User:          login.LoggedInAs(r),
+		Timestamp:     float64(time.Now().UTC().Unix()),
+		Flaky:         status.Flaky,
+		IgnoreFailure: status.IgnoreFailure,
+		Message:       status.Comment,
+	}
+	if _, err := s.InsertIntoDB(); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add builder status: %v", err))
+		return
+	}
+	if err := commitCache.BuildCache().Update(); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to refresh cache after adding status: %v", err))
+		return
+	}
+}
+
+func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
+	if !userHasEditRights(r) {
+		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	commit := mux.Vars(r)["commit"]
+	comment := struct {
+		Comment string `json:"comment"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		return
+	}
+	defer r.Body.Close()
+
+	c := buildbot.CommitComment{
+		Commit:    commit,
+		User:      login.LoggedInAs(r),
+		Timestamp: float64(time.Now().UTC().Unix()),
+		Message:   comment.Comment,
+	}
+	if _, err := c.InsertIntoDB(); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %v", err))
+		return
+	}
+}
+
 func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
@@ -193,14 +299,22 @@ func makeHandler(f func(http.ResponseWriter, *http.Request)) func(http.ResponseW
 }
 
 func runServer(serverURL string) {
-	http.HandleFunc("/res/", makeHandler(autogzip.HandleFunc(makeResourceHandler())))
-	http.HandleFunc("/", makeHandler(commitsHandler))
-	http.HandleFunc("/json/autoroll", makeHandler(autorollJsonHandler))
-	http.HandleFunc("/json/commits", makeHandler(commitsJsonHandler))
-	http.HandleFunc("/json/version", makeHandler(skiaversion.JsonHandler))
-	http.HandleFunc("/oauth2callback/", makeHandler(login.OAuth2CallbackHandler))
-	http.HandleFunc("/logout/", makeHandler(login.LogoutHandler))
-	http.HandleFunc("/loginstatus/", makeHandler(login.StatusHandler))
+	r := mux.NewRouter()
+	r.PathPrefix("/res/").HandlerFunc(makeHandler(autogzip.HandleFunc(makeResourceHandler())))
+	r.HandleFunc("/", makeHandler(commitsHandler))
+	r.HandleFunc("/json/autoroll", makeHandler(autorollJsonHandler))
+	builds := r.PathPrefix("/json/builds/{buildId:[0-9]+}").Subrouter()
+	builds.HandleFunc("/comments", makeHandler(addBuildCommentHandler)).Methods("POST")
+	builders := r.PathPrefix("/json/builders/{builder}").Subrouter()
+	builders.HandleFunc("/status", makeHandler(addBuilderStatusHandler)).Methods("POST")
+	commits := r.PathPrefix("/json/commits").Subrouter()
+	commits.HandleFunc("/", makeHandler(commitsJsonHandler))
+	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", makeHandler(addCommitCommentHandler)).Methods("POST")
+	r.HandleFunc("/json/version", makeHandler(skiaversion.JsonHandler))
+	r.HandleFunc("/oauth2callback/", makeHandler(login.OAuth2CallbackHandler))
+	r.HandleFunc("/logout/", makeHandler(login.LogoutHandler))
+	r.HandleFunc("/loginstatus/", makeHandler(login.StatusHandler))
+	http.Handle("/", r)
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

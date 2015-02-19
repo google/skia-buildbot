@@ -23,10 +23,10 @@
     addCommentUrl: URL which accepts POST requests for adding comments.
 
   Events:
-    change: When a comment is added, the 'change' event is triggered. New
+    submit: When a comment is added, the 'submit' event is triggered. New
         comments do not appear in the list because it is not possible to
         guarantee consistency between the UI and the database until the comment
-        has been inserted. Therefore, the 'change' event may be used to reload
+        has been inserted. Therefore, the 'submit' event may be used to reload
         the comments from the database.
 -->
 <polymer-element name="comments-sk">
@@ -46,16 +46,19 @@
     <div class="comments">
       <template repeat="{{comment in comments}}">
         <div class="comment">
-          <div class="commentCell">{{comment.time|parseDate}}</div>
-          <div class="commentCell">{{comment.user}}</div>
-          <div class="commentCell">{{comment.message}}</div>
+          <template if="{{comment.time && comment.user && comment.message}}">
+            <div class="commentCell">{{comment.time|parseDate}}</div>
+            <div class="commentCell">{{comment.user}}</div>
+            <div class="commentCell">{{comment.message}}</div>
+          </template>
         </div>
       </template>
     </div>
     <template if="{{editRights}}">
+      <content id="content"></content>
       <div horizontal layout>
         <paper-input id="commentBox" label="comment" flex></paper-input>
-        <paper-button on-click="{{addComment}}">comment</paper-button>
+        <paper-button on-click="{{addComment}}">submit</paper-button>
       </div>
     </template>
     <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
@@ -101,9 +104,23 @@
           this.showErrorDialog("Empty comments are not allowed.");
           return;
         }
+
+        var params = {};
+        for (var i = 0; i < this.children.length; i++) {
+          var child = this.children[i];
+          if (child.id) {
+            if (child.value != undefined) {
+              params[child.id] = child.value;
+            } else if (child.checked != undefined) {
+              params[child.id] = child.checked ? true : false;
+            }
+          }
+        }
+        params["comment"] = commentText;
+
         var that = this;
-        sk.post(this.addCommentUrl, commentText).then(function(resp) {
-          that.dispatchEvent(new CustomEvent("change", null));
+        sk.post(this.addCommentUrl, JSON.stringify(params)).then(function(resp) {
+          that.dispatchEvent(new CustomEvent("submit", null));
         }, function(err) {
           that.showErrorDialog(err);
         });

@@ -29,7 +29,7 @@ func init() {
 // the repository.
 type CommitCache struct {
 	BranchHeads []*gitinfo.GitBranch
-	buildCache  build_cache.BuildCache
+	buildCache  *build_cache.BuildCache
 	cacheFile   string
 	Commits     []*gitinfo.LongCommit
 	mutex       sync.RWMutex
@@ -76,6 +76,7 @@ func New(repo *gitinfo.GitInfo, cacheFile string, requestSize int) (*CommitCache
 		glog.Warningf("Failed to read commit cache from file; starting from scratch. Error: %v", err)
 		c = &CommitCache{}
 	}
+	c.buildCache = &build_cache.BuildCache{}
 	c.cacheFile = cacheFile
 	c.repo = repo
 	c.requestSize = requestSize
@@ -164,7 +165,7 @@ func (c *CommitCache) update() error {
 	for _, commit := range c.Commits[len(c.Commits)-c.requestSize:] {
 		buildCacheHashes = append(buildCacheHashes, commit.Hash)
 	}
-	if err := c.buildCache.Update(buildCacheHashes); err != nil {
+	if err := c.buildCache.UpdateForCommits(buildCacheHashes); err != nil {
 		return err
 	}
 	if err := c.toFile(); err != nil {
@@ -190,14 +191,21 @@ func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
 		return err
 	}
 
+	comments, err := buildbot.GetCommitsComments(hashes)
+	if err != nil {
+		return err
+	}
+
 	data := struct {
+		Comments    map[string][]*buildbot.CommitComment         `json:"comments"`
 		Commits     []*gitinfo.LongCommit                        `json:"commits"`
 		BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
 		Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
-		Builders    map[string]*buildbot.Builder                 `json:"builders"`
+		Builders    map[string]*buildbot.BuilderStatus           `json:"builders"`
 		StartIdx    int                                          `json:"startIdx"`
 		EndIdx      int                                          `json:"endIdx"`
 	}{
+		Comments:    comments,
 		Commits:     commits,
 		BranchHeads: c.BranchHeads,
 		Builds:      builds,
@@ -217,4 +225,9 @@ func (c *CommitCache) LastNAsJson(w io.Writer, n int) error {
 		start = 0
 	}
 	return c.RangeAsJson(w, start, end)
+}
+
+// BuildCache returns the BuildCache associated with this CommitCache.
+func (c *CommitCache) BuildCache() *build_cache.BuildCache {
+	return c.buildCache
 }

@@ -18,8 +18,11 @@ const (
 	PROD_DB_NAME = "buildbot"
 
 	TABLE_BUILDS          = "builds2"
+	TABLE_BUILD_COMMENTS  = "buildComments"
 	TABLE_BUILD_REVISIONS = "buildRevisions2"
 	TABLE_BUILD_STEPS     = "buildSteps2"
+	TABLE_BUILDER_STATUS  = "builderStatus"
+	TABLE_COMMIT_COMMENTS = "commitComments"
 )
 
 var (
@@ -134,6 +137,42 @@ var v3_down = []string{
 	`DROP TABLE IF EXISTS builds2`,
 }
 
+var v4_up = []string{
+	`CREATE TABLE IF NOT EXISTS buildComments (
+                id        INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                buildId   INT UNSIGNED NOT NULL,
+		user      VARCHAR(100) NOT NULL,
+		timestamp DOUBLE NOT NULL,
+		message   TEXT,
+                INDEX idx_buildId (buildId),
+                FOREIGN KEY (buildId) REFERENCES builds2(id) ON DELETE CASCADE ON UPDATE CASCADE
+        )`,
+	`CREATE TABLE IF NOT EXISTS builderStatus (
+                id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                builder       VARCHAR(100) NOT NULL,
+                user          VARCHAR(100) NOT NULL,
+                timestamp     DOUBLE NOT NULL,
+		flaky         BOOL,
+		ignoreFailure BOOL,
+		message       TEXT,
+                INDEX idx_builder (builder)
+        )`,
+	`CREATE TABLE IF NOT EXISTS commitComments (
+                id        INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                commit    VARCHAR(40) NOT NULL,
+                user      VARCHAR(100) NOT NULL,
+                timestamp DOUBLE NOT NULL,
+                message   TEXT,
+                INDEX idx_commit (commit)
+        )`,
+}
+
+var v4_down = []string{
+	`DROP TABLE commitComments;`,
+	`DROP TABLE builderStatus;`,
+	`DROP TABLE buildComments;`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -152,6 +191,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v3_up,
 		MySQLDown: v3_down,
+	},
+	// version 4. Comments on builds, builders, and commits.
+	{
+		MySQLUp:   v4_up,
+		MySQLDown: v4_down,
 	},
 }
 

@@ -90,7 +90,7 @@
       border-color: #FFFFFF;
     }
     tr.builder {
-      height: 14px;
+      height: 24px;
     }
     tr.commit {
       font-size: 10px;
@@ -122,6 +122,11 @@
       width: {{builderWidth}}px;
       max-width: {{builderWidth}}px;
       min-width: {{builderWidth}}px;
+    }
+    td.commentIndicator {
+      width: {{commentIndicatorWidth}}px;
+      max-width: {{commentIndicatorWidth}}px;
+      min-width: {{commentIndicatorWidth}}px;
     }
     a {
       color: inherit;
@@ -162,6 +167,18 @@
       border-bottom-right-radius: 3px;
       margin: 0px 0px 1px 1px;
       height: 18px;
+    }
+    a.builder {
+      background-color: white;
+      height: 20px;
+      margin: 0px;
+    }
+    paper-shadow.builder {
+      border-radius: 3px;
+    }
+    core-icon.tiny {
+      width: 12px;
+      height: 12px;
     }
     #moreButton {
       width: 40px;
@@ -205,6 +222,7 @@
             <thead>
               <tr>
                 <th class="header">Author</th>
+                <th class="header"><!-- Comment indicators --></th>
                 <th class="header" colspan="{{numBuilders}}">
                   Buildbot Results:
                   <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
@@ -217,13 +235,15 @@
               </tr>
               <template if="{{numBuilders > 0}}">
                 <tr>
-                  <th class="category"></th>
+                  <th class="category"><!-- Author --></th>
+                  <th class="category"><!-- Comment indicators --></th>
                   <template repeat="{{c in builderCategoryList}}">
                     <th class="category" colspan="{{builderCategories[c].colspan}}" style="width: {{builderCategories[c].colspan * builderWidth}}px; max-width: {{builderCategories[c].colspan * builderWidth}}px; min-width: {{builderCategories[c].colspan * builderWidth}}px;">{{c}}</th>
                   </template>
                 </tr>
                 <tr>
-                  <th class="subcategory"></th>
+                  <th class="subcategory"><!-- Author --></th>
+                  <th class="subcategory"><!-- Comment indicators --></th>
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
                       <th class="subcategory" colspan="{{builderCategories[c].subcategories[s].builders.length}}" style="width:{{builderCategories[c].subcategories[s].builders.length * builderWidth}}px; min-width:{{builderCategories[c].subcategories[s].builders.length * builderWidth}}px; max-width:{{builderCategories[c].subcategories[s].builders.length * builderWidth}}px;">{{s}}</th>
@@ -231,12 +251,22 @@
                   </template>
                 </tr>
                 <tr class="builder">
-                  <td></td>
+                  <td><!-- Author --></td>
+                  <td><!-- Comment indicators --></td>
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
                       <template repeat="{{b in builderCategories[c].subcategories[s].builders}}">
                         <td class="build">
-                          <a id="openBuilder|{{b}}" class="build build_single" href="#" onClick="return false;" on-click="{{toggleBuilderPopup}}" style="background-color: {{allBuilders[b].color}}; height: 6px;"></a>
+                          <paper-shadow z="1" class="builder">
+                          <a id="openBuilder|{{b}}" class="builder build build_single" href="#" onClick="return false;" on-click="{{toggleBuilderPopup}}">
+                            <template if="{{allBuilders[b].ignoreFailure}}">
+                              <core-icon class="tiny" icon="block" alt="Failures on this builder are ignored."></core-icon>
+                            </template>
+                            <template if="{{allBuilders[b].flaky}}">
+                              <core-icon class="tiny" icon="image:texture" alt="This builder is marked as flaky."></core-icon>
+                            </template>
+                          </a>
+                          </paper-shadow>
                         </td>
                       </template>
                     </template>
@@ -250,6 +280,13 @@
                   <td class="author">
                     <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{toggleCommitPopup}}">{{commit.author|shortAuthor}}</a>
                   </td>
+                  <td class="commentIndicator">
+                    <template if="{{commit.comments && commit.comments.length > 0}}">
+                      <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{toggleCommitPopup}}">
+                        <core-icon class="tiny" icon="communication:chat" alt="There are comments on this commit."></core-icon>
+                      </a>
+                    </template>
+                  </td>
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
                       <template repeat="{{builder in builderCategories[c].subcategories[s].builders}}">
@@ -262,6 +299,9 @@
                                on-click="{{toggleBuildPopup}}"
                                style="background-color: {{buildDetails[commit.hash][builder].color}};"
                               >
+                              <template if="{{buildDetails[commit.hash][builder].comments && buildDetails[commit.hash][builder].comments.length > 0 && commit.displayClass[builder] == 'build_top'}}">
+                                <core-icon class="tiny" icon="communication:chat" alt="There are comments on this build." style="margin-top: 5px;"></core-icon>
+                              </template>
                             </a>
                           </template>
                         </td>
@@ -279,8 +319,8 @@
         <core-icon-button id="moreButton" icon="expand-more" on-click="{{loadMore}}"></core-icon-button>
         <paper-spinner id="loading" active></paper-spinner>
       </div>
-      <build-popup-sk id="buildPopup"></build-popup-sk>
-      <builder-popup-sk id="builderPopup"></builder-popup-sk>
+      <build-popup-sk id="buildPopup" buildbotUrlPrefix="{{buildbotUrlPrefix}}"></build-popup-sk>
+      <builder-popup-sk id="builderPopup" buildbotUrlPrefix="{{buildbotUrlPrefix}}"></builder-popup-sk>
       <commit-popup-sk id="commitPopup"></commit-popup-sk>
     </div>
   </template>
@@ -544,8 +584,10 @@
         this.builds = {};
         this.buildDetails = {};
         this.buildTableWidth = 0;
+        this.commentIndicatorWidth = 14;
         this.commits = [];
         this.displayCommits = {};
+        this.buildbotUrlPrefix = "https://build.chromium.org/p";
         this.lastLoaded = "(not yet loaded)";
         this.numBuilders = 0;
         this.startIdx = null;
@@ -553,6 +595,13 @@
         this.timeout = null;
         this.reloadCommits();
         var that = this;
+        sk.Login.then(function(status) {
+          var email = status['Email'];
+          var validEmail = "@google.com"
+          if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
+            that.buildbotUrlPrefix = "https://chromegw.corp.google.com/i";
+          }
+        });
         window.addEventListener("resize", function() {
           that.draw();
         }, true);
@@ -738,7 +787,7 @@
           this.$.loading.style.display = "block";
           this.$.loading.active = true;
         }
-        var url = "/json/commits";
+        var url = "/json/commits/";
 	if (startIdx) {
           url += "?start=" + startIdx;
           if (endIdx) {
@@ -751,6 +800,9 @@
         var that = this;
         sk.get(url).then(JSON.parse).then(function(json) {
           json.commits.reverse();
+          for (var i = 0; i < json.commits.length; i++) {
+            json.commits[i].comments = json.comments[json.commits[i].hash] || [];
+          }
           that.lastLoaded = new Date().toLocaleTimeString();
 
           // Merge the new commits into the existing set.
@@ -815,7 +867,8 @@
               if (!builds[builder]) {
                 // This is the first time we've seen this builder.
                 builds[builder] = {};
-                var builderDetails = json.builders[builder];
+                var builderDetails = json.builders[builder] || {builder: builder};
+                builderDetails.master = build.master;
                 // We're traveling backward in time, so the first build we
                 // find for a given builder is its most recent.
                 builderDetails.color = build.color;
@@ -935,7 +988,7 @@
 
         // Get the build table width.
         var windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        this.buildTableWidth = windowWidth - w - this.authorWidth;
+        this.buildTableWidth = windowWidth - w - this.authorWidth - this.commentIndicatorWidth;
         console.log("Done drawing.");
       },
 

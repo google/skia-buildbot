@@ -214,19 +214,20 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 			alertManager.Unsnooze(alertId, email)
 			return
 		} else if action == "addcomment" {
-			bytes, err := ioutil.ReadAll(r.Body)
-			if err != nil {
+			c := struct {
+				Comment string `json:"comment"`
+			}{}
+			if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
 				util.ReportError(w, r, err, fmt.Sprintf("Unable to read request body: %s", r.Body))
 				return
 			}
 			defer r.Body.Close()
-			comment := string(bytes)
-			if !StringIsInteresting(comment) {
-				util.ReportError(w, r, fmt.Errorf("Invalid comment text."), comment)
+			if !StringIsInteresting(c.Comment) {
+				util.ReportError(w, r, fmt.Errorf("Invalid comment text."), c.Comment)
 				return
 			}
-			glog.Infof("%s %s", action, alertId, comment)
-			alertManager.AddComment(alertId, email, comment)
+			glog.Infof("%s %s: %s", action, alertId, c.Comment)
+			alertManager.AddComment(alertId, email, c.Comment)
 		} else {
 			util.ReportError(w, r, fmt.Errorf("Invalid action %s", action), "The requested action is invalid.")
 			return

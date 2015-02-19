@@ -42,6 +42,8 @@
       <hr/>
       <h3 id="commitSubject"></h3>
       <p id="commitBody"></p>
+      <hr/>
+      <comments-sk comments="{{commit.comments}}" addCommentUrl="/json/commits/{{commit.hash}}/comments" on-submit="{{commentAdded}}"></comments-sk>
     </dialog>
   </template>
   <script>
@@ -60,6 +62,10 @@
       commitChanged: function() {
         this.$.commitSubject.innerHTML = sk.formatHTML(this.commit.subject, true);
         this.$.commitBody.innerHTML = sk.formatHTML(this.commit.body, true);
+      },
+
+      commentAdded: function() {
+        window.location.href = window.location.href;
       },
     });
   </script>

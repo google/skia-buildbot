@@ -46,12 +46,7 @@ type Build struct {
 	Times         []float64
 	Started       float64 `db:"started"`
 	Finished      float64 `db:"finished"`
-}
-
-// Builder contains information about a single builder.
-type Builder struct {
-	Name   string `json:"name"`
-	Master string `json:"master"`
+	Comments      []*BuildComment
 }
 
 // BuildSlave contains information about a buildslave.
@@ -62,6 +57,35 @@ type BuildSlave struct {
 	Host      string
 	Name      string
 	Version   string
+}
+
+// BuildComment contains a comment about a build.
+type BuildComment struct {
+	Id        int     `db:"id"        json:"id"`
+	BuildId   int     `db:"buildId"   json:"buildId"`
+	User      string  `db:"user"      json:"user"`
+	Timestamp float64 `db:"timestamp" json:"time"`
+	Message   string  `db:"message"   json:"message"`
+}
+
+// BuilderStatus contains status information about a builder.
+type BuilderStatus struct {
+	Id            int     `db:"id"            json:"id"`
+	Builder       string  `db:"builder"       json:"builder"`
+	User          string  `db:"user"          json:"user"`
+	Timestamp     float64 `db:"timestamp"     json:"time"`
+	Flaky         bool    `db:"flaky"         json:"flaky"`
+	IgnoreFailure bool    `db:"ignoreFailure" json:"ignoreFailure"`
+	Message       string  `db:"message"       json:"message"`
+}
+
+// CommitComment contains a comment about a commit.
+type CommitComment struct {
+	Id        int     `db:"id"        json:"id"`
+	Commit    string  `db:"commit"    json:"commit"`
+	User      string  `db:"user"      json:"user"`
+	Timestamp float64 `db:"timestamp" json:"time"`
+	Message   string  `db:"message"   json:"message"`
 }
 
 // GetProperty returns the key/value pair for a build property, if it exists,
@@ -121,17 +145,19 @@ func (b *Build) GetSummary() *BuildSummary {
 		Master:      b.Master,
 		Number:      b.Number,
 		Results:     b.Results,
+		Comments:    b.Comments,
 	}
 }
 
 // BuildSummary is a struct which contains the minimal amount of information
 // that we care to see on the dashboard.
 type BuildSummary struct {
-	Builder     string   `json:"builder"`
-	FailedSteps []string `json:"failedSteps"`
-	Finished    bool     `json:"finished"`
-	Id          int      `json:"id"`
-	Master      string   `json:"master"`
-	Number      int      `json:"number"`
-	Results     int      `json:"results"`
+	Builder     string          `json:"builder"`
+	FailedSteps []string        `json:"failedSteps"`
+	Finished    bool            `json:"finished"`
+	Id          int             `json:"id"`
+	Master      string          `json:"master"`
+	Number      int             `json:"number"`
+	Results     int             `json:"results"`
+	Comments    []*BuildComment `json:"comments"`
 }
