@@ -17,9 +17,6 @@
   Properties:
     build: The details for a build.
     buildbotUrlPrefix: Prefix of the buildbot URL.
-
-  Methods:
-    toggle: Open or close the popup.
 -->
 <polymer-element name="builder-popup-sk">
   <template>
@@ -35,23 +32,21 @@
       margin-right: 10px;
     }
     </style>
-    <paper-dialog id="dialog" layered="false">
-      <h3>
-        <a href="{{buildbotUrlPrefix}}/{{builder.master}}/builders/{{builder.builder}}" target="_blank">{{builder.builder}}</a>
-      </h3>
-      <table>
-        <tr>
-          <td>Master:</td>
-          <td><a href="{{buildbotUrlPrefix}}/{{builder.master}}" target="_blank">{{builder.master}}</a></td>
-        </tr>
-      </table>
-      <hr/>
-      Status:<br/>
-      <comments-sk comments="{{[builder]}}" addCommentUrl="/json/builders/{{builder.builder}}/status" on-submit="{{commentAdded}}">
-        <paper-checkbox id="flaky" label="Flaky" checked?="{{builder.flaky}}"></paper-checkbox>
-        <paper-checkbox id="ignoreFailure" label="Ignore Failure" checked?="{{builder.ignoreFailure}}"></paper-checkbox>
-      </comments-sk>
-    </paper-dialog>
+    <h3>
+      <a href="{{buildbotUrlPrefix}}/{{builder.master}}/builders/{{builder.builder}}" target="_blank">{{builder.builder}}</a>
+    </h3>
+    <table>
+      <tr>
+        <td>Master:</td>
+        <td><a href="{{buildbotUrlPrefix}}/{{builder.master}}" target="_blank">{{builder.master}}</a></td>
+      </tr>
+    </table>
+    <hr/>
+    Status:<br/>
+    <comments-sk comments="{{[builder]}}" addCommentUrl="/json/builders/{{builder.builder}}/status" on-submit="{{commentAdded}}">
+      <paper-checkbox id="flaky" label="Flaky" checked?="{{builder.flaky}}"></paper-checkbox>
+      <paper-checkbox id="ignoreFailure" label="Ignore Failure" checked?="{{builder.ignoreFailure}}"></paper-checkbox>
+    </comments-sk>
   </template>
   <script>
     Polymer({
@@ -64,10 +59,6 @@
           value: "https://build.chromium.org/p",
           reflect: true,
         },
-      },
-
-      toggle: function() {
-        this.$.dialog.toggle();
       },
 
       commentAdded: function() {

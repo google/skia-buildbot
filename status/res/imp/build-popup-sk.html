@@ -17,9 +17,6 @@
   Properties:
     build: The details for a build.
     buildbotUrlPrefix: Prefix of the buildbot URL.
-
-  Methods:
-    toggle: Open or close the popup.
 -->
 <polymer-element name="build-popup-sk">
   <template>
@@ -31,29 +28,27 @@
       white-space: nowrap;
     }
     </style>
-    <paper-dialog id="dialog" layered="false">
-      <h3>
-        <a href="{{buildbotUrlPrefix}}/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}" target="_blank">{{build.builder}} #{{build.number}}</a>
-      </h3>
-      <table>
+    <h3>
+      <a href="{{buildbotUrlPrefix}}/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}" target="_blank">{{build.builder}} #{{build.number}}</a>
+    </h3>
+    <table>
+      <tr>
+        <td>Status:</td>
+        <td style="color: {{build.color}}">{{build.finished ? (build.results == 0 ? "success" : build.results == 1 ? "success" : build.results == 3 ? "success" : build.results == 2 ? "failed" : build.results == 4 ? "exception" : "exception") : "running"}}</td>
+      </tr>
+      <template if="{{build.failedSteps && build.failedSteps.length > 0}}">
         <tr>
-          <td>Status:</td>
-          <td style="color: {{build.color}}">{{build.finished ? (build.results == 0 ? "success" : build.results == 1 ? "success" : build.results == 3 ? "success" : build.results == 2 ? "failed" : build.results == 4 ? "exception" : "exception") : "running"}}</td>
+          <td>Failed steps:</td>
+          <td>
+            <template repeat="{{step in build.failedSteps}}">
+              {{step}}<br/>
+            </template>
+          </td>
         </tr>
-        <template if="{{build.failedSteps && build.failedSteps.length > 0}}">
-          <tr>
-            <td>Failed steps:</td>
-            <td>
-              <template repeat="{{step in build.failedSteps}}">
-                {{step}}<br/>
-              </template>
-            </td>
-          </tr>
-        </template>
-      </table>
-      <hr/>
-      <comments-sk comments="{{build.comments}}" addCommentUrl="/json/builds/{{build.id}}/comments" on-submit="{{commentAdded}}"></comments-sk>
-    </paper-dialog>
+      </template>
+    </table>
+    <hr/>
+    <comments-sk comments="{{build.comments}}" addCommentUrl="/json/builds/{{build.id}}/comments" on-submit="{{commentAdded}}"></comments-sk>
   </template>
   <script>
     Polymer({
@@ -66,10 +61,6 @@
           value: "https://build.chromium.org/p",
           reflect: true,
         },
-      },
-
-      toggle: function() {
-        this.$.dialog.toggle();
       },
 
       commentAdded: function() {

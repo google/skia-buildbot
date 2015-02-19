@@ -251,8 +251,10 @@
                   </template>
                 </tr>
                 <tr class="builder">
-                  <td><!-- Author --></td>
-                  <td><!-- Comment indicators --></td>
+                  <td colspan="2" style="font-size: 10px;">
+                    <core-icon class="tiny" icon="image:texture"></core-icon> flaky
+                    <core-icon class="tiny" icon="block"></core-icon> ignore failure
+                  </td>
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
                       <template repeat="{{b in builderCategories[c].subcategories[s].builders}}">
@@ -319,9 +321,11 @@
         <core-icon-button id="moreButton" icon="expand-more" on-click="{{loadMore}}"></core-icon-button>
         <paper-spinner id="loading" active></paper-spinner>
       </div>
-      <build-popup-sk id="buildPopup" buildbotUrlPrefix="{{buildbotUrlPrefix}}"></build-popup-sk>
-      <builder-popup-sk id="builderPopup" buildbotUrlPrefix="{{buildbotUrlPrefix}}"></builder-popup-sk>
-      <commit-popup-sk id="commitPopup"></commit-popup-sk>
+      <paper-dialog id="infoDialog">
+        <build-popup-sk id="buildPopup" buildbotUrlPrefix="{{buildbotUrlPrefix}}"></build-popup-sk>
+        <builder-popup-sk id="builderPopup" buildbotUrlPrefix="{{buildbotUrlPrefix}}"></builder-popup-sk>
+        <commit-popup-sk id="commitPopup"></commit-popup-sk>
+      </paper-dialog>
     </div>
   </template>
   <script>
@@ -736,6 +740,16 @@
         this.builderCategoryList = categoryList;
       },
 
+      // Toggle the info popup dialog, with the given element shown.
+      toggleInfoPopup: function(elem) {
+        for (var i = 0; i < this.$.infoDialog.children.length; i++) {
+          var child = this.$.infoDialog.children[i];
+          child.style.display = "none";
+        }
+        elem.style.display = "block";
+        this.$.infoDialog.toggle();
+      },
+
       // Toggle the build popup.
       toggleBuildPopup: function(e, d, s) {
         var split = s.id.split("|");
@@ -747,7 +761,7 @@
         var build = this.buildDetails[commit][builder];
         if (build) {
           this.$.buildPopup.build = build;
-          this.$.buildPopup.toggle();
+          this.toggleInfoPopup(this.$.buildPopup);
         }
       },
 
@@ -760,7 +774,7 @@
         var builder = split[1];
         if (builder) {
           this.$.builderPopup.builder = this.allBuilders[builder];
-          this.$.builderPopup.toggle();
+          this.toggleInfoPopup(this.$.builderPopup);
         }
       },
 
@@ -773,7 +787,7 @@
         var commit = this.commits[split[1]];
         if (commit) {
           this.$.commitPopup.commit = commit;
-          this.$.commitPopup.toggle();
+          this.toggleInfoPopup(this.$.commitPopup);
         }
       },
 
