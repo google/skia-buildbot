@@ -64,7 +64,7 @@
       border-right-width: 1px;
     }
     th.category:empty {
-      border-width: 1px 0px;
+      border-width: 1px 0px 0px 0px;
       border-color: #FFFFFF;
     }
     th.subcategory {
@@ -86,7 +86,7 @@
     }
     th.subcategory:empty {
       background-color: #FFFFFF;
-      border-width: 1px 0px;
+      border-width: 1px 0px 0px 0px;
       border-color: #FFFFFF;
     }
     tr.builder {
@@ -205,7 +205,7 @@
               <template if="{{numBuilders > 0}}">
                 <tr><th class="category"></th></tr>
                 <tr><th class="subcategory"></th></tr>
-                <tr><tr class="builder"><td class="build"></td></tr>
+                <tr class="builder"><td class="build"></td></tr>
               </template>
             </thead>
             <tbody>
@@ -235,15 +235,16 @@
               </tr>
               <template if="{{numBuilders > 0}}">
                 <tr>
-                  <th class="category"><!-- Author --></th>
-                  <th class="category"><!-- Comment indicators --></th>
+                  <td colspan="2" rowspan="3" style="font-size: 10px;">
+                    <core-icon class="tiny" icon="communication:chat"></core-icon> comment<br/>
+                    <core-icon class="tiny" icon="image:texture"></core-icon> flaky<br/>
+                    <core-icon class="tiny" icon="block"></core-icon> ignore failure<br/>
+                  </td>
                   <template repeat="{{c in builderCategoryList}}">
                     <th class="category" colspan="{{builderCategories[c].colspan}}" style="width: {{builderCategories[c].colspan * builderWidth}}px; max-width: {{builderCategories[c].colspan * builderWidth}}px; min-width: {{builderCategories[c].colspan * builderWidth}}px;">{{c}}</th>
                   </template>
                 </tr>
                 <tr>
-                  <th class="subcategory"><!-- Author --></th>
-                  <th class="subcategory"><!-- Comment indicators --></th>
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
                       <th class="subcategory" colspan="{{builderCategories[c].subcategories[s].builders.length}}" style="width:{{builderCategories[c].subcategories[s].builders.length * builderWidth}}px; min-width:{{builderCategories[c].subcategories[s].builders.length * builderWidth}}px; max-width:{{builderCategories[c].subcategories[s].builders.length * builderWidth}}px;">{{s}}</th>
@@ -251,10 +252,6 @@
                   </template>
                 </tr>
                 <tr class="builder">
-                  <td colspan="2" style="font-size: 10px;">
-                    <core-icon class="tiny" icon="image:texture"></core-icon> flaky
-                    <core-icon class="tiny" icon="block"></core-icon> ignore failure
-                  </td>
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
                       <template repeat="{{b in builderCategories[c].subcategories[s].builders}}">
@@ -266,6 +263,9 @@
                             </template>
                             <template if="{{allBuilders[b].flaky}}">
                               <core-icon class="tiny" icon="image:texture" alt="This builder is marked as flaky."></core-icon>
+                            </template>
+                            <template if="{{allBuilders[b].message}}">
+                              <core-icon class="tiny" icon="communication:chat" alt="This builder has a comment."></core-icon>
                             </template>
                           </a>
                           </paper-shadow>

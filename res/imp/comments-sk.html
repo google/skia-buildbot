@@ -21,6 +21,7 @@
     comments: Array of comment objects, with attributes 'time', 'user', and
         'message'.
     addCommentUrl: URL which accepts POST requests for adding comments.
+    allowEmptyComments: Whether or not to allow empty comments.
 
   Events:
     submit: When a comment is added, the 'submit' event is triggered. New
@@ -54,8 +55,8 @@
         </div>
       </template>
     </div>
+    <content id="content"></content>
     <template if="{{editRights}}">
-      <content id="content"></content>
       <div horizontal layout>
         <paper-input id="commentBox" label="comment" flex></paper-input>
         <paper-button on-click="{{addComment}}">submit</paper-button>
@@ -72,6 +73,10 @@
         },
         addCommentUrl: {
           value: "/comments/add",
+          reflect: true,
+        },
+        allowEmptyComments: {
+          value: false,
           reflect: true,
         },
       },
@@ -100,7 +105,7 @@
 
       addComment: function() {
         var commentText = this.shadowRoot.querySelector("#commentBox").value;
-        if (commentText == "") {
+        if (!this.allowEmptyComments && commentText == "") {
           this.showErrorDialog("Empty comments are not allowed.");
           return;
         }

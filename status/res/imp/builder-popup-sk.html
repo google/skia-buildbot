@@ -43,9 +43,9 @@
     </table>
     <hr/>
     Status:<br/>
-    <comments-sk comments="{{[builder]}}" addCommentUrl="/json/builders/{{builder.builder}}/status" on-submit="{{commentAdded}}">
-      <paper-checkbox id="flaky" label="Flaky" checked?="{{builder.flaky}}"></paper-checkbox>
-      <paper-checkbox id="ignoreFailure" label="Ignore Failure" checked?="{{builder.ignoreFailure}}"></paper-checkbox>
+    <comments-sk comments="{{[builder]}}" addCommentUrl="/json/builders/{{builder.builder}}/status" on-submit="{{commentAdded}}" allowEmptyComments>
+      <paper-checkbox id="flaky" label="Flaky" checked?="{{builder.flaky}}" disabled?="{{!editRights}}"></paper-checkbox>
+      <paper-checkbox id="ignoreFailure" label="Ignore Failure" checked?="{{builder.ignoreFailure}}" disabled?="{{!editRights}}"></paper-checkbox>
     </comments-sk>
   </template>
   <script>
@@ -59,6 +59,17 @@
           value: "https://build.chromium.org/p",
           reflect: true,
         },
+      },
+
+      ready: function() {
+        var ele = this;
+        sk.Login.then(function(status) {
+          var email = status['Email'];
+          var validEmail = "@google.com"
+          if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
+            ele.editRights = true;
+          }
+        });
       },
 
       commentAdded: function() {
