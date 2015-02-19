@@ -57,6 +57,10 @@ run_lua:
 run_benchmark:
 	go install -v ./go/worker_scripts/run_benchmark/
 
+.PHONY: run_chromium_perf
+run_chromium_perf:
+	go install -v ./go/worker_scripts/run_chromium_perf/
+
 .PHONY: run_skia_correctness
 run_skia_correctness:
 	go install -v ./go/worker_scripts/run_skia_correctness/
@@ -78,7 +82,7 @@ test:
 master_scripts: run_command check_workers_health build_chromium create_pagesets_on_workers capture_archives_on_workers run_lua_on_workers run_benchmark_on_workers run_chromium_perf_on_workers run_skia_correctness_on_workers fix_archives_on_workers
 
 .PHONY: worker_scripts
-worker_scripts: create_pagesets capture_archives run_lua run_benchmark run_skia_correctness fix_archives
+worker_scripts: create_pagesets capture_archives run_lua run_benchmark run_chromium_perf run_skia_correctness fix_archives
 
 .PHONY: all
 all: master_scripts worker_scripts testgo

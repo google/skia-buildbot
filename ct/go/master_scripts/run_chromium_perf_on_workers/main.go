@@ -4,12 +4,16 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"html/template"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -100,7 +104,8 @@ func main() {
 	defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
 	defer os.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir))
-	defer os.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir)) // Cleanup tmp files after the run.
+	defer os.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir))
+	// Cleanup tmp files after the run.
 	defer util.CleanTmpDir()
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running chromium perf task on workers")
@@ -151,23 +156,70 @@ func main() {
 	// Reboot all workers to start from a clean slate.
 	util.RebootWorkers()
 
-	// Call run_benchmark_on_slaves for withpatch.
+	// Run the run_chromium_perf script on all workers.
+	runIDNoPatch := *runID + "-nopatch"
 	runIDWithPatch := *runID + "-withpatch"
+	chromiumBuildNoPatch := fmt.Sprintf("try-%s-%s-%s", chromiumHash, skiaHash, runIDNoPatch)
 	chromiumBuildWithPatch := fmt.Sprintf("try-%s-%s-%s", chromiumHash, skiaHash, runIDWithPatch)
-	if err := runBenchmarkOnWorkers(chromiumBuildWithPatch, runIDWithPatch); err != nil {
-		glog.Errorf("Error while running benchmark on workers for runID %s: %s", runIDWithPatch, err)
+	runChromiumPerfCmdTemplate := "DISPLAY=:0 run_chromium_perf " +
+		"--worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --pageset_type={{.PagesetType}} " +
+		"--chromium_build_nopatch={{.ChromiumBuildNoPatch}} --chromium_build_withpatch={{.ChromiumBuildWithPatch}} " +
+		"--run_id_nopatch={{.RunIDNoPatch}} --run_id_withpatch={{.RunIDWithPatch}} " +
+		"--benchmark_name={{.BenchmarkName}} --benchmark_extra_args=\"{{.BenchmarkExtraArgs}}\" " +
+		"--browser_extra_args_nopatch=\"{{.BrowserExtraArgsNoPatch}}\" --browser_extra_args_withpatch=\"{{.BrowserExtraArgsWithPatch}}\" " +
+		"--repeat_benchmark={{.RepeatBenchmark}} --target_platform={{.TargetPlatform}};"
+	runChromiumPerfTemplateParsed := template.Must(template.New("run_chromium_perf_cmd").Parse(runChromiumPerfCmdTemplate))
+	runChromiumPerfCmdBytes := new(bytes.Buffer)
+	runChromiumPerfTemplateParsed.Execute(runChromiumPerfCmdBytes, struct {
+		WorkerNum                 string
+		LogDir                    string
+		PagesetType               string
+		ChromiumBuildNoPatch      string
+		ChromiumBuildWithPatch    string
+		RunIDNoPatch              string
+		RunIDWithPatch            string
+		BenchmarkName             string
+		BenchmarkExtraArgs        string
+		BrowserExtraArgsNoPatch   string
+		BrowserExtraArgsWithPatch string
+		RepeatBenchmark           int
+		TargetPlatform            string
+	}{
+		WorkerNum:                 util.WORKER_NUM_KEYWORD,
+		LogDir:                    util.GLogDir,
+		PagesetType:               *pagesetType,
+		ChromiumBuildNoPatch:      chromiumBuildNoPatch,
+		ChromiumBuildWithPatch:    chromiumBuildWithPatch,
+		RunIDNoPatch:              runIDNoPatch,
+		RunIDWithPatch:            runIDWithPatch,
+		BenchmarkName:             *benchmarkName,
+		BenchmarkExtraArgs:        *benchmarkExtraArgs,
+		BrowserExtraArgsNoPatch:   *browserExtraArgsNoPatch,
+		BrowserExtraArgsWithPatch: *browserExtraArgsWithPatch,
+		RepeatBenchmark:           *repeatBenchmark,
+		TargetPlatform:            *targetPlatform,
+	})
+	cmd := []string{
+		fmt.Sprintf("cd %s;", util.CtTreeDir),
+		"git pull;",
+		"make all;",
+		// The main command that runs run_chromium_perf on all workers.
+		runChromiumPerfCmdBytes.String(),
+	}
+	// Setting a 1 day timeout since it may take a while run benchmarks with many
+	// repeats.
+	if _, err := util.SSH(strings.Join(cmd, " "), util.Slaves, 1*24*time.Hour); err != nil {
+		glog.Errorf("Error while running cmd %s: %s", cmd, err)
 		return
 	}
 
-	// Reboot all workers to start from a clean slate.
-	util.RebootWorkers()
-
-	// Call run_benchmark_on_slaves for nopatch.
-	runIDNoPatch := *runID + "-nopatch"
-	chromiumBuildNoPatch := fmt.Sprintf("try-%s-%s-%s", chromiumHash, skiaHash, runIDNoPatch)
-	if err := runBenchmarkOnWorkers(chromiumBuildNoPatch, runIDNoPatch); err != nil {
-		glog.Errorf("Error while running benchmark on workers for runID %s: %s", runIDNoPatch, err)
-		return
+	// If "--output-format=csv" was specified then merge all CSV files and upload.
+	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
+		for _, runID := range []string{runIDNoPatch, runIDWithPatch} {
+			if err := mergeUploadCSVFiles(runID, gs); err != nil {
+				glog.Errorf("Unable to merge and upload CSV files for %s: %s", runID, err)
+			}
+		}
 	}
 
 	// Compare the resultant CSV files using csv_comparer.py
@@ -220,23 +272,52 @@ func main() {
 	taskCompletedSuccessfully = true
 }
 
-func runBenchmarkOnWorkers(chromiumBuild, id string) error {
-	args := []string{
-		"--log_dir=" + util.GLogDir,
-		"--pageset_type=" + *pagesetType,
-		"--chromium_build=" + chromiumBuild,
-		"--run_id=" + id,
-		"--benchmark_name=" + *benchmarkName,
-		"--benchmark_extra_args=" + *benchmarkExtraArgs,
-		"--browser_extra_args=" + *browserExtraArgsWithPatch,
-		"--repeat_benchmark=" + strconv.Itoa(*repeatBenchmark),
-		"--target_platform=" + *targetPlatform,
-		"--tryserver_run=true",
+func mergeUploadCSVFiles(runID string, gs *util.GsUtil) error {
+	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runID)
+	os.MkdirAll(localOutputDir, 0700)
+	// Copy outputs from all slaves locally.
+	for i := 0; i < util.NUM_WORKERS; i++ {
+		workerNum := i + 1
+		workerLocalOutputPath := filepath.Join(localOutputDir, fmt.Sprintf("slave%d", workerNum)+".csv")
+		workerRemoteOutputPath := filepath.Join(util.BenchmarkRunsDir, runID, fmt.Sprintf("slave%d", workerNum), "outputs", runID+".output")
+		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
+		if err != nil {
+			glog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
+			// TODO(rmistry): Should we instead return here? We can only return
+			// here if all 100 slaves reliably run without any failures which they
+			// really should.
+			continue
+		}
+		defer respBody.Close()
+		out, err := os.Create(workerLocalOutputPath)
+		if err != nil {
+			return fmt.Errorf("Unable to create file %s: %s", workerLocalOutputPath, err)
+		}
+		defer out.Close()
+		defer os.Remove(workerLocalOutputPath)
+		if _, err = io.Copy(out, respBody); err != nil {
+			return fmt.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
+		}
 	}
-	// Setting a 12 hour timeout since it may take a while to run builds on
-	// android with many repeats.
-	if err := util.ExecuteCmd("run_benchmark_on_workers", args, []string{}, 12*time.Hour, nil, nil); err != nil {
-		return fmt.Errorf("Error while running run_benchmark_on_workers: %s", err)
+	// Call csv_merger.py to merge all results into a single results CSV.
+	_, currentFile, _, _ := runtime.Caller(0)
+	pathToPyFiles := filepath.Join(
+		filepath.Dir((filepath.Dir(filepath.Dir(filepath.Dir(currentFile))))),
+		"py")
+	pathToCsvMerger := filepath.Join(pathToPyFiles, "csv_merger.py")
+	outputFileName := runID + ".output"
+	args := []string{
+		pathToCsvMerger,
+		"--csv_dir=" + localOutputDir,
+		"--output_csv_name=" + filepath.Join(localOutputDir, outputFileName),
+	}
+	if err := util.ExecuteCmd("python", args, []string{}, 1*time.Hour, nil, nil); err != nil {
+		return fmt.Errorf("Error running csv_merger.py: %s", err)
+	}
+	// Copy the output file to Google Storage.
+	remoteOutputDir := filepath.Join(util.BenchmarkRunsDir, runID, "consolidated_outputs")
+	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
+		return fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
 	}
 	return nil
 }
