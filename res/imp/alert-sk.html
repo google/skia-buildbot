@@ -106,7 +106,7 @@
         // Linkify the messages.
         var messages = this.shadowRoot.querySelectorAll("div.message");
         for (var i = 0; i < messages.length; i++) {
-          messages[i].innerHTML = messages[i].innerHTML.replace(/https?:\/\/[^ \t\n<]*/g, '<a href="$&">$&</a>');
+          messages[i].innerHTML = sk.formatHTML(messages[i].innerHTML);
         }
       },
       dismissAlert: function() {

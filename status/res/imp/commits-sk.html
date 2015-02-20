@@ -257,7 +257,7 @@
                       <template repeat="{{b in builderCategories[c].subcategories[s].builders}}">
                         <td class="build">
                           <paper-shadow z="1" class="builder">
-                          <a id="openBuilder|{{b}}" class="builder build build_single" href="#" onClick="return false;" on-click="{{toggleBuilderPopup}}">
+                          <a id="openBuilder|{{b}}" class="builder build build_single" href="#" onClick="return false;" on-click="{{openBuilderPopup}}">
                             <template if="{{allBuilders[b].ignoreFailure}}">
                               <core-icon class="tiny" icon="block" alt="Failures on this builder are ignored."></core-icon>
                             </template>
@@ -280,11 +280,11 @@
               <template repeat="{{commit, i in commits}}">
                 <tr class="commit alt">
                   <td class="author">
-                    <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{toggleCommitPopup}}">{{commit.author|shortAuthor}}</a>
+                    <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{openCommitPopup}}">{{commit.author|shortAuthor}}</a>
                   </td>
                   <td class="commentIndicator">
                     <template if="{{commit.comments && commit.comments.length > 0}}">
-                      <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{toggleCommitPopup}}">
+                      <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{openCommitPopup}}">
                         <core-icon class="tiny" icon="communication:chat" alt="There are comments on this commit."></core-icon>
                       </a>
                     </template>
@@ -298,7 +298,7 @@
                                href="#"
                                class="build {{commit.displayClass[builder]}}"
                                onClick="return false;"
-                               on-click="{{toggleBuildPopup}}"
+                               on-click="{{openBuildPopup}}"
                                style="background-color: {{buildDetails[commit.hash][builder].color}};"
                               >
                               <template if="{{buildDetails[commit.hash][builder].comments && buildDetails[commit.hash][builder].comments.length > 0 && commit.displayClass[builder] == 'build_top'}}">
@@ -321,11 +321,7 @@
         <core-icon-button id="moreButton" icon="expand-more" on-click="{{loadMore}}"></core-icon-button>
         <paper-spinner id="loading" active></paper-spinner>
       </div>
-      <paper-dialog id="infoDialog">
-        <build-popup-sk id="buildPopup" buildbotUrlPrefix="{{buildbotUrlPrefix}}"></build-popup-sk>
-        <builder-popup-sk id="builderPopup" buildbotUrlPrefix="{{buildbotUrlPrefix}}"></builder-popup-sk>
-        <commit-popup-sk id="commitPopup"></commit-popup-sk>
-      </paper-dialog>
+      <paper-dialog id="infoDialog"></paper-dialog>
     </div>
   </template>
   <script>
@@ -740,18 +736,16 @@
         this.builderCategoryList = categoryList;
       },
 
-      // Toggle the info popup dialog, with the given element shown.
-      toggleInfoPopup: function(elem) {
-        for (var i = 0; i < this.$.infoDialog.children.length; i++) {
-          var child = this.$.infoDialog.children[i];
-          child.style.display = "none";
-        }
-        elem.style.display = "block";
-        this.$.infoDialog.toggle();
+      // Is the info popup open?
+      infoPopupOpen: function() {
+        return this.$.infoDialog.style.display != "none";
       },
 
-      // Toggle the build popup.
-      toggleBuildPopup: function(e, d, s) {
+      // Open the build popup.
+      openBuildPopup: function(e, d, s) {
+        if (this.infoPopupOpen()) {
+          return;
+        }
         var split = s.id.split("|");
         if (split.length != 3) {
           throw "Invalid id: " + s.id;
@@ -760,34 +754,51 @@
         var builder = split[2];
         var build = this.buildDetails[commit][builder];
         if (build) {
-          this.$.buildPopup.build = build;
-          this.toggleInfoPopup(this.$.buildPopup);
+          this.$.infoDialog.innerHTML = "";
+          var buildInfo = document.createElement("build-popup-sk");
+          buildInfo.build = build;
+          buildInfo.buildbotUrlPrefix = this.buildbotUrlPrefix;
+          this.$.infoDialog.appendChild(buildInfo);
+          this.$.infoDialog.toggle();
         }
       },
 
-      // Toggle the builder popup.
-      toggleBuilderPopup: function(e, d, s) {
+      // Open the builder popup.
+      openBuilderPopup: function(e, d, s) {
+        if (this.infoPopupOpen()) {
+          return;
+        }
         var split = s.id.split("|");
         if (split.length != 2) {
           throw "Invalid id: " + s.id;
         }
         var builder = split[1];
         if (builder) {
-          this.$.builderPopup.builder = this.allBuilders[builder];
-          this.toggleInfoPopup(this.$.builderPopup);
+          this.$.infoDialog.innerHTML = "";
+          var builderInfo = document.createElement("builder-popup-sk");
+          builderInfo.builder = this.allBuilders[builder];
+          builderInfo.buildbotUrlPrefix = this.buildbotUrlPrefix;
+          this.$.infoDialog.appendChild(builderInfo);
+          this.$.infoDialog.toggle();
         }
       },
 
-      // Toggle the commit popup.
-      toggleCommitPopup: function(e, d, s) {
+      // Open the commit popup.
+      openCommitPopup: function(e, d, s) {
+        if (this.infoPopupOpen()) {
+          return;
+        }
         var split = s.id.split("|");
         if (split.length != 2) {
           throw "Invalid id: " + s.id;
         }
         var commit = this.commits[split[1]];
         if (commit) {
-          this.$.commitPopup.commit = commit;
-          this.toggleInfoPopup(this.$.commitPopup);
+          this.$.infoDialog.innerHTML = "";
+          var commitInfo = document.createElement("commit-popup-sk");
+          commitInfo.commit = commit;
+          this.$.infoDialog.appendChild(commitInfo);
+          this.$.infoDialog.toggle();
         }
       },
 

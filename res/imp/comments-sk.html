@@ -50,7 +50,7 @@
           <template if="{{comment.time && comment.user && comment.message}}">
             <div class="commentCell">{{comment.time|parseDate}}</div>
             <div class="commentCell">{{comment.user}}</div>
-            <div class="commentCell">{{comment.message}}</div>
+            <div class="commentCell" message="{{comment.message}}"></div>
           </template>
         </div>
       </template>
@@ -90,6 +90,25 @@
             ele.editRights = true;
           }
         });
+      },
+
+      domReady: function() {
+        this.linkifyComments();
+      },
+
+      linkifyComments: function() {
+        var commentBoxes = this.shadowRoot.querySelectorAll("div.commentCell");
+        if (!commentBoxes || commentBoxes.length == 0) {
+          return;
+        }
+        for (var i = 0; i < commentBoxes.length; i++) {
+          var c = commentBoxes[i];
+          var msg = c.getAttribute("message");
+          if (!msg) {
+            continue;
+          }
+          c.innerHTML = sk.formatHTML(msg, true);
+        }
       },
 
       showErrorDialog: function(msg) {
