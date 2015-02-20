@@ -47,6 +47,7 @@ var (
 	oauthCacheFile    = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	memProfile        = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+	redirectURL       = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 	redisHost         = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
 	redisDB           = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
 	startAnalyzer     = flag.Bool("start_analyzer", true, "Create an instance of the analyzer and start it running.")
@@ -308,14 +309,14 @@ func main() {
 	var cookieSalt = "notverysecret"
 	var clientID = "31977622648-ubjke2f3staq6ouas64r31h8f8tcbiqp.apps.googleusercontent.com"
 	var clientSecret = "rK-kRY71CXmcg0v9I9KIgWci"
-	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	var useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
 		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
 		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
-		redirectURL = "https://gold.skia.org/oauth2callback/"
+		useRedirectURL = *redirectURL
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
+	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt)
 
 	// get the Oauthclient if necessary.
 	client := getOAuthClient(*doOauth, *oauthCacheFile)
