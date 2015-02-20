@@ -39,6 +39,7 @@ package docset
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/mail"
@@ -51,6 +52,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/golang/groupcache/lru"
@@ -276,53 +278,115 @@ func diff(current, next []string) (int, int) {
 	return end, begin
 }
 
+// navTemplate is a self-refrential template used to recursively expand over node tree.
+var navTemplate = template.Must(template.New("NODE").Parse(`
+<li><a data-path="{{.Index.URL}}" href="{{.Index.URL}}">{{.Index.Name}}</a></li>
+<ul class=files>
+  {{range .Files}}
+    <li><a data-path="{{.URL}}" href="{{.URL}}">{{.Name}}</a></li>
+  {{end}}
+</ul>
+<ul class=dirs>
+  {{range .Dirs}}
+    {{template "NODE" .}}
+  {{end}}
+</ul>`))
+
+// nodeToHTML converts the node to HTML, keeping track of depth for pretty printing the output.
+func nodeToHTML(n *node, depth int) string {
+	b := &bytes.Buffer{}
+	if err := navTemplate.Execute(b, n); err != nil {
+		glog.Errorf("Failed to expand: %s", err)
+		return ""
+	}
+	return b.String()
+}
+
 // buildNavString converts a slice of navEntry's into an HTML formatted
 // navigation structure.
-func buildNavString(nav []*navEntry) string {
-	res := "\n"
-	current := []string{} // The parent directory.
-	for _, n := range nav {
-		next := strings.Split(n.URL[1:], "/")
-		end, begin := diff(current, next)
-		for i := 0; i < end; i++ {
-			res += "</ul>\n"
-		}
-		for i := 0; i < begin; i++ {
-			res += "<ul>\n"
-		}
-		res += fmt.Sprintf("<li><a data-path=\"%s\" href=\"%s\">%s</a></li>\n", n.URL, n.URL, n.Name)
-		current = next
+func buildNavString(n *node) string {
+	return "\n<ul>\n" + nodeToHTML(n, 1) + "</ul>\n"
+}
+
+// node is a single directory of site docs.
+type node struct {
+	Index navEntry
+	Dirs  []*node
+	Files []*navEntry
+}
+
+// nodeSlice is for sorting nodes.
+type nodeSlice []*node
+
+func (p nodeSlice) Len() int           { return len(p) }
+func (p nodeSlice) Less(i, j int) bool { return p[i].Index.URL < p[j].Index.URL }
+func (p nodeSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// walk the directory tree below root and populate a tree stucture of nodes.
+func walk(root, path string) (*node, error) {
+	ret := &node{
+		Dirs:  []*node{},
+		Files: []*navEntry{},
 	}
-	// Close out all remaining open ul's.
-	for _, _ = range current {
-		res += "</ul>\n"
+
+	// for each directory fill in the navEntry for index.md
+	rel, _ := filepath.Rel(root, path)
+	rel = filepath.Clean("/" + rel)
+	ret.Index = navEntry{
+		URL:  rel,
+		Name: readTitle(filepath.Join(path, "index.md"), rel),
 	}
-	return res
+
+	// populate all the other files
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	allFiles, err := f.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+	for _, fi := range allFiles {
+		// The contents are either files or directories.
+		if fi.IsDir() {
+			n, err := walk(root, filepath.Join(path, fi.Name()))
+			if err != nil {
+				return nil, err
+			}
+			ret.Dirs = append(ret.Dirs, n)
+		} else if fi.Name() != "index.md" && strings.HasSuffix(fi.Name(), ".md") {
+			fileRel := filepath.Clean(rel + "/" + fi.Name()[:len(fi.Name())-3])
+			ret.Files = append(ret.Files, &navEntry{
+				URL:  fileRel,
+				Name: readTitle(filepath.Join(path, fi.Name()), fileRel),
+			})
+		}
+	}
+
+	// Sort dirs and files.
+	sort.Sort(navEntrySlice(ret.Files))
+	sort.Sort(nodeSlice(ret.Dirs))
+
+	return ret, nil
+}
+
+func printnode(n *node, depth int) {
+	glog.Infof("Node: %*s%#v\n", depth*2, "", n.Index)
+	for _, f := range n.Files {
+		glog.Infof("File: %*s%#v\n", (depth+1)*2, "", *f)
+	}
+	for _, d := range n.Dirs {
+		printnode(d, depth+1)
+	}
 }
 
 // BuildNavigation builds the Navigation for the DocSet.
 func (d *DocSet) BuildNavigation() {
 	// Walk the directory tree to build the navigation menu.
-	nav := []*navEntry{}
 	root := filepath.Join(d.repoDir, config.REPO_SUBDIR)
-	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		rel, _ := filepath.Rel(root, path)
-		rel = "/" + rel
-		if strings.HasSuffix(rel, "/index.md") {
-			rel = rel[:len(rel)-8]
-		} else if strings.HasSuffix(rel, ".md") {
-			rel = rel[:len(rel)-3]
-		} else {
-			return nil
-		}
-		nav = append(nav, &navEntry{
-			URL:  rel,
-			Name: readTitle(path, rel),
-		})
-		return nil
-	})
-	sort.Sort(navEntrySlice(nav))
-	s := buildNavString(nav)
+	node, _ := walk(root, root)
+	printnode(node, 0)
+	s := buildNavString(node)
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	d.cache = lru.New(MARKDOWN_CACHE_SIZE)
