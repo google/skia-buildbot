@@ -11,8 +11,9 @@ INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/status      ${ROOT}/usr/local/bin/status
 ${INSTALL} --mode=644 -T ./sys/monit               ${ROOT}/etc/monit/conf.d/status
 ${INSTALL} --mode=755 -T ./sys/init                ${ROOT}/etc/init.d/status
-${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/status/res/vul/elements.html
+${INSTALL} --mode=644 -T ./res/img/favicon.ico     ${ROOT}/usr/local/share/status/res/img/favicon.ico
 ${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/status/res/js/core.js
+${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/status/res/vul/elements.html
 ${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/status/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/commits.html  ${ROOT}/usr/local/share/status/templates/commits.html
 ${INSTALL_DIR} --mode=777                          ${ROOT}/mnt/pd0/status_scratch
