@@ -116,21 +116,39 @@
 
     <script type="text/javascript" charset="utf-8">
      (function() {
-       var topFilter = "untriaged";
-       var leftFilter = "positive";
 
-       var topQuery = "";
-       var leftQuery = "";
+       // Returns an object with only values that are in o that are different
+       // from d.
+       function getDelta(o, d) {
+         var ret = {};
+         Object.keys(o).forEach(function(key) {
+           if (o[key] != d[key]) {
+             ret[key] = o[key];
+           }
+         });
+         return ret;
+       }
 
-       var topIncludeIgnores = true;
-       var leftIncludeIgnores = true;
+       // Returns a copy of object o with values from delta if they exist.
+       function applyDelta(delta, o) {
+         ret = {};
+         Object.keys(o).forEach(function(key) {
+           if (delta.hasOwnProperty(key)) {
+             ret[key] = delta[key];
+           } else {
+             ret[key] = o[key];
+           }
+         });
+         return ret;
+       }
 
-       var topN = 5;
-       var leftN = 5;
-
+       // Total number of digests displayed across the top.
        var topTotal = 5;
+
+       // Total number of digests displayed down the left.
        var leftTotal = 5;
 
+       // How many digests to add when a more button is pressed.
        var moreDelta = 5;
 
        // Strip off the /testname from the URL.
@@ -142,6 +160,52 @@
           testName = match[1];
        }
 
+       // The current state of the page.
+       var state = {
+         test:               testName,
+         topFilter:          "untriaged",
+         leftFilter:         "positive",
+         topQuery:           "",
+         leftQuery:          "",
+         topIncludeIgnores:  true,
+         leftIncludeIgnores: true,
+         topN:               5,
+         leftN:              5,
+       };
+
+       // The default state of the page. Used to calcualte diffs to state.
+       var defaultState = JSON.parse(JSON.stringify(state));
+
+       // The last state of the page. Used to determine if the page state has changed recently.
+       var lastState = JSON.parse(JSON.stringify(state));
+
+       // Watch for state changes and reflect them in the URL.
+       setInterval(function() {
+         if (Object.keys(getDelta(lastState, state)).length > 0) {
+           lastState = JSON.parse(JSON.stringify(state));
+           var q = sk.query.fromObject(getDelta(state, defaultState));
+           history.pushState(null, "", window.location.origin + window.location.pathname + "?" +  q);
+         }
+       }, 100);
+
+       function loadGridFromURL() {
+         // Apply the object diffs to default and then reload the state based on that.
+         var delta = sk.query.toObject(window.location.search.slice(1), defaultState);
+         state = applyDelta(delta, defaultState);
+         lastState = applyDelta(delta, defaultState);
+
+         $$$('#leftFilter').value = state.leftFilter;
+         $$$('#topFilter').value = state.topFilter;
+         $$$('#queryLeftButton').title = state.leftQuery;
+         $$$('#queryTopButton').title = state.topQuery;
+         loadGrid();
+       }
+
+       window.addEventListener('popstate', function(e) {
+         loadGridFromURL();
+       });
+
+
        $$$('#queryTopButton').addEventListener('click', function() {
          $$$('#queryTopDialog').open();
        });
@@ -151,77 +215,59 @@
        });
 
        $$$('#queryTopDialog').addEventListener('closed', function(e) {
-         topQuery = e.detail.query;
-         topIncludeIgnores = e.detail.useIgnored;
-         $$$('#queryTopButton').title = topQuery;
+         state.topQuery = e.detail.query;
+         state.topIncludeIgnores = e.detail.useIgnored;
+         $$$('#queryTopButton').title = state.topQuery;
          loadGrid();
        });
 
        $$$('#queryLeftDialog').addEventListener('closed', function(e) {
-         leftQuery = e.detail.query;
-         leftIncludeIgnores = e.detail.useIgnored;
-         $$$('#queryLeftButton').title = leftQuery;
+         state.leftQuery = e.detail.query;
+         state.leftIncludeIgnores = e.detail.useIgnored;
+         $$$('#queryLeftButton').title = state.leftQuery;
          loadGrid();
        });
 
        $$$('grid-sk').addEventListener('more-top', function() {
-         topN += moreDelta;
-         if (topN > topTotal) {
-           topN = topTotal;
+         state.topN += moreDelta;
+         if (state.topN > topTotal) {
+           state.topN = topTotal;
          }
          loadGrid();
        });
 
        $$$('grid-sk').addEventListener('more-left', function() {
-         leftN += moreDelta;
-         if (leftN > leftTotal) {
-           leftN = leftTotal;
+         state.leftN += moreDelta;
+         if (state.leftN > leftTotal) {
+           state.leftN = leftTotal;
          }
          loadGrid();
        });
 
        function loadGrid() {
-         if (testName != '') {
-           var body = {
-             "test": testName,
-             "topFilter": topFilter,
-             "leftFilter": leftFilter,
-             "topQuery": topQuery,
-             "leftQuery": leftQuery,
-             "topIncludeIgnores": topIncludeIgnores,
-             "leftIncludeIgnores": leftIncludeIgnores,
-             "topN": topN,
-             "leftN": leftN,
-           };
-           sk.post('/2/_/test', JSON.stringify(body)).then(JSON.parse).then(function(json) {
-             topTotal = json.topTotal;
-             leftTotal = json.leftTotal;
-             if (topN > topTotal) {
-               topN = Math.max(topTotal, 5);
-             }
-             if (leftN > leftTotal) {
-               leftN = Math.max(leftTotal, 5);
-             }
-             $$$('grid-sk').setValue(json);
-             $$$('#leftSummary').innerHTML = json.left.length + "/" + json.leftTotal;
-             $$$('#topSummary').innerHTML = json.top.length + "/" + json.topTotal;
-             $$$('diff-detail-sk').hide();
-             if (json.message != "") {
-               $$$('paper-toast').text = json.message;
-               $$$('paper-toast').show();
-             }
-           }).catch(function(e) {
-             $$$('paper-toast').text = e;
+         sk.post('/2/_/test', JSON.stringify(state)).then(JSON.parse).then(function(json) {
+           topTotal = json.topTotal;
+           leftTotal = json.leftTotal;
+           if (state.topN > topTotal) {
+             state.topN = Math.max(topTotal, 5);
+           }
+           if (state.leftN > leftTotal) {
+             state.leftN = Math.max(leftTotal, 5);
+           }
+           $$$('grid-sk').setValue(json);
+           $$$('#leftSummary').innerHTML = json.left.length + "/" + json.leftTotal;
+           $$$('#topSummary').innerHTML = json.top.length + "/" + json.topTotal;
+           $$$('diff-detail-sk').hide();
+           if (json.message != "") {
+             $$$('paper-toast').text = json.message;
              $$$('paper-toast').show();
-           });
-         } else {
-           $$$('paper-toast').text = "Not a valid test name.";
+           }
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
            $$$('paper-toast').show();
-         }
+         });
          $$$('#refresh').classList.remove('display');
        }
-
-       loadGrid();
 
        $$$('grid-sk').addEventListener('diff-click', function(e) {
          $$$('diff-detail-sk').value = e.detail;
@@ -247,14 +293,20 @@
        });
 
        $$$('#topFilter').addEventListener('change', function(e) {
-         topFilter = e.detail;
+         state.topFilter = e.detail;
          loadGrid();
        });
 
        $$$('#leftFilter').addEventListener('change', function(e) {
-         leftFilter = e.detail;
+         state.leftFilter = e.detail;
          loadGrid();
        });
+
+       // Only kick off the action once the web components are ready.
+       sk.WebComponentsReady.then(function() {
+         loadGridFromURL();
+       });
+
      })();
     </script>
   </body>
