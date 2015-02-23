@@ -45,7 +45,7 @@ diff between the two images.
         display: block;
       }
 
-      #smallImages crosshair-sk {
+      #smallImages a {
         margin-right: 1em;
       }
 
@@ -84,12 +84,15 @@ diff between the two images.
         <crosshair-sk id=topCrosshair>
           <img id=top src="{{details.topImgUrl}}">
         </crosshair-sk>
+        <a href="{{details.topImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a>
         <crosshair-sk id=leftCrosshair>
           <img id=left src="{{details.leftImgUrl}}">
         </crosshair-sk>
+        <a href="{{details.leftImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a>
         <crosshair-sk id=diffCrosshair>
           <img id=diff src="{{details.diffImgUrl}}">
         </crosshair-sk>
+        <a href="{{details.diffImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a>
         <div class=options vertical layout>
           <div class=choice>
             <paper-checkbox id=topToggle toggles checked?="{{topChecked}}"></paper-checkbox> Left

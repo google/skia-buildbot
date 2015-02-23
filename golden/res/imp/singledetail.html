@@ -32,6 +32,14 @@ a given digest.
         text-decoration: underline;
       }
 
+      .openInNew {
+        position: relative;
+      }
+
+      .openInNew a {
+        top: 5px;
+        position: absolute;
+      }
     </style>
     <table>
       <tr>
@@ -40,7 +48,10 @@ a given digest.
       </tr>
       <tr>
         <th>Image</th>
-        <td><img src="/img/images/{{digest}}-thumbnail.png"></td>
+        <td class=openInNew><img src="/img/images/{{digest}}-thumbnail.png">
+          <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+        </td>
+        </td>
       </tr>
       <tr>
         <th>Test</th>

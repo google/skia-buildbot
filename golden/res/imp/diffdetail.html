@@ -66,13 +66,26 @@ between two images.
       #digestRow td {
         padding-top: 2em;
       }
+
+      .openInNew {
+        position: relative;
+      }
+
+      .openInNew a {
+        top: 5px;
+        position: absolute;
+      }
     </style>
     <div id=diffInfo vertical layout>
       <table border="0" cellspacing="5" cellpadding="5">
         <tr><th>Pixel Diff (%)</th><td>{{value.pixelDiffPercent}}</td></tr>
         <tr><th>Num Diff Pixels</th><td>{{value.numDiffPixels}}</td></tr>
         <tr><th>Max RBBA Diffs</th><td>{{value.maxRGBADiffs}}</td></tr>
-        <tr><th>Diff</th><td><img id=diffThumb src="{{value.thumb}}"></td><td><paper-button id=zoom>Zoom</paper-button></td></tr>
+        <tr>
+          <th>Diff</th>
+          <td class=openInNew><img id=diffThumb src="{{value.thumb}}"><a href="{{value.diffImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
+          <td><paper-button id=zoom>Zoom</paper-button></td>
+        </tr>
       </table>
       <div id=params>
         <table>
@@ -88,8 +101,8 @@ between two images.
           </tr>
           <tr>
             <th>Image</th>
-            <td><img src="/img/images/{{value.leftDigest}}-thumbnail.png"></td>
-            <td><img src="/img/images/{{value.topDigest}}-thumbnail.png"></td>
+            <td class=openInNew><img src="/img/images/{{value.leftDigest}}-thumbnail.png"> <a href="{{value.leftImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
+            <td class=openInNew><img src="/img/images/{{value.topDigest}}-thumbnail.png"> <a href="{{value.topImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
           </tr>
 
           <template repeat="{{p in details.params}}">
