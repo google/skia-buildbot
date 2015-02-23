@@ -169,31 +169,28 @@ func Init() {
 	indexTemplate = htemplate.Must(htemplate.ParseFiles(
 		filepath.Join(path, "templates/index.html"),
 		filepath.Join(path, "templates/titlebar.html"),
-		filepath.Join(path, "templates/sidebar.html"),
 		filepath.Join(path, "templates/content.html"),
-		filepath.Join(path, "templates/headercommon.html"),
-		filepath.Join(path, "templates/footercommon.html"),
+		filepath.Join(path, "templates/header.html"),
+		filepath.Join(path, "templates/footer.html"),
 	))
 	iframeTemplate = htemplate.Must(htemplate.ParseFiles(
 		filepath.Join(path, "templates/iframe.html"),
 		filepath.Join(path, "templates/content.html"),
-		filepath.Join(path, "templates/headercommon.html"),
-		filepath.Join(path, "templates/footercommon.html"),
+		filepath.Join(path, "templates/header.html"),
+		filepath.Join(path, "templates/footer.html"),
 	))
 	recentTemplate = htemplate.Must(htemplate.ParseFiles(
 		filepath.Join(path, "templates/recent.html"),
 		filepath.Join(path, "templates/titlebar.html"),
-		filepath.Join(path, "templates/sidebar.html"),
-		filepath.Join(path, "templates/headercommon.html"),
-		filepath.Join(path, "templates/footercommon.html"),
+		filepath.Join(path, "templates/header.html"),
+		filepath.Join(path, "templates/footer.html"),
 	))
 	workspaceTemplate = htemplate.Must(htemplate.ParseFiles(
 		filepath.Join(path, "templates/workspace.html"),
 		filepath.Join(path, "templates/titlebar.html"),
-		filepath.Join(path, "templates/sidebar.html"),
 		filepath.Join(path, "templates/content.html"),
-		filepath.Join(path, "templates/headercommon.html"),
-		filepath.Join(path, "templates/footercommon.html"),
+		filepath.Join(path, "templates/header.html"),
+		filepath.Join(path, "templates/footer.html"),
 	))
 
 	// The git command returns output of the format:
@@ -333,20 +330,6 @@ func writeOutAllSourceImages() {
 type Titlebar struct {
 	GitHash string
 	GitInfo string
-}
-
-// userCode is used in template expansion.
-type userCode struct {
-	Code      string
-	Hash      string
-	Embedded  bool
-	Width     int
-	Height    int
-	PDFURL    string
-	RasterURL string
-	GPUURL    string
-	Source    int
-	Titlebar  Titlebar
 }
 
 // writeTemplate creates a given output file and writes the template
@@ -617,15 +600,20 @@ func recentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type Workspace struct {
-	Name     string
-	Code     string
-	Hash     string
-	Width    int
-	Height   int
-	Source   int
-	Tries    []Try
-	Titlebar Titlebar
+type userCode struct {
+	Name      string
+	Code      string
+	Hash      string
+	RasterURL string
+	PDFURL    string
+	GPUURL    string
+	Width     int
+	Height    int
+	Source    int
+	Tries     []Try
+	Embedded  bool
+	Permalink bool
+	Titlebar  Titlebar
 }
 
 // newWorkspace generates a new random workspace name and stores it in the database.
@@ -686,6 +674,7 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 		var hash string
 		var width int
 		var height int
+
 		source := 0
 		if len(tries) == 0 {
 			code = DEFAULT_SAMPLE
@@ -695,8 +684,25 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 			hash = tries[len(tries)-1].Hash
 			code, width, height, source, _ = getCode(hash)
 		}
+		rasterURL, gpuURL, pdfURL := getOutputURLS(hash)
+
 		w.Header().Set("Content-Type", "text/html")
-		if err := workspaceTemplate.Execute(w, Workspace{Tries: tries, Code: code, Name: name, Hash: hash, Width: width, Height: height, Source: source, Titlebar: Titlebar{GitHash: gitHash, GitInfo: gitInfo}}); err != nil {
+		context := userCode{
+			Tries:     tries,
+			Permalink: true,
+			Embedded:  false,
+			RasterURL: rasterURL,
+			PDFURL:    pdfURL,
+			GPUURL:    gpuURL,
+			Code:      code,
+			Name:      name,
+			Hash:      hash,
+			Width:     width,
+			Height:    height,
+			Source:    source,
+			Titlebar:  Titlebar{GitHash: gitHash, GitInfo: gitInfo},
+		}
+		if err := workspaceTemplate.Execute(w, context); err != nil {
 			glog.Errorf("Failed to expand template: %q\n", err)
 		}
 	} else if r.Method == "POST" {
@@ -762,11 +768,14 @@ func iframeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type TryInfo struct {
-	Hash   string `json:"hash"`
-	Code   string `json:"code"`
-	Width  int    `json:"width"`
-	Height int    `json:"height"`
-	Source int    `json:"source"`
+	Hash      string `json:"hash"`
+	Code      string `json:"code"`
+	Width     int    `json:"width"`
+	Height    int    `json:"height"`
+	Source    int    `json:"source"`
+	RasterImg string `json:"rasterImg"`
+	GPUImg    string `json:"gpuImg"`
+	PDFURL    string `json:"PDFURL"`
 }
 
 // tryInfoHandler returns information about a specific try.
@@ -794,6 +803,16 @@ func tryInfoHandler(w http.ResponseWriter, r *http.Request) {
 		Height: height,
 		Source: source,
 	}
+
+	rasterImg, gpuImg, pdfURL, err, errMsg := getOutputData(hash)
+	if err != nil {
+		reportTryError(w, r, err, errMsg, hash)
+	}
+
+	m.RasterImg = rasterImg
+	m.GPUImg = gpuImg
+	m.PDFURL = pdfURL
+
 	resp, err := json.Marshal(m)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to serialize a response.")
@@ -815,19 +834,96 @@ type compileError struct {
 	Error  string `json:"error"`
 }
 
+// getOutputPaths returns the pathname to any (potential) output files for
+// a given hash.
+func getOutputPaths(hash string) (rasterPath, gpuPath, pdfPath string) {
+	rasterPath = filepath.Join(*inoutPath, fmt.Sprintf("%s_raster.png", hash))
+	gpuPath = filepath.Join(*inoutPath, fmt.Sprintf("%s_gpu.png", hash))
+	pdfPath = filepath.Join(*inoutPath, fmt.Sprintf("%s.pdf", hash))
+	return
+}
+
+// getOutputURLS returns the URLS of any existing output images for a given hash.
+func getOutputURLS(hash string) (rasterURL, gpuURL, pdfURL string) {
+
+	rasterPath, gpuPath, pdfPath := getOutputPaths(hash)
+
+	rasterURL = ""
+	pdfURL = ""
+	gpuURL = ""
+
+	// Check to see if there's already a PDF run of this hash
+	if _, err := os.Stat(pdfPath); err == nil {
+		pdfURL = "/i/" + hash + ".pdf"
+	}
+	// Check to see if there's already a raster run of this hash
+	if _, err := os.Stat(rasterPath); err == nil {
+		rasterURL = "/i/" + hash + "_raster.png"
+	}
+	// Check to see if there's already a GPU run of this hash
+	if _, err := os.Stat(gpuPath); err == nil {
+		gpuURL = "/i/" + hash + "_gpu.png"
+	}
+	return
+}
+
+// getOutputData reads any existing output files and encodes their data as
+// base64 (for json marshalling).  The PDF is still returned as a URL.
+
+func getOutputData(hash string) (rasterImg, gpuImg, pdfURL string, e error, errMsg string) {
+	rasterPath, gpuPath, pdfPath := getOutputPaths(hash)
+
+	if _, err := os.Stat(rasterPath); err == nil {
+		png, err := ioutil.ReadFile(rasterPath)
+		if err != nil {
+			e = err
+			errMsg = "Failed to open the raster-generated PNG."
+			return
+		}
+
+		rasterImg = base64.StdEncoding.EncodeToString([]byte(png))
+	}
+
+	if _, err := os.Stat(gpuPath); err == nil {
+		png, err := ioutil.ReadFile(gpuPath)
+		if err != nil {
+			e = err
+			errMsg = "Failed to open the GPU-generated PNG."
+			return
+		}
+
+		gpuImg = base64.StdEncoding.EncodeToString([]byte(png))
+	}
+
+	if _, err := os.Stat(pdfPath); err == nil {
+		if _, err := os.Stat(pdfPath); os.IsNotExist(err) {
+			e = err
+			errMsg = "Failed to open the PDF output"
+			return
+		}
+
+		pdfURL = "/i/" + hash + ".pdf"
+	}
+	e = nil
+	errMsg = ""
+	return
+}
+
 // mainHandler handles the GET and POST of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Main Handler: %q\n", r.URL.Path)
 	requestsCounter.Inc(1)
 	if r.Method == "GET" {
+		rasterURL := ""
+		pdfURL := ""
+		gpuURL := ""
+
 		code := DEFAULT_SAMPLE
 		source := 0
 		width := 256
 		height := 256
 		match := directLink.FindStringSubmatch(r.URL.Path)
-		PDFURL := ""
-		rasterURL := ""
-		GPUURL := ""
+
 		var hash string
 		if len(match) == 2 && r.URL.Path != "/" {
 			hash = match[1]
@@ -841,26 +937,23 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			rasterPath := filepath.Join(*inoutPath, fmt.Sprintf("%s_raster.png", hash))
-			gpuPath := filepath.Join(*inoutPath, fmt.Sprintf("%s_gpu.png", hash))
-			PDFPath := filepath.Join(*inoutPath, fmt.Sprintf("%s.pdf", hash))
-
-			// Check to see if there's already a PDF run of this hash
-			if _, err := os.Stat(PDFPath); err == nil {
-				PDFURL = "/i/" + hash + ".pdf"
-			}
-			// Check to see if there's already a raster run of this hash
-			if _, err := os.Stat(rasterPath); err == nil {
-				rasterURL = "/i/" + hash + "_raster.png"
-			}
-			// Check to see if there's already a GPU run of this hash
-			if _, err := os.Stat(gpuPath); err == nil {
-				GPUURL = "/i/" + hash + "_gpu.png"
-			}
+			rasterURL, gpuURL, pdfURL = getOutputURLS(hash)
 		}
 		// Expand the template.
 		w.Header().Set("Content-Type", "text/html")
-		if err := indexTemplate.Execute(w, userCode{Code: code, PDFURL: PDFURL, RasterURL: rasterURL, GPUURL: GPUURL, Hash: hash, Source: source, Embedded: false, Width: width, Height: height, Titlebar: Titlebar{GitHash: gitHash, GitInfo: gitInfo}}); err != nil {
+		context := userCode{
+			Code:      code,
+			PDFURL:    pdfURL,
+			RasterURL: rasterURL,
+			GPUURL:    gpuURL,
+			Hash:      hash,
+			Source:    source,
+			Embedded:  false,
+			Width:     width,
+			Height:    height,
+			Titlebar:  Titlebar{GitHash: gitHash, GitInfo: gitInfo},
+		}
+		if err := indexTemplate.Execute(w, context); err != nil {
 			glog.Errorf("Failed to expand template: %q\n", err)
 		}
 	} else if r.Method == "POST" {
@@ -957,38 +1050,14 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			Hash: hash,
 		}
 
-		rasterPath := filepath.Join(*inoutPath, fmt.Sprintf("%s_raster.png", hash))
-		gpuPath := filepath.Join(*inoutPath, fmt.Sprintf("%s_gpu.png", hash))
-		PDFPath := filepath.Join(*inoutPath, fmt.Sprintf("%s.pdf", hash))
-
-		if _, err := os.Stat(rasterPath); err == nil {
-			png, err := ioutil.ReadFile(rasterPath)
-			if err != nil {
-				reportTryError(w, r, err, "Failed to open the raster-generated PNG.", hash)
-				return
-			}
-
-			m.RasterImg = base64.StdEncoding.EncodeToString([]byte(png))
+		rasterImg, gpuImg, pdfURL, err, errMsg := getOutputData(hash)
+		if err != nil {
+			reportTryError(w, r, err, errMsg, hash)
 		}
 
-		if _, err := os.Stat(gpuPath); err == nil {
-			png, err := ioutil.ReadFile(gpuPath)
-			if err != nil {
-				reportTryError(w, r, err, "Failed to open the GPU-generated PNG.", hash)
-				return
-			}
-
-			m.GPUImg = base64.StdEncoding.EncodeToString([]byte(png))
-		}
-
-		if _, err := os.Stat(PDFPath); err == nil {
-			if _, err := os.Stat(PDFPath); os.IsNotExist(err) {
-				reportTryError(w, r, err, "Failed to open the PDF output", hash)
-				return
-			}
-
-			m.PDFURL = "/i/" + hash + ".pdf"
-		}
+		m.RasterImg = rasterImg
+		m.GPUImg = gpuImg
+		m.PDFURL = pdfURL
 
 		resp, err := json.Marshal(m)
 		if err != nil {

@@ -18,34 +18,34 @@
  */
 (function() {
     function onLoad() {
-      var run             = document.getElementById('run');
-      var permalink       = document.getElementById('permalink');
-      var embed           = document.getElementById('embed');
-      var embedButton     = document.getElementById('embedButton');
-      var code            = document.getElementById('code');
-      var output          = document.getElementById('output');
-      var outputWrapper   = document.getElementById('output-wrapper');
-      var gpu             = document.getElementById('use-gpu');
-      var raster          = document.getElementById('use-raster');
-      var pdf             = document.getElementById('use-pdf');
-      var rasterOutput    = document.getElementById('raster-output');
-      var rasterImg       = document.getElementById('raster-img');
-      var gpuOutput       = document.getElementById('gpu-output');
-      var gpuImg          = document.getElementById('gpu-img');
-      var PDFOutput       = document.getElementById('pdf-output');
-      var PDFLink         = document.getElementById('pdf-link');
-      var imageWidth      = document.getElementById('image-width');
-      var imageHeight     = document.getElementById('image-height');
-      var tryHistory      = document.getElementById('tryHistory');
+      var run             = $$$('#run');
+      var runText         = $$$('#run-text');
+      var permalink       = $$$('#permalink');
+      var embed           = $$$('#embed');
+      var embedButton     = $$$('#embed-button');
+      var code            = $$$('#code');
+      var output          = $$$('#output');
+      var outputWrapper   = $$$('#output-wrapper');
+      var gpu             = $$$('#use-gpu');
+      var raster          = $$$('#use-raster');
+      var pdf             = $$$('#use-pdf');
+      var rasterOutput    = $$$('#raster-output');
+      var rasterImg       = $$$('#raster-img');
+      var gpuOutput       = $$$('#gpu-output');
+      var gpuImg          = $$$('#gpu-img');
+      var PDFOutput       = $$$('#pdf-output');
+      var PDFLink         = $$$('#pdf-link');
+      var imageWidth      = $$$('#image-width');
+      var imageHeight     = $$$('#image-height');
+      var tryHistory      = $$$('#tryHistory');
       var parser          = new DOMParser();
-      var tryTemplate     = document.getElementById('tryTemplate');
-      var sourcesTemplate = document.getElementById('sourcesTemplate');
-
-      var enableSource   = document.getElementById('enableSource');
-      var selectedSource = document.getElementById('selectedSource');
-      var sourceCode     = document.getElementById('sourceCode');
-      var chooseSource   = document.getElementById('chooseSource');
-      var chooseList     = document.getElementById('chooseList');
+      var tryTemplate     = $$$('#tryTemplate');
+      var sourcesTemplate = $$$('#sourcesTemplate');
+      var enableSource    = $$$('#enableSource');
+      var selectedSource  = $$$('#selected-source');
+      var sourceCode      = $$$('#source-code');
+      var chooseSource    = $$$('#choose-source');
+      var chooseList      = $$$('#choose-list');
 
       // Id of the source image to use, 0 if no source image is used.
       var sourceId = 0;
@@ -60,7 +60,7 @@
       function setIFrameURL() {
         var url = document.URL;
         url = url.replace('/c/', '/iframe/');
-        embed.value = '<iframe src="' + url + '" width="900" height="550" style="border: solid #00a 1px; border-radius: 5px;"/>'
+        embed.innerText = '<iframe src="' + url + '" width="900" height="550" style="border: solid #00a 1px; border-radius: 5px;"/>'
       }
 
       function beginWait() {
@@ -160,7 +160,7 @@
       function sourceClick(e) {
         selectedSource.classList.remove('show');
         sourceCode.classList.remove('show');
-        if (enableSource.checked) {
+        if (!enableSource.checked) {
           beginWait();
           var req = new XMLHttpRequest();
           req.addEventListener('load', sourcesComplete);
@@ -177,10 +177,10 @@
       function configChange(e) {
         if (!(gpu.checked || raster.checked || pdf.checked)) {
           run.disabled = true;
-          run.innerHTML = "Choose a configuration"
+          runText.innerText = "Choose a configuration"
         } else {
           run.disabled = false;
-          run.innerHTML = "Run"
+          runText.innerText = "Run"
         }
       }
 
@@ -201,32 +201,39 @@
         if (pdf) {
           pdf.addEventListener('change', configChange);
         }
+
+        if (run) {
+          run.addEventListener('click', onSubmitCode);
+        }
       }
 
       setupListeners();
 
-      var editor = CodeMirror.fromTextArea(code, {
-        theme: "default",
-        lineNumbers: true,
-        matchBrackets: true,
-        lineWrapping: true,
-        mode: "text/x-c++src",
-        indentUnit: 4,
-      });
+      if (code) {
 
-      // Match the initial textarea width, but leave the height alone
-      // The css will automatically resize the editor vertically.
-      editor.setSize(editor.defaultCharWidth() * code.cols,
-                     null);
+        var editor = CodeMirror.fromTextArea(code, {
+          theme: "default",
+          lineNumbers: true,
+          matchBrackets: true,
+          lineWrapping: true,
+          mode: "text/x-c++src",
+          indentUnit: 4,
+        });
 
-      editor.on('beforeChange', function(instance, changeObj) {
-        var startLine = changeObj.from.line;
-        var endLine = changeObj.to.line;
+        // Match the initial textarea width, but leave the height alone
+        // The css will automatically resize the editor vertically.
+        editor.setSize(editor.defaultCharWidth() * code.cols,
+                       null);
 
-        for (var i = startLine ; i <= endLine ; i++) {
-          editor.removeLineClass( i, "wrap", "error" );
-        }
-      });
+        editor.on('beforeChange', function(instance, changeObj) {
+          var startLine = changeObj.from.line;
+          var endLine = changeObj.to.line;
+
+          for (var i = startLine ; i <= endLine ; i++) {
+            editor.removeLineClass( i, "wrap", "error" );
+          }
+        });
+      }
 
       /**
        * Callback when there's an XHR error.
@@ -241,7 +248,7 @@
         output.textContent = "";
         outputWrapper.style.display='none';
         if (embed) {
-          embed.style.display='none';
+          embed.classList.remove("display");
         }
       }
 
@@ -273,9 +280,7 @@
         body = JSON.parse(e.target.response);
         code.value = body.code;
         editor.setValue(body.code);
-        rasterImg.src = '/i/'+body.hash+'_raster.png';
-        gpuImg.src = '/i/'+body.hash+'_gpu.png';
-        PDFLink.href = '/i/'+body.hash+'.pdf';
+        updateOutputImages(body)
         imageWidth.value = body.width;
         imageHeight.value = body.height;
         gpu.checked = body.gpu;
@@ -309,6 +314,41 @@
 
         editor.setCursor(line-1,col-1);
         editor.focus();
+      }
+
+      /**
+       * Take image and URL responses from the server and update the UI
+       *
+       */
+
+      function updateOutputImages(body) {
+
+        if (rasterOutput) {
+          if (body.rasterImg != "") {
+            rasterOutput.src = 'data:image/png;base64,' + body.rasterImg;
+            rasterOutput.classList.add("display");
+          } else {
+            rasterOutput.classList.remove("display");
+          }
+        }
+
+        if (gpuOutput) {
+          if (body.gpuImg != "") {
+            gpuOutput.src = 'data:image/png;base64,' + body.gpuImg;
+            gpuOutput.classList.add("display");
+          } else {
+            gpuOutput.classList.remove("display");
+          }
+        }
+
+        if (PDFOutput) {
+          if (body.PDFURL != "") {
+            PDFOutput.src = body.PDFURL;
+            PDFOutput.classList.add("display");
+          } else {
+            PDFOutput.classList.remove("display");
+          }
+        }
       }
 
 
@@ -363,35 +403,7 @@
           }
         }
 
-        if (rasterOutput) {
-          if (body.rasterImg != "") {
-            rasterImg.src = 'data:image/png;base64,' + body.rasterImg;
-            rasterOutput.style.display = "inline-block";
-          } else {
-            rasterOutput.style.display = "none";
-            rasterImg.src = '';
-          }
-        }
-
-        if (gpuOutput) {
-          if (body.gpuImg != "") {
-            gpuImg.src = 'data:image/png;base64,' + body.gpuImg;
-            gpuOutput.style.display = "inline-block";
-          } else {
-            gpuImg.src = '';
-            gpuOutput.style.display = "none";
-          }
-        }
-
-        if (PDFOutput) {
-          if (body.PDFURL != "") {
-            PDFLink.href= body.PDFURL;
-            PDFOutput.style.display = "inline-block";
-          } else {
-            PDFLink.href = '#';
-            PDFOutput.style.display = "none";
-          }
-        }
+        updateOutputImages(body)
 
         // Add the image to the history if we are on a workspace page.
         if (tryHistory) {
@@ -407,7 +419,7 @@
           setIFrameURL();
         }
         if (embedButton) {
-          embedButton.style.display = 'inline-block';
+          embedButton.classList.add('display');
         }
       }
 
@@ -431,16 +443,7 @@
           'pdf': isChecked(pdf,false)
         }));
       }
-      run.addEventListener('click', onSubmitCode);
 
-
-      function onEmbedClick() {
-        embed.style.display='inline';
-      }
-
-      if (embedButton) {
-        embedButton.addEventListener('click', onEmbedClick);
-      }
 
       if (embed) {
         setIFrameURL();
@@ -449,7 +452,7 @@
       // Add the images to the history if we are on a workspace page.
       if (tryHistory && history_) {
         for (var i=0; i<history_.length; i++) {
-          addToHistory(history_[i].hash, '/i/'+history_[i].hash+'.png');
+          addToHistory(history_[i].hash, '/i/'+history_[i].hash+'_raster.png');
         }
       }
     }

@@ -1,0 +1,85 @@
+<!-- The <fiddle-output-sk> custom element declaration.
+
+A custom element that shows the results of a fiddle run.  It's
+basically a wrapper around either an image or a link, depending
+on whether the output of the fiddle is easily embedded as an image.
+
+For example:
+
+<fiddle-output-sk image src="/foo/bar.png">
+  <div heading>My lovely title</div>
+</fiddle_output-sk>
+
+Will display the image at the URL /foo/bar.png with a heading above it.
+
+To instead show a link to the referred resource, use the "link" attribute instead:
+
+<fiddle-output-sk link src="/foo/bar.pdf">
+  <div heading>Something that's not an image</div>
+</fiddle_output-sk>
+
+  Attributes:
+    src    - A URL to the resource to be displayed/linked
+    image  - If present, the resource is shown as an inline image.
+    link   - If present, the resource is linked to instead.
+
+  Methods:
+-->
+
+<polymer-element name="fiddle-output-sk" attributes="src image link">
+  <template>
+    <style type="text/css" media="screen">
+      .heading {
+        color: white;
+        background-color: #428bca;
+        border-color: #428bca;
+        border-bottom: 1px solid transparent;
+        border-top-right-radius: 3px;
+        border-top-left-radius: 3px;
+        padding: 10px 15px;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.1;
+      }
+      .body {
+        padding: 15px;
+      }
+      .wrapper {
+        display: inline-block;
+        border: 1px solid #428bca;
+        border-radius: 4px;
+      }
+
+      img {
+        box-shadow: 2px 2px 5px gray;
+        background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAAAAAA6mKC9AAAAAXNSR0IArs4c6QAAAAJiS0dEAP+Hj8y/AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAB3RJTUUH3gUBEi4DGRAQYgAAAB1JREFUGNNjfMoAAVJQmokBDdBHgPE/lPFsYN0BABdaAwN6tehMAAAAAElFTkSuQmCC");
+      }
+    </style>
+
+    <div class="wrapper">
+      <div class="heading">
+        <content select="[heading]"></content>
+      </div>
+      <div class="body">
+        <template if="{{image}}">
+          <img class="zoom" src="{{src}}">
+        </template>
+        <template if="{{link}}">
+          <a href="{{src}}" target="_blank">Get the output</a>
+        </template>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        image: false,
+        link: false,
+        src: ''
+      },
+      linkTap: function(e) {
+        window.open(this.src, '_blank');
+      }
+    });
+  </script>
+</polymer-element>

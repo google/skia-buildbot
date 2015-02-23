@@ -93,6 +93,13 @@ status/res/js/core.js
 status/res/imp/bower_components
 status/node_modules
 status/third_party
+webtry/node_modules
+webtry/res/css/webtry.css
+webtry/res/js/core-debug.js
+webtry/res/js/core.js
+webtry/res/vul
+webtry/templates/template.cpp
+webtry/res/imp/bower_components
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
 # Logfiles from launched buildslaves.

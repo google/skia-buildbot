@@ -1,29 +1,13 @@
-<nav class="navbar navbar-default" role="navigation">
-  <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="/">
-      	<img src="/res/img/skia.png">
-      </a>
-    </div>
+<core-header-panel navigation flex mode=seamed >
+  <core-toolbar> <img id="logo" src="/res/img/skia.png"></core-toolbar>
+  <core-menu theme="core-light-theme">
 
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-      <ul class="nav navbar-nav">
-        <li><a href="/recent/">Recent</a></li>
-        <li><a href="/w/">Workspace</a></li>
-        <li><a target="_blank" href="http://chromium-skia-gm.commondatastorage.googleapis.com/doxygen/doxygen/html/classes.html">Doxygen</a></li>
-        <li><a target="_blank" href="https://github.com/google/skia/tree/master/experimental/webtry">Code</a></li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
-        <li><a target="_blank" id="gitInfo" href="https://github.com/google/skia/commit/{{.Titlebar.GitHash}}">{{.Titlebar.GitInfo}}</a></li>
-      </ul>
-    </div><!-- /.navbar-collapse -->
-  </div><!-- /.container-fluid -->
-</nav>
+   <core-item icon="inbox" label="Recent"><a href="/recent/"></a></core-item>
+  <core-item icon="view-module" label="Workspace"><a href="/w/"></a></core-item>
+  <core-item icon="help" label="Doxygen"><a target="_blank" href="http://chromium-skia-gm.commondatastorage.googleapis.com/doxygen/doxygen/html/classes.html"></a></core-item>
+  <core-item icon="folder" label="Code"><a target="_blank" href="https://github.com/google/skia/tree/master/experimental/webtry"></a></core-item>
+  </core-menu>
+</core-header-panel>
+<div id="title" tool flex horizontal layout>
+  <span id="version">{{.Titlebar.GitInfo}}</span>
+</div>

@@ -30,8 +30,8 @@ testjs:
 	./node_modules/karma/bin/karma start karma.conf.js
 
 # Build serving CSS from input CSS.
-res/css/webtry.css: node_modules/lastupdate res/webtry/css/webtry.css
-	./node_modules/.bin/autoprefixer res/webtry/css/webtry.css -o res/css/webtry.css
+res/css/webtry.css: node_modules/lastupdate res/stylesheets/webtry.css
+	./node_modules/.bin/autoprefixer res/stylesheets/webtry.css -o res/css/webtry.css
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug

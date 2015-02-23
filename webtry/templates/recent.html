@@ -3,23 +3,27 @@
 <head>
     <title>Recent SkFiddles</title>
     <meta charset='utf-8' />
-    {{template "headercommon.html" .}}
+    {{template "header.html" .}}
 </head>
-<body>
-  {{template "titlebar.html" .}}
-  <section id=content>
-    <h1>Recent Activity</h1>
-    <section>
-      {{range .Tries}}
-        <div class=tries>
-          <h2><a href="/c/{{.Hash}}">{{.CreateTS}}</a></h2>
-          <a href="/c/{{.Hash}}">
-            <img width=128 height=128 src="/i/{{.Hash}}.png">
-          </a>
-        </div>
-      {{end}}
+<body unresolved>
+
+  <scaffold-sk responsiveWidth="900px">
+    {{template "titlebar.html" .}}
+    <section id="content">
+      <h1>Recent Activity</h1>
+      <section>
+        {{range .Tries}}
+          <div class=tries>
+            <h2><a href="/c/{{.Hash}}">{{.CreateTS}}</a></h2>
+            <a href="/c/{{.Hash}}">
+              <img width=128 height=128 src="/i/{{.Hash}}_raster.png">
+            </a>
+          </div>
+        {{end}}
+      </section>
     </section>
-  </section>
-  {{template "footercommon.html" .}}
+  </scaffold-sk>
+
+  {{template "footer.html" .}}
 </body>
 </html>

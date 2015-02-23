@@ -6,58 +6,97 @@
     <button id="" class=source><img width=64 height=64 src=""></button>
   </template>
 
-  <div id="inputBitmapEnable">
-    <input type="checkbox" id="enableSource" data-id="{{.Source}}">
-    <label for="enableSource">Use an input bitmap</label>
-  </div>
-
-  <button id="selectedSource"></button>
-
-  <pre id="sourceCode">SkBitmap source;</pre>
-
-  <div class="well" id="chooseSource">
-    <div class="panel panel-primary">
-      <div class="panel-heading">
-        <h3 class="panel-title">
-          Choose an existing image to use as an input bitmap, or upload a new one below.
-        </h3>
+  <section id="input-image">
+    <section class="input-image-toggle">
+      <div center horizontal layout>
+        <div flex>use an input bitmap</div>
+        <paper-toggle-button id="enableSource" data-id="{{.Source}}"></paper-toggle-button>
       </div>
-      <div class="panel-body" id="chooseList">
-      </div>
-    </div>
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <div class="panel-title">
-          Upload a new image
-        </div>
-      </div>
-      <div class="panel-body">
+    </section>
+
+    <button id="selected-source"></button>
+
+    <pre id="source-code">SkBitmap source;</pre>
+
+    <paper-shadow z="1" id="choose-source">
+      <h3>Choose an existing image to use as an input bitmap, or upload a new one below.</h3>
+      <div id="choose-list"></div>
+
+      <paper-shadow z="1" id="image-upload">
+        <h3>Upload a new image</h3>
         <form action="/sources/" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-          <div class="form-group">
-            <label for="upload">File input</label>
-            <input type="file" accept="image/*" name="upload" value="" id="upload">
-          </div>
+          <input type="file" accept="image/*" name="upload" value="" id="upload">
           <button class="btn btn-default" type="submit">Upload Image</button>
         </form>
-      </div>
-    </div>
-  </div>
+      </paper-shadow>
+    </paper-shadow>
+  </section>
 
   {{end}}
 
   <textarea spellcheck=false name='code' id='code' rows='15' cols='100'>{{.Code}}</textarea>
 
   <div class="action-buttons">
-    <button class="btn btn-primary btn-lg" id='run'>Run</button>
+    <paper-button id='run'>
+      <core-icon icon="av:play-arrow"></core-icon><span id="run-text">Run</span></paper-button>
 
     {{if not .Embedded}}
-      <a class="btn btn-default btn-lg" href='{{if .Hash}}/c/{{.Hash}}{{end}}' {{if not .Hash}}style="display: none;"{{end}} target=_blank id="permalink">Share</a>
+      <toggle-display-sk target="#fiddle-options"><core-icon icon="settings"></core-icon>Options</toggle-display-sk>
+      <toggle-display-sk id="embed-button" target="#embed-code"><core-icon icon="social:share"></core-icon>Embed</toggle-display-sk>
+      <paper-shadow z="1" id="fiddle-options">
+        <h3>Fiddle Options</h3>
+        <paper-input-decorator floatinglabel label="Width">
+          <input id="image-width" value="{{.Width}}">
+        </paper-input-decorator>
+        <paper-input-decorator floatinglabel label="Height">
+          <input id="image-height" value="{{.Height}}">
+        </paper-input-decorator>
+        <section class="config-toggles">
+          <div center horizontal layout>
+            <div flex>Raster</div>
+            <paper-toggle-button checked id="use-raster"></paper-toggle-button>
+          </div>
+          <div center horizontal layout>
+            <div flex>Ganesh</div>
+            <paper-toggle-button id="use-gpu"></paper-toggle-button>
+          </div>
+          <div center horizontal layout>
+            <div flex>PDF</div>
+            <paper-toggle-button id="use-pdf"></paper-toggle-button>
+          </div>
+        </section>
+      </paper-shadow>
 
-      <button class="btn btn-default btn-lg" id='embedButton' {{if not .Hash}}style="display:none;"{{end}}/>Embed</button>
-      <input type="text" value="" id="embed" readonly style="display:none;">
+      <paper-shadow z="1" id="embed-code">
+        <h4>To embed as an iframe, use:</h4>
+        <span id="embed"></span>
+      </paper-shadow>
+      {{if .Permalink}}
+      <a id="permalink" href="/c/{{.Hash}}">
+        <paper-button><core-icon icon="link"></core-icon>Permalink</paper-button>
+      </a>
+      {{end}}
     {{end}}
   </div>
 
+  <fiddle-output-sk image {{if .RasterURL}}class="display" src="{{.RasterURL}}"{{end}} id="raster-output">
+    <div heading>Raster Output</div>
+  </fiddle-output-sk>
+
+  {{if not .Embedded}}
+
+  <fiddle-output-sk image {{if .GPUURL}}class="display" src="{{.GPUURL}}"{{end}} id="gpu-output">
+    <div heading>Ganesh Output</div>
+  </fiddle-output-sk>
+
+  <fiddle-output-sk link {{if .PDFURL}}class="display" src="{{.PDFURL}}"{{end}} id="pdf-output">
+    <div heading>PDF Output</div>
+  </fiddle-output-sk>
+
+  {{end}}
+
+
+<!--
   <div id="raster-output" class="image-wrapper panel panel-primary" {{if .RasterURL}}style="display: inline-block;"{{end}}>
     <div class="panel-heading">
       <h3 class="panel-title">
@@ -69,7 +108,9 @@
     </div>
   </div>
 
-  {{if not .Embedded}}
+    {{if not .Embedded}}
+
+
     <div id="gpu-output" class="image-wrapper panel panel-primary" {{if .GPUURL}}style="display: inline-block;"{{end}}>
       <div class="panel-heading">
         <h3 class="panel-title">
@@ -92,6 +133,8 @@
       </div>
     </div>
   {{end}}
+
+-->
 
   <p id='zoomHex'></p>
 

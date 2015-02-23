@@ -2,22 +2,21 @@
 <html>
 <head>
     <title>Skia WebTry</title>
-    {{template "headercommon.html" .}}
+    {{template "header.html" .}}
     <link rel='import' type='text/html' href='/res/imp/zoom.html'>
 </head>
-<body>
-  <div id="wrapper">
-    {{template "titlebar.html" .}}
-    <div id="lower-wrapper">
-      {{template "sidebar.html" .}}
-      {{template "content.html" .}}
-    </div>
-  </div>
+<body unresolved>
+
+  <scaffold-sk responsiveWidth="900px">
+  {{template "titlebar.html" .}}
+  {{template "content.html" .}}
+  </scaffold-sk>
+
 
   <script type='text/javascript'>
       // Not running in a workspace.
       var workspaceName = '';
   </script>
-  {{template "footercommon.html" .}}
+  {{template "footer.html" .}}
 </body>
 </html>

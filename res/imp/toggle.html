@@ -8,8 +8,34 @@
 
     <link href="res/imp/cluster.html" rel="import" />
 
+  Typical usage #1:
+
+    <toggle-display-sk>Options</toggle-display-sk>
+    <div>Some content to toggle</div>
+
+    in this case, the string "Options" will be displayed inside a styled <paper-button>
+    which, when clicked, will toggle the "display" class of the sibling DOM element.
+
+  Typical usage #2:
+
+    <toggle-display-sk target="#some-identifier">More...</toggle-display-sk>
+    <div>Some intervening content</div>
+    <div id="some-identifier">Content to toggle</div>
+
+    With the optional "target" property here, the toggle will find the matching
+    DOM element and toggle its "display" class when clicked; they need
+    not be siblings of the toggle button itself.
+
+  Properties:
+
+    target [optional]: any DOM query selector to identify the node to be
+                       toggled.  If more than one DOM element matches the given
+                       query, the first one will be toggled.
+
+                       If absent, the next sibling element will be toggled.
+
 -->
-<polymer-element name="toggle-display-sk">
+<polymer-element name="toggle-display-sk" attributes="target">
   <template>
     <style type="text/css" media="screen">
       paper-button {
@@ -26,14 +52,22 @@
   <script>
     (function() {
       function toggle(e) {
-        var target = e.target;
-        while (target.localName != 'toggle-display-sk') {
-          target = target.parentElement;
+        var target;
+        if (this.target != "") {
+          target = $$$(this.target);
+        } else {
+          target = this.nextElementSibling;
         }
-        target.nextElementSibling.classList.toggle("display");
+        target.classList.toggle("display");
       };
 
       Polymer({
+        publish: {
+          target: {
+            value: "",
+            reflect: true
+          }
+        },
         ready: function() {
            this.addEventListener('click', toggle);
         },
