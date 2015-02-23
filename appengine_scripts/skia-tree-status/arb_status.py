@@ -29,6 +29,10 @@ class ARBStatus(db.Model):
   last_reported_status = db.StringProperty(required=True)
   # The codereview link of the DEPS roll.
   deps_roll_link = db.LinkProperty()
+  # The revision that was used for the last DEPS roll.
+  last_roll_rev = db.StringProperty()
+  # The revision that is used for the current DEPS roll.
+  curr_roll_rev = db.StringProperty()
   # The date when the status was modified.
   date = db.DateTimeProperty(auto_now=True)
 
@@ -92,6 +96,8 @@ class GetARBStatusPage(BasePage):
     json_dict = {
         'status': arb_status.last_reported_status,
         'deps_roll_link': arb_status.deps_roll_link,
+        'last_roll_rev': arb_status.last_roll_rev,
+        'curr_roll_rev': arb_status.curr_roll_rev,
         'date': str(arb_status.date),
      }
     json_output = json.dumps(json_dict)
@@ -105,9 +111,13 @@ class SetARBStatusPage(BasePage):
   def post(self):
     status = self.request.get('status')
     deps_roll_link = self.request.get('deps_roll_link', None)
+    last_roll_rev = self.request.get('last_roll_rev', None)
+    curr_roll_rev = self.request.get('curr_roll_rev', None)
     arb_status = ARBStatus.get_arb_status()
     arb_status.last_reported_status = status
     arb_status.deps_roll_link = deps_roll_link
+    arb_status.last_roll_rev = last_roll_rev
+    arb_status.curr_roll_rev = curr_roll_rev
     arb_status.put()
     # Flush the cache.
     ARBStatus.flush_cache()
@@ -156,7 +166,9 @@ def bootstrap():
   # Guarantee that at least one instance exists.
   if db.GqlQuery('SELECT __key__ FROM ARBStatus').get() is None:
     ARBStatus(last_reported_status='In progress',
-              deps_roll_link='https://codereview.chromium.org/923103002/').put()
+              deps_roll_link='https://codereview.chromium.org/923103002/',
+              last_roll_rev='f16c00e41b72daa81ed7efacbead06b387767841',
+              curr_roll_rev='f89f60f6972569a41fa737c786d238559027fede').put()
   if db.GqlQuery('SELECT __key__ FROM ARBStoppedAction').get() is None:
     ARBStoppedAction(is_stopped=False, username='rmistry@google.com',
                      reason='Initial entry').put()

@@ -9,6 +9,7 @@
       <tr bgcolor="#CCCCFF">
         <td><b>Status</b></td>
         <td><b>DEPS Roll CL</b></td>
+        <td><b>Included Revs</b></td>
         <td><b>Last Updated at</b></td>
       </tr>
       <tr>
@@ -18,6 +19,15 @@
         {% else %}
           <td>None</td>
         {% endif %}
+        <td>
+        {% if arb_status.last_roll_rev and arb_status.curr_roll_rev %}
+          <a href="https://skia.googlesource.com/skia/+log/{{ arb_status.last_roll_rev }}..{{ arb_status.curr_roll_rev }}">
+            {{ arb_status.last_roll_rev }}..{{ arb_status.curr_roll_rev}}
+          </a>
+        {% else %}
+          None
+        {% endif %}
+        </td>
         <td>{{ arb_status.date|date:"D M d, H:i T " }}</td>
       </tr>
     </table>
