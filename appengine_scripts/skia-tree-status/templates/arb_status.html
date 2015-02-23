@@ -52,6 +52,25 @@
       <input type="submit" value="Submit" name="submit">
       <input type="button" name="refresh" value="Refresh" onclick="location.href='/set_arb_action';">
     </form>
+    <script>
+      // When the page loads, check the "is_stopped" box if requested and focus
+      // the "reason" box.
+      window.addEventListener("load", function() {
+        var params = window.location.search.substring(1).split("&");
+        for (var i = 0; i < params.length; i++) {
+          var p = params[i].split("=");
+          if (p[0] == "is_stopped") {
+            if (p[1] == "true") {
+              document.update_arb.is_stopped.checked = true;
+            } else {
+              document.update_arb.is_stopped.checked = false;
+            }
+            break;
+          }
+        }
+        document.update_arb.reason.focus();
+      });
+    </script>
   {% else %}
     Please login with your google or chromium account to change the Autoroll bot status
     <br/>

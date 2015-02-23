@@ -23,7 +23,7 @@
     :host {
       width: 200px;
     }
-    core-icon-button /deep/ core-icon{
+    #statusIndicator /deep/ core-icon{
       color: #E6AB02;
     }
     paper-dropdown {
@@ -35,19 +35,53 @@
       padding: 10px;
     }
     </style>
-    <core-icon-button on-tap="{{toggle}}" class="{{status.status}}" icon="{{status.status == 'Active' ? 'autorenew' : (status.status == 'Stopped' ? 'error' : 'check-circle')}}">
+    <core-icon-button
+        id="statusIndicator"
+        on-tap="{{toggle}}"
+        class="{{status.status}}"
+        icon="{{status.status == 'In progress' ? 'autorenew' : (status.status == 'Stopped' ? 'error' : 'check-circle')}}">
       AutoRoll: {{status.status}}
     </core-icon-button>
     <paper-dropdown>
       <paper-shadow z="2">
-        <div id="rolldetails">
-          <template if="{{status.currentRoll == 0}}">
-            Last Roll Rev: <a href="https://skia.googlesource.com/skia/+/{{status.lastRollRevision}}" target="_blank">{{status.lastRollRevision|shortCommit}}</a><br/>
-          </template>
-          <template if="{{status.currentRoll != 0}}">
-            Current Roll: <a href="https://codereview.chromium.org/{{status.currentRoll}}" target="_blank">https://codereview.chromium.org/{{status.currentRoll}}</a> (<a href="https://skia.googlesource.com/skia/+log/{{status.lastRollRevision}}..{{status.currentRollRevision}}" target="_blank">{{status.lastRollRevision|shortCommit}} to {{status.currentRollRevision|shortCommit}}</a>)<br/>
-          </template>
-        </div>
+        <table id="rolldetails">
+          <tr><td>Status:</td><td>{{status.status}}</td></tr>
+          <tr>
+            <td>Current Roll:</td>
+            <td>
+              <template if="{{status.deps_roll_link}}">
+                <a href="{{status.deps_roll_link}}"
+                   target="_blank"
+                >{{status.deps_roll_link}}</a>(<a
+                    href="https://skia.googlesource.com/skia/+log/{{status.last_roll_rev}}..{{status.curr_roll_rev}}"
+                    target="_blank"
+                >{{status.last_roll_rev|shortCommit}} to {{status.curr_roll_rev|shortCommit}}</a>)
+              </template>
+              <template if="{{!status.deps_roll_link}}">(none)</template>
+            </td>
+          </tr>
+          <tr>
+            <td>Control:</td>
+            <td>
+              <a href="https://skia-tree-status.appspot.com/set_arb_action?is_stopped=true"
+                 target="_blank">
+                <core-icon-button
+                    icon="av:stop"
+                    disabled?="{{status.status == 'Stopped'}}"
+                    on-tap="{{stopRoller}}">
+                </core-icon-button>
+             </a>
+             <a href="https://skia-tree-status.appspot.com/set_arb_action?is_stopped=false"
+                target="_blank">
+                <core-icon-button
+                    icon="av:play-arrow"
+                    disabled?="{{status.status != 'Stopped'}}"
+                    on-tap="{{startRoller}}">
+                </core-icon-button>
+              </a>
+            </td>
+          </tr>
+        </table>
       </paper-shadow>
     </paper-dropdown>
   </template>
@@ -101,7 +135,7 @@
 
       reloadStatus: function() {
         var that = this;
-        sk.get("/json/autoroll").then(JSON.parse).then(function(json) {
+        sk.get("https://skia-tree-status.appspot.com/get_arb_status").then(JSON.parse).then(function(json) {
           that.updateStatus(json);
           that.resetTimeout();
         }).catch(function() {

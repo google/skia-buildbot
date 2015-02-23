@@ -26,7 +26,6 @@ import (
 )
 
 import (
-	"skia.googlesource.com/buildbot.git/go/autoroll"
 	"skia.googlesource.com/buildbot.git/go/buildbot"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/database"
@@ -111,19 +110,6 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", string(300))
 		fileServer.ServeHTTP(w, r)
-	}
-}
-
-func autorollJsonHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	arb, err := autoroll.GetLastStatusFromInfluxDB(dbClient)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to load AutoRoll data: %v", err))
-		return
-	}
-	if err := json.NewEncoder(w).Encode(arb); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode AutoRoll data: %v", err))
-		return
 	}
 }
 
@@ -302,7 +288,6 @@ func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeHandler(autogzip.HandleFunc(makeResourceHandler())))
 	r.HandleFunc("/", makeHandler(commitsHandler))
-	r.HandleFunc("/json/autoroll", makeHandler(autorollJsonHandler))
 	builds := r.PathPrefix("/json/builds/{buildId:[0-9]+}").Subrouter()
 	builds.HandleFunc("/comments", makeHandler(addBuildCommentHandler)).Methods("POST")
 	builders := r.PathPrefix("/json/builders/{builder}").Subrouter()
