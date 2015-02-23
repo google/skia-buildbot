@@ -299,6 +299,7 @@ this.sk = this.sk || function() {
   //
   // Only Number, String, and Boolean hints are supported.
   sk.query.toObject = function(s, target) {
+    var target = target || {};
     var ret = {};
     var vars = s.split("&");
     for (var i=0; i<vars.length; i++) {

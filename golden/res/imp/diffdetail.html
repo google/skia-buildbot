@@ -109,8 +109,8 @@ between two images.
           </template>
           <tr id=digestRow>
             <th>Digest</th>
-            <td>{{value.leftDigest}}</td>
-            <td>{{value.topDigest}}</td>
+            <td><a href="/2/detail?test={{value.test}}&digest={{value.leftDigest}}">{{value.leftDigest}}</a></td>
+            <td><a href="/2/detail?test={{value.test}}&digest={{value.topDigest}}">{{value.topDigest}}</a></td>
           </tr>
         </table>
       </div>

@@ -31,6 +31,9 @@ var (
 
 	// compareTemplate is the page for setting up ignore filters.
 	compareTemplate *template.Template = nil
+
+	// singleTemplate is the page for viewing a single digest.
+	singleTemplate *template.Template = nil
 )
 
 // polyMainHandler is the main page for the Polymer based frontend.
@@ -58,6 +61,11 @@ func loadTemplates() {
 	))
 	compareTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/compare.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	singleTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/single.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -221,6 +229,19 @@ func polyIgnoresHandler(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 	if err := ignoresTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// polySingleDigestHandler is a page about a single digest.
+func polySingleDigestHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Poly Single Digest Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+
+	if err := singleTemplate.Execute(w, struct{}{}); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -529,7 +550,6 @@ type PerParamCompare struct {
 	Name string   `json:"name"` // Name of the parameter.
 	Top  []string `json:"top"`  // All the parameter values that appear for the top digest.
 	Left []string `json:"left"` // All the parameter values that appear for the left digest.
-
 }
 
 // PolyDetailsGUI is used in the JSON returned from polyDetailsHandler. It
