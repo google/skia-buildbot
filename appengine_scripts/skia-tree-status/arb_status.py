@@ -102,6 +102,7 @@ class GetARBStatusPage(BasePage):
      }
     json_output = json.dumps(json_dict)
     self.response.headers['Content-Type'] = 'application/json'
+    self.response.headers['Access-Control-Allow-Origin'] = '*'
     self.response.out.write(json_output)
 
 
