@@ -40,6 +40,7 @@
     (function() {
       sk.WebComponentsReady.then(function() {
         $$$("alerts-sk").addEventListener("change", function(e) {
+          // Change the banner color depending on whether any alerts are active.
           var anyAlerting = false;
           for (var i = 0; i < e.detail.alerts.length; i++) {
             anyAlerting = anyAlerting || !e.detail.alerts[i].snoozed;
@@ -48,6 +49,53 @@
           if (anyAlerting != tb.classList.contains("alerting")) {
             tb.classList.toggle("alerting");
           }
+
+          // Dynamically generate a favicon with the number of active alerts.
+          var canvas = document.createElement("canvas");
+          var s = 32.0;
+          canvas.width = s;
+          canvas.height = s;
+          var ctx = canvas.getContext("2d");
+
+          // Clear the icon.
+          ctx.clearRect(0, 0, s, s);
+
+          // Draw the icon. Original is 24x24, with some whitespace around
+          // the borders. Scale and translate to fill 32x32.
+          var o = 24.0;
+          var bTop = 2;
+          var bRight = 2;
+          var bBottom = 1;
+          var bLeft = 4;
+          var scaleX = s / (o - bLeft - bRight);
+          var scaleY = s / (o - bTop - bBottom);
+          // This path is copied from Polymer core-icons (social:notifications).
+          var path = new Path2D("M11.5 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6v-5.5c0-3.07-2.13-5.64-5-6.32V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5v.68c-2.87.68-5 3.25-5 6.32V16l-2 2v1h17v-1l-2-2z");
+          ctx.transform(scaleX, 0, 0, scaleY, -bLeft, -bTop);
+          ctx.stroke(path);
+          ctx.fillStyle = e.detail.alerts.length > 0 ? "#CC6677" : "#88CCEE";
+          ctx.fill(path);
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+          // Draw the number of active alerts.
+          ctx.fillStyle = "#000000"
+          ctx.font = "16px Arial"
+          var text = "" + e.detail.alerts.length;
+          var w = ctx.measureText(text).width;
+          var left = Math.ceil((s - w) / 2);
+          ctx.fillText(text, left, 22);
+
+          // Set the favicon.
+          var link = document.createElement("link");
+          link.id = "dynamicFavicon";
+          link.rel = "shortcut icon";
+          link.href = canvas.toDataURL("image/png");
+          var head = document.getElementsByTagName("head")[0];
+          var oldIcon = document.getElementById(link.id);
+          if (oldIcon) {
+            head.removeChild(oldIcon);
+          }
+          head.appendChild(link);
         })
       })
     })();
