@@ -425,8 +425,8 @@ Loop:
 	for tileIndex := tile.TileIndex; tileIndex > 0; {
 		for cidx := lastCommitIdx; cidx >= 0; cidx-- {
 			timeDiff := now.Sub(time.Unix(tile.Commits[cidx].CommitTime, 0))
+			startCommitTS = tile.Commits[cidx].CommitTime
 			if (commitCounter >= i.nCommits) && (timeDiff >= i.minDuration) {
-				startCommitTS = tile.Commits[cidx].CommitTime
 				break Loop
 			}
 			commitCounter++
