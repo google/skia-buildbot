@@ -22,7 +22,7 @@
         <td>
         {% if arb_status.last_roll_rev and arb_status.curr_roll_rev %}
           <a href="https://skia.googlesource.com/skia/+log/{{ arb_status.last_roll_rev }}..{{ arb_status.curr_roll_rev }}">
-            {{ arb_status.last_roll_rev }}..{{ arb_status.curr_roll_rev}}
+            {{ arb_status.last_roll_rev|slice:":7" }}..{{ arb_status.curr_roll_rev|slice:":7" }}
           </a>
         {% else %}
           None
