@@ -1,0 +1,197 @@
+<!-- The <detail-table-sk> custom element declaration.
+
+Presents detailed information about the differences
+between two images, or just one image if the bothcolumns
+attribute is false.
+
+  Attributes:
+    top - The top digest.
+    left - The left digest.
+    test - The name of the test the digests are from.
+    bothcolumns - A boolean, if present then display both top and left values,
+       otherwise only display the left.
+  Events:
+    triage - The change event e.detail has the form:
+      {
+            test: "testname1",
+            digest: "aabb112233",
+            status: "positive",
+      }
+  Methods:
+-->
+<polymer-element name="detail-table-sk" attributes="top left test bothcolumns">
+  <template>
+    <style type="text/css" media="screen">
+      th {
+        text-align: right;
+      }
+
+      th, td {
+        text-align: left;
+        padding: 5px;
+        vertical-align: top;
+      }
+
+      tri-sk {
+        min-width: 15em;
+        display: block;
+      }
+
+      #paramHeader {
+        padding-top: 2em;
+        text-decoration: underline;
+      }
+
+      .openInNew {
+        position: relative;
+      }
+
+      .openInNew a {
+        top: 5px;
+        position: absolute;
+      }
+
+      table.singlecolumn .both {
+        display: none;
+      }
+
+      .single {
+        display: none;
+      }
+
+      table.singlecolumn .single {
+        display: table-row;
+      }
+    </style>
+    <table class="{{bothcolumns?'':'singlecolumn'}}">
+      <tr class=both>
+        <th></th>
+        <th>Left</th>
+        <th class=both>Top</th>
+      </tr>
+      <tr>
+        <th>Status</th>
+        <td><tri-sk id=leftDetail value="{{details.leftStatus}}" title="{{left}}"></tri-sk> </td>
+        <td class=both><tri-sk id=topDetail value="{{details.topStatus}}" title="{{top}}"></tri-sk></td>
+      </tr>
+      <tr>
+        <th>Image</th>
+        <td class=openInNew><img src="/img/images/{{left}}-thumbnail.png"> <a href="{{details.leftImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
+        <td class="openInNew both"><img src="/img/images/{{top}}-thumbnail.png"> <a href="{{details.topImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
+      </tr>
+      <tr class=single>
+        <th>Test</th>
+        <td><a href="/2/cmp/{{test}}">{{test}}</a></td>
+        <td class=both><a href="/2/cmp/{{test}}">{{test}}</a></td>
+      </tr>
+      <tr>
+        <th>Digest</th>
+        <td><a href="/2/detail?test={{test}}&digest={{left}}">{{left}}</a></td>
+        <td class=both><a href="/2/detail?test={{test}}&digest={{top}}">{{top}}</a></td>
+      </tr>
+
+      <tr><th colspan=2 id=paramHeader>Parameters</th></tr>
+      <template repeat="{{p in details.params}}">
+        <tr>
+          <th>{{p.name}}</th>
+          <td class=pval>
+            <template repeat="{{n in p.left}}">
+              {{n}}
+            </template>
+          </td>
+          <td class="pval both">
+            <template repeat="{{n in p.top}}">
+              {{n}}
+            </template>
+          </td>
+        </tr>
+      </template>
+    </table>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        top: {
+          value: "",
+          reflect: true,
+        },
+        left: {
+          value: "",
+          reflect: true,
+        },
+        test: {
+          value: "",
+          reflect: true,
+        },
+        bothcolumns: {
+          value: false,
+          reflect: true,
+        }
+      },
+
+      ready: function() {
+        // A serialized PolyDetailsGUI which has the form:
+        //
+        //  {
+        //    topStatus: "positive",
+        //    leftStatus: "negative",
+        //    params: [
+        //      {
+        //        name: "arch",
+        //        top: ["Arm7"],
+        //        left: ["Arm8", "x86"],
+        //      }
+        //      ...
+        //    ],
+        //  }
+        this.details = {
+          topStatus: "untriaged",
+          leftStatus: "untriaged",
+        };
+
+        var that = this;
+        this.$.topDetail.addEventListener('change', function(e) {
+          e.stopPropagation();
+          var detail = {
+            test: that.test,
+            digest: that.top,
+            status: e.detail,
+          };
+          that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
+        });
+        this.$.leftDetail.addEventListener('change', function(e) {
+          e.stopPropagation();
+          var detail = {
+            test: that.test,
+            digest: that.left,
+            status: e.detail,
+          };
+          that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
+        });
+      },
+
+      changeImpl_: function() {
+        if (this.test == "" || this.top == "" || this.left == "") {
+          return
+        }
+        var that = this;
+        var q = '?test=' + this.test + '&top=' + this.top + '&left=' + this.left;
+        sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
+          that.details = json;
+        });
+      },
+
+      testChanged: function() {
+        this.changeImpl_();
+      },
+
+      topChanged: function() {
+        this.changeImpl_();
+      },
+
+      leftChanged: function() {
+        this.changeImpl_();
+      },
+    });
+  </script>
+</polymer-element>

@@ -13,6 +13,9 @@ between two images.
         pixelDiffPercent: 35.9,
         numDiffPixels: 11020,
         maxRGBADiffs: [60, 62, 10, 0],
+        diffImg: "https://...",
+        topImg: "https://...",
+        leftImg: "https://...",
       }
 
 
@@ -87,46 +90,7 @@ between two images.
           <td><paper-button id=zoom>Zoom</paper-button></td>
         </tr>
       </table>
-      <div id=params>
-        <table>
-          <tr>
-            <th></th>
-            <th>Left</th>
-            <th>Top</th>
-          </tr>
-          <tr>
-            <th>Status</th>
-            <td><tri-sk id=leftDetail value="untriaged" title="{{value.leftDigest}}"></tri-sk> </td>
-            <td><tri-sk id=topDetail value="untriaged" title="{{value.topDigest}}"></tri-sk></td>
-          </tr>
-          <tr>
-            <th>Image</th>
-            <td class=openInNew><img src="/img/images/{{value.leftDigest}}-thumbnail.png"> <a href="{{value.leftImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
-            <td class=openInNew><img src="/img/images/{{value.topDigest}}-thumbnail.png"> <a href="{{value.topImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
-          </tr>
-
-          <template repeat="{{p in details.params}}">
-            <tr>
-              <th>{{p.name}}</th>
-              <td class=pval>
-                <template repeat="{{n in p.left}}">
-                  {{n}}
-                </template>
-              </td>
-              <td class=pval>
-                <template repeat="{{n in p.top}}">
-                  {{n}}
-                </template>
-              </td>
-            </tr>
-          </template>
-          <tr id=digestRow>
-            <th>Digest</th>
-            <td><a href="/2/detail?test={{value.test}}&digest={{value.leftDigest}}">{{value.leftDigest}}</a></td>
-            <td><a href="/2/detail?test={{value.test}}&digest={{value.topDigest}}">{{value.topDigest}}</a></td>
-          </tr>
-        </table>
-      </div>
+      <detail-table-sk id=detailtable top="{{value.topDigest}}" left="{{value.leftDigest}}" test="{{value.test}}" bothcolumns></detail-table-sk>
     </div>
     <zoom-sk id=zoomer></zoom-sk>
   </template>
@@ -140,27 +104,7 @@ between two images.
       },
 
       ready: function() {
-        this.details = {}; // A serialized PolyDetailsGUI.
-
         var that = this;
-        this.$.topDetail.addEventListener('change', function(e) {
-          e.stopPropagation();
-          var detail = {
-            test: that.value.test,
-            digest: that.value.topDigest,
-            status: e.detail,
-          };
-          that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
-        });
-        this.$.leftDetail.addEventListener('change', function(e) {
-          e.stopPropagation();
-          var detail = {
-            test: that.value.test,
-            digest: that.value.leftDigest,
-            status: e.detail,
-          };
-          that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
-        });
         this.$.zoom.addEventListener('click', function() {
           that.$.zoomer.setDetails(that.value);
           that.$.zoomer.toggle();
@@ -169,21 +113,13 @@ between two images.
 
       valueChanged: function() {
         if (this.value) {
-          var that = this;
-          var q = '?test=' + this.value.test + '&top=' + this.value.topDigest + '&left=' + this.value.leftDigest;
-          sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
-            that.details = json;
-            that.$.topDetail.value = json.topStatus;
-            that.$.leftDetail.value = json.leftStatus;
-            that.$.diffInfo.classList.add('display');
-          });
+          this.$.diffInfo.classList.add('display');
         }
       },
 
       hide: function() {
         this.$.diffInfo.classList.remove('display');
       },
-
 
       doZoom: function() {
         this.$.zoomer.setDetails(this.value);

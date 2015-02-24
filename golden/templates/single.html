@@ -13,7 +13,7 @@
       {{template "titlebar.html" .}}
 
       <div>
-        <single-detail-sk test="" digest=""></single-detail-sk>
+        <detail-table-sk top="" left="" test=""></detail-table-sk>
       </div>
 
       <paper-toast></paper-toast>
@@ -24,11 +24,12 @@
        sk.WebComponentsReady.then(function() {
          // Parse the query and populate test and digest.
          var q = sk.query.toObject(window.location.search.slice(1));
-         $$$('single-detail-sk').test = q.test || "";
-         $$$('single-detail-sk').digest = q.digest || "";
+         $$$('detail-table-sk').test = q.test || "";
+         $$$('detail-table-sk').top = q.digest || "";
+         $$$('detail-table-sk').left = q.digest || "";
        });
 
-       $$$('single-detail-sk').addEventListener('triage', function(e) {
+       $$$('detail-table-sk').addEventListener('triage', function(e) {
          sk.post('/2/_/triage', JSON.stringify(e.detail)).then(function(){
          }).catch(function(e) {
            $$$('paper-toast').text = e;
