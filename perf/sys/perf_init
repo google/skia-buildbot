@@ -1,15 +1,15 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          ingest
+# Provides:          skiaperf
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start ingest.
-# Description:       Moves Google Storage data into Tiles.
+# Short-Description: Start perf.
+# Description:       Web server for Skia performance monitoring.
 ### END INIT INFO
 
-# Author: Joe Gregorio <jcgregorio@google.com> (copied by Kelvin Ly)
+# Author: Joe Gregorio <jcgregorio@google.com>
 #
 # Copied from /etc/init.d/skeleton and modified only the following
 # environment variables and updated the start-stop-daemon calls
@@ -19,11 +19,11 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="The Skia JSON ingest application."
-NAME=ingest
-DAEMON=/home/perf/golib/bin/$NAME
+DESC="The Skia perf application."
+NAME=skiaperf
 DATA_DIR="/mnt/pd0/data"
-DAEMON_ARGS="--git_repo_dir=$DATA_DIR/skia --log_dir=/var/log/logserver --status_dir=$DATA_DIR/ingest_status --tile_dir=$DATA_DIR/tileStore3  --run=golden,nano,nano-trybot "
+DAEMON=/usr/local/bin/$NAME
+DAEMON_ARGS="--resources_dir=/usr/local/share/skiaperf/ --git_repo_dir=$DATA_DIR/skia --log_dir=/var/log/logserver --tile_store_dir=$DATA_DIR/tileStore3 "
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -50,9 +50,9 @@ do_start()
 	#   0 if daemon has been started
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
-	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid perf --chdir /home/perf --test > /dev/null \
+	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid perf --test > /dev/null \
 		|| return 1
-	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid perf --chdir /home/perf --exec $DAEMON -- \
+	start-stop-daemon --start --pidfile $PIDFILE --exec $DAEMON --make-pidfile --background --chuid perf --exec $DAEMON -- \
 		$DAEMON_ARGS \
 		|| return 2
 	# Add code here, if necessary, that waits for the process to be ready

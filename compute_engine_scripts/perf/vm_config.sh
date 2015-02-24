@@ -21,4 +21,4 @@ INSTANCE_NAME=${VM_NAME_BASE}-perf
 PERF_MACHINE_TYPE=n1-highmem-8
 PERF_SOURCE_SNAPSHOT=skia-pushable-base
 PERF_SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
-
+PERF_IP_ADDRESS=104.154.112.108

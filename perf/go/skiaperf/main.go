@@ -8,21 +8,15 @@ import (
 	"html/template"
 	"math/rand"
 	"net/http"
-	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
-)
 
-import (
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/skia-dev/glog"
-)
-
-import (
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
@@ -93,6 +87,8 @@ var (
 	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	apikey         = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
+	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
 var (
@@ -101,55 +97,51 @@ var (
 
 func Init() {
 	rand.Seed(time.Now().UnixNano())
-
-	// Change the current working directory to two directories up from this source file so that we
-	// can read templates and serve static (res/) files.
-	_, filename, _, _ := runtime.Caller(0)
-	cwd := filepath.Join(filepath.Dir(filename), "../..")
-	if err := os.Chdir(cwd); err != nil {
-		glog.Fatalln(err)
+	if *resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
 	indexTemplate = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/index.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	clusterTemplate = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/clusters.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/clusters.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	alertsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/alerting.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/alerting.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	clTemplate = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/cl.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/cl.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	activityTemplate = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/activitylog.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/activitylog.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	compareTemplate = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/compare.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/compare.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	helpTemplate = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/help.html"),
-		filepath.Join(cwd, "templates/titlebar.html"),
-		filepath.Join(cwd, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/help.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 
 	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, config.DATASET_NANO, 2*time.Minute)
 
 	var err error
-	git, err = gitinfo.NewGitInfo(*gitRepoDir, true, false)
+	git, err = gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -1045,7 +1037,7 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir("./"))
+	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", string(300))
 		fileServer.ServeHTTP(w, r)

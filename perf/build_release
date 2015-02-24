@@ -1,0 +1,37 @@
+#!/bin/bash
+# Builds and uploads a debian package for perf.
+APPNAME=skiaperf
+DESCRIPTION="Manages performance metrics."
+
+DEPENDS=git
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+
+${INSTALL} --mode=755 -T ${GOPATH}/bin/skiaperf        ${ROOT}/usr/local/bin/skiaperf
+${INSTALL} --mode=755 -T ${GOPATH}/bin/ingest          ${ROOT}/usr/local/bin/ingest
+${INSTALL} --mode=755 -T ${GOPATH}/bin/tiletool        ${ROOT}/usr/local/bin/tiletool
+${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb  ${ROOT}/usr/local/bin/perf_migratedb
+
+${INSTALL} --mode=644 -T ./sys/perf_monit              ${ROOT}/etc/monit/conf.d/skiaperf
+${INSTALL} --mode=755 -T ./sys/perf_init               ${ROOT}/etc/init.d/skiaperf
+
+${INSTALL} --mode=644 -T ./sys/ingest_monit            ${ROOT}/etc/monit/conf.d/ingest
+${INSTALL} --mode=755 -T ./sys/ingest_init             ${ROOT}/etc/init.d/ingest
+
+${INSTALL_DIR} --mode=755                              ${ROOT}/usr/local/share/skiaperf/templates
+${INSTALL} --mode=644 ./templates/*                    ${ROOT}/usr/local/share/skiaperf/templates
+${INSTALL_DIR} --mode=755                              ${ROOT}/usr/local/share/skiaperf/res/imp
+${INSTALL} --mode=644 ./res/imp/*.html                 ${ROOT}/usr/local/share/skiaperf/res/imp
+
+${INSTALL} --mode=644 ./res/css/perf.css               ${ROOT}/usr/local/share/skiaperf/res/css/perf.css
+${INSTALL} --mode=644 ./res/img/favicon.ico            ${ROOT}/usr/local/share/skiaperf/res/img/favicon.ico
+${INSTALL} --mode=644 ./res/js/core.js                 ${ROOT}/usr/local/share/skiaperf/res/js/core.js
+${INSTALL} --mode=644 ./res/js/index.js                ${ROOT}/usr/local/share/skiaperf/res/js/index.js
+${INSTALL} --mode=644 ./res/vul/elements.html          ${ROOT}/usr/local/share/skiaperf/res/vul/elements.html
+}
+
+source ../bash/release.sh

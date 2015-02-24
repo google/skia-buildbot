@@ -1,0 +1,13 @@
+check process skiaperf with pidfile /var/run/skiaperf.pid
+   start program = "/etc/init.d/skiaperf start"
+   stop program = "/etc/init.d/skiaperf stop"
+   depends on skiaperf_init
+   depends on skiaperf_exe
+
+check file skiaperf_init
+  with path /etc/init.d/skiaperf
+  if changed timestamp then restart
+
+check file skiaperf_exe
+  with path /usr/local/bin/skiaperf
+  if changed timestamp then restart
