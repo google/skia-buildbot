@@ -1,0 +1,85 @@
+<!-- The <group-triage-dialog-sk> custom element declaration.
+
+  Attributes:
+  Events:
+    closed - Event triggered when the user selects either OK or Cancel.
+        The status is given in e.detail and looks like:
+
+          {
+            action: "cancel",
+            all: true,  // If Apply to all is checked.
+            status: "positive",
+          };
+
+  Methods:
+    open() - Displays the dialog.
+    close() - Hides the dialog.
+-->
+<polymer-element name="group-triage-dialog-sk">
+  <template>
+    <style type="text/css" media="screen">
+      #dialog {
+        position: fixed;
+        bottom: 0;
+        left: 40%;
+        display: none;
+        background: white;
+        margin: 1%;
+        border: solid 1px lightgray;
+        z-index: 100;
+        padding: 1%;
+        box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
+      }
+
+      h3 {
+        border-bottom: solid 1px lightgray;
+        margin-top: 0;
+      }
+    </style>
+    <div id=dialog>
+      <h3>Group Triage</h3>
+      <tri-sk id=tri value=""></tri-sk>
+      <p><paper-checkbox id=all></paper-checkbox> Apply this to all digests matching the filter. (Not yet implemented).</p>
+      <div horizontal layout end-justified>
+        <paper-button id=cancel>Cancel</paper-button>
+        <paper-button disabled?="{{$.tri.value.length == 0}}" id=ok>Ok</paper-button>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        var that = this;
+
+        this.$.cancel.addEventListener('click', function() {
+          var detail = {
+            action: "cancel",
+            all: that.$.all.checked,
+            status: that.$.tri.value,
+          };
+          that.dispatchEvent(new CustomEvent('closed', {detail: detail}));
+        });
+
+        this.$.ok.addEventListener('click', function() {
+          var detail = {
+            action: "ok",
+            all: that.$.all.checked,
+            status: that.$.tri.value,
+          };
+          that.dispatchEvent(new CustomEvent('closed', {detail: detail}));
+        });
+      },
+
+      open: function() {
+        this.$.tri.value = "";
+        this.$.all.checked = false;
+        this.$.dialog.style.display = 'block';
+      },
+
+      close: function() {
+        this.$.dialog.style.display = 'none';
+      },
+
+    });
+  </script>
+</polymer-element>

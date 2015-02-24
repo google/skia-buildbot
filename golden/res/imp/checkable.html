@@ -1,0 +1,75 @@
+<!-- The <checkable-sk> custom element declaration.
+
+Custom element that allows you to put a checkmark over
+an element, such as an image.
+
+  Attributes:
+    checked - True if the item is checked.
+
+  Events:
+    checked - Triggered when the checked status of the element changed.
+      The e.detail is of the form:
+
+          {
+            ele: [The checkable-sk element that was clicked],
+            shift: true, // The shift key status when clicked.
+          }
+
+  Methods:
+-->
+<style type="text/css" media="screen">
+  checkable-sk {
+    position: relative;
+  }
+</style>
+<polymer-element name="checkable-sk" attributes="checked">
+  <template>
+    <style type="text/css" media="screen">
+      :host {
+        display: inline-block;
+        position: relative;
+      }
+
+      #check {
+        position: absolute;
+        top: 7px;
+        left: 7px;
+        width: 64px;
+        height: 64px;
+        opacity: 0;
+      }
+
+      #check:hover {
+        opacity: 0.3;
+      }
+
+      #check.checked {
+        opacity: 0.8;
+      }
+    </style>
+    <core-icon id=check icon=check-circle class="{{checked?'checked':''}}"></core-icon>
+    <content></content>
+  </template>
+  <script>
+    Polymer({
+      published: {
+        checked: {
+          value: false,
+          reflect: true,
+        }
+      },
+
+      ready: function() {
+        var that = this;
+        this.$.check.addEventListener('click', function(e) {
+          that.checked = !that.checked;
+          var detail = {
+            ele: that,
+            shift: e.shiftKey,
+          };
+          that.dispatchEvent(new CustomEvent('checked', {detail: detail}));
+        });
+      }
+    });
+  </script>
+</polymer-element>

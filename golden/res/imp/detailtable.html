@@ -154,7 +154,7 @@ attribute is false.
           e.stopPropagation();
           var detail = {
             test: that.test,
-            digest: that.top,
+            digest: [that.top],
             status: e.detail,
           };
           that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
@@ -163,7 +163,7 @@ attribute is false.
           e.stopPropagation();
           var detail = {
             test: that.test,
-            digest: that.left,
+            digest: [that.left],
             status: e.detail,
           };
           that.dispatchEvent(new CustomEvent('triage', {detail: detail}));

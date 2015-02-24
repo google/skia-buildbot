@@ -111,6 +111,8 @@
 
       <query-dialog-sk id=queryTopDialog src="/2/_/paramset"></query-dialog-sk>
       <query-dialog-sk id=queryLeftDialog src="/2/_/paramset"></query-dialog-sk>
+      <group-triage-dialog-sk></group-triage-dialog-sk>
+
 
     </scaffold-sk>
 
@@ -280,12 +282,38 @@
 
        $$$('diff-detail-sk').addEventListener('triage', function(e) {
          sk.post('/2/_/triage', JSON.stringify(e.detail)).then(function(){
-           $$$('grid-sk').markChanged(e.detail.digest);
+           $$$('grid-sk').markChanged([e.detail.digest]);
            $$$('#refresh').classList.add('display');
          }).catch(function(e) {
            $$$('paper-toast').text = e;
            $$$('paper-toast').show();
          });
+       });
+
+       $$$('grid-sk').addEventListener('digest-checked', function(e) {
+         if (e.detail.length > 0) {
+           $$$('group-triage-dialog-sk').open();
+         } else {
+           $$$('group-triage-dialog-sk').close();
+         }
+       });
+
+       $$$('group-triage-dialog-sk').addEventListener('closed', function(e) {
+         if (e.detail.action == 'ok') {
+           var request = {
+             test: state.test,
+             digest: $$$('grid-sk').getCheckedDigests(),
+             status: e.detail.status,
+           };
+           sk.post('/2/_/triage', JSON.stringify(request)).then(function(){
+             $$$('grid-sk').markChanged(request.digest);
+             $$$('#refresh').classList.add('display');
+           }).catch(function(e) {
+             $$$('paper-toast').text = e;
+             $$$('paper-toast').show();
+           });
+         }
+         $$$('grid-sk').clearChecks();
        });
 
        $$$('#refresh').addEventListener('click', function(e) {

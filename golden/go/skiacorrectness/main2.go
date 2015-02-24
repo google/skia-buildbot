@@ -488,13 +488,13 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 
 // PolyTriageRequest is the form of the JSON posted to polyTriageHandler.
 type PolyTriageRequest struct {
-	Test   string `json:"test"`
-	Digest string `json:"digest"`
-	Status string `json:"status"`
+	Test   string   `json:"test"`
+	Digest []string `json:"digest"`
+	Status string   `json:"status"`
 }
 
-// polyTriageHandler handles a request to change the triage status of a single
-// digest of one test.
+// polyTriageHandler handles a request to change the triage status of one or more
+// digests of one test.
 //
 // It accepts a POST'd JSON serialization of PolyTriageRequest and updates
 // the expectations.
@@ -510,10 +510,13 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	digests := map[string]types.Label{}
+	for _, d := range req.Digest {
+		digests[d] = types.LabelFromString(req.Status)
+	}
+
 	tc := map[string]types.TestClassification{
-		req.Test: map[string]types.Label{
-			req.Digest: types.LabelFromString(req.Status),
-		},
+		req.Test: digests,
 	}
 	// If the analyzer is running then use that to update the expectations.
 	if *startAnalyzer {
