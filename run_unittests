@@ -81,7 +81,7 @@ def GoImports():
   try:
     diff_files = subprocess.check_output(cmd, cwd='.',
                                          stderr=subprocess.PIPE).splitlines()
-  except subprocess.CalledProcessError:
+  except OSError:
     return [GO_TEST_FAILED % (
         ' '.join(cmd), '.',
         ('goimports failed to run! Is it installed? You may need to run:\n'
