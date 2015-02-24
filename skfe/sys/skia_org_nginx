@@ -214,6 +214,19 @@ server {
     return 301 https://status.skia.org$request_uri;
 }
 
+#####   go.skia.org   ###########################
+server {
+    listen      443;
+    server_name go.skia.org;
+
+    ssl on;
+
+    location / {
+        add_header Content-Type text/html;
+        return 200 '<meta name="go-import" content="go.skia.org git https://skia.googlesource.com/buildbot">';
+    }
+}
+
 #####   ct.skia.org (REDIRECT)   ###########################
 server {
     listen 443;
