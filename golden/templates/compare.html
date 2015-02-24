@@ -282,7 +282,7 @@
 
        $$$('diff-detail-sk').addEventListener('triage', function(e) {
          sk.post('/2/_/triage', JSON.stringify(e.detail)).then(function(){
-           $$$('grid-sk').markChanged([e.detail.digest]);
+           $$$('grid-sk').markChanged(e.detail.digest);
            $$$('#refresh').classList.add('display');
          }).catch(function(e) {
            $$$('paper-toast').text = e;
