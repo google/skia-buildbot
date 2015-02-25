@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/influxdb/influxdb/client"
+	"github.com/skia-dev/influxdb/client"
 )
 
 type mockClient struct {

@@ -23,8 +23,8 @@ import (
 
 import (
 	"github.com/fiorix/go-web/autogzip"
-	"github.com/influxdb/influxdb/client"
 	"github.com/skia-dev/glog"
+	"github.com/skia-dev/influxdb/client"
 )
 
 import (

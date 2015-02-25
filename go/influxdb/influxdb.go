@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/influxdb/influxdb/client"
 	"github.com/skia-dev/glog"
+	"github.com/skia-dev/influxdb/client"
 	"skia.googlesource.com/buildbot.git/go/metadata"
 )
 
