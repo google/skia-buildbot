@@ -8,24 +8,14 @@ package skiaversion
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/skia-dev/glog"
 )
 
-// Date format as reported by 'date --rfc-3339="second"'
-const DATE_FORMAT = "2006-01-02 15:04:05-07:00"
-
-var parsedDate time.Time
-
-func init() {
-	var err error
-	parsedDate, err = time.Parse(DATE_FORMAT, DATE)
-	if err != nil {
-		glog.Fatalf("Failed to parse build date. Did you forget to run \"make skiaversion\"? %v", err)
-	}
-}
+var version *Version
 
 // Version holds information about the version of code this program is running.
 type Version struct {
@@ -34,15 +24,26 @@ type Version struct {
 }
 
 // GetVersion returns a Version object for this program.
-func GetVersion() *Version {
-	return &Version{COMMIT, parsedDate}
+func GetVersion() (*Version, error) {
+	if version != nil {
+		return version, nil
+	}
+	return nil, fmt.Errorf("No version was set at compile time! Did you forget to run \"make skiaversion\"?")
 }
 
 // JsonHandler is a pre-built handler for HTTP requests which returns version
 // information in JSON format.
 func JsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	bytes, err := json.Marshal(GetVersion())
+	v, err := GetVersion()
+	if err != nil {
+		glog.Error(err)
+		v = &Version{
+			Commit: "(unknown)",
+			Date:   time.Time{},
+		}
+	}
+	bytes, err := json.Marshal(v)
 	if err != nil {
 		glog.Error(err)
 	}

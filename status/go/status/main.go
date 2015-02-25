@@ -310,7 +310,10 @@ func main() {
 	influxdb.SetupFlags()
 
 	common.InitWithMetrics("status", graphiteServer)
-	v := skiaversion.GetVersion()
+	v, err := skiaversion.GetVersion()
+	if err != nil {
+		glog.Fatal(err)
+	}
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	Init()
@@ -323,7 +326,6 @@ func main() {
 	}
 
 	// Setup InfluxDB client.
-	var err error
 	dbClient, err = influxdb.NewClientFromFlagsAndMetadata(*testing)
 	if err != nil {
 		glog.Fatal(err)

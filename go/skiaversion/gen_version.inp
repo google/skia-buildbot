@@ -1,6 +1,21 @@
 package skiaversion
 
-const (
-	COMMIT = "%(commit_hash)s"
-	DATE   = "%(date)s"
+import (
+	"time"
+
+	"github.com/skia-dev/glog"
 )
+
+// Date format as reported by 'date --rfc-3339="second"'
+const DATE_FORMAT = "2006-01-02 15:04:05-07:00"
+
+func init() {
+	date, err := time.Parse(DATE_FORMAT, "%(date)s")
+	if err != nil {
+		glog.Fatal(err)
+	}
+	version = &Version{
+		Commit: "%(commit_hash)s",
+		Date:   date,
+	}
+}
