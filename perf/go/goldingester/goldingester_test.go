@@ -36,7 +36,7 @@ func TestJSONToDMResults(t *testing.T) {
 	if got, want := id, "x86_64:565:Debug:HD7770:ShuttleA:varied_text_clipped_no_lcd:Win8"; got != want {
 		t.Errorf("Key generation wrong: Got %v Want %v", got, want)
 	}
-	if got, want := len(params), 8; got != want {
+	if got, want := len(params), 9; got != want {
 		t.Errorf("Params wrong size: Got %v Want %v", got, want)
 	}
 }
@@ -55,8 +55,11 @@ func TestParsing(t *testing.T) {
 	if got, want := tr.Values[1], "445aa63b2200baaba9b37fd5f80c0447"; got != want {
 		t.Errorf("Digest wrong: Got %v Want %v", got, want)
 	}
-	if got, want := len(tr.Params()), 8; got != want {
+	if got, want := len(tr.Params()), 9; got != want {
 		t.Errorf("Params wrong: Got %v Want %v", got, want)
+	}
+	if got, want := tr.Params()["ext"], "png"; got != want {
+		t.Errorf("Extension not injected:: Got %v Want %v", got, want)
 	}
 	if got, want := int64(2), metricsProcessed.Count(); got != want {
 		t.Errorf("Wrong number of points ingested: Got %v Want %v", got, want)
