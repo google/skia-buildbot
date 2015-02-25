@@ -247,9 +247,21 @@
        });
 
        function loadGrid() {
+         $$$('group-triage-dialog-sk').close();
          sk.post('/2/_/test', JSON.stringify(state)).then(JSON.parse).then(function(json) {
            topTotal = json.topTotal;
            leftTotal = json.leftTotal;
+
+           // Populate the group-triage-dialog-sk with the total.
+           side = $$$('grid-sk').checkedSide();
+           if (side) {
+             total = topTotal;
+             if (side == 'left') {
+               total = leftTotal;
+             }
+             $$$('group-triage-dialog-sk').total = total;
+           }
+
            if (state.topN > topTotal) {
              state.topN = Math.max(topTotal, 5);
            }
@@ -292,6 +304,12 @@
 
        $$$('grid-sk').addEventListener('digest-checked', function(e) {
          if (e.detail.length > 0) {
+           side = $$$('grid-sk').checkedSide();
+           total = topTotal;
+           if (side == 'left') {
+             total = leftTotal;
+           }
+           $$$('group-triage-dialog-sk').total = total;
            $$$('group-triage-dialog-sk').open();
          } else {
            $$$('group-triage-dialog-sk').close();
@@ -300,14 +318,32 @@
 
        $$$('group-triage-dialog-sk').addEventListener('closed', function(e) {
          if (e.detail.action == 'ok') {
+           side = $$$('grid-sk').checkedSide();
+           var query = state.topQuery;
+           var filter = state.topFilter;
+           var include = state.topIncludeIgnores;
+           if (side == 'left') {
+             query = state.leftQuery;
+             filter = state.leftFilter;
+             include = state.leftIncludeIgnores;
+           }
+
            var request = {
              test: state.test,
              digest: $$$('grid-sk').getCheckedDigests(),
              status: e.detail.status,
+             all: e.detail.all,
+             query: query,
+             filter: filter,
+             include: include,
            };
            sk.post('/2/_/triage', JSON.stringify(request)).then(function(){
-             $$$('grid-sk').markChanged(request.digest);
-             $$$('#refresh').classList.add('display');
+             if (request.all) {
+               loadGrid();
+             } else {
+               $$$('grid-sk').markChanged(request.digest);
+               $$$('#refresh').classList.add('display');
+             }
            }).catch(function(e) {
              $$$('paper-toast').text = e;
              $$$('paper-toast').show();

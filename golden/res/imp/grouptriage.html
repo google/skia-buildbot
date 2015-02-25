@@ -15,7 +15,7 @@
     open() - Displays the dialog.
     close() - Hides the dialog.
 -->
-<polymer-element name="group-triage-dialog-sk">
+<polymer-element name="group-triage-dialog-sk" attributes="total">
   <template>
     <style type="text/css" media="screen">
       #dialog {
@@ -39,7 +39,7 @@
     <div id=dialog>
       <h3>Group Triage</h3>
       <tri-sk id=tri value=""></tri-sk>
-      <p><paper-checkbox id=all></paper-checkbox> Apply this to all digests matching the filter. (Not yet implemented).</p>
+      <p><paper-checkbox id=all></paper-checkbox> Apply this to all {{total}} digests matching the filter.</p>
       <div horizontal layout end-justified>
         <paper-button id=cancel>Cancel</paper-button>
         <paper-button disabled?="{{$.tri.value.length == 0}}" id=ok>Ok</paper-button>
@@ -48,6 +48,13 @@
   </template>
   <script>
     Polymer({
+      published: {
+        total: {
+          value: 0,
+          reflect: true,
+        }
+      },
+
       ready: function() {
         var that = this;
 

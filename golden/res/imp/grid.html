@@ -68,6 +68,8 @@ Where:
     clearChecks() - Removes the checkmarks from all digest thumbnails.
 
     getCheckedDigests() - Returns the digests of all the checked thumbnails.
+
+    checkedSide() - Returns 'top' or 'left', depending on which side checkmarks appear.
 -->
 <polymer-element name="grid-sk">
   <template>
@@ -242,6 +244,14 @@ Where:
             }
           });
           return checkedDigests;
+        },
+
+        checkedSide: function() {
+          if (lastChecked.ele) {
+            return lastChecked.ele.dataset.location;
+          } else {
+            return "";
+          }
         },
 
         mouseAction: function(e) {

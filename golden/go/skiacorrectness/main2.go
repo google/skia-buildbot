@@ -312,6 +312,8 @@ type PolyTestGUI struct {
 
 // imgInfo returns a populated slice of PolyTestImgInfo based on the filter and
 // queryString passed in.
+//
+// max maybe set to -1, which means to not truncate the response digest slice.
 func imgInfo(filter, queryString, testName string, e types.TestClassification, max int, includeIgnores bool, ignores []url.Values) ([]*PolyTestImgInfo, int, error) {
 	query, err := url.ParseQuery(queryString)
 	if err != nil {
@@ -320,7 +322,7 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 	query["name"] = []string{testName}
 
 	t := timer.New("tallies.ByQuery")
-	if !includeIgnores {
+	if includeIgnores {
 		ignores = []url.Values{}
 	}
 	digests, err := tallies.ByQuery(query, ignores...)
@@ -349,7 +351,7 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 	sort.Sort(PolyTestImgInfoSlice(ret))
 
 	total := len(ret)
-	if len(ret) > max {
+	if max > 0 && len(ret) > max {
 		ret = ret[:max]
 	}
 	return ret, total, nil
@@ -488,9 +490,13 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 
 // PolyTriageRequest is the form of the JSON posted to polyTriageHandler.
 type PolyTriageRequest struct {
-	Test   string   `json:"test"`
-	Digest []string `json:"digest"`
-	Status string   `json:"status"`
+	Test    string   `json:"test"`
+	Digest  []string `json:"digest"`
+	Status  string   `json:"status"`
+	All     bool     `json:"all"` // Ignore Digest and instead use the query, filter, and include.
+	Query   string   `json:"query"`
+	Filter  string   `json:"filter"`
+	Include bool     `json:"include"` // Include ignored digests.
 }
 
 // polyTriageHandler handles a request to change the triage status of one or more
@@ -504,19 +510,52 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse JSON request.")
 		return
 	}
+	glog.Infof("Triage request: %#v", req)
 	user := login.LoggedInAs(r)
 	if user == "" {
 		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
 		return
 	}
 
-	digests := map[string]types.Label{}
-	for _, d := range req.Digest {
-		digests[d] = types.LabelFromString(req.Status)
+	// Build the expecations change request from the list of digests passed in.
+	digests := req.Digest
+
+	// Or build the expectations change request from filter, query, and include.
+	if req.All {
+		exp, err := expStore.Get()
+		if err != nil {
+			util.ReportError(w, r, err, "Failed to load expectations.")
+			return
+		}
+		e := exp.Tests[req.Test]
+		ignores := []url.Values{}
+
+		if req.Include {
+			allIgnores, err := ignoreStore.List()
+			if err != nil {
+				util.ReportError(w, r, err, "Failed to load ignore rules.")
+				return
+			}
+			for _, i := range allIgnores {
+				q, _ := url.ParseQuery(i.Query)
+				ignores = append(ignores, q)
+			}
+		}
+		ii, _, err := imgInfo(req.Filter, req.Query, req.Test, e, -1, req.Include, ignores)
+		digests = []string{}
+		for _, d := range ii {
+			digests = append(digests, d.Digest)
+		}
+	}
+
+	// Label the digests.
+	labelledDigests := map[string]types.Label{}
+	for _, d := range digests {
+		labelledDigests[d] = types.LabelFromString(req.Status)
 	}
 
 	tc := map[string]types.TestClassification{
-		req.Test: digests,
+		req.Test: labelledDigests,
 	}
 	// If the analyzer is running then use that to update the expectations.
 	if *startAnalyzer {
