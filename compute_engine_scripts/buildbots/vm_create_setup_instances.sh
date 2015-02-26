@@ -98,6 +98,8 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
     setup_symlinks
 
+    install_go
+
     checkout_skia_repos
 
     copy_files

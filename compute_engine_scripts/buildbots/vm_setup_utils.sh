@@ -10,9 +10,9 @@ function install_packages {
   # Add new packages that are not yet part of the image below.
   echo
   echo "Install Required packages"
-  # $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-  #   "sudo apt-get -y install " \
-  #   || FAILED="$FAILED InstallPackages"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+    "sudo apt-get -y install mercurial mysql-client mysql-server" \
+    || FAILED="$FAILED InstallPackages"
   echo
 }
 
@@ -23,6 +23,20 @@ function setup_symlinks {
   # $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
   #   "sudo ln -s -f /usr/bin/ccache /usr/local/bin/cc" \
   #   || FAILED="$FAILED InstallPackages"
+  echo
+}
+
+function install_go {
+  GO_VERSION="go1.4.2.linux-386"
+  echo
+  echo "Install Go"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+      "wget https://storage.googleapis.com/golang/$GO_VERSION.tar.gz && " \
+      "tar -zxvf $GO_VERSION.tar.gz && " \
+      "sudo mv go /usr/local && " \
+      "sudo ln -s /usr/local/go/bin/go /usr/bin/go && " \
+      "rm $GO_VERSION.tar.gz" \
+      || FAILED="$FAILED InstallGo"
   echo
 }
 
