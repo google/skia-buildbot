@@ -1,4 +1,9 @@
 #!/bin/bash
 # Set up the test database and user.
 set -x -e
-mysql -u root -p < setup_test_db.sql
+
+if [ "CHROME_HEADLESS" = "1" ]; then
+  mysql -u root < setup_test_db.sql
+else
+  mysql -u root -p < setup_test_db.sql
+fi
