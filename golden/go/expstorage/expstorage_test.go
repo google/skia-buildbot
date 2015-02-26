@@ -105,44 +105,4 @@ func testExpectationStore(t *testing.T, store ExpectationsStore) {
 
 	assert.Equal(t, newExps, foundExps.Tests)
 	assert.False(t, &newExps == &foundExps.Tests)
-
-	// Update digests.
-	updExps := map[string]types.TestClassification{
-		TEST_1: types.TestClassification{
-			DIGEST_11: types.NEGATIVE,
-		},
-		TEST_2: types.TestClassification{
-			DIGEST_22: types.UNTRIAGED,
-		},
-	}
-	err = store.AddChange(updExps, "user-1")
-	assert.Nil(t, err)
-
-	foundExps, err = store.Get()
-	assert.Nil(t, err)
-	assert.Equal(t, types.NEGATIVE, foundExps.Tests[TEST_1][DIGEST_11])
-	assert.Equal(t, types.UNTRIAGED, foundExps.Tests[TEST_2][DIGEST_22])
-
-	// Remove digests.
-	removeDigests := map[string][]string{
-		TEST_1: []string{DIGEST_11},
-		TEST_1: []string{DIGEST_11},
-		TEST_2: []string{DIGEST_22},
-	}
-
-	err = store.RemoveChange(removeDigests)
-	assert.Nil(t, err)
-
-	foundExps, err = store.Get()
-	assert.Nil(t, err)
-
-	assert.Equal(t, types.TestClassification(map[string]types.Label{DIGEST_12: types.NEGATIVE}), foundExps.Tests[TEST_1])
-	assert.Equal(t, types.TestClassification(map[string]types.Label{DIGEST_21: types.POSITIVE}), foundExps.Tests[TEST_2])
-
-	err = store.RemoveChange(map[string][]string{TEST_1: []string{DIGEST_12}})
-	assert.Nil(t, err)
-
-	foundExps, err = store.Get()
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(foundExps.Tests))
 }
