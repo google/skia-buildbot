@@ -9,12 +9,15 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
+	"time"
 
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/common"
 	"skia.googlesource.com/buildbot.git/go/database"
 	"skia.googlesource.com/buildbot.git/golden/go/db"
+	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
 )
 
 var (
@@ -68,5 +71,79 @@ func main() {
 		}
 	}
 
+	// Trigger migration scripts.
+	migrate_expectation_storage(vdb)
+
 	glog.Infoln("Database migration finished.")
+}
+
+// TODO(stephana): Remove migrate_expectation_storage when the original
+// expectations table is removed from db.go.
+
+// migrate_expectation_storage converts entries in the expectations table
+// to the finer grained entries in the exp_change and exp_test_change tables.
+func migrate_expectation_storage(vdb *database.VersionedDB) {
+	// Only trigger this migration if the new db tables are empty
+	// to make sure they are idempotent.
+	const emptyStmt = `SELECT count(*) FROM exp_change`
+	var count uint64
+
+	row := vdb.DB.QueryRow(emptyStmt)
+	err := row.Scan(&count)
+	if err != nil {
+		glog.Errorf("Unable to test if exp_change table is empty: %s", err)
+		return
+	}
+
+	if count != 0 {
+		glog.Info("Skipping migrate_expectation_storage since exp_change is not empty.")
+		return
+	}
+	glog.Info("Expectations migration started.")
+
+	v1ExpStore := expstorage.NewSQLExpectationStoreV1(vdb)
+	expStore := expstorage.NewSQLExpectationStore(vdb).(*expstorage.SQLExpectationsStore)
+
+	// Iterate over the past expecations and add them to new table.
+	var last *expstorage.Expectations = nil
+	for curr := range v1ExpStore.IterExpectations() {
+		// Fail if any error occurs.
+		if curr.Err != nil {
+			glog.Errorf("Error iterating expectations: %s", curr.Err)
+			return
+		}
+
+		var addExp *expstorage.Expectations
+		var removeDigests map[string][]string
+		if last == nil {
+			addExp = curr.Exp
+		} else {
+			addExp, removeDigests = last.Delta(curr.Exp)
+		}
+
+		// Add the changes.
+		if err = expStore.AddChangeWithTimeStamp(addExp.Tests, curr.UserID, curr.TS); err != nil {
+			glog.Errorf("Unable to add expectations delta: %s", err)
+			return
+		}
+		if err = expStore.RemoveChange(removeDigests); err != nil {
+			glog.Errorf("Unable to remove expectations delta: %s", err)
+			return
+		}
+
+		// Make sure the new expectations match what's expected.
+		last, err = expStore.Get()
+		if err != nil {
+			glog.Errorf("Unable to read expectations: %s", err)
+		}
+
+		if !reflect.DeepEqual(last.Tests, curr.Exp.Tests) {
+			glog.Errorf("Expected values do not match !")
+			return
+		}
+
+		glog.Infof("Migrated: %s  %s", time.Unix(curr.TS/1000, 0), curr.UserID)
+	}
+
+	glog.Info("Expectations migrated successfully.")
 }

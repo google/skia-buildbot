@@ -51,6 +51,33 @@ var migrationSteps = []database.MigrationStep{
 	},
 
 	// Use this is a template for more migration steps.
+	// version 3
+	{
+		MySQLUp: []string{
+			`CREATE TABLE exp_change (
+				id            INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				userid        VARCHAR(255)  NOT NULL,
+				ts            BIGINT        NOT NULL,
+				INDEX userid_idx(userid),
+				INDEX ts_idx(ts)
+			)`,
+			`CREATE TABLE exp_test_change (
+				changeid      INT           NOT NULL,
+				name          VARCHAR(255)  NOT NULL,
+				digest        VARCHAR(255)  NOT NULL,
+				label         VARCHAR(255)  NOT NULL,
+				removed       BIGINT,
+				PRIMARY KEY (changeid, name, digest),
+				INDEX expired_idx(removed)
+			)`,
+		},
+		MySQLDown: []string{
+			`DROP TABLE exp_test_change`,
+			`DROP TABLE exp_change`,
+		},
+	},
+
+	// Use this is a template for more migration steps.
 	// version x
 	// {
 	// 	MySQLUp: ,
