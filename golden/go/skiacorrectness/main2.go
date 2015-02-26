@@ -34,6 +34,9 @@ var (
 
 	// singleTemplate is the page for viewing a single digest.
 	singleTemplate *template.Template = nil
+
+	// helpTemplate is the help page.
+	helpTemplate *template.Template = nil
 )
 
 // polyMainHandler is the main page for the Polymer based frontend.
@@ -64,8 +67,15 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
+
 	singleTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/single.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+
+	helpTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -240,8 +250,20 @@ func polySingleDigestHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-
 	if err := singleTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// polyHelpHandler is for serving the main compare page.
+func polyHelpHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Poly Help Handler: %q\n", r.URL.Path)
+
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if err := helpTemplate.Execute(w, struct{}{}); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -281,9 +303,15 @@ type PolyTestImgInfo struct {
 // PolyTestImgInfoSlice is for sorting slices of PolyTestImgInfo.
 type PolyTestImgInfoSlice []*PolyTestImgInfo
 
-func (p PolyTestImgInfoSlice) Len() int           { return len(p) }
-func (p PolyTestImgInfoSlice) Less(i, j int) bool { return p[i].N > p[j].N }
-func (p PolyTestImgInfoSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PolyTestImgInfoSlice) Len() int { return len(p) }
+func (p PolyTestImgInfoSlice) Less(i, j int) bool {
+	if p[i].N != p[j].N {
+		return p[i].N > p[j].N
+	} else {
+		return p[i].Digest > p[j].Digest
+	}
+}
+func (p PolyTestImgInfoSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // PolyTestImgInfo info about a single diff between two source digests. Used in
 // PolyTestGUI.

@@ -393,6 +393,7 @@ func main() {
 	http.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/2/", autogzip.HandleFunc(polyMainHandler)).Methods("GET")
 	router.HandleFunc("/2/ignores", autogzip.HandleFunc(polyIgnoresHandler)).Methods("GET")
+	router.HandleFunc("/2/help", autogzip.HandleFunc(polyHelpHandler)).Methods("GET")
 	router.HandleFunc("/2/cmp/{test}", autogzip.HandleFunc(polyCompareHandler)).Methods("GET")
 	router.HandleFunc("/2/detail", autogzip.HandleFunc(polySingleDigestHandler)).Methods("GET")
 	router.HandleFunc("/2/_/list", autogzip.HandleFunc(polyListTestsHandler)).Methods("GET")

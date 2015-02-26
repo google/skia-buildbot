@@ -5,22 +5,56 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"math"
 	"os"
-	"reflect"
 	"unsafe"
 
 	"github.com/skia-dev/glog"
-
 	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 var (
-	PixelMatchColor = color.White
-	// Red from the color blind palette.
-	PixelDiffColor = color.RGBA{0xE3, 0x1A, 0x1C, 0xFF}
-	// Grey from the color blind palette.
-	PixelAlphaDiffColor = color.RGBA{0xB3, 0xB3, 0xB3, 0xFF}
+	PixelMatchColor = color.Transparent
+
+	// Orange gradient.
+	//
+	// These are non-premultiplied RGBA values.
+	PixelDiffColor = [][]uint8{
+		{0xfd, 0xd0, 0xa2, 0xff},
+		{0xfd, 0xae, 0x6b, 0xff},
+		{0xfd, 0x8d, 0x3c, 0xff},
+		{0xf1, 0x69, 0x13, 0xff},
+		{0xd9, 0x48, 0x01, 0xff},
+		{0xa6, 0x36, 0x03, 0xff},
+		{0x7f, 0x27, 0x04, 0xff},
+	}
+
+	// Blue gradient.
+	//
+	// These are non-premultiplied RGBA values.
+	PixelAlphaDiffColor = [][]uint8{
+		{0xc6, 0xdb, 0xef, 0xff},
+		{0x9e, 0xca, 0xe1, 0xff},
+		{0x6b, 0xae, 0xd6, 0xff},
+		{0x42, 0x92, 0xc6, 0xff},
+		{0x21, 0x71, 0xb5, 0xff},
+		{0x08, 0x51, 0x9c, 0xff},
+		{0x08, 0x30, 0x6b, 0xff},
+	}
 )
+
+// Returns the offset into the color slices (PixelDiffColor,
+// or PixelAlphaDiffColor) based on the delta passed in.
+//
+// The number passed in is the difference between two colors,
+// on a scale from 1 to 1024.
+func deltaOffset(n int) int {
+	ret := int(math.Ceil(math.Log(float64(n))/math.Log(3) + 0.5))
+	if ret < 1 || ret > 7 {
+		glog.Fatalf("Input: %d", n)
+	}
+	return ret - 1
+}
 
 type DiffMetrics struct {
 	NumDiffPixels              int
@@ -77,6 +111,10 @@ func getPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
 	return (float32(numDiffPixels) * 100) / float32(totalPixels)
 }
 
+func uint8ToColor(c []uint8) color.Color {
+	return color.NRGBA{R: c[0], G: c[1], B: c[2], A: c[3]}
+}
+
 // diffColors compares two color values and returns a color to indicate the
 // difference. If the colors differ it updates maxRGBADiffs to contain the
 // maximum difference over multiple calls.
@@ -106,11 +144,17 @@ func diffColors(color1, color2 color.Color, maxRGBADiffs []int) color.Color {
 
 	// If the color channels differ we mark with the diff color.
 	if (c1.R != c2.R) || (c1.G != c2.G) || (c1.B != c2.B) {
-		return PixelDiffColor
+		// We use the Manhattan metric for color difference.
+		return uint8ToColor(PixelDiffColor[deltaOffset(rDiff+gDiff+bDiff+aDiff)])
 	}
 
 	// If only the alpha channel differs we mark it with the alpha diff color.
-	return PixelAlphaDiffColor
+	//
+	if aDiff > 0 {
+		return uint8ToColor(PixelAlphaDiffColor[deltaOffset(aDiff)])
+	}
+
+	return PixelMatchColor
 }
 
 // recode creates a new NRGBA image from the given image.
@@ -145,27 +189,6 @@ func getNRGBA(img image.Image) *image.NRGBA {
 	}
 }
 
-func setAllFF(slice []uint8) {
-	/*
-		for i, _ := range slice {
-			slice[i] = 0xFF
-		}
-	*/
-	len64 := len(slice) / 8
-	var slice64 []uint64
-	h := (*reflect.SliceHeader)(unsafe.Pointer(&slice64))
-	h.Data = uintptr(unsafe.Pointer(&slice[0]))
-	h.Len = len64
-	h.Cap = len64
-
-	for i := 0; i < len64; i++ {
-		slice64[i] = 0xFFFFFFFFFFFFFFFF
-	}
-	for i := len64 * 8; i < len(slice); i++ {
-		slice[i] = 0xFF
-	}
-}
-
 // Diff is a utility function that calculates the DiffMetrics and the image of the
 // difference for the provided images.
 func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
@@ -182,7 +205,6 @@ func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 	resultWidth := util.MaxInt(img1Bounds.Dx(), img2Bounds.Dx())
 	resultHeight := util.MaxInt(img1Bounds.Dy(), img2Bounds.Dy())
 	resultImg := image.NewNRGBA(image.Rect(0, 0, resultWidth, resultHeight))
-	setAllFF(resultImg.Pix)
 	totalPixels := resultWidth * resultHeight
 
 	// Loop through all points and compare. We start assuming all pixels are
@@ -225,15 +247,9 @@ func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 					maxRGBADiffs[2] = util.MaxInt(db, maxRGBADiffs[2])
 					maxRGBADiffs[3] = util.MaxInt(da, maxRGBADiffs[3])
 					if dr+dg+db > 0 {
-						resultImg.Pix[off+i+0] = PixelDiffColor.R
-						resultImg.Pix[off+i+1] = PixelDiffColor.G
-						resultImg.Pix[off+i+2] = PixelDiffColor.B
-						resultImg.Pix[off+i+3] = PixelDiffColor.A
+						copy(resultImg.Pix[off+i:], PixelDiffColor[deltaOffset(dr+dg+db+da)])
 					} else {
-						resultImg.Pix[off+i+0] = PixelAlphaDiffColor.R
-						resultImg.Pix[off+i+1] = PixelAlphaDiffColor.G
-						resultImg.Pix[off+i+2] = PixelAlphaDiffColor.B
-						resultImg.Pix[off+i+3] = PixelAlphaDiffColor.A
+						copy(resultImg.Pix[off+i:], PixelAlphaDiffColor[deltaOffset(da)])
 					}
 				}
 			}

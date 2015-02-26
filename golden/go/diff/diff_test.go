@@ -139,24 +139,64 @@ const SRC2 = `! SKTEXTSIMPLE
 0x00000200
 0x00000002`
 
-// EXPECTED_1_2 Should have all the pixels as the pixel diff color, except the
-// last pixel which is only different in the alpha.
-const EXPECTED_1_2 = `! SKTEXTSIMPLE
+// SRC3 is different in each pixel from SRC1 by 6 in each channel.
+const SRC3 = `! SKTEXTSIMPLE
 1 5
-0xe31a1cff
-0xe31a1cff
-0xe31a1cff
-0xe31a1cff
-0xb3b3b3ff`
+0x06000000
+0x07000000
+0x00070000
+0x00000700
+0x00000007`
 
-// EXPECTED_NO_DIFF should be all white since there are no differences.
-const EXPECTED_NO_DIFF = `! SKTEXTSIMPLE
+const SRC4 = `! SKTEXTSIMPLE
 1 5
 0xffffffff
 0xffffffff
 0xffffffff
 0xffffffff
 0xffffffff`
+
+// EXPECTED_1_2 Should have all the pixels as the pixel diff color with an
+// offset of 1, except the last pixel which is only different in the alpha by
+// an offset of 1.
+const EXPECTED_1_2 = `! SKTEXTSIMPLE
+1 5
+0xfdd0a2ff
+0xfdd0a2ff
+0xfdd0a2ff
+0xfdd0a2ff
+0xc6dbefff`
+
+// EXPECTED_1_3 Should have all the pixels as the pixel diff color with an
+// offset of 6, except the last pixel which is only different in the alpha by
+// an offet of 6.
+const EXPECTED_1_3 = `! SKTEXTSIMPLE
+1 5
+0xfd8d3cff
+0xfd8d3cff
+0xfd8d3cff
+0xfd8d3cff
+0x6baed6ff`
+
+// EXPECTED_1_4 Should have all the pixels as the pixel diff color with an
+// offset of 6, except the last pixel which is only different in the alpha by
+// an offet of 6.
+const EXPECTED_1_4 = `! SKTEXTSIMPLE
+1 5
+0x7f2704ff
+0x7f2704ff
+0x7f2704ff
+0x7f2704ff
+0x7f2704ff`
+
+// EXPECTED_NO_DIFF should be all black transparent since there are no differences.
+const EXPECTED_NO_DIFF = `! SKTEXTSIMPLE
+1 5
+0x00000000
+0x00000000
+0x00000000
+0x00000000
+0x00000000`
 
 // imageFromString decodes the SKTEXT image from the string.
 func imageFromString(t *testing.T, s string) *image.NRGBA {
@@ -218,6 +258,10 @@ func TestDiffImages(t *testing.T) {
 	assertDiffMatch(t, EXPECTED_NO_DIFF, SRC2, SRC2)
 	assertDiffMatch(t, EXPECTED_1_2, SRC1, SRC2)
 	assertDiffMatch(t, EXPECTED_1_2, SRC2, SRC1)
+	assertDiffMatch(t, EXPECTED_1_3, SRC3, SRC1)
+	assertDiffMatch(t, EXPECTED_1_3, SRC1, SRC3)
+	assertDiffMatch(t, EXPECTED_1_4, SRC1, SRC4)
+	assertDiffMatch(t, EXPECTED_1_4, SRC4, SRC1)
 }
 
 // assertDiffs asserts that the DiffMetrics reported by Diffing the two images
@@ -239,6 +283,45 @@ func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) 
 	if got, want := diffMetrics, expectedDiffMetrics; !reflect.DeepEqual(got, want) {
 		t.Errorf("Image Diff: Got %v Want %v", got, want)
 	}
+}
+
+func TestDeltaOffset(t *testing.T) {
+	testCases := []struct {
+		offset int
+		want   int
+	}{
+		{
+			offset: 1,
+			want:   0,
+		},
+		{
+			offset: 2,
+			want:   1,
+		},
+		{
+			offset: 5,
+			want:   1,
+		},
+		{
+			offset: 6,
+			want:   2,
+		},
+		{
+			offset: 100,
+			want:   4,
+		},
+		{
+			offset: 1024,
+			want:   6,
+		},
+	}
+
+	for _, tc := range testCases {
+		if got, want := deltaOffset(tc.offset), tc.want; got != want {
+			t.Errorf("deltaOffset(%d): Got %v Want %v", tc.offset, got, want)
+		}
+	}
+
 }
 
 var (
