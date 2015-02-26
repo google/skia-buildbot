@@ -66,7 +66,10 @@ type Result struct {
 type ResultAlias Result
 
 func (r *Result) UnmarshalJSON(data []byte) error {
-	var ret ResultAlias
+	ret := ResultAlias{
+		Key:     map[string]string{},
+		Options: map[string]string{},
+	}
 	err := json.Unmarshal(data, &ret)
 	if err != nil {
 		return err
