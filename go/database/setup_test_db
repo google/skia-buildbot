@@ -2,7 +2,7 @@
 # Set up the test database and user.
 set -x -e
 
-if [ "CHROME_HEADLESS" = "1" ]; then
+if [ "$CHROME_HEADLESS" = "1" ]; then
   mysql -u root < setup_test_db.sql
 else
   mysql -u root -p < setup_test_db.sql
