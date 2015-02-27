@@ -13,6 +13,7 @@ import (
 
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
+	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"skia.googlesource.com/buildbot.git/go/auth"
 	"skia.googlesource.com/buildbot.git/go/common"
@@ -255,6 +256,43 @@ func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
 	return nil
 }
 
+// responseProxy implements http.ResponseWriter and records the status codes.
+type responseProxy struct {
+	http.ResponseWriter
+	wroteHeader bool
+}
+
+func (rp *responseProxy) WriteHeader(code int) {
+	if !rp.wroteHeader {
+		glog.Infof("Response Code: %d", code)
+		metrics.GetOrRegisterCounter(fmt.Sprintf("http.statuscode.%d", code), metrics.DefaultRegistry).Inc(1)
+		rp.ResponseWriter.WriteHeader(code)
+		rp.wroteHeader = true
+	}
+}
+
+// recordResponse returns a wrapped http.Handler that records the status codes of the
+// responses.
+//
+// Note that if a handler doesn't explicitly set a response code and goes with
+// the default of 200 then this will never record anything.
+func recordResponse(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(&responseProxy{ResponseWriter: w}, r)
+	})
+}
+
+// loggingGzipRequestResponse records parts of the request and the response to the logs.
+func loggingGzipRequestResponse(h http.Handler) http.Handler {
+	// Closure to capture the request.
+	f := func(w http.ResponseWriter, r *http.Request) {
+		glog.Infof("Request: %s %s %#v Content Length: %d", r.URL.Path, r.Method, r.URL, r.ContentLength)
+		h.ServeHTTP(w, r)
+	}
+
+	return autogzip.Handle(recordResponse(http.HandlerFunc(f)))
+}
+
 func main() {
 	t := timer.New("main init")
 	// Setup DB flags.
@@ -369,36 +407,35 @@ func main() {
 
 	// Wire up the resources. We use the 'rest' prefix to avoid any name
 	// clashes witht the static files being served.
-	router.HandleFunc("/rest/counts", autogzip.HandleFunc(tileCountsHandler)).Methods("GET")
-	router.HandleFunc("/rest/triage", autogzip.HandleFunc(listTestDetailsHandler)).Methods("GET")
-	router.HandleFunc("/rest/triage/{testname}", autogzip.HandleFunc(testDetailsHandler)).Methods("GET")
-	router.HandleFunc("/rest/triage", autogzip.HandleFunc(triageDigestsHandler)).Methods("POST")
-	router.HandleFunc("/rest/status", autogzip.HandleFunc(statusHandler)).Methods("GET")
-	router.HandleFunc("/rest/blame/{testname}", autogzip.HandleFunc(blameHandler)).Methods("GET")
+	router.HandleFunc("/rest/counts", tileCountsHandler).Methods("GET")
+	router.HandleFunc("/rest/triage", listTestDetailsHandler).Methods("GET")
+	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
+	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
+	router.HandleFunc("/rest/status", statusHandler).Methods("GET")
+	router.HandleFunc("/rest/blame/{testname}", blameHandler).Methods("GET")
 
 	// Set up the login related resources.
 	// TODO (stephana): Clean up the URLs so they have the same prefix.
-	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	http.HandleFunc("/rest/logout", login.LogoutHandler)
-	http.HandleFunc("/rest/loginstatus", login.StatusHandler)
+	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	router.HandleFunc("/rest/logout", login.LogoutHandler)
+	router.HandleFunc("/rest/loginstatus", login.StatusHandler)
 
 	// Set up the resource to serve the image files.
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)
 
 	// New Polymer based UI endpoints.
-	router.PathPrefix("/res/").Handler(autogzip.HandleFunc(makeResourceHandler()))
+	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	// All the handlers will be prefixed with poly to differentiate it from the
 	// angular code until the angular code is removed.
-	http.HandleFunc("/loginstatus/", login.StatusHandler)
-	http.HandleFunc("/logout/", login.LogoutHandler)
-	router.HandleFunc("/2/", autogzip.HandleFunc(polyMainHandler)).Methods("GET")
-	router.HandleFunc("/2/ignores", autogzip.HandleFunc(polyIgnoresHandler)).Methods("GET")
-	router.HandleFunc("/2/help", autogzip.HandleFunc(polyHelpHandler)).Methods("GET")
-	router.HandleFunc("/2/cmp/{test}", autogzip.HandleFunc(polyCompareHandler)).Methods("GET")
-	router.HandleFunc("/2/detail", autogzip.HandleFunc(polySingleDigestHandler)).Methods("GET")
-	router.HandleFunc("/2/_/list", autogzip.HandleFunc(polyListTestsHandler)).Methods("GET")
-	router.HandleFunc("/2/_/paramset", autogzip.HandleFunc(polyParamsHandler)).Methods("GET")
-	router.HandleFunc("/2/_/ignores", autogzip.HandleFunc(polyIgnoresJSONHandler)).Methods("GET")
+	router.HandleFunc("/loginstatus/", login.StatusHandler)
+	router.HandleFunc("/logout/", login.LogoutHandler)
+	router.HandleFunc("/2/", polyMainHandler).Methods("GET")
+	router.HandleFunc("/2/ignores", polyIgnoresHandler).Methods("GET")
+	router.HandleFunc("/2/cmp/{test}", polyCompareHandler).Methods("GET")
+	router.HandleFunc("/2/detail", polySingleDigestHandler).Methods("GET")
+	router.HandleFunc("/2/_/list", polyListTestsHandler).Methods("GET")
+	router.HandleFunc("/2/_/paramset", polyParamsHandler).Methods("GET")
+	router.HandleFunc("/2/_/ignores", polyIgnoresJSONHandler).Methods("GET")
 	router.HandleFunc("/2/_/ignores/del/{id}", polyIgnoresDeleteHandler).Methods("POST")
 	router.HandleFunc("/2/_/ignores/add/", polyIgnoresAddHandler).Methods("POST")
 	router.HandleFunc("/2/_/test", polyTestHandler).Methods("POST")
@@ -409,7 +446,7 @@ func main() {
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))
 
 	// Send all requests to the router
-	http.Handle("/", router)
+	http.Handle("/", loggingGzipRequestResponse(router))
 
 	// Start the server
 	glog.Infoln("Serving on http://127.0.0.1" + *port)
