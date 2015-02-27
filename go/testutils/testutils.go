@@ -14,6 +14,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"testing"
+
+	"github.com/juju/testing/checkers"
 
 	"skia.googlesource.com/buildbot.git/go/gs"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -24,6 +27,20 @@ const (
 	// with the tests for a particular component.
 	GS_TEST_DATA_ROOT_URI = "http://storage.googleapis.com/skia-infra-testdata/"
 )
+
+// SkipIfShort causes the test to be skipped when running with -short.
+func SkipIfShort(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test with -short")
+	}
+}
+
+// AssertDeepEqual fails the test if the two objects do not pass reflect.DeepEqual.
+func AssertDeepEqual(t *testing.T, a, b interface{}) {
+	if eq, err := checkers.DeepEqual(a, b); !eq {
+		t.Fatal(err)
+	}
+}
 
 // TestDataDir returns the path to the caller's testdata directory, which
 // is assumed to be "<path to caller dir>/testdata".

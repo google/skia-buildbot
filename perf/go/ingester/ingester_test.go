@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
+	"skia.googlesource.com/buildbot.git/go/testutils"
 	"skia.googlesource.com/buildbot.git/go/util"
 	"skia.googlesource.com/buildbot.git/perf/go/config"
 	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
@@ -223,6 +224,7 @@ func TestAddBenchDataToTile(t *testing.T) {
 }
 
 func TestGetResultFileLocations(t *testing.T) {
+	testutils.SkipIfShort(t)
 	storage, err := storage.New(http.DefaultClient)
 	assert.Nil(t, err)
 

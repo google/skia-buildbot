@@ -18,7 +18,7 @@ def _RunBuildbotTests(input_api, output_api):
   results = []
   success = True
   try:
-    proc = subprocess.Popen(['python', 'run_unittests'],
+    proc = subprocess.Popen(['python', 'run_unittests', '--short'],
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     success = proc.wait() == 0
     long_text = proc.communicate()[0]

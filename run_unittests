@@ -66,10 +66,13 @@ def RunGoTest(cmd, cwd):
   return []
 
 
-def GoTests(cwd):
+def GoTests(cwd, short=False):
   # TODO(borenet): Switch to 'make test' once we're sure the karma-based tests
   # will run in headless mode.
-  return RunGoTest(['make', 'testgo'], cwd)
+  cmd = ['go', 'test', '-v', './go/...']
+  if short:
+    cmd.append('-test.short')
+  return RunGoTest(cmd, cwd)
 
 
 def GoVet():
@@ -97,6 +100,9 @@ def GoImports():
 
 if __name__ == '__main__':
   print 'Searching for tests.'
+  short = False
+  if '--short' in sys.argv:
+    short = True
   tests_to_run = []
 
   for (dirpath, dirnames, filenames) in os.walk(BUILDBOT_PATH, topdown=True):
@@ -122,7 +128,7 @@ if __name__ == '__main__':
 
   for go_dir in GO_DIRS:
     for test in go_tests_cwd:
-      errors.extend(test(go_dir))
+      errors.extend(test(go_dir, short=short))
   for go_test in go_tests:
     errors.extend(go_test())
 

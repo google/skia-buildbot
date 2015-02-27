@@ -7,13 +7,12 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"reflect"
 	"testing"
 
+	"github.com/google/skia-buildbot/go/database/testutil"
 	"github.com/jmoiron/sqlx"
-	"github.com/skia-dev/glog"
+	assert "github.com/stretchr/testify/require"
 
-	"skia.googlesource.com/buildbot.git/go/database/testutil"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/testutils"
 	"skia.googlesource.com/buildbot.git/go/util"
@@ -66,9 +65,7 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 	conf := testutil.LocalTestDatabaseConfig(migrationSteps)
 	var err error
 	DB, err = sqlx.Open("mysql", conf.MySQLString)
-	if err != nil {
-		t.Fatalf(failMsg, err)
-	}
+	assert.Nil(t, err, failMsg)
 
 	return testDb
 }
@@ -105,6 +102,7 @@ func testGetBuildFromMaster(repo *gitinfo.GitInfo) (*Build, error) {
 // TestGetBuildFromMaster verifies that we can load JSON data from the build master and
 // decode it into a Build object.
 func TestGetBuildFromMaster(t *testing.T) {
+	testutils.SkipIfShort(t)
 	d := clearDB(t)
 	defer d.Close()
 
@@ -112,24 +110,20 @@ func TestGetBuildFromMaster(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	// Default, complete build.
-	if _, err := testGetBuildFromMaster(repo); err != nil {
-		t.Fatal(err)
-	}
+	_, err = testGetBuildFromMaster(repo)
+	assert.Nil(t, err)
 	// Incomplete build.
 	_, err = getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 }
 
 // TestBuildJsonSerialization verifies that we can serialize a build to JSON
 // and back without losing or corrupting the data.
 func TestBuildJsonSerialization(t *testing.T) {
+	testutils.SkipIfShort(t)
 	d := clearDB(t)
 	defer d.Close()
 
@@ -137,30 +131,21 @@ func TestBuildJsonSerialization(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	b1, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	bytes, err := json.Marshal(b1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	b2 := &Build{}
-	if err := json.Unmarshal(bytes, b2); err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(b1, b2) {
-		t.Fatalf("Serialization diff:\nIn:  %v\nOut: %v", b1, b2)
-	}
+	assert.Nil(t, json.Unmarshal(bytes, b2))
+	testutils.AssertDeepEqual(t, b1, b2)
 }
 
 // TestFindCommitsForBuild verifies that findCommitsForBuild correctly obtains
 // the list of commits which were newly built in a given build.
 func TestFindCommitsForBuild(t *testing.T) {
+	testutils.SkipIfShort(t)
 	d := clearDB(t)
 	defer d.Close()
 
@@ -168,9 +153,7 @@ func TestFindCommitsForBuild(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	// The test repo is laid out like this:
 	//
@@ -236,53 +219,34 @@ func TestFindCommitsForBuild(t *testing.T) {
 	}
 	for buildNum, tc := range testCases {
 		b, err := testGetBuildFromMaster(repo)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 		b.GotRevision = tc.GotRevision
 		b.Number = buildNum
 		c, err := findCommitsForBuild(b, repo)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !reflect.DeepEqual(c, tc.Expected) {
-			t.Fatalf("Commits for build do not match expectation.\nGot:  %v\nWant: %v", c, tc.Expected)
-		}
+		assert.Nil(t, err)
+		assert.True(t, util.SSliceEqual(c, tc.Expected), fmt.Sprintf("Commits for build do not match expectation.\nGot:  %v\nWant: %v", c, tc.Expected))
 		b.Commits = c
-		if err := b.ReplaceIntoDB(); err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, b.ReplaceIntoDB())
 	}
 }
 
 // dbSerializeAndCompare is a helper function used by TestDbBuild which takes
 // a Build object, writes it into the database, reads it back out, and compares
 // the structs. Returns any errors encountered including a comparison failure.
-func dbSerializeAndCompare(b1 *Build) error {
-	if err := b1.ReplaceIntoDB(); err != nil {
-		return err
-	}
+func dbSerializeAndCompare(t *testing.T, b1 *Build) {
+	assert.Nil(t, b1.ReplaceIntoDB())
 	b2, err := GetBuildFromDB(b1.Builder, b1.Master, b1.Number)
-	if err != nil {
-		return err
-	}
+	assert.Nil(t, err)
 
-	// Force the IDs to zero, since the DB assigns ID, and we
+	// Force the IDs to be equal, since the DB assigns ID, and we
 	// don't care to try to predict them.
-	b2.Id = 0
-	for _, s := range b2.Steps {
-		s.Id = 0
+	b2.Id = b1.Id
+	assert.Equal(t, len(b1.Steps), len(b2.Steps), "Got incorrect number of steps.")
+	for i, s := range b2.Steps {
+		s.Id = b1.Steps[i].Id
 	}
 
-	if !reflect.DeepEqual(b1, b2) {
-		for i, s := range b1.Steps {
-			if !reflect.DeepEqual(s, b2.Steps[i]) {
-				glog.Errorf("Not equal:\n %+v\n %+v\n", s, b2.Steps[i])
-			}
-		}
-		return fmt.Errorf("Builds are not equal! Builds:\nExpected: %+v\nActual:   %+v", b1, b2)
-	}
-	return nil
+	testutils.AssertDeepEqual(t, b1, b2)
 }
 
 // testBuildDbSerialization verifies that we can write a build to the DB and
@@ -295,9 +259,7 @@ func testBuildDbSerialization(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	// Test case: an empty build. Tests null and empty values.
 	emptyTime := 0.0
@@ -309,15 +271,11 @@ func testBuildDbSerialization(t *testing.T) {
 
 	// Test case: a completely filled-out build.
 	buildFromFullJson, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	testCases := []*Build{emptyBuild, buildFromFullJson}
 	for _, b := range testCases {
-		if err = dbSerializeAndCompare(b); err != nil {
-			t.Fatal(err)
-		}
+		dbSerializeAndCompare(t, b)
 	}
 }
 
@@ -332,28 +290,18 @@ func testUnfinishedBuild(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	// Obtain and insert an unfinished build.
 	httpGet = testGet
 	b, err := getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repo)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if b.IsFinished() {
-		t.Fatal(fmt.Errorf("Unfinished build thinks it's finished!"))
-	}
-	if err := dbSerializeAndCompare(b); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
+	assert.False(t, b.IsFinished(), fmt.Errorf("Unfinished build thinks it's finished!"))
+	dbSerializeAndCompare(t, b)
 
 	// Ensure that the build is found by getUnfinishedBuilds.
 	unfinished, err := getUnfinishedBuilds()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	found := false
 	for _, u := range unfinished {
 		if u.Master == b.Master && u.Builder == b.Builder && u.Number == b.Number {
@@ -361,9 +309,7 @@ func testUnfinishedBuild(t *testing.T) {
 			break
 		}
 	}
-	if !found {
-		t.Fatal(fmt.Errorf("Unfinished build was not found by getUnfinishedBuilds!"))
-	}
+	assert.True(t, found, "Unfinished build was not found by getUnfinishedBuilds!")
 
 	// Add another step to the build to "finish" it, ensure that we can
 	// retrieve it as expected.
@@ -381,18 +327,12 @@ func testUnfinishedBuild(t *testing.T) {
 		Finished:   b.Finished,
 	}
 	b.Steps = append(b.Steps, s)
-	if !b.IsFinished() {
-		t.Fatal(fmt.Errorf("Finished build thinks it's unfinished!"))
-	}
-	if err := dbSerializeAndCompare(b); err != nil {
-		t.Fatal(err)
-	}
+	assert.True(t, b.IsFinished(), "Finished build thinks it's unfinished!")
+	dbSerializeAndCompare(t, b)
 
 	// Ensure that the finished build is NOT found by getUnfinishedBuilds.
 	unfinished, err = getUnfinishedBuilds()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	found = false
 	for _, u := range unfinished {
 		if u.Master == b.Master && u.Builder == b.Builder && u.Number == b.Number {
@@ -400,9 +340,7 @@ func testUnfinishedBuild(t *testing.T) {
 			break
 		}
 	}
-	if found {
-		t.Fatal(fmt.Errorf("Finished build was found by getUnfinishedBuilds!"))
-	}
+	assert.False(t, found, "Finished build was found by getUnfinishedBuilds!")
 }
 
 // testLastProcessedBuilds verifies that getLastProcessedBuilds gives us
@@ -415,34 +353,24 @@ func testLastProcessedBuilds(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	build, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	// Ensure that we get the right number for not-yet-processed
 	// builder/master pair.
 	builds, err := getLastProcessedBuilds()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	if builds == nil || len(builds) != 0 {
 		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned an unacceptable value for no builds: %v", builds))
 	}
 
 	// Ensure that we get the right number for a single already-processed
 	// builder/master pair.
-	if err := build.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, build.ReplaceIntoDB())
 	builds, err = getLastProcessedBuilds()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	if builds == nil || len(builds) != 1 {
 		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned incorrect number of results: %v", builds))
 	}
@@ -452,18 +380,12 @@ func testLastProcessedBuilds(t *testing.T) {
 
 	// Ensure that we get the correct result for multiple builders.
 	build2, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	build2.Builder = "Other-Builder"
 	build2.Number = build.Number + 10
-	if err := build2.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, build2.ReplaceIntoDB())
 	builds, err = getLastProcessedBuilds()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	compareBuildLists := func(expected []*Build, actual []*BuildID) bool {
 		if len(expected) != len(actual) {
 			return false
@@ -482,26 +404,16 @@ func testLastProcessedBuilds(t *testing.T) {
 		}
 		return true
 	}
-	if !compareBuildLists([]*Build{build, build2}, builds) {
-		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned incorrect results: %v", builds))
-	}
+	assert.True(t, compareBuildLists([]*Build{build, build2}, builds), fmt.Sprintf("getLastProcessedBuilds returned incorrect results: %v", builds))
 
 	// Add "older" build, ensure that only the newer ones are returned.
 	build3, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	build3.Number -= 10
-	if err := build3.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, build3.ReplaceIntoDB())
 	builds, err = getLastProcessedBuilds()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !compareBuildLists([]*Build{build, build2}, builds) {
-		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned incorrect results: %v", builds))
-	}
+	assert.Nil(t, err)
+	assert.True(t, compareBuildLists([]*Build{build, build2}, builds), fmt.Sprintf("getLastProcessedBuilds returned incorrect results: %v", builds))
 }
 
 // TestGetLatestBuilds verifies that getLatestBuilds gives us
@@ -521,12 +433,8 @@ func TestGetLatestBuilds(t *testing.T) {
 
 	httpGet = testGet
 	actual, err := getLatestBuilds()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatal(fmt.Errorf("getLatestBuilds returned incorrect results: %v", actual))
-	}
+	assert.Nil(t, err)
+	testutils.AssertDeepEqual(t, expected, actual)
 }
 
 // testGetUningestedBuilds verifies that getUningestedBuilds works as expected.
@@ -538,61 +446,43 @@ func testGetUningestedBuilds(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	// This builder is no longer found on the master.
 	b1, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	b1.Master = "client.skia.compile"
 	b1.Builder = "My-Builder"
 	b1.Number = 115
 	b1.Steps = []*BuildStep{}
-	if err := b1.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, b1.ReplaceIntoDB())
 
 	// This builder needs to load a few builds.
 	b2, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	b2.Master = "client.skia.android"
 	b2.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b2.Number = 463
 	b2.Steps = []*BuildStep{}
-	if err := b2.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, b2.ReplaceIntoDB())
 
 	// This builder is already up-to-date.
 	b3, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	b3.Master = "client.skia.fyi"
 	b3.Builder = "Housekeeper-PerCommit"
 	b3.Number = 1035
 	b3.Steps = []*BuildStep{}
-	if err := b3.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, b3.ReplaceIntoDB())
 
 	// This builder is already up-to-date.
 	b4, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	b4.Master = "client.skia.android"
 	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532
 	b4.Steps = []*BuildStep{}
-	if err := b4.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, b4.ReplaceIntoDB())
 
 	// Expectations. If the master or builder has no uningested builds,
 	// we expect it not to be in the results, even with an empty map/slice.
@@ -610,12 +500,8 @@ func testGetUningestedBuilds(t *testing.T) {
 	}
 	httpGet = testGet
 	actual, err := getUningestedBuilds()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatal(fmt.Errorf("getUningestedBuilds returned incorrect results: %v", actual))
-	}
+	assert.Nil(t, err)
+	testutils.AssertDeepEqual(t, expected, actual)
 }
 
 // testIngestNewBuilds verifies that we can successfully query the masters and
@@ -629,65 +515,48 @@ func testIngestNewBuilds(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	// This builder needs to load a few builds.
 	b1, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	b1.Master = "client.skia.android"
 	b1.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b1.Number = 463
 	b1.Steps = []*BuildStep{}
-	if err := b1.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, b1.ReplaceIntoDB())
 
 	// This builder has no new builds, but the last one wasn't finished
 	// at its time of ingestion.
 	b2, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	b2.Master = "client.skia.fyi"
 	b2.Builder = "Housekeeper-PerCommit"
 	b2.Number = 1035
 	b2.Finished = 0.0
 	b2.Steps = []*BuildStep{}
-	if err := b2.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, b2.ReplaceIntoDB())
 
 	// Subsequent builders are already up-to-date.
 	b3, err := testGetBuildFromMaster(repo)
+	assert.Nil(t, err)
 	b3.Master = "client.skia.fyi"
 	b3.Builder = "Housekeeper-Nightly-RecreateSKPs"
 	b3.Number = 58
 	b3.Steps = []*BuildStep{}
-	if err := b3.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, b3.ReplaceIntoDB())
 
 	b4, err := testGetBuildFromMaster(repo)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	b4.Master = "client.skia.android"
 	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532
 	b4.Steps = []*BuildStep{}
-	if err := b4.ReplaceIntoDB(); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, b4.ReplaceIntoDB())
 
 	// IngestNewBuilds should process the above Venue8 Perf bot's builds
 	// 464-466 as well as Housekeeper-PerCommit's unfinished build #1035.
-	if err := IngestNewBuilds(repo); err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, IngestNewBuilds(repo))
 
 	// Verify that the expected builds are now in the database.
 	expected := []Build{
@@ -714,49 +583,35 @@ func testIngestNewBuilds(t *testing.T) {
 	}
 	for _, e := range expected {
 		a, err := GetBuildFromDB(e.Builder, e.Master, e.Number)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 		if !(a.Master == e.Master && a.Builder == e.Builder && a.Number == e.Number) {
 			t.Fatalf("Incorrect build was inserted!\n  %s == %s\n  %s == %s\n  %d == %d", a.Master, e.Master, a.Builder, e.Builder, a.Number, e.Number)
 		}
-		if !a.IsFinished() {
-			t.Fatalf("Failed to update build properly; it should be finished: %v", a)
-		}
+		assert.True(t, a.IsFinished(), fmt.Sprintf("Failed to update build properly; it should be finished: %v", a))
 	}
 }
 
 func TestMySQLBuildDbSerialization(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping MySQL tests with -short.")
-	}
+	testutils.SkipIfShort(t)
 	testBuildDbSerialization(t)
 }
 
 func TestMySQLUnfinishedBuild(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping MySQL tests with -short.")
-	}
+	testutils.SkipIfShort(t)
 	testUnfinishedBuild(t)
 }
 
 func TestMySQLLastProcessedBuilds(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping MySQL tests with -short.")
-	}
+	testutils.SkipIfShort(t)
 	testLastProcessedBuilds(t)
 }
 
 func TestMySQLGetUningestedBuilds(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping MySQL tests with -short.")
-	}
+	testutils.SkipIfShort(t)
 	testGetUningestedBuilds(t)
 }
 
 func TestMySQLIngestNewBuilds(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping MySQL tests with -short.")
-	}
+	testutils.SkipIfShort(t)
 	testIngestNewBuilds(t)
 }

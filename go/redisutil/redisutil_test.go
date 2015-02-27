@@ -35,6 +35,7 @@ type TestStruct struct {
 }
 
 func TestRedisLRUCache(t *testing.T) {
+	testutils.SkipIfShort(t)
 	cache := NewRedisLRUCache("localhost:6379", 1, "test-di", TestStructCodec(0))
 	testLRUCache(t, cache)
 }
