@@ -120,6 +120,12 @@ func calcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, ta
 		if testNames != nil && !util.In(name, testNames) {
 			continue
 		}
+		if _, ok := testTally[name]; !ok {
+			continue
+		}
+		if _, ok := corpus[name]; !ok {
+			continue
+		}
 		digests := make([]string, 0, len(*(testTally[name])))
 
 		pos := 0
