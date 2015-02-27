@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/google/skia-buildbot/go/database/testutil"
 	"github.com/jmoiron/sqlx"
 	assert "github.com/stretchr/testify/require"
 
+	"skia.googlesource.com/buildbot.git/go/database/testutil"
 	"skia.googlesource.com/buildbot.git/go/gitinfo"
 	"skia.googlesource.com/buildbot.git/go/testutils"
 	"skia.googlesource.com/buildbot.git/go/util"
