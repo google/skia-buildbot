@@ -91,6 +91,9 @@ func tallyBy(tile *types.Tile, traceTally TraceTally, query url.Values, ignores 
 	ret := Tally{}
 	for k, tr := range tile.Traces {
 		if types.MatchesWithIgnores(tr, query, ignores...) {
+			if _, ok := traceTally[k]; !ok {
+				continue
+			}
 			for digest, n := range *traceTally[k] {
 				if _, ok := ret[digest]; ok {
 					ret[digest] += n
