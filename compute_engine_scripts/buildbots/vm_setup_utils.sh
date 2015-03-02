@@ -11,7 +11,10 @@ function install_packages {
   echo
   echo "Install Required packages"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "sudo apt-get -y install mercurial mysql-client mysql-server" \
+    "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password tmp_pass' && " \
+    "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password tmp_pass' && " \
+    "sudo apt-get -y install mercurial mysql-client mysql-server && " \
+    "mysql -uroot -ptmp_pass -e \"SET PASSWORD = PASSWORD('');\"" \
     || FAILED="$FAILED InstallPackages"
   echo
 }
@@ -37,6 +40,24 @@ function install_go {
       "sudo ln -s /usr/local/go/bin/go /usr/bin/go && " \
       "rm $GO_VERSION.tar.gz" \
       || FAILED="$FAILED InstallGo"
+  echo
+}
+
+function install_redis {
+  REDIS_VERSION="redis-2.8.19"
+  echo
+  echo "Install Redis"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+      "wget http://download.redis.io/releases/$REDIS_VERSION.tar.gz && " \
+      "tar -zxvf $REDIS_VERSION.tar.gz && " \
+      "cd $REDIS_VERSION && " \
+      "make && " \
+      "sudo make install && " \
+      "echo -n | sudo utils/install_server.sh && " \
+      "cd .. && " \
+      "rm -rf $REDIS_VERSION && " \
+      "rm $REDIS_VERSION.tar.gz" \
+      || FAILED="$FAILED InstallRedis"
   echo
 }
 
