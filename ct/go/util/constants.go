@@ -106,7 +106,7 @@ var (
 	GLogDir              = filepath.Join(StorageDir, "glog")
 	ApkName              = "ChromeShell.apk"
 	SkiaTreeDir          = filepath.Join(RepoDir, "trunk")
-	CtTreeDir            = filepath.Join(RepoDir, "go", "src", "skia.googlesource.com", "buildbot.git", "ct")
+	CtTreeDir            = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
 	// Names of remote directories and files.
 	LuaRunsDir             = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)

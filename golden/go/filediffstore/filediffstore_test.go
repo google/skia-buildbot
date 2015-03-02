@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/golden/go/diff"
+	"go.skia.org/infra/golden/go/diff"
 )
 
 import (

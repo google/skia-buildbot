@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/golang-lru"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/fileutil"
-	"skia.googlesource.com/buildbot.git/go/gs"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/golden/go/diff"
-	"skia.googlesource.com/buildbot.git/golden/go/thumb"
+	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/thumb"
 )
 
 const (

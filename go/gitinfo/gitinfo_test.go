@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/util"
 )
 
 func TestDisplay(t *testing.T) {

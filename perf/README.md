@@ -121,14 +121,14 @@ Developing
 
 The easiest way to develop should be to do:
 
-    go get -u skia.googlesource.com/buildbot.git/perf/go/...
+    go get -u go.skia.org/infra/perf/go/...
 
 Which will fetch the repository into the right location and
 download dependencies.
 
 Then to build everything:
 
-    cd $GOPATH/src/skia.googlesource.com/buildbot.git/perf
+    cd $GOPATH/src/go.skia.org/infra/perf
     make all
 
 Make sure the $GOPATH/bin is on your path so that you can easily run the

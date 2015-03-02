@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"testing"
 
-	gtypes "skia.googlesource.com/buildbot.git/golden/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	gtypes "go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func TestTallyBasic(t *testing.T) {

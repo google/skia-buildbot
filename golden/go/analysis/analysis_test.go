@@ -10,13 +10,13 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
-	"skia.googlesource.com/buildbot.git/go/testutils"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/golden/go/diff"
-	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
-	"skia.googlesource.com/buildbot.git/golden/go/filediffstore"
-	"skia.googlesource.com/buildbot.git/golden/go/types"
-	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/filediffstore"
+	"go.skia.org/infra/golden/go/types"
+	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 var (

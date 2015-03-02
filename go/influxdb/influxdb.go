@@ -11,7 +11,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"github.com/skia-dev/influxdb/client"
-	"skia.googlesource.com/buildbot.git/go/metadata"
+	"go.skia.org/infra/go/metadata"
 )
 
 const (

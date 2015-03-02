@@ -7,11 +7,11 @@ import (
 	"net/url"
 
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/login"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/perf/go/activitylog"
-	"skia.googlesource.com/buildbot.git/perf/go/alerting"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/activitylog"
+	"go.skia.org/infra/perf/go/alerting"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // Handler serves the /annotate/ endpoint for changing the status of an

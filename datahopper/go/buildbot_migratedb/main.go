@@ -8,9 +8,9 @@ import (
 	"flag"
 
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/buildbot"
-	"skia.googlesource.com/buildbot.git/go/common"
-	"skia.googlesource.com/buildbot.git/go/database"
+	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/database"
 )
 
 var (

@@ -16,9 +16,9 @@ import (
 
 	"strings"
 
-	"skia.googlesource.com/buildbot.git/ct/go/adb"
-	"skia.googlesource.com/buildbot.git/ct/go/util"
-	"skia.googlesource.com/buildbot.git/go/common"
+	"go.skia.org/infra/ct/go/adb"
+	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/common"
 )
 
 var (

@@ -36,9 +36,9 @@ import (
 	"strings"
 
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/common"
-	"skia.googlesource.com/buildbot.git/go/login"
-	"skia.googlesource.com/buildbot.git/go/metadata"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
 )
 
 var (

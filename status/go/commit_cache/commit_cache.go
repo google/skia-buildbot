@@ -11,9 +11,9 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"skia.googlesource.com/buildbot.git/go/buildbot"
-	"skia.googlesource.com/buildbot.git/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/status/go/build_cache"
+	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/status/go/build_cache"
 )
 
 /*

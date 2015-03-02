@@ -3,9 +3,9 @@ package types
 import (
 	"testing"
 
-	"skia.googlesource.com/buildbot.git/go/database"
-	"skia.googlesource.com/buildbot.git/go/database/testutil"
-	"skia.googlesource.com/buildbot.git/golden/go/db"
+	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/golden/go/db"
 )
 
 func TestSQLIgnoreStore(t *testing.T) {

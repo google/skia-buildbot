@@ -9,7 +9,7 @@ import (
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/stretchr/testify/assert"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/util"
 )
 
 // Will need a local valid google_storage_token.data file with read write access

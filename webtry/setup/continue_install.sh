@@ -41,8 +41,8 @@ cd skia
 git checkout master
 git pull
 
-go get -u skia.googlesource.com/buildbot.git
+go get -u go.skia.org/infra
 
-cd ${GOPATH}/src/skia.googlesource.com/buildbot.git/webtry
+cd ${GOPATH}/src/go.skia.org/infra/webtry
 
 make

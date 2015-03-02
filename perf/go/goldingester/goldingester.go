@@ -8,9 +8,9 @@ import (
 
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/perf/go/ingester"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/ingester"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // The JSON output from DM looks like this:

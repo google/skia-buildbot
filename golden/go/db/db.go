@@ -1,6 +1,6 @@
 package db
 
-import "skia.googlesource.com/buildbot.git/go/database"
+import "go.skia.org/infra/go/database"
 
 const (
 	// Default database parameters.

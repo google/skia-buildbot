@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/config"
 )
 
 // FillType is how filling in of missing values should be done in Trace.Grow().

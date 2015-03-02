@@ -3,7 +3,7 @@ package db
 import (
 	"testing"
 
-	"skia.googlesource.com/buildbot.git/go/database/testutil"
+	"go.skia.org/infra/go/database/testutil"
 )
 
 func TestMySQLVersioning(t *testing.T) {

@@ -20,9 +20,9 @@ import (
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/russross/blackfriday"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/doc/go/docset"
-	"skia.googlesource.com/buildbot.git/go/common"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/doc/go/docset"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/util"
 )
 
 var (

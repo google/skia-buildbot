@@ -11,10 +11,10 @@ import (
 import "github.com/skia-dev/glog"
 
 import (
-	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/ctrace"
-	"skia.googlesource.com/buildbot.git/perf/go/kmeans"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/ctrace"
+	"go.skia.org/infra/perf/go/kmeans"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (

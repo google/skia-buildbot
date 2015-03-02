@@ -18,8 +18,8 @@ import (
 
 	"github.com/juju/testing/checkers"
 
-	"skia.googlesource.com/buildbot.git/go/gs"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/util"
 )
 
 const (

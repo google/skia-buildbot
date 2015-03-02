@@ -7,10 +7,10 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/skia-dev/glog"
 	"github.com/skia-dev/influxdb/client"
+	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/util"
 	"golang.org/x/tools/go/exact"
 	"golang.org/x/tools/go/types"
-	"skia.googlesource.com/buildbot.git/go/email"
-	"skia.googlesource.com/buildbot.git/go/util"
 )
 
 const (

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"skia.googlesource.com/buildbot.git/golden/go/types"
-	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/golden/go/types"
+	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 func init() {

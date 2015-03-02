@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-import "skia.googlesource.com/buildbot.git/perf/go/types"
+import "go.skia.org/infra/perf/go/types"
 
 // validateTile validates a tile by confirming that all the commits are in
 // ascending order.

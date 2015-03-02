@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/rcrowley/go-metrics"
-	"skia.googlesource.com/buildbot.git/golden/go/types"
-	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/golden/go/types"
+	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 const (

@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/go/timer"
-	gtypes "skia.googlesource.com/buildbot.git/golden/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/go/timer"
+	gtypes "go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/perf/go/types"
 )
 
 type OnChangeCallback func()

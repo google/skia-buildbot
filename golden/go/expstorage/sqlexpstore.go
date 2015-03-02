@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/database"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/golden/go/types"
+	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Stores expectations in an SQL database without any caching.

@@ -15,11 +15,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/login"
-	"skia.googlesource.com/buildbot.git/go/timer"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/golden/go/summary"
-	"skia.googlesource.com/buildbot.git/golden/go/types"
+	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/summary"
+	"go.skia.org/infra/golden/go/types"
 )
 
 var (

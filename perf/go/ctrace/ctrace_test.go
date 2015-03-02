@@ -4,8 +4,8 @@ import (
 	"math"
 	"testing"
 
-	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/kmeans"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/kmeans"
 )
 
 func near(a, b float64) bool {

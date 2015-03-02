@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/golden/go/image/text"
+	"go.skia.org/infra/golden/go/image/text"
 )
 
 const (

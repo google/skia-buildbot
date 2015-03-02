@@ -7,7 +7,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"skia.googlesource.com/buildbot.git/go/buildbot"
+	"go.skia.org/infra/go/buildbot"
 )
 
 /*

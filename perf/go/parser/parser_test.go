@@ -4,8 +4,8 @@ import (
 	"math"
 	"testing"
 
-	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func newTestContext() *Context {

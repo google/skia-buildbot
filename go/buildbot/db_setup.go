@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	"skia.googlesource.com/buildbot.git/go/database"
+	"go.skia.org/infra/go/database"
 )
 
 const (

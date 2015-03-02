@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"strconv"
 
-	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/vec"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/vec"
 )
 
 type FilterFunc struct{}

@@ -7,7 +7,7 @@ import (
 
 	metrics "github.com/rcrowley/go-metrics"
 
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func loadDMResults(t *testing.T) *DMResults {

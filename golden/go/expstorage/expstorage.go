@@ -6,7 +6,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"skia.googlesource.com/buildbot.git/golden/go/types"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Wraps the set of expectations and provides methods to manipulate them.

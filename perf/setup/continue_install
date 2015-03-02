@@ -34,13 +34,13 @@ export GOROOT=$HOME/go
 export GOPATH=$HOME/golib
 export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
-go get -u skia.googlesource.com/buildbot.git/perf/go/...
-go get -u skia.googlesource.com/buildbot.git/golden/go/...
+go get -u go.skia.org/infra/perf/go/...
+go get -u go.skia.org/infra/golden/go/...
 
 # Still need to run make to build the JS. Also updates code version info.
-cd $GOPATH/src/skia.googlesource.com/buildbot.git/perf/
+cd $GOPATH/src/go.skia.org/infra/perf/
 make all
 make release
 
-cd $GOPATH/src/skia.googlesource.com/buildbot.git/golden/
+cd $GOPATH/src/go.skia.org/infra/golden/
 make all

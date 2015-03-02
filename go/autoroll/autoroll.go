@@ -7,8 +7,8 @@ import (
 )
 
 import (
-	"skia.googlesource.com/buildbot.git/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/go/rietveld"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/rietveld"
 )
 
 const (

@@ -7,8 +7,8 @@ import (
 )
 
 import (
-	"skia.googlesource.com/buildbot.git/perf/go/kmeans"
-	"skia.googlesource.com/buildbot.git/perf/go/vec"
+	"go.skia.org/infra/perf/go/kmeans"
+	"go.skia.org/infra/perf/go/vec"
 )
 
 // ClusterableTrace contains Trace data and implements kmeans.Clusterable.

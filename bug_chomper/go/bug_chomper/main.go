@@ -28,8 +28,8 @@ import (
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/securecookie"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/bug_chomper/go/issue_tracker"
-	"skia.googlesource.com/buildbot.git/go/common"
+	"go.skia.org/infra/bug_chomper/go/issue_tracker"
+	"go.skia.org/infra/go/common"
 )
 
 const (

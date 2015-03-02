@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/perf/go/types"
 )
 
 type NodeType int

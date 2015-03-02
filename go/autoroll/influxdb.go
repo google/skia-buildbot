@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/go/influxdb"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/influxdb"
 )
 
 const (

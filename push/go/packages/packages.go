@@ -13,7 +13,7 @@ import (
 	"sort"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/go/gs"
+	"go.skia.org/infra/go/gs"
 
 	"github.com/skia-dev/glog"
 

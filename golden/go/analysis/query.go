@@ -5,9 +5,9 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/golden/go/types"
-	ptypes "skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/types"
+	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 const (

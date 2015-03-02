@@ -38,10 +38,10 @@ import (
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/perf/go/db"
-	"skia.googlesource.com/buildbot.git/perf/go/ingester"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/db"
+	"go.skia.org/infra/perf/go/ingester"
+	"go.skia.org/infra/perf/go/types"
 )
 
 var (

@@ -28,13 +28,13 @@ import (
 )
 
 import (
-	"skia.googlesource.com/buildbot.git/alertserver/go/alerting"
-	"skia.googlesource.com/buildbot.git/go/common"
-	"skia.googlesource.com/buildbot.git/go/email"
-	"skia.googlesource.com/buildbot.git/go/login"
-	"skia.googlesource.com/buildbot.git/go/metadata"
-	"skia.googlesource.com/buildbot.git/go/skiaversion"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/alertserver/go/alerting"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/util"
 )
 
 const (

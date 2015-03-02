@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/database"
+	"go.skia.org/infra/go/database"
 )
 
 var (

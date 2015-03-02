@@ -11,8 +11,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/metadata"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/util"
 )
 
 const (

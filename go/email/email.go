@@ -8,7 +8,7 @@ import (
 
 	"code.google.com/p/goauth2/oauth"
 	gmail "code.google.com/p/google-api-go-client/gmail/v1"
-	"skia.googlesource.com/buildbot.git/go/auth"
+	"go.skia.org/infra/go/auth"
 )
 
 var (

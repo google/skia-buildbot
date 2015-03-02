@@ -18,13 +18,13 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
-	"skia.googlesource.com/buildbot.git/go/fileutil"
-	"skia.googlesource.com/buildbot.git/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/go/gs"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/filetilestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 var (

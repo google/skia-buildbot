@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"go.skia.org/infra/perf/go/config"
 )
 
 func TestMerge(t *testing.T) {

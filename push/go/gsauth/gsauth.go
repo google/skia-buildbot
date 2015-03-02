@@ -9,8 +9,8 @@ import (
 	"code.google.com/p/google-api-go-client/compute/v1"
 	"code.google.com/p/google-api-go-client/storage/v1"
 
-	"skia.googlesource.com/buildbot.git/go/auth"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/util"
 )
 
 // NewStoreAndClient returns an authenticated http client and Google Storage service.

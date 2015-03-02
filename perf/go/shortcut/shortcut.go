@@ -7,7 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"skia.googlesource.com/buildbot.git/perf/go/db"
+	"go.skia.org/infra/perf/go/db"
 )
 
 type Shortcut struct {

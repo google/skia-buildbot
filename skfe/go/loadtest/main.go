@@ -18,8 +18,8 @@ import (
 	"sync"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/go/common"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/util"
 )
 
 // flags

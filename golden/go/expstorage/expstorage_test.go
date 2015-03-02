@@ -6,11 +6,11 @@ import (
 	// Using 'require' which is like using 'assert' but causes tests to fail.
 	assert "github.com/stretchr/testify/require"
 
-	"skia.googlesource.com/buildbot.git/go/database"
-	"skia.googlesource.com/buildbot.git/go/database/testutil"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/golden/go/db"
-	"skia.googlesource.com/buildbot.git/golden/go/types"
+	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/db"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestChanges(t *testing.T) {

@@ -37,7 +37,7 @@ import (
 	"code.google.com/p/goauth2/oauth"
 	"github.com/gorilla/securecookie"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/util"
 )
 
 const (

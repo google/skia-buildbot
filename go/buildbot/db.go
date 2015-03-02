@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/util"
 )
 
 // buildFromDB is a convenience struct which handles nullable database fields.

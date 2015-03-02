@@ -57,10 +57,10 @@ import (
 
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/doc/go/config"
-	"skia.googlesource.com/buildbot.git/doc/go/reitveld"
-	"skia.googlesource.com/buildbot.git/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/doc/go/config"
+	"go.skia.org/infra/doc/go/reitveld"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/util"
 )
 
 const (

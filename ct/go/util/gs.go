@@ -16,9 +16,9 @@ import (
 	"github.com/skia-dev/glog"
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
-	"skia.googlesource.com/buildbot.git/go/auth"
-	"skia.googlesource.com/buildbot.git/go/gs"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/util"
 )
 
 const (

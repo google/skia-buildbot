@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/perf/go/filetilestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func makeFakeTile(filename string, t *types.Tile) error {

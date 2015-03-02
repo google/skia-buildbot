@@ -11,8 +11,8 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"skia.googlesource.com/buildbot.git/ct/go/util"
-	"skia.googlesource.com/buildbot.git/go/common"
+	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/common"
 )
 
 var (

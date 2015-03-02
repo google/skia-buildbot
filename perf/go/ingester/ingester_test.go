@@ -18,13 +18,13 @@ import (
 	"sort"
 	"strings"
 
-	"skia.googlesource.com/buildbot.git/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/go/testutils"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/filetilestore"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/validator"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/filetilestore"
+	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/validator"
 )
 
 func init() {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"skia.googlesource.com/buildbot.git/go/email"
+	"go.skia.org/infra/go/email"
 )
 
 var (

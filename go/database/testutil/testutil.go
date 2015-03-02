@@ -9,7 +9,7 @@ import (
 	// Using 'require' which is like using 'assert' but causes tests to fail.
 	assert "github.com/stretchr/testify/require"
 
-	"skia.googlesource.com/buildbot.git/go/database"
+	"go.skia.org/infra/go/database"
 )
 
 // Connection string to the local MySQL database for testing.

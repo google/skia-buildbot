@@ -7,7 +7,7 @@ import (
 	// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 	"github.com/golang/groupcache/lru"
 
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/perf/go/types"
 )
 
 type key struct {

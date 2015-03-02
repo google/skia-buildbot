@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/util"
 
 	"github.com/skia-dev/glog"
 )

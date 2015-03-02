@@ -3,7 +3,7 @@ package db
 import (
 	"database/sql"
 
-	"skia.googlesource.com/buildbot.git/go/database"
+	"go.skia.org/infra/go/database"
 )
 
 const (

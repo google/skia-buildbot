@@ -31,10 +31,11 @@ Go Setup
 
 For working on Go code run:
 
-$ go get -u skia.googlesource.com/buildbot.git/...
+$ go get -u go.skia.org/infra
 
 This fetches the repository into your $GOPATH directory along with all the
 needed dependencies.
+Note: go.skia.org is a custom import path and will only work if used like the examples [here](http://golang.org/cmd/go/#hdr-Remote_import_paths).
 
 
 Quick Start

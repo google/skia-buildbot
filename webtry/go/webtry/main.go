@@ -34,8 +34,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/metadata"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/util"
 )
 
 const (

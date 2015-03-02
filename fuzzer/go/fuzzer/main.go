@@ -14,8 +14,8 @@ import (
 	"github.com/fiorix/go-web/autogzip"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/fuzzer/go/config"
-	"skia.googlesource.com/buildbot.git/go/common"
+	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/go/common"
 )
 
 var (

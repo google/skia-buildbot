@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/influxdb/client"
-	"skia.googlesource.com/buildbot.git/go/email"
+	"go.skia.org/infra/go/email"
 )
 
 // AlertManager is the primary point of interaction with Alert objects.

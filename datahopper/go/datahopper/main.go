@@ -13,12 +13,12 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/autoroll"
-	"skia.googlesource.com/buildbot.git/go/buildbot"
-	"skia.googlesource.com/buildbot.git/go/common"
-	"skia.googlesource.com/buildbot.git/go/database"
-	"skia.googlesource.com/buildbot.git/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/go/influxdb"
+	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/influxdb"
 )
 
 const (

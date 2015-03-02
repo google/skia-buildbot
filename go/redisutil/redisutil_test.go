@@ -11,8 +11,8 @@ import (
 
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
-	"skia.googlesource.com/buildbot.git/go/testutils"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 const (

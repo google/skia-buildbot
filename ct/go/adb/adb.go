@@ -8,7 +8,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"skia.googlesource.com/buildbot.git/ct/go/util"
+	"go.skia.org/infra/ct/go/util"
 )
 
 // VerifyLocalDevice does not throw an error if an Android device is connected and

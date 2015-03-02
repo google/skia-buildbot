@@ -53,7 +53,7 @@ import (
 	"io"
 	"net/http"
 
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/util"
 )
 
 // Issue is a struct for decoding the JSON returned from Reitveld.

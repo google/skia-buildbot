@@ -12,10 +12,10 @@ import (
 	"github.com/jmoiron/sqlx"
 	assert "github.com/stretchr/testify/require"
 
-	"skia.googlesource.com/buildbot.git/go/database/testutil"
-	"skia.googlesource.com/buildbot.git/go/gitinfo"
-	"skia.googlesource.com/buildbot.git/go/testutils"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 var (

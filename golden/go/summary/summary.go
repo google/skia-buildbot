@@ -7,13 +7,13 @@ import (
 	"sync"
 
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/timer"
-	"skia.googlesource.com/buildbot.git/go/util"
-	"skia.googlesource.com/buildbot.git/golden/go/diff"
-	"skia.googlesource.com/buildbot.git/golden/go/expstorage"
-	"skia.googlesource.com/buildbot.git/golden/go/tally"
-	gtypes "skia.googlesource.com/buildbot.git/golden/go/types"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/tally"
+	gtypes "go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // Summary contains rolled up metrics for one test.

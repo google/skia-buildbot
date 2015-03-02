@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"skia.googlesource.com/buildbot.git/perf/go/config"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func newCluster(keys []string, regression float64, hash string) *types.ClusterSummary {

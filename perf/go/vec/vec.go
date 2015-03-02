@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math"
 
-	"skia.googlesource.com/buildbot.git/perf/go/config"
+	"go.skia.org/infra/perf/go/config"
 )
 
 func MeanAndStdDev(a []float64) (float64, float64, error) {

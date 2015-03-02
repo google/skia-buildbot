@@ -7,8 +7,8 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"skia.googlesource.com/buildbot.git/perf/go/db"
-	"skia.googlesource.com/buildbot.git/perf/go/types"
+	"go.skia.org/infra/perf/go/db"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // Write writes a new activity record to the db table activitylog.

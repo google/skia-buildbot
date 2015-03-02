@@ -13,7 +13,7 @@ import (
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/skia-dev/glog"
-	"skia.googlesource.com/buildbot.git/go/util"
+	"go.skia.org/infra/go/util"
 )
 
 const (
