@@ -19,7 +19,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -197,7 +196,7 @@ func Init() {
 	//
 	//   f672cead70404080a991ebfb86c38316a4589b23 2014-04-27 19:21:51 +0000
 	//
-	logOutput, err := doCmd(`git log --format=%H%x20%ai HEAD^..HEAD`)
+	logOutput, err := util.DoCmd(`git log --format=%H%x20%ai HEAD^..HEAD`)
 	if err != nil {
 		panic(err)
 	}
@@ -394,27 +393,6 @@ type response struct {
 	GPUImg        string         `json:"gpuImg"`
 	PDFURL        string         `json:"PDFURL"`
 	Hash          string         `json:"hash"`
-}
-
-// doCmd executes the given command line string; the command being
-// run is expected to not care what its current working directory is.
-// Returns the stdout and stderr.
-func doCmd(commandLine string) (string, error) {
-	glog.Infof("Command: %q\n", commandLine)
-	programAndArgs := strings.SplitN(commandLine, " ", 2)
-	program := programAndArgs[0]
-	args := []string{}
-	if len(programAndArgs) > 1 {
-		args = strings.Split(programAndArgs[1], " ")
-	}
-	cmd := exec.Command(program, args...)
-	message, err := cmd.CombinedOutput()
-	glog.Infof("StdOut + StdErr: %s\n", string(message))
-	if err != nil {
-		glog.Errorf("Exit status: %s\n", err)
-		return string(message), fmt.Errorf("Failed to run command.")
-	}
-	return string(message), nil
 }
 
 // reportTryError formats an HTTP error response in JSON and also logs the detailed error message.
@@ -1011,7 +989,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			cmd += fmt.Sprintf(" --source image-%d.png", request.Source)
 		}
 
-		message, err := doCmd(cmd)
+		message, err := util.DoCmd(cmd)
 
 		outputLines := strings.Split(message, "\n")
 		errorLines := []compileError{}
