@@ -2,9 +2,10 @@ package util
 
 import (
 	"fmt"
-	"github.com/skia-dev/glog"
 	"os/exec"
 	"strings"
+
+	"github.com/skia-dev/glog"
 )
 
 // DoCmd executes the given command line string; the command being
