@@ -31,7 +31,7 @@ Go Setup
 
 For working on Go code run:
 
-$ go get -u go.skia.org/infra
+$ go get -u go.skia.org/infra/...
 
 This fetches the repository into your $GOPATH directory along with all the
 needed dependencies.
