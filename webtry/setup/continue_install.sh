@@ -15,8 +15,8 @@ cd
 if [ -d go ]; then
   echo Go already installed.
 else
-  wget https://storage.googleapis.com/golang/go1.3.3.linux-amd64.tar.gz
-  tar -xzf go1.3.3.linux-amd64.tar.gz
+  wget https://storage.googleapis.com/golang/go1.4.linux-amd64.tar.gz
+  tar -xzf go1.4.linux-amd64.tar.gz
 fi
 
 mkdir ${HOME}/golib
@@ -41,7 +41,7 @@ cd skia
 git checkout master
 git pull
 
-go get -u go.skia.org/infra
+go get -u go.skia.org/infra/...
 
 cd ${GOPATH}/src/go.skia.org/infra/webtry
 

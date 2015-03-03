@@ -15,7 +15,7 @@ function banner {
 
 banner "Installing debian packages needed for the server"
 
-sudo apt-get install schroot debootstrap monit nginx nodejs nodejs-legacy
+sudo apt-get install schroot debootstrap monit nginx nodejs nodejs-legacy mercurial
 
 # wheezy nodejs install doesn't come with npm
 [ -f /usr/bin/npm ] || curl https://www.npmjs.com/install.sh | sudo sh
