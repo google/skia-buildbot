@@ -6,9 +6,7 @@ import (
 )
 
 import (
-	// Using 'require' which is like using 'assert' but causes tests to fail.
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/database"
 )
 
@@ -90,8 +88,17 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 // Get a lock from MySQL to serialize DB tests.
 func GetMySQlLock(t *testing.T, conf *database.DatabaseConfig) *database.VersionedDB {
 	vdb := database.NewVersionedDB(conf)
-	_, err := vdb.DB.Exec("SELECT GET_LOCK(?,30)", SQL_LOCK)
-	assert.Nil(t, err)
+	for {
+		row := vdb.DB.QueryRow("SELECT GET_LOCK(?,5)", SQL_LOCK)
+		var result int
+		err := row.Scan(&result)
+		assert.Nil(t, err)
+
+		// We obtained the lock. If not try again.
+		if result == 1 {
+			break
+		}
+	}
 	return vdb
 }
 
