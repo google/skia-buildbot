@@ -69,7 +69,7 @@ def RunGoTest(cmd, cwd):
 def GoTests(cwd, short=False):
   # TODO(borenet): Switch to 'make test' once we're sure the karma-based tests
   # will run in headless mode.
-  cmd = ['go', 'test', '-v', './go/...']
+  cmd = ['go', 'test', '-v', './go/...', '-parallel', '1']
   if short:
     cmd.append('-test.short')
   return RunGoTest(cmd, cwd)
