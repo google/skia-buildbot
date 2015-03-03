@@ -81,6 +81,10 @@
         display: block;
       }
 
+      #topSummary,
+      #leftSummary {
+        padding: 1em;
+      }
     </style>
   </head>
   <body>
@@ -91,6 +95,7 @@
         <div vertical layout>
           <tri-sk id=leftFilter vert filter value=positive></tri-sk>
           <paper-button title="Filter" id=queryLeftButton><core-icon icon=search></core-icon></paper-button>
+          <sort-grid-sk disabled data-id=left></sort-grid-sk>
           <div id=leftSummary></div>
         </div>
 
@@ -98,6 +103,7 @@
           <div flex horizontal layout>
             <tri-sk id=topFilter filter value=untriaged></tri-sk>
             <paper-button title="Filter" id=queryTopButton><core-icon icon=search></core-icon></paper-button>
+            <sort-grid-sk disabled data-id=top></sort-grid-sk>
             <div id=topSummary></div>
           </div>
           <grid-sk></grid-sk>
@@ -173,6 +179,9 @@
          leftIncludeIgnores: true,
          topN:               5,
          leftN:              5,
+         sort:               "", // "top", or "left".
+         dir:                "", // ["", "asc", "desc"]
+         digest:             "", // Digest to sort against.
        };
 
        // The default state of the page. Used to calcualte diffs to state.
@@ -203,10 +212,60 @@
          loadGrid();
        }
 
+       // updateSortButtons updates the display of the sorting controls based
+       // on the state object and also on the checked state of digests.
+       function updateSortButtons() {
+         if ($$$('grid-sk').checkedSide() == "") {
+           // Disable the buttons if nothing is checked.
+           $$('sort-grid-sk').forEach(function(ele) {
+             ele.disabled = true;
+           });
+         } else {
+           var side = $$$('grid-sk').checkedSide();
+           var otherSide = {"top": "left", "left": "top"}[side];
+           var digests = $$$('grid-sk').getCheckedDigests();
+           if (digests.length == 1) {
+             // If only one digest is checked then enable the corresponding sort control.
+             $$$('sort-grid-sk[data-id=' + otherSide + ']').disabled = false;
+             $$$('sort-grid-sk[data-id=' + side + ']').disabled = true;
+           } else {
+             $$('sort-grid-sk').forEach(function(ele) {
+               ele.disabled = true;
+             });
+           }
+         }
+         if (state.sort == "") {
+           $$('sort-grid-sk').forEach(function(ele) {
+             ele.value = '';
+           });
+         } else {
+           var side = state.sort;
+           var otherSide = {"top": "left", "left": "top"}[side];
+           $$$('sort-grid-sk[data-id=' + side + ']').value = state.dir;
+           $$$('sort-grid-sk[data-id=' + otherSide + ']').value = "";
+         }
+       }
+
+       // updateSortState updates the state object based on the state of the
+       // sort controls.
+       function updateSortState() {
+         var side = $$$('grid-sk').checkedSide();
+         var digests = $$$('grid-sk').getCheckedDigests();
+         if (side != "" && digests.length == 1) {
+           side = {"top": "left", "left": "top"}[side];
+           state.sort = side;
+           state.dir = $$$('sort-grid-sk[data-id=' + side + ']').value;
+           state.digest = digests[0];
+         } else {
+           state.sort = "";
+           state.dir = "";
+           state.digest = "";
+         }
+       }
+
        window.addEventListener('popstate', function(e) {
          loadGridFromURL();
        });
-
 
        $$$('#queryTopButton').addEventListener('click', function() {
          $$$('#queryTopDialog').open();
@@ -272,6 +331,7 @@
            $$$('#leftSummary').innerHTML = json.left.length + "/" + json.leftTotal;
            $$$('#topSummary').innerHTML = json.top.length + "/" + json.topTotal;
            $$$('diff-detail-sk').hide();
+           updateSortButtons();
            if (json.message != "") {
              $$$('paper-toast').text = json.message;
              $$$('paper-toast').show();
@@ -314,6 +374,7 @@
          } else {
            $$$('group-triage-dialog-sk').close();
          }
+         updateSortButtons();
        });
 
        $$$('group-triage-dialog-sk').addEventListener('closed', function(e) {
@@ -350,6 +411,7 @@
            });
          }
          $$$('grid-sk').clearChecks();
+         updateSortButtons();
        });
 
        $$$('#refresh').addEventListener('click', function(e) {
@@ -369,6 +431,15 @@
        // Only kick off the action once the web components are ready.
        sk.WebComponentsReady.then(function() {
          loadGridFromURL();
+
+         $$('sort-grid-sk').forEach(function(ele) {
+           ele.addEventListener('change', function() {
+             updateSortState();
+             updateSortButtons();
+             loadGrid();
+           });
+         });
+
        });
 
      })();

@@ -1,0 +1,78 @@
+<!-- The <sort-grid-sk> custom element declaration.
+
+Custom element for displaying the current sort selections.
+The sort options are:
+
+  Descending by N
+  Descending by Diff
+  Ascending by Diff
+
+
+  Attributes:
+    value - One of ["", "asc", "desc"] where "" means descending by N.
+    disabled - Boolean for disabling the control.
+  Events:
+    changed - Sent when the control value has changed. The e.detail
+      value is one of ["", "asc", "desc"].
+  Methods:
+-->
+<polymer-element name="sort-grid-sk" attributes="disabled value">
+  <template>
+    <style type="text/css" media="screen">
+      .asc #asc {
+        display: inline-block;
+      }
+      .desc #desc {
+        display: inline-block;
+      }
+      #asc,
+      #desc {
+        display: none;
+      }
+
+      paper-button {
+        min-width: 1em;
+      }
+    </style>
+    <paper-button disabled="{{disabled}}" id=button class="{{value}}">
+      <core-icon icon=sort></core-icon>
+      <core-icon id=asc icon="arrow-drop-up"></core-icon>
+      <core-icon id=desc icon="arrow-drop-down"></core-icon>
+    </paper-button>
+    <paper-dropdown id=dropdown class="dropdown" duration=50>
+      <core-menu class="menu" id=menu selected=0>
+        <paper-item data-id=>N Descending</paper-item>
+        <paper-item data-id=desc>Diff Descending</paper-item>
+        <paper-item data-id=asc>Diff Ascending</paper-item>
+      </core-menu>
+    </paper-dropdown>
+  </template>
+  <script>
+    Polymer({
+      published: {
+        disabled: {
+          value: false,
+          reflect: true,
+        },
+        value: {
+          value: '',
+          reflect: true,
+        }
+      },
+
+      ready: function() {
+        var that=this;
+
+        this.$.menu.addEventListener('core-select', function(e) {
+          that.value = e.detail.item.dataset.id;
+          that.$.dropdown.close();
+          that.dispatchEvent(new CustomEvent('change', {detail: that.value}));
+        });
+
+        this.$.button.addEventListener('click', function() {
+          that.$.dropdown.open();
+        });
+      },
+    });
+  </script>
+</polymer-element>

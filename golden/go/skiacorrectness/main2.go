@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -291,13 +292,17 @@ type PolyTestRequest struct {
 	LeftIncludeIgnores bool   `json:"leftIncludeIgnores"`
 	TopN               int    `json:"topN"`
 	LeftN              int    `json:"leftN"`
+	Sort               string `json:"sort"`   // Which side to sort, "top" or "left".
+	Dir                string `json:"dir"`    // Direction to sort, ["", "asc", "desc"]
+	Digest             string `json:"digest"` // The digest to sort against.
 }
 
 // PolyTestImgInfo info about a single source digest. Used in PolyTestGUI.
 type PolyTestImgInfo struct {
-	Thumb  string `json:"thumb"`
-	Digest string `json:"digest"`
-	N      int    `json:"n"` // The number of images with this digest.
+	Thumb            string  `json:"thumb"`
+	Digest           string  `json:"digest"`
+	N                int     `json:"n"`    // The number of images with this digest.
+	PixelDiffPercent float32 `json:"diff"` // Diff from the given digest to compare against, otherwise zero.
 }
 
 // PolyTestImgInfoSlice is for sorting slices of PolyTestImgInfo.
@@ -312,6 +317,19 @@ func (p PolyTestImgInfoSlice) Less(i, j int) bool {
 	}
 }
 func (p PolyTestImgInfoSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
+// PolyTestImgInfoDiffAscSlice is for sorting slices of PolyTestImgInfo by PixelDiffPercent.
+type PolyTestImgInfoDiffAscSlice []*PolyTestImgInfo
+
+func (p PolyTestImgInfoDiffAscSlice) Len() int { return len(p) }
+func (p PolyTestImgInfoDiffAscSlice) Less(i, j int) bool {
+	if p[i].N != p[j].N {
+		return p[i].PixelDiffPercent < p[j].PixelDiffPercent
+	} else {
+		return p[i].Digest < p[j].Digest
+	}
+}
+func (p PolyTestImgInfoDiffAscSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // PolyTestImgInfo info about a single diff between two source digests. Used in
 // PolyTestGUI.
@@ -342,7 +360,9 @@ type PolyTestGUI struct {
 // queryString passed in.
 //
 // max maybe set to -1, which means to not truncate the response digest slice.
-func imgInfo(filter, queryString, testName string, e types.TestClassification, max int, includeIgnores bool, ignores []url.Values) ([]*PolyTestImgInfo, int, error) {
+// If sortAgainstHash is true then the result will be sorted in direction 'dir' versus the given 'digest',
+// otherwise the results will be sorted in terms of ascending N.
+func imgInfo(filter, queryString, testName string, e types.TestClassification, max int, includeIgnores bool, ignores []url.Values, sortAgainstHash bool, dir string, digest string) ([]*PolyTestImgInfo, int, error) {
 	query, err := url.ParseQuery(queryString)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Failed to parse Query in imgInfo: %s", err)
@@ -360,6 +380,21 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 	glog.Infof("Num Digests: %d", len(digests))
 	t.Stop()
 
+	// If we are going to sort against a digest then we need to calculate
+	// the diff metrics against that digest.
+	diffMetrics := map[string]*diff.DiffMetrics{}
+	if sortAgainstHash {
+		digestSlice := make([]string, len(digests))
+		for d, _ := range digests {
+			digestSlice = append(digestSlice, d)
+		}
+		var err error
+		diffMetrics, err = diffStore.Get(digest, digestSlice)
+		if err != nil {
+			return nil, 0, fmt.Errorf("Failed to calculate diffs to sort against: %s", err)
+		}
+	}
+
 	label := types.LabelFromString(filter)
 	// Now filter digests by their expectations status here.
 	t = timer.New("apply expectations")
@@ -372,11 +407,22 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 			Digest: digest,
 			N:      n,
 		}
+		if sortAgainstHash {
+			p.PixelDiffPercent = diffMetrics[digest].PixelDiffPercent
+		}
 		ret = append(ret, p)
 	}
 	t.Stop()
 
-	sort.Sort(PolyTestImgInfoSlice(ret))
+	if sortAgainstHash {
+		if dir == "asc" {
+			sort.Sort(PolyTestImgInfoDiffAscSlice(ret))
+		} else {
+			sort.Sort(sort.Reverse(PolyTestImgInfoDiffAscSlice(ret)))
+		}
+	} else {
+		sort.Sort(PolyTestImgInfoSlice(ret))
+	}
 
 	total := len(ret)
 	if max > 0 && len(ret) > max {
@@ -444,8 +490,8 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		ignores = append(ignores, q)
 	}
 
-	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, req.TopN, req.TopIncludeIgnores, ignores)
-	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, req.LeftN, req.LeftIncludeIgnores, ignores)
+	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, req.TopN, req.TopIncludeIgnores, ignores, req.Sort == "top", req.Dir, req.Digest)
+	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, req.LeftN, req.LeftIncludeIgnores, ignores, req.Sort == "left", req.Dir, req.Digest)
 
 	// Extract out string slices of digests to pass to *AbsPath and diffStore.Get().
 	allDigests := map[string]bool{}
@@ -569,7 +615,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 				ignores = append(ignores, q)
 			}
 		}
-		ii, _, err := imgInfo(req.Filter, req.Query, req.Test, e, -1, req.Include, ignores)
+		ii, _, err := imgInfo(req.Filter, req.Query, req.Test, e, -1, req.Include, ignores, false, "", "")
 		digests = []string{}
 		for _, d := range ii {
 			digests = append(digests, d.Digest)
