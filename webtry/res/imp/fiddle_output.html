@@ -26,7 +26,7 @@ To instead show a link to the referred resource, use the "link" attribute instea
   Methods:
 -->
 
-<polymer-element name="fiddle-output-sk" attributes="src image link">
+<polymer-element name="fiddle-output-sk" attributes="src image link modTime">
   <template>
     <style type="text/css" media="screen">
       .heading {
@@ -49,6 +49,10 @@ To instead show a link to the referred resource, use the "link" attribute instea
         border: 1px solid #428bca;
         border-radius: 4px;
       }
+      .modTime {
+        font-size: .75em;
+        font-weight: normal;
+      }
 
       img {
         box-shadow: 2px 2px 5px gray;
@@ -59,6 +63,7 @@ To instead show a link to the referred resource, use the "link" attribute instea
     <div class="wrapper">
       <div class="heading">
         <content select="[heading]"></content>
+        <div class="modTime">{{modTime}}</div>
       </div>
       <div class="body">
         <template if="{{image}}">
@@ -75,11 +80,12 @@ To instead show a link to the referred resource, use the "link" attribute instea
       publish: {
         image: false,
         link: false,
+        modTime: new Date().toLocaleString(),
         src: ''
       },
       linkTap: function(e) {
         window.open(this.src, '_blank');
-      }
+      },
     });
   </script>
 </polymer-element>

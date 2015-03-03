@@ -79,62 +79,21 @@
     {{end}}
   </div>
 
-  <fiddle-output-sk image {{if .RasterURL}}class="display" src="{{.RasterURL}}"{{end}} id="raster-output">
+  <fiddle-output-sk image {{if .RasterURL}}class="display" src="{{.RasterURL}}" modTime="{{.RasterMod}}"{{end}} id="raster-output">
     <div heading>Raster Output</div>
   </fiddle-output-sk>
 
   {{if not .Embedded}}
 
-  <fiddle-output-sk image {{if .GPUURL}}class="display" src="{{.GPUURL}}"{{end}} id="gpu-output">
+  <fiddle-output-sk image {{if .GPUURL}}class="display" src="{{.GPUURL}}" modTime="{{.GPUMod}}"{{end}} id="gpu-output">
     <div heading>Ganesh Output</div>
   </fiddle-output-sk>
 
-  <fiddle-output-sk link {{if .PDFURL}}class="display" src="{{.PDFURL}}"{{end}} id="pdf-output">
+  <fiddle-output-sk link {{if .PDFURL}}class="display" src="{{.PDFURL}}" modTime="{{.PDFMod}}"{{end}} id="pdf-output">
     <div heading>PDF Output</div>
   </fiddle-output-sk>
 
   {{end}}
-
-
-<!--
-  <div id="raster-output" class="image-wrapper panel panel-primary" {{if .RasterURL}}style="display: inline-block;"{{end}}>
-    <div class="panel-heading">
-      <h3 class="panel-title">
-        Raster Output
-      </h3>
-    </div>
-    <div class="panel-body">
-      <img touch-action='none' class='zoom' id='raster-img' src='{{.RasterURL}}'/>
-    </div>
-  </div>
-
-    {{if not .Embedded}}
-
-
-    <div id="gpu-output" class="image-wrapper panel panel-primary" {{if .GPUURL}}style="display: inline-block;"{{end}}>
-      <div class="panel-heading">
-        <h3 class="panel-title">
-          Ganesh Output
-        </h3>
-      </div>
-      <div class="panel-body">
-        <img touch-action='none' class='zoom' id='gpu-img' src='{{.GPUURL}}'/>
-      </div>
-    </div>
-
-    <div id="pdf-output" class="panel panel-primary image-wrapper" {{if .PDFURL}}style="display: inline-block;"{{end}}>
-      <div class="panel-heading">
-        <h3 class="panel-title">
-          PDF Output
-        </h3>
-      </div>
-      <div class="panel-body">
-        <a class="btn btn-default btn-lg" id='pdf-link' href='{{if .PDFURL}}{{.PDFURL}}{{end}}' target="_blank">Get the PDF</a>
-      </div>
-    </div>
-  {{end}}
-
--->
 
   <p id='zoomHex'></p>
 

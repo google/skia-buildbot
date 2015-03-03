@@ -326,6 +326,7 @@
         if (rasterOutput) {
           if (body.rasterImg != "") {
             rasterOutput.src = 'data:image/png;base64,' + body.rasterImg;
+            rasterOutput.modTime = body.rasterMod;
             rasterOutput.classList.add("display");
           } else {
             rasterOutput.classList.remove("display");
@@ -335,6 +336,7 @@
         if (gpuOutput) {
           if (body.gpuImg != "") {
             gpuOutput.src = 'data:image/png;base64,' + body.gpuImg;
+            gpuOutput.modTime = body.gpuMod;
             gpuOutput.classList.add("display");
           } else {
             gpuOutput.classList.remove("display");
@@ -344,6 +346,7 @@
         if (PDFOutput) {
           if (body.PDFURL != "") {
             PDFOutput.src = body.PDFURL;
+            PDFOutput.modTime = body.pdfMod;
             PDFOutput.classList.add("display");
           } else {
             PDFOutput.classList.remove("display");

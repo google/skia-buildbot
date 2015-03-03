@@ -51,6 +51,8 @@ const (
 	MAX_TRY_SIZE = 64000
 
 	PASSWORD_METADATA_KEY = "password"
+
+	TIME_LAYOUT = "1/2/2006, 3:04 PM"
 )
 
 var (
@@ -392,6 +394,9 @@ type response struct {
 	RasterImg     string         `json:"rasterImg"`
 	GPUImg        string         `json:"gpuImg"`
 	PDFURL        string         `json:"PDFURL"`
+	RasterMod     string         `json:"rasterMod"`
+	GPUMod        string         `json:"gpuMod"`
+	PDFMod        string         `json:"pdfMod"`
 	Hash          string         `json:"hash"`
 }
 
@@ -585,6 +590,9 @@ type userCode struct {
 	RasterURL string
 	PDFURL    string
 	GPUURL    string
+	RasterMod string
+	PDFMod    string
+	GPUMod    string
 	Width     int
 	Height    int
 	Source    int
@@ -662,7 +670,7 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 			hash = tries[len(tries)-1].Hash
 			code, width, height, source, _ = getCode(hash)
 		}
-		rasterURL, gpuURL, pdfURL := getOutputURLS(hash)
+		rasterURL, gpuURL, pdfURL, rasterMod, gpuMod, pdfMod := getOutputURLS(hash)
 
 		w.Header().Set("Content-Type", "text/html")
 		context := userCode{
@@ -672,6 +680,9 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 			RasterURL: rasterURL,
 			PDFURL:    pdfURL,
 			GPUURL:    gpuURL,
+			PDFMod:    pdfMod.Format(TIME_LAYOUT),
+			RasterMod: rasterMod.Format(TIME_LAYOUT),
+			GPUMod:    gpuMod.Format(TIME_LAYOUT),
 			Code:      code,
 			Name:      name,
 			Hash:      hash,
@@ -754,6 +765,9 @@ type TryInfo struct {
 	RasterImg string `json:"rasterImg"`
 	GPUImg    string `json:"gpuImg"`
 	PDFURL    string `json:"PDFURL"`
+	RasterMod string `json:"rasterMod"`
+	PDFMod    string `json:"pdfMod"`
+	GPUMod    string `json:"gpuMod"`
 }
 
 // tryInfoHandler returns information about a specific try.
@@ -782,7 +796,7 @@ func tryInfoHandler(w http.ResponseWriter, r *http.Request) {
 		Source: source,
 	}
 
-	rasterImg, gpuImg, pdfURL, err, errMsg := getOutputData(hash)
+	rasterImg, gpuImg, pdfURL, rasterMod, gpuMod, pdfMod, err, errMsg := getOutputData(hash)
 	if err != nil {
 		reportTryError(w, r, err, errMsg, hash)
 	}
@@ -790,6 +804,9 @@ func tryInfoHandler(w http.ResponseWriter, r *http.Request) {
 	m.RasterImg = rasterImg
 	m.GPUImg = gpuImg
 	m.PDFURL = pdfURL
+	m.RasterMod = rasterMod.Format(TIME_LAYOUT)
+	m.GPUMod = gpuMod.Format(TIME_LAYOUT)
+	m.PDFMod = pdfMod.Format(TIME_LAYOUT)
 
 	resp, err := json.Marshal(m)
 	if err != nil {
@@ -822,25 +839,31 @@ func getOutputPaths(hash string) (rasterPath, gpuPath, pdfPath string) {
 }
 
 // getOutputURLS returns the URLS of any existing output images for a given hash.
-func getOutputURLS(hash string) (rasterURL, gpuURL, pdfURL string) {
+func getOutputURLS(hash string) (rasterURL, gpuURL, pdfURL string, rasterMod, gpuMod, pdfMod time.Time) {
 
 	rasterPath, gpuPath, pdfPath := getOutputPaths(hash)
 
 	rasterURL = ""
 	pdfURL = ""
 	gpuURL = ""
+	rasterMod = time.Now()
+	gpuMod = time.Now()
+	pdfMod = time.Now()
 
 	// Check to see if there's already a PDF run of this hash
-	if _, err := os.Stat(pdfPath); err == nil {
+	if fi, err := os.Stat(pdfPath); err == nil {
 		pdfURL = "/i/" + hash + ".pdf"
+		pdfMod = fi.ModTime()
 	}
 	// Check to see if there's already a raster run of this hash
-	if _, err := os.Stat(rasterPath); err == nil {
+	if fi, err := os.Stat(rasterPath); err == nil {
 		rasterURL = "/i/" + hash + "_raster.png"
+		rasterMod = fi.ModTime()
 	}
 	// Check to see if there's already a GPU run of this hash
-	if _, err := os.Stat(gpuPath); err == nil {
+	if fi, err := os.Stat(gpuPath); err == nil {
 		gpuURL = "/i/" + hash + "_gpu.png"
+		gpuMod = fi.ModTime()
 	}
 	return
 }
@@ -848,38 +871,38 @@ func getOutputURLS(hash string) (rasterURL, gpuURL, pdfURL string) {
 // getOutputData reads any existing output files and encodes their data as
 // base64 (for json marshalling).  The PDF is still returned as a URL.
 
-func getOutputData(hash string) (rasterImg, gpuImg, pdfURL string, e error, errMsg string) {
+func getOutputData(hash string) (rasterImg, gpuImg, pdfURL string, rasterMod, gpuMod, pdfMod time.Time, e error, errMsg string) {
 	rasterPath, gpuPath, pdfPath := getOutputPaths(hash)
 
-	if _, err := os.Stat(rasterPath); err == nil {
+	if fi, err := os.Stat(rasterPath); err == nil {
 		png, err := ioutil.ReadFile(rasterPath)
 		if err != nil {
 			e = err
 			errMsg = "Failed to open the raster-generated PNG."
 			return
 		}
-
+		rasterMod = fi.ModTime()
 		rasterImg = base64.StdEncoding.EncodeToString([]byte(png))
 	}
 
-	if _, err := os.Stat(gpuPath); err == nil {
+	if fi, err := os.Stat(gpuPath); err == nil {
 		png, err := ioutil.ReadFile(gpuPath)
 		if err != nil {
 			e = err
 			errMsg = "Failed to open the GPU-generated PNG."
 			return
 		}
-
+		gpuMod = fi.ModTime()
 		gpuImg = base64.StdEncoding.EncodeToString([]byte(png))
 	}
 
-	if _, err := os.Stat(pdfPath); err == nil {
+	if fi, err := os.Stat(pdfPath); err == nil {
 		if _, err := os.Stat(pdfPath); os.IsNotExist(err) {
 			e = err
 			errMsg = "Failed to open the PDF output"
 			return
 		}
-
+		pdfMod = fi.ModTime()
 		pdfURL = "/i/" + hash + ".pdf"
 	}
 	e = nil
@@ -895,6 +918,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		rasterURL := ""
 		pdfURL := ""
 		gpuURL := ""
+		rasterMod := time.Now()
+		gpuMod := time.Now()
+		pdfMod := time.Now()
 
 		code := DEFAULT_SAMPLE
 		source := 0
@@ -915,8 +941,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			rasterURL, gpuURL, pdfURL = getOutputURLS(hash)
+			rasterURL, gpuURL, pdfURL, rasterMod, gpuMod, pdfMod = getOutputURLS(hash)
 		}
+
 		// Expand the template.
 		w.Header().Set("Content-Type", "text/html")
 		context := userCode{
@@ -924,6 +951,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			PDFURL:    pdfURL,
 			RasterURL: rasterURL,
 			GPUURL:    gpuURL,
+			PDFMod:    pdfMod.Format(TIME_LAYOUT),
+			RasterMod: rasterMod.Format(TIME_LAYOUT),
+			GPUMod:    gpuMod.Format(TIME_LAYOUT),
 			Hash:      hash,
 			Source:    source,
 			Embedded:  false,
@@ -1028,7 +1058,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			Hash: hash,
 		}
 
-		rasterImg, gpuImg, pdfURL, err, errMsg := getOutputData(hash)
+		rasterImg, gpuImg, pdfURL, rasterMod, gpuMod, pdfMod, err, errMsg := getOutputData(hash)
 		if err != nil {
 			reportTryError(w, r, err, errMsg, hash)
 		}
@@ -1036,6 +1066,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		m.RasterImg = rasterImg
 		m.GPUImg = gpuImg
 		m.PDFURL = pdfURL
+		m.RasterMod = rasterMod.Format(TIME_LAYOUT)
+		m.GPUMod = gpuMod.Format(TIME_LAYOUT)
+		m.PDFMod = pdfMod.Format(TIME_LAYOUT)
 
 		resp, err := json.Marshal(m)
 		if err != nil {
