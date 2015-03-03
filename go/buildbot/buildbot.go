@@ -47,6 +47,7 @@ type Build struct {
 	Started       float64 `db:"started"`
 	Finished      float64 `db:"finished"`
 	Comments      []*BuildComment
+	Repository    string `db:"repository"`
 }
 
 // BuildSlave contains information about a buildslave.
@@ -122,6 +123,18 @@ func (b *Build) branch() string {
 		return ""
 	}
 	return branch.([]interface{})[1].(string)
+}
+
+// Repository returns the repository whose commit(s) triggered this build.
+func (b *Build) repository() string {
+	repo := b.GetProperty("repository")
+	if repo == nil {
+		return ""
+	}
+	if repo.([]interface{})[1] == nil {
+		return ""
+	}
+	return repo.([]interface{})[1].(string)
 }
 
 // Finished indicates whether the build has finished.

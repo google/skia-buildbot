@@ -40,13 +40,15 @@ import (
 
 const (
 	DEFAULT_COMMITS_TO_LOAD = 50
+	SKIA_REPO               = "skia"
+	INFRA_REPO              = "infra"
 )
 
 var (
-	gitInfo         *gitinfo.GitInfo          = nil
-	commitCache     *commit_cache.CommitCache = nil
-	commitsTemplate *template.Template        = nil
-	dbClient        *influxdb.Client          = nil
+	commitCaches    map[string]*commit_cache.CommitCache = nil
+	commitsTemplate *template.Template                   = nil
+	infraTemplate   *template.Template                   = nil
+	dbClient        *influxdb.Client                     = nil
 )
 
 // flags
@@ -82,6 +84,10 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/commits.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
+	infraTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/infra.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
 }
 
 func Init() {
@@ -113,8 +119,24 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+func getCommitCache(w http.ResponseWriter, r *http.Request) (*commit_cache.CommitCache, error) {
+	repo, _ := mux.Vars(r)["repo"]
+	cache, ok := commitCaches[repo]
+	if !ok {
+		e := fmt.Sprintf("Unknown repo: %s", repo)
+		err := fmt.Errorf(e)
+		util.ReportError(w, r, err, e)
+		return nil, err
+	}
+	return cache, nil
+}
+
 func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	cache, err := getCommitCache(w, r)
+	if err != nil {
+		return
+	}
 	// Case 1: Requesting specific commit range by index.
 	startIdx, err := getIntParam("start", r)
 	if err != nil {
@@ -122,7 +144,7 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if startIdx != nil {
-		endIdx := commitCache.NumCommits()
+		endIdx := cache.NumCommits()
 		end, err := getIntParam("end", r)
 		if err != nil {
 			util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
@@ -131,7 +153,7 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		if end != nil {
 			endIdx = *end
 		}
-		if err := commitCache.RangeAsJson(w, *startIdx, endIdx); err != nil {
+		if err := cache.RangeAsJson(w, *startIdx, endIdx); err != nil {
 			util.ReportError(w, r, err, fmt.Sprintf("Failed to load commit range from cache: %v", err))
 			return
 		}
@@ -147,7 +169,7 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	if n != nil {
 		commitsToLoad = *n
 	}
-	if err := commitCache.LastNAsJson(w, commitsToLoad); err != nil {
+	if err := cache.LastNAsJson(w, commitsToLoad); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
 		return
 	}
@@ -159,6 +181,10 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	cache, err := getCommitCache(w, r)
+	if err != nil {
+		return
+	}
 	buildId, err := strconv.ParseInt(mux.Vars(r)["buildId"], 10, 32)
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Invalid build id: %v", err))
@@ -178,8 +204,8 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: float64(time.Now().UTC().Unix()),
 		Message:   comment.Comment,
 	}
-	cache := commitCache.BuildCache()
-	build, err := cache.Get(int(buildId))
+	buildCache := cache.BuildCache()
+	build, err := buildCache.Get(int(buildId))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
@@ -189,7 +215,7 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
-	if err := cache.Update(); err != nil {
+	if err := buildCache.Update(); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
@@ -201,6 +227,10 @@ func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	cache, err := getCommitCache(w, r)
+	if err != nil {
+		return
+	}
 	builder := mux.Vars(r)["builder"]
 
 	status := struct {
@@ -226,7 +256,7 @@ func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add builder status: %v", err))
 		return
 	}
-	if err := commitCache.BuildCache().Update(); err != nil {
+	if err := cache.BuildCache().Update(); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to refresh cache after adding status: %v", err))
 		return
 	}
@@ -273,6 +303,19 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func infraHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	if err := infraTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
 func makeHandler(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Path
@@ -290,9 +333,10 @@ func runServer(serverURL string) {
 	r.HandleFunc("/", makeHandler(commitsHandler))
 	builds := r.PathPrefix("/json/builds/{buildId:[0-9]+}").Subrouter()
 	builds.HandleFunc("/comments", makeHandler(addBuildCommentHandler)).Methods("POST")
+	r.HandleFunc("/infra", makeHandler(infraHandler))
 	builders := r.PathPrefix("/json/builders/{builder}").Subrouter()
 	builders.HandleFunc("/status", makeHandler(addBuilderStatusHandler)).Methods("POST")
-	commits := r.PathPrefix("/json/commits").Subrouter()
+	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
 	commits.HandleFunc("/", makeHandler(commitsJsonHandler))
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", makeHandler(addCommitCommentHandler)).Methods("POST")
 	r.HandleFunc("/json/version", makeHandler(skiaversion.JsonHandler))
@@ -343,10 +387,17 @@ func main() {
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
 
-	gitInfo, err = gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", path.Join(*workdir, "skia"), true)
+	// Check out source code.
+	skiaRepo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", path.Join(*workdir, "skia"), true)
 	if err != nil {
 		glog.Fatalf("Failed to check out Skia: %v", err)
 	}
+
+	infraRepo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/buildbot.git", path.Join(*workdir, "infra"), true)
+	if err != nil {
+		glog.Fatalf("Failed to checkout Infra: %v", err)
+	}
+
 	glog.Info("CloneOrUpdate complete")
 
 	// Initialize the buildbot database.
@@ -359,11 +410,20 @@ func main() {
 	}
 	glog.Infof("Database config: %s", conf.MySQLString)
 
-	// Create the commit cache.
-	commitCache, err = commit_cache.New(gitInfo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD)
+	// Create the commit caches.
+	commitCaches = map[string]*commit_cache.CommitCache{}
+	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
+	commitCaches[SKIA_REPO] = skiaCache
+
+	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD)
+	if err != nil {
+		glog.Fatalf("Failed to create commit cache: %v", err)
+	}
+	commitCaches[INFRA_REPO] = infraCache
 	glog.Info("commit_cache complete")
+
 	runServer(serverURL)
 }

@@ -173,6 +173,14 @@ var v4_down = []string{
 	`DROP TABLE buildComments;`,
 }
 
+var v5_up = []string{
+	`ALTER TABLE builds2 ADD COLUMN repository VARCHAR(100) NOT NULL DEFAULT 'https://skia.googlesource.com/skia.git';`,
+}
+
+var v5_down = []string{
+	`ALTER TABLE builds2 DROP COLUMN repository;`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -196,6 +204,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v4_up,
 		MySQLDown: v4_down,
+	},
+	// version 5. Add repository column to buildRevisions2.
+	{
+		MySQLUp:   v5_up,
+		MySQLDown: v5_down,
 	},
 }
 

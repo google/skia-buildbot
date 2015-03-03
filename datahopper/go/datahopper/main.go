@@ -7,7 +7,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"path"
 	"regexp"
 	"time"
 
@@ -17,7 +16,6 @@ import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
-	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/influxdb"
 )
 
@@ -69,21 +67,7 @@ func main() {
 	// AutoRoll data.
 	go autoroll.IngestAutoRollData(dbClient, *workdir)
 	// Buildbot data ingestion.
-	go func() {
-		// Create the Git repo.
-		skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "buildbot_git", "skia"), true)
-		if err != nil {
-			glog.Fatal(err)
-		}
-		// Ingest data in a loop.
-		for _ = range time.Tick(30 * time.Second) {
-			skiaRepo.Update(true, true)
-			glog.Info("Ingesting builds.")
-			if err := buildbot.IngestNewBuilds(skiaRepo); err != nil {
-				glog.Errorf("Failed to ingest new builds: %v", err)
-			}
-		}
-	}()
+	go buildbot.IngestNewBuildsLoop(*workdir)
 
 	// Measure buildbot data ingestion progress.
 	totalGuage := metrics.GetOrRegisterGauge("buildbot.builds.total", metrics.DefaultRegistry)

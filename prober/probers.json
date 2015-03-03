@@ -73,7 +73,7 @@
      "mimetype": ""
    },
    "skiacommits_json": {
-     "url": "https://status.skia.org/json/commits",
+     "url": "https://status.skia.org/json/skia/commits",
      "method": "GET",
      "expected": [200],
      "body": "",

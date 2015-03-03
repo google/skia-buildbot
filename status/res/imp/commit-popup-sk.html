@@ -16,6 +16,7 @@
 
   Properties:
     commit: The details for a commit.
+    repo: The name (not the URL) of the repository of the commit.
 -->
 <polymer-element name="commit-popup-sk">
   <template>
@@ -39,13 +40,17 @@
     <h3 id="commitSubject"></h3>
     <p id="commitBody"></p>
     <hr/>
-    <comments-sk comments="{{commit.comments}}" addCommentUrl="/json/commits/{{commit.hash}}/comments" on-submit="{{commentAdded}}"></comments-sk>
+    <comments-sk comments="{{commit.comments}}" addCommentUrl="/json/{{repo}}/commits/{{commit.hash}}/comments" on-submit="{{commentAdded}}"></comments-sk>
   </template>
   <script>
     Polymer({
       publish: {
         commit: {
           value: null,
+          reflect: true,
+        },
+        repo: {
+          value: "skia",
           reflect: true,
         },
       },

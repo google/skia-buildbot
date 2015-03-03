@@ -15,7 +15,10 @@
     <commits-sk></commits-sk>
 
   Properties:
+    builderFilter: Which builders to show. One of:
+        [hide, interesting, failures, all]
     reload: How often (in seconds) to reload alert data.
+    repo: Name of the repository.
 
   Methods:
     setAutoRollStatus(status): Update the commits-sk with the status of
@@ -205,7 +208,7 @@
               <template if="{{numBuilders > 0}}">
                 <tr><th class="category"></th></tr>
                 <tr><th class="subcategory"></th></tr>
-                <tr class="builder"><td class="build"></td></tr>
+                <tr class="builder"><td></td></tr>
               </template>
             </thead>
             <tbody>
@@ -569,6 +572,14 @@
           value: 60,
           reflect: true,
         },
+        repo: {
+          value: "skia",
+          reflect: true,
+        },
+        builderFilter: {
+          value: "interesting",
+          reflect: true,
+        },
       },
 
       created: function() {
@@ -579,7 +590,6 @@
         this.branchHeads = [];
         this.builderCategories = {};
         this.builderCategoryList = [];
-        this.builderFilter = "interesting";
         this.builderWidth = "5px";
         this.builds = {};
         this.buildDetails = {};
@@ -593,7 +603,6 @@
         this.startIdx = null;
         this.endIdx = null;
         this.timeout = null;
-        this.reloadCommits();
         var that = this;
         sk.Login.then(function(status) {
           var email = status['Email'];
@@ -605,6 +614,10 @@
         window.addEventListener("resize", function() {
           that.draw();
         }, true);
+      },
+
+      ready: function() {
+        this.reloadCommits();
       },
 
       builderFilterChanged: function() {
@@ -797,6 +810,7 @@
           this.$.infoDialog.innerHTML = "";
           var commitInfo = document.createElement("commit-popup-sk");
           commitInfo.commit = commit;
+          commitInfo.repo = this.repo;
           this.$.infoDialog.appendChild(commitInfo);
           this.$.infoDialog.toggle();
         }
@@ -812,7 +826,7 @@
           this.$.loading.style.display = "block";
           this.$.loading.active = true;
         }
-        var url = "/json/commits/";
+        var url = "/json/" + this.repo + "/commits/";
 	if (startIdx) {
           url += "?start=" + startIdx;
           if (endIdx) {
@@ -1013,8 +1027,7 @@
 
         // Get the build table width.
         var windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        this.buildTableWidth = windowWidth - w - this.authorWidth - this.commentIndicatorWidth;
-        console.log("Done drawing.");
+        this.buildTableWidth = windowWidth - w - this.authorWidth - this.commentIndicatorWidth - 25;
       },
 
       setBuilderWidth: function() {

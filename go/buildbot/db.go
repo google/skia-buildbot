@@ -23,6 +23,7 @@ type buildFromDB struct {
 	Started     sql.NullFloat64 `db:"started"`
 	Finished    sql.NullFloat64 `db:"finished"`
 	Properties  sql.NullString  `db:"properties"`
+	Repository  string          `db:"repository"`
 }
 
 func (b buildFromDB) toBuild() *Build {
@@ -38,6 +39,7 @@ func (b buildFromDB) toBuild() *Build {
 		Started:       b.Started.Float64,
 		Finished:      b.Finished.Float64,
 		PropertiesStr: b.Properties.String,
+		Repository:    b.Repository,
 	}
 }
 
@@ -424,7 +426,7 @@ func (b *Build) replaceIntoDB() (rv error) {
 		}
 	}()
 
-	res, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (builder,master,number,results,gotRevision,buildslave,started,finished,properties,branch) VALUES (?,?,?,?,?,?,?,?,?,?);", TABLE_BUILDS), b.Builder, b.Master, b.Number, b.Results, b.GotRevision, b.BuildSlave, b.Started, b.Finished, b.PropertiesStr, b.Branch)
+	res, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (builder,master,number,results,gotRevision,buildslave,started,finished,properties,branch,repository) VALUES (?,?,?,?,?,?,?,?,?,?,?);", TABLE_BUILDS), b.Builder, b.Master, b.Number, b.Results, b.GotRevision, b.BuildSlave, b.Started, b.Finished, b.PropertiesStr, b.Branch, b.Repository)
 	if err != nil {
 		return fmt.Errorf("Failed to push build into database: %v", err)
 	}
