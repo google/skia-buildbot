@@ -130,6 +130,22 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// polyTestStatusHandler returns the status of the requested test.
+func polyTestStatusHandler(w http.ResponseWriter, r *http.Request) {
+	test := mux.Vars(r)["test"]
+	var summary *summary.Summary
+	var ok bool
+	if summary, ok = summaries.Get()[test]; !ok {
+		util.ReportError(w, r, fmt.Errorf("Unknown test: %q", test), "No summaries for test.")
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(summary); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
+	}
+}
+
 // polyIgnoresJSONHandler returns the current ignore rules in JSON format.
 func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")

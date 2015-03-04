@@ -1,0 +1,104 @@
+<!-- The <test-status-sk> custom element declaration.
+
+Displays the current status of a single test. Updates
+itself periodically.
+
+The request is sent to /2/_/status/{test} and the expected
+response is a JSON serialized summary.Summary.
+
+  Attributes:
+    test - The name of the test to display the status of.
+
+  Events:
+
+  Methods:
+    kick - Call when you expect the status to change soon, this will
+      start a short lived faster poll for the status, after which
+      it will revert to the normal polling cycle.
+-->
+<polymer-element name="test-status-sk" attributes="test">
+  <template>
+    <style type="text/css" media="screen">
+      span {
+        font-weight: bold;
+        margin-right: 1.5em;
+      }
+
+      .name {
+        color: #7570B3;
+      }
+
+      .pos {
+        color: #1B9E77;
+      }
+
+      .neg {
+        color: #E7298A;
+      }
+
+      .unt {
+        color: #A6761D;
+      }
+
+      .diam {
+        color: #666666;
+      }
+    </style>
+    <div>
+      <span class=name>Name: {{summary.name}}</span>
+      <span class=pos>Pos: {{summary.pos}}</span>
+      <span class=neg>Neg: {{summary.neg}}</span>
+      <span class=unt>Unt: {{summary.untriaged}}</span>
+      <span class=diam>Diameter: {{summary.diameter}}</span>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        test: {
+          value: "",
+          reflect: true,
+        }
+      },
+
+      ready: function() {
+        this.summary = {};
+
+        // The ID of the interval timer we run in response to a kick.
+        this.kickId = null;
+
+        // The number of times we have run the kick timer.
+        this.kickCount = 0;
+
+        setInterval(this.refresh.bind(this), 10000);
+      },
+
+      kick: function() {
+        if (this.kickId == null) {
+          this.kickCount = 5;
+          this.kickId = setInterval(this.refresh.bind(this), 200);
+        }
+      },
+
+      testChanged: function() {
+        this.refresh();
+      },
+
+      refresh: function() {
+        if (this.kickCount > 0) {
+          this.kickCount -= 1;
+        }
+        var that = this;
+        if (this.test) {
+          sk.get("/2/_/status/"+this.test).then(JSON.parse).then(function(json){
+            that.summary = json;
+          });
+        }
+        if (this.kickId != null && this.kickCount == 0) {
+          clearInterval(this.kickId);
+          this.kickId = null;
+        }
+      }
+    });
+  </script>
+</polymer-element>

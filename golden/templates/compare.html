@@ -85,12 +85,18 @@
       #leftSummary {
         padding: 1em;
       }
+
+      test-status-sk {
+        display: block;
+        margin: 0.5em 0 1em 2em;
+      }
     </style>
   </head>
   <body>
     <scaffold-sk responsiveWidth="700px">
       {{template "titlebar.html" .}}
 
+      <test-status-sk></test-status-sk>
       <div id=page horizontal layout>
         <div vertical layout>
           <tri-sk id=leftFilter vert filter value=positive></tri-sk>
@@ -360,6 +366,7 @@
          sk.post('/2/_/triage', JSON.stringify(e.detail)).then(function(){
            $$$('grid-sk').markChanged(e.detail.digest);
            $$$('#refresh').classList.add('display');
+           $$$('test-status-sk').kick();
          }).catch(function(e) {
            $$$('paper-toast').text = e;
            $$$('paper-toast').show();
@@ -403,6 +410,7 @@
              include: include,
            };
            sk.post('/2/_/triage', JSON.stringify(request)).then(function(){
+             $$$('test-status-sk').kick();
              if (request.all) {
                loadGrid();
              } else {
@@ -434,6 +442,7 @@
 
        // Only kick off the action once the web components are ready.
        sk.WebComponentsReady.then(function() {
+         $$$('test-status-sk').test = state.test;
          loadGridFromURL();
 
          $$('sort-grid-sk').forEach(function(ele) {

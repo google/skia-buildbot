@@ -461,6 +461,7 @@ func main() {
 	router.HandleFunc("/2/_/test", polyTestHandler).Methods("POST")
 	router.HandleFunc("/2/_/details", polyDetailsHandler).Methods("GET")
 	router.HandleFunc("/2/_/triage", polyTriageHandler).Methods("POST")
+	router.HandleFunc("/2/_/status/{test}", polyTestStatusHandler).Methods("GET")
 
 	router.HandleFunc("/2/triagelog", polyTriageLogView).Methods("GET")
 	router.HandleFunc("/2/_/triagelog", polyTriageLogHandler).Methods("GET")
