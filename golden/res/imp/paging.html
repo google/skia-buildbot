@@ -1,0 +1,98 @@
+<!-- The <paging-sk> custom element declaration.
+
+Presents controls to paginate across pages of results.
+
+Attributes:
+
+  pagination: Usually returned from the server this is an object
+              with the following structure:
+
+              {
+                size: 10,
+                offset: 20,
+                total: 210
+              }
+              where size is the page size, offset is the offset
+              from the beginning (starting at 0) and total is
+              the total number of elements in the paginated
+              resource.
+
+  Events:
+
+      'pagechange'
+          The 'paging-sk' element emits this event when a user has
+          clicked on page other than the current one.
+          When the event is fired the offset field of the
+          shared pagination object has been updated to the
+          new value.
+-->
+
+<polymer-element name="paging-sk" attributes="pagination">
+  <template>
+    <style>
+    </style>
+    <template if="{{valid}}">
+      <div class="paginationControl" horizontal layout>
+          <paper-button on-click="{{toPageClicked}}" disabled?="{{ page == 0 }}" data-page="0">
+              First
+          </paper-button>
+          <paper-button on-click="{{toPageClicked}}" disabled?="{{ page == 0 }}" data-page="{{page-1}}">
+               <core-icon icon="image:navigate-before"></core-icon>
+          </paper-button>
+          <template repeat="{{n in enumPages}}">
+              <paper-button on-click="{{toPageClicked}}"
+                            disabled?="{{ n == page }}" data-page="{{n}}">{{n+1}}</paper-button>
+          </template>
+          <paper-button on-click="{{toPageClicked}}" disabled?="{{ page == (allPages-1) }}" data-page="{{page+1}}">
+               <core-icon icon="image:navigate-next"></core-icon>
+          </paper-button>
+          <paper-button on-click="{{toPageClicked}}" disabled?="{{ page == (allPages-1) }}"  data-page="{{allPages-1}}">
+               Last
+          </paper-button>
+          <paper-button on-click="{{toPageClicked}}" disabled>{{page+1}} / {{allPages}}</paper-button>
+      </div>
+
+    </template>
+  </template>
+  <script>
+    (function() {
+      var SHOW_PAGES = 5;
+      var SHOW_PAGES_OFFSET = Math.floor(SHOW_PAGES/2);
+
+
+      Polymer('paging-sk', {
+        ready: function () {
+          this.valid = false;
+        },
+
+        // paginationChanged primarily captures when the size and total change.
+        paginationChanged: function(oldVal, newVal) {
+          this.allPages = Math.ceil(newVal.total / newVal.size);
+          this.update();
+        },
+
+        // toPageClicked is called when a user clicks on a page link.
+        toPageClicked: function(event, detail, target) {
+          var targetPage = parseInt(target.attributes['data-page'].value);
+          this.pagination.offset = targetPage * this.pagination.size;
+          this.update();
+          this.fire('pagechange', {});
+        },
+
+        // update recalculates the number of pages and page we are currently on.
+        update: function() {
+          // Calculate the current page and the pages to show on the selection.
+          this.page = Math.floor(this.pagination.offset/this.pagination.size);
+          var start = Math.max(Math.min(this.page - SHOW_PAGES_OFFSET, this.allPages-SHOW_PAGES), 0);
+          var end = Math.min(start + SHOW_PAGES - 1, this.allPages-1);
+          this.enumPages = [];
+          for(var i=start; i <= end; i++) {
+            this.enumPages.push(i);
+          }
+          this.valid = true;
+        }
+      });
+
+    })();
+  </script>
+</polymer-element>

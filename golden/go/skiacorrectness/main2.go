@@ -38,6 +38,9 @@ var (
 
 	// helpTemplate is the help page.
 	helpTemplate *template.Template = nil
+
+	// triageLogTemplate renders the triage changes listing.
+	triageLogTemplate *template.Template = nil
 )
 
 // polyMainHandler is the main page for the Polymer based frontend.
@@ -77,6 +80,12 @@ func loadTemplates() {
 
 	helpTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/help.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+
+	triageLogTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/triagelog.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -279,6 +288,77 @@ func polyCompareHandler(w http.ResponseWriter, r *http.Request) {
 	if err := compareTemplate.Execute(w, struct{}{}); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
+}
+
+// polyTriageLogView is for serving the main triage log page.
+func polyTriageLogView(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Poly Triagelog Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if err := triageLogTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// TODO(stephana): Refactor when moving to actual log entries.
+type GUITriageLogEntry struct {
+	Name        string `json:"name"`
+	TS          int64  `json:"ts"`
+	ChangeCount int    `json:"changeCount"`
+}
+
+// polyTriageLogHandler returns the entries in the triagelog paginated
+// in reverse chronological order.
+func polyTriageLogHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO(stephana): Replace the mock data below with the actual triage log
+	// data.
+	logEntries := make([]interface{}, 100)
+	defaultSize := 10
+	maxSize := 20
+
+	now := time.Now()
+	for idx := range logEntries {
+		logEntries[idx] = &GUITriageLogEntry{
+			Name:        fmt.Sprintf("John Doe %d", idx),
+			TS:          now.Add(time.Duration(idx) * time.Minute).Unix(),
+			ChangeCount: 10 + idx,
+		}
+	}
+
+	total := len(logEntries)
+	var size int
+	var offset int
+	var err error
+	query := r.URL.Query()
+	size, err = strconv.Atoi(query.Get("size"))
+	if err != nil {
+		size = defaultSize
+	}
+	offset, err = strconv.Atoi(query.Get("offset"))
+	if err != nil {
+		offset = 0
+	}
+
+	if size < 1 {
+		size = 1
+	} else if size > maxSize {
+		size = maxSize
+	}
+
+	if (offset < 0) || (offset >= total) {
+		offset = 0
+	}
+
+	result := logEntries[offset : offset+size]
+	pagination := &ResponsePagination{
+		Offset: offset,
+		Size:   size,
+		Total:  total,
+	}
+
+	sendResponse(w, result, http.StatusOK, pagination)
 }
 
 // PolyTestRequest is the POST'd request body handled by polyTestHandler.

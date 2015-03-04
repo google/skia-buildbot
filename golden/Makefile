@@ -68,6 +68,6 @@ release: web skiacorrectness correctness_migratedb
 	./build_release "$(MESSAGE)"
 
 .PHONY: all
-all: skiacorrectness correctness_migratedb web
+all: skiacorrectness correctness_migratedb
 
 include ../webtools/webtools.mk

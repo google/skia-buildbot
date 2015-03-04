@@ -1,0 +1,93 @@
+
+
+<polymer-element name="triagelog-sk">
+  <template>
+    <style>
+
+    .nameHeader, .dateTimeHeader, .changesHeader {
+      font-weight: bold;
+    }
+
+    .nameHeader, .nameValue {
+    	width: 30em;
+    }
+
+    .dateTimeHeader, .dateTimeValue {
+    	width: 30em;
+    }
+
+    .changesHeader, .changesValue {
+      width: 20em;
+    }
+
+    .headerContainer {
+      padding-top: 2em;
+    }
+
+    .tableRow {
+      display: flex;
+      flex-direction: row;
+      padding-bottom: .5em;
+    }
+
+    </style>
+
+    <paging-sk pagination="{{pagination}}" on-pagechange="{{pageChangedHandler}}"></paging-sk>
+
+    <div class="tableRow headerContainer">
+       <div class="dateTimeHeader">Date/Time</div>
+       <div class="nameHeader">Name</div>
+       <div class="changesHeader">#Changes</div>
+    </div>
+
+    <div vertical layout>
+    	<template repeat="{{entry in logEntries}}">
+        <div class="tableRow">
+          <div class="dateTimeValue">{{entry.ts}}</div>
+          <div class="nameValue">{{entry.name}}</div>
+          <div class="changesValue">{{entry.changeCount}}</div>
+        </div>
+    	</template>
+    </div>
+	<paper-toast id="toast" duration="15000">
+    <div class="retryLink" on-tap="{{reload}}">Reload</div>
+  </paper-toast>
+
+
+  </template>
+  <script>
+  	Polymer('triagelog-sk', {
+  		ready: function() {
+        var that = this;
+        this.pagination = null;
+
+        // Set up the paging change handler and load the data.
+        this.pageChangedHandler = this.reload.bind(this);
+        this.reload();
+  		},
+
+      // Load or reload the listing.
+      reload: function() {
+        var that = this;
+        var URL = '/2/_/triagelog';
+        if (this.pagination !== null) {
+          URL += '?' + sk.query.fromObject({
+            offset: this.pagination.offset,
+            size: this.paginationsize,
+          });
+        }
+
+        sk.get(URL).then(JSON.parse).then(function(json) {
+              that.logEntries = json.data;
+              that.pagination = json.pagination;
+          }).catch(function(errorMessage) {
+              console.log("ERROR:", errorMessage);
+              var t = that.$.toast;
+              t.text = errorMessage;
+              t.show();
+          });
+      }
+  	});
+  </script>
+</polymer-element>
+

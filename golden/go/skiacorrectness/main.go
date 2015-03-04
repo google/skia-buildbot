@@ -64,9 +64,16 @@ const (
 // ResponseEnvelope wraps all responses. Some fields might be empty depending
 // on context or whether there was an error or not.
 type ResponseEnvelope struct {
-	Data   *interface{} `json:"data"`
-	Err    *string      `json:"err"`
-	Status int          `json:"status"`
+	Data       *interface{}        `json:"data"`
+	Err        *string             `json:"err"`
+	Status     int                 `json:"status"`
+	Pagination *ResponsePagination `json:"pagination"`
+}
+
+type ResponsePagination struct {
+	Offset int `json:"offset"`
+	Size   int `json:"size"`
+	Total  int `json:"total"`
 }
 
 var (
@@ -92,7 +99,7 @@ func tileCountsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendResponse(w, result, http.StatusOK)
+	sendResponse(w, result, http.StatusOK, nil)
 }
 
 func listTestDetailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +109,7 @@ func listTestDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	sendResponse(w, result, http.StatusOK)
+	sendResponse(w, result, http.StatusOK, nil)
 }
 
 // testDetailsHandler returns sufficient information about the given
@@ -115,7 +122,7 @@ func testDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	sendResponse(w, result, http.StatusOK)
+	sendResponse(w, result, http.StatusOK, nil)
 }
 
 // triageDigestsHandler handles triaging digests. It requires the user
@@ -146,33 +153,33 @@ func triageDigestsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendResponse(w, result, http.StatusOK)
+	sendResponse(w, result, http.StatusOK, nil)
 }
 
 // blameHandler returns the blame list for the given test.
 func blameHandler(w http.ResponseWriter, r *http.Request) {
 	testName := mux.Vars(r)["testname"]
 	result := analyzer.GetBlameList(testName)
-	sendResponse(w, result, http.StatusOK)
+	sendResponse(w, result, http.StatusOK, nil)
 }
 
 // statusHandler returns the current status with respect to HEAD.
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	result := analyzer.GetStatus()
-	sendResponse(w, result, http.StatusOK)
+	sendResponse(w, result, http.StatusOK, nil)
 }
 
 // sendErrorResponse wraps an error in a response envelope and sends it to
 // the client.
 func sendErrorResponse(w http.ResponseWriter, errorMsg string, status int) {
-	resp := ResponseEnvelope{nil, &errorMsg, status}
+	resp := ResponseEnvelope{nil, &errorMsg, status, nil}
 	sendJson(w, &resp)
 }
 
 // sendResponse wraps the data of a succesful response in a response envelope
 // and sends it to the client.
-func sendResponse(w http.ResponseWriter, data interface{}, status int) {
-	resp := ResponseEnvelope{&data, nil, status}
+func sendResponse(w http.ResponseWriter, data interface{}, status int, pagination *ResponsePagination) {
+	resp := ResponseEnvelope{&data, nil, status, pagination}
 	sendJson(w, &resp)
 }
 
@@ -299,8 +306,15 @@ func main() {
 	// Setup DB flags.
 	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
 
+	// Get the hostname.
+	hostName, err := os.Hostname()
+	if err != nil {
+		glog.Fatalf("Unable to retrieve hostname: %s", err)
+	}
+	appName := hostName + ".skiacorrectness"
+
 	// Global init to initialize
-	common.InitWithMetrics("skiacorrectness", graphiteServer)
+	common.InitWithMetrics(appName, graphiteServer)
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
@@ -447,6 +461,9 @@ func main() {
 	router.HandleFunc("/2/_/test", polyTestHandler).Methods("POST")
 	router.HandleFunc("/2/_/details", polyDetailsHandler).Methods("GET")
 	router.HandleFunc("/2/_/triage", polyTriageHandler).Methods("POST")
+
+	router.HandleFunc("/2/triagelog", polyTriageLogView).Methods("GET")
+	router.HandleFunc("/2/_/triagelog", polyTriageLogHandler).Methods("GET")
 
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))
