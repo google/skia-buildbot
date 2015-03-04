@@ -17,6 +17,7 @@
   Properties:
     build: The details for a build.
     buildbotUrlPrefix: Prefix of the buildbot URL.
+    repo: The name (not the URL) of the repository of the commit.
 -->
 <polymer-element name="builder-popup-sk">
   <template>
@@ -43,7 +44,7 @@
     </table>
     <hr/>
     Status:<br/>
-    <comments-sk comments="{{[builder]}}" addCommentUrl="/json/builders/{{builder.builder}}/status" on-submit="{{commentAdded}}" allowEmptyComments>
+    <comments-sk comments="{{[builder]}}" addCommentUrl="/json/{{repo}}/builders/{{builder.builder}}/status" on-submit="{{commentAdded}}" allowEmptyComments>
       <paper-checkbox id="flaky" label="Flaky" checked?="{{builder.flaky}}" disabled?="{{!editRights}}"></paper-checkbox>
       <paper-checkbox id="ignoreFailure" label="Ignore Failure" checked?="{{builder.ignoreFailure}}" disabled?="{{!editRights}}"></paper-checkbox>
     </comments-sk>
@@ -57,6 +58,10 @@
         },
         buildbotUrlPrefix: {
           value: "https://build.chromium.org/p",
+          reflect: true,
+        },
+        repo: {
+          value: "skia",
           reflect: true,
         },
       },

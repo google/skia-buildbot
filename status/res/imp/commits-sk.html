@@ -304,7 +304,7 @@
                                on-click="{{openBuildPopup}}"
                                style="background-color: {{buildDetails[commit.hash][builder].color}};"
                               >
-                              <template if="{{buildDetails[commit.hash][builder].comments && buildDetails[commit.hash][builder].comments.length > 0 && commit.displayClass[builder] == 'build_top'}}">
+                              <template if="{{buildDetails[commit.hash][builder].comments && buildDetails[commit.hash][builder].comments.length > 0 && (commit.displayClass[builder] == 'build_top' || commit.displayClass[builder] == 'build_single')}}">
                                 <core-icon class="tiny" icon="communication:chat" alt="There are comments on this build." style="margin-top: 5px;"></core-icon>
                               </template>
                             </a>
@@ -771,6 +771,7 @@
           var buildInfo = document.createElement("build-popup-sk");
           buildInfo.build = build;
           buildInfo.buildbotUrlPrefix = this.buildbotUrlPrefix;
+          buildInfo.repo = this.repo;
           this.$.infoDialog.appendChild(buildInfo);
           this.$.infoDialog.toggle();
         }
@@ -791,6 +792,7 @@
           var builderInfo = document.createElement("builder-popup-sk");
           builderInfo.builder = this.allBuilders[builder];
           builderInfo.buildbotUrlPrefix = this.buildbotUrlPrefix;
+          builderInfo.repo = this.repo;
           this.$.infoDialog.appendChild(builderInfo);
           this.$.infoDialog.toggle();
         }
