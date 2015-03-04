@@ -171,8 +171,8 @@
        // The current state of the page.
        var state = {
          test:               testName,
-         topFilter:          "untriaged",
-         leftFilter:         "positive",
+         topFilter:          "positive",
+         leftFilter:         "untriaged",
          topQuery:           "",
          leftQuery:          "",
          topIncludeIgnores:  true,
@@ -268,10 +268,14 @@
        });
 
        $$$('#queryTopButton').addEventListener('click', function() {
+         $$$('#queryTopDialog').query = state.topQuery;
+         $$$('#queryTopDialog').include = state.topIncludeIgnores;
          $$$('#queryTopDialog').open();
        });
 
        $$$('#queryLeftButton').addEventListener('click', function() {
+         $$$('#queryLeftDialog').query = state.leftQuery;
+         $$$('#queryLeftDialog').include = state.leftIncludeIgnores;
          $$$('#queryLeftDialog').open('left');
        });
 

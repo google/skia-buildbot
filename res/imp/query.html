@@ -24,6 +24,8 @@
   Methods:
     setParamSet(set): Set the params to be displayed.
     clearSelections(): Clear all selections.
+    setSelections(sel): Set the current selections. Must be called after
+      setParamSet.
 
   Events:
     'change'
@@ -195,6 +197,20 @@
               }
           });
           return sel.join('&')
+        },
+
+        // Selects all the values in paramset.
+        //
+        // The argument is a URL query encoded paramset.
+        setSelections: function(paramset) {
+          paramset = sk.query.toParamSet(paramset);
+          this.clearSelections();
+          $$('core-selector', this.$.inputs).forEach(function(sel) {
+            sel.selected = paramset[sel.dataset.name] || null;
+          });
+          $$('core-selector', this.$.more).forEach(function(sel) {
+            sel.selected = paramset[sel.dataset.name] || null;
+          });
         },
 
         // When paramset is changed we rebuild primary and secondary.

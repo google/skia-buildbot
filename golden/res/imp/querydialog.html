@@ -6,6 +6,7 @@ a query string.
 
   Attributes:
     query - The current selections as a query string.
+    include - True if ignored items should be included.
     src   - URL to load the paramset from. The endpoint must respond
             to a GET with a JSON encoded map[string][]string.
   Events:
@@ -41,7 +42,7 @@ a query string.
       }
     </style>
     <div id=dialog>
-      <p><paper-checkbox id=ignore checked></paper-checkbox> Include ignored digests.</p>
+      <p><paper-checkbox id=ignore checked?="{{include}}"></paper-checkbox> Include ignored digests.</p>
       <query-sk id=q whiteList="[]" hideCount></query-sk>
       <div horizontal layout end-justified>
         <paper-button id=cancel>Cancel</paper-button>
@@ -54,6 +55,10 @@ a query string.
       published: {
         'query': {
           value: '',
+          reflect: true,
+        },
+        'include': {
+          value: true,
           reflect: true,
         },
         'src': {
@@ -85,6 +90,7 @@ a query string.
       },
 
       open: function() {
+        this.$.q.setSelections(this.query);
         this.$.dialog.style.display = 'block';
       },
 

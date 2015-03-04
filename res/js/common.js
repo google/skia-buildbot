@@ -239,6 +239,7 @@ this.sk = this.sk || function() {
   //
   // This function handles URI decoding of both keys and values.
   sk.query.toParamSet = function(s) {
+    s = s || '';
     var ret = {};
     var vars = s.split("&");
     for (var i=0; i<vars.length; i++) {

@@ -38,6 +38,7 @@ describe('Test sk encoding and decoding functions.',
     }
 
     function testDecodeToParamSet() {
+      assert.deepEqual(sk.query.toParamSet(),{});
       assert.deepEqual(sk.query.toParamSet(""),{});
       assert.deepEqual(sk.query.toParamSet("a=2"),{a: ["2"]});
       assert.deepEqual(sk.query.toParamSet("a=2&a=3"),{a: ["2", "3"]});
