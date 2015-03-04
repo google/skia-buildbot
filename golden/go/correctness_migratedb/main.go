@@ -14,6 +14,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/golden/go/db"
 )
 
@@ -29,8 +30,13 @@ func main() {
 	// Global init to initialize glog and parse arguments.
 	common.Init()
 
+	v, err := skiaversion.GetVersion()
+	if err != nil {
+		glog.Fatalf("Unable to retrieve version: %s", err)
+	}
+	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+
 	var conf *database.DatabaseConfig
-	var err error
 	var password string
 
 	// TODO(stephana): The code to prompt for the password should be

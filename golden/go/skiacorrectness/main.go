@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/redisutil"
+	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/analysis"
@@ -301,6 +302,12 @@ func main() {
 	// Global init to initialize
 	common.InitWithMetrics("skiacorrectness", graphiteServer)
 
+	v, err := skiaversion.GetVersion()
+	if err != nil {
+		glog.Fatalf("Unable to retrieve version: %s", err)
+	}
+	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+
 	// Enable the memory profiler if memProfile was set.
 	// TODO(stephana): This should be moved to a HTTP endpoint that
 	// only responds to internal IP addresses/ports.
@@ -368,7 +375,6 @@ func main() {
 	}
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	var err error
 	diffStore, err = filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, cacheFactory, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
 	if err != nil {
 		glog.Fatalf("Allocating DiffStore failed: %s", err)
