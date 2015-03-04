@@ -136,13 +136,6 @@
      "body": "",
      "mimetype": ""
    },
-   "skiatestingblogs": {
-     "url": "http://skia-testing-b:10114",
-     "method": "GET",
-     "expected": [401],
-     "body": "",
-     "mimetype": ""
-   },
    "skiawebtrylogs": {
      "url": "http://skia-webtry-b:10114",
      "method": "GET",

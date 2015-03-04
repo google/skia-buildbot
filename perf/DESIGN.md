@@ -24,19 +24,16 @@ The frontend is available at http://skiaperf.com.
                                          
                +-------------+             
                |             |             
-               |   Browser   |             
+               |   SKFE      |             
                |             |             
                |             |             
                |             |             
                +----------^--+             
                           |                
           +--------------------+----+-----+
-          |   GCE Instance|skia-testing-b |
+          |   GCE Instance| skia-perf     |
           |               |               |
-          |   +-----------+----------+    |
-          |   |         Nginx        |    |
-          |   |                      |    |
-          |   +--------^-------------+    |
+          |            ---+               |
           |            |                  |
           | +----------+-------------+    |
           | |        Perf (Go)       |    |
@@ -184,7 +181,7 @@ MySQL Flags to set:
 
 All passwords for MySQL are stored in valentine (search "skiaperf").
 
-To connect to the database from authorized network (including skia-testing-b
+To connect to the database from authorized network (including skia-perf
 GCE):
 
     $ mysql -h 173.194.104.24 -u root -p
@@ -208,27 +205,18 @@ Initial setup of the database, the users, and the tables:
 
 * Create the versioned database tables.
 
-  We use the 'migratedb' tool to keep the database in a well defined (versioned)
+  We use the 'perf_migratedb' tool to keep the database in a well defined (versioned)
   state. The db_host, db_port, db_user, and db_name flags allow you to specify
   the target database. By default it will try to connect to the production
   environment. But for testing a local MySQL database can be provided.
 
   Bring the production database to the latest schema version:
 
-     $ migratedb -logtostderr=true
+     $ perf_migratedb -logtostderr=true
 
   Bring a local database to the latest schema version:
 
      $ perf_migratedb -logtostderr=true -db_host=localhost --local
-
-
-Nginx
------
-
-Nginx acts as a proxy to the backend app, which is configured to run on port
-8000, and serves the app on port 443 (HTTPS). Port 80 just redirects to 443.
-The config for the nginx server is held in setup/sys/perf_nginx, which is copied
-into place during installation. Nginx is monitored and kept running by monit.
 
 
 Clustering
@@ -451,7 +439,10 @@ diffs on common traces.
 
 Startup and config
 ------------------
-The server is started and stopped via:
+Running skia perf is done via push. See ../push for more details.
+
+You can always ssh into the server and start and stop the applications. The
+server is started and stopped via:
 
     sudo /etc/init.d/skiaperf [start|stop|restart]
 
