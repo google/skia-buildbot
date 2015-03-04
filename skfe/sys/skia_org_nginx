@@ -46,7 +46,7 @@ server {
     }
 
     location / {
-        proxy_pass http://skia-testing-b:8000;
+        proxy_pass http://skia-perf:8000;
     }
 }
 server {
