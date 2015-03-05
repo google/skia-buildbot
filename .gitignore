@@ -51,6 +51,7 @@ perf/res/vul
 perf/res/common
 perf/third_party
 perf/timestamp.json
+perf/local.toml
 monitoring/autoroll_git
 monitoring/google_email_token.data
 monitoring/node_modules
