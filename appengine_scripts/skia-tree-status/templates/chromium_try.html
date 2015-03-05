@@ -8,13 +8,15 @@
 <h2>Test performance of Chromium/Blink/Skia patches on the top 10k webpages</h2>
 <br/>
 
+Read <a href="https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.lgvqzgu7bc4d">this</a> for an explanation of CT's accuracy of results.
+<br/>
 {{ pending_tasks_count }} tasks currently in the <a align="center" href='pending_tasks'>Queue</a>
 <br/>
 <a href="javascript:toggleDetails();">Show/hide run details</a>
 <script type="text/javascript">
   function toggleDetails() {
     var details = ["benchmark_details", "variance_details", "outliers_details",
-                   "repeated_runs", "browser_args_1_id", "browser_args_2_id"];
+                   "browser_args_1_id", "browser_args_2_id"];
     for (var i=0; i<details.length; i++) {
       if (document.getElementById(details[i]).style.display == 'none') {
         document.getElementById(details[i]).style.display = '';
@@ -40,7 +42,6 @@
             <option value="{{ benchmark }}">{{ benchmark }}</option>
           {% endfor %}
         </select>
-        Uses the telemetry revision from this <a href='https://skia.googlesource.com/buildbot/+/master/DEPS'>DEPS</a> file.
       </td>
     </tr>
     <tr id="benchmark_details" style="display:none">
@@ -62,36 +63,12 @@
         <input type="text" size="100" name="browser_args_2" value=""/>
       </td>
     </tr>
-    <tr id="repeated_runs" style="display:none">
-      <td>Repeat Pageset Runs</td>
-      <td>
-        <select id="num_repeated_runs" name="num_repeated_runs">
-          <option value="1">1</option>
-          <option value="3" selected>3</option>
-          <option value="5">5</option>
-        </select>
-        Repeats each pageset and takes smallest values. More documentation is <a href='https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.rlyfe3y13j6m'>here</a>.
-      </td>
-    </tr>
-    <tr id="variance_details" style="display:none">
-      <td>Variance Threshold</td>
-      <td>
-        <input type="text" name="variance_threshold" size"5" value="5"/>
-        <a id="variance_threshold_info"></a>
-      </td>
-    </tr>
-    <tr id="outliers_details" style="display:none">
-      <td>Discard Outliers</td>
-      <td>
-        <input type="text" name="discard_outliers" size"5" value="0"/>
-      </td>
-    </tr>
     <tr>
       <td>Target Platform</td>
       <td>
         <select id="target_platform" name="target_platform" onchange="setPlatformDefaults(this);">
           <option value="Android">Android (100 N5 devices)</option>
-          <option value="Linux">Linux (100 Ubuntu12.04 machines)</option>
+          <option value="Linux" selected>Linux (100 Ubuntu12.04 machines)</option>
         </select>
         <a id="target_platform_info"></a>
       </td>
@@ -105,6 +82,30 @@
           {% endfor %}
         </select>
         <a id="pageset_type_info"></a>
+      </td>
+    </tr>
+    <tr id="repeated_runs">
+      <td>Repeat each page</td>
+      <td>
+        <select id="num_repeated_runs" name="num_repeated_runs">
+          <option value="1">1</option>
+          <option value="3" selected>3</option>
+          <option value="5">5</option>
+        </select>
+        times
+      </td>
+    </tr>
+    <tr id="variance_details" style="display:none">
+      <td>Variance Threshold</td>
+      <td>
+        <input type="text" name="variance_threshold" size"5" value="5"/>
+        <a id="variance_threshold_info"></a>
+      </td>
+    </tr>
+    <tr id="outliers_details" style="display:none">
+      <td>Discard Outliers</td>
+      <td>
+        <input type="text" name="discard_outliers" size"5" value="0"/>
       </td>
     </tr>
     <tr>
