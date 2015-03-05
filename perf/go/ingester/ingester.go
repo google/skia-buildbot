@@ -47,6 +47,40 @@ func Init(cl *http.Client) {
 	}
 }
 
+// constructor records the constructor function for each known ingester.
+// New ingesters should register their constructors by calling the RegisterIngester
+// function.
+type constructor struct {
+	name string
+	f    func() ResultIngester
+}
+
+// ingesters is the list of registered ingesters.
+var constructors []constructor
+
+// RegisterIngester registers an ingester for use.
+// Name is the name of the ingester to use; this need not match the name
+//   of the dataset being ingested.  This way a single dataset can have
+//   more than one possible ingester.
+// Constructor is the function to return the specific type of ingester.
+
+func Register(name string, f func() ResultIngester) {
+	constructors = append(constructors, constructor{name, f})
+}
+
+// IngesterConstructor searches all registered ingesters for one that matches
+// the given name, and returns its associated construction function.
+
+func Constructor(name string) func() ResultIngester {
+	for _, reg := range constructors {
+		if reg.name == name {
+			return reg.f
+		}
+	}
+	glog.Fatalf("Not a registered ingester name: %s", name)
+	return func() ResultIngester { return nil }
+}
+
 type Opener func() (io.ReadCloser, error)
 
 // ResultIngester needs to be implemented to ingest files. It allows to

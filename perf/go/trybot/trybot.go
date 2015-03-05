@@ -174,6 +174,8 @@ func init() {
 	if err != nil {
 		panic("Can't construct HTTP client")
 	}
+
+	ingester.Register("nano-trybot", NewTrybotResultIngester)
 }
 
 // TrybotResultIngester implements the ingester.ResultIngester interface.

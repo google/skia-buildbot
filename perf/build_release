@@ -27,6 +27,8 @@ ${INSTALL} --mode=644 ./templates/*                    ${ROOT}/usr/local/share/s
 ${INSTALL_DIR} --mode=755                              ${ROOT}/usr/local/share/skiaperf/res/imp
 ${INSTALL} --mode=644 ./res/imp/*.html                 ${ROOT}/usr/local/share/skiaperf/res/imp
 
+${INSTALL} --mode=644 ./perf_ingest.toml               ${ROOT}/usr/local/share/skiaperf/perf_ingest.toml
+
 ${INSTALL} --mode=644 ./res/css/perf.css               ${ROOT}/usr/local/share/skiaperf/res/css/perf.css
 ${INSTALL} --mode=644 ./res/img/favicon.ico            ${ROOT}/usr/local/share/skiaperf/res/img/favicon.ico
 ${INSTALL} --mode=644 ./res/js/core.js                 ${ROOT}/usr/local/share/skiaperf/res/js/core.js

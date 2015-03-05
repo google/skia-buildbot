@@ -255,6 +255,10 @@ func NewNanoBenchIngester() ResultIngester {
 	return NanoBenchIngester{}
 }
 
+func init() {
+	Register("nano", NewNanoBenchIngester)
+}
+
 // See the ingester.ResultIngester interface.
 func (i NanoBenchIngester) Ingest(tt *TileTracker, opener Opener, fname string, counter metrics.Counter) error {
 	r, err := opener()

@@ -7,36 +7,42 @@ package main
 import (
 	"flag"
 	"net/http"
-	"strings"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	cconfig "go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/db"
-	"go.skia.org/infra/perf/go/goldingester"
 	"go.skia.org/infra/perf/go/ingester"
-	"go.skia.org/infra/perf/go/trybot"
+	_ "go.skia.org/infra/perf/go/trybot"
 )
 
-// flags
 var (
-	tileDir        = flag.String("tile_dir", "/tmp/tileStore2/", "Path where tiles will be placed.")
-	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	runEvery       = flag.Duration("run_every", 5*time.Minute, "How often the ingester should pull data from Google Storage.")
-	runTrybotEvery = flag.Duration("run_trybot_every", 1*time.Minute, "How often the ingester to pull trybot data from Google Storage.")
-	run            = flag.String("run", "nano,nano-trybot,golden", "A comma separated list of ingesters to run.")
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	oauthCacheFile = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	nCommits       = flag.Int("n_commits", 100, "Minimum number of commits that should be ingested.")
-	minDays        = flag.Int("min_days", 7, "Minimum number of days that should be covered by the ingested commits.")
-	statusDir      = flag.String("status_dir", "/tmp/ingestStatusDir", "Path where the ingest process keeps its status between restarts.")
+	configFilename = flag.String("config_filename", "default.toml", "Config filename.")
 )
+
+type IngesterConfig struct {
+	RunEvery        cconfig.TomlDuration // How often the ingester should pull data from Google Storage.
+	RunTrybotEvery  cconfig.TomlDuration // How often the ingester to pull trybot data from Google Storage.
+	NCommits        int                  // Minimum number of commits that should be ingested.
+	MinDays         int                  // Minimum number of days that should be covered by the ingested commits.
+	StatusDir       string               // Path where the ingest process keeps its status between restarts.
+	MetricName      string               // What to call this ingester's data when imported to Graphite
+	ExtraParams     map[string]string    // Any additional needed parameters (ingester specific)
+	ConstructorName string               // Named constructor for this ingester; must have been registered.
+	//    If not provided, ConstructorName will default to the dataset name
+}
+
+type IngestConfig struct {
+	Common    cconfig.Common
+	Ingesters map[string]IngesterConfig
+}
+
+var config IngestConfig
 
 // ProcessStarter wraps a function to start an ingester.
 //
@@ -77,19 +83,26 @@ func main() {
 	// Setup DB flags.
 	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
 
-	common.InitWithMetrics("ingest", graphiteServer)
+	common.InitWithMetricsCB("ingest", func() string {
+		// Read toml config file.
+		if _, err := toml.DecodeFile(*configFilename, &config); err != nil {
+			glog.Fatalf("Failed to decode config file: %s", err)
+		}
+
+		return config.Common.GraphiteServer
+	})
 
 	// Initialize the database. We might not need the oauth dialog if it fails.
-	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+	conf, err := database.ConfigFromFlagsAndMetadata(config.Common.Local, db.MigrationSteps())
 	if err != nil {
 		glog.Fatal(err)
 	}
 	db.Init(conf)
 
 	var client *http.Client
-	if *doOauth {
-		config := auth.DefaultOAuthConfig(*oauthCacheFile)
-		client, err = auth.RunFlow(config)
+	if config.Common.DoOAuth {
+		oauthConfig := auth.DefaultOAuthConfig(config.Common.OAuthCacheFile)
+		client, err = auth.RunFlow(oauthConfig)
 		if err != nil {
 			glog.Fatalf("Failed to auth: %s", err)
 		}
@@ -100,28 +113,26 @@ func main() {
 
 	ingester.Init(client)
 
-	git, err := gitinfo.NewGitInfo(*gitRepoDir, true, false)
+	git, err := gitinfo.NewGitInfo(config.Common.GitRepoDir, true, false)
 	if err != nil {
 		glog.Fatalf("Failed loading Git info: %s\n", err)
 	}
 
-	// Get duration equivalent to the number of days.
-	minDuration := 24 * time.Hour * time.Duration(*minDays)
+	for dataset, ingesterConfig := range config.Ingesters {
+		// Get duration equivalent to the number of days.
+		minDuration := 24 * time.Hour * time.Duration(ingesterConfig.MinDays)
 
-	// ingesters is a list of all the types of ingestion we can do.
-	ingesters := map[string]ProcessStarter{
-		"nano":        NewIngestionProcess(git, *tileDir, config.DATASET_NANO, ingester.NewNanoBenchIngester(), "nano-json-v1", *runEvery, *nCommits, minDuration, *statusDir, "nano-ingest"),
-		"nano-trybot": NewIngestionProcess(git, *tileDir, config.DATASET_NANO_TRYBOT, trybot.NewTrybotResultIngester(), "trybot/nano-json-v1", *runTrybotEvery, *nCommits, minDuration, *statusDir, "nano-trybot"),
-		"golden":      NewIngestionProcess(git, *tileDir, config.DATASET_GOLDEN, goldingester.NewGoldIngester(), "dm-json-v1", *runEvery, *nCommits, minDuration, *statusDir, "golden-ingest"),
-	}
-
-	for _, name := range strings.Split(*run, ",") {
-		glog.Infof("Process name: %s", name)
-		if startProcess, ok := ingesters[name]; ok {
-			startProcess()
-		} else {
-			glog.Fatalf("Not a valid ingester name: %s", name)
+		constructorName := ingesterConfig.ConstructorName
+		if constructorName == "" {
+			constructorName = dataset
 		}
+
+		constructor := ingester.Constructor(constructorName)
+		resultIngester := constructor()
+
+		glog.Infof("Process name: %s", dataset)
+		startProcess := NewIngestionProcess(git, config.Common.TileDir, dataset, resultIngester, ingesterConfig.ExtraParams["GSDir"], ingesterConfig.RunEvery.Duration, ingesterConfig.NCommits, minDuration, ingesterConfig.StatusDir, ingesterConfig.MetricName)
+		startProcess()
 	}
 
 	select {}

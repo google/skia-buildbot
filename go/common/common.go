@@ -33,7 +33,7 @@ func Init() {
 func InitWithMetrics(appName string, graphiteServer *string) {
 	Init()
 
-	_ = startMetrics(appName, *graphiteServer)
+	_ = StartMetrics(appName, *graphiteServer)
 }
 
 // Get the graphite server from a callback function; useful when the graphite
@@ -41,10 +41,10 @@ func InitWithMetrics(appName string, graphiteServer *string) {
 func InitWithMetricsCB(appName string, getGraphiteServer func() string) {
 	Init()
 
-	_ = startMetrics(appName, getGraphiteServer())
+	_ = StartMetrics(appName, getGraphiteServer())
 }
 
-func startMetrics(appName, graphiteServer string) error {
+func StartMetrics(appName, graphiteServer string) error {
 	addr, err := net.ResolveTCPAddr("tcp", graphiteServer)
 	if err != nil {
 		return err

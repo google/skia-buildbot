@@ -164,6 +164,10 @@ func NewGoldIngester() ingester.ResultIngester {
 	return GoldIngester{}
 }
 
+func init() {
+	ingester.Register("golden", NewGoldIngester)
+}
+
 // See the ingester.ResultIngester interface.
 func (i GoldIngester) Ingest(tt *ingester.TileTracker, opener ingester.Opener, fname string, counter metrics.Counter) error {
 	r, err := opener()

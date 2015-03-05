@@ -23,7 +23,7 @@ DESC="The Skia JSON ingest application."
 NAME=ingest
 DAEMON=/usr/local/bin/$NAME
 DATA_DIR="/mnt/pd0/data"
-DAEMON_ARGS="--oauth=false --git_repo_dir=$DATA_DIR/skia --log_dir=/var/log/logserver --status_dir=$DATA_DIR/ingest_status --tile_dir=$DATA_DIR/tileStore3  --run=nano,nano-trybot "
+DAEMON_ARGS="--log_dir=/var/log/logserver --config_filename=/usr/local/share/skiaperf/perf_ingest.toml"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
