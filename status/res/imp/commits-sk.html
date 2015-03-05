@@ -131,6 +131,11 @@
       max-width: {{commentIndicatorWidth}}px;
       min-width: {{commentIndicatorWidth}}px;
     }
+    td.revertIndicator {
+      width: {{revertIndicatorWidth}}px;
+      max-width: {{revertIndicatorWidth}}px;
+      min-width: {{revertIndicatorWidth}}px;
+    }
     a {
       color: inherit;
     }
@@ -183,6 +188,9 @@
       width: 12px;
       height: 12px;
     }
+    core-icon[icon="undo"] {
+      color: #D95F02;
+    }
     #moreButton {
       width: 40px;
       height: 40px;
@@ -226,6 +234,7 @@
               <tr>
                 <th class="header">Author</th>
                 <th class="header"><!-- Comment indicators --></th>
+                <th class="header"><!-- Revert indicators --></th>
                 <th class="header" colspan="{{numBuilders}}">
                   Buildbot Results:
                   <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
@@ -238,10 +247,11 @@
               </tr>
               <template if="{{numBuilders > 0}}">
                 <tr>
-                  <td colspan="2" rowspan="3" style="font-size: 10px;">
+                  <td colspan="3" rowspan="3" style="font-size: 10px;">
                     <core-icon class="tiny" icon="communication:chat"></core-icon> comment<br/>
                     <core-icon class="tiny" icon="image:texture"></core-icon> flaky<br/>
                     <core-icon class="tiny" icon="block"></core-icon> ignore failure<br/>
+                    <core-icon class="tiny" icon="undo"></core-icon> reverted<br/>
                   </td>
                   <template repeat="{{c in builderCategoryList}}">
                     <th class="category" colspan="{{builderCategories[c].colspan}}" style="width: {{builderCategories[c].colspan * builderWidth}}px; max-width: {{builderCategories[c].colspan * builderWidth}}px; min-width: {{builderCategories[c].colspan * builderWidth}}px;">{{c}}</th>
@@ -282,13 +292,20 @@
             <tbody>
               <template repeat="{{commit, i in commits}}">
                 <tr class="commit alt">
-                  <td class="author">
+                  <td class="author" id="{{commit.hash}}-author-td" >
                     <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{openCommitPopup}}">{{commit.author|shortAuthor}}</a>
                   </td>
                   <td class="commentIndicator">
                     <template if="{{commit.comments && commit.comments.length > 0}}">
                       <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{openCommitPopup}}">
                         <core-icon class="tiny" icon="communication:chat" alt="There are comments on this commit."></core-icon>
+                      </a>
+                    </template>
+                  </td>
+                  <td class="revertIndicator">
+                    <template if="{{revertedHashToReverter[commit.hash]}}">
+                      <a id="{{commit.hash}}" href="#" class="author" onClick="return false;" on-click="{{toggleReverter}}">
+                        <core-icon class="tiny" icon="undo" alt="This commit has been reverted."></core-icon>
                       </a>
                     </template>
                   </td>
@@ -595,6 +612,7 @@
         this.buildDetails = {};
         this.buildTableWidth = 0;
         this.commentIndicatorWidth = 14;
+        this.revertIndicatorWidth = 14;
         this.commits = [];
         this.displayCommits = {};
         this.buildbotUrlPrefix = "https://build.chromium.org/p";
@@ -603,6 +621,7 @@
         this.startIdx = null;
         this.endIdx = null;
         this.timeout = null;
+        this.revertedHashToReverter = {};
         var that = this;
         sk.Login.then(function(status) {
           var email = status['Email'];
@@ -818,6 +837,54 @@
         }
       },
 
+      // Toggle the highlighting of the reverting commit.
+      toggleReverter: function(e, d, s) {
+        var reverterHash = this.revertedHashToReverter[s.id];
+        if (!reverterHash) {
+          // Could not determine who the reverter was.
+          return;
+        }
+        var elem = this.shadowRoot.getElementById(reverterHash + "-author-td");
+        elem.style.backgroundColor = "#D95F02";
+        this.openCommitPopup(e, d, elem.children[0]);
+        this.$.infoDialog.addEventListener("core-overlay-close-completed", function(event) {
+            // Remove the highlight when the dialog closes.
+            elem.style.backgroundColor = "";
+            event.target.removeEventListener(event.type, arguments.callee);
+        });
+      },
+
+      // Find and return the codereview issue number.
+      findIssueNumber: function(commit) {
+        // If there are multiple Review URLs in a CL then it selects the last one.
+        var re = /(.|[\r\n])*Review URL: https:\/\/codereview.chromium.org\/([0-9]*)/g;
+        var tokens = re.exec(commit.body);
+        if (tokens) {
+          return tokens[tokens.length - 1];
+        }
+      },
+
+      // Return whether this commit reverted another commit.
+      isRevert: function(commit) {
+        // Check to see if this is a revert CL. The subject of the CL needs to start with
+        // "Revert ".
+        var re = /^Revert /g;
+        var tokens = re.exec(commit.subject);
+        if (tokens) {
+          return true;
+        }
+        return false;
+      },
+
+      // Find and return the hash of the reverted commit.
+      findRevertedHash: function(commit) {
+        var re = /(.|[\r\n])*\> Committed\: https\:\/\/skia\.googlesource\.com\/skia\/\+\/([a-z0-9]*)/g;
+        var tokens = re.exec(commit.body);
+        if (tokens) {
+          return tokens[tokens.length - 1];
+        }
+      },
+
       // Reload the commits. If the startIdx and endIdx parameters are given,
       // loads the commits in that range. If not, load the most recent N
       // commits, where N is the default number returned by the server.
@@ -893,6 +960,11 @@
 
           for (var i = 0; i < commits.length; i++) {
             var commit = commits[i];
+            commit.issue = that.findIssueNumber(commit);
+            commit.isRevert = that.isRevert(commit);
+            if (commit.isRevert) {
+                that.revertedHashToReverter[that.findRevertedHash(commit)] = commit.hash;
+            }
             commit.displayClass = {};
             for (var builder in buildDetails[commit.hash]) {
               var build = buildDetails[commit.hash][builder];
@@ -1029,7 +1101,7 @@
 
         // Get the build table width.
         var windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        this.buildTableWidth = windowWidth - w - this.authorWidth - this.commentIndicatorWidth - 25;
+        this.buildTableWidth = windowWidth - w - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth - 25;
       },
 
       setBuilderWidth: function() {
