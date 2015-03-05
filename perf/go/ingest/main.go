@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/perf/go/db"
+	_ "go.skia.org/infra/perf/go/goldingester"
 	"go.skia.org/infra/perf/go/ingester"
 	_ "go.skia.org/infra/perf/go/trybot"
 )
