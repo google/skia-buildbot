@@ -40,6 +40,7 @@ package docset
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/mail"
@@ -286,7 +287,7 @@ var navTemplate = template.Must(template.New("NODE").Parse(`
     <li><a data-path="{{.URL}}" href="{{.URL}}">{{.Name}}</a></li>
   {{end}}
 </ul>
-<ul class=dirs>
+<ul class="dirs depth{{.Index.Depth}}">
   {{range .Dirs}}
     {{template "NODE" .}}
   {{end}}
@@ -302,10 +303,16 @@ func nodeToHTML(n *node, depth int) string {
 	return b.String()
 }
 
+// metadata is the struct for deserializing JSON found in METADATA files.
+type metadata struct {
+	DirOrder  []string `json:"dirOrder"`
+	FileOrder []string `json:"fileOrder"`
+}
+
 // buildNavString converts a slice of navEntry's into an HTML formatted
 // navigation structure.
 func buildNavString(n *node) string {
-	return "\n<ul>\n" + nodeToHTML(n, 1) + "</ul>\n"
+	return "\n<ul class=depth0>\n" + nodeToHTML(n, 1) + "</ul>\n"
 }
 
 // node is a single directory of site docs.
@@ -336,6 +343,10 @@ func walk(root, path string) (*node, error) {
 		URL:  rel,
 		Name: readTitle(filepath.Join(path, "index.md"), rel),
 	}
+	m := &metadata{
+		DirOrder:  []string{},
+		FileOrder: []string{},
+	}
 
 	// populate all the other files
 	f, err := os.Open(path)
@@ -360,12 +371,49 @@ func walk(root, path string) (*node, error) {
 				URL:  fileRel,
 				Name: readTitle(filepath.Join(path, fi.Name()), fileRel),
 			})
+		} else if fi.Name() == "METADATA" {
+			// Load JSON found in METADATA.
+			metaPath := filepath.Join(path, fi.Name())
+			f, err := os.Open(metaPath)
+			if err != nil {
+				glog.Warningf("Failed to open %q: %s", metaPath, err)
+				continue
+			}
+			dec := json.NewDecoder(f)
+			if err := dec.Decode(m); err != nil {
+				glog.Warningf("Failed to decode %q: %s", metaPath, err)
+			}
 		}
 	}
 
-	// Sort dirs and files.
-	sort.Sort(navEntrySlice(ret.Files))
+	// Sort dirs and files, use METADATA if available.
+	// Pick out the matches in the order they appear, then sort the rest.
+	// Yes, this is O(n^2), but for very small n.
+	sortedDirs := []*node{}
+	for _, name := range m.DirOrder {
+		for i, n := range ret.Dirs {
+			if name == filepath.Base(n.Index.URL) {
+				sortedDirs = append(sortedDirs, n)
+				ret.Dirs = append(ret.Dirs[:i], ret.Dirs[i+1:]...)
+				break
+			}
+		}
+	}
 	sort.Sort(nodeSlice(ret.Dirs))
+	ret.Dirs = append(sortedDirs, ret.Dirs...)
+
+	sortedFiles := []*navEntry{}
+	for _, name := range m.FileOrder {
+		for i, n := range ret.Files {
+			if name == filepath.Base(n.URL) {
+				sortedFiles = append(sortedFiles, n)
+				ret.Files = append(ret.Files[:i], ret.Files[i+1:]...)
+				break
+			}
+		}
+	}
+	sort.Sort(navEntrySlice(ret.Files))
+	ret.Files = append(sortedFiles, ret.Files...)
 
 	return ret, nil
 }
@@ -380,11 +428,19 @@ func printnode(n *node, depth int) {
 	}
 }
 
+func addDepth(n *node, depth int) {
+	n.Index.Depth = depth
+	for _, d := range n.Dirs {
+		addDepth(d, depth+1)
+	}
+}
+
 // BuildNavigation builds the Navigation for the DocSet.
 func (d *DocSet) BuildNavigation() {
 	// Walk the directory tree to build the navigation menu.
 	root := filepath.Join(d.repoDir, config.REPO_SUBDIR)
 	node, _ := walk(root, root)
+	addDepth(node, 1)
 	printnode(node, 0)
 	s := buildNavString(node)
 	d.mutex.Lock()
@@ -481,8 +537,9 @@ func pathOf(s string) string {
 
 // navEntry is a single directory entry in the Markdown repo.
 type navEntry struct {
-	URL  string
-	Name string
+	Depth int
+	URL   string
+	Name  string
 }
 
 // navEntrySlice is a utility type for sorting navEntry's.

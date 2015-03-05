@@ -58,7 +58,7 @@ img {
 }
 
 #drawer ul {
-  padding-left: 0.8em;
+  padding-left: 1em;
 }
 
 #drawer li {
@@ -72,6 +72,25 @@ img {
   color: black;
   font-weight: bold;
   text-decoration: none;
+}
+
+#drawer li a {
+  text-decoration: none;
+}
+
+#drawer ul.depth0>li,
+#drawer ul.depth1>li {
+  font-weight: bold;
+  font-size: 110%;
+  font-variant: small-caps;
+}
+
+#drawer ul.depth0>li {
+  font-size: 120%;
+}
+
+#drawer ul.depth2>li {
+  font-weight: bold;
 }
 
 #menu {
