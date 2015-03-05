@@ -113,6 +113,7 @@ type Ingester struct {
 	hashToNumber   map[string]int
 	lastIngestTime time.Time
 	resultIngester ResultIngester
+	storageBucket  string
 	storageBaseDir string
 	datasetName    string
 	nCommits       int
@@ -137,7 +138,7 @@ func newCounter(name, suffix string) metrics.Counter {
 }
 
 // NewIngester creates an Ingester given the repo and tilestore specified.
-func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, ri ResultIngester, nCommits int, minDuration time.Duration, storageBaseDir, statusDir, metricName string) (*Ingester, error) {
+func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, ri ResultIngester, nCommits int, minDuration time.Duration, storageBucket, storageBaseDir, statusDir, metricName string) (*Ingester, error) {
 	storage, err := storage.New(http.DefaultClient)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create interace to Google Storage: %s\n", err)
@@ -158,6 +159,7 @@ func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, 
 		storage:                        storage,
 		hashToNumber:                   map[string]int{},
 		resultIngester:                 ri,
+		storageBucket:                  storageBucket,
 		storageBaseDir:                 storageBaseDir,
 		datasetName:                    datasetName,
 		elapsedTimePerUpdate:           newGauge(metricName, "update"),
@@ -364,7 +366,7 @@ func (i *Ingester) UpdateTiles() error {
 	glog.Infof("Ingest %s: Starting UpdateTiles", i.datasetName)
 
 	tt := NewTileTracker(i.tileStore, i.hashToNumber)
-	resultsFiles, err := GetResultsFileLocations(startTS, endTS, i.storage, i.storageBaseDir)
+	resultsFiles, err := getResultsFileLocations(startTS, endTS, i.storage, i.storageBucket, i.storageBaseDir)
 	if err != nil {
 		return fmt.Errorf("Failed to update tiles: %s", err)
 	}
@@ -522,11 +524,11 @@ func (b ResultsFileLocation) Fetch() (io.ReadCloser, error) {
 
 // getFilesFromGSDir returns a list of URIs to get of the JSON files in the
 // given bucket and directory made after the given timestamp.
-func getFilesFromGSDir(dir string, earliestTimestamp int64, storage *storage.Service) ([]*ResultsFileLocation, error) {
+func getFilesFromGSDir(bucket, dir string, earliestTimestamp int64, storage *storage.Service) ([]*ResultsFileLocation, error) {
 	results := []*ResultsFileLocation{}
 	glog.Infoln("Opening directory", dir)
 
-	req := storage.Objects.List(gs.GS_PROJECT_BUCKET).Prefix(dir).Fields("nextPageToken", "items/updated", "items/md5Hash", "items/mediaLink", "items/name")
+	req := storage.Objects.List(bucket).Prefix(dir).Fields("nextPageToken", "items/updated", "items/md5Hash", "items/mediaLink", "items/name")
 	for req != nil {
 		resp, err := req.Do()
 		if err != nil {
@@ -554,13 +556,13 @@ func getFilesFromGSDir(dir string, earliestTimestamp int64, storage *storage.Ser
 
 // GetResultsFileLocations retrieves a list of ResultsFileLocations from Cloud Storage, each one
 // corresponding to a single JSON file.
-func GetResultsFileLocations(startTS int64, endTS int64, storage *storage.Service, dir string) ([]*ResultsFileLocation, error) {
+func getResultsFileLocations(startTS int64, endTS int64, storage *storage.Service, bucket, dir string) ([]*ResultsFileLocation, error) {
 	dirs := gs.GetLatestGSDirs(startTS, endTS, dir)
-	glog.Infoln("GetResultsFileLocations: Looking in dirs: ", dirs)
+	glog.Infoln("getResultsFileLocations: Looking in dirs: ", dirs)
 
 	retval := []*ResultsFileLocation{}
 	for _, dir := range dirs {
-		files, err := getFilesFromGSDir(dir, startTS, storage)
+		files, err := getFilesFromGSDir(bucket, dir, startTS, storage)
 		if err != nil {
 			return nil, err
 		}

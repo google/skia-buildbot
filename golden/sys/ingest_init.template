@@ -24,7 +24,7 @@ NAME=ingest
 DATA_DIR="/mnt/pd0/data"
 DATABASE_CONFIG="--db_host=<<REPLACE_DATABASE_HOST>> --db_name=<<REPLACE_DATABASE_NAME>>"
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS="--git_repo_dir=$DATA_DIR/skia --log_dir=/var/log/logserver --status_dir=$DATA_DIR/ingest_status --tile_dir=$DATA_DIR/tileStore3  --run=golden -oauth_cache_file=$DATA_DIR/ingest-google_storage_token.data $DATABASE_CONFIG"
+DAEMON_ARGS="--log_dir=/var/log/logserver $DATABASE_CONFIG --config_filename=/etc/skia/gold-ingest.toml"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 

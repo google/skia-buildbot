@@ -165,7 +165,7 @@ func NewGoldIngester() ingester.ResultIngester {
 }
 
 func init() {
-	ingester.Register("golden", NewGoldIngester)
+	ingester.Register("gold", NewGoldIngester)
 }
 
 // See the ingester.ResultIngester interface.

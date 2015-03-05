@@ -49,7 +49,7 @@ func TestIngestCommits(t *testing.T) {
 	}
 
 	// Construct an Ingestor and have it UpdateCommitInfo.
-	i, err := NewIngester(git, tileDir, config.DATASET_NANO, NewNanoBenchIngester(), 1, time.Second, "", "", "")
+	i, err := NewIngester(git, tileDir, config.DATASET_NANO, NewNanoBenchIngester(), 1, time.Second, "", "", "", "")
 	if err != nil {
 		t.Fatal("Failed to create ingester:", err)
 	}
@@ -233,7 +233,7 @@ func TestGetResultFileLocations(t *testing.T) {
 
 	// TODO(stephana): Switch this to a dedicated test bucket, so we are not
 	// in danger of removing it.
-	resultFiles, err := GetResultsFileLocations(startTS, endTS, storage, "dm-json-v1")
+	resultFiles, err := getResultsFileLocations(startTS, endTS, storage, "chromium-skia-gm", "dm-json-v1")
 	assert.Nil(t, err)
 
 	// Read the expected list of files and compare them.

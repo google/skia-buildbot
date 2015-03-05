@@ -24,10 +24,6 @@ var (
 	trybotDataPath = regexp.MustCompile(`^[a-z]*[/]?([0-9]{4}/[0-9]{2}/[0-9]{2}/[0-9]{2}/[0-9a-zA-Z-]+-Trybot/[0-9]+/[0-9]+)$`)
 )
 
-const (
-	GS_PROJECT_BUCKET = "chromium-skia-gm"
-)
-
 // GetStorageService returns a Cloud Storage service.
 func GetStorageService() (*storage.Service, error) {
 	return storage.New(http.DefaultClient)

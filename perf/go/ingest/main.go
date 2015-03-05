@@ -51,9 +51,9 @@ var config IngestConfig
 type ProcessStarter func()
 
 // NewIngestionProcess creates a Process for ingesting data.
-func NewIngestionProcess(git *gitinfo.GitInfo, tileDir, datasetName string, ri ingester.ResultIngester, gsDir string, every time.Duration, nCommits int, minDuration time.Duration, statusDir, metricName string) ProcessStarter {
+func NewIngestionProcess(git *gitinfo.GitInfo, tileDir, datasetName string, ri ingester.ResultIngester, gsBucket, gsDir string, every time.Duration, nCommits int, minDuration time.Duration, statusDir, metricName string) ProcessStarter {
 	return func() {
-		i, err := ingester.NewIngester(git, tileDir, datasetName, ri, nCommits, minDuration, gsDir, statusDir, metricName)
+		i, err := ingester.NewIngester(git, tileDir, datasetName, ri, nCommits, minDuration, gsBucket, gsDir, statusDir, metricName)
 		if err != nil {
 			glog.Fatalf("Failed to create Ingester: %s", err)
 		}
@@ -132,7 +132,7 @@ func main() {
 		resultIngester := constructor()
 
 		glog.Infof("Process name: %s", dataset)
-		startProcess := NewIngestionProcess(git, config.Common.TileDir, dataset, resultIngester, ingesterConfig.ExtraParams["GSDir"], ingesterConfig.RunEvery.Duration, ingesterConfig.NCommits, minDuration, ingesterConfig.StatusDir, ingesterConfig.MetricName)
+		startProcess := NewIngestionProcess(git, config.Common.TileDir, dataset, resultIngester, ingesterConfig.ExtraParams["GSBucket"], ingesterConfig.ExtraParams["GSDir"], ingesterConfig.RunEvery.Duration, ingesterConfig.NCommits, minDuration, ingesterConfig.StatusDir, ingesterConfig.MetricName)
 		startProcess()
 	}
 
