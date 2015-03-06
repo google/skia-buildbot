@@ -24,7 +24,7 @@ NAME=ingest
 DATA_DIR="/mnt/pd0/data"
 DATABASE_CONFIG="--db_host=<<REPLACE_DATABASE_HOST>> --db_name=<<REPLACE_DATABASE_NAME>>"
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS="--log_dir=/var/log/logserver $DATABASE_CONFIG --config_filename=/etc/skia/gold-ingest.toml"
+DAEMON_ARGS="--config_filename=/etc/skiacorrectness/gold-ingest.toml --log_dir=/var/log/logserver $DATABASE_CONFIG"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 

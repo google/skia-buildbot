@@ -1,6 +1,8 @@
 #!/bin/bash
 
-case "$2" in
+INSTANCE_ID=$2
+
+case "$INSTANCE_ID" in
   # prod instance
   prod)
 	DATABASE_HOST="173.194.104.24"
@@ -63,6 +65,8 @@ INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 ${INSTALL} --mode=644 -T ./sys/skiacorrectness_monit           ${ROOT}/etc/monit/conf.d/skiacorrectness
 ${INSTALL} --mode=755 -T ./sys/skiacorrectness_init            ${ROOT}/etc/init.d/skiacorrectness
 ${INSTALL} --mode=755 -T ./sys/ingest_init                     ${ROOT}/etc/init.d/ingest
+${INSTALL_DIR} --mode=755                                      ${ROOT}/etc/skia
+${INSTALL} --mode=644 -T ./sys/${INSTANCE_ID}-gold-ingest.toml ${ROOT}/etc/skiacorrectness/gold-ingest.toml
 }
 
 # Strip the second argument to keep this compatible with the shared build script.

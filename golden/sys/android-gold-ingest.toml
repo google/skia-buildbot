@@ -1,0 +1,20 @@
+[Common]
+
+TileDir        = "/mnt/pd0/data/tileStore3"         # Path where tiles will be placed.
+GitRepoDir     = "/mnt/pd0/data/skia"               # Directory location for the Skia repo.
+GraphiteServer = "skia-monitoring:2003"             # Where is Graphite metrics ingestion server running.
+DoOauth        = true                               # Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.
+OAuthCacheFile = "/mnt/pd0/data/ingest-google_storage_token.data" # JSON file where the OAuth token will be cached.
+Local          = false                              # Running locally if true. As opposed to in production.
+
+[Ingesters]
+	[Ingesters.gold]
+	RunEvery       = "15m"                            # How often the ingester should pull data from Google Storage.
+	Commits        = 100                              # Minimum number of commits that should be ingested.
+	MinDays        = 7                                # Minimum number of days that should be covered by the ingested commits.
+	StatusDir      = "/mnt/pd0/data/ingest_status"    # Path where the ingest process keeps its status between restarts.
+	MetricName     = "gold-ingest"                    # Graphite metric name to use for this ingester
+
+	[Ingesters.gold.ExtraParams]
+	GSBucket       = "skia-android-dm"   # Google storage bucket to draw from
+	GSDir          = "dm-json-v1"        # Google storage directory to draw from
