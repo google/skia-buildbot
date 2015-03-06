@@ -162,7 +162,9 @@ func (b BenchData) ForEach(f Iter) {
 			}
 			if options, ok := (*result)["options"]; ok {
 				for k, vi := range options.(map[string]interface{}) {
-					params[k] = vi.(string)
+					if s, ok := vi.(string); ok {
+						params[k] = s
+					}
 				}
 			}
 
