@@ -19,6 +19,7 @@ Local          = false                                  # Running locally if tru
 
 	[Ingesters.nano.ExtraParams]
 
+    GSBucket       = "chromium-skia-gm"
 		GSDir          = "nano-json-v1"							# Google storage directory to draw from
 
 [Ingesters.nano-trybot]
@@ -32,4 +33,5 @@ Local          = false                                  # Running locally if tru
 
 	[Ingesters.nano-trybot.ExtraParams]
 
+    GSBucket       = "chromium-skia-gm"
 		GSDir          = "trybot/nano-json-v1"					# Google storage directory to draw from
