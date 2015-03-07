@@ -419,7 +419,7 @@ type PolyTestImgInfoDiffAscSlice []*PolyTestImgInfo
 
 func (p PolyTestImgInfoDiffAscSlice) Len() int { return len(p) }
 func (p PolyTestImgInfoDiffAscSlice) Less(i, j int) bool {
-	if p[i].N != p[j].N {
+	if p[i].PixelDiffPercent != p[j].PixelDiffPercent {
 		return p[i].PixelDiffPercent < p[j].PixelDiffPercent
 	} else {
 		return p[i].Digest < p[j].Digest
