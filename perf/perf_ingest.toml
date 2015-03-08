@@ -12,8 +12,8 @@ Local          = false                                  # Running locally if tru
 
 	RunEvery       = "5m"                                   # How often the ingester should pull data from Google Storage.
 	RunTrybotEvery = "1m"                                   # How often the ingester to pull trybot data from Google Storage.
-	Commits        = 100                                    # Minimum number of commits that should be ingested.
-	MinDays        = 7                                      # Minimum number of days that should be covered by the ingested commits.
+	Commits        = 10                                    # Minimum number of commits that should be ingested.
+	MinDays        = 1                                      # Minimum number of days that should be covered by the ingested commits.
 	StatusDir      = "/mnt/pd0/data/ingest_status"               # Path where the ingest process keeps its status between restarts.
 	MetricName     = "nano-ingest"                          # Graphite metric name to use for this ingester
 
@@ -26,8 +26,8 @@ Local          = false                                  # Running locally if tru
 
 	RunEvery       = "5m"                                   # How often the ingester should pull data from Google Storage.
 	RunTrybotEvery = "1m"                                   # How often the ingester to pull trybot data from Google Storage.
-	Commits        = 100                                    # Minimum number of commits that should be ingested.
-	MinDays        = 7                                      # Minimum number of days that should be covered by the ingested commits.
+	Commits        = 10                                    # Minimum number of commits that should be ingested.
+	MinDays        = 1                                      # Minimum number of days that should be covered by the ingested commits.
 	StatusDir      = "/mnt/pd0/data/ingest_status"          # Path where the ingest process keeps its status between restarts.
 	MetricName     = "nano-trybot"                          # Graphite metric name to use for this ingester
 
