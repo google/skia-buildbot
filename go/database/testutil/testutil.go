@@ -6,6 +6,7 @@ import (
 )
 
 import (
+	"github.com/jmoiron/sqlx"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/database"
 )
@@ -52,11 +53,8 @@ func LocalTestRootDatabaseConfig(m []database.MigrationStep) *database.DatabaseC
 func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database.MigrationStep) {
 	// OpenDB as root user and remove all tables.
 	rootConf := LocalTestRootDatabaseConfig(migrationSteps)
-	lockVdb := GetMySQlLock(t, rootConf)
-	defer func() {
-		ReleaseMySQLLock(t, lockVdb)
-		lockVdb.Close()
-	}()
+	lockDb := GetMySQlLock(t, rootConf)
+	defer lockDb.Close(t)
 
 	rootVdb := database.NewVersionedDB(rootConf)
 	ClearMySQLTables(t, rootVdb)
@@ -85,27 +83,32 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 	ClearMySQLTables(t, rootVdb)
 }
 
+type LockDB struct {
+	DB *sqlx.DB
+}
+
 // Get a lock from MySQL to serialize DB tests.
-func GetMySQlLock(t *testing.T, conf *database.DatabaseConfig) *database.VersionedDB {
-	vdb := database.NewVersionedDB(conf)
+func GetMySQlLock(t *testing.T, conf *database.DatabaseConfig) *LockDB {
+	db, err := sqlx.Open("mysql", conf.MySQLString)
+	assert.Nil(t, err)
+
 	for {
-		row := vdb.DB.QueryRow("SELECT GET_LOCK(?,5)", SQL_LOCK)
 		var result int
-		err := row.Scan(&result)
-		assert.Nil(t, err)
+		assert.Nil(t, db.Get(&result, "SELECT GET_LOCK(?,5)", SQL_LOCK))
 
 		// We obtained the lock. If not try again.
 		if result == 1 {
-			break
+			return &LockDB{db}
 		}
 	}
-	return vdb
 }
 
 // Release the MySQL lock.
-func ReleaseMySQLLock(t *testing.T, vdb *database.VersionedDB) {
-	_, err := vdb.DB.Exec("SELECT RELEASE_LOCK(?)", SQL_LOCK)
-	assert.Nil(t, err)
+func (l *LockDB) Close(t *testing.T) {
+	var result int
+	assert.Nil(t, l.DB.Get(&result, "SELECT RELEASE_LOCK(?)", SQL_LOCK))
+	assert.Equal(t, result, 1)
+	assert.Nil(t, l.DB.Close())
 }
 
 // Remove all tables from the database.
@@ -132,6 +135,7 @@ func ClearMySQLTables(t *testing.T, vdb *database.VersionedDB) {
 // MySQLTestDatabase is a convenience struct for using a test database which
 // starts in a clean state.
 type MySQLTestDatabase struct {
+	lockDb  *LockDB
 	rootVdb *database.VersionedDB
 	t       *testing.T
 }
@@ -146,7 +150,7 @@ type MySQLTestDatabase struct {
 // ... Tests here ...
 func SetupMySQLTestDatabase(t *testing.T, migrationSteps []database.MigrationStep) *MySQLTestDatabase {
 	conf := LocalTestRootDatabaseConfig(migrationSteps)
-	lockVdb := GetMySQlLock(t, conf)
+	lock := GetMySQlLock(t, conf)
 	rootVdb := database.NewVersionedDB(conf)
 	ClearMySQLTables(t, rootVdb)
 	if err := rootVdb.Close(); err != nil {
@@ -156,18 +160,13 @@ func SetupMySQLTestDatabase(t *testing.T, migrationSteps []database.MigrationSte
 	if err := rootVdb.Migrate(rootVdb.MaxDBVersion()); err != nil {
 		t.Fatal(err)
 	}
-	if err := rootVdb.Close(); err != nil {
-		t.Fatal(err)
-	}
-	return &MySQLTestDatabase{lockVdb, t}
+	return &MySQLTestDatabase{lock, rootVdb, t}
 }
 
-func (d *MySQLTestDatabase) Close() {
-	if err := d.rootVdb.Migrate(0); err != nil {
-		d.t.Fatal(err)
-	}
-	ReleaseMySQLLock(d.t, d.rootVdb)
-	d.rootVdb.Close()
+func (d *MySQLTestDatabase) Close(t *testing.T) {
+	assert.Nil(t, d.rootVdb.Migrate(0))
+	assert.Nil(t, d.rootVdb.Close())
+	d.lockDb.Close(t)
 }
 
 // Test wether the migration steps execute correctly.

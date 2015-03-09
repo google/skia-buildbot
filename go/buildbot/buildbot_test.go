@@ -104,7 +104,7 @@ func testGetBuildFromMaster(repos *repoMap) (*Build, error) {
 func TestGetBuildFromMaster(t *testing.T) {
 	testutils.SkipIfShort(t)
 	d := clearDB(t)
-	defer d.Close()
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -132,7 +132,7 @@ func TestGetBuildFromMaster(t *testing.T) {
 func TestBuildJsonSerialization(t *testing.T) {
 	testutils.SkipIfShort(t)
 	d := clearDB(t)
-	defer d.Close()
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -161,7 +161,7 @@ func TestBuildJsonSerialization(t *testing.T) {
 func TestFindCommitsForBuild(t *testing.T) {
 	testutils.SkipIfShort(t)
 	d := clearDB(t)
-	defer d.Close()
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -274,7 +274,7 @@ func dbSerializeAndCompare(t *testing.T, b1 *Build) {
 // pull it back out without losing or corrupting the data.
 func testBuildDbSerialization(t *testing.T) {
 	d := clearDB(t)
-	defer d.Close()
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -312,7 +312,7 @@ func testBuildDbSerialization(t *testing.T) {
 // finishes.
 func testUnfinishedBuild(t *testing.T) {
 	d := clearDB(t)
-	defer d.Close()
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -382,7 +382,7 @@ func testUnfinishedBuild(t *testing.T) {
 // the expected result.
 func testLastProcessedBuilds(t *testing.T) {
 	d := clearDB(t)
-	defer d.Close()
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -482,7 +482,7 @@ func TestGetLatestBuilds(t *testing.T) {
 // testGetUningestedBuilds verifies that getUningestedBuilds works as expected.
 func testGetUningestedBuilds(t *testing.T) {
 	d := clearDB(t)
-	defer d.Close()
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -558,7 +558,7 @@ func testGetUningestedBuilds(t *testing.T) {
 // into the database.
 func testIngestNewBuilds(t *testing.T) {
 	d := clearDB(t)
-	defer d.Close()
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()

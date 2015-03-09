@@ -291,7 +291,7 @@ func (vdb *VersionedDB) setDBVersion(txn *sql.Tx, newDBVersion int) error {
 	return err
 }
 
-func (vdb *VersionedDB) ensureVersionTable() error {
+func (vdb *VersionedDB) ensureVersionTable() (err error) {
 	txn, err := vdb.DB.Begin()
 	defer func() {
 		if err != nil {

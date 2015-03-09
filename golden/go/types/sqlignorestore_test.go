@@ -13,7 +13,7 @@ func TestSQLIgnoreStore(t *testing.T) {
 	// causing similar tests to wait.
 	migrationSteps := db.MigrationSteps()
 	mysqlDB := testutil.SetupMySQLTestDatabase(t, migrationSteps)
-	defer mysqlDB.Close()
+	defer mysqlDB.Close(t)
 
 	vdb := database.NewVersionedDB(testutil.LocalTestDatabaseConfig(migrationSteps))
 	defer vdb.Close()

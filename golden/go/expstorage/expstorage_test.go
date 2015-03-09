@@ -65,7 +65,7 @@ func TestChanges(t *testing.T) {
 func TestMySQLExpectationsStore(t *testing.T) {
 	// Set up the test database.
 	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())
-	defer testDb.Close()
+	defer testDb.Close(t)
 
 	conf := testutil.LocalTestDatabaseConfig(db.MigrationSteps())
 	vdb := database.NewVersionedDB(conf)
