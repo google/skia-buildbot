@@ -9,6 +9,7 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingester"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -165,7 +166,7 @@ func NewGoldIngester() ingester.ResultIngester {
 }
 
 func init() {
-	ingester.Register("gold", NewGoldIngester)
+	ingester.Register(config.DATASET_GOLDEN, NewGoldIngester)
 }
 
 // See the ingester.ResultIngester interface.

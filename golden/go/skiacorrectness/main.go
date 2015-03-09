@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
+	pconfig "go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/filetilestore"
 	ptypes "go.skia.org/infra/perf/go/types"
 )
@@ -400,7 +401,7 @@ func main() {
 	vdb := database.NewVersionedDB(conf)
 	expStore = expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb))
 	ignoreStore = types.NewSQLIgnoreStore(vdb)
-	tileStore = filetilestore.NewFileTileStore(*tileStoreDir, "golden", 2*time.Minute)
+	tileStore = filetilestore.NewFileTileStore(*tileStoreDir, pconfig.DATASET_GOLDEN, 2*time.Minute)
 
 	// Enable the experimental features.
 	if *startExperimental {
