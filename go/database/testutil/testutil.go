@@ -53,8 +53,8 @@ func LocalTestRootDatabaseConfig(m []database.MigrationStep) *database.DatabaseC
 func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database.MigrationStep) {
 	// OpenDB as root user and remove all tables.
 	rootConf := LocalTestRootDatabaseConfig(migrationSteps)
-	lockDb := GetMySQlLock(t, rootConf)
-	defer lockDb.Close(t)
+	lockDB := GetMySQlLock(t, rootConf)
+	defer lockDB.Close(t)
 
 	rootVdb := database.NewVersionedDB(rootConf)
 	ClearMySQLTables(t, rootVdb)
@@ -135,7 +135,7 @@ func ClearMySQLTables(t *testing.T, vdb *database.VersionedDB) {
 // MySQLTestDatabase is a convenience struct for using a test database which
 // starts in a clean state.
 type MySQLTestDatabase struct {
-	lockDb  *LockDB
+	lockDB  *LockDB
 	rootVdb *database.VersionedDB
 	t       *testing.T
 }
@@ -166,7 +166,7 @@ func SetupMySQLTestDatabase(t *testing.T, migrationSteps []database.MigrationSte
 func (d *MySQLTestDatabase) Close(t *testing.T) {
 	assert.Nil(t, d.rootVdb.Migrate(0))
 	assert.Nil(t, d.rootVdb.Close())
-	d.lockDb.Close(t)
+	d.lockDB.Close(t)
 }
 
 // Test wether the migration steps execute correctly.
