@@ -39,6 +39,7 @@ SLAVES_CFG_URLS = ([SLAVES_CFG_PUBLIC_URL % m for m in SKIA_PUBLIC_MASTERS] +
 # Since we can't access the internal slaves.cfg, we have to allow some slaves
 # to fail without failing the test.
 ALLOW_FAILURE_SLAVES = [
+  'skia-android-build',
   'skia-android-canary',
   'skiabot-shuttle-ubuntu12-arm64-001',
 ]
