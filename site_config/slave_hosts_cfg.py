@@ -526,6 +526,7 @@ _slave_host_dicts = {
 
   'skia-vm-024': {
     'slaves': [
+      ('skia-vm-024', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
