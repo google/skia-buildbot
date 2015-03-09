@@ -80,6 +80,7 @@ type PagesetTypeInfo struct {
 	CaptureArchivesTimeoutSecs int
 	CreatePagesetsTimeoutSecs  int
 	RunBenchmarksTimeoutSecs   int
+	RunChromiumPerfTimeoutSecs int
 }
 
 var (
@@ -146,6 +147,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
+			RunChromiumPerfTimeoutSecs: 60,
 		},
 		PAGESET_TYPE_10k: &PagesetTypeInfo{
 			NumPages:                   10000,
@@ -154,6 +156,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
+			RunChromiumPerfTimeoutSecs: 60,
 		},
 		PAGESET_TYPE_MOBILE_10k: &PagesetTypeInfo{
 			NumPages:                   10000,
@@ -162,6 +165,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
+			RunChromiumPerfTimeoutSecs: 60,
 		},
 		PAGESET_TYPE_DUMMY_1k: &PagesetTypeInfo{
 			NumPages:                   1000,
@@ -170,6 +174,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
+			RunChromiumPerfTimeoutSecs: 60,
 		},
 	}
 )

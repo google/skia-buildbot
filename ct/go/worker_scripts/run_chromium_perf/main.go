@@ -220,7 +220,7 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		fmt.Sprintf("PYTHONPATH=%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir),
 		"DISPLAY=:0",
 	}
-	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunBenchmarksTimeoutSecs
+	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunChromiumPerfTimeoutSecs
 	util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 	return nil
 }
