@@ -24,18 +24,36 @@
     a {
       color: #000;
     }
-    h3 {
-      white-space: nowrap;
+
+    paper-button[raised].colored {
+      background: #D95F02;
+      color: #fff;
+      font-size: 0.8em;
+    }
+    .inherit {
+      color: inherit;
+      background-color: inherit;
     }
     </style>
-    <p>
-      <a href="https://skia.googlesource.com/skia/+/{{commit.hash}}"
-         target="_blank">{{commit.hash}}</a>
-      <br/>
-      {{commit.author}}
-      <br/>
-      {{commit.timestamp}}
-    </p>
+    <div horizontal layout center>
+      <div flex>
+        <p>
+          <a href="https://skia.googlesource.com/skia/+/{{commit.hash}}"
+             target="_blank">{{commit.hash}}</a>
+          <br/>
+          {{commit.author}}
+          <br/>
+          {{commit.timestamp}}
+        </p>
+      </div>
+    <template if="{{ commit.issue }}">
+      <div>
+        <a href="https://codereview.chromium.org/{{ commit.issue }}/revert" target="_blank" class="inherit">
+            <paper-button raised class="colored" role="button">Revert</paper-button>
+        </a>
+      </div>
+    </template>
+    </div>
     <hr/>
     <h3 id="commitSubject"></h3>
     <p id="commitBody"></p>
