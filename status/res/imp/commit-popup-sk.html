@@ -38,7 +38,7 @@
     <div horizontal layout center>
       <div flex>
         <p>
-          <a href="https://skia.googlesource.com/skia/+/{{commit.hash}}"
+          <a href="{{repo|repoUrl}}{{commit.hash}}"
              target="_blank">{{commit.hash}}</a>
           <br/>
           {{commit.author}}
@@ -80,6 +80,14 @@
 
       commentAdded: function() {
         window.location.href = window.location.href;
+      },
+
+      repoUrl: function(repoName) {
+        if (repoName == "infra") {
+          return "https://skia.googlesource.com/buildbot/+/";
+        } else {
+          return "https://skia.googlesource.com/" + repoName + "/+/";
+        }
       },
     });
   </script>
