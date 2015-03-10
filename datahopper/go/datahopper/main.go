@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -122,7 +123,7 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
 		}
-		defer stmt.Close()
+		defer util.Close(stmt)
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			glog.Info("Loading buildstep duration data.")
 			t := time.Now().UTC().Add(-period).Unix()
@@ -150,7 +151,7 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
 		}
-		defer stmt.Close()
+		defer util.Close(stmt)
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			glog.Info("Loading build duration data.")
 			t := time.Now().UTC().Add(-period).Unix()
@@ -179,7 +180,7 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
 		}
-		defer stmt.Close()
+		defer util.Close(stmt)
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			glog.Info("Loading per-builder buildstep duration data.")
 			t := time.Now().UTC().Add(-period).Unix()

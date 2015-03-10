@@ -119,7 +119,7 @@ func MustReadJsonFile(filename string, dest interface{}) {
 // The file will be downloaded and stored at provided target
 // path (regardless of what the original name is).
 // If the the uri ends with '.gz' it will be transparently unzipped.
-func DownloadTestDataFile(uriPath, targetPath string) error {
+func DownloadTestDataFile(t T, uriPath, targetPath string) error {
 	dir, _ := filepath.Split(targetPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
@@ -129,7 +129,7 @@ func DownloadTestDataFile(uriPath, targetPath string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer CloseInTest(t, resp.Body)
 
 	// Open the output
 	var r io.ReadCloser = resp.Body
@@ -144,7 +144,7 @@ func DownloadTestDataFile(uriPath, targetPath string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer CloseInTest(t, f)
 	_, err = io.Copy(f, r)
 	return err
 }
@@ -152,7 +152,7 @@ func DownloadTestDataFile(uriPath, targetPath string) error {
 // DownloadTestDataArchive downloads testfiles that are stored in
 // a gz compressed tar archive and decompresses them into the provided
 // target directory.
-func DownloadTestDataArchive(uriPath, targetDir string) error {
+func DownloadTestDataArchive(t T, uriPath, targetDir string) error {
 	if !strings.HasSuffix(uriPath, ".tar.gz") {
 		return fmt.Errorf("Expected .tar.gz file. But got:%s", uriPath)
 	}
@@ -165,7 +165,7 @@ func DownloadTestDataArchive(uriPath, targetDir string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer CloseInTest(t, resp.Body)
 
 	// Open the output
 	r, err := gzip.NewReader(resp.Body)
@@ -193,7 +193,7 @@ func DownloadTestDataArchive(uriPath, targetDir string) error {
 		if err != nil {
 			return err
 		}
-		f.Close()
+		CloseInTest(t, f)
 	}
 
 	return nil
@@ -217,4 +217,28 @@ func openUri(uriPath string) (*http.Response, error) {
 	}
 
 	return resp, nil
+}
+
+// T is an interface which shares the common methods of testing.T and testing.B.
+type T interface {
+	Error(...interface{})
+	Errorf(string, ...interface{})
+	Fail()
+	FailNow()
+	Failed() bool
+	Fatal(...interface{})
+	Fatalf(string, ...interface{})
+	Log(...interface{})
+	Logf(string, ...interface{})
+	Skip(...interface{})
+	SkipNow()
+	Skipf(string, ...interface{})
+	Skipped() bool
+}
+
+// CloseInTest takes an ioutil.Closer and Closes it, reporting any error.
+func CloseInTest(t T, c io.Closer) {
+	if err := c.Close(); err != nil {
+		t.Errorf("Failed to Close(): %v", err)
+	}
 }

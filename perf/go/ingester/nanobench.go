@@ -203,7 +203,7 @@ func (b BenchData) ForEach(f Iter) {
 // ParseBenchDataFromReader parses the stream out of the io.ReadCloser
 // into BenchData and closes the reader.
 func ParseBenchDataFromReader(r io.ReadCloser) (*BenchData, error) {
-	defer r.Close()
+	defer util.Close(r)
 
 	dec := json.NewDecoder(r)
 	benchData := &BenchData{}

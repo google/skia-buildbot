@@ -200,7 +200,7 @@ func sendJson(w http.ResponseWriter, resp *ResponseEnvelope) {
 // provided interface.
 func parseJson(r *http.Request, v interface{}) error {
 	// TODO (stephana): validate the JSON against a schema. Might not be necessary !
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 	decoder := json.NewDecoder(r.Body)
 	return decoder.Decode(v)
 }
@@ -334,7 +334,7 @@ func main() {
 				glog.Fatalf("Unable to create memory profile file: %s", err)
 			}
 			pprof.WriteHeapProfile(f)
-			f.Close()
+			util.Close(f)
 			glog.Infof("Memory profile written to %s", f.Name())
 
 			os.Exit(0)
@@ -351,7 +351,7 @@ func main() {
 		pprof.StartCPUProfile(f)
 		time.AfterFunc(*cpuProfile, func() {
 			pprof.StopCPUProfile()
-			f.Close()
+			util.Close(f)
 			glog.Infof("CPU profile written to %s", f.Name())
 			os.Exit(0)
 		})

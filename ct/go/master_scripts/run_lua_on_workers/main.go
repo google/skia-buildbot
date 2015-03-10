@@ -18,6 +18,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -171,13 +172,13 @@ func main() {
 			// really should.
 			continue
 		}
-		defer respBody.Close()
+		defer skutil.Close(respBody)
 		out, err := os.OpenFile(consolidatedLuaOutput, os.O_RDWR|os.O_APPEND, 0660)
 		if err != nil {
 			glog.Errorf("Unable to open file %s: %s", consolidatedLuaOutput, err)
 			return
 		}
-		defer out.Close()
+		defer skutil.Close(out)
 		defer os.Remove(consolidatedLuaOutput)
 		if _, err = io.Copy(out, respBody); err != nil {
 			glog.Errorf("Unable to write out %s to %s: %s", workerRemoteOutputPath, consolidatedLuaOutput, err)
@@ -207,7 +208,7 @@ func main() {
 		luaAggregatorOutputFileName := *runID + ".agg.output"
 		luaAggregatorOutputFilePath := filepath.Join(os.TempDir(), luaAggregatorOutputFileName)
 		luaAggregatorOutputFile, err := os.Create(luaAggregatorOutputFilePath)
-		defer luaAggregatorOutputFile.Close()
+		defer skutil.Close(luaAggregatorOutputFile)
 		defer os.Remove(luaAggregatorOutputFilePath)
 		if err != nil {
 			glog.Errorf("Could not create %s: %s", luaAggregatorOutputFilePath, err)

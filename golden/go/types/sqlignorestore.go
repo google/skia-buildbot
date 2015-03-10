@@ -5,6 +5,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -61,7 +62,7 @@ func (m *SQLIgnoreStore) List() ([]*IgnoreRule, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer util.Close(rows)
 
 	result := []*IgnoreRule{}
 	for rows.Next() {

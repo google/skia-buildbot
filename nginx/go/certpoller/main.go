@@ -108,7 +108,7 @@ func get(client *http.Client, cert *cert) error {
 			return fmt.Errorf("Failed to write cert len(body)=%d, n=%d: %s", len(body), n, err)
 		}
 		tmpName := f.Name()
-		f.Close()
+		util.Close(f)
 		cmd := exec.Command("sudo", "mv", tmpName, cert.file)
 		err = cmd.Run()
 		if err != nil {

@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/build_cache"
 )
 
@@ -47,7 +48,7 @@ func fromFile(cacheFile string) (*CommitCache, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open cache file %s: %v", cacheFile, err)
 	}
-	defer f.Close()
+	defer util.Close(f)
 	if err := gob.NewDecoder(f).Decode(&c); err != nil {
 		return nil, fmt.Errorf("Failed to read cache file %s: %v", cacheFile, err)
 	}
@@ -60,7 +61,7 @@ func (c *CommitCache) toFile() error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer util.Close(f)
 	if err := gob.NewEncoder(f).Encode(c); err != nil {
 		return err
 	}

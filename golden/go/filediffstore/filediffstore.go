@@ -379,7 +379,7 @@ func (fs *FileDiffStore) ThumbAbsPath(digests []string) map[string]string {
 				glog.Errorf("Failed to create thumbnail for %s %s: %s", digest, thumbFilename, err)
 				continue
 			}
-			defer f.Close()
+			defer util.Close(f)
 			if err := png.Encode(f, thumb.Thumbnail(img)); err != nil {
 				glog.Errorf("Failed to encode thumbnail for %s %s: %s", digest, thumbFilename, err)
 				continue
@@ -491,7 +491,7 @@ func (fs *FileDiffStore) writeDiffMetricsToFileCache(baseName string, diffMetric
 	if err != nil {
 		return fmt.Errorf("Unable to create file %s: %s", fName, err)
 	}
-	defer f.Close()
+	defer util.Close(f)
 
 	d, err := json.MarshalIndent(diffMetrics, "", "    ")
 	if err != nil {
@@ -605,7 +605,7 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 			if err != nil {
 				return err
 			}
-			defer respBody.Close()
+			defer util.Close(respBody)
 
 			// TODO(stephana): Creating and renaming temporary files this way
 			// should be made into a generic utility function.
@@ -676,7 +676,7 @@ func (fs *FileDiffStore) getRespBody(res *storage.Object) (io.ReadCloser, error)
 		return nil, fmt.Errorf("Unable to retrieve Storage MediaURI: %s", err)
 	}
 	if resp.StatusCode != 200 {
-		defer resp.Body.Close()
+		defer util.Close(resp.Body)
 		return nil, fmt.Errorf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
 	}
 	return resp.Body, nil
@@ -706,7 +706,7 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer thumbF.Close()
+	defer util.Close(thumbF)
 	if err := png.Encode(thumbF, thumb.Thumbnail(resultImg)); err != nil {
 		return nil, err
 	}

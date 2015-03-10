@@ -7,6 +7,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -35,7 +36,7 @@ func GetRecent(n int) ([]*types.Activity, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read from database: %s", err)
 	}
-	defer rows.Close()
+	defer util.Close(rows)
 	glog.Infoln("Processing activity rows.")
 	for rows.Next() {
 		var id int

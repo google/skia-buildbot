@@ -219,7 +219,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name 
 		http.NotFound(w, r)
 		return
 	}
-	defer f.Close()
+	defer util.Close(f)
 
 	d, err1 := f.Stat()
 	if err1 != nil {
@@ -286,7 +286,7 @@ func getPreviousState() (map[string]fileState, map[string]int64, map[string]int6
 		glog.Errorf("Deleted old state file %s", *stateFile)
 		return map[string]fileState{}, map[string]int64{}, map[string]int64{}, time.Time{}, nil
 	}
-	defer f.Close()
+	defer util.Close(f)
 	state := &logserverState{}
 	dec := gob.NewDecoder(f)
 	if err := dec.Decode(state); err != nil {
@@ -306,7 +306,7 @@ func writeCurrentState(filestoState map[string]fileState, appLogLevelToSpace, ap
 	if err != nil {
 		return fmt.Errorf("Unable to create state file %s: %s", *stateFile, err)
 	}
-	defer f.Close()
+	defer util.Close(f)
 	state := &logserverState{
 		FilesToState:       filestoState,
 		AppLogLevelToSpace: appLogLevelToSpace,

@@ -19,6 +19,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -216,13 +217,13 @@ func monitorIssueTracker() {
 			dec := json.NewDecoder(resp.Body)
 			if err := dec.Decode(&jsonResp); err != nil {
 				glog.Warningf("Failed to decode JSON response: %s", err)
-				resp.Body.Close()
+				util.Close(resp.Body)
 				continue
 			}
 			issue.Metric.Update(jsonResp["totalResults"])
 			glog.Infof("Num Issues: %s - %d", issue.Name, jsonResp["totalResults"])
 			if err == nil && resp.Body != nil {
-				resp.Body.Close()
+				util.Close(resp.Body)
 			}
 		}
 	}
@@ -285,7 +286,7 @@ func main() {
 				bodyTestResults = probe.bodyTest(resp.Body)
 			}
 			if resp.Body != nil {
-				resp.Body.Close()
+				util.Close(resp.Body)
 			}
 			d := time.Since(begin)
 			// TODO(jcgregorio) Save the last N responses and present them in a web UI.

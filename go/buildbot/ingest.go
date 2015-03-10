@@ -27,7 +27,7 @@ func get(url string, rv interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %v", url, err)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(rv); err != nil {
 		return fmt.Errorf("Failed to decode JSON: %v", err)

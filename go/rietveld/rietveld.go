@@ -13,6 +13,7 @@ import (
 
 import (
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -74,7 +75,7 @@ func (r Rietveld) get(suburl string, rv interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %v", r.Url+suburl, err)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(rv); err != nil {
 		return fmt.Errorf("Failed to decode JSON: %v", err)

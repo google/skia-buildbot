@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
 
 	"strings"
 )
@@ -136,7 +137,7 @@ func getChromiumHash() (string, error) {
 	// Find Chromium's Tot commit hash.
 	stdoutFilePath := filepath.Join(os.TempDir(), "chromium-tot")
 	stdoutFile, err := os.Create(stdoutFilePath)
-	defer stdoutFile.Close()
+	defer util.Close(stdoutFile)
 	defer os.Remove(stdoutFilePath)
 	if err != nil {
 		return "", fmt.Errorf("Could not create %s: %s", stdoutFilePath, err)
@@ -162,7 +163,7 @@ func getSkiaHash() (string, error) {
 	if resp.StatusCode != 200 {
 		return "", fmt.Errorf("Got statuscode %d while accessing Chromium's DEPS file", resp.StatusCode)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("Could not read Skia's LKGR: %s", err)

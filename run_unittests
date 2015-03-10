@@ -98,6 +98,10 @@ def GoImports():
   return []
 
 
+def GoErrCheck():
+  return RunGoTest(['errcheck', 'go.skia.org/infra/...'], '.')
+
+
 if __name__ == '__main__':
   print 'Searching for tests.'
   short = False

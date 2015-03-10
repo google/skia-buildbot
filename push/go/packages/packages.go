@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/util"
 
 	"github.com/skia-dev/glog"
 
@@ -141,7 +142,7 @@ func InstalledForServer(client *http.Client, store *storage.Service, serverName 
 	if resp.StatusCode != 200 {
 		return ret, fmt.Errorf("Wrong status code: %#v", *resp)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	dec := json.NewDecoder(resp.Body)
 
 	value := []string{}
@@ -194,7 +195,7 @@ func FromLocalFile(filename string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open file %s: %s", filename, err)
 	}
-	defer f.Close()
+	defer util.Close(f)
 
 	dec := json.NewDecoder(f)
 	value := []string{}
@@ -210,7 +211,7 @@ func ToLocalFile(packages []string, filename string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to create file %s: %s", filename, err)
 	}
-	defer f.Close()
+	defer util.Close(f)
 
 	enc := json.NewEncoder(f)
 	if err := enc.Encode(packages); err != nil {
@@ -234,15 +235,17 @@ func Install(client *http.Client, store *storage.Service, name string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve packages file: %s", err)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	f, err := ioutil.TempFile("", "skia-pull")
 	if err != nil {
 		return fmt.Errorf("Failed to create tmp file: %s", err)
 	}
-	_, err = io.Copy(f, resp.Body)
-	f.Close()
-	if err != nil {
-		return fmt.Errorf("Failed to download file: %s", err)
+	_, copyErr := io.Copy(f, resp.Body)
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("Failed to close temporary file: %v", err)
+	}
+	if copyErr != nil {
+		return fmt.Errorf("Failed to download file: %s", copyErr)
 	}
 	cmd := exec.Command("sudo", "dpkg", "-i", f.Name())
 	var out bytes.Buffer

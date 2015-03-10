@@ -42,7 +42,7 @@ func TestRedisLRUCache(t *testing.T) {
 
 func BenchmarkBigDataset(b *testing.B) {
 	// Download the testdata and remove the testdata directory at the end.
-	err := testutils.DownloadTestDataArchive(TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err := testutils.DownloadTestDataArchive(b, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.Nil(b, err, "Unable to download testdata.")
 	defer func() {
 		os.RemoveAll(TEST_DATA_DIR)

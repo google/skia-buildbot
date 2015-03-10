@@ -197,7 +197,7 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 	c := buildbot.BuildComment{
 		BuildId:   int(buildId),
 		User:      login.LoggedInAs(r),
@@ -242,7 +242,7 @@ func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 
 	s := buildbot.BuilderStatus{
 		Builder:       builder,
@@ -276,7 +276,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
-	defer r.Body.Close()
+	defer util.Close(r.Body)
 
 	c := buildbot.CommitComment{
 		Commit:    commit,

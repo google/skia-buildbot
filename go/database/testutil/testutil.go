@@ -9,6 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/util"
 )
 
 // Connection string to the local MySQL database for testing.
@@ -116,7 +117,7 @@ func ClearMySQLTables(t *testing.T, vdb *database.VersionedDB) {
 	stmt := `SHOW TABLES`
 	rows, err := vdb.DB.Query(stmt)
 	assert.Nil(t, err)
-	defer rows.Close()
+	defer util.Close(rows)
 
 	names := make([]string, 0)
 	var tableName string
@@ -146,7 +147,7 @@ type MySQLTestDatabase struct {
 // Example usage:
 //
 // db := SetupMySQLTestDatabase(t, migrationSteps)
-// defer db.Close()
+// defer util.Close(db)
 // ... Tests here ...
 func SetupMySQLTestDatabase(t *testing.T, migrationSteps []database.MigrationStep) *MySQLTestDatabase {
 	conf := LocalTestRootDatabaseConfig(migrationSteps)

@@ -20,6 +20,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -255,7 +256,7 @@ func getPercentageChange(values []float64) float64 {
 
 func getRowsFromCSV(csvPath string) ([]string, []string, error) {
 	csvFile, err := os.Open(csvPath)
-	defer csvFile.Close()
+	defer skutil.Close(csvFile)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not open %s: %s", csvPath, err)
 	}

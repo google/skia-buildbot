@@ -18,6 +18,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -179,13 +180,13 @@ func main() {
 				// really should.
 				continue
 			}
-			defer respBody.Close()
+			defer skutil.Close(respBody)
 			out, err := os.Create(workerLocalOutputPath)
 			if err != nil {
 				glog.Errorf("Unable to create file %s: %s", workerLocalOutputPath, err)
 				return
 			}
-			defer out.Close()
+			defer skutil.Close(out)
 			defer os.Remove(workerLocalOutputPath)
 			if _, err = io.Copy(out, respBody); err != nil {
 				glog.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)

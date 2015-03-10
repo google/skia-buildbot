@@ -108,7 +108,9 @@ func get(client *http.Client, cert *cert) error {
 			return fmt.Errorf("Failed to write cert len(body)=%d, n=%d: %s", len(body), n, err)
 		}
 		tmpName := f.Name()
-		f.Close()
+		if err := f.Close(); err != nil {
+			return fmt.Errorf("Failed to close temporary file: %v", err)
+		}
 		cmd := exec.Command("sudo", "mv", tmpName, cert.file)
 		err = cmd.Run()
 		if err != nil {

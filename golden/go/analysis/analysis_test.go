@@ -171,7 +171,7 @@ func TestAgainstLiveData(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	// Download the testdata and remove the testdata directory at the end.
-	err := testutils.DownloadTestDataFile(TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	err := testutils.DownloadTestDataFile(t, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 	assert.Nil(t, err, "Unable to download testdata.")
 	defer func() {
 		os.RemoveAll(TEST_DATA_DIR)

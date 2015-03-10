@@ -307,7 +307,7 @@ func writeOutAllSourceImages() {
 		glog.Errorf("Failed to open connection to SQL server: %q\n", err)
 		panic(err)
 	}
-	defer rows.Close()
+	defer util.Close(rows)
 	for rows.Next() {
 		var id int
 		var image []byte
@@ -340,7 +340,7 @@ func writeTemplate(filename string, t *template.Template, context interface{}) e
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer util.Close(f)
 	return t.Execute(f, context)
 }
 
@@ -459,7 +459,7 @@ func sourcesHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to query sources: %s.", err), 500)
 		}
-		defer rows.Close()
+		defer util.Close(rows)
 		sources := make([]Sources, 0, 0)
 		for rows.Next() {
 			var id int
@@ -497,7 +497,7 @@ func sourcesHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Failed to load image: %s.", err), 500)
 			return
 		}
-		defer f.Close()
+		defer util.Close(f)
 		m, _, err := image.Decode(f)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to decode image: %s.", err), 500)
@@ -566,7 +566,7 @@ func recentHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	defer rows.Close()
+	defer util.Close(rows)
 	recent := []Try{}
 	for rows.Next() {
 		var hash string
@@ -644,7 +644,7 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 				util.ReportError(w, r, err, "Failed to select.")
 				return
 			}
-			defer rows.Close()
+			defer util.Close(rows)
 			for rows.Next() {
 				var hash string
 				var create_ts time.Time

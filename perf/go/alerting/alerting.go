@@ -123,7 +123,7 @@ func processRows(rows *sql.Rows, err error) ([]*types.ClusterSummary, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read from database: %s", err)
 	}
-	defer rows.Close()
+	defer util.Close(rows)
 
 	glog.Infof("Found rows %v", rows)
 
@@ -275,7 +275,7 @@ func updateBugs(c *types.ClusterSummary, apiKey string) {
 		glog.Errorf("Request to project hosting failed: %s", err)
 		return
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 
 	issueResponse := &IssueResponse{
 		Items: []*Issue{},

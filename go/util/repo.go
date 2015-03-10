@@ -17,14 +17,14 @@ func unzip(src, dest string) error {
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer Close(r)
 
 	for _, f := range r.File {
 		rc, err := f.Open()
 		if err != nil {
 			return err
 		}
-		defer rc.Close()
+		defer Close(rc)
 
 		path := filepath.Join(dest, f.Name)
 		if f.FileInfo().IsDir() {
@@ -34,7 +34,7 @@ func unzip(src, dest string) error {
 			if err != nil {
 				return err
 			}
-			defer f.Close()
+			defer Close(f)
 
 			_, err = io.Copy(f, rc)
 			if err != nil {

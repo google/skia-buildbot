@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -70,13 +71,13 @@ func main() {
 		glog.Errorf("Could not fetch %s: %s", luaScriptRemotePath, err)
 		return
 	}
-	defer respBody.Close()
+	defer skutil.Close(respBody)
 	out, err := os.Create(luaScriptLocalPath)
 	if err != nil {
 		glog.Errorf("Unable to create file %s: %s", luaScriptLocalPath, err)
 		return
 	}
-	defer out.Close()
+	defer skutil.Close(out)
 	defer os.Remove(luaScriptLocalPath)
 	if _, err = io.Copy(out, respBody); err != nil {
 		glog.Error(err)
@@ -87,7 +88,7 @@ func main() {
 	stdoutFileName := *runID + ".output"
 	stdoutFilePath := filepath.Join(os.TempDir(), stdoutFileName)
 	stdoutFile, err := os.Create(stdoutFilePath)
-	defer stdoutFile.Close()
+	defer skutil.Close(stdoutFile)
 	defer os.Remove(stdoutFilePath)
 	if err != nil {
 		glog.Errorf("Could not create %s: %s", stdoutFilePath, err)
@@ -96,7 +97,7 @@ func main() {
 	stderrFileName := *runID + ".err"
 	stderrFilePath := filepath.Join(os.TempDir(), stderrFileName)
 	stderrFile, err := os.Create(stderrFilePath)
-	defer stderrFile.Close()
+	defer skutil.Close(stderrFile)
 	defer os.Remove(stderrFilePath)
 	if err != nil {
 		glog.Errorf("Could not create %s: %s", stderrFilePath, err)

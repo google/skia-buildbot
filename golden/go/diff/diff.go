@@ -97,7 +97,7 @@ func OpenImage(filePath string) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer reader.Close()
+	defer util.Close(reader)
 	im, err := png.Decode(reader)
 	if err != nil {
 		return nil, err

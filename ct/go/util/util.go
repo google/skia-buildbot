@@ -38,7 +38,7 @@ func CreateTimestampFile(dir string) error {
 	if err != nil {
 		return fmt.Errorf("Could not create %s: %s", timestampFilePath, err)
 	}
-	defer out.Close()
+	defer util.Close(out)
 	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
 	w := bufio.NewWriter(out)
 	if _, err := w.WriteString(strconv.FormatInt(timestamp, 10)); err != nil {
@@ -215,7 +215,7 @@ func UpdateWebappTask(gaeTaskID int, webappURL string, extraData map[string]stri
 	if err != nil {
 		return fmt.Errorf("Could not update webapp task: %s", err)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Could not update webapp task, response status code was %d: %s", resp.StatusCode, err)
 	}

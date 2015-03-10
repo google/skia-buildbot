@@ -177,7 +177,7 @@ func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 			util.ReportError(w, r, fmt.Errorf("Error: received %s", ct), "Invalid content type.")
 			return
 		}
-		defer r.Body.Close()
+		defer util.Close(r.Body)
 		id, err := shortcut.Insert(r.Body)
 		if err != nil {
 			util.ReportError(w, r, err, "Error inserting shortcut.")

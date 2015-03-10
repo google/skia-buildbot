@@ -3,9 +3,12 @@ package util
 import (
 	"crypto/rand"
 	"fmt"
+	"io"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/skia-dev/glog"
 )
 
 const (
@@ -242,4 +245,11 @@ func KeysOfParamSet(set map[string][]string) []string {
 	}
 
 	return ret
+}
+
+// Close wraps an io.Closer and logs an error if one is returned.
+func Close(c io.Closer) {
+	if err := c.Close(); err != nil {
+		glog.Errorf("Failed to Close(): %v", err)
+	}
 }

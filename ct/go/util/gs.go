@@ -74,7 +74,7 @@ func getRespBody(res *storage.Object, client *http.Client) (io.ReadCloser, error
 		}
 		if resp.StatusCode != 200 {
 			glog.Warningf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
-			resp.Body.Close()
+			util.Close(resp.Body)
 			continue
 		}
 		return resp.Body, nil
@@ -109,7 +109,7 @@ func (gs *GsUtil) AreTimeStampsEqual(localDir, gsDir string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer respBody.Close()
+	defer util.Close(respBody)
 	resp, err := ioutil.ReadAll(respBody)
 	if err != nil {
 		return false, err
@@ -178,14 +178,14 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 					glog.Errorf("Could not fetch %s: %s", result.MediaLink, err)
 					return
 				}
-				defer respBody.Close()
+				defer util.Close(respBody)
 				outputFile := filepath.Join(localDir, filePath)
 				out, err := os.Create(outputFile)
 				if err != nil {
 					glog.Errorf("Unable to create file %s: %s", outputFile, err)
 					return
 				}
-				defer out.Close()
+				defer util.Close(out)
 				if _, err = io.Copy(out, respBody); err != nil {
 					glog.Error(err)
 					return
@@ -286,7 +286,7 @@ func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 	if err != nil {
 		return fmt.Errorf("Error opening %s: %s", localFile, err)
 	}
-	defer f.Close()
+	defer util.Close(f)
 	if _, err := gs.service.Objects.Insert(GS_BUCKET_NAME, object).Media(f).Do(); err != nil {
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}

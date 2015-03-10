@@ -24,6 +24,8 @@ import (
 	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/util"
+
 	"code.google.com/p/goauth2/oauth"
 )
 
@@ -159,7 +161,7 @@ func (it IssueTracker) GetLoggedInUser() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf(errFmt, err)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf(errFmt, fmt.Sprintf(
@@ -185,7 +187,7 @@ func (it IssueTracker) GetBug(project string, id int) (*Issue, error) {
 	if err != nil {
 		return nil, fmt.Errorf(errFmt, err)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf(errFmt, fmt.Sprintf(
@@ -224,7 +226,7 @@ func (it IssueTracker) GetBugs(project string, owner string) (*IssueList, error)
 	if err != nil {
 		return nil, fmt.Errorf(errFmt, err)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf(errFmt, fmt.Sprintf(
@@ -296,7 +298,7 @@ func (it IssueTracker) SubmitIssueChanges(issue *Issue, comment string) error {
 	if err != nil {
 		return fmt.Errorf(errFmt, err)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf(errFmt, fmt.Sprintf(

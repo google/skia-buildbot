@@ -268,7 +268,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		push := PushNewPackage{}
 		dec := json.NewDecoder(r.Body)
-		defer r.Body.Close()
+		defer util.Close(r.Body)
 		if err := dec.Decode(&push); err != nil {
 			util.ReportError(w, r, err, "Failed to decode push request")
 			return

@@ -14,6 +14,7 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -98,7 +99,7 @@ func main() {
 	stdoutFileName := *runID + ".out"
 	stdoutFilePath := filepath.Join(os.TempDir(), stdoutFileName)
 	stdoutFile, err := os.Create(stdoutFilePath)
-	defer stdoutFile.Close()
+	defer skutil.Close(stdoutFile)
 	defer os.Remove(stdoutFilePath)
 	if err != nil {
 		glog.Errorf("Could not create %s: %s", stdoutFilePath, err)

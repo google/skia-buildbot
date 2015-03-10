@@ -75,7 +75,7 @@ func (c *RedisLRUCache) Add(key, value interface{}) {
 	}
 
 	conn := c.pool.Get()
-	defer conn.Close()
+	defer util.Close(conn)
 
 	conn.Send("MULTI")
 	conn.Send("SET", prefixedKey, byteVal)
@@ -94,7 +94,7 @@ func (c *RedisLRUCache) Get(key interface{}) (interface{}, bool) {
 	}
 
 	conn := c.pool.Get()
-	defer conn.Close()
+	defer util.Close(conn)
 
 	ret, err := c.decodeVal(redis.Bytes(conn.Do("GET", prefixedKey)))
 	if err != nil {
@@ -110,7 +110,7 @@ func (c *RedisLRUCache) Get(key interface{}) (interface{}, bool) {
 // Remove, see the diff.LRUCache interface for details.
 func (c *RedisLRUCache) Remove(key interface{}) {
 	conn := c.pool.Get()
-	defer conn.Close()
+	defer util.Close(conn)
 
 	prefixedKey, rawKey, err := c.encodeKey(key)
 	if err != nil {
@@ -136,7 +136,7 @@ func (c *RedisLRUCache) Purge() {
 // Keys returns all current keys in the cache.
 func (c *RedisLRUCache) Keys() []interface{} {
 	conn := c.pool.Get()
-	defer conn.Close()
+	defer util.Close(conn)
 
 	ret, err := redis.Values(conn.Do("SMEMBERS", c.indexSetKey))
 	if err != nil {
@@ -159,7 +159,7 @@ func (c *RedisLRUCache) Keys() []interface{} {
 // Len, see the diff.LRUCache interface for details.
 func (c *RedisLRUCache) Len() int {
 	conn := c.pool.Get()
-	defer conn.Close()
+	defer util.Close(conn)
 
 	ret, err := redis.Int(conn.Do("SCARD", c.indexSetKey))
 	if err != nil {

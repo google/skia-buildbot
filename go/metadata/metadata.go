@@ -54,7 +54,7 @@ func get(name string, level string) (string, error) {
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("HTTP response has status %d", resp.StatusCode)
 	}
-	defer resp.Body.Close()
+	defer util.Close(resp.Body)
 	value, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("Failed to read %s from metadata server: %s", name, err)

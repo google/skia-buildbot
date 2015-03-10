@@ -19,6 +19,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -288,12 +289,12 @@ func mergeUploadCSVFiles(runID string, gs *util.GsUtil) error {
 			// really should.
 			continue
 		}
-		defer respBody.Close()
+		defer skutil.Close(respBody)
 		out, err := os.Create(workerLocalOutputPath)
 		if err != nil {
 			return fmt.Errorf("Unable to create file %s: %s", workerLocalOutputPath, err)
 		}
-		defer out.Close()
+		defer skutil.Close(out)
 		defer os.Remove(workerLocalOutputPath)
 		if _, err = io.Copy(out, respBody); err != nil {
 			return fmt.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)

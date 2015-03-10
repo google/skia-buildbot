@@ -13,6 +13,7 @@ import (
 
 	"code.google.com/p/go.crypto/ssh"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -31,7 +32,7 @@ func executeCmd(cmd, hostname string, config *ssh.ClientConfig, timeout time.Dur
 	if err != nil {
 		return "", fmt.Errorf("Failed to ssh connect to %s. Make sure \"PubkeyAuthentication yes\" is in your sshd_config: %s", hostname, err)
 	}
-	defer conn.Close()
+	defer util.Close(conn)
 	conn.SetDeadline(time.Now().Add(timeout))
 
 	// Create new SSH client connection.
@@ -41,14 +42,14 @@ func executeCmd(cmd, hostname string, config *ssh.ClientConfig, timeout time.Dur
 	}
 	// Use client connection to create new client.
 	client := ssh.NewClient(sshConn, sshChan, req)
-	defer client.Close()
+	defer util.Close(client)
 
 	// Client connections can support multiple interactive sessions.
 	session, err := client.NewSession()
 	if err != nil {
 		return "", fmt.Errorf("Failed to ssh connect to %s: %s", hostname, err)
 	}
-	defer session.Close()
+	defer util.Close(session)
 
 	var stdoutBuf bytes.Buffer
 	session.Stdout = &stdoutBuf

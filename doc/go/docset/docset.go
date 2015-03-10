@@ -114,7 +114,7 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 			return nil, fmt.Errorf("Failed to retrieve patchset: %s", err)
 		}
 		cmd.Stdin = diff
-		defer diff.Close()
+		defer util.Close(diff)
 		b, err := cmd.CombinedOutput()
 		if err != nil {
 			return nil, fmt.Errorf("Error while patching %#v - %s: %s", *cmd, string(b), err)
@@ -564,7 +564,7 @@ func readTitle(filename, def string) string {
 		glog.Warningf("Failed to open file %s: %s", filename, err)
 		return def
 	}
-	defer f.Close()
+	defer util.Close(f)
 	reader := bufio.NewReader(f)
 	title, err := reader.ReadString('\n')
 	if err != nil {

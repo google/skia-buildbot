@@ -16,6 +16,7 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -53,14 +54,14 @@ func main() {
 		glog.Error(err)
 		return
 	}
-	defer respBody.Close()
+	defer skutil.Close(respBody)
 	csvFile := filepath.Join(os.TempDir(), filepath.Base(csvSource))
 	out, err := os.Create(csvFile)
 	if err != nil {
 		glog.Errorf("Unable to create file %s: %s", csvFile, err)
 		return
 	}
-	defer out.Close()
+	defer skutil.Close(out)
 	defer os.Remove(csvFile)
 	if _, err = io.Copy(out, respBody); err != nil {
 		glog.Error(err)

@@ -175,7 +175,7 @@ func (i GoldIngester) Ingest(tt *ingester.TileTracker, opener ingester.Opener, f
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer util.Close(r)
 
 	dec := json.NewDecoder(r)
 	res := NewDMResults()

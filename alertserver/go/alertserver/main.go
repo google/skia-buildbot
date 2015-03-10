@@ -204,7 +204,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 				util.ReportError(w, r, err, fmt.Sprintf("Unable to decode request body: %s", r.Body))
 				return
 			}
-			defer r.Body.Close()
+			defer util.Close(r.Body)
 			until := time.Unix(int64(body.Until), 0)
 			glog.Infof("%s %s until %v", action, alertId, until.String())
 			alertManager.Snooze(alertId, until, email)
@@ -221,7 +221,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 				util.ReportError(w, r, err, fmt.Sprintf("Unable to read request body: %s", r.Body))
 				return
 			}
-			defer r.Body.Close()
+			defer util.Close(r.Body)
 			if !StringIsInteresting(c.Comment) {
 				util.ReportError(w, r, fmt.Errorf("Invalid comment text."), c.Comment)
 				return

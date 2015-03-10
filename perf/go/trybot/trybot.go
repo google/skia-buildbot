@@ -90,7 +90,7 @@ func List(n int) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read try data from database: %s", err)
 	}
-	defer rows.Close()
+	defer util.Close(rows)
 
 	ret := []string{}
 	for rows.Next() {

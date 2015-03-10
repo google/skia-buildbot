@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -334,7 +335,7 @@ func main() {
 
 func getRowsFromCSV(csvPath string) ([]string, []string, error) {
 	csvFile, err := os.Open(csvPath)
-	defer csvFile.Close()
+	defer skutil.Close(csvFile)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not open %s: %s", csvPath, err)
 	}
@@ -352,7 +353,7 @@ func getRowsFromCSV(csvPath string) ([]string, []string, error) {
 
 func writeRowsToCSV(csvPath string, headers, values []string) error {
 	csvFile, err := os.OpenFile(csvPath, os.O_WRONLY, 666)
-	defer csvFile.Close()
+	defer skutil.Close(csvFile)
 	if err != nil {
 		return fmt.Errorf("Could not open %s: %s", csvPath, err)
 	}

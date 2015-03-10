@@ -18,6 +18,7 @@ import (
 	// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -103,7 +104,9 @@ func (store *FileTileStore) Put(scale, index int, tile *types.Tile) error {
 	if err := enc.Encode(tile); err != nil {
 		return fmt.Errorf("Failed to encode tile %s: %s", f.Name(), err)
 	}
-	f.Close()
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("Failed to close temporary file: %v", err)
+	}
 
 	// Now rename the completed file to the real tile name. This is atomic and
 	// doesn't affect current readers of the old tile contents.
@@ -186,7 +189,7 @@ func openTile(filename string) (*types.Tile, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open tile %s for reading: %s", filename, err)
 	}
-	defer f.Close()
+	defer util.Close(f)
 	t := types.NewTile()
 	dec := gob.NewDecoder(f)
 	if err := dec.Decode(t); err != nil {
