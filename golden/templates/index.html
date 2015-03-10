@@ -19,62 +19,134 @@
       corpus-chooser-sk {
         display: block;
       }
+      #search {
+        display: block;
+      }
     </style>
   </head>
   <body>
     <scaffold-sk responsiveWidth="700px">
       {{template "titlebar.html" .}}
 
-      <corpus-chooser-sk></corpus-chooser-sk>
-      <sort-sk target=summaries>
-        <paper-button class=header data-key="name" data-alpha=true>Name</paper-button>
-        <paper-button class="header short" data-key="diameter">Diam</paper-button>
-        <paper-button class="header short" data-key="pos">Pos</paper-button>
-        <paper-button class="header short" data-key="neg">Neg</paper-button>
-        <paper-button class="header short" data-key="untriaged">Un-Triaged</paper-button>
-        <paper-button class="header short" data-key="num">Total Digests</paper-button>
-      </sort-sk>
-      <div id="summaries"></div>
-      <paper-toast></paper-toast>
+      <div vertical layout>
+        <div horizontal layout>
+          <paper-button id=search>
+            <core-icon icon=search></core-icon>
+          </paper-button>
+        </div>
+        <query-dialog-sk id=query src="/2/_/paramset"></query-dialog-sk>
+
+        <sort-sk target=summaries>
+          <paper-button class=header data-key="name" data-alpha=true>Name</paper-button>
+          <paper-button class="header short" data-key="diameter">Diam</paper-button>
+          <paper-button class="header short" data-key="pos">Pos</paper-button>
+          <paper-button class="header short" data-key="neg">Neg</paper-button>
+          <paper-button class="header short" data-key="untriaged">Un-Triaged</paper-button>
+          <paper-button class="header short" data-key="num">Total Digests</paper-button>
+        </sort-sk>
+        <div id="summaries"></div>
+        <paper-spinner active></paper-spinner>
+        <paper-toast></paper-toast>
+      </div>
 
     </scaffold-sk>
 
     <script type="text/javascript" charset="utf-8">
      (function() {
+       // Returns an object with only values that are in 'o' that are different
+       // from 'd'.
+       function getDelta(o, d) {
+         var ret = {};
+         Object.keys(o).forEach(function(key) {
+           if (o[key] != d[key]) {
+             ret[key] = o[key];
+           }
+         });
+         return ret;
+       }
+
+       // Returns a copy of object o with values from delta if they exist.
+       function applyDelta(delta, o) {
+         ret = {};
+         Object.keys(o).forEach(function(key) {
+           if (delta.hasOwnProperty(key)) {
+             ret[key] = delta[key];
+           } else {
+             ret[key] = o[key];
+           }
+         });
+         return ret;
+       }
+
        var summaries  = [];
 
-       function filterSummaries(corpus) {
-         corpus = corpus || '*';
+       var state = {
+         query: "source_type=gm",
+         include: false,
+       }
+
+       // The default state of the page. Used to calculate diffs to state.
+       var defaultState = JSON.parse(JSON.stringify(state));
+
+       // The last state of the page. Used to determine if the page state has changed recently.
+       var lastState = JSON.parse(JSON.stringify(state));
+
+       // Watch for state changes and reflect them in the URL.
+       setInterval(function() {
+         if (Object.keys(getDelta(lastState, state)).length > 0) {
+           lastState = JSON.parse(JSON.stringify(state));
+           var q = sk.query.fromObject(getDelta(state, defaultState));
+           history.pushState(null, "", window.location.origin + window.location.pathname + "?" +  q);
+           loadList();
+         }
+       }, 100);
+
+       function displaySummaries(corpus) {
          var container = $$$('#summaries');
          sk.clearChildren(container);
          summaries.forEach(function(c) {
-           if (corpus == '*' || c.corpus == corpus) {
-             var s = document.createElement('test-summary-sk');
-             container.appendChild(s);
-             s.summary = c;
-           }
+           var s = document.createElement('test-summary-sk');
+           container.appendChild(s);
+           s.summary = c;
+           s.query = encodeURIComponent(state.query);
+           s.include = state.include;
          });
+         $$$('paper-spinner').active = false;
+       }
+
+       function loadListFromURL() {
+         // Apply the object diffs to default and then reload the state based on that.
+         var delta = sk.query.toObject(window.location.search.slice(1), defaultState);
+         state = applyDelta(delta, defaultState);
+         lastState = applyDelta(delta, defaultState);
+         loadList();
+       }
+
+       function loadList() {
+         sk.clearChildren($$$('#summaries'));
+         $$$('paper-spinner').active = true;
+         sk.get('/2/_/list?'+sk.query.fromObject(state)).then(JSON.parse).then(function(json) {
+           summaries = json;
+           displaySummaries();
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
+           $$$('paper-toast').show();
+         });
+
        }
 
        sk.WebComponentsReady.then(function(){
-         sk.get('/2/_/list').then(JSON.parse).then(function(json) {
-           summaries = json;
-           filterSummaries();
-         }).catch(function(e) {
-           $$$('paper-toast').text = e;
-           $$$('paper-toast').show();
+         loadListFromURL();
+
+         $$$('#search').addEventListener('click', function() {
+           $$$('#query').query = state.query;
+           $$$('#query').include = state.include;
+           $$$('#query').open();
          });
 
-         $$$('corpus-chooser-sk').addEventListener('change', function(e) {
-           console.log(e.detail);
-           filterSummaries(e.detail);
-         });
-
-         sk.get('/2/_/paramset').then(JSON.parse).then(function(json) {
-           $$$('corpus-chooser-sk').choices = json["source_type"].sort();
-         }).catch(function(e) {
-           $$$('paper-toast').text = e;
-           $$$('paper-toast').show();
+         $$$('#query').addEventListener('closed', function(e) {
+           state.query = e.detail.query;
+           state.include = e.detail.useIgnored;
          });
        });
      })();

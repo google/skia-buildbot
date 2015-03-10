@@ -410,7 +410,7 @@ func main() {
 			glog.Fatalf("Failed to build tallies: %s", err)
 		}
 
-		summaries, err = summary.New(tileStore, expStore, tallies, diffStore)
+		summaries, err = summary.New(tileStore, expStore, tallies, diffStore, ignoreStore)
 		if err != nil {
 			glog.Fatalf("Failed to build summary: %s", err)
 		}

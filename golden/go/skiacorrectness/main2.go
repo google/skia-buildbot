@@ -100,6 +100,10 @@ func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // polyListTestsHandler returns a JSON list with high level information about
 // each test.
 //
+// Takes two query parameters:
+//  include - True if ignored digests should be included. (true, false)
+//  query   - A query to restrict the responses to, encoded as a URL encoded paramset.
+//
 // The return format looks like:
 //
 //  [
@@ -117,10 +121,36 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse form data.")
 		return
 	}
-	sumMap := summaries.Get()
-	sumSlice := make([]*summary.Summary, 0, len(sumMap))
-	for _, s := range sumMap {
-		sumSlice = append(sumSlice, s)
+	// If the query only includes source_type parameters, and include==false, then we can just
+	// filter the response from summaries.Get(). If the query is broader than that, or
+	// include==true, then we need to call summary.CalcSummaries().
+	if err := r.ParseForm(); err != nil {
+		util.ReportError(w, r, err, "Invalid request.")
+		return
+	}
+	q, err := url.ParseQuery(r.FormValue("query"))
+	if err != nil {
+		util.ReportError(w, r, err, "Invalid query in request.")
+	}
+	_, hasSourceType := q["source_type"]
+	sumSlice := []*summary.Summary{}
+	if r.FormValue("include") == "false" && len(q) == 1 && hasSourceType {
+		sumMap := summaries.Get()
+		corpus := q["source_type"]
+		for _, s := range sumMap {
+			if util.In(s.Corpus, corpus) {
+				sumSlice = append(sumSlice, s)
+			}
+		}
+	} else {
+		glog.Infof("%q %q", r.FormValue("query"), r.FormValue("include"))
+		sumMap, err := summary.CalcSummaries(tileStore, expStore, tallies, diffStore, ignoreStore, nil, r.FormValue("query"), r.FormValue("include") == "true")
+		if err != nil {
+			util.ReportError(w, r, err, "Failed to calculate summaries.")
+		}
+		for _, s := range sumMap {
+			sumSlice = append(sumSlice, s)
+		}
 	}
 	sort.Sort(SummarySlice(sumSlice))
 	w.Header().Set("Content-Type", "application/json")

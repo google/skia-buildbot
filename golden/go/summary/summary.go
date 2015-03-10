@@ -3,6 +3,7 @@ package summary
 
 import (
 	"fmt"
+	"net/url"
 	"sort"
 	"sync"
 
@@ -31,30 +32,32 @@ type Summary struct {
 //
 // It also updates itself when Tallies have been updated.
 type Summaries struct {
-	mutex     sync.Mutex
-	summaries map[string]*Summary
-	ts        types.TileStore
-	expStore  expstorage.ExpectationsStore
-	tallies   *tally.Tallies
-	diffStore diff.DiffStore
+	mutex       sync.Mutex
+	summaries   map[string]*Summary
+	ts          types.TileStore
+	expStore    expstorage.ExpectationsStore
+	tallies     *tally.Tallies
+	diffStore   diff.DiffStore
+	ignoreStore gtypes.IgnoreStore
 }
 
-func New(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tally.Tallies, diffStore diff.DiffStore) (*Summaries, error) {
-	summaries, err := calcSummaries(ts, expStore, tallies, diffStore, nil)
+func New(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tally.Tallies, diffStore diff.DiffStore, ignoreStore gtypes.IgnoreStore) (*Summaries, error) {
+	summaries, err := CalcSummaries(ts, expStore, tallies, diffStore, ignoreStore, nil, "", false)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to calculate summaries in New: %s", err)
 	}
 	s := &Summaries{
-		summaries: summaries,
-		ts:        ts,
-		expStore:  expStore,
-		tallies:   tallies,
-		diffStore: diffStore,
+		summaries:   summaries,
+		ts:          ts,
+		expStore:    expStore,
+		tallies:     tallies,
+		diffStore:   diffStore,
+		ignoreStore: ignoreStore,
 	}
 	// TODO(jcgregorio) Move to a channel for tallies and then combine
 	// this and the expStore handling into a single switch statement.
 	tallies.OnChange(func() {
-		summaries, err := calcSummaries(ts, expStore, tallies, diffStore, nil)
+		summaries, err := CalcSummaries(ts, expStore, tallies, diffStore, ignoreStore, nil, "", false)
 		if err != nil {
 			glog.Errorf("Failed to refresh summaries: %s", err)
 			return
@@ -69,7 +72,7 @@ func New(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tal
 		for {
 			testNames := <-ch
 			glog.Info("Updating summaries after expectations change.")
-			partialSummaries, err := calcSummaries(ts, expStore, tallies, diffStore, testNames)
+			partialSummaries, err := CalcSummaries(ts, expStore, tallies, diffStore, ignoreStore, testNames, "", false)
 			if err != nil {
 				glog.Errorf("Failed to refresh summaries: %s", err)
 				continue
@@ -91,14 +94,54 @@ func (s *Summaries) Get() map[string]*Summary {
 	return s.summaries
 }
 
-func calcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tally.Tallies, diffStore diff.DiffStore, testNames []string) (map[string]*Summary, error) {
-	defer timer.New("calcSummaries").Stop()
+// SortableTrace is used to hold traces, along with their ids, for sorting.
+type SortableTrace struct {
+	id string
+	tr types.Trace
+}
+
+type SortableTraceSlice []SortableTrace
+
+func (p SortableTraceSlice) Len() int { return len(p) }
+func (p SortableTraceSlice) Less(i, j int) bool {
+	return p[i].tr.Params()[gtypes.PRIMARY_KEY_FIELD] < p[j].tr.Params()[gtypes.PRIMARY_KEY_FIELD]
+}
+func (p SortableTraceSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
+// CalcSummaries returns a Summary for each test that matches the given input filters.
+//
+// testNames
+//   If not nil or empty then restrict the results to only tests that appear in this slice.
+// query
+//   URL encoded paramset to use for filtering.
+// include
+//   Boolean, if true then include all digests in the results, including ones normally hidden
+//   by the ignores list.
+//
+func CalcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tally.Tallies, diffStore diff.DiffStore, ignoreStore gtypes.IgnoreStore, testNames []string, query string, includeIgnores bool) (map[string]*Summary, error) {
+	defer timer.New("CalcSummaries").Stop()
 
 	tile, err := ts.Get(0, -1)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
+	q, err := url.ParseQuery(query)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse Query in CalcSummaries: %s", err)
+	}
 
+	ignores := []url.Values{}
+	if !includeIgnores {
+		allIgnores, err := ignoreStore.List()
+		if err != nil {
+			return nil, fmt.Errorf("Failed to load ignores: %s", err)
+		}
+		for _, i := range allIgnores {
+			q, _ := url.ParseQuery(i.Query)
+			ignores = append(ignores, q)
+		}
+	}
+	glog.Infof("%#v", ignores)
 	// The corpus each test belongs to.
 	corpus := map[string]string{}
 	for _, tr := range tile.Traces {
@@ -114,61 +157,93 @@ func calcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, ta
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}
+	glog.Infof("%#v", e)
 
-	testTally := tallies.ByTest()
-	for _, name := range tile.ParamSet[gtypes.PRIMARY_KEY_FIELD] {
-		if testNames != nil && !util.In(name, testNames) {
-			continue
-		}
-		if _, ok := testTally[name]; !ok {
+	// Filter the traces, then sort and sum.
+	filtered := []SortableTrace{}
+	for id, tr := range tile.Traces {
+		name := tr.Params()[gtypes.PRIMARY_KEY_FIELD]
+		if len(testNames) > 0 && !util.In(name, testNames) {
 			continue
 		}
 		if _, ok := corpus[name]; !ok {
 			continue
 		}
-		digests := make([]string, 0, len(*(testTally[name])))
+		if types.MatchesWithIgnores(tr, q, ignores...) {
+			filtered = append(filtered, SortableTrace{
+				id: id,
+				tr: tr,
+			})
+		}
+	}
+	glog.Infof("Found %d matches", len(filtered))
+	sort.Sort(SortableTraceSlice(filtered))
+	traceTally := tallies.ByTrace()
 
-		pos := 0
-		neg := 0
-		unt := 0
-		expectations, ok := e.Tests[name]
-		if ok {
-			for digest, _ := range *(testTally[name]) {
-				if dtype, ok := expectations[digest]; ok {
-					switch dtype {
-					case gtypes.UNTRIAGED:
-						unt += 1
-						digests = append(digests, digest)
-					case gtypes.NEGATIVE:
-						neg += 1
-					case gtypes.POSITIVE:
-						pos += 1
-						digests = append(digests, digest)
-					}
-				} else {
-					unt += 1
-					digests = append(digests, digest)
-				}
+	lastTest := ""
+	digests := map[string]bool{}
+	for _, st := range filtered {
+		if st.tr.Params()[gtypes.PRIMARY_KEY_FIELD] != lastTest {
+			if lastTest != "" {
+				ret[lastTest] = makeSummary(lastTest, e, diffStore, corpus[lastTest], util.KeysOfStringSet(digests))
+				lastTest = st.tr.Params()[gtypes.PRIMARY_KEY_FIELD]
+				digests = map[string]bool{}
 			}
+			lastTest = st.tr.Params()[gtypes.PRIMARY_KEY_FIELD]
+		}
+		if t, ok := traceTally[st.id]; !ok {
+			continue
 		} else {
-			unt += len(*(testTally[name]))
-			for digest, _ := range *(testTally[name]) {
-				digests = append(digests, digest)
+			for k, _ := range *t {
+				digests[k] = true
 			}
 		}
-		sort.Strings(digests)
-		ret[name] = &Summary{
-			Name:      name,
-			Diameter:  diameter(digests, diffStore),
-			Pos:       pos,
-			Neg:       neg,
-			Untriaged: unt,
-			Num:       pos + neg + unt,
-			Corpus:    corpus[name],
-		}
+	}
+	if lastTest != "" {
+		ret[lastTest] = makeSummary(lastTest, e, diffStore, corpus[lastTest], util.KeysOfStringSet(digests))
 	}
 
 	return ret, nil
+}
+
+// makeSummary returns a Summary for the given digests.
+func makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
+	pos := 0
+	neg := 0
+	unt := 0
+	diamDigests := []string{}
+	if expectations, ok := e.Tests[name]; ok {
+		for _, digest := range digests {
+			if dtype, ok := expectations[digest]; ok {
+				switch dtype {
+				case gtypes.UNTRIAGED:
+					unt += 1
+					diamDigests = append(diamDigests, digest)
+				case gtypes.NEGATIVE:
+					neg += 1
+				case gtypes.POSITIVE:
+					pos += 1
+					diamDigests = append(diamDigests, digest)
+				}
+			} else {
+				unt += 1
+				diamDigests = append(diamDigests, digest)
+			}
+		}
+	} else {
+		unt += len(digests)
+		diamDigests = digests
+	}
+	sort.Strings(diamDigests)
+	return &Summary{
+		Name:      name,
+		Diameter:  diameter(diamDigests, diffStore),
+		Pos:       pos,
+		Neg:       neg,
+		Untriaged: unt,
+		Num:       pos + neg + unt,
+		Corpus:    corpus,
+	}
 }
 
 func diameter(digests []string, diffStore diff.DiffStore) int {
