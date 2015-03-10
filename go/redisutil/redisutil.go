@@ -77,9 +77,9 @@ func (c *RedisLRUCache) Add(key, value interface{}) {
 	conn := c.pool.Get()
 	defer util.Close(conn)
 
-	conn.Send("MULTI")
-	conn.Send("SET", prefixedKey, byteVal)
-	conn.Send("SADD", c.indexSetKey, rawKey)
+	util.LogErr(conn.Send("MULTI"))
+	util.LogErr(conn.Send("SET", prefixedKey, byteVal))
+	util.LogErr(conn.Send("SADD", c.indexSetKey, rawKey))
 	_, err = conn.Do("EXEC")
 	if err != nil {
 		glog.Errorf("Unable to add key: %s", err)
@@ -117,9 +117,9 @@ func (c *RedisLRUCache) Remove(key interface{}) {
 		glog.Errorf("Unable to create redis key %s", err)
 	}
 
-	conn.Send("MULTI")
-	conn.Send("DEL", prefixedKey)
-	conn.Send("SREM", c.indexSetKey, rawKey)
+	util.LogErr(conn.Send("MULTI"))
+	util.LogErr(conn.Send("DEL", prefixedKey))
+	util.LogErr(conn.Send("SREM", c.indexSetKey, rawKey))
 	_, err = conn.Do("EXEC")
 	if err != nil {
 		glog.Errorf("Error deleting key:%s", err)

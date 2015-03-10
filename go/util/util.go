@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -252,4 +253,24 @@ func Close(c io.Closer) {
 	if err := c.Close(); err != nil {
 		glog.Errorf("Failed to Close(): %v", err)
 	}
+}
+
+// LogErr logs err if it's not nil. This is intended to be used
+// for calls where generally a returned error can be ignored.
+func LogErr(err error) {
+	if err != nil {
+		errMsg := ""
+		if _, fileName, line, ok := runtime.Caller(1); ok {
+			errMsg = fmt.Sprintf("-called from: %s:%d", fileName, line)
+		}
+
+		glog.Errorf("Unexpected error %s: %s", errMsg, err)
+	}
+}
+
+// GetStackTrace returns the stacktrace including GetStackTrace itself.
+func GetStackTrace() string {
+	buf := make([]byte, 1<<16)
+	runtime.Stack(buf, true)
+	return string(buf)
 }

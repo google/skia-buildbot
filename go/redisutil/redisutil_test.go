@@ -45,7 +45,7 @@ func BenchmarkBigDataset(b *testing.B) {
 	err := testutils.DownloadTestDataArchive(b, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.Nil(b, err, "Unable to download testdata.")
 	defer func() {
-		os.RemoveAll(TEST_DATA_DIR)
+		util.LogErr(os.RemoveAll(TEST_DATA_DIR))
 	}()
 
 	// Load the data
