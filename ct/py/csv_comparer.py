@@ -191,7 +191,7 @@ class CsvComparer(object):
             if self._IsPercDiffSameOrAboveThreshold(perc_diff):
               rank = 1
               slave_num = 1
-              m = re.match(r".* \(#([0-9])+\)", page_name2)
+              m = re.match(r".* \(#([0-9]+)\)", page_name2)
               if m and m.group(1):
                 rank = int(m.group(1))
                 while rank > slave_num * 100:
