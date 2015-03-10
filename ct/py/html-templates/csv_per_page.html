@@ -24,7 +24,7 @@
       </tr>
       {% for page_value in page_values %}
         <tr>
-          <td>{{ page_value.page_name }}</td>
+          <td>{{ page_value.page_name }} <a href="{{ page_value.pageset_link }}">pageset</a> <a href="{{ page_value.archive_link }}">archive</a></td>
           <td>{{ page_value.value1|floatformat:"-3" }}</td>
           <td>{{ page_value.value2|floatformat:"-3" }}</td>
           <td  {% if page_value.perc_diff <= 0 %}class="belowthreshold"{% else %}class="abovethreshold"{% endif %}>{{ page_value.perc_change|floatformat:"-3" }}%</td>

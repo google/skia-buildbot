@@ -10,6 +10,7 @@ import csv
 import datetime
 import optparse
 import os
+import re
 import sys
 import tempfile
 
@@ -17,6 +18,11 @@ from django.template import loader
 
 # Add the django settings file to DJANGO_SETTINGS_MODULE.
 os.environ['DJANGO_SETTINGS_MODULE'] = 'csv-django-settings'
+
+GS_HTML_BROWSER_LINK = (
+    'https://pantheon.corp.google.com/storage/browser/cluster-telemetry')
+GS_HTML_DIRECT_LINK = (
+    'https://pantheon.corp.google.com/m/cloudstorage/b/cluster-telemetry/o')
 
 
 def _GetPercentageDiff(value1, value2):
@@ -34,12 +40,15 @@ def _GetPercentageChange(value1, value2):
 
 class PageValues(object):
   """Container class to hold the values of a page name."""
-  def __init__(self, page_name, value1, value2, perc_diff, perc_change):
+  def __init__(self, page_name, value1, value2, perc_diff, perc_change,
+               pageset_link, archive_link):
     self.page_name = page_name
     self.value1 = value1
     self.value2 = value2
     self.perc_diff = perc_diff
     self.perc_change = perc_change
+    self.pageset_link = pageset_link
+    self.archive_link = archive_link
 
 
 class FieldNameValues(object):
@@ -180,10 +189,26 @@ class CsvComparer(object):
 
             perc_diff = _GetPercentageDiff(csv1_value, csv2_value)
             if self._IsPercDiffSameOrAboveThreshold(perc_diff):
+              rank = 1
+              slave_num = 1
+              m = re.match(r".* \(#([0-9])+\)", page_name2)
+              if m and m.group(1):
+                rank = int(m.group(1))
+                while rank > slave_num * 100:
+                  slave_num += 1
+              pageset_link = (
+                  '%s/page_sets/%s/slave%s/alexa%s_%s.py' % (
+                      GS_HTML_DIRECT_LINK, self._pageset_type, slave_num, rank,
+                      rank))
+              archive_link = (
+                  '%s/webpage_archives/%s/slave%s/alexa%s-%s' % (
+                      GS_HTML_BROWSER_LINK, self._pageset_type, slave_num, rank,
+                      rank))
               # Add this page only if its diff is above the threshold.
               l = fieldnames_to_page_values.get(fieldname, [])
               l.append(PageValues(page_name2, csv1_value, csv2_value, perc_diff,
-                                  _GetPercentageChange(csv1_value, csv2_value)))
+                                  _GetPercentageChange(csv1_value, csv2_value),
+                                  pageset_link, archive_link))
               fieldnames_to_page_values[fieldname] = l
     finally:
       sorted_csv1.close()
