@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/util"
 )
 
@@ -412,19 +413,7 @@ func (b *Build) replaceIntoDB() (rv error) {
 	if err != nil {
 		return fmt.Errorf("Unable to push build into database - Could not begin transaction: %v", err)
 	}
-	defer func() {
-		if rv != nil {
-			if err := tx.Rollback(); err != nil {
-				err = fmt.Errorf("Failed to rollback the transaction! %v... Previous error: %v", err, rv)
-			}
-		} else {
-			rv = tx.Commit()
-			if rv != nil {
-				tx.Rollback()
-			} else {
-			}
-		}
-	}()
+	defer func() { rv = database.CommitOrRollback(tx, rv) }()
 
 	res, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (builder,master,number,results,gotRevision,buildslave,started,finished,properties,branch,repository) VALUES (?,?,?,?,?,?,?,?,?,?,?);", TABLE_BUILDS), b.Builder, b.Master, b.Number, b.Results, b.GotRevision, b.BuildSlave, b.Started, b.Finished, b.PropertiesStr, b.Branch, b.Repository)
 	if err != nil {

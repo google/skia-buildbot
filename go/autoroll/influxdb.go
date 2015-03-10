@@ -38,13 +38,21 @@ func IngestAutoRollData(dbClient *influxdb.Client, workdir string) {
 		s, err := CurrentStatus(skiaRepo, chromiumRepo)
 		if err != nil {
 			glog.Error(err)
+			continue
 		} else {
 			if err := dbClient.WriteDataPoint(s, SERIES_AUTOROLL_CURRENTSTATUS); err != nil {
 				glog.Error(err)
+				continue
 			}
 		}
-		skiaRepo.Update(true, false)
-		chromiumRepo.Update(true, false)
+		if err := skiaRepo.Update(true, false); err != nil {
+			glog.Error(err)
+			continue
+		}
+		if err := chromiumRepo.Update(true, false); err != nil {
+			glog.Error(err)
+			continue
+		}
 	}
 }
 

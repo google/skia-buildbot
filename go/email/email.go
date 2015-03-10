@@ -3,6 +3,7 @@ package email
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"html/template"
 	"strings"
 
@@ -62,7 +63,7 @@ func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 func (a *GMail) Send(to []string, subject string, body string) error {
 	user := "me"
 	msgBytes := new(bytes.Buffer)
-	emailTemplateParsed.Execute(msgBytes, struct {
+	if err := emailTemplateParsed.Execute(msgBytes, struct {
 		From    string
 		To      string
 		Subject string
@@ -72,7 +73,9 @@ func (a *GMail) Send(to []string, subject string, body string) error {
 		To:      strings.Join(to, ","),
 		Subject: subject,
 		Body:    template.HTML(body),
-	})
+	}); err != nil {
+		return fmt.Errorf("Failed to send email; could not execute template: %v", err)
+	}
 	msg := gmail.Message{}
 	msg.SizeEstimate = int64(msgBytes.Len())
 	msg.Snippet = subject

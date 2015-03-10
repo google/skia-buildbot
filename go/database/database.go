@@ -199,7 +199,7 @@ func (vdb *VersionedDB) Close() error {
 
 // Migrates the database to the specified target version. Use DBVersion() to
 // retrieve the current version of the database.
-func (vdb *VersionedDB) Migrate(targetVersion int) error {
+func (vdb *VersionedDB) Migrate(targetVersion int) (rv error) {
 	if (targetVersion < 0) || (targetVersion > vdb.MaxDBVersion()) {
 		glog.Fatalf("Target db version must be in range: [0 .. %d]", vdb.MaxDBVersion())
 	}
@@ -218,15 +218,7 @@ func (vdb *VersionedDB) Migrate(targetVersion int) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err != nil {
-			glog.Errorf("Rolling back commit. Error: %s", err)
-			txn.Rollback()
-		} else {
-			glog.Infoln("Committing changes.")
-			txn.Commit()
-		}
-	}()
+	defer func() { rv = CommitOrRollback(txn, rv) }()
 
 	// run through the transactions
 	runSteps := vdb.getMigrations(currentVersion, targetVersion)
@@ -291,16 +283,9 @@ func (vdb *VersionedDB) setDBVersion(txn *sql.Tx, newDBVersion int) error {
 	return err
 }
 
-func (vdb *VersionedDB) ensureVersionTable() (err error) {
+func (vdb *VersionedDB) ensureVersionTable() (rv error) {
 	txn, err := vdb.DB.Begin()
-	defer func() {
-		if err != nil {
-			glog.Errorf("Encountered error rolling back: %s", err)
-			txn.Rollback()
-		} else {
-			txn.Commit()
-		}
-	}()
+	defer func() { rv = CommitOrRollback(txn, rv) }()
 
 	if err != nil {
 		fmt.Errorf("Unable to start database transaction. %s", err)
@@ -356,4 +341,31 @@ func (vdb *VersionedDB) getMigrations(currentVersion int, targetVersion int) [][
 		idx += inc
 	}
 	return result
+}
+
+// Tx wraps the Commit and Rollback methods of a database transaction.
+type Tx interface {
+	Commit() error
+	Rollback() error
+}
+
+// CommitOrRollback is a function which commits or rolls back a database
+// transaction, depending on whether or not the function returned an error,
+// and logs any errors it encounters. Use it like this:
+//
+// defer func() { rv = CommitOrRollback(tx, rv) }
+//
+func CommitOrRollback(tx Tx, err error) error {
+	glog.Errorf("CommitOrRollback: err = %v", err)
+	if err != nil {
+		glog.Errorf("Rolling back commit. Error: %s", err)
+		if err2 := tx.Rollback(); err2 != nil {
+			return fmt.Errorf("%v; failed to rollback: %v", err, err2)
+		} else {
+			return err
+		}
+	} else {
+		glog.Infoln("Committing changes.")
+		return tx.Commit()
+	}
 }

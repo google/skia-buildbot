@@ -122,7 +122,7 @@ func ClearMySQLTables(t *testing.T, vdb *database.VersionedDB) {
 	names := make([]string, 0)
 	var tableName string
 	for rows.Next() {
-		rows.Scan(&tableName)
+		assert.Nil(t, rows.Scan(&tableName))
 		names = append(names, tableName)
 	}
 

@@ -155,7 +155,10 @@ func getSession(w http.ResponseWriter, r *http.Request) (*SessionState, error) {
 			session.SessionStart.Format(time.RFC822))
 		return makeSession(w, r)
 	}
-	saveSession(&session, w, r)
+	if err := saveSession(&session, w, r); err != nil {
+		reportError(w, fmt.Sprintf("failed to save session: %v", err), http.StatusInternalServerError)
+		return nil, nil
+	}
 	return &session, nil
 }
 
