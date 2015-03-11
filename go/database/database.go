@@ -358,14 +358,12 @@ type Tx interface {
 func CommitOrRollback(tx Tx, err error) error {
 	glog.Errorf("CommitOrRollback: err = %v", err)
 	if err != nil {
-		glog.Errorf("Rolling back commit. Error: %s", err)
 		if err2 := tx.Rollback(); err2 != nil {
 			return fmt.Errorf("%v; failed to rollback: %v", err, err2)
 		} else {
-			return err
+			return fmt.Errorf("%v; transaction rolled back.", err)
 		}
 	} else {
-		glog.Infoln("Committing changes.")
 		return tx.Commit()
 	}
 }
