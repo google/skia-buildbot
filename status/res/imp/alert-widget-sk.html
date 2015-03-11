@@ -164,7 +164,7 @@
 
       reloadAlerts: function() {
         var that = this;
-        sk.get("https://alerts.skia.org/json/alerts").then(JSON.parse).then(function(json) {
+        sk.get("https://alerts.skia.org/json/alerts/").then(JSON.parse).then(function(json) {
           that.updateAlerts(json.alerts);
           that.resetTimeout();
         }).catch(function() {
