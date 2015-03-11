@@ -14,3 +14,7 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON skiacorrectness.* TO 'readwrite'@'localhost
 # Buildbot database.
 CREATE DATABASE IF NOT EXISTS buildbot;
 GRANT SELECT,INSERT,UPDATE,DELETE ON buildbot.* TO 'readwrite'@'localhost';
+
+# Alerts database.
+CREATE DATABASE IF NOT EXISTS alerts;
+GRANT SELECT,INSERT,UPDATE,DELETE ON alerts.* TO 'readwrite'@'localhost';

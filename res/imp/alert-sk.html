@@ -20,14 +20,14 @@
     <div id="wrapper" vertical horizontal center>
       <div horizontal layout>
       <div class="message" flex>{{alert.message}}</div>
-      <template if="{{alert.snoozed}}">
+      <template if="{{alert.snoozedUntil > 0}}">
         <div class="message">Snoozed until {{alert.snoozedUntil | parseDate}}</div>
       </template>
       <template if="{{editRights}}">
-        <template if="{{!alert.snoozed}}">
+        <template if="{{alert.snoozedUntil == 0}}">
           <core-ajax
               id="snooze"
-              url="/alerts/{{alert.id}}/snooze"
+              url="/json/alerts/{{alert.id}}/snooze"
               method="POST"
               contentType="application/json"
               on-core-response="{{reload}}"
@@ -44,10 +44,10 @@
           </paper-dialog>
           <core-icon-button icon="alarm" on-click="{{snoozeDialog}}"></core-icon-button>
         </template>
-        <template if="{{alert.snoozed}}">
+        <template if="{{alert.snoozedUntil > 0}}">
           <core-ajax
               id="unsnooze"
-              url="/alerts/{{alert.id}}/unsnooze"
+              url="/json/alerts/{{alert.id}}/unsnooze"
               method="POST"
               contentType="application/json"
               on-core-response="{{reload}}"
@@ -57,7 +57,7 @@
         </template>
         <core-ajax
             id="dismiss"
-            url="/alerts/{{alert.id}}/dismiss"
+            url="/json/alerts/{{alert.id}}/dismiss"
             method="POST"
             contentType="application/json"
             on-core-response="{{reload}}"
@@ -66,7 +66,7 @@
         <core-icon-button icon="highlight-remove" on-click="{{dismissAlert}}"></core-icon-button>
       </template>
       </div>
-      <comments-sk comments="{{alert.comments}}" addCommentUrl="/alerts/{{alert.id}}/addcomment" on-submit="{{reload}}"></comments-sk>
+      <comments-sk comments="{{alert.comments}}" addCommentUrl="/json/alerts/{{alert.id}}/addcomment" on-submit="{{reload}}"></comments-sk>
     </div>
     <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
   </template>

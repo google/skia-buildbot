@@ -1,282 +1,88 @@
 package alerting
 
-import (
-	"fmt"
-	"time"
+import "encoding/json"
 
-	"github.com/BurntSushi/toml"
-	"github.com/skia-dev/glog"
-	"github.com/skia-dev/influxdb/client"
-	"go.skia.org/infra/go/email"
-	"go.skia.org/infra/go/util"
-	"golang.org/x/tools/go/exact"
-	"golang.org/x/tools/go/types"
-)
-
-const (
-	NAG_MSG_TMPL = "This alert has been active for %s since the last update. Please verify that it is still valid and either fix the issue or dismiss/snooze the alert."
-)
-
-type queryable interface {
-	Query(string, ...client.TimePrecision) ([]*client.Series, error)
-}
-
-func executeQuery(c queryable, q string) (float64, error) {
-	results, err := c.Query(q)
-	if err != nil {
-		return 0.0, fmt.Errorf("Failed to query InfluxDB with query %q: %s", q, err)
-	}
-	if len(results) < 1 {
-		return 0.0, fmt.Errorf("Query returned no data: %q", q)
-	}
-	points := results[0].Points
-	if len(points) < 1 {
-		return 0.0, fmt.Errorf("Query returned no points: %q", q)
-	}
-	if len(points) > 1 {
-		return 0.0, fmt.Errorf("Query returned more than one point: %q", q)
-	}
-	valueColumn := 0
-	for _, label := range results[0].Columns {
-		if label == "time" || label == "sequence_number" {
-			valueColumn++
-		} else {
-			break
-		}
-	}
-	if len(results[0].Columns) != valueColumn+1 {
-		return 0.0, fmt.Errorf("Query returned an incorrect set of columns: %q %v", q, results[0].Columns)
-	}
-	if len(results[0].Columns) != len(points[0]) {
-		return 0.0, fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec.")
-	}
-	return points[0][valueColumn].(float64), nil
-}
-
-// Comment is an object representing a comment on an alert.
-type Comment struct {
-	Time    time.Time
-	User    string
-	Message string
+type alertFields struct {
+	Id           int64      `json:"id"`
+	Name         string     `json:"name"`
+	Category     string     `json:"category"`
+	Triggered    int64      `json:"triggered"`
+	SnoozedUntil int64      `json:"snoozedUntil"`
+	DismissedAt  int64      `json:"dismissedAt"`
+	Message      string     `json:"message"`
+	Nag          int64      `json:"nag"`
+	Comments     []*Comment `json:"comments"`
+	Actions      []string   `json:"actions"`
 }
 
 // Alert is an object which represents an active alert.
 type Alert struct {
-	Id            int64
-	lastTriggered time.Time
-	snoozedUntil  time.Time
-	dismissedAt   time.Time
-	Comments      []*Comment
-	Rule          *Rule
+	Id           int64      `db:"id"           json:"id"`
+	Name         string     `db:"name"         json:"name"`
+	Category     string     `db:"category"     json:"category"`
+	Triggered    int64      `db:"triggered"    json:"triggered"`
+	SnoozedUntil int64      `db:"snoozedUntil" json:"snoozedUntil"`
+	DismissedAt  int64      `db:"dismissedAt"  json:"dismissedAt"`
+	Message      string     `db:"message"      json:"message"`
+	Nag          int64      `db:"nag"          json:"nag"`
+	Comments     []*Comment `db:"-"            json:"comments"`
+	Actions      []Action   `db:"-"            json:"-"`
 }
 
-// addComment adds a comment about the alert.
-func (a *Alert) addComment(c *Comment) {
-	a.Comments = append(a.Comments, c)
-	for _, action := range a.Rule.actions {
-		go action.Followup(fmt.Sprintf("%s: %s", c.User, c.Message))
+func (a *Alert) MarshalJSON() ([]byte, error) {
+	actions := make([]string, 0, len(a.Actions))
+	for _, action := range a.Actions {
+		actions = append(actions, action.String())
 	}
+	fields := alertFields{
+		Id:           a.Id,
+		Name:         a.Name,
+		Category:     a.Category,
+		Triggered:    a.Triggered,
+		SnoozedUntil: a.SnoozedUntil,
+		DismissedAt:  a.DismissedAt,
+		Message:      a.Message,
+		Nag:          a.Nag,
+		Comments:     a.Comments,
+		Actions:      actions,
+	}
+	return json.Marshal(fields)
+}
+
+func (a *Alert) UnmarshalJSON(b []byte) error {
+	var proxy alertFields
+	if err := json.Unmarshal(b, &proxy); err != nil {
+		return err
+	}
+	a.Id = proxy.Id
+	a.Name = proxy.Name
+	a.Category = proxy.Category
+	a.Triggered = proxy.Triggered
+	a.SnoozedUntil = proxy.SnoozedUntil
+	a.DismissedAt = proxy.DismissedAt
+	a.Message = proxy.Message
+	a.Nag = proxy.Nag
+	a.Comments = proxy.Comments
+	actions := make([]Action, 0, len(proxy.Actions))
+	for _, s := range proxy.Actions {
+		action, err := ParseAction(s)
+		if err != nil {
+			return err
+		}
+		actions = append(actions, action)
+	}
+	a.Actions = actions
+	return nil
+}
+
+// Comment is an object representing a comment on an alert.
+type Comment struct {
+	User    string `db:"user"    json:"user"`
+	Time    int64  `db:"time"    json:"time"`
+	Message string `db:"message" json:"message"`
 }
 
 // Snoozed indicates whether the Alert has been Snoozed.
 func (a *Alert) Snoozed() bool {
-	return a.snoozedUntil != time.Time{}
-}
-
-// Triggered gives the time when the alert was triggered.
-func (a Alert) Triggered() time.Time {
-	return a.lastTriggered
-}
-
-// SnoozedUntil gives the time until which the alert is snoozed.
-func (a Alert) SnoozedUntil() time.Time {
-	return a.snoozedUntil
-}
-
-// Rule is an object used for triggering Alerts.
-type Rule struct {
-	Id          string        `json:"id"`
-	Name        string        `json:"name"`
-	Query       string        `json:"query"`
-	Condition   string        `json:"condition"`
-	Message     string        `json:"message"`
-	Nag         time.Duration `json:"nag"`
-	client      queryable
-	AutoDismiss bool `json:"autoDismiss"`
-	actions     []Action
-	activeAlert *Alert
-}
-
-// Fire causes the Alert to become Active() and not Snoozed(), and causes each
-// action to be performed. Active Alerts do not perform new queries.
-func (r *Rule) fire() {
-	a := Alert{
-		Id:            0,
-		lastTriggered: time.Now().UTC(),
-		Comments:      []*Comment{},
-		Rule:          r,
-	}
-	r.activeAlert = &a
-	for _, action := range r.actions {
-		go action.Fire()
-	}
-}
-
-func (r *Rule) tick() {
-	if r.activeAlert != nil && r.activeAlert.Snoozed() {
-		if r.activeAlert.snoozedUntil.Before(time.Now().UTC()) {
-			r.activeAlert.addComment(&Comment{
-				Time:    time.Now().UTC(),
-				User:    "AlertServer",
-				Message: "Dismissing; snooze period expired.",
-			})
-			r.activeAlert = nil
-		}
-	} else if r.AutoDismiss || r.activeAlert == nil {
-		glog.Infof("Executing query [%s]", r.Query)
-		d, err := executeQuery(r.client, r.Query)
-		if err != nil {
-			glog.Error(err)
-			return
-		}
-		glog.Infof("Query [%s] returned %v", r.Query, d)
-		doAlert, err := r.evaluate(d)
-		if err != nil {
-			glog.Error(err)
-			return
-		}
-		if r.activeAlert != nil && r.AutoDismiss && !doAlert {
-			r.activeAlert.addComment(&Comment{
-				Time:    time.Now().UTC(),
-				User:    "AlertServer",
-				Message: "Auto-dismissing; condition is no longer true.",
-			})
-			r.activeAlert = nil
-		} else if r.activeAlert == nil && doAlert {
-			r.fire()
-		}
-	}
-	r.maybeNag()
-}
-
-func (r *Rule) maybeNag() {
-	a := r.activeAlert
-	if a != nil && !a.Snoozed() && r.Nag != time.Duration(0) {
-		lastMsgTime := a.Triggered()
-		if len(a.Comments) > 0 {
-			lastMsgTime = a.Comments[len(a.Comments)-1].Time
-		}
-		if time.Since(lastMsgTime) > r.Nag {
-			a.addComment(&Comment{
-				Time:    time.Now().UTC(),
-				User:    "AlertServer",
-				Message: fmt.Sprintf(NAG_MSG_TMPL, r.Nag.String()),
-			})
-		}
-	}
-}
-
-func (r *Rule) evaluate(d float64) (bool, error) {
-	pkg := types.NewPackage("evaluateme", "evaluateme")
-	v := exact.MakeFloat64(d)
-	pkg.Scope().Insert(types.NewConst(0, pkg, "x", types.Typ[types.Float64], v))
-	tv, err := types.Eval(r.Condition, pkg, pkg.Scope())
-	if err != nil {
-		return false, fmt.Errorf("Failed to evaluate condition %q: %s", r.Condition, err)
-	}
-	if tv.Type.String() != "untyped bool" {
-		return false, fmt.Errorf("Rule \"%v\" does not return boolean type.", r.Condition)
-	}
-	return exact.BoolVal(tv.Value), nil
-}
-
-type parsedRule map[string]interface{}
-
-func newRule(r parsedRule, client *client.Client, emailAuth *email.GMail, testing bool) (*Rule, error) {
-	errString := "Alert rule missing field %q"
-	name, ok := r["name"].(string)
-	if !ok {
-		return nil, fmt.Errorf(errString, "name")
-	}
-	query, ok := r["query"].(string)
-	if !ok {
-		return nil, fmt.Errorf(errString, "query")
-	}
-	condition, ok := r["condition"].(string)
-	if !ok {
-		return nil, fmt.Errorf(errString, "condition")
-	}
-	message, ok := r["message"].(string)
-	if !ok {
-		return nil, fmt.Errorf(errString, "message")
-	}
-	AutoDismiss, ok := r["auto-dismiss"].(bool)
-	if !ok {
-		return nil, fmt.Errorf(errString, "auto-dismiss")
-	}
-	actionsInterface, ok := r["actions"]
-	if !ok {
-		return nil, fmt.Errorf(errString, "actions")
-	}
-	nagDuration := time.Duration(0)
-	nag, ok := r["nag"].(string)
-	if ok {
-		var err error
-		nagDuration, err = time.ParseDuration(nag)
-		if err != nil {
-			return nil, fmt.Errorf("Invalid nag duration %q: %v", nag, err)
-		}
-	}
-	id, err := util.GenerateID()
-	if err != nil {
-		return nil, err
-	}
-	rule := Rule{
-		Id:          id,
-		Name:        name,
-		Query:       query,
-		Condition:   condition,
-		Message:     message,
-		Nag:         nagDuration,
-		client:      client,
-		AutoDismiss: AutoDismiss,
-		actions:     nil,
-		activeAlert: nil,
-	}
-	if err := rule.parseActions(actionsInterface, emailAuth, testing); err != nil {
-		return nil, err
-	}
-	// Verify that the condition can be evaluated.
-	_, err = rule.evaluate(0.0)
-	if err != nil {
-		return nil, err
-	}
-	return &rule, nil
-}
-
-func parseAlertRules(cfgFile string) ([]parsedRule, error) {
-	var cfg struct {
-		Rule []parsedRule
-	}
-	_, err := toml.DecodeFile(cfgFile, &cfg)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse %s: %s", cfgFile, err)
-	}
-	return cfg.Rule, nil
-}
-
-func makeRules(cfgFile string, dbClient *client.Client, emailAuth *email.GMail, testing bool) ([]*Rule, error) {
-	parsedRules, err := parseAlertRules(cfgFile)
-	if err != nil {
-		return nil, err
-	}
-	rules := []*Rule{}
-	for _, r := range parsedRules {
-		r, err := newRule(r, dbClient, emailAuth, testing)
-		if err != nil {
-			return nil, err
-		}
-		rules = append(rules, r)
-	}
-	return rules, nil
+	return a.SnoozedUntil != 0
 }

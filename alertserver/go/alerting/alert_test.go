@@ -1,378 +1,157 @@
 package alerting
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/json"
 	"testing"
 	"time"
 
-	"github.com/BurntSushi/toml"
-	"github.com/skia-dev/influxdb/client"
+	"github.com/jmoiron/sqlx"
+	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/testutils"
 )
 
-type mockClient struct {
-	mockQuery func(string) ([]*client.Series, error)
-}
-
-func (c mockClient) Query(query string, precision ...client.TimePrecision) ([]*client.Series, error) {
-	return c.mockQuery(query)
-}
-
-func getRule() *Rule {
-	r := &Rule{
-		Name:      "TestRule",
-		Query:     "DummyQuery",
-		Message:   "Dummy query meets dummy condition!",
-		Condition: "x > 0",
-		client: &mockClient{func(string) ([]*client.Series, error) {
-			s := client.Series{
-				Name:    "Results",
-				Columns: []string{"time", "value"},
-				Points:  [][]interface{}{[]interface{}{1234567, 1.0}},
-			}
-			return []*client.Series{&s}, nil
-		}},
-		AutoDismiss: false,
-		actions:     nil,
-	}
-	r.actions = []Action{NewPrintAction(r)}
-	return r
-}
-
-func getAlert() *Alert {
-	a := &Alert{
-		Id:            0,
-		lastTriggered: time.Time{},
-		snoozedUntil:  time.Time{},
-		Comments:      []*Comment{},
-		Rule:          getRule(),
-	}
-	return a
-}
-
-func TestRule(t *testing.T) {
-	// TODO(borenet): This test is really racy. Is there a good fix?
-	r := getRule()
-	if r.activeAlert != nil {
-		t.Errorf("Alert is active before firing.")
-	}
-	r.tick()
-	time.Sleep(10 * time.Millisecond)
-	if r.activeAlert == nil {
-		t.Errorf("Alert did not fire as expected.")
-	}
-	r.activeAlert.snoozedUntil = time.Now().Add(30 * time.Millisecond)
-	time.Sleep(10 * time.Millisecond)
-	if !r.activeAlert.Snoozed() {
-		t.Errorf("Alert did not snooze as expected.")
-	}
-	// Wait for alert to dismiss itself.
-	time.Sleep(50 * time.Millisecond)
-	r.tick()
-	if r.activeAlert != nil {
-		t.Errorf("Alert did not dismiss itself after snooze period ended.")
+// makeAlert returns an example Alert.
+func makeAlert() *Alert {
+	now := time.Now().UTC().Unix()
+	return &Alert{
+		Id:           9,
+		Name:         "My Dummy Alert",
+		Category:     "testing",
+		Triggered:    now - 10000,
+		SnoozedUntil: now - 5000,
+		DismissedAt:  0,
+		Message:      "This is a test!",
+		Nag:          int64(time.Hour),
+		Comments: []*Comment{
+			&Comment{
+				User:    "me",
+				Time:    now - 7000,
+				Message: "Wow, look at this alert!",
+			},
+			&Comment{
+				User:    "you",
+				Time:    now - 6000,
+				Message: "yeah, it's pretty awesome.",
+			},
+		},
+		Actions: []Action{NewPrintAction()},
 	}
 }
 
-func TestAutoDismiss(t *testing.T) {
-	r := getRule()
-	r.AutoDismiss = true
-	if r.activeAlert != nil {
-		t.Errorf("Alert is active before firing.")
+// clearDB initializes the database, upgrading it if needed, and removes all
+// data to ensure that the test begins with a clean slate. Returns a MySQLTestDatabase
+// which must be closed after the test finishes.
+func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
+	failMsg := "Database initialization failed. Do you have the test database set up properly?  Details: %v"
+
+	// Set up the database.
+	testDb := testutil.SetupMySQLTestDatabase(t, migrationSteps)
+
+	conf := testutil.LocalTestDatabaseConfig(migrationSteps)
+	var err error
+	DB, err = sqlx.Open("mysql", conf.MySQLString)
+	assert.Nil(t, err, failMsg)
+
+	return testDb
+}
+
+// TestAlertJsonSerialization verifies that we properly serialize and
+// deserialize Alerts to JSON.
+func TestAlertJsonSerialization(t *testing.T) {
+	cases := []*Alert{
+		&Alert{},    // Empty Alert.
+		makeAlert(), // Realistic case.
 	}
-	r.tick()
-	time.Sleep(10 * time.Millisecond)
-	if r.activeAlert == nil {
-		t.Errorf("Alert did not fire as expected.")
-	}
-	// Hack the condition so that it's no longer true with the fake query results.
-	r.Condition = "x > 10"
-	r.tick()
-	time.Sleep(10 * time.Millisecond)
-	if r.activeAlert != nil {
-		t.Errorf("Alert did not auto-dismiss.")
+
+	for _, want := range cases {
+		b, err := json.Marshal(want)
+		assert.Nil(t, err)
+		got := &Alert{}
+		assert.Nil(t, json.Unmarshal(b, got))
+		testutils.AssertDeepEqual(t, got, want)
 	}
 }
 
-func TestExecuteQuery(t *testing.T) {
-	type queryCase struct {
-		Name        string
-		QueryFunc   func(string) ([]*client.Series, error)
-		ExpectedVal float64
-		ExpectedErr error
+// TestAlertDBSerialization verifies that we properly serialize and
+// deserialize Alerts into the DB.
+func TestAlertDBSerialization(t *testing.T) {
+	testutils.SkipIfShort(t)
+	d := clearDB(t)
+	defer d.Close(t)
+
+	cases := []*Alert{
+		&Alert{},    // Empty Alert.
+		makeAlert(), // Realistic case.
 	}
-	cases := []queryCase{
-		queryCase{
-			Name: "QueryFailed",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				return nil, fmt.Errorf("<dummy error>")
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Failed to query InfluxDB with query \"<dummy query>\": <dummy error>"),
-		},
-		queryCase{
-			Name: "EmptyResults",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				return []*client.Series{}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned no data: \"<dummy query>\""),
-		},
-		queryCase{
-			Name: "EmptySeries",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "Empty",
-					Columns: []string{},
-					Points:  [][]interface{}{},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned no points: \"<dummy query>\""),
-		},
-		queryCase{
-			Name: "TooManyPoints",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "TooMany",
-					Columns: []string{"time", "value"},
-					Points:  [][]interface{}{[]interface{}{}, []interface{}{}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned more than one point: \"<dummy query>\""),
-		},
-		queryCase{
-			Name: "NotEnoughCols",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "NotEnoughCols",
-					Columns: []string{"time"},
-					Points:  [][]interface{}{[]interface{}{}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns: \"<dummy query>\" [time]"),
-		},
-		queryCase{
-			Name: "TooManyCols",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "NotEnoughCols",
-					Columns: []string{"time", "value", "extraCol"},
-					Points:  [][]interface{}{[]interface{}{}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns: \"<dummy query>\" [time value extraCol]"),
-		},
-		queryCase{
-			Name: "ColsPointsMismatch",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "BadData",
-					Columns: []string{"time", "value"},
-					Points:  [][]interface{}{[]interface{}{}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec."),
-		},
-		queryCase{
-			Name: "GoodData",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "GoodData",
-					Columns: []string{"time", "value"},
-					Points:  [][]interface{}{[]interface{}{"mean", 1.5}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 1.5,
-			ExpectedErr: nil,
-		},
-		queryCase{
-			Name: "GoodWithSequenceNumber",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "GoodData",
-					Columns: []string{"time", "sequence_number", "value"},
-					Points:  [][]interface{}{[]interface{}{1234567, 10, 1.5}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 1.5,
-			ExpectedErr: nil,
-		},
-	}
-	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
-	for _, c := range cases {
-		client := mockClient{c.QueryFunc}
-		actualErrStr := "nil"
-		expectedErrStr := "nil"
-		if c.ExpectedErr != nil {
-			expectedErrStr = c.ExpectedErr.Error()
-		}
-		val, err := executeQuery(client, "<dummy query>")
-		if err != nil {
-			actualErrStr = err.Error()
-		}
-		if expectedErrStr != actualErrStr {
-			t.Errorf(errorStr, c.Name, expectedErrStr, actualErrStr)
-		}
-		if val != c.ExpectedVal {
-			t.Errorf(errorStr, c.Name, c.ExpectedVal, val)
-		}
+
+	for _, want := range cases {
+		assert.Nil(t, want.retryReplaceIntoDB())
+		a, err := GetActiveAlerts()
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(a))
+		got := a[0]
+		testutils.AssertDeepEqual(t, got, want)
+		// Dismiss the Alert, so that it doesn't show up later.
+		got.DismissedAt = 1000
+		assert.Nil(t, got.retryReplaceIntoDB())
 	}
 }
 
-func TestAlertParsing(t *testing.T) {
-	type parseCase struct {
-		Name        string
-		Input       string
-		ExpectedErr error
+// TestAlertFlowE2E verifies that we can insert an Alert, manipulate it,
+// retrieve it, and dismiss it properly.
+func TestAlertFlowE2E(t *testing.T) {
+	testutils.SkipIfShort(t)
+	d := clearDB(t)
+	defer d.Close(t)
+
+	am, err := MakeAlertManager(50*time.Millisecond, nil)
+	assert.Nil(t, err)
+
+	// Insert an Alert.
+	a := makeAlert()
+	assert.Nil(t, am.AddAlert(a))
+
+	// Give the AlertManager a chance to react, then verify that the Alert
+	// is active and not snoozed.
+	time.Sleep(75 * time.Millisecond)
+	getAlerts := func() []*Alert {
+		b := bytes.NewBuffer([]byte{})
+		assert.Nil(t, am.WriteActiveAlertsJson(b))
+		var active []*Alert
+		assert.Nil(t, json.Unmarshal(b.Bytes(), &active))
+		return active
 	}
-	cases := []parseCase{
-		parseCase{
-			Name: "Good",
-			Input: `[[rule]]
-name = "randombits"
-message = "randombits generates more 1's than 0's in last 5 seconds"
-query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > 0.5"
-actions = ["Print"]
-auto-dismiss = false
-`,
-			ExpectedErr: nil,
-		},
-		parseCase{
-			Name: "NoName",
-			Input: `[[rule]]
-message = "randombits generates more 1's than 0's in last 5 seconds"
-query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > 0.5"
-actions = ["Print"]
-auto-dismiss = false
-`,
-			ExpectedErr: fmt.Errorf("Alert rule missing field \"name\""),
-		},
-		parseCase{
-			Name: "NoQuery",
-			Input: `[[rule]]
-name = "randombits"
-message = "randombits generates more 1's than 0's in last 5 seconds"
-condition = "x > 0.5"
-actions = ["Print"]
-auto-dismiss = false
-`,
-			ExpectedErr: fmt.Errorf("Alert rule missing field \"query\""),
-		},
-		parseCase{
-			Name: "NoCondition",
-			Input: `[[rule]]
-name = "randombits"
-message = "randombits generates more 1's than 0's in last 5 seconds"
-query = "select mean(value) from random_bits where time > now() - 5s"
-actions = ["Print"]
-auto-dismiss = false
-`,
-			ExpectedErr: fmt.Errorf("Alert rule missing field \"condition\""),
-		},
-		parseCase{
-			Name: "NoActions",
-			Input: `[[rule]]
-name = "randombits"
-message = "randombits generates more 1's than 0's in last 5 seconds"
-query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > 0.5"
-auto-dismiss = false
-`,
-			ExpectedErr: fmt.Errorf("Alert rule missing field \"actions\""),
-		},
-		parseCase{
-			Name: "UnknownAction",
-			Input: `[[rule]]
-name = "randombits"
-message = "randombits generates more 1's than 0's in last 5 seconds"
-query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > 0.5"
-actions = ["Print", "UnknownAction"]
-auto-dismiss = false
-`,
-			ExpectedErr: fmt.Errorf("Unknown action: \"UnknownAction\""),
-		},
-		parseCase{
-			Name: "BadCondition",
-			Input: `[[rule]]
-name = "randombits"
-message = "randombits generates more 1's than 0's in last 5 seconds"
-query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > y"
-actions = ["Print"]
-auto-dismiss = false
-`,
-			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x > y\": 1:1: undeclared name: y"),
-		},
-		parseCase{
-			Name: "NoMessage",
-			Input: `[[rule]]
-name = "randombits"
-query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > 0.5"
-actions = ["Print"]
-auto-dismiss = false
-`,
-			ExpectedErr: fmt.Errorf("Alert rule missing field \"message\""),
-		},
-		parseCase{
-			Name: "NoAutoDismiss",
-			Input: `[[rule]]
-name = "randombits"
-message = "randombits generates more 1's than 0's in last 5 seconds"
-query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > 0.5"
-actions = ["Print"]
-`,
-			ExpectedErr: fmt.Errorf("Alert rule missing field \"auto-dismiss\""),
-		},
-		parseCase{
-			Name: "Nag",
-			Input: `[[rule]]
-name = "randombits"
-message = "randombits generates more 1's than 0's in last 5 seconds"
-query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > 0.5"
-actions = ["Print"]
-auto-dismiss = false
-nag = "1h10m"
-`,
-			ExpectedErr: nil,
-		},
+	getAlert := func() *Alert {
+		active := getAlerts()
+		assert.Equal(t, 1, len(active))
+		return active[0]
 	}
-	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
-	for _, c := range cases {
-		expectedErrStr := "nil"
-		if c.ExpectedErr != nil {
-			expectedErrStr = c.ExpectedErr.Error()
-		}
-		var cfg struct {
-			Rule []parsedRule
-		}
-		_, err := toml.Decode(c.Input, &cfg)
-		if err != nil {
-			t.Errorf("Failed to parse:\n%v", c.Input)
-		}
-		_, err = newRule(cfg.Rule[0], nil, nil, false)
-		actualErrStr := "nil"
-		if err != nil {
-			actualErrStr = err.Error()
-		}
-		if actualErrStr != expectedErrStr {
-			t.Errorf(errorStr, c.Name, expectedErrStr, actualErrStr)
-		}
-	}
+	got := getAlert()
+	assert.True(t, am.Contains(got.Id))
+	assert.False(t, got.Snoozed())
+
+	// Snooze the Alert.
+	am.Snooze(got.Id, time.Now().UTC().Add(30*time.Second), "test_user")
+	assert.True(t, getAlert().Snoozed())
+
+	// Unsnooze the Alert.
+	am.Unsnooze(got.Id, "test_user")
+	assert.False(t, getAlert().Snoozed())
+
+	// Snooze the Alert and make sure it gets dismissed after the snooze
+	// period expires.
+	am.Snooze(got.Id, time.Now().UTC().Add(1*time.Millisecond), "test_user")
+	time.Sleep(1 * time.Second)
+	assert.False(t, am.Contains(got.Id))
+	assert.Equal(t, 0, len(getAlerts()))
+
+	// Add another Alert. Dismiss it.
+	assert.Nil(t, am.AddAlert(a))
+	assert.Nil(t, am.Dismiss(getAlert().Id, "test_user", "test dismiss"))
+	assert.Equal(t, 0, len(getAlerts()))
+
+	// Stop the AlertManager before deleting the database out form under it.
+	am.Stop()
 }

@@ -23,13 +23,16 @@ import (
 
 import (
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"github.com/skia-dev/influxdb/client"
 )
 
 import (
 	"go.skia.org/infra/alertserver/go/alerting"
+	"go.skia.org/infra/alertserver/go/rules"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -43,6 +46,7 @@ const (
 
 var (
 	alertManager *alerting.AlertManager = nil
+	rulesList    []*rules.Rule          = nil
 
 	alertsTemplate *template.Template = nil
 	rulesTemplate  *template.Template = nil
@@ -122,118 +126,79 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	type displayComment struct {
-		Time    int32  `json:"time"`
-		User    string `json:"user"`
-		Message string `json:"message"`
-	}
-	type displayAlert struct {
-		Id           string            `json:"id"`
-		Name         string            `json:"name"`
-		Query        string            `json:"query"`
-		Condition    string            `json:"condition"`
-		Message      string            `json:"message"`
-		Snoozed      bool              `json:"snoozed"`
-		Triggered    int32             `json:"triggered"`
-		SnoozedUntil int32             `json:"snoozedUntil"`
-		Comments     []*displayComment `json:"comments"`
-	}
-	alerts := struct {
-		Alerts []displayAlert `json:"alerts"`
-	}{
-		Alerts: []displayAlert{},
-	}
-	for _, a := range alertManager.Alerts() {
-		comments := []*displayComment{}
-		if a.Comments != nil {
-			for _, c := range a.Comments {
-				comments = append(comments, &displayComment{
-					Time:    int32(c.Time.Unix()),
-					User:    c.User,
-					Message: c.Message,
-				})
-			}
-		}
-		alerts.Alerts = append(alerts.Alerts, displayAlert{
-			Id:           a.Rule.Id,
-			Name:         a.Rule.Name,
-			Query:        a.Rule.Query,
-			Condition:    a.Rule.Condition,
-			Message:      a.Rule.Message,
-			Snoozed:      a.Snoozed(),
-			Triggered:    int32(a.Triggered().Unix()),
-			SnoozedUntil: int32(a.SnoozedUntil().Unix()),
-			Comments:     comments,
-		})
-	}
-	if err := json.NewEncoder(w).Encode(&alerts); err != nil {
-		glog.Error(err)
+	if err := alertManager.WriteActiveAlertsJson(w); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Unable to write JSON: %v", err))
 	}
 }
 
-func alertHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		email := login.LoggedInAs(r)
-		if !userHasEditRights(email) {
-			util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in to an account with edit rights to do that.")
-			return
-		}
-		// URLs take the form /alerts/<alertId>/<action>
-		split := strings.Split(r.URL.String(), "/")
-		if len(split) != 4 {
-			util.ReportError(w, r, fmt.Errorf("Invalid URL %s", r.URL), "Requested URL is not valid.")
-			return
-		}
-		alertId := split[2]
-		if !alertManager.Contains(alertId) {
-			util.ReportError(w, r, fmt.Errorf("Invalid Alert ID %s", alertId), "The requested resource does not exist.")
-			return
-		}
-		action := split[3]
-		if action == "dismiss" {
-			glog.Infof("%s %s", action, alertId)
-			alertManager.Dismiss(alertId, email)
-			return
-		} else if action == "snooze" {
-			d := json.NewDecoder(r.Body)
-			body := struct {
-				Until int
-			}{}
-			err := d.Decode(&body)
-			if err != nil || body.Until == 0 {
-				util.ReportError(w, r, err, fmt.Sprintf("Unable to decode request body: %s", r.Body))
-				return
-			}
-			defer util.Close(r.Body)
-			until := time.Unix(int64(body.Until), 0)
-			glog.Infof("%s %s until %v", action, alertId, until.String())
-			alertManager.Snooze(alertId, until, email)
-			return
-		} else if action == "unsnooze" {
-			glog.Infof("%s %s", action, alertId)
-			alertManager.Unsnooze(alertId, email)
-			return
-		} else if action == "addcomment" {
-			c := struct {
-				Comment string `json:"comment"`
-			}{}
-			if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
-				util.ReportError(w, r, err, fmt.Sprintf("Unable to read request body: %s", r.Body))
-				return
-			}
-			defer util.Close(r.Body)
-			if !StringIsInteresting(c.Comment) {
-				util.ReportError(w, r, fmt.Errorf("Invalid comment text."), c.Comment)
-				return
-			}
-			glog.Infof("%s %s: %s", action, alertId, c.Comment)
-			alertManager.AddComment(alertId, email, c.Comment)
-		} else {
-			util.ReportError(w, r, fmt.Errorf("Invalid action %s", action), "The requested action is invalid.")
-			return
-		}
+func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
+	email := login.LoggedInAs(r)
+	if !userHasEditRights(email) {
+		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in to an account with edit rights to do that.")
+		return
 	}
 
+	// Get the alert ID.
+	alertIdStr, ok := mux.Vars(r)["alertId"]
+	if !ok {
+		util.ReportError(w, r, fmt.Errorf("No alert ID provided."), "No alert ID provided.")
+	}
+	alertId, err := strconv.ParseInt(alertIdStr, 10, 64)
+	if err != nil {
+		util.ReportError(w, r, fmt.Errorf("Invalid alert ID %s", alertIdStr), "Not found.")
+	}
+
+	action, ok := mux.Vars(r)["action"]
+	if !ok {
+		util.ReportError(w, r, fmt.Errorf("No action provided."), "No action provided.")
+	}
+
+	if action == "dismiss" {
+		glog.Infof("%s %d", action, alertId)
+		alertManager.Dismiss(alertId, email, "")
+		return
+	} else if action == "snooze" {
+		d := json.NewDecoder(r.Body)
+		body := struct {
+			Until int
+		}{}
+		err := d.Decode(&body)
+		if err != nil || body.Until == 0 {
+			util.ReportError(w, r, err, fmt.Sprintf("Unable to decode request body: %s", r.Body))
+			return
+		}
+		defer util.Close(r.Body)
+		until := time.Unix(int64(body.Until), 0)
+		glog.Infof("%s %d until %v", action, alertId, until.String())
+		alertManager.Snooze(alertId, until, email)
+		return
+	} else if action == "unsnooze" {
+		glog.Infof("%s %d", action, alertId)
+		alertManager.Unsnooze(alertId, email)
+		return
+	} else if action == "addcomment" {
+		c := struct {
+			Comment string `json:"comment"`
+		}{}
+		if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
+			util.ReportError(w, r, err, fmt.Sprintf("Unable to read request body: %s", r.Body))
+			return
+		}
+		defer util.Close(r.Body)
+		if !StringIsInteresting(c.Comment) {
+			util.ReportError(w, r, fmt.Errorf("Invalid comment text."), c.Comment)
+			return
+		}
+		glog.Infof("%s %d: %s", action, alertId, c.Comment)
+		alertManager.AddComment(alertId, email, c.Comment)
+	} else {
+		util.ReportError(w, r, fmt.Errorf("Invalid action %s", action), "The requested action is invalid.")
+		return
+	}
+
+}
+
+func alertHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in testing mode.
@@ -256,9 +221,9 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 func rulesJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	rules := struct {
-		Rules []*alerting.Rule `json:"rules"`
+		Rules []*rules.Rule `json:"rules"`
 	}{
-		Rules: alertManager.Rules(),
+		Rules: rulesList,
 	}
 	if err := json.NewEncoder(w).Encode(&rules); err != nil {
 		glog.Error(err)
@@ -279,20 +244,25 @@ func rulesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runServer(serverURL string) {
-	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
-	http.HandleFunc("/", alertHandler)
-	http.HandleFunc("/rules", rulesHandler)
-	http.HandleFunc("/json/alerts", alertJsonHandler)
-	http.HandleFunc("/json/rules", rulesJsonHandler)
-	http.HandleFunc("/json/version", skiaversion.JsonHandler)
-	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	http.HandleFunc("/logout/", login.LogoutHandler)
-	http.HandleFunc("/loginstatus/", login.StatusHandler)
+	r := mux.NewRouter()
+	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(makeResourceHandler())))
+	r.HandleFunc("/", util.MakeHandler(alertHandler))
+	r.HandleFunc("/rules", util.MakeHandler(rulesHandler))
+	alerts := r.PathPrefix("/json/alerts").Subrouter()
+	alerts.HandleFunc("/", util.MakeHandler(alertJsonHandler))
+	alerts.HandleFunc("/{alertId:[0-9]+}/{action}", util.MakeHandler(postAlertsJsonHandler)).Methods("POST")
+	r.HandleFunc("/json/rules", util.MakeHandler(rulesJsonHandler))
+	r.HandleFunc("/json/version", util.MakeHandler(skiaversion.JsonHandler))
+	r.HandleFunc("/oauth2callback/", util.MakeHandler(login.OAuth2CallbackHandler))
+	r.HandleFunc("/logout/", util.MakeHandler(login.LogoutHandler))
+	r.HandleFunc("/loginstatus/", util.MakeHandler(login.StatusHandler))
+	http.Handle("/", r)
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func main() {
+	database.SetupFlags(alerting.PROD_DB_HOST, alerting.PROD_DB_PORT, database.USER_RW, alerting.PROD_DB_NAME)
 	common.InitWithMetrics("alertserver", graphiteServer)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
@@ -368,11 +338,26 @@ func main() {
 			glog.Fatalf("Failed to create email auth: %v", err)
 		}
 	}
-	alertManager, err = alerting.NewAlertManager(dbClient, *alertsFile, parsedPollInterval, emailAuth, *testing)
+
+	// Initialize the database.
+	conf, err := database.ConfigFromFlagsAndMetadata(*testing, alerting.MigrationSteps())
+	if err != nil {
+		glog.Fatal(err)
+	}
+	if err := alerting.InitDB(conf); err != nil {
+		glog.Fatal(err)
+	}
+	glog.Infof("Database config: %s", conf.MySQLString)
+
+	// Create the AlertManager.
+	alertManager, err = alerting.MakeAlertManager(parsedPollInterval, emailAuth)
 	if err != nil {
 		glog.Fatalf("Failed to create AlertManager: %v", err)
 	}
-	glog.Info("Created AlertManager")
+	rulesList, err = rules.MakeRules(*alertsFile, dbClient, parsedPollInterval, alertManager, *testing)
+	if err != nil {
+		glog.Fatalf("Failed to set up rules: %v", err)
+	}
 
 	runServer(serverURL)
 }

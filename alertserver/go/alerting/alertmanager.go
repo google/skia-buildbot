@@ -1,122 +1,264 @@
 package alerting
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"sort"
+	"sync"
 	"time"
 
-	"github.com/skia-dev/influxdb/client"
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/util"
+)
+
+const (
+	NAG_MSG_TMPL = "This alert has been active for %d seconds since the last update. Please verify that it is still valid and either fix the issue or dismiss/snooze the alert."
+)
+
+var (
+	Manager *AlertManager = nil
 )
 
 // AlertManager is the primary point of interaction with Alert objects.
 type AlertManager struct {
-	rules        map[string]*Rule
+	activeAlerts map[int64]*Alert
+	interrupt    chan bool
+	mutex        sync.RWMutex
 	tickInterval time.Duration
 }
 
-// Alerts returns a slice of the Alert instances held by this AlertManager.
-func (am *AlertManager) Alerts() []*Alert {
-	out := []*Alert{}
-	for _, r := range am.rules {
-		if r.activeAlert != nil {
-			out = append(out, r.activeAlert)
-		}
+// Alerts returns a slice containing the currently active Alerts.
+func (am *AlertManager) WriteActiveAlertsJson(w io.Writer) error {
+	am.mutex.RLock()
+	defer am.mutex.RUnlock()
+	out := make([]*Alert, 0, len(am.activeAlerts))
+	ids := make([]int64, 0, len(am.activeAlerts))
+	for _, a := range am.activeAlerts {
+		ids = append(ids, a.Id)
 	}
-	return out
+	sort.Sort(util.Int64Slice(ids))
+	for _, id := range ids {
+		out = append(out, am.activeAlerts[id])
+	}
+	return json.NewEncoder(w).Encode(out)
 }
 
-// Rules returns a slice of Rule objects for this AlertManager.
-func (am *AlertManager) Rules() []*Rule {
-	out := []*Rule{}
-	for _, r := range am.rules {
-		out = append(out, r)
+// AddAlert inserts the given Alert into the AlertManager, if one does not
+// already exist for its rule, and fires its actions if inserted.
+func (am *AlertManager) AddAlert(a *Alert) error {
+	am.mutex.Lock()
+	defer am.mutex.Unlock()
+	// Force some initial values.
+	a.Id = 0
+	a.Triggered = time.Now().UTC().Unix()
+	a.SnoozedUntil = 0
+	a.DismissedAt = 0
+	a.Comments = []*Comment{}
+
+	// Insert the alert.
+	if err := am.updateAlert(a); err != nil {
+		return fmt.Errorf("Failed to add Alert: %v", err)
 	}
-	return out
+
+	// Trigger the alert actions.
+	for _, action := range a.Actions {
+		go action.Fire(a)
+	}
+	return nil
+}
+
+// ActiveAlert returns the ID for the active alert with the given name, or
+// zero if no alert with the given name is active.
+func (am *AlertManager) ActiveAlert(name string) int64 {
+	am.mutex.RLock()
+	defer am.mutex.RUnlock()
+	for _, a := range am.activeAlerts {
+		if a.Name == name {
+			return a.Id
+		}
+	}
+	return 0
+}
+
+// updateAlert updates the given Alert in the database and reloads the active
+// alerts from the database. Assumes the caller holds a write lock.
+func (am *AlertManager) updateAlert(a *Alert) error {
+	if err := a.retryReplaceIntoDB(); err != nil {
+		return err
+	}
+	return am.reloadAlerts()
+}
+
+// reloadAlerts reloads the active alerts from the database. Assumes the caller
+// holds a write lock.
+func (am *AlertManager) reloadAlerts() error {
+	activeAlerts, err := GetActiveAlerts()
+	if err != nil {
+		return err
+	}
+	am.activeAlerts = map[int64]*Alert{}
+	for _, a := range activeAlerts {
+		am.activeAlerts[a.Id] = a
+	}
+	return nil
 }
 
 // Contains indicates whether this AlertManager has an Alert with the given ID.
-func (am *AlertManager) Contains(id string) bool {
-	_, contains := am.rules[id]
+func (am *AlertManager) Contains(id int64) bool {
+	am.mutex.RLock()
+	defer am.mutex.RUnlock()
+	_, contains := am.activeAlerts[id]
 	return contains
 }
 
 // Snooze the given alert until the given time.
-func (am *AlertManager) Snooze(id string, until time.Time, user string) {
-	r := am.rules[id]
-	if r.activeAlert != nil {
-		r.activeAlert.snoozedUntil = until
-		r.activeAlert.addComment(&Comment{
-			Time:    time.Now().UTC(),
-			User:    user,
-			Message: fmt.Sprintf("Snoozed until %s", until.String()),
-		})
+func (am *AlertManager) Snooze(id int64, until time.Time, user string) error {
+	am.mutex.Lock()
+	defer am.mutex.Unlock()
+	a, ok := am.activeAlerts[id]
+	if !ok {
+		return fmt.Errorf("Unknown alert: %d", id)
 	}
+	a.SnoozedUntil = until.UTC().Unix()
+	return am.addComment(a, &Comment{
+		Time:    time.Now().UTC().Unix(),
+		User:    user,
+		Message: fmt.Sprintf("Snoozed until %s", until.UTC().String()),
+	})
 }
 
 // Unsnooze the given alert.
-func (am *AlertManager) Unsnooze(id, user string) {
-	r := am.rules[id]
-	if r.activeAlert != nil {
-		r.activeAlert.snoozedUntil = time.Time{}
-		r.activeAlert.addComment(&Comment{
-			Time:    time.Now().UTC(),
-			User:    user,
-			Message: fmt.Sprintf("Unsnoozed"),
-		})
+func (am *AlertManager) Unsnooze(id int64, user string) error {
+	am.mutex.Lock()
+	defer am.mutex.Unlock()
+	a, ok := am.activeAlerts[id]
+	if !ok {
+		return fmt.Errorf("Unknown alert: %d", id)
 	}
+	a.SnoozedUntil = 0
+	return am.addComment(a, &Comment{
+		Time:    time.Now().UTC().Unix(),
+		User:    user,
+		Message: "Unsnoozed",
+	})
+}
+
+// Dismiss the given alert. Assumes the caller holds a write lock.
+func (am *AlertManager) dismiss(a *Alert, user, message string) error {
+	now := time.Now().UTC().Unix()
+	a.DismissedAt = now
+	msg := "Dismissed"
+	if message != "" {
+		msg = fmt.Sprintf("Dismissed: %s", message)
+	}
+	am.addComment(a, &Comment{
+		Time:    now,
+		User:    user,
+		Message: msg,
+	})
+	return am.updateAlert(a)
 }
 
 // Dismiss the given alert.
-func (am *AlertManager) Dismiss(id, user string) {
-	r := am.rules[id]
-	if r.activeAlert != nil {
-		r.activeAlert.addComment(&Comment{
-			Time:    time.Now().UTC(),
-			User:    user,
-			Message: fmt.Sprintf("Dismissed"),
-		})
+func (am *AlertManager) Dismiss(id int64, user, message string) error {
+	am.mutex.Lock()
+	defer am.mutex.Unlock()
+	a, ok := am.activeAlerts[id]
+	if !ok {
+		return fmt.Errorf("Unknown alert: %d", id)
 	}
-	r.activeAlert = nil
+	return am.dismiss(a, user, message)
+}
+
+// Add a comment to the given alert. Assumes the caller holds a write lock.
+func (am *AlertManager) addComment(a *Alert, c *Comment) error {
+	a.Comments = append(a.Comments, c)
+	for _, action := range a.Actions {
+		go action.Followup(a, fmt.Sprintf("%s: %s", c.User, c.Message))
+	}
+	return am.updateAlert(a)
 }
 
 // Add a comment to the given alert.
-func (am *AlertManager) AddComment(id, user, msg string) {
-	r := am.rules[id]
-	if r.activeAlert != nil {
-		r.activeAlert.addComment(&Comment{
-			Time:    time.Now().UTC(),
-			User:    user,
-			Message: msg,
-		})
+func (am *AlertManager) AddComment(id int64, user, msg string) error {
+	am.mutex.Lock()
+	defer am.mutex.Unlock()
+	a, ok := am.activeAlerts[id]
+	if !ok {
+		return fmt.Errorf("Unknown alert: %d", id)
 	}
+	return am.addComment(a, &Comment{
+		Time:    time.Now().UTC().Unix(),
+		User:    user,
+		Message: msg,
+	})
 }
 
+// tick is a function which the AlertManager runs periodically to update its
+// Alerts.
+func (am *AlertManager) tick() error {
+	am.mutex.Lock()
+	defer am.mutex.Unlock()
+
+	now := time.Now().UTC().Unix()
+	for _, a := range am.activeAlerts {
+		// Dismiss alerts whose snooze period has expired.
+		if a.Snoozed() && a.SnoozedUntil < now {
+			am.dismiss(a, "AlertServer", "Snooze period expired.")
+		}
+		// Send a nag message, if applicable.
+		if !a.Snoozed() && a.Nag != 0 {
+			lastMsgTime := a.Triggered
+			if len(a.Comments) > 0 {
+				lastMsgTime = a.Comments[len(a.Comments)-1].Time
+			}
+			if time.Since(time.Unix(int64(lastMsgTime), 0)) > time.Duration(a.Nag) {
+				am.addComment(a, &Comment{
+					Time:    time.Now().UTC().Unix(),
+					User:    "AlertServer",
+					Message: fmt.Sprintf(NAG_MSG_TMPL, a.Nag),
+				})
+			}
+		}
+	}
+
+	return am.reloadAlerts()
+}
+
+// loop runs the AlertManager's main loop.
 func (am *AlertManager) loop() {
+	if err := am.tick(); err != nil {
+		glog.Error(err)
+	}
 	for _ = range time.Tick(am.tickInterval) {
-		for _, a := range am.rules {
-			go a.tick()
+		select {
+		case <-am.interrupt:
+			return
+		default:
+		}
+		if err := am.tick(); err != nil {
+			glog.Error(err)
 		}
 	}
 }
 
-// NewAlertManager creates and returns an AlertManager instance.
-func NewAlertManager(dbClient *client.Client, alertsCfg string, tickInterval time.Duration, emailAuth *email.GMail, testing bool) (*AlertManager, error) {
-	// Create the rules.
-	rules, err := makeRules(alertsCfg, dbClient, emailAuth, testing)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create alerts: %v", err)
+// Stop causes the AlertManager to stop running.
+func (am *AlertManager) Stop() {
+	am.interrupt <- true
+}
+
+// MakeAlertManager creates and returns an AlertManager instance.
+func MakeAlertManager(tickInterval time.Duration, e *email.GMail) (*AlertManager, error) {
+	if Manager != nil {
+		return nil, fmt.Errorf("An AlertManager instance already exists!")
 	}
-	ruleMap := map[string]*Rule{}
-	for _, r := range rules {
-		if _, contains := ruleMap[r.Id]; contains {
-			return nil, fmt.Errorf("Alert ID collision.")
-		}
-		ruleMap[r.Id] = r
-	}
-	am := AlertManager{
-		rules:        ruleMap,
+	emailAuth = e
+	Manager = &AlertManager{
+		interrupt:    make(chan bool),
 		tickInterval: tickInterval,
 	}
-	go am.loop()
-	return &am, nil
+	go Manager.loop()
+	return Manager, nil
 }

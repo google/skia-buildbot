@@ -316,33 +316,22 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func makeHandler(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		url := r.URL.Path
-		if r.URL.RawQuery != "" {
-			url += "?" + r.URL.RawQuery
-		}
-		glog.Infof("%s: %s from %s", r.Method, url, r.RemoteAddr)
-		f(w, r)
-	}
-}
-
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(makeHandler(autogzip.HandleFunc(makeResourceHandler())))
-	r.HandleFunc("/", makeHandler(commitsHandler))
+	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(makeResourceHandler())))
+	r.HandleFunc("/", util.MakeHandler(commitsHandler))
 	builds := r.PathPrefix("/json/{repo}/builds/{buildId:[0-9]+}").Subrouter()
-	builds.HandleFunc("/comments", makeHandler(addBuildCommentHandler)).Methods("POST")
-	r.HandleFunc("/infra", makeHandler(infraHandler))
+	builds.HandleFunc("/comments", util.MakeHandler(addBuildCommentHandler)).Methods("POST")
+	r.HandleFunc("/infra", util.MakeHandler(infraHandler))
 	builders := r.PathPrefix("/json/{repo}/builders/{builder}").Subrouter()
-	builders.HandleFunc("/status", makeHandler(addBuilderStatusHandler)).Methods("POST")
+	builders.HandleFunc("/status", util.MakeHandler(addBuilderStatusHandler)).Methods("POST")
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
-	commits.HandleFunc("/", makeHandler(commitsJsonHandler))
-	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", makeHandler(addCommitCommentHandler)).Methods("POST")
-	r.HandleFunc("/json/version", makeHandler(skiaversion.JsonHandler))
-	r.HandleFunc("/oauth2callback/", makeHandler(login.OAuth2CallbackHandler))
-	r.HandleFunc("/logout/", makeHandler(login.LogoutHandler))
-	r.HandleFunc("/loginstatus/", makeHandler(login.StatusHandler))
+	commits.HandleFunc("/", util.MakeHandler(commitsJsonHandler))
+	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", util.MakeHandler(addCommitCommentHandler)).Methods("POST")
+	r.HandleFunc("/json/version", util.MakeHandler(skiaversion.JsonHandler))
+	r.HandleFunc("/oauth2callback/", util.MakeHandler(login.OAuth2CallbackHandler))
+	r.HandleFunc("/logout/", util.MakeHandler(login.LogoutHandler))
+	r.HandleFunc("/loginstatus/", util.MakeHandler(login.StatusHandler))
 	http.Handle("/", r)
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))

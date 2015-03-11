@@ -18,6 +18,9 @@ alertserver: core_js elements_html skiaversion
 testgo: skiaversion
 	go test ./go/... -v
 
+migratedb:
+	go install -v ./go/alertserver_migratedb
+
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
