@@ -73,7 +73,7 @@
         <a href="https://alerts.skia.org/" target="_blank">
           <div id="alertlist">
             <template repeat="{{alert in alerts}}">
-              <alert-sk alert="{{alert}}" editRights="{{false}}"></alert-sk>
+              <alert-sk alert="{{alert}}" compact></alert-sk>
             </template>
             <template if="{{alerts.length == 0}}">
               No alerts are active.

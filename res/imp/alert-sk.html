@@ -1,4 +1,24 @@
-<polymer-element name="alert-sk" attributes="alert">
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <alert-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/alert-sk.html" rel="import" />
+
+  Usage:
+
+    <alert-sk></alert-sk>
+
+  Properties:
+    alert: The alert object.
+    compact: If true, minimal information about alerts is displayed.
+-->
+<polymer-element name="alert-sk">
   <template>
     <style>
     #wrapper {
@@ -23,7 +43,7 @@
       <template if="{{alert.snoozedUntil > 0}}">
         <div class="message">Snoozed until {{alert.snoozedUntil | parseDate}}</div>
       </template>
-      <template if="{{editRights}}">
+      <template if="{{editRights && !compact}}">
         <template if="{{alert.snoozedUntil == 0}}">
           <core-ajax
               id="snooze"
@@ -66,34 +86,33 @@
         <core-icon-button icon="highlight-remove" on-click="{{dismissAlert}}"></core-icon-button>
       </template>
       </div>
-      <comments-sk comments="{{alert.comments}}" addCommentUrl="/json/alerts/{{alert.id}}/addcomment" on-submit="{{reload}}"></comments-sk>
+      <template if="{{!compact}}">
+        <comments-sk comments="{{alert.comments}}" addCommentUrl="/json/alerts/{{alert.id}}/addcomment" on-submit="{{reload}}"></comments-sk>
+      </template>
     </div>
     <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
   </template>
   <script>
     Polymer({
       publish: {
-        editRights: {
+        alert: {
+          value: null,
+          reflect: true,
+        },
+        compact: {
           value: false,
           reflect: true,
         },
-        snoozeDays: {
-          value: 0,
-          reflect: false,
-        },
-        snoozeHours: {
-          value: 0,
-          reflect: false,
-        },
-        snoozeMins: {
-          value: 0,
-          reflect: false,
-        },
-        snoozeSecs: {
-          value: 0,
-          reflect: false,
-        },
       },
+
+      created: function() {
+        this.editRights = false;
+        this.snoozeDays = 0;
+        this.snoozeHours = 0;
+        this.snoozeMins = 0;
+        this.snoozeSecs = 0;
+      },
+
       ready: function() {
         var ele = this;
         sk.Login.then(function(status) {
@@ -109,9 +128,11 @@
           messages[i].innerHTML = sk.formatHTML(messages[i].innerHTML);
         }
       },
+
       dismissAlert: function() {
         this.$.wrapper.querySelector("#dismiss").go();
       },
+
       snoozeAlert: function() {
         var until = new Date();
         until.setDate(until.getDate() + parseInt(this.snoozeDays));
@@ -126,28 +147,35 @@
         req.body = '{"until": ' + this.unParseDate(until) + '}'
         req.go();
       },
+
       snoozeDialog: function() {
         this.$.wrapper.querySelector("#snoozeDialog").toggle();
       },
+
       unsnoozeAlert: function() {
         this.$.wrapper.querySelector("#unsnooze").go();
       },
+
       reload: function() {
         // Reload the page.
         window.location.href = window.location.href;
       },
+
       showErrorDialog: function(msg) {
         var errorDiag = this.$.actionFailed;
         errorDiag.text = msg;
         errorDiag.show();
       },
+
       error: function(e) {
         this.showErrorDialog("Action failed: " + e.detail.response);
       },
+
       parseDate: function(v) {
         var d = new Date(v * 1000)
         return d.toLocaleDateString() + ", " + d.toLocaleTimeString();
       },
+
       unParseDate: function(d) {
         return Math.round(d.getTime() / 1000);
       },

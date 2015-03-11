@@ -1,4 +1,24 @@
-<polymer-element name="alerts-sk" attributes="alerts">
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <alerts-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/alerts-sk.html" rel="import" />
+
+  Usage:
+
+    <alerts-sk></alerts-sk>
+
+  Properties:
+    compact: If true, minimal information about alerts is displayed.
+    reload: How often (in seconds) to reload alert data.
+-->
+<polymer-element name="alerts-sk">
   <template>
     <style>
     #loadstatus {
@@ -15,28 +35,31 @@
       <div>Last loaded at {{lastLoaded}}</div>
     </div>
     <template repeat="{{a in alerts}}">
-      <alert-sk alert="{{a}}"></alert-sk>
+      <alert-sk alert="{{a}}" compact?="{{compact}}"></alert-sk>
     </template>
   </template>
   <script>
     Polymer({
       publish: {
+        compact: {
+          value: false,
+          reflect: true,
+        },
         reload: {
           value: 60,
           reflect: true,
-        },
-        timeout: {
-          value: null,
-          reflect: false,
-        },
-        lastLoaded: {
-          value: "(not yet loaded)",
-          reflect: false,
         },
       },
 
       created: function() {
         this.alerts = [];
+        this.lastLoaded = null;
+        this.timeout = null;
+
+        var params = sk.query.toParamSet(window.location.search.substring(1));
+        if (params.compact && params.compact.length > 0 && params.compact[0] == "true") {
+          this.compact = true;
+        }
         this.reloadAlerts();
       },
 
