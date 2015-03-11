@@ -147,7 +147,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
-			RunChromiumPerfTimeoutSecs: 60,
+			RunChromiumPerfTimeoutSecs: 150,
 		},
 		PAGESET_TYPE_10k: &PagesetTypeInfo{
 			NumPages:                   10000,
@@ -156,7 +156,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
-			RunChromiumPerfTimeoutSecs: 60,
+			RunChromiumPerfTimeoutSecs: 150,
 		},
 		PAGESET_TYPE_MOBILE_10k: &PagesetTypeInfo{
 			NumPages:                   10000,
@@ -165,7 +165,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
-			RunChromiumPerfTimeoutSecs: 60,
+			RunChromiumPerfTimeoutSecs: 150,
 		},
 		PAGESET_TYPE_DUMMY_1k: &PagesetTypeInfo{
 			NumPages:                   1000,
@@ -174,7 +174,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
-			RunChromiumPerfTimeoutSecs: 60,
+			RunChromiumPerfTimeoutSecs: 150,
 		},
 	}
 )
