@@ -46,32 +46,40 @@ func (r *Rule) fire(am *alerting.AlertManager, message string) error {
 	return am.AddAlert(&a)
 }
 
-func (r *Rule) queryExecutionAlert(err error, am *alerting.AlertManager) error {
+func (r *Rule) queryExecutionAlert(queryErr error, am *alerting.AlertManager) error {
 	actions, err := alerting.ParseActions([]string{"Email(infra-alerts@skia.org)"})
 	if err != nil {
 		return err
 	}
-	return am.AddAlert(&alerting.Alert{
-		Name:     fmt.Sprintf("Failed to execute query (%s)", r.Name),
-		Category: r.Category, // Should the category be "internal error" or something?
-		Message:  fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]\nFull error:\n%v", r.Name, r.Query, err),
-		Nag:      int64(1 * time.Hour),
-		Actions:  actions,
-	})
+	name := fmt.Sprintf("Failed to execute query (%s)", r.Name)
+	if am.ActiveAlert(name) == 0 {
+		return am.AddAlert(&alerting.Alert{
+			Name:     name,
+			Category: r.Category, // Should the category be "internal error" or something?
+			Message:  fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]\nFull error:\n%v", r.Name, r.Query, queryErr),
+			Nag:      int64(1 * time.Hour),
+			Actions:  actions,
+		})
+	}
+	return nil
 }
 
-func (r *Rule) queryEvaluationAlert(err error, am *alerting.AlertManager) error {
+func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) error {
 	actions, err := alerting.ParseActions([]string{"Email(infra-alerts@skia.org)"})
 	if err != nil {
 		return err
 	}
-	return am.AddAlert(&alerting.Alert{
-		Name:     fmt.Sprintf("Failed to evaluate query (%s)", r.Name),
-		Category: r.Category, // Should the category be "internal error" or something?
-		Message:  fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]\nFull error:\n%v", r.Name, r.Condition, err),
-		Nag:      int64(1 * time.Hour),
-		Actions:  actions,
-	})
+	name := fmt.Sprintf("Failed to evaluate query (%s)", r.Name)
+	if am.ActiveAlert(name) == 0 {
+		return am.AddAlert(&alerting.Alert{
+			Name:     name,
+			Category: r.Category, // Should the category be "internal error" or something?
+			Message:  fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]\nFull error:\n%v", r.Name, r.Condition, queryErr),
+			Nag:      int64(1 * time.Hour),
+			Actions:  actions,
+		})
+	}
+	return nil
 }
 
 func (r *Rule) tick(am *alerting.AlertManager) error {
