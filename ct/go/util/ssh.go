@@ -33,7 +33,7 @@ func executeCmd(cmd, hostname string, config *ssh.ClientConfig, timeout time.Dur
 		return "", fmt.Errorf("Failed to ssh connect to %s. Make sure \"PubkeyAuthentication yes\" is in your sshd_config: %s", hostname, err)
 	}
 	defer util.Close(conn)
-	conn.SetDeadline(time.Now().Add(timeout))
+	util.LogErr(conn.SetDeadline(time.Now().Add(timeout)))
 
 	// Create new SSH client connection.
 	sshConn, sshChan, req, err := ssh.NewClientConn(conn, hostname+":22", config)
@@ -125,7 +125,9 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 
 // RebootWorkers reboots all CT workers and waits for 4 mins before returning.
 func RebootWorkers() {
-	SSH("sudo reboot", Slaves, 5*time.Minute)
+	if _, err := SSH("sudo reboot", Slaves, 5*time.Minute); err != nil {
+		glog.Errorf("Got error while rebooting workers: %v", err)
+	}
 	// Sleep for 4 mins for all slaves to come back.
 	time.Sleep(4 * time.Minute)
 }

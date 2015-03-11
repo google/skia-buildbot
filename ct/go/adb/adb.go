@@ -9,6 +9,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/ct/go/util"
+	skutil "go.skia.org/infra/go/util"
 )
 
 // VerifyLocalDevice does not throw an error if an Android device is connected and
@@ -27,8 +28,8 @@ func VerifyLocalDevice() error {
 	offlineCmd := exec.Command("grep", "offline")
 	offlineCmd.Stdin, _ = devicesCmd.StdoutPipe()
 	offlineCmd.Stdout = util.WriteLog{LogFunc: glog.Infof, OutputFile: nil}
-	offlineCmd.Start()
-	devicesCmd.Run()
+	skutil.LogErr(offlineCmd.Start())
+	skutil.LogErr(devicesCmd.Run())
 	if err := offlineCmd.Wait(); err == nil {
 		// A nil error here means that an offline device was found.
 		return fmt.Errorf("Android device is offline: %s", err)
@@ -40,8 +41,8 @@ func VerifyLocalDevice() error {
 	missingCmd := exec.Command("grep", "device$")
 	missingCmd.Stdin, _ = devicesCmd.StdoutPipe()
 	missingCmd.Stdout = util.WriteLog{LogFunc: glog.Infof, OutputFile: nil}
-	missingCmd.Start()
-	devicesCmd.Run()
+	skutil.LogErr(missingCmd.Start())
+	skutil.LogErr(devicesCmd.Run())
 	if err := missingCmd.Wait(); err != nil {
 		// An error here means that the device is missing.
 		return fmt.Errorf("Android device is missing: %s", err)

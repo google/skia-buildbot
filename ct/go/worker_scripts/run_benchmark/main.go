@@ -63,7 +63,7 @@ func main() {
 	}
 
 	// Create the task file so that the master knows this worker is still busy.
-	util.CreateTaskFile(util.ACTIVITY_RUNNING_BENCHMARKS)
+	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_RUNNING_BENCHMARKS))
 	defer util.DeleteTaskFile(util.ACTIVITY_RUNNING_BENCHMARKS)
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
@@ -73,7 +73,8 @@ func main() {
 			return
 		}
 		// Make sure adb shell is running as root.
-		util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{}, 5*time.Minute, nil, nil)
+		skutil.LogErr(
+			util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{}, 5*time.Minute, nil, nil))
 	}
 
 	// Instantiate GsUtil object.
@@ -89,7 +90,7 @@ func main() {
 		return
 	}
 	// Delete the chromium build to save space when we are done.
-	defer os.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
+	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
 	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		// Install the APK on the Android device.
@@ -118,8 +119,8 @@ func main() {
 	pathToSkps := filepath.Join(util.SkpsDir, *pagesetType, *chromiumBuild)
 	if *benchmarkName == util.BENCHMARK_SKPICTURE_PRINTER {
 		// Delete and remake the local SKPs directory.
-		os.RemoveAll(pathToSkps)
-		os.MkdirAll(pathToSkps, 0700)
+		skutil.RemoveAll(pathToSkps)
+		skutil.MkdirAll(pathToSkps, 0700)
 		// Tell skpicture_printer where to output SKPs.
 		// Do not allow unneeded whitespace for benchmarkArgs since they are
 		// directly passed to run_benchmarks.
@@ -141,9 +142,9 @@ func main() {
 
 	// Establish output paths.
 	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID)
-	os.RemoveAll(localOutputDir)
-	os.MkdirAll(localOutputDir, 0700)
-	defer os.RemoveAll(localOutputDir)
+	skutil.RemoveAll(localOutputDir)
+	skutil.MkdirAll(localOutputDir, 0700)
+	defer skutil.RemoveAll(localOutputDir)
 	remoteDir := filepath.Join(util.BenchmarkRunsDir, *runID)
 
 	// Construct path to the ct_run_benchmark python script.
@@ -173,7 +174,7 @@ func main() {
 
 		glog.Infof("===== Processing %s =====", pagesetPath)
 
-		os.Chdir(pathToPyFiles)
+		skutil.LogErr(os.Chdir(pathToPyFiles))
 		args := []string{
 			util.BINARY_RUN_BENCHMARK,
 			fmt.Sprintf("%s.%s", *benchmarkName, util.BenchmarksToPagesetName[*benchmarkName]),
@@ -209,7 +210,8 @@ func main() {
 			fmt.Sprintf("PYTHONPATH=%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir),
 			"DISPLAY=:0",
 		}
-		util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+		skutil.LogErr(
+			util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
 	}
 
 	// If "--output-format=csv" was specified then merge all CSV files and upload.
@@ -298,20 +300,20 @@ func main() {
 				// malformed.
 				if largestLayerInfo.Size() > 6000 {
 					layerPath := filepath.Join(pathToSkps, skpName, largestLayerInfo.Name())
-					os.Rename(layerPath, filepath.Join(pathToSkps, skpName+".skp"))
+					skutil.Rename(layerPath, filepath.Join(pathToSkps, skpName+".skp"))
 				} else {
 					glog.Warningf("Skipping %s because size was less than 5000 bytes", skpName)
 				}
 			}
 			// We extracted what we needed from the directory, now delete it.
-			os.RemoveAll(filepath.Join(pathToSkps, skpName))
+			skutil.RemoveAll(filepath.Join(pathToSkps, skpName))
 		}
 
 		glog.Info("Calling remove_invalid_skps.py")
 		// Sync Skia tree.
-		util.SyncDir(util.SkiaTreeDir)
+		skutil.LogErr(util.SyncDir(util.SkiaTreeDir))
 		// Build tools.
-		util.BuildSkiaTools()
+		skutil.LogErr(util.BuildSkiaTools())
 		// Run remove_invalid_skps.py
 		pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skps.py")
 		pathToSKPInfo := filepath.Join(util.SkiaTreeDir, "out", "Release", "skpinfo")
@@ -320,10 +322,10 @@ func main() {
 			"--skp_dir=" + pathToSkps,
 			"--path_to_skpinfo=" + pathToSKPInfo,
 		}
-		util.ExecuteCmd("python", args, []string{}, 10*time.Minute, nil, nil)
+		skutil.LogErr(util.ExecuteCmd("python", args, []string{}, 10*time.Minute, nil, nil))
 
 		// Write timestamp to the SKPs dir.
-		util.CreateTimestampFile(pathToSkps)
+		skutil.LogErr(util.CreateTimestampFile(pathToSkps))
 
 		// Upload SKPs dir to Google Storage.
 		if err := gs.UploadWorkerArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild), *workerNum); err != nil {

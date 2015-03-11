@@ -14,6 +14,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -63,7 +64,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	util.SendTaskStartEmail(emailsArr, "Fix archives")
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Fix archives"))
 	// Ensure webapp is updated and completion email is sent even if task
 	// fails.
 	defer sendEmail(emailsArr)
@@ -95,7 +96,7 @@ func main() {
 		"--perc_change_threshold={{.PercentageChangeThreshold}} --res_missing_count_threshold={{.ResourceMissingCountThreshold}};"
 	fixArchivesTemplateParsed := template.Must(template.New("fix_archives_cmd").Parse(fixArchivesCmdTemplate))
 	fixArchivesCmdBytes := new(bytes.Buffer)
-	fixArchivesTemplateParsed.Execute(fixArchivesCmdBytes, struct {
+	if err := fixArchivesTemplateParsed.Execute(fixArchivesCmdBytes, struct {
 		WorkerNum                     string
 		LogDir                        string
 		PagesetType                   string
@@ -119,7 +120,10 @@ func main() {
 		DeletePageset:                 *deletePageset,
 		PercentageChangeThreshold:     *percentageChangeThreshold,
 		ResourceMissingCountThreshold: *resourceMissingCountThreshold,
-	})
+	}); err != nil {
+		glog.Errorf("Failed to execute template: %s", err)
+		return
+	}
 	cmd := []string{
 		fmt.Sprintf("cd %s;", util.CtTreeDir),
 		"git pull;",

@@ -44,7 +44,7 @@ func main() {
 	defer glog.Flush()
 
 	// Create the task file so that the master knows this worker is still busy.
-	util.CreateTaskFile(util.ACTIVITY_FIXING_ARCHIVES)
+	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_FIXING_ARCHIVES))
 	defer util.DeleteTaskFile(util.ACTIVITY_FIXING_ARCHIVES)
 
 	if *pagesetType == "" {
@@ -79,7 +79,7 @@ func main() {
 		return
 	}
 	// Delete the chromium build to save space when we are done.
-	defer os.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
+	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
 	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
 
 	// Download pagesets if they do not exist locally.
@@ -97,9 +97,9 @@ func main() {
 
 	// Establish output paths.
 	localOutputDir := filepath.Join(util.StorageDir, util.FixArchivesRunsDir, *runID)
-	os.RemoveAll(localOutputDir)
-	os.MkdirAll(localOutputDir, 0700)
-	defer os.RemoveAll(localOutputDir)
+	skutil.RemoveAll(localOutputDir)
+	skutil.MkdirAll(localOutputDir, 0700)
+	defer skutil.RemoveAll(localOutputDir)
 
 	// Construct path to the ct_run_benchmark python script.
 	_, currentFile, _, _ := runtime.Caller(0)
@@ -139,9 +139,9 @@ func main() {
 		// Repeat runs the specified number of times.
 		for repeatNum := 1; repeatNum <= *repeatBenchmark; repeatNum++ {
 			// Delete webpagereplay_logs before every run.
-			os.RemoveAll(wprLogs)
+			skutil.RemoveAll(wprLogs)
 
-			os.Chdir(pathToPyFiles)
+			skutil.LogErr(os.Chdir(pathToPyFiles))
 			args := []string{
 				util.BINARY_RUN_BENCHMARK,
 				fmt.Sprintf("%s.%s", *benchmarkName, util.BenchmarksToPagesetName[*benchmarkName]),
@@ -169,7 +169,8 @@ func main() {
 				fmt.Sprintf("PYTHONPATH=%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir),
 				"DISPLAY=:0",
 			}
-			util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+			skutil.LogErr(
+				util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
 
 			// Examine the results.csv file and store the mean frame time.
 			resultsCSV := filepath.Join(outputDirArgValue, "results.csv")
@@ -211,7 +212,7 @@ func main() {
 			inconsistentArchives = append(inconsistentArchives, fmt.Sprintf("%s percentageChange: %f maxResourceMissingCount: %v", fileInfo.Name(), percentageChange, maxResourceMissingCount))
 			if *deletePageset {
 				// Delete the pageset.
-				os.RemoveAll(pagesetPath)
+				skutil.RemoveAll(pagesetPath)
 			}
 		}
 	}
@@ -221,8 +222,8 @@ func main() {
 		glog.Infof("The list of inconsistentArchives is: %v", inconsistentArchives)
 		if *deletePageset {
 			// Write new timestamp to the pagesets dir.
-			os.RemoveAll(filepath.Join(pathToPagesets, util.TIMESTAMP_FILE_NAME))
-			util.CreateTimestampFile(pathToPagesets)
+			skutil.RemoveAll(filepath.Join(pathToPagesets, util.TIMESTAMP_FILE_NAME))
+			skutil.LogErr(util.CreateTimestampFile(pathToPagesets))
 			// Inconsistent pagesets were deleted located. Upload local pagesets dir
 			// to Google Storage.
 			if err := gs.UploadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {

@@ -72,7 +72,7 @@ func main() {
 	}
 
 	// Create the task file so that the master knows this worker is still busy.
-	util.CreateTaskFile(util.ACTIVITY_RUNNING_CHROMIUM_PERF)
+	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_RUNNING_CHROMIUM_PERF))
 	defer util.DeleteTaskFile(util.ACTIVITY_RUNNING_CHROMIUM_PERF)
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
@@ -82,7 +82,8 @@ func main() {
 			return
 		}
 		// Make sure adb shell is running as root.
-		util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{}, 5*time.Minute, nil, nil)
+		skutil.LogErr(
+			util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{}, 5*time.Minute, nil, nil))
 	}
 
 	// Instantiate GsUtil object.
@@ -99,7 +100,7 @@ func main() {
 			return
 		}
 		//Delete the chromium build to save space when we are done.
-		defer os.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
+		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
 	}
 
 	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, util.BINARY_CHROME)
@@ -120,16 +121,16 @@ func main() {
 
 	// Establish nopatch output paths.
 	localOutputDirNoPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runIDNoPatch)
-	os.RemoveAll(localOutputDirNoPatch)
-	os.MkdirAll(localOutputDirNoPatch, 0700)
-	defer os.RemoveAll(localOutputDirNoPatch)
+	skutil.RemoveAll(localOutputDirNoPatch)
+	skutil.MkdirAll(localOutputDirNoPatch, 0700)
+	defer skutil.RemoveAll(localOutputDirNoPatch)
 	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, *runIDNoPatch)
 
 	// Establish withpatch output paths.
 	localOutputDirWithPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runIDWithPatch)
-	os.RemoveAll(localOutputDirWithPatch)
-	os.MkdirAll(localOutputDirWithPatch, 0700)
-	defer os.RemoveAll(localOutputDirWithPatch)
+	skutil.RemoveAll(localOutputDirWithPatch)
+	skutil.MkdirAll(localOutputDirWithPatch, 0700)
+	defer skutil.RemoveAll(localOutputDirWithPatch)
 	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, *runIDWithPatch)
 
 	// Construct path to the ct_run_benchmark python script.
@@ -183,7 +184,7 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 
 	glog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
 
-	os.Chdir(pathToPyFiles)
+	skutil.LogErr(os.Chdir(pathToPyFiles))
 	args := []string{
 		util.BINARY_RUN_BENCHMARK,
 		fmt.Sprintf("%s.%s", *benchmarkName, util.BenchmarksToPagesetName[*benchmarkName]),
@@ -222,7 +223,8 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		"DISPLAY=:0",
 	}
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunChromiumPerfTimeoutSecs
-	util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+	skutil.LogErr(
+		util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
 	return nil
 }
 

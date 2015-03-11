@@ -29,13 +29,13 @@ func main() {
 	defer util.TimeTrack(time.Now(), "Creating Pagesets")
 	defer glog.Flush()
 	// Create the task file so that the master knows this worker is still busy.
-	util.CreateTaskFile(util.ACTIVITY_CREATING_PAGESETS)
+	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_CREATING_PAGESETS))
 	defer util.DeleteTaskFile(util.ACTIVITY_CREATING_PAGESETS)
 
 	// Delete and remake the local pagesets directory.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
-	os.RemoveAll(pathToPagesets)
-	os.MkdirAll(pathToPagesets, 0700)
+	skutil.RemoveAll(pathToPagesets)
+	skutil.MkdirAll(pathToPagesets, 0700)
 
 	// Get info about the specified pageset type.
 	pagesetTypeInfo := util.PagesetTypeToInfo[*pagesetType]
@@ -62,7 +62,7 @@ func main() {
 		return
 	}
 	defer skutil.Close(out)
-	defer os.Remove(csvFile)
+	defer skutil.Remove(csvFile)
 	if _, err = io.Copy(out, respBody); err != nil {
 		glog.Error(err)
 		return
@@ -97,7 +97,7 @@ func main() {
 		}
 	}
 	// Write timestamp to the pagesets dir.
-	util.CreateTimestampFile(pathToPagesets)
+	skutil.LogErr(util.CreateTimestampFile(pathToPagesets))
 
 	// Upload pagesets dir to Google Storage.
 	if err := gs.UploadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {

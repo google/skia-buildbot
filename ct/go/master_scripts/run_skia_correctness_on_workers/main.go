@@ -84,7 +84,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	util.SendTaskStartEmail(emailsArr, "Skia correctness")
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Skia correctness"))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
@@ -131,7 +131,7 @@ func main() {
 		"--gpu_withpatch_run={{.GpuWithPatchRun}};"
 	runSkiaCorrTemplateParsed := template.Must(template.New("run_skia_correctness_cmd").Parse(runSkiaCorrCmdTemplate))
 	runSkiaCorrCmdBytes := new(bytes.Buffer)
-	runSkiaCorrTemplateParsed.Execute(runSkiaCorrCmdBytes, struct {
+	if err := runSkiaCorrTemplateParsed.Execute(runSkiaCorrCmdBytes, struct {
 		WorkerNum          string
 		LogDir             string
 		PagesetType        string
@@ -149,7 +149,10 @@ func main() {
 		RenderPicturesArgs: *renderPicturesArgs,
 		GpuNoPatchRun:      strconv.FormatBool(*gpuNoPatchRun),
 		GpuWithPatchRun:    strconv.FormatBool(*gpuWithPatchRun),
-	})
+	}); err != nil {
+		glog.Errorf("Failed to execute template: %s", err)
+		return
+	}
 	cmd := []string{
 		fmt.Sprintf("cd %s;", util.CtTreeDir),
 		"git pull;",
@@ -164,8 +167,8 @@ func main() {
 
 	localOutputDir := filepath.Join(util.StorageDir, util.SkiaCorrectnessRunsDir, *runID)
 	localSummariesDir := filepath.Join(localOutputDir, "summaries")
-	os.MkdirAll(localSummariesDir, 0700)
-	defer os.RemoveAll(filepath.Join(util.StorageDir, util.SkiaCorrectnessRunsDir))
+	skutil.MkdirAll(localSummariesDir, 0700)
+	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.SkiaCorrectnessRunsDir))
 	// Copy outputs from all slaves locally.
 	for i := 0; i < util.NUM_WORKERS; i++ {
 		workerNum := i + 1
@@ -186,7 +189,7 @@ func main() {
 			return
 		}
 		defer skutil.Close(out)
-		defer os.Remove(workerLocalOutputPath)
+		defer skutil.Remove(workerLocalOutputPath)
 		if _, err = io.Copy(out, respBody); err != nil {
 			glog.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
 			return
@@ -203,7 +206,7 @@ func main() {
 	remoteHtmlDir := filepath.Join(remoteOutputDir, "html")
 	baseHtmlLink := util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, remoteHtmlDir) + "/"
 	htmlOutputLink = baseHtmlLink + "index.html"
-	os.MkdirAll(localHtmlDir, 0700)
+	skutil.MkdirAll(localHtmlDir, 0700)
 	args := []string{
 		pathToJsonCombiner,
 		"--json_summaries_dir=" + localSummariesDir,

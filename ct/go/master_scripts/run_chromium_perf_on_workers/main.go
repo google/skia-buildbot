@@ -99,13 +99,13 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	util.SendTaskStartEmail(emailsArr, "Chromium perf")
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf"))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
-	defer os.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir))
-	defer os.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir))
+	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir))
+	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir))
 	// Cleanup tmp files after the run.
 	defer util.CleanTmpDir()
 	// Finish with glog flush and how long the task took.
@@ -171,7 +171,7 @@ func main() {
 		"--repeat_benchmark={{.RepeatBenchmark}} --target_platform={{.TargetPlatform}};"
 	runChromiumPerfTemplateParsed := template.Must(template.New("run_chromium_perf_cmd").Parse(runChromiumPerfCmdTemplate))
 	runChromiumPerfCmdBytes := new(bytes.Buffer)
-	runChromiumPerfTemplateParsed.Execute(runChromiumPerfCmdBytes, struct {
+	if err := runChromiumPerfTemplateParsed.Execute(runChromiumPerfCmdBytes, struct {
 		WorkerNum                 string
 		LogDir                    string
 		PagesetType               string
@@ -199,7 +199,10 @@ func main() {
 		BrowserExtraArgsWithPatch: *browserExtraArgsWithPatch,
 		RepeatBenchmark:           *repeatBenchmark,
 		TargetPlatform:            *targetPlatform,
-	})
+	}); err != nil {
+		glog.Errorf("Failed to execute template: %s", err)
+		return
+	}
 	cmd := []string{
 		fmt.Sprintf("cd %s;", util.CtTreeDir),
 		"git pull;",
@@ -227,7 +230,7 @@ func main() {
 	noPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch, runIDNoPatch+".output")
 	withPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch, runIDWithPatch+".output")
 	htmlOutputDir := filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID, "html")
-	os.MkdirAll(htmlOutputDir, 0700)
+	skutil.MkdirAll(htmlOutputDir, 0700)
 	htmlRemoteDir := filepath.Join(remoteOutputDir, "html")
 	htmlOutputLinkBase := util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, htmlRemoteDir) + "/"
 	htmlOutputLink = htmlOutputLinkBase + "index.html"
@@ -275,7 +278,7 @@ func main() {
 
 func mergeUploadCSVFiles(runID string, gs *util.GsUtil) error {
 	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runID)
-	os.MkdirAll(localOutputDir, 0700)
+	skutil.MkdirAll(localOutputDir, 0700)
 	// Copy outputs from all slaves locally.
 	for i := 0; i < util.NUM_WORKERS; i++ {
 		workerNum := i + 1
@@ -295,7 +298,7 @@ func mergeUploadCSVFiles(runID string, gs *util.GsUtil) error {
 			return fmt.Errorf("Unable to create file %s: %s", workerLocalOutputPath, err)
 		}
 		defer skutil.Close(out)
-		defer os.Remove(workerLocalOutputPath)
+		defer skutil.Remove(workerLocalOutputPath)
 		if _, err = io.Copy(out, respBody); err != nil {
 			return fmt.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
 		}

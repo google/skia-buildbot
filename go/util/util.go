@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"os"
 	"runtime"
 	"sort"
 	"strings"
@@ -252,6 +253,41 @@ func KeysOfParamSet(set map[string][]string) []string {
 func Close(c io.Closer) {
 	if err := c.Close(); err != nil {
 		glog.Errorf("Failed to Close(): %v", err)
+	}
+}
+
+// RemoveAll removes the specified path and logs an error if one is returned.
+func RemoveAll(path string) {
+	if err := os.RemoveAll(path); err != nil {
+		glog.Errorf("Failed to RemoveAll(%s): %v", path, err)
+	}
+}
+
+// Remove removes the specified file and logs an error if one is returned.
+func Remove(name string) {
+	if err := os.Remove(name); err != nil {
+		glog.Errorf("Failed to Remove(%s): %v", name, err)
+	}
+}
+
+// Rename renames the specified file and logs an error if one is returned.
+func Rename(oldpath, newpath string) {
+	if err := os.Rename(oldpath, newpath); err != nil {
+		glog.Errorf("Failed to Rename(%s, %s): %v", oldpath, newpath, err)
+	}
+}
+
+// Mkdir creates the specified path and logs an error if one is returned.
+func Mkdir(name string, perm os.FileMode) {
+	if err := os.Mkdir(name, perm); err != nil {
+		glog.Errorf("Failed to Mkdir(%s, %v): %v", name, perm, err)
+	}
+}
+
+// MkdirAll creates the specified path and logs an error if one is returned.
+func MkdirAll(name string, perm os.FileMode) {
+	if err := os.MkdirAll(name, perm); err != nil {
+		glog.Errorf("Failed to MkdirAll(%s, %v): %v", name, perm, err)
 	}
 }
 

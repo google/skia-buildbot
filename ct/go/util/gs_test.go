@@ -24,7 +24,7 @@ func Auth_TestDownloadWorkerArtifacts(t *testing.T) {
 
 	tmpDir := filepath.Join(os.TempDir(), "util_test")
 	StorageDir = tmpDir
-	defer os.RemoveAll(tmpDir)
+	defer util.RemoveAll(tmpDir)
 	if err := gs.DownloadWorkerArtifacts(testPagesetsDirName, "10k", 1); err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -69,7 +69,7 @@ func Auth_TestUploadWorkerArtifacts(t *testing.T) {
 	assert.Equal(t, 3, len(resp.Items))
 	for index, fileName := range []string{"TIMESTAMP", "alexa1-1.py", "alexa2-2.py"} {
 		filePath := fmt.Sprintf("%s/%s", gsDir, fileName)
-		defer service.Objects.Delete(GS_BUCKET_NAME, filePath).Do()
+		defer util.LogErr(service.Objects.Delete(GS_BUCKET_NAME, filePath).Do())
 		assert.Equal(t, filePath, resp.Items[index].Name)
 	}
 }
@@ -81,17 +81,19 @@ func TestAreTimestampsEqual(t *testing.T) {
 	}
 
 	tmpDir := filepath.Join(os.TempDir(), "util_test")
-	os.Mkdir(tmpDir, 0777)
-	defer os.RemoveAll(tmpDir)
+	util.Mkdir(tmpDir, 0777)
+	defer util.RemoveAll(tmpDir)
 
 	f, err := os.Create(filepath.Join(tmpDir, TIMESTAMP_FILE_NAME))
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	defer f.Close()
+	defer util.Close(f)
 
 	// Test with matching timestamps.
-	f.WriteString(GS_TEST_TIMESTAMP_VALUE)
+	if _, err := f.WriteString(GS_TEST_TIMESTAMP_VALUE); err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
 	result1, err := gs.AreTimeStampsEqual(tmpDir, "unit-tests/util/")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -99,7 +101,9 @@ func TestAreTimestampsEqual(t *testing.T) {
 	assert.True(t, result1)
 
 	// Test with differing timestamps.
-	f.WriteString(GS_TEST_TIMESTAMP_VALUE)
+	if _, err := f.WriteString(GS_TEST_TIMESTAMP_VALUE); err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
 	result2, err := gs.AreTimeStampsEqual(tmpDir, "unit-tests/util/")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)

@@ -81,7 +81,7 @@ func main() {
 		return
 	}
 	if !*tryserverRun {
-		util.SendTaskStartEmail(emailsArr, "Run benchmark")
+		skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Run benchmark"))
 		// Ensure webapp is updated and completion email is sent even if task
 		// fails.
 		defer updateWebappTask()
@@ -124,7 +124,7 @@ func main() {
 		"--browser_extra_args=\"{{.BrowserExtraArgs}}\" --repeat_benchmark={{.RepeatBenchmark}} --target_platform={{.TargetPlatform}};"
 	runBenchmarkTemplateParsed := template.Must(template.New("run_benchmark_cmd").Parse(runBenchmarkCmdTemplate))
 	benchmarkCmdBytes := new(bytes.Buffer)
-	runBenchmarkTemplateParsed.Execute(benchmarkCmdBytes, struct {
+	if err := runBenchmarkTemplateParsed.Execute(benchmarkCmdBytes, struct {
 		WorkerNum          string
 		LogDir             string
 		PagesetType        string
@@ -146,7 +146,10 @@ func main() {
 		BrowserExtraArgs:   *browserExtraArgs,
 		RepeatBenchmark:    *repeatBenchmark,
 		TargetPlatform:     *targetPlatform,
-	})
+	}); err != nil {
+		glog.Errorf("Failed to execute template: %s", err)
+		return
+	}
 	cmd := []string{
 		fmt.Sprintf("cd %s;", util.CtTreeDir),
 		"git pull;",
@@ -163,9 +166,9 @@ func main() {
 	// If "--output-format=csv" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID)
-		os.MkdirAll(localOutputDir, 0700)
+		skutil.MkdirAll(localOutputDir, 0700)
 		if !*tryserverRun {
-			defer os.RemoveAll(localOutputDir)
+			defer skutil.RemoveAll(localOutputDir)
 		}
 		// Copy outputs from all slaves locally.
 		for i := 0; i < util.NUM_WORKERS; i++ {
@@ -187,7 +190,7 @@ func main() {
 				return
 			}
 			defer skutil.Close(out)
-			defer os.Remove(workerLocalOutputPath)
+			defer skutil.Remove(workerLocalOutputPath)
 			if _, err = io.Copy(out, respBody); err != nil {
 				glog.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
 				return

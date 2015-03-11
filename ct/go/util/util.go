@@ -44,7 +44,7 @@ func CreateTimestampFile(dir string) error {
 	if _, err := w.WriteString(strconv.FormatInt(timestamp, 10)); err != nil {
 		return fmt.Errorf("Could not write to %s: %s", timestampFilePath, err)
 	}
-	w.Flush()
+	util.LogErr(w.Flush())
 	return nil
 }
 
@@ -73,12 +73,11 @@ func CreateTaskFile(taskName string) error {
 
 // DeleteTaskFile deletes a taskName file in the TaskFileDir dir. It should be
 // called when the worker is done executing a particular task.
-func DeleteTaskFile(taskName string) error {
+func DeleteTaskFile(taskName string) {
 	taskFilePath := filepath.Join(TaskFileDir, taskName)
 	if err := os.Remove(taskFilePath); err != nil {
-		return fmt.Errorf("Could not delete %s: %s", taskFilePath, err)
+		glog.Errorf("Could not delete %s: %s", taskFilePath, err)
 	}
-	return nil
 }
 
 func TimeTrack(start time.Time, name string) {
@@ -124,7 +123,7 @@ func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout
 
 	// Execute cmd.
 	glog.Infof("Executing %s %s", strings.Join(cmd.Env, " "), strings.Join(cmd.Args, " "))
-	cmd.Start()
+	util.LogErr(cmd.Start())
 	done := make(chan error)
 	go func() {
 		done <- cmd.Wait()
@@ -162,7 +161,7 @@ func BuildSkiaTools() error {
 		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
 	// Run "make clean".
-	ExecuteCmd(BINARY_MAKE, []string{"clean"}, []string{}, 5*time.Minute, nil, nil)
+	util.LogErr(ExecuteCmd(BINARY_MAKE, []string{"clean"}, []string{}, 5*time.Minute, nil, nil))
 	// Build tools.
 	return ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"}, []string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, 5*time.Minute, nil, nil)
 }
@@ -174,10 +173,10 @@ func ResetCheckout(dir string) error {
 	}
 	// Run "git reset --hard HEAD"
 	resetArgs := []string{"reset", "--hard", "HEAD"}
-	ExecuteCmd(BINARY_GIT, resetArgs, []string{}, 5*time.Minute, nil, nil)
+	util.LogErr(ExecuteCmd(BINARY_GIT, resetArgs, []string{}, 5*time.Minute, nil, nil))
 	// Run "git clean -f -d"
 	cleanArgs := []string{"clean", "-f", "-d"}
-	ExecuteCmd(BINARY_GIT, cleanArgs, []string{}, 5*time.Minute, nil, nil)
+	util.LogErr(ExecuteCmd(BINARY_GIT, cleanArgs, []string{}, 5*time.Minute, nil, nil))
 
 	return nil
 }
@@ -227,6 +226,6 @@ func UpdateWebappTask(gaeTaskID int, webappURL string, extraData map[string]stri
 func CleanTmpDir() {
 	files, _ := ioutil.ReadDir(os.TempDir())
 	for _, f := range files {
-		os.RemoveAll(filepath.Join(os.TempDir(), f.Name()))
+		util.RemoveAll(filepath.Join(os.TempDir(), f.Name()))
 	}
 }

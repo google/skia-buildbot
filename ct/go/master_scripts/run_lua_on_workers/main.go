@@ -85,7 +85,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	util.SendTaskStartEmail(emailsArr, "Lua script")
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Lua script"))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
@@ -117,7 +117,7 @@ func main() {
 
 	// Upload the lua script for this run to Google storage.
 	luaScriptName := *runID + ".lua"
-	defer os.Remove(filepath.Join(os.TempDir(), luaScriptName))
+	defer skutil.Remove(filepath.Join(os.TempDir(), luaScriptName))
 	luaScriptRemoteDir := filepath.Join(util.LuaRunsDir, *runID, "scripts")
 	luaScriptRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, luaScriptRemoteDir, luaScriptName)
 	if err := gs.UploadFile(luaScriptName, os.TempDir(), luaScriptRemoteDir); err != nil {
@@ -129,7 +129,7 @@ func main() {
 	runLuaCmdTemplate := "DISPLAY=:0 run_lua --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}};"
 	runLuaTemplateParsed := template.Must(template.New("run_lua_cmd").Parse(runLuaCmdTemplate))
 	luaCmdBytes := new(bytes.Buffer)
-	runLuaTemplateParsed.Execute(luaCmdBytes, struct {
+	if err := runLuaTemplateParsed.Execute(luaCmdBytes, struct {
 		WorkerNum     string
 		LogDir        string
 		PagesetType   string
@@ -141,7 +141,10 @@ func main() {
 		PagesetType:   *pagesetType,
 		ChromiumBuild: *chromiumBuild,
 		RunID:         *runID,
-	})
+	}); err != nil {
+		glog.Errorf("Failed to execute template: %s", err)
+		return
+	}
 	cmd := []string{
 		fmt.Sprintf("cd %s;", util.CtTreeDir),
 		"git pull;",
@@ -179,7 +182,7 @@ func main() {
 			return
 		}
 		defer skutil.Close(out)
-		defer os.Remove(consolidatedLuaOutput)
+		defer skutil.Remove(consolidatedLuaOutput)
 		if _, err = io.Copy(out, respBody); err != nil {
 			glog.Errorf("Unable to write out %s to %s: %s", workerRemoteOutputPath, consolidatedLuaOutput, err)
 			return
@@ -196,7 +199,7 @@ func main() {
 	// Upload the lua aggregator (if specified) for this run to Google storage.
 	luaAggregatorName := *runID + ".aggregator"
 	luaAggregatorPath := filepath.Join(os.TempDir(), luaAggregatorName)
-	defer os.Remove(luaAggregatorPath)
+	defer skutil.Remove(luaAggregatorPath)
 	luaAggregatorRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, luaScriptRemoteDir, luaAggregatorName)
 	luaAggregatorFileInfo, err := os.Stat(luaAggregatorPath)
 	if !os.IsNotExist(err) && luaAggregatorFileInfo.Size() > 10 {
@@ -209,7 +212,7 @@ func main() {
 		luaAggregatorOutputFilePath := filepath.Join(os.TempDir(), luaAggregatorOutputFileName)
 		luaAggregatorOutputFile, err := os.Create(luaAggregatorOutputFilePath)
 		defer skutil.Close(luaAggregatorOutputFile)
-		defer os.Remove(luaAggregatorOutputFilePath)
+		defer skutil.Remove(luaAggregatorOutputFilePath)
 		if err != nil {
 			glog.Errorf("Could not create %s: %s", luaAggregatorOutputFilePath, err)
 			return

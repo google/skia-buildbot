@@ -38,7 +38,7 @@ func runRenderPictures(localSkpsDir, localOutputDir, remoteOutputDir string, run
 		reg, _ := regexp.Compile("--config [a-zA-Z0-9]+")
 		picturesArgs = reg.ReplaceAllString(picturesArgs, "--config gpu")
 	}
-	os.MkdirAll(localOutputDir, 0700)
+	skutil.MkdirAll(localOutputDir, 0700)
 	args := []string{
 		"-r", localSkpsDir,
 		"-w", localOutputDir,
@@ -69,14 +69,14 @@ func main() {
 	}
 
 	// Create the task file so that the master knows this worker is still busy.
-	util.CreateTaskFile(util.ACTIVITY_RUNNING_SKIA_CORRECTNESS)
+	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_RUNNING_SKIA_CORRECTNESS))
 	defer util.DeleteTaskFile(util.ACTIVITY_RUNNING_SKIA_CORRECTNESS)
 
 	// Establish output paths.
 	localOutputDir := filepath.Join(util.StorageDir, util.SkiaCorrectnessRunsDir, *runID)
-	os.RemoveAll(filepath.Join(util.StorageDir, util.SkiaCorrectnessRunsDir))
-	os.MkdirAll(localOutputDir, 0700)
-	defer os.RemoveAll(localOutputDir)
+	skutil.RemoveAll(filepath.Join(util.StorageDir, util.SkiaCorrectnessRunsDir))
+	skutil.MkdirAll(localOutputDir, 0700)
+	defer skutil.RemoveAll(localOutputDir)
 	remoteOutputDir := filepath.Join(util.SkiaCorrectnessRunsDir, *runID, fmt.Sprintf("slave%d", *workerNum))
 
 	// Instantiate GsUtil object.
@@ -110,7 +110,7 @@ func main() {
 		return
 	}
 	defer skutil.Close(out)
-	defer os.Remove(patchLocalPath)
+	defer skutil.Remove(patchLocalPath)
 	if _, err = io.Copy(out, respBody); err != nil {
 		glog.Error(err)
 		return
@@ -118,9 +118,9 @@ func main() {
 
 	// Apply the patch to a clean checkout and run render_pictures.
 	// Reset Skia tree.
-	util.ResetCheckout(util.SkiaTreeDir)
+	skutil.LogErr(util.ResetCheckout(util.SkiaTreeDir))
 	// Sync Skia tree.
-	util.SyncDir(util.SkiaTreeDir)
+	skutil.LogErr(util.SyncDir(util.SkiaTreeDir))
 	// Apply Skia patch.
 	file, _ := os.Open(patchLocalPath)
 	fileInfo, _ := file.Stat()
@@ -136,7 +136,7 @@ func main() {
 		glog.Info("Patch is empty or invalid. Skipping the patch.")
 	}
 	// Build tools.
-	util.BuildSkiaTools()
+	skutil.LogErr(util.BuildSkiaTools())
 	// Run render_pictures.
 	if err := runRenderPictures(localSkpsDir, filepath.Join(localOutputDir, "withpatch"), filepath.Join(remoteOutputDir, "withpatch"), *gpuWithPatchRun); err != nil {
 		glog.Errorf("Error while running withpatch render_pictures: %s", err)
@@ -145,9 +145,9 @@ func main() {
 
 	// Remove the patch and run render_pictures.
 	// Reset Skia tree.
-	util.ResetCheckout(util.SkiaTreeDir)
+	skutil.LogErr(util.ResetCheckout(util.SkiaTreeDir))
 	// Build tools.
-	util.BuildSkiaTools()
+	skutil.LogErr(util.BuildSkiaTools())
 	// Run render_pictures.
 	if err := runRenderPictures(localSkpsDir, filepath.Join(localOutputDir, "nopatch"), filepath.Join(remoteOutputDir, "nopatch"), *gpuNoPatchRun); err != nil {
 		glog.Errorf("Error while running nopatch render_pictures: %s", err)
@@ -156,7 +156,7 @@ func main() {
 
 	// Comparing pictures and saving differences in JSON output file.
 	jsonSummaryDir := filepath.Join(localOutputDir, "json_summary")
-	os.MkdirAll(jsonSummaryDir, 0700)
+	skutil.MkdirAll(jsonSummaryDir, 0700)
 	jsonSummaryPath := filepath.Join(jsonSummaryDir, fmt.Sprintf("slave%d", *workerNum)+".json")
 	// Construct path to the write_json_summary python script.
 	_, currentFile, _, _ := runtime.Caller(0)
@@ -188,19 +188,24 @@ func main() {
 		glog.Errorf("Unable to read %s: %s", jsonSummaryPath, err)
 	}
 	var jsontype map[string]interface{}
-	json.Unmarshal(summaryFile, &jsontype)
+	skutil.LogErr(json.Unmarshal(summaryFile, &jsontype))
 	if jsontype[fmt.Sprintf("slave%d", *workerNum)] != nil {
 		failedFiles := jsontype[fmt.Sprintf("slave%d", *workerNum)].(map[string]interface{})["failedFiles"].([]interface{})
 		for i := range failedFiles {
 			failedFile := failedFiles[i].(map[string]interface{})["fileName"].(string)
 			// TODO(rmistry): Use goroutines to do the below in parallel.
-			gs.UploadFile(failedFile, filepath.Join(localOutputDir, "withpatch"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "withpatch-images"))
-			gs.UploadFile(failedFile, filepath.Join(localOutputDir, "nopatch"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "nopatch-images"))
+			skutil.LogErr(
+				gs.UploadFile(failedFile, filepath.Join(localOutputDir, "withpatch"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "withpatch-images")))
+			skutil.LogErr(
+				gs.UploadFile(failedFile, filepath.Join(localOutputDir, "nopatch"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "nopatch-images")))
 		}
 		// Copy the diffs and whitediffs to Google Storage.
-		gs.UploadDir(filepath.Join(localOutputDir, "diffs"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "diffs"))
-		gs.UploadDir(filepath.Join(localOutputDir, "whitediffs"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "whitediffs"))
+		skutil.LogErr(
+			gs.UploadDir(filepath.Join(localOutputDir, "diffs"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "diffs")))
+		skutil.LogErr(
+			gs.UploadDir(filepath.Join(localOutputDir, "whitediffs"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "whitediffs")))
 	}
 	// Upload the summary file.
-	gs.UploadFile(fmt.Sprintf("slave%d", *workerNum)+".json", jsonSummaryDir, filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum)))
+	skutil.LogErr(
+		gs.UploadFile(fmt.Sprintf("slave%d", *workerNum)+".json", jsonSummaryDir, filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum))))
 }

@@ -38,14 +38,14 @@ func main() {
 	}
 
 	// Create the task file so that the master knows this worker is still busy.
-	util.CreateTaskFile(util.ACTIVITY_RUNNING_LUA_SCRIPTS)
+	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_RUNNING_LUA_SCRIPTS))
 	defer util.DeleteTaskFile(util.ACTIVITY_RUNNING_LUA_SCRIPTS)
 
 	// Sync Skia tree.
-	util.SyncDir(util.SkiaTreeDir)
+	skutil.LogErr(util.SyncDir(util.SkiaTreeDir))
 
 	// Build tools.
-	util.BuildSkiaTools()
+	skutil.LogErr(util.BuildSkiaTools())
 
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
@@ -78,7 +78,7 @@ func main() {
 		return
 	}
 	defer skutil.Close(out)
-	defer os.Remove(luaScriptLocalPath)
+	defer skutil.Remove(luaScriptLocalPath)
 	if _, err = io.Copy(out, respBody); err != nil {
 		glog.Error(err)
 		return
@@ -89,7 +89,7 @@ func main() {
 	stdoutFilePath := filepath.Join(os.TempDir(), stdoutFileName)
 	stdoutFile, err := os.Create(stdoutFilePath)
 	defer skutil.Close(stdoutFile)
-	defer os.Remove(stdoutFilePath)
+	defer skutil.Remove(stdoutFilePath)
 	if err != nil {
 		glog.Errorf("Could not create %s: %s", stdoutFilePath, err)
 		return
@@ -98,7 +98,7 @@ func main() {
 	stderrFilePath := filepath.Join(os.TempDir(), stderrFileName)
 	stderrFile, err := os.Create(stderrFilePath)
 	defer skutil.Close(stderrFile)
-	defer os.Remove(stderrFilePath)
+	defer skutil.Remove(stderrFilePath)
 	if err != nil {
 		glog.Errorf("Could not create %s: %s", stderrFilePath, err)
 		return
@@ -113,6 +113,8 @@ func main() {
 	}
 
 	// Copy stdout and stderr files to Google Storage.
-	gs.UploadFile(stdoutFileName, os.TempDir(), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "outputs"))
-	gs.UploadFile(stderrFileName, os.TempDir(), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "errors"))
+	skutil.LogErr(
+		gs.UploadFile(stdoutFileName, os.TempDir(), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "outputs")))
+	skutil.LogErr(
+		gs.UploadFile(stderrFileName, os.TempDir(), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "errors")))
 }

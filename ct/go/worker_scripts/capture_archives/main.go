@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 
 	"github.com/skia-dev/glog"
@@ -16,6 +15,7 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -30,7 +30,7 @@ func main() {
 	defer glog.Flush()
 
 	// Create the task file so that the master knows this worker is still busy.
-	util.CreateTaskFile(util.ACTIVITY_CAPTURING_ARCHIVES)
+	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_CAPTURING_ARCHIVES))
 	defer util.DeleteTaskFile(util.ACTIVITY_CAPTURING_ARCHIVES)
 
 	if *chromiumBuild == "" {
@@ -46,8 +46,8 @@ func main() {
 
 	// Delete and remake the local webpage archives directory.
 	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
-	os.RemoveAll(pathToArchives)
-	os.MkdirAll(pathToArchives, 0700)
+	skutil.RemoveAll(pathToArchives)
+	skutil.MkdirAll(pathToArchives, 0700)
 
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
@@ -101,11 +101,11 @@ func main() {
 			fmt.Sprintf("PYTHONPATH=%s:$PYTHONPATH", pathToPagesets),
 			"DISPLAY=:0",
 		}
-		util.ExecuteCmd(recordWprBinary, args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+		skutil.LogErr(util.ExecuteCmd(recordWprBinary, args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
 	}
 
 	// Write timestamp to the webpage archives dir.
-	util.CreateTimestampFile(pathToArchives)
+	skutil.LogErr(util.CreateTimestampFile(pathToArchives))
 
 	// Upload webpage archives dir to Google Storage.
 	if err := gs.UploadWorkerArtifacts(util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *workerNum); err != nil {

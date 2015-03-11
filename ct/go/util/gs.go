@@ -130,9 +130,9 @@ type filePathToStorageObject struct {
 // of directories.
 func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	// Empty the local dir.
-	os.RemoveAll(localDir)
+	util.RemoveAll(localDir)
 	// Create the local dir.
-	os.MkdirAll(localDir, 0700)
+	util.MkdirAll(localDir, 0700)
 	// The channel where the storage objects to be deleted will be sent to.
 	chStorageObjects := make(chan filePathToStorageObject, MAX_CHANNEL_SIZE)
 	req := gs.service.Objects.List(GS_BUCKET_NAME).Prefix(gsDir + "/")
@@ -152,7 +152,7 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 					fileName = filepath.Join(dirTokens[len(dirTokens)-i-1], fileName)
 				}
 				// Create the local directory.
-				os.MkdirAll(filepath.Join(localDir, filepath.Dir(fileName)), 0700)
+				util.MkdirAll(filepath.Join(localDir, filepath.Dir(fileName)), 0700)
 			}
 			chStorageObjects <- filePathToStorageObject{storageObject: result, filePath: fileName}
 		}
@@ -215,7 +215,7 @@ func (gs *GsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 		return fmt.Errorf("Error downloading %s into %s: %s", gsDir, localDir, err)
 	}
 	// Downloaded chrome binary needs to be set as an executable.
-	os.Chmod(filepath.Join(localDir, "chrome"), 0777)
+	util.LogErr(os.Chmod(filepath.Join(localDir, "chrome"), 0777))
 
 	return nil
 }
@@ -321,7 +321,7 @@ func (gs *GsUtil) UploadWorkerArtifacts(dirName, pagesetType string, workerNum i
 // UploadDir uploads the specified local dir into the specified Google Storage dir.
 func (gs *GsUtil) UploadDir(localDir, gsDir string) error {
 	// Empty the remote dir.
-	gs.deleteRemoteDir(gsDir)
+	util.LogErr(gs.deleteRemoteDir(gsDir))
 
 	// Construct a dictionary of file paths to their file infos.
 	pathsToFileInfos := map[string]os.FileInfo{}

@@ -40,7 +40,7 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 	} else {
 		return "", "", fmt.Errorf("Unrecognized target_platform %s", targetPlatform)
 	}
-	os.MkdirAll(chromiumBuildDir, 0700)
+	util.MkdirAll(chromiumBuildDir, 0700)
 
 	// Find which Chromium commit hash should be used.
 	var err error
@@ -74,8 +74,8 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 	}
 	if err := ExecuteCmd("python", syncArgs, []string{}, 2*time.Hour, nil, nil); err != nil {
 		glog.Warning("There was an error. Deleting base directory and trying again.")
-		os.RemoveAll(chromiumBuildDir)
-		os.MkdirAll(chromiumBuildDir, 0700)
+		util.RemoveAll(chromiumBuildDir)
+		util.MkdirAll(chromiumBuildDir, 0700)
 		if err := ExecuteCmd("python", syncArgs, []string{}, 2*time.Hour, nil, nil); err != nil {
 			return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 		}
@@ -138,7 +138,7 @@ func getChromiumHash() (string, error) {
 	stdoutFilePath := filepath.Join(os.TempDir(), "chromium-tot")
 	stdoutFile, err := os.Create(stdoutFilePath)
 	defer util.Close(stdoutFile)
-	defer os.Remove(stdoutFilePath)
+	defer util.Remove(stdoutFilePath)
 	if err != nil {
 		return "", fmt.Errorf("Could not create %s: %s", stdoutFilePath, err)
 	}
@@ -192,14 +192,14 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GsUtil) 
 		if err := os.Rename(genDir, genTmpDir); err != nil {
 			return fmt.Errorf("Could not rename gen dir: %s", err)
 		}
-		defer os.Rename(genTmpDir, genDir)
+		defer util.Rename(genTmpDir, genDir)
 
 		objDir := filepath.Join(localOutDir, "obj")
 		objTmpDir := filepath.Join(ChromiumBuildsDir, "obj")
 		if err := os.Rename(objDir, objTmpDir); err != nil {
 			return fmt.Errorf("Could not rename obj dir: %s", err)
 		}
-		defer os.Rename(objTmpDir, objDir)
+		defer util.Rename(objTmpDir, objDir)
 	}
 	return gs.UploadDir(localUploadDir, gsDir)
 }
@@ -212,7 +212,8 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 	// Find the build target to use while building chromium.
 	buildTarget := "chrome"
 	if targetPlatform == "Android" {
-		ioutil.WriteFile(filepath.Join(chromiumDir, "chromium.gyp_env"), []byte("{ 'GYP_DEFINES': 'OS=android', }\n"), 0777)
+		util.LogErr(
+			ioutil.WriteFile(filepath.Join(chromiumDir, "chromium.gyp_env"), []byte("{ 'GYP_DEFINES': 'OS=android', }\n"), 0777))
 		buildTarget = "chrome_shell_apk"
 	}
 

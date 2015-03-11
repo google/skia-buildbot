@@ -71,7 +71,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	util.SendTaskStartEmail(emailsArr, "Build chromium")
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Build chromium"))
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
@@ -100,7 +100,7 @@ func main() {
 	stdoutFilePath := filepath.Join(os.TempDir(), stdoutFileName)
 	stdoutFile, err := os.Create(stdoutFilePath)
 	defer skutil.Close(stdoutFile)
-	defer os.Remove(stdoutFilePath)
+	defer skutil.Remove(stdoutFilePath)
 	if err != nil {
 		glog.Errorf("Could not create %s: %s", stdoutFilePath, err)
 		return
