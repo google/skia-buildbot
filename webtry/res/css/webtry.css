@@ -1,0 +1,211 @@
+html, body {
+  min-height: 100%;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+}
+
+html /deep/ core-header-panel[main] {
+  background: white;
+}
+
+#wrapper {
+  padding-top: 50px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#lower-wrapper {
+  min-height: 100%;
+  position: relative;
+}
+
+#content {
+  height: 100%;
+  padding: 1em;
+
+  background: white;
+}
+
+span#version {
+  margin-left: auto;
+}
+
+paper-button.colored {
+  color: white;
+  background-color: #428bca;
+}
+
+#embed-code, #fiddle-options {
+  margin-top: 10px;
+  padding: 5px;
+}
+
+#embed-code:not(.display), #fiddle-options:not(.display), #bugreport:not(.display) {
+  display: none;
+}
+
+#run:hover, #permalink:hover {
+  background: #eee;
+}
+
+#permalink {
+  display: inline-block;
+  color: inherit;
+  background-color: inherit;
+}
+
+fiddle-output-sk:not(.display) {
+  display: none;
+}
+
+.config-toggles {
+  width: 150px;
+}
+
+.config-toggles > div:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+#input-image {
+  margin-bottom: 20px;
+}
+
+.input-image-toggle {
+  width: 250px;
+}
+
+img#logo {
+  height: 50px;
+}
+
+h1 {
+  font-size: 18px;
+}
+
+h2 {
+  font-size: 16px;
+}
+
+.waiting, .waiting * {
+  cursor: wait;
+}
+
+.iframe textarea {
+  resize: none;
+}
+
+template {
+  display: none;
+}
+
+code {
+  color: green;
+}
+
+code {
+  padding: 0;
+}
+
+.tries {
+  margin: 1em;
+  float: left;
+}
+
+#tryHistory {
+  position: absolute;
+  top: 3em;
+  right: 10px;
+  width: 75px;
+
+}
+
+#tryHistory .tries {
+  float: none;
+}
+
+#choose-list {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row wrap;
+      -ms-flex-flow: row wrap;
+          flex-flow: row wrap;
+}
+
+.action-buttons {
+  padding: 10px 0;
+}
+
+.hide {
+  display: none !important;
+}
+
+.show {
+  display: block !important;
+}
+
+.image-wrapper {
+  display: none;
+}
+
+#choose-source {
+  display: none;
+  padding: 5px;
+  margin-top: 10px;
+}
+
+#image-upload {
+  padding: 5px;
+}
+
+#selected-source {
+  display: none;
+}
+
+#source-code {
+  display: none;
+  margin-top: 10px;
+}
+
+#gitInfo {
+  font-size: 70%;
+}
+
+#output-wrapper {
+  display: none;
+}
+
+.compile-error {
+  cursor: pointer;
+}
+
+/* CodeMirror customization */
+
+.CodeMirror .error {
+  background: #f88;
+}
+
+.CodeMirror-lines,
+.CodeMirror-scroll
+{
+  background-color: #eee;
+}
+
+.CodeMirror {
+  border: solid gray 1px;
+  height: auto !important;
+}
+
+/* Make the code editor automatically resize */
+
+.CodeMirror-scroll {
+  overflow-y: hidden;
+  overflow-x: auto;
+}
