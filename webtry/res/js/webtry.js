@@ -46,6 +46,7 @@
       var sourceCode      = $$$('#source-code');
       var chooseSource    = $$$('#choose-source');
       var chooseList      = $$$('#choose-list');
+      var bugReport       = $$$('#bugreport');
 
       // Id of the source image to use, 0 if no source image is used.
       var sourceId = 0;
@@ -285,10 +286,8 @@
         imageHeight.value = body.height;
         gpu.checked = body.gpu;
         sourceSelectByID(body.source);
-        if (permalink) {
-          permalink.href = '/c/' + body.hash;
-          permalink.style.display='inline-block';
-        }
+        updatePermalink(body);
+        updateBugReport(body);
       }
 
 
@@ -354,6 +353,29 @@
         }
       }
 
+      /**
+       * Update the permalink from a json response
+       */
+
+      function updatePermalink(body) {
+        if (permalink) {
+          permalink.href = '/c/' + body.hash;
+          permalink.style.display = 'inline-block';
+        }
+      }
+
+      /**
+       * Update the bug report URL and button from a json response
+       */
+
+      function updateBugReport(body) {
+        if (bugreport) {
+          bugreport.href = body.bugURL;
+          bugreport.classList.add("display");
+        }
+      }
+
+
 
       /**
        * Callback for when the XHR returns after attempting to run the code.
@@ -414,10 +436,8 @@
         } else {
           window.history.pushState(null, null, '/c/' + body.hash);
         }
-        if (permalink) {
-          permalink.href = '/c/' + body.hash;
-          permalink.style.display = 'inline-block';
-        }
+        updatePermalink(body);
+        updateBugReport(body);
         if (embed) {
           setIFrameURL();
         }

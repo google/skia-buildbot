@@ -76,6 +76,9 @@
         <paper-button><core-icon icon="link"></core-icon>Permalink</paper-button>
       </a>
       {{end}}
+      <a id="bugreport" {{if .Hash}}class="display" {{end}}href="{{.BugURL}}">
+        <paper-button><core-icon icon="bug-report"></core-icon>Report Bug</paper-button>
+      </a>
     {{end}}
   </div>
 

@@ -18,6 +18,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -398,6 +399,7 @@ type response struct {
 	GPUMod        string         `json:"gpuMod"`
 	PDFMod        string         `json:"pdfMod"`
 	Hash          string         `json:"hash"`
+	BugURL        string         `json:"bugURL"`
 }
 
 // reportTryError formats an HTTP error response in JSON and also logs the detailed error message.
@@ -593,6 +595,7 @@ type userCode struct {
 	RasterMod string
 	PDFMod    string
 	GPUMod    string
+	BugURL    string
 	Width     int
 	Height    int
 	Source    int
@@ -616,6 +619,28 @@ func newWorkspace() (string, error) {
 		}
 	}
 	return "", fmt.Errorf("Failed to create a new workspace")
+}
+
+// makeBugURL creates a URL that can be used to create a new bug related to the
+// given fiddle hash.
+func makeBugURL(hash string) string {
+	// set up the query for reporting a new bug
+	q := url.Values{
+		"labels": []string{"FromSkiaPerf,Type-Defect,Priority-Medium"},
+		"comment": []string{fmt.Sprintf(`*** TYPE YOUR BRIEF DESCRIPTION HERE ***
+
+----------
+
+This bug was reported via fiddle.skia.org.
+
+Visit this URL to see the details of the reported bug:
+
+https://fiddle.skia.org/c/%s.
+
+Don't remove the above URL; it's used to match bugs to fiddles.`, hash)},
+	}
+
+	return "https://code.google.com/p/skia/issues/entry?" + q.Encode()
 }
 
 // getCode returns the code for a given hash, or the empty string if not found.
@@ -673,6 +698,7 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 		rasterURL, gpuURL, pdfURL, rasterMod, gpuMod, pdfMod := getOutputURLS(hash)
 
 		w.Header().Set("Content-Type", "text/html")
+
 		context := userCode{
 			Tries:     tries,
 			Permalink: true,
@@ -683,6 +709,7 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 			PDFMod:    pdfMod.Format(TIME_LAYOUT),
 			RasterMod: rasterMod.Format(TIME_LAYOUT),
 			GPUMod:    gpuMod.Format(TIME_LAYOUT),
+			BugURL:    makeBugURL(hash),
 			Code:      code,
 			Name:      name,
 			Hash:      hash,
@@ -691,6 +718,7 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 			Source:    source,
 			Titlebar:  Titlebar{GitHash: gitHash, GitInfo: gitInfo},
 		}
+		glog.Infof("%v\n", context)
 		if err := workspaceTemplate.Execute(w, context); err != nil {
 			glog.Errorf("Failed to expand template: %q\n", err)
 		}
@@ -954,6 +982,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			PDFMod:    pdfMod.Format(TIME_LAYOUT),
 			RasterMod: rasterMod.Format(TIME_LAYOUT),
 			GPUMod:    gpuMod.Format(TIME_LAYOUT),
+			BugURL:    makeBugURL(hash),
 			Hash:      hash,
 			Source:    source,
 			Embedded:  false,
@@ -1055,7 +1084,8 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		m := response{
-			Hash: hash,
+			Hash:   hash,
+			BugURL: makeBugURL(hash),
 		}
 
 		rasterImg, gpuImg, pdfURL, rasterMod, gpuMod, pdfMod, err, errMsg := getOutputData(hash)
