@@ -622,6 +622,9 @@
         this.endIdx = null;
         this.timeout = null;
         this.revertedHashToReverter = {};
+        this.windowHeight = 0;
+        this.windowWidth = 0;
+
         var that = this;
         sk.Login.then(function(status) {
           var email = status['Email'];
@@ -773,6 +776,22 @@
         return this.$.infoDialog.style.display != "none";
       },
 
+      // Set the dialog content and open the dialog.
+      openDialog: function(child) {
+        this.$.infoDialog.innerHTML = "";
+        var infoDialogContent = document.createElement("div");
+        infoDialogContent.id = "infoDialogContent";
+        infoDialogContent.style.width = this.windowWidth * 0.5 + "px";
+        infoDialogContent.style.minWidth = this.windowWidth * 0.5 + "px";
+        infoDialogContent.style.maxWidth = this.windowWidth * 0.5 + "px";
+        infoDialogContent.style.height = this.windowHeight * 0.5 + "px";
+        infoDialogContent.style.minHeight = this.windowHeight * 0.5 + "px";
+        infoDialogContent.style.maxHeight = this.windowHeight * 0.5 + "px";
+        infoDialogContent.appendChild(child);
+        this.$.infoDialog.appendChild(infoDialogContent);
+        this.$.infoDialog.toggle();
+      },
+
       // Open the build popup.
       openBuildPopup: function(e, d, s) {
         if (this.infoPopupOpen()) {
@@ -786,13 +805,11 @@
         var builder = split[2];
         var build = this.buildDetails[commit][builder];
         if (build) {
-          this.$.infoDialog.innerHTML = "";
           var buildInfo = document.createElement("build-popup-sk");
           buildInfo.build = build;
           buildInfo.buildbotUrlPrefix = this.buildbotUrlPrefix;
           buildInfo.repo = this.repo;
-          this.$.infoDialog.appendChild(buildInfo);
-          this.$.infoDialog.toggle();
+          this.openDialog(buildInfo);
         }
       },
 
@@ -807,13 +824,11 @@
         }
         var builder = split[1];
         if (builder) {
-          this.$.infoDialog.innerHTML = "";
           var builderInfo = document.createElement("builder-popup-sk");
           builderInfo.builder = this.allBuilders[builder];
           builderInfo.buildbotUrlPrefix = this.buildbotUrlPrefix;
           builderInfo.repo = this.repo;
-          this.$.infoDialog.appendChild(builderInfo);
-          this.$.infoDialog.toggle();
+          this.openDialog(builderInfo);
         }
       },
 
@@ -828,12 +843,10 @@
         }
         var commit = this.commits[split[1]];
         if (commit) {
-          this.$.infoDialog.innerHTML = "";
           var commitInfo = document.createElement("commit-popup-sk");
           commitInfo.commit = commit;
           commitInfo.repo = this.repo;
-          this.$.infoDialog.appendChild(commitInfo);
-          this.$.infoDialog.toggle();
+          this.openDialog(commitInfo);
         }
       },
 
@@ -1100,8 +1113,9 @@
         }
 
         // Get the build table width.
-        var windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        this.buildTableWidth = windowWidth - w - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth - 25;
+        this.windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        this.windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+        this.buildTableWidth = this.windowWidth - w - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth - 25;
       },
 
       setBuilderWidth: function() {
