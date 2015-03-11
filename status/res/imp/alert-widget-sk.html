@@ -149,7 +149,7 @@
         this.alerts = alerts;
         var activeAlerts = 0;
         for (var i = 0; i < alerts.length; i++) {
-          if (!alerts[i].snoozed) {
+          if (alerts[i].snoozedUntil == 0) {
             activeAlerts++;
           }
         }
@@ -165,7 +165,7 @@
       reloadAlerts: function() {
         var that = this;
         sk.get("https://alerts.skia.org/json/alerts/").then(JSON.parse).then(function(json) {
-          that.updateAlerts(json.alerts);
+          that.updateAlerts(json);
           that.resetTimeout();
         }).catch(function() {
           that.resetTimeout();
