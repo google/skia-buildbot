@@ -53,53 +53,15 @@
 
     <script type="text/javascript" charset="utf-8">
      (function() {
-       // Returns an object with only values that are in 'o' that are different
-       // from 'd'.
-       function getDelta(o, d) {
-         var ret = {};
-         Object.keys(o).forEach(function(key) {
-           if (o[key] != d[key]) {
-             ret[key] = o[key];
-           }
-         });
-         return ret;
-       }
-
-       // Returns a copy of object o with values from delta if they exist.
-       function applyDelta(delta, o) {
-         ret = {};
-         Object.keys(o).forEach(function(key) {
-           if (delta.hasOwnProperty(key)) {
-             ret[key] = delta[key];
-           } else {
-             ret[key] = o[key];
-           }
-         });
-         return ret;
-       }
-
        var summaries  = [];
 
-       var state = {
+       var page = {};
+
+       // The current state of the page.
+       page.state = {
          query: "source_type=gm",
          include: false,
        }
-
-       // The default state of the page. Used to calculate diffs to state.
-       var defaultState = JSON.parse(JSON.stringify(state));
-
-       // The last state of the page. Used to determine if the page state has changed recently.
-       var lastState = JSON.parse(JSON.stringify(state));
-
-       // Watch for state changes and reflect them in the URL.
-       setInterval(function() {
-         if (Object.keys(getDelta(lastState, state)).length > 0) {
-           lastState = JSON.parse(JSON.stringify(state));
-           var q = sk.query.fromObject(getDelta(state, defaultState));
-           history.pushState(null, "", window.location.origin + window.location.pathname + "?" +  q);
-           loadList();
-         }
-       }, 100);
 
        function displaySummaries(corpus) {
          var container = $$$('#summaries');
@@ -108,45 +70,39 @@
            var s = document.createElement('test-summary-sk');
            container.appendChild(s);
            s.summary = c;
-           s.query = encodeURIComponent(state.query);
-           s.include = state.include;
+           s.query = encodeURIComponent(page.state.query);
+           s.include = page.state.include;
          });
          $$$('paper-spinner').active = false;
        }
 
-       function loadListFromURL() {
-         // Apply the object diffs to default and then reload the state based on that.
-         var delta = sk.query.toObject(window.location.search.slice(1), defaultState);
-         state = applyDelta(delta, defaultState);
-         lastState = applyDelta(delta, defaultState);
-         loadList();
-       }
 
        function loadList() {
          sk.clearChildren($$$('#summaries'));
          $$$('paper-spinner').active = true;
-         sk.get('/2/_/list?'+sk.query.fromObject(state)).then(JSON.parse).then(function(json) {
+         sk.get('/2/_/list?'+sk.query.fromObject(page.state)).then(JSON.parse).then(function(json) {
            summaries = json;
            displaySummaries();
          }).catch(function(e) {
            $$$('paper-toast').text = e;
            $$$('paper-toast').show();
          });
-
        }
 
-       sk.WebComponentsReady.then(function(){
-         loadListFromURL();
+       // Map state to/from the URL.
+       sk.stateReflector(page, loadList);
 
+       sk.WebComponentsReady.then(function(){
          $$$('#search').addEventListener('click', function() {
-           $$$('#query').query = state.query;
-           $$$('#query').include = state.include;
+           $$$('#query').query = page.state.query;
+           $$$('#query').include = page.state.include;
            $$$('#query').open();
          });
 
          $$$('#query').addEventListener('closed', function(e) {
-           state.query = e.detail.query;
-           state.include = e.detail.useIgnored;
+           page.state.query = e.detail.query;
+           page.state.include = e.detail.useIgnored;
+           loadList();
          });
        });
      })();

@@ -131,31 +131,6 @@
     <script type="text/javascript" charset="utf-8">
      (function() {
 
-       // Returns an object with only values that are in o that are different
-       // from d.
-       function getDelta(o, d) {
-         var ret = {};
-         Object.keys(o).forEach(function(key) {
-           if (o[key] != d[key]) {
-             ret[key] = o[key];
-           }
-         });
-         return ret;
-       }
-
-       // Returns a copy of object o with values from delta if they exist.
-       function applyDelta(delta, o) {
-         ret = {};
-         Object.keys(o).forEach(function(key) {
-           if (delta.hasOwnProperty(key)) {
-             ret[key] = delta[key];
-           } else {
-             ret[key] = o[key];
-           }
-         });
-         return ret;
-       }
-
        // Total number of digests displayed across the top.
        var topTotal = 5;
 
@@ -174,8 +149,10 @@
           testName = match[1];
        }
 
+       var page = {};
+
        // The current state of the page.
-       var state = {
+       page.state = {
          test:               testName,
          topFilter:          "positive",
          leftFilter:         "untriaged",
@@ -190,36 +167,20 @@
          digest:             "", // Digest to sort against.
        };
 
-       // The default state of the page. Used to calcualte diffs to state.
-       var defaultState = JSON.parse(JSON.stringify(state));
-
-       // The last state of the page. Used to determine if the page state has changed recently.
-       var lastState = JSON.parse(JSON.stringify(state));
-
-       // Watch for state changes and reflect them in the URL.
-       setInterval(function() {
-         if (Object.keys(getDelta(lastState, state)).length > 0) {
-           lastState = JSON.parse(JSON.stringify(state));
-           var q = sk.query.fromObject(getDelta(state, defaultState));
-           history.pushState(null, "", window.location.origin + window.location.pathname + "?" +  q);
-         }
-       }, 100);
 
        function loadGridFromURL() {
-         // Apply the object diffs to default and then reload the state based on that.
-         var delta = sk.query.toObject(window.location.search.slice(1), defaultState);
-         state = applyDelta(delta, defaultState);
-         lastState = applyDelta(delta, defaultState);
-
-         $$$('#leftFilter').value = state.leftFilter;
-         $$$('#topFilter').value = state.topFilter;
-         $$$('#queryLeftButton').title = state.leftQuery;
-         $$$('#queryTopButton').title = state.topQuery;
+         $$$('#leftFilter').value = page.state.leftFilter;
+         $$$('#topFilter').value = page.state.topFilter;
+         $$$('#queryLeftButton').title = page.state.leftQuery;
+         $$$('#queryTopButton').title = page.state.topQuery;
          loadGrid();
        }
 
+       // Map state to/from the URL.
+       sk.stateReflector(page, loadGridFromURL);
+
        // updateSortButtons updates the display of the sorting controls based
-       // on the state object and also on the checked state of digests.
+       // on the page.state object and also on the checked page.state of digests.
        function updateSortButtons() {
          if ($$$('grid-sk').checkedSide() == "") {
            // Disable the buttons if nothing is checked.
@@ -240,14 +201,14 @@
              });
            }
          }
-         if (state.sort == "") {
+         if (page.state.sort == "") {
            $$('sort-grid-sk').forEach(function(ele) {
              ele.value = '';
            });
          } else {
-           var side = state.sort;
+           var side = page.state.sort;
            var otherSide = {"top": "left", "left": "top"}[side];
-           $$$('sort-grid-sk[data-id=' + side + ']').value = state.dir;
+           $$$('sort-grid-sk[data-id=' + side + ']').value = page.state.dir;
            $$$('sort-grid-sk[data-id=' + otherSide + ']').value = "";
          }
        }
@@ -259,65 +220,61 @@
          var digests = $$$('grid-sk').getCheckedDigests();
          if (side != "" && digests.length == 1) {
            side = {"top": "left", "left": "top"}[side];
-           state.sort = side;
-           state.dir = $$$('sort-grid-sk[data-id=' + side + ']').value;
-           state.digest = digests[0];
+           page.state.sort = side;
+           page.state.dir = $$$('sort-grid-sk[data-id=' + side + ']').value;
+           page.state.digest = digests[0];
          } else {
-           state.sort = "";
-           state.dir = "";
-           state.digest = "";
+           page.state.sort = "";
+           page.state.dir = "";
+           page.state.digest = "";
          }
        }
 
-       window.addEventListener('popstate', function(e) {
-         loadGridFromURL();
-       });
-
        $$$('#queryTopButton').addEventListener('click', function() {
-         $$$('#queryTopDialog').query = state.topQuery;
-         $$$('#queryTopDialog').include = state.topIncludeIgnores;
+         $$$('#queryTopDialog').query = page.state.topQuery;
+         $$$('#queryTopDialog').include = page.state.topIncludeIgnores;
          $$$('#queryTopDialog').open();
        });
 
        $$$('#queryLeftButton').addEventListener('click', function() {
-         $$$('#queryLeftDialog').query = state.leftQuery;
-         $$$('#queryLeftDialog').include = state.leftIncludeIgnores;
+         $$$('#queryLeftDialog').query = page.state.leftQuery;
+         $$$('#queryLeftDialog').include = page.state.leftIncludeIgnores;
          $$$('#queryLeftDialog').open('left');
        });
 
        $$$('#queryTopDialog').addEventListener('closed', function(e) {
-         state.topQuery = e.detail.query;
-         state.topIncludeIgnores = e.detail.useIgnored;
-         $$$('#queryTopButton').title = state.topQuery;
+         page.state.topQuery = e.detail.query;
+         page.state.topIncludeIgnores = e.detail.useIgnored;
+         $$$('#queryTopButton').title = page.state.topQuery;
          loadGrid();
        });
 
        $$$('#queryLeftDialog').addEventListener('closed', function(e) {
-         state.leftQuery = e.detail.query;
-         state.leftIncludeIgnores = e.detail.useIgnored;
-         $$$('#queryLeftButton').title = state.leftQuery;
+         page.state.leftQuery = e.detail.query;
+         page.state.leftIncludeIgnores = e.detail.useIgnored;
+         $$$('#queryLeftButton').title = page.state.leftQuery;
          loadGrid();
        });
 
        $$$('grid-sk').addEventListener('more-top', function() {
-         state.topN += moreDelta;
-         if (state.topN > topTotal) {
-           state.topN = topTotal;
+         page.state.topN += moreDelta;
+         if (page.state.topN > topTotal) {
+           page.state.topN = topTotal;
          }
          loadGrid();
        });
 
        $$$('grid-sk').addEventListener('more-left', function() {
-         state.leftN += moreDelta;
-         if (state.leftN > leftTotal) {
-           state.leftN = leftTotal;
+         page.state.leftN += moreDelta;
+         if (page.state.leftN > leftTotal) {
+           page.state.leftN = leftTotal;
          }
          loadGrid();
        });
 
        function loadGrid() {
          $$$('group-triage-dialog-sk').close();
-         sk.post('/2/_/test', JSON.stringify(state)).then(JSON.parse).then(function(json) {
+         sk.post('/2/_/test', JSON.stringify(page.state)).then(JSON.parse).then(function(json) {
            topTotal = json.topTotal;
            leftTotal = json.leftTotal;
 
@@ -331,11 +288,11 @@
              $$$('group-triage-dialog-sk').total = total;
            }
 
-           if (state.topN > topTotal) {
-             state.topN = Math.max(topTotal, 5);
+           if (page.state.topN > topTotal) {
+             page.state.topN = Math.max(topTotal, 5);
            }
-           if (state.leftN > leftTotal) {
-             state.leftN = Math.max(leftTotal, 5);
+           if (page.state.leftN > leftTotal) {
+             page.state.leftN = Math.max(leftTotal, 5);
            }
            $$$('grid-sk').setValue(json);
            $$$('#leftSummary').innerHTML = json.left.length + "/" + json.leftTotal;
@@ -391,17 +348,17 @@
        $$$('group-triage-dialog-sk').addEventListener('closed', function(e) {
          if (e.detail.action == 'ok') {
            side = $$$('grid-sk').checkedSide();
-           var query = state.topQuery;
-           var filter = state.topFilter;
-           var include = state.topIncludeIgnores;
+           var query = page.state.topQuery;
+           var filter = page.state.topFilter;
+           var include = page.state.topIncludeIgnores;
            if (side == 'left') {
-             query = state.leftQuery;
-             filter = state.leftFilter;
-             include = state.leftIncludeIgnores;
+             query = page.state.leftQuery;
+             filter = page.state.leftFilter;
+             include = page.state.leftIncludeIgnores;
            }
 
            var request = {
-             test: state.test,
+             test: page.state.test,
              digest: $$$('grid-sk').getCheckedDigests(),
              status: e.detail.status,
              all: e.detail.all,
@@ -431,19 +388,18 @@
        });
 
        $$$('#topFilter').addEventListener('change', function(e) {
-         state.topFilter = e.detail;
+         page.state.topFilter = e.detail;
          loadGrid();
        });
 
        $$$('#leftFilter').addEventListener('change', function(e) {
-         state.leftFilter = e.detail;
+         page.state.leftFilter = e.detail;
          loadGrid();
        });
 
        // Only kick off the action once the web components are ready.
        sk.WebComponentsReady.then(function() {
-         $$$('test-status-sk').test = state.test;
-         loadGridFromURL();
+         $$$('test-status-sk').test = page.state.test;
 
          $$('sort-grid-sk').forEach(function(ele) {
            ele.addEventListener('change', function() {

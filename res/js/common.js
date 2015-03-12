@@ -330,6 +330,73 @@ this.sk = this.sk || function() {
     return ret;
   }
 
+  // Namespace for utilities for working with Objects.
+  sk.object = {};
+
+  // Returns an object with only values that are in o that are different
+  // from d.
+  sk.object.getDelta = function (o, d) {
+    var ret = {};
+    Object.keys(o).forEach(function(key) {
+      if (o[key] != d[key]) {
+        ret[key] = o[key];
+      }
+    });
+    return ret;
+  }
+
+  // Returns a copy of object o with values from delta if they exist.
+  sk.object.applyDelta = function (delta, o) {
+    var ret = {};
+    Object.keys(o).forEach(function(key) {
+      if (delta.hasOwnProperty(key)) {
+        ret[key] = delta[key];
+      } else {
+        ret[key] = o[key];
+      }
+    });
+    return ret;
+  }
+
+  // Track the state of a page and reflect it to and from the URL.
+  //
+  // page - An object with a property 'state' where the state to be reflected
+  //        into the URL is stored. We need the level of indirection because
+  //        JS doesn't have pointers.
+  // cb   - A callback of the form function() that is called when state has been
+  //        changed by a change in the URL.
+  sk.stateReflector = function(page, cb) {
+    // The default state of the page. Used to calculate diffs to state.
+    var defaultState = JSON.parse(JSON.stringify(page.state));
+
+    // The last state of the page. Used to determine if the page state has changed recently.
+    var lastState = JSON.parse(JSON.stringify(page.state));
+
+    // Watch for state changes and reflect them in the URL by simply
+    // polling the object and looking for differences from defaultState.
+    setInterval(function() {
+      if (Object.keys(sk.object.getDelta(lastState, page.state)).length > 0) {
+        lastState = JSON.parse(JSON.stringify(page.state));
+        var q = sk.query.fromObject(sk.object.getDelta(page.state, defaultState));
+        history.pushState(null, "", window.location.origin + window.location.pathname + "?" +  q);
+      }
+    }, 100);
+
+    // stateFromURL should be called when the URL has changed, it updates
+    // the page.state and triggers the callback.
+    var stateFromURL = function() {
+      var delta = sk.query.toObject(window.location.search.slice(1), defaultState);
+      page.state = sk.object.applyDelta(delta, defaultState);
+      lastState = JSON.parse(JSON.stringify(page.state));
+      cb();
+    }
+
+    // When we are loaded we should update the state from the URL.
+    sk.WebComponentsReady.then(stateFromURL);
+
+    // Every popstate event should also update the state.
+    window.addEventListener('popstate', stateFromURL);
+  }
 
   return sk;
 }();
