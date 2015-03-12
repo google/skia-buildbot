@@ -356,7 +356,6 @@ type Tx interface {
 // defer func() { rv = CommitOrRollback(tx, rv) }
 //
 func CommitOrRollback(tx Tx, err error) error {
-	glog.Errorf("CommitOrRollback: err = %v", err)
 	if err != nil {
 		if err2 := tx.Rollback(); err2 != nil {
 			return fmt.Errorf("%v; failed to rollback: %v", err, err2)
