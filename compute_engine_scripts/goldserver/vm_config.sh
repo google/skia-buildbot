@@ -14,38 +14,42 @@ if [ $? != "0" ]; then
   exit 1
 fi
 
+# Shared scope that is inherited from compute_engine_cfg.py.
+GOLD_SCOPES="$SCOPES"
+
 case "$1" in
   prod)
-	GOLD_MACHINE_TYPE=n1-highmem-16
-	GOLD_IP_ADDRESS=104.154.112.104
-	GOLD_DATA_DISK_SIZE="2TB"
-	;;
+    GOLD_MACHINE_TYPE=n1-highmem-16
+    GOLD_IP_ADDRESS=104.154.112.104
+    GOLD_DATA_DISK_SIZE="2TB"
+    ;;
 
   stage)
-	# TODO(stephana): Reduce the instance size once gold is more performant.
-	GOLD_MACHINE_TYPE=n1-highmem-16
-	GOLD_IP_ADDRESS=104.154.112.105
-	GOLD_DATA_DISK_SIZE="500GB"
-	;;
+    # TODO(stephana): Reduce the instance size once gold is more performant.
+    GOLD_MACHINE_TYPE=n1-highmem-16
+    GOLD_IP_ADDRESS=104.154.112.105
+    GOLD_DATA_DISK_SIZE="500GB"
+    ;;
 
   android)
-	GOLD_MACHINE_TYPE=n1-highmem-16
-	GOLD_IP_ADDRESS=104.154.112.106
-	GOLD_DATA_DISK_SIZE="500GB"
-	;;
+    GOLD_MACHINE_TYPE=n1-highmem-16
+    GOLD_IP_ADDRESS=104.154.112.106
+    GOLD_DATA_DISK_SIZE="500GB"
+    GOLD_SCOPES="$GOLD_SCOPES,https://www.googleapis.com/auth/androidbuild.internal"
+    ;;
 
   blink)
-	GOLD_MACHINE_TYPE=n1-highmem-16
-	GOLD_IP_ADDRESS=104.154.112.107
-	GOLD_DATA_DISK_SIZE="500GB"
-	;;
+    GOLD_MACHINE_TYPE=n1-highmem-16
+    GOLD_IP_ADDRESS=104.154.112.107
+    GOLD_DATA_DISK_SIZE="500GB"
+    ;;
 
   *)
-	# There must be a target instance id provided.
-	echo "Usage: $0 {prod | stage | android | blink}"
-	echo "   An instance id must be provided as the first argument."
-	exit 1
-	;;
+    # There must be a target instance id provided.
+    echo "Usage: $0 {prod | stage | android | blink}"
+    echo "   An instance id must be provided as the first argument."
+    exit 1
+    ;;
 
 esac
 
@@ -54,7 +58,7 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # The name of instance where gold is running on.
 INSTANCE_NAME=${VM_NAME_BASE}-gold-$1
-GOLD_SOURCE_SNAPSHOT=skia-pushable-base
+GOLD_SOURCE_IMAGE="skia-pushable-baseimage"
 GOLD_DATA_DISK_NAME="$INSTANCE_NAME-data"
 
 # Remove the startup script and generate a new one with the right disk name.
