@@ -153,11 +153,13 @@ func (am *AlertManager) dismiss(a *Alert, user, message string) error {
 	if message != "" {
 		msg = fmt.Sprintf("Dismissed: %s", message)
 	}
-	am.addComment(a, &Comment{
+	if err := am.addComment(a, &Comment{
 		Time:    now,
 		User:    user,
 		Message: msg,
-	})
+	}); err != nil {
+		return err
+	}
 	return am.updateAlert(a)
 }
 
@@ -206,7 +208,9 @@ func (am *AlertManager) tick() error {
 	for _, a := range am.activeAlerts {
 		// Dismiss alerts whose snooze period has expired.
 		if a.Snoozed() && a.SnoozedUntil < now {
-			am.dismiss(a, "AlertServer", "Snooze period expired.")
+			if err := am.dismiss(a, "AlertServer", "Snooze period expired."); err != nil {
+				return err
+			}
 		}
 		// Send a nag message, if applicable.
 		if !a.Snoozed() && a.Nag != 0 {
@@ -215,11 +219,13 @@ func (am *AlertManager) tick() error {
 				lastMsgTime = a.Comments[len(a.Comments)-1].Time
 			}
 			if time.Since(time.Unix(int64(lastMsgTime), 0)) > time.Duration(a.Nag) {
-				am.addComment(a, &Comment{
+				if err := am.addComment(a, &Comment{
 					Time:    time.Now().UTC().Unix(),
 					User:    "AlertServer",
 					Message: fmt.Sprintf(NAG_MSG_TMPL, a.Nag),
-				})
+				}); err != nil {
+					return err
+				}
 			}
 		}
 	}

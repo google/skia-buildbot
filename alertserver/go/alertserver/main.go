@@ -155,7 +155,10 @@ func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	if action == "dismiss" {
 		glog.Infof("%s %d", action, alertId)
-		alertManager.Dismiss(alertId, email, "")
+		if err := alertManager.Dismiss(alertId, email, ""); err != nil {
+			util.ReportError(w, r, err, "Failed to dismiss alert.")
+			return
+		}
 		return
 	} else if action == "snooze" {
 		d := json.NewDecoder(r.Body)
@@ -170,11 +173,17 @@ func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		defer util.Close(r.Body)
 		until := time.Unix(int64(body.Until), 0)
 		glog.Infof("%s %d until %v", action, alertId, until.String())
-		alertManager.Snooze(alertId, until, email)
+		if err := alertManager.Snooze(alertId, until, email); err != nil {
+			util.ReportError(w, r, err, "Failed to snooze alert.")
+			return
+		}
 		return
 	} else if action == "unsnooze" {
 		glog.Infof("%s %d", action, alertId)
-		alertManager.Unsnooze(alertId, email)
+		if err := alertManager.Unsnooze(alertId, email); err != nil {
+			util.ReportError(w, r, err, "Failed to unsnooze alert.")
+			return
+		}
 		return
 	} else if action == "addcomment" {
 		c := struct {
@@ -190,7 +199,11 @@ func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		glog.Infof("%s %d: %s", action, alertId, c.Comment)
-		alertManager.AddComment(alertId, email, c.Comment)
+		if err := alertManager.AddComment(alertId, email, c.Comment); err != nil {
+			util.ReportError(w, r, err, "Failed to add comment.")
+			return
+		}
+		return
 	} else {
 		util.ReportError(w, r, fmt.Errorf("Invalid action %s", action), "The requested action is invalid.")
 		return

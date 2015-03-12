@@ -963,7 +963,10 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	escaped := ehtml.EscapeString(body)
 	linkified := commitLinkifyRe.ReplaceAllString(escaped, "<span class=subject>commit <a href=\"https://skia.googlesource.com/skia/+/${1}\" target=\"_blank\">${1}</a></span>")
 
-	w.Write([]byte(fmt.Sprintf("<pre>%s</pre>", linkified)))
+	if _, err := w.Write([]byte(fmt.Sprintf("<pre>%s</pre>", linkified))); err != nil {
+		util.ReportError(w, r, err, "Failed to write response.")
+		return
+	}
 }
 
 // shortCommitsHandler returns basic info of a range of commits.

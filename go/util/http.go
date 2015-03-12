@@ -106,7 +106,9 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	// needs to be backed off and retried.
 	bodyBuf := bytes.Buffer{}
 	if req.Body != nil {
-		bodyBuf.ReadFrom(req.Body)
+		if _, err := bodyBuf.ReadFrom(req.Body); err != nil {
+			return nil, fmt.Errorf("Failed to read request body: %v", err)
+		}
 	}
 
 	var resp *http.Response

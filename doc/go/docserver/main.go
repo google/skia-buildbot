@@ -138,11 +138,17 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if raw {
-		w.Write(b)
+		if _, err := w.Write(b); err != nil {
+			util.ReportError(w, r, err, "Failed to write response.")
+			return
+		}
 	} else {
 		body := blackfriday.MarkdownCommon(b)
 		if bodyOnly {
-			w.Write(body)
+			if _, err := w.Write(body); err != nil {
+				util.ReportError(w, r, err, "Failed to write response.")
+				return
+			}
 		} else {
 			content := &Content{
 				Body: string(body),

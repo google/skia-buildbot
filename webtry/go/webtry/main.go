@@ -373,8 +373,12 @@ func expandCode(code string, source int, width, height int) (string, error) {
 	fontFriendlyCode := strings.Join(outputCodeLines, "\n")
 
 	h := md5.New()
-	h.Write([]byte(fontFriendlyCode))
-	binary.Write(h, binary.LittleEndian, int64(source))
+	if _, err := h.Write([]byte(fontFriendlyCode)); err != nil {
+		return "", fmt.Errorf("Failed to write md5: %v", err)
+	}
+	if err := binary.Write(h, binary.LittleEndian, int64(source)); err != nil {
+		return "", fmt.Errorf("Failed to write md5: %v", err)
+	}
 	hash := fmt.Sprintf("%x", h.Sum(nil))
 	// At this point we are running in buildbot/webtry, making cache a
 	// peer directory to skia.
@@ -409,14 +413,11 @@ func reportTryError(w http.ResponseWriter, r *http.Request, err error, message, 
 		Hash:    hash,
 	}
 	glog.Errorf("%s\n%s", message, err)
-	resp, err := json.Marshal(m)
-
-	if err != nil {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(m); err != nil {
 		http.Error(w, "Failed to serialize a response", 500)
 		return
 	}
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write(resp)
 }
 
 func reportCompileError(w http.ResponseWriter, r *http.Request, compileErrors []compileError, hash string) {
@@ -424,15 +425,11 @@ func reportCompileError(w http.ResponseWriter, r *http.Request, compileErrors []
 		CompileErrors: compileErrors,
 		Hash:          hash,
 	}
-
-	resp, err := json.Marshal(m)
-
-	if err != nil {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(m); err != nil {
 		http.Error(w, "Failed to serialize a response", 500)
 		return
 	}
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write(resp)
 }
 
 func writeToDatabase(hash string, code string, workspaceName string, source int, width, height int) {
@@ -473,14 +470,11 @@ func sourcesHandler(w http.ResponseWriter, r *http.Request) {
 			sources = append(sources, Sources{Id: id})
 		}
 
-		resp, err := json.Marshal(sources)
-		if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(sources); err != nil {
 			util.ReportError(w, r, err, "Failed to serialize a response.")
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(resp)
-
 	} else if r.Method == "POST" {
 		if err := r.ParseMultipartForm(1000000); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to load image: %s.", err), 500)
@@ -506,7 +500,10 @@ func sourcesHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var b bytes.Buffer
-		png.Encode(&b, m)
+		if err := png.Encode(&b, m); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to encode image: %s.", err), 500)
+			return
+		}
 		bounds := m.Bounds()
 		width := bounds.Max.Y - bounds.Min.Y
 		height := bounds.Max.X - bounds.Min.X
@@ -836,13 +833,11 @@ func tryInfoHandler(w http.ResponseWriter, r *http.Request) {
 	m.GPUMod = gpuMod.Format(TIME_LAYOUT)
 	m.PDFMod = pdfMod.Format(TIME_LAYOUT)
 
-	resp, err := json.Marshal(m)
-	if err != nil {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(m); err != nil {
 		util.ReportError(w, r, err, "Failed to serialize a response.")
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(resp)
 }
 
 func cleanCompileOutput(s, hash string) string {
@@ -1100,13 +1095,11 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		m.GPUMod = gpuMod.Format(TIME_LAYOUT)
 		m.PDFMod = pdfMod.Format(TIME_LAYOUT)
 
-		resp, err := json.Marshal(m)
-		if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(m); err != nil {
 			reportTryError(w, r, err, "Failed to serialize a response.", hash)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(resp)
 	}
 }
 

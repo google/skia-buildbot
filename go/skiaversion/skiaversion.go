@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
 )
 
 var version *Version
@@ -43,9 +44,8 @@ func JsonHandler(w http.ResponseWriter, r *http.Request) {
 			Date:   time.Time{},
 		}
 	}
-	bytes, err := json.Marshal(v)
-	if err != nil {
-		glog.Error(err)
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		util.ReportError(w, r, err, "Failed to encode version as JSON")
+		return
 	}
-	w.Write(bytes)
 }

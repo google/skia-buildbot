@@ -61,7 +61,9 @@ func RunFlowWithTransport(config *oauth.Config, transport http.RoundTripper) (*h
   %s
 
 Enter the verification code:`, url)
-		webbrowser.Open(url)
+		if err := webbrowser.Open(url); err != nil {
+			return nil, fmt.Errorf("Failed to open web browser: %v", err)
+		}
 		var code string
 		fmt.Scan(&code)
 		if _, err := oauthTransport.Exchange(code); err != nil {

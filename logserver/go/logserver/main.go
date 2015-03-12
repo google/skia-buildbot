@@ -393,7 +393,9 @@ func dirWatcher(duration time.Duration, dir string) {
 	}
 
 	for _ = range time.Tick(duration) {
-		filepath.Walk(dir, markFn)
+		if err := filepath.Walk(dir, markFn); err != nil {
+			glog.Fatal(err)
+		}
 		deletedFiles := cleanupAppLogs(dir, appLogLevelToSpace, filesToState)
 		if updatedFiles || deletedFiles {
 			if err := writeCurrentState(filesToState, appLogLevelToSpace, appLogLevelToCount, time.Now()); err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/util"
 )
 
@@ -100,18 +101,7 @@ func (a *Alert) replaceIntoDB() (rv error) {
 	if err != nil {
 		return fmt.Errorf("Unable to push Alert into database - Could not begin transaction: %v", err)
 	}
-	defer func() {
-		if rv != nil {
-			if err := tx.Rollback(); err != nil {
-				err = fmt.Errorf("Failed to rollback the transaction! %v... Previous error: %v", err, rv)
-			}
-		} else {
-			rv = tx.Commit()
-			if rv != nil {
-				tx.Rollback()
-			}
-		}
-	}()
+	defer func() { rv = database.CommitOrRollback(tx, rv) }()
 
 	// Insert the alert itself.
 	active := 0

@@ -186,14 +186,11 @@ func sendResponse(w http.ResponseWriter, data interface{}, status int, paginatio
 
 // sendJson serializes the response envelope and sends ito the client.
 func sendJson(w http.ResponseWriter, resp *ResponseEnvelope) {
-	jsonBytes, err := json.Marshal(resp)
-	if err != nil {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonBytes)
 }
 
 // parseJson extracts the body from the request and parses it into the
@@ -333,7 +330,9 @@ func main() {
 			if err != nil {
 				glog.Fatalf("Unable to create memory profile file: %s", err)
 			}
-			pprof.WriteHeapProfile(f)
+			if err := pprof.WriteHeapProfile(f); err != nil {
+				glog.Fatalf("Unable to write memory profile file: %v", err)
+			}
 			util.Close(f)
 			glog.Infof("Memory profile written to %s", f.Name())
 
@@ -348,7 +347,9 @@ func main() {
 			glog.Fatalf("Unable to create cpu profile file: %s", err)
 		}
 
-		pprof.StartCPUProfile(f)
+		if err := pprof.StartCPUProfile(f); err != nil {
+			glog.Fatalf("Unable to write cpu profile file: %v", err)
+		}
 		time.AfterFunc(*cpuProfile, func() {
 			pprof.StopCPUProfile()
 			util.Close(f)

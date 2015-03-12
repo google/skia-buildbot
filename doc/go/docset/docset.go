@@ -107,7 +107,9 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 	}
 	if issue > 0 {
 		cmd := exec.Command("patch", "-p1")
-		cmd.StdinPipe()
+		if _, err := cmd.StdinPipe(); err != nil {
+			return nil, err
+		}
 		cmd.Dir = repoDir
 		diff, err := rc.Patchset(issue, patchset)
 		if err != nil {
@@ -127,7 +129,7 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 	if refresh {
 		go func() {
 			for _ = range time.Tick(config.REFRESH) {
-				git.Update(true, false)
+				util.LogErr(git.Update(true, false))
 				d.BuildNavigation()
 			}
 		}()

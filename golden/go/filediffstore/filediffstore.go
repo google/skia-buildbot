@@ -497,7 +497,9 @@ func (fs *FileDiffStore) writeDiffMetricsToFileCache(baseName string, diffMetric
 	if err != nil {
 		return fmt.Errorf("Failed to encode to JSON: %s", err)
 	}
-	f.Write(d)
+	if _, err := f.Write(d); err != nil {
+		return fmt.Errorf("Failed to write to file: %v", err)
+	}
 	return nil
 }
 
