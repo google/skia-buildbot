@@ -17,9 +17,14 @@ type DigestInfo struct {
 	// Exception stores a string representing the exception that was encountered
 	// retrieving this digest. If Exception is "" then there was no problem.
 	Exception string
+
+	// IssueIDs is a list of issue ids that are associated with this digest.
+	IssueIDs []int
 }
 
 type DigestStore interface {
+	// GetDigestInfo returns the information about the given testName-digest
+	// pair.
 	GetDigestInfo(testName, digest string) *DigestInfo
 }
 

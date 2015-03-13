@@ -54,3 +54,16 @@ func GetTileStreamNow(tileStore ptypes.TileStore, interval time.Duration) <-chan
 
 	return retCh
 }
+
+// DrainChangeChannel removes everything from the channel thats currently
+// buffered or ready to be read.
+func DrainChangeChannel(ch <-chan []string) {
+Loop:
+	for {
+		select {
+		case <-ch:
+		default:
+			break Loop
+		}
+	}
+}
