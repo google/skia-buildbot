@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	metrics "github.com/rcrowley/go-metrics"
-
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -16,7 +16,7 @@ func loadDMResults(t *testing.T) *DMResults {
 		t.Fatal("Unable to read file test data.")
 	}
 	dm := NewDMResults()
-	json.Unmarshal(b, dm)
+	assert.Nil(t, json.Unmarshal(b, dm))
 	return dm
 }
 

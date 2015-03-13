@@ -151,7 +151,7 @@ func TestCalcSummaries(t *testing.T) {
 	}
 
 	exp := expstorage.NewMemExpectationsStore()
-	exp.AddChange(map[string]gtypes.TestClassification{
+	assert.Nil(t, exp.AddChange(map[string]gtypes.TestClassification{
 		"foo": map[string]gtypes.Label{
 			"aaa": gtypes.POSITIVE,
 			"bbb": gtypes.NEGATIVE,
@@ -162,15 +162,15 @@ func TestCalcSummaries(t *testing.T) {
 		"bar": map[string]gtypes.Label{
 			"fff": gtypes.NEGATIVE,
 		},
-	}, "foo@example.com")
+	}, "foo@example.com"))
 	ta, _ := tally.New(ts)
 	ignoreStore := gtypes.NewMemIgnoreStore()
-	ignoreStore.Create(&gtypes.IgnoreRule{
+	assert.Nil(t, ignoreStore.Create(&gtypes.IgnoreRule{
 		ID:      1,
 		Name:    "foo",
 		Expires: time.Now().Add(time.Hour),
 		Query:   "config=565",
-	})
+	}))
 	diffStore := MockDiffStore{}
 
 	sum, err := CalcSummaries(ts, exp, ta, diffStore, ignoreStore, nil, "source_type=gm", false)

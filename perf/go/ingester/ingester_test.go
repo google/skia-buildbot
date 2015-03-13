@@ -41,7 +41,7 @@ func TestIngestCommits(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed to create testing Tile dir: ", err)
 	}
-	defer os.RemoveAll(tileDir)
+	defer testutils.RemoveAll(t, tileDir)
 
 	git, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
 	if err != nil {

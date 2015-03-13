@@ -5,6 +5,7 @@ import (
 
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/db"
 )
 
@@ -16,7 +17,7 @@ func TestSQLIgnoreStore(t *testing.T) {
 	defer mysqlDB.Close(t)
 
 	vdb := database.NewVersionedDB(testutil.LocalTestDatabaseConfig(migrationSteps))
-	defer vdb.Close()
+	defer testutils.AssertCloses(t, vdb)
 
 	store := NewSQLIgnoreStore(vdb)
 	testIgnoreStore(t, store)

@@ -117,7 +117,7 @@ if __name__ == '__main__':
       continue
     tests_to_run.extend(test_modules)
 
-  go_tests = [GoVet, GoImports]
+  go_tests = [GoVet, GoImports, GoErrCheck]
   go_tests_cwd = [GoTests]
 
   num_tests = (len(tests_to_run) + len(go_tests) +

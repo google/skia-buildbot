@@ -92,7 +92,7 @@ func TestRuleTriggeringE2E(t *testing.T) {
 	// Ensure that the rule auto-dismisses.
 	// Hack the condition so that it's no longer true with the fake query results.
 	r.Condition = "x > 10"
-	r.tick(am)
+	assert.Nil(t, r.tick(am))
 	time.Sleep(10 * time.Millisecond)
 	assert.Equal(t, 0, len(getAlerts()))
 

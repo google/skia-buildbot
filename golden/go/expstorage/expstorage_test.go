@@ -28,7 +28,7 @@ func TestChanges(t *testing.T) {
 			"ddd": types.UNTRIAGED,
 		},
 	}
-	m.AddChange(tc, "")
+	assert.Nil(t, m.AddChange(tc, ""))
 
 	// Test the degenrate case of a Put with no actual changes.
 	_, err = m.Get()
@@ -37,7 +37,7 @@ func TestChanges(t *testing.T) {
 	}
 	ch := m.Changes()
 	ch2 := m.Changes()
-	m.AddChange(map[string]types.TestClassification{}, "")
+	assert.Nil(t, m.AddChange(map[string]types.TestClassification{}, ""))
 	tests := <-ch
 	_ = <-ch2 // Verify channels are stuffed in go routines.
 	if got, want := tests, []string{}; !util.SSliceEqual(got, want) {
@@ -54,7 +54,7 @@ func TestChanges(t *testing.T) {
 			"ccc": types.UNTRIAGED,
 		},
 	}
-	m.AddChange(tc, "")
+	assert.Nil(t, m.AddChange(tc, ""))
 	tests = <-ch
 	_ = <-ch2
 	if got, want := tests, []string{"test1", "test2"}; !util.SSliceEqual(got, want) {

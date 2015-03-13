@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/juju/testing/checkers"
+	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
@@ -241,4 +242,19 @@ func CloseInTest(t T, c io.Closer) {
 	if err := c.Close(); err != nil {
 		t.Errorf("Failed to Close(): %v", err)
 	}
+}
+
+// AssertCloses takes an ioutil.Closer and asserts that it closes.
+func AssertCloses(t T, c io.Closer) {
+	assert.Nil(t, c.Close())
+}
+
+// Remove attempts to remove the given file and asserts that no error is returned.
+func Remove(t T, fp string) {
+	assert.Nil(t, os.Remove(fp))
+}
+
+// RemoveAll attempts to remove the given directory and asserts that no error is returned.
+func RemoveAll(t T, fp string) {
+	assert.Nil(t, os.RemoveAll(fp))
 }

@@ -9,11 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/golden/go/diff"
-)
-
-import (
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/diff"
 )
 
 const (
@@ -46,7 +44,7 @@ func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool
 		cpCmd := exec.Command("cp", "-rf", "./testdata/images", baseDir)
 		assert.Nil(t, cpCmd.Run())
 	} else {
-		os.Mkdir(baseDir, 0700)
+		assert.Nil(t, os.Mkdir(baseDir, 0700))
 	}
 
 	if cleanBaseDir {
@@ -121,7 +119,7 @@ func TestGetDiffMetricFromDir(t *testing.T) {
 
 	for digests, expectedValue := range digestsToExpectedResults {
 		if expectedValue != nil {
-			fds.writeDiffMetricsToFileCache(getDiffBasename(digests[0], digests[1]), expectedValue)
+			assert.Nil(t, fds.writeDiffMetricsToFileCache(getDiffBasename(digests[0], digests[1]), expectedValue))
 		}
 		ret, err := fds.getDiffMetricsFromFileCache(getDiffBasename(digests[0], digests[1]))
 		assert.Nil(t, err)
@@ -132,7 +130,7 @@ func TestGetDiffMetricFromDir(t *testing.T) {
 func TestCacheImageFromGS(t *testing.T) {
 	fds := getTestFileDiffStore(t, TESTDATA_DIR, true)
 	imgFilePath := filepath.Join(fds.localImgDir, fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
-	defer os.Remove(imgFilePath)
+	defer testutils.Remove(t, imgFilePath)
 
 	err := fds.cacheImageFromGS(TEST_DIGEST3)
 	assert.Nil(t, err)
@@ -155,7 +153,7 @@ func TestCacheImageFromGS(t *testing.T) {
 func TestDiff(t *testing.T) {
 	fds := getTestFileDiffStore(t, "", true)
 	diffFilePath := filepath.Join(fds.localDiffDir, fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION))
-	defer os.Remove(diffFilePath)
+	defer testutils.Remove(t, diffFilePath)
 	diffMetrics, err := fds.diff(TEST_DIGEST1, TEST_DIGEST2)
 	if err != nil {
 		t.Error("Unexpected error: ", err)
@@ -210,8 +208,8 @@ func MassiveTestGet_45Digests(t *testing.T) {
 	defer timeTrack(time.Now(), "MassiveTestGet")
 
 	workingDir := filepath.Join(os.TempDir(), MASSIVE_TESTDATA_DIR)
-	defer os.RemoveAll(workingDir)
-	os.Mkdir(workingDir, 0777)
+	assert.Nil(t, os.Mkdir(workingDir, 0777))
+	defer testutils.RemoveAll(t, workingDir)
 	fds := getTestFileDiffStore(t, MASSIVE_TESTDATA_DIR, true)
 	diffMetricsMap, err := fds.Get(
 		"0ff8bf090c7bcfa6e1333f1b27de34a2",
@@ -234,8 +232,8 @@ func MassiveTestAbsPath_45Digests(t *testing.T) {
 	defer timeTrack(time.Now(), "MassiveTestAbsPath")
 
 	workingDir := filepath.Join(os.TempDir(), MASSIVE_TESTDATA_DIR)
-	defer os.RemoveAll(workingDir)
-	os.Mkdir(workingDir, 0777)
+	assert.Nil(t, os.Mkdir(workingDir, 0777))
+	defer testutils.RemoveAll(t, workingDir)
 	fds := getTestFileDiffStore(t, MASSIVE_TESTDATA_DIR, true)
 	digestsToPaths := fds.AbsPath(
 		[]string{MISSING_DIGEST, "0ff8bf090c7bcfa6e1333f1b27de34a2", "0f35601a05e4b70e571d383531d6475d", "0f38c862a94642632a7e1418ce0322dc", "0f422eb209256e4e94442b8bc7216fc4", "0f448bf24d6b1a2d59e8d61ca1864a40", "0f47abec25acbba9fcd8a9fffcc89db4", "0f4d6addbbf439d8a5d43880d06aad2b", "0f50439a1bfcea213b7cb53e64dc8c41", "0f5964ac9eeb3e830c2af590f5a5b417",
@@ -271,12 +269,13 @@ func TestGet_e2e(t *testing.T) {
 	diffBasename := fmt.Sprintf("%s-%s", TEST_DIGEST1, TEST_DIGEST2)
 	diffFilePath := filepath.Join(fds2.localDiffDir, fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
 	diffMetricsFilePath := filepath.Join(fds2.localDiffMetricsDir, fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
-	defer os.Remove(diffFilePath)
-	defer os.Remove(diffMetricsFilePath)
 	diffMetricsMap2, err := fds2.Get(TEST_DIGEST1, []string{TEST_DIGEST2})
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
+
+	defer testutils.Remove(t, diffFilePath)
+	defer testutils.Remove(t, diffMetricsFilePath)
 
 	// Verify that the diff and the diffmetrics files were created.
 	assertFileExists(diffFilePath, t)
@@ -293,13 +292,12 @@ func TestGet_e2e(t *testing.T) {
 	diffBasename = fmt.Sprintf("%s-%s", TEST_DIGEST3, TEST_DIGEST1)
 	diffFilePath = filepath.Join(fds3.localDiffDir, fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
 	diffMetricsFilePath = filepath.Join(fds3.localDiffMetricsDir, fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
-	defer os.Remove(newImageFilePath)
-	defer os.Remove(diffFilePath)
-	defer os.Remove(diffMetricsFilePath)
 	diffMetricsMap3, err := fds3.Get(TEST_DIGEST1, []string{TEST_DIGEST3, MISSING_DIGEST})
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
+
+	defer testutils.Remove(t, newImageFilePath)
 
 	// Verify that the image was downloaded successfully from Google Storage and
 	// that the diff and diffmetrics files were created.
@@ -317,9 +315,6 @@ func TestGet_e2e(t *testing.T) {
 	diffBasename = fmt.Sprintf("%s-%s", TEST_DIGEST3, TEST_DIGEST1)
 	diffFilePath = filepath.Join(fds5.localDiffDir, fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
 	diffMetricsFilePath = filepath.Join(fds5.localDiffMetricsDir, fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
-	defer os.Remove(newImageFilePath)
-	defer os.Remove(diffFilePath)
-	defer os.Remove(diffMetricsFilePath)
 	diffMetricsMap5, err := fds5.Get(TEST_DIGEST1, []string{TEST_DIGEST2, TEST_DIGEST3, MISSING_DIGEST})
 	if err != nil {
 		t.Error("Unexpected error: ", err)
@@ -334,6 +329,9 @@ func TestGet_e2e(t *testing.T) {
 	assert.Equal(t, expectedDiffMetrics1_2, diffMetricsMap5[TEST_DIGEST2])
 	assert.Equal(t, expectedDiffMetrics1_3, diffMetricsMap5[TEST_DIGEST3])
 	assert.Equal(t, 1, downloadFailureCount.Count())
+
+	// diffFilePath, diffMetricsFilePath, and newImageFilePath will be removed
+	// by the deferred testutils.Remove calls above.
 }
 
 func TestReuseSameInstance(t *testing.T) {
