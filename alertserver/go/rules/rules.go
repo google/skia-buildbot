@@ -56,7 +56,7 @@ func (r *Rule) queryExecutionAlert(queryErr error, am *alerting.AlertManager) er
 		return am.AddAlert(&alerting.Alert{
 			Name:     name,
 			Category: r.Category, // Should the category be "internal error" or something?
-			Message:  fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]\nFull error:\n%v", r.Name, r.Query, queryErr),
+			Message:  fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]", r.Name, r.Query),
 			Nag:      int64(1 * time.Hour),
 			Actions:  actions,
 		})
