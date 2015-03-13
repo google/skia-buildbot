@@ -106,16 +106,19 @@ func TestAlertFlowE2E(t *testing.T) {
 	d := clearDB(t)
 	defer d.Close(t)
 
-	am, err := MakeAlertManager(50*time.Millisecond, nil)
+	am, err := MakeAlertManager(time.Millisecond, nil)
 	assert.Nil(t, err)
+
+	// Stop the AlertManager's polling loop so that we can trigger it
+	// manually instead.
+	am.Stop()
 
 	// Insert an Alert.
 	a := makeAlert()
 	assert.Nil(t, am.AddAlert(a))
 
-	// Give the AlertManager a chance to react, then verify that the Alert
-	// is active and not snoozed.
-	time.Sleep(75 * time.Millisecond)
+	// Verify that the Alert is active and not snoozed.
+	assert.Nil(t, am.tick())
 	getAlerts := func() []*Alert {
 		b := bytes.NewBuffer([]byte{})
 		assert.Nil(t, am.WriteActiveAlertsJson(b))
@@ -143,7 +146,8 @@ func TestAlertFlowE2E(t *testing.T) {
 	// Snooze the Alert and make sure it gets dismissed after the snooze
 	// period expires.
 	assert.Nil(t, am.Snooze(got.Id, time.Now().UTC().Add(1*time.Millisecond), "test_user"))
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
+	assert.Nil(t, am.tick())
 	assert.False(t, am.Contains(got.Id))
 	assert.Equal(t, 0, len(getAlerts()))
 
@@ -151,7 +155,4 @@ func TestAlertFlowE2E(t *testing.T) {
 	assert.Nil(t, am.AddAlert(a))
 	assert.Nil(t, am.Dismiss(getAlert().Id, "test_user", "test dismiss"))
 	assert.Equal(t, 0, len(getAlerts()))
-
-	// Stop the AlertManager before deleting the database out form under it.
-	am.Stop()
 }
