@@ -29,20 +29,22 @@ type Action interface {
 }
 
 type EmailAction struct {
-	to      []string
-	subject string
-	str     string
+	to  []string
+	str string
+}
+
+// Create an email subject line from an Alert.
+func (a *EmailAction) emailSubject(alert *Alert) string {
+	return fmt.Sprintf(EMAIL_SUBJECT_TMPL, alert.Name, time.Unix(alert.Triggered, 0).String())
 }
 
 func (a *EmailAction) Fire(alert *Alert) {
-	// Cache the email subject so we can send followup emails on the same thread.
-	a.subject = fmt.Sprintf(EMAIL_SUBJECT_TMPL, alert.Name, time.Unix(alert.Triggered, 0).String())
 	body := alert.Message + EMAIL_FOOTER
 	if emailAuth == nil {
 		glog.Errorf("Email auth is nil! Cannot send email!")
 		return
 	}
-	if err := emailAuth.Send(a.to, a.subject, body); err != nil {
+	if err := emailAuth.Send(a.to, a.emailSubject(alert), body); err != nil {
 		glog.Errorf("Failed to send email: %s", err)
 	}
 }
@@ -52,7 +54,7 @@ func (a *EmailAction) Followup(alert *Alert, msg string) {
 		glog.Error("Email auth is nil! Cannot send email!")
 		return
 	}
-	if err := emailAuth.Send(a.to, a.subject, msg); err != nil {
+	if err := emailAuth.Send(a.to, a.emailSubject(alert), msg); err != nil {
 		glog.Errorf("Failed to send email: %s", err)
 	}
 }
@@ -63,9 +65,8 @@ func (a *EmailAction) String() string {
 
 func NewEmailAction(to []string, str string) Action {
 	return &EmailAction{
-		to:      to,
-		subject: "",
-		str:     str,
+		to:  to,
+		str: str,
 	}
 }
 
