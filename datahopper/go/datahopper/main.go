@@ -12,7 +12,6 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
@@ -48,12 +47,6 @@ func main() {
 	// Global init to initialize glog and parse arguments.
 	common.InitWithMetrics("datahopper", graphiteServer)
 
-	// Prepare the InfluxDB credentials. Load from metadata if appropriate.
-	dbClient, err := influxdb.NewClientFromFlagsAndMetadata(*local)
-	if err != nil {
-		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
-	}
-
 	// Initialize the buildbot database.
 	conf, err := database.ConfigFromFlagsAndMetadata(*local, buildbot.MigrationSteps())
 	if err != nil {
@@ -65,8 +58,6 @@ func main() {
 
 	// Data generation goroutines.
 
-	// AutoRoll data.
-	go autoroll.IngestAutoRollData(dbClient, *workdir)
 	// Buildbot data ingestion.
 	go buildbot.IngestNewBuildsLoop(*workdir)
 

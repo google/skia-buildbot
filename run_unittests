@@ -17,6 +17,7 @@ BUILDBOT_PATH = os.path.dirname(os.path.abspath(__file__))
 GO_DIRS = [
   '.',
   'ct',
+  'datahopper',
   'golden',
   'alertserver',
   'perf',
@@ -35,7 +36,6 @@ CWD: %s
 NO_CRAWL_DIRS = [
   '.git',
   '.svn',
-  'autoroll_git',
   'common',
   'git_poller_skia.git',
   'third_party',
