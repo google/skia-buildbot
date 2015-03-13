@@ -51,7 +51,7 @@ func (r *Rule) queryExecutionAlert(queryErr error, am *alerting.AlertManager) er
 	if err != nil {
 		return err
 	}
-	name := fmt.Sprintf("Failed to execute query (%s)", r.Name)
+	name := "Failed to execute query"
 	if am.ActiveAlert(name) == 0 {
 		return am.AddAlert(&alerting.Alert{
 			Name:     name,
@@ -69,7 +69,7 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 	if err != nil {
 		return err
 	}
-	name := fmt.Sprintf("Failed to evaluate query (%s)", r.Name)
+	name := "Failed to evaluate query"
 	if am.ActiveAlert(name) == 0 {
 		return am.AddAlert(&alerting.Alert{
 			Name:     name,
