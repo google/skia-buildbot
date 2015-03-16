@@ -69,6 +69,8 @@ class TestCsvComparer(unittest.TestCase):
         browser_args_nopatch='--test=1',
         browser_args_withpatch='--test=2',
         pageset_type='Mobile10k',
+        chromium_hash='abcdefg1234567',
+        skia_hash='tuvwxyz1234567',
     )
     comparer.Compare()
     self._AssertHTMLFiles('discard_outliers')
@@ -95,6 +97,8 @@ class TestCsvComparer(unittest.TestCase):
         browser_args_nopatch='',
         browser_args_withpatch='',
         pageset_type='10k',
+        chromium_hash='abcdefg1234567',
+        skia_hash='tuvwxyz1234567',
     )
     comparer.Compare()
     self._AssertHTMLFiles('keep_outliers', ('fieldname2.html',))

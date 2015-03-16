@@ -261,6 +261,8 @@ func main() {
 		"--browser_args_nopatch=" + *browserExtraArgsNoPatch,
 		"--browser_args_withpatch=" + *browserExtraArgsWithPatch,
 		"--pageset_type=" + *pagesetType,
+		"--chromium_hash=" + chromiumHash,
+		"--skia_hash=" + skiaHash,
 	}
 	if err := util.ExecuteCmd("python", args, []string{}, 2*time.Hour, nil, nil); err != nil {
 		glog.Errorf("Error running csv_comparer.py: %s", err)
