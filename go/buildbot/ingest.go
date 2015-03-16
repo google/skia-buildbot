@@ -63,7 +63,13 @@ func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *
 	// Recurse on the commit's parents.
 	c, err := repo.Details(hash)
 	if err != nil {
-		return fmt.Errorf("Failed to obtain details for %s: %v", hash, err)
+		// Special case. Commits can disappear from the repository
+		// after they're picked up by the buildbots but before they're
+		// ingested here. If we can't find a commit, log an error and
+		// skip the commit.
+		glog.Errorf("Failed to obtain details for %s: %v", hash, err)
+		delete(commits, hash)
+		return nil
 	}
 	for _, p := range c.Parents {
 		// If we've already seen this parent commit, don't revisit it.
