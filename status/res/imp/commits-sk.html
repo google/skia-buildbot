@@ -722,7 +722,7 @@
               } else {
                 failed = true;
               }
-              if (succeeded && failed && selected == "interesting") {
+              if (succeeded && failed && selected == "interesting" && !this.allBuilders[builder].ignoreFailure) {
                 filteredBuilders.push(builder);
                 break;
               }
