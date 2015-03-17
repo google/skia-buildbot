@@ -982,7 +982,7 @@
             for (var builder in buildDetails[commit.hash]) {
               var build = buildDetails[commit.hash][builder];
               if (!build.finished) {
-                build.color = "rgba(230, 171, 2, 0.3)";
+                build.color = "rgba(230, 171, 2, 0.0)";
               } else if (build.results == 0 || build.results == 1 || build.results == 3) {
                 build.color = "rgba(102, 166, 30, 0.3)";
               } else if (build.results == 2) {
