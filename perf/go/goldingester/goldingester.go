@@ -3,16 +3,32 @@ package goldingester
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/androidbuild"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingester"
 	"go.skia.org/infra/perf/go/types"
 )
+
+// Init registers the GoldIngester and the Android specific GoldIngester.
+func Init(client *http.Client) error {
+	gitHashLookup, err := androidbuild.New(client)
+	if err != nil {
+		return err
+	}
+
+	// Generate the pre-ingestion hook and register the ingester.
+	preIngestHook := getAndroidGoldPreIngestHook(gitHashLookup)
+	ingester.Register(config.CONSTRUCTOR_ANDROID_GOLD, func() ingester.ResultIngester { return NewGoldIngester(preIngestHook) })
+	ingester.Register(config.CONSTRUCTOR_GOLD, func() ingester.ResultIngester { return NewGoldIngester(nil) })
+	return nil
+}
 
 // The JSON output from DM looks like this:
 //
@@ -56,6 +72,10 @@ type DMResults struct {
 	Key         map[string]string `json:"key"`
 	Results     []*Result         `json:"results"`
 }
+
+// PreIngestionHook is a function that changes a DMResult after it was parsed
+// from Json, but before it is ingested into the tile.
+type PreIngestionHook func(dmResult *DMResults) error
 
 type Result struct {
 	Key     map[string]string `json:"key"`
@@ -159,14 +179,14 @@ func addResultToTile(res *DMResults, tile *types.Tile, offset int, counter metri
 }
 
 // GoldIngester implements the ingester.ResultIngester interface.
-type GoldIngester struct{}
-
-func NewGoldIngester() ingester.ResultIngester {
-	return GoldIngester{}
+type GoldIngester struct {
+	preIngestionHook PreIngestionHook
 }
 
-func init() {
-	ingester.Register(config.DATASET_GOLDEN, NewGoldIngester)
+func NewGoldIngester(hook PreIngestionHook) ingester.ResultIngester {
+	return GoldIngester{
+		preIngestionHook: hook,
+	}
 }
 
 // See the ingester.ResultIngester interface.
@@ -181,6 +201,13 @@ func (i GoldIngester) Ingest(tt *ingester.TileTracker, opener ingester.Opener, f
 	res := NewDMResults()
 	if err := dec.Decode(res); err != nil {
 		return fmt.Errorf("Failed to decode DM result: %s", err)
+	}
+
+	// Run the pre-ingestion hook.
+	if i.preIngestionHook != nil {
+		if err := i.preIngestionHook(res); err != nil {
+			return fmt.Errorf("Error running pre-ingestion hook: %s", err)
+		}
 	}
 
 	if res.GitHash != "" {

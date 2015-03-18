@@ -39,6 +39,7 @@ import (
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/ingester"
 	"go.skia.org/infra/perf/go/types"
@@ -175,7 +176,7 @@ func init() {
 		panic("Can't construct HTTP client")
 	}
 
-	ingester.Register("nano-trybot", NewTrybotResultIngester)
+	ingester.Register(config.CONSTRUCTOR_NANO_TRYBOT, NewTrybotResultIngester)
 }
 
 // TrybotResultIngester implements the ingester.ResultIngester interface.

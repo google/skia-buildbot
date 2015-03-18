@@ -45,7 +45,7 @@ func BenchmarkStatusWatcher(b *testing.B) {
 	// tile to read.
 	tileDir := os.Getenv("TEST_TILE_DIR")
 	assert.NotEqual(b, "", tileDir, "Please define the TEST_TILE_DIR environment variable to point to a live tile store.")
-	tileStore := filetilestore.NewFileTileStore(tileDir, pconfig.DATASET_GOLDEN, 2*time.Minute)
+	tileStore := filetilestore.NewFileTileStore(tileDir, pconfig.DATASET_GOLD, 2*time.Minute)
 
 	// Load the tile into memory and reset the timer to avoid measuring
 	// disk load time.

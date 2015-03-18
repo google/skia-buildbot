@@ -17,10 +17,11 @@ func (d *TomlDuration) UnmarshalText(text []byte) error {
 }
 
 type Common struct {
-	DoOAuth        bool   // Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.
-	GitRepoDir     string // Directory location for the Skia repo.
-	GraphiteServer string // Where the Graphite metrics ingestion server is running.
-	Local          bool   // Running locally if true. As opposed to in production.
-	TileDir        string // Path where tiles will be placed.
-	OAuthCacheFile string // Path to the file where to cache cache the oauth credentials.
+	DoOAuth               bool   // Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.
+	GitRepoDir            string // Directory location for the Skia repo.
+	GraphiteServer        string // Where the Graphite metrics ingestion server is running.
+	Local                 bool   // Running locally if true. As opposed to in production.
+	TileDir               string // Path where tiles will be placed.
+	OAuthCacheFile        string // Path to the file where to cache cache the oauth credentials.
+	OAuthClientSecretFile string // Path to the file with the oauth client secret.
 }

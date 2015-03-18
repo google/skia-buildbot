@@ -9,15 +9,19 @@ import (
 	"net/http"
 	"time"
 
+	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/BurntSushi/toml"
 	"github.com/skia-dev/glog"
+	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	cconfig "go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/util"
+	pconfig "go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/db"
-	_ "go.skia.org/infra/perf/go/goldingester"
+	"go.skia.org/infra/perf/go/goldingester"
 	"go.skia.org/infra/perf/go/ingester"
 	_ "go.skia.org/infra/perf/go/trybot"
 )
@@ -40,7 +44,7 @@ type IngesterConfig struct {
 
 type IngestConfig struct {
 	Common    cconfig.Common
-	Ingesters map[string]IngesterConfig
+	Ingesters map[string]*IngesterConfig
 }
 
 var config IngestConfig
@@ -100,19 +104,42 @@ func main() {
 	}
 	db.Init(conf)
 
-	var client *http.Client
-	if config.Common.DoOAuth {
-		oauthConfig := auth.DefaultOAuthConfig(config.Common.OAuthCacheFile)
-		client, err = auth.RunFlow(oauthConfig)
-		if err != nil {
-			glog.Fatalf("Failed to auth: %s", err)
+	// Get a backoff transport.
+	transport := util.NewBackOffTransport()
+
+	// Determine the oauth scopes we are going to use. Storage is used by all
+	// ingesters.
+	scopes := []string{storage.CloudPlatformScope}
+	for _, ingesterConfig := range config.Ingesters {
+		if ingesterConfig.ConstructorName == pconfig.CONSTRUCTOR_ANDROID_GOLD {
+			scopes = append(scopes, androidbuildinternal.AndroidbuildInternalScope)
 		}
-	} else {
-		client = nil
-		// Add back service account access here when it's fixed.
 	}
 
+	// Initialize the oauth client that is used to access all scopes.
+	var client *http.Client
+	if config.Common.Local {
+		if config.Common.DoOAuth {
+			client, err = auth.InstalledAppClient(config.Common.OAuthCacheFile,
+				config.Common.OAuthClientSecretFile,
+				transport, scopes...)
+			if err != nil {
+				glog.Fatalf("Failed to auth: %s", err)
+			}
+		} else {
+			client = nil
+			// Add back service account access here when it's fixed.
+		}
+	} else {
+		// Assume we are on a GCE instance.
+		client = auth.GCEServiceAccountClient(transport)
+	}
+
+	// Initialize the ingester and gold ingester.
 	ingester.Init(client)
+	if err := goldingester.Init(client); err != nil {
+		glog.Fatalf("Unable to initialize GoldIngester: %s", err)
+	}
 
 	git, err := gitinfo.NewGitInfo(config.Common.GitRepoDir, true, false)
 	if err != nil {
@@ -132,7 +159,17 @@ func main() {
 		resultIngester := constructor()
 
 		glog.Infof("Process name: %s", dataset)
-		startProcess := NewIngestionProcess(git, config.Common.TileDir, dataset, resultIngester, ingesterConfig.ExtraParams["GSBucket"], ingesterConfig.ExtraParams["GSDir"], ingesterConfig.RunEvery.Duration, ingesterConfig.NCommits, minDuration, ingesterConfig.StatusDir, ingesterConfig.MetricName)
+		startProcess := NewIngestionProcess(git,
+			config.Common.TileDir,
+			dataset,
+			resultIngester,
+			ingesterConfig.ExtraParams["GSBucket"],
+			ingesterConfig.ExtraParams["GSDir"],
+			ingesterConfig.RunEvery.Duration,
+			ingesterConfig.NCommits,
+			minDuration,
+			ingesterConfig.StatusDir,
+			ingesterConfig.MetricName)
 		startProcess()
 	}
 

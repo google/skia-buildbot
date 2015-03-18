@@ -43,7 +43,9 @@ func Init(cl *http.Client) {
 	if cl != nil {
 		client = cl
 	} else {
-		client = util.NewTimeoutClient()
+		client = &http.Client{
+			Transport: util.NewBackOffTransport(),
+		}
 	}
 }
 
@@ -139,7 +141,7 @@ func newCounter(name, suffix string) metrics.Counter {
 
 // NewIngester creates an Ingester given the repo and tilestore specified.
 func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, ri ResultIngester, nCommits int, minDuration time.Duration, storageBucket, storageBaseDir, statusDir, metricName string) (*Ingester, error) {
-	storage, err := storage.New(http.DefaultClient)
+	storage, err := storage.New(client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create interace to Google Storage: %s\n", err)
 	}
@@ -526,7 +528,7 @@ func (b ResultsFileLocation) Fetch() (io.ReadCloser, error) {
 // given bucket and directory made after the given timestamp.
 func getFilesFromGSDir(bucket, dir string, earliestTimestamp int64, storage *storage.Service) ([]*ResultsFileLocation, error) {
 	results := []*ResultsFileLocation{}
-	glog.Infoln("Opening directory", dir)
+	glog.Infof("Opening bucket/directory: %s/%s", bucket, dir)
 
 	req := storage.Objects.List(bucket).Prefix(dir).Fields("nextPageToken", "items/updated", "items/md5Hash", "items/mediaLink", "items/name")
 	for req != nil {
@@ -558,7 +560,7 @@ func getFilesFromGSDir(bucket, dir string, earliestTimestamp int64, storage *sto
 // corresponding to a single JSON file.
 func getResultsFileLocations(startTS int64, endTS int64, storage *storage.Service, bucket, dir string) ([]*ResultsFileLocation, error) {
 	dirs := gs.GetLatestGSDirs(startTS, endTS, dir)
-	glog.Infoln("getResultsFileLocations: Looking in dirs: ", dirs)
+	glog.Infof("getResultsFileLocations: Looking in bucket %s and dirs: %v ", bucket, dirs)
 
 	retval := []*ResultsFileLocation{}
 	for _, dir := range dirs {

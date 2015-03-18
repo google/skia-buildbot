@@ -61,15 +61,23 @@ const (
 )
 
 const (
-	DATASET_NANO        = "nano"
-	DATASET_NANO_TRYBOT = "nano-trybot"
-	DATASET_GOLDEN      = "gold"
+	// Different datasets that are stored in tiles.
+	DATASET_GOLD = "gold"
+	DATASET_NANO = "nano"
+
+	// Constructor names that are used to instantiate an ingester.
+	// Note that, e.g. 'android-gold' has a different ingester, but writes
+	// to the gold dataset.
+	CONSTRUCTOR_NANO         = DATASET_NANO
+	CONSTRUCTOR_GOLD         = DATASET_GOLD
+	CONSTRUCTOR_NANO_TRYBOT  = "nano-trybot"
+	CONSTRUCTOR_ANDROID_GOLD = "android-gold"
 )
 
 var (
 	VALID_DATASETS = []string{
 		DATASET_NANO,
-		DATASET_GOLDEN,
+		DATASET_GOLD,
 	}
 )
 

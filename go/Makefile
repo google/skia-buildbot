@@ -1,3 +1,6 @@
+.PHONY: android_hashlookup
+android_hashlookup:
+	go install -v ./android_hashlookup
 
 .PHONY: packages
 packages:
@@ -8,4 +11,4 @@ testgo:
 	go test ./... -v -test.short
 
 .PHONY: all
-all: packages
+all: packages android_hashlookup
