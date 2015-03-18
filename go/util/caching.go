@@ -9,7 +9,7 @@ import (
 // Generic LRUCache interface.
 type LRUCache interface {
 	// Add adds a key-value pair to the cache.
-	Add(key, value interface{})
+	Add(key, value interface{}) bool
 
 	// Get returns a key value for the given cache. If ok is true
 	// the fetch was succesfull.
@@ -44,10 +44,11 @@ func NewMemLRUCache(maxEntries int) *MemLRUCache {
 	}
 }
 
-func (m *MemLRUCache) Add(key, value interface{}) {
+func (m *MemLRUCache) Add(key, value interface{}) bool {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.cache.Add(key, value)
+	return true
 }
 
 func (m *MemLRUCache) Get(key interface{}) (value interface{}, ok bool) {

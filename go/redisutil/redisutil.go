@@ -63,15 +63,17 @@ func NewRedisLRUCache(serverAddr string, db int, id string, codec util.LRUCodec)
 }
 
 // Add, see the diff.LRUCache interface for details.
-func (c *RedisLRUCache) Add(key, value interface{}) {
+func (c *RedisLRUCache) Add(key, value interface{}) bool {
 	prefixedKey, rawKey, err := c.encodeKey(key)
 	if err != nil {
 		glog.Errorf("Unable to create redis key: %s", err)
+		return false
 	}
 
 	byteVal, err := c.encodeVal(value)
 	if err != nil {
 		glog.Errorf("Unable to create redis value: %s", err)
+		return false
 	}
 
 	conn := c.pool.Get()
@@ -83,7 +85,9 @@ func (c *RedisLRUCache) Add(key, value interface{}) {
 	_, err = conn.Do("EXEC")
 	if err != nil {
 		glog.Errorf("Unable to add key: %s", err)
+		return false
 	}
+	return true
 }
 
 // Get, see the diff.LRUCache interface for details.
