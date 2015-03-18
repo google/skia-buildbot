@@ -56,14 +56,6 @@
   </template>
   <script>
     (function() {
-      var deltas = [
-        { units: "w", delta: 7*24*60*60 },
-        { units: "d", delta:   24*60*60 },
-        { units: "h", delta:      60*60 },
-        { units: "m", delta:         60 },
-        { units: "s", delta:          1 },
-      ];
-
       Polymer({
         publish: {
           choices: {
@@ -94,20 +86,7 @@
           return s.slice(0, 8);
         },
 
-        humanDiffDate: function(s) {
-          var diff = (Date.now() - Date.parse(s))/1000;
-          for (var i=0; i<deltas.length; i++) {
-            if (deltas[i].delta < diff) {
-              var s = Math.round(diff/deltas[i].delta)+deltas[i].units;
-              while (s.length < 4) {
-                s = ' ' + s;
-              }
-              return s;
-            }
-          }
-          return diff + "s";
-        }
-
+        humanDiffDate: sk.human.diffDate,
       });
     })();
   </script>

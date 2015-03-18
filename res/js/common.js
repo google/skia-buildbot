@@ -188,6 +188,40 @@ this.sk = this.sk || function() {
     window.addEventListener('polymer-ready', resolve);
   });
 
+  sk.human = {};
+
+  var DELTAS = [
+    { units: "w", delta: 7*24*60*60 },
+    { units: "d", delta:   24*60*60 },
+    { units: "h", delta:      60*60 },
+    { units: "m", delta:         60 },
+    { units: "s", delta:          1 },
+  ];
+
+  /**
+   * Returns the difference between the current time and 's' as a string in a
+   * human friendly format.
+   *
+   * For example, a difference of 123 seconds between 's' and the current time
+   * would return "2m".
+   */
+  sk.human.diffDate = function(s) {
+    var diff = (Date.parse(s) - Date.now())/1000;
+    if (diff < 0) {
+      diff = -1.0 * diff;
+    }
+    for (var i=0; i<DELTAS.length; i++) {
+      if (DELTAS[i].delta < diff) {
+        var s = Math.round(diff/DELTAS[i].delta)+DELTAS[i].units;
+        while (s.length < 4) {
+          s = ' ' + s;
+        }
+        return s;
+      }
+    }
+    return diff + "s";
+  }
+
   sk.array = {};
 
   /**
